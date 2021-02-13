@@ -1,0 +1,26 @@
+package(default_visibility = ["//visibility:public"])
+
+load("@npm//@bazel/typescript:index.bzl", "ts_project")
+load("@build_bazel_rules_nodejs//:index.bzl", "copy_to_bin")
+
+copy_to_bin(
+    name = "package_json",
+    srcs = [
+        "package.json",
+    ]
+)
+
+
+ts_project(
+    name = "server",
+    tsconfig = "//:tsconfig",
+    declaration = True,
+    srcs = glob(["**/*.ts"]),
+    deps = [
+        "@npm//@types/node",
+        "@npm//@types/express",
+        "@npm//commander",
+        "@npm//express",
+        "@npm//domino",
+    ],
+)

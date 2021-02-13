@@ -1,0 +1,8 @@
+{
+    "name": "qoot",
+    "version": "0.0.0",
+    "private": true,
+    "typings": "./qoot.d.ts",
+    "main": "./qoot.js",
+    "type": "module"
+}

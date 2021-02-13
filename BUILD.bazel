@@ -1,0 +1,16 @@
+package(default_visibility = ["//visibility:public"])
+
+load("@npm//@bazel/typescript:index.bzl", "ts_config")
+load("@build_bazel_rules_nodejs//:index.bzl", "copy_to_bin")
+
+ts_config(
+    name = "tsconfig",
+    src = "tsconfig.json",
+)
+
+copy_to_bin(
+    name = "package_json",
+    srcs = [
+        "package.json",
+    ]
+)

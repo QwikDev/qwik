@@ -1,0 +1,41 @@
+package(default_visibility = ["//visibility:public"])
+
+load("@npm//@bazel/typescript:index.bzl", "ts_project")
+load("@build_bazel_rules_nodejs//:index.bzl", "copy_to_bin", "nodejs_binary")
+
+
+ts_project(
+    name = "list",
+    srcs = glob(["**/*.ts"]),
+    declaration = True,
+    tsconfig = "//:tsconfig",
+    deps = [
+        "//client:lib",
+    ],
+)
+
+copy_to_bin(
+    name = "static_files",
+    srcs = [
+        "index.html",
+    ]
+)
+
+nodejs_binary(
+    name = "serve",
+    entry_point = "//server:main.js",
+    templated_args = [
+        "--node_options=--experimental-modules",
+        "--nobazel_patch_module_resolver",
+        "--root", 
+        "client",
+        "integration/list", 
+    ],
+    data = [
+        ":static_files",
+        ":list",
+        "//server",
+        "//client",
+        "//client:loader",
+    ],
+)

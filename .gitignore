@@ -1,0 +1,6 @@
+.history
+.vscode
+bazel-*
+node_modules
+tsc-out
+external

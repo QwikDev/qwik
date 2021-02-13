@@ -1,0 +1,7 @@
+[
+    {
+      "regex": "^buildozer '(.*)'\\s+(.*)$",
+      "command": "buildozer",
+      "args": [ "$1", "$2" ]
+    }
+  ]

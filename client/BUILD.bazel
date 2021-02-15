@@ -15,7 +15,7 @@ js_library(
     package_name = "qoot",
     srcs = ["package.json"],
     deps = [
-        ":client"
+        ":client",
     ],
 )
 

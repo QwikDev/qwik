@@ -1,0 +1,28 @@
+package(default_visibility = ["//visibility:public"])
+
+load("@build_bazel_rules_nodejs//:index.bzl", "nodejs_binary")
+
+
+nodejs_binary(
+    name = "serve",
+    entry_point = "//server:main.js",
+    templated_args = [
+        "--node_options=--experimental-modules",
+        "--nobazel_patch_module_resolver",
+        "--root", 
+        "client",
+        "integration", 
+    ],
+    data = [
+        "//integration/hello_world",
+        "//integration/hello_world:static_files",
+        # "//integration/hello_server",
+        # "//integration/hello_server:static_files",
+        # "//integration/list",
+        # "//integration/list:static_files",
+        "//server",
+        "//server:package_json",
+        "//client",
+        "//client:loader",
+    ],
+)

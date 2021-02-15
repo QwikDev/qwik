@@ -8,7 +8,7 @@
 
 import commander from 'commander';
 import domino from 'domino';
-import express from 'express';
+import express, {response} from 'express';
 import * as fs from 'fs';
 import {dirname, join} from 'path';
 import {fileURLToPath} from 'url';
@@ -30,6 +30,20 @@ async function main(__dirname: string, process: NodeJS.Process) {
   var app = (express as any)();
 
   const basePath = dirname(__dirname.split('.runfiles/')[0]);
+
+  app.use(
+      (req: express.Request, res: express.Response,
+       next: express.NextFunction) => {
+        if (req.path.endsWith('/qoot.js') && req.path !== '/qoot.js') {
+          res.type('application/javascript');
+          res.write('export * from \'/qoot.js\';');
+          res.end();
+        } else {
+          next();
+        }
+      });
+
+
   // Set up static routes first
   const servePaths =
       opts.root.map((servePath: string) => join(basePath, servePath));
@@ -41,6 +55,7 @@ async function main(__dirname: string, process: NodeJS.Process) {
       console.log('REJECTING:', path);
     }
   });
+
   // Now search for `server.js`
   await Promise.all(servePaths.map(async (fullPath: string) => {
     const serverJS = join(fullPath, 'server.js');
@@ -50,6 +65,7 @@ async function main(__dirname: string, process: NodeJS.Process) {
       app.use('/', createServerJSHandler(serverMain));
     }
   }));
+
   app.listen(opts.port);
 }
 

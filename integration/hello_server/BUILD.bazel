@@ -6,7 +6,7 @@ load("@build_bazel_rules_nodejs//:index.bzl", "copy_to_bin", "nodejs_binary")
 
 ts_project(
     name = "hello_server",
-    srcs = glob(["**/*.ts"]),
+    srcs = glob(["**/*.ts"], exclude=["**/*.e2e.ts"]),
     declaration = True,
     tsconfig = "//:tsconfig",
     deps = [
@@ -17,7 +17,7 @@ ts_project(
 copy_to_bin(
     name = "static_files",
     srcs = [
-       # "index.html",
+       "index.html",
     ]
 )
 
@@ -32,10 +32,9 @@ nodejs_binary(
         "integration/hello_server",
     ],
     data = [
-        #":static_files",
+        ":static_files",
         ":hello_server",
         "//server",
-        # "//:package_json", # <== This does not seem to work.
         "//client",
         "//client:loader",
     ],

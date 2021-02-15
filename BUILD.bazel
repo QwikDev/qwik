@@ -14,3 +14,9 @@ copy_to_bin(
         "package.json",
     ]
 )
+
+exports_files([
+    "LICENSE",
+    "cypress.json",
+    "package.json",
+])

@@ -10,12 +10,11 @@ copy_to_bin(
     ]
 )
 
-
 ts_project(
     name = "server",
     tsconfig = "//:tsconfig",
     declaration = True,
-    srcs = glob(["**/*.ts"]),
+    srcs = glob(["**/*.ts"], exclude=["**/*.unit.ts"]),
     deps = [
         "@npm//@types/node",
         "@npm//@types/express",

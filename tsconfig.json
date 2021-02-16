@@ -11,7 +11,9 @@
     ], /* Specify library files to be included in the compilation. */
     // "allowJs": true,                       /* Allow javascript files to be compiled. */
     // "checkJs": true,                       /* Report errors in .js files. */
-    // "jsx": "preserve",                     /* Specify JSX code generation: 'preserve', 'react-native', or 'react'. */
+    "jsx": "react", /* Specify JSX code generation: 'preserve', 'react-native', or 'react'. */
+    "jsxFactory": "qJSX",
+    "jsxFragmentFactory": "null",
     "declaration": true, /* Generates corresponding '.d.ts' file. */
     // "declarationMap": true,                /* Generates a sourcemap for each corresponding '.d.ts' file. */
     // "sourceMap": true,                     /* Generates corresponding '.map' file. */
@@ -42,7 +44,7 @@
     // "noUncheckedIndexedAccess": true,      /* Include 'undefined' in index signature results */
     /* Module Resolution Options */
     "moduleResolution": "node", /* Specify module resolution strategy: 'node' (Node.js) or 'classic' (TypeScript pre-1.6). */
-    "baseUrl": "./client", /* Base directory to resolve non-absolute module names. */
+    "baseUrl": ".", /* Base directory to resolve non-absolute module names. */
     "paths": { /* A series of entries which re-map imports to lookup locations relative to the 'baseUrl'. */
       "qoot": [
         "./client/qoot"

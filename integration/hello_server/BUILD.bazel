@@ -6,19 +6,12 @@ load("@build_bazel_rules_nodejs//:index.bzl", "copy_to_bin", "nodejs_binary")
 
 ts_project(
     name = "hello_server",
-    srcs = glob(["**/*.ts"], exclude=["**/*.e2e.ts"]),
+    srcs = glob(["**/*.ts", "**/*.tsx"], exclude=["**/*.unit.ts", "**/*.unit.tsx"]),
     declaration = True,
     tsconfig = "//:tsconfig",
     deps = [
         "//client:lib",
     ],
-)
-
-copy_to_bin(
-    name = "static_files",
-    srcs = [
-       "index.html",
-    ]
 )
 
 nodejs_binary(

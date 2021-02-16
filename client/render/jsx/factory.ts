@@ -6,12 +6,12 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import 'render/jsx/html.d.ts';
+export interface JSXProps {}
 
-export * from './event.js';
-export * from './inject.js';
-export * from './extract.js';
-export * from './state.js';
-export * from './render.js';
+export interface JSXNode {}
 
-export * from './render/jsx/index.js';
+export function qJSX(
+    tag: string|null, props: JSXProps|null,
+    ...childrend: (string|JSXNode)[]): JSXNode {
+  return {};
+}

@@ -4,18 +4,22 @@ load("@build_bazel_rules_nodejs//:index.bzl", "js_library")
 load("@npm//@bazel/typescript:index.bzl", "ts_project")
 
 ts_project(
-    name = "client",
+    name = "client_project",
     tsconfig = "//:tsconfig",
     declaration = True,
-    srcs = glob(["**/*.ts"], exclude=["qootloader.ts"]),
+    srcs = glob(["**/*.ts"], exclude=["qootloader.ts", "**/*.unit.ts"]),
+    deps = [
+        "//client/injection",
+        "//client/render/jsx",
+    ]
 )
 
 js_library(
-    name = "lib",
+    name = "client",
     package_name = "qoot",
     srcs = ["package.json"],
     deps = [
-        ":client",
+        ":client_project",
     ],
 )
 

@@ -10,7 +10,7 @@ ts_project(
     declaration = True,
     tsconfig = "//:tsconfig",
     deps = [
-        "//client:lib",
+        "//client",
     ],
 )
 

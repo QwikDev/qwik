@@ -1,7 +1,16 @@
 package(default_visibility = ["//visibility:public"])
 
+load("@npm//@bazel/typescript:index.bzl", "ts_project")
 load("@build_bazel_rules_nodejs//:index.bzl", "nodejs_binary")
+load("@build_bazel_rules_nodejs//:index.bzl", "js_library")
 
+js_library(
+    name = "integration_lib",
+    package_name = "qoot_integration",
+    srcs = ["package.json"],
+    deps = [
+    ],
+)
 
 nodejs_binary(
     name = "serve",
@@ -10,18 +19,17 @@ nodejs_binary(
         "--node_options=--experimental-modules",
         "--nobazel_patch_module_resolver",
         "--root", 
-        "client",
-        "integration", 
+        "qoot/client",
+        "qoot/integration", 
     ],
     data = [
+        ":integration_lib",
         "//integration/hello_world",
         "//integration/hello_world:static_files",
-        # "//integration/hello_server",
-        # "//integration/hello_server:static_files",
+        "//integration/hello_server",
         # "//integration/list",
         # "//integration/list:static_files",
         "//server",
-        "//server:package_json",
         "//client",
         "//client:loader",
     ],

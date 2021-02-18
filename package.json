@@ -5,7 +5,8 @@
   "main": "index.js",
   "dependencies": {
     "cypress": "^6.4.0",
-    "domino": "^2.1.6"
+    "domino": "^2.1.6",
+    "source-map-support": "^0.5.19"
   },
   "@comment type": "Setting type to 'commonjs' is important as many of the bazel tooling assumes 'commonjs'. For code which wants ESM a second 'package.json' file needs to be created for just those files.",
   "type": "commonjs",
@@ -15,21 +16,29 @@
     "@bazel/cypress": "^3.2.0",
     "@bazel/ibazel": "^0.12.4",
     "@bazel/typescript": "3.2.0",
+    "@types/chai": "^4.2.15",
     "@types/express": "^4.17.9",
     "@types/jasmine": "^3.6.3",
+    "@types/jest": "^26.0.20",
+    "@types/mocha": "^8.2.1",
     "@types/node": "^14.14.10",
+    "@types/source-map-support": "^0.5.3",
+    "chai": "^4.3.0",
     "clang-format": "^1.5.0",
     "commander": "^6.2.0",
     "express": "^4.17.1",
     "http-server": "^0.12.3",
     "jasmine": "^3.6.4",
+    "jest": "^26.6.3",
+    "mocha": "^8.3.0",
     "serve-static": "^1.14.1",
     "terser": "^5.5.0",
     "typescript": "^4.1.2"
   },
   "scripts": {
     "test:unit": "bazel test  --test_tag_filters=unit  ...",
-    "test:e2e": "bazel test  --test_tag_filters=e2e  ..."
+    "test:e2e": "bazel test  --test_tag_filters=e2e  ...",
+    "test": "jest"
   },
   "author": "",
   "license": "MIT"

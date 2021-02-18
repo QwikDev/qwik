@@ -6,9 +6,10 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { qJSX, } from './qoot.js';
-/** @jsx qJSX */
+import { qJSX } from './qoot.js';
+export const __ = qJSX;
 
 export function helloWorld(props: { url: string }) {
-    return <>Hello world! (${props.url})</>
+    return (<span>Hello world! {props.url}</span>);
 }
+

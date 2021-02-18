@@ -6,12 +6,20 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-export interface JSXProps {}
+export interface JSXProps {
+  [key: string]: string;
+}
 
-export interface JSXNode {}
+export interface JSXNode {
+  tag: string|null|JSXFactory;
+  props: JSXProps|null;
+  children: Array<string|JSXNode>;
+}
+
+export interface JSXFactory {}
 
 export function qJSX(
-    tag: string|null, props: JSXProps|null,
-    ...childrend: (string|JSXNode)[]): JSXNode {
-  return {};
+    tag: string|null|JSXFactory, props: JSXProps|null,
+    ...children: (string|JSXNode)[]): JSXNode {
+  return {tag, props, children};
 }

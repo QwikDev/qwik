@@ -8,11 +8,15 @@
 
 import commander from 'commander';
 import domino from 'domino';
-import express, {response} from 'express';
+import express from 'express';
 import * as fs from 'fs';
 import {dirname, join} from 'path';
+import srcMap from 'source-map-support';
 import {fileURLToPath} from 'url';
 
+import {findFiles} from './fs_util.js';
+
+srcMap.install();
 
 async function main(__dirname: string, process: NodeJS.Process) {
   console.log('===================================================');
@@ -29,7 +33,8 @@ async function main(__dirname: string, process: NodeJS.Process) {
   console.log(opts);
   var app = (express as any)();
 
-  const basePath = dirname(__dirname.split('.runfiles/')[0]);
+  const RUNFILES: string = process.env.RUNFILES || '';
+  console.log('RUNFILES', RUNFILES);
 
   app.use(
       (req: express.Request, res: express.Response,
@@ -46,7 +51,8 @@ async function main(__dirname: string, process: NodeJS.Process) {
 
   // Set up static routes first
   const servePaths =
-      opts.root.map((servePath: string) => join(basePath, servePath));
+      opts.root.map((servePath: string) => join(RUNFILES, servePath));
+
   servePaths.forEach((path: string) => {
     if (fs.existsSync(path)) {
       console.log('Serve static:', path);
@@ -56,14 +62,21 @@ async function main(__dirname: string, process: NodeJS.Process) {
     }
   });
 
+  const serverIndexJS: {url: string, path: string}[] = [];
+  opts.root.forEach((root) => {
+    findFiles(
+        join(RUNFILES, root), 'server_index.js',
+        (fullPath: string, fileName: string, relativePath: string) => {
+          console.log('Found: ', fileName, relativePath, fullPath);
+          serverIndexJS.push({url: relativePath, path: fullPath});
+        });
+  });
+
   // Now search for `server.js`
-  await Promise.all(servePaths.map(async (fullPath: string) => {
-    const serverJS = join(fullPath, 'server.js');
-    if (fs.existsSync(serverJS)) {
-      console.log('   Found:', serverJS);
-      const serverMain = (await import(serverJS)).serverMain;
-      app.use('/', createServerJSHandler(serverMain));
-    }
+  await Promise.all(serverIndexJS.map(async (indexJS) => {
+    console.log('Importing: ', indexJS.path);
+    const serverMain = (await import(indexJS.path)).serverMain;
+    app.use('/' + indexJS.url, createServerJSHandler(serverMain));
   }));
 
   app.listen(opts.port);
@@ -72,14 +85,12 @@ async function main(__dirname: string, process: NodeJS.Process) {
 function createServerJSHandler(serverMain: Function) {
   return function serverJSHandler(req: any, res: any) {
     const document = domino.createDocument();
+    while (document.firstChild!.nextSibling) {
+      document.removeChild(document.firstChild!.nextSibling);
+    }
     serverMain(req.url, document);
-    const qScript = document.createElement('script');
-    qScript.src = '/qootloader.js';
-    qScript.defer = true;
-    const html = document.querySelector('html')!;
-    const head = html.querySelector('head')!;
-    head.appendChild(qScript);
-    res.send(html.outerHTML);
+    const html = document.querySelector('html');
+    res.send(html ? html.outerHTML : '');
   }
 }
 

@@ -1,25 +1,29 @@
 package(default_visibility = ["//visibility:public"])
 
 load("@npm//@bazel/typescript:index.bzl", "ts_project")
-load("@build_bazel_rules_nodejs//:index.bzl", "copy_to_bin")
+load("@build_bazel_rules_nodejs//:index.bzl", "js_library")
 
-copy_to_bin(
-    name = "package_json",
-    srcs = [
-        "package.json",
-    ]
+js_library(
+    name = "server",
+    package_name = "qoot_server",
+    srcs = ["package.json"],
+    deps = [
+        ":server_lib",
+    ],
 )
 
 ts_project(
-    name = "server",
+    name = "server_lib",
     tsconfig = "//:tsconfig",
     declaration = True,
     srcs = glob(["**/*.ts"], exclude=["**/*.unit.ts"]),
     deps = [
         "@npm//@types/node",
         "@npm//@types/express",
+        "@npm//@types/source-map-support",
         "@npm//commander",
         "@npm//express",
         "@npm//domino",
+        "@npm//source-map-support",
     ],
 )

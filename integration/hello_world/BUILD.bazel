@@ -10,7 +10,7 @@ ts_project(
     declaration = True,
     tsconfig = "//:tsconfig",
     deps = [
-        "//client:lib",
+        "//client",
     ],
 )
 
@@ -29,7 +29,7 @@ nodejs_binary(
         "--nobazel_patch_module_resolver",
         "--root", 
         "client",
-        "integration/hello_world", 
+        "qoot/integration/hello_world", 
     ],
     data = [
         ":static_files",

@@ -13,5 +13,6 @@ declare namespace JSX {
     title: any;
     script: any;
     body: any;
+    span: any;
   }
 }

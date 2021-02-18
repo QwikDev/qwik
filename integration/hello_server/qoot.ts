@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import 'qoot/render/jsx/html';
+/// <reference types="../../client/render/jsx/html" />
 
 /**
  * @fileoverview

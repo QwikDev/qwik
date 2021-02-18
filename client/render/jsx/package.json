@@ -1,5 +1,5 @@
 {
-    "name": "qoot_client",
+    "name": "qoot_client_render_jsx",
     "version": "0.0.1",
     "typings": "./qoot.d.ts",
     "main": "./qoot.js",

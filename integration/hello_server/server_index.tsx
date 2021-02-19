@@ -19,7 +19,7 @@ export function serverMain(url: URL, document: Document): void {
         <script src="/qootloader.js" async></script>
       </head>
       <body>
-        <hello-world url={url.toString()} />
+        <hello-world name="World" />
       </body>
     </html>
   );

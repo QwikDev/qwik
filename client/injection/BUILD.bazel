@@ -1,31 +1,42 @@
 package(default_visibility = ["//visibility:public"])
 
-load("@npm//jasmine:index.bzl", "jasmine_test")
+load("@npm//mocha:index.bzl", "mocha_test")
+load("@build_bazel_rules_nodejs//:index.bzl", "js_library")
 load("@npm//@bazel/typescript:index.bzl", "ts_project")
 
-ts_project(
+js_library(
     name = "injection",
+    srcs = [":package.json"],
+    deps = [
+        ":project",
+    ],
+)
+
+ts_project(
+    name = "project",
     tsconfig = "//:tsconfig",
     declaration = True,
     srcs = glob(["**/*.ts"], exclude=["**/*.unit.ts"]),
 )
 
 ts_project(
-    name = "injection_unit",
+    name = "unit_lib",
     tsconfig = "//:tsconfig",
     declaration = True,
     srcs = glob(["**/*.unit.ts"]),
     deps = [
         ":injection",
-        "@npm//@types/jasmine",
+        "@npm//@types/mocha",
+        "@npm//@types/chai",
     ]
 )
 
-jasmine_test(
+mocha_test(
     name = "unit",
-    args = ["**/*.unit.js"],
     tags = ["unit"],
+    args = ["**/*.unit.js"],
     data = [
-        ":injection_unit",
+        ":unit_lib",
+        "@npm//chai",
     ],
 )

@@ -5,4 +5,5 @@ bazel-*
 node_modules
 tsc-out
 external
-*.log
+*.
+yarn-error.log

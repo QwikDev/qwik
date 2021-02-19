@@ -6,14 +6,8 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-declare namespace JSX {
-  interface IntrinsicElements {
-    html: any;
-    head: any;
-    title: any;
-    script: any;
-    body: any;
-    div: any;
-    span: any;
-  }
+
+export function caseInsensitiveCompare(a: any, b: any): boolean {
+  return typeof a === 'string' && typeof b === 'string' &&
+      a.toLowerCase() === b.toLowerCase();
 }

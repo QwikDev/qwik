@@ -27,5 +27,5 @@ export function serverMain(url: URL, document: Document): void {
     "hello-world": helloWorld
   };
 
-  jsxRender(document, document, doc, componentMap);
+  jsxRender(document, doc, componentMap, document);
 }

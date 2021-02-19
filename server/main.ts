@@ -85,9 +85,6 @@ async function main(__dirname: string, process: NodeJS.Process) {
 function createServerJSHandler(serverMain: Function) {
   return function serverJSHandler(req: any, res: any) {
     const document = domino.createDocument();
-    while (document.firstChild!.nextSibling) {
-      document.removeChild(document.firstChild!.nextSibling);
-    }
     serverMain(req.url, document);
     const html = document.querySelector('html');
     res.send(html ? html.outerHTML : '');

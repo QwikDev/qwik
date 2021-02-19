@@ -8,11 +8,11 @@
 
 import {expect} from 'chai';
 
-import {jsxRender} from './render.js';
+import {createGlobal} from './node_utils.js';
 
-describe('render', () => {
-  it('should render HTML tag on document', () => {
-    expect(jsxRender).to.a('function');
-    expect(jsxRender).to.a('string');
+describe('node', () => {
+  it('should create document', () => {
+    const global = createGlobal();
+    expect(global.document).to.be.a('object');
   });
 });

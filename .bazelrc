@@ -1,3 +1,6 @@
+# Enable debugging tests with --config=debug
+test:debug --test_arg=--node_options=--inspect-brk --test_output=streamed --test_strategy=exclusive --test_timeout=9999 --nocache_test_results
+
 # Common Bazel settings for JavaScript/NodeJS workspaces
 # This rc file is automatically discovered when Bazel is run in this workspace,
 # see https://docs.bazel.build/versions/master/guide.html#bazelrc

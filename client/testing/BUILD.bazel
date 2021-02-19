@@ -5,8 +5,9 @@ load("@build_bazel_rules_nodejs//:index.bzl", "js_library")
 load("@npm//@bazel/typescript:index.bzl", "ts_project")
 
 js_library(
-    name = "jsx",
-    srcs = [":package.json"],
+    name = "testing",
+    package_name = "qoot_testing",
+    srcs = ["package.json"],
     deps = [
         ":project",
     ],
@@ -18,9 +19,12 @@ ts_project(
     declaration = True,
     srcs = glob(["**/*.ts", "**/*.tsx"], exclude=["**/*.unit.ts", "**/*.unit.tsx"]),
     deps = [
-        "//client/render/util",
+        "@npm//@types/source-map-support",
+        "@npm//domino",
+        "@npm//source-map-support",
     ]
 )
+
 
 ts_project(
     name = "unit_project",
@@ -28,8 +32,7 @@ ts_project(
     declaration = True,
     srcs = glob(["**/*.unit.ts", "**/*.unit.tsx"]),
     deps = [
-        ":jsx",
-        "//client/testing",
+        ":testing",
         "@npm//@types/mocha",
         "@npm//@types/chai",
         "@npm//chai",
@@ -38,6 +41,7 @@ ts_project(
 
 js_library(
     name = "unit_lib",
+    package_name = "qoot_testing",
     srcs = ["package.json"],
     deps = [
         ":unit_project",
@@ -51,7 +55,7 @@ mocha_test(
     args = ["**/*.unit.js"],
     data = [
         ":unit_lib",
-        ":jsx",
-        "@npm//chai",
+        ":testing",
+        "@npm//chai"
     ],
 )

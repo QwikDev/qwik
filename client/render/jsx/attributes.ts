@@ -11,21 +11,13 @@ import { JSXProps, QProps } from './factory.js';
 /**
  * Apply JSXProps to Element
  */
-export function applyAttributes(
-  document: Document,
-  element: Element,
-  props: JSXProps | null
-) {
+export function applyAttributes(element: Element, props: JSXProps | null) {
   if (props) {
     for (const key in props) {
       if (Object.prototype.hasOwnProperty.call(props, key)) {
         const value = props[key];
         if (key === '$' && value) {
-          applyControlProperties(
-            document,
-            element,
-            (value as unknown) as QProps
-          );
+          applyControlProperties(element, (value as unknown) as QProps);
         } else {
           element.setAttribute(key, value);
         }
@@ -35,7 +27,6 @@ export function applyAttributes(
 }
 
 function applyControlProperties(
-  document: Document,
   element: Element,
   props: { [key: string]: string }
 ) {

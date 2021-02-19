@@ -38,7 +38,7 @@
    * @param event Browser event.
    */
   async function eventProcessor(event: Event) {
-    const eventName = '(' + event.type + ')';
+    const eventName = 'on:' + event.type;
     let element = event.target as Element | null;
     while (element && element.getAttribute) {
       let eventUrl = element.getAttribute(eventName);

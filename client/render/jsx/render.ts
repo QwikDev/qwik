@@ -106,7 +106,7 @@ function reconcileElement(
       document.createElement(jsxTag)
     );
   }
-  applyAttributes(document, reconcileElement, jsxNode.props);
+  applyAttributes(reconcileElement, jsxNode.props);
   const component = registry && registry[jsxTag];
   if (component) {
     reconcileNode(

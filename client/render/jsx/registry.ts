@@ -7,5 +7,5 @@
  */
 
 export interface JSXRegistry {
-  [componentName: string]: Function
+  [componentName: string]: Function;
 }

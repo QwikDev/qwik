@@ -24,7 +24,7 @@ export function serverMain(url: URL, document: Document): void {
     </html>
   );
   const componentMap = {
-    "hello-world": helloWorld
+    'hello-world': helloWorld,
   };
 
   jsxRender(document, doc, componentMap, document);

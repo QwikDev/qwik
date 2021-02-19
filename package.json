@@ -3,6 +3,14 @@
   "version": "0.0.1",
   "description": "",
   "main": "index.js",
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "**/*": "prettier --write --ignore-unknown"
+  },
   "dependencies": {
     "cypress": "^6.4.0",
     "domino": "^2.1.6",
@@ -22,11 +30,13 @@
     "@types/node": "^14.14.10",
     "@types/source-map-support": "^0.5.3",
     "chai": "^4.3.0",
-    "clang-format": "^1.5.0",
     "commander": "^6.2.0",
     "express": "^4.17.1",
     "http-server": "^0.12.3",
+    "husky": "^5.0.9",
+    "lint-staged": "^10.5.4",
     "mocha": "^8.3.0",
+    "prettier": "2.2.1",
     "serve-static": "^1.14.1",
     "terser": "^5.5.0",
     "typescript": "^4.1.2"

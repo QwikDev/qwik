@@ -19,6 +19,6 @@ describe('hello_world', () => {
       // electron does not have alert, so this part of the test does not execute
       // in electron.
       expect(txt).to.contains('Hello World!!!');
-    })
+    });
   });
 });

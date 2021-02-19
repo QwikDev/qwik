@@ -1,0 +1,6 @@
+dist
+.history
+bazel-bin
+bazel-out
+bazel-qoot
+bazel-testlogs

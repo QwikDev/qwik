@@ -26,7 +26,7 @@ export interface QootGlobal {
  * Create emulated `QootGlobal` useful for testing.
  */
 export function createGlobal() {
-  return {document: createDocument()};
+  return { document: createDocument() };
 }
 
 /**

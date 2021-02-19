@@ -6,35 +6,42 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import {State} from './state.js';
+import { State } from './state.js';
 
 export interface Type<T> extends Function {
-  new(...args: any[]): T;
+  new (...args: any[]): T;
 }
 
 export interface InjectFn<R> {
-  (event: Event, target: Element, url: URL): Promise<R>
+  (event: Event, target: Element, url: URL): Promise<R>;
 }
 
 export async function injectEvent(
-    event: Event, target: Element, url: URL): Promise<Event> {
+  event: Event,
+  target: Element,
+  url: URL
+): Promise<Event> {
   return event;
 }
 
-export function injectSourceElement<T extends Element>(type: Type<T>):
-    InjectFn<T> {
+export function injectSourceElement<T extends Element>(
+  type: Type<T>
+): InjectFn<T> {
   return async (event: Event, target: Element, url: URL) => target as T;
 }
 
 export async function injectController<T>(
-    event: Event, target: Element, url: URL): Promise<State<T>|null> {
-  let element: HTMLElement|null = target as HTMLElement;
+  event: Event,
+  target: Element,
+  url: URL
+): Promise<State<T> | null> {
+  let element: HTMLElement | null = target as HTMLElement;
   const controllerName = url.hash.substr(1);
   const controllerAttr = '.' + controllerName;
   while (element) {
     const data = element.getAttribute(controllerAttr);
     if (data != null) {
-      let controller = (element as any)[controllerName] as State<T>| undefined;
+      let controller = (element as any)[controllerName] as State<T> | undefined;
       if (!controller) {
         let [controllerUrl, json] = data.split('|');
         let ControllerType: Type<State<T>>;
@@ -44,8 +51,9 @@ export async function injectController<T>(
         } else {
           ControllerType = await importMember<Type<State<T>>>(controllerUrl);
         }
-        controller = (element as any)[controllerName] =
-            new ControllerType(JSON.parse(json));
+        controller = (element as any)[controllerName] = new ControllerType(
+          JSON.parse(json)
+        );
       }
       return controller;
     }
@@ -54,7 +62,7 @@ export async function injectController<T>(
   return null;
 }
 
-export async function importMember<T>(url: string|URL): Promise<T> {
+export async function importMember<T>(url: string | URL): Promise<T> {
   if (typeof url === 'string') {
     url = new URL(url, document.baseURI);
   }

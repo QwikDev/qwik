@@ -6,12 +6,17 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import {isDomElementWithTagName, isTextNode, NodeType, removeNode, replaceNode} from '../util/dom.js';
+import {
+  isDomElementWithTagName,
+  isTextNode,
+  NodeType,
+  removeNode,
+  replaceNode,
+} from '../util/dom.js';
 
-import {applyAttributes} from './attributes.js';
-import {isJSXNode, JSXNode} from './factory.js';
-import {JSXRegistry} from './registry.js';
-
+import { applyAttributes } from './attributes.js';
+import { isJSXNode, JSXNode } from './factory.js';
+import { JSXRegistry } from './registry.js';
 
 /**
  * Render JSX into a host element reusing DOM nodes when possible.
@@ -24,15 +29,22 @@ import {JSXRegistry} from './registry.js';
  *     (used global `document` otherwise)
  */
 export function jsxRender(
-    host: Element|Document, jsxNode: JSXNode, registry?: JSXRegistry|null,
-    overrideDocument?: Document) {
+  host: Element | Document,
+  jsxNode: JSXNode,
+  registry?: JSXRegistry | null,
+  overrideDocument?: Document
+) {
   let firstChild = host.firstChild;
   while (firstChild && firstChild.nodeType > NodeType.COMMENT_NODE) {
     firstChild = firstChild.nextSibling;
   }
   reconcileNode(
-      overrideDocument || document, registry || null, host, firstChild,
-      jsxNode);
+    overrideDocument || document,
+    registry || null,
+    host,
+    firstChild,
+    jsxNode
+  );
 }
 
 /**
@@ -48,23 +60,39 @@ export function jsxRender(
  *     reused)
  */
 function reconcileNode(
-    document: Document, registry: JSXRegistry|null, domParent: Node,
-    existingNode: Node|null, jsxNode: JSXNode): Node|null {
-  let reconciledNode: Node|null = null;
+  document: Document,
+  registry: JSXRegistry | null,
+  domParent: Node,
+  existingNode: Node | null,
+  jsxNode: JSXNode
+): Node | null {
+  let reconciledNode: Node | null = null;
   if (typeof jsxNode.tag === 'string') {
-    reconciledNode =
-        reconcileElement(document, registry, domParent, existingNode, jsxNode);
+    reconciledNode = reconcileElement(
+      document,
+      registry,
+      domParent,
+      existingNode,
+      jsxNode
+    );
   }
   reconcileChildren(
-      document, registry, reconciledNode || domParent,
-      reconciledNode?.firstChild || null, jsxNode.children);
+    document,
+    registry,
+    reconciledNode || domParent,
+    reconciledNode?.firstChild || null,
+    jsxNode.children
+  );
   return reconciledNode;
 }
 
-
 function reconcileElement(
-    document: Document, registry: JSXRegistry|null, parentNode: Node,
-    existingNode: Node|null, jsxNode: JSXNode): Element {
+  document: Document,
+  registry: JSXRegistry | null,
+  parentNode: Node,
+  existingNode: Node | null,
+  jsxNode: JSXNode
+): Element {
   const jsxTag = jsxNode.tag as string;
   let reconcileElement: Element;
   if (isDomElementWithTagName(existingNode, jsxTag)) {
@@ -72,33 +100,53 @@ function reconcileElement(
     reconcileElement = existingNode;
   } else {
     // No match we need to create a new DOM element (and remove the old one)
-    reconcileElement =
-        replaceNode(parentNode, existingNode, document.createElement(jsxTag));
+    reconcileElement = replaceNode(
+      parentNode,
+      existingNode,
+      document.createElement(jsxTag)
+    );
   }
-  applyAttributes(jsxNode.props, reconcileElement);
+  applyAttributes(document, reconcileElement, jsxNode.props);
   const component = registry && registry[jsxTag];
   if (component) {
     reconcileNode(
-        document, registry, reconcileElement, reconcileElement.firstChild,
-        component(jsxNode.props));
+      document,
+      registry,
+      reconcileElement,
+      reconcileElement.firstChild,
+      component(jsxNode.props)
+    );
   } else {
     reconcileChildren(
-        document, registry, reconcileElement, reconcileElement.firstChild,
-        jsxNode.children);
+      document,
+      registry,
+      reconcileElement,
+      reconcileElement.firstChild,
+      jsxNode.children
+    );
   }
   return reconcileElement;
 }
 
 function reconcileChildren(
-    document: Document, registry: JSXRegistry|null, parentNode: Node,
-    existingNode: Node|null, jsxChildren: any[]): Element|null {
+  document: Document,
+  registry: JSXRegistry | null,
+  parentNode: Node,
+  existingNode: Node | null,
+  jsxChildren: any[]
+): Element | null {
   if (jsxChildren) {
     for (let i = 0; i < jsxChildren.length; i++) {
       const jsxChild = jsxChildren[i];
       if (isJSXNode(jsxChild)) {
         // Element
         existingNode = reconcileElement(
-            document, registry, parentNode, existingNode, jsxChild);
+          document,
+          registry,
+          parentNode,
+          existingNode,
+          jsxChild
+        );
       } else if (jsxChild == null) {
         // delete
         if (existingNode) {
@@ -110,8 +158,10 @@ function reconcileChildren(
           existingNode.textContent = String(jsxChild);
         } else {
           replaceNode(
-              parentNode, existingNode,
-              document.createTextNode(String(jsxChild)));
+            parentNode,
+            existingNode,
+            document.createTextNode(String(jsxChild))
+          );
         }
       }
       existingNode = existingNode?.nextSibling || null;

@@ -7,12 +7,14 @@
  */
 
 import * as fs from 'fs';
-import {join} from 'path';
+import { join } from 'path';
 
 export function findFiles(
-    baseDir: string, pattern: string|RegExp,
-    fn: (fullPath: string, filename: string, relativePath: string) => void,
-    relativeDir: string = '') {
+  baseDir: string,
+  pattern: string | RegExp,
+  fn: (fullPath: string, filename: string, relativePath: string) => void,
+  relativeDir: string = ''
+) {
   const fullPathDir = join(baseDir, relativeDir);
   fs.readdirSync(fullPathDir).forEach((name) => {
     const fullPathFile = join(fullPathDir, name);
@@ -23,4 +25,4 @@ export function findFiles(
       findFiles(baseDir, pattern, fn, join(relativeDir, name));
     }
   });
-};
+}

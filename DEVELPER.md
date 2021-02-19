@@ -8,20 +8,20 @@
 # Running demos (`integration`)
 
 ```
-bazel run integration:serve 
+bazel run integration:serve
 ```
 
 Then open:
-- http://localhost:8080/hello_world/
 
+- http://localhost:8080/hello_world/
 
 ## Running Tests
 
 All tests:
+
 ```
 bazel test  ...
 ```
-
 
 ### Unit tests only
 
@@ -37,7 +37,8 @@ Before running the e2e tests, ensure that the `integration` server is running. (
 bazel test  --test_tag_filters=e2e  ...
 ```
 
-Running cypress manually 
+Running cypress manually
+
 ```
 ./node_modules/.bin/cypress open
 ```

@@ -3,12 +3,8 @@
   "compilerOptions": {
     "baseUrl": "..",
     "paths": {
-      "qoot": [
-        "./client/qoot.ts"
-      ],
-      "qoot/*": [
-        "./client/*"
-      ]
-    },
-  },
+      "qoot": ["./client/qoot.ts"],
+      "qoot/*": ["./client/*"]
+    }
+  }
 }

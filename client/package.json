@@ -1,7 +1,7 @@
 {
-    "name": "qoot_client",
-    "version": "0.0.1",
-    "typings": "./qoot.d.ts",
-    "main": "./qoot.js",
-    "type": "module"
+  "name": "qoot_client",
+  "version": "0.0.1",
+  "typings": "./qoot.d.ts",
+  "main": "./qoot.js",
+  "type": "module"
 }

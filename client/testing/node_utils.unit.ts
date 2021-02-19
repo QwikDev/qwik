@@ -6,9 +6,9 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import {expect} from 'chai';
+import { expect } from 'chai';
 
-import {createGlobal} from './node_utils.js';
+import { createGlobal } from './node_utils.js';
 
 describe('node', () => {
   it('should create document', () => {

@@ -6,9 +6,9 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import {expect} from 'chai';
-import {createGlobal, QootGlobal} from '../../testing/node_utils.js';
-import {isDomElementWithTagName} from './dom.js';
+import { expect } from 'chai';
+import { createGlobal, QootGlobal } from '../../testing/node_utils.js';
+import { isDomElementWithTagName } from './dom.js';
 
 describe('dom', () => {
   let global: QootGlobal;
@@ -21,7 +21,6 @@ describe('dom', () => {
     span = global.document.createElement('span');
     text = global.document.createTextNode('text-node');
   });
-
 
   it('isDomElementWithTagName', () => {
     expect(isDomElementWithTagName(null, 'dIv')).to.equal(false);

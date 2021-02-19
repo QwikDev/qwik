@@ -6,8 +6,8 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import {expect} from 'chai';
-import {caseInsensitiveCompare} from './string.js';
+import { expect } from 'chai';
+import { caseInsensitiveCompare } from './string.js';
 
 describe('string', () => {
   it('should caseInsensitiveCompare', () => {

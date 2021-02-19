@@ -10,6 +10,19 @@ import { qJSX } from './qoot.js';
 export const __ = qJSX;
 
 export function helloWorld(props: { url: string }) {
-    return (<span>Hello world! {props.url}</span>);
+  const p = import('./qoot.js');
+  const name = 'World';
+  return (
+    <div>
+      <div>
+        <input
+          value={name}
+          $={{
+            '(change)': './greet.change',
+          }}
+        />
+      </div>
+      <span>Hello {name}!</span>[{props.url}]
+    </div>
+  );
 }
-

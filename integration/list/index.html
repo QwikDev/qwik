@@ -2,17 +2,22 @@
 <html>
   <head>
     <style>
-      my-app { display: block; }
-      my-item { display: block; }
+      my-app {
+        display: block;
+      }
+      my-item {
+        display: block;
+      }
     </style>
   </head>
   <body>
-    <my-app 
-        .='{"list": ["JavaScript", "TypeScript"]}'
-        (itemDelete)="myApp.itemDelete">
-      List: <input value="JavaScript, TypeScript" 
-                   (keydown)="myApp.onInputChange">
-      <hr>
+    <my-app
+      .='{"list": ["JavaScript", "TypeScript"]}'
+      (itemDelete)="myApp.itemDelete"
+    >
+      List:
+      <input value="JavaScript, TypeScript" (keydown)="myApp.onInputChange" />
+      <hr />
       <my-item .='myItem.MyItem|{"item": "JavaScript"}'>
         <span>JavaScript</span>
         <button (click)="myItem.onDelete">X</button>
@@ -22,13 +27,14 @@
         <button (click)="myItem.onDelete">X</button>
       </my-item>
     </my-app>
-  </hr>
-  <pre>
+    <hr />
+    <pre>
     Question: 
       - How and where do we store the data:
       - How do we declare the Component/Controllers?
 
-  </pre>
+  </pre
+    >
   </body>
   <script src="/qootloader.js"></script>
 </html>

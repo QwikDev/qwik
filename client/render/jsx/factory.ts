@@ -6,19 +6,24 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
+export interface QProps {
+  [key: string]: string;
+}
+
 export interface JSXProps {
+  // $: QProps;
   [key: string]: string;
 }
 
 export class JSXNode {
-  public tag: string|null|JSXFactory;
-  public props: JSXProps|null;
+  public tag: string | null | JSXFactory;
+  public props: JSXProps | null;
   public children: Array<any>;
 
   constructor(
-      tag: string|null|JSXFactory,
-      props: JSXProps|null,
-      children: Array<string|JSXNode>,
+    tag: string | null | JSXFactory,
+    props: JSXProps | null,
+    children: Array<string | JSXNode>
   ) {
     this.tag = tag;
     this.props = props;
@@ -33,7 +38,9 @@ export function isJSXNode(node: any): node is JSXNode {
 export interface JSXFactory {}
 
 export function qJSX(
-    tag: string|null|JSXFactory, props: JSXProps|null,
-    ...children: any[]): JSXNode {
+  tag: string | null | JSXFactory,
+  props: JSXProps | null,
+  ...children: any[]
+): JSXNode {
   return new JSXNode(tag, props, children);
 }

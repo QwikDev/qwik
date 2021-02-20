@@ -6,10 +6,8 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-/// <reference types="./jsx_types" />
-
-import { qJSX, jsxRender } from './qoot.js';
-import { helloWorld } from './hello_world.js';
+import { jsxFactory, jsxRender } from './qoot.js';
+import HelloWorld from './HelloWorld.js';
 
 export function serverMain(url: URL, document: Document): void {
   const doc = (
@@ -19,13 +17,9 @@ export function serverMain(url: URL, document: Document): void {
         <script src="/qootloader.js" async></script>
       </head>
       <body>
-        <hello-world name="World" />
+        <HelloWorld name="World" />
       </body>
     </html>
   );
-  const componentMap = {
-    'hello-world': helloWorld,
-  };
-
-  jsxRender(document, doc, componentMap, document);
+  jsxRender(document, doc, null, document);
 }

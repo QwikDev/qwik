@@ -16,17 +16,11 @@ export interface InjectFn<R> {
   (event: Event, target: Element, url: URL): Promise<R>;
 }
 
-export async function injectEvent(
-  event: Event,
-  target: Element,
-  url: URL
-): Promise<Event> {
+export async function injectEvent(event: Event, target: Element, url: URL): Promise<Event> {
   return event;
 }
 
-export function injectSourceElement<T extends Element>(
-  type: Type<T>
-): InjectFn<T> {
+export function injectSourceElement<T extends Element>(type: Type<T>): InjectFn<T> {
   return async (event: Event, target: Element, url: URL) => target as T;
 }
 
@@ -51,9 +45,7 @@ export async function injectController<T>(
         } else {
           ControllerType = await importMember<Type<State<T>>>(controllerUrl);
         }
-        controller = (element as any)[controllerName] = new ControllerType(
-          JSON.parse(json)
-        );
+        controller = (element as any)[controllerName] = new ControllerType(JSON.parse(json));
       }
       return controller;
     }

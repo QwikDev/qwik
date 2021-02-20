@@ -13,10 +13,24 @@ import {
   removeNode,
   replaceNode,
 } from '../util/dom.js';
+import '../util/qDev.js';
+import { flattenPromiseTree } from '../util/promises.js';
 
 import { applyAttributes } from './attributes.js';
-import { isJSXNode, JSXNode } from './factory.js';
+import { isJSXNode, JSXNode, JSXFactory } from './factory.js';
 import { JSXRegistry } from './registry.js';
+
+/**
+ * Rendering can happen asynchronously. For this reason rendering keeps track of all of the
+ * asynchronous render elements. This promise is than flatten before being returned as `As
+ */
+type AsyncHostElementPromises = Array<Element | Promise<Element | AsyncHostElementPromises>>;
+
+/**
+ * After rendering completes the `jsxRender` asynchronously returns a list of host elements
+ * rendered asynchronously.
+ */
+type HostElements = Element[];
 
 /**
  * Render JSX into a host element reusing DOM nodes when possible.
@@ -28,97 +42,110 @@ import { JSXRegistry } from './registry.js';
  * @param overrideDocument optional document used for creating new DOM nodes
  *     (used global `document` otherwise)
  */
-export function jsxRender(
+export async function jsxRender(
   host: Element | Document,
-  jsxNode: JSXNode,
+  jsxNode: JSXNode<unknown>,
   registry?: JSXRegistry | null,
   overrideDocument?: Document
-) {
+): Promise<HostElements> {
+  const waitOn: AsyncHostElementPromises = [];
   let firstChild = host.firstChild;
   while (firstChild && firstChild.nodeType > NodeType.COMMENT_NODE) {
     firstChild = firstChild.nextSibling;
   }
-  reconcileNode(
-    overrideDocument || document,
-    registry || null,
-    host,
-    firstChild,
-    jsxNode
-  );
+  visitJSXNode(overrideDocument || document, waitOn, registry || null, host, firstChild, jsxNode);
+  // TODO[type]: don't know how to make the type system happy, cheating with `any` cast.
+  return flattenPromiseTree<HTMLElement>(waitOn as any);
 }
 
-/**
- * Reconciles the existing DOM node with SJX nodes.
- *
- * @param document Used for creating new nodes
- * @param registry `JSXRegistry`
- * @param domParent Existing DOM parent into which new nodes will be inserted.
- * @param existingNode Optional existing node which needs to be reconciled, or
- *     deleted
- * @param jsxNode JSX node which is the source of truth.
- * @returns a new DOM node at this location (this may be `domNode` if it can be
- *     reused)
- */
-function reconcileNode(
+function visitJSXNode(
   document: Document,
-  registry: JSXRegistry | null,
-  domParent: Node,
-  existingNode: Node | null,
-  jsxNode: JSXNode
-): Node | null {
-  let reconciledNode: Node | null = null;
-  if (typeof jsxNode.tag === 'string') {
-    reconciledNode = reconcileElement(
-      document,
-      registry,
-      domParent,
-      existingNode,
-      jsxNode
-    );
-  }
-  reconcileChildren(
-    document,
-    registry,
-    reconciledNode || domParent,
-    reconciledNode?.firstChild || null,
-    jsxNode.children
-  );
-  return reconciledNode;
-}
-
-function reconcileElement(
-  document: Document,
+  waitOn: AsyncHostElementPromises,
   registry: JSXRegistry | null,
   parentNode: Node,
   existingNode: Node | null,
-  jsxNode: JSXNode
-): Element {
-  const jsxTag = jsxNode.tag as string;
+  jsxNode: JSXNode<unknown>
+): Node | null {
+  if (typeof jsxNode.tag === 'string') {
+    // String literal
+    return visitJSXStringNode(
+      document,
+      waitOn,
+      registry,
+      parentNode,
+      existingNode,
+      jsxNode as JSXNode<string>
+    );
+  } else if (typeof jsxNode.tag === 'function') {
+    // Symbol reference
+    return visitJSXFactoryNode(
+      document,
+      waitOn,
+      registry,
+      parentNode,
+      existingNode,
+      jsxNode as JSXNode<JSXFactory>
+    );
+  } else if (jsxNode.tag === null) {
+    // Fragment
+    return visitJSXFragmentNode(
+      document,
+      waitOn,
+      registry,
+      parentNode,
+      existingNode,
+      jsxNode as JSXNode<null>
+    );
+  }
+  throw new Error('Unexpected JSXNode<' + jsxNode.tag + '> type.');
+}
+
+function visitJSXStringNode(
+  document: Document,
+  waitOn: AsyncHostElementPromises,
+  registry: JSXRegistry | null,
+  parentNode: Node,
+  existingNode: Node | null,
+  jsxNode: JSXNode<string>
+): Node | null {
+  const jsxTag = jsxNode.tag;
   let reconcileElement: Element;
+  let inputPropChangesDetected = false;
   if (isDomElementWithTagName(existingNode, jsxTag)) {
     // We already have the right element so we need to reuse it.
     reconcileElement = existingNode;
   } else {
     // No match we need to create a new DOM element (and remove the old one)
-    reconcileElement = replaceNode(
-      parentNode,
-      existingNode,
-      document.createElement(jsxTag)
-    );
+    reconcileElement = replaceNode(parentNode, existingNode, document.createElement(jsxTag));
+    inputPropChangesDetected = true;
   }
-  applyAttributes(reconcileElement, jsxNode.props);
-  const component = registry && registry[jsxTag];
-  if (component) {
-    reconcileNode(
+  const componentUrl = getComponentUrl(jsxNode);
+  const shouldDetectChanges = !!componentUrl;
+  inputPropChangesDetected =
+    applyAttributes(reconcileElement, jsxNode.props, shouldDetectChanges) ||
+    inputPropChangesDetected;
+  if (componentUrl && inputPropChangesDetected) {
+    // we need to render child component only if the inputs to the component changed.
+    const component = registry && registry[componentUrl!];
+    if (component) {
+      waitOn.push(reconcileElement);
+      return visitJSXNode(
+        document,
+        waitOn,
+        registry,
+        reconcileElement,
+        reconcileElement.firstChild,
+        component(jsxNode.props)
+      );
+    } else {
+      throw new Error("Can't locate component for '" + componentUrl + "'.");
+    }
+  }
+  if (!componentUrl) {
+    // we don't process children if we have a component, as component is responsible for projection.
+    visitChildren(
       document,
-      registry,
-      reconcileElement,
-      reconcileElement.firstChild,
-      component(jsxNode.props)
-    );
-  } else {
-    reconcileChildren(
-      document,
+      waitOn,
       registry,
       reconcileElement,
       reconcileElement.firstChild,
@@ -128,8 +155,43 @@ function reconcileElement(
   return reconcileElement;
 }
 
-function reconcileChildren(
+function getComponentUrl(jsxNode: JSXNode<unknown>): string | null {
+  const qProps = jsxNode.props?.$ as { ['::']: string | undefined } | undefined;
+  return (qProps && qProps['::']) || null;
+}
+
+function visitJSXFactoryNode(
   document: Document,
+  waitOn: AsyncHostElementPromises,
+  registry: JSXRegistry | null,
+  parentNode: Node,
+  existingNode: Node | null,
+  jsxNode: JSXNode<JSXFactory>
+): Node | null {
+  return visitJSXNode(
+    document,
+    waitOn,
+    registry,
+    parentNode,
+    existingNode,
+    jsxNode.tag(jsxNode.props)
+  );
+}
+
+function visitJSXFragmentNode(
+  document: Document,
+  waitOn: AsyncHostElementPromises,
+  registry: JSXRegistry | null,
+  parentNode: Node,
+  existingNode: Node | null,
+  jsxNode: JSXNode<null>
+): Node | null {
+  return visitChildren(document, waitOn, registry, parentNode, existingNode, jsxNode.children);
+}
+
+function visitChildren(
+  document: Document,
+  waitOn: AsyncHostElementPromises,
   registry: JSXRegistry | null,
   parentNode: Node,
   existingNode: Node | null,
@@ -139,14 +201,7 @@ function reconcileChildren(
     for (let i = 0; i < jsxChildren.length; i++) {
       const jsxChild = jsxChildren[i];
       if (isJSXNode(jsxChild)) {
-        // Element
-        existingNode = reconcileElement(
-          document,
-          registry,
-          parentNode,
-          existingNode,
-          jsxChild
-        );
+        existingNode = visitJSXNode(document, waitOn, registry, parentNode, existingNode, jsxChild);
       } else if (jsxChild == null) {
         // delete
         if (existingNode) {
@@ -157,11 +212,7 @@ function reconcileChildren(
         if (isTextNode(existingNode)) {
           existingNode.textContent = String(jsxChild);
         } else {
-          replaceNode(
-            parentNode,
-            existingNode,
-            document.createTextNode(String(jsxChild))
-          );
+          replaceNode(parentNode, existingNode, document.createTextNode(String(jsxChild)));
         }
       }
       existingNode = existingNode?.nextSibling || null;

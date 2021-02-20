@@ -6,6 +6,8 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
+import { JSXFactory } from './factory.js';
+
 export interface JSXRegistry {
-  [componentName: string]: Function;
+  [componentName: string]: JSXFactory;
 }

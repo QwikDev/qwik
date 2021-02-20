@@ -9,9 +9,7 @@
 import { EventHandler } from './event_handler.js';
 import { injectController, InjectFn } from './inject.js';
 
-export function eventHandler<CTL>(
-  arg: (this: CTL, ...args: string[]) => void
-): EventHandler;
+export function eventHandler<CTL>(arg: (this: CTL, ...args: string[]) => void): EventHandler;
 export function eventHandler<CTL, A>(
   a: InjectFn<A>,
   arg: (this: CTL, a: A, ...args: string[]) => void

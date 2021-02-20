@@ -10,10 +10,10 @@
 
 import { expect } from 'chai';
 import { createGlobal, QootGlobal } from '../../testing/node_utils.js';
-import { qJSX } from './factory.js';
+import { jsxDeclareComponent, jsxFactory } from './factory.js';
 import { jsxRender } from './render.js';
 
-const _needed_by_JSX_ = qJSX;
+const _needed_by_JSX_ = jsxFactory;
 
 describe('render', () => {
   let global: QootGlobal;
@@ -33,19 +33,9 @@ describe('render', () => {
   it('should not destroy existing DOM', () => {
     jsxRender(host, <div id="foo">original</div>, undefined, global.document);
     const originalDiv = host.firstChild;
-    jsxRender(
-      host,
-      <div class="bar">overwrite</div>,
-      undefined,
-      global.document
-    );
-    expect(host.firstChild).to.equal(
-      originalDiv,
-      'node identity should not be destroyed'
-    );
-    expect(host.innerHTML).to.equal(
-      '<div id="foo" class="bar">overwrite</div>'
-    );
+    jsxRender(host, <div class="bar">overwrite</div>, undefined, global.document);
+    expect(host.firstChild).to.equal(originalDiv, 'node identity should not be destroyed');
+    expect(host.innerHTML).to.equal('<div id="foo" class="bar">overwrite</div>');
   });
 
   it('should remove extra text', () => {
@@ -135,24 +125,62 @@ describe('render', () => {
     );
   });
 
-  describe('JSXRegistry', () => {
+  describe('components', () => {
     it('should render components', () => {
       const registry = {
-        'hello-world': (props: { url?: string }) => (
-          <span>Hello World! ({props.url})</span>
-        ),
+        './HelloWorld_render': (props: { url?: string }) => <span>Hello World! ({props.url})</span>,
       };
       jsxRender(
         host,
         <div>
-          <hello-world url="/" />
+          <hello-world url="/" $={{ '::': './HelloWorld_render' }} />
         </div>,
         registry,
         global.document
       );
       expect(host.innerHTML).to.equal(
         '<div>' +
-          '<hello-world url="/">' +
+          '<hello-world url="/" ::="./HelloWorld_render">' +
+          '<span>Hello World! (/)</span>' +
+          '</hello-world>' +
+          '</div>'
+      );
+    });
+  });
+
+  it('should render components as symbols', () => {
+    const HelloWorld = jsxDeclareComponent<{ url: string }>('hello-world', './HelloWorld_render');
+    const registry = {
+      './HelloWorld_render': (props: { url?: string }) => <span>Hello World! ({props.url})</span>,
+    };
+    jsxRender(
+      host,
+      <div>
+        <HelloWorld url="/" />
+      </div>,
+      registry,
+      global.document
+    );
+    expect(host.innerHTML).to.equal(
+      '<div>' +
+        '<hello-world url="/" ::="./HelloWorld_render">' +
+        '<span>Hello World! (/)</span>' +
+        '</hello-world>' +
+        '</div>'
+    );
+
+    it.skip('should render component from URL', () => {
+      jsxRender(
+        host,
+        <div>
+          <TestComponent />
+        </div>,
+        registry,
+        global.document
+      );
+      expect(host.innerHTML).to.equal(
+        '<div>' +
+          '<hello-world url="/" ::="./HelloWorld_render">' +
           '<span>Hello World! (/)</span>' +
           '</hello-world>' +
           '</div>'
@@ -161,24 +189,28 @@ describe('render', () => {
   });
 
   describe('qoot properties', () => {
-    it('should render event', () => {
+    it('should render event', async () => {
       // possible prefixes: on, in, at, for, to, bind, tie
       // Event prefixes `.` to mean framework event such as `
-      jsxRender(
+      const registry = {
+        './noopUrl': () => <>NOOP</>,
+      };
+      await jsxRender(
         host,
         <div
           $={{
-            'on:click': 'myUrl',
-            'on:.render': 'myUrl',
-            'bind:token': 'myUrl',
+            '::': './noopUrl',
             'bind:.': 'myUrl',
+            'on:.render': 'myComponentUrl',
+            'on:click': 'myComponent_click',
+            'bind:token': 'myTokenUrl',
           }}
         ></div>,
-        null,
+        registry,
         global.document
       );
       expect(host.innerHTML).to.equal(
-        '<div on:click="myUrl" on:.render="myUrl" bind:token="myUrl" bind:.="myUrl"></div>'
+        '<div ::="./noopUrl" bind:.="myUrl" on:.render="myComponentUrl" on:click="myComponent_click" bind:token="myTokenUrl">NOOP</div>'
       );
     });
   });
@@ -187,7 +219,11 @@ describe('render', () => {
 declare global {
   namespace JSX {
     interface IntrinsicElements {
-      'hello-world': { url?: string };
+      'hello-world': { url?: string; $: any };
     }
   }
+}
+
+function TestComponent(props: {}) {
+  return <div>TestComponent: props={JSON.stringify(props)}</div>;
 }

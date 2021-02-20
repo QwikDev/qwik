@@ -5,6 +5,7 @@
  * Use of this source code is governed by an MIT-style license that can be
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
+import { EMPTY_OBJ } from '../util/flyweight.js';
 
 export interface QProps {
   [key: string]: string;
@@ -12,35 +13,38 @@ export interface QProps {
 
 export interface JSXProps {
   // $: QProps;
-  [key: string]: string;
+  [key: string]: string | boolean | number | null | undefined;
 }
 
-export class JSXNode {
-  public tag: string | null | JSXFactory;
-  public props: JSXProps | null;
+export class JSXNode<T extends string | null | JSXFactory | unknown> {
+  public tag: T;
+  public props: JSXProps;
   public children: Array<any>;
 
-  constructor(
-    tag: string | null | JSXFactory,
-    props: JSXProps | null,
-    children: Array<string | JSXNode>
-  ) {
+  constructor(tag: T, props: JSXProps | null, children: Array<string | JSXNode<unknown>>) {
     this.tag = tag;
-    this.props = props;
+    this.props = props || EMPTY_OBJ;
     this.children = children;
   }
 }
 
-export function isJSXNode(node: any): node is JSXNode {
+export function isJSXNode(node: any): node is JSXNode<unknown> {
   return node instanceof JSXNode;
 }
 
-export interface JSXFactory {}
+export type JSXFactory = (props: JSXProps) => JSXNode<unknown>;
 
-export function qJSX(
-  tag: string | null | JSXFactory,
-  props: JSXProps | null,
+export function jsxFactory<T extends string | null | JSXFactory | unknown>(
+  tag: T,
+  props: JSXProps,
   ...children: any[]
-): JSXNode {
+): JSXNode<T> {
   return new JSXNode(tag, props, children);
+}
+
+export function jsxDeclareComponent<T>(tagName: string, url: string) {
+  return function (props: T) {
+    // TODO[efficiency]: patching `$` is not most efficient.
+    return jsxFactory(tagName, { ...props, $: { '::': url } as any });
+  };
 }

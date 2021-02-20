@@ -6,6 +6,6 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-export { JSXNode, JSXProps, qJSX } from './factory.js';
+export { JSXNode, JSXProps, jsxFactory, jsxDeclareComponent } from './factory.js';
 export { JSXRegistry } from './registry.js';
 export { jsxRender } from './render.js';

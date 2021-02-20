@@ -11,10 +11,7 @@
     </style>
   </head>
   <body>
-    <my-app
-      .='{"list": ["JavaScript", "TypeScript"]}'
-      (itemDelete)="myApp.itemDelete"
-    >
+    <my-app .='{"list": ["JavaScript", "TypeScript"]}' (itemDelete)="myApp.itemDelete">
       List:
       <input value="JavaScript, TypeScript" (keydown)="myApp.onInputChange" />
       <hr />

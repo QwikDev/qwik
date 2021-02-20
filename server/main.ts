@@ -37,26 +37,18 @@ async function main(__dirname: string, process: NodeJS.Process) {
   const RUNFILES: string = process.env.RUNFILES || '';
   console.log('RUNFILES', RUNFILES);
 
-  app.use(
-    (
-      req: express.Request,
-      res: express.Response,
-      next: express.NextFunction
-    ) => {
-      if (req.path.endsWith('/qoot.js') && req.path !== '/qoot.js') {
-        res.type('application/javascript');
-        res.write("export * from '/qoot.js';");
-        res.end();
-      } else {
-        next();
-      }
+  app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
+    if (req.path.endsWith('/qoot.js') && req.path !== '/qoot.js') {
+      res.type('application/javascript');
+      res.write("export * from '/qoot.js';");
+      res.end();
+    } else {
+      next();
     }
-  );
+  });
 
   // Set up static routes first
-  const servePaths = opts.root.map((servePath: string) =>
-    join(RUNFILES, servePath)
-  );
+  const servePaths = opts.root.map((servePath: string) => join(RUNFILES, servePath));
 
   servePaths.forEach((path: string) => {
     if (fs.existsSync(path)) {

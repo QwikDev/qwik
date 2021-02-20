@@ -1,0 +1,24 @@
+/**
+ * @license
+ * Copyright a-Qoot All Rights Reserved.
+ *
+ * Use of this source code is governed by an MIT-style license that can be
+ * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
+ */
+
+declare var global: any;
+declare var WorkerGlobalScope: any;
+
+const _globalThis = typeof globalThis !== 'undefined' && globalThis;
+const _window = typeof window !== 'undefined' && window;
+const _self =
+  typeof self !== 'undefined' &&
+  typeof WorkerGlobalScope !== 'undefined' &&
+  self instanceof WorkerGlobalScope &&
+  self;
+const __global = typeof global !== 'undefined' && global;
+
+const _global = _globalThis || __global || _window || _self;
+export default _global as {
+  qDev: boolean;
+};

@@ -6,10 +6,9 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { qJSX } from './qoot.js';
-export const __ = qJSX;
+import { jsxFactory } from './qoot.js';
 
-export function helloWorld(props: { name: string }) {
+export default function HelloWorldTemplate(props: { name: string }) {
   return (
     <div>
       <div>
@@ -17,7 +16,7 @@ export function helloWorld(props: { name: string }) {
         <input
           value={props.name}
           $={{
-            'on:keyup': './greet.change',
+            'on:keyup': './HelloWorld_onKeydown?value=.target.value',
           }}
         />
       </div>

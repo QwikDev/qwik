@@ -7,10 +7,10 @@
  */
 
 import { jsxRender } from './qoot.js';
-import { helloWorld } from './hello_world.js';
+import helloWorldTemplate from './HelloWorld_render.js';
 import { eventHandler, injectSourceElement } from './qoot.js';
 
-export const change = eventHandler(
+export default eventHandler(
   injectSourceElement(HTMLInputElement),
   function (element: HTMLInputElement) {
     // TODO: This Component should inject host element
@@ -23,6 +23,19 @@ export const change = eventHandler(
     const name = element.value;
 
     // TODO: Instead of calling jsxRender we should be marking the component dirty.
-    jsxRender(hostElement, helloWorld({ name }));
+    jsxRender(hostElement, helloWorldTemplate({ name }));
   }
 );
+
+/*
+This shows destination of where we want to get to with writing these handles.
+
+export default componentEventHandler(
+  injectProperty<string>('value'),
+  function (this: HelloWorld, value: string) {
+    this.state.name = value;
+    markDirty(this);
+  }
+);
+
+*/

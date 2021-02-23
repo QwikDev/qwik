@@ -16,7 +16,7 @@ export default function HelloWorldTemplate(props: { name: string }) {
         <input
           value={props.name}
           $={{
-            'on:keyup': './HelloWorld_onKeydown?value=.target.value',
+            'on:keyup': './HelloWorld_onKeyup?value=.target.value',
           }}
         />
       </div>

@@ -18,7 +18,6 @@ ts_project(
     declaration = True,
     srcs = glob(["**/*.ts"], exclude=["**/*.unit.ts"]),
     deps = [
-        "@npm//@types/node",
         "@npm//@types/express",
         "@npm//@types/source-map-support",
         "@npm//commander",

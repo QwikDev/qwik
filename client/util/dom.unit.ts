@@ -7,7 +7,7 @@
  */
 
 import { expect } from 'chai';
-import { createGlobal, QootGlobal } from '../../testing/node_utils.js';
+import { createGlobal, QootGlobal } from '../testing/node_utils.js';
 import { isDomElementWithTagName } from './dom.js';
 
 describe('dom', () => {

@@ -4,11 +4,11 @@
 
   <body>
     What is your name?
-    <input id="name" value="World" (keydown)="./greet.keydown" />
+    <input id="name" value="World" on:keydown="./greet.keydown" />
     <hr />
     Hello <span>World</span>!
     <hr />
-    <button (click)="./greet.click?name=%23name.value">Say hello</button>
+    <button on:click="./greet.click?name=%23name.value">Say hello</button>
     <hr />
     <p>
       This example demonstrates the most basic example of attaching actions to HTML. Typing into the

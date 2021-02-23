@@ -76,17 +76,22 @@ async function main(__dirname: string, process: NodeJS.Process) {
     serverIndexJS.map(async (indexJS) => {
       console.log('Importing: ', indexJS.path);
       const serverMain = (await import(indexJS.path)).serverMain;
-      app.use('/' + indexJS.url, createServerJSHandler(serverMain));
+      let baseURI = `file://${indexJS.path}`;
+      app.use('/' + indexJS.url, createServerJSHandler(serverMain, baseURI));
     })
   );
 
   app.listen(opts.port);
 }
 
-function createServerJSHandler(serverMain: Function) {
-  return function serverJSHandler(req: any, res: any) {
+function createServerJSHandler(serverMain: Function, baseUri: string) {
+  return async function serverJSHandler(req: express.Request, res: express.Response) {
     const document = domino.createDocument();
-    serverMain(req.url, document);
+    Object.defineProperty(document, 'baseURI', { value: baseUri });
+    Object.defineProperty(document, 'URL', {
+      value: `${req.protocol}://${req.headers.host}${req.originalUrl}`,
+    });
+    await serverMain(document, req.url);
     const html = document.querySelector('html');
     res.send(html ? html.outerHTML : '');
   };

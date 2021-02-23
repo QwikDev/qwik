@@ -5,7 +5,7 @@ load("@build_bazel_rules_nodejs//:index.bzl", "js_library")
 load("@npm//@bazel/typescript:index.bzl", "ts_project")
 
 js_library(
-    name = "jsx",
+    name = "import",
     srcs = [":package.json"],
     deps = [
         ":project",
@@ -16,30 +16,28 @@ ts_project(
     name = "project",
     tsconfig = "//:tsconfig",
     declaration = True,
-    srcs = glob(["**/*.ts", "**/*.tsx"], exclude=["**/*.unit.ts", "**/*.unit.tsx"]),
-    deps = [
-        "//client/util",
-        "//client/import",
-    ]
+    srcs = glob(["**/*.ts", "**/*.tsx"], exclude=["**/*.unit.ts", "**/*.unit.ts"]),
 )
+
 
 ts_project(
     name = "unit_project",
     tsconfig = "//:tsconfig",
     declaration = True,
-    srcs = glob(["**/*.unit.ts", "**/*.unit.tsx"]),
+    srcs = glob(["**/*.unit.ts", "**/*.unit.tsx", "**/*_unit_ts"]),
     deps = [
-        ":jsx",
+        ":import",
         "//client/testing",
+        "//client/util",
+        "@npm//@types/node",
         "@npm//@types/mocha",
         "@npm//@types/chai",
-        "@npm//chai",
     ]
 )
 
 js_library(
     name = "unit_lib",
-    srcs = ["package.json"],
+    srcs = [":package.json"],
     deps = [
         ":unit_project",
     ],
@@ -49,10 +47,10 @@ js_library(
 mocha_test(
     name = "unit",
     tags = ["unit"],
-    args = ["**/*.unit.js"],
+    args = ["**/*.unit.js", "**/*_unit_tsx"],
     data = [
         ":unit_lib",
-        ":jsx",
+        "//client/testing",
         "@npm//chai",
     ],
 )

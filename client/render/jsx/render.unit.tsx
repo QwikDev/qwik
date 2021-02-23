@@ -169,7 +169,7 @@ describe('render', () => {
         '</div>'
     );
 
-    it.skip('should render component from URL', () => {
+    it('should render component from URL', () => {
       jsxRender(
         host,
         <div>

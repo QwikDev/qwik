@@ -44,14 +44,12 @@
       let eventUrl = element.getAttribute(eventName);
       if (eventUrl) {
         const url = new URL(eventUrl, document.baseURI);
-        const path = url.pathname.split('.');
-        let handler = await import(path.shift() + '.js');
-        if (!path.length) {
-          path.push('default');
-        }
-        while (path.length) {
-          handler = handler[path.shift()!];
-        }
+        const pathname = url.pathname;
+        let dotIdx = pathname.lastIndexOf('.');
+        let slashIdx = pathname.lastIndexOf('/');
+        if (dotIdx === 0 || dotIdx < slashIdx) dotIdx = pathname.length;
+        let module = await import(pathname.substr(0, dotIdx) + '.js');
+        const handler = module[pathname.substring(dotIdx + 1) || 'default'];
         handler(event, element, url);
       }
       element = element.parentElement;

@@ -12,13 +12,15 @@ import {
   NodeType,
   removeNode,
   replaceNode,
-} from '../util/dom.js';
-import '../util/qDev.js';
-import { flattenPromiseTree } from '../util/promises.js';
+} from '../../util/dom.js';
+import '../../util/qDev.js';
+import { flattenPromiseTree, isPromise } from '../../util/promises.js';
 
 import { applyAttributes } from './attributes.js';
 import { isJSXNode, JSXNode, JSXFactory } from './factory.js';
 import { JSXRegistry } from './registry.js';
+import { qImport } from '../../import/index.js';
+import { EMPTY_OBJ } from '../../util/flyweight.js';
 
 /**
  * Rendering can happen asynchronously. For this reason rendering keeps track of all of the
@@ -138,7 +140,34 @@ function visitJSXStringNode(
         component(jsxNode.props)
       );
     } else {
-      throw new Error("Can't locate component for '" + componentUrl + "'.");
+      const componentOrPromise = qImport<JSXFactory>(reconcileElement, componentUrl);
+      if (isPromise(componentOrPromise)) {
+        waitOn.push(
+          componentOrPromise.then((component) => {
+            const waitOn = [reconcileElement];
+            visitJSXComponentNode(
+              document,
+              waitOn,
+              registry,
+              reconcileElement,
+              reconcileElement.firstChild,
+              component,
+              jsxNode
+            );
+            return waitOn;
+          })
+        );
+      } else {
+        visitJSXComponentNode(
+          document,
+          waitOn,
+          registry,
+          reconcileElement,
+          reconcileElement.firstChild,
+          componentOrPromise,
+          jsxNode
+        );
+      }
     }
   }
   if (!componentUrl) {
@@ -153,6 +182,19 @@ function visitJSXStringNode(
     );
   }
   return reconcileElement;
+}
+
+function visitJSXComponentNode(
+  document: Document,
+  waitOn: AsyncHostElementPromises,
+  registry: JSXRegistry | null,
+  parentNode: Node,
+  existingNode: Node | null,
+  component: JSXFactory,
+  jsxNode: JSXNode<string>
+): Node | null {
+  const componentJsxNode = component(jsxNode.props || EMPTY_OBJ);
+  return visitJSXNode(document, waitOn, registry, parentNode, existingNode, componentJsxNode);
 }
 
 function getComponentUrl(jsxNode: JSXNode<unknown>): string | null {

@@ -6,21 +6,27 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-namespace Qoot {
-  interface ELement<T> extends T {
-    $: { event: { [eventName: string]: string } };
+declare global {
+  // TODO[cleanup]: is this used?
+  namespace Qoot {
+    interface ELement<T> extends T {
+      $: { event: { [eventName: string]: string } };
+    }
+  }
+
+  namespace JSX {
+    interface IntrinsicElements {
+      html: Qoot.Element<any>;
+      head: Qoot.Element<any>;
+      title: Qoot.Element<any>;
+      script: Qoot.Element<any>;
+      body: Qoot.Element<any>;
+      div: Qoot.Element<any>;
+      span: Qoot.Element<any>;
+      input: Qoot.Element<any>;
+    }
   }
 }
 
-namespace JSX {
-  interface IntrinsicElements {
-    html: Qoot.Element<any>;
-    head: Qoot.Element<any>;
-    title: Qoot.Element<any>;
-    script: Qoot.Element<any>;
-    body: Qoot.Element<any>;
-    div: Qoot.Element<any>;
-    span: Qoot.Element<any>;
-    input: Qoot.Element<any>;
-  }
-}
+// So that this file is treated as module.
+export type JSX_IntrinsicElements = JSX.IntrinsicElements;

@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { jsxDeclareComponent } from './qoot.js';
+import { jsxDeclareComponent, QRL } from './qoot.js';
 
 /**
  * @fileoverview
@@ -19,4 +19,8 @@ export interface HelloWorldProps {
   name: string;
 }
 
-export default jsxDeclareComponent<HelloWorldProps>('hello-world', './HelloWorld_render');
+export const HelloWorldQRL = QRL`./HelloWorld_template`;
+
+// <hello-world ::="./HelloWorld_render"/>
+// - ./HelloWorld_render: invoked when component needs to be re-rendered.
+export const HelloWorld = jsxDeclareComponent<HelloWorldProps>('hello-world', HelloWorldQRL);

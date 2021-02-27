@@ -6,12 +6,14 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
+import { QRL } from './qrl.js';
+
 let importCache: Map<string, unknown | Promise<unknown>>;
 
-export function qImport<T>(element: Element, url: string | URL): T | Promise<T> {
+export function qImport<T>(element: Element, url: string | QRL | URL): T | Promise<T> {
   if (!importCache) importCache = new Map<string, unknown | Promise<unknown>>();
   const baseURI = element.ownerDocument.baseURI;
-  const _url = url instanceof URL ? url : new URL(url, baseURI);
+  const _url = url instanceof URL ? url : new URL(String(url), baseURI);
   const pathname = _url.pathname;
   const cacheValue = importCache.get(pathname);
   if (cacheValue) return cacheValue as T;

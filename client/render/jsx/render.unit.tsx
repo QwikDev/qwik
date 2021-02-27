@@ -6,12 +6,12 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-/// <reference types="./html" />
-
+import './html.js';
 import { expect } from 'chai';
 import { createGlobal, QootGlobal } from '../../testing/node_utils.js';
 import { jsxDeclareComponent, jsxFactory } from './factory.js';
 import { jsxRender } from './render.js';
+import { QRL } from '../../import/index.js';
 
 const _needed_by_JSX_ = jsxFactory;
 
@@ -149,7 +149,10 @@ describe('render', () => {
   });
 
   it('should render components as symbols', () => {
-    const HelloWorld = jsxDeclareComponent<{ url: string }>('hello-world', './HelloWorld_render');
+    const HelloWorld = jsxDeclareComponent<{ url: string }>(
+      'hello-world',
+      QRL`./HelloWorld_render`
+    );
     const registry = {
       './HelloWorld_render': (props: { url?: string }) => <span>Hello World! ({props.url})</span>,
     };

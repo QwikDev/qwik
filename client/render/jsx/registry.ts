@@ -8,6 +8,7 @@
 
 import { JSXFactory } from './factory.js';
 
+// TODO: delete me
 export interface JSXRegistry {
   [componentName: string]: JSXFactory;
 }

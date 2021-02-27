@@ -17,22 +17,13 @@ import '../../util/qDev.js';
 import { flattenPromiseTree, isPromise } from '../../util/promises.js';
 
 import { applyAttributes } from './attributes.js';
-import { isJSXNode, JSXNode, JSXFactory } from './factory.js';
-import { JSXRegistry } from './registry.js';
+import { isJSXNode, JSXNode, JSXFactory, JSXProps } from './factory.js';
 import { qImport } from '../../import/index.js';
 import { EMPTY_OBJ } from '../../util/flyweight.js';
-
-/**
- * Rendering can happen asynchronously. For this reason rendering keeps track of all of the
- * asynchronous render elements. This promise is than flatten before being returned as `As
- */
-type AsyncHostElementPromises = Array<Element | Promise<Element | AsyncHostElementPromises>>;
-
-/**
- * After rendering completes the `jsxRender` asynchronously returns a list of host elements
- * rendered asynchronously.
- */
-type HostElements = Element[];
+import { HostElements, AsyncHostElementPromises } from '../render.js';
+import { InjectionContext } from '../../injection/index.js';
+import { QRL } from '../../import/qrl.js';
+import { newError } from '../../assert/assert.js';
 
 /**
  * Render JSX into a host element reusing DOM nodes when possible.
@@ -40,14 +31,12 @@ type HostElements = Element[];
  * @param host Host element which will act as a parent to `jsxNode`. When
  *     possible the rendering will try to reuse existing nodes.
  * @param jsxNode JSX to render
- * @param registry JSXRegistry used for creating rendering boundaries.
  * @param overrideDocument optional document used for creating new DOM nodes
  *     (used global `document` otherwise)
  */
 export async function jsxRender(
   host: Element | Document,
   jsxNode: JSXNode<unknown>,
-  registry?: JSXRegistry | null,
   overrideDocument?: Document
 ): Promise<HostElements> {
   const waitOn: AsyncHostElementPromises = [];
@@ -55,15 +44,50 @@ export async function jsxRender(
   while (firstChild && firstChild.nodeType > NodeType.COMMENT_NODE) {
     firstChild = firstChild.nextSibling;
   }
-  visitJSXNode(overrideDocument || document, waitOn, registry || null, host, firstChild, jsxNode);
+  visitJSXNode(overrideDocument || document, waitOn, host, firstChild, jsxNode);
   // TODO[type]: don't know how to make the type system happy, cheating with `any` cast.
   return flattenPromiseTree<HTMLElement>(waitOn as any);
+}
+
+export function jsxRenderComponent(
+  hostElement: Element,
+  componentUrl: QRL,
+  waitOn: AsyncHostElementPromises,
+  props: JSXProps,
+  overrideDocument: Document = document
+) {
+  // we need to render child component only if the inputs to the component changed.
+  const componentOrPromise = qImport<JSXFactory>(hostElement, componentUrl);
+  if (isPromise(componentOrPromise)) {
+    waitOn.push(
+      componentOrPromise.then((component) => {
+        const waitOn = [hostElement];
+        visitJSXComponentNode(
+          overrideDocument,
+          waitOn,
+          hostElement,
+          hostElement.firstChild,
+          component,
+          props
+        );
+        return waitOn;
+      })
+    );
+  } else {
+    visitJSXComponentNode(
+      overrideDocument,
+      waitOn,
+      hostElement,
+      hostElement.firstChild,
+      componentOrPromise,
+      props
+    );
+  }
 }
 
 function visitJSXNode(
   document: Document,
   waitOn: AsyncHostElementPromises,
-  registry: JSXRegistry | null,
   parentNode: Node,
   existingNode: Node | null,
   jsxNode: JSXNode<unknown>
@@ -73,7 +97,6 @@ function visitJSXNode(
     return visitJSXStringNode(
       document,
       waitOn,
-      registry,
       parentNode,
       existingNode,
       jsxNode as JSXNode<string>
@@ -83,7 +106,6 @@ function visitJSXNode(
     return visitJSXFactoryNode(
       document,
       waitOn,
-      registry,
       parentNode,
       existingNode,
       jsxNode as JSXNode<JSXFactory>
@@ -93,19 +115,17 @@ function visitJSXNode(
     return visitJSXFragmentNode(
       document,
       waitOn,
-      registry,
       parentNode,
       existingNode,
       jsxNode as JSXNode<null>
     );
   }
-  throw new Error('Unexpected JSXNode<' + jsxNode.tag + '> type.');
+  throw newError('Unexpected JSXNode<' + jsxNode.tag + '> type.');
 }
 
 function visitJSXStringNode(
   document: Document,
   waitOn: AsyncHostElementPromises,
-  registry: JSXRegistry | null,
   parentNode: Node,
   existingNode: Node | null,
   jsxNode: JSXNode<string>
@@ -127,55 +147,20 @@ function visitJSXStringNode(
     applyAttributes(reconcileElement, jsxNode.props, shouldDetectChanges) ||
     inputPropChangesDetected;
   if (componentUrl && inputPropChangesDetected) {
-    // we need to render child component only if the inputs to the component changed.
-    const component = registry && registry[componentUrl!];
-    if (component) {
-      waitOn.push(reconcileElement);
-      return visitJSXNode(
-        document,
-        waitOn,
-        registry,
-        reconcileElement,
-        reconcileElement.firstChild,
-        component(jsxNode.props)
-      );
-    } else {
-      const componentOrPromise = qImport<JSXFactory>(reconcileElement, componentUrl);
-      if (isPromise(componentOrPromise)) {
-        waitOn.push(
-          componentOrPromise.then((component) => {
-            const waitOn = [reconcileElement];
-            visitJSXComponentNode(
-              document,
-              waitOn,
-              registry,
-              reconcileElement,
-              reconcileElement.firstChild,
-              component,
-              jsxNode
-            );
-            return waitOn;
-          })
-        );
-      } else {
-        visitJSXComponentNode(
-          document,
-          waitOn,
-          registry,
-          reconcileElement,
-          reconcileElement.firstChild,
-          componentOrPromise,
-          jsxNode
-        );
-      }
-    }
+    // TODO: better way of converting string to QRL.
+    jsxRenderComponent(
+      reconcileElement,
+      (componentUrl as any) as QRL,
+      waitOn,
+      jsxNode.props,
+      document
+    );
   }
   if (!componentUrl) {
     // we don't process children if we have a component, as component is responsible for projection.
     visitChildren(
       document,
       waitOn,
-      registry,
       reconcileElement,
       reconcileElement.firstChild,
       jsxNode.children
@@ -187,14 +172,15 @@ function visitJSXStringNode(
 function visitJSXComponentNode(
   document: Document,
   waitOn: AsyncHostElementPromises,
-  registry: JSXRegistry | null,
   parentNode: Node,
   existingNode: Node | null,
   component: JSXFactory,
-  jsxNode: JSXNode<string>
+  props: JSXProps
 ): Node | null {
-  const componentJsxNode = component(jsxNode.props || EMPTY_OBJ);
-  return visitJSXNode(document, waitOn, registry, parentNode, existingNode, componentJsxNode);
+  if (!props) props = EMPTY_OBJ;
+  const context: InjectionContext = { element: parentNode as Element, props: props };
+  const componentJsxNode = component.call(context, props);
+  return visitJSXNode(document, waitOn, parentNode, existingNode, componentJsxNode);
 }
 
 function getComponentUrl(jsxNode: JSXNode<unknown>): string | null {
@@ -205,36 +191,26 @@ function getComponentUrl(jsxNode: JSXNode<unknown>): string | null {
 function visitJSXFactoryNode(
   document: Document,
   waitOn: AsyncHostElementPromises,
-  registry: JSXRegistry | null,
   parentNode: Node,
   existingNode: Node | null,
   jsxNode: JSXNode<JSXFactory>
 ): Node | null {
-  return visitJSXNode(
-    document,
-    waitOn,
-    registry,
-    parentNode,
-    existingNode,
-    jsxNode.tag(jsxNode.props)
-  );
+  return visitJSXNode(document, waitOn, parentNode, existingNode, jsxNode.tag(jsxNode.props));
 }
 
 function visitJSXFragmentNode(
   document: Document,
   waitOn: AsyncHostElementPromises,
-  registry: JSXRegistry | null,
   parentNode: Node,
   existingNode: Node | null,
   jsxNode: JSXNode<null>
 ): Node | null {
-  return visitChildren(document, waitOn, registry, parentNode, existingNode, jsxNode.children);
+  return visitChildren(document, waitOn, parentNode, existingNode, jsxNode.children);
 }
 
 function visitChildren(
   document: Document,
   waitOn: AsyncHostElementPromises,
-  registry: JSXRegistry | null,
   parentNode: Node,
   existingNode: Node | null,
   jsxChildren: any[]
@@ -243,7 +219,7 @@ function visitChildren(
     for (let i = 0; i < jsxChildren.length; i++) {
       const jsxChild = jsxChildren[i];
       if (isJSXNode(jsxChild)) {
-        existingNode = visitJSXNode(document, waitOn, registry, parentNode, existingNode, jsxChild);
+        existingNode = visitJSXNode(document, waitOn, parentNode, existingNode, jsxChild);
       } else if (jsxChild == null) {
         // delete
         if (existingNode) {

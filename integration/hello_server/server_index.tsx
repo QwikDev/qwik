@@ -7,7 +7,7 @@
  */
 
 import { jsxFactory, jsxRender } from './qoot.js';
-import HelloWorld from './HelloWorld.js';
+import { HelloWorld } from './HelloWorld.js';
 
 export function serverMain(document: Document) {
   const doc = (
@@ -21,5 +21,5 @@ export function serverMain(document: Document) {
       </body>
     </html>
   );
-  return jsxRender(document, doc, null, document);
+  return jsxRender(document, doc, document);
 }

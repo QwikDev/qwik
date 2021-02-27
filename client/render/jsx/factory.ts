@@ -5,7 +5,9 @@
  * Use of this source code is governed by an MIT-style license that can be
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
+
 import { EMPTY_OBJ } from '../../util/flyweight.js';
+import { QRL } from '../../import/qrl.js';
 
 export interface QProps {
   [key: string]: string;
@@ -42,9 +44,9 @@ export function jsxFactory<T extends string | null | JSXFactory | unknown>(
   return new JSXNode(tag, props, children);
 }
 
-export function jsxDeclareComponent<T>(tagName: string, url: string) {
+export function jsxDeclareComponent<T>(tagName: string, renderUrl: QRL) {
   return function (props: T) {
     // TODO[efficiency]: patching `$` is not most efficient.
-    return jsxFactory(tagName, { ...props, $: { '::': url } as any });
+    return jsxFactory(tagName, { ...props, $: { '::': renderUrl } as any });
   };
 }

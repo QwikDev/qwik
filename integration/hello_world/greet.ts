@@ -6,17 +6,21 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { eventHandler, extractValueRef, injectSourceElement } from './qoot.js';
+import { InjectionContext } from 'qoot';
 
-export const click = eventHandler(extractValueRef<string>('name'), function (name: string | null) {
+export function click(context: InjectionContext) {
+  const element = context.element!;
+  const parent = element.parentElement!;
+  const input = parent.querySelector('input') as HTMLInputElement;
+  const name = input.value;
+
   alert('Hello ' + name + '!');
-});
+}
 
-export const keydown = eventHandler(
-  injectSourceElement(HTMLInputElement),
-  function (element: HTMLInputElement) {
-    const name = element.value;
-    const span = element.parentElement?.querySelector('span')!;
-    span.textContent = name;
-  }
-);
+export function keydown(context: InjectionContext) {
+  const element = context.element as HTMLInputElement;
+
+  const name = element.value;
+  const span = element.parentElement?.querySelector('span')!;
+  span.textContent = name;
+}

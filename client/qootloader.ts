@@ -50,7 +50,7 @@
         if (dotIdx === 0 || dotIdx < slashIdx) dotIdx = pathname.length;
         let module = await import(pathname.substr(0, dotIdx) + '.js');
         const handler = module[pathname.substring(dotIdx + 1) || 'default'];
-        handler(event, element, url);
+        handler.call({ event, element, url });
       }
       element = element.parentElement;
     }

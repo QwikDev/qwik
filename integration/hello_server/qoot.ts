@@ -6,8 +6,6 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-/// <reference types="../../client/render/jsx/html" />
-
 /**
  * @fileoverview
  *

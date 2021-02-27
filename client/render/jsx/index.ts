@@ -9,3 +9,6 @@
 export { JSXNode, JSXProps, jsxFactory, jsxDeclareComponent } from './factory.js';
 export { JSXRegistry } from './registry.js';
 export { jsxRender } from './render.js';
+export { jsxTemplate } from './template.js';
+export { JSX_IntrinsicElements } from './html.js';
+export { markDirty } from './mark_dirty.js';

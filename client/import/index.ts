@@ -7,3 +7,4 @@
  */
 
 export { qImport } from './qImport.js';
+export { QRL } from './qrl.js';

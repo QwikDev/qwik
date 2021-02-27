@@ -20,6 +20,9 @@ ts_project(
     deps = [
         "//client/util",
         "//client/import",
+        "//client/assert",
+        "//client/injection",
+        "//client/render",
     ]
 )
 

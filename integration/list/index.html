@@ -13,7 +13,7 @@
   <body>
     <my-app .='{"list": ["JavaScript", "TypeScript"]}' (itemDelete)="myApp.itemDelete">
       List:
-      <input value="JavaScript, TypeScript" (keydown)="myApp.onInputChange" />
+      <input value="JavaScript, TypeScript" (keyup)="myApp.onInputChange" />
       <hr />
       <my-item .='myItem.MyItem|{"item": "JavaScript"}'>
         <span>JavaScript</span>

@@ -40,8 +40,7 @@ export function qImportInternal(
       return handler;
     })
     .catch((e) => {
-      debugger;
-      const error = `QRL-ERROR: '${url}' is not a valid import. (Base URL: ${baseURI})\n  => ${stackFrame}\n  => ${e}`;
+      const error = `QRL-ERROR: '${url}' is not a valid import. \n  Base URL: ${baseURI}\n  => ${stackFrame}\n  => ${e}`;
       console.error(error);
       return Promise.reject(error);
     });

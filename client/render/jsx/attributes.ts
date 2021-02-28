@@ -5,19 +5,18 @@
  * Use of this source code is governed by an MIT-style license that can be
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
-
-import { JSXProps, QProps } from './factory.js';
+import { Props, QProps } from '../../component/types.js';
 
 /**
- * Apply JSXProps to Element
+ * Apply Props to Element
  *
  * @param element `Element` onto which attributes need to be applied.
- * @param props `JSXProps` to apply
+ * @param props `Props` to apply
  * @param detectChanges if true, ready the previous attributes to see if any have changed.
  */
 export function applyAttributes(
   element: Element,
-  props: JSXProps | null,
+  props: Props | null,
   detectChanges: boolean
 ): boolean {
   let changesDetected = false;
@@ -55,11 +54,15 @@ function setAttribute(element: Element, key: string, value: string | null) {
   }
 }
 
-function applyControlProperties(element: Element, props: { [key: string]: string }) {
+function applyControlProperties(element: Element, props: { [key: string]: any }) {
   for (const key in props) {
     if (Object.prototype.hasOwnProperty.call(props, key)) {
       const value = props[key];
-      element.setAttribute(key, value);
+      if (value == null) {
+        element.removeAttribute(key);
+      } else {
+        element.setAttribute(key, String(value));
+      }
     }
   }
 }

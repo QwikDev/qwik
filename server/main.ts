@@ -13,6 +13,7 @@ import * as fs from 'fs';
 import { dirname, join } from 'path';
 import srcMap from 'source-map-support';
 import { fileURLToPath } from 'url';
+import { serializeState } from 'qoot';
 
 import { findFiles } from './fs_util.js';
 
@@ -92,8 +93,9 @@ function createServerJSHandler(serverMain: Function, baseUri: string) {
       value: `${req.protocol}://${req.headers.host}${req.originalUrl}`,
     });
     await serverMain(document, req.url);
-    const html = document.querySelector('html');
-    res.send(html ? html.outerHTML : '');
+    serializeState(document);
+    const html = document.querySelector('html')!;
+    res.send(html.outerHTML);
   };
 }
 

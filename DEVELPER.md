@@ -8,12 +8,12 @@
 # Running demos (`integration`)
 
 ```
-bazel run integration:serve
+bazel run integration:server
 ```
 
 Then open:
 
-- http://localhost:8080/hello_world/
+- http://localhost:8080/hello_static/
 
 ## Running Tests
 
@@ -31,7 +31,7 @@ bazel test  --test_tag_filters=unit  ...
 
 ### E2e tests only
 
-Before running the e2e tests, ensure that the `integration` server is running. (`bazel run integration:serve`)
+Before running the e2e tests, ensure that the `integration` server is running. (`bazel run integration:server`)
 
 ```
 bazel test  --test_tag_filters=e2e  ...

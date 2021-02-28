@@ -8,22 +8,15 @@
 
 import { EMPTY_OBJ } from '../../util/flyweight.js';
 import { QRL } from '../../import/qrl.js';
+import { Props } from '../../component/types.js';
+import { JSXFactory, JSXNode } from './types.js';
 
-export interface QProps {
-  [key: string]: string;
-}
-
-export interface JSXProps {
-  // $: QProps;
-  [key: string]: string | boolean | number | null | undefined;
-}
-
-export class JSXNode<T extends string | null | JSXFactory | unknown> {
+class JSXNode_<T extends string | null | JSXFactory | unknown> {
   public tag: T;
-  public props: JSXProps;
+  public props: Props;
   public children: Array<any>;
 
-  constructor(tag: T, props: JSXProps | null, children: Array<string | JSXNode<unknown>>) {
+  constructor(tag: T, props: Props | null, children: Array<string | JSXNode_<unknown>>) {
     this.tag = tag;
     this.props = props || EMPTY_OBJ;
     this.children = children;
@@ -31,21 +24,19 @@ export class JSXNode<T extends string | null | JSXFactory | unknown> {
 }
 
 export function isJSXNode(node: any): node is JSXNode<unknown> {
-  return node instanceof JSXNode;
+  return node instanceof JSXNode_;
 }
-
-export type JSXFactory = (props: JSXProps) => JSXNode<unknown>;
 
 export function jsxFactory<T extends string | null | JSXFactory | unknown>(
   tag: T,
-  props: JSXProps,
+  props: Props,
   ...children: any[]
 ): JSXNode<T> {
-  return new JSXNode(tag, props, children);
+  return new JSXNode_(tag, props, children);
 }
 
-export function jsxDeclareComponent<T>(tagName: string, renderUrl: QRL) {
-  return function (props: T) {
+export function jsxDeclareComponent<P>(tagName: string, renderUrl: QRL) {
+  return function (props: P): JSXNode<string> {
     // TODO[efficiency]: patching `$` is not most efficient.
     return jsxFactory(tagName, { ...props, $: { '::': renderUrl } as any });
   };

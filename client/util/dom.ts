@@ -65,3 +65,25 @@ export function replaceNode<T extends Node>(
   existingNode && parentNode.removeChild(existingNode);
   return newNode;
 }
+
+/**
+ * Read attributes from `Element` and return them as an object literal.
+ *
+ * NOTE: This function ignores all special attributes such as `::`.
+ *
+ * @param element Element to read attributes from.
+ */
+export function readElementAttributes(element: Element): { [attribute: string]: string } {
+  const props: { [attribute: string]: string } = {};
+  const attrs = element.attributes;
+  // todo: extract to utility function
+  for (let i = 0, ii = attrs.length; i < ii; i++) {
+    const attr = attrs[i];
+    const name = attr.name;
+    if (name.indexOf(':') == -1 && name.indexOf('.') == -1) {
+      // ignore all special attributes.
+      (props as { [key: string]: string })[name] = attr.value;
+    }
+  }
+  return props;
+}

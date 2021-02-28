@@ -6,6 +6,8 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-export * from './render/jsx/index.js';
+export * from './component/index.js';
 export * from './import/index.js';
 export * from './injection/index.js';
+export * from './render/jsx/index.js';
+export * from './render/index.js';

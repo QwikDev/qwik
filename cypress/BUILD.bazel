@@ -3,7 +3,7 @@ package(default_visibility = ["//visibility:public"])
 load("@npm//@bazel/typescript:index.bzl", "ts_project")
 load("@cypress//:index.bzl", "cypress_web_test")
 
-# You must create a cypress plugin in order to boot a server to serve your application. 
+# You must create a cypress plugin in order to boot a server to server your application. 
 # It can be written as a javascript file or in typescript using ts_library or ts_project.
 ts_project(
     name = "plugins_file",

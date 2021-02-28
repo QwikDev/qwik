@@ -6,6 +6,11 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
+import { newError } from '../../assert/assert.js';
+import { Props } from '../../component/types.js';
+import { qImport } from '../../import/index.js';
+import { QRL } from '../../import/qrl.js';
+import { InjectionContext } from '../../injection/index.js';
 import {
   isDomElementWithTagName,
   isTextNode,
@@ -13,17 +18,13 @@ import {
   removeNode,
   replaceNode,
 } from '../../util/dom.js';
-import '../../util/qDev.js';
-import { flattenPromiseTree, isPromise } from '../../util/promises.js';
-
-import { applyAttributes } from './attributes.js';
-import { isJSXNode, JSXNode, JSXFactory, JSXProps } from './factory.js';
-import { qImport } from '../../import/index.js';
 import { EMPTY_OBJ } from '../../util/flyweight.js';
-import { HostElements, AsyncHostElementPromises } from '../render.js';
-import { InjectionContext } from '../../injection/index.js';
-import { QRL } from '../../import/qrl.js';
-import { newError } from '../../assert/assert.js';
+import { flattenPromiseTree, isPromise } from '../../util/promises.js';
+import '../../util/qDev.js';
+import { AsyncHostElementPromises, HostElements } from '../types.js';
+import { applyAttributes } from './attributes.js';
+import { isJSXNode } from './factory.js';
+import { JSXFactory, JSXNode } from './types.js';
 
 /**
  * Render JSX into a host element reusing DOM nodes when possible.
@@ -53,7 +54,7 @@ export function jsxRenderComponent(
   hostElement: Element,
   componentUrl: QRL,
   waitOn: AsyncHostElementPromises,
-  props: JSXProps,
+  props: Props,
   overrideDocument: Document = document
 ) {
   // we need to render child component only if the inputs to the component changed.
@@ -175,7 +176,7 @@ function visitJSXComponentNode(
   parentNode: Node,
   existingNode: Node | null,
   component: JSXFactory,
-  props: JSXProps
+  props: Props
 ): Node | null {
   if (!props) props = EMPTY_OBJ;
   const context: InjectionContext = { element: parentNode as Element, props: props };

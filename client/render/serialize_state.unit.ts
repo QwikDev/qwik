@@ -5,11 +5,3 @@
  * Use of this source code is governed by an MIT-style license that can be
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
-
-import { expect } from 'chai';
-
-describe('injection', () => {
-  it('should fail', () => {
-    expect(true).to.be.true;
-  });
-});

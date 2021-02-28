@@ -5,7 +5,7 @@ load("@build_bazel_rules_nodejs//:index.bzl", "copy_to_bin", "nodejs_binary")
 
 
 ts_project(
-    name = "hello_world",
+    name = "hello_static",
     srcs = glob(["**/*.ts"]),
     declaration = True,
     tsconfig = "//:tsconfig",
@@ -22,18 +22,18 @@ copy_to_bin(
 )
 
 nodejs_binary(
-    name = "serve",
+    name = "server",
     entry_point = "//server:main.js",
     templated_args = [
         "--node_options=--experimental-modules",
         "--nobazel_patch_module_resolver",
         "--root", 
         "client",
-        "qoot/integration/hello_world", 
+        "qoot/integration/hello_static", 
     ],
     data = [
         ":static_files",
-        ":hello_world",
+        ":hello_static",
         "//server",
         "//client",
         "//client:loader",

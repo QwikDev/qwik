@@ -22,7 +22,7 @@ copy_to_bin(
 )
 
 nodejs_binary(
-    name = "serve",
+    name = "server",
     entry_point = "//server:main.js",
     templated_args = [
         "--node_options=--experimental-modules",

@@ -18,6 +18,7 @@ ts_project(
     declaration = True,
     srcs = glob(["**/*.ts"], exclude=["qootloader.ts", "**/*.unit.ts"]),
     deps = [
+        "//client/component",
         "//client/injection",
         "//client/render/jsx",
         "//client/import",

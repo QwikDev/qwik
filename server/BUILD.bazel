@@ -24,5 +24,6 @@ ts_project(
         "@npm//express",
         "@npm//domino",
         "@npm//source-map-support",
+        "//client",
     ],
 )

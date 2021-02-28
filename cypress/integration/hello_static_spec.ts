@@ -8,9 +8,9 @@
 
 /// <reference types="cypress" />
 
-describe('hello_world', () => {
+describe('hello_static', () => {
   it('typing into input updates text', () => {
-    cy.visit('/hello_world');
+    cy.visit('/hello_static/');
     cy.get('#name').type('!!!');
     cy.get('body span').should((span) => expect(span).to.have.text('World!!!'));
 

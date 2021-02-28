@@ -8,8 +8,8 @@
 
 import { InjectionContext } from 'qoot';
 
-export function click(context: InjectionContext) {
-  const element = context.element!;
+export function click(this: InjectionContext) {
+  const element = this.element!;
   const parent = element.parentElement!;
   const input = parent.querySelector('input') as HTMLInputElement;
   const name = input.value;
@@ -17,8 +17,8 @@ export function click(context: InjectionContext) {
   alert('Hello ' + name + '!');
 }
 
-export function keydown(context: InjectionContext) {
-  const element = context.element as HTMLInputElement;
+export function keyup(this: InjectionContext) {
+  const element = this.element as HTMLInputElement;
 
   const name = element.value;
   const span = element.parentElement?.querySelector('span')!;

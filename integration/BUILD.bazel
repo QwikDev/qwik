@@ -1,7 +1,7 @@
 package(default_visibility = ["//visibility:public"])
 
 load("@npm//@bazel/typescript:index.bzl", "ts_project")
-load("@build_bazel_rules_nodejs//:index.bzl", "nodejs_binary")
+load("@build_bazel_rules_nodejs//:index.bzl", "copy_to_bin", "nodejs_binary")
 load("@build_bazel_rules_nodejs//:index.bzl", "js_library")
 
 js_library(
@@ -12,8 +12,16 @@ js_library(
     ],
 )
 
+
+copy_to_bin(
+    name = "static_files",
+    srcs = [
+        "index.html",
+    ]
+)
+
 nodejs_binary(
-    name = "serve",
+    name = "server",
     entry_point = "//server:main.js",
     templated_args = [
         "--node_options=--experimental-modules",
@@ -24,8 +32,9 @@ nodejs_binary(
     ],
     data = [
         ":integration_lib",
-        "//integration/hello_world",
-        "//integration/hello_world:static_files",
+        ":static_files",
+        "//integration/hello_static",
+        "//integration/hello_static:static_files",
         "//integration/hello_server",
         # "//integration/list",
         # "//integration/list:static_files",

@@ -7,9 +7,15 @@
  */
 
 import { jsxFactory, jsxRender } from './qoot.js';
-import { HelloWorld } from './HelloWorld.js';
+import { Greeter } from './Greeter.js';
 
-export function serverMain(document: Document) {
+/**
+ * Entry point for server-side pre-rendering.
+ *
+ * @param document
+ * @returns a promise when all of the rendering is completed.
+ */
+export async function serverMain(document: Document) {
   const doc = (
     <html>
       <head>
@@ -17,7 +23,7 @@ export function serverMain(document: Document) {
         <script src="/qootloader.js" async></script>
       </head>
       <body>
-        <HelloWorld name="World" />
+        <Greeter name="World" />
       </body>
     </html>
   );

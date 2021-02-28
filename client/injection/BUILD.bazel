@@ -16,13 +16,20 @@ ts_project(
     name = "project",
     tsconfig = "//:tsconfig",
     declaration = True,
-    srcs = glob(["**/*.ts"], exclude=["**/*.unit.ts"]),
+    srcs = glob(["**/*.ts"], exclude=["**/*.unit.ts", "types.ts"]),
     deps = [
+        ":types",
         "//client/assert",
         "//client/util",
         "//client/import",
-        "//client/testing",
     ],
+)
+
+ts_project(
+    name = "types",
+    tsconfig = "//:tsconfig",
+    declaration = True,
+    srcs = ["types.ts"],
 )
 
 ts_project(

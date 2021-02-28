@@ -9,30 +9,24 @@
 import { expect } from 'chai';
 import { qImport } from '../import/qImport.js';
 import { isPromise } from '../util/promises.js';
-import { createGlobal } from '../testing/node_utils.js';
+import { ComponentFixture } from '../testing/component_fixture.js';
 
 describe('qImport', () => {
-  let document: Document;
-  let host: Element;
-  beforeEach(() => {
-    document = createGlobal().document;
-    Object.defineProperty(document, 'baseURI', { value: import.meta.url });
-    host = document.createElement('host');
-  });
-
   it('should import default symbol', async () => {
-    const valuePromise = qImport(host, './qImport_default_unit');
+    const fixture = new ComponentFixture();
+    const valuePromise = qImport(fixture.host, './qImport_default_unit');
     expect(isPromise(valuePromise)).to.be.true;
     expect(await valuePromise).to.equal('DEFAULT_VALUE');
     // second read is direct.
-    expect(qImport(host, './qImport_default_unit')).to.equal('DEFAULT_VALUE');
+    expect(qImport(fixture.host, './qImport_default_unit')).to.equal('DEFAULT_VALUE');
   });
 
   it('should import symbol from extension', async () => {
-    const valuePromise = qImport(host, './qImport_symbol_unit.mySymbol');
+    const fixture = new ComponentFixture();
+    const valuePromise = qImport(fixture.host, './qImport_symbol_unit.mySymbol');
     expect(isPromise(valuePromise)).to.be.true;
     expect(await valuePromise).to.equal('MY_SYMBOL_VALUE');
     // second read is direct.
-    expect(qImport(host, './qImport_symbol_unit.mySymbol')).to.equal('MY_SYMBOL_VALUE');
+    expect(qImport(fixture.host, './qImport_symbol_unit.mySymbol')).to.equal('MY_SYMBOL_VALUE');
   });
 });

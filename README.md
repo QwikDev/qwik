@@ -7,3 +7,7 @@ An Open-Source sub-framework designed with a focus on server-side-rendering, laz
 > _DISCLAIMER_: This project is an Open Source project of [Miško Hevery](https://github.com/mhevery) and is in no way associated with, endorsed by, or supported by [Google LLC](https://about.google).
 
 ---
+
+## Getting Started
+
+Visit [integration](./integration) folder for guided tours of Qoot to learn how it works.

@@ -41,7 +41,11 @@ async function main(__dirname: string, process: NodeJS.Process) {
   app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
     if (req.path.endsWith('/qoot.js') && req.path !== '/qoot.js') {
       res.type('application/javascript');
-      res.write("export * from '/qoot.js';");
+      if (qootBundle) {
+        res.write(qootBundle);
+      } else {
+        res.write("export * from '/qoot.js';");
+      }
       res.end();
     } else {
       next();
@@ -50,6 +54,7 @@ async function main(__dirname: string, process: NodeJS.Process) {
 
   // Set up static routes first
   const servePaths = opts.root.map((servePath: string) => join(RUNFILES, servePath));
+  const qootBundle = readBundleContent(servePaths);
 
   servePaths.forEach((path: string) => {
     if (fs.existsSync(path)) {
@@ -83,6 +88,19 @@ async function main(__dirname: string, process: NodeJS.Process) {
   );
 
   app.listen(opts.port);
+}
+
+function readBundleContent(paths: string[]): string | null {
+  for (let i = 0; i < paths.length; i++) {
+    const path = paths[i];
+    const qootPath = join(path, 'bundle.js');
+    const content = fs.readFileSync(qootPath);
+    if (content.length) {
+      console.log('Found Qoot bundle:', qootPath);
+      return String(content);
+    }
+  }
+  return null;
 }
 
 function createServerJSHandler(serverMain: Function, baseUri: string) {

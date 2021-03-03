@@ -2,6 +2,8 @@ package(default_visibility = ["//visibility:public"])
 
 load("@build_bazel_rules_nodejs//:index.bzl", "js_library")
 load("@npm//@bazel/typescript:index.bzl", "ts_project")
+load("@npm//@bazel/rollup:index.bzl", "rollup_bundle")
+load("@npm//@bazel/terser:index.bzl", "terser_minified")
 
 js_library(
     name = "client",
@@ -25,9 +27,32 @@ ts_project(
     ]
 )
 
+rollup_bundle(
+    name = "bundle",
+    entry_point = "qoot.js",
+    config_file = "//:rollup.config.js",
+    deps = [":client"],
+)
+
+terser_minified(
+    name = "bundle.min",
+    src = "bundle.js",
+    config_file = "//:terser.config.json",
+    sourcemap = False,
+    terser_bin = "@npm//terser/bin:terser"
+)
+
 ts_project(
     name = "loader",
     tsconfig = "//:tsconfig",
     declaration = True,
     srcs = ["qootloader.ts"],
+)
+
+terser_minified(
+    name = "loader.min",
+    src = "qootloader.js",
+    config_file = "//:terser.config.json",
+    sourcemap = False,
+    terser_bin = "@npm//terser/bin:terser"
 )

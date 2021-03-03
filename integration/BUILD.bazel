@@ -39,7 +39,7 @@ nodejs_binary(
         # "//integration/list",
         # "//integration/list:static_files",
         "//server",
-        "//client",
+        "//client:bundle",
         "//client:loader",
     ],
 )

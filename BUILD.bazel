@@ -19,4 +19,6 @@ exports_files([
     "LICENSE",
     "cypress.json",
     "package.json",
+    "rollup.config.js",
+    "terser.config.json",
 ])

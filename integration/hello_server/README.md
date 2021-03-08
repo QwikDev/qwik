@@ -29,7 +29,7 @@ At this point the browser renders the page and waits for user interaction.
 1. User edits the `<input>` which causes `keyup` event to be emitted by the browser which is intercepted by [`qootloader.js`](../../client/qootloader.ts) because of `on:keyup` attribute in `<input value="World" on:keyup="./Greeter_onKeyup?name=.target.value">`.
 1. [`./Greeter_onKeyup`](./Greeter_onKeyup.ts) is loaded and executed.
    ```
-   export default inject(
+   export default injectEventHandler(
      GreeterComponent,
      provideQrlExp('value'),
      function (this: GreeterComponent, value: string) {

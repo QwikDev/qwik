@@ -22,6 +22,8 @@ ts_project(
         "//client/assert",
         "//client/util",
         "//client/import",
+        "//client/service:types",
+        "//client/component:types",
     ],
 )
 
@@ -30,6 +32,8 @@ ts_project(
     tsconfig = "//:tsconfig",
     declaration = True,
     srcs = ["types.ts"],
+    deps = [
+    ]
 )
 
 ts_project(
@@ -39,6 +43,7 @@ ts_project(
     srcs = glob(["**/*.unit.ts"]),
     deps = [
         ":injection",
+        "//client/testing",
         "@npm//@types/mocha",
         "@npm//@types/chai",
     ]

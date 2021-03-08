@@ -42,6 +42,8 @@
     "rollup": "^2.40.0",
     "serve-static": "^1.14.1",
     "terser": "^5.6.0",
+    "todomvc-app-css": "^2.3.0",
+    "todomvc-common": "^1.0.5",
     "typescript": "^4.2.0"
   },
   "scripts": {

@@ -8,7 +8,7 @@
 
 import { EMPTY_OBJ } from '../../util/flyweight.js';
 import { QRL } from '../../import/qrl.js';
-import { Props } from '../../component/types.js';
+import { Props } from '../../injection/types.js';
 import { JSXFactory, JSXNode } from './types.js';
 
 class JSXNode_<T extends string | null | JSXFactory | unknown> {
@@ -32,7 +32,7 @@ export function jsxFactory<T extends string | null | JSXFactory | unknown>(
   props: Props,
   ...children: any[]
 ): JSXNode<T> {
-  return new JSXNode_(tag, props, children);
+  return new JSXNode_(tag, props, children.flat(99));
 }
 
 export function jsxDeclareComponent<P>(tagName: string, renderUrl: QRL) {

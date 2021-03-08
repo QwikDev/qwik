@@ -7,9 +7,7 @@
  */
 
 import { assertDefined } from '../assert/index.js';
-import { AsyncProvider, InjectionContext } from '../injection/types.js';
-import { readElementAttributes } from '../util/dom.js';
-import { findHostElement } from './traversal.js';
+import { AsyncProvider, Injector } from '../injection/types.js';
 
 /**
  * Returns `Props` of component.
@@ -34,12 +32,8 @@ import { findHostElement } from './traversal.js';
  * ```
  */
 export function provideProps<T>(): AsyncProvider<T> {
-  return function propsProvider(this: InjectionContext): T {
-    let props = this.props!;
-    if (props === undefined) {
-      const hostElement = findHostElement(this);
-      props = readElementAttributes(hostElement);
-    }
+  return function propsProvider(injector: Injector): T {
+    let props = injector.props;
     qDev && assertDefined(props);
     return (props as any) as T;
   };

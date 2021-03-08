@@ -5,13 +5,16 @@
  * Use of this source code is governed by an MIT-style license that can be
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
-
-import { isPromise } from '../util/promises.js';
+import { assertEqual } from '../assert/assert.js';
+import {
+  ComponentInjector,
+  createComponentInjector,
+  getComponentHost,
+} from '../injection/element_injector.js';
+import { getStorage } from '../injection/storage.js';
+import { AsyncProvider, Injector } from '../injection/types.js';
 import { Component } from './component.js';
 import { ComponentType } from './types.js';
-import { AsyncProvider, InjectionContext } from '../injection/types.js';
-import { findHostElement } from './traversal.js';
-import { ElementExpando } from './types.js';
 
 /**
  * Provider of Component.
@@ -45,20 +48,23 @@ import { ElementExpando } from './types.js';
  * ```
  *
  * @param componentType
- */ export function provideComponent<C extends Component<any, any>>(
+ */
+export function provideComponent<C extends Component<any, any>>(
   componentType: ComponentType<C, any[]>
 ): AsyncProvider<C> {
-  return function componentProvider(this: InjectionContext): C | Promise<C> {
-    const expando = findHostElement(this) as ElementExpando<C>;
-    // TODO: uncomment
-    // qDev && assertComponentElement(hostElement);
-    let component: C | Promise<C> | undefined = expando.$QOOT_COMPONENT;
-    if (component === undefined) {
-      component = expando.$QOOT_COMPONENT = componentType.newInject(this) as C;
-      if (isPromise(component)) {
-        component.then((component) => (expando.$QOOT_COMPONENT = component as C));
+  return function componentProvider(injector: Injector): C | Promise<C> {
+    const hostElement = getComponentHost(injector.element);
+    const storage = getStorage(hostElement);
+    let componentInjector = storage.get('') as ComponentInjector | null;
+    if (componentInjector == null) {
+      componentInjector = createComponentInjector(hostElement, null);
+      const component = componentType.newInject(componentInjector) as C;
+      if (componentInjector.instance === null) {
+        componentInjector.instance = component;
       }
+      qDev && assertEqual(componentInjector.instance, component);
+      storage.set(':.', componentInjector as any);
     }
-    return component;
+    return componentInjector.instance as C;
   };
 }

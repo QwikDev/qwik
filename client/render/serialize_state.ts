@@ -6,16 +6,25 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { isPromise } from '../util/promises.js';
-import { Component } from '../component/types.js';
-import { ElementExpando } from '../component/types.js';
+import { assertDefined } from '../assert/assert.js';
+import { getStorage } from '../injection/storage.js';
+import { isHtmlElement } from '../util/types.js';
 
-export function serializeState(document: Document) {
-  document.querySelectorAll('[\\:\\:]').forEach((hostElement) => {
-    const component = (hostElement as ElementExpando<Component<any, any>>).$QOOT_COMPONENT;
-    if (component && !isPromise(component)) {
-      const state = component.$state;
-      hostElement.setAttribute(':.', JSON.stringify(state));
-    }
-  });
+export function serializeState(element: Element | Document) {
+  if (isHtmlElement(element)) {
+    serializeNode(element);
+  }
+  element.querySelectorAll('[\\:]').forEach(serializeNode);
+  // TODO: Unify service/components;
+  element.querySelectorAll('[\\:\\:]').forEach(serializeNode);
+}
+function serializeNode(element: Element): void {
+  const storage = getStorage(element, false);
+  if (storage) {
+    storage.forEach((injector, key) => {
+      if (injector.instance) {
+        element.setAttribute(key, JSON.stringify(injector.instance.$state));
+      }
+    });
+  }
 }

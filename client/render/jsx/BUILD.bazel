@@ -28,6 +28,7 @@ ts_project(
         "//client/injection",
         "//client/render",
         "//client/component:types",
+        "//client/service:types",
     ]
 )
 
@@ -47,6 +48,7 @@ ts_project(
     deps = [
         ":jsx",
         "//client/testing",
+        "//client:CONFIG",
         "@npm//@types/mocha",
         "@npm//@types/chai",
         "@npm//chai",

@@ -6,21 +6,16 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { newError } from '../../assert/assert.js';
-import { Props } from '../../component/types.js';
+import { QError, qError } from '../../error/error.js';
 import { qImport } from '../../import/index.js';
 import { QRL } from '../../import/qrl.js';
-import { InjectionContext } from '../../injection/index.js';
-import {
-  isDomElementWithTagName,
-  isTextNode,
-  NodeType,
-  removeNode,
-  replaceNode,
-} from '../../util/dom.js';
+import { createComponentInjector } from '../../injection/element_injector.js';
+import { InjectedFunction, Injector, Props } from '../../injection/types.js';
+import { removeNode, replaceNode } from '../../util/dom.js';
 import { EMPTY_OBJ } from '../../util/flyweight.js';
 import { flattenPromiseTree, isPromise } from '../../util/promises.js';
 import '../../util/qDev.js';
+import { isDomElementWithTagName, isTextNode, NodeType } from '../../util/types.js';
 import { AsyncHostElementPromises, HostElements } from '../types.js';
 import { applyAttributes } from './attributes.js';
 import { isJSXNode } from './factory.js';
@@ -91,9 +86,21 @@ function visitJSXNode(
   waitOn: AsyncHostElementPromises,
   parentNode: Node,
   existingNode: Node | null,
-  jsxNode: JSXNode<unknown>
+  jsxNode: Promise<JSXNode<unknown>> | JSXNode<unknown>
 ): Node | null {
-  if (typeof jsxNode.tag === 'string') {
+  if (isPromise(jsxNode)) {
+    waitOn.push(
+      jsxNode.then((jsxNode) => {
+        const waitOn: AsyncHostElementPromises = [];
+        const node = visitJSXNode(document, waitOn, parentNode, existingNode, jsxNode);
+        // TODO: cast seems suspect;
+        waitOn.push(node as Element);
+        // TODO: needs test
+        return waitOn;
+      }, writeErrorToDom(parentNode))
+    );
+    return null;
+  } else if (typeof jsxNode.tag === 'string') {
     // String literal
     return visitJSXStringNode(
       document,
@@ -121,7 +128,7 @@ function visitJSXNode(
       jsxNode as JSXNode<null>
     );
   }
-  throw newError('Unexpected JSXNode<' + jsxNode.tag + '> type.');
+  throw qError(QError.Render_unexpectedJSXNodeType_type, jsxNode.tag);
 }
 
 function visitJSXStringNode(
@@ -179,13 +186,17 @@ function visitJSXComponentNode(
   props: Props
 ): Node | null {
   if (!props) props = EMPTY_OBJ;
-  const context: InjectionContext = { element: parentNode as Element, props: props };
-  const componentJsxNode = component.call(context, props);
+  const injector: Injector = createComponentInjector(parentNode as Element, props);
+  const componentJsxNode = injector.invoke(
+    (component as any) as InjectedFunction<any, any[], any[], JSXNode<any>>,
+    null,
+    props
+  );
   return visitJSXNode(document, waitOn, parentNode, existingNode, componentJsxNode);
 }
 
 function getComponentUrl(jsxNode: JSXNode<unknown>): string | null {
-  const qProps = jsxNode.props?.$ as { ['::']: string | undefined } | undefined;
+  const qProps = (jsxNode.props?.$ as unknown) as { ['::']: string | undefined } | undefined;
   return (qProps && qProps['::']) || null;
 }
 
@@ -242,4 +253,17 @@ function visitChildren(
     existingNode = removeNode(parentNode, existingNode);
   }
   return null;
+}
+// TODO: docs
+// TODO: tests
+function writeErrorToDom(node: Node): any {
+  return function (error: any): any {
+    // TODO: needs test
+    console.log('ERROR:', error);
+    const element = node as Element;
+    const pre = element.ownerDocument.createElement('pre');
+    element.appendChild(pre);
+    pre.textContent = String(error);
+    return Promise.reject(error);
+  };
 }

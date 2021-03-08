@@ -110,7 +110,12 @@ function createServerJSHandler(serverMain: Function, baseUri: string) {
     Object.defineProperty(document, 'URL', {
       value: `${req.protocol}://${req.headers.host}${req.originalUrl}`,
     });
-    await serverMain(document, req.url);
+    const roots = await serverMain(document, req.url);
+    if (!Array.isArray(roots)) {
+      throw new Error(
+        `SERVER: Render method of '${req.url}' should have returned a promise which resolves when DOM is ready for serialization.`
+      );
+    }
     serializeState(document);
     const html = document.querySelector('html')!;
     res.send(html.outerHTML);

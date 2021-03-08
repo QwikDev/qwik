@@ -2632,6 +2632,16 @@ to-regex-range@^5.0.1:
   dependencies:
     is-number "^7.0.0"
 
+todomvc-app-css@^2.3.0:
+  version "2.3.0"
+  resolved "https://registry.yarnpkg.com/todomvc-app-css/-/todomvc-app-css-2.3.0.tgz#cc27f1686ab4c418eef4e790289cc124baca2546"
+  integrity sha512-RG8hxqoVn8Be3wxyuyHfOSAXiY1Z0N+PYQOe/jxzy3wpU1Obfwd1RF1i/fz/fR+MrYL+Q+BdrUt8SsXdtR7Oow==
+
+todomvc-common@^1.0.5:
+  version "1.0.5"
+  resolved "https://registry.yarnpkg.com/todomvc-common/-/todomvc-common-1.0.5.tgz#8c3e799ac9f1fc1573e0c204f984510826914730"
+  integrity sha512-D8kEJmxVMQIWwztEdH+WeiAfXRbbSCpgXq4NkYi+gduJ2tr8CNq7sYLfJvjpQ10KD9QxJwig57rvMbV2QAESwQ==
+
 toidentifier@1.0.0:
   version "1.0.0"
   resolved "https://registry.npmjs.org/toidentifier/-/toidentifier-1.0.0.tgz"

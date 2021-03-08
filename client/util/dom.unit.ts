@@ -8,7 +8,7 @@
 
 import { expect } from 'chai';
 import { createGlobal, QootGlobal } from '../testing/node_utils.js';
-import { isDomElementWithTagName } from './dom.js';
+import { isDomElementWithTagName } from './types.js';
 
 describe('dom', () => {
   let global: QootGlobal;
@@ -16,7 +16,7 @@ describe('dom', () => {
   let span: HTMLElement;
   let text: Text;
   beforeEach(() => {
-    global = createGlobal();
+    global = createGlobal(import.meta.url);
     div = global.document.createElement('div');
     span = global.document.createElement('span');
     text = global.document.createTextNode('text-node');

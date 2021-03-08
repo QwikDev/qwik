@@ -6,8 +6,12 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { InjectionContext, QRL } from '../qoot.js';
-import { createGlobal, getBaseUri } from './node_utils.js';
+import { createComponentInjector } from '../injection/element_injector.js';
+import { QRL } from '../qoot.js';
+import { jsxRender } from '../render/jsx/render.js';
+import { JSXFactory } from '../render/jsx/types.js';
+import { HostElements } from '../render/types.js';
+import { ServiceFixture } from './service_fixture.js';
 
 /**
  * Creates a simple DOM structure for testing components.
@@ -20,25 +24,27 @@ import { createGlobal, getBaseUri } from './node_utils.js';
  * </host>
  * ```
  *
- * It also sets up `injectionContext` which points to `child`.
+ * It also sets up `injector` which points to `child`.
  *
  */
-export class ComponentFixture {
-  global: { document: Document };
-  document: Document;
-  host: HTMLElement;
-  child: HTMLElement;
-  injectionContext: InjectionContext;
+export class ComponentFixture extends ServiceFixture {
+  template: JSXFactory | null = null;
 
   constructor() {
-    const thisFileBaseURI = getBaseUri().replace(/\/[^\/]*$/, ''); // Chop of filename
-    this.global = createGlobal(getBaseUri(null, /\/testing\/component_fixture\./));
-    this.document = this.global.document;
-    this.host = this.document.createElement('host');
-    this.child = this.document.createElement('child');
-    this.injectionContext = { element: this.child };
-    this.host.setAttribute('::', String(QRL`${thisFileBaseURI}/component_fixture.noop`));
-    this.host.appendChild(this.child);
+    super();
+    this.injector = createComponentInjector(this.host, null);
+    this.host.setAttribute('::', String(QRL`${import.meta.url.replace(/\.js$/, '.noop')}`));
+  }
+
+  render(): Promise<HostElements> | null {
+    if (this.template) {
+      return jsxRender(
+        this.host,
+        this.template.call(this.injector, this.injector.props!),
+        this.document
+      );
+    }
+    return null;
   }
 }
 
@@ -46,3 +52,11 @@ export class ComponentFixture {
  * Noop rendering used by `ComponentFixture`.
  */
 export const noop = function () {};
+
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      'test-component': any;
+    }
+  }
+}

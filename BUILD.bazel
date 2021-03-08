@@ -5,7 +5,8 @@ load("@build_bazel_rules_nodejs//:index.bzl", "copy_to_bin")
 
 ts_config(
     name = "tsconfig",
-    src = "tsconfig.json",
+    src = "tsconfig.bazel.json",
+    deps = [":tsconfig.json"]
 )
 
 copy_to_bin(

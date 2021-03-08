@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { Props } from '../../component/types.js';
+import { Props } from '../../injection/types.js';
 
 export type JSXFactory = (props: Props) => JSXNode<unknown>;
 

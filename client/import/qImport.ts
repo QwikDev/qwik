@@ -6,43 +6,123 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
+import { getConfig } from '../config/qGlobal.js';
 import { QRL } from './qrl.js';
+import { QConfig } from '../config/qGlobal.js';
 
 let importCache: Map<string, unknown | Promise<unknown>>;
 
-export function qImport<T>(element: Element, url: string | QRL | URL): T | Promise<T> {
+/**
+ * Lazy load a `QRL` symbol and returns the resulting value.
+ *
+ * @param base `QRL`s are relative, and therefore they need a base for resolution.
+ *    - `Element` use `base.ownerDocument.baseURI`
+ *    - `Document` use `base.baseURI`
+ *    - `string` use `base` as is
+ *    - `QConfig` use `base.baseURI`
+ * @param url A relative URL (as `string` or `QRL`) or fully qualified `URL`
+ * @returns A cached value synchronously or promise of imported value.
+ */
+export function qImport<T>(
+  base: Element | Document | string | QConfig,
+  url: string | QRL<T> | URL
+): T | Promise<T> {
   if (!importCache) importCache = new Map<string, unknown | Promise<unknown>>();
-  const baseURI = element.ownerDocument.baseURI;
-  const _url = url instanceof URL ? url : new URL(String(url), baseURI);
-  const pathname = _url.pathname;
-  const cacheValue = importCache.get(pathname);
+
+  const normalizedUrl = toUrl(toBaseURI(base), url);
+  const importPath = toImportPath(normalizedUrl);
+  const cacheValue = importCache.get(importPath);
   if (cacheValue) return cacheValue as T;
-  const promise = qImportInternal(url, baseURI, null);
-  importCache.set(pathname, promise);
+
+  let dotIdx = importPath.lastIndexOf('.');
+  let slahIdx = importPath.lastIndexOf('/');
+  if (dotIdx <= slahIdx) dotIdx = importPath.length;
+  const importURL = importPath.substr(0, dotIdx) + '.js';
+  const promise = import(importURL).then((module) => {
+    const key = importPath.substring(dotIdx + 1) || 'default';
+    const handler = module[key];
+    importCache.set(importPath, handler);
+    return handler;
+  });
+  importCache.set(importPath, promise);
   return promise;
 }
 
-export function qImportInternal(
-  url: string | QRL | URL,
-  baseURI: string,
-  stackFrame: string | null
-) {
-  const _url = url instanceof URL ? url : new URL(String(url), baseURI);
-  const pathname = _url.pathname;
-  let dotIdx = pathname.lastIndexOf('.');
-  let slashIdx = pathname.lastIndexOf('/');
-  if (dotIdx === 0 || dotIdx < slashIdx) dotIdx = pathname.length;
-  const promise = import(pathname.substr(0, dotIdx) + '.js')
-    .then((module) => {
-      const key = pathname.substring(dotIdx + 1) || 'default';
-      const handler = module[key];
-      stackFrame == null && importCache.set(pathname, handler);
-      return handler;
-    })
-    .catch((e) => {
-      const error = `QRL-ERROR: '${url}' is not a valid import. \n  Base URL: ${baseURI}\n  => ${stackFrame}\n  => ${e}`;
-      console.error(error);
-      return Promise.reject(error);
-    });
-  return promise;
+/**
+ * Retrieves the base URI.
+ *
+ * @param base `QRL`s are relative, and therefore they need a base for resolution.
+ *    - `Element` use `base.ownerDocument.baseURI`
+ *    - `Document` use `base.baseURI`
+ *    - `string` use `base` as is
+ *    - `QConfig` use `base.baseURI`
+ * @returns Base URI.
+ */
+export function toBaseURI(base: QConfig | Element | Document | string): string {
+  if (typeof base === 'string') return base;
+  const document = (base as Element).ownerDocument || base;
+  return document.baseURI;
+}
+
+/**
+ * Convert relative base URI and relative URL into a fully qualified URL.
+ *
+ * @param base `QRL`s are relative, and therefore they need a base for resolution.
+ *    - `Element` use `base.ownerDocument.baseURI`
+ *    - `Document` use `base.baseURI`
+ *    - `string` use `base` as is
+ *    - `QConfig` use `base.baseURI`
+ * @param url relative URL
+ * @returns fully qualified URL.
+ */
+export function toUrl(baseURI: string, url: string | QRL | URL): URL {
+  if (typeof url === 'string') {
+    const config = getConfig(baseURI);
+    return new URL(adjustProtocol(config, url), config.baseURI);
+  } else {
+    return url as URL;
+  }
+}
+
+/**
+ * Removes URL decorations such as search and hash and returns naked URL for importing.
+ *
+ * @param url to clean.
+ * @returns naked URL.
+ */
+export function toImportPath(url: URL): string {
+  const tmp = new URL(String(url));
+  tmp.hash = '';
+  tmp.search = '';
+  return String(tmp).replace(/\.(ts|tsx)$/, '.js');
+}
+
+/**
+ * Convert custom protocol to path by looking it up in `QConfig`
+ *
+ * Pats such as
+ * ```
+ * QRL`foo:/bar`
+ *
+ * Q = {
+ *   protocol: {
+ *     'foo': 'somePath'
+ *   }
+ * }
+ * ```
+ * The `QRL` looks up `foo` in `QRLProtocolMap` resulting in `somePath/bar`
+ *
+ * @param qConfig
+ * @param qrl
+ * @returns URL where the custom protocol has been resolved.
+ */
+export function adjustProtocol(qConfig: QConfig, qrl: string | QRL): string {
+  return String(qrl).replace(/(^\w+)\:\/?/, (all, protocol) => {
+    let value = qConfig.protocol[protocol];
+    if (!value) return all;
+    if (!value.endsWith('/')) {
+      value = value + '/';
+    }
+    return value;
+  });
 }

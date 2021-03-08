@@ -13,7 +13,7 @@ import { provideComponentState } from './provide_component_state.js';
 describe('provideComponentState', () => {
   it('should inject empty state', () => {
     const fixture = new ComponentFixture();
-    expect(() => provideComponentState().apply(fixture.injectionContext)).to.throw(
+    expect(() => provideComponentState()(fixture.injector)).to.throw(
       "Can't find state on host element."
     );
   });
@@ -23,6 +23,6 @@ describe('provideComponentState', () => {
     const state = { prop: 'value' };
     fixture.host.setAttribute('::', './qrl');
     fixture.host.setAttribute(':.', JSON.stringify(state));
-    expect(provideComponentState().apply(fixture.injectionContext)).to.eql(state);
+    expect(provideComponentState()(fixture.injector)).to.eql(state);
   });
 });

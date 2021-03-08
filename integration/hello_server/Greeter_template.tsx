@@ -19,7 +19,7 @@ import { inject, jsxFactory, QRL } from './qoot.js';
  * Render template method of `GreeterComponent`.
  *
  * - `inject` is used to get (lazy-load) information needed for rendering.
- *   - `GreeterComponent` is located and or created and injected as `this` of the template method.
+ *   - `GreeterComponent` is located and or created and injectEventHandlered as `this` of the template method.
  */
 export default inject(GreeterComponent, function (this: GreeterComponent) {
   const name = this.$state.name;

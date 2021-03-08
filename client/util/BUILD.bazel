@@ -16,9 +16,23 @@ ts_project(
     name = "project",
     tsconfig = "//:tsconfig",
     declaration = True,
-    srcs = glob(["**/*.ts", "**/*.tsx"], exclude=["**/*.unit.ts", "**/*.unit.tsx"]),
+    srcs = glob(["**/*.ts", "**/*.tsx"], exclude=["**/*.unit.ts", "**/*.unit.tsx", "types.ts"]),
+    deps = [
+        "//client/assert",
+        "//client/error",
+    ]
 )
 
+ts_project(
+    name = "types",
+    tsconfig = "//:tsconfig",
+    declaration = True,
+    srcs = ["types.ts"],
+    deps = [
+        "//client/import:types",
+        "//client/injection:types",
+    ],
+)
 
 ts_project(
     name = "unit_project",

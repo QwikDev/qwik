@@ -14,19 +14,21 @@ import { ComponentFixture } from '../testing/component_fixture.js';
 describe('qImport', () => {
   it('should import default symbol', async () => {
     const fixture = new ComponentFixture();
-    const valuePromise = qImport(fixture.host, './qImport_default_unit');
+    const valuePromise = qImport(fixture.host, 'import:qImport_default_unit');
     expect(isPromise(valuePromise)).to.be.true;
     expect(await valuePromise).to.equal('DEFAULT_VALUE');
     // second read is direct.
-    expect(qImport(fixture.host, './qImport_default_unit')).to.equal('DEFAULT_VALUE');
+    expect(qImport(fixture.host, 'import:qImport_default_unit')).to.equal('DEFAULT_VALUE');
   });
 
   it('should import symbol from extension', async () => {
     const fixture = new ComponentFixture();
-    const valuePromise = qImport(fixture.host, './qImport_symbol_unit.mySymbol');
+    const valuePromise = qImport(fixture.host, './import/qImport_symbol_unit.mySymbol');
     expect(isPromise(valuePromise)).to.be.true;
     expect(await valuePromise).to.equal('MY_SYMBOL_VALUE');
     // second read is direct.
-    expect(qImport(fixture.host, './qImport_symbol_unit.mySymbol')).to.equal('MY_SYMBOL_VALUE');
+    expect(qImport(fixture.host, './import/qImport_symbol_unit.mySymbol')).to.equal(
+      'MY_SYMBOL_VALUE'
+    );
   });
 });

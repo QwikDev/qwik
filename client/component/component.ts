@@ -6,21 +6,21 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { assertDefinedAndNotPromise, newError } from '../assert/index.js';
-import { AsyncProvider, InjectionContext } from '../injection/types.js';
+import { assertDefinedAndNotPromise } from '../assert/index.js';
+import { AsyncProvider, Injector } from '../injection/types.js';
 import { isPromise } from '../util/promises.js';
 import '../util/qDev.js';
 import { provideComponent } from './provide_component.js';
 import { provideComponentState } from './provide_component_state.js';
 import { provideProps } from './provide_props.js';
-import { findHostElement } from './traversal.js';
 import type { Component as IComponent, ComponentContext, ComponentType } from './types.js';
+import { QError, qError } from '../error/error.js';
 
 /**
  * Base class for Qoot component.
  *
  * All Qoot components need to inherit from this class. A Qoot component represents transient state
- * of component. A component contains `$state` and `$props` properties.
+ * of component. A component contains `$state` and `$keyProps` properties.
  *
  * Example:
  * ```
@@ -31,7 +31,7 @@ import type { Component as IComponent, ComponentContext, ComponentType } from '.
  * }
  *
  * class Greeter extends Component<GreeterProps, GreeterState> {
- *   $initState() {
+ *   $materializeState() {
  *     return {} as GreeterState;
  *   }
  * }
@@ -62,7 +62,7 @@ export class Component<P, S> implements IComponent<P, S> {
    * the component are it's properties and get converted int `Props` which is stored in this
    * property for convenience.
    */
-  $props: P;
+  $keyProps: P;
 
   /**
    * No Argument constructor.
@@ -76,18 +76,17 @@ export class Component<P, S> implements IComponent<P, S> {
   constructor() {
     const componentContext = _componentContext;
     if (!componentContext) {
-      throw newError(
-        `Components must be instantiated inside an injection context. Use '${
-          this.constructor?.name || 'Component'
-        }.new(...)' for creation.`
+      throw qError(
+        QError.Component_needsInjectionContext_constructor,
+        this.constructor?.name || 'Component'
       );
     }
     _componentContext = null;
     this.$state = componentContext.state;
     this.$host = componentContext.host;
-    this.$props = componentContext.props;
+    this.$keyProps = componentContext.props;
     if (this.$state === undefined) {
-      this.$state = this.$initState(this.$props);
+      this.$state = this.$materializeState(this.$keyProps);
     }
   }
 
@@ -100,7 +99,7 @@ export class Component<P, S> implements IComponent<P, S> {
    *
    * @param props
    */
-  $initState(props: P): S {
+  $materializeState(props: P): S {
     return null!;
   }
 
@@ -118,7 +117,7 @@ export class Component<P, S> implements IComponent<P, S> {
   /**
    * Used for instantiating component in tests.
    *
-   * Component's must set up and retrieve `$props`, `$state` and `$host` These arguments can't be passed
+   * Component's must set up and retrieve `$keyProps`, `$state` and `$host` These arguments can't be passed
    * in through constructor, as doing so would permanently fix what kind of arguments can be passe to
    * superclass. It would also make injecting `Component`'s wordy as one would always have to
    * inject side chanel as first argument. Instead side channel communication is used for passing
@@ -177,34 +176,34 @@ export class Component<P, S> implements IComponent<P, S> {
    * }
    *
    * // Create new instance
-   * const greeter = Greeter.newInject(injectionContext);
+   * const greeter = Greeter.newInject(injector);
    * ```
    *
    *
    * @param this The `ComponentType` to instantiate. The dependencies need to be declared
    *     in `$inject`.
-   * @param injectionContext `InjectionContext` to use for dependency resolution.
+   * @param injector `InjectionContext` to use for dependency resolution.
    */
   static newInject<T extends IComponent<P, S>, P, S, ARGS extends any[]>(
     this: ComponentType<IComponent<P, S>, ARGS>,
-    injectionContext: InjectionContext
+    injector: Injector
   ): T | Promise<T> {
-    const $state = provideComponentState<S>(false).call(injectionContext);
-    const $host = findHostElement(injectionContext);
+    const $state = provideComponentState<S>(false)(injector);
+    const $host = injector.element;
     qDev && assertDefinedAndNotPromise($host);
-    const $props = provideProps().apply(injectionContext);
-    qDev && assertDefinedAndNotPromise($props);
+    const $keyProps = provideProps()(injector);
+    qDev && assertDefinedAndNotPromise($keyProps);
 
     const componentInjectionContext: typeof _componentContext = {
       state: $state,
       host: $host,
-      props: $props,
+      props: $keyProps,
     };
 
     const args = [] as any;
     let hasPromise = false;
     this.$inject.forEach((injectResolver) => {
-      const value = injectResolver.call(injectionContext);
+      const value = injectResolver(injector);
       hasPromise = hasPromise || isPromise(value);
       args.push(value);
     });
@@ -220,7 +219,7 @@ export class Component<P, S> implements IComponent<P, S> {
     }
   }
 
-  static get resolver(): AsyncProvider<any> {
+  static get $resolver(): AsyncProvider<any> {
     // TODO: something is wrong with type system, any should not be necessary
     return provideComponent(this as any);
   }

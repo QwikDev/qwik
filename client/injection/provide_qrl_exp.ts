@@ -6,9 +6,10 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { assertDefined, newError } from '../assert/index.js';
-import { assertInstanceOf, assertString } from '../assert/index.js';
-import { AsyncProvider, InjectionContext } from '../injection/types.js';
+import { assertDefined, assertString } from '../assert/index.js';
+import { QError, qError } from '../error/error.js';
+import { ensureEventInjector } from './element_injector.js';
+import { AsyncProvider, Injector } from './types.js';
 
 /**
  * Inject result of url expression evaluation.
@@ -43,15 +44,15 @@ import { AsyncProvider, InjectionContext } from '../injection/types.js';
  * @param parameterName Which parameter name should be read from the `url.searchParams.get(parameterName)`
  */
 export function provideQrlExp<T>(parameterName: string): AsyncProvider<T> {
-  return function qrlExpProvider(this: InjectionContext): any {
-    qDev && assertInstanceOf(this.url, URL);
-    const url = this.url!;
-    const value = url.searchParams.get(parameterName)!;
-    qDev && assertString(value);
+  return function injector(injector: Injector): any {
+    const value = injector.props[parameterName]!;
+    if (value == null) {
+      qError(QError.Core_missingProperty_name_props, parameterName, injector.props);
+    }
 
     switch (value.charAt(0)) {
       case '.':
-        let obj: any = this.event;
+        let obj: any = ensureEventInjector(injector).event;
         qDev && assertDefined(obj);
         const parts = value.substr(1).split('.');
         while (parts.length && obj) {
@@ -59,7 +60,7 @@ export function provideQrlExp<T>(parameterName: string): AsyncProvider<T> {
         }
         return obj;
       default:
-        throw newError(`Unrecognized expression format '${value}'.`);
+        throw qError(QError.Provider_unrecognizedFormat_value, value);
     }
   };
 }

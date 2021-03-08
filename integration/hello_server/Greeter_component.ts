@@ -35,7 +35,7 @@ export class GreeterComponent extends Component<GreeterProps, GreeterState> {
   // Inherited properties from `Component`
   // $host: Element;
   // $state: GreeterState;
-  // $props: GreeterProps;
+  // $keyProps: GreeterProps;
 
   /**
    * Method to create initial state if no state can be found in the DOM under the
@@ -43,7 +43,7 @@ export class GreeterComponent extends Component<GreeterProps, GreeterState> {
    *
    * @param props Component properties.
    */
-  $initState(props: GreeterProps): GreeterState {
+  $materializeState(props: GreeterProps): GreeterState {
     // In this example the `GreeterState` is initialized from the `GreeterProps`.
     return { name: props.name };
   }

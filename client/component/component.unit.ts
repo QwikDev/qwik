@@ -17,7 +17,7 @@ describe('component', () => {
     const myComponent = MyComponent.new({ host: fixture.host, state: 'state', props: 'props' });
     expect(myComponent).to.eql({
       $state: 'state',
-      $props: 'props',
+      $keyProps: 'props',
       $host: fixture.host,
     });
   });
@@ -25,14 +25,14 @@ describe('component', () => {
   it('should call $init state', () => {
     const fixture = new ComponentFixture();
     class MyComponent extends Component<'props', 'state'> {
-      $initState(props: 'props'): 'state' {
+      $materializeState(props: 'props'): 'state' {
         return 'state';
       }
     }
     const myComponent = MyComponent.new({ host: fixture.host, state: undefined, props: 'props' });
     expect(myComponent).to.eql({
       $state: 'state',
-      $props: 'props',
+      $keyProps: 'props',
       $host: fixture.host,
     });
   });

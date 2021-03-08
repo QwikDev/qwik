@@ -6,13 +6,15 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { isPromise } from '../util/promises.js';
+import { getBaseUri } from '../util/base_uri.js';
+import '../util/qDev.js';
 import {
   AsyncProvider,
+  AsyncProviders,
   InjectableConcreteType,
   InjectedFunction,
-  InjectionContext,
   isInjectableConcreteType,
+  ProviderReturns,
 } from './types.js';
 
 /**
@@ -22,36 +24,23 @@ import {
  *   and the last function is invoked as a handler with the compute value. The last function
  *   is invoked with `this` pointing to the transient component state.
  */
-//export function inject(...functions: (Function | null)[]): AsyncProvider<unknown> {
-export function inject<SELF, ARGS extends any[], RET>(
+export function inject<SELF, ARGS extends any[], REST extends any[], RET>(
   ...args: [
     AsyncProvider<SELF> | InjectableConcreteType<SELF, any[]> | null,
     ...ARGS,
-    InjectedFunction<SELF, ARGS, RET>
+    (this: SELF, ...args: [...ProviderReturns<ARGS>, ...REST]) => RET
   ]
-): AsyncProvider<RET> {
-  const method = args.pop() as Function; // InjectedFunction<SELF, ARGS, RET>;
-  const injectProviders = args;
+): InjectedFunction<SELF, ARGS, REST, RET> {
+  const fn = (args.pop() as any) as InjectedFunction<SELF, ARGS, REST, RET>;
+  fn.$inject = convertTypesToProviders<SELF, ARGS>(args);
+  qDev && (fn.$debugStack = new Error());
+  return fn;
+}
 
-  return function injectResolver(this: InjectionContext, ...additionalArgs: any[]) {
-    const providerValues: ARGS = [] as any;
-    let hasPromises = false;
-    for (let i = 0; i < injectProviders.length; i++) {
-      let resolver = injectProviders[i];
-      if (isInjectableConcreteType(resolver)) {
-        resolver = resolver.resolver;
-      }
-      const resolvedValue = resolver === null ? resolver : resolver.call(this);
-      providerValues.push(resolvedValue);
-      if (!hasPromises && isPromise(resolvedValue)) {
-        hasPromises = true;
-      }
-    }
-
-    return hasPromises
-      ? Promise.all(providerValues).then(function injectArgsResolve(providerValues) {
-          return method.call(providerValues.shift(), ...providerValues, ...additionalArgs);
-        })
-      : method.call(providerValues.shift(), ...providerValues, ...additionalArgs);
-  };
+export function convertTypesToProviders<SELF, ARGS extends any[]>(
+  args: any[]
+): AsyncProviders<[SELF, ...ARGS]> {
+  return args.map((provider) =>
+    isInjectableConcreteType(provider) ? provider.$resolver : provider
+  ) as AsyncProviders<[SELF, ...ARGS]>;
 }

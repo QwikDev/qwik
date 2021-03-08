@@ -6,6 +6,7 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
+import '../../CONFIG.js';
 import type { JSX_IntrinsicElements } from './html.js';
 import { expect } from 'chai';
 import { createGlobal, QootGlobal } from '../../testing/node_utils.js';
@@ -21,7 +22,7 @@ describe('render', () => {
   let document: Document;
   let host: HTMLElement;
   beforeEach(() => {
-    global = createGlobal();
+    global = createGlobal(import.meta.url);
     host = global.document.createElement('host');
     document = global.document;
   });
@@ -110,7 +111,6 @@ describe('render', () => {
     jsxRender(document, doc, document);
 
     const html = document.querySelector('html')!;
-    console.log(html.outerHTML);
     expect(html.outerHTML).to.equal(
       '<html>' +
         '<head>' +
@@ -127,13 +127,13 @@ describe('render', () => {
       await jsxRender(
         host,
         <div>
-          <greeter url="/" $={{ '::': './render.unit.Greeter_render_with_url' }} />
+          <greeter url="/" $={{ '::': 'jsx:/render.unit.Greeter_render_with_url' }} />
         </div>,
         global.document
       );
       expect(host.innerHTML).to.equal(
         '<div>' +
-          '<greeter url="/" ::="./render.unit.Greeter_render_with_url">' +
+          '<greeter url="/" ::="jsx:/render.unit.Greeter_render_with_url">' +
           '<span>Hello World! (/)</span>' +
           '</greeter>' +
           '</div>'
@@ -144,7 +144,7 @@ describe('render', () => {
   it('should render components as symbols', async () => {
     const Greeter = jsxDeclareComponent<{ url: string }>(
       'greeter',
-      QRL`./render.unit.Greeter_render_with_url`
+      QRL`jsx:/render.unit.Greeter_render_with_url`
     );
     await jsxRender(
       host,
@@ -155,7 +155,7 @@ describe('render', () => {
     );
     expect(host.innerHTML).to.equal(
       '<div>' +
-        '<greeter url="/" ::="./render.unit.Greeter_render_with_url">' +
+        '<greeter url="/" ::="jsx:/render.unit.Greeter_render_with_url">' +
         '<span>Hello World! (/)</span>' +
         '</greeter>' +
         '</div>'
@@ -187,7 +187,7 @@ describe('render', () => {
         host,
         <div
           $={{
-            '::': './render.unit.Noop_template',
+            '::': 'jsx:/render.unit.Noop_template',
             'bind:.': 'myUrl',
             'on:.render': 'myComponentUrl',
             'on:click': 'myComponent_click',
@@ -197,7 +197,7 @@ describe('render', () => {
         global.document
       );
       expect(host.innerHTML).to.equal(
-        '<div ::="./render.unit.Noop_template" bind:.="myUrl" on:.render="myComponentUrl" on:click="myComponent_click" bind:token="myTokenUrl">NOOP</div>'
+        '<div ::="jsx:/render.unit.Noop_template" bind:.="myUrl" on:.render="myComponentUrl" on:click="myComponent_click" bind:token="myTokenUrl">NOOP</div>'
       );
     });
   });

@@ -7,7 +7,10 @@
  */
 
 export * from './component/index.js';
+export * from './config/index.js';
 export * from './import/index.js';
 export * from './injection/index.js';
-export * from './render/jsx/index.js';
 export * from './render/index.js';
+export * from './render/jsx/index.js';
+export * from './service/index.js';
+export { dirname } from './util/dirname.js';

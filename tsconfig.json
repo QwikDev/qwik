@@ -47,14 +47,7 @@
       "qoot": ["./client/qoot"]
     },
     "rootDirs": [
-      ".",
-      "bazel-out/host/bin/",
-      "bazel-out/darwin-fastbuild/bin/",
-      "bazel-out/k8-fastbuild/bin/",
-      "bazel-out/x64_windows-fastbuild/bin/",
-      "bazel-out/darwin-dbg/bin/",
-      "bazel-out/k8-dbg/bin/",
-      "bazel-out/x64_windows-dbg/bin/"
+      "."
     ] /* List of root folders whose combined content represents the structure of the project at runtime. */,
     // "typeRoots": [],                       /* List of folders to include type definitions from. */
     // "types": [],                           /* Type declaration files to be included in compilation. */

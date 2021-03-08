@@ -8,6 +8,6 @@
 
 declare namespace JSX {
   interface IntrinsicElements {
-    greeter: { name: string; $: any };
+    greeter: { name: string; $: nameStub };
   }
 }

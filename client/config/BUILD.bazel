@@ -1,0 +1,58 @@
+package(default_visibility = ["//visibility:public"])
+
+load("@npm//mocha:index.bzl", "mocha_test")
+load("@build_bazel_rules_nodejs//:index.bzl", "js_library")
+load("@npm//@bazel/typescript:index.bzl", "ts_project")
+
+js_library(
+    name = "config",
+    srcs = [":package.json"],
+    deps = [
+        ":project",
+    ],
+)
+
+ts_project(
+    name = "project",
+    tsconfig = "//:tsconfig",
+    declaration = True,
+    srcs = glob(["**/*.ts", "**/*.tsx"], exclude=["**/*.unit.ts", "**/*.unit.tsx"]),
+    deps = [
+        "//client/assert",
+        "//client/util",
+    ],
+)
+
+
+ts_project(
+    name = "unit_project",
+    tsconfig = "//:tsconfig",
+    declaration = True,
+    srcs = glob(["**/*.unit.ts", "**/*.unit.tsx"]),
+    deps = [
+        ":config",
+        "//client/testing",
+        "@npm//@types/mocha",
+        "@npm//@types/chai",
+    ]
+)
+
+js_library(
+    name = "unit_lib",
+    srcs = [":package.json"],
+    deps = [
+        ":unit_project",
+    ],
+)
+
+
+mocha_test(
+    name = "unit",
+    tags = ["unit"],
+    args = ["**/*.unit.js"],
+    data = [
+        ":unit_lib",
+        "//client/testing",
+        "@npm//chai",
+    ],
+)

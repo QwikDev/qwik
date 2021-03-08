@@ -16,14 +16,25 @@ declare global {
 
   namespace JSX {
     interface IntrinsicElements {
-      html: Qoot.Element<any>;
-      head: Qoot.Element<any>;
-      title: Qoot.Element<any>;
-      script: Qoot.Element<any>;
-      body: Qoot.Element<any>;
-      div: Qoot.Element<any>;
-      span: Qoot.Element<any>;
-      input: Qoot.Element<any>;
+      html: Qoot.Element<nameStub>;
+      head: Qoot.Element<nameStub>;
+      title: Qoot.Element<nameStub>;
+      script: Qoot.Element<nameStub>;
+      section: Qoot.Element<nameStub>;
+      header: Qoot.Element<nameStub>;
+      footer: Qoot.Element<nameStub>;
+      button: Qoot.Element<nameStub>;
+      body: Qoot.Element<nameStub>;
+      div: Qoot.Element<nameStub>;
+      span: Qoot.Element<nameStub>;
+      strong: Qoot.Element<nameStub>;
+      input: Qoot.Element<nameStub>;
+      h1: Qoot.Element<nameStub>;
+      h2: Qoot.Element<nameStub>;
+      ul: Qoot.Element<nameStub>;
+      li: Qoot.Element<nameStub>;
+      label: Qoot.Element<nameStub>;
+      link: Qoot.Element<nameStub>;
     }
   }
 }

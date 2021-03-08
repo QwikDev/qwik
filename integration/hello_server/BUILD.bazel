@@ -14,20 +14,3 @@ ts_project(
     ],
 )
 
-nodejs_binary(
-    name = "server",
-    entry_point = "//server:main.js",
-    templated_args = [
-        "--node_options=--experimental-modules",
-        "--nobazel_patch_module_resolver",
-        "--root", 
-        "client",
-        "qoot/integration/hello_server",
-    ],
-    data = [
-        ":hello_server",
-        "//server",
-        "//client",
-        "//client:loader",
-    ],
-)

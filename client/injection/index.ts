@@ -7,4 +7,5 @@
  */
 
 export { inject } from './inject.js';
-export { AsyncProvider, ConcreteType, InjectionContext } from './types.js';
+export { injectEventHandler } from './inject_event_handler.js';
+export { AsyncProvider, ConcreteType, Injector as InjectionContext } from './types.js';

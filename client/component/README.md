@@ -151,7 +151,7 @@ The private implementation consists of at a minimum of 1) one file representing 
 
   export class GreeterComponent extends Component<GreeterProps, GreeterState> {
     // See Component Lifecycle Methods for explanation
-    $initState(props: GreeterProps): GreeterState {
+    $materializeState(props: GreeterProps): GreeterState {
       return { name: props.name };
     }
   }
@@ -178,7 +178,7 @@ The private implementation consists of at a minimum of 1) one file representing 
   export default inject(GreeterComponent, function (this: GreeterComponent) {
     return (
       <span on:click="./greeter_onclick">
-        {this.$props.greeting} {this.$state.name}!
+        {this.$keyProps.greeting} {this.$state.name}!
       </span>
     );
   });
@@ -204,7 +204,7 @@ The private implementation consists of at a minimum of 1) one file representing 
   import { GreeterComponent } from './greeter_component.js';
 
   export default inject(GreeterComponent, function (this: GreeterComponent, name: string) {
-    alert(this.$props.salutation + ' ' + this.$props.name + '!');
+    alert(this.$keyProps.salutation + ' ' + this.$keyProps.name + '!');
   });
   ```
 
@@ -223,7 +223,7 @@ NOTE: In this example, we went to the extreme and broke up the component into as
 
 Components can have lifecycle hooks that get called at a specific point of execution.
 
-### `$initState(props: P): void`
+### `$materializeState(props: P): void`
 
 Invoked when the component is instantiated, and no serialized state is found in DOM. When components are serialized their state is written into DOM like so:
 
@@ -233,11 +233,11 @@ Invoked when the component is instantiated, and no serialized state is found in 
 
 Notice the presence of JSON in `:.` attribute, which contains the component state serialized as JSON.
 
-When the component is re-hydrated the transient component instance needs to get a private state from `:.`. If this is the first-time render, there is no state to dehydrate from, in such a case, the component calls `$initState()` to create a brand new state.
+When the component is re-hydrated the transient component instance needs to get a private state from `:.`. If this is the first-time render, there is no state to dehydrate from, in such a case, the component calls `$materializeState()` to create a brand new state.
 
 ```typescript
 export class GreeterComponent extends Component<GreeterProps, GreeterState> {
-  $initState(props: GreeterProps): GreeterState {
+  $materializeState(props: GreeterProps): GreeterState {
     return { name: props.name };
   }
 }

@@ -7,7 +7,7 @@
  */
 
 import { QRL } from '../import/types.js';
-import { AsyncProvider, InjectableConcreteType, InjectionContext } from '../injection/types.js';
+import { AsyncProvider, InjectableConcreteType, Injector } from '../injection/types.js';
 
 export interface ComponentContext<P, S> {
   host: Element;
@@ -15,14 +15,10 @@ export interface ComponentContext<P, S> {
   props: P;
 }
 
-export interface ElementExpando<C> extends Element {
-  $QOOT_COMPONENT?: C | Promise<C>;
-}
-
 export interface Component<P, S> {
   $host: Element;
   $state: S;
-  $props: P;
+  $keyProps: P;
 }
 
 export interface ComponentType<T, ARGS extends any[]> extends InjectableConcreteType<T, ARGS> {
@@ -35,7 +31,7 @@ export interface ComponentType<T, ARGS extends any[]> extends InjectableConcrete
   ) => T;
   newInject: <T extends Component<P, S>, P, S, ARGS extends any[]>(
     this: ComponentType<Component<P, S>, ARGS>,
-    injectionContext: InjectionContext
+    injector: Injector
   ) => T | Promise<T>;
 }
 
@@ -43,11 +39,6 @@ export function isComponentType(value: any): value is ComponentType<any, any> {
   return (
     typeof value === 'function' && typeof (value as ComponentType<any, any>).new === 'function'
   );
-}
-
-export interface Props {
-  // $: QProps;
-  [key: string]: string | boolean | number | null | undefined;
 }
 
 export interface QProps {

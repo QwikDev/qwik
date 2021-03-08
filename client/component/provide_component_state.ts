@@ -6,9 +6,8 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { newError } from '../assert/index.js';
-import { Provider, InjectionContext } from '../injection/types.js';
-import { findHostElement } from './traversal.js';
+import { AsyncProvider, Injector } from '../injection/types.js';
+import { QError, qError } from '../error/error.js';
 
 /**
  * Provider of Component State.
@@ -36,15 +35,16 @@ import { findHostElement } from './traversal.js';
  * @param throwIfNotFound Should an exception be thrown if state is not found.
  *   (By default the system throws an exception as most of the time state is required)
  */
-export function provideComponentState<S>(throwIfNotFound: false): Provider<S | undefined>;
-export function provideComponentState<S>(throwIfNotFound?: boolean): Provider<S>;
-export function provideComponentState<S>(throwIfNotFound: boolean = true): Provider<S | undefined> {
-  return function componentStateProvider(this: InjectionContext): S | undefined {
-    const hostElement = findHostElement(this);
-    const state = hostElement.getAttribute(':.');
+export function provideComponentState<S>(throwIfNotFound: false): AsyncProvider<S | undefined>;
+export function provideComponentState<S>(throwIfNotFound?: boolean): AsyncProvider<S>;
+export function provideComponentState<S>(
+  throwIfNotFound: boolean = true
+): AsyncProvider<S | undefined> {
+  return function componentStateProvider(injector: Injector): S | undefined {
+    const state = injector.element.getAttribute(':.');
     if (state == null) {
       if (throwIfNotFound) {
-        throw newError("Can't find state on host element.");
+        throw qError(QError.Component_needsState);
       } else {
         return undefined;
       }

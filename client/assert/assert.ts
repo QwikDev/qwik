@@ -42,6 +42,16 @@ export function assertEqual(value1: any, value2: any, text?: string) {
   throw newError(text || `Expected '${value1}' === '${value2}'.`);
 }
 
+export function assertLessOrEqual(value1: any, value2: any, text?: string) {
+  if (value1 <= value2) return;
+  throw newError(text || `Expected '${value1}' <= '${value2}'.`);
+}
+
+export function assertLess(value1: any, value2: any, text?: string) {
+  if (value1 < value2) return;
+  throw newError(text || `Expected '${value1}' <= '${value2}'.`);
+}
+
 function typeOf(value: any) {
   if (value === null) return 'null';
   const type = typeof value;

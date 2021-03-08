@@ -20,22 +20,3 @@ copy_to_bin(
         "index.html",
     ]
 )
-
-nodejs_binary(
-    name = "server",
-    entry_point = "//server:main.js",
-    templated_args = [
-        "--node_options=--experimental-modules",
-        "--nobazel_patch_module_resolver",
-        "--root", 
-        "client",
-        "qoot/integration/hello_static", 
-    ],
-    data = [
-        ":static_files",
-        ":hello_static",
-        "//server",
-        "//client",
-        "//client:loader",
-    ],
-)

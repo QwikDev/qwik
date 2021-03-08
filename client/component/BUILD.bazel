@@ -20,6 +20,7 @@ ts_project(
     deps = [
         ":types",
         "//client/assert",
+        "//client/error",
         "//client/util",
         "//client/import",
         "//client/injection",

@@ -6,7 +6,8 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { jsxFactory, jsxRender } from './qoot.js';
+import './CONFIG.js';
+import { dirname, jsxFactory, jsxRender } from './qoot.js';
 import { Greeter } from './Greeter.js';
 
 /**

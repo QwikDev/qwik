@@ -17,6 +17,12 @@
  * NOTE: This file relies on side-effect.
  */
 
+interface QConfig {
+  protocol: {
+    [protocol: string]: string;
+  };
+}
+
 /**
  * Set up event listening for browser.
  *
@@ -43,6 +49,9 @@
     while (element && element.getAttribute) {
       let eventUrl = element.getAttribute(eventName);
       if (eventUrl) {
+        eventUrl = eventUrl.replace(/^(\w+)\:/, (_, protocol) => {
+          return ((window as any) as { Q: QConfig }).Q.protocol[protocol];
+        });
         const url = new URL(eventUrl, document.baseURI);
         const pathname = url.pathname;
         let dotIdx = pathname.lastIndexOf('.');
@@ -50,7 +59,7 @@
         if (dotIdx === 0 || dotIdx < slashIdx) dotIdx = pathname.length;
         let module = await import(pathname.substr(0, dotIdx) + '.js');
         const handler = module[pathname.substring(dotIdx + 1) || 'default'];
-        handler.call({ event, element, url });
+        handler(element, event, url);
       }
       element = element.parentElement;
     }

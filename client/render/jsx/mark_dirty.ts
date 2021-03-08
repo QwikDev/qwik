@@ -6,8 +6,9 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
+import { Props } from '../../injection/types';
 import { assertNotEqual, assertString } from '../../assert/index.js';
-import { Component, Props } from '../../component/types.js';
+import { Component } from '../../component/types.js';
 import { QRL } from '../../import/qrl.js';
 import { isPromise } from '../../util/promises.js';
 import { HostElements } from '../types.js';
@@ -48,6 +49,7 @@ export function markDirty(component: Component<any, any>): Promise<HostElements>
   }));
 }
 
+//TODO: duplicate code from injector.
 export function extractPropsFromElement(host: Element) {
   const props: Props = {};
   const attrs = host.attributes;

@@ -7,11 +7,14 @@
  */
 
 import { assertEqual } from '../assert/index.js';
-import { qImportInternal } from './qImport.js';
+import { qImport } from './qImport.js';
 import { QRL as QRL_ } from './types.js';
 import '../util/qDev.js';
+import { getConfig } from '../config/qGlobal.js';
+import { getFilePathFromFrame } from '../util/base_uri.js';
+import { isPromise } from '../util/promises.js';
 
-export type QRL = QRL_;
+export type QRL<T = any> = QRL_<T>;
 /**
  * Tag template literal factory.
  *
@@ -23,7 +26,10 @@ export type QRL = QRL_;
  * ```
  * @publicAPI
  */
-export function QRL(messageParts: TemplateStringsArray, ...expressions: readonly any[]): QRL {
+export function QRL<T = any>(
+  messageParts: TemplateStringsArray,
+  ...expressions: readonly any[]
+): QRL_<T> {
   let url = '';
   for (let i = 0; i < messageParts.length; i++) {
     const part = messageParts[i];
@@ -34,29 +40,34 @@ export function QRL(messageParts: TemplateStringsArray, ...expressions: readonly
   }
   qDev &&
     assertEqual(
-      url.startsWith('.') ||
-        url.startsWith('/') ||
-        url.startsWith('file:') ||
-        url.startsWith('http:') ||
-        url.startsWith('https:'),
+      !!url.match(/^[.|\/|\w+\:]/),
       true,
-      "Expecting URL to start with '.', '/', 'file:', 'http:' or 'https'. Was: " + url
+      "Expecting URL to start with '.', '/', '<protocol>:'. Was: " + url
     );
   if (qDev) {
-    verifyQrl(new Error(), url);
+    verifyQrl(new Error('Invalid import:' + url), url);
   }
-  return (url as unknown) as QRL;
+  return (url as unknown) as QRL_<T>;
 }
 
-export function verifyQrl(error: Error, url: string): Promise<any> {
+export async function verifyQrl(error: Error, url: string): Promise<any> {
   const stack = error.stack;
   if (!stack) return Promise.resolve(null);
   const frames = stack.split('\n');
   // 0: Error
   // 1:   at QRL (this function)
   // 2:   at caller (this is what we are looking for)
-  const previousFrame = frames[2];
-  const match = previousFrame.match(/\(?(\S*):\d+:\d+\)?/);
-  let baseUrl = (match && match[1]) || '';
-  return qImportInternal(url, baseUrl, previousFrame);
+  const base = getFilePathFromFrame(frames[2]);
+  let config = getConfig(base);
+  const module = qImport(config, url);
+  if (isPromise(module)) {
+    return module.catch((e) => {
+      const error = `QRL-ERROR: '${url}' is not a valid import. 
+  Base URL: ${config.baseURI}
+    CONFIG: ${JSON.stringify(config)}
+     STACK: ${stack}\n  => ${e}`;
+      return Promise.reject(error);
+    });
+  }
+  return module;
 }

@@ -13,13 +13,13 @@ import { provideComponentState } from './provide_component_state.js';
 describe('provideComponentState', () => {
   it('should return undefined if no state defined', () => {
     const fixture = new ComponentFixture();
-    expect(provideComponentState(false).apply(fixture.injectionContext)).to.equal(undefined);
+    expect(provideComponentState(false)(fixture.injector)).to.equal(undefined);
   });
 
   it('should return state', () => {
     const fixture = new ComponentFixture();
     fixture.host.setAttribute(':.', JSON.stringify({ value: 'worked' }));
-    expect(provideComponentState(false).apply(fixture.injectionContext)).to.eql({
+    expect(provideComponentState(false)(fixture.injector)).to.eql({
       value: 'worked',
     });
   });

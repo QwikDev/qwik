@@ -32,7 +32,7 @@ export type IService<PROPS, STATE> = {
   readonly $injector: Injector;
   readonly $props: PROPS;
   readonly $state: STATE;
-  readonly $id: string;
+  readonly $key: string;
 
   $invokeQRL<ARGS extends any[], RET>(
     qrl: QRL<(...args: ARGS) => RET>,
@@ -64,3 +64,7 @@ export interface ServicePromise<T> extends Promise<T> {
  * String representation of the service key.
  */
 export type Key = string;
+
+export function isService(value: any): value is IService<any, any> {
+  return Object.prototype.hasOwnProperty.call(value, '$key');
+}

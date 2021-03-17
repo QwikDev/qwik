@@ -6,8 +6,8 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { QRL, Service } from '../../qoot.js';
-import { Item, ItemService } from '../Item/public.js';
+import { markDirty, QRL, Service } from '../../qoot.js';
+import { ItemService } from '../Item/public.js';
 
 export interface ItemsProps {}
 
@@ -18,20 +18,24 @@ export interface Items {
   nextId: number;
 }
 
-export const ItemsServiceName = 'Items';
-
 // TODO: rename to ToDos
 export class ItemsService extends Service<ItemsProps, Items> {
   static $qrl = QRL<ItemService>`data:/Items/public.ItemsService`;
-  static $name = ItemsServiceName;
+  static $name = 'Items';
   static $keyProps = ['items'];
 
+  static globalKey = 'items:';
+
   async archive(): Promise<void> {
-    return this.$invokeQRL(QRL<() => void>`data:/Items/complete`);
+    return this.$invokeQRL(QRL<() => void>`data:/Items/archive`);
   }
 
-  async newItem(): Promise<Item> {
-    return this.$invokeQRL(QRL<() => Item>`data:/Items/newItem`);
+  async newItem(text: string): Promise<ItemService> {
+    return this.$invokeQRL(QRL<(text: string) => Promise<ItemService>>`data:/Items/newItem`, text);
+  }
+
+  remove(itemKey: string) {
+    return this.$invokeQRL(QRL<(key: string) => Promise<void>>`data:/Items/removeItem`, itemKey);
   }
 
   async $materializeState(props: ItemsProps): Promise<Items> {

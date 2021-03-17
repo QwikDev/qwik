@@ -6,29 +6,39 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { Props } from '../../injection/types';
-import { assertNotEqual, assertString } from '../../assert/index.js';
+import { Props } from '../../injection/types.js';
+import { assertNotEqual, assertString, newError } from '../../assert/index.js';
 import { Component } from '../../component/types.js';
 import { QRL } from '../../import/qrl.js';
 import { isPromise } from '../../util/promises.js';
 import { HostElements } from '../types.js';
 import { jsxRenderComponent } from './render.js';
+import { IService, isService } from '../../service/types.js';
 
 interface QDocument extends Document {
   $qScheduledRender?: Promise<HostElements> | null;
 }
 
-export function markDirty(component: Component<any, any>): Promise<HostElements> {
+// TODO: Tests
+// TODO: docs
+// TODO: Unify component/services
+export function markDirty(
+  component: Component<any, any> | IService<any, any>
+): Promise<HostElements> {
+  if (isService(component)) return markServiceDirty(component);
   qDev && assertNotEqual(typeof requestAnimationFrame, 'undefined');
   const host = component.$host;
   // TODO: pull out constant strings;
-  host.setAttribute('on:.render', host.getAttribute('::')!);
   const document = host.ownerDocument as QDocument;
+  host.setAttribute('on:.render', host.getAttribute('::')!);
   const promise = document.$qScheduledRender;
   if (isPromise(promise)) {
     return promise;
   }
+  return scheduleRender(document);
+}
 
+function scheduleRender(document: QDocument): Promise<HostElements> {
   return (document.$qScheduledRender = new Promise<HostElements>((resolve, reject) => {
     requestAnimationFrame(() => {
       const waitOn: HostElements = [];
@@ -58,4 +68,23 @@ export function extractPropsFromElement(host: Element) {
     props[attr.name] = attr.value;
   }
   return props;
+}
+
+function markServiceDirty(component: IService<any, any>): Promise<HostElements> {
+  const key = component.$key;
+  const document = component.$injector.element.ownerDocument as QDocument;
+  document.querySelectorAll(toAttrQuery('bind:' + key)).forEach((componentElement) => {
+    console.log('markDirty:', componentElement);
+    const qrl = componentElement.getAttribute('::')!;
+    // TODO: error;
+    if (!qrl) {
+      throw newError('Expecting component');
+    }
+    componentElement.setAttribute('on:.render', qrl);
+  });
+
+  return scheduleRender(document);
+}
+function toAttrQuery(key: string): any {
+  return '[' + key.replace(/[:.-_]/g, (v) => '\\' + v) + ']';
 }

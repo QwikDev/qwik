@@ -7,7 +7,7 @@
  */
 
 import type { Items, ItemsService } from '../../data/Items/public.js';
-import { inject, jsxFactory, provideServiceState } from '../../qoot.js';
+import { inject, jsxFactory, provideComponentProp, provideServiceState } from '../../qoot.js';
 import { Item } from '../Item/public.js';
 
 /**
@@ -19,7 +19,7 @@ import { Item } from '../Item/public.js';
  */
 export default inject(
   null,
-  provideServiceState<ItemsService>('items:'), //
+  provideServiceState<ItemsService>(provideComponentProp('$items')), //
   function (items: Items) {
     return (
       <section class="main" /* *ngIf="todoStore.todos.length > 0 " */>

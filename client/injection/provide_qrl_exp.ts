@@ -44,7 +44,7 @@ import { AsyncProvider, Injector } from './types.js';
  * @param parameterName Which parameter name should be read from the `url.searchParams.get(parameterName)`
  */
 export function provideQrlExp<T>(parameterName: string): AsyncProvider<T> {
-  return function injector(injector: Injector): any {
+  return function qrlExpProvider(injector: Injector): any {
     const value = injector.props[parameterName]!;
     if (value == null) {
       qError(QError.Core_missingProperty_name_props, parameterName, injector.props);

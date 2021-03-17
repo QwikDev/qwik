@@ -6,23 +6,22 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
+import { assertEqual, newError } from '../assert/assert.js';
+import { getConfig, QConfig } from '../config/qGlobal.js';
+import { qError, QError } from '../error/error.js';
+import { qImport } from '../import/qImport.js';
+import { QRL } from '../import/types';
 import {
   createServiceInjector,
   ensureServiceInjector,
   ServiceInjector,
 } from '../injection/element_injector.js';
-import { newError } from '../assert/assert.js';
-import { qError, QError } from '../error/error.js';
-import { qImport } from '../import/qImport.js';
-import { QRL } from '../import/types';
 import { getStorage, retrieveInjector, storeInjector } from '../injection/storage.js';
 import { AsyncProvider, Injector } from '../injection/types.js';
-import { fromCamelToKebabCase } from '../util/case.js';
-import { findAttribute } from '../util/dom_attrs.js';
-import { keyToProps, keyToServiceAttribute, propsToKey } from './service_key.js';
-import { PropsOf, Key, ServicePromise, StateOf } from './types.js';
-import { getConfig, QConfig } from '../config/qGlobal.js';
 import { getFilePathFromFrame } from '../util/base_uri.js';
+import { fromCamelToKebabCase } from '../util/case.js';
+import { keyToProps, propsToKey } from './service_key.js';
+import { Key, PropsOf, ServicePromise, StateOf } from './types.js';
 
 /**
  * Service allows creation of lazy loading class whose state is serializable.
@@ -355,6 +354,7 @@ export class Service<PROPS, STATE> {
    * @param state Optional new state for the service.
    * @returns `ServicePromise` which contains the `$key` property for synchronous retrieval.
    */
+
   static $hydrate<SERVICE extends Service<any, any>>(
     this: { new (...args: any[]): SERVICE },
     element: Element,
@@ -371,6 +371,15 @@ export class Service<PROPS, STATE> {
     if (injector.instancePromise) {
       return injector.instancePromise as ServicePromise<SERVICE>;
     }
+    let servicePromise: ServicePromise<SERVICE>;
+    if (injector.instance) {
+      // TODO: Needs test;
+      // TODO: Refactor: Duplicate code with creation of promise later.
+      servicePromise = Promise.resolve(injector.instance) as ServicePromise<SERVICE>;
+      servicePromise.$key = key;
+      injector.instancePromise = servicePromise;
+      return servicePromise;
+    }
     if (!state) {
       const json = element.getAttribute(key);
       if (json) {
@@ -378,7 +387,6 @@ export class Service<PROPS, STATE> {
       }
     }
     const service = new serviceType(injector, state!);
-    let servicePromise: ServicePromise<SERVICE>;
     if (!state) {
       servicePromise = service.$materializeState(props).then((state) => {
         (service as { $state: StateOf<SERVICE> }).$state = state;
@@ -395,7 +403,7 @@ export class Service<PROPS, STATE> {
   readonly $injector: ServiceInjector;
   readonly $props: PROPS;
   readonly $state: STATE;
-  readonly $id: string;
+  readonly $key: string;
 
   constructor(injector: Injector, state: STATE) {
     const serviceInjector = ensureServiceInjector(injector);
@@ -405,7 +413,7 @@ export class Service<PROPS, STATE> {
     this.$injector = serviceInjector;
     this.$props = props;
     this.$state = state;
-    this.$id = propsToKey(serviceType as any, props);
+    this.$key = propsToKey(serviceType as any, props);
     serviceInjector.instance = this;
     serviceType.$attachService(element);
     serviceType.$attachServiceState(element, props, null);
@@ -478,12 +486,14 @@ export class Service<PROPS, STATE> {
    * Releasing a state does not imply that the state should be deleted on backend.
    */
   $release(): void {
+    // TODO: Move this to instance method so that we don't need to materialize a service to release it.
     const element = this.$injector.element;
     const storage = getStorage(element);
     const serviceType = getServiceType(this);
     const id = propsToKey(serviceType, this.$injector.props);
-    storage.delete(id);
+    const successfullyRemoved = storage.delete(id);
     element.removeAttribute(id);
+    qDev && assertEqual(successfullyRemoved, true);
   }
 }
 

@@ -33,8 +33,8 @@ export default inject(
         }}
       >
         <Header />
-        <Main />
-        <Footer />
+        <Main $items="items:" />
+        <Footer $items="items:" />
       </section>
     );
   }

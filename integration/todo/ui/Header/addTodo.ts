@@ -6,8 +6,10 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
+import { markDirty } from '../../qoot.js';
+import { ItemsService } from '../../data/Items/public.js';
+import { injectEventHandler, provideQrlExp, provideService } from '../../qoot.js';
 import { HeaderComponent } from './component.js';
-import { injectEventHandler, provideQrlExp } from '../../qoot.js';
 
 /**
  * @fileoverview
@@ -20,9 +22,18 @@ export default injectEventHandler(
   HeaderComponent,
   provideQrlExp<string>('value'),
   provideQrlExp<string>('code'),
-  function (this: HeaderComponent, inputValue: string, charCode: string) {
-    if (charCode === 'Enter') {
+  provideService<ItemsService>('items:'),
+  function (
+    this: HeaderComponent,
+    inputValue: string,
+    charCode: string,
+    itemsService: ItemsService
+  ) {
+    if (charCode === 'Enter' && inputValue) {
       console.log('ENTER', inputValue);
+      itemsService.newItem(inputValue);
+      this.$state.text = '';
+      markDirty(this);
     }
   }
 );

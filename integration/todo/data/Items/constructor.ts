@@ -8,7 +8,6 @@
 
 import { inject } from '../../qoot.js';
 import { ItemService } from '../Item/public.js';
-import { Items } from './public.js';
 
 export default inject(
   null, //

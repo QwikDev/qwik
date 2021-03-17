@@ -19,4 +19,8 @@ interface HeaderState {
   text: string;
 }
 
-export class HeaderComponent extends Component<HeaderProps, HeaderState> {}
+export class HeaderComponent extends Component<HeaderProps, HeaderState> {
+  $materializeState(props: HeaderProps) {
+    return { text: '' };
+  }
+}

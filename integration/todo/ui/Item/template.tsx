@@ -19,7 +19,8 @@ import { inject, jsxFactory, provideComponentProp, provideServiceState, QRL } fr
 export default inject(
   null,
   provideServiceState<ItemService>(provideComponentProp('$item')),
-  function (todo: Item) {
+  provideComponentProp('$item'),
+  function (todo: Item, itemKey: string) {
     return (
       <li class={{ completed: todo.completed, editing: false /*this.editing*/ }}>
         <div class="view">
@@ -30,7 +31,11 @@ export default inject(
             on:click={QRL`ui:/Item/toggle?toggleState=.target.checked`}
           />
           <label /* (dblclick)="editTodo(todo)" */>{todo.title}</label>
-          <button class="destroy" /* (click)="remove(todo)"  */></button>
+          <button class="destroy" 
+                  $={{
+                    'on:click': QRL`ui:/Item/remove?itemKey=${itemKey}`,
+                  }}          
+          ></button>
         </div>
         <input
           class="edit"

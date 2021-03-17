@@ -17,4 +17,3 @@ export { provideComponent } from './provide_component.js';
 export { provideComponentState } from './provide_component_state.js';
 export { provideProps } from './provide_props.js';
 export { provideComponentProp } from './provide_prop.js';
-export { provideQrlExp } from '../injection/provide_qrl_exp.js';

@@ -14,3 +14,5 @@
 
 export { Service } from './service.js';
 export { provideServiceState, provideService } from './provide_service.js';
+export { retrieveState } from './retrieve_state.js';
+export { retrieveService } from './retrieve_service.js';

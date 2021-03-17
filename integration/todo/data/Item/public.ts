@@ -22,7 +22,7 @@ export class ItemService extends Service<ItemProps, Item> {
   static $name = 'Item';
   static $qrl = QRL<ItemService>`data:/Item/public.ItemService`;
   static $keyProps = ['id'];
-  async toggle(completed: boolean): Promise<void> {
-    return this.$invokeQRL(QRL<(completed: boolean) => void>`data:/Item/complete`, completed);
+  async toggle(isCompleted: boolean): Promise<void> {
+    return this.$invokeQRL(QRL<(isCompleted: boolean) => void>`data:/Item/toggle`, isCompleted);
   }
 }

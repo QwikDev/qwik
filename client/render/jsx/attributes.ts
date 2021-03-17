@@ -35,16 +35,15 @@ export function applyAttributes(
           // TODO[type]: Suspicious casting.
           applyControlProperties(element, (value as unknown) as QProps);
         } else {
-          const stringValue = stringify(value);
           if (key.startsWith('$')) {
-            addToBindMap(stringValue, bindMap || (bindMap = new Map<string, string>()), key);
+            addToBindMap(stringify(value), bindMap || (bindMap = new Map<string, string>()), key);
           } else if (detectChanges) {
-            if (element.getAttribute(kebabKey) !== stringValue) {
-              setAttribute(element, kebabKey, stringValue);
+            if (element.getAttribute(kebabKey) !== value) {
+              setAttribute(element, kebabKey, value);
               changesDetected = true;
             }
           } else {
-            setAttribute(element, kebabKey, stringValue);
+            setAttribute(element, kebabKey, value);
           }
         }
       }
@@ -88,11 +87,19 @@ function updateBindMap(element: Element, bindMap: Map<string, string>) {
   bindMap.forEach((v, k) => element.setAttribute(k, v));
 }
 
-function setAttribute(element: Element, key: string, value: string | null) {
-  if (value == null) {
+// TODO: tests
+// TODO: docs
+function setAttribute(element: Element, key: string, value: any) {
+  if (key == 'class') {
+    element.setAttribute('class', stringifyClassOrStyle(value, true));
+  } else if (key == 'style') {
+    element.setAttribute('style', stringifyClassOrStyle(value, false));
+  } else if (element.tagName === 'INPUT' && key.indexOf(':') == -1) {
+    (element as any)[key] = value;
+  } else if (value == null) {
     element.removeAttribute(key);
   } else {
-    element.setAttribute(key, value);
+    element.setAttribute(key, String(value));
   }
 }
 
@@ -115,4 +122,23 @@ function applyControlProperties(element: Element, props: { [key: string]: any })
       }
     }
   }
+}
+
+// TODO: tests
+// TODO: docs
+function stringifyClassOrStyle(obj: any, isClass: boolean): string {
+  if (obj == null) return '';
+  if (typeof obj == 'object') {
+    let text = '';
+    let sep = '';
+    for (const key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        const value = obj[key];
+        text += isClass ? (value ? sep + key : '') : sep + key + ':' + value;
+        sep = isClass ? ' ' : ';';
+      }
+    }
+    return text;
+  }
+  return String(obj);
 }

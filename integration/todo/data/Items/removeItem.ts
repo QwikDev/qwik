@@ -12,14 +12,10 @@ import { ItemsService } from './public.js';
 
 export default inject(
   ItemsService, //
-  function newItem(this: ItemsService, newTitle: string): Promise<ItemService> {
-    const itemService = ItemService.$hydrate(
-      this.$injector.element,
-      { id: String(this.$state.nextId++) },
-      { completed: false, title: newTitle }
-    );
-    this.$state.items.push(itemService.$key);
+  async function removeItem(this: ItemsService, itemKey: string): Promise<void> {
+    (await ItemService.$hydrate(this.$injector.element, itemKey)).$release();
+    const items = this.$state.items;
+    items.splice(items.indexOf(itemKey), 1);
     markDirty(this);
-    return itemService;
   }
 );

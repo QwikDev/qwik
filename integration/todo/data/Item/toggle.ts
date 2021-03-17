@@ -6,14 +6,21 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { inject, provideService } from '../../qoot.js';
+import { inject, provideService, markDirty } from '../../qoot.js';
 import { ItemService } from './public.js';
 import { ItemsService } from '../Items/public.js';
 
 export default inject(
   ItemService,
   provideService<ItemsService>('items:'),
-  function archive(this: ItemService, itemsService: ItemsService) {
-    console.log('Items.complete()', this, itemsService);
+  async function ItemService_toggle(
+    this: ItemService,
+    itemsService: ItemsService,
+    isCompleted: boolean
+  ) {
+    this.$state.completed = !this.$state.completed;
+    itemsService.$state.completed += isCompleted ? +1 : -1;
+    markDirty(itemsService);
+    markDirty(this);
   }
 );

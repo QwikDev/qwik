@@ -6,7 +6,8 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { inject, jsxFactory } from '../../qoot.js';
+import { Items, ItemsService } from '../../data/Items/public.js';
+import { QRL, inject, jsxFactory, provideComponentProp, provideServiceState } from '../../qoot.js';
 
 /**
  * @fileoverview
@@ -16,23 +17,28 @@ import { inject, jsxFactory } from '../../qoot.js';
 /**
  */
 // TODO: remove inject as it is not needed
-export default inject(null, function () {
-  const todoStore = {
-    getRemaining: function () {
-      return ['item'];
-    },
-  };
-  return (
-    <footer class="footer" /* *ngIf="todoStore.todos.length > 0" */>
-      <span class="todo-count">
-        <strong>{todoStore.getRemaining().length}</strong>
-        {todoStore.getRemaining().length == 1 ? 'item' : 'items'} left
-      </span>
-      <button
-        class="clear-completed" /* *ngIf="todoStore.getCompleted().length > 0" (click)="removeCompleted()" */
-      >
-        Clear completed
-      </button>
-    </footer>
-  );
-});
+export default inject(
+  null,
+  provideServiceState<ItemsService>(provideComponentProp('$items')),
+  function (items: Items) {
+    const remaining = items.items.length - items.completed;
+    return (
+      <footer class="footer" /* *ngIf="todoStore.todos.length > 0" */>
+        <span class="todo-count">
+          <strong>{remaining}</strong>
+          {remaining == 1 ? ' item' : ' items'} left
+        </span>
+        {items.completed > 0 ? (
+          <button
+            class="clear-completed"
+            $={{
+              'on:click': QRL`ui:/Footer/archive`,
+            }}
+          >
+            Clear completed
+          </button>
+        ) : null}
+      </footer>
+    );
+  }
+);

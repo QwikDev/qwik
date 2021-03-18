@@ -8,11 +8,6 @@
 
 import { jsxDeclareComponent, QRL } from '../../qoot.js';
 
-/**
- * @fileoverview
- *
- */
-
 export interface ToDoAppProps {}
 
 export const ToDoApp = jsxDeclareComponent<ToDoAppProps>('todo-app', QRL`ui:/ToDoApp/template`);

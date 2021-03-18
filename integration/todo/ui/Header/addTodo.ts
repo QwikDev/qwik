@@ -11,13 +11,6 @@ import { ItemsService } from '../../data/Items/public.js';
 import { injectEventHandler, provideQrlExp, provideService } from '../../qoot.js';
 import { HeaderComponent } from './component.js';
 
-/**
- * @fileoverview
- *
- */
-
-/**
- */
 export default injectEventHandler(
   HeaderComponent,
   provideQrlExp<string>('value'),

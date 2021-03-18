@@ -88,6 +88,7 @@ function visitJSXNode(
   existingNode: Node | null,
   jsxNode: Promise<JSXNode<unknown>> | JSXNode<unknown>
 ): Node | null {
+  if (!jsxNode) return null;
   if (isPromise(jsxNode)) {
     waitOn.push(
       jsxNode.then((jsxNode) => {

@@ -14,13 +14,6 @@ import {
   provideService,
 } from '../../qoot.js';
 
-/**
- * @fileoverview
- *
- */
-
-/**
- */
 export default injectEventHandler(
   // Providers
   null,
@@ -28,7 +21,6 @@ export default injectEventHandler(
   provideService<ItemService>(provideComponentProp('$item')),
   // Handler
   async function (this: null, toggleState: boolean, itemService: ItemService) {
-    console.log('Todo#toggle', toggleState);
     await itemService.toggle(toggleState);
   }
 );

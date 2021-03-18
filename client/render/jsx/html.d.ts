@@ -16,6 +16,7 @@ declare global {
 
   namespace JSX {
     interface IntrinsicElements {
+      a: Qoot.Element<nameStub>;
       html: Qoot.Element<nameStub>;
       head: Qoot.Element<nameStub>;
       title: Qoot.Element<nameStub>;

@@ -9,12 +9,6 @@
 import { Component } from '../../qoot.js';
 import { HeaderProps } from '../Header/public.js';
 
-/**
- * @fileoverview
- *
- * Declares the `GreeterComponent` `onKeyup` handler.
- */
-
 interface HeaderState {
   text: string;
 }

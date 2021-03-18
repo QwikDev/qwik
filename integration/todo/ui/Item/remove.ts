@@ -10,13 +10,6 @@ import { provideEventProp } from '../../qoot.js';
 import { ItemsService } from '../../data/Items/public.js';
 import { injectEventHandler, provideService } from '../../qoot.js';
 
-/**
- * @fileoverview
- *
- */
-
-/**
- */
 export default injectEventHandler(
   // Providers
   null,

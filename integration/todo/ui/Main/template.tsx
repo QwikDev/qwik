@@ -10,13 +10,6 @@ import type { Items, ItemsService } from '../../data/Items/public.js';
 import { inject, jsxFactory, provideComponentProp, provideServiceState } from '../../qoot.js';
 import { Item } from '../Item/public.js';
 
-/**
- * @fileoverview
- *
- */
-
-/**
- */
 export default inject(
   null,
   provideServiceState<ItemsService>(provideComponentProp('$items')), //

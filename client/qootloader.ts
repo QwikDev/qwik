@@ -57,8 +57,14 @@ interface QConfig {
         let dotIdx = pathname.lastIndexOf('.');
         let slashIdx = pathname.lastIndexOf('/');
         if (dotIdx === 0 || dotIdx < slashIdx) dotIdx = pathname.length;
-        let module = await import(pathname.substr(0, dotIdx) + '.js');
-        const handler = module[pathname.substring(dotIdx + 1) || 'default'];
+        const importPath = pathname.substr(0, dotIdx) + '.js';
+        let module = await import(importPath);
+        const exportName = pathname.substring(dotIdx + 1) || 'default';
+        const handler = module[exportName];
+        if (!handler)
+          throw new Error(
+            `QOOTLOADER-ERROR: import '${importPath}' does not export '${exportName}'.`
+          );
         handler(element, event, url);
       }
       element = element.parentElement;

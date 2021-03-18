@@ -13,13 +13,6 @@ import { Footer } from '../Footer/public.js';
 import { Header } from '../Header/public.js';
 import { Main } from '../Main/public.js';
 
-/**
- * @fileoverview
- *
- */
-
-/**
- */
 export default inject(
   // Providers
   null,

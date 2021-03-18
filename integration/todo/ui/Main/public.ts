@@ -8,11 +8,6 @@
 
 import { jsxDeclareComponent, QRL } from '../../qoot.js';
 
-/**
- * @fileoverview
- *
- */
-
 export interface MainProps {
   $items: string;
 }

@@ -9,41 +9,32 @@
 import { Item, ItemService } from '../../data/Item/public.js';
 import { inject, jsxFactory, provideComponentProp, provideServiceState, QRL } from '../../qoot.js';
 
-/**
- * @fileoverview
- *
- */
-
-/**
- */
 export default inject(
   null,
   provideServiceState<ItemService>(provideComponentProp('$item')),
   provideComponentProp('$item'),
   function (todo: Item, itemKey: string) {
+    const editing = false;
     return (
-      <li class={{ completed: todo.completed, editing: false /*this.editing*/ }}>
+      <li class={{ completed: todo.completed, editing: editing }}>
         <div class="view">
           <input
             class="toggle"
-            type="checkbox" /* (click)="toggleCompletion(todo)" [checked]="todo.completed" */
+            type="checkbox"
             checked={todo.completed}
             on:click={QRL`ui:/Item/toggle?toggleState=.target.checked`}
           />
           <label /* (dblclick)="editTodo(todo)" */>{todo.title}</label>
-          <button class="destroy" 
-                  $={{
-                    'on:click': QRL`ui:/Item/remove?itemKey=${itemKey}`,
-                  }}          
+          <button class="destroy" on:click={QRL`ui:/Item/remove?itemKey=${itemKey}`}
           ></button>
         </div>
-        <input
-          class="edit"
-          /* *ngIf="todo.editing" 
-                  [value]="todo.title" #editedtodo (blur)="stopEditing(todo, editedtodo.value)" 
-                  (keyup.enter)="updateEditingTodo(todo, editedtodo.value)" 
-                  (keyup.escape)="cancelEditingTodo(todo)" */
-        />
+        {editing ? 
+          <input
+            class="edit"
+                  value={todo.title}
+                  on:blur="stopEditing(todo, editedtodo.value)" 
+                  on:keyup="updateEditingTodo(todo, editedtodo.value) / cancelEditingTodo(todo)"
+          />: null}
       </li>
     );
   }

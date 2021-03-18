@@ -23,15 +23,15 @@
     chalk "^2.0.0"
     js-tokens "^4.0.0"
 
-"@bazel/bazelisk@^1.4.0":
-  version "1.7.3"
-  resolved "https://registry.npmjs.org/@bazel/bazelisk/-/bazelisk-1.7.3.tgz"
-  integrity sha512-A+QLZvKifKnbFawH5aaCnooPx0Ia5JS3S8SckKB034GVB3BjtUTCwjaxzxG3ARQ6Jq1vDcQwWgF2bjT9FjrdDg==
+"@bazel/bazelisk@^1.7.5":
+  version "1.7.5"
+  resolved "https://registry.yarnpkg.com/@bazel/bazelisk/-/bazelisk-1.7.5.tgz#dd1a52e3d23464f72de55aa3dc4777847fa85373"
+  integrity sha512-JHwP9JhfZUSoj4sku471Bjw4uE773U2Agujnx0CdPkeRk25khy1l3VyjaPaHB+z1fmMnM6ED3M7tetQUsovUQg==
 
-"@bazel/buildifier@^4.0.0":
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/@bazel/buildifier/-/buildifier-4.0.0.tgz#c99fb21295c7e2858fa176c2b950c589217ae8ac"
-  integrity sha512-e242AK+shp+5bpAc9l93pmG5YRYRfM0INV3gfbdxNeBxccx1MJUagaiwxqAV+Mw55zk92gsb99f2TAc9tt6C7w==
+"@bazel/buildifier@^4.0.1":
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/@bazel/buildifier/-/buildifier-4.0.1.tgz#52cfbad5cbb86e9183a29dde2370cd465730ea0d"
+  integrity sha512-BTmtvJbeeEVrqRApI1gr5hvPgYcHLpdGJ5EXNXEWO692ztMPSj5fB/dH0xUlaW45jn6LimYx8ymqTMhj3538og==
 
 "@bazel/cypress@^3.2.0":
   version "3.2.0"
@@ -45,15 +45,15 @@
   resolved "https://registry.npmjs.org/@bazel/ibazel/-/ibazel-0.12.4.tgz"
   integrity sha512-FzOy+esB/fXVDbAmL6Ce2yCEy+PESZih8GypKhi0B8XzoZHAAn3QNnQcMNwo9PrIfp3G1989nM/JQ1b8jwEinQ==
 
-"@bazel/rollup@^3.2.1":
-  version "3.2.1"
-  resolved "https://registry.yarnpkg.com/@bazel/rollup/-/rollup-3.2.1.tgz#c632d54298cf980fc0994a95349d938f8d0ee27c"
-  integrity sha512-+vPpi/pjCmQP3TlsDfmZZMDCBDCq2aHFXRxVx78t+1Vjz8ZT1JFx6J65V9YEPrCUowjBhkgrO5dk3IXeOvwXJA==
+"@bazel/rollup@^3.2.2":
+  version "3.2.2"
+  resolved "https://registry.yarnpkg.com/@bazel/rollup/-/rollup-3.2.2.tgz#cf20aeb533c8464b90418cfd42e72d9f6c2c6f8f"
+  integrity sha512-At1YvE6connH6EHatxDE6I8hrk/sy6DOInHHrvr6q32AHMhTKiltC9qDexD2kXwJXD1n1Ioy3y/sA9fesjL6Ng==
 
-"@bazel/terser@^3.2.1":
-  version "3.2.1"
-  resolved "https://registry.yarnpkg.com/@bazel/terser/-/terser-3.2.1.tgz#0480cc6b00a7bf1d8c8763aa1eff267352768bf1"
-  integrity sha512-aV20kqoYnpEEfx2l4ipFOSb5JgRmPVAvicOQBQ6eMqD7SGRrDDNVtjhemo11/RCJiZuUYNxoCo+itLBw4kNaPg==
+"@bazel/terser@^3.2.2":
+  version "3.2.2"
+  resolved "https://registry.yarnpkg.com/@bazel/terser/-/terser-3.2.2.tgz#90cd14f1c9d1c1784730adab5208dafa2342260a"
+  integrity sha512-RI5XBDQN72zikhIZXFrbVsWWdJ+B4W0YcQndahm87t+nu26hXcmpNfSJuMjVmVrFCEB4G/z7CxgHINQCGjRgxg==
 
 "@bazel/typescript@3.2.0":
   version "3.2.0"

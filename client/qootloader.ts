@@ -74,16 +74,18 @@ interface QConfig {
   // Set up listeners. Start with `document` and walk up the prototype
   // inheritance on look for `on*` properties. Assume that `on*` property
   // corresponds to an event browser can emit.
-  let type = document;
-  while (type) {
-    Object.getOwnPropertyNames(type).forEach((key: string) => {
+  const scriptTag = document.querySelector('script[events]');
+  if (scriptTag) {
+    const events = scriptTag.getAttribute('events') || '';
+    events.split(/[\s,;]+/).forEach((name) => document.addEventListener(name, eventProcessor));
+  } else {
+    for (let key in document) {
       if (key.indexOf('on') == 0) {
         const eventName = key.substring(2);
         // For each `on*` property, set up a listener.
         document.addEventListener(eventName, eventProcessor);
       }
-    });
-    type = Object.getPrototypeOf(type);
+    }
   }
 })(
   // Invoke qoot-loader.

@@ -7,8 +7,8 @@
  */
 
 import './CONFIG.js';
-import { dirname, jsxFactory, jsxRender } from './qoot.js';
-import { Greeter } from './Greeter.js';
+import { jsxFactory, jsxRender } from './qoot.js';
+import { Greeter } from './Greeter/public.js';
 
 /**
  * Entry point for server-side pre-rendering.

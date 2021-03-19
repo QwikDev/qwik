@@ -17,11 +17,12 @@ Special attributes in the HTML
 
 ## Events
 
-| Syntax               | Meaning                                                                                                                           |
-| -------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| `on:name="url"`      | If `event` is detected than `import(url)` and call `default` function                                                             |
-| `bind:key="attr"`    | Data with `key` is bound to `attr`. NOTE: Key/value is reversed so that it is easy to query for all of the data bindings by `key` |
-| `data:key=JSON`      | Serialized data for `key`                                                                                                         |
-| `provide:token:=QRL` | Provider of `token`                                                                                                               |
-| `::=QRL`             | Component definition. `QRL` points to the template.                                                                               |
-| `:.=JSON`            | Component state.                                                                                                                  |
+| Syntax              | Meaning                                                                                                                           |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `:`                 | Marker which signifies that the element has data which needs to be serialized on dehydration                                      |
+| `on:<name>="<QRL>"` | If `event` is detected than `import(url)` and call `default` function                                                             |
+| `bind:<key>="attr"` | Data with `key` is bound to `attr`. NOTE: Key/value is reversed so that it is easy to query for all of the data bindings by `key` |
+| `::name=QRL`        | Service definition. `QRL` points to the template.                                                                                 |
+| `::=QRL`            | Component render `QRL` points to the template.                                                                                    |
+| `key:=JSON`         | Serialized data for `key`                                                                                                         |
+| `:.=JSON`           | Component state.                                                                                                                  |

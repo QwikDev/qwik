@@ -39,8 +39,6 @@ export class ItemsService extends Service<ItemsProps, Items> {
   }
 
   async $materializeState(props: ItemsProps): Promise<Items> {
-    // TODO: figure out how we can return a Promise<Items> here.
-    //constructor: QRL`data:/Items/constructor`,
     const host = this.$injector.element;
     return {
       completed: 0,

@@ -6,11 +6,11 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { inject, provideService, markDirty } from '../../qoot.js';
+import { injectMethod, provideService, markDirty } from '../../qoot.js';
 import { ItemService } from './public.js';
 import { ItemsService } from '../Items/public.js';
 
-export default inject(
+export default injectMethod(
   ItemService,
   provideService<ItemsService>('items:'),
   async function ItemService_toggle(

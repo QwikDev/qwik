@@ -6,16 +6,12 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { getBaseUri } from '../util/base_uri.js';
+import { IComponent } from '../component/types.js';
+import { IService } from '../service/types.js';
+import { ComponentType } from '../component/types.js';
+import { ServiceType } from '../service/types.js';
 import '../util/qDev.js';
-import {
-  AsyncProvider,
-  AsyncProviders,
-  InjectableConcreteType,
-  InjectedFunction,
-  isInjectableConcreteType,
-  ProviderReturns,
-} from './types.js';
+import { ConcreteType, InjectedFunction, ProviderReturns } from './types.js';
 
 /**
  * An event handler associated with a component.
@@ -24,23 +20,26 @@ import {
  *   and the last function is invoked as a handler with the compute value. The last function
  *   is invoked with `this` pointing to the transient component state.
  */
-export function inject<SELF, ARGS extends any[], REST extends any[], RET>(
+export function injectFunction<ARGS extends any[], REST extends any[], RET>(
+  ...args: [...ARGS, (...args: [...ProviderReturns<ARGS>, ...REST]) => RET]
+): InjectedFunction<null, ARGS, REST, RET> {
+  const fn = (args.pop() as any) as InjectedFunction<null, ARGS, REST, RET>;
+  fn.$thisType = null;
+  fn.$inject = args as any;
+  qDev && (fn.$debugStack = new Error());
+  return fn;
+}
+
+export function injectMethod<SELF, ARGS extends any[], REST extends any[], RET>(
   ...args: [
-    AsyncProvider<SELF> | InjectableConcreteType<SELF, any[]> | null,
+    ConcreteType<SELF>,
     ...ARGS,
     (this: SELF, ...args: [...ProviderReturns<ARGS>, ...REST]) => RET
   ]
 ): InjectedFunction<SELF, ARGS, REST, RET> {
   const fn = (args.pop() as any) as InjectedFunction<SELF, ARGS, REST, RET>;
-  fn.$inject = convertTypesToProviders<SELF, ARGS>(args);
+  fn.$thisType = args.shift() as ConcreteType<SELF>;
+  fn.$inject = args as any;
   qDev && (fn.$debugStack = new Error());
   return fn;
-}
-
-export function convertTypesToProviders<SELF, ARGS extends any[]>(
-  args: any[]
-): AsyncProviders<[SELF, ...ARGS]> {
-  return args.map((provider) =>
-    isInjectableConcreteType(provider) ? provider.$resolver : provider
-  ) as AsyncProviders<[SELF, ...ARGS]>;
 }

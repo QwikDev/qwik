@@ -13,5 +13,6 @@ setConfig({
   protocol: {
     ui: './ui',
     data: './data',
+    base: '.',
   },
 });

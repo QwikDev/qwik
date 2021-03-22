@@ -19,6 +19,9 @@ export const enum QError {
   // Injection 200-299
   Injection_noHost_element = 200,
   Injection_expectedSpecificInjector_expected_actual = 201,
+  Injection_notElement_arg = 202,
+  Injection_wrongMethodThis_expected_actual = 203,
+  Injection_missingSerializedState_serviceKey_element = 204,
   // Services 300-399
   Service_notValidKey_key = 300,
   Service_keyAlreadyExists_key = 301,
@@ -40,7 +43,10 @@ export const enum QError {
   Component_bindNeedsValue = 401,
   Component_needsState = 402,
   Component_needsInjectionContext_constructor = 403,
-  Component_noProperty_propName_host = 404,
+  Component_noProperty_propName_props_host = 404,
+  Component_notFound_component = 405,
+  Component_doesNotMatch_component_actual = 406,
+  Component_missingTemplateQRL_component = 407,
   // Provider 500-599
   Provider_unrecognizedFormat_value = 500,
   // Render 600-699
@@ -73,7 +79,7 @@ function codeToText(code: QError): string {
     [QError.Core_qConfigNotFound_path]: "QConfig not found in path '{}'.",
     [QError.Core_unrecognizedStack_frame]: "Unrecognized stack format '{}'",
     [QError.Core_noAttribute_atr1_attr2_element]:
-      "Could not find attribute '{}' ( or '{}') at '{}' or any of it's parents.",
+      "Could not find service state '{}' ( or service provider '{}') at '{}' or any of it's parents.",
     [QError.Core_missingProperty_name_props]: "Missing property '{}' in props '{}'.",
     //////////////
     [QError.QRL_expectFunction_url_actual]: "QRL '${}' should point to function, was '{}'.",
@@ -81,6 +87,11 @@ function codeToText(code: QError): string {
     [QError.Injection_noHost_element]: "Can't find host element above '{}'.",
     [QError.Injection_expectedSpecificInjector_expected_actual]:
       "Provider is expecting '{}' but got '{}'.",
+    [QError.Injection_notElement_arg]: "Expected 'Element' was '{}'.",
+    [QError.Injection_wrongMethodThis_expected_actual]:
+      "Expected injection 'this' to be of type '{}', but was of type '{}'.",
+    [QError.Injection_missingSerializedState_serviceKey_element]:
+      "Service key '{}' is found on '{}' but does not contain state. Was 'serializeState()' not run during dehydration?",
     //////////////
     [QError.Service_notValidKey_key]:
       "Data key '{}' is not a valid key.\n" +
@@ -121,7 +132,13 @@ function codeToText(code: QError): string {
     [QError.Component_needsState]: "Can't find state on host element.",
     [QError.Component_needsInjectionContext_constructor]:
       "Components must be instantiated inside an injection context. Use '{}.new(...)' for creation.",
-    [QError.Component_noProperty_propName_host]: "Property '{}' not found on component '{}'.",
+    [QError.Component_noProperty_propName_props_host]:
+      "Property '{}' not found in '{}' on component '{}'.",
+    [QError.Component_notFound_component]: "Unable to find '{}' component.",
+    [QError.Component_doesNotMatch_component_actual]:
+      "Requesting component '{}' does not match existing component '{}'. Verify that the two components have distinct '$templateQRL's.",
+    [QError.Component_missingTemplateQRL_component]:
+      "Expecting Component '{}' to have static '$templateQRL' property, but none was found.",
     //////////////
     [QError.Provider_unrecognizedFormat_value]: "Unrecognized expression format '{}'.",
     //////////////

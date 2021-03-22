@@ -7,7 +7,8 @@
  */
 
 import { expect } from 'chai';
-import { keyToServiceAttribute, validateKeyPart, keyToProps, propsToKey } from './service_key.js';
+import { keyToServiceAttribute } from '../injection/element_injector.js';
+import { validateKeyPart, keyToProps, propsToKey } from './service_key.js';
 import { ServiceType } from './types.js';
 
 describe('service key', () => {

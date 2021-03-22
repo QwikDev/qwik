@@ -7,40 +7,241 @@
  */
 
 import { expect } from 'chai';
-import { ComponentFixture } from '../testing/component_fixture.js';
-import { createComponentInjector } from './element_injector.js';
+import { Component } from '../component/component.js';
+import '../CONFIG.js';
+import { stringifyDebug } from '../error/stringify.js';
+import { QRL } from '../import/index.js';
+import { Service } from '../qoot.js';
+import { serializeState } from '../render/serialize_state.js';
+import { ElementFixture } from '../testing/element_fixture.js';
+import { AttributeMarker } from '../util/markers.js';
+import { ElementInjector, getInjector } from './element_injector.js';
 
 describe('getComponentProps', () => {
-  let fixture: ComponentFixture;
+  let fixture: ElementFixture;
+  let hostInjector: ElementInjector;
   beforeEach(() => {
-    fixture = new ComponentFixture();
+    fixture = new ElementFixture();
+    hostInjector = getInjector(fixture.host);
   });
 
-  describe('error', () => {
-    it('should error if bind: without suffix', async () => {
-      fixture.host.setAttribute('bind:', 'propA');
-      expect(() => (fixture.injector = createComponentInjector(fixture.host, null))).to.throw(
-        "COMPONENT-ERROR(Q-400): 'bind:' must have an key. (Example: 'bind:key=\"propertyName\"')."
+  describe('getComponent', () => {
+    it('should materialize component and return same instance', async () => {
+      fixture.host.setAttribute(
+        AttributeMarker.ComponentTemplate,
+        GreeterComponent.$templateQRL as any
       );
+      const component = await hostInjector.getComponent(GreeterComponent);
+      expect(component).to.be.an.instanceOf(GreeterComponent);
+      expect(stringifyDebug(component.$host)).to.be.equal(stringifyDebug(fixture.host));
+
+      const component2 = await hostInjector.getComponent(GreeterComponent);
+      expect(component).to.eql(component2);
     });
-    it('should error if bind: without content', () => {
-      fixture.host.setAttribute('bind:id', '');
-      expect(() => (fixture.injector = createComponentInjector(fixture.host, null))).to.throw(
-        "COMPONENT-ERROR(Q-401): 'bind:id' must have a property name. (Example: 'bind:key=\"propertyName\"')."
+    it('should walk up the tree and find materialize component', async () => {
+      fixture.superParent.setAttribute(
+        AttributeMarker.ComponentTemplate,
+        GreeterComponent.$templateQRL as any
       );
+      const component = await hostInjector.getComponent(GreeterComponent);
+      expect(component).to.be.an.instanceOf(GreeterComponent);
+      expect(stringifyDebug(component.$host)).to.be.equal(stringifyDebug(fixture.superParent));
+    });
+    it('should return the same promise instance', () => {
+      fixture.superParent.setAttribute(
+        AttributeMarker.ComponentTemplate,
+        GreeterComponent.$templateQRL as any
+      );
+      const component1 = hostInjector.getComponent(GreeterComponent);
+      const component2 = hostInjector.getComponent(GreeterComponent);
+      expect(component1).to.equal(component2);
+    });
+    describe('state', () => {
+      it('should materialize from attribute state', async () => {
+        fixture.host.setAttribute(
+          AttributeMarker.ComponentTemplate,
+          GreeterComponent.$templateQRL as any
+        );
+        fixture.host.setAttribute(
+          AttributeMarker.ComponentState,
+          JSON.stringify({ greeting: 'abc' })
+        );
+        const component = await hostInjector.getComponent(GreeterComponent);
+        expect(component.$state).to.eql({ greeting: 'abc' });
+      });
+      it('should materialize from $materializeState', async () => {
+        fixture.host.setAttribute(
+          AttributeMarker.ComponentTemplate,
+          GreeterComponent.$templateQRL as any
+        );
+        fixture.host.setAttribute('salutation', 'Hello');
+        fixture.host.setAttribute('name', 'World');
+        const component = await hostInjector.getComponent(GreeterComponent);
+        expect(component.$props).to.eql({ salutation: 'Hello', name: 'World' });
+        expect(component.$state).to.eql({ greeting: 'Hello World!' });
+      });
+      it('should save state to attribute state', async () => {
+        fixture.host.setAttribute(
+          AttributeMarker.ComponentTemplate,
+          GreeterComponent.$templateQRL as any
+        );
+        const component = await hostInjector.getComponent(GreeterComponent);
+        component.$state = { greeting: 'save me' };
+        serializeState(fixture.superParent);
+        expect(fixture.host.getAttribute(AttributeMarker.ComponentState)).to.eql(
+          JSON.stringify({ greeting: 'save me' })
+        );
+      });
+    });
+    describe('error', () => {
+      it('should throw if component does not match', async () => {
+        fixture.parent.setAttribute(AttributeMarker.ComponentTemplate, 'wrongQRL');
+        expect(() => hostInjector.getComponent(GreeterComponent)).to.throw(
+          "COMPONENT-ERROR(Q-405): Unable to find 'GreeterComponent' component."
+        );
+      });
+      it('should throw if two components have same $templateQRLs', async () => {
+        fixture.superParent.setAttribute(
+          AttributeMarker.ComponentTemplate,
+          GreeterComponent.$templateQRL as any
+        );
+        await hostInjector.getComponent(GreeterComponent);
+        expect(() => hostInjector.getComponent(GreeterShadowComponent)).to.throw(
+          "COMPONENT-ERROR(Q-406): Requesting component 'GreeterShadowComponent' does not match existing component 'GreeterComponent'. Verify that the two components have distinct '$templateQRL's."
+        );
+      });
+      it('should throw if two components is missing $templateQRL', async () => {
+        class MissingQRL {}
+        expect(() => hostInjector.getComponent(MissingQRL as any)).to.throw(
+          "COMPONENT-ERROR(Q-407): Expecting Component 'MissingQRL' to have static '$templateQRL' property, but none was found."
+        );
+      });
     });
   });
 
-  it('should retrieve props from attributes', () => {
-    fixture.host.setAttribute('prop-A', 'valueA');
-    fixture.host.setAttribute('bind:id:1', '$propB');
-    fixture.host.setAttribute('bind:id:2', '$propC;$prop-d');
-    fixture.injector = createComponentInjector(fixture.host, null);
-    expect(fixture.injector.props).to.eql({
-      propA: 'valueA',
-      $propB: 'id:1',
-      $propC: 'id:2',
-      '$prop-d': 'id:2',
+  describe('getService/getServiceState', () => {
+    it('should retrieve service by key from DOM', async () => {
+      fixture.host.setAttribute(
+        'regards:-hello:-world',
+        JSON.stringify({ greeting: 'serialized' })
+      );
+      expect(await hostInjector.getServiceState('regards:-hello:-world')).to.eql({
+        $key: 'regards:-hello:-world',
+        greeting: 'serialized',
+      });
+      // Add this late to demonstrate that the `getServiceState` was able to retrieve the state
+      // without the service QRL.
+      RegardsService.$attachService(fixture.host);
+      const service = await hostInjector.getService('regards:-hello:-world');
+      expect(service.$key).to.eql('regards:-hello:-world');
+      expect(service.$props).to.eql({ salutation: 'Hello', name: 'World' });
+      expect(service.$state).to.eql({
+        $key: 'regards:-hello:-world',
+        greeting: 'serialized',
+      });
+    });
+    it('should retrieve service by key from parent element', async () => {
+      fixture.parent.setAttribute(
+        'regards:-hello:-world',
+        JSON.stringify({ greeting: 'serialized' })
+      );
+      expect(await hostInjector.getServiceState('regards:-hello:-world')).to.eql({
+        $key: 'regards:-hello:-world',
+        greeting: 'serialized',
+      });
+      // Add this late to demonstrate that the `getServiceState` was able to retrieve the state
+      // without the service QRL.
+      RegardsService.$attachService(fixture.parent);
+      const service = await hostInjector.getService('regards:-hello:-world');
+      expect(service.$key).to.eql('regards:-hello:-world');
+      expect(service.$props).to.eql({ salutation: 'Hello', name: 'World' });
+      expect(service.$state).to.eql({
+        $key: 'regards:-hello:-world',
+        greeting: 'serialized',
+      });
+    });
+    it('should retrieve service by key and call $materializeState', async () => {
+      RegardsService.$attachService(fixture.parent);
+      const service = await hostInjector.getService('regards:-hello:-world');
+      expect(service.$key).to.eql('regards:-hello:-world');
+      expect(service.$props).to.eql({ salutation: 'Hello', name: 'World' });
+      expect(service.$state).to.eql({
+        $key: 'regards:-hello:-world',
+        greeting: 'Hello World!',
+      });
+    });
+    it('should retrieve the same instance of service', async () => {
+      RegardsService.$attachService(fixture.parent);
+      const service1 = hostInjector.getService('regards:-hello:-world');
+      const service2 = hostInjector.getService('regards:-hello:-world');
+      expect(service1).to.equal(service2);
+    });
+    it('should retrieve the same instance of service state', async () => {
+      const state = { greeting: 'saved greeting' };
+      const key = RegardsService.$hydrate(
+        fixture.host,
+        { salutation: 'Hello', name: 'World' },
+        state
+      ).$key;
+      expect(fixture.host.hasAttribute(key)).to.be.true;
+      const serviceState = await hostInjector.getServiceState(key);
+      expect(serviceState).to.equal(state);
+    });
+    describe('error', () => {
+      it('should throw error if no state define', () => {
+        expect(() => hostInjector.getServiceState('not:found')).to.throw(
+          "ERROR(Q-003): Could not find service state 'not:found' ( or service provider '::not') at '<host :>' or any of it's parents"
+        );
+      });
+      it('should throw error if service state was not serialized', async () => {
+        fixture.host.setAttribute('service:1', '');
+        expect(() => hostInjector.getServiceState('service:1')).to.throw(
+          "INJECTION-ERROR(Q-204): Service key 'service:1' is found on '<host : service:1>' but does not contain state. Was 'serializeState()' not run during dehydration?"
+        );
+      });
+      it('should throw error if no service provider define', () => {
+        expect(() => hostInjector.getService('not:found')).to.throw(
+          "ERROR(Q-003): Could not find service state 'not:found' ( or service provider '::not') at '<host :>' or any of it's parents"
+        );
+      });
     });
   });
 });
+
+interface GreeterProps {
+  salutation: string;
+  name: string;
+}
+interface Greeter {
+  greeting: string;
+}
+
+class GreeterComponent extends Component<GreeterProps, Greeter> {
+  static $templateQRL: QRL = 'qrlToTemplate' as any;
+
+  async $materializeState(state: GreeterProps) {
+    return { greeting: state.salutation + ' ' + state.name + '!' };
+  }
+}
+
+class GreeterShadowComponent extends Component<GreeterProps, Greeter> {
+  static $templateQRL: QRL = 'qrlToTemplate' as any;
+}
+
+interface RegardsProps {
+  salutation: string;
+  name: string;
+}
+interface Regards {
+  greeting: string;
+}
+
+export class RegardsService extends Service<RegardsProps, Regards> {
+  static $name = 'regards';
+  static $qrl = QRL`injection:/element_injector.unit.RegardsService`;
+  static $keyProps = ['salutation', 'name'];
+
+  async $materializeState(state: RegardsProps) {
+    return { greeting: state.salutation + ' ' + state.name + '!' };
+  }
+}

@@ -37,14 +37,14 @@ describe('applyAttributes()', () => {
     expect(host.outerHTML).to.equal('<host a="c"></host>');
   });
 
-  it('should remove properties to Element', () => {
+  it.only('should remove properties to Element', () => {
     expect(applyAttributes(host, { a: '' }, false)).to.be.false;
     expect(host.outerHTML).to.equal('<host a=""></host>');
     expect(applyAttributes(host, { a: '' }, true)).to.be.false;
     expect(host.outerHTML).to.equal('<host a=""></host>');
     expect(applyAttributes(host, { a: null }, true)).to.be.true;
     expect(host.outerHTML).to.equal('<host></host>');
-    expect(applyAttributes(host, { a: undefined! }, true)).to.be.false;
+    expect(applyAttributes(host, { a: undefined! }, true)).to.be.true;
     expect(host.outerHTML).to.equal('<host></host>');
   });
 
@@ -69,7 +69,7 @@ describe('applyAttributes()', () => {
       expect(fixture.host.innerHTML).to.equal('<test-component bind:="$myData"></test-component>');
     });
 
-    it.only('should merge bindings', async () => {
+    it('should merge bindings', async () => {
       const fixture = new ComponentFixture();
       let value1: string | null = 'someA';
       let value2: string | null = 'someB';

@@ -7,7 +7,7 @@
  */
 
 import { expect } from 'chai';
-import { createComponentInjector } from '../injection/element_injector.js';
+import { getInjector } from '../injection/element_injector.js';
 import { ComponentFixture } from '../testing/component_fixture.js';
 import { provideComponentProp } from './provide_prop.js';
 
@@ -21,17 +21,18 @@ describe('getComponentProps', () => {
     fixture.host.setAttribute('prop-A', 'valueA');
     fixture.host.setAttribute('bind:id:1', '$propB');
     fixture.host.setAttribute('bind:id:2', '$propC;$propD');
-    fixture.injector = createComponentInjector(fixture.host, null);
+    const injector = getInjector(fixture.host);
 
-    expect(provideComponentProp('propA')(fixture.injector)).to.equal('valueA');
-    expect(provideComponentProp('$propB')(fixture.injector)).to.equal('id:1');
-    expect(provideComponentProp('$propC')(fixture.injector)).to.equal('id:2');
-    expect(provideComponentProp('$propD')(fixture.injector)).to.equal('id:2');
+    expect(provideComponentProp('propA')(injector)).to.equal('valueA');
+    expect(provideComponentProp('$propB')(injector)).to.equal('id:1');
+    expect(provideComponentProp('$propC')(injector)).to.equal('id:2');
+    expect(provideComponentProp('$propD')(injector)).to.equal('id:2');
   });
 
   describe('error', () => {
     it('should throw if property not defined', () => {
-      expect(() => provideComponentProp('propA')(fixture.injector)).to.throw(
+      const injector = getInjector(fixture.host);
+      expect(() => provideComponentProp('propA')(injector)).to.throw(
         `COMPONENT-ERROR(Q-404): Property 'propA' not found on component '<host : ::='file://.../component_fixture.noop'>'.`
       );
     });

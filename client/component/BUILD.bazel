@@ -34,7 +34,6 @@ ts_project(
     srcs = ["types.ts"],
     deps = [
         "//client/import:types",
-        "//client/injection:types",
     ],
 )
 
@@ -48,6 +47,7 @@ ts_project(
         "@npm//@types/mocha",
         "@npm//@types/chai",
         "//client/testing",
+        "//client:CONFIG",
     ]
 )
 

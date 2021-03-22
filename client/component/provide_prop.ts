@@ -6,20 +6,15 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import {
-  ComponentInjector,
-  createComponentInjector,
-  getComponentHost,
-} from '../injection/element_injector.js';
 import { qError, QError } from '../error/error.js';
-import { Injector, AsyncProvider } from '../injection/types.js';
-import { getStorage } from '../injection/storage.js';
+import { getClosestInjector } from '../injection/element_injector.js';
+import { AsyncProvider, Injector } from '../injection/types.js';
 
 /**
  * Provides the Component Property.
  *
- * The Component Properties are read from `InjectionContext` or from the host-element
- * if the `InjectionContext` does not have them.
+ * The Component Properties are read from `Injector` or from the host-element
+ * if the `Injector` does not have them.
  *
  * The attributes follow these rules:
  * - all attributes which contain `:` are ignored as these are control attributes and
@@ -50,24 +45,17 @@ import { getStorage } from '../injection/storage.js';
  */
 export function provideComponentProp(name: string): AsyncProvider<string> {
   return function componentPropProvider(injector: Injector): string {
-    const componentInjector = getComponentInjector(injector);
-    const props = componentInjector.props;
-    // TODO: validation / cast
+    const elementInjector = getClosestInjector(injector.element);
+    const props = elementInjector.elementProps;
     const value = props[name] as string;
     if (value == null) {
-      throw qError(QError.Component_noProperty_propName_host, name, componentInjector.element);
+      throw qError(
+        QError.Component_noProperty_propName_props_host,
+        name,
+        elementInjector.elementProps,
+        elementInjector.element
+      );
     }
     return value;
   };
-}
-
-function getComponentInjector(injector: Injector) {
-  const componentElement = getComponentHost(injector.element);
-  const storage = getStorage(componentElement);
-  let componentInjector = (storage.get(':.') as any) as ComponentInjector;
-  if (!componentInjector) {
-    componentInjector = createComponentInjector(componentElement, null);
-    storage.set(':.', componentInjector as any);
-  }
-  return componentInjector;
 }

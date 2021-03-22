@@ -6,14 +6,15 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { Props } from '../../injection/types.js';
 import { assertNotEqual, assertString, newError } from '../../assert/index.js';
-import { Component } from '../../component/types.js';
+import { IComponent } from '../../component/types.js';
 import { QRL } from '../../import/qrl.js';
+import { Props } from '../../injection/types.js';
+import { IService, isService } from '../../service/types.js';
+import { extractPropsFromElement } from '../../util/attributes.js';
 import { isPromise } from '../../util/promises.js';
 import { HostElements } from '../types.js';
 import { jsxRenderComponent } from './render.js';
-import { IService, isService } from '../../service/types.js';
 
 interface QDocument extends Document {
   $qScheduledRender?: Promise<HostElements> | null;
@@ -23,7 +24,7 @@ interface QDocument extends Document {
 // TODO: docs
 // TODO: Unify component/services
 export function markDirty(
-  component: Component<any, any> | IService<any, any>
+  component: IComponent<any, any> | IService<any, any>
 ): Promise<HostElements> {
   if (isService(component)) return markServiceDirty(component);
   qDev && assertNotEqual(typeof requestAnimationFrame, 'undefined');
@@ -59,22 +60,10 @@ function scheduleRender(document: QDocument): Promise<HostElements> {
   }));
 }
 
-//TODO: duplicate code from injector.
-export function extractPropsFromElement(host: Element) {
-  const props: Props = {};
-  const attrs = host.attributes;
-  for (let i = 0, ii = attrs.length; i < ii; i++) {
-    const attr = attrs[i];
-    props[attr.name] = attr.value;
-  }
-  return props;
-}
-
 function markServiceDirty(component: IService<any, any>): Promise<HostElements> {
   const key = component.$key;
-  const document = component.$injector.element.ownerDocument as QDocument;
+  const document = component.$element.ownerDocument as QDocument;
   document.querySelectorAll(toAttrQuery('bind:' + key)).forEach((componentElement) => {
-    console.log('markDirty:', componentElement);
     const qrl = componentElement.getAttribute('::')!;
     // TODO: error;
     if (!qrl) {

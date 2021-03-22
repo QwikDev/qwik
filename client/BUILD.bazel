@@ -21,11 +21,12 @@ ts_project(
     srcs = glob(["**/*.ts"], exclude=["qootloader.ts", "**/*.unit.ts", "CONFIG.ts"]),
     deps = [
         "//client/component",
-        "//client/service",
+        "//client/config",
+        "//client/event",
+        "//client/import",
         "//client/injection",
         "//client/render/jsx",
-        "//client/import",
-        "//client/config",
+        "//client/service",
     ]
 )
 

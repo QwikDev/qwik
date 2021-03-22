@@ -6,12 +6,13 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { createComponentInjector } from '../injection/element_injector.js';
+import { getInjector } from '../injection/element_injector.js';
+import { Injector } from '../injection/types.js';
 import { QRL } from '../qoot.js';
 import { jsxRender } from '../render/jsx/render.js';
 import { JSXFactory } from '../render/jsx/types.js';
 import { HostElements } from '../render/types.js';
-import { ServiceFixture } from './service_fixture.js';
+import { ElementFixture } from './element_fixture.js';
 
 /**
  * Creates a simple DOM structure for testing components.
@@ -27,20 +28,22 @@ import { ServiceFixture } from './service_fixture.js';
  * It also sets up `injector` which points to `child`.
  *
  */
-export class ComponentFixture extends ServiceFixture {
+export class ComponentFixture extends ElementFixture {
   template: JSXFactory | null = null;
+  injector: Injector;
 
   constructor() {
     super();
-    this.injector = createComponentInjector(this.host, null);
     this.host.setAttribute('::', String(QRL`${import.meta.url.replace(/\.js$/, '.noop')}`));
+    this.injector = getInjector(this.host);
   }
 
   render(): Promise<HostElements> | null {
     if (this.template) {
+      const injector = getInjector(this.host);
       return jsxRender(
         this.host,
-        this.template.call(this.injector, this.injector.props!),
+        this.template.call(injector, injector.elementProps),
         this.document
       );
     }

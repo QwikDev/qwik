@@ -8,6 +8,7 @@
 
 export * from './component/index.js';
 export * from './config/index.js';
+export * from './event/index.js';
 export * from './import/index.js';
 export * from './injection/index.js';
 export * from './render/index.js';

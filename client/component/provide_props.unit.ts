@@ -7,18 +7,20 @@
  */
 
 import { expect } from 'chai';
-import { createComponentInjector } from '../injection/element_injector.js';
-import { inject } from '../injection/inject.js';
+import { getInjector } from '../injection/element_injector.js';
+import { injectFunction } from '../injection/inject.js';
 import { ComponentFixture } from '../testing/component_fixture.js';
 import { provideProps } from './provide_props.js';
 
 describe('provideComponentState', () => {
   it('should inject empty state', async () => {
     const fixture = new ComponentFixture();
-    const handler = inject(null, provideProps<{}>(), (props) => props);
+    const handler = injectFunction(provideProps<{}>(), (props) => {
+      return props;
+    });
     fixture.host.setAttribute('salutation', 'Hello');
-    fixture.injector = createComponentInjector(fixture.host, null);
+    const injector = getInjector(fixture.host);
 
-    expect(await fixture.injector.invoke(handler)).to.eql({ salutation: 'Hello' });
+    expect(await injector.invoke(handler)).to.eql({ salutation: 'Hello' });
   });
 });

@@ -61,7 +61,7 @@ export function findAttribute<RET1, RET2>(
     if (attributeSecondary && callbackSecondary) {
       const attrValueSecondary = cursor.getAttribute(attributeSecondary);
       if (attrValueSecondary !== null) {
-        return callbackSecondary(cursor, attributePrimary, attrValueSecondary);
+        return callbackSecondary(cursor, attributeSecondary, attrValueSecondary);
       }
     }
     cursor = cursor.parentElement;

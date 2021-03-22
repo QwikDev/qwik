@@ -13,13 +13,12 @@ import { QError, qError } from '../error/error.js';
  * Provider of Component State.
  *
  * Use this function in conjunction with `inject` to inject Component State into the
- * `InjectedFunction` or `InjectableConcreteType`.
+ * `InjectedFunction`.
  *
  * See:
  * - STATE.md
  * - `inject`
  * - `Component.$inject`
- * - `InjectableConcreteType`
  *
  * Example:
  * ```

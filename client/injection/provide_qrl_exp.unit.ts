@@ -7,21 +7,23 @@
  */
 
 import { expect } from 'chai';
-import { inject } from '../injection/inject.js';
 import { ComponentFixture } from '../testing/component_fixture.js';
-import { createEventInjector } from './element_injector.js';
+import { EventInjector } from './event_injector.js';
+import { injectFunction } from './inject.js';
 import { provideQrlExp } from './provide_qrl_exp.js';
 
 describe('provideQrlExp', () => {
   it('should inject properties from event object', async () => {
     const fixture = new ComponentFixture();
-    fixture.injector = createEventInjector(
+    fixture.injector = new EventInjector(
       fixture.child,
       { foo: { bar: 'worked' } } as any,
       new URL('./provide_qrl_exp.unit.someExport?value=.foo.bar', import.meta.url)
     );
-    const handler = inject(null, provideQrlExp<string>('value'), (props) => props);
-
+    const handler = injectFunction(provideQrlExp<string>('value'), (props) => {
+      return props;
+    });
+    expect(provideQrlExp<string>('value')(fixture.injector)).to.eql('worked');
     expect(await fixture.injector.invoke(handler)).to.eql('worked');
   });
 });

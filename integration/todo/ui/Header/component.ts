@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { Component } from '../../qoot.js';
+import { Component, QRL } from '../../qoot.js';
 import { HeaderProps } from '../Header/public.js';
 
 interface HeaderState {
@@ -14,6 +14,7 @@ interface HeaderState {
 }
 
 export class HeaderComponent extends Component<HeaderProps, HeaderState> {
+  static $templateQRL = QRL`ui:/Header/template`;
   $materializeState(props: HeaderProps) {
     return { text: '' };
   }

@@ -39,7 +39,7 @@ export class ItemsService extends Service<ItemsProps, Items> {
   }
 
   async $materializeState(props: ItemsProps): Promise<Items> {
-    const host = this.$injector.element;
+    const host = this.$element;
     return {
       completed: 0,
       nextId: 4,

@@ -6,22 +6,17 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { assertEqual, newError } from '../assert/assert.js';
 import { getConfig, QConfig } from '../config/qGlobal.js';
 import { qError, QError } from '../error/error.js';
 import { qImport } from '../import/qImport.js';
 import { QRL } from '../import/types';
-import {
-  createServiceInjector,
-  ensureServiceInjector,
-  ServiceInjector,
-} from '../injection/element_injector.js';
-import { getStorage, retrieveInjector, storeInjector } from '../injection/storage.js';
-import { AsyncProvider, Injector } from '../injection/types.js';
+import { keyToServiceAttribute } from '../injection/element_injector.js';
+import { getInjector } from '../injection/element_injector.js';
+import { ServiceType } from '../service/types.js';
 import { getFilePathFromFrame } from '../util/base_uri.js';
 import { fromCamelToKebabCase } from '../util/case.js';
 import { keyToProps, propsToKey } from './service_key.js';
-import { Key, PropsOf, ServicePromise, StateOf } from './types.js';
+import { ServiceKey, ServicePromise, ServicePropsOf, ServiceStateOf } from './types.js';
 
 /**
  * Service allows creation of lazy loading class whose state is serializable.
@@ -237,21 +232,6 @@ export class Service<PROPS, STATE> {
    */
   static $keyProps: string[] = [];
 
-  // TODO: docs
-  // TODO: tests
-  static get $resolver(): AsyncProvider<Service<any, any>> {
-    const serviceType = this;
-    return function serviceResolver(injector: Injector) {
-      const self = ensureServiceInjector(injector).instance;
-      if (self && self instanceof serviceType && self.constructor === serviceType) {
-        return self;
-      } else {
-        // TODO: Needs a proper error.
-        throw newError('SERVICE-ERROR: implement');
-      }
-    };
-  }
-
   /**
    * Attach QRL definition to an `Element`.
    *
@@ -326,14 +306,14 @@ export class Service<PROPS, STATE> {
   static $attachServiceState<SERVICE extends Service<any, any>>(
     this: { new (...args: any[]): SERVICE },
     host: Element,
-    props: Readonly<PropsOf<SERVICE>>,
-    state: StateOf<SERVICE> | null
+    propsOrKey: ServicePropsOf<SERVICE> | ServiceKey,
+    state: ServiceStateOf<SERVICE> | null
   ): void {
     const serviceType = (this as any) as typeof Service;
     serviceType.$attachService(host);
-    const id = propsToKey(serviceType, props as any);
-    if (!host.hasAttribute(id)) {
-      host.setAttribute(id, state == null ? '' : JSON.stringify(state));
+    const key = typeof propsOrKey == 'string' ? propsOrKey : propsToKey(serviceType, propsOrKey);
+    if (!host.hasAttribute(key)) {
+      host.setAttribute(key, state == null ? '' : JSON.stringify(state));
     }
   }
 
@@ -358,63 +338,48 @@ export class Service<PROPS, STATE> {
   static $hydrate<SERVICE extends Service<any, any>>(
     this: { new (...args: any[]): SERVICE },
     element: Element,
-    propsOrKey: PropsOf<SERVICE> | Key,
-    state?: StateOf<SERVICE>
+    propsOrKey: ServicePropsOf<SERVICE> | ServiceKey,
+    state?: ServiceStateOf<SERVICE>
   ): ServicePromise<SERVICE> {
     const serviceType = (this as any) as typeof Service;
-    const props = typeof propsOrKey == 'string' ? keyToProps(serviceType, propsOrKey) : propsOrKey;
     const key = typeof propsOrKey == 'string' ? propsOrKey : propsToKey(serviceType, propsOrKey);
-    let injector = retrieveInjector(element, key);
-    if (!injector) {
-      injector = storeInjector(element, key, createServiceInjector(element, props as any));
+    if (state) state.$key = key;
+    const serviceProviderKey = keyToServiceAttribute(key);
+    if (!element.hasAttribute(serviceProviderKey)) {
+      (this as ServiceType<any>).$attachService(element);
     }
-    if (injector.instancePromise) {
-      return injector.instancePromise as ServicePromise<SERVICE>;
-    }
-    let servicePromise: ServicePromise<SERVICE>;
-    if (injector.instance) {
-      // TODO: Needs test;
-      // TODO: Refactor: Duplicate code with creation of promise later.
-      servicePromise = Promise.resolve(injector.instance) as ServicePromise<SERVICE>;
-      servicePromise.$key = key;
-      injector.instancePromise = servicePromise;
-      return servicePromise;
-    }
-    if (!state) {
-      const json = element.getAttribute(key);
-      if (json) {
-        state = JSON.parse(json);
-      }
-    }
-    const service = new serviceType(injector, state!);
-    if (!state) {
-      servicePromise = service.$materializeState(props).then((state) => {
-        (service as { $state: StateOf<SERVICE> }).$state = state;
-        return service;
-      }) as ServicePromise<SERVICE>;
-    } else {
-      servicePromise = Promise.resolve(service) as ServicePromise<SERVICE>;
-    }
-    servicePromise.$key = propsToKey(serviceType, props);
-    return (injector.instancePromise = servicePromise);
+    let injector = getInjector(element);
+    return injector.getService(key, state, this as any);
+  }
+
+  // TODO: docs
+  static $keyToProps<SERVICE extends Service<any, any>>(
+    this: { new (...args: any[]): SERVICE },
+    key: ServiceKey
+  ): ServicePropsOf<SERVICE> {
+    return keyToProps(this as any, key) as ServicePropsOf<SERVICE>;
+  }
+
+  // TODO: docs
+  static $propsToKey<SERVICE extends Service<any, any>>(
+    this: { new (...args: any[]): SERVICE },
+    props: ServicePropsOf<SERVICE>
+  ): ServiceKey {
+    return propsToKey(this as any, props) as ServiceKey;
   }
 
   /////////////////////////////////////////////////
-  readonly $injector: ServiceInjector;
+  readonly $element: Element;
   readonly $props: PROPS;
   readonly $state: STATE;
   readonly $key: string;
 
-  constructor(injector: Injector, state: STATE) {
-    const serviceInjector = ensureServiceInjector(injector);
+  constructor(element: Element, props: PROPS, state: STATE | null) {
     const serviceType = getServiceType(this);
-    const props = (serviceInjector.props as any) as PROPS;
-    const element = serviceInjector.element;
-    this.$injector = serviceInjector;
     this.$props = props;
-    this.$state = state;
+    this.$state = state!; // TODO: is this right?
+    this.$element = element!;
     this.$key = propsToKey(serviceType as any, props);
-    serviceInjector.instance = this;
     serviceType.$attachService(element);
     serviceType.$attachServiceState(element, props, null);
   }
@@ -450,7 +415,7 @@ export class Service<PROPS, STATE> {
   ): Promise<RET> {
     const service = getServiceType(this);
     const delegate = await qImport(service.$config, qrl);
-    return this.$injector.invoke(delegate, ...args);
+    return getInjector(this.$element).invoke(delegate as any, this, ...args);
   }
 
   /**
@@ -486,14 +451,10 @@ export class Service<PROPS, STATE> {
    * Releasing a state does not imply that the state should be deleted on backend.
    */
   $release(): void {
-    // TODO: Move this to instance method so that we don't need to materialize a service to release it.
-    const element = this.$injector.element;
-    const storage = getStorage(element);
+    const injector = getInjector(this.$element);
     const serviceType = getServiceType(this);
-    const id = propsToKey(serviceType, this.$injector.props);
-    const successfullyRemoved = storage.delete(id);
-    element.removeAttribute(id);
-    qDev && assertEqual(successfullyRemoved, true);
+    const key = propsToKey(serviceType, this.$props);
+    injector.releaseService(key);
   }
 }
 

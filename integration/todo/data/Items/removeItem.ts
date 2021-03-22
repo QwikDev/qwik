@@ -6,14 +6,14 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { inject, markDirty } from '../../qoot.js';
+import { injectMethod, markDirty } from '../../qoot.js';
 import { ItemService } from '../Item/public.js';
 import { ItemsService } from './public.js';
 
-export default inject(
+export default injectMethod(
   ItemsService, //
   async function removeItem(this: ItemsService, itemKey: string): Promise<void> {
-    (await ItemService.$hydrate(this.$injector.element, itemKey)).$release();
+    (await ItemService.$hydrate(this.$element, itemKey)).$release();
     const items = this.$state.items;
     items.splice(items.indexOf(itemKey), 1);
     markDirty(this);

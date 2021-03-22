@@ -37,7 +37,10 @@ ts_project(
     tsconfig = "//:tsconfig",
     declaration = True,
     srcs = ["types.ts"],
-    deps = ["//client/render:types"]
+    deps = [
+        "//client/injection:types",
+        "//client/render:types",
+    ]
 )
 
 ts_project(

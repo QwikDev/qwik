@@ -6,9 +6,9 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { assertDefined, assertString } from '../assert/index.js';
+import { assertDefined } from '../assert/index.js';
 import { QError, qError } from '../error/error.js';
-import { ensureEventInjector } from './element_injector.js';
+import { ensureEventInjector } from './event_injector.js';
 import { AsyncProvider, Injector } from './types.js';
 
 /**
@@ -45,14 +45,15 @@ import { AsyncProvider, Injector } from './types.js';
  */
 export function provideQrlExp<T>(parameterName: string): AsyncProvider<T> {
   return function qrlExpProvider(injector: Injector): any {
-    const value = injector.props[parameterName]!;
+    const eventInjector = ensureEventInjector(injector);
+    const value = eventInjector.props[parameterName]!;
     if (value == null) {
-      qError(QError.Core_missingProperty_name_props, parameterName, injector.props);
+      throw qError(QError.Core_missingProperty_name_props, parameterName, eventInjector.props);
     }
 
     switch (value.charAt(0)) {
       case '.':
-        let obj: any = ensureEventInjector(injector).event;
+        let obj: any = eventInjector.event;
         qDev && assertDefined(obj);
         const parts = value.substr(1).split('.');
         while (parts.length && obj) {

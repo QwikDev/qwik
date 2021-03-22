@@ -7,10 +7,9 @@
  */
 
 import { Items, ItemsService } from '../../data/Items/public.js';
-import { QRL, inject, jsxFactory, provideComponentProp, provideServiceState } from '../../qoot.js';
+import { QRL, injectFunction, jsxFactory, provideComponentProp, provideServiceState } from '../../qoot.js';
 
-export default inject(
-  null,
+export default injectFunction(
   provideServiceState<ItemsService>(provideComponentProp('$items')),
   function FooterTemplate(items: Items) {
     const remaining = items.items.length - items.completed;
@@ -20,7 +19,7 @@ export default inject(
       return (
         <li>
           <a class={{ selected: filter == lMode }}
-             on:click={QRL`qoot:.emitEvent?$name=selectFilter&filter=${lMode}`} >
+             on:click={QRL`base:qoot.emitEvent?$name=selectFilter&filter=${lMode}`} >
             {mode}
           </a>
         </li>

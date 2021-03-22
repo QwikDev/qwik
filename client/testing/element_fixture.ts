@@ -6,8 +6,8 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { createServiceInjector } from '../injection/element_injector.js';
-import { dirname, InjectionContext } from '../qoot.js';
+import { ElementInjector } from '../injection/element_injector.js';
+import { Injector } from '../qoot.js';
 import { createGlobal } from './node_utils.js';
 
 /**
@@ -24,23 +24,25 @@ import { createGlobal } from './node_utils.js';
  * It also sets up `injector` which points to `child`.
  *
  */
-export class ServiceFixture {
+export class ElementFixture {
   global: { document: Document };
   document: Document;
+  superParent: HTMLElement;
+  parent: HTMLElement;
   host: HTMLElement;
   child: HTMLElement;
-  injector: InjectionContext;
+  hostInjector: Injector;
 
   constructor() {
-    const baseUri = import.meta.url;
-    // TODO needs config
-    const thisFileBaseURI = dirname(baseUri);
     this.global = createGlobal(import.meta.url);
     this.document = this.global.document;
+    this.superParent = this.document.createElement('super-parent');
+    this.parent = this.document.createElement('parent');
     this.host = this.document.createElement('host');
     this.child = this.document.createElement('child');
-    // TODO: I don't think injector should be here???? Who's injector?
-    this.injector = createServiceInjector(this.child, {});
+    this.hostInjector = new ElementInjector(this.child);
+    this.superParent.appendChild(this.parent);
+    this.parent.appendChild(this.host);
     this.host.appendChild(this.child);
   }
 }

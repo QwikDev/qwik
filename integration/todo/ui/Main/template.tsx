@@ -7,11 +7,15 @@
  */
 
 import type { Items, ItemsService } from '../../data/Items/public.js';
-import { inject, jsxFactory, provideComponentProp, provideServiceState } from '../../qoot.js';
+import {
+  injectFunction,
+  jsxFactory,
+  provideComponentProp,
+  provideServiceState,
+} from '../../qoot.js';
 import { Item } from '../Item/public.js';
 
-export default inject(
-  null,
+export default injectFunction(
   provideServiceState<ItemsService>(provideComponentProp('$items')), //
   function (items: Items) {
     return (

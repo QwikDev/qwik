@@ -6,11 +6,15 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { Component } from '../../qoot.js';
+import { Component, QRL } from '../../qoot.js';
 import { ItemProps } from '../Item/public.js';
 
 interface ItemState {
   editing: boolean;
 }
 
-export class ItemComponent extends Component<ItemProps, ItemState> {}
+export class ItemComponent extends Component<ItemProps, ItemState> {
+  static $templateQRL = QRL`ui:/Item/template`;
+
+  editing = false;
+}

@@ -7,40 +7,33 @@
  */
 
 import { QRL } from '../import/types.js';
-import { AsyncProvider, InjectableConcreteType, Injector } from '../injection/types.js';
 
-export interface ComponentContext<P, S> {
-  host: Element;
-  state: S | undefined;
-  props: P;
-}
-
-export interface Component<P, S> {
+export interface IComponent<PROPS, STATE> {
   $host: Element;
-  $state: S;
-  $keyProps: P;
+  $state: STATE;
+  $props: PROPS;
+  $materializeState(props: PROPS): Promise<STATE> | STATE;
 }
 
-export interface ComponentType<T, ARGS extends any[]> extends InjectableConcreteType<T, ARGS> {
-  $inject: AsyncProvider<any>[];
-  new (...args: ARGS): T;
-  new: <T extends Component<P, S>, P, S, ARGS extends any[]>(
-    this: ComponentType<Component<P, S>, ARGS>,
-    componentInjectionContext: ComponentContext<P, S>,
-    ...args: ARGS
-  ) => T;
-  newInject: <T extends Component<P, S>, P, S, ARGS extends any[]>(
-    this: ComponentType<Component<P, S>, ARGS>,
-    injector: Injector
-  ) => T | Promise<T>;
-}
-
-export function isComponentType(value: any): value is ComponentType<any, any> {
-  return (
-    typeof value === 'function' && typeof (value as ComponentType<any, any>).new === 'function'
-  );
+export interface ComponentType<COMP extends IComponent<any, any>> {
+  $templateQRL: QRL;
+  new (element: Element, props: ComponentPropsOf<COMP>, state: ComponentStateOf<COMP> | null): COMP;
 }
 
 export interface QProps {
   [key: string]: string | QRL;
 }
+
+export type ComponentStateOf<SERVICE extends IComponent<any, any>> = SERVICE extends IComponent<
+  any,
+  infer STATE
+>
+  ? STATE
+  : never;
+
+export type ComponentPropsOf<SERVICE extends IComponent<any, any>> = SERVICE extends IComponent<
+  infer PROPS,
+  any
+>
+  ? PROPS
+  : never;

@@ -95,20 +95,6 @@ export function keyToProps(
 }
 
 /**
- * Returns the attribute where the service QRL is stored.
- *
- * @param key service key attribute name (ie: `foo:123:456`)
- * @returns Service attribute (ie: `::foo`)
- */
-export function keyToServiceAttribute(key: string): string {
-  const idx = key.indexOf(':');
-  if (idx == -1) {
-    throw qError(QError.Service_notValidKey_key, key);
-  }
-  return '::' + key.substr(0, idx);
-}
-
-/**
  * Validates that a service key contains only valid characters.
  *
  * Service keys need to be serialized into DOM attributes. DOM

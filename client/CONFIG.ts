@@ -11,8 +11,10 @@ import { setConfig } from './qoot.js';
 setConfig({
   baseURI: import.meta.url,
   protocol: {
+    test: './',
     import: 'import/',
     jsx: 'render/jsx/',
     service: 'service/',
+    injection: 'injection/',
   },
 });

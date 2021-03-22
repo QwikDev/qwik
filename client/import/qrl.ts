@@ -7,7 +7,7 @@
  */
 
 import { assertEqual } from '../assert/index.js';
-import { qImport } from './qImport.js';
+import { qImport, toUrl } from './qImport.js';
 import { QRL as QRL_ } from './types.js';
 import '../util/qDev.js';
 import { getConfig } from '../config/qGlobal.js';
@@ -45,7 +45,7 @@ export function QRL<T = any>(
       "Expecting URL to start with '.', '/', '<protocol>:'. Was: " + url
     );
   if (qDev) {
-    verifyQrl(new Error('Invalid import:' + url), url);
+    verifyQrl(new Error('Invalid import: ' + url), url);
   }
   return (url as unknown) as QRL_<T>;
 }
@@ -59,15 +59,23 @@ export async function verifyQrl(error: Error, url: string): Promise<any> {
   // 2:   at caller (this is what we are looking for)
   const base = getFilePathFromFrame(frames[2]);
   let config = getConfig(base);
-  const module = qImport(config, url);
-  if (isPromise(module)) {
-    return module.catch((e) => {
-      const error = `QRL-ERROR: '${url}' is not a valid import. 
-  Base URL: ${config.baseURI}
-    CONFIG: ${JSON.stringify(config)}
-     STACK: ${stack}\n  => ${e}`;
-      return Promise.reject(error);
-    });
+  try {
+    const module = qImport(config, url);
+    if (isPromise(module)) {
+      return module.catch((e) => {
+        return Promise.reject(makeError(e));
+      });
+    }
+    return module;
+  } catch (e) {
+    throw new Error(makeError(e));
   }
-  return module;
+
+  function makeError(e: unknown) {
+    return `QRL-ERROR: '${url}' is not a valid import. 
+Resolved URL: ${toUrl(base, url)}
+    Base URL: ${config.baseURI}
+      CONFIG: ${JSON.stringify(config)}
+       STACK: ${stack}\n  => ${e}`;
+  }
 }

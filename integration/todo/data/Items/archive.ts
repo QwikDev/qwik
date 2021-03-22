@@ -6,19 +6,19 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { inject, retrieveService, markDirty } from '../../qoot.js';
+import { injectMethod, markDirty, getInjector } from '../../qoot.js';
 import { ItemService } from '../Item/public.js';
 import { ItemsService } from './public.js';
 
-export default inject(
+export default injectMethod(
   ItemsService, //
   async function archive(this: ItemsService) {
-    console.log('Items.archive()');
     const items = this.$state.items;
-    const element = this.$injector.element;
+    const element = this.$element;
+    const injector = getInjector(element);
     // TODO: It kind of sucks that we need to retrieve service if state would be enough.
     this.$state.items = (
-      await Promise.all(items.map((key) => retrieveService<ItemService>(element, key)))
+      await Promise.all(items.map((key) => injector.getService<ItemService>(key)))
     )
       .filter((itemService) => !itemService.$state.completed)
       .map((itemService) => itemService.$key);

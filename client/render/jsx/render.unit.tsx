@@ -133,7 +133,7 @@ describe('render', () => {
       );
       expect(host.innerHTML).to.equal(
         '<div>' +
-          '<greeter url="/" ::="jsx:/render.unit.Greeter_render_with_url">' +
+          '<greeter url="/" ::="jsx:/render.unit.Greeter_render_with_url" :="">' +
           '<span>Hello World! (/)</span>' +
           '</greeter>' +
           '</div>'
@@ -155,7 +155,7 @@ describe('render', () => {
     );
     expect(host.innerHTML).to.equal(
       '<div>' +
-        '<greeter url="/" ::="jsx:/render.unit.Greeter_render_with_url">' +
+        '<greeter url="/" ::="jsx:/render.unit.Greeter_render_with_url" :="">' +
         '<span>Hello World! (/)</span>' +
         '</greeter>' +
         '</div>'
@@ -197,7 +197,7 @@ describe('render', () => {
         global.document
       );
       expect(host.innerHTML).to.equal(
-        '<div ::="jsx:/render.unit.Noop_template" bind:.="myUrl" on:.render="myComponentUrl" on:click="myComponent_click" bind:token="myTokenUrl">NOOP</div>'
+        '<div ::="jsx:/render.unit.Noop_template" bind:.="myUrl" on:.render="myComponentUrl" on:click="myComponent_click" bind:token="myTokenUrl" :="">NOOP</div>'
       );
     });
   });

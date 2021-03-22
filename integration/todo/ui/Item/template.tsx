@@ -7,34 +7,53 @@
  */
 
 import { Item, ItemService } from '../../data/Item/public.js';
-import { inject, jsxFactory, provideComponentProp, provideServiceState, QRL } from '../../qoot.js';
+import {
+  injectMethod,
+  jsxFactory,
+  provideComponentProp,
+  provideServiceState,
+  QRL,
+} from '../../qoot.js';
+import { ItemComponent } from './component.js';
 
-export default inject(
-  null,
+export default injectMethod(
+  ItemComponent,
   provideServiceState<ItemService>(provideComponentProp('$item')),
   provideComponentProp('$item'),
-  function (todo: Item, itemKey: string) {
-    const editing = false;
+  function (this: ItemComponent, todo: Item, itemKey: string) {
     return (
-      <li class={{ completed: todo.completed, editing: editing }}>
+      <li class={{ completed: todo.completed, editing: this.editing }}>
         <div class="view">
           <input
             class="toggle"
             type="checkbox"
             checked={todo.completed}
-            on:click={QRL`ui:/Item/toggle?toggleState=.target.checked`}
+            $={{
+              'on:click': QRL`ui:/Item/toggle?toggleState=.target.checked`,
+            }}
           />
-          <label /* (dblclick)="editTodo(todo)" */>{todo.title}</label>
-          <button class="destroy" on:click={QRL`ui:/Item/remove?itemKey=${itemKey}`}
+          <label
+            $={{
+              'on:dblclick': QRL`ui:/Item/edit.begin`,
+            }}
+          >
+            {todo.title}
+          </label>
+          <button
+            class="destroy"
+            $={{ 'on:click': QRL`ui:/Item/remove?itemKey=${itemKey}` }}
           ></button>
         </div>
-        {editing ? 
+        {this.editing ? (
           <input
             class="edit"
-                  value={todo.title}
-                  on:blur="stopEditing(todo, editedtodo.value)" 
-                  on:keyup="updateEditingTodo(todo, editedtodo.value) / cancelEditingTodo(todo)"
-          />: null}
+            value={todo.title}
+            $={{
+              'on:focusout': QRL`ui:/Item/edit.end`,
+              'on:keyup': QRL`ui:/Item/edit.change?value=.target.value&code=.code&itemKey=${itemKey}`,
+            }}
+          />
+        ) : null}
       </li>
     );
   }

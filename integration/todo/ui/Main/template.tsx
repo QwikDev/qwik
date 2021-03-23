@@ -33,7 +33,6 @@ export default injectFunction(
             <Item $item={todo} />
           ))}
         </ul>
-        <ul class="todo-list"></ul>
       </section>
     );
   }

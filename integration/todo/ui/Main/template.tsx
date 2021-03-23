@@ -38,7 +38,7 @@ export default injectFunction(
   }
 );
 
-/* // TODO: Create QFor and QId directive?
+/* // TODO: Create QFor and QIf directive?
   <Q for="todos.value" do={(todo) => <Item $item={todo} />} />
   <Q if="todos.value.length > 0" then={(value) => <section></section>} />
 */

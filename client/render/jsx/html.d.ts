@@ -29,6 +29,7 @@ declare global {
       div: Qoot.Element<nameStub>;
       span: Qoot.Element<nameStub>;
       strong: Qoot.Element<nameStub>;
+      style: Qoot.Element<nameStub>;
       input: Qoot.Element<nameStub>;
       h1: Qoot.Element<nameStub>;
       h2: Qoot.Element<nameStub>;

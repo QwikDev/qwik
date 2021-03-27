@@ -12,7 +12,7 @@ import { qImport } from '../import/qImport.js';
 import { QRL } from '../import/types';
 import { keyToServiceAttribute } from '../injection/element_injector.js';
 import { getInjector } from '../injection/element_injector.js';
-import { ServiceType } from '../service/types.js';
+import { IService, ServiceType } from '../service/types.js';
 import { getFilePathFromFrame } from '../util/base_uri.js';
 import { fromCamelToKebabCase } from '../util/case.js';
 import { keyToProps, propsToKey } from './service_key.js';
@@ -55,7 +55,7 @@ import { ServiceKey, ServicePromise, ServicePropsOf, ServiceStateOf } from './ty
  *
  * class TodoItemService extends Service<TodoItemProps, TodoItem> {
  *   $qrl = QRL`./path/to/service/TodoItem`;
- *   $name = 'todo';
+ *   $type = 'todo';
  *   $props = ['id'];
  *
  *   async archive() {
@@ -123,7 +123,7 @@ import { ServiceKey, ServicePromise, ServicePropsOf, ServiceStateOf } from './ty
  * ```
  * class TodoItemService extends Service<TodoItemProps, TodoItem> {
  *   $qrl = QRL`./path/to/service/TodoItem`;
- *   $name = 'todo';
+ *   $type = 'todo';
  *   $keyProps = ['id'];
  *
  *   async $materializeState(props: TodoItemProps): Promise<TodoItem> {
@@ -154,7 +154,7 @@ export class Service<PROPS, STATE> {
    * ```
    * class MyService extends Service<MyServiceProps, MyServiceState> {
    *   $qrl = QRL`./path/to/service/MyService`;
-   *   $name = 'myService';
+   *   $type = 'myService';
    *   $keyProps = ['project', 'task'];
    * }
    * ```
@@ -164,10 +164,10 @@ export class Service<PROPS, STATE> {
    * <div ::myService="./path/to/service/MyService">
    * ```
    */
-  static get $name(): string {
+  static get $type(): string {
     return this.$_name;
   }
-  static set $name(name: string) {
+  static set $type(name: string) {
     const stack = new Error().stack!;
     const frames = stack.split('\n');
     // 0: Error
@@ -188,7 +188,7 @@ export class Service<PROPS, STATE> {
    * ```
    * class MyService extends Service<MyServiceProps, MyServiceState> {
    *   $qrl = QRL`./path/to/service/MyService`;
-   *   $name = 'myService';
+   *   $type = 'myService';
    *   $keyProps = ['project', 'task'];
    * }
    * ```
@@ -222,7 +222,7 @@ export class Service<PROPS, STATE> {
    * ```
    * class MyService extends Service<MyServiceProps, MyServiceState> {
    *   $qrl = QRL`./path/to/service/MyService`;
-   *   $name = 'myService';
+   *   $type = 'myService';
    *   $keyProps = ['project', 'task'];
    * }
    * ```
@@ -240,7 +240,7 @@ export class Service<PROPS, STATE> {
    *
    * ```
    * class MyService extends Service<MyProps, MyState> {
-   *   $name = 'MyService';
+   *   $type = 'MyService';
    *   $qrl = QRL`somePath/MyService`;
    * }
    *
@@ -259,21 +259,21 @@ export class Service<PROPS, STATE> {
     element: Element
   ): void {
     const serviceType: typeof Service = this as any;
-    if (!serviceType.$name) {
-      throw qError(QError.Service_no$name_service, serviceType);
+    if (!serviceType.$type) {
+      throw qError(QError.Service_no$type_service, serviceType);
     }
     if (!serviceType.$qrl) {
       throw qError(QError.Service_no$qrl_service, serviceType);
     }
     // TODO: needs util method?
-    const attributeName = '::' + fromCamelToKebabCase(serviceType.$name);
+    const attributeName = '::' + fromCamelToKebabCase(serviceType.$type);
     const currentQRL = element.getAttribute(attributeName);
     if (!currentQRL) {
       element.setAttribute(attributeName, String(serviceType.$qrl));
     } else if (currentQRL != (serviceType.$qrl as any)) {
       throw qError(
         QError.Service_nameCollision_name_currentQrl_expectedQrl,
-        serviceType.$name,
+        serviceType.$type,
         currentQRL,
         serviceType.$qrl
       );
@@ -288,7 +288,7 @@ export class Service<PROPS, STATE> {
    *
    * ```
    * class MyService extends Service<MyProps, MyState> {
-   *   $name = 'MyService';
+   *   $type = 'MyService';
    *   static $keyProps = ['id'];
    *   $qrl = QRL`somePath/MyService`;
    * }
@@ -392,7 +392,7 @@ export class Service<PROPS, STATE> {
    * ```
    * class MyService extends Service<MyServiceProps, MyServiceState> {
    *   $qrl = QRL`./path/to/service/MyService`;
-   *   $name = 'myService';
+   *   $type = 'myService';
    *   $keyProps = ['project', 'task'];
    *
    *   async myUppercase(text: string): Promise<string> {
@@ -424,7 +424,7 @@ export class Service<PROPS, STATE> {
    * ```
    * class MyService extends Service<MyServiceProps, MyServiceState> {
    *   $qrl = QRL`./path/to/service/MyService`;
-   *   $name = 'myService';
+   *   $type = 'myService';
    *   $keyProps = ['project', 'task'];
    *
    *   async materializeState(props: MyServiceProps): Promise<string> {
@@ -438,8 +438,17 @@ export class Service<PROPS, STATE> {
    */
   $materializeState(props: PROPS): Promise<STATE> {
     const serviceType = this.constructor as typeof Service;
-    throw qError(QError.Service_noState_service, serviceType.$name);
+    throw qError(QError.Service_noState_service, serviceType.$type);
   }
+
+  /**
+   * Lifecycle method invoked on hydration.
+   *
+   * After the service creation and after the state is restored (either from DOM or by invoking
+   * `$materializeState`) this method is invoked. The purpose of this method is to allow the service
+   * to compute any transient state.
+   */
+  async $restoreTransient() {}
 
   /**
    * Release the service.

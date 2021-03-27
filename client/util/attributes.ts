@@ -7,8 +7,9 @@
  */
 
 import { qError, QError } from '../error/error.js';
-import { fromKebabToCamelCase } from './case.js';
 import '../util/qDev.js';
+import { fromKebabToCamelCase } from './case.js';
+import { AttributeMarker } from './markers.js';
 
 // TODO: docs
 // TODO: tests
@@ -19,8 +20,8 @@ export function extractPropsFromElement(element: Element): { [key: string]: stri
     const attr = attrs[i] as Attr;
     const attrName = attr.name;
     const attrValue = attr.value;
-    if (attrName.startsWith('bind:')) {
-      const id = attrName.substr(5 /* 'bind:'.length */);
+    if (attrName.startsWith(AttributeMarker.BindPrefix)) {
+      const id = attrName.substr(AttributeMarker.BindPrefixLength);
       if (!id) {
         throw qError(QError.Component_bindNeedsKey);
       }

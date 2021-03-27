@@ -9,6 +9,7 @@
 import { getConfig } from '../config/qGlobal.js';
 import { QRL } from './qrl.js';
 import { QConfig } from '../config/qGlobal.js';
+import { QError, qError } from '../error/error.js';
 
 let importCache: Map<string, unknown | Promise<unknown>>;
 
@@ -41,6 +42,8 @@ export function qImport<T>(
   const promise = import(importURL).then((module) => {
     const key = importPath.substring(dotIdx + 1) || 'default';
     const handler = module[key];
+    if (!handler)
+      throw qError(QError.Core_missingExport_name_url_props, key, importURL, Object.keys(module));
     importCache.set(importPath, handler);
     return handler;
   });

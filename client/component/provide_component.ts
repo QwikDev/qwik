@@ -5,7 +5,7 @@
  * Use of this source code is governed by an MIT-style license that can be
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
-import { AsyncProvider, Injector } from '../injection/types.js';
+import { Provider, Injector } from '../injection/types.js';
 import { Component } from './component.js';
 import { ComponentType } from './types.js';
 
@@ -44,7 +44,7 @@ import { ComponentType } from './types.js';
  */
 export function provideComponent<COMP extends Component<any, any>>(
   componentType: ComponentType<COMP>
-): AsyncProvider<COMP> {
+): Provider<COMP> {
   return function componentProvider(injector: Injector): COMP | Promise<COMP> {
     return null!;
     // const elementInjector = ensureElementInjector(injector);

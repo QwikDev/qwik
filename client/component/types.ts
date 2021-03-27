@@ -13,6 +13,7 @@ export interface IComponent<PROPS, STATE> {
   $state: STATE;
   $props: PROPS;
   $materializeState(props: PROPS): Promise<STATE> | STATE;
+  $restoreTransient(): Promise<void>;
 }
 
 export interface ComponentType<COMP extends IComponent<any, any>> {

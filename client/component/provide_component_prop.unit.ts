@@ -9,7 +9,7 @@
 import { expect } from 'chai';
 import { getInjector } from '../injection/element_injector.js';
 import { ComponentFixture } from '../testing/component_fixture.js';
-import { provideComponentProp } from './provide_prop.js';
+import { provideComponentProp } from './provide_component_prop.js';
 
 describe('getComponentProps', () => {
   let fixture: ComponentFixture;
@@ -33,7 +33,7 @@ describe('getComponentProps', () => {
     it('should throw if property not defined', () => {
       const injector = getInjector(fixture.host);
       expect(() => provideComponentProp('propA')(injector)).to.throw(
-        `COMPONENT-ERROR(Q-404): Property 'propA' not found on component '<host : ::='file://.../component_fixture.noop'>'.`
+        "COMPONENT-ERROR(Q-404): Property 'propA' not found in '{}' on component '<host : ::='file://.../component_fixture.noop'>'."
       );
     });
   });

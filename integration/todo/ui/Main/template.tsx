@@ -6,18 +6,14 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import type { Items, ItemsService } from '../../data/Items/public.js';
-import {
-  injectFunction,
-  jsxFactory,
-  provideComponentProp,
-  provideServiceState,
-} from '../../qoot.js';
+import type { ItemsService } from '../../data/Items/public.js';
+import { injectFunction, jsxFactory, provideComponentProp, provideService } from '../../qoot.js';
 import { Item } from '../Item/public.js';
 
 export default injectFunction(
-  provideServiceState<ItemsService>(provideComponentProp('$items')), //
-  function (items: Items) {
+  provideService<ItemsService>(provideComponentProp('$items')), //
+  function (itemsService: ItemsService) {
+    const itemKeys = itemsService.filteredItems;
     return (
       <section class="main" /* *ngIf="todoStore.todos.length > 0 " */>
         <input
@@ -29,8 +25,8 @@ export default injectFunction(
              (click)="todoStore.setAllTo(toggleall.checked)" */
         />
         <ul class="todo-list">
-          {items.items.map((todo) => (
-            <Item $item={todo} />
+          {itemKeys.map((key) => (
+            <Item $item={key} />
           ))}
         </ul>
       </section>

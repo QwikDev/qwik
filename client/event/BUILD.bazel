@@ -33,7 +33,7 @@ ts_project(
     declaration = True,
     srcs = ["types.ts"],
     deps = [
-        "//client/import:types",
+        "//client/injection:types",
     ],
 )
 

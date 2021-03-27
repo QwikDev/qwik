@@ -35,9 +35,13 @@ export function jsxFactory<T extends string | null | JSXFactory | unknown>(
   return new JSXNode_(tag, props, children.flat(99));
 }
 
-export function jsxDeclareComponent<P>(tagName: string, renderUrl: QRL) {
+export function jsxDeclareComponent<P>(
+  tagName: string,
+  renderUrl: QRL,
+  hostProps?: { [property: string]: string | QRL }
+) {
   return function (props: P): JSXNode<string> {
     // TODO[efficiency]: patching `$` is not most efficient.
-    return jsxFactory(tagName, { ...props, $: { '::': renderUrl } as any });
+    return jsxFactory(tagName, { ...(hostProps as any), ...props, $: { '::': renderUrl } as any });
   };
 }

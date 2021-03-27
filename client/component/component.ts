@@ -6,7 +6,6 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { AsyncProvider, Injector } from '../injection/types.js';
 import '../util/qDev.js';
 import type { IComponent as IComponent } from './types.js';
 
@@ -63,6 +62,15 @@ export class Component<PROPS, STATE> implements IComponent<PROPS, STATE> {
     this.$props = props;
     this.$state = state!;
   }
+
+  /**
+   * Lifecycle method invoked on hydration.
+   *
+   * After the service creation and after the state is restored (either from DOM or by invoking
+   * `$materializeState`) this method is invoked. The purpose of this method is to allow the service
+   * to compute any transient state.
+   */
+  async $restoreTransient() {}
 
   /**
    * Lifecycle method to initialize component's state.

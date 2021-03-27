@@ -28,7 +28,7 @@ import { isPromise } from '../util/promises.js';
 import '../util/qDev.js';
 import { isHtmlElement } from '../util/types.js';
 import { BaseInjector } from './base_injector.js';
-import { Injector } from './types.js';
+import { Injector, Props } from './types.js';
 
 interface ServiceValue {
   promise: ServicePromise<IService<any, any>>;
@@ -36,8 +36,20 @@ interface ServiceValue {
 }
 
 export class ElementInjector extends BaseInjector {
-  private componentInstance: Promise<IComponent<any, any>> | IComponent<any, any> | null = null;
+  private component: IComponent<any, any> | null = null;
+  private componentPromise: Promise<IComponent<any, any>> | null = null;
   private services: Map<ServiceKey, ServiceValue> | null = null;
+
+  get event(): Event {
+    throw qError(QError.Injection_notEventInjector);
+  }
+  get url(): URL {
+    throw qError(QError.Injection_notEventInjector);
+  }
+
+  get props(): Props {
+    throw qError(QError.Injection_notEventInjector);
+  }
 
   getParent(): Injector | null {
     let element = this.element.parentElement;
@@ -65,36 +77,38 @@ export class ElementInjector extends BaseInjector {
       throw qError(QError.Component_missingTemplateQRL_component, componentType);
     }
     if (elementQRL === $templateQRL) {
-      let component = this.componentInstance;
+      let component: COMP = this.component as COMP;
       if (component) {
-        if (isPromise(component)) {
-          return component as Promise<COMP>;
-        }
         if (component instanceof componentType) {
-          return Promise.resolve(component as COMP);
+          return this.componentPromise as Promise<COMP>;
+        } else {
+          throw qError(
+            QError.Component_doesNotMatch_component_actual,
+            componentType,
+            (component as {}).constructor
+          );
         }
-        throw qError(
-          QError.Component_doesNotMatch_component_actual,
-          componentType,
-          (component as {}).constructor
-        );
       } else {
         const stateJSON = this.element.getAttribute(AttributeMarker.ComponentState);
         const state = stateJSON ? (JSON.parse(stateJSON) as ComponentStateOf<COMP>) : null;
-        this.componentInstance = component = new componentType(
+        this.component = component = new componentType(
           this.element,
           (this.elementProps as any) as ComponentPropsOf<COMP>,
           state
         );
-        if (state == null) {
-          return (this.componentInstance = Promise.resolve(
-            component.$materializeState(component.$props)
-          ).then((state) => {
-            (component as IComponent<any, any>)!.$state = state;
-            return (this.componentInstance = component as COMP);
-          })) as Promise<COMP>;
-        }
-        return (this.componentInstance = Promise.resolve(component as COMP));
+        return (this.componentPromise = new Promise<COMP>((resolve, reject) => {
+          let promise: Promise<any>;
+          if (state == null) {
+            promise = Promise.resolve(component.$materializeState(component.$props)).then(
+              (state: STATE) => {
+                component.$state = state;
+              }
+            );
+          } else {
+            promise = Promise.resolve(component as COMP);
+          }
+          promise.then(() => component.$restoreTransient()).then(() => resolve(component!), reject);
+        }));
       }
     } else {
       const parentInjector = this.getParent() as ElementInjector;
@@ -116,7 +130,15 @@ export class ElementInjector extends BaseInjector {
     if (servicePromise) return servicePromise as ServicePromise<SERVICE>;
     const serviceAttrName = keyToServiceAttribute(serviceKey);
     const self = this;
-    return findAttribute(this.element, serviceKey, serviceAttrName, serviceFactory, serviceFactory);
+    return findAttribute(
+      this.element,
+      serviceKey,
+      serviceAttrName,
+      serviceFactory,
+      QError.Core_noAttribute_atr1_attr2_element,
+      serviceFactory,
+      QError.Core_noAttribute_atr1_attr2_element
+    );
 
     function serviceFactory(element: Element, attrName: string, attrValue: string) {
       const injector = element === self.element ? self : getInjector(element);
@@ -140,34 +162,40 @@ export class ElementInjector extends BaseInjector {
       );
       servicePromise = toServicePromise<SERVICE>(
         serviceKey,
-        serviceTypePromise.then((serviceType) => {
-          if (typeof serviceType !== 'function') {
-            throw qError(QError.QRL_expectFunction_url_actual, serviceQRL, serviceType);
-          }
-          let state: ServiceStateOf<SERVICE> | null = forceState || null;
-          if (!state && attrName === serviceKey) {
-            state = JSON.parse(attrValue) as ServiceStateOf<SERVICE>;
-            state!.$key = serviceKey;
-          }
-          const props = serviceType.$keyToProps(serviceKey);
-          const service = new serviceType(element, props, state);
-          if (state) {
-            serviceValue.service = service;
-            return service;
-          } else {
-            return service.$materializeState(props).then(
-              (state: ServiceStateOf<SERVICE>) => {
-                serviceValue.service = service;
-                state.$key = serviceKey;
-                (service as { $state: ServiceStateOf<SERVICE> }).$state = state;
-                return service;
-              },
-              (e) => {
-                self.services?.delete(serviceKey);
-                return Promise.reject(e);
-              }
-            );
-          }
+        new Promise<SERVICE>((resolve, reject) => {
+          serviceTypePromise.then((serviceType) => {
+            if (typeof serviceType !== 'function') {
+              throw qError(QError.QRL_expectFunction_url_actual, serviceQRL, serviceType);
+            }
+            let state: ServiceStateOf<SERVICE> | null = forceState || null;
+            if (!state && attrName === serviceKey) {
+              state = JSON.parse(attrValue) as ServiceStateOf<SERVICE>;
+              state!.$key = serviceKey;
+            }
+            const props = serviceType.$keyToProps(serviceKey);
+            const service = new serviceType(element, props, state);
+            let chain: Promise<any>;
+            if (state) {
+              serviceValue.service = service;
+              chain = Promise.resolve(service);
+            } else {
+              chain = service.$materializeState(props).then(
+                (state: ServiceStateOf<SERVICE>) => {
+                  serviceValue.service = service;
+                  state.$key = serviceKey;
+                  (service as { $state: ServiceStateOf<SERVICE> }).$state = state;
+                  return service;
+                },
+                (e) => {
+                  self.services?.delete(serviceKey);
+                  return Promise.reject(e);
+                }
+              );
+            }
+            chain.then(() => {
+              Promise.resolve(service.$restoreTransient()).then(() => resolve(service));
+            }, reject);
+          }, reject);
         })
       );
       const serviceValue: ServiceValue = { promise: servicePromise, service: null };
@@ -203,11 +231,13 @@ export class ElementInjector extends BaseInjector {
         state.$key = serviceKeyAttr;
         return Promise.resolve(state);
       },
+      QError.Core_noAttribute_atr1_attr2_element,
       (element, serviceProviderAttr, serviceQRL) => {
         return getInjector(element)
           .getService(serviceKey)
           .then((service) => service.$state);
-      }
+      },
+      QError.Core_noAttribute_atr1_attr2_element
     );
   }
 
@@ -219,7 +249,7 @@ export class ElementInjector extends BaseInjector {
 
   serialize() {
     const element = this.element;
-    const state = (this.componentInstance as null | IComponent<any, any>)?.$state;
+    const state = (this.component as null | IComponent<any, any>)?.$state;
     if (state != null) {
       element.setAttribute(AttributeMarker.ComponentState, JSON.stringify(state));
     }
@@ -258,17 +288,6 @@ export function getComponentHost(element: Element): Element {
     throw qError(QError.Injection_noHost_element, element);
   }
   return cursor;
-}
-
-export function ensureElementInjector(injector: Injector): ElementInjector {
-  if (injector instanceof ElementInjector) {
-    return injector;
-  }
-  throw qError(
-    QError.Injection_expectedSpecificInjector_expected_actual,
-    ElementInjector,
-    injector.constructor
-  );
 }
 
 /**

@@ -8,8 +8,7 @@
 
 import { assertDefined } from '../assert/index.js';
 import { QError, qError } from '../error/error.js';
-import { ensureEventInjector } from './event_injector.js';
-import { AsyncProvider, Injector } from './types.js';
+import { EventInjector, EventProvider } from './types.js';
 
 /**
  * Inject result of url expression evaluation.
@@ -43,9 +42,8 @@ import { AsyncProvider, Injector } from './types.js';
  *
  * @param parameterName Which parameter name should be read from the `url.searchParams.get(parameterName)`
  */
-export function provideQrlExp<T>(parameterName: string): AsyncProvider<T> {
-  return function qrlExpProvider(injector: Injector): any {
-    const eventInjector = ensureEventInjector(injector);
+export function provideQrlExp<T>(parameterName: string): EventProvider<T> {
+  return function qrlExpProvider(eventInjector: EventInjector): any {
     const value = eventInjector.props[parameterName]!;
     if (value == null) {
       throw qError(QError.Core_missingProperty_name_props, parameterName, eventInjector.props);

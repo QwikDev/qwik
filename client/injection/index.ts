@@ -7,8 +7,5 @@
  */
 
 export { injectFunction, injectMethod } from './inject.js';
-export { injectEventHandler } from './inject_event_handler.js';
-export { AsyncProvider, ConcreteType, Injector } from './types.js';
-export { provideEventProp } from './provide_event_prop.js';
-export { provideQrlExp } from './provide_qrl_exp.js';
 export { getInjector } from './element_injector.js';
+export { Provider, ConcreteType, Injector } from './types.js';

@@ -63,16 +63,18 @@ function scheduleRender(document: QDocument): Promise<HostElements> {
 function markServiceDirty(component: IService<any, any>): Promise<HostElements> {
   const key = component.$key;
   const document = component.$element.ownerDocument as QDocument;
-  document.querySelectorAll(toAttrQuery('bind:' + key)).forEach((componentElement) => {
+  let foundListener = false;
+  document.querySelectorAll(toAttrQuery('bind:' + key)).forEach((componentElement: HTMLElement) => {
     const qrl = componentElement.getAttribute('::')!;
-    // TODO: error;
+    // TODO: Qerror;
     if (!qrl) {
       throw newError('Expecting component');
     }
+    foundListener = true;
     componentElement.setAttribute('on:.render', qrl);
   });
 
-  return scheduleRender(document);
+  return foundListener ? scheduleRender(document) : Promise.resolve([]);
 }
 function toAttrQuery(key: string): any {
   return '[' + key.replace(/[:.-_]/g, (v) => '\\' + v) + ']';

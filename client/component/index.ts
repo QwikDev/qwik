@@ -15,5 +15,5 @@
 export { Component } from './component.js';
 export { provideComponent } from './provide_component.js';
 export { provideComponentState } from './provide_component_state.js';
-export { provideProps } from './provide_props.js';
-export { provideComponentProp } from './provide_prop.js';
+export { provideComponentProps } from './provide_component_props.js';
+export { provideComponentProp } from './provide_component_prop.js';

@@ -8,11 +8,34 @@
 
 import '../util/qDev.js';
 import { EventInjector } from './event_injector.js';
-import { EventHandler, InjectedFunction, ProviderReturns, ConcreteType } from './types.js';
+import { InjectedFunction, ProviderReturns, ConcreteType } from '../injection/types.js';
+import { EventHandler } from './types.js';
 
-// TODO: docs
-// TODO: tests
-// TODO: move to different file
+/**
+ * Create an event handler with injected values.
+ *
+ * The function creates an `EventHandler` which is used by `qootloader.js` to dispatch events.
+ * The function supports passing in a component and providers.
+ *
+ * Creating an event handler. Assume an event is declared in template like so:
+ * ```
+ * <button on:click="./pathToHandler">Click me</button>
+ * ```
+ *
+ * Then the `./pathToHandler` can be declared like so:
+ * ```
+ * export default injectEventHandler() {
+ *   MyComponent,
+ *   provideEvent(),
+ *   function(this: MyComponent, event: Event) {
+ *     alert('Thanks for clicking me');
+ *   }
+ * }
+ * ```
+ *
+ * @param args a list consisting of Component type, zero or more providers and a handler function.
+ * @returns A promise of handler function return.
+ */
 export function injectEventHandler<SELF, ARGS extends any[], RET>(
   ...args: [
     ConcreteType<SELF> | null,
@@ -28,12 +51,11 @@ export function injectEventHandler<SELF, ARGS extends any[], RET>(
     element: HTMLElement,
     event: Event,
     url: URL
-  ): boolean {
+  ): Promise<RET> {
     const eventInjector = new EventInjector(element, event, url);
-    Promise.resolve(
+    return Promise.resolve(
       (thisType && eventInjector.getParent()?.getComponent(thisType)) || null
     ).then((self) => eventInjector.invoke(injectedFunction as any, self));
-    return false;
   } as EventHandler<SELF, ARGS, RET>;
   eventHandler.$delegate = injectedFunction;
   return eventHandler;

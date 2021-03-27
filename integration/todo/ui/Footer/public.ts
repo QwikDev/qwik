@@ -17,4 +17,6 @@ export interface FooterProps {
   $items: string;
 }
 
-export const Footer = jsxDeclareComponent<FooterProps>('app-footer', QRL`ui:/Footer/template`);
+export const Footer = jsxDeclareComponent<FooterProps>('app-footer', QRL`ui:/Footer/template`, {
+  'on:selectFilter': QRL`ui:/Footer/selectFilter`,
+});

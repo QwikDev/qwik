@@ -6,6 +6,7 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
+import { default as global } from '../util/global.js';
 import domino from 'domino';
 import srcMap from 'source-map-support';
 srcMap.install();
@@ -26,6 +27,9 @@ export interface QootGlobal {
  * Create emulated `QootGlobal` useful for testing.
  */
 export function createGlobal(baseUri: string) {
+  if ((global as any).CustomEvent === undefined) {
+    (global as any).CustomEvent = MockCustomEvent as any;
+  }
   return { document: createDocument(baseUri) };
 }
 
@@ -36,4 +40,12 @@ export function createDocument(baseUri: string): Document {
   const document = domino.createDocument();
   Object.defineProperty(document, 'baseURI', { value: baseUri });
   return document;
+}
+
+class MockCustomEvent {
+  type: string;
+  constructor(type: string, details: any) {
+    Object.assign(this, details);
+    this.type = type;
+  }
 }

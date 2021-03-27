@@ -10,7 +10,7 @@ import { QRL } from '../import/types.js';
 
 // TODO: docs
 export interface ServiceType<SERVICE extends IService<any, any>> {
-  readonly $name: string;
+  readonly $type: string;
   readonly $qrl: QRL;
   readonly $keyProps: string[];
 
@@ -45,6 +45,7 @@ export type IService<PROPS, STATE> = {
     ...args: ARGS
   ): Promise<RET>;
   $materializeState(props: PROPS): Promise<STATE>;
+  $restoreTransient(): Promise<void>;
   $release(): void;
 };
 

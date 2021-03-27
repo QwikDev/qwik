@@ -33,4 +33,19 @@ export const enum AttributeMarker {
    * Selector to be used to retrieve all of the components
    */
   ComponentSelector = '[\\:\\:]',
+
+  /**
+   * Prefix used to identify on listeners.
+   */
+  EventPrefix = 'on:',
+
+  /**
+   * Prefix used to identify on listeners.
+   */
+  BindPrefix = 'bind:',
+
+  /**
+   * Length of prefix used to identify on listeners.
+   */
+  BindPrefixLength = 5, // 'bind:'.length
 }

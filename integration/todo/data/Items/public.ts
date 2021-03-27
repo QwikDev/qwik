@@ -6,14 +6,16 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { markDirty, QRL, Service } from '../../qoot.js';
-import { ItemService } from '../Item/public.js';
+import { ServiceKey } from 'qoot';
+import { markDirty, QRL, Service, getInjector } from '../../qoot.js';
+import { Item, ItemService } from '../Item/public.js';
 
 export interface ItemsProps {}
 
 export interface Items {
   completed: number;
   // TODO(can we have some kind of a ref here?)
+  filter: 'active' | 'all' | 'completed';
   items: string[];
   nextId: number;
 }
@@ -21,10 +23,12 @@ export interface Items {
 // TODO: rename to ToDos
 export class ItemsService extends Service<ItemsProps, Items> {
   static $qrl = QRL<ItemService>`data:/Items/public.ItemsService`;
-  static $name = 'Items';
+  static $type = 'Items';
   static $keyProps = ['items'];
 
   static globalKey = 'items:';
+
+  filteredItems: ServiceKey[] = [];
 
   async archive(): Promise<void> {
     return this.$invokeQRL(QRL<() => void>`data:/Items/archive`);
@@ -38,10 +42,33 @@ export class ItemsService extends Service<ItemsProps, Items> {
     return this.$invokeQRL(QRL<(key: string) => Promise<void>>`data:/Items/removeItem`, itemKey);
   }
 
+  async setFilter(filter: 'active' | 'all' | 'completed') {
+    const injector = getInjector(this.$element);
+    const itemStatePromises = this.$state.items.map((itemKey) =>
+      injector.getServiceState<ItemService>(itemKey)
+    );
+    const items = await Promise.all(itemStatePromises);
+    this.filteredItems = items
+      .filter(
+        {
+          all: () => true,
+          active: (item: Item) => !item.completed,
+          completed: (item: Item) => item.completed,
+        }[filter]
+      )
+      .map(serviceStateKey);
+    markDirty(this);
+  }
+
+  async $restoreTransient() {
+    this.filteredItems = this.$state.items;
+  }
+
   async $materializeState(props: ItemsProps): Promise<Items> {
     const host = this.$element;
     return {
       completed: 0,
+      filter: 'all',
       nextId: 4,
       items: [
         ItemService.$hydrate(host, { id: '1' }, { completed: false, title: 'Read Qoot docs' }).$key,
@@ -51,4 +78,10 @@ export class ItemsService extends Service<ItemsProps, Items> {
       ],
     };
   }
+}
+
+// TODO: Move this to '/client'
+function serviceStateKey(value: any): ServiceKey {
+  // TODO: Error handling.
+  return value.$key;
 }

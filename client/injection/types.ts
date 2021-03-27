@@ -6,12 +6,7 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import {
-  ComponentPropsOf,
-  ComponentStateOf,
-  ComponentType,
-  IComponent,
-} from '../component/types.js';
+import { ComponentType, IComponent } from '../component/types.js';
 import {
   IService,
   ServiceKey,
@@ -201,7 +196,7 @@ export interface InjectedFunction<SELF, ARGS extends any[], REST extends any[], 
   /**
    * A list of providers which are needed to satisfy the functions parameters.
    */
-  $inject: AsyncProviders<ARGS>;
+  $inject: Providers<ARGS>;
 
   /**
    * A type of `this` which needs to be passed in. This is used for error checking only.
@@ -246,7 +241,7 @@ export interface InjectedFunction<SELF, ARGS extends any[], REST extends any[], 
  * // 2. As a convention a provider comes with a factory function which allows
  * //    configuration information to be passed in. In this case the `name` is
  * //    configurable.
- * // 3. Provider factories return `AsyncProvider<__ReturnType__>`.
+ * // 3. Provider factories return `Provider<__ReturnType__>`.
  * function provideGreeting(name: string) {
  *   // 4. As a convention the provider function is called `____Provider`. The name
  *   //    is not strictly necessary but it makes stack traces cleaner, so it is strongly
@@ -261,20 +256,15 @@ export interface InjectedFunction<SELF, ARGS extends any[], REST extends any[], 
  * }
  * ```
  */
-export type AsyncProvider<T> = (injector: Injector) => T | Promise<T>;
+export type Provider<T> = (injector: Injector) => T | Promise<T>;
 
 export type ProviderReturns<ARGS extends any[]> = {
-  [K in keyof ARGS]: ARGS[K] extends AsyncProvider<infer U> ? U : never;
+  [K in keyof ARGS]: ARGS[K] extends Provider<infer U> ? U : never;
 };
 
-export type AsyncProviders<ARGS extends any[]> = {
-  [K in keyof ARGS]: AsyncProvider<ARGS[K]>;
+export type Providers<ARGS extends any[]> = {
+  [K in keyof ARGS]: Provider<ARGS[K]>;
 };
-
-export interface EventHandler<SELF, ARGS extends any[], RET> {
-  (element: HTMLElement, event: Event, url: URL): boolean;
-  $delegate: InjectedFunction<SELF, ARGS, [], RET>;
-}
 
 export interface Props {
   // $: QProps;

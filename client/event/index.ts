@@ -7,3 +7,8 @@
  */
 
 export { emitEvent } from './emit_event.js';
+export { injectEventHandler } from './inject_event_handler.js';
+export { provideElement } from './provide_element.js';
+export { provideEvent } from './provide_event.js';
+export { provideQrlExp } from './provide_qrl_exp.js';
+export { provideUrlProp } from './provide_url.js';

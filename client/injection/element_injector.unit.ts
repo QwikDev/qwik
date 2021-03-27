@@ -68,6 +68,7 @@ describe('getComponentProps', () => {
         );
         const component = await hostInjector.getComponent(GreeterComponent);
         expect(component.$state).to.eql({ greeting: 'abc' });
+        expect(component.greeting).to.equal('abc');
       });
       it('should materialize from $materializeState', async () => {
         fixture.host.setAttribute(
@@ -79,6 +80,7 @@ describe('getComponentProps', () => {
         const component = await hostInjector.getComponent(GreeterComponent);
         expect(component.$props).to.eql({ salutation: 'Hello', name: 'World' });
         expect(component.$state).to.eql({ greeting: 'Hello World!' });
+        expect(component.greeting).to.equal('Hello World!');
       });
       it('should save state to attribute state', async () => {
         fixture.host.setAttribute(
@@ -132,13 +134,14 @@ describe('getComponentProps', () => {
       // Add this late to demonstrate that the `getServiceState` was able to retrieve the state
       // without the service QRL.
       RegardsService.$attachService(fixture.host);
-      const service = await hostInjector.getService('regards:-hello:-world');
+      const service = await hostInjector.getService<RegardsService>('regards:-hello:-world');
       expect(service.$key).to.eql('regards:-hello:-world');
       expect(service.$props).to.eql({ salutation: 'Hello', name: 'World' });
       expect(service.$state).to.eql({
         $key: 'regards:-hello:-world',
         greeting: 'serialized',
       });
+      expect(service.greeting).to.equal('serialized');
     });
     it('should retrieve service by key from parent element', async () => {
       fixture.parent.setAttribute(
@@ -190,7 +193,7 @@ describe('getComponentProps', () => {
     describe('error', () => {
       it('should throw error if no state define', () => {
         expect(() => hostInjector.getServiceState('not:found')).to.throw(
-          "ERROR(Q-003): Could not find service state 'not:found' ( or service provider '::not') at '<host :>' or any of it's parents"
+          "ERROR(Q-004): Could not find service state 'not:found' ( or service provider '::not') at '<host :>' or any of it's parents."
         );
       });
       it('should throw error if service state was not serialized', async () => {
@@ -201,7 +204,7 @@ describe('getComponentProps', () => {
       });
       it('should throw error if no service provider define', () => {
         expect(() => hostInjector.getService('not:found')).to.throw(
-          "ERROR(Q-003): Could not find service state 'not:found' ( or service provider '::not') at '<host :>' or any of it's parents"
+          "ERROR(Q-004): Could not find service state 'not:found' ( or service provider '::not') at '<host :>' or any of it's parents."
         );
       });
     });
@@ -218,6 +221,12 @@ interface Greeter {
 
 class GreeterComponent extends Component<GreeterProps, Greeter> {
   static $templateQRL: QRL = 'qrlToTemplate' as any;
+
+  greeting: string = null!;
+
+  async $restoreTransient() {
+    this.greeting = this.$state.greeting;
+  }
 
   async $materializeState(state: GreeterProps) {
     return { greeting: state.salutation + ' ' + state.name + '!' };
@@ -237,9 +246,15 @@ interface Regards {
 }
 
 export class RegardsService extends Service<RegardsProps, Regards> {
-  static $name = 'regards';
+  static $type = 'regards';
   static $qrl = QRL`injection:/element_injector.unit.RegardsService`;
   static $keyProps = ['salutation', 'name'];
+
+  greeting: string = null!;
+
+  async $restoreTransient() {
+    this.greeting = this.$state.greeting;
+  }
 
   async $materializeState(state: RegardsProps) {
     return { greeting: state.salutation + ' ' + state.name + '!' };

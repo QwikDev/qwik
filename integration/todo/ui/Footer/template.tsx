@@ -19,7 +19,7 @@ export default injectFunction(
       return (
         <li>
           <a class={{ selected: filter == lMode }}
-             on:click={QRL`base:qoot.emitEvent?$name=selectFilter&filter=${lMode}`} >
+             on:click={QRL`base:qoot.emitEvent?$type=selectFilter&filter=${lMode}`} >
             {mode}
           </a>
         </li>

@@ -23,7 +23,6 @@ export default injectEventHandler(
     itemsService: ItemsService
   ) {
     if (charCode === 'Enter' && inputValue) {
-      console.log('ENTER', inputValue);
       itemsService.newItem(inputValue);
       this.$state.text = '';
       markDirty(this);

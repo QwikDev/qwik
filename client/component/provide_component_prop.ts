@@ -8,7 +8,7 @@
 
 import { qError, QError } from '../error/error.js';
 import { getClosestInjector } from '../injection/element_injector.js';
-import { AsyncProvider, Injector } from '../injection/types.js';
+import { Provider, Injector } from '../injection/types.js';
 
 /**
  * Provides the Component Property.
@@ -43,7 +43,7 @@ import { AsyncProvider, Injector } from '../injection/types.js';
  * @param name Name of the property to inject.
  * @returns
  */
-export function provideComponentProp(name: string): AsyncProvider<string> {
+export function provideComponentProp(name: string): Provider<string> {
   return function componentPropProvider(injector: Injector): string {
     const elementInjector = getClosestInjector(injector.element);
     const props = elementInjector.elementProps;

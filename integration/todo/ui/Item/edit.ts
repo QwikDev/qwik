@@ -7,11 +7,11 @@
  */
 
 import { ItemService } from 'integration/todo/data/Item/public.js';
-import { AsyncProvider } from 'qoot';
+import { Provider } from 'qoot';
 import {
   injectEventHandler,
   markDirty,
-  provideEventProp,
+  provideUrlProp,
   provideQrlExp,
   provideService,
 } from '../../qoot.js';
@@ -29,7 +29,7 @@ export const change = injectEventHandler(
   ItemComponent, //
   provideQrlExp<string>('value'),
   provideQrlExp<string>('code'),
-  provideService<ItemService>(provideEventProp('itemKey') as AsyncProvider<string>), // TODO fix cast
+  provideService<ItemService>(provideUrlProp('itemKey') as Provider<string>), // TODO fix cast
   async function (
     this: ItemComponent,
     inputValue: string,
@@ -37,7 +37,6 @@ export const change = injectEventHandler(
     itemService: ItemService
   ) {
     if (charCode === 'Enter') {
-      console.log('ENTER', inputValue);
       itemService.$state.title = inputValue;
       markDirty(itemService);
       this.editing = false;

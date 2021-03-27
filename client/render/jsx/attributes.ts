@@ -11,6 +11,7 @@ import { stringify } from '../../util/stringify.js';
 import { ServiceType } from '../../service/types.js';
 import { assertValidDataKey } from '../../error/data.js';
 import { Props } from '../../injection/types.js';
+import { AttributeMarker } from '../../util/markers.js';
 
 /**
  * Apply Props to Element
@@ -57,7 +58,8 @@ export function applyAttributes(
 
 function addToBindMap(stringValue: string | null, bindMap: Map<string, string>, key: string) {
   qDev && assertValidDataKey(stringValue);
-  const bindKey = 'bind:' + (stringValue ? fromCamelToKebabCase(stringValue) : '');
+  const bindKey =
+    AttributeMarker.BindPrefix + (stringValue ? fromCamelToKebabCase(stringValue) : '');
   let existingKeys = bindMap.get(bindKey);
   if (existingKeys) {
     existingKeys += '|' + key;
@@ -71,7 +73,7 @@ function updateBindMap(element: Element, bindMap: Map<string, string>) {
   for (let i = 0, attrs = element.attributes; i < attrs.length; i++) {
     const attr = attrs[i];
     const key = attr.name;
-    if (key.startsWith('bind:')) {
+    if (key.startsWith(AttributeMarker.BindPrefix)) {
       const expectedValue = bindMap.get(key);
       if (expectedValue != null) {
         bindMap.delete(key);

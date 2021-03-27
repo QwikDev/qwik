@@ -1,4 +1,4 @@
-# `qoot` rendering sub-framework
+# `Q-oot` `/kyo͞ot/` sub-framework
 
 An Open-Source sub-framework designed with a focus on server-side-rendering, lazy-loading, and styling/animation. (sub-framework implies that it is designed to work with the existing framework you love)
 

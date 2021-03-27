@@ -17,16 +17,16 @@ import { stringify } from '../util/stringify.js';
  *
  * Service keys are of format `service:value1:value2:...`. The order
  * of values is defined in `ServiceType.$keyProps` and the service key
- * prefix is defined in `ServiceType.$name`
+ * prefix is defined in `ServiceType.$type`
  *
- * @param serviceType `ServiceType` used to extract `ServiceType.$name` and
+ * @param serviceType `ServiceType` used to extract `ServiceType.$type` and
  *        `ServiceType.$keyProps` for the conversion process.
  * @param props  A `Props` object where key values need to be converted to
  *          service-key according to the `ServiceType.$keyProps`.
  * @returns service-key.
  */
 export function propsToKey(serviceType: ServiceType<any>, props: {}) {
-  let id = fromCamelToKebabCase(serviceType.$name) + ':';
+  let id = fromCamelToKebabCase(serviceType.$type) + ':';
   const propNames = serviceType.$keyProps;
   if (!propNames) {
     throw qError(QError.Service_no$keyProps_service, serviceType);
@@ -47,7 +47,7 @@ export function propsToKey(serviceType: ServiceType<any>, props: {}) {
  *
  * Service keys are of format `service:value1:value2:...`
  *
- * @param serviceType `ServiceType` used to extract `ServiceType.$name` and
+ * @param serviceType `ServiceType` used to extract `ServiceType.$type` and
  *        `ServiceType.$keyProps` for the conversion process
  * @param key Service keys are of format `service:value1:value2:...`
  * @returns A `Props` object where key values have been convert to properties
@@ -68,7 +68,7 @@ export function keyToProps(
     throw qError(QError.Service_keyMissingParts_key_key, key, key);
   }
   const serviceName = keyParts.shift();
-  const expectedName = fromCamelToKebabCase(serviceType.$name);
+  const expectedName = fromCamelToKebabCase(serviceType.$type);
   if (expectedName !== serviceName) {
     throw qError(
       QError.Service_keyNameMismatch_key_name_service_name,

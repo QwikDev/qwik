@@ -36,21 +36,26 @@ export function findAttribute<RET1, RET2>(
   element: Element,
   attributePrimary: string,
   attributeSecondary: null,
-  callbackPrimary: (element: Element, attrName: string, attrValue: string) => RET1
+  callbackPrimary: (element: Element, attrName: string, attrValue: string) => RET1,
+  qPrimaryNotFoundError: QError
 ): RET1 | RET2;
 export function findAttribute<RET1, RET2>(
   element: Element,
   attributePrimary: string,
   attributeSecondary: string,
   callbackPrimary: (element: Element, attrName: string, attrValue: string) => RET1,
-  callbackSecondary: (element: Element, attrName: string, attrValue: string) => RET2
+  qPrimaryNotFoundError: QError,
+  callbackSecondary: (element: Element, attrName: string, attrValue: string) => RET2,
+  qSecondaryNotFoundError: QError
 ): RET1 | RET2;
 export function findAttribute<RET1, RET2>(
   element: Element,
   attributePrimary: string,
   attributeSecondary: string | null,
   callbackPrimary: (element: Element, attrName: string, attrValue: string) => RET1,
-  callbackSecondary?: (element: Element, attrName: string, attrValue: string) => RET2
+  qPrimaryNotFoundError: QError = QError.Core_noAttribute_atr1_element,
+  callbackSecondary?: (element: Element, attrName: string, attrValue: string) => RET2,
+  qSecondaryNotFoundError: QError = QError.Core_noAttribute_atr1_attr2_element
 ): RET1 | RET2 {
   let cursor: Element | null = element;
   while (cursor) {
@@ -66,10 +71,7 @@ export function findAttribute<RET1, RET2>(
     }
     cursor = cursor.parentElement;
   }
-  throw qError(
-    QError.Core_noAttribute_atr1_attr2_element,
-    attributePrimary,
-    attributeSecondary,
-    element
-  );
+  throw attributeSecondary
+    ? qError(qSecondaryNotFoundError, attributePrimary, attributeSecondary, element)
+    : qError(qPrimaryNotFoundError, attributePrimary, element);
 }

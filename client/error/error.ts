@@ -12,8 +12,10 @@ export const enum QError {
   // core 000-099
   Core_qConfigNotFound_path = 1,
   Core_unrecognizedStack_frame = 2,
-  Core_noAttribute_atr1_attr2_element = 3,
-  Core_missingProperty_name_props = 4,
+  Core_noAttribute_atr1_element = 3,
+  Core_noAttribute_atr1_attr2_element = 4,
+  Core_missingProperty_name_props = 5,
+  Core_missingExport_name_url_props = 6,
   // QRL 100-199
   QRL_expectFunction_url_actual = 100,
   // Injection 200-299
@@ -22,6 +24,7 @@ export const enum QError {
   Injection_notElement_arg = 202,
   Injection_wrongMethodThis_expected_actual = 203,
   Injection_missingSerializedState_serviceKey_element = 204,
+  Injection_notEventInjector = 205,
   // Services 300-399
   Service_notValidKey_key = 300,
   Service_keyAlreadyExists_key = 301,
@@ -32,7 +35,7 @@ export const enum QError {
   Service_expected_obj = 307,
   Service_overridesConstructor_service = 308,
   Service_keyMissingParts_key_key = 309,
-  Service_no$name_service = 310,
+  Service_no$type_service = 310,
   Service_no$keyProps_service = 311,
   Service_no$qrl_service = 312,
   Service_nameCollision_name_currentQrl_expectedQrl = 313,
@@ -51,6 +54,9 @@ export const enum QError {
   Provider_unrecognizedFormat_value = 500,
   // Render 600-699
   Render_unexpectedJSXNodeType_type = 600,
+  // Event
+  Event_emitEventRequiresName_url = 700,
+  Event_emitEventCouldNotFindListener_event_element = 701,
 }
 
 export function qError(code: QError, ...args: any[]): Error {
@@ -74,13 +80,18 @@ function codeToText(code: QError): string {
     4: 'COMPONENT-ERROR',
     5: 'PROVIDER-ERROR',
     6: 'RENDER-ERROR',
+    7: 'EVENT-ERROR',
   }[Math.floor(code / 100)];
   const text = {
     [QError.Core_qConfigNotFound_path]: "QConfig not found in path '{}'.",
     [QError.Core_unrecognizedStack_frame]: "Unrecognized stack format '{}'",
+    [QError.Core_noAttribute_atr1_element]:
+      "Could not find service state '{}' at '{}' or any of it's parents.",
     [QError.Core_noAttribute_atr1_attr2_element]:
       "Could not find service state '{}' ( or service provider '{}') at '{}' or any of it's parents.",
     [QError.Core_missingProperty_name_props]: "Missing property '{}' in props '{}'.",
+    [QError.Core_missingExport_name_url_props]:
+      "Missing export '{}' from '{}'. Exported symbols are: {}",
     //////////////
     [QError.QRL_expectFunction_url_actual]: "QRL '${}' should point to function, was '{}'.",
     //////////////
@@ -92,6 +103,8 @@ function codeToText(code: QError): string {
       "Expected injection 'this' to be of type '{}', but was of type '{}'.",
     [QError.Injection_missingSerializedState_serviceKey_element]:
       "Service key '{}' is found on '{}' but does not contain state. Was 'serializeState()' not run during dehydration?",
+    [QError.Injection_notEventInjector]:
+      "Injector is being used as 'EventInjector' but it was 'ElementInjector'. Have you used a provider which expects 'EventInjector' in 'ElementInjector' context?",
     //////////////
     [QError.Service_notValidKey_key]:
       "Data key '{}' is not a valid key.\n" +
@@ -112,8 +125,8 @@ function codeToText(code: QError): string {
     [QError.Service_overridesConstructor_service]:
       "'{}' overrides 'constructor' property preventing 'ServiceType' retrieval.",
     [QError.Service_no$keyProps_service]: "Service '{}' does not define '$keyProps'.",
-    [QError.Service_no$name_service]:
-      "Service '{}' must have static '$name' property defining the name of the service.",
+    [QError.Service_no$type_service]:
+      "Service '{}' must have static '$type' property defining the name of the service.",
     [QError.Service_no$qrl_service]:
       "Service '{}' must have static '$qrl' property defining the import location of the service.",
     [QError.Service_nameCollision_name_currentQrl_expectedQrl]:
@@ -143,6 +156,10 @@ function codeToText(code: QError): string {
     [QError.Provider_unrecognizedFormat_value]: "Unrecognized expression format '{}'.",
     //////////////
     [QError.Render_unexpectedJSXNodeType_type]: 'Unexpected JSXNode<{}> type.',
+    //////////////
+    [QError.Event_emitEventRequiresName_url]: "Missing '$type' attribute in the '{}' url.",
+    [QError.Event_emitEventCouldNotFindListener_event_element]:
+      "Re-emitting event '{}' but no listener found at '{}' or any of its parents.",
   }[code];
   let textCode = '000' + code;
   textCode = textCode.substr(textCode.length - 3);

@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { AsyncProvider, ConcreteType, AsyncProviders } from '../injection/types';
+import { Provider, ConcreteType, Providers } from '../injection/types';
 
 /**
  * Used to declare dependencies of a component.
@@ -36,8 +36,8 @@ import { AsyncProvider, ConcreteType, AsyncProviders } from '../injection/types'
  */
 
 export function injectConstructor<T, ARGS extends any[]>(
-  ...args: [...ARGS, ConcreteType<T, AsyncProviders<ARGS>>]
-): AsyncProvider<unknown>[] {
+  ...args: [...ARGS, ConcreteType<T, Providers<ARGS>>]
+): Provider<unknown>[] {
   args.pop(); // Ignore the last one as that is the component type.
   return args as any;
 }

@@ -13,7 +13,7 @@ import { createGlobal } from '../testing/node_utils.js';
 import { AttributeMarker } from '../util/markers.js';
 import { getInjector } from './element_injector.js';
 import { injectFunction } from './inject.js';
-import { injectEventHandler } from './inject_event_handler.js';
+import { injectEventHandler } from '../event/inject_event_handler.js';
 import { Injector } from './types.js';
 
 describe('inject', () => {
@@ -68,6 +68,7 @@ describe('injectEventHandler', async () => {
       $state = undefined;
       myComp: boolean = true;
       $materializeState() {}
+      $restoreTransient() {}
     }
     const myComp = new MyComp();
     const injectedFn = injectEventHandler(
@@ -82,11 +83,8 @@ describe('injectEventHandler', async () => {
     const fixture = new ElementFixture();
     const url: URL = new URL('file:///somepath');
     fixture.host.setAttribute(AttributeMarker.ComponentTemplate, './comp');
-    expect(injectedFn(fixture.host, event, url)).to.equal(false);
-    await 0; // needed for promises to resolve
-    await 0;
-    await 0;
-    await 0;
+    debugger;
+    expect(await injectedFn(fixture.host, event, url)).to.equal('return value');
     expect(log).to.eql([myComp, 'invoked', 'arg0']);
   });
 });

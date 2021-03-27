@@ -37,7 +37,7 @@ describe('applyAttributes()', () => {
     expect(host.outerHTML).to.equal('<host a="c"></host>');
   });
 
-  it.only('should remove properties to Element', () => {
+  it('should remove properties to Element', () => {
     expect(applyAttributes(host, { a: '' }, false)).to.be.false;
     expect(host.outerHTML).to.equal('<host a=""></host>');
     expect(applyAttributes(host, { a: '' }, true)).to.be.false;

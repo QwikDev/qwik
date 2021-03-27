@@ -14,3 +14,4 @@
 
 export { Service } from './service.js';
 export { provideServiceState, provideService } from './provide_service.js';
+export { ServiceKey } from './types.js';

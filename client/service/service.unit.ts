@@ -25,10 +25,10 @@ export const __verify_Service_subtype_of_IService__: IService<any, any> = servic
 describe('service', () => {
   const MissingNameService: ServiceType<any> = class MissingNameService {} as any;
   const EmptyNameService: ServiceType<any> = class EmptyNameService {
-    static $name = '';
+    static $type = '';
   } as any;
   const MissingKeyPropsService: ServiceType<any> = class MissingKeyPropsService {
-    static $name = 'missingService';
+    static $type = 'missingService';
   } as any;
 
   describe('$attachService', () => {
@@ -51,10 +51,10 @@ describe('service', () => {
 
     it('should error', () => {
       expect(() => Service.$attachService.apply(MissingNameService as any, null!)).to.throw(
-        `SERVICE-ERROR(Q-310): Service 'MissingNameService' must have static '$name' property defining the name of the service.`
+        `SERVICE-ERROR(Q-310): Service 'MissingNameService' must have static '$type' property defining the name of the service.`
       );
       expect(() => Service.$attachService.apply(EmptyNameService as any, null!)).to.throw(
-        `SERVICE-ERROR(Q-310): Service 'EmptyNameService' must have static '$name' property defining the name of the service.`
+        `SERVICE-ERROR(Q-310): Service 'EmptyNameService' must have static '$type' property defining the name of the service.`
       );
       expect(() => Service.$attachService.apply(MissingKeyPropsService as any, null!)).to.throw(
         `SERVICE-ERROR(Q-312): Service 'MissingKeyPropsService' must have static '$qrl' property defining the import location of the service.`
@@ -231,7 +231,7 @@ interface EmptyProps {
 interface Empty {}
 
 export class EmptyService extends Service<EmptyProps, Empty> {
-  static $name: 'Empty' = 'Empty';
+  static $type: 'Empty' = 'Empty';
   static $qrl = QRL<EmptyService>`service:/service.unit.EmptyService`;
   static $keyProps = ['id'];
   async ident(value: string): Promise<string> {
@@ -253,7 +253,7 @@ interface Greeter {
 }
 
 export class GreeterService extends Service<GreeterProps, Greeter> {
-  static $name: 'Greeter' = 'Greeter';
+  static $type: 'Greeter' = 'Greeter';
   static $qrl = QRL<GreeterService>`service:/service.unit.GreeterService`;
   static $keyProps = ['salutation', 'name'];
 

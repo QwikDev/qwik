@@ -6,9 +6,8 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { ensureElementInjector } from '../injection/element_injector.js';
 import { assertDefined } from '../assert/index.js';
-import { AsyncProvider, Injector } from '../injection/types.js';
+import { Provider, Injector } from '../injection/types.js';
 
 /**
  * Returns `Props` of component.
@@ -25,17 +24,16 @@ import { AsyncProvider, Injector } from '../injection/types.js';
  * ```
  * export default inject(
  *   null,
- *   provideProps<MyProps>()
+ *   provideComponentProps<MyProps>()
  *   function (myProps: MyProps) {
  *     ...
  *   }
  * );
  * ```
  */
-export function provideProps<T>(): AsyncProvider<T> {
-  return function propsProvider(injector: Injector): T {
-    const elementInjector = ensureElementInjector(injector);
-    let props = elementInjector.elementProps;
+export function provideComponentProps<T>(): Provider<T> {
+  return function propsComponentProvider(injector: Injector): T {
+    let props = injector.elementProps;
     qDev && assertDefined(props);
     return (props as any) as T;
   };

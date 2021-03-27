@@ -13,15 +13,15 @@ import { ServiceType } from './types.js';
 
 describe('service key', () => {
   const MissingKeyPropsService: ServiceType<any> = class MissingKeyPropsService {
-    static $name = 'missingService';
+    static $type = 'missingService';
   } as any;
   const MockService: ServiceType<any> = class MockService {
     static $keyProps = ['a', 'propB', 'c'];
-    static $name = 'myService';
+    static $type = 'myService';
   } as any;
   const EmptyService: ServiceType<any> = class EmptyService {
     static $keyProps = [];
-    static $name = 'emptyService';
+    static $type = 'emptyService';
   } as any;
   describe('propsToKey', () => {
     it('should convert prop to key', () => {

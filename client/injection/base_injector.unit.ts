@@ -13,7 +13,7 @@ import { AttributeMarker } from '../util/markers.js';
 import '../util/qDev.js';
 import { ElementInjector, getInjector } from './element_injector.js';
 import { injectFunction, injectMethod } from './inject.js';
-import { AsyncProvider } from './types.js';
+import { Provider } from './types.js';
 
 describe('BaseInjector', () => {
   let fixture: ElementFixture;
@@ -105,7 +105,7 @@ describe('BaseInjector', () => {
     });
 
     describe('error', () => {
-      it.only('should error if incorrect self passed', async () => {
+      it('should error if incorrect self passed', async () => {
         class WrongType {}
         const injectedFn = injectMethod(
           MyClass, //
@@ -147,7 +147,7 @@ describe('BaseInjector', () => {
   });
 });
 
-function provideConst<T>(value: T): AsyncProvider<T> {
+function provideConst<T>(value: T): Provider<T> {
   return async () => {
     return value;
   };

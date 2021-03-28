@@ -14,7 +14,7 @@ export function fromCamelToKebabCase(
   includeFirst: boolean = false
 ): string | null {
   if (typeof text != 'string') return text;
-  let value = camelToKebabCase.get(text);
+  const value = camelToKebabCase.get(text);
   if (value != null) return value;
   let converted = '';
   for (let x = 0; x < text.length; x++) {
@@ -35,7 +35,7 @@ export function fromKebabToCamelCase(
   text: string,
   capitalizeFirstCharacter: boolean = true
 ): string {
-  let value = kebabToCamelCase.get(text);
+  const value = kebabToCamelCase.get(text);
   if (value != null) return value;
   let converted = '';
   let wasKebab = capitalizeFirstCharacter;

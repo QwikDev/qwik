@@ -78,7 +78,6 @@ describe('BaseInjector', () => {
         }
       );
       expect(await hostInjector.invoke(injectedFn, null, 'arg2')).to.eql('ret');
-      debugger;
       expect(log).to.eql([
         { $host: fixture.host, $props: {}, $state: null },
         'arg0',
@@ -111,7 +110,6 @@ describe('BaseInjector', () => {
           MyClass, //
           function (this: MyClass) {}
         );
-        debugger;
         expect(() => hostInjector.invoke(injectedFn, new WrongType())).to.throw(
           "INJECTION-ERROR(Q-203): Expected injection 'this' to be of type 'MyClass', but was of type 'WrongType'."
         );

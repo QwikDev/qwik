@@ -12,7 +12,7 @@ import '../CONFIG.js';
 import { stringifyDebug } from '../error/stringify.js';
 import { QRL } from '../import/qrl.js';
 import { getInjector } from '../injection/element_injector.js';
-import { injectFunction, injectMethod } from '../injection/inject.js';
+import { injectMethod } from '../injection/inject.js';
 import { serializeState } from '../render/serialize_state.js';
 import { ElementFixture } from '../testing/element_fixture.js';
 import { Service } from './service.js';

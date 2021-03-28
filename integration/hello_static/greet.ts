@@ -16,6 +16,6 @@ export function click(element: Element) {
 
 export function keyup(element: HTMLInputElement) {
   const name = element.value;
-  const span = element.parentElement?.querySelector('span')!;
+  const span = element.parentElement!.querySelector('span')!;
   span.textContent = name;
 }

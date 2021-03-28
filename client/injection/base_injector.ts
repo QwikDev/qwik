@@ -94,32 +94,3 @@ function isInjectedFunction<SELF, ARGS extends any[], REST extends any[], RET>(
 ): value is InjectedFunction<SELF, ARGS, REST, RET> {
   return !!value.$inject;
 }
-
-async function invoke<SELF extends {}, PROVIDERS extends any[], REST extends any[], RET>(
-  injector: BaseInjector,
-  fn: InjectedFunction<SELF, PROVIDERS, REST, RET>,
-  self: SELF | null,
-  providers: PROVIDERS,
-  rest: REST
-): Promise<RET> {
-  try {
-    const providerPromises: any[] = [];
-    for (let i = 0; i < providers.length; i++) {
-      const provider = providers[i];
-      providerPromises.push(provider(injector));
-    }
-    return Promise.all(providerPromises).then((values) => {
-      values = values.concat(rest);
-      return (fn as Function).apply(self as SELF, values as any);
-    });
-  } catch (e) {
-    if (e instanceof Error && fn.$debugStack) {
-      const declaredFrames = fn.$debugStack.stack!.split('\n');
-      const declaredFrame = declaredFrames[2].trim();
-      const stack = e.stack!;
-      const msg = e.message;
-      e.stack = stack.replace(msg, msg + '\n      DECLARED ' + declaredFrame);
-    }
-    throw e;
-  }
-}

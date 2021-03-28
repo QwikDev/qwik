@@ -36,8 +36,8 @@ export function qImport<T>(
   if (cacheValue) return cacheValue as T;
 
   let dotIdx = importPath.lastIndexOf('.');
-  let slahIdx = importPath.lastIndexOf('/');
-  if (dotIdx <= slahIdx) dotIdx = importPath.length;
+  const slashIdx = importPath.lastIndexOf('/');
+  if (dotIdx <= slashIdx) dotIdx = importPath.length;
   const importURL = importPath.substr(0, dotIdx) + '.js';
   const promise = import(importURL).then((module) => {
     const key = importPath.substring(dotIdx + 1) || 'default';
@@ -120,7 +120,7 @@ export function toImportPath(url: URL): string {
  * @returns URL where the custom protocol has been resolved.
  */
 export function adjustProtocol(qConfig: QConfig, qrl: string | QRL): string {
-  return String(qrl).replace(/(^\w+)\:\/?/, (all, protocol) => {
+  return String(qrl).replace(/(^\w+):\/?/, (all, protocol) => {
     let value = qConfig.protocol[protocol];
     if (!value) return all;
     if (!value.endsWith('/')) {

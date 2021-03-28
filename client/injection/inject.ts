@@ -6,10 +6,6 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { IComponent } from '../component/types.js';
-import { IService } from '../service/types.js';
-import { ComponentType } from '../component/types.js';
-import { ServiceType } from '../service/types.js';
 import '../util/qDev.js';
 import { ConcreteType, InjectedFunction, ProviderReturns } from './types.js';
 

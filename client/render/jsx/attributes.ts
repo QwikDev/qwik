@@ -30,7 +30,7 @@ export function applyAttributes(
     let bindMap: Map<string, string> | null = null;
     for (const key in props) {
       if (Object.prototype.hasOwnProperty.call(props, key)) {
-        let kebabKey = fromCamelToKebabCase(key);
+        const kebabKey = fromCamelToKebabCase(key);
         const value = props[key];
         if (key === '$' && value) {
           // TODO[type]: Suspicious casting.

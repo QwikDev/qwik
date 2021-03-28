@@ -21,7 +21,7 @@ export function getBaseUri(offset: number = 0): string {
   const frames = error.stack!.split('\n');
   const frameIdx = 2 - offset;
   qDev && assertLess(frameIdx, frames.length);
-  return getFilePathFromFrame(frames[frameIdx]!);
+  return getFilePathFromFrame(frames[frameIdx]);
 }
 
 export function getFilePathFromFrame(frame: string): string {

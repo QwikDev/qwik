@@ -83,7 +83,6 @@ describe('injectEventHandler', async () => {
     const fixture = new ElementFixture();
     const url: URL = new URL('file:///somepath');
     fixture.host.setAttribute(AttributeMarker.ComponentTemplate, './comp');
-    debugger;
     expect(await injectedFn(fixture.host, event, url)).to.equal('return value');
     expect(log).to.eql([myComp, 'invoked', 'arg0']);
   });

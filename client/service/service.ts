@@ -12,7 +12,7 @@ import { qImport } from '../import/qImport.js';
 import { QRL } from '../import/types';
 import { keyToServiceAttribute } from '../injection/element_injector.js';
 import { getInjector } from '../injection/element_injector.js';
-import { IService, ServiceType } from '../service/types.js';
+import { ServiceType } from '../service/types.js';
 import { getFilePathFromFrame } from '../util/base_uri.js';
 import { fromCamelToKebabCase } from '../util/case.js';
 import { keyToProps, propsToKey } from './service_key.js';
@@ -348,7 +348,7 @@ export class Service<PROPS, STATE> {
     if (!element.hasAttribute(serviceProviderKey)) {
       (this as ServiceType<any>).$attachService(element);
     }
-    let injector = getInjector(element);
+    const injector = getInjector(element);
     return injector.getService(key, state, this as any);
   }
 
@@ -436,7 +436,7 @@ export class Service<PROPS, STATE> {
    *
    * @param props
    */
-  $materializeState(props: PROPS): Promise<STATE> {
+  $materializeState(): Promise<STATE> {
     const serviceType = this.constructor as typeof Service;
     throw qError(QError.Service_noState_service, serviceType.$type);
   }

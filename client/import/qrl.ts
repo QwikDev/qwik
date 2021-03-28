@@ -40,7 +40,7 @@ export function QRL<T = any>(
   }
   qDev &&
     assertEqual(
-      !!url.match(/^[.|\/|\w+\:]/),
+      !!url.match(/^[.|/|\w+:]/),
       true,
       "Expecting URL to start with '.', '/', '<protocol>:'. Was: " + url
     );
@@ -58,7 +58,7 @@ export async function verifyQrl(error: Error, url: string): Promise<any> {
   // 1:   at QRL (this function)
   // 2:   at caller (this is what we are looking for)
   const base = getFilePathFromFrame(frames[2]);
-  let config = getConfig(base);
+  const config = getConfig(base);
   try {
     const module = qImport(config, url);
     if (isPromise(module)) {

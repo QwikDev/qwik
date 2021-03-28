@@ -67,7 +67,7 @@ export function qError(code: QError, ...args: any[]): Error {
       return value + (index === parts.length - 1 ? '' : stringifyDebug(args[index]));
     })
     .join('');
-  debugger;
+  debugger; // eslint-disable-line no-debugger
   return new Error(error);
 }
 

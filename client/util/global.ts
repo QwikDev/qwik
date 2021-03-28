@@ -6,8 +6,8 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-declare var global: any;
-declare var WorkerGlobalScope: any;
+declare const global: any;
+declare const WorkerGlobalScope: any;
 
 const _globalThis = typeof globalThis !== 'undefined' && globalThis;
 const _window = typeof window !== 'undefined' && window;

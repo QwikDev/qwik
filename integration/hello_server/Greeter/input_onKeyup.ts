@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { injectEventHandler, markDirty, provideQrlExp, provideService } from '../qoot.js';
+import { injectEventHandler, markDirty, provideQrlExp } from '../qoot.js';
 import { GreeterComponent } from './component.js';
 
 /**

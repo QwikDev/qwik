@@ -46,7 +46,8 @@ export function provideComponent<COMP extends Component<any, any>>(
   componentType: ComponentType<COMP>
 ): Provider<COMP> {
   return function componentProvider(injector: Injector): COMP | Promise<COMP> {
-    return null!;
+    // TODO: tests
+    throw new Error('IMPLEMENT ME: ' + componentType + injector);
     // const elementInjector = ensureElementInjector(injector);
     // const hostElement = getComponentHost(injector.element);
     // const storage = getInjector(hostElement);

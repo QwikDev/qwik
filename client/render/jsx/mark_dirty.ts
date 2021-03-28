@@ -51,10 +51,11 @@ function scheduleRender(document: QDocument): Promise<HostElements> {
         qDev && assertString(qrl);
         const props: Props = extractPropsFromElement(host);
         jsxRenderComponent(host, qrl, waitOn, props, document);
+        // TODO: this looks wrong and needs tests. Also resolve is not used.
         Promise.all(waitOn).then((hosts) => {
           document.$qScheduledRender = null;
           return hosts;
-        });
+        }, reject);
       });
     });
   }));

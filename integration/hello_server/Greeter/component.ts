@@ -45,7 +45,7 @@ export class GreeterComponent extends Component<GreeterProps, GreeterState> {
    *
    * @param props Component properties.
    */
-  $materializeState(props: GreeterProps): GreeterState {
+  $newState(props: GreeterProps): GreeterState {
     // In this example the `GreeterState` is initialized from the `GreeterProps`.
     return { name: props.name };
   }

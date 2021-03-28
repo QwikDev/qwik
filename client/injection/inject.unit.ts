@@ -67,8 +67,8 @@ describe('injectEventHandler', async () => {
       static $templateQRL = './comp';
       $state = undefined;
       myComp: boolean = true;
-      $materializeState() {}
-      $restoreTransient() {}
+      $newState() {}
+      $init() {}
     }
     const myComp = new MyComp();
     const injectedFn = injectEventHandler(

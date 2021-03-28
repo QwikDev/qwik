@@ -85,7 +85,7 @@ export interface Injector {
    * an element with `AttributeMarker.ComponentTemplate` which matches the
    * `componentType.$templateQRL`. Once found it than tries to retrieve existing
    * component (or materialize it from the `AttributeMarker.ComponentState`).
-   * Because creation of component may involve invoking `Component.$materializeState`
+   * Because creation of component may involve invoking `Component.$newState`
    * which is asynchronous the method itself is asynchronous.
    *
    * @param componentType
@@ -150,7 +150,7 @@ export interface Injector {
    *
    * If `foo:432` is requested instead, then the process is repeated. The difference is that
    * once the injector gets to `<parent>` it can't find `foo:432` but it can retrieve `:foo`
-   * which can be instantiated and then `Foo.$materializeState` can be invoke to compute the state.
+   * which can be instantiated and then `Foo.$newState` can be invoke to compute the state.
    *
    * @param serviceKey The key of state which should be retrieved.
    * @param state Optional state which the service should be set to upon retrieval.

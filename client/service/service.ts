@@ -118,7 +118,7 @@ import { ServiceKey, ServicePromise, ServicePropsOf, ServiceStateOf } from './ty
  *   .toEqual({completed: false, text: 'sample task'});
  * ```
  *
- * In this cases there is no serialized state. For this reason the component executes the `$materializeState` method.
+ * In this cases there is no serialized state. For this reason the component executes the `$newState` method.
  *
  * ```
  * class TodoItemService extends Service<TodoItemProps, TodoItem> {
@@ -126,7 +126,7 @@ import { ServiceKey, ServicePromise, ServicePropsOf, ServiceStateOf } from './ty
  *   $type = 'todo';
  *   $keyProps = ['id'];
  *
- *   async $materializeState(props: TodoItemProps): Promise<TodoItem> {
+ *   async $newState(props: TodoItemProps): Promise<TodoItem> {
  *     //  Execute code to look up the state.
  *   }
  * }
@@ -326,7 +326,7 @@ export class Service<PROPS, STATE> {
    *   the service with new `state` if already exists.)
    * - `MyService.$hydrate(element, props)`:
    *   - If state exists in HTML/DOM use that
-   *   - If no state exist in HTML/DOM invoke `Service.$materializeState`.
+   *   - If no state exist in HTML/DOM invoke `Service.$newState`.
    *     - Possibly throw an error.
    *
    * @param element Element to which the service should be (or is) attached
@@ -421,6 +421,11 @@ export class Service<PROPS, STATE> {
   /**
    * Invoked during hydration if state is not provide or can't be ry-hydrated from HTML/DOM.
    *
+   * Lifecycle order:
+   * - `new Service(...)`
+   * - `$newState(props)`: Invoked if no serialized state found in DOM.
+   * - `$init()`
+   * - Service returned by the `Injector`.
    * ```
    * class MyService extends Service<MyServiceProps, MyServiceState> {
    *   $qrl = QRL`./path/to/service/MyService`;
@@ -436,19 +441,25 @@ export class Service<PROPS, STATE> {
    *
    * @param props
    */
-  $materializeState(): Promise<STATE> {
+  $newState(keyProps: PROPS): Promise<STATE> {
     const serviceType = this.constructor as typeof Service;
-    throw qError(QError.Service_noState_service, serviceType.$type);
+    throw qError(QError.Service_noState_service_props, serviceType.$type, keyProps);
   }
 
   /**
    * Lifecycle method invoked on hydration.
    *
    * After the service creation and after the state is restored (either from DOM or by invoking
-   * `$materializeState`) this method is invoked. The purpose of this method is to allow the service
+   * `$newState`) this method is invoked. The purpose of this method is to allow the service
    * to compute any transient state.
+   *
+   * Lifecycle order:
+   * - `new Service(...)`
+   * - `$newState(props)`: Invoked if no serialized state found in DOM.
+   * - `$init()`
+   * - Service returned by the `Injector`.
    */
-  async $restoreTransient() {}
+  async $init() {}
 
   /**
    * Release the service.

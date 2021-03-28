@@ -15,9 +15,9 @@ import { Service } from '../qoot.js';
 import { serializeState } from '../render/serialize_state.js';
 import { ElementFixture } from '../testing/element_fixture.js';
 import { AttributeMarker } from '../util/markers.js';
-import { ElementInjector, getInjector } from './element_injector.js';
+import { ElementInjector, getClosestInjector, getInjector } from './element_injector.js';
 
-describe('getComponentProps', () => {
+describe('ElementInjector', () => {
   let fixture: ElementFixture;
   let hostInjector: ElementInjector;
   beforeEach(() => {
@@ -70,7 +70,7 @@ describe('getComponentProps', () => {
         expect(component.$state).to.eql({ greeting: 'abc' });
         expect(component.greeting).to.equal('abc');
       });
-      it('should materialize from $materializeState', async () => {
+      it('should materialize from $newState', async () => {
         fixture.host.setAttribute(
           AttributeMarker.ComponentTemplate,
           GreeterComponent.$templateQRL as any
@@ -163,7 +163,7 @@ describe('getComponentProps', () => {
         greeting: 'serialized',
       });
     });
-    it('should retrieve service by key and call $materializeState', async () => {
+    it('should retrieve service by key and call $newState', async () => {
       RegardsService.$attachService(fixture.parent);
       const service = await hostInjector.getService('regards:-hello:-world');
       expect(service.$key).to.eql('regards:-hello:-world');
@@ -209,6 +209,16 @@ describe('getComponentProps', () => {
       });
     });
   });
+
+  describe('getClosestInjector', () => {
+    describe('error', () => {
+      it('should throw when no parent injector fond', () => {
+        expect(() => getClosestInjector(fixture.parent)).to.throw(
+          "INJECTION-ERROR(Q-206): No injector can be found starting at '<parent>'."
+        );
+      });
+    });
+  });
 });
 
 interface GreeterProps {
@@ -224,11 +234,11 @@ class GreeterComponent extends Component<GreeterProps, Greeter> {
 
   greeting: string = null!;
 
-  async $restoreTransient() {
+  async $init() {
     this.greeting = this.$state.greeting;
   }
 
-  async $materializeState(state: GreeterProps) {
+  async $newState(state: GreeterProps) {
     return { greeting: state.salutation + ' ' + state.name + '!' };
   }
 }
@@ -252,11 +262,11 @@ export class RegardsService extends Service<RegardsProps, Regards> {
 
   greeting: string = null!;
 
-  async $restoreTransient() {
+  async $init() {
     this.greeting = this.$state.greeting;
   }
 
-  async $materializeState(state: RegardsProps) {
+  async $newState(state: RegardsProps) {
     return { greeting: state.salutation + ' ' + state.name + '!' };
   }
 }

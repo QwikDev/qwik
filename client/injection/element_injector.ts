@@ -98,7 +98,7 @@ export class ElementInjector extends BaseInjector {
         return (this.componentPromise = new Promise<COMP>((resolve, reject) => {
           let promise: Promise<any>;
           if (state == null) {
-            promise = Promise.resolve(component.$materializeState(component.$props)).then(
+            promise = Promise.resolve(component.$newState(component.$props)).then(
               (state: STATE) => {
                 component.$state = state;
               }
@@ -106,7 +106,7 @@ export class ElementInjector extends BaseInjector {
           } else {
             promise = Promise.resolve(component as COMP);
           }
-          promise.then(() => component.$restoreTransient()).then(() => resolve(component!), reject);
+          promise.then(() => component.$init()).then(() => resolve(component!), reject);
         }));
       }
     } else {
@@ -178,7 +178,7 @@ export class ElementInjector extends BaseInjector {
               serviceValue.service = service;
               chain = Promise.resolve(service);
             } else {
-              chain = service.$materializeState(props).then(
+              chain = service.$newState(props).then(
                 (state: ServiceStateOf<SERVICE>) => {
                   serviceValue.service = service;
                   state.$key = serviceKey;
@@ -192,7 +192,7 @@ export class ElementInjector extends BaseInjector {
               );
             }
             chain.then(() => {
-              Promise.resolve(service.$restoreTransient()).then(() => resolve(service));
+              Promise.resolve(service.$init()).then(() => resolve(service));
             }, reject);
           }, reject);
         })
@@ -354,8 +354,7 @@ export function getClosestInjector(
     cursor = cursor.parentElement;
   }
   if (throwIfNotFound) {
-    // TODO: Test / proper error
-    throw new Error('Implement proper error');
+    throw qError(QError.Injection_notFound_element, element);
   }
   return null;
 }

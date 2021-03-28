@@ -6,6 +6,7 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
+import { QError, qError } from '../error/error.js';
 import '../util/qDev.js';
 import type { IComponent as IComponent } from './types.js';
 
@@ -24,7 +25,7 @@ import type { IComponent as IComponent } from './types.js';
  * }
  *
  * class Greeter extends Component<GreeterProps, GreeterState> {
- *   $materializeState() {
+ *   $newState() {
  *     return {} as GreeterState;
  *   }
  * }
@@ -67,10 +68,16 @@ export class Component<PROPS, STATE> implements IComponent<PROPS, STATE> {
    * Lifecycle method invoked on hydration.
    *
    * After the service creation and after the state is restored (either from DOM or by invoking
-   * `$materializeState`) this method is invoked. The purpose of this method is to allow the service
+   * `$newState`) this method is invoked. The purpose of this method is to allow the service
    * to compute any transient state.
+   *
+   * Lifecycle order:
+   * - `new Component(...)`
+   * - `$newState(props)`: Invoked if no serialized state found in DOM.
+   * - `$init()`
+   * - Service returned by the `Injector`.
    */
-  async $restoreTransient() {}
+  $init(): Promise<void> | void {}
 
   /**
    * Lifecycle method to initialize component's state.
@@ -79,11 +86,16 @@ export class Component<PROPS, STATE> implements IComponent<PROPS, STATE> {
    * state. Once the component's state gets serialized to HTML and the component gets rehydrate
    * this method is no longer called.
    *
-   * @param props
+   * Lifecycle order:
+   * - `new Component(...)`
+   * - `$newState(props)`: Invoked if no serialized state found in DOM.
+   * - `$init()`
+   * - Service returned by the `Injector`.
+   *
+   * @param props Component props.
    */
-  $materializeState(props: PROPS): Promise<STATE> | STATE {
-    // TODO: Tests
-
-    throw new Error('IMPLEMENT ME: ' + props);
+  $newState(props: PROPS): Promise<STATE> | STATE {
+    const componentType = this.constructor as typeof Component;
+    throw qError(QError.Component_noState_component_props, componentType, props);
   }
 }

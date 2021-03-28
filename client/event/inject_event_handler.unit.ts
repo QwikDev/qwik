@@ -22,7 +22,6 @@ describe('injectEventHandler', () => {
     const event = ('EVENT' as any) as Event;
     const url = new URL('http://localhost/path?a=b&c=d');
     fixture.host.setAttribute(AttributeMarker.ComponentTemplate, String(MyComponent.$templateQRL));
-    let returnValue: string;
 
     const fn = injectEventHandler(
       MyComponent,
@@ -35,7 +34,7 @@ describe('injectEventHandler', () => {
       function (this: MyComponent, arg0: string) {
         expect(this.$host).to.equal(fixture.host);
         expect(arg0).to.equal('providerValue');
-        return (returnValue = 'handlerValue');
+        return 'handlerValue';
       }
     );
     expect(await fn(fixture.host, event, url)).to.equal('handlerValue');

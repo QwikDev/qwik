@@ -20,7 +20,7 @@ import { dirname } from '../util/dirname.js';
 describe('QRL', () => {
   it('should verify QRL and fail on invalid', async () => {
     try {
-      const qrl = await verifyQrl(newError(''), `./dontexist`);
+      await verifyQrl(newError(''), `./dontexist`);
       fail('Should throw error');
     } catch (e) {
       expect(String(e)).to.have.string('QRL-ERROR');

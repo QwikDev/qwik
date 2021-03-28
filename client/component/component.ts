@@ -82,6 +82,8 @@ export class Component<PROPS, STATE> implements IComponent<PROPS, STATE> {
    * @param props
    */
   $materializeState(props: PROPS): Promise<STATE> | STATE {
-    return null!;
+    // TODO: Tests
+
+    throw new Error('IMPLEMENT ME: ' + props);
   }
 }

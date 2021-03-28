@@ -64,7 +64,7 @@ export class ItemsService extends Service<ItemsProps, Items> {
     this.filteredItems = this.$state.items;
   }
 
-  async $materializeState(props: ItemsProps): Promise<Items> {
+  async $materializeState(): Promise<Items> {
     const host = this.$element;
     return {
       completed: 0,

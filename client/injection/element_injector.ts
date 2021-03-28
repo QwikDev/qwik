@@ -24,7 +24,6 @@ import {
 } from '../service/types.js';
 import { findAttribute } from '../util/dom_attrs.js';
 import { AttributeMarker } from '../util/markers.js';
-import { isPromise } from '../util/promises.js';
 import '../util/qDev.js';
 import { isHtmlElement } from '../util/types.js';
 import { BaseInjector } from './base_injector.js';
@@ -68,7 +67,7 @@ export class ElementInjector extends BaseInjector {
   getComponent<COMP extends IComponent<PROPS, STATE>, PROPS, STATE>(
     componentType: ComponentType<COMP>
   ): Promise<COMP> {
-    let injector: ElementInjector | null = this;
+    const injector: ElementInjector | null = this;
     const elementQRL: QRL | null = injector.element.getAttribute(
       AttributeMarker.ComponentTemplate
     ) as any;
@@ -85,7 +84,7 @@ export class ElementInjector extends BaseInjector {
           throw qError(
             QError.Component_doesNotMatch_component_actual,
             componentType,
-            (component as {}).constructor
+            (component as Object).constructor
           );
         }
       } else {
@@ -232,7 +231,7 @@ export class ElementInjector extends BaseInjector {
         return Promise.resolve(state);
       },
       QError.Core_noAttribute_atr1_attr2_element,
-      (element, serviceProviderAttr, serviceQRL) => {
+      (element) => {
         return getInjector(element)
           .getService(serviceKey)
           .then((service) => service.$state);
@@ -253,7 +252,7 @@ export class ElementInjector extends BaseInjector {
     if (state != null) {
       element.setAttribute(AttributeMarker.ComponentState, JSON.stringify(state));
     }
-    this.services?.forEach((service, serviceName) => {
+    this.services?.forEach((service) => {
       const state = service.service?.$state;
       if (state) {
         element.setAttribute(state.$key, JSON.stringify(state, filterFrameworkKeys));

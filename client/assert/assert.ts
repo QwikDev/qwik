@@ -63,6 +63,6 @@ function typeOf(value: any) {
 }
 
 export function newError(text: string) {
-  debugger;
+  debugger; // eslint-disable-line no-debugger
   return new Error(text);
 }

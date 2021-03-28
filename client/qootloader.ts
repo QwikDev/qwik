@@ -31,9 +31,8 @@ interface QConfig {
  *
  * @param document Document to use for setting up global listeners, and to
  *     determine all of the browser supported events.
- * @param Object `ObjectConstructor` used for walking prototype chains.
  */
-(function (document: Document, Object: ObjectConstructor) {
+(function (document: Document) {
   /**
    * Event handler responsible for processing browser events.
    *
@@ -49,16 +48,16 @@ interface QConfig {
     while (element && element.getAttribute) {
       let eventUrl = element.getAttribute(eventName);
       if (eventUrl) {
-        eventUrl = eventUrl.replace(/^(\w+)\:/, (_, protocol) => {
+        eventUrl = eventUrl.replace(/^(\w+):/, (_, protocol) => {
           return ((window as any) as { Q: QConfig }).Q.protocol[protocol];
         });
         const url = new URL(eventUrl, document.baseURI);
         const pathname = url.pathname;
         let dotIdx = pathname.lastIndexOf('.');
-        let slashIdx = pathname.lastIndexOf('/');
+        const slashIdx = pathname.lastIndexOf('/');
         if (dotIdx === 0 || dotIdx < slashIdx) dotIdx = pathname.length;
         const importPath = pathname.substr(0, dotIdx) + '.js';
-        let module = await import(importPath);
+        const module = await import(importPath);
         const exportName = pathname.substring(dotIdx + 1) || 'default';
         const handler = module[exportName];
         if (!handler)
@@ -79,7 +78,7 @@ interface QConfig {
     const events = scriptTag.getAttribute('events') || '';
     events.split(/[\s,;]+/).forEach((name) => document.addEventListener(name, eventProcessor));
   } else {
-    for (let key in document) {
+    for (const key in document) {
       if (key.indexOf('on') == 0) {
         const eventName = key.substring(2);
         // For each `on*` property, set up a listener.
@@ -89,6 +88,5 @@ interface QConfig {
   }
 })(
   // Invoke qoot-loader.
-  document,
-  Object
+  document
 );

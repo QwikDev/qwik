@@ -33,7 +33,7 @@ import { Provider, Injector } from '../injection/types.js';
  */
 export function provideComponentProps<T>(): Provider<T> {
   return function propsComponentProvider(injector: Injector): T {
-    let props = injector.elementProps;
+    const props = injector.elementProps;
     qDev && assertDefined(props);
     return (props as any) as T;
   };

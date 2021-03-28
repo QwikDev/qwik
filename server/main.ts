@@ -33,7 +33,7 @@ async function main(__dirname: string, process: NodeJS.Process) {
   program.parse(process.argv);
   const opts: { port: number; root: string[] } = program.opts() as any;
   console.log(opts);
-  var app = (express as any)();
+  const app = (express as any)();
 
   const RUNFILES: string = process.env.RUNFILES || '';
   console.log('RUNFILES', RUNFILES);
@@ -82,7 +82,7 @@ async function main(__dirname: string, process: NodeJS.Process) {
     serverIndexJS.map(async (indexJS) => {
       console.log('Importing: ', indexJS.path);
       const serverMain = (await import(indexJS.path)).serverMain;
-      let baseURI = `file://${indexJS.path}`;
+      const baseURI = `file://${indexJS.path}`;
       app.use('/' + indexJS.url, createServerJSHandler(serverMain, baseURI));
     })
   );
@@ -103,7 +103,10 @@ function readBundleContent(paths: string[]): string | null {
   return null;
 }
 
-function createServerJSHandler(serverMain: Function, baseUri: string) {
+function createServerJSHandler(
+  serverMain: (doc: Document, url: string) => Promise<any[]>,
+  baseUri: string
+) {
   return async function serverJSHandler(req: express.Request, res: express.Response) {
     const document = domino.createDocument();
     Object.defineProperty(document, 'baseURI', { value: baseUri });

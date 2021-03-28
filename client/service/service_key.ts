@@ -25,7 +25,7 @@ import { stringify } from '../util/stringify.js';
  *          service-key according to the `ServiceType.$keyProps`.
  * @returns service-key.
  */
-export function propsToKey(serviceType: ServiceType<any>, props: {}) {
+export function propsToKey(serviceType: ServiceType<any>, props: Record<string, any>) {
   let id = fromCamelToKebabCase(serviceType.$type) + ':';
   const propNames = serviceType.$keyProps;
   if (!propNames) {

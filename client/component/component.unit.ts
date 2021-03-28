@@ -34,7 +34,7 @@ describe('component', () => {
   it('should call $init state', () => {
     const fixture = new ComponentFixture();
     class MyComponent extends Component<'props', 'state'> {
-      async $materializeState(props: 'props'): Promise<'state'> {
+      async $materializeState(): Promise<'state'> {
         return 'state';
       }
     }

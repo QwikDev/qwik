@@ -44,8 +44,8 @@ export type IService<PROPS, STATE> = {
     qrl: QRL<(...args: ARGS) => RET>,
     ...args: ARGS
   ): Promise<RET>;
-  $materializeState(props: PROPS): Promise<STATE>;
-  $restoreTransient(): Promise<void>;
+  $newState(props: PROPS): Promise<STATE>;
+  $init(): Promise<void> | void;
   $release(): void;
 };
 

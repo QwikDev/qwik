@@ -78,12 +78,7 @@ describe('BaseInjector', () => {
         }
       );
       expect(await hostInjector.invoke(injectedFn, null, 'arg2')).to.eql('ret');
-      expect(log).to.eql([
-        { $host: fixture.host, $props: {}, $state: null },
-        'arg0',
-        'arg1',
-        'arg2',
-      ]);
+      expect(log).to.eql([{ $host: fixture.host, $props: {}, $state: {} }, 'arg0', 'arg1', 'arg2']);
     });
   });
 
@@ -157,4 +152,7 @@ export function template() {}
 
 class MyComponent extends Component<any, any> {
   static $templateQRL = 'test:/injectior/base_injector.unit.template';
+  $newState() {
+    return {};
+  }
 }

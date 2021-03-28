@@ -43,4 +43,7 @@ describe('injectEventHandler', () => {
 
 class MyComponent extends Component<any, any> {
   static $templateQRL: QRL = 'myComponentQRL' as any;
+  $newState() {
+    return {};
+  }
 }

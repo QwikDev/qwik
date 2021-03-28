@@ -15,7 +15,7 @@ interface HeaderState {
 
 export class HeaderComponent extends Component<HeaderProps, HeaderState> {
   static $templateQRL = QRL`ui:/Header/template`;
-  $materializeState() {
+  $newState() {
     return { text: '' };
   }
 }

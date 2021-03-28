@@ -9,12 +9,13 @@
 import { Component, QRL } from '../../qoot.js';
 import { ItemProps } from '../Item/public.js';
 
-interface ItemState {
-  editing: boolean;
-}
+interface ItemState {}
 
 export class ItemComponent extends Component<ItemProps, ItemState> {
   static $templateQRL = QRL`ui:/Item/template`;
 
   editing = false;
+  $newState() {
+    return {};
+  }
 }

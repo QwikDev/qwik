@@ -12,8 +12,8 @@ export interface IComponent<PROPS, STATE> {
   $host: Element;
   $state: STATE;
   $props: PROPS;
-  $materializeState(props: PROPS): Promise<STATE> | STATE;
-  $restoreTransient(): Promise<void>;
+  $newState(props: PROPS): Promise<STATE> | STATE;
+  $init(): Promise<void> | void;
 }
 
 export interface ComponentType<COMP extends IComponent<any, any>> {

@@ -34,7 +34,7 @@ describe('component', () => {
   it('should call $init state', () => {
     const fixture = new ComponentFixture();
     class MyComponent extends Component<'props', 'state'> {
-      async $materializeState(): Promise<'state'> {
+      async $newState(): Promise<'state'> {
         return 'state';
       }
     }
@@ -58,7 +58,7 @@ export interface GreeterState {
 
 export class GreeterComponent extends Component<GreeterProps, GreeterState> {
   static $templateQRL = QRL`test:/component/component.unit.greeterTemplate`;
-  async $materializeState(props: GreeterProps): Promise<GreeterState> {
+  async $newState(props: GreeterProps): Promise<GreeterState> {
     return { greeting: props.salutation + ' ' + props.name + '!' };
   }
   async greet() {}

@@ -1,7 +1,7 @@
 {
   "name": "qoot",
   "version": "0.0.1",
-  "description": "",
+  "description": "An Open-Source sub-framework designed with a focus on server-side-rendering, lazy-loading, and styling/animation.",
   "main": "index.js",
   "husky": {
     "hooks": {
@@ -53,10 +53,10 @@
   "scripts": {
     "test:unit": "bazel test  --test_tag_filters=unit  ...",
     "test:e2e": "bazel test  --test_tag_filters=e2e  ...",
-    "test": "jest",
+    "test": "bazel test client/...",
     "lint": "eslint \"client/**/*.ts\" \"server/**/*.ts\" \"integration/**/*.ts\"",
     "prepare": "husky install"
   },
-  "author": "",
+  "author": "Miško Hevery <misko@hevery.com>",
   "license": "MIT"
 }

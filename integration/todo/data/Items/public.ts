@@ -60,11 +60,11 @@ export class ItemsService extends Service<ItemsProps, Items> {
     markDirty(this);
   }
 
-  async $restoreTransient() {
+  async $init() {
     this.filteredItems = this.$state.items;
   }
 
-  async $materializeState(): Promise<Items> {
+  async $newState(): Promise<Items> {
     const host = this.$element;
     return {
       completed: 0,

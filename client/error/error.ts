@@ -25,13 +25,14 @@ export const enum QError {
   Injection_wrongMethodThis_expected_actual = 203,
   Injection_missingSerializedState_serviceKey_element = 204,
   Injection_notEventInjector = 205,
+  Injection_notFound_element = 206,
   // Services 300-399
   Service_notValidKey_key = 300,
   Service_keyAlreadyExists_key = 301,
   Service_invalidAttribute_name = 303,
   Service_missingExpandoOrState_attrName = 304,
   Service_elementMissingServiceAttr_element_attr = 305,
-  Service_noState_service = 306,
+  Service_noState_service_props = 306,
   Service_expected_obj = 307,
   Service_overridesConstructor_service = 308,
   Service_keyMissingParts_key_key = 309,
@@ -50,6 +51,7 @@ export const enum QError {
   Component_notFound_component = 405,
   Component_doesNotMatch_component_actual = 406,
   Component_missingTemplateQRL_component = 407,
+  Component_noState_component_props = 408,
   // Provider 500-599
   Provider_unrecognizedFormat_value = 500,
   // Render 600-699
@@ -105,6 +107,7 @@ function codeToText(code: QError): string {
       "Service key '{}' is found on '{}' but does not contain state. Was 'serializeState()' not run during dehydration?",
     [QError.Injection_notEventInjector]:
       "Injector is being used as 'EventInjector' but it was 'ElementInjector'. Have you used a provider which expects 'EventInjector' in 'ElementInjector' context?",
+    [QError.Injection_notFound_element]: "No injector can be found starting at '{}'.",
     //////////////
     [QError.Service_notValidKey_key]:
       "Data key '{}' is not a valid key.\n" +
@@ -119,8 +122,8 @@ function codeToText(code: QError): string {
       "Found '{}' but expando did not have service and attribute did not have state.",
     [QError.Service_elementMissingServiceAttr_element_attr]:
       "Element '{}' is missing service attribute definition '{}'.",
-    [QError.Service_noState_service]:
-      "Service '{}' invoked wth no state and '$materializeState' method was not defined.",
+    [QError.Service_noState_service_props]:
+      "Unable to create state for service '{}' with props '{}' because no state found and '$newState()' method was not defined on service.",
     [QError.Service_expected_obj]: "'{}' is not an instance of 'Service'.",
     [QError.Service_overridesConstructor_service]:
       "'{}' overrides 'constructor' property preventing 'ServiceType' retrieval.",
@@ -152,6 +155,8 @@ function codeToText(code: QError): string {
       "Requesting component '{}' does not match existing component '{}'. Verify that the two components have distinct '$templateQRL's.",
     [QError.Component_missingTemplateQRL_component]:
       "Expecting Component '{}' to have static '$templateQRL' property, but none was found.",
+    [QError.Component_noState_component_props]:
+      "Unable to create state for component '{}' with props '{}' because no state found and '$newState()' method was not defined on component.",
     //////////////
     [QError.Provider_unrecognizedFormat_value]: "Unrecognized expression format '{}'.",
     //////////////

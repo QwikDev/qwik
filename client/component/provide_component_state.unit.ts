@@ -23,4 +23,19 @@ describe('provideComponentState', () => {
       value: 'worked',
     });
   });
+
+  it('should inject empty state', () => {
+    const fixture = new ComponentFixture();
+    expect(() => provideComponentState()(fixture.injector)).to.throw(
+      "Can't find state on host element."
+    );
+  });
+
+  it('should inject JSON state', () => {
+    const fixture = new ComponentFixture();
+    const state = { prop: 'value' };
+    fixture.host.setAttribute('::', './qrl');
+    fixture.host.setAttribute(':.', JSON.stringify(state));
+    expect(provideComponentState()(fixture.injector)).to.eql(state);
+  });
 });

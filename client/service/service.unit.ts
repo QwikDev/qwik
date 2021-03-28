@@ -257,7 +257,7 @@ export class GreeterService extends Service<GreeterProps, Greeter> {
   static $qrl = QRL<GreeterService>`service:/service.unit.GreeterService`;
   static $keyProps = ['salutation', 'name'];
 
-  async $materializeState($keyProps: GreeterProps): Promise<Greeter> {
+  async $newState($keyProps: GreeterProps): Promise<Greeter> {
     if ($keyProps.salutation == 'throw') {
       throw new Error($keyProps.name);
     }

@@ -101,10 +101,18 @@ export function setConfig(config: QConfig) {
   if (!config.baseURI.endsWith('/')) {
     config.baseURI = dirname(config.baseURI);
   }
+  config.baseURI = normalizeBaseUri(config.baseURI);
   configs.push(config);
   configs.sort((a, b) => {
     return b.baseURI.length - a.baseURI.length;
   });
+}
+
+function normalizeBaseUri(baseURI: string): string {
+  if (baseURI.startsWith('/')) {
+    baseURI = 'file://' + baseURI;
+  }
+  return baseURI;
 }
 
 /**
@@ -117,6 +125,7 @@ export function setConfig(config: QConfig) {
  */
 export function getConfig(path?: string): QConfig {
   if (path != null) {
+    path = normalizeBaseUri(path);
     for (let i = 0; i < configs.length; i++) {
       const config = configs[i];
       if (path.startsWith(config.baseURI)) {

@@ -23,6 +23,8 @@ import { Injector, Provider } from './types.js';
  * )
  * ```
  *
+ * @param provider - `Provider` to wrap in lazy provider.
+ * @public
  */
 export function provideProviderOf<T>(provider: Provider<T>): Provider<() => Promise<T>> {
   return async function resolveInjector(injector: Injector): Promise<() => Promise<T>> {

@@ -11,7 +11,7 @@ export type PromiseTree<T> = T | Promise<T> | Array<PromiseTree<T>>;
 /**
  * Converts a tree of Promises into a flat array of resolved promise values.
  *
- * @param tree array of arrays of values or promises of values.
+ * @param tree - array of arrays of values or promises of values.
  * @returns a `Promise` of array of values.
  */
 export function flattenPromiseTree<T>(tree: PromiseTree<T>): Promise<T[]> {

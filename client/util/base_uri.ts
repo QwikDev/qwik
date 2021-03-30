@@ -13,7 +13,7 @@ import { qError, QError } from '../error/error.js';
 /**
  * Return the baseUri from the stack trace.
  *
- * @param offset number of frames to look above the invocation of the call site. This is a negative number.
+ * @param offset - number of frames to look above the invocation of the call site. This is a negative number.
  */
 export function getBaseUri(offset: number = 0): string {
   qDev && assertLessOrEqual(offset, 0, '`offset` should be <= 0 was: ' + offset);

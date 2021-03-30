@@ -40,7 +40,8 @@ import { EventInjector, EventProvider } from './types.js';
  * template is in control where the handler should be located and than how to read the `value`
  * from the input.
  *
- * @param parameterName Which parameter name should be read from the `url.searchParams.get(parameterName)`
+ * @param parameterName - Which parameter name should be read from the `url.searchParams.get(parameterName)`
+ * @public
  */
 export function provideQrlExp<T>(parameterName: string): EventProvider<T> {
   return function qrlExpProvider(eventInjector: EventInjector): any {

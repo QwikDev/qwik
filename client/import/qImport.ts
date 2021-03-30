@@ -16,13 +16,14 @@ let importCache: Map<string, unknown | Promise<unknown>>;
 /**
  * Lazy load a `QRL` symbol and returns the resulting value.
  *
- * @param base `QRL`s are relative, and therefore they need a base for resolution.
+ * @param base -`QRL`s are relative, and therefore they need a base for resolution.
  *    - `Element` use `base.ownerDocument.baseURI`
  *    - `Document` use `base.baseURI`
  *    - `string` use `base` as is
  *    - `QConfig` use `base.baseURI`
- * @param url A relative URL (as `string` or `QRL`) or fully qualified `URL`
+ * @param url - A relative URL (as `string` or `QRL`) or fully qualified `URL`
  * @returns A cached value synchronously or promise of imported value.
+ * @public
  */
 export function qImport<T>(
   base: Element | Document | string | QConfig,
@@ -54,7 +55,7 @@ export function qImport<T>(
 /**
  * Retrieves the base URI.
  *
- * @param base `QRL`s are relative, and therefore they need a base for resolution.
+ * @param base -`QRL`s are relative, and therefore they need a base for resolution.
  *    - `Element` use `base.ownerDocument.baseURI`
  *    - `Document` use `base.baseURI`
  *    - `string` use `base` as is
@@ -70,12 +71,12 @@ export function toBaseURI(base: QConfig | Element | Document | string): string {
 /**
  * Convert relative base URI and relative URL into a fully qualified URL.
  *
- * @param base `QRL`s are relative, and therefore they need a base for resolution.
+ * @param base -`QRL`s are relative, and therefore they need a base for resolution.
  *    - `Element` use `base.ownerDocument.baseURI`
  *    - `Document` use `base.baseURI`
  *    - `string` use `base` as is
  *    - `QConfig` use `base.baseURI`
- * @param url relative URL
+ * @param url - relative URL
  * @returns fully qualified URL.
  */
 export function toUrl(baseURI: string, url: string | QRL | URL): URL {
@@ -90,7 +91,7 @@ export function toUrl(baseURI: string, url: string | QRL | URL): URL {
 /**
  * Removes URL decorations such as search and hash and returns naked URL for importing.
  *
- * @param url to clean.
+ * @param url - to clean.
  * @returns naked URL.
  */
 export function toImportPath(url: URL): string {

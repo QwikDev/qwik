@@ -13,7 +13,7 @@ import { qError, QError } from '../error/error.js';
  *
  * NOTE: This function ignores all special attributes such as `::`.
  *
- * @param element Element to read attributes from.
+ * @param element - Element to read attributes from.
  */
 export function readElementAttributes(element: Element): { [attribute: string]: string } {
   const props: { [attribute: string]: string } = {};

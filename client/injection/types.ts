@@ -23,6 +23,7 @@ import {
  * for hydrating and serializing the state of the components and services.
  *
  * See: `injector.md`
+ * @public
  */
 export interface Injector {
   /**
@@ -68,8 +69,8 @@ export interface Injector {
    * await injector.invoke(injectedFn);
    * ```
    *
-   * @param fn Function to resolve and invoke.
-   * @param rest Additional parameters to pass to function after the injected parameters.
+   * @param fn - Function to resolve and invoke.
+   * @param rest - Additional parameters to pass to function after the injected parameters.
    */
   invoke<SELF, PROVIDERS extends any[], REST extends any[], RET>(
     fn: InjectedFunction<SELF, PROVIDERS, REST, RET>,
@@ -88,7 +89,7 @@ export interface Injector {
    * Because creation of component may involve invoking `Component.$newState`
    * which is asynchronous the method itself is asynchronous.
    *
-   * @param componentType
+   * @param componentType - Component type to retrieve.
    */
   getComponent<COMP extends IComponent<any, any>>(
     componentType: ComponentType<COMP>
@@ -152,9 +153,9 @@ export interface Injector {
    * once the injector gets to `<parent>` it can't find `foo:432` but it can retrieve `:foo`
    * which can be instantiated and then `Foo.$newState` can be invoke to compute the state.
    *
-   * @param serviceKey The key of state which should be retrieved.
-   * @param state Optional state which the service should be set to upon retrieval.
-   * @param serviceType Optional state type. If not provide the injector looks it up from the
+   * @param serviceKey - The key of state which should be retrieved.
+   * @param state - Optional state which the service should be set to upon retrieval.
+   * @param serviceType - Optional state type. If not provide the injector looks it up from the
    *        service `QRL` attribute.
    */
   getService<SERVICE extends IService<any, any>>(
@@ -170,7 +171,7 @@ export interface Injector {
    * of this method is that it is faster in the case when state can be deserialized from the DOM.
    * This is usually useful for render methods which don't need to mutate the state for rendering.
    *
-   * @param serviceKey The key of state which should be retrieved.
+   * @param serviceKey - The key of state which should be retrieved.
    */
   getServiceState<SERVICE extends IService<any, any>>(
     serviceKey: ServiceStateOf<SERVICE> | ServiceKey
@@ -181,6 +182,7 @@ export interface Injector {
  * Represents a class constructor.
  *
  * This type is often used when Qoot needs to refer to classes constructors.
+ * @public
  */
 export interface ConcreteType<T, ARGS extends any[] = [...any]> extends Function {
   new (...args: ARGS): T;
@@ -191,6 +193,7 @@ export interface ConcreteType<T, ARGS extends any[] = [...any]> extends Function
  *
  * The function instance is same as the one which was passed into the inject with
  * provider information attached to the function which allows injector to invoke it.
+ * @public
  */
 export interface InjectedFunction<SELF, ARGS extends any[], REST extends any[], RET> {
   /**
@@ -255,6 +258,7 @@ export interface InjectedFunction<SELF, ARGS extends any[], REST extends any[], 
  *   }
  * }
  * ```
+ * @public
  */
 export type Provider<T> = (injector: Injector) => T | Promise<T>;
 

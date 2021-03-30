@@ -55,6 +55,8 @@ export function provideURL(): EventProvider<URL> {
  *   }
  * }
  * ```
+ * @param parameterName - URL parameter name to provide.
+ * @public
  */
 export function provideUrlProp(parameterName: string): EventProvider<string | null> {
   return function eventPropProvider(injector: EventInjector) {

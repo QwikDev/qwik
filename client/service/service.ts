@@ -143,7 +143,7 @@ import { ServiceKey, ServicePromise, ServicePropsOf, ServiceStateOf } from './ty
  * ```
  * Note: `$release` is not the same thing as deleting/destroying the data. It merely tells Qoot to
  * not serialize the state into the DOM/HTML.
- *
+ * @public
  */
 export class Service<PROPS, STATE> {
   private static $config: QConfig = null!;
@@ -253,7 +253,7 @@ export class Service<PROPS, STATE> {
    * <div ::my-service="somePath/MyService">
    * ```
    *
-   * @param element Element where the service definition should be attached.
+   * @param element - Element where the service definition should be attached.
    */
   static $attachService<SERVICE extends Service<any, any>>(
     this: { new (...args: any[]): SERVICE },
@@ -302,7 +302,7 @@ export class Service<PROPS, STATE> {
    *      my-service:123="{text: 'some text'}">
    * ```
    *
-   * @param element Element where the service definition should be attached.
+   * @param element - Element where the service definition should be attached.
    */
   static $attachServiceState<SERVICE extends Service<any, any>>(
     this: { new (...args: any[]): SERVICE },
@@ -330,9 +330,9 @@ export class Service<PROPS, STATE> {
    *   - If no state exist in HTML/DOM invoke `Service.$newState`.
    *     - Possibly throw an error.
    *
-   * @param element Element to which the service should be (or is) attached
-   * @param propsOrKey Service key either in string or `Props` format.
-   * @param state Optional new state for the service.
+   * @param element - Element to which the service should be (or is) attached
+   * @param propsOrKey - Service key either in string or `Props` format.
+   * @param state - Optional new state for the service.
    * @returns `ServicePromise` which contains the `$key` property for synchronous retrieval.
    */
 
@@ -365,7 +365,7 @@ export class Service<PROPS, STATE> {
    * Keys contain values only, a Prop contains key/value pairs. This function uses
    * `Service.$keyProps` to identify with which property each value should be associated with.
    *
-   * @param key Service key to convert to props
+   * @param key - Service key to convert to props
    * @returns Service Props
    */
   static $keyToProps<SERVICE extends Service<any, any>>(
@@ -387,7 +387,7 @@ export class Service<PROPS, STATE> {
    * Keys contain values only, a Prop contains key/value pairs. This function uses
    * `Service.$keyProps` to identify with which property each value should be associated with.
    *
-   * @param props Service props
+   * @param props - Service props
    * @returns `ServiceKey`
    */
   static $propsToKey<SERVICE extends Service<any, any>>(
@@ -434,8 +434,8 @@ export class Service<PROPS, STATE> {
    * }
    * ```
    *
-   * @param qrl QRL to the function to lazy load and execute.
-   * @param args arguments to pass to the QRL function.
+   * @param qrl - QRL to the function to lazy load and execute.
+   * @param args - arguments to pass to the QRL function.
    * @returns
    */
   async $invokeQRL<ARGS extends any[], RET>(
@@ -468,7 +468,7 @@ export class Service<PROPS, STATE> {
    * }
    * ```
    *
-   * @param props
+   * @param props - Service Props
    */
   $newState(keyProps: PROPS): Promise<STATE> {
     const serviceType = this.constructor as typeof Service;
@@ -509,8 +509,8 @@ export class Service<PROPS, STATE> {
 
 /**
  * Retrieve the `ServiceType` from the `Service`
- * @param service
- * @returns
+ * @param service - * @returns
+ * @internal
  */
 function getServiceType<SERVICE extends Service<any, any>>(service: SERVICE): typeof Service {
   if (!(service instanceof Service)) {

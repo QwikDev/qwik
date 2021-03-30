@@ -16,9 +16,9 @@ import { AttributeMarker } from '../../util/markers.js';
 /**
  * Apply Props to Element
  *
- * @param element `Element` onto which attributes need to be applied.
- * @param props `Props` to apply
- * @param detectChanges if true, ready the previous attributes to see if any have changed.
+ * @param element -`Element` onto which attributes need to be applied.
+ * @param props -`Props` to apply
+ * @param detectChanges - if true, ready the previous attributes to see if any have changed.
  */
 export function applyAttributes(
   element: Element,

@@ -80,9 +80,42 @@ export interface ServicePromise<T> extends Promise<T> {
 
 /**
  * String representation of the service key.
+ *
+ * A service is uniquely identified by its props. Props is an object of key/value pairs which is
+ * used to look up the service. When referring to service in DOM it is necessary to serialize the
+ * Props into a unique strings which is a valid DOM attribute. To do that the Prop values are
+ * concatenated into a `ServiceKey` like so `<service_name>:<value1>:<value2>:...`. The order
+ * of values is determined by the `Service.$keyProps` property.
+ *
+ * When Service is working with the Props it is more connivent to use the deserialized version of
+ * the `ServiceKey` which is Props.
+ *
+ * See: `Service.$keyProps`
+ *
+ * Example:
+ *
+ * ```
+ * interface MyProps {
+ *   id: string;
+ * }
+ *
+ * class MyService extends Service<MyProps, {}> {
+ *   $qrl = QRL`./path/to/service/MyService`;
+ *   $type = 'myService';
+ *   $keyProps = ['id'];
+ * }
+ *
+ * expect(MyService.$propsToKey({id: 123})).toEqual('my-service:123');
+ * expect(MyService.$keyToProps('my-service:123')).toEqual({id: 123});
+ * ```
+ *
+ * @public
  */
 export type ServiceKey = string;
 
+/**
+ * @internal
+ */
 export function isService(value: any): value is IService<any, any> {
   return Object.prototype.hasOwnProperty.call(value, '$key');
 }

@@ -14,6 +14,24 @@ import { getConfig } from '../config/qGlobal.js';
 import { getFilePathFromFrame } from '../util/base_uri.js';
 import { isPromise } from '../util/promises.js';
 
+/**
+ * `QRL` is a type safe version of QRL.
+ *
+ * `QRL` is just a string at runtime. For type safety reasons `QRL` type is used
+ * to force the developer to mark the string like so:
+ *
+ * ```
+ * qImport(QRL`pathToResource`);
+ * ```
+ *
+ * Marking the QRL with a tagged-template-literal allows for two things:
+ * 1. the `QRL` tag can verify that the URL is valid eagerly (and report the errors as soon as
+ *    possible.)
+ * 2. the `QRL` tag easily identifies all of the `QRL`s in the application allowing future
+ *    tooling to manipulate it.
+ *
+ * @public
+ */
 export type QRL<T = any> = QRL_<T>;
 /**
  * Tag template literal factory.
@@ -24,7 +42,7 @@ export type QRL<T = any> = QRL_<T>;
  * ```
  * QRL`./path_to_resource`
  * ```
- * @publicAPI
+ * @public
  */
 export function QRL<T = any>(
   messageParts: TemplateStringsArray,

@@ -13,6 +13,8 @@ import { Injector, Provider } from './types.js';
  *
  * Provides a reference to the closet `Injector`. This may be the `EventInjector`
  * if the provider was use in an `injectEventHandler`.
+ *
+ * @public
  */
 export function provideInjector(): Provider<Injector> {
   return async function resolveInjector(injector: Injector): Promise<Injector> {

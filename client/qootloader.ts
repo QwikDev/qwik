@@ -29,7 +29,7 @@ interface QConfig {
  * Determine all of the browser events and set up global listeners for them.
  * If browser triggers event search for the lazy load URL and `import()` it.
  *
- * @param document Document to use for setting up global listeners, and to
+ * @param document - Document to use for setting up global listeners, and to
  *     determine all of the browser supported events.
  */
 (function (document: Document) {
@@ -40,7 +40,7 @@ interface QConfig {
    * looking for corresponding `(${event.type})`. If found the event's URL
    * is parsed and `import()`ed.
    *
-   * @param event Browser event.
+   * @param event - Browser event.
    */
   async function eventProcessor(event: Event) {
     const eventName = 'on:' + event.type;

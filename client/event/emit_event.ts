@@ -35,6 +35,11 @@ import { fromCamelToKebabCase } from '../util/case.js';
  *
  * The `emitEvent` takes URL `$type` property as the new event name to look for. Any additional
  * properties on the URL will be appended to the event object.
+ *
+ * @param element - `Element` of the original event.
+ * @param event - Original `Event`.
+ * @param url - Original `URL`.
+ * @public
  */
 export function emitEvent(element: HTMLElement, event: Event, url: URL): Promise<any> {
   const $type = url.searchParams.get('$type');

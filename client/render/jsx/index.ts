@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
+import './html.js';
 export { jsxFactory, jsxDeclareComponent } from './factory.js';
 export { jsxRender } from './render.js';
-export { JSX_IntrinsicElements } from './html.js';
 export { markDirty } from './mark_dirty.js';

@@ -30,6 +30,7 @@ import { Provider, Injector } from '../injection/types.js';
  *   }
  * );
  * ```
+ * @public
  */
 export function provideComponentProps<T>(): Provider<T> {
   return function propsComponentProvider(injector: Injector): T {

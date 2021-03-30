@@ -28,6 +28,7 @@ import { EventInjector, EventProvider } from './types.js';
  *   }
  * }
  * ```
+ * @public
  */
 export function provideEvent(): EventProvider<Event> {
   return function eventProvider(injector: EventInjector) {

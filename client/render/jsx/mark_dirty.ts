@@ -20,15 +20,40 @@ interface QDocument extends Document {
   $qScheduledRender?: Promise<HostElements> | null;
 }
 
-// TODO: Tests
-// TODO: docs
-// TODO: Unify component/services
+/**
+ * Marks `Component` or `Service` dirty.
+ *
+ * # `Component`
+ * Marking a `Component` dirty means that that component needs to be re-rendered.
+ * Marking a `Component` dirty will add `on.render` attribute to each component which `markDirty`
+ * is invoked on..
+ *
+ * # `Service`
+ * Marking a `Service` dirty means that all `Component`s which depend on that specific instance
+ * `ServiceKey` are also marked dirty. To get a list of `Component`s a `querySelectorAll` is used
+ * to retrieve all `Components` which have `bind:service-key` attribute and subsequently mark them
+ * with `on.render` attribute.
+ *
+ * This in effect propagates any changes to the service to all components which have the said
+ * service as an input.
+ *
+ * # Reconciliation
+ *
+ * Marking a `Component` or `Service` dirty will schedule a `requestAnimationFrame` to reconcile
+ * the `Component`s which are marked with `on.render` attribute. When `requestAnimationFrame` fires
+ * a `querySelectorAll` is used to retrieve all components marked with `on.render` attribute and
+ * `jsxRender` method is invoked on them, and `on.render` attribute cleared.
+ *
+ * @param componentOrService - `Component` or `Service` instance.
+ * @returns
+ * @public
+ */
 export function markDirty(
-  component: IComponent<any, any> | IService<any, any>
+  componentOrService: IComponent<any, any> | IService<any, any>
 ): Promise<HostElements> {
-  if (isService(component)) return markServiceDirty(component);
+  if (isService(componentOrService)) return markServiceDirty(componentOrService);
   qDev && assertNotEqual(typeof requestAnimationFrame, 'undefined');
-  const host = component.$host;
+  const host = componentOrService.$host;
   // TODO: pull out constant strings;
   const document = host.ownerDocument as QDocument;
   host.setAttribute('on:.render', host.getAttribute('::')!);

@@ -12,6 +12,8 @@ import global from '../util/global.js';
 
 /**
  * Qoot configuration information.
+ *
+ * @public
  */
 export interface QConfig {
   /**
@@ -36,6 +38,7 @@ export interface QConfig {
  * }
  * ```
  * The `QRL` looks up `foo` in `QRLProtocolMap` resulting in `somePath/bar`
+ * @public
  */
 export interface QRLProtocolMap {
   [protocol: string]: string;
@@ -56,6 +59,8 @@ declare global {
 
 /**
  * Retrieves the current `QRLProtocolMap` from global configuration.
+ *
+ * @internal
  */
 export function getQRLProtocolMap(): QRLProtocolMap {
   if (!global.Q) {
@@ -95,7 +100,8 @@ const configs: QConfig[] = [];
  * });
  * ```
  *
- * @param config
+ * @param config - `QConfig` to add.
+ * @public
  */
 export function setConfig(config: QConfig) {
   if (!config.baseURI.endsWith('/')) {
@@ -122,6 +128,7 @@ function normalizeBaseUri(baseURI: string): string {
  *
  * @param path
  * @returns
+ * @internal
  */
 export function getConfig(path?: string): QConfig {
   if (path != null) {

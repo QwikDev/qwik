@@ -18,7 +18,8 @@ import { IService, ServiceStateOf } from './types.js';
  * of this provider is that it is faster in the case when state can be deserialized from the DOM.
  * This is usually useful for render methods which don't need to mutate the state for rendering.
  *
- * @param serviceKey The key of state which should be retrieved. (This can be another provider)
+ * @param serviceKey - The key of state which should be retrieved. (This can be another provider)
+ * @public
  */
 export function provideServiceState<SERVICE extends IService<any, any>>(
   id: string | Provider<string>

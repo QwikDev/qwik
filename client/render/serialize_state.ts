@@ -10,8 +10,16 @@ import { AttributeMarker } from '../util/markers.js';
 import { getInjector } from '../injection/element_injector.js';
 import { isHtmlElement } from '../util/types.js';
 
-// TODO: test
-// TODO: docs
+/**
+ * Serialize the `Injector` state into the DOM.
+ *
+ * This function locates all of the injectors (which are child of `element`) and serializes their
+ * state into the DOM. This prepares the DOM for dehydration.
+ *
+ *
+ * @param element - `Element` (or `Document`) where injectors should be found and serialized.
+ * @public
+ */
 export function serializeState(element: Element | Document) {
   if (isHtmlElement(element)) {
     serializeNode(element);

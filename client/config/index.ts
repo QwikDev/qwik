@@ -6,4 +6,4 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-export { getQRLProtocolMap, QRLProtocolMap, QConfig, setConfig, getConfig } from './qGlobal.js';
+export { QRLProtocolMap, QConfig, setConfig } from './qGlobal.js';

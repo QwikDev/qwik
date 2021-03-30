@@ -30,6 +30,7 @@ import type { IComponent as IComponent } from './types.js';
  *   }
  * }
  * ```
+ * @public
  */
 export class Component<PROPS, STATE> implements IComponent<PROPS, STATE> {
   /**
@@ -92,7 +93,7 @@ export class Component<PROPS, STATE> implements IComponent<PROPS, STATE> {
    * - `$init()`
    * - Service returned by the `Injector`.
    *
-   * @param props Component props.
+   * @param props - Component props.
    */
   $newState(props: PROPS): Promise<STATE> | STATE {
     const componentType = this.constructor as typeof Component;

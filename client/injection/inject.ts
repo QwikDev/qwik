@@ -34,9 +34,10 @@ import { ConcreteType, InjectedFunction, ProviderReturns } from './types.js';
  * await injector.invoke(myFn);
  * ```
  *
- * @param args Takes a list of `async` functions. The 0 through n-1 functions compute a value
+ * @param args - Takes a list of `async` functions. The 0 through n-1 functions compute a value
  *   and the last function is invoked as a handler with the compute value. The last function
  *   is invoked with `this` pointing to the transient component state.
+ * @public
  */
 export function injectFunction<ARGS extends any[], REST extends any[], RET>(
   ...args: [...ARGS, (...args: [...ProviderReturns<ARGS>, ...REST]) => RET]
@@ -76,9 +77,10 @@ export function injectFunction<ARGS extends any[], REST extends any[], RET>(
  * await injector.invoke(greet, new GreetService());
  * ```
  *
- * @param args Takes a list of `async` functions. The 0 through n-1 functions compute a value
+ * @param args - Takes a list of `async` functions. The 0 through n-1 functions compute a value
  *   and the last function is invoked as a handler with the compute value. The last function
  *   is invoked with `this` pointing to the transient component state.
+ * @public
  */
 export function injectMethod<SELF, ARGS extends any[], REST extends any[], RET>(
   ...args: [

@@ -33,8 +33,9 @@ import { EventHandler } from './types.js';
  * }
  * ```
  *
- * @param args a list consisting of Component type, zero or more providers and a handler function.
+ * @param args - a list consisting of Component type, zero or more providers and a handler function.
  * @returns A promise of handler function return.
+ * @public
  */
 export function injectEventHandler<SELF, ARGS extends any[], RET>(
   ...args: [

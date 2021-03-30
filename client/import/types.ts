@@ -33,7 +33,7 @@
  * In dev mode (`qDev=true`) the `QRL` eagerly tries to resolve the URLs to verify that they
  * are correct. This is done to notify the developer of any mistakes as soon as possible.
  *
- * @publicAPI
+ * @public
  */
 export interface QRL<T = any> {
   __brand__: 'QRL';

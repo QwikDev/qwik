@@ -31,10 +31,12 @@ import { QError, qError } from '../error/error.js';
  * );
  * ```
  *
- * @param throwIfNotFound Should an exception be thrown if state is not found.
+ * @param throwIfNotFound - Should an exception be thrown if state is not found.
  *   (By default the system throws an exception as most of the time state is required)
+ * @public
  */
 export function provideComponentState<S>(throwIfNotFound: false): Provider<S | undefined>;
+/** @public */
 export function provideComponentState<S>(throwIfNotFound?: boolean): Provider<S>;
 export function provideComponentState<S>(throwIfNotFound: boolean = true): Provider<S | undefined> {
   return function componentStateProvider(injector: Injector): S | undefined {

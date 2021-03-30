@@ -40,8 +40,9 @@ import { Provider, Injector } from '../injection/types.js';
  * }
  * ```
  *
- * @param name Name of the property to inject.
+ * @param name - Name of the property to inject.
  * @returns
+ * @public
  */
 export function provideComponentProp(name: string): Provider<string> {
   return function componentPropProvider(injector: Injector): string {

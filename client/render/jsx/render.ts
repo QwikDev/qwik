@@ -24,11 +24,12 @@ import { JSXFactory, JSXNode } from './types.js';
 /**
  * Render JSX into a host element reusing DOM nodes when possible.
  *
- * @param host Host element which will act as a parent to `jsxNode`. When
+ * @param host - Host element which will act as a parent to `jsxNode`. When
  *     possible the rendering will try to reuse existing nodes.
- * @param jsxNode JSX to render
- * @param overrideDocument optional document used for creating new DOM nodes
+ * @param jsxNode - JSX to render
+ * @param overrideDocument - optional document used for creating new DOM nodes
  *     (used global `document` otherwise)
+ * @public
  */
 export async function jsxRender(
   host: Element | Document,

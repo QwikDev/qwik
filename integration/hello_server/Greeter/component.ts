@@ -42,7 +42,7 @@ export class GreeterComponent extends Component<GreeterProps, GreeterState> {
    * Method to create initial state if no state can be found in the DOM under the
    * `:.` attribute.
    *
-   * @param props Component properties.
+   * @param props - Component properties.
    */
   $newState(props: GreeterProps): GreeterState {
     // In this example the `GreeterState` is initialized from the `GreeterProps`.

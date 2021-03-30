@@ -292,7 +292,7 @@ export function getComponentHost(element: Element): Element {
 /**
  * Returns the attribute where the service QRL is stored.
  *
- * @param key service key attribute name (ie: `foo:123:456`)
+ * @param key - service key attribute name (ie: `foo:123:456`)
  * @returns Service attribute (ie: `::foo`)
  */
 export function keyToServiceAttribute(key: string): string {
@@ -311,10 +311,12 @@ export function keyToServiceAttribute(key: string): string {
  *
  * See: `serializeState`
  *
- * @param element `Element` where the injector should be retrieved (or created)
- * @param create Should the function lazy create the injector or just return `null`
+ * @param element -`Element` where the injector should be retrieved (or created)
+ * @param create - Should the function lazy create the injector or just return `null`
+ * @public
  */
 export function getInjector(element: Element): ElementInjector;
+/** @public */
 export function getInjector(element: Element, create: false): ElementInjector | null;
 export function getInjector(element: Element, create: boolean = true): ElementInjector | null {
   if (!isHtmlElement(element)) {

@@ -37,7 +37,8 @@ import { IService } from './types.js';
  * once the injector gets to `<parent>` it can't find `foo:432` but it can retrieve `:foo`
  * which can be instantiated and then `Foo.$newState` can be invoke to compute the state.
  *
- * @param serviceKey The key of state which should be retrieved.
+ * @param serviceKey - The key of state which should be retrieved.
+ * @public
  */
 export function provideService<SERVICE extends IService<any, any>>(
   id: string | Provider<string>

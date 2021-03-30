@@ -19,11 +19,12 @@ import { stringify } from '../util/stringify.js';
  * of values is defined in `ServiceType.$keyProps` and the service key
  * prefix is defined in `ServiceType.$type`
  *
- * @param serviceType `ServiceType` used to extract `ServiceType.$type` and
+ * @param serviceType - `ServiceType` used to extract `ServiceType.$type` and
  *        `ServiceType.$keyProps` for the conversion process.
- * @param props  A `Props` object where key values need to be converted to
+ * @param props - A `Props` object where key values need to be converted to
  *          service-key according to the `ServiceType.$keyProps`.
  * @returns service-key.
+ * @internal
  */
 export function propsToKey(serviceType: ServiceType<any>, props: Record<string, any>) {
   let id = fromCamelToKebabCase(serviceType.$type) + ':';
@@ -47,11 +48,12 @@ export function propsToKey(serviceType: ServiceType<any>, props: Record<string, 
  *
  * Service keys are of format `service:value1:value2:...`
  *
- * @param serviceType `ServiceType` used to extract `ServiceType.$type` and
+ * @param serviceType - `ServiceType` used to extract `ServiceType.$type` and
  *        `ServiceType.$keyProps` for the conversion process
- * @param key Service keys are of format `service:value1:value2:...`
+ * @param key - Service keys are of format `service:value1:value2:...`
  * @returns A `Props` object where key values have been convert to properties
  *          according to the `ServiceType.$keyProps`.
+ * @internal
  */
 export function keyToProps(
   serviceType: ServiceType<any>,
@@ -101,8 +103,9 @@ export function keyToProps(
  * puts constraints on what characters are allowed in attributes.
  * This function verifies that the key is valid.
  *
- * @param value Key part
+ * @param value - Key part
  * @returns Returns `value` or throws an error.
+ * @internal
  */
 export function validateKeyPart(value: any): string {
   const text = value == null ? '' : String(value);
@@ -116,8 +119,14 @@ export function validateKeyPart(value: any): string {
 /**
  * Retrieve `ServiceKey` from Service State.
  *
- * @param value Service State
+ * Qoot stores `ServiceKey` in the state of the Service as `$key` even
+ * if it is not declared in the State type. Use this method to retrieve it.
+ *
+ * This method is convenient when Service key is needed but only Service State is available.
+ *
+ * @param value - Service State
  * @returns `ServiceKey`
+ * @public
  */
 export function serviceStateKey(value: any): ServiceKey {
   const key = value.$key;

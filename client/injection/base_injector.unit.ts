@@ -80,6 +80,23 @@ describe('BaseInjector', () => {
       expect(await hostInjector.invoke(injectedFn, null, 'arg2')).to.eql('ret');
       expect(log).to.eql([{ $host: fixture.host, $props: {}, $state: {} }, 'arg0', 'arg1', 'arg2']);
     });
+    describe('error', async () => {
+      it('should include declare context when throwing error', async () => {
+        fixture.host.setAttribute(AttributeMarker.ComponentTemplate, MyComponent.$templateQRL);
+        const injectedFn = injectMethod(
+          MyComponent,
+          () => Promise.reject('ProviderRejection'),
+          function () {}
+        );
+        try {
+          await hostInjector.invoke(injectedFn, null, 'arg2');
+          expect('should not get here').to.be.false;
+        } catch (e) {
+          expect(String(e)).to.contain('ProviderRejection');
+          expect(e.stack).to.match(/DECLARED .*base_injector\.unit/);
+        }
+      });
+    });
   });
 
   describe('invoke', () => {

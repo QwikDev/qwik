@@ -8,7 +8,7 @@
 
 import { expect } from 'chai';
 import { keyToServiceAttribute } from '../injection/element_injector.js';
-import { validateKeyPart, keyToProps, propsToKey } from './service_key.js';
+import { validateKeyPart, keyToProps, propsToKey, serviceStateKey } from './service_key.js';
 import { ServiceType } from './types.js';
 
 describe('service key', () => {
@@ -110,6 +110,19 @@ describe('service key', () => {
       expect(() => validateKeyPart('mixCase')).to.throw(
         `SERVICE-ERROR(Q-303): 'mixCase' is not a valid attribute. Attributes can only contain 'a-z' (lowercase), '0-9', '-' and '_'.`
       );
+    });
+  });
+
+  describe('serviceStateKey', () => {
+    it('should retrieve key', () => {
+      expect(serviceStateKey({ $key: 'theKey' })).to.equal('theKey');
+    });
+    describe('error', () => {
+      it('should throw error if not a key is passed in', () => {
+        expect(() => serviceStateKey({ something: 1 })).to.throw(
+          `SERVICE-ERROR(Q-316): Service state is missing '$key'. Are you sure you passed in state? Got '{"something":1}'.`
+        );
+      });
     });
   });
 });

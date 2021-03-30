@@ -93,7 +93,7 @@ async function main(__dirname: string, process: NodeJS.Process) {
 function readBundleContent(paths: string[]): string | null {
   for (let i = 0; i < paths.length; i++) {
     const path = paths[i];
-    const qootPath = join(path, 'bundle.js');
+    const qootPath = join(path, 'qoot.js');
     const content = fs.readFileSync(qootPath);
     if (content.length) {
       console.log('Found Qoot bundle:', qootPath);

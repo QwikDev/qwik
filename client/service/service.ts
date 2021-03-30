@@ -6,6 +6,7 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
+import { AttributeMarker } from '../util/markers.js';
 import { getConfig, QConfig } from '../config/qGlobal.js';
 import { qError, QError } from '../error/error.js';
 import { qImport } from '../import/qImport.js';
@@ -265,8 +266,8 @@ export class Service<PROPS, STATE> {
     if (!serviceType.$qrl) {
       throw qError(QError.Service_no$qrl_service, serviceType);
     }
-    // TODO: needs util method?
-    const attributeName = '::' + fromCamelToKebabCase(serviceType.$type);
+    const attributeName =
+      AttributeMarker.ServiceProviderPrefix + fromCamelToKebabCase(serviceType.$type);
     const currentQRL = element.getAttribute(attributeName);
     if (!currentQRL) {
       element.setAttribute(attributeName, String(serviceType.$qrl));
@@ -352,7 +353,21 @@ export class Service<PROPS, STATE> {
     return injector.getService(key, state, this as any);
   }
 
-  // TODO: docs
+  /**
+   * Converts `ServiceKey` into Service props.
+   *
+   * Service Keys are of format: `<serviceName>:<value1>:<value2>:...`.
+   * The purpose of the keys is to be globally unique identifiers in the application
+   * so that services can be identified. The Keys are string representations because
+   * it is important to be able to store the keys in the DOM.
+   *
+   * Service instances prefer to have parsed version of the key as Props.
+   * Keys contain values only, a Prop contains key/value pairs. This function uses
+   * `Service.$keyProps` to identify with which property each value should be associated with.
+   *
+   * @param key Service key to convert to props
+   * @returns Service Props
+   */
   static $keyToProps<SERVICE extends Service<any, any>>(
     this: { new (...args: any[]): SERVICE },
     key: ServiceKey
@@ -360,7 +375,21 @@ export class Service<PROPS, STATE> {
     return keyToProps(this as any, key) as ServicePropsOf<SERVICE>;
   }
 
-  // TODO: docs
+  /**
+   * Converts Service Prop into `ServiceKey`.
+   *
+   * Service Keys are of format: `<serviceName>:<value1>:<value2>:...`.
+   * The purpose of the keys is to be globally unique identifiers in the application
+   * so that services can be identified. The Keys are string representations because
+   * it is important to be able to store the keys in the DOM.
+   *
+   * Service instances prefer to have parsed version of the key as Props.
+   * Keys contain values only, a Prop contains key/value pairs. This function uses
+   * `Service.$keyProps` to identify with which property each value should be associated with.
+   *
+   * @param props Service props
+   * @returns `ServiceKey`
+   */
   static $propsToKey<SERVICE extends Service<any, any>>(
     this: { new (...args: any[]): SERVICE },
     props: ServicePropsOf<SERVICE>

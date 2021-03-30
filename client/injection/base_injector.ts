@@ -11,6 +11,7 @@ import { qError, QError } from '../error/error.js';
 import { IService, ServicePromise, ServiceStateOf, ServiceType } from '../service/types.js';
 import { extractPropsFromElement } from '../util/attributes.js';
 import '../util/qDev.js';
+import { resolveArgs } from './resolve_args.js';
 import { InjectedFunction, Injector, Props } from './types.js';
 
 export abstract class BaseInjector implements Injector {
@@ -28,7 +29,6 @@ export abstract class BaseInjector implements Injector {
   ): Promise<RET> {
     if (isInjectedFunction(fn)) {
       try {
-        const providerPromises = fn.$inject.map((provider) => provider && provider(this));
         const selfType = fn.$thisType;
         if (self && selfType && !(self instanceof (selfType as any))) {
           throw qError(
@@ -37,25 +37,23 @@ export abstract class BaseInjector implements Injector {
             (self as {}).constructor
           );
         }
+        const hasSelf = selfType && self == null;
+        const providerPromises = fn.$inject.map((provider) => provider && provider(this));
         if (selfType && self == null) {
           providerPromises.push(this.getComponent(selfType as any));
         }
-        return Promise.all(providerPromises).then((values) => {
-          if (selfType && self == null) {
-            self = values.pop();
-          }
-          values = values.concat(rest);
-          return (fn as any).apply(self, values as any);
-        });
+        return resolveArgs(
+          this,
+          hasSelf ? this.getComponent(selfType as any) : self,
+          ...fn.$inject
+        ).then(
+          (values: any[]) => {
+            return (fn as any).apply(values.shift(), values.concat(rest));
+          },
+          (error) => Promise.reject(addDeclaredInfo(fn, error))
+        );
       } catch (e) {
-        if (e instanceof Error && fn.$debugStack) {
-          const declaredFrames = fn.$debugStack.stack!.split('\n');
-          const declaredFrame = declaredFrames[2].trim();
-          const stack = e.stack!;
-          const msg = e.message;
-          e.stack = stack.replace(msg, msg + '\n      DECLARED ' + declaredFrame);
-        }
-        throw e;
+        throw addDeclaredInfo(fn, e);
       }
     } else {
       return Promise.resolve((fn as any).apply(null, rest));
@@ -87,6 +85,20 @@ export abstract class BaseInjector implements Injector {
   ): Promise<SERVICE>;
 
   abstract getParent(): Injector | null;
+}
+
+function addDeclaredInfo(fn: { $debugStack?: Error }, error: any) {
+  const debugStack = fn.$debugStack;
+  if (!debugStack) return error;
+  if (!(error instanceof Error)) {
+    error = new Error(String(error));
+  }
+  const declaredFrames = debugStack.stack!.split('\n');
+  const declaredFrame = declaredFrames[2].trim();
+  const stack = error.stack!;
+  const msg = error.message;
+  error.stack = stack.replace(msg, msg + '\n      DECLARED ' + declaredFrame);
+  return error;
 }
 
 function isInjectedFunction<SELF, ARGS extends any[], REST extends any[], RET>(

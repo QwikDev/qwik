@@ -8,7 +8,7 @@
 
 import { getInjector } from '../injection/element_injector.js';
 import { Injector } from '../injection/types.js';
-import { QRL } from '../qoot.js';
+import { QRL } from '../index.js';
 import { jsxRender } from '../render/jsx/render.js';
 import { JSXFactory } from '../render/jsx/types.js';
 import { HostElements } from '../render/types.js';

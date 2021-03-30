@@ -6,8 +6,7 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { ServiceKey } from 'qoot';
-import { markDirty, QRL, Service, getInjector } from '../../qoot.js';
+import { markDirty, QRL, Service, getInjector, ServiceKey, serviceStateKey } from '../../qoot.js';
 import { Item, ItemService } from '../Item/public.js';
 
 export interface ItemsProps {}
@@ -78,10 +77,4 @@ export class ItemsService extends Service<ItemsProps, Items> {
       ],
     };
   }
-}
-
-// TODO: Move this to '/client'
-function serviceStateKey(value: any): ServiceKey {
-  // TODO: Error handling.
-  return value.$key;
 }

@@ -47,5 +47,10 @@ export const enum AttributeMarker {
   /**
    * Length of prefix used to identify on listeners.
    */
-  BindPrefixLength = 5, // 'bind:'.length
+  BindPrefixLength = 5,
+
+  /**
+   * Prefix to name for service provider attributes.
+   */
+  ServiceProviderPrefix = '::',
 }

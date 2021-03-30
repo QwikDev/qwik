@@ -39,7 +39,8 @@ nodejs_binary(
         "//integration/todo",
         "//integration/todo:static_files",
         "//server",
-        "//client:bundle",
-        "//client:loader",
+        "//client:qoot",
+        "//client:qootloader",
+        "//client:qootloader.min",
     ],
 )

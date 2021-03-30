@@ -7,8 +7,7 @@
  */
 
 import { GreeterProps } from './public.js';
-import { Component } from '../qoot.js';
-import { QRL } from 'qoot';
+import { Component, QRL } from '../qoot.js';
 
 /**
  * @fileoverview

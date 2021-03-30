@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { setConfig } from './qoot.js';
+import { setConfig } from './index.js';
 
 setConfig({
   baseURI: import.meta.url,

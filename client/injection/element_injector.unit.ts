@@ -11,7 +11,7 @@ import { Component } from '../component/component.js';
 import '../CONFIG.js';
 import { stringifyDebug } from '../error/stringify.js';
 import { QRL } from '../import/index.js';
-import { Service } from '../qoot.js';
+import { Service } from '../index.js';
 import { serializeState } from '../render/serialize_state.js';
 import { ElementFixture } from '../testing/element_fixture.js';
 import { AttributeMarker } from '../util/markers.js';

@@ -8,7 +8,7 @@
 
 import { isValidAttribute } from '../error/data.js';
 import { fromCamelToKebabCase, fromKebabToCamelCase } from '../util/case.js';
-import { ServiceType } from './types.js';
+import { ServiceKey, ServiceType } from './types.js';
 import { qError, QError } from '../error/error.js';
 import { stringify } from '../util/stringify.js';
 
@@ -111,4 +111,18 @@ export function validateKeyPart(value: any): string {
   } else {
     throw qError(QError.Service_invalidAttribute_name, value);
   }
+}
+
+/**
+ * Retrieve `ServiceKey` from Service State.
+ *
+ * @param value Service State
+ * @returns `ServiceKey`
+ */
+export function serviceStateKey(value: any): ServiceKey {
+  const key = value.$key;
+  if (typeof key !== 'string') {
+    throw qError(QError.Service_stateMissingKey_state, value);
+  }
+  return key;
 }

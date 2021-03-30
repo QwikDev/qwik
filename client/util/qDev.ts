@@ -14,7 +14,4 @@ declare global {
 
 if (typeof qDev === 'undefined') {
   global.qDev = true;
-  if (typeof qDev === 'undefined') {
-    throw new Error('We seem to have the wrong');
-  }
 }

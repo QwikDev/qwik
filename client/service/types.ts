@@ -8,7 +8,9 @@
 
 import { QRL } from '../import/types.js';
 
-// TODO: docs
+/**
+ * Type representing constructor of a Service
+ */
 export interface ServiceType<SERVICE extends IService<any, any>> {
   readonly $type: string;
   readonly $qrl: QRL;
@@ -34,6 +36,9 @@ export interface ServiceType<SERVICE extends IService<any, any>> {
   ): SERVICE;
 }
 
+/**
+ * Type representing Service instance. See `Service` for details.
+ */
 export type IService<PROPS, STATE> = {
   readonly $element: Element;
   readonly $props: PROPS;

@@ -13,5 +13,7 @@
  */
 
 export { Service } from './service.js';
-export { provideServiceState, provideService } from './provide_service.js';
+export { provideService } from './provide_service.js';
+export { provideServiceState } from './provide_service_state.js';
 export { ServiceKey } from './types.js';
+export { serviceStateKey } from './service_key.js';

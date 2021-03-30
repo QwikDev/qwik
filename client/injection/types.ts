@@ -127,7 +127,7 @@ export interface Injector {
   elementProps: Props;
 
   /**
-   * Retrieve a service with a given key.
+   * Retrieve a service for a given key.
    *
    * Retrieve the service from current or parent injector walking the DOM parents.
    * The injector starts with the current element and first looks for a serialized state
@@ -270,3 +270,7 @@ export interface Props {
   // $: QProps;
   [key: string]: string | null | undefined;
 }
+
+export type ValueOrProviderReturns<ARGS extends any[]> = {
+  [K in keyof ARGS]: ARGS[K] extends Provider<infer U> | infer U ? U : ARGS[K];
+};

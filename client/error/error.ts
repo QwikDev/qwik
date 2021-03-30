@@ -42,6 +42,7 @@ export const enum QError {
   Service_nameCollision_name_currentQrl_expectedQrl = 313,
   Service_keyTooManyParts_service_parts_key = 314,
   Service_keyNameMismatch_key_name_service_name = 315,
+  Service_stateMissingKey_state = 316,
   // Component 400-499
   Component_bindNeedsKey = 400,
   Component_bindNeedsValue = 401,
@@ -140,6 +141,8 @@ function codeToText(code: QError): string {
       "Service '{}' defines '$keyProps' as  '{}'. Actual key '{}' has more parts than service defines.",
     [QError.Service_keyNameMismatch_key_name_service_name]:
       "Key '{}' belongs to service named '{}', but expected service '{}' with name '{}'.",
+    [QError.Service_stateMissingKey_state]:
+      "Service state is missing '$key'. Are you sure you passed in state? Got '{}'.",
     //////////////
     [QError.Component_bindNeedsKey]:
       "'bind:' must have an key. (Example: 'bind:key=\"propertyName\"').",

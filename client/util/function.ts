@@ -18,7 +18,7 @@ export function namedFn<T>(name: string, delegate: T): T {
     try {
       Object.defineProperty(delegate, 'name', { value: name });
     } catch {
-      // eslint-disable-line:no-empty
+      // eslint-disable-line no-empty
     }
   }
   return delegate;

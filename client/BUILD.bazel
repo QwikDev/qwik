@@ -39,29 +39,29 @@ ts_project(
 )
 
 rollup_bundle(
-    name = "bundle",
-    entry_point = "qoot.js",
+    name = "qoot",
+    entry_point = "index.js",
     config_file = "//:rollup.config.js",
     deps = [":client"],
 )
 
 terser_minified(
-    name = "bundle.min",
-    src = "bundle.js",
+    name = "qoot.min",
+    src = "qoot.js",
     config_file = "//:terser.config.json",
     sourcemap = False,
     terser_bin = "@npm//terser/bin:terser"
 )
 
 ts_project(
-    name = "loader",
+    name = "qootloader",
     tsconfig = "//:tsconfig",
     declaration = True,
     srcs = ["qootloader.ts"],
 )
 
 terser_minified(
-    name = "loader.min",
+    name = "qootloader.min",
     src = "qootloader.js",
     config_file = "//:terser.config.json",
     sourcemap = False,

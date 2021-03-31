@@ -6,9 +6,9 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
+import { QRL } from '../import/qrl.js';
 import { QError, qError } from '../error/error.js';
 import '../util/qDev.js';
-import type { IComponent as IComponent } from './types.js';
 
 /**
  * Base class for Qoot component.
@@ -32,7 +32,12 @@ import type { IComponent as IComponent } from './types.js';
  * ```
  * @public
  */
-export class Component<PROPS, STATE> implements IComponent<PROPS, STATE> {
+export class Component<PROPS, STATE> {
+  /**
+   * Pointer to template to verify that the component is attached to the right DOM location.
+   */
+  static $templateQRL: QRL = null!;
+
   /**
    * Component's host element.
    *
@@ -99,4 +104,39 @@ export class Component<PROPS, STATE> implements IComponent<PROPS, STATE> {
     const componentType = this.constructor as typeof Component;
     throw qError(QError.Component_noState_component_props, componentType, props);
   }
+}
+
+// TODO: Docs
+/**
+ * @public
+ */
+export type ComponentStateOf<SERVICE extends Component<any, any>> = SERVICE extends Component<
+  any,
+  infer STATE
+>
+  ? STATE
+  : never;
+
+// TODO: Docs
+/**
+ * @public
+ */
+export type ComponentPropsOf<SERVICE extends Component<any, any>> = SERVICE extends Component<
+  infer PROPS,
+  any
+>
+  ? PROPS
+  : never;
+
+/**
+ * Component Constructor.
+ * @public
+ */
+export interface ComponentConstructor<COMP extends Component<any, any>> {
+  $templateQRL: QRL;
+  new (
+    hostElement: Element,
+    props: ComponentPropsOf<COMP>,
+    state: ComponentStateOf<COMP> | null
+  ): COMP;
 }

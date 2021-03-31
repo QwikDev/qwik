@@ -11,23 +11,22 @@ import { assertDefined } from '../assert/assert.js';
 import '../CONFIG.js';
 import { stringifyDebug } from '../error/stringify.js';
 import { QRL } from '../import/qrl.js';
-import { getInjector } from '../injection/element_injector.js';
-import { injectMethod } from '../injection/inject.js';
+import { getInjector } from '../injector/element_injector.js';
+import { injectMethod } from '../injector/inject.js';
 import { serializeState } from '../render/serialize_state.js';
 import { ElementFixture } from '../testing/element_fixture.js';
-import { Service } from './service.js';
-import { IService, ServiceType } from './types.js';
+import { Service, ServiceConstructor } from './service.js';
 
-export const __verify_Service_subtype_of_ServiceType__: ServiceType<Service<any, any>> = Service;
+export const __verify_Service_subtype_of_ServiceType__: ServiceConstructor<any> = Service;
 const service: Service<any, any> = null!;
-export const __verify_Service_subtype_of_IService__: IService<any, any> = service;
+export const __verify_Service_subtype_of_Service__: Service<any, any> = service;
 
 describe('service', () => {
-  const MissingNameService: ServiceType<any> = class MissingNameService {} as any;
-  const EmptyNameService: ServiceType<any> = class EmptyNameService {
+  const MissingNameService: ServiceConstructor<any> = class MissingNameService {} as any;
+  const EmptyNameService: ServiceConstructor<any> = class EmptyNameService {
     static $type = '';
   } as any;
-  const MissingKeyPropsService: ServiceType<any> = class MissingKeyPropsService {
+  const MissingKeyPropsService: ServiceConstructor<any> = class MissingKeyPropsService {
     static $type = 'missingService';
   } as any;
 

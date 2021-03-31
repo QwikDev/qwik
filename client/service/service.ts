@@ -10,14 +10,12 @@ import { AttributeMarker } from '../util/markers.js';
 import { getConfig, QConfig } from '../config/qGlobal.js';
 import { qError, QError } from '../error/error.js';
 import { qImport } from '../import/qImport.js';
-import { QRL } from '../import/types';
-import { keyToServiceAttribute } from '../injection/element_injector.js';
-import { getInjector } from '../injection/element_injector.js';
-import { ServiceType } from '../service/types.js';
+import { QRL } from '../import/qrl.js';
+import { keyToServiceAttribute, ServiceKey } from './service_key.js';
 import { getFilePathFromFrame } from '../util/base_uri.js';
 import { fromCamelToKebabCase } from '../util/case.js';
 import { keyToProps, propsToKey } from './service_key.js';
-import { ServiceKey, ServicePromise, ServicePropsOf, ServiceStateOf } from './types.js';
+import { getInjector } from '../injector/element_injector.js';
 
 /**
  * Service allows creation of lazy loading class whose state is serializable.
@@ -259,7 +257,7 @@ export class Service<PROPS, STATE> {
     this: { new (...args: any[]): SERVICE },
     element: Element
   ): void {
-    const serviceType: typeof Service = this as any;
+    const serviceType: ServiceConstructor<SERVICE> = this as any;
     if (!serviceType.$type) {
       throw qError(QError.Service_no$type_service, serviceType);
     }
@@ -310,7 +308,7 @@ export class Service<PROPS, STATE> {
     propsOrKey: ServicePropsOf<SERVICE> | ServiceKey,
     state: ServiceStateOf<SERVICE> | null
   ): void {
-    const serviceType = (this as any) as typeof Service;
+    const serviceType = (this as any) as ServiceConstructor<SERVICE>;
     serviceType.$attachService(host);
     const key = typeof propsOrKey == 'string' ? propsOrKey : propsToKey(serviceType, propsOrKey);
     if (!host.hasAttribute(key)) {
@@ -342,12 +340,12 @@ export class Service<PROPS, STATE> {
     propsOrKey: ServicePropsOf<SERVICE> | ServiceKey,
     state?: ServiceStateOf<SERVICE>
   ): ServicePromise<SERVICE> {
-    const serviceType = (this as any) as typeof Service;
+    const serviceType = (this as any) as ServiceConstructor<SERVICE>;
     const key = typeof propsOrKey == 'string' ? propsOrKey : propsToKey(serviceType, propsOrKey);
     if (state) state.$key = key;
     const serviceProviderKey = keyToServiceAttribute(key);
     if (!element.hasAttribute(serviceProviderKey)) {
-      (this as ServiceType<any>).$attachService(element);
+      ((this as unknown) as ServiceConstructor<SERVICE>).$attachService(element);
     }
     const injector = getInjector(element);
     return injector.getService(key, state, this as any);
@@ -404,7 +402,7 @@ export class Service<PROPS, STATE> {
   readonly $key: string;
 
   constructor(element: Element, props: PROPS, state: STATE | null) {
-    const serviceType = getServiceType(this);
+    const serviceType = getServiceType(this) as ServiceConstructor<Service<PROPS, STATE>>;
     this.$props = props;
     this.$state = state!; // TODO: is this right?
     this.$element = element!;
@@ -443,7 +441,7 @@ export class Service<PROPS, STATE> {
     ...args: ARGS
   ): Promise<RET> {
     const service = getServiceType(this);
-    const delegate = await qImport(service.$config, qrl);
+    const delegate = await qImport(((service as any) as typeof Service).$config, qrl);
     return getInjector(this.$element).invoke(delegate as any, this, ...args);
   }
 
@@ -471,7 +469,7 @@ export class Service<PROPS, STATE> {
    * @param props - Service Props
    */
   $newState(keyProps: PROPS): Promise<STATE> {
-    const serviceType = this.constructor as typeof Service;
+    const serviceType = this.constructor as ServiceConstructor<any>;
     throw qError(QError.Service_noState_service_props, serviceType.$type, keyProps);
   }
 
@@ -497,7 +495,7 @@ export class Service<PROPS, STATE> {
    * becomes eligible for garbage collection. It also removes the service state
    * from the HTML/DOM.
    *
-   * Releasing a state does not imply that the state should be deleted on backend.
+   * Releasing a service does not imply that the state should be deleted on backend.
    */
   $release(): void {
     const injector = getInjector(this.$element);
@@ -508,17 +506,262 @@ export class Service<PROPS, STATE> {
 }
 
 /**
- * Retrieve the `ServiceType` from the `Service`
+ * Retrieve the `ServiceConstructor<SERVICE>` from the `Service`
  * @param service - * @returns
  * @internal
  */
-function getServiceType<SERVICE extends Service<any, any>>(service: SERVICE): typeof Service {
+function getServiceType<SERVICE extends Service<any, any>>(
+  service: SERVICE
+): ServiceConstructor<SERVICE> {
   if (!(service instanceof Service)) {
     throw qError(QError.Service_expected_obj, service);
   }
-  const serviceType = (service.constructor as any) as typeof Service;
+  const serviceType = (service.constructor as any) as ServiceConstructor<SERVICE>;
   if (serviceType.$attachServiceState !== Service.$attachServiceState) {
     throw qError(QError.Service_overridesConstructor_service, service);
   }
   return serviceType;
+}
+
+// TODO: Docs
+/**
+ * @public
+ */
+export type ServiceStateOf<SERVICE extends Service<any, any>> = SERVICE extends Service<
+  any,
+  infer STATE
+>
+  ? STATE
+  : never;
+
+// TODO: Docs
+/**
+ * @public
+ */
+export type ServicePropsOf<SERVICE extends Service<any, any>> = SERVICE extends Service<
+  infer PROPS,
+  any
+>
+  ? PROPS
+  : never;
+
+// TODO: Docs
+/**
+ * @public
+ */
+export interface ServicePromise<T> extends Promise<T> {
+  $key: string;
+}
+
+/**
+ * @internal
+ */
+export function isService(value: any): value is Service<any, any> {
+  return Object.prototype.hasOwnProperty.call(value, '$key');
+}
+
+/**
+ * Service Constructor.
+ * @public
+ */
+export interface ServiceConstructor<SERVICE extends Service<any, any>> {
+  /**
+   * A service name.
+   *
+   * When services are serialized each service needs to have a unique name.
+   * ```
+   * class MyService extends Service<MyServiceProps, MyServiceState> {
+   *   $qrl = QRL`./path/to/service/MyService`;
+   *   $type = 'myService';
+   *   $keyProps = ['project', 'task'];
+   * }
+   * ```
+   *
+   * The above definition will result in attribute with a QRL pointer like so.
+   * ```
+   * <div ::myService="./path/to/service/MyService">
+   * ```
+   */
+  readonly $type: string;
+
+  /**
+   * A QRL location.
+   *
+   * When services are serialized it is necessary to leave a pointer to location where the service
+   * can be lazy loaded from. `$qrl` serves that purpose.
+   *
+   * ```
+   * class MyService extends Service<MyServiceProps, MyServiceState> {
+   *   $qrl = QRL`./path/to/service/MyService`;
+   *   $type = 'myService';
+   *   $keyProps = ['project', 'task'];
+   * }
+   * ```
+   *
+   * The above definition will result in all instances of this service to be encoded with
+   * `myService` name.
+   * ```
+   * <div ::myService="./path/to/service/MyService"
+   *      myService:123:456="{completed: false, text: 'sample task'}">
+   * ```
+   */
+  readonly $qrl: QRL;
+
+  /**
+   * Order of properties in `Props` which define the service key.
+   *
+   * A service is uniquely identified by a key such as `myService:123:456`. The key consists
+   * of `myService` which associates the key with a specific service.
+   *
+   * For example:
+   * ```
+   * <div ::myService="./path/to/service/MyService"
+   *      myService:123:456="{completed: false, text: 'sample task'}">
+   * ```
+   * The key `myService:123:456` is associated with `myService` which is declared in `::myService`
+   * attribute. The `123:456` are property values. In order for the key to be converted into
+   * `Props` it is necessary to know what each of the values point to. `$keyProps` stores that
+   * information.
+   *
+   * For example a service defined like so:
+   * ```
+   * class MyService extends Service<MyServiceProps, MyServiceState> {
+   *   $qrl = QRL`./path/to/service/MyService`;
+   *   $type = 'myService';
+   *   $keyProps = ['project', 'task'];
+   * }
+   * ```
+   * Would result it `myService:123:456` to be convert to a `Prop` of
+   * `{project: '123', task: '456'}`. Notice that the `$keyProps` define
+   * property names for the key value positions.
+   */
+  readonly $keyProps: string[];
+
+  /**
+   * Attach QRL definition to an `Element`.
+   *
+   * Attaching a service to an `Element` means that an attribute with service name is left
+   * in DOM. This is later used when trying to resolve the service.
+   *
+   * ```
+   * class MyService extends Service<MyProps, MyState> {
+   *   $type = 'MyService';
+   *   $qrl = QRL`somePath/MyService`;
+   * }
+   *
+   * MyService.$attachService(element);
+   * ```
+   * will result in:
+   *
+   * ```
+   * <div ::my-service="somePath/MyService">
+   * ```
+   *
+   * @param element - Element where the service definition should be attached.
+   */
+  $attachService<SERVICE extends Service<any, any>>(
+    this: { new (...args: any[]): SERVICE },
+    element: Element
+  ): void;
+
+  /**
+   * Attach service instance state to an `Element`.
+   *
+   * Attaching a service state to an `Element` means that the service props are serialized into
+   * service instance key and service state is serialized into the service value.
+   *
+   * ```
+   * class MyService extends Service<MyProps, MyState> {
+   *   $type = 'MyService';
+   *   static $keyProps = ['id'];
+   *   $qrl = QRL`somePath/MyService`;
+   * }
+   *
+   * MyService.$attachServiceState(element, {id:123}, {text: 'some text'});
+   * ```
+   * will result in:
+   * ```
+   * <div ::my-service="somePath/MyService"
+   *      my-service:123="{text: 'some text'}">
+   * ```
+   *
+   * @param element - Element where the service definition should be attached.
+   */
+  $attachServiceState<SERVICE extends Service<any, any>>(
+    this: { new (...args: any[]): SERVICE },
+    host: Element,
+    propsOrKey: ServicePropsOf<SERVICE> | ServiceKey,
+    state: ServiceStateOf<SERVICE> | null
+  ): void;
+
+  /**
+   * Re-hydrate a service.
+   *
+   * Re-hydration is a process of turning a Service-key into a Service instance.
+   * There are these possible scenarios:
+   * - `MyService.$hydrate(element, props, state)`: Create new service (override
+   *   the service with new `state` if already exists.)
+   * - `MyService.$hydrate(element, props)`:
+   *   - If state exists in HTML/DOM use that
+   *   - If no state exist in HTML/DOM invoke `Service.$newState`.
+   *     - Possibly throw an error.
+   *
+   * @param element - Element to which the service should be (or is) attached
+   * @param propsOrKey - Service key either in string or `Props` format.
+   * @param state - Optional new state for the service.
+   * @returns `ServicePromise` which contains the `$key` property for synchronous retrieval.
+   */
+
+  $hydrate<SERVICE extends Service<any, any>>(
+    this: { new (...args: any[]): SERVICE },
+    element: Element,
+    propsOrKey: ServicePropsOf<SERVICE> | ServiceKey,
+    state?: ServiceStateOf<SERVICE>
+  ): ServicePromise<SERVICE>;
+
+  /**
+   * Converts `ServiceKey` into Service props.
+   *
+   * Service Keys are of format: `<serviceName>:<value1>:<value2>:...`.
+   * The purpose of the keys is to be globally unique identifiers in the application
+   * so that services can be identified. The Keys are string representations because
+   * it is important to be able to store the keys in the DOM.
+   *
+   * Service instances prefer to have parsed version of the key as Props.
+   * Keys contain values only, a Prop contains key/value pairs. This function uses
+   * `Service.$keyProps` to identify with which property each value should be associated with.
+   *
+   * @param key - Service key to convert to props
+   * @returns Service Props
+   */
+  $keyToProps<SERVICE extends Service<any, any>>(
+    this: { new (...args: any[]): SERVICE },
+    key: ServiceKey
+  ): ServicePropsOf<SERVICE>;
+
+  /**
+   * Converts Service Prop into `ServiceKey`.
+   *
+   * Service Keys are of format: `<serviceName>:<value1>:<value2>:...`.
+   * The purpose of the keys is to be globally unique identifiers in the application
+   * so that services can be identified. The Keys are string representations because
+   * it is important to be able to store the keys in the DOM.
+   *
+   * Service instances prefer to have parsed version of the key as Props.
+   * Keys contain values only, a Prop contains key/value pairs. This function uses
+   * `Service.$keyProps` to identify with which property each value should be associated with.
+   *
+   * @param props - Service props
+   * @returns `ServiceKey`
+   */
+  $propsToKey<SERVICE extends Service<any, any>>(
+    this: { new (...args: any[]): SERVICE },
+    props: ServicePropsOf<SERVICE>
+  ): ServiceKey;
+
+  new (
+    hostElement: Element,
+    props: ServicePropsOf<SERVICE>,
+    state: ServiceStateOf<SERVICE> | null
+  ): SERVICE;
 }

@@ -1,5 +1,6 @@
 package(default_visibility = ["//visibility:public"])
 
+load("@npm//mocha:index.bzl", "mocha_test")
 load("@build_bazel_rules_nodejs//:index.bzl", "js_library")
 load("@npm//@bazel/typescript:index.bzl", "ts_project")
 load("@npm//@bazel/rollup:index.bzl", "rollup_bundle")
@@ -19,15 +20,6 @@ ts_project(
     tsconfig = "//:tsconfig",
     declaration = True,
     srcs = glob(["**/*.ts"], exclude=["qootloader.ts", "**/*.unit.ts", "CONFIG.ts"]),
-    deps = [
-        "//client/component",
-        "//client/config",
-        "//client/event",
-        "//client/import",
-        "//client/injection",
-        "//client/render/jsx",
-        "//client/service",
-    ]
 )
 
 ts_project(
@@ -66,4 +58,28 @@ terser_minified(
     config_file = "//:terser.config.json",
     sourcemap = False,
     terser_bin = "@npm//terser/bin:terser"
+)
+
+ts_project(
+    name = "unit_lib",
+    tsconfig = "//:tsconfig",
+    declaration = True,
+    srcs = glob(["**/*.unit.ts"]),
+    deps = [
+        "@npm//@types/mocha",
+        "@npm//@types/chai",
+        "//client/testing",
+        ":CONFIG",
+    ]
+)
+
+mocha_test(
+    name = "unit",
+    tags = ["unit"],
+    args = ["**/*.unit.js"],
+    data = [
+        ":unit_lib",
+        "@npm//chai",
+        "//client/testing",
+    ],
 )

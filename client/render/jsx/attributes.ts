@@ -5,13 +5,16 @@
  * Use of this source code is governed by an MIT-style license that can be
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
-import { QProps } from '../../component/types.js';
 import { fromCamelToKebabCase } from '../../util/case.js';
 import { stringify } from '../../util/stringify.js';
-import { ServiceType } from '../../service/types.js';
 import { assertValidDataKey } from '../../error/data.js';
-import { Props } from '../../injection/types.js';
 import { AttributeMarker } from '../../util/markers.js';
+import { ServiceConstructor } from '../../service/service.js';
+import { QRL } from '../../import/qrl.js';
+
+export interface QProps {
+  [key: string]: string | QRL;
+}
 
 /**
  * Apply Props to Element
@@ -22,7 +25,7 @@ import { AttributeMarker } from '../../util/markers.js';
  */
 export function applyAttributes(
   element: Element,
-  props: Props | null,
+  props: Record<string, string> | null,
   detectChanges: boolean
 ): boolean {
   let changesDetected = false;
@@ -115,7 +118,7 @@ function applyControlProperties(element: Element, props: { [key: string]: any })
         element.removeAttribute(key);
       } else if (key === 'services') {
         // TODO: validation
-        const services = value as ServiceType<any>[];
+        const services = value as ServiceConstructor<any>[];
         services.forEach((service) => {
           service.$attachService(element);
         });

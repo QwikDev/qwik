@@ -6,18 +6,19 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { injectFunction } from '../injection/inject.js';
+import { injectFunction } from '../injector/inject.js';
 import '../CONFIG.js';
 import { QRL } from '../import/qrl.js';
-import { ElementInjector, getInjector } from '../injection/element_injector.js';
+import { getInjector } from '../injector/element_injector.js';
 import { ElementFixture } from '../testing/element_fixture.js';
-import { provideService } from './provide_service.js';
-import { Service } from './service.js';
+import { provideServiceState } from './provide_service_state.js';
+import { Service } from '../service/service.js';
 import { expect } from 'chai';
+import { Injector } from '../injector/index.js';
 
 describe('provideService', () => {
   let fixture: ElementFixture;
-  let hostInjector: ElementInjector; // eslint-disable-line @typescript-eslint/no-unused-vars
+  let hostInjector: Injector; // eslint-disable-line @typescript-eslint/no-unused-vars
   beforeEach(() => {
     fixture = new ElementFixture();
     hostInjector = getInjector(fixture.host); // eslint-disable-line @typescript-eslint/no-unused-vars
@@ -26,11 +27,11 @@ describe('provideService', () => {
   it('should return service', async () => {
     RegardsService.$attachService(fixture.parent);
     const fn = injectFunction(
-      provideService<RegardsService>(() => Promise.resolve('regards:Hello:World')),
-      (service: RegardsService) => service
+      provideServiceState<RegardsService>(() => Promise.resolve('regards:Hello:World')),
+      (service: Regards) => service
     );
 
-    expect((await hostInjector.invoke(fn)).$state).to.eql({
+    expect(await hostInjector.invoke(fn)).to.eql({
       $key: 'regards:Hello:World',
       greeting: 'Hello World!',
     });
@@ -47,7 +48,7 @@ interface Regards {
 
 export class RegardsService extends Service<RegardsProps, Regards> {
   static $type = 'regards';
-  static $qrl = QRL`test:/service/provide_service.unit.RegardsService`;
+  static $qrl = QRL`test:/provider/provide_service_state.unit.RegardsService`;
   static $keyProps = ['salutation', 'name'];
 
   greeting: string = null!;

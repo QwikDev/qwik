@@ -7,10 +7,10 @@
  */
 
 import { assertNotEqual, assertString, newError } from '../../assert/index.js';
-import { IComponent } from '../../component/types.js';
+import { Component } from '../../component/component.js';
 import { QRL } from '../../import/qrl.js';
-import { Props } from '../../injection/types.js';
-import { IService, isService } from '../../service/types.js';
+import { Props } from '../../injector/types.js';
+import { Service, isService } from '../../service/service.js';
 import { extractPropsFromElement } from '../../util/attributes.js';
 import { isPromise } from '../../util/promises.js';
 import { HostElements } from '../types.js';
@@ -49,7 +49,7 @@ interface QDocument extends Document {
  * @public
  */
 export function markDirty(
-  componentOrService: IComponent<any, any> | IService<any, any>
+  componentOrService: Component<any, any> | Service<any, any>
 ): Promise<HostElements> {
   if (isService(componentOrService)) return markServiceDirty(componentOrService);
   qDev && assertNotEqual(typeof requestAnimationFrame, 'undefined');
@@ -86,7 +86,7 @@ function scheduleRender(document: QDocument): Promise<HostElements> {
   }));
 }
 
-function markServiceDirty(component: IService<any, any>): Promise<HostElements> {
+function markServiceDirty(component: Service<any, any>): Promise<HostElements> {
   const key = component.$key;
   const document = component.$element.ownerDocument as QDocument;
   let foundListener = false;

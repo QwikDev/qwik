@@ -9,7 +9,7 @@
 import { expect } from 'chai';
 import { ComponentFixture } from '../testing/component_fixture.js';
 import { EventInjector } from '../event/event_injector.js';
-import { injectFunction } from '../injection/inject.js';
+import { injectFunction } from '../injector/inject.js';
 import { provideQrlExp } from './provide_qrl_exp.js';
 
 describe('provideQrlExp', () => {

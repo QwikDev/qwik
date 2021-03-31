@@ -6,8 +6,18 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
+// TODO: rename injection to injector
+
 export { injectFunction, injectMethod } from './inject.js';
 export { getInjector } from './element_injector.js';
-export { Provider, ConcreteType, Injector } from './types.js';
+export {
+  Provider,
+  ConcreteType,
+  Injector,
+  ProviderReturns,
+  InjectedFunction,
+  Props,
+  Providers,
+} from './types.js';
 export { provideInjector } from './provide_injector.js';
 export { provideProviderOf } from './provide_provider_of.js';

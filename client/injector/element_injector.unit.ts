@@ -11,15 +11,15 @@ import { Component } from '../component/component.js';
 import '../CONFIG.js';
 import { stringifyDebug } from '../error/stringify.js';
 import { QRL } from '../import/index.js';
-import { Service } from '../index.js';
+import { Injector, Service } from '../index.js';
 import { serializeState } from '../render/serialize_state.js';
 import { ElementFixture } from '../testing/element_fixture.js';
 import { AttributeMarker } from '../util/markers.js';
-import { ElementInjector, getClosestInjector, getInjector } from './element_injector.js';
+import { getClosestInjector, getInjector } from './element_injector.js';
 
 describe('ElementInjector', () => {
   let fixture: ElementFixture;
-  let hostInjector: ElementInjector;
+  let hostInjector: Injector;
   beforeEach(() => {
     fixture = new ElementFixture();
     hostInjector = getInjector(fixture.host);
@@ -199,7 +199,7 @@ describe('ElementInjector', () => {
       it('should throw error if service state was not serialized', async () => {
         fixture.host.setAttribute('service:1', '');
         expect(() => hostInjector.getServiceState('service:1')).to.throw(
-          "INJECTION-ERROR(Q-204): Service key 'service:1' is found on '<host : service:1>' but does not contain state. Was 'serializeState()' not run during dehydration?"
+          "INJECTOR-ERROR(Q-204): Service key 'service:1' is found on '<host : service:1>' but does not contain state. Was 'serializeState()' not run during dehydration?"
         );
       });
       it('should throw error if no service provider define', () => {
@@ -214,7 +214,7 @@ describe('ElementInjector', () => {
     describe('error', () => {
       it('should throw when no parent injector fond', () => {
         expect(() => getClosestInjector(fixture.parent)).to.throw(
-          "INJECTION-ERROR(Q-206): No injector can be found starting at '<parent>'."
+          "INJECTOR-ERROR(Q-206): No injector can be found starting at '<parent>'."
         );
       });
     });

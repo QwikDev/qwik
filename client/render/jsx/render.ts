@@ -9,8 +9,8 @@
 import { QError, qError } from '../../error/error.js';
 import { qImport } from '../../import/index.js';
 import { QRL } from '../../import/qrl.js';
-import { ElementInjector, getInjector } from '../../injection/element_injector.js';
-import { InjectedFunction, Props } from '../../injection/types.js';
+import { getInjector } from '../../injector/element_injector.js';
+import { InjectedFunction, Injector, Props } from '../../injector/types.js';
 import { removeNode, replaceNode } from '../../util/dom.js';
 import { EMPTY_OBJ } from '../../util/flyweight.js';
 import { flattenPromiseTree, isPromise } from '../../util/promises.js';
@@ -188,7 +188,7 @@ function visitJSXComponentNode(
   props: Props
 ): Node | null {
   if (!props) props = EMPTY_OBJ;
-  const injector: ElementInjector = getInjector(parentNode as Element);
+  const injector: Injector = getInjector(parentNode as Element);
   injector.elementProps = props;
   const componentJsxNode = injector.invoke(
     (component as any) as InjectedFunction<any, any[], any[], JSXNode<any>>,

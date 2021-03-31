@@ -6,14 +6,15 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { ComponentType, IComponent } from '../component/types.js';
-import {
-  IService,
-  ServiceKey,
+import { ServiceKey } from '../service/service_key.js';
+import type { Component, ComponentConstructor } from '../component/component.js';
+import type {
+  Service,
+  ServiceConstructor,
   ServicePromise,
+  ServicePropsOf,
   ServiceStateOf,
-  ServiceType,
-} from '../service/types.js';
+} from '../service/service.js';
 
 /**
  * Interface for looking up components, services, properties from the DOM `Element`s.
@@ -91,8 +92,8 @@ export interface Injector {
    *
    * @param componentType - Component type to retrieve.
    */
-  getComponent<COMP extends IComponent<any, any>>(
-    componentType: ComponentType<COMP>
+  getComponent<COMP extends Component<any, any>>(
+    componentType: ComponentConstructor<COMP>
   ): Promise<COMP>;
 
   /**
@@ -158,10 +159,10 @@ export interface Injector {
    * @param serviceType - Optional state type. If not provide the injector looks it up from the
    *        service `QRL` attribute.
    */
-  getService<SERVICE extends IService<any, any>>(
+  getService<SERVICE extends Service<any, any>>(
     serviceKey: string,
     state?: ServiceStateOf<SERVICE>,
-    serviceType?: ServiceType<SERVICE>
+    serviceType?: ServiceConstructor<SERVICE>
   ): ServicePromise<SERVICE>;
 
   /**
@@ -171,11 +172,27 @@ export interface Injector {
    * of this method is that it is faster in the case when state can be deserialized from the DOM.
    * This is usually useful for render methods which don't need to mutate the state for rendering.
    *
-   * @param serviceKey - The key of state which should be retrieved.
+   * @param propsOrKey - The key of state which should be retrieved.
    */
-  getServiceState<SERVICE extends IService<any, any>>(
-    serviceKey: ServiceStateOf<SERVICE> | ServiceKey
-  ): Promise<SERVICE>;
+  getServiceState<SERVICE extends Service<any, any>>(
+    propsOrKey: ServicePropsOf<SERVICE> | ServiceKey
+  ): Promise<ServiceStateOf<SERVICE>>;
+
+  /**
+   * Release the service.
+   *
+   * Releasing service means that the service is released form memory and it
+   * becomes eligible for garbage collection. It also removes the service state
+   * from the HTML/DOM.
+   *
+   * Releasing a service does not imply that the state should be deleted on backend.
+   */
+  releaseService(key: ServiceKey): void;
+
+  /**
+   * Serialize the state of the injector and its Component/Services into DOM.
+   */
+  serialize(): void;
 }
 
 /**
@@ -262,17 +279,28 @@ export interface InjectedFunction<SELF, ARGS extends any[], REST extends any[], 
  */
 export type Provider<T> = (injector: Injector) => T | Promise<T>;
 
+// TODO: Docs
+/**
+ * @public
+ */
 export type ProviderReturns<ARGS extends any[]> = {
   [K in keyof ARGS]: ARGS[K] extends Provider<infer U> ? U : never;
 };
 
+// TODO: Docs
+/**
+ * @public
+ */
 export type Providers<ARGS extends any[]> = {
   [K in keyof ARGS]: Provider<ARGS[K]>;
 };
 
+// TODO: Docs
+/**
+ * @public
+ */
 export interface Props {
-  // $: QProps;
-  [key: string]: string | null | undefined;
+  [key: string]: string;
 }
 
 export type ValueOrProviderReturns<ARGS extends any[]> = {

@@ -12,7 +12,7 @@ import { QRL } from '../import/qrl.js';
 import { ComponentFixture } from '../testing/component_fixture.js';
 import { AttributeMarker } from '../util/markers.js';
 import { Component } from './component.js';
-import { injectMethod } from '../injection/inject.js';
+import { injectMethod } from '../injector/inject.js';
 
 describe('component', () => {
   it('should declare a component', async () => {

@@ -8,7 +8,7 @@
 
 import { EMPTY_OBJ } from '../../util/flyweight.js';
 import { QRL } from '../../import/qrl.js';
-import { Props } from '../../injection/types.js';
+import { Props } from '../../injector/types.js';
 import { JSXFactory, JSXNode } from './types.js';
 
 class JSXNode_<T extends string | null | JSXFactory | unknown> {

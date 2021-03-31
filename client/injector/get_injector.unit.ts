@@ -16,7 +16,7 @@ describe('getInjector', () => {
   beforeEach(() => (fixture = new ElementFixture()));
   it('should throw if element not passed in', () => {
     expect(() => getInjector(null!)).to.throw(
-      "INJECTION-ERROR(Q-202): Expected 'Element' was 'null'."
+      "INJECTOR-ERROR(Q-202): Expected 'Element' was 'null'."
     );
   });
   it('should return no injector', () => {

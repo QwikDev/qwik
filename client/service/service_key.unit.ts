@@ -7,19 +7,19 @@
  */
 
 import { expect } from 'chai';
-import { keyToServiceAttribute } from '../injection/element_injector.js';
+import { ServiceConstructor } from './service.js';
+import { keyToServiceAttribute } from './service_key.js';
 import { validateKeyPart, keyToProps, propsToKey, serviceStateKey } from './service_key.js';
-import { ServiceType } from './types.js';
 
 describe('service key', () => {
-  const MissingKeyPropsService: ServiceType<any> = class MissingKeyPropsService {
+  const MissingKeyPropsService: ServiceConstructor<any> = class MissingKeyPropsService {
     static $type = 'missingService';
   } as any;
-  const MockService: ServiceType<any> = class MockService {
+  const MockService: ServiceConstructor<any> = class MockService {
     static $keyProps = ['a', 'propB', 'c'];
     static $type = 'myService';
   } as any;
-  const EmptyService: ServiceType<any> = class EmptyService {
+  const EmptyService: ServiceConstructor<any> = class EmptyService {
     static $keyProps = [];
     static $type = 'emptyService';
   } as any;

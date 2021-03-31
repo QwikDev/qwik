@@ -1,7 +1,3 @@
-it('should strip filename and keep ending slash', () => {
-  expect(dirname('dir/path/file.ext')).to.equal('dir/path/');
-});
-
 /**
  * @license
  * Copyright a-Qoot All Rights Reserved.
@@ -11,7 +7,6 @@ it('should strip filename and keep ending slash', () => {
  */
 
 import '../CONFIG.js';
-import { fail } from 'assert';
 import { expect } from 'chai';
 import { newError } from '../assert/index.js';
 import { verifyQrl, QRL } from './qrl.js';
@@ -21,7 +16,7 @@ describe('QRL', () => {
   it('should verify QRL and fail on invalid', async () => {
     try {
       await verifyQrl(newError(''), `./dontexist`);
-      fail('Should throw error');
+      expect('Should throw error').to.be.false;
     } catch (e) {
       expect(String(e)).to.have.string('QRL-ERROR');
       expect(String(e)).to.have.string('dontexist');
@@ -34,7 +29,7 @@ describe('QRL', () => {
       const qrl = await verifyQrl(newError(''), `./import/qrl.QRL`);
       expect(qrl).to.equal(QRL);
     } catch (e) {
-      fail(e);
+      expect(e).to.be.false;
     }
   });
 
@@ -43,7 +38,11 @@ describe('QRL', () => {
       const qrl = await verifyQrl(newError(''), String(QRL`import:/qrl.QRL`));
       expect(qrl).to.equal(QRL);
     } catch (e) {
-      fail(e);
+      expect(e).to.be.false;
     }
+  });
+
+  it('should strip filename and keep ending slash', () => {
+    expect(dirname('dir/path/file.ext')).to.equal('dir/path/');
   });
 });

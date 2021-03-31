@@ -6,10 +6,10 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { getClosestInjector } from '../injection/element_injector.js';
-import { resolveArgs } from '../injection/resolve_args.js';
-import { Injector, Provider } from '../injection/types.js';
-import { IService } from './types.js';
+import { getClosestInjector } from '../injector/element_injector.js';
+import { resolveArgs } from '../injector/resolve_args.js';
+import { Injector, Provider } from '../injector/types.js';
+import { Service } from '../service/service.js';
 
 /**
  * Provide a service for a given key.
@@ -40,7 +40,7 @@ import { IService } from './types.js';
  * @param serviceKey - The key of state which should be retrieved.
  * @public
  */
-export function provideService<SERVICE extends IService<any, any>>(
+export function provideService<SERVICE extends Service<any, any>>(
   id: string | Provider<string>
 ): Provider<SERVICE> {
   return async function resolveService(injector: Injector): Promise<SERVICE> {

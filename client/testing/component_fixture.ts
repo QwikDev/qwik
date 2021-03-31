@@ -6,8 +6,8 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { getInjector } from '../injection/element_injector.js';
-import { Injector } from '../injection/types.js';
+import { getInjector } from '../injector/element_injector.js';
+import { Injector } from '../injector/types.js';
 import { QRL } from '../index.js';
 import { jsxRender } from '../render/jsx/render.js';
 import { JSXFactory } from '../render/jsx/types.js';

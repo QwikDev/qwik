@@ -6,9 +6,10 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
+import { QRL } from '../import/qrl.js';
+import { InjectedFunction, ProviderReturns } from '../injector/types.js';
 import '../util/qDev.js';
 import { EventInjector } from './event_injector.js';
-import { InjectedFunction, ProviderReturns, ConcreteType } from '../injection/types.js';
 import { EventHandler } from './types.js';
 
 /**
@@ -39,7 +40,10 @@ import { EventHandler } from './types.js';
  */
 export function injectEventHandler<SELF, ARGS extends any[], RET>(
   ...args: [
-    ConcreteType<SELF> | null,
+    {
+      $templateQRL: QRL;
+      new (hostElement: Element, props: any, state: any): SELF;
+    } | null,
     ...ARGS,
     (this: SELF, ...args: [...ProviderReturns<ARGS>]) => RET
   ]

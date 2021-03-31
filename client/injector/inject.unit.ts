@@ -15,6 +15,7 @@ import { getInjector } from './element_injector.js';
 import { injectFunction } from './inject.js';
 import { injectEventHandler } from '../event/inject_event_handler.js';
 import { Injector } from './types.js';
+import { QRL } from '../import/qrl.js';
 
 describe('inject', () => {
   const log: string[] = [];
@@ -64,7 +65,7 @@ describe('injectEventHandler', async () => {
 
   it('should inject this', async () => {
     class MyComp {
-      static $templateQRL = './comp';
+      static $templateQRL = ('./comp' as any) as QRL;
       $state = undefined;
       myComp: boolean = true;
       $newState() {}
@@ -72,9 +73,9 @@ describe('injectEventHandler', async () => {
     }
     const myComp = new MyComp();
     const injectedFn = injectEventHandler(
-      MyComp,
+      MyComp as any,
       () => 'arg0',
-      function (this: MyComp, arg0: string) {
+      function (this: any, arg0: string) {
         log.push(this, 'invoked', arg0);
         return 'return value';
       }

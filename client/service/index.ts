@@ -12,8 +12,11 @@
  * Explicitly list public exported symbols to be used by the developer.
  */
 
-export { Service } from './service.js';
-export { provideService } from './provide_service.js';
-export { provideServiceState } from './provide_service_state.js';
-export { ServiceKey } from './types.js';
-export { serviceStateKey } from './service_key.js';
+export {
+  Service,
+  ServiceConstructor,
+  ServiceStateOf,
+  ServicePropsOf,
+  ServicePromise,
+} from './service.js';
+export { serviceStateKey, ServiceKey } from './service_key.js';

@@ -7,3 +7,4 @@
  */
 
 export { serializeState } from './serialize_state.js';
+export { HostElements } from './types.js';

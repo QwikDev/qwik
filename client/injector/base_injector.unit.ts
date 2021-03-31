@@ -7,17 +7,18 @@
  */
 
 import { expect } from 'chai';
+import { QRL } from '../import/qrl.js';
 import { Component } from '../component/component.js';
 import { ElementFixture } from '../testing/element_fixture.js';
 import { AttributeMarker } from '../util/markers.js';
 import '../util/qDev.js';
-import { ElementInjector, getInjector } from './element_injector.js';
+import { getInjector } from './element_injector.js';
 import { injectFunction, injectMethod } from './inject.js';
-import { Provider } from './types.js';
+import { Injector, Provider } from './types.js';
 
 describe('BaseInjector', () => {
   let fixture: ElementFixture;
-  let hostInjector: ElementInjector;
+  let hostInjector: Injector;
   beforeEach(() => {
     fixture = new ElementFixture();
     hostInjector = getInjector(fixture.host);
@@ -43,7 +44,7 @@ describe('BaseInjector', () => {
           function (this: null, arg: string) {
             log.push(this, arg);
             return 'ret';
-          },
+          } as any,
           null,
           'arg'
         )
@@ -67,7 +68,7 @@ describe('BaseInjector', () => {
 
     it('should call injected method', async () => {
       const log: (string | MyComponent)[] = [];
-      fixture.host.setAttribute(AttributeMarker.ComponentTemplate, MyComponent.$templateQRL);
+      fixture.host.setAttribute(AttributeMarker.ComponentTemplate, MyComponent.$templateQRL as any);
       const injectedFn = injectMethod(
         MyComponent,
         provideConst('arg0'), //
@@ -82,7 +83,10 @@ describe('BaseInjector', () => {
     });
     describe('error', async () => {
       it('should include declare context when throwing error', async () => {
-        fixture.host.setAttribute(AttributeMarker.ComponentTemplate, MyComponent.$templateQRL);
+        fixture.host.setAttribute(
+          AttributeMarker.ComponentTemplate,
+          MyComponent.$templateQRL as any
+        );
         const injectedFn = injectMethod(
           MyComponent,
           () => Promise.reject('ProviderRejection'),
@@ -123,7 +127,7 @@ describe('BaseInjector', () => {
           function (this: MyClass) {}
         );
         expect(() => hostInjector.invoke(injectedFn, new WrongType())).to.throw(
-          "INJECTION-ERROR(Q-203): Expected injection 'this' to be of type 'MyClass', but was of type 'WrongType'."
+          "INJECTOR-ERROR(Q-203): Expected injection 'this' to be of type 'MyClass', but was of type 'WrongType'."
         );
       });
     });
@@ -168,7 +172,7 @@ class MyClass {}
 export function template() {}
 
 class MyComponent extends Component<any, any> {
-  static $templateQRL = 'test:/injectior/base_injector.unit.template';
+  static $templateQRL = ('test:/injectior/base_injector.unit.template' as any) as QRL;
   $newState() {
     return {};
   }

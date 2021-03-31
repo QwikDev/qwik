@@ -19,13 +19,14 @@ export const enum QError {
   // QRL 100-199
   QRL_expectFunction_url_actual = 100,
   // Injection 200-299
-  Injection_noHost_element = 200,
-  Injection_expectedSpecificInjector_expected_actual = 201,
-  Injection_notElement_arg = 202,
-  Injection_wrongMethodThis_expected_actual = 203,
-  Injection_missingSerializedState_serviceKey_element = 204,
-  Injection_notEventInjector = 205,
-  Injection_notFound_element = 206,
+  Injector_noHost_element = 200,
+  Injector_expectedSpecificInjector_expected_actual = 201,
+  Injector_notElement_arg = 202,
+  Injector_wrongMethodThis_expected_actual = 203,
+  Injector_missingSerializedState_serviceKey_element = 204,
+  Injector_notEventInjector = 205,
+  Injector_notFound_element = 206,
+  Injector_eventInjectorNotSerializable = 207,
   // Services 300-399
   Service_notValidKey_key = 300,
   Service_keyAlreadyExists_key = 301,
@@ -78,7 +79,7 @@ function codeToText(code: QError): string {
   const area = {
     0: 'ERROR',
     1: 'QRL-ERROR',
-    2: 'INJECTION-ERROR',
+    2: 'INJECTOR-ERROR',
     3: 'SERVICE-ERROR',
     4: 'COMPONENT-ERROR',
     5: 'PROVIDER-ERROR',
@@ -98,17 +99,18 @@ function codeToText(code: QError): string {
     //////////////
     [QError.QRL_expectFunction_url_actual]: "QRL '${}' should point to function, was '{}'.",
     //////////////
-    [QError.Injection_noHost_element]: "Can't find host element above '{}'.",
-    [QError.Injection_expectedSpecificInjector_expected_actual]:
+    [QError.Injector_noHost_element]: "Can't find host element above '{}'.",
+    [QError.Injector_expectedSpecificInjector_expected_actual]:
       "Provider is expecting '{}' but got '{}'.",
-    [QError.Injection_notElement_arg]: "Expected 'Element' was '{}'.",
-    [QError.Injection_wrongMethodThis_expected_actual]:
+    [QError.Injector_notElement_arg]: "Expected 'Element' was '{}'.",
+    [QError.Injector_wrongMethodThis_expected_actual]:
       "Expected injection 'this' to be of type '{}', but was of type '{}'.",
-    [QError.Injection_missingSerializedState_serviceKey_element]:
+    [QError.Injector_missingSerializedState_serviceKey_element]:
       "Service key '{}' is found on '{}' but does not contain state. Was 'serializeState()' not run during dehydration?",
-    [QError.Injection_notEventInjector]:
+    [QError.Injector_notEventInjector]:
       "Injector is being used as 'EventInjector' but it was 'ElementInjector'. Have you used a provider which expects 'EventInjector' in 'ElementInjector' context?",
-    [QError.Injection_notFound_element]: "No injector can be found starting at '{}'.",
+    [QError.Injector_notFound_element]: "No injector can be found starting at '{}'.",
+    [QError.Injector_eventInjectorNotSerializable]: 'EventInjector does not support serialization.',
     //////////////
     [QError.Service_notValidKey_key]:
       "Data key '{}' is not a valid key.\n" +

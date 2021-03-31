@@ -7,8 +7,8 @@
  */
 
 import { expect } from 'chai';
-import { getInjector } from '../injection/element_injector.js';
-import { injectFunction } from '../injection/inject.js';
+import { getInjector } from '../injector/element_injector.js';
+import { injectFunction } from '../injector/inject.js';
 import { ComponentFixture } from '../testing/component_fixture.js';
 import { provideComponentProps } from './provide_component_props.js';
 

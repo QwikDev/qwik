@@ -6,9 +6,16 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { ComponentType, IComponent } from '../component/types.js';
+import { ServiceKey } from '../service/service_key.js';
+import type { Component, ComponentConstructor } from '../component/component.js';
 import { qError, QError } from '../error/error.js';
-import { IService, ServicePromise, ServiceStateOf, ServiceType } from '../service/types.js';
+import {
+  Service,
+  ServiceConstructor,
+  ServicePromise,
+  ServicePropsOf,
+  ServiceStateOf,
+} from '../service/service.js';
 import { extractPropsFromElement } from '../util/attributes.js';
 import '../util/qDev.js';
 import { resolveArgs } from './resolve_args.js';
@@ -21,7 +28,6 @@ export abstract class BaseInjector implements Injector {
   constructor(element: Element) {
     this.element = element;
   }
-
   invoke<SELF, ARGS extends any[], REST extends any[], RET>(
     fn: InjectedFunction<SELF, ARGS, REST, RET> | ((...args: [...REST]) => RET),
     self?: SELF | null,
@@ -32,7 +38,7 @@ export abstract class BaseInjector implements Injector {
         const selfType = fn.$thisType;
         if (self && selfType && !(self instanceof (selfType as any))) {
           throw qError(
-            QError.Injection_wrongMethodThis_expected_actual,
+            QError.Injector_wrongMethodThis_expected_actual,
             selfType,
             (self as {}).constructor
           );
@@ -71,20 +77,23 @@ export abstract class BaseInjector implements Injector {
     return extractPropsFromElement(this.element);
   }
 
-  abstract getComponent<COMP extends IComponent<any, any>>(
-    componentType: ComponentType<COMP>
+  abstract getComponent<COMP extends Component<any, any>>(
+    componentType: ComponentConstructor<COMP>
   ): Promise<COMP>;
-  abstract getService<SERVICE extends IService<any, any>>(
+  abstract getService<SERVICE extends Service<any, any>>(
     serviceKey: string,
     state?: ServiceStateOf<SERVICE>,
-    serviceType?: ServiceType<SERVICE>
+    serviceType?: ServiceConstructor<SERVICE>
   ): ServicePromise<SERVICE>;
 
-  abstract getServiceState<SERVICE extends IService<any, any>>(
-    propsOrKey: string | ServiceStateOf<SERVICE>
-  ): Promise<SERVICE>;
+  abstract getServiceState<SERVICE extends Service<any, any>>(
+    serviceKey: ServicePropsOf<SERVICE> | ServiceKey
+  ): Promise<ServiceStateOf<SERVICE>>;
 
   abstract getParent(): Injector | null;
+
+  abstract releaseService(key: ServiceKey): void;
+  abstract serialize(): void;
 }
 
 function addDeclaredInfo(fn: { $debugStack?: Error }, error: any) {

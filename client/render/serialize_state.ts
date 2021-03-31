@@ -7,7 +7,7 @@
  */
 
 import { AttributeMarker } from '../util/markers.js';
-import { getInjector } from '../injection/element_injector.js';
+import { getInjector } from '../injector/element_injector.js';
 import { isHtmlElement } from '../util/types.js';
 
 /**

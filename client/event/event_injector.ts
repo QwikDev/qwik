@@ -6,12 +6,20 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { ComponentType, IComponent } from '../component/types.js';
-import { BaseInjector } from '../injection/base_injector.js';
-import { ElementInjector, getClosestInjector } from '../injection/element_injector.js';
-import { Injector, Props } from '../injection/types.js';
-import { IService, ServicePromise, ServiceStateOf, ServiceType } from '../service/types.js';
+import { ServiceKey } from '../service/service_key.js';
+import type { Component, ComponentConstructor } from '../component/component.js';
+import { BaseInjector } from '../injector/base_injector.js';
+import { ElementInjector, getClosestInjector } from '../injector/element_injector.js';
+import { Injector, Props } from '../injector/types.js';
+import {
+  Service,
+  ServiceConstructor,
+  ServicePromise,
+  ServicePropsOf,
+  ServiceStateOf,
+} from '../service/service.js';
 import '../util/qDev.js';
+import { qError, QError } from '../error/error.js';
 
 export class EventInjector extends BaseInjector {
   event: Event;
@@ -33,21 +41,31 @@ export class EventInjector extends BaseInjector {
     return (this.parentInjector = getClosestInjector(this.element, false));
   }
 
-  getComponent<COMP extends IComponent<any, any>>(
-    componentType: ComponentType<COMP>
+  getComponent<COMP extends Component<any, any>>(
+    componentType: ComponentConstructor<COMP>
   ): Promise<COMP> {
     return this.getParent()!.getComponent<COMP>(componentType);
   }
-  getService<SERVICE extends IService<any, any>>(
+
+  getService<SERVICE extends Service<any, any>>(
     serviceKey: string,
     state?: ServiceStateOf<SERVICE>,
-    serviceType?: ServiceType<SERVICE>
+    serviceType?: ServiceConstructor<SERVICE>
   ): ServicePromise<SERVICE> {
     return this.getParent()!.getService<SERVICE>(serviceKey, state, serviceType);
   }
-  getServiceState<SERVICE extends IService<any, any>>(
-    propsOrKey: string | ServiceStateOf<SERVICE>
-  ): Promise<SERVICE> {
-    return this.getParent()!.getService<SERVICE>(propsOrKey);
+
+  getServiceState<SERVICE extends Service<any, any>>(
+    propsOrKey: ServicePropsOf<SERVICE> | ServiceKey
+  ): Promise<ServiceStateOf<SERVICE>> {
+    return this.getParent()!.getServiceState<SERVICE>(propsOrKey);
+  }
+
+  releaseService(key: ServiceKey): void {
+    return this.getParent()?.releaseService(key);
+  }
+
+  serialize(): void {
+    throw qError(QError.Injector_eventInjectorNotSerializable);
   }
 }

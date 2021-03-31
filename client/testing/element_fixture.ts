@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { ElementInjector } from '../injection/element_injector.js';
+import { ElementInjector } from '../injector/element_injector.js';
 import { Injector } from '../index.js';
 import { createGlobal } from './node_utils.js';
 

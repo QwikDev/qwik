@@ -9,19 +9,20 @@
 import {
   ComponentPropsOf,
   ComponentStateOf,
-  ComponentType,
-  IComponent,
-} from '../component/types.js';
+  Component,
+  ComponentConstructor,
+} from '../component/component.js';
 import { qError, QError } from '../error/error.js';
 import { qImport } from '../import/qImport.js';
 import { QRL } from '../import/qrl.js';
+import { keyToServiceAttribute, ServiceKey } from '../service/service_key.js';
 import {
-  IService,
-  ServiceKey,
+  Service,
+  ServiceConstructor,
   ServicePromise,
+  ServicePropsOf,
   ServiceStateOf,
-  ServiceType,
-} from '../service/types.js';
+} from '../service/service.js';
 import { findAttribute } from '../util/dom_attrs.js';
 import { AttributeMarker } from '../util/markers.js';
 import '../util/qDev.js';
@@ -30,24 +31,24 @@ import { BaseInjector } from './base_injector.js';
 import { Injector, Props } from './types.js';
 
 interface ServiceValue {
-  promise: ServicePromise<IService<any, any>>;
-  service: IService<any, any> | null;
+  promise: ServicePromise<Service<any, any>>;
+  service: Service<any, any> | null;
 }
 
 export class ElementInjector extends BaseInjector {
-  private component: IComponent<any, any> | null = null;
-  private componentPromise: Promise<IComponent<any, any>> | null = null;
+  private component: Component<any, any> | null = null;
+  private componentPromise: Promise<Component<any, any>> | null = null;
   private services: Map<ServiceKey, ServiceValue> | null = null;
 
   get event(): Event {
-    throw qError(QError.Injection_notEventInjector);
+    throw qError(QError.Injector_notEventInjector);
   }
   get url(): URL {
-    throw qError(QError.Injection_notEventInjector);
+    throw qError(QError.Injector_notEventInjector);
   }
 
   get props(): Props {
-    throw qError(QError.Injection_notEventInjector);
+    throw qError(QError.Injector_notEventInjector);
   }
 
   getParent(): Injector | null {
@@ -64,8 +65,8 @@ export class ElementInjector extends BaseInjector {
     return null;
   }
 
-  getComponent<COMP extends IComponent<PROPS, STATE>, PROPS, STATE>(
-    componentType: ComponentType<COMP>
+  getComponent<COMP extends Component<any, any>>(
+    componentType: ComponentConstructor<COMP>
   ): Promise<COMP> {
     const injector: ElementInjector | null = this;
     const elementQRL: QRL | null = injector.element.getAttribute(
@@ -90,16 +91,16 @@ export class ElementInjector extends BaseInjector {
       } else {
         const stateJSON = this.element.getAttribute(AttributeMarker.ComponentState);
         const state = stateJSON ? (JSON.parse(stateJSON) as ComponentStateOf<COMP>) : null;
-        this.component = component = new componentType(
+        this.component = component = (new componentType(
           this.element,
           (this.elementProps as any) as ComponentPropsOf<COMP>,
           state
-        );
+        ) as unknown) as COMP;
         return (this.componentPromise = new Promise<COMP>((resolve, reject) => {
           let promise: Promise<any>;
           if (state == null) {
             promise = Promise.resolve(component.$newState(component.$props)).then(
-              (state: STATE) => {
+              (state: ComponentStateOf<COMP>) => {
                 component.$state = state;
               }
             );
@@ -118,10 +119,10 @@ export class ElementInjector extends BaseInjector {
     }
   }
 
-  getService<SERVICE extends IService<any, any>>(
+  getService<SERVICE extends Service<any, any>>(
     serviceKey: string,
     forceState?: ServiceStateOf<SERVICE>,
-    serviceType?: ServiceType<SERVICE>
+    serviceType?: ServiceConstructor<SERVICE>
   ): ServicePromise<SERVICE> {
     let servicePromise = this.services?.get(serviceKey)?.promise as
       | ServicePromise<SERVICE>
@@ -140,7 +141,7 @@ export class ElementInjector extends BaseInjector {
     );
 
     function serviceFactory(element: Element, attrName: string, attrValue: string) {
-      const injector = element === self.element ? self : getInjector(element);
+      const injector = element === self.element ? self : (getInjector(element) as ElementInjector);
       servicePromise = injector.services?.get(serviceKey)?.promise as
         | ServicePromise<SERVICE>
         | undefined;
@@ -157,7 +158,7 @@ export class ElementInjector extends BaseInjector {
         );
       }
       const serviceTypePromise = Promise.resolve(
-        serviceType || qImport<ServiceType<SERVICE>>(element, serviceQRL)
+        serviceType || qImport<ServiceConstructor<SERVICE>>(element, serviceQRL)
       );
       servicePromise = toServicePromise<SERVICE>(
         serviceKey,
@@ -172,7 +173,7 @@ export class ElementInjector extends BaseInjector {
               state!.$key = serviceKey;
             }
             const props = serviceType.$keyToProps(serviceKey);
-            const service = new serviceType(element, props, state);
+            const service = (new serviceType(element, props, state) as unknown) as SERVICE;
             let chain: Promise<any>;
             if (state) {
               serviceValue.service = service;
@@ -205,8 +206,8 @@ export class ElementInjector extends BaseInjector {
     }
   }
 
-  getServiceState<SERVICE extends IService<any, any>>(
-    serviceKey: string | ServiceStateOf<SERVICE>
+  getServiceState<SERVICE extends Service<any, any>>(
+    serviceKey: ServicePropsOf<SERVICE> | ServiceKey
   ): Promise<ServiceStateOf<SERVICE>> {
     const serviceAttrName = keyToServiceAttribute(serviceKey);
     return findAttribute(
@@ -214,14 +215,14 @@ export class ElementInjector extends BaseInjector {
       serviceKey,
       serviceAttrName,
       (element, serviceKeyAttr, serviceState) => {
-        const injector = element == this.element ? this : getInjector(element);
+        const injector = element == this.element ? this : (getInjector(element) as ElementInjector);
         const existingService = injector.services?.get(serviceKey)?.promise;
         if (existingService) {
           return existingService.then((service) => service.$state);
         }
         if (!serviceState) {
           throw qError(
-            QError.Injection_missingSerializedState_serviceKey_element,
+            QError.Injector_missingSerializedState_serviceKey_element,
             serviceKey,
             element
           );
@@ -248,7 +249,7 @@ export class ElementInjector extends BaseInjector {
 
   serialize() {
     const element = this.element;
-    const state = (this.component as null | IComponent<any, any>)?.$state;
+    const state = (this.component as null | Component<any, any>)?.$state;
     if (state != null) {
       element.setAttribute(AttributeMarker.ComponentState, JSON.stringify(state));
     }
@@ -269,7 +270,7 @@ function filterFrameworkKeys(this: any, key: string, value: any) {
   }
 }
 
-function toServicePromise<SERVICE extends IService<any, any>>(
+function toServicePromise<SERVICE extends Service<any, any>>(
   serviceKey: ServiceKey,
   promise: Promise<SERVICE>
 ): ServicePromise<SERVICE> {
@@ -284,27 +285,13 @@ export function getComponentHost(element: Element): Element {
     cursor = cursor.parentElement;
   }
   if (!cursor) {
-    throw qError(QError.Injection_noHost_element, element);
+    throw qError(QError.Injector_noHost_element, element);
   }
   return cursor;
 }
 
 /**
- * Returns the attribute where the service QRL is stored.
- *
- * @param key - service key attribute name (ie: `foo:123:456`)
- * @returns Service attribute (ie: `::foo`)
- */
-export function keyToServiceAttribute(key: string): string {
-  const idx = key.indexOf(':');
-  if (idx == -1) {
-    throw qError(QError.Service_notValidKey_key, key);
-  }
-  return '::' + key.substr(0, idx);
-}
-
-/**
- * Gets (or creates) an `ElementInjector` at a particular DOM `Element`.
+ * Gets (or creates) an `Injector` at a particular DOM `Element`.
  *
  * If an element has an injector it is marked with `:` to designate it. This information
  * is used during serialization to locate all of the `Injector`s and serialize them.
@@ -315,12 +302,12 @@ export function keyToServiceAttribute(key: string): string {
  * @param create - Should the function lazy create the injector or just return `null`
  * @public
  */
-export function getInjector(element: Element): ElementInjector;
+export function getInjector(element: Element): Injector;
 /** @public */
-export function getInjector(element: Element, create: false): ElementInjector | null;
-export function getInjector(element: Element, create: boolean = true): ElementInjector | null {
+export function getInjector(element: Element, create: false): Injector | null;
+export function getInjector(element: Element, create: boolean = true): Injector | null {
   if (!isHtmlElement(element)) {
-    throw qError(QError.Injection_notElement_arg, element);
+    throw qError(QError.Injector_notElement_arg, element);
   }
   const _element = element as ElementExpando;
   let injector = _element.$injector;
@@ -351,12 +338,12 @@ export function getClosestInjector(
       cursor.hasAttribute(AttributeMarker.Injector) ||
       cursor.hasAttribute(AttributeMarker.ComponentTemplate)
     ) {
-      return getInjector(cursor);
+      return getInjector(cursor) as ElementInjector;
     }
     cursor = cursor.parentElement;
   }
   if (throwIfNotFound) {
-    throw qError(QError.Injection_notFound_element, element);
+    throw qError(QError.Injector_notFound_element, element);
   }
   return null;
 }

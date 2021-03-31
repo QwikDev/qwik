@@ -8,31 +8,45 @@
 
 import { assertEqual } from '../assert/index.js';
 import { qImport, toUrl } from './qImport.js';
-import { QRL as QRL_ } from './types.js';
 import '../util/qDev.js';
 import { getConfig } from '../config/qGlobal.js';
 import { getFilePathFromFrame } from '../util/base_uri.js';
 import { isPromise } from '../util/promises.js';
 
 /**
- * `QRL` is a type safe version of QRL.
+ * `QRL` (Qoot Resource Locator) represents an import which points to a lazy loaded resource.
  *
- * `QRL` is just a string at runtime. For type safety reasons `QRL` type is used
- * to force the developer to mark the string like so:
+ * QRL is a URL pointing to a lazy loaded resource. Because the URLs need to be verified
+ * (and possibly bundled) there needs to be a way to identify all URL strings in the system.
+ * QRL serves the purpose of statically tagging all URLs for static code analysis and for
+ * development mode verification.
+ *
+ * QRLs can use custom protocols for referring to URLs in a baseURI independent way. This is
+ * useful for third-party libraries. Third-party libraries don't know what URL they will be
+ * installed at. For this reason the third-party libraries do all QRLs prefixed with
+ * custom protocol and rely on the application to configure such protocol.
  *
  * ```
- * qImport(QRL`pathToResource`);
- * ```
+ * QRL`someLibrary:/someImport`
  *
- * Marking the QRL with a tagged-template-literal allows for two things:
- * 1. the `QRL` tag can verify that the URL is valid eagerly (and report the errors as soon as
- *    possible.)
- * 2. the `QRL` tag easily identifies all of the `QRL`s in the application allowing future
- *    tooling to manipulate it.
+ * Q = {
+ *   protocol: {
+ *     'someLibrary': 'somePath'
+ *   }
+ * }
+ * ```
+ * The `QRL` looks up `foo` in `QRLProtocolMap` resulting in `somePath/someImport`.
+ *
+ * In dev mode (`qDev=true`) the `QRL` eagerly tries to resolve the URLs to verify that they
+ * are correct. This is done to notify the developer of any mistakes as soon as possible.
  *
  * @public
  */
-export type QRL<T = any> = QRL_<T>;
+export interface QRL<T = any> {
+  __brand__: 'QRL';
+  __brand__T__: T;
+}
+
 /**
  * Tag template literal factory.
  *
@@ -47,7 +61,7 @@ export type QRL<T = any> = QRL_<T>;
 export function QRL<T = any>(
   messageParts: TemplateStringsArray,
   ...expressions: readonly any[]
-): QRL_<T> {
+): QRL<T> {
   let url = '';
   for (let i = 0; i < messageParts.length; i++) {
     const part = messageParts[i];
@@ -65,7 +79,7 @@ export function QRL<T = any>(
   if (qDev) {
     verifyQrl(new Error('Invalid import: ' + url), url);
   }
-  return (url as unknown) as QRL_<T>;
+  return (url as unknown) as QRL<T>;
 }
 
 export async function verifyQrl(error: Error, url: string): Promise<any> {

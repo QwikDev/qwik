@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { Provider, Injector } from '../injection/types.js';
+import { Provider, Injector } from '../injector/types.js';
 import { QError, qError } from '../error/error.js';
 
 /**

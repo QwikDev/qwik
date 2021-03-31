@@ -8,9 +8,44 @@
 
 import { isValidAttribute } from '../error/data.js';
 import { fromCamelToKebabCase, fromKebabToCamelCase } from '../util/case.js';
-import { ServiceKey, ServiceType } from './types.js';
+import type { ServiceConstructor } from './service.js';
 import { qError, QError } from '../error/error.js';
 import { stringify } from '../util/stringify.js';
+
+/**
+ * String representation of the service key.
+ *
+ * A service is uniquely identified by its props. Props is an object of key/value pairs which is
+ * used to look up the service. When referring to service in DOM it is necessary to serialize the
+ * Props into a unique strings which is a valid DOM attribute. To do that the Prop values are
+ * concatenated into a `ServiceKey` like so `<service_name>:<value1>:<value2>:...`. The order
+ * of values is determined by the `Service.$keyProps` property.
+ *
+ * When Service is working with the Props it is more connivent to use the deserialized version of
+ * the `ServiceKey` which is Props.
+ *
+ * See: `Service.$keyProps`
+ *
+ * Example:
+ *
+ * ```
+ * interface MyProps {
+ *   id: string;
+ * }
+ *
+ * class MyService extends Service<MyProps, {}> {
+ *   $qrl = QRL`./path/to/service/MyService`;
+ *   $type = 'myService';
+ *   $keyProps = ['id'];
+ * }
+ *
+ * expect(MyService.$propsToKey({id: 123})).toEqual('my-service:123');
+ * expect(MyService.$keyToProps('my-service:123')).toEqual({id: 123});
+ * ```
+ *
+ * @public
+ */
+export type ServiceKey = string;
 
 /**
  * Converts service `Props` into service key.
@@ -26,7 +61,7 @@ import { stringify } from '../util/stringify.js';
  * @returns service-key.
  * @internal
  */
-export function propsToKey(serviceType: ServiceType<any>, props: Record<string, any>) {
+export function propsToKey(serviceType: ServiceConstructor<any>, props: Record<string, any>) {
   let id = fromCamelToKebabCase(serviceType.$type) + ':';
   const propNames = serviceType.$keyProps;
   if (!propNames) {
@@ -56,7 +91,7 @@ export function propsToKey(serviceType: ServiceType<any>, props: Record<string, 
  * @internal
  */
 export function keyToProps(
-  serviceType: ServiceType<any>,
+  serviceType: ServiceConstructor<any>,
   key: string
 ): { [key: string]: string | number | null | undefined } {
   const props: any = {};
@@ -134,4 +169,18 @@ export function serviceStateKey(value: any): ServiceKey {
     throw qError(QError.Service_stateMissingKey_state, value);
   }
   return key;
+}
+
+/**
+ * Returns the attribute where the service QRL is stored.
+ *
+ * @param key - service key attribute name (ie: `foo:123:456`)
+ * @returns Service attribute (ie: `::foo`)
+ */
+export function keyToServiceAttribute(key: string): string {
+  const idx = key.indexOf(':');
+  if (idx == -1) {
+    throw qError(QError.Service_notValidKey_key, key);
+  }
+  return '::' + key.substr(0, idx);
 }

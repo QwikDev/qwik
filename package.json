@@ -58,7 +58,7 @@
     "test:unit": "bazel test  --test_tag_filters=unit  ...",
     "test:e2e": "bazel test  --test_tag_filters=e2e  ...",
     "test": "bazel test client/...",
-    "test-api": "bazel build client && api-extractor run --local --verbose",
+    "api-update": "bazel build client && api-extractor run --local --verbose --config client/api-extractor.json",
     "lint": "eslint \"client/**/*.ts\" \"server/**/*.ts\" \"integration/**/*.ts\"",
     "prepare": "husky install"
   },

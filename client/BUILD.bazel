@@ -1,6 +1,7 @@
 package(default_visibility = ["//visibility:public"])
 
 load("@npm//mocha:index.bzl", "mocha_test")
+load("@npm//@microsoft/api-extractor:index.bzl", "api_extractor", "api_extractor_test")
 load("@build_bazel_rules_nodejs//:index.bzl", "js_library")
 load("@npm//@bazel/typescript:index.bzl", "ts_project")
 load("@npm//@bazel/rollup:index.bzl", "rollup_bundle")
@@ -20,6 +21,12 @@ ts_project(
     tsconfig = "//:tsconfig",
     declaration = True,
     srcs = glob(["**/*.ts"], exclude=["qootloader.ts", "**/*.unit.ts", "CONFIG.ts"]),
+)
+
+filegroup(
+    name = "project.d.ts",
+    output_group = "types",
+    srcs = [":project"],
 )
 
 ts_project(
@@ -82,4 +89,44 @@ mocha_test(
         "@npm//chai",
         "//client/testing",
     ],
+)
+
+api_extractor(
+    name = "publicAPI",
+    args = [
+        "run", 
+        "--verbose",
+        "--config", 
+        "client/api-extractor.json",
+    ],
+    data = [
+        ":project",
+        "api-extractor.json",
+        "//:package.json",
+        "//:tsconfig.json",
+        "//:tsconfig.bazel.json",
+        ":qoot.api.md",   ## Gold file
+        ":qoot.api.json", ## Gold file
+    ],
+    outs = [ "qoot.d.ts" ]
+)
+
+api_extractor_test(
+    name = "publicAPI.verify",
+    args = [
+        "run", 
+        "--local", 
+        "--verbose",
+        "--config", 
+        "client/api-extractor.verify.json",
+    ],
+    data = [
+        ":project.d.ts",
+        "api-extractor.verify.json",
+        "//:package.json",
+        "//:tsconfig.json",
+        "//:tsconfig.bazel.json",
+        ":qoot.api.md",   ## Gold file
+        ":qoot.api.json", ## Gold file
+    ]
 )

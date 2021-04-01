@@ -32,7 +32,7 @@
    * SUPPORTED TOKENS: <lookup>
    * DEFAULT VALUE: "<lookup>"
    */
-  "projectFolder": ".",
+  "projectFolder": "..",
 
   /**
    * (REQUIRED) Specifies the .d.ts file to be used as the starting point for analysis.  API Extractor
@@ -77,7 +77,7 @@
      * SUPPORTED TOKENS: <projectFolder>, <packageName>, <unscopedPackageName>
      * DEFAULT VALUE: "<projectFolder>/tsconfig.json"
      */
-    // "tsconfigFilePath": "<projectFolder>/tsconfig.json",
+    "tsconfigFilePath": "<projectFolder>/tsconfig.bazel.json",
     /**
      * Provides a compiler configuration that will be used instead of reading the tsconfig.json file from disk.
      * The object must conform to the TypeScript tsconfig schema:
@@ -88,9 +88,9 @@
      *
      * DEFAULT VALUE: no overrideTsconfig section
      */
-    // "overrideTsconfig": {
-    //   . . .
-    // }
+    "overrideTsconfig": {
+      "include": ["./bazel-out/darwin-fastbuild/bin/client/index.d.ts"]
+    }
     /**
      * This option causes the compiler to be invoked with the --skipLibCheck option. This option is not recommended
      * and may cause API Extractor to produce incomplete or incorrect declarations, but it may be required when
@@ -135,7 +135,7 @@
      * SUPPORTED TOKENS: <projectFolder>, <packageName>, <unscopedPackageName>
      * DEFAULT VALUE: "<projectFolder>/etc/"
      */
-    "reportFolder": "./client"
+    "reportFolder": "."
 
     /**
      * Specifies the folder where the temporary report file is written.  The file name portion is determined by
@@ -195,7 +195,7 @@
      * SUPPORTED TOKENS: <projectFolder>, <packageName>, <unscopedPackageName>
      * DEFAULT VALUE: "<projectFolder>/dist/<unscopedPackageName>.d.ts"
      */
-    "untrimmedFilePath": "<projectFolder>/client/<unscopedPackageName>.d.ts"
+    "untrimmedFilePath": "<projectFolder>/bazel-out/darwin-fastbuild/bin/client/<unscopedPackageName>.d.ts"
 
     /**
      * Specifies the output path for a .d.ts rollup file to be generated with trimming for a "beta" release.

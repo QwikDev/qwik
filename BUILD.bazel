@@ -18,8 +18,10 @@ copy_to_bin(
 
 exports_files([
     "LICENSE",
+    "api-extractor.json",
     "cypress.json",
     "package.json",
     "rollup.config.js",
     "terser.config.json",
+    "tsconfig.json",
 ])

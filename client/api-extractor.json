@@ -135,7 +135,7 @@
      * SUPPORTED TOKENS: <projectFolder>, <packageName>, <unscopedPackageName>
      * DEFAULT VALUE: "<projectFolder>/etc/"
      */
-    "reportFolder": "."
+    "reportFolder": "<projectFolder>/bazel-out/darwin-fastbuild/bin/client",
 
     /**
      * Specifies the folder where the temporary report file is written.  The file name portion is determined by
@@ -150,7 +150,7 @@
      * SUPPORTED TOKENS: <projectFolder>, <packageName>, <unscopedPackageName>
      * DEFAULT VALUE: "<projectFolder>/temp/"
      */
-    // "reportTempFolder": "<projectFolder>/temp/"
+    "reportTempFolder": "<projectFolder>"
   },
 
   /**
@@ -160,7 +160,7 @@
     /**
      * (REQUIRED) Whether to generate a doc model file.
      */
-    "enabled": true
+    "enabled": false,
 
     /**
      * The output path for the doc model file.  The file extension should be ".api.json".
@@ -171,7 +171,7 @@
      * SUPPORTED TOKENS: <projectFolder>, <packageName>, <unscopedPackageName>
      * DEFAULT VALUE: "<projectFolder>/temp/<unscopedPackageName>.api.json"
      */
-    // "apiJsonFilePath": "<projectFolder>/temp/<unscopedPackageName>.api.json"
+    "apiJsonFilePath": "<projectFolder>/client/<unscopedPackageName>.api.json"
   },
 
   /**

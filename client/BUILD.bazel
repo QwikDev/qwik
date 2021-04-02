@@ -1,8 +1,8 @@
 package(default_visibility = ["//visibility:public"])
 
 load("@npm//mocha:index.bzl", "mocha_test")
-load("@npm//@microsoft/api-extractor:index.bzl", "api_extractor", "api_extractor_test")
-load("@build_bazel_rules_nodejs//:index.bzl", "js_library")
+load("@npm//@microsoft/api-extractor:index.bzl", "api_extractor")
+load("@build_bazel_rules_nodejs//:index.bzl", "js_library", "generated_file_test")
 load("@npm//@bazel/typescript:index.bzl", "ts_project")
 load("@npm//@bazel/rollup:index.bzl", "rollup_bundle")
 load("@npm//@bazel/terser:index.bzl", "terser_minified")
@@ -93,12 +93,12 @@ mocha_test(
     ],
 )
 
-# TODO: https://bazelbuild.github.io/rules_nodejs/Built-ins.html#generated_file_test
 api_extractor(
-    name = "publicAPI",
+    name = "public_api_extractor",
     args = [
         "run", 
         "--verbose",
+        "--local",
         "--config", 
         "client/api-extractor.json",
     ],
@@ -108,30 +108,17 @@ api_extractor(
         "//:package.json",
         "//:tsconfig.json",
         "//:tsconfig.bazel.json",
-        ":qoot.api.md",   ## Gold file
-        ":qoot.api.json", ## Gold file
     ],
-    outs = [ "qoot.d.ts" ]
+    outs = [ 
+        "qoot.d.ts",
+        ":qoot.api.md",
+     ]
 )
 
-api_extractor_test(
-    name = "publicAPI.verify",
-    args = [
-        "run", 
-        "--local", 
-        "--verbose",
-        "--config", 
-        "client/api-extractor.verify.json",
-    ],
-    data = [
-        ":project.d.ts",
-        "api-extractor.verify.json",
-        "//:package.json",
-        "//:tsconfig.json",
-        "//:tsconfig.bazel.json",
-        ":qoot.api.md",   ## Gold file
-        ":qoot.api.json", ## Gold file
-    ]
+generated_file_test(
+    name = "publicAPI.md",
+    src = ":qoot.api.gold.md", 
+    generated = ":qoot.api.md",
 )
 
 genrule(

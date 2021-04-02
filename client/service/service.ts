@@ -229,6 +229,7 @@ export class Service<PROPS, STATE> {
    * `{project: '123', task: '456'}`. Notice that the `$keyProps` define
    * property names for the key value positions.
    */
+  // TODO: Throw error if `$keyProps` is not defined.
   static $keyProps: string[] = [];
 
   /**
@@ -253,6 +254,7 @@ export class Service<PROPS, STATE> {
    *
    * @param element - Element where the service definition should be attached.
    */
+  // TODO: Is this the right name? we are not attaching, we are more like defining a provider
   static $attachService<SERVICE extends Service<any, any>>(
     this: { new (...args: any[]): SERVICE },
     element: Element

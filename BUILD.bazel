@@ -6,7 +6,7 @@ load("@build_bazel_rules_nodejs//:index.bzl", "copy_to_bin")
 ts_config(
     name = "tsconfig",
     src = "tsconfig.bazel.json",
-    deps = [":tsconfig.json"]
+    deps = [":tsconfig.base.json"]
 )
 
 copy_to_bin(
@@ -23,5 +23,5 @@ exports_files([
     "package.json",
     "rollup.config.js",
     "terser.config.json",
-    "tsconfig.json",
+    "tsconfig.base.json",
 ])

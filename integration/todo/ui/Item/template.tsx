@@ -16,6 +16,7 @@ import {
 } from '../../qoot.js';
 import { ItemComponent } from './component.js';
 
+export const _needed_by_JSX_ = jsxFactory; // eslint-disable-line @typescript-eslint/no-unused-vars
 export default injectMethod(
   ItemComponent,
   provideServiceState<ItemService>(provideComponentProp('$item')),

@@ -6,19 +6,17 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { assertNotEqual, assertString, newError } from '../../assert/index.js';
-import { Component } from '../../component/component.js';
+import { assertString, newError } from '../../assert/index.js';
+import { Component, isComponent } from '../../component/component.js';
+import { QError, qError } from '../../error/error.js';
 import { QRL } from '../../import/qrl.js';
 import { Props } from '../../injector/types.js';
-import { Service, isService } from '../../service/service.js';
+import { isService, Service } from '../../service/service.js';
 import { extractPropsFromElement } from '../../util/attributes.js';
-import { isPromise } from '../../util/promises.js';
+import { AttributeMarker } from '../../util/markers.js';
+import { flattenPromiseTree, isPromise } from '../../util/promises.js';
 import { HostElements } from '../types.js';
 import { jsxRenderComponent } from './render.js';
-
-interface QDocument extends Document {
-  $qScheduledRender?: Promise<HostElements> | null;
-}
 
 /**
  * Marks `Component` or `Service` dirty.
@@ -51,12 +49,25 @@ interface QDocument extends Document {
 export function markDirty(
   componentOrService: Component<any, any> | Service<any, any>
 ): Promise<HostElements> {
-  if (isService(componentOrService)) return markServiceDirty(componentOrService);
-  qDev && assertNotEqual(typeof requestAnimationFrame, 'undefined');
-  const host = componentOrService.$host;
-  // TODO: pull out constant strings;
+  if (isService(componentOrService)) {
+    return markServiceDirty(componentOrService);
+  } else if (isComponent(componentOrService)) {
+    return markComponentDirty(componentOrService);
+  } else {
+    throw qError(QError.Render_expectingServiceOrComponent_obj, componentOrService);
+  }
+}
+
+/**
+ * @internal
+ */
+export function markComponentDirty(component: Component<any, any>): Promise<HostElements> {
+  const host = component.$host;
   const document = host.ownerDocument as QDocument;
-  host.setAttribute('on:.render', host.getAttribute('::')!);
+  host.setAttribute(
+    AttributeMarker.EventRender,
+    host.getAttribute(AttributeMarker.ComponentTemplate)!
+  );
   const promise = document.$qScheduledRender;
   if (isPromise(promise)) {
     return promise;
@@ -64,35 +75,16 @@ export function markDirty(
   return scheduleRender(document);
 }
 
-function scheduleRender(document: QDocument): Promise<HostElements> {
-  return (document.$qScheduledRender = new Promise<HostElements>((resolve, reject) => {
-    requestAnimationFrame(() => {
-      const waitOn: HostElements = [];
-      const componentHosts = document.querySelectorAll('[on\\:\\.render]');
-      componentHosts.forEach((host) => {
-        // TODO: Utility method for string to QRL conversion.
-        host.removeAttribute('on:.render');
-        const qrl = (host.getAttribute('::')! as any) as QRL;
-        qDev && assertString(qrl);
-        const props: Props = extractPropsFromElement(host);
-        jsxRenderComponent(host, qrl, waitOn, props, document);
-        // TODO: this looks wrong and needs tests. Also resolve is not used.
-        Promise.all(waitOn).then((hosts) => {
-          document.$qScheduledRender = null;
-          return hosts;
-        }, reject);
-      });
-    });
-  }));
-}
-
-function markServiceDirty(component: Service<any, any>): Promise<HostElements> {
-  const key = component.$key;
-  const document = component.$element.ownerDocument as QDocument;
+/**
+ * @internal
+ */
+export function markServiceDirty(service: Service<any, any>): Promise<HostElements> {
+  const key = service.$key;
+  const document = service.$element.ownerDocument as QDocument;
   let foundListener = false;
   document.querySelectorAll(toAttrQuery('bind:' + key)).forEach((componentElement: HTMLElement) => {
-    const qrl = componentElement.getAttribute('::')!;
-    // TODO: Qerror;
+    const qrl = componentElement.getAttribute(AttributeMarker.ComponentTemplate)!;
+    // TODO: QError;
     if (!qrl) {
       throw newError('Expecting component');
     }
@@ -104,4 +96,44 @@ function markServiceDirty(component: Service<any, any>): Promise<HostElements> {
 }
 function toAttrQuery(key: string): any {
   return '[' + key.replace(/[:.-_]/g, (v) => '\\' + v) + ']';
+}
+
+/**
+ * Schedule rendering for the future.
+ *
+ * Multiple calls to this function result in a single `rAF` scheduling creating coalescence.
+ *
+ * Rendering is achieved by `querySelectorAll` looking for all `AttributeMarker.EventRenderSelector`.
+ *
+ * @returns a `Promise` of all of the components which were re-rendered.
+ * @internal
+ */
+export function scheduleRender(document: QDocument): Promise<HostElements> {
+  const promise = document.$qScheduledRender;
+  if (promise) return promise;
+  const requestAnimationFrame = document.defaultView!.requestAnimationFrame!;
+  if (!requestAnimationFrame) {
+    throw qError(QError.Render_noRAF);
+  }
+  return (document.$qScheduledRender = new Promise<HostElements>((resolve, reject) => {
+    requestAnimationFrame(() => {
+      const waitOn: HostElements = [];
+      const componentHosts = document.querySelectorAll(AttributeMarker.EventRenderSelector);
+      componentHosts.forEach((host) => {
+        host.removeAttribute(AttributeMarker.EventRender);
+        const qrl = (host.getAttribute(AttributeMarker.ComponentTemplate)! as any) as QRL;
+        qDev && assertString(qrl);
+        const props: Props = extractPropsFromElement(host);
+        jsxRenderComponent(host, qrl, waitOn, props, document);
+      });
+      flattenPromiseTree(waitOn).then(() => {
+        document.$qScheduledRender = null;
+        resolve(componentHosts as any);
+      }, reject);
+    });
+  }));
+}
+
+interface QDocument extends Document {
+  $qScheduledRender?: Promise<HostElements> | null;
 }

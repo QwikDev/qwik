@@ -38,7 +38,28 @@ export function createGlobal(baseUri: string) {
  */
 export function createDocument(baseUri: string): Document {
   const document = domino.createDocument();
+  // TODO(misko): Needs test
+  const requestAnimationFrame: MockRequestAnimationFrame = function requestAnimationFrame(
+    callback: FrameRequestCallback
+  ): number {
+    const id = requestAnimationFrame.queue.length;
+    requestAnimationFrame.queue[id] = callback;
+    return id;
+  };
+  requestAnimationFrame.queue = [];
+  requestAnimationFrame.flush = function () {
+    const queue = requestAnimationFrame.queue;
+    for (let i = 0; i < queue.length; i++) {
+      const callback = queue[i];
+      if (callback) {
+        queue[i] = null;
+        callback(-1);
+      }
+    }
+  };
+  const window = { requestAnimationFrame };
   Object.defineProperty(document, 'baseURI', { value: baseUri });
+  Object.defineProperty(document, 'defaultView', { value: window });
   return document;
 }
 
@@ -48,4 +69,13 @@ class MockCustomEvent {
     Object.assign(this, details);
     this.type = type;
   }
+}
+
+/**
+ * @public
+ */
+export interface MockRequestAnimationFrame {
+  queue: (FrameRequestCallback | null)[];
+  flush: () => void;
+  (callback: FrameRequestCallback): number;
 }

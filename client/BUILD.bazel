@@ -73,7 +73,7 @@ ts_project(
     name = "unit_lib",
     tsconfig = "//:tsconfig",
     declaration = True,
-    srcs = glob(["**/*.unit.ts"]),
+    srcs = glob(["**/*.unit.ts", "**/*.unit.tsx"]),
     deps = [
         "@npm//@types/mocha",
         "@npm//@types/chai",
@@ -106,7 +106,7 @@ api_extractor(
         ":project",
         "api-extractor.json",
         "//:package.json",
-        "//:tsconfig.json",
+        "//:tsconfig.base.json",
         "//:tsconfig.bazel.json",
     ],
     outs = [ 
@@ -119,6 +119,7 @@ generated_file_test(
     name = "publicAPI.md",
     src = ":qoot.api.gold.md", 
     generated = ":qoot.api.md",
+    tags = ["unit"],
 )
 
 genrule(

@@ -7,6 +7,7 @@
  */
 
 import { expect } from 'chai';
+import { GreeterComponent, Greeter, GreeterProps } from '../testing/component_fixture.js';
 import { Component } from '../component/component.js';
 import '../CONFIG.js';
 import { stringifyDebug } from '../error/stringify.js';
@@ -221,30 +222,8 @@ describe('ElementInjector', () => {
   });
 });
 
-interface GreeterProps {
-  salutation: string;
-  name: string;
-}
-interface Greeter {
-  greeting: string;
-}
-
-class GreeterComponent extends Component<GreeterProps, Greeter> {
-  static $templateQRL: QRL = 'qrlToTemplate' as any;
-
-  greeting: string = null!;
-
-  async $init() {
-    this.greeting = this.$state.greeting;
-  }
-
-  async $newState(state: GreeterProps) {
-    return { greeting: state.salutation + ' ' + state.name + '!' };
-  }
-}
-
 class GreeterShadowComponent extends Component<GreeterProps, Greeter> {
-  static $templateQRL: QRL = 'qrlToTemplate' as any;
+  static $templateQRL: QRL = GreeterComponent.$templateQRL;
 }
 
 interface RegardsProps {

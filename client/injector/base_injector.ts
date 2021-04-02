@@ -44,10 +44,6 @@ export abstract class BaseInjector implements Injector {
           );
         }
         const hasSelf = selfType && self == null;
-        const providerPromises = fn.$inject.map((provider) => provider && provider(this));
-        if (selfType && self == null) {
-          providerPromises.push(this.getComponent(selfType as any));
-        }
         return resolveArgs(
           this,
           hasSelf ? this.getComponent(selfType as any) : self,

@@ -15,6 +15,8 @@ import { injectMethod, jsxFactory, QRL } from '../qoot.js';
  * Contains rendering information of the Greeter component.
  */
 
+export const _needed_by_JSX_ = jsxFactory; // eslint-disable-line @typescript-eslint/no-unused-vars
+
 /**
  * Render template method of `GreeterComponent`.
  *

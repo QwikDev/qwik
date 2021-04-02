@@ -14,8 +14,8 @@ import { jsxDeclareComponent, jsxFactory } from './factory.js';
 import { jsxRender } from './render.js';
 import { QRL } from '../../import/index.js';
 
-const _needed_by_JSX_ = jsxFactory;
-const _needed_by_ide_: JSX_IntrinsicElements = null!;
+const _needed_by_JSX_ = jsxFactory; // eslint-disable-line @typescript-eslint/no-unused-vars
+const _needed_by_ide_: JSX_IntrinsicElements = null!; // eslint-disable-line @typescript-eslint/no-unused-vars
 
 describe('render', () => {
   let global: QootGlobal;

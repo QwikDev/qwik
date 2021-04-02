@@ -279,30 +279,36 @@ export interface InjectedFunction<SELF, ARGS extends any[], REST extends any[], 
  */
 export type Provider<T> = (injector: Injector) => T | Promise<T>;
 
-// TODO: Docs
 /**
+ * Returns type which matches provider returns.
+ *
  * @public
  */
 export type ProviderReturns<ARGS extends any[]> = {
   [K in keyof ARGS]: ARGS[K] extends Provider<infer U> ? U : never;
 };
 
-// TODO: Docs
 /**
+ * Collection of Providers
+ *
  * @public
  */
 export type Providers<ARGS extends any[]> = {
   [K in keyof ARGS]: Provider<ARGS[K]>;
 };
 
-// TODO: Docs
 /**
+ * `Props` interface.
+ *
  * @public
  */
 export interface Props {
   [key: string]: string;
 }
 
+/**
+ * @internal
+ */
 export type ValueOrProviderReturns<ARGS extends any[]> = {
   [K in keyof ARGS]: ARGS[K] extends Provider<infer U> | infer U ? U : ARGS[K];
 };

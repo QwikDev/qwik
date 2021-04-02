@@ -58,6 +58,11 @@ export const enum QError {
   Provider_unrecognizedFormat_value = 500,
   // Render 600-699
   Render_unexpectedJSXNodeType_type = 600,
+  Render_unsupportedFormat_obj_attr = 601,
+  Render_expectingService_service = 602,
+  Render_expectingServiceArray_obj = 603,
+  Render_expectingServiceOrComponent_obj = 604,
+  Render_noRAF = 605,
   // Event
   Event_emitEventRequiresName_url = 700,
   Event_emitEventCouldNotFindListener_event_element = 701,
@@ -166,6 +171,12 @@ function codeToText(code: QError): string {
     [QError.Provider_unrecognizedFormat_value]: "Unrecognized expression format '{}'.",
     //////////////
     [QError.Render_unexpectedJSXNodeType_type]: 'Unexpected JSXNode<{}> type.',
+    [QError.Render_unsupportedFormat_obj_attr]: "Value '{}' can't be written into '{}' attribute.",
+    [QError.Render_expectingService_service]: "Expecting service object, got '{}'.",
+    [QError.Render_expectingServiceArray_obj]: "Expecting array of services, got '{}'.",
+    [QError.Render_expectingServiceOrComponent_obj]: "Expecting Service or Component got '{}'.",
+    [QError.Render_noRAF]:
+      "'requestAnimationFrame' not found. If you are running on server design your applications in a way which does not require 'requestAnimationFrame' on first render.",
     //////////////
     [QError.Event_emitEventRequiresName_url]: "Missing '$type' attribute in the '{}' url.",
     [QError.Event_emitEventCouldNotFindListener_event_element]:

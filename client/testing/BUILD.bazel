@@ -4,6 +4,8 @@ load("@npm//mocha:index.bzl", "mocha_test")
 load("@build_bazel_rules_nodejs//:index.bzl", "js_library")
 load("@npm//@bazel/typescript:index.bzl", "ts_project")
 
+# TODO: This package should have public API and test for public API stabality
+
 js_library(
     name = "testing",
     package_name = "qoot_testing",

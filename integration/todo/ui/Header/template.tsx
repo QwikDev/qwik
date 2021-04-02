@@ -9,6 +9,7 @@
 import { jsxFactory, QRL, injectMethod } from '../../qoot.js';
 import { HeaderComponent } from './component.js';
 
+export const _needed_by_JSX_ = jsxFactory; // eslint-disable-line @typescript-eslint/no-unused-vars
 export default injectMethod(
   HeaderComponent, //
   function (this: HeaderComponent) {

@@ -6,6 +6,7 @@ load("@build_bazel_rules_nodejs//:index.bzl", "js_library")
 load("@npm//@bazel/typescript:index.bzl", "ts_project")
 load("@npm//@bazel/rollup:index.bzl", "rollup_bundle")
 load("@npm//@bazel/terser:index.bzl", "terser_minified")
+load("@build_bazel_rules_nodejs//:index.bzl", "pkg_npm")
 
 js_library(
     name = "client",
@@ -21,6 +22,7 @@ ts_project(
     tsconfig = "//:tsconfig",
     declaration = True,
     srcs = glob(["**/*.ts"], exclude=["qootloader.ts", "**/*.unit.ts", "CONFIG.ts"]),
+    # TODO: https://bazelbuild.github.io/rules_nodejs/TypeScript.html#ts_project-supports_workers
 )
 
 filegroup(
@@ -91,6 +93,7 @@ mocha_test(
     ],
 )
 
+# TODO: https://bazelbuild.github.io/rules_nodejs/Built-ins.html#generated_file_test
 api_extractor(
     name = "publicAPI",
     args = [
@@ -129,4 +132,28 @@ api_extractor_test(
         ":qoot.api.md",   ## Gold file
         ":qoot.api.json", ## Gold file
     ]
+)
+
+genrule(
+    name = "LICENSE.copy",
+    srcs = ["//:LICENSE"],
+    outs = ["LICENSE"],
+    output_to_bindir = 1,
+    cmd = "cp $< $@",
+)
+
+pkg_npm(
+    name = "qoot_pkg",
+    srcs = [
+        ":package.json",
+    ],
+    deps = [
+        ":LICENSE",
+        ":qoot",
+        ":qoot.min",
+        ":qoot.d.ts",
+        ":qootloader",
+        ":qootloader.min",
+    ],
+    substitutions = {"//internal/": "//"},
 )

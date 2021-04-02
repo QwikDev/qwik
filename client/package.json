@@ -1,7 +1,14 @@
 {
-  "name": "qoot",
+  "name": "@a-qoot/core",
   "version": "0.0.1",
+  "description": "An Open-Source sub-framework designed with a focus on server-side-rendering, lazy-loading, and styling/animation.",
   "typings": "./qoot.d.ts",
   "main": "./qoot.js",
-  "type": "module"
+  "type": "module",
+  "license": "MIT",
+  "author": {
+    "email": "misko@hevery.com",
+    "name": "Miško Hevery",
+    "url": "https://github.com/a-Qoot/qoot"
+  }
 }

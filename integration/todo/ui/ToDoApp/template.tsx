@@ -13,6 +13,7 @@ import { Footer } from '../Footer/public.js';
 import { Header } from '../Header/public.js';
 import { Main } from '../Main/public.js';
 
+export const _needed_by_JSX_ = jsxFactory; // eslint-disable-line @typescript-eslint/no-unused-vars
 export default injectFunction(function () {
   return (
     <section

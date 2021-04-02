@@ -58,7 +58,7 @@
     "test:unit": "bazel test  --test_tag_filters=unit  ...",
     "test:e2e": "bazel test  --test_tag_filters=e2e  ...",
     "test": "bazel test client/...",
-    "lint": "eslint \"client/**/*.ts\" \"server/**/*.ts\" \"integration/**/*.ts\"",
+    "lint": "eslint \"client/**/*.ts*\"  \"server/**/*.ts*\" \"integration/**/*.ts*\"",
     "prepare": "husky install"
   },
   "author": "Miško Hevery <misko@hevery.com>",

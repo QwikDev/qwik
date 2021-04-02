@@ -9,16 +9,16 @@
 import { Items, ItemsService } from '../../data/Items/public.js';
 import { QRL, injectFunction, jsxFactory, provideComponentProp, provideServiceState } from '../../qoot.js';
 
+export const _needed_by_JSX_ = jsxFactory; // eslint-disable-line @typescript-eslint/no-unused-vars
 export default injectFunction(
   provideServiceState<ItemsService>(provideComponentProp('$items')),
   function FooterTemplate(items: Items) {
     const remaining = items.items.length - items.completed;
-    let filter: string = 'all';
     function filterClick(mode: 'All' | 'Active' | 'Completed') {
       const lMode = mode.toLowerCase();
       return (
         <li>
-          <a class={{ selected: filter == lMode }}
+          <a class={{ selected: items.filter == lMode }}
              on:click={QRL`base:qoot.emitEvent?$type=selectFilter&filter=${lMode}`} >
             {mode}
           </a>

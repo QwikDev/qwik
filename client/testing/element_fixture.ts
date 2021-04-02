@@ -33,16 +33,21 @@ export class ElementFixture {
   child: HTMLElement;
   hostInjector: Injector;
 
-  constructor() {
+  constructor(options: ElementFixtureOptions = {}) {
     this.global = createGlobal(import.meta.url);
     this.document = this.global.document;
     this.superParent = this.document.createElement('super-parent');
     this.parent = this.document.createElement('parent');
-    this.host = this.document.createElement('host');
+    this.host = this.document.createElement(options.tagName || 'host');
     this.child = this.document.createElement('child');
     this.hostInjector = new ElementInjector(this.child);
     this.superParent.appendChild(this.parent);
     this.parent.appendChild(this.host);
     this.host.appendChild(this.child);
+    this.document.body.appendChild(this.superParent);
   }
+}
+
+export interface ElementFixtureOptions {
+  tagName?: string;
 }

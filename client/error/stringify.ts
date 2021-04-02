@@ -13,7 +13,11 @@ export function stringifyDebug(value: any): string | null {
   if (typeof value === 'function') return value.name;
   if (isHtmlElement(value)) return stringifyElement(value);
   if (value instanceof URL) return String(value);
-  if (typeof value === 'object') return JSON.stringify(value);
+  if (typeof value === 'object')
+    return JSON.stringify(value, function (this: any, key: string, value: any) {
+      if (isHtmlElement(value)) return stringifyElement(value);
+      return value;
+    });
   return String(value);
 }
 

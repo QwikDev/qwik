@@ -8,8 +8,7 @@
 
 import '../CONFIG.js';
 import { expect } from 'chai';
-import { QRL } from '../import/qrl.js';
-import { ComponentFixture } from '../testing/component_fixture.js';
+import { ComponentFixture, GreeterComponent } from '../testing/component_fixture.js';
 import { AttributeMarker } from '../util/markers.js';
 import { Component } from './component.js';
 import { injectMethod } from '../injector/inject.js';
@@ -24,11 +23,8 @@ describe('component', () => {
     fixture.host.setAttribute('salutation', 'Hello');
     fixture.host.setAttribute('name', 'World');
     const greeter = await fixture.injector.getComponent(GreeterComponent);
-    expect(greeter).to.eql({
-      $props: { salutation: 'Hello', name: 'World' },
-      $state: { greeting: 'Hello World!' },
-      $host: fixture.host,
-    });
+    expect(greeter.$props).to.eql({ salutation: 'Hello', name: 'World' });
+    expect(greeter.$state).to.eql({ greeting: 'Hello World!' });
   });
 
   it('should call $init state', () => {
@@ -46,25 +42,6 @@ describe('component', () => {
     });
   });
 });
-
-export interface GreeterProps {
-  salutation: string;
-  name: string;
-}
-
-export interface GreeterState {
-  greeting: string;
-}
-
-export class GreeterComponent extends Component<GreeterProps, GreeterState> {
-  static $templateQRL = QRL`test:/component/component.unit.greeterTemplate`;
-  async $newState(props: GreeterProps): Promise<GreeterState> {
-    return { greeting: props.salutation + ' ' + props.name + '!' };
-  }
-  async greet() {}
-}
-
-export function greeterTemplate() {}
 
 export const greet = injectMethod(GreeterComponent, function (this: GreeterComponent) {
   return this.$state.greeting;

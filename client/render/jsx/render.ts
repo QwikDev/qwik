@@ -96,7 +96,7 @@ function visitJSXNode(
         const waitOn: AsyncHostElementPromises = [];
         const node = visitJSXNode(document, waitOn, parentNode, existingNode, jsxNode);
         // TODO: cast seems suspect;
-        waitOn.push(node as Element);
+        node && waitOn.push(node as Element);
         // TODO: needs test
         return waitOn;
       }, writeErrorToDom(parentNode))

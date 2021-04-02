@@ -10,6 +10,7 @@ import type { ItemsService } from '../../data/Items/public.js';
 import { injectFunction, jsxFactory, provideComponentProp, provideService } from '../../qoot.js';
 import { Item } from '../Item/public.js';
 
+export const _needed_by_JSX_ = jsxFactory; // eslint-disable-line @typescript-eslint/no-unused-vars
 export default injectFunction(
   provideService<ItemsService>(provideComponentProp('$items')), //
   function (itemsService: ItemsService) {

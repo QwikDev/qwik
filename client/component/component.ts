@@ -9,6 +9,8 @@
 import { QRL } from '../import/qrl.js';
 import { QError, qError } from '../error/error.js';
 import '../util/qDev.js';
+import { AttributeMarker } from '../util/markers.js';
+import { getInjector } from '../injector/element_injector.js';
 
 /**
  * Base class for Qoot component.
@@ -37,6 +39,29 @@ export class Component<PROPS, STATE> {
    * Pointer to template to verify that the component is attached to the right DOM location.
    */
   static $templateQRL: QRL = null!;
+
+  static $new<COMP extends Component<any, any>>(
+    this: {
+      $templateQRL: QRL;
+      new (...args: any[]): COMP;
+    },
+    hostElement: Element
+  ): Promise<COMP> {
+    // TODO: Needs tests
+    const componentConstructor = (this as any) as ComponentConstructor<COMP>;
+    const componentTemplate = hostElement.getAttribute(AttributeMarker.ComponentTemplate);
+    if (!componentTemplate) {
+      hostElement.setAttribute(
+        AttributeMarker.ComponentTemplate,
+        componentConstructor.$templateQRL as any
+      );
+    } else if (componentTemplate !== (componentConstructor.$templateQRL as any)) {
+      // TODO: Needs tests for error condition for attaching component to element  which already has a component
+      throw new Error('Write proper error');
+    }
+    const injector = getInjector(hostElement);
+    return injector.getComponent(componentConstructor);
+  }
 
   /**
    * Component's host element.
@@ -106,8 +131,17 @@ export class Component<PROPS, STATE> {
   }
 }
 
-// TODO: Docs
 /**
+ * Return `State` of `Component` Type.
+ *
+ * Given:
+ * ```
+ * class Greeter extends Component<GreeterProps, GreeterState> {
+ *   ...
+ * }
+ * ```
+ * Then `ComponentStateOf<Greeter>` will return `GreeterState` type.
+ *
  * @public
  */
 export type ComponentStateOf<SERVICE extends Component<any, any>> = SERVICE extends Component<
@@ -117,8 +151,17 @@ export type ComponentStateOf<SERVICE extends Component<any, any>> = SERVICE exte
   ? STATE
   : never;
 
-// TODO: Docs
 /**
+ * Return `Props` of `Component` Type.
+ *
+ * Given:
+ * ```
+ * class Greeter extends Component<GreeterProps, GreeterState> {
+ *   ...
+ * }
+ * ```
+ * Then `ComponentPropsOf<Greeter>` will return `GreeterProps` type.
+ *
  * @public
  */
 export type ComponentPropsOf<SERVICE extends Component<any, any>> = SERVICE extends Component<
@@ -130,6 +173,16 @@ export type ComponentPropsOf<SERVICE extends Component<any, any>> = SERVICE exte
 
 /**
  * Component Constructor.
+ *
+ * Given:
+ * ```
+ * class Greeter extends Component<GreeterProps, GreeterState> {
+ *   ...
+ * }
+ * ```
+ * Then `ComponentConstructor<Greeter>` will return type which is compatible with `Greeter`.
+ *
+ *
  * @public
  */
 export interface ComponentConstructor<COMP extends Component<any, any>> {
@@ -139,4 +192,13 @@ export interface ComponentConstructor<COMP extends Component<any, any>> {
     props: ComponentPropsOf<COMP>,
     state: ComponentStateOf<COMP> | null
   ): COMP;
+}
+
+/**
+ * Determines if an `object` is an instance of `Component`.
+ *
+ * @internal
+ */
+export function isComponent(object: any): object is Component<any, any> {
+  return typeof object?.constructor?.$templateQRL === 'string';
 }

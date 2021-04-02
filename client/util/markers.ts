@@ -40,6 +40,16 @@ export const enum AttributeMarker {
   EventPrefix = 'on:',
 
   /**
+   * Render event broadcast
+   */
+  EventRender = 'on:.render',
+
+  /**
+   * Selector for all components marked with `EventRender`
+   */
+  EventRenderSelector = '[on\\:\\.render]',
+
+  /**
    * Prefix used to identify on listeners.
    */
   BindPrefix = 'bind:',

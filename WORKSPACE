@@ -35,3 +35,5 @@ load("@npm//@bazel/cypress:index.bzl", "cypress_repository")
 
 # The name you pass here names the external repository you can load cypress_web_test from
 cypress_repository(name = "cypress")
+
+# TODO: https://github.com/bazelbuild/buildtools/tree/master/buildifier

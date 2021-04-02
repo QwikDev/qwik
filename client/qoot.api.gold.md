@@ -8,6 +8,11 @@
 export class Component<PROPS, STATE> {
     $host: Element;
     $init(): Promise<void> | void;
+    // (undocumented)
+    static $new<COMP extends Component<any, any>>(this: {
+        $templateQRL: QRL;
+        new (...args: any[]): COMP;
+    }, hostElement: Element): Promise<COMP>;
     $newState(props: PROPS): Promise<STATE> | STATE;
     $props: PROPS;
     $state: STATE;
@@ -23,10 +28,10 @@ export interface ComponentConstructor<COMP extends Component<any, any>> {
     new (hostElement: Element, props: ComponentPropsOf<COMP>, state: ComponentStateOf<COMP> | null): COMP;
 }
 
-// @public (undocumented)
+// @public
 export type ComponentPropsOf<SERVICE extends Component<any, any>> = SERVICE extends Component<infer PROPS, any> ? PROPS : never;
 
-// @public (undocumented)
+// @public
 export type ComponentStateOf<SERVICE extends Component<any, any>> = SERVICE extends Component<any, infer STATE> ? STATE : never;
 
 // @public
@@ -139,7 +144,7 @@ export function jsxRender(host: Element | Document, jsxNode: JSXNode<unknown>, o
 // @public
 export function markDirty(componentOrService: Component<any, any> | Service<any, any>): Promise<HostElements>;
 
-// @public (undocumented)
+// @public
 export interface Props {
     // (undocumented)
     [key: string]: string;
@@ -175,12 +180,12 @@ export function provideQrlExp<T>(parameterName: string): EventProvider<T>;
 // @public
 export type Provider<T> = (injector: Injector) => T | Promise<T>;
 
-// @public (undocumented)
+// @public
 export type ProviderReturns<ARGS extends any[]> = {
     [K in keyof ARGS]: ARGS[K] extends Provider<infer U> ? U : never;
 };
 
-// @public (undocumented)
+// @public
 export type Providers<ARGS extends any[]> = {
     [K in keyof ARGS]: Provider<ARGS[K]>;
 };

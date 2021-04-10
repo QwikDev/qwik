@@ -8,11 +8,11 @@
 
 import { injectMethod, markDirty } from '../../qoot.js';
 import { ItemService } from '../Item/public.js';
-import { ItemsService } from './public.js';
+import { TodoService } from './public.js';
 
 export default injectMethod(
-  ItemsService, //
-  function newItem(this: ItemsService, newTitle: string): Promise<ItemService> {
+  TodoService, //
+  function newItem(this: TodoService, newTitle: string): Promise<ItemService> {
     const itemService = ItemService.$hydrate(
       this.$element,
       { id: String(this.$state.nextId++) },

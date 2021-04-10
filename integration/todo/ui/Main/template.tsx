@@ -6,14 +6,14 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import type { ItemsService } from '../../data/Items/public.js';
+import type { TodoService } from '../../data/Todo/public.js';
 import { injectFunction, jsxFactory, provideComponentProp, provideService } from '../../qoot.js';
 import { Item } from '../Item/public.js';
 
 export const _needed_by_JSX_ = jsxFactory; // eslint-disable-line @typescript-eslint/no-unused-vars
 export default injectFunction(
-  provideService<ItemsService>(provideComponentProp('$items')), //
-  function (itemsService: ItemsService) {
+  provideService<TodoService>(provideComponentProp('$items')), //
+  function (itemsService: TodoService) {
     const itemKeys = itemsService.filteredItems;
     return (
       <section class="main" /* *ngIf="todoStore.todos.length > 0 " */>

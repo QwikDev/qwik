@@ -6,13 +6,13 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { Items, ItemsService } from '../../data/Items/public.js';
+import { Todo, TodoService } from '../../data/Todo/public.js';
 import { QRL, injectFunction, jsxFactory, provideComponentProp, provideServiceState } from '../../qoot.js';
 
 export const _needed_by_JSX_ = jsxFactory; // eslint-disable-line @typescript-eslint/no-unused-vars
 export default injectFunction(
-  provideServiceState<ItemsService>(provideComponentProp('$items')),
-  function FooterTemplate(items: Items) {
+  provideServiceState<TodoService>(provideComponentProp('$items')),
+  function FooterTemplate(items: Todo) {
     const remaining = items.items.length - items.completed;
     function filterClick(mode: 'All' | 'Active' | 'Completed') {
       const lMode = mode.toLowerCase();

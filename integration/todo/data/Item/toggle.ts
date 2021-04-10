@@ -8,14 +8,14 @@
 
 import { injectMethod, provideService, markDirty } from '../../qoot.js';
 import { ItemService } from './public.js';
-import { ItemsService } from '../Items/public.js';
+import { TodoService } from '../Todo/public.js';
 
 export default injectMethod(
   ItemService,
-  provideService<ItemsService>('items:'),
+  provideService<TodoService>('items:'),
   async function ItemService_toggle(
     this: ItemService,
-    itemsService: ItemsService,
+    itemsService: TodoService,
     isCompleted: boolean
   ) {
     this.$state.completed = !this.$state.completed;

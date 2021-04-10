@@ -7,16 +7,16 @@
  */
 
 import { provideUrlProp } from '../../qoot.js';
-import { ItemsService } from '../../data/Items/public.js';
+import { TodoService } from '../../data/Todo/public.js';
 import { injectEventHandler, provideService } from '../../qoot.js';
 
 export default injectEventHandler(
   // Providers
   null,
-  provideService<ItemsService>(ItemsService.globalKey),
+  provideService<TodoService>(TodoService.globalKey),
   provideUrlProp('itemKey'),
   // Handler
-  async function remove(this: null, itemsService: ItemsService, itemKey: string) {
+  async function remove(this: null, itemsService: TodoService, itemKey: string) {
     itemsService.remove(itemKey);
   }
 );

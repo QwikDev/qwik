@@ -13,7 +13,7 @@ bazel run integration:server
 
 Then open:
 
-- http://localhost:8080/hello_static/
+- http://localhost:8080/
 
 ## Running Tests
 

@@ -9,19 +9,17 @@
 import { markDirty, QRL, Service, getInjector, ServiceKey, serviceStateKey } from '../../qoot.js';
 import { Item, ItemService } from '../Item/public.js';
 
-export interface ItemsProps {}
+export interface TodoProps {}
 
-export interface Items {
+export interface Todo {
   completed: number;
-  // TODO(can we have some kind of a ref here?)
   filter: 'active' | 'all' | 'completed';
   items: string[];
   nextId: number;
 }
 
-// TODO: rename to ToDos
-export class ItemsService extends Service<ItemsProps, Items> {
-  static $qrl = QRL<ItemService>`data:/Items/public.ItemsService`;
+export class TodoService extends Service<TodoProps, Todo> {
+  static $qrl = QRL<ItemService>`data:/Todo/public.TodoService`;
   static $type = 'Items';
   static $keyProps = ['items'];
 
@@ -30,15 +28,15 @@ export class ItemsService extends Service<ItemsProps, Items> {
   filteredItems: ServiceKey[] = [];
 
   async archive(): Promise<void> {
-    return this.$invokeQRL(QRL<() => void>`data:/Items/archive`);
+    return this.$invokeQRL(QRL<() => void>`data:/Todo/archive`);
   }
 
   async newItem(text: string): Promise<ItemService> {
-    return this.$invokeQRL(QRL<(text: string) => Promise<ItemService>>`data:/Items/newItem`, text);
+    return this.$invokeQRL(QRL<(text: string) => Promise<ItemService>>`data:/Todo/newItem`, text);
   }
 
   remove(itemKey: string) {
-    return this.$invokeQRL(QRL<(key: string) => Promise<void>>`data:/Items/removeItem`, itemKey);
+    return this.$invokeQRL(QRL<(key: string) => Promise<void>>`data:/Todo/removeItem`, itemKey);
   }
 
   async setFilter(filter: 'active' | 'all' | 'completed') {
@@ -56,6 +54,7 @@ export class ItemsService extends Service<ItemsProps, Items> {
         }[filter]
       )
       .map(serviceStateKey);
+    this.$state.filter = filter;
     markDirty(this);
   }
 
@@ -63,7 +62,7 @@ export class ItemsService extends Service<ItemsProps, Items> {
     this.filteredItems = this.$state.items;
   }
 
-  async $newState(): Promise<Items> {
+  async $newState(): Promise<Todo> {
     const host = this.$element;
     return {
       completed: 0,

@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { ItemsService } from '../../data/Items/public.js';
+import { TodoService } from '../../data/Todo/public.js';
 import { injectEventHandler, provideService } from '../../qoot.js';
 
 /**
@@ -18,8 +18,8 @@ import { injectEventHandler, provideService } from '../../qoot.js';
  */
 export default injectEventHandler(
   null,
-  provideService<ItemsService>(ItemsService.globalKey),
-  async function (itemsService: ItemsService) {
+  provideService<TodoService>(TodoService.globalKey),
+  async function (itemsService: TodoService) {
     await itemsService.archive();
   }
 );

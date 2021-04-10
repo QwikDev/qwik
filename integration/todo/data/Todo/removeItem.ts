@@ -8,11 +8,11 @@
 
 import { injectMethod, markDirty } from '../../qoot.js';
 import { ItemService } from '../Item/public.js';
-import { ItemsService } from './public.js';
+import { TodoService } from './public.js';
 
 export default injectMethod(
-  ItemsService, //
-  async function removeItem(this: ItemsService, itemKey: string): Promise<void> {
+  TodoService, //
+  async function removeItem(this: TodoService, itemKey: string): Promise<void> {
     (await ItemService.$hydrate(this.$element, itemKey)).$release();
     const items = this.$state.items;
     items.splice(items.indexOf(itemKey), 1);

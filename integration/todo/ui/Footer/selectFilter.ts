@@ -7,14 +7,14 @@
  */
 
 import { injectEventHandler, provideService, provideEvent } from '../../qoot.js';
-import { ItemsService } from '../../data/Items/public.js';
+import { TodoService } from '../../data/Todo/public.js';
 
 export default injectEventHandler(
   //
   null,
-  provideService<ItemsService>('items:'),
+  provideService<TodoService>('items:'),
   provideEvent(),
-  function (items: ItemsService, event: Event) {
+  function (items: TodoService, event: Event) {
     items.setFilter((event as any).filter);
   }
 );

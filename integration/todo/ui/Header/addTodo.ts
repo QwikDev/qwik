@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { ItemsService } from '../../data/Items/public.js';
+import { TodoService } from '../../data/Todo/public.js';
 import {
   injectEventHandler,
   provideQrlExp,
@@ -20,12 +20,12 @@ export default injectEventHandler(
   HeaderComponent,
   provideQrlExp<string>('value'),
   provideQrlExp<string>('code'),
-  provideProviderOf(provideService<ItemsService>('items:')),
+  provideProviderOf(provideService<TodoService>('items:')),
   async function (
     this: HeaderComponent,
     inputValue: string,
     charCode: string,
-    itemsService: () => Promise<ItemsService>
+    itemsService: () => Promise<TodoService>
   ) {
     if (charCode === 'Enter' && inputValue) {
       (await itemsService()).newItem(inputValue);

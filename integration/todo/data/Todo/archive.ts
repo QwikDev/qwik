@@ -8,11 +8,11 @@
 
 import { injectMethod, markDirty, getInjector } from '../../qoot.js';
 import { ItemService } from '../Item/public.js';
-import { ItemsService } from './public.js';
+import { TodoService } from './public.js';
 
 export default injectMethod(
-  ItemsService, //
-  async function archive(this: ItemsService) {
+  TodoService, //
+  async function archive(this: TodoService) {
     const items = this.$state.items;
     const element = this.$element;
     const injector = getInjector(element);

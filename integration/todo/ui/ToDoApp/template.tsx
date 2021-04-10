@@ -7,7 +7,7 @@
  */
 
 import { ItemService } from '../../data/Item/public.js';
-import { ItemsService } from '../../data/Items/public.js';
+import { TodoService } from '../../data/Todo/public.js';
 import { injectFunction, jsxFactory } from '../../qoot.js';
 import { Footer } from '../Footer/public.js';
 import { Header } from '../Header/public.js';
@@ -19,7 +19,7 @@ export default injectFunction(function () {
     <section
       class="todoapp"
       $={{
-        services: [ItemsService, ItemService],
+        services: [TodoService, ItemService],
       }}
     >
       <Header />

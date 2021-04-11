@@ -19,6 +19,7 @@ export default injectMethod(
       { completed: false, title: newTitle }
     );
     this.$state.items.push(itemService.$key);
+    this.setFilter(this.$state.filter);
     markDirty(this);
     return itemService;
   }

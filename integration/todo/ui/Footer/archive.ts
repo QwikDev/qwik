@@ -19,7 +19,7 @@ import { injectEventHandler, provideService } from '../../qoot.js';
 export default injectEventHandler(
   null,
   provideService<TodoService>(TodoService.globalKey),
-  async function (itemsService: TodoService) {
-    await itemsService.archive();
+  async function (todoService: TodoService) {
+    await todoService.archive();
   }
 );

@@ -25,10 +25,10 @@ export default injectEventHandler(
     this: HeaderComponent,
     inputValue: string,
     charCode: string,
-    itemsService: () => Promise<TodoService>
+    todoService: () => Promise<TodoService>
   ) {
     if (charCode === 'Enter' && inputValue) {
-      (await itemsService()).newItem(inputValue);
+      (await todoService()).newItem(inputValue);
       this.$state.text = '';
       markDirty(this);
     }

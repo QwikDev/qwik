@@ -16,14 +16,20 @@ export default injectMethod(
     const items = this.$state.items;
     const element = this.$element;
     const injector = getInjector(element);
-    // TODO: It kind of sucks that we need to retrieve service if state would be enough.
     this.$state.items = (
       await Promise.all(items.map((key) => injector.getService<ItemService>(key)))
     )
-      .filter((itemService) => !itemService.$state.completed)
+      .filter((itemService) => {
+        const completed = itemService.$state.completed;
+        if (completed) {
+          itemService.$release();
+        }
+        return !completed;
+      })
       .map((itemService) => itemService.$key);
 
     this.$state.completed = 0;
+    this.setFilter(this.$state.filter);
     markDirty(this);
   }
 );

@@ -13,8 +13,8 @@ import { Item } from '../Item/public.js';
 export const _needed_by_JSX_ = jsxFactory; // eslint-disable-line @typescript-eslint/no-unused-vars
 export default injectFunction(
   provideService<TodoService>(provideComponentProp('$items')), //
-  function (itemsService: TodoService) {
-    const itemKeys = itemsService.filteredItems;
+  function (todoService: TodoService) {
+    const itemKeys = todoService.filteredItems;
     return (
       <section class="main" /* *ngIf="todoStore.todos.length > 0 " */>
         <input

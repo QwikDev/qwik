@@ -15,12 +15,12 @@ export default injectMethod(
   provideService<TodoService>('items:'),
   async function ItemService_toggle(
     this: ItemService,
-    itemsService: TodoService,
+    todoService: TodoService,
     isCompleted: boolean
   ) {
     this.$state.completed = !this.$state.completed;
-    itemsService.$state.completed += isCompleted ? +1 : -1;
-    markDirty(itemsService);
+    todoService.$state.completed += isCompleted ? +1 : -1;
+    markDirty(todoService);
     markDirty(this);
   }
 );

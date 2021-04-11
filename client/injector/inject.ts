@@ -26,7 +26,7 @@ import { ConcreteType, InjectedFunction, ProviderReturns } from './types.js';
  * ```
  * export const myFn =  injectFunction(
  *   provideService<MyService>(provideComponentProp('$myKey')),
- *   function (itemsService: ItemsService) {
+ *   function (todoService: TodoService) {
  *     ...
  *   }
  * );

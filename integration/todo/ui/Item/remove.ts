@@ -16,7 +16,7 @@ export default injectEventHandler(
   provideService<TodoService>(TodoService.globalKey),
   provideUrlProp('itemKey'),
   // Handler
-  async function remove(this: null, itemsService: TodoService, itemKey: string) {
-    itemsService.remove(itemKey);
+  async function remove(this: null, todoService: TodoService, itemKey: string) {
+    todoService.remove(itemKey);
   }
 );

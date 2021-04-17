@@ -23,8 +23,8 @@ export default injectFunction(function () {
       }}
     >
       <Header />
-      <Main $items="items:" />
-      <Footer $items="items:" />
+      <Main $todos="todos:" />
+      <Footer $todos="todos:" />
     </section>
   );
 });

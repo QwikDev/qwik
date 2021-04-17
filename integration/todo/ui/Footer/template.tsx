@@ -11,14 +11,14 @@ import { QRL, injectFunction, jsxFactory, provideComponentProp, provideServiceSt
 
 export const _needed_by_JSX_ = jsxFactory; // eslint-disable-line @typescript-eslint/no-unused-vars
 export default injectFunction(
-  provideServiceState<TodoService>(provideComponentProp('$items')),
-  function FooterTemplate(items: Todo) {
-    const remaining = items.items.length - items.completed;
+  provideServiceState<TodoService>(provideComponentProp('$todos')),
+  function FooterTemplate(todos: Todo) {
+    const remaining = todos.items.length - todos.completed;
     function filterClick(mode: 'All' | 'Active' | 'Completed') {
       const lMode = mode.toLowerCase();
       return (
         <li>
-          <a class={{ selected: items.filter == lMode }}
+          <a class={{ selected: todos.filter == lMode }}
              on:click={QRL`base:qoot.emitEvent?$type=selectFilter&filter=${lMode}`} >
             {mode}
           </a>
@@ -27,7 +27,7 @@ export default injectFunction(
     }
     return (
       <>
-        {items.items.length > 0 ? (
+        {todos.items.length > 0 ? (
           <footer class="footer">
             <span class="todo-count">
               <strong>{remaining}</strong>
@@ -38,7 +38,7 @@ export default injectFunction(
               {filterClick('Active')}
               {filterClick('Completed')}
             </ul>
-            {items.completed > 0 ? (
+            {todos.completed > 0 ? (
               <button
                 class="clear-completed"
                 $={{

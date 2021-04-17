@@ -14,7 +14,7 @@ import { jsxDeclareComponent, QRL } from '../../qoot.js';
  */
 
 export interface FooterProps {
-  $items: string;
+  $todos: string;
 }
 
 export const Footer = jsxDeclareComponent<FooterProps>('app-footer', QRL`ui:/Footer/template`, {

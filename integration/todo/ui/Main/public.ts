@@ -9,7 +9,7 @@
 import { jsxDeclareComponent, QRL } from '../../qoot.js';
 
 export interface MainProps {
-  $items: string;
+  $todos: string;
 }
 
 export const Main = jsxDeclareComponent<MainProps>('app-main', QRL`ui:/Main/template`);

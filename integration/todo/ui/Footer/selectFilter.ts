@@ -12,9 +12,9 @@ import { TodoService } from '../../data/Todo/public.js';
 export default injectEventHandler(
   //
   null,
-  provideService<TodoService>('items:'),
+  provideService<TodoService>('todos:'),
   provideEvent(),
-  function (items: TodoService, event: Event) {
-    items.setFilter((event as any).filter);
+  function (todos: TodoService, event: Event) {
+    todos.setFilter((event as any).filter);
   }
 );

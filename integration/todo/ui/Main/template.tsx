@@ -12,7 +12,7 @@ import { Item } from '../Item/public.js';
 
 export const _needed_by_JSX_ = jsxFactory; // eslint-disable-line @typescript-eslint/no-unused-vars
 export default injectFunction(
-  provideService<TodoService>(provideComponentProp('$items')), //
+  provideService<TodoService>(provideComponentProp('$todos')), //
   function (todoService: TodoService) {
     const itemKeys = todoService.filteredItems;
     return (

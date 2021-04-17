@@ -20,7 +20,7 @@ export default injectEventHandler(
   HeaderComponent,
   provideQrlExp<string>('value'),
   provideQrlExp<string>('code'),
-  provideProviderOf(provideService<TodoService>('items:')),
+  provideProviderOf(provideService<TodoService>('todos:')),
   async function (
     this: HeaderComponent,
     inputValue: string,

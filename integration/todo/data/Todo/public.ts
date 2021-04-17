@@ -20,10 +20,10 @@ export interface Todo {
 
 export class TodoService extends Service<TodoProps, Todo> {
   static $qrl = QRL<ItemService>`data:/Todo/public.TodoService`;
-  static $type = 'Items';
-  static $keyProps = ['items'];
+  static $type = 'Todos';
+  static $keyProps = ['todos'];
 
-  static globalKey = 'items:';
+  static globalKey = 'todos:';
 
   filteredItems: ServiceKey[] = [];
 

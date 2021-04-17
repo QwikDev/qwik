@@ -12,7 +12,7 @@ import { TodoService } from '../Todo/public.js';
 
 export default injectMethod(
   ItemService,
-  provideService<TodoService>('items:'),
+  provideService<TodoService>('todos:'),
   async function ItemService_toggle(
     this: ItemService,
     todoService: TodoService,

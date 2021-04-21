@@ -21,9 +21,11 @@ import { jsxFactory } from './factory.js';
 const _needed_by_JSX_ = jsxFactory; // eslint-disable-line @typescript-eslint/no-unused-vars
 describe('attributes', () => {
   let host: HTMLElement;
+  let input: HTMLInputElement;
   beforeEach(() => {
     const global = createGlobal(import.meta.url);
     host = global.document.createElement('host');
+    input = global.document.createElement('input');
   });
 
   describe('applyAttributes()', () => {
@@ -52,6 +54,30 @@ describe('attributes', () => {
       expect(host.outerHTML).to.equal('<host></host>');
       expect(applyAttributes(host, { a: undefined! }, true)).to.be.true;
       expect(host.outerHTML).to.equal('<host></host>');
+    });
+
+    describe('input', () => {
+      it('should write both attribute and value in case of input', () => {
+        expect(applyAttributes(input, { value: 'hello' }, false)).to.be.false;
+        expect(input.value).to.eql('hello');
+        expect(input.getAttribute('value')).to.eql('hello');
+
+        expect(applyAttributes(input, { value: 'bar' }, false)).to.be.false;
+        expect(input.value).to.eql('bar');
+        expect(input.getAttribute('value')).to.eql('bar');
+
+        input.value = 'baz';
+        expect(applyAttributes(input, { value: 'hello' }, false)).to.be.false;
+        expect(input.value).to.eql('hello');
+        expect(input.getAttribute('value')).to.eql('hello');
+      });
+    });
+
+    describe('innerHTML', () => {
+      it('should deal with innerHTML', () => {
+        expect(applyAttributes(host, { innerHTML: '<div>text</div>' }, false)).to.be.false;
+        expect(host.outerHTML).to.equal('<host inner-h-t-m-l=""><div>text</div></host>');
+      });
     });
 
     describe('$attrs', () => {

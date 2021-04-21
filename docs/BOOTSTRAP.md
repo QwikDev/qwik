@@ -1,3 +1,5 @@
+[[edit](https://hackmd.io/@mhevery/SygrPXp8u/edit)]
+
 # Bootstrapping Qoot
 
 Qoot is designed to have the smallest amount of code which needs to be run on the client to bootstrap the application. The size of bootstrap code has direct impact on application [time to interactive](https://web.dev/interactive/).

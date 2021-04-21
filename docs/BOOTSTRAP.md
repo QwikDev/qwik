@@ -1,4 +1,4 @@
-[[edit](https://hackmd.io/@mhevery/SygrPXp8u/edit)]
+[![hackmd-github-sync-badge](https://hackmd.io/gSlQBtwzTkO6hWgw93wSmg/badge)](https://hackmd.io/gSlQBtwzTkO6hWgw93wSmg)
 
 # Bootstrapping Qoot
 

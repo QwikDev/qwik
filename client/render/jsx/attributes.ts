@@ -44,11 +44,11 @@ export function applyAttributes(
             addToBindMap(stringify(value), bindMap || (bindMap = new Map<string, string>()), key);
           } else if (detectChanges) {
             if (element.getAttribute(kebabKey) !== value) {
-              setAttribute(element, kebabKey, value);
+              setAttribute(element, key, value, kebabKey);
               changesDetected = true;
             }
           } else {
-            setAttribute(element, kebabKey, value);
+            setAttribute(element, key, value, kebabKey);
           }
         }
       }
@@ -110,14 +110,18 @@ function updateBindMap(element: Element, bindMap: Map<string, string>) {
  * This function understand `class`, `style` as well as `input` attributes.
  * @internal
  */
-export function setAttribute(element: Element, key: string, value: any) {
+export function setAttribute(element: Element, key: string, value: any, kebabKey?: string) {
   if (key == 'class') {
     element.setAttribute('class', stringifyClassOrStyle(value, true));
   } else if (key == 'style') {
     element.setAttribute('style', stringifyClassOrStyle(value, false));
   } else if (value == null) {
     element.removeAttribute(key);
+  } else if (key === 'innerHTML' || key === 'innerText') {
+    element.setAttribute(kebabKey!, '');
+    (element as any)[key] = value;
   } else if (element.tagName === 'INPUT' && key.indexOf(':') == -1) {
+    element.setAttribute(key, String(value));
     (element as any)[key] = value;
   } else {
     element.setAttribute(key, String(value));

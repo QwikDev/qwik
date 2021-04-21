@@ -1,6 +1,6 @@
-# `Q-oot` `/kyo͞ot/` sub-framework
+# `Q-oot` `/kyo͞ot/` DOM-Centric, Resumable Web-App Framework
 
-An Open-Source sub-framework designed with a focus on server-side-rendering, lazy-loading, and styling/animation. (sub-framework implies that it is designed to work with the existing framework you love)
+An Open-Source framework designed for best possible [time to interactive](https://web.dev/interactive/), by focusing on [resumability](./docs/RESUMABLE.md) of server-side-rendering of HTML, and [fine-grained lazy-loading](./docs/LAZY_LOADING.md) of code.
 
 ---
 
@@ -10,4 +10,6 @@ An Open-Source sub-framework designed with a focus on server-side-rendering, laz
 
 ## Getting Started
 
-Visit [integration](./integration) folder for guided tours of Qoot to learn how it works.
+- Visit [integration](./integration) folder for guided tours of Qoot to learn how it works.
+- Understand the difference between [resumable and replayable](./docs/RESUMABLE.md) applications.
+- Learn about Qoot's high level [mental model](./docs/MENTAL_MODEL.md).

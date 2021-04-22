@@ -17,29 +17,40 @@ js_library(
 
 ts_project(
     name = "project",
-    tsconfig = "//:tsconfig",
+    srcs = glob(
+        [
+            "**/*.ts",
+            "**/*.tsx",
+        ],
+        exclude = [
+            "**/*.unit.ts",
+            "**/*.unit.tsx",
+        ],
+    ),
     declaration = True,
-    srcs = glob(["**/*.ts", "**/*.tsx"], exclude=["**/*.unit.ts", "**/*.unit.tsx"]),
+    tsconfig = "//:tsconfig",
     deps = [
+        "//client",
         "@npm//@types/source-map-support",
         "@npm//domino",
         "@npm//source-map-support",
-        "//client",
-    ]
+    ],
 )
-
 
 ts_project(
     name = "unit_project",
-    tsconfig = "//:tsconfig",
+    srcs = glob([
+        "**/*.unit.ts",
+        "**/*.unit.tsx",
+    ]),
     declaration = True,
-    srcs = glob(["**/*.unit.ts", "**/*.unit.tsx"]),
+    tsconfig = "//:tsconfig",
     deps = [
         ":testing",
-        "@npm//@types/mocha",
         "@npm//@types/chai",
+        "@npm//@types/mocha",
         "@npm//chai",
-    ]
+    ],
 )
 
 js_library(
@@ -51,14 +62,13 @@ js_library(
     ],
 )
 
-
 mocha_test(
     name = "unit",
-    tags = ["unit"],
     args = ["**/*.unit.js"],
     data = [
-        ":unit_lib",
         ":testing",
-        "@npm//chai"
+        ":unit_lib",
+        "@npm//chai",
     ],
+    tags = ["unit"],
 )

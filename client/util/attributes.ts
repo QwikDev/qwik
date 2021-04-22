@@ -11,8 +11,14 @@ import '../util/qDev.js';
 import { fromKebabToCamelCase } from './case.js';
 import { AttributeMarker } from './markers.js';
 
-// TODO: docs
-// TODO: tests
+/**
+ * Returns the props from a given element.
+ *
+ * The method reads attributes on an element and returns `Props` object.
+ *
+ * @param element `Element` to read attributes from.
+ * @private
+ */
 export function extractPropsFromElement(element: Element): { [key: string]: string } {
   const props: { [key: string]: string } = {};
   const attrs = element.attributes;

@@ -122,6 +122,14 @@ describe('render', () => {
     );
   });
 
+  describe('innerHTML/innerText', () => {
+    it('should be able to render innerHTML', async () => {
+      const html = `<span>TEST</span>`;
+      await jsxRender(host, <div innerHTML={html}></div>, global.document);
+      expect(host.innerHTML).to.equal('<div inner-h-t-m-l=""><span>TEST</span></div>');
+    });
+  });
+
   describe('components', () => {
     it('should render components', async () => {
       await jsxRender(

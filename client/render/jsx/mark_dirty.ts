@@ -84,9 +84,8 @@ export function markServiceDirty(service: Service<any, any>): Promise<HostElemen
   let foundListener = false;
   document.querySelectorAll(toAttrQuery('bind:' + key)).forEach((componentElement: HTMLElement) => {
     const qrl = componentElement.getAttribute(AttributeMarker.ComponentTemplate)!;
-    // TODO: QError;
     if (!qrl) {
-      throw newError('Expecting component');
+      throw qError(QError.Render_bindNeedsComponent_key_element, key, componentElement);
     }
     foundListener = true;
     componentElement.setAttribute('on:.render', qrl);

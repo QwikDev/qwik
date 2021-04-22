@@ -525,8 +525,18 @@ function getServiceType<SERVICE extends Service<any, any>>(
   return serviceType;
 }
 
-// TODO: Docs
 /**
+ * Returns `State` type of `Service`.
+ *
+ * Given:
+ * ```
+ * class MyService extends Service<MyProps, MyState> {
+ *   ...
+ * }
+ *
+ * const myService: MyService = ...;
+ * ```
+ * Then `ServiceStateOf<MyService>` returns `MyState`.
  * @public
  */
 export type ServiceStateOf<SERVICE extends Service<any, any>> = SERVICE extends Service<
@@ -536,8 +546,18 @@ export type ServiceStateOf<SERVICE extends Service<any, any>> = SERVICE extends 
   ? STATE
   : never;
 
-// TODO: Docs
 /**
+ * Returns `Props` type of `Service`.
+ *
+ * Given:
+ * ```
+ * class MyService extends Service<MyProps, MyState> {
+ *   ...
+ * }
+ *
+ * const myService: MyService = ...;
+ * ```
+ * Then `ServicePropsOf<MyService>` returns `MyProps`.
  * @public
  */
 export type ServicePropsOf<SERVICE extends Service<any, any>> = SERVICE extends Service<
@@ -547,11 +567,19 @@ export type ServicePropsOf<SERVICE extends Service<any, any>> = SERVICE extends 
   ? PROPS
   : never;
 
-// TODO: Docs
 /**
+ * `Promise` which returns `Service` but is extended with `Service` `Key`.
+ *
  * @public
  */
-export interface ServicePromise<T> extends Promise<T> {
+export interface ServicePromise<T extends Service<any, any>> extends Promise<T> {
+  /**
+   * Return the `Key` associated with the current `Service`.
+   *
+   * Normally one can retrieve `$key` from `Service` instance. In the case of the `Promise`
+   * it may not be convenient to wait for the `Promise` to resolve, in which case retrieving
+   * `$key` synchronously is more convenient.
+   */
   $key: string;
 }
 

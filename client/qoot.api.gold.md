@@ -292,19 +292,18 @@ export interface ServiceConstructor<SERVICE extends Service<any, any>> {
 // @public
 export type ServiceKey = string;
 
-// @public (undocumented)
-export interface ServicePromise<T> extends Promise<T> {
-    // (undocumented)
+// @public
+export interface ServicePromise<T extends Service<any, any>> extends Promise<T> {
     $key: string;
 }
 
-// @public (undocumented)
+// @public
 export type ServicePropsOf<SERVICE extends Service<any, any>> = SERVICE extends Service<infer PROPS, any> ? PROPS : never;
 
 // @public
 export function serviceStateKey(value: any): ServiceKey;
 
-// @public (undocumented)
+// @public
 export type ServiceStateOf<SERVICE extends Service<any, any>> = SERVICE extends Service<any, infer STATE> ? STATE : never;
 
 // @public

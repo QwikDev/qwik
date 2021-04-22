@@ -1,19 +1,19 @@
-package(default_visibility = ["//visibility:public"])
-
 load("@npm//@bazel/typescript:index.bzl", "ts_config")
 load("@build_bazel_rules_nodejs//:index.bzl", "copy_to_bin")
+
+package(default_visibility = ["//visibility:public"])
 
 ts_config(
     name = "tsconfig",
     src = "tsconfig.bazel.json",
-    deps = [":tsconfig.base.json"]
+    deps = [":tsconfig.base.json"],
 )
 
 copy_to_bin(
     name = "package_json",
     srcs = [
         "package.json",
-    ]
+    ],
 )
 
 exports_files([

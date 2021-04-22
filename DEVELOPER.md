@@ -49,14 +49,10 @@ Running cypress manually
 bazel run client:qoot_pkg.publish -- --tag=next
 ```
 
-## Apple M1
+## Buildifier
+
+To ensure that all `BUILD.bazel` files are correctly formatted run:
 
 ```
-platform(
-    name = "rosetta",
-    constraint_values = [
-        "@platforms//os:osx",
-        "@platforms//cpu:x86_64",
-    ],
-)
+yarn buildifier
 ```

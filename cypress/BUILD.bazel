@@ -1,15 +1,15 @@
-package(default_visibility = ["//visibility:public"])
-
 load("@npm//@bazel/typescript:index.bzl", "ts_project")
 load("@cypress//:index.bzl", "cypress_web_test")
 
-# You must create a cypress plugin in order to boot a server to server your application. 
+package(default_visibility = ["//visibility:public"])
+
+# You must create a cypress plugin in order to boot a server to server your application.
 # It can be written as a javascript file or in typescript using ts_library or ts_project.
 ts_project(
     name = "plugins_file",
+    testonly = True,
     srcs = ["plugins/index.ts"],
     declaration = True,
-    testonly = True,
     tsconfig = "//:tsconfig",
     deps = [
         "@npm//@types/node",
@@ -19,9 +19,9 @@ ts_project(
 
 ts_project(
     name = "integration_specs",
+    testonly = True,
     srcs = glob(["integration/**/*.ts"]),
     declaration = True,
-    testonly = True,
     tsconfig = "//:tsconfig",
     deps = [
         "@npm//@types/node",
@@ -29,11 +29,10 @@ ts_project(
     ],
 )
 
-
 cypress_web_test(
     name = "cypress",
     srcs = [":integration_specs"],
     config_file = "//:cypress.json",
-    tags = ["e2e"],
     plugins_file = ":plugins_file",
+    tags = ["e2e"],
 )

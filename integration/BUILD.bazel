@@ -1,8 +1,6 @@
-package(default_visibility = ["//visibility:public"])
+load("@build_bazel_rules_nodejs//:index.bzl", "copy_to_bin", "js_library", "nodejs_binary")
 
-load("@npm//@bazel/typescript:index.bzl", "ts_project")
-load("@build_bazel_rules_nodejs//:index.bzl", "copy_to_bin", "nodejs_binary")
-load("@build_bazel_rules_nodejs//:index.bzl", "js_library")
+package(default_visibility = ["//visibility:public"])
 
 js_library(
     name = "integration_lib",
@@ -12,35 +10,34 @@ js_library(
     ],
 )
 
-
 copy_to_bin(
     name = "static_files",
     srcs = [
         "index.html",
-    ]
+    ],
 )
 
 nodejs_binary(
     name = "server",
+    data = [
+        ":integration_lib",
+        ":static_files",
+        "//client:qoot",
+        "//client:qootloader",
+        "//client:qootloader.min",
+        "//integration/hello_server",
+        "//integration/hello_static",
+        "//integration/hello_static:static_files",
+        "//integration/todo",
+        "//integration/todo:static_files",
+        "//server",
+    ],
     entry_point = "//server:main.js",
     templated_args = [
         "--node_options=--experimental-modules",
         "--nobazel_patch_module_resolver",
-        "--root", 
+        "--root",
         "qoot/client",
-        "qoot/integration", 
-    ],
-    data = [
-        ":integration_lib",
-        ":static_files",
-        "//integration/hello_static",
-        "//integration/hello_static:static_files",
-        "//integration/hello_server",
-        "//integration/todo",
-        "//integration/todo:static_files",
-        "//server",
-        "//client:qoot",
-        "//client:qootloader",
-        "//client:qootloader.min",
+        "qoot/integration",
     ],
 )

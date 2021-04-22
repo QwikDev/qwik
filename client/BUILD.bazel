@@ -1,12 +1,11 @@
-package(default_visibility = ["//visibility:public"])
-
 load("@npm//mocha:index.bzl", "mocha_test")
 load("@npm//@microsoft/api-extractor:index.bzl", "api_extractor")
-load("@build_bazel_rules_nodejs//:index.bzl", "js_library", "generated_file_test")
+load("@build_bazel_rules_nodejs//:index.bzl", "generated_file_test", "js_library", "pkg_npm")
 load("@npm//@bazel/typescript:index.bzl", "ts_project")
 load("@npm//@bazel/rollup:index.bzl", "rollup_bundle")
 load("@npm//@bazel/terser:index.bzl", "terser_minified")
-load("@build_bazel_rules_nodejs//:index.bzl", "pkg_npm")
+
+package(default_visibility = ["//visibility:public"])
 
 js_library(
     name = "client",
@@ -19,30 +18,37 @@ js_library(
 
 ts_project(
     name = "project",
-    tsconfig = "//:tsconfig",
+    srcs = glob(
+        ["**/*.ts"],
+        exclude = [
+            "qootloader.ts",
+            "**/*.unit.ts",
+            "CONFIG.ts",
+        ],
+    ),
     declaration = True,
-    srcs = glob(["**/*.ts"], exclude=["qootloader.ts", "**/*.unit.ts", "CONFIG.ts"]),
+    tsconfig = "//:tsconfig",
     # TODO: https://bazelbuild.github.io/rules_nodejs/TypeScript.html#ts_project-supports_workers
 )
 
 filegroup(
     name = "project.d.ts",
-    output_group = "types",
     srcs = [":project"],
+    output_group = "types",
 )
 
 ts_project(
     name = "CONFIG",
-    tsconfig = "//:tsconfig",
+    srcs = ["CONFIG.ts"],
     declaration = True,
-    srcs = [ "CONFIG.ts"],
-    deps = [ ":client" ]
+    tsconfig = "//:tsconfig",
+    deps = [":client"],
 )
 
 rollup_bundle(
     name = "qoot",
-    entry_point = "index.js",
     config_file = "//:rollup.config.js",
+    entry_point = "index.js",
     deps = [":client"],
 )
 
@@ -51,14 +57,14 @@ terser_minified(
     src = "qoot.js",
     config_file = "//:terser.config.json",
     sourcemap = False,
-    terser_bin = "@npm//terser/bin:terser"
+    terser_bin = "@npm//terser/bin:terser",
 )
 
 ts_project(
     name = "qootloader",
-    tsconfig = "//:tsconfig",
-    declaration = True,
     srcs = ["qootloader.ts"],
+    declaration = True,
+    tsconfig = "//:tsconfig",
 )
 
 terser_minified(
@@ -66,58 +72,61 @@ terser_minified(
     src = "qootloader.js",
     config_file = "//:terser.config.json",
     sourcemap = False,
-    terser_bin = "@npm//terser/bin:terser"
+    terser_bin = "@npm//terser/bin:terser",
 )
 
 ts_project(
     name = "unit_lib",
-    tsconfig = "//:tsconfig",
+    srcs = glob([
+        "**/*.unit.ts",
+        "**/*.unit.tsx",
+    ]),
     declaration = True,
-    srcs = glob(["**/*.unit.ts", "**/*.unit.tsx"]),
+    tsconfig = "//:tsconfig",
     deps = [
-        "@npm//@types/mocha",
-        "@npm//@types/chai",
-        "//client/testing",
         ":CONFIG",
-    ]
+        "//client/testing",
+        "@npm//@types/chai",
+        "@npm//@types/mocha",
+    ],
 )
 
 mocha_test(
     name = "unit",
-    tags = ["unit"],
     args = ["**/*.unit.js"],
     data = [
         ":unit_lib",
-        "@npm//chai",
         "//client/testing",
+        "@npm//chai",
     ],
+    tags = ["unit"],
 )
 
 api_extractor(
     name = "public_api_extractor",
+    outs = [
+        "qoot.d.ts",
+        ":qoot.api.md",
+    ],
     args = [
-        "run", 
+        "run",
         "--verbose",
         "--local",
-        "--config", 
+        "--config",
         "client/api-extractor.json",
     ],
     data = [
-        ":project",
         "api-extractor.json",
+        ":project",
         "//:package.json",
         "//:tsconfig.base.json",
         "//:tsconfig.bazel.json",
     ],
-    outs = [ 
-        "qoot.d.ts",
-        ":qoot.api.md",
-     ]
 )
 
 generated_file_test(
     name = "publicAPI.md",
-    src = ":qoot.api.gold.md", 
+    src = ":qoot.api.gold.md",
     generated = ":qoot.api.md",
     tags = ["unit"],
 )
@@ -126,8 +135,8 @@ genrule(
     name = "LICENSE.copy",
     srcs = ["//:LICENSE"],
     outs = ["LICENSE"],
-    output_to_bindir = 1,
     cmd = "cp $< $@",
+    output_to_bindir = 1,
 )
 
 pkg_npm(
@@ -135,13 +144,13 @@ pkg_npm(
     srcs = [
         ":package.json",
     ],
+    substitutions = {"//internal/": "//"},
     deps = [
         ":LICENSE",
         ":qoot",
-        ":qoot.min",
         ":qoot.d.ts",
+        ":qoot.min",
         ":qootloader",
         ":qootloader.min",
     ],
-    substitutions = {"//internal/": "//"},
 )

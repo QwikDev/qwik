@@ -11,7 +11,7 @@ import { GreeterComponent, PersonService } from '../../testing/component_fixture
 import { stringifyDebug } from '../../error/stringify.js';
 import { MockRequestAnimationFrame } from '../../testing/node_utils.js';
 import { AttributeMarker } from '../../util/markers.js';
-import { markDirty, scheduleRender } from './mark_dirty.js';
+import { markDirty, markServiceDirty, scheduleRender } from './mark_dirty.js';
 import { ElementFixture } from '../../testing/element_fixture.js';
 
 describe('mark_dirty', () => {
@@ -82,6 +82,17 @@ describe('mark_dirty', () => {
     it('should throw error rAF is not available (server)', () => {
       expect(() => scheduleRender(document)).to.throw(
         "RENDER-ERROR(Q-605): 'requestAnimationFrame' not found. If you are running on server design your applications in a way which does not require 'requestAnimationFrame' on first render."
+      );
+    });
+    it('should throw an error if bind:_ is not on a component', async () => {
+      const personService = await PersonService.$hydrate(fixture.parent, {
+        first: 'First',
+        last: 'Last',
+      });
+      host.setAttribute(AttributeMarker.BindPrefix + personService.$key, '$person');
+      host.removeAttribute(AttributeMarker.ComponentTemplate);
+      expect(() => markServiceDirty(personService)).to.throw(
+        `RENDER-ERROR(Q-606): Expecting that element with 'bind:person:-last:-first' should be a component (should have '::="qrl"' attribute): <host : bind:person:-last:-first='$person'>`
       );
     });
   });

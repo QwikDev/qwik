@@ -17,7 +17,7 @@ import { AttributeMarker } from './markers.js';
  * The method reads attributes on an element and returns `Props` object.
  *
  * @param element `Element` to read attributes from.
- * @private
+ * @internal
  */
 export function extractPropsFromElement(element: Element): { [key: string]: string } {
   const props: { [key: string]: string } = {};

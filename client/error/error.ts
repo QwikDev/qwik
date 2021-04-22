@@ -63,6 +63,7 @@ export const enum QError {
   Render_expectingServiceArray_obj = 603,
   Render_expectingServiceOrComponent_obj = 604,
   Render_noRAF = 605,
+  Render_bindNeedsComponent_key_element = 606,
   // Event
   Event_emitEventRequiresName_url = 700,
   Event_emitEventCouldNotFindListener_event_element = 701,
@@ -177,6 +178,8 @@ function codeToText(code: QError): string {
     [QError.Render_expectingServiceOrComponent_obj]: "Expecting Service or Component got '{}'.",
     [QError.Render_noRAF]:
       "'requestAnimationFrame' not found. If you are running on server design your applications in a way which does not require 'requestAnimationFrame' on first render.",
+    [QError.Render_bindNeedsComponent_key_element]:
+      "Expecting that element with 'bind:{}' should be a component (should have '::=\"qrl\"' attribute): {}",
     //////////////
     [QError.Event_emitEventRequiresName_url]: "Missing '$type' attribute in the '{}' url.",
     [QError.Event_emitEventCouldNotFindListener_event_element]:

@@ -166,7 +166,7 @@ function visitJSXStringNode(
       document
     );
   }
-  if (!componentUrl) {
+  if (!componentUrl && !('innerHTML' in jsxNode.props || 'innerText' in jsxNode.props)) {
     // we don't process children if we have a component, as component is responsible for projection.
     visitChildren(
       document,

@@ -20,13 +20,13 @@ Then open:
 All tests:
 
 ```
-bazel test  ...
+bazel test  //...
 ```
 
 ### Unit tests only
 
 ```
-bazel test  --test_tag_filters=unit  ...
+bazel test  --test_tag_filters=unit  //...
 ```
 
 ### E2e tests only
@@ -34,7 +34,7 @@ bazel test  --test_tag_filters=unit  ...
 Before running the e2e tests, ensure that the `integration` server is running. (`bazel run integration:server`)
 
 ```
-bazel test  --test_tag_filters=e2e  ...
+bazel test  --test_tag_filters=e2e  //...
 ```
 
 Running cypress manually

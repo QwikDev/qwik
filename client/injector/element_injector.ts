@@ -132,12 +132,11 @@ export class ElementInjector extends BaseInjector {
     const self = this;
     return findAttribute(
       this.element,
-      serviceKey,
-      serviceAttrName,
-      serviceFactory,
       QError.Core_noAttribute_atr1_attr2_element,
+      serviceKey,
       serviceFactory,
-      QError.Core_noAttribute_atr1_attr2_element
+      serviceAttrName,
+      serviceFactory
     );
 
     function serviceFactory(element: Element, attrName: string, attrValue: string) {
@@ -212,8 +211,8 @@ export class ElementInjector extends BaseInjector {
     const serviceAttrName = keyToServiceAttribute(serviceKey);
     return findAttribute(
       this.element,
+      QError.Core_noAttribute_atr1_attr2_element,
       serviceKey,
-      serviceAttrName,
       (element, serviceKeyAttr, serviceState) => {
         const injector = element == this.element ? this : (getInjector(element) as ElementInjector);
         const existingService = injector.services?.get(serviceKey)?.promise;
@@ -231,13 +230,12 @@ export class ElementInjector extends BaseInjector {
         state.$key = serviceKeyAttr;
         return Promise.resolve(state);
       },
-      QError.Core_noAttribute_atr1_attr2_element,
+      serviceAttrName,
       (element) => {
         return getInjector(element)
           .getService(serviceKey)
           .then((service) => service.$state);
-      },
-      QError.Core_noAttribute_atr1_attr2_element
+      }
     );
   }
 

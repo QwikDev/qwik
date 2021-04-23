@@ -48,8 +48,8 @@ export function emitEvent(element: HTMLElement, event: Event, url: URL): Promise
   }
   const returnValue = findAttribute(
     element,
+    QError.Event_emitEventCouldNotFindListener_event_element,
     AttributeMarker.EventPrefix + fromCamelToKebabCase($type),
-    null,
     (element, attrName, attrValue) => {
       const qrl = (attrValue as unknown) as QRL<EventHandler<any, any, any>>;
       return Promise.resolve(qImport(element, qrl)).then((fn: Function) => {
@@ -60,8 +60,7 @@ export function emitEvent(element: HTMLElement, event: Event, url: URL): Promise
         });
         return fn(element, event, dstUrl);
       });
-    },
-    QError.Event_emitEventCouldNotFindListener_event_element
+    }
   );
   return Promise.resolve(returnValue);
 }

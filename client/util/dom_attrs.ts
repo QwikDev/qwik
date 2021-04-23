@@ -30,32 +30,24 @@ export function readElementAttributes(element: Element): { [attribute: string]: 
   return props;
 }
 
-// TODO: test
-// TODO: docs
+/**
+ * Find a parent `Element` which has either `attributePrimary` or `attributeSecondary`.
+ *
+ * @param element `Element` where the search should be initiated at
+ * @param qNotFoundError Error if attribute not found
+ * @param attributePrimary Primary attribute to look for.
+ * @param callbackPrimary Callback to call if primary attribute is found
+ * @param attributeSecondary Secondary attribute to look for.
+ * @param callbackSecondary Callback to call if secondary attribute is found
+ * @internal
+ */
 export function findAttribute<RET1, RET2>(
   element: Element,
+  qNotFoundError: QError,
   attributePrimary: string,
-  attributeSecondary: null,
   callbackPrimary: (element: Element, attrName: string, attrValue: string) => RET1,
-  qPrimaryNotFoundError: QError
-): RET1 | RET2;
-export function findAttribute<RET1, RET2>(
-  element: Element,
-  attributePrimary: string,
-  attributeSecondary: string,
-  callbackPrimary: (element: Element, attrName: string, attrValue: string) => RET1,
-  qPrimaryNotFoundError: QError,
-  callbackSecondary: (element: Element, attrName: string, attrValue: string) => RET2,
-  qSecondaryNotFoundError: QError
-): RET1 | RET2;
-export function findAttribute<RET1, RET2>(
-  element: Element,
-  attributePrimary: string,
-  attributeSecondary: string | null,
-  callbackPrimary: (element: Element, attrName: string, attrValue: string) => RET1,
-  qPrimaryNotFoundError: QError = QError.Core_noAttribute_atr1_element,
-  callbackSecondary?: (element: Element, attrName: string, attrValue: string) => RET2,
-  qSecondaryNotFoundError: QError = QError.Core_noAttribute_atr1_attr2_element
+  attributeSecondary?: string,
+  callbackSecondary?: (element: Element, attrName: string, attrValue: string) => RET2
 ): RET1 | RET2 {
   let cursor: Element | null = element;
   while (cursor) {
@@ -72,6 +64,6 @@ export function findAttribute<RET1, RET2>(
     cursor = cursor.parentElement;
   }
   throw attributeSecondary
-    ? qError(qSecondaryNotFoundError, attributePrimary, attributeSecondary, element)
-    : qError(qPrimaryNotFoundError, attributePrimary, element);
+    ? qError(qNotFoundError, attributePrimary, attributeSecondary, element)
+    : qError(qNotFoundError, attributePrimary, element);
 }

@@ -19,7 +19,7 @@ export interface Item {
 
 // TODO: How can this be split into public / private part just like Components
 export class ItemService extends Service<ItemProps, Item> {
-  static $type = 'Item';
+  static $type = 'Item'; // TODO(type): add as const
   static $qrl = QRL<ItemService>`data:/Item/public.ItemService`;
   static $keyProps = ['id'];
   async toggle(isCompleted: boolean): Promise<void> {

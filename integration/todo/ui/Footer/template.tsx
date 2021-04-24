@@ -7,11 +7,11 @@
  */
 
 import { Todo, TodoService } from '../../data/Todo/public.js';
-import { QRL, injectFunction, jsxFactory, provideComponentProp, provideServiceState } from '../../qoot.js';
+import { QRL, injectFunction, jsxFactory, provideComponentProp, provideServiceState, Provider, ServiceKey } from '../../qoot.js';
 
 export const _needed_by_JSX_ = jsxFactory; // eslint-disable-line @typescript-eslint/no-unused-vars
 export default injectFunction(
-  provideServiceState<TodoService>(provideComponentProp('$todos')),
+  provideServiceState<TodoService>(provideComponentProp('$todos') as any as Provider<ServiceKey<TodoService>>), // TODO(type): fix cast
   function FooterTemplate(todos: Todo) {
     const remaining = todos.items.length - todos.completed;
     function filterClick(mode: 'All' | 'Active' | 'Completed') {

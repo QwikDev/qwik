@@ -54,18 +54,21 @@ export interface EventHandler<SELF, ARGS extends any[], RET> {
     (element: HTMLElement, event: Event, url: URL): Promise<RET>;
 }
 
-// @public (undocumented)
-export interface EventInjector extends Injector {
+// @public
+export class EventService extends Service<any, any> {
     // (undocumented)
+    static $props: string[];
+    // (undocumented)
+    static $qrl: QRL;
+    // (undocumented)
+    static $type: string;
+    constructor(element: Element, event: Event, url: URL, props: Props);
     event: Event;
     // (undocumented)
+    static KEY: ServiceKey<EventService>;
     props: Props;
-    // (undocumented)
     url: URL;
 }
-
-// @public (undocumented)
-export type EventProvider<T> = (injector: EventInjector) => T | Promise<T>;
 
 // @public
 export function getInjector(element: Element): Injector;
@@ -110,8 +113,8 @@ export interface Injector {
     elementProps: Props;
     getComponent<COMP extends Component<any, any>>(componentType: ComponentConstructor<COMP>): Promise<COMP>;
     getParent(): Injector | null;
-    getService<SERVICE extends Service<any, any>>(serviceKey: string, state?: ServiceStateOf<SERVICE>, serviceType?: ServiceConstructor<SERVICE>): ServicePromise<SERVICE>;
-    getServiceState<SERVICE extends Service<any, any>>(propsOrKey: ServicePropsOf<SERVICE> | ServiceKey): Promise<ServiceStateOf<SERVICE>>;
+    getService<SERVICE extends Service<any, any>>(serviceKey: ServiceKey<SERVICE>, state?: ServiceStateOf<SERVICE>, serviceType?: ServiceConstructor<SERVICE>): ServicePromise<SERVICE>;
+    getServiceState<SERVICE extends Service<any, any>>(propsOrKey: ServicePropsOf<SERVICE> | ServiceKey<SERVICE>): Promise<ServiceStateOf<SERVICE>>;
     invoke<SELF, PROVIDERS extends any[], REST extends any[], RET>(fn: InjectedFunction<SELF, PROVIDERS, REST, RET>, self?: SELF | null, ...rest: REST): Promise<RET>;
     releaseService(key: ServiceKey): void;
     serialize(): void;
@@ -163,10 +166,10 @@ export function provideComponentState<S>(throwIfNotFound: false): Provider<S | u
 export function provideComponentState<S>(throwIfNotFound?: boolean): Provider<S>;
 
 // @public
-export function provideElement(): EventProvider<Element>;
+export function provideElement(): Provider<Element>;
 
 // @public
-export function provideEvent(): EventProvider<Event>;
+export function provideEvent(): Provider<Event>;
 
 // @public
 export function provideInjector(): Provider<Injector>;
@@ -175,7 +178,7 @@ export function provideInjector(): Provider<Injector>;
 export function provideProviderOf<T>(provider: Provider<T>): Provider<() => Promise<T>>;
 
 // @public
-export function provideQrlExp<T>(parameterName: string): EventProvider<T>;
+export function provideQrlExp<T>(parameterName: string): Provider<T>;
 
 // @public
 export type Provider<T> = (injector: Injector) => T | Promise<T>;
@@ -191,13 +194,13 @@ export type Providers<ARGS extends any[]> = {
 };
 
 // @public
-export function provideService<SERVICE extends Service<any, any>>(id: string | Provider<string>): Provider<SERVICE>;
+export function provideService<SERVICE extends Service<any, any>>(id: ServiceKey<SERVICE> | Provider<ServiceKey<SERVICE>>): Provider<SERVICE>;
 
 // @public
-export function provideServiceState<SERVICE extends Service<any, any>>(id: string | Provider<string>): Provider<ServiceStateOf<SERVICE>>;
+export function provideServiceState<SERVICE extends Service<any, any>>(id: ServiceKey<SERVICE> | Provider<ServiceKey<SERVICE>>): Provider<ServiceStateOf<SERVICE>>;
 
 // @public
-export function provideUrlProp(parameterName: string): EventProvider<string | null>;
+export function provideUrlProp(parameterName: string): Provider<string | null>;
 
 // @public
 export interface QConfig {
@@ -245,7 +248,7 @@ export class Service<PROPS, STATE> {
     $init(): Promise<void>;
     $invokeQRL<ARGS extends any[], RET>(qrl: QRL<(...args: ARGS) => RET>, ...args: ARGS): Promise<RET>;
     // (undocumented)
-    readonly $key: string;
+    readonly $key: ServiceKey<any>;
     static $keyProps: string[];
     static $keyToProps<SERVICE extends Service<any, any>>(this: {
         new (...args: any[]): SERVICE;
@@ -279,7 +282,7 @@ export interface ServiceConstructor<SERVICE extends Service<any, any>> {
     readonly $keyProps: string[];
     $keyToProps<SERVICE extends Service<any, any>>(this: {
         new (...args: any[]): SERVICE;
-    }, key: ServiceKey): ServicePropsOf<SERVICE>;
+    }, key: ServiceKey<SERVICE>): ServicePropsOf<SERVICE>;
     $propsToKey<SERVICE extends Service<any, any>>(this: {
         new (...args: any[]): SERVICE;
     }, props: ServicePropsOf<SERVICE>): ServiceKey;
@@ -290,24 +293,30 @@ export interface ServiceConstructor<SERVICE extends Service<any, any>> {
 }
 
 // @public
-export type ServiceKey = string;
+export interface ServiceKey<SERVICE = Service<any, any>> {
+    // (undocumented)
+    __brand__: SERVICE;
+}
 
 // @public
-export interface ServicePromise<T extends Service<any, any>> extends Promise<T> {
-    $key: string;
+export interface ServicePromise<SERVICE extends Service<any, any>> extends Promise<SERVICE> {
+    $key: ServiceKey<SERVICE>;
 }
 
 // @public
 export type ServicePropsOf<SERVICE extends Service<any, any>> = SERVICE extends Service<infer PROPS, any> ? PROPS : never;
 
 // @public
-export function serviceStateKey(value: any): ServiceKey;
+export function serviceStateKey<SERVICE extends Service<any, any>>(value: SERVICE | ServiceStateOf<SERVICE>): ServiceKey<SERVICE>;
 
 // @public
 export type ServiceStateOf<SERVICE extends Service<any, any>> = SERVICE extends Service<any, infer STATE> ? STATE : never;
 
 // @public
 export function setConfig(config: QConfig): void;
+
+// @public
+export function toServiceKey<SERVICE extends Service<any, any>>(key: string): ServiceKey<SERVICE>;
 
 
 // (No @packageDocumentation comment for this package)

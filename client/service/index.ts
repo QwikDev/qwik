@@ -19,4 +19,4 @@ export {
   ServicePropsOf,
   ServicePromise,
 } from './service.js';
-export { serviceStateKey, ServiceKey } from './service_key.js';
+export { serviceStateKey, ServiceKey, toServiceKey } from './service_key.js';

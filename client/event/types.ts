@@ -6,21 +6,7 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { InjectedFunction, Injector, Props } from '../injector/types.js';
-
-/**
- * @public
- */
-export interface EventInjector extends Injector {
-  event: Event;
-  url: URL;
-  props: Props;
-}
-
-/**
- * @public
- */
-export type EventProvider<T> = (injector: EventInjector) => T | Promise<T>;
+import { InjectedFunction } from '../injector/types.js';
 
 /**
  * @public

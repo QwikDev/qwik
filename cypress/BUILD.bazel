@@ -33,6 +33,9 @@ cypress_web_test(
     name = "cypress",
     srcs = [":integration_specs"],
     config_file = "//:cypress.json",
+    data = [
+        "//integration:server",
+    ],
     plugins_file = ":plugins_file",
     tags = ["e2e"],
 )

@@ -160,7 +160,7 @@ export interface Injector {
    *        service `QRL` attribute.
    */
   getService<SERVICE extends Service<any, any>>(
-    serviceKey: string,
+    serviceKey: ServiceKey<SERVICE>,
     state?: ServiceStateOf<SERVICE>,
     serviceType?: ServiceConstructor<SERVICE>
   ): ServicePromise<SERVICE>;
@@ -175,7 +175,7 @@ export interface Injector {
    * @param propsOrKey - The key of state which should be retrieved.
    */
   getServiceState<SERVICE extends Service<any, any>>(
-    propsOrKey: ServicePropsOf<SERVICE> | ServiceKey
+    propsOrKey: ServicePropsOf<SERVICE> | ServiceKey<SERVICE>
   ): Promise<ServiceStateOf<SERVICE>>;
 
   /**

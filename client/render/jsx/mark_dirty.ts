@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { assertString, newError } from '../../assert/index.js';
+import { assertString } from '../../assert/index.js';
 import { Component, isComponent } from '../../component/component.js';
 import { QError, qError } from '../../error/error.js';
 import { QRL } from '../../import/qrl.js';

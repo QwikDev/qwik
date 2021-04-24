@@ -17,6 +17,7 @@ import { serializeState } from '../render/serialize_state.js';
 import { ElementFixture } from '../testing/element_fixture.js';
 import { AttributeMarker } from '../util/markers.js';
 import { getClosestInjector, getInjector } from './element_injector.js';
+import { ServiceKey } from '../service/service_key.js';
 
 describe('ElementInjector', () => {
   let fixture: ElementFixture;
@@ -123,6 +124,7 @@ describe('ElementInjector', () => {
   });
 
   describe('getService/getServiceState', () => {
+    const regardsKey: ServiceKey<RegardsService> = 'regards:-hello:-world' as any;
     it('should retrieve service by key from DOM', async () => {
       fixture.host.setAttribute(
         'regards:-hello:-world',
@@ -135,7 +137,7 @@ describe('ElementInjector', () => {
       // Add this late to demonstrate that the `getServiceState` was able to retrieve the state
       // without the service QRL.
       RegardsService.$attachService(fixture.host);
-      const service = await hostInjector.getService<RegardsService>('regards:-hello:-world');
+      const service = await hostInjector.getService(regardsKey);
       expect(service.$key).to.eql('regards:-hello:-world');
       expect(service.$props).to.eql({ salutation: 'Hello', name: 'World' });
       expect(service.$state).to.eql({
@@ -156,7 +158,7 @@ describe('ElementInjector', () => {
       // Add this late to demonstrate that the `getServiceState` was able to retrieve the state
       // without the service QRL.
       RegardsService.$attachService(fixture.parent);
-      const service = await hostInjector.getService('regards:-hello:-world');
+      const service = await hostInjector.getService(regardsKey);
       expect(service.$key).to.eql('regards:-hello:-world');
       expect(service.$props).to.eql({ salutation: 'Hello', name: 'World' });
       expect(service.$state).to.eql({
@@ -166,7 +168,7 @@ describe('ElementInjector', () => {
     });
     it('should retrieve service by key and call $newState', async () => {
       RegardsService.$attachService(fixture.parent);
-      const service = await hostInjector.getService('regards:-hello:-world');
+      const service = await hostInjector.getService(regardsKey);
       expect(service.$key).to.eql('regards:-hello:-world');
       expect(service.$props).to.eql({ salutation: 'Hello', name: 'World' });
       expect(service.$state).to.eql({
@@ -176,8 +178,8 @@ describe('ElementInjector', () => {
     });
     it('should retrieve the same instance of service', async () => {
       RegardsService.$attachService(fixture.parent);
-      const service1 = hostInjector.getService('regards:-hello:-world');
-      const service2 = hostInjector.getService('regards:-hello:-world');
+      const service1 = hostInjector.getService(regardsKey);
+      const service2 = hostInjector.getService(regardsKey);
       expect(service1).to.equal(service2);
     });
     it('should retrieve the same instance of service state', async () => {
@@ -187,7 +189,7 @@ describe('ElementInjector', () => {
         { salutation: 'Hello', name: 'World' },
         state
       ).$key;
-      expect(fixture.host.hasAttribute(key)).to.be.true;
+      expect(fixture.host.hasAttribute(String(key))).to.be.true;
       const serviceState = await hostInjector.getServiceState(key);
       expect(serviceState).to.equal(state);
     });
@@ -204,7 +206,7 @@ describe('ElementInjector', () => {
         );
       });
       it('should throw error if no service provider define', () => {
-        expect(() => hostInjector.getService('not:found')).to.throw(
+        expect(() => hostInjector.getService(('not:found' as any) as ServiceKey)).to.throw(
           "ERROR(Q-004): Could not find service state 'not:found' ( or service provider '::not') at '<host :>' or any of it's parents."
         );
       });

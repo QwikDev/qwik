@@ -8,9 +8,10 @@
 
 import { isValidAttribute } from '../error/data.js';
 import { fromCamelToKebabCase, fromKebabToCamelCase } from '../util/case.js';
-import type { ServiceConstructor } from './service.js';
+import type { Service, ServiceConstructor, ServiceStateOf } from './service.js';
 import { qError, QError } from '../error/error.js';
 import { stringify } from '../util/stringify.js';
+import { assertString } from '../assert/assert.js';
 
 /**
  * String representation of the service key.
@@ -45,7 +46,23 @@ import { stringify } from '../util/stringify.js';
  *
  * @public
  */
-export type ServiceKey = string;
+export interface ServiceKey<SERVICE = Service<any, any>> {
+  __brand__: SERVICE;
+}
+
+/**
+ * Converts a `string` into `ServiceKey` typed object.
+ *
+ * `ServiceKey`s are `string`s at runtime. This function just adds type-safety.
+ *
+ * @param key `string` representation of `ServiceKey`
+ * @returns `ServiceKey`
+ * @public
+ */
+export function toServiceKey<SERVICE extends Service<any, any>>(key: string): ServiceKey<SERVICE> {
+  qDev && assertString(key);
+  return key as any;
+}
 
 /**
  * Converts service `Props` into service key.
@@ -61,7 +78,10 @@ export type ServiceKey = string;
  * @returns service-key.
  * @internal
  */
-export function propsToKey(serviceType: ServiceConstructor<any>, props: Record<string, any>) {
+export function propsToKey(
+  serviceType: ServiceConstructor<any>,
+  props: Record<string, any>
+): ServiceKey<any> {
   let id = fromCamelToKebabCase(serviceType.$type) + ':';
   const propNames = serviceType.$keyProps;
   if (!propNames) {
@@ -75,7 +95,7 @@ export function propsToKey(serviceType: ServiceConstructor<any>, props: Record<s
     const value = fromCamelToKebabCase(stringify((props as any)[name]), true);
     id += validateKeyPart(value);
   }
-  return id;
+  return id as any;
 }
 
 /**
@@ -92,7 +112,7 @@ export function propsToKey(serviceType: ServiceConstructor<any>, props: Record<s
  */
 export function keyToProps(
   serviceType: ServiceConstructor<any>,
-  key: string
+  key: ServiceKey | string
 ): { [key: string]: string | number | null | undefined } {
   const props: any = {};
   const propOrder = serviceType.$keyProps;
@@ -100,7 +120,7 @@ export function keyToProps(
     throw qError(QError.Service_no$keyProps_service, serviceType);
   }
   propOrder.forEach((key) => (props[key] = null));
-  const keyParts = key.split(':');
+  const keyParts = String(key).split(':');
   if (keyParts.length <= 1) {
     throw qError(QError.Service_keyMissingParts_key_key, key, key);
   }
@@ -163,12 +183,14 @@ export function validateKeyPart(value: any): string {
  * @returns `ServiceKey`
  * @public
  */
-export function serviceStateKey(value: any): ServiceKey {
-  const key = value.$key;
+export function serviceStateKey<SERVICE extends Service<any, any>>(
+  value: SERVICE | ServiceStateOf<SERVICE>
+): ServiceKey<SERVICE> {
+  const key = (value as any).$key;
   if (typeof key !== 'string') {
     throw qError(QError.Service_stateMissingKey_state, value);
   }
-  return key;
+  return key as any;
 }
 
 /**
@@ -177,7 +199,8 @@ export function serviceStateKey(value: any): ServiceKey {
  * @param key - service key attribute name (ie: `foo:123:456`)
  * @returns Service attribute (ie: `::foo`)
  */
-export function keyToServiceAttribute(key: string): string {
+export function keyToServiceAttribute(serviceKey: ServiceKey | string): string {
+  const key: string = serviceKey as any;
   const idx = key.indexOf(':');
   if (idx == -1) {
     throw qError(QError.Service_notValidKey_key, key);

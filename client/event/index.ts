@@ -12,4 +12,5 @@ export { provideElement } from './provide_element.js';
 export { provideEvent } from './provide_event.js';
 export { provideQrlExp } from './provide_qrl_exp.js';
 export { provideUrlProp } from './provide_url.js';
-export { EventHandler, EventInjector, EventProvider } from './types.js';
+export { EventHandler } from './types.js';
+export { EventService } from './event_service.js';

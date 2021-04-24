@@ -6,9 +6,10 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
+import { Injector, Provider } from '../injector/types.js';
 import { assertDefined } from '../assert/index.js';
 import { QError, qError } from '../error/error.js';
-import { EventInjector, EventProvider } from './types.js';
+import { EventService } from '../event/event_service.js';
 
 /**
  * Inject result of url expression evaluation.
@@ -43,16 +44,17 @@ import { EventInjector, EventProvider } from './types.js';
  * @param parameterName - Which parameter name should be read from the `url.searchParams.get(parameterName)`
  * @public
  */
-export function provideQrlExp<T>(parameterName: string): EventProvider<T> {
-  return function qrlExpProvider(eventInjector: EventInjector): any {
-    const value = eventInjector.props[parameterName]!;
+export function provideQrlExp<T>(parameterName: string): Provider<T> {
+  return async function qrlExpProvider(injector: Injector): Promise<any> {
+    const eventService = await injector.getService(EventService.KEY);
+    const value = eventService.props[parameterName]!;
     if (value == null) {
-      throw qError(QError.Core_missingProperty_name_props, parameterName, eventInjector.props);
+      throw qError(QError.Core_missingProperty_name_props, parameterName, eventService.props);
     }
 
     switch (value.charAt(0)) {
       case '.':
-        let obj: any = eventInjector.event;
+        let obj: any = eventService.event;
         qDev && assertDefined(obj);
         const parts = value.substr(1).split('.');
         while (parts.length && obj) {

@@ -23,7 +23,7 @@ describe('provideQrlExp', () => {
     const handler = injectFunction(provideQrlExp<string>('value'), (props) => {
       return props;
     });
-    expect(provideQrlExp<string>('value')(injector)).to.eql('worked');
+    expect(await provideQrlExp<string>('value')(injector)).to.eql('worked');
     expect(await injector.invoke(handler)).to.eql('worked');
   });
 });

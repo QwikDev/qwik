@@ -77,7 +77,7 @@ export abstract class BaseInjector implements Injector {
     componentType: ComponentConstructor<COMP>
   ): Promise<COMP>;
   abstract getService<SERVICE extends Service<any, any>>(
-    serviceKey: string,
+    serviceKey: ServiceKey<SERVICE>,
     state?: ServiceStateOf<SERVICE>,
     serviceType?: ServiceConstructor<SERVICE>
   ): ServicePromise<SERVICE>;

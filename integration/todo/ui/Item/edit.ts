@@ -7,7 +7,7 @@
  */
 
 import { ItemService } from 'integration/todo/data/Item/public.js';
-import { Provider } from 'qoot';
+import { Provider, ServiceKey } from '../../qoot.js';
 import {
   injectEventHandler,
   markDirty,
@@ -29,7 +29,9 @@ export const change = injectEventHandler(
   ItemComponent, //
   provideQrlExp<string>('value'),
   provideQrlExp<string>('code'),
-  provideService<ItemService>(provideUrlProp('itemKey') as Provider<string>), // TODO fix cast
+  provideService<ItemService>(
+    (provideUrlProp('itemKey') as any) as Provider<ServiceKey<ItemService>>
+  ), // TODO fix cast
   async function (
     this: ItemComponent,
     inputValue: string,

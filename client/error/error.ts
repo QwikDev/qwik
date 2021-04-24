@@ -24,7 +24,6 @@ export const enum QError {
   Injector_notElement_arg = 202,
   Injector_wrongMethodThis_expected_actual = 203,
   Injector_missingSerializedState_serviceKey_element = 204,
-  Injector_notEventInjector = 205,
   Injector_notFound_element = 206,
   Injector_eventInjectorNotSerializable = 207,
   // Services 300-399
@@ -113,8 +112,6 @@ function codeToText(code: QError): string {
       "Expected injection 'this' to be of type '{}', but was of type '{}'.",
     [QError.Injector_missingSerializedState_serviceKey_element]:
       "Service key '{}' is found on '{}' but does not contain state. Was 'serializeState()' not run during dehydration?",
-    [QError.Injector_notEventInjector]:
-      "Injector is being used as 'EventInjector' but it was 'ElementInjector'. Have you used a provider which expects 'EventInjector' in 'ElementInjector' context?",
     [QError.Injector_notFound_element]: "No injector can be found starting at '{}'.",
     [QError.Injector_eventInjectorNotSerializable]: 'EventInjector does not support serialization.',
     //////////////

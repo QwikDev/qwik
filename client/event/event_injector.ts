@@ -20,19 +20,17 @@ import {
 } from '../service/service.js';
 import '../util/qDev.js';
 import { qError, QError } from '../error/error.js';
+import { EventService } from './event_service.js';
 
 export class EventInjector extends BaseInjector {
-  event: Event;
-  url: URL;
-  props: Props;
+  private eventService: EventService;
   private parentInjector: ElementInjector | null = null;
 
   constructor(element: Element, event: Event, url: URL) {
     super(element);
-    this.event = event;
-    this.url = url;
-    this.props = {};
-    url.searchParams.forEach((value, key) => (this.props[key] = value));
+    const props: Props = {};
+    url.searchParams.forEach((value, key) => (props[key] = value));
+    this.eventService = new EventService(element, event, url, props);
   }
 
   getParent(): Injector | null {
@@ -48,17 +46,18 @@ export class EventInjector extends BaseInjector {
   }
 
   getService<SERVICE extends Service<any, any>>(
-    serviceKey: string,
+    serviceKey: ServiceKey<SERVICE>,
     state?: ServiceStateOf<SERVICE>,
     serviceType?: ServiceConstructor<SERVICE>
   ): ServicePromise<SERVICE> {
-    return this.getParent()!.getService<SERVICE>(serviceKey, state, serviceType);
+    if ((serviceKey as any) === EventService.KEY) return this.eventService as any;
+    return this.getParent()!.getService(serviceKey, state, serviceType);
   }
 
   getServiceState<SERVICE extends Service<any, any>>(
-    propsOrKey: ServicePropsOf<SERVICE> | ServiceKey
+    propsOrKey: ServicePropsOf<SERVICE> | ServiceKey<SERVICE>
   ): Promise<ServiceStateOf<SERVICE>> {
-    return this.getParent()!.getServiceState<SERVICE>(propsOrKey);
+    return this.getParent()!.getServiceState(propsOrKey);
   }
 
   releaseService(key: ServiceKey): void {

@@ -8,6 +8,7 @@
 
 import { TodoService } from '../../data/Todo/public.js';
 import {
+  toServiceKey,
   injectEventHandler,
   provideQrlExp,
   provideService,
@@ -20,7 +21,7 @@ export default injectEventHandler(
   HeaderComponent,
   provideQrlExp<string>('value'),
   provideQrlExp<string>('code'),
-  provideProviderOf(provideService<TodoService>('todos:')),
+  provideProviderOf(provideService(toServiceKey<TodoService>('todos:'))),
   async function (
     this: HeaderComponent,
     inputValue: string,

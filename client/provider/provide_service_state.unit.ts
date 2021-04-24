@@ -15,6 +15,8 @@ import { provideServiceState } from './provide_service_state.js';
 import { Service } from '../service/service.js';
 import { expect } from 'chai';
 import { Injector } from '../injector/index.js';
+import { Provider } from '../injector/types';
+import { ServiceKey } from '../service/service_key.js';
 
 describe('provideService', () => {
   let fixture: ElementFixture;
@@ -27,7 +29,8 @@ describe('provideService', () => {
   it('should return service', async () => {
     RegardsService.$attachService(fixture.parent);
     const fn = injectFunction(
-      provideServiceState<RegardsService>(() => Promise.resolve('regards:Hello:World')),
+      provideServiceState<RegardsService>(((() =>
+        Promise.resolve('regards:Hello:World')) as any) as Provider<ServiceKey<RegardsService>>),
       (service: Regards) => service
     );
 

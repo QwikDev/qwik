@@ -7,12 +7,21 @@
  */
 
 import type { TodoService } from '../../data/Todo/public.js';
-import { injectFunction, jsxFactory, provideComponentProp, provideService } from '../../qoot.js';
+import {
+  injectFunction,
+  jsxFactory,
+  provideComponentProp,
+  provideService,
+  ServiceKey,
+  Provider,
+} from '../../qoot.js';
 import { Item } from '../Item/public.js';
 
 export const _needed_by_JSX_ = jsxFactory; // eslint-disable-line @typescript-eslint/no-unused-vars
 export default injectFunction(
-  provideService<TodoService>(provideComponentProp('$todos')), //
+  provideService<TodoService>(
+    (provideComponentProp('$todos') as any) as Provider<ServiceKey<TodoService>>
+  ), // TODO(type):
   function (todoService: TodoService) {
     const itemKeys = todoService.filteredItems;
     return (

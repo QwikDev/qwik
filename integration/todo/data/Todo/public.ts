@@ -6,7 +6,15 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { markDirty, QRL, Service, getInjector, ServiceKey, serviceStateKey } from '../../qoot.js';
+import {
+  markDirty,
+  QRL,
+  Service,
+  getInjector,
+  ServiceKey,
+  serviceStateKey,
+  toServiceKey,
+} from '../../qoot.js';
 import { Item, ItemService } from '../Item/public.js';
 
 export interface TodoProps {}
@@ -14,7 +22,7 @@ export interface TodoProps {}
 export interface Todo {
   completed: number;
   filter: 'active' | 'all' | 'completed';
-  items: string[];
+  items: ServiceKey<ItemService>[];
   nextId: number;
 }
 
@@ -23,9 +31,9 @@ export class TodoService extends Service<TodoProps, Todo> {
   static $type = 'Todos';
   static $keyProps = ['todos'];
 
-  static globalKey = 'todos:';
+  static globalKey = toServiceKey<TodoService>('todos:');
 
-  filteredItems: ServiceKey[] = [];
+  filteredItems: ServiceKey<ItemService>[] = [];
 
   async archive(): Promise<void> {
     return this.$invokeQRL(QRL<() => void>`data:/Todo/archive`);
@@ -35,8 +43,11 @@ export class TodoService extends Service<TodoProps, Todo> {
     return this.$invokeQRL(QRL<(text: string) => Promise<ItemService>>`data:/Todo/newItem`, text);
   }
 
-  remove(itemKey: string) {
-    return this.$invokeQRL(QRL<(key: string) => Promise<void>>`data:/Todo/removeItem`, itemKey);
+  remove(itemKey: ServiceKey<ItemService>) {
+    return this.$invokeQRL(
+      QRL<(key: ServiceKey<ItemService>) => Promise<void>>`data:/Todo/removeItem`,
+      itemKey
+    );
   }
 
   async setFilter(filter: 'active' | 'all' | 'completed') {
@@ -53,7 +64,7 @@ export class TodoService extends Service<TodoProps, Todo> {
           completed: (item: Item) => item.completed,
         }[filter]
       )
-      .map(serviceStateKey);
+      .map(serviceStateKey as () => ServiceKey<ItemService>); // TODO(type): fix cast
     this.$state.filter = filter;
     markDirty(this);
   }

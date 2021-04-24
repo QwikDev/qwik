@@ -28,7 +28,7 @@ import { AttributeMarker } from '../util/markers.js';
 import '../util/qDev.js';
 import { isHtmlElement } from '../util/types.js';
 import { BaseInjector } from './base_injector.js';
-import { Injector, Props } from './types.js';
+import { Injector } from './types.js';
 
 interface ServiceValue {
   promise: ServicePromise<Service<any, any>>;
@@ -39,17 +39,6 @@ export class ElementInjector extends BaseInjector {
   private component: Component<any, any> | null = null;
   private componentPromise: Promise<Component<any, any>> | null = null;
   private services: Map<ServiceKey, ServiceValue> | null = null;
-
-  get event(): Event {
-    throw qError(QError.Injector_notEventInjector);
-  }
-  get url(): URL {
-    throw qError(QError.Injector_notEventInjector);
-  }
-
-  get props(): Props {
-    throw qError(QError.Injector_notEventInjector);
-  }
 
   getParent(): Injector | null {
     let element = this.element.parentElement;
@@ -120,7 +109,7 @@ export class ElementInjector extends BaseInjector {
   }
 
   getService<SERVICE extends Service<any, any>>(
-    serviceKey: string,
+    serviceKey: ServiceKey<SERVICE>,
     forceState?: ServiceStateOf<SERVICE>,
     serviceType?: ServiceConstructor<SERVICE>
   ): ServicePromise<SERVICE> {
@@ -133,7 +122,7 @@ export class ElementInjector extends BaseInjector {
     return findAttribute(
       this.element,
       QError.Core_noAttribute_atr1_attr2_element,
-      serviceKey,
+      String(serviceKey),
       serviceFactory,
       serviceAttrName,
       serviceFactory
@@ -147,7 +136,7 @@ export class ElementInjector extends BaseInjector {
       if (servicePromise) return servicePromise;
       // OK, if we got here we don't already have service, so we need to make it.
 
-      injector.element.setAttribute(serviceKey, '');
+      injector.element.setAttribute(String(serviceKey), '');
       const serviceQRL = element.getAttribute(serviceAttrName);
       if (!serviceQRL) {
         throw qError(
@@ -167,7 +156,7 @@ export class ElementInjector extends BaseInjector {
               throw qError(QError.QRL_expectFunction_url_actual, serviceQRL, serviceType);
             }
             let state: ServiceStateOf<SERVICE> | null = forceState || null;
-            if (!state && attrName === serviceKey) {
+            if (!state && attrName === String(serviceKey)) {
               state = JSON.parse(attrValue) as ServiceStateOf<SERVICE>;
               state!.$key = serviceKey;
             }
@@ -212,7 +201,7 @@ export class ElementInjector extends BaseInjector {
     return findAttribute(
       this.element,
       QError.Core_noAttribute_atr1_attr2_element,
-      serviceKey,
+      serviceKey as any,
       (element, serviceKeyAttr, serviceState) => {
         const injector = element == this.element ? this : (getInjector(element) as ElementInjector);
         const existingService = injector.services?.get(serviceKey)?.promise;
@@ -239,9 +228,9 @@ export class ElementInjector extends BaseInjector {
     );
   }
 
-  releaseService(key: string) {
+  releaseService(key: ServiceKey) {
     if (this.services?.delete(key)) {
-      this.element.removeAttribute(key);
+      this.element.removeAttribute((key as any) as string);
     }
   }
 
@@ -269,7 +258,7 @@ function filterFrameworkKeys(this: any, key: string, value: any) {
 }
 
 function toServicePromise<SERVICE extends Service<any, any>>(
-  serviceKey: ServiceKey,
+  serviceKey: ServiceKey<SERVICE>,
   promise: Promise<SERVICE>
 ): ServicePromise<SERVICE> {
   const servicePromise = promise as ServicePromise<SERVICE>;

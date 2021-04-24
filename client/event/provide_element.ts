@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { EventInjector, EventProvider } from './types.js';
+import { Injector, Provider } from '../injector/types.js';
 
 /**
  * Provide the event Element.
@@ -30,8 +30,8 @@ import { EventInjector, EventProvider } from './types.js';
  * ```
  * @public
  */
-export function provideElement(): EventProvider<Element> {
-  return function elementProvider(injector: EventInjector) {
+export function provideElement(): Provider<Element> {
+  return function elementProvider(injector: Injector) {
     return injector.element;
   };
 }

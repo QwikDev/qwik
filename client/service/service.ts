@@ -167,14 +167,17 @@ export class Service<PROPS, STATE> {
     return this.$_name;
   }
   static set $type(name: string) {
-    const stack = new Error().stack!;
-    const frames = stack.split('\n');
-    // 0: Error
-    // 1:   at setter (this function)
-    // 2:   at caller (this is what we are looking for)
-    const base = getFilePathFromFrame(frames[2]);
-    this.$config = getConfig(base);
-    this.$_name = name;
+    if (!name.startsWith('$')) {
+      // Only do this for non-internal services.
+      const stack = new Error().stack!;
+      const frames = stack.split('\n');
+      // 0: Error
+      // 1:   at setter (this function)
+      // 2:   at caller (this is what we are looking for)
+      const base = getFilePathFromFrame(frames[2]);
+      this.$config = getConfig(base);
+      this.$_name = name;
+    }
   }
   private static $_name: string = null!;
 
@@ -313,8 +316,8 @@ export class Service<PROPS, STATE> {
     const serviceType = (this as any) as ServiceConstructor<SERVICE>;
     serviceType.$attachService(host);
     const key = typeof propsOrKey == 'string' ? propsOrKey : propsToKey(serviceType, propsOrKey);
-    if (!host.hasAttribute(key)) {
-      host.setAttribute(key, state == null ? '' : JSON.stringify(state));
+    if (!host.hasAttribute(String(key))) {
+      host.setAttribute(String(key), state == null ? '' : JSON.stringify(state));
     }
   }
 
@@ -343,7 +346,10 @@ export class Service<PROPS, STATE> {
     state?: ServiceStateOf<SERVICE>
   ): ServicePromise<SERVICE> {
     const serviceType = (this as any) as ServiceConstructor<SERVICE>;
-    const key = typeof propsOrKey == 'string' ? propsOrKey : propsToKey(serviceType, propsOrKey);
+    const key: ServiceKey<SERVICE> =
+      typeof propsOrKey == 'string'
+        ? (propsOrKey as ServiceKey<SERVICE>)
+        : propsToKey(serviceType, propsOrKey);
     if (state) state.$key = key;
     const serviceProviderKey = keyToServiceAttribute(key);
     if (!element.hasAttribute(serviceProviderKey)) {
@@ -401,7 +407,7 @@ export class Service<PROPS, STATE> {
   readonly $element: Element;
   readonly $props: PROPS;
   readonly $state: STATE;
-  readonly $key: string;
+  readonly $key: ServiceKey<any>; // TODO(type): `any` is not correct here.
 
   constructor(element: Element, props: PROPS, state: STATE | null) {
     const serviceType = getServiceType(this) as ServiceConstructor<Service<PROPS, STATE>>;
@@ -409,8 +415,8 @@ export class Service<PROPS, STATE> {
     this.$state = state!; // TODO: is this right?
     this.$element = element!;
     this.$key = propsToKey(serviceType as any, props);
-    serviceType.$attachService(element);
-    serviceType.$attachServiceState(element, props, null);
+    props && serviceType.$attachService(element);
+    props && serviceType.$attachServiceState(element, props, null);
   }
 
   /**
@@ -572,7 +578,7 @@ export type ServicePropsOf<SERVICE extends Service<any, any>> = SERVICE extends 
  *
  * @public
  */
-export interface ServicePromise<T extends Service<any, any>> extends Promise<T> {
+export interface ServicePromise<SERVICE extends Service<any, any>> extends Promise<SERVICE> {
   /**
    * Return the `Key` associated with the current `Service`.
    *
@@ -580,7 +586,7 @@ export interface ServicePromise<T extends Service<any, any>> extends Promise<T> 
    * it may not be convenient to wait for the `Promise` to resolve, in which case retrieving
    * `$key` synchronously is more convenient.
    */
-  $key: string;
+  $key: ServiceKey<SERVICE>;
 }
 
 /**
@@ -766,7 +772,7 @@ export interface ServiceConstructor<SERVICE extends Service<any, any>> {
    */
   $keyToProps<SERVICE extends Service<any, any>>(
     this: { new (...args: any[]): SERVICE },
-    key: ServiceKey
+    key: ServiceKey<SERVICE>
   ): ServicePropsOf<SERVICE>;
 
   /**

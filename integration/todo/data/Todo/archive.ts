@@ -7,7 +7,6 @@
  */
 
 import { injectMethod, markDirty, getInjector } from '../../qoot.js';
-import { ItemService } from '../Item/public.js';
 import { TodoService } from './public.js';
 
 export default injectMethod(
@@ -16,9 +15,7 @@ export default injectMethod(
     const items = this.$state.items;
     const element = this.$element;
     const injector = getInjector(element);
-    this.$state.items = (
-      await Promise.all(items.map((key) => injector.getService<ItemService>(key)))
-    )
+    this.$state.items = (await Promise.all(items.map((key) => injector.getService(key))))
       .filter((itemService) => {
         const completed = itemService.$state.completed;
         if (completed) {

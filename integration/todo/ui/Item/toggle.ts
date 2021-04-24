@@ -6,6 +6,7 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
+import { ServiceKey, Provider } from '../../qoot.js';
 import { ItemService } from '../../data/Item/public.js';
 import {
   injectEventHandler,
@@ -18,7 +19,9 @@ export default injectEventHandler(
   // Providers
   null,
   provideQrlExp<boolean>('toggleState'),
-  provideService<ItemService>(provideComponentProp('$item')),
+  provideService<ItemService>(
+    (provideComponentProp('$item') as any) as Provider<ServiceKey<ItemService>>
+  ), // TODO(type):
   // Handler
   async function (this: null, toggleState: boolean, itemService: ItemService) {
     await itemService.toggle(toggleState);

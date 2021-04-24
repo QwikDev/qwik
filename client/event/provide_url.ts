@@ -6,7 +6,8 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { EventInjector, EventProvider } from './types.js';
+import { Injector, Provider } from '../injector/types.js';
+import { EventService } from './event_service.js';
 
 /**
  * Provide the event URL.
@@ -29,9 +30,9 @@ import { EventInjector, EventProvider } from './types.js';
  * }
  * ```
  */
-export function provideURL(): EventProvider<URL> {
-  return function urlProvider(injector: EventInjector) {
-    return injector.url;
+export function provideURL(): Provider<URL> {
+  return async function urlProvider(injector: Injector): Promise<URL> {
+    return (await injector.getService(EventService.KEY)).url;
   };
 }
 
@@ -58,8 +59,8 @@ export function provideURL(): EventProvider<URL> {
  * @param parameterName - URL parameter name to provide.
  * @public
  */
-export function provideUrlProp(parameterName: string): EventProvider<string | null> {
-  return function eventPropProvider(injector: EventInjector) {
-    return injector.props[parameterName] || null;
+export function provideUrlProp(parameterName: string): Provider<string | null> {
+  return async function eventPropProvider(injector: Injector) {
+    return (await injector.getService(EventService.KEY)).props[parameterName] || null;
   };
 }

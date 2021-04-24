@@ -16,12 +16,15 @@ import { injectMethod } from '../injector/inject.js';
 import { serializeState } from '../render/serialize_state.js';
 import { ElementFixture } from '../testing/element_fixture.js';
 import { Service, ServiceConstructor } from './service.js';
+import { ServiceKey } from './service_key.js';
 
 export const __verify_Service_subtype_of_ServiceType__: ServiceConstructor<any> = Service;
 const service: Service<any, any> = null!;
 export const __verify_Service_subtype_of_Service__: Service<any, any> = service;
 
 describe('service', () => {
+  const greeterHelloWorldKey: ServiceKey<GreeterService> = 'greeter:-hello:-world' as any;
+  const greeterAhojSvetKey: ServiceKey<GreeterService> = 'greeter:ahoj:svet' as any;
   const MissingNameService: ServiceConstructor<any> = class MissingNameService {} as any;
   const EmptyNameService: ServiceConstructor<any> = class EmptyNameService {
     static $type = '';
@@ -126,16 +129,14 @@ describe('service', () => {
         salutation: 'Hello',
         name: 'World',
       });
-      expect(greeterPromise).to.equal(
-        GreeterService.$hydrate(fixture.host, 'greeter:-hello:-world')
-      );
+      expect(greeterPromise).to.equal(GreeterService.$hydrate(fixture.host, greeterHelloWorldKey));
       expect(await greeterPromise).to.equal(
-        await GreeterService.$hydrate(fixture.host, 'greeter:-hello:-world')
+        await GreeterService.$hydrate(fixture.host, greeterHelloWorldKey)
       );
     });
     it('should hydrate without state using key', async () => {
       const fixture = new ElementFixture();
-      const greeterPromise = GreeterService.$hydrate(fixture.host, 'greeter:-hello:-world');
+      const greeterPromise = GreeterService.$hydrate(fixture.host, greeterHelloWorldKey);
       expect(greeterPromise.$key).to.eql('greeter:-hello:-world');
       const greeter = await greeterPromise;
       expect(greeter.$state).to.eql({
@@ -169,12 +170,12 @@ describe('service', () => {
         { greeting: 'Ahoj Svet!' }
       );
       const injector = getInjector(fixture.child);
-      const greeterPromise = injector.getServiceState<GreeterService>('greeter:ahoj:svet');
+      const greeterPromise = injector.getServiceState(greeterAhojSvetKey);
       const greeter: Greeter = await greeterPromise;
       expect(greeter).to.eql({ $key: 'greeter:ahoj:svet', greeting: 'Ahoj Svet!' });
 
       const servicePromise = getInjector(fixture.child).getService<GreeterService>(
-        'greeter:ahoj:svet'
+        greeterAhojSvetKey
       );
       const greeterService = await servicePromise;
       expect(greeterService).to.be.instanceOf(GreeterService);
@@ -188,7 +189,9 @@ describe('service', () => {
       const fixture = new ElementFixture();
       const empty = await EmptyService.$hydrate(fixture.child, {}, {});
       expect(await empty.ident('ABC')).to.equal('ABC');
-      expect(await getInjector(fixture.child).getService('empty:')).to.equal(empty);
+      expect(await getInjector(fixture.child).getService(('empty:' as any) as ServiceKey)).to.equal(
+        empty
+      );
       expect(fixture.child.getAttribute('::empty')).to.equal('service:/service.unit.EmptyService');
     });
   });
@@ -207,7 +210,9 @@ describe('service', () => {
       "<child : ::greeter='service:/service.unit.GreeterService' greeter:hello:world>"
     );
     expect(
-      await getInjector(fixture.child).getService<GreeterService>('greeter:hello:world')
+      await getInjector(fixture.child).getService(
+        ('greeter:hello:world' as any) as ServiceKey<GreeterService>
+      )
     ).to.equal(greeter);
 
     serializeState(fixture.host);

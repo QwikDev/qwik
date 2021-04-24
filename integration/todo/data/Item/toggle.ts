@@ -6,13 +6,13 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { injectMethod, provideService, markDirty } from '../../qoot.js';
+import { injectMethod, toServiceKey, provideService, markDirty } from '../../qoot.js';
 import { ItemService } from './public.js';
 import { TodoService } from '../Todo/public.js';
 
 export default injectMethod(
   ItemService,
-  provideService<TodoService>('todos:'),
+  provideService(toServiceKey<TodoService>('todos:')),
   async function ItemService_toggle(
     this: ItemService,
     todoService: TodoService,

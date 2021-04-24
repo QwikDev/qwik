@@ -7,31 +7,21 @@
  */
 
 import { expect } from 'chai';
-import { ElementInjector } from '../injector/element_injector.js';
 import { ElementFixture } from '../testing/element_fixture.js';
 import { EventInjector } from './event_injector.js';
-import { EventInjector as IEventInjector } from './types.js';
+import { EventService } from './event_service.js';
 
 describe('EventInjector', () => {
   let fixture: ElementFixture;
   beforeEach(() => (fixture = new ElementFixture()));
 
-  it('should ensure that invoking a provider on ElementInjector throws', () => {
-    const elementInjector: ElementInjector = new ElementInjector(fixture.host);
-    const eventInjector: IEventInjector = elementInjector;
-    const error =
-      "Injector is being used as 'EventInjector' but it was 'ElementInjector'. Have you used a provider which expects 'EventInjector' in 'ElementInjector' context?";
-    expect(() => eventInjector.event).to.throw(error);
-    expect(() => eventInjector.url).to.throw(error);
-    expect(() => eventInjector.props).to.throw(error);
-  });
-
-  it('should parse URL', () => {
+  it('should parse URL', async () => {
     const event = ('EVENT' as any) as Event;
     const url = new URL('http://localhost/path?a=b&c=d');
     const eventInjector = new EventInjector(fixture.host, event, url);
-    expect(eventInjector.event).to.equal(event);
-    expect(eventInjector.url).to.equal(url);
-    expect(eventInjector.props).to.eql({ a: 'b', c: 'd' });
+    const eventService = await eventInjector.getService(EventService.KEY);
+    expect(eventService.event).to.equal(event);
+    expect(eventService.url).to.equal(url);
+    expect(eventService.props).to.eql({ a: 'b', c: 'd' });
   });
 });

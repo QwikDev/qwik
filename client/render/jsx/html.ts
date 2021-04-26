@@ -12,6 +12,7 @@ declare global {
   namespace JSX {
     interface IntrinsicElements {
       a: QootElement<any>;
+      host: QootElement<any>; // TODO: Remove once Host is properly implemented
       html: QootElement<any>;
       head: QootElement<any>;
       title: QootElement<any>;

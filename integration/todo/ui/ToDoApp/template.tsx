@@ -23,8 +23,8 @@ export default injectFunction(function () {
       }}
     >
       <Header />
-      <Main $todos="todos:" />
-      <Footer $todos="todos:" />
+      <Main $todos={TodoService.SINGLETON} />
+      <Footer $todos={TodoService.SINGLETON} />
     </section>
   );
 });

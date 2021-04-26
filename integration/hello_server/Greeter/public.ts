@@ -47,10 +47,6 @@ export interface GreeterProps {
  */
 export const Greeter = jsxDeclareComponent<GreeterProps>(
   /**
-   * Name of the DOM host element which will be created for this component.
-   */
-  'greeter',
-  /**
    * QRL import of where the rendering template is located.
    *
    * This QRL is the only connection between the public usage of `<Greeter>`
@@ -58,5 +54,9 @@ export const Greeter = jsxDeclareComponent<GreeterProps>(
    * component can hydrate and re-render, without causing the child component to
    * hydrate and re-render.
    */
-  QRL`./Greeter/template`
+  QRL`./Greeter/template`,
+  /**
+   * Name of the DOM host element which will be created for this component.
+   */
+  'greeter'
 );

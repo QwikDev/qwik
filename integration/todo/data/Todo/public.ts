@@ -30,8 +30,7 @@ export class TodoService extends Service<TodoProps, Todo> {
   static $qrl = QRL<ItemService>`data:/Todo/public.TodoService`;
   static $type = 'Todos';
   static $keyProps = ['todos'];
-
-  static globalKey = toServiceKey<TodoService>('todos:');
+  static SINGLETON = toServiceKey<TodoService>('todos:singleton');
 
   filteredItems: ServiceKey<ItemService>[] = [];
 

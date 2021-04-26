@@ -28,7 +28,7 @@ export default injectFunction(
     return (
       <>
         {todos.items.length > 0 ? (
-          <footer class="footer">
+          <>
             <span class="todo-count">
               <strong>{remaining}</strong>
               {remaining == 1 ? ' item' : ' items'} left
@@ -48,7 +48,7 @@ export default injectFunction(
                 Clear completed
               </button>
             ) : null}
-          </footer>
+          </>
         ) : null}
       </>
     );

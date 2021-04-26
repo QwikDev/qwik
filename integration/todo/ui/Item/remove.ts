@@ -16,12 +16,10 @@ import {
   Provider,
 } from '../../qoot.js';
 
-const x = provideService(TodoService.globalKey);
-console.log(x);
 export default injectEventHandler(
   // Providers
   null,
-  provideService<TodoService>(TodoService.globalKey), //TODO(type): why is generic needed? (service key already has the type)
+  provideService(TodoService.SINGLETON),
   (provideUrlProp('itemKey') as unknown) as Provider<ServiceKey<ItemService>>, // TODO(type): add provider to clean this cast up
   // Handler
   async function remove(this: null, todoService: TodoService, itemKey: ServiceKey<ItemService>) {

@@ -88,7 +88,7 @@ Create a public file: `<COMPONENT>.ts` (`greeter.ts`): A facade to be included b
   Example:
 
   ```typescript
-  export const Greeter = jsxDeclareComponent<GreeterProps>('greeter', QRL`./Greet_template`);
+  export const Greeter = jsxDeclareComponent<GreeterProps>(QRL`./Greet_template`, 'greeter');
   ```
 
 Putting it all together:
@@ -100,7 +100,7 @@ export interface GreeterProps {
   salutation: string;
   name: string;
 }
-export const Greeter = jsxDeclareComponent<GreeterProps>('greeter', QRL`./Greet_template`);
+export const Greeter = jsxDeclareComponent<GreeterProps>(QRL`./Greet_template`, 'greeter');
 ```
 
 The result of the above code is that it can be used like so in JSX:

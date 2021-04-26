@@ -76,6 +76,9 @@ export function getInjector(element: Element): Injector;
 // @public (undocumented)
 export function getInjector(element: Element, create: false): Injector | null;
 
+// @public (undocumented)
+export function Host(props: any, children: any): JSXNode<any>;
+
 // @public
 export type HostElements = Element[];
 
@@ -121,7 +124,7 @@ export interface Injector {
 }
 
 // @public
-export function jsxDeclareComponent<P>(tagName: string, renderQrl: QRL, hostProps?: {
+export function jsxDeclareComponent<P>(renderQrl: QRL, tagName?: string, hostProps?: {
     [property: string]: string | QRL;
 }): (props: P) => JSXNode<string>;
 

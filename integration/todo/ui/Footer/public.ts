@@ -6,7 +6,8 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { jsxDeclareComponent, QRL } from '../../qoot.js';
+import { TodoService } from '../../data/Todo/public.js';
+import { jsxDeclareComponent, QRL, ServiceKey } from '../../qoot.js';
 
 /**
  * @fileoverview
@@ -14,9 +15,10 @@ import { jsxDeclareComponent, QRL } from '../../qoot.js';
  */
 
 export interface FooterProps {
-  $todos: string;
+  $todos: ServiceKey<TodoService>;
 }
 
-export const Footer = jsxDeclareComponent<FooterProps>('app-footer', QRL`ui:/Footer/template`, {
+export const Footer = jsxDeclareComponent<FooterProps>(QRL`ui:/Footer/template`, 'footer', {
   'on:selectFilter': QRL`ui:/Footer/selectFilter`,
+  class: 'footer',
 });

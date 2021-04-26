@@ -25,7 +25,7 @@ export default injectFunction(
   function (todoService: TodoService) {
     const itemKeys = todoService.filteredItems;
     return (
-      <section class="main" /* *ngIf="todoStore.todos.length > 0 " */>
+      </* *ngIf="todoStore.todos.length > 0 " */>
         <input
           id="toggle-all"
           class="toggle-all"
@@ -39,7 +39,7 @@ export default injectFunction(
             <Item $item={key} />
           ))}
         </ul>
-      </section>
+      </>
     );
   }
 );

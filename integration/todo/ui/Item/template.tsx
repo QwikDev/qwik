@@ -26,6 +26,8 @@ export default injectMethod(
   provideComponentProp('$item'),
   function (this: ItemComponent, todo: Item, itemKey: string) {
     return (
+      // TODO: class binding is not working here.
+      // TODO: replace with Host
       <li class={{ completed: todo.completed, editing: this.editing }}>
         <div class="view">
           <input

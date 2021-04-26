@@ -10,4 +10,6 @@ import { jsxDeclareComponent, QRL } from '../../qoot.js';
 
 export interface HeaderProps {}
 
-export const Header = jsxDeclareComponent<HeaderProps>('app-header', QRL`ui:/Header/template`);
+export const Header = jsxDeclareComponent<HeaderProps>(QRL`ui:/Header/template`, 'header', {
+  class: 'header',
+});

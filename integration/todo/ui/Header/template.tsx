@@ -14,7 +14,7 @@ export default injectMethod(
   HeaderComponent, //
   function (this: HeaderComponent) {
     return (
-      <header class="header">
+      <>
         <h1>todos</h1>
         <input
           class="new-todo"
@@ -25,7 +25,7 @@ export default injectMethod(
             'on:keyup': QRL`ui:/Header/addTodo?value=.target.value&code=.code`,
           }}
         />
-      </header>
+      </>
     );
   }
 );

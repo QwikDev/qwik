@@ -151,8 +151,8 @@ describe('render', () => {
 
   it('should render components as symbols', async () => {
     const Greeter = jsxDeclareComponent<{ url: string }>(
-      'greeter',
-      QRL`jsx:/render.unit.Greeter_render_with_url`
+      QRL`jsx:/render.unit.Greeter_render_with_url`,
+      'greeter'
     );
     await jsxRender(
       host,

@@ -21,7 +21,7 @@ export default injectEventHandler(
   HeaderComponent,
   provideQrlExp<string>('value'),
   provideQrlExp<string>('code'),
-  provideProviderOf(provideService(toServiceKey<TodoService>('todos:'))),
+  provideProviderOf(provideService(TodoService.SINGLETON)),
   async function (
     this: HeaderComponent,
     inputValue: string,

@@ -81,8 +81,8 @@ export function jsxFactory<T extends string | null | JSXFactory | unknown>(
  * For this reason `jsxDeclareComponent` provides a facade for the component host element.
  * ```
  * export const Child = jsxDeclareComponent<HeaderProps>(
- *    'child',                                      // Name of the host element
- *    QRL`path_to_child_component_render_function`  // value of the '::' attribute
+ *    QRL`path_to_render_function`,  // value of the '::' attribute
+ *    'child'                        // Optional (defaults to 'div') name of the host element
  * );
  * ```
  * With the above code it is not possible to rewrite the example in a more natural format.
@@ -101,8 +101,8 @@ export function jsxFactory<T extends string | null | JSXFactory | unknown>(
  * @public
  */
 export function jsxDeclareComponent<P>(
-  tagName: string,
   renderQrl: QRL,
+  tagName: string = 'div',
   hostProps?: { [property: string]: string | QRL }
 ) {
   return function (props: P): JSXNode<string> {

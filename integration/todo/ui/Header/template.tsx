@@ -19,11 +19,9 @@ export default injectMethod(
         <input
           class="new-todo"
           placeholder="What needs to be done?"
-          autofocus=""
+          autofocus
           value={this.$state.text}
-          $={{
-            'on:keyup': QRL`ui:/Header/addTodo?value=.target.value&code=.code`,
-          }}
+          on:keyup= {QRL`ui:/Header/addTodo?value=.target.value&code=.code`}
         />
       </>
     );

@@ -41,9 +41,7 @@ export default injectFunction(
             {todos.completed > 0 ? (
               <button
                 class="clear-completed"
-                $={{
-                  'on:click': QRL`ui:/Footer/archive`,
-                }}
+                on:click={QRL`ui:/Footer/archive`}
               >
                 Clear completed
               </button>

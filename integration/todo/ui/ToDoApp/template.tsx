@@ -19,6 +19,7 @@ export default injectFunction(function () {
     <section
       class="todoapp"
       $={{
+        // TODO: instead of using $ consider using other `on:*` properties to make it more type safe? `provide:services`
         services: [TodoService, ItemService],
       }}
     >

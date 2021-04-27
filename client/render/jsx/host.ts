@@ -21,6 +21,7 @@ import { JSXNode } from './types.js';
  * asynchronous loading point. Host element is not owned by the component. At times it is
  * desirable for the component to render additional attributes on the host element. `<Host>`
  * servers that purpose.
+ * @public
  */
 export function Host(): JSXNode<any> {
   // TODO: QError?

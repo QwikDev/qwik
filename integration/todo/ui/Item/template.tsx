@@ -32,30 +32,24 @@ export default injectMethod(
             class="toggle"
             type="checkbox"
             checked={todo.completed}
-            $={{
-              'on:click': QRL`ui:/Item/toggle?toggleState=.target.checked`,
-            }}
+            on:click={QRL`ui:/Item/toggle?toggleState=.target.checked`}
           />
           <label
-            $={{
-              'on:dblclick': QRL`ui:/Item/edit.begin`,
-            }}
+            on:dblclick={QRL`ui:/Item/edit.begin`}
           >
             {todo.title}
           </label>
           <button
             class="destroy"
-            $={{ 'on:click': QRL`ui:/Item/remove?itemKey=${itemKey}` }}
+            on:click={QRL`ui:/Item/remove?itemKey=${itemKey}`}
           ></button>
         </div>
         {this.editing ? (
           <input
             class="edit"
             value={todo.title}
-            $={{
-              'on:focusout': QRL`ui:/Item/edit.end`,
-              'on:keyup': QRL`ui:/Item/edit.change?value=.target.value&code=.code&itemKey=${itemKey}`,
-            }}
+            on:blur={QRL`ui:/Item/edit.end`} // TODO: this event does not bubble
+            on:keyup={QRL`ui:/Item/edit.change?value=.target.value&code=.code&itemKey=${itemKey}`}
           />
         ) : null}
       </Host>

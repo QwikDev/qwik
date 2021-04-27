@@ -55,7 +55,7 @@ export interface ServiceKey<SERVICE = Service<any, any>> {
  *
  * `ServiceKey`s are `string`s at runtime. This function just adds type-safety.
  *
- * @param key `string` representation of `ServiceKey`
+ * @param key - `string` representation of `ServiceKey`
  * @returns `ServiceKey`
  * @public
  */

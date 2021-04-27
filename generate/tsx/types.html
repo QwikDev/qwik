@@ -1,0 +1,238 @@
+<html>
+  <body>
+    <pre>
+/**
+* @license
+* Copyright a-Qoot All Rights Reserved.
+*
+* Use of this source code is governed by an MIT-style license that can be
+* found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
+*/
+
+import { QRL } from "../../import/qrl.js";
+
+declare global {
+  // TODO:  Maybe we can get rid of `QAttrs` if we move content to `*:*` props, that way better types
+  interface QAttrs {
+    [key: string]: any;
+  }
+
+  namespace JSX {
+    interface IntrinsicElements {</pre
+    >
+    <pre id="pre"></pre>
+    <pre>
+  }
+}
+
+/**
+ * @internal
+ */
+// So that this file is treated as module.
+export type JSX_IntrinsicElements = JSX.IntrinsicElements;
+
+</pre
+    >
+  </body>
+  <script>
+    const tags = [
+      'a',
+      'abbr',
+      'address',
+      'area',
+      'article',
+      'aside',
+      'b',
+      'base',
+      'bdi',
+      'bdo',
+      'blockquote',
+      'body',
+      'br',
+      'button',
+      'canvas',
+      'caption',
+      'cite',
+      'code',
+      'col',
+      'colgroup',
+      'data',
+      'datalist',
+      'dd',
+      'del',
+      'details',
+      'dfn',
+      'dialog',
+      'div',
+      'dl',
+      'dt',
+      'em',
+      'embed',
+      'fieldset',
+      'figure',
+      'footer',
+      'form',
+      'h1',
+      'h2',
+      'h3',
+      'h4',
+      'h5',
+      'h6',
+      'head',
+      'header',
+      'hgroup',
+      'hr',
+      'html',
+      'i',
+      'iframe',
+      'img',
+      'input',
+      'ins',
+      'kbd',
+      'keygen',
+      'label',
+      'legend',
+      'li',
+      'link',
+      'main',
+      'map',
+      'mark',
+      'menu',
+      'menuitem',
+      'meta',
+      'meter',
+      'nav',
+      'noscript',
+      'object',
+      'ol',
+      'optgroup',
+      'option',
+      'output',
+      'p',
+      'param',
+      'pre',
+      'progress',
+      'q',
+      'rb',
+      'rp',
+      'rt',
+      'rtc',
+      'ruby',
+      's',
+      'samp',
+      'script',
+      'section',
+      'select',
+      'small',
+      'source',
+      'span',
+      'strong',
+      'style',
+      'sub',
+      'summary',
+      'sup',
+      'table',
+      'tbody',
+      'td',
+      'template',
+      'textarea',
+      'tfoot',
+      'th',
+      'thead',
+      'time',
+      'title',
+      'tr',
+      'track',
+      'u',
+      'ul',
+      'var',
+      'video',
+      'wbr',
+    ];
+
+    const ignoreAttrs = {
+      assignedSlot: true,
+      className: true,
+      elementTiming: true,
+      localName: true,
+      namespaceURI: true,
+      nextElementSibling: true,
+      outerHTML: true,
+      prefix: true,
+      shadowRoot: true,
+      slot: true,
+      tagName: true,
+      innerText: true,
+      offsetParent: true,
+      outerText: true,
+      firstElementChild: true,
+      hrefTranslate: true,
+      inputMode: true,
+      lastElementChild: true,
+      previousElementSibling: true,
+      referrerPolicy: true,
+      scrollTop: true,
+      scrollLeft: true,
+      scrollWidth: true,
+      scrollHeight: true,
+      clientTop: true,
+      clientLeft: true,
+      clientWidth: true,
+      clientHeight: true,
+      childElementCount: true,
+    };
+
+    const addAttrs = {};
+    const typeMap = new Map();
+
+    tags.forEach((tag) => {
+      const element = document.createElement(tag);
+      (addAttrs[tag] || []).forEach((additionalAttrs) => attrs.push(additionalAttrs));
+      let proto = Object.getPrototypeOf(element);
+      while (proto && proto !== Node.prototype) {
+        collectAttrs(proto.constructor.name, element, proto);
+        proto = Object.getPrototypeOf(proto);
+      }
+      pre.textContent += `      ${tag}: JSX${element.constructor.name};\n`;
+    });
+    pre.textContent += `    }\n`;
+    typeMap.forEach((interface, key) => {
+      if (key === 'HTMLScriptElement') {
+        interface.attrs.push('events?: string');
+      }
+      if (key === 'Element') {
+        pre.textContent += `    interface JSX${key} {\n      `;
+        interface.attrs.push(
+          '$?: QAttrs;',
+          'class?: string | string[] | Record<string, boolean>',
+          'style?: string | Record<string, string>'
+        );
+      } else {
+        pre.textContent += `    interface JSX${key} extends JSX${interface.parent} {\n      `;
+      }
+      interface.attrs.sort();
+      pre.textContent += interface.attrs.join('\n      ');
+      pre.textContent += `\n    }\n\n`;
+    });
+    // =========
+
+    function collectAttrs(name, obj, proto) {
+      if (typeMap.has(name)) return;
+      const attrs = [];
+      typeMap.set(name, { attrs: attrs, parent: Object.getPrototypeOf(proto).constructor.name });
+      Object.keys(proto).forEach((key) => {
+        const type = obj[key];
+        if (ignoreAttrs[key] || key.toUpperCase() === key) return;
+        if (key.startsWith('on')) {
+          attrs.push(`'on:${key.substr(2)}'?: QRL;`);
+        } else if (type == null || typeof type === 'string') {
+          attrs.push(key + '?: string;');
+        } else if (typeof type === 'number') {
+          attrs.push(key + '?: number;');
+        } else if (typeof type === 'boolean') {
+          attrs.push(key + '?: boolean;');
+        }
+      });
+    }
+  </script>
+</html>

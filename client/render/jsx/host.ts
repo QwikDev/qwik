@@ -6,11 +6,23 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { jsxFactory } from './factory.js';
 import { JSXNode } from './types.js';
 
-// TODO: Docs
-// TODO: Test
-export function Host(props: any, children: any): JSXNode<any> {
-  return jsxFactory('host', props, props.children);
+/**
+ * Place at the root of the component View to allow binding of attributes on the Host element.
+ *
+ * ```
+ * <Host someAttr={someExpr} someAttrStatic="value">
+ *   View content implementation.
+ * </Host>
+ * ```
+ *
+ * Qoot requires that components have [docs/HOST_ELEMENTS.ts] so that it is possible to have
+ * asynchronous loading point. Host element is not owned by the component. At times it is
+ * desirable for the component to render additional attributes on the host element. `<Host>`
+ * servers that purpose.
+ */
+export function Host(): JSXNode<any> {
+  // TODO: QError?
+  throw new Error('Should not execute');
 }

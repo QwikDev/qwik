@@ -45,11 +45,15 @@ export function qImport<T>(
     const handler = module[key];
     if (!handler)
       throw qError(QError.Core_missingExport_name_url_props, key, importURL, Object.keys(module));
-    importCache.set(importPath, handler);
+    qImportSet(importPath, handler);
     return handler;
   });
-  importCache.set(importPath, promise);
+  qImportSet(importPath, promise);
   return promise;
+}
+
+export function qImportSet(url: string, value: any): void {
+  importCache.set(url, value);
 }
 
 /**

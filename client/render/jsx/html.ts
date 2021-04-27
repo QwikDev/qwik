@@ -9,10 +9,10 @@
 declare global {
   type QootElement<T> = T & { $: { event: { [eventName: string]: string } } };
 
+  // TODO: These should be generated from the HTML spec and have all of the right attributes.
   namespace JSX {
     interface IntrinsicElements {
       a: QootElement<any>;
-      host: QootElement<any>; // TODO: Remove once Host is properly implemented
       html: QootElement<any>;
       head: QootElement<any>;
       title: QootElement<any>;

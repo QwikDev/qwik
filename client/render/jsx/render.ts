@@ -19,6 +19,7 @@ import { isDomElementWithTagName, isTextNode, NodeType } from '../../util/types.
 import { AsyncHostElementPromises, HostElements } from '../types.js';
 import { applyAttributes } from './attributes.js';
 import { isJSXNode } from './factory.js';
+import { Host } from './host.js';
 import { JSXFactory, JSXNode } from './types.js';
 
 /**
@@ -46,42 +47,6 @@ export async function jsxRender(
   return flattenPromiseTree<HTMLElement>(waitOn as any);
 }
 
-export function jsxRenderComponent(
-  hostElement: Element,
-  componentUrl: QRL,
-  waitOn: AsyncHostElementPromises,
-  props: Props,
-  overrideDocument: Document = document
-) {
-  // we need to render child component only if the inputs to the component changed.
-  const componentOrPromise = qImport<JSXFactory>(hostElement, componentUrl);
-  if (isPromise(componentOrPromise)) {
-    waitOn.push(
-      componentOrPromise.then((component) => {
-        const waitOn = [hostElement];
-        visitJSXComponentNode(
-          overrideDocument,
-          waitOn,
-          hostElement,
-          hostElement.firstChild,
-          component,
-          props
-        );
-        return waitOn;
-      })
-    );
-  } else {
-    visitJSXComponentNode(
-      overrideDocument,
-      waitOn,
-      hostElement,
-      hostElement.firstChild,
-      componentOrPromise,
-      props
-    );
-  }
-}
-
 function visitJSXNode(
   document: Document,
   waitOn: AsyncHostElementPromises,
@@ -104,12 +69,14 @@ function visitJSXNode(
     return null;
   } else if (typeof jsxNode.tag === 'string') {
     // String literal
-    return visitJSXStringNode(
+    return visitJSXDomNode(document, waitOn, parentNode, existingNode, jsxNode as JSXNode<string>);
+  } else if (jsxNode.tag === Host) {
+    return visitJSXHostNode(
       document,
       waitOn,
       parentNode,
       existingNode,
-      jsxNode as JSXNode<string>
+      jsxNode as JSXNode<JSXFactory>
     );
   } else if (typeof jsxNode.tag === 'function') {
     // Symbol reference
@@ -133,7 +100,7 @@ function visitJSXNode(
   throw qError(QError.Render_unexpectedJSXNodeType_type, jsxNode.tag);
 }
 
-function visitJSXStringNode(
+function visitJSXDomNode(
   document: Document,
   waitOn: AsyncHostElementPromises,
   parentNode: Node,
@@ -179,6 +146,42 @@ function visitJSXStringNode(
   return reconcileElement;
 }
 
+export function jsxRenderComponent(
+  hostElement: Element,
+  componentUrl: QRL,
+  waitOn: AsyncHostElementPromises,
+  props: Props,
+  overrideDocument: Document = document
+) {
+  // we need to render child component only if the inputs to the component changed.
+  const componentOrPromise = qImport<JSXFactory>(hostElement, componentUrl);
+  if (isPromise(componentOrPromise)) {
+    waitOn.push(
+      componentOrPromise.then((component) => {
+        const waitOn = [hostElement];
+        visitJSXComponentNode(
+          overrideDocument,
+          waitOn,
+          hostElement,
+          hostElement.firstChild,
+          component,
+          props
+        );
+        return waitOn;
+      })
+    );
+  } else {
+    visitJSXComponentNode(
+      overrideDocument,
+      waitOn,
+      hostElement,
+      hostElement.firstChild,
+      componentOrPromise,
+      props
+    );
+  }
+}
+
 function visitJSXComponentNode(
   document: Document,
   waitOn: AsyncHostElementPromises,
@@ -211,6 +214,18 @@ function visitJSXFactoryNode(
   jsxNode: JSXNode<JSXFactory>
 ): Node | null {
   return visitJSXNode(document, waitOn, parentNode, existingNode, jsxNode.tag(jsxNode.props));
+}
+
+function visitJSXHostNode(
+  document: Document,
+  waitOn: AsyncHostElementPromises,
+  parentNode: Node,
+  existingNode: Node | null,
+  jsxNode: JSXNode<JSXFactory>
+): Node | null {
+  applyAttributes(parentNode as HTMLElement, jsxNode.props, false);
+  visitChildren(document, waitOn, parentNode, existingNode, jsxNode.children);
+  return parentNode;
 }
 
 function visitJSXFragmentNode(
@@ -257,6 +272,7 @@ function visitChildren(
   }
   return null;
 }
+
 // TODO: docs
 // TODO: tests
 function writeErrorToDom(node: Node): any {

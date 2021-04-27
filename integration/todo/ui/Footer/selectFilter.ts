@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { injectEventHandler, provideService, provideEvent, toServiceKey } from '../../qoot.js';
+import { injectEventHandler, provideService, provideEvent } from '../../qoot.js';
 import { TodoService } from '../../data/Todo/public.js';
 
 export default injectEventHandler(

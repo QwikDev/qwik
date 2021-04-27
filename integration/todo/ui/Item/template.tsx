@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { ServiceKey, Provider } from '../../qoot.js';
+import { ServiceKey, Provider, Host } from '../../qoot.js';
 import { Item, ItemService } from '../../data/Item/public.js';
 import {
   injectMethod,
@@ -26,9 +26,7 @@ export default injectMethod(
   provideComponentProp('$item'),
   function (this: ItemComponent, todo: Item, itemKey: string) {
     return (
-      // TODO: class binding is not working here.
-      // TODO: replace with Host
-      <li class={{ completed: todo.completed, editing: this.editing }}>
+      <Host class={{ completed: todo.completed, editing: this.editing }}>
         <div class="view">
           <input
             class="toggle"
@@ -60,7 +58,7 @@ export default injectMethod(
             }}
           />
         ) : null}
-      </li>
+      </Host>
     );
   }
 );

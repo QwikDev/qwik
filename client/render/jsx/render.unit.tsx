@@ -6,13 +6,15 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import '../../CONFIG.js';
-import type { JSX_IntrinsicElements } from './html.js';
 import { expect } from 'chai';
+import '../../CONFIG.js';
+import { QRL } from '../../import/index.js';
+import { ElementFixture } from '../../testing/element_fixture.js';
 import { createGlobal, QootGlobal } from '../../testing/node_utils.js';
 import { jsxDeclareComponent, jsxFactory } from './factory.js';
+import { Host } from './host.js';
+import type { JSX_IntrinsicElements } from './html.js';
 import { jsxRender } from './render.js';
-import { QRL } from '../../import/index.js';
 
 const _needed_by_JSX_ = jsxFactory; // eslint-disable-line @typescript-eslint/no-unused-vars
 const _needed_by_ide_: JSX_IntrinsicElements = null!; // eslint-disable-line @typescript-eslint/no-unused-vars
@@ -207,6 +209,30 @@ describe('render', () => {
       expect(host.innerHTML).to.equal(
         '<div ::="jsx:/render.unit.Noop_template" bind:.="myUrl" on:.render="myComponentUrl" on:click="myComponent_click" bind:token="myTokenUrl" :="">NOOP</div>'
       );
+    });
+  });
+
+  describe('<Host>', () => {
+    it('should merge component host with <Host>', async () => {
+      const fixture = new ElementFixture();
+      fixture.host.innerHTML = '';
+      fixture.host.setAttribute('parent', 'pValue');
+      await jsxRender(fixture.host, <Host child="cValue">VIEW</Host>, document);
+      expect(fixture.host.outerHTML).to.eql("<host parent='pValue' child='cValue'>VIEW</host>");
+    });
+
+    describe('styling', () => {
+      it('should merge style', () => {
+        // TODO: implement
+      });
+
+      it('should merge class', () => {
+        // TODO: implement
+      });
+    });
+
+    describe('error', () => {
+      it('should throw if <Host> is not a root node', async () => {});
     });
   });
 });

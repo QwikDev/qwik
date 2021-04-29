@@ -107,20 +107,20 @@ expect(userService.$state).toEqual({
 });
 ```
 
-`Component`s are similar to `Service`s except they are associated with a specific UI host-element and `Component`'s `Props` can change over time.
+`Component`s are similar to `Service`s except they are associated with a specific UI host-element, and `Component`'s `Props` can change over time.
 
 ## DOM Centric
 
-A Qoot application is DOM centric. All of the information about the application `Component`s, `Service`s, `Event`s, and service bindings is stored in the DOM as custom attributes. There is no runtime Qoot framework heap state (with the exception of caches for performance). The result is that Qoot application can easily be rehydrated because Qoot framework has no runtime information which needs to be recreated on the client.
+A Qoot application is DOM-centric. All of the information about the application `Component`s, `Service`s, `Event`s, and service bindings are stored in the DOM as custom attributes. There is no runtime Qoot framework heap state (with the exception of caches for performance). The result is that Qoot application can easily be rehydrated because Qoot framework has no runtime information which needs to be recreated on the client.
 
 Here are some common ways Qoot framework keeps state in DOM/HTML.
 
-- `<some-component ::="qrl_to_template">`: The `::` attribute identifies a component boundary. It also points to the location where the template can be found in case of rehydration. `Component`s can be rehydrated and rendered independently of each other.
+- `<some-component decl:template="qrl_to_template">`: The `::` attribute identifies a component boundary. It also points to the location where the template can be found in case of rehydration. `Component`s can be rehydrated and rendered independently of each other.
 - `<div ::user="qrl_to_service">`: The `::user` attribute declares a `UserService` provider which points to the location where the `Service` can be lazy loaded from.
 - `<div :user:some_user_id='{"fullName": "Joe Someone", "age": 20}'>`: A serialized form of a `UserService` with `Props: {id: 'some_user_id'}` and `State: {fullName: "Joe Someone", age: 20}`.
 - `<some-component bind:user:some_user_id="$user">`: A service binding to a `Component`. This tells Qoot that if the `State` of `UserService ` with `Key`: `user:some_user_id` changes, the component `<some-component>` will need to be re-rendered.
-- `<some-component on:click="qrl_to_handler">`: The `on:click` attribute notifies Qoot framework that the component is interested in the `click` events. The attribute points to the location where the click handler can be lazy loaded from.
+- `<some-component on:click="qrl_to_handler">`: The `on:click` attribute notifies Qoot framework that the component is interested in the `click` events. The attribute points to the location where the click handler can be lazy-loaded from.
 
 The benefit of the DOM centric approach is that all of the application state is already serialized in DOM/HTML. The Qoot framework itself has no additional information which it needs to store about the application.
 
-Another important benefit is that Qoot can use `querySelectorAll` to easily determine if there are any bindings for a `Service` or if there are any listeners for a specific `Event` without having to consult any internal data structures. The DOM is the Qoot's framework state.
+Another important benefit is that Qoot can use `querySelectorAll` to easily determine if there are any bindings for a `Service` or if there are any listeners for a specific `Event` without having to consult any internal data structures. The DOM is Qoot's framework state.

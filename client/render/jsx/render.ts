@@ -6,6 +6,7 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
+import { AttributeMarker } from 'client/util/markers.js';
 import { QError, qError } from '../../error/error.js';
 import { qImport } from '../../import/index.js';
 import { QRL } from '../../import/qrl.js';
@@ -118,7 +119,7 @@ function visitJSXDomNode(
     reconcileElement = replaceNode(parentNode, existingNode, document.createElement(jsxTag));
     inputPropChangesDetected = true;
   }
-  const componentUrl = getComponentUrl(jsxNode);
+  const componentUrl = getComponentTemplateUrl(jsxNode);
   const shouldDetectChanges = !!componentUrl;
   inputPropChangesDetected =
     applyAttributes(reconcileElement, jsxNode.props, shouldDetectChanges) ||
@@ -201,9 +202,9 @@ function visitJSXComponentNode(
   return visitJSXNode(document, waitOn, parentNode, existingNode, componentJsxNode);
 }
 
-function getComponentUrl(jsxNode: JSXNode<unknown>): string | null {
-  const qProps = (jsxNode.props?.$ as unknown) as { ['::']: string | undefined } | undefined;
-  return (qProps && qProps['::']) || null;
+function getComponentTemplateUrl(jsxNode: JSXNode<unknown>): string | null {
+  const props = jsxNode.props || EMPTY_OBJ;
+  return props[AttributeMarker.ComponentTemplate] || null;
 }
 
 function visitJSXFactoryNode(

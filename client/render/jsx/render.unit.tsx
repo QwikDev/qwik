@@ -14,6 +14,7 @@ import { createGlobal, QootGlobal } from '../../testing/node_utils.js';
 import { jsxDeclareComponent, jsxFactory } from './factory.js';
 import { Host } from './host.js';
 import type { JSX_IntrinsicElements } from './html.js';
+import { JSXBase } from './html_base.js';
 import { jsxRender } from './render.js';
 
 const _needed_by_JSX_ = jsxFactory; // eslint-disable-line @typescript-eslint/no-unused-vars
@@ -137,13 +138,13 @@ describe('render', () => {
       await jsxRender(
         host,
         <div>
-          <greeter url="/" $={{ '::': 'jsx:/render.unit.Greeter_render_with_url' }} />
+          <greeter url="/" decl:template={QRL`jsx:/render.unit.Greeter_render_with_url`} />
         </div>,
         global.document
       );
       expect(host.innerHTML).to.equal(
         '<div>' +
-          '<greeter url="/" ::="jsx:/render.unit.Greeter_render_with_url" :="">' +
+          '<greeter url="/" decl:template="jsx:/render.unit.Greeter_render_with_url" :="">' +
           '<span>Hello World! (/)</span>' +
           '</greeter>' +
           '</div>'
@@ -165,7 +166,7 @@ describe('render', () => {
     );
     expect(host.innerHTML).to.equal(
       '<div>' +
-        '<greeter url="/" ::="jsx:/render.unit.Greeter_render_with_url" :="">' +
+        '<greeter decl:template="jsx:/render.unit.Greeter_render_with_url" url="/" :="">' +
         '<span>Hello World! (/)</span>' +
         '</greeter>' +
         '</div>'
@@ -181,7 +182,7 @@ describe('render', () => {
       );
       expect(host.innerHTML).to.equal(
         '<div>' +
-          '<greeter url="/" ::="./Greeter_render">' +
+          '<greeter url="/" decl:template="./Greeter_render">' +
           '<span>Hello World! (/)</span>' +
           '</greeter>' +
           '</div>'
@@ -195,19 +196,17 @@ describe('render', () => {
       // Event prefixes `.` to mean framework event such as `
       await jsxRender(
         host,
-        <div
-          $={{
-            '::': 'jsx:/render.unit.Noop_template',
-            'bind:.': 'myUrl',
-            'on:.render': 'myComponentUrl',
-            'on:click': 'myComponent_click',
-            'bind:token': 'myTokenUrl',
-          }}
-        ></div>,
+        jsxFactory('div', {
+          'decl:template': 'jsx:/render.unit.Noop_template',
+          'bind:.': 'myUrl',
+          'on:.render': 'myComponentUrl',
+          'on:click': 'myComponent_click',
+          'bind:token': 'myTokenUrl',
+        }),
         global.document
       );
       expect(host.innerHTML).to.equal(
-        '<div ::="jsx:/render.unit.Noop_template" bind:.="myUrl" on:.render="myComponentUrl" on:click="myComponent_click" bind:token="myTokenUrl" :="">NOOP</div>'
+        '<div decl:template="jsx:/render.unit.Noop_template" bind:.="myUrl" on:.render="myComponentUrl" on:click="myComponent_click" bind:token="myTokenUrl" :="">NOOP</div>'
       );
     });
   });
@@ -218,7 +217,7 @@ describe('render', () => {
       fixture.host.innerHTML = '';
       fixture.host.setAttribute('parent', 'pValue');
       await jsxRender(fixture.host, <Host child="cValue">VIEW</Host>, document);
-      expect(fixture.host.outerHTML).to.eql("<host parent='pValue' child='cValue'>VIEW</host>");
+      expect(fixture.host.outerHTML).to.eql(`<host parent="pValue" child="cValue">VIEW</host>`);
     });
 
     describe('styling', () => {
@@ -240,7 +239,7 @@ describe('render', () => {
 declare global {
   namespace JSX {
     interface IntrinsicElements {
-      greeter: { url?: string; $: any };
+      greeter: { url?: string } & JSXBase;
     }
   }
 }

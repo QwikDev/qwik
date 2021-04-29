@@ -6,14 +6,17 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { QRL } from '../../import/qrl.js';
+///////////////////////////////////////////////////
+///////////////////////////////////////////////////
+////   -- DO NOT EDIT  --  GENERATED FILE  --  ////
+//// See: `generate/tsx/types.html`            ////
+///////////////////////////////////////////////////
+///////////////////////////////////////////////////
+
+import type { QRL } from '../../import/qrl.js';
+import type { JSXBase } from './html_base.js';
 
 declare global {
-  // TODO:  Maybe we can get rid of `QAttrs` if we move content to `*:*` props, that way better types
-  interface QAttrs {
-    [key: string]: any;
-  }
-
   namespace JSX {
     interface IntrinsicElements {
       a: JSXHTMLAnchorElement;
@@ -266,8 +269,7 @@ declare global {
       translate?: boolean;
     }
 
-    interface JSXElement {
-      $?: QAttrs;
+    interface JSXElement extends JSXBase {
       'on:beforecopy'?: QRL;
       'on:beforecut'?: QRL;
       'on:beforepaste'?: QRL;
@@ -314,10 +316,8 @@ declare global {
       ariaValueMin?: string;
       ariaValueNow?: string;
       ariaValueText?: string;
-      class?: string | string[] | Record<string, boolean>;
       id?: string;
       innerHTML?: string;
-      style?: string | Record<string, string>;
     }
 
     interface JSXHTMLAreaElement extends JSXHTMLElement {

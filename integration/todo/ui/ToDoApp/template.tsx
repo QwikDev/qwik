@@ -16,13 +16,7 @@ import { Main } from '../Main/public.js';
 export const _needed_by_JSX_ = jsxFactory; // eslint-disable-line @typescript-eslint/no-unused-vars
 export default injectFunction(function () {
   return (
-    <section
-      class="todoapp"
-      $={{
-        // TODO: instead of using $ consider using other `on:*` properties to make it more type safe? `provide:services`
-        services: [TodoService, ItemService],
-      }}
-    >
+    <section class="todoapp" decl:services={[TodoService, ItemService]}>
       <Header />
       <Main $todos={TodoService.SINGLETON} />
       <Footer $todos={TodoService.SINGLETON} />

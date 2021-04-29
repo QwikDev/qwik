@@ -6,6 +6,7 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
+import { AttributeMarker } from 'client/util/markers.js';
 import { stringifyDebug } from './stringify.js';
 
 export const enum QError {
@@ -176,7 +177,9 @@ function codeToText(code: QError): string {
     [QError.Render_noRAF]:
       "'requestAnimationFrame' not found. If you are running on server design your applications in a way which does not require 'requestAnimationFrame' on first render.",
     [QError.Render_bindNeedsComponent_key_element]:
-      "Expecting that element with 'bind:{}' should be a component (should have '::=\"qrl\"' attribute): {}",
+      "Expecting that element with 'bind:{}' should be a component (should have '" +
+      AttributeMarker.ComponentTemplate +
+      '="qrl"\' attribute): {}',
     //////////////
     [QError.Event_emitEventRequiresName_url]: "Missing '$type' attribute in the '{}' url.",
     [QError.Event_emitEventCouldNotFindListener_event_element]:

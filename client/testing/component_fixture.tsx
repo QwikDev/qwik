@@ -6,6 +6,7 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
+import { AttributeMarker } from '../util/markers.js';
 import { assertDefined } from '../assert/assert.js';
 import { Component, jsxFactory, QRL, Service } from '../index.js';
 import { getInjector } from '../injector/element_injector.js';
@@ -21,7 +22,7 @@ const _needed_by_JSX_ = jsxFactory; // eslint-disable-line @typescript-eslint/no
  * By default `ComponentFixture` creates:
  *
  * ```
- * <host ::="./component_fixture.noop">
+ * <host decl:template="./component_fixture.noop">
  *   <child></child>
  * </host>
  * ```
@@ -35,7 +36,10 @@ export class ComponentFixture extends ElementFixture {
 
   constructor(options?: ElementFixtureOptions) {
     super(options);
-    this.host.setAttribute('::', String(QRL`${import.meta.url.replace(/\.js$/, '.noop')}`));
+    this.host.setAttribute(
+      AttributeMarker.ComponentTemplate,
+      String(QRL`${import.meta.url.replace(/\.js$/, '.noop')}`)
+    );
     this.injector = getInjector(this.host);
   }
 

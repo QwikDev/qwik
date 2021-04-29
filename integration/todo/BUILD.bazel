@@ -21,6 +21,5 @@ copy_to_bin(
         # "@npm//:node_modules/todomvc-app-css/index.css",
         "base.css",
         "index.css",
-        "static.html",
     ]
 )

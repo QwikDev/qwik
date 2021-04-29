@@ -10,12 +10,7 @@ import { expect } from 'chai';
 import { ComponentFixture } from '../../testing/component_fixture.js';
 import { ElementFixture } from '../../testing/element_fixture.js';
 import { createGlobal } from '../../testing/node_utils.js';
-import {
-  applyAttributes,
-  applyControlProperties,
-  setAttribute,
-  stringifyClassOrStyle,
-} from './attributes.js';
+import { applyAttributes, setAttribute, stringifyClassOrStyle } from './attributes.js';
 import { jsxFactory } from './factory.js';
 
 const _needed_by_JSX_ = jsxFactory; // eslint-disable-line @typescript-eslint/no-unused-vars
@@ -132,38 +127,54 @@ describe('attributes', () => {
 
   describe('applyControlProperties', () => {
     it('should apply all on:* properties', () => {
-      applyControlProperties(host, {
-        'on:click': 'url',
-      });
+      applyAttributes(
+        host,
+        {
+          'on:click': 'url',
+        },
+        false
+      );
       expect(host.getAttribute('on:click')).to.eql('url');
     });
 
     it('should apply all service bindings', () => {
-      applyControlProperties(host, {
-        services: [
-          {
-            $attachService: (element: Element) => {
-              element.setAttribute('::service', 'url');
-            },
-          },
-        ],
-      });
+      applyAttributes(
+        host,
+        {
+          'decl:services': [
+            {
+              $attachService: (element: Element) => {
+                element.setAttribute('::service', 'url');
+              },
+            } as any,
+          ],
+        },
+        false
+      );
       expect(host.getAttribute('::service')).to.eql('url');
     });
 
     describe('error', () => {
       it('should error on not an array', () => {
         expect(() =>
-          applyControlProperties(host, {
-            services: 'notAnArray',
-          })
+          applyAttributes(
+            host,
+            {
+              'decl:services': 'notAnArray',
+            },
+            false
+          )
         ).to.throw(`RENDER-ERROR(Q-603): Expecting array of services, got 'notAnArray'.`);
       });
       it('should error on service does not have $attachService', () => {
         expect(() =>
-          applyControlProperties(host, {
-            services: [{ notService: true }],
-          })
+          applyAttributes(
+            host,
+            {
+              'decl:services': [{ notService: true } as any],
+            },
+            false
+          )
         ).to.throw(`RENDER-ERROR(Q-602): Expecting service object, got '{"notService":true}'.`);
       });
     });

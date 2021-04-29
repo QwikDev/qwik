@@ -61,6 +61,8 @@
     "test": "bazel test client/...",
     "lint": "eslint \"client/**/*.ts*\"  \"server/**/*.ts*\" \"integration/**/*.ts*\"",
     "lint-buildifier": "find  WORKSPACE */BUILD.bazel | xargs buildifier --lint=warn --mode=check",
+    "prettier-check": "prettier --check .",
+    "prettier-fix": "prettier --write .",
     "buildifier": "find  WORKSPACE */BUILD.bazel | xargs buildifier --lint=fix",
     "prepare": "husky install"
   },

@@ -10,6 +10,7 @@ import { EMPTY_OBJ } from '../../util/flyweight.js';
 import { QRL } from '../../import/qrl.js';
 import { Props } from '../../injector/types.js';
 import { JSXFactory, JSXNode } from './types.js';
+import { AttributeMarker } from 'client/util/markers.js';
 
 class JSXNode_<T extends string | null | JSXFactory | unknown> {
   public tag: T;
@@ -67,7 +68,7 @@ export function jsxFactory<T extends string | null | JSXFactory | unknown>(
  * ```
  * <div>
  *   parent component
- *   <child ::="./path_to_child_component_render_function" />
+ *   <child decl:template="./path_to_child_component_render_function" />
  * </div>
  * ```
  *
@@ -94,19 +95,22 @@ export function jsxFactory<T extends string | null | JSXFactory | unknown>(
  * </div>
  * ```
  *
+ * @param componentTemplateQrl - QRL pointing to the component's render function.
  * @param tagName - Host element tag name.
- * @param renderQrl - QRL pointing to the component's render function.
  * @param hostProps - Optional additional properties which should be included on the host element.
  * @returns
  * @public
  */
 export function jsxDeclareComponent<P>(
-  renderQrl: QRL,
+  componentTemplateQrl: QRL,
   tagName: string = 'div',
   hostProps?: { [property: string]: string | QRL }
 ) {
   return function (props: P): JSXNode<string> {
-    // TODO[efficiency]: patching `$` is not most efficient.
-    return jsxFactory(tagName, { ...(hostProps as any), ...props, $: { '::': renderQrl } as any });
+    return jsxFactory(tagName, {
+      [AttributeMarker.ComponentTemplate]: componentTemplateQrl,
+      ...(hostProps as any),
+      ...props,
+    });
   };
 }

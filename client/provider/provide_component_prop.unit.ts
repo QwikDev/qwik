@@ -33,7 +33,7 @@ describe('getComponentProps', () => {
     it('should throw if property not defined', () => {
       const injector = getInjector(fixture.host);
       expect(() => provideComponentProp('propA')(injector)).to.throw(
-        "COMPONENT-ERROR(Q-404): Property 'propA' not found in '{}' on component '<host : ::='file://.../component_fixture.noop'>'."
+        "COMPONENT-ERROR(Q-404): Property 'propA' not found in '{}' on component '<host : decl:template='file://.../component_fixture.noop'>'."
       );
     });
   });

@@ -6,7 +6,8 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { JSXNode } from './types.js';
+import { newError } from '../../assert/assert.js';
+import type { JSXNode } from './types.js';
 
 /**
  * Place at the root of the component View to allow binding of attributes on the Host element.
@@ -25,5 +26,5 @@ import { JSXNode } from './types.js';
  */
 export function Host(): JSXNode<any> {
   // TODO: QError?
-  throw new Error('Should not execute');
+  throw newError('Should not execute');
 }

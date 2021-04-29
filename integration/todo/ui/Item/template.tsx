@@ -6,7 +6,6 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { ServiceKey, Provider, Host } from '../../qoot.js';
 import { Item, ItemService } from '../../data/Item/public.js';
 import {
   injectMethod,
@@ -14,6 +13,9 @@ import {
   provideComponentProp,
   provideServiceState,
   QRL,
+  ServiceKey,
+  Provider,
+  Host,
 } from '../../qoot.js';
 import { ItemComponent } from './component.js';
 
@@ -34,15 +36,8 @@ export default injectMethod(
             checked={todo.completed}
             on:click={QRL`ui:/Item/toggle?toggleState=.target.checked`}
           />
-          <label
-            on:dblclick={QRL`ui:/Item/edit.begin`}
-          >
-            {todo.title}
-          </label>
-          <button
-            class="destroy"
-            on:click={QRL`ui:/Item/remove?itemKey=${itemKey}`}
-          ></button>
+          <label on:dblclick={QRL`ui:/Item/edit.begin`}>{todo.title}</label>
+          <button class="destroy" on:click={QRL`ui:/Item/remove?itemKey=${itemKey}`}></button>
         </div>
         {this.editing ? (
           <input

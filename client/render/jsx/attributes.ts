@@ -12,6 +12,7 @@ import { AttributeMarker } from '../../util/markers.js';
 import { ServiceConstructor } from '../../service/service.js';
 import { QRL } from '../../import/qrl.js';
 import { QError, qError } from '../../error/error.js';
+import type { JSXBase } from './html_base.js';
 
 export interface QProps {
   [key: string]: string | QRL;
@@ -26,7 +27,7 @@ export interface QProps {
  */
 export function applyAttributes(
   element: Element,
-  props: Record<string, string> | null,
+  props: Record<string, string> | JSXBase | null,
   detectChanges: boolean
 ): boolean {
   let changesDetected = false;
@@ -35,10 +36,11 @@ export function applyAttributes(
     for (const key in props) {
       if (Object.prototype.hasOwnProperty.call(props, key)) {
         const kebabKey = fromCamelToKebabCase(key);
-        const value = props[key];
-        if (key === '$' && value) {
-          // TODO[type]: Suspicious casting.
-          applyControlProperties(element, (value as unknown) as QProps);
+        const value = (props as any)[key];
+        if (key === AttributeMarker.Services) {
+          applyServiceProviders(value, element);
+        } else if (key === AttributeMarker.ComponentTemplate) {
+          setAttribute(element, AttributeMarker.ComponentTemplate, value);
         } else {
           if (key.startsWith('$')) {
             addToBindMap(stringify(value), bindMap || (bindMap = new Map<string, string>()), key);
@@ -58,6 +60,20 @@ export function applyAttributes(
     }
   }
   return changesDetected;
+}
+
+function applyServiceProviders(value: any, element: Element) {
+  if (Array.isArray(value)) {
+    value.forEach((service: ServiceConstructor) => {
+      if (typeof service?.$attachService === 'function') {
+        service.$attachService(element);
+      } else {
+        throw qError(QError.Render_expectingService_service, service);
+      }
+    });
+  } else {
+    throw qError(QError.Render_expectingServiceArray_obj, value);
+  }
 }
 
 /**
@@ -125,37 +141,6 @@ export function setAttribute(element: Element, key: string, value: any, kebabKey
     (element as any)[key] = value;
   } else {
     element.setAttribute(key, String(value));
-  }
-}
-
-/**
- * Set control properties (`$`) on the DOM element.
- *
- * Control properties include `on:*` as well as services.
- */
-export function applyControlProperties(element: Element, props: { [key: string]: any }) {
-  for (const key in props) {
-    if (Object.prototype.hasOwnProperty.call(props, key)) {
-      const value = props[key];
-      if (value == null) {
-        element.removeAttribute(key);
-      } else if (key === 'services') {
-        if (Array.isArray(value)) {
-          const services = value as ServiceConstructor<any>[];
-          services.forEach((service) => {
-            if (typeof service?.$attachService === 'function') {
-              service.$attachService(element);
-            } else {
-              throw qError(QError.Render_expectingService_service, service);
-            }
-          });
-        } else {
-          throw qError(QError.Render_expectingServiceArray_obj, value);
-        }
-      } else {
-        element.setAttribute(key, String(value));
-      }
-    }
   }
 }
 

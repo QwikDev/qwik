@@ -16,7 +16,7 @@ import { createGlobal } from './node_utils.js';
  * By default `ServiceFixture` creates:
  *
  * ```
- * <host ::="./component_fixture.noop">
+ * <host decl:template="./component_fixture.noop">
  *   <child></child>
  * </host>
  * ```

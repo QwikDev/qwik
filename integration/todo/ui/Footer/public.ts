@@ -18,7 +18,4 @@ export interface FooterProps {
   $todos: ServiceKey<TodoService>;
 }
 
-export const Footer = jsxDeclareComponent<FooterProps>(QRL`ui:/Footer/template`, 'footer', {
-  'on:selectFilter': QRL`ui:/Footer/selectFilter`,
-  class: 'footer',
-});
+export const Footer = jsxDeclareComponent<FooterProps>(QRL`ui:/Footer/template`, 'footer');

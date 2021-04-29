@@ -92,7 +92,7 @@ describe('mark_dirty', () => {
       host.setAttribute(AttributeMarker.BindPrefix + personService.$key, '$person');
       host.removeAttribute(AttributeMarker.ComponentTemplate);
       expect(() => markServiceDirty(personService)).to.throw(
-        `RENDER-ERROR(Q-606): Expecting that element with 'bind:person:-last:-first' should be a component (should have '::="qrl"' attribute): <host : bind:person:-last:-first='$person'>`
+        `RENDER-ERROR(Q-606): Expecting that element with 'bind:person:-last:-first' should be a component (should have 'decl:template="qrl"' attribute): <host : bind:person:-last:-first='$person'>`
       );
     });
   });

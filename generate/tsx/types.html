@@ -9,14 +9,17 @@
 * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
 */
 
-import { QRL } from "../../import/qrl.js";
+///////////////////////////////////////////////////
+///////////////////////////////////////////////////
+////   -- DO NOT EDIT  --  GENERATED FILE  --  ////
+//// See: `generate/tsx/types.html`            ////
+///////////////////////////////////////////////////
+///////////////////////////////////////////////////
+
+import type { QRL } from '../../import/qrl.js';
+import type { JSXBase } from './html_base.js';
 
 declare global {
-  // TODO:  Maybe we can get rid of `QAttrs` if we move content to `*:*` props, that way better types
-  interface QAttrs {
-    [key: string]: any;
-  }
-
   namespace JSX {
     interface IntrinsicElements {</pre
     >
@@ -201,12 +204,7 @@ export type JSX_IntrinsicElements = JSX.IntrinsicElements;
         interface.attrs.push('events?: string');
       }
       if (key === 'Element') {
-        pre.textContent += `    interface JSX${key} {\n      `;
-        interface.attrs.push(
-          '$?: QAttrs;',
-          'class?: string | string[] | Record<string, boolean>',
-          'style?: string | Record<string, string>'
-        );
+        pre.textContent += `    interface JSX${key} extends JSXBase {\n      `;
       } else {
         pre.textContent += `    interface JSX${key} extends JSX${interface.parent} {\n      `;
       }

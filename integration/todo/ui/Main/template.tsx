@@ -14,6 +14,7 @@ import {
   provideService,
   ServiceKey,
   Provider,
+  Host,
 } from '../../qoot.js';
 import { Item } from '../Item/public.js';
 
@@ -25,7 +26,7 @@ export default injectFunction(
   function (todoService: TodoService) {
     const itemKeys = todoService.filteredItems;
     return (
-      </* *ngIf="todoStore.todos.length > 0 " */>
+      <Host class="main" /* *ngIf="todoStore.todos.length > 0 " */>
         <input
           id="toggle-all"
           class="toggle-all"
@@ -39,7 +40,7 @@ export default injectFunction(
             <Item $item={key} />
           ))}
         </ul>
-      </>
+      </Host>
     );
   }
 );

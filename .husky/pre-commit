@@ -3,3 +3,4 @@
 
 yarn lint
 yarn lint-buildifier
+yarn prettier-check

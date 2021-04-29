@@ -22,7 +22,12 @@ export const enum AttributeMarker {
    *
    * The value of `::` points to a `QRL` of a template function for the component.
    */
-  ComponentTemplate = '::',
+  ComponentTemplate = 'decl:template',
+
+  /**
+   * Props used to declare services.
+   */
+  Services = 'decl:services',
 
   /**
    * Component state is serialized in `:.`.

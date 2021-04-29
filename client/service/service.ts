@@ -600,7 +600,7 @@ export function isService(value: any): value is Service<any, any> {
  * Service Constructor.
  * @public
  */
-export interface ServiceConstructor<SERVICE extends Service<any, any>> {
+export interface ServiceConstructor<SERVICE extends Service<any, any> = any> {
   /**
    * A service name.
    *
@@ -797,7 +797,7 @@ export interface ServiceConstructor<SERVICE extends Service<any, any>> {
 
   new (
     hostElement: Element,
-    props: ServicePropsOf<SERVICE>,
-    state: ServiceStateOf<SERVICE> | null
+    props: any, // TODO: should be: ServicePropsOf<SERVICE>,
+    state: any // TODO: should be: ServiceStateOf<SERVICE> | null
   ): SERVICE;
 }

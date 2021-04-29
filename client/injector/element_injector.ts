@@ -268,7 +268,7 @@ function toServicePromise<SERVICE extends Service<any, any>>(
 
 export function getComponentHost(element: Element): Element {
   let cursor: Element | null = element;
-  while (cursor && !cursor.hasAttribute('::')) {
+  while (cursor && !cursor.hasAttribute(AttributeMarker.ComponentTemplate)) {
     cursor = cursor.parentElement;
   }
   if (!cursor) {

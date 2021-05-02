@@ -6,6 +6,7 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
+import { isElement } from '../../util/element.js';
 import { assertString } from '../../assert/index.js';
 import { Component, isComponent } from '../../component/component.js';
 import { QError, qError } from '../../error/error.js';
@@ -42,19 +43,21 @@ import { jsxRenderComponent } from './render.js';
  * a `querySelectorAll` is used to retrieve all components marked with `on.render` attribute and
  * `jsxRender` method is invoked on them, and `on.render` attribute cleared.
  *
- * @param componentOrService - `Component` or `Service` instance.
+ * @param componentServiceOrElement - `Component`, `Service` or `Element` instance to mark dirty.
  * @returns
  * @public
  */
 export function markDirty(
-  componentOrService: Component<any, any> | Service<any, any>
+  componentServiceOrElement: Component<any, any> | Service<any, any> | Element
 ): Promise<HostElements> {
-  if (isService(componentOrService)) {
-    return markServiceDirty(componentOrService);
-  } else if (isComponent(componentOrService)) {
-    return markComponentDirty(componentOrService);
+  if (isService(componentServiceOrElement)) {
+    return markServiceDirty(componentServiceOrElement);
+  } else if (isComponent(componentServiceOrElement)) {
+    return markComponentDirty(componentServiceOrElement);
+  } else if (isElement(componentServiceOrElement)) {
+    return markElementDirty(componentServiceOrElement);
   } else {
-    throw qError(QError.Render_expectingServiceOrComponent_obj, componentOrService);
+    throw qError(QError.Render_expectingServiceOrComponent_obj, componentServiceOrElement);
   }
 }
 
@@ -62,7 +65,13 @@ export function markDirty(
  * @internal
  */
 export function markComponentDirty(component: Component<any, any>): Promise<HostElements> {
-  const host = component.$host;
+  return markElementDirty(component.$host);
+}
+
+/**
+ * @internal
+ */
+export function markElementDirty(host: Element): Promise<HostElements> {
   const document = host.ownerDocument as QDocument;
   host.setAttribute(
     AttributeMarker.EventRender,
@@ -88,7 +97,7 @@ export function markServiceDirty(service: Service<any, any>): Promise<HostElemen
       throw qError(QError.Render_bindNeedsComponent_key_element, key, componentElement);
     }
     foundListener = true;
-    componentElement.setAttribute('on:.render', qrl);
+    componentElement.setAttribute(AttributeMarker.EventRender, qrl);
   });
 
   return foundListener ? scheduleRender(document) : Promise.resolve([]);

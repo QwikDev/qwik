@@ -1,5 +1,5 @@
 {
   "extends": "./tsconfig.base.json",
   "exclude": ["bazel-bin/**", "bazel-out/**", "bazel-qoot/**", "bazel-testlogs/**", "dist/**"],
-  "include": ["**/*.ts*"]
+  "include": ["client/**/*.ts*", "server/**/*.ts*", "integration/**/*.ts*"]
 }

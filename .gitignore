@@ -10,3 +10,4 @@ yarn-error.log
 etc
 temp
 tsdoc-metadata.json
+**/.DS_Store

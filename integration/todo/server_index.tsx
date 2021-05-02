@@ -22,7 +22,11 @@ export async function serverMain(document: Document) {
     <html>
       <head>
         <title>ToDo Application</title>
-        <script src="/qootloader.min.js" async events="click;dblclick;keyup;focusout"></script>
+        <script
+          src="/qootloader.min.js"
+          type="module"
+          events="click;dblclick;keyup;focusout"
+        ></script>
         <script>{"var Q={protocol:{ui:'./ui',data:'./data',base:'./'}}"}</script>
         <link rel="stylesheet" href="./base.css" />
         <link rel="stylesheet" href="./index.css" />

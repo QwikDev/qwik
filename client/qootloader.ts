@@ -23,6 +23,9 @@ interface QConfig {
   };
 }
 
+// TODO(test): write tests
+// TODO(bubbling): add capture phase for non-bubbling events
+
 /**
  * Set up event listening for browser.
  *
@@ -32,7 +35,7 @@ interface QConfig {
  * @param document - Document to use for setting up global listeners, and to
  *     determine all of the browser supported events.
  */
-(function (document: Document) {
+((document: Document) => {
   /**
    * Event handler responsible for processing browser events.
    *
@@ -42,7 +45,7 @@ interface QConfig {
    *
    * @param event - Browser event.
    */
-  async function eventProcessor(event: Event) {
+  const processEvent = async (event: Event) => {
     const eventName = 'on:' + event.type;
     let element = event.target as Element | null;
     while (element && element.getAttribute) {
@@ -68,7 +71,10 @@ interface QConfig {
       }
       element = element.parentElement;
     }
-  }
+  };
+  const addEventListener = (eventName: string) => {
+    document.addEventListener(eventName, processEvent);
+  };
 
   // Set up listeners. Start with `document` and walk up the prototype
   // inheritance on look for `on*` properties. Assume that `on*` property
@@ -76,16 +82,32 @@ interface QConfig {
   const scriptTag = document.querySelector('script[events]');
   if (scriptTag) {
     const events = scriptTag.getAttribute('events') || '';
-    events.split(/[\s,;]+/).forEach((name) => document.addEventListener(name, eventProcessor));
+    events.split(/[\s,;]+/).forEach(addEventListener);
   } else {
     for (const key in document) {
       if (key.indexOf('on') == 0) {
         const eventName = key.substring(2);
         // For each `on*` property, set up a listener.
-        document.addEventListener(eventName, eventProcessor);
+        addEventListener(eventName);
       }
     }
   }
+  const $init = `$init`;
+  addEventListener($init);
+  // When cleared it means that `on:.init` has been run
+  let readystatechange = 'readystatechange';
+
+  const processReadyStateChange = () => {
+    const readyState = document.readyState;
+    if (readystatechange && (readyState == 'interactive' || readyState == 'complete')) {
+      readystatechange = null!;
+      document
+        .querySelectorAll('[on\\:\\' + $init + ']')
+        .forEach((target) => target.dispatchEvent(new CustomEvent($init, { bubbles: true })));
+    }
+  };
+  document.addEventListener(readystatechange, processReadyStateChange);
+  processReadyStateChange();
 })(
   // Invoke qoot-loader.
   document

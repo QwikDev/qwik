@@ -28,6 +28,8 @@ nodejs_binary(
         "//integration/hello_server",
         "//integration/hello_static",
         "//integration/hello_static:static_files",
+        "//integration/specs",
+        "//integration/specs:static_files",
         "//integration/todo",
         "//integration/todo:static_files",
         "//server",

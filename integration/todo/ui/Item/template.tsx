@@ -26,23 +26,23 @@ export default injectMethod(
     (provideComponentProp('$item') as any) as Provider<ServiceKey<ItemService>> // TODO(type)
   ),
   provideComponentProp('$item'),
-  function (this: ItemComponent, todo: Item, itemKey: string) {
+  function (this: ItemComponent, item: Item, itemKey: string) {
     return (
-      <Host class={{ completed: todo.completed, editing: this.editing }}>
+      <Host class={{ completed: item.completed, editing: this.editing }}>
         <div class="view">
           <input
             class="toggle"
             type="checkbox"
-            checked={todo.completed}
+            checked={item.completed}
             on:click={QRL`ui:/Item/toggle?toggleState=.target.checked`}
           />
-          <label on:dblclick={QRL`ui:/Item/edit.begin`}>{todo.title}</label>
+          <label on:dblclick={QRL`ui:/Item/edit.begin`}>{item.title}</label>
           <button class="destroy" on:click={QRL`ui:/Item/remove?itemKey=${itemKey}`}></button>
         </div>
         {this.editing ? (
           <input
             class="edit"
-            value={todo.title}
+            value={item.title}
             on:blur={QRL`ui:/Item/edit.end`} // TODO: this event does not bubble
             on:keyup={QRL`ui:/Item/edit.change?value=.target.value&code=.code&itemKey=${itemKey}`}
           />

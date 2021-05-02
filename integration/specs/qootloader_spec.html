@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="/qootloader.js" type="module"></script>
+    <script>
+      Q = { protocol: { base: './' } };
+    </script>
+  </head>
+  <body>
+    <h1>it should register all events</h1>
+    <test id="click_test">
+      <pre>
+        Verify that qootloader: 
+        - is loaded and 
+        - it can listen on all events an
+        - and it can process protocol urls.
+      </pre>
+      <button
+        on:click="base:qootloader_spec.updateElement?selector=%23click_test>pre&content=PASSED"
+      >
+        click
+      </button>
+    </test>
+
+    <h1>it should listen on non-bubbling event</h1>
+    <test id="non_bubbling_event">
+      <pre>
+        Verify that non-bubbling events are correctly captured.
+      </pre>
+      <button
+        on:mouseenter="base:qootloader_spec.updateElement?selector=%23non_bubbling_event>pre&content=PASSED"
+      >
+        mouseenter
+      </button>
+    </test>
+
+    <h1>it should set up `$init` event</h1>
+    <test id="autofire_$init">
+      <pre
+        on:$init="base:qootloader_spec.updateElement?selector=%23autofire_\$init>pre&content=PASSED"
+      >
+        Verify qootloader correctly fires `$init` event on start.
+      </pre>
+    </test>
+  </body>
+</html>

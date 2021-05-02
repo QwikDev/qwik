@@ -23,9 +23,6 @@ interface QConfig {
   };
 }
 
-// TODO(test): write tests
-// TODO(bubbling): add capture phase for non-bubbling events
-
 /**
  * Set up event listening for browser.
  *
@@ -36,6 +33,8 @@ interface QConfig {
  *     determine all of the browser supported events.
  */
 ((document: Document) => {
+  // When cleared it means that `on:$init` has been run
+  let readystatechange = 'readystatechange';
   /**
    * Event handler responsible for processing browser events.
    *
@@ -73,7 +72,7 @@ interface QConfig {
     }
   };
   const addEventListener = (eventName: string) => {
-    document.addEventListener(eventName, processEvent);
+    document.addEventListener(eventName, processEvent, { capture: true });
   };
 
   // Set up listeners. Start with `document` and walk up the prototype
@@ -94,8 +93,6 @@ interface QConfig {
   }
   const $init = `$init`;
   addEventListener($init);
-  // When cleared it means that `on:.init` has been run
-  let readystatechange = 'readystatechange';
 
   const processReadyStateChange = () => {
     const readyState = document.readyState;
@@ -103,7 +100,7 @@ interface QConfig {
       readystatechange = null!;
       document
         .querySelectorAll('[on\\:\\' + $init + ']')
-        .forEach((target) => target.dispatchEvent(new CustomEvent($init, { bubbles: true })));
+        .forEach((target) => target.dispatchEvent(new CustomEvent($init)));
     }
   };
   document.addEventListener(readystatechange, processReadyStateChange);

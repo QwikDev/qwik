@@ -50,4 +50,27 @@ describe('todo', () => {
     cy.get('.todo-count > strong').should((strong) => expect(strong).to.have.text('2'));
     cy.get('.todo-list>li').should('have.length', 2);
   });
+
+  it('should add item, remove item, set filter.', () => {
+    // Add item
+    cy.get('input.new-todo').type('New Item{enter}');
+    cy.get('.todo-count > strong').should((strong) => expect(strong).to.have.text('4'));
+
+    // Remove item
+    cy.get('.todo-list>li:nth-child(2) button').invoke('show').click();
+    cy.get('.todo-count > strong').should((strong) => expect(strong).to.have.text('3'));
+
+    // Mark as completed
+    cy.get('.todo-list>li:last-child input').click();
+    cy.get('.todo-count > strong').should((strong) => expect(strong).to.have.text('2'));
+
+    // filter
+    cy.get('footer li:last').click();
+    cy.get('.main li').should('have.length', 1);
+
+    // click completed
+    cy.get('footer li:first').click();
+    cy.get('.clear-completed').click();
+    cy.get('.main li').should('have.length', 2);
+  });
 });

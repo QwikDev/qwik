@@ -17,6 +17,10 @@ import {
   Host,
 } from '../../qoot.js';
 import { Item } from '../Item/public.js';
+// TODO(file_layout): Rework the file layout. I think it should be in same directory as loading `template.ts` looks weird
+// - Main.ts // public.ts
+// - Main_template.ts // template.ts
+// - Main_action.ts // action.ts
 
 export const _needed_by_JSX_ = jsxFactory; // eslint-disable-line @typescript-eslint/no-unused-vars
 export default injectFunction(
@@ -26,12 +30,12 @@ export default injectFunction(
   function (todoService: TodoService) {
     const itemKeys = todoService.filteredItems;
     return (
-      <Host class="main" /* *ngIf="todoStore.todos.length > 0 " */>
+      <Host class="main" /* TODO *ngIf="todoStore.todos.length > 0 " */>
         <input
           id="toggle-all"
           class="toggle-all"
           type="checkbox"
-          /* *ngIf="todoStore.todos.length" #toggleall 
+          /* TODO *ngIf="todoStore.todos.length" #toggleall 
              [checked]="todoStore.allCompleted()" 
              (click)="todoStore.setAllTo(toggleall.checked)" */
         />

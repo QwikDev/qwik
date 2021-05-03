@@ -16,6 +16,7 @@ export default injectMethod(
     (await ItemService.$hydrate(this.$element, itemKey)).$release();
     const items = this.$state.items;
     items.splice(items.indexOf(itemKey), 1);
+    this.setFilter(this.$state.filter);
     markDirty(this);
   }
 );

@@ -7,6 +7,7 @@
  */
 
 import { expect } from 'chai';
+import { stringifyDebug } from '../../error/stringify.js';
 import { ComponentFixture } from '../../testing/component_fixture.js';
 import { ElementFixture } from '../../testing/element_fixture.js';
 import { createGlobal } from '../../testing/node_utils.js';
@@ -122,6 +123,24 @@ describe('attributes', () => {
           '<test-component bind:="$myA|$myB"></test-component>'
         );
       });
+
+      it('should detect binding change', async () => {
+        const fixture = new ComponentFixture();
+        expect(applyAttributes(fixture.host, { $propA: 'item:1' }, true)).to.be.true;
+        expect(stringifyDebug(fixture.host)).to.eql(
+          `<host : bind:item:1='$propA' decl:template='file://.../component_fixture.noop'>`
+        );
+
+        expect(applyAttributes(fixture.host, { $propA: 'item:1' }, true)).to.be.false;
+        expect(stringifyDebug(fixture.host)).to.eql(
+          `<host : bind:item:1='$propA' decl:template='file://.../component_fixture.noop'>`
+        );
+
+        expect(applyAttributes(fixture.host, { $propA: 'item:2' }, true)).to.be.true;
+        expect(stringifyDebug(fixture.host)).to.eql(
+          `<host : bind:item:2='$propA' decl:template='file://.../component_fixture.noop'>`
+        );
+      });
     });
   });
 
@@ -135,6 +154,18 @@ describe('attributes', () => {
         false
       );
       expect(host.getAttribute('on:click')).to.eql('url');
+    });
+
+    it('should apply on:* properties with camelCase', () => {
+      applyAttributes(
+        host,
+        {
+          'on:camelCase': 'url',
+        },
+        false
+      );
+      console.log(host.outerHTML);
+      expect(host.getAttribute('on:camel-case')).to.eql('url');
     });
 
     it('should apply all service bindings', () => {

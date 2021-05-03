@@ -19,6 +19,7 @@ import {
 } from '../../qoot.js';
 import { ItemComponent } from './component.js';
 
+// TODO: remove this by changing jsxFactory over to import
 export const _needed_by_JSX_ = jsxFactory; // eslint-disable-line @typescript-eslint/no-unused-vars
 export default injectMethod(
   ItemComponent,
@@ -43,7 +44,7 @@ export default injectMethod(
           <input
             class="edit"
             value={item.title}
-            on:blur={QRL`ui:/Item/edit.end`} // TODO: this event does not bubble
+            on:blur={QRL`ui:/Item/edit.end`} // TODO: investigate why this sometimes does not fire
             on:keyup={QRL`ui:/Item/edit.change?value=.target.value&code=.code&itemKey=${itemKey}`}
           />
         ) : null}

@@ -41,6 +41,8 @@ export function applyAttributes(
           applyServiceProviders(value, element);
         } else if (key === AttributeMarker.ComponentTemplate) {
           setAttribute(element, AttributeMarker.ComponentTemplate, value);
+        } else if (key.startsWith(AttributeMarker.EventPrefix)) {
+          setAttribute(element, kebabKey, value);
         } else {
           if (key.startsWith('$')) {
             addToBindMap(stringify(value), bindMap || (bindMap = new Map<string, string>()), key);
@@ -56,7 +58,7 @@ export function applyAttributes(
       }
     }
     if (bindMap) {
-      updateBindMap(element, bindMap);
+      changesDetected = updateBindMap(element, bindMap) || changesDetected;
     }
   }
   return changesDetected;
@@ -99,8 +101,11 @@ function addToBindMap(stringValue: string | null, bindMap: Map<string, string>, 
 
 /**
  * Apply the `bind:*` updates to the DOM.
+ *
+ * @returns `true` if changes were detected.
  */
-function updateBindMap(element: Element, bindMap: Map<string, string>) {
+function updateBindMap(element: Element, bindMap: Map<string, string>): boolean {
+  let changesDetected = false;
   for (let i = 0, attrs = element.attributes; i < attrs.length; i++) {
     const attr = attrs[i];
     const key = attr.name;
@@ -108,16 +113,25 @@ function updateBindMap(element: Element, bindMap: Map<string, string>) {
       const expectedValue = bindMap.get(key);
       if (expectedValue != null) {
         bindMap.delete(key);
-        if (attr.value !== expectedValue) {
+        if (attr.value === expectedValue) {
+          // if expected is same as actual we can remove it from map
+          bindMap.delete(key);
+        } else {
+          changesDetected = true;
           attr.value = expectedValue;
         }
       } else {
+        changesDetected = true;
         element.removeAttribute(key);
         i--;
       }
     }
   }
-  bindMap.forEach((v, k) => element.setAttribute(k, v));
+  bindMap.forEach((v, k) => {
+    changesDetected = true;
+    element.setAttribute(k, v);
+  });
+  return changesDetected;
 }
 
 /**

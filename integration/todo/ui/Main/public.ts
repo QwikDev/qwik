@@ -13,5 +13,4 @@ export interface MainProps {
   $todos: ServiceKey<TodoService>;
 }
 
-// TODO: app-main looks like a web-component. Change it to 'section' to make it closer to the original TODO
 export const Main = jsxDeclareComponent<MainProps>(QRL`ui:/Main/template`, 'section');

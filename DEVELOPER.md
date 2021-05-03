@@ -1,9 +1,17 @@
 # DEVELOPER
 
-## Setting up the environment
+# Setting up the environment
 
-1. Install [bazelisk](https://github.com/bazelbuild/bazelisk).
-2. `yarn` to install NPM dependencies.
+1. `npm` (or `yarn`) to install NPM dependencies.
+2. Recomended: alias `bazel` and `ibazel`
+   ```
+   alias bazel=./node_modules/.bin/bazel
+   alias ibazel=./node_modules/.bin/ibazel
+   ```
+
+## `bazel` vs `ibazel`
+
+The difference between `bazel` and `ibazel` is that `ibazel` will re-invoke `bazel` if any relevant files change. This is useful for constantly updating the server and or tests as they are being developed. All commands are listed as `bazel`, but can be replaced for `ibazel` as needed.
 
 # Running demos (`integration`)
 
@@ -49,10 +57,19 @@ Running cypress manually
 bazel run client:qoot_pkg.publish -- --tag=next
 ```
 
-## Buildifier
+## Pre-submit hooks
 
-To ensure that all `BUILD.bazel` files are correctly formatted run:
+The project has pre-submit hooks which ensure that your code is correctly formated. You can run them manually like so:
 
 ```
-yarn buildifier
+npm run lint
+npm run buildifier-check
+npm run prettier-check
+```
+
+Some of the issues can be fixed automatically by using:
+
+```
+npm run buildifier-fix
+npm run prettier-fix
 ```

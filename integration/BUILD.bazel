@@ -1,4 +1,5 @@
 load("@build_bazel_rules_nodejs//:index.bzl", "copy_to_bin", "js_library", "nodejs_binary")
+load("@npm//@bazel/typescript:index.bzl", "ts_project")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -7,14 +8,36 @@ js_library(
     package_name = "qoot_integration",
     srcs = ["package.json"],
     deps = [
+        ":integration",
+    ],
+)
+
+ts_project(
+    name = "integration",
+    srcs = glob(
+        [
+            "**/*.ts",
+            "**/*.d.ts",
+            "**/*.tsx",
+        ],
+        exclude = [
+            "**/*.unit.ts",
+            "**/*.unit.tsx",
+        ],
+    ),
+    declaration = True,
+    tsconfig = "//:tsconfig",
+    deps = [
+        "//client",
     ],
 )
 
 copy_to_bin(
     name = "static_files",
-    srcs = [
-        "index.html",
-    ],
+    srcs = glob([
+        "**/*.html",
+        "**/*.css",
+    ]),
 )
 
 nodejs_binary(
@@ -25,13 +48,6 @@ nodejs_binary(
         "//client:qoot",
         "//client:qootloader",
         "//client:qootloader.min",
-        "//integration/hello_server",
-        "//integration/hello_static",
-        "//integration/hello_static:static_files",
-        "//integration/specs",
-        "//integration/specs:static_files",
-        "//integration/todo",
-        "//integration/todo:static_files",
         "//server",
     ],
     entry_point = "//server:main.js",

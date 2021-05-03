@@ -8,7 +8,7 @@
 
 import './CONFIG.js';
 import { jsxFactory, jsxRender } from './qoot.js';
-import { ToDoApp } from './ui/ToDoApp/public.js';
+import { ToDoApp } from './ui/TodoApp.js';
 
 export const _needed_by_JSX_ = jsxFactory; // eslint-disable-line @typescript-eslint/no-unused-vars
 /**

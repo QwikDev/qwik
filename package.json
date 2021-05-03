@@ -55,7 +55,7 @@
     "postinstall": "yarn patch-m1-bazel && yarn patch-m1-ibazel && yarn patch-m1-buildifier",
     "patch-m1-bazel": "echo Patching Bazel for Apple M1 architecture compatibility && ln -fs ./bazelisk-darwin_amd64 node_modules/@bazel/bazelisk/bazelisk-darwin_arm64",
     "patch-m1-ibazel": "echo Patching iBazel for Apple M1 architecture compatibility && sed -i .bak \"s/'x64' : 'amd64',\\$/'x64' : 'amd64', 'arm64' : 'amd64',/\" ./node_modules/@bazel/ibazel/index.js",
-    "patch-m1-buildifier": "echo Patching Buildifier for Apple M1 architecture compatibility && sed -i .bak \"s/'x64' : 'amd64',\\$/'x64' : 'amd64', 'arm64' : 'amd64',/\" ./node_modules/@bazel/buildifier/buildifier.js",
+    "patch-m1-buildifier": "echo Patching Bu for Apple M1 architecture compatibility && sed -i .bak \"s/'x64' : 'amd64',\\$/'x64' : 'amd64', 'arm64' : 'amd64',/\" ./node_modules/@bazel/buildifier/buildifier.js",
     "test:unit": "bazel test  --test_tag_filters=unit  ...",
     "test:e2e": "bazel test  --test_tag_filters=e2e  ...",
     "test": "bazel test client/...",

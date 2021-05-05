@@ -145,7 +145,7 @@ export function setAttribute(element: Element, key: string, value: any, kebabKey
     element.setAttribute('class', stringifyClassOrStyle(value, true));
   } else if (key == 'style') {
     element.setAttribute('style', stringifyClassOrStyle(value, false));
-  } else if (value == null) {
+  } else if (value == null || value === false) {
     element.removeAttribute(key);
   } else if (key === 'innerHTML' || key === 'innerText') {
     element.setAttribute(kebabKey!, '');

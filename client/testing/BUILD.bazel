@@ -32,7 +32,7 @@ ts_project(
     deps = [
         "//client",
         "@npm//@types/source-map-support",
-        "@npm//domino",
+        "@npm//@types/jsdom",
         "@npm//source-map-support",
     ],
 )
@@ -69,6 +69,7 @@ mocha_test(
         ":testing",
         ":unit_lib",
         "@npm//chai",
+        "@npm//jsdom",
     ],
     tags = ["unit"],
 )

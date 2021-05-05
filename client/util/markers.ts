@@ -48,12 +48,12 @@ export const enum AttributeMarker {
    * Render event broadcast
    */
   // TODO(this should be `on:$render` but domino incorrectly claims that is invalid char. Switch to jsdom?)
-  EventRender = 'on:.render',
+  EventRender = 'on:q-render',
 
   /**
    * Selector for all components marked with `EventRender`
    */
-  EventRenderSelector = '[on\\:\\.render]',
+  EventRenderSelector = '[on\\:q-render]',
 
   /**
    * Prefix used to identify on listeners.

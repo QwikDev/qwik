@@ -11,6 +11,7 @@ import { QRL } from '../../import/qrl.js';
 import { Props } from '../../injector/types.js';
 import { JSXFactory, JSXNode } from './types.js';
 import { AttributeMarker } from 'client/util/markers.js';
+import { JSXBase } from './html_base.js';
 
 class JSXNode_<T extends string | null | JSXFactory | unknown> {
   public tag: T;
@@ -106,7 +107,7 @@ export function jsxDeclareComponent<P>(
   tagName: string = 'div',
   hostProps?: { [property: string]: string | QRL }
 ) {
-  return function (props: P): JSXNode<string> {
+  return function (props: P & JSXBase): JSXNode<string> {
     return jsxFactory(tagName, {
       [AttributeMarker.ComponentTemplate]: componentTemplateQrl,
       ...(hostProps as any),

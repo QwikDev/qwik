@@ -7,7 +7,7 @@
  */
 
 import commander from 'commander';
-import domino from 'domino';
+import { default as jsdom } from 'jsdom';
 import express from 'express';
 import * as fs from 'fs';
 import { dirname, join } from 'path';
@@ -108,11 +108,9 @@ function createServerJSHandler(
   baseUri: string
 ) {
   return async function serverJSHandler(req: express.Request, res: express.Response) {
-    const document = domino.createDocument();
-    Object.defineProperty(document, 'baseURI', { value: baseUri });
-    Object.defineProperty(document, 'URL', {
-      value: `${req.protocol}://${req.headers.host}${req.originalUrl}`,
-    });
+    const document = new jsdom.JSDOM('', {
+      url: baseUri,
+    }).window.document;
     const roots = await serverMain(document, req.url);
     if (!Array.isArray(roots)) {
       throw new Error(

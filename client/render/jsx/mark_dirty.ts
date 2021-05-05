@@ -127,16 +127,18 @@ export function scheduleRender(document: QDocument): Promise<HostElements> {
     requestAnimationFrame(() => {
       const waitOn: HostElements = [];
       const componentHosts = document.querySelectorAll(AttributeMarker.EventRenderSelector);
+      const hosts: HostElements = [];
       componentHosts.forEach((host) => {
         host.removeAttribute(AttributeMarker.EventRender);
         const qrl = (host.getAttribute(AttributeMarker.ComponentTemplate)! as any) as QRL;
         qDev && assertString(qrl);
         const props: Props = extractPropsFromElement(host);
         jsxRenderComponent(host, qrl, waitOn, props, document);
+        hosts.push(host);
       });
       flattenPromiseTree(waitOn).then(() => {
         document.$qScheduledRender = null;
-        resolve(componentHosts as any);
+        resolve(hosts);
       }, reject);
     });
   }));

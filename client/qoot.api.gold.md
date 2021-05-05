@@ -4,6 +4,8 @@
 
 ```ts
 
+import { QRL as QRL_2 } from 'client/import/qrl.js';
+
 // @public
 export class Component<PROPS, STATE> {
     $host: Element;
@@ -123,10 +125,12 @@ export interface Injector {
     serialize(): void;
 }
 
+// Warning: (ae-forgotten-export) The symbol "JSXBase" needs to be exported by the entry point index.d.ts
+//
 // @public
 export function jsxDeclareComponent<P>(componentTemplateQrl: QRL, tagName?: string, hostProps?: {
     [property: string]: string | QRL;
-}): (props: P) => JSXNode<string>;
+}): (props: P & JSXBase) => JSXNode<string>;
 
 // @public (undocumented)
 export type JSXFactory = (props: Props) => JSXNode<unknown>;

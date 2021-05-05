@@ -33,7 +33,7 @@ interface QConfig {
  *     determine all of the browser supported events.
  */
 ((document: Document) => {
-  // When cleared it means that `on:$init` has been run
+  // When cleared it means that `on:q-init` has been run
   let readystatechange = 'readystatechange';
   /**
    * Event handler responsible for processing browser events.
@@ -91,16 +91,16 @@ interface QConfig {
       }
     }
   }
-  const $init = `$init`;
-  addEventListener($init);
+  const qInit = `q-init`;
+  addEventListener(qInit);
 
   const processReadyStateChange = () => {
     const readyState = document.readyState;
     if (readystatechange && (readyState == 'interactive' || readyState == 'complete')) {
       readystatechange = null!;
       document
-        .querySelectorAll('[on\\:\\' + $init + ']')
-        .forEach((target) => target.dispatchEvent(new CustomEvent($init)));
+        .querySelectorAll('[on\\:\\' + qInit + ']')
+        .forEach((target) => target.dispatchEvent(new CustomEvent(qInit)));
     }
   };
   document.addEventListener(readystatechange, processReadyStateChange);

@@ -27,6 +27,20 @@ export interface JSXBase {
    */
   'decl:template'?: QRL;
 
+  /**
+   * Event fired when DOM is first loaded
+   */
+  'on:qInit'?: QRL;
+
+  // TODO: document
+  'on:qInterval'?: QRL;
+
+  // TODO: document
+  'on:qTimeout'?: QRL;
+
+  // TODO: document
+  'on:qRender'?: QRL;
+
   class?: string | string[] | Record<string, boolean>;
 
   style?: string | Record<string, string>;

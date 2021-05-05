@@ -49,6 +49,7 @@ nodejs_binary(
         "//client:qootloader",
         "//client:qootloader.min",
         "//server",
+        "@npm//jsdom",
     ],
     entry_point = "//server:main.js",
     templated_args = [

@@ -12,13 +12,14 @@
     "**/*": "prettier --write --ignore-unknown"
   },
   "dependencies": {
-    "cypress": "^6.4.0",
-    "domino": "^2.1.6",
+    "jsdom": "^16.5.3",
     "source-map-support": "^0.5.19"
   },
   "@comment type": "Setting type to 'commonjs' is important as many of the bazel tooling assumes 'commonjs'. For code which wants ESM a second 'package.json' file needs to be created for just those files.",
   "type": "commonjs",
   "devDependencies": {
+    "cypress": "^6.4.0",
+    "source-map-support": "^0.5.19",
     "@bazel/bazelisk": "^1.7.5",
     "@bazel/buildifier": "^4.0.1",
     "@bazel/cypress": "^3.2.0",
@@ -29,6 +30,7 @@
     "@microsoft/api-extractor": "^7.13.2",
     "@types/chai": "^4.2.15",
     "@types/express": "^4.17.9",
+    "@types/jsdom": "^16.2.10",
     "@types/mocha": "^8.2.1",
     "@types/node": "^14.14.10",
     "@types/source-map-support": "^0.5.3",

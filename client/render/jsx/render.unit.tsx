@@ -20,6 +20,8 @@ import { jsxRender } from './render.js';
 const _needed_by_JSX_ = jsxFactory; // eslint-disable-line @typescript-eslint/no-unused-vars
 const _needed_by_ide_: JSX_IntrinsicElements = null!; // eslint-disable-line @typescript-eslint/no-unused-vars
 
+// TODO(test): add test where `<Foo>` => `async function Foo`
+
 describe('render', () => {
   let global: QootGlobal;
   let document: Document;

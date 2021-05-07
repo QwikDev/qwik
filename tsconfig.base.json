@@ -68,3 +68,4 @@
     "forceConsistentCasingInFileNames": true /* Disallow inconsistently-cased references to the same file. */
   }
 }
+// DEBUGGING TIP: Use command tsc option --listFiles to see which files have been discovered

@@ -12,7 +12,7 @@
     "**/*": "prettier --write --ignore-unknown"
   },
   "dependencies": {
-    "jsdom": "^16.5.3",
+    "domino": "^2.1.6",
     "source-map-support": "^0.5.19"
   },
   "@comment type": "Setting type to 'commonjs' is important as many of the bazel tooling assumes 'commonjs'. For code which wants ESM a second 'package.json' file needs to be created for just those files.",
@@ -38,6 +38,7 @@
     "@typescript-eslint/parser": "^4.19.0",
     "chai": "^4.3.0",
     "commander": "^6.2.0",
+    "cypress": "^6.4.0",
     "eslint": "^7.23.0",
     "eslint-plugin-no-only-tests": "^2.4.0",
     "express": "^4.17.1",
@@ -48,6 +49,7 @@
     "prettier": "2.2.1",
     "rollup": "^2.40.0",
     "serve-static": "^1.14.1",
+    "source-map-support": "^0.5.19",
     "terser": "^5.6.0",
     "todomvc-app-css": "^2.3.0",
     "todomvc-common": "^1.0.5",

@@ -2,6 +2,22 @@
 
 # Setting up the environment
 
+The repo uses `bazel` for building. Best way to run `bazel` is with [`bazelisk`](https://github.com/bazelbuild/bazelisk) which will automatically download and execute the right version of `bazel`.
+
+_preferred way_
+
+```
+brew install bazelisk
+```
+
+or
+
+```
+npm install -g @bazel/bazelisk
+```
+
+> NOTE: `Bazel` will invoke `npm install` so there is no need to do it manually.
+
 1. `npm` (or `yarn`) to install NPM dependencies.
 2. Recomended: alias `bazel` and `ibazel`
    ```

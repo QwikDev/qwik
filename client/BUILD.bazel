@@ -98,7 +98,7 @@ mocha_test(
         ":unit_lib",
         "//client/testing",
         "@npm//chai",
-        "@npm//jsdom",
+        "@npm//domino",
     ],
     tags = ["unit"],
 )

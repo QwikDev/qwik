@@ -6,7 +6,7 @@ node_modules
 tsc-out
 external
 *.
-yarn-error.log
+**/*.log
 etc
 temp
 tsdoc-metadata.json

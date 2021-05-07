@@ -12,14 +12,11 @@
     "**/*": "prettier --write --ignore-unknown"
   },
   "dependencies": {
-    "domino": "^2.1.6",
     "source-map-support": "^0.5.19"
   },
   "@comment type": "Setting type to 'commonjs' is important as many of the bazel tooling assumes 'commonjs'. For code which wants ESM a second 'package.json' file needs to be created for just those files.",
   "type": "commonjs",
   "devDependencies": {
-    "cypress": "^6.4.0",
-    "source-map-support": "^0.5.19",
     "@bazel/bazelisk": "^1.7.5",
     "@bazel/buildifier": "^4.0.1",
     "@bazel/cypress": "^3.2.0",
@@ -30,7 +27,6 @@
     "@microsoft/api-extractor": "^7.13.2",
     "@types/chai": "^4.2.15",
     "@types/express": "^4.17.9",
-    "@types/jsdom": "^16.2.10",
     "@types/mocha": "^8.2.1",
     "@types/node": "^14.14.10",
     "@types/source-map-support": "^0.5.3",
@@ -39,6 +35,7 @@
     "chai": "^4.3.0",
     "commander": "^6.2.0",
     "cypress": "^6.4.0",
+    "domino": "^2.1.6",
     "eslint": "^7.23.0",
     "eslint-plugin-no-only-tests": "^2.4.0",
     "express": "^4.17.1",
@@ -56,7 +53,7 @@
     "typescript": "^4.2.0"
   },
   "scripts": {
-    "postinstall": "yarn patch-m1-bazel && yarn patch-m1-ibazel && yarn patch-m1-buildifier",
+    "postinstall": "npm run patch-m1-bazel && npm run patch-m1-ibazel && npm run patch-m1-buildifier",
     "patch-m1-bazel": "echo Patching Bazel for Apple M1 architecture compatibility && ln -fs ./bazelisk-darwin_amd64 node_modules/@bazel/bazelisk/bazelisk-darwin_arm64",
     "patch-m1-ibazel": "echo Patching iBazel for Apple M1 architecture compatibility && sed -i .bak \"s/'x64' : 'amd64',\\$/'x64' : 'amd64', 'arm64' : 'amd64',/\" ./node_modules/@bazel/ibazel/index.js",
     "patch-m1-buildifier": "echo Patching Bu for Apple M1 architecture compatibility && sed -i .bak \"s/'x64' : 'amd64',\\$/'x64' : 'amd64', 'arm64' : 'amd64',/\" ./node_modules/@bazel/buildifier/buildifier.js",
@@ -66,8 +63,9 @@
     "lint": "eslint \"client/**/*.ts*\"  \"server/**/*.ts*\" \"integration/**/*.ts*\"",
     "prettier-check": "prettier --check .",
     "prettier-fix": "prettier --write .",
-    "buildifier-check": "find  WORKSPACE */BUILD.bazel | xargs buildifier --lint=warn --mode=check",
-    "buildifier-fix": "find  WORKSPACE */BUILD.bazel | xargs buildifier --lint=fix",
+    "bazel:format": "find . -type f \\( -name \"*.bzl\" -or -name WORKSPACE -or -name BUILD -or -name BUILD.bazel \\) ! -path \"*/node_modules/*\" | xargs buildifier -v --warnings=attr-cfg,attr-license,attr-non-empty,attr-output-default,attr-single-file,constant-glob,ctx-actions,ctx-args,depset-iteration,depset-union,dict-concatenation,duplicated-name,filetype,git-repository,http-archive,integer-division,load,load-on-top,native-build,native-package,out-of-order-load,output-group,package-name,package-on-top,positional-args,redefined-variable,repository-name,same-origin-load,string-iteration,unsorted-dict-items,unused-variable",
+    "bazel:lint": "npm run bazel:format --lint=warn",
+    "bazel:lint-fix": "npm run bazel:format --lint=fix",
     "prepare": "husky install"
   },
   "author": "Miško Hevery <misko@hevery.com>",

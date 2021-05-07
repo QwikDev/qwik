@@ -7,7 +7,7 @@
  */
 
 import { default as global } from '../util/global.js';
-import { default as jsdom } from 'jsdom';
+import domino from 'domino';
 import srcMap from 'source-map-support';
 srcMap.install();
 
@@ -37,9 +37,7 @@ export function createGlobal(baseUri: string) {
  * Create emulated `Document` in node environment.
  */
 export function createDocument(baseUri: string): Document {
-  const window = new jsdom.JSDOM('', {
-    url: baseUri,
-  }).window;
+  const document = domino.createDocument();
   // TODO(misko): Needs test
   const requestAnimationFrame: MockRequestAnimationFrame = function requestAnimationFrame(
     callback: FrameRequestCallback
@@ -59,8 +57,10 @@ export function createDocument(baseUri: string): Document {
       }
     }
   };
-  window.requestAnimationFrame = requestAnimationFrame;
-  return window.document;
+  const window = { requestAnimationFrame };
+  Object.defineProperty(document, 'baseURI', { value: baseUri });
+  Object.defineProperty(document, 'defaultView', { value: window });
+  return document;
 }
 
 class MockCustomEvent {

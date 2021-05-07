@@ -23,9 +23,9 @@ ts_project(
     deps = [
         "//client",
         "@npm//@types/express",
-        "@npm//@types/jsdom",
         "@npm//@types/source-map-support",
         "@npm//commander",
+        "@npm//domino",
         "@npm//express",
         "@npm//source-map-support",
     ],

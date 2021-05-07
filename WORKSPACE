@@ -15,7 +15,7 @@ http_archive(
 # Check the rules_nodejs version and download npm dependencies
 # Note: bazel (version 2 and after) will check the .bazelversion file so we don't need to
 # assert on that.
-load("@build_bazel_rules_nodejs//:index.bzl", "check_rules_nodejs_version", "node_repositories", "yarn_install")
+load("@build_bazel_rules_nodejs//:index.bzl", "check_rules_nodejs_version", "node_repositories", "npm_install")
 
 check_rules_nodejs_version(minimum_version_string = "2.2.0")
 
@@ -25,10 +25,10 @@ node_repositories(
     package_json = ["//:package.json"],
 )
 
-yarn_install(
+npm_install(
     name = "npm",
     package_json = "//:package.json",
-    yarn_lock = "//:yarn.lock",
+    package_lock_json = "//:package-lock.json",
 )
 
 load("@npm//@bazel/cypress:index.bzl", "cypress_repository")

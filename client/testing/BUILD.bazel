@@ -32,7 +32,7 @@ ts_project(
     deps = [
         "//client",
         "@npm//@types/source-map-support",
-        "@npm//@types/jsdom",
+        "@npm//domino",
         "@npm//source-map-support",
     ],
 )

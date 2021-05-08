@@ -23,28 +23,32 @@ import { jsxRenderComponent } from './render.js';
  * Marks `Component` or `Service` dirty.
  *
  * # `Component`
- * Marking a `Component` dirty means that that component needs to be re-rendered.
- * Marking a `Component` dirty will add `on.render` attribute to each component which `markDirty`
+ *
+ * Marking a `Component` dirty means that the component needs to be re-rendered.
+ *
+ * Marking a `Component` dirty will add `on:q-render` attribute to each component which `markDirty`
  * is invoked on..
  *
  * # `Service`
- * Marking a `Service` dirty means that all `Component`s which depend on that specific instance
- * `ServiceKey` are also marked dirty. To get a list of `Component`s a `querySelectorAll` is used
- * to retrieve all `Components` which have `bind:service-key` attribute and subsequently mark them
- * with `on.render` attribute.
  *
- * This in effect propagates any changes to the service to all components which have the said
+ * Marking a `Service` dirty means that all `Component`s which depend on the instance of the `Service`
+ * identified by its `ServiceKey` are also marked dirty.
+ *
+ * To get a list of `Component`s a `querySelectorAll` is used to retrieve all `Components` which have
+ * `bind:service-key` attribute and subsequently mark them with an `on:q-render` attribute.
+ *
+ * This in effect propagates any changes to the service to all components which depend upon the
  * service as an input.
  *
  * # Reconciliation
  *
  * Marking a `Component` or `Service` dirty will schedule a `requestAnimationFrame` to reconcile
- * the `Component`s which are marked with `on.render` attribute. When `requestAnimationFrame` fires
- * a `querySelectorAll` is used to retrieve all components marked with `on.render` attribute and
- * `jsxRender` method is invoked on them, and `on.render` attribute cleared.
+ * the `Component`s which are marked with `on:q-render` attribute. When `requestAnimationFrame` fires
+ * a `querySelectorAll` is used to retrieve all components marked with `on:q-render` attribute.
+ * The `jsxRender` method is invoked on them, and the `on:q-render` attribute cleared.
  *
  * @param componentServiceOrElement - `Component`, `Service` or `Element` instance to mark dirty.
- * @returns
+ * @returns a `Promise` of all of the `HostElements` which were re-rendered.
  * @public
  */
 export function markDirty(
@@ -92,17 +96,22 @@ export function markServiceDirty(service: Service<any, any>): Promise<HostElemen
   const document = service.$element.ownerDocument as QDocument;
   let foundListener = false;
   document.querySelectorAll(toAttrQuery('bind:' + key)).forEach((componentElement: HTMLElement) => {
-    const qrl = componentElement.getAttribute(AttributeMarker.ComponentTemplate)!;
-    if (!qrl) {
-      throw qError(QError.Render_bindNeedsComponent_key_element, key, componentElement);
-    }
-    foundListener = true;
-    componentElement.setAttribute(AttributeMarker.EventRender, qrl);
-  });
+      const qrl = componentElement.getAttribute(AttributeMarker.ComponentTemplate)!;
+      if (!qrl) {
+        throw qError(QError.Render_bindNeedsComponent_key_element, key, componentElement);
+      }
+      foundListener = true;
+      componentElement.setAttribute(AttributeMarker.EventRender, qrl);
+    });
 
   return foundListener ? scheduleRender(document) : Promise.resolve([]);
 }
+
+/**
+ * Convert the key to an attribute query that can be used in `querySelectorAll()`.
+ */
 function toAttrQuery(key: string): any {
+  // Escape special characters and wrap in square brackets
   return '[' + key.replace(/[:.-_]/g, (v) => '\\' + v) + ']';
 }
 
@@ -111,9 +120,9 @@ function toAttrQuery(key: string): any {
  *
  * Multiple calls to this function result in a single `rAF` scheduling creating coalescence.
  *
- * Rendering is achieved by `querySelectorAll` looking for all `AttributeMarker.EventRenderSelector`.
+ * Rendering is achieved by `querySelectorAll` looking for all `on:q-render` attributes.
  *
- * @returns a `Promise` of all of the components which were re-rendered.
+ * @returns a `Promise` of all of the `HostElements` which were re-rendered.
  * @internal
  */
 export function scheduleRender(document: QDocument): Promise<HostElements> {

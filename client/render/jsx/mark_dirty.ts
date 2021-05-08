@@ -95,7 +95,9 @@ export function markServiceDirty(service: Service<any, any>): Promise<HostElemen
   const key = service.$key;
   const document = service.$element.ownerDocument as QDocument;
   let foundListener = false;
-  document.querySelectorAll(toAttrQuery('bind:' + key)).forEach((componentElement: HTMLElement) => {
+  document
+    .querySelectorAll(toAttrQuery(AttributeMarker.BindPrefix + key))
+    .forEach((componentElement: HTMLElement) => {
       const qrl = componentElement.getAttribute(AttributeMarker.ComponentTemplate)!;
       if (!qrl) {
         throw qError(QError.Render_bindNeedsComponent_key_element, key, componentElement);

@@ -18,11 +18,11 @@ import { GreeterComponent } from './Greeter_component.js';
  * Handler for the `<input on:keyup="./Greeter/input_onKeyup?name=.target.value">`
  */
 export default injectEventHandler(
-  // We would like to injectEventHandler `GreeterComponent` as `this`.
+  // We would like to inject `GreeterComponent` as `this`.
   GreeterComponent,
-  // We would like to injectEventHandler the `value` property of the `<input>` as `name`.
+  // We would like to inject the `value` property of the `<input>` as `name`.
   // Given that: `<input on:keyup="./Greeter/input_onKeyup?name=.target.value">`
-  // `provideQrlExp` reads the `name` query paramter and than evaluates
+  // `provideQrlExp()` reads the `name` query parameter and then evaluates
   // `.target.value` with respect to the event resulting in the user input.
   provideQrlExp<string>('name'),
   function (this: GreeterComponent, name: string) {

@@ -25,13 +25,13 @@ import { EventHandler } from './types.js';
  *
  * Then the `./pathToHandler` can be declared like so:
  * ```
- * export default injectEventHandler() {
+ * export default injectEventHandler(
  *   MyComponent,
  *   provideEvent(),
  *   function(this: MyComponent, event: Event) {
  *     alert('Thanks for clicking me');
  *   }
- * }
+ * );
  * ```
  *
  * @param args - a list consisting of Component type, zero or more providers and a handler function.

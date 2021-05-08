@@ -1,4 +1,3 @@
 {
-  "baseUrl": "http://localhost:8080",
-  "experimentalRunEvents": true
+  "baseUrl": "http://localhost:8080"
 }

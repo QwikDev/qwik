@@ -73,21 +73,23 @@ export function jsxFactory<T extends string | null | JSXFactory | unknown>(
  * </div>
  * ```
  *
- * `::` attributes provides information to the rendering system how to descend to the child
- * component.
+ * The `decl:template` attribute provides information to the rendering system how to descend to the
+ * child component.
  *
  * Writing the above code would be cumbersome because the user of component would have to know
  * what the component QRL is. This would make it hard to change the URL in future refactorings.
  * It would also make it hard to guarantee type safety.
  *
  * For this reason `jsxDeclareComponent` provides a facade for the component host element.
+ *
  * ```
  * export const Child = jsxDeclareComponent<HeaderProps>(
  *    QRL`path_to_render_function`,  // value of the '::' attribute
  *    'child'                        // Optional (defaults to 'div') name of the host element
  * );
  * ```
- * With the above code it is not possible to rewrite the example in a more natural format.
+ *
+ * With the above code it is now possible to rewrite the example in a more natural format.
  *
  * ```
  * <div>

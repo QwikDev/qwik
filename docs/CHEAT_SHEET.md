@@ -1,20 +1,43 @@
 # Cheat sheet
 
-Special attributes in the HTML
+## Special HTML attributes
 
-1. always contain `:` characters to make them less likely to collide with existing attributes.
-2. Consists of a key as seen in a table
-3. Have a value that evaluates according to the table.
+HTML attributes with the following syntax have a special meaning to Qoot.
 
-| Syntax              | Meaning                                                                                                                           |
-| ------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| `:`                 | Marker which signifies that the element has injector                                                                              |
-| `on:<name>="<QRL>"` | If `event` is detected than `import(url)` and call `default` function                                                             |
-| `bind:<key>="attr"` | Data with `key` is bound to `attr`. NOTE: Key/value is reversed so that it is easy to query for all of the data bindings by `key` |
-| `::name=QRL`        | Service definition. `QRL` points to the `Service`.                                                                                |
-| `::=QRL`            | Component render `QRL` points to the template.                                                                                    |
-| `key:=JSON`         | Serialized data for `key` `Service`.                                                                                              |
-| `:.=JSON`           | Component state.                                                                                                                  |
+1. They always contain `:` characters to make them less likely to collide with existing attributes.
+2. The consist of a "key" and a "value", separated by `=`, as described in the following tables.
+
+### General
+
+| Syntax              | Meaning                                                                                                                 |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `:`                 | Marker which signifies that the element has injector                                                                    |
+| `on:<name>="<QRL>"` | If the event `name` is detected then the handler defined by the `QRL` loaded and executed. See [QRL](#qrl) table below. |
+| `bind:<key>="attr"` | Bind the `attr` to the service identified by `key`. See the [bindings note](#bindings)                                  |
+| `::name=QRL`        | Service with key `name` is defined at `QRL`.                                                                            |
+| `key:=JSON`         | State of the `Service` identified by `key`, serialized into JSON.                                                       |
+| `:.=JSON`           | Component state, serialized into JSON.                                                                                  |
+
+### JSX Components
+
+| Syntax                                    | Meaning                                                                           |
+| ----------------------------------------- | --------------------------------------------------------------------------------- |
+| `decl:template=QRL`                       | Component render `QRL`, which points to the component's template render function. |
+| `decl:services=[Service1, Service2, ...]` | Services to be provided by this element's injector.                               |
+| `$<prop>={key}`                           | Associate Component `prop` with service identified by `key`.                      |
+
+### Special events
+
+| Syntax                 | Meaning                            |
+| ---------------------- | ---------------------------------- |
+| `on:qInit="<QRL>"`     | Fired when the DOM is first loaded |
+| `on:qInterval="<QRL>"` | TODO: document                     |
+| `on:qTimeout="<QRL>"`  | TODO: document                     |
+| `on:qRender="<QRL>"`   | TODO: document                     |
+
+### Binding syntax
+
+NOTE: The key/value pair is reversed in the binding, so that it is easy to query for all of the data bindings by `key`.
 
 ## QRL
 

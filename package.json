@@ -3,13 +3,13 @@
   "version": "0.0.1",
   "description": "An Open-Source sub-framework designed with a focus on server-side-rendering, lazy-loading, and styling/animation.",
   "main": "index.js",
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
-  },
   "lint-staged": {
-    "**/*": "prettier --write --ignore-unknown"
+    "*.*": [
+      "prettier --write --ignore-unknown"
+    ],
+    "(WORKSPACE|*.bazel|*.bzl)": [
+      "npm run bazel:lint-fix"
+    ]
   },
   "dependencies": {
     "source-map-support": "^0.5.19"

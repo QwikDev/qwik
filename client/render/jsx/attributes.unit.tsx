@@ -41,7 +41,7 @@ describe('attributes', () => {
       expect(host.outerHTML).to.equal('<host a="c"></host>');
     });
 
-    it('should remove properties to Element', () => {
+    it('should remove properties from Element', () => {
       expect(applyAttributes(host, { a: '' }, false)).to.be.false;
       expect(host.outerHTML).to.equal('<host a=""></host>');
       expect(applyAttributes(host, { a: '' }, true)).to.be.false;
@@ -52,8 +52,8 @@ describe('attributes', () => {
       expect(host.outerHTML).to.equal('<host></host>');
     });
 
-    describe('input', () => {
-      it('should write both attribute and value in case of input', () => {
+    describe('to input elements', () => {
+      it('should write both attribute and `value` property', () => {
         expect(applyAttributes(input, { value: 'hello' }, false)).to.be.false;
         expect(input.value).to.eql('hello');
         expect(input.getAttribute('value')).to.eql('hello');
@@ -76,8 +76,8 @@ describe('attributes', () => {
       });
     });
 
-    describe('$attrs', () => {
-      it('should render $attr', async () => {
+    describe('$<attr> handling', () => {
+      it('should render $<attr> binding', async () => {
         const fixture = new ComponentFixture();
         let myValue: string | null = 'someItem:123:child:432';
         fixture.template = () => {
@@ -186,7 +186,7 @@ describe('attributes', () => {
     });
 
     describe('error', () => {
-      it('should error on not an array', () => {
+      it('should error if services are not an array', () => {
         expect(() =>
           applyAttributes(
             host,
@@ -197,7 +197,7 @@ describe('attributes', () => {
           )
         ).to.throw(`RENDER-ERROR(Q-603): Expecting array of services, got 'notAnArray'.`);
       });
-      it('should error on service does not have $attachService', () => {
+      it('should error if a service does not have $attachService', () => {
         expect(() =>
           applyAttributes(
             host,

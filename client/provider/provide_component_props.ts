@@ -36,6 +36,6 @@ export function provideComponentProps<T>(): Provider<T> {
   return function propsComponentProvider(injector: Injector): T {
     const props = injector.elementProps;
     qDev && assertDefined(props);
-    return (props as any) as T;
+    return props as any as T;
   };
 }

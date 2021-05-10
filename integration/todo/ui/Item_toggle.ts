@@ -20,7 +20,7 @@ export default injectEventHandler(
   null,
   provideQrlExp<boolean>('toggleState'),
   provideService<ItemService>(
-    (provideComponentProp('$item') as any) as Provider<ServiceKey<ItemService>>
+    provideComponentProp('$item') as any as Provider<ServiceKey<ItemService>>
   ), // TODO(type):
   // Handler
   async function (this: null, toggleState: boolean, itemService: ItemService) {

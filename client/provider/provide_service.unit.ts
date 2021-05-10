@@ -28,7 +28,7 @@ describe('provideService', () => {
   it('should return service', async () => {
     RegardsService.$attachService(fixture.parent);
     const fn = injectFunction(
-      provideService(((() => Promise.resolve('regards:Hello:World')) as any) as Provider<
+      provideService((() => Promise.resolve('regards:Hello:World')) as any as Provider<
         ServiceKey<RegardsService>
       >), // TODO(type):
       (service: RegardsService) => service

@@ -79,7 +79,7 @@ export function QRL<T = any>(
   if (qDev) {
     verifyQrl(new Error('Invalid import: ' + url), url);
   }
-  return (url as unknown) as QRL<T>;
+  return url as unknown as QRL<T>;
 }
 
 export async function verifyQrl(error: Error, url: string): Promise<any> {

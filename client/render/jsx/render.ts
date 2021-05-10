@@ -128,7 +128,7 @@ function visitJSXDomNode(
     // TODO: better way of converting string to QRL.
     jsxRenderComponent(
       reconcileElement,
-      (componentUrl as any) as QRL,
+      componentUrl as any as QRL,
       waitOn,
       jsxNode.props,
       document
@@ -195,7 +195,7 @@ function visitJSXComponentNode(
   const injector: Injector = getInjector(parentNode as Element);
   injector.elementProps = props;
   const componentJsxNode = injector.invoke(
-    (component as any) as InjectedFunction<any, any[], any[], JSXNode<any>>,
+    component as any as InjectedFunction<any, any[], any[], JSXNode<any>>,
     undefined,
     props
   );

@@ -189,7 +189,7 @@ describe('service', () => {
       const fixture = new ElementFixture();
       const empty = await EmptyService.$hydrate(fixture.child, {}, {});
       expect(await empty.ident('ABC')).to.equal('ABC');
-      expect(await getInjector(fixture.child).getService(('empty:' as any) as ServiceKey)).to.equal(
+      expect(await getInjector(fixture.child).getService('empty:' as any as ServiceKey)).to.equal(
         empty
       );
       expect(fixture.child.getAttribute('::empty')).to.equal('service:/service.unit.EmptyService');
@@ -211,7 +211,7 @@ describe('service', () => {
     );
     expect(
       await getInjector(fixture.child).getService(
-        ('greeter:hello:world' as any) as ServiceKey<GreeterService>
+        'greeter:hello:world' as any as ServiceKey<GreeterService>
       )
     ).to.equal(greeter);
 

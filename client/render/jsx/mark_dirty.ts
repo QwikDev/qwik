@@ -130,7 +130,7 @@ export function scheduleRender(document: QDocument): Promise<HostElements> {
       const hosts: HostElements = [];
       componentHosts.forEach((host) => {
         host.removeAttribute(AttributeMarker.EventRender);
-        const qrl = (host.getAttribute(AttributeMarker.ComponentTemplate)! as any) as QRL;
+        const qrl = host.getAttribute(AttributeMarker.ComponentTemplate)! as any as QRL;
         qDev && assertString(qrl);
         const props: Props = extractPropsFromElement(host);
         jsxRenderComponent(host, qrl, waitOn, props, document);

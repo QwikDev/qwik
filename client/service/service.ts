@@ -313,7 +313,7 @@ export class Service<PROPS, STATE> {
     propsOrKey: ServicePropsOf<SERVICE> | ServiceKey,
     state: ServiceStateOf<SERVICE> | null
   ): void {
-    const serviceType = (this as any) as ServiceConstructor<SERVICE>;
+    const serviceType = this as any as ServiceConstructor<SERVICE>;
     serviceType.$attachService(host);
     const key = typeof propsOrKey == 'string' ? propsOrKey : propsToKey(serviceType, propsOrKey);
     if (!host.hasAttribute(String(key))) {
@@ -345,7 +345,7 @@ export class Service<PROPS, STATE> {
     propsOrKey: ServicePropsOf<SERVICE> | ServiceKey,
     state?: ServiceStateOf<SERVICE>
   ): ServicePromise<SERVICE> {
-    const serviceType = (this as any) as ServiceConstructor<SERVICE>;
+    const serviceType = this as any as ServiceConstructor<SERVICE>;
     const key: ServiceKey<SERVICE> =
       typeof propsOrKey == 'string'
         ? (propsOrKey as ServiceKey<SERVICE>)
@@ -353,7 +353,7 @@ export class Service<PROPS, STATE> {
     if (state) state.$key = key;
     const serviceProviderKey = keyToServiceAttribute(key);
     if (!element.hasAttribute(serviceProviderKey)) {
-      ((this as unknown) as ServiceConstructor<SERVICE>).$attachService(element);
+      (this as unknown as ServiceConstructor<SERVICE>).$attachService(element);
     }
     const injector = getInjector(element);
     return injector.getService(key, state, this as any);
@@ -449,7 +449,7 @@ export class Service<PROPS, STATE> {
     ...args: ARGS
   ): Promise<RET> {
     const service = getServiceType(this);
-    const delegate = await qImport(((service as any) as typeof Service).$config, qrl);
+    const delegate = await qImport((service as any as typeof Service).$config, qrl);
     return getInjector(this.$element).invoke(delegate as any, this, ...args);
   }
 
@@ -524,7 +524,7 @@ function getServiceType<SERVICE extends Service<any, any>>(
   if (!(service instanceof Service)) {
     throw qError(QError.Service_expected_obj, service);
   }
-  const serviceType = (service.constructor as any) as ServiceConstructor<SERVICE>;
+  const serviceType = service.constructor as any as ServiceConstructor<SERVICE>;
   if (serviceType.$attachServiceState !== Service.$attachServiceState) {
     throw qError(QError.Service_overridesConstructor_service, service);
   }

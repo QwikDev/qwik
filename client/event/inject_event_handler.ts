@@ -48,7 +48,7 @@ export function injectEventHandler<SELF, ARGS extends any[], RET>(
     (this: SELF, ...args: [...ProviderReturns<ARGS>]) => RET
   ]
 ): EventHandler<SELF, ARGS, RET> {
-  const injectedFunction = (args.pop() as any) as InjectedFunction<SELF, ARGS, [], RET>;
+  const injectedFunction = args.pop() as any as InjectedFunction<SELF, ARGS, [], RET>;
   const thisType = (injectedFunction.$thisType = args.shift() as any);
   injectedFunction.$inject = args as any;
   qDev && (injectedFunction.$debugStack = new Error());

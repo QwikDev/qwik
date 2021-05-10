@@ -65,7 +65,7 @@ describe('injectEventHandler', async () => {
 
   it('should inject this', async () => {
     class MyComp {
-      static $templateQRL = ('./comp' as any) as QRL;
+      static $templateQRL = './comp' as any as QRL;
       $state = undefined;
       myComp: boolean = true;
       $newState() {}

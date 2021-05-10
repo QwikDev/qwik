@@ -51,7 +51,7 @@ export function emitEvent(element: HTMLElement, event: Event, url: URL): Promise
     QError.Event_emitEventCouldNotFindListener_event_element,
     AttributeMarker.EventPrefix + fromCamelToKebabCase($type),
     (element, attrName, attrValue) => {
-      const qrl = (attrValue as unknown) as QRL<EventHandler<any, any, any>>;
+      const qrl = attrValue as unknown as QRL<EventHandler<any, any, any>>;
       return Promise.resolve(qImport(element, qrl)).then((fn: Function) => {
         const dstUrl = toUrl(toBaseURI(element), qrl);
         const event = new CustomEvent($type);

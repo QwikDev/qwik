@@ -24,7 +24,7 @@ export const _needed_by_JSX_ = jsxFactory; // eslint-disable-line @typescript-es
 export default injectMethod(
   ItemComponent,
   provideServiceState<ItemService>(
-    (provideComponentProp('$item') as any) as Provider<ServiceKey<ItemService>> // TODO(type)
+    provideComponentProp('$item') as any as Provider<ServiceKey<ItemService>> // TODO(type)
   ),
   provideComponentProp('$item'),
   function (this: ItemComponent, item: Item, itemKey: string) {

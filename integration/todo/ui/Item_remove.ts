@@ -20,7 +20,7 @@ export default injectEventHandler(
   // Providers
   null,
   provideService(TodoService.SINGLETON),
-  (provideUrlProp('itemKey') as unknown) as Provider<ServiceKey<ItemService>>, // TODO(type): add provider to clean this cast up
+  provideUrlProp('itemKey') as unknown as Provider<ServiceKey<ItemService>>, // TODO(type): add provider to clean this cast up
   // Handler
   async function remove(this: null, todoService: TodoService, itemKey: ServiceKey<ItemService>) {
     todoService.remove(itemKey);

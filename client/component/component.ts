@@ -15,8 +15,9 @@ import { getInjector } from '../injector/element_injector.js';
 /**
  * Base class for Qoot component.
  *
- * All Qoot components need to inherit from this class. A Qoot component represents transient state
- * of component. A component contains `$state` and `$keyProps` properties.
+ * All Qoot components are defined by a class that must inherit from `Component`.
+ * An instance of a Qoot component represents the transient state of that component.
+ * A component contains `$state` and `$keyProps` properties.
  *
  * Example:
  * ```
@@ -98,30 +99,32 @@ export class Component<PROPS, STATE> {
   /**
    * Lifecycle method invoked on hydration.
    *
-   * After the service creation and after the state is restored (either from DOM or by invoking
-   * `$newState`) this method is invoked. The purpose of this method is to allow the service
+   * After the component creation and after the state is restored (either from DOM or by invoking
+   * `$newState`) this method is invoked. The purpose of this method is to allow the component
    * to compute any transient state.
    *
    * Lifecycle order:
    * - `new Component(...)`
    * - `$newState(props)`: Invoked if no serialized state found in DOM.
    * - `$init()`
-   * - Service returned by the `Injector`.
+   * - Component returned by the `Injector`.
    */
   $init(): Promise<void> | void {}
 
   /**
-   * Lifecycle method to initialize component's state.
+   * Lifecycle method to initialize a component's state.
    *
-   * When component is first created it has no state. Use this method to create initial component's
-   * state. Once the component's state gets serialized to HTML and the component gets rehydrate
-   * this method is no longer called.
+   * When component is first created it has no state. Use this method to create the component's
+   * initial state from the `Props`.
+   *
+   * Once the component's state gets serialized to HTML and the component gets rehydrated this
+   * method is no longer called.
    *
    * Lifecycle order:
    * - `new Component(...)`
    * - `$newState(props)`: Invoked if no serialized state found in DOM.
    * - `$init()`
-   * - Service returned by the `Injector`.
+   * - Component returned by the `Injector`.
    *
    * @param props - Component props.
    */

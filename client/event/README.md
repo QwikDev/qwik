@@ -233,7 +233,7 @@ Invoked when the component is instantiated, and no serialized state is found in 
 
 Notice the presence of JSON in `:.` attribute, which contains the component state serialized as JSON.
 
-When the component is re-hydrated the transient component instance needs to get a private state from `:.`. If this is the first-time render, there is no state to dehydrate from, in such a case, the component calls `$newState()` to create a brand new state.
+When the component is rehydrated the transient component instance needs to get a private state from `:.`. If this is the first-time render, there is no state to dehydrate from, in such a case, the component calls `$newState()` to create a brand new state.
 
 ```typescript
 export class GreeterComponent extends Component<GreeterProps, GreeterState> {

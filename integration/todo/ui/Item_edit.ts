@@ -30,7 +30,7 @@ export const change = injectEventHandler(
   provideQrlExp<string>('value'),
   provideQrlExp<string>('code'),
   provideService<ItemService>(
-    (provideUrlProp('itemKey') as any) as Provider<ServiceKey<ItemService>>
+    provideUrlProp('itemKey') as any as Provider<ServiceKey<ItemService>>
   ), // TODO fix cast
   async function (
     this: ItemComponent,

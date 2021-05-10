@@ -206,7 +206,7 @@ describe('ElementInjector', () => {
         );
       });
       it('should throw error if no service provider define', () => {
-        expect(() => hostInjector.getService(('not:found' as any) as ServiceKey)).to.throw(
+        expect(() => hostInjector.getService('not:found' as any as ServiceKey)).to.throw(
           "ERROR(Q-004): Could not find service state 'not:found' ( or service provider '::not') at '<host :>' or any of it's parents."
         );
       });

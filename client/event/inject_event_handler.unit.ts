@@ -20,7 +20,7 @@ describe('injectEventHandler', () => {
   beforeEach(() => (fixture = new ElementFixture()));
 
   it('should support component injection', async () => {
-    const event = ('EVENT' as any) as Event;
+    const event = 'EVENT' as any as Event;
     const url = new URL('http://localhost/path?a=b&c=d');
     fixture.host.setAttribute(AttributeMarker.ComponentTemplate, String(MyComponent.$templateQRL));
 

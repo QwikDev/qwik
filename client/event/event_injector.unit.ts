@@ -16,7 +16,7 @@ describe('EventInjector', () => {
   beforeEach(() => (fixture = new ElementFixture()));
 
   it('should parse URL', async () => {
-    const event = ('EVENT' as any) as Event;
+    const event = 'EVENT' as any as Event;
     const url = new URL('http://localhost/path?a=b&c=d');
     const eventInjector = new EventInjector(fixture.host, event, url);
     const eventService = await eventInjector.getService(EventService.KEY);

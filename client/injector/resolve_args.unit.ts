@@ -17,7 +17,7 @@ describe('resolveArgs', () => {
     expect(await resolveArgs(injector, 1, 2)).to.eql([1, 2]);
   });
   it('should resolve promise values', async () => {
-    const injector = ({}! as any) as Injector; // not needed because no providers requested.
+    const injector = {}! as any as Injector; // not needed because no providers requested.
     expect(
       await resolveArgs(injector, 1, (injector: Injector) => Promise.resolve(injector))
     ).to.eql([1, injector]);

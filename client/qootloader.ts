@@ -51,7 +51,7 @@ interface QConfig {
       let eventUrl = element.getAttribute(eventName);
       if (eventUrl) {
         eventUrl = eventUrl.replace(/^(\w+):/, (_, protocol) => {
-          return ((window as any) as { Q: QConfig }).Q.protocol[protocol];
+          return (window as any as { Q: QConfig }).Q.protocol[protocol];
         });
         const url = new URL(eventUrl, document.baseURI);
         const pathname = url.pathname;

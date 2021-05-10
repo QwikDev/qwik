@@ -25,7 +25,7 @@ import { Item } from './Item.js';
 export const _needed_by_JSX_ = jsxFactory; // eslint-disable-line @typescript-eslint/no-unused-vars
 export default injectFunction(
   provideService<TodoService>(
-    (provideComponentProp('$todos') as any) as Provider<ServiceKey<TodoService>>
+    provideComponentProp('$todos') as any as Provider<ServiceKey<TodoService>>
   ), // TODO(type):
   function (todoService: TodoService) {
     const itemKeys = todoService.filteredItems;

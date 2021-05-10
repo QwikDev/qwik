@@ -80,11 +80,11 @@ export class ElementInjector extends BaseInjector {
       } else {
         const stateJSON = this.element.getAttribute(AttributeMarker.ComponentState);
         const state = stateJSON ? (JSON.parse(stateJSON) as ComponentStateOf<COMP>) : null;
-        this.component = component = (new componentType(
+        this.component = component = new componentType(
           this.element,
-          (this.elementProps as any) as ComponentPropsOf<COMP>,
+          this.elementProps as any as ComponentPropsOf<COMP>,
           state
-        ) as unknown) as COMP;
+        ) as unknown as COMP;
         return (this.componentPromise = new Promise<COMP>((resolve, reject) => {
           let promise: Promise<any>;
           if (state == null) {
@@ -161,7 +161,7 @@ export class ElementInjector extends BaseInjector {
               state!.$key = serviceKey;
             }
             const props = serviceType.$keyToProps(serviceKey);
-            const service = (new serviceType(element, props, state) as unknown) as SERVICE;
+            const service = new serviceType(element, props, state) as unknown as SERVICE;
             let chain: Promise<any>;
             if (state) {
               serviceValue.service = service;
@@ -230,7 +230,7 @@ export class ElementInjector extends BaseInjector {
 
   releaseService(key: ServiceKey) {
     if (this.services?.delete(key)) {
-      this.element.removeAttribute((key as any) as string);
+      this.element.removeAttribute(key as any as string);
     }
   }
 

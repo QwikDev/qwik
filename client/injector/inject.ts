@@ -42,7 +42,7 @@ import { ConcreteType, InjectedFunction, ProviderReturns } from './types.js';
 export function injectFunction<ARGS extends any[], REST extends any[], RET>(
   ...args: [...ARGS, (...args: [...ProviderReturns<ARGS>, ...REST]) => RET]
 ): InjectedFunction<null, ARGS, REST, RET> {
-  const fn = (args.pop() as any) as InjectedFunction<null, ARGS, REST, RET>;
+  const fn = args.pop() as any as InjectedFunction<null, ARGS, REST, RET>;
   fn.$thisType = null;
   fn.$inject = args as any;
   qDev && (fn.$debugStack = new Error());
@@ -89,7 +89,7 @@ export function injectMethod<SELF, ARGS extends any[], REST extends any[], RET>(
     (this: SELF, ...args: [...ProviderReturns<ARGS>, ...REST]) => RET
   ]
 ): InjectedFunction<SELF, ARGS, REST, RET> {
-  const fn = (args.pop() as any) as InjectedFunction<SELF, ARGS, REST, RET>;
+  const fn = args.pop() as any as InjectedFunction<SELF, ARGS, REST, RET>;
   fn.$thisType = args.shift() as ConcreteType<SELF>;
   fn.$inject = args as any;
   qDev && (fn.$debugStack = new Error());

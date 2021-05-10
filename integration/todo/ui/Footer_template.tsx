@@ -21,7 +21,7 @@ import {
 export const _needed_by_JSX_ = jsxFactory; // eslint-disable-line @typescript-eslint/no-unused-vars
 export default injectFunction(
   provideServiceState<TodoService>(
-    (provideComponentProp('$todos') as any) as Provider<ServiceKey<TodoService>>
+    provideComponentProp('$todos') as any as Provider<ServiceKey<TodoService>>
   ), // TODO(type): fix cast
   function FooterTemplate(todos: Todo) {
     const remaining = todos.items.length - todos.completed;

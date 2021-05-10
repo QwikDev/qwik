@@ -481,7 +481,7 @@ export class Service<PROPS, STATE> {
   }
 
   /**
-   * Invoked during hydration if state is not provide or can't be re-hydrated from HTML/DOM.
+   * Invoked during hydration if state is not provide or can't be rehydrated from HTML/DOM.
    *
    * Lifecycle order:
    * - `new Service(...)`

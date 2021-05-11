@@ -6,24 +6,19 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { ServiceKey, Provider } from '../qoot.js';
-import { ItemService } from '../data/Item.js';
-import {
-  injectEventHandler,
-  provideComponentProp,
-  provideQrlExp,
-  provideService,
-} from '../qoot.js';
+import { EntityKey, Provider } from '../qoot.js';
+import { ItemEntity } from '../data/Item.js';
+import { injectEventHandler, provideComponentProp, provideQrlExp, provideEntity } from '../qoot.js';
 
 export default injectEventHandler(
   // Providers
   null,
   provideQrlExp<boolean>('toggleState'),
-  provideService<ItemService>(
-    provideComponentProp('$item') as any as Provider<ServiceKey<ItemService>>
+  provideEntity<ItemEntity>(
+    provideComponentProp('$item') as any as Provider<EntityKey<ItemEntity>>
   ), // TODO(type):
   // Handler
-  async function (this: null, toggleState: boolean, itemService: ItemService) {
-    await itemService.toggle(toggleState);
+  async function (this: null, toggleState: boolean, itemEntity: ItemEntity) {
+    await itemEntity.toggle(toggleState);
   }
 );

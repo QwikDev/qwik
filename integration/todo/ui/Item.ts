@@ -6,11 +6,11 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { ItemService } from '../data/Item.js';
-import { jsxDeclareComponent, QRL, ServiceKey } from '../qoot.js';
+import { ItemEntity } from '../data/Item.js';
+import { jsxDeclareComponent, QRL, EntityKey } from '../qoot.js';
 
 export interface ItemProps {
-  $item: ServiceKey<ItemService>;
+  $item: EntityKey<ItemEntity>;
 }
 
 export const Item = jsxDeclareComponent<ItemProps>(QRL`ui:/Item_template`, 'li');

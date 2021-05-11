@@ -6,22 +6,22 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { ServiceKey } from '../service/service_key.js';
+import { EntityKey } from '../entity/entity_key.js';
 import type { Component, ComponentConstructor } from '../component/component.js';
 import type {
-  Service,
-  ServiceConstructor,
-  ServicePromise,
-  ServicePropsOf,
-  ServiceStateOf,
-} from '../service/service.js';
+  Entity,
+  EntityConstructor,
+  EntityPromise,
+  EntityPropsOf,
+  EntityStateOf,
+} from '../entity/entity.js';
 
 /**
- * Interface for looking up components, services, properties from the DOM `Element`s.
+ * Interface for looking up components, entities, properties from the DOM `Element`s.
  *
- * `Injector` is used as a look up context and factory for components, services and properties.
+ * `Injector` is used as a look up context and factory for components, entities and properties.
  * `Injector`s are marked with `:` attribute in the DOM. `Injector`s are responsible
- * for hydrating and serializing the state of the components and services.
+ * for hydrating and serializing the state of the components and entities.
  *
  * See: `injector.md`
  * @public
@@ -60,9 +60,9 @@ export interface Injector {
    *
    * ```
    * const injectedFn = inject(
-   *   ComponentOrServiceClass,
+   *   ComponentOrEntityClass,
    *   provideSomething(),
-   *   function(this: ComponentOrServiceClass, smt: Something) {
+   *   function(this: ComponentOrEntityClass, smt: Something) {
    *     return ...;
    *   }
    * );
@@ -129,9 +129,9 @@ export interface Injector {
   elementProps: Props;
 
   /**
-   * Retrieve a service for a given key.
+   * Retrieve a entity for a given key.
    *
-   * Retrieve the service from current or parent injector walking the DOM parents.
+   * Retrieve the entity from current or parent injector walking the DOM parents.
    * The injector starts with the current element and first looks for a serialized state
    * associated with the key. If not found it than looks for a factory definition on the same
    * element. If neither is found than the request is sent to the parent injector.
@@ -140,13 +140,13 @@ export interface Injector {
    *
    * Assume that `foo:123` has been requested and assume tha the search starts at `<child>`.
    * ```
-   * <parent foo:123="{text: 'bar'}" :foo="qrlToFooService">
-   *   <child bar:123 :bar="qrlToBarService"/>
+   * <parent foo:123="{text: 'bar'}" :foo="qrlToFooEntity">
+   *   <child bar:123 :bar="qrlToBarEntity"/>
    * </parent>
    * ```
    *
    * First injector looks at `<child>`, but neither `foo:123` nor `:foo` attribute can be found
-   * so the injector delegates to `<parent>`. `<parent>` does have `foo:123` and so a service is
+   * so the injector delegates to `<parent>`. `<parent>` does have `foo:123` and so a entity is
    * materialized. Injector reads the state from the `<parent>`'s `foo:123` attribute and class
    * from `:foo` property. It then `new`es up `Foo` class with deserialized `{text: 'bar'}` state.
    *
@@ -154,43 +154,43 @@ export interface Injector {
    * once the injector gets to `<parent>` it can't find `foo:432` but it can retrieve `:foo`
    * which can be instantiated and then `Foo.$newState` can be invoke to compute the state.
    *
-   * @param serviceKey - The key of state which should be retrieved.
-   * @param state - Optional state which the service should be set to upon retrieval.
-   * @param serviceType - Optional state type. If not provide the injector looks it up from the
-   *        service `QRL` attribute.
+   * @param entityKey - The key of state which should be retrieved.
+   * @param state - Optional state which the entity should be set to upon retrieval.
+   * @param entityType - Optional state type. If not provide the injector looks it up from the
+   *        entity `QRL` attribute.
    */
-  getService<SERVICE extends Service<any, any>>(
-    serviceKey: ServiceKey<SERVICE>,
-    state?: ServiceStateOf<SERVICE>,
-    serviceType?: ServiceConstructor<SERVICE>
-  ): ServicePromise<SERVICE>;
+  getEntity<SERVICE extends Entity<any, any>>(
+    entityKey: EntityKey<SERVICE>,
+    state?: EntityStateOf<SERVICE>,
+    entityType?: EntityConstructor<SERVICE>
+  ): EntityPromise<SERVICE>;
 
   /**
-   * Retrieve the service state for a given service key.
+   * Retrieve the entity state for a given entity key.
    *
-   * This method behaves same as `getService` except it returns state only. The main advantage
+   * This method behaves same as `getEntity` except it returns state only. The main advantage
    * of this method is that it is faster in the case when state can be deserialized from the DOM.
    * This is usually useful for render methods which don't need to mutate the state for rendering.
    *
    * @param propsOrKey - The key of state which should be retrieved.
    */
-  getServiceState<SERVICE extends Service<any, any>>(
-    propsOrKey: ServicePropsOf<SERVICE> | ServiceKey<SERVICE>
-  ): Promise<ServiceStateOf<SERVICE>>;
+  getEntityState<SERVICE extends Entity<any, any>>(
+    propsOrKey: EntityPropsOf<SERVICE> | EntityKey<SERVICE>
+  ): Promise<EntityStateOf<SERVICE>>;
 
   /**
-   * Release the service.
+   * Release the entity.
    *
-   * Releasing service means that the service is released form memory and it
-   * becomes eligible for garbage collection. It also removes the service state
+   * Releasing entity means that the entity is released form memory and it
+   * becomes eligible for garbage collection. It also removes the entity state
    * from the HTML/DOM.
    *
-   * Releasing a service does not imply that the state should be deleted on backend.
+   * Releasing a entity does not imply that the state should be deleted on backend.
    */
-  releaseService(key: ServiceKey): void;
+  releaseEntity(key: EntityKey): void;
 
   /**
-   * Serialize the state of the injector and its Component/Services into DOM.
+   * Serialize the state of the injector and its Component/Entities into DOM.
    */
   serialize(): void;
 }

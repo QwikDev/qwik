@@ -6,16 +6,16 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { ServiceKey } from '../service/service_key.js';
+import { EntityKey } from '../entity/entity_key.js';
 import type { Component, ComponentConstructor } from '../component/component.js';
 import { qError, QError } from '../error/error.js';
 import {
-  Service,
-  ServiceConstructor,
-  ServicePromise,
-  ServicePropsOf,
-  ServiceStateOf,
-} from '../service/service.js';
+  Entity,
+  EntityConstructor,
+  EntityPromise,
+  EntityPropsOf,
+  EntityStateOf,
+} from '../entity/entity.js';
 import { extractPropsFromElement } from '../util/attributes.js';
 import '../util/qDev.js';
 import { resolveArgs } from './resolve_args.js';
@@ -76,19 +76,19 @@ export abstract class BaseInjector implements Injector {
   abstract getComponent<COMP extends Component<any, any>>(
     componentType: ComponentConstructor<COMP>
   ): Promise<COMP>;
-  abstract getService<SERVICE extends Service<any, any>>(
-    serviceKey: ServiceKey<SERVICE>,
-    state?: ServiceStateOf<SERVICE>,
-    serviceType?: ServiceConstructor<SERVICE>
-  ): ServicePromise<SERVICE>;
+  abstract getEntity<SERVICE extends Entity<any, any>>(
+    entityKey: EntityKey<SERVICE>,
+    state?: EntityStateOf<SERVICE>,
+    entityType?: EntityConstructor<SERVICE>
+  ): EntityPromise<SERVICE>;
 
-  abstract getServiceState<SERVICE extends Service<any, any>>(
-    serviceKey: ServicePropsOf<SERVICE> | ServiceKey
-  ): Promise<ServiceStateOf<SERVICE>>;
+  abstract getEntityState<SERVICE extends Entity<any, any>>(
+    entityKey: EntityPropsOf<SERVICE> | EntityKey
+  ): Promise<EntityStateOf<SERVICE>>;
 
   abstract getParent(): Injector | null;
 
-  abstract releaseService(key: ServiceKey): void;
+  abstract releaseEntity(key: EntityKey): void;
   abstract serialize(): void;
 }
 

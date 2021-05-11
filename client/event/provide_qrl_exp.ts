@@ -9,7 +9,7 @@
 import { Injector, Provider } from '../injector/types.js';
 import { assertDefined } from '../assert/index.js';
 import { QError, qError } from '../error/error.js';
-import { EventService } from '../event/event_service.js';
+import { EventEntity } from '../event/event_entity.js';
 
 /**
  * Inject result of url expression evaluation.
@@ -46,15 +46,15 @@ import { EventService } from '../event/event_service.js';
  */
 export function provideQrlExp<T>(parameterName: string): Provider<T> {
   return async function qrlExpProvider(injector: Injector): Promise<any> {
-    const eventService = await injector.getService(EventService.KEY);
-    const value = eventService.props[parameterName]!;
+    const eventEntity = await injector.getEntity(EventEntity.KEY);
+    const value = eventEntity.props[parameterName]!;
     if (value == null) {
-      throw qError(QError.Core_missingProperty_name_props, parameterName, eventService.props);
+      throw qError(QError.Core_missingProperty_name_props, parameterName, eventEntity.props);
     }
 
     switch (value.charAt(0)) {
       case '.':
-        let obj: any = eventService.event;
+        let obj: any = eventEntity.event;
         qDev && assertDefined(obj);
         const parts = value.substr(1).split('.');
         while (parts.length && obj) {

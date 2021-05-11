@@ -6,21 +6,17 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { injectMethod, markDirty, provideService } from '../qoot.js';
-import { TodoService } from './Todo.js';
-import { ItemService } from './Item.js';
+import { injectMethod, markDirty, provideEntity } from '../qoot.js';
+import { TodoEntity } from './Todo.js';
+import { ItemEntity } from './Item.js';
 
 export default injectMethod(
-  ItemService,
-  provideService(TodoService.SINGLETON),
-  async function ItemService_toggle(
-    this: ItemService,
-    todoService: TodoService,
-    isCompleted: boolean
-  ) {
+  ItemEntity,
+  provideEntity(TodoEntity.MOCK_USER),
+  async function ItemEntity_toggle(this: ItemEntity, todoEntity: TodoEntity, isCompleted: boolean) {
     this.$state.completed = !this.$state.completed;
-    todoService.$state.completed += isCompleted ? +1 : -1;
-    markDirty(todoService);
+    todoEntity.$state.completed += isCompleted ? +1 : -1;
+    markDirty(todoEntity);
     markDirty(this);
   }
 );

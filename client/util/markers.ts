@@ -25,9 +25,9 @@ export const enum AttributeMarker {
   ComponentTemplate = 'decl:template',
 
   /**
-   * Props used to declare services.
+   * Props used to declare entity.
    */
-  Services = 'decl:services',
+  Entity = 'decl:entity',
 
   /**
    * Component state is serialized in `:.`.
@@ -66,7 +66,7 @@ export const enum AttributeMarker {
   BindPrefixLength = 5,
 
   /**
-   * Prefix to name for service provider attributes.
+   * Prefix to name for entity provider attributes.
    */
-  ServiceProviderPrefix = '::',
+  EntityProviderPrefix = '::',
 }

@@ -7,7 +7,7 @@
  */
 
 import { QRL } from 'client/import/qrl.js';
-import { ServiceConstructor } from '../../service/service.js';
+import { EntityConstructor } from '../../entity/entity.js';
 
 /**
  * Base JSX type containing universal properties.
@@ -16,11 +16,11 @@ import { ServiceConstructor } from '../../service/service.js';
  */
 export interface JSXBase {
   /**
-   * Declare `Injector` `Service` providers.
+   * Declare `Injector` `Entity` providers.
    *
-   * See: `Injector`, `Service`
+   * See: `Injector`, `Entity`
    */
-  'decl:services'?: ServiceConstructor<any>[];
+  'decl:entity'?: EntityConstructor<any>[];
 
   /**
    * Declare component template.

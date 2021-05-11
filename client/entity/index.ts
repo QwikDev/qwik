@@ -13,10 +13,10 @@
  */
 
 export {
-  Service,
-  ServiceConstructor,
-  ServiceStateOf,
-  ServicePropsOf,
-  ServicePromise,
-} from './service.js';
-export { serviceStateKey, ServiceKey, toServiceKey } from './service_key.js';
+  Entity,
+  EntityConstructor,
+  EntityStateOf,
+  EntityPropsOf,
+  EntityPromise,
+} from './entity.js';
+export { entityStateKey, EntityKey, toEntityKey } from './entity_key.js';

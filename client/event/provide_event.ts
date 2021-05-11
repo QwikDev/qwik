@@ -7,7 +7,7 @@
  */
 
 import { Injector, Provider } from '../injector/types.js';
-import { EventService } from './event_service.js';
+import { EventEntity } from './event_entity.js';
 
 /**
  * Provide the event.
@@ -33,6 +33,6 @@ import { EventService } from './event_service.js';
  */
 export function provideEvent(): Provider<Event> {
   return async function eventProvider(injector: Injector) {
-    return (await injector.getService(EventService.KEY)).event;
+    return (await injector.getEntity(EventEntity.KEY)).event;
   };
 }

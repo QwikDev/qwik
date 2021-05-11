@@ -13,7 +13,7 @@ import { createGlobal } from './node_utils.js';
 /**
  * Creates a simple DOM structure for testing components.
  *
- * By default `ServiceFixture` creates:
+ * By default `EntityFixture` creates:
  *
  * ```
  * <host decl:template="./component_fixture.noop">

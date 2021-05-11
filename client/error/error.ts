@@ -24,26 +24,26 @@ export const enum QError {
   Injector_expectedSpecificInjector_expected_actual = 201,
   Injector_notElement_arg = 202,
   Injector_wrongMethodThis_expected_actual = 203,
-  Injector_missingSerializedState_serviceKey_element = 204,
+  Injector_missingSerializedState_entityKey_element = 204,
   Injector_notFound_element = 206,
   Injector_eventInjectorNotSerializable = 207,
-  // Services 300-399
-  Service_notValidKey_key = 300,
-  Service_keyAlreadyExists_key = 301,
-  Service_invalidAttribute_name = 303,
-  Service_missingExpandoOrState_attrName = 304,
-  Service_elementMissingServiceAttr_element_attr = 305,
-  Service_noState_service_props = 306,
-  Service_expected_obj = 307,
-  Service_overridesConstructor_service = 308,
-  Service_keyMissingParts_key_key = 309,
-  Service_no$type_service = 310,
-  Service_no$keyProps_service = 311,
-  Service_no$qrl_service = 312,
-  Service_nameCollision_name_currentQrl_expectedQrl = 313,
-  Service_keyTooManyParts_service_parts_key = 314,
-  Service_keyNameMismatch_key_name_service_name = 315,
-  Service_stateMissingKey_state = 316,
+  // Entities 300-399
+  Entity_notValidKey_key = 300,
+  Entity_keyAlreadyExists_key = 301,
+  Entity_invalidAttribute_name = 303,
+  Entity_missingExpandoOrState_attrName = 304,
+  Entity_elementMissingEntityAttr_element_attr = 305,
+  Entity_noState_entity_props = 306,
+  Entity_expected_obj = 307,
+  Entity_overridesConstructor_entity = 308,
+  Entity_keyMissingParts_key_key = 309,
+  Entity_no$type_entity = 310,
+  Entity_no$keyProps_entity = 311,
+  Entity_no$qrl_entity = 312,
+  Entity_nameCollision_name_currentQrl_expectedQrl = 313,
+  Entity_keyTooManyParts_entity_parts_key = 314,
+  Entity_keyNameMismatch_key_name_entity_name = 315,
+  Entity_stateMissingKey_state = 316,
   // Component 400-499
   Component_bindNeedsKey = 400,
   Component_bindNeedsValue = 401,
@@ -59,9 +59,9 @@ export const enum QError {
   // Render 600-699
   Render_unexpectedJSXNodeType_type = 600,
   Render_unsupportedFormat_obj_attr = 601,
-  Render_expectingService_service = 602,
-  Render_expectingServiceArray_obj = 603,
-  Render_expectingServiceOrComponent_obj = 604,
+  Render_expectingEntity_entity = 602,
+  Render_expectingEntityArray_obj = 603,
+  Render_expectingEntityOrComponent_obj = 604,
   Render_noRAF = 605,
   Render_bindNeedsComponent_key_element = 606,
   // Event
@@ -96,9 +96,9 @@ function codeToText(code: QError): string {
     [QError.Core_qConfigNotFound_path]: "QConfig not found in path '{}'.",
     [QError.Core_unrecognizedStack_frame]: "Unrecognized stack format '{}'",
     [QError.Core_noAttribute_atr1_element]:
-      "Could not find service state '{}' at '{}' or any of it's parents.",
+      "Could not find entity state '{}' at '{}' or any of it's parents.",
     [QError.Core_noAttribute_atr1_attr2_element]:
-      "Could not find service state '{}' ( or service provider '{}') at '{}' or any of it's parents.",
+      "Could not find entity state '{}' ( or entity provider '{}') at '{}' or any of it's parents.",
     [QError.Core_missingProperty_name_props]: "Missing property '{}' in props '{}'.",
     [QError.Core_missingExport_name_url_props]:
       "Missing export '{}' from '{}'. Exported symbols are: {}",
@@ -111,44 +111,44 @@ function codeToText(code: QError): string {
     [QError.Injector_notElement_arg]: "Expected 'Element' was '{}'.",
     [QError.Injector_wrongMethodThis_expected_actual]:
       "Expected injection 'this' to be of type '{}', but was of type '{}'.",
-    [QError.Injector_missingSerializedState_serviceKey_element]:
-      "Service key '{}' is found on '{}' but does not contain state. Was 'serializeState()' not run during dehydration?",
+    [QError.Injector_missingSerializedState_entityKey_element]:
+      "Entity key '{}' is found on '{}' but does not contain state. Was 'serializeState()' not run during dehydration?",
     [QError.Injector_notFound_element]: "No injector can be found starting at '{}'.",
     [QError.Injector_eventInjectorNotSerializable]: 'EventInjector does not support serialization.',
     //////////////
-    [QError.Service_notValidKey_key]:
+    [QError.Entity_notValidKey_key]:
       "Data key '{}' is not a valid key.\n" +
       '  - Data key can only contain characters (preferably lowercase) or number\n' +
-      '  - Data key is prefixed with service name\n' +
+      '  - Data key is prefixed with entity name\n' +
       "  - Data key is made up from parts that are separated with ':'.",
-    [QError.Service_keyAlreadyExists_key]: "A service with key '{}' already exists.",
-    [QError.Service_invalidAttribute_name]:
+    [QError.Entity_keyAlreadyExists_key]: "A entity with key '{}' already exists.",
+    [QError.Entity_invalidAttribute_name]:
       "'{}' is not a valid attribute. " +
       "Attributes can only contain 'a-z' (lowercase), '0-9', '-' and '_'.",
-    [QError.Service_missingExpandoOrState_attrName]:
-      "Found '{}' but expando did not have service and attribute did not have state.",
-    [QError.Service_elementMissingServiceAttr_element_attr]:
-      "Element '{}' is missing service attribute definition '{}'.",
-    [QError.Service_noState_service_props]:
-      "Unable to create state for service '{}' with props '{}' because no state found and '$newState()' method was not defined on service.",
-    [QError.Service_expected_obj]: "'{}' is not an instance of 'Service'.",
-    [QError.Service_overridesConstructor_service]:
-      "'{}' overrides 'constructor' property preventing 'ServiceType' retrieval.",
-    [QError.Service_no$keyProps_service]: "Service '{}' does not define '$keyProps'.",
-    [QError.Service_no$type_service]:
-      "Service '{}' must have static '$type' property defining the name of the service.",
-    [QError.Service_no$qrl_service]:
-      "Service '{}' must have static '$qrl' property defining the import location of the service.",
-    [QError.Service_nameCollision_name_currentQrl_expectedQrl]:
-      "Name collision. Already have service named '{}' with QRL '{}' but expected QRL '{}'.",
-    [QError.Service_keyMissingParts_key_key]:
-      "Service key '{}' is missing values. Expecting '{}:someValue'.",
-    [QError.Service_keyTooManyParts_service_parts_key]:
-      "Service '{}' defines '$keyProps' as  '{}'. Actual key '{}' has more parts than service defines.",
-    [QError.Service_keyNameMismatch_key_name_service_name]:
-      "Key '{}' belongs to service named '{}', but expected service '{}' with name '{}'.",
-    [QError.Service_stateMissingKey_state]:
-      "Service state is missing '$key'. Are you sure you passed in state? Got '{}'.",
+    [QError.Entity_missingExpandoOrState_attrName]:
+      "Found '{}' but expando did not have entity and attribute did not have state.",
+    [QError.Entity_elementMissingEntityAttr_element_attr]:
+      "Element '{}' is missing entity attribute definition '{}'.",
+    [QError.Entity_noState_entity_props]:
+      "Unable to create state for entity '{}' with props '{}' because no state found and '$newState()' method was not defined on entity.",
+    [QError.Entity_expected_obj]: "'{}' is not an instance of 'Entity'.",
+    [QError.Entity_overridesConstructor_entity]:
+      "'{}' overrides 'constructor' property preventing 'EntityType' retrieval.",
+    [QError.Entity_no$keyProps_entity]: "Entity '{}' does not define '$keyProps'.",
+    [QError.Entity_no$type_entity]:
+      "Entity '{}' must have static '$type' property defining the name of the entity.",
+    [QError.Entity_no$qrl_entity]:
+      "Entity '{}' must have static '$qrl' property defining the import location of the entity.",
+    [QError.Entity_nameCollision_name_currentQrl_expectedQrl]:
+      "Name collision. Already have entity named '{}' with QRL '{}' but expected QRL '{}'.",
+    [QError.Entity_keyMissingParts_key_key]:
+      "Entity key '{}' is missing values. Expecting '{}:someValue'.",
+    [QError.Entity_keyTooManyParts_entity_parts_key]:
+      "Entity '{}' defines '$keyProps' as  '{}'. Actual key '{}' has more parts than entity defines.",
+    [QError.Entity_keyNameMismatch_key_name_entity_name]:
+      "Key '{}' belongs to entity named '{}', but expected entity '{}' with name '{}'.",
+    [QError.Entity_stateMissingKey_state]:
+      "Entity state is missing '$key'. Are you sure you passed in state? Got '{}'.",
     //////////////
     [QError.Component_bindNeedsKey]:
       "'bind:' must have an key. (Example: 'bind:key=\"propertyName\"').",
@@ -171,9 +171,9 @@ function codeToText(code: QError): string {
     //////////////
     [QError.Render_unexpectedJSXNodeType_type]: 'Unexpected JSXNode<{}> type.',
     [QError.Render_unsupportedFormat_obj_attr]: "Value '{}' can't be written into '{}' attribute.",
-    [QError.Render_expectingService_service]: "Expecting service object, got '{}'.",
-    [QError.Render_expectingServiceArray_obj]: "Expecting array of services, got '{}'.",
-    [QError.Render_expectingServiceOrComponent_obj]: "Expecting Service or Component got '{}'.",
+    [QError.Render_expectingEntity_entity]: "Expecting entity object, got '{}'.",
+    [QError.Render_expectingEntityArray_obj]: "Expecting array of entities, got '{}'.",
+    [QError.Render_expectingEntityOrComponent_obj]: "Expecting Entity or Component got '{}'.",
     [QError.Render_noRAF]:
       "'requestAnimationFrame' not found. If you are running on server design your applications in a way which does not require 'requestAnimationFrame' on first render.",
     [QError.Render_bindNeedsComponent_key_element]:

@@ -7,7 +7,7 @@
  */
 
 import { Injector, Provider } from '../injector/types.js';
-import { EventService } from './event_service.js';
+import { EventEntity } from './event_entity.js';
 
 /**
  * Provide the event URL.
@@ -32,7 +32,7 @@ import { EventService } from './event_service.js';
  */
 export function provideURL(): Provider<URL> {
   return async function urlProvider(injector: Injector): Promise<URL> {
-    return (await injector.getService(EventService.KEY)).url;
+    return (await injector.getEntity(EventEntity.KEY)).url;
   };
 }
 
@@ -61,6 +61,6 @@ export function provideURL(): Provider<URL> {
  */
 export function provideUrlProp(parameterName: string): Provider<string | null> {
   return async function eventPropProvider(injector: Injector) {
-    return (await injector.getService(EventService.KEY)).props[parameterName] || null;
+    return (await injector.getEntity(EventEntity.KEY)).props[parameterName] || null;
   };
 }

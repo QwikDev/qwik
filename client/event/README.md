@@ -18,7 +18,7 @@ Qoot's goal is to have extremely fast startup times. Qoot achieves this by minim
 
 ### Resumable vs Replayable Applications
 
-Most frameworks create replayable applications. By replayable, we mean that once the server renders the page, the client must re-run the whole application to get the client memory-heap into a state to be ready to interact with the users. Examples are: setting up listeners, subscribers, closures, and service objects. The more complicated the page, the more complex the amount of code the client has to replay in order to get the client memory-heap into the right state.
+Most frameworks create replayable applications. By replayable, we mean that once the server renders the page, the client must re-run the whole application to get the client memory-heap into a state to be ready to interact with the users. Examples are: setting up listeners, subscribers, closures, and entity objects. The more complicated the page, the more complex the amount of code the client has to replay in order to get the client memory-heap into the right state.
 
 In contrast, Qoot aims to be resumable. A resumable application can always be serialized and send across the wire. On the client-side, there is no need to replay any of the SSR code on the client. The application has all of the relevant information serialized in HTML in a form such that the client can resume where it left off. For example, once the chrome of the application is rendered there is no need ever to execute that code if the chrome is static.
 
@@ -44,11 +44,11 @@ A component store state. There are three different kinds of states which Qoot re
 
 1. **Private State**: A private state of the component is a state which only matters to the component. For example, in case of a collapsible UI element, whether or not the element is collapsed is private state of the component. (A component can choose to expose its private state, but that is beyond the scope of this discussion.)
 1. **Shared State**: A shared state is information that can be part of more than one component. Typically this is information that needs to be persisted on the server. Because it is shared between components it can't be serialized within each components because doing so would lead to duplication. An example would be a to-do item in a task tracking application.
-1. **Transient State**: Any other state which is useful for component but which will not be serialized. (Component will have to re-computer that state if needed.) For examples services are transient. They can be lazily created, and they can't be serialized. (A configuration for the service may be serializable.)
+1. **Transient State**: Any other state which is useful for component but which will not be serialized. (Component will have to re-computer that state if needed.) For examples entities are transient. They can be lazily created, and they can't be serialized. (A configuration for the entity may be serializable.)
 
 ## Listeners
 
-In traditional applications, listeners are problematic because they cause a lot of code to be downloaded even if the user never interacts with that listener. For example, a shopping checkout code may be very complex, but clicking on the purchase button is rare. A replayable application must set up a listener on the purchase button. The listener, in turn, needs a reference to the purchase service. All of these objects need to be created and wired into the listener on application startup. This causes a lot of code to be downloaded which may never be executed.
+In traditional applications, listeners are problematic because they cause a lot of code to be downloaded even if the user never interacts with that listener. For example, a shopping checkout code may be very complex, but clicking on the purchase button is rare. A replayable application must set up a listener on the purchase button. The listener, in turn, needs a reference to the purchase entity. All of these objects need to be created and wired into the listener on application startup. This causes a lot of code to be downloaded which may never be executed.
 
 Qoot solves this by having a declarative way of setting up listeners. The listeners only specify where the code lives (import.) Unless the event fires, the listener never loads the code. The result is that Qoot only loads code when it is strictly necessary and thus delays most of the work until later. This leads to fast startup time because only very little code needs to be downloaded, and even less needs to be executed.
 
@@ -247,13 +247,13 @@ export class GreeterComponent extends Component<GreeterProps, GreeterState> {
 
 For general discussion of injection, see [Injection](../injection).
 
-Injecting services into components is done through the constructor. The injection system needs a list of tokens that need to be injected into the constructor. The injection list is stored on the static `$inject` property. To ensure that the injection list matches the constructor arguments, `provideComponent()` is used to verify that the injection list and the component constructor matches.
+Injecting entities into components is done through the constructor. The injection system needs a list of tokens that need to be injected into the constructor. The injection list is stored on the static `$inject` property. To ensure that the injection list matches the constructor arguments, `provideComponent()` is used to verify that the injection list and the component constructor matches.
 
 ```typescript
 export class GreeterComponent extends Component<GreeterProps, GreeterState> {
   // Declare constructor dependencies in static `$inject` property
   // `provideComponent` verifies that the items injected match constructor arguments.
-  static $inject = provideComponent(SomeService, GreeterComponent);
-  constructor(private service: SomeService) {}
+  static $inject = provideComponent(SomeEntity, GreeterComponent);
+  constructor(private entity: SomeEntity) {}
 }
 ```

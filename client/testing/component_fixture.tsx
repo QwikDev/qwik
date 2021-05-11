@@ -8,7 +8,7 @@
 
 import { AttributeMarker } from '../util/markers.js';
 import { assertDefined } from '../assert/assert.js';
-import { Component, jsxFactory, QRL, Service } from '../index.js';
+import { Component, jsxFactory, QRL, Entity } from '../index.js';
 import { getInjector } from '../injector/element_injector.js';
 import { Injector } from '../injector/types.js';
 import { jsxRender, JSXFactory } from '../render/jsx/index.js';
@@ -103,7 +103,7 @@ export function greeterTemplate(props: GreeterProps) {
 }
 
 ////////////////////////////////////////////////////////////
-// `PersonService` definition useful for writing tests
+// `PersonEntity` definition useful for writing tests
 ////////////////////////////////////////////////////////////
 
 export interface PersonProps {
@@ -117,8 +117,8 @@ export interface Person {
   age: number;
 }
 
-export class PersonService extends Service<PersonProps, Person> {
-  static $qrl = QRL`${import.meta.url.replace(/\.js$/, '.PersonService')}`;
+export class PersonEntity extends Entity<PersonProps, Person> {
+  static $qrl = QRL`${import.meta.url.replace(/\.js$/, '.PersonEntity')}`;
   static $type = 'Person';
   static $keyProps = [`last`, 'first'];
 

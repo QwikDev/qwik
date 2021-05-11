@@ -6,8 +6,8 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { TodoService } from '../data/Todo.js';
-import { injectEventHandler, provideService } from '../qoot.js';
+import { TodoEntity } from '../data/Todo.js';
+import { injectEventHandler, provideEntity } from '../qoot.js';
 
 /**
  * @fileoverview
@@ -18,8 +18,8 @@ import { injectEventHandler, provideService } from '../qoot.js';
  */
 export default injectEventHandler(
   null,
-  provideService(TodoService.SINGLETON),
-  async function (todoService: TodoService) {
-    await todoService.archive();
+  provideEntity(TodoEntity.MOCK_USER),
+  async function (todoEntity: TodoEntity) {
+    await todoEntity.archive();
   }
 );

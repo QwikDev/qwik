@@ -20,7 +20,7 @@
     "@bazel/bazelisk": "^1.7.5",
     "@bazel/buildifier": "^4.0.1",
     "@bazel/cypress": "^3.2.0",
-    "@bazel/ibazel": "^0.15.6",
+    "@bazel/ibazel": "^0.15.10",
     "@bazel/rollup": "^3.2.2",
     "@bazel/terser": "^3.2.2",
     "@bazel/typescript": "3.2.0",
@@ -66,6 +66,7 @@
     "bazel:format": "find . -type f \\( -name \"*.bzl\" -or -name WORKSPACE -or -name BUILD -or -name BUILD.bazel \\) ! -path \"*/node_modules/*\" | xargs buildifier -v --warnings=attr-cfg,attr-license,attr-non-empty,attr-output-default,attr-single-file,constant-glob,ctx-actions,ctx-args,depset-iteration,depset-union,dict-concatenation,duplicated-name,filetype,git-repository,http-archive,integer-division,load,load-on-top,native-build,native-package,out-of-order-load,output-group,package-name,package-on-top,positional-args,redefined-variable,repository-name,same-origin-load,string-iteration,unsorted-dict-items,unused-variable",
     "bazel:lint": "npm run bazel:format --lint=warn",
     "bazel:lint-fix": "npm run bazel:format --lint=fix",
+    "cypress": "cypress open",
     "prepare": "husky install"
   },
   "author": "Miško Hevery <misko@hevery.com>",

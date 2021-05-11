@@ -7,23 +7,23 @@
  */
 
 import { injectMethod, markDirty, getInjector } from '../qoot.js';
-import { TodoService } from './Todo.js';
+import { TodoEntity } from './Todo.js';
 
 export default injectMethod(
-  TodoService, //
-  async function archive(this: TodoService) {
+  TodoEntity, //
+  async function archive(this: TodoEntity) {
     const items = this.$state.items;
     const element = this.$element;
     const injector = getInjector(element);
-    this.$state.items = (await Promise.all(items.map((key) => injector.getService(key))))
-      .filter((itemService) => {
-        const completed = itemService.$state.completed;
+    this.$state.items = (await Promise.all(items.map((key) => injector.getEntity(key))))
+      .filter((itemEntity) => {
+        const completed = itemEntity.$state.completed;
         if (completed) {
-          itemService.$release();
+          itemEntity.$release();
         }
         return !completed;
       })
-      .map((itemService) => itemService.$key);
+      .map((itemEntity) => itemEntity.$key);
 
     this.$state.completed = 0;
     this.setFilter(this.$state.filter);

@@ -6,22 +6,22 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { ServiceKey } from '../service/service_key.js';
-import { Service } from '../service/service.js';
+import { EntityKey } from '../entity/entity_key.js';
+import { Entity } from '../entity/entity.js';
 import { Props } from '../injector/types.js';
 import { QRL } from '../import/qrl.js';
 
 /**
- * `EventService` is only visible during event processing and can be used to retrieve `Event`
+ * `EventEntity` is only visible during event processing and can be used to retrieve `Event`
  * related information.
  *
  * @public
  */
-export class EventService extends Service<any, any> {
+export class EventEntity extends Entity<any, any> {
   static $qrl: QRL = '' as any;
-  static $type = '$EventService';
+  static $type = '$EventEntity';
   static $props = ['id'];
-  static KEY: ServiceKey<EventService> = '$event:' as any;
+  static KEY: EntityKey<EventEntity> = '$event:' as any;
 
   /**
    * Current `Event`.
@@ -40,7 +40,7 @@ export class EventService extends Service<any, any> {
 
   constructor(element: Element, event: Event, url: URL, props: Props) {
     super(element, null!, null!);
-    (this as { $key: ServiceKey }).$key = EventService.KEY;
+    (this as { $key: EntityKey }).$key = EventEntity.KEY;
     this.event = event;
     this.url = url;
     this.props = props;

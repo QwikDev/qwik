@@ -9,7 +9,7 @@
 import { expect } from 'chai';
 import { ElementFixture } from '../testing/element_fixture.js';
 import { EventInjector } from './event_injector.js';
-import { EventService } from './event_service.js';
+import { EventEntity } from './event_entity.js';
 
 describe('EventInjector', () => {
   let fixture: ElementFixture;
@@ -19,9 +19,9 @@ describe('EventInjector', () => {
     const event = 'EVENT' as any as Event;
     const url = new URL('http://localhost/path?a=b&c=d');
     const eventInjector = new EventInjector(fixture.host, event, url);
-    const eventService = await eventInjector.getService(EventService.KEY);
-    expect(eventService.event).to.equal(event);
-    expect(eventService.url).to.equal(url);
-    expect(eventService.props).to.eql({ a: 'b', c: 'd' });
+    const eventEntity = await eventInjector.getEntity(EventEntity.KEY);
+    expect(eventEntity.event).to.equal(event);
+    expect(eventEntity.url).to.equal(url);
+    expect(eventEntity.props).to.eql({ a: 'b', c: 'd' });
   });
 });

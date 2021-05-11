@@ -13,7 +13,7 @@ import { QRL } from '../import/qrl.js';
 import { ElementFixture } from '../testing/element_fixture.js';
 import { EventInjector } from './event_injector.js';
 import { injectEventHandler } from './inject_event_handler.js';
-import { EventService } from './event_service.js';
+import { EventEntity } from './event_entity.js';
 
 describe('injectEventHandler', () => {
   let fixture: ElementFixture;
@@ -27,10 +27,10 @@ describe('injectEventHandler', () => {
     const fn = injectEventHandler(
       MyComponent,
       async (injector: EventInjector) => {
-        const eventService = await injector.getService(EventService.KEY);
+        const eventEntity = await injector.getEntity(EventEntity.KEY);
         expect(injector.element).to.equal(fixture.host);
-        expect(eventService.event).to.equal(event);
-        expect(eventService.url).to.equal(url);
+        expect(eventEntity.event).to.equal(event);
+        expect(eventEntity.url).to.equal(url);
         return 'providerValue';
       },
       function (this: MyComponent, arg0: string) {

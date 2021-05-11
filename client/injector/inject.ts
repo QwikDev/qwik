@@ -13,7 +13,7 @@ import { ConcreteType, InjectedFunction, ProviderReturns } from './types.js';
  * Decorate a function for injection by associating providers.
  *
  * Invoking a function through an injector allows the function to declaratively list a set
- * of values which are needed by the function. The values can be services, components or props.
+ * of values which are needed by the function. The values can be entities, components or props.
  * The advantage of declarative approach is that the injector takes care of locating the values
  * as well as delaying the invocation until all the values have been resolved and or lazy loaded.
  *
@@ -25,8 +25,8 @@ import { ConcreteType, InjectedFunction, ProviderReturns } from './types.js';
  *
  * ```
  * export const myFn =  injectFunction(
- *   provideService<MyService>(provideComponentProp('$myKey')),
- *   function (todoService: TodoService) {
+ *   provideEntity<MyEntity>(provideComponentProp('$myKey')),
+ *   function (todoEntity: TodoEntity) {
  *     ...
  *   }
  * );
@@ -53,7 +53,7 @@ export function injectFunction<ARGS extends any[], REST extends any[], RET>(
  * Decorate a method for injection by associating providers.
  *
  * Invoking a method through an injector allows the function to declaratively list a set
- * of values which are needed by the method. The values can be services, components or props.
+ * of values which are needed by the method. The values can be entities, components or props.
  * The advantage of declarative approach is that the injector takes care of locating the values
  * as well as delaying the invocation until all the values have been resolved and or lazy loaded.
  *
@@ -67,14 +67,14 @@ export function injectFunction<ARGS extends any[], REST extends any[], RET>(
  *
  * ```
  * export const greet = injectMethod(
- *   GreeterService,
- *   provideService<MyService>(provideComponentProp('$myKey')),
- *   function (this: GreeterService, myService: MyService) {
+ *   GreeterEntity,
+ *   provideEntity<MyEntity>(provideComponentProp('$myKey')),
+ *   function (this: GreeterEntity, myEntity: MyEntity) {
  *     return (this.$state.greeting = this.$props.salutation + ' ' + this.$props.name + '!');
  *   }
  * );
  *
- * await injector.invoke(greet, new GreetService());
+ * await injector.invoke(greet, new GreetEntity());
  * ```
  *
  * @param args - Takes a list of `async` functions. The 0 through n-1 functions compute a value

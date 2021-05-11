@@ -7,11 +7,11 @@
  */
 
 import { expect } from 'chai';
-import { GreeterComponent, PersonService } from '../../testing/component_fixture.js';
+import { GreeterComponent, PersonEntity } from '../../testing/component_fixture.js';
 import { stringifyDebug } from '../../error/stringify.js';
 import { MockRequestAnimationFrame } from '../../testing/node_utils.js';
 import { AttributeMarker } from '../../util/markers.js';
-import { markDirty, markServiceDirty, scheduleRender } from './mark_dirty.js';
+import { markDirty, markEntityDirty, scheduleRender, toAttrQuery } from './mark_dirty.js';
 import { ElementFixture } from '../../testing/element_fixture.js';
 
 describe('mark_dirty', () => {
@@ -37,8 +37,8 @@ describe('mark_dirty', () => {
   });
 
   describe('markServiceDirty', () => {
-    it('should mark component bound to service as dirty', async () => {
-      const personService = await PersonService.$hydrate(fixture.parent, {
+    it('should mark component bound to entity as dirty', async () => {
+      const personService = await PersonEntity.$hydrate(fixture.parent, {
         first: 'First',
         last: 'Last',
       });
@@ -54,6 +54,12 @@ describe('mark_dirty', () => {
       (window.requestAnimationFrame as MockRequestAnimationFrame).flush();
       expect(stringifyDebug(await elementsPromise)).to.eql(stringifyDebug([fixture.host]));
       expect(fixture.host.innerHTML).to.equal('<span>Hello World!</span>');
+    });
+  });
+
+  describe('toAttrQuery', () => {
+    it('should escape attrs', () => {
+      expect(toAttrQuery('a:b:123')).to.eql('[a\\:b\\:123]');
     });
   });
 
@@ -74,9 +80,9 @@ describe('mark_dirty', () => {
     beforeEach(() => {
       window.requestAnimationFrame = null!;
     });
-    it('should throw error if neither Component nor Service', () => {
+    it('should throw error if neither Component nor Entity', () => {
       expect(() => markDirty({ mark: 'other' } as any)).to.throw(
-        `RENDER-ERROR(Q-604): Expecting Service or Component got '{"mark":"other"}'.`
+        `RENDER-ERROR(Q-604): Expecting Entity or Component got '{"mark":"other"}'.`
       );
     });
     it('should throw error rAF is not available (server)', () => {
@@ -85,13 +91,13 @@ describe('mark_dirty', () => {
       );
     });
     it('should throw an error if bind:_ is not on a component', async () => {
-      const personService = await PersonService.$hydrate(fixture.parent, {
+      const personService = await PersonEntity.$hydrate(fixture.parent, {
         first: 'First',
         last: 'Last',
       });
       host.setAttribute(AttributeMarker.BindPrefix + personService.$key, '$person');
       host.removeAttribute(AttributeMarker.ComponentTemplate);
-      expect(() => markServiceDirty(personService)).to.throw(
+      expect(() => markEntityDirty(personService)).to.throw(
         `RENDER-ERROR(Q-606): Expecting that element with 'bind:person:-last:-first' should be a component (should have 'decl:template="qrl"' attribute): <host : bind:person:-last:-first='$person'>`
       );
     });

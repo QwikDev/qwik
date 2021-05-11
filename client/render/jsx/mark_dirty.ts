@@ -12,7 +12,7 @@ import { Component, isComponent } from '../../component/component.js';
 import { QError, qError } from '../../error/error.js';
 import { QRL } from '../../import/qrl.js';
 import { Props } from '../../injector/types.js';
-import { isService, Service } from '../../service/service.js';
+import { isEntity, Entity } from '../../entity/entity.js';
 import { extractPropsFromElement } from '../../util/attributes.js';
 import { AttributeMarker } from '../../util/markers.js';
 import { flattenPromiseTree, isPromise } from '../../util/promises.js';
@@ -20,7 +20,7 @@ import { HostElements } from '../types.js';
 import { jsxRenderComponent } from './render.js';
 
 /**
- * Marks `Component` or `Service` dirty.
+ * Marks `Component` or `Entity` dirty.
  *
  * # `Component`
  *
@@ -29,39 +29,39 @@ import { jsxRenderComponent } from './render.js';
  * Marking a `Component` dirty will add `on:q-render` attribute to each component which `markDirty`
  * is invoked on..
  *
- * # `Service`
+ * # `Entity`
  *
- * Marking a `Service` dirty means that all `Component`s which depend on the instance of the `Service`
- * identified by its `ServiceKey` are also marked dirty.
+ * Marking a `Entity` dirty means that all `Component`s which depend on the instance of the `Entity`
+ * identified by its `EntityKey` are also marked dirty.
  *
  * To get a list of `Component`s a `querySelectorAll` is used to retrieve all `Components` which have
- * `bind:service-key` attribute and subsequently mark them with an `on:q-render` attribute.
+ * `bind:entity-key` attribute and subsequently mark them with an `on:q-render` attribute.
  *
  * This in effect propagates any changes to the service to all components which depend upon the
  * service as an input.
  *
  * # Reconciliation
  *
- * Marking a `Component` or `Service` dirty will schedule a `requestAnimationFrame` to reconcile
+ * Marking a `Component` or `Entity` dirty will schedule a `requestAnimationFrame` to reconcile
  * the `Component`s which are marked with `on:q-render` attribute. When `requestAnimationFrame` fires
  * a `querySelectorAll` is used to retrieve all components marked with `on:q-render` attribute.
  * The `jsxRender` method is invoked on them, and the `on:q-render` attribute cleared.
  *
- * @param componentServiceOrElement - `Component`, `Service` or `Element` instance to mark dirty.
+ * @param componentEntityOrElement - `Component`, `Entity` or `Element` instance to mark dirty.
  * @returns a `Promise` of all of the `HostElements` which were re-rendered.
  * @public
  */
 export function markDirty(
-  componentServiceOrElement: Component<any, any> | Service<any, any> | Element
+  componentEntityOrElement: Component<any, any> | Entity<any, any> | Element
 ): Promise<HostElements> {
-  if (isService(componentServiceOrElement)) {
-    return markServiceDirty(componentServiceOrElement);
-  } else if (isComponent(componentServiceOrElement)) {
-    return markComponentDirty(componentServiceOrElement);
-  } else if (isElement(componentServiceOrElement)) {
-    return markElementDirty(componentServiceOrElement);
+  if (isEntity(componentEntityOrElement)) {
+    return markEntityDirty(componentEntityOrElement);
+  } else if (isComponent(componentEntityOrElement)) {
+    return markComponentDirty(componentEntityOrElement);
+  } else if (isElement(componentEntityOrElement)) {
+    return markElementDirty(componentEntityOrElement);
   } else {
-    throw qError(QError.Render_expectingServiceOrComponent_obj, componentServiceOrElement);
+    throw qError(QError.Render_expectingEntityOrComponent_obj, componentEntityOrElement);
   }
 }
 
@@ -91,9 +91,9 @@ export function markElementDirty(host: Element): Promise<HostElements> {
 /**
  * @internal
  */
-export function markServiceDirty(service: Service<any, any>): Promise<HostElements> {
-  const key = service.$key;
-  const document = service.$element.ownerDocument as QDocument;
+export function markEntityDirty(entity: Entity<any, any>): Promise<HostElements> {
+  const key = entity.$key;
+  const document = entity.$element.ownerDocument as QDocument;
   let foundListener = false;
   document
     .querySelectorAll(toAttrQuery(AttributeMarker.BindPrefix + key))
@@ -108,13 +108,12 @@ export function markServiceDirty(service: Service<any, any>): Promise<HostElemen
 
   return foundListener ? scheduleRender(document) : Promise.resolve([]);
 }
-
 /**
  * Convert the key to an attribute query that can be used in `querySelectorAll()`.
+ * @internal
  */
-function toAttrQuery(key: string): any {
-  // Escape special characters and wrap in square brackets
-  return '[' + key.replace(/[:.-_]/g, (v) => '\\' + v) + ']';
+export function toAttrQuery(key: string): any {
+  return '[' + key.replace(/[:.\-_]/g, (v) => '\\' + v) + ']';
 }
 
 /**
@@ -141,7 +140,7 @@ export function scheduleRender(document: QDocument): Promise<HostElements> {
       const hosts: HostElements = [];
       componentHosts.forEach((host) => {
         host.removeAttribute(AttributeMarker.EventRender);
-        const qrl = host.getAttribute(AttributeMarker.ComponentTemplate)! as any as QRL;
+        const qrl = (host.getAttribute(AttributeMarker.ComponentTemplate)! as any) as QRL;
         qDev && assertString(qrl);
         const props: Props = extractPropsFromElement(host);
         jsxRenderComponent(host, qrl, waitOn, props, document);

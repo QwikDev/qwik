@@ -14,7 +14,7 @@ setConfig({
     test: './',
     import: 'import/',
     jsx: 'render/jsx/',
-    service: 'service/',
+    entity: 'entity/',
     injection: 'injector/',
   },
 });

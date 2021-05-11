@@ -9,7 +9,7 @@ import { fromCamelToKebabCase } from '../../util/case.js';
 import { stringify } from '../../util/stringify.js';
 import { assertValidDataKey } from '../../error/data.js';
 import { AttributeMarker } from '../../util/markers.js';
-import { ServiceConstructor } from '../../service/service.js';
+import { EntityConstructor } from '../../entity/entity.js';
 import { QRL } from '../../import/qrl.js';
 import { QError, qError } from '../../error/error.js';
 import type { JSXBase } from './html_base.js';
@@ -37,8 +37,8 @@ export function applyAttributes(
       if (Object.prototype.hasOwnProperty.call(props, key)) {
         const kebabKey = fromCamelToKebabCase(key);
         const value = (props as any)[key];
-        if (key === AttributeMarker.Services) {
-          applyServiceProviders(value, element);
+        if (key === AttributeMarker.Entity) {
+          applyEntityProviders(value, element);
         } else if (key === AttributeMarker.ComponentTemplate) {
           setAttribute(element, AttributeMarker.ComponentTemplate, value);
         } else if (key.startsWith(AttributeMarker.EventPrefix)) {
@@ -64,17 +64,17 @@ export function applyAttributes(
   return changesDetected;
 }
 
-function applyServiceProviders(value: any, element: Element) {
+function applyEntityProviders(value: any, element: Element) {
   if (Array.isArray(value)) {
-    value.forEach((service: ServiceConstructor) => {
-      if (typeof service?.$attachService === 'function') {
-        service.$attachService(element);
+    value.forEach((entity: EntityConstructor) => {
+      if (typeof entity?.$attachEntity === 'function') {
+        entity.$attachEntity(element);
       } else {
-        throw qError(QError.Render_expectingService_service, service);
+        throw qError(QError.Render_expectingEntity_entity, entity);
       }
     });
   } else {
-    throw qError(QError.Render_expectingServiceArray_obj, value);
+    throw qError(QError.Render_expectingEntityArray_obj, value);
   }
 }
 

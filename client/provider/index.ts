@@ -9,5 +9,5 @@
 export { provideComponentState } from './provide_component_state.js';
 export { provideComponentProps } from './provide_component_props.js';
 export { provideComponentProp } from './provide_component_prop.js';
-export { provideService } from './provide_service.js';
-export { provideServiceState } from './provide_service_state.js';
+export { provideEntity } from './provide_entity.js';
+export { provideEntityState } from './provide_entity_state.js';

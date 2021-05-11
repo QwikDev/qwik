@@ -48,16 +48,89 @@ export function dirname(path: string): string;
 // @public
 export function emitEvent(element: HTMLElement, event: Event, url: URL): Promise<any>;
 
-// @public (undocumented)
-export interface EventHandler<SELF, ARGS extends any[], RET> {
+// @public
+export class Entity<PROPS, STATE> {
+    static $attachEntity<SERVICE extends Entity<any, any>>(this: {
+        new (...args: any[]): SERVICE;
+    }, element: Element): void;
+    static $attachEntityState<SERVICE extends Entity<any, any>>(this: {
+        new (...args: any[]): SERVICE;
+    }, host: Element, propsOrKey: EntityPropsOf<SERVICE> | EntityKey, state: EntityStateOf<SERVICE> | null): void;
     // (undocumented)
-    $delegate: InjectedFunction<SELF, ARGS, [], RET>;
+    readonly $element: Element;
+    static $hydrate<SERVICE extends Entity<any, any>>(this: {
+        new (...args: any[]): SERVICE;
+    }, element: Element, propsOrKey: EntityPropsOf<SERVICE> | EntityKey, state?: EntityStateOf<SERVICE>): EntityPromise<SERVICE>;
+    $init(): Promise<void>;
+    $invokeQRL<ARGS extends any[], RET>(qrl: QRL<(...args: ARGS) => RET>, ...args: ARGS): Promise<RET>;
     // (undocumented)
-    (element: HTMLElement, event: Event, url: URL): Promise<RET>;
+    readonly $key: EntityKey<any>;
+    static $keyProps: string[];
+    static $keyToProps<SERVICE extends Entity<any, any>>(this: {
+        new (...args: any[]): SERVICE;
+    }, key: EntityKey): EntityPropsOf<SERVICE>;
+    $newState(keyProps: PROPS): Promise<STATE>;
+    // (undocumented)
+    readonly $props: PROPS;
+    static $propsToKey<SERVICE extends Entity<any, any>>(this: {
+        new (...args: any[]): SERVICE;
+    }, props: EntityPropsOf<SERVICE>): EntityKey;
+    static $qrl: QRL;
+    $release(): void;
+    // (undocumented)
+    readonly $state: STATE;
+    static get $type(): string;
+    static set $type(name: string);
+    constructor(element: Element, props: PROPS, state: STATE | null);
 }
 
 // @public
-export class EventService extends Service<any, any> {
+export interface EntityConstructor<SERVICE extends Entity<any, any> = any> {
+    $attachEntity<SERVICE extends Entity<any, any>>(this: {
+        new (...args: any[]): SERVICE;
+    }, element: Element): void;
+    $attachEntityState<SERVICE extends Entity<any, any>>(this: {
+        new (...args: any[]): SERVICE;
+    }, host: Element, propsOrKey: EntityPropsOf<SERVICE> | EntityKey, state: EntityStateOf<SERVICE> | null): void;
+    $hydrate<SERVICE extends Entity<any, any>>(this: {
+        new (...args: any[]): SERVICE;
+    }, element: Element, propsOrKey: EntityPropsOf<SERVICE> | EntityKey, state?: EntityStateOf<SERVICE>): EntityPromise<SERVICE>;
+    readonly $keyProps: string[];
+    $keyToProps<SERVICE extends Entity<any, any>>(this: {
+        new (...args: any[]): SERVICE;
+    }, key: EntityKey<SERVICE>): EntityPropsOf<SERVICE>;
+    $propsToKey<SERVICE extends Entity<any, any>>(this: {
+        new (...args: any[]): SERVICE;
+    }, props: EntityPropsOf<SERVICE>): EntityKey;
+    readonly $qrl: QRL;
+    readonly $type: string;
+    // (undocumented)
+    new (hostElement: Element, props: any, // TODO: should be: EntityPropsOf<SERVICE>,
+    state: any): SERVICE;
+}
+
+// @public
+export interface EntityKey<SERVICE = Entity<any, any>> {
+    // (undocumented)
+    __brand__: SERVICE;
+}
+
+// @public
+export interface EntityPromise<SERVICE extends Entity<any, any>> extends Promise<SERVICE> {
+    $key: EntityKey<SERVICE>;
+}
+
+// @public
+export type EntityPropsOf<SERVICE extends Entity<any, any>> = SERVICE extends Entity<infer PROPS, any> ? PROPS : never;
+
+// @public
+export function entityStateKey<SERVICE extends Entity<any, any>>(value: SERVICE | EntityStateOf<SERVICE>): EntityKey<SERVICE>;
+
+// @public
+export type EntityStateOf<SERVICE extends Entity<any, any>> = SERVICE extends Entity<any, infer STATE> ? STATE : never;
+
+// @public
+export class EventEntity extends Entity<any, any> {
     // (undocumented)
     static $props: string[];
     // (undocumented)
@@ -67,9 +140,17 @@ export class EventService extends Service<any, any> {
     constructor(element: Element, event: Event, url: URL, props: Props);
     event: Event;
     // (undocumented)
-    static KEY: ServiceKey<EventService>;
+    static KEY: EntityKey<EventEntity>;
     props: Props;
     url: URL;
+}
+
+// @public (undocumented)
+export interface EventHandler<SELF, ARGS extends any[], RET> {
+    // (undocumented)
+    $delegate: InjectedFunction<SELF, ARGS, [], RET>;
+    // (undocumented)
+    (element: HTMLElement, event: Event, url: URL): Promise<RET>;
 }
 
 // @public
@@ -117,11 +198,11 @@ export interface Injector {
     readonly element: Element;
     elementProps: Props;
     getComponent<COMP extends Component<any, any>>(componentType: ComponentConstructor<COMP>): Promise<COMP>;
+    getEntity<SERVICE extends Entity<any, any>>(entityKey: EntityKey<SERVICE>, state?: EntityStateOf<SERVICE>, entityType?: EntityConstructor<SERVICE>): EntityPromise<SERVICE>;
+    getEntityState<SERVICE extends Entity<any, any>>(propsOrKey: EntityPropsOf<SERVICE> | EntityKey<SERVICE>): Promise<EntityStateOf<SERVICE>>;
     getParent(): Injector | null;
-    getService<SERVICE extends Service<any, any>>(serviceKey: ServiceKey<SERVICE>, state?: ServiceStateOf<SERVICE>, serviceType?: ServiceConstructor<SERVICE>): ServicePromise<SERVICE>;
-    getServiceState<SERVICE extends Service<any, any>>(propsOrKey: ServicePropsOf<SERVICE> | ServiceKey<SERVICE>): Promise<ServiceStateOf<SERVICE>>;
     invoke<SELF, PROVIDERS extends any[], REST extends any[], RET>(fn: InjectedFunction<SELF, PROVIDERS, REST, RET>, self?: SELF | null, ...rest: REST): Promise<RET>;
-    releaseService(key: ServiceKey): void;
+    releaseEntity(key: EntityKey): void;
     serialize(): void;
 }
 
@@ -152,7 +233,7 @@ export interface JSXNode<T extends string | null | JSXFactory | unknown> {
 export function jsxRender(host: Element | Document, jsxNode: JSXNode<unknown>, overrideDocument?: Document): Promise<HostElements>;
 
 // @public
-export function markDirty(componentServiceOrElement: Component<any, any> | Service<any, any> | Element): Promise<HostElements>;
+export function markDirty(componentEntityOrElement: Component<any, any> | Entity<any, any> | Element): Promise<HostElements>;
 
 // @public
 export interface Props {
@@ -174,6 +255,12 @@ export function provideComponentState<S>(throwIfNotFound?: boolean): Provider<S>
 
 // @public
 export function provideElement(): Provider<Element>;
+
+// @public
+export function provideEntity<SERVICE extends Entity<any, any>>(id: EntityKey<SERVICE> | Provider<EntityKey<SERVICE>>): Provider<SERVICE>;
+
+// @public
+export function provideEntityState<SERVICE extends Entity<any, any>>(id: EntityKey<SERVICE> | Provider<EntityKey<SERVICE>>): Provider<EntityStateOf<SERVICE>>;
 
 // @public
 export function provideEvent(): Provider<Event>;
@@ -199,12 +286,6 @@ export type ProviderReturns<ARGS extends any[]> = {
 export type Providers<ARGS extends any[]> = {
     [K in keyof ARGS]: Provider<ARGS[K]>;
 };
-
-// @public
-export function provideService<SERVICE extends Service<any, any>>(id: ServiceKey<SERVICE> | Provider<ServiceKey<SERVICE>>): Provider<SERVICE>;
-
-// @public
-export function provideServiceState<SERVICE extends Service<any, any>>(id: ServiceKey<SERVICE> | Provider<ServiceKey<SERVICE>>): Provider<ServiceStateOf<SERVICE>>;
 
 // @public
 export function provideUrlProp(parameterName: string): Provider<string | null>;
@@ -240,91 +321,10 @@ export interface QRLProtocolMap {
 export function serializeState(element: Element | Document): void;
 
 // @public
-export class Service<PROPS, STATE> {
-    static $attachService<SERVICE extends Service<any, any>>(this: {
-        new (...args: any[]): SERVICE;
-    }, element: Element): void;
-    static $attachServiceState<SERVICE extends Service<any, any>>(this: {
-        new (...args: any[]): SERVICE;
-    }, host: Element, propsOrKey: ServicePropsOf<SERVICE> | ServiceKey, state: ServiceStateOf<SERVICE> | null): void;
-    // (undocumented)
-    readonly $element: Element;
-    static $hydrate<SERVICE extends Service<any, any>>(this: {
-        new (...args: any[]): SERVICE;
-    }, element: Element, propsOrKey: ServicePropsOf<SERVICE> | ServiceKey, state?: ServiceStateOf<SERVICE>): ServicePromise<SERVICE>;
-    $init(): Promise<void>;
-    $invokeQRL<ARGS extends any[], RET>(qrl: QRL<(...args: ARGS) => RET>, ...args: ARGS): Promise<RET>;
-    // (undocumented)
-    readonly $key: ServiceKey<any>;
-    static $keyProps: string[];
-    static $keyToProps<SERVICE extends Service<any, any>>(this: {
-        new (...args: any[]): SERVICE;
-    }, key: ServiceKey): ServicePropsOf<SERVICE>;
-    $newState(keyProps: PROPS): Promise<STATE>;
-    // (undocumented)
-    readonly $props: PROPS;
-    static $propsToKey<SERVICE extends Service<any, any>>(this: {
-        new (...args: any[]): SERVICE;
-    }, props: ServicePropsOf<SERVICE>): ServiceKey;
-    static $qrl: QRL;
-    $release(): void;
-    // (undocumented)
-    readonly $state: STATE;
-    static get $type(): string;
-    static set $type(name: string);
-    constructor(element: Element, props: PROPS, state: STATE | null);
-}
-
-// @public
-export interface ServiceConstructor<SERVICE extends Service<any, any> = any> {
-    $attachService<SERVICE extends Service<any, any>>(this: {
-        new (...args: any[]): SERVICE;
-    }, element: Element): void;
-    $attachServiceState<SERVICE extends Service<any, any>>(this: {
-        new (...args: any[]): SERVICE;
-    }, host: Element, propsOrKey: ServicePropsOf<SERVICE> | ServiceKey, state: ServiceStateOf<SERVICE> | null): void;
-    $hydrate<SERVICE extends Service<any, any>>(this: {
-        new (...args: any[]): SERVICE;
-    }, element: Element, propsOrKey: ServicePropsOf<SERVICE> | ServiceKey, state?: ServiceStateOf<SERVICE>): ServicePromise<SERVICE>;
-    readonly $keyProps: string[];
-    $keyToProps<SERVICE extends Service<any, any>>(this: {
-        new (...args: any[]): SERVICE;
-    }, key: ServiceKey<SERVICE>): ServicePropsOf<SERVICE>;
-    $propsToKey<SERVICE extends Service<any, any>>(this: {
-        new (...args: any[]): SERVICE;
-    }, props: ServicePropsOf<SERVICE>): ServiceKey;
-    readonly $qrl: QRL;
-    readonly $type: string;
-    // (undocumented)
-    new (hostElement: Element, props: any, // TODO: should be: ServicePropsOf<SERVICE>,
-    state: any): SERVICE;
-}
-
-// @public
-export interface ServiceKey<SERVICE = Service<any, any>> {
-    // (undocumented)
-    __brand__: SERVICE;
-}
-
-// @public
-export interface ServicePromise<SERVICE extends Service<any, any>> extends Promise<SERVICE> {
-    $key: ServiceKey<SERVICE>;
-}
-
-// @public
-export type ServicePropsOf<SERVICE extends Service<any, any>> = SERVICE extends Service<infer PROPS, any> ? PROPS : never;
-
-// @public
-export function serviceStateKey<SERVICE extends Service<any, any>>(value: SERVICE | ServiceStateOf<SERVICE>): ServiceKey<SERVICE>;
-
-// @public
-export type ServiceStateOf<SERVICE extends Service<any, any>> = SERVICE extends Service<any, infer STATE> ? STATE : never;
-
-// @public
 export function setConfig(config: QConfig): void;
 
 // @public
-export function toServiceKey<SERVICE extends Service<any, any>>(key: string): ServiceKey<SERVICE>;
+export function toEntityKey<SERVICE extends Entity<any, any>>(key: string): EntityKey<SERVICE>;
 
 
 // (No @packageDocumentation comment for this package)

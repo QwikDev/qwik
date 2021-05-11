@@ -6,11 +6,11 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { TodoService } from '../data/Todo.js';
+import { TodoEntity } from '../data/Todo.js';
 import {
   injectEventHandler,
   provideQrlExp,
-  provideService,
+  provideEntity,
   markDirty,
   provideProviderOf,
 } from '../qoot.js';
@@ -20,15 +20,15 @@ export default injectEventHandler(
   HeaderComponent,
   provideQrlExp<string>('value'),
   provideQrlExp<string>('code'),
-  provideProviderOf(provideService(TodoService.SINGLETON)),
+  provideProviderOf(provideEntity(TodoEntity.MOCK_USER)),
   async function (
     this: HeaderComponent,
     inputValue: string,
     charCode: string,
-    todoService: () => Promise<TodoService>
+    todoEntity: () => Promise<TodoEntity>
   ) {
     if (charCode === 'Enter' && inputValue) {
-      (await todoService()).newItem(inputValue);
+      (await todoEntity()).newItem(inputValue);
       this.$state.text = '';
       markDirty(this);
     }

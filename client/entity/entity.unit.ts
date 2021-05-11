@@ -15,77 +15,77 @@ import { getInjector } from '../injector/element_injector.js';
 import { injectMethod } from '../injector/inject.js';
 import { serializeState } from '../render/serialize_state.js';
 import { ElementFixture } from '../testing/element_fixture.js';
-import { Service, ServiceConstructor } from './service.js';
-import { ServiceKey } from './service_key.js';
+import { Entity, EntityConstructor } from './entity.js';
+import { EntityKey } from './entity_key.js';
 
-export const __verify_Service_subtype_of_ServiceType__: ServiceConstructor<any> = Service;
-const service: Service<any, any> = null!;
-export const __verify_Service_subtype_of_Service__: Service<any, any> = service;
+export const __verify_Entity_subtype_of_EntityType__: EntityConstructor<any> = Entity;
+const entity: Entity<any, any> = null!;
+export const __verify_Entity_subtype_of_Entity__: Entity<any, any> = entity;
 
-describe('service', () => {
-  const greeterHelloWorldKey: ServiceKey<GreeterService> = 'greeter:-hello:-world' as any;
-  const greeterAhojSvetKey: ServiceKey<GreeterService> = 'greeter:ahoj:svet' as any;
-  const MissingNameService: ServiceConstructor<any> = class MissingNameService {} as any;
-  const EmptyNameService: ServiceConstructor<any> = class EmptyNameService {
+describe('entity', () => {
+  const greeterHelloWorldKey: EntityKey<GreeterEntity> = 'greeter:-hello:-world' as any;
+  const greeterAhojSvetKey: EntityKey<GreeterEntity> = 'greeter:ahoj:svet' as any;
+  const MissingNameEntity: EntityConstructor<any> = class MissingNameEntity {} as any;
+  const EmptyNameEntity: EntityConstructor<any> = class EmptyNameEntity {
     static $type = '';
   } as any;
-  const MissingKeyPropsService: ServiceConstructor<any> = class MissingKeyPropsService {
-    static $type = 'missingService';
+  const MissingKeyPropsEntity: EntityConstructor<any> = class MissingKeyPropsEntity {
+    static $type = 'missingEntity';
   } as any;
 
-  describe('$attachService', () => {
+  describe('$attachEntity', () => {
     it('should attach', () => {
       const fixture = new ElementFixture();
-      GreeterService.$attachService(fixture.host);
+      GreeterEntity.$attachEntity(fixture.host);
       expect(stringifyDebug(fixture.host)).to.eql(
-        `<host ::greeter='service:/service.unit.GreeterService'>`
+        `<host ::greeter='entity:/entity.unit.GreeterEntity'>`
       );
     });
 
     it('should allow second attach', () => {
       const fixture = new ElementFixture();
-      GreeterService.$attachService(fixture.host);
-      GreeterService.$attachService(fixture.host);
+      GreeterEntity.$attachEntity(fixture.host);
+      GreeterEntity.$attachEntity(fixture.host);
       expect(stringifyDebug(fixture.host)).to.eql(
-        `<host ::greeter='service:/service.unit.GreeterService'>`
+        `<host ::greeter='entity:/entity.unit.GreeterEntity'>`
       );
     });
 
     it('should error', () => {
-      expect(() => Service.$attachService.apply(MissingNameService as any, null!)).to.throw(
-        `SERVICE-ERROR(Q-310): Service 'MissingNameService' must have static '$type' property defining the name of the service.`
+      expect(() => Entity.$attachEntity.apply(MissingNameEntity as any, null!)).to.throw(
+        `SERVICE-ERROR(Q-310): Entity 'MissingNameEntity' must have static '$type' property defining the name of the entity.`
       );
-      expect(() => Service.$attachService.apply(EmptyNameService as any, null!)).to.throw(
-        `SERVICE-ERROR(Q-310): Service 'EmptyNameService' must have static '$type' property defining the name of the service.`
+      expect(() => Entity.$attachEntity.apply(EmptyNameEntity as any, null!)).to.throw(
+        `SERVICE-ERROR(Q-310): Entity 'EmptyNameEntity' must have static '$type' property defining the name of the entity.`
       );
-      expect(() => Service.$attachService.apply(MissingKeyPropsService as any, null!)).to.throw(
-        `SERVICE-ERROR(Q-312): Service 'MissingKeyPropsService' must have static '$qrl' property defining the import location of the service.`
+      expect(() => Entity.$attachEntity.apply(MissingKeyPropsEntity as any, null!)).to.throw(
+        `SERVICE-ERROR(Q-312): Entity 'MissingKeyPropsEntity' must have static '$qrl' property defining the import location of the entity.`
       );
     });
     it('should error on QRL collision', () => {
       const fixture = new ElementFixture();
       fixture.host.setAttribute('::greeter', 'some_other_qrl');
-      expect(() => GreeterService.$attachService(fixture.host)).to.throw(
-        `SERVICE-ERROR(Q-313): Name collision. Already have service named 'Greeter' with QRL 'some_other_qrl' but expected QRL 'service:/service.unit.GreeterService'.`
+      expect(() => GreeterEntity.$attachEntity(fixture.host)).to.throw(
+        `SERVICE-ERROR(Q-313): Name collision. Already have entity named 'Greeter' with QRL 'some_other_qrl' but expected QRL 'entity:/entity.unit.GreeterEntity'.`
       );
     });
   });
 
-  describe('$attachServiceState', () => {
+  describe('$attachEntityState', () => {
     it('should attach', () => {
       const fixture = new ElementFixture();
-      GreeterService.$attachServiceState(
+      GreeterEntity.$attachEntityState(
         fixture.host,
         { salutation: 'hello', name: 'world' },
         { greeting: 'Hello World!' }
       );
-      GreeterService.$attachServiceState(
+      GreeterEntity.$attachEntityState(
         fixture.host,
         { salutation: 'ahoj', name: 'svet' },
         { greeting: 'Ahoj Svet!' }
       );
       expect(stringifyDebug(fixture.host)).to.eql(
-        `<host ::greeter='service:/service.unit.GreeterService' ` +
+        `<host ::greeter='entity:/entity.unit.GreeterEntity' ` +
           `greeter:ahoj:svet='{"greeting":"Ahoj Svet!"}' ` +
           `greeter:hello:world='{"greeting":"Hello World!"}'>`
       );
@@ -95,7 +95,7 @@ describe('service', () => {
   describe('$hydrate', () => {
     it('should hydrate with state', async () => {
       const fixture = new ElementFixture();
-      const greeterPromise = GreeterService.$hydrate(
+      const greeterPromise = GreeterEntity.$hydrate(
         fixture.host,
         { salutation: 'Hello', name: 'World' },
         { greeting: 'existing state' }
@@ -104,12 +104,12 @@ describe('service', () => {
       const greeter = await greeterPromise;
       expect(greeter.$state).to.eql({ $key: 'greeter:-hello:-world', greeting: 'existing state' });
       expect(stringifyDebug(fixture.host)).to.eql(
-        `<host : ::greeter='service:/service.unit.GreeterService' greeter:-hello:-world>`
+        `<host : ::greeter='entity:/entity.unit.GreeterEntity' greeter:-hello:-world>`
       );
     });
     it('should hydrate without state', async () => {
       const fixture = new ElementFixture();
-      const greeterPromise = GreeterService.$hydrate(fixture.host, {
+      const greeterPromise = GreeterEntity.$hydrate(fixture.host, {
         salutation: 'Hello',
         name: 'World',
       });
@@ -120,23 +120,23 @@ describe('service', () => {
         greeting: 'INIT: Hello World!',
       });
       expect(stringifyDebug(fixture.host)).to.eql(
-        `<host : ::greeter='service:/service.unit.GreeterService' greeter:-hello:-world>`
+        `<host : ::greeter='entity:/entity.unit.GreeterEntity' greeter:-hello:-world>`
       );
     });
     it('should hydrate into the same instance', async () => {
       const fixture = new ElementFixture();
-      const greeterPromise = GreeterService.$hydrate(fixture.host, {
+      const greeterPromise = GreeterEntity.$hydrate(fixture.host, {
         salutation: 'Hello',
         name: 'World',
       });
-      expect(greeterPromise).to.equal(GreeterService.$hydrate(fixture.host, greeterHelloWorldKey));
+      expect(greeterPromise).to.equal(GreeterEntity.$hydrate(fixture.host, greeterHelloWorldKey));
       expect(await greeterPromise).to.equal(
-        await GreeterService.$hydrate(fixture.host, greeterHelloWorldKey)
+        await GreeterEntity.$hydrate(fixture.host, greeterHelloWorldKey)
       );
     });
     it('should hydrate without state using key', async () => {
       const fixture = new ElementFixture();
-      const greeterPromise = GreeterService.$hydrate(fixture.host, greeterHelloWorldKey);
+      const greeterPromise = GreeterEntity.$hydrate(fixture.host, greeterHelloWorldKey);
       expect(greeterPromise.$key).to.eql('greeter:-hello:-world');
       const greeter = await greeterPromise;
       expect(greeter.$state).to.eql({
@@ -144,12 +144,12 @@ describe('service', () => {
         greeting: 'INIT: Hello World!',
       });
       expect(stringifyDebug(fixture.host)).to.eql(
-        `<host : ::greeter='service:/service.unit.GreeterService' greeter:-hello:-world>`
+        `<host : ::greeter='entity:/entity.unit.GreeterEntity' greeter:-hello:-world>`
       );
     });
     it('should hydrate with error', async () => {
       const fixture = new ElementFixture();
-      const greeterPromise = GreeterService.$hydrate(fixture.host, {
+      const greeterPromise = GreeterEntity.$hydrate(fixture.host, {
         salutation: 'throw',
         name: 'World',
       });
@@ -161,44 +161,42 @@ describe('service', () => {
         expect(String(e)).to.contain('Error: World');
       }
     });
-    it('should deserialize service from DOM', async () => {
+    it('should deserialize entity from DOM', async () => {
       const fixture = new ElementFixture();
-      GreeterService.$attachService(fixture.host);
-      GreeterService.$attachServiceState(
+      GreeterEntity.$attachEntity(fixture.host);
+      GreeterEntity.$attachEntityState(
         fixture.host,
         { salutation: 'ahoj', name: 'svet' },
         { greeting: 'Ahoj Svet!' }
       );
       const injector = getInjector(fixture.child);
-      const greeterPromise = injector.getServiceState(greeterAhojSvetKey);
+      const greeterPromise = injector.getEntityState(greeterAhojSvetKey);
       const greeter: Greeter = await greeterPromise;
       expect(greeter).to.eql({ $key: 'greeter:ahoj:svet', greeting: 'Ahoj Svet!' });
 
-      const servicePromise = getInjector(fixture.child).getService<GreeterService>(
-        greeterAhojSvetKey
-      );
-      const greeterService = await servicePromise;
-      expect(greeterService).to.be.instanceOf(GreeterService);
-      expect(greeterService.$props).to.eql({ salutation: 'ahoj', name: 'svet' });
-      expect(greeterService.$state).to.eql({ $key: 'greeter:ahoj:svet', greeting: 'Ahoj Svet!' });
+      const entityPromise = getInjector(fixture.child).getEntity<GreeterEntity>(greeterAhojSvetKey);
+      const greeterEntity = await entityPromise;
+      expect(greeterEntity).to.be.instanceOf(GreeterEntity);
+      expect(greeterEntity.$props).to.eql({ salutation: 'ahoj', name: 'svet' });
+      expect(greeterEntity.$state).to.eql({ $key: 'greeter:ahoj:svet', greeting: 'Ahoj Svet!' });
     });
   });
 
   describe('invoke', () => {
     it('should create an instance and invoke identity method', async () => {
       const fixture = new ElementFixture();
-      const empty = await EmptyService.$hydrate(fixture.child, {}, {});
+      const empty = await EmptyEntity.$hydrate(fixture.child, {}, {});
       expect(await empty.ident('ABC')).to.equal('ABC');
-      expect(await getInjector(fixture.child).getService('empty:' as any as ServiceKey)).to.equal(
+      expect(await getInjector(fixture.child).getEntity('empty:' as any as EntityKey)).to.equal(
         empty
       );
-      expect(fixture.child.getAttribute('::empty')).to.equal('service:/service.unit.EmptyService');
+      expect(fixture.child.getAttribute('::empty')).to.equal('entity:/entity.unit.EmptyEntity');
     });
   });
 
   it('should create instance greeter and persist it and delete it', async () => {
     const fixture = new ElementFixture();
-    const greeterPromise = GreeterService.$hydrate(fixture.child, {
+    const greeterPromise = GreeterEntity.$hydrate(fixture.child, {
       salutation: 'hello',
       name: 'world',
     });
@@ -207,22 +205,22 @@ describe('service', () => {
     expect(await greeter.greet()).to.equal('hello world!');
     expect(greeter.$state.greeting).to.equal('hello world!');
     expect(stringifyDebug(greeter.$element)).to.equal(
-      "<child : ::greeter='service:/service.unit.GreeterService' greeter:hello:world>"
+      "<child : ::greeter='entity:/entity.unit.GreeterEntity' greeter:hello:world>"
     );
     expect(
-      await getInjector(fixture.child).getService(
-        'greeter:hello:world' as any as ServiceKey<GreeterService>
+      await getInjector(fixture.child).getEntity(
+        'greeter:hello:world' as any as EntityKey<GreeterEntity>
       )
     ).to.equal(greeter);
 
     serializeState(fixture.host);
     expect(stringifyDebug(greeter.$element)).to.equal(
-      `<child : ::greeter='service:/service.unit.GreeterService' greeter:hello:world='{"greeting":"hello world!"}'>`
+      `<child : ::greeter='entity:/entity.unit.GreeterEntity' greeter:hello:world='{"greeting":"hello world!"}'>`
     );
 
     greeter.$release();
     expect(stringifyDebug(greeter.$element)).to.equal(
-      `<child : ::greeter='service:/service.unit.GreeterService'>`
+      `<child : ::greeter='entity:/entity.unit.GreeterEntity'>`
     );
   });
 });
@@ -234,12 +232,12 @@ interface EmptyProps {
 }
 interface Empty {}
 
-export class EmptyService extends Service<EmptyProps, Empty> {
+export class EmptyEntity extends Entity<EmptyProps, Empty> {
   static $type: 'Empty' = 'Empty';
-  static $qrl = QRL<EmptyService>`service:/service.unit.EmptyService`;
+  static $qrl = QRL<EmptyEntity>`entity:/entity.unit.EmptyEntity`;
   static $keyProps = ['id'];
   async ident(value: string): Promise<string> {
-    return this.$invokeQRL(QRL<(value: string) => string>`service:/service.unit.ident`, value);
+    return this.$invokeQRL(QRL<(value: string) => string>`entity:/entity.unit.ident`, value);
   }
 }
 
@@ -256,9 +254,9 @@ interface Greeter {
   greeting: string;
 }
 
-export class GreeterService extends Service<GreeterProps, Greeter> {
+export class GreeterEntity extends Entity<GreeterProps, Greeter> {
   static $type: 'Greeter' = 'Greeter';
-  static $qrl = QRL<GreeterService>`service:/service.unit.GreeterService`;
+  static $qrl = QRL<GreeterEntity>`entity:/entity.unit.GreeterEntity`;
   static $keyProps = ['salutation', 'name'];
 
   async $newState($keyProps: GreeterProps): Promise<Greeter> {
@@ -268,11 +266,11 @@ export class GreeterService extends Service<GreeterProps, Greeter> {
     return { greeting: `INIT: ${$keyProps.salutation} ${$keyProps.name}!` };
   }
   async greet(): Promise<string> {
-    return this.$invokeQRL(QRL<() => string>`service:/service.unit.greet`);
+    return this.$invokeQRL(QRL<() => string>`entity:/entity.unit.greet`);
   }
 }
 
-export const greet = injectMethod(GreeterService, function (this: GreeterService) {
+export const greet = injectMethod(GreeterEntity, function (this: GreeterEntity) {
   assertDefined(this);
   assertDefined(this.$props);
   assertDefined(this.$state);

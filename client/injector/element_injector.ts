@@ -15,14 +15,14 @@ import {
 import { qError, QError } from '../error/error.js';
 import { qImport } from '../import/qImport.js';
 import { QRL } from '../import/qrl.js';
-import { keyToServiceAttribute, ServiceKey } from '../service/service_key.js';
+import { keyToEntityAttribute, EntityKey } from '../entity/entity_key.js';
 import {
-  Service,
-  ServiceConstructor,
-  ServicePromise,
-  ServicePropsOf,
-  ServiceStateOf,
-} from '../service/service.js';
+  Entity,
+  EntityConstructor,
+  EntityPromise,
+  EntityPropsOf,
+  EntityStateOf,
+} from '../entity/entity.js';
 import { findAttribute } from '../util/dom_attrs.js';
 import { AttributeMarker } from '../util/markers.js';
 import '../util/qDev.js';
@@ -30,15 +30,15 @@ import { isHtmlElement } from '../util/types.js';
 import { BaseInjector } from './base_injector.js';
 import { Injector } from './types.js';
 
-interface ServiceValue {
-  promise: ServicePromise<Service<any, any>>;
-  service: Service<any, any> | null;
+interface EntityValue {
+  promise: EntityPromise<Entity<any, any>>;
+  entity: Entity<any, any> | null;
 }
 
 export class ElementInjector extends BaseInjector {
   private component: Component<any, any> | null = null;
   private componentPromise: Promise<Component<any, any>> | null = null;
-  private services: Map<ServiceKey, ServiceValue> | null = null;
+  private entities: Map<EntityKey, EntityValue> | null = null;
 
   getParent(): Injector | null {
     let element = this.element.parentElement;
@@ -108,128 +108,123 @@ export class ElementInjector extends BaseInjector {
     }
   }
 
-  getService<SERVICE extends Service<any, any>>(
-    serviceKey: ServiceKey<SERVICE>,
-    forceState?: ServiceStateOf<SERVICE>,
-    serviceType?: ServiceConstructor<SERVICE>
-  ): ServicePromise<SERVICE> {
-    let servicePromise = this.services?.get(serviceKey)?.promise as
-      | ServicePromise<SERVICE>
+  getEntity<SERVICE extends Entity<any, any>>(
+    entityKey: EntityKey<SERVICE>,
+    forceState?: EntityStateOf<SERVICE>,
+    entityType?: EntityConstructor<SERVICE>
+  ): EntityPromise<SERVICE> {
+    let entityPromise = this.entities?.get(entityKey)?.promise as
+      | EntityPromise<SERVICE>
       | undefined;
-    if (servicePromise) return servicePromise as ServicePromise<SERVICE>;
-    const serviceAttrName = keyToServiceAttribute(serviceKey);
+    if (entityPromise) return entityPromise as EntityPromise<SERVICE>;
+    const entityAttrName = keyToEntityAttribute(entityKey);
     const self = this;
     return findAttribute(
       this.element,
       QError.Core_noAttribute_atr1_attr2_element,
-      String(serviceKey),
-      serviceFactory,
-      serviceAttrName,
-      serviceFactory
+      String(entityKey),
+      entityFactory,
+      entityAttrName,
+      entityFactory
     );
 
-    function serviceFactory(element: Element, attrName: string, attrValue: string) {
+    function entityFactory(element: Element, attrName: string, attrValue: string) {
       const injector = element === self.element ? self : (getInjector(element) as ElementInjector);
-      servicePromise = injector.services?.get(serviceKey)?.promise as
-        | ServicePromise<SERVICE>
+      entityPromise = injector.entities?.get(entityKey)?.promise as
+        | EntityPromise<SERVICE>
         | undefined;
-      if (servicePromise) return servicePromise;
-      // OK, if we got here we don't already have service, so we need to make it.
+      if (entityPromise) return entityPromise;
+      // OK, if we got here we don't already have entity, so we need to make it.
 
-      injector.element.setAttribute(String(serviceKey), '');
-      const serviceQRL = element.getAttribute(serviceAttrName);
-      if (!serviceQRL) {
-        throw qError(
-          QError.Service_elementMissingServiceAttr_element_attr,
-          element,
-          serviceAttrName
-        );
+      injector.element.setAttribute(String(entityKey), '');
+      const entityQRL = element.getAttribute(entityAttrName);
+      if (!entityQRL) {
+        throw qError(QError.Entity_elementMissingEntityAttr_element_attr, element, entityAttrName);
       }
-      const serviceTypePromise = Promise.resolve(
-        serviceType || qImport<ServiceConstructor<SERVICE>>(element, serviceQRL)
+      const entityTypePromise = Promise.resolve(
+        entityType || qImport<EntityConstructor<SERVICE>>(element, entityQRL)
       );
-      servicePromise = toServicePromise<SERVICE>(
-        serviceKey,
+      entityPromise = toEntityPromise<SERVICE>(
+        entityKey,
         new Promise<SERVICE>((resolve, reject) => {
-          serviceTypePromise.then((serviceType) => {
-            if (typeof serviceType !== 'function') {
-              throw qError(QError.QRL_expectFunction_url_actual, serviceQRL, serviceType);
+          entityTypePromise.then((entityType) => {
+            if (typeof entityType !== 'function') {
+              throw qError(QError.QRL_expectFunction_url_actual, entityQRL, entityType);
             }
-            let state: ServiceStateOf<SERVICE> | null = forceState || null;
-            if (!state && attrName === String(serviceKey)) {
-              state = JSON.parse(attrValue) as ServiceStateOf<SERVICE>;
-              state!.$key = serviceKey;
+            let state: EntityStateOf<SERVICE> | null = forceState || null;
+            if (!state && attrName === String(entityKey)) {
+              state = JSON.parse(attrValue) as EntityStateOf<SERVICE>;
+              state!.$key = entityKey;
             }
-            const props = serviceType.$keyToProps(serviceKey);
-            const service = new serviceType(element, props, state) as unknown as SERVICE;
+            const props = entityType.$keyToProps(entityKey);
+            const entity = new entityType(element, props, state) as unknown as SERVICE;
             let chain: Promise<any>;
             if (state) {
-              serviceValue.service = service;
-              chain = Promise.resolve(service);
+              entityValue.entity = entity;
+              chain = Promise.resolve(entity);
             } else {
-              chain = service.$newState(props).then(
-                (state: ServiceStateOf<SERVICE>) => {
-                  serviceValue.service = service;
-                  state.$key = serviceKey;
-                  (service as { $state: ServiceStateOf<SERVICE> }).$state = state;
-                  return service;
+              chain = entity.$newState(props).then(
+                (state: EntityStateOf<SERVICE>) => {
+                  entityValue.entity = entity;
+                  state.$key = entityKey;
+                  (entity as { $state: EntityStateOf<SERVICE> }).$state = state;
+                  return entity;
                 },
                 (e) => {
-                  self.services?.delete(serviceKey);
+                  self.entities?.delete(entityKey);
                   return Promise.reject(e);
                 }
               );
             }
             chain.then(() => {
-              Promise.resolve(service.$init()).then(() => resolve(service));
+              Promise.resolve(entity.$init()).then(() => resolve(entity));
             }, reject);
           }, reject);
         })
       );
-      const serviceValue: ServiceValue = { promise: servicePromise, service: null };
-      const services =
-        injector.services || (injector.services = new Map<ServiceKey, ServiceValue>());
-      services.set(serviceKey, serviceValue);
-      return servicePromise;
+      const entityValue: EntityValue = { promise: entityPromise, entity: null };
+      const entities = injector.entities || (injector.entities = new Map<EntityKey, EntityValue>());
+      entities.set(entityKey, entityValue);
+      return entityPromise;
     }
   }
 
-  getServiceState<SERVICE extends Service<any, any>>(
-    serviceKey: ServicePropsOf<SERVICE> | ServiceKey
-  ): Promise<ServiceStateOf<SERVICE>> {
-    const serviceAttrName = keyToServiceAttribute(serviceKey);
+  getEntityState<SERVICE extends Entity<any, any>>(
+    entityKey: EntityPropsOf<SERVICE> | EntityKey
+  ): Promise<EntityStateOf<SERVICE>> {
+    const entityAttrName = keyToEntityAttribute(entityKey);
     return findAttribute(
       this.element,
       QError.Core_noAttribute_atr1_attr2_element,
-      serviceKey as any,
-      (element, serviceKeyAttr, serviceState) => {
+      entityKey as any,
+      (element, entityKeyAttr, entityState) => {
         const injector = element == this.element ? this : (getInjector(element) as ElementInjector);
-        const existingService = injector.services?.get(serviceKey)?.promise;
-        if (existingService) {
-          return existingService.then((service) => service.$state);
+        const existingEntity = injector.entities?.get(entityKey)?.promise;
+        if (existingEntity) {
+          return existingEntity.then((entity) => entity.$state);
         }
-        if (!serviceState) {
+        if (!entityState) {
           throw qError(
-            QError.Injector_missingSerializedState_serviceKey_element,
-            serviceKey,
+            QError.Injector_missingSerializedState_entityKey_element,
+            entityKey,
             element
           );
         }
-        const state = JSON.parse(serviceState) as ServiceStateOf<SERVICE>;
-        state.$key = serviceKeyAttr;
+        const state = JSON.parse(entityState) as EntityStateOf<SERVICE>;
+        state.$key = entityKeyAttr;
         return Promise.resolve(state);
       },
-      serviceAttrName,
+      entityAttrName,
       (element) => {
         return getInjector(element)
-          .getService(serviceKey)
-          .then((service) => service.$state);
+          .getEntity(entityKey)
+          .then((entity) => entity.$state);
       }
     );
   }
 
-  releaseService(key: ServiceKey) {
-    if (this.services?.delete(key)) {
+  releaseEntity(key: EntityKey) {
+    if (this.entities?.delete(key)) {
       this.element.removeAttribute(key as any as string);
     }
   }
@@ -240,8 +235,8 @@ export class ElementInjector extends BaseInjector {
     if (state != null) {
       element.setAttribute(AttributeMarker.ComponentState, JSON.stringify(state));
     }
-    this.services?.forEach((service) => {
-      const state = service.service?.$state;
+    this.entities?.forEach((entity) => {
+      const state = entity.entity?.$state;
       if (state) {
         element.setAttribute(state.$key, JSON.stringify(state, filterFrameworkKeys));
       }
@@ -257,13 +252,13 @@ function filterFrameworkKeys(this: any, key: string, value: any) {
   }
 }
 
-function toServicePromise<SERVICE extends Service<any, any>>(
-  serviceKey: ServiceKey<SERVICE>,
+function toEntityPromise<SERVICE extends Entity<any, any>>(
+  entityKey: EntityKey<SERVICE>,
   promise: Promise<SERVICE>
-): ServicePromise<SERVICE> {
-  const servicePromise = promise as ServicePromise<SERVICE>;
-  servicePromise.$key = serviceKey;
-  return servicePromise;
+): EntityPromise<SERVICE> {
+  const entityPromise = promise as EntityPromise<SERVICE>;
+  entityPromise.$key = entityKey;
+  return entityPromise;
 }
 
 export function getComponentHost(element: Element): Element {

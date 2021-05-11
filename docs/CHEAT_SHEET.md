@@ -14,17 +14,17 @@ HTML attributes with the following syntax have a special meaning to Qoot.
 | `:`                 | Marker which signifies that the element has injector                                                                    |
 | `on:<name>="<QRL>"` | If the event `name` is detected then the handler defined by the `QRL` loaded and executed. See [QRL](#qrl) table below. |
 | `bind:<key>="attr"` | Bind the `attr` to the service identified by `key`. See the [bindings note](#bindings)                                  |
-| `::name=QRL`        | Service with key `name` is defined at `QRL`.                                                                            |
-| `key:=JSON`         | State of the `Service` identified by `key`, serialized into JSON.                                                       |
+| `::name=QRL`        | Entity with key `name` is defined at `QRL`.                                                                             |
+| `key:=JSON`         | State of the `Entity` identified by `key`, serialized into JSON.                                                        |
 | `:.=JSON`           | Component state, serialized into JSON.                                                                                  |
 
 ### JSX Components
 
-| Syntax                                    | Meaning                                                                           |
-| ----------------------------------------- | --------------------------------------------------------------------------------- |
-| `decl:template=QRL`                       | Component render `QRL`, which points to the component's template render function. |
-| `decl:services=[Service1, Service2, ...]` | Services to be provided by this element's injector.                               |
-| `$<prop>={key}`                           | Associate Component `prop` with service identified by `key`.                      |
+| Syntax                                  | Meaning                                                                           |
+| --------------------------------------- | --------------------------------------------------------------------------------- |
+| `decl:template=QRL`                     | Component render `QRL`, which points to the component's template render function. |
+| `decl:entity=[Service1, Service2, ...]` | Entities to be provided by this element's injector.                               |
+| `$<prop>={key}`                         | Associate Component `prop` with service identified by `key`.                      |
 
 ### Special events
 

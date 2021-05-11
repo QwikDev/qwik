@@ -7,20 +7,20 @@
  */
 
 import { injectMethod, markDirty } from '../qoot.js';
-import { ItemService } from './Item.js';
-import { TodoService } from './Todo.js';
+import { ItemEntity } from './Item.js';
+import { TodoEntity } from './Todo.js';
 
 export default injectMethod(
-  TodoService, //
-  function newItem(this: TodoService, newTitle: string): Promise<ItemService> {
-    const itemService = ItemService.$hydrate(
+  TodoEntity, //
+  function newItem(this: TodoEntity, newTitle: string): Promise<ItemEntity> {
+    const itemEntity = ItemEntity.$hydrate(
       this.$element,
       { id: String(this.$state.nextId++) },
       { completed: false, title: newTitle }
     );
-    this.$state.items.push(itemService.$key);
+    this.$state.items.push(itemEntity.$key);
     this.setFilter(this.$state.filter);
     markDirty(this);
-    return itemService;
+    return itemEntity;
   }
 );

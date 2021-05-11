@@ -63,7 +63,7 @@ describe('dom_attrs', () => {
         expect(() =>
           findAttribute(fixture.host, QError.Core_noAttribute_atr1_element, 'primary', () => null)
         ).to.throw(
-          `ERROR(Q-003): Could not find service state 'primary' at '<host>' or any of it's parents.`
+          `ERROR(Q-003): Could not find entity state 'primary' at '<host>' or any of it's parents.`
         );
       });
       it('should throw error if primary attribute not found', () => {
@@ -78,7 +78,7 @@ describe('dom_attrs', () => {
             () => null
           )
         ).to.throw(
-          `ERROR(Q-004): Could not find service state 'primary' ( or service provider 'secondary') at '<host>' or any of it's parents.`
+          `ERROR(Q-004): Could not find entity state 'primary' ( or entity provider 'secondary') at '<host>' or any of it's parents.`
         );
       });
     });

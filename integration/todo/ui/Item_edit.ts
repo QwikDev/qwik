@@ -6,14 +6,14 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { ItemService } from '../data/Item.js';
-import { Provider, ServiceKey } from '../qoot.js';
+import { ItemEntity } from '../data/Item.js';
+import { Provider, EntityKey } from '../qoot.js';
 import {
   injectEventHandler,
   markDirty,
   provideUrlProp,
   provideQrlExp,
-  provideService,
+  provideEntity,
 } from '../qoot.js';
 import { ItemComponent } from './Item_component.js';
 
@@ -29,18 +29,16 @@ export const change = injectEventHandler(
   ItemComponent, //
   provideQrlExp<string>('value'),
   provideQrlExp<string>('code'),
-  provideService<ItemService>(
-    provideUrlProp('itemKey') as any as Provider<ServiceKey<ItemService>>
-  ), // TODO fix cast
+  provideEntity<ItemEntity>(provideUrlProp('itemKey') as any as Provider<EntityKey<ItemEntity>>), // TODO fix cast
   async function (
     this: ItemComponent,
     inputValue: string,
     charCode: string,
-    itemService: ItemService
+    itemEntity: ItemEntity
   ) {
     if (charCode === 'Enter') {
-      itemService.$state.title = inputValue;
-      markDirty(itemService);
+      itemEntity.$state.title = inputValue;
+      markDirty(itemEntity);
       this.editing = false;
       markDirty(this);
     } else if (charCode === 'Escape') {

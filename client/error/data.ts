@@ -13,7 +13,7 @@ export function assertValidDataKey(key: string | null) {
   for (let i = 0; i < key.length; i++) {
     const ch = key.charCodeAt(i);
     if (!isAlphanumeric(ch)) {
-      throw qError(QError.Service_notValidKey_key, key);
+      throw qError(QError.Entity_notValidKey_key, key);
     }
   }
 }

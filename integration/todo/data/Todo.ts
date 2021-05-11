@@ -9,42 +9,42 @@
 import {
   markDirty,
   QRL,
-  Service,
+  Entity,
   getInjector,
-  ServiceKey,
-  serviceStateKey,
-  toServiceKey,
+  EntityKey,
+  entityStateKey,
+  toEntityKey,
 } from '../qoot.js';
-import { Item, ItemService } from './Item.js';
+import { Item, ItemEntity } from './Item.js';
 
 export interface TodoProps {}
 
 export interface Todo {
   completed: number;
   filter: 'active' | 'all' | 'completed';
-  items: ServiceKey<ItemService>[];
+  items: EntityKey<ItemEntity>[];
   nextId: number;
 }
 
-export class TodoService extends Service<TodoProps, Todo> {
-  static $qrl = QRL<ItemService>`data:/Todo.TodoService`;
+export class TodoEntity extends Entity<TodoProps, Todo> {
+  static $qrl = QRL<ItemEntity>`data:/Todo.TodoEntity`;
   static $type = 'Todos';
   static $keyProps = ['todos'];
-  static SINGLETON = toServiceKey<TodoService>('todos:singleton');
+  static MOCK_USER = toEntityKey<TodoEntity>('todos:1234');
 
-  filteredItems: ServiceKey<ItemService>[] = [];
+  filteredItems: EntityKey<ItemEntity>[] = [];
 
   async archive(): Promise<void> {
     return this.$invokeQRL(QRL<() => void>`data:/Todo_archive`);
   }
 
-  async newItem(text: string): Promise<ItemService> {
-    return this.$invokeQRL(QRL<(text: string) => Promise<ItemService>>`data:/Todo_newItem`, text);
+  async newItem(text: string): Promise<ItemEntity> {
+    return this.$invokeQRL(QRL<(text: string) => Promise<ItemEntity>>`data:/Todo_newItem`, text);
   }
 
-  remove(itemKey: ServiceKey<ItemService>) {
+  remove(itemKey: EntityKey<ItemEntity>) {
     return this.$invokeQRL(
-      QRL<(key: ServiceKey<ItemService>) => Promise<void>>`data:/Todo_removeItem`,
+      QRL<(key: EntityKey<ItemEntity>) => Promise<void>>`data:/Todo_removeItem`,
       itemKey
     );
   }
@@ -52,7 +52,7 @@ export class TodoService extends Service<TodoProps, Todo> {
   async setFilter(filter: 'active' | 'all' | 'completed') {
     const injector = getInjector(this.$element);
     const itemStatePromises = this.$state.items.map((itemKey) =>
-      injector.getServiceState<ItemService>(itemKey)
+      injector.getEntityState<ItemEntity>(itemKey)
     );
     const items = await Promise.all(itemStatePromises);
     this.filteredItems = items
@@ -63,7 +63,7 @@ export class TodoService extends Service<TodoProps, Todo> {
           completed: (item: Item) => item.completed,
         }[filter]
       )
-      .map(serviceStateKey as () => ServiceKey<ItemService>); // TODO(type): fix cast
+      .map(entityStateKey as () => EntityKey<ItemEntity>); // TODO(type): fix cast
     this.$state.filter = filter;
     markDirty(this);
   }
@@ -79,10 +79,10 @@ export class TodoService extends Service<TodoProps, Todo> {
       filter: 'all',
       nextId: 4,
       items: [
-        ItemService.$hydrate(host, { id: '1' }, { completed: false, title: 'Read Qoot docs' }).$key,
-        ItemService.$hydrate(host, { id: '2' }, { completed: false, title: 'Build HelloWorld' })
+        ItemEntity.$hydrate(host, { id: '1' }, { completed: false, title: 'Read Qoot docs' }).$key,
+        ItemEntity.$hydrate(host, { id: '2' }, { completed: false, title: 'Build HelloWorld' })
           .$key,
-        ItemService.$hydrate(host, { id: '3' }, { completed: false, title: 'Profit' }).$key,
+        ItemEntity.$hydrate(host, { id: '3' }, { completed: false, title: 'Profit' }).$key,
       ],
     };
   }

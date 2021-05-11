@@ -6,11 +6,11 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { jsxDeclareComponent, QRL, ServiceKey } from '../qoot.js';
-import type { TodoService } from '../data/Todo.js';
+import { jsxDeclareComponent, QRL, EntityKey } from '../qoot.js';
+import type { TodoEntity } from '../data/Todo.js';
 
 export interface MainProps {
-  $todos: ServiceKey<TodoService>;
+  $todos: EntityKey<TodoEntity>;
 }
 
 export const Main = jsxDeclareComponent<MainProps>(QRL`ui:/Main_template`, 'section');

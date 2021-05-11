@@ -168,21 +168,21 @@ describe('attributes', () => {
       expect(host.getAttribute('on:camel-case')).to.eql('url');
     });
 
-    it('should apply all service bindings', () => {
+    it('should apply all entity bindings', () => {
       applyAttributes(
         host,
         {
-          'decl:services': [
+          'decl:entity': [
             {
-              $attachService: (element: Element) => {
-                element.setAttribute('::service', 'url');
+              $attachEntity: (element: Element) => {
+                element.setAttribute('::entity', 'url');
               },
             } as any,
           ],
         },
         false
       );
-      expect(host.getAttribute('::service')).to.eql('url');
+      expect(host.getAttribute('::entity')).to.eql('url');
     });
 
     describe('error', () => {
@@ -191,22 +191,22 @@ describe('attributes', () => {
           applyAttributes(
             host,
             {
-              'decl:services': 'notAnArray',
+              'decl:entity': 'notAnArray',
             },
             false
           )
-        ).to.throw(`RENDER-ERROR(Q-603): Expecting array of services, got 'notAnArray'.`);
+        ).to.throw(`RENDER-ERROR(Q-603): Expecting array of entities, got 'notAnArray'.`);
       });
-      it('should error if a service does not have $attachService', () => {
+      it('should error if a entity does not have $attachEntity', () => {
         expect(() =>
           applyAttributes(
             host,
             {
-              'decl:services': [{ notService: true } as any],
+              'decl:entity': [{ notEntity: true } as any],
             },
             false
           )
-        ).to.throw(`RENDER-ERROR(Q-602): Expecting service object, got '{"notService":true}'.`);
+        ).to.throw(`RENDER-ERROR(Q-602): Expecting entity object, got '{"notEntity":true}'.`);
       });
     });
   });

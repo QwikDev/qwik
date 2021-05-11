@@ -49,7 +49,7 @@ export class Component<PROPS, STATE> {
     hostElement: Element
   ): Promise<COMP> {
     // TODO: Needs tests
-    const componentConstructor = this as any as ComponentConstructor<COMP>;
+    const componentConstructor = (this as any) as ComponentConstructor<COMP>;
     const componentTemplate = hostElement.getAttribute(AttributeMarker.ComponentTemplate);
     if (!componentTemplate) {
       hostElement.setAttribute(

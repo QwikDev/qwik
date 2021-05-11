@@ -14,10 +14,10 @@ import { Injector, Provider } from './types.js';
  * Example:
  * ```
  * export default injectEventHandler(
- *   provideProviderOf(provideService<MyService>('myservice:123')),
- *   async function(myServiceProvider: () => MyService) {
+ *   provideProviderOf(provideEntity<MyEntity>('myentity:123')),
+ *   async function(myEntityProvider: () => MyEntity) {
  *     if (someCondition) {
- *       const service = await myServiceProvider();
+ *       const entity = await myEntityProvider();
  *     }
  *   }
  * )

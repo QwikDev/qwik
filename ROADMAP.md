@@ -11,8 +11,8 @@
 ## Event System
 
 - [ ] Events should bubble (currently, they are terminated at the first listener)
-- [ ] Services should be able to emit events
-- [ ] Services should be able to broadcast events.
+- [ ] Entities should be able to emit events
+- [ ] Entities should be able to broadcast events.
 
 ## Rendering
 

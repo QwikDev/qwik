@@ -37,14 +37,14 @@ Examples of information which the framework needs to store in the DOM are:
 - DOM listeners
 - Component state
 - Pointers to component templates for re-rendering.
-- Service state
-- Service component relationships.
+- Entity state
+- Entity component relationships.
 
-By keeping the above state in the DOM the framework does not have any additional information (other than what is stored in the DOM) and as a result the framework can continue executing from where the server left off. Because the framework provides a mechanism for application component and services to also be serialized into the DOM the result is that both the framework as well as application state con be serialized into HTML and the application can fully be resumed on the client.
+By keeping the above state in the DOM the framework does not have any additional information (other than what is stored in the DOM) and as a result the framework can continue executing from where the server left off. Because the framework provides a mechanism for application component and entities to also be serialized into the DOM the result is that both the framework as well as application state con be serialized into HTML and the application can fully be resumed on the client.
 
 ## Writing applications with serializability in mind
 
-The resumability property of the framework must extends to resumability of the application as well. This means that the framework must provide mechanisms for the developer to express Component and Services of the applications in a way which can be serialized and than rehydrated. This necessitates that applications are written with resumability constraints in mind. It is simply not possible for developers to continue to write applications in heap-centric way and expect that a better framework can somehow make up for this sub-optimal approach.
+The resumability property of the framework must extends to resumability of the application as well. This means that the framework must provide mechanisms for the developer to express Component and Entities of the applications in a way which can be serialized and than rehydrated. This necessitates that applications are written with resumability constraints in mind. It is simply not possible for developers to continue to write applications in heap-centric way and expect that a better framework can somehow make up for this sub-optimal approach.
 
 Developers must write their applications in DOM-centric way. This will require a change of behavior and retooling of web-developers skills. Frameworks need to provide the guidance and APIs to make it easy for the developers to write the applications in this way.
 

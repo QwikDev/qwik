@@ -6,14 +6,14 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { Item, ItemService } from '../data/Item.js';
+import { Item, ItemEntity } from '../data/Item.js';
 import {
   injectMethod,
   jsxFactory,
   provideComponentProp,
-  provideServiceState,
+  provideEntityState,
   QRL,
-  ServiceKey,
+  EntityKey,
   Provider,
   Host,
 } from '../qoot.js';
@@ -23,8 +23,8 @@ import { ItemComponent } from './Item_component.js';
 export const _needed_by_JSX_ = jsxFactory; // eslint-disable-line @typescript-eslint/no-unused-vars
 export default injectMethod(
   ItemComponent,
-  provideServiceState<ItemService>(
-    provideComponentProp('$item') as any as Provider<ServiceKey<ItemService>> // TODO(type)
+  provideEntityState<ItemEntity>(
+    provideComponentProp('$item') as any as Provider<EntityKey<ItemEntity>> // TODO(type)
   ),
   provideComponentProp('$item'),
   function (this: ItemComponent, item: Item, itemKey: string) {

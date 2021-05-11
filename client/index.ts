@@ -13,6 +13,6 @@ export * from './import/index.js';
 export * from './injector/index.js';
 export * from './render/index.js';
 export * from './render/jsx/index.js';
-export * from './service/index.js';
+export * from './entity/index.js';
 export * from './provider/index.js';
 export { dirname } from './util/dirname.js';

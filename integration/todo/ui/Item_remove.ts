@@ -6,23 +6,17 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { ItemService } from '../data/Item.js';
-import { TodoService } from '../data/Todo.js';
-import {
-  injectEventHandler,
-  provideService,
-  provideUrlProp,
-  ServiceKey,
-  Provider,
-} from '../qoot.js';
+import { ItemEntity } from '../data/Item.js';
+import { TodoEntity } from '../data/Todo.js';
+import { injectEventHandler, provideEntity, provideUrlProp, EntityKey, Provider } from '../qoot.js';
 
 export default injectEventHandler(
   // Providers
   null,
-  provideService(TodoService.SINGLETON),
-  provideUrlProp('itemKey') as unknown as Provider<ServiceKey<ItemService>>, // TODO(type): add provider to clean this cast up
+  provideEntity(TodoEntity.MOCK_USER),
+  provideUrlProp('itemKey') as unknown as Provider<EntityKey<ItemEntity>>, // TODO(type): add provider to clean this cast up
   // Handler
-  async function remove(this: null, todoService: TodoService, itemKey: ServiceKey<ItemService>) {
-    todoService.remove(itemKey);
+  async function remove(this: null, todoEntity: TodoEntity, itemKey: EntityKey<ItemEntity>) {
+    todoEntity.remove(itemKey);
   }
 );

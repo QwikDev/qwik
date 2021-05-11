@@ -6,14 +6,14 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { injectMethod, markDirty, ServiceKey } from '../qoot.js';
-import { ItemService } from './Item.js';
-import { TodoService } from './Todo.js';
+import { injectMethod, markDirty, EntityKey } from '../qoot.js';
+import { ItemEntity } from './Item.js';
+import { TodoEntity } from './Todo.js';
 
 export default injectMethod(
-  TodoService, //
-  async function removeItem(this: TodoService, itemKey: ServiceKey<ItemService>): Promise<void> {
-    (await ItemService.$hydrate(this.$element, itemKey)).$release();
+  TodoEntity, //
+  async function removeItem(this: TodoEntity, itemKey: EntityKey<ItemEntity>): Promise<void> {
+    (await ItemEntity.$hydrate(this.$element, itemKey)).$release();
     const items = this.$state.items;
     items.splice(items.indexOf(itemKey), 1);
     this.setFilter(this.$state.filter);

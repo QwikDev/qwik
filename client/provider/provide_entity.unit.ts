@@ -11,14 +11,13 @@ import '../CONFIG.js';
 import { QRL } from '../import/qrl.js';
 import { getInjector } from '../injector/element_injector.js';
 import { ElementFixture } from '../testing/element_fixture.js';
-import { provideServiceState } from './provide_service_state.js';
-import { Service } from '../service/service.js';
+import { provideEntity } from './provide_entity.js';
+import { Entity } from '../entity/entity.js';
 import { expect } from 'chai';
-import { Injector } from '../injector/index.js';
-import { Provider } from '../injector/types';
-import { ServiceKey } from '../service/service_key.js';
+import { Injector, Provider } from '../injector/types.js';
+import { EntityKey } from '../entity/entity_key.js';
 
-describe('provideService', () => {
+describe('provideEntity', () => {
   let fixture: ElementFixture;
   let hostInjector: Injector; // eslint-disable-line @typescript-eslint/no-unused-vars
   beforeEach(() => {
@@ -26,15 +25,16 @@ describe('provideService', () => {
     hostInjector = getInjector(fixture.host); // eslint-disable-line @typescript-eslint/no-unused-vars
   });
 
-  it('should return service', async () => {
-    RegardsService.$attachService(fixture.parent);
+  it('should return entity', async () => {
+    RegardsEntity.$attachEntity(fixture.parent);
     const fn = injectFunction(
-      provideServiceState<RegardsService>((() =>
-        Promise.resolve('regards:Hello:World')) as any as Provider<ServiceKey<RegardsService>>),
-      (service: Regards) => service
+      provideEntity((() => Promise.resolve('regards:Hello:World')) as any as Provider<
+        EntityKey<RegardsEntity>
+      >), // TODO(type):
+      (entity: RegardsEntity) => entity
     );
 
-    expect(await hostInjector.invoke(fn)).to.eql({
+    expect((await hostInjector.invoke(fn)).$state).to.eql({
       $key: 'regards:Hello:World',
       greeting: 'Hello World!',
     });
@@ -49,9 +49,9 @@ interface Regards {
   greeting: string;
 }
 
-export class RegardsService extends Service<RegardsProps, Regards> {
+export class RegardsEntity extends Entity<RegardsProps, Regards> {
   static $type = 'regards';
-  static $qrl = QRL`test:/provider/provide_service_state.unit.RegardsService`;
+  static $qrl = QRL`test:/provider/provide_entity.unit.RegardsEntity`;
   static $keyProps = ['salutation', 'name'];
 
   greeting: string = null!;

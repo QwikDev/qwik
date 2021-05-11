@@ -6,22 +6,22 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { Todo, TodoService } from '../data/Todo.js';
+import { Todo, TodoEntity } from '../data/Todo.js';
 import {
   QRL,
   injectFunction,
   jsxFactory,
   provideComponentProp,
-  provideServiceState,
+  provideEntityState,
   Provider,
-  ServiceKey,
+  EntityKey,
   Host,
 } from '../qoot.js';
 
 export const _needed_by_JSX_ = jsxFactory; // eslint-disable-line @typescript-eslint/no-unused-vars
 export default injectFunction(
-  provideServiceState<TodoService>(
-    provideComponentProp('$todos') as any as Provider<ServiceKey<TodoService>>
+  provideEntityState<TodoEntity>(
+    provideComponentProp('$todos') as any as Provider<EntityKey<TodoEntity>>
   ), // TODO(type): fix cast
   function FooterTemplate(todos: Todo) {
     const remaining = todos.items.length - todos.completed;

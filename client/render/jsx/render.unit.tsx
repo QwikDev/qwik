@@ -140,13 +140,13 @@ describe('render', () => {
       await jsxRender(
         host,
         <div>
-          <greeter url="/" decl:template={QRL`jsx:/render.unit.Greeter_render_with_url`} />
+          <greeter url="/" decl:template={QRL`jsx:/render.unit#Greeter_render_with_url`} />
         </div>,
         global.document
       );
       expect(host.innerHTML).to.equal(
         '<div>' +
-          '<greeter url="/" decl:template="jsx:/render.unit.Greeter_render_with_url" :="">' +
+          '<greeter url="/" decl:template="jsx:/render.unit#Greeter_render_with_url" :="">' +
           '<span>Hello World! (/)</span>' +
           '</greeter>' +
           '</div>'
@@ -156,7 +156,7 @@ describe('render', () => {
 
   it('should render components as symbols', async () => {
     const Greeter = jsxDeclareComponent<{ url: string }>(
-      QRL`jsx:/render.unit.Greeter_render_with_url`,
+      QRL`jsx:/render.unit#Greeter_render_with_url`,
       'greeter'
     );
     await jsxRender(
@@ -168,7 +168,7 @@ describe('render', () => {
     );
     expect(host.innerHTML).to.equal(
       '<div>' +
-        '<greeter decl:template="jsx:/render.unit.Greeter_render_with_url" url="/" :="">' +
+        '<greeter decl:template="jsx:/render.unit#Greeter_render_with_url" url="/" :="">' +
         '<span>Hello World! (/)</span>' +
         '</greeter>' +
         '</div>'
@@ -199,7 +199,7 @@ describe('render', () => {
       await jsxRender(
         host,
         jsxFactory('div', {
-          'decl:template': 'jsx:/render.unit.Noop_template',
+          'decl:template': 'jsx:/render.unit#Noop_template',
           'bind:.': 'myUrl',
           'on:.render': 'myComponentUrl',
           'on:click': 'myComponent_click',
@@ -208,7 +208,7 @@ describe('render', () => {
         global.document
       );
       expect(host.innerHTML).to.equal(
-        '<div decl:template="jsx:/render.unit.Noop_template" bind:.="myUrl" on:.render="myComponentUrl" on:click="myComponent_click" bind:token="myTokenUrl" :="">NOOP</div>'
+        '<div decl:template="jsx:/render.unit#Noop_template" bind:.="myUrl" on:.render="myComponentUrl" on:click="myComponent_click" bind:token="myTokenUrl" :="">NOOP</div>'
       );
     });
   });

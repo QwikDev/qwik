@@ -21,7 +21,7 @@ export default injectMethod(
           placeholder="What needs to be done?"
           autofocus
           value={this.$state.text}
-          on:keyup={QRL`ui:/Header_addTodo?value=.target.value&code=.code`}
+          on:keyup={QRL`ui:/Header_addTodo#?value=.target.value&code=.code`}
         />
       </>
     );

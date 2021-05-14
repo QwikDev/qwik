@@ -34,7 +34,7 @@ export default injectMethod(GreeterComponent, function (this: GreeterComponent) 
           // - Declare a listener on `input` to invoke `Greeter_onKeyup.ts`
           // - The `value` should be set to the `event.target.value` property.
           //   - See `provideQrlExp` in `Greeter_onKeyup.ts` for details.
-          on:keyup={QRL`./Greeter_input_onKeyup?name=.target.value`}
+          on:keyup={QRL`./Greeter_input_onKeyup#?name=.target.value`}
         />
       </div>
       <span>Hello {name}!</span>

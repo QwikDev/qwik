@@ -26,7 +26,7 @@ This example shows a trivial greeter application with server-side pre-rendering.
 
 At this point, the browser renders the page and waits for user interaction.
 
-1. User edits the `<input>` which causes `keyup` event to be emitted by the browser which is intercepted by [`qootloader.js`](../../client/qootloader.ts) because of `on:keyup` attribute in `<input value="World" on:keyup="./Greeter_onKeyup?name=.target.value">`.
+1. User edits the `<input>` which causes `keyup` event to be emitted by the browser which is intercepted by [`qootloader.js`](../../client/qootloader.ts) because of `on:keyup` attribute in `<input value="World" on:keyup="./Greeter_onKeyup#?name=.target.value">`.
 1. [`./Greeter_onKeyup`](./Greeter_onKeyup.ts) is loaded and executed.
    ```
    export default injectEventHandler(
@@ -39,7 +39,7 @@ At this point, the browser renders the page and waits for user interaction.
    );
    ```
 1. Injection asks for the `GreetComponent`, which causes the deserialization of component state from the HTML.
-1. Injection ask for `provideQrlExp('value')` value. Notice that the `on:keyup="./Greeter_onKeyup?name=.target.value"` contains `?value=.target.value` which tells the system that property `.target.value` should be evaluated from the `Event` object. This returns the current value of the `<input>`.
+1. Injection ask for `provideQrlExp('value')` value. Notice that the `on:keyup="./Greeter_onKeyup#?name=.target.value"` contains `?value=.target.value` which tells the system that property `.target.value` should be evaluated from the `Event` object. This returns the current value of the `<input>`.
 1. The function then assigns the new value to the current component state.
 1. Finally, the component invalidates itself, which marks it available for re-rendering.
    1. [`markDirty()`](../../client/render/jsx/mark_dirty.ts) adds listener attribute to the component like so: `<greeter on:.render="./Greeter_template">`.

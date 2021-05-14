@@ -51,7 +51,7 @@ interface Regards {
 
 export class RegardsEntity extends Entity<RegardsProps, Regards> {
   static $type = 'regards';
-  static $qrl = QRL`test:/provider/provide_entity_state.unit.RegardsEntity`;
+  static $qrl = QRL`test:/provider/provide_entity_state.unit#RegardsEntity`;
   static $keyProps = ['salutation', 'name'];
 
   greeting: string = null!;

@@ -104,7 +104,7 @@ export async function verifyQrl(error: Error, url: string): Promise<any> {
   }
 
   function makeError(e: unknown) {
-    return `QRL-ERROR: '${url}' is not a valid import. 
+    return `QRL-ERROR: '${url}' is not a valid import.
 Resolved URL: ${toUrl(base, url)}
     Base URL: ${config.baseURI}
       CONFIG: ${JSON.stringify(config)}

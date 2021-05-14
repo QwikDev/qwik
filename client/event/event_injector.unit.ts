@@ -17,7 +17,7 @@ describe('EventInjector', () => {
 
   it('should parse URL', async () => {
     const event = 'EVENT' as any as Event;
-    const url = new URL('http://localhost/path?a=b&c=d');
+    const url = new URL('http://localhost/path#?a=b&c=d');
     const eventInjector = new EventInjector(fixture.host, event, url);
     const eventEntity = await eventInjector.getEntity(EventEntity.KEY);
     expect(eventEntity.event).to.equal(event);

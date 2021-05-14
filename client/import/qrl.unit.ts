@@ -26,7 +26,7 @@ describe('QRL', () => {
 
   it('should verify QRL and pass', async () => {
     try {
-      const qrl = await verifyQrl(newError(''), `./import/qrl.QRL`);
+      const qrl = await verifyQrl(newError(''), `./import/qrl#QRL`);
       expect(qrl).to.equal(QRL);
     } catch (e) {
       expect(e).to.be.false;
@@ -35,7 +35,7 @@ describe('QRL', () => {
 
   it('should support custom protocols', async () => {
     try {
-      const qrl = await verifyQrl(newError(''), String(QRL`import:/qrl.QRL`));
+      const qrl = await verifyQrl(newError(''), String(QRL`import:/qrl#QRL`));
       expect(qrl).to.equal(QRL);
     } catch (e) {
       expect(e).to.be.false;

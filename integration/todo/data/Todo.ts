@@ -27,7 +27,7 @@ export interface Todo {
 }
 
 export class TodoEntity extends Entity<TodoProps, Todo> {
-  static $qrl = QRL<ItemEntity>`data:/Todo.TodoEntity`;
+  static $qrl = QRL<ItemEntity>`data:/Todo#TodoEntity`;
   static $type = 'Todos';
   static $keyProps = ['todos'];
   static MOCK_USER = toEntityKey<TodoEntity>('todos:1234');

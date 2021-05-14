@@ -23,6 +23,7 @@ module.exports = {
     '@typescript-eslint/ban-types': 'off',
     'prefer-spread': 'off',
     'no-case-declarations': 'off',
+    'no-console': ['error'],
     'no-only-tests/no-only-tests': 'error',
   },
 };

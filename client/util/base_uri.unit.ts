@@ -14,7 +14,6 @@ describe('getBaseUri', () => {
     expect(getBaseUri()).to.include('base_uri.unit.js');
   });
   it('should getBaseUri equal import.meta.url', () => {
-    console.log(import.meta.url, new Error().stack);
     let baseURI = getBaseUri();
     // For some reason the sourcemap have extra util in the path.
     baseURI = baseURI.replace('/util/util/', '/util/');

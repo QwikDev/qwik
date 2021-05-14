@@ -164,7 +164,6 @@ describe('attributes', () => {
         },
         false
       );
-      console.log(host.outerHTML);
       expect(host.getAttribute('on:camel-case')).to.eql('url');
     });
 

@@ -172,7 +172,7 @@ class MyClass {}
 export function template() {}
 
 class MyComponent extends Component<any, any> {
-  static $templateQRL = 'test:/injectior/base_injector.unit.template' as any as QRL;
+  static $templateQRL = 'test:/injector/base_injector.unit#template' as any as QRL;
   $newState() {
     return {};
   }

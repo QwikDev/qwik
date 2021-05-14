@@ -33,22 +33,24 @@ export function qImport<T>(
 
   const normalizedUrl = toUrl(toBaseURI(base), url);
   const importPath = toImportPath(normalizedUrl);
-  const cacheValue = importCache.get(importPath);
-  if (cacheValue) return cacheValue as T;
+  const exportName = qExport(normalizedUrl);
+  const cacheKey = `${importPath}#${exportName}`;
+  const cacheValue = importCache.get(cacheKey);
+  if (cacheValue) return cacheValue as T | Promise<T>;
 
-  let dotIdx = importPath.lastIndexOf('.');
-  const slashIdx = importPath.lastIndexOf('/');
-  if (dotIdx <= slashIdx) dotIdx = importPath.length;
-  const importURL = importPath.substr(0, dotIdx) + '.js';
-  const promise = import(importURL).then((module) => {
-    const key = importPath.substring(dotIdx + 1) || 'default';
-    const handler = module[key];
+  const promise = import(importPath + '.js').then((module) => {
+    const handler = module[exportName];
     if (!handler)
-      throw qError(QError.Core_missingExport_name_url_props, key, importURL, Object.keys(module));
-    qImportSet(importPath, handler);
+      throw qError(
+        QError.Core_missingExport_name_url_props,
+        exportName,
+        importPath,
+        Object.keys(module)
+      );
+    qImportSet(cacheKey, handler);
     return handler;
   });
-  qImportSet(importPath, promise);
+  qImportSet(cacheKey, promise);
   return promise;
 }
 
@@ -93,7 +95,8 @@ export function toUrl(baseURI: string, url: string | QRL | URL): URL {
 }
 
 /**
- * Removes URL decorations such as search and hash and returns naked URL for importing.
+ * Removes URL decorations such as search and hash, and normalizes extensions,
+ * returning naked URL for importing.
  *
  * @param url - to clean.
  * @returns naked URL.
@@ -133,4 +136,32 @@ export function adjustProtocol(qConfig: QConfig, qrl: string | QRL): string {
     }
     return value;
   });
+}
+
+/**
+ * Extract the QRL export name from a URL.
+ *
+ * This name is encoded in the hash of the URL, before any `?`.
+ */
+export function qExport(url: URL): string {
+  // 1 - optional `#` at the start.
+  // 2 - capture group `$1` containing the export name, stopping at the first `?`.
+  // 3 - the rest from the first `?` to the end.
+  // The hash string is replaced by the captured group that contains only the export name.
+  //                       1112222222333
+  return url.hash.replace(/^#?([^?]*).*$/, '$1') || 'default';
+}
+
+/**
+ * Extract the QRL params from a URL.
+ *
+ * These params are encoded after the `?` in the hash of the URL, not the URL's search params.
+ */
+export function qParams(url: URL): URLSearchParams {
+  // 1 - everything up to the first `?` (or the end of the string).
+  // 2 - an optional `?`.
+  // 3 - capture group `$1` containing everything after the first `?` to the end of the string.
+  // The hash string is replaced by the captured group that contains only the serialized params.
+  //                                           11111122233333
+  return new URLSearchParams(url.hash.replace(/^[^?]*\??(.*)$/, '$1'));
 }

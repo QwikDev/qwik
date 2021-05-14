@@ -18,7 +18,7 @@ describe('provideQrlExp', () => {
     const injector = new EventInjector(
       fixture.child,
       { foo: { bar: 'worked' } } as any,
-      new URL('./provide_qrl_exp.unit.someExport?value=.foo.bar', import.meta.url)
+      new URL('./provide_qrl_exp.unit.someExport#?value=.foo.bar', import.meta.url)
     );
     const handler = injectFunction(provideQrlExp<string>('value'), (props) => {
       return props;

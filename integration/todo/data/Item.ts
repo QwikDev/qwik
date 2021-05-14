@@ -20,7 +20,7 @@ export interface Item {
 // TODO: How can this be split into public / private part just like Components
 export class ItemEntity extends Entity<ItemProps, Item> {
   static $type = 'Item'; // TODO(type): add as const
-  static $qrl = QRL<ItemEntity>`data:/Item.ItemEntity`;
+  static $qrl = QRL<ItemEntity>`data:/Item#ItemEntity`;
   static $keyProps = ['id'];
   async toggle(isCompleted: boolean): Promise<void> {
     return this.$invokeQRL(QRL<(isCompleted: boolean) => void>`data:/Item_toggle`, isCompleted);

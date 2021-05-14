@@ -41,9 +41,10 @@ NOTE: The key/value pair is reversed in the binding, so that it is easy to query
 
 ## QRL
 
-| Syntax             | Meaning                                                                                                                             |
-| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `./path`           | URL => results in an import of code from the URL <div> `(await import('./path.js')).default.call(injector) `</div>                  |
-| `key:/path`        | URL => results in an import of code from the URL <div> `(await import(CONFIG.protocol[key] + '/path.js')).default(injector) `</div> |
-| `./path.foo`       | URL => results in an import of code from the URL <div> `(await import('./path.js')).foo(injector) `</div>                           |
-| `./path?key=value` | URL => results in an import of code from the URL <div> `(await import('./path.js')).default(injector) `</div>                       |
+| Syntax                 | Meaning                                                                                                                                           |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `./path`               | Import code from URL and run `default` handler <div> `(await import('./path.js')).default.call(injector) `</div>                                  |
+| `key:/path`            | Import code from protocol mapped URL and run `default` handler <div> `(await import(CONFIG.protocol[key] + '/path.js')).default(injector) `</div> |
+| `./path#foo`           | Import code from URL and run `foo` handler <div> `(await import('./path.js')).foo(injector) `</div>                                               |
+| `./path#foo?key=value` | Import code from URL and run `foo` handler with params <div> `(await import('./path.js')).foo(injector) `</div>                                   |
+| `./path#?key=value`    | Import code from URL and run `default` handler with params <div> `(await import('./path.js')).default(injector) `</div>                           |

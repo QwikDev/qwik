@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { qImport, toBaseURI, toUrl } from '../import/qImport.js';
+import { qImport, qParams, toBaseURI, toUrl } from '../import/qImport.js';
 import { QError, qError } from '../error/error.js';
 import { findAttribute } from '../util/dom_attrs.js';
 import { AttributeMarker } from '../util/markers.js';
@@ -23,8 +23,8 @@ import { fromCamelToKebabCase } from '../util/case.js';
  * # Example
  * ```
  * <my-component on:open="./onOpen" on:close="./onClose">
- *   <button on:click="base:qoot.emitEvent?$type=open&someArg=someValue">open</button>
- *   <button on:click="base:qoot.emitEvent?$type=close&someArg=someValue">close</button>
+ *   <button on:click="base:qoot#emitEvent?$type=open&someArg=someValue">open</button>
+ *   <button on:click="base:qoot#emitEvent?$type=close&someArg=someValue">close</button>
  * </my-component>
  * ```
  *
@@ -42,7 +42,8 @@ import { fromCamelToKebabCase } from '../util/case.js';
  * @public
  */
 export function emitEvent(element: HTMLElement, event: Event, url: URL): Promise<any> {
-  const $type = url.searchParams.get('$type');
+  const params = qParams(url);
+  const $type = params.get('$type');
   if ($type == null) {
     throw qError(QError.Event_emitEventRequiresName_url, url);
   }
@@ -55,7 +56,7 @@ export function emitEvent(element: HTMLElement, event: Event, url: URL): Promise
       return Promise.resolve(qImport(element, qrl)).then((fn: Function) => {
         const dstUrl = toUrl(toBaseURI(element), qrl);
         const event = new CustomEvent($type);
-        url.searchParams.forEach((value, key) => {
+        params.forEach((value, key) => {
           (event as any)[key] = value;
         });
         return fn(element, event, dstUrl);

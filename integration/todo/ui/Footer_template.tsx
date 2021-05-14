@@ -31,7 +31,7 @@ export default injectFunction(
         <li>
           <a
             class={{ selected: todos.filter == lMode }}
-            on:click={QRL`base:qoot.emitEvent?$type=selectFilter&filter=${lMode}`}
+            on:click={QRL`base:qoot#emitEvent?$type=selectFilter&filter=${lMode}`}
           >
             {mode}
           </a>

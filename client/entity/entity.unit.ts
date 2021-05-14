@@ -38,7 +38,7 @@ describe('entity', () => {
       const fixture = new ElementFixture();
       GreeterEntity.$attachEntity(fixture.host);
       expect(stringifyDebug(fixture.host)).to.eql(
-        `<host ::greeter='entity:/entity.unit.GreeterEntity'>`
+        `<host ::greeter='entity:/entity.unit#GreeterEntity'>`
       );
     });
 
@@ -47,7 +47,7 @@ describe('entity', () => {
       GreeterEntity.$attachEntity(fixture.host);
       GreeterEntity.$attachEntity(fixture.host);
       expect(stringifyDebug(fixture.host)).to.eql(
-        `<host ::greeter='entity:/entity.unit.GreeterEntity'>`
+        `<host ::greeter='entity:/entity.unit#GreeterEntity'>`
       );
     });
 
@@ -66,7 +66,7 @@ describe('entity', () => {
       const fixture = new ElementFixture();
       fixture.host.setAttribute('::greeter', 'some_other_qrl');
       expect(() => GreeterEntity.$attachEntity(fixture.host)).to.throw(
-        `SERVICE-ERROR(Q-313): Name collision. Already have entity named 'Greeter' with QRL 'some_other_qrl' but expected QRL 'entity:/entity.unit.GreeterEntity'.`
+        `SERVICE-ERROR(Q-313): Name collision. Already have entity named 'Greeter' with QRL 'some_other_qrl' but expected QRL 'entity:/entity.unit#GreeterEntity'.`
       );
     });
   });
@@ -85,7 +85,7 @@ describe('entity', () => {
         { greeting: 'Ahoj Svet!' }
       );
       expect(stringifyDebug(fixture.host)).to.eql(
-        `<host ::greeter='entity:/entity.unit.GreeterEntity' ` +
+        `<host ::greeter='entity:/entity.unit#GreeterEntity' ` +
           `greeter:ahoj:svet='{"greeting":"Ahoj Svet!"}' ` +
           `greeter:hello:world='{"greeting":"Hello World!"}'>`
       );
@@ -104,7 +104,7 @@ describe('entity', () => {
       const greeter = await greeterPromise;
       expect(greeter.$state).to.eql({ $key: 'greeter:-hello:-world', greeting: 'existing state' });
       expect(stringifyDebug(fixture.host)).to.eql(
-        `<host : ::greeter='entity:/entity.unit.GreeterEntity' greeter:-hello:-world>`
+        `<host : ::greeter='entity:/entity.unit#GreeterEntity' greeter:-hello:-world>`
       );
     });
     it('should hydrate without state', async () => {
@@ -120,7 +120,7 @@ describe('entity', () => {
         greeting: 'INIT: Hello World!',
       });
       expect(stringifyDebug(fixture.host)).to.eql(
-        `<host : ::greeter='entity:/entity.unit.GreeterEntity' greeter:-hello:-world>`
+        `<host : ::greeter='entity:/entity.unit#GreeterEntity' greeter:-hello:-world>`
       );
     });
     it('should hydrate into the same instance', async () => {
@@ -144,7 +144,7 @@ describe('entity', () => {
         greeting: 'INIT: Hello World!',
       });
       expect(stringifyDebug(fixture.host)).to.eql(
-        `<host : ::greeter='entity:/entity.unit.GreeterEntity' greeter:-hello:-world>`
+        `<host : ::greeter='entity:/entity.unit#GreeterEntity' greeter:-hello:-world>`
       );
     });
     it('should hydrate with error', async () => {
@@ -190,7 +190,7 @@ describe('entity', () => {
       expect(await getInjector(fixture.child).getEntity('empty:' as any as EntityKey)).to.equal(
         empty
       );
-      expect(fixture.child.getAttribute('::empty')).to.equal('entity:/entity.unit.EmptyEntity');
+      expect(fixture.child.getAttribute('::empty')).to.equal('entity:/entity.unit#EmptyEntity');
     });
   });
 
@@ -205,7 +205,7 @@ describe('entity', () => {
     expect(await greeter.greet()).to.equal('hello world!');
     expect(greeter.$state.greeting).to.equal('hello world!');
     expect(stringifyDebug(greeter.$element)).to.equal(
-      "<child : ::greeter='entity:/entity.unit.GreeterEntity' greeter:hello:world>"
+      "<child : ::greeter='entity:/entity.unit#GreeterEntity' greeter:hello:world>"
     );
     expect(
       await getInjector(fixture.child).getEntity(
@@ -215,12 +215,12 @@ describe('entity', () => {
 
     serializeState(fixture.host);
     expect(stringifyDebug(greeter.$element)).to.equal(
-      `<child : ::greeter='entity:/entity.unit.GreeterEntity' greeter:hello:world='{"greeting":"hello world!"}'>`
+      `<child : ::greeter='entity:/entity.unit#GreeterEntity' greeter:hello:world='{"greeting":"hello world!"}'>`
     );
 
     greeter.$release();
     expect(stringifyDebug(greeter.$element)).to.equal(
-      `<child : ::greeter='entity:/entity.unit.GreeterEntity'>`
+      `<child : ::greeter='entity:/entity.unit#GreeterEntity'>`
     );
   });
 });
@@ -234,10 +234,10 @@ interface Empty {}
 
 export class EmptyEntity extends Entity<EmptyProps, Empty> {
   static $type: 'Empty' = 'Empty';
-  static $qrl = QRL<EmptyEntity>`entity:/entity.unit.EmptyEntity`;
+  static $qrl = QRL<EmptyEntity>`entity:/entity.unit#EmptyEntity`;
   static $keyProps = ['id'];
   async ident(value: string): Promise<string> {
-    return this.$invokeQRL(QRL<(value: string) => string>`entity:/entity.unit.ident`, value);
+    return this.$invokeQRL(QRL<(value: string) => string>`entity:/entity.unit#ident`, value);
   }
 }
 
@@ -256,7 +256,7 @@ interface Greeter {
 
 export class GreeterEntity extends Entity<GreeterProps, Greeter> {
   static $type: 'Greeter' = 'Greeter';
-  static $qrl = QRL<GreeterEntity>`entity:/entity.unit.GreeterEntity`;
+  static $qrl = QRL<GreeterEntity>`entity:/entity.unit#GreeterEntity`;
   static $keyProps = ['salutation', 'name'];
 
   async $newState($keyProps: GreeterProps): Promise<Greeter> {
@@ -266,7 +266,7 @@ export class GreeterEntity extends Entity<GreeterProps, Greeter> {
     return { greeting: `INIT: ${$keyProps.salutation} ${$keyProps.name}!` };
   }
   async greet(): Promise<string> {
-    return this.$invokeQRL(QRL<() => string>`entity:/entity.unit.greet`);
+    return this.$invokeQRL(QRL<() => string>`entity:/entity.unit#greet`);
   }
 }
 

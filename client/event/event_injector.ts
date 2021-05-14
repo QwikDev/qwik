@@ -21,6 +21,7 @@ import {
 import '../util/qDev.js';
 import { qError, QError } from '../error/error.js';
 import { EventEntity } from './event_entity.js';
+import { qParams } from '../import/qImport.js';
 
 export class EventInjector extends BaseInjector {
   private eventEntity: EventEntity;
@@ -29,7 +30,7 @@ export class EventInjector extends BaseInjector {
   constructor(element: Element, event: Event, url: URL) {
     super(element);
     const props: Props = {};
-    url.searchParams.forEach((value, key) => (props[key] = value));
+    qParams(url).forEach((value, key) => (props[key] = value));
     this.eventEntity = new EventEntity(element, event, url, props);
   }
 

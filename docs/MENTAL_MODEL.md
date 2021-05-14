@@ -133,7 +133,6 @@ Here are some common ways Qoot framework keeps state in DOM/HTML.
 - `<div :user:some_user_id='{"fullName": "Joe Someone", "age": 20}'>`: A serialized form of a `UserEntity` with `Props: {id: 'some_user_id'}` and `State: {fullName: "Joe Someone", age: 20}`.
 - `<some-component bind:user:some_user_id="$user">`: A entity binding to a `Component`. This tells Qoot that if the `State` of `UserEntity ` with `Key`: `user:some_user_id` changes, the component `<some-component>` will need to be re-rendered.
 - `<some-component on:click="qrl_to_handler">`: The `on:click` attribute notifies Qoot framework that the component is interested in the `click` events. The attribute points to the location where the click handler can be lazy-loaded from.
-  > > > > > > > 80c1021 (refactor: rename `Entity` to `Entity`)
 
 The benefit of the DOM centric approach is that all of the application state is already serialized in DOM/HTML. The Qoot framework itself has no additional information which it needs to store about the application.
 

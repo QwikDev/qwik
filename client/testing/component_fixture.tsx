@@ -81,7 +81,7 @@ export interface Greeter {
 }
 
 export class GreeterComponent extends Component<GreeterProps, Greeter> {
-  static $templateQRL = QRL`${import.meta.url.replace(/\.js$/, '.greeterTemplate')}`;
+  static $templateQRL = QRL`${import.meta.url.replace(/\.js$/, '#greeterTemplate')}`;
 
   greeting: string = null!;
 
@@ -118,7 +118,7 @@ export interface Person {
 }
 
 export class PersonEntity extends Entity<PersonProps, Person> {
-  static $qrl = QRL`${import.meta.url.replace(/\.js$/, '.PersonEntity')}`;
+  static $qrl = QRL`${import.meta.url.replace(/\.js$/, '#PersonEntity')}`;
   static $type = 'Person';
   static $keyProps = [`last`, 'first'];
 

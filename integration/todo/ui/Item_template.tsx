@@ -35,17 +35,17 @@ export default injectMethod(
             class="toggle"
             type="checkbox"
             checked={item.completed}
-            on:click={QRL`ui:/Item_toggle?toggleState=.target.checked`}
+            on:click={QRL`ui:/Item_toggle#?toggleState=.target.checked`}
           />
-          <label on:dblclick={QRL`ui:/Item_edit.begin`}>{item.title}</label>
-          <button class="destroy" on:click={QRL`ui:/Item_remove?itemKey=${itemKey}`}></button>
+          <label on:dblclick={QRL`ui:/Item_edit#begin`}>{item.title}</label>
+          <button class="destroy" on:click={QRL`ui:/Item_remove#?itemKey=${itemKey}`}></button>
         </div>
         {this.editing ? (
           <input
             class="edit"
             value={item.title}
-            on:blur={QRL`ui:/Item_edit.end`} // TODO: investigate why this sometimes does not fire
-            on:keyup={QRL`ui:/Item_edit.change?value=.target.value&code=.code&itemKey=${itemKey}`}
+            on:blur={QRL`ui:/Item_edit#end`} // TODO: investigate why this sometimes does not fire
+            on:keyup={QRL`ui:/Item_edit#change?value=.target.value&code=.code&itemKey=${itemKey}`}
           />
         ) : null}
       </Host>

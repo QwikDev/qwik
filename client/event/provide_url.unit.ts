@@ -19,7 +19,7 @@ describe('provideURL', () => {
   beforeEach(() => {
     fixture = new ElementFixture();
     event = {} as Event;
-    url = new URL('http://localhost/path?a=b&c=d');
+    url = new URL('http://localhost/path#?a=b&c=d');
     eventInjector = new EventInjector(fixture.host, event, url);
   });
 

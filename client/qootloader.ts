@@ -54,13 +54,15 @@ interface QConfig {
           return (window as any as { Q: QConfig }).Q.protocol[protocol];
         });
         const url = new URL(eventUrl, document.baseURI);
-        const pathname = url.pathname;
-        let dotIdx = pathname.lastIndexOf('.');
-        const slashIdx = pathname.lastIndexOf('/');
-        if (dotIdx === 0 || dotIdx < slashIdx) dotIdx = pathname.length;
-        const importPath = pathname.substr(0, dotIdx) + '.js';
+        const importPath = url.pathname + '.js';
         const module = await import(importPath);
-        const exportName = pathname.substring(dotIdx + 1) || 'default';
+        // 1 - optional `#` at the start.
+        // 2 - capture group `$1` containing the export name, stopping at the first `?`.
+        // 3 - the rest from the first `?` to the end.
+        // The hash string is replaced by the captured group that contains only the export name.
+        // This is the same as in the `qExport()` function.
+        //                                   1112222222333
+        const exportName = url.hash.replace(/^#?([^?]*).*$/, '$1') || 'default';
         const handler = module[exportName];
         if (!handler)
           throw new Error(

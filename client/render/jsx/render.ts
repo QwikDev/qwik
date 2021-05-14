@@ -279,7 +279,8 @@ function visitChildren(
 function writeErrorToDom(node: Node): any {
   return function (error: any): any {
     // TODO: needs test
-    console.log('ERROR:', error);
+    // eslint-disable-next-line no-console
+    console.error('ERROR:', error);
     const element = node as Element;
     const pre = element.ownerDocument.createElement('pre');
     element.appendChild(pre);

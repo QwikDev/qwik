@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
-import { ItemEntity } from '../data/Item.js';
+import type { ItemEntity } from '../data/Item.js';
 import { jsxDeclareComponent, QRL, EntityKey } from '../qoot.js';
 
 export interface ItemProps {

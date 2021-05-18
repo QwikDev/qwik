@@ -1,8 +1,8 @@
-package(default_visibility = ["//visibility:public"])
-
-load("@npm//mocha:index.bzl", "mocha_test")
 load("@build_bazel_rules_nodejs//:index.bzl", "js_library")
 load("@npm//@bazel/typescript:index.bzl", "ts_project")
+load("@npm//mocha:index.bzl", "mocha_test")
+
+package(default_visibility = ["//visibility:public"])
 
 # TODO: This package should have public API and test for public API stabality
 

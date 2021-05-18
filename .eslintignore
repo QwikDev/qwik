@@ -1,0 +1,13 @@
+.history
+.vscode
+dist
+bazel-*
+node_modules
+tsc-out
+external
+*.
+**/*.log
+etc
+temp
+tsdoc-metadata.json
+**/.DS_Store

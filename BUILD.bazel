@@ -1,5 +1,5 @@
-load("@npm//@bazel/typescript:index.bzl", "ts_config")
 load("@build_bazel_rules_nodejs//:index.bzl", "copy_to_bin")
+load("@npm//@bazel/typescript:index.bzl", "ts_config")
 
 package(default_visibility = ["//visibility:public"])
 

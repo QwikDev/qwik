@@ -1,0 +1,6 @@
+{
+  "description": "A CJS version of qoot",
+  "type": "commonjs",
+  "main": "./qoot.js",
+  "typings": "../qoot.d.ts"
+}

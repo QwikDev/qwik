@@ -153,5 +153,7 @@ pkg_npm(
         ":qoot.min",
         ":qootloader",
         ":qootloader.min",
+        "//client/cjs:package.json",
+        "//client/cjs:qoot",
     ],
 )

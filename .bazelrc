@@ -53,12 +53,12 @@ test --test_output=errors
 #     mininfiers such as terser may make their output more human readable when this is set. Rules will pass `COMPILATION_MODE`
 #     to `nodejs_binary` executables via the actions.run env attribute.
 #     See https://docs.bazel.build/versions/master/user-manual.html#flag--compilation_mode for more details.
-test:debug --test_output=streamed --test_strategy=exclusive --test_timeout=9999 --nocache_test_results --define=VERBOSE_LOGS=1
+test:debug --test_output=streamed --test_strategy=exclusive --test_timeout=9999 --nocache_test_results
 # Use bazel run with `--config=debug` to turn on the NodeJS inspector agent.
 # The node process will break before user code starts and wait for the debugger to connect.
-run:debug --define=VERBOSE_LOGS=1 -- --node_options=--inspect-brk
+run:debug -- --node_options=--inspect-brk
 # The following option will change the build output of certain rules such as terser and may not be desirable in all cases
-build:debug --compilation_mode=dbg
+# build:debug --compilation_mode=dbg
 
 # Turn off legacy external runfiles
 # This prevents accidentally depending on this feature, which Bazel will remove.

@@ -6,6 +6,8 @@
  * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
  */
 
+import { flattenArray } from './array.js';
+
 export type PromiseTree<T> = T | Promise<T> | Array<PromiseTree<T>>;
 
 /**
@@ -16,7 +18,7 @@ export type PromiseTree<T> = T | Promise<T> | Array<PromiseTree<T>>;
  */
 export function flattenPromiseTree<T>(tree: PromiseTree<T>): Promise<T[]> {
   return Promise.all(tree as T[]).then((values: any[]) => {
-    const flatArray = values.flat();
+    const flatArray = flattenArray(values);
     for (let i = 0; i < flatArray.length; i++) {
       if (isPromise(flatArray[i])) {
         return flattenPromiseTree(flatArray);

@@ -3,7 +3,8 @@
   "version": "0.0.5",
   "description": "An Open-Source framework designed for best possible [time to interactive](https://web.dev/interactive/), by focusing on [resumability](./docs/RESUMABLE.md) of server-side-rendering of HTML, and [fine-grained lazy-loading](./docs/LAZY_LOADING.md) of code.",
   "typings": "./qoot.d.ts",
-  "main": "./qoot.js",
+  "main": "./qoot_cjs.js",
+  "module": "./qoot.js",
   "type": "module",
   "license": "MIT",
   "author": {

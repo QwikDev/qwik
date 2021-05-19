@@ -10,8 +10,9 @@ import { EMPTY_OBJ } from '../../util/flyweight.js';
 import { QRL } from '../../import/qrl.js';
 import { Props } from '../../injector/types.js';
 import { JSXFactory, JSXNode } from './types.js';
-import { AttributeMarker } from 'client/util/markers.js';
+import { AttributeMarker } from '../../util/markers.js';
 import { JSXBase } from './html_base.js';
+import { flattenArray } from '../../util/array.js';
 
 class JSXNode_<T extends string | null | JSXFactory | unknown> {
   public tag: T;
@@ -55,7 +56,7 @@ export function jsxFactory<T extends string | null | JSXFactory | unknown>(
   props: Props,
   ...children: any[]
 ): JSXNode<T> {
-  return new JSXNode_(tag, props, children.flat(99));
+  return new JSXNode_(tag, props, flattenArray(children));
 }
 
 /**

@@ -35,3 +35,35 @@ load("@npm//@bazel/cypress:index.bzl", "cypress_repository")
 
 # The name you pass here names the external repository you can load cypress_web_test from
 cypress_repository(name = "cypress")
+
+_ESBUILD_VERSION = "0.11.14"  # reminder: update SHAs below when changing this value
+
+http_archive(
+    name = "esbuild_darwin",
+    build_file_content = """exports_files(["bin/esbuild"])""",
+    sha256 = "81c8623c4c03a1fc449c37a90dd630025e334d312420d42106a899f78bd5e3fe",
+    strip_prefix = "package",
+    urls = [
+        "https://registry.npmjs.org/esbuild-darwin-64/-/esbuild-darwin-64-%s.tgz" % _ESBUILD_VERSION,
+    ],
+)
+
+http_archive(
+    name = "esbuild_windows",
+    build_file_content = """exports_files(["esbuild.exe"])""",
+    sha256 = "d977751550550099cb9deb95d3fc436c21374b3875131589dde162dfb1c03bf4",
+    strip_prefix = "package",
+    urls = [
+        "https://registry.npmjs.org/esbuild-windows-64/-/esbuild-windows-64-%s.tgz" % _ESBUILD_VERSION,
+    ],
+)
+
+http_archive(
+    name = "esbuild_linux",
+    build_file_content = """exports_files(["bin/esbuild"])""",
+    sha256 = "fbf8d42fbd12d2392893a5d8cea3860e875c47ee715660e844dff822b8747321",
+    strip_prefix = "package",
+    urls = [
+        "https://registry.npmjs.org/esbuild-linux-64/-/esbuild-linux-64-%s.tgz" % _ESBUILD_VERSION,
+    ],
+)

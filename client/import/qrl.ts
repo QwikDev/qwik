@@ -89,7 +89,15 @@ export async function verifyQrl(error: Error, url: string): Promise<any> {
   // 0: Error
   // 1:   at QRL (this function)
   // 2:   at caller (this is what we are looking for)
-  const base = getFilePathFromFrame(frames[2]);
+  let frame: string = '';
+  for (let i = 2; i < frames.length; i++) {
+    frame = frames[i];
+    if (frame.indexOf('/node_modules/vm2/') === -1) {
+      // It is possible that VM2 library was use to load us, in which case we should skip it.
+      break;
+    }
+  }
+  const base = getFilePathFromFrame(frame);
   const config = getConfig(base);
   try {
     const module = qImport(config, url);

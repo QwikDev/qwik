@@ -12,6 +12,7 @@ import { QConfig } from '../config/qGlobal.js';
 import { QError, qError } from '../error/error.js';
 
 let importCache: Map<string, unknown | Promise<unknown>>;
+declare const __mockImport: (path: string) => Promise<any>;
 
 /**
  * Lazy load a `QRL` symbol and returns the resulting value.
@@ -38,7 +39,12 @@ export function qImport<T>(
   const cacheValue = importCache.get(cacheKey);
   if (cacheValue) return cacheValue as T | Promise<T>;
 
-  const promise = import(importPath + '.js').then((module) => {
+  // TODO(misko): Concern: When in `cjs` mode we should be using require?
+  const promise = (
+    typeof __mockImport === 'function'
+      ? __mockImport(importPath + '.js')
+      : import(importPath + '.js')
+  ).then((module) => {
     const handler = module[exportName];
     if (!handler)
       throw qError(

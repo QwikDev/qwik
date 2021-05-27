@@ -1,7 +1,7 @@
 {
   "name": "@a-qoot/core",
-  "version": "0.0.2",
-  "description": "An Open-Source sub-framework designed with a focus on server-side-rendering, lazy-loading, and styling/animation.",
+  "version": "0.0.5",
+  "description": "An Open-Source framework designed for best possible [time to interactive](https://web.dev/interactive/), by focusing on [resumability](./docs/RESUMABLE.md) of server-side-rendering of HTML, and [fine-grained lazy-loading](./docs/LAZY_LOADING.md) of code.",
   "typings": "./qoot.d.ts",
   "main": "./qoot.js",
   "type": "module",

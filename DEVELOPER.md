@@ -72,7 +72,7 @@ bazel run client:qoot_pkg.publish -- --tag=next
 
 ## Pre-submit hooks
 
-The project has pre-submit hooks which ensure that your code is correctly formated. You can run them manually like so:
+The project has pre-submit hooks, which ensure that your code is correctly formatted. You can run them manually like so:
 
 ```
 npm run lint

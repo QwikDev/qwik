@@ -1,13 +1,13 @@
 /**
  * @license
- * Copyright a-Qoot All Rights Reserved.
+ * Copyright BuilderIO All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
+ * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
 import './CONFIG.js';
-import { jsxFactory, jsxRender } from './qoot.js';
+import { jsxFactory, jsxRender } from './qwik.js';
 import { Greeter } from './Greeter.js';
 
 export const _needed_by_JSX_ = jsxFactory; // eslint-disable-line @typescript-eslint/no-unused-vars
@@ -23,7 +23,7 @@ export async function serverMain(document: Document) {
     <html>
       <head>
         <title>Hello World from Server</title>
-        <script src="/qootloader.js" async></script>
+        <script src="/qwikloader.js" async></script>
       </head>
       <body>
         <Greeter name="World" />

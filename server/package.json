@@ -1,5 +1,5 @@
 {
-  "name": "qoot_server",
+  "name": "qwik_server",
   "main": "server.js",
   "@comment type": "Setting type to 'module' is important as internally we use 'import' statements instead of 'require'.",
   "type": "module"

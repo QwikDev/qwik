@@ -1,6 +1,6 @@
 {
-  "description": "A CJS version of qoot",
+  "description": "A CJS version of qwik",
   "type": "commonjs",
-  "main": "./qoot.js",
-  "typings": "../qoot.d.ts"
+  "main": "./qwik.js",
+  "typings": "../qwik.d.ts"
 }

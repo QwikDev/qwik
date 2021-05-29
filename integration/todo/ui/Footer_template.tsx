@@ -1,9 +1,9 @@
 /**
  * @license
- * Copyright a-Qoot All Rights Reserved.
+ * Copyright BuilderIO All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
+ * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
 import { Todo, TodoEntity } from '../data/Todo.js';
@@ -16,7 +16,7 @@ import {
   Provider,
   EntityKey,
   Host,
-} from '../qoot.js';
+} from '../qwik.js';
 
 export const _needed_by_JSX_ = jsxFactory; // eslint-disable-line @typescript-eslint/no-unused-vars
 export default injectFunction(
@@ -31,7 +31,7 @@ export default injectFunction(
         <li>
           <a
             class={{ selected: todos.filter == lMode }}
-            on:click={QRL`base:qoot#emitEvent?$type=selectFilter&filter=${lMode}`}
+            on:click={QRL`base:qwik#emitEvent?$type=selectFilter&filter=${lMode}`}
           >
             {mode}
           </a>

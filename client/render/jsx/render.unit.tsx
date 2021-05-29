@@ -1,16 +1,16 @@
 /**
  * @license
- * Copyright a-Qoot All Rights Reserved.
+ * Copyright BuilderIO All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
+ * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
 import { expect } from 'chai';
 import '../../CONFIG.js';
 import { QRL } from '../../import/index.js';
 import { ElementFixture } from '../../testing/element_fixture.js';
-import { createGlobal, QootGlobal } from '../../testing/node_utils.js';
+import { createGlobal, QwikGlobal } from '../../testing/node_utils.js';
 import { jsxDeclareComponent, jsxFactory } from './factory.js';
 import { Host } from './host.js';
 import type { JSX_IntrinsicElements } from './html.js';
@@ -23,7 +23,7 @@ const _needed_by_ide_: JSX_IntrinsicElements = null!; // eslint-disable-line @ty
 // TODO(test): add test where `<Foo>` => `async function Foo`
 
 describe('render', () => {
-  let global: QootGlobal;
+  let global: QwikGlobal;
   let document: Document;
   let host: HTMLElement;
   beforeEach(() => {
@@ -88,7 +88,7 @@ describe('render', () => {
       head,
       <head>
         <title>Hello World from Server</title>
-        <script src="/qootloader.js" async></script>
+        <script src="/qwikloader.js" async></script>
       </head>,
       document
     );
@@ -97,7 +97,7 @@ describe('render', () => {
       '<head>' +
         '<head>' +
         '<title>Hello World from Server</title>' +
-        '<script src="/qootloader.js" async="true"></script>' +
+        '<script src="/qwikloader.js" async="true"></script>' +
         '</head>' +
         '</head>'
     );
@@ -108,7 +108,7 @@ describe('render', () => {
       <html>
         <head>
           <title>Hello World from Server</title>
-          <script src="/qootloader.js" async></script>
+          <script src="/qwikloader.js" async></script>
         </head>
         <body>Hello World!</body>
       </html>
@@ -120,7 +120,7 @@ describe('render', () => {
       '<html>' +
         '<head>' +
         '<title>Hello World from Server</title>' +
-        '<script src="/qootloader.js" async="true"></script>' +
+        '<script src="/qwikloader.js" async="true"></script>' +
         '</head>' +
         '<body>Hello World!</body>' +
         '</html>'
@@ -192,7 +192,7 @@ describe('render', () => {
     });
   });
 
-  describe('qoot properties', () => {
+  describe('qwik properties', () => {
     it('should render event', async () => {
       // possible prefixes: on, in, at, for, to, bind, tie
       // Event prefixes `.` to mean framework event such as `

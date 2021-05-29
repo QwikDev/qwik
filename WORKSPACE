@@ -1,5 +1,5 @@
 workspace(
-    name = "qoot",
+    name = "qwik",
     managed_directories = {"@npm": ["node_modules"]},
 )
 

@@ -2,7 +2,7 @@
 
 ## Special HTML attributes
 
-HTML attributes with the following syntax have a special meaning to Qoot.
+HTML attributes with the following syntax have a special meaning to Qwik.
 
 1. They always contain `:` characters to make them less likely to collide with existing attributes.
 2. The consist of a "key" and a "value", separated by `=`, as described in the following tables.

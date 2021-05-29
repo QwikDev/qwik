@@ -1,9 +1,9 @@
 /**
  * @license
- * Copyright a-Qoot All Rights Reserved.
+ * Copyright BuilderIO All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
+ * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
 import { Injector, Provider } from '../injector/types.js';
@@ -14,7 +14,7 @@ import { EventEntity } from '../event/event_entity.js';
 /**
  * Inject result of url expression evaluation.
  *
- * Qoot supports URLs that embed parameters into the hash such as: `./somePath#foo?key1=value1`.
+ * Qwik supports URLs that embed parameters into the hash such as: `./somePath#foo?key1=value1`.
  * While injecting values as string is useful, it is often more useful to treat the value as an
  * expression and evaluate it.
  *

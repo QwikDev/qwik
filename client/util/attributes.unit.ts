@@ -1,9 +1,9 @@
 /**
  * @license
- * Copyright a-Qoot All Rights Reserved.
+ * Copyright BuilderIO All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
+ * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
 import { expect } from 'chai';
@@ -15,10 +15,10 @@ describe('attributes', () => {
     it('should read attributes', () => {
       const fixture = new ElementFixture();
       fixture.host.setAttribute('key', 'value');
-      fixture.host.setAttribute('name', 'Qoot');
+      fixture.host.setAttribute('name', 'Qwik');
       expect(extractPropsFromElement(fixture.host)).to.eql({
         key: 'value',
-        name: 'Qoot',
+        name: 'Qwik',
       });
     });
     it('should read bindings', () => {

@@ -1,9 +1,9 @@
 /**
  * @license
- * Copyright a-Qoot All Rights Reserved.
+ * Copyright BuilderIO All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
+ * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 /* eslint no-console: ["off"] */
 import commander from 'commander';
@@ -13,7 +13,7 @@ import * as fs from 'fs';
 import { dirname, join } from 'path';
 import srcMap from 'source-map-support';
 import { fileURLToPath } from 'url';
-import { serializeState } from 'qoot';
+import { serializeState } from 'qwik';
 
 import { findFiles } from './fs_util.js';
 
@@ -39,12 +39,12 @@ async function main(__dirname: string, process: NodeJS.Process) {
   console.log('RUNFILES', RUNFILES);
 
   app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
-    if (req.path.endsWith('/qoot.js') && req.path !== '/qoot.js') {
+    if (req.path.endsWith('/qwik.js') && req.path !== '/qwik.js') {
       res.type('application/javascript');
-      if (qootBundle) {
-        res.write(qootBundle);
+      if (qwikBundle) {
+        res.write(qwikBundle);
       } else {
-        res.write("export * from '/qoot.js';");
+        res.write("export * from '/qwik.js';");
       }
       res.end();
     } else {
@@ -54,7 +54,7 @@ async function main(__dirname: string, process: NodeJS.Process) {
 
   // Set up static routes first
   const servePaths = opts.root.map((servePath: string) => join(RUNFILES, servePath));
-  const qootBundle = readBundleContent(servePaths);
+  const qwikBundle = readBundleContent(servePaths);
 
   servePaths.forEach((path: string) => {
     if (fs.existsSync(path)) {
@@ -93,10 +93,10 @@ async function main(__dirname: string, process: NodeJS.Process) {
 function readBundleContent(paths: string[]): string | null {
   for (let i = 0; i < paths.length; i++) {
     const path = paths[i];
-    const qootPath = join(path, 'qoot.js');
-    const content = fs.readFileSync(qootPath);
+    const qwikPath = join(path, 'qwik.js');
+    const content = fs.readFileSync(qwikPath);
     if (content.length) {
-      console.log('Found Qoot bundle:', qootPath);
+      console.log('Found Qwik bundle:', qwikPath);
       return String(content);
     }
   }

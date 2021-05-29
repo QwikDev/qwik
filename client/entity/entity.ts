@@ -1,9 +1,9 @@
 /**
  * @license
- * Copyright a-Qoot All Rights Reserved.
+ * Copyright BuilderIO All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
+ * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
 import { AttributeMarker } from '../util/markers.js';
@@ -19,7 +19,7 @@ import { getInjector } from '../injector/element_injector.js';
 /**
  * `Entity` allows creation of lazy loading class whose state is serializable.
  *
- * Entities are a basic building block of Qoot applications. The basic idea behind entities
+ * Entities are a basic building block of Qwik applications. The basic idea behind entities
  * is that their state is serializable and thus a entity lifetime can span runtime environments
  * (i.e. entity instances can be created by the server and then used by the client).
  *
@@ -149,7 +149,7 @@ import { getInjector } from '../injector/element_injector.js';
  * <div ::todo="./path/to/entity/TodoItem">
  * ```
  *
- * Note: `$release()` is not the same thing as deleting/destroying the data. It merely tells Qoot to
+ * Note: `$release()` is not the same thing as deleting/destroying the data. It merely tells Qwik to
  * not serialize the state into the DOM/HTML.
  *
  * @public

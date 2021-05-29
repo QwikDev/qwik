@@ -1,9 +1,9 @@
 /**
  * @license
- * Copyright a-Qoot All Rights Reserved.
+ * Copyright BuilderIO All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
+ * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
 import { qImport, qParams, toBaseURI, toUrl } from '../import/qImport.js';
@@ -23,8 +23,8 @@ import { fromCamelToKebabCase } from '../util/case.js';
  * # Example
  * ```
  * <my-component on:open="./onOpen" on:close="./onClose">
- *   <button on:click="base:qoot#emitEvent?$type=open&someArg=someValue">open</button>
- *   <button on:click="base:qoot#emitEvent?$type=close&someArg=someValue">close</button>
+ *   <button on:click="base:qwik#emitEvent?$type=open&someArg=someValue">open</button>
+ *   <button on:click="base:qwik#emitEvent?$type=close&someArg=someValue">close</button>
  * </my-component>
  * ```
  *

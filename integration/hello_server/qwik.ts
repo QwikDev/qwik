@@ -6,5 +6,10 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-export { serializeState } from './serialize_state.js';
-export { HostElements } from './types.js';
+/**
+ * @fileoverview
+ *
+ * This file is to simulate the import from `./qwik.js` which the server serves
+ * as `//client/qwik.ts`
+ */
+export * from 'qwik';

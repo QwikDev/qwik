@@ -1,20 +1,20 @@
 /**
  * @license
- * Copyright a-Qoot All Rights Reserved.
+ * Copyright BuilderIO All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
+ * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
 import { ItemEntity } from '../data/Item.js';
-import { Provider, EntityKey } from '../qoot.js';
+import { Provider, EntityKey } from '../qwik.js';
 import {
   injectEventHandler,
   markDirty,
   provideUrlProp,
   provideQrlExp,
   provideEntity,
-} from '../qoot.js';
+} from '../qwik.js';
 import { ItemComponent } from './Item_component.js';
 
 export const begin = injectEventHandler(

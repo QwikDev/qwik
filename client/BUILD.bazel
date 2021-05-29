@@ -9,7 +9,7 @@ package(default_visibility = ["//visibility:public"])
 
 js_library(
     name = "client",
-    package_name = "qoot",
+    package_name = "qwik",
     srcs = ["package.json"],
     deps = [
         ":project",
@@ -21,7 +21,7 @@ ts_project(
     srcs = glob(
         ["**/*.ts"],
         exclude = [
-            "qootloader.ts",
+            "qwikloader.ts",
             "**/*.unit.ts",
             "CONFIG.ts",
         ],
@@ -46,30 +46,30 @@ ts_project(
 )
 
 rollup_bundle(
-    name = "qoot",
+    name = "qwik",
     config_file = "//:rollup.config.js",
     entry_point = "index.js",
     deps = [":client"],
 )
 
 terser_minified(
-    name = "qoot.min",
-    src = "qoot.js",
+    name = "qwik.min",
+    src = "qwik.js",
     config_file = "//:terser.config.json",
     sourcemap = False,
     terser_bin = "@npm//terser/bin:terser",
 )
 
 ts_project(
-    name = "qootloader",
-    srcs = ["qootloader.ts"],
+    name = "qwikloader",
+    srcs = ["qwikloader.ts"],
     declaration = True,
     tsconfig = "//:tsconfig",
 )
 
 terser_minified(
-    name = "qootloader.min",
-    src = "qootloader.js",
+    name = "qwikloader.min",
+    src = "qwikloader.js",
     config_file = "//:terser.config.json",
     sourcemap = False,
     terser_bin = "@npm//terser/bin:terser",
@@ -106,8 +106,8 @@ mocha_test(
 api_extractor(
     name = "public_api_extractor",
     outs = [
-        "qoot.d.ts",
-        ":qoot.api.md",
+        "qwik.d.ts",
+        ":qwik.api.md",
     ],
     args = [
         "run",
@@ -127,8 +127,8 @@ api_extractor(
 
 generated_file_test(
     name = "publicAPI.md",
-    src = ":qoot.api.gold.md",
-    generated = ":qoot.api.md",
+    src = ":qwik.api.gold.md",
+    generated = ":qwik.api.md",
     tags = ["unit"],
 )
 
@@ -141,19 +141,19 @@ genrule(
 )
 
 pkg_npm(
-    name = "qoot_pkg",
+    name = "qwik_pkg",
     srcs = [
         ":package.json",
     ],
     substitutions = {"//internal/": "//"},
     deps = [
         ":LICENSE",
-        ":qoot",
-        ":qoot.d.ts",
-        ":qoot.min",
-        ":qootloader",
-        ":qootloader.min",
+        ":qwik",
+        ":qwik.d.ts",
+        ":qwik.min",
+        ":qwikloader",
+        ":qwikloader.min",
         "//client/cjs:package.json",
-        "//client/cjs:qoot",
+        "//client/cjs:qwik",
     ],
 )

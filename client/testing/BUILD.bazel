@@ -8,7 +8,7 @@ load("@npm//@bazel/typescript:index.bzl", "ts_project")
 
 js_library(
     name = "testing",
-    package_name = "qoot_testing",
+    package_name = "qwik_testing",
     srcs = ["package.json"],
     deps = [
         ":project",
@@ -55,7 +55,7 @@ ts_project(
 
 js_library(
     name = "unit_lib",
-    package_name = "qoot_testing",
+    package_name = "qwik_testing",
     srcs = ["package.json"],
     deps = [
         ":unit_project",

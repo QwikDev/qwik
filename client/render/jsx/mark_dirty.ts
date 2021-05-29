@@ -1,9 +1,9 @@
 /**
  * @license
- * Copyright a-Qoot All Rights Reserved.
+ * Copyright BuilderIO All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
+ * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
 import { isElement } from '../../util/element.js';
@@ -140,7 +140,7 @@ export function scheduleRender(document: QDocument): Promise<HostElements> {
       const hosts: HostElements = [];
       componentHosts.forEach((host) => {
         host.removeAttribute(AttributeMarker.EventRender);
-        const qrl = (host.getAttribute(AttributeMarker.ComponentTemplate)! as any) as QRL;
+        const qrl = host.getAttribute(AttributeMarker.ComponentTemplate)! as any as QRL;
         qDev && assertString(qrl);
         const props: Props = extractPropsFromElement(host);
         jsxRenderComponent(host, qrl, waitOn, props, document);

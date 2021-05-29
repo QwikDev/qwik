@@ -5,7 +5,7 @@ package(default_visibility = ["//visibility:public"])
 
 js_library(
     name = "server",
-    package_name = "qoot_server",
+    package_name = "qwik_server",
     srcs = ["package.json"],
     deps = [
         ":server_lib",

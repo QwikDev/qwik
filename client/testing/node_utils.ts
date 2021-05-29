@@ -1,9 +1,9 @@
 /**
  * @license
- * Copyright a-Qoot All Rights Reserved.
+ * Copyright BuilderIO All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
+ * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
 import { default as global } from '../util/global.js';
@@ -12,19 +12,19 @@ import srcMap from 'source-map-support';
 srcMap.install();
 
 /**
- * Partial Global used by Qoot Framework.
+ * Partial Global used by Qwik Framework.
  *
- * A set of properties which the Qoot Framework expects to find on global.
+ * A set of properties which the Qwik Framework expects to find on global.
  */
-export interface QootGlobal {
+export interface QwikGlobal {
   /**
-   * Document used by Qoot during rendering.
+   * Document used by Qwik during rendering.
    */
   document: Document;
 }
 
 /**
- * Create emulated `QootGlobal` useful for testing.
+ * Create emulated `QwikGlobal` useful for testing.
  */
 export function createGlobal(baseUri: string) {
   if ((global as any).CustomEvent === undefined) {

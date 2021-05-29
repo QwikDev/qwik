@@ -1,17 +1,17 @@
 /**
  * @license
- * Copyright a-Qoot All Rights Reserved.
+ * Copyright BuilderIO All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
+ * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
 import { expect } from 'chai';
-import { createGlobal, QootGlobal } from '../testing/node_utils.js';
+import { createGlobal, QwikGlobal } from '../testing/node_utils.js';
 import { isDomElementWithTagName } from './types.js';
 
 describe('dom', () => {
-  let global: QootGlobal;
+  let global: QwikGlobal;
   let div: HTMLElement;
   let span: HTMLElement;
   let text: Text;

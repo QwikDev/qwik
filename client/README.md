@@ -5,8 +5,8 @@
 If you would like to build the distribution bundles then you can run these commands:
 
 ```
-bazel build client/qoot             && ls -al dist/bin/client/qoot.js
-bazel build client/qoot.min         && ls -al dist/bin/client/qoot.min.js
-bazel build client/qootloader       && ls -al dist/bin/client/qootloader.js
-bazel build client/qootloader.min   && ls -al dist/bin/client/qootloader.min.js
+bazel build client/qwik             && ls -al dist/bin/client/qwik.js
+bazel build client/qwik.min         && ls -al dist/bin/client/qwik.min.js
+bazel build client/qwikloader       && ls -al dist/bin/client/qwikloader.js
+bazel build client/qwikloader.min   && ls -al dist/bin/client/qwikloader.min.js
 ```

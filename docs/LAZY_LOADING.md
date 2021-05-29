@@ -12,7 +12,7 @@ Frameworks also tend to have synchronous APIs making it hard for the developers 
 
 ## Fined-grained lazy-loading as a core primitive
 
-Qoot takes fine-grained lazy-loading to the extreme. Almost all Qoot APIs can be called asynchronously so that lazy-loading can be inserted in case it is needed. That is not to say that you should make everything lazy-loaded as there are tradeoffs, but rather that the framework allows just about anything lazy-loaded in case the need arises.
+Qwik takes fine-grained lazy-loading to the extreme. Almost all Qwik APIs can be called asynchronously so that lazy-loading can be inserted in case it is needed. That is not to say that you should make everything lazy-loaded as there are tradeoffs, but rather that the framework allows just about anything lazy-loaded in case the need arises.
 
 Lazy loading directly impacts the amount of code which needs to be downloaded, parsed and executed resulting in improved [time to interactive](https://web.dev/interactive/) score.
 
@@ -22,7 +22,7 @@ One of the biggest places where fine-grained lazy-loading can be applied is in t
 
 In practice this means that [heap-centric](./RESUMABLE.md) frameworks must execute all of the templates so that they can collect the event handlers and attach them to the DOM, just in case the user will perform an interaction. A developer could place dynamic imports in the event handlers, but in practice this is complicated because event bubbling is synchronous making composing event handlers hard. It also means that a heap-centric framework must download and execute all of the templates currently visible to the user. All of these complications slow down [time to interactive](https://web.dev/interactive/) and do not directly help the developer to do the right thing.
 
-Qoot stores event handlers as string annotations in the DOM. This has several advantages:
+Qwik stores event handlers as string annotations in the DOM. This has several advantages:
 
 - No template needs to be downloaded and rendered in order for the framework to know where the event handlers need to be registered.
 - No event handler code needs to be downloaded before it is needed.
@@ -47,14 +47,14 @@ Let's say that the framework has determined that only the `<middle>` component n
 
 The reverse is also true. Let's say that `<middle>` has a button with a `click` handler. Clicking the button will cause the application to change state (which may be store in redux pattern.) Most current frameworks don't directly track state and so there is no way of knowing which other components need to be invalidated due to execution of the event handler. The only thing the framework can do is to re-render the whole application from the root just-in-case there is a component which depends on the state. We can say that the current approach causes "parent component-coupling".
 
-> Yes, there are some frameworks which track data-flow through subscriptions (reactive frameworks), and such frameworks would know which exact component needs to be updated. The problem is that setting up these subscriptions necessitates the creation of closures which in turn need references to the components. Creation of these subscriptions forces all of the components to be materialized negating any benefits. (see: [Qoot reactivity](./REACTIVITY.md))
+> Yes, there are some frameworks which track data-flow through subscriptions (reactive frameworks), and such frameworks would know which exact component needs to be updated. The problem is that setting up these subscriptions necessitates the creation of closures which in turn need references to the components. Creation of these subscriptions forces all of the components to be materialized negating any benefits. (see: [Qwik reactivity](./REACTIVITY.md))
 
 Child and parent component-coupling means that in practice all of the currently visible application must be downloaded and present for the application to be user interactive. As applications get bigger and more complicated this requirements means tha the application startup gets slower over time.
 
-Qoot focuses on breaking these dependencies so that neither child nor parent component-coupling are an issue resulting in a rendering model which does not require that templates or event handlers are downloaded until they are needed.
+Qwik focuses on breaking these dependencies so that neither child nor parent component-coupling are an issue resulting in a rendering model which does not require that templates or event handlers are downloaded until they are needed.
 
-Breaking child component-coupling requires that the Qoot's rendering system understands where component boundaries are, and can conditionally enter child components based on dirty flag of the component. This means that the rendering pipeline of Qoot is asynchronous, and understands how to conditionally download component templates on as needed basis. (Contrast this to current generation frameworks which have synchronous rendering pipelines. This complicates async template loading, and the rendering always enters child components.)
+Breaking child component-coupling requires that the Qwik's rendering system understands where component boundaries are, and can conditionally enter child components based on dirty flag of the component. This means that the rendering pipeline of Qwik is asynchronous, and understands how to conditionally download component templates on as needed basis. (Contrast this to current generation frameworks which have synchronous rendering pipelines. This complicates async template loading, and the rendering always enters child components.)
 
 ## Out of order component re-hydration
 
-A key goal for Qoot is to allow components to re-hydrate and re-render only when it is necessary. The implication of this is that at times components can re-hydrate out of parent/child order. A non-obvious implication of this is that the framework rendering pipeline needs to understand how to render components from the root, skip non-hydrated components and continue with deep children.
+A key goal for Qwik is to allow components to re-hydrate and re-render only when it is necessary. The implication of this is that at times components can re-hydrate out of parent/child order. A non-obvious implication of this is that the framework rendering pipeline needs to understand how to render components from the root, skip non-hydrated components and continue with deep children.

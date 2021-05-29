@@ -1,9 +1,9 @@
 /**
  * @license
- * Copyright a-Qoot All Rights Reserved.
+ * Copyright BuilderIO All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
+ * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
 /// <reference types="cypress" />
@@ -41,7 +41,7 @@ describe('todo', () => {
         cy.wait(50);
         cy.get('.todo-list>li:first-child input.edit').type('123{enter}');
         cy.get('.todo-list>li:first-child').should((item: any) =>
-          expect(item).to.have.text('Read Qoot docs123')
+          expect(item).to.have.text('Read Qwik docs123')
         );
       });
 

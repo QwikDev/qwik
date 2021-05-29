@@ -1,6 +1,6 @@
 # Resumable vs Replayable
 
-A key concept of Qoot applications is that they are resumable from server-side-rendered state. Best way to explain resumability is to understand how the current generation of frameworks are replayable.
+A key concept of Qwik applications is that they are resumable from server-side-rendered state. Best way to explain resumability is to understand how the current generation of frameworks are replayable.
 
 ## Frameworks must understand the application
 

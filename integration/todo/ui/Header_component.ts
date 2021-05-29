@@ -1,12 +1,12 @@
 /**
  * @license
- * Copyright a-Qoot All Rights Reserved.
+ * Copyright BuilderIO All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
+ * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { Component, QRL } from '../qoot.js';
+import { Component, QRL } from '../qwik.js';
 import { HeaderProps } from './Header.js';
 
 interface HeaderState {

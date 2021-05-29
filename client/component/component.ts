@@ -1,9 +1,9 @@
 /**
  * @license
- * Copyright a-Qoot All Rights Reserved.
+ * Copyright BuilderIO All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
+ * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
 import { QRL } from '../import/qrl.js';
@@ -13,10 +13,10 @@ import { AttributeMarker } from '../util/markers.js';
 import { getInjector } from '../injector/element_injector.js';
 
 /**
- * Base class for Qoot component.
+ * Base class for Qwik component.
  *
- * All Qoot components are defined by a class that must inherit from `Component`.
- * An instance of a Qoot component represents the transient state of that component.
+ * All Qwik components are defined by a class that must inherit from `Component`.
+ * An instance of a Qwik component represents the transient state of that component.
  * A component contains `$state` and `$keyProps` properties.
  *
  * Example:
@@ -49,7 +49,7 @@ export class Component<PROPS, STATE> {
     hostElement: Element
   ): Promise<COMP> {
     // TODO: Needs tests
-    const componentConstructor = (this as any) as ComponentConstructor<COMP>;
+    const componentConstructor = this as any as ComponentConstructor<COMP>;
     const componentTemplate = hostElement.getAttribute(AttributeMarker.ComponentTemplate);
     if (!componentTemplate) {
       hostElement.setAttribute(

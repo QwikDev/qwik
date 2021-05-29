@@ -1,9 +1,9 @@
 /**
  * @license
- * Copyright a-Qoot All Rights Reserved.
+ * Copyright BuilderIO All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
+ * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
 import {
@@ -14,7 +14,7 @@ import {
   EntityKey,
   entityStateKey,
   toEntityKey,
-} from '../qoot.js';
+} from '../qwik.js';
 import { Item, ItemEntity } from './Item.js';
 
 export interface TodoProps {}
@@ -79,7 +79,7 @@ export class TodoEntity extends Entity<TodoProps, Todo> {
       filter: 'all',
       nextId: 4,
       items: [
-        ItemEntity.$hydrate(host, { id: '1' }, { completed: false, title: 'Read Qoot docs' }).$key,
+        ItemEntity.$hydrate(host, { id: '1' }, { completed: false, title: 'Read Qwik docs' }).$key,
         ItemEntity.$hydrate(host, { id: '2' }, { completed: false, title: 'Build HelloWorld' })
           .$key,
         ItemEntity.$hydrate(host, { id: '3' }, { completed: false, title: 'Profit' }).$key,

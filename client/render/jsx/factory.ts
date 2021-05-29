@@ -1,9 +1,9 @@
 /**
  * @license
- * Copyright a-Qoot All Rights Reserved.
+ * Copyright BuilderIO All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
+ * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
 import { EMPTY_OBJ } from '../../util/flyweight.js';
@@ -60,7 +60,7 @@ export function jsxFactory<T extends string | null | JSXFactory | unknown>(
 }
 
 /**
- * Declares a JSX Qoot component.
+ * Declares a JSX Qwik component.
  *
  * For lazy loading it is important that a top-level component does not have direct reference to
  * a child component. Doing so would pull in tho child component and prevent the child component

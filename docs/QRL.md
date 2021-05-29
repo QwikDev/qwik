@@ -1,6 +1,6 @@
 # QRL
 
-QRL is Qoot-URL. It is a URL which contains custom protocols which is understood by Qoot. All QRLs are syntactically valid URLs, however QRLs have custom protocols and so can't be used directly by the browser.
+QRL is Qwik-URL. It is a URL which contains custom protocols which is understood by Qwik. All QRLs are syntactically valid URLs, however QRLs have custom protocols and so can't be used directly by the browser.
 
 ## Protocol
 
@@ -17,7 +17,7 @@ Assume this HTML:
 1. First the QRLs are often embedded in HTML. In such a case the relative nature should be from HTML not from the framework. However the HTML URL often has custom URL due to routing, and so really URL has nothing to do with where the actual location of the code resides.
 2. To compose libraries, the library author does not know how the files will be layed out (or bundled) on the application server. So there needs to be a way to reefer to resources but give the configuration to the application developer.
 
-For the above two reasons relative imports just don't make much sense in Qoot and should be avoided. Instead we need to use absolute URLs. However sprinkling absolute URLs all over the code base is equally problematic as it makes the code hard to refactor or move.
+For the above two reasons relative imports just don't make much sense in Qwik and should be avoided. Instead we need to use absolute URLs. However sprinkling absolute URLs all over the code base is equally problematic as it makes the code hard to refactor or move.
 
 ```html
 <button on:click="http://myserver.com/app/handle_click"></button>
@@ -62,13 +62,13 @@ setConfig({
 });
 ```
 
-The important part is the `baseURI` which gets set to the obsolete URL of this file (`import.meta.url` returns `file://path/to/CONFIG.js`.) This will tell Qoot to resolve all files which come from a `file://path/to/**` folder using this configuration.
+The important part is the `baseURI` which gets set to the obsolete URL of this file (`import.meta.url` returns `file://path/to/CONFIG.js`.) This will tell Qwik to resolve all files which come from a `file://path/to/**` folder using this configuration.
 
 It is important that you import the `CONFIG.ts` file someplace from the root of the application so that the protocols can get configured before they are used.
 
 ## File extension
 
-When Qoot imports a QRL it always imports it with a `.js` extension.
+When Qwik imports a QRL it always imports it with a `.js` extension.
 
 ## Search Parameters
 

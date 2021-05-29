@@ -1,15 +1,15 @@
 {
-  "name": "@a-qoot/core",
+  "name": "@builder.io/qwik",
   "version": "0.0.6",
   "description": "An Open-Source framework designed for best possible [time to interactive](https://web.dev/interactive/), by focusing on [resumability](./docs/RESUMABLE.md) of server-side-rendering of HTML, and [fine-grained lazy-loading](./docs/LAZY_LOADING.md) of code.",
-  "typings": "./qoot.d.ts",
-  "main": "./qoot_cjs.js",
-  "module": "./qoot.js",
+  "typings": "./qwik.d.ts",
+  "main": "./qwik_cjs.js",
+  "module": "./qwik.js",
   "type": "module",
   "license": "MIT",
   "author": {
     "email": "misko@hevery.com",
     "name": "Miško Hevery",
-    "url": "https://github.com/a-Qoot/qoot"
+    "url": "https://github.com/BuilderIO/qwik"
   }
 }

@@ -22,7 +22,7 @@
 
 ## Server
 
-- [ ] Developer should `import 'qoot'`, and the server should translate it to relative URL.
+- [ ] Developer should `import 'qwik'`, and the server should translate it to relative URL.
 
 ## STATE MANAGEMENT
 

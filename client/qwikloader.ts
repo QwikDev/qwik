@@ -1,16 +1,16 @@
 /**
  * @license
- * Copyright a-Qoot All Rights Reserved.
+ * Copyright BuilderIO All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
+ * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
 /**
- * @fileoverview This is qoot-loader.
+ * @fileoverview This is qwik-loader.
  *
- * This code should be included too bootstrap qoot sub-framework.
- * The purpose of the qoot-loader is to listen for browser events, find
+ * This code should be included too bootstrap qwik sub-framework.
+ * The purpose of the qwik-loader is to listen for browser events, find
  * corresponding event handler, and lazy load the code associated with the
  * handler.
  *
@@ -66,7 +66,7 @@ interface QConfig {
         const handler = module[exportName];
         if (!handler)
           throw new Error(
-            `QOOTLOADER-ERROR: import '${importPath}' does not export '${exportName}'.`
+            `QWIKLOADER-ERROR: import '${importPath}' does not export '${exportName}'.`
           );
         handler(element, event, url);
       }
@@ -108,6 +108,6 @@ interface QConfig {
   document.addEventListener(readystatechange, processReadyStateChange);
   processReadyStateChange();
 })(
-  // Invoke qoot-loader.
+  // Invoke qwik-loader.
   document
 );

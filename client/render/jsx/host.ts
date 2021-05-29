@@ -1,9 +1,9 @@
 /**
  * @license
- * Copyright a-Qoot All Rights Reserved.
+ * Copyright BuilderIO All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
+ * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
 import { newError } from '../../assert/assert.js';
@@ -18,7 +18,7 @@ import type { JSXNode } from './types.js';
  * </Host>
  * ```
  *
- * Qoot requires that components have [docs/HOST_ELEMENTS.ts] so that it is possible to have
+ * Qwik requires that components have [docs/HOST_ELEMENTS.ts] so that it is possible to have
  * asynchronous loading point. Host element is not owned by the component. At times it is
  * desirable for the component to render additional attributes on the host element. `<Host>`
  * servers that purpose.

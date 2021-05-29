@@ -1,4 +1,4 @@
-# Qoot Documentation
+# Qwik Documentation
 
 ## Understanding Concepts
 
@@ -7,8 +7,8 @@
 - [Resumable vs Replayable applications](./RESUMABLE.md)
 - Component's [host-element](./HOST_ELEMENT.md)
 - [Lazy Loading](./LAZY_LOADING.md)
-- [Qoot URL](./QRL.md)
-- [Qoot Reactivity](./REACTIVITY.md)
+- [Qwik URL](./QRL.md)
+- [Qwik Reactivity](./REACTIVITY.md)
 
 ## Getting Started
 

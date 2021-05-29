@@ -1,17 +1,17 @@
-# Qoot Components
+# Qwik Components
 
-A collection of Qoot Components in a tree structure make up a Qoot application.
-The unique feature of Qoot Components is that they can be:
+A collection of Qwik Components in a tree structure make up a Qwik application.
+The unique feature of Qwik Components is that they can be:
 
 1. Server-side pre-rendered:
-1. The state of the Qoot Component serializes into the DOM attributes:
-1. Qoot Components can rehydrate on the client out of order:
-1. Qoot Components lazy load their behavioral handlers:
-1. Qoot Components declare listeners (both event and broadcasts) declaratively
+1. The state of the Qwik Component serializes into the DOM attributes:
+1. Qwik Components can rehydrate on the client out of order:
+1. Qwik Components lazy load their behavioral handlers:
+1. Qwik Components declare listeners (both event and broadcasts) declaratively
 
 ## SSR
 
-Qoot's goal is to have extremely fast startup times. Qoot achieves this by minimizing the amount of code the client needs to load and execute. This is done through:
+Qwik's goal is to have extremely fast startup times. Qwik achieves this by minimizing the amount of code the client needs to load and execute. This is done through:
 
 1. Server-side rendering: The server can pre-render the application. Most of the application UI never changes and so there is no need to bring the code to the client.
 1. Fine-grained lazy loading: Only download code which needs to be executed now. If the application contains a button that is rarely clicked, then the code for the handler should not be downloaded unless the user interacts with the button.
@@ -20,7 +20,7 @@ Qoot's goal is to have extremely fast startup times. Qoot achieves this by minim
 
 Most frameworks create replayable applications. By replayable, we mean that once the server renders the page, the client must re-run the whole application to get the client memory-heap into a state to be ready to interact with the users. Examples are: setting up listeners, subscribers, closures, and entity objects. The more complicated the page, the more complex the amount of code the client has to replay in order to get the client memory-heap into the right state.
 
-In contrast, Qoot aims to be resumable. A resumable application can always be serialized and send across the wire. On the client-side, there is no need to replay any of the SSR code on the client. The application has all of the relevant information serialized in HTML in a form such that the client can resume where it left off. For example, once the chrome of the application is rendered there is no need ever to execute that code if the chrome is static.
+In contrast, Qwik aims to be resumable. A resumable application can always be serialized and send across the wire. On the client-side, there is no need to replay any of the SSR code on the client. The application has all of the relevant information serialized in HTML in a form such that the client can resume where it left off. For example, once the chrome of the application is rendered there is no need ever to execute that code if the chrome is static.
 
 ## Out of order re-hydration
 
@@ -40,7 +40,7 @@ In-order-hydration would be if one would start at a component and render everyth
 
 ## State
 
-A component store state. There are three different kinds of states which Qoot recognizes:
+A component store state. There are three different kinds of states which Qwik recognizes:
 
 1. **Private State**: A private state of the component is a state which only matters to the component. For example, in case of a collapsible UI element, whether or not the element is collapsed is private state of the component. (A component can choose to expose its private state, but that is beyond the scope of this discussion.)
 1. **Shared State**: A shared state is information that can be part of more than one component. Typically this is information that needs to be persisted on the server. Because it is shared between components it can't be serialized within each components because doing so would lead to duplication. An example would be a to-do item in a task tracking application.
@@ -50,7 +50,7 @@ A component store state. There are three different kinds of states which Qoot re
 
 In traditional applications, listeners are problematic because they cause a lot of code to be downloaded even if the user never interacts with that listener. For example, a shopping checkout code may be very complex, but clicking on the purchase button is rare. A replayable application must set up a listener on the purchase button. The listener, in turn, needs a reference to the purchase entity. All of these objects need to be created and wired into the listener on application startup. This causes a lot of code to be downloaded which may never be executed.
 
-Qoot solves this by having a declarative way of setting up listeners. The listeners only specify where the code lives (import.) Unless the event fires, the listener never loads the code. The result is that Qoot only loads code when it is strictly necessary and thus delays most of the work until later. This leads to fast startup time because only very little code needs to be downloaded, and even less needs to be executed.
+Qwik solves this by having a declarative way of setting up listeners. The listeners only specify where the code lives (import.) Unless the event fires, the listener never loads the code. The result is that Qwik only loads code when it is strictly necessary and thus delays most of the work until later. This leads to fast startup time because only very little code needs to be downloaded, and even less needs to be executed.
 
 # Declaring Components
 
@@ -128,7 +128,7 @@ The private implementation consists of at a minimum of 1) one file representing 
 
   ```typescript
   import {<COMPONENT>} from './<COMPONENT>.js';
-  import {Component} from './qoot.js';
+  import {Component} from './qwik.js';
 
   export <COMPONENT>State {
     // Serializable state of the component.
@@ -143,7 +143,7 @@ The private implementation consists of at a minimum of 1) one file representing 
 
   ```typescript
   import { GreeterProps } from './Greeter.js';
-  import { Component } from './qoot.js';
+  import { Component } from './qwik.js';
 
   export interface GreeterState {
     name: string;
@@ -161,7 +161,7 @@ The private implementation consists of at a minimum of 1) one file representing 
 
   ```typescript
   import { <COMPONENT>Component } from './<COMPONENT>_component.js';
-  import { inject } from './qoot.js';
+  import { inject } from './qwik.js';
 
   // See: Component Injection for more details
   export default inject(<COMPONENT>Component, function (this:<COMPONENT>Component) {
@@ -173,7 +173,7 @@ The private implementation consists of at a minimum of 1) one file representing 
 
   ```typescript
   import { GreeterComponent } from './greeter_component.js';
-  import { inject } from './qoot.js';
+  import { inject } from './qwik.js';
 
   export default inject(GreeterComponent, function (this: GreeterComponent) {
     return (
@@ -187,7 +187,7 @@ The private implementation consists of at a minimum of 1) one file representing 
 - **Handler**: Handlers are optional, but most components will have one or more. Handlers are responsible for processing events. By convention, the handlers are named `<COMPONENT>_<WHAT>_on<EVENT>.ts` (`greet_text_onClick.ts`)
 
   ```typescript
-  import { inject } from './qoot.js';
+  import { inject } from './qwik.js';
   import { <COMPONENT>Component } from './<COMPONENT>_component.js';
 
   export default inject(<COMPONENT>Component, function (this: <COMPONENT>Component) {
@@ -200,7 +200,7 @@ The private implementation consists of at a minimum of 1) one file representing 
   Example:
 
   ```typescript
-  import { inject, markDirty, provideQrlExp } from './qoot.js';
+  import { inject, markDirty, provideQrlExp } from './qwik.js';
   import { GreeterComponent } from './greeter_component.js';
 
   export default inject(GreeterComponent, function (this: GreeterComponent, name: string) {

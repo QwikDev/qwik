@@ -1,9 +1,9 @@
 /**
  * @license
- * Copyright a-Qoot All Rights Reserved.
+ * Copyright BuilderIO All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
+ * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
 import { EntityKey } from '../entity/entity_key.js';
@@ -108,7 +108,7 @@ export interface Injector {
    * - All property keys are translated from kebab to camel case (with first char being
    *   lowercase)
    * - `bind:` properties are stored reversed. (Binding id is stored in attribute key and
-   *   binding property is stored in attribute value. [Reason: so that Qoot can use
+   *   binding property is stored in attribute value. [Reason: so that Qwik can use
    *   `querySelectAll` to find all binding ids in case of an update.])
    *
    * Example
@@ -198,7 +198,7 @@ export interface Injector {
 /**
  * Represents a class constructor.
  *
- * This type is often used when Qoot needs to refer to classes constructors.
+ * This type is often used when Qwik needs to refer to classes constructors.
  * @public
  */
 export interface ConcreteType<T, ARGS extends any[] = [...any]> extends Function {
@@ -243,7 +243,7 @@ export interface InjectedFunction<SELF, ARGS extends any[], REST extends any[], 
  * A provider is a function which is invoked by the injector in order to satisfy the
  * injected functions parameters.
  *
- * There are many provider functions which come with Qoot, but it is expected that new
+ * There are many provider functions which come with Qwik, but it is expected that new
  * provider functions are created by the developer.
  *
  * ## Example of creating a provider

@@ -1,14 +1,14 @@
 /**
  * @license
- * Copyright a-Qoot All Rights Reserved.
+ * Copyright BuilderIO All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
+ * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
 import { ItemEntity } from '../data/Item.js';
 import { TodoEntity } from '../data/Todo.js';
-import { injectFunction, jsxFactory } from '../qoot.js';
+import { injectFunction, jsxFactory } from '../qwik.js';
 import { Footer } from './Footer.js';
 import { Header } from './Header.js';
 import { Main } from './Main.js';

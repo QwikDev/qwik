@@ -1,9 +1,9 @@
 /**
  * @license
- * Copyright a-Qoot All Rights Reserved.
+ * Copyright BuilderIO All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
+ * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
 import { assertEqual } from '../assert/index.js';
@@ -14,7 +14,7 @@ import { getFilePathFromFrame } from '../util/base_uri.js';
 import { isPromise } from '../util/promises.js';
 
 /**
- * `QRL` (Qoot Resource Locator) represents an import which points to a lazy loaded resource.
+ * `QRL` (Qwik Resource Locator) represents an import which points to a lazy loaded resource.
  *
  * QRL is a URL pointing to a lazy loaded resource. Because the URLs need to be verified
  * (and possibly bundled) there needs to be a way to identify all URL strings in the system.

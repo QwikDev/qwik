@@ -1,9 +1,9 @@
 /**
  * @license
- * Copyright a-Qoot All Rights Reserved.
+ * Copyright BuilderIO All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
+ * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
 import { expect } from 'chai';
@@ -80,7 +80,7 @@ describe('entity key', () => {
     it('should extract entity name', () => {
       expect(keyToEntityAttribute('foo:')).to.eql('::foo');
       expect(keyToEntityAttribute('bar:baz')).to.eql('::bar');
-      expect(keyToEntityAttribute('bar:baz:qoot')).to.eql('::bar');
+      expect(keyToEntityAttribute('bar:baz:qwik')).to.eql('::bar');
       expect(keyToEntityAttribute(':')).to.eql('::');
     });
     it('should complain on bad format', () => {

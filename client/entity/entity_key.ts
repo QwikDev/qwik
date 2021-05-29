@@ -1,9 +1,9 @@
 /**
  * @license
- * Copyright a-Qoot All Rights Reserved.
+ * Copyright BuilderIO All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
+ * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
 import { isValidAttribute } from '../error/data.js';
@@ -174,7 +174,7 @@ export function validateKeyPart(value: any): string {
 /**
  * Retrieve `EntityKey` from Entity State.
  *
- * Qoot stores `EntityKey` in the state of the Entity as `$key` even
+ * Qwik stores `EntityKey` in the state of the Entity as `$key` even
  * if it is not declared in the State type. Use this method to retrieve it.
  *
  * This method is convenient when Entity key is needed but only Entity State is available.

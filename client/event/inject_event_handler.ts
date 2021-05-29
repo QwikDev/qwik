@@ -1,9 +1,9 @@
 /**
  * @license
- * Copyright a-Qoot All Rights Reserved.
+ * Copyright BuilderIO All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://github.com/a-Qoot/qoot/blob/main/LICENSE
+ * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
 import { QRL } from '../import/qrl.js';
@@ -15,7 +15,7 @@ import { EventHandler } from './types.js';
 /**
  * Create an event handler with injected values.
  *
- * The function creates an `EventHandler` which is used by `qootloader.js` to dispatch events.
+ * The function creates an `EventHandler` which is used by `qwikloader.js` to dispatch events.
  * The function supports passing in a component and providers.
  *
  * Creating an event handler. Assume an event is declared in template like so:

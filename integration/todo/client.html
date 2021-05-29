@@ -1,7 +1,7 @@
 <html>
   <head>
     <title>ToDo Application</title>
-    <script src="/qootloader.min.js" type="module"></script>
+    <script src="/qwikloader.min.js" type="module"></script>
     <script>
       var Q = { protocol: { ui: './ui', data: './data', base: './' } };
     </script>
@@ -9,6 +9,6 @@
     <link rel="stylesheet" href="./index.css" />
   </head>
   <body>
-    <div decl:template="ui:/ToDoApp_template" on:q-init="base:qoot#markDirty"></div>
+    <div decl:template="ui:/ToDoApp_template" on:q-init="base:qwik#markDirty"></div>
   </body>
 </html>

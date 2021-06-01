@@ -1,4 +1,5 @@
 load("@build_bazel_rules_nodejs//:index.bzl", "generated_file_test", "js_library", "pkg_npm")
+load("@npm//@bazel/esbuild:index.bzl", "esbuild")
 load("@npm//@bazel/rollup:index.bzl", "rollup_bundle")
 load("@npm//@bazel/terser:index.bzl", "terser_minified")
 load("@npm//@bazel/typescript:index.bzl", "ts_project")
@@ -29,6 +30,20 @@ ts_project(
     declaration = True,
     tsconfig = "//:tsconfig",
     # TODO: https://bazelbuild.github.io/rules_nodejs/TypeScript.html#ts_project-supports_workers
+)
+
+esbuild(
+    name = "client_cjs",
+    entry_point = "index.ts",
+    platform = "node",
+    tool = select({
+        "@bazel_tools//src/conditions:darwin": "@esbuild_darwin//:bin/esbuild",
+        "@bazel_tools//src/conditions:linux_x86_64": "@esbuild_linux//:bin/esbuild",
+        "@bazel_tools//src/conditions:windows": "@esbuild_windows//:esbuild.exe",
+    }),
+    deps = [
+        ":client",
+    ],
 )
 
 filegroup(
@@ -114,10 +129,12 @@ api_extractor(
         "--verbose",
         "--local",
         "--config",
-        "client/api-extractor.json",
+        "client/api-extractor-$(TARGET_CPU).json",
     ],
     data = [
         "api-extractor.json",
+        "api-extractor-darwin.json",
+        "api-extractor-k8.json",
         ":project",
         "//:package.json",
         "//:tsconfig.base.json",
@@ -148,12 +165,11 @@ pkg_npm(
     substitutions = {"//internal/": "//"},
     deps = [
         ":LICENSE",
+        ":client_cjs",
         ":qwik",
         ":qwik.d.ts",
         ":qwik.min",
         ":qwikloader",
         ":qwikloader.min",
-        "//client/cjs:package.json",
-        "//client/cjs:qwik",
     ],
 )

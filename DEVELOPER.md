@@ -20,7 +20,7 @@ or
 npm install -g @bazel/bazelisk
 ```
 
-`Bazel` will invoke `NPM` and manage all dependencies.
+`Bazel` will invoke `Yarn` and manage all dependencies.
 
 ## `bazel` vs `ibazel`
 

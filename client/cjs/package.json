@@ -1,6 +1,0 @@
-{
-  "description": "A CJS version of qwik",
-  "type": "commonjs",
-  "main": "./qwik.js",
-  "typings": "../qwik.d.ts"
-}

@@ -2,29 +2,40 @@ name: default-ci-jobs
 on: [push, pull_request]
 jobs:
   lint:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
         with:
           node-version: 15.x
-      - run: npm ci
-      - run: npm run prettier-check
-      - run: npm run lint
-      - run: npm run bazel:lint
-  unit-tests:
-    runs-on: macos-latest
+
+      - name: Setup node_modules
+        run: yarn
+
+      - name: Lint checks
+        run: |
+          yarn prettier-check
+          yarn lint
+          yarn bazel:lint
+  build_and_test:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
         with:
           node-version: 15.x
-      - run: npm ci
-      - run: npm run test:unit
+      - uses: c-hive/gha-yarn-cache@v1
+      - uses: bazelbuild/setup-bazelisk@v1
+
+      - name: Build all targets
+        run: bazel build //...
+
+      - name: Run all unit tests
+        run: bazel test --test_tag_filters=unit //...
 # TODO: blocked on running integration server through cypress - see issue #15
 #  e2e-tests:
 #    runs-on: macos-latest
 #    steps:
 #      - uses: actions/checkout@v2
 #      - uses: actions/setup-node@v1
-#      - run: npm run test:e2e
+#      - run: yarn test:e2e

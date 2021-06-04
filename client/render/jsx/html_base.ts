@@ -44,4 +44,8 @@ export interface JSXBase {
   class?: string | string[] | Record<string, boolean>;
 
   style?: string | Record<string, string>;
+
+  // TODO: document
+  // TODO: investigate why this is needed
+  children?: any;
 }

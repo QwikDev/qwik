@@ -11,10 +11,10 @@ import { jsxDeclareComponent, QRL } from '../qwik.js';
 export interface ToDoAppProps {}
 
 // TODO(docs): Add explanation why code above is same as comment.
-// <div decl:template="ui:/ToDoApp_template">
-export const ToDoApp = jsxDeclareComponent<ToDoAppProps>(QRL`ui:/ToDoApp_template`);
+// <div decl:template="ui:/TodoApp_template">
+export const ToDoApp = jsxDeclareComponent<ToDoAppProps>(QRL`ui:/TodoApp_template`);
 /**
 export function ToDoApp2(props: Record<any, any>) {
-  return <div decl:template="ui:/ToDoApp_template" />;
+  return <div decl:template="ui:/TodoApp_template" />;
 }
  */

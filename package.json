@@ -15,7 +15,8 @@
     ]
   },
   "dependencies": {
-    "source-map-support": "^0.5.19"
+    "source-map-support": "^0.5.19",
+    "cypress": "^6.4.0"
   },
   "@comment type": "Setting type to 'commonjs' is important as many of the bazel tooling assumes 'commonjs'. For code which wants ESM a second 'package.json' file needs to be created for just those files.",
   "type": "commonjs",
@@ -38,7 +39,6 @@
     "@typescript-eslint/parser": "^4.19.0",
     "chai": "^4.3.0",
     "commander": "^6.2.0",
-    "cypress": "^6.4.0",
     "domino": "^2.1.6",
     "eslint": "^7.23.0",
     "eslint-plugin-no-only-tests": "^2.4.0",

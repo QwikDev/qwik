@@ -67,7 +67,7 @@ Running cypress manually
 ## Publishing
 
 ```
-bazel run client:qwik_pkg.publish -- --tag=next
+bazel run client:qwik_pkg.publish -- --tag=next --access=public
 ```
 
 ## Pre-submit hooks

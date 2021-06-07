@@ -8,7 +8,11 @@ An Open-Source framework designed for best possible [time to interactive](https:
 - Understand the difference between [resumable and replayable](./docs/RESUMABLE.md) applications.
 - Learn about Qwik's high level [mental model](./docs/MENTAL_MODEL.md).
 
-<br />
+## Community
+
+Joint our [discord](https://discord.gg/4kmQhYgt) channel.
+
+<hr />
 <p align="center">
   Made with ❤️ by <a target="_blank" href="https://www.builder.io/">Builder.io</a>
 </p>

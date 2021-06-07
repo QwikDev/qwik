@@ -14,16 +14,14 @@
       "npm run bazel:lint-fix"
     ]
   },
-  "dependencies": {
-    "source-map-support": "^0.5.19",
-    "cypress": "^6.4.0"
-  },
   "@comment type": "Setting type to 'commonjs' is important as many of the bazel tooling assumes 'commonjs'. For code which wants ESM a second 'package.json' file needs to be created for just those files.",
   "type": "commonjs",
-  "devDependencies": {
+  "dependencies": {
+    "source-map-support": "^0.5.19",
     "@bazel/bazelisk": "^1.7.5",
     "@bazel/buildifier": "^4.0.1",
     "@bazel/cypress": "^3.2.0",
+    "cypress": "^6.4.0",
     "@bazel/esbuild": "^3.5.0",
     "@bazel/ibazel": "^0.15.10",
     "@bazel/rollup": "^3.2.2",

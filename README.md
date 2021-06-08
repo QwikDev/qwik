@@ -10,7 +10,7 @@ An Open-Source framework designed for best possible [time to interactive](https:
 
 ## Community
 
-Joint our [discord](https://discord.gg/4kmQhYgt) channel.
+Join our [discord](https://discord.gg/4kmQhYgt) community.
 
 <hr />
 <p align="center">

@@ -4,6 +4,7 @@ An Open-Source framework designed for best possible [time to interactive](https:
 
 ## Getting Started
 
+- Visit [StackBlitz](https://stackblitz.com/edit/qwik-todo-demo) for a simple demo you can play with.
 - Visit [integration](./integration) folder for guided tours of Qwik to learn how it works.
 - Understand the difference between [resumable and replayable](./docs/RESUMABLE.md) applications.
 - Learn about Qwik's high level [mental model](./docs/MENTAL_MODEL.md).

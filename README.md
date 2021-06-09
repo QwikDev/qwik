@@ -11,7 +11,7 @@ An Open-Source framework designed for best possible [time to interactive](https:
 
 ## Community
 
-Join our [discord](https://discord.gg/4kmQhYgt) community.
+Join our [discord](https://discord.gg/JHVpZmqSs4) community.
 
 <hr />
 <p align="center">

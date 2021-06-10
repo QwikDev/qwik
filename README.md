@@ -1,3 +1,12 @@
+<br />
+
+<p align="center">
+  <img alt="Qwik Logo" width="400" src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F667ab6c2283d4c4d878fb9083aacc10f" />
+</p>
+
+<br />
+
+
 # `Qwik` DOM-Centric, Resumable Web-App Framework
 
 An Open-Source framework designed for best possible [time to interactive](https://web.dev/interactive/), by focusing on [resumability](./docs/RESUMABLE.md) of server-side-rendering of HTML, and [fine-grained lazy-loading](./docs/LAZY_LOADING.md) of code.

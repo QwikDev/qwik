@@ -6,7 +6,6 @@
 
 <br />
 
-
 # `Qwik` DOM-Centric, Resumable Web-App Framework
 
 An Open-Source framework designed for best possible [time to interactive](https://web.dev/interactive/), by focusing on [resumability](./docs/RESUMABLE.md) of server-side-rendering of HTML, and [fine-grained lazy-loading](./docs/LAZY_LOADING.md) of code.

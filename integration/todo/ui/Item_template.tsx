@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { Item, ItemEntity } from '../data/Item.js';
+import type { Item, ItemEntity } from '../data/Item.js';
 import {
   injectMethod,
   jsxFactory,

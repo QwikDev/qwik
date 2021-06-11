@@ -7,8 +7,8 @@
  */
 
 import { getConfig } from '../config/qGlobal.js';
-import { QRL } from './qrl.js';
-import { QConfig } from '../config/qGlobal.js';
+import type { QRL } from './qrl.js';
+import type { QConfig } from '../config/qGlobal.js';
 import { QError, qError } from '../error/error.js';
 
 let importCache: Map<string, unknown | Promise<unknown>>;

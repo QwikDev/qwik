@@ -6,22 +6,22 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { AttributeMarker } from 'client/util/markers.js';
+import { AttributeMarker } from '../../util/markers.js';
 import { QError, qError } from '../../error/error.js';
 import { qImport } from '../../import/index.js';
-import { QRL } from '../../import/qrl.js';
+import type { QRL } from '../../import/qrl.js';
 import { getInjector } from '../../injector/element_injector.js';
-import { InjectedFunction, Injector, Props } from '../../injector/types.js';
+import type { InjectedFunction, Injector, Props } from '../../injector/types.js';
 import { removeNode, replaceNode } from '../../util/dom.js';
 import { EMPTY_OBJ } from '../../util/flyweight.js';
 import { flattenPromiseTree, isPromise } from '../../util/promises.js';
 import '../../util/qDev.js';
 import { isDomElementWithTagName, isTextNode, NodeType } from '../../util/types.js';
-import { AsyncHostElementPromises, HostElements } from '../types.js';
+import type { AsyncHostElementPromises, HostElements } from '../types.js';
 import { applyAttributes } from './attributes.js';
 import { isJSXNode } from './factory.js';
 import { Host } from './host.js';
-import { JSXFactory, JSXNode } from './types.js';
+import type { JSXFactory, JSXNode } from './types.js';
 
 /**
  * Render JSX into a host element reusing DOM nodes when possible.

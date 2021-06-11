@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { Provider, Injector } from '../injector/types.js';
+import type { Provider, Injector } from '../injector/types.js';
 import { QError, qError } from '../error/error.js';
 
 /**

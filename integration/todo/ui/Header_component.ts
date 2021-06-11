@@ -7,7 +7,7 @@
  */
 
 import { Component, QRL } from '../qwik.js';
-import { HeaderProps } from './Header.js';
+import type { HeaderProps } from './Header.js';
 
 interface HeaderState {
   text: string;

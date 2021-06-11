@@ -6,8 +6,8 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { QRL } from 'client/import/qrl.js';
-import { EntityConstructor } from '../../entity/entity.js';
+import type { QRL } from '../../import/qrl.js';
+import type { EntityConstructor } from '../../entity/entity.js';
 
 /**
  * Base JSX type containing universal properties.

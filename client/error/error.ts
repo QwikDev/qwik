@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { AttributeMarker } from 'client/util/markers.js';
+import { AttributeMarker } from '../util/markers.js';
 import { stringifyDebug } from './stringify.js';
 
 export const enum QError {

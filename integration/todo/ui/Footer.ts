@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { TodoEntity } from '../data/Todo.js';
+import type { TodoEntity } from '../data/Todo.js';
 import { jsxDeclareComponent, QRL, EntityKey } from '../qwik.js';
 
 /**

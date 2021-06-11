@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { QRL } from '../import/qrl.js';
+import type { QRL } from '../import/qrl.js';
 import { QError, qError } from '../error/error.js';
 import '../util/qDev.js';
 import { AttributeMarker } from '../util/markers.js';

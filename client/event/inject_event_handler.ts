@@ -6,11 +6,11 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { QRL } from '../import/qrl.js';
-import { InjectedFunction, ProviderReturns } from '../injector/types.js';
+import type { QRL } from '../import/qrl.js';
+import type { InjectedFunction, ProviderReturns } from '../injector/types.js';
 import '../util/qDev.js';
 import { EventInjector } from './event_injector.js';
-import { EventHandler } from './types.js';
+import type { EventHandler } from './types.js';
 
 /**
  * Create an event handler with injected values.

@@ -6,11 +6,11 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { EntityKey } from '../entity/entity_key.js';
+import type { EntityKey } from '../entity/entity_key.js';
 import { getClosestInjector } from '../injector/element_injector.js';
 import { resolveArgs } from '../injector/resolve_args.js';
-import { Injector, Provider } from '../injector/types.js';
-import { Entity, EntityStateOf } from '../entity/entity.js';
+import type { Injector, Provider } from '../injector/types.js';
+import type { Entity, EntityStateOf } from '../entity/entity.js';
 
 /**
  * Provide the entity state for a given entity key.

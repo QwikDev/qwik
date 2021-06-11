@@ -6,10 +6,10 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { EntityKey } from '../entity/entity_key.js';
+import type { EntityKey } from '../entity/entity_key.js';
 import type { Component, ComponentConstructor } from '../component/component.js';
 import { qError, QError } from '../error/error.js';
-import {
+import type {
   Entity,
   EntityConstructor,
   EntityPromise,
@@ -19,7 +19,7 @@ import {
 import { extractPropsFromElement } from '../util/attributes.js';
 import '../util/qDev.js';
 import { resolveArgs } from './resolve_args.js';
-import { InjectedFunction, Injector, Props } from './types.js';
+import type { InjectedFunction, Injector, Props } from './types.js';
 
 export abstract class BaseInjector implements Injector {
   element: Element;

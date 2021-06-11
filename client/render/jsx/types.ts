@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { Props } from '../../injector/types.js';
+import type { Props } from '../../injector/types.js';
 
 /**
  * @public

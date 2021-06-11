@@ -7,7 +7,7 @@
  */
 
 import { assertDefined } from '../assert/index.js';
-import { Provider, Injector } from '../injector/types.js';
+import type { Provider, Injector } from '../injector/types.js';
 
 /**
  * Returns `Props` of component.

@@ -7,7 +7,7 @@
  */
 
 import '../util/qDev.js';
-import { ConcreteType, InjectedFunction, ProviderReturns } from './types.js';
+import type { ConcreteType, InjectedFunction, ProviderReturns } from './types.js';
 
 /**
  * Decorate a function for injection by associating providers.

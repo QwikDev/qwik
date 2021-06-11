@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import {
+import type {
   ComponentPropsOf,
   ComponentStateOf,
   Component,
@@ -14,9 +14,9 @@ import {
 } from '../component/component.js';
 import { qError, QError } from '../error/error.js';
 import { qImport } from '../import/qImport.js';
-import { QRL } from '../import/qrl.js';
+import type { QRL } from '../import/qrl.js';
 import { keyToEntityAttribute, EntityKey } from '../entity/entity_key.js';
-import {
+import type {
   Entity,
   EntityConstructor,
   EntityPromise,
@@ -28,7 +28,7 @@ import { AttributeMarker } from '../util/markers.js';
 import '../util/qDev.js';
 import { isHtmlElement } from '../util/types.js';
 import { BaseInjector } from './base_injector.js';
-import { Injector } from './types.js';
+import type { Injector } from './types.js';
 
 interface EntityValue {
   promise: EntityPromise<Entity<any, any>>;

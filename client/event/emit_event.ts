@@ -10,8 +10,8 @@ import { qImport, qParams, toBaseURI, toUrl } from '../import/qImport.js';
 import { QError, qError } from '../error/error.js';
 import { findAttribute } from '../util/dom_attrs.js';
 import { AttributeMarker } from '../util/markers.js';
-import { EventHandler } from './types.js';
-import { QRL } from '../import/qrl.js';
+import type { EventHandler } from './types.js';
+import type { QRL } from '../import/qrl.js';
 import { fromCamelToKebabCase } from '../util/case.js';
 
 /**

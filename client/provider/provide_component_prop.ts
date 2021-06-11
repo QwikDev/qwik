@@ -8,7 +8,7 @@
 
 import { qError, QError } from '../error/error.js';
 import { getClosestInjector } from '../injector/element_injector.js';
-import { Provider, Injector } from '../injector/types.js';
+import type { Provider, Injector } from '../injector/types.js';
 
 /**
  * Provides the Component Property.

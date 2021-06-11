@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { InjectedFunction } from '../injector/types.js';
+import type { InjectedFunction } from '../injector/types.js';
 
 /**
  * @public

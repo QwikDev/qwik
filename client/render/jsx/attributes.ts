@@ -9,8 +9,8 @@ import { fromCamelToKebabCase } from '../../util/case.js';
 import { stringify } from '../../util/stringify.js';
 import { assertValidDataKey } from '../../error/data.js';
 import { AttributeMarker } from '../../util/markers.js';
-import { EntityConstructor } from '../../entity/entity.js';
-import { QRL } from '../../import/qrl.js';
+import type { EntityConstructor } from '../../entity/entity.js';
+import type { QRL } from '../../import/qrl.js';
 import { QError, qError } from '../../error/error.js';
 import type { JSXBase } from './html_base.js';
 

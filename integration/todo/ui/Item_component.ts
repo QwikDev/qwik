@@ -7,7 +7,7 @@
  */
 
 import { Component, QRL } from '../qwik.js';
-import { ItemProps } from './Item.js';
+import type { ItemProps } from './Item.js';
 
 interface ItemState {}
 

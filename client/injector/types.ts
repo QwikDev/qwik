@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { EntityKey } from '../entity/entity_key.js';
+import type { EntityKey } from '../entity/entity_key.js';
 import type { Component, ComponentConstructor } from '../component/component.js';
 import type {
   Entity,

@@ -10,13 +10,13 @@ import { isElement } from '../../util/element.js';
 import { assertString } from '../../assert/index.js';
 import { Component, isComponent } from '../../component/component.js';
 import { QError, qError } from '../../error/error.js';
-import { QRL } from '../../import/qrl.js';
-import { Props } from '../../injector/types.js';
+import type { QRL } from '../../import/qrl.js';
+import type { Props } from '../../injector/types.js';
 import { isEntity, Entity } from '../../entity/entity.js';
 import { extractPropsFromElement } from '../../util/attributes.js';
 import { AttributeMarker } from '../../util/markers.js';
 import { flattenPromiseTree, isPromise } from '../../util/promises.js';
-import { HostElements } from '../types.js';
+import type { HostElements } from '../types.js';
 import { jsxRenderComponent } from './render.js';
 
 /**

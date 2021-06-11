@@ -7,11 +7,11 @@
  */
 
 import { EMPTY_OBJ } from '../../util/flyweight.js';
-import { QRL } from '../../import/qrl.js';
-import { Props } from '../../injector/types.js';
-import { JSXFactory, JSXNode } from './types.js';
+import type { QRL } from '../../import/qrl.js';
+import type { Props } from '../../injector/types.js';
+import type { JSXFactory, JSXNode } from './types.js';
 import { AttributeMarker } from '../../util/markers.js';
-import { JSXBase } from './html_base.js';
+import type { JSXBase } from './html_base.js';
 import { flattenArray } from '../../util/array.js';
 
 class JSXNode_<T extends string | null | JSXFactory | unknown> {

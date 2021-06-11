@@ -6,12 +6,12 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { EntityKey } from '../entity/entity_key.js';
+import type { EntityKey } from '../entity/entity_key.js';
 import type { Component, ComponentConstructor } from '../component/component.js';
 import { BaseInjector } from '../injector/base_injector.js';
 import { ElementInjector, getClosestInjector } from '../injector/element_injector.js';
-import { Injector, Props } from '../injector/types.js';
-import {
+import type { Injector, Props } from '../injector/types.js';
+import type {
   Entity,
   EntityConstructor,
   EntityPromise,

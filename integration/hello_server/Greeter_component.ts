@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { GreeterProps } from './Greeter.js';
+import type { GreeterProps } from './Greeter.js';
 import { Component, QRL } from './qwik.js';
 
 /**

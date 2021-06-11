@@ -10,7 +10,7 @@ import { AttributeMarker } from '../util/markers.js';
 import { getConfig, QConfig } from '../config/qGlobal.js';
 import { qError, QError } from '../error/error.js';
 import { qImport } from '../import/qImport.js';
-import { QRL } from '../import/qrl.js';
+import type { QRL } from '../import/qrl.js';
 import { keyToEntityAttribute, EntityKey, keyToProps, propsToKey } from './entity_key.js';
 import { getFilePathFromFrame } from '../util/base_uri.js';
 import { fromCamelToKebabCase } from '../util/case.js';

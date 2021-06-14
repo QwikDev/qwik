@@ -7,12 +7,12 @@
  */
 
 import { expect } from 'chai';
-import { GreeterComponent, PersonEntity } from '../../testing/component_fixture.js';
 import { stringifyDebug } from '../../error/stringify.js';
-import { MockRequestAnimationFrame } from '../../testing/node_utils.js';
+import { GreeterComponent, PersonEntity } from '../../testing/component_fixture.js';
+import { ElementFixture } from '../../testing/element_fixture.js';
+import type { MockRequestAnimationFrame } from '../../testing/node_utils.js';
 import { AttributeMarker } from '../../util/markers.js';
 import { markDirty, markEntityDirty, scheduleRender, toAttrQuery } from './mark_dirty.js';
-import { ElementFixture } from '../../testing/element_fixture.js';
 
 describe('mark_dirty', () => {
   let host: HTMLElement;

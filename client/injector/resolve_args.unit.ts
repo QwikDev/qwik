@@ -9,7 +9,7 @@
 import { expect } from 'chai';
 import '../testing/node_utils.js';
 import { resolveArgs } from './resolve_args.js';
-import { Injector } from './types.js';
+import type { Injector } from './types.js';
 
 describe('resolveArgs', () => {
   it('should return values', async () => {

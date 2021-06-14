@@ -7,17 +7,17 @@
  */
 
 import { expect } from 'chai';
-import { GreeterComponent, Greeter, GreeterProps } from '../testing/component_fixture.js';
 import { Component } from '../component/component.js';
 import '../CONFIG.js';
+import type { EntityKey } from '../entity/entity_key.js';
 import { stringifyDebug } from '../error/stringify.js';
 import { QRL } from '../import/index.js';
-import { Injector, Entity } from '../index.js';
+import { Entity, Injector } from '../index.js';
 import { serializeState } from '../render/serialize_state.js';
+import { Greeter, GreeterComponent, GreeterProps } from '../testing/component_fixture.js';
 import { ElementFixture } from '../testing/element_fixture.js';
 import { AttributeMarker } from '../util/markers.js';
 import { getClosestInjector, getInjector } from './element_injector.js';
-import { EntityKey } from '../entity/entity_key.js';
 
 describe('ElementInjector', () => {
   let fixture: ElementFixture;

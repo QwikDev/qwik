@@ -7,13 +7,13 @@
  */
 
 import { expect } from 'chai';
-import { AttributeMarker } from '../util/markers.js';
 import { Component } from '../component/index.js';
-import { QRL } from '../import/qrl.js';
+import type { QRL } from '../import/qrl.js';
 import { ElementFixture } from '../testing/element_fixture.js';
-import { EventInjector } from './event_injector.js';
-import { injectEventHandler } from './inject_event_handler.js';
+import { AttributeMarker } from '../util/markers.js';
 import { EventEntity } from './event_entity.js';
+import type { EventInjector } from './event_injector.js';
+import { injectEventHandler } from './inject_event_handler.js';
 
 describe('injectEventHandler', () => {
   let fixture: ElementFixture;

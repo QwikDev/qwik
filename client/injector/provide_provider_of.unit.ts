@@ -9,7 +9,7 @@
 import { expect } from 'chai';
 import '../CONFIG.js';
 import { provideProviderOf } from './provide_provider_of.js';
-import { Injector } from './types.js';
+import type { Injector } from './types.js';
 
 describe('provideProviderOf', () => {
   it('should Provider', async () => {

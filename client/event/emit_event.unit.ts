@@ -6,6 +6,7 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
+import { expect } from 'chai';
 import '../CONFIG.js';
 import { ElementFixture } from '../testing/element_fixture.js';
 import { emitEvent } from './emit_event.js';
@@ -13,8 +14,7 @@ import { injectEventHandler } from './inject_event_handler.js';
 import { provideElement } from './provide_element.js';
 import { provideEvent } from './provide_event.js';
 import { provideURL } from './provide_url.js';
-import { EventHandler } from './types';
-import { expect } from 'chai';
+import type { EventHandler } from './types';
 
 describe('emitEvent', () => {
   let fixture: ElementFixture;

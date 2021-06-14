@@ -7,7 +7,8 @@
  */
 
 import { assertDefined } from '../assert/assert.js';
-import { Component, Entity, jsxFactory, QRL } from '../index.js';
+import { Component, Entity, jsxFactory } from '../index.js';
+import { QRL } from '../import/qrl.js';
 import { getInjector } from '../injector/element_injector.js';
 import type { Injector } from '../injector/types.js';
 import { JSXFactory, jsxRender } from '../render/jsx/index.js';

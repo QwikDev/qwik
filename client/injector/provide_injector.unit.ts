@@ -9,7 +9,7 @@
 import { expect } from 'chai';
 import '../CONFIG.js';
 import { provideInjector } from './provide_injector.js';
-import { Injector } from './types.js';
+import type { Injector } from './types.js';
 
 describe('provideInjector', () => {
   it('should return an injector', async () => {

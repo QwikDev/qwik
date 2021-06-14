@@ -14,7 +14,7 @@ import { createGlobal, QwikGlobal } from '../../testing/node_utils.js';
 import { jsxDeclareComponent, jsxFactory } from './factory.js';
 import { Host } from './host.js';
 import type { JSX_IntrinsicElements } from './html.js';
-import { JSXBase } from './html_base.js';
+import type { JSXBase } from './html_base.js';
 import { jsxRender } from './render.js';
 
 const _needed_by_JSX_ = jsxFactory; // eslint-disable-line @typescript-eslint/no-unused-vars

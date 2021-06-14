@@ -6,17 +6,17 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { injectFunction } from '../injector/inject.js';
+import { expect } from 'chai';
 import '../CONFIG.js';
+import { Entity } from '../entity/entity.js';
+import type { EntityKey } from '../entity/entity_key.js';
 import { QRL } from '../import/qrl.js';
 import { getInjector } from '../injector/element_injector.js';
+import type { Injector } from '../injector/index.js';
+import { injectFunction } from '../injector/inject.js';
+import type { Provider } from '../injector/types';
 import { ElementFixture } from '../testing/element_fixture.js';
 import { provideEntityState } from './provide_entity_state.js';
-import { Entity } from '../entity/entity.js';
-import { expect } from 'chai';
-import { Injector } from '../injector/index.js';
-import { Provider } from '../injector/types';
-import { EntityKey } from '../entity/entity_key.js';
 
 describe('provideEntity', () => {
   let fixture: ElementFixture;

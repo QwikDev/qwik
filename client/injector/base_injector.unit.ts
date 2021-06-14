@@ -7,14 +7,14 @@
  */
 
 import { expect } from 'chai';
-import { QRL } from '../import/qrl.js';
 import { Component } from '../component/component.js';
+import type { QRL } from '../import/qrl.js';
 import { ElementFixture } from '../testing/element_fixture.js';
 import { AttributeMarker } from '../util/markers.js';
 import '../util/qDev.js';
 import { getInjector } from './element_injector.js';
 import { injectFunction, injectMethod } from './inject.js';
-import { Injector, Provider } from './types.js';
+import type { Injector, Provider } from './types.js';
 
 describe('BaseInjector', () => {
   let fixture: ElementFixture;

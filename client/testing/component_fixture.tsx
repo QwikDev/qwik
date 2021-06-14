@@ -6,13 +6,13 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { AttributeMarker } from '../util/markers.js';
 import { assertDefined } from '../assert/assert.js';
-import { Component, jsxFactory, QRL, Entity } from '../index.js';
+import { Component, Entity, jsxFactory, QRL } from '../index.js';
 import { getInjector } from '../injector/element_injector.js';
-import { Injector } from '../injector/types.js';
-import { jsxRender, JSXFactory } from '../render/jsx/index.js';
-import { HostElements } from '../render/types.js';
+import type { Injector } from '../injector/types.js';
+import { JSXFactory, jsxRender } from '../render/jsx/index.js';
+import type { HostElements } from '../render/types.js';
+import { AttributeMarker } from '../util/markers.js';
 import { ElementFixture, ElementFixtureOptions } from './element_fixture.js';
 
 const _needed_by_JSX_ = jsxFactory; // eslint-disable-line @typescript-eslint/no-unused-vars

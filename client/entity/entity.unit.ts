@@ -16,7 +16,7 @@ import { injectMethod } from '../injector/inject.js';
 import { serializeState } from '../render/serialize_state.js';
 import { ElementFixture } from '../testing/element_fixture.js';
 import { Entity, EntityConstructor } from './entity.js';
-import { EntityKey } from './entity_key.js';
+import type { EntityKey } from './entity_key.js';
 
 export const __verify_Entity_subtype_of_EntityType__: EntityConstructor<any> = Entity;
 const entity: Entity<any, any> = null!;

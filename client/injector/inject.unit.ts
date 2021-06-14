@@ -7,15 +7,15 @@
  */
 
 import { expect } from 'chai';
+import { injectEventHandler } from '../event/inject_event_handler.js';
+import type { QRL } from '../import/qrl.js';
 import { ElementFixture } from '../testing/element_fixture.js';
 import '../testing/node_utils.js';
 import { createGlobal } from '../testing/node_utils.js';
 import { AttributeMarker } from '../util/markers.js';
 import { getInjector } from './element_injector.js';
 import { injectFunction } from './inject.js';
-import { injectEventHandler } from '../event/inject_event_handler.js';
-import { Injector } from './types.js';
-import { QRL } from '../import/qrl.js';
+import type { Injector } from './types.js';
 
 describe('inject', () => {
   const log: string[] = [];

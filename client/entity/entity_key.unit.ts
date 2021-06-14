@@ -7,9 +7,14 @@
  */
 
 import { expect } from 'chai';
-import { EntityConstructor } from './entity.js';
-import { keyToEntityAttribute } from './entity_key.js';
-import { validateKeyPart, keyToProps, propsToKey, entityStateKey } from './entity_key.js';
+import type { EntityConstructor } from './entity.js';
+import {
+  entityStateKey,
+  keyToEntityAttribute,
+  keyToProps,
+  propsToKey,
+  validateKeyPart,
+} from './entity_key.js';
 
 describe('entity key', () => {
   const MissingKeyPropsEntity: EntityConstructor<any> = class MissingKeyPropsEntity {

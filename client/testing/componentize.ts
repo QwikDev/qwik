@@ -7,8 +7,8 @@
  */
 
 import { qImportSet } from '../import/qImport.js';
+import type { JSXFactory } from '../index.js';
 import { AttributeMarker } from '../util/markers.js';
-import { JSXFactory } from '../index.js';
 
 let counter = 0;
 

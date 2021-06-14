@@ -127,6 +127,61 @@ describe('render', () => {
     );
   });
 
+  it('should render components as symbols', async () => {
+    const Greeter = jsxDeclareComponent<{ url: string }>(
+      QRL`jsx:/render.unit#Greeter_render_with_url`,
+      'greeter'
+    );
+    await jsxRender(
+      host,
+      <div>
+        <Greeter url="/" />
+      </div>,
+      global.document
+    );
+    expect(host.innerHTML).to.equal(
+      '<div>' +
+        '<greeter decl:template="jsx:/render.unit#Greeter_render_with_url" url="/" :="">' +
+        '<span>Hello World! (/)</span>' +
+        '</greeter>' +
+        '</div>'
+    );
+  });
+
+  describe('fragment', () => {
+    it('should support standalone fragment', () => {
+      jsxRender(
+        host,
+        <>
+          <span>A</span>
+          <span>B</span>
+        </>,
+        global.document
+      );
+      expect(host.innerHTML).to.equal('<span>A</span><span>B</span>');
+    });
+
+    it('should support fragment in root of component', () => {
+      function Component() {
+        return (
+          <>
+            <span>A</span>
+            <span>B</span>
+          </>
+        );
+      }
+
+      jsxRender(
+        host,
+        <div>
+          <Component />
+        </div>,
+        global.document
+      );
+      expect(host.innerHTML).to.equal('<div><span>A</span><span>B</span></div>');
+    });
+  });
+
   describe('innerHTML/innerText', () => {
     it('should be able to render innerHTML', async () => {
       const html = `<span>TEST</span>`;
@@ -147,44 +202,6 @@ describe('render', () => {
       expect(host.innerHTML).to.equal(
         '<div>' +
           '<greeter url="/" decl:template="jsx:/render.unit#Greeter_render_with_url" :="">' +
-          '<span>Hello World! (/)</span>' +
-          '</greeter>' +
-          '</div>'
-      );
-    });
-  });
-
-  it('should render components as symbols', async () => {
-    const Greeter = jsxDeclareComponent<{ url: string }>(
-      QRL`jsx:/render.unit#Greeter_render_with_url`,
-      'greeter'
-    );
-    await jsxRender(
-      host,
-      <div>
-        <Greeter url="/" />
-      </div>,
-      global.document
-    );
-    expect(host.innerHTML).to.equal(
-      '<div>' +
-        '<greeter decl:template="jsx:/render.unit#Greeter_render_with_url" url="/" :="">' +
-        '<span>Hello World! (/)</span>' +
-        '</greeter>' +
-        '</div>'
-    );
-
-    it('should render component from URL', () => {
-      jsxRender(
-        host,
-        <div>
-          <TestComponent />
-        </div>,
-        global.document
-      );
-      expect(host.innerHTML).to.equal(
-        '<div>' +
-          '<greeter url="/" decl:template="./Greeter_render">' +
           '<span>Hello World! (/)</span>' +
           '</greeter>' +
           '</div>'

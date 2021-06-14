@@ -4,8 +4,6 @@
 
 ```ts
 
-import { QRL as QRL_2 } from 'client/import/qrl.js';
-
 // @public
 export class Component<PROPS, STATE> {
     $host: Element;

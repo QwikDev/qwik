@@ -8,7 +8,7 @@
 
 import { expect } from 'chai';
 import '../../CONFIG.js';
-import { QRL } from '../../import/index.js';
+import { QRL } from '../../import/qrl.js';
 import { ElementFixture } from '../../testing/element_fixture.js';
 import { createGlobal, QwikGlobal } from '../../testing/node_utils.js';
 import { jsxDeclareComponent, jsxFactory } from './factory.js';

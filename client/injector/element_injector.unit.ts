@@ -11,7 +11,7 @@ import { Component } from '../component/component.js';
 import '../CONFIG.js';
 import type { EntityKey } from '../entity/entity_key.js';
 import { stringifyDebug } from '../error/stringify.js';
-import { QRL } from '../import/index.js';
+import { QRL } from '../import/qrl.js';
 import { Entity, Injector } from '../index.js';
 import { serializeState } from '../render/serialize_state.js';
 import { Greeter, GreeterComponent, GreeterProps } from '../testing/component_fixture.js';

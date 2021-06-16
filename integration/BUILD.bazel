@@ -28,7 +28,7 @@ ts_project(
     declaration = True,
     tsconfig = "//:tsconfig",
     deps = [
-        "//client",
+        "//src/core",
     ],
 )
 
@@ -45,10 +45,10 @@ nodejs_binary(
     data = [
         ":integration_lib",
         ":static_files",
-        "//client:qwik",
-        "//client:qwikloader",
-        "//client:qwikloader.min",
         "//server",
+        "//src/core:qwik",
+        "//src/core:qwikloader",
+        "//src/core:qwikloader.min",
         "@npm//domino",
     ],
     entry_point = "//server:main.js",
@@ -56,7 +56,7 @@ nodejs_binary(
         "--node_options=--experimental-modules",
         "--nobazel_patch_module_resolver",
         "--root",
-        "qwik/client",
+        "qwik/src/core",
         "qwik/integration",
     ],
 )

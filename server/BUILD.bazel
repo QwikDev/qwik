@@ -21,7 +21,7 @@ ts_project(
     declaration = True,
     tsconfig = "//:tsconfig",
     deps = [
-        "//client",
+        "//src/core",
         "@npm//@types/express",
         "@npm//@types/source-map-support",
         "@npm//commander",

@@ -9,7 +9,7 @@ load("@npm//mocha:index.bzl", "mocha_test")
 package(default_visibility = ["//visibility:public"])
 
 js_library(
-    name = "client",
+    name = "core",
     package_name = "qwik",
     srcs = ["package.json"],
     deps = [
@@ -33,7 +33,7 @@ ts_project(
 )
 
 esbuild(
-    name = "client_cjs",
+    name = "core_cjs",
     entry_point = "index.ts",
     platform = "node",
     tool = select({
@@ -42,7 +42,7 @@ esbuild(
         "@bazel_tools//src/conditions:windows": "@esbuild_windows//:esbuild.exe",
     }),
     deps = [
-        ":client",
+        ":core",
     ],
 )
 
@@ -57,14 +57,14 @@ ts_project(
     srcs = ["CONFIG.ts"],
     declaration = True,
     tsconfig = "//:tsconfig",
-    deps = [":client"],
+    deps = [":core"],
 )
 
 rollup_bundle(
     name = "qwik",
     config_file = "//:rollup.config.js",
     entry_point = "index.js",
-    deps = [":client"],
+    deps = [":core"],
 )
 
 terser_minified(
@@ -100,7 +100,7 @@ ts_project(
     tsconfig = "//:tsconfig",
     deps = [
         ":CONFIG",
-        "//client/testing",
+        "//src/core/testing",
         "@npm//@types/chai",
         "@npm//@types/mocha",
     ],
@@ -111,7 +111,7 @@ mocha_test(
     args = ["**/*.unit.js"],
     data = [
         ":unit_lib",
-        "//client/testing",
+        "//src/core/testing",
         "@npm//chai",
         "@npm//domino",
     ],
@@ -129,7 +129,7 @@ api_extractor(
         "--verbose",
         "--local",
         "--config",
-        "client/api-extractor-$(TARGET_CPU).json",
+        "src/core/api-extractor-$(TARGET_CPU).json",
     ],
     data = [
         "api-extractor.json",
@@ -165,7 +165,7 @@ pkg_npm(
     substitutions = {"//internal/": "//"},
     deps = [
         ":LICENSE",
-        ":client_cjs",
+        ":core_cjs",
         ":qwik",
         ":qwik.d.ts",
         ":qwik.min",

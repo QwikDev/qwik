@@ -10,6 +10,6 @@
  * @fileoverview
  *
  * This file is to simulate the import from `./qwik.js` which the server serves
- * as `//client/qwik.ts`
+ * as `//src/core/qwik.ts`
  */
 export * from 'qwik';

@@ -45,7 +45,7 @@
     "baseUrl": "." /* Base directory to resolve non-absolute module names. */,
     "paths": {
       /* A series of entries which re-map imports to lookup locations relative to the 'baseUrl'. */
-      "qwik": ["client/index.ts"]
+      "qwik": ["src/core/index.ts"]
     },
     "rootDirs": [
       "."

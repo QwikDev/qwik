@@ -30,7 +30,7 @@ ts_project(
     declaration = True,
     tsconfig = "//:tsconfig",
     deps = [
-        "//client",
+        "//src/core",
         "@npm//@types/source-map-support",
         "@npm//domino",
         "@npm//source-map-support",

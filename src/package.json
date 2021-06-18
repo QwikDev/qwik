@@ -1,0 +1,46 @@
+{
+  "name": "@builder.io/qwik",
+  "version": "0.0.7",
+  "description": "An Open-Source framework designed for best possible [time to interactive](https://web.dev/interactive/), by focusing on [resumability](./docs/RESUMABLE.md) of server-side-rendering of HTML, and [fine-grained lazy-loading](./docs/LAZY_LOADING.md) of code.",
+  "main": "./core.cjs",
+  "module": "./core.js",
+  "types": "./core.d.ts",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./core.js",
+      "require": "./core.cjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "contributors": [
+    {
+      "name": "Miško Hevery",
+      "email": "misko@hevery.com",
+      "url": "https://github.com/BuilderIO/qwik"
+    },
+    {
+      "name": "Adam Bradley",
+      "email": "adam@builder.io",
+      "url": "https://twitter.com/adamdbradley"
+    }
+  ],
+  "homepage": "https://github.com/BuilderIO/qwik#readme",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/BuilderIO/qwik"
+  },
+  "bugs": {
+    "url": "https://github.com/BuilderIO/qwik/issues"
+  },
+  "keywords": [
+    "framework",
+    "ssr",
+    "ssg",
+    "Builder.io"
+  ],
+  "engines": {
+    "node": ">= 14"
+  }
+}

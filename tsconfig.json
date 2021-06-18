@@ -1,5 +1,5 @@
 {
   "extends": "./tsconfig.base.json",
   "exclude": ["bazel-bin/**", "bazel-out/**", "bazel-qwik/**", "bazel-testlogs/**", "dist/**"],
-  "include": ["src/core/**/*.ts*", "server/**/*.ts*", "integration/**/*.ts*"]
+  "include": ["src/core/**/*.ts*", "server/**/*.ts*", "integration/**/*.ts*", "src/qwikloader.ts"]
 }

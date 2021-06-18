@@ -45,9 +45,9 @@ nodejs_binary(
     data = [
         ":integration_lib",
         ":static_files",
+        "//src:qwikloader",
+        "//src:qwikloader.min",
         "//src/core:qwik",
-        "//src/core:qwikloader",
-        "//src/core:qwikloader.min",
         "//src/server",
         "@npm//domino",
     ],

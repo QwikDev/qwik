@@ -1,16 +1,12 @@
-load("@build_bazel_rules_nodejs//:index.bzl", "generated_file_test", "js_library", "pkg_npm")
-load("@npm//@bazel/esbuild:index.bzl", "esbuild")
-load("@npm//@bazel/rollup:index.bzl", "rollup_bundle")
-load("@npm//@bazel/terser:index.bzl", "terser_minified")
+load("@build_bazel_rules_nodejs//:index.bzl", "generated_file_test", "js_library")
 load("@npm//@bazel/typescript:index.bzl", "ts_project")
-load("@npm//@microsoft/api-extractor:index.bzl", "api_extractor")
 load("@npm//mocha:index.bzl", "mocha_test")
 
 package(default_visibility = ["//visibility:public"])
 
 js_library(
     name = "core",
-    package_name = "qwik",
+    package_name = "core",
     srcs = ["package.json"],
     deps = [
         ":project",
@@ -22,7 +18,6 @@ ts_project(
     srcs = glob(
         ["**/*.ts"],
         exclude = [
-            "qwikloader.ts",
             "**/*.unit.ts",
             "CONFIG.ts",
         ],
@@ -30,20 +25,6 @@ ts_project(
     declaration = True,
     tsconfig = "//:tsconfig",
     # TODO: https://bazelbuild.github.io/rules_nodejs/TypeScript.html#ts_project-supports_workers
-)
-
-esbuild(
-    name = "core_cjs",
-    entry_point = "index.ts",
-    platform = "node",
-    tool = select({
-        "@bazel_tools//src/conditions:darwin": "@esbuild_darwin//:bin/esbuild",
-        "@bazel_tools//src/conditions:linux_x86_64": "@esbuild_linux//:bin/esbuild",
-        "@bazel_tools//src/conditions:windows": "@esbuild_windows//:esbuild.exe",
-    }),
-    deps = [
-        ":core",
-    ],
 )
 
 filegroup(
@@ -58,36 +39,6 @@ ts_project(
     declaration = True,
     tsconfig = "//:tsconfig",
     deps = [":core"],
-)
-
-rollup_bundle(
-    name = "qwik",
-    config_file = "//:rollup.config.js",
-    entry_point = "index.js",
-    deps = [":core"],
-)
-
-terser_minified(
-    name = "qwik.min",
-    src = "qwik.js",
-    config_file = "//:terser.config.json",
-    sourcemap = False,
-    terser_bin = "@npm//terser/bin:terser",
-)
-
-ts_project(
-    name = "qwikloader",
-    srcs = ["qwikloader.ts"],
-    declaration = True,
-    tsconfig = "//:tsconfig",
-)
-
-terser_minified(
-    name = "qwikloader.min",
-    src = "qwikloader.js",
-    config_file = "//:terser.config.json",
-    sourcemap = False,
-    terser_bin = "@npm//terser/bin:terser",
 )
 
 ts_project(
@@ -118,58 +69,9 @@ mocha_test(
     tags = ["unit"],
 )
 
-api_extractor(
-    name = "public_api_extractor",
-    outs = [
-        "qwik.d.ts",
-        ":qwik.api.md",
-    ],
-    args = [
-        "run",
-        "--verbose",
-        "--local",
-        "--config",
-        "src/core/api-extractor-$(TARGET_CPU).json",
-    ],
-    data = [
-        "api-extractor.json",
-        "api-extractor-darwin.json",
-        "api-extractor-k8.json",
-        ":project",
-        "//:package.json",
-        "//:tsconfig.base.json",
-        "//:tsconfig.bazel.json",
-    ],
-)
-
 generated_file_test(
     name = "publicAPI.md",
-    src = ":qwik.api.gold.md",
-    generated = ":qwik.api.md",
+    src = ":core.api.gold.md",
+    generated = ":core.api.md",
     tags = ["unit"],
-)
-
-genrule(
-    name = "LICENSE.copy",
-    srcs = ["//:LICENSE"],
-    outs = ["LICENSE"],
-    cmd = "cp $< $@",
-    output_to_bindir = 1,
-)
-
-pkg_npm(
-    name = "qwik_pkg",
-    srcs = [
-        ":package.json",
-    ],
-    substitutions = {"//internal/": "//"},
-    deps = [
-        ":LICENSE",
-        ":core_cjs",
-        ":qwik",
-        ":qwik.d.ts",
-        ":qwik.min",
-        ":qwikloader",
-        ":qwikloader.min",
-    ],
 )

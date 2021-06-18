@@ -120,7 +120,7 @@
      * SUPPORTED TOKENS: <packageName>, <unscopedPackageName>
      * DEFAULT VALUE: "<unscopedPackageName>.api.md"
      */
-    "reportFileName": "<unscopedPackageName>.api.md",
+    "reportFileName": "core.api.md",
 
     /**
      * Specifies the folder where the API report file is written.  The file name portion is determined by
@@ -135,7 +135,7 @@
      * SUPPORTED TOKENS: <projectFolder>, <packageName>, <unscopedPackageName>
      * DEFAULT VALUE: "<projectFolder>/etc/"
      */
-    "reportFolder": "<projectFolder>/src/core",
+    "reportFolder": "<projectFolder>/src",
 
     /**
      * Specifies the folder where the temporary report file is written.  The file name portion is determined by
@@ -171,7 +171,7 @@
      * SUPPORTED TOKENS: <projectFolder>, <packageName>, <unscopedPackageName>
      * DEFAULT VALUE: "<projectFolder>/temp/<unscopedPackageName>.api.json"
      */
-    "apiJsonFilePath": "<projectFolder>/src/core/<unscopedPackageName>.api.json"
+    "apiJsonFilePath": "<projectFolder>/src/<unscopedPackageName>.api.json"
   },
 
   /**
@@ -195,7 +195,7 @@
      * SUPPORTED TOKENS: <projectFolder>, <packageName>, <unscopedPackageName>
      * DEFAULT VALUE: "<projectFolder>/dist/<unscopedPackageName>.d.ts"
      */
-    "untrimmedFilePath": "<projectFolder>/src/core/<unscopedPackageName>.d.ts"
+    "untrimmedFilePath": "<projectFolder>/src/core.d.ts"
 
     /**
      * Specifies the output path for a .d.ts rollup file to be generated with trimming for a "beta" release.
@@ -299,7 +299,7 @@
          *
          * DEFAULT VALUE: "warning"
          */
-        "logLevel": "warning"
+        "logLevel": "error"
 
         /**
          * When addToApiReportFile is true:  If API Extractor is configured to write an API report file (.api.md),
@@ -328,7 +328,7 @@
      */
     "extractorMessageReporting": {
       "default": {
-        "logLevel": "warning"
+        "logLevel": "error"
         // "addToApiReportFile": false
       }
 
@@ -349,7 +349,7 @@
      */
     "tsdocMessageReporting": {
       "default": {
-        "logLevel": "warning"
+        "logLevel": "error"
         // "addToApiReportFile": false
       }
 

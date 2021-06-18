@@ -22,7 +22,7 @@
     "@bazel/buildifier": "^4.0.1",
     "@bazel/cypress": "^3.2.0",
     "cypress": "^6.4.0",
-    "@bazel/esbuild": "^3.5.0",
+    "@bazel/esbuild": "^3.6.0",
     "@bazel/ibazel": "^0.15.10",
     "@bazel/rollup": "^3.2.2",
     "@bazel/terser": "^3.2.2",

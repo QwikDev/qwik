@@ -2,5 +2,5 @@
   "$schema": "https://developer.microsoft.com/json-schemas/api-extractor/v7/api-extractor.schema.json",
 
   "extends": "./api-extractor.json",
-  "projectFolder": "../../bazel-out/k8-fastbuild/bin"
+  "projectFolder": "../bazel-out/darwin-fastbuild/bin"
 }

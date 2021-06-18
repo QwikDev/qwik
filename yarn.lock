@@ -47,10 +47,10 @@
   dependencies:
     tar "6.0.5"
 
-"@bazel/esbuild@^3.5.0":
-  version "3.5.1"
-  resolved "https://registry.yarnpkg.com/@bazel/esbuild/-/esbuild-3.5.1.tgz#96c218d53f6b27c3d051ad000b190da14e71f2e7"
-  integrity sha512-JVHwGGJXVCU77+N4ig4MWaTogoG6mY9c9WOcJcS4E89ipVLMFBF9G7doW42ubxaPjREGHap5JCLsHsFWQMD5GQ==
+"@bazel/esbuild@^3.6.0":
+  version "3.6.0"
+  resolved "https://registry.yarnpkg.com/@bazel/esbuild/-/esbuild-3.6.0.tgz#13c9de2cb620ff3ba1962e047fbfb450c64c4f52"
+  integrity sha512-JPhH7KNuRgo7UsvF72zNiS6Qy4id9H53YHJ6kH73WTOMB+VmtkfooprxlARBICnWEw55VQzQaDT8F66/qQxAOw==
 
 "@bazel/ibazel@^0.15.10":
   version "0.15.10"

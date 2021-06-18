@@ -47,7 +47,7 @@ nodejs_binary(
         ":static_files",
         "//src:qwikloader",
         "//src:qwikloader.min",
-        "//src/core:qwik",
+        "//src/core",
         "//src/server",
         "@npm//domino",
     ],

@@ -106,7 +106,6 @@ expect(userEntity.$state).toEqual({
 });
 ```
 
-<<<<<<< HEAD
 `Component`s are similar to `Entity`s except they are associated with a specific UI host-element, and a `Component`'s `Props` can change over time.
 
 ## DOM Centric
@@ -119,7 +118,7 @@ Here are some common ways Qwik framework keeps state in DOM/HTML.
 - `<div ::user="qrl_to_service">`: The `::user` attribute declares a `UserEntity` provider on this element's injector which points to the location where the `Entity` can be lazy loaded from.
 - `<div :user:some_user_id='{"fullName": "Joe Someone", "age": 20}'>`: The dehydrated, serialized form of a `UserEntity` with `Props: {id: 'some_user_id'}` and `State: {fullName: "Joe Someone", age: 20}`.
 - `<some-component bind:user:some_user_id="$user">`: A entity binding to a `Component`. This tells Qwik that if the `State` of `UserEntity ` with `EntityKey`: `user:some_user_id` changes, the component `<some-component>` will need to be re-rendered.
-- # `<some-component on:click="qrl_to_handler">`: The `on:click` attribute notifies Qwik framework that the component is interested in `click` events. The attribute points to the location where the click handler can be lazy-loaded from.
+- `<some-component on:click="qrl_to_handler">`: The `on:click` attribute notifies Qwik framework that the component is interested in `click` events. The attribute points to the location where the click handler can be lazy-loaded from.
   `Component`s are similar to `Entity`s except they are associated with a specific UI host-element, and `Component`'s `Props` can change over time.
 
 ## DOM Centric

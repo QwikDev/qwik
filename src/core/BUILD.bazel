@@ -1,4 +1,4 @@
-load("@build_bazel_rules_nodejs//:index.bzl", "generated_file_test", "js_library")
+load("@build_bazel_rules_nodejs//:index.bzl", "js_library")
 load("@npm//@bazel/typescript:index.bzl", "ts_project")
 load("@npm//mocha:index.bzl", "mocha_test")
 
@@ -66,12 +66,5 @@ mocha_test(
         "@npm//chai",
         "@npm//domino",
     ],
-    tags = ["unit"],
-)
-
-generated_file_test(
-    name = "publicAPI.md",
-    src = ":core.api.gold.md",
-    generated = ":core.api.md",
     tags = ["unit"],
 )

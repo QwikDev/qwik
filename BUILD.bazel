@@ -5,8 +5,7 @@ package(default_visibility = ["//visibility:public"])
 
 ts_config(
     name = "tsconfig",
-    src = "tsconfig.bazel.json",
-    deps = [":tsconfig.base.json"],
+    src = "tsconfig.json",
 )
 
 copy_to_bin(
@@ -19,9 +18,9 @@ copy_to_bin(
 exports_files([
     "LICENSE",
     "README.md",
-    "api-extractor.json",
+    "core-api-extractor.json",
     "cypress.json",
     "package.json",
     "terser.config.json",
-    "tsconfig.base.json",
+    "tsconfig.json",
 ])

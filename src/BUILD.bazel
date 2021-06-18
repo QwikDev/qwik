@@ -1,4 +1,4 @@
-load("@build_bazel_rules_nodejs//:index.bzl", "pkg_npm")
+load("@build_bazel_rules_nodejs//:index.bzl", "generated_file_test", "pkg_npm")
 load("@npm//@bazel/esbuild:index.bzl", "esbuild")
 load("@npm//@bazel/terser:index.bzl", "terser_minified")
 load("@npm//@bazel/typescript:index.bzl", "ts_project")
@@ -66,17 +66,23 @@ api_extractor(
         "--verbose",
         "--local",
         "--config",
-        "src/api-extractor-$(TARGET_CPU).json",
+        "src/core-api-extractor-$(TARGET_CPU).json",
     ],
     data = [
         "//:package.json",
-        "//:tsconfig.base.json",
-        "//:tsconfig.bazel.json",
-        "//src:api-extractor.json",
-        "//src:api-extractor-darwin.json",
-        "//src:api-extractor-k8.json",
+        "//:tsconfig.json",
+        "//src:core-api-extractor.json",
+        "//src:core-api-extractor-darwin.json",
+        "//src:core-api-extractor-k8.json",
         "//src/core:project",
     ],
+)
+
+generated_file_test(
+    name = "publicAPI.md",
+    src = ":core.api.gold.md",
+    generated = ":core.api.md",
+    tags = ["unit"],
 )
 
 ts_project(

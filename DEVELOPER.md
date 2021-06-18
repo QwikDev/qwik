@@ -67,7 +67,16 @@ Running cypress manually
 ## Publishing
 
 ```
+git fetch upstream
+git checkout main
+git reset --hard upstream/main
+# edit src/package.json wtih new version number
+VERSION=`node -e 'console.log(require("./src/package.json").version)'`
+echo "About to publish v$VERSION"
 bazel run src:pkg.publish -- --tag=next --access=public
+git commit -a -m "release: v$VERSION"
+git tag v$VERSION
+git push upstream main:main v$VERSION
 ```
 
 ## Pre-submit hooks

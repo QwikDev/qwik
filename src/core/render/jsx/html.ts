@@ -637,6 +637,7 @@ declare global {
     }
 
     interface JSXHTMLMetaElement extends JSXHTMLElement {
+      charset?: string;
       content?: string;
       httpEquiv?: string;
       name?: string;

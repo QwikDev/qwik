@@ -203,6 +203,9 @@ export type JSX_IntrinsicElements = JSX.IntrinsicElements;
       if (key === 'HTMLScriptElement') {
         interface.attrs.push('events?: string');
       }
+      if (key === 'HTMLMetaElement') {
+        interface.attrs.push('charset?: string');
+      }
       if (key === 'Element') {
         pre.textContent += `    interface JSX${key} extends JSXBase {\n      `;
       } else {

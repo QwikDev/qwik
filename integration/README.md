@@ -10,7 +10,7 @@ This folder contains both e2e integration tests as well as examples of usage of 
 
 ## Running
 
-1. First, start the server
+1. First, start the [Bazel](https://bazel.build/) server
 
    ```
    bazel run integration:server

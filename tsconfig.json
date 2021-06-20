@@ -45,7 +45,7 @@
     "baseUrl": "." /* Base directory to resolve non-absolute module names. */,
     "paths": {
       /* A series of entries which re-map imports to lookup locations relative to the 'baseUrl'. */
-      "qwik": [
+      "@builder.io/qwik": [
         "src/core/index",
         "bazel-out/host/bin/src/core/index",
         "bazel-out/darwin-fastbuild/bin/src/core/index",
@@ -54,6 +54,16 @@
         "bazel-out/darwin-dbg/bin/src/core/index",
         "bazel-out/k8-dbg/bin/src/core/index",
         "bazel-out/x64_windows-dbg/bin/src/core/index"
+      ],
+      "@builder.io/qwik/*": [
+        "src/core/*",
+        "bazel-out/host/bin/src/core/*",
+        "bazel-out/darwin-fastbuild/bin/src/core/*",
+        "bazel-out/k8-fastbuild/bin/src/core/*",
+        "bazel-out/x64_windows-fastbuild/bin/src/core/*",
+        "bazel-out/darwin-dbg/bin/src/core/*",
+        "bazel-out/k8-dbg/bin/src/core/*",
+        "bazel-out/x64_windows-dbg/bin/src/core/*"
       ]
     },
     "rootDirs": [

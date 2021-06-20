@@ -13,11 +13,13 @@ import * as fs from 'fs';
 import { dirname, join } from 'path';
 import srcMap from 'source-map-support';
 import { fileURLToPath } from 'url';
-import { serializeState } from 'qwik';
+import { serializeState } from '@builder.io/qwik';
 
 import { findFiles } from './fs_util.js';
 
 srcMap.install();
+
+console.log(process.argv);
 
 async function main(__dirname: string, process: NodeJS.Process) {
   console.log('===================================================');
@@ -93,7 +95,7 @@ async function main(__dirname: string, process: NodeJS.Process) {
 function readBundleContent(paths: string[]): string | null {
   for (let i = 0; i < paths.length; i++) {
     const path = paths[i];
-    const qwikPath = join(path, 'qwik.js');
+    const qwikPath = join(path, 'core.js');
     const content = fs.readFileSync(qwikPath);
     if (content.length) {
       console.log('Found Qwik bundle:', qwikPath);

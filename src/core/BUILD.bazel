@@ -6,7 +6,7 @@ package(default_visibility = ["//visibility:public"])
 
 js_library(
     name = "core",
-    package_name = "core",
+    package_name = "@builder.io/qwik",
     srcs = ["package.json"],
     deps = [
         ":project",

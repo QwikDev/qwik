@@ -1,0 +1,6 @@
+node_modules
+dist
+bazel-bin
+basel-out
+bazel-qwik
+bazel-testlogs

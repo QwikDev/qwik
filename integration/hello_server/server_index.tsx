@@ -6,7 +6,6 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import './CONFIG.js';
 import { jsxFactory, jsxRender } from './qwik.js';
 import { Greeter } from './Greeter.js';
 

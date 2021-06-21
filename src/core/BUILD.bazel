@@ -19,20 +19,11 @@ ts_project(
         ["**/*.ts"],
         exclude = [
             "**/*.unit.ts",
-            "CONFIG.ts",
         ],
     ),
     declaration = True,
     tsconfig = "//:tsconfig",
     # TODO: https://bazelbuild.github.io/rules_nodejs/TypeScript.html#ts_project-supports_workers
-)
-
-ts_project(
-    name = "CONFIG",
-    srcs = ["CONFIG.ts"],
-    declaration = True,
-    tsconfig = "//:tsconfig",
-    deps = [":core"],
 )
 
 ts_project(
@@ -44,9 +35,9 @@ ts_project(
     declaration = True,
     tsconfig = "//:tsconfig",
     deps = [
-        ":CONFIG",
         ":core",
         "//src/core/testing",
+        "//src/core/testing:unit_lib",
         "@npm//@types/chai",
         "@npm//@types/mocha",
     ],

@@ -21,5 +21,4 @@ const __global = typeof global !== 'undefined' && global;
 const _global = _globalThis || __global || _window || _self;
 export default _global as {
   qDev: boolean;
-  Q: any;
 };

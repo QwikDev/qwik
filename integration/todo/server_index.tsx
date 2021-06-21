@@ -6,7 +6,6 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import './CONFIG.js';
 import { jsxFactory, jsxRender } from './qwik.js';
 import { ToDoApp } from './ui/TodoApp.js';
 
@@ -22,8 +21,10 @@ export async function serverMain(document: Document) {
     <html>
       <head>
         <title>ToDo Application</title>
-        <script src="/qwikloader.min.js" type="module" events="click;dblclick;keyup;blur"></script>
-        <script>{"var Q={protocol:{ui:'./ui',data:'./data',base:'./'}}"}</script>
+        <script src="/qwikloader.js" type="module" events="click;dblclick;keyup;blur"></script>
+        <link rel="q.protocol.ui" href="./ui" />
+        <link rel="q.protocol.data" href="./data" />
+        <link rel="q.protocol.base" href="./" />
         <link rel="stylesheet" href="./base.css" />
         <link rel="stylesheet" href="./index.css" />
       </head>

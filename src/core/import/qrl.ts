@@ -7,11 +7,6 @@
  */
 
 import { assertEqual } from '../assert/index.js';
-import { qImport, toUrl } from './qImport.js';
-import '../util/qDev.js';
-import { getConfig } from '../config/qGlobal.js';
-import { getFilePathFromFrame } from '../util/base_uri.js';
-import { isPromise } from '../util/promises.js';
 
 /**
  * `QRL` (Qwik Resource Locator) represents an import which points to a lazy loaded resource.
@@ -76,46 +71,6 @@ export function QRL<T = any>(
       true,
       "Expecting URL to start with '.', '/', '<protocol>:'. Was: " + url
     );
-  if (qDev) {
-    verifyQrl(new Error('Invalid import: ' + url), url);
-  }
+
   return url as unknown as QRL<T>;
-}
-
-export async function verifyQrl(error: Error, url: string): Promise<any> {
-  const stack = error.stack;
-  if (!stack) return Promise.resolve(null);
-  const frames = stack.split('\n');
-  // 0: Error
-  // 1:   at QRL (this function)
-  // 2:   at caller (this is what we are looking for)
-  let frame: string = '';
-  for (let i = 2; i < frames.length; i++) {
-    frame = frames[i];
-    if (frame.indexOf('/node_modules/vm2/') === -1) {
-      // It is possible that VM2 library was use to load us, in which case we should skip it.
-      break;
-    }
-  }
-  const base = getFilePathFromFrame(frame);
-  const config = getConfig(base);
-  try {
-    const module = qImport(config, url);
-    if (isPromise(module)) {
-      return module.catch((e) => {
-        return Promise.reject(makeError(e));
-      });
-    }
-    return module;
-  } catch (e) {
-    throw new Error(makeError(e));
-  }
-
-  function makeError(e: unknown) {
-    return `QRL-ERROR: '${url}' is not a valid import.
-Resolved URL: ${toUrl(base, url)}
-    Base URL: ${config.baseURI}
-      CONFIG: ${JSON.stringify(config)}
-       STACK: ${stack}\n  => ${e}`;
-  }
 }

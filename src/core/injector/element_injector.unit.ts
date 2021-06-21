@@ -8,7 +8,7 @@
 
 import { expect } from 'chai';
 import { Component } from '../component/component.js';
-import '../CONFIG.js';
+import { TEST_CONFIG } from '../testing/config.unit.js';
 import type { EntityKey } from '../entity/entity_key.js';
 import { stringifyDebug } from '../error/stringify.js';
 import { QRL } from '../import/qrl.js';
@@ -23,7 +23,7 @@ describe('ElementInjector', () => {
   let fixture: ElementFixture;
   let hostInjector: Injector;
   beforeEach(() => {
-    fixture = new ElementFixture();
+    fixture = new ElementFixture(TEST_CONFIG);
     hostInjector = getInjector(fixture.host);
   });
 

@@ -16,7 +16,7 @@ describe('dom', () => {
   let span: HTMLElement;
   let text: Text;
   beforeEach(() => {
-    global = createGlobal(import.meta.url);
+    global = createGlobal();
     div = global.document.createElement('div');
     span = global.document.createElement('span');
     text = global.document.createTextNode('text-node');

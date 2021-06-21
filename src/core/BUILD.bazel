@@ -4,9 +4,9 @@ load("@npm//mocha:index.bzl", "mocha_test")
 
 package(default_visibility = ["//visibility:public"])
 
+# Purpose of this target is to add `package.json` which tells node that we have ESM code.
 js_library(
     name = "core",
-    package_name = "@builder.io/qwik",
     srcs = ["package.json"],
     deps = [
         ":project",
@@ -27,12 +27,6 @@ ts_project(
     # TODO: https://bazelbuild.github.io/rules_nodejs/TypeScript.html#ts_project-supports_workers
 )
 
-filegroup(
-    name = "project.d.ts",
-    srcs = [":project"],
-    output_group = "types",
-)
-
 ts_project(
     name = "CONFIG",
     srcs = ["CONFIG.ts"],
@@ -51,6 +45,7 @@ ts_project(
     tsconfig = "//:tsconfig",
     deps = [
         ":CONFIG",
+        ":core",
         "//src/core/testing",
         "@npm//@types/chai",
         "@npm//@types/mocha",

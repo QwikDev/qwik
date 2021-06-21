@@ -1,4 +1,4 @@
-load("@build_bazel_rules_nodejs//:index.bzl", "generated_file_test", "pkg_npm")
+load("@build_bazel_rules_nodejs//:index.bzl", "generated_file_test", "js_library", "pkg_npm")
 load("@npm//@bazel/esbuild:index.bzl", "esbuild")
 load("@npm//@bazel/terser:index.bzl", "terser_minified")
 load("@npm//@bazel/typescript:index.bzl", "ts_project")
@@ -55,6 +55,15 @@ esbuild(
     ],
 )
 
+js_library(
+    name = "builder.io_qwik",
+    package_name = "@builder.io/qwik",  # Needed to allow import from `@builder.io/qwik`
+    srcs = ["package.json"],
+    deps = [
+        ":core_js",
+    ],
+)
+
 api_extractor(
     name = "public_api_extractor",
     outs = [
@@ -74,7 +83,7 @@ api_extractor(
         "//src:core-api-extractor.json",
         "//src:core-api-extractor-darwin.json",
         "//src:core-api-extractor-k8.json",
-        "//src/core:project",
+        "//src/core",
     ],
 )
 

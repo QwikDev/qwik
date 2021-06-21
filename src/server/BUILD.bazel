@@ -3,9 +3,9 @@ load("@npm//@bazel/typescript:index.bzl", "ts_project")
 
 package(default_visibility = ["//visibility:public"])
 
+# Purpose of this target is to add `package.json` which tells node that we have ESM code.
 js_library(
     name = "server",
-    package_name = "qwik_server",
     srcs = ["package.json"],
     deps = [
         ":server_lib",

@@ -3,9 +3,9 @@ load("@npm//@bazel/typescript:index.bzl", "ts_project")
 
 package(default_visibility = ["//visibility:public"])
 
+# Purpose of this target is to add `package.json` which tells node that we have ESM code.
 js_library(
     name = "integration_lib",
-    package_name = "qwik_integration",
     srcs = ["package.json"],
     deps = [
         ":integration",
@@ -45,11 +45,9 @@ nodejs_binary(
     data = [
         ":integration_lib",
         ":static_files",
+        "//src:builder.io_qwik",
         "//src:qwikloader",
         "//src:qwikloader.min",
-        # The next two lines are duplicates and should be unifed somehow.
-        "//src/core",  # This is needed so that `import '@builder.io/qwik'` works
-        "//src:core.js",  # This is needed so that server can serve '@builder.io/qwik` as single file.
         "//src/server",
         "@npm//domino",
     ],

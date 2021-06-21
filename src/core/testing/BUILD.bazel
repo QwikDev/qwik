@@ -6,9 +6,9 @@ package(default_visibility = ["//visibility:public"])
 
 # TODO: This package should have public API and test for public API stabality
 
+# Purpose of this target is to add `package.json` which tells node that we have ESM code.
 js_library(
     name = "testing",
-    package_name = "qwik_testing",
     srcs = ["package.json"],
     deps = [
         ":project",
@@ -53,9 +53,9 @@ ts_project(
     ],
 )
 
+# Purpose of this target is to add `package.json` which tells node that we have ESM code.
 js_library(
     name = "unit_lib",
-    package_name = "qwik_testing",
     srcs = ["package.json"],
     deps = [
         ":unit_project",

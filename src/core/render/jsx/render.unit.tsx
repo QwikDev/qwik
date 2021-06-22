@@ -266,10 +266,6 @@ declare global {
   }
 }
 
-function TestComponent(props: {}) {
-  return <div>TestComponent: props={JSON.stringify(props)}</div>;
-}
-
 export function Greeter_render_with_url(props: { url?: string }) {
   return <span>Hello World! ({props.url})</span>;
 }

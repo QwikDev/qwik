@@ -77,8 +77,7 @@ export class Entity<PROPS, STATE> {
     $release(): void;
     // (undocumented)
     readonly $state: STATE;
-    static get $type(): string;
-    static set $type(name: string);
+    static $type: string;
     constructor(element: Element, props: PROPS, state: STATE | null);
 }
 
@@ -289,14 +288,7 @@ export type Providers<ARGS extends any[]> = {
 export function provideUrlProp(parameterName: string): Provider<string | null>;
 
 // @public
-export interface QConfig {
-    baseURI: string;
-    // (undocumented)
-    protocol: QRLProtocolMap;
-}
-
-// @public
-export function qImport<T>(base: Element | Document | string | QConfig, url: string | QRL<T> | URL): T | Promise<T>;
+export function qImport<T>(node: Node | Document, url: string | QRL<T> | URL): T | Promise<T>;
 
 // @public
 export function QRL<T = any>(messageParts: TemplateStringsArray, ...expressions: readonly any[]): QRL<T>;
@@ -310,16 +302,7 @@ export interface QRL<T = any> {
 }
 
 // @public
-export interface QRLProtocolMap {
-    // (undocumented)
-    [protocol: string]: string;
-}
-
-// @public
 export function serializeState(element: Element | Document): void;
-
-// @public
-export function setConfig(config: QConfig): void;
 
 // @public
 export function toEntityKey<SERVICE extends Entity<any, any>>(key: string): EntityKey<SERVICE>;

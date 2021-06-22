@@ -130,11 +130,10 @@ export function toAttrQuery(key: string): any {
  * @internal
  */
 export function scheduleRender(doc: QDocument): Promise<HostElements> {
-  const requestAnimationFrame = doc.defaultView!.requestAnimationFrame!;
   const promise = doc[ScheduledRender];
-
   if (promise) return promise;
 
+  const requestAnimationFrame = doc.defaultView!.requestAnimationFrame!;
   if (!requestAnimationFrame) {
     throw qError(QError.Render_noRAF);
   }

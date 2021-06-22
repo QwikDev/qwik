@@ -9,7 +9,6 @@
 import type { QRL } from './qrl.js';
 import { QError, qError } from '../error/error.js';
 
-let importCache: Map<string, unknown | Promise<unknown>>;
 declare const __mockImport: (path: string) => Promise<any>;
 
 /**
@@ -22,14 +21,15 @@ declare const __mockImport: (path: string) => Promise<any>;
  * @returns A cached value synchronously or promise of imported value.
  * @public
  */
-export function qImport<T>(base: Element | Document, url: string | QRL<T> | URL): T | Promise<T> {
-  if (!importCache) importCache = new Map<string, unknown | Promise<unknown>>();
+export function qImport<T>(node: Node | Document, url: string | QRL<T> | URL): T | Promise<T> {
+  const doc: QDocument = node.ownerDocument || (node as Document);
+  if (!doc[ImportCacheKey]) doc[ImportCacheKey] = new Map<string, unknown | Promise<unknown>>();
 
-  const normalizedUrl = toUrl(base, url);
+  const normalizedUrl = toUrl(doc, url);
   const importPath = toImportPath(normalizedUrl);
   const exportName = qExport(normalizedUrl);
   const cacheKey = `${importPath}#${exportName}`;
-  const cacheValue = importCache.get(cacheKey);
+  const cacheValue = doc[ImportCacheKey]!.get(cacheKey);
   if (cacheValue) return cacheValue as T | Promise<T>;
 
   // TODO(misko): Concern: When in `cjs` mode we should be using require?
@@ -46,15 +46,15 @@ export function qImport<T>(base: Element | Document, url: string | QRL<T> | URL)
         importPath,
         Object.keys(module)
       );
-    qImportSet(cacheKey, handler);
+    qImportSet(doc, cacheKey, handler);
     return handler;
   });
-  qImportSet(cacheKey, promise);
+  qImportSet(doc, cacheKey, promise);
   return promise;
 }
 
-export function qImportSet(url: string, value: any): void {
-  importCache.set(url, value);
+export function qImportSet(doc: QDocument, cacheKey: string, value: any): void {
+  doc[ImportCacheKey]!.set(cacheKey, value);
 }
 
 /**
@@ -68,9 +68,8 @@ export function qImportSet(url: string, value: any): void {
  * @param url - relative URL
  * @returns fully qualified URL.
  */
-export function toUrl(node: Node, url: string | QRL | URL): URL {
+export function toUrl(doc: Document, url: string | QRL | URL): URL {
   if (typeof url === 'string') {
-    const doc = node.ownerDocument || (node as Document);
     const baseURI = getConfig(doc, `baseURI`) || doc.baseURI;
     return new URL(adjustProtocol(doc, url), baseURI);
   } else {
@@ -117,16 +116,9 @@ function adjustProtocol(doc: Document, qrl: string | QRL): string {
   });
 }
 
-const configCache = new Map<string, string | undefined | null>();
-
 function getConfig(doc: Document, configKey: string) {
-  let value: string | null | undefined = configCache.get(configKey);
-  if (!value) {
-    const linkElm = doc.querySelector(`link[rel="q.${configKey}"]`) as HTMLLinkElement;
-    value = linkElm && linkElm.getAttribute('href');
-    configCache.set(configKey, value);
-  }
-  return value;
+  const linkElm = doc.querySelector(`link[rel="q.${configKey}"]`) as HTMLLinkElement;
+  return linkElm && linkElm.getAttribute('href');
 }
 
 /**
@@ -155,4 +147,10 @@ export function qParams(url: URL): URLSearchParams {
   // The hash string is replaced by the captured group that contains only the serialized params.
   //                                           11111122233333
   return new URLSearchParams(url.hash.replace(/^[^?]*\??(.*)$/, '$1'));
+}
+
+const ImportCacheKey = /*@__PURE__*/ Symbol();
+
+interface QDocument extends Document {
+  [ImportCacheKey]?: Map<string, unknown | Promise<unknown>>;
 }

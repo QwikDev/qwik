@@ -54,7 +54,7 @@ export function emitEvent(element: HTMLElement, event: Event, url: URL): Promise
     (element, attrName, attrValue) => {
       const qrl = attrValue as unknown as QRL<EventHandler<any, any, any>>;
       return Promise.resolve(qImport(element, qrl)).then((fn: Function) => {
-        const dstUrl = toUrl(element, qrl);
+        const dstUrl = toUrl(element.ownerDocument, qrl);
         const event = new CustomEvent($type);
         params.forEach((value, key) => {
           (event as any)[key] = value;

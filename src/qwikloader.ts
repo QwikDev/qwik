@@ -17,22 +17,16 @@
  * NOTE: This file relies on side-effect.
  */
 
-interface QConfig {
-  protocol: {
-    [protocol: string]: string;
-  };
-}
-
 /**
  * Set up event listening for browser.
  *
  * Determine all of the browser events and set up global listeners for them.
  * If browser triggers event search for the lazy load URL and `import()` it.
  *
- * @param document - Document to use for setting up global listeners, and to
+ * @param doc - Document to use for setting up global listeners, and to
  *     determine all of the browser supported events.
  */
-((document: Document) => {
+((doc: Document) => {
   // When cleared it means that `on:q-init` has been run
   let readystatechange = 'readystatechange';
   /**
@@ -42,18 +36,21 @@ interface QConfig {
    * looking for corresponding `(${event.type})`. If found the event's URL
    * is parsed and `import()`ed.
    *
-   * @param event - Browser event.
+   * @param ev - Browser event.
    */
-  const processEvent = async (event: Event) => {
-    const eventName = 'on:' + event.type;
-    let element = event.target as Element | null;
+  const processEvent = async (ev: Event) => {
+    let element = ev.target as Element | null;
     while (element && element.getAttribute) {
-      let eventUrl = element.getAttribute(eventName);
+      const eventUrl = element.getAttribute('on:' + ev.type);
       if (eventUrl) {
-        eventUrl = eventUrl.replace(/^(\w+):/, (_, protocol) => {
-          return (window as any as { Q: QConfig }).Q.protocol[protocol];
-        });
-        const url = new URL(eventUrl, document.baseURI);
+        const url = new URL(
+          eventUrl.replace(/^(\w+):/, (str, protocol) => {
+            const linkElm = doc.querySelector(
+              `link[rel="q.protocol.${protocol}"]`
+            ) as HTMLLinkElement;
+            return (linkElm && linkElm.href) || str;
+          })
+        );
         const importPath = url.pathname + '.js';
         const module = await import(importPath);
         // 1 - optional `#` at the start.
@@ -65,27 +62,25 @@ interface QConfig {
         const exportName = url.hash.replace(/^#?([^?]*).*$/, '$1') || 'default';
         const handler = module[exportName];
         if (!handler)
-          throw new Error(
-            `QWIKLOADER-ERROR: import '${importPath}' does not export '${exportName}'.`
-          );
-        handler(element, event, url);
+          throw new Error('QWIKLOADER-ERROR: ' + importPath + ' does not export ' + exportName);
+        handler(element, ev, url);
       }
       element = element.parentElement;
     }
   };
-  const addEventListener = (eventName: string) => {
-    document.addEventListener(eventName, processEvent, { capture: true });
-  };
+
+  const addEventListener = (eventName: string) =>
+    doc.addEventListener(eventName, processEvent, { capture: true });
 
   // Set up listeners. Start with `document` and walk up the prototype
   // inheritance on look for `on*` properties. Assume that `on*` property
   // corresponds to an event browser can emit.
-  const scriptTag = document.querySelector('script[events]');
+  const scriptTag = doc.querySelector('script[events]');
   if (scriptTag) {
     const events = scriptTag.getAttribute('events') || '';
     events.split(/[\s,;]+/).forEach(addEventListener);
   } else {
-    for (const key in document) {
+    for (const key in doc) {
       if (key.indexOf('on') == 0) {
         const eventName = key.substring(2);
         // For each `on*` property, set up a listener.
@@ -93,19 +88,20 @@ interface QConfig {
       }
     }
   }
-  const qInit = `q-init`;
-  addEventListener(qInit);
 
+  const qInit = `q-init`;
   const processReadyStateChange = () => {
-    const readyState = document.readyState;
+    const readyState = doc.readyState;
     if (readystatechange && (readyState == 'interactive' || readyState == 'complete')) {
       readystatechange = null!;
-      document
+      doc
         .querySelectorAll('[on\\:\\' + qInit + ']')
         .forEach((target) => target.dispatchEvent(new CustomEvent(qInit)));
     }
   };
-  document.addEventListener(readystatechange, processReadyStateChange);
+
+  addEventListener(qInit);
+  doc.addEventListener(readystatechange, processReadyStateChange);
   processReadyStateChange();
 })(
   // Invoke qwik-loader.

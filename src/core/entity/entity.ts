@@ -7,12 +7,10 @@
  */
 
 import { AttributeMarker } from '../util/markers.js';
-import { getConfig, QConfig } from '../config/qGlobal.js';
 import { qError, QError } from '../error/error.js';
 import { qImport } from '../import/qImport.js';
 import type { QRL } from '../import/qrl.js';
 import { keyToEntityAttribute, EntityKey, keyToProps, propsToKey } from './entity_key.js';
-import { getFilePathFromFrame } from '../util/base_uri.js';
 import { fromCamelToKebabCase } from '../util/case.js';
 import { getInjector } from '../injector/element_injector.js';
 
@@ -155,8 +153,6 @@ import { getInjector } from '../injector/element_injector.js';
  * @public
  */
 export class Entity<PROPS, STATE> {
-  private static $config: QConfig = null!;
-
   /**
    * A entity name.
    *
@@ -178,23 +174,7 @@ export class Entity<PROPS, STATE> {
    * <div ::myEntity="./path/to/entity/MyEntity">
    * ```
    */
-  static get $type(): string {
-    return this.$_name;
-  }
-  static set $type(name: string) {
-    if (!name.startsWith('$')) {
-      // Only do this for non-internal entities.
-      const stack = new Error().stack!;
-      const frames = stack.split('\n');
-      // 0: Error
-      // 1:   at setter (this function)
-      // 2:   at caller (this is what we are looking for)
-      const base = getFilePathFromFrame(frames[2]);
-      this.$config = getConfig(base);
-      this.$_name = name;
-    }
-  }
-  private static $_name: string = null!;
+  public static $type: string = null!;
 
   /**
    * The QRL location of this Entity type.
@@ -474,8 +454,7 @@ export class Entity<PROPS, STATE> {
     qrl: QRL<(...args: ARGS) => RET>,
     ...args: ARGS
   ): Promise<RET> {
-    const entity = getEntityType(this);
-    const delegate = await qImport((entity as any as typeof Entity).$config, qrl);
+    const delegate = await qImport(this.$element, qrl);
     return getInjector(this.$element).invoke(delegate as any, this, ...args);
   }
 

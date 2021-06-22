@@ -7,7 +7,6 @@
  */
 
 import { expect } from 'chai';
-import '../CONFIG.js';
 import { provideInjector } from './provide_injector.js';
 import type { Injector } from './types.js';
 

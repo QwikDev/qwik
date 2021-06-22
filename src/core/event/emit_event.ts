@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { qImport, qParams, toBaseURI, toUrl } from '../import/qImport.js';
+import { qImport, qParams, toUrl } from '../import/qImport.js';
 import { QError, qError } from '../error/error.js';
 import { findAttribute } from '../util/dom_attrs.js';
 import { AttributeMarker } from '../util/markers.js';
@@ -54,7 +54,7 @@ export function emitEvent(element: HTMLElement, event: Event, url: URL): Promise
     (element, attrName, attrValue) => {
       const qrl = attrValue as unknown as QRL<EventHandler<any, any, any>>;
       return Promise.resolve(qImport(element, qrl)).then((fn: Function) => {
-        const dstUrl = toUrl(toBaseURI(element), qrl);
+        const dstUrl = toUrl(element.ownerDocument, qrl);
         const event = new CustomEvent($type);
         params.forEach((value, key) => {
           (event as any)[key] = value;

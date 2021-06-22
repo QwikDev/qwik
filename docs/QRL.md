@@ -45,27 +45,6 @@ The above says that the `/handle_click` can be found relative to `myApp:`. This 
 
 The above global configuration simply says that `myApp:/handle_click` should be translated to `http://myserver.com/app/handle_click`. Notice that all which is needed to configure the protocol is declaration of `Q` property on global namespace such as `window`.
 
-### Server protocol configuration
-
-Configuring protocol on the server serves the same purpose as on the client, but is a bit more complicated because a single server can serve multiple applications and therefore is contextual.
-
-As a convention create a `CONFIG.ts` file in a directory which will control protocols in that directory and its subdirectories.
-
-```typescript
-import { setConfig } from './index.js';
-
-setConfig({
-  baseURI: import.meta.url,
-  protocol: {
-    myApp: 'http://myserver.com/app',
-  },
-});
-```
-
-The important part is the `baseURI` which gets set to the obsolete URL of this file (`import.meta.url` returns `file://path/to/CONFIG.js`.) This will tell Qwik to resolve all files which come from a `file://path/to/**` folder using this configuration.
-
-It is important that you import the `CONFIG.ts` file someplace from the root of the application so that the protocols can get configured before they are used.
-
 ## File extension
 
 When Qwik imports a QRL it always imports it with a `.js` extension.

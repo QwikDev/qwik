@@ -7,9 +7,9 @@
  */
 
 import { expect } from 'chai';
-import '../../CONFIG.js';
+import { TEST_CONFIG } from '../../testing/config.unit.js';
 import { QRL } from '../../import/qrl.js';
-import { ElementFixture } from '../../testing/element_fixture.js';
+import { ElementFixture, applyDocumentConfig } from '../../testing/element_fixture.js';
 import { createGlobal, QwikGlobal } from '../../testing/node_utils.js';
 import { jsxDeclareComponent, jsxFactory } from './factory.js';
 import { Host } from './host.js';
@@ -26,10 +26,12 @@ describe('render', () => {
   let global: QwikGlobal;
   let document: Document;
   let host: HTMLElement;
+
   beforeEach(() => {
-    global = createGlobal(import.meta.url);
+    global = createGlobal();
     host = global.document.createElement('host');
     document = global.document;
+    applyDocumentConfig(document, TEST_CONFIG);
   });
 
   it('should render basic DOM structure', () => {
@@ -82,7 +84,8 @@ describe('render', () => {
     expect(host.innerHTML).to.equal('<div><span></span><span></span></div>');
   });
 
-  it('should render HEAD', () => {
+  it.skip('should render HEAD', () => {
+    // TODO, figure out how <head> should render in this scenario
     const head = document.querySelector('head')!;
     jsxRender(
       head,
@@ -232,7 +235,7 @@ describe('render', () => {
 
   describe('<Host>', () => {
     it('should merge component host with <Host>', async () => {
-      const fixture = new ElementFixture();
+      const fixture = new ElementFixture(TEST_CONFIG);
       fixture.host.innerHTML = '';
       fixture.host.setAttribute('parent', 'pValue');
       await jsxRender(fixture.host, <Host child="cValue">VIEW</Host>, document);
@@ -261,10 +264,6 @@ declare global {
       greeter: { url?: string } & JSXBase;
     }
   }
-}
-
-function TestComponent(props: {}) {
-  return <div>TestComponent: props={JSON.stringify(props)}</div>;
 }
 
 export function Greeter_render_with_url(props: { url?: string }) {

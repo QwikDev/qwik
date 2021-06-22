@@ -8,7 +8,7 @@
 
 import { expect } from 'chai';
 import { assertDefined } from '../assert/assert.js';
-import '../CONFIG.js';
+import { TEST_CONFIG } from '../testing/config.unit.js';
 import { stringifyDebug } from '../error/stringify.js';
 import { QRL } from '../import/qrl.js';
 import { getInjector } from '../injector/element_injector.js';
@@ -35,7 +35,7 @@ describe('entity', () => {
 
   describe('$attachEntity', () => {
     it('should attach', () => {
-      const fixture = new ElementFixture();
+      const fixture = new ElementFixture(TEST_CONFIG);
       GreeterEntity.$attachEntity(fixture.host);
       expect(stringifyDebug(fixture.host)).to.eql(
         `<host ::greeter='entity:/entity.unit#GreeterEntity'>`
@@ -43,7 +43,7 @@ describe('entity', () => {
     });
 
     it('should allow second attach', () => {
-      const fixture = new ElementFixture();
+      const fixture = new ElementFixture(TEST_CONFIG);
       GreeterEntity.$attachEntity(fixture.host);
       GreeterEntity.$attachEntity(fixture.host);
       expect(stringifyDebug(fixture.host)).to.eql(
@@ -63,7 +63,7 @@ describe('entity', () => {
       );
     });
     it('should error on QRL collision', () => {
-      const fixture = new ElementFixture();
+      const fixture = new ElementFixture(TEST_CONFIG);
       fixture.host.setAttribute('::greeter', 'some_other_qrl');
       expect(() => GreeterEntity.$attachEntity(fixture.host)).to.throw(
         `SERVICE-ERROR(Q-313): Name collision. Already have entity named 'Greeter' with QRL 'some_other_qrl' but expected QRL 'entity:/entity.unit#GreeterEntity'.`
@@ -73,7 +73,7 @@ describe('entity', () => {
 
   describe('$attachEntityState', () => {
     it('should attach', () => {
-      const fixture = new ElementFixture();
+      const fixture = new ElementFixture(TEST_CONFIG);
       GreeterEntity.$attachEntityState(
         fixture.host,
         { salutation: 'hello', name: 'world' },
@@ -94,7 +94,7 @@ describe('entity', () => {
 
   describe('$hydrate', () => {
     it('should hydrate with state', async () => {
-      const fixture = new ElementFixture();
+      const fixture = new ElementFixture(TEST_CONFIG);
       const greeterPromise = GreeterEntity.$hydrate(
         fixture.host,
         { salutation: 'Hello', name: 'World' },
@@ -108,7 +108,7 @@ describe('entity', () => {
       );
     });
     it('should hydrate without state', async () => {
-      const fixture = new ElementFixture();
+      const fixture = new ElementFixture(TEST_CONFIG);
       const greeterPromise = GreeterEntity.$hydrate(fixture.host, {
         salutation: 'Hello',
         name: 'World',
@@ -124,7 +124,7 @@ describe('entity', () => {
       );
     });
     it('should hydrate into the same instance', async () => {
-      const fixture = new ElementFixture();
+      const fixture = new ElementFixture(TEST_CONFIG);
       const greeterPromise = GreeterEntity.$hydrate(fixture.host, {
         salutation: 'Hello',
         name: 'World',
@@ -135,7 +135,7 @@ describe('entity', () => {
       );
     });
     it('should hydrate without state using key', async () => {
-      const fixture = new ElementFixture();
+      const fixture = new ElementFixture(TEST_CONFIG);
       const greeterPromise = GreeterEntity.$hydrate(fixture.host, greeterHelloWorldKey);
       expect(greeterPromise.$key).to.eql('greeter:-hello:-world');
       const greeter = await greeterPromise;
@@ -148,7 +148,7 @@ describe('entity', () => {
       );
     });
     it('should hydrate with error', async () => {
-      const fixture = new ElementFixture();
+      const fixture = new ElementFixture(TEST_CONFIG);
       const greeterPromise = GreeterEntity.$hydrate(fixture.host, {
         salutation: 'throw',
         name: 'World',
@@ -162,7 +162,7 @@ describe('entity', () => {
       }
     });
     it('should deserialize entity from DOM', async () => {
-      const fixture = new ElementFixture();
+      const fixture = new ElementFixture(TEST_CONFIG);
       GreeterEntity.$attachEntity(fixture.host);
       GreeterEntity.$attachEntityState(
         fixture.host,
@@ -184,7 +184,7 @@ describe('entity', () => {
 
   describe('invoke', () => {
     it('should create an instance and invoke identity method', async () => {
-      const fixture = new ElementFixture();
+      const fixture = new ElementFixture(TEST_CONFIG);
       const empty = await EmptyEntity.$hydrate(fixture.child, {}, {});
       expect(await empty.ident('ABC')).to.equal('ABC');
       expect(await getInjector(fixture.child).getEntity('empty:' as any as EntityKey)).to.equal(
@@ -195,7 +195,7 @@ describe('entity', () => {
   });
 
   it('should create instance greeter and persist it and delete it', async () => {
-    const fixture = new ElementFixture();
+    const fixture = new ElementFixture(TEST_CONFIG);
     const greeterPromise = GreeterEntity.$hydrate(fixture.child, {
       salutation: 'hello',
       name: 'world',

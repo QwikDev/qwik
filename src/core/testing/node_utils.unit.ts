@@ -12,7 +12,9 @@ import { createGlobal } from './node_utils.js';
 
 describe('node', () => {
   it('should create document', () => {
-    const global = createGlobal(import.meta.url);
+    const global = createGlobal({
+      baseURI: import.meta.url,
+    });
     expect(global.document.baseURI).to.have.string('node_utils.unit');
   });
 });

@@ -6,7 +6,6 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import '../CONFIG.js';
 import { expect } from 'chai';
 import { ComponentFixture, GreeterComponent } from '../testing/component_fixture.js';
 import { AttributeMarker } from '../util/markers.js';

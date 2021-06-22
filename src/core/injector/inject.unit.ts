@@ -23,7 +23,7 @@ describe('inject', () => {
   let element: Element;
   beforeEach(() => {
     log.length = 0;
-    const global = createGlobal(import.meta.url);
+    const global = createGlobal();
     element = global.document.createElement('div');
     injector = getInjector(element);
   });

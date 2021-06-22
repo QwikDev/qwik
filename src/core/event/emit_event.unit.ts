@@ -7,7 +7,7 @@
  */
 
 import { expect } from 'chai';
-import '../CONFIG.js';
+import { TEST_CONFIG } from '../testing/config.unit.js';
 import { ElementFixture } from '../testing/element_fixture.js';
 import { emitEvent } from './emit_event.js';
 import { injectEventHandler } from './inject_event_handler.js';
@@ -20,7 +20,7 @@ describe('emitEvent', () => {
   let fixture: ElementFixture;
   let event: Event;
   beforeEach(() => {
-    fixture = new ElementFixture();
+    fixture = new ElementFixture(TEST_CONFIG);
     event = {} as any;
   });
 

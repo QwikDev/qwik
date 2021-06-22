@@ -9,7 +9,6 @@
 import { default as global } from '../util/global.js';
 import domino from 'domino';
 import srcMap from 'source-map-support';
-import { dirname } from '../util/dirname.js';
 srcMap.install();
 
 /**

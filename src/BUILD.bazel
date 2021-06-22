@@ -44,6 +44,7 @@ esbuild(
     entry_point = "//src/core:index.ts",
     format = "cjs",
     output = "core.cjs",
+    sources_content = True,  # Needed so that node debugger can show Source Code.
     target = "es2017",
     tool = select({
         "@bazel_tools//src/conditions:darwin": "@esbuild_darwin//:bin/esbuild",

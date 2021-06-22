@@ -17,7 +17,7 @@ export const _needed_by_JSX_ = jsxFactory; // eslint-disable-line @typescript-es
  * @returns a promise when all of the rendering is completed.
  */
 export async function serverMain(document: Document) {
-  const doc = (
+  const cmp = (
     <html>
       <head>
         <title>ToDo Application</title>
@@ -33,5 +33,5 @@ export async function serverMain(document: Document) {
       </body>
     </html>
   );
-  return jsxRender(document, doc);
+  return jsxRender(document, cmp);
 }

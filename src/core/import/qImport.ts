@@ -9,7 +9,7 @@
 import type { QRL } from './qrl.js';
 import { QError, qError } from '../error/error.js';
 
-declare const __mockImport: (path: string) => Promise<any>;
+declare const __mockImport: (path: string, doc: Document) => Promise<any>;
 
 /**
  * Lazy load a `QRL` symbol and returns the resulting value.
@@ -35,7 +35,7 @@ export function qImport<T>(node: Node | Document, url: string | QRL<T> | URL): T
   // TODO(misko): Concern: When in `cjs` mode we should be using require?
   const promise = (
     typeof __mockImport === 'function'
-      ? __mockImport(importPath + '.js')
+      ? __mockImport(importPath + '.js', doc)
       : import(importPath + '.js')
   ).then((module) => {
     const handler = module[exportName];

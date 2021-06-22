@@ -8,7 +8,7 @@
 
 import type { Injector } from '../index.js';
 import { ElementInjector } from '../injector/element_injector.js';
-import { createGlobal } from './node_utils.js';
+import { createGlobal, QwikGlobal } from './node_utils.js';
 
 /**
  * Creates a simple DOM structure for testing components.
@@ -25,7 +25,7 @@ import { createGlobal } from './node_utils.js';
  *
  */
 export class ElementFixture {
-  global: { document: Document };
+  global: QwikGlobal;
   document: Document;
   superParent: HTMLElement;
   parent: HTMLElement;
@@ -34,7 +34,7 @@ export class ElementFixture {
   hostInjector: Injector;
 
   constructor(options: ElementFixtureOptions = {}) {
-    this.global = createGlobal(import.meta.url);
+    this.global = createGlobal();
     this.document = this.global.document;
     this.superParent = this.document.createElement('super-parent');
     this.parent = this.document.createElement('parent');
@@ -45,9 +45,34 @@ export class ElementFixture {
     this.parent.appendChild(this.host);
     this.host.appendChild(this.child);
     this.document.body.appendChild(this.superParent);
+
+    applyDocumentConfig(this.document, options);
   }
+}
+
+export function applyDocumentConfig(
+  doc: Document,
+  config: { baseURI?: string; protocol?: Record<string, string> }
+) {
+  if (config.baseURI) {
+    appendConfig(doc, `baseURI`, config.baseURI);
+  }
+  if (config.protocol) {
+    for (const protocol in config.protocol) {
+      appendConfig(doc, `protocol.${protocol}`, config.protocol[protocol]);
+    }
+  }
+}
+
+function appendConfig(doc: Document, key: string, value: string) {
+  const linkElm = doc.createElement('link');
+  linkElm.setAttribute(`rel`, `q.${key}`);
+  linkElm.setAttribute(`href`, value);
+  doc.head.appendChild(linkElm);
 }
 
 export interface ElementFixtureOptions {
   tagName?: string;
+  baseURI?: string;
+  protocol?: Record<string, string>;
 }

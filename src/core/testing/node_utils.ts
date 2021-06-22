@@ -9,6 +9,7 @@
 import { default as global } from '../util/global.js';
 import domino from 'domino';
 import srcMap from 'source-map-support';
+import { dirname } from '../util/dirname.js';
 srcMap.install();
 
 /**
@@ -24,31 +25,41 @@ export interface QwikGlobal {
 }
 
 /**
+ * Options when creating a mock Qwik Global object.
+ */
+export interface CreateGlobalOptions extends CreateDocumentOptions {}
+
+/**
+ * Options when creating a mock Qwik Document object.
+ */
+export interface CreateDocumentOptions {
+  baseURI?: string;
+}
+
+/**
  * Create emulated `QwikGlobal` useful for testing.
  */
-export function createGlobal(baseUri: string) {
+export function createGlobal(opts: CreateGlobalOptions = {}) {
   if ((global as any).CustomEvent === undefined) {
     (global as any).CustomEvent = MockCustomEvent as any;
   }
-  return { document: createDocument(baseUri) };
+  return { document: createDocument(opts) };
 }
 
 /**
  * Create emulated `Document` in node environment.
  */
-export function createDocument(baseUri: string): Document {
-  const document = domino.createDocument();
+export function createDocument(opts: CreateDocumentOptions = {}): Document {
+  const doc = domino.createDocument();
   // TODO(misko): Needs test
-  const requestAnimationFrame: MockRequestAnimationFrame = function requestAnimationFrame(
-    callback: FrameRequestCallback
-  ): number {
-    const id = requestAnimationFrame.queue.length;
-    requestAnimationFrame.queue[id] = callback;
+  const raf: MockRequestAnimationFrame = function (callback: FrameRequestCallback): number {
+    const id = raf.queue.length;
+    raf.queue[id] = callback;
     return id;
   };
-  requestAnimationFrame.queue = [];
-  requestAnimationFrame.flush = function () {
-    const queue = requestAnimationFrame.queue;
+  raf.queue = [];
+  raf.flush = function () {
+    const queue = raf.queue;
     for (let i = 0; i < queue.length; i++) {
       const callback = queue[i];
       if (callback) {
@@ -57,10 +68,15 @@ export function createDocument(baseUri: string): Document {
       }
     }
   };
-  const window = { requestAnimationFrame };
-  Object.defineProperty(document, 'baseURI', { value: baseUri });
-  Object.defineProperty(document, 'defaultView', { value: window });
-  return document;
+  const window = { requestAnimationFrame: raf };
+
+  if (typeof opts.baseURI !== 'string') {
+    opts.baseURI = `http://testapp.qwik.dev/`;
+  }
+
+  Object.defineProperty(doc, 'baseURI', { value: opts.baseURI });
+  Object.defineProperty(doc, 'defaultView', { value: window });
+  return doc;
 }
 
 class MockCustomEvent {

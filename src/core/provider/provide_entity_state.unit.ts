@@ -7,7 +7,7 @@
  */
 
 import { expect } from 'chai';
-import '../CONFIG.js';
+import { TEST_CONFIG } from '../testing/config.unit.js';
 import { Entity } from '../entity/entity.js';
 import type { EntityKey } from '../entity/entity_key.js';
 import { QRL } from '../import/qrl.js';
@@ -22,7 +22,7 @@ describe('provideEntity', () => {
   let fixture: ElementFixture;
   let hostInjector: Injector; // eslint-disable-line @typescript-eslint/no-unused-vars
   beforeEach(() => {
-    fixture = new ElementFixture();
+    fixture = new ElementFixture(TEST_CONFIG);
     hostInjector = getInjector(fixture.host); // eslint-disable-line @typescript-eslint/no-unused-vars
   });
 

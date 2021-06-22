@@ -19,7 +19,7 @@ describe('attributes', () => {
   let host: HTMLElement;
   let input: HTMLInputElement;
   beforeEach(() => {
-    const global = createGlobal(import.meta.url);
+    const global = createGlobal();
     host = global.document.createElement('host');
     input = global.document.createElement('input');
   });

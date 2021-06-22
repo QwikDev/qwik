@@ -76,16 +76,19 @@ export function markComponentDirty(component: Component<any, any>): Promise<Host
  * @internal
  */
 export function markElementDirty(host: Element): Promise<HostElements> {
-  const document = host.ownerDocument as QDocument;
+  const doc = host.ownerDocument as QDocument;
+  const promise = doc[ScheduledRender];
+
   host.setAttribute(
     AttributeMarker.EventRender,
     host.getAttribute(AttributeMarker.ComponentTemplate)!
   );
-  const promise = document.$qScheduledRender;
+
   if (isPromise(promise)) {
     return promise;
+  } else {
+    return scheduleRender(doc);
   }
-  return scheduleRender(document);
 }
 
 /**
@@ -93,9 +96,9 @@ export function markElementDirty(host: Element): Promise<HostElements> {
  */
 export function markEntityDirty(entity: Entity<any, any>): Promise<HostElements> {
   const key = entity.$key;
-  const document = entity.$element.ownerDocument as QDocument;
+  const doc = entity.$element.ownerDocument as QDocument;
   let foundListener = false;
-  document
+  doc
     .querySelectorAll(toAttrQuery(AttributeMarker.BindPrefix + key))
     .forEach((componentElement: HTMLElement) => {
       const qrl = componentElement.getAttribute(AttributeMarker.ComponentTemplate)!;
@@ -106,7 +109,7 @@ export function markEntityDirty(entity: Entity<any, any>): Promise<HostElements>
       componentElement.setAttribute(AttributeMarker.EventRender, qrl);
     });
 
-  return foundListener ? scheduleRender(document) : Promise.resolve([]);
+  return foundListener ? scheduleRender(doc) : Promise.resolve([]);
 }
 /**
  * Convert the key to an attribute query that can be used in `querySelectorAll()`.
@@ -126,34 +129,38 @@ export function toAttrQuery(key: string): any {
  * @returns a `Promise` of all of the `HostElements` which were re-rendered.
  * @internal
  */
-export function scheduleRender(document: QDocument): Promise<HostElements> {
-  const promise = document.$qScheduledRender;
+export function scheduleRender(doc: QDocument): Promise<HostElements> {
+  const promise = doc[ScheduledRender];
   if (promise) return promise;
-  const requestAnimationFrame = document.defaultView!.requestAnimationFrame!;
+
+  const requestAnimationFrame = doc.defaultView!.requestAnimationFrame!;
   if (!requestAnimationFrame) {
     throw qError(QError.Render_noRAF);
   }
-  return (document.$qScheduledRender = new Promise<HostElements>((resolve, reject) => {
+
+  return (doc[ScheduledRender] = new Promise<HostElements>((resolve, reject) =>
     requestAnimationFrame(() => {
+      doc[ScheduledRender] = null;
+
       const waitOn: HostElements = [];
-      const componentHosts = document.querySelectorAll(AttributeMarker.EventRenderSelector);
+      const componentHosts = doc.querySelectorAll(AttributeMarker.EventRenderSelector);
       const hosts: HostElements = [];
       componentHosts.forEach((host) => {
         host.removeAttribute(AttributeMarker.EventRender);
         const qrl = host.getAttribute(AttributeMarker.ComponentTemplate)! as any as QRL;
         qDev && assertString(qrl);
         const props: Props = extractPropsFromElement(host);
-        jsxRenderComponent(host, qrl, waitOn, props, document);
+        jsxRenderComponent(host, qrl, waitOn, props, doc);
         hosts.push(host);
       });
-      flattenPromiseTree(waitOn).then(() => {
-        document.$qScheduledRender = null;
-        resolve(hosts);
-      }, reject);
-    });
-  }));
+
+      flattenPromiseTree(waitOn).then(() => resolve(hosts), reject);
+    })
+  ));
 }
 
+const ScheduledRender = /*@__PURE__*/ Symbol();
+
 interface QDocument extends Document {
-  $qScheduledRender?: Promise<HostElements> | null;
+  [ScheduledRender]?: Promise<HostElements> | null;
 }

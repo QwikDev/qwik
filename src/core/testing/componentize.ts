@@ -23,5 +23,5 @@ let counter = 0;
 export function componentize(element: Element, factory: JSXFactory) {
   const url = `//MOCK/_${counter++}`;
   element.setAttribute(AttributeMarker.ComponentTemplate, url);
-  qImportSet(url, factory);
+  qImportSet(element.ownerDocument, url, factory);
 }

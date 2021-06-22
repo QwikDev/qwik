@@ -57,11 +57,6 @@
   resolved "https://registry.yarnpkg.com/@bazel/ibazel/-/ibazel-0.15.10.tgz#cf0cff1aec6d8e7bb23e1fc618d09fbd39b7a13f"
   integrity sha512-0v+OwCQ6fsGFa50r6MXWbUkSGuWOoZ22K4pMSdtWiL5LKFIE4kfmMmtQS+M7/ICNwk2EIYob+NRreyi/DGUz5A==
 
-"@bazel/rollup@^3.2.2":
-  version "3.5.1"
-  resolved "https://registry.yarnpkg.com/@bazel/rollup/-/rollup-3.5.1.tgz#8a66d2e3d3ac0466fb14f7d2ba1030d3bdced845"
-  integrity sha512-9aZabnuXlH6IQqA1KtaniNJvgRWNb2GRCOnERMah+feocn+14dmMbH8BfCwMR/DY/bdwflUzdcLPkZsu12whtA==
-
 "@bazel/terser@^3.2.2":
   version "3.5.1"
   resolved "https://registry.yarnpkg.com/@bazel/terser/-/terser-3.5.1.tgz#3b0ab180eb05aa743cbbcd90803438d984975b8f"
@@ -3039,13 +3034,6 @@ rimraf@^3.0.0, rimraf@^3.0.2:
   integrity sha512-JZkJMZkAGFFPP2YqXZXPbMlMBgsxzE8ILs4lMIX/2o0L9UBw9O/Y3o6wFw/i9YLapcUJWwqbi3kdxIPdC62TIA==
   dependencies:
     glob "^7.1.3"
-
-rollup@^2.40.0:
-  version "2.50.5"
-  resolved "https://registry.yarnpkg.com/rollup/-/rollup-2.50.5.tgz#bbee9d6411af3f5fa5c6e7e2c69f7a65b753e568"
-  integrity sha512-Ztz4NurU2LbS3Jn5rlhnYv35z6pkjBUmYKr94fOBIKINKRO6kug9NTFHArT7jqwMP2kqEZ39jJuEtkk91NBltQ==
-  optionalDependencies:
-    fsevents "~2.3.1"
 
 run-parallel@^1.1.9:
   version "1.2.0"

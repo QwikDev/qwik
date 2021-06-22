@@ -44,11 +44,18 @@
       const eventUrl = element.getAttribute('on:' + ev.type);
       if (eventUrl) {
         const url = new URL(
-          eventUrl.replace(/^(\w+):/, (str, protocol) => {
+          eventUrl.replace(/^(\w+):(\/)/, (str, protocol, slash) => {
             const linkElm = doc.querySelector(
               `link[rel="q.protocol.${protocol}"]`
             ) as HTMLLinkElement;
-            return (linkElm && linkElm.href) || str;
+            const href = linkElm && linkElm.href;
+            if (!href) {
+              throw new Error('QWIKLOADER-ERROR: `' + protocol + '` is not defined.');
+            }
+            if (slash && href.endsWith('/')) {
+              slash = '';
+            }
+            return href + slash;
           })
         );
         const importPath = url.pathname + '.js';

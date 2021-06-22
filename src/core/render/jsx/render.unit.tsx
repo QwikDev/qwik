@@ -103,7 +103,7 @@ describe('render', () => {
   });
 
   it('should render HTML on document', () => {
-    const doc = (
+    const cmp = (
       <html>
         <head>
           <title>Hello World from Server</title>
@@ -112,7 +112,7 @@ describe('render', () => {
         <body>Hello World!</body>
       </html>
     );
-    jsxRender(document, doc);
+    jsxRender(document, cmp);
 
     const html = document.querySelector('html')!;
     expect(html.outerHTML).to.equal(

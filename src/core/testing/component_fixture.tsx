@@ -47,11 +47,7 @@ export class ComponentFixture extends ElementFixture {
   render(): Promise<HostElements> | null {
     if (this.template) {
       const injector = getInjector(this.host);
-      return jsxRender(
-        this.host,
-        this.template.call(injector, injector.elementProps),
-        this.document
-      );
+      return jsxRender(this.host, this.template.call(injector, injector.elementProps));
     }
     return null;
   }

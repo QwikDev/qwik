@@ -227,7 +227,7 @@ export interface JSXNode<T extends string | null | JSXFactory | unknown> {
 }
 
 // @public
-export function jsxRender(host: Element | Document, jsxNode: JSXNode<unknown>, overrideDocument?: Document): Promise<HostElements>;
+export function jsxRender(host: Element | Document, jsxNode: JSXNode<unknown>): Promise<HostElements>;
 
 // @public
 export function markDirty(componentEntityOrElement: Component<any, any> | Entity<any, any> | Element): Promise<HostElements>;

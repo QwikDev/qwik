@@ -35,30 +35,29 @@ describe('render', () => {
   });
 
   it('should render basic DOM structure', () => {
-    jsxRender(host, <div id="abc">test</div>, global.document);
+    jsxRender(host, <div id="abc">test</div>);
     expect(host.innerHTML).to.equal('<div id="abc">test</div>');
   });
 
   it('should not destroy existing DOM', () => {
-    jsxRender(host, <div id="foo">original</div>, global.document);
+    jsxRender(host, <div id="foo">original</div>);
     const originalDiv = host.firstChild;
-    jsxRender(host, <div class="bar">overwrite</div>, global.document);
+    jsxRender(host, <div class="bar">overwrite</div>);
     expect(host.firstChild).to.equal(originalDiv, 'node identity should not be destroyed');
     expect(host.innerHTML).to.equal('<div id="foo" class="bar">overwrite</div>');
   });
 
   it('should remove extra text', () => {
-    jsxRender(host, <div>original</div>, global.document);
+    jsxRender(host, <div>original</div>);
     jsxRender(
       host,
       <div>
         {'a'}
         {'b'}
-      </div>,
-      global.document
+      </div>
     );
     expect(host.innerHTML).to.equal('<div>ab</div>');
-    jsxRender(host, <div>original</div>, global.document);
+    jsxRender(host, <div>original</div>);
     expect(host.innerHTML).to.equal('<div>original</div>');
   });
 
@@ -68,18 +67,16 @@ describe('render', () => {
       <div>
         <span></span>
         <span></span>
-      </div>,
-      global.document
+      </div>
     );
-    jsxRender(host, <div></div>, global.document);
+    jsxRender(host, <div></div>);
     expect(host.innerHTML).to.equal('<div></div>');
     jsxRender(
       host,
       <div>
         <span></span>
         <span></span>
-      </div>,
-      global.document
+      </div>
     );
     expect(host.innerHTML).to.equal('<div><span></span><span></span></div>');
   });
@@ -92,8 +89,7 @@ describe('render', () => {
       <head>
         <title>Hello World from Server</title>
         <script src="/qwikloader.js" async></script>
-      </head>,
-      document
+      </head>
     );
 
     expect(head.outerHTML).to.equal(
@@ -116,7 +112,7 @@ describe('render', () => {
         <body>Hello World!</body>
       </html>
     );
-    jsxRender(document, doc, document);
+    jsxRender(document, doc);
 
     const html = document.querySelector('html')!;
     expect(html.outerHTML).to.equal(
@@ -139,8 +135,7 @@ describe('render', () => {
       host,
       <div>
         <Greeter url="/" />
-      </div>,
-      global.document
+      </div>
     );
     expect(host.innerHTML).to.equal(
       '<div>' +
@@ -158,8 +153,7 @@ describe('render', () => {
         <>
           <span>A</span>
           <span>B</span>
-        </>,
-        global.document
+        </>
       );
       expect(host.innerHTML).to.equal('<span>A</span><span>B</span>');
     });
@@ -178,8 +172,7 @@ describe('render', () => {
         host,
         <div>
           <Component />
-        </div>,
-        global.document
+        </div>
       );
       expect(host.innerHTML).to.equal('<div><span>A</span><span>B</span></div>');
     });
@@ -188,7 +181,7 @@ describe('render', () => {
   describe('innerHTML/innerText', () => {
     it('should be able to render innerHTML', async () => {
       const html = `<span>TEST</span>`;
-      await jsxRender(host, <div innerHTML={html}></div>, global.document);
+      await jsxRender(host, <div innerHTML={html}></div>);
       expect(host.innerHTML).to.equal('<div inner-h-t-m-l=""><span>TEST</span></div>');
     });
   });
@@ -199,8 +192,7 @@ describe('render', () => {
         host,
         <div>
           <greeter url="/" decl:template={QRL`jsx:/render.unit#Greeter_render_with_url`} />
-        </div>,
-        global.document
+        </div>
       );
       expect(host.innerHTML).to.equal(
         '<div>' +
@@ -224,8 +216,7 @@ describe('render', () => {
           'on:.render': 'myComponentUrl',
           'on:click': 'myComponent_click',
           'bind:token': 'myTokenUrl',
-        }),
-        global.document
+        })
       );
       expect(host.innerHTML).to.equal(
         '<div decl:template="jsx:/render.unit#Noop_template" bind:.="myUrl" on:.render="myComponentUrl" on:click="myComponent_click" bind:token="myTokenUrl" :="">NOOP</div>'
@@ -238,7 +229,7 @@ describe('render', () => {
       const fixture = new ElementFixture(TEST_CONFIG);
       fixture.host.innerHTML = '';
       fixture.host.setAttribute('parent', 'pValue');
-      await jsxRender(fixture.host, <Host child="cValue">VIEW</Host>, document);
+      await jsxRender(fixture.host, <Host child="cValue">VIEW</Host>);
       expect(fixture.host.outerHTML).to.eql(`<host parent="pValue" child="cValue">VIEW</host>`);
     });
 

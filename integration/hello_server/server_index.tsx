@@ -29,5 +29,5 @@ export async function serverMain(document: Document) {
       </body>
     </html>
   );
-  return jsxRender(document, doc, document);
+  return jsxRender(document, doc);
 }

@@ -29,21 +29,18 @@ import type { JSXFactory, JSXNode } from './types.js';
  * @param host - Host element which will act as a parent to `jsxNode`. When
  *     possible the rendering will try to reuse existing nodes.
  * @param jsxNode - JSX to render
- * @param overrideDocument - optional document used for creating new DOM nodes
- *     (used global `document` otherwise)
  * @public
  */
 export async function jsxRender(
   host: Element | Document,
-  jsxNode: JSXNode<unknown>,
-  overrideDocument?: Document
+  jsxNode: JSXNode<unknown>
 ): Promise<HostElements> {
   const waitOn: AsyncHostElementPromises = [];
   let firstChild = host.firstChild;
   while (firstChild && firstChild.nodeType > NodeType.COMMENT_NODE) {
     firstChild = firstChild.nextSibling;
   }
-  visitJSXNode(overrideDocument || document, waitOn, host, firstChild, jsxNode);
+  visitJSXNode(host.ownerDocument! || host, waitOn, host, firstChild, jsxNode);
   // TODO[type]: don't know how to make the type system happy, cheating with `any` cast.
   return flattenPromiseTree<HTMLElement>(waitOn as any);
 }

@@ -78,11 +78,11 @@ Create a public file: `<COMPONENT>.ts` (`greeter.ts`): A facade to be included b
 
   ```typescript
   export const <COMPONENT> = jsxDeclareComponent<<COMPONENT>Props>(
-    // Name of the DOM host element which will be created for this component.
-    '<COMPONENT>',
     /// non-symbolic pointer to the implementation used for lazy loading.
     /// (As a convention, the template file ends with `_template`.)
     QRL`./<COMPONENT>_template`);
+    // Name of the DOM host element which will be created for this component.
+    '<COMPONENT>',
   ```
 
   Example:

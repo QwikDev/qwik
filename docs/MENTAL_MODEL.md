@@ -121,18 +121,6 @@ Here are some common ways Qwik framework keeps state in DOM/HTML.
 - `<some-component on:click="qrl_to_handler">`: The `on:click` attribute notifies Qwik framework that the component is interested in `click` events. The attribute points to the location where the click handler can be lazy-loaded from.
   `Component`s are similar to `Entity`s except they are associated with a specific UI host-element, and `Component`'s `Props` can change over time.
 
-## DOM Centric
-
-A Qwik application is DOM-centric. All of the information about the application `Component`s, `Entity`s, `Event`s, and entity bindings are stored in the DOM as custom attributes. There is no runtime Qwik framework heap state (with the exception of caches for performance). The result is that Qwik application can easily be rehydrated because Qwik framework has no runtime information which needs to be recreated on the client.
-
-Here are some common ways Qwik framework keeps state in DOM/HTML.
-
-- `<some-component decl:template="qrl_to_template">`: The `::` attribute identifies a component boundary. It also points to the location where the template can be found in case of rehydration. `Component`s can be rehydrated and rendered independently of each other.
-- `<div ::user="qrl_to_entity">`: The `::user` attribute declares a `UserEntity` provider which points to the location where the `Entity` can be lazy loaded from.
-- `<div :user:some_user_id='{"fullName": "Joe Someone", "age": 20}'>`: A serialized form of a `UserEntity` with `Props: {id: 'some_user_id'}` and `State: {fullName: "Joe Someone", age: 20}`.
-- `<some-component bind:user:some_user_id="$user">`: A entity binding to a `Component`. This tells Qwik that if the `State` of `UserEntity ` with `Key`: `user:some_user_id` changes, the component `<some-component>` will need to be re-rendered.
-- `<some-component on:click="qrl_to_handler">`: The `on:click` attribute notifies Qwik framework that the component is interested in the `click` events. The attribute points to the location where the click handler can be lazy-loaded from.
-
 The benefit of the DOM centric approach is that all of the application state is already serialized in DOM/HTML. The Qwik framework itself has no additional information which it needs to store about the application.
 
 Another important benefit is that Qwik can use `querySelectorAll` to easily determine if there are any bindings for a `Entity` or if there are any listeners for a specific `Event` without having to consult any internal data structures. The DOM is Qwik's framework state.

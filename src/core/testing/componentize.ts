@@ -6,9 +6,9 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { qImportSet } from '../import/qImport.js';
-import type { JSXFactory } from '../index.js';
-import { AttributeMarker } from '../util/markers.js';
+import { qImportSet } from '../import/qImport';
+import type { JSXFactory } from '../index';
+import { AttributeMarker } from '../util/markers';
 
 let counter = 0;
 

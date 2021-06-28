@@ -6,5 +6,5 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-export { serializeState } from './serialize_state.js';
-export { HostElements } from './types.js';
+export { serializeState } from './serialize_state';
+export { HostElements } from './types';

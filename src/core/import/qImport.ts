@@ -6,8 +6,8 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import type { QRL } from './qrl.js';
-import { QError, qError } from '../error/error.js';
+import type { QRL } from './qrl';
+import { QError, qError } from '../error/error';
 
 declare const __mockImport: (path: string, doc: Document) => Promise<any>;
 

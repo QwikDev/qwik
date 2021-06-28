@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import './qDev.js';
+import { qDev } from './qDev';
 
 export const EMPTY_ARRAY = [];
 if (qDev) {

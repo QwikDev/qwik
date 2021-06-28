@@ -11,24 +11,23 @@ import type {
   ComponentStateOf,
   Component,
   ComponentConstructor,
-} from '../component/component.js';
-import { qError, QError } from '../error/error.js';
-import { qImport } from '../import/qImport.js';
-import type { QRL } from '../import/qrl.js';
-import { keyToEntityAttribute, EntityKey } from '../entity/entity_key.js';
+} from '../component/component';
+import { qError, QError } from '../error/error';
+import { qImport } from '../import/qImport';
+import type { QRL } from '../import/qrl';
+import { keyToEntityAttribute, EntityKey } from '../entity/entity_key';
 import type {
   Entity,
   EntityConstructor,
   EntityPromise,
   EntityPropsOf,
   EntityStateOf,
-} from '../entity/entity.js';
-import { findAttribute } from '../util/dom_attrs.js';
-import { AttributeMarker } from '../util/markers.js';
-import '../util/qDev.js';
-import { isHtmlElement } from '../util/types.js';
-import { BaseInjector } from './base_injector.js';
-import type { Injector } from './types.js';
+} from '../entity/entity';
+import { findAttribute } from '../util/dom_attrs';
+import { AttributeMarker } from '../util/markers';
+import { isHtmlElement } from '../util/types';
+import { BaseInjector } from './base_injector';
+import type { Injector } from './types';
 
 interface EntityValue {
   promise: EntityPromise<Entity<any, any>>;

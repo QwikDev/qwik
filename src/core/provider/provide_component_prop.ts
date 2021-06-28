@@ -6,9 +6,9 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { qError, QError } from '../error/error.js';
-import { getClosestInjector } from '../injector/element_injector.js';
-import type { Provider, Injector } from '../injector/types.js';
+import { qError, QError } from '../error/error';
+import { getClosestInjector } from '../injector/element_injector';
+import type { Provider, Injector } from '../injector/types';
 
 /**
  * Provides the Component Property.

@@ -6,11 +6,10 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import type { QRL } from '../import/qrl.js';
-import { QError, qError } from '../error/error.js';
-import '../util/qDev.js';
-import { AttributeMarker } from '../util/markers.js';
-import { getInjector } from '../injector/element_injector.js';
+import type { QRL } from '../import/qrl';
+import { QError, qError } from '../error/error';
+import { AttributeMarker } from '../util/markers';
+import { getInjector } from '../injector/element_injector';
 
 /**
  * Base class for Qwik component.

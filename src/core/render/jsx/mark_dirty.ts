@@ -6,18 +6,18 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { isElement } from '../../util/element.js';
-import { assertString } from '../../assert/index.js';
-import { Component, isComponent } from '../../component/component.js';
-import { QError, qError } from '../../error/error.js';
-import type { QRL } from '../../import/qrl.js';
-import type { Props } from '../../injector/types.js';
-import { isEntity, Entity } from '../../entity/entity.js';
-import { extractPropsFromElement } from '../../util/attributes.js';
-import { AttributeMarker } from '../../util/markers.js';
-import { flattenPromiseTree, isPromise } from '../../util/promises.js';
-import type { HostElements } from '../types.js';
-import { jsxRenderComponent } from './render.js';
+import { isElement } from '../../util/element';
+import { assertString } from '../../assert/index';
+import { Component, isComponent } from '../../component/component';
+import { QError, qError } from '../../error/error';
+import type { QRL } from '../../import/qrl';
+import type { Props } from '../../injector/types';
+import { isEntity, Entity } from '../../entity/entity';
+import { extractPropsFromElement } from '../../util/attributes';
+import { AttributeMarker } from '../../util/markers';
+import { flattenPromiseTree, isPromise } from '../../util/promises';
+import type { HostElements } from '../types';
+import { jsxRenderComponent } from './render';
 
 /**
  * Marks `Component` or `Entity` dirty.
@@ -148,7 +148,7 @@ export function scheduleRender(doc: QDocument): Promise<HostElements> {
       componentHosts.forEach((host) => {
         host.removeAttribute(AttributeMarker.EventRender);
         const qrl = host.getAttribute(AttributeMarker.ComponentTemplate)! as any as QRL;
-        qDev && assertString(qrl);
+        assertString(qrl);
         const props: Props = extractPropsFromElement(host);
         jsxRenderComponent(host, qrl, waitOn, props);
         hosts.push(host);

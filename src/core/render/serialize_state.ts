@@ -6,9 +6,9 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { AttributeMarker } from '../util/markers.js';
-import { getInjector } from '../injector/element_injector.js';
-import { isHtmlElement } from '../util/types.js';
+import { AttributeMarker } from '../util/markers';
+import { getInjector } from '../injector/element_injector';
+import { isHtmlElement } from '../util/types';
 
 /**
  * Serialize the `Injector` state into the DOM.

@@ -15,7 +15,7 @@ import srcMap from 'source-map-support';
 import { fileURLToPath } from 'url';
 import { serializeState } from '@builder.io/qwik';
 
-import { findFiles } from './fs_util.js';
+import { findFiles } from './fs_util';
 
 srcMap.install();
 

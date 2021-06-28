@@ -6,9 +6,9 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import type { Injector } from '../index.js';
-import { ElementInjector } from '../injector/element_injector.js';
-import { createGlobal, QwikGlobal } from './node_utils.js';
+import type { Injector } from '../index';
+import { ElementInjector } from '../injector/element_injector';
+import { createGlobal, QwikGlobal } from './node_utils';
 
 /**
  * Creates a simple DOM structure for testing components.

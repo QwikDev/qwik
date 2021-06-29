@@ -8,8 +8,7 @@
 
 import type { QRL } from './qrl';
 import { QError, qError } from '../error/error';
-
-declare const __mockImport: (path: string, doc: Document) => Promise<any>;
+import { corePlatform } from '../platform/platform';
 
 /**
  * Lazy load a `QRL` symbol and returns the resulting value.
@@ -26,18 +25,13 @@ export function qImport<T>(node: Node | Document, url: string | QRL<T> | URL): T
   if (!doc[ImportCacheKey]) doc[ImportCacheKey] = new Map<string, unknown | Promise<unknown>>();
 
   const normalizedUrl = toUrl(doc, url);
-  const importPath = toImportPath(normalizedUrl);
+  const importPath = corePlatform.toPath!(normalizedUrl);
   const exportName = qExport(normalizedUrl);
-  const cacheKey = `${importPath}#${exportName}`;
+  const cacheKey = importPath + '#' + exportName;
   const cacheValue = doc[ImportCacheKey]!.get(cacheKey);
   if (cacheValue) return cacheValue as T | Promise<T>;
 
-  // TODO(misko): Concern: When in `cjs` mode we should be using require?
-  const promise = (
-    typeof __mockImport === 'function'
-      ? __mockImport(importPath + '.js', doc)
-      : import(importPath + '.js')
-  ).then((module) => {
+  const promise = corePlatform.import!(importPath).then((module) => {
     const handler = module[exportName];
     if (!handler)
       throw qError(
@@ -75,20 +69,6 @@ export function toUrl(doc: Document, url: string | QRL | URL): URL {
   } else {
     return url as URL;
   }
-}
-
-/**
- * Removes URL decorations such as search and hash, and normalizes extensions,
- * returning naked URL for importing.
- *
- * @param url - to clean.
- * @returns naked URL.
- */
-export function toImportPath(url: URL): string {
-  const tmp = new URL(String(url));
-  tmp.hash = '';
-  tmp.search = '';
-  return String(tmp).replace(/\.(ts|tsx)$/, '.js');
 }
 
 /**

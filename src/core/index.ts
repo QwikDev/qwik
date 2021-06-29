@@ -14,4 +14,5 @@ export * from './render/index';
 export * from './render/jsx/index';
 export * from './entity/index';
 export * from './provider/index';
+export * from './platform/index';
 export { dirname } from './util/dirname';

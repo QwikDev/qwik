@@ -1,3 +1,4 @@
+/* eslint-disable */
 /**
  * @license
  * Copyright Builder.io, Inc. All Rights Reserved.
@@ -6,58 +7,66 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { EMPTY_OBJ } from '../../util/flyweight.js';
-import type { QRL } from '../../import/qrl.js';
-import type { Props } from '../../injector/types.js';
-import type { JSXFactory, JSXNode } from './types.js';
-import { AttributeMarker } from '../../util/markers.js';
-import type { JSXBase } from './html_base.js';
-import { flattenArray } from '../../util/array.js';
+import type { QRL } from '../../import/qrl';
+import { AttributeMarker } from '../../util/markers';
+import { EMPTY_ARRAY } from '../../util/flyweight';
+import type { FunctionalComponent, JSXNode, JSXInternal } from './types';
+import { jsx } from './jsx-runtime';
 
-class JSXNode_<T extends string | null | JSXFactory | unknown> {
-  public tag: T;
-  public props: Props;
-  public children: Array<any>;
+/**
+ * @public
+ */
+export function h(
+  type: string | FunctionalComponent,
+  props: any,
+  ...children: any[]
+): JSXNode<any> {
+  // Using legacy h() jsx transform and morphing it
+  // so it can use the modern vdom structure
+  // https://reactjs.org/blog/2020/09/22/introducing-the-new-jsx-transform.html
+  // https://www.typescriptlang.org/tsconfig#jsxImportSource
 
-  constructor(tag: T, props: Props | null, children: Array<string | JSXNode_<unknown>>) {
-    this.tag = tag;
-    this.props = props || EMPTY_OBJ;
-    this.children = children;
+  const normalizedProps: any = {};
+  let key: any;
+  let i: any;
+
+  for (i in props) {
+    if (i == 'key') key = props[i];
+    else normalizedProps[i] = props[i];
   }
-}
 
-export function isJSXNode(node: any): node is JSXNode<unknown> {
-  return node instanceof JSXNode_;
+  if (arguments.length > 2) {
+    normalizedProps.children = arguments.length > 3 ? slice.call(arguments, 2) : children;
+  }
+
+  // pass to the modern jsx transform, externally found at @builder.io/qwik/jsx-runtime
+  return jsx(type, normalizedProps, key);
 }
 
 /**
- * Factory function used by the TSX.
- *
- * ```
- * return <div></div>;
- * ```
- *
- * gets translated to
- * ```
- * return jsxFactory('div', {});
- * ```
- *
- * By TypeScript
- *
- *
- * @param tag - Tag name (or another function producing JSX)
- * @param props - Properties of the JSX node
- * @param children - Children of the JSX node
- * @returns `JSXNode`
  * @public
  */
-export function jsxFactory<T extends string | null | JSXFactory | unknown>(
-  tag: T,
-  props: Props,
-  ...children: any[]
-): JSXNode<T> {
-  return new JSXNode_(tag, props, flattenArray(children));
+export declare namespace h {
+  export function h(type: any): JSXNode<any>;
+  export function h(type: Node, data: any): JSXNode<any>;
+  export function h(type: any, text: string): JSXNode<any>;
+  export function h(type: any, children: Array<any>): JSXNode<any>;
+  export function h(type: any, data: any, text: string): JSXNode<any>;
+  export function h(
+    type: any,
+    data: any,
+    children: Array<JSXNode<any> | undefined | null>
+  ): JSXNode<any>;
+  export function h(sel: any, data: any | null, children: JSXNode<any>): JSXNode<any>;
+
+  export namespace JSX {
+    interface IntrinsicElements extends JSXInternal.IntrinsicElements {
+      [tagName: string]: any;
+    }
+  }
 }
+
+const slice = EMPTY_ARRAY.slice;
 
 /**
  * Declares a JSX Qwik component.
@@ -110,8 +119,8 @@ export function jsxDeclareComponent<P>(
   tagName: string = 'div',
   hostProps?: { [property: string]: string | QRL }
 ) {
-  return function (props: P & JSXBase): JSXNode<string> {
-    return jsxFactory(tagName, {
+  return function (props: P & any): JSXNode<string> {
+    return h(tagName, {
       [AttributeMarker.ComponentTemplate]: componentTemplateQrl,
       ...(hostProps as any),
       ...props,

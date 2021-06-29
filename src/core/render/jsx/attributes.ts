@@ -29,7 +29,7 @@ export function applyAttributes(
   if (props) {
     let bindMap: Map<string, string> | null = null;
     for (const key in props) {
-      if (Object.prototype.hasOwnProperty.call(props, key)) {
+      if (key !== 'children' && Object.prototype.hasOwnProperty.call(props, key)) {
         const kebabKey = fromCamelToKebabCase(key);
         const value = (props as any)[key];
         if (key === AttributeMarker.Entity) {

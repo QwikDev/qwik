@@ -18,6 +18,7 @@ import { AttributeMarker } from '../../util/markers';
 import { flattenPromiseTree, isPromise } from '../../util/promises';
 import type { HostElements } from '../types';
 import { jsxRenderComponent } from './render';
+import { global } from '../../util/global';
 
 /**
  * Marks `Component` or `Entity` dirty.
@@ -77,18 +78,13 @@ export function markComponentDirty(component: Component<any, any>): Promise<Host
  */
 export function markElementDirty(host: Element): Promise<HostElements> {
   const doc = host.ownerDocument as QDocument;
-  const promise = doc[ScheduledRender];
 
   host.setAttribute(
     AttributeMarker.EventRender,
     host.getAttribute(AttributeMarker.ComponentTemplate)!
   );
 
-  if (isPromise(promise)) {
-    return promise;
-  } else {
-    return scheduleRender(doc);
-  }
+  return scheduleRender(doc);
 }
 
 /**
@@ -130,33 +126,35 @@ export function toAttrQuery(key: string): any {
  * @internal
  */
 export function scheduleRender(doc: QDocument): Promise<HostElements> {
-  const promise = doc[ScheduledRender];
-  if (promise) return promise;
+  const scheduledRender = doc[ScheduledRender];
+  if (scheduledRender) {
+    return scheduledRender;
+  } else {
+    const requestAnimationFrame = doc.defaultView!.requestAnimationFrame!;
+    if (global.qDev && !requestAnimationFrame) {
+      throw qError(QError.Render_noRAF);
+    }
 
-  const requestAnimationFrame = doc.defaultView!.requestAnimationFrame!;
-  if (!requestAnimationFrame) {
-    throw qError(QError.Render_noRAF);
+    return (doc[ScheduledRender] = new Promise<HostElements>((resolve, reject) =>
+      requestAnimationFrame(() => {
+        doc[ScheduledRender] = null;
+
+        const waitOn: HostElements = [];
+        const componentHosts = doc.querySelectorAll(AttributeMarker.EventRenderSelector);
+        const hosts: HostElements = [];
+        componentHosts.forEach((host) => {
+          host.removeAttribute(AttributeMarker.EventRender);
+          const qrl = host.getAttribute(AttributeMarker.ComponentTemplate)! as any as QRL;
+          assertString(qrl);
+          const props: Props = extractPropsFromElement(host);
+          jsxRenderComponent(doc, host, qrl, waitOn, props);
+          hosts.push(host);
+        });
+
+        flattenPromiseTree(waitOn).then(() => resolve(hosts), reject);
+      })
+    ));
   }
-
-  return (doc[ScheduledRender] = new Promise<HostElements>((resolve, reject) =>
-    requestAnimationFrame(() => {
-      doc[ScheduledRender] = null;
-
-      const waitOn: HostElements = [];
-      const componentHosts = doc.querySelectorAll(AttributeMarker.EventRenderSelector);
-      const hosts: HostElements = [];
-      componentHosts.forEach((host) => {
-        host.removeAttribute(AttributeMarker.EventRender);
-        const qrl = host.getAttribute(AttributeMarker.ComponentTemplate)! as any as QRL;
-        assertString(qrl);
-        const props: Props = extractPropsFromElement(host);
-        jsxRenderComponent(host, qrl, waitOn, props);
-        hosts.push(host);
-      });
-
-      flattenPromiseTree(waitOn).then(() => resolve(hosts), reject);
-    })
-  ));
 }
 
 const ScheduledRender = /*@__PURE__*/ Symbol();

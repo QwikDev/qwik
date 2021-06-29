@@ -6,10 +6,9 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { expect } from 'chai';
-import { ElementFixture } from '../testing/element_fixture.js';
-import { EventInjector } from './event_injector.js';
-import { provideElement } from './provide_element.js';
+import { ElementFixture } from '@builder.io/qwik/testing';
+import { EventInjector } from './event_injector';
+import { provideElement } from './provide_element';
 
 describe('provideElement', () => {
   let fixture: ElementFixture;
@@ -24,6 +23,6 @@ describe('provideElement', () => {
   });
 
   it('should return element', async () => {
-    expect(await provideElement()(eventInjector)).to.equal(eventInjector.element);
+    expect(await provideElement()(eventInjector)).toEqual(eventInjector.element);
   });
 });

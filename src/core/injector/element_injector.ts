@@ -34,6 +34,9 @@ interface EntityValue {
   entity: Entity<any, any> | null;
 }
 
+/**
+ * @public
+ */
 export class ElementInjector extends BaseInjector {
   private component: Component<any, any> | null = null;
   private componentPromise: Promise<Component<any, any>> | null = null;

@@ -1,7 +1,7 @@
-import { dirname } from '../util/dirname.js';
+import { toFileUrl } from '@builder.io/qwik/testing';
 
 export const TEST_CONFIG = {
-  baseURI: dirname(import.meta.url),
+  baseURI: toFileUrl(__filename),
   protocol: {
     test: '../',
     import: '../import/',

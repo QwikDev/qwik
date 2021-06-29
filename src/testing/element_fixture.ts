@@ -6,9 +6,11 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import type { Injector } from '../index';
-import { ElementInjector } from '../injector/element_injector';
-import { createGlobal, QwikGlobal } from './node_utils';
+import type { Injector } from '@builder.io/qwik';
+import { ElementInjector } from '@builder.io/qwik';
+import { applyDocumentConfig } from './config';
+import { createGlobal } from './global';
+import type { MockDocument, MockGlobal, MockHTMLElement } from './types';
 
 /**
  * Creates a simple DOM structure for testing components.
@@ -25,12 +27,12 @@ import { createGlobal, QwikGlobal } from './node_utils';
  *
  */
 export class ElementFixture {
-  global: QwikGlobal;
-  document: Document;
-  superParent: HTMLElement;
-  parent: HTMLElement;
-  host: HTMLElement;
-  child: HTMLElement;
+  global: MockGlobal;
+  document: MockDocument;
+  superParent: MockHTMLElement;
+  parent: MockHTMLElement;
+  host: MockHTMLElement;
+  child: MockHTMLElement;
   hostInjector: Injector;
 
   constructor(options: ElementFixtureOptions = {}) {
@@ -48,27 +50,6 @@ export class ElementFixture {
 
     applyDocumentConfig(this.document, options);
   }
-}
-
-export function applyDocumentConfig(
-  doc: Document,
-  config: { baseURI?: string; protocol?: Record<string, string> }
-) {
-  if (config.baseURI) {
-    appendConfig(doc, `baseURI`, config.baseURI);
-  }
-  if (config.protocol) {
-    for (const protocol in config.protocol) {
-      appendConfig(doc, `protocol.${protocol}`, config.protocol[protocol]);
-    }
-  }
-}
-
-function appendConfig(doc: Document, key: string, value: string) {
-  const linkElm = doc.createElement('link');
-  linkElm.setAttribute(`rel`, `q.${key}`);
-  linkElm.setAttribute(`href`, value);
-  doc.head.appendChild(linkElm);
 }
 
 export interface ElementFixtureOptions {

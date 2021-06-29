@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { qDev } from '../util/qDev';
+import { global } from '../util/global';
 import type { ConcreteType, InjectedFunction, ProviderReturns } from './types';
 
 /**
@@ -45,7 +45,7 @@ export function injectFunction<ARGS extends any[], REST extends any[], RET>(
   const fn = args.pop() as any as InjectedFunction<null, ARGS, REST, RET>;
   fn.$thisType = null;
   fn.$inject = args as any;
-  qDev && (fn.$debugStack = new Error());
+  global.qDev && (fn.$debugStack = new Error());
   return fn;
 }
 
@@ -92,6 +92,6 @@ export function injectMethod<SELF, ARGS extends any[], REST extends any[], RET>(
   const fn = args.pop() as any as InjectedFunction<SELF, ARGS, REST, RET>;
   fn.$thisType = args.shift() as ConcreteType<SELF>;
   fn.$inject = args as any;
-  qDev && (fn.$debugStack = new Error());
+  global.qDev && (fn.$debugStack = new Error());
   return fn;
 }

@@ -8,6 +8,7 @@
 
 import { AttributeMarker } from '../util/markers';
 import { stringifyDebug } from './stringify';
+import { global } from '../util/global';
 
 export const enum QError {
   // core 000-099
@@ -70,15 +71,19 @@ export const enum QError {
 }
 
 export function qError(code: QError, ...args: any[]): Error {
-  const text = codeToText(code);
-  const parts = text.split('{}');
-  const error = parts
-    .map((value, index) => {
-      return value + (index === parts.length - 1 ? '' : stringifyDebug(args[index]));
-    })
-    .join('');
-  debugger; // eslint-disable-line no-debugger
-  return new Error(error);
+  if (global.qDev) {
+    const text = codeToText(code);
+    const parts = text.split('{}');
+    const error = parts
+      .map((value, index) => {
+        return value + (index === parts.length - 1 ? '' : stringifyDebug(args[index]));
+      })
+      .join('');
+    debugger; // eslint-disable-line no-debugger
+    return new Error(error);
+  } else {
+    return new Error(`QError ` + code);
+  }
 }
 
 function codeToText(code: QError): string {

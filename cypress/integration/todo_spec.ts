@@ -11,7 +11,10 @@
 describe('todo', () => {
   ['/todo/', '/todo/client.html'].forEach((url) => {
     describe(url, () => {
-      beforeEach(() => cy.visit(url));
+      beforeEach(() => {
+        cy.visit(url);
+        cy.wait(10);
+      });
       it('should start with 3 items', () => {
         cy.get('.todo-count > strong').should((strong) => expect(strong).to.have.text('3'));
       });
@@ -74,6 +77,20 @@ describe('todo', () => {
         cy.get('footer li:first').click();
         cy.get('.clear-completed').click();
         cy.get('.main li').should('have.length', 2);
+      });
+
+      it('should properly clear completed items', () => {
+        // Mark as completed
+        cy.get('.todo-list>li:nth-child(2) input').click();
+        cy.get('.todo-count > strong').should((strong) => expect(strong).to.have.text('2'));
+
+        // click completed
+        cy.get('footer li:first').click();
+        cy.get('.clear-completed').click();
+        cy.get('.main li').should('have.length', 2);
+
+        // assert nothing is checked
+        cy.get('input[type=checkbox]').should((input) => expect(input).not.to.be.checked);
       });
     });
   });

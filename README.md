@@ -20,6 +20,8 @@ An Open-Source framework designed for best possible [time to interactive](https:
 ## Blog Posts
 
 - [A first look at Qwik - the HTML first framework](https://dev.to/mhevery/a-first-look-at-qwik-the-html-first-framework-af)
+- [Death by Closure (and how Qwik solves it)
+](https://dev.to/mhevery/death-by-closure-and-how-qwik-solves-it-44jj)
 
 ## Community
 

@@ -17,6 +17,10 @@ An Open-Source framework designed for best possible [time to interactive](https:
 - Understand the difference between [resumable and replayable](https://github.com/BuilderIO/qwik/blob/main/docs/RESUMABLE.md) applications.
 - Learn about Qwik's high level [mental model](https://github.com/BuilderIO/qwik/blob/main/docs/LAZY_LOADING.md).
 
+## Blog Posts
+
+- [A first look at Qwik - the HTML first framework](https://dev.to/mhevery/a-first-look-at-qwik-the-html-first-framework-af)
+
 ## Community
 
 Join our [discord](https://discord.gg/JHVpZmqSs4) community.

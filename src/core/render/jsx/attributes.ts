@@ -150,11 +150,13 @@ export function setAttribute(element: Element, key: string, value: any, kebabKey
   } else if (key === 'innerHTML' || key === 'innerText') {
     element.setAttribute(kebabKey!, '');
     (element as any)[key] = value;
-  } else if (element.tagName === 'INPUT' && key.indexOf(':') == -1) {
-    element.setAttribute(key, String(value));
-    (element as any)[key] = value;
   } else {
     element.setAttribute(key, String(value));
+  }
+  if ((key == 'value' || key == 'checked') && element.tagName === 'INPUT') {
+    // INPUT properties `value` and `checked` are special because they can go out of sync
+    // between the attribute and what the user entered, so they have special treatment.
+    (element as any)[key] = value;
   }
 }
 

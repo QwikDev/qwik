@@ -21,7 +21,7 @@ export async function serverMain(document: Document) {
     <html>
       <head>
         <title>ToDo Application</title>
-        <script src="/qwikloader.js" type="module" events="click;dblclick;keyup;blur"></script>
+        <script src="/qwikloader.min.js" type="module" events="click;dblclick;keyup;blur"></script>
         <link rel="q.protocol.ui" href="./ui" />
         <link rel="q.protocol.data" href="./data" />
         <link rel="q.protocol.base" href="./" />

@@ -33,6 +33,10 @@ export abstract class BaseInjector implements Injector {
     self?: SELF | null,
     ...rest: REST
   ): Promise<RET> {
+    if ((fn as any).default) {
+      fn = (fn as any).default;
+    }
+
     if (isInjectedFunction(fn)) {
       try {
         const selfType = fn.$thisType;
@@ -52,7 +56,7 @@ export abstract class BaseInjector implements Injector {
           (values: any[]) => {
             return (fn as any).apply(values.shift(), values.concat(rest));
           },
-          (error) => Promise.reject(addDeclaredInfo(fn, error))
+          (error) => Promise.reject(addDeclaredInfo(fn as any, error))
         );
       } catch (e) {
         throw addDeclaredInfo(fn, e);

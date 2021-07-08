@@ -123,13 +123,7 @@ function visitJSXDomNode(
     inputPropChangesDetected;
   if (componentUrl && inputPropChangesDetected) {
     // TODO: better way of converting string to QRL.
-    jsxRenderComponent(
-      reconcileElement,
-      componentUrl as any as QRL,
-      waitOn,
-      jsxNode.props,
-      document
-    );
+    jsxRenderComponent(reconcileElement, componentUrl as any as QRL, waitOn, jsxNode.props);
   }
   if (!componentUrl && !('innerHTML' in jsxNode.props || 'innerText' in jsxNode.props)) {
     // we don't process children if we have a component, as component is responsible for projection.
@@ -148,8 +142,7 @@ export function jsxRenderComponent(
   hostElement: Element,
   componentUrl: QRL,
   waitOn: AsyncHostElementPromises,
-  props: Props,
-  overrideDocument: Document = document
+  props: Props
 ) {
   // we need to render child component only if the inputs to the component changed.
   const componentOrPromise = qImport<JSXFactory>(hostElement, componentUrl);
@@ -158,7 +151,7 @@ export function jsxRenderComponent(
       componentOrPromise.then((component) => {
         const waitOn = [hostElement];
         visitJSXComponentNode(
-          overrideDocument,
+          hostElement.ownerDocument,
           waitOn,
           hostElement,
           hostElement.firstChild,
@@ -170,7 +163,7 @@ export function jsxRenderComponent(
     );
   } else {
     visitJSXComponentNode(
-      overrideDocument,
+      hostElement.ownerDocument,
       waitOn,
       hostElement,
       hostElement.firstChild,

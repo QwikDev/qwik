@@ -150,7 +150,7 @@ export function scheduleRender(doc: QDocument): Promise<HostElements> {
         const qrl = host.getAttribute(AttributeMarker.ComponentTemplate)! as any as QRL;
         qDev && assertString(qrl);
         const props: Props = extractPropsFromElement(host);
-        jsxRenderComponent(host, qrl, waitOn, props, doc);
+        jsxRenderComponent(host, qrl, waitOn, props);
         hosts.push(host);
       });
 

@@ -6,17 +6,17 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { createGlobal, MockGlobal, MockHTMLElement } from '@builder.io/qwik/testing';
+import { createDocument, MockDocument } from '@builder.io/qwik/testing';
 import { h } from './factory';
 import { jsxRender } from './render';
 
 describe('legacy jsxFactory render', () => {
-  let global: MockGlobal;
-  let host: MockHTMLElement;
+  let doc: MockDocument;
+  let host: HTMLElement;
 
   beforeEach(() => {
-    global = createGlobal();
-    host = global.document.createElement('host');
+    doc = createDocument();
+    host = doc.createElement('host');
   });
 
   it('empty div', () => {

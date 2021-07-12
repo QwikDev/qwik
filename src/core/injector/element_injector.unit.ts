@@ -12,9 +12,8 @@ import type { EntityKey } from '../entity/entity_key';
 import { stringifyDebug } from '../error/stringify';
 import { QRL } from '../import/qrl';
 import { Entity, Injector } from '../index';
-import { serializeState } from '../render/serialize_state';
 import { Greeter, GreeterComponent, GreeterProps } from '../util/test_component_fixture';
-import { ElementFixture } from '@builder.io/qwik/testing';
+import { ElementFixture, serializeState } from '@builder.io/qwik/testing';
 import { AttributeMarker } from '../util/markers';
 import { getClosestInjector, getInjector } from './element_injector';
 

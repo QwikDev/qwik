@@ -12,8 +12,7 @@ import { stringifyDebug } from '../error/stringify';
 import { QRL } from '../import/qrl';
 import { getInjector } from '../injector/element_injector';
 import { injectMethod } from '../injector/inject';
-import { serializeState } from '../render/serialize_state';
-import { ElementFixture } from '@builder.io/qwik/testing';
+import { ElementFixture, serializeState } from '@builder.io/qwik/testing';
 import { Entity, EntityConstructor } from './entity';
 import type { EntityKey } from './entity_key';
 

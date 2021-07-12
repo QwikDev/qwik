@@ -346,7 +346,7 @@ export namespace JSXInternal {
     decoding?: 'sync' | 'async' | 'auto';
     draggable?: boolean;
     encType?: string;
-    events?: string;
+    events?: string[];
     form?: string;
     formAction?: string;
     formEncType?: string;

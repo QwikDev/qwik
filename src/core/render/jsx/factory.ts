@@ -10,23 +10,23 @@
 import type { QRL } from '../../import/qrl';
 import { AttributeMarker } from '../../util/markers';
 import { EMPTY_ARRAY } from '../../util/flyweight';
-import type { FunctionalComponent, JSXNode, JSXInternal } from './types';
-import { jsx } from './jsx-runtime';
+import type { FunctionComponent, JSXNode, JSXInternal } from './types';
+import { JSXNodeImpl } from './jsx-runtime';
+import { flattenArray } from '../../util/array';
 
 /**
  * @public
  */
-export function h(
-  type: string | FunctionalComponent,
-  props: any,
-  ...children: any[]
-): JSXNode<any> {
+export function h(type: string | FunctionComponent, props: any, ...children: any[]) {
   // Using legacy h() jsx transform and morphing it
   // so it can use the modern vdom structure
   // https://reactjs.org/blog/2020/09/22/introducing-the-new-jsx-transform.html
   // https://www.typescriptlang.org/tsconfig#jsxImportSource
 
-  const normalizedProps: any = {};
+  const normalizedProps: any = {
+    children: arguments.length > 2 ? flattenArray(children) : EMPTY_ARRAY,
+  };
+
   let key: any;
   let i: any;
 
@@ -35,12 +35,7 @@ export function h(
     else normalizedProps[i] = props[i];
   }
 
-  if (arguments.length > 2) {
-    normalizedProps.children = arguments.length > 3 ? slice.call(arguments, 2) : children;
-  }
-
-  // pass to the modern jsx transform, externally found at @builder.io/qwik/jsx-runtime
-  return jsx(type, normalizedProps, key);
+  return new JSXNodeImpl(type, normalizedProps, key);
 }
 
 /**
@@ -124,6 +119,6 @@ export function jsxDeclareComponent<P>(
       [AttributeMarker.ComponentTemplate]: componentTemplateQrl,
       ...(hostProps as any),
       ...props,
-    });
+    }) as any;
   };
 }

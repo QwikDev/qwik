@@ -1,6 +1,7 @@
 import { assertDefined } from '../assert/assert';
 import { QRL } from '../import';
 import { toFileUrl } from '@builder.io/qwik/testing';
+import { h } from '@builder.io/qwik';
 import { Component } from '../component';
 import { Entity } from '../entity';
 

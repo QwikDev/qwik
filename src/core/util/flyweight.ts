@@ -6,14 +6,12 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { global } from './global';
+import { qDev } from './qdev';
 
 export const EMPTY_ARRAY = [];
-if (global.qDev) {
-  Object.freeze(EMPTY_ARRAY);
-}
-
 export const EMPTY_OBJ = {};
-if (global.qDev) {
+
+if (qDev) {
+  Object.freeze(EMPTY_ARRAY);
   Object.freeze(EMPTY_OBJ);
 }

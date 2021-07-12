@@ -7,6 +7,7 @@
  */
 
 import { qError, QError } from '../error/error';
+import { getParentElement } from './dom';
 
 /**
  * Read attributes from `Element` and return them as an object literal.
@@ -61,7 +62,7 @@ export function findAttribute<RET1, RET2>(
         return callbackSecondary(cursor, attributeSecondary, attrValueSecondary);
       }
     }
-    cursor = cursor.parentElement;
+    cursor = getParentElement(cursor);
   }
   throw attributeSecondary
     ? qError(qNotFoundError, attributePrimary, attributeSecondary, element)

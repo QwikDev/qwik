@@ -21,12 +21,16 @@ export type ComponentChildren = ComponentChild[] | ComponentChild;
 /**
  * @public
  */
-export type RenderableProps<P, RefType = any> = P & Readonly<{ children?: ComponentChildren }>;
+export type RenderableProps<
+  P,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  RefType = any
+> = P & Readonly<{ children?: ComponentChildren }>;
 
 /**
  * @public
  */
-export interface FunctionalComponent<P = {}> {
+export interface FunctionComponent<P = {}> {
   (props: RenderableProps<P>): JSXNode<any> | null;
 }
 

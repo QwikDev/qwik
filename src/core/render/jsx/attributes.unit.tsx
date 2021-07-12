@@ -6,23 +6,18 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
+import { h } from '@builder.io/qwik';
 import { stringifyDebug } from '../../error/stringify';
-import {
-  createGlobal,
-  ComponentFixture,
-  ElementFixture,
-  MockHTMLElement,
-  MockHTMLInputElement,
-} from '@builder.io/qwik/testing';
+import { createDocument, ComponentFixture, ElementFixture } from '@builder.io/qwik/testing';
 import { applyAttributes, setAttribute, stringifyClassOrStyle } from './attributes';
 
 describe('attributes', () => {
-  let host: MockHTMLElement;
-  let input: MockHTMLInputElement;
+  let host: HTMLElement;
+  let input: HTMLInputElement;
   beforeEach(() => {
-    const global = createGlobal();
-    host = global.document.createElement('host');
-    input = global.document.createElement('input');
+    const doc = createDocument();
+    host = doc.createElement('host');
+    input = doc.createElement('input');
   });
 
   describe('applyAttributes()', () => {

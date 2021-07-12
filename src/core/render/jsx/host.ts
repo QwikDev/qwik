@@ -7,7 +7,7 @@
  */
 
 import type { JSXInternal } from './types/jsx';
-import type { FunctionalComponent } from './types';
+import type { FunctionComponent } from './types';
 
 /**
  * Place at the root of the component View to allow binding of attributes on the Host element.
@@ -24,6 +24,6 @@ import type { FunctionalComponent } from './types';
  * servers that purpose.
  * @public
  */
-export const Host: FunctionalComponent<
+export const Host: FunctionComponent<
   JSXInternal.HTMLAttributes | JSXInternal.SVGAttributes | Record<string, any>
 > = {} as any;

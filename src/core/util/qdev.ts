@@ -6,8 +6,4 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-export const global: QwikGlobal = globalThis as any;
-
-export interface QwikGlobal {
-  qDev: boolean;
-}
+export const qDev = (globalThis as any).qDev !== false;

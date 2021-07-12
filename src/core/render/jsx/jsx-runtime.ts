@@ -1,20 +1,21 @@
 import { EMPTY_ARRAY } from '../../util/flyweight';
-import type { ComponentChild, FunctionalComponent, JSXInternal, JSXNode } from './types';
+import type { ComponentChild, FunctionComponent, JSXInternal, JSXNode } from './types';
+import { qDev } from '../../util/qdev';
 
 /**
  * @public
  */
 export function jsx(
-  type: string | FunctionalComponent,
+  type: string | FunctionComponent,
   props: JSXInternal.SVGAttributes &
     JSXInternal.HTMLAttributes &
-    Record<string, any> & { children?: ComponentChild[] },
+    Record<string, any> & { children?: ComponentChild[] | ComponentChild },
   key?: string
 ) {
   return new JSXNodeImpl(type, props, key);
 }
 
-class JSXNodeImpl<T> implements JSXNode<T> {
+export class JSXNodeImpl<T> implements JSXNode<T> {
   children: any;
 
   constructor(public type: T, public props: any, public key: any) {
@@ -30,7 +31,19 @@ class JSXNodeImpl<T> implements JSXNode<T> {
   }
 }
 
-export const isJSXNode = (n: any): n is JSXNode<unknown> => n instanceof JSXNodeImpl;
+export const isJSXNode = (n: any): n is JSXNode<unknown> => {
+  if (qDev) {
+    if (n instanceof JSXNodeImpl) {
+      return true;
+    }
+    if (n && typeof n === 'object' && n.constructor.name === JSXNodeImpl.name) {
+      throw new Error(`Duplicate implementations of "JSXNodeImpl" found`);
+    }
+    return false;
+  } else {
+    return n instanceof JSXNodeImpl;
+  }
+};
 
 /**
  * @public

@@ -2,7 +2,7 @@ export type { JSXInternal } from './jsx';
 export type {
   ComponentChild,
   ComponentChildren,
-  FunctionalComponent,
+  FunctionComponent,
   JSXFactory,
   JSXNode,
   RenderableProps,

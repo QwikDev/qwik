@@ -15,10 +15,10 @@ import type { Props } from '../../injector/types';
 import { isEntity, Entity } from '../../entity/entity';
 import { extractPropsFromElement } from '../../util/attributes';
 import { AttributeMarker } from '../../util/markers';
-import { flattenPromiseTree, isPromise } from '../../util/promises';
+import { flattenPromiseTree } from '../../util/promises';
 import type { HostElements } from '../types';
 import { jsxRenderComponent } from './render';
-import { global } from '../../util/global';
+import { getPlatform } from '../../platform/platform';
 
 /**
  * Marks `Component` or `Entity` dirty.
@@ -77,14 +77,11 @@ export function markComponentDirty(component: Component<any, any>): Promise<Host
  * @internal
  */
 export function markElementDirty(host: Element): Promise<HostElements> {
-  const doc = host.ownerDocument as QDocument;
-
   host.setAttribute(
     AttributeMarker.EventRender,
     host.getAttribute(AttributeMarker.ComponentTemplate)!
   );
-
-  return scheduleRender(doc);
+  return scheduleRender(host.ownerDocument);
 }
 
 /**
@@ -92,7 +89,7 @@ export function markElementDirty(host: Element): Promise<HostElements> {
  */
 export function markEntityDirty(entity: Entity<any, any>): Promise<HostElements> {
   const key = entity.$key;
-  const doc = entity.$element.ownerDocument as QDocument;
+  const doc = entity.$element.ownerDocument;
   let foundListener = false;
   doc
     .querySelectorAll(toAttrQuery(AttributeMarker.BindPrefix + key))
@@ -107,6 +104,7 @@ export function markEntityDirty(entity: Entity<any, any>): Promise<HostElements>
 
   return foundListener ? scheduleRender(doc) : Promise.resolve([]);
 }
+
 /**
  * Convert the key to an attribute query that can be used in `querySelectorAll()`.
  * @internal
@@ -125,40 +123,25 @@ export function toAttrQuery(key: string): any {
  * @returns a `Promise` of all of the `HostElements` which were re-rendered.
  * @internal
  */
-export function scheduleRender(doc: QDocument): Promise<HostElements> {
-  const scheduledRender = doc[ScheduledRender];
-  if (scheduledRender) {
-    return scheduledRender;
-  } else {
-    const requestAnimationFrame = doc.defaultView!.requestAnimationFrame!;
-    if (global.qDev && !requestAnimationFrame) {
-      throw qError(QError.Render_noRAF);
-    }
-
-    return (doc[ScheduledRender] = new Promise<HostElements>((resolve, reject) =>
-      requestAnimationFrame(() => {
-        doc[ScheduledRender] = null;
-
-        const waitOn: HostElements = [];
-        const componentHosts = doc.querySelectorAll(AttributeMarker.EventRenderSelector);
-        const hosts: HostElements = [];
-        componentHosts.forEach((host) => {
-          host.removeAttribute(AttributeMarker.EventRender);
-          const qrl = host.getAttribute(AttributeMarker.ComponentTemplate)! as any as QRL;
-          assertString(qrl);
-          const props: Props = extractPropsFromElement(host);
-          jsxRenderComponent(doc, host, qrl, waitOn, props);
-          hosts.push(host);
-        });
-
-        flattenPromiseTree(waitOn).then(() => resolve(hosts), reject);
-      })
-    ));
-  }
+export function scheduleRender(doc: Document): Promise<HostElements> {
+  return getPlatform(doc).queueRender(renderMarked);
 }
 
-const ScheduledRender = /*@__PURE__*/ Symbol();
+async function renderMarked(doc: Document) {
+  const waitOn: HostElements = [];
+  const hosts = Array.from(
+    doc.querySelectorAll(AttributeMarker.EventRenderSelector)
+  ) as HostElements;
 
-interface QDocument extends Document {
-  [ScheduledRender]?: Promise<HostElements> | null;
+  for (const host of hosts) {
+    host.removeAttribute(AttributeMarker.EventRender);
+    const qrl = host.getAttribute(AttributeMarker.ComponentTemplate)! as any as QRL;
+    const props: Props = extractPropsFromElement(host);
+    assertString(qrl);
+    jsxRenderComponent(doc, host, qrl, waitOn, props);
+  }
+
+  await flattenPromiseTree(waitOn);
+
+  return hosts;
 }

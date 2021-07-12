@@ -9,10 +9,10 @@
 export { h, jsxDeclareComponent } from './factory';
 export { jsxRender } from './render';
 export { markDirty } from './mark_dirty';
-export {
+export type {
   ComponentChild,
   ComponentChildren,
-  FunctionalComponent,
+  FunctionComponent,
   JSXFactory,
   RenderableProps,
   JSXNode,

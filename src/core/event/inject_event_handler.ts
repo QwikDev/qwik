@@ -8,7 +8,7 @@
 
 import type { QRL } from '../import/qrl';
 import type { InjectedFunction, ProviderReturns } from '../injector/types';
-import { global } from '../util/global';
+import { qDev } from '../util/qdev';
 import { EventInjector } from './event_injector';
 import type { EventHandler } from './types';
 
@@ -51,7 +51,7 @@ export function injectEventHandler<SELF, ARGS extends any[], RET>(
   const injectedFunction = args.pop() as any as InjectedFunction<SELF, ARGS, [], RET>;
   const thisType = (injectedFunction.$thisType = args.shift() as any);
   injectedFunction.$inject = args as any;
-  global.qDev && (injectedFunction.$debugStack = new Error());
+  qDev && (injectedFunction.$debugStack = new Error());
   const eventHandler = function eventHandler(
     element: HTMLElement,
     event: Event,

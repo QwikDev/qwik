@@ -28,6 +28,7 @@ import { AttributeMarker } from '../util/markers';
 import { isHtmlElement } from '../util/types';
 import { BaseInjector } from './base_injector';
 import type { Injector } from './types';
+import { getParentElement } from '../util/dom';
 
 interface EntityValue {
   promise: EntityPromise<Entity<any, any>>;
@@ -43,7 +44,7 @@ export class ElementInjector extends BaseInjector {
   private entities: Map<EntityKey, EntityValue> | null = null;
 
   getParent(): Injector | null {
-    let element = this.element.parentElement;
+    let element = getParentElement(this.element);
     while (element) {
       if (
         element.hasAttribute(AttributeMarker.Injector) ||
@@ -51,7 +52,7 @@ export class ElementInjector extends BaseInjector {
       ) {
         return getInjector(element);
       }
-      element = element.parentElement;
+      element = getParentElement(element);
     }
     return null;
   }
@@ -266,7 +267,7 @@ function toEntityPromise<SERVICE extends Entity<any, any>>(
 export function getComponentHost(element: Element): Element {
   let cursor: Element | null = element;
   while (cursor && !cursor.hasAttribute(AttributeMarker.ComponentTemplate)) {
-    cursor = cursor.parentElement;
+    cursor = getParentElement(cursor);
   }
   if (!cursor) {
     throw qError(QError.Injector_noHost_element, element);
@@ -324,7 +325,7 @@ export function getClosestInjector(
     ) {
       return getInjector(cursor) as ElementInjector;
     }
-    cursor = cursor.parentElement;
+    cursor = getParentElement(cursor);
   }
   if (throwIfNotFound) {
     throw qError(QError.Injector_notFound_element, element);

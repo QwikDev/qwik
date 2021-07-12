@@ -8,33 +8,26 @@
 
 import { stringifyDebug } from '../../error/stringify';
 import { GreeterComponent, PersonEntity } from '../../util/test_component_fixture';
-import {
-  ElementFixture,
-  MockDocument,
-  MockGlobal,
-  MockHTMLElement,
-} from '@builder.io/qwik/testing';
+import { ElementFixture, MockDocument, getTestPlatform } from '@builder.io/qwik/testing';
 import { AttributeMarker } from '../../util/markers';
 import { markDirty, markEntityDirty, scheduleRender, toAttrQuery } from './mark_dirty';
 
 describe('mark_dirty', () => {
-  let host: MockHTMLElement;
-  let win: MockGlobal;
+  let host: HTMLElement;
   let doc: MockDocument;
   let fixture: ElementFixture;
   let greeterComponent: GreeterComponent;
   beforeEach(async () => {
     fixture = new ElementFixture();
     host = fixture.host;
-    doc = host.ownerDocument;
-    win = doc.defaultView!;
+    doc = fixture.document;
     greeterComponent = await GreeterComponent.$new(fixture.host);
   });
 
   describe('markComponentDirty', () => {
-    it('should schedule rAF and return list of components', async () => {
+    it('should schedule render and return list of components', async () => {
       const elementsPromise = markDirty(greeterComponent);
-      await win.requestAnimationFrame.flush();
+      await getTestPlatform(doc).flush();
       expect(stringifyDebug(await elementsPromise)).toEqual(stringifyDebug([fixture.host]));
     });
   });
@@ -54,7 +47,7 @@ describe('mark_dirty', () => {
       fixture.host.setAttribute('salutation', 'Hello');
       fixture.host.setAttribute('name', 'World');
       const elementsPromise = markDirty(greeterComponent);
-      win.requestAnimationFrame.flush();
+      await getTestPlatform(doc).flush();
       expect(stringifyDebug(await elementsPromise)).toEqual(stringifyDebug([fixture.host]));
       expect(fixture.host.innerHTML).toEqual('<span>Hello World!</span>');
     });
@@ -67,30 +60,22 @@ describe('mark_dirty', () => {
   });
 
   describe('scheduleRender', () => {
-    it('should schedule rAF and return empty list of no render', async () => {
+    it('should schedule render and return empty list of no render', async () => {
       const elementsPromise = scheduleRender(doc);
-      win.requestAnimationFrame.flush();
+      await getTestPlatform(doc).flush();
       expect(await elementsPromise).toEqual([]);
     });
-    it('should schedule rAF and return list of components', async () => {
+    it('should schedule render and return list of components', async () => {
       const elementsPromise = scheduleRender(doc);
       fixture.host.setAttribute(AttributeMarker.EventRender, '');
-      win.requestAnimationFrame.flush();
+      await getTestPlatform(doc).flush();
       expect(stringifyDebug(await elementsPromise)).toEqual(stringifyDebug([fixture.host]));
     });
   });
   describe('error', () => {
-    beforeEach(() => {
-      win.requestAnimationFrame = null!;
-    });
     it('should throw error if neither Component nor Entity', () => {
       expect(() => markDirty({ mark: 'other' } as any)).toThrow(
         `RENDER-ERROR(Q-604): Expecting Entity or Component got '{"mark":"other"}'.`
-      );
-    });
-    it('should throw error rAF is not available (server)', () => {
-      expect(() => scheduleRender(doc)).toThrow(
-        "RENDER-ERROR(Q-605): 'requestAnimationFrame' not found. If you are running on server design your applications in a way which does not require 'requestAnimationFrame' on first render."
       );
     });
     it('should throw an error if bind:_ is not on a component', async () => {
@@ -101,7 +86,7 @@ describe('mark_dirty', () => {
       host.setAttribute(AttributeMarker.BindPrefix + personService.$key, '$person');
       host.removeAttribute(AttributeMarker.ComponentTemplate);
       expect(() => markEntityDirty(personService)).toThrow(
-        `RENDER-ERROR(Q-606): Expecting that element with 'bind:person:-last:-first' should be a component (should have 'decl:template="qrl"' attribute): <host : bind:person:-last:-first='$person'>`
+        `RENDER-ERROR(Q-605): Expecting that element with 'bind:person:-last:-first' should be a component (should have 'decl:template="qrl"' attribute): <host : bind:person:-last:-first='$person'>`
       );
     });
   });

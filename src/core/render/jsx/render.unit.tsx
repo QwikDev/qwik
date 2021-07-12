@@ -11,27 +11,23 @@ import { QRL } from '../../import/qrl';
 import {
   ElementFixture,
   applyDocumentConfig,
-  createGlobal,
-  MockGlobal,
+  createDocument,
   MockDocument,
-  MockHTMLElement,
 } from '@builder.io/qwik/testing';
-import { jsxDeclareComponent } from './factory';
-import { jsx } from './jsx-runtime';
+import { jsxDeclareComponent, h } from './factory';
+import { jsx, Fragment } from './jsx-runtime';
 import { Host } from './host';
 import { jsxRender } from './render';
 
 // TODO(test): add test where `<Foo>` => `async function Foo`
 
 describe('render', () => {
-  let global: MockGlobal;
   let doc: MockDocument;
-  let host: MockHTMLElement;
+  let host: HTMLElement;
 
   beforeEach(() => {
-    global = createGlobal();
-    host = global.document.createElement('host');
-    doc = global.document;
+    doc = createDocument();
+    host = doc.createElement('host');
     applyDocumentConfig(doc, TEST_CONFIG);
   });
 

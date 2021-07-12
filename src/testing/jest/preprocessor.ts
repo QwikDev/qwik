@@ -2,27 +2,27 @@ import { extname } from 'path';
 import { Optimizer } from '@builder.io/qwik/optimizer';
 
 const jestPreprocessor = {
-  process(code: string, filePath: string, jestConfig: { rootDir: string }) {
+  process(text: string, filePath: string, jestConfig: { rootDir: string }) {
     const ext = extname(filePath).toLowerCase();
 
     if (ext === '.d.ts') {
       return '';
     }
 
-    if (this._shouldTransform(ext, code)) {
+    if (this._shouldTransform(ext, text)) {
       const optimizer = this._getOptimizer(jestConfig.rootDir);
 
-      const results = optimizer.transformModule({
-        code,
+      const results = optimizer.transformModuleSync({
+        text,
         filePath,
         module: 'cjs',
         sourcemap: 'inline',
       });
 
-      return results.code;
+      return results.text;
     }
 
-    return code;
+    return text;
   },
 
   getCacheKey(
@@ -30,16 +30,18 @@ const jestPreprocessor = {
     filePath: string,
     transformOptions: { instrument: boolean; rootDir: string; configString: string }
   ): string {
-    // https://github.com/facebook/jest/blob/v23.6.0/packages/jest-runtime/src/script_transformer.js#L61-L90
     if (!this._cacheKey) {
       const optimizer = this._getOptimizer(transformOptions.rootDir);
+      const ts = optimizer.getTypeScriptSync();
+      const tsconfig = optimizer.getTsconfigSync();
+
       this._cacheKey = JSON.stringify({
         n: process.version,
-        t: optimizer.getTypeScriptVersion(),
+        t: ts.version,
         j: transformOptions.configString,
         i: transformOptions.instrument,
-        cb: 9, // cache buster
-        ...optimizer.getTsConfigCompilerOptions(),
+        cb: 2, // cache buster
+        ...tsconfig,
       });
     }
 

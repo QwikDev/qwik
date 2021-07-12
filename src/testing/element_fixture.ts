@@ -8,9 +8,9 @@
 
 import type { Injector } from '@builder.io/qwik';
 import { ElementInjector } from '@builder.io/qwik';
-import { applyDocumentConfig } from './config';
-import { createGlobal } from './global';
-import type { MockDocument, MockGlobal, MockHTMLElement } from './types';
+import { applyDocumentConfig } from '@builder.io/qwik/testing';
+import { createGlobal } from './document';
+import type { MockDocument, MockGlobal } from './types';
 
 /**
  * Creates a simple DOM structure for testing components.
@@ -29,10 +29,10 @@ import type { MockDocument, MockGlobal, MockHTMLElement } from './types';
 export class ElementFixture {
   global: MockGlobal;
   document: MockDocument;
-  superParent: MockHTMLElement;
-  parent: MockHTMLElement;
-  host: MockHTMLElement;
-  child: MockHTMLElement;
+  superParent: HTMLElement;
+  parent: HTMLElement;
+  host: HTMLElement;
+  child: HTMLElement;
   hostInjector: Injector;
 
   constructor(options: ElementFixtureOptions = {}) {
@@ -55,5 +55,5 @@ export class ElementFixture {
 export interface ElementFixtureOptions {
   tagName?: string;
   baseURI?: string;
-  protocol?: Record<string, string>;
+  protocol?: { [protocol: string]: string };
 }

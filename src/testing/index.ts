@@ -1,16 +1,7 @@
-import type { QwikGlobal } from '../core/util/global';
-(globalThis as any as QwikGlobal).qDev = true;
-
-export { applyDocumentConfig } from './config';
-export { createDocument, createGlobal } from './global';
+export { createDocument, createGlobal } from './document';
 export { ComponentFixture } from './component_fixture';
 export { ElementFixture } from './element_fixture';
-export { getPlatform, setPlatform, resetPlatform } from './platform';
-export type {
-  MockDocument,
-  MockGlobal,
-  MockHTMLElement,
-  MockHTMLInputElement,
-  MockRequestAnimationFrame,
-} from './types';
+export { getTestPlatform } from './platform';
+export type { MockDocumentOptions, MockGlobalOptions, MockDocument, MockGlobal } from './types';
 export { isPromise, toFileUrl } from './util';
+export { applyDocumentConfig, serializeState } from '@builder.io/qwik/server';

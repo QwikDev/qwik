@@ -6,11 +6,8 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { QRL } from '@builder.io/qwik';
-import { getInjector } from '@builder.io/qwik';
-import type { Injector } from '@builder.io/qwik';
-import { JSXFactory, jsxRender } from '@builder.io/qwik';
-import type { HostElements } from '@builder.io/qwik';
+import type { HostElements, Injector, JSXFactory } from '@builder.io/qwik';
+import { getInjector, jsxRender, QRL } from '@builder.io/qwik';
 import { AttributeMarker } from '../core/util/markers';
 import { ElementFixture, ElementFixtureOptions } from './element_fixture';
 import { toFileUrl } from './util';

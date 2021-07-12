@@ -6,23 +6,22 @@ import type {
 } from './types';
 import type TypeScript from 'typescript';
 import { isJsxFile, toBase64 } from './utils';
-import { getTypeScript } from './typescript-platform';
 
 export function transformModule(
   optimizer: Optimizer,
   c: InternalCache,
-  opts: TransformModuleOptions
+  opts: TransformModuleOptions,
+  ts: typeof TypeScript,
+  tsCompilerOptions: TypeScript.CompilerOptions
 ) {
-  const ts = getTypeScript(optimizer, c);
-
-  const compilerOptions = getCompilerOptions(ts, optimizer, opts);
+  const compilerOptions = getCompilerOptions(ts, tsCompilerOptions, optimizer, opts);
 
   const cacheKey =
     optimizer.isCacheEnabled() && typeof opts.createCacheKey === 'function'
       ? opts.createCacheKey(
           JSON.stringify({
             f: opts.filePath,
-            c: opts.code,
+            x: opts.text,
             t: ts.version,
             ...compilerOptions,
           })
@@ -44,19 +43,19 @@ export function transformModule(
     }
   }
 
-  const tsResult = ts.transpileModule(opts.code, {
+  const tsResult = ts.transpileModule(opts.text, {
     compilerOptions,
     fileName: opts.filePath,
   });
 
   const result: TransformModuleResult = {
     filePath: opts.filePath,
-    code: tsResult.outputText,
+    text: tsResult.outputText,
     map: tsResult.sourceMapText,
     cacheKey,
   };
 
-  if (typeof result.code === 'string' && opts.sourcemap === 'inline' && result.map) {
+  if (typeof result.text === 'string' && opts.sourcemap === 'inline' && result.map) {
     try {
       const sourceMap = JSON.parse(result.map);
       sourceMap.file = opts.filePath;
@@ -66,8 +65,8 @@ export function transformModule(
       const base64Map = toBase64(JSON.stringify(sourceMap));
       if (base64Map !== '') {
         const sourceMapInlined = `data:application/json;charset=utf-8;base64,${base64Map}`;
-        const commentPos = result.code.lastIndexOf('//#');
-        result.code = result.code.slice(0, commentPos) + '//# sourceMappingURL=' + sourceMapInlined;
+        const commentPos = result.text.lastIndexOf('//#');
+        result.text = result.text.slice(0, commentPos) + '//# sourceMappingURL=' + sourceMapInlined;
         result.map = undefined;
       }
     } catch (e) {
@@ -93,11 +92,10 @@ export function transformModule(
 
 function getCompilerOptions(
   ts: typeof TypeScript,
+  tsconfigCompilerOpts: TypeScript.CompilerOptions,
   optimizer: Optimizer,
   opts: TransformModuleOptions
 ) {
-  const tsconfigCompilerOpts = optimizer.getTsConfigCompilerOptions();
-
   const compilerOpts: TypeScript.CompilerOptions = {
     ...ts.getDefaultCompilerOptions(),
     ...tsconfigCompilerOpts,

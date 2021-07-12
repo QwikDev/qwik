@@ -1,16 +1,19 @@
-import type { Optimizer, OptimizerOptions } from './types';
+import type { Optimizer, OptimizerOptions, EntryPointOptions } from './types';
 
 export function normalizeOptions(optimizer: Optimizer, opts?: OptimizerOptions) {
   if (opts) {
     if (typeof opts.cache === 'boolean') optimizer.enableCache(opts.cache);
     if (typeof opts.sourcemap === 'string' || typeof opts.sourcemap === 'boolean')
       optimizer.setSourceMapOption(opts.sourcemap);
-    if (typeof opts.typescriptPath === 'string') optimizer.setTypescriptPath(opts.typescriptPath);
+    if (typeof opts.mode === 'string') optimizer.setMode(opts.mode);
+    if (typeof opts.rootDir === 'string') optimizer.setRootDir(opts.rootDir);
+    if (opts.ts) optimizer.setTypeScript(opts.ts);
+    if (opts.tsconfig) optimizer.setTsconfig(opts.tsconfig);
   }
 }
 
 export const platform = (() => {
-  if (typeof global !== 'undefined' && typeof process !== 'undefined' && process.versions?.node) {
+  if (typeof process !== 'undefined' && process.nextTick && !(process as any).browser) {
     return 'node';
   }
   if (typeof self !== 'undefined' && typeof (self as any).importScripts === 'function') {
@@ -21,20 +24,6 @@ export const platform = (() => {
   }
   throw Error(`unsupported platform`);
 })();
-
-export function pathJoin(...paths: string[]) {
-  if (Array.isArray(paths)) {
-    const parts: string[] = [];
-    const sep = paths.some((p) => typeof p === 'string' && p.includes('\\')) ? '\\' : '/';
-    for (const path of paths) {
-      if (typeof path === 'string') {
-        parts.push(...path.split(sep));
-      }
-    }
-    return parts.join(sep);
-  }
-  return '';
-}
 
 const queryRE = /\?.*$/;
 const hashRE = /#.*$/;
@@ -60,44 +49,9 @@ export function pathBasename(path: string) {
   return '';
 }
 
-export function pathBasenameWithoutExtname(path: string) {
-  if (typeof path === 'string') {
-    const basename = pathBasename(path);
-    const extname = pathExtname(path);
-    return basename.substring(0, basename.length - extname.length);
-  }
-  return '';
-}
-
 export function isJsxFile(filePath: string) {
   const extname = pathExtname(filePath);
   return extname === '.tsx' || extname === '.jsx';
-}
-
-export const dashToCamelCase = (str: string) =>
-  str
-    .trim()
-    .toLocaleLowerCase()
-    .split('-')
-    .map((s, i) => (i > 0 ? s.charAt(0).toUpperCase() + s.slice(1) : s))
-    .join('');
-
-export async function dynamicImport(id: string) {
-  // if (!id.endsWith('.mjs') && typeof require === 'function') {
-  //   const mod = require(id);
-  //   const defaultExport = mod.__esModule ? mod.default : mod;
-  //   // rollup-style default import interop for cjs
-  //   return new Proxy(mod, {
-  //     get(mod, prop) {
-  //       if (prop === 'default') return defaultExport;
-  //       return mod[prop];
-  //     },
-  //   });
-  // }
-  // console.log('import1', id);
-  // await import(id);
-  // console.log('import2', id);
-  return import(id);
 }
 
 export function toBase64(content: any) {
@@ -112,4 +66,35 @@ export function toBase64(content: any) {
     }
   }
   return '';
+}
+
+export function normalizeUrl(url: string) {
+  return new URL(url, 'http://app.qwik.dev/').href;
+}
+
+const TEST_FILE_REG = new RegExp('(/__tests__/.*|\\.(test|spec|unit))\\.(tsx|ts)$');
+const TS_FILE_REG = new RegExp('\\.(tsx|ts)$');
+const DTS_FILE_REG = new RegExp('\\.d\\.ts$');
+const SERVER_FILE_REG = new RegExp('\\.server\\.(tsx|ts)$');
+
+export function getEntryPoints(opts: EntryPointOptions, files: string[]) {
+  return files.filter((f) => {
+    if (!TS_FILE_REG.test(f) || TEST_FILE_REG.test(f) || DTS_FILE_REG.test(f)) {
+      return false;
+    }
+    if (opts.platform === 'client') {
+      if (SERVER_FILE_REG.test(f)) {
+        return false;
+      }
+    }
+    return true;
+  });
+}
+
+export function createTimer() {
+  const start = process.hrtime();
+  return () => {
+    const end = process.hrtime(start);
+    return (end[0] * 1000000000 + end[1]) / 1000000;
+  };
 }

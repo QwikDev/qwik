@@ -1,33 +1,65 @@
 import type {
+  Mode,
+  InternalCache,
   OptimizerOptions,
+  OutputFile,
   SourceMapOption,
   TransformModuleOptions,
-  InternalCache,
+  EntryPointOptions,
+  ResolveModuleOptions,
 } from './types';
 import {
-  getTsConfigCompilerOptions,
-  getTypeScriptPath,
-  getTypeScriptVersion,
+  getTypeScriptSync,
+  getTypeScript,
+  getTsconfig,
+  resolveModuleSync,
 } from './typescript-platform';
-import { normalizeOptions, platform } from './utils';
+import { getEntryPoints, normalizeOptions, normalizeUrl, platform } from './utils';
 import { transformModule } from './transform';
+import type TypeScript from 'typescript';
+import { postBuild } from './post-build';
 
 export class Optimizer {
+  private baseUrl = normalizeUrl('/');
   private rootDir: string | null = null;
   private sourceMapOpt: SourceMapOption = true;
-  private tsPath: string | null = null;
   private enabledCache = true;
   private internalCache: InternalCache = {
     modules: [],
     resolved: new Map(),
   };
+  private mode: Mode = 'development';
+  private ts: any = null;
+  private tsconfig: any = null;
+  private entryInputs: string[] | null = null;
+  private moduleResolveCache: TypeScript.ModuleResolutionCache | null = null;
 
   constructor(opts?: OptimizerOptions) {
     normalizeOptions(this, opts);
   }
 
-  transformModule(opts: TransformModuleOptions) {
-    return transformModule(this, this.internalCache, opts);
+  setEntryInputs(entryInputs: string[]) {
+    this.entryInputs = entryInputs;
+  }
+
+  getEntryInputs(opts: EntryPointOptions) {
+    if (Array.isArray(this.entryInputs)) {
+      return this.entryInputs;
+    }
+    const tsconfig: TypeScript.ParsedCommandLine = this.getTsconfigSync();
+    return getEntryPoints(opts, tsconfig.fileNames);
+  }
+
+  postBuild(outFile: OutputFile) {
+    return postBuild(outFile);
+  }
+
+  setBaseUrl(baseUrl: string) {
+    this.baseUrl = normalizeUrl(baseUrl);
+  }
+
+  getBaseUrl() {
+    return this.baseUrl;
   }
 
   setRootDir(rootDir: string) {
@@ -54,6 +86,18 @@ export class Optimizer {
     return this.enabledCache;
   }
 
+  setMode(mode: Mode) {
+    this.mode = mode === 'development' ? 'development' : 'production';
+  }
+
+  getMode() {
+    return this.mode;
+  }
+
+  isDev() {
+    return this.mode === 'development';
+  }
+
   setSourceMapOption(sourceMapOpt: SourceMapOption) {
     this.sourceMapOpt = sourceMapOpt;
   }
@@ -62,19 +106,62 @@ export class Optimizer {
     return this.sourceMapOpt;
   }
 
-  getTsConfigCompilerOptions() {
-    return getTsConfigCompilerOptions(this, this.internalCache);
+  async transformModule(opts: TransformModuleOptions) {
+    const ts = await this.getTypeScript();
+    const tsconfig: TypeScript.ParsedCommandLine = await this.getTsconfig();
+    return transformModule(this, this.internalCache, opts, ts, tsconfig.options);
   }
 
-  getTypeScriptPath() {
-    return getTypeScriptPath(this.tsPath);
+  transformModuleSync(opts: TransformModuleOptions) {
+    const ts = this.getTypeScriptSync();
+    const tsconfig: TypeScript.ParsedCommandLine = this.getTsconfigSync();
+    return transformModule(this, this.internalCache, opts, ts, tsconfig.options);
   }
 
-  setTypescriptPath(typescriptPath: string | null) {
-    this.tsPath = typescriptPath;
+  async getTsconfig() {
+    if (!this.tsconfig) {
+      this.tsconfig = getTsconfig(await this.getTypeScript(), this.getRootDir());
+    }
+    return this.tsconfig;
   }
 
-  getTypeScriptVersion() {
-    return getTypeScriptVersion(this, this.internalCache);
+  getTsconfigSync() {
+    if (!this.tsconfig) {
+      this.tsconfig = getTsconfig(this.getTypeScriptSync(), this.getRootDir());
+    }
+    return this.tsconfig;
+  }
+
+  setTsconfig(tsconfig: any) {
+    this.tsconfig = tsconfig;
+  }
+
+  async getTypeScript() {
+    if (!this.ts) {
+      this.ts = await getTypeScript(this.getRootDir());
+    }
+    return this.ts;
+  }
+
+  getTypeScriptSync() {
+    if (!this.ts) {
+      this.ts = getTypeScriptSync();
+    }
+    return this.ts;
+  }
+
+  resolveModuleSync(opts: ResolveModuleOptions) {
+    const ts: typeof TypeScript = this.getTypeScriptSync();
+    const tsconfig: TypeScript.ParsedCommandLine = this.getTsconfigSync();
+    if (!this.moduleResolveCache) {
+      this.moduleResolveCache = ts.createModuleResolutionCache(this.getRootDir(), (s) =>
+        s.toLowerCase()
+      );
+    }
+    return resolveModuleSync(ts, tsconfig.options, this.moduleResolveCache, opts);
+  }
+
+  setTypeScript(ts: any) {
+    this.ts = ts;
   }
 }

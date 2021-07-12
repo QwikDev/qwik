@@ -4,7 +4,6 @@
 **/.DS_Store
 *.
 .history
-.vscode
 bazel-*
 bazel-bin
 bazel-out

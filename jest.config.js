@@ -1,5 +1,15 @@
 module.exports = {
   preset: './dist-dev/@builder.io-qwik/testing/jest-preset.cjs',
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'mjs', 'jsx', 'json', 'd.ts'],
+  moduleNameMapper: {
+    '^@builder.io/qwik/jsx-runtime$': '<rootDir>/src/jsx_runtime.ts',
+    '^@builder.io/qwik/optimizer$': '<rootDir>/src/optimizer/index.ts',
+    '^@builder.io/qwik/server$': '<rootDir>/src/server/index.ts',
+    '^@builder.io/qwik/testing$': '<rootDir>/src/testing/index.ts',
+    '^@builder.io/qwik$': '<rootDir>/src/core/index.ts',
+  },
+  modulePathIgnorePatterns: ['<rootDir>/dist', '<rootDir>/dist-dev'],
+  setupFilesAfterEnv: ['<rootDir>/src/testing/jest/setuptestframework.ts'],
   testPathIgnorePatterns: [
     '<rootDir>/.github/',
     '<rootDir>/.husky/',
@@ -13,12 +23,4 @@ module.exports = {
     '<rootDir>/node_modules/',
   ],
   testRegex: '/src/.*\\.unit\\.(ts|tsx)$',
-  modulePathIgnorePatterns: ['<rootDir>/dist', '<rootDir>/dist-dev'],
-  moduleNameMapper: {
-    '^@builder.io/qwik/jsx-runtime$': '<rootDir>/src/jsx_runtime.ts',
-    '^@builder.io/qwik/optimizer$': '<rootDir>/src/optimizer/index.ts',
-    '^@builder.io/qwik/testing$': '<rootDir>/src/testing/index.ts',
-    '^@builder.io/qwik$': '<rootDir>/src/core/index.ts',
-  },
-  setupFilesAfterEnv: ['<rootDir>/src/testing/jest/setuptestframework.ts'],
 };

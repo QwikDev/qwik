@@ -8,11 +8,11 @@
     "lib": ["es2020", "DOM"] /* Specify library files to be included in the compilation. */,
     // "allowJs": true,                       /* Allow javascript files to be compiled. */
     // "checkJs": true,                       /* Report errors in .js files. */
-    "jsx": "react-jsx" /* Specify JSX code generation: 'preserve', 'react-native', or 'react'. */,
-    "jsxImportSource": "src/core/render/jsx",
-    // "jsx": "react",
-    // "jsxFactory": "h",
-    // "jsxFragmentFactory": "Fragment",
+    // "jsx": "react-jsx" /* Specify JSX code generation: 'preserve', 'react-native', or 'react'. */,
+    // "jsxImportSource": "src/core/render/jsx",
+    "jsx": "react",
+    "jsxFactory": "h",
+    "jsxFragmentFactory": "Fragment",
     "declaration": true /* Generates corresponding '.d.ts' file. */,
     // "declarationMap": true,                /* Generates a sourcemap for each corresponding '.d.ts' file. */
     // "sourceMap": true,                     /* Generates corresponding '.map' file. */
@@ -58,6 +58,7 @@
         "bazel-out/x64_windows-dbg/bin/src/core/index"
       ],
       "@builder.io/qwik/optimizer": ["src/optimizer/index"],
+      "@builder.io/qwik/server": ["src/server/index"],
       "@builder.io/qwik/testing": ["src/testing/index"],
       "@builder.io/qwik/*": [
         "src/core/*",
@@ -107,5 +108,6 @@
     /* Advanced Options */
     "skipLibCheck": true /* Skip type checking of declaration files. */,
     "forceConsistentCasingInFileNames": true /* Disallow inconsistently-cased references to the same file. */
-  }
+  },
+  "exclude": ["cypress"]
 }

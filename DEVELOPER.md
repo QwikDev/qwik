@@ -15,7 +15,7 @@ npm start
 
 ## Running Dev Server Integration Tests
 
-The `integration/` directory is for this local repo's integration and end-to-end testing, and not necessarily app demos. It's dev server is setup to always point to the local build and stay current with the watch process.
+The `integration/` directory is for this local repo's integration and end-to-end testing, and not necessarily app demos. Its dev server is setup to always point to the local build and stay current with the watch process.
 
 First start the integration dev server:
 
@@ -41,7 +41,7 @@ npm run test.unit
 
 > Note that the `npm start` command will also start Jest watch process.
 
-### E2E tests only
+### E2E tests only (Cypress)
 
 To run the Cypress tests headless and from start to finish, run:
 
@@ -49,7 +49,7 @@ To run the Cypress tests headless and from start to finish, run:
 npm run test.e2e
 ```
 
-To open and manually use Cypress manually, run:
+To manually open Cypress testing in a browser, run:
 
 ```
 npm run cypress

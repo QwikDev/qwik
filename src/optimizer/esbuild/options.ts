@@ -16,7 +16,10 @@ export async function createClientEsbuildOptions(optimizer: Optimizer) {
     write: false,
   };
 
-  if (!optimizer.isDev()) {
+  if (optimizer.isDev()) {
+    clientBuildOpts.sourcemap = 'inline';
+  } else {
+    clientBuildOpts.sourcemap = 'external';
     clientBuildOpts.minify = true;
     clientBuildOpts.define = {
       qDev: false as any,
@@ -37,6 +40,7 @@ export async function createServerEsbuildOptions(optimizer: Optimizer) {
     platform: 'node',
     incremental: true,
     write: false,
+    sourcemap: 'external',
   };
 
   return serverBuildOpts;

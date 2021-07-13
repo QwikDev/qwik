@@ -3,6 +3,10 @@ import { setPlatform } from '@builder.io/qwik';
 import type { DocumentOptions } from './types';
 import { join } from 'path';
 
+/**
+ * Applies NodeJS specific platform APIs to the passed in document instance.
+ * @public
+ */
 export function setServerPlatform(document: any, opts: DocumentOptions) {
   if (!document || (document as Document).nodeType !== 9) {
     throw new Error(`Invalid Document implementation`);

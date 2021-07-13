@@ -1,6 +1,10 @@
 import type { OutputFile } from './types';
 import { platform } from './utils';
 
+/**
+ * Utility function to async write files to disk.
+ * @public
+ */
 export async function writeOutput(opts: { dir: string; files: OutputFile[]; emptyDir?: boolean }) {
   if (platform === 'node') {
     const path = await import('path');

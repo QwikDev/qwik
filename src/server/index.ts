@@ -8,10 +8,9 @@ export type {
   RenderToStringResult,
 } from './types';
 export {
-  applyDocumentConfig,
   createDocument,
   createGlobal,
-  documentToString,
+  serializeDocument,
   renderToDocument,
   renderToString,
 } from './document';

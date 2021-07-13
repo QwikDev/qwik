@@ -91,6 +91,10 @@ export function getEntryPoints(opts: EntryPointOptions, files: string[]) {
   });
 }
 
+/**
+ * Utility timer function for performance profiling.
+ * @alpha
+ */
 export function createTimer() {
   const start = process.hrtime();
   return () => {

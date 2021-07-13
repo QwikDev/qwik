@@ -30,3 +30,11 @@ export interface MockGlobalOptions extends GlobalOptions {}
 export interface TestPlatform extends CorePlatform {
   flush: () => Promise<void>;
 }
+
+/**
+ * @public
+ */
+export interface QConfig {
+  baseURI?: string;
+  protocol?: { [protocol: string]: string };
+}

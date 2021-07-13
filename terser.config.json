@@ -1,8 +1,0 @@
-{
-  "compress": {
-    "arrows": "bazel_no_debug"
-  },
-  "format": {
-    "comments": false
-  }
-}

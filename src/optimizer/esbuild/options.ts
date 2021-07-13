@@ -2,7 +2,10 @@ import type { Optimizer } from '../types';
 import type { BuildOptions } from 'esbuild';
 import { clientEsbuildPlugin, serverEsbuildPlugin } from './plugins';
 
-export async function createClientEsbuildOptions(optimizer: Optimizer) {
+/**
+ * @alpha
+ */
+export async function createClientEsbuildOptions(optimizer: Optimizer): Promise<any> {
   await optimizer.getTsconfig();
 
   const clientBuildOpts: BuildOptions = {
@@ -29,7 +32,10 @@ export async function createClientEsbuildOptions(optimizer: Optimizer) {
   return clientBuildOpts;
 }
 
-export async function createServerEsbuildOptions(optimizer: Optimizer) {
+/**
+ * @alpha
+ */
+export async function createServerEsbuildOptions(optimizer: Optimizer): Promise<any> {
   await optimizer.getTsconfig();
 
   const serverBuildOpts: BuildOptions = {

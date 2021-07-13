@@ -1,11 +1,17 @@
 import { ComponentChild, FunctionComponent, Fragment, jsx } from '@builder.io/qwik';
 import { getQwikLoaderScript } from '@builder.io/qwik/optimizer';
 
+/**
+ * @alpha
+ */
 export interface QwikLoaderProps {
   events?: string[];
   debug?: boolean;
 }
 
+/**
+ * @alpha
+ */
 export const QwikLoader: FunctionComponent<QwikLoaderProps> = ({ events, debug }) => {
   return jsx('script', {
     type: 'module',
@@ -13,11 +19,17 @@ export const QwikLoader: FunctionComponent<QwikLoaderProps> = ({ events, debug }
   });
 };
 
+/**
+ * @alpha
+ */
 export interface QwikProtocolProps {
   protocols?: { [protocol: string]: string };
   baseURI?: string;
 }
 
+/**
+ * @alpha
+ */
 export const QwikProtocols: FunctionComponent<QwikProtocolProps> = ({ protocols, baseURI }) => {
   const children: ComponentChild[] = [];
 

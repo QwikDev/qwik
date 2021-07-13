@@ -38,8 +38,7 @@ export interface GlobalOptions extends DocumentOptions {}
 /**
  * @public
  */
-export interface DocumentToStringOptions {
-  config?: QConfig;
+export interface SerializeDocumentOptions {
   /**
    * Defaults to `true`
    */
@@ -61,17 +60,9 @@ export interface RenderToStringResult {
 /**
  * @public
  */
-export interface RenderToDocumentOptions extends DocumentToStringOptions, DocumentOptions {}
+export interface RenderToDocumentOptions extends SerializeDocumentOptions, DocumentOptions {}
 
 /**
  * @public
  */
 export interface RenderToStringOptions extends RenderToDocumentOptions {}
-
-/**
- * @public
- */
-export interface QConfig {
-  baseURI?: string;
-  protocol?: { [protocol: string]: string };
-}

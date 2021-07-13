@@ -561,8 +561,6 @@ function generatePackageFiles() {
     engines: pkg.engines,
   };
   writeFileSync(join(build.pkgDir, 'package.json'), JSON.stringify(distPkg, null, 2));
-
-  bundleTypes();
 }
 
 /**
@@ -571,15 +569,22 @@ function generatePackageFiles() {
 function bundleTypes() {
   if (build.isDev) return;
 
-  const config = ExtractorConfig.loadFileAndPrepare(join(build.rootDir, 'api-extractor.json'));
-  config.untrimmedFilePath = join(build.pkgDir, 'core.d.ts');
-  const result = Extractor.invoke(config, {
-    localBuild: true,
-    showVerboseMessages: true,
-  });
-  if (!result.succeeded) {
-    process.exitCode = 1;
+  function createTypesApi(submodule) {
+    const config = ExtractorConfig.loadFileAndPrepare(
+      join(build.srcDir, submodule, 'api-extractor.json')
+    );
+    const result = Extractor.invoke(config, {
+      showVerboseMessages: true,
+    });
+    if (!result.succeeded) {
+      process.exitCode = 1;
+    }
   }
+
+  createTypesApi('core');
+  createTypesApi('optimizer');
+  createTypesApi('server');
+  createTypesApi('testing');
 
   const jsxRuntimeSrcPath = join(build.tsDir, 'src', 'jsx_runtime.d.ts');
   const jsxRuntimeDestPath = join(build.pkgDir, 'jsx-runtime.d.ts');

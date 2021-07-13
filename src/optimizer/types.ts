@@ -45,10 +45,12 @@ export interface EntryInput {
   filePath: string;
 }
 
+/**
+ * @public
+ */
 export interface OutputFile {
   path: string;
   text: string;
-  map?: any;
   platform?: OutputPlatform;
 }
 

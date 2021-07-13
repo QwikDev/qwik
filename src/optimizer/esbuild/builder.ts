@@ -3,6 +3,9 @@ import type { EsbuildResult } from './types';
 import type { BuildOptions, BuildResult, OutputFile as ESOutputFile, Message } from 'esbuild';
 import { createTimer } from '../utils';
 
+/**
+ * @alpha
+ */
 export function createEsbuilder(opts: {
   outDir: string;
   clientOpts?: BuildOptions;

@@ -1,12 +1,11 @@
 import type {
   DocumentOptions,
   GlobalOptions,
-  DocumentToStringOptions,
-  QConfig,
   QwikDocument,
   QwikGlobal,
   RenderToStringOptions,
   RenderToStringResult,
+  SerializeDocumentOptions,
 } from './types';
 import { setServerPlatform } from './platform';
 import domino from 'domino';
@@ -15,7 +14,9 @@ import { serializeState } from './serialize_state';
 import { createTimer } from '../optimizer/utils';
 
 /**
- * Create emulated `Global` for server environment.
+ * Create emulated `Global` for server environment. Does not implement a browser
+ * `window` API, but rather only includes and emulated `document` and `location`.
+ * @public
  */
 export function createGlobal(opts?: GlobalOptions): QwikGlobal {
   opts = opts || {};
@@ -48,31 +49,50 @@ export function createGlobal(opts?: GlobalOptions): QwikGlobal {
 
 /**
  * Create emulated `Document` for server environment.
+ * @public
  */
 export function createDocument(opts?: DocumentOptions): QwikDocument {
   const glb = createGlobal(opts);
   return glb.document;
 }
 
+/**
+ * Updates the given `document` in place by rendering the root JSX node
+ * and applying to the `document`.
+ *
+ * @param doc - The `document` to apply the the root node to.
+ * @param rootNode - The root JSX node to apply onto the `document`.
+ * @public
+ */
 export async function renderToDocument(doc: Document, rootNode: any, opts?: RenderToStringOptions) {
   opts = opts || {};
   setServerPlatform(doc, opts);
   await jsxRender(doc, rootNode);
 }
 
-export function documentToString(doc: Document, opts?: DocumentToStringOptions) {
+/**
+ * Serializes the given `document` to a string. Additionally, will serialize the
+ * Qwik component state and optionally add Qwik protocols to the document.
+ *
+ * @param doc - The `document` to apply the the root node to.
+ * @param rootNode - The root JSX node to apply onto the `document`.
+ * @public
+ */
+export function serializeDocument(doc: Document, opts?: SerializeDocumentOptions) {
   if (doc) {
-    if (opts) {
-      applyDocumentConfig(doc, opts.config!);
-      if (opts.serializeState !== false) {
-        serializeState(doc);
-      }
+    if (opts?.serializeState !== false) {
+      serializeState(doc);
     }
     return '<!DOCTYPE html>' + doc.documentElement.outerHTML;
   }
   return '';
 }
 
+/**
+ * Creates a server-side `document`, renders to root node to the document,
+ * then serializes the document to a string.
+ * @public
+ */
 export async function renderToString(rootNode: any, opts?: RenderToStringOptions) {
   const createDocTimer = createTimer();
   const doc = createDocument(opts);
@@ -84,7 +104,7 @@ export async function renderToString(rootNode: any, opts?: RenderToStringOptions
 
   const docToStringTimer = createTimer();
   const result: RenderToStringResult = {
-    html: documentToString(doc, opts),
+    html: serializeDocument(doc, opts),
     timing: {
       createDocument: createDocTime,
       render: renderDocTime,
@@ -93,26 +113,6 @@ export async function renderToString(rootNode: any, opts?: RenderToStringOptions
   };
 
   return result;
-}
-
-export function applyDocumentConfig(doc: Document, config: QConfig) {
-  if (doc && config) {
-    if (config.baseURI) {
-      appendConfig(doc, `baseURI`, config.baseURI);
-    }
-    if (config.protocol) {
-      for (const protocol in config.protocol) {
-        appendConfig(doc, `protocol.${protocol}`, config.protocol[protocol]);
-      }
-    }
-  }
-}
-
-function appendConfig(doc: Document, key: string, value: string) {
-  const linkElm = doc.createElement('link');
-  linkElm.setAttribute(`rel`, `q.${key}`);
-  linkElm.setAttribute(`href`, value);
-  doc.head.appendChild(linkElm);
 }
 
 const BASE_URI = `http://document.qwik.dev/`;

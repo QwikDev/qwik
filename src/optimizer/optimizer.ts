@@ -1,24 +1,30 @@
 import type {
+  EntryPointOptions,
   Mode,
   InternalCache,
   OptimizerOptions,
   OutputFile,
   SourceMapOption,
-  TransformModuleOptions,
-  EntryPointOptions,
   ResolveModuleOptions,
+  ResolveModuleResult,
+  TransformModuleOptions,
+  TransformModuleResult,
 } from './types';
 import {
-  getTypeScriptSync,
-  getTypeScript,
-  getTsconfig,
   resolveModuleSync,
+  getTsconfig,
+  getTypeScript,
+  getTypeScriptSync,
 } from './typescript-platform';
 import { getEntryPoints, normalizeOptions, normalizeUrl, platform } from './utils';
 import { transformModule } from './transform';
 import type TypeScript from 'typescript';
 import { postBuild } from './post-build';
 
+/**
+ * Optimizer which provides utility functions to be used by external tooling.
+ * @alpha
+ */
 export class Optimizer {
   private baseUrl = normalizeUrl('/');
   private rootDir: string | null = null;
@@ -106,13 +112,24 @@ export class Optimizer {
     return this.sourceMapOpt;
   }
 
-  async transformModule(opts: TransformModuleOptions) {
+  resolveModuleSync(opts: ResolveModuleOptions): ResolveModuleResult {
+    const ts: typeof TypeScript = this.getTypeScriptSync();
+    const tsconfig: TypeScript.ParsedCommandLine = this.getTsconfigSync();
+    if (!this.moduleResolveCache) {
+      this.moduleResolveCache = ts.createModuleResolutionCache(this.getRootDir(), (s) =>
+        s.toLowerCase()
+      );
+    }
+    return resolveModuleSync(ts, tsconfig.options, this.moduleResolveCache, opts);
+  }
+
+  async transformModule(opts: TransformModuleOptions): Promise<TransformModuleResult> {
     const ts = await this.getTypeScript();
     const tsconfig: TypeScript.ParsedCommandLine = await this.getTsconfig();
     return transformModule(this, this.internalCache, opts, ts, tsconfig.options);
   }
 
-  transformModuleSync(opts: TransformModuleOptions) {
+  transformModuleSync(opts: TransformModuleOptions): TransformModuleResult {
     const ts = this.getTypeScriptSync();
     const tsconfig: TypeScript.ParsedCommandLine = this.getTsconfigSync();
     return transformModule(this, this.internalCache, opts, ts, tsconfig.options);
@@ -148,17 +165,6 @@ export class Optimizer {
       this.ts = getTypeScriptSync();
     }
     return this.ts;
-  }
-
-  resolveModuleSync(opts: ResolveModuleOptions) {
-    const ts: typeof TypeScript = this.getTypeScriptSync();
-    const tsconfig: TypeScript.ParsedCommandLine = this.getTsconfigSync();
-    if (!this.moduleResolveCache) {
-      this.moduleResolveCache = ts.createModuleResolutionCache(this.getRootDir(), (s) =>
-        s.toLowerCase()
-      );
-    }
-    return resolveModuleSync(ts, tsconfig.options, this.moduleResolveCache, opts);
   }
 
   setTypeScript(ts: any) {

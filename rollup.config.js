@@ -519,14 +519,19 @@ function generatePackageFiles() {
   // npm version command will set the version
   const distPkg = {
     name: pkg.name,
-    version: '0.0.0',
+    version: pkg.version,
     description: pkg.description,
+    license: pkg.license,
     main: './core.cjs',
     module: './core.mjs',
     types: './core.d.ts',
     type: 'module',
     exports: {
       '.': {
+        import: './core.mjs',
+        require: './core.cjs',
+      },
+      './core': {
         import: './core.mjs',
         require: './core.cjs',
       },
@@ -538,6 +543,10 @@ function generatePackageFiles() {
         import: './optimizer.mjs',
         require: './optimizer.cjs',
       },
+      './server': {
+        import: './testing/index.mjs',
+        require: './testing/index.cjs',
+      },
       './testing': {
         import: './testing/index.mjs',
         require: './testing/index.cjs',
@@ -546,7 +555,6 @@ function generatePackageFiles() {
     },
     contributors: pkg.contributors,
     homepage: pkg.homepage,
-    license: pkg.license,
     repository: pkg.repository,
     bugs: pkg.bugs,
     keywords: pkg.keywords,

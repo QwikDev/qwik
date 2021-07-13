@@ -1,6 +1,6 @@
 {
   "name": "@builder.io/qwik",
-  "version": "0.0.1",
+  "version": "0.0.11",
   "description": "An Open-Source sub-framework designed with a focus on server-side-rendering, lazy-loading, and styling/animation.",
   "main": "index.js",
   "lint-staged": {
@@ -42,6 +42,7 @@
     "husky": "^5.2.0",
     "jest": "^27.0.5",
     "lint-staged": "^10.5.4",
+    "np": "^7.5.0",
     "prettier": "2.3.0",
     "rollup": "^2.52.2",
     "rollup-plugin-terser": "^7.0.2",
@@ -70,7 +71,9 @@
     "test.unit": "jest",
     "test.e2e": "cypress run",
     "test.watch": "jest --watch",
-    "cypress": "cypress open"
+    "cypress": "cypress open",
+    "version": "npm run build",
+    "release": "np --contents dist-dev/@builder.io-qwik --no-publish --no-2fa --preview"
   },
   "contributors": [
     {
@@ -84,5 +87,29 @@
       "url": "https://twitter.com/adamdbradley"
     }
   ],
-  "license": "MIT"
+  "license": "MIT",
+  "homepage": "https://github.com/BuilderIO/qwik#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/BuilderIO/qwik"
+  },
+  "bugs": {
+    "url": "https://github.com/BuilderIO/qwik/issues"
+  },
+  "keywords": [
+    "ssr",
+    "server-side-render",
+    "prerender",
+    "ssg",
+    "static-site-generator",
+    "static-site",
+    "generator",
+    "website",
+    "webapp",
+    "framework",
+    "Builder.io"
+  ],
+  "engines": {
+    "node": ">= 14.14"
+  }
 }

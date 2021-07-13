@@ -159,7 +159,16 @@ async function main(integrationSrcDir: string) {
   app.use(devSsr);
   app.use(devModules);
   app.use(express.static(integrationSrcDir));
-  app.listen(port);
+  let server = app.listen(port);
+
+  function close() {
+    if (server) {
+      server.close();
+      server = null as any;
+    }
+  }
+  process.on('SIGTERM', close);
+  process.on('SIGTERM', close);
 }
 
 // custom updates only required for local dev of source files
@@ -196,60 +205,5 @@ function localDevPostBuild(qwikDir: string, outputFiles: OutputFile[]) {
     f.text = f.text.replace(/@builder\.io\/qwik/g, qwikDir + '/core.cjs');
   });
 }
-
-// function createInMemoryRequire(Module: any, rootDir: string, outputFiles: OutputFile[]) {
-//   const inMemoryFiles = outputFiles.map((f) => ({ ...f, resolvedPath: join(rootDir, f.path) }));
-
-//   const orgResolveFilename = Module._resolveFilename;
-//   const orgExtJs = Module._extensions['.js'];
-
-//   const reset = () => {
-//     inMemoryFiles.forEach((f) => {
-//       delete Module._cache[f.resolvedPath];
-//     });
-//     Module._resolveFilename = orgResolveFilename;
-//     Module._extensions['.js'] = orgExtJs;
-//   };
-
-//   Module._resolveFilename = function (request: string, parent: any, isMain: boolean) {
-//     try {
-//       let inMemoryFile = inMemoryFiles.find(
-//         (f) => f.resolvedPath === request || f.path === request
-//       );
-//       if (inMemoryFile) {
-//         return inMemoryFile.resolvedPath;
-//       }
-//       if (parent?.filename) {
-//         inMemoryFile = inMemoryFiles.find((f) => {
-//           const p = join(dirname(parent.filename), request);
-//           return f.resolvedPath === p || f.resolvedPath === p + '.js';
-//         });
-//         if (inMemoryFile) {
-//           return inMemoryFile.resolvedPath;
-//         }
-//       }
-//       return orgResolveFilename(request, parent, isMain);
-//     } catch (e) {
-//       reset();
-//       throw e;
-//     }
-//   };
-
-//   Module._extensions['.js'] = function (module: any, resolvedPath: string) {
-//     try {
-//       const inMemoryFile = inMemoryFiles.find((f) => f.resolvedPath === resolvedPath);
-//       if (inMemoryFile) {
-//         module._compile(inMemoryFile.text, resolvedPath);
-//       } else {
-//         orgExtJs(module, resolvedPath);
-//       }
-//     } catch (e) {
-//       reset();
-//       throw e;
-//     }
-//   };
-
-//   return reset;
-// }
 
 main(__dirname);

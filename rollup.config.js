@@ -44,6 +44,11 @@ export default async (cliArgs) => {
   ];
 };
 
+function buildDone() {
+  generatePackageFiles();
+  bundleTypes();
+}
+
 /**
  * @builder.io/qwik
  */
@@ -95,8 +100,8 @@ function core() {
       outputPackage(),
       {
         writeBundle(opts) {
-          if (opts.entryFileNames == '[name].mjs' && !build.isDev) {
-            generatePackageFiles();
+          if (opts.entryFileNames == '[name].mjs') {
+            buildDone();
           }
         },
       },
@@ -504,6 +509,7 @@ function integrationServer() {
  * Generate/copy assets for package distribution.
  */
 function generatePackageFiles() {
+  if (build.isDev) return;
   // copy static assets
   ['README.md', 'LICENSE'].forEach((srcFile) =>
     copyFileSync(join(build.rootDir, srcFile), join(build.pkgDir, basename(srcFile)))
@@ -555,9 +561,8 @@ function generatePackageFiles() {
  * Generate rolled up dts file and api markdown.
  */
 function bundleTypes() {
-  if (build.isDev) {
-    return;
-  }
+  if (build.isDev) return;
+
   const config = ExtractorConfig.loadFileAndPrepare(join(build.rootDir, 'api-extractor.json'));
   config.untrimmedFilePath = join(build.pkgDir, 'core.d.ts');
   const result = Extractor.invoke(config, {

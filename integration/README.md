@@ -10,10 +10,10 @@ This folder contains internal e2e integration tests as well as examples of usage
 
 ## Running
 
-1. First, start the dev server:
+1. First, start the integration dev server:
 
    ```
-   npm run dev.server
+   npm run integration.server
    ```
 
 2. Open the browser http://localhost:8080
@@ -23,5 +23,6 @@ This folder contains internal e2e integration tests as well as examples of usage
 
 1. Select the Debug action panel on the left
 2. In the "Run and Debug" drop down, select "Integration Dev Server"
-3. Click the green play icon. This is the same as running `npm run dev.server`,
-   however you can also add breakpoints directly in the source code.
+3. Click the green play icon. This is the same as running `npm run integration.server`,
+   however you can also add breakpoints directly in VSCode and the source.
+4. The "Debug Console" will have the console logs.

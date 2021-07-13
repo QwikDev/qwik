@@ -67,6 +67,7 @@
     "bazel:lint": "npm run bazel:format -- --mode=check --lint=warn",
     "bazel:lint-fix": "npm run bazel:format -- --mode=fix --lint=fix",
     "cypress": "cypress open",
+    "cypress.run": "cypress run",
     "prepare": "husky install",
     "start": "rollup -c -w --configDev",
     "dev.server": "node integration/devserver.js",

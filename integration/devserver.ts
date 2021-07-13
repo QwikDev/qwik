@@ -28,10 +28,10 @@ srcMap.install();
  * Verbose dev-server tooling built specifically for inspecting/debugging this local
  * project's source files. Standard qwik development would not have most of this.
  */
-async function main(integrationSrcDir: string) {
+export async function startServer(port: number, debug: boolean = false) {
+  const integrationSrcDir = __dirname;
   const qwikDir = join(integrationSrcDir, '..', 'dist-dev', '@builder.io-qwik');
   const outDir = join(integrationSrcDir, 'out');
-  const port = 8080;
 
   console.log('=================================================');
   console.log(`Integration Development Server`);
@@ -43,7 +43,7 @@ async function main(integrationSrcDir: string) {
 
   const optimizer = new Optimizer({
     rootDir: integrationSrcDir,
-    mode: 'development',
+    mode: debug ? 'development' : 'production',
   });
 
   const clientOpts = await createClientEsbuildOptions(optimizer);
@@ -73,12 +73,13 @@ async function main(integrationSrcDir: string) {
       localDevPostBuild(qwikDir, build.outputFiles);
 
       const moduleFile = build.outputFiles.find((f) => {
-        const indexServerpath = req.path.substr(1) + 'index.server.js';
-        return f.path === indexServerpath;
+        const indexServerPath = req.path.substr(1) + 'index.server.js';
+        return f.path === indexServerPath;
       });
       if (moduleFile) {
         try {
-          console.log(`server:`, req.originalUrl, moduleFile.path);
+          const indexServerPath = join(outDir, moduleFile.path);
+          if (debug) console.debug(`server:`, req.originalUrl, indexServerPath);
 
           // write the serverside cjs build to disk so local require() and debugging works
           const writeTime = createTimer();
@@ -90,7 +91,7 @@ async function main(integrationSrcDir: string) {
           const devBuildWrite = writeTime();
 
           // eslint-disable-next-line @typescript-eslint/no-var-requires
-          const indexModule = require(join(outDir, moduleFile.path));
+          const indexModule = require(indexServerPath);
 
           const result: RenderToStringResult = await indexModule.default({
             url: req.originalUrl,
@@ -142,7 +143,7 @@ async function main(integrationSrcDir: string) {
         (o) => o.platform === 'client' && o.path.endsWith(fileName)
       );
       if (outJs) {
-        console.log(`client:`, req.originalUrl, outJs.path);
+        if (debug) console.debug(`client:`, req.originalUrl);
         res.type('application/javascript');
         res.send(outJs.text);
         return;
@@ -163,12 +164,14 @@ async function main(integrationSrcDir: string) {
 
   function close() {
     if (server) {
-      server.close();
+      server.close(() => {
+        if (debug) console.debug(`\nclosed dev server ${port}\n`);
+      });
       server = null as any;
     }
   }
   process.on('SIGTERM', close);
-  process.on('SIGTERM', close);
+  process.on('SIGINT', close);
 }
 
 // custom updates only required for local dev of source files
@@ -206,4 +209,6 @@ function localDevPostBuild(qwikDir: string, outputFiles: OutputFile[]) {
   });
 }
 
-main(__dirname);
+if (require.main === module) {
+  startServer(8080, true);
+}

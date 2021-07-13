@@ -15,6 +15,6 @@ export {
   renderToDocument,
   renderToString,
 } from './document';
-export { QwikBaseURI, QwikLoader, QwikProtocol } from './components';
+export { QwikLoader, QwikProtocols } from './components';
 export { serializeState } from './serialize_state';
 export { setServerPlatform } from './platform';

@@ -11,7 +11,7 @@ import {
   renderToString,
   RenderToStringOptions,
   QwikLoader,
-  QwikProtocol,
+  QwikProtocols,
 } from '@builder.io/qwik/server';
 import { ToDoApp } from './ui/TodoApp';
 
@@ -25,11 +25,15 @@ export default function (opts: RenderToStringOptions) {
     <html>
       <head>
         <title>ToDo Application</title>
-        <QwikProtocol protocol="ui" href="./ui" />
-        <QwikProtocol protocol="data" href="./data" />
-        <QwikProtocol protocol="base" href="./" />
         <link rel="stylesheet" href="./base.css" />
         <link rel="stylesheet" href="./index.css" />
+        <QwikProtocols
+          protocols={{
+            ui: './ui',
+            data: './data',
+            base: './',
+          }}
+        />
       </head>
       <body>
         <ToDoApp />

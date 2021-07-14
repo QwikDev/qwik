@@ -6,8 +6,8 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { newError } from '../../assert/assert.js';
-import type { JSXNode } from './types.js';
+import type { JSXInternal } from './types/jsx';
+import type { FunctionComponent } from './types';
 
 /**
  * Place at the root of the component View to allow binding of attributes on the Host element.
@@ -24,7 +24,6 @@ import type { JSXNode } from './types.js';
  * servers that purpose.
  * @public
  */
-export function Host(): JSXNode<any> {
-  // TODO: QError?
-  throw newError('Should not execute');
-}
+export const Host: FunctionComponent<
+  JSXInternal.HTMLAttributes | JSXInternal.SVGAttributes | Record<string, any>
+> = {} as any;

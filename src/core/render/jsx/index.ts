@@ -6,9 +6,16 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import './html.js';
-export { jsxFactory, jsxDeclareComponent } from './factory.js';
-export { jsxRender } from './render.js';
-export { markDirty } from './mark_dirty.js';
-export { JSXFactory, JSXNode } from './types.js';
-export { Host } from './host.js';
+export { h, jsxDeclareComponent } from './factory';
+export { jsxRender } from './render';
+export { markDirty } from './mark_dirty';
+export type {
+  ComponentChild,
+  ComponentChildren,
+  FunctionComponent,
+  JSXFactory,
+  RenderableProps,
+  JSXNode,
+} from './types';
+export { Host } from './host';
+export { jsx, jsxDEV, jsxs, JSXInternal, Fragment } from './jsx-runtime';

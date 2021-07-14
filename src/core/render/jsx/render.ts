@@ -6,22 +6,21 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { AttributeMarker } from '../../util/markers.js';
-import { QError, qError } from '../../error/error.js';
-import { qImport } from '../../import/index.js';
-import type { QRL } from '../../import/qrl.js';
-import { getInjector } from '../../injector/element_injector.js';
-import type { InjectedFunction, Injector, Props } from '../../injector/types.js';
-import { removeNode, replaceNode } from '../../util/dom.js';
-import { EMPTY_OBJ } from '../../util/flyweight.js';
-import { flattenPromiseTree, isPromise } from '../../util/promises.js';
-import '../../util/qDev.js';
-import { isDomElementWithTagName, isTextNode, NodeType } from '../../util/types.js';
-import type { AsyncHostElementPromises, HostElements } from '../types.js';
-import { applyAttributes } from './attributes.js';
-import { isJSXNode } from './factory.js';
-import { Host } from './host.js';
-import type { JSXFactory, JSXNode } from './types.js';
+import { AttributeMarker } from '../../util/markers';
+import { QError, qError } from '../../error/error';
+import { qImport } from '../../import/index';
+import type { QRL } from '../../import/qrl';
+import { getInjector } from '../../injector/element_injector';
+import type { InjectedFunction, Injector, Props } from '../../injector/types';
+import { removeNode, replaceNode } from '../../util/dom';
+import { EMPTY_OBJ } from '../../util/flyweight';
+import { flattenPromiseTree, isPromise } from '../../util/promises';
+import { isDomElementWithTagName, isTextNode, NodeType } from '../../util/types';
+import type { AsyncHostElementPromises, HostElements } from '../types';
+import { applyAttributes } from './attributes';
+import { Fragment, isJSXNode } from './jsx-runtime';
+import { Host } from './host';
+import type { JSXFactory, JSXNode } from './types';
 
 /**
  * Render JSX into a host element reusing DOM nodes when possible.
@@ -46,7 +45,7 @@ export async function jsxRender(
 }
 
 function visitJSXNode(
-  document: Document,
+  doc: Document,
   waitOn: AsyncHostElementPromises,
   parentNode: Node,
   existingNode: Node | null,
@@ -57,7 +56,7 @@ function visitJSXNode(
     waitOn.push(
       jsxNode.then((jsxNode) => {
         const waitOn: AsyncHostElementPromises = [];
-        const node = visitJSXNode(document, waitOn, parentNode, existingNode, jsxNode);
+        const node = visitJSXNode(doc, waitOn, parentNode, existingNode, jsxNode);
         // TODO: cast seems suspect;
         node && waitOn.push(node as Element);
         // TODO: needs test
@@ -65,47 +64,29 @@ function visitJSXNode(
       }, writeErrorToDom(parentNode))
     );
     return null;
-  } else if (typeof jsxNode.tag === 'string') {
+  } else if (typeof jsxNode.type === 'string') {
     // String literal
-    return visitJSXDomNode(document, waitOn, parentNode, existingNode, jsxNode as JSXNode<string>);
-  } else if (jsxNode.tag === Host) {
-    return visitJSXHostNode(
-      document,
-      waitOn,
-      parentNode,
-      existingNode,
-      jsxNode as JSXNode<JSXFactory>
-    );
-  } else if (typeof jsxNode.tag === 'function') {
+    return visitJSXDomNode(doc, waitOn, parentNode, existingNode, jsxNode as JSXNode<string>);
+  } else if (jsxNode.type === Host) {
+    return visitJSXHostNode(doc, waitOn, parentNode, existingNode, jsxNode as JSXNode<JSXFactory>);
+  } else if (typeof jsxNode.type === 'function') {
     // Symbol reference
-    return visitJSXFactoryNode(
-      document,
-      waitOn,
-      parentNode,
-      existingNode,
-      jsxNode as JSXNode<JSXFactory>
-    );
-  } else if (jsxNode.tag === null) {
+    return visitJSXNode(doc, waitOn, parentNode, existingNode, jsxNode.type(jsxNode.props));
+  } else if (jsxNode.type === Fragment) {
     // Fragment
-    return visitJSXFragmentNode(
-      document,
-      waitOn,
-      parentNode,
-      existingNode,
-      jsxNode as JSXNode<null>
-    );
+    return visitChildren(doc, waitOn, parentNode, existingNode, jsxNode.children);
   }
-  throw qError(QError.Render_unexpectedJSXNodeType_type, jsxNode.tag);
+  throw qError(QError.Render_unexpectedJSXNodeType_type, jsxNode.type);
 }
 
 function visitJSXDomNode(
-  document: Document,
+  doc: Document,
   waitOn: AsyncHostElementPromises,
   parentNode: Node,
   existingNode: Node | null,
   jsxNode: JSXNode<string>
 ): Node | null {
-  const jsxTag = jsxNode.tag;
+  const jsxTag = jsxNode.type as string;
   let reconcileElement: Element;
   let inputPropChangesDetected = false;
   if (isDomElementWithTagName(existingNode, jsxTag)) {
@@ -113,7 +94,7 @@ function visitJSXDomNode(
     reconcileElement = existingNode;
   } else {
     // No match we need to create a new DOM element (and remove the old one)
-    reconcileElement = replaceNode(parentNode, existingNode, document.createElement(jsxTag));
+    reconcileElement = replaceNode(parentNode, existingNode, doc.createElement(jsxTag));
     inputPropChangesDetected = true;
   }
   const componentUrl = getComponentTemplateUrl(jsxNode);
@@ -123,22 +104,17 @@ function visitJSXDomNode(
     inputPropChangesDetected;
   if (componentUrl && inputPropChangesDetected) {
     // TODO: better way of converting string to QRL.
-    jsxRenderComponent(reconcileElement, componentUrl as any as QRL, waitOn, jsxNode.props);
+    jsxRenderComponent(doc, reconcileElement, componentUrl as any as QRL, waitOn, jsxNode.props);
   }
   if (!componentUrl && !('innerHTML' in jsxNode.props || 'innerText' in jsxNode.props)) {
     // we don't process children if we have a component, as component is responsible for projection.
-    visitChildren(
-      document,
-      waitOn,
-      reconcileElement,
-      reconcileElement.firstChild,
-      jsxNode.children
-    );
+    visitChildren(doc, waitOn, reconcileElement, reconcileElement.firstChild, jsxNode.children);
   }
   return reconcileElement;
 }
 
 export function jsxRenderComponent(
+  doc: Document,
   hostElement: Element,
   componentUrl: QRL,
   waitOn: AsyncHostElementPromises,
@@ -150,20 +126,13 @@ export function jsxRenderComponent(
     waitOn.push(
       componentOrPromise.then((component) => {
         const waitOn = [hostElement];
-        visitJSXComponentNode(
-          hostElement.ownerDocument,
-          waitOn,
-          hostElement,
-          hostElement.firstChild,
-          component,
-          props
-        );
+        visitJSXComponentNode(doc, waitOn, hostElement, hostElement.firstChild, component, props);
         return waitOn;
       })
     );
   } else {
     visitJSXComponentNode(
-      hostElement.ownerDocument,
+      doc,
       waitOn,
       hostElement,
       hostElement.firstChild,
@@ -174,7 +143,7 @@ export function jsxRenderComponent(
 }
 
 function visitJSXComponentNode(
-  document: Document,
+  doc: Document,
   waitOn: AsyncHostElementPromises,
   parentNode: Node,
   existingNode: Node | null,
@@ -189,7 +158,7 @@ function visitJSXComponentNode(
     undefined,
     props
   );
-  return visitJSXNode(document, waitOn, parentNode, existingNode, componentJsxNode);
+  return visitJSXNode(doc, waitOn, parentNode, existingNode, componentJsxNode);
 }
 
 function getComponentTemplateUrl(jsxNode: JSXNode<unknown>): string | null {
@@ -197,50 +166,29 @@ function getComponentTemplateUrl(jsxNode: JSXNode<unknown>): string | null {
   return props[AttributeMarker.ComponentTemplate] || null;
 }
 
-function visitJSXFactoryNode(
-  document: Document,
-  waitOn: AsyncHostElementPromises,
-  parentNode: Node,
-  existingNode: Node | null,
-  jsxNode: JSXNode<JSXFactory>
-): Node | null {
-  return visitJSXNode(document, waitOn, parentNode, existingNode, jsxNode.tag(jsxNode.props));
-}
-
 function visitJSXHostNode(
-  document: Document,
+  doc: Document,
   waitOn: AsyncHostElementPromises,
   parentNode: Node,
   existingNode: Node | null,
   jsxNode: JSXNode<JSXFactory>
 ): Node | null {
   applyAttributes(parentNode as HTMLElement, jsxNode.props, false);
-  visitChildren(document, waitOn, parentNode, existingNode, jsxNode.children);
+  visitChildren(doc, waitOn, parentNode, existingNode, jsxNode.children);
   return parentNode;
 }
 
-function visitJSXFragmentNode(
-  document: Document,
-  waitOn: AsyncHostElementPromises,
-  parentNode: Node,
-  existingNode: Node | null,
-  jsxNode: JSXNode<null>
-): Node | null {
-  return visitChildren(document, waitOn, parentNode, existingNode, jsxNode.children);
-}
-
 function visitChildren(
-  document: Document,
+  doc: Document,
   waitOn: AsyncHostElementPromises,
   parentNode: Node,
   existingNode: Node | null,
   jsxChildren: any[]
 ): Element | null {
   if (jsxChildren) {
-    for (let i = 0; i < jsxChildren.length; i++) {
-      const jsxChild = jsxChildren[i];
+    for (const jsxChild of jsxChildren) {
       if (isJSXNode(jsxChild)) {
-        existingNode = visitJSXNode(document, waitOn, parentNode, existingNode, jsxChild);
+        existingNode = visitJSXNode(doc, waitOn, parentNode, existingNode, jsxChild);
       } else if (jsxChild == null) {
         // delete
         if (existingNode) {
@@ -251,7 +199,7 @@ function visitChildren(
         if (isTextNode(existingNode)) {
           existingNode.textContent = String(jsxChild);
         } else {
-          replaceNode(parentNode, existingNode, document.createTextNode(String(jsxChild)));
+          replaceNode(parentNode, existingNode, doc.createTextNode(String(jsxChild)));
         }
       }
       existingNode = existingNode?.nextSibling || null;

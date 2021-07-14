@@ -9,8 +9,7 @@
 export function flattenArray<T>(array: (T | T[])[], dst?: T[]): T[] {
   // Yes this function is just Array.flat, but we need to run on old versions of Node.
   if (!dst) dst = [];
-  for (let i = 0; i < array.length; i++) {
-    const item = array[i];
+  for (const item of array) {
     if (Array.isArray(item)) {
       flattenArray(item, dst);
     } else {

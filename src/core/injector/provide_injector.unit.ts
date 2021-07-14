@@ -6,13 +6,12 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { expect } from 'chai';
-import { provideInjector } from './provide_injector.js';
-import type { Injector } from './types.js';
+import { provideInjector } from './provide_injector';
+import type { Injector } from './types';
 
 describe('provideInjector', () => {
   it('should return an injector', async () => {
     const injector: Injector = {} as any;
-    expect(await provideInjector()(injector)).to.equal(injector);
+    expect(await provideInjector()(injector)).toEqual(injector);
   });
 });

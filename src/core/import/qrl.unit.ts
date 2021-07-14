@@ -6,11 +6,10 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { expect } from 'chai';
-import { dirname } from '../util/dirname.js';
+import { dirname } from '../util/dirname';
 
 describe('QRL', () => {
   it('should strip filename and keep ending slash', () => {
-    expect(dirname('dir/path/file.ext')).to.equal('dir/path/');
+    expect(dirname('dir/path/file.ext')).toEqual('dir/path/');
   });
 });

@@ -6,15 +6,13 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { expect } from 'chai';
-import { Component } from '../component/component.js';
-import type { QRL } from '../import/qrl.js';
-import { ElementFixture } from '../testing/element_fixture.js';
-import { AttributeMarker } from '../util/markers.js';
-import '../util/qDev.js';
-import { getInjector } from './element_injector.js';
-import { injectFunction, injectMethod } from './inject.js';
-import type { Injector, Provider } from './types.js';
+import { Component } from '../component/component';
+import type { QRL } from '../import/qrl';
+import { ElementFixture } from '@builder.io/qwik/testing';
+import { AttributeMarker } from '../util/markers';
+import { getInjector } from './element_injector';
+import { injectFunction, injectMethod } from './inject';
+import type { Injector, Provider } from './types';
 
 describe('BaseInjector', () => {
   let fixture: ElementFixture;
@@ -25,14 +23,14 @@ describe('BaseInjector', () => {
   });
   describe('getParent', () => {
     it('should return no parent', () => {
-      expect(hostInjector.getParent()).to.equal(null);
+      expect(hostInjector.getParent()).toEqual(null);
     });
     it('should return no parent', () => {
-      expect(hostInjector.getParent()).to.equal(null);
+      expect(hostInjector.getParent()).toEqual(null);
     });
     it('should return parent skipping elements with no injectors', () => {
       fixture.superParent.setAttribute(AttributeMarker.Injector, '');
-      expect(hostInjector.getParent()!.element).to.equal(fixture.superParent);
+      expect(hostInjector.getParent()!.element).toEqual(fixture.superParent);
     });
   });
 
@@ -48,8 +46,8 @@ describe('BaseInjector', () => {
           null,
           'arg'
         )
-      ).to.eql('ret');
-      expect(log).to.eql([null, 'arg']);
+      ).toEqual('ret');
+      expect(log).toEqual([null, 'arg']);
     });
 
     it('should call injected function', async () => {
@@ -62,8 +60,8 @@ describe('BaseInjector', () => {
           return 'ret';
         }
       );
-      expect(await hostInjector.invoke(injectedFn, null, 'extra')).to.eql('ret');
-      expect(log).to.eql([null, 'self', 'arg0', 'extra']);
+      expect(await hostInjector.invoke(injectedFn, null, 'extra')).toEqual('ret');
+      expect(log).toEqual([null, 'self', 'arg0', 'extra']);
     });
 
     it('should call injected method', async () => {
@@ -78,10 +76,15 @@ describe('BaseInjector', () => {
           return 'ret';
         }
       );
-      expect(await hostInjector.invoke(injectedFn, null, 'arg2')).to.eql('ret');
-      expect(log).to.eql([{ $host: fixture.host, $props: {}, $state: {} }, 'arg0', 'arg1', 'arg2']);
+      expect(await hostInjector.invoke(injectedFn, null, 'arg2')).toEqual('ret');
+      expect(log).toEqual([
+        { $host: fixture.host, $props: {}, $state: {} },
+        'arg0',
+        'arg1',
+        'arg2',
+      ]);
     });
-    describe('error', async () => {
+    describe('error', () => {
       it('should include declare context when throwing error', async () => {
         fixture.host.setAttribute(
           AttributeMarker.ComponentTemplate,
@@ -94,10 +97,10 @@ describe('BaseInjector', () => {
         );
         try {
           await hostInjector.invoke(injectedFn, null, 'arg2');
-          expect('should not get here').to.be.false;
+          expect('should not get here').toBe(false);
         } catch (e) {
-          expect(String(e)).to.contain('ProviderRejection');
-          expect(e.stack).to.match(/DECLARED .*base_injector\.unit/);
+          expect(String(e)).toContain('ProviderRejection');
+          expect(e.stack).toMatch(/DECLARED .*base_injector\.unit/);
         }
       });
     });
@@ -110,13 +113,13 @@ describe('BaseInjector', () => {
         MyClass, //
         provideConst('arg0'),
         function (this: MyClass, arg0: string, arg1: string) {
-          expect(this).to.eql(myClass);
-          expect(arg0).to.eql('arg0');
-          expect(arg1).to.eql('extra');
+          expect(this).toEqual(myClass);
+          expect(arg0).toEqual('arg0');
+          expect(arg1).toEqual('extra');
           return 'ret';
         }
       );
-      expect(await hostInjector.invoke(injectedFn, myClass, 'extra')).to.eql('ret');
+      expect(await hostInjector.invoke(injectedFn, myClass, 'extra')).toEqual('ret');
     });
 
     describe('error', () => {
@@ -126,7 +129,7 @@ describe('BaseInjector', () => {
           MyClass, //
           function (this: MyClass) {}
         );
-        expect(() => hostInjector.invoke(injectedFn, new WrongType())).to.throw(
+        expect(() => hostInjector.invoke(injectedFn, new WrongType())).toThrow(
           "INJECTOR-ERROR(Q-203): Expected injection 'this' to be of type 'MyClass', but was of type 'WrongType'."
         );
       });
@@ -137,7 +140,7 @@ describe('BaseInjector', () => {
       fixture.host.setAttribute('prop-A', 'valueA');
       fixture.host.setAttribute('bind:id:1', '$propB');
       fixture.host.setAttribute('bind:id:2', '$propC;$prop-d');
-      expect(hostInjector.elementProps).to.eql({
+      expect(hostInjector.elementProps).toEqual({
         propA: 'valueA',
         $propB: 'id:1',
         $propC: 'id:2',
@@ -147,13 +150,13 @@ describe('BaseInjector', () => {
     describe('error', () => {
       it('should error if bind: without suffix', async () => {
         fixture.host.setAttribute('bind:', 'propA');
-        expect(() => hostInjector.elementProps).to.throw(
+        expect(() => hostInjector.elementProps).toThrow(
           "COMPONENT-ERROR(Q-400): 'bind:' must have an key. (Example: 'bind:key=\"propertyName\"')."
         );
       });
       it('should error if bind: without content', () => {
         fixture.host.setAttribute('bind:id', '');
-        expect(() => hostInjector.elementProps).to.throw(
+        expect(() => hostInjector.elementProps).toThrow(
           "COMPONENT-ERROR(Q-401): 'bind:id' must have a property name. (Example: 'bind:key=\"propertyName\"')."
         );
       });

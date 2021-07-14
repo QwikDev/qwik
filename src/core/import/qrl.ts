@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { assertEqual } from '../assert/index.js';
+import { assertEqual } from '../assert/index';
 
 /**
  * `QRL` (Qwik Resource Locator) represents an import which points to a lazy loaded resource.
@@ -31,9 +31,6 @@ import { assertEqual } from '../assert/index.js';
  * }
  * ```
  * The `QRL` looks up `foo` in `QRLProtocolMap` resulting in `somePath/someImport`.
- *
- * In dev mode (`qDev=true`) the `QRL` eagerly tries to resolve the URLs to verify that they
- * are correct. This is done to notify the developer of any mistakes as soon as possible.
  *
  * @public
  */
@@ -65,12 +62,11 @@ export function QRL<T = any>(
       url += expressions[i];
     }
   }
-  qDev &&
-    assertEqual(
-      !!url.match(/^[.|/|\w+:]/),
-      true,
-      "Expecting URL to start with '.', '/', '<protocol>:'. Was: " + url
-    );
+  assertEqual(
+    !!url.match(/^[.|/|\w+:]/),
+    true,
+    "Expecting URL to start with '.', '/', '<protocol>:'. Was: " + url
+  );
 
   return url as unknown as QRL<T>;
 }

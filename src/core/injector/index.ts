@@ -6,8 +6,8 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-export { injectFunction, injectMethod } from './inject.js';
-export { getInjector } from './element_injector.js';
+export { injectFunction, injectMethod } from './inject';
+export { getInjector, ElementInjector } from './element_injector';
 export {
   Provider,
   ConcreteType,
@@ -16,6 +16,6 @@ export {
   InjectedFunction,
   Props,
   Providers,
-} from './types.js';
-export { provideInjector } from './provide_injector.js';
-export { provideProviderOf } from './provide_provider_of.js';
+} from './types';
+export { provideInjector } from './provide_injector';
+export { provideProviderOf } from './provide_provider_of';

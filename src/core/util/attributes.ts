@@ -6,10 +6,9 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { qError, QError } from '../error/error.js';
-import '../util/qDev.js';
-import { fromKebabToCamelCase } from './case.js';
-import { AttributeMarker } from './markers.js';
+import { qError, QError } from '../error/error';
+import { fromKebabToCamelCase } from './case';
+import { AttributeMarker } from './markers';
 
 /**
  * Returns the props from a given element.

@@ -1,0 +1,5 @@
+function jestSetupTestFramework() {
+  beforeEach(() => {});
+}
+
+jestSetupTestFramework();

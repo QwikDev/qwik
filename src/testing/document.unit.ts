@@ -6,15 +6,15 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { expect } from 'chai';
+import { createGlobal } from './document';
+import { pathToFileURL } from 'url';
 
-import { createGlobal } from './node_utils.js';
-
-describe('node', () => {
+describe('global', () => {
   it('should create document', () => {
     const global = createGlobal({
-      baseURI: import.meta.url,
+      url: pathToFileURL(__filename).href,
     });
-    expect(global.document.baseURI).to.have.string('node_utils.unit');
+    expect(global.document.baseURI).toContain('file://');
+    expect(global.document.baseURI).toContain('document.unit.ts');
   });
 });

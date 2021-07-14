@@ -6,8 +6,8 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { injectEventHandler, markDirty, provideQrlExp } from './qwik.js';
-import { GreeterComponent } from './Greeter_component.js';
+import { injectEventHandler, markDirty, provideQrlExp } from '@builder.io/qwik';
+import { GreeterComponent } from './Greeter_component';
 
 /**
  * @fileoverview

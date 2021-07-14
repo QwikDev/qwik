@@ -6,8 +6,8 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { injectMethod, markDirty, getInjector } from '../qwik.js';
-import { TodoEntity } from './Todo.js';
+import { injectMethod, markDirty, getInjector } from '@builder.io/qwik';
+import { TodoEntity } from './Todo';
 
 export default injectMethod(
   TodoEntity, //

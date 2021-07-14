@@ -6,16 +6,13 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { expect } from 'chai';
-import { injectEventHandler } from '../event/inject_event_handler.js';
-import type { QRL } from '../import/qrl.js';
-import { ElementFixture } from '../testing/element_fixture.js';
-import '../testing/node_utils.js';
-import { createGlobal } from '../testing/node_utils.js';
-import { AttributeMarker } from '../util/markers.js';
-import { getInjector } from './element_injector.js';
-import { injectFunction } from './inject.js';
-import type { Injector } from './types.js';
+import { injectEventHandler } from '../event/inject_event_handler';
+import type { QRL } from '../import/qrl';
+import { createGlobal, ElementFixture } from '@builder.io/qwik/testing';
+import { AttributeMarker } from '../util/markers';
+import { getInjector } from './element_injector';
+import { injectFunction } from './inject';
+import type { Injector } from './types';
 
 describe('inject', () => {
   const log: string[] = [];
@@ -31,7 +28,7 @@ describe('inject', () => {
   it('should inject nothing', async () => {
     const injectedFn = injectFunction(() => log.push('invoked'));
     await injector.invoke(injectedFn);
-    expect(log).to.eql(['invoked']);
+    expect(log).toEqual(['invoked']);
   });
 
   it('should inject this', async () => {
@@ -42,8 +39,8 @@ describe('inject', () => {
         return 'return value';
       }
     );
-    expect(await injector.invoke(injectedFn)).to.equal('return value');
-    expect(log).to.eql([undefined, 'arg0', 'invoked']);
+    expect(await injector.invoke(injectedFn)).toEqual('return value');
+    expect(log).toEqual([undefined, 'arg0', 'invoked']);
   });
 
   it('should inject async', async () => {
@@ -54,12 +51,12 @@ describe('inject', () => {
         return Promise.resolve('return value');
       }
     );
-    expect(await injector.invoke(injectedFn)).to.equal('return value');
-    expect(log).to.eql(['value', 'invoked']);
+    expect(await injector.invoke(injectedFn)).toEqual('return value');
+    expect(log).toEqual(['value', 'invoked']);
   });
 });
 
-describe('injectEventHandler', async () => {
+describe('injectEventHandler', () => {
   const log: any[] = [];
   beforeEach(() => (log.length = 0));
 
@@ -84,7 +81,7 @@ describe('injectEventHandler', async () => {
     const fixture = new ElementFixture();
     const url: URL = new URL('file:///somepath');
     fixture.host.setAttribute(AttributeMarker.ComponentTemplate, './comp');
-    expect(await injectedFn(fixture.host, event, url)).to.equal('return value');
-    expect(log).to.eql([myComp, 'invoked', 'arg0']);
+    expect(await injectedFn(fixture.host, event, url)).toEqual('return value');
+    expect(log).toEqual([myComp, 'invoked', 'arg0']);
   });
 });

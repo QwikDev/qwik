@@ -6,29 +6,27 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { expect } from 'chai';
-import { TEST_CONFIG } from '../testing/config.unit.js';
-import { qExport, qImport, qParams } from '../import/qImport.js';
-import { isPromise } from '../util/promises.js';
-import { ComponentFixture } from '../testing/component_fixture.js';
+import { TEST_CONFIG } from '../util/test_config';
+import { qExport, qImport, qParams } from '../import/qImport';
+import { ComponentFixture, isPromise } from '@builder.io/qwik/testing';
 
 describe('qImport', () => {
   it('should import default symbol', async () => {
     const fixture = new ComponentFixture(TEST_CONFIG);
     const valuePromise = qImport(fixture.host, 'import:qImport_default_unit');
-    expect(isPromise(valuePromise)).to.be.true;
-    expect(await valuePromise).to.equal('DEFAULT_VALUE');
+    expect(isPromise(valuePromise)).toBe(true);
+    expect(await valuePromise).toEqual('DEFAULT_VALUE');
     // second read is direct.
-    expect(qImport(fixture.host, 'import:qImport_default_unit')).to.equal('DEFAULT_VALUE');
+    expect(qImport(fixture.host, 'import:qImport_default_unit')).toEqual('DEFAULT_VALUE');
   });
 
   it('should import symbol from extension', async () => {
     const fixture = new ComponentFixture(TEST_CONFIG);
     const valuePromise = qImport(fixture.host, '../import/qImport_symbol_unit#mySymbol');
-    expect(isPromise(valuePromise)).to.be.true;
-    expect(await valuePromise).to.equal('MY_SYMBOL_VALUE');
+    expect(isPromise(valuePromise)).toBe(true);
+    expect(await valuePromise).toEqual('MY_SYMBOL_VALUE');
     // second read is direct.
-    expect(qImport(fixture.host, '../import/qImport_symbol_unit#mySymbol')).to.equal(
+    expect(qImport(fixture.host, '../import/qImport_symbol_unit#mySymbol')).toEqual(
       'MY_SYMBOL_VALUE'
     );
   });
@@ -36,43 +34,43 @@ describe('qImport', () => {
 
 describe('qExport', () => {
   it('should return "default" if there is no hash', () => {
-    expect(qExport(new URL('http://localhost/path'))).to.equal('default');
+    expect(qExport(new URL('http://localhost/path'))).toEqual('default');
   });
 
   it('should return "default" if there is an empty hash', () => {
-    expect(qExport(new URL('http://localhost/path#'))).to.equal('default');
+    expect(qExport(new URL('http://localhost/path#'))).toEqual('default');
   });
 
   it('should extract the export name from the hash', () => {
-    expect(qExport(new URL('http://localhost/path#abc'))).to.equal('abc');
+    expect(qExport(new URL('http://localhost/path#abc'))).toEqual('abc');
   });
 
   it('should exclude QRL params from the export name', () => {
-    expect(qExport(new URL('http://localhost/path#abc?foo=bar'))).to.equal('abc');
-    expect(qExport(new URL('http://localhost/path?foo=bar'))).to.equal('default');
-    expect(qExport(new URL('http://localhost/path#?foo=bar'))).to.equal('default');
+    expect(qExport(new URL('http://localhost/path#abc?foo=bar'))).toEqual('abc');
+    expect(qExport(new URL('http://localhost/path?foo=bar'))).toEqual('default');
+    expect(qExport(new URL('http://localhost/path#?foo=bar'))).toEqual('default');
   });
 });
 
 describe('qParams', () => {
   it('should return an empty params object if there is no export block', () => {
-    expect(qParams(new URL('http://localhost/path')).toString()).to.equal('');
+    expect(qParams(new URL('http://localhost/path')).toString()).toEqual('');
   });
 
   it('should return an empty params object if there is no `?` section', () => {
-    expect(qParams(new URL('http://localhost/path#')).toString()).to.equal('');
-    expect(qParams(new URL('http://localhost/path#foo')).toString()).to.equal('');
+    expect(qParams(new URL('http://localhost/path#')).toString()).toEqual('');
+    expect(qParams(new URL('http://localhost/path#foo')).toString()).toEqual('');
   });
 
   it('should extract the params from the `?` section of the export block', () => {
     let params = qParams(new URL('http://localhost/path#?a=10'));
-    expect(params.toString()).to.equal('a=10');
-    expect(params.get('a')).to.equal('10');
-    expect(params.get('b')).to.be.null;
+    expect(params.toString()).toEqual('a=10');
+    expect(params.get('a')).toEqual('10');
+    expect(params.get('b')).toBeNull();
 
     params = qParams(new URL('http://localhost/path#?a=10&b=20'));
-    expect(params.toString()).to.equal('a=10&b=20');
-    expect(params.get('a')).to.equal('10');
-    expect(params.get('b')).to.equal('20');
+    expect(params.toString()).toEqual('a=10&b=20');
+    expect(params.get('a')).toEqual('10');
+    expect(params.get('b')).toEqual('20');
   });
 });

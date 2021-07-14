@@ -6,10 +6,9 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { expect } from 'chai';
-import { QError } from '../error/error.js';
-import { ElementFixture } from '../testing/element_fixture.js';
-import { findAttribute } from './dom_attrs.js';
+import { QError } from '../error/error';
+import { ElementFixture } from '@builder.io/qwik/testing';
+import { findAttribute } from './dom_attrs';
 
 describe('dom_attrs', () => {
   describe('findAttribute', () => {
@@ -27,34 +26,32 @@ describe('dom_attrs', () => {
             value,
           })
         )
-      ).to.eql({
+      ).toEqual({
         element: fixture.parent,
         key: 'primary',
         value: 'primaryValue',
       });
     });
-    it('should find either attr', () => {
-      it('should find one attr', () => {
-        const fixture = new ElementFixture();
-        fixture.parent.setAttribute('secondary', 'secondaryValue');
-        expect(
-          findAttribute(
-            fixture.child,
-            QError.Core_noAttribute_atr1_element,
-            'primary',
-            () => null,
-            'secondary',
-            (element, key, value) => ({
-              element,
-              key,
-              value,
-            })
-          )
-        ).to.eql({
-          element: fixture.parent,
-          key: 'secondary',
-          value: 'secondaryValue',
-        });
+    it('should find one attr', () => {
+      const fixture = new ElementFixture();
+      fixture.parent.setAttribute('secondary', 'secondaryValue');
+      expect(
+        findAttribute(
+          fixture.child,
+          QError.Core_noAttribute_atr1_element,
+          'primary',
+          () => null,
+          'secondary',
+          (element, key, value) => ({
+            element,
+            key,
+            value,
+          })
+        )
+      ).toEqual({
+        element: fixture.parent,
+        key: 'secondary',
+        value: 'secondaryValue',
       });
     });
     describe('error', () => {
@@ -62,7 +59,7 @@ describe('dom_attrs', () => {
         const fixture = new ElementFixture();
         expect(() =>
           findAttribute(fixture.host, QError.Core_noAttribute_atr1_element, 'primary', () => null)
-        ).to.throw(
+        ).toThrow(
           `ERROR(Q-003): Could not find entity state 'primary' at '<host>' or any of it's parents.`
         );
       });
@@ -77,7 +74,7 @@ describe('dom_attrs', () => {
             'secondary',
             () => null
           )
-        ).to.throw(
+        ).toThrow(
           `ERROR(Q-004): Could not find entity state 'primary' ( or entity provider 'secondary') at '<host>' or any of it's parents.`
         );
       });

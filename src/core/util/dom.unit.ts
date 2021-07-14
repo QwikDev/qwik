@@ -6,12 +6,11 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { expect } from 'chai';
-import { createGlobal, QwikGlobal } from '../testing/node_utils.js';
-import { isDomElementWithTagName } from './types.js';
+import { createGlobal, MockGlobal } from '@builder.io/qwik/testing';
+import { isDomElementWithTagName } from './types';
 
 describe('dom', () => {
-  let global: QwikGlobal;
+  let global: MockGlobal;
   let div: HTMLElement;
   let span: HTMLElement;
   let text: Text;
@@ -23,10 +22,9 @@ describe('dom', () => {
   });
 
   it('isDomElementWithTagName', () => {
-    expect(isDomElementWithTagName(null, 'dIv')).to.equal(false);
-    expect(isDomElementWithTagName(span, 'dIv')).to.equal(false);
-    expect(isDomElementWithTagName(text, 'dIv')).to.equal(false);
-
-    expect(isDomElementWithTagName(div, 'dIv')).to.equal(true);
+    expect(isDomElementWithTagName(null, 'dIv')).toEqual(false);
+    expect(isDomElementWithTagName(span, 'dIv')).toEqual(false);
+    expect(isDomElementWithTagName(text, 'dIv')).toEqual(false);
+    expect(isDomElementWithTagName(div, 'dIv')).toEqual(true);
   });
 });

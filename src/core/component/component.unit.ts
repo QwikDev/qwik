@@ -6,11 +6,11 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { expect } from 'chai';
-import { ComponentFixture, GreeterComponent } from '../testing/component_fixture.js';
-import { AttributeMarker } from '../util/markers.js';
-import { Component } from './component.js';
-import { injectMethod } from '../injector/inject.js';
+import { ComponentFixture } from '@builder.io/qwik/testing';
+import { GreeterComponent } from '../util/test_component_fixture';
+import { AttributeMarker } from '../util/markers';
+import { Component } from './component';
+import { injectMethod } from '../injector/inject';
 
 describe('component', () => {
   it('should declare a component', async () => {
@@ -22,8 +22,8 @@ describe('component', () => {
     fixture.host.setAttribute('salutation', 'Hello');
     fixture.host.setAttribute('name', 'World');
     const greeter = await fixture.injector.getComponent(GreeterComponent);
-    expect(greeter.$props).to.eql({ salutation: 'Hello', name: 'World' });
-    expect(greeter.$state).to.eql({ greeting: 'Hello World!' });
+    expect(greeter.$props).toEqual({ salutation: 'Hello', name: 'World' });
+    expect(greeter.$state).toEqual({ greeting: 'Hello World!' });
   });
 
   it('should call $init state', () => {
@@ -34,7 +34,7 @@ describe('component', () => {
       }
     }
     const myComponent = new MyComponent(fixture.host, 'props', 'state');
-    expect(myComponent).to.eql({
+    expect(myComponent).toEqual({
       $state: 'state',
       $props: 'props',
       $host: fixture.host,

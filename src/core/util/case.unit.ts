@@ -6,21 +6,20 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { expect } from 'chai';
-import { fromCamelToKebabCase, fromKebabToCamelCase } from './case.js';
+import { fromCamelToKebabCase, fromKebabToCamelCase } from './case';
 
 describe('case', () => {
   describe('fromCamelToKebabCase', () => {
     it('should convert to kebab', () => {
-      expect(fromCamelToKebabCase('HelloWorld')).to.equal('hello-world');
-      expect(fromCamelToKebabCase('a:b')).to.equal('a:b');
+      expect(fromCamelToKebabCase('HelloWorld')).toEqual('hello-world');
+      expect(fromCamelToKebabCase('a:b')).toEqual('a:b');
     });
   });
 
   describe('fromKebabToCamelCase', () => {
     it('should convert to camel', () => {
-      expect(fromKebabToCamelCase('hello-world')).to.equal('HelloWorld');
-      expect(fromKebabToCamelCase('-hello-world')).to.equal('HelloWorld');
+      expect(fromKebabToCamelCase('hello-world')).toEqual('HelloWorld');
+      expect(fromKebabToCamelCase('-hello-world')).toEqual('HelloWorld');
     });
   });
 });

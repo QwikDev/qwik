@@ -6,17 +6,16 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { expect } from 'chai';
-import { caseInsensitiveCompare } from './string.js';
+import { caseInsensitiveCompare } from './string';
 
 describe('string', () => {
   it('should caseInsensitiveCompare', () => {
-    expect(caseInsensitiveCompare(null, null)).to.equal(false);
-    expect(caseInsensitiveCompare('a', null)).to.equal(false);
-    expect(caseInsensitiveCompare(null, 'b')).to.equal(false);
-    expect(caseInsensitiveCompare('a', 'bb')).to.equal(false);
+    expect(caseInsensitiveCompare(null, null)).toEqual(false);
+    expect(caseInsensitiveCompare('a', null)).toEqual(false);
+    expect(caseInsensitiveCompare(null, 'b')).toEqual(false);
+    expect(caseInsensitiveCompare('a', 'bb')).toEqual(false);
 
-    expect(caseInsensitiveCompare('a', 'a')).to.equal(true);
-    expect(caseInsensitiveCompare('aBc', 'AbC')).to.equal(true);
+    expect(caseInsensitiveCompare('a', 'a')).toEqual(true);
+    expect(caseInsensitiveCompare('aBc', 'AbC')).toEqual(true);
   });
 });

@@ -6,26 +6,24 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { expect } from 'chai';
-import { ElementFixture } from '../testing/element_fixture.js';
-import '../util/qDev.js';
-import { getInjector } from './element_injector.js';
+import { ElementFixture } from '@builder.io/qwik/testing';
+import { getInjector } from './element_injector';
 
 describe('getInjector', () => {
   let fixture: ElementFixture;
   beforeEach(() => (fixture = new ElementFixture()));
   it('should throw if element not passed in', () => {
-    expect(() => getInjector(null!)).to.throw(
+    expect(() => getInjector(null!)).toThrow(
       "INJECTOR-ERROR(Q-202): Expected 'Element' was 'null'."
     );
   });
   it('should return no injector', () => {
     const hostInjector = getInjector(fixture.host, false);
-    expect(hostInjector).to.equal(null);
+    expect(hostInjector).toEqual(null);
   });
   it('should create injector', () => {
     const injector = getInjector(fixture.host);
-    expect(injector.element).to.equal(fixture.host);
-    expect(fixture.host.getAttribute(':')).to.eql('');
+    expect(injector.element).toEqual(fixture.host);
+    expect(fixture.host.getAttribute(':')).toEqual('');
   });
 });

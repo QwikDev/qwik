@@ -12,11 +12,5 @@
  * Explicitly list public exported symbols to be used by the developer.
  */
 
-export {
-  Entity,
-  EntityConstructor,
-  EntityStateOf,
-  EntityPropsOf,
-  EntityPromise,
-} from './entity.js';
-export { entityStateKey, EntityKey, toEntityKey } from './entity_key.js';
+export { Entity, EntityConstructor, EntityStateOf, EntityPropsOf, EntityPromise } from './entity';
+export { entityStateKey, EntityKey, toEntityKey } from './entity_key';

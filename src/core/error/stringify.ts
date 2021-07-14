@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { isHtmlElement } from '../util/types.js';
+import { isHtmlElement } from '../util/types';
 
 export function stringifyDebug(value: any): string | null {
   if (value == null) return String(value);

@@ -6,8 +6,8 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import type { Injector, Provider } from '../injector/types.js';
-import { EventEntity } from './event_entity.js';
+import type { Injector, Provider } from '../injector/types';
+import { EventEntity } from './event_entity';
 
 /**
  * Provide the event.

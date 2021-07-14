@@ -5,18 +5,13 @@
  * Use of this source code is governed by an MIT-style license that can be
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
-import { fromCamelToKebabCase } from '../../util/case.js';
-import { stringify } from '../../util/stringify.js';
-import { assertValidDataKey } from '../../error/data.js';
-import { AttributeMarker } from '../../util/markers.js';
-import type { EntityConstructor } from '../../entity/entity.js';
-import type { QRL } from '../../import/qrl.js';
-import { QError, qError } from '../../error/error.js';
-import type { JSXBase } from './html_base.js';
-
-export interface QProps {
-  [key: string]: string | QRL;
-}
+import { fromCamelToKebabCase } from '../../util/case';
+import { stringify } from '../../util/stringify';
+import { assertValidDataKey } from '../../error/data';
+import { AttributeMarker } from '../../util/markers';
+import type { EntityConstructor } from '../../entity/entity';
+import { QError, qError } from '../../error/error';
+import type { JSXBase } from './types/jsx_base';
 
 /**
  * Apply Props to Element
@@ -34,7 +29,7 @@ export function applyAttributes(
   if (props) {
     let bindMap: Map<string, string> | null = null;
     for (const key in props) {
-      if (Object.prototype.hasOwnProperty.call(props, key)) {
+      if (key !== 'children' && Object.prototype.hasOwnProperty.call(props, key)) {
         const kebabKey = fromCamelToKebabCase(key);
         const value = (props as any)[key];
         if (key === AttributeMarker.Entity) {
@@ -87,7 +82,7 @@ function applyEntityProviders(value: any, element: Element) {
  * This means that we need to add/remove/join attributes if more than one binding changes.
  */
 function addToBindMap(stringValue: string | null, bindMap: Map<string, string>, key: string) {
-  qDev && assertValidDataKey(stringValue);
+  assertValidDataKey(stringValue);
   const bindKey =
     AttributeMarker.BindPrefix + (stringValue ? fromCamelToKebabCase(stringValue) : '');
   let existingKeys = bindMap.get(bindKey);

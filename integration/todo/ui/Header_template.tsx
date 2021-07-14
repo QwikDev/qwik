@@ -6,10 +6,9 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { jsxFactory, QRL, injectMethod } from '../qwik.js';
-import { HeaderComponent } from './Header_component.js';
+import { h, Fragment, QRL, injectMethod } from '@builder.io/qwik';
+import { HeaderComponent } from './Header_component';
 
-export const _needed_by_JSX_ = jsxFactory; // eslint-disable-line @typescript-eslint/no-unused-vars
 export default injectMethod(
   HeaderComponent, //
   function (this: HeaderComponent) {

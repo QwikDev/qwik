@@ -14,8 +14,8 @@ import {
   EntityKey,
   entityStateKey,
   toEntityKey,
-} from '../qwik.js';
-import { Item, ItemEntity } from './Item.js';
+} from '@builder.io/qwik';
+import { Item, ItemEntity } from './Item';
 
 export interface TodoProps {}
 

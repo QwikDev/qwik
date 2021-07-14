@@ -480,7 +480,7 @@ function integrationServer() {
       format: 'cjs',
       sourcemap: true,
     },
-    external: ['express', 'fs', 'module', 'path', 'source-map-support', 'url'],
+    external: ['express', 'fs', 'module', 'mri', 'path', 'source-map-support', 'url'],
     plugins: [
       {
         resolveId(id) {

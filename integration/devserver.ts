@@ -21,6 +21,7 @@ import {
 } from '@builder.io/qwik/optimizer';
 import type { BuildOptions } from 'esbuild';
 import type { RenderToStringResult } from '@builder.io/qwik/server';
+import mri from 'mri';
 import srcMap from 'source-map-support';
 srcMap.install();
 
@@ -28,23 +29,27 @@ srcMap.install();
  * Verbose dev-server tooling built specifically for inspecting/debugging this local
  * project's source files. Standard qwik development would not have most of this.
  */
-export async function startServer(port: number, debug: boolean = false) {
-  const integrationSrcDir = __dirname;
-  const qwikDir = join(integrationSrcDir, '..', 'dist-dev', '@builder.io-qwik');
-  const outDir = join(integrationSrcDir, 'out');
+async function startServer() {
+  const args = mri(process.argv.slice(2), {
+    default: { port: 8080, mode: 'development' },
+  });
 
-  console.log('=================================================');
-  console.log(`Integration Development Server`);
-  console.log(`Qwik Dir:            ${qwikDir}`);
-  console.log(`Integration Dir:     ${integrationSrcDir}`);
+  const rootDir = __dirname;
+  const qwikDir = join(rootDir, '..', 'dist-dev', '@builder.io-qwik');
+  const outDir = join(rootDir, 'out');
+  const mode = args.mode === 'production' ? 'production' : 'development';
+  const debug = mode === 'development';
+
+  console.log('====================================================');
+  console.log(`Integration Server`);
+  console.log(`Mode:                ${mode}`);
+  console.log(`Integration Dir:     ${rootDir}`);
   console.log(`Serverside Out Dir:  ${outDir}`);
-  console.log(`Server:              http://localhost:${port}/`);
+  console.log(`Qwik Dir:            ${qwikDir}`);
+  console.log(`Server:              http://localhost:${args.port}/`);
   console.log(``);
 
-  const optimizer = new Optimizer({
-    rootDir: integrationSrcDir,
-    mode: debug ? 'development' : 'production',
-  });
+  const optimizer = new Optimizer({ rootDir, mode });
 
   const clientOpts = await createClientEsbuildOptions(optimizer);
   const serverOpts = await createServerEsbuildOptions(optimizer);
@@ -155,17 +160,17 @@ export async function startServer(port: number, debug: boolean = false) {
   const app = express();
   app.get('/qwikloader.js', (req, res) => {
     res.type('application/javascript');
-    res.send(getQwikLoaderScript({ debug: true }));
+    res.send(getQwikLoaderScript({ debug }));
   });
   app.use(devSsr);
   app.use(devModules);
-  app.use(express.static(integrationSrcDir));
-  let server = app.listen(port);
+  app.use(express.static(rootDir));
+  let server = app.listen(args.port);
 
   function close() {
     if (server) {
       server.close(() => {
-        if (debug) console.debug(`\nclosed dev server ${port}\n`);
+        if (debug) console.debug(`\nclosed dev server ${args.port}\n`);
       });
       server = null as any;
     }
@@ -209,6 +214,4 @@ function localDevPostBuild(qwikDir: string, outputFiles: OutputFile[]) {
   });
 }
 
-if (require.main === module) {
-  startServer(8080, true);
-}
+startServer();

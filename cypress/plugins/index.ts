@@ -11,8 +11,4 @@
  * @type {Cypress.PluginConfig}
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-module.exports = (on: Cypress.PluginEvents, config: Cypress.PluginConfigOptions) => {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const { startServer } = require('../../integration/devserver');
-  startServer(8081, false);
-};
+module.exports = (on: Cypress.PluginEvents, config: Cypress.PluginConfigOptions) => {};

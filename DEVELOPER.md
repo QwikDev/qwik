@@ -25,6 +25,8 @@ npm run integration.server
 
 Then navigate to http://localhost:8080/
 
+The `npm run integration.server` comands runs the server in `development` mode, where files are not minified, source maps are inlined, and there's additional logging. To run code minified with external source maps and without extra logs, run `npm run integration.server.prod`.
+
 ## Running Tests
 
 To run both Unit tests ([Jest](https://jestjs.io/)) and E2E/Integration tests ([Cypress](https://www.cypress.io/)), run:
@@ -39,6 +41,12 @@ npm run tests
 npm run test.unit
 ```
 
+To keep Jest open with the watch mode, run:
+
+```
+npm run test.watch
+```
+
 > Note that the `npm start` command will also start Jest watch process.
 
 ### E2E tests only (Cypress)
@@ -49,10 +57,10 @@ To run the Cypress tests headless and from start to finish, run:
 npm run test.e2e
 ```
 
-To manually open Cypress testing in a browser, run:
+To open interactive Cypress testing, run:
 
 ```
-npm run cypress
+npm run test.e2e.open
 ```
 
 ## Production Build
@@ -65,6 +73,13 @@ npm run build
 
 The build output will be written to `dist-dev/@builder.io-qwik`, which will be the directory that is published
 to [@builder.io/qwik](https://www.npmjs.com/package/@builder.io/qwik). Note this build output directory is `git` ignored.
+
+## Publishing
+
+1. Run `npm run release`
+2. Use the [interactive UI](https://www.npmjs.com/package/np) to select the version/tag.
+3. The selected version number will become the commit message.
+4. After publishing it'll open a prefilled GitHub Releases draft.
 
 ## Bazel
 
@@ -107,19 +122,4 @@ Some of the issues can be fixed automatically by using:
 ```
 npm run buildifier-fix
 npm run prettier-fix
-```
-
-## Publishing
-
-```
-git fetch upstream
-git checkout main
-git reset --hard upstream/main
-# edit src/package.json wtih new version number
-VERSION=`node -e 'console.log(require("./src/package.json").version)'`
-echo "About to publish v$VERSION"
-bazel run src:pkg.publish -- --tag=latest --access=public
-git commit -a -m "release: v$VERSION"
-git tag v$VERSION
-git push upstream main:main v$VERSION
 ```

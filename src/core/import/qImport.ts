@@ -6,10 +6,10 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import type { QRL } from './qrl.js';
-import { QError, qError } from '../error/error.js';
-
-declare const __mockImport: (path: string, doc: Document) => Promise<any>;
+import type { QRL } from './qrl';
+import { QError, qError } from '../error/error';
+import { getPlatform } from '../platform/platform';
+import { qDev } from '../util/qdev';
 
 /**
  * Lazy load a `QRL` symbol and returns the resulting value.
@@ -23,29 +23,30 @@ declare const __mockImport: (path: string, doc: Document) => Promise<any>;
  */
 export function qImport<T>(node: Node | Document, url: string | QRL<T> | URL): T | Promise<T> {
   const doc: QDocument = node.ownerDocument || (node as Document);
-  if (!doc[ImportCacheKey]) doc[ImportCacheKey] = new Map<string, unknown | Promise<unknown>>();
-
+  const corePlatform = getPlatform(doc);
   const normalizedUrl = toUrl(doc, url);
-  const importPath = toImportPath(normalizedUrl);
+  const importPath = corePlatform.toPath(normalizedUrl);
   const exportName = qExport(normalizedUrl);
-  const cacheKey = `${importPath}#${exportName}`;
-  const cacheValue = doc[ImportCacheKey]!.get(cacheKey);
+  const cacheKey = importPath + '#' + exportName;
+  const cacheValue = (
+    doc[ImportCacheKey] || (doc[ImportCacheKey] = new Map<string, unknown | Promise<unknown>>())
+  ).get(cacheKey);
   if (cacheValue) return cacheValue as T | Promise<T>;
 
-  // TODO(misko): Concern: When in `cjs` mode we should be using require?
-  const promise = (
-    typeof __mockImport === 'function'
-      ? __mockImport(importPath + '.js', doc)
-      : import(importPath + '.js')
-  ).then((module) => {
+  const promise = corePlatform.import(importPath).then((module) => {
     const handler = module[exportName];
     if (!handler)
-      throw qError(
-        QError.Core_missingExport_name_url_props,
-        exportName,
-        importPath,
-        Object.keys(module)
-      );
+      if (qDev) {
+        throw qError(
+          QError.Core_missingExport_name_url_props,
+          exportName,
+          importPath,
+          Object.keys(module)
+        );
+      } else {
+        throw qError(QError.Core_missingExport_name_url_props);
+      }
+
     qImportSet(doc, cacheKey, handler);
     return handler;
   });
@@ -75,20 +76,6 @@ export function toUrl(doc: Document, url: string | QRL | URL): URL {
   } else {
     return url as URL;
   }
-}
-
-/**
- * Removes URL decorations such as search and hash, and normalizes extensions,
- * returning naked URL for importing.
- *
- * @param url - to clean.
- * @returns naked URL.
- */
-export function toImportPath(url: URL): string {
-  const tmp = new URL(String(url));
-  tmp.hash = '';
-  tmp.search = '';
-  return String(tmp).replace(/\.(ts|tsx)$/, '.js');
 }
 
 /**

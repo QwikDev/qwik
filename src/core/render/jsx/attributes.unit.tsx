@@ -6,73 +6,69 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { expect } from 'chai';
-import { stringifyDebug } from '../../error/stringify.js';
-import { ComponentFixture } from '../../testing/component_fixture.js';
-import { ElementFixture } from '../../testing/element_fixture.js';
-import { createGlobal } from '../../testing/node_utils.js';
-import { applyAttributes, setAttribute, stringifyClassOrStyle } from './attributes.js';
-import { jsxFactory } from './factory.js';
+import { h } from '@builder.io/qwik';
+import { stringifyDebug } from '../../error/stringify';
+import { createDocument, ComponentFixture, ElementFixture } from '@builder.io/qwik/testing';
+import { applyAttributes, setAttribute, stringifyClassOrStyle } from './attributes';
 
-const _needed_by_JSX_ = jsxFactory; // eslint-disable-line @typescript-eslint/no-unused-vars
 describe('attributes', () => {
   let host: HTMLElement;
   let input: HTMLInputElement;
   beforeEach(() => {
-    const global = createGlobal();
-    host = global.document.createElement('host');
-    input = global.document.createElement('input');
+    const doc = createDocument();
+    host = doc.createElement('host');
+    input = doc.createElement('input');
   });
 
   describe('applyAttributes()', () => {
     it('should do nothing', () => {
-      expect(applyAttributes(host, null, false)).to.be.false;
-      expect(applyAttributes(host, null, true)).to.be.false;
-      expect(applyAttributes(host, {}, false)).to.be.false;
-      expect(applyAttributes(host, {}, true)).to.be.false;
+      expect(applyAttributes(host, null, false)).toBe(false);
+      expect(applyAttributes(host, null, true)).toBe(false);
+      expect(applyAttributes(host, {}, false)).toBe(false);
+      expect(applyAttributes(host, {}, true)).toBe(false);
     });
 
     it('should apply properties to Element', () => {
-      expect(applyAttributes(host, { a: 'b' }, false)).to.be.false;
-      expect(host.outerHTML).to.equal('<host a="b"></host>');
-      expect(applyAttributes(host, { a: 'b' }, true)).to.be.false;
-      expect(host.outerHTML).to.equal('<host a="b"></host>');
-      expect(applyAttributes(host, { a: 'c' }, true)).to.be.true;
-      expect(host.outerHTML).to.equal('<host a="c"></host>');
+      expect(applyAttributes(host, { a: 'b' }, false)).toBe(false);
+      expect(host.outerHTML).toEqual('<host a="b"></host>');
+      expect(applyAttributes(host, { a: 'b' }, true)).toBe(false);
+      expect(host.outerHTML).toEqual('<host a="b"></host>');
+      expect(applyAttributes(host, { a: 'c' }, true)).toBe(true);
+      expect(host.outerHTML).toEqual('<host a="c"></host>');
     });
 
     it('should remove properties from Element', () => {
-      expect(applyAttributes(host, { a: '' }, false)).to.be.false;
-      expect(host.outerHTML).to.equal('<host a=""></host>');
-      expect(applyAttributes(host, { a: '' }, true)).to.be.false;
-      expect(host.outerHTML).to.equal('<host a=""></host>');
-      expect(applyAttributes(host, { a: null! }, true)).to.be.true;
-      expect(host.outerHTML).to.equal('<host></host>');
-      expect(applyAttributes(host, { a: undefined! }, true)).to.be.true;
-      expect(host.outerHTML).to.equal('<host></host>');
+      expect(applyAttributes(host, { a: '' }, false)).toBe(false);
+      expect(host.outerHTML).toEqual('<host a=""></host>');
+      expect(applyAttributes(host, { a: '' }, true)).toBe(false);
+      expect(host.outerHTML).toEqual('<host a=""></host>');
+      expect(applyAttributes(host, { a: null! }, true)).toBe(true);
+      expect(host.outerHTML).toEqual('<host></host>');
+      expect(applyAttributes(host, { a: undefined! }, true)).toBe(true);
+      expect(host.outerHTML).toEqual('<host></host>');
     });
 
     describe('to input elements', () => {
       it('should write both attribute and `value` property', () => {
-        expect(applyAttributes(input, { value: 'hello' }, false)).to.be.false;
-        expect(input.value).to.eql('hello');
-        expect(input.getAttribute('value')).to.eql('hello');
+        expect(applyAttributes(input, { value: 'hello' }, false)).toBe(false);
+        expect(input.value).toEqual('hello');
+        expect(input.getAttribute('value')).toEqual('hello');
 
-        expect(applyAttributes(input, { value: 'bar' }, false)).to.be.false;
-        expect(input.value).to.eql('bar');
-        expect(input.getAttribute('value')).to.eql('bar');
+        expect(applyAttributes(input, { value: 'bar' }, false)).toBe(false);
+        expect(input.value).toEqual('bar');
+        expect(input.getAttribute('value')).toEqual('bar');
 
         input.value = 'baz';
-        expect(applyAttributes(input, { value: 'hello' }, false)).to.be.false;
-        expect(input.value).to.eql('hello');
-        expect(input.getAttribute('value')).to.eql('hello');
+        expect(applyAttributes(input, { value: 'hello' }, false)).toBe(false);
+        expect(input.value).toEqual('hello');
+        expect(input.getAttribute('value')).toEqual('hello');
       });
     });
 
     describe('innerHTML', () => {
       it('should deal with innerHTML', () => {
-        expect(applyAttributes(host, { innerHTML: '<div>text</div>' }, false)).to.be.false;
-        expect(host.outerHTML).to.equal('<host inner-h-t-m-l=""><div>text</div></host>');
+        expect(applyAttributes(host, { innerHTML: '<div>text</div>' }, false)).toBe(false);
+        expect(host.outerHTML).toEqual('<host inner-h-t-m-l=""><div>text</div></host>');
       });
     });
 
@@ -80,23 +76,22 @@ describe('attributes', () => {
       it('should render $<attr> binding', async () => {
         const fixture = new ComponentFixture();
         let myValue: string | null = 'someItem:123:child:432';
+        <div></div>;
         fixture.template = () => {
           return <test-component $myData={myValue} />;
         };
         await fixture.render();
-        expect(fixture.host.innerHTML).to.equal(
+        expect(fixture.host.innerHTML).toEqual(
           '<test-component bind:some-item:123:child:432="$myData"></test-component>'
         );
         myValue = 'otherItem';
         await fixture.render();
-        expect(fixture.host.innerHTML).to.equal(
+        expect(fixture.host.innerHTML).toEqual(
           '<test-component bind:other-item="$myData"></test-component>'
         );
         myValue = null;
         await fixture.render();
-        expect(fixture.host.innerHTML).to.equal(
-          '<test-component bind:="$myData"></test-component>'
-        );
+        expect(fixture.host.innerHTML).toEqual('<test-component bind:="$myData"></test-component>');
       });
 
       it('should merge bindings', async () => {
@@ -107,37 +102,37 @@ describe('attributes', () => {
           return <test-component $myA={value1} $myB={value2} />;
         };
         await fixture.render();
-        expect(fixture.host.innerHTML).to.equal(
+        expect(fixture.host.innerHTML).toEqual(
           '<test-component bind:some-a="$myA" bind:some-b="$myB"></test-component>'
         );
         value1 = 'same';
         value2 = 'same';
         await fixture.render();
-        expect(fixture.host.innerHTML).to.equal(
+        expect(fixture.host.innerHTML).toEqual(
           '<test-component bind:same="$myA|$myB"></test-component>'
         );
         value1 = null;
         value2 = null;
         await fixture.render();
-        expect(fixture.host.innerHTML).to.equal(
+        expect(fixture.host.innerHTML).toEqual(
           '<test-component bind:="$myA|$myB"></test-component>'
         );
       });
 
       it('should detect binding change', async () => {
         const fixture = new ComponentFixture();
-        expect(applyAttributes(fixture.host, { $propA: 'item:1' }, true)).to.be.true;
-        expect(stringifyDebug(fixture.host)).to.eql(
+        expect(applyAttributes(fixture.host, { $propA: 'item:1' }, true)).toBe(true);
+        expect(stringifyDebug(fixture.host)).toEqual(
           `<host : bind:item:1='$propA' decl:template='file://.../component_fixture.noop'>`
         );
 
-        expect(applyAttributes(fixture.host, { $propA: 'item:1' }, true)).to.be.false;
-        expect(stringifyDebug(fixture.host)).to.eql(
+        expect(applyAttributes(fixture.host, { $propA: 'item:1' }, true)).toBe(false);
+        expect(stringifyDebug(fixture.host)).toEqual(
           `<host : bind:item:1='$propA' decl:template='file://.../component_fixture.noop'>`
         );
 
-        expect(applyAttributes(fixture.host, { $propA: 'item:2' }, true)).to.be.true;
-        expect(stringifyDebug(fixture.host)).to.eql(
+        expect(applyAttributes(fixture.host, { $propA: 'item:2' }, true)).toBe(true);
+        expect(stringifyDebug(fixture.host)).toEqual(
           `<host : bind:item:2='$propA' decl:template='file://.../component_fixture.noop'>`
         );
       });
@@ -153,7 +148,7 @@ describe('attributes', () => {
         },
         false
       );
-      expect(host.getAttribute('on:click')).to.eql('url');
+      expect(host.getAttribute('on:click')).toEqual('url');
     });
 
     it('should apply on:* properties with camelCase', () => {
@@ -164,7 +159,7 @@ describe('attributes', () => {
         },
         false
       );
-      expect(host.getAttribute('on:camel-case')).to.eql('url');
+      expect(host.getAttribute('on:camel-case')).toEqual('url');
     });
 
     it('should apply all entity bindings', () => {
@@ -181,7 +176,7 @@ describe('attributes', () => {
         },
         false
       );
-      expect(host.getAttribute('::entity')).to.eql('url');
+      expect(host.getAttribute('::entity')).toEqual('url');
     });
 
     describe('error', () => {
@@ -194,7 +189,7 @@ describe('attributes', () => {
             },
             false
           )
-        ).to.throw(`RENDER-ERROR(Q-603): Expecting array of entities, got 'notAnArray'.`);
+        ).toThrow(`RENDER-ERROR(Q-603): Expecting array of entities, got 'notAnArray'.`);
       });
       it('should error if a entity does not have $attachEntity', () => {
         expect(() =>
@@ -205,26 +200,26 @@ describe('attributes', () => {
             },
             false
           )
-        ).to.throw(`RENDER-ERROR(Q-602): Expecting entity object, got '{"notEntity":true}'.`);
+        ).toThrow(`RENDER-ERROR(Q-602): Expecting entity object, got '{"notEntity":true}'.`);
       });
     });
   });
 
   describe('stringifyClassOrStyle', () => {
     it('should return string', () => {
-      expect(stringifyClassOrStyle('value', true)).to.eql('value');
-      expect(stringifyClassOrStyle(null!, true)).to.eql('');
+      expect(stringifyClassOrStyle('value', true)).toEqual('value');
+      expect(stringifyClassOrStyle(null!, true)).toEqual('');
     });
     it('should turn into class', () => {
-      expect(stringifyClassOrStyle(['a', 'b'], true)).to.eql('a b');
-      expect(stringifyClassOrStyle({ a: true, b: false }, true)).to.eql('a');
+      expect(stringifyClassOrStyle(['a', 'b'], true)).toEqual('a b');
+      expect(stringifyClassOrStyle({ a: true, b: false }, true)).toEqual('a');
     });
     it('should turn into style', () => {
-      expect(stringifyClassOrStyle({ a: true, b: false }, false)).to.eql('a:true;b:false');
+      expect(stringifyClassOrStyle({ a: true, b: false }, false)).toEqual('a:true;b:false');
     });
     describe('error', () => {
       it('should complain on setting array on style', () => {
-        expect(() => stringifyClassOrStyle(['a', 'b'], false)).to.throw(
+        expect(() => stringifyClassOrStyle(['a', 'b'], false)).toThrow(
           `RENDER-ERROR(Q-601): Value '["a","b"]' can't be written into 'style' attribute.`
         );
       });
@@ -238,30 +233,30 @@ describe('attributes', () => {
 
     it('should set/remove attribute', () => {
       setAttribute(fixture.host, 'id', 'value');
-      expect(fixture.host.getAttribute('id')).to.eql('value');
+      expect(fixture.host.getAttribute('id')).toEqual('value');
       setAttribute(fixture.host, 'id', null);
-      expect(fixture.host.hasAttribute('id')).to.be.false;
+      expect(fixture.host.hasAttribute('id')).toBe(false);
     });
 
     it('should set class', () => {
       setAttribute(fixture.host, 'class', ['a', 'b']);
-      expect(fixture.host.getAttribute('class')).to.eql('a b');
+      expect(fixture.host.getAttribute('class')).toEqual('a b');
     });
 
     it('should set style', () => {
       setAttribute(fixture.host, 'style', { color: 'red', width: '10px' });
-      expect(fixture.host.getAttribute('style')).to.eql('color:red;width:10px');
+      expect(fixture.host.getAttribute('style')).toEqual('color:red;width:10px');
     });
 
     it('should set INPUT properties', () => {
       fixture.host.setAttribute('value', 'initial');
       setAttribute(fixture.host, 'value', 'update');
-      expect((fixture.host as HTMLInputElement).value).to.equal('update');
+      expect((fixture.host as HTMLInputElement).value).toEqual('update');
     });
 
     describe('error', () => {
       it('should complain on setting array on style', () => {
-        expect(() => setAttribute(fixture.host, 'style', ['a', 'b'])).to.throw(
+        expect(() => setAttribute(fixture.host, 'style', ['a', 'b'])).toThrow(
           `RENDER-ERROR(Q-601): Value '["a","b"]' can't be written into 'style' attribute.`
         );
       });

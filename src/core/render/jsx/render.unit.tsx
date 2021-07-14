@@ -6,45 +6,42 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { expect } from 'chai';
-import { TEST_CONFIG } from '../../testing/config.unit.js';
-import { QRL } from '../../import/qrl.js';
-import { ElementFixture, applyDocumentConfig } from '../../testing/element_fixture.js';
-import { createGlobal, QwikGlobal } from '../../testing/node_utils.js';
-import { jsxDeclareComponent, jsxFactory } from './factory.js';
-import { Host } from './host.js';
-import type { JSX_IntrinsicElements } from './html.js';
-import type { JSXBase } from './html_base.js';
-import { jsxRender } from './render.js';
-
-const _needed_by_JSX_ = jsxFactory; // eslint-disable-line @typescript-eslint/no-unused-vars
-const _needed_by_ide_: JSX_IntrinsicElements = null!; // eslint-disable-line @typescript-eslint/no-unused-vars
+import { TEST_CONFIG } from '../../util/test_config';
+import { QRL } from '../../import/qrl';
+import {
+  ElementFixture,
+  applyDocumentConfig,
+  createDocument,
+  MockDocument,
+} from '@builder.io/qwik/testing';
+import { jsxDeclareComponent, h } from './factory';
+import { jsx, Fragment } from './jsx-runtime';
+import { Host } from './host';
+import { jsxRender } from './render';
 
 // TODO(test): add test where `<Foo>` => `async function Foo`
 
 describe('render', () => {
-  let global: QwikGlobal;
-  let document: Document;
+  let doc: MockDocument;
   let host: HTMLElement;
 
   beforeEach(() => {
-    global = createGlobal();
-    host = global.document.createElement('host');
-    document = global.document;
-    applyDocumentConfig(document, TEST_CONFIG);
+    doc = createDocument();
+    host = doc.createElement('host');
+    applyDocumentConfig(doc, TEST_CONFIG);
   });
 
   it('should render basic DOM structure', () => {
     jsxRender(host, <div id="abc">test</div>);
-    expect(host.innerHTML).to.equal('<div id="abc">test</div>');
+    expect(host.innerHTML).toEqual('<div id="abc">test</div>');
   });
 
   it('should not destroy existing DOM', () => {
     jsxRender(host, <div id="foo">original</div>);
     const originalDiv = host.firstChild;
     jsxRender(host, <div class="bar">overwrite</div>);
-    expect(host.firstChild).to.equal(originalDiv, 'node identity should not be destroyed');
-    expect(host.innerHTML).to.equal('<div id="foo" class="bar">overwrite</div>');
+    expect(host.firstChild).toEqual(originalDiv);
+    expect(host.innerHTML).toEqual('<div id="foo" class="bar">overwrite</div>');
   });
 
   it('should remove extra text', () => {
@@ -56,9 +53,9 @@ describe('render', () => {
         {'b'}
       </div>
     );
-    expect(host.innerHTML).to.equal('<div>ab</div>');
+    expect(host.innerHTML).toEqual('<div>ab</div>');
     jsxRender(host, <div>original</div>);
-    expect(host.innerHTML).to.equal('<div>original</div>');
+    expect(host.innerHTML).toEqual('<div>original</div>');
   });
 
   it('should remove extra nodes', () => {
@@ -70,7 +67,7 @@ describe('render', () => {
       </div>
     );
     jsxRender(host, <div></div>);
-    expect(host.innerHTML).to.equal('<div></div>');
+    expect(host.innerHTML).toEqual('<div></div>');
     jsxRender(
       host,
       <div>
@@ -78,48 +75,30 @@ describe('render', () => {
         <span></span>
       </div>
     );
-    expect(host.innerHTML).to.equal('<div><span></span><span></span></div>');
-  });
-
-  it.skip('should render HEAD', () => {
-    // TODO, figure out how <head> should render in this scenario
-    const head = document.querySelector('head')!;
-    jsxRender(
-      head,
-      <head>
-        <title>Hello World from Server</title>
-        <script src="/qwikloader.js" async></script>
-      </head>
-    );
-
-    expect(head.outerHTML).to.equal(
-      '<head>' +
-        '<head>' +
-        '<title>Hello World from Server</title>' +
-        '<script src="/qwikloader.js" async="true"></script>' +
-        '</head>' +
-        '</head>'
-    );
+    expect(host.innerHTML).toEqual('<div><span></span><span></span></div>');
   });
 
   it('should render HTML on document', () => {
     const cmp = (
       <html>
         <head>
-          <title>Hello World from Server</title>
-          <script src="/qwikloader.js" async></script>
+          <title>Hello World Testing!</title>
         </head>
         <body>Hello World!</body>
       </html>
     );
-    jsxRender(document, cmp);
+    jsxRender(doc, cmp);
 
-    const html = document.querySelector('html')!;
-    expect(html.outerHTML).to.equal(
+    expect(doc.title).toBe('Hello World Testing!');
+
+    const titleElm = doc.querySelector('title')!;
+    expect(titleElm.textContent).toBe('Hello World Testing!');
+
+    const html = doc.querySelector('html')!;
+    expect(html.outerHTML).toEqual(
       '<html>' +
         '<head>' +
-        '<title>Hello World from Server</title>' +
-        '<script src="/qwikloader.js" async="true"></script>' +
+        '<title>Hello World Testing!</title>' +
         '</head>' +
         '<body>Hello World!</body>' +
         '</html>'
@@ -137,7 +116,7 @@ describe('render', () => {
         <Greeter url="/" />
       </div>
     );
-    expect(host.innerHTML).to.equal(
+    expect(host.innerHTML).toEqual(
       '<div>' +
         '<greeter decl:template="jsx:/render.unit#Greeter_render_with_url" url="/" :="">' +
         '<span>Hello World! (/)</span>' +
@@ -155,7 +134,7 @@ describe('render', () => {
           <span>B</span>
         </>
       );
-      expect(host.innerHTML).to.equal('<span>A</span><span>B</span>');
+      expect(host.innerHTML).toEqual('<span>A</span><span>B</span>');
     });
 
     it('should support fragment in root of component', () => {
@@ -174,7 +153,7 @@ describe('render', () => {
           <Component />
         </div>
       );
-      expect(host.innerHTML).to.equal('<div><span>A</span><span>B</span></div>');
+      expect(host.innerHTML).toEqual('<div><span>A</span><span>B</span></div>');
     });
   });
 
@@ -182,7 +161,7 @@ describe('render', () => {
     it('should be able to render innerHTML', async () => {
       const html = `<span>TEST</span>`;
       await jsxRender(host, <div innerHTML={html}></div>);
-      expect(host.innerHTML).to.equal('<div inner-h-t-m-l=""><span>TEST</span></div>');
+      expect(host.innerHTML).toEqual('<div inner-h-t-m-l=""><span>TEST</span></div>');
     });
   });
 
@@ -194,7 +173,7 @@ describe('render', () => {
           <greeter url="/" decl:template={QRL`jsx:/render.unit#Greeter_render_with_url`} />
         </div>
       );
-      expect(host.innerHTML).to.equal(
+      expect(host.innerHTML).toEqual(
         '<div>' +
           '<greeter url="/" decl:template="jsx:/render.unit#Greeter_render_with_url" :="">' +
           '<span>Hello World! (/)</span>' +
@@ -210,15 +189,15 @@ describe('render', () => {
       // Event prefixes `.` to mean framework event such as `
       await jsxRender(
         host,
-        jsxFactory('div', {
-          'decl:template': 'jsx:/render.unit#Noop_template',
+        jsx('div', {
+          'decl:template': QRL`jsx:/render.unit#Noop_template`,
           'bind:.': 'myUrl',
           'on:.render': 'myComponentUrl',
-          'on:click': 'myComponent_click',
+          'on:click': QRL`myComponent_click`,
           'bind:token': 'myTokenUrl',
         })
       );
-      expect(host.innerHTML).to.equal(
+      expect(host.innerHTML).toEqual(
         '<div decl:template="jsx:/render.unit#Noop_template" bind:.="myUrl" on:.render="myComponentUrl" on:click="myComponent_click" bind:token="myTokenUrl" :="">NOOP</div>'
       );
     });
@@ -230,7 +209,7 @@ describe('render', () => {
       fixture.host.innerHTML = '';
       fixture.host.setAttribute('parent', 'pValue');
       await jsxRender(fixture.host, <Host child="cValue">VIEW</Host>);
-      expect(fixture.host.outerHTML).to.eql(`<host parent="pValue" child="cValue">VIEW</host>`);
+      expect(fixture.host.outerHTML).toEqual(`<host parent="pValue" child="cValue">VIEW</host>`);
     });
 
     describe('styling', () => {
@@ -248,14 +227,6 @@ describe('render', () => {
     });
   });
 });
-
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      greeter: { url?: string } & JSXBase;
-    }
-  }
-}
 
 export function Greeter_render_with_url(props: { url?: string }) {
   return <span>Hello World! ({props.url})</span>;

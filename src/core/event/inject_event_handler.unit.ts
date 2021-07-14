@@ -6,14 +6,13 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { expect } from 'chai';
-import { Component } from '../component/index.js';
-import type { QRL } from '../import/qrl.js';
-import { ElementFixture } from '../testing/element_fixture.js';
-import { AttributeMarker } from '../util/markers.js';
-import { EventEntity } from './event_entity.js';
-import type { EventInjector } from './event_injector.js';
-import { injectEventHandler } from './inject_event_handler.js';
+import { Component } from '../component/index';
+import type { QRL } from '../import/qrl';
+import { ElementFixture } from '@builder.io/qwik/testing';
+import { AttributeMarker } from '../util/markers';
+import { EventEntity } from './event_entity';
+import type { EventInjector } from './event_injector';
+import { injectEventHandler } from './inject_event_handler';
 
 describe('injectEventHandler', () => {
   let fixture: ElementFixture;
@@ -28,18 +27,18 @@ describe('injectEventHandler', () => {
       MyComponent,
       async (injector: EventInjector) => {
         const eventEntity = await injector.getEntity(EventEntity.KEY);
-        expect(injector.element).to.equal(fixture.host);
-        expect(eventEntity.event).to.equal(event);
-        expect(eventEntity.url).to.equal(url);
+        expect(injector.element).toEqual(fixture.host);
+        expect(eventEntity.event).toEqual(event);
+        expect(eventEntity.url).toEqual(url);
         return 'providerValue';
       },
       function (this: MyComponent, arg0: string) {
-        expect(this.$host).to.equal(fixture.host);
-        expect(arg0).to.equal('providerValue');
+        expect(this.$host).toEqual(fixture.host);
+        expect(arg0).toEqual('providerValue');
         return 'handlerValue';
       }
     );
-    expect(await fn(fixture.host, event, url)).to.equal('handlerValue');
+    expect(await fn(fixture.host, event, url)).toEqual('handlerValue');
   });
 });
 

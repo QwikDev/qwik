@@ -6,15 +6,14 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { expect } from 'chai';
-import { dirname } from './dirname.js';
+import { dirname } from './dirname';
 
 describe('dirname', () => {
   it('should strip filename and keep ending slash', () => {
-    expect(dirname('dir/path/file.ext')).to.equal('dir/path/');
+    expect(dirname('dir/path/file.ext')).toEqual('dir/path/');
   });
 
   it('should strip dirname and keep ending slash', () => {
-    expect(dirname('dir/path/')).to.equal('dir/');
+    expect(dirname('dir/path/')).toEqual('dir/');
   });
 });

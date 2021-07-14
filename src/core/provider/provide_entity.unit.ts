@@ -6,16 +6,15 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { expect } from 'chai';
-import { TEST_CONFIG } from '../testing/config.unit.js';
-import { Entity } from '../entity/entity.js';
-import type { EntityKey } from '../entity/entity_key.js';
-import { QRL } from '../import/qrl.js';
-import { getInjector } from '../injector/element_injector.js';
-import { injectFunction } from '../injector/inject.js';
-import type { Injector, Provider } from '../injector/types.js';
-import { ElementFixture } from '../testing/element_fixture.js';
-import { provideEntity } from './provide_entity.js';
+import { TEST_CONFIG } from '../util/test_config';
+import { Entity } from '../entity/entity';
+import type { EntityKey } from '../entity/entity_key';
+import { QRL } from '../import/qrl';
+import { getInjector } from '../injector/element_injector';
+import { injectFunction } from '../injector/inject';
+import type { Injector, Provider } from '../injector/types';
+import { ElementFixture } from '@builder.io/qwik/testing';
+import { provideEntity } from './provide_entity';
 
 describe('provideEntity', () => {
   let fixture: ElementFixture;
@@ -34,7 +33,7 @@ describe('provideEntity', () => {
       (entity: RegardsEntity) => entity
     );
 
-    expect((await hostInjector.invoke(fn)).$state).to.eql({
+    expect((await hostInjector.invoke(fn)).$state).toEqual({
       $key: 'regards:Hello:World',
       greeting: 'Hello World!',
     });

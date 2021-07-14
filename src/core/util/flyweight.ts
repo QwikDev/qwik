@@ -6,14 +6,12 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import './qDev.js';
+import { qDev } from './qdev';
 
 export const EMPTY_ARRAY = [];
+export const EMPTY_OBJ = {};
+
 if (qDev) {
   Object.freeze(EMPTY_ARRAY);
-}
-
-export const EMPTY_OBJ = {};
-if (qDev) {
   Object.freeze(EMPTY_OBJ);
 }

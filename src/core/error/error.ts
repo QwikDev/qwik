@@ -6,8 +6,9 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { AttributeMarker } from '../util/markers.js';
-import { stringifyDebug } from './stringify.js';
+import { AttributeMarker } from '../util/markers';
+import { stringifyDebug } from './stringify';
+import { qDev } from '../util/qdev';
 
 export const enum QError {
   // core 000-099
@@ -62,23 +63,26 @@ export const enum QError {
   Render_expectingEntity_entity = 602,
   Render_expectingEntityArray_obj = 603,
   Render_expectingEntityOrComponent_obj = 604,
-  Render_noRAF = 605,
-  Render_bindNeedsComponent_key_element = 606,
+  Render_bindNeedsComponent_key_element = 605,
   // Event
   Event_emitEventRequiresName_url = 700,
   Event_emitEventCouldNotFindListener_event_element = 701,
 }
 
 export function qError(code: QError, ...args: any[]): Error {
-  const text = codeToText(code);
-  const parts = text.split('{}');
-  const error = parts
-    .map((value, index) => {
-      return value + (index === parts.length - 1 ? '' : stringifyDebug(args[index]));
-    })
-    .join('');
-  debugger; // eslint-disable-line no-debugger
-  return new Error(error);
+  if (qDev) {
+    const text = codeToText(code);
+    const parts = text.split('{}');
+    const error = parts
+      .map((value, index) => {
+        return value + (index === parts.length - 1 ? '' : stringifyDebug(args[index]));
+      })
+      .join('');
+    debugger; // eslint-disable-line no-debugger
+    return new Error(error);
+  } else {
+    return new Error(`QError ` + code);
+  }
 }
 
 function codeToText(code: QError): string {
@@ -174,8 +178,6 @@ function codeToText(code: QError): string {
     [QError.Render_expectingEntity_entity]: "Expecting entity object, got '{}'.",
     [QError.Render_expectingEntityArray_obj]: "Expecting array of entities, got '{}'.",
     [QError.Render_expectingEntityOrComponent_obj]: "Expecting Entity or Component got '{}'.",
-    [QError.Render_noRAF]:
-      "'requestAnimationFrame' not found. If you are running on server design your applications in a way which does not require 'requestAnimationFrame' on first render.",
     [QError.Render_bindNeedsComponent_key_element]:
       "Expecting that element with 'bind:{}' should be a component (should have '" +
       AttributeMarker.ComponentTemplate +

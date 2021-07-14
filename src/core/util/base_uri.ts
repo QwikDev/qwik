@@ -6,9 +6,8 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import './qDev.js';
-import { assertLess, assertLessOrEqual } from '../assert/assert.js';
-import { qError, QError } from '../error/error.js';
+import { assertLess, assertLessOrEqual } from '../assert/assert';
+import { qError, QError } from '../error/error';
 
 /**
  * Return the baseUri from the stack trace.
@@ -16,11 +15,11 @@ import { qError, QError } from '../error/error.js';
  * @param offset - number of frames to look above the invocation of the call site. This is a negative number.
  */
 export function getBaseUri(offset: number = 0): string {
-  qDev && assertLessOrEqual(offset, 0, '`offset` should be <= 0 was: ' + offset);
+  assertLessOrEqual(offset, 0, '`offset` should be <= 0 was: ' + offset);
   const error = new Error();
   const frames = error.stack!.split('\n');
   const frameIdx = 2 - offset;
-  qDev && assertLess(frameIdx, frames.length);
+  assertLess(frameIdx, frames.length);
   return getFilePathFromFrame(frames[frameIdx]);
 }
 

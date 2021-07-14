@@ -6,12 +6,12 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { isValidAttribute } from '../error/data.js';
-import { fromCamelToKebabCase, fromKebabToCamelCase } from '../util/case.js';
-import type { Entity, EntityConstructor, EntityStateOf } from './entity.js';
-import { qError, QError } from '../error/error.js';
-import { stringify } from '../util/stringify.js';
-import { assertString } from '../assert/assert.js';
+import { isValidAttribute } from '../error/data';
+import { fromCamelToKebabCase, fromKebabToCamelCase } from '../util/case';
+import type { Entity, EntityConstructor, EntityStateOf } from './entity';
+import { qError, QError } from '../error/error';
+import { stringify } from '../util/stringify';
+import { assertString } from '../assert/assert';
 
 /**
  * String representation of the entity key.
@@ -60,7 +60,7 @@ export interface EntityKey<SERVICE = Entity<any, any>> {
  * @public
  */
 export function toEntityKey<SERVICE extends Entity<any, any>>(key: string): EntityKey<SERVICE> {
-  qDev && assertString(key);
+  assertString(key);
   return key as any;
 }
 

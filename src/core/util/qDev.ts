@@ -6,12 +6,4 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import global from './global.js';
-
-declare global {
-  const qDev: boolean;
-}
-
-if (typeof qDev === 'undefined') {
-  global.qDev = true;
-}
+export const qDev = (globalThis as any).qDev !== false;

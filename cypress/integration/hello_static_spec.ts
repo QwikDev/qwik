@@ -18,7 +18,7 @@ describe('hello_static', () => {
     cy.on('window:alert', (txt) => {
       // electron does not have alert, so this part of the test does not execute
       // in electron.
-      expect(txt).to.contains('Hello World!!!');
+      expect(txt).to.contain('Hello World!!!');
     });
   });
 });

@@ -11,6 +11,7 @@
  */
 export function removeNode(parentNode: Node, childNode: Node): Node | null {
   const nextSibling = childNode.nextSibling as Node | null;
+  previousParent.set(childNode, parentNode as Element);
   parentNode.removeChild(childNode);
   return nextSibling;
 }
@@ -24,6 +25,15 @@ export function replaceNode<T extends Node>(
   newNode: T
 ): T {
   parentNode.insertBefore(newNode, existingNode);
-  existingNode && parentNode.removeChild(existingNode);
+  if (existingNode) {
+    previousParent.set(existingNode, parentNode as Element);
+    parentNode.removeChild(existingNode);
+  }
   return newNode;
 }
+
+export function getParentElement(node: Node): Element | null {
+  return node.parentElement || previousParent.get(node) || null;
+}
+
+export const previousParent = new WeakMap<Node, Element>();

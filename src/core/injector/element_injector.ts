@@ -11,37 +11,40 @@ import type {
   ComponentStateOf,
   Component,
   ComponentConstructor,
-} from '../component/component.js';
-import { qError, QError } from '../error/error.js';
-import { qImport } from '../import/qImport.js';
-import type { QRL } from '../import/qrl.js';
-import { keyToEntityAttribute, EntityKey } from '../entity/entity_key.js';
+} from '../component/component';
+import { qError, QError } from '../error/error';
+import { qImport } from '../import/qImport';
+import type { QRL } from '../import/qrl';
+import { keyToEntityAttribute, EntityKey } from '../entity/entity_key';
 import type {
   Entity,
   EntityConstructor,
   EntityPromise,
   EntityPropsOf,
   EntityStateOf,
-} from '../entity/entity.js';
-import { findAttribute } from '../util/dom_attrs.js';
-import { AttributeMarker } from '../util/markers.js';
-import '../util/qDev.js';
-import { isHtmlElement } from '../util/types.js';
-import { BaseInjector } from './base_injector.js';
-import type { Injector } from './types.js';
+} from '../entity/entity';
+import { findAttribute } from '../util/dom_attrs';
+import { AttributeMarker } from '../util/markers';
+import { isHtmlElement } from '../util/types';
+import { BaseInjector } from './base_injector';
+import type { Injector } from './types';
+import { getParentElement } from '../util/dom';
 
 interface EntityValue {
   promise: EntityPromise<Entity<any, any>>;
   entity: Entity<any, any> | null;
 }
 
+/**
+ * @public
+ */
 export class ElementInjector extends BaseInjector {
   private component: Component<any, any> | null = null;
   private componentPromise: Promise<Component<any, any>> | null = null;
   private entities: Map<EntityKey, EntityValue> | null = null;
 
   getParent(): Injector | null {
-    let element = this.element.parentElement;
+    let element = getParentElement(this.element);
     while (element) {
       if (
         element.hasAttribute(AttributeMarker.Injector) ||
@@ -49,7 +52,7 @@ export class ElementInjector extends BaseInjector {
       ) {
         return getInjector(element);
       }
-      element = element.parentElement;
+      element = getParentElement(element);
     }
     return null;
   }
@@ -264,7 +267,7 @@ function toEntityPromise<SERVICE extends Entity<any, any>>(
 export function getComponentHost(element: Element): Element {
   let cursor: Element | null = element;
   while (cursor && !cursor.hasAttribute(AttributeMarker.ComponentTemplate)) {
-    cursor = cursor.parentElement;
+    cursor = getParentElement(cursor);
   }
   if (!cursor) {
     throw qError(QError.Injector_noHost_element, element);
@@ -322,7 +325,7 @@ export function getClosestInjector(
     ) {
       return getInjector(cursor) as ElementInjector;
     }
-    cursor = cursor.parentElement;
+    cursor = getParentElement(cursor);
   }
   if (throwIfNotFound) {
     throw qError(QError.Injector_notFound_element, element);

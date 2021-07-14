@@ -6,8 +6,8 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import type { Provider, Injector } from '../injector/types.js';
-import { QError, qError } from '../error/error.js';
+import type { Provider, Injector } from '../injector/types';
+import { QError, qError } from '../error/error';
 
 /**
  * Provider of Component State.

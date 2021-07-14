@@ -6,10 +6,10 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import type { EntityKey } from '../entity/entity_key.js';
-import { Entity } from '../entity/entity.js';
-import type { Props } from '../injector/types.js';
-import type { QRL } from '../import/qrl.js';
+import type { EntityKey } from '../entity/entity_key';
+import { Entity } from '../entity/entity';
+import type { Props } from '../injector/types';
+import type { QRL } from '../import/qrl';
 
 /**
  * `EventEntity` is only visible during event processing and can be used to retrieve `Event`

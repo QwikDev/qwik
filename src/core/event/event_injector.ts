@@ -6,22 +6,21 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import type { EntityKey } from '../entity/entity_key.js';
-import type { Component, ComponentConstructor } from '../component/component.js';
-import { BaseInjector } from '../injector/base_injector.js';
-import { ElementInjector, getClosestInjector } from '../injector/element_injector.js';
-import type { Injector, Props } from '../injector/types.js';
+import type { EntityKey } from '../entity/entity_key';
+import type { Component, ComponentConstructor } from '../component/component';
+import { BaseInjector } from '../injector/base_injector';
+import { ElementInjector, getClosestInjector } from '../injector/element_injector';
+import type { Injector, Props } from '../injector/types';
 import type {
   Entity,
   EntityConstructor,
   EntityPromise,
   EntityPropsOf,
   EntityStateOf,
-} from '../entity/entity.js';
-import '../util/qDev.js';
-import { qError, QError } from '../error/error.js';
-import { EventEntity } from './event_entity.js';
-import { qParams } from '../import/qImport.js';
+} from '../entity/entity';
+import { qError, QError } from '../error/error';
+import { EventEntity } from './event_entity';
+import { qParams } from '../import/qImport';
 
 export class EventInjector extends BaseInjector {
   private eventEntity: EventEntity;

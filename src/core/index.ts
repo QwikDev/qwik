@@ -6,12 +6,13 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-export * from './component/index.js';
-export * from './event/index.js';
-export * from './import/index.js';
-export * from './injector/index.js';
-export * from './render/index.js';
-export * from './render/jsx/index.js';
-export * from './entity/index.js';
-export * from './provider/index.js';
-export { dirname } from './util/dirname.js';
+export * from './component/index';
+export * from './event/index';
+export * from './import/index';
+export * from './injector/index';
+export * from './render/index';
+export * from './render/jsx/index';
+export * from './entity/index';
+export * from './provider/index';
+export * from './platform/index';
+export { dirname } from './util/dirname';

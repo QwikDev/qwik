@@ -6,4 +6,4 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-export * from './assert.js';
+export * from './assert';

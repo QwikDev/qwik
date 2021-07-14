@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { QError, qError } from '../error/error.js';
+import { QError, qError } from '../error/error';
 
 export function assertValidDataKey(key: string | null) {
   if (!key) return;

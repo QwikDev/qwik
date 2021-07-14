@@ -6,15 +6,15 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import type { EntityKey } from '../entity/entity_key.js';
-import type { Component, ComponentConstructor } from '../component/component.js';
+import type { EntityKey } from '../entity/entity_key';
+import type { Component, ComponentConstructor } from '../component/component';
 import type {
   Entity,
   EntityConstructor,
   EntityPromise,
   EntityPropsOf,
   EntityStateOf,
-} from '../entity/entity.js';
+} from '../entity/entity';
 
 /**
  * Interface for looking up components, entities, properties from the DOM `Element`s.
@@ -253,7 +253,7 @@ export interface InjectedFunction<SELF, ARGS extends any[], REST extends any[], 
  *   provideGreeting('World'), // Assume we want to create providerGreeting
  *   function(greeting: string) {
  *     // Which injects a `string` => `Hello World';
- *     expect(greeting).to.equal('Hello World!');
+ *     expect(greeting).toEqual('Hello World!');
  *   }
  * )
  *

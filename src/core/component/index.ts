@@ -12,9 +12,4 @@
  * Explicitly list public exported symbols to be used by the developer.
  */
 
-export {
-  Component,
-  ComponentConstructor,
-  ComponentPropsOf,
-  ComponentStateOf,
-} from './component.js';
+export { Component, ComponentConstructor, ComponentPropsOf, ComponentStateOf } from './component';

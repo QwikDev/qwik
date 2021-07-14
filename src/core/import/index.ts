@@ -6,5 +6,5 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-export { qImport } from './qImport.js';
-export { QRL } from './qrl.js';
+export { qImport } from './qImport';
+export { QRL } from './qrl';

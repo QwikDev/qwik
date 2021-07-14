@@ -6,15 +6,9 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import type { QRL } from '../../import/qrl.js';
-import type { EntityConstructor } from '../../entity/entity.js';
+import type { EntityConstructor, QRL } from '../../../';
 
-/**
- * Base JSX type containing universal properties.
- *
- * @public
- */
-export interface JSXBase {
+interface BaseProps {
   /**
    * Declare `Injector` `Entity` providers.
    *
@@ -26,7 +20,9 @@ export interface JSXBase {
    * Declare component template.
    */
   'decl:template'?: QRL;
+}
 
+interface BaseEvents {
   /**
    * Event fired when DOM is first loaded
    */
@@ -40,12 +36,6 @@ export interface JSXBase {
 
   // TODO: document
   'on:qRender'?: QRL;
-
-  class?: string | string[] | Record<string, boolean>;
-
-  style?: string | Record<string, string>;
-
-  // TODO: document
-  // TODO: investigate why this is needed
-  children?: any;
 }
+
+export interface JSXBase extends BaseProps, BaseEvents {}

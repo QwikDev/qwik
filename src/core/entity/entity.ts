@@ -6,13 +6,13 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { AttributeMarker } from '../util/markers.js';
-import { qError, QError } from '../error/error.js';
-import { qImport } from '../import/qImport.js';
-import type { QRL } from '../import/qrl.js';
-import { keyToEntityAttribute, EntityKey, keyToProps, propsToKey } from './entity_key.js';
-import { fromCamelToKebabCase } from '../util/case.js';
-import { getInjector } from '../injector/element_injector.js';
+import { AttributeMarker } from '../util/markers';
+import { qError, QError } from '../error/error';
+import { qImport } from '../import/qImport';
+import type { QRL } from '../import/qrl';
+import { keyToEntityAttribute, EntityKey, keyToProps, propsToKey } from './entity_key';
+import { fromCamelToKebabCase } from '../util/case';
+import { getInjector } from '../injector/element_injector';
 
 /**
  * `Entity` allows creation of lazy loading class whose state is serializable.

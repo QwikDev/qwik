@@ -6,8 +6,8 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import '../util/qDev.js';
-import type { ConcreteType, InjectedFunction, ProviderReturns } from './types.js';
+import { qDev } from '../util/qdev';
+import type { ConcreteType, InjectedFunction, ProviderReturns } from './types';
 
 /**
  * Decorate a function for injection by associating providers.

@@ -6,8 +6,8 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { assertDefined } from '../assert/index.js';
-import type { Provider, Injector } from '../injector/types.js';
+import { assertDefined } from '../assert/index';
+import type { Provider, Injector } from '../injector/types';
 
 /**
  * Returns `Props` of component.
@@ -35,7 +35,7 @@ import type { Provider, Injector } from '../injector/types.js';
 export function provideComponentProps<T>(): Provider<T> {
   return function propsComponentProvider(injector: Injector): T {
     const props = injector.elementProps;
-    qDev && assertDefined(props);
+    assertDefined(props);
     return props as any as T;
   };
 }

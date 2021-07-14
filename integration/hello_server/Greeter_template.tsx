@@ -7,15 +7,13 @@
  */
 
 import { GreeterComponent } from './Greeter_component.js';
-import { injectMethod, jsxFactory, QRL } from './qwik.js';
+import { injectMethod, h, QRL } from '@builder.io/qwik';
 
 /**
  * @fileoverview
  *
  * Contains rendering information of the Greeter component.
  */
-
-export const _needed_by_JSX_ = jsxFactory; // eslint-disable-line @typescript-eslint/no-unused-vars
 
 /**
  * Render template method of `GreeterComponent`.

@@ -6,21 +6,19 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import type { Item, ItemEntity } from '../data/Item.js';
+import type { Item, ItemEntity } from '../data/Item';
 import {
+  h,
   injectMethod,
-  jsxFactory,
   provideComponentProp,
   provideEntityState,
   QRL,
   EntityKey,
   Provider,
   Host,
-} from '../qwik.js';
-import { ItemComponent } from './Item_component.js';
+} from '@builder.io/qwik';
+import { ItemComponent } from './Item_component';
 
-// TODO: remove this by changing jsxFactory over to import
-export const _needed_by_JSX_ = jsxFactory; // eslint-disable-line @typescript-eslint/no-unused-vars
 export default injectMethod(
   ItemComponent,
   provideEntityState<ItemEntity>(

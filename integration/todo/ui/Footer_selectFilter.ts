@@ -6,8 +6,8 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { injectEventHandler, provideEntity, provideEvent } from '../qwik.js';
-import { TodoEntity } from '../data/Todo.js';
+import { injectEventHandler, provideEntity, provideEvent } from '@builder.io/qwik';
+import { TodoEntity } from '../data/Todo';
 
 export default injectEventHandler(
   //

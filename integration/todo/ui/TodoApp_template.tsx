@@ -6,14 +6,13 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { ItemEntity } from '../data/Item.js';
-import { TodoEntity } from '../data/Todo.js';
-import { injectFunction, jsxFactory } from '../qwik.js';
-import { Footer } from './Footer.js';
-import { Header } from './Header.js';
-import { Main } from './Main.js';
+import { ItemEntity } from '../data/Item';
+import { TodoEntity } from '../data/Todo';
+import { injectFunction, h } from '@builder.io/qwik';
+import { Footer } from './Footer';
+import { Header } from './Header';
+import { Main } from './Main';
 
-export const _needed_by_JSX_ = jsxFactory; // eslint-disable-line @typescript-eslint/no-unused-vars
 export default injectFunction(function () {
   return (
     <section class="todoapp" decl:entity={[TodoEntity, ItemEntity]}>

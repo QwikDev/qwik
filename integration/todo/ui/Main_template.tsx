@@ -6,23 +6,22 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import type { TodoEntity } from '../data/Todo.js';
+import type { TodoEntity } from '../data/Todo';
 import {
+  h,
   injectFunction,
-  jsxFactory,
   provideComponentProp,
   provideEntity,
   EntityKey,
   Provider,
   Host,
-} from '../qwik.js';
-import { Item } from './Item.js';
+} from '@builder.io/qwik';
+import { Item } from './Item';
 // TODO(file_layout): Rework the file layout. I think it should be in same directory as loading `template.ts` looks weird
 // - Main.ts // public.ts
 // - Main_template.ts // template.ts
 // - Main_action.ts // action.ts
 
-export const _needed_by_JSX_ = jsxFactory; // eslint-disable-line @typescript-eslint/no-unused-vars
 export default injectFunction(
   provideEntity<TodoEntity>(
     provideComponentProp('$todos') as any as Provider<EntityKey<TodoEntity>>

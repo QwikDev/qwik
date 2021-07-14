@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { jsxDeclareComponent, QRL } from './qwik.js';
+import { jsxDeclareComponent, QRL } from '@builder.io/qwik';
 
 /**
  * @fileoverview
@@ -34,7 +34,7 @@ export interface GreeterProps {
  *
  * Usage:
  * ```
- * import {Greeter} from './hello_world.js';
+ * import { Greeter } from './hello_world';
  * ...
  *
  * function () {

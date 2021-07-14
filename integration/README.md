@@ -1,6 +1,6 @@
 # Integration
 
-This folder contains both e2e integration tests as well as examples of usage of the sub-framework.
+This folder contains internal e2e integration tests as well as examples of usage of the sub-framework.
 
 ## Examples:
 
@@ -10,11 +10,25 @@ This folder contains both e2e integration tests as well as examples of usage of 
 
 ## Running
 
-1. First, start the [Bazel](https://bazel.build/) server
+1. First, start the integration dev server:
 
    ```
-   bazel run integration:server
+   npm run integration.server
    ```
 
 2. Open the browser http://localhost:8080
 3. Navigate to one of the examples.
+
+To build the minified code with external sourcemaps, run:
+
+```
+npm run integration.server.prod
+```
+
+## Debugging in VSCode
+
+1. Select the Debug action panel on the left
+2. In the "Run and Debug" drop down, select "Integration Dev Server"
+3. Click the green play icon. This is the same as running `npm run integration.server`,
+   however you can also add breakpoints directly in VSCode and the source.
+4. The "Debug Console" will have the console logs.

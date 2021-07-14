@@ -6,15 +6,15 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { TodoEntity } from '../data/Todo.js';
+import { TodoEntity } from '../data/Todo';
 import {
   injectEventHandler,
   provideQrlExp,
   provideEntity,
   markDirty,
   provideProviderOf,
-} from '../qwik.js';
-import { HeaderComponent } from './Header_component.js';
+} from '@builder.io/qwik';
+import { HeaderComponent } from './Header_component';
 
 export default injectEventHandler(
   HeaderComponent,

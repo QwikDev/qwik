@@ -6,16 +6,17 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import type { ItemEntity } from '../data/Item.js';
-import type { Provider, EntityKey } from '../qwik.js';
+import type { ItemEntity } from '../data/Item';
 import {
+  Provider,
+  EntityKey,
   injectEventHandler,
   markDirty,
   provideUrlProp,
   provideQrlExp,
   provideEntity,
-} from '../qwik.js';
-import { ItemComponent } from './Item_component.js';
+} from '@builder.io/qwik';
+import { ItemComponent } from './Item_component';
 
 export const begin = injectEventHandler(
   ItemComponent, //

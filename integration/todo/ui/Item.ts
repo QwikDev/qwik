@@ -6,8 +6,8 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import type { ItemEntity } from '../data/Item.js';
-import { jsxDeclareComponent, QRL, EntityKey } from '../qwik.js';
+import type { ItemEntity } from '../data/Item';
+import { jsxDeclareComponent, QRL, EntityKey } from '@builder.io/qwik';
 
 export interface ItemProps {
   $item: EntityKey<ItemEntity>;

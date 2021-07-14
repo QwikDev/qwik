@@ -6,19 +6,19 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import type { Todo, TodoEntity } from '../data/Todo.js';
+import type { Todo, TodoEntity } from '../data/Todo';
 import {
+  h,
+  Fragment,
   QRL,
   injectFunction,
-  jsxFactory,
   provideComponentProp,
   provideEntityState,
   Provider,
   EntityKey,
   Host,
-} from '../qwik.js';
+} from '@builder.io/qwik';
 
-export const _needed_by_JSX_ = jsxFactory; // eslint-disable-line @typescript-eslint/no-unused-vars
 export default injectFunction(
   provideEntityState<TodoEntity>(
     provideComponentProp('$todos') as any as Provider<EntityKey<TodoEntity>>

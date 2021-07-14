@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { QRL, Entity } from '../qwik.js';
+import { QRL, Entity } from '@builder.io/qwik';
 
 export interface ItemProps {
   id: string;

@@ -40,7 +40,7 @@ describe('todo', () => {
       });
 
       it('should edit an item', function () {
-        cy.get('.todo-list>li:first-child').dblclick();
+        cy.get('.todo-list>li:first-child label').dblclick();
         cy.wait(50);
         cy.get('.todo-list>li:first-child input.edit').type('123{enter}');
         cy.get('.todo-list>li:first-child').should((item: any) =>

@@ -11,7 +11,7 @@ const jestPreset = {
   moduleNameMapper: {
     '^@builder.io/qwik/jsx-runtime$': join(packageRootDir, 'jsx-runtime._MODULE_EXT_'),
     '^@builder.io/qwik/optimizer$': join(packageRootDir, 'optimizer._MODULE_EXT_'),
-    '^@builder.io/qwik/server$': join(testingDir, 'index._MODULE_EXT_'),
+    '^@builder.io/qwik/server$': join(packageRootDir, 'server', 'index._MODULE_EXT_'),
     '^@builder.io/qwik/testing$': join(testingDir, 'index._MODULE_EXT_'),
     '^@builder.io/qwik$': join(packageRootDir, 'core._MODULE_EXT_'),
   },

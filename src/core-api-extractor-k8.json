@@ -1,6 +1,0 @@
-{
-  "$schema": "https://developer.microsoft.com/json-schemas/api-extractor/v7/api-extractor.schema.json",
-
-  "extends": "./core-api-extractor.json",
-  "projectFolder": "../bazel-out/k8-fastbuild/bin"
-}

@@ -6,10 +6,10 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import type { Injector, Provider } from '../injector/types.js';
-import { assertDefined } from '../assert/index.js';
-import { QError, qError } from '../error/error.js';
-import { EventEntity } from '../event/event_entity.js';
+import type { Injector, Provider } from '../injector/types';
+import { assertDefined } from '../assert/index';
+import { QError, qError } from '../error/error';
+import { EventEntity } from '../event/event_entity';
 
 /**
  * Inject result of url expression evaluation.
@@ -58,7 +58,7 @@ export function provideQrlExp<T>(parameterName: string): Provider<T> {
     switch (value.charAt(0)) {
       case '.':
         let obj: any = eventEntity.event;
-        qDev && assertDefined(obj);
+        assertDefined(obj);
         const parts = value.substr(1).split('.');
         while (parts.length && obj) {
           obj = obj[parts.shift()!];

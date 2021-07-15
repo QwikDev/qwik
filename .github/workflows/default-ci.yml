@@ -1,41 +1,80 @@
 name: default-ci-jobs
 on: [push, pull_request]
+
 jobs:
-  lint:
+  build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Cypress install
+        uses: cypress-io/github-action@v2
         with:
-          node-version: 15.x
+          runTests: false
 
-      - name: Setup node_modules
-        run: yarn
+      - run: yarn lint
+      - run: yarn build
 
-      - name: Lint checks
-        run: |
-          yarn prettier-check
-          yarn lint
-          yarn bazel:lint
-  build_and_test:
+      - name: Save build directories
+        uses: actions/upload-artifact@v2
+        with:
+          name: build
+          if-no-files-found: error
+          path: |
+            dist-dev
+            integration/devserver.js
+
+  unit-tests:
+    timeout-minutes: 15
     runs-on: ubuntu-latest
+    needs: build
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Download the build folders
+        uses: actions/download-artifact@v2
         with:
-          node-version: 15.x
-      - uses: c-hive/gha-yarn-cache@v1
-      - uses: bazelbuild/setup-bazelisk@v1
+          name: build
+          path: |
+            dist-dev
+            integration/devserver.js
 
-      - name: Build all targets
-        run: bazel build //...
+      - run: yarn test.unit
 
-      - name: Run all unit tests
-        run: bazel test --test_tag_filters=unit //...
-# TODO: blocked on running integration server through cypress - see issue #15
-#  e2e-tests:
-#    runs-on: macos-latest
-#    steps:
-#      - uses: actions/checkout@v2
-#      - uses: actions/setup-node@v1
-#      - run: yarn test:e2e
+  e2e-tests:
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        # run copies of the current job in parallel
+        containers: [1, 2, 3, 4, 5]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Download the build folders
+        uses: actions/download-artifact@v2
+        with:
+          name: build
+          path: |
+            dist-dev
+            integration/devserver.js
+
+      - name: 'E2E Tests'
+        uses: cypress-io/github-action@v2
+        with:
+          start: yarn integration.server.prod
+          wait-on: 'http://localhost:8081'
+          wait-on-timeout: 120
+          browser: chrome
+          record: true
+          parallel: true
+          group: 'E2E Test Group'
+          spec: cypress/integration/*
+        env:
+          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

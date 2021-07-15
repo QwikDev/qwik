@@ -66,6 +66,22 @@ describe('BaseInjector', () => {
       expect(log).to.eql([null, 'self', 'arg0', 'extra']);
     });
 
+    it('should call injected function (as default)', async () => {
+      const log: (string | null)[] = [];
+      const injectedFn = injectFunction(
+        provideConst('self'), //
+        provideConst('arg0'),
+        function (this: null, arg0: string, arg1: string, arg2: string) {
+          log.push(this, arg0, arg1, arg2);
+          return 'ret';
+        }
+      );
+      expect(await hostInjector.invoke({ default: injectedFn } as any, null, 'extra')).to.eql(
+        'ret'
+      );
+      expect(log).to.eql([null, 'self', 'arg0', 'extra']);
+    });
+
     it('should call injected method', async () => {
       const log: (string | MyComponent)[] = [];
       fixture.host.setAttribute(AttributeMarker.ComponentTemplate, MyComponent.$templateQRL as any);
@@ -81,6 +97,23 @@ describe('BaseInjector', () => {
       expect(await hostInjector.invoke(injectedFn, null, 'arg2')).to.eql('ret');
       expect(log).to.eql([{ $host: fixture.host, $props: {}, $state: {} }, 'arg0', 'arg1', 'arg2']);
     });
+
+    it('should call injected method (as default)', async () => {
+      const log: (string | MyComponent)[] = [];
+      fixture.host.setAttribute(AttributeMarker.ComponentTemplate, MyComponent.$templateQRL as any);
+      const injectedFn = injectMethod(
+        MyComponent,
+        provideConst('arg0'), //
+        provideConst('arg1'),
+        function (this: MyComponent, arg0: string, arg1: string, arg2: string) {
+          log.push(this, arg0, arg1, arg2);
+          return 'ret';
+        }
+      );
+      expect(await hostInjector.invoke({ default: injectedFn } as any, null, 'arg2')).to.eql('ret');
+      expect(log).to.eql([{ $host: fixture.host, $props: {}, $state: {} }, 'arg0', 'arg1', 'arg2']);
+    });
+
     describe('error', async () => {
       it('should include declare context when throwing error', async () => {
         fixture.host.setAttribute(

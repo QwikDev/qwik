@@ -1,6 +1,7 @@
 .history
 .vscode
 dist
+dist-dev
 bazel-*
 node_modules
 tsc-out
@@ -11,3 +12,9 @@ etc
 temp
 tsdoc-metadata.json
 **/.DS_Store
+integration/out/
+integration/**/*.js
+integration/**/*.cjs
+integration/**/*.map
+cypress/screenshots
+cypress/videos

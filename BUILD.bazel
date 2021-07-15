@@ -1,5 +1,6 @@
 load("@build_bazel_rules_nodejs//:index.bzl", "copy_to_bin")
 load("@npm//@bazel/typescript:index.bzl", "ts_config")
+load("//tools:my_rollup.bzl", "my_rollup")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -24,3 +25,20 @@ exports_files([
     "terser.config.json",
     "tsconfig.json",
 ])
+
+# We need to create a build rule for bazel for our rollup. Not sure what proper
+# name should be. Maybe: qwik_pgk??? not sure.
+my_rollup(
+    name = "rollup",
+    srcs = glob(
+        [
+            "src/**/*.ts",
+            "src/**/*.tsx",
+        ], 
+        exclude = [
+            "src/**/*.unit.ts",
+            "src/**/*.unit.tsx",
+        ]
+    ),
+    deps = [],
+)

@@ -1,0 +1,10 @@
+load("@build_bazel_rules_nodejs//:index.bzl", "nodejs_binary")
+
+package(default_visibility = ["//visibility:public"])
+
+# This defines the binary we want as part of the rule. 
+# In our case it is just `rollup_example.js` but it coul be anything.
+nodejs_binary(
+    name = "my_rollup_binary",
+    entry_point = ":rollup_example.js",
+)

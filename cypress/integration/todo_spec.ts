@@ -13,7 +13,7 @@ describe('todo', () => {
     describe(url, () => {
       beforeEach(() => {
         cy.visit(url);
-        cy.wait(10);
+        cy.wait(15);
       });
       it('should start with 3 items', () => {
         cy.get('.todo-count > strong').should((strong) => expect(strong).to.have.text('3'));

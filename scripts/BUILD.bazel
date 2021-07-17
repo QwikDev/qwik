@@ -1,0 +1,19 @@
+load("@build_bazel_rules_nodejs//:index.bzl", "nodejs_binary")
+
+package(default_visibility = ["//visibility:public"])
+
+# This defines the binary we want as part of the rule.
+nodejs_binary(
+    name = "package_build_binary",
+    entry_point = ":index.js",
+)
+
+filegroup(
+    name = "all_ts",
+    srcs = glob(
+        [
+            "shim/__dirname.js",
+            "*.ts*",
+        ],
+    ),
+)

@@ -1,74 +1,114 @@
 {
   "name": "@builder.io/qwik",
-  "version": "0.0.1",
+  "version": "0.0.11",
   "description": "An Open-Source sub-framework designed with a focus on server-side-rendering, lazy-loading, and styling/animation.",
   "main": "index.js",
+  "@comment type": "Setting type to 'commonjs' is important as many of the bazel tooling assumes 'commonjs'. For code which wants ESM a second 'package.json' file needs to be created for just those files.",
+  "type": "commonjs",
+  "devDependencies": {
+    "@microsoft/api-extractor": "^7.16.1",
+    "@types/express": "^4.17.13",
+    "@types/jest": "^26.0.23",
+    "@types/mri": "^1.1.1",
+    "@types/node": "^14.14.10",
+    "@types/source-map-support": "^0.5.3",
+    "@typescript-eslint/eslint-plugin": "^4.19.0",
+    "@typescript-eslint/parser": "^4.19.0",
+    "concurrently": "^6.2.0",
+    "cypress": "^7.7.0",
+    "domino": "^2.1.6",
+    "esbuild": "^0.12.13",
+    "esbuild-register": "^2.6.0",
+    "eslint": "^7.23.0",
+    "eslint-plugin-no-only-tests": "^2.4.0",
+    "express": "^4.17.1",
+    "husky": "^5.2.0",
+    "jest": "^27.0.5",
+    "lint-staged": "^10.5.4",
+    "mri": "^1.1.6",
+    "np": "^7.5.0",
+    "prettier": "2.3.0",
+    "rollup": "^2.52.2",
+    "source-map-support": "^0.5.19",
+    "start-server-and-test": "^1.12.6",
+    "terser": "^5.7.1",
+    "todomvc-app-css": "^2.3.0",
+    "todomvc-common": "^1.0.5",
+    "typescript": "^4.2.0"
+  },
+  "scripts": {
+    "build": "tsc && node scripts && npm run api.ci",
+    "build.watch": "node scripts --dev --watch",
+    "tsc.check": "tsc --noEmit",
+    "tsc.watch": "tsc --noEmit --watch --preserveWatchOutput",
+    "start": "concurrently \"npm:build.watch\" \"npm:test.watch\" \"npm:tsc.watch\" -n build,test,tsc -c green,magenta,cyan",
+    "api": "tsc && node -r esbuild-register scripts/api.ts",
+    "api.ci": "node -r esbuild-register scripts/api.ts",
+    "api.update": "tsc && node -r esbuild-register scripts/api.ts --dev",
+    "release": "npm run build && npm run validate && np --contents dist-dev/@builder.io-qwik --no-2fa",
+    "test": "npm run build && jest && npm run test.e2e",
+    "test.unit": "jest",
+    "test.watch": "jest --watch",
+    "test.e2e": "start-server-and-test integration.server.prod http://localhost:8081 \"cypress run\"",
+    "test.e2e.open": "start-server-and-test integration.server.prod http://localhost:8081 \"cypress open\"",
+    "integration.server": "node scripts --dev && node integration/devserver.js --port 8080 --mode development",
+    "integration.server.prod": "tsc && node scripts && node integration/devserver.js --port 8081 --mode production",
+    "validate": "node -r esbuild-register scripts/validate.ts",
+    "prepare": "husky install",
+    "lint": "eslint \"**/*.ts*\" && npm run prettier-check",
+    "prettier-check": "prettier --check .",
+    "prettier-fix": "prettier --write .",
+    "patch-m1": "npm run patch-m1-bazel && npm run patch-m1-ibazel && npm run patch-m1-buildifier",
+    "patch-m1-bazel": "echo Patching Bazel for Apple M1 architecture compatibility && ln -fs ./bazelisk-darwin_amd64 node_modules/@bazel/bazelisk/bazelisk-darwin_arm64",
+    "patch-m1-ibazel": "echo Patching iBazel for Apple M1 architecture compatibility && sed -i .bak \"s/'x64' : 'amd64',\\$/'x64' : 'amd64', 'arm64' : 'amd64',/\" ./node_modules/@bazel/ibazel/index.js",
+    "patch-m1-buildifier": "echo Patching Buildifier for Apple M1 architecture compatibility && sed -i .bak \"s/'x64' : 'amd64',\\$/'x64' : 'amd64', 'arm64' : 'amd64',/\" ./node_modules/@bazel/buildifier/buildifier.js",
+    "bazel:format": "find . -type f \\( -name \"*.bzl\" -or -name WORKSPACE -or -name BUILD -or -name BUILD.bazel \\) ! -path \"*/node_modules/*\" | xargs buildifier --warnings=attr-cfg,attr-license,attr-non-empty,attr-output-default,attr-single-file,constant-glob,ctx-actions,ctx-args,depset-iteration,depset-union,dict-concatenation,duplicated-name,filetype,git-repository,http-archive,integer-division,load,load-on-top,native-build,native-package,out-of-order-load,output-group,package-name,package-on-top,positional-args,redefined-variable,repository-name,same-origin-load,string-iteration,unsorted-dict-items,unused-variable",
+    "bazel:lint": "npm run bazel:format -- --mode=check --lint=warn",
+    "bazel:lint-fix": "npm run bazel:format -- --mode=fix --lint=fix"
+  },
+  "contributors": [
+    {
+      "name": "Miško Hevery",
+      "email": "misko@hevery.com",
+      "url": "https://github.com/BuilderIO/qwik"
+    },
+    {
+      "name": "Adam Bradley",
+      "email": "adam@builder.io",
+      "url": "https://twitter.com/adamdbradley"
+    }
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/BuilderIO/qwik#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/BuilderIO/qwik"
+  },
+  "bugs": {
+    "url": "https://github.com/BuilderIO/qwik/issues"
+  },
+  "keywords": [
+    "ssr",
+    "server-side-render",
+    "prerender",
+    "ssg",
+    "static-site-generator",
+    "static-site",
+    "generator",
+    "website",
+    "webapp",
+    "framework",
+    "Builder.io"
+  ],
+  "engines": {
+    "node": ">= 14.14"
+  },
   "lint-staged": {
     "*.*": [
       "prettier --write --ignore-unknown"
     ],
     "*.ts": [
       "npx eslint"
-    ],
-    "(WORKSPACE|*.bazel|*.bzl)": [
-      "npm run bazel:lint-fix"
     ]
-  },
-  "@comment type": "Setting type to 'commonjs' is important as many of the bazel tooling assumes 'commonjs'. For code which wants ESM a second 'package.json' file needs to be created for just those files.",
-  "type": "commonjs",
-  "dependencies": {
-    "source-map-support": "^0.5.19",
-    "@bazel/bazelisk": "^1.7.5",
-    "@bazel/buildifier": "^4.0.1",
-    "@bazel/cypress": "^3.2.0",
-    "cypress": "^6.4.0",
-    "@bazel/esbuild": "^3.6.0",
-    "@bazel/ibazel": "^0.15.10",
-    "@bazel/terser": "^3.2.2",
-    "@bazel/typescript": "3.2.0",
-    "@microsoft/api-extractor": "^7.13.2",
-    "@types/chai": "^4.2.15",
-    "@types/express": "^4.17.9",
-    "@types/mocha": "^8.2.1",
-    "@types/node": "^14.14.10",
-    "@types/source-map-support": "^0.5.3",
-    "@typescript-eslint/eslint-plugin": "^4.19.0",
-    "@typescript-eslint/parser": "^4.19.0",
-    "chai": "^4.3.0",
-    "commander": "^6.2.0",
-    "domino": "^2.1.6",
-    "eslint": "^7.23.0",
-    "eslint-plugin-no-only-tests": "^2.4.0",
-    "express": "^4.17.1",
-    "http-server": "^0.12.3",
-    "husky": "^5.2.0",
-    "lint-staged": "^10.5.4",
-    "mocha": "^8.3.0",
-    "prettier": "2.3.0",
-    "serve-static": "^1.14.1",
-    "terser": "^5.6.0",
-    "todomvc-app-css": "^2.3.0",
-    "todomvc-common": "^1.0.5",
-    "typescript": "^4.2.0"
-  },
-  "scripts": {
-    "patch-m1": "npm run patch-m1-bazel && npm run patch-m1-ibazel && npm run patch-m1-buildifier",
-    "patch-m1-bazel": "echo Patching Bazel for Apple M1 architecture compatibility && ln -fs ./bazelisk-darwin_amd64 node_modules/@bazel/bazelisk/bazelisk-darwin_arm64",
-    "patch-m1-ibazel": "echo Patching iBazel for Apple M1 architecture compatibility && sed -i .bak \"s/'x64' : 'amd64',\\$/'x64' : 'amd64', 'arm64' : 'amd64',/\" ./node_modules/@bazel/ibazel/index.js",
-    "patch-m1-buildifier": "echo Patching Buildifier for Apple M1 architecture compatibility && sed -i .bak \"s/'x64' : 'amd64',\\$/'x64' : 'amd64', 'arm64' : 'amd64',/\" ./node_modules/@bazel/buildifier/buildifier.js",
-    "integration:server": "bazel run //integration:devserver",
-    "test:unit": "bazel test  --test_tag_filters=unit  //...",
-    "test:e2e": "bazel test  --test_tag_filters=e2e  //...",
-    "test": "bazel test //...",
-    "lint": "eslint \"**/*.ts*\"",
-    "prettier-check": "prettier --check .",
-    "prettier-fix": "prettier --write .",
-    "bazel:format": "find . -type f \\( -name \"*.bzl\" -or -name WORKSPACE -or -name BUILD -or -name BUILD.bazel \\) ! -path \"*/node_modules/*\" | xargs buildifier --warnings=attr-cfg,attr-license,attr-non-empty,attr-output-default,attr-single-file,constant-glob,ctx-actions,ctx-args,depset-iteration,depset-union,dict-concatenation,duplicated-name,filetype,git-repository,http-archive,integer-division,load,load-on-top,native-build,native-package,out-of-order-load,output-group,package-name,package-on-top,positional-args,redefined-variable,repository-name,same-origin-load,string-iteration,unsorted-dict-items,unused-variable",
-    "bazel:lint": "npm run bazel:format -- --mode=check --lint=warn",
-    "bazel:lint-fix": "npm run bazel:format -- --mode=fix --lint=fix",
-    "cypress": "cypress open",
-    "prepare": "husky install"
-  },
-  "author": "Miško Hevery <misko@hevery.com>",
-  "license": "MIT"
+  }
 }

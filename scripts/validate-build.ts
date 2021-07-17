@@ -1,61 +1,25 @@
 import { extname, join } from 'path';
-import { accessSync, readFileSync, readdirSync, statSync } from 'fs';
-import { validatePackageJson } from './package-json';
-import { loadConfig } from './util';
+import { readFileSync, readdirSync, statSync } from 'fs';
+import { BuildConfig, loadConfig, PackageJSON } from './util';
 import ts from 'typescript';
+import { access, readFile } from 'fs/promises';
 
+/**
+ * This will validate a completed production build by triple checking all the
+ * files have been created and can execute correctly in their context. This is
+ * the last task before publishing the build files to npm.
+ */
 export async function validateBuild() {
   const config = loadConfig(process.argv.slice(2));
+  const pkgPath = join(config.pkgDir, 'package.json');
+  const pkg: PackageJSON = JSON.parse(await readFile(pkgPath, 'utf-8'));
 
   // triple checks these all exist and work
-  const expectedFiles = [
-    'core.cjs',
-    'core.cjs.map',
-    'core.min.mjs',
-    'core.mjs',
-    'core.mjs.map',
-    'core.d.ts',
-    'jsx-runtime.cjs',
-    'jsx-runtime.mjs',
-    'jsx-runtime.d.ts',
-    'LICENSE',
-    'optimizer.cjs',
-    'optimizer.cjs.map',
-    'optimizer.mjs',
-    'optimizer.mjs.map',
-    'optimizer.d.ts',
-    'package.json',
-    'qwikloader.js',
-    'qwikloader.debug.js',
-    'qwikloader.optimize.js',
-    'qwikloader.optimize.debug.js',
-    'README.md',
-    'server/index.cjs',
-    'server/index.cjs.map',
-    'server/index.mjs',
-    'server/index.mjs.map',
-    'server/index.d.ts',
-    'testing/index.cjs',
-    'testing/index.cjs.map',
-    'testing/index.mjs',
-    'testing/index.mjs.map',
-    'testing/index.d.ts',
-    'testing/jest-preprocessor.cjs',
-    'testing/jest-preprocessor.cjs.map',
-    'testing/jest-preprocessor.mjs',
-    'testing/jest-preprocessor.mjs.map',
-    'testing/jest-preset.cjs',
-    'testing/jest-preset.cjs.map',
-    'testing/jest-preset.mjs',
-    'testing/jest-preset.mjs.map',
-    'testing/jest-setuptestframework.cjs',
-    'testing/jest-setuptestframework.cjs.map',
-    'testing/jest-setuptestframework.mjs',
-    'testing/jest-setuptestframework.mjs.map',
-  ].map((f) => join(config.pkgDir, f));
+  const expectedFiles = pkg.files.map((f) => join(config.pkgDir, f));
 
   for (const filePath of expectedFiles) {
     try {
+      // loop through each file and ensure it's built correct
       const ext = extname(filePath);
 
       switch (ext) {
@@ -88,7 +52,7 @@ export async function validateBuild() {
     }
   }
 
-  await validatePackageJson(config);
+  await validatePackageJson(config, pkg);
 
   const allFiles: string[] = [];
   function getFiles(dir: string) {
@@ -120,6 +84,10 @@ export async function validateBuild() {
   console.log('🏆', 'validated build');
 }
 
+/**
+ * Do a full typescript build for each separate .d.ts file found in the package
+ * just to ensure it's well formed and relative import paths are correct.
+ */
 function validateTypeScriptFile(tsFile: string) {
   const program = ts.createProgram([tsFile], {});
 
@@ -132,6 +100,45 @@ function validateTypeScriptFile(tsFile: string) {
       getCanonicalFileName: (f: string) => f,
     };
     throw new Error('🧨  ' + ts.formatDiagnostics(tsDiagnostics, host));
+  }
+}
+
+/**
+ * The package.json should already have the "files" property, stating
+ * all of the exact files that should be package should contain.
+ * Let's loop through it and triple check this build has those files.
+ */
+async function validatePackageJson(config: BuildConfig, pkg: PackageJSON) {
+  await Promise.all([
+    validatePath(config, pkg.main),
+    validatePath(config, pkg.module),
+    validatePath(config, pkg.types),
+  ]);
+
+  const exportKeys = Object.keys(pkg.exports);
+
+  await Promise.all(
+    exportKeys.map(async (exportKey) => {
+      const val = pkg.exports[exportKey];
+      if (typeof val === 'string') {
+        await validatePath(config, val);
+      } else {
+        await validatePath(config, val.import);
+        await validatePath(config, val.require);
+      }
+    })
+  );
+}
+
+async function validatePath(config: BuildConfig, path: string) {
+  try {
+    await access(join(config.pkgDir, path));
+  } catch (e) {
+    console.error(
+      `Error validating path "${path}" inside of "${join(config.pkgDir, 'package.json')}"`
+    );
+    console.error(e);
+    process.exit(1);
   }
 }
 

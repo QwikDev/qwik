@@ -45,7 +45,7 @@
     "api": "tsc && node -r esbuild-register scripts/api.ts",
     "api.ci": "node -r esbuild-register scripts/api.ts",
     "api.update": "tsc && node -r esbuild-register scripts/api.ts --dev",
-    "release": "npm run build && npm run validate && np --contents dist-dev/@builder.io-qwik --no-2fa",
+    "release": "npm run build && npm run validate.build && cd dist-dev/@builder.io-qwik && np --no-2fa",
     "test": "npm run build && jest && npm run test.e2e",
     "test.unit": "jest",
     "test.watch": "jest --watch",
@@ -53,7 +53,7 @@
     "test.e2e.open": "start-server-and-test integration.server.prod http://localhost:8081 \"cypress open\"",
     "integration.server": "node scripts --dev && node integration/devserver.js --port 8080 --mode development",
     "integration.server.prod": "tsc && node scripts && node integration/devserver.js --port 8081 --mode production",
-    "validate": "node -r esbuild-register scripts/validate.ts",
+    "validate.build": "node -r esbuild-register scripts/validate-build.ts",
     "prepare": "husky install",
     "lint": "eslint \"**/*.ts*\" && npm run prettier-check",
     "prettier-check": "prettier --check .",
@@ -100,6 +100,7 @@
     "framework",
     "Builder.io"
   ],
+  "files": [],
   "engines": {
     "node": ">= 14.14"
   },

@@ -1,5 +1,3 @@
-function jestSetupTestFramework() {
-  beforeEach(() => {});
-}
+function jestSetupTestFramework() {}
 
 jestSetupTestFramework();

@@ -10,6 +10,9 @@ import {
   injectDirname,
 } from './util';
 
+/**
+ * Builds @builder.io/testing
+ */
 export async function submoduleTesting(config: BuildConfig) {
   const submodule = 'testing';
 

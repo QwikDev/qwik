@@ -2,6 +2,9 @@ import { build } from 'esbuild';
 import { join } from 'path';
 import { BuildConfig, importPath, watcher } from './util';
 
+/**
+ * Generate the internal integration dev server cjs module.
+ */
 export async function buildDevServer(config: BuildConfig) {
   const integrationDir = join(config.rootDir, 'integration');
 

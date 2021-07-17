@@ -113,11 +113,17 @@ describe('BaseInjector', () => {
           return 'ret';
         }
       );
-      expect(await hostInjector.invoke({ default: injectedFn } as any, null, 'arg2')).toEqual('ret');
-      expect(log).toEqual([{ $host: fixture.host, $props: {}, $state: {} }, 'arg0', 'arg1', 'arg2']);
+      expect(await hostInjector.invoke({ default: injectedFn } as any, null, 'arg2')).toEqual(
+        'ret'
+      );
+      expect(log).toEqual([
+        { $host: fixture.host, $props: {}, $state: {} },
+        'arg0',
+        'arg1',
+        'arg2',
+      ]);
     });
 
-    describe('error', async () => {
     describe('error', () => {
       it('should include declare context when throwing error', async () => {
         fixture.host.setAttribute(
@@ -205,8 +211,6 @@ function provideConst<T>(value: T): Provider<T> {
 }
 
 class MyClass {}
-
-export function template() {}
 
 class MyComponent extends Component<any, any> {
   static $templateQRL = 'test:/injector/base_injector.unit#template' as any as QRL;

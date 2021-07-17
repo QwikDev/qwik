@@ -61,8 +61,6 @@ export declare namespace h {
   }
 }
 
-const slice = EMPTY_ARRAY.slice;
-
 /**
  * Declares a JSX Qwik component.
  *

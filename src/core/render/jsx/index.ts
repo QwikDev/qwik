@@ -18,4 +18,5 @@ export type {
   JSXNode,
 } from './types';
 export { Host } from './host';
-export { jsx, jsxDEV, jsxs, JSXInternal, Fragment } from './jsx-runtime';
+export { jsx, jsxDEV, jsxs, Fragment } from './jsx-runtime';
+export type { JSXInternal } from './jsx-runtime';

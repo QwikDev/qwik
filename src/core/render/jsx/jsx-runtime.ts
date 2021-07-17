@@ -50,7 +50,7 @@ export const isJSXNode = (n: any): n is JSXNode<unknown> => {
  */
 export const Fragment = {} as any;
 
-export { JSXInternal as JSX };
-export { JSXInternal };
+export type { JSXInternal as JSX };
+export type { JSXInternal };
 
 export { jsx as jsxs, jsx as jsxDEV };

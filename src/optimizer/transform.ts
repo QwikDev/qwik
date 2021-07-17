@@ -7,7 +7,7 @@ import type {
 import type TypeScript from 'typescript';
 import { isJsxFile, toBase64 } from './utils';
 
-export function transformModule(
+export function transformModuleSync(
   optimizer: Optimizer,
   c: InternalCache,
   opts: TransformModuleOptions,
@@ -106,6 +106,9 @@ function getCompilerOptions(
     allowNonTsExtensions: true,
     noLib: true,
     noResolve: true,
+    sourceMap: false,
+    inlineSourceMap: false,
+    inlineSources: false,
   };
 
   if (typeof compilerOpts.esModuleInterop !== 'boolean') {
@@ -118,11 +121,13 @@ function getCompilerOptions(
     compilerOpts.target = ts.ScriptTarget.ES2017;
   }
 
-  if (opts.sourcemap === true || opts.sourcemap === 'inline') {
+  const sourcemap = opts.sourcemap || optimizer.getSourceMapOption();
+
+  if (sourcemap === 'inline') {
+    compilerOpts.inlineSourceMap = true;
+    compilerOpts.inlineSources = true;
+  } else if (sourcemap === 'external') {
     compilerOpts.sourceMap = true;
-  } else if (compilerOpts.sourceMap !== false) {
-    const sourceMapOpt = optimizer.getSourceMapOption();
-    compilerOpts.sourceMap = sourceMapOpt === true || sourceMapOpt === 'inline';
   }
 
   if (isJsxFile(opts.filePath)) {

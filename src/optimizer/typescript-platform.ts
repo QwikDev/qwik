@@ -1,4 +1,5 @@
 import type TypeScript from 'typescript';
+import type { Optimizer } from './optimizer';
 import type { ResolveModuleOptions, ResolveModuleResult } from './types';
 import { platform } from './utils';
 
@@ -24,27 +25,28 @@ export function getTsconfig(
   return null;
 }
 
-export async function getTypeScript(rootDir: string): Promise<typeof TypeScript | null> {
-  if (platform === 'node' && typeof require !== 'function') {
+export async function getTypeScript(optimizer: Optimizer): Promise<typeof TypeScript | null> {
+  if (platform === 'node') {
+    try {
+      return require(optimizer.getTypeScriptPath());
+    } catch (e) {
+      /**/
+    }
     const module = await import('module');
-    const require = module.Module.createRequire(rootDir);
-    return require(getTypeScriptPath());
+    const moduleRequire = module.Module.createRequire(optimizer.getRootDir());
+    return moduleRequire(optimizer.getTypeScriptPath());
   }
-  return getTypeScriptSync();
+  return getTypeScriptSync(optimizer);
 }
 
-export function getTypeScriptSync(): typeof TypeScript | null {
+export function getTypeScriptSync(optimizer: Optimizer): typeof TypeScript | null {
   if (platform === 'node') {
-    if (typeof require === 'function') {
-      // NodeJs (CJS)
-      return require(getTypeScriptPath());
-    } else {
-      throw new Error('NodeJs require() not available');
-    }
+    // NodeJs (CJS)
+    return require(optimizer.getTypeScriptPath());
   } else if (platform === 'browser-webworker') {
     // Browser (Web Worker)
     if (!self.ts) {
-      (self as any).importScripts(getTypeScriptPath());
+      (self as any).importScripts(optimizer.getTypeScriptPath());
     }
     return self.ts as any;
   } else if (platform === 'browser-main') {
@@ -54,16 +56,6 @@ export function getTypeScriptSync(): typeof TypeScript | null {
     }
   }
   return null;
-}
-
-function getTypeScriptPath() {
-  if (platform === 'node') {
-    return `typescript`;
-  }
-  if (platform === 'browser-main' || platform === 'browser-webworker') {
-    return `https://cdn.jsdelivr.net/npm/typescript@__TYPESCRIPT__/lib/typescript.js`;
-  }
-  throw Error(`unsupported platform`);
 }
 
 export function resolveModuleSync(

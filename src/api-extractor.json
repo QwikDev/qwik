@@ -2,7 +2,7 @@
   "$schema": "https://developer.microsoft.com/json-schemas/api-extractor/v7/api-extractor.schema.json",
   "bundledPackages": [],
   "compiler": {
-    "tsconfigFilePath": "<projectFolder>/tsconfig.dev.json"
+    "tsconfigFilePath": "<projectFolder>/tsconfig.json"
   },
   "docModel": {
     "enabled": false

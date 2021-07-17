@@ -2,6 +2,7 @@
 **/*.log
 **/.DS_Store
 *.
+.vscode/settings.json
 .history
 bazel-*
 bazel-bin
@@ -9,9 +10,11 @@ bazel-out
 bazel-qwik
 bazel-testlogs
 dist
+dist-dev
 etc
 external
 node_modules
 temp
 tsc-out
 tsdoc-metadata.json
+integration/**/*.js

@@ -2,20 +2,20 @@
   "compilerOptions": {
     /* Visit https://aka.ms/tsconfig.json to read more about this file */
     /* Basic Options */
-    // "incremental": true,                   /* Enable incremental compilation */
+    "incremental": true /* Enable incremental compilation */,
     "target": "ES2017" /* Specify ECMAScript target version: 'ES3' (default), 'ES5', 'ES2015', 'ES2016', 'ES2017', 'ES2018', 'ES2019', 'ES2020', or 'ESNEXT'. */,
     "module": "ES2020" /* Specify module code generation: 'none', 'commonjs', 'amd', 'system', 'umd', 'es2015', 'es2020', or 'ESNext'. */,
     "lib": ["es2020", "DOM"] /* Specify library files to be included in the compilation. */,
     // "allowJs": true,                       /* Allow javascript files to be compiled. */
     // "checkJs": true,                       /* Report errors in .js files. */
-    "jsx": "react" /* Specify JSX code generation: 'preserve', 'react-native', or 'react'. */,
-    "jsxFactory": "jsxFactory",
-    "jsxFragmentFactory": "null",
+    "jsx": "react" /* Specify JSX code generation: 'preserve', 'react-native', 'react' or 'react-jsx'. */,
+    "jsxFactory": "h",
+    "jsxFragmentFactory": "Fragment",
     "declaration": true /* Generates corresponding '.d.ts' file. */,
     // "declarationMap": true,                /* Generates a sourcemap for each corresponding '.d.ts' file. */
     // "sourceMap": true,                     /* Generates corresponding '.map' file. */
     // "outFile": "./",                       /* Concatenate and emit output to single file. */
-    "outDir": "./tsc-out" /* Redirect output structure to the directory. */,
+    "outDir": "./dist-dev/tsc-out" /* Redirect output structure to the directory. */,
     // "rootDir": "./",                       /* Specify the root directory of input files. Use to control the output directory structure with --outDir. */
     // "composite": true, /* Enable project compilation */
     // "tsBuildInfoFile": "./",               /* Specify file to store incremental compilation information */
@@ -44,38 +44,13 @@
     "moduleResolution": "node" /* Specify module resolution strategy: 'node' (Node.js) or 'classic' (TypeScript pre-1.6). */,
     "baseUrl": "." /* Base directory to resolve non-absolute module names. */,
     "paths": {
-      /* A series of entries which re-map imports to lookup locations relative to the 'baseUrl'. */
-      "@builder.io/qwik": [
-        "src/core/index",
-        "bazel-out/host/bin/src/core/index",
-        "bazel-out/darwin-fastbuild/bin/src/core/index",
-        "bazel-out/k8-fastbuild/bin/src/core/index",
-        "bazel-out/x64_windows-fastbuild/bin/src/core/index",
-        "bazel-out/darwin-dbg/bin/src/core/index",
-        "bazel-out/k8-dbg/bin/src/core/index",
-        "bazel-out/x64_windows-dbg/bin/src/core/index"
-      ],
-      "@builder.io/qwik/*": [
-        "src/core/*",
-        "bazel-out/host/bin/src/core/*",
-        "bazel-out/darwin-fastbuild/bin/src/core/*",
-        "bazel-out/k8-fastbuild/bin/src/core/*",
-        "bazel-out/x64_windows-fastbuild/bin/src/core/*",
-        "bazel-out/darwin-dbg/bin/src/core/*",
-        "bazel-out/k8-dbg/bin/src/core/*",
-        "bazel-out/x64_windows-dbg/bin/src/core/*"
-      ]
-    },
-    "rootDirs": [
-      ".",
-      "bazel-out/host/bin/",
-      "bazel-out/darwin-fastbuild/bin/",
-      "bazel-out/k8-fastbuild/bin/",
-      "bazel-out/x64_windows-fastbuild/bin/",
-      "bazel-out/darwin-dbg/bin/",
-      "bazel-out/k8-dbg/bin/",
-      "bazel-out/x64_windows-dbg/bin/"
-    ] /* List of root folders whose combined content represents the structure of the project at runtime. */,
+      "@builder.io/qwik": ["src/core/index"],
+      "@builder.io/qwik/jsx-runtime": ["src/jsx-runtime"],
+      "@builder.io/qwik/optimizer": ["src/optimizer/index"],
+      "@builder.io/qwik/server": ["src/server/index"],
+      "@builder.io/qwik/testing": ["src/testing/index"],
+      "@builder.io/qwik/*": ["src/core/*"]
+    } /* List of root folders whose combined content represents the structure of the project at runtime. */,
     // "typeRoots": [],                       /* List of folders to include type definitions from. */
     // "types": [],                           /* Type declaration files to be included in compilation. */
     // "allowSyntheticDefaultImports": true,  /* Allow default imports from modules with no default export. This does not affect code emit, just typechecking. */
@@ -93,5 +68,7 @@
     /* Advanced Options */
     "skipLibCheck": true /* Skip type checking of declaration files. */,
     "forceConsistentCasingInFileNames": true /* Disallow inconsistently-cased references to the same file. */
-  }
+  },
+  "include": ["src", "scripts", "integration"],
+  "exclude": ["cypress"]
 }

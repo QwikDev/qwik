@@ -1,26 +1,24 @@
-load("@build_bazel_rules_nodejs//:index.bzl", "copy_to_bin")
-load("@npm//@bazel/typescript:index.bzl", "ts_config")
+load("//scripts:package_build.bzl", "package_build")
 
 package(default_visibility = ["//visibility:public"])
 
-ts_config(
-    name = "tsconfig",
-    src = "tsconfig.json",
+package_build(
+    name = "package",
+    srcs = glob(
+        [
+            "src/**/*.ts",
+            "src/**/*.tsx",
+            "integration/devserver.ts",
+        ],
+        exclude = [
+            "src/**/*.unit.ts",
+            "src/**/*.unit.tsx",
+        ],
+    ),
+    deps = [
+        ":package.json",
+        ":tsconfig.json",
+        ":LICENSE",
+        ":README.md",
+    ]
 )
-
-copy_to_bin(
-    name = "package_json",
-    srcs = [
-        "package.json",
-    ],
-)
-
-exports_files([
-    "LICENSE",
-    "README.md",
-    "core-api-extractor.json",
-    "cypress.json",
-    "package.json",
-    "terser.config.json",
-    "tsconfig.json",
-])

@@ -1,4 +1,4 @@
 {
-  "extends": "../tsconfig.dev.json",
-  "include": ["hello_server", "hello_static", "specs", "todo", "devserver.ts"]
+  "extends": "../tsconfig.json",
+  "include": ["hello_server", "hello_static", "specs", "todo"]
 }

@@ -56,7 +56,7 @@ export function emitEvent(element: HTMLElement, event: Event, url: URL): Promise
       return Promise.resolve(qImport(element, qrl)).then((fn: Function) => {
         const doc = element.ownerDocument;
         const dstUrl = toUrl(doc, qrl);
-        const event = new doc.defaultView!.CustomEvent($type);
+        const event = new (doc.defaultView as any).CustomEvent($type);
         params.forEach((value, key) => {
           (event as any)[key] = value;
         });

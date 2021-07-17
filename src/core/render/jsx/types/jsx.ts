@@ -10,31 +10,6 @@ export namespace JSXInternal {
     key?: any;
   }
 
-  // interface Element extends preact.VNode<any> {}
-
-  // interface ElementClass extends preact.Component<any, any> {}
-
-  // interface ElementAttributesProperty {
-  //   props: any;
-  // }
-
-  // interface ElementChildrenAttribute {
-  //   children: any;
-  // }
-
-  // type DOMCSSProperties = {
-  //   [key in keyof Omit<
-  //     CSSStyleDeclaration,
-  //     'item' | 'setProperty' | 'removeProperty' | 'getPropertyValue' | 'getPropertyPriority'
-  //   >]?: string | number | null | undefined;
-  // };
-  // type AllCSSProperties = {
-  //   [key: string]: string | number | null | undefined;
-  // };
-  // interface CSSProperties extends AllCSSProperties, DOMCSSProperties {
-  //   cssText?: string | null;
-  // }
-
   export interface SVGAttributes<Target extends EventTarget = SVGElement>
     extends HTMLAttributes<Target> {
     accentHeight?: number | string;

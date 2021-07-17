@@ -3,12 +3,12 @@ import type { Optimizer, OptimizerOptions, EntryPointOptions } from './types';
 export function normalizeOptions(optimizer: Optimizer, opts?: OptimizerOptions) {
   if (opts) {
     if (typeof opts.cache === 'boolean') optimizer.enableCache(opts.cache);
-    if (typeof opts.sourcemap === 'string' || typeof opts.sourcemap === 'boolean')
-      optimizer.setSourceMapOption(opts.sourcemap);
+    if (typeof opts.sourcemap === 'string') optimizer.setSourceMapOption(opts.sourcemap);
     if (typeof opts.mode === 'string') optimizer.setMode(opts.mode);
     if (typeof opts.rootDir === 'string') optimizer.setRootDir(opts.rootDir);
     if (opts.ts) optimizer.setTypeScript(opts.ts);
     if (opts.tsconfig) optimizer.setTsconfig(opts.tsconfig);
+    if (typeof opts.typescriptPath === 'string') optimizer.setTypeScriptPath(opts.typescriptPath);
   }
 }
 

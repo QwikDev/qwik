@@ -3,6 +3,11 @@ import { join } from 'path';
 import mri from 'mri';
 import { stat } from 'fs/promises';
 
+/**
+ * Contains information about the build we're generating by parsing
+ * CLI args, and figuring out all the absolute file paths the
+ * build will be reading from and writing to.
+ */
 export interface BuildConfig {
   rootDir: string;
   distDir: string;
@@ -10,11 +15,36 @@ export interface BuildConfig {
   scriptsDir: string;
   tscDir: string;
   pkgDir: string;
-
   dev?: boolean;
   watch?: boolean;
 }
 
+/**
+ * Interface for package.json
+ */
+export interface PackageJSON {
+  name: string;
+  version: string;
+  description: string;
+  license: string;
+  main: string;
+  module: string;
+  types: string;
+  type: string;
+  files: string[];
+  exports: { [key: string]: string | { [key: string]: string } };
+  contributors: { [key: string]: string }[];
+  homepage: string;
+  repository: { [key: string]: string };
+  bugs: { [key: string]: string };
+  keywords: string[];
+  engines: { [key: string]: string };
+}
+
+/**
+ * Create the `BuildConfig` from the process args, and set the
+ * absolute paths the build will be reading from and writing to.
+ */
 export function loadConfig(args: string[] = []) {
   const config: BuildConfig = mri(args) as any;
 
@@ -28,6 +58,9 @@ export function loadConfig(args: string[] = []) {
   return config;
 }
 
+/**
+ * Esbuild plugin to change an import path, but keep it an external path.
+ */
 export function importPath(filter: RegExp, newModulePath: string) {
   const plugin: Plugin = {
     name: 'importPathPlugin',
@@ -41,10 +74,13 @@ export function importPath(filter: RegExp, newModulePath: string) {
   return plugin;
 }
 
+/**
+ * Esbuild plugin to print out console logs the rebuild has finished or if it has errors.
+ */
 export function watcher(config: BuildConfig, filename?: string): WatchMode | boolean {
   if (config.watch) {
     return {
-      onRebuild(error, result) {
+      onRebuild(error) {
         if (error) console.error('watch build failed:', error);
         else {
           if (filename) console.log('rebuilt:', filename);
@@ -55,6 +91,9 @@ export function watcher(config: BuildConfig, filename?: string): WatchMode | boo
   return false;
 }
 
+/**
+ * Standard license banner to place at the top of the generated files.
+ */
 export const banner = {
   js: `
 /**
@@ -66,14 +105,24 @@ export const banner = {
 `.trim(),
 };
 
+/**
+ * The JavaScript target we're going for. Reusing a constant just to make sure
+ * all the builds are using the same target.
+ */
 export const target = 'es2018';
 
+/**
+ * Helper just to know which NodeJS modules that should stay external.
+ */
 export const nodeBuiltIns = ['child_process', 'crypto', 'fs', 'module', 'os', 'path', 'tty', 'url'];
 
 export function injectDirname(config: BuildConfig) {
   return join(config.scriptsDir, 'shim', '__dirname.js');
 }
 
+/**
+ * Utility just to ignore certain rollup warns we already know aren't issues.
+ */
 export function rollupOnWarn(warning: any, warn: any) {
   // skip certain warnings
   if (warning.code === `PREFER_NAMED_EXPORTS`) return;
@@ -81,6 +130,9 @@ export function rollupOnWarn(warning: any, warn: any) {
   warn(warning);
 }
 
+/**
+ * Helper just to get and format a file's size for logging.
+ */
 export async function fileSize(filePath: string) {
   const bytes = (await stat(filePath)).size;
   if (bytes === 0) return '0b';

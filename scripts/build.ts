@@ -10,6 +10,13 @@ import { submoduleTesting } from './submodule-testing';
 import { mkdirSync, rmSync } from 'fs';
 import type { BuildConfig } from './util';
 
+/**
+ * Complete a full build for all of the package's submodules. Passed in
+ * config has all the correct absolute paths to read from and write to.
+ * Additionally, a dev build does not empty the directory, and uses
+ * esbuild for each of the submodules for speed. A production build will
+ * use TSC + Rollup + Terser for the core submodule.
+ */
 export async function build(config: BuildConfig) {
   try {
     if (!config.dev) {
@@ -34,5 +41,6 @@ export async function build(config: BuildConfig) {
     await submoduleOptimizer(config);
   } catch (e) {
     console.error(e);
+    process.exit(1);
   }
 }

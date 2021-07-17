@@ -2,6 +2,10 @@ import type { BuildConfig } from './util';
 import { copyFile } from 'fs/promises';
 import { basename, join } from 'path';
 
+/**
+ * Manually copy some root files, such as README.md and LICENSE
+ * to the published package directory.
+ */
 export async function copyFiles(config: BuildConfig) {
   const rootFiles = ['README.md', 'LICENSE'];
 

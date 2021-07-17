@@ -3,6 +3,9 @@ import { join } from 'path';
 import { BuildConfig, banner, nodeBuiltIns, target, watcher } from './util';
 import { readFileSync } from 'fs';
 
+/**
+ * Builds @builder.io/optimizer
+ */
 export async function submoduleOptimizer(config: BuildConfig) {
   const submodule = 'optimizer';
 

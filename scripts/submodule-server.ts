@@ -2,6 +2,12 @@ import { build, BuildOptions } from 'esbuild';
 import { join } from 'path';
 import { BuildConfig, banner, importPath, target, watcher, nodeBuiltIns } from './util';
 
+/**
+ * Builds @builder.io/server
+ *
+ * This is submodule for helping to generate server-side rendered pages,
+ * along with providing utilities for prerendering and unit testing.
+ */
 export async function submoduleServer(config: BuildConfig) {
   const submodule = 'server';
 

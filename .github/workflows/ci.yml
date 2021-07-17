@@ -17,8 +17,8 @@ jobs:
       - name: Build
         run: yarn build
 
-      - name: Validate Package
-        run: yarn validate
+      - name: Validate Build
+        run: yarn validate.build
 
   lint:
     runs-on: ubuntu-latest

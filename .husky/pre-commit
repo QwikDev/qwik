@@ -1,2 +1,3 @@
 #!/bin/sh
-npx lint-staged
+npm run lint-staged
+npm run tsc.check

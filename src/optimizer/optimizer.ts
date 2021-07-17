@@ -17,7 +17,7 @@ import {
   getTypeScriptSync,
 } from './typescript-platform';
 import { getEntryPoints, normalizeOptions, normalizeUrl, platform } from './utils';
-import { transformModule } from './transform';
+import { transformModuleSync } from './transform';
 import type TypeScript from 'typescript';
 import { postBuild } from './post-build';
 
@@ -28,7 +28,7 @@ import { postBuild } from './post-build';
 export class Optimizer {
   private baseUrl = normalizeUrl('/');
   private rootDir: string | null = null;
-  private sourceMapOpt: SourceMapOption = true;
+  private sourceMapOpt: SourceMapOption = null;
   private enabledCache = true;
   private internalCache: InternalCache = {
     modules: [],
@@ -37,6 +37,7 @@ export class Optimizer {
   private mode: Mode = 'development';
   private ts: any = null;
   private tsconfig: any = null;
+  private typescriptPath: string | null = null;
   private entryInputs: string[] | null = null;
   private moduleResolveCache: TypeScript.ModuleResolutionCache | null = null;
 
@@ -126,13 +127,13 @@ export class Optimizer {
   async transformModule(opts: TransformModuleOptions): Promise<TransformModuleResult> {
     const ts = await this.getTypeScript();
     const tsconfig: TypeScript.ParsedCommandLine = await this.getTsconfig();
-    return transformModule(this, this.internalCache, opts, ts, tsconfig.options);
+    return transformModuleSync(this, this.internalCache, opts, ts, tsconfig.options);
   }
 
   transformModuleSync(opts: TransformModuleOptions): TransformModuleResult {
     const ts = this.getTypeScriptSync();
     const tsconfig: TypeScript.ParsedCommandLine = this.getTsconfigSync();
-    return transformModule(this, this.internalCache, opts, ts, tsconfig.options);
+    return transformModuleSync(this, this.internalCache, opts, ts, tsconfig.options);
   }
 
   async getTsconfig() {
@@ -155,19 +156,38 @@ export class Optimizer {
 
   async getTypeScript() {
     if (!this.ts) {
-      this.ts = await getTypeScript(this.getRootDir());
+      this.ts = await getTypeScript(this);
     }
     return this.ts;
   }
 
   getTypeScriptSync() {
     if (!this.ts) {
-      this.ts = getTypeScriptSync();
+      this.ts = getTypeScriptSync(this);
     }
     return this.ts;
   }
 
   setTypeScript(ts: any) {
     this.ts = ts;
+  }
+
+  getTypeScriptPath() {
+    if (this.typescriptPath) {
+      return this.typescriptPath;
+    }
+    if (platform === 'node') {
+      return `typescript`;
+    }
+    if (platform === 'browser-main' || platform === 'browser-webworker') {
+      throw Error(
+        `TypeScript CDN URL must be set using the "typescriptPath" option, such as: https://cdn.jsdelivr.net/npm/typescript@4.2.0/lib/typescript.js`
+      );
+    }
+    throw Error(`unsupported platform`);
+  }
+
+  setTypeScriptPath(typescriptPath: string) {
+    this.typescriptPath = typescriptPath;
   }
 }

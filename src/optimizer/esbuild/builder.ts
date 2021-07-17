@@ -6,11 +6,7 @@ import { createTimer } from '../utils';
 /**
  * @alpha
  */
-export function createEsbuilder(opts: {
-  outDir: string;
-  clientOpts?: BuildOptions;
-  serverOpts?: BuildOptions;
-}) {
+export function createEsbuilder(opts: { outDir: string; clientOpts?: any; serverOpts?: any }) {
   const results: EsBuildPluginData = {};
 
   const builder = {

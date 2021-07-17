@@ -8,6 +8,7 @@ export interface OptimizerOptions {
   sourcemap?: SourceMapOption;
   ts?: any;
   tsconfig?: any;
+  typescriptPath?: string;
 }
 
 export interface TransformModuleOptions {
@@ -31,7 +32,7 @@ export type Mode = 'development' | 'production';
 
 export type OutputPlatform = 'client' | 'server';
 
-export type SourceMapOption = boolean | 'inline';
+export type SourceMapOption = 'external' | 'inline' | null;
 
 export type { Optimizer };
 

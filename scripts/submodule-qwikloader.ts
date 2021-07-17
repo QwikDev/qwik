@@ -1,10 +1,15 @@
 import { InputOptions, OutputOptions, rollup, Plugin } from 'rollup';
 import { minify, MinifyOptions } from 'terser';
 import { BuildConfig, fileSize, rollupOnWarn } from './util';
-import { statSync } from 'fs';
 import { join } from 'path';
 import { Optimizer } from '../src/optimizer';
 
+/**
+ * Builds the qwikloader javascript files. These files can be used
+ * by other tooling, and are provided in the package so CDNs could
+ * point to them. The @builder.io/optimizer submodule also provides
+ * a utility function.
+ */
 export async function submoduleQwikLoader(config: BuildConfig) {
   const optimizer = new Optimizer({
     rootDir: config.rootDir,

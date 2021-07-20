@@ -77,6 +77,8 @@ jobs:
           parallel: true
           group: 'Qwik E2E Test Group'
           spec: cypress/integration/*
+          config-file: cypress/cypress.json
+          config: defaultCommandTimeout=10000
         env:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

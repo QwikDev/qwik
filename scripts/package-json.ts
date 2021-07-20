@@ -40,8 +40,8 @@ export async function generatePackageJson(config: BuildConfig) {
         require: './optimizer.cjs',
       },
       './server': {
-        import: './testing/index.mjs',
-        require: './testing/index.cjs',
+        import: './server/index.mjs',
+        require: './server/index.cjs',
       },
       './testing': {
         import: './testing/index.mjs',

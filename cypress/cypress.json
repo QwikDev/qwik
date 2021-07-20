@@ -1,5 +1,4 @@
 {
   "projectId": "xcymo1",
-  "baseUrl": "http://localhost:8081",
-  "defaultCommandTimeout": 10000
+  "baseUrl": "http://localhost:8081"
 }

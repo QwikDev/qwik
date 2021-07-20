@@ -23,6 +23,8 @@ import type { BuildOptions } from 'esbuild';
 import type { RenderToStringResult } from '@builder.io/qwik/server';
 import mri from 'mri';
 import srcMap from 'source-map-support';
+import type { Socket } from 'net';
+import { Module } from 'module';
 srcMap.install();
 
 /**
@@ -97,6 +99,7 @@ async function startServer() {
 
           // eslint-disable-next-line @typescript-eslint/no-var-requires
           const indexModule = require(indexServerPath);
+          resetNodeJsModuleCache(outDir);
 
           const result: RenderToStringResult = await indexModule.default({
             url: req.originalUrl,
@@ -121,6 +124,7 @@ async function startServer() {
           res.type('text/html');
           res.send(result.html);
         } catch (e) {
+          debugger; // eslint-disable-line no-debugger
           console.error(e);
           res.type('text/plain');
           res.send(String(e.stack || e));
@@ -167,20 +171,30 @@ async function startServer() {
   app.use(express.static(rootDir));
   let server = app.listen(args.port);
 
+  const connections = new Map<string, Socket>();
+
+  server.on('connection', (conn) => {
+    const key = conn.remoteAddress + ':' + conn.remotePort;
+    connections.set(key, conn);
+    conn.on('close', () => connections.delete(key));
+  });
+
   function close() {
     if (server) {
       server.close(() => {
-        if (debug) console.debug(`\nclosed dev server ${args.port}\n`);
+        if (debug) console.debug(`closed dev server ${args.port}\n`);
       });
+      connections.forEach((cn) => cn.destroy());
       server = null as any;
     }
   }
+
   process.on('SIGTERM', close);
   process.on('SIGINT', close);
+  process.title = 'qwik-devserver';
 }
 
 // custom updates only required for local dev of source files
-
 function localDevPreBuild(qwikDir: string, clientOpts: BuildOptions, serverOpts: BuildOptions) {
   clientOpts.plugins = [
     ...clientOpts.plugins!,
@@ -212,6 +226,15 @@ function localDevPostBuild(qwikDir: string, outputFiles: OutputFile[]) {
     f.text = f.text.replace(/@builder\.io\/qwik\/server/g, qwikDir + '/server/index.cjs');
     f.text = f.text.replace(/@builder\.io\/qwik/g, qwikDir + '/core.cjs');
   });
+}
+
+function resetNodeJsModuleCache(outDir: string) {
+  const cache = (Module as any)._cache;
+  for (const key in cache) {
+    if (key.startsWith(outDir)) {
+      delete cache[key];
+    }
+  }
 }
 
 startServer();

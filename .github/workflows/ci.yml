@@ -53,8 +53,8 @@ jobs:
   unit-tests:
     strategy:
       matrix:
-        node: [12.x]
-        os: ['ubuntu-latest']
+        node: [10.x]
+        os: ['ubuntu-latest', 'windows-latest']
 
     name: Unit Tests (Node ${{ matrix.node }}, ${{ matrix.os }})
     runs-on: ${{ matrix.os }}
@@ -83,7 +83,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [12.x]
+        node: [10.x]
         os: ['ubuntu-latest']
         containers: [1, 2, 3, 4]
 

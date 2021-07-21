@@ -73,7 +73,7 @@ async function startServer() {
       const build = await esbuilder.build();
       if (build.diagnosticsSummary) {
         res.type('text/plain');
-        res.send(build.diagnosticsSummary + 'fu');
+        res.send(build.diagnosticsSummary);
         return;
       }
 

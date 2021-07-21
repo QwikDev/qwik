@@ -1,5 +1,5 @@
 import type { BuildConfig, PackageJSON } from './util';
-import { readFile, writeFile } from 'fs/promises';
+import { readFile, writeFile } from './util';
 import { join } from 'path';
 
 /**
@@ -113,8 +113,4 @@ const PACKAGE_FILES = [
   'testing/jest-preset.cjs.map',
   'testing/jest-preset.mjs',
   'testing/jest-preset.mjs.map',
-  'testing/jest-setuptestframework.cjs',
-  'testing/jest-setuptestframework.cjs.map',
-  'testing/jest-setuptestframework.mjs',
-  'testing/jest-setuptestframework.mjs.map',
 ];

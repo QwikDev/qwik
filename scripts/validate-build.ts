@@ -1,8 +1,8 @@
+import type { BuildConfig, PackageJSON } from './util';
+import { access, loadConfig, readFile } from './util';
 import { extname, join } from 'path';
 import { readFileSync, readdirSync, statSync } from 'fs';
-import { BuildConfig, loadConfig, PackageJSON } from './util';
 import ts from 'typescript';
-import { access, readFile } from 'fs/promises';
 
 /**
  * This will validate a completed production build by triple checking all the
@@ -13,6 +13,8 @@ export async function validateBuild() {
   const config = loadConfig(process.argv.slice(2));
   const pkgPath = join(config.pkgDir, 'package.json');
   const pkg: PackageJSON = JSON.parse(await readFile(pkgPath, 'utf-8'));
+
+  const checkEsm = parseInt(process.version.substr(1).split('.')[0], 10) >= 14;
 
   // triple checks these all exist and work
   const expectedFiles = pkg.files.map((f) => join(config.pkgDir, f));
@@ -27,7 +29,9 @@ export async function validateBuild() {
           require(filePath);
           break;
         case '.mjs':
-          await import(filePath);
+          if (checkEsm) {
+            await import(filePath);
+          }
           break;
         case '.ts':
           validateTypeScriptFile(filePath);

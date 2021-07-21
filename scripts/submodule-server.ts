@@ -1,6 +1,15 @@
 import { build, BuildOptions } from 'esbuild';
 import { join } from 'path';
-import { BuildConfig, banner, importPath, target, watcher, nodeBuiltIns } from './util';
+import {
+  BuildConfig,
+  banner,
+  importPath,
+  nodeBuiltIns,
+  nodeTarget,
+  target,
+  watcher,
+  injectGlobalThisPoly,
+} from './util';
 
 /**
  * Builds @builder.io/server
@@ -41,6 +50,9 @@ export async function submoduleServer(config: BuildConfig) {
       importPath(/^@builder\.io\/qwik\/optimizer$/, '../optimizer.cjs'),
     ],
     watch: watcher(config),
+    platform: 'node',
+    target: nodeTarget,
+    inject: [injectGlobalThisPoly(config)],
   });
 
   await Promise.all([esm, cjs]);

@@ -48,9 +48,7 @@ def package_build(
             name + "/testing/jest-preprocessor.cjs",
             name + "/testing/jest-preprocessor.mjs",
             name + "/testing/jest-preset.cjs",
-            name + "/testing/jest-preset.mjs",
-            name + "/testing/jest-setuptestframework.cjs",
-            name + "/testing/jest-setuptestframework.mjs",
+            name + "/testing/jest-preset.mjs", 
         ],
         args = [
             "$(execpath %s/core.cjs)" % name,

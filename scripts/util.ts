@@ -1,7 +1,19 @@
 import type { Plugin, WatchMode } from 'esbuild';
 import { join } from 'path';
 import mri from 'mri';
-import { stat } from 'fs/promises';
+import {
+  access as fsAccess,
+  copyFile as fsCopyFile,
+  existsSync,
+  readdirSync,
+  readFile as fsReadFile,
+  rmdirSync,
+  stat as fsStat,
+  statSync,
+  unlinkSync,
+  writeFile as fsWriteFile,
+} from 'fs';
+import { promisify } from 'util';
 
 /**
  * Contains information about the build we're generating by parsing
@@ -111,13 +123,31 @@ export const banner = {
  */
 export const target = 'es2018';
 
+export const nodeTarget = 'node10';
+
 /**
  * Helper just to know which NodeJS modules that should stay external.
  */
-export const nodeBuiltIns = ['child_process', 'crypto', 'fs', 'module', 'os', 'path', 'tty', 'url'];
+export const nodeBuiltIns = [
+  'assert',
+  'child_process',
+  'crypto',
+  'fs',
+  'module',
+  'net',
+  'os',
+  'path',
+  'tty',
+  'url',
+  'util',
+];
 
 export function injectDirname(config: BuildConfig) {
   return join(config.scriptsDir, 'shim', '__dirname.js');
+}
+
+export function injectGlobalThisPoly(config: BuildConfig) {
+  return join(config.scriptsDir, 'shim', 'globalthis.js');
 }
 
 /**
@@ -141,4 +171,25 @@ export async function fileSize(filePath: string) {
   const sizes = ['b', 'kb'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + '' + sizes[i];
+}
+
+export const access = promisify(fsAccess);
+export const copyFile = promisify(fsCopyFile);
+export const readFile = promisify(fsReadFile);
+export const stat = promisify(fsStat);
+export const writeFile = promisify(fsWriteFile);
+
+export function emptyDir(dir: string) {
+  if (existsSync(dir)) {
+    const items = readdirSync(dir).map((f) => join(dir, f));
+    for (const item of items) {
+      const s = statSync(item);
+      if (s.isDirectory()) {
+        emptyDir(item);
+        rmdirSync(item);
+      } else if (s.isFile()) {
+        unlinkSync(item);
+      }
+    }
+  }
 }

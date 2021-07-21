@@ -61,7 +61,7 @@ export function createEsbuilder(opts: { outDir: string; clientOpts?: any; server
             });
           }
         } else {
-          buildResult.diagnostics.push({ type: 'error', message: String(e) });
+          buildResult.diagnostics.push({ type: 'error', message: String(e.stack || e) });
         }
       }
 

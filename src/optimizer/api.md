@@ -109,13 +109,6 @@ export interface OutputFile {
     text: string;
 }
 
-// @public
-export function writeOutput(opts: {
-    dir: string;
-    files: OutputFile[];
-    emptyDir?: boolean;
-}): Promise<void>;
-
 
 // Warnings were encountered during analysis:
 //

@@ -1,5 +1,6 @@
 import type { Optimizer, OutputPlatform } from '../types';
 import type { BuildResult, Plugin } from 'esbuild';
+import { platform } from '../utils';
 
 export function clientEsbuildPlugin(optimizer: Optimizer) {
   const plugin: Plugin = {
@@ -35,9 +36,13 @@ export function serverEsbuildPlugin(optimizer: Optimizer) {
   return plugin;
 }
 
-function esbuildPostBuild(optimizer: Optimizer, result: BuildResult, platform: OutputPlatform) {
+async function esbuildPostBuild(
+  optimizer: Optimizer,
+  result: BuildResult,
+  platform: OutputPlatform
+) {
   if (Array.isArray(result.outputFiles)) {
-    const encoder = new TextEncoder();
+    const encoder = await getTextEncoder();
 
     for (const out of result.outputFiles) {
       const postBuild = optimizer.postBuild({
@@ -50,4 +55,15 @@ function esbuildPostBuild(optimizer: Optimizer, result: BuildResult, platform: O
       }
     }
   }
+}
+
+async function getTextEncoder() {
+  if (typeof TextEncoder === 'function') {
+    return new TextEncoder();
+  }
+  if (platform === 'node') {
+    const { TextEncoder } = await import('util');
+    return new TextEncoder();
+  }
+  throw new Error(`TextEncoder unavailable`);
 }

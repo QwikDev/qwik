@@ -13,6 +13,7 @@ filegroup(
     srcs = glob(
         [
             "shim/__dirname.js",
+            "shim/globalthis.js",
             "*.ts*",
         ],
     ),

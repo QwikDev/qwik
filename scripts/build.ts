@@ -1,5 +1,7 @@
+import type { BuildConfig } from './util';
 import { buildDevServer } from './devserver';
 import { copyFiles } from './copy-files';
+import { emptyDir } from './util';
 import { generatePackageJson } from './package-json';
 import { submoduleCore } from './submodule-core';
 import { submoduleJsxRuntime } from './submodule-jsx-runtime';
@@ -7,8 +9,7 @@ import { submoduleOptimizer } from './submodule-optimizer';
 import { submoduleQwikLoader } from './submodule-qwikloader';
 import { submoduleServer } from './submodule-server';
 import { submoduleTesting } from './submodule-testing';
-import { mkdirSync, rmSync } from 'fs';
-import type { BuildConfig } from './util';
+import { mkdirSync } from 'fs';
 
 /**
  * Complete a full build for all of the package's submodules. Passed in
@@ -20,7 +21,7 @@ import type { BuildConfig } from './util';
 export async function build(config: BuildConfig) {
   try {
     if (!config.dev) {
-      rmSync(config.pkgDir, { recursive: true, force: true });
+      emptyDir(config.pkgDir);
     }
     try {
       // ensure the build pkgDir exists

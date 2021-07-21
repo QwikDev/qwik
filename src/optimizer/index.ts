@@ -3,4 +3,3 @@ export { createTimer } from './utils';
 export { getQwikLoaderScript } from './loader';
 export { Optimizer } from './optimizer';
 export type { OutputFile } from './types';
-export { writeOutput } from './write-output';

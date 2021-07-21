@@ -1,6 +1,14 @@
 import { build, BuildOptions } from 'esbuild';
 import { join } from 'path';
-import { BuildConfig, banner, nodeBuiltIns, target, watcher } from './util';
+import {
+  BuildConfig,
+  banner,
+  nodeBuiltIns,
+  nodeTarget,
+  target,
+  watcher,
+  injectGlobalThisPoly,
+} from './util';
 import { readFileSync } from 'fs';
 
 /**
@@ -19,16 +27,16 @@ export async function submoduleOptimizer(config: BuildConfig) {
     banner,
     external: [...nodeBuiltIns, 'esbuild'],
     define: {
-      'globalThis.QWIK_LOADER_DEFAULT_MINIFIED': JSON.stringify(
+      'global.QWIK_LOADER_DEFAULT_MINIFIED': JSON.stringify(
         readFileSync(join(config.pkgDir, 'qwikloader.js'), 'utf-8').trim()
       ),
-      'globalThis.QWIK_LOADER_DEFAULT_DEBUG': JSON.stringify(
+      'global.QWIK_LOADER_DEFAULT_DEBUG': JSON.stringify(
         readFileSync(join(config.pkgDir, 'qwikloader.debug.js'), 'utf-8').trim()
       ),
-      'globalThis.QWIK_LOADER_OPTIMIZE_MINIFIED': JSON.stringify(
+      'global.QWIK_LOADER_OPTIMIZE_MINIFIED': JSON.stringify(
         readFileSync(join(config.pkgDir, 'qwikloader.optimize.js'), 'utf-8').trim()
       ),
-      'globalThis.QWIK_LOADER_OPTIMIZE_DEBUG': JSON.stringify(
+      'global.QWIK_LOADER_OPTIMIZE_DEBUG': JSON.stringify(
         readFileSync(join(config.pkgDir, 'qwikloader.optimize.debug.js'), 'utf-8').trim()
       ),
     },
@@ -46,6 +54,9 @@ export async function submoduleOptimizer(config: BuildConfig) {
     format: 'cjs',
     outExtension: { '.js': '.cjs' },
     watch: watcher(config),
+    platform: 'node',
+    target: nodeTarget,
+    inject: [injectGlobalThisPoly(config)],
   });
 
   await Promise.all([esm, cjs]);

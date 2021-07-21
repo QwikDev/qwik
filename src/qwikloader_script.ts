@@ -100,8 +100,8 @@ export const qwikLoader = (doc: Document, hasInitialized?: boolean | number) => 
   // Set up listeners. Start with `document` and walk up the prototype
   // inheritance on look for `on*` properties. Assume that `on*` property
   // corresponds to an event browser can emit.
-  if ((globalThis as any).buildEvents) {
-    (globalThis as any).qEvents.forEach(addEventListener);
+  if ((window as LoaderWindow).BuildEvents) {
+    (window as LoaderWindow).qEvents!.forEach(addEventListener);
   } else {
     const scriptTag = doc.querySelector('script[events]');
     if (scriptTag) {
@@ -128,3 +128,8 @@ export const qwikLoader = (doc: Document, hasInitialized?: boolean | number) => 
     processReadyStateChange,
   };
 };
+
+export interface LoaderWindow {
+  BuildEvents?: boolean;
+  qEvents?: string[];
+}

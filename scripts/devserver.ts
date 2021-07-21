@@ -1,6 +1,6 @@
 import { build } from 'esbuild';
 import { join } from 'path';
-import { BuildConfig, importPath, watcher } from './util';
+import { BuildConfig, nodeBuiltIns, importPath, watcher } from './util';
 
 /**
  * Generate the internal integration dev server cjs module.
@@ -16,7 +16,7 @@ export async function buildDevServer(config: BuildConfig) {
     platform: 'node',
     sourcemap: 'external',
     watch: watcher(config),
-    external: ['esbuild', 'express', 'module', 'mri', 'source-map-support'],
+    external: [...nodeBuiltIns, 'esbuild', 'express', 'mri', 'source-map-support'],
     plugins: [importPath(/^@builder\.io\/qwik\/optimizer$/, join(config.pkgDir, 'optimizer.cjs'))],
   });
 }

@@ -1,11 +1,16 @@
+import type { LoaderWindow } from './qwikloader_script';
 import { qwikLoader } from './qwikloader_script';
 import { createDocument } from '@builder.io/qwik/testing';
 
 describe('qwikloader', () => {
   describe('getModuleExport', () => {
     let doc: Document;
+    let loaderWindow: LoaderWindow;
+
     beforeEach(() => {
       doc = createDocument();
+      loaderWindow = {};
+      (global as any).window = loaderWindow;
     });
 
     it('should throw error if missing named export', () => {

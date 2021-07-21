@@ -3,8 +3,6 @@ import type { BuildResult, Plugin } from 'esbuild';
 import { platform } from '../utils';
 
 export function clientEsbuildPlugin(optimizer: Optimizer) {
-  const TextEncoder = getTextEncoder();
-
   const plugin: Plugin = {
     name: 'qwikEsbuildClientPlugin',
     setup(build) {

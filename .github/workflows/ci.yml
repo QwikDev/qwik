@@ -71,7 +71,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [10.x]
+        node: [12.x]
         os: ['ubuntu-latest']
         containers: [1, 2, 3, 4]
 

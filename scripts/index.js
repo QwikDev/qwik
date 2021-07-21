@@ -8,7 +8,7 @@ const { dirname, join } = require('path');
 const { register } = require('esbuild-register/dist/node');
 
 // allows NodeJS to compile TypeScript files
-register({ target: 'node15' });
+register({ target: 'node10' });
 
 const { build } = require('./build.ts');
 const { loadConfig } = require('./util.ts');

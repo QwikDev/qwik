@@ -8,7 +8,8 @@
 /* eslint no-console: ["off"] */
 import type { Request, Response, NextFunction } from 'express';
 import express from 'express';
-import { join } from 'path';
+import { rm, mkdir, writeFile } from 'fs/promises';
+import { dirname, join } from 'path';
 import {
   createEsbuilder,
   createClientEsbuildOptions,
@@ -17,7 +18,6 @@ import {
   getQwikLoaderScript,
   Optimizer,
   OutputFile,
-  writeOutput,
 } from '@builder.io/qwik/optimizer';
 import type { BuildOptions } from 'esbuild';
 import type { RenderToStringResult } from '@builder.io/qwik/server';
@@ -235,6 +235,28 @@ function resetNodeJsModuleCache(outDir: string) {
       delete cache[key];
     }
   }
+}
+
+async function writeOutput(opts: { dir: string; files: OutputFile[]; emptyDir?: boolean }) {
+  if (opts.emptyDir) {
+    await rm(opts.dir, { recursive: true, force: true });
+  }
+
+  const files = opts.files.map((o) => ({
+    ...o,
+    filePath: join(opts.dir, o.path),
+  }));
+
+  const ensureDirs = Array.from(new Set(files.map((f) => dirname(f.filePath))));
+  for (const dir of ensureDirs) {
+    try {
+      await mkdir(dir, { recursive: true });
+    } catch (e) {
+      /**/
+    }
+  }
+
+  await Promise.all(files.map((f) => writeFile(f.filePath, f.text)));
 }
 
 startServer();

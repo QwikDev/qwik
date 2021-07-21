@@ -5,7 +5,7 @@ jobs:
   build:
     strategy:
       matrix:
-        node: [10.x]
+        node: [10.x, 14.x]
         os: ['ubuntu-latest', 'windows-latest']
 
     name: Build (Node ${{ matrix.node }}, ${{ matrix.os }})
@@ -29,7 +29,7 @@ jobs:
   lint:
     strategy:
       matrix:
-        node: [10.x]
+        node: [14.x]
         os: ['ubuntu-latest']
 
     name: Lint (Node ${{ matrix.node }}, ${{ matrix.os }})
@@ -104,6 +104,7 @@ jobs:
       - name: 'E2E Tests'
         uses: cypress-io/github-action@v2
         with:
+          install-command: yarn --frozen-lockfile --ignore-engines
           start: yarn integration.server.prod
           wait-on: 'http://localhost:8081'
           wait-on-timeout: 120

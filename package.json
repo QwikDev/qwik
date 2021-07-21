@@ -101,7 +101,7 @@
     "Builder.io"
   ],
   "engines": {
-    "node": ">= 10"
+    "node": ">=12"
   },
   "jest": {
     "preset": "./dist-dev/@builder.io-qwik/testing/jest-preset.cjs",

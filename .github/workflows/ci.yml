@@ -5,8 +5,8 @@ jobs:
   build:
     strategy:
       matrix:
-        node: [10.x, 14.x]
-        os: ['ubuntu-latest', 'windows-latest']
+        node: [10.x]
+        os: ['ubuntu-latest']
 
     name: Build (Node ${{ matrix.node }}, ${{ matrix.os }})
     runs-on: ubuntu-latest
@@ -54,7 +54,7 @@ jobs:
     strategy:
       matrix:
         node: [10.x]
-        os: ['ubuntu-latest', 'windows-latest']
+        os: ['ubuntu-latest']
 
     name: Unit Tests (Node ${{ matrix.node }}, ${{ matrix.os }})
     runs-on: ${{ matrix.os }}

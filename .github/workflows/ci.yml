@@ -5,7 +5,7 @@ jobs:
   build:
     strategy:
       matrix:
-        node: [12.x]
+        node: [10.x]
         os: ['ubuntu-latest']
 
     name: Build (Node ${{ matrix.node }}, ${{ matrix.os }})
@@ -29,7 +29,7 @@ jobs:
   lint:
     strategy:
       matrix:
-        node: [12.x]
+        node: [10.x]
         os: ['ubuntu-latest']
 
     name: Lint (Node ${{ matrix.node }}, ${{ matrix.os }})
@@ -42,7 +42,7 @@ jobs:
         uses: c-hive/gha-yarn-cache@v1
 
       - name: Install Dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn install --frozen-lockfile --ignore-engines
 
       - name: Prettier Check
         run: yarn prettier-check
@@ -72,7 +72,7 @@ jobs:
         uses: c-hive/gha-yarn-cache@v1
 
       - name: Install Dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn install --frozen-lockfile --ignore-engines
 
       - name: Unit Tests
         run: |
@@ -83,7 +83,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [12.x]
+        node: [10.x]
         os: ['ubuntu-latest']
         containers: [1, 2, 3, 4]
 

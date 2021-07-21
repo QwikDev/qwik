@@ -3,7 +3,12 @@ on: [push, pull_request]
 
 jobs:
   build:
-    name: Build
+    strategy:
+      matrix:
+        node: [12.x]
+        os: ['ubuntu-latest']
+
+    name: Build (Node ${{ matrix.node }}, ${{ matrix.os }})
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -22,7 +27,12 @@ jobs:
         run: yarn validate.build
 
   lint:
-    name: Lint
+    strategy:
+      matrix:
+        node: [12.x]
+        os: ['ubuntu-latest']
+
+    name: Lint (Node ${{ matrix.node }}, ${{ matrix.os }})
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

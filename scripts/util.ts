@@ -123,10 +123,13 @@ export const banner = {
  */
 export const target = 'es2018';
 
+export const nodeTarget = 'node10';
+
 /**
  * Helper just to know which NodeJS modules that should stay external.
  */
 export const nodeBuiltIns = [
+  'assert',
   'child_process',
   'crypto',
   'fs',
@@ -141,6 +144,10 @@ export const nodeBuiltIns = [
 
 export function injectDirname(config: BuildConfig) {
   return join(config.scriptsDir, 'shim', '__dirname.js');
+}
+
+export function injectGlobalThisPoly(config: BuildConfig) {
+  return join(config.scriptsDir, 'shim', 'globalthis.js');
 }
 
 /**

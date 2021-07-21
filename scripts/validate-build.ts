@@ -14,6 +14,8 @@ export async function validateBuild() {
   const pkgPath = join(config.pkgDir, 'package.json');
   const pkg: PackageJSON = JSON.parse(await readFile(pkgPath, 'utf-8'));
 
+  const checkEsm = parseInt(process.version.substr(1).split('.')[0], 10) >= 14;
+
   // triple checks these all exist and work
   const expectedFiles = pkg.files.map((f) => join(config.pkgDir, f));
 
@@ -27,7 +29,9 @@ export async function validateBuild() {
           require(filePath);
           break;
         case '.mjs':
-          await import(filePath);
+          if (checkEsm) {
+            await import(filePath);
+          }
           break;
         case '.ts':
           validateTypeScriptFile(filePath);

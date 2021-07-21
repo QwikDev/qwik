@@ -1,6 +1,14 @@
 import { build, BuildOptions } from 'esbuild';
 import { join } from 'path';
-import { BuildConfig, banner, nodeBuiltIns, target, watcher } from './util';
+import {
+  BuildConfig,
+  banner,
+  nodeBuiltIns,
+  nodeTarget,
+  target,
+  watcher,
+  injectGlobalThisPoly,
+} from './util';
 import { readFileSync } from 'fs';
 
 /**
@@ -46,6 +54,9 @@ export async function submoduleOptimizer(config: BuildConfig) {
     format: 'cjs',
     outExtension: { '.js': '.cjs' },
     watch: watcher(config),
+    platform: 'node',
+    target: nodeTarget,
+    inject: [injectGlobalThisPoly(config)],
   });
 
   await Promise.all([esm, cjs]);

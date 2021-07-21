@@ -1,9 +1,10 @@
-import type { BuildConfig } from './util';
+import { BuildConfig, injectGlobalThisPoly } from './util';
 import { banner, fileSize, readFile, target, watcher, writeFile } from './util';
 import { build, BuildOptions } from 'esbuild';
 import { InputOptions, OutputOptions, rollup } from 'rollup';
 import { join } from 'path';
 import { minify } from 'terser';
+import { readFileSync } from 'fs';
 
 /**
  * Build the core package which is also the root package: @builder.io/qwik
@@ -36,6 +37,11 @@ async function submoduleCoreProd(config: BuildConfig) {
     format: 'cjs',
     entryFileNames: 'core.cjs',
     sourcemap: true,
+    /**
+     * Quick and dirty polyfill so globalThis is a global (really only needed for cjs and Node10)
+     * and globalThis is only needed so globalThis.qDev can be set, and for dev dead code removal
+     */
+    intro: readFileSync(join(config.scriptsDir, 'shim', 'globalthis.js'), 'utf-8'),
   };
 
   const build = await rollup(input);
@@ -49,6 +55,9 @@ async function submoduleCoreProd(config: BuildConfig) {
     module: true,
     compress: {
       global_defs: {
+        // special global that when set to false will remove all dev code entirely
+        // developer production builds could use core.min.js directly, or setup
+        // their own build tools to define the globa `qwikDev` to false
         'globalThis.qDev': false,
       },
       ecma: 2018,
@@ -62,7 +71,14 @@ async function submoduleCoreProd(config: BuildConfig) {
   });
 
   const minFile = join(config.pkgDir, 'core.min.mjs');
-  await writeFile(minFile, minifyResult.code!);
+  const minCode = minifyResult.code!;
+  await writeFile(minFile, minCode);
+
+  if (minCode.includes('window') || minCode.includes('global') || minCode.includes('self')) {
+    throw new Error(
+      `"${minFile}" should not have any global references, and should have been removed for a production minified build`
+    );
+  }
 
   console.log('👽 core.min.mjs:', await fileSize(minFile));
 }
@@ -92,9 +108,12 @@ async function submoduleCoreDev(config: BuildConfig) {
     format: 'cjs',
     outExtension: { '.js': '.cjs' },
     watch: watcher(config),
+    inject: [injectGlobalThisPoly(config)],
   });
 
   await Promise.all([esm, cjs]);
 
   console.log('🐬', submodule, '(dev)');
 }
+
+const GLOBAL_THIS_POLY = `if("undefined"==typeof globalThis){const e="undefined"!=typeof global?global:"undefined"!=typeof window?window:"undefined"!=typeof self?self:{};e.globalThis=e}`;

@@ -44,6 +44,7 @@ export async function createServerEsbuildOptions(optimizer: Optimizer): Promise<
     plugins: [serverEsbuildPlugin(optimizer)],
     format: 'cjs',
     platform: 'node',
+    target: 'node10',
     incremental: true,
     write: false,
     sourcemap: 'external',

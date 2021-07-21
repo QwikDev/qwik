@@ -49,7 +49,7 @@ export async function submoduleQwikLoader(config: BuildConfig) {
         compress: {
           module: true,
           global_defs: {
-            'window.buildEvents': false,
+            'window.BuildEvents': false,
           },
           keep_fargs: false,
           unsafe: true,
@@ -72,7 +72,7 @@ export async function submoduleQwikLoader(config: BuildConfig) {
       terser({
         compress: {
           global_defs: {
-            'window.buildEvents': false,
+            'window.BuildEvents': false,
           },
           inline: false,
           join_vars: false,
@@ -100,7 +100,7 @@ export async function submoduleQwikLoader(config: BuildConfig) {
         compress: {
           module: true,
           global_defs: {
-            'window.buildEvents': true,
+            'window.BuildEvents': true,
           },
           keep_fargs: false,
           unsafe: true,
@@ -123,7 +123,7 @@ export async function submoduleQwikLoader(config: BuildConfig) {
       terser({
         compress: {
           global_defs: {
-            'window.buildEvents': true,
+            'window.BuildEvents': true,
           },
           inline: false,
           join_vars: false,
@@ -149,7 +149,8 @@ export async function submoduleQwikLoader(config: BuildConfig) {
     build.write(optimizeDebug),
   ]);
 
-  console.log('🚗 qwikloader:', await fileSize(join(config.pkgDir, 'qwikloader.optimize.js')));
+  const optimizeFileSize = await fileSize(join(config.pkgDir, 'qwikloader.optimize.js'));
+  console.log('🚗 qwikloader:', optimizeFileSize);
 }
 
 function terser(opts: MinifyOptions): Plugin {

@@ -39,8 +39,20 @@ jobs:
         run: yarn lint
 
   unit-tests:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [10.x]
+        os: ['ubuntu-latest']
+
+    name: Unit Tests (Node ${{ matrix.node }}, ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+
     steps:
+      - name: Setup Node.js ${{ matrix.node }} on ${{ matrix.os }}
+        uses: actions/setup-node@v1
+        with:
+          node: ${{ matrix.node }}
+
       - name: Checkout
         uses: actions/checkout@v2
 
@@ -56,13 +68,24 @@ jobs:
           yarn test.unit
 
   e2e-tests:
-    timeout-minutes: 15
-    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
+        node: [10.x]
+        os: ['ubuntu-latest']
         containers: [1, 2, 3, 4]
+
+    name: E2E Tests (Node ${{ matrix.node }}, ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+
+    timeout-minutes: 15
+
     steps:
+      - name: Setup Node.js ${{ matrix.node }} on ${{ matrix.os }}
+        uses: actions/setup-node@v1
+        with:
+          node: ${{ matrix.node }}
+
       - name: Checkout
         uses: actions/checkout@v2
 
@@ -78,7 +101,7 @@ jobs:
           group: 'Qwik E2E Test Group'
           spec: cypress/integration/*
           config-file: cypress/cypress.json
-          config: defaultCommandTimeout=10000
+          config: defaultCommandTimeout=5000
         env:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

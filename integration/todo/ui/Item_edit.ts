@@ -20,9 +20,15 @@ import { ItemComponent } from './Item_component';
 
 export const begin = injectEventHandler(
   ItemComponent, //
-  async function (this: ItemComponent) {
+  provideEntity<ItemEntity>(provideUrlProp('itemKey') as any as Provider<EntityKey<ItemEntity>>), // TODO fix cast
+  async function (this: ItemComponent, itemEntity: ItemEntity) {
     this.editing = true;
-    markDirty(this);
+    await markDirty(this);
+    // focus input element
+    const inputEl = this.$host.querySelector('input.edit') as HTMLInputElement;
+    inputEl.focus();
+    // move cursor to the end
+    inputEl.selectionStart = inputEl.selectionEnd = itemEntity.$state.title.length;
   }
 );
 

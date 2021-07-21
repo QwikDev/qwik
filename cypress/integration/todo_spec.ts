@@ -42,10 +42,24 @@ describe('todo', () => {
       it('should edit an item', function () {
         cy.get('.todo-list>li:first-child label').dblclick();
         cy.wait(50);
-        cy.get('.todo-list>li:first-child input.edit').type('123{enter}');
+        cy.get('.todo-list>li:first-child input.edit').focused().type('123{enter}');
         cy.get('.todo-list>li:first-child').should((item: any) =>
           expect(item).to.have.text('Read Qwik docs123')
         );
+      });
+
+      it('should blur input.edit element', function () {
+        cy.get('.todo-list>li:first-child label').dblclick();
+        cy.wait(50);
+
+        // Focused input.edit element with a proper cursor position after dblclick event
+        cy.get('.todo-list>li:first-child input.edit')
+          .focused()
+          .should('have.prop', 'selectionStart', 14)
+          .and('have.prop', 'selectionEnd', 14);
+
+        // Blur input.edit element
+        cy.get('.todo-list>li:first-child input.edit').blur().should('have.length', 0);
       });
 
       it('should clear completed', () => {

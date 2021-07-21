@@ -3,6 +3,7 @@ on: [push, pull_request]
 
 jobs:
   build:
+    name: Build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -21,6 +22,7 @@ jobs:
         run: yarn validate.build
 
   lint:
+    name: Lint
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -41,7 +43,7 @@ jobs:
   unit-tests:
     strategy:
       matrix:
-        node: [10.x]
+        node: [12.x]
         os: ['ubuntu-latest']
 
     name: Unit Tests (Node ${{ matrix.node }}, ${{ matrix.os }})

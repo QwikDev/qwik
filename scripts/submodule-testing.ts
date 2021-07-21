@@ -1,13 +1,14 @@
+import { BuildConfig, injectGlobalThisPoly } from './util';
 import { build, BuildOptions } from 'esbuild';
 import { join } from 'path';
 import {
-  BuildConfig,
   banner,
   importPath,
+  injectDirname,
+  nodeBuiltIns,
+  nodeTarget,
   target,
   watcher,
-  nodeBuiltIns,
-  injectDirname,
 } from './util';
 
 /**
@@ -21,7 +22,6 @@ export async function submoduleTesting(config: BuildConfig) {
       index: join(config.srcDir, submodule, 'index.ts'),
       'jest-preprocessor': join(config.srcDir, submodule, 'jest', 'preprocessor.ts'),
       'jest-preset': join(config.srcDir, submodule, 'jest', 'preset.ts'),
-      'jest-setuptestframework': join(config.srcDir, submodule, 'jest', 'setuptestframework.ts'),
     },
     outdir: join(config.pkgDir, submodule),
     sourcemap: true,
@@ -42,7 +42,7 @@ export async function submoduleTesting(config: BuildConfig) {
     ],
     watch: watcher(config, submodule),
     define: {
-      'globalThis._MODULE_EXT_': `'mjs'`,
+      'globalThis.MODULE_EXT': `"mjs"`,
     },
     inject: [injectDirname(config)],
     target: 'es2020' /* needed for import.meta */,
@@ -59,8 +59,11 @@ export async function submoduleTesting(config: BuildConfig) {
     ],
     watch: watcher(config),
     define: {
-      'globalThis._MODULE_EXT_': `'cjs'`,
+      'globalThis.MODULE_EXT': `"cjs"`,
     },
+    platform: 'node',
+    target: nodeTarget,
+    inject: [injectGlobalThisPoly(config)],
   });
 
   await Promise.all([esm, cjs]);

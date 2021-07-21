@@ -100,9 +100,50 @@
     "framework",
     "Builder.io"
   ],
-  "files": [],
   "engines": {
-    "node": ">= 14.14"
+    "node": ">=10"
+  },
+  "jest": {
+    "preset": "./dist-dev/@builder.io-qwik/testing/jest-preset.cjs",
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "mjs",
+      "jsx",
+      "json",
+      "d.ts"
+    ],
+    "moduleNameMapper": {
+      "^@builder.io/qwik/core$": "<rootDir>/src/core/index.ts",
+      "^@builder.io/qwik/jsx-runtime$": "<rootDir>/src/jsx_runtime.ts",
+      "^@builder.io/qwik/optimizer$": "<rootDir>/src/optimizer/index.ts",
+      "^@builder.io/qwik/server$": "<rootDir>/src/server/index.ts",
+      "^@builder.io/qwik/testing$": "<rootDir>/src/testing/index.ts",
+      "^@builder.io/qwik$": "<rootDir>/src/core/index.ts"
+    },
+    "modulePathIgnorePatterns": [
+      "<rootDir>/bazel-out",
+      "<rootDir>/dist",
+      "<rootDir>/dist-dev",
+      "<rootDir>/node_modules",
+      "<rootDir>/tsc-out"
+    ],
+    "testPathIgnorePatterns": [
+      "<rootDir>/.github/",
+      "<rootDir>/.husky/",
+      "<rootDir>/.vscode/",
+      "<rootDir>/bazel-out",
+      "<rootDir>/bin/",
+      "<rootDir>/cypress/",
+      "<rootDir>/dist/",
+      "<rootDir>/dist-dev/",
+      "<rootDir>/docs/",
+      "<rootDir>/integration/",
+      "<rootDir>/node_modules/",
+      "<rootDir>/tsc-out/"
+    ],
+    "testRegex": "/src/.*\\.unit\\.(ts|tsx)$"
   },
   "lint-staged": {
     "*.*": [

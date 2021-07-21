@@ -1,5 +1,5 @@
 import type { BuildConfig } from './util';
-import { copyFile } from 'fs/promises';
+import { copyFile } from './util';
 import { basename, join } from 'path';
 
 /**

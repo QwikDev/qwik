@@ -1,8 +1,8 @@
+import type { BuildConfig, PackageJSON } from './util';
+import { access, loadConfig, readFile } from './util';
 import { extname, join } from 'path';
 import { readFileSync, readdirSync, statSync } from 'fs';
-import { BuildConfig, loadConfig, PackageJSON } from './util';
 import ts from 'typescript';
-import { access, readFile } from 'fs/promises';
 
 /**
  * This will validate a completed production build by triple checking all the

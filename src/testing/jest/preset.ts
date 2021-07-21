@@ -3,7 +3,7 @@ import { join } from 'path';
 const testingDir = __dirname;
 const packageRootDir = join(testingDir, '..');
 
-const ext = '.' + (globalThis as any)._MODULE_EXT_;
+const ext = '.' + (global as any)._MODULE_EXT_;
 
 const moduleExtensions = ['ts', 'tsx', 'js', 'mjs', 'jsx'];
 const moduleExtensionRegexp = '(' + moduleExtensions.join('|') + ')';

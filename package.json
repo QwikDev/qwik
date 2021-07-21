@@ -102,7 +102,7 @@
   ],
   "files": [],
   "engines": {
-    "node": ">= 14.14"
+    "node": ">= 10"
   },
   "lint-staged": {
     "*.*": [

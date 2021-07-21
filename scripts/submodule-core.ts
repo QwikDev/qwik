@@ -1,9 +1,9 @@
+import type { BuildConfig } from './util';
+import { banner, fileSize, readFile, target, watcher, writeFile } from './util';
 import { build, BuildOptions } from 'esbuild';
 import { InputOptions, OutputOptions, rollup } from 'rollup';
 import { join } from 'path';
 import { minify } from 'terser';
-import { BuildConfig, banner, target, watcher, fileSize } from './util';
-import { readFile, writeFile } from 'fs/promises';
 
 /**
  * Build the core package which is also the root package: @builder.io/qwik

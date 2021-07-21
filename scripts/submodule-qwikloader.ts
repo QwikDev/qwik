@@ -16,7 +16,7 @@ export async function submoduleQwikLoader(config: BuildConfig) {
   });
 
   const input: InputOptions = {
-    input: 'src/qwikloader.ts',
+    input: join(config.srcDir, 'qwikloader.ts'),
     plugins: [
       {
         name: 'transpile',
@@ -49,7 +49,7 @@ export async function submoduleQwikLoader(config: BuildConfig) {
         compress: {
           module: true,
           global_defs: {
-            'globalThis.buildEvents': false,
+            'window.buildEvents': false,
           },
           keep_fargs: false,
           unsafe: true,
@@ -72,7 +72,7 @@ export async function submoduleQwikLoader(config: BuildConfig) {
       terser({
         compress: {
           global_defs: {
-            'globalThis.buildEvents': false,
+            'window.buildEvents': false,
           },
           inline: false,
           join_vars: false,
@@ -100,7 +100,7 @@ export async function submoduleQwikLoader(config: BuildConfig) {
         compress: {
           module: true,
           global_defs: {
-            'globalThis.buildEvents': true,
+            'window.buildEvents': true,
           },
           keep_fargs: false,
           unsafe: true,
@@ -123,7 +123,7 @@ export async function submoduleQwikLoader(config: BuildConfig) {
       terser({
         compress: {
           global_defs: {
-            'globalThis.buildEvents': true,
+            'window.buildEvents': true,
           },
           inline: false,
           join_vars: false,

@@ -1,5 +1,5 @@
 import type { BuildConfig, PackageJSON } from './util';
-import { readFile, writeFile } from 'fs/promises';
+import { readFile, writeFile } from './util';
 import { join } from 'path';
 
 /**

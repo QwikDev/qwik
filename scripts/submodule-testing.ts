@@ -42,7 +42,7 @@ export async function submoduleTesting(config: BuildConfig) {
     ],
     watch: watcher(config, submodule),
     define: {
-      'globalThis._MODULE_EXT_': `'mjs'`,
+      'global._MODULE_EXT_': `'mjs'`,
     },
     inject: [injectDirname(config)],
     target: 'es2020' /* needed for import.meta */,
@@ -59,7 +59,7 @@ export async function submoduleTesting(config: BuildConfig) {
     ],
     watch: watcher(config),
     define: {
-      'globalThis._MODULE_EXT_': `'cjs'`,
+      'global._MODULE_EXT_': `'cjs'`,
     },
   });
 

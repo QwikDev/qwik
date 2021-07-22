@@ -8,7 +8,7 @@
 /* eslint no-console: ["off"] */
 import type { Request, Response, NextFunction } from 'express';
 import express from 'express';
-import { rm, mkdir, writeFile } from 'fs/promises';
+import { mkdirSync, writeFileSync } from 'fs';
 import { dirname, join } from 'path';
 import {
   createEsbuilder,
@@ -93,7 +93,6 @@ async function startServer() {
           await writeOutput({
             dir: outDir,
             files: build.outputFiles.filter((o) => o.platform === 'server'),
-            emptyDir: true,
           });
           const devBuildWrite = writeTime();
 
@@ -237,11 +236,7 @@ function resetNodeJsModuleCache(outDir: string) {
   }
 }
 
-async function writeOutput(opts: { dir: string; files: OutputFile[]; emptyDir?: boolean }) {
-  if (opts.emptyDir) {
-    await rm(opts.dir, { recursive: true, force: true });
-  }
-
+function writeOutput(opts: { dir: string; files: OutputFile[] }) {
   const files = opts.files.map((o) => ({
     ...o,
     filePath: join(opts.dir, o.path),
@@ -250,13 +245,13 @@ async function writeOutput(opts: { dir: string; files: OutputFile[]; emptyDir?: 
   const ensureDirs = Array.from(new Set(files.map((f) => dirname(f.filePath))));
   for (const dir of ensureDirs) {
     try {
-      await mkdir(dir, { recursive: true });
+      mkdirSync(dir, { recursive: true });
     } catch (e) {
       /**/
     }
   }
 
-  await Promise.all(files.map((f) => writeFile(f.filePath, f.text)));
+  files.map((f) => writeFileSync(f.filePath, f.text));
 }
 
 startServer();

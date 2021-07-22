@@ -1,4 +1,4 @@
-import { build, BuildOptions } from 'esbuild';
+import { build, BuildOptions, Plugin } from 'esbuild';
 import { join } from 'path';
 import {
   BuildConfig,
@@ -20,6 +20,8 @@ import {
 export async function submoduleServer(config: BuildConfig) {
   const submodule = 'server';
 
+  const dominoPlugin = await bundleDomino(config);
+
   const opts: BuildOptions = {
     entryPoints: [join(config.srcDir, submodule, 'index.ts')],
     outdir: join(config.pkgDir, submodule),
@@ -27,7 +29,7 @@ export async function submoduleServer(config: BuildConfig) {
     bundle: true,
     target,
     banner,
-    external: [...nodeBuiltIns, 'domino', 'source-map-support'],
+    external: [...nodeBuiltIns, 'domino'],
   };
 
   const esm = build({
@@ -37,6 +39,7 @@ export async function submoduleServer(config: BuildConfig) {
     plugins: [
       importPath(/^@builder\.io\/qwik$/, '../core.mjs'),
       importPath(/^@builder\.io\/qwik\/optimizer$/, '../optimizer.mjs'),
+      dominoPlugin,
     ],
     watch: watcher(config, submodule),
   });
@@ -48,6 +51,7 @@ export async function submoduleServer(config: BuildConfig) {
     plugins: [
       importPath(/^@builder\.io\/qwik$/, '../core.cjs'),
       importPath(/^@builder\.io\/qwik\/optimizer$/, '../optimizer.cjs'),
+      dominoPlugin,
     ],
     watch: watcher(config),
     platform: 'node',
@@ -58,4 +62,51 @@ export async function submoduleServer(config: BuildConfig) {
   await Promise.all([esm, cjs]);
 
   console.log('🐠', submodule);
+}
+
+async function bundleDomino(config: BuildConfig) {
+  const outfile = join(config.distDir, 'domino.mjs');
+
+  const opts: BuildOptions = {
+    entryPoints: [join(config.rootDir, 'node_modules', 'domino', 'lib', 'index.js')],
+    sourcemap: false,
+    minify: true,
+    bundle: true,
+    target,
+    outfile,
+    format: 'esm',
+    plugins: [
+      {
+        name: 'sloppyDomino',
+        setup(build) {
+          build.onLoad({ filter: /.*sloppy\.js/ }, (args) => {
+            return {
+              // esm modules cannot use `with` statement
+              // and questionable if this feature is needed for ssr
+              contents: `
+              module.exports={
+                Window_run:function _run(){},
+                EventHandlerBuilder_build:function build(){}
+              };`,
+            };
+          });
+        },
+      },
+    ],
+  };
+
+  await build(opts);
+
+  const dominoPlugin: Plugin = {
+    name: 'dominoPlugin',
+    setup(build) {
+      build.onResolve({ filter: /domino/ }, () => {
+        return {
+          path: outfile,
+        };
+      });
+    },
+  };
+
+  return dominoPlugin;
 }

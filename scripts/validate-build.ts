@@ -1,6 +1,7 @@
 import type { BuildConfig, PackageJSON } from './util';
 import { access, loadConfig, readFile } from './util';
 import { extname, join } from 'path';
+import { pathToFileURL } from 'url';
 import { readFileSync, readdirSync, statSync } from 'fs';
 import ts from 'typescript';
 
@@ -30,7 +31,7 @@ export async function validateBuild() {
           break;
         case '.mjs':
           if (checkEsm) {
-            await import(filePath);
+            await import(pathToFileURL(filePath).href);
           }
           break;
         case '.ts':

@@ -3,8 +3,14 @@ on: [push, pull_request]
 
 jobs:
   build:
+    name: Build
     runs-on: ubuntu-latest
     steps:
+      - name: Setup Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 10.x
+
       - name: Checkout
         uses: actions/checkout@v2
 
@@ -12,7 +18,7 @@ jobs:
         uses: c-hive/gha-yarn-cache@v1
 
       - name: Install Dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn install --frozen-lockfile --ignore-engines
 
       - name: Build
         run: yarn build
@@ -20,7 +26,19 @@ jobs:
       - name: Validate Build
         run: yarn validate.build
 
+      - name: Pack Build Artifacts
+        run: |
+          cd dist-dev/@builder.io-qwik
+          mv `npm pack` ../../builder.io-qwik.tgz
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@master
+        with:
+          name: Qwik Package
+          path: builder.io-qwik.tgz
+
   lint:
+    name: Lint
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -30,7 +48,7 @@ jobs:
         uses: c-hive/gha-yarn-cache@v1
 
       - name: Install Dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn install --frozen-lockfile --ignore-engines
 
       - name: Prettier Check
         run: yarn prettier-check
@@ -39,8 +57,15 @@ jobs:
         run: yarn lint
 
   unit-tests:
+    name: Unit Tests
     runs-on: ubuntu-latest
+
     steps:
+      - name: Setup Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 10.x
+
       - name: Checkout
         uses: actions/checkout@v2
 
@@ -48,7 +73,7 @@ jobs:
         uses: c-hive/gha-yarn-cache@v1
 
       - name: Install Dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn install --frozen-lockfile --ignore-engines
 
       - name: Unit Tests
         run: |
@@ -56,25 +81,29 @@ jobs:
           yarn test.unit
 
   e2e-tests:
-    timeout-minutes: 15
+    name: E2E Tests
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        containers: [1, 2, 3, 4]
+
+    timeout-minutes: 15
+
     steps:
+      - name: Setup Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 10.x
+
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: 'E2E Tests'
+      - name: E2E Tests
         uses: cypress-io/github-action@v2
         with:
+          install-command: yarn --frozen-lockfile --ignore-engines
           start: yarn integration.server.prod
           wait-on: 'http://localhost:8081'
           wait-on-timeout: 120
           browser: chrome
           record: true
-          parallel: true
           group: 'Qwik E2E Test Group'
           spec: cypress/integration/*
           config-file: cypress/cypress.json
@@ -82,3 +111,10 @@ jobs:
         env:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Videos Artifacts
+        uses: actions/upload-artifact@v1
+        if: always()
+        with:
+          name: Cypress Videos
+          path: cypress/videos

@@ -6,7 +6,6 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import type { JSXInternal } from './types/jsx';
 import type { FunctionComponent } from './types';
 
 /**
@@ -24,6 +23,4 @@ import type { FunctionComponent } from './types';
  * servers that purpose.
  * @public
  */
-export const Host: FunctionComponent<
-  JSXInternal.HTMLAttributes | JSXInternal.SVGAttributes | Record<string, any>
-> = {} as any;
+export const Host: FunctionComponent<Record<string, any>> = {} as any;

@@ -10,7 +10,7 @@
 import type { QRL } from '../../import/qrl';
 import { AttributeMarker } from '../../util/markers';
 import { EMPTY_ARRAY } from '../../util/flyweight';
-import type { FunctionComponent, JSXNode, JSXInternal } from './types';
+import type { FunctionComponent, JSXNode, QwikJSX } from './types';
 import { JSXNodeImpl } from './jsx-runtime';
 import { flattenArray } from '../../util/array';
 
@@ -55,9 +55,9 @@ export declare namespace h {
   export function h(sel: any, data: any | null, children: JSXNode<any>): JSXNode<any>;
 
   export namespace JSX {
-    interface IntrinsicElements extends JSXInternal.IntrinsicElements {
-      [tagName: string]: any;
-    }
+    export interface Element extends QwikJSX.Element {}
+    export interface IntrinsicAttributes extends QwikJSX.IntrinsicAttributes {}
+    export interface IntrinsicElements extends QwikJSX.IntrinsicElements {}
   }
 }
 

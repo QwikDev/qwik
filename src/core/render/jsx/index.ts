@@ -14,9 +14,9 @@ export type {
   ComponentChildren,
   FunctionComponent,
   JSXFactory,
-  RenderableProps,
   JSXNode,
+  QwikJSX,
+  RenderableProps,
 } from './types';
 export { Host } from './host';
 export { jsx, jsxDEV, jsxs, Fragment } from './jsx-runtime';
-export type { JSXInternal } from './jsx-runtime';

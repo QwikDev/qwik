@@ -1,5 +1,11 @@
 import { EMPTY_ARRAY } from '../../util/flyweight';
-import type { ComponentChild, FunctionComponent, JSXInternal, JSXNode } from './types';
+import type {
+  ComponentChild,
+  FunctionComponent,
+  JSXNode,
+  QwikDOMAttributes,
+  QwikJSX,
+} from './types';
 import { qDev } from '../../util/qdev';
 
 /**
@@ -7,9 +13,7 @@ import { qDev } from '../../util/qdev';
  */
 export function jsx(
   type: string | FunctionComponent,
-  props: JSXInternal.SVGAttributes &
-    JSXInternal.HTMLAttributes &
-    Record<string, any> & { children?: ComponentChild[] | ComponentChild },
+  props: QwikDOMAttributes & Record<string, any> & { children?: ComponentChild[] | ComponentChild },
   key?: string
 ) {
   return new JSXNodeImpl(type, props, key);
@@ -50,7 +54,6 @@ export const isJSXNode = (n: any): n is JSXNode<unknown> => {
  */
 export const Fragment = {} as any;
 
-export type { JSXInternal as JSX };
-export type { JSXInternal };
+export type { QwikJSX as JSX };
 
 export { jsx as jsxs, jsx as jsxDEV };

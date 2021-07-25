@@ -2,6 +2,7 @@ import type { BuildConfig } from './util';
 import { buildDevServer } from './devserver';
 import { copyFiles } from './copy-files';
 import { emptyDir } from './util';
+import { generateJsxTypes } from './jsx-types';
 import { generatePackageJson } from './package-json';
 import { submoduleCore } from './submodule-core';
 import { submoduleJsxRuntime } from './submodule-jsx-runtime';
@@ -38,6 +39,10 @@ export async function build(config: BuildConfig) {
       copyFiles(config),
       buildDevServer(config),
     ]);
+
+    if (config.jsx) {
+      await generateJsxTypes(config);
+    }
 
     await submoduleOptimizer(config);
   } catch (e) {

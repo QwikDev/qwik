@@ -54,6 +54,7 @@
     "integration.server": "node scripts --dev && node integration/devserver.js --port 8080 --mode development",
     "integration.server.prod": "tsc && node scripts && node integration/devserver.js --port 8081 --mode production",
     "validate.build": "node -r esbuild-register scripts/validate-build.ts",
+    "jsx.types": "node scripts --jsx",
     "prepare": "husky install",
     "lint": "eslint \"**/*.ts*\" && npm run prettier-check",
     "prettier-check": "prettier --check .",
@@ -143,7 +144,7 @@
       "<rootDir>/node_modules/",
       "<rootDir>/tsc-out/"
     ],
-    "testRegex": "/src/.*\\.unit\\.(ts|tsx)$"
+    "testRegex": "/(scripts|src)/.*\\.unit\\.(ts|tsx)$"
   },
   "lint-staged": {
     "*.*": [

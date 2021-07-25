@@ -28,6 +28,7 @@ export interface BuildConfig {
   tscDir: string;
   pkgDir: string;
   dev?: boolean;
+  jsx?: boolean;
   watch?: boolean;
 }
 

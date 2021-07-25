@@ -11,7 +11,7 @@ import { assertValidDataKey } from '../../error/data';
 import { AttributeMarker } from '../../util/markers';
 import type { EntityConstructor } from '../../entity/entity';
 import { QError, qError } from '../../error/error';
-import type { JSXBase } from './types/jsx_base';
+import type { QwikDOMAttributes } from './types';
 
 /**
  * Apply Props to Element
@@ -22,7 +22,7 @@ import type { JSXBase } from './types/jsx_base';
  */
 export function applyAttributes(
   element: Element,
-  props: Record<string, string> | JSXBase | null,
+  props: Record<string, string> | QwikDOMAttributes | null,
   detectChanges: boolean
 ): boolean {
   let changesDetected = false;

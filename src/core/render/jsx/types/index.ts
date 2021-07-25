@@ -1,4 +1,3 @@
-export type { JSXInternal } from './jsx';
 export type {
   ComponentChild,
   ComponentChildren,
@@ -6,4 +5,6 @@ export type {
   JSXFactory,
   JSXNode,
   RenderableProps,
-} from './jsx_node';
+} from './jsx-node';
+export type { QwikDOMAttributes, QwikJSX } from './jsx-qwik';
+export type { QwikIntrinsicElements } from './jsx-qwik-elements';

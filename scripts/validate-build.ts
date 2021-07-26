@@ -1,5 +1,5 @@
 import type { BuildConfig, PackageJSON } from './util';
-import { access, loadConfig, readFile } from './util';
+import { access, readFile } from './util';
 import { extname, join } from 'path';
 import { pathToFileURL } from 'url';
 import { readFileSync, readdirSync, statSync } from 'fs';
@@ -10,12 +10,9 @@ import ts from 'typescript';
  * files have been created and can execute correctly in their context. This is
  * the last task before publishing the build files to npm.
  */
-export async function validateBuild() {
-  const config = loadConfig(process.argv.slice(2));
+export async function validateBuild(config: BuildConfig) {
   const pkgPath = join(config.pkgDir, 'package.json');
   const pkg: PackageJSON = JSON.parse(await readFile(pkgPath, 'utf-8'));
-
-  const checkEsm = parseInt(process.version.substr(1).split('.')[0], 10) >= 14;
 
   // triple checks these all exist and work
   const expectedFiles = pkg.files.map((f) => join(config.pkgDir, f));
@@ -30,12 +27,12 @@ export async function validateBuild() {
           require(filePath);
           break;
         case '.mjs':
-          if (checkEsm) {
+          if (config.esmNode) {
             await import(pathToFileURL(filePath).href);
+            break;
           }
-          break;
         case '.ts':
-          validateTypeScriptFile(filePath);
+          validateTypeScriptFile(config, filePath);
           break;
         case '.json':
           JSON.parse(readFileSync(filePath, 'utf-8'));
@@ -81,20 +78,32 @@ export async function validateBuild() {
     console.error(
       `Unexpected files found in the package build:\n${unexpectedFiles.join(
         '\n'
-      )}\n\nIf this is on purpose, add the file(s) to the expect files list in ${__filename}`
+      )}\n\nIf this is on purpose, add the file(s) to the "PACKAGE_FILES" array in "${join(
+        __dirname,
+        'package-json.ts'
+      )}"`
     );
     process.exit(1);
   }
 
-  console.log('🏆', 'validated build');
+  console.log('🏅', 'validated build');
 }
 
 /**
  * Do a full typescript build for each separate .d.ts file found in the package
  * just to ensure it's well formed and relative import paths are correct.
  */
-function validateTypeScriptFile(tsFile: string) {
-  const program = ts.createProgram([tsFile], {});
+export function validateTypeScriptFile(config: BuildConfig, tsFilePath: string) {
+  const tsconfigPath = join(config.rootDir, 'tsconfig.json');
+  const tsconfigResults = ts.readConfigFile(tsconfigPath, ts.sys.readFile);
+  const tsconfig = ts.parseJsonConfigFileContent(
+    tsconfigResults.config,
+    ts.sys,
+    config.rootDir,
+    undefined,
+    tsconfigPath
+  );
+  const program = ts.createProgram([tsFilePath], tsconfig.options);
 
   const tsDiagnostics = program.getSemanticDiagnostics().concat(program.getSyntacticDiagnostics());
 
@@ -146,5 +155,3 @@ async function validatePath(config: BuildConfig, path: string) {
     process.exit(1);
   }
 }
-
-validateBuild();

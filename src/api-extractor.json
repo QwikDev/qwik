@@ -11,7 +11,7 @@
     "enabled": false
   },
   "tsdocMetadata": {
-    "tsdocMetadataFilePath": "./tsdoc-metadata.json"
+    "enabled": false
   },
   "messages": {
     "compilerMessageReporting": {

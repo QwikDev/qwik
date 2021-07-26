@@ -4,6 +4,7 @@ import { get } from 'https';
 import { format, resolveConfig } from 'prettier';
 import { join } from 'path';
 import ts from 'typescript';
+import { validateTypeScriptFile } from './validate-build';
 
 /**
  * Generate non-global JSX types so it can be scoped to just @builder.io/qwik.
@@ -39,6 +40,9 @@ export async function generateJsxTypes(config: BuildConfig) {
 
   writeFileSync(generatedTypesPath, content);
   console.log('🐝', 'generated:', generatedTypesPath);
+
+  validateTypeScriptFile(config, generatedTypesPath);
+  console.log('💪', 'validate generated typescript file');
 }
 
 /**

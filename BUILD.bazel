@@ -8,6 +8,8 @@ package_build(
         [
             "src/**/*.ts",
             "src/**/*.tsx",
+            "src/**/*.md",
+            "src/**/*.json",
             "integration/devserver.ts",
         ],
         exclude = [

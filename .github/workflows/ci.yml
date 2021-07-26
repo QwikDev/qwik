@@ -21,10 +21,7 @@ jobs:
         run: yarn install --frozen-lockfile --ignore-engines
 
       - name: Build
-        run: yarn build
-
-      - name: Validate Build
-        run: yarn validate.build
+        run: yarn build.prod
 
       - name: Pack Build Artifacts
         run: |

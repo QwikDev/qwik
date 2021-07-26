@@ -9,7 +9,6 @@
     "reportTempFolder": "<projectFolder>/dist-dev/api-extractor/core/"
   },
   "dtsRollup": {
-    "enabled": true,
-    "untrimmedFilePath": "<projectFolder>/dist-dev/@builder.io-qwik/core.d.ts"
+    "enabled": true
   }
 }

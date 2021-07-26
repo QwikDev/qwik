@@ -27,31 +27,15 @@ export interface BuildConfig {
   scriptsDir: string;
   tscDir: string;
   pkgDir: string;
+  esmNode: boolean;
+
+  api?: boolean;
+  build?: boolean;
   dev?: boolean;
   jsx?: boolean;
+  tsc?: boolean;
+  validate?: boolean;
   watch?: boolean;
-}
-
-/**
- * Interface for package.json
- */
-export interface PackageJSON {
-  name: string;
-  version: string;
-  description: string;
-  license: string;
-  main: string;
-  module: string;
-  types: string;
-  type: string;
-  files: string[];
-  exports: { [key: string]: string | { [key: string]: string } };
-  contributors: { [key: string]: string }[];
-  homepage: string;
-  repository: { [key: string]: string };
-  bugs: { [key: string]: string };
-  keywords: string[];
-  engines: { [key: string]: string };
 }
 
 /**
@@ -67,6 +51,7 @@ export function loadConfig(args: string[] = []) {
   config.scriptsDir = join(config.rootDir, 'scripts');
   config.pkgDir = join(config.distDir, '@builder.io-qwik');
   config.tscDir = join(config.distDir, 'tsc-out');
+  config.esmNode = parseInt(process.version.substr(1).split('.')[0], 10) >= 14;
 
   return config;
 }
@@ -193,4 +178,26 @@ export function emptyDir(dir: string) {
       }
     }
   }
+}
+
+/**
+ * Interface for package.json
+ */
+export interface PackageJSON {
+  name: string;
+  version: string;
+  description: string;
+  license: string;
+  main: string;
+  module: string;
+  types: string;
+  type: string;
+  files: string[];
+  exports: { [key: string]: string | { [key: string]: string } };
+  contributors: { [key: string]: string }[];
+  homepage: string;
+  repository: { [key: string]: string };
+  bugs: { [key: string]: string };
+  keywords: string[];
+  engines: { [key: string]: string };
 }

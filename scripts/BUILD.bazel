@@ -6,15 +6,25 @@ package(default_visibility = ["//visibility:public"])
 nodejs_binary(
     name = "package_build_binary",
     entry_point = ":index.js",
+    templated_args = [
+        "--build",
+        "--dev",
+        "--tsc",
+        "--api",
+    ]
 )
 
 filegroup(
-    name = "all_ts",
+    name = "all_build_source",
     srcs = glob(
         [
             "shim/__dirname.js",
             "shim/globalthis.js",
             "*.ts*",
+            "*.json",
+        ],
+        exclude = [
+            "*.unit.ts",
         ],
     ),
 )

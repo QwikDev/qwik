@@ -10,9 +10,6 @@ interface QwikCustomHTMLAttributes<T> extends HTMLAttributes<T> {
 
 interface QwikCustomHTMLElement extends HTMLElement {}
 
-/**
- * @public
- */
 export interface QwikIntrinsicElements extends IntrinsicElements {
   script: QwikScriptHTMLAttributes<HTMLScriptElement>;
   [key: string]: QwikCustomHTMLAttributes<QwikCustomHTMLElement>;

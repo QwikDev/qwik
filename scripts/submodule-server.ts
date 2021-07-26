@@ -68,7 +68,7 @@ async function bundleDomino(config: BuildConfig) {
   const outfile = join(config.distDir, 'domino.mjs');
 
   const opts: BuildOptions = {
-    entryPoints: [join(config.rootDir, 'node_modules', 'domino', 'lib', 'index.js')],
+    entryPoints: [require.resolve('domino')],
     sourcemap: false,
     minify: true,
     bundle: true,

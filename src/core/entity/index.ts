@@ -12,5 +12,7 @@
  * Explicitly list public exported symbols to be used by the developer.
  */
 
-export { Entity, EntityConstructor, EntityStateOf, EntityPropsOf, EntityPromise } from './entity';
-export { entityStateKey, EntityKey, toEntityKey } from './entity_key';
+export { Entity } from './entity';
+export type { EntityConstructor, EntityStateOf, EntityPropsOf, EntityPromise } from './entity';
+export { entityStateKey, toEntityKey } from './entity_key';
+export type { EntityKey } from './entity_key';

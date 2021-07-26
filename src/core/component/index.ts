@@ -11,5 +11,5 @@
  *
  * Explicitly list public exported symbols to be used by the developer.
  */
-
-export { Component, ComponentConstructor, ComponentPropsOf, ComponentStateOf } from './component';
+export { Component } from './component';
+export type { ComponentConstructor, ComponentPropsOf, ComponentStateOf } from './component';

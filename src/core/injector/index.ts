@@ -8,7 +8,7 @@
 
 export { injectFunction, injectMethod } from './inject';
 export { getInjector, ElementInjector } from './element_injector';
-export {
+export type {
   Provider,
   ConcreteType,
   Injector,

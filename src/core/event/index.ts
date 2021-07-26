@@ -12,5 +12,5 @@ export { provideElement } from './provide_element';
 export { provideEvent } from './provide_event';
 export { provideQrlExp } from './provide_qrl_exp';
 export { provideUrlProp } from './provide_url';
-export { EventHandler } from './types';
+export type { EventHandler } from './types';
 export { EventEntity } from './event_entity';

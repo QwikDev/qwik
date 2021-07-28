@@ -16,6 +16,7 @@ import {
   createServerEsbuildOptions,
   createTimer,
   getQwikLoaderScript,
+  getPrefetchScript,
   Optimizer,
   OutputFile,
 } from '@builder.io/qwik/optimizer';
@@ -164,6 +165,10 @@ async function startServer() {
   app.get('/qwikloader.js', (req, res) => {
     res.type('application/javascript');
     res.send(getQwikLoaderScript({ debug }));
+  });
+  app.get('/prefetch.js', (req, res) => {
+    res.type('application/javascript');
+    res.send(getPrefetchScript({ debug }));
   });
   app.use(devSsr);
   app.use(devModules);

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Preloading Application</title>
+    <script src="/qwikloader.js" type="module"></script>
+    <script src="/prefetch.js" type="module"></script>
+    <style>
+      .block {
+        border: 1px solid black;
+      }
+      .spacer {
+        height: 2000px;
+      }
+    </style>
+  </head>
+  <body>
+    <div>
+      <div class="block" on: on:click="./eager">Visible</div>
+      <div class="spacer"></div>
+      <div class="block" on: on:clock="./lazy">Off screen</div>
+    </div>
+  </body>
+</html>

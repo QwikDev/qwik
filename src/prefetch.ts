@@ -1,7 +1,7 @@
 const PREFETCH_DEFAULT_DEBUG = '';
 
-((window, document, IntersectionObserver) => {
-  window.addEventListener('load', () => {
+((win, doc, IntersectionObserver) => {
+  win.addEventListener('load', () => {
     let observer = new IntersectionObserver((items) => {
       items.forEach((item) => {
         if (item.intersectionRatio > 0) {
@@ -9,6 +9,7 @@ const PREFETCH_DEFAULT_DEBUG = '';
         }
       });
     });
-    document.querySelectorAll('[on\\:]').forEach(observer.observe.bind(observer));
+    doc.querySelectorAll('[on\\:]').forEach(observer.observe.bind(observer));
+    const worker = new Worker(URL.createObjectURL((window as any).WorkerBlob));
   });
 })(window, document, IntersectionObserver);

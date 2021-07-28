@@ -1,8 +1,9 @@
-import { InputOptions, OutputOptions, rollup, Plugin } from 'rollup';
+import { InputOptions, OutputOptions, rollup, Plugin, watch, OutputBundle } from 'rollup';
 import { minify, MinifyOptions } from 'terser';
 import { BuildConfig, fileSize, rollupOnWarn } from './util';
 import { join } from 'path';
 import { Optimizer } from '../src/optimizer';
+import { readFileSync } from 'fs';
 
 /**
  * Builds the qwikloader javascript files. These files can be used
@@ -11,16 +12,34 @@ import { Optimizer } from '../src/optimizer';
  * a utility function.
  */
 export async function submodulePrefetch(config: BuildConfig) {
+  const prefetchPath = join(config.srcDir, 'prefetch.ts');
+  const prefetchWorkerPath = join(config.srcDir, 'prefetch-worker.ts');
+
   const optimizer = new Optimizer({
     rootDir: config.rootDir,
   });
 
+  async function getBlob(minifyCode: boolean) {
+    let code = optimizer.transformModuleSync({
+      text: readFileSync(prefetchWorkerPath, 'utf-8'),
+      filePath: prefetchWorkerPath,
+      module: 'es',
+    }).text;
+
+    if (minifyCode) {
+      code = (await minify(code)).code!;
+    }
+
+    return JSON.stringify(code);
+  }
+
   const input: InputOptions = {
-    input: join(config.srcDir, 'prefetch.ts'),
+    input: prefetchPath,
     plugins: [
       {
         name: 'transpile',
         resolveId(id) {
+          this.addWatchFile(prefetchWorkerPath);
           if (!id.endsWith('.ts')) {
             return join(config.srcDir, id + '.ts');
           }
@@ -39,8 +58,16 @@ export async function submodulePrefetch(config: BuildConfig) {
     onwarn: rollupOnWarn,
   };
 
-  const defaultMinified: OutputOptions = {
-    // QWIK_LOADER_DEFAULT_MINIFIED
+  async function generateBundle(bundle: OutputBundle, minifyCode: boolean) {
+    for (const fileName in bundle) {
+      const b = bundle[fileName];
+      if (b.type === 'chunk') {
+        b.code = b.code.replace('window.WorkerBlob', await getBlob(minifyCode));
+      }
+    }
+  }
+
+  const prefetchMinified: OutputOptions = {
     dir: config.pkgDir,
     format: 'es',
     exports: 'none',
@@ -48,9 +75,6 @@ export async function submodulePrefetch(config: BuildConfig) {
       terser({
         compress: {
           module: true,
-          global_defs: {
-            'window.BuildEvents': false,
-          },
           keep_fargs: false,
           unsafe: true,
           passes: 2,
@@ -59,11 +83,16 @@ export async function submodulePrefetch(config: BuildConfig) {
           comments: false,
         },
       }),
+      {
+        name: 'prefetchMinified',
+        async generateBundle(_, bundle) {
+          return generateBundle(bundle, true);
+        },
+      },
     ],
   };
 
-  const defaultDebug: OutputOptions = {
-    // QWIK_LOADER_DEFAULT_DEBUG
+  const prefetchDebug: OutputOptions = {
     dir: config.pkgDir,
     format: 'es',
     entryFileNames: `[name].debug.js`,
@@ -71,9 +100,6 @@ export async function submodulePrefetch(config: BuildConfig) {
     plugins: [
       terser({
         compress: {
-          global_defs: {
-            'window.BuildEvents': false,
-          },
           inline: false,
           join_vars: false,
           loops: false,
@@ -86,15 +112,24 @@ export async function submodulePrefetch(config: BuildConfig) {
         },
         mangle: false,
       }),
+      {
+        name: 'prefetchDebug',
+        async generateBundle(_, bundle) {
+          return generateBundle(bundle, false);
+        },
+      },
     ],
   };
 
   const build = await rollup(input);
+  await Promise.all([build.write(prefetchMinified), build.write(prefetchDebug)]);
 
-  await Promise.all([build.write(defaultMinified), build.write(defaultDebug)]);
+  const prefetchFileSize = await fileSize(join(config.pkgDir, 'prefetch.js'));
+  console.log('🦙 prefetch:', prefetchFileSize);
 
-  const optimizeFileSize = await fileSize(join(config.pkgDir, 'prefetch.optimize.js'));
-  console.log('🚗 prefetch:', optimizeFileSize);
+  if (config.watch) {
+    watch({ ...input, output: [prefetchMinified, prefetchDebug] });
+  }
 }
 
 function terser(opts: MinifyOptions): Plugin {

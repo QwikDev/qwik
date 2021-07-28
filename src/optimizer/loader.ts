@@ -26,7 +26,7 @@ export function getQwikLoaderScript(opts: { events?: string[]; debug?: boolean }
  * script into HTML.
  * @alpha
  */
-export function getPrefetchScript(opts: { events?: string[]; debug?: boolean } = {}) {
+export function getPrefetchScript(opts: { debug?: boolean } = {}) {
   // default script selector behavior
   return opts.debug ? PREFETCH_DEFAULT_DEBUG : PREFETCH_DEFAULT_MINIFIED;
 }

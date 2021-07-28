@@ -24,6 +24,11 @@ export function createServerEsbuildOptions(optimizer: Optimizer): Promise<any>;
 export function createTimer(): () => number;
 
 // @alpha
+export function getPrefetchScript(opts?: {
+    debug?: boolean;
+}): string;
+
+// @alpha
 export function getQwikLoaderScript(opts?: {
     events?: string[];
     debug?: boolean;

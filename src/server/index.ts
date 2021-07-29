@@ -14,6 +14,7 @@ export {
   renderToDocument,
   renderToString,
 } from './document';
+export { getQwikLoaderScript } from '../optimizer/loader';
 export { QwikLoader, QwikProtocols } from './components';
 export { serializeState } from './serialize_state';
 export { setServerPlatform } from './platform';

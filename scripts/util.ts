@@ -7,6 +7,7 @@ import {
   existsSync,
   readdirSync,
   readFile as fsReadFile,
+  readFileSync,
   rmdirSync,
   stat as fsStat,
   statSync,
@@ -87,6 +88,26 @@ export function watcher(config: BuildConfig, filename?: string): WatchMode | boo
     };
   }
   return false;
+}
+
+/**
+ * Load each of the qwik scripts to be inlined with esbuild "define" as const varialbles.
+ */
+export function inlineQwikScripts(config: BuildConfig) {
+  return {
+    'global.QWIK_LOADER_DEFAULT_MINIFIED': JSON.stringify(
+      readFileSync(join(config.pkgDir, 'qwikloader.js'), 'utf-8').trim()
+    ),
+    'global.QWIK_LOADER_DEFAULT_DEBUG': JSON.stringify(
+      readFileSync(join(config.pkgDir, 'qwikloader.debug.js'), 'utf-8').trim()
+    ),
+    'global.QWIK_LOADER_OPTIMIZE_MINIFIED': JSON.stringify(
+      readFileSync(join(config.pkgDir, 'qwikloader.optimize.js'), 'utf-8').trim()
+    ),
+    'global.QWIK_LOADER_OPTIMIZE_DEBUG': JSON.stringify(
+      readFileSync(join(config.pkgDir, 'qwikloader.optimize.debug.js'), 'utf-8').trim()
+    ),
+  };
 }
 
 /**

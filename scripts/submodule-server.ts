@@ -4,11 +4,12 @@ import {
   BuildConfig,
   banner,
   importPath,
+  injectGlobalThisPoly,
+  inlineQwikScripts,
   nodeBuiltIns,
   nodeTarget,
   target,
   watcher,
-  injectGlobalThisPoly,
 } from './util';
 
 /**
@@ -30,6 +31,7 @@ export async function submoduleServer(config: BuildConfig) {
     target,
     banner,
     external: [...nodeBuiltIns, 'domino'],
+    define: inlineQwikScripts(config),
   };
 
   const esm = build({

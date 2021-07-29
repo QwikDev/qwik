@@ -20,6 +20,12 @@ export interface DocumentOptions {
     url?: string;
 }
 
+// @alpha
+export function getQwikLoaderScript(opts?: {
+    events?: string[];
+    debug?: boolean;
+}): string;
+
 // @public
 export interface GlobalOptions extends DocumentOptions {
 }

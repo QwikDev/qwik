@@ -12,8 +12,11 @@ import {
   RenderToStringOptions,
   QwikLoader,
   QwikProtocols,
+  QwikPrefetch,
 } from '@builder.io/qwik/server';
 import { ToDoApp } from './ui/TodoApp';
+
+const DEBUG = true;
 
 /**
  * Entry point for server-side pre-rendering.
@@ -37,7 +40,10 @@ export default function (opts: RenderToStringOptions) {
       </head>
       <body>
         <ToDoApp />
-        <QwikLoader events={['click', 'dblclick', 'keyup', 'blur']} debug={true} />
+        <QwikLoader events={['click', 'dblclick', 'keyup', 'blur']} debug={DEBUG} />
+        {opts.params && Object.prototype.hasOwnProperty.call(opts.params, 'prefetch') ? (
+          <QwikPrefetch debug={DEBUG} />
+        ) : null}
       </body>
     </html>,
     opts

@@ -90,6 +90,8 @@ const PACKAGE_FILES = [
   'optimizer.mjs.map',
   'optimizer.d.ts',
   'package.json',
+  'prefetch.js',
+  'prefetch.debug.js',
   'qwikloader.js',
   'qwikloader.debug.js',
   'qwikloader.optimize.js',

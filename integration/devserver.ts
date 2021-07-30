@@ -8,14 +8,13 @@
 /* eslint no-console: ["off"] */
 import type { Request, Response, NextFunction } from 'express';
 import express from 'express';
-import { mkdirSync, writeFileSync } from 'fs';
+import { mkdirSync, writeFileSync, readFile } from 'fs';
 import { dirname, join } from 'path';
 import {
   createEsbuilder,
   createClientEsbuildOptions,
   createServerEsbuildOptions,
   createTimer,
-  getQwikLoaderScript,
   Optimizer,
   OutputFile,
 } from '@builder.io/qwik/optimizer';
@@ -161,13 +160,17 @@ async function startServer() {
   }
 
   const app = express();
-  app.get('/qwikloader.js', (req, res) => {
-    res.type('application/javascript');
-    res.send(getQwikLoaderScript({ debug }));
-  });
+  app.get('/qwikloader.debug.js', streamFile('qwikloader.debug.js'));
+  app.get('/prefetch.debug.js', streamFile('prefetch.debug.js'));
+  app.get('/qwikloader.js', streamFile('qwikloader.js'));
+  app.get('/prefetch.js', streamFile('prefetch.js'));
   app.use(devSsr);
   app.use(devModules);
-  app.use(express.static(rootDir));
+  app.use(
+    express.static(rootDir, {
+      maxAge: 60 * 60 * 1000,
+    })
+  );
   let server = app.listen(args.port);
 
   const connections = new Map<string, Socket>();
@@ -191,6 +194,13 @@ async function startServer() {
   process.on('SIGTERM', close);
   process.on('SIGINT', close);
   process.title = 'qwik-devserver';
+}
+
+function streamFile(fileName: string) {
+  return (req: Request, res: Response) => {
+    res.type('application/javascript');
+    readFile(join('dist-dev', '@builder.io-qwik', fileName), (err, data) => res.send(String(data)));
+  };
 }
 
 // custom updates only required for local dev of source files

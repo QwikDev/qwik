@@ -19,18 +19,53 @@ export async function submodulePrefetch(config: BuildConfig) {
     rootDir: config.rootDir,
   });
 
-  async function getBlob(minifyCode: boolean) {
-    let code = optimizer.transformModuleSync({
-      text: readFileSync(prefetchWorkerPath, 'utf-8'),
-      filePath: prefetchWorkerPath,
-      module: 'es',
-    }).text;
+  async function generateWebWorkerBlob(minifyCode: boolean) {
+    const build = await rollup({
+      input: prefetchWorkerPath,
+      plugins: [
+        {
+          name: 'transpile',
+          resolveId(id) {
+            if (!id.endsWith('.ts')) {
+              return join(config.srcDir, id + '.ts');
+            }
+            return null;
+          },
+          async transform(code, id) {
+            const result = await optimizer.transformModule({
+              text: code,
+              filePath: id,
+              module: 'es',
+            });
+            return result.text;
+          },
+        },
+      ],
+      onwarn: rollupOnWarn,
+    });
 
-    if (minifyCode) {
-      code = (await minify(code)).code!;
-    }
+    const generated = await build.generate({
+      dir: config.pkgDir,
+      format: 'es',
+      exports: 'none',
+      plugins: minifyCode
+        ? [
+            terser({
+              compress: {
+                module: true,
+                keep_fargs: false,
+                unsafe: true,
+                passes: 2,
+              },
+              format: {
+                comments: false,
+              },
+            }),
+          ]
+        : [],
+    });
 
-    return JSON.stringify(code);
+    return JSON.stringify(generated.output[0].code);
   }
 
   const input: InputOptions = {
@@ -62,7 +97,8 @@ export async function submodulePrefetch(config: BuildConfig) {
     for (const fileName in bundle) {
       const b = bundle[fileName];
       if (b.type === 'chunk') {
-        b.code = b.code.replace('PREFETCH_WORKER_BLOB', await getBlob(minifyCode));
+        const wwBlob = await generateWebWorkerBlob(minifyCode);
+        b.code = b.code.replace('PREFETCH_WORKER_BLOB', wwBlob);
       }
     }
   }

@@ -198,7 +198,7 @@ describe('render', () => {
         })
       );
       expect(host.innerHTML).toEqual(
-        '<div decl:template="jsx:/render.unit#Noop_template" bind:.="myUrl" on:.render="myComponentUrl" on:click="myComponent_click" bind:token="myTokenUrl" :="">NOOP</div>'
+        '<div decl:template="jsx:/render.unit#Noop_template" bind:.="myUrl" on:.="" on:.render="myComponentUrl" on:click="myComponent_click" bind:token="myTokenUrl" :="">NOOP</div>'
       );
     });
   });

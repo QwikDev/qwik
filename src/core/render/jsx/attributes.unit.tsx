@@ -148,6 +148,7 @@ describe('attributes', () => {
         },
         false
       );
+      expect(host.getAttribute('on:.')).toEqual('');
       expect(host.getAttribute('on:click')).toEqual('url');
     });
 
@@ -159,6 +160,7 @@ describe('attributes', () => {
         },
         false
       );
+      expect(host.getAttribute('on:.')).toEqual('');
       expect(host.getAttribute('on:camel-case')).toEqual('url');
     });
 

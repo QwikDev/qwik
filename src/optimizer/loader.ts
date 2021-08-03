@@ -2,6 +2,8 @@ const QWIK_LOADER_DEFAULT_MINIFIED: string = (global as any).QWIK_LOADER_DEFAULT
 const QWIK_LOADER_DEFAULT_DEBUG: string = (global as any).QWIK_LOADER_DEFAULT_DEBUG;
 const QWIK_LOADER_OPTIMIZE_MINIFIED: string = (global as any).QWIK_LOADER_OPTIMIZE_MINIFIED;
 const QWIK_LOADER_OPTIMIZE_DEBUG: string = (global as any).QWIK_LOADER_OPTIMIZE_DEBUG;
+const QWIK_PREFETCH_MINIFIED: string = (global as any).QWIK_PREFETCH_MINIFIED;
+const QWIK_PREFETCH_DEBUG: string = (global as any).QWIK_PREFETCH_DEBUG;
 
 /**
  * Provides the qwikloader.js file as a string. Useful for tooling to inline the qwikloader
@@ -17,4 +19,14 @@ export function getQwikLoaderScript(opts: { events?: string[]; debug?: boolean }
 
   // default script selector behavior
   return opts.debug ? QWIK_LOADER_DEFAULT_DEBUG : QWIK_LOADER_DEFAULT_MINIFIED;
+}
+
+/**
+ * Provides the prefetch.js file as a string. Useful for tooling to inline the prefetch
+ * script into HTML.
+ * @alpha
+ */
+export function getQwikPrefetchScript(opts: { debug?: boolean } = {}) {
+  // default script selector behavior
+  return opts.debug ? QWIK_PREFETCH_DEBUG : QWIK_PREFETCH_MINIFIED;
 }

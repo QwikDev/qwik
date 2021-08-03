@@ -8,19 +8,19 @@
 /* eslint no-console: ["off"] */
 import type { Request, Response, NextFunction } from 'express';
 import express from 'express';
-import { mkdirSync, writeFileSync } from 'fs';
+import { mkdirSync, writeFileSync, readFile } from 'fs';
 import { dirname, join } from 'path';
 import {
   createEsbuilder,
   createClientEsbuildOptions,
   createServerEsbuildOptions,
   createTimer,
-  getQwikLoaderScript,
   Optimizer,
   OutputFile,
 } from '@builder.io/qwik/optimizer';
 import type { BuildOptions } from 'esbuild';
 import type { RenderToStringResult } from '@builder.io/qwik/server';
+import { getImports } from '@builder.io/qwik/server';
 import mri from 'mri';
 import srcMap from 'source-map-support';
 import type { Socket } from 'net';
@@ -101,7 +101,7 @@ async function startServer() {
           resetNodeJsModuleCache(outDir);
 
           const result: RenderToStringResult = await indexModule.default({
-            url: req.originalUrl,
+            url: 'http://' + req.hostname + '/' + req.originalUrl,
             outDir,
           });
 
@@ -147,12 +147,26 @@ async function startServer() {
         res.type('text/plain');
         return;
       }
-      const outJs = result.outputFiles.find(
-        (o) => o.platform === 'client' && o.path.endsWith(fileName)
-      );
+      const getFileContent = function getFileContent(fileName: string) {
+        if (fileName.startsWith('./')) {
+          fileName = fileName.substr(2);
+        }
+        return result.outputFiles.find((o) => o.platform === 'client' && o.path.endsWith(fileName));
+      };
+      const outJs = getFileContent(fileName);
       if (outJs) {
         if (debug) console.debug(`client:`, req.originalUrl);
         res.type('application/javascript');
+        const imports = await getImports('./' + fileName, async (f) => getFileContent(f)!.text);
+        if (true as any) {
+          res.setHeader(
+            'Link',
+            imports
+              .map((path) => `<http://localhost:8080/${path.substr(2)}>; rel=prefetch; as=script`)
+              .join(', ')
+          );
+          res.setHeader('Cache-Control', 'max-age=' + 60 * 60 * 1000);
+        }
         res.send(outJs.text);
         return;
       }
@@ -161,13 +175,17 @@ async function startServer() {
   }
 
   const app = express();
-  app.get('/qwikloader.js', (req, res) => {
-    res.type('application/javascript');
-    res.send(getQwikLoaderScript({ debug }));
-  });
+  app.get('/qwikloader.debug.js', streamFile('qwikloader.debug.js'));
+  app.get('/prefetch.debug.js', streamFile('prefetch.debug.js'));
+  app.get('/qwikloader.js', streamFile('qwikloader.js'));
+  app.get('/prefetch.js', streamFile('prefetch.js'));
   app.use(devSsr);
   app.use(devModules);
-  app.use(express.static(rootDir));
+  app.use(
+    express.static(rootDir, {
+      maxAge: 60 * 60 * 1000,
+    })
+  );
   let server = app.listen(args.port);
 
   const connections = new Map<string, Socket>();
@@ -191,6 +209,13 @@ async function startServer() {
   process.on('SIGTERM', close);
   process.on('SIGINT', close);
   process.title = 'qwik-devserver';
+}
+
+function streamFile(fileName: string) {
+  return (req: Request, res: Response) => {
+    res.type('application/javascript');
+    readFile(join('dist-dev', '@builder.io-qwik', fileName), (err, data) => res.send(String(data)));
+  };
 }
 
 // custom updates only required for local dev of source files

@@ -107,6 +107,12 @@ export function inlineQwikScripts(config: BuildConfig) {
     'global.QWIK_LOADER_OPTIMIZE_DEBUG': JSON.stringify(
       readFileSync(join(config.pkgDir, 'qwikloader.optimize.debug.js'), 'utf-8').trim()
     ),
+    'global.QWIK_PREFETCH_MINIFIED': JSON.stringify(
+      readFileSync(join(config.pkgDir, 'prefetch.js'), 'utf-8').trim()
+    ),
+    'global.QWIK_PREFETCH_DEBUG': JSON.stringify(
+      readFileSync(join(config.pkgDir, 'prefetch.debug.js'), 'utf-8').trim()
+    ),
   };
 }
 

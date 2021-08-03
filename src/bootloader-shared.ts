@@ -16,6 +16,41 @@
  */
 
 /**
+ * Resolve the protocol of the QRL and return a URL
+ *
+ * @param doc
+ * @param eventUrl
+ * @param linkElm
+ * @param href
+ * @returns
+ */
+export const qrlResolver = (
+  doc: Document,
+  eventUrl: string | null | undefined,
+  linkElm?: HTMLLinkElement,
+  href?: string,
+  url?: URL
+): URL | undefined => {
+  if (eventUrl) {
+    url = new URL(
+      eventUrl.replace(/^(\w+):(\/)?/, (str, protocol, slash) => {
+        linkElm = doc.querySelector(`[rel="q.protocol.${protocol}"]`) as HTMLLinkElement;
+        href = linkElm && linkElm.href;
+        if (!href) error(protocol + ' not defined');
+        return href + (href!.endsWith('/') ? '' : slash || '');
+      }),
+      doc.baseURI
+    );
+    url.pathname += '.js';
+  }
+  return url;
+};
+
+const error = (msg: string) => {
+  throw new Error('QWIK: ' + msg);
+};
+
+/**
  * Set up event listening for browser.
  *
  * Determine all of the browser events and set up global listeners for them.
@@ -25,26 +60,6 @@
  *     determine all of the browser supported events.
  */
 export const qwikLoader = (doc: Document, hasInitialized?: boolean | number) => {
-  const getModuleUrl = (
-    eventUrl: string | null | undefined,
-    linkElm?: HTMLLinkElement,
-    href?: string
-  ): URL | null => {
-    if (eventUrl) {
-      return new URL(
-        eventUrl.replace(/^(\w+):(\/)?/, (str, protocol, slash) => {
-          linkElm = doc.querySelector(`[rel="q.protocol.${protocol}"]`) as HTMLLinkElement;
-          href = linkElm && linkElm.href;
-          if (!href) error(protocol + ' not defined');
-          return href + (href!.endsWith('/') ? '' : slash || '');
-        }),
-        doc.baseURI
-      );
-    } else {
-      return 0 as any;
-    }
-  };
-
   const getModuleExport = (url: URL, module: any, exportName?: string) => {
     // 1 - optional `#` at the start.
     // 2 - capture group `$1` containing the export name, stopping at the first `?`.
@@ -70,9 +85,9 @@ export const qwikLoader = (doc: Document, hasInitialized?: boolean | number) => 
     // while (element && element.getAttribute) {
     // while (element && element.nodeType===1) {
     while (element && element.getAttribute) {
-      url = getModuleUrl(element.getAttribute('on:' + ev.type));
+      url = qrlResolver(doc, element.getAttribute('on:' + ev.type));
       if (url) {
-        const handler = getModuleExport(url, await import((url.pathname += '.js')));
+        const handler = getModuleExport(url, await import(url.pathname));
         handler(element, ev, url);
       }
       element = element.parentElement;
@@ -91,10 +106,6 @@ export const qwikLoader = (doc: Document, hasInitialized?: boolean | number) => 
         .querySelectorAll('[on\\:\\' + qInit + ']')
         .forEach((target) => target.dispatchEvent(new CustomEvent(qInit)));
     }
-  };
-
-  const error = (msg: string) => {
-    throw new Error('QWIK: ' + msg);
   };
 
   // Set up listeners. Start with `document` and walk up the prototype
@@ -123,7 +134,6 @@ export const qwikLoader = (doc: Document, hasInitialized?: boolean | number) => 
   processReadyStateChange();
 
   return {
-    getModuleUrl,
     getModuleExport,
     processReadyStateChange,
   };
@@ -133,3 +143,72 @@ export interface LoaderWindow {
   BuildEvents?: boolean;
   qEvents?: string[];
 }
+
+//////////////////////////////
+// PREFETCH
+//////////////////////////////
+
+export const setupPrefetching = (
+  win: Window,
+  doc: Document,
+  IntersectionObserver: IntersectionObserverConstructor
+) => {
+  const intersectionObserverCallback = (items: IntersectionObserverEntry[]) => {
+    items.forEach((item) => {
+      if (item.intersectionRatio > 0) {
+        const attrs = item.target.attributes;
+        for (let i = 0; i < attrs.length; i++) {
+          const attr = attrs[i];
+          const name = attr.name;
+          const value = attr.value;
+          if (name.startsWith('on:') && value) {
+            const url = qrlResolver(doc, value)!;
+            url.hash = url.search = '';
+            const key = url.toString();
+            if (!qrlCache[key]) {
+              qrlCache[key] = key;
+              onEachNewQrl(key);
+            }
+          }
+        }
+      }
+    });
+  };
+  const qrlCache: Record<string, string> = {};
+  const onEachNewQrl = (qrl: string) => {
+    if (!worker) {
+      const url = URL.createObjectURL(
+        new Blob([PREFETCH_WORKER_BLOB], {
+          type: 'text/javascript',
+        })
+      );
+      worker = new Worker(url);
+    }
+    worker.postMessage(qrl);
+  };
+  let worker: Worker;
+
+  win.addEventListener('load', () => {
+    const observer = new IntersectionObserver(intersectionObserverCallback);
+    doc.querySelectorAll('[on\\:\\.]').forEach(observer.observe.bind(observer));
+  });
+};
+
+declare const PREFETCH_WORKER_BLOB: string;
+
+type IntersectionObserverConstructor = typeof IntersectionObserver;
+type Fetch = typeof fetch;
+
+export const setUpWebWorker = (self: typeof globalThis, fetch: Fetch) => {
+  const cache: Record<string, 1> = {};
+  const prefetch = async (_: string, url: string) => {
+    if (cache[url] !== 1) {
+      cache[url] = 1;
+      ((await fetch(url)).headers.get('Link') || '').replace(
+        /<([^>]*)>/g,
+        prefetch as any as (_: string, url: string) => string
+      );
+    }
+  };
+  self.addEventListener('message', (event) => prefetch('', event.data));
+};

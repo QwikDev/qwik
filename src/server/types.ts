@@ -26,7 +26,6 @@ export interface QwikDocument extends Document {}
  */
 export interface DocumentOptions {
   url?: string;
-  params?: Record<string, string>;
   outDir?: string;
 }
 

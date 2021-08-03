@@ -24,13 +24,13 @@ export function createServerEsbuildOptions(optimizer: Optimizer): Promise<any>;
 export function createTimer(): () => number;
 
 // @alpha
-export function getPrefetchScript(opts?: {
+export function getQwikLoaderScript(opts?: {
+    events?: string[];
     debug?: boolean;
 }): string;
 
 // @alpha
-export function getQwikLoaderScript(opts?: {
-    events?: string[];
+export function getQwikPrefetchScript(opts?: {
     debug?: boolean;
 }): string;
 

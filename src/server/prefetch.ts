@@ -8,6 +8,7 @@ import { join } from 'path';
 /**
  * Returns a list of imports for a JavaScript file.
  * @param file contents of JS file
+ * @internal
  */
 export function getImportsFromSource(file: string): string[] {
   const imports: string[] = [];
@@ -29,14 +30,25 @@ export function readFile(filePath: string): Promise<string> {
   );
 }
 
+/**
+ * Returns a set of imports for a given source file.
+ *
+ * The function recursively visits the dependencies and returns a fully populated graph.
+ *
+ * This does not take dynamic imports into the account and so it produces an incomplete list.
+ *
+ * @param filePath - File path to read
+ * @param readFileFn - a function used to retrieve the contents of a file at a given `filePath`
+ * @alpha
+ */
 export async function getImports(
-  file: string,
+  filePath: string,
   readFileFn: (path: string) => Promise<string> = readFile
 ): Promise<string[]> {
   const imports: string[] = [];
   await Promise.all(
-    getImportsFromSource(await readFileFn(file)).map(async (fileImport) => {
-      let resolvedFile = join(file, '..', fileImport);
+    getImportsFromSource(await readFileFn(filePath)).map(async (fileImport) => {
+      let resolvedFile = join(filePath, '..', fileImport);
       if (!resolvedFile.startsWith('.')) {
         resolvedFile = './' + resolvedFile;
       }

@@ -44,13 +44,12 @@ export async function build(config: BuildConfig) {
         submoduleJsxRuntime(config),
         submoduleQwikLoader(config),
         submodulePrefetch(config),
-        submoduleServer(config),
         submoduleTesting(config),
         generatePackageJson(config),
         copyFiles(config),
         buildDevServer(config),
       ]);
-      await submoduleOptimizer(config);
+      await Promise.all([submoduleOptimizer(config), submoduleServer(config)]);
     }
 
     if (config.api) {

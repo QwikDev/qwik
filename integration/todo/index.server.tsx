@@ -24,6 +24,8 @@ const DEBUG = true;
  * @returns a promise when all of the rendering is completed.
  */
 export default function (opts: RenderToStringOptions) {
+  const url = new URL(opts.url || '');
+  const params = url.searchParams || {};
   return renderToString(
     <html>
       <head>
@@ -41,7 +43,7 @@ export default function (opts: RenderToStringOptions) {
       <body>
         <ToDoApp />
         <QwikLoader events={['click', 'dblclick', 'keyup', 'blur']} debug={DEBUG} />
-        {opts.params && Object.prototype.hasOwnProperty.call(opts.params, 'prefetch') ? (
+        {Object.prototype.hasOwnProperty.call(params, 'prefetch') ? (
           <QwikPrefetch debug={DEBUG} />
         ) : null}
       </body>

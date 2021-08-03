@@ -101,8 +101,7 @@ async function startServer() {
           resetNodeJsModuleCache(outDir);
 
           const result: RenderToStringResult = await indexModule.default({
-            url: req.originalUrl,
-            params: req.query,
+            url: 'http://' + req.hostname + '/' + req.originalUrl,
             outDir,
           });
 

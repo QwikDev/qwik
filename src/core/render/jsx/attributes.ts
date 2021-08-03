@@ -26,6 +26,7 @@ export function applyAttributes(
   detectChanges: boolean
 ): boolean {
   let changesDetected = false;
+  let isFirstEventListener = true;
   if (props) {
     let bindMap: Map<string, string> | null = null;
     for (const key in props) {
@@ -37,6 +38,10 @@ export function applyAttributes(
         } else if (key === AttributeMarker.ComponentTemplate) {
           setAttribute(element, AttributeMarker.ComponentTemplate, value);
         } else if (key.startsWith(AttributeMarker.EventPrefix)) {
+          if (isFirstEventListener) {
+            isFirstEventListener = false;
+            setAttribute(element, AttributeMarker.EventAny, '');
+          }
           setAttribute(element, kebabKey, value);
         } else {
           if (key.startsWith('$')) {

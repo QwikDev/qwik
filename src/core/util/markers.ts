@@ -45,6 +45,11 @@ export const enum AttributeMarker {
   EventPrefix = 'on:',
 
   /**
+   * Attribute used to mark that an event listener is attached.
+   */
+  EventAny = 'on:.',
+
+  /**
    * Render event broadcast
    */
   // TODO(this should be `on:$render` but domino incorrectly claims that is invalid char. Switch to jsdom?)

@@ -9,6 +9,7 @@ import { mkdirSync } from 'fs';
 import { submoduleCore } from './submodule-core';
 import { submoduleJsxRuntime } from './submodule-jsx-runtime';
 import { submoduleOptimizer } from './submodule-optimizer';
+import { submodulePrefetch } from './submodule-prefetch';
 import { submoduleQwikLoader } from './submodule-qwikloader';
 import { submoduleServer } from './submodule-server';
 import { submoduleTesting } from './submodule-testing';
@@ -42,13 +43,13 @@ export async function build(config: BuildConfig) {
         submoduleCore(config),
         submoduleJsxRuntime(config),
         submoduleQwikLoader(config),
-        submoduleServer(config),
+        submodulePrefetch(config),
         submoduleTesting(config),
         generatePackageJson(config),
         copyFiles(config),
         buildDevServer(config),
       ]);
-      await submoduleOptimizer(config);
+      await Promise.all([submoduleOptimizer(config), submoduleServer(config)]);
     }
 
     if (config.api) {

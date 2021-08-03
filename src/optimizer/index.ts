@@ -1,5 +1,5 @@
 export { createClientEsbuildOptions, createEsbuilder, createServerEsbuildOptions } from './esbuild';
 export { createTimer } from './utils';
-export { getQwikLoaderScript } from './loader';
+export { getQwikLoaderScript, getQwikPrefetchScript } from './loader';
 export { Optimizer } from './optimizer';
 export type { OutputFile } from './types';

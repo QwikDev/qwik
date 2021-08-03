@@ -29,7 +29,7 @@ npm run integration.server
 
 Then navigate to http://localhost:8080/
 
-The `npm run integration.server` comands runs the server in `development` mode, where files are not minified, source maps are inlined, and there's additional logging. To run code minified with external source maps and without extra logs, run `npm run integration.server.prod`, which is what the end-to-end tests use.
+The `npm run integration.server` commands runs the server in `development` mode, where files are not minified, source maps are inlined, and there's additional logging. To run code minified with external source maps and without extra logs, run `npm run integration.server.prod`, which is what the end-to-end tests use.
 
 ## Running All Tests
 

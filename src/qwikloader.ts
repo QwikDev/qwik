@@ -1,3 +1,3 @@
-import { qwikLoader } from './qwikloader_script';
+import { qwikLoader } from './bootloader-shared';
 
 qwikLoader(document);

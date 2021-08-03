@@ -1,6 +1,6 @@
-import type { LoaderWindow } from './qwikloader_script';
-import { qwikLoader } from './qwikloader_script';
 import { createDocument } from '@builder.io/qwik/testing';
+import type { LoaderWindow } from './bootloader-shared';
+import { qwikLoader, qrlResolver, setUpWebWorker } from './bootloader-shared';
 
 describe('qwikloader', () => {
   describe('getModuleExport', () => {
@@ -92,7 +92,7 @@ describe('qwikloader', () => {
     });
   });
 
-  describe('getModuleUrl', () => {
+  describe('qrlResolver', () => {
     let doc: Document;
     beforeEach(() => {
       doc = createDocument();
@@ -104,9 +104,8 @@ describe('qwikloader', () => {
       link.href = 'http://qwik.dev/test/';
       doc.head.appendChild(link);
 
-      const loader = qwikLoader(doc);
-      const url = loader.getModuleUrl('test:/hi')!;
-      expect(url.pathname).toBe('/test/hi');
+      const url = qrlResolver(doc, 'test:/hi')!;
+      expect(url.pathname).toBe('/test/hi.js');
     });
 
     it('get protocol', () => {
@@ -115,16 +114,14 @@ describe('qwikloader', () => {
       link.href = 'http://qwik.dev/test';
       doc.head.appendChild(link);
 
-      const loader = qwikLoader(doc);
-      const url = loader.getModuleUrl('test:/hi')!;
-      expect(url.pathname).toBe('/test/hi');
+      const url = qrlResolver(doc, 'test:/hi')!;
+      expect(url.pathname).toBe('/test/hi.js');
     });
 
     it('do nothing for null/undefined/empty string', () => {
-      const loader = qwikLoader(doc);
-      expect(loader.getModuleUrl(null)).toBeFalsy();
-      expect(loader.getModuleUrl(undefined)).toBeFalsy();
-      expect(loader.getModuleUrl('')).toBeFalsy();
+      expect(qrlResolver(doc, null)).toBeFalsy();
+      expect(qrlResolver(doc, undefined)).toBeFalsy();
+      expect(qrlResolver(doc, '')).toBeFalsy();
     });
   });
 
@@ -157,6 +154,24 @@ describe('qwikloader', () => {
       const spy = jest.spyOn(doc, 'querySelectorAll');
       qwikLoader(doc);
       expect(spy).not.toHaveBeenCalled();
+    });
+  });
+});
+
+describe('prefetch', () => {
+  describe('setUpWebWorker', () => {
+    it('should listen on events and fire fetch', () => {
+      let listener!: Function;
+      const mockWindow: any = {
+        addEventListener: (name: string, value: Function) => {
+          expect(name).toEqual('message');
+          listener = value;
+        },
+      };
+      const mockFetch = jest.fn(() => null);
+      setUpWebWorker(mockWindow, mockFetch as any);
+      listener({ data: 'somepath' });
+      expect(mockFetch.mock.calls).toEqual([['somepath']]);
     });
   });
 });

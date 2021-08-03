@@ -30,6 +30,11 @@ export function getQwikLoaderScript(opts?: {
 }): string;
 
 // @alpha
+export function getQwikPrefetchScript(opts?: {
+    debug?: boolean;
+}): string;
+
+// @alpha
 export class Optimizer {
     // Warning: (ae-forgotten-export) The symbol "OptimizerOptions" needs to be exported by the entry point index.d.ts
     constructor(opts?: OptimizerOptions);

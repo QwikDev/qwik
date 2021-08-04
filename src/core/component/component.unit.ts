@@ -7,7 +7,7 @@
  */
 
 import { ComponentFixture } from '@builder.io/qwik/testing';
-import { GreeterComponent } from '../util/test_component_fixture';
+import { GreeterComponent, GreeterComponentTemplate } from '../util/test_component_fixture';
 import { AttributeMarker } from '../util/markers';
 import { Component } from './component';
 import { injectMethod } from '../injector/inject';
@@ -15,10 +15,7 @@ import { injectMethod } from '../injector/inject';
 describe('component', () => {
   it('should declare a component', async () => {
     const fixture = new ComponentFixture();
-    fixture.host.setAttribute(
-      AttributeMarker.ComponentTemplate,
-      String(GreeterComponent.$templateQRL)
-    );
+    fixture.host.setAttribute(AttributeMarker.ComponentTemplate, String(GreeterComponentTemplate));
     fixture.host.setAttribute('salutation', 'Hello');
     fixture.host.setAttribute('name', 'World');
     const greeter = await fixture.injector.getComponent(GreeterComponent);

@@ -53,7 +53,6 @@ export const enum QError {
   Component_noProperty_propName_props_host = 404,
   Component_notFound_component = 405,
   Component_doesNotMatch_component_actual = 406,
-  Component_missingTemplateQRL_component = 407,
   Component_noState_component_props = 408,
   // Provider 500-599
   Provider_unrecognizedFormat_value = 500,
@@ -165,9 +164,7 @@ function codeToText(code: QError): string {
       "Property '{}' not found in '{}' on component '{}'.",
     [QError.Component_notFound_component]: "Unable to find '{}' component.",
     [QError.Component_doesNotMatch_component_actual]:
-      "Requesting component '{}' does not match existing component '{}'. Verify that the two components have distinct '$templateQRL's.",
-    [QError.Component_missingTemplateQRL_component]:
-      "Expecting Component '{}' to have static '$templateQRL' property, but none was found.",
+      "Requesting component type '{}' does not match existing component instance '{}'.",
     [QError.Component_noState_component_props]:
       "Unable to create state for component '{}' with props '{}' because no state found and '$newState()' method was not defined on component.",
     //////////////

@@ -7,7 +7,7 @@
  */
 
 import type { GreeterProps } from './Greeter';
-import { Component, QRL } from '@builder.io/qwik';
+import { Component } from '@builder.io/qwik';
 
 /**
  * @fileoverview
@@ -32,7 +32,6 @@ export interface GreeterState {
  * non-serializable objects. Component has shared behavior.
  */
 export class GreeterComponent extends Component<GreeterProps, GreeterState> {
-  static $templateQRL = QRL`./Greeter_template`;
   // Inherited properties from `Component`
   // $host: Element;
   // $state: GreeterState;

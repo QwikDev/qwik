@@ -7,7 +7,6 @@
  */
 
 import { injectEventHandler } from '../event/inject_event_handler';
-import type { QRL } from '../import/qrl';
 import { createGlobal, ElementFixture } from '@builder.io/qwik/testing';
 import { AttributeMarker } from '../util/markers';
 import { getInjector } from './element_injector';
@@ -62,7 +61,6 @@ describe('injectEventHandler', () => {
 
   it('should inject this', async () => {
     class MyComp {
-      static $templateQRL = './comp' as any as QRL;
       $state = undefined;
       myComp: boolean = true;
       $newState() {}

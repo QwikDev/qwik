@@ -12,7 +12,12 @@ import type { EntityKey } from '../entity/entity_key';
 import { stringifyDebug } from '../error/stringify';
 import { QRL } from '../import/qrl';
 import { Entity, Injector } from '../index';
-import { Greeter, GreeterComponent, GreeterProps } from '../util/test_component_fixture';
+import {
+  Greeter,
+  GreeterComponent,
+  GreeterComponentTemplate,
+  GreeterProps,
+} from '../util/test_component_fixture';
 import { ElementFixture, serializeState } from '@builder.io/qwik/testing';
 import { AttributeMarker } from '../util/markers';
 import { getClosestInjector, getInjector } from './element_injector';
@@ -27,10 +32,7 @@ describe('ElementInjector', () => {
 
   describe('getComponent', () => {
     it('should materialize component and return same instance', async () => {
-      fixture.host.setAttribute(
-        AttributeMarker.ComponentTemplate,
-        GreeterComponent.$templateQRL as any
-      );
+      fixture.host.setAttribute(AttributeMarker.ComponentTemplate, GreeterComponentTemplate as any);
       const component = await hostInjector.getComponent(GreeterComponent);
       expect(component).toBeInstanceOf(GreeterComponent);
       expect(stringifyDebug(component.$host)).toEqual(stringifyDebug(fixture.host));
@@ -41,7 +43,7 @@ describe('ElementInjector', () => {
     it('should walk up the tree and find materialize component', async () => {
       fixture.superParent.setAttribute(
         AttributeMarker.ComponentTemplate,
-        GreeterComponent.$templateQRL as any
+        GreeterComponentTemplate as any
       );
       const component = await hostInjector.getComponent(GreeterComponent);
       expect(component).toBeInstanceOf(GreeterComponent);
@@ -50,7 +52,7 @@ describe('ElementInjector', () => {
     it('should return the same promise instance', () => {
       fixture.superParent.setAttribute(
         AttributeMarker.ComponentTemplate,
-        GreeterComponent.$templateQRL as any
+        GreeterComponentTemplate as any
       );
       const component1 = hostInjector.getComponent(GreeterComponent);
       const component2 = hostInjector.getComponent(GreeterComponent);
@@ -60,7 +62,7 @@ describe('ElementInjector', () => {
       it('should materialize from attribute state', async () => {
         fixture.host.setAttribute(
           AttributeMarker.ComponentTemplate,
-          GreeterComponent.$templateQRL as any
+          GreeterComponentTemplate as any
         );
         fixture.host.setAttribute(
           AttributeMarker.ComponentState,
@@ -73,7 +75,7 @@ describe('ElementInjector', () => {
       it('should materialize from $newState', async () => {
         fixture.host.setAttribute(
           AttributeMarker.ComponentTemplate,
-          GreeterComponent.$templateQRL as any
+          GreeterComponentTemplate as any
         );
         fixture.host.setAttribute('salutation', 'Hello');
         fixture.host.setAttribute('name', 'World');
@@ -85,7 +87,7 @@ describe('ElementInjector', () => {
       it('should save state to attribute state', async () => {
         fixture.host.setAttribute(
           AttributeMarker.ComponentTemplate,
-          GreeterComponent.$templateQRL as any
+          GreeterComponentTemplate as any
         );
         const component = await hostInjector.getComponent(GreeterComponent);
         component.$state = { greeting: 'save me' };
@@ -97,25 +99,18 @@ describe('ElementInjector', () => {
     });
     describe('error', () => {
       it('should throw if component does not match', async () => {
-        fixture.parent.setAttribute(AttributeMarker.ComponentTemplate, 'wrongQRL');
         expect(() => hostInjector.getComponent(GreeterComponent)).toThrow(
           "COMPONENT-ERROR(Q-405): Unable to find 'GreeterComponent' component."
         );
       });
-      it('should throw if two components have same $templateQRLs', async () => {
+      it('should throw if two components are of different types', async () => {
         fixture.superParent.setAttribute(
           AttributeMarker.ComponentTemplate,
-          GreeterComponent.$templateQRL as any
+          GreeterComponentTemplate as any
         );
         await hostInjector.getComponent(GreeterComponent);
         expect(() => hostInjector.getComponent(GreeterShadowComponent)).toThrow(
-          "COMPONENT-ERROR(Q-406): Requesting component 'GreeterShadowComponent' does not match existing component 'GreeterComponent'. Verify that the two components have distinct '$templateQRL's."
-        );
-      });
-      it('should throw if two components is missing $templateQRL', async () => {
-        class MissingQRL {}
-        expect(() => hostInjector.getComponent(MissingQRL as any)).toThrow(
-          "COMPONENT-ERROR(Q-407): Expecting Component 'MissingQRL' to have static '$templateQRL' property, but none was found."
+          "COMPONENT-ERROR(Q-406): Requesting component type 'GreeterShadowComponent' does not match existing component instance 'GreeterComponent'."
         );
       });
     });
@@ -223,7 +218,7 @@ describe('ElementInjector', () => {
 });
 
 class GreeterShadowComponent extends Component<GreeterProps, Greeter> {
-  static $templateQRL: QRL = GreeterComponent.$templateQRL;
+  static $templateQRL: QRL = GreeterComponentTemplate;
 }
 
 interface RegardsProps {

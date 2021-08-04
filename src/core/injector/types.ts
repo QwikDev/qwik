@@ -84,11 +84,11 @@ export interface Injector {
    *
    * Use this function for retrieving/materialize a component instance.
    * The function starts with the current `element` and walks up until it finds
-   * an element with `AttributeMarker.ComponentTemplate` which matches the
-   * `componentType.$templateQRL`. Once found it than tries to retrieve existing
-   * component (or materialize it from the `AttributeMarker.ComponentState`).
-   * Because creation of component may involve invoking `Component.$newState`
-   * which is asynchronous the method itself is asynchronous.
+   * an element with `AttributeMarker.ComponentTemplate`. Once found it than
+   * tries to retrieve existing component (or materialize it from the
+   * `AttributeMarker.ComponentState`). Because creation of component may involve
+   * invoking `Component.$newState` which is asynchronous the method itself is
+   * asynchronous.
    *
    * @param componentType - Component type to retrieve.
    */

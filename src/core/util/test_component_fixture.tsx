@@ -16,9 +16,12 @@ export interface Greeter {
   greeting: string;
 }
 
-export class GreeterComponent extends Component<GreeterProps, Greeter> {
-  static $templateQRL = QRL`${toFileUrl(__filename).replace(/\.tsx$/, '#greeterTemplate')}`;
+export const GreeterComponentTemplate = QRL`${toFileUrl(__filename).replace(
+  /\.tsx$/,
+  '#greeterTemplate'
+)}`;
 
+export class GreeterComponent extends Component<GreeterProps, Greeter> {
   greeting: string = null!;
 
   async $init() {

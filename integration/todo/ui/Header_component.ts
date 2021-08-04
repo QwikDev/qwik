@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { Component, QRL } from '@builder.io/qwik';
+import { Component } from '@builder.io/qwik';
 import type { HeaderProps } from './Header';
 
 interface HeaderState {
@@ -14,7 +14,6 @@ interface HeaderState {
 }
 
 export class HeaderComponent extends Component<HeaderProps, HeaderState> {
-  static $templateQRL = QRL`ui:/Header_template`;
   $newState() {
     return { text: '' };
   }

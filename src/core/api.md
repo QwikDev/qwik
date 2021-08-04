@@ -10,13 +10,11 @@ export class Component<PROPS, STATE> {
     $init(): Promise<void> | void;
     // (undocumented)
     static $new<COMP extends Component<any, any>>(this: {
-        $templateQRL: QRL;
         new (...args: any[]): COMP;
     }, hostElement: Element): Promise<COMP>;
     $newState(props: PROPS): Promise<STATE> | STATE;
     $props: PROPS;
     $state: STATE;
-    static $templateQRL: QRL;
     constructor(hostElement: Element, props: PROPS, state: STATE | null);
 }
 
@@ -28,8 +26,6 @@ export type ComponentChildren = ComponentChild[] | ComponentChild;
 
 // @public
 export interface ComponentConstructor<COMP extends Component<any, any>> {
-    // (undocumented)
-    $templateQRL: QRL;
     // (undocumented)
     new (hostElement: Element, props: ComponentPropsOf<COMP>, state: ComponentStateOf<COMP> | null): COMP;
 }
@@ -251,7 +247,6 @@ export interface InjectedFunction<SELF, ARGS extends any[], REST extends any[], 
 // @public
 export function injectEventHandler<SELF, ARGS extends any[], RET>(...args: [
     {
-        $templateQRL: QRL;
         new (hostElement: Element, props: any, state: any): SELF;
     } | null,
     ...ARGS,

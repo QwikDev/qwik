@@ -82,7 +82,7 @@ describe('BaseInjector', () => {
 
     it('should call injected method', async () => {
       const log: (string | MyComponent)[] = [];
-      fixture.host.setAttribute(AttributeMarker.ComponentTemplate, MyComponent.$templateQRL as any);
+      fixture.host.setAttribute(AttributeMarker.ComponentTemplate, String(MyComponentTemplate));
       const injectedFn = injectMethod(
         MyComponent,
         provideConst('arg0'), //
@@ -103,7 +103,7 @@ describe('BaseInjector', () => {
 
     it('should call injected method (as default)', async () => {
       const log: (string | MyComponent)[] = [];
-      fixture.host.setAttribute(AttributeMarker.ComponentTemplate, MyComponent.$templateQRL as any);
+      fixture.host.setAttribute(AttributeMarker.ComponentTemplate, String(MyComponentTemplate));
       const injectedFn = injectMethod(
         MyComponent,
         provideConst('arg0'), //
@@ -126,10 +126,7 @@ describe('BaseInjector', () => {
 
     describe('error', () => {
       it('should include declare context when throwing error', async () => {
-        fixture.host.setAttribute(
-          AttributeMarker.ComponentTemplate,
-          MyComponent.$templateQRL as any
-        );
+        fixture.host.setAttribute(AttributeMarker.ComponentTemplate, String(MyComponentTemplate));
         const injectedFn = injectMethod(
           MyComponent,
           () => Promise.reject('ProviderRejection'),
@@ -212,8 +209,8 @@ function provideConst<T>(value: T): Provider<T> {
 
 class MyClass {}
 
+const MyComponentTemplate = 'test:/injector/base_injector.unit#template' as any as QRL;
 class MyComponent extends Component<any, any> {
-  static $templateQRL = 'test:/injector/base_injector.unit#template' as any as QRL;
   $newState() {
     return {};
   }

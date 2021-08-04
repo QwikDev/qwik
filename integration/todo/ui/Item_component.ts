@@ -12,8 +12,6 @@ import type { ItemProps } from './Item';
 interface ItemState {}
 
 export class ItemComponent extends Component<ItemProps, ItemState> {
-  static $templateQRL = QRL`ui:/Item_template`;
-
   editing = false;
   $newState() {
     return {};

@@ -41,7 +41,6 @@ import type { EventHandler } from './types';
 export function injectEventHandler<SELF, ARGS extends any[], RET>(
   ...args: [
     {
-      $templateQRL: QRL;
       new (hostElement: Element, props: any, state: any): SELF;
     } | null,
     ...ARGS,

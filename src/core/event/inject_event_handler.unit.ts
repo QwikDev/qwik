@@ -21,7 +21,7 @@ describe('injectEventHandler', () => {
   it('should support component injection', async () => {
     const event = 'EVENT' as any as Event;
     const url = new URL('http://localhost/path?a=b&c=d');
-    fixture.host.setAttribute(AttributeMarker.ComponentTemplate, String(MyComponent.$templateQRL));
+    fixture.host.setAttribute(AttributeMarker.ComponentTemplate, String(MyComponentTemplate));
 
     const fn = injectEventHandler(
       MyComponent,
@@ -42,8 +42,8 @@ describe('injectEventHandler', () => {
   });
 });
 
+const MyComponentTemplate: QRL = 'myComponentQRL' as any;
 class MyComponent extends Component<any, any> {
-  static $templateQRL: QRL = 'myComponentQRL' as any;
   $newState() {
     return {};
   }

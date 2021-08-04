@@ -6,7 +6,6 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import type { QRL } from '../import/qrl';
 import type { InjectedFunction, ProviderReturns } from '../injector/types';
 import { qDev } from '../util/qdev';
 import { EventInjector } from './event_injector';
@@ -41,7 +40,6 @@ import type { EventHandler } from './types';
 export function injectEventHandler<SELF, ARGS extends any[], RET>(
   ...args: [
     {
-      $templateQRL: QRL;
       new (hostElement: Element, props: any, state: any): SELF;
     } | null,
     ...ARGS,

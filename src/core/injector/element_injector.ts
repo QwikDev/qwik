@@ -64,11 +64,7 @@ export class ElementInjector extends BaseInjector {
     const elementQRL: QRL | null = injector.element.getAttribute(
       AttributeMarker.ComponentTemplate
     ) as any;
-    const $templateQRL = componentType.$templateQRL;
-    if (!$templateQRL) {
-      throw qError(QError.Component_missingTemplateQRL_component, componentType);
-    }
-    if (elementQRL === $templateQRL) {
+    if (elementQRL) {
       let component: COMP = this.component as COMP;
       if (component) {
         if (component instanceof componentType) {

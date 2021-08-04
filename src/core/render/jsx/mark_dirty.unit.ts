@@ -7,7 +7,11 @@
  */
 
 import { stringifyDebug } from '../../error/stringify';
-import { GreeterComponent, PersonEntity } from '../../util/test_component_fixture';
+import {
+  GreeterComponent,
+  GreeterComponentTemplate,
+  PersonEntity,
+} from '../../util/test_component_fixture';
 import { ElementFixture, MockDocument, getTestPlatform } from '@builder.io/qwik/testing';
 import { AttributeMarker } from '../../util/markers';
 import { markDirty, markEntityDirty, scheduleRender, toAttrQuery } from './mark_dirty';
@@ -21,6 +25,7 @@ describe('mark_dirty', () => {
     fixture = new ElementFixture();
     host = fixture.host;
     doc = fixture.document;
+    fixture.host.setAttribute(AttributeMarker.ComponentTemplate, String(GreeterComponentTemplate));
     greeterComponent = await GreeterComponent.$new(fixture.host);
   });
 

@@ -6,7 +6,6 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import type { QRL } from '../import/qrl';
 import { QError, qError } from '../error/error';
 import { AttributeMarker } from '../util/markers';
 import { getInjector } from '../injector/element_injector';
@@ -35,14 +34,8 @@ import { getInjector } from '../injector/element_injector';
  * @public
  */
 export class Component<PROPS, STATE> {
-  /**
-   * Pointer to template to verify that the component is attached to the right DOM location.
-   */
-  static $templateQRL: QRL = null!;
-
   static $new<COMP extends Component<any, any>>(
     this: {
-      $templateQRL: QRL;
       new (...args: any[]): COMP;
     },
     hostElement: Element
@@ -51,11 +44,6 @@ export class Component<PROPS, STATE> {
     const componentConstructor = this as any as ComponentConstructor<COMP>;
     const componentTemplate = hostElement.getAttribute(AttributeMarker.ComponentTemplate);
     if (!componentTemplate) {
-      hostElement.setAttribute(
-        AttributeMarker.ComponentTemplate,
-        componentConstructor.$templateQRL as any
-      );
-    } else if (componentTemplate !== (componentConstructor.$templateQRL as any)) {
       // TODO: Needs tests for error condition for attaching component to element  which already has a component
       throw new Error('Write proper error');
     }
@@ -188,7 +176,6 @@ export type ComponentPropsOf<SERVICE extends Component<any, any>> = SERVICE exte
  * @public
  */
 export interface ComponentConstructor<COMP extends Component<any, any>> {
-  $templateQRL: QRL;
   new (
     hostElement: Element,
     props: ComponentPropsOf<COMP>,
@@ -202,5 +189,5 @@ export interface ComponentConstructor<COMP extends Component<any, any>> {
  * @internal
  */
 export function isComponent(object: any): object is Component<any, any> {
-  return typeof object?.constructor?.$templateQRL === 'string';
+  return object instanceof Component;
 }

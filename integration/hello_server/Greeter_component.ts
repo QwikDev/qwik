@@ -7,7 +7,7 @@
  */
 
 import type { GreeterProps } from './Greeter';
-import { Component, QRL } from '@builder.io/qwik';
+import { Component } from '@builder.io/qwik';
 
 /**
  * @fileoverview

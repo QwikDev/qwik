@@ -6,7 +6,6 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import type { QRL } from '../import/qrl';
 import type { InjectedFunction, ProviderReturns } from '../injector/types';
 import { qDev } from '../util/qdev';
 import { EventInjector } from './event_injector';

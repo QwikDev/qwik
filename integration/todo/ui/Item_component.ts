@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { Component, QRL } from '@builder.io/qwik';
+import { Component } from '@builder.io/qwik';
 import type { ItemProps } from './Item';
 
 interface ItemState {}

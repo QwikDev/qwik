@@ -60,6 +60,10 @@ const error = (msg: string) => {
  *     determine all of the browser supported events.
  */
 export const qwikLoader = (doc: Document, hasInitialized?: boolean | number) => {
+  const broadcast = async (type: string, event: Event) => {
+    doc.querySelectorAll('[on\\:\\' + type + ']').forEach((target) => target.dispatchEvent(event));
+  };
+
   const getModuleExport = (url: URL, module: any, exportName?: string) => {
     // 1 - optional `#` at the start.
     // 2 - capture group `$1` containing the export name, stopping at the first `?`.
@@ -81,16 +85,22 @@ export const qwikLoader = (doc: Document, hasInitialized?: boolean | number) => 
    */
   const processEvent = async (ev: Event, element?: Element | null, url?: URL | null) => {
     element = ev.target as Element | null;
-
-    // while (element && element.getAttribute) {
-    // while (element && element.nodeType===1) {
-    while (element && element.getAttribute) {
-      url = qrlResolver(doc, element.getAttribute('on:' + ev.type));
-      if (url) {
-        const handler = getModuleExport(url, await import(url.pathname));
-        handler(element, ev, url);
+    if ((element as any) == doc) {
+      // This is a event which fires on document only, we have to broadcast it instead
+      // setTimeout. This is needed so we can dispatchEvent.
+      // Without this we would be dispatching event from within existing event.
+      setTimeout(() => broadcast(ev.type, ev));
+    } else {
+      // while (element && element.getAttribute) {
+      // while (element && element.nodeType===1) {
+      while (element && element.getAttribute) {
+        url = qrlResolver(doc, element.getAttribute('on:' + ev.type));
+        if (url) {
+          const handler = getModuleExport(url, await import(url.pathname));
+          handler(element, ev, url);
+        }
+        element = element.parentElement;
       }
-      element = element.parentElement;
     }
   };
 
@@ -102,6 +112,7 @@ export const qwikLoader = (doc: Document, hasInitialized?: boolean | number) => 
     readyState = doc.readyState;
     if (!hasInitialized && (readyState == 'interactive' || readyState == 'complete')) {
       hasInitialized = 1;
+      broadcast(qInit, new CustomEvent('qInit'));
       doc
         .querySelectorAll('[on\\:\\' + qInit + ']')
         .forEach((target) => target.dispatchEvent(new CustomEvent(qInit)));

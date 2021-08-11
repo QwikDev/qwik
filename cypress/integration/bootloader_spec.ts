@@ -8,7 +8,7 @@
 
 /// <reference types="cypress" />
 
-describe('bootloader_spec', () => {
+describe('qwikloader_spec', () => {
   beforeEach(() => cy.visit('/specs/qwikloader_spec.html'));
   it('should register all events', () => {
     cy.get('#click_test > button').click();
@@ -22,5 +22,11 @@ describe('bootloader_spec', () => {
 
   it('should should set up `$init` event', () => {
     cy.get('#autofire_\\$init > pre').should((pre) => expect(pre).to.have.text('PASSED'));
+  });
+
+  it('should broadcast document events', () => {
+    cy.get('#bottom').scrollIntoView();
+    cy.get('#broadcast_scroll').trigger('scroll');
+    cy.get('#broadcast_scroll > pre').should((pre) => expect(pre).to.have.text('PASSED'));
   });
 });

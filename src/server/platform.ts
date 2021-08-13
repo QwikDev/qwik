@@ -20,7 +20,7 @@ export function setServerPlatform(document: any, opts: DocumentOptions) {
       return m;
     },
     toPath: (url: URL) => {
-      if (!opts.outDir) {
+      if (opts.outDir == null) {
         throw new Error(`Server platform missing "outDir"`);
       }
       const pathname = url.pathname + '.js';
@@ -30,7 +30,9 @@ export function setServerPlatform(document: any, opts: DocumentOptions) {
     queueRender: (renderMarked) => {
       if (!queuePromise) {
         queuePromise = new Promise((resolve, reject) =>
-          process.nextTick(() => {
+          // Do not use process.nextTick, as this will execute at same priority as promises.
+          // We need to execute after promisees.
+          setImmediate(() => {
             queuePromise = null;
             renderMarked(doc).then(resolve, reject);
           })

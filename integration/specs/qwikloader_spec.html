@@ -44,9 +44,9 @@
     <h1>it should broadcast document events</h1>
     <test id="broadcast_scroll">
       <pre
-        on:scroll="base:qwikloader_spec#updateElement?selector=%23broadcast_scroll>pre&content=PASSED"
+        on:document:scroll="base:qwikloader_spec#updateElement?selector=%23broadcast_scroll>pre&content=PASSED"
       >
-        Verify qwikloader correctly fires `$init` event on start.
+        Verify qwikloader correctly fires `scroll` event on scroll.
       </pre>
     </test>
 

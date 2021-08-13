@@ -11,7 +11,7 @@
 describe('hello_server', () => {
   it('typing into input updates text', () => {
     cy.visit('/hello_server/');
-    cy.get('input').type('.ABC');
+    cy.get('input').type('.ABC', { delay: 30 }); // TODO(misko): We should not have to use `delay`
     cy.get('body span').should((span) => expect(span).to.have.text('Hello World.ABC!'));
   });
 });

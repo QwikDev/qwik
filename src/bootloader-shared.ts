@@ -61,7 +61,17 @@ const error = (msg: string) => {
  */
 export const qwikLoader = (doc: Document, hasInitialized?: boolean | number) => {
   const broadcast = async (type: string, event: Event) => {
-    doc.querySelectorAll('[on\\:\\' + type + ']').forEach((target) => target.dispatchEvent(event));
+    doc
+      .querySelectorAll('[on\\:' + type.replace(':', '\\:') + ']')
+      .forEach((target) => dispatch(target, type, event));
+  };
+
+  const dispatch = async (element: Element, eventName: string, ev: Event, url?: URL) => {
+    url = qrlResolver(doc, element.getAttribute('on:' + eventName));
+    if (url) {
+      const handler = getModuleExport(url, await import(url.pathname));
+      handler(element, ev, url);
+    }
   };
 
   const getModuleExport = (url: URL, module: any, exportName?: string) => {
@@ -83,22 +93,18 @@ export const qwikLoader = (doc: Document, hasInitialized?: boolean | number) => 
    *
    * @param ev - Browser event.
    */
-  const processEvent = async (ev: Event, element?: Element | null, url?: URL | null) => {
+  const processEvent = async (ev: Event, element?: Element | null) => {
     element = ev.target as Element | null;
     if ((element as any) == doc) {
       // This is a event which fires on document only, we have to broadcast it instead
       // setTimeout. This is needed so we can dispatchEvent.
       // Without this we would be dispatching event from within existing event.
-      setTimeout(() => broadcast(ev.type, ev));
+      setTimeout(() => broadcast('document:' + ev.type, ev));
     } else {
       // while (element && element.getAttribute) {
       // while (element && element.nodeType===1) {
       while (element && element.getAttribute) {
-        url = qrlResolver(doc, element.getAttribute('on:' + ev.type));
-        if (url) {
-          const handler = getModuleExport(url, await import(url.pathname));
-          handler(element, ev, url);
-        }
+        dispatch(element, ev.type, ev);
         element = element.parentElement;
       }
     }
@@ -113,9 +119,6 @@ export const qwikLoader = (doc: Document, hasInitialized?: boolean | number) => 
     if (!hasInitialized && (readyState == 'interactive' || readyState == 'complete')) {
       hasInitialized = 1;
       broadcast(qInit, new CustomEvent('qInit'));
-      doc
-        .querySelectorAll('[on\\:\\' + qInit + ']')
-        .forEach((target) => target.dispatchEvent(new CustomEvent(qInit)));
     }
   };
 
@@ -140,7 +143,6 @@ export const qwikLoader = (doc: Document, hasInitialized?: boolean | number) => 
     }
   }
 
-  addEventListener(qInit);
   doc.addEventListener('readystatechange', processReadyStateChange as any);
   processReadyStateChange();
 

@@ -3,6 +3,7 @@ import type {
   GlobalOptions,
   QwikDocument,
   QwikGlobal,
+  RenderToDocumentOptions,
   RenderToStringOptions,
   RenderToStringResult,
   SerializeDocumentOptions,
@@ -64,7 +65,11 @@ export function createDocument(opts?: DocumentOptions): QwikDocument {
  * @param rootNode - The root JSX node to apply onto the `document`.
  * @public
  */
-export async function renderToDocument(doc: Document, rootNode: any, opts?: RenderToStringOptions) {
+export async function renderToDocument(
+  doc: Document,
+  rootNode: any,
+  opts?: RenderToDocumentOptions
+) {
   opts = opts || {};
   setServerPlatform(doc, opts);
   await jsxRender(doc, rootNode);

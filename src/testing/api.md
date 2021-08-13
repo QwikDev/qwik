@@ -60,7 +60,7 @@ export const QwikPrefetch: FunctionComponent<QwikPrefetchProps>;
 export const QwikProtocols: FunctionComponent<QwikProtocolProps>;
 
 // @public
-export function renderToDocument(doc: Document, rootNode: any, opts?: RenderToStringOptions): Promise<void>;
+export function renderToDocument(doc: Document, rootNode: any, opts?: RenderToDocumentOptions): Promise<void>;
 
 // Warning: (ae-forgotten-export) The symbol "SerializeDocumentOptions" needs to be exported by the entry point index.d.ts
 //

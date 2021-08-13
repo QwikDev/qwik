@@ -1,3 +1,4 @@
+load("@build_bazel_rules_nodejs//:index.bzl", "js_library")
 load("//scripts:package_build.bzl", "package_build")
 
 package(default_visibility = ["//visibility:public"])
@@ -23,4 +24,40 @@ package_build(
         ":LICENSE",
         ":README.md",
     ]
+)
+
+js_library(
+    name = "package_lib",
+    package_name = "@builder.io/qwik",
+    srcs = [
+        "dist/bin/package/core.cjs",
+        "dist/bin/package/core.d.ts",
+        "dist/bin/package/core.cjs.map",
+        "dist/bin/package/core.mjs",
+        "dist/bin/package/core.mjs.map",
+        "dist/bin/package/jsx-runtime.cjs",
+        "dist/bin/package/jsx-runtime.d.ts",
+        "dist/bin/package/jsx-runtime.mjs",
+        "dist/bin/package/LICENSE",
+        "dist/bin/package/optimizer.cjs",
+        "dist/bin/package/optimizer.d.ts",
+        "dist/bin/package/optimizer.mjs",
+        "dist/bin/package/package.json",
+        "dist/bin/package/qwikloader.js",
+        "dist/bin/package/qwikloader.debug.js",
+        "dist/bin/package/qwikloader.optimize.js",
+        "dist/bin/package/qwikloader.optimize.debug.js",
+        "dist/bin/package/README.md",
+        "dist/bin/package/server/index.cjs",
+        "dist/bin/package/server/index.d.ts",
+        "dist/bin/package/server/index.mjs",
+        "dist/bin/package/testing/index.cjs",
+        "dist/bin/package/testing/index.d.ts",
+        "dist/bin/package/testing/index.mjs",
+        "dist/bin/package/testing/jest-preprocessor.cjs",
+        "dist/bin/package/testing/jest-preprocessor.mjs",
+        "dist/bin/package/testing/jest-preset.cjs",
+        "dist/bin/package/testing/jest-preset.mjs",
+      ],
+    deps = [":package"],
 )

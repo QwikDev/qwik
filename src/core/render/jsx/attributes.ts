@@ -149,7 +149,14 @@ export function setAttribute(element: Element, key: string, value: any, kebabKey
     element.removeAttribute(key);
   } else if (key === 'innerHTML' || key === 'innerText') {
     element.setAttribute(kebabKey!, '');
-    (element as any)[key] = value;
+    if ((element as any)[key] != value) {
+      // TODO(misko): Find a better way to handle this corner case.
+      // The guard above is here because writing to `.innerHTML` will create now DOM even if
+      // the `value` is same. New dom, will cause new events such as `mouseenter` which will
+      // than cause re-rendering of component which will than write the `value` into `.innerHTML`
+      // which will ...
+      (element as any)[key] = value;
+    }
   } else {
     element.setAttribute(key, String(value));
   }

@@ -139,14 +139,14 @@ describe('qwikloader', () => {
       doc.readyState = 'complete';
       const spy = jest.spyOn(doc, 'querySelectorAll');
       qwikLoader(doc);
-      expect(spy).toHaveBeenCalledWith('[on\\:\\q-init]');
+      expect(spy).toHaveBeenCalledWith('[on\\:q-init]');
     });
 
     it('should query on:q-init if document interactive', () => {
       doc.readyState = 'interactive';
       const spy = jest.spyOn(doc, 'querySelectorAll');
       qwikLoader(doc);
-      expect(spy).toHaveBeenCalledWith('[on\\:\\q-init]');
+      expect(spy).toHaveBeenCalledWith('[on\\:q-init]');
     });
 
     it('should not query on:q-init if document loading', () => {

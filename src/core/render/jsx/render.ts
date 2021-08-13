@@ -72,7 +72,7 @@ function visitJSXNode(
   } else if (typeof jsxNode.type === 'function') {
     // Symbol reference
     return visitJSXNode(doc, waitOn, parentNode, existingNode, jsxNode.type(jsxNode.props));
-  } else if (jsxNode.type === Fragment) {
+  } else if (jsxNode.type === Fragment || jsxNode.type == null) {
     // Fragment
     return visitChildren(doc, waitOn, parentNode, existingNode, jsxNode.children);
   }

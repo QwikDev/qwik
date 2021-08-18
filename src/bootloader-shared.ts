@@ -69,7 +69,7 @@ export const qwikLoader = (doc: Document, hasInitialized?: boolean | number) => 
   const dispatch = async (element: Element, eventName: string, ev: Event, url?: URL) => {
     url = qrlResolver(doc, element.getAttribute('on:' + eventName));
     if (url) {
-      const handler = getModuleExport(url, await import(url.pathname));
+      const handler = getModuleExport(url, await import(String(url)));
       handler(element, ev, url);
     }
   };

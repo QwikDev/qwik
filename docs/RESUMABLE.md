@@ -40,7 +40,7 @@ Examples of information which the framework needs to store in the DOM are:
 - Entity state
 - Entity component relationships.
 
-By keeping the above state in the DOM the framework does not have any additional information (other than what is stored in the DOM) and as a result the framework can continue executing from where the server left off. Because the framework provides a mechanism for application component and entities to also be serialized into the DOM the result is that both the framework as well as application state con be serialized into HTML and the application can fully be resumed on the client.
+By keeping the above state in the DOM the framework does not have any additional information (other than what is stored in the DOM) and as a result the framework can continue executing from where the server left off. Because the framework provides a mechanism for application component and entities to also be serialized into the DOM the result is that both the framework as well as application state can be serialized into HTML and the application can fully be resumed on the client.
 
 ## Writing applications with serializability in mind
 

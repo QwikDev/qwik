@@ -44,7 +44,7 @@ By keeping the above state in the DOM the framework does not have any additional
 
 ## Writing applications with serializability in mind
 
-The resumability property of the framework must extends to resumability of the application as well. This means that the framework must provide mechanisms for the developer to express Component and Entities of the applications in a way which can be serialized and than rehydrated. This necessitates that applications are written with resumability constraints in mind. It is simply not possible for developers to continue to write applications in heap-centric way and expect that a better framework can somehow make up for this sub-optimal approach.
+The resumability property of the framework must extend to resumability of the application as well. This means that the framework must provide mechanisms for the developer to express Component and Entities of the applications in a way which can be serialized and then resumed (without re-bootstrapping). This necessitates that applications are written with resumability constraints in mind. It is simply not possible for developers to continue to write applications in heap-centric way and expect that a better framework can somehow make up for this sub-optimal approach.
 
 Developers must write their applications in DOM-centric way. This will require a change of behavior and retooling of web-developers skills. Frameworks need to provide the guidance and APIs to make it easy for the developers to write the applications in this way.
 

@@ -91,9 +91,6 @@ export interface RenderToStringResult {
 export function serializeDocument(doc: Document, opts?: SerializeDocumentOptions): string;
 
 // @public
-export function serializeState(element: Element | Document): void;
-
-// @public
 export function setServerPlatform(document: any, opts: DocumentOptions): void;
 
 

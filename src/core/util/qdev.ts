@@ -25,3 +25,5 @@
 // minification can replace the `globalThis.qDev` with `false`
 // which will remove all dev code within from the build
 export const qDev = (globalThis as any).qDev !== false;
+export const qTest = (globalThis as any).describe !== undefined;
+export const qGlobal = globalThis as any;

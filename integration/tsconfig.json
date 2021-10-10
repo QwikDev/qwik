@@ -1,4 +1,11 @@
 {
   "extends": "../tsconfig.json",
-  "include": ["hello_server", "hello_static", "specs", "todo"]
+  "include": [
+    "hello_server",
+    "hello_static",
+    "specs",
+    "todo",
+    "architecture",
+    "../src/core/component/q-event.public.ts"
+  ]
 }

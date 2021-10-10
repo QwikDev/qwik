@@ -6,7 +6,6 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { AttributeMarker } from '../util/markers';
 import { stringifyDebug } from './stringify';
 import { qDev } from '../util/qdev';
 
@@ -62,7 +61,7 @@ export const enum QError {
   Render_expectingEntity_entity = 602,
   Render_expectingEntityArray_obj = 603,
   Render_expectingEntityOrComponent_obj = 604,
-  Render_bindNeedsComponent_key_element = 605,
+  Render_stateMachineStuck = 699,
   // Event
   Event_emitEventRequiresName_url = 700,
   Event_emitEventCouldNotFindListener_event_element = 701,
@@ -175,10 +174,7 @@ function codeToText(code: QError): string {
     [QError.Render_expectingEntity_entity]: "Expecting entity object, got '{}'.",
     [QError.Render_expectingEntityArray_obj]: "Expecting array of entities, got '{}'.",
     [QError.Render_expectingEntityOrComponent_obj]: "Expecting Entity or Component got '{}'.",
-    [QError.Render_bindNeedsComponent_key_element]:
-      "Expecting that element with 'bind:{}' should be a component (should have '" +
-      AttributeMarker.ComponentTemplate +
-      '="qrl"\' attribute): {}',
+    [QError.Render_stateMachineStuck]: 'Render state machine did not advance.',
     //////////////
     [QError.Event_emitEventRequiresName_url]: "Missing '$type' attribute in the '{}' url.",
     [QError.Event_emitEventCouldNotFindListener_event_element]:

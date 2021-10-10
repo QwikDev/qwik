@@ -68,7 +68,21 @@ export function assertLessOrEqual(value1: any, value2: any, text?: string) {
 export function assertLess(value1: any, value2: any, text?: string) {
   if (qDev) {
     if (value1 < value2) return;
-    throw newError(text || `Expected '${value1}' <= '${value2}'.`);
+    throw newError(text || `Expected '${value1}' < '${value2}'.`);
+  }
+}
+
+export function assertGreaterOrEqual(value1: any, value2: any, text?: string) {
+  if (qDev) {
+    if (value1 >= value2) return;
+    throw newError(text || `Expected '${value1}' >= '${value2}'.`);
+  }
+}
+
+export function assertGreater(value1: any, value2: any, text?: string) {
+  if (qDev) {
+    if (value1 > value2) return;
+    throw newError(text || `Expected '${value1}' > '${value2}'.`);
   }
 }
 
@@ -84,5 +98,7 @@ function typeOf(value: any) {
 
 function newError(text: string) {
   debugger; // eslint-disable-line no-debugger
-  return new Error(text);
+  const error = new Error(text);
+  console.error(error); // eslint-disable-line no-console
+  return error;
 }

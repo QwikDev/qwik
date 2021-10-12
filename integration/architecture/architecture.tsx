@@ -9,7 +9,6 @@ import {
   PropsOf,
   qProps,
   useEvent,
-  useHostElement,
 } from '@builder.io/qwik';
 /* eslint no-console: ["off"] */
 

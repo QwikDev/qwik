@@ -47,18 +47,9 @@ module.exports = {
           return node.range && node.range[0] !== undefined ? node.range[0] : null;
         }
 
-        function flattenFnNodeParams(node) {
-          const paramSet = new Set();
-          for (let param of node.params) {
-            if (param.type === 'ObjectPattern') {
-              for (let paramOP of param.properties) {
-                paramSet.add(paramOP.value.name);
-              }
-            } else if (param.type === 'Identifier') {
-              paramSet.add(param.name);
-            }
-          }
-          return paramSet;
+        function flattenScopeVariables(node) {
+          const scope = manager.acquire(node)
+          return new Set(scope.variables.map(v => v.name));
         }
 
         function findClosedOverVariables(node) {
@@ -81,8 +72,8 @@ module.exports = {
                   if (variable) {
                     // is variable declared in parentRecord, if so fire an error
                     if (
-                      parentRecord.params.has(variable.name) &&
-                      !record.params.has(variable.name)
+                      parentRecord.variables.has(variable.name) &&
+                      !record.variables.has(variable.name)
                     ) {
                       report(ref.identifier, variable.name);
                     }
@@ -100,9 +91,9 @@ module.exports = {
               if (qComponent) {
                 const fnNode = node.arguments[0];
                 if (fnNode) {
-                  // flatten qHook references in order to easily access params & parentNode in reporting
+                  // flatten qHook references in order to easily access scoped variables & parentNode in reporting
                   qHookStore.set(getNodeId(node), {
-                    params: flattenFnNodeParams(fnNode),
+                    variables: flattenScopeVariables(fnNode),
                     parentNode: walkToFirstQHook(node.parent),
                   });
                 }

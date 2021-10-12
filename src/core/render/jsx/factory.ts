@@ -63,7 +63,7 @@ export declare namespace h {
     export interface IntrinsicElements extends QwikJSX.IntrinsicElements {}
     // TODO(misko): Commenting this out does not seem to make a difference.
     export interface ElementChildrenAttribute {
-      children?: {};
+      children?: any;
     }
   }
 }

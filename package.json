@@ -46,6 +46,8 @@
     "@napi-rs/triples": "^1.0.3",
     "@types/cross-spawn": "^6.0.2",
     "@types/execa": "^2.0.0",
+    "@types/eslint": "^7.28.1",
+    "@types/estree": "^0.0.50",
     "@types/express": "^4.17.13",
     "@types/jest": "^26.0.23",
     "@types/mri": "^1.1.1",

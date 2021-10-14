@@ -96,7 +96,7 @@ to [@builder.io/qwik](https://www.npmjs.com/package/@builder.io/qwik).
 
 ## Qwik JSX Generate Script
 
-Qwik's JSX implementation is based off of React's `@types/react`. However, React's JSX is declared as a `global` and adds its own events such as `onClick`. To avoid the global and allow Qwik to scope its own implementation of JSX, there's a generate script that gets the latest `@types/react/index.d.ts`, and parses the JSX type information.
+Qwik's JSX implementation is based on React's `@types/react`. However, React's JSX is declared as a `global` and adds its own events such as `onClick`. To avoid the global and allow Qwik to scope its own implementation of JSX, there's a generate script that gets the latest `@types/react/index.d.ts`, and parses the JSX type information.
 
 ```
 yarn jsx.types

@@ -1,20 +1,14 @@
 /* eslint-disable */
-import type { EntityConstructor, QRL } from '../../..';
+import type { QRL } from '../../..';
 
 interface QwikProps {
   class?: string | { [className: string]: boolean };
   innerHTML?: string;
-  /**
-   * Declare `Injector` `Entity` providers.
-   *
-   * See: `Injector`, `Entity`
-   */
-  'decl:entity'?: EntityConstructor<any>[];
 
   /**
-   * Declare component template.
+   *
    */
-  'decl:template'?: QRL;
+  'q:slot'?: string;
 }
 
 interface QwikGlobalEvents {

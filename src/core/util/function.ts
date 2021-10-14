@@ -23,3 +23,7 @@ export function namedFn<T>(name: string, delegate: T): T {
   }
   return delegate;
 }
+
+export function returnUndefined() {
+  return undefined;
+}

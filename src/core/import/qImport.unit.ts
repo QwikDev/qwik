@@ -8,11 +8,11 @@
 
 import { TEST_CONFIG } from '../util/test_config';
 import { qExport, qImport, qParams } from '../import/qImport';
-import { ComponentFixture, isPromise } from '@builder.io/qwik/testing';
+import { ElementFixture, isPromise } from '@builder.io/qwik/testing';
 
 describe('qImport', () => {
   it('should import default symbol', async () => {
-    const fixture = new ComponentFixture(TEST_CONFIG);
+    const fixture = new ElementFixture(TEST_CONFIG);
     const valuePromise = qImport(fixture.host, 'import:qImport_default_unit');
     expect(isPromise(valuePromise)).toBe(true);
     expect(await valuePromise).toEqual('DEFAULT_VALUE');
@@ -21,7 +21,7 @@ describe('qImport', () => {
   });
 
   it('should import symbol from extension', async () => {
-    const fixture = new ComponentFixture(TEST_CONFIG);
+    const fixture = new ElementFixture(TEST_CONFIG);
     const valuePromise = qImport(fixture.host, '../import/qImport_symbol_unit#mySymbol');
     expect(isPromise(valuePromise)).toBe(true);
     expect(await valuePromise).toEqual('MY_SYMBOL_VALUE');

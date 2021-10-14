@@ -13,4 +13,7 @@ export namespace QwikJSX {
   export interface IntrinsicElements extends QwikIntrinsicElements {}
 }
 
+/**
+ * @public
+ */
 export interface QwikDOMAttributes extends DOMAttributes<any> {}

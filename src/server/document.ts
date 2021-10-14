@@ -10,9 +10,8 @@ import type {
 } from './types';
 import { setServerPlatform } from './platform';
 import domino from 'domino';
-import { jsxRender } from '@builder.io/qwik';
-import { serializeState } from './serialize_state';
 import { createTimer } from '../optimizer/utils';
+import { qDehydrate, qRender } from '@builder.io/qwik';
 
 /**
  * Create emulated `Global` for server environment. Does not implement a browser
@@ -22,6 +21,8 @@ import { createTimer } from '../optimizer/utils';
 export function createGlobal(opts?: GlobalOptions): QwikGlobal {
   opts = opts || {};
   const doc: QwikDocument = domino.createDocument() as any;
+  // <!DOCTYPE html>
+  // doc.appendChild(document.implementation.createDocumentType('html', '', ''));
 
   const baseURI = typeof opts.url !== 'string' ? BASE_URI : opts.url;
   const loc = new URL(baseURI, BASE_URI);
@@ -72,7 +73,7 @@ export async function renderToDocument(
 ) {
   opts = opts || {};
   setServerPlatform(doc, opts);
-  await jsxRender(doc, rootNode);
+  await qRender(doc, rootNode);
 }
 
 /**
@@ -86,7 +87,7 @@ export async function renderToDocument(
 export function serializeDocument(doc: Document, opts?: SerializeDocumentOptions) {
   if (doc) {
     if (opts?.serializeState !== false) {
-      serializeState(doc);
+      qDehydrate(doc);
     }
     return '<!DOCTYPE html>' + doc.documentElement.outerHTML;
   }

@@ -6,10 +6,12 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import type { QRL } from './qrl';
+import { isParsedQRL, QRL } from './qrl';
 import { QError, qError } from '../error/error';
 import { getPlatform } from '../platform/platform';
-import { qDev } from '../util/qdev';
+import { qTest, qDev } from '../util/qdev';
+import { fromQRL } from './qrl-test';
+import { assertDefined } from '../assert/assert';
 
 /**
  * Lazy load a `QRL` symbol and returns the resulting value.
@@ -22,6 +24,17 @@ import { qDev } from '../util/qdev';
  * @public
  */
 export function qImport<T>(node: Node | Document, url: string | QRL<T> | URL): T | Promise<T> {
+  if (isParsedQRL(url)) {
+    assertDefined(url._serialized);
+    url = Array.isArray(url._serialized) ? url._serialized[0] : url._serialized!;
+  }
+  if (qTest) {
+    // This code is here for testing purposes only, and should never end up in production.
+    const testSymbol = fromQRL(url as any);
+    if (testSymbol) {
+      return Promise.resolve<T>(testSymbol);
+    }
+  }
   const doc: QDocument = node.ownerDocument || (node as Document);
   const corePlatform = getPlatform(doc);
   const normalizedUrl = toUrl(doc, url);

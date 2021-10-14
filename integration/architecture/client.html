@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Qwik Architecture Comparison</title>
+    <script>
+      window.describe = true; // Hack to enable test QRLs
+    </script>
+    <style>
+      .browser {
+        display: block;
+        border: 1px solid black;
+        border-radius: 4px;
+        padding: 4px;
+        background-color: lightgray;
+        max-width: 600px;
+        margin: auto;
+      }
+      .browser-url {
+        display: flex;
+      }
+      .browser-url span {
+        font-size: 1.2em;
+        font-family: sans-serif;
+        padding-right: 0.2em;
+      }
+      .browser-url input {
+        flex: 1;
+      }
+      .browser-body {
+        margin-top: 3px;
+        border-radius: 4px;
+        background-color: white;
+        min-height: 300px;
+        border: 1px solid black;
+        padding: 4px;
+      }
+      q\:slot {
+        display: block;
+      }
+
+      component {
+        display: flex;
+        border: 2px solid lightgray;
+        margin: 3px;
+        padding: 3px;
+        min-width: 25px;
+      }
+
+      .app {
+        display: block;
+      }
+      .root {
+        flex-direction: column;
+      }
+      .left {
+        flex-direction: column;
+      }
+
+      .product-main {
+        width: 70%;
+        flex-direction: column;
+      }
+
+      .product-side {
+        flex-direction: column;
+        width: 30%;
+      }
+      .product {
+        width: 200px;
+        height: 200px;
+        margin: auto;
+      }
+      .product-details {
+        margin: auto;
+      }
+
+      .header {
+        margin: 4px;
+        display: flex;
+      }
+      .middle {
+        display: flex;
+      }
+      .left {
+        display: flex;
+        width: 100px;
+        margin-right: 4px;
+        min-height: 200px;
+        flex-wrap: wrap;
+      }
+      .main {
+        display: flex;
+        flex: 1;
+      }
+      .footer {
+        margin: 4px;
+        display: flex;
+        justify-content: space-evenly;
+      }
+      [arch='island'].header,
+      [arch='island'].left,
+      [arch='island'].main,
+      [arch='island'].footer {
+        border-color: orange;
+      }
+
+      .hydrated {
+        border: 2px solid blue;
+        animation: flashBlue 0.3s;
+      }
+
+      @keyframes flashBlue {
+        5% {
+          box-shadow: 0px 0px 0px white;
+        }
+        10% {
+          box-shadow: 3px 3px 20px darkblue;
+        }
+        60% {
+          box-shadow: 3px 3px 10px blue;
+        }
+        100% {
+          box-shadow: 0px 0px 0px white;
+        }
+      }
+
+      ol > li {
+        color: lightgray;
+      }
+      li.active {
+        color: black;
+      }
+    </style>
+  </head>
+  <body>
+    <img
+      width="400"
+      src="https://camo.githubusercontent.com/3518364b161ab1351455c0f3774d01973e25602a4b63a3e9129c21deddb2f223/68747470733a2f2f63646e2e6275696c6465722e696f2f6170692f76312f696d6167652f617373657473253246594a494762346930316a7677305352644c3542742532463636376162366332323833643463346438373866623930383361616363313066"
+    />
+
+    <div id="app"></div>
+
+    <script src="./my-app.js" type="module"></script>
+    <script src="/qwikloader.js" async></script>
+  </body>
+</html>

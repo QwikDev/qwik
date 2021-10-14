@@ -31,3 +31,42 @@ function appendConfig(doc: Document, key: string, value: string) {
 }
 
 export { isPromise };
+
+/**
+ * Walks the object graph and replaces any DOM Nodes with their string representation.
+ *
+ * This is useful when making asserts as DOM nodes show up as text.
+ *
+ * @param value
+ * @returns
+ */
+export function html<T = any>(value: T): T {
+  if (value !== null) {
+    if (Array.isArray(value)) {
+      return value.map(html) as any;
+    } else if (typeof value === 'object') {
+      if (isElement(value)) {
+        return value.outerHTML as any;
+      } else if (isNode(value)) {
+        return value.textContent as any;
+      } else {
+        const obj: any = {};
+        for (const key in value) {
+          if (Object.prototype.hasOwnProperty.call(value, key)) {
+            obj[key] = html(value[key]);
+          }
+        }
+        return obj;
+      }
+    }
+  }
+  return value;
+}
+
+function isNode(value: any): value is Node {
+  return 'outerHTML' in value;
+}
+
+function isElement(value: any): value is HTMLElement {
+  return isNode(value) && value.nodeType == 1 /*ELEMENT_NODE*/;
+}

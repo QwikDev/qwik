@@ -40,6 +40,17 @@ export function setServerPlatform(document: any, opts: DocumentOptions) {
       }
       return queuePromise;
     },
+    queueStoreFlush: (flushStore) => {
+      if (!queuePromise) {
+        queuePromise = new Promise((resolve, reject) =>
+          process.nextTick(() => {
+            queuePromise = null;
+            flushStore(doc).then(resolve, reject);
+          })
+        );
+      }
+      return queuePromise;
+    },
   };
 
   setPlatform(doc, serverPlatform);

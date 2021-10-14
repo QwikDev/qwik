@@ -1,5 +1,3 @@
-import type { Props } from '../../../injector/types';
-
 /**
  * @public
  */
@@ -37,9 +35,9 @@ export interface FunctionComponent<P = {}> {
 /**
  * @public
  */
-export interface JSXNode<T extends string | null | JSXFactory | unknown> {
+export interface JSXNode<T extends string | null | JSXFactory | unknown = unknown> {
   type: T;
-  props: Props;
+  props: Record<string, any>;
   children: ComponentChild[];
   key: string | number | any;
 }
@@ -47,4 +45,4 @@ export interface JSXNode<T extends string | null | JSXFactory | unknown> {
 /**
  * @public
  */
-export type JSXFactory = (props: { [key: string]: any }) => JSXNode<unknown>;
+export type JSXFactory<PROPS extends {} = any> = (props: PROPS, state?: any) => JSXNode<unknown>;

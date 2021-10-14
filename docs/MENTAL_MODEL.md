@@ -114,7 +114,7 @@ A Qwik application is DOM-centric. All of the information about the application 
 
 Here are some common ways Qwik framework keeps state in DOM/HTML.
 
-- `<some-component decl:template="qrl_to_template">`: The `decl:template` attribute identifies a component boundary. It also points to the location where the template can be found in case of rehydration. `Component`s can be rehydrated and rendered independently of each other.
+- `<some-component q:view="qrl_to_template">`: The `q:view` attribute identifies a component boundary. It also points to the location where the template can be found in case of rehydration. `Component`s can be rehydrated and rendered independently of each other.
 - `<div ::user="qrl_to_service">`: The `::user` attribute declares a `UserEntity` provider on this element's injector which points to the location where the `Entity` can be lazy loaded from.
 - `<div :user:some_user_id='{"fullName": "Joe Someone", "age": 20}'>`: The dehydrated, serialized form of a `UserEntity` with `Props: {id: 'some_user_id'}` and `State: {fullName: "Joe Someone", age: 20}`.
 - `<some-component bind:user:some_user_id="$user">`: A entity binding to a `Component`. This tells Qwik that if the `State` of `UserEntity ` with `EntityKey`: `user:some_user_id` changes, the component `<some-component>` will need to be re-rendered.

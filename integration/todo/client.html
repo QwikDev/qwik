@@ -1,14 +1,15 @@
+<!DOCTYPE html>
 <html>
   <head>
-    <title>ToDo Application</title>
-    <script src="/qwikloader.js" type="module"></script>
-    <link rel="q.protocol.ui" href="./ui" />
-    <link rel="q.protocol.data" href="./data" />
-    <link rel="q.protocol.base" href="./" />
+    <title>Todo App</title>
     <link rel="stylesheet" href="./base.css" />
     <link rel="stylesheet" href="./index.css" />
+    <script>
+      window.describe = true; // Hack to enable test QRLs
+    </script>
   </head>
   <body>
-    <div decl:template="ui:/TodoApp_template" on:q-init="base:qwik#markDirty"></div>
+    <script src="./todo.js" type="module"></script>
+    <script src="/qwikloader.js" async></script>
   </body>
 </html>

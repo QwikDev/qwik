@@ -10,10 +10,15 @@ export function setTestPlatform(document: any) {
 
   const doc: Document = document;
 
-  let queuePromise: Promise<any> | null;
-  let queueResolve: ((value: any) => void) | null = null;
-  let queueReject: ((value: any) => void) | null = null;
-  let queuedRenderMarked: ((doc: Document) => Promise<any>) | null = null;
+  interface Queue<T> {
+    fn: (doc: Document) => Promise<T>;
+    promise: Promise<T>;
+    resolve: (value: T) => void;
+    reject: (value: any) => void;
+  }
+
+  let render: Queue<any> | null = null;
+  let store: Queue<any> | null = null;
 
   const testPlatform: TestPlatform = {
     import: (url: string) => import(url),
@@ -33,39 +38,61 @@ export function setTestPlatform(document: any) {
       throw new Error(`Unable to find path for import "${url}"`);
     },
     queueRender: (renderMarked) => {
-      if (!queuePromise) {
-        queuedRenderMarked = renderMarked;
-
-        queuePromise = new Promise((resolve, reject) => {
-          queueResolve = resolve;
-          queueReject = reject;
+      if (!render) {
+        render = {
+          fn: renderMarked,
+          promise: null!,
+          resolve: null!,
+          reject: null!,
+        };
+        render.promise = new Promise((resolve, reject) => {
+          render!.resolve = resolve;
+          render!.reject = reject;
         });
+      } else if (renderMarked !== render.fn) {
+        // TODO(misko): proper error and test
+        throw new Error('Must be same function');
       }
-      return queuePromise;
+      return render.promise;
+    },
+    queueStoreFlush: (storeFlush) => {
+      if (!store) {
+        store = {
+          fn: storeFlush,
+          promise: null!,
+          resolve: null!,
+          reject: null!,
+        };
+        store.promise = new Promise((resolve, reject) => {
+          store!.resolve = resolve;
+          store!.reject = reject;
+        });
+      } else if (storeFlush !== store.fn) {
+        // TODO(misko): proper error and test
+        throw new Error('Must be same function');
+      }
+      return store.promise;
     },
     flush: async () => {
       await Promise.resolve();
 
-      if (queuedRenderMarked) {
+      if (store) {
         try {
-          const hosts = await queuedRenderMarked(doc);
-          if (queueResolve) {
-            queueResolve(hosts);
-          }
+          store.resolve(await store.fn(doc));
         } catch (e) {
-          if (queueReject) {
-            queueReject(e);
-          } else {
-            // eslint-disable-next-line no-console
-            console.error(e);
-          }
+          store.reject(e);
         }
+        store = null;
       }
 
-      queuePromise = null;
-      queuedRenderMarked = null;
-      queueResolve = null;
-      queueReject = null;
+      if (render) {
+        try {
+          render.resolve(await render.fn(doc));
+        } catch (e) {
+          render.reject(e);
+        }
+        store = null;
+      }
     },
   };
 

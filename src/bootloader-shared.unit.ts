@@ -168,7 +168,11 @@ describe('prefetch', () => {
           listener = value;
         },
       };
-      const mockFetch = jest.fn(() => null);
+      const mockFetch = jest.fn(() => ({
+        headers: {
+          get: () => '',
+        },
+      }));
       setUpWebWorker(mockWindow, mockFetch as any);
       listener({ data: 'somepath' });
       expect(mockFetch.mock.calls).toEqual([['somepath']]);

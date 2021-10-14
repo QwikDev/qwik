@@ -1,7 +1,7 @@
-import { Host } from './host';
+import { Host } from './host.public';
 import { h } from './factory';
 import { isJSXNode, Fragment } from './jsx-runtime';
-import type { FunctionComponent } from './types';
+import type { FunctionComponent } from './types/jsx-node';
 
 describe('classic jsx factory h()', () => {
   describe('children', () => {
@@ -22,12 +22,12 @@ describe('classic jsx factory h()', () => {
       );
       expect(v.children).toHaveLength(4);
       expect(v.children[0]).toEqual('a');
-      expect(v.children[1].type).toEqual('child');
-      expect(v.children[1].children).toHaveLength(1);
-      expect(v.children[1].children[0]).toEqual(1);
-      expect(v.children[2].type).toEqual('child');
-      expect(v.children[2].children).toHaveLength(1);
-      expect(v.children[2].children[0]).toEqual(2);
+      expect((v.children[1] as any).type).toEqual('child');
+      expect((v.children[1] as any).children).toHaveLength(1);
+      expect((v.children[1] as any).children[0]).toEqual(1);
+      expect((v.children[2] as any).type).toEqual('child');
+      expect((v.children[2] as any).children).toHaveLength(1);
+      expect((v.children[2] as any).children[0]).toEqual(2);
       expect(v.children[3]).toEqual('b');
     });
 
@@ -35,9 +35,9 @@ describe('classic jsx factory h()', () => {
       // <parent><child></child></parent>
       const v = h('parent', null, h('child', null));
       expect(v.children).toHaveLength(1);
-      expect(v.children[0].type).toEqual('child');
-      expect(v.children[0].props).toEqual({ children: [] });
-      expect(v.children[0].children).toEqual([]);
+      expect((v.children[0] as any).type).toEqual('child');
+      expect((v.children[0] as any).props).toEqual({ children: [] });
+      expect((v.children[0] as any).children).toEqual([]);
     });
 
     it('text w/ expression', () => {

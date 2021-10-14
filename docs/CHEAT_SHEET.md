@@ -20,11 +20,11 @@ HTML attributes with the following syntax have a special meaning to Qwik.
 
 ### JSX Components
 
-| Syntax                                  | Meaning                                                                           |
-| --------------------------------------- | --------------------------------------------------------------------------------- |
-| `decl:template=QRL`                     | Component render `QRL`, which points to the component's template render function. |
-| `decl:entity=[Service1, Service2, ...]` | Entities to be provided by this element's injector.                               |
-| `$<prop>={key}`                         | Associate Component `prop` with service identified by `key`.                      |
+| Syntax                               | Meaning                                                                           |
+| ------------------------------------ | --------------------------------------------------------------------------------- |
+| `q:view=QRL`                         | Component render `QRL`, which points to the component's template render function. |
+| `q:entity=[Service1, Service2, ...]` | Entities to be provided by this element's injector.                               |
+| `$<prop>={key}`                      | Associate Component `prop` with service identified by `key`.                      |
 
 ### Special events
 

@@ -7,17 +7,20 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import type { QRL } from '../../import/qrl';
-import { AttributeMarker } from '../../util/markers';
-import { EMPTY_ARRAY } from '../../util/flyweight';
-import type { FunctionComponent, JSXNode, QwikJSX } from './types';
-import { JSXNodeImpl } from './jsx-runtime';
 import { flattenArray } from '../../util/array';
+import { EMPTY_ARRAY } from '../../util/flyweight';
+import { JSXNodeImpl } from './jsx-runtime';
+import type { QwikJSX } from './types/jsx-qwik';
+import type { FunctionComponent, JSXNode } from './types/jsx-node';
 
 /**
  * @public
  */
-export function h(type: string | FunctionComponent, props: any, ...children: any[]) {
+export function h<PROPS extends {} = {}>(
+  type: string | FunctionComponent<PROPS>,
+  props: PROPS | null,
+  ...children: any[]
+): JSXNode {
   // Using legacy h() jsx transform and morphing it
   // so it can use the modern vdom structure
   // https://reactjs.org/blog/2020/09/22/introducing-the-new-jsx-transform.html
@@ -31,8 +34,8 @@ export function h(type: string | FunctionComponent, props: any, ...children: any
   let i: any;
 
   for (i in props) {
-    if (i == 'key') key = props[i];
-    else normalizedProps[i] = props[i];
+    if (i == 'key') key = (props as Record<string, any>)[i];
+    else normalizedProps[i] = (props as Record<string, any>)[i];
   }
 
   return new JSXNodeImpl(type, normalizedProps, key);
@@ -58,65 +61,9 @@ export declare namespace h {
     export interface Element extends QwikJSX.Element {}
     export interface IntrinsicAttributes extends QwikJSX.IntrinsicAttributes {}
     export interface IntrinsicElements extends QwikJSX.IntrinsicElements {}
+    // TODO(misko): Commenting this out does not seem to make a difference.
+    export interface ElementChildrenAttribute {
+      children?: any;
+    }
   }
-}
-
-/**
- * Declares a JSX Qwik component.
- *
- * For lazy loading it is important that a top-level component does not have direct reference to
- * a child component. Doing so would pull in tho child component and prevent the child component
- * to be lazy loaded (it would be eagerly loaded with the parent.) For this reason the JSX needs
- * to contain boundaries which demarcate where the components are so that lazy loading can happen.
- *
- * ```
- * <div>
- *   parent component
- *   <child decl:template="./path_to_child_component_render_function" />
- * </div>
- * ```
- *
- * The `decl:template` attribute provides information to the rendering system how to descend to the
- * child component.
- *
- * Writing the above code would be cumbersome because the user of component would have to know
- * what the component QRL is. This would make it hard to change the URL in future refactorings.
- * It would also make it hard to guarantee type safety.
- *
- * For this reason `jsxDeclareComponent` provides a facade for the component host element.
- *
- * ```
- * export const Child = jsxDeclareComponent<HeaderProps>(
- *    QRL`path_to_render_function`,  // value of the '::' attribute
- *    'child'                        // Optional (defaults to 'div') name of the host element
- * );
- * ```
- *
- * With the above code it is now possible to rewrite the example in a more natural format.
- *
- * ```
- * <div>
- *   parent component
- *   <Child />
- * </div>
- * ```
- *
- * @param componentTemplateQrl - QRL pointing to the component's render function.
- * @param tagName - Host element tag name.
- * @param hostProps - Optional additional properties which should be included on the host element.
- * @returns
- * @public
- */
-export function jsxDeclareComponent<P>(
-  componentTemplateQrl: QRL,
-  tagName: string = 'div',
-  hostProps?: { [property: string]: string | QRL }
-) {
-  return function (props: P & any): JSXNode<string> {
-    return h(tagName, {
-      [AttributeMarker.ComponentTemplate]: componentTemplateQrl,
-      ...(hostProps as any),
-      ...props,
-    }) as any;
-  };
 }

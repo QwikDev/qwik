@@ -8,7 +8,7 @@
 
 import { flattenArray } from './array';
 
-export type PromiseTree<T> = T | Promise<T> | Array<PromiseTree<T>>;
+export type PromiseTree<T> = T | Promise<T> | Promise<T[]> | Array<PromiseTree<T>>;
 
 /**
  * Converts a tree of Promises into a flat array of resolved promise values.
@@ -28,6 +28,6 @@ export function flattenPromiseTree<T>(tree: PromiseTree<T>): Promise<T[]> {
   });
 }
 
-export function isPromise(value: any): value is Promise<unknown> {
+export function isPromise(value: any): value is Promise<any> {
   return value instanceof Promise;
 }

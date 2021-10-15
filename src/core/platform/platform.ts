@@ -1,7 +1,9 @@
+import { isDocument } from '../util/element';
 import type { CorePlatform } from './types';
 
 const createPlatform = (doc: Document): CorePlatform => {
   let queuePromise: Promise<any> | null;
+  let storePromise: Promise<any> | null;
 
   return {
     import: (url: string) => import(url),
@@ -22,6 +24,17 @@ const createPlatform = (doc: Document): CorePlatform => {
       }
       return queuePromise;
     },
+    queueStoreFlush: (flushStore) => {
+      if (!storePromise) {
+        storePromise = new Promise((resolve, reject) =>
+          doc.defaultView!.requestAnimationFrame(() => {
+            storePromise = null;
+            flushStore(doc).then(resolve, reject);
+          })
+        );
+      }
+      return storePromise;
+    },
   };
 };
 
@@ -34,9 +47,13 @@ export const setPlatform = (doc: Document, plt: CorePlatform) =>
 /**
  * @public
  */
-export const getPlatform = (doc: Document) =>
-  (doc as PlatformDocument)[DocumentPlatform] ||
-  ((doc as PlatformDocument)[DocumentPlatform] = createPlatform(doc));
+export const getPlatform = (docOrNode: Document | Node) => {
+  const doc = isDocument(docOrNode) ? docOrNode : docOrNode.ownerDocument!;
+  return (
+    (doc as PlatformDocument)[DocumentPlatform] ||
+    ((doc as PlatformDocument)[DocumentPlatform] = createPlatform(doc))
+  );
+};
 
 const DocumentPlatform = /*@__PURE__*/ Symbol();
 

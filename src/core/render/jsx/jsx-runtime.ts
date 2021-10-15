@@ -1,11 +1,6 @@
 import { EMPTY_ARRAY } from '../../util/flyweight';
-import type {
-  ComponentChild,
-  FunctionComponent,
-  JSXNode,
-  QwikDOMAttributes,
-  QwikJSX,
-} from './types';
+import type { ComponentChild, FunctionComponent, JSXNode } from './types/jsx-node';
+import type { QwikDOMAttributes, QwikJSX } from './types/jsx-qwik';
 import { qDev } from '../../util/qdev';
 
 /**
@@ -15,7 +10,7 @@ export function jsx(
   type: string | FunctionComponent,
   props: QwikDOMAttributes & Record<string, any> & { children?: ComponentChild[] | ComponentChild },
   key?: string
-) {
+): JSXNode {
   return new JSXNodeImpl(type, props, key);
 }
 
@@ -23,7 +18,7 @@ export class JSXNodeImpl<T> implements JSXNode<T> {
   children: any;
 
   constructor(public type: T, public props: any, public key: any) {
-    if (props && props.children) {
+    if (props && props.children !== undefined) {
       if (Array.isArray(props.children)) {
         this.children = props.children;
       } else {

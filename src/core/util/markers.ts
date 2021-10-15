@@ -8,36 +8,49 @@
 
 export const enum AttributeMarker {
   /**
-   * An `Element` marked with `:` contains an `Injector`.
+   * State factory of the component.
    */
-  Injector = ':',
+  OnMount = 'on:q-mount',
 
   /**
-   * Selector to be used to retrieve all of the injectors.
+   * State factory of the component.
    */
-  InjectorSelector = '[\\:]',
+  OnRender = 'on:q-render',
 
   /**
-   * An `Element` marked with `::` marks a component.
-   *
-   * The value of `::` points to a `QRL` of a template function for the component.
+   * State factory of the component.
    */
-  ComponentTemplate = 'decl:template',
+  OnRenderSelector = '[on\\:q\\-render]',
 
   /**
-   * Props used to declare entity.
+   * State factory of the component.
    */
-  Entity = 'decl:entity',
+  OnUnmount = 'on:q-unmount',
 
   /**
-   * Component state is serialized in `:.`.
+   * State factory of the component.
    */
-  ComponentState = ':.',
+  OnHydrate = 'on:q-hydrate',
 
   /**
-   * Selector to be used to retrieve all of the components
+   * State factory of the component.
    */
-  ComponentSelector = '[\\:\\:]',
+  OnDehydrate = 'on:q-dehydrate',
+
+  /**
+   * Component Styles.
+   */
+  ComponentStyles = 'q:style',
+
+  /**
+   * Component style host prefix
+   */
+  ComponentStylesPrefixHost = '📦',
+
+  /**
+   * Component style content prefix
+   */
+  ComponentStylesPrefixContent = '🏷️',
 
   /**
    * Prefix used to identify on listeners.
@@ -52,26 +65,27 @@ export const enum AttributeMarker {
   /**
    * Render event broadcast
    */
-  // TODO(this should be `on:$render` but domino incorrectly claims that is invalid char. Switch to jsdom?)
-  EventRender = 'on:q-render',
+  RenderNotify = 'on:q-render-notify',
 
   /**
    * Selector for all components marked with `EventRender`
    */
-  EventRenderSelector = '[on\\:q-render]',
+  RenderNotifySelector = '[on\\:q-render-notify]',
 
   /**
-   * Prefix used to identify on listeners.
+   * Tag name used for projection.
    */
-  BindPrefix = 'bind:',
+  QSlot = 'Q:SLOT',
+  QSlotSelector = 'Q\\:SLOT',
 
   /**
-   * Length of prefix used to identify on listeners.
+   * `<some-element q:slot="...">`
    */
-  BindPrefixLength = 5,
+  QSlotAttr = 'q:slot',
 
   /**
-   * Prefix to name for entity provider attributes.
+   * `<q:slot name="...">`
    */
-  EntityProviderPrefix = '::',
+  QSlotName = 'name',
+  QSlotInertName = '\u0000',
 }

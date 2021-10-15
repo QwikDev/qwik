@@ -6,13 +6,55 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-export * from './component/index';
-export * from './event/index';
-export * from './import/index';
-export * from './injector/index';
-export * from './render/index';
-export * from './render/jsx/index';
-export * from './entity/index';
-export * from './provider/index';
-export * from './platform/index';
-export { dirname } from './util/dirname';
+//////////////////////////////////////////////////////////////////////////////////////////
+// Developer Core API
+//////////////////////////////////////////////////////////////////////////////////////////
+export { PropsOf, qComponent, QComponent, StateOf } from './component/q-component.public';
+export { qHook, QHook } from './component/qrl-hook.public';
+//////////////////////////////////////////////////////////////////////////////////////////
+// Developer Event API
+//////////////////////////////////////////////////////////////////////////////////////////
+export { qBubble } from './event/q-bubble.public';
+export { PayloadOf, qEvent, QEvent } from './event/q-event.public';
+export { qDehydrate } from './object/q-store.public';
+//////////////////////////////////////////////////////////////////////////////////////////
+// Internal Runtime
+//////////////////////////////////////////////////////////////////////////////////////////
+export { QRL } from './import/qrl';
+export { qImport } from './import/qImport';
+export { qObject, QObject } from './object/q-object.public';
+export { qSubscribe } from './object/q-subscribe.public';
+export { qProps, QProps } from './props/q-props.public';
+export { qNotifyRender as notifyRender } from './render/q-notify-render';
+//////////////////////////////////////////////////////////////////////////////////////////
+// PLATFORM
+//////////////////////////////////////////////////////////////////////////////////////////
+export { getPlatform, setPlatform } from './platform/platform';
+export { CorePlatform } from './platform/types';
+//////////////////////////////////////////////////////////////////////////////////////////
+// JSX Support
+//////////////////////////////////////////////////////////////////////////////////////////
+export { Async, PromiseValue } from './render/jsx/async.public';
+//////////////////////////////////////////////////////////////////////////////////////////
+// JSX Runtime
+//////////////////////////////////////////////////////////////////////////////////////////
+export { h } from './render/jsx/factory';
+export { Host } from './render/jsx/host.public';
+export { Fragment, jsx, jsxDEV, jsxs } from './render/jsx/jsx-runtime';
+export { Slot } from './render/jsx/slot.public';
+export {
+  ComponentChild,
+  ComponentChildren,
+  FunctionComponent,
+  JSXFactory,
+  JSXNode,
+  RenderableProps,
+} from './render/jsx/types/jsx-node';
+export { QwikDOMAttributes, QwikJSX } from './render/jsx/types/jsx-qwik';
+export type { QwikIntrinsicElements } from './render/jsx/types/jsx-qwik-elements';
+export { qRender } from './render/q-render.public';
+export { useEvent, useHostElement, useURL } from './use/use-core.public';
+//////////////////////////////////////////////////////////////////////////////////////////
+// Developer Low-Level API
+//////////////////////////////////////////////////////////////////////////////////////////
+export { ValueOrPromise } from './util/types';

@@ -18,3 +18,4 @@ integration/**/*.cjs
 integration/**/*.map
 cypress/screenshots
 cypress/videos
+cypress/fixtures/

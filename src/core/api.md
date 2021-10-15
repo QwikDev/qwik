@@ -5,18 +5,18 @@
 ```ts
 
 // @public
-export class Component<PROPS, STATE> {
-    $host: Element;
-    $init(): Promise<void> | void;
-    // (undocumented)
-    static $new<COMP extends Component<any, any>>(this: {
-        new (...args: any[]): COMP;
-    }, hostElement: Element): Promise<COMP>;
-    $newState(props: PROPS): Promise<STATE> | STATE;
-    $props: PROPS;
-    $state: STATE;
-    constructor(hostElement: Element, props: PROPS, state: STATE | null);
-}
+export function Async<T>(props: {
+    resolve: ValueOrPromise<T>;
+    children: (observablePromise: PromiseValue<T>) => any;
+}): any;
+
+// @public (undocumented)
+export function Async<T>(props: {
+    resolve: ValueOrPromise<T>;
+    onPending?: () => any;
+    onResolved: (value: T) => any;
+    onError?: (error: any) => any;
+}): any;
 
 // @public (undocumented)
 export type ComponentChild = JSXNode<any> | object | string | number | bigint | boolean | null | undefined;
@@ -24,157 +24,12 @@ export type ComponentChild = JSXNode<any> | object | string | number | bigint | 
 // @public (undocumented)
 export type ComponentChildren = ComponentChild[] | ComponentChild;
 
-// @public
-export interface ComponentConstructor<COMP extends Component<any, any>> {
-    // (undocumented)
-    new (hostElement: Element, props: ComponentPropsOf<COMP>, state: ComponentStateOf<COMP> | null): COMP;
-}
-
-// @public
-export type ComponentPropsOf<SERVICE extends Component<any, any>> = SERVICE extends Component<infer PROPS, any> ? PROPS : never;
-
-// @public
-export type ComponentStateOf<SERVICE extends Component<any, any>> = SERVICE extends Component<any, infer STATE> ? STATE : never;
-
-// @public
-export interface ConcreteType<T, ARGS extends any[] = [...any]> extends Function {
-    // (undocumented)
-    new (...args: ARGS): T;
-}
-
 // @public (undocumented)
 export interface CorePlatform {
     import: (url: string) => Promise<any>;
     queueRender: (renderMarked: (doc: Document) => Promise<any>) => Promise<any>;
+    queueStoreFlush: (flushStore: (doc: Document) => Promise<any>) => Promise<any>;
     toPath: (url: URL) => string;
-}
-
-// @public
-export function dirname(path: string): string;
-
-// Warning: (ae-forgotten-export) The symbol "BaseInjector" needs to be exported by the entry point index.d.ts
-//
-// @public (undocumented)
-export class ElementInjector extends BaseInjector {
-    // (undocumented)
-    getComponent<COMP extends Component<any, any>>(componentType: ComponentConstructor<COMP>): Promise<COMP>;
-    // (undocumented)
-    getEntity<SERVICE extends Entity<any, any>>(entityKey: EntityKey<SERVICE>, forceState?: EntityStateOf<SERVICE>, entityType?: EntityConstructor<SERVICE>): EntityPromise<SERVICE>;
-    // (undocumented)
-    getEntityState<SERVICE extends Entity<any, any>>(entityKey: EntityPropsOf<SERVICE> | EntityKey): Promise<EntityStateOf<SERVICE>>;
-    // (undocumented)
-    getParent(): Injector | null;
-    // (undocumented)
-    releaseEntity(key: EntityKey): void;
-    // (undocumented)
-    serialize(): void;
-}
-
-// @public
-export function emitEvent(element: HTMLElement, event: Event, url: URL): Promise<any>;
-
-// @public
-export class Entity<PROPS, STATE> {
-    static $attachEntity<SERVICE extends Entity<any, any>>(this: {
-        new (...args: any[]): SERVICE;
-    }, element: Element): void;
-    static $attachEntityState<SERVICE extends Entity<any, any>>(this: {
-        new (...args: any[]): SERVICE;
-    }, host: Element, propsOrKey: EntityPropsOf<SERVICE> | EntityKey, state: EntityStateOf<SERVICE> | null): void;
-    // (undocumented)
-    readonly $element: Element;
-    static $hydrate<SERVICE extends Entity<any, any>>(this: {
-        new (...args: any[]): SERVICE;
-    }, element: Element, propsOrKey: EntityPropsOf<SERVICE> | EntityKey, state?: EntityStateOf<SERVICE>): EntityPromise<SERVICE>;
-    $init(): Promise<void>;
-    $invokeQRL<ARGS extends any[], RET>(qrl: QRL<(...args: ARGS) => RET>, ...args: ARGS): Promise<RET>;
-    // (undocumented)
-    readonly $key: EntityKey<any>;
-    static $keyProps: string[];
-    static $keyToProps<SERVICE extends Entity<any, any>>(this: {
-        new (...args: any[]): SERVICE;
-    }, key: EntityKey): EntityPropsOf<SERVICE>;
-    $newState(keyProps: PROPS): Promise<STATE>;
-    // (undocumented)
-    readonly $props: PROPS;
-    static $propsToKey<SERVICE extends Entity<any, any>>(this: {
-        new (...args: any[]): SERVICE;
-    }, props: EntityPropsOf<SERVICE>): EntityKey;
-    static $qrl: QRL;
-    $release(): void;
-    // (undocumented)
-    readonly $state: STATE;
-    static $type: string;
-    constructor(element: Element, props: PROPS, state: STATE | null);
-}
-
-// @public
-export interface EntityConstructor<SERVICE extends Entity<any, any> = any> {
-    $attachEntity<SERVICE extends Entity<any, any>>(this: {
-        new (...args: any[]): SERVICE;
-    }, element: Element): void;
-    $attachEntityState<SERVICE extends Entity<any, any>>(this: {
-        new (...args: any[]): SERVICE;
-    }, host: Element, propsOrKey: EntityPropsOf<SERVICE> | EntityKey, state: EntityStateOf<SERVICE> | null): void;
-    $hydrate<SERVICE extends Entity<any, any>>(this: {
-        new (...args: any[]): SERVICE;
-    }, element: Element, propsOrKey: EntityPropsOf<SERVICE> | EntityKey, state?: EntityStateOf<SERVICE>): EntityPromise<SERVICE>;
-    readonly $keyProps: string[];
-    $keyToProps<SERVICE extends Entity<any, any>>(this: {
-        new (...args: any[]): SERVICE;
-    }, key: EntityKey<SERVICE>): EntityPropsOf<SERVICE>;
-    $propsToKey<SERVICE extends Entity<any, any>>(this: {
-        new (...args: any[]): SERVICE;
-    }, props: EntityPropsOf<SERVICE>): EntityKey;
-    readonly $qrl: QRL;
-    readonly $type: string;
-    // (undocumented)
-    new (hostElement: Element, props: any, // TODO: should be: EntityPropsOf<SERVICE>,
-    state: any): SERVICE;
-}
-
-// @public
-export interface EntityKey<SERVICE = Entity<any, any>> {
-    // (undocumented)
-    __brand__: SERVICE;
-}
-
-// @public
-export interface EntityPromise<SERVICE extends Entity<any, any>> extends Promise<SERVICE> {
-    $key: EntityKey<SERVICE>;
-}
-
-// @public
-export type EntityPropsOf<SERVICE extends Entity<any, any>> = SERVICE extends Entity<infer PROPS, any> ? PROPS : never;
-
-// @public
-export function entityStateKey<SERVICE extends Entity<any, any>>(value: SERVICE | EntityStateOf<SERVICE>): EntityKey<SERVICE>;
-
-// @public
-export type EntityStateOf<SERVICE extends Entity<any, any>> = SERVICE extends Entity<any, infer STATE> ? STATE : never;
-
-// @public
-export class EventEntity extends Entity<any, any> {
-    // (undocumented)
-    static $props: string[];
-    // (undocumented)
-    static $qrl: QRL;
-    // (undocumented)
-    static $type: string;
-    constructor(element: Element, event: Event, url: URL, props: Props);
-    event: Event;
-    // (undocumented)
-    static KEY: EntityKey<EventEntity>;
-    props: Props;
-    url: URL;
-}
-
-// @public (undocumented)
-export interface EventHandler<SELF, ARGS extends any[], RET> {
-    // (undocumented)
-    $delegate: InjectedFunction<SELF, ARGS, [], RET>;
-    // (undocumented)
-    (element: HTMLElement, event: Event, url: URL): Promise<RET>;
 }
 
 // @public (undocumented)
@@ -186,19 +41,11 @@ export interface FunctionComponent<P = {}> {
     (props: RenderableProps<P>): JSXNode<any> | null;
 }
 
-// @public
-export function getInjector(element: Element): Injector;
+// @public (undocumented)
+export const getPlatform: (docOrNode: Document | Node) => CorePlatform;
 
 // @public (undocumented)
-export function getInjector(element: Element, create: false): Injector | null;
-
-// @public (undocumented)
-export const getPlatform: (doc: Document) => CorePlatform;
-
-// Warning: (ae-forgotten-export) The symbol "JSXNodeImpl" needs to be exported by the entry point index.d.ts
-//
-// @public (undocumented)
-export function h(type: string | FunctionComponent, props: any, ...children: any[]): JSXNodeImpl<string | FunctionComponent<{}>>;
+export function h<PROPS extends {} = {}>(type: string | FunctionComponent<PROPS>, props: PROPS | null, ...children: any[]): JSXNode;
 
 // @public (undocumented)
 export namespace h {
@@ -222,6 +69,11 @@ export namespace h {
         export interface Element extends QwikJSX.Element {
         }
         // (undocumented)
+        export interface ElementChildrenAttribute {
+            // (undocumented)
+            children?: any;
+        }
+        // (undocumented)
         export interface IntrinsicAttributes extends QwikJSX.IntrinsicAttributes {
         }
         // (undocumented)
@@ -233,55 +85,10 @@ export namespace h {
 // @public
 export const Host: FunctionComponent<Record<string, any>>;
 
-// @public
-export type HostElements = Element[];
-
-// @public
-export interface InjectedFunction<SELF, ARGS extends any[], REST extends any[], RET> {
-    $debugStack?: Error;
-    $inject: Providers<ARGS>;
-    $thisType: ConcreteType<SELF> | null;
-    (this: SELF, ...args: [...ARGS, ...REST]): RET;
-}
-
-// @public
-export function injectEventHandler<SELF, ARGS extends any[], RET>(...args: [
-    {
-        new (hostElement: Element, props: any, state: any): SELF;
-    } | null,
-    ...ARGS,
-    (this: SELF, ...args: [...ProviderReturns<ARGS>]) => RET
-]): EventHandler<SELF, ARGS, RET>;
-
-// @public
-export function injectFunction<ARGS extends any[], REST extends any[], RET>(...args: [...ARGS, (...args: [...ProviderReturns<ARGS>, ...REST]) => RET]): InjectedFunction<null, ARGS, REST, RET>;
-
-// @public
-export function injectMethod<SELF, ARGS extends any[], REST extends any[], RET>(...args: [
-    ConcreteType<SELF>,
-    ...ARGS,
-    (this: SELF, ...args: [...ProviderReturns<ARGS>, ...REST]) => RET
-]): InjectedFunction<SELF, ARGS, REST, RET>;
-
-// @public
-export interface Injector {
-    readonly element: Element;
-    elementProps: Props;
-    getComponent<COMP extends Component<any, any>>(componentType: ComponentConstructor<COMP>): Promise<COMP>;
-    getEntity<SERVICE extends Entity<any, any>>(entityKey: EntityKey<SERVICE>, state?: EntityStateOf<SERVICE>, entityType?: EntityConstructor<SERVICE>): EntityPromise<SERVICE>;
-    getEntityState<SERVICE extends Entity<any, any>>(propsOrKey: EntityPropsOf<SERVICE> | EntityKey<SERVICE>): Promise<EntityStateOf<SERVICE>>;
-    getParent(): Injector | null;
-    invoke<SELF, PROVIDERS extends any[], REST extends any[], RET>(fn: InjectedFunction<SELF, PROVIDERS, REST, RET>, self?: SELF | null, ...rest: REST): Promise<RET>;
-    releaseEntity(key: EntityKey): void;
-    serialize(): void;
-}
-
-// Warning: (ae-forgotten-export) The symbol "QwikDOMAttributes" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
 function jsx(type: string | FunctionComponent, props: QwikDOMAttributes & Record<string, any> & {
     children?: ComponentChild[] | ComponentChild;
-}, key?: string): JSXNodeImpl<string | FunctionComponent<{}>>;
+}, key?: string): JSXNode;
 
 export { jsx }
 
@@ -289,91 +96,157 @@ export { jsx as jsxDEV }
 
 export { jsx as jsxs }
 
-// @public
-export function jsxDeclareComponent<P>(componentTemplateQrl: QRL, tagName?: string, hostProps?: {
-    [property: string]: string | QRL;
-}): (props: P & any) => JSXNode<string>;
+// @public (undocumented)
+export type JSXFactory<PROPS extends {} = any> = (props: PROPS, state?: any) => JSXNode<unknown>;
 
 // @public (undocumented)
-export type JSXFactory = (props: {
-    [key: string]: any;
-}) => JSXNode<unknown>;
-
-// @public (undocumented)
-export interface JSXNode<T extends string | null | JSXFactory | unknown> {
+export interface JSXNode<T extends string | null | JSXFactory | unknown = unknown> {
     // (undocumented)
     children: ComponentChild[];
     // (undocumented)
     key: string | number | any;
     // (undocumented)
-    props: Props;
+    props: Record<string, any>;
     // (undocumented)
     type: T;
 }
 
 // @public
-export function jsxRender(host: Element | Document, jsxNode: JSXNode<unknown>): Promise<HostElements>;
+export function notifyRender(hostElement: Element): Promise<void>;
+
+// @public (undocumented)
+export type PayloadOf<QEVENT extends QEvent> = QEVENT extends QEvent<infer PAYLOAD> ? PAYLOAD : never;
 
 // @public
-export function markDirty(componentEntityOrElement: Component<any, any> | Entity<any, any> | Element): Promise<HostElements>;
+export type PromiseValue<T> = {
+    readonly isPending: true;
+    readonly isResolved: false;
+    readonly isRejected: false;
+    readonly value: undefined;
+    readonly rejection: undefined;
+} | {
+    readonly isPending: false;
+    readonly isResolved: true;
+    readonly isRejected: false;
+    readonly value: T;
+    readonly rejection: undefined;
+} | {
+    readonly isPending: false;
+    readonly isResolved: false;
+    readonly isRejected: true;
+    readonly value: undefined;
+    readonly rejection: any;
+};
 
 // @public
-export interface Props {
+export type PropsOf<ENTITY extends QComponent> = ENTITY extends QComponent<infer PROPS> ? PROPS : never;
+
+// @public (undocumented)
+export function qBubble<PAYLOAD>(qEvent: string, payload: PAYLOAD): void;
+
+// @public (undocumented)
+export function qBubble<QEVENT extends QEvent>(qEvent: QEVENT, payload: PayloadOf<QEVENT>): void;
+
+// Warning: (ae-forgotten-export) The symbol "HTMLAttributes" needs to be exported by the entry point index.d.ts
+//
+// @public
+export interface QComponent<PROPS extends {} = any, STATE extends {} = any> extends FunctionComponent<PROPS & HTMLAttributes<HTMLElement>> {
     // (undocumented)
-    [key: string]: string;
+    __brand__: 'QComponent';
+    // (undocumented)
+    __type_PROPS__: PROPS;
+    // (undocumented)
+    __type_STATE__: STATE;
+    // (undocumented)
+    onDehydrate: QHook<PROPS, STATE, undefined, void> | null;
+    // (undocumented)
+    onHydrate: QHook<PROPS, STATE, undefined, void> | null;
+    // (undocumented)
+    onMount: QHook<PROPS, undefined, undefined, STATE> | null;
+    // (undocumented)
+    onRender: QHook<PROPS, STATE, undefined, any>;
+    // (undocumented)
+    onResume: QHook<PROPS, STATE, undefined, void> | null;
+    // (undocumented)
+    onUnmount: QHook<PROPS, STATE, undefined, void> | null;
+    // (undocumented)
+    props: Record<string, any>;
+    // (undocumented)
+    styleClass: string | null;
+    // (undocumented)
+    styleHostClass: string | null;
+    // Warning: (ae-forgotten-export) The symbol "QrlStyles" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    styles: QrlStyles<any> | null;
+    // (undocumented)
+    tag: string;
 }
 
 // @public
-export function provideComponentProp(name: string): Provider<string>;
-
-// @public
-export function provideComponentProps<T>(): Provider<T>;
-
-// @public
-export function provideComponentState<S>(throwIfNotFound: false): Provider<S | undefined>;
+export function qComponent<PROPS = {}, STATE = {}>({ onRender, styles, tagName, props, onResume, onMount, onUnmount, onHydrate, onDehydrate, }: {
+    onRender: QHook<PROPS, STATE, undefined, any>;
+    tagName?: string;
+    onMount?: QHook<PROPS, undefined, undefined, STATE>;
+    onUnmount?: QHook<PROPS, STATE, undefined, void> | null;
+    onDehydrate?: QHook<PROPS, STATE, undefined, void> | null;
+    onHydrate?: QHook<PROPS, STATE, undefined, void> | null;
+    onResume?: QHook<PROPS, STATE, undefined, void> | null;
+    styles?: QrlStyles<any>;
+    props?: PROPS;
+}): QComponent<PROPS, STATE>;
 
 // @public (undocumented)
-export function provideComponentState<S>(throwIfNotFound?: boolean): Provider<S>;
+export function qDehydrate(document: Document): void;
 
-// @public
-export function provideElement(): Provider<Element>;
+// @public (undocumented)
+export interface QEvent<PAYLOAD extends {} = {}> {
+    // (undocumented)
+    <HOOK extends QHook<any, any, any, any>>(qrl: HOOK): Record<string, HOOK>;
+    // (undocumented)
+    __type_brand__: 'QEvent';
+    // (undocumented)
+    __type_payload__: PAYLOAD;
+    // (undocumented)
+    type: string;
+}
 
-// @public
-export function provideEntity<SERVICE extends Entity<any, any>>(id: EntityKey<SERVICE> | Provider<EntityKey<SERVICE>>): Provider<SERVICE>;
+// @public (undocumented)
+export function qEvent<PAYLOAD extends {} = {}>(type: string): QEvent<PAYLOAD>;
 
-// @public
-export function provideEntityState<SERVICE extends Entity<any, any>>(id: EntityKey<SERVICE> | Provider<EntityKey<SERVICE>>): Provider<EntityStateOf<SERVICE>>;
+// @public (undocumented)
+export interface QHook<PROPS extends {}, STATE extends {} | undefined | unknown = undefined, ARGS extends {} | undefined | unknown = undefined, RET = unknown> extends QRL<(props: PROPS, state: STATE, args: ARGS) => ValueOrPromise<RET>> {
+    // (undocumented)
+    __brand__: 'QHook';
+    // (undocumented)
+    with(args: ARGS): QHook<PROPS, STATE, ARGS, RET>;
+}
 
-// @public
-export function provideEvent(): Provider<Event>;
+// @public (undocumented)
+export function qHook<PROPS extends {}, STATE extends {} | undefined | unknown, ARGS extends {} | undefined | unknown, RET>(hook: (props: PROPS, state: STATE, args: ARGS) => ValueOrPromise<RET>): QHook<PROPS, STATE, ARGS, RET>;
 
-// @public
-export function provideInjector(): Provider<Injector>;
-
-// @public
-export function provideProviderOf<T>(provider: Provider<T>): Provider<() => Promise<T>>;
-
-// @public
-export function provideQrlExp<T>(parameterName: string): Provider<T>;
-
-// @public
-export type Provider<T> = (injector: Injector) => T | Promise<T>;
-
-// @public
-export type ProviderReturns<ARGS extends any[]> = {
-    [K in keyof ARGS]: ARGS[K] extends Provider<infer U> ? U : never;
-};
-
-// @public
-export type Providers<ARGS extends any[]> = {
-    [K in keyof ARGS]: Provider<ARGS[K]>;
-};
-
-// @public
-export function provideUrlProp(parameterName: string): Provider<string | null>;
+// @public (undocumented)
+export function qHook<COMP extends QComponent, ARGS extends {} | unknown = unknown, RET = unknown>(hook: (props: PropsOf<COMP>, state: StateOf<COMP>, args: ARGS) => ValueOrPromise<RET>): QHook<PropsOf<COMP>, StateOf<COMP>, any, RET>;
 
 // @public
 export function qImport<T>(node: Node | Document, url: string | QRL<T> | URL): T | Promise<T>;
+
+// @public (undocumented)
+export type QObject<T extends {}> = T & {
+    __brand__: 'QObject';
+};
+
+// @public (undocumented)
+export function qObject<T>(obj: T): QObject<T>;
+
+// @public (undocumented)
+export type QProps<T extends {} = {}> = Record<string, any> & T;
+
+// @public (undocumented)
+export function qProps<T>(element: Element): QProps<T>;
+
+// @public
+export function qRender(parent: Element | Document, jsxNode: JSXNode<unknown>): Promise<HTMLElement[]>;
 
 // @public
 export function QRL<T = any>(messageParts: TemplateStringsArray, ...expressions: readonly any[]): QRL<T>;
@@ -381,9 +254,33 @@ export function QRL<T = any>(messageParts: TemplateStringsArray, ...expressions:
 // @public
 export interface QRL<T = any> {
     // (undocumented)
-    __brand__: 'QRL';
+    __brand__: 'QRL' | 'QHook';
     // (undocumented)
     __brand__T__: T;
+}
+
+// @public (undocumented)
+export function qSubscribe<T extends QObject<any>>(qObject: T, ...rest: QObject<any>[]): T;
+
+// Warning: (ae-forgotten-export) The symbol "DOMAttributes" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export interface QwikDOMAttributes extends DOMAttributes<any> {
+}
+
+// Warning: (ae-forgotten-export) The symbol "IntrinsicElements" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export interface QwikIntrinsicElements extends IntrinsicElements {
+    // Warning: (ae-forgotten-export) The symbol "QwikCustomHTMLAttributes" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "QwikCustomHTMLElement" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    [key: string]: QwikCustomHTMLAttributes<QwikCustomHTMLElement>;
+    // Warning: (ae-forgotten-export) The symbol "QwikScriptHTMLAttributes" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    script: QwikScriptHTMLAttributes<HTMLScriptElement>;
 }
 
 // @public (undocumented)
@@ -396,8 +293,6 @@ export namespace QwikJSX {
         // (undocumented)
         [key: string]: any;
     }
-    // Warning: (ae-forgotten-export) The symbol "QwikIntrinsicElements" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
     export interface IntrinsicElements extends QwikIntrinsicElements {
     }
@@ -411,8 +306,34 @@ export type RenderableProps<P, RefType = any> = P & Readonly<{
 // @public (undocumented)
 export const setPlatform: (doc: Document, plt: CorePlatform) => CorePlatform;
 
+// @public (undocumented)
+export const Slot: FunctionComponent<HTMLAttributes<{
+    name?: string;
+}>>;
+
 // @public
-export function toEntityKey<SERVICE extends Entity<any, any>>(key: string): EntityKey<SERVICE>;
+export type StateOf<ENTITY extends QComponent> = ENTITY extends QComponent<any, infer STATE> ? STATE : never;
+
+// @public (undocumented)
+export function useEvent(): Event;
+
+// @public (undocumented)
+export function useEvent<EVENT extends {}>(): EVENT;
+
+// @public (undocumented)
+export function useEvent<EVENT extends QEvent>(qEvent: EVENT): PayloadOf<EVENT>;
+
+// @public (undocumented)
+export function useEvent<EVENT extends {}>(expectEventType?: QEvent | string): EVENT;
+
+// @public (undocumented)
+export function useHostElement(): Element;
+
+// @public (undocumented)
+export function useURL(): URL;
+
+// @public
+export type ValueOrPromise<T> = T | Promise<T>;
 
 
 // (No @packageDocumentation comment for this package)

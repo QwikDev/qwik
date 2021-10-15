@@ -1,4 +1,6 @@
-## Component
+[![hackmd-github-sync-badge](https://hackmd.io/Ge5Y6es0TbmFAEROhnhLkQ/badge)](https://hackmd.io/Ge5Y6es0TbmFAEROhnhLkQ)
+
+# Component
 
 Components are the basic building blocks of Qwik applications. Qwik asks you to breaks up the component into three parts:
 

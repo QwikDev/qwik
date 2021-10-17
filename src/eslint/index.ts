@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  * @license
  * Copyright Builder.io, Inc. All Rights Reserved.
@@ -24,7 +25,7 @@ const noClosedOverVariables: Rule.RuleModule = {
     const manager = sourceCode.scopeManager;
     const qHookName = 'qHook';
     const qComponentName = 'qComponent';
-    // linked list for all qHooks visible inside qComponent only (qHooks declared outside qComponent are not stored)
+    // store for all qHooks visible inside qComponent only (qHooks declared outside qComponent are not stored)
     const qHookStore = new Map<
       number,
       {
@@ -40,12 +41,22 @@ const noClosedOverVariables: Rule.RuleModule = {
       });
     }
 
+    function isCallExpressionName(node: Rule.Node, name: string) {
+      const callee = (node as ESTree.CallExpression).callee;
+      return (
+        // example: import {qHook} from '@builder.io/qwik'; qHook();
+        (callee as ESTree.Identifier)?.name === name ||
+        // example: import * as qwik from '@builder.io/qwik'; qwik.qHook(); qwik['qHook']();
+        ((callee as ESTree.MemberExpression)?.property as ESTree.Identifier)?.name === name
+      );
+    }
+
     function isQHook(node: Rule.Node) {
-      return ((node as ESTree.CallExpression).callee as ESTree.Identifier)?.name === qHookName;
+      return isCallExpressionName(node, qHookName);
     }
 
     function isQComponent(node: Rule.Node) {
-      return ((node as ESTree.CallExpression).callee as ESTree.Identifier)?.name === qComponentName;
+      return isCallExpressionName(node, qComponentName);
     }
 
     function walkToFirstQHook(node: Rule.Node): ESTree.Identifier | null {
@@ -82,28 +93,26 @@ const noClosedOverVariables: Rule.RuleModule = {
         | (ESTree.FunctionExpression & Rule.NodeParentExtension)
         | (ESTree.ArrowFunctionExpression & Rule.NodeParentExtension)
     ) {
-      if (isQHook(node.parent)) {
-        // is qHook inside qComponent?
-        const scopeRecord = qHookStore.get(getNodeId(node.parent));
-        // is qHook inside parent one?
-        if (scopeRecord && scopeRecord.parentNode) {
-          const parentScopeRecord = qHookStore.get(getNodeId(scopeRecord.parentNode));
-          // get node Scope (FunctionScope in this case) in order to get all scoped variables
-          const queue = [manager.acquire(node)];
-          let scope = null;
-          // get all FunctionScope variable references and find whether it wasn't declared in parent FunctionScope which is forbidden
-          while ((scope = queue.pop())) {
-            queue.push(...scope.childScopes);
-            for (const ref of scope.references) {
-              const scopeVariableRef = ref.resolved;
-              if (scopeVariableRef) {
-                // variable declared in parent FunctionScope, error is fired
-                if (
-                  parentScopeRecord!.variables.has(scopeVariableRef.name) &&
-                  !scopeRecord.variables.has(scopeVariableRef.name)
-                ) {
-                  report(ref.identifier, scopeVariableRef.name);
-                }
+      // is node qHook and is qHook inside qComponent?
+      const scopeRecord = qHookStore.get(getNodeId(node.parent));
+      // is qHook inside parent qHook?
+      if (scopeRecord && scopeRecord.parentNode) {
+        const parentScopeRecord = qHookStore.get(getNodeId(scopeRecord.parentNode));
+        // get node Scope (FunctionScope in this case) in order to get all scoped variables
+        const queue = [manager.acquire(node)];
+        let scope = null;
+        // get all FunctionScope variable references and find whether it wasn't declared in parent FunctionScope which is forbidden
+        while ((scope = queue.pop())) {
+          queue.push(...scope.childScopes);
+          for (const ref of scope.references) {
+            const scopeVariableRef = ref.resolved;
+            if (scopeVariableRef) {
+              // variable declared in parent FunctionScope, error is fired
+              if (
+                parentScopeRecord!.variables.has(scopeVariableRef.name) &&
+                !scopeRecord.variables.has(scopeVariableRef.name)
+              ) {
+                report(ref.identifier, scopeVariableRef.name);
               }
             }
           }
@@ -114,13 +123,13 @@ const noClosedOverVariables: Rule.RuleModule = {
     return {
       CallExpression(node) {
         if (isQHook(node)) {
-          const qComponent = isInsideQComponent(node);
-          if (qComponent) {
-            const fnNode = node.arguments[0];
-            if (fnNode) {
+          if (isInsideQComponent(node)) {
+            // the first argument is either ArrowFunctionExpression or FunctionExpression
+            const fnExpression = node.arguments[0];
+            if (fnExpression) {
               // flatten qHook references in order to easily access scoped variables & parentNode in reporting
               qHookStore.set(getNodeId(node), {
-                variables: flattenScopeVariables(fnNode),
+                variables: flattenScopeVariables(fnExpression),
                 parentNode: walkToFirstQHook(node.parent),
               });
             }

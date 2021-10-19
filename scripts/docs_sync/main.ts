@@ -31,13 +31,14 @@ async function scanForDocDirective(dir: string, file: string, lines: string[]) {
   while (row < lines.length) {
     const line = lines[row++];
     output.push(line);
-    const match = /^(\s*)\/\/ <docs markdown="(.*)">/.exec(line);
+    const match = /^(\s*)\/\/ <docs markdown="(.*)#(.*)">/.exec(line);
     if (match) {
       const prefix = match[1];
       const ref = match[2];
+      const section = match[3];
       output.push(prefix + `// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit ${ref} instead)`);
       output.push(prefix + '/**');
-      (await resolveComment(dir, ref)).forEach((longLine) =>
+      (await resolveComment(dir, ref, section)).forEach((longLine) =>
         breakLongLine(longLine).forEach((line) => output.push(prefix + ' * ' + line))
       );
       output.push(prefix + ' */');
@@ -66,8 +67,8 @@ function isComment(line: string) {
   return line.startsWith('//') || line.startsWith('/**') || line.startsWith('*');
 }
 
-async function resolveComment(dir: string, ref: string): Promise<string[]> {
-  const lines = await readFileLines(join(dir, ref));
+async function resolveComment(dir: string, ref: string, section: string): Promise<string[]> {
+  const lines = await readFileSection(join(dir, ref), section);
   let row = 0;
   let output: string[] = [];
   while (row < lines.length) {
@@ -88,6 +89,31 @@ async function readFileLines(file: string): Promise<string[]> {
   return new Promise((res, rej) =>
     readFile(file, (err, data) => (err ? rej(err) : res(String(data).split('\n'))))
   );
+}
+
+async function readFileSection(file: string, section: string) {
+  const lines = await readFileLines(file);
+  let sectionStart = '# `' + section + '`';
+  let row = 0;
+  let output: string[] = [];
+  let inSection = false;
+  while (row < lines.length) {
+    const line = lines[row++];
+    if (line === sectionStart) {
+      inSection = true;
+    } else if (line.startsWith('# ')) {
+      inSection = false;
+    } else if (inSection) {
+      output.push(line);
+    }
+  }
+  while (output.length && output[0] == '') {
+    output.shift();
+  }
+  while (output.length && output[output.length - 1] == '') {
+    output.pop();
+  }
+  return output;
 }
 
 async function writeFileLines(file: string, lines: string[]) {

@@ -5,7 +5,7 @@ import { AttributeMarker } from '../util/markers';
 import type { QHook } from './qrl-hook.public';
 import { QrlStyles, styleContent, styleHost } from './qrl-styles';
 
-// <docs markdown="./q-component.md">
+// <docs markdown="./q-component.md#qComponent">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit ./q-component.md instead)
 /**
  * Create a Qwik component that can be used in JSX.
@@ -64,7 +64,6 @@ import { QrlStyles, styleContent, styleHost } from './qrl-styles';
  * ```
  *
  * @public
- *
  */
 // </docs>
 export function qComponent<PROPS = {}, STATE = {}>({
@@ -78,8 +77,8 @@ export function qComponent<PROPS = {}, STATE = {}>({
   onHydrate,
   onDehydrate,
 }: {
-  // <docs markdown="./q-component_on-render.md">
-  // !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit ./q-component_on-render.md instead)
+  // <docs markdown="./q-component.md#qComponent.onRender">
+  // !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit ./q-component.md instead)
   /**
    * A lazy-loadable `QHook` reference to a component's render hook.
    *
@@ -92,13 +91,12 @@ export function qComponent<PROPS = {}, STATE = {}>({
    *   onRender: qHook((props) => <div>{props.name}</div>),
    * });
    * ```
-   *
    */
   // </docs>
   onRender: QHook<PROPS, STATE, undefined, any>;
 
-  // <docs markdown="./q-component_tag-name.md">
-  // !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit ./q-component_tag-name.md instead)
+  // <docs markdown="./q-component.md#qComponent.tagName">
+  // !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit ./q-component.md instead)
   /**
    * HTML tag to be used for the component's host-element (defaults to `div`.)
    *
@@ -117,13 +115,12 @@ export function qComponent<PROPS = {}, STATE = {}>({
    * ```html
    * <my-component on:q-render="..." on:q-init="..." ...></my-component>
    * ```
-   *
    */
   // </docs>
   tagName?: string;
 
-  // <docs markdown="./q-component_on-mount.md">
-  // !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit ./q-component_on-mount.md instead)
+  // <docs markdown="./q-component.md#qComponent.onMount">
+  // !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit ./q-component.md instead)
   /**
    * A lazy-loadable `QHook` reference to a component's initialization hook.
    *
@@ -150,73 +147,67 @@ export function qComponent<PROPS = {}, STATE = {}>({
    *   onRender: qHook((props, state) => <div>{state.count}</div>),
    * });
    * ```
-   *
    */
   // </docs>
   onMount?: QHook<PROPS, undefined, undefined, STATE>;
 
-  // <docs markdown="./q-component_on-unmount.md">
-  // !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit ./q-component_on-unmount.md instead)
+  // <docs markdown="./q-component.md#qComponent.onUnmount">
+  // !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit ./q-component.md instead)
   /**
    * A lazy-loadable `QHook` reference to a component's destroy hook.
    *
    * Invoked when the component is destroyed (removed from render tree).
-   *
    */
   // </docs>
   onUnmount?: QHook<PROPS, STATE, undefined, void> | null;
 
-  // <docs markdown="./q-component_on-dehydrate.md">
-  // !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit ./q-component_on-dehydrate.md instead)
+  // <docs markdown="./q-component.md#qComponent.onDehydrate">
+  // !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit ./q-component.md instead)
   /**
    * A lazy-loadable `QHook` reference to a component's on dehydrate hook.
    *
    * Invoked when the component's state is being serialized (dehydrated) into the DOM. This allows
    * the component to do last-minute clean-up before its state is serialized.
-   *
    */
   // </docs>
   onDehydrate?: QHook<PROPS, STATE, undefined, void> | null;
 
-  // <docs markdown="./q-component_on-hydrate.md">
-  // !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit ./q-component_on-hydrate.md instead)
+  // <docs markdown="./q-component.md#qComponent.onHydrate">
+  // !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit ./q-component.md instead)
   /**
    * A lazy-loadable `QHook` reference to a component's on hydrate hook.
    *
    * Invoked when the component's state is re-hydrated from serialization. This allows the
    * component to do any work to re-activate itself.
-   *
    */
   // </docs>
   onHydrate?: QHook<PROPS, STATE, undefined, void> | null;
 
-  // <docs markdown="./q-component_on-resume.md">
-  // !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit ./q-component_on-resume.md instead)
+  // <docs markdown="./q-component.md#qComponent.onResume">
+  // !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit ./q-component.md instead)
   /**
    * A lazy-loadable `QHook` reference to a component's on resume hook.
    *
    * The hook is eagerly invoked when the application resumes on the client. Because it is called
    * eagerly, this allows the component to hydrate even if no user interaction has taken place.
-   *
    */
   // </docs>
   onResume?: QHook<PROPS, STATE, undefined, void> | null;
 
-  // <docs markdown="./q-component_styles.md">
-  // !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit ./q-component_styles.md instead)
+  // <docs markdown="./q-component.md#qComponent.styles">
+  // !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit ./q-component.md instead)
   /**
    * A lazy-loadable reference to a component styles.
    *
    * Component styles allow Qwik to lazy load the style information for the component only when
    * needed. (And avoid double loading it in case of SSR hydration.)
-   *
    */
   // </docs>
   // TODO(misko): finish documentation once implemented.
   styles?: QrlStyles<any>;
 
-  // <docs markdown="./q-component_props.md">
-  // !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit ./q-component_props.md instead)
+  // <docs markdown="./q-component.md#qComponent.props">
+  // !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit ./q-component.md instead)
   /**
    * A set of props to be automatically added to the host-element.
    *
@@ -246,7 +237,6 @@ export function qComponent<PROPS = {}, STATE = {}>({
    *
    * Notice that `props` provides default values that will be auto-added to the component props
    * (unless the component instantiation props override them.)
-   *
    */
   // </docs>
   props?: PROPS;
@@ -276,8 +266,8 @@ export function qComponent<PROPS = {}, STATE = {}>({
   return QComponent;
 }
 
-// <docs markdown="./q-component-type.md">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit ./q-component-type.md instead)
+// <docs markdown="./q-component.md#QComponent">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit ./q-component.md instead)
 /**
  * Defines `QComponent` type definition.
  *
@@ -329,7 +319,6 @@ export function qComponent<PROPS = {}, STATE = {}>({
  * See: `PropsOf`, `StateOf`.
  *
  * @public
- *
  */
 // </docs>
 export interface QComponent<PROPS extends {} = any, STATE extends {} = any>

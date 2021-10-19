@@ -5,7 +5,7 @@
 // it to the desired comment location
 //
 
-import { Fragment, h, qComponent, qHook, qRender } from '@builder.io/qwik';
+import { Fragment, h, qComponent, qHook } from '@builder.io/qwik';
 
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////

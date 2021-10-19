@@ -11,3 +11,5 @@ Then:
 ```
 const myProps: PropsOf<typeof MyComponent> = ...; // Same as `{propA: string}`
 ```
+
+@public

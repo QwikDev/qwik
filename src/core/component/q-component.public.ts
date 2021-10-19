@@ -368,6 +368,8 @@ export interface QComponent<PROPS extends {} = any, STATE extends {} = any>
  * const myProps: PropsOf<typeof MyComponent> = ...; // Same as `{propA: string}`
  * ```
  *
+ * @public
+ *
  */
 // </docs>
 export type PropsOf<ENTITY extends QComponent> = ENTITY extends QComponent<infer PROPS>
@@ -390,6 +392,8 @@ export type PropsOf<ENTITY extends QComponent> = ENTITY extends QComponent<infer
  * ```
  * const myState: StateOf<typeof MyComponent> = ...; // Same as `{propA: string}`
  * ```
+ *
+ * @public
  *
  */
 // </docs>

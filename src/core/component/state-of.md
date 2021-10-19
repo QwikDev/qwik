@@ -11,3 +11,5 @@ Then:
 ```
 const myState: StateOf<typeof MyComponent> = ...; // Same as `{propA: string}`
 ```
+
+@public

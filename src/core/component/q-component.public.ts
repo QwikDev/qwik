@@ -19,8 +19,7 @@ import { QrlStyles, styleContent, styleHost } from './qrl-styles';
  * synchronous behavior.
  *
  * `QComponent` is a facade that describes how the component should be used without forcing the
- * implementation of the component to be eagerly loaded. The definition of `QComponent` the
- * definition consists of:
+ * implementation of the component to be eagerly loaded. The definition consists of:
  *
  * - Component definition (`qComponent`) a description of the public (props) and private (state)
  * interface of a component.

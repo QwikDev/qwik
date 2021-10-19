@@ -52,6 +52,7 @@
     "test.e2e.open": "start-server-and-test integration.server.prod http://localhost:8081 \"cypress open --config-file cypress/cypress.json\"",
     "integration.server": "node scripts --build --dev && node integration/devserver.js --port 8080 --mode development",
     "integration.server.prod": "node scripts --tsc --build && node integration/devserver.js --port 8081 --mode production",
+    "docs.sync": "node scripts/docs_sync",
     "jsx.types": "node scripts --jsx",
     "prepare": "husky install",
     "lint": "eslint \"**/*.ts*\" && npm run prettier-check",

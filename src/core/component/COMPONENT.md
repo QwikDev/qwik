@@ -26,14 +26,14 @@ export function Counter(props: {step?:number}) {
 }
 ```
 
-Note that the components view, state, and handler are all inlined together. The implication is that all of these parts (view, state, and handler) have to be downloaded, parsed, and executed together. This severely limits our lazy loading capability.
+Note that the components view, state, and handler are all inlined together and heavily rely on closing over variables in parent scope. The implication is that all of these parts (view, state, and handler) have to be downloaded, parsed, and executed together. This severely limits our lazy loading capability.
 
-The example above might be trivial, but imagine a more complex version of the above, which requires many KB worth of code to be downloaded, parsed, and executed together. In such a case, requiring the view, state, and handler to be eagerly loaded together might be a problem. Let's look at some common user usage patterns to get a better idea as to why this is an issue:
+The example above may be trivial, but imagine a more complex version of the above, which requires many KB worth of code to be downloaded, parsed, and executed together. In such a case, requiring the view, state, and handler to be eagerly loaded together is a problem. Let's look at some common user usage patterns to get a better idea as to why this is an issue:
 
 **User interacts with a component by clicking on it:**
 
 - some of the `handler`s are needed: Only the specific handler which is triggered needs to be downloaded. All other handlers are not needed.
-- `view` is **not needed**: View may not be needed because the handler may not cause a re-render on may cause a re-render of a different component.
+- `view` is **not needed**: View may not be needed because the handler may not cause a re-render or may cause a re-render of a different component.
 - `state factory` is **not needed**: The component is being rehydrated and so no state initialization code is needed.
 
 **Component state is mutated:**
@@ -56,161 +56,92 @@ Qwik solves this by only downloading and executing the code that is needed for t
 
 It is not possible to "tool" our way out of this. It isn’t possible to write a statically analyzable tool that can separate these pieces into parts that can then be lazy loaded as needed. The developer must break up the component into the corresponding parts to allow fine-grain lazy loading.
 
-Qwik has `qrlOnRender`, `qrlOnMount` and `qrlHandler` marker functions for this purpose.
+Qwik has `qHook` marker functions for this purpose.
 
 **file:** `my-counter.tsx`
 
 ```typescript
-import { QComponent, qComponent, qrlOnRender, qrlHandler, qrlOnMount } from '@builder.io/qwik';
+import { qComponent, qHook } from '@builder.io/qwik';
 
-// Declare the component type, defining prop and state shape.
-export type Counter = QComponent<{ step?: number }, { count: number }>;
-
-// Declare the component's initialization hook. This will be used
-// when new component is being created to initialize the state.
-// (It will not be used on rehydration.)
-export const onMount = qrlOnMount<Counter>(() => {
-  return { count: 0 };
-});
-
-// Define the component's view used for rendering the component.
-export const onRender = qrlOnRender<Counter>(({ props, state }) => {
-  return (
+export const Counter = qComponent<{ value?: number; step?: number }, { count: number }>({
+  onMount: qHook((props) => ({ count: props.value || 0 })),
+  onRender: qHook((props, state) => (
     <div>
-      <button on:click={update.with({ direction: -1 })}>-</button>
       <span>{state.count}</span>
-      <button on:click={update.with({ direction: 1 })}>+</button>
+      <button
+        on:click={qHook<typeof Counter>((props, state) => {
+          state.count += props.step || 1;
+        })}
+      >
+        +
+      </button>
     </div>
-  );
+  )),
 });
-
-// Component view may need handlers describing behavior.
-export const update = qrlHandler<Counter, { direction: number }>(({ props, state, params }) => {
-  state.count += params.direction * (props.step || 1);
-});
-
-// Finally tie it all together into a component.
-export const Counter = qComponent<Counter>({ onMount, onRender });
 ```
 
-Compared to other frameworks, the above is wordier. However, the cost of the explicit break up of components into their parts gives us the benefit of fine-grained lazy loading.
+Compared to other frameworks, the above is a bit wordier. However, the cost of the explicit break up of components into their parts gives us the benefit of fine-grained lazy loading.
 
 - Keep in mind that this is a relatively fixed DevExp overhead per component. As the component complexity increases, the added overhead becomes less of an issue.
 - The benefit of this is that tooling now has the freedom to package up the component in multiple chunks which can be lazy loaded as needed.
 
 ## What happens behind the scenes
 
-`qrlOnMount`, `qrlHandler`, `qrlOnRender` are all markers for Qwik Optimizer, which tell the tooling that it needs to transform any reference to it into a QRL. The resulting files can be seen here:
+`qHook` is a marker for Qwik Optimizer, which tells the tooling that it needs to transform any reference to it into a QRLs. The resulting files can be seen here:
 
 **File:** `my-counter.js`
 
 ```typescript
-import {qComponent, qrlOnRender, qrlHandler, qrlOnMount} from '@builder.io/qwik';
+import { qComponent, qHook } from '@builder.io/qwik';
 
-export const onMount = qrlOnMount(() => ({ count: 0 }));
-
-export const onRender = qrlOnRender(({props, state}) => {
- return (
-   <div>
-     <button on:click="/chunk-pqr#update?direction=-1">
-       //              ^^^^^^^^^^^ OPTIMIZER ^^^^^^^^^^
-       -
-     </button>
-     <span>{state.count}</span>
-     <button on:click="/chunk-pqr#update?direction=1">
-       //              ^^^^^^^^^^^ OPTIMIZER ^^^^^^^^^^
-       +
-     </button>
-   </div>
- );
-});
-
-export const update = qrlHandler(
-  (props, state, params) => {
-         state.count += params.direction * (props.step || 1);
-);
-
-
-export const Counter = qComponent({
-  onMount: '/chunk-cde#onMount',   // <<=== OPTIMIZER
-  onRender: '/chunk-abc#onRender', // <<=== OPTIMIZER
+export const Counter = qComponent<{ value?: number; step?: number }, { count: number }>({
+  onMount: qHook('entry-cde#Counter_onMount'),
+  onRender: qHook('entry-abc#Counter_onRender'),
 });
 ```
 
-In addition to the source file transformation, the optimizer removed any static references between the view, state, and handlers. Optimizer also generates entry point files for the rollup. These entry points match the QRLs above.
+In addition to the source file transformation, the optimizer transformed references between the view, state, and handlers into QRLs. Optimizer also generates entry point files for the rollup. These entry points match the QRLs above.
 
-**File:** `chunk-abc.js`
+**File:** `entry-abc.js`
 
 ```typescript
-export { onRender } from './my-counter';
+import { qHook } from '@builder.io/qwik';
+
+export const Counter_onRender = qHook((props, state) => (
+  <div>
+    <span>{state.count}</span>
+    <button on:click={qHook<typeof Counter>('entry-pqr#Counter_onClick')}>+</button>
+  </div>
+));
 ```
 
-**File:** `chunk-pqr.js`
+**File:** `entry-pqr.js`
 
-```typescript
-export { update } from './my-counter';
+```typescript=
+import { qHook } from '@builder.io/qwik';
+import type { Counter } from './my-counter';
+
+export const Counter_onClick = qHook<typeof Counter>((props, state) => {
+  state.count += props.step || 1;
+});
 ```
 
-**File:** `chunk-cde.js`
+**File:** `entry-cde.js`
 
 ```typescript
-export { onMount } from './my-counter';
+import { qHook } from '@builder.io/qwik';
+
+export const Counter_onMount = qHook((props) => ({ count: props.value || 0 }));
 ```
 
 The important thing to note is that Qwik has great freedom on how many entry files should be generated, as well as which export goes into which entry file. This is because the developer never specified where the lazy loading boundaries are. Instead, the framework guided the developer to write code in a way that introduced many lazy loading boundaries in the codebase. This gives Qwik the power to generate optimal file distribution based on actual application usage. For small applications, Qwik can generate a single file. As the application size grows, more entry files can be generated. If a particular feature is rarely used, it can be placed in its own bundle.
 
-Once Rollup processes the entry files, the resulting files are as seen below:
-
-**File:** `chunk-abc.js`
-
-```typescript
-import { qrlOnMount } from '@builder.io/qwik';
-
-export const onRender = qrlOnMount(() => ({ count: 0 }));
-```
-
-**File:** `chunk-pqr.js`
-
-```typescript
-import { qrlHandler} from '@builder.io/qwik';
-
-export const update = qrlHandler(
-  ({props, state, params}) => {
-         state.count += params.direction * (props.step || 1);
-);
-```
-
-**File:** `chunk-cde.js`
-
-```typescript
-import { qrlOnRender } from '@builder.io/qwik';
-
-export const onRender = qrlOnRender(({ props, state }) => {
-  return (
-    <div>
-      <button on:click="/chunk-pqr#update?direction=-1">-</button>
-      <span>{state.count}</span>
-      <button on:click="/chunk-pqr#update?direction=1">+</button>
-    </div>
-  );
-});
-```
-
-Notice that Rollup flattened the contents of files into the entry files and removed any unneeded code, resulting in ideally sized bundles.
-
 ### Constraints
 
-In order for the tooling to be able to move `qrlOnRender`, `qrlOnMount`, `qrlHandler` around the usage of these methods is restricted. (Not every valid JS program is a valid Qwik program.) The constraint is that all of the marker functions must be a top-level function that is `export`ed.
+In order for the tooling to be able to move `qrlOnRender`, `qrlOnMount`, `qrlHandler` around the usage of these methods is restricted. (Not every valid JS program is a valid Qwik program.) The constraint is that all functions which are enclosed in `qHook` must be moveable into different files. In practice this means that functions can only close over symbols which are:
 
-Examples of invalid code:
-
-```typescript
-import { someFn } from './some-place';
-
-function main() {
-  const MyStateFactory = qrlOnMount(() => ({})); // INVALID not top level
-}
-```
+1. `import`able (i.e. the symbol was `import`ed.)
+2. `export`ed (i.e. the symbol is already exported so that it can be imported from the entry file.)
 
 ## Tooling has choices
 

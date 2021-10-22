@@ -1,3 +1,7 @@
+[![hackmd-github-sync-badge](https://hackmd.io/bQNLF9lySvyclywmM_Bd5g/badge)](https://hackmd.io/bQNLF9lySvyclywmM_Bd5g)
+
+# Lifecycle Hooks
+
 Describes component lifecycle hooks.
 
 In typical development, when discussing object lifespan, it is clear that objects either exist or they do not. Either an object has been instantiated, or it has not yet been instantiated (or it has been instantiated and has since been garbage collected. Hence it no longer exists.)

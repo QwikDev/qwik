@@ -1,0 +1,10 @@
+{
+	"folders": [
+		{
+			"path": "core"
+		},
+		{
+			"path": "wasm"
+		}
+	]
+}

@@ -1,0 +1,18 @@
+---
+source: src/test.rs
+expression: s.code.unwrap()
+
+---
+const Header = qComponent({
+    "onMount": qHook("Header#0_onMount"),
+    onRender: qHook("Header#0_onRender")
+});
+export const Header#0_onMount = qHook(()=>{
+    console.log("mount");
+});
+export const Header#0_onRender_div_onClick = qHook((ctx)=>console.log(ctx)
+);
+export const Header#0_onRender = qHook(()=>{
+    return (<div onClick={qHook("Header#0_onRender_div_onClick")}/>);
+});
+

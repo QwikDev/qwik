@@ -1,0 +1,15 @@
+[package]
+authors = ["Manu Mtz-Almeida <manu@builder.io>"]
+name = "qwik-js-wasm"
+version = "0.0.1"
+edition = "2018"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+js-sys = "0.3"
+qwik-core = { path = "../core" }
+serde = "1"
+serde-wasm-bindgen = "0.3.0"
+wasm-bindgen = "0.2"

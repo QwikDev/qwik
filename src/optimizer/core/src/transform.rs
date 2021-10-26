@@ -23,33 +23,48 @@ impl Fold for HookTransform {
         let mut module_body = vec![];
 
         for item in node.body {
-            if let ModuleItem::Stmt(Stmt::Decl(Decl::Var(var))) = item {
-                let mut newdecls = vec![];
-                for decl in var.decls {
-                    if let Pat::Ident(ident) = &decl.name {
-                        self.stack_ctxt.push(ident.id.to_string());
-                        newdecls.push(decl.fold_with(self));
-                        self.stack_ctxt.pop();
-                    } else {
-                        newdecls.push(decl);
-                    }
-                }
+            // if let ModuleItem::Stmt(Stmt::Decl(Decl::Var(var))) = item {
+            //     let mut newdecls = vec![];
+            //     for decl in var.decls {
+            //         if let Pat::Ident(ident) = &decl.name {
+            //             self.stack_ctxt.push(ident.id.to_string());
+            //             newdecls.push(decl.fold_with(self));
+            //             self.stack_ctxt.pop();
+            //         } else {
+            //             newdecls.push(decl);
+            //         }
+            //     }
 
-                module_body.push(ModuleItem::Stmt(Stmt::Decl(Decl::Var(VarDecl {
-                    span: DUMMY_SP,
-                    kind: var.kind,
-                    decls: newdecls,
-                    declare: var.declare,
-                }))));
-            } else {
-                module_body.push(item);
-            }
+            //     module_body.push(ModuleItem::Stmt(Stmt::Decl(Decl::Var(VarDecl {
+            //         span: DUMMY_SP,
+            //         kind: var.kind,
+            //         decls: newdecls,
+            //         declare: var.declare,
+            //     }))));
+            // } else {
+            //     module_body.push(item);
+            // }
+            module_body.push(item.fold_with(self));
         }
         for hook in &self.hooks {
             module_body.push(create_named_export(&hook));
         }
         node.body = module_body;
         return node;
+    }
+
+    fn fold_var_declarator(&mut self, node: VarDeclarator) -> VarDeclarator {
+        let mut stacked = false;
+
+        if let Pat::Ident(ref ident) = node.name {
+            self.stack_ctxt.push(ident.id.sym.to_string());
+            stacked = true;
+        }
+        let o = node.fold_children_with(self);
+        if stacked {
+            self.stack_ctxt.pop();
+        }
+        return o;
     }
 
     fn fold_jsx_opening_element(&mut self, node: JSXOpeningElement) -> JSXOpeningElement {

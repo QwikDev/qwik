@@ -1,0 +1,12 @@
+---
+source: src/test.rs
+expression: res
+
+---
+Err(
+    Os {
+        code: 2,
+        kind: NotFound,
+        message: "No such file or directory",
+    },
+)

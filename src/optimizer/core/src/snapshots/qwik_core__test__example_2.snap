@@ -1,0 +1,18 @@
+---
+source: src/test.rs
+expression: "if let Some(code) = s.code { code } else { \"\".to_string() }"
+
+---
+export const Header = qComponent({
+    "onMount": qHook("Header_onMount"),
+    onRender: qHook("Header_onRender")
+});
+export const Header_onMount = qHook(()=>{
+    console.log("mount");
+});
+export const Header_onRender_div_onClick = qHook((ctx)=>console.log(ctx)
+);
+export const Header_onRender = qHook(()=>{
+    return (<div onClick={qHook("Header_onRender_div_onClick")}/>);
+});
+

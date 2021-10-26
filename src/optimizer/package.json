@@ -1,0 +1,12 @@
+{
+  "name": "@builder.io/qwik/optimizer",
+  "scripts": {
+    "build": "npm run build.core",
+    "build.core": "cd core && cargo build",
+    "build.napi": "",
+    "fmt": "cd core && cargo fmt",
+    "test": "npm run test.core",
+    "test.uvu": "uvu",
+    "test.core": "cd core && cargo test -- --nocapture"
+  }
+}

@@ -1,0 +1,9 @@
+---
+source: src/test.rs
+expression: "if let Some(code) = s.code { code } else { \"\".to_string() }"
+
+---
+export const sym1_h = qHook((ctx)=>console.log("1")
+);
+export const sym1 = qHook("sym1_h");
+

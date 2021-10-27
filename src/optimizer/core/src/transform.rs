@@ -1,27 +1,44 @@
 use std::vec;
 
 use ast::*;
+use std::collections::HashSet;
 use swc_common::DUMMY_SP;
+use swc_atoms::JsWord;
 use swc_ecmascript::ast;
 use swc_ecmascript::ast::{ExportDecl, Expr, Ident, VarDeclarator};
-use swc_ecmascript::visit::{Fold, FoldWith};
+use swc_ecmascript::visit::{noop_fold_type, Fold, FoldWith};
 
 struct HookMeta {
-    expr: Box<Expr>,
     name: String,
+    module_index: usize,
+    expr: Box<Expr>,
 }
 
 #[derive(Default)]
 pub struct HookTransform {
     stack_ctxt: Vec<String>,
+    hooks_names: HashSet<String>,
     hooks: Vec<HookMeta>,
+    module_item: usize,
+}
+
+impl HookTransform {
+    fn get_context_name(&self) -> String {
+        let mut ctx = self.stack_ctxt.join("_") + "_h";
+        if self.hooks_names.contains(&ctx) {
+            ctx += &self.hooks.len().to_string();
+        }
+        return ctx;
+    }
 }
 
 impl Fold for HookTransform {
+    noop_fold_type!();
+
     fn fold_module(&mut self, node: Module) -> Module {
         let mut node = node;
         let mut module_body = vec![];
-
+        self.module_item = 0;
         for item in node.body {
             // if let ModuleItem::Stmt(Stmt::Decl(Decl::Var(var))) = item {
             //     let mut newdecls = vec![];
@@ -45,9 +62,12 @@ impl Fold for HookTransform {
             //     module_body.push(item);
             // }
             module_body.push(item.fold_with(self));
+            self.module_item += 1;
         }
+
+        self.hooks.sort_by(|a, b| b.module_index.cmp(&a.module_index));
         for hook in &self.hooks {
-            module_body.push(create_named_export(&hook));
+            module_body.insert(hook.module_index, create_named_export(&hook));
         }
         node.body = module_body;
         return node;
@@ -115,13 +135,15 @@ impl Fold for HookTransform {
         let folded = node.fold_children_with(self);
         if let ExprOrSuper::Expr(expr) = &folded.callee {
             if let Expr::Ident(id) = &**expr {
-                if id.sym.to_string() == "qHook" {
-                    let name = self.stack_ctxt.join("_");
+                if id.sym == swc_atoms::JsWord::from("qHook") {
+                    let name = self.get_context_name();
                     self.hooks.push(HookMeta {
-                        expr: Box::new(Expr::Call(folded.clone())),
                         name: name.clone(),
+                        module_index: self.module_item,
+                        expr: Box::new(Expr::Call(folded.clone())),
                     });
-                    return create_inline_qhook(name);
+                    self.hooks_names.insert(name.clone());
+                    return create_inline_qhook(&name);
                 }
             }
         }
@@ -129,7 +151,7 @@ impl Fold for HookTransform {
     }
 }
 
-fn create_inline_qhook(q_url: String) -> CallExpr {
+fn create_inline_qhook(q_url: &str) -> CallExpr {
     CallExpr {
         callee: ast::ExprOrSuper::Expr(Box::new(Expr::Ident(Ident::new("qHook".into(), DUMMY_SP)))),
         args: vec![ExprOrSpread {

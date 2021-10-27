@@ -127,9 +127,6 @@ pub fn transform(config: Config) -> Result<TransformResult, Box<dyn error::Error
             swc_common::GLOBALS.set(&Globals::new(), || {
                 let module = {
                     let mut passes = chain!(
-                        // typescript::strip(),
-                        // Simplify expressions and remove dead branches so that we
-                        // don't include dependencies inside conditionals that are always false.
                         transform::HookTransform::default(),
                         pass::Optional::new(typescript::strip(), config.transpile),
                     );

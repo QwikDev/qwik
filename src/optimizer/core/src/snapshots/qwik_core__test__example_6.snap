@@ -3,6 +3,7 @@ source: src/test.rs
 expression: "if let Some(code) = s.code { code } else { \"\".to_string() }"
 
 ---
+import { qHook } from '@builderio/qwik';
 export const Header_onRender_h = qHook(()=>{
     return (<div onClick={qHook("Header_onRender_div_onClick_h")}/>);
 });
@@ -11,8 +12,14 @@ export const Header_onRender_div_onClick_h = qHook((ctx)=>console.log(ctx)
 export const Header_onMount_h = qHook(()=>{
     console.log("mount");
 });
-export const Header = qComponent({
+const Header = qComponent({
     "onMount": qHook("Header_onMount_h"),
     onRender: qHook("Header_onRender_h")
+});
+export const App_onRender_h = qHook(()=>{
+    return (<Header />);
+});
+const App = qComponent({
+    onRender: qHook("App_onRender_h")
 });
 

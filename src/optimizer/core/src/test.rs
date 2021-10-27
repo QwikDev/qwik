@@ -56,6 +56,64 @@ export const App = () => {
 }
 
 #[test]
+fn example_4() {
+    test_input(
+        "test.tsx",
+        r#"
+export const Header = qComponent({
+    onRender: qHook(() => {
+        return (
+            <>
+                <div onClick={qHook((ctx) => console.log("1"))}/>
+                <div onClick={qHook((ctx) => console.log("2"))}/>
+            </>
+        );
+    })
+});
+    "#,
+    )
+}
+
+
+#[test]
+fn example_5() {
+    test_input(
+        "test.tsx",
+        r#"
+export const sym1 = qHook((ctx) => console.log("1"));
+    "#,
+    )
+}
+
+#[test]
+fn example_6() {
+    test_input(
+        "test.tsx",
+        r#"
+import {qHook} from '@builderio/qwik';
+
+
+const Header = qComponent({
+    "onMount": qHook(() => { console.log("mount") }),
+    onRender: qHook(() => {
+      return (
+        <div onClick={qHook((ctx) => console.log(ctx))}/>
+      );
+    })
+  });
+
+const App = qComponent({
+    onRender: qHook(() => {
+        return (
+        <Header/>
+        );
+    })
+});"#,
+    )
+}
+
+
+#[test]
 fn optimize_fixture_1() {
     test_fixture("");
 }

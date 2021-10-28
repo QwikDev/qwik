@@ -3,7 +3,20 @@ source: src/test.rs
 expression: "if let Some(code) = s.code { code } else { \"\".to_string() }"
 
 ---
-export const sym1_h = qHook((ctx)=>console.log("1")
+export const Header_onRender_h = qHook(()=>{
+    return (<>
+
+                <div onClick={qHook("Header_onRender_div_onClick_h")}/>
+
+                <div onClick={qHook("Header_onRender_div_onClick_h1")}/>
+
+            </>);
+});
+export const Header_onRender_div_onClick_h1 = qHook((ctx)=>console.log("2")
 );
-export const sym1 = qHook("sym1_h");
+export const Header_onRender_div_onClick_h = qHook((ctx)=>console.log("1")
+);
+export const Header = qComponent({
+    onRender: qHook("Header_onRender_h")
+});
 

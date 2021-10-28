@@ -1,6 +1,0 @@
----
-source: src/test.rs
-expression: "if let Some(map) = s.map { map } else { \"\".to_string() }"
-
----
-{"version":3,"sources":["test.tsx"],"names":[],"mappings":"iCAEc,KAAK,KAAO,CAAC;IACnB,MAAM,IACA,kBACE,CAAC,GAAG,CAAC,OAAO,2CAAqC,kBACjD,CAAC,GAAG,CAAC,OAAO,4CAAqC,cACrD;AAER,CAAC;8CAHyB,KAAK,EAAE,GAAG,GAAK,OAAO,CAAC,GAAG,CAAC,CAAG;;6CAD9B,KAAK,EAAE,GAAG,GAAK,OAAO,CAAC,GAAG,CAAC,CAAG;;AAJ5D,MAAM,CAAC,KAAK,CAAC,MAAM,GAAG,UAAU,CAAC,CAAC;IAC9B,QAAQ;AAQZ,CAAC"}

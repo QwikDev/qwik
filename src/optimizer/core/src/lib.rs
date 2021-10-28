@@ -120,7 +120,7 @@ pub fn transform(config: Config) -> Result<TransformResult, Box<dyn error::Error
     let source_map = Lrc::new(SourceMap::default());
     let module = parse(code, config.filename.as_str(), &source_map, &config);
 
-    dbg!(&module);
+    // dbg!(&module);
 
     match module {
         Ok((module, comments)) => {

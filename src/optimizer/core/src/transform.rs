@@ -20,6 +20,7 @@ pub struct HookTransform {
     hooks_names: HashSet<String>,
     hooks: Vec<HookMeta>,
     module_item: usize,
+    root_sym: Option<String>,
 }
 
 impl HookTransform {
@@ -30,7 +31,29 @@ impl HookTransform {
         }
         return ctx;
     }
+
+    fn handle_var_decl(&mut self, node: VarDecl) -> VarDecl {
+        let mut newdecls = vec![];
+        for decl in node.decls {
+            match decl.name {
+                Pat::Ident(ref ident) => {
+                    self.root_sym = Some(ident.id.to_string());
+                }
+                _ => {
+                    self.root_sym = None;
+                }
+            }
+            newdecls.push(decl.fold_with(self));
+        }
+        VarDecl {
+            span: DUMMY_SP,
+            kind: node.kind,
+            decls: newdecls,
+            declare: node.declare,
+        }
+    }
 }
+
 
 impl Fold for HookTransform {
     noop_fold_type!();
@@ -40,28 +63,49 @@ impl Fold for HookTransform {
         let mut module_body = vec![];
         self.module_item = 0;
         for item in node.body {
-            // if let ModuleItem::Stmt(Stmt::Decl(Decl::Var(var))) = item {
-            //     let mut newdecls = vec![];
-            //     for decl in var.decls {
-            //         if let Pat::Ident(ident) = &decl.name {
-            //             self.stack_ctxt.push(ident.id.to_string());
-            //             newdecls.push(decl.fold_with(self));
-            //             self.stack_ctxt.pop();
-            //         } else {
-            //             newdecls.push(decl);
-            //         }
-            //     }
+            self.root_sym = None;
+            let new_item = match item {
+                ModuleItem::Stmt(Stmt::Decl(Decl::Var(node))) => {
+                    let transformed = self.handle_var_decl(node);
+                    ModuleItem::Stmt(Stmt::Decl(Decl::Var(transformed)))
+                }
+                ModuleItem::ModuleDecl(ModuleDecl::ExportDecl(node)) => {
+                    match node.decl {
+                        Decl::Var(var) => {
+                            let transformed = self.handle_var_decl(var);
+                            ModuleItem::ModuleDecl(ModuleDecl::ExportDecl(ExportDecl{
+                                span: DUMMY_SP,
+                                decl: Decl::Var(transformed)
+                            }))
+                        }
+                        Decl::Class(class) => {
+                            self.root_sym = Some(class.ident.sym.to_string());
+                            ModuleItem::ModuleDecl(ModuleDecl::ExportDecl(ExportDecl{
+                                span: DUMMY_SP,
+                                decl: Decl::Class(class.fold_with(self))
+                            }))
+                        }
+                        Decl::Fn(function) => {
+                            self.root_sym = Some(function.ident.sym.to_string());
+                            ModuleItem::ModuleDecl(ModuleDecl::ExportDecl(ExportDecl{
+                                span: DUMMY_SP,
+                                decl: Decl::Fn(function.fold_with(self))
+                            }))
+                        }
+                        other => {
+                            ModuleItem::ModuleDecl(ModuleDecl::ExportDecl(ExportDecl{
+                                span: DUMMY_SP,
+                                decl: other.fold_with(self)
+                            }))
+                        }
+                    }
+                }
 
-            //     module_body.push(ModuleItem::Stmt(Stmt::Decl(Decl::Var(VarDecl {
-            //         span: DUMMY_SP,
-            //         kind: var.kind,
-            //         decls: newdecls,
-            //         declare: var.declare,
-            //     }))));
-            // } else {
-            //     module_body.push(item);
-            // }
-            module_body.push(item.fold_with(self));
+                item => {
+                    item.fold_with(self)
+                }
+            };
+            module_body.push(new_item);
             self.module_item += 1;
         }
 
@@ -86,6 +130,15 @@ impl Fold for HookTransform {
         }
         return o;
     }
+
+    fn fold_fn_decl(&mut self, node: FnDecl) -> FnDecl {
+        self.stack_ctxt.push(node.ident.sym.to_string());
+        let o = node.fold_children_with(self);
+        self.stack_ctxt.pop();
+
+        return o;
+    }
+
 
     fn fold_jsx_opening_element(&mut self, node: JSXOpeningElement) -> JSXOpeningElement {
         let mut stacked = false;

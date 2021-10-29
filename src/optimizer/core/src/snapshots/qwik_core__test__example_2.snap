@@ -1,8 +1,10 @@
 ---
 source: src/test.rs
-expression: "if let Some(code) = s.code { code } else { \"\".to_string() }"
+expression: output
 
 ---
+== CODE ==
+
 export const Header_onRender_h = qHook(()=>{
     return (<div onClick={qHook("Header_onRender_div_onClick_h")}/>);
 });
@@ -16,3 +18,44 @@ export const Header = qComponent({
     onRender: qHook("Header_onRender_h")
 });
 
+
+== MAP ==
+
+{"version":3,"sources":["test.tsx"],"names":[],"mappings":"iCAGY,KAAK,KAAO,CAAC;IACrB,MAAM,GACH,GAAG,CAAC,OAAO;AAEhB,CAAC;6CAFiB,KAAK,EAAE,GAAG,GAAK,OAAO,CAAC,GAAG,CAAC,GAAG;;gCAHrC,KAAK,KAAO,CAAC;IAAC,OAAO,CAAC,GAAG,CAAC,CAAO;AAAE,CAAC;aADpC,MAAM,GAAG,UAAU,CAAC,CAAC;IAChC,CAAS;IACT,QAAQ;AAKV,CAAC"}
+
+== HOOKS ==
+
+[
+  {
+    "name": "Header_onMount_h",
+    "local_decl": [],
+    "local_idents": [
+      "console",
+      "log",
+      "qHook"
+    ]
+  },
+  {
+    "name": "Header_onRender_div_onClick_h",
+    "local_decl": [],
+    "local_idents": [
+      "console",
+      "ctx",
+      "log",
+      "qHook"
+    ]
+  },
+  {
+    "name": "Header_onRender_h",
+    "local_decl": [],
+    "local_idents": [
+      "div",
+      "onClick",
+      "qHook"
+    ]
+  }
+]
+
+== DIAGNOSTICS ==
+
+None

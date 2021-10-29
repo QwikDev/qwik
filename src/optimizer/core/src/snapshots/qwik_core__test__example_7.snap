@@ -1,8 +1,10 @@
 ---
 source: src/test.rs
-expression: "if let Some(code) = s.code { code } else { \"\".to_string() }"
+expression: output
 
 ---
+== CODE ==
+
 import { qHook } from '@builderio/qwik';
 export const Header_onRender_h = qHook(()=>{
     return (<div onClick={qHook("Header_onRender_div_onClick_h")}/>);
@@ -23,3 +25,52 @@ const App = qComponent({
     onRender: qHook("App_onRender_h")
 });
 
+
+== MAP ==
+
+{"version":3,"sources":["test.tsx"],"names":[],"mappings":"AACA,MAAM,GAAE,KAAK,QAAO,CAAiB;iCAKvB,KAAK,KAAO,CAAC;IACrB,MAAM,GACH,GAAG,CAAC,OAAO;AAEhB,CAAC;6CAFiB,KAAK,EAAE,GAAG,GAAK,OAAO,CAAC,GAAG,CAAC,GAAG;;gCAHrC,KAAK,KAAO,CAAC;IAAC,OAAO,CAAC,GAAG,CAAC,CAAO;AAAE,CAAC;MAD7C,MAAM,GAAG,UAAU,CAAC,CAAC;IACvB,CAAS;IACT,QAAQ;AAKV,CAAC;8BAGW,KAAK,KAAO,CAAC;IACnB,MAAM,GACL,MAAM;AAEX,CAAC;MALC,GAAG,GAAG,UAAU,CAAC,CAAC;IACpB,QAAQ;AAKZ,CAAC"}
+
+== HOOKS ==
+
+[
+  {
+    "name": "App_onRender_h",
+    "local_decl": [],
+    "local_idents": [
+      "Header",
+      "qHook"
+    ]
+  },
+  {
+    "name": "Header_onMount_h",
+    "local_decl": [],
+    "local_idents": [
+      "console",
+      "log",
+      "qHook"
+    ]
+  },
+  {
+    "name": "Header_onRender_div_onClick_h",
+    "local_decl": [],
+    "local_idents": [
+      "console",
+      "ctx",
+      "log",
+      "qHook"
+    ]
+  },
+  {
+    "name": "Header_onRender_h",
+    "local_decl": [],
+    "local_idents": [
+      "div",
+      "onClick",
+      "qHook"
+    ]
+  }
+]
+
+== DIAGNOSTICS ==
+
+None

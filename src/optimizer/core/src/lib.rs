@@ -37,24 +37,26 @@ pub struct FSConfig {
     transpile: bool,
 }
 
-#[derive(Serialize, Debug, Deserialize)]
-pub struct Config {
+pub struct Config<'a> {
     filename: String,
     source_maps: bool,
     minify: bool,
     transpile: bool,
-    #[serde(with = "serde_bytes")]
     code: Vec<u8>,
+    context: &'a mut transform::TransformContext,
 }
 
 #[derive(Serialize, Debug, Deserialize, Default)]
 pub struct TransformResult {
+    pub filename: String,
+
     #[serde(with = "serde_bytes")]
     pub code: Option<Vec<u8>>,
 
     #[serde(with = "serde_bytes")]
     pub map: Option<Vec<u8>>,
     pub diagnostics: Option<Vec<Diagnostic>>,
+    pub hooks: Option<Vec<transform::Hook>>,
 }
 
 #[derive(Serialize, Debug, Deserialize, Default)]
@@ -92,22 +94,25 @@ impl TransformResult {
 pub fn transform_workdir(
     config: &FSConfig,
 ) -> Result<Vec<Result<TransformResult, Box<dyn error::Error>>>, Box<dyn error::Error>> {
-    let srcdir = PathBuf::from(config.project_root.clone());
-    let canonical = fs::canonicalize(&srcdir)?;
-    let pattern = canonical.join("**/*.js");
-    let paths = glob::glob(pattern.to_str().unwrap())?;
+    let srcdir = std::env::current_dir()?.join("src/fixtures");
+    let srcdir = srcdir.join(PathBuf::from(config.project_root.clone()));
+    let srcdir = srcdir.join("**/*.qwik.*");
+    println!("{:?}", srcdir.to_str().unwrap());
+
+    let mut context = transform::TransformContext::new();
+    let paths = glob::glob(srcdir.to_str().unwrap())?;
     let results = paths
         .map(|p| -> Result<TransformResult, Box<dyn error::Error>> {
             let value = p.unwrap();
             let pathstr = value.to_str().unwrap();
             let data = fs::read(&value).expect("Unable to read file");
-            println!("{}", pathstr);
             transform(Config {
                 filename: pathstr.to_string(),
                 minify: config.minify,
                 code: data,
                 source_maps: config.source_maps,
                 transpile: config.transpile,
+                context: &mut context,
             })
         })
         .collect();
@@ -117,25 +122,28 @@ pub fn transform_workdir(
 
 pub fn transform(config: Config) -> Result<TransformResult, Box<dyn error::Error>> {
     let code = unsafe { std::str::from_utf8_unchecked(&config.code) };
-    let source_map = Lrc::new(SourceMap::default());
-    let module = parse(code, config.filename.as_str(), &source_map, &config);
+    let module = parse(code, config.filename.as_str(), &config);
 
     // dbg!(&module);
 
     match module {
         Ok((module, comments)) => {
             swc_common::GLOBALS.set(&Globals::new(), || {
+
+                let mut hooks = vec![];
                 let module = {
                     let mut passes = chain!(
-                        transform::HookTransform::default(),
+                        transform::HookTransform::new(config.context, &mut hooks),
                         pass::Optional::new(typescript::strip(), config.transpile),
                     );
                     module.fold_with(&mut passes)
                 };
 
-                let (code, map) = emit_source_code(source_map, comments, &module, &config)?;
+                let (code, map) = emit_source_code(config.context.source_map.clone(), comments, &module, config.minify, config.source_maps)?;
                 Ok(TransformResult {
+                    filename: config.filename.clone(),
                     code: Some(code),
+                    hooks: Some(hooks),
                     map: map,
                     diagnostics: None,
                 })
@@ -145,10 +153,12 @@ pub fn transform(config: Config) -> Result<TransformResult, Box<dyn error::Error
             let error_buffer = ErrorBuffer::default();
             let handler = Handler::with_emitter(true, false, Box::new(error_buffer.clone()));
             err.into_diagnostic(&handler).emit();
-            let diagnostics = handle_error(error_buffer, &source_map);
+            let diagnostics = handle_error(error_buffer, &config.context.source_map);
             Ok(TransformResult {
+                filename: config.filename.clone(),
                 code: None,
                 map: None,
+                hooks: None,
                 diagnostics: Some(diagnostics),
             })
         }
@@ -158,9 +168,9 @@ pub fn transform(config: Config) -> Result<TransformResult, Box<dyn error::Error
 fn parse(
     code: &str,
     filename: &str,
-    source_map: &Lrc<SourceMap>,
     config: &Config,
 ) -> PResult<(Module, SingleThreadedComments)> {
+    let source_map = &config.context.source_map;
     let source_file = source_map.new_source_file(FileName::Real(filename.into()), code.into());
 
     let comments = SingleThreadedComments::default();
@@ -211,7 +221,8 @@ fn emit_source_code(
     source_map: Lrc<SourceMap>,
     comments: SingleThreadedComments,
     program: &Module,
-    config: &Config,
+    minify: bool,
+    source_maps: bool,
 ) -> Result<(Vec<u8>, Option<Vec<u8>>), std::io::Error> {
     let mut src_map_buf = vec![];
     let mut buf = vec![];
@@ -220,14 +231,14 @@ fn emit_source_code(
             source_map.clone(),
             "\n",
             &mut buf,
-            if config.source_maps {
+            if source_maps {
                 Some(&mut src_map_buf)
             } else {
                 None
             },
         ));
         let config = swc_ecmascript::codegen::Config {
-            minify: config.minify,
+            minify: minify,
         };
         let mut emitter = swc_ecmascript::codegen::Emitter {
             cfg: config,
@@ -240,7 +251,7 @@ fn emit_source_code(
     }
 
     let mut map_buf = vec![];
-    if config.source_maps
+    if source_maps
         && source_map
             .build_source_map(&mut src_map_buf)
             .to_writer(&mut map_buf)

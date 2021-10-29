@@ -664,6 +664,7 @@ dependencies = [
  "insta",
  "serde",
  "serde_bytes",
+ "serde_json",
  "swc_atoms",
  "swc_common",
  "swc_ecmascript",

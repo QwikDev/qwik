@@ -1,32 +1,81 @@
 use std::vec;
-
 use ast::*;
 use std::collections::HashSet;
-use swc_common::DUMMY_SP;
 use swc_atoms::JsWord;
+use swc_common::{DUMMY_SP, sync::Lrc, SourceMap};
 use swc_ecmascript::ast;
 use swc_ecmascript::ast::{ExportDecl, Expr, Ident, VarDeclarator};
 use swc_ecmascript::visit::{noop_fold_type, Fold, FoldWith};
+use serde::{Deserialize, Serialize};
 
-struct HookMeta {
+#[derive(Debug, Default, Serialize, Deserialize)]
+pub struct Hook {
+    name: String,
+    local_decl: Vec<String>,
+    local_idents: Vec<String>,
+}
+
+#[derive(Debug, Default, Serialize, Deserialize)]
+pub struct HookAnalysis {
+    local_decl: HashSet<JsWord>,
+    local_idents: HashSet<JsWord>,
+}
+
+#[derive(Debug)]
+pub struct HookMeta {
     name: String,
     module_index: usize,
     expr: Box<Expr>,
+    scope_analysis: HookAnalysis,
 }
 
-#[derive(Default)]
-pub struct HookTransform {
+pub struct TransformContext {
+    pub source_map: Lrc<SourceMap>,
+    pub hooks_names: HashSet<String>,
+}
+
+impl TransformContext {
+    pub fn new() -> TransformContext {
+        TransformContext{
+            hooks_names: HashSet::with_capacity(10),
+            source_map: Lrc::new(SourceMap::default())
+        }
+    }
+}
+
+pub struct HookTransform<'a> {
     stack_ctxt: Vec<String>,
-    hooks_names: HashSet<String>,
-    hooks: Vec<HookMeta>,
+    hook_ctx: Vec<HookAnalysis>,
     module_item: usize,
+
     root_sym: Option<String>,
+    context: &'a mut TransformContext,
+
+    hooks: Vec<HookMeta>,
+
+    hooks_output: &'a mut Vec<Hook>,
 }
 
-impl HookTransform {
+trait VecExt {
+    fn sorted(self) -> Self;
+}
+
+impl<'a> HookTransform<'a> {
+    pub fn new(ctx: &'a mut TransformContext, hooks: &'a mut Vec<Hook>) -> Self {
+        HookTransform{
+            stack_ctxt: vec![],
+            hook_ctx: vec![],
+            hooks: vec![],
+            module_item: 0,
+            root_sym: None,
+            context: ctx,
+            hooks_output: hooks,
+        }
+    }
+
     fn get_context_name(&self) -> String {
         let mut ctx = self.stack_ctxt.join("_") + "_h";
-        if self.hooks_names.contains(&ctx) {
+        if self.context.hooks_names.contains(&ctx) {
             ctx += &self.hooks.len().to_string();
         }
         return ctx;
@@ -55,7 +104,7 @@ impl HookTransform {
 }
 
 
-impl Fold for HookTransform {
+impl<'a> Fold for HookTransform<'a> {
     noop_fold_type!();
 
     fn fold_module(&mut self, node: Module) -> Module {
@@ -112,6 +161,15 @@ impl Fold for HookTransform {
         self.hooks.sort_by(|a, b| b.module_index.cmp(&a.module_index));
         for hook in &self.hooks {
             module_body.insert(hook.module_index, create_named_export(&hook));
+            let mut hook_output = Hook{
+                name: hook.name.clone(),
+                local_decl: hook.scope_analysis.local_decl.iter().map(|d| d.to_string()).collect(),
+                local_idents: hook.scope_analysis.local_idents.iter().map(|d| d.to_string()).collect(),
+            };
+            hook_output.local_decl.sort();
+            hook_output.local_idents.sort();
+
+            self.hooks_output.push(hook_output);
         }
         node.body = module_body;
         return node;
@@ -123,6 +181,9 @@ impl Fold for HookTransform {
         if let Pat::Ident(ref ident) = node.name {
             self.stack_ctxt.push(ident.id.sym.to_string());
             stacked = true;
+            if let Some(current_hook) = self.hook_ctx.last_mut() {
+                current_hook.local_decl.insert(ident.id.sym.clone());
+            }
         }
         let o = node.fold_children_with(self);
         if stacked {
@@ -133,12 +194,32 @@ impl Fold for HookTransform {
 
     fn fold_fn_decl(&mut self, node: FnDecl) -> FnDecl {
         self.stack_ctxt.push(node.ident.sym.to_string());
+        if let Some(current_hook) = self.hook_ctx.last_mut() {
+            current_hook.local_decl.insert(node.ident.sym.clone());
+        }
         let o = node.fold_children_with(self);
         self.stack_ctxt.pop();
 
         return o;
     }
 
+    fn fold_class_decl(&mut self, node: ClassDecl) -> ClassDecl {
+        self.stack_ctxt.push(node.ident.sym.to_string());
+        if let Some(current_hook) = self.hook_ctx.last_mut() {
+            current_hook.local_decl.insert(node.ident.sym.clone());
+        }
+        let o = node.fold_children_with(self);
+        self.stack_ctxt.pop();
+
+        return o;
+    }
+
+    fn fold_ident(&mut self, node: Ident) -> Ident {
+        if let Some(current_hook) = self.hook_ctx.last_mut() {
+            current_hook.local_idents.insert(node.sym.clone());
+        }
+        return node.fold_children_with(self);
+    }
 
     fn fold_jsx_opening_element(&mut self, node: JSXOpeningElement) -> JSXOpeningElement {
         let mut stacked = false;
@@ -185,21 +266,25 @@ impl Fold for HookTransform {
     }
 
     fn fold_call_expr(&mut self, node: CallExpr) -> CallExpr {
-        let folded = node.fold_children_with(self);
-        if let ExprOrSuper::Expr(expr) = &folded.callee {
+        if let ExprOrSuper::Expr(expr) = &node.callee {
             if let Expr::Ident(id) = &**expr {
                 if id.sym == swc_atoms::JsWord::from("qHook") {
                     let name = self.get_context_name();
+                    self.hook_ctx.push(HookAnalysis::default());
+                    let folded = node.fold_children_with(self);
+                    let analysis = self.hook_ctx.pop().unwrap();
                     self.hooks.push(HookMeta {
                         name: name.clone(),
                         module_index: self.module_item,
                         expr: Box::new(Expr::Call(folded.clone())),
+                        scope_analysis: analysis,
                     });
-                    self.hooks_names.insert(name.clone());
+                    self.context.hooks_names.insert(name.clone());
                     return create_inline_qhook(&name);
                 }
             }
         }
+        let folded = node.fold_children_with(self);
         return folded;
     }
 }

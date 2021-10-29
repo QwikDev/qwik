@@ -3,6 +3,29 @@ source: src/test.rs
 expression: output
 
 ---
+==INPUT==
+
+
+import {qHook} from '@builderio/qwik';
+
+
+const Header = qComponent({
+    "onMount": qHook(() => { console.log("mount") }),
+    onRender: qHook(() => {
+      return (
+        <div onClick={qHook((ctx) => console.log(ctx))}/>
+      );
+    })
+  });
+
+const App = qComponent({
+    onRender: qHook(() => {
+        return (
+        <Header/>
+        );
+    })
+});
+
 == CODE ==
 
 import { qHook } from '@builderio/qwik';
@@ -52,7 +75,9 @@ const App = qComponent({
   },
   {
     "name": "Header_onRender_div_onClick_h",
-    "local_decl": [],
+    "local_decl": [
+      "ctx"
+    ],
     "local_idents": [
       "console",
       "ctx",

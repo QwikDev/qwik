@@ -3,6 +3,12 @@ source: src/test.rs
 expression: output
 
 ---
+==INPUT==
+
+
+export const sym1 = qHook((ctx) => console.log("1"));
+    
+
 == CODE ==
 
 export const sym1_h = qHook((ctx)=>console.log("1")
@@ -19,7 +25,9 @@ export const sym1 = qHook("sym1_h");
 [
   {
     "name": "sym1_h",
-    "local_decl": [],
+    "local_decl": [
+      "ctx"
+    ],
     "local_idents": [
       "console",
       "ctx",

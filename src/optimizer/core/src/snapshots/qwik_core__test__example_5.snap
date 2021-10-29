@@ -3,6 +3,21 @@ source: src/test.rs
 expression: output
 
 ---
+==INPUT==
+
+
+export const Header = qComponent({
+    onRender: qHook(() => {
+        return (
+            <>
+                <div onClick={qHook((ctx) => console.log("1"))}/>
+                <div onClick={qHook((ctx) => console.log("2"))}/>
+            </>
+        );
+    })
+});
+    
+
 == CODE ==
 
 export const Header_onRender_h = qHook(()=>{
@@ -32,7 +47,9 @@ export const Header = qComponent({
 [
   {
     "name": "Header_onRender_div_onClick_h",
-    "local_decl": [],
+    "local_decl": [
+      "ctx"
+    ],
     "local_idents": [
       "console",
       "ctx",
@@ -42,7 +59,9 @@ export const Header = qComponent({
   },
   {
     "name": "Header_onRender_div_onClick_h1",
-    "local_decl": [],
+    "local_decl": [
+      "ctx"
+    ],
     "local_idents": [
       "console",
       "ctx",

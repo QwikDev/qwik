@@ -42,6 +42,7 @@ pub struct Config<'a> {
     source_maps: bool,
     minify: bool,
     transpile: bool,
+    print_ast: bool,
     code: Vec<u8>,
     context: &'a mut transform::TransformContext,
 }
@@ -112,6 +113,7 @@ pub fn transform_workdir(
                 code: data,
                 source_maps: config.source_maps,
                 transpile: config.transpile,
+                print_ast: false,
                 context: &mut context,
             })
         })
@@ -124,7 +126,9 @@ pub fn transform(config: Config) -> Result<TransformResult, Box<dyn error::Error
     let code = unsafe { std::str::from_utf8_unchecked(&config.code) };
     let module = parse(code, config.filename.as_str(), &config);
 
-    // dbg!(&module);
+    if config.print_ast {
+        dbg!(&module);
+    }
 
     match module {
         Ok((module, comments)) => {

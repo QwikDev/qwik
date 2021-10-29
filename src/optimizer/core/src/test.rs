@@ -16,7 +16,7 @@ const Header = qComponent({
   })
 });
     "#,
-    )
+    false)
 }
 
 #[test]
@@ -33,7 +33,7 @@ export const Header = qComponent({
   })
 });
     "#,
-    )
+    false)
 }
 
 #[test]
@@ -53,7 +53,7 @@ export const App = () => {
     return Header;
 });
     "#,
-    )
+    false)
 }
 
 #[test]
@@ -73,7 +73,7 @@ export function App() {
     return Header;
 }
     "#,
-    )
+    false)
 }
 
 
@@ -93,7 +93,7 @@ export const Header = qComponent({
     })
 });
     "#,
-    )
+    false)
 }
 
 
@@ -104,7 +104,7 @@ fn example_6() {
         r#"
 export const sym1 = qHook((ctx) => console.log("1"));
     "#,
-    )
+    false)
 }
 
 #[test]
@@ -131,7 +131,7 @@ const App = qComponent({
         );
     })
 });"#,
-    )
+    false)
 }
 
 #[test]
@@ -152,7 +152,27 @@ const Header = qComponent({
     })
   });
 "#,
-    )
+false)
+}
+
+#[test]
+fn example_9() {
+    test_input(
+        "test.tsx",
+        r#"
+const Header = qHook((decl1, {decl2}, [decl3]) => {
+    const {decl4, key: decl5} = this;
+    let [decl6, ...decl7] = stuff;
+    const decl8 = 1, decl9;
+    function decl10(decl11, {decl12}, [decl13]) {}
+    class decl14 {
+        method(decl15, {decl16}, [decl17]) {}
+    }
+    try{}catch(decl18){}
+    try{}catch({decl19}){}
+});
+    "#,
+    false)
 }
 
 
@@ -191,7 +211,7 @@ fn test_fixture(folder: &str) {
     }
 }
 
-fn test_input(filename: &str, code: &str) {
+fn test_input(filename: &str, code: &str, print_ast: bool) {
     let mut ctx = transform::TransformContext::new();
     let res = transform(Config {
         code: code.as_bytes().to_vec(),
@@ -199,15 +219,17 @@ fn test_input(filename: &str, code: &str) {
         source_maps: true,
         minify: false,
         transpile: false,
+        print_ast: print_ast,
         context: &mut ctx,
     });
     match res {
         Ok(v) => {
             let s = v.to_string();
+            let input = code.to_string();
             let code = if let Some(code) = s.code { code } else { "".to_string() };
             let map = if let Some(map) = s.map { map } else { "".to_string() };
             let hooks = if let Some(hooks) = v.hooks { serde_json::to_string_pretty(&hooks).unwrap() } else { "".to_string() };
-            let output = format!("== CODE ==\n\n{}\n\n== MAP ==\n\n{}\n\n== HOOKS ==\n\n{}\n\n== DIAGNOSTICS ==\n\n{:?}", code, map, hooks, v.diagnostics);
+            let output = format!("==INPUT==\n\n{}\n\n== CODE ==\n\n{}\n\n== MAP ==\n\n{}\n\n== HOOKS ==\n\n{}\n\n== DIAGNOSTICS ==\n\n{:?}", input, code, map, hooks, v.diagnostics);
             insta::assert_display_snapshot!(output);
         }
         Err(err) => {
@@ -215,3 +237,4 @@ fn test_input(filename: &str, code: &str) {
         }
     }
 }
+

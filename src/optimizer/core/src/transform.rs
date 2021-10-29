@@ -178,18 +178,165 @@ impl<'a> Fold for HookTransform<'a> {
     fn fold_var_declarator(&mut self, node: VarDeclarator) -> VarDeclarator {
         let mut stacked = false;
 
-        if let Pat::Ident(ref ident) = node.name {
-            self.stack_ctxt.push(ident.id.sym.to_string());
-            stacked = true;
-            if let Some(current_hook) = self.hook_ctx.last_mut() {
-                current_hook.local_decl.insert(ident.id.sym.clone());
+        match node.name {
+            Pat::Ident(ref ident) => {
+                self.stack_ctxt.push(ident.id.sym.to_string());
+                stacked = true;
+                if let Some(current_hook) = self.hook_ctx.last_mut() {
+                    current_hook.local_decl.insert(ident.id.sym.clone());
+                }
             }
-        }
+            Pat::Object(ref obj) => {
+                if let Some(current_hook) = self.hook_ctx.last_mut() {
+                    for prop in &obj.props {
+                        match prop {
+                            ObjectPatProp::Assign(ref v) => {
+                                if let Some(Expr::Ident(ident)) = v.value.as_deref() {
+                                    current_hook.local_decl.insert(ident.sym.clone());
+                                } else {
+                                    current_hook.local_decl.insert(v.key.sym.clone());
+                                }
+                            }
+                            ObjectPatProp::KeyValue(ref v) => {
+                                if let Pat::Ident(ident) = v.value.as_ref() {
+                                    current_hook.local_decl.insert(ident.id.sym.clone());
+                                }
+                            }
+                            ObjectPatProp::Rest(ref v) => {
+                                if let Pat::Ident(ident) = v.arg.as_ref() {
+                                    current_hook.local_decl.insert(ident.id.sym.clone());
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            Pat::Array(ref arr) => {
+                if let Some(current_hook) = self.hook_ctx.last_mut() {
+                    for el in &arr.elems {
+                        match el {
+                            Some(Pat::Ident(ref ident)) => {
+                                current_hook.local_decl.insert(ident.id.sym.clone());
+                            }
+                            Some(Pat::Rest(ref rest)) => {
+                                if let Pat::Ident(ref ident) = *rest.arg {
+                                    current_hook.local_decl.insert(ident.id.sym.clone());
+                                }
+                            }
+                            _ => {}
+                        }
+                    }
+                }
+            }
+            _ => {}
+        };
         let o = node.fold_children_with(self);
         if stacked {
             self.stack_ctxt.pop();
         }
         return o;
+    }
+
+    fn fold_arrow_expr(&mut self, node: ArrowExpr) -> ArrowExpr {
+        if let Some(current_hook) = self.hook_ctx.last_mut() {
+            for param in &node.params {
+                match param {
+                    Pat::Ident(ref ident) => {
+                        current_hook.local_decl.insert(ident.id.sym.clone());
+                    }
+                    Pat::Object(ref obj) => {
+                        for prop in &obj.props {
+                            match prop {
+                                ObjectPatProp::Assign(ref v) => {
+                                    if let Some(Expr::Ident(ident)) = v.value.as_deref() {
+                                        current_hook.local_decl.insert(ident.sym.clone());
+                                    } else {
+                                        current_hook.local_decl.insert(v.key.sym.clone());
+                                    }
+                                }
+                                ObjectPatProp::KeyValue(ref v) => {
+                                    if let Pat::Ident(ident) = v.value.as_ref() {
+                                        current_hook.local_decl.insert(ident.id.sym.clone());
+                                    }
+                                }
+                                ObjectPatProp::Rest(ref v) => {
+                                    if let Pat::Ident(ident) = v.arg.as_ref() {
+                                        current_hook.local_decl.insert(ident.id.sym.clone());
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    Pat::Array(ref arr) => {
+                        for el in &arr.elems {
+                            match el {
+                                Some(Pat::Ident(ref ident)) => {
+                                    current_hook.local_decl.insert(ident.id.sym.clone());
+                                }
+                                Some(Pat::Rest(ref rest)) => {
+                                    if let Pat::Ident(ref ident) = *rest.arg {
+                                        current_hook.local_decl.insert(ident.id.sym.clone());
+                                    }
+                                }
+                                _ => {}
+                            }
+                        }
+                    }
+                    _ => {}
+                }
+            }
+        }
+        return node.fold_children_with(self);
+    }
+
+    fn fold_catch_clause(&mut self, node: CatchClause) -> CatchClause {
+        if let Some(current_hook) = self.hook_ctx.last_mut() {
+            match node.param {
+                Some(Pat::Ident(ref ident)) => {
+                    current_hook.local_decl.insert(ident.id.sym.clone());
+                }
+                Some(Pat::Object(ref obj)) => {
+                    for prop in &obj.props {
+                        match prop {
+                            ObjectPatProp::Assign(ref v) => {
+                                if let Some(Expr::Ident(ident)) = v.value.as_deref() {
+                                    current_hook.local_decl.insert(ident.sym.clone());
+                                } else {
+                                    current_hook.local_decl.insert(v.key.sym.clone());
+                                }
+                            }
+                            ObjectPatProp::KeyValue(ref v) => {
+                                if let Pat::Ident(ident) = v.value.as_ref() {
+                                    current_hook.local_decl.insert(ident.id.sym.clone());
+                                }
+                            }
+                            ObjectPatProp::Rest(ref v) => {
+                                if let Pat::Ident(ident) = v.arg.as_ref() {
+                                    current_hook.local_decl.insert(ident.id.sym.clone());
+                                }
+                            }
+                        }
+                    }
+                }
+                Some(Pat::Array(ref arr)) => {
+                    for el in &arr.elems {
+                        match el {
+                            Some(Pat::Ident(ref ident)) => {
+                                current_hook.local_decl.insert(ident.id.sym.clone());
+                            }
+                            Some(Pat::Rest(ref rest)) => {
+                                if let Pat::Ident(ref ident) = *rest.arg {
+                                    current_hook.local_decl.insert(ident.id.sym.clone());
+                                }
+                            }
+                            _ => {}
+                        }
+                    }
+                }
+                _ => {}
+            }
+        }
+        return node.fold_children_with(self);
     }
 
     fn fold_fn_decl(&mut self, node: FnDecl) -> FnDecl {
@@ -201,6 +348,58 @@ impl<'a> Fold for HookTransform<'a> {
         self.stack_ctxt.pop();
 
         return o;
+    }
+
+    fn fold_function(&mut self, node: Function) -> Function {
+        if let Some(current_hook) = self.hook_ctx.last_mut() {
+            for param in &node.params {
+                match param.pat {
+                    Pat::Ident(ref ident) => {
+                        current_hook.local_decl.insert(ident.id.sym.clone());
+                    }
+                    Pat::Object(ref obj) => {
+                        for prop in &obj.props {
+                            match prop {
+                                ObjectPatProp::Assign(ref v) => {
+                                    if let Some(Expr::Ident(ident)) = v.value.as_deref() {
+                                        current_hook.local_decl.insert(ident.sym.clone());
+                                    } else {
+                                        current_hook.local_decl.insert(v.key.sym.clone());
+                                    }
+                                }
+                                ObjectPatProp::KeyValue(ref v) => {
+                                    if let Pat::Ident(ident) = v.value.as_ref() {
+                                        current_hook.local_decl.insert(ident.id.sym.clone());
+                                    }
+                                }
+                                ObjectPatProp::Rest(ref v) => {
+                                    if let Pat::Ident(ident) = v.arg.as_ref() {
+                                        current_hook.local_decl.insert(ident.id.sym.clone());
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    Pat::Array(ref arr) => {
+                        for el in &arr.elems {
+                            match el {
+                                Some(Pat::Ident(ref ident)) => {
+                                    current_hook.local_decl.insert(ident.id.sym.clone());
+                                }
+                                Some(Pat::Rest(ref rest)) => {
+                                    if let Pat::Ident(ref ident) = *rest.arg {
+                                        current_hook.local_decl.insert(ident.id.sym.clone());
+                                    }
+                                }
+                                _ => {}
+                            }
+                        }
+                    }
+                    _ => {}
+                }
+            }
+        }
+        return node.fold_children_with(self);
     }
 
     fn fold_class_decl(&mut self, node: ClassDecl) -> ClassDecl {

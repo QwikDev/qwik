@@ -18,29 +18,32 @@ export const App = () => {
     return Header;
 });
     
+=============================: test.tsx==
 
-== CODE ==
-
-export const App_Header_onRender_h = qHook(()=>{
-    return (<div onClick={qHook("App_Header_onRender_div_onClick_h")}/>);
-});
-export const App_Header_onRender_div_onClick_h = qHook((ctx)=>console.log(ctx)
-);
-export const App_Header_onMount_h = qHook(()=>{
-    console.log("mount");
-});
 export const App = ()=>{
     const Header = qComponent({
-        "onMount": qHook("App_Header_onMount_h"),
-        onRender: qHook("App_Header_onRender_h")
+        "onMount": qHook("h_test.tsx.js#App_Header_onMount_h"),
+        onRender: qHook("h_test.tsx.js#App_Header_onRender_h")
     });
     return Header;
 };
 
+=============================: h_test.tsx.js==
 
-== MAP ==
+export const App_Header_onMount_h = qHook(()=>{
+    console.log("mount");
+});
 
-{"version":3,"sources":["test.tsx"],"names":[],"mappings":"qCAIkB,KAAK,KAAO,CAAC;IACnB,MAAM,GACL,GAAG,CAAC,OAAO;AAEhB,CAAC;iDAFiB,KAAK,EAAE,GAAG,GAAK,OAAO,CAAC,GAAG,CAAC,GAAG;;oCAHrC,KAAK,KAAO,CAAC;IAAC,OAAO,CAAC,GAAG,CAAC,CAAO;AAAE,CAAC;aAF1C,GAAG,OAAS,CAAC;IACtB,KAAK,CAAC,MAAM,GAAG,UAAU,CAAC,CAAC;QACvB,CAAS;QACT,QAAQ;IAKZ,CAAC;IACD,MAAM,CAAC,MAAM;AACjB,CAAC"}
+=============================: h_test.tsx.js==
+
+export const App_Header_onRender_div_onClick_h = qHook((ctx)=>console.log(ctx)
+);
+
+=============================: h_test.tsx.js==
+
+export const App_Header_onRender_h = qHook(()=>{
+    return (<div onClick={qHook("h_test.tsx.js#App_Header_onRender_div_onClick_h")}/>);
+});
 
 == HOOKS ==
 
@@ -49,8 +52,6 @@ export const App = ()=>{
     "name": "App_Header_onMount_h",
     "local_decl": [],
     "local_idents": [
-      "console",
-      "log",
       "qHook"
     ]
   },
@@ -60,9 +61,6 @@ export const App = ()=>{
       "ctx"
     ],
     "local_idents": [
-      "console",
-      "ctx",
-      "log",
       "qHook"
     ]
   },
@@ -70,8 +68,6 @@ export const App = ()=>{
     "name": "App_Header_onRender_h",
     "local_decl": [],
     "local_idents": [
-      "div",
-      "onClick",
       "qHook"
     ]
   }

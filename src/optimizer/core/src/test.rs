@@ -1,6 +1,7 @@
 extern crate insta;
+
 use super::*;
-use serde_json::*;
+use serde_json::{to_string_pretty};
 
 #[test]
 fn example_1() {
@@ -175,41 +176,61 @@ const Header = qHook((decl1, {decl2}, [decl3]) => {
     false)
 }
 
+#[test]
+fn example_10() {
+    test_input(
+        "test.tsx",
+        r#"
+const Header = qHook((decl1, {decl2}, [decl3]) => {
 
-// #[test]
-// fn optimize_fixture_1() {
-//     test_fixture("hello-world");
-// }
-
-fn test_fixture(folder: &str) {
-    let res = transform_workdir(&FSConfig {
-        project_root: folder.to_string(),
-        source_maps: true,
-        minify: false,
-        transpile: false,
-    });
-    match res {
-        Ok(results) => {
-            for file in results {
-                match file {
-                    Ok(v) => {
-                        let s = v.to_string();
-                        let code = if let Some(code) = s.code { code } else { "".to_string() };
-                        let map = if let Some(map) = s.map { map } else { "".to_string() };
-                        let output = format!("== CODE ==\n\n{}== MAP ==\n\n{}== DIAGNOSTICS ==\n\n{:?}", code, map, v.diagnostics);
-                        insta::assert_display_snapshot!(output);
-                    }
-                    Err(err) => {
-                        insta::assert_display_snapshot!(err);
-                    }
-                }
-            }
-        }
-        Err(err) => {
-            insta::assert_display_snapshot!(err);
+    const hola = ident1.no;
+    ident2;
+    const a = ident1 + ident3;
+    const b = ident1 + ident3;
+    ident4(ident5, [ident6], {ident7}, {key: ident8});
+    class Some {
+        prop = ident9;
+        method() {
+            return ident10;
         }
     }
+
+    return (
+        <div onClick={(ident11) => ident11 + ident12} required={false}/>
+    )
+});
+    "#,
+    false)
 }
+// fn test_fixture(folder: &str) {
+//     let res = transform_workdir(&FSConfig {
+//         project_root: folder.to_string(),
+//         source_maps: true,
+//         minify: false,
+//         transpile: false,
+//     });
+//     match res {
+//         Ok(results) => {
+//             for file in results {
+//                 match file {
+//                     Ok(v) => {
+//                         let s = v.to_string();
+//                         let code = if let Some(code) = s.code { code } else { "".to_string() };
+//                         let map = if let Some(map) = s.map { map } else { "".to_string() };
+//                         let output = format!("== CODE ==\n\n{}== MAP ==\n\n{}== DIAGNOSTICS ==\n\n{:?}", code, map, v.diagnostics);
+//                         insta::assert_display_snapshot!(output);
+//                     }
+//                     Err(err) => {
+//                         insta::assert_display_snapshot!(err);
+//                     }
+//                 }
+//             }
+//         }
+//         Err(err) => {
+//             insta::assert_display_snapshot!(err);
+//         }
+//     }
+// }
 
 fn test_input(filename: &str, code: &str, print_ast: bool) {
     let mut ctx = transform::TransformContext::new();
@@ -224,12 +245,17 @@ fn test_input(filename: &str, code: &str, print_ast: bool) {
     });
     match res {
         Ok(v) => {
-            let s = v.to_string();
             let input = code.to_string();
-            let code = if let Some(code) = s.code { code } else { "".to_string() };
-            let map = if let Some(map) = s.map { map } else { "".to_string() };
-            let hooks = if let Some(hooks) = v.hooks { serde_json::to_string_pretty(&hooks).unwrap() } else { "".to_string() };
-            let output = format!("==INPUT==\n\n{}\n\n== CODE ==\n\n{}\n\n== MAP ==\n\n{}\n\n== HOOKS ==\n\n{}\n\n== DIAGNOSTICS ==\n\n{:?}", input, code, map, hooks, v.diagnostics);
+            let mut output = format!("==INPUT==\n\n{}", input);
+
+            for module in v.modules {
+                let s = module.to_string();
+                output += format!("\n=============================: {}==\n\n{}", s.filename, s.code).as_str();
+                // let map = if let Some(map) = s.map { map } else { "".to_string() };
+                // output += format!("\n== MAP ==\n{}", map).as_str();
+            }
+            let hooks = if let Some(hooks) = v.hooks { to_string_pretty(&hooks).unwrap() } else { "".to_string() };
+            output += format!("\n== HOOKS ==\n\n{}\n\n== DIAGNOSTICS ==\n\n{:?}", hooks, v.diagnostics).as_str();
             insta::assert_display_snapshot!(output);
         }
         Err(err) => {
@@ -237,4 +263,3 @@ fn test_input(filename: &str, code: &str, print_ast: bool) {
         }
     }
 }
-

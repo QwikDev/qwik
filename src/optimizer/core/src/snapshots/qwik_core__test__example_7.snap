@@ -25,33 +25,43 @@ const App = qComponent({
         );
     })
 });
-
-== CODE ==
+=============================: test.tsx==
 
 import { qHook } from '@builderio/qwik';
-export const Header_onRender_h = qHook(()=>{
-    return (<div onClick={qHook("Header_onRender_div_onClick_h")}/>);
-});
-export const Header_onRender_div_onClick_h = qHook((ctx)=>console.log(ctx)
-);
-export const Header_onMount_h = qHook(()=>{
-    console.log("mount");
-});
 const Header = qComponent({
-    "onMount": qHook("Header_onMount_h"),
-    onRender: qHook("Header_onRender_h")
+    "onMount": qHook("h_test.tsx.js#Header_onMount_h"),
+    onRender: qHook("h_test.tsx.js#Header_onRender_h")
 });
+const App = qComponent({
+    onRender: qHook("h_test.tsx.js#App_onRender_h")
+});
+
+=============================: h_test.tsx.js==
+
+import { qHook as qHook } from "@builderio/qwik";
 export const App_onRender_h = qHook(()=>{
     return (<Header />);
 });
-const App = qComponent({
-    onRender: qHook("App_onRender_h")
+
+=============================: h_test.tsx.js==
+
+import { qHook as qHook } from "@builderio/qwik";
+export const Header_onMount_h = qHook(()=>{
+    console.log("mount");
 });
 
+=============================: h_test.tsx.js==
 
-== MAP ==
+import { qHook as qHook } from "@builderio/qwik";
+export const Header_onRender_div_onClick_h = qHook((ctx)=>console.log(ctx)
+);
 
-{"version":3,"sources":["test.tsx"],"names":[],"mappings":"AACA,MAAM,GAAE,KAAK,QAAO,CAAiB;iCAKvB,KAAK,KAAO,CAAC;IACrB,MAAM,GACH,GAAG,CAAC,OAAO;AAEhB,CAAC;6CAFiB,KAAK,EAAE,GAAG,GAAK,OAAO,CAAC,GAAG,CAAC,GAAG;;gCAHrC,KAAK,KAAO,CAAC;IAAC,OAAO,CAAC,GAAG,CAAC,CAAO;AAAE,CAAC;MAD7C,MAAM,GAAG,UAAU,CAAC,CAAC;IACvB,CAAS;IACT,QAAQ;AAKV,CAAC;8BAGW,KAAK,KAAO,CAAC;IACnB,MAAM,GACL,MAAM;AAEX,CAAC;MALC,GAAG,GAAG,UAAU,CAAC,CAAC;IACpB,QAAQ;AAKZ,CAAC"}
+=============================: h_test.tsx.js==
+
+import { qHook as qHook } from "@builderio/qwik";
+export const Header_onRender_h = qHook(()=>{
+    return (<div onClick={qHook("h_test.tsx.js#Header_onRender_div_onClick_h")}/>);
+});
 
 == HOOKS ==
 
@@ -60,7 +70,6 @@ const App = qComponent({
     "name": "App_onRender_h",
     "local_decl": [],
     "local_idents": [
-      "Header",
       "qHook"
     ]
   },
@@ -68,8 +77,6 @@ const App = qComponent({
     "name": "Header_onMount_h",
     "local_decl": [],
     "local_idents": [
-      "console",
-      "log",
       "qHook"
     ]
   },
@@ -79,9 +86,6 @@ const App = qComponent({
       "ctx"
     ],
     "local_idents": [
-      "console",
-      "ctx",
-      "log",
       "qHook"
     ]
   },
@@ -89,8 +93,6 @@ const App = qComponent({
     "name": "Header_onRender_h",
     "local_decl": [],
     "local_idents": [
-      "div",
-      "onClick",
       "qHook"
     ]
   }

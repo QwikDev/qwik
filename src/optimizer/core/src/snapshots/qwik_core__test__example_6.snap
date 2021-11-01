@@ -8,17 +8,14 @@ expression: output
 
 export const sym1 = qHook((ctx) => console.log("1"));
     
+=============================: test.tsx==
 
-== CODE ==
+export const sym1 = qHook("h_test.tsx.js#sym1_h");
+
+=============================: h_test.tsx.js==
 
 export const sym1_h = qHook((ctx)=>console.log("1")
 );
-export const sym1 = qHook("sym1_h");
-
-
-== MAP ==
-
-{"version":3,"sources":["test.tsx"],"names":[],"mappings":"sBACoB,KAAK,EAAE,GAAG,GAAK,OAAO,CAAC,GAAG,CAAC,CAAG;;aAArC,IAAI"}
 
 == HOOKS ==
 
@@ -29,9 +26,6 @@ export const sym1 = qHook("sym1_h");
       "ctx"
     ],
     "local_idents": [
-      "console",
-      "ctx",
-      "log",
       "qHook"
     ]
   }

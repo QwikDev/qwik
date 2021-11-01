@@ -4,6 +4,11 @@ name = "qwik-core"
 version = "0.0.1"
 edition = "2018"
 
+[[bench]]
+name = "transform"
+harness = false
+html_reports = true
+
 [lib]
 crate-type = ["rlib"]
 
@@ -13,6 +18,9 @@ swc_common = { version = "0.14.2", features = ["tty-emitter", "sourcemap"] }
 swc_atoms = "0.2.9"
 serde = "1.0.123"
 serde_bytes = "0.11.5"
-insta = "1.8.0"
 glob = "0.3.0"
+
+[dev-dependencies]
+criterion = "0.3"
+insta = "1.8.0"
 serde_json = "1.0.68"

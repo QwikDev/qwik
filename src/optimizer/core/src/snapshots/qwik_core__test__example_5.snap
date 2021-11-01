@@ -17,30 +17,33 @@ export const Header = qComponent({
     })
 });
     
+=============================: test.tsx==
 
-== CODE ==
+export const Header = qComponent({
+    onRender: qHook("h_test.tsx.js#Header_onRender_h")
+});
+
+=============================: h_test.tsx.js==
+
+export const Header_onRender_div_onClick_h = qHook((ctx)=>console.log("1")
+);
+
+=============================: h_test.tsx.js==
+
+export const Header_onRender_div_onClick_h1 = qHook((ctx)=>console.log("2")
+);
+
+=============================: h_test.tsx.js==
 
 export const Header_onRender_h = qHook(()=>{
     return (<>
 
-                <div onClick={qHook("Header_onRender_div_onClick_h")}/>
+                <div onClick={qHook("h_test.tsx.js#Header_onRender_div_onClick_h")}/>
 
-                <div onClick={qHook("Header_onRender_div_onClick_h1")}/>
+                <div onClick={qHook("h_test.tsx.js#Header_onRender_div_onClick_h1")}/>
 
             </>);
 });
-export const Header_onRender_div_onClick_h1 = qHook((ctx)=>console.log("2")
-);
-export const Header_onRender_div_onClick_h = qHook((ctx)=>console.log("1")
-);
-export const Header = qComponent({
-    onRender: qHook("Header_onRender_h")
-});
-
-
-== MAP ==
-
-{"version":3,"sources":["test.tsx"],"names":[],"mappings":"iCAEc,KAAK,KAAO,CAAC;IACnB,MAAM,IACA,kBACE,CAAC,GAAG,CAAC,OAAO,2CAAqC,kBACjD,CAAC,GAAG,CAAC,OAAO,4CAAqC,cACrD;AAER,CAAC;8CAHyB,KAAK,EAAE,GAAG,GAAK,OAAO,CAAC,GAAG,CAAC,CAAG;;6CAD9B,KAAK,EAAE,GAAG,GAAK,OAAO,CAAC,GAAG,CAAC,CAAG;;aAJ/C,MAAM,GAAG,UAAU,CAAC,CAAC;IAC9B,QAAQ;AAQZ,CAAC"}
 
 == HOOKS ==
 
@@ -51,9 +54,6 @@ export const Header = qComponent({
       "ctx"
     ],
     "local_idents": [
-      "console",
-      "ctx",
-      "log",
       "qHook"
     ]
   },
@@ -63,9 +63,6 @@ export const Header = qComponent({
       "ctx"
     ],
     "local_idents": [
-      "console",
-      "ctx",
-      "log",
       "qHook"
     ]
   },
@@ -73,8 +70,6 @@ export const Header = qComponent({
     "name": "Header_onRender_h",
     "local_decl": [],
     "local_idents": [
-      "div",
-      "onClick",
       "qHook"
     ]
   }

@@ -18,8 +18,11 @@ const Header = qHook((decl1, {decl2}, [decl3]) => {
     try{}catch({decl19}){}
 });
     
+=============================: test.tsx==
 
-== CODE ==
+const Header = qHook("h_test.tsx.js#Header_h");
+
+=============================: h_test.tsx.js==
 
 export const Header_h = qHook((decl1, { decl2  }, [decl3])=>{
     const { decl4 , key: decl5  } = this;
@@ -38,12 +41,6 @@ export const Header_h = qHook((decl1, { decl2  }, [decl3])=>{
     } catch ({ decl19  }) {
     }
 });
-const Header = qHook("Header_h");
-
-
-== MAP ==
-
-{"version":3,"sources":["test.tsx"],"names":[],"mappings":"wBACe,KAAK,EAAE,KAAK,EAAE,CAAC,CAAA,KAAK,EAAA,CAAC,GAAG,KAAK,IAAM,CAAC;IAC/C,KAAK,CAAC,CAAC,CAAA,KAAK,GAAE,GAAG,EAAE,KAAK,EAAA,CAAC,GAAG,IAAI;IAChC,GAAG,EAAE,KAAK,KAAK,KAAK,IAAI,KAAK;IAC7B,KAAK,CAAC,KAAK,GAAG,CAAC,EAAE,KAAK;aACb,MAAM,CAAC,MAAM,EAAE,CAAC,CAAA,MAAM,EAAA,CAAC,GAAG,MAAM,GAAG,CAAC;IAAA,CAAC;UACxC,MAAM;QACR,MAAM,CAAC,MAAM,EAAE,CAAC,CAAA,MAAM,EAAA,CAAC,GAAG,MAAM,GAAG,CAAC;QAAA,CAAC;;IAEzC,GAAG,CAAA,CAAC;IAAA,CAAC,CAAA,KAAK,EAAC,MAAM,EAAC,CAAC;IAAA,CAAC;IACpB,GAAG,CAAA,CAAC;IAAA,CAAC,CAAA,KAAK,EAAC,CAAC,CAAA,MAAM,EAAA,CAAC,EAAC,CAAC;IAAA,CAAC;AAC1B,CAAC;MAVK,MAAM"}
 
 == HOOKS ==
 
@@ -51,50 +48,12 @@ const Header = qHook("Header_h");
   {
     "name": "Header_h",
     "local_decl": [
-      "decl1",
-      "decl10",
-      "decl11",
-      "decl12",
-      "decl13",
-      "decl14",
-      "decl15",
-      "decl16",
-      "decl17",
-      "decl18",
-      "decl19",
       "decl2",
       "decl3",
-      "decl4",
-      "decl5",
-      "decl6",
-      "decl7",
-      "decl8",
-      "decl9"
+      "decl1"
     ],
     "local_idents": [
-      "decl1",
-      "decl10",
-      "decl11",
-      "decl12",
-      "decl13",
-      "decl14",
-      "decl15",
-      "decl16",
-      "decl17",
-      "decl18",
-      "decl19",
-      "decl2",
-      "decl3",
-      "decl4",
-      "decl5",
-      "decl6",
-      "decl7",
-      "decl8",
-      "decl9",
-      "key",
-      "method",
-      "qHook",
-      "stuff"
+      "qHook"
     ]
   }
 ]

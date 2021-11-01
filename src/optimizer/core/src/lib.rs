@@ -9,25 +9,30 @@ extern crate swc_ecmascript;
 mod test;
 
 mod transform;
+mod collector;
 mod utils;
 
 use std::error;
 use std::ffi::OsStr;
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::collections::{HashSet};
 use std::str;
 
 use serde::{Deserialize, Serialize};
+use swc_atoms::{JsWord};
 use swc_common::comments::SingleThreadedComments;
 use swc_common::errors::{DiagnosticBuilder, Emitter, Handler};
-use swc_common::{chain, sync::Lrc, FileName, Globals, SourceMap};
-use swc_ecmascript::ast::Module;
+use swc_common::{chain, sync::Lrc, FileName, Globals, DUMMY_SP, SourceMap};
+use swc_ecmascript::ast::*;
 use swc_ecmascript::codegen::text_writer::JsWriter;
 use swc_ecmascript::parser::lexer::Lexer;
 use swc_ecmascript::parser::{EsConfig, PResult, Parser, StringInput, Syntax, TsConfig};
 use swc_ecmascript::transforms::{pass, typescript};
-use swc_ecmascript::visit::FoldWith;
+use swc_ecmascript::visit::{VisitWith, FoldWith};
 use utils::{CodeHighlight, Diagnostic, DiagnosticSeverity, SourceLocation};
+pub use transform::{TransformContext, Hook};
+use collector::{GlobalCollect};
 
 #[derive(Serialize, Debug, Deserialize)]
 pub struct FSConfig {
@@ -38,31 +43,44 @@ pub struct FSConfig {
 }
 
 pub struct Config<'a> {
-    filename: String,
-    source_maps: bool,
-    minify: bool,
-    transpile: bool,
-    print_ast: bool,
-    code: Vec<u8>,
-    context: &'a mut transform::TransformContext,
+    pub filename: String,
+    pub source_maps: bool,
+    pub minify: bool,
+    pub transpile: bool,
+    pub print_ast: bool,
+    pub code: Vec<u8>,
+    pub context: &'a mut TransformContext,
+}
+
+#[derive(Debug, Default, Serialize, Deserialize)]
+pub struct HookAnalysis {
+    name: String,
+    local_decl: HashSet<JsWord>,
+    local_idents: HashSet<JsWord>,
 }
 
 #[derive(Serialize, Debug, Deserialize, Default)]
 pub struct TransformResult {
+    pub modules: Vec<TransformModule>,
+    pub diagnostics: Option<Vec<Diagnostic>>,
+    pub hooks: Option<Vec<HookAnalysis>>,
+}
+
+#[derive(Serialize, Debug, Deserialize, Default)]
+pub struct TransformModule {
     pub filename: String,
 
     #[serde(with = "serde_bytes")]
-    pub code: Option<Vec<u8>>,
+    pub code: Vec<u8>,
 
     #[serde(with = "serde_bytes")]
     pub map: Option<Vec<u8>>,
-    pub diagnostics: Option<Vec<Diagnostic>>,
-    pub hooks: Option<Vec<transform::Hook>>,
 }
 
 #[derive(Serialize, Debug, Deserialize, Default)]
 pub struct TransformStringResult {
-    pub code: Option<String>,
+    pub filename: String,
+    pub code: String,
     pub map: Option<String>,
 }
 
@@ -75,14 +93,11 @@ impl Emitter for ErrorBuffer {
     }
 }
 
-impl TransformResult {
+impl TransformModule {
     pub fn to_string(&self) -> TransformStringResult {
         TransformStringResult {
-            code: if let Some(code) = &self.code {
-                Some(str::from_utf8(&code).unwrap().to_string())
-            } else {
-                None
-            },
+            filename: self.filename.clone(),
+            code: str::from_utf8(&self.code).unwrap().to_string(),
             map: if let Some(map) = &self.map {
                 Some(str::from_utf8(&map).unwrap().to_string())
             } else {
@@ -100,7 +115,7 @@ pub fn transform_workdir(
     let srcdir = srcdir.join("**/*.qwik.*");
     println!("{:?}", srcdir.to_str().unwrap());
 
-    let mut context = transform::TransformContext::new();
+    let mut context = TransformContext::new();
     let paths = glob::glob(srcdir.to_str().unwrap())?;
     let results = paths
         .map(|p| -> Result<TransformResult, Box<dyn error::Error>> {
@@ -131,25 +146,51 @@ pub fn transform(config: Config) -> Result<TransformResult, Box<dyn error::Error
     }
 
     match module {
-        Ok((module, comments)) => {
+        Ok((main_module, comments)) => {
             swc_common::GLOBALS.set(&Globals::new(), || {
 
-                let mut hooks = vec![];
-                let module = {
+                let mut collect = GlobalCollect::new(config.context.source_map.clone());
+                main_module.visit_with(&Invalid { span: DUMMY_SP } as _, &mut collect);
+
+                let mut hooks: Vec<Hook> = vec![];
+                let main_module = {
                     let mut passes = chain!(
-                        transform::HookTransform::new(config.context, &mut hooks),
+                        transform::HookTransform::new(config.context, config.filename.as_str(), &mut hooks),
                         pass::Optional::new(typescript::strip(), config.transpile),
                     );
-                    module.fold_with(&mut passes)
+                    main_module.fold_with(&mut passes)
                 };
 
-                let (code, map) = emit_source_code(config.context.source_map.clone(), comments, &module, config.minify, config.source_maps)?;
-                Ok(TransformResult {
+                let mut output_modules: Vec<TransformModule> = hooks.iter().map(|h| {
+                    let hook_module = new_module(&h, &collect);
+                    let (code, map) = emit_source_code(config.context.source_map.clone(), None, &hook_module, config.minify, config.source_maps).unwrap();
+                    TransformModule {
+                        code: code,
+                        map: map,
+                        filename: h.filename.clone(),
+                    }
+                }).collect();
+
+
+                let hooks: Vec<HookAnalysis> = hooks.iter().map(|h| {
+                    HookAnalysis{
+                        name: h.name.clone(),
+                        local_decl: h.hook_collect.local_decl.clone(),
+                        local_idents: h.hook_collect.local_idents.clone(),
+                    }
+                }).collect();
+
+                let (code, map) = emit_source_code(config.context.source_map.clone(), Some(comments), &main_module, config.minify, config.source_maps)?;
+                output_modules.insert(0, TransformModule {
                     filename: config.filename.clone(),
-                    code: Some(code),
-                    hooks: Some(hooks),
+                    code: code,
                     map: map,
+                });
+
+                Ok(TransformResult{
+                    modules: output_modules,
                     diagnostics: None,
+                    hooks: Some(hooks),
                 })
             })
         }
@@ -159,10 +200,8 @@ pub fn transform(config: Config) -> Result<TransformResult, Box<dyn error::Error
             err.into_diagnostic(&handler).emit();
             let diagnostics = handle_error(error_buffer, &config.context.source_map);
             Ok(TransformResult {
-                filename: config.filename.clone(),
-                code: None,
-                map: None,
                 hooks: None,
+                modules: vec![],
                 diagnostics: Some(diagnostics),
             })
         }
@@ -223,7 +262,7 @@ fn parse_filename(filename: &str) -> (bool, bool) {
 
 fn emit_source_code(
     source_map: Lrc<SourceMap>,
-    comments: SingleThreadedComments,
+    comments: Option<SingleThreadedComments>,
     program: &Module,
     minify: bool,
     source_maps: bool,
@@ -314,4 +353,69 @@ fn handle_error(error_buffer: ErrorBuffer, source_map: &Lrc<SourceMap>) -> Vec<D
         .collect();
 
     return diagnostics;
+}
+
+fn new_module(hook: &Hook, global: &GlobalCollect) -> Module {
+    let mut module = Module{
+        span: DUMMY_SP,
+        body: vec![],
+        shebang: None,
+    };
+    for ident in &hook.hook_collect.local_idents {
+        if let Some(import) = global.imports.get(&ident) {
+            if hook.hook_collect.local_idents.contains(&import.local) {
+                module.body.push(
+                    ModuleItem::ModuleDecl(
+                        ModuleDecl::Import(
+                            ImportDecl{
+                                span: DUMMY_SP,
+                                type_only: false,
+                                asserts: None,
+                                src: Str{
+                                    span: DUMMY_SP,
+                                    value: import.source.clone(),
+                                    kind: StrKind::Synthesized,
+                                    has_escape: false,
+                                },
+                                specifiers: vec![ImportSpecifier::Named(
+                                    ImportNamedSpecifier{
+                                        is_type_only: false,
+                                        span: DUMMY_SP,
+                                        imported: Some(Ident::new(import.specifier.clone(), DUMMY_SP)),
+                                        local: Ident::new(import.local.clone(), DUMMY_SP),
+                                    }
+                                )],
+                            }
+                        )
+                    )
+                )
+            }
+        }
+    }
+    module.body.push(
+        create_named_export(hook)
+    );
+
+    return module;
+}
+
+
+fn create_named_export(hook: &Hook) -> ModuleItem {
+    ModuleItem::ModuleDecl(ModuleDecl::ExportDecl(ExportDecl {
+        span: DUMMY_SP,
+        decl: Decl::Var(VarDecl {
+            span: DUMMY_SP,
+            kind: VarDeclKind::Const,
+            declare: false,
+            decls: vec![VarDeclarator {
+                span: DUMMY_SP,
+                definite: false,
+                name: Pat::Ident(BindingIdent::from(Ident::new(
+                    hook.name.clone().into(),
+                    DUMMY_SP,
+                ))),
+                init: Some(hook.expr.clone()),
+            }],
+        }),
+    }))
 }

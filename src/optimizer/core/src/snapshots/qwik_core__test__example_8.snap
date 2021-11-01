@@ -19,24 +19,22 @@ const Header = qComponent({
     })
   });
 
-
-== CODE ==
+=============================: test.tsx==
 
 import { qHook } from '@builderio/qwik';
+const Header = qComponent({
+    onRender: qHook("h_test.tsx.js#Header_onRender_h")
+});
+
+=============================: h_test.tsx.js==
+
+import { qHook as qHook } from "@builderio/qwik";
 export const Header_onRender_h = qHook((hola)=>{
     const hola = this;
     const { something , styff  } = hola;
     const hello = hola.nothere.stuff[global];
     return (<Header />);
 });
-const Header = qComponent({
-    onRender: qHook("Header_onRender_h")
-});
-
-
-== MAP ==
-
-{"version":3,"sources":["test.tsx"],"names":[],"mappings":"AACA,MAAM,GAAE,KAAK,QAAO,CAAiB;iCAGvB,KAAK,EAAE,IAAI,GAAK,CAAC;IACzB,KAAK,CAAC,IAAI,GAAG,IAAI;IACjB,KAAK,CAAC,CAAC,CAAA,SAAS,GAAE,KAAK,EAAA,CAAC,GAAG,IAAI;IAC/B,KAAK,CAAC,KAAK,GAAG,IAAI,CAAC,OAAO,CAAC,KAAK,CAAC,MAAM;IACvC,MAAM,GACH,MAAM;AAEX,CAAC;MARC,MAAM,GAAG,UAAU,CAAC,CAAC;IACvB,QAAQ;AAQV,CAAC"}
 
 == HOOKS ==
 
@@ -44,21 +42,10 @@ const Header = qComponent({
   {
     "name": "Header_onRender_h",
     "local_decl": [
-      "hello",
-      "hola",
-      "something",
-      "styff"
+      "hola"
     ],
     "local_idents": [
-      "Header",
-      "global",
-      "hello",
-      "hola",
-      "nothere",
-      "qHook",
-      "something",
-      "stuff",
-      "styff"
+      "qHook"
     ]
   }
 ]

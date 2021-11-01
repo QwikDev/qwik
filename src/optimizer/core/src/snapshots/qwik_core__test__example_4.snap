@@ -22,34 +22,34 @@ export function App() {
 
 export function App() {
     const Header = qComponent({
-        "onMount": qHook("h_test_App_Header_onMount_h.js#App_Header_onMount_h"),
-        onRender: qHook("h_test_App_Header_onRender_h.js#App_Header_onRender_h")
+        "onMount": qHook("h_test_App_Header_onMount.js#App_Header_onMount"),
+        onRender: qHook("h_test_App_Header_onRender.js#App_Header_onRender")
     });
     return Header;
 }
 
-============================= h_test_App_Header_onMount_h.js==
+============================= h_test_App_Header_onMount.js==
 
-export const App_Header_onMount_h = qHook(()=>{
+export const App_Header_onMount = qHook(()=>{
     console.log("mount");
 });
 
-============================= h_test_App_Header_onRender_div_onClick_h.js==
+============================= h_test_App_Header_onRender_div_onClick.js==
 
-export const App_Header_onRender_div_onClick_h = qHook((ctx)=>console.log(ctx)
+export const App_Header_onRender_div_onClick = qHook((ctx)=>console.log(ctx)
 );
 
-============================= h_test_App_Header_onRender_h.js==
+============================= h_test_App_Header_onRender.js==
 
-export const App_Header_onRender_h = qHook(()=>{
-    return (<div onClick={qHook("h_test_App_Header_onRender_div_onClick_h.js#App_Header_onRender_div_onClick_h")}/>);
+export const App_Header_onRender = qHook(()=>{
+    return (<div onClick={qHook("h_test_App_Header_onRender_div_onClick.js#App_Header_onRender_div_onClick")}/>);
 });
 
 == HOOKS ==
 
 [
   {
-    "name": "App_Header_onMount_h",
+    "name": "App_Header_onMount",
     "local_decl": [],
     "local_idents": [
       "console",
@@ -58,7 +58,7 @@ export const App_Header_onRender_h = qHook(()=>{
     ]
   },
   {
-    "name": "App_Header_onRender_div_onClick_h",
+    "name": "App_Header_onRender_div_onClick",
     "local_decl": [
       "ctx"
     ],
@@ -70,7 +70,7 @@ export const App_Header_onRender_h = qHook(()=>{
     ]
   },
   {
-    "name": "App_Header_onRender_h",
+    "name": "App_Header_onRender",
     "local_decl": [
       "ctx"
     ],

@@ -57,7 +57,10 @@ impl<'a> HookTransform<'a> {
     }
 
     fn get_context_name(&self) -> String {
-        let mut ctx = self.stack_ctxt.join("_") + "_h";
+        let mut ctx = self.stack_ctxt.join("_");
+        if self.stack_ctxt.len() < 1 {
+            ctx += "_h";
+        }
         if self.context.hooks_names.contains(&ctx) {
             ctx += &self.hooks.len().to_string();
         }

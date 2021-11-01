@@ -27,11 +27,11 @@ const Header = qHook((decl1, {decl2}, [decl3]) => {
     
 ============================= test.js==
 
-const Header = qHook("h_test_Header_h.js#Header_h");
+const Header = qHook("h_test_Header.js#Header");
 
-============================= h_test_Header_h.js==
+============================= h_test_Header.js==
 
-export const Header_h = qHook((decl1, { decl2  }, [decl3])=>{
+export const Header = qHook((decl1, { decl2  }, [decl3])=>{
     const hola = ident1.no;
     ident2;
     const a = ident1 + ident3;
@@ -59,7 +59,7 @@ export const Header_h = qHook((decl1, { decl2  }, [decl3])=>{
 
 [
   {
-    "name": "Header_h",
+    "name": "Header",
     "local_decl": [
       "Some",
       "a",

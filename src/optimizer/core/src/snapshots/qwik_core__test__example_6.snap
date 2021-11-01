@@ -10,18 +10,18 @@ export const sym1 = qHook((ctx) => console.log("1"));
     
 ============================= test.js==
 
-export const sym1 = qHook("h_test_sym1_h.js#sym1_h");
+export const sym1 = qHook("h_test_sym1.js#sym1");
 
-============================= h_test_sym1_h.js==
+============================= h_test_sym1.js==
 
-export const sym1_h = qHook((ctx)=>console.log("1")
+export const sym1 = qHook((ctx)=>console.log("1")
 );
 
 == HOOKS ==
 
 [
   {
-    "name": "sym1_h",
+    "name": "sym1",
     "local_decl": [
       "ctx"
     ],

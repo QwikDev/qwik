@@ -30,26 +30,26 @@ export const App = qComponent({
 import { foo, bar as bbar } from "dep";
 import * as dep2 from "dep2";
 export const Header = qComponent({
-    onRender: qHook("h_test_Header_onRender_h.js#Header_onRender_h")
+    onRender: qHook("h_test_Header_onRender.js#Header_onRender")
 });
 export const App = qComponent({
-    onRender: qHook("h_test_App_onRender_h.js#App_onRender_h")
+    onRender: qHook("h_test_App_onRender.js#App_onRender")
 });
 
-============================= h_test_App_onRender_h.js==
+============================= h_test_App_onRender.js==
 
 import { Header } from "./test";
 import { foo as foo } from "dep";
-export const App_onRender_h = qHook(()=>{
+export const App_onRender = qHook(()=>{
     return (<Header >{foo()}</Header>);
 });
 
-============================= h_test_Header_onRender_h.js==
+============================= h_test_Header_onRender.js==
 
 import { Header } from "./test";
 import { bar as bbar } from "dep";
 import { * as dep2 } from "dep2";
-export const Header_onRender_h = qHook(()=>{
+export const Header_onRender = qHook(()=>{
     return (<Header >{dep2.stuff()}{bbar()}</Header>);
 });
 
@@ -57,7 +57,7 @@ export const Header_onRender_h = qHook(()=>{
 
 [
   {
-    "name": "App_onRender_h",
+    "name": "App_onRender",
     "local_decl": [],
     "local_idents": [
       "Header",
@@ -66,7 +66,7 @@ export const Header_onRender_h = qHook(()=>{
     ]
   },
   {
-    "name": "Header_onRender_h",
+    "name": "Header_onRender",
     "local_decl": [],
     "local_idents": [
       "Header",

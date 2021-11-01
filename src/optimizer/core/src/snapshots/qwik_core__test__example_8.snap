@@ -23,13 +23,13 @@ const Header = qComponent({
 
 import { qHook } from '@builderio/qwik';
 const Header = qComponent({
-    onRender: qHook("h_test_Header_onRender_h.js#Header_onRender_h")
+    onRender: qHook("h_test_Header_onRender.js#Header_onRender")
 });
 
-============================= h_test_Header_onRender_h.js==
+============================= h_test_Header_onRender.js==
 
 import { qHook as qHook } from "@builderio/qwik";
-export const Header_onRender_h = qHook((hola)=>{
+export const Header_onRender = qHook((hola)=>{
     const hola = this;
     const { something , styff  } = hola;
     const hello = hola.nothere.stuff[global];
@@ -40,7 +40,7 @@ export const Header_onRender_h = qHook((hola)=>{
 
 [
   {
-    "name": "Header_onRender_h",
+    "name": "Header_onRender",
     "local_decl": [
       "hello",
       "hola",

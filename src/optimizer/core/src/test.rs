@@ -1,7 +1,7 @@
 extern crate insta;
 
 use super::*;
-use serde_json::{to_string_pretty};
+use serde_json::to_string_pretty;
 
 #[test]
 fn example_1() {
@@ -17,7 +17,8 @@ const Header = qComponent({
   })
 });
     "#,
-    false)
+        false,
+    )
 }
 
 #[test]
@@ -34,7 +35,8 @@ export const Header = qComponent({
   })
 });
     "#,
-    false)
+        false,
+    )
 }
 
 #[test]
@@ -54,7 +56,8 @@ export const App = () => {
     return Header;
 });
     "#,
-    false)
+        false,
+    )
 }
 
 #[test]
@@ -74,9 +77,9 @@ export function App() {
     return Header;
 }
     "#,
-    false)
+        false,
+    )
 }
-
 
 #[test]
 fn example_5() {
@@ -94,9 +97,9 @@ export const Header = qComponent({
     })
 });
     "#,
-    false)
+        false,
+    )
 }
-
 
 #[test]
 fn example_6() {
@@ -105,7 +108,8 @@ fn example_6() {
         r#"
 export const sym1 = qHook((ctx) => console.log("1"));
     "#,
-    false)
+        false,
+    )
 }
 
 #[test]
@@ -132,7 +136,8 @@ const App = qComponent({
         );
     })
 });"#,
-    false)
+        false,
+    )
 }
 
 #[test]
@@ -153,7 +158,8 @@ const Header = qComponent({
     })
   });
 "#,
-false)
+        false,
+    )
 }
 
 #[test]
@@ -173,7 +179,8 @@ const Header = qHook((decl1, {decl2}, [decl3]) => {
     try{}catch({decl19}){}
 });
     "#,
-    false)
+        false,
+    )
 }
 
 #[test]
@@ -200,7 +207,8 @@ const Header = qHook((decl1, {decl2}, [decl3]) => {
     )
 });
     "#,
-    false)
+        false,
+    )
 }
 // fn test_fixture(folder: &str) {
 //     let res = transform_workdir(&FSConfig {
@@ -250,12 +258,24 @@ fn test_input(filename: &str, code: &str, print_ast: bool) {
 
             for module in v.modules {
                 let s = module.to_string();
-                output += format!("\n=============================: {}==\n\n{}", s.filename, s.code).as_str();
+                output += format!(
+                    "\n=============================: {}==\n\n{}",
+                    s.filename, s.code
+                )
+                .as_str();
                 // let map = if let Some(map) = s.map { map } else { "".to_string() };
                 // output += format!("\n== MAP ==\n{}", map).as_str();
             }
-            let hooks = if let Some(hooks) = v.hooks { to_string_pretty(&hooks).unwrap() } else { "".to_string() };
-            output += format!("\n== HOOKS ==\n\n{}\n\n== DIAGNOSTICS ==\n\n{:?}", hooks, v.diagnostics).as_str();
+            let hooks = if let Some(hooks) = v.hooks {
+                to_string_pretty(&hooks).unwrap()
+            } else {
+                "".to_string()
+            };
+            output += format!(
+                "\n== HOOKS ==\n\n{}\n\n== DIAGNOSTICS ==\n\n{:?}",
+                hooks, v.diagnostics
+            )
+            .as_str();
             insta::assert_display_snapshot!(output);
         }
         Err(err) => {

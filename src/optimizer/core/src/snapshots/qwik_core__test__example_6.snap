@@ -26,6 +26,9 @@ export const sym1_h = qHook((ctx)=>console.log("1")
       "ctx"
     ],
     "local_idents": [
+      "console",
+      "ctx",
+      "log",
       "qHook"
     ]
   }

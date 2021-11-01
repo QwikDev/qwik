@@ -59,12 +59,37 @@ export const Header_h = qHook((decl1, { decl2  }, [decl3])=>{
   {
     "name": "Header_h",
     "local_decl": [
+      "Some",
+      "a",
+      "b",
+      "decl1",
       "decl2",
       "decl3",
-      "decl1"
+      "hola",
+      "ident11"
     ],
     "local_idents": [
-      "qHook"
+      "decl1",
+      "decl2",
+      "decl3",
+      "div",
+      "ident1",
+      "ident10",
+      "ident11",
+      "ident12",
+      "ident2",
+      "ident3",
+      "ident4",
+      "ident5",
+      "ident6",
+      "ident7",
+      "ident8",
+      "ident9",
+      "no",
+      "onClick",
+      "prop",
+      "qHook",
+      "required"
     ]
   }
 ]

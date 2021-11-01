@@ -42,10 +42,18 @@ export const Header_onRender_h = qHook((hola)=>{
   {
     "name": "Header_onRender_h",
     "local_decl": [
-      "hola"
+      "hello",
+      "hola",
+      "something",
+      "styff"
     ],
     "local_idents": [
-      "qHook"
+      "Header",
+      "global",
+      "hola",
+      "nothere",
+      "qHook",
+      "stuff"
     ]
   }
 ]

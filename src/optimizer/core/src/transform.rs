@@ -1,14 +1,11 @@
-use std::vec;
+use crate::collector::HookCollect;
 use ast::*;
 use std::collections::HashSet;
-use swc_atoms::JsWord;
-use swc_common::{DUMMY_SP, sync::Lrc, SourceMap};
+use std::vec;
+use swc_common::{sync::Lrc, SourceMap, DUMMY_SP};
 use swc_ecmascript::ast;
 use swc_ecmascript::ast::{ExportDecl, Expr, Ident, VarDeclarator};
 use swc_ecmascript::visit::{noop_fold_type, Fold, FoldWith};
-use serde::{Deserialize, Serialize};
-use crate::collector::HookCollect;
-
 
 #[derive(Debug)]
 pub struct Hook {
@@ -26,9 +23,9 @@ pub struct TransformContext {
 
 impl TransformContext {
     pub fn new() -> TransformContext {
-        TransformContext{
+        TransformContext {
             hooks_names: HashSet::with_capacity(10),
-            source_map: Lrc::new(SourceMap::default())
+            source_map: Lrc::new(SourceMap::default()),
         }
     }
 }
@@ -47,7 +44,7 @@ pub struct HookTransform<'a> {
 
 impl<'a> HookTransform<'a> {
     pub fn new(ctx: &'a mut TransformContext, filename: &'a str, hooks: &'a mut Vec<Hook>) -> Self {
-        HookTransform{
+        HookTransform {
             filename: filename,
             stack_ctxt: vec![],
             hooks: hooks,
@@ -92,7 +89,8 @@ impl<'a> Fold for HookTransform<'a> {
 
     fn fold_module(&mut self, node: Module) -> Module {
         let o = node.fold_children_with(self);
-        self.hooks.sort_by(|a, b| b.module_index.cmp(&a.module_index));
+        self.hooks
+            .sort_by(|a, b| b.module_index.cmp(&a.module_index));
         return o;
     }
 
@@ -102,41 +100,35 @@ impl<'a> Fold for HookTransform<'a> {
                 let transformed = self.handle_var_decl(node);
                 ModuleItem::Stmt(Stmt::Decl(Decl::Var(transformed)))
             }
-            ModuleItem::ModuleDecl(ModuleDecl::ExportDecl(node)) => {
-                match node.decl {
-                    Decl::Var(var) => {
-                        let transformed = self.handle_var_decl(var);
-                        ModuleItem::ModuleDecl(ModuleDecl::ExportDecl(ExportDecl{
-                            span: DUMMY_SP,
-                            decl: Decl::Var(transformed)
-                        }))
-                    }
-                    Decl::Class(class) => {
-                        self.root_sym = Some(class.ident.sym.to_string());
-                        ModuleItem::ModuleDecl(ModuleDecl::ExportDecl(ExportDecl{
-                            span: DUMMY_SP,
-                            decl: Decl::Class(class.fold_with(self))
-                        }))
-                    }
-                    Decl::Fn(function) => {
-                        self.root_sym = Some(function.ident.sym.to_string());
-                        ModuleItem::ModuleDecl(ModuleDecl::ExportDecl(ExportDecl{
-                            span: DUMMY_SP,
-                            decl: Decl::Fn(function.fold_with(self))
-                        }))
-                    }
-                    other => {
-                        ModuleItem::ModuleDecl(ModuleDecl::ExportDecl(ExportDecl{
-                            span: DUMMY_SP,
-                            decl: other.fold_with(self)
-                        }))
-                    }
+            ModuleItem::ModuleDecl(ModuleDecl::ExportDecl(node)) => match node.decl {
+                Decl::Var(var) => {
+                    let transformed = self.handle_var_decl(var);
+                    ModuleItem::ModuleDecl(ModuleDecl::ExportDecl(ExportDecl {
+                        span: DUMMY_SP,
+                        decl: Decl::Var(transformed),
+                    }))
                 }
-            }
+                Decl::Class(class) => {
+                    self.root_sym = Some(class.ident.sym.to_string());
+                    ModuleItem::ModuleDecl(ModuleDecl::ExportDecl(ExportDecl {
+                        span: DUMMY_SP,
+                        decl: Decl::Class(class.fold_with(self)),
+                    }))
+                }
+                Decl::Fn(function) => {
+                    self.root_sym = Some(function.ident.sym.to_string());
+                    ModuleItem::ModuleDecl(ModuleDecl::ExportDecl(ExportDecl {
+                        span: DUMMY_SP,
+                        decl: Decl::Fn(function.fold_with(self)),
+                    }))
+                }
+                other => ModuleItem::ModuleDecl(ModuleDecl::ExportDecl(ExportDecl {
+                    span: DUMMY_SP,
+                    decl: other.fold_with(self),
+                })),
+            },
 
-            item => {
-                item.fold_children_with(self)
-            }
+            item => item.fold_children_with(self),
         };
         self.module_item += 1;
         return item;
@@ -229,7 +221,7 @@ impl<'a> Fold for HookTransform<'a> {
                     let hook_collect = HookCollect::new(&node);
                     let folded = node.fold_children_with(self);
                     self.hooks.push(Hook {
-                        filename:  filename,
+                        filename: filename,
                         name: symbol_name.clone(),
                         module_index: self.module_item,
                         expr: Box::new(Expr::Call(folded.clone())),

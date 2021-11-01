@@ -8,31 +8,29 @@ extern crate swc_ecmascript;
 #[cfg(test)]
 mod test;
 
-mod transform;
 mod collector;
+mod transform;
 mod utils;
 
 use std::error;
 use std::ffi::OsStr;
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::collections::{HashSet};
 use std::str;
 
+use collector::GlobalCollect;
 use serde::{Deserialize, Serialize};
-use swc_atoms::{JsWord};
 use swc_common::comments::SingleThreadedComments;
 use swc_common::errors::{DiagnosticBuilder, Emitter, Handler};
-use swc_common::{chain, sync::Lrc, FileName, Globals, DUMMY_SP, SourceMap};
+use swc_common::{chain, sync::Lrc, FileName, Globals, SourceMap, DUMMY_SP};
 use swc_ecmascript::ast::*;
 use swc_ecmascript::codegen::text_writer::JsWriter;
 use swc_ecmascript::parser::lexer::Lexer;
 use swc_ecmascript::parser::{EsConfig, PResult, Parser, StringInput, Syntax, TsConfig};
 use swc_ecmascript::transforms::{pass, typescript};
-use swc_ecmascript::visit::{VisitWith, FoldWith};
+use swc_ecmascript::visit::{FoldWith, VisitWith};
+pub use transform::{Hook, TransformContext};
 use utils::{CodeHighlight, Diagnostic, DiagnosticSeverity, SourceLocation};
-pub use transform::{TransformContext, Hook};
-use collector::{GlobalCollect};
 
 #[derive(Serialize, Debug, Deserialize)]
 pub struct FSConfig {
@@ -55,8 +53,8 @@ pub struct Config<'a> {
 #[derive(Debug, Default, Serialize, Deserialize)]
 pub struct HookAnalysis {
     name: String,
-    local_decl: HashSet<JsWord>,
-    local_idents: HashSet<JsWord>,
+    local_decl: Vec<String>,
+    local_idents: Vec<String>,
 }
 
 #[derive(Serialize, Debug, Deserialize, Default)]
@@ -146,54 +144,90 @@ pub fn transform(config: Config) -> Result<TransformResult, Box<dyn error::Error
     }
 
     match module {
-        Ok((main_module, comments)) => {
-            swc_common::GLOBALS.set(&Globals::new(), || {
+        Ok((main_module, comments)) => swc_common::GLOBALS.set(&Globals::new(), || {
+            let mut collect = GlobalCollect::new(config.context.source_map.clone());
+            main_module.visit_with(&Invalid { span: DUMMY_SP } as _, &mut collect);
 
-                let mut collect = GlobalCollect::new(config.context.source_map.clone());
-                main_module.visit_with(&Invalid { span: DUMMY_SP } as _, &mut collect);
+            let mut hooks: Vec<Hook> = vec![];
+            let main_module = {
+                let mut passes = chain!(
+                    transform::HookTransform::new(
+                        config.context,
+                        config.filename.as_str(),
+                        &mut hooks
+                    ),
+                    pass::Optional::new(typescript::strip(), config.transpile),
+                );
+                main_module.fold_with(&mut passes)
+            };
 
-                let mut hooks: Vec<Hook> = vec![];
-                let main_module = {
-                    let mut passes = chain!(
-                        transform::HookTransform::new(config.context, config.filename.as_str(), &mut hooks),
-                        pass::Optional::new(typescript::strip(), config.transpile),
-                    );
-                    main_module.fold_with(&mut passes)
-                };
-
-                let mut output_modules: Vec<TransformModule> = hooks.iter().map(|h| {
+            let mut output_modules: Vec<TransformModule> = hooks
+                .iter()
+                .map(|h| {
                     let hook_module = new_module(&h, &collect);
-                    let (code, map) = emit_source_code(config.context.source_map.clone(), None, &hook_module, config.minify, config.source_maps).unwrap();
+                    let (code, map) = emit_source_code(
+                        config.context.source_map.clone(),
+                        None,
+                        &hook_module,
+                        config.minify,
+                        config.source_maps,
+                    )
+                    .unwrap();
                     TransformModule {
                         code: code,
                         map: map,
                         filename: h.filename.clone(),
                     }
-                }).collect();
+                })
+                .collect();
 
-
-                let hooks: Vec<HookAnalysis> = hooks.iter().map(|h| {
-                    HookAnalysis{
+            let hooks: Vec<HookAnalysis> = hooks
+                .iter()
+                .map(|h| {
+                    let mut hooks = HookAnalysis {
                         name: h.name.clone(),
-                        local_decl: h.hook_collect.local_decl.clone(),
-                        local_idents: h.hook_collect.local_idents.clone(),
-                    }
-                }).collect();
+                        local_decl: h
+                            .hook_collect
+                            .local_decl
+                            .iter()
+                            .map(|d| d.to_string())
+                            .collect(),
+                        local_idents: h
+                            .hook_collect
+                            .local_idents
+                            .iter()
+                            .map(|d| d.to_string())
+                            .collect(),
+                    };
+                    hooks.local_decl.sort();
+                    hooks.local_idents.sort();
 
-                let (code, map) = emit_source_code(config.context.source_map.clone(), Some(comments), &main_module, config.minify, config.source_maps)?;
-                output_modules.insert(0, TransformModule {
+                    hooks
+                })
+                .collect();
+
+            let (code, map) = emit_source_code(
+                config.context.source_map.clone(),
+                Some(comments),
+                &main_module,
+                config.minify,
+                config.source_maps,
+            )?;
+            output_modules.insert(
+                0,
+                TransformModule {
                     filename: config.filename.clone(),
                     code: code,
                     map: map,
-                });
+                },
+            );
 
-                Ok(TransformResult{
-                    modules: output_modules,
-                    diagnostics: None,
-                    hooks: Some(hooks),
-                })
+            Ok(TransformResult {
+                modules: output_modules,
+                diagnostics: None,
+                hooks: Some(hooks),
             })
-        }
+        }),
         Err(err) => {
             let error_buffer = ErrorBuffer::default();
             let handler = Handler::with_emitter(true, false, Box::new(error_buffer.clone()));
@@ -208,11 +242,7 @@ pub fn transform(config: Config) -> Result<TransformResult, Box<dyn error::Error
     }
 }
 
-fn parse(
-    code: &str,
-    filename: &str,
-    config: &Config,
-) -> PResult<(Module, SingleThreadedComments)> {
+fn parse(code: &str, filename: &str, config: &Config) -> PResult<(Module, SingleThreadedComments)> {
     let source_map = &config.context.source_map;
     let source_file = source_map.new_source_file(FileName::Real(filename.into()), code.into());
 
@@ -280,9 +310,7 @@ fn emit_source_code(
                 None
             },
         ));
-        let config = swc_ecmascript::codegen::Config {
-            minify: minify,
-        };
+        let config = swc_ecmascript::codegen::Config { minify: minify };
         let mut emitter = swc_ecmascript::codegen::Emitter {
             cfg: config,
             comments: Some(&comments),
@@ -356,7 +384,7 @@ fn handle_error(error_buffer: ErrorBuffer, source_map: &Lrc<SourceMap>) -> Vec<D
 }
 
 fn new_module(hook: &Hook, global: &GlobalCollect) -> Module {
-    let mut module = Module{
+    let mut module = Module {
         span: DUMMY_SP,
         body: vec![],
         shebang: None,
@@ -364,41 +392,32 @@ fn new_module(hook: &Hook, global: &GlobalCollect) -> Module {
     for ident in &hook.hook_collect.local_idents {
         if let Some(import) = global.imports.get(&ident) {
             if hook.hook_collect.local_idents.contains(&import.local) {
-                module.body.push(
-                    ModuleItem::ModuleDecl(
-                        ModuleDecl::Import(
-                            ImportDecl{
-                                span: DUMMY_SP,
-                                type_only: false,
-                                asserts: None,
-                                src: Str{
-                                    span: DUMMY_SP,
-                                    value: import.source.clone(),
-                                    kind: StrKind::Synthesized,
-                                    has_escape: false,
-                                },
-                                specifiers: vec![ImportSpecifier::Named(
-                                    ImportNamedSpecifier{
-                                        is_type_only: false,
-                                        span: DUMMY_SP,
-                                        imported: Some(Ident::new(import.specifier.clone(), DUMMY_SP)),
-                                        local: Ident::new(import.local.clone(), DUMMY_SP),
-                                    }
-                                )],
-                            }
-                        )
-                    )
-                )
+                module
+                    .body
+                    .push(ModuleItem::ModuleDecl(ModuleDecl::Import(ImportDecl {
+                        span: DUMMY_SP,
+                        type_only: false,
+                        asserts: None,
+                        src: Str {
+                            span: DUMMY_SP,
+                            value: import.source.clone(),
+                            kind: StrKind::Synthesized,
+                            has_escape: false,
+                        },
+                        specifiers: vec![ImportSpecifier::Named(ImportNamedSpecifier {
+                            is_type_only: false,
+                            span: DUMMY_SP,
+                            imported: Some(Ident::new(import.specifier.clone(), DUMMY_SP)),
+                            local: Ident::new(import.local.clone(), DUMMY_SP),
+                        })],
+                    })))
             }
         }
     }
-    module.body.push(
-        create_named_export(hook)
-    );
+    module.body.push(create_named_export(hook));
 
     return module;
 }
-
 
 fn create_named_export(hook: &Hook) -> ModuleItem {
     ModuleItem::ModuleDecl(ModuleDecl::ExportDecl(ExportDecl {

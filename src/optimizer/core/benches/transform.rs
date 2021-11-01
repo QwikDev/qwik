@@ -4,8 +4,9 @@ use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use qwik_core::*;
 
 fn transform_benchmark(b: &mut Criterion) {
-    b.bench_function("transform", |b| b.iter(|| {
-        let code = r#"
+    b.bench_function("transform", |b| {
+        b.iter(|| {
+            let code = r#"
         import {qHook} from '@builderio/qwik';
 
 
@@ -37,17 +38,18 @@ fn transform_benchmark(b: &mut Criterion) {
             try{}catch({decl19}){}
         });
             "#;
-        let mut ctx = TransformContext::new();
-        transform(black_box(Config {
-            code: code.as_bytes().to_vec(),
-            filename: "file.tsx".to_string(),
-            source_maps: true,
-            minify: false,
-            transpile: false,
-            print_ast: false,
-            context: &mut ctx,
-        }))
-    }));
+            let mut ctx = TransformContext::new();
+            transform(black_box(Config {
+                code: code.as_bytes().to_vec(),
+                filename: "file.tsx".to_string(),
+                source_maps: true,
+                minify: false,
+                transpile: false,
+                print_ast: false,
+                context: &mut ctx,
+            }))
+        })
+    });
 }
 
 criterion_group!(benches, transform_benchmark);

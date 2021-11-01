@@ -46,6 +46,8 @@ export const Header_onRender_h = qHook(()=>{
     "name": "Header_onMount_h",
     "local_decl": [],
     "local_idents": [
+      "console",
+      "log",
       "qHook"
     ]
   },
@@ -55,13 +57,23 @@ export const Header_onRender_h = qHook(()=>{
       "ctx"
     ],
     "local_idents": [
+      "console",
+      "ctx",
+      "log",
       "qHook"
     ]
   },
   {
     "name": "Header_onRender_h",
-    "local_decl": [],
+    "local_decl": [
+      "ctx"
+    ],
     "local_idents": [
+      "console",
+      "ctx",
+      "div",
+      "log",
+      "onClick",
       "qHook"
     ]
   }

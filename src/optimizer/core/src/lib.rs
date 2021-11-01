@@ -145,7 +145,11 @@ pub fn transform(config: Config) -> Result<TransformResult, Box<dyn error::Error
 
     match module {
         Ok((main_module, comments)) => swc_common::GLOBALS.set(&Globals::new(), || {
-            let file_stem = Path::new(&config.filename).file_stem().unwrap().to_str().unwrap();
+            let file_stem = Path::new(&config.filename)
+                .file_stem()
+                .unwrap()
+                .to_str()
+                .unwrap();
             let mut collect = GlobalCollect::new(config.context.source_map.clone());
             main_module.visit_with(&Invalid { span: DUMMY_SP } as _, &mut collect);
 
@@ -153,11 +157,7 @@ pub fn transform(config: Config) -> Result<TransformResult, Box<dyn error::Error
             let main_module = {
                 let mut passes = chain!(
                     pass::Optional::new(typescript::strip(), true),
-                    transform::HookTransform::new(
-                        config.context,
-                        file_stem.clone(),
-                        &mut hooks
-                    ),
+                    transform::HookTransform::new(config.context, file_stem.clone(), &mut hooks),
                 );
                 main_module.fold_with(&mut passes)
             };
@@ -185,20 +185,10 @@ pub fn transform(config: Config) -> Result<TransformResult, Box<dyn error::Error
 
             let hooks: Vec<HookAnalysis> = hooks
                 .iter()
-                .map(|h| {
-                    HookAnalysis {
-                        name: h.name.clone(),
-                        local_decl: h
-                            .local_decl
-                            .iter()
-                            .map(|d| d.to_string())
-                            .collect(),
-                        local_idents: h
-                            .local_idents
-                            .iter()
-                            .map(|d| d.to_string())
-                            .collect(),
-                    }
+                .map(|h| HookAnalysis {
+                    name: h.name.clone(),
+                    local_decl: h.local_decl.iter().map(|d| d.to_string()).collect(),
+                    local_idents: h.local_idents.iter().map(|d| d.to_string()).collect(),
                 })
                 .collect();
 
@@ -408,24 +398,24 @@ fn new_module(file_stem: &JsWord, hook: &Hook, global: &GlobalCollect) -> Module
                 })))
         } else if let Some(export) = global.exports.get(&ident) {
             module
-            .body
-            .push(ModuleItem::ModuleDecl(ModuleDecl::Import(ImportDecl {
-                span: DUMMY_SP,
-                type_only: false,
-                asserts: None,
-                src: Str {
+                .body
+                .push(ModuleItem::ModuleDecl(ModuleDecl::Import(ImportDecl {
                     span: DUMMY_SP,
-                    value: file_stem.clone(),
-                    kind: StrKind::Synthesized,
-                    has_escape: false,
-                },
-                specifiers: vec![ImportSpecifier::Named(ImportNamedSpecifier {
-                    is_type_only: false,
-                    span: DUMMY_SP,
-                    imported: None,
-                    local: Ident::new(export.clone(), DUMMY_SP),
-                })],
-            })))
+                    type_only: false,
+                    asserts: None,
+                    src: Str {
+                        span: DUMMY_SP,
+                        value: JsWord::from(format!("./{}", file_stem)),
+                        kind: StrKind::Synthesized,
+                        has_escape: false,
+                    },
+                    specifiers: vec![ImportSpecifier::Named(ImportNamedSpecifier {
+                        is_type_only: false,
+                        span: DUMMY_SP,
+                        imported: None,
+                        local: Ident::new(export.clone(), DUMMY_SP),
+                    })],
+                })))
         }
     }
     module.body.push(create_named_export(hook));

@@ -1,0 +1,83 @@
+---
+source: src/test.rs
+expression: output
+
+---
+==INPUT==
+
+
+import {foo, bar as bbar} from "dep";
+import * as dep2 from "dep2";
+
+export const Header = qComponent({
+    onRender: qHook(() => {
+        return (
+            <Header>{dep2.stuff()}{bbar()}</Header>
+        );
+    })
+});
+
+export const App = qComponent({
+    onRender: qHook(() => {
+        return (
+            <Header>{foo()}</Header>
+        );
+    })
+});
+    
+============================= test.js==
+
+import { foo, bar as bbar } from "dep";
+import * as dep2 from "dep2";
+export const Header = qComponent({
+    onRender: qHook("h_test_Header_onRender_h.js#Header_onRender_h")
+});
+export const App = qComponent({
+    onRender: qHook("h_test_App_onRender_h.js#App_onRender_h")
+});
+
+============================= h_test_App_onRender_h.js==
+
+import { Header } from "test";
+import { foo as foo } from "dep";
+export const App_onRender_h = qHook(()=>{
+    return (<Header >{foo()}</Header>);
+});
+
+============================= h_test_Header_onRender_h.js==
+
+import { Header } from "test";
+import { bar as bbar } from "dep";
+import { * as dep2 } from "dep2";
+export const Header_onRender_h = qHook(()=>{
+    return (<Header >{dep2.stuff()}{bbar()}</Header>);
+});
+
+== HOOKS ==
+
+[
+  {
+    "name": "App_onRender_h",
+    "local_decl": [],
+    "local_idents": [
+      "Header",
+      "foo",
+      "qHook"
+    ]
+  },
+  {
+    "name": "Header_onRender_h",
+    "local_decl": [],
+    "local_idents": [
+      "Header",
+      "bbar",
+      "dep2",
+      "qHook",
+      "stuff"
+    ]
+  }
+]
+
+== DIAGNOSTICS ==
+
+None

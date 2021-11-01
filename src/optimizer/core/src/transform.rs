@@ -2,6 +2,7 @@ use crate::collector::HookCollect;
 use ast::*;
 use std::collections::HashSet;
 use std::vec;
+use swc_atoms::JsWord;
 use swc_common::{sync::Lrc, SourceMap, DUMMY_SP};
 use swc_ecmascript::ast;
 use swc_ecmascript::ast::{ExportDecl, Expr, Ident, VarDeclarator};
@@ -13,7 +14,8 @@ pub struct Hook {
     pub name: String,
     pub module_index: usize,
     pub expr: Box<Expr>,
-    pub hook_collect: HookCollect,
+    pub local_decl: Vec<JsWord>,
+    pub local_idents: Vec<JsWord>,
 }
 
 pub struct TransformContext {
@@ -216,16 +218,18 @@ impl<'a> Fold for HookTransform<'a> {
             if let Expr::Ident(id) = &**expr {
                 if id.sym == swc_atoms::JsWord::from("qHook") {
                     let symbol_name = self.get_context_name();
-                    let filename = format!("h_{}.js", self.filename);
+                    let filename = format!("h_{}_{}.js", self.filename, symbol_name);
                     let qurl = format!("{}#{}", filename, symbol_name);
                     let hook_collect = HookCollect::new(&node);
                     let folded = node.fold_children_with(self);
+
                     self.hooks.push(Hook {
                         filename: filename,
                         name: symbol_name.clone(),
                         module_index: self.module_item,
                         expr: Box::new(Expr::Call(folded.clone())),
-                        hook_collect: hook_collect,
+                        local_decl: hook_collect.get_local_decl(),
+                        local_idents: hook_collect.get_local_idents(),
                     });
                     self.context.hooks_names.insert(symbol_name.clone());
                     return create_inline_qhook(&qurl);

@@ -18,11 +18,11 @@ const Header = qHook((decl1, {decl2}, [decl3]) => {
     try{}catch({decl19}){}
 });
     
-=============================: test.tsx==
+============================= test.js==
 
-const Header = qHook("h_test.tsx.js#Header_h");
+const Header = qHook("h_test_Header_h.js#Header_h");
 
-=============================: h_test.tsx.js==
+============================= h_test_Header_h.js==
 
 export const Header_h = qHook((decl1, { decl2  }, [decl3])=>{
     const { decl4 , key: decl5  } = this;

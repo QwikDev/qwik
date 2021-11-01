@@ -19,14 +19,14 @@ const Header = qComponent({
     })
   });
 
-=============================: test.tsx==
+============================= test.js==
 
 import { qHook } from '@builderio/qwik';
 const Header = qComponent({
-    onRender: qHook("h_test.tsx.js#Header_onRender_h")
+    onRender: qHook("h_test_Header_onRender_h.js#Header_onRender_h")
 });
 
-=============================: h_test.tsx.js==
+============================= h_test_Header_onRender_h.js==
 
 import { qHook as qHook } from "@builderio/qwik";
 export const Header_onRender_h = qHook((hola)=>{

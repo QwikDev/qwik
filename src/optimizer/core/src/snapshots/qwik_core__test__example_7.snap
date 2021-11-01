@@ -25,42 +25,42 @@ const App = qComponent({
         );
     })
 });
-=============================: test.tsx==
+============================= test.js==
 
 import { qHook } from '@builderio/qwik';
 const Header = qComponent({
-    "onMount": qHook("h_test.tsx.js#Header_onMount_h"),
-    onRender: qHook("h_test.tsx.js#Header_onRender_h")
+    "onMount": qHook("h_test_Header_onMount_h.js#Header_onMount_h"),
+    onRender: qHook("h_test_Header_onRender_h.js#Header_onRender_h")
 });
 const App = qComponent({
-    onRender: qHook("h_test.tsx.js#App_onRender_h")
+    onRender: qHook("h_test_App_onRender_h.js#App_onRender_h")
 });
 
-=============================: h_test.tsx.js==
+============================= h_test_App_onRender_h.js==
 
 import { qHook as qHook } from "@builderio/qwik";
 export const App_onRender_h = qHook(()=>{
     return (<Header />);
 });
 
-=============================: h_test.tsx.js==
+============================= h_test_Header_onMount_h.js==
 
 import { qHook as qHook } from "@builderio/qwik";
 export const Header_onMount_h = qHook(()=>{
     console.log("mount");
 });
 
-=============================: h_test.tsx.js==
+============================= h_test_Header_onRender_div_onClick_h.js==
 
 import { qHook as qHook } from "@builderio/qwik";
 export const Header_onRender_div_onClick_h = qHook((ctx)=>console.log(ctx)
 );
 
-=============================: h_test.tsx.js==
+============================= h_test_Header_onRender_h.js==
 
 import { qHook as qHook } from "@builderio/qwik";
 export const Header_onRender_h = qHook(()=>{
-    return (<div onClick={qHook("h_test.tsx.js#Header_onRender_div_onClick_h")}/>);
+    return (<div onClick={qHook("h_test_Header_onRender_div_onClick_h.js#Header_onRender_div_onClick_h")}/>);
 });
 
 == HOOKS ==

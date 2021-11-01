@@ -1,5 +1,5 @@
 use crate::utils::SourceLocation;
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeMap, HashSet};
 use swc_atoms::{js_word, JsWord};
 use swc_common::{sync::Lrc, DUMMY_SP};
 use swc_ecmascript::ast::*;
@@ -19,15 +19,14 @@ pub enum ImportKind {
 pub struct Import {
     pub source: JsWord,
     pub specifier: JsWord,
-    pub local: JsWord,
     pub kind: ImportKind,
     pub loc: SourceLocation,
 }
 
 pub struct GlobalCollect {
     pub source_map: Lrc<swc_common::SourceMap>,
-    pub imports: HashMap<JsWord, Import>,
-    exports: HashMap<JsWord, JsWord>,
+    pub imports: BTreeMap<JsWord, Import>,
+    pub exports: BTreeMap<JsWord, JsWord>,
     in_export_decl: bool,
 }
 
@@ -35,8 +34,8 @@ impl GlobalCollect {
     pub fn new(source_map: Lrc<swc_common::SourceMap>) -> Self {
         GlobalCollect {
             source_map,
-            imports: HashMap::new(),
-            exports: HashMap::new(),
+            imports: BTreeMap::new(),
+            exports: BTreeMap::new(),
             in_export_decl: false,
         }
     }
@@ -56,7 +55,6 @@ impl Visit for GlobalCollect {
                         Import {
                             source: node.src.value.clone(),
                             specifier: imported,
-                            local: named.local.sym.clone(),
                             kind: ImportKind::Import,
                             loc: SourceLocation::from(&self.source_map, named.span),
                         },
@@ -68,7 +66,6 @@ impl Visit for GlobalCollect {
                         Import {
                             source: node.src.value.clone(),
                             specifier: js_word!("default"),
-                            local: default.local.sym.clone(),
                             kind: ImportKind::Import,
                             loc: SourceLocation::from(&self.source_map, default.span),
                         },
@@ -80,7 +77,6 @@ impl Visit for GlobalCollect {
                         Import {
                             source: node.src.value.clone(),
                             specifier: "*".into(),
-                            local: namespace.local.sym.clone(),
                             kind: ImportKind::Import,
                             loc: SourceLocation::from(&self.source_map, namespace.span),
                         },
@@ -197,6 +193,18 @@ impl HookCollect {
         };
         node.visit_with(&Invalid { span: DUMMY_SP } as _, &mut collect);
         return collect;
+    }
+
+    pub fn get_local_decl(&self) -> Vec<JsWord> {
+      let mut items: Vec<JsWord> = self.local_decl.iter().map(|h| h.clone()).collect();
+      items.sort();
+      return items;
+    }
+
+    pub fn get_local_idents(&self) -> Vec<JsWord> {
+      let mut items: Vec<JsWord> = self.local_idents.iter().map(|h| h.clone()).collect();
+      items.sort();
+      return items;
     }
 }
 

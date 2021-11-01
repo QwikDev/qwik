@@ -210,6 +210,34 @@ const Header = qHook((decl1, {decl2}, [decl3]) => {
         false,
     )
 }
+
+#[test]
+fn example_11() {
+    test_input(
+        "test.tsx",
+        r#"
+import {foo, bar as bbar} from "dep";
+import * as dep2 from "dep2";
+
+export const Header = qComponent({
+    onRender: qHook(() => {
+        return (
+            <Header>{dep2.stuff()}{bbar()}</Header>
+        );
+    })
+});
+
+export const App = qComponent({
+    onRender: qHook(() => {
+        return (
+            <Header>{foo()}</Header>
+        );
+    })
+});
+    "#,
+        false,
+    )
+}
 // fn test_fixture(folder: &str) {
 //     let res = transform_workdir(&FSConfig {
 //         project_root: folder.to_string(),
@@ -259,7 +287,7 @@ fn test_input(filename: &str, code: &str, print_ast: bool) {
             for module in v.modules {
                 let s = module.to_string();
                 output += format!(
-                    "\n=============================: {}==\n\n{}",
+                    "\n============================= {}==\n\n{}",
                     s.filename, s.code
                 )
                 .as_str();

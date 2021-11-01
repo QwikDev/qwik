@@ -18,31 +18,31 @@ export const App = () => {
     return Header;
 });
     
-=============================: test.tsx==
+============================= test.js==
 
 export const App = ()=>{
     const Header = qComponent({
-        "onMount": qHook("h_test.tsx.js#App_Header_onMount_h"),
-        onRender: qHook("h_test.tsx.js#App_Header_onRender_h")
+        "onMount": qHook("h_test_App_Header_onMount_h.js#App_Header_onMount_h"),
+        onRender: qHook("h_test_App_Header_onRender_h.js#App_Header_onRender_h")
     });
     return Header;
 };
 
-=============================: h_test.tsx.js==
+============================= h_test_App_Header_onMount_h.js==
 
 export const App_Header_onMount_h = qHook(()=>{
     console.log("mount");
 });
 
-=============================: h_test.tsx.js==
+============================= h_test_App_Header_onRender_div_onClick_h.js==
 
 export const App_Header_onRender_div_onClick_h = qHook((ctx)=>console.log(ctx)
 );
 
-=============================: h_test.tsx.js==
+============================= h_test_App_Header_onRender_h.js==
 
 export const App_Header_onRender_h = qHook(()=>{
-    return (<div onClick={qHook("h_test.tsx.js#App_Header_onRender_div_onClick_h")}/>);
+    return (<div onClick={qHook("h_test_App_Header_onRender_div_onClick_h.js#App_Header_onRender_div_onClick_h")}/>);
 });
 
 == HOOKS ==

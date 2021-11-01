@@ -20,6 +20,7 @@ use std::str;
 
 use collector::GlobalCollect;
 use serde::{Deserialize, Serialize};
+use swc_atoms::JsWord;
 use swc_common::comments::SingleThreadedComments;
 use swc_common::errors::{DiagnosticBuilder, Emitter, Handler};
 use swc_common::{chain, sync::Lrc, FileName, Globals, SourceMap, DUMMY_SP};
@@ -138,33 +139,34 @@ pub fn transform_workdir(
 pub fn transform(config: Config) -> Result<TransformResult, Box<dyn error::Error>> {
     let code = unsafe { std::str::from_utf8_unchecked(&config.code) };
     let module = parse(code, config.filename.as_str(), &config);
-
     if config.print_ast {
         dbg!(&module);
     }
 
     match module {
         Ok((main_module, comments)) => swc_common::GLOBALS.set(&Globals::new(), || {
+            let file_stem = Path::new(&config.filename).file_stem().unwrap().to_str().unwrap();
             let mut collect = GlobalCollect::new(config.context.source_map.clone());
             main_module.visit_with(&Invalid { span: DUMMY_SP } as _, &mut collect);
 
             let mut hooks: Vec<Hook> = vec![];
             let main_module = {
                 let mut passes = chain!(
+                    pass::Optional::new(typescript::strip(), true),
                     transform::HookTransform::new(
                         config.context,
-                        config.filename.as_str(),
+                        file_stem.clone(),
                         &mut hooks
                     ),
-                    pass::Optional::new(typescript::strip(), config.transpile),
                 );
                 main_module.fold_with(&mut passes)
             };
 
+            let js_word_file_stem = JsWord::from(file_stem);
             let mut output_modules: Vec<TransformModule> = hooks
                 .iter()
                 .map(|h| {
-                    let hook_module = new_module(&h, &collect);
+                    let hook_module = new_module(&js_word_file_stem, &h, &collect);
                     let (code, map) = emit_source_code(
                         config.context.source_map.clone(),
                         None,
@@ -184,25 +186,19 @@ pub fn transform(config: Config) -> Result<TransformResult, Box<dyn error::Error
             let hooks: Vec<HookAnalysis> = hooks
                 .iter()
                 .map(|h| {
-                    let mut hooks = HookAnalysis {
+                    HookAnalysis {
                         name: h.name.clone(),
                         local_decl: h
-                            .hook_collect
                             .local_decl
                             .iter()
                             .map(|d| d.to_string())
                             .collect(),
                         local_idents: h
-                            .hook_collect
                             .local_idents
                             .iter()
                             .map(|d| d.to_string())
                             .collect(),
-                    };
-                    hooks.local_decl.sort();
-                    hooks.local_idents.sort();
-
-                    hooks
+                    }
                 })
                 .collect();
 
@@ -216,7 +212,7 @@ pub fn transform(config: Config) -> Result<TransformResult, Box<dyn error::Error
             output_modules.insert(
                 0,
                 TransformModule {
-                    filename: config.filename.clone(),
+                    filename: format!("{}.js", file_stem),
                     code: code,
                     map: map,
                 },
@@ -383,35 +379,53 @@ fn handle_error(error_buffer: ErrorBuffer, source_map: &Lrc<SourceMap>) -> Vec<D
     return diagnostics;
 }
 
-fn new_module(hook: &Hook, global: &GlobalCollect) -> Module {
+fn new_module(file_stem: &JsWord, hook: &Hook, global: &GlobalCollect) -> Module {
     let mut module = Module {
         span: DUMMY_SP,
         body: vec![],
         shebang: None,
     };
-    for ident in &hook.hook_collect.local_idents {
+    for ident in &hook.local_idents {
         if let Some(import) = global.imports.get(&ident) {
-            if hook.hook_collect.local_idents.contains(&import.local) {
-                module
-                    .body
-                    .push(ModuleItem::ModuleDecl(ModuleDecl::Import(ImportDecl {
+            module
+                .body
+                .push(ModuleItem::ModuleDecl(ModuleDecl::Import(ImportDecl {
+                    span: DUMMY_SP,
+                    type_only: false,
+                    asserts: None,
+                    src: Str {
                         span: DUMMY_SP,
-                        type_only: false,
-                        asserts: None,
-                        src: Str {
-                            span: DUMMY_SP,
-                            value: import.source.clone(),
-                            kind: StrKind::Synthesized,
-                            has_escape: false,
-                        },
-                        specifiers: vec![ImportSpecifier::Named(ImportNamedSpecifier {
-                            is_type_only: false,
-                            span: DUMMY_SP,
-                            imported: Some(Ident::new(import.specifier.clone(), DUMMY_SP)),
-                            local: Ident::new(import.local.clone(), DUMMY_SP),
-                        })],
-                    })))
-            }
+                        value: import.source.clone(),
+                        kind: StrKind::Synthesized,
+                        has_escape: false,
+                    },
+                    specifiers: vec![ImportSpecifier::Named(ImportNamedSpecifier {
+                        is_type_only: false,
+                        span: DUMMY_SP,
+                        imported: Some(Ident::new(import.specifier.clone(), DUMMY_SP)),
+                        local: Ident::new(ident.clone(), DUMMY_SP),
+                    })],
+                })))
+        } else if let Some(export) = global.exports.get(&ident) {
+            module
+            .body
+            .push(ModuleItem::ModuleDecl(ModuleDecl::Import(ImportDecl {
+                span: DUMMY_SP,
+                type_only: false,
+                asserts: None,
+                src: Str {
+                    span: DUMMY_SP,
+                    value: file_stem.clone(),
+                    kind: StrKind::Synthesized,
+                    has_escape: false,
+                },
+                specifiers: vec![ImportSpecifier::Named(ImportNamedSpecifier {
+                    is_type_only: false,
+                    span: DUMMY_SP,
+                    imported: None,
+                    local: Ident::new(export.clone(), DUMMY_SP),
+                })],
+            })))
         }
     }
     module.body.push(create_named_export(hook));

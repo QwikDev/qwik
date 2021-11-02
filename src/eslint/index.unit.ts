@@ -23,14 +23,14 @@ const ruleTester = new RuleTester({
 /**
  * Customize RuleTester describe & it blocks
  */
-(RuleTester as any).describe = function (name: any, fn: any) {
+(RuleTester as any).describe = function (name: string, fn: jest.EmptyFunction) {
   (RuleTester as any).it.title = name;
   return fn.call(this);
 };
-(RuleTester as any).it = function (name: any, fn: any) {
-  // NOTE: we need to customize the test case name, it's too verbose otherwise - whole function string
-  const fnName = name.match(/function(.*?)\(/)[1].trim();
-  it('eslint › ' + (RuleTester as any).it.title + ' › ' + fnName, fn);
+(RuleTester as any).it = function (name: string, fn: jest.ProvidesCallback) {
+  // use function name when name property is not provided
+  const n = name.match(/function(.*?)\(/)?.[1].trim() ?? name;
+  it('eslint › ' + (RuleTester as any).it.title + ' › ' + n, fn);
 };
 
 /**
@@ -197,7 +197,7 @@ function validArrowFunctionFunctionExpression() {
 
 /**
  * VALID qHook - qHook defined outside qComponent should not report an error
- */
+standalone qHook withou qComponent declaration */
 function validStandaloneQHook() {
   const Counter_click = qHook((props, state) => {
     state;
@@ -380,32 +380,40 @@ function invalidArrowFunctionFunctionExpression() {
 /**
  * RUN valid & invalid test cases
  */
-ruleTester.run('no-closed-over-variables', rules['no-closed-over-variables'], {
+(ruleTester as any).run('no-closed-over-variables', rules['no-closed-over-variables'], {
   valid: [
     {
+      name: 'arrow function expressions',
       code: validArrowFunctionExpression.toString(),
     },
     {
+      name: 'arrow function expressions - duplicated declaration',
       code: validArrowFunctionExpressionDuplicated.toString(),
     },
     {
+      name: 'async arrow function expressions',
       code: validAsyncArrowFunctionExpression.toString(),
     },
     {
+      name: 'function expressions',
       code: validFunctionExpression.toString(),
     },
     {
+      name: 'async function expressions',
       code: validAsyncFunctionExpression.toString(),
     },
     {
+      name: 'function and arrow function expressions',
       code: validArrowFunctionFunctionExpression.toString(),
     },
     {
+      name: 'standalone qHook without qComponent',
       code: validStandaloneQHook.toString(),
     },
   ],
   invalid: [
     {
+      name: 'arrow function expressions',
       code: invalidArrowFunctionExpression.toString(),
       errors: [
         {
@@ -451,6 +459,7 @@ ruleTester.run('no-closed-over-variables', rules['no-closed-over-variables'], {
       ],
     },
     {
+      name: 'arrow function expressions - duplicated declaration',
       code: invalidArrowFunctionExpressionDuplicated.toString(),
       errors: [
         {
@@ -537,6 +546,7 @@ ruleTester.run('no-closed-over-variables', rules['no-closed-over-variables'], {
       ],
     },
     {
+      name: 'async arrow function expressions',
       code: invalidAsyncArrowFunctionExpression.toString(),
       errors: [
         {
@@ -547,6 +557,7 @@ ruleTester.run('no-closed-over-variables', rules['no-closed-over-variables'], {
       ],
     },
     {
+      name: 'function expressions',
       code: invalidFunctionExpression.toString(),
       errors: [
         {
@@ -557,6 +568,7 @@ ruleTester.run('no-closed-over-variables', rules['no-closed-over-variables'], {
       ],
     },
     {
+      name: 'async function expressions',
       code: invalidAsyncFunctionExpression.toString(),
       errors: [
         {
@@ -567,6 +579,7 @@ ruleTester.run('no-closed-over-variables', rules['no-closed-over-variables'], {
       ],
     },
     {
+      name: 'function and arrow function expressions',
       code: invalidArrowFunctionFunctionExpression.toString(),
       errors: [
         {

@@ -28,7 +28,7 @@ const Header = qComponent({
 
 ============================= h_test_Header_onRender.js==
 
-import { qHook as qHook } from "@builderio/qwik";
+import { qHook } from "@builderio/qwik";
 export const Header_onRender = qHook((hola)=>{
     const hola = this;
     const { something , styff  } = hola;

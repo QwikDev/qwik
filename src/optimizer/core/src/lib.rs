@@ -18,7 +18,6 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::str;
 
-use collector::GlobalCollect;
 use serde::{Deserialize, Serialize};
 use swc_atoms::JsWord;
 use swc_common::comments::SingleThreadedComments;
@@ -30,6 +29,7 @@ use swc_ecmascript::parser::lexer::Lexer;
 use swc_ecmascript::parser::{EsConfig, PResult, Parser, StringInput, Syntax, TsConfig};
 use swc_ecmascript::transforms::{pass, typescript};
 use swc_ecmascript::visit::{FoldWith, VisitWith};
+use collector::{GlobalCollect, ImportKind};
 pub use transform::{Hook, TransformContext};
 use utils::{CodeHighlight, Diagnostic, DiagnosticSeverity, SourceLocation};
 
@@ -377,6 +377,28 @@ fn new_module(file_stem: &JsWord, hook: &Hook, global: &GlobalCollect) -> Module
     };
     for ident in &hook.local_idents {
         if let Some(import) = global.imports.get(&ident) {
+            let specifier =match import.kind {
+                ImportKind::ImportNamed => {
+                    ImportSpecifier::Named(ImportNamedSpecifier {
+                        is_type_only: false,
+                        span: DUMMY_SP,
+                        imported: if &import.specifier != ident { Some(Ident::new(import.specifier.clone(), DUMMY_SP)) } else { None },
+                        local: Ident::new(ident.clone(), DUMMY_SP),
+                    })
+                },
+                ImportKind::ImportDefault => {
+                    ImportSpecifier::Default(ImportDefaultSpecifier {
+                        span: DUMMY_SP,
+                        local: Ident::new(ident.clone(), DUMMY_SP),
+                    })
+                }
+                ImportKind::ImportAll => {
+                    ImportSpecifier::Namespace(ImportStarAsSpecifier {
+                        span: DUMMY_SP,
+                        local: Ident::new(ident.clone(), DUMMY_SP),
+                    })
+                }
+            };
             module
                 .body
                 .push(ModuleItem::ModuleDecl(ModuleDecl::Import(ImportDecl {
@@ -389,12 +411,7 @@ fn new_module(file_stem: &JsWord, hook: &Hook, global: &GlobalCollect) -> Module
                         kind: StrKind::Synthesized,
                         has_escape: false,
                     },
-                    specifiers: vec![ImportSpecifier::Named(ImportNamedSpecifier {
-                        is_type_only: false,
-                        span: DUMMY_SP,
-                        imported: Some(Ident::new(import.specifier.clone(), DUMMY_SP)),
-                        local: Ident::new(ident.clone(), DUMMY_SP),
-                    })],
+                    specifiers: vec![specifier],
                 })))
         } else if let Some(export) = global.exports.get(&ident) {
             module

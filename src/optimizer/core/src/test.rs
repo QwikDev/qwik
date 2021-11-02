@@ -218,6 +218,7 @@ fn example_11() {
         r#"
 import {foo, bar as bbar} from "dep";
 import * as dep2 from "dep2";
+import dep3 from "dep3/something";
 
 export const Header = qComponent({
     onRender: qHook(() => {
@@ -230,7 +231,7 @@ export const Header = qComponent({
 export const App = qComponent({
     onRender: qHook(() => {
         return (
-            <Header>{foo()}</Header>
+            <Header>{foo(dep3)}</Header>
         );
     })
 });

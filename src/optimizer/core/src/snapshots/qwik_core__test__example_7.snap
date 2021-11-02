@@ -38,27 +38,27 @@ const App = qComponent({
 
 ============================= h_test_App_onRender.js==
 
-import { qHook as qHook } from "@builderio/qwik";
+import { qHook } from "@builderio/qwik";
 export const App_onRender = qHook(()=>{
     return (<Header />);
 });
 
 ============================= h_test_Header_onMount.js==
 
-import { qHook as qHook } from "@builderio/qwik";
+import { qHook } from "@builderio/qwik";
 export const Header_onMount = qHook(()=>{
     console.log("mount");
 });
 
 ============================= h_test_Header_onRender_div_onClick.js==
 
-import { qHook as qHook } from "@builderio/qwik";
+import { qHook } from "@builderio/qwik";
 export const Header_onRender_div_onClick = qHook((ctx)=>console.log(ctx)
 );
 
 ============================= h_test_Header_onRender.js==
 
-import { qHook as qHook } from "@builderio/qwik";
+import { qHook } from "@builderio/qwik";
 export const Header_onRender = qHook(()=>{
     return (<div onClick={qHook("h_test_Header_onRender_div_onClick.js#Header_onRender_div_onClick")}/>);
 });

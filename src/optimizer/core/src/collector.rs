@@ -13,7 +13,9 @@ macro_rules! id {
 
 #[derive(PartialEq, Clone, Copy)]
 pub enum ImportKind {
-    Import,
+    ImportNamed,
+    ImportAll,
+    ImportDefault,
 }
 
 pub struct Import {
@@ -55,7 +57,7 @@ impl Visit for GlobalCollect {
                         Import {
                             source: node.src.value.clone(),
                             specifier: imported,
-                            kind: ImportKind::Import,
+                            kind: ImportKind::ImportNamed,
                             loc: SourceLocation::from(&self.source_map, named.span),
                         },
                     );
@@ -66,7 +68,7 @@ impl Visit for GlobalCollect {
                         Import {
                             source: node.src.value.clone(),
                             specifier: js_word!("default"),
-                            kind: ImportKind::Import,
+                            kind: ImportKind::ImportDefault,
                             loc: SourceLocation::from(&self.source_map, default.span),
                         },
                     );
@@ -77,7 +79,7 @@ impl Visit for GlobalCollect {
                         Import {
                             source: node.src.value.clone(),
                             specifier: "*".into(),
-                            kind: ImportKind::Import,
+                            kind: ImportKind::ImportAll,
                             loc: SourceLocation::from(&self.source_map, namespace.span),
                         },
                     );

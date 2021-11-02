@@ -186,7 +186,7 @@ const Header = qHook((decl1, {decl2}, [decl3]) => {
 #[test]
 fn example_10() {
     test_input(
-        "test.tsx",
+        "project/test.tsx",
         r#"
 const Header = qHook((decl1, {decl2}, [decl3]) => {
 
@@ -214,7 +214,7 @@ const Header = qHook((decl1, {decl2}, [decl3]) => {
 #[test]
 fn example_11() {
     test_input(
-        "test.tsx",
+        "/user/project/test.tsx",
         r#"
 import {foo, bar as bbar} from "dep";
 import * as dep2 from "dep2";
@@ -273,7 +273,7 @@ fn test_input(filename: &str, code: &str, print_ast: bool) {
     let mut ctx = transform::TransformContext::new();
     let res = transform(Config {
         code: code.as_bytes().to_vec(),
-        filename: filename.to_string(),
+        path: filename.to_string(),
         source_maps: true,
         minify: false,
         transpile: false,
@@ -289,7 +289,7 @@ fn test_input(filename: &str, code: &str, print_ast: bool) {
                 let s = module.to_string();
                 output += format!(
                     "\n============================= {}==\n\n{}",
-                    s.filename, s.code
+                    s.path, s.code
                 )
                 .as_str();
                 // let map = if let Some(map) = s.map { map } else { "".to_string() };

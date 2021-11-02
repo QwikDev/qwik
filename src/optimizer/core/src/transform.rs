@@ -41,11 +41,11 @@ pub struct HookTransform<'a> {
 
     hooks: &'a mut Vec<Hook>,
 
-    filename: &'a str,
+    filename: String,
 }
 
 impl<'a> HookTransform<'a> {
-    pub fn new(ctx: &'a mut TransformContext, filename: &'a str, hooks: &'a mut Vec<Hook>) -> Self {
+    pub fn new(ctx: &'a mut TransformContext, filename: String, hooks: &'a mut Vec<Hook>) -> Self {
         HookTransform {
             filename: filename,
             stack_ctxt: vec![],

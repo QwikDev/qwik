@@ -11,6 +11,7 @@ mod test;
 mod collector;
 mod transform;
 mod utils;
+mod code_move;
 
 use std::error;
 use std::ffi::OsStr;
@@ -29,20 +30,20 @@ use swc_ecmascript::parser::lexer::Lexer;
 use swc_ecmascript::parser::{EsConfig, PResult, Parser, StringInput, Syntax, TsConfig};
 use swc_ecmascript::transforms::{pass, typescript};
 use swc_ecmascript::visit::{FoldWith, VisitWith};
-use collector::{GlobalCollect, ImportKind};
+use collector::{GlobalCollect};
 pub use transform::{Hook, TransformContext};
 use utils::{CodeHighlight, Diagnostic, DiagnosticSeverity, SourceLocation};
 
 #[derive(Serialize, Debug, Deserialize)]
 pub struct FSConfig {
-    project_root: String,
-    source_maps: bool,
-    minify: bool,
-    transpile: bool,
+    pub project_root: String,
+    pub source_maps: bool,
+    pub minify: bool,
+    pub transpile: bool,
 }
 
 pub struct Config<'a> {
-    pub filename: String,
+    pub path: String,
     pub source_maps: bool,
     pub minify: bool,
     pub transpile: bool,
@@ -67,7 +68,7 @@ pub struct TransformResult {
 
 #[derive(Serialize, Debug, Deserialize, Default)]
 pub struct TransformModule {
-    pub filename: String,
+    pub path: String,
 
     #[serde(with = "serde_bytes")]
     pub code: Vec<u8>,
@@ -78,7 +79,7 @@ pub struct TransformModule {
 
 #[derive(Serialize, Debug, Deserialize, Default)]
 pub struct TransformStringResult {
-    pub filename: String,
+    pub path: String,
     pub code: String,
     pub map: Option<String>,
 }
@@ -95,7 +96,7 @@ impl Emitter for ErrorBuffer {
 impl TransformModule {
     pub fn to_string(&self) -> TransformStringResult {
         TransformStringResult {
-            filename: self.filename.clone(),
+            path: self.path.clone(),
             code: str::from_utf8(&self.code).unwrap().to_string(),
             map: if let Some(map) = &self.map {
                 Some(str::from_utf8(&map).unwrap().to_string())
@@ -122,7 +123,7 @@ pub fn transform_workdir(
             let pathstr = value.to_str().unwrap();
             let data = fs::read(&value).expect("Unable to read file");
             transform(Config {
-                filename: pathstr.to_string(),
+                path: pathstr.to_string(),
                 minify: config.minify,
                 code: data,
                 source_maps: config.source_maps,
@@ -138,18 +139,25 @@ pub fn transform_workdir(
 
 pub fn transform(config: Config) -> Result<TransformResult, Box<dyn error::Error>> {
     let code = unsafe { std::str::from_utf8_unchecked(&config.code) };
-    let module = parse(code, config.filename.as_str(), &config);
+    let module = parse(code, config.path.as_str(), &config);
     if config.print_ast {
         dbg!(&module);
     }
 
     match module {
         Ok((main_module, comments)) => swc_common::GLOBALS.set(&Globals::new(), || {
-            let file_stem = Path::new(&config.filename)
+            let path = Path::new(&config.path);
+            let dir = path
+                .parent()
+                .unwrap();
+
+            let file_stem = path
                 .file_stem()
                 .unwrap()
                 .to_str()
-                .unwrap();
+                .unwrap()
+                .to_string();
+
             let mut collect = GlobalCollect::new(config.context.source_map.clone());
             main_module.visit_with(&Invalid { span: DUMMY_SP } as _, &mut collect);
 
@@ -162,11 +170,10 @@ pub fn transform(config: Config) -> Result<TransformResult, Box<dyn error::Error
                 main_module.fold_with(&mut passes)
             };
 
-            let js_word_file_stem = JsWord::from(file_stem);
             let mut output_modules: Vec<TransformModule> = hooks
                 .iter()
                 .map(|h| {
-                    let hook_module = new_module(&js_word_file_stem, &h, &collect);
+                    let hook_module = code_move::new_module(&file_stem, &h, &collect);
                     let (code, map) = emit_source_code(
                         config.context.source_map.clone(),
                         None,
@@ -178,7 +185,7 @@ pub fn transform(config: Config) -> Result<TransformResult, Box<dyn error::Error
                     TransformModule {
                         code: code,
                         map: map,
-                        filename: h.filename.clone(),
+                        path: dir.join(&h.filename).to_str().unwrap().to_string(),
                     }
                 })
                 .collect();
@@ -202,7 +209,7 @@ pub fn transform(config: Config) -> Result<TransformResult, Box<dyn error::Error
             output_modules.insert(
                 0,
                 TransformModule {
-                    filename: format!("{}.js", file_stem),
+                    path: dir.join(format!("{}.js", &file_stem)).to_str().unwrap().to_string(),
                     code: code,
                     map: map,
                 },
@@ -233,7 +240,7 @@ fn parse(code: &str, filename: &str, config: &Config) -> PResult<(Module, Single
     let source_file = source_map.new_source_file(FileName::Real(filename.into()), code.into());
 
     let comments = SingleThreadedComments::default();
-    let (is_type_script, is_jsx) = parse_filename(&config.filename.as_str());
+    let (is_type_script, is_jsx) = parse_filename(&config.path.as_str());
     let syntax = if is_type_script {
         Syntax::Typescript(TsConfig {
             tsx: is_jsx,
@@ -303,7 +310,6 @@ fn emit_source_code(
             cm: source_map.clone(),
             wr: writer,
         };
-
         emitter.emit_module(program)?;
     }
 
@@ -367,95 +373,4 @@ fn handle_error(error_buffer: ErrorBuffer, source_map: &Lrc<SourceMap>) -> Vec<D
         .collect();
 
     return diagnostics;
-}
-
-fn new_module(file_stem: &JsWord, hook: &Hook, global: &GlobalCollect) -> Module {
-    let mut module = Module {
-        span: DUMMY_SP,
-        body: vec![],
-        shebang: None,
-    };
-    for ident in &hook.local_idents {
-        if let Some(import) = global.imports.get(&ident) {
-            let specifier =match import.kind {
-                ImportKind::ImportNamed => {
-                    ImportSpecifier::Named(ImportNamedSpecifier {
-                        is_type_only: false,
-                        span: DUMMY_SP,
-                        imported: if &import.specifier != ident { Some(Ident::new(import.specifier.clone(), DUMMY_SP)) } else { None },
-                        local: Ident::new(ident.clone(), DUMMY_SP),
-                    })
-                },
-                ImportKind::ImportDefault => {
-                    ImportSpecifier::Default(ImportDefaultSpecifier {
-                        span: DUMMY_SP,
-                        local: Ident::new(ident.clone(), DUMMY_SP),
-                    })
-                }
-                ImportKind::ImportAll => {
-                    ImportSpecifier::Namespace(ImportStarAsSpecifier {
-                        span: DUMMY_SP,
-                        local: Ident::new(ident.clone(), DUMMY_SP),
-                    })
-                }
-            };
-            module
-                .body
-                .push(ModuleItem::ModuleDecl(ModuleDecl::Import(ImportDecl {
-                    span: DUMMY_SP,
-                    type_only: false,
-                    asserts: None,
-                    src: Str {
-                        span: DUMMY_SP,
-                        value: import.source.clone(),
-                        kind: StrKind::Synthesized,
-                        has_escape: false,
-                    },
-                    specifiers: vec![specifier],
-                })))
-        } else if let Some(export) = global.exports.get(&ident) {
-            module
-                .body
-                .push(ModuleItem::ModuleDecl(ModuleDecl::Import(ImportDecl {
-                    span: DUMMY_SP,
-                    type_only: false,
-                    asserts: None,
-                    src: Str {
-                        span: DUMMY_SP,
-                        value: JsWord::from(format!("./{}", file_stem)),
-                        kind: StrKind::Synthesized,
-                        has_escape: false,
-                    },
-                    specifiers: vec![ImportSpecifier::Named(ImportNamedSpecifier {
-                        is_type_only: false,
-                        span: DUMMY_SP,
-                        imported: None,
-                        local: Ident::new(export.clone(), DUMMY_SP),
-                    })],
-                })))
-        }
-    }
-    module.body.push(create_named_export(hook));
-
-    return module;
-}
-
-fn create_named_export(hook: &Hook) -> ModuleItem {
-    ModuleItem::ModuleDecl(ModuleDecl::ExportDecl(ExportDecl {
-        span: DUMMY_SP,
-        decl: Decl::Var(VarDecl {
-            span: DUMMY_SP,
-            kind: VarDeclKind::Const,
-            declare: false,
-            decls: vec![VarDeclarator {
-                span: DUMMY_SP,
-                definite: false,
-                name: Pat::Ident(BindingIdent::from(Ident::new(
-                    hook.name.clone().into(),
-                    DUMMY_SP,
-                ))),
-                init: Some(hook.expr.clone()),
-            }],
-        }),
-    }))
 }

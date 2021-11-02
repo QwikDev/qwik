@@ -25,11 +25,11 @@ const Header = qHook((decl1, {decl2}, [decl3]) => {
     )
 });
     
-============================= test.js==
+============================= project/test.js==
 
 const Header = qHook("h_test_Header.js#Header");
 
-============================= h_test_Header.js==
+============================= project/h_test_Header.js==
 
 export const Header = qHook((decl1, { decl2  }, [decl3])=>{
     const hola = ident1.no;

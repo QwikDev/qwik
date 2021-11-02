@@ -21,6 +21,7 @@ export const sym1 = qHook((ctx)=>console.log("1")
 
 [
   {
+    "path": "h_test_sym1.js",
     "name": "sym1",
     "local_decl": [
       "ctx"
@@ -36,4 +37,4 @@ export const sym1 = qHook((ctx)=>console.log("1")
 
 == DIAGNOSTICS ==
 
-None
+[]

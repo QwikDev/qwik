@@ -40,6 +40,7 @@ export const Header_onRender = qHook((hola)=>{
 
 [
   {
+    "path": "h_test_Header_onRender.js",
     "name": "Header_onRender",
     "local_decl": [
       "hello",
@@ -60,4 +61,4 @@ export const Header_onRender = qHook((hola)=>{
 
 == DIAGNOSTICS ==
 
-None
+[]

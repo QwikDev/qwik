@@ -1,6 +1,6 @@
 import { h, qDehydrate, qRender } from '@builder.io/qwik';
-import { ToDoApp } from './components';
-import type { Todos } from './state';
+import { ToDoApp } from './components.qwik';
+import type { Todos } from './state.qwik';
 /* eslint no-console: ["off"] */
 
 export async function serveRender() {

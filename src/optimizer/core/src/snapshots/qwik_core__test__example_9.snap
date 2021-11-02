@@ -46,6 +46,7 @@ export const Header = qHook((decl1, { decl2  }, [decl3])=>{
 
 [
   {
+    "path": "h_test_Header.js",
     "name": "Header",
     "local_decl": [
       "decl1",
@@ -80,4 +81,4 @@ export const Header = qHook((decl1, { decl2  }, [decl3])=>{
 
 == DIAGNOSTICS ==
 
-None
+[]

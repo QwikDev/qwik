@@ -271,8 +271,9 @@ export const App = qComponent({
 
 fn test_input(filename: &str, code: &str, print_ast: bool) {
     let mut ctx = transform::TransformContext::new();
-    let res = transform(Config {
-        code: code.as_bytes().to_vec(),
+    let res = transform_internal(InternalConfig {
+        project_root: None,
+        code: code.as_bytes(),
         path: filename.to_string(),
         source_maps: true,
         minify: false,
@@ -287,19 +288,12 @@ fn test_input(filename: &str, code: &str, print_ast: bool) {
 
             for module in v.modules {
                 let s = module.to_string();
-                output += format!(
-                    "\n============================= {}==\n\n{}",
-                    s.path, s.code
-                )
-                .as_str();
+                output +=
+                    format!("\n============================= {}==\n\n{}", s.path, s.code).as_str();
                 // let map = if let Some(map) = s.map { map } else { "".to_string() };
                 // output += format!("\n== MAP ==\n{}", map).as_str();
             }
-            let hooks = if let Some(hooks) = v.hooks {
-                to_string_pretty(&hooks).unwrap()
-            } else {
-                "".to_string()
-            };
+            let hooks = to_string_pretty(&v.hooks).unwrap();
             output += format!(
                 "\n== HOOKS ==\n\n{}\n\n== DIAGNOSTICS ==\n\n{:?}",
                 hooks, v.diagnostics

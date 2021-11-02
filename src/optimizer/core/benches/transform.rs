@@ -38,15 +38,15 @@ fn transform_benchmark(b: &mut Criterion) {
             try{}catch({decl19}){}
         });
             "#;
-            let mut ctx = TransformContext::new();
-            transform(black_box(Config {
-                code: code.as_bytes().to_vec(),
-                filename: "file.tsx".to_string(),
+            transform_input(black_box(&MultiConfig {
+                input: vec![FileInput {
+                    code: code.as_bytes().to_vec(),
+                    path: "file.tsx".to_string(),
+                }],
                 source_maps: true,
                 minify: false,
                 transpile: false,
                 print_ast: false,
-                context: &mut ctx,
             }))
         })
     });

@@ -43,6 +43,7 @@ export const Header_onRender = qHook(()=>{
 
 [
   {
+    "path": "h_test_Header_onMount.js",
     "name": "Header_onMount",
     "local_decl": [],
     "local_idents": [
@@ -52,6 +53,7 @@ export const Header_onRender = qHook(()=>{
     ]
   },
   {
+    "path": "h_test_Header_onRender_div_onClick.js",
     "name": "Header_onRender_div_onClick",
     "local_decl": [
       "ctx"
@@ -64,6 +66,7 @@ export const Header_onRender = qHook(()=>{
     ]
   },
   {
+    "path": "h_test_Header_onRender.js",
     "name": "Header_onRender",
     "local_decl": [
       "ctx"
@@ -81,4 +84,4 @@ export const Header_onRender = qHook(()=>{
 
 == DIAGNOSTICS ==
 
-None
+[]

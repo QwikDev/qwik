@@ -2,12 +2,11 @@
 authors = ["Manu <manu@builder.io>"]
 name = "qwik-core"
 version = "0.0.1"
-edition = "2018"
+edition = "2021"
 
 [[bench]]
 name = "transform"
 harness = false
-html_reports = true
 
 [lib]
 crate-type = ["rlib"]
@@ -19,6 +18,7 @@ swc_atoms = "0.2.9"
 serde = "1.0.123"
 serde_bytes = "0.11.5"
 glob = "0.3.0"
+simple-error = "0.1.9"
 
 [dev-dependencies]
 criterion = "0.3"

@@ -1,2 +1,2 @@
 export { Optimizer } from './optimizer';
-export * from './types'
+export * from './types';

@@ -1,5 +1,5 @@
-import type { Plugin } from 'rollup'; 
-import { Optimizer, TransformFileOptions, TransformedOutput } from '..'; 
+import type { Plugin } from 'rollup';
+import { Optimizer, TransformFileOptions, TransformedOutput } from '..';
 import { isAbsolute, normalize } from 'path';
 import { ManifestBuilder } from '../manifest';
 
@@ -21,18 +21,20 @@ export function qwik(): Plugin {
         sourceMaps: true,
         transpile: false,
         write: false,
-      }
+      };
 
       if (rollupInputOpts.input) {
         if (typeof rollupInputOpts.input === 'string') {
           // input is a single file path
-          addInputDirectory(transformOpts, rollupInputOpts.input)
+          addInputDirectory(transformOpts, rollupInputOpts.input);
         } else if (Array.isArray(rollupInputOpts.input)) {
           // input is an array of input file paths
-          rollupInputOpts.input.forEach(path => addInputDirectory(transformOpts, path));
+          rollupInputOpts.input.forEach((path) => addInputDirectory(transformOpts, path));
         } else {
           // input is an object of entry names and input file paths
-          Object.values(rollupInputOpts.input).forEach(path => addInputDirectory(transformOpts, path));
+          Object.values(rollupInputOpts.input).forEach((path) =>
+            addInputDirectory(transformOpts, path)
+          );
         }
       }
 
@@ -41,7 +43,7 @@ export function qwik(): Plugin {
         const result = await optimizer.transform(transformOpts);
 
         // throw error or print logs if there are any diagnostics
-        result.diagnostics.forEach(d => {
+        result.diagnostics.forEach((d) => {
           if (d.type === 'error') {
             throw d.message;
           } else if (d.type === 'warn') {
@@ -56,7 +58,7 @@ export function qwik(): Plugin {
 
         // now that we've got the user's inputs transformed
         // let's reset rollup's input option to use Qwik's transformed entries
-        const qwikEntryPaths = result.output.map(output => {
+        const qwikEntryPaths = result.output.map((output) => {
           // use the transform output file path as rollup's new input
           // this transformed file is only in-memory and not found on disk
           // the resolveId() and load() hooks will find this in the entry module map
@@ -93,8 +95,8 @@ export function qwik(): Plugin {
         // this is one of Qwik's entry modules, which is only in-memory
         return {
           code: entryModule.code!,
-          map: entryModule.map
-        }
+          map: entryModule.map,
+        };
       }
       return null;
     },
@@ -105,20 +107,17 @@ export function qwik(): Plugin {
       for (const fileName in bundle) {
         const file = bundle[fileName];
         if (file.type === 'chunk') {
-          // add each to the Qwik manifest
-          manifest.addFile({
-
-          });
+          manifest.addFileExports(file.fileName, file.exports);
         }
       }
- 
+
       // add the manifest to the rollup output
       this.emitFile({
-        fileName: 'q-manifest.json',
-        source: JSON.stringify(manifest.generate(), null, 2),
-        type: 'asset'
+        fileName: 'q-manifest.yml',
+        source: manifest.toYAML(),
+        type: 'asset',
       });
-    }
+    },
   };
 }
 
@@ -131,7 +130,7 @@ function addInputDirectory(transformOpts: TransformFileOptions, path: string) {
       throw new Error(`Input path must be absolute: ${path}`);
     }
 
-    if (!transformOpts.input.some(i => i.path === path)) {
+    if (!transformOpts.input.some((i) => i.path === path)) {
       transformOpts.input.push({ path });
     }
   }

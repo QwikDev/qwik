@@ -32,7 +32,7 @@ export interface TransformFileOptions extends TransformOptions {
    * output will include `code` and `map` properties.
    */
   write?: boolean;
-} 
+}
 
 // OPTION INPUTS ***************
 
@@ -43,7 +43,7 @@ export interface TransformCodeInput {
 
 export interface TransformFileInput {
   path: string;
-} 
+}
 
 // RESULT ***************
 
@@ -55,7 +55,7 @@ export interface TransformResult {
 // RESULT OUTPUT ***************
 
 export interface TransformedOutput {
-  srcFile: string
+  srcFile: string;
   outFile: string;
   code?: string;
   map?: string;
@@ -73,9 +73,9 @@ export type OptimizerDiagnosticType = 'error' | 'warn' | 'info';
 // MANIFEST ***************
 
 export interface ManifestFile {
-
+  exports: string[];
 }
 
 export interface Manifest {
-
+  files: { [path: string]: ManifestFile };
 }

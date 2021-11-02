@@ -71,7 +71,7 @@ export const qwikLoader = (doc: Document, hasInitialized?: boolean | number) => 
     if (url) {
       const handler = getModuleExport(
         url,
-        (window as any)[url.pathname] || (await import(String(url)))
+        (window as any)[url.pathname] || (await import(String(url).split('#')[0]))
       );
       handler(element, ev, url);
     }

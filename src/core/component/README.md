@@ -1,5 +1,7 @@
 # Qwik Components
 
+[![hackmd-github-sync-badge](https://hackmd.io/j2qKEw3zTM26a7iq5vkdZQ/badge)](https://hackmd.io/j2qKEw3zTM26a7iq5vkdZQ)
+
 A collection of Qwik Components in a tree structure make up a Qwik application.
 The unique feature of Qwik Components is that they can be:
 
@@ -7,7 +9,7 @@ The unique feature of Qwik Components is that they can be:
 1. The state of the Qwik Component serializes into the DOM attributes:
 1. Qwik Components can rehydrate on the client out of order:
 1. Qwik Components lazy load their behavioral handlers:
-1. Qwik Components declare listeners (both event and broadcasts) declaratively
+1. Qwik Components declare listeners (both event and broadcasts) declaratively:
 
 ## SSR
 
@@ -26,10 +28,10 @@ In contrast, Qwik aims to be resumable. A resumable application can always be se
 
 Another important goal is to be able to rehydrate and re-render components out of order. Assume you have:
 
-```
+```html
 <AppChrome>
-  <MainPage user={person}>
-    <Counter value={value}/>
+  <MainPage user="{person}">
+    <Counter value="{value}" />
   </MainPage>
 </AppChrome>
 ```
@@ -50,210 +52,4 @@ A component store state. There are three different kinds of states which Qwik re
 
 In traditional applications, listeners are problematic because they cause a lot of code to be downloaded even if the user never interacts with that listener. For example, a shopping checkout code may be very complex, but clicking on the purchase button is rare. A replayable application must set up a listener on the purchase button. The listener, in turn, needs a reference to the purchase entity. All of these objects need to be created and wired into the listener on application startup. This causes a lot of code to be downloaded which may never be executed.
 
-Qwik solves this by having a declarative way of setting up listeners. The listeners only specify where the code lives (import.) Unless the event fires, the listener never loads the code. The result is that Qwik only loads code when it is strictly necessary and thus delays most of the work until later. This leads to fast startup time because only very little code needs to be downloaded, and even less needs to be executed.
-
-# Declaring Components
-
-Declaring component requires breaking up the component into a public declaration and private implementation details. (`Greeter` component will be used as an example.)
-
-## Public declarations:
-
-Create a public file: `<COMPONENT>.ts` (`greeter.ts`): A facade to be included by parent components to refer to this component without pulling in all of the implementation details of the component. The file will contain declaration for **Props**, and **Facade**:
-
-- **Props**: Declares the components public properties / inputs.
-  ```typescript
-  export interface <COMPONENT>Props {
-    <propertyName>: string; // all inputs must be primitives
-                            // (serialization requirement)
-  }
-  ```
-  Example:
-  ```typescript
-  export interface GreeterProps {
-    salutation: string;
-    name: string;
-  }
-  ```
-- **Facade**: A light-weight type-safe facade that encapsulates the lazy loading nature of the component.
-
-  ```typescript
-  export const <COMPONENT> = jsxDeclareComponent<<COMPONENT>Props>(
-    /// non-symbolic pointer to the implementation used for lazy loading.
-    /// (As a convention, the template file ends with `_template`.)
-    QRL`./<COMPONENT>_template`,
-    // Name of the DOM host element which will be created for this component.
-    '<COMPONENT>');
-  ```
-
-  Example:
-
-  ```typescript
-  export const Greeter = jsxDeclareComponent<GreeterProps>(QRL`./Greet_template`, 'greeter');
-  ```
-
-Putting it all together:
-
-File: `greeter.ts`
-
-```typescript
-export interface GreeterProps {
-  salutation: string;
-  name: string;
-}
-export const Greeter = jsxDeclareComponent<GreeterProps>(QRL`./Greet_template`, 'greeter');
-```
-
-The result of the above code is that it can be used like so in JSX:
-
-```typescript
-// Any file can import the facade
-import { Greeter } from './greeter.js';
-
-// Once imported the `Greeter` can be used in any JSX without having to think
-// about the lazy loading nature of the implementation.
-function myTemplate() {
-  return (
-    <div>
-      <Greeter salutation="Hello" name="World" />
-    </div>
-  );
-}
-```
-
-## Private Implementation:
-
-The private implementation consists of at a minimum of 1) one file representing the private component implementation, 2) one file representing the component template, and 3) zero or more files containing event handlers. (In theory, all of these can be merged into a single file at the expense of more course lazy loading.)
-
-- **Component**: A private implementation of the component (and its transient state). This consists of the declaration of the component state as well as the components implementation. As a convention the file is named `<COMPONENT>_component.ts` (`greet_component.ts`.)
-
-  ```typescript
-  import {<COMPONENT>} from './<COMPONENT>.js';
-  import {Component} from './qwik.js';
-
-  export <COMPONENT>State {
-    // Serializable state of the component.
-  }
-
-  export class <COMPONENT>Component extends Component<G<COMPONENT>State, <COMPONENT>Props> {
-    // private implementation goes here
-  }
-  ```
-
-  Example:
-
-  ```typescript
-  import { GreeterProps } from './Greeter.js';
-  import { Component } from './qwik.js';
-
-  export interface GreeterState {
-    name: string;
-  }
-
-  export class GreeterComponent extends Component<GreeterProps, GreeterState> {
-    // See Component Lifecycle Methods for explanation
-    $newState(props: GreeterProps): GreeterState {
-      return { name: props.name };
-    }
-  }
-  ```
-
-- **Template**: A file declaring the components view template. This file is usually named `<COMPONENT>_template.tsx` (`greeter_template.tsx`) by convention. The important part is that the [`QRL`](..//import#QRL) from public facade `<COMPONENT>.ts` (`greeter.ts`) points to this file.
-
-  ```typescript
-  import { <COMPONENT>Component } from './<COMPONENT>_component.js';
-  import { inject } from './qwik.js';
-
-  // See: Component Injection for more details
-  export default inject(<COMPONENT>Component, function (this:<COMPONENT>Component) {
-    return <>component template here</>;
-  });
-  ```
-
-  Example:
-
-  ```typescript
-  import { GreeterComponent } from './greeter_component.js';
-  import { inject } from './qwik.js';
-
-  export default inject(GreeterComponent, function (this: GreeterComponent) {
-    return (
-      <span on:click="./greeter_onclick">
-        {this.$keyProps.greeting} {this.$state.name}!
-      </span>
-    );
-  });
-  ```
-
-- **Handler**: Handlers are optional, but most components will have one or more. Handlers are responsible for processing events. By convention, the handlers are named `<COMPONENT>_<WHAT>_on<EVENT>.ts` (`greet_text_onClick.ts`)
-
-  ```typescript
-  import { inject } from './qwik.js';
-  import { <COMPONENT>Component } from './<COMPONENT>_component.js';
-
-  export default inject(<COMPONENT>Component, function (this: <COMPONENT>Component) {
-    // handler code here.
-  });
-  ```
-
-  Typically when only one handler is placed per file, it is exported as `default`. It is possible to put multiple handlers into a single file (at the expense of fine-grained lazy lading) and have them named. See [`QRL`](..//import#QRL) for details.
-
-  Example:
-
-  ```typescript
-  import { inject, markDirty, provideQrlExp } from './qwik.js';
-  import { GreeterComponent } from './greeter_component.js';
-
-  export default inject(GreeterComponent, function (this: GreeterComponent, name: string) {
-    alert(this.$keyProps.salutation + ' ' + this.$keyProps.name + '!');
-  });
-  ```
-
-When a component is implemented, the resulting files are:
-
-```
-greeter.ts                  // Public facade
-greeter_component.ts        // Transient component instance
-greeter_template.ts         // Template on how to render the component.
-greeter_text_onClick.ts     // Event handler.
-```
-
-NOTE: In this example, we went to the extreme and broke up the component into as many files as possible to get the finest lazy loading possible. It is possible to merge all of the `greeter_*.ts` files into fewer files at the expense of courser lazy loading. We leave that up to the discretion of the developer.
-
-# Component Lifecycle methods
-
-Components can have lifecycle hooks that get called at a specific point of execution.
-
-### `$newState(props: P): void`
-
-Invoked when the component is instantiated, and no serialized state is found in DOM. When components are serialized their state is written into DOM like so:
-
-```html
-<greeter name="World" :="./greeter_template" :.='{"name":"World"}'> </greeter>
-```
-
-Notice the presence of JSON in `:.` attribute, which contains the component state serialized as JSON.
-
-When the component is rehydrated the transient component instance needs to get a private state from `:.`. If this is the first-time render, there is no state to dehydrate from, in such a case, the component calls `$newState()` to create a brand new state.
-
-```typescript
-export class GreeterComponent extends Component<GreeterProps, GreeterState> {
-  $newState(props: GreeterProps): GreeterState {
-    return { name: props.name };
-  }
-}
-```
-
-# Component Injection
-
-For general discussion of injection, see [Injection](../injection).
-
-Injecting entities into components is done through the constructor. The injection system needs a list of tokens that need to be injected into the constructor. The injection list is stored on the static `$inject` property. To ensure that the injection list matches the constructor arguments, `provideComponent()` is used to verify that the injection list and the component constructor matches.
-
-```typescript
-export class GreeterComponent extends Component<GreeterProps, GreeterState> {
-  // Declare constructor dependencies in static `$inject` property
-  // `provideComponent` verifies that the items injected match constructor arguments.
-  static $inject = provideComponent(SomeEntity, GreeterComponent);
-  constructor(private entity: SomeEntity) {}
-}
-```
+Qwik solves this by having a declarative way of setting up listeners. The listeners only specify where the code lives (import url.) Unless the event fires, the listener never loads the code. The result is that Qwik only loads code when it is strictly necessary and thus delays most of the work until later. This leads to fast startup time because only very little code needs to be downloaded, and even less needs to be executed.

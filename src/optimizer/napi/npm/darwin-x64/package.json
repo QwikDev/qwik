@@ -1,15 +1,15 @@
 {
-  "name": "@builder.io/qwik/optimizer-linux-x64-gnu",
+  "name": "@builder.io/qwik-optimizer-darwin-x64",
   "version": "0.0.0",
   "os": [
-    "linux"
+    "darwin"
   ],
   "cpu": [
     "x64"
   ],
-  "main": "qwik.linux-x64-gnu.node",
+  "main": "qwik.darwin-x64.node",
   "files": [
-    "qwik.linux-x64-gnu.node"
+    "qwik.darwin-x64.node"
   ],
   "license": "MIT",
   "engines": {

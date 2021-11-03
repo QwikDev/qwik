@@ -1,15 +1,15 @@
 {
-  "name": "@builder.io/qwik/optimizer-win32-x64-msvc",
+  "name": "@builder.io/qwik-optimizer-linux-x64-gnu",
   "version": "0.0.0",
   "os": [
-    "win32"
+    "linux"
   ],
   "cpu": [
     "x64"
   ],
-  "main": "qwik.win32-x64-msvc.node",
+  "main": "qwik.linux-x64-gnu.node",
   "files": [
-    "qwik.win32-x64-msvc.node"
+    "qwik.linux-x64-gnu.node"
   ],
   "license": "MIT",
   "engines": {

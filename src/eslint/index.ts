@@ -7,7 +7,7 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import type { Rule } from 'eslint';
+import type { Rule, Scope } from 'eslint';
 import type * as ESTree from 'estree';
 
 const noClosedOverVariables: Rule.RuleModule = {
@@ -59,6 +59,15 @@ const noClosedOverVariables: Rule.RuleModule = {
       return isCallExpressionName(node, qComponentName);
     }
 
+    function getNodeId(node: ESTree.Identifier | Rule.Node) {
+      return node.range?.[0] ?? -1;
+    }
+
+    function flattenScopeVariables(node: ESTree.Expression | ESTree.SpreadElement) {
+      const scope = manager.acquire(node);
+      return new Set(scope!.variables.map((v) => v.name));
+    }
+
     function walkToFirstQHook(node: Rule.Node): ESTree.Identifier | null {
       while (node) {
         if (isQHook(node)) {
@@ -79,44 +88,43 @@ const noClosedOverVariables: Rule.RuleModule = {
       return null;
     }
 
-    function getNodeId(node: ESTree.Identifier | Rule.Node) {
-      return node.range && node.range[0] !== undefined ? node.range[0] : -1;
+    /**
+     * Get resolved variables - no outer scope defined variables
+     * - https://eslint.org/docs/developer-guide/scope-manager-interface#resolved
+     */
+    function traverseScopesVariables(
+      queue: (Scope.Scope | null)[],
+      cb: (v: Scope.Reference[]) => void
+    ) {
+      let scope = null;
+      while ((scope = queue.pop())) {
+        queue.push(...scope.childScopes);
+        cb(scope.references.filter((i) => i.resolved));
+      }
     }
 
-    function flattenScopeVariables(node: ESTree.Expression | ESTree.SpreadElement) {
-      const scope = manager.acquire(node);
-      return new Set(scope!.variables.map((v) => v.name));
-    }
-
+    /**
+     * Find closed over variables inside qHook scopes and report an error
+     */
     function findClosedOverVariables(
       node:
         | (ESTree.FunctionExpression & Rule.NodeParentExtension)
         | (ESTree.ArrowFunctionExpression & Rule.NodeParentExtension)
     ) {
       // is node qHook and is qHook inside qComponent?
-      const scopeRecord = qHookStore.get(getNodeId(node.parent));
+      const currentQHookScope = qHookStore.get(getNodeId(node.parent));
       // is qHook inside parent qHook?
-      if (scopeRecord && scopeRecord.parentNode) {
-        const parentScopeRecord = qHookStore.get(getNodeId(scopeRecord.parentNode));
-        // get node Scope (FunctionScope in this case) in order to get all scoped variables
+      if (currentQHookScope && currentQHookScope.parentNode) {
+        const parentQHookScope = qHookStore.get(getNodeId(currentQHookScope.parentNode))!;
         const queue = [manager.acquire(node)];
-        let scope = null;
-        // get all FunctionScope variable references and find whether it wasn't declared in parent FunctionScope which is forbidden
-        while ((scope = queue.pop())) {
-          queue.push(...scope.childScopes);
-          for (const ref of scope.references) {
-            const scopeVariableRef = ref.resolved;
-            if (scopeVariableRef) {
-              // variable declared in parent FunctionScope, error is fired
-              if (
-                parentScopeRecord!.variables.has(scopeVariableRef.name) &&
-                !scopeRecord.variables.has(scopeVariableRef.name)
-              ) {
-                report(ref.identifier, scopeVariableRef.name);
-              }
+        traverseScopesVariables(queue, (variables) => {
+          for (const variable of variables) {
+            const { name } = variable.resolved!;
+            if (parentQHookScope.variables.has(name) && !currentQHookScope.variables.has(name)) {
+              report(variable.identifier, name);
             }
           }
-        }
+        });
       }
     }
 

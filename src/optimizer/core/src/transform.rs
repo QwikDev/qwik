@@ -1,4 +1,6 @@
+use crate::bundling::BundlingPolicy;
 use crate::collector::HookCollect;
+
 use ast::*;
 use std::collections::HashSet;
 use std::vec;
@@ -21,13 +23,15 @@ pub struct Hook {
 pub struct TransformContext {
     pub source_map: Lrc<SourceMap>,
     pub hooks_names: HashSet<String>,
+    pub bundling_policy: Box<dyn BundlingPolicy>,
 }
 
 impl TransformContext {
-    pub fn new() -> TransformContext {
+    pub fn new(bundling_policy: Box<dyn BundlingPolicy>) -> Self {
         TransformContext {
             hooks_names: HashSet::with_capacity(10),
             source_map: Lrc::new(SourceMap::default()),
+            bundling_policy: bundling_policy,
         }
     }
 }
@@ -221,10 +225,13 @@ impl<'a> Fold for HookTransform<'a> {
             if let Expr::Ident(id) = &**expr {
                 if id.sym == swc_atoms::JsWord::from("qHook") {
                     let symbol_name = self.get_context_name();
-                    let filename = format!("h_{}_{}.js", self.filename, symbol_name);
+                    let filename = self
+                        .context
+                        .bundling_policy
+                        .get_entry_for_sym(&symbol_name, &self.filename);
                     let qurl = format!("{}#{}", filename, symbol_name);
-                    let hook_collect = HookCollect::new(&node);
                     let folded = node.fold_children_with(self);
+                    let hook_collect = HookCollect::new(&folded);
 
                     self.hooks.push(Hook {
                         filename: filename,

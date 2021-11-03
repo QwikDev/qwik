@@ -74,14 +74,9 @@ export const App_Header_onRender = qHook(()=>{
   {
     "path": "h_test_App_Header_onRender.js",
     "name": "App_Header_onRender",
-    "local_decl": [
-      "ctx"
-    ],
+    "local_decl": [],
     "local_idents": [
-      "console",
-      "ctx",
       "div",
-      "log",
       "onClick",
       "qHook"
     ]

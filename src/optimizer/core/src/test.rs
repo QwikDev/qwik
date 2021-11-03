@@ -223,7 +223,9 @@ import dep3 from "dep3/something";
 export const Header = qComponent({
     onRender: qHook(() => {
         return (
-            <Header>{dep2.stuff()}{bbar()}</Header>
+            <Header onClick={qHook((ev) => dep3(ev))}>
+                {dep2.stuff()}{bbar()}
+            </Header>
         );
     })
 });
@@ -231,7 +233,7 @@ export const Header = qComponent({
 export const App = qComponent({
     onRender: qHook(() => {
         return (
-            <Header>{foo(dep3)}</Header>
+            <Header>{foo()}</Header>
         );
     })
 });
@@ -270,16 +272,16 @@ export const App = qComponent({
 // }
 
 fn test_input(filename: &str, code: &str, print_ast: bool) {
-    let mut ctx = transform::TransformContext::new();
-    let res = transform_internal(InternalConfig {
-        project_root: None,
-        code: code.as_bytes(),
-        path: filename.to_string(),
+    let res = transform_input(&MultiConfig {
+        input: vec![FileInput {
+            code: code.as_bytes().to_vec(),
+            path: filename.to_string(),
+        }],
         source_maps: true,
         minify: false,
         transpile: false,
         print_ast: print_ast,
-        context: &mut ctx,
+        bundling: Bundling::PerHook,
     });
     match res {
         Ok(v) => {

@@ -61,9 +61,10 @@ fn optimize(t: Optimize) -> Result<qwik_core::TransformResult, Box<dyn std::erro
         .to_str()
         .unwrap()
         .to_string();
-    std::fs::create_dir_all(&output)?;
+
     let result = transform_workdir(&FSConfig {
-        project_root: input,
+        input: input,
+        glob: None,
         source_maps: true,
         minify: false,
         transpile: true,

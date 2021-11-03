@@ -4,21 +4,22 @@ use std::path::Path;
 use std::str;
 
 use crate::code_move::new_module;
-use crate::collector::GlobalCollect;
+use crate::collector::global_collect;
 use crate::transform::{Hook, HookTransform, TransformContext};
 use crate::utils::{CodeHighlight, Diagnostic, DiagnosticSeverity, SourceLocation};
 use serde::{Deserialize, Serialize};
 use simple_error::*;
 use std::fs;
+
 use swc_common::comments::SingleThreadedComments;
 use swc_common::errors::{DiagnosticBuilder, Emitter, Handler};
-use swc_common::{chain, sync::Lrc, FileName, Globals, SourceMap, DUMMY_SP};
+use swc_common::{chain, sync::Lrc, FileName, Globals, SourceMap};
 use swc_ecmascript::ast::*;
 use swc_ecmascript::codegen::text_writer::JsWriter;
 use swc_ecmascript::parser::lexer::Lexer;
 use swc_ecmascript::parser::{EsConfig, PResult, Parser, StringInput, Syntax, TsConfig};
 use swc_ecmascript::transforms::{pass, typescript};
-use swc_ecmascript::visit::{FoldWith, VisitWith};
+use swc_ecmascript::visit::FoldWith;
 
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct HookAnalysis {
@@ -58,6 +59,7 @@ impl TransformResult {
                 for module in &self.modules {
                     let origin = Path::new(&module.path).strip_prefix(project_root)?;
                     let write_path = destination.join(origin);
+                    std::fs::create_dir_all(&write_path)?;
                     fs::write(write_path, &module.code)?;
                 }
                 return Ok(self.modules.len());
@@ -123,9 +125,7 @@ pub fn transform_internal(
 
             let file_stem = path.file_stem().unwrap().to_str().unwrap().to_string();
 
-            let mut collect = GlobalCollect::new(config.context.source_map.clone());
-            main_module.visit_with(&Invalid { span: DUMMY_SP } as _, &mut collect);
-
+            let collect = global_collect(&main_module);
             let mut hooks: Vec<Hook> = vec![];
             let main_module = {
                 let mut passes = chain!(

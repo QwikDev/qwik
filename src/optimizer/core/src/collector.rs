@@ -1,9 +1,8 @@
-use crate::utils::SourceLocation;
 use std::collections::{BTreeMap, HashSet};
 use swc_atoms::{js_word, JsWord};
-use swc_common::{sync::Lrc, DUMMY_SP};
+use swc_common::DUMMY_SP;
 use swc_ecmascript::ast::*;
-use swc_ecmascript::visit::{Node, Visit, VisitWith};
+use swc_ecmascript::visit::{noop_visit_type, Node, Visit, VisitWith};
 
 macro_rules! id {
     ($ident: expr) => {
@@ -22,28 +21,27 @@ pub struct Import {
     pub source: JsWord,
     pub specifier: JsWord,
     pub kind: ImportKind,
-    pub loc: SourceLocation,
 }
 
 pub struct GlobalCollect {
-    pub source_map: Lrc<swc_common::SourceMap>,
     pub imports: BTreeMap<JsWord, Import>,
     pub exports: BTreeMap<JsWord, JsWord>,
     in_export_decl: bool,
 }
 
-impl GlobalCollect {
-    pub fn new(source_map: Lrc<swc_common::SourceMap>) -> Self {
-        GlobalCollect {
-            source_map,
-            imports: BTreeMap::new(),
-            exports: BTreeMap::new(),
-            in_export_decl: false,
-        }
-    }
+pub fn global_collect(module: &Module) -> GlobalCollect {
+    let mut collect = GlobalCollect {
+        imports: BTreeMap::new(),
+        exports: BTreeMap::new(),
+        in_export_decl: false,
+    };
+    module.visit_with(&Invalid { span: DUMMY_SP } as _, &mut collect);
+    return collect;
 }
 
 impl Visit for GlobalCollect {
+    noop_visit_type!();
+
     fn visit_import_decl(&mut self, node: &ImportDecl, _parent: &dyn Node) {
         for specifier in &node.specifiers {
             match specifier {
@@ -58,7 +56,6 @@ impl Visit for GlobalCollect {
                             source: node.src.value.clone(),
                             specifier: imported,
                             kind: ImportKind::ImportNamed,
-                            loc: SourceLocation::from(&self.source_map, named.span),
                         },
                     );
                 }
@@ -69,7 +66,6 @@ impl Visit for GlobalCollect {
                             source: node.src.value.clone(),
                             specifier: js_word!("default"),
                             kind: ImportKind::ImportDefault,
-                            loc: SourceLocation::from(&self.source_map, default.span),
                         },
                     );
                 }
@@ -80,7 +76,6 @@ impl Visit for GlobalCollect {
                             source: node.src.value.clone(),
                             specifier: "*".into(),
                             kind: ImportKind::ImportAll,
-                            loc: SourceLocation::from(&self.source_map, namespace.span),
                         },
                     );
                 }

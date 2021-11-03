@@ -1,6 +1,7 @@
 #[cfg(test)]
 mod test;
 
+mod bundling;
 mod code_move;
 mod collector;
 mod parse;
@@ -12,17 +13,22 @@ use std::fs;
 use std::path::PathBuf;
 use std::str;
 
+use crate::bundling::parse_bundling;
+pub use crate::bundling::Bundling;
 use crate::parse::InternalConfig;
 pub use crate::parse::{transform_internal, ErrorBuffer, HookAnalysis, TransformResult};
 pub use crate::transform::{Hook, TransformContext};
+
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Debug, Deserialize)]
 pub struct FSConfig {
-    pub project_root: String,
+    pub input: String,
+    pub glob: Option<String>,
     pub source_maps: bool,
     pub minify: bool,
     pub transpile: bool,
+    pub bundling: Bundling,
 }
 
 #[derive(Serialize, Debug, Deserialize)]
@@ -38,15 +44,20 @@ pub struct MultiConfig {
     pub minify: bool,
     pub transpile: bool,
     pub print_ast: bool,
+    pub bundling: Bundling,
 }
 
 pub fn transform_workdir(config: &FSConfig) -> Result<TransformResult, Box<dyn error::Error>> {
     let srcdir = std::env::current_dir()?;
-    let srcdir = srcdir.join(PathBuf::from(config.project_root.clone()));
-    println!("{:?}", srcdir.to_str().unwrap());
-    let pattern = srcdir.join("**/*.qwik.*");
+    let srcdir = srcdir.join(PathBuf::from(config.input.clone()));
+    let pattern = if let Some(glob) = &config.glob {
+        srcdir.join(glob)
+    } else {
+        srcdir.join("**/*.qwik.*")
+    };
 
-    let mut context = TransformContext::new();
+    let bundling = parse_bundling(&config.bundling);
+    let mut context = TransformContext::new(bundling);
     let paths = glob::glob(pattern.to_str().unwrap())?;
     let mut output = TransformResult::default();
     output.project_root = Some(srcdir.to_str().unwrap().to_string());
@@ -79,7 +90,8 @@ pub fn transform_workdir(config: &FSConfig) -> Result<TransformResult, Box<dyn e
 }
 
 pub fn transform_input(config: &MultiConfig) -> Result<TransformResult, Box<dyn error::Error>> {
-    let mut context = TransformContext::new();
+    let bundling = parse_bundling(&config.bundling);
+    let mut context = TransformContext::new(bundling);
     let mut output = TransformResult::default();
     for p in &config.input {
         let mut result = transform_internal(InternalConfig {

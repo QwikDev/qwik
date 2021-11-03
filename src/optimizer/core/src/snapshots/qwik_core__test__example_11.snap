@@ -13,7 +13,9 @@ import dep3 from "dep3/something";
 export const Header = qComponent({
     onRender: qHook(() => {
         return (
-            <Header>{dep2.stuff()}{bbar()}</Header>
+            <Header onClick={qHook((ev) => dep3(ev))}>
+                {dep2.stuff()}{bbar()}
+            </Header>
         );
     })
 });
@@ -21,7 +23,7 @@ export const Header = qComponent({
 export const App = qComponent({
     onRender: qHook(() => {
         return (
-            <Header>{foo(dep3)}</Header>
+            <Header>{foo()}</Header>
         );
     })
 });
@@ -41,11 +43,16 @@ export const App = qComponent({
 ============================= /user/project/h_test_App_onRender.js==
 
 import { Header } from "./test";
-import dep3 from "dep3/something";
 import { foo } from "dep";
 export const App_onRender = qHook(()=>{
-    return (<Header >{foo(dep3)}</Header>);
+    return (<Header >{foo()}</Header>);
 });
+
+============================= /user/project/h_test_Header_onRender_Header_onClick.js==
+
+import dep3 from "dep3/something";
+export const Header_onRender_Header_onClick = qHook((ev)=>dep3(ev)
+);
 
 ============================= /user/project/h_test_Header_onRender.js==
 
@@ -53,7 +60,11 @@ import { Header } from "./test";
 import { bar as bbar } from "dep";
 import * as dep2 from "dep2";
 export const Header_onRender = qHook(()=>{
-    return (<Header >{dep2.stuff()}{bbar()}</Header>);
+    return (<Header onClick={qHook("h_test_Header_onRender_Header_onClick.js#Header_onRender_Header_onClick")}>
+
+                {dep2.stuff()}{bbar()}
+
+            </Header>);
 });
 
 == HOOKS ==
@@ -65,8 +76,19 @@ export const Header_onRender = qHook(()=>{
     "local_decl": [],
     "local_idents": [
       "Header",
-      "dep3",
       "foo",
+      "qHook"
+    ]
+  },
+  {
+    "path": "/user/project/h_test_Header_onRender_Header_onClick.js",
+    "name": "Header_onRender_Header_onClick",
+    "local_decl": [
+      "ev"
+    ],
+    "local_idents": [
+      "dep3",
+      "ev",
       "qHook"
     ]
   },
@@ -78,6 +100,7 @@ export const Header_onRender = qHook(()=>{
       "Header",
       "bbar",
       "dep2",
+      "onClick",
       "qHook",
       "stuff"
     ]

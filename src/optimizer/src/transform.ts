@@ -1,7 +1,7 @@
 import type {
   OptimizerDiagnostic,
   TransformCodeOptions,
-  TransformFileOptions,
+  TransformDirectoryOptions,
   TransformResult,
 } from '.';
 
@@ -14,6 +14,7 @@ export async function transformCode(opts: TransformCodeOptions) {
     diagnostics: [],
   };
   try {
+    // napi!!!!
   } catch (e) {
     catchDiagnostics(result.diagnostics, e);
   }
@@ -38,12 +39,13 @@ export function transformCodeSync(opts: TransformCodeOptions) {
 /**
  * Transforms the file read from the file system.
  */
-export async function transform(opts: TransformFileOptions) {
+export async function transformDirectory(opts: TransformDirectoryOptions) {
   const result: TransformResult = {
     output: [],
     diagnostics: [],
   };
   try {
+    // napi!!
   } catch (e) {
     catchDiagnostics(result.diagnostics, e);
   }
@@ -53,7 +55,7 @@ export async function transform(opts: TransformFileOptions) {
 /**
  * Transforms the file read from the file system.
  */
-export function transformSync(opts: TransformFileOptions) {
+export function transformDirectorySync(opts: TransformDirectoryOptions) {
   const result: TransformResult = {
     output: [],
     diagnostics: [],

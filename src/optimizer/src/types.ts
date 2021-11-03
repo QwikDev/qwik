@@ -7,6 +7,7 @@ export type SourceMapsOption = boolean | undefined | null;
 export type TranspileOption = boolean | undefined | null;
 
 interface TransformOptions {
+  entryStrategy?: EntryStrategy;
   minify?: MinifyOption;
   sourceMaps?: SourceMapsOption;
   transpile?: TranspileOption;
@@ -16,22 +17,16 @@ export interface TransformCodeOptions extends TransformOptions {
   input: TransformCodeInput[];
 }
 
-export interface TransformFileOptions extends TransformOptions {
-  input: TransformFileInput[];
+export interface TransformDirectoryOptions extends TransformOptions {
+  inputDir: string;
+
+  // **/*.qwik.{js,jsx,ts,tsx}
+  glob?: string;
+
   /**
-   * The output directory path each output file is set as. Use the
-   * `write` option to also write the contents to this output directory.
+   * The output directory path each output file is set as.
    */
-  outDir?: string;
-  /**
-   * Continue to drill down recursively if an input path is a directory.
-   */
-  recursiveDir?: boolean;
-  /**
-   * Set to `true` to write the files to the `outDir`, otherwise the result
-   * output will include `code` and `map` properties.
-   */
-  write?: boolean;
+  outputDir?: string;
 }
 
 // OPTION INPUTS ***************
@@ -41,7 +36,7 @@ export interface TransformCodeInput {
   code: string;
 }
 
-export interface TransformFileInput {
+export interface TransformDirectoryInput {
   path: string;
 }
 
@@ -57,6 +52,7 @@ export interface TransformResult {
 export interface TransformedOutput {
   srcFile: string;
   outFile: string;
+  isEntry: boolean;
   code?: string;
   map?: string;
 }
@@ -70,12 +66,23 @@ export interface OptimizerDiagnostic {
 
 export type OptimizerDiagnosticType = 'error' | 'warn' | 'info';
 
-// MANIFEST ***************
+// ENTRY STRATEGY ***************
 
-export interface ManifestFile {
-  exports: string[];
+export type EntryStrategy = SingleEntryStrategy | PerHookEntryStrategy | ManualEntryStrategy;
+
+export interface SingleEntryStrategy {
+  type: 'single';
 }
 
-export interface Manifest {
-  files: { [path: string]: ManifestFile };
+export interface PerHookEntryStrategy {
+  type: 'per-hook';
 }
+
+export interface ManualEntryStrategy {
+  type: 'manual';
+  entries: string[][];
+}
+
+// OUTPUT ENTRY MAP ***************
+
+export interface OutputEntryMap {}

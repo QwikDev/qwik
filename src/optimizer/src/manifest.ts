@@ -1,57 +1,42 @@
 import type { Manifest, ManifestFile } from '.';
 
-export class ManifestBuilder {
-  private fileExports = new Map<string, string[]>();
+export function generateManifest(outputSymbols: Map<string, string[]>) {
+  const result: Manifest = {
+    files: {},
+  };
 
-  addFileExports(path: string, symbols: string[]) {
-    if (typeof path === 'string') {
-      if (Array.isArray(symbols)) {
-        symbols = [...symbols];
-      } else {
-        symbols = [];
-      }
-      this.fileExports.set(path, symbols);
-    }
-  }
+  const sortedFileNames = Object.keys(outputSymbols).sort();
 
-  generate() {
-    const result: Manifest = {
-      files: {},
+  sortedFileNames.forEach((path) => {
+    const sortedExports = [...outputSymbols.get(path)!].sort();
+    const manifestFile: ManifestFile = {
+      exports: sortedExports,
     };
+    result.files[path] = manifestFile;
+  });
 
-    const sortedFileNames = Object.keys(this.fileExports).sort();
+  return result;
+}
 
-    sortedFileNames.forEach((path) => {
-      const sortedExports = [...this.fileExports.get(path)!].sort();
-      const manifestFile: ManifestFile = {
-        exports: sortedExports,
-      };
-      result.files[path] = manifestFile;
+export function serializeManifest(result: Manifest) {
+  const yaml: string[] = [];
+
+  yaml.push(`---`);
+  yaml.push(`Files:`);
+
+  Object.entries(result.files).forEach(([path, manifestFile]) => {
+    yaml.push(`  ${path}:`);
+    manifestFile.exports.forEach((symbolExport) => {
+      yaml.push(`    - ${symbolExport}`);
     });
+  });
 
-    return result;
-  }
+  return yaml.join('\n') + '\n';
+}
 
-  toJSON() {
-    const result = this.generate();
-    return JSON.stringify(result, null, 2);
-  }
-
-  toYAML() {
-    const result = this.generate();
-    const yaml: string[] = [];
-
-    yaml.push(`- Files`);
-    yaml.push(``);
-
-    Object.entries(result.files).forEach(([path, manifestFile]) => {
-      yaml.push(`  - ${path}`);
-      manifestFile.exports.forEach((symbolExport) => {
-        yaml.push(`    - ${symbolExport}`);
-      });
-      yaml.push(``);
-    });
-
-    return yaml.join('\n') + '\n';
-  }
+export function parseManifest(yamlManifest: string) {
+  const result: Manifest = {
+    files: {},
+  };
+  return result;
 }

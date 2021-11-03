@@ -22,7 +22,7 @@ export interface TransformFileOptions extends TransformOptions {
    * The output directory path each output file is set as. Use the
    * `write` option to also write the contents to this output directory.
    */
-  outDir: string;
+  outDir?: string;
   /**
    * Continue to drill down recursively if an input path is a directory.
    */

@@ -1,21 +1,22 @@
 import type { Plugin } from 'rollup';
-import { Optimizer, TransformFileOptions, TransformedOutput } from '..';
-import { isAbsolute, normalize } from 'path';
-import { ManifestBuilder } from '../manifest';
+import { Optimizer, TransformFileOptions, Manifest } from '..';
+import { parseManifest } from '../manifest';
 
-export function qwik(): Plugin {
+export function qwik(opts: QwikPluginOptions = {}): Plugin {
   const optimizer = new Optimizer();
-  const entryModules = new Map<string, TransformedOutput>();
+  let manifest: Manifest | undefined = undefined;
 
   return {
     name: 'qwikPlugin',
 
     async options(rollupInputOpts) {
+      // ensure we reset the entry module map if the user's rollup input changes
+      optimizer.clearModules();
+
       // Takes the user's Rollup input options to find the source input files,
       // then generates Qwik input files which rollup should use instead as input files.
       const transformOpts: TransformFileOptions = {
         input: [],
-        outDir: '@dist',
         minify: false,
         recursiveDir: true,
         sourceMaps: true,
@@ -26,19 +27,25 @@ export function qwik(): Plugin {
       if (rollupInputOpts.input) {
         if (typeof rollupInputOpts.input === 'string') {
           // input is a single file path
-          addInputDirectory(transformOpts, rollupInputOpts.input);
+          optimizer.addSourceEntryPath(rollupInputOpts.input);
         } else if (Array.isArray(rollupInputOpts.input)) {
           // input is an array of input file paths
-          rollupInputOpts.input.forEach((path) => addInputDirectory(transformOpts, path));
+          rollupInputOpts.input.forEach((path) => {
+            optimizer.addSourceEntryPath(path);
+          });
         } else {
-          // input is an object of entry names and input file paths
-          Object.values(rollupInputOpts.input).forEach((path) =>
-            addInputDirectory(transformOpts, path)
-          );
+          // input is a map of input file paths
+          Object.values(rollupInputOpts.input).forEach((path) => {
+            optimizer.addSourceEntryPath(path);
+          });
         }
       }
 
       if (transformOpts.input.length > 0) {
+        if (!manifest) {
+          manifest = await loadManifest(opts.manifestPath);
+        }
+
         // send the user's input files to be transformed
         const result = await optimizer.transform(transformOpts);
 
@@ -53,22 +60,9 @@ export function qwik(): Plugin {
           }
         });
 
-        // ensure we reset the entry module map
-        entryModules.clear();
-
         // now that we've got the user's inputs transformed
         // let's reset rollup's input option to use Qwik's transformed entries
-        const qwikEntryPaths = result.output.map((output) => {
-          // use the transform output file path as rollup's new input
-          // this transformed file is only in-memory and not found on disk
-          // the resolveId() and load() hooks will find this in the entry module map
-
-          // keep the state of each entry output to be looked up later
-          entryModules.set(output.outFile, output);
-
-          // return the outFile path  so it's rollup's entry input file
-          return output.outFile;
-        });
+        const qwikEntryPaths = optimizer.getTransformedEntryPaths(manifest);
 
         // Return the new rollup options which have been modified with Qwik's entry modules
         return {
@@ -77,12 +71,11 @@ export function qwik(): Plugin {
         };
       }
 
-      // make no changes to the original rollup options
       return null;
     },
 
     resolveId(id) {
-      if (entryModules.has(id)) {
+      if (optimizer.hasTransformedModule(id)) {
         // this is one of Qwik's entry modules, which is only in-memory
         return id;
       }
@@ -90,48 +83,58 @@ export function qwik(): Plugin {
     },
 
     load(id) {
-      const entryModule = entryModules.get(id);
-      if (entryModule) {
+      const transformedModule = optimizer.getTransformedModule(id);
+      if (transformedModule) {
         // this is one of Qwik's entry modules, which is only in-memory
         return {
-          code: entryModule.code!,
-          map: entryModule.map,
+          code: transformedModule.code!,
+          map: transformedModule.map,
         };
       }
       return null;
     },
 
-    generateBundle(rollupOutputOptions, bundle) {
-      const manifest = new ManifestBuilder();
+    renderDynamicImport() {
+      // todo??
+      return null;
+    },
 
-      for (const fileName in bundle) {
-        const file = bundle[fileName];
+    generateBundle(_, rollupBundle) {
+      optimizer.clearOutputSymbols();
+
+      for (const fileName in rollupBundle) {
+        const file = rollupBundle[fileName];
         if (file.type === 'chunk') {
-          manifest.addFileExports(file.fileName, file.exports);
+          optimizer.setOutputSymbols(file.fileName, file.exports);
         }
       }
 
       // add the manifest to the rollup output
       this.emitFile({
         fileName: 'q-manifest.yml',
-        source: manifest.toYAML(),
+        source: optimizer.serializeManifest(),
         type: 'asset',
       });
     },
   };
 }
 
-function addInputDirectory(transformOpts: TransformFileOptions, path: string) {
-  if (typeof path === 'string') {
-    path = normalize(path);
-
-    if (!isAbsolute(path)) {
-      // just easier this way
-      throw new Error(`Input path must be absolute: ${path}`);
-    }
-
-    if (!transformOpts.input.some((i) => i.path === path)) {
-      transformOpts.input.push({ path });
-    }
+async function loadManifest(manifestPath?: string) {
+  if (typeof manifestPath === 'string') {
+    const fs = await import('fs');
+    return new Promise<Manifest | undefined>((resolve, reject) => {
+      fs.readFile(manifestPath, 'utf-8', (err, content) => {
+        if (err) {
+          reject(err);
+        } else {
+          const manifest = parseManifest(content);
+          resolve(manifest);
+        }
+      });
+    });
   }
+}
+
+export interface QwikPluginOptions {
+  manifestPath?: string;
 }

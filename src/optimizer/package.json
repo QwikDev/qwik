@@ -1,12 +1,29 @@
 {
   "name": "@builder.io/qwik/optimizer",
   "scripts": {
-    "build": "npm run build.core",
+    "build": "npm run build.core && npm run build.cli",
+    "build.cli": "cd cli && cargo build",
     "build.core": "cd core && cargo build",
-    "build.napi": "",
+    "build.napi.release": "cd core/build && napi build --platform --release",
+    "build.napi": "cd core/build && napi build --platform",
     "fmt": "cd core && cargo fmt",
     "test": "npm run test.core",
-    "test.uvu": "uvu",
-    "test.core": "cd core && cargo test -- --nocapture"
+    "test.core": "cd core && cargo test -- --nocapture",
+    "artifacts": "napi artifacts",
+    "prepublishOnly": "napi prepublish -t npm",
+    "version": "napi version"
+  },
+  "napi": {
+    "name": "qwik",
+    "triples": {}
+  },
+  "dependencies": {
+    "@node-rs/helper": "^1.2.1"
+  },
+  "devDependencies": {
+    "@napi-rs/cli": "^1.2.1"
+  },
+  "engines": {
+    "node": ">= 16"
   }
 }

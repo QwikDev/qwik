@@ -37,7 +37,7 @@ export interface TransformFileOptions extends TransformOptions {
 // OPTION INPUTS ***************
 
 export interface TransformCodeInput {
-  filename: string;
+  path: string;
   code: string;
 }
 

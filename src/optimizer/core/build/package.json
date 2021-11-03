@@ -1,0 +1,25 @@
+{
+  "name": "@builder.io/qwik/optimizer",
+  "version": "0.0.0",
+  "napi": {
+    "name": "qwik",
+    "triples": {}
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@node-rs/helper": "^1.2.1"
+  },
+  "devDependencies": {
+    "@napi-rs/cli": "^1.2.1"
+  },
+  "engines": {
+    "node": ">= 10"
+  },
+  "scripts": {
+    "artifacts": "napi artifacts",
+    "build": "napi build --platform --release",
+    "build:debug": "napi build --platform",
+    "prepublishOnly": "napi prepublish -t npm",
+    "version": "napi version"
+  }
+}

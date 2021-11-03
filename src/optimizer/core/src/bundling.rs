@@ -16,7 +16,7 @@ pub struct SingleBundle {}
 
 impl BundlingPolicy for SingleBundle {
     fn get_entry_for_sym(&self, _symbol: &str, _filename: &str) -> String {
-        return "hook-entry.qwik".to_string();
+        "hook-entry.qwik".to_string()
     }
 }
 
@@ -34,18 +34,16 @@ pub struct ManualBundle {
 }
 
 impl ManualBundle {
-    pub fn new_with_groups(groups: &Vec<Vec<String>>) -> Self {
+    pub fn new_with_groups(groups: &[Vec<String>]) -> Self {
         let mut map: HashMap<String, String> = HashMap::new();
-        let mut count = 0;
-        for group in groups {
+        for (count, group) in groups.iter().enumerate() {
             let group_name = format!("entry_{}", count);
             for sym in group {
                 map.insert(sym.clone(), group_name.clone());
             }
-            count += 1;
         }
         ManualBundle {
-            map: map,
+            map,
             fallback: "entry-fallback".to_string(),
         }
     }

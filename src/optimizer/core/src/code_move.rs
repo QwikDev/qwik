@@ -12,9 +12,9 @@ pub fn new_module(original_file: &str, hook: &Hook, global: &GlobalCollect) -> M
         shebang: None,
     };
     for ident in &hook.local_idents {
-        if let Some(import) = global.imports.get(&ident) {
+        if let Some(import) = global.imports.get(ident) {
             let specifier = match import.kind {
-                ImportKind::ImportNamed => ImportSpecifier::Named(ImportNamedSpecifier {
+                ImportKind::Named => ImportSpecifier::Named(ImportNamedSpecifier {
                     is_type_only: false,
                     span: DUMMY_SP,
                     imported: if &import.specifier != ident {
@@ -24,11 +24,11 @@ pub fn new_module(original_file: &str, hook: &Hook, global: &GlobalCollect) -> M
                     },
                     local: Ident::new(ident.clone(), DUMMY_SP),
                 }),
-                ImportKind::ImportDefault => ImportSpecifier::Default(ImportDefaultSpecifier {
+                ImportKind::Default => ImportSpecifier::Default(ImportDefaultSpecifier {
                     span: DUMMY_SP,
                     local: Ident::new(ident.clone(), DUMMY_SP),
                 }),
-                ImportKind::ImportAll => ImportSpecifier::Namespace(ImportStarAsSpecifier {
+                ImportKind::All => ImportSpecifier::Namespace(ImportStarAsSpecifier {
                     span: DUMMY_SP,
                     local: Ident::new(ident.clone(), DUMMY_SP),
                 }),
@@ -47,7 +47,7 @@ pub fn new_module(original_file: &str, hook: &Hook, global: &GlobalCollect) -> M
                     },
                     specifiers: vec![specifier],
                 })))
-        } else if let Some(export) = global.exports.get(&ident) {
+        } else if let Some(export) = global.exports.get(ident) {
             module
                 .body
                 .push(ModuleItem::ModuleDecl(ModuleDecl::Import(ImportDecl {
@@ -71,7 +71,7 @@ pub fn new_module(original_file: &str, hook: &Hook, global: &GlobalCollect) -> M
     }
     module.body.push(create_named_export(hook));
 
-    return module;
+    module
 }
 
 fn create_named_export(hook: &Hook) -> ModuleItem {

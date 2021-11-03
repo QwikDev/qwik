@@ -280,7 +280,7 @@ fn test_input(filename: &str, code: &str, print_ast: bool) {
         source_maps: true,
         minify: false,
         transpile: false,
-        print_ast: print_ast,
+        print_ast,
         bundling: Bundling::PerHook,
     });
     match res {

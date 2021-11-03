@@ -12,9 +12,9 @@ macro_rules! id {
 
 #[derive(PartialEq, Clone, Copy)]
 pub enum ImportKind {
-    ImportNamed,
-    ImportAll,
-    ImportDefault,
+    Named,
+    All,
+    Default,
 }
 
 pub struct Import {
@@ -36,7 +36,7 @@ pub fn global_collect(module: &Module) -> GlobalCollect {
         in_export_decl: false,
     };
     module.visit_with(&Invalid { span: DUMMY_SP } as _, &mut collect);
-    return collect;
+    collect
 }
 
 impl Visit for GlobalCollect {
@@ -55,7 +55,7 @@ impl Visit for GlobalCollect {
                         Import {
                             source: node.src.value.clone(),
                             specifier: imported,
-                            kind: ImportKind::ImportNamed,
+                            kind: ImportKind::Named,
                         },
                     );
                 }
@@ -65,7 +65,7 @@ impl Visit for GlobalCollect {
                         Import {
                             source: node.src.value.clone(),
                             specifier: js_word!("default"),
-                            kind: ImportKind::ImportDefault,
+                            kind: ImportKind::Default,
                         },
                     );
                 }
@@ -75,7 +75,7 @@ impl Visit for GlobalCollect {
                         Import {
                             source: node.src.value.clone(),
                             specifier: "*".into(),
-                            kind: ImportKind::ImportAll,
+                            kind: ImportKind::All,
                         },
                     );
                 }
@@ -189,19 +189,19 @@ impl HookCollect {
             expr_ctxt: vec![],
         };
         node.visit_with(&Invalid { span: DUMMY_SP } as _, &mut collect);
-        return collect;
+        collect
     }
 
     pub fn get_local_decl(&self) -> Vec<JsWord> {
-        let mut items: Vec<JsWord> = self.local_decl.iter().map(|h| h.clone()).collect();
+        let mut items: Vec<JsWord> = self.local_decl.iter().cloned().collect();
         items.sort();
-        return items;
+        items
     }
 
     pub fn get_local_idents(&self) -> Vec<JsWord> {
-        let mut items: Vec<JsWord> = self.local_idents.iter().map(|h| h.clone()).collect();
+        let mut items: Vec<JsWord> = self.local_idents.iter().cloned().collect();
         items.sort();
-        return items;
+        items
     }
 }
 

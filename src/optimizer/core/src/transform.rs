@@ -31,7 +31,7 @@ impl TransformContext {
         TransformContext {
             hooks_names: HashSet::with_capacity(10),
             source_map: Lrc::new(SourceMap::default()),
-            bundling_policy: bundling_policy,
+            bundling_policy,
         }
     }
 }
@@ -51,9 +51,9 @@ pub struct HookTransform<'a> {
 impl<'a> HookTransform<'a> {
     pub fn new(ctx: &'a mut TransformContext, filename: String, hooks: &'a mut Vec<Hook>) -> Self {
         HookTransform {
-            filename: filename,
+            filename,
             stack_ctxt: vec![],
-            hooks: hooks,
+            hooks,
             module_item: 0,
             root_sym: None,
             context: ctx,
@@ -62,13 +62,13 @@ impl<'a> HookTransform<'a> {
 
     fn get_context_name(&self) -> String {
         let mut ctx = self.stack_ctxt.join("_");
-        if self.stack_ctxt.len() < 1 {
+        if self.stack_ctxt.is_empty() {
             ctx += "_h";
         }
         if self.context.hooks_names.contains(&ctx) {
             ctx += &self.hooks.len().to_string();
         }
-        return ctx;
+        ctx
     }
 
     fn handle_var_decl(&mut self, node: VarDecl) -> VarDecl {
@@ -100,7 +100,7 @@ impl<'a> Fold for HookTransform<'a> {
         let o = node.fold_children_with(self);
         self.hooks
             .sort_by(|a, b| b.module_index.cmp(&a.module_index));
-        return o;
+        o
     }
 
     fn fold_module_item(&mut self, item: ModuleItem) -> ModuleItem {
@@ -140,24 +140,20 @@ impl<'a> Fold for HookTransform<'a> {
             item => item.fold_children_with(self),
         };
         self.module_item += 1;
-        return item;
+        item
     }
 
     fn fold_var_declarator(&mut self, node: VarDeclarator) -> VarDeclarator {
         let mut stacked = false;
-
-        match node.name {
-            Pat::Ident(ref ident) => {
-                self.stack_ctxt.push(ident.id.sym.to_string());
-                stacked = true;
-            }
-            _ => {}
+        if let Pat::Ident(ref ident) = node.name {
+            self.stack_ctxt.push(ident.id.sym.to_string());
+            stacked = true;
         };
         let o = node.fold_children_with(self);
         if stacked {
             self.stack_ctxt.pop();
         }
-        return o;
+        o
     }
 
     fn fold_fn_decl(&mut self, node: FnDecl) -> FnDecl {
@@ -165,7 +161,7 @@ impl<'a> Fold for HookTransform<'a> {
         let o = node.fold_children_with(self);
         self.stack_ctxt.pop();
 
-        return o;
+        o
     }
 
     fn fold_class_decl(&mut self, node: ClassDecl) -> ClassDecl {
@@ -173,7 +169,7 @@ impl<'a> Fold for HookTransform<'a> {
         let o = node.fold_children_with(self);
         self.stack_ctxt.pop();
 
-        return o;
+        o
     }
 
     fn fold_jsx_opening_element(&mut self, node: JSXOpeningElement) -> JSXOpeningElement {
@@ -187,7 +183,7 @@ impl<'a> Fold for HookTransform<'a> {
         if stacked {
             self.stack_ctxt.pop();
         }
-        return o;
+        o
     }
 
     fn fold_key_value_prop(&mut self, node: KeyValueProp) -> KeyValueProp {
@@ -204,7 +200,7 @@ impl<'a> Fold for HookTransform<'a> {
         if stacked {
             self.stack_ctxt.pop();
         }
-        return o;
+        o
     }
 
     fn fold_jsx_attr(&mut self, node: JSXAttr) -> JSXAttr {
@@ -217,13 +213,13 @@ impl<'a> Fold for HookTransform<'a> {
         if stacked {
             self.stack_ctxt.pop();
         }
-        return o;
+        o
     }
 
     fn fold_call_expr(&mut self, node: CallExpr) -> CallExpr {
         if let ExprOrSuper::Expr(expr) = &node.callee {
             if let Expr::Ident(id) = &**expr {
-                if id.sym == swc_atoms::JsWord::from("qHook") {
+                if id.sym == *"qHook" {
                     let symbol_name = self.get_context_name();
                     let filename = self
                         .context
@@ -234,20 +230,20 @@ impl<'a> Fold for HookTransform<'a> {
                     let hook_collect = HookCollect::new(&folded);
 
                     self.hooks.push(Hook {
-                        filename: filename,
+                        filename,
                         name: symbol_name.clone(),
                         module_index: self.module_item,
-                        expr: Box::new(Expr::Call(folded.clone())),
+                        expr: Box::new(Expr::Call(folded)),
                         local_decl: hook_collect.get_local_decl(),
                         local_idents: hook_collect.get_local_idents(),
                     });
-                    self.context.hooks_names.insert(symbol_name.clone());
+                    self.context.hooks_names.insert(symbol_name);
                     return create_inline_qhook(&qurl);
                 }
             }
         }
-        let folded = node.fold_children_with(self);
-        return folded;
+
+        node.fold_children_with(self)
     }
 }
 

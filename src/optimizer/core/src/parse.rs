@@ -62,7 +62,7 @@ impl TransformResult {
                     std::fs::create_dir_all(&write_path)?;
                     fs::write(write_path, &module.code)?;
                 }
-                return Ok(self.modules.len());
+                Ok(self.modules.len())
             }
         }
     }
@@ -100,11 +100,10 @@ impl TransformModule {
         TransformStringResult {
             path: self.path.clone(),
             code: str::from_utf8(&self.code).unwrap().to_string(),
-            map: if let Some(map) = &self.map {
-                Some(str::from_utf8(&map).unwrap().to_string())
-            } else {
-                None
-            },
+            map: self
+                .map
+                .as_ref()
+                .map(|map| str::from_utf8(map).unwrap().to_string()),
         }
     }
 }
@@ -112,7 +111,7 @@ impl TransformModule {
 pub fn transform_internal(
     config: InternalConfig,
 ) -> Result<TransformResult, Box<dyn error::Error>> {
-    let code = unsafe { std::str::from_utf8_unchecked(&config.code) };
+    let code = unsafe { std::str::from_utf8_unchecked(config.code) };
     let module = parse(code, config.path.as_str(), &config);
     if config.print_ast {
         dbg!(&module);
@@ -138,7 +137,7 @@ pub fn transform_internal(
             let mut output_modules: Vec<TransformModule> = hooks
                 .iter()
                 .map(|h| {
-                    let hook_module = new_module(&file_stem, &h, &collect);
+                    let hook_module = new_module(&file_stem, h, &collect);
                     let (code, map) = emit_source_code(
                         config.context.source_map.clone(),
                         None,
@@ -148,8 +147,8 @@ pub fn transform_internal(
                     )
                     .unwrap();
                     TransformModule {
-                        code: code,
-                        map: map,
+                        code,
+                        map,
                         path: dir.join(&h.filename).to_str().unwrap().to_string(),
                     }
                 })
@@ -180,8 +179,8 @@ pub fn transform_internal(
                         .to_str()
                         .unwrap()
                         .to_string(),
-                    code: code,
-                    map: map,
+                    code,
+                    map,
                 },
             );
 
@@ -189,7 +188,7 @@ pub fn transform_internal(
                 project_root: config.project_root,
                 modules: output_modules,
                 diagnostics: vec![],
-                hooks: hooks,
+                hooks,
             })
         }),
         Err(err) => {
@@ -201,7 +200,7 @@ pub fn transform_internal(
                 project_root: config.project_root,
                 hooks: vec![],
                 modules: vec![],
-                diagnostics: diagnostics,
+                diagnostics,
             })
         }
     }
@@ -216,7 +215,7 @@ fn parse(
     let source_file = source_map.new_source_file(FileName::Real(filename.into()), code.into());
 
     let comments = SingleThreadedComments::default();
-    let (is_type_script, is_jsx) = parse_filename(&config.path.as_str());
+    let (is_type_script, is_jsx) = parse_filename(config.path.as_str());
     let syntax = if is_type_script {
         Syntax::Typescript(TsConfig {
             tsx: is_jsx,
@@ -279,7 +278,7 @@ fn emit_source_code(
                 None
             },
         ));
-        let config = swc_ecmascript::codegen::Config { minify: minify };
+        let config = swc_ecmascript::codegen::Config { minify };
         let mut emitter = swc_ecmascript::codegen::Emitter {
             cfg: config,
             comments: Some(&comments),
@@ -317,7 +316,7 @@ fn handle_error(error_buffer: ErrorBuffer, source_map: &Lrc<SourceMap>) -> Vec<D
                 for span_label in span_labels {
                     highlights.push(CodeHighlight {
                         message: span_label.label,
-                        loc: SourceLocation::from(&source_map, span_label.span),
+                        loc: SourceLocation::from(source_map, span_label.span),
                     });
                 }
 
@@ -348,5 +347,5 @@ fn handle_error(error_buffer: ErrorBuffer, source_map: &Lrc<SourceMap>) -> Vec<D
         })
         .collect();
 
-    return diagnostics;
+    diagnostics
 }

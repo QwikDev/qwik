@@ -59,8 +59,10 @@ pub fn transform_workdir(config: &FSConfig) -> Result<TransformResult, Box<dyn e
     let bundling = parse_bundling(&config.bundling);
     let mut context = TransformContext::new(bundling);
     let paths = glob::glob(pattern.to_str().unwrap())?;
-    let mut output = TransformResult::default();
-    output.project_root = Some(srcdir.to_str().unwrap().to_string());
+    let mut output = TransformResult {
+        project_root: Some(srcdir.to_str().unwrap().to_string()),
+        ..TransformResult::default()
+    };
     for p in paths {
         let value = p.unwrap();
         let pathstr = value.to_str().unwrap();
@@ -86,7 +88,7 @@ pub fn transform_workdir(config: &FSConfig) -> Result<TransformResult, Box<dyn e
             }
         }
     }
-    return Ok(output);
+    Ok(output)
 }
 
 pub fn transform_input(config: &MultiConfig) -> Result<TransformResult, Box<dyn error::Error>> {
@@ -116,5 +118,5 @@ pub fn transform_input(config: &MultiConfig) -> Result<TransformResult, Box<dyn 
         }
     }
 
-    return Ok(output);
+    Ok(output)
 }

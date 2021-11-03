@@ -58,6 +58,44 @@ function validArrowFunctionExpression() {
 }
 
 /**
+ * VALID qComponent - arrow function - sibling scopes
+ */
+function validArrowFunctionExpressionSiblingInnerScopes() {
+  const outer = 1;
+  const Counter = qComponent<{ value?: number; step?: number }, { count: number }>({
+    onMount: qHook((props) => ({ count: props.value || 0 })),
+    onRender: qHook(({ value, step }, state, args) => {
+      const innerConst = 123;
+      qHook<typeof Counter>(({ value, step }, state, args) => {
+        const local = 123;
+        local; // local var
+        rules; // import
+        ruleTester; // top level var
+        Counter;
+        outer;
+        value; // qHook param
+        state; // qHook state
+        args; // qHook args
+        // block scope - sibling
+        if (true) {
+          local;
+          if (true) {
+            local;
+          }
+          if (true) {
+            local;
+          }
+        }
+        // function scope - sibling
+        return () => {
+          local; // closed over qHook inner function
+        };
+      });
+    }),
+  });
+}
+
+/**
  * VALID qComponent - arrow function - duplicated declaration
  */
 function validArrowFunctionExpressionDuplicated() {
@@ -245,6 +283,57 @@ function invalidArrowFunctionExpression() {
 }
 
 /**
+ * INVALID qComponent - arrow function - sibling inner scopes
+ */
+function invalidArrowFunctionExpressionSiblingInnerScopes() {
+  const Counter_click = qHook((props, state) => {
+    state;
+  });
+
+  const Counter = qComponent<{ value?: number; step?: number }, { count: number }>({
+    onMount: qHook((props) => ({ count: props.value || 0 })),
+    onRender: qHook(({ value, step }, state, args) => {
+      const innerConst = 123;
+      function innerFn() {}
+      const { innerSpread } = args as any;
+      qHook<typeof Counter>(() => {
+        const local = 123;
+        local; // OK: Reference to local vars is OK.
+        rules; // OK: Reference to import is OK.
+        ruleTester; // OK: Reference to top level is OK.
+
+        value; // ERROR: can't access parent scope
+        step; // ERROR: can't access parent scope
+        state; // ERROR: can't access parent scope
+        args; // ERROR: can't access parent scope
+        innerConst; // ERROR: reference to `inner` is not allowed as it closes over non-top-level variable
+        innerFn(); // ERROR: innerFn can't be accesssed
+        innerSpread; // ERROR: innerSpread can't be accessed
+
+        // block scope - sibling
+        if (true) {
+          local; // OK
+          innerSpread; // ERROR: innerSpread can't be accessed
+          if (true) {
+            local; // OK
+            innerSpread; // ERROR: innerSpread can't be accessed
+          }
+          if (true) {
+            local; // OK
+            innerSpread; // ERROR: innerSpread can't be accessed
+          }
+        }
+        // function scope - sibling
+        return () => {
+          local; // Closing over `qHook` inner functions is OK inside nested closures.
+          innerConst; // ERROR: reference to `inner` is not allowed as it closes over non-top-level variable
+        };
+      });
+    }),
+  });
+}
+
+/**
  * INVALID qComponent - arrow function - duplicated declaration
  */
 function invalidArrowFunctionExpressionDuplicated() {
@@ -383,8 +472,13 @@ function invalidArrowFunctionFunctionExpression() {
 (ruleTester as any).run('no-closed-over-variables', rules['no-closed-over-variables'], {
   valid: [
     {
+      // only: true,
       name: 'arrow function expressions',
       code: validArrowFunctionExpression.toString(),
+    },
+    {
+      name: 'arrow function expressions - sibling inner scopes',
+      code: validArrowFunctionExpressionSiblingInnerScopes.toString(),
     },
     {
       name: 'arrow function expressions - duplicated declaration',
@@ -541,6 +635,67 @@ function invalidArrowFunctionFunctionExpression() {
         {
           message: 'innerConst is closed over.',
           line: 42,
+          column: 21,
+        },
+      ],
+    },
+    {
+      name: 'arrow function expressions - sibling inner scopes',
+      code: invalidArrowFunctionExpressionSiblingInnerScopes.toString(),
+      errors: [
+        {
+          message: 'value is closed over.',
+          line: 16,
+          column: 17,
+        },
+        {
+          message: 'step is closed over.',
+          line: 17,
+          column: 17,
+        },
+        {
+          message: 'state is closed over.',
+          line: 18,
+          column: 17,
+        },
+        {
+          message: 'args is closed over.',
+          line: 19,
+          column: 17,
+        },
+        {
+          message: 'innerConst is closed over.',
+          line: 20,
+          column: 17,
+        },
+        {
+          message: 'innerFn is closed over.',
+          line: 21,
+          column: 17,
+        },
+        {
+          message: 'innerSpread is closed over.',
+          line: 22,
+          column: 17,
+        },
+        {
+          message: 'innerSpread is closed over.',
+          line: 26,
+          column: 21,
+        },
+        {
+          message: 'innerSpread is closed over.',
+          line: 29,
+          column: 25,
+        },
+        {
+          message: 'innerSpread is closed over.',
+          line: 33,
+          column: 25,
+        },
+        {
+          message: 'innerConst is closed over.',
+          line: 39,
           column: 21,
         },
       ],

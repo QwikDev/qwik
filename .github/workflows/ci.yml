@@ -135,6 +135,7 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'release' }}
     #needs:
     # - build
     # - lint
@@ -142,12 +143,6 @@ jobs:
     # - e2e-tests
 
     steps:
-      - name: Setup Node.js
-        uses: actions/setup-node@v1
-        with:
-          node-version: 16.x
-          registry-url: https://registry.npmjs.org/
-
       - run: echo "GITHUB_EVENT_NAME $GITHUB_EVENT_NAME, GITHUB_EVENT_PATH $GITHUB_EVENT_PATH, GITHUB_REF $GITHUB_REF"
 
       # - name: Download Artifacts

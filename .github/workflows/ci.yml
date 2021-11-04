@@ -1,44 +1,44 @@
 name: Qwik CI
 
-on: 
+on:
   push:
   pull_request:
   release:
     types: [published]
 
-# jobs:
-#   build:
-#     name: Build
-#     runs-on: ubuntu-latest
-#     steps:
-#       - name: Setup Node.js
-#         uses: actions/setup-node@v1
-#         with:
-#           node-version: 16.x
-#           registry-url: https://registry.npmjs.org/
+jobs:
+  #   build:
+  #     name: Build
+  #     runs-on: ubuntu-latest
+  #     steps:
+  #       - name: Setup Node.js
+  #         uses: actions/setup-node@v1
+  #         with:
+  #           node-version: 16.x
+  #           registry-url: https://registry.npmjs.org/
 
-#       - name: Checkout
-#         uses: actions/checkout@v2
+  #       - name: Checkout
+  #         uses: actions/checkout@v2
 
-#       - name: Cache Dependencies
-#         uses: actions/cache@v2
-#         with:
-#           path: node_modules
-#           key: npm-cache-${{ hashFiles('yarn.lock') }}
-#           restore-keys: npm-cache-
+  #       - name: Cache Dependencies
+  #         uses: actions/cache@v2
+  #         with:
+  #           path: node_modules
+  #           key: npm-cache-${{ hashFiles('yarn.lock') }}
+  #           restore-keys: npm-cache-
 
-#       - name: Install Dependencies
-#         run: yarn install --ignore-scripts --frozen-lockfile --ignore-engines
+  #       - name: Install Dependencies
+  #         run: yarn install --ignore-scripts --frozen-lockfile --ignore-engines
 
-#       - name: Build
-#         run: yarn build.prod
+  #       - name: Build
+  #         run: yarn build.prod
 
-#       - name: Upload Build Artifacts
-#         uses: actions/upload-artifact@master
-#         with:
-#           name: dist-builder-io-qwik
-#           path: dist-dev/@builder.io-qwik
-#           if-no-files-found: error
+  #       - name: Upload Build Artifacts
+  #         uses: actions/upload-artifact@master
+  #         with:
+  #           name: dist-builder-io-qwik
+  #           path: dist-dev/@builder.io-qwik
+  #           if-no-files-found: error
 
   # lint:
   #   name: Lint
@@ -149,7 +149,6 @@ on:
           registry-url: https://registry.npmjs.org/
 
       - run: echo "GITHUB_EVENT_NAME $GITHUB_EVENT_NAME, GITHUB_EVENT_PATH $GITHUB_EVENT_PATH, GITHUB_REF $GITHUB_REF"
-
 
       # - name: Download Artifacts
       #   uses: actions/download-artifact@v2

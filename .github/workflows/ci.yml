@@ -144,3 +144,9 @@ jobs:
 
       - name: Display Dist Output
         run: ls -R
+
+      - name: Publish @builder.io/qwik
+        # TODO, replace with npm publish
+        run: |
+          cd dist-builder-io-qwik
+          npm pack

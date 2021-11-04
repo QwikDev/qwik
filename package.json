@@ -27,7 +27,6 @@
     "jest": "^27.0.5",
     "lint-staged": "^10.5.4",
     "mri": "^1.1.6",
-    "np": "^7.5.0",
     "prettier": "2.3.0",
     "rollup": "^2.52.2",
     "source-map-support": "^0.5.19",

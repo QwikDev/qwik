@@ -144,9 +144,9 @@ jobs:
               yarn build.platform.optimizer
               strip -x *.node
 
-          - host: windows-latest
-            build: yarn build.platform.optimizer
-            target: x86_64-pc-windows-msvc
+          # - host: windows-latest
+          #   build: yarn build.platform.optimizer
+          #   target: x86_64-pc-windows-msvc
 
           # - host: windows-latest
           #   build: |
@@ -214,7 +214,7 @@ jobs:
           #   target: aarch64-pc-windows-msvc
           #   build: yarn build.platform.optimizer --target aarch64-pc-windows-msvc
 
-    name: Optimizer Build - ${{ matrix.settings.target }}
+    name: Optimizer - ${{ matrix.settings.target }}
     runs-on: ${{ matrix.settings.host }}
     defaults:
       run:
@@ -285,7 +285,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: bindings-${{ matrix.settings.target }}
-          path: ${{ env.APP_NAME }}.*.node
+          path: src/optimizer/napi/${{ env.APP_NAME }}.*.node
 
   release:
     name: Release

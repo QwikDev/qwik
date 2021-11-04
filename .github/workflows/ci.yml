@@ -22,7 +22,7 @@ jobs:
           restore-keys: npm-cache-
 
       - name: Install Dependencies
-        run: yarn install --frozen-lockfile --ignore-engines
+        run: yarn install --ignore-scripts --frozen-lockfile --ignore-engines
 
       - name: Build
         run: yarn build.prod
@@ -49,7 +49,7 @@ jobs:
   #         restore-keys: npm-cache-
 
   #     - name: Install Dependencies
-  #       run: yarn install --frozen-lockfile --ignore-engines
+  #       run: yarn install --ignore-scripts --frozen-lockfile --ignore-engines
 
   #     - name: Prettier Check
   #       run: yarn prettier-check
@@ -78,7 +78,7 @@ jobs:
   #         restore-keys: npm-cache-
 
   #     - name: Install Dependencies
-  #       run: yarn install --frozen-lockfile --ignore-engines
+  #       run: yarn install --ignore-scripts --frozen-lockfile --ignore-engines
 
   #     - name: Unit Tests
   #       run: |
@@ -139,9 +139,10 @@ jobs:
         with:
           node-version: 16.x
 
-      - name: Cache NPM dependencies
-        uses: actions/cache@v2
+      - name: Download Artifacts
+        uses: actions/download-artifact@v2
         with:
-          path: node_modules
-          key: npm-cache-${{ hashFiles('yarn.lock') }}
-          restore-keys: npm-cache-
+          path: dist-builder-io-qwik
+
+      - name: Dist Output
+        run: ls -R

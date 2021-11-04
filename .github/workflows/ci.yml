@@ -285,7 +285,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: bindings-${{ matrix.settings.target }}
-          path: src/optimizer/napi/
+          path: src/optimizer/napi/*.node
 
   release:
     name: Release

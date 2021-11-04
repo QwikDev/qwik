@@ -241,7 +241,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: generate-lockfile
-          args: --manifest-path=src/optimizer/napi
+          args: --manifest-path=src/optimizer/napi/Cargo.toml
 
       - name: Cache cargo registry
         uses: actions/cache@v2

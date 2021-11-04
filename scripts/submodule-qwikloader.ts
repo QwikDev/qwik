@@ -2,7 +2,7 @@ import { InputOptions, OutputOptions, rollup, Plugin } from 'rollup';
 import { minify, MinifyOptions } from 'terser';
 import { BuildConfig, fileSize, rollupOnWarn } from './util';
 import { join } from 'path';
-import { Optimizer } from '../src/optimizer/src';
+import { transform } from 'esbuild';
 
 /**
  * Builds the qwikloader javascript files. These files can be used
@@ -11,8 +11,6 @@ import { Optimizer } from '../src/optimizer/src';
  * a utility function.
  */
 export async function submoduleQwikLoader(config: BuildConfig) {
-  const optimizer = new Optimizer();
-
   const input: InputOptions = {
     input: join(config.srcDir, 'qwikloader.ts'),
     plugins: [
@@ -25,16 +23,8 @@ export async function submoduleQwikLoader(config: BuildConfig) {
           return null;
         },
         async transform(code, id) {
-          const result = await optimizer.transformCode({
-            input: [
-              {
-                path: id,
-                code,
-              },
-            ],
-            module: 'es',
-          });
-          return result.output[0].code;
+          const result = await transform(code, { sourcefile: id, format: 'esm', loader: 'ts' });
+          return result.code;
         },
       },
     ],

@@ -26,7 +26,7 @@ export async function submoduleServer(config: BuildConfig) {
   const opts: BuildOptions = {
     entryPoints: [join(config.srcDir, submodule, 'index.ts')],
     outdir: join(config.pkgDir, submodule),
-    sourcemap: true,
+    sourcemap: config.dev,
     bundle: true,
     target,
     banner,

@@ -4,7 +4,6 @@ import {
   BuildConfig,
   banner,
   injectGlobalThisPoly,
-  inlineQwikScripts,
   nodeBuiltIns,
   nodeTarget,
   target,
@@ -25,12 +24,11 @@ export async function submoduleOptimizer(config: BuildConfig) {
       entryNames: 'index',
       outdir: optimizerDistDir,
       bundle: true,
-      sourcemap: false,
+      sourcemap: config.dev,
       target,
       banner,
       external: [...nodeBuiltIns],
       incremental: config.watch,
-      // define: inlineQwikScripts(config),
     };
 
     const esm = await build({

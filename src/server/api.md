@@ -12,6 +12,9 @@ export function createDocument(opts?: DocumentOptions): QwikDocument;
 // @public
 export function createGlobal(opts?: GlobalOptions): QwikGlobal;
 
+// @alpha
+export function createTimer(): () => number;
+
 // @public
 export interface DocumentOptions {
     // (undocumented)
@@ -22,12 +25,6 @@ export interface DocumentOptions {
 
 // @alpha
 export function getImports(filePath: string, readFileFn?: (path: string) => Promise<string>): Promise<string[]>;
-
-// @alpha
-export function getQwikLoaderScript(opts?: {
-    events?: string[];
-    debug?: boolean;
-}): string;
 
 // @public
 export interface GlobalOptions extends DocumentOptions {

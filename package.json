@@ -48,7 +48,7 @@
     "tsc.check": "tsc --noEmit",
     "tsc.watch": "tsc --noEmit --watch --preserveWatchOutput",
     "start": "concurrently \"npm:build.watch\" \"npm:test.watch\" \"npm:tsc.watch\" -n build,test,tsc -c green,magenta,cyan",
-    "release": "npm run build.prod && cd dist-dev/@builder.io-qwik && np --no-2fa",
+    "release": "npm run build.prod && cd dist-dev/@builder.io-qwik",
     "test": "npm run build && jest && npm run test.e2e",
     "test.unit": "jest",
     "test.watch": "jest --watch",
@@ -120,7 +120,7 @@
     ],
     "moduleNameMapper": {
       "^@builder.io/qwik/core$": "<rootDir>/src/core/index.ts",
-      "^@builder.io/qwik/jsx-runtime$": "<rootDir>/src/jsx_runtime.ts",
+      "^@builder.io/qwik/jsx-runtime$": "<rootDir>/src/jsx-runtime.ts",
       "^@builder.io/qwik/optimizer$": "<rootDir>/src/optimizer/index.ts",
       "^@builder.io/qwik/server$": "<rootDir>/src/server/index.ts",
       "^@builder.io/qwik/testing$": "<rootDir>/src/testing/index.ts",

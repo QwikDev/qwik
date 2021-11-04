@@ -7,61 +7,62 @@ on:
     types: [published]
 
 jobs:
-  #   build:
-  #     name: Build
-  #     runs-on: ubuntu-latest
-  #     steps:
-  #       - name: Setup Node.js
-  #         uses: actions/setup-node@v1
-  #         with:
-  #           node-version: 16.x
-  #           registry-url: https://registry.npmjs.org/
+    build:
+      name: Build
+      runs-on: ubuntu-latest
+      steps:
+        - name: Setup Node.js
+          uses: actions/setup-node@v1
+          with:
+            node-version: 16.x
+            registry-url: https://registry.npmjs.org/
 
-  #       - name: Checkout
-  #         uses: actions/checkout@v2
+        - name: Checkout
+          uses: actions/checkout@v2
 
-  #       - name: Cache Dependencies
-  #         uses: actions/cache@v2
-  #         with:
-  #           path: node_modules
-  #           key: npm-cache-${{ hashFiles('yarn.lock') }}
-  #           restore-keys: npm-cache-
+        - name: Cache Dependencies
+          uses: actions/cache@v2
+          with:
+            path: node_modules
+            key: npm-cache-${{ hashFiles('yarn.lock') }}
+            restore-keys: npm-cache-
 
-  #       - name: Install Dependencies
-  #         run: yarn install --ignore-scripts --frozen-lockfile --ignore-engines
+        - name: Install Dependencies
+          run: yarn install --ignore-scripts --frozen-lockfile --ignore-engines
 
-  #       - name: Build
-  #         run: yarn build.prod
+        - name: Build
+          run: yarn build.prod
 
-  #       - name: Upload Build Artifacts
-  #         uses: actions/upload-artifact@master
-  #         with:
-  #           name: dist-builder-io-qwik
-  #           path: dist-dev/@builder.io-qwik
-  #           if-no-files-found: error
+        - name: Upload Build Artifacts
+          uses: actions/upload-artifact@master
+          with:
+            name: dist-builder-io-qwik
+            path: dist-dev/@builder.io-qwik
+            if-no-files-found: error
 
-  # lint:
-  #   name: Lint
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v2
+  lint:
+    name: Lint
+    if: ${{ github.event_name != 'release' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
 
-  #     - name: Cache Dependencies
-  #       uses: actions/cache@v2
-  #       with:
-  #         path: node_modules
-  #         key: npm-cache-${{ hashFiles('yarn.lock') }}
-  #         restore-keys: npm-cache-
+      - name: Cache Dependencies
+        uses: actions/cache@v2
+        with:
+          path: node_modules
+          key: npm-cache-${{ hashFiles('yarn.lock') }}
+          restore-keys: npm-cache-
 
-  #     - name: Install Dependencies
-  #       run: yarn install --ignore-scripts --frozen-lockfile --ignore-engines
+      - name: Install Dependencies
+        run: yarn install --ignore-scripts --frozen-lockfile --ignore-engines
 
-  #     - name: Prettier Check
-  #       run: yarn prettier-check
+      - name: Prettier Check
+        run: yarn prettier-check
 
-  #     - name: Lint Check
-  #       run: yarn lint
+      - name: Lint Check
+        run: yarn lint
 
   # unit-tests:
   #   name: Unit Tests
@@ -133,31 +134,55 @@ jobs:
   #         path: cypress/videos
 
   release:
-    name: Release
+    name: Dry-run Release
+    if: ${{ github.event_name != 'release' }}
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'release' }}
-    #needs:
-    # - build
-    # - lint
-    # - unit-tests
-    # - e2e-tests
+    needs:
+     - build
+     - unit-tests
+     - e2e-tests
 
     steps:
-      - run: echo "GITHUB_EVENT_NAME $GITHUB_EVENT_NAME, GITHUB_EVENT_PATH $GITHUB_EVENT_PATH, GITHUB_REF $GITHUB_REF "
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v2
 
-      # - name: Download Artifacts
-      #   uses: actions/download-artifact@v2
+      - name: Display Build Output
+        run: ls -R
 
-      # - name: Display Dist Output
-      #   run: ls -R
+      - name: Pack @builder.io/qwik
+        run: |
+          cd dist-builder-io-qwik
+          mv `npm pack` ../builder.io-qwik.tgz
 
-      # - name: Pack @builder.io/qwik
-      #   run: |
-      #     cd dist-builder-io-qwik
-      #     mv `npm pack` ../builder.io-qwik.tgz
+      - name: Upload Qwik Package
+        uses: actions/upload-artifact@master
+        with:
+          name: Qwik Package
+          path: builder.io-qwik.tgz
 
-      # - name: Upload Build Artifacts
-      #   uses: actions/upload-artifact@master
-      #   with:
-      #     name: Qwik Package
-      #     path: builder.io-qwik.tgz
+  release:
+    name: Production Release
+    if: ${{ github.event_name == 'release' }}
+    runs-on: ubuntu-latest
+    needs:
+     - build
+     - unit-tests
+     - e2e-tests
+
+    steps:
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v2
+
+      - name: Display Build Output
+        run: ls -R
+
+      - name: Pack @builder.io/qwik
+        run: |
+          cd dist-builder-io-qwik
+          mv `npm pack` ../builder.io-qwik.tgz
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@master
+        with:
+          name: Qwik Package
+          path: builder.io-qwik.tgz

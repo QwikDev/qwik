@@ -146,7 +146,12 @@ jobs:
       - name: Set Dry-Run Publish Env Variable
         if: ${{ github.event_name != 'release' }}
         run: |
-          echo "NODE_PUBLISH_FLAGS=--dry-run" >> $GITHUB_ENV
+          echo "NODE_PUBLISH_CMD=\"npm pack ../builder.io-qwik.tgz\"" >> $GITHUB_ENV
+
+      - name: Set Prodution Publish Env Variable
+        if: ${{ github.event_name == 'release' }}
+        run: |
+          echo "NODE_PUBLISH_CMD=\"npm pack ../builder.io-qwik.tgz\"" >> $GITHUB_ENV
 
       - name: Download Build Artifacts
         uses: actions/download-artifact@v2
@@ -157,4 +162,4 @@ jobs:
       - name: Publish @builder.io/qwik
         run: |
           cd dist-builder-io-qwik
-          mv `npm pack ${{env.NODE_PUBLISH_FLAGS}}` ../builder.io-qwik.tgz
+          ${{env.NODE_PUBLISH_CMD}}

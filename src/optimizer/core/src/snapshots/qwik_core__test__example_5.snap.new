@@ -1,0 +1,91 @@
+---
+source: src/test.rs
+expression: output
+
+---
+==INPUT==
+
+
+export const Header = qComponent({
+    onRender: qHook(() => {
+        return (
+            <>
+                <div onClick={qHook((ctx) => console.log("1"))}/>
+                <div onClick={qHook((ctx) => console.log("2"))}/>
+            </>
+        );
+    })
+});
+    
+============================= test.js==
+
+export const Header = qComponent({
+    onRender: qHook("entry_test_Header_onRender#Header_onRender")
+});
+
+============================= entry_test_Header_onRender_div_onClick==
+
+export const Header_onRender_div_onClick = qHook((ctx)=>console.log("1")
+);
+
+============================= entry_test_Header_onRender_div_onClick1==
+
+export const Header_onRender_div_onClick1 = qHook((ctx)=>console.log("2")
+);
+
+============================= entry_test_Header_onRender==
+
+export const Header_onRender = qHook(()=>{
+    return (<>
+
+                <div onClick={qHook("entry_test_Header_onRender_div_onClick#Header_onRender_div_onClick")}/>
+
+                <div onClick={qHook("entry_test_Header_onRender_div_onClick1#Header_onRender_div_onClick1")}/>
+
+            </>);
+});
+
+== HOOKS ==
+
+[
+  {
+    "path": "entry_test_Header_onRender_div_onClick",
+    "name": "Header_onRender_div_onClick",
+    "local_decl": [
+      "ctx"
+    ],
+    "local_idents": [
+      "console",
+      "ctx",
+      "log",
+      "qHook"
+    ]
+  },
+  {
+    "path": "entry_test_Header_onRender_div_onClick1",
+    "name": "Header_onRender_div_onClick1",
+    "local_decl": [
+      "ctx"
+    ],
+    "local_idents": [
+      "console",
+      "ctx",
+      "log",
+      "qHook"
+    ]
+  },
+  {
+    "path": "entry_test_Header_onRender",
+    "name": "Header_onRender",
+    "local_decl": [],
+    "local_idents": [
+      "div",
+      "onClick",
+      "qHook"
+    ]
+  }
+]
+
+== DIAGNOSTICS ==
+
+[]

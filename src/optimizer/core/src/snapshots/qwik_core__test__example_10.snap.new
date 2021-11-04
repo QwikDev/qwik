@@ -1,0 +1,102 @@
+---
+source: src/test.rs
+expression: output
+
+---
+==INPUT==
+
+
+const Header = qHook((decl1, {decl2}, [decl3]) => {
+
+    const hola = ident1.no;
+    ident2;
+    const a = ident1 + ident3;
+    const b = ident1 + ident3;
+    ident4(ident5, [ident6], {ident7}, {key: ident8});
+    class Some {
+        prop = ident9;
+        method() {
+            return ident10;
+        }
+    }
+
+    return (
+        <div onClick={(ident11) => ident11 + ident12} required={false}/>
+    )
+});
+    
+============================= project/test.js==
+
+const Header = qHook("entry_test_Header#Header");
+
+============================= project/entry_test_Header==
+
+export const Header = qHook((decl1, { decl2  }, [decl3])=>{
+    const hola = ident1.no;
+    ident2;
+    const a = ident1 + ident3;
+    const b = ident1 + ident3;
+    ident4(ident5, [
+        ident6
+    ], {
+        ident7
+    }, {
+        key: ident8
+    });
+    class Some {
+        method() {
+            return ident10;
+        }
+        constructor(){
+            this.prop = ident9;
+        }
+    }
+    return (<div onClick={(ident11)=>ident11 + ident12
+    } required={false}/>);
+});
+
+== HOOKS ==
+
+[
+  {
+    "path": "project/entry_test_Header",
+    "name": "Header",
+    "local_decl": [
+      "Some",
+      "a",
+      "b",
+      "decl1",
+      "decl2",
+      "decl3",
+      "hola",
+      "ident11"
+    ],
+    "local_idents": [
+      "decl1",
+      "decl2",
+      "decl3",
+      "div",
+      "ident1",
+      "ident10",
+      "ident11",
+      "ident12",
+      "ident2",
+      "ident3",
+      "ident4",
+      "ident5",
+      "ident6",
+      "ident7",
+      "ident8",
+      "ident9",
+      "no",
+      "onClick",
+      "prop",
+      "qHook",
+      "required"
+    ]
+  }
+]
+
+== DIAGNOSTICS ==
+
+[]

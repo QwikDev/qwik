@@ -1,11 +1,12 @@
 use crate::collector::{GlobalCollect, ImportKind};
 use crate::transform::Hook;
+use crate::parse::PathData;
 
 use swc_atoms::JsWord;
 use swc_common::DUMMY_SP;
 use swc_ecmascript::ast::*;
 
-pub fn new_module(original_file: &str, hook: &Hook, global: &GlobalCollect) -> Module {
+pub fn new_module(path: &PathData, hook: &Hook, global: &GlobalCollect) -> Module {
     let mut module = Module {
         span: DUMMY_SP,
         body: vec![],
@@ -17,10 +18,10 @@ pub fn new_module(original_file: &str, hook: &Hook, global: &GlobalCollect) -> M
                 ImportKind::Named => ImportSpecifier::Named(ImportNamedSpecifier {
                     is_type_only: false,
                     span: DUMMY_SP,
-                    imported: if &import.specifier != ident {
-                        Some(Ident::new(import.specifier.clone(), DUMMY_SP))
-                    } else {
+                    imported: if &import.specifier == ident {
                         None
+                    } else {
+                        Some(Ident::new(import.specifier.clone(), DUMMY_SP))
                     },
                     local: Ident::new(ident.clone(), DUMMY_SP),
                 }),
@@ -46,7 +47,7 @@ pub fn new_module(original_file: &str, hook: &Hook, global: &GlobalCollect) -> M
                         has_escape: false,
                     },
                     specifiers: vec![specifier],
-                })))
+                })));
         } else if let Some(export) = global.exports.get(ident) {
             module
                 .body
@@ -56,7 +57,7 @@ pub fn new_module(original_file: &str, hook: &Hook, global: &GlobalCollect) -> M
                     asserts: None,
                     src: Str {
                         span: DUMMY_SP,
-                        value: JsWord::from(format!("./{}", original_file)),
+                        value: JsWord::from(format!("./{}", path.file_stem)),
                         kind: StrKind::Synthesized,
                         has_escape: false,
                     },
@@ -66,7 +67,7 @@ pub fn new_module(original_file: &str, hook: &Hook, global: &GlobalCollect) -> M
                         imported: None,
                         local: Ident::new(export.clone(), DUMMY_SP),
                     })],
-                })))
+                })));
         }
     }
     module.body.push(create_named_export(hook));

@@ -1,3 +1,7 @@
+#![warn(clippy::all)]
+#![warn(clippy::perf)]
+#![warn(clippy::nursery)]
+
 #[cfg(test)]
 mod test;
 
@@ -12,11 +16,13 @@ use std::error;
 use std::fs;
 use std::path::PathBuf;
 use std::str;
+use std::collections::HashSet;
 
 use crate::bundling::parse_bundling;
+use crate::parse::{transform_internal, InternalConfig, parse_path};
+use crate::utils::{MapVec};
 pub use crate::bundling::Bundling;
-use crate::parse::InternalConfig;
-pub use crate::parse::{transform_internal, ErrorBuffer, HookAnalysis, TransformResult};
+pub use crate::parse::{ErrorBuffer, HookAnalysis, TransformResult, TransformModule};
 pub use crate::transform::{Hook, TransformContext};
 
 use serde::{Deserialize, Serialize};
@@ -48,8 +54,7 @@ pub struct MultiConfig {
 }
 
 pub fn transform_workdir(config: &FSConfig) -> Result<TransformResult, Box<dyn error::Error>> {
-    let srcdir = std::env::current_dir()?;
-    let srcdir = srcdir.join(PathBuf::from(config.input.clone()));
+    let srcdir = PathBuf::from(&config.input);
     let pattern = if let Some(glob) = &config.glob {
         srcdir.join(glob)
     } else {
@@ -119,4 +124,24 @@ pub fn transform_input(config: &MultiConfig) -> Result<TransformResult, Box<dyn 
     }
 
     Ok(output)
+}
+
+pub struct TransformEntryResult {
+    pub project_root: Option<String>,
+    pub modules: Vec<TransformModule>,
+    pub diagnostics: Vec<Diagnostic>,
+    pub hooks: Vec<HookAnalysis>,
+}
+
+fn generate_entries(result: &TransformResult) {
+    let mut entries_set = HashSet::new();
+    let mut entries_map = MapVec::new();
+    for hook in &hooks {
+        let mut entry = hook.canonical_filename;
+        if let Some(e) = hook.entry {
+            entries_map.push(e, hook);
+            entry = e;
+        }
+        entries_set.insert(entry);
+    }
 }

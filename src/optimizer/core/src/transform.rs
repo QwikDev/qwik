@@ -1,5 +1,6 @@
 use crate::bundling::BundlingPolicy;
 use crate::collector::HookCollect;
+use crate::parse::PathData;
 
 use ast::*;
 use std::collections::HashSet;
@@ -12,7 +13,8 @@ use swc_ecmascript::visit::{noop_fold_type, Fold, FoldWith};
 
 #[derive(Debug)]
 pub struct Hook {
-    pub filename: String,
+    pub entry: Option<String>,
+    pub canonical_filename: String,
     pub name: String,
     pub module_index: usize,
     pub expr: Box<Expr>,
@@ -28,7 +30,7 @@ pub struct TransformContext {
 
 impl TransformContext {
     pub fn new(bundling_policy: Box<dyn BundlingPolicy>) -> Self {
-        TransformContext {
+        Self {
             hooks_names: HashSet::with_capacity(10),
             source_map: Lrc::new(SourceMap::default()),
             bundling_policy,
@@ -42,16 +44,15 @@ pub struct HookTransform<'a> {
 
     root_sym: Option<String>,
     context: &'a mut TransformContext,
-
     hooks: &'a mut Vec<Hook>,
 
-    filename: String,
+    path: &'a PathData,
 }
 
 impl<'a> HookTransform<'a> {
-    pub fn new(ctx: &'a mut TransformContext, filename: String, hooks: &'a mut Vec<Hook>) -> Self {
+    pub fn new(ctx: &'a mut TransformContext, path: &'a PathData, hooks: &'a mut Vec<Hook>) -> Self {
         HookTransform {
-            filename,
+            path,
             stack_ctxt: vec![],
             hooks,
             module_item: 0,
@@ -221,22 +222,27 @@ impl<'a> Fold for HookTransform<'a> {
             if let Expr::Ident(id) = &**expr {
                 if id.sym == *"qHook" {
                     let symbol_name = self.get_context_name();
-                    let filename = self
+                    let entry = self
                         .context
                         .bundling_policy
-                        .get_entry_for_sym(&symbol_name, &self.filename);
-                    let qurl = format!("{}#{}", filename, symbol_name);
+                        .get_entry_for_sym(&symbol_name, self.path);
+
+                    let canonical_filename = format!("h_{}_{}", &self.path.file_prefix, symbol_name);
                     let folded = node.fold_children_with(self);
                     let hook_collect = HookCollect::new(&folded);
 
                     self.hooks.push(Hook {
-                        filename,
+                        entry: entry.clone(),
+                        canonical_filename: canonical_filename.clone(),
                         name: symbol_name.clone(),
                         module_index: self.module_item,
                         expr: Box::new(Expr::Call(folded)),
                         local_decl: hook_collect.get_local_decl(),
                         local_idents: hook_collect.get_local_idents(),
                     });
+
+                    let filename = if let Some(entry) = entry { entry } else { canonical_filename };
+                    let qurl = format!("{}#{}", filename, symbol_name);
                     self.context.hooks_names.insert(symbol_name);
                     return create_inline_qhook(&qurl);
                 }

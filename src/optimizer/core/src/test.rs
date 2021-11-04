@@ -18,7 +18,7 @@ const Header = qComponent({
 });
     "#,
         false,
-    )
+    );
 }
 
 #[test]
@@ -36,7 +36,7 @@ export const Header = qComponent({
 });
     "#,
         false,
-    )
+    );
 }
 
 #[test]
@@ -57,7 +57,7 @@ export const App = () => {
 });
     "#,
         false,
-    )
+    );
 }
 
 #[test]
@@ -78,7 +78,7 @@ export function App() {
 }
     "#,
         false,
-    )
+    );
 }
 
 #[test]
@@ -98,7 +98,7 @@ export const Header = qComponent({
 });
     "#,
         false,
-    )
+    );
 }
 
 #[test]
@@ -109,7 +109,7 @@ fn example_6() {
 export const sym1 = qHook((ctx) => console.log("1"));
     "#,
         false,
-    )
+    );
 }
 
 #[test]
@@ -137,7 +137,7 @@ const App = qComponent({
     })
 });"#,
         false,
-    )
+    );
 }
 
 #[test]
@@ -159,7 +159,7 @@ const Header = qComponent({
   });
 "#,
         false,
-    )
+    );
 }
 
 #[test]
@@ -180,7 +180,7 @@ const Header = qHook((decl1, {decl2}, [decl3]) => {
 });
     "#,
         false,
-    )
+    );
 }
 
 #[test]
@@ -208,7 +208,7 @@ const Header = qHook((decl1, {decl2}, [decl3]) => {
 });
     "#,
         false,
-    )
+    );
 }
 
 #[test]
@@ -239,7 +239,7 @@ export const App = qComponent({
 });
     "#,
         false,
-    )
+    );
 }
 // fn test_fixture(folder: &str) {
 //     let res = transform_workdir(&FSConfig {

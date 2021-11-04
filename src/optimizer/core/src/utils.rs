@@ -1,6 +1,40 @@
 use std::cmp::Ordering;
-
+use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
+use std::hash::{Hash};
+
+#[derive(Debug)]
+pub struct MapVec<K, V> {
+    map: HashMap<K, Vec<V>>,
+}
+
+
+impl<K, V> MapVec<K, V>
+where
+    K: Eq + Hash,
+{
+    pub fn new() -> Self {
+        Self{
+            map: HashMap::new(),
+        }
+    }
+
+    pub fn get(&self, key: &K) -> Option<&Vec<V>>
+    where K: Hash + Eq {
+        self.map.get(key)
+    }
+
+    pub fn push(&mut self, key: K, value: V)
+    where K: Hash + Eq {
+        let vec = self.map.get_mut(&key);
+        if let Some(vec) = vec {
+            vec.push(value);
+        } else {
+            self.map.insert(key, vec![value]);
+        }
+    }
+}
+
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
 pub struct SourceLocation {
@@ -17,7 +51,7 @@ impl SourceLocation {
         // - SWC's columns are exclusive, ours are inclusive (column - 1)
         // - SWC has 0-based columns, ours are 1-based (column + 1)
         // = +-0
-        SourceLocation {
+        Self {
             start_line: start.line,
             start_col: start.col_display + 1,
             end_line: end.line,
@@ -27,7 +61,7 @@ impl SourceLocation {
 }
 
 impl PartialOrd for SourceLocation {
-    fn partial_cmp(&self, other: &SourceLocation) -> Option<Ordering> {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         match self.start_line.cmp(&other.start_line) {
             Ordering::Equal => self.start_col.partial_cmp(&other.start_col),
             o => Some(o),

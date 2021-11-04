@@ -6,10 +6,11 @@ use std::str;
 use crate::code_move::new_module;
 use crate::collector::global_collect;
 use crate::transform::{Hook, HookTransform, TransformContext};
-use crate::utils::{CodeHighlight, Diagnostic, DiagnosticSeverity, SourceLocation};
+use crate::utils::{CodeHighlight, Diagnostic, DiagnosticSeverity, SourceLocation, MapVec};
 use serde::{Deserialize, Serialize};
 use simple_error::*;
 use std::fs;
+use std::collections::{HashMap, HashSet};
 
 use swc_common::comments::SingleThreadedComments;
 use swc_common::errors::{DiagnosticBuilder, Emitter, Handler};
@@ -25,6 +26,7 @@ use swc_ecmascript::visit::FoldWith;
 pub struct HookAnalysis {
     path: String,
     name: String,
+    entry: Option<String>,
     local_decl: Vec<String>,
     local_idents: Vec<String>,
 }
@@ -116,20 +118,18 @@ pub fn transform_internal(
     if config.print_ast {
         dbg!(&module);
     }
+    let (p, path) = parse_path(&config.path);
+    let dir = p.parent().unwrap();
+    let transpile = true;
 
     match module {
         Ok((main_module, comments)) => swc_common::GLOBALS.set(&Globals::new(), || {
-            let path = Path::new(&config.path);
-            let dir = path.parent().unwrap();
-
-            let file_stem = path.file_stem().unwrap().to_str().unwrap().to_string();
-
             let collect = global_collect(&main_module);
             let mut hooks: Vec<Hook> = vec![];
             let main_module = {
                 let mut passes = chain!(
-                    pass::Optional::new(typescript::strip(), true),
-                    HookTransform::new(config.context, file_stem.clone(), &mut hooks),
+                    pass::Optional::new(typescript::strip(), transpile),
+                    HookTransform::new(config.context, &path, &mut hooks),
                 );
                 main_module.fold_with(&mut passes)
             };
@@ -137,7 +137,7 @@ pub fn transform_internal(
             let mut output_modules: Vec<TransformModule> = hooks
                 .iter()
                 .map(|h| {
-                    let hook_module = new_module(&file_stem, h, &collect);
+                    let hook_module = new_module(&path, h, &collect);
                     let (code, map) = emit_source_code(
                         config.context.source_map.clone(),
                         None,
@@ -149,7 +149,7 @@ pub fn transform_internal(
                     TransformModule {
                         code,
                         map,
-                        path: dir.join(&h.filename).to_str().unwrap().to_string(),
+                        path: dir.join(&h.canonical_filename).to_str().unwrap().to_string(),
                     }
                 })
                 .collect();
@@ -157,8 +157,9 @@ pub fn transform_internal(
             let hooks: Vec<HookAnalysis> = hooks
                 .iter()
                 .map(|h| HookAnalysis {
-                    path: dir.join(&h.filename).to_str().unwrap().to_string(),
+                    path: dir.join(&h.canonical_filename).to_str().unwrap().to_string(),
                     name: h.name.clone(),
+                    entry: h.entry.clone(),
                     local_decl: h.local_decl.iter().map(|d| d.to_string()).collect(),
                     local_idents: h.local_idents.iter().map(|d| d.to_string()).collect(),
                 })
@@ -175,7 +176,7 @@ pub fn transform_internal(
                 0,
                 TransformModule {
                     path: dir
-                        .join(format!("{}.js", &file_stem))
+                        .join(format!("{}.js", &path.file_stem))
                         .to_str()
                         .unwrap()
                         .to_string(),
@@ -195,7 +196,7 @@ pub fn transform_internal(
             let error_buffer = ErrorBuffer::default();
             let handler = Handler::with_emitter(true, false, Box::new(error_buffer.clone()));
             err.into_diagnostic(&handler).emit();
-            let diagnostics = handle_error(error_buffer, &config.context.source_map);
+            let diagnostics = handle_error(&error_buffer, &config.context.source_map);
             Ok(TransformResult {
                 project_root: config.project_root,
                 hooks: vec![],
@@ -233,6 +234,7 @@ fn parse(
         })
     };
 
+
     let lexer = Lexer::new(
         syntax,
         Default::default(),
@@ -251,7 +253,6 @@ fn parse_filename(filename: &str) -> (bool, bool) {
     let extension = Path::new(filename).extension().and_then(OsStr::to_str);
     match extension {
         Some("ts") => (true, false),
-        Some("tsx") => (true, true),
         Some("js") => (false, false),
         Some("jsx") => (false, true),
         _ => (true, true),
@@ -301,7 +302,7 @@ fn emit_source_code(
     }
 }
 
-fn handle_error(error_buffer: ErrorBuffer, source_map: &Lrc<SourceMap>) -> Vec<Diagnostic> {
+fn handle_error(error_buffer: &ErrorBuffer, source_map: &Lrc<SourceMap>) -> Vec<Diagnostic> {
     let s = error_buffer.0.lock().unwrap().clone();
     let diagnostics: Vec<Diagnostic> = s
         .iter()
@@ -348,4 +349,33 @@ fn handle_error(error_buffer: ErrorBuffer, source_map: &Lrc<SourceMap>) -> Vec<D
         .collect();
 
     diagnostics
+}
+
+pub struct PathData {
+    pub dir: String,
+    pub file_stem: String,
+    pub extension: String,
+    pub file_name: String,
+    pub file_prefix: String,
+}
+
+pub fn parse_path(path: &str) -> (&Path, PathData) {
+
+    let path = Path::new(path);
+    let file_stem = path.file_stem().unwrap().to_str().unwrap().to_string();
+    let dir = if let Some(dir) = path.parent() { dir.to_str().unwrap().to_string() } else { "".to_string() };
+    let extension = if let Some(ext) = path.extension() { ext.to_str().unwrap().to_string() } else { "".to_string() };
+    let file_name = path.file_name().unwrap().to_str().unwrap().to_string();
+    let file_prefix = if let Some(index) = file_name.find('.') { file_name[0..index].to_string() } else { file_name.clone() };
+
+    (
+        path,
+        PathData{
+            dir,
+            file_stem,
+            extension,
+            file_name,
+            file_prefix
+        }
+    )
 }

@@ -1,0 +1,112 @@
+---
+source: src/test.rs
+expression: output
+
+---
+==INPUT==
+
+
+import {foo, bar as bbar} from "dep";
+import * as dep2 from "dep2";
+import dep3 from "dep3/something";
+
+export const Header = qComponent({
+    onRender: qHook(() => {
+        return (
+            <Header onClick={qHook((ev) => dep3(ev))}>
+                {dep2.stuff()}{bbar()}
+            </Header>
+        );
+    })
+});
+
+export const App = qComponent({
+    onRender: qHook(() => {
+        return (
+            <Header>{foo()}</Header>
+        );
+    })
+});
+    
+============================= /user/project/test.js==
+
+import { foo, bar as bbar } from "dep";
+import * as dep2 from "dep2";
+import dep3 from "dep3/something";
+export const Header = qComponent({
+    onRender: qHook("entry_test_Header_onRender#Header_onRender")
+});
+export const App = qComponent({
+    onRender: qHook("entry_test_App_onRender#App_onRender")
+});
+
+============================= /user/project/entry_test_App_onRender==
+
+import { Header } from "./test";
+import { foo } from "dep";
+export const App_onRender = qHook(()=>{
+    return (<Header >{foo()}</Header>);
+});
+
+============================= /user/project/entry_test_Header_onRender_Header_onClick==
+
+import dep3 from "dep3/something";
+export const Header_onRender_Header_onClick = qHook((ev)=>dep3(ev)
+);
+
+============================= /user/project/entry_test_Header_onRender==
+
+import { Header } from "./test";
+import { bar as bbar } from "dep";
+import * as dep2 from "dep2";
+export const Header_onRender = qHook(()=>{
+    return (<Header onClick={qHook("entry_test_Header_onRender_Header_onClick#Header_onRender_Header_onClick")}>
+
+                {dep2.stuff()}{bbar()}
+
+            </Header>);
+});
+
+== HOOKS ==
+
+[
+  {
+    "path": "/user/project/entry_test_App_onRender",
+    "name": "App_onRender",
+    "local_decl": [],
+    "local_idents": [
+      "Header",
+      "foo",
+      "qHook"
+    ]
+  },
+  {
+    "path": "/user/project/entry_test_Header_onRender_Header_onClick",
+    "name": "Header_onRender_Header_onClick",
+    "local_decl": [
+      "ev"
+    ],
+    "local_idents": [
+      "dep3",
+      "ev",
+      "qHook"
+    ]
+  },
+  {
+    "path": "/user/project/entry_test_Header_onRender",
+    "name": "Header_onRender",
+    "local_decl": [],
+    "local_idents": [
+      "Header",
+      "bbar",
+      "dep2",
+      "onClick",
+      "qHook",
+      "stuff"
+    ]
+  }
+]
+
+== DIAGNOSTICS ==
+
+[]

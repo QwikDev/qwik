@@ -183,7 +183,7 @@ pub struct HookCollect {
 
 impl HookCollect {
     pub fn new(node: &CallExpr) -> Self {
-        let mut collect = HookCollect {
+        let mut collect = Self {
             local_decl: HashSet::new(),
             local_idents: HashSet::new(),
             expr_ctxt: vec![],

@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use crate::parse::PathData;
 
+// EntryStrategies
 #[derive(Debug, Serialize, Deserialize)]
 pub enum Bundling {
     Single,
@@ -8,15 +10,15 @@ pub enum Bundling {
     Manual(Vec<Vec<String>>),
 }
 pub trait BundlingPolicy {
-    fn get_entry_for_sym(&self, symbol: &str, filename: &str) -> String;
+    fn get_entry_for_sym(&self, symbol: &str, path: &PathData) -> Option<String>;
 }
 
 #[derive(Default)]
 pub struct SingleBundle {}
 
 impl BundlingPolicy for SingleBundle {
-    fn get_entry_for_sym(&self, _symbol: &str, _filename: &str) -> String {
-        "hook-entry.qwik".to_string()
+    fn get_entry_for_sym(&self, _symbol: &str, _path: &PathData) -> Option<String> {
+        Some("entry_hooks".to_string())
     }
 }
 
@@ -24,8 +26,8 @@ impl BundlingPolicy for SingleBundle {
 pub struct PerHookBundle {}
 
 impl BundlingPolicy for PerHookBundle {
-    fn get_entry_for_sym(&self, symbol: &str, filename: &str) -> String {
-        return format!("h_{}_{}", filename, symbol);
+    fn get_entry_for_sym(&self, symbol: &str, path: &PathData) -> Option<String> {
+        return None
     }
 }
 pub struct ManualBundle {
@@ -34,7 +36,7 @@ pub struct ManualBundle {
 }
 
 impl ManualBundle {
-    pub fn new_with_groups(groups: &[Vec<String>]) -> Self {
+    pub fn new(groups: &[Vec<String>]) -> Self {
         let mut map: HashMap<String, String> = HashMap::new();
         for (count, group) in groups.iter().enumerate() {
             let group_name = format!("entry_{}", count);
@@ -42,7 +44,7 @@ impl ManualBundle {
                 map.insert(sym.clone(), group_name.clone());
             }
         }
-        ManualBundle {
+        Self {
             map,
             fallback: "entry-fallback".to_string(),
         }
@@ -50,12 +52,12 @@ impl ManualBundle {
 }
 
 impl BundlingPolicy for ManualBundle {
-    fn get_entry_for_sym(&self, symbol: &str, _filename: &str) -> String {
+    fn get_entry_for_sym(&self, symbol: &str, _path: &PathData) -> Option<String> {
         let entry = self.map.get(symbol);
-        match entry {
+        Some(match entry {
             Some(val) => val.clone(),
             None => self.fallback.clone(),
-        }
+        })
     }
 }
 
@@ -63,6 +65,6 @@ pub fn parse_bundling(bundling: &Bundling) -> Box<dyn BundlingPolicy> {
     match bundling {
         Bundling::Single => Box::new(SingleBundle::default()),
         Bundling::PerHook => Box::new(PerHookBundle::default()),
-        Bundling::Manual(ref groups) => Box::new(ManualBundle::new_with_groups(groups)),
+        Bundling::Manual(ref groups) => Box::new(ManualBundle::new(groups)),
     }
 }

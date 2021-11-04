@@ -277,7 +277,7 @@ jobs:
       - name: Install NPM Dependencies
         run: yarn install --ignore-scripts --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
 
-      - name: Build
+      - name: Build Platform
         run: ${{ matrix.settings.build }}
         shell: bash
 
@@ -285,7 +285,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: bindings-${{ matrix.settings.target }}
-          path: src/optimizer/napi/${{ env.APP_NAME }}.*.node
+          path: src/optimizer/napi/
 
   release:
     name: Release

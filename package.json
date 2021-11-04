@@ -43,6 +43,7 @@
     "build": "node scripts --tsc --build --api",
     "build.prod": "node scripts --tsc --build --api --validate",
     "build.watch": "node scripts --build --watch --dev",
+    "build.platform.optimizer": "cd src/optimizer/napi && napi build --platform --release --config=napi.config.json",
     "api.update": "node scripts --tsc --api --dev",
     "tsc.check": "tsc --noEmit",
     "tsc.watch": "tsc --noEmit --watch --preserveWatchOutput",

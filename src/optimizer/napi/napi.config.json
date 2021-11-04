@@ -1,0 +1,8 @@
+{
+  "napi": {
+    "name": "qwik-optimizer",
+    "triples": {
+      "defaults": true
+    }
+  }
+}

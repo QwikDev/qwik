@@ -10,16 +10,20 @@ const jestPreprocessor = {
     }
 
     if (this._shouldTransform(ext, text)) {
-      const optimizer = this._getOptimizer(jestConfig.rootDir);
+      const optimizer = this._getOptimizer();
 
-      const results = optimizer.transformModuleSync({
-        text,
-        filePath,
+      const results = optimizer.transformCodeSync({
+        input: [
+          {
+            path: filePath,
+            code: text,
+          },
+        ],
         module: 'cjs',
-        sourcemap: 'inline',
+        sourceMaps: 'inline',
       });
 
-      return results.text;
+      return results.output[0].code;
     }
 
     return text;
@@ -31,17 +35,17 @@ const jestPreprocessor = {
     transformOptions: { instrument: boolean; rootDir: string; configString: string }
   ): string {
     if (!this._cacheKey) {
-      const optimizer = this._getOptimizer(transformOptions.rootDir);
-      const ts = optimizer.getTypeScriptSync();
-      const tsconfig = optimizer.getTsconfigSync();
+      const optimizer = this._getOptimizer();
+      // const ts = optimizer.getTypeScriptSync();
+      // const tsconfig = optimizer.getTsconfigSync();
 
       this._cacheKey = JSON.stringify({
         n: process.version,
-        t: ts.version,
+        // t: ts.version,
         j: transformOptions.configString,
         i: transformOptions.instrument,
         cb: 2, // cache buster
-        ...tsconfig,
+        // ...tsconfig,
       });
     }
 
@@ -69,12 +73,9 @@ const jestPreprocessor = {
     return false;
   },
 
-  _getOptimizer(rootDir: string) {
+  _getOptimizer() {
     if (!this._optimizer) {
-      this._optimizer = new Optimizer({
-        rootDir,
-        cache: false /* jest has its own cache */,
-      });
+      this._optimizer = new Optimizer();
     }
     return this._optimizer;
   },

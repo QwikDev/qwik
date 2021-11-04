@@ -1,6 +1,6 @@
+import { EntryStrategy, Optimizer, OutputEntryMap, TransformDirectoryOptions } from '..';
 import { dirname, isAbsolute } from 'path';
 import type { InputOption, OutputBundle, Plugin } from 'rollup';
-import { Optimizer, OutputEntryMap, TransformDirectoryOptions } from '..';
 
 export function qwik(opts: QwikPluginOptions = {}): Plugin {
   const optimizer = new Optimizer();
@@ -14,8 +14,9 @@ export function qwik(opts: QwikPluginOptions = {}): Plugin {
 
       const transformOpts: TransformDirectoryOptions = {
         inputDir: findInputDirectory(rollupInputOpts.input),
+        entryStrategy: opts.entryStrategy,
         glob: opts.glob,
-        sourceMaps: true,
+        sourceMaps: 'external',
       };
 
       const result = await optimizer.transformDirectory(transformOpts);
@@ -132,5 +133,6 @@ function generateOutputEntryMap(rollupBundle: OutputBundle) {
 }
 
 export interface QwikPluginOptions {
+  entryStrategy?: EntryStrategy;
   glob?: string;
 }

@@ -44,11 +44,11 @@
     "moduleResolution": "node" /* Specify module resolution strategy: 'node' (Node.js) or 'classic' (TypeScript pre-1.6). */,
     "baseUrl": "." /* Base directory to resolve non-absolute module names. */,
     "paths": {
-      "@builder.io/qwik": ["src/core/index"],
-      "@builder.io/qwik/jsx-runtime": ["src/jsx-runtime"],
-      "@builder.io/qwik/optimizer": ["src/optimizer/index"],
-      "@builder.io/qwik/server": ["src/server/index"],
-      "@builder.io/qwik/testing": ["src/testing/index"]
+      // "@builder.io/qwik": ["src/core/index"],
+      // "@builder.io/qwik/jsx-runtime": ["src/jsx-runtime"],
+      "@builder.io/qwik/optimizer": ["src/optimizer/src/index"]
+      // "@builder.io/qwik/server": ["src/server/index"],
+      // "@builder.io/qwik/testing": ["src/testing/index"]
     } /* List of root folders whose combined content represents the structure of the project at runtime. */,
     // "typeRoots": [],                       /* List of folders to include type definitions from. */
     // "types": [],                           /* Type declaration files to be included in compilation. */
@@ -68,6 +68,7 @@
     "skipLibCheck": true /* Skip type checking of declaration files. */,
     "forceConsistentCasingInFileNames": true /* Disallow inconsistently-cased references to the same file. */
   },
-  "include": ["src", "scripts", "integration"],
-  "exclude": ["cypress"]
+  // "include": ["src", "scripts", "integration"],
+  "include": ["src/optimizer", "scripts"],
+  "exclude": ["cypress", "src/optimizer/core"]
 }

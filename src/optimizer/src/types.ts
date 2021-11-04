@@ -2,15 +2,21 @@
 
 export type MinifyOption = boolean | undefined | null;
 
-export type SourceMapsOption = boolean | undefined | null;
+export type SourceMapsOption = 'external' | 'inline' | undefined | null;
 
 export type TranspileOption = boolean | undefined | null;
+
+export type ModuleOption = 'es' | 'cjs';
+
+export type TargetOption = 'latest';
 
 interface TransformOptions {
   entryStrategy?: EntryStrategy;
   minify?: MinifyOption;
   sourceMaps?: SourceMapsOption;
   transpile?: TranspileOption;
+  module?: ModuleOption;
+  target?: TargetOption;
 }
 
 export interface TransformCodeOptions extends TransformOptions {
@@ -53,8 +59,8 @@ export interface TransformedOutput {
   srcFile: string;
   outFile: string;
   isEntry: boolean;
-  code?: string;
-  map?: string;
+  code: string;
+  map: string;
 }
 
 // DIAGNOSTICS ***************

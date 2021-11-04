@@ -40,24 +40,25 @@ export async function build(config: BuildConfig) {
         mkdirSync(config.pkgDir, { recursive: true });
       } catch (e) {}
       await Promise.all([
-        submoduleCore(config),
-        submoduleJsxRuntime(config),
-        submoduleQwikLoader(config),
-        submodulePrefetch(config),
-        submoduleTesting(config),
-        generatePackageJson(config),
-        copyFiles(config),
-        buildDevServer(config),
+        // submoduleCore(config),
+        // submoduleJsxRuntime(config),
+        // submoduleQwikLoader(config),
+        // submodulePrefetch(config),
+        // submoduleTesting(config),
+        // generatePackageJson(config),
+        // copyFiles(config),
+        // buildDevServer(config),
       ]);
-      await Promise.all([submoduleOptimizer(config), submoduleServer(config)]);
+      // await Promise.all([submoduleOptimizer(config), submoduleServer(config)]);
+      await submoduleOptimizer(config);
     }
 
     if (config.api) {
-      apiExtractor(config);
+      // apiExtractor(config);
     }
 
     if (config.jsx) {
-      await generateJsxTypes(config);
+      // await generateJsxTypes(config);
     }
 
     if (config.validate) {

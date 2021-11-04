@@ -216,11 +216,12 @@ jobs:
 
     name: Optimizer Build - ${{ matrix.settings.target }}
     runs-on: ${{ matrix.settings.host }}
+    defaults:
+      run:
+        working-directory: ./src/optimizer/napi/
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-
-      - run: cd src/optimizer/napi
 
       - name: Setup Node.js
         uses: actions/setup-node@v1

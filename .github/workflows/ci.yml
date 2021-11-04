@@ -141,8 +141,6 @@ jobs:
 
       - name: Download Artifacts
         uses: actions/download-artifact@v2
-        with:
-          path: dist-builder-io-qwik
 
-      - name: Dist Output
+      - name: Display Dist Output
         run: ls -R

@@ -16,6 +16,7 @@ jobs:
         with:
           node-version: 16.x
           registry-url: https://registry.npmjs.org/
+          check-latest: true
 
       - name: Checkout
         uses: actions/checkout@v2
@@ -27,8 +28,8 @@ jobs:
           key: npm-cache-${{ hashFiles('yarn.lock') }}
           restore-keys: npm-cache-
 
-      - name: Install Dependencies
-        run: yarn install --ignore-scripts --frozen-lockfile --ignore-engines
+      - name: Install NPM Dependencies
+        run: yarn install --ignore-scripts --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
 
       - name: Build
         run: yarn build.prod
@@ -55,8 +56,8 @@ jobs:
   #         key: npm-cache-${{ hashFiles('yarn.lock') }}
   #         restore-keys: npm-cache-
 
-  #     - name: Install Dependencies
-  #       run: yarn install --ignore-scripts --frozen-lockfile --ignore-engines
+  #     - name: Install NPM Dependencies
+  #       run: yarn install --ignore-scripts --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
 
   #     - name: Prettier Check
   #       run: yarn prettier-check
@@ -85,8 +86,8 @@ jobs:
   #         key: npm-cache-${{ hashFiles('yarn.lock') }}
   #         restore-keys: npm-cache-
 
-  #     - name: Install Dependencies
-  #       run: yarn install --ignore-scripts --frozen-lockfile --ignore-engines
+  #     - name: Install NPM Dependencies
+  #       run: yarn install --ignore-scripts --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
 
   #     - name: Unit Tests
   #       run: |
@@ -134,7 +135,6 @@ jobs:
   #         path: cypress/videos
 
   optimizer-build:
-    name: Optimizer Platform Builds
     strategy:
       fail-fast: false
       matrix:
@@ -215,15 +215,19 @@ jobs:
           #   target: aarch64-pc-windows-msvc
           #   build: yarn build.platform.optimizer --target aarch64-pc-windows-msvc
 
-    name: stable - ${{ matrix.settings.target }} - node@14
+    name: Optimizer Build - ${{ matrix.settings.target }}
     runs-on: ${{ matrix.settings.host }}
     steps:
-      - uses: actions/checkout@v2
-      - name: Setup node
-        uses: actions/setup-node@v2
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v1
         with:
-          node-version: 14
+          node-version: 16.x
+          registry-url: https://registry.npmjs.org/
           check-latest: true
+
       - name: Install
         uses: actions-rs/toolchain@v1
         with:
@@ -231,25 +235,30 @@ jobs:
           override: true
           toolchain: stable
           target: ${{ matrix.settings.target }}
+
       - name: Generate Cargo.lock
         uses: actions-rs/cargo@v1
         with:
           command: generate-lockfile
+
       - name: Cache cargo registry
         uses: actions/cache@v2
         with:
           path: ~/.cargo/registry
           key: ${{ matrix.settings.target }}-node@14-cargo-registry-trimmed-${{ hashFiles('**/Cargo.lock') }}
+
       - name: Cache cargo index
         uses: actions/cache@v2
         with:
           path: ~/.cargo/git
           key: ${{ matrix.settings.target }}-node@14-cargo-index-trimmed-${{ hashFiles('**/Cargo.lock') }}
+
       - name: Cache NPM dependencies
         uses: actions/cache@v2
         with:
           path: node_modules
           key: npm-cache-${{ matrix.settings.target }}-node@14-${{ hashFiles('yarn.lock') }}
+
       - name: Pull latest image
         run: ${{ matrix.settings.docker }}
         env:
@@ -257,15 +266,19 @@ jobs:
           DOCKER_USERNAME: ${{ github.actor }}
           DOCKER_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
         if: ${{ matrix.settings.docker }}
+
       - name: Setup toolchain
         run: ${{ matrix.settings.setup }}
         if: ${{ matrix.settings.setup }}
         shell: bash
-      - name: Install dependencies
+
+      - name: Install NPM Dependencies
         run: yarn install --ignore-scripts --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
+
       - name: Build
         run: ${{ matrix.settings.build }}
         shell: bash
+
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:

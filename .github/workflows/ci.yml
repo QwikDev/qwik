@@ -148,7 +148,7 @@ on:
           node-version: 16.x
           registry-url: https://registry.npmjs.org/
 
-        - run: echo "GITHUB_EVENT_NAME $GITHUB_EVENT_NAME, GITHUB_EVENT_PATH $GITHUB_EVENT_PATH, GITHUB_REF $GITHUB_REF"
+      - run: echo "GITHUB_EVENT_NAME $GITHUB_EVENT_NAME, GITHUB_EVENT_PATH $GITHUB_EVENT_PATH, GITHUB_REF $GITHUB_REF"
 
 
       # - name: Download Artifacts

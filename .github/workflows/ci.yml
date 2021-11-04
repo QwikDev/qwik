@@ -16,7 +16,6 @@ jobs:
         with:
           node-version: 16.x
           registry-url: https://registry.npmjs.org/
-          check-latest: true
 
       - name: Checkout
         uses: actions/checkout@v2
@@ -221,12 +220,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
+      - run: cd src/optimizer/napi
+
       - name: Setup Node.js
         uses: actions/setup-node@v1
         with:
           node-version: 16.x
           registry-url: https://registry.npmjs.org/
-          check-latest: true
 
       - name: Install
         uses: actions-rs/toolchain@v1
@@ -291,6 +291,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - build
+      - optimizer-build
       # - lint
       # - unit-tests
       # - e2e-tests

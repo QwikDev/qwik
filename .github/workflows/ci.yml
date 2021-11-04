@@ -240,7 +240,8 @@ jobs:
       - name: Generate Cargo.lock
         uses: actions-rs/cargo@v1
         with:
-          command: generate-lockfile --manifest-path=src/optimizer/napi/
+          command: generate-lockfile
+          args: --manifest-path=src/optimizer/napi
 
       - name: Cache cargo registry
         uses: actions/cache@v2

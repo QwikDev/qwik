@@ -119,8 +119,6 @@ const PACKAGE_FILES = [
   'testing/index.cjs',
   'testing/index.mjs',
   'testing/index.d.ts',
-  'testing/jest-preprocessor.cjs',
-  'testing/jest-preprocessor.mjs',
   'testing/jest-preset.cjs',
   'testing/jest-preset.mjs',
 

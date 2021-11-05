@@ -52,8 +52,6 @@ def package_build(
             name + "/testing/index.cjs",
             name + "/testing/index.d.ts",
             name + "/testing/index.mjs",
-            name + "/testing/jest-preprocessor.cjs",
-            name + "/testing/jest-preprocessor.mjs",
             name + "/testing/jest-preset.cjs",
             name + "/testing/jest-preset.mjs", 
         ],

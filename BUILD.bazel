@@ -52,8 +52,6 @@ js_library(
         ":package/testing/index.cjs",
         ":package/testing/index.d.ts",
         ":package/testing/index.mjs",
-        ":package/testing/jest-preprocessor.cjs",
-        ":package/testing/jest-preprocessor.mjs",
         ":package/testing/jest-preset.cjs",
         ":package/testing/jest-preset.mjs",
       ],

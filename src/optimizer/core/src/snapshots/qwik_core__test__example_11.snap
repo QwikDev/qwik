@@ -28,7 +28,7 @@ export const App = qComponent({
     })
 });
     
-============================= /user/qwik/src/test.tsx==
+============================= /user/qwik/src/project/test.tsx==
 
 import { foo, bar as bbar } from "../state";
 import * as dep2 from "dep2";

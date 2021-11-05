@@ -187,6 +187,7 @@ pub fn transform_internal(
                     0,
                     TransformModule {
                         path: dir
+                            .join(&path.dir)
                             .join(format!("{}.{}", &path.file_stem, extension))
                             .to_str()
                             .unwrap()

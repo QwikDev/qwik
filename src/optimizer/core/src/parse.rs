@@ -73,6 +73,8 @@ pub struct TransformModule {
 
     #[serde(with = "serde_bytes")]
     pub map: Option<Vec<u8>>,
+
+    pub is_entry: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -154,6 +156,8 @@ pub fn transform_internal(
                                 .to_str()
                                 .unwrap()
                                 .to_string(),
+
+                            is_entry: h.entry == None
                         }
                     })
                     .collect();
@@ -194,6 +198,7 @@ pub fn transform_internal(
                             .to_string(),
                         code,
                         map,
+                        is_entry: false,
                     },
                 );
 

@@ -18,7 +18,7 @@ export function App() {
     return Header;
 }
     
-============================= /user/qwik/src/test.tsx==
+============================= /user/qwik/src/test.tsx ==
 
 export function App() {
     const Header = qComponent({
@@ -28,18 +28,18 @@ export function App() {
     return Header;
 }
 
-============================= /user/qwik/src/h_test_App_Header_onMount.tsx==
+============================= /user/qwik/src/h_test_App_Header_onMount.tsx (ENTRY POINT)==
 
 export const App_Header_onMount = qHook(()=>{
     console.log("mount");
 });
 
-============================= /user/qwik/src/h_test_App_Header_onRender_div_onClick.tsx==
+============================= /user/qwik/src/h_test_App_Header_onRender_div_onClick.tsx (ENTRY POINT)==
 
 export const App_Header_onRender_div_onClick = qHook((ctx)=>console.log(ctx)
 );
 
-============================= /user/qwik/src/h_test_App_Header_onRender.tsx==
+============================= /user/qwik/src/h_test_App_Header_onRender.tsx (ENTRY POINT)==
 
 export const App_Header_onRender = qHook(()=>{
     return (<div onClick={qHook("h_test_App_Header_onRender_div_onClick#App_Header_onRender_div_onClick")}/>);

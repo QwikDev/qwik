@@ -102,7 +102,7 @@ pub fn transform_workdir(config: &FSConfig) -> Result<TransformResult, Box<dyn e
 
 pub fn transform_input(
     config: &MultiConfig,
-) -> Result<TransformEntryResult, Box<dyn error::Error>> {
+) -> Result<TransformResult, Box<dyn error::Error>> {
     let bundling = parse_bundling(&config.bundling);
     let mut context = TransformContext::new(bundling);
     let mut output = TransformResult {
@@ -143,19 +143,12 @@ pub fn transform_input(
     ))
 }
 
-pub struct TransformEntryResult {
-    pub project_root: String,
-    pub modules: Vec<TransformModule>,
-    pub diagnostics: Vec<Diagnostic>,
-    pub hooks: Vec<HookAnalysis>,
-    pub entries: Vec<String>,
-}
-
 fn generate_entries(
     result: TransformResult,
     default_ext: &str,
     source_map: Lrc<SourceMap>,
-) -> TransformEntryResult {
+) -> TransformResult {
+    let mut result = result;
     let mut entries_set = HashSet::new();
     let mut entries_map = MapVec::new();
     for hook in &result.hooks {
@@ -170,13 +163,12 @@ fn generate_entries(
         entries_set.insert(entry);
     }
 
-    let mut modules = result.modules;
     let dir = Path::new(&result.project_root);
     for (entry, hooks) in entries_map.as_ref().iter() {
         let module = new_entry_module(hooks);
         let (code, map) =
             emit_source_code(source_map.clone(), None, &module, false, false).unwrap();
-        modules.push(TransformModule {
+        result.modules.push(TransformModule {
             path: dir
                 .join(format!("{}.{}", entry.to_string(), default_ext))
                 .to_str()
@@ -184,15 +176,10 @@ fn generate_entries(
                 .to_string(),
             code,
             map,
+            is_entry: true,
         });
     }
-    TransformEntryResult {
-        project_root: result.project_root,
-        modules,
-        diagnostics: result.diagnostics,
-        hooks: result.hooks,
-        entries: entries_set.into_iter().collect(),
-    }
+    result
 }
 
 fn new_entry_module(hooks: &[&HookAnalysis]) -> Module {

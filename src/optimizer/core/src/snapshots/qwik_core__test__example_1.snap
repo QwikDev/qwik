@@ -15,25 +15,25 @@ const Header = qComponent({
   })
 });
     
-============================= /user/qwik/src/test.tsx==
+============================= /user/qwik/src/test.tsx ==
 
 const Header = qComponent({
     "onMount": qHook("h_test_Header_onMount#Header_onMount"),
     onRender: qHook("h_test_Header_onRender#Header_onRender")
 });
 
-============================= /user/qwik/src/h_test_Header_onMount.tsx==
+============================= /user/qwik/src/h_test_Header_onMount.tsx (ENTRY POINT)==
 
 export const Header_onMount = qHook(()=>{
     console.log("mount");
 });
 
-============================= /user/qwik/src/h_test_Header_onRender_div_onClick.tsx==
+============================= /user/qwik/src/h_test_Header_onRender_div_onClick.tsx (ENTRY POINT)==
 
 export const Header_onRender_div_onClick = qHook((ctx)=>console.log(ctx)
 );
 
-============================= /user/qwik/src/h_test_Header_onRender.tsx==
+============================= /user/qwik/src/h_test_Header_onRender.tsx (ENTRY POINT)==
 
 export const Header_onRender = qHook(()=>{
     return (<div onClick={qHook("h_test_Header_onRender_div_onClick#Header_onRender_div_onClick")}/>);

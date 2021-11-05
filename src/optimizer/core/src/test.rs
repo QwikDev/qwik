@@ -301,9 +301,10 @@ fn test_input(filename: &str, code: &str, bundling: Bundling, print_ast: bool) {
             let mut output = format!("==INPUT==\n\n{}", input);
 
             for module in v.modules {
+                let is_entry = if module.is_entry { "(ENTRY POINT)" } else { "" };
                 let s = module.to_string();
                 output +=
-                    format!("\n============================= {}==\n\n{}", s.path, s.code).as_str();
+                    format!("\n============================= {} {}==\n\n{}", s.path, is_entry, s.code).as_str();
                 // let map = if let Some(map) = s.map { map } else { "".to_string() };
                 // output += format!("\n== MAP ==\n{}", map).as_str();
             }

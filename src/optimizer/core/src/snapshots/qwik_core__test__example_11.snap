@@ -28,7 +28,7 @@ export const App = qComponent({
     })
 });
     
-============================= /user/qwik/src/project/test.tsx==
+============================= /user/qwik/src/project/test.tsx ==
 
 import { foo, bar as bbar } from "../state";
 import * as dep2 from "dep2";
@@ -40,7 +40,7 @@ export const App = qComponent({
     onRender: qHook("entry_hooks#App_onRender")
 });
 
-============================= /user/qwik/src/h_test_App_onRender.tsx==
+============================= /user/qwik/src/h_test_App_onRender.tsx ==
 
 import { Header } from "./project/test";
 import { foo } from "./state";
@@ -48,13 +48,13 @@ export const App_onRender = qHook(()=>{
     return (<Header >{foo()}</Header>);
 });
 
-============================= /user/qwik/src/h_test_Header_onRender_Header_onClick.tsx==
+============================= /user/qwik/src/h_test_Header_onRender_Header_onClick.tsx ==
 
 import dep3 from "dep3/something";
 export const Header_onRender_Header_onClick = qHook((ev)=>dep3(ev)
 );
 
-============================= /user/qwik/src/h_test_Header_onRender.tsx==
+============================= /user/qwik/src/h_test_Header_onRender.tsx ==
 
 import { Header } from "./project/test";
 import { bar as bbar } from "./state";
@@ -67,7 +67,7 @@ export const Header_onRender = qHook(()=>{
             </Header>);
 });
 
-============================= /user/qwik/src/entry_hooks.ts==
+============================= /user/qwik/src/entry_hooks.ts (ENTRY POINT)==
 
 export { App_onRender } from "./h_test_App_onRender";
 export { Header_onRender_Header_onClick } from "./h_test_Header_onRender_Header_onClick";

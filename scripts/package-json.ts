@@ -78,45 +78,59 @@ export async function generatePackageJson(config: BuildConfig) {
  * This is used to create the package.json "files" property.
  */
 const PACKAGE_FILES = [
+  // core
   'core.cjs',
   'core.cjs.map',
   'core.min.mjs',
   'core.mjs',
   'core.mjs.map',
   'core.d.ts',
+
+  // jsx-runtime
   'jsx-runtime/index.cjs',
+  'jsx-runtime/index.cjs.map',
   'jsx-runtime/index.mjs',
+  'jsx-runtime/index.mjs.map',
   'jsx-runtime/index.d.ts',
-  'LICENSE',
+
+  // optimizer
   'optimizer/index.cjs',
   'optimizer/index.mjs',
   'optimizer/index.d.ts',
   'optimizer/rollup.cjs',
   'optimizer/rollup.mjs',
-  'package.json',
+
+  // prefetch
   'prefetch.js',
   'prefetch.debug.js',
+
+  // qwikloader
   'qwikloader.js',
   'qwikloader.debug.js',
   'qwikloader.optimize.js',
   'qwikloader.optimize.debug.js',
-  'README.md',
+
+  // server
   'server/index.cjs',
-  'server/index.cjs.map',
   'server/index.mjs',
-  'server/index.mjs.map',
   'server/index.d.ts',
+
+  // testing
   'testing/index.cjs',
-  'testing/index.cjs.map',
   'testing/index.mjs',
-  'testing/index.mjs.map',
   'testing/index.d.ts',
   'testing/jest-preprocessor.cjs',
-  'testing/jest-preprocessor.cjs.map',
   'testing/jest-preprocessor.mjs',
-  'testing/jest-preprocessor.mjs.map',
   'testing/jest-preset.cjs',
-  'testing/jest-preset.cjs.map',
   'testing/jest-preset.mjs',
-  'testing/jest-preset.mjs.map',
+
+  // package files
+  'README.md',
+  'LICENSE',
+  'package.json',
+
+  // platform bindings (only found in CI build)
+  'qwik.darwin-arm64.node',
+  'qwik.darwin-x64.node',
+  'qwik.win32-x64-msvc.node',
 ];

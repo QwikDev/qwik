@@ -1,5 +1,5 @@
 import { ComponentChild, FunctionComponent, Fragment, jsx } from '@builder.io/qwik';
-import { getQwikLoaderScript, getQwikPrefetchScript } from '@builder.io/qwik/optimizer';
+// import { getQwikLoaderScript, getQwikPrefetchScript } from '@builder.io/qwik/optimizer';
 
 /**
  * @alpha
@@ -15,7 +15,7 @@ export interface QwikLoaderProps {
 export const QwikLoader: FunctionComponent<QwikLoaderProps> = ({ events, debug }) => {
   return jsx('script', {
     type: 'module',
-    children: [getQwikLoaderScript({ events, debug })],
+    // children: [getQwikLoaderScript({ events, debug })],
   });
 };
 
@@ -32,7 +32,7 @@ export interface QwikPrefetchProps {
 export const QwikPrefetch: FunctionComponent<QwikPrefetchProps> = ({ debug }) => {
   return jsx('script', {
     type: 'module',
-    children: [getQwikPrefetchScript({ debug })],
+    // children: [getQwikPrefetchScript({ debug })],
   });
 };
 

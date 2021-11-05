@@ -2,7 +2,7 @@ import { InputOptions, OutputOptions, rollup, Plugin, watch, OutputBundle } from
 import { minify, MinifyOptions } from 'terser';
 import { BuildConfig, fileSize, rollupOnWarn } from './util';
 import { join } from 'path';
-import { Optimizer } from '../src/optimizer/src';
+import { transform } from 'esbuild';
 
 /**
  * Builds the qwikloader javascript files. These files can be used
@@ -13,8 +13,6 @@ import { Optimizer } from '../src/optimizer/src';
 export async function submodulePrefetch(config: BuildConfig) {
   const prefetchPath = join(config.srcDir, 'prefetch.ts');
   const prefetchWorkerPath = join(config.srcDir, 'prefetch-worker.ts');
-
-  const optimizer = new Optimizer();
 
   async function generateWebWorkerBlob(minifyCode: boolean) {
     const build = await rollup({
@@ -29,11 +27,8 @@ export async function submodulePrefetch(config: BuildConfig) {
             return null;
           },
           async transform(code, id) {
-            const result = await optimizer.transformCode({
-              input: [{ path: id, code }],
-              module: 'es',
-            });
-            return result.output[0].code;
+            const result = await transform(code, { sourcefile: id, format: 'esm', loader: 'ts' });
+            return result.code;
           },
         },
       ],
@@ -77,11 +72,8 @@ export async function submodulePrefetch(config: BuildConfig) {
           return null;
         },
         async transform(code, id) {
-          const result = await optimizer.transformCode({
-            input: [{ path: id, code }],
-            module: 'es',
-          });
-          return result.output[0].code;
+          const result = await transform(code, { sourcefile: id, format: 'esm', loader: 'ts' });
+          return result.code;
         },
       },
     ],

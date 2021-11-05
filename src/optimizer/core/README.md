@@ -17,7 +17,6 @@ make build
 or
 
 ```
-cd core
 cargo build
 ```
 
@@ -30,6 +29,5 @@ make test
 or
 
 ```
-cd core
 cargo test
 ```

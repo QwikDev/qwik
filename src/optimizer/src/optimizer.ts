@@ -10,6 +10,9 @@ import type { TransformCodeOptions, TransformDirectoryOptions } from './types';
 const TransformedOutputs = Symbol('TransformedOutputs');
 const LastDirectoryResult = Symbol('LastDirectoryResult');
 
+/**
+ * @alpha
+ */
 export class Optimizer {
   private [LastDirectoryResult]: TransformResult | undefined;
   private [TransformedOutputs]: Map<string, TransformedOutput>;

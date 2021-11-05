@@ -168,8 +168,10 @@ export function injectGlobalThisPoly(config: BuildConfig) {
  */
 export function rollupOnWarn(warning: any, warn: any) {
   // skip certain warnings
+  if (warning.code === `CIRCULAR_DEPENDENCY`) return;
   if (warning.code === `PREFER_NAMED_EXPORTS`) return;
   if (warning.message.includes(`Rollup 'sourcemap'`)) return;
+  console.log(warning);
   warn(warning);
 }
 

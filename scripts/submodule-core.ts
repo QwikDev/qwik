@@ -1,4 +1,4 @@
-import { BuildConfig, injectGlobalThisPoly } from './util';
+import { BuildConfig, injectGlobalThisPoly, rollupOnWarn } from './util';
 import { banner, fileSize, readFile, target, watcher, writeFile } from './util';
 import { build, BuildOptions } from 'esbuild';
 import { InputOptions, OutputOptions, rollup } from 'rollup';
@@ -23,6 +23,7 @@ export function submoduleCore(config: BuildConfig) {
 async function submoduleCoreProd(config: BuildConfig) {
   const input: InputOptions = {
     input: join(config.tscDir, 'src', 'core', 'index.js'),
+    onwarn: rollupOnWarn,
   };
 
   const esmOutput: OutputOptions = {

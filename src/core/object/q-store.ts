@@ -2,7 +2,7 @@ import { assertDefined } from '../assert/assert';
 import { JSON_OBJ_PREFIX } from '../json/q-json';
 import { qDev } from '../util/qdev';
 import { clearQProps, clearQPropsMap, QPropsContext } from '../props/q-props';
-import { getQObjectId, _qObject } from './q-object';
+import { getQObjectId, _restoreQObject } from './q-object';
 import { qProps } from '../props/q-props.public';
 
 export interface Store {
@@ -55,7 +55,7 @@ function reviveQObjects(map: Record<string, object> | null) {
   for (const key in map) {
     if (Object.prototype.hasOwnProperty.call(map, key)) {
       const value = map[key];
-      map[key] = _qObject(value, key, true);
+      map[key] = _restoreQObject(value, key);
     }
   }
 }

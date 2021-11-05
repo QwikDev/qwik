@@ -54,6 +54,7 @@ export { QwikDOMAttributes, QwikJSX } from './render/jsx/types/jsx-qwik';
 export type { QwikIntrinsicElements } from './render/jsx/types/jsx-qwik-elements';
 export { qRender } from './render/q-render.public';
 export { useEvent, useHostElement, useURL } from './use/use-core.public';
+export { useTransient } from './use/use-transient.public';
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Low-Level API
 //////////////////////////////////////////////////////////////////////////////////////////

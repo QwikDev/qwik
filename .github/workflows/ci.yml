@@ -36,7 +36,7 @@ jobs:
       - name: Upload Package Build Artifacts
         uses: actions/upload-artifact@master
         with:
-          name: package-build
+          name: dist-builder-io-qwik
           path: dist-dev/@builder.io-qwik
           if-no-files-found: error
 
@@ -256,9 +256,9 @@ jobs:
 
       - name: Move Platform Bindings
         run: |
-          mv binding-aarch64-apple-darwin/qwik.darwin-arm64.node builder-io-qwik/qwik.darwin-arm64.node
-          mv binding-x86_64-apple-darwin/qwik.darwin-x64.node builder-io-qwik/qwik.darwin-x64.node
-          mv binding-x86_64-pc-windows-msvc/qwik.win32-x64-msvc.node builder-io-qwik/qwik.win32-x64-msvc.node
+          mv binding-aarch64-apple-darwin/qwik.darwin-arm64.node dist-builder-io-qwik/qwik.darwin-arm64.node
+          mv binding-x86_64-apple-darwin/qwik.darwin-x64.node dist-builder-io-qwik/qwik.darwin-x64.node
+          mv binding-x86_64-pc-windows-msvc/qwik.win32-x64-msvc.node dist-builder-io-qwik/qwik.win32-x64-msvc.node
 
       - name: Pack @builder.io/qwik
         if: ${{ github.event_name != 'release' }}
@@ -276,5 +276,5 @@ jobs:
       - name: Publish @builder.io/qwik
         if: ${{ github.event_name == 'release' }}
         run: |
-          cd builder-io-qwik
+          cd dist-builder-io-qwik
           mv `npm pack` ../builder.io-qwik.tgz

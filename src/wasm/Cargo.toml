@@ -1,6 +1,6 @@
 [package]
 authors = ["Manu Mtz-Almeida <manu@builder.io>"]
-name = "qwik-js-wasm"
+name = "qwik-wasm"
 version = "0.0.1"
 edition = "2018"
 

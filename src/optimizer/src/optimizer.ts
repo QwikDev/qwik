@@ -1,6 +1,6 @@
-import type { TransformResult, TransformedOutput } from '.';
-import { transform, transformSync, transformDirectory, transformDirectorySync } from './transform';
-import type { TransformInMemoryOptions, TransformFsOptions } from './types';
+import type { TransformResult, TransformModule } from '.';
+import { transformModules, transformModulesSync, transformFs, transformFsSync } from './transform';
+import type { TransformModulesOptions, TransformFsOptions } from './types';
 
 const TransformedOutputs = Symbol('TransformedOutputs');
 const LastDirectoryResult = Symbol('LastDirectoryResult');
@@ -10,21 +10,21 @@ const LastDirectoryResult = Symbol('LastDirectoryResult');
  */
 export class Optimizer {
   private [LastDirectoryResult]: TransformResult | undefined;
-  private [TransformedOutputs]: Map<string, TransformedOutput>;
+  private [TransformedOutputs] = new Map<string, TransformModule>();
 
   /**
    * Transforms the input code string, does not access the file system.
    */
-  async transform(opts: TransformInMemoryOptions) {
-    const result = await transform(opts);
+  async transformModules(opts: TransformModulesOptions) {
+    const result = await transformModules(opts);
     return result;
   }
 
   /**
    * Transforms the input code string, does not access the file system.
    */
-  transformSync(opts: TransformInMemoryOptions) {
-    const result = transformSync(opts);
+  transformModulesSync(opts: TransformModulesOptions) {
+    const result = transformModulesSync(opts);
     return result;
   }
 
@@ -36,11 +36,11 @@ export class Optimizer {
       return this[LastDirectoryResult]!;
     }
 
-    const result = await transformDirectory(opts);
+    const result = await transformFs(opts);
     this[LastDirectoryResult] = result;
 
-    result.output.forEach((output) => {
-      this[TransformedOutputs].set(output.outFile, output);
+    result.modules.forEach((output) => {
+      this[TransformedOutputs].set(output.path, output);
     });
 
     return result;
@@ -54,11 +54,11 @@ export class Optimizer {
       return this[LastDirectoryResult]!;
     }
 
-    const result = transformDirectorySync(opts);
+    const result = transformFsSync(opts);
     this[LastDirectoryResult] = result;
 
-    result.output.forEach((output) => {
-      this[TransformedOutputs].set(output.outFile, output);
+    result.modules.forEach((output) => {
+      this[TransformedOutputs].set(output.path, output);
     });
 
     return result;

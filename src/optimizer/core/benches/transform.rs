@@ -38,10 +38,10 @@ fn transform_benchmark(b: &mut Criterion) {
             try{}catch({decl19}){}
         });
             "#;
-            transform_input(black_box(&MultiConfig {
+            transform_modules(black_box(&TransformModulesOptions {
                 root_dir: "/user/qwik/src/".to_string(),
-                input: vec![FileInput {
-                    code: code.as_bytes().to_vec(),
+                input: vec![TransformModuleInput {
+                    code: code.to_string(),
                     path: "file.tsx".to_string(),
                 }],
                 source_maps: true,

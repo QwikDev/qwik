@@ -1,6 +1,6 @@
 import type {
-  OptimizerDiagnostic,
-  TransformInMemoryOptions,
+  Diagnostic,
+  TransformModulesOptions,
   TransformFsOptions,
   TransformResult,
 } from '.';
@@ -9,71 +9,32 @@ import { loadPlatformBinding } from './platform-binding';
 /**
  * Transforms the input code string, does not access the file system.
  */
-export async function transform(opts: TransformInMemoryOptions) {
-  const result: TransformResult = {
-    output: [],
-    diagnostics: [],
-  };
-  try {
-    const binding = loadPlatformBinding();
-
-    const val = binding.sync(88);
-    console.log('binding.sync(88):', val);
-
-    const val2 = await binding.sleep(99);
-    console.log('binding.sleep(99):', val2);
-  } catch (e) {
-    catchDiagnostics(result.diagnostics, e);
-  }
-  return result;
+export async function transformModules(opts: TransformModulesOptions) {
+  const binding = loadPlatformBinding();
+  return binding.transformModules(opts);
 }
 
 /**
  * Transforms the input code string, does not access the file system.
  */
-export function transformSync(opts: TransformInMemoryOptions) {
-  const result: TransformResult = {
-    output: [],
-    diagnostics: [],
-  };
-  try {
-  } catch (e) {
-    catchDiagnostics(result.diagnostics, e);
-  }
-  return result;
+export function transformModulesSync(opts: TransformModulesOptions) {
+  const binding = loadPlatformBinding();
+  return binding.transformModules(opts);
 }
 
 /**
  * Transforms the file read from the file system.
  */
-export async function transformDirectory(opts: TransformFsOptions) {
-  const result: TransformResult = {
-    output: [],
-    diagnostics: [],
-  };
-  try {
-    // napi!!
-  } catch (e) {
-    catchDiagnostics(result.diagnostics, e);
-  }
-  return result;
+export async function transformFs(opts: TransformFsOptions) {
+  const binding = loadPlatformBinding();
+  return binding.transformFs(opts);
 }
 
 /**
  * Transforms the file read from the file system.
  */
-export function transformDirectorySync(opts: TransformFsOptions) {
-  const result: TransformResult = {
-    output: [],
-    diagnostics: [],
-  };
-  try {
-  } catch (e) {
-    catchDiagnostics(result.diagnostics, e);
-  }
-  return result;
+export function transformFsSync(opts: TransformFsOptions) {
+  const binding = loadPlatformBinding();
+  return binding.transformFs(opts);
 }
 
-function catchDiagnostics(diagnostics: OptimizerDiagnostic[], err: any) {
-  diagnostics.push({ type: 'error', message: String(err.stack || err) });
-}

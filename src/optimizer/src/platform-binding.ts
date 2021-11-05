@@ -1,4 +1,5 @@
 import { platformArchTriples } from '@napi-rs/triples';
+import type { TransformFsOptions, TransformModulesOptions, TransformResult } from '.';
 
 export function loadPlatformBinding() {
   if (loadedBinding) {
@@ -43,8 +44,8 @@ export function loadPlatformBinding() {
 }
 
 export interface PlatformBinding {
-  sync: (num: number) => number;
-  sleep: (num: number) => Promise<number>;
+  transformFs: (opts: TransformFsOptions) => TransformResult;
+  transformModules: (opts: TransformModulesOptions) => TransformResult;
 }
 
 let loadedBinding: PlatformBinding | null = null;

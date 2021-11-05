@@ -1,6 +1,6 @@
 use clap::{App, AppSettings, Arg};
 use path_absolutize::*;
-use qwik_core::{transform_workdir, EntryStrategy, FSConfig};
+use qwik_core::{transform_fs, EntryStrategy, TransformFsOptions};
 
 struct Optimize {
     glob: Option<String>,
@@ -97,7 +97,7 @@ fn optimize(t: Optimize) -> Result<qwik_core::TransformResult, Box<dyn std::erro
         .unwrap()
         .to_string();
 
-    let result = transform_workdir(&FSConfig {
+    let result = transform_fs(&TransformFsOptions {
         root_dir: input,
         glob: t.glob,
         source_maps: t.sourcemaps,

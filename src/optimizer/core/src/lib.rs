@@ -15,7 +15,7 @@ mod utils;
 use std::collections::HashSet;
 use std::error;
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::str;
 use swc_atoms::JsWord;
 use swc_common::{sync::Lrc, SourceMap, DUMMY_SP};
@@ -31,7 +31,8 @@ use crate::utils::MapVec;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Debug, Deserialize)]
-pub struct FSConfig {
+#[serde(rename_all = "camelCase")]
+pub struct TransformFsOptions {
     pub root_dir: String,
     pub glob: Option<String>,
     pub source_maps: bool,
@@ -41,15 +42,17 @@ pub struct FSConfig {
 }
 
 #[derive(Serialize, Debug, Deserialize)]
-pub struct FileInput {
+#[serde(rename_all = "camelCase")]
+pub struct TransformModuleInput {
     pub path: String,
-    pub code: Vec<u8>,
+    pub code: String,
 }
 
-#[derive(Serialize, Debug, Deserialize)]
-pub struct MultiConfig {
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TransformModulesOptions {
     pub root_dir: String,
-    pub input: Vec<FileInput>,
+    pub input: Vec<TransformModuleInput>,
     pub source_maps: bool,
     pub minify: bool,
     pub transpile: bool,
@@ -57,7 +60,7 @@ pub struct MultiConfig {
     pub entry_strategy: EntryStrategy,
 }
 
-pub fn transform_workdir(config: &FSConfig) -> Result<TransformResult, Box<dyn error::Error>> {
+pub fn transform_fs(config: &TransformFsOptions) -> Result<TransformResult, Box<dyn error::Error>> {
     let root_dir = PathBuf::from(&config.root_dir);
     let pattern = if let Some(glob) = &config.glob {
         root_dir.join(glob)
@@ -82,7 +85,7 @@ pub fn transform_workdir(config: &FSConfig) -> Result<TransformResult, Box<dyn e
             root_dir: config.root_dir.clone(),
             path: pathstr.to_string(),
             minify: config.minify,
-            code: &data,
+            code: unsafe { std::str::from_utf8_unchecked(&data) },
             source_maps: config.source_maps,
             transpile: config.transpile,
             print_ast: false,
@@ -110,7 +113,9 @@ pub fn transform_workdir(config: &FSConfig) -> Result<TransformResult, Box<dyn e
     ))
 }
 
-pub fn transform_input(config: &MultiConfig) -> Result<TransformResult, Box<dyn error::Error>> {
+pub fn transform_modules(
+    config: &TransformModulesOptions,
+) -> Result<TransformResult, Box<dyn error::Error>> {
     let bundling = parse_entry_strategy(&config.entry_strategy);
     let mut context = TransformContext::new(bundling);
     let mut output = TransformResult {
@@ -171,17 +176,12 @@ fn generate_entries(
         entries_set.insert(entry);
     }
 
-    let dir = Path::new(&result.root_dir);
     for (entry, hooks) in entries_map.as_ref().iter() {
         let module = new_entry_module(hooks);
         let (code, map) =
             emit_source_code(source_map.clone(), None, &module, false, false).unwrap();
         result.modules.push(TransformModule {
-            path: dir
-                .join([entry, ".", default_ext].concat())
-                .to_str()
-                .unwrap()
-                .to_string(),
+            path: [entry, ".", default_ext].concat(),
             code,
             map,
             is_entry: true,

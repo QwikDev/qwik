@@ -21,6 +21,7 @@ use swc_ecmascript::transforms::{pass, react, typescript};
 use swc_ecmascript::visit::FoldWith;
 
 #[derive(Debug, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase")]
 pub struct HookAnalysis {
     pub origin: String,
     pub name: String,
@@ -37,11 +38,12 @@ pub struct InternalConfig<'a> {
     pub minify: bool,
     pub transpile: bool,
     pub print_ast: bool,
-    pub code: &'a [u8],
+    pub code: &'a str,
     pub context: &'a mut TransformContext,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase")]
 pub struct TransformResult {
     pub root_dir: String,
     pub modules: Vec<TransformModule>,
@@ -55,9 +57,7 @@ impl TransformResult {
     pub fn write_to_fs(&self, destination: &str) -> Result<usize, Box<dyn std::error::Error>> {
         let destination = Path::new(destination);
         for module in &self.modules {
-            let origin = Path::new(&module.path).strip_prefix(&self.root_dir)?;
-            let write_path = destination.join(origin);
-
+            let write_path = destination.join(&module.path);
             std::fs::create_dir_all(&write_path.parent().unwrap())?;
             fs::write(write_path, &module.code)?;
         }
@@ -66,11 +66,10 @@ impl TransformResult {
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase")]
 pub struct TransformModule {
     pub path: String,
-
-    #[serde(with = "serde_bytes")]
-    pub code: Vec<u8>,
+    pub code: String,
 
     #[serde(with = "serde_bytes")]
     pub map: Option<Vec<u8>>,
@@ -94,29 +93,14 @@ impl Emitter for ErrorBuffer {
     }
 }
 
-impl TransformModule {
-    pub fn to_string(&self) -> TransformStringResult {
-        TransformStringResult {
-            path: self.path.clone(),
-            code: str::from_utf8(&self.code).unwrap().to_string(),
-            map: self
-                .map
-                .as_ref()
-                .map(|map| str::from_utf8(map).unwrap().to_string()),
-        }
-    }
-}
-
 pub fn transform_internal(
     config: InternalConfig,
 ) -> Result<TransformResult, Box<dyn error::Error>> {
-    let code = unsafe { std::str::from_utf8_unchecked(config.code) };
-    let module = parse(code, config.path.as_str(), &config);
+    let module = parse(config.code, config.path.as_str(), &config);
     if config.print_ast {
         dbg!(&module);
     }
     let path = parse_path(&config.path);
-    let dir = Path::new(&config.root_dir);
     let transpile = config.transpile;
 
     match module {
@@ -186,12 +170,7 @@ pub fn transform_internal(
                         TransformModule {
                             code,
                             map,
-                            path: dir
-                                .join([&h.canonical_filename, ".", extension].concat())
-                                .to_str()
-                                .unwrap()
-                                .to_string(),
-
+                            path: [&h.canonical_filename, ".", extension].concat(),
                             is_entry: h.entry == None,
                         }
                     })
@@ -225,8 +204,7 @@ pub fn transform_internal(
                 output_modules.insert(
                     0,
                     TransformModule {
-                        path: dir
-                            .join(&path.dir)
+                        path: Path::new(&path.dir)
                             .join([&path.file_stem, ".", extension].concat())
                             .to_str()
                             .unwrap()
@@ -321,7 +299,7 @@ pub fn emit_source_code(
     program: &Module,
     minify: bool,
     source_maps: bool,
-) -> Result<(Vec<u8>, Option<Vec<u8>>), std::io::Error> {
+) -> Result<(String, Option<Vec<u8>>), std::io::Error> {
     let mut src_map_buf = vec![];
     let mut buf = vec![];
     {
@@ -352,9 +330,12 @@ pub fn emit_source_code(
             .to_writer(&mut map_buf)
             .is_ok()
     {
-        Ok((buf, Some(map_buf)))
+        Ok((
+            unsafe { str::from_utf8_unchecked(&buf).to_string() },
+            Some(map_buf),
+        ))
     } else {
-        Ok((buf, None))
+        Ok((unsafe { str::from_utf8_unchecked(&buf).to_string() }, None))
     }
 }
 

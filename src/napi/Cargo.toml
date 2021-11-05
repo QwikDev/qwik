@@ -1,17 +1,22 @@
 [package]
-edition = "2018"
-name = "builder_io_qwik"
-version = "0.0.0"
+authors = ["Manu Mtz.-Almeida <manu@builder.io>"]
+name = "qwik-napi"
+version = "0.1.0"
+edition = "2021"
 
 [lib]
 crate-type = ["cdylib"]
 
 [dependencies]
-napi = "1"
+napi = { version = "1", features = ["serde-json"] }
 napi-derive = "1"
+qwik-core = { path = "../optimizer/core" }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+jemallocator = { version = "0.3.2", features = ["disable_initial_exec_tls"] }
+
+[target.'cfg(windows)'.dependencies]
+mimalloc = { version = "0.1.25", default-features = false }
 
 [build-dependencies]
-napi-build = "1"
-
-[profile.release]
-lto = true
+napi-build = { version = "1" }

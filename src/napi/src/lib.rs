@@ -1,49 +1,39 @@
-#![deny(clippy::all)]
-
+extern crate napi;
 #[macro_use]
 extern crate napi_derive;
 
-use std::convert::TryInto;
+use napi::{CallContext, JsObject, JsUnknown, Result};
 
-use napi::{CallContext, Env, JsNumber, JsObject, Result, Task};
+#[cfg(target_os = "macos")]
+#[global_allocator]
+static GLOBAL: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
-struct AsyncTask(u32);
+#[cfg(windows)]
+#[global_allocator]
+static ALLOC: mimalloc::MiMalloc = mimalloc::MiMalloc;
 
-impl Task for AsyncTask {
-  type Output = u32;
-  type JsValue = JsNumber;
+#[js_function(1)]
+fn transform_fs(ctx: CallContext) -> Result<JsUnknown> {
+  let opts = ctx.get::<JsObject>(0)?;
+  let config: qwik_core::TransformFsOptions = ctx.env.from_js_value(opts)?;
 
-  fn compute(&mut self) -> Result<Self::Output> {
-    use std::thread::sleep;
-    use std::time::Duration;
-    sleep(Duration::from_millis(self.0 as u64));
-    Ok(self.0 * 2)
-  }
+  let result = qwik_core::transform_fs(&config).unwrap();
+  ctx.env.to_js_value(&result)
+}
 
-  fn resolve(self, env: Env, output: Self::Output) -> Result<Self::JsValue> {
-    env.create_uint32(output)
-  }
+#[js_function(1)]
+fn transform_modules(ctx: CallContext) -> Result<JsUnknown> {
+  let opts = ctx.get::<JsObject>(0)?;
+  let config: qwik_core::TransformModulesOptions = ctx.env.from_js_value(opts)?;
+
+  let result = qwik_core::transform_modules(&config).unwrap();
+  ctx.env.to_js_value(&result)
 }
 
 #[module_exports]
 fn init(mut exports: JsObject) -> Result<()> {
-  exports.create_named_method("sync", sync_fn)?;
+  exports.create_named_method("transformFs", transform_fs)?;
+  exports.create_named_method("transformModules", transform_modules)?;
 
-  exports.create_named_method("sleep", sleep)?;
   Ok(())
-}
-
-#[js_function(1)]
-fn sync_fn(ctx: CallContext) -> Result<JsNumber> {
-  let argument: u32 = ctx.get::<JsNumber>(0)?.try_into()?;
-
-  ctx.env.create_uint32(argument + 100)
-}
-
-#[js_function(1)]
-fn sleep(ctx: CallContext) -> Result<JsObject> {
-  let argument: u32 = ctx.get::<JsNumber>(0)?.try_into()?;
-  let task = AsyncTask(argument);
-  let async_task = ctx.env.spawn(task)?;
-  Ok(async_task.promise_object())
 }

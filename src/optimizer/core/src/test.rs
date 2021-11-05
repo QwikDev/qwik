@@ -283,10 +283,10 @@ export const App = qComponent({
 // }
 
 fn test_input(filename: &str, code: &str, entry_strategy: EntryStrategy, print_ast: bool) {
-    let res = transform_input(&MultiConfig {
+    let res = transform_modules(&TransformModulesOptions {
         root_dir: "/user/qwik/src/".to_string(),
-        input: vec![FileInput {
-            code: code.as_bytes().to_vec(),
+        input: vec![TransformModuleInput {
+            code: code.to_string(),
             path: filename.to_string(),
         }],
         source_maps: true,
@@ -302,10 +302,9 @@ fn test_input(filename: &str, code: &str, entry_strategy: EntryStrategy, print_a
 
             for module in v.modules {
                 let is_entry = if module.is_entry { "(ENTRY POINT)" } else { "" };
-                let s = module.to_string();
                 output += format!(
                     "\n============================= {} {}==\n\n{}",
-                    s.path, is_entry, s.code
+                    module.path, is_entry, module.code
                 )
                 .as_str();
                 // let map = if let Some(map) = s.map { map } else { "".to_string() };

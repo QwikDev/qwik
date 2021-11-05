@@ -22,16 +22,15 @@ interface TransformOptions {
   entryStrategy?: EntryStrategy;
   minify?: MinifyOption;
   sourceMaps?: SourceMapsOption;
-  transpile?: TranspileOption;
+  transpile?: boolean;
 }
 
 /**
  * @alpha
  */
-export interface TransformInMemoryOptions extends TransformOptions {
+export interface TransformModulesOptions extends TransformOptions {
   rootDir: string;
-  input: TransformCodeInput[];
-  outputDir?: string;
+  input: TransformModuleInput[];
 }
 
 /**
@@ -42,11 +41,6 @@ export interface TransformFsOptions extends TransformOptions {
 
   // **/*.qwik.{js,jsx,ts,tsx}
   glob?: string;
-
-  /**
-   * The output directory path each output file is set as.
-   */
-  outputDir?: string;
 }
 
 // OPTION INPUTS ***************
@@ -54,16 +48,9 @@ export interface TransformFsOptions extends TransformOptions {
 /**
  * @alpha
  */
-export interface TransformCodeInput {
+export interface TransformModuleInput {
   path: string;
   code: string;
-}
-
-/**
- * @alpha
- */
-export interface TransformDirectoryInput {
-  path: string;
 }
 
 // RESULT ***************
@@ -72,8 +59,24 @@ export interface TransformDirectoryInput {
  * @alpha
  */
 export interface TransformResult {
-  diagnostics: OptimizerDiagnostic[];
-  output: TransformedOutput[];
+  rootDir: string;
+  modules: TransformModule[];
+  diagnostics: Diagnostic[];
+  isTypeScript: boolean;
+  isJsx: boolean;
+  hooks: HookAnalysis[];
+}
+
+/**
+ * @alpha
+ */
+export interface HookAnalysis {
+  origin: string;
+  name: string;
+  entry: string | null;
+  canonicalFilename: string;
+  localDecl: string[];
+  localIdents: string[];
 }
 
 // RESULT OUTPUT ***************
@@ -81,11 +84,10 @@ export interface TransformResult {
 /**
  * @alpha
  */
-export interface TransformedOutput {
-  srcFile: string;
-  outFile: string;
+export interface TransformModule {
+  path: string;
   isEntry: boolean;
-  code: string;
+  code: string | null;
   map: string;
 }
 
@@ -94,15 +96,18 @@ export interface TransformedOutput {
 /**
  * @alpha
  */
-export interface OptimizerDiagnostic {
+export interface Diagnostic {
   message: string;
-  type: OptimizerDiagnosticType;
+  severity: DiagnosticType;
+  documentation_url?: string;
+  show_environment: boolean;
+  hints?: string[];
 }
 
 /**
  * @alpha
  */
-export type OptimizerDiagnosticType = 'error' | 'warn' | 'info';
+export type DiagnosticType = 'error' | 'warn' | 'info';
 
 // ENTRY STRATEGY ***************
 

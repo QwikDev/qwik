@@ -23,21 +23,18 @@ export function qwik(opts: QwikPluginOptions = {}): Plugin {
 
       // throw error or print logs if there are any diagnostics
       result.diagnostics.forEach((d) => {
-        if (d.type === 'error') {
+        if (d.severity === 'error') {
           throw d.message;
-        } else if (d.type === 'warn') {
+        } else if (d.severity === 'warn') {
           console.warn('QWIK:', d.message);
         } else {
           console.info('QWIK:', d.message);
         }
       });
 
-      const entryPaths = result.output.filter((file) => file.isEntry).map((file) => file.outFile);
-
       // return the new rollup options which have been modified with Qwik's entry modules
       return {
         ...rollupInputOpts,
-        input: entryPaths,
       };
     },
 

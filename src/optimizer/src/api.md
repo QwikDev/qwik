@@ -5,7 +5,40 @@
 ```ts
 
 // @alpha (undocumented)
+export interface Diagnostic {
+    // (undocumented)
+    documentation_url?: string;
+    // (undocumented)
+    hints?: string[];
+    // (undocumented)
+    message: string;
+    // (undocumented)
+    severity: DiagnosticType;
+    // (undocumented)
+    show_environment: boolean;
+}
+
+// @alpha (undocumented)
+export type DiagnosticType = 'error' | 'warn' | 'info';
+
+// @alpha (undocumented)
 export type EntryStrategy = SingleEntryStrategy | PerHookEntryStrategy | ManualEntryStrategy;
+
+// @alpha (undocumented)
+export interface HookAnalysis {
+    // (undocumented)
+    canonicalFilename: string;
+    // (undocumented)
+    entry: string | null;
+    // (undocumented)
+    localDecl: string[];
+    // (undocumented)
+    localIdents: string[];
+    // (undocumented)
+    name: string;
+    // (undocumented)
+    origin: string;
+}
 
 // @alpha (undocumented)
 export interface ManualEntryStrategy {
@@ -21,30 +54,19 @@ export type MinifyOption = boolean | undefined | null;
 // @alpha (undocumented)
 export class Optimizer {
     // (undocumented)
-    getTransformedModule(path: string): TransformedOutput | undefined;
+    getTransformedModule(path: string): TransformModule | undefined;
     // (undocumented)
     hasTransformedModule(path: string): boolean;
     set isDirty(isDirty: boolean);
     // (undocumented)
     get isDirty(): boolean;
-    transform(opts: TransformInMemoryOptions): Promise<TransformResult>;
     transformFs(opts: TransformFsOptions): Promise<TransformResult>;
     transformFsSync(opts: TransformFsOptions): TransformResult;
-    transformSync(opts: TransformInMemoryOptions): TransformResult;
+    transformModules(opts: TransformModulesOptions): Promise<TransformResult>;
+    transformModulesSync(opts: TransformModulesOptions): TransformResult;
     // (undocumented)
     watchChange(id: string, event: 'create' | 'update' | 'delete'): void;
 }
-
-// @alpha (undocumented)
-export interface OptimizerDiagnostic {
-    // (undocumented)
-    message: string;
-    // (undocumented)
-    type: OptimizerDiagnosticType;
-}
-
-// @alpha (undocumented)
-export type OptimizerDiagnosticType = 'error' | 'warn' | 'info';
 
 // @alpha (undocumented)
 export interface OutputEntryMap {
@@ -65,51 +87,40 @@ export interface SingleEntryStrategy {
 // @alpha (undocumented)
 export type SourceMapsOption = 'external' | 'inline' | undefined | null;
 
-// @alpha (undocumented)
-export interface TransformCodeInput {
-    // (undocumented)
-    code: string;
-    // (undocumented)
-    path: string;
-}
-
-// @alpha (undocumented)
-export interface TransformDirectoryInput {
-    // (undocumented)
-    path: string;
-}
-
-// @alpha (undocumented)
-export interface TransformedOutput {
-    // (undocumented)
-    code: string;
-    // (undocumented)
-    isEntry: boolean;
-    // (undocumented)
-    map: string;
-    // (undocumented)
-    outFile: string;
-    // (undocumented)
-    srcFile: string;
-}
-
 // Warning: (ae-forgotten-export) The symbol "TransformOptions" needs to be exported by the entry point index.d.ts
 //
 // @alpha (undocumented)
 export interface TransformFsOptions extends TransformOptions {
     // (undocumented)
     glob?: string;
-    outputDir?: string;
     // (undocumented)
     rootDir: string;
 }
 
 // @alpha (undocumented)
-export interface TransformInMemoryOptions extends TransformOptions {
+export interface TransformModule {
     // (undocumented)
-    input: TransformCodeInput[];
+    code: string | null;
     // (undocumented)
-    outputDir?: string;
+    isEntry: boolean;
+    // (undocumented)
+    map: string;
+    // (undocumented)
+    path: string;
+}
+
+// @alpha (undocumented)
+export interface TransformModuleInput {
+    // (undocumented)
+    code: string;
+    // (undocumented)
+    path: string;
+}
+
+// @alpha (undocumented)
+export interface TransformModulesOptions extends TransformOptions {
+    // (undocumented)
+    input: TransformModuleInput[];
     // (undocumented)
     rootDir: string;
 }
@@ -117,9 +128,17 @@ export interface TransformInMemoryOptions extends TransformOptions {
 // @alpha (undocumented)
 export interface TransformResult {
     // (undocumented)
-    diagnostics: OptimizerDiagnostic[];
+    diagnostics: Diagnostic[];
     // (undocumented)
-    output: TransformedOutput[];
+    hooks: HookAnalysis[];
+    // (undocumented)
+    isJsx: boolean;
+    // (undocumented)
+    isTypeScript: boolean;
+    // (undocumented)
+    modules: TransformModule[];
+    // (undocumented)
+    rootDir: string;
 }
 
 // @alpha (undocumented)

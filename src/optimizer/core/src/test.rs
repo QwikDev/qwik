@@ -284,7 +284,7 @@ export const App = qComponent({
 
 fn test_input(filename: &str, code: &str, bundling: Bundling, print_ast: bool) {
     let res = transform_input(&MultiConfig {
-        project_root: "/user/qwik/src/".to_string(),
+        root_dir: "/user/qwik/src/".to_string(),
         input: vec![FileInput {
             code: code.as_bytes().to_vec(),
             path: filename.to_string(),

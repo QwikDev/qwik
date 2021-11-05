@@ -1,6 +1,7 @@
 use crate::parse::PathData;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use swc_atoms::JsWord;
 
 // EntryStrategies
 #[derive(Debug, Serialize, Deserialize)]
@@ -31,15 +32,15 @@ impl BundlingPolicy for PerHookBundle {
     }
 }
 pub struct ManualBundle {
-    map: HashMap<String, String>,
+    map: HashMap<String, JsWord>,
     fallback: String,
 }
 
 impl ManualBundle {
     pub fn new(groups: &[Vec<String>]) -> Self {
-        let mut map: HashMap<String, String> = HashMap::new();
+        let mut map: HashMap<String, JsWord> = HashMap::new();
         for (count, group) in groups.iter().enumerate() {
-            let group_name = format!("entry_{}", count);
+            let group_name = JsWord::from(format!("entry_{}", count));
             for sym in group {
                 map.insert(sym.clone(), group_name.clone());
             }
@@ -55,7 +56,7 @@ impl BundlingPolicy for ManualBundle {
     fn get_entry_for_sym(&self, symbol: &str, _path: &PathData) -> Option<String> {
         let entry = self.map.get(symbol);
         Some(match entry {
-            Some(val) => val.clone(),
+            Some(val) => val.to_string(),
             None => self.fallback.clone(),
         })
     }

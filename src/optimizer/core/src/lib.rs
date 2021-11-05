@@ -32,7 +32,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Debug, Deserialize)]
 pub struct FSConfig {
-    pub project_root: String,
+    pub root_dir: String,
     pub glob: Option<String>,
     pub source_maps: bool,
     pub minify: bool,
@@ -48,7 +48,7 @@ pub struct FileInput {
 
 #[derive(Serialize, Debug, Deserialize)]
 pub struct MultiConfig {
-    pub project_root: String,
+    pub root_dir: String,
     pub input: Vec<FileInput>,
     pub source_maps: bool,
     pub minify: bool,
@@ -58,27 +58,27 @@ pub struct MultiConfig {
 }
 
 pub fn transform_workdir(config: &FSConfig) -> Result<TransformResult, Box<dyn error::Error>> {
-    let project_root = PathBuf::from(&config.project_root);
+    let root_dir = PathBuf::from(&config.root_dir);
     let pattern = if let Some(glob) = &config.glob {
-        project_root.join(glob)
+        root_dir.join(glob)
     } else {
-        project_root.join("**/*.qwik.*")
+        root_dir.join("**/*.qwik.*")
     };
 
     let bundling = parse_bundling(&config.bundling);
     let mut context = TransformContext::new(bundling);
     let paths = glob::glob(pattern.to_str().unwrap())?;
     let mut output = TransformResult {
-        project_root: config.project_root.clone(),
+        root_dir: config.root_dir.clone(),
         ..TransformResult::default()
     };
     let mut default_ext = "js";
     for p in paths {
         let value = p.unwrap();
-        let pathstr = value.strip_prefix(&project_root)?.to_str().unwrap();
+        let pathstr = value.strip_prefix(&root_dir)?.to_str().unwrap();
         let data = fs::read(&value).expect("Unable to read file");
         let mut result = transform_internal(InternalConfig {
-            project_root: config.project_root.clone(),
+            root_dir: config.root_dir.clone(),
             path: pathstr.to_string(),
             minify: config.minify,
             code: &data,
@@ -113,13 +113,13 @@ pub fn transform_input(config: &MultiConfig) -> Result<TransformResult, Box<dyn 
     let bundling = parse_bundling(&config.bundling);
     let mut context = TransformContext::new(bundling);
     let mut output = TransformResult {
-        project_root: config.project_root.clone(),
+        root_dir: config.root_dir.clone(),
         ..TransformResult::default()
     };
     let mut default_ext = "js";
     for p in &config.input {
         let mut result = transform_internal(InternalConfig {
-            project_root: config.project_root.clone(),
+            root_dir: config.root_dir.clone(),
             path: p.path.clone(),
             minify: config.minify,
             code: &p.code,
@@ -170,14 +170,14 @@ fn generate_entries(
         entries_set.insert(entry);
     }
 
-    let dir = Path::new(&result.project_root);
+    let dir = Path::new(&result.root_dir);
     for (entry, hooks) in entries_map.as_ref().iter() {
         let module = new_entry_module(hooks);
         let (code, map) =
             emit_source_code(source_map.clone(), None, &module, false, false).unwrap();
         result.modules.push(TransformModule {
             path: dir
-                .join(format!("{}.{}", entry.to_string(), default_ext))
+                .join([entry, ".", default_ext].concat())
                 .to_str()
                 .unwrap()
                 .to_string(),
@@ -205,7 +205,7 @@ fn new_entry_module(hooks: &[&HookAnalysis]) -> Module {
                     asserts: None,
                     src: Some(Str {
                         span: DUMMY_SP,
-                        value: JsWord::from(format!("./{}", hook.canonical_filename)),
+                        value: JsWord::from(["./", &hook.canonical_filename].concat()),
                         kind: StrKind::Synthesized,
                         has_escape: false,
                     }),

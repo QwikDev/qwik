@@ -234,13 +234,22 @@ impl<'a> Fold for HookTransform<'a> {
                         .get_entry_for_sym(&symbol_name, self.path);
 
                     let canonical_filename =
-                        format!("h_{}_{}", &self.path.file_prefix, symbol_name);
+                        ["h_", &self.path.file_prefix, "_", &symbol_name].concat();
                     let folded = node.fold_children_with(self);
                     let hook_collect = HookCollect::new(&folded);
 
+                    let import_path = {
+                        let filename = if let Some(ref entry) = entry {
+                            entry
+                        } else {
+                            &canonical_filename
+                        };
+                        fix_path("a", &self.path.path, &["./", filename].concat())
+                    };
+
                     self.hooks.push(Hook {
-                        entry: entry.clone(),
-                        canonical_filename: canonical_filename.clone(),
+                        entry,
+                        canonical_filename,
 
                         name: symbol_name.clone(),
                         module_index: self.module_item,
@@ -251,12 +260,6 @@ impl<'a> Fold for HookTransform<'a> {
                         origin: self.path.path.clone(),
                     });
 
-                    let filename = if let Some(entry) = entry {
-                        entry
-                    } else {
-                        canonical_filename
-                    };
-                    let import_path = fix_path("a", &self.path.path, &format!("./{}", &filename));
                     let node = create_inline_qhook(import_path, &symbol_name);
                     self.context.hooks_names.insert(symbol_name);
                     return node;

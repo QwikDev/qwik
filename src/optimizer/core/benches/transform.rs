@@ -39,7 +39,7 @@ fn transform_benchmark(b: &mut Criterion) {
         });
             "#;
             transform_input(black_box(&MultiConfig {
-                project_root: "/user/qwik/src/".to_string(),
+                root_dir: "/user/qwik/src/".to_string(),
                 input: vec![FileInput {
                     code: code.as_bytes().to_vec(),
                     path: "file.tsx".to_string(),

@@ -31,7 +31,7 @@ pub struct HookAnalysis {
 }
 
 pub struct InternalConfig<'a> {
-    pub project_root: String,
+    pub root_dir: String,
     pub path: String,
     pub source_maps: bool,
     pub minify: bool,
@@ -43,7 +43,7 @@ pub struct InternalConfig<'a> {
 
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct TransformResult {
-    pub project_root: String,
+    pub root_dir: String,
     pub modules: Vec<TransformModule>,
     pub diagnostics: Vec<Diagnostic>,
     pub hooks: Vec<HookAnalysis>,
@@ -55,7 +55,7 @@ impl TransformResult {
     pub fn write_to_fs(&self, destination: &str) -> Result<usize, Box<dyn std::error::Error>> {
         let destination = Path::new(destination);
         for module in &self.modules {
-            let origin = Path::new(&module.path).strip_prefix(&self.project_root)?;
+            let origin = Path::new(&module.path).strip_prefix(&self.root_dir)?;
             let write_path = destination.join(origin);
 
             std::fs::create_dir_all(&write_path.parent().unwrap())?;
@@ -116,7 +116,7 @@ pub fn transform_internal(
         dbg!(&module);
     }
     let path = parse_path(&config.path);
-    let dir = Path::new(&config.project_root);
+    let dir = Path::new(&config.root_dir);
     let transpile = config.transpile;
 
     match module {
@@ -153,7 +153,7 @@ pub fn transform_internal(
                             code,
                             map,
                             path: dir
-                                .join(format!("{}.{}", &h.canonical_filename, extension))
+                                .join([&h.canonical_filename, ".", extension].concat())
                                 .to_str()
                                 .unwrap()
                                 .to_string(),
@@ -193,7 +193,7 @@ pub fn transform_internal(
                     TransformModule {
                         path: dir
                             .join(&path.dir)
-                            .join(format!("{}.{}", &path.file_stem, extension))
+                            .join([&path.file_stem, ".", extension].concat())
                             .to_str()
                             .unwrap()
                             .to_string(),
@@ -204,7 +204,7 @@ pub fn transform_internal(
                 );
 
                 Ok(TransformResult {
-                    project_root: config.project_root.clone(),
+                    root_dir: config.root_dir.clone(),
                     modules: output_modules,
                     diagnostics: vec![],
                     hooks,
@@ -219,7 +219,7 @@ pub fn transform_internal(
             err.into_diagnostic(&handler).emit();
             let diagnostics = handle_error(&error_buffer, &config.context.source_map);
             Ok(TransformResult {
-                project_root: config.project_root,
+                root_dir: config.root_dir,
                 hooks: vec![],
                 modules: vec![],
                 diagnostics,
@@ -239,7 +239,7 @@ fn parse(
     let source_file = source_map.new_source_file(FileName::Real(filename.into()), code.into());
 
     let comments = SingleThreadedComments::default();
-    let (is_type_script, is_jsx) = parse_filename(config.path.as_str());
+    let (is_type_script, is_jsx) = parse_filename(&config.path);
     let syntax = if is_type_script {
         Syntax::Typescript(TsConfig {
             tsx: is_jsx,

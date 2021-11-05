@@ -58,7 +58,7 @@ pub fn new_module(path: &PathData, hook: &Hook, global: &GlobalCollect) -> Modul
                     asserts: None,
                     src: Str {
                         span: DUMMY_SP,
-                        value: fix_path(&hook.origin, "a", &format!("./{}", path.file_stem)),
+                        value: fix_path(&hook.origin, "a", &["./", &path.file_stem].concat()),
                         kind: StrKind::Synthesized,
                         has_escape: false,
                     },
@@ -92,7 +92,7 @@ pub fn fix_path(src: &str, dest: &str, ident: &str) -> JsWord {
             if final_str.starts_with('.') {
                 return JsWord::from(final_str);
             } else {
-                return JsWord::from(format!("./{}", final_str));
+                return JsWord::from(["./", final_str].concat());
             }
         }
     }
@@ -110,7 +110,7 @@ fn create_named_export(hook: &Hook) -> ModuleItem {
                 span: DUMMY_SP,
                 definite: false,
                 name: Pat::Ident(BindingIdent::from(Ident::new(
-                    hook.name.clone().into(),
+                    JsWord::from(hook.name.as_str()),
                     DUMMY_SP,
                 ))),
                 init: Some(hook.expr.clone()),

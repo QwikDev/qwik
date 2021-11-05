@@ -28,7 +28,7 @@ jobs:
           restore-keys: npm-cache-
 
       - name: Install NPM Dependencies
-        run: yarn install --ignore-scripts --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
+        run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
 
       - name: Build
         run: yarn build.prod
@@ -56,7 +56,7 @@ jobs:
   #         restore-keys: npm-cache-
 
   #     - name: Install NPM Dependencies
-  #       run: yarn install --ignore-scripts --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
+  #       run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
 
   #     - name: Prettier Check
   #       run: yarn prettier-check
@@ -86,7 +86,7 @@ jobs:
   #         restore-keys: npm-cache-
 
   #     - name: Install NPM Dependencies
-  #       run: yarn install --ignore-scripts --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
+  #       run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
 
   #     - name: Unit Tests
   #       run: |
@@ -224,7 +224,7 @@ jobs:
         shell: bash
 
       - name: Install NPM Dependencies
-        run: yarn install --ignore-scripts --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
+        run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
 
       - name: Build Binding
         run: ${{ matrix.settings.build }}

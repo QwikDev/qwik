@@ -1,6 +1,6 @@
+use crate::parse::PathData;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use crate::parse::PathData;
 
 // EntryStrategies
 #[derive(Debug, Serialize, Deserialize)]
@@ -26,8 +26,8 @@ impl BundlingPolicy for SingleBundle {
 pub struct PerHookBundle {}
 
 impl BundlingPolicy for PerHookBundle {
-    fn get_entry_for_sym(&self, symbol: &str, path: &PathData) -> Option<String> {
-        return None
+    fn get_entry_for_sym(&self, _symbol: &str, _path: &PathData) -> Option<String> {
+        None
     }
 }
 pub struct ManualBundle {

@@ -6,11 +6,9 @@ use std::str;
 use crate::code_move::new_module;
 use crate::collector::global_collect;
 use crate::transform::{Hook, HookTransform, TransformContext};
-use crate::utils::{CodeHighlight, Diagnostic, DiagnosticSeverity, SourceLocation, MapVec};
+use crate::utils::{CodeHighlight, Diagnostic, DiagnosticSeverity, SourceLocation};
 use serde::{Deserialize, Serialize};
-use simple_error::*;
 use std::fs;
-use std::collections::{HashMap, HashSet};
 
 use swc_common::comments::SingleThreadedComments;
 use swc_common::errors::{DiagnosticBuilder, Emitter, Handler};
@@ -24,15 +22,16 @@ use swc_ecmascript::visit::FoldWith;
 
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct HookAnalysis {
-    path: String,
-    name: String,
-    entry: Option<String>,
-    local_decl: Vec<String>,
-    local_idents: Vec<String>,
+    pub origin: String,
+    pub name: String,
+    pub entry: Option<String>,
+    pub canonical_filename: String,
+    pub local_decl: Vec<String>,
+    pub local_idents: Vec<String>,
 }
 
 pub struct InternalConfig<'a> {
-    pub project_root: Option<String>,
+    pub project_root: String,
     pub path: String,
     pub source_maps: bool,
     pub minify: bool,
@@ -44,7 +43,7 @@ pub struct InternalConfig<'a> {
 
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct TransformResult {
-    pub project_root: Option<String>,
+    pub project_root: String,
     pub modules: Vec<TransformModule>,
     pub diagnostics: Vec<Diagnostic>,
     pub hooks: Vec<HookAnalysis>,
@@ -52,21 +51,14 @@ pub struct TransformResult {
 
 impl TransformResult {
     pub fn write_to_fs(&self, destination: &str) -> Result<usize, Box<dyn std::error::Error>> {
-        match self.project_root {
-            None => {
-                bail!("project_root needs to be defined");
-            }
-            Some(ref project_root) => {
-                let destination = Path::new(destination);
-                for module in &self.modules {
-                    let origin = Path::new(&module.path).strip_prefix(project_root)?;
-                    let write_path = destination.join(origin);
-                    std::fs::create_dir_all(&write_path)?;
-                    fs::write(write_path, &module.code)?;
-                }
-                Ok(self.modules.len())
-            }
+        let destination = Path::new(destination);
+        for module in &self.modules {
+            let origin = Path::new(&module.path).strip_prefix(&self.project_root)?;
+            let write_path = destination.join(origin);
+            std::fs::create_dir_all(&write_path)?;
+            fs::write(write_path, &module.code)?;
         }
+        Ok(self.modules.len())
     }
 }
 
@@ -118,8 +110,8 @@ pub fn transform_internal(
     if config.print_ast {
         dbg!(&module);
     }
-    let (p, path) = parse_path(&config.path);
-    let dir = p.parent().unwrap();
+    let path = parse_path(&config.path);
+    let dir = Path::new(&config.project_root);
     let transpile = true;
 
     match module {
@@ -149,7 +141,11 @@ pub fn transform_internal(
                     TransformModule {
                         code,
                         map,
-                        path: dir.join(&h.canonical_filename).to_str().unwrap().to_string(),
+                        path: dir
+                            .join(&h.canonical_filename)
+                            .to_str()
+                            .unwrap()
+                            .to_string(),
                     }
                 })
                 .collect();
@@ -157,9 +153,10 @@ pub fn transform_internal(
             let hooks: Vec<HookAnalysis> = hooks
                 .iter()
                 .map(|h| HookAnalysis {
-                    path: dir.join(&h.canonical_filename).to_str().unwrap().to_string(),
+                    origin: h.origin.clone(),
                     name: h.name.clone(),
                     entry: h.entry.clone(),
+                    canonical_filename: h.canonical_filename.clone(),
                     local_decl: h.local_decl.iter().map(|d| d.to_string()).collect(),
                     local_idents: h.local_idents.iter().map(|d| d.to_string()).collect(),
                 })
@@ -186,7 +183,7 @@ pub fn transform_internal(
             );
 
             Ok(TransformResult {
-                project_root: config.project_root,
+                project_root: config.project_root.clone(),
                 modules: output_modules,
                 diagnostics: vec![],
                 hooks,
@@ -234,7 +231,6 @@ fn parse(
         })
     };
 
-
     let lexer = Lexer::new(
         syntax,
         Default::default(),
@@ -259,7 +255,7 @@ fn parse_filename(filename: &str) -> (bool, bool) {
     }
 }
 
-fn emit_source_code(
+pub fn emit_source_code(
     source_map: Lrc<SourceMap>,
     comments: Option<SingleThreadedComments>,
     program: &Module,
@@ -352,6 +348,7 @@ fn handle_error(error_buffer: &ErrorBuffer, source_map: &Lrc<SourceMap>) -> Vec<
 }
 
 pub struct PathData {
+    pub path: String,
     pub dir: String,
     pub file_stem: String,
     pub extension: String,
@@ -359,23 +356,32 @@ pub struct PathData {
     pub file_prefix: String,
 }
 
-pub fn parse_path(path: &str) -> (&Path, PathData) {
-
-    let path = Path::new(path);
+pub fn parse_path(src: &str) -> PathData {
+    let path = Path::new(src);
     let file_stem = path.file_stem().unwrap().to_str().unwrap().to_string();
-    let dir = if let Some(dir) = path.parent() { dir.to_str().unwrap().to_string() } else { "".to_string() };
-    let extension = if let Some(ext) = path.extension() { ext.to_str().unwrap().to_string() } else { "".to_string() };
+    let dir = if let Some(dir) = path.parent() {
+        dir.to_str().unwrap().to_string()
+    } else {
+        "".to_string()
+    };
+    let extension = if let Some(ext) = path.extension() {
+        ext.to_str().unwrap().to_string()
+    } else {
+        "".to_string()
+    };
     let file_name = path.file_name().unwrap().to_str().unwrap().to_string();
-    let file_prefix = if let Some(index) = file_name.find('.') { file_name[0..index].to_string() } else { file_name.clone() };
+    let file_prefix = if let Some(index) = file_name.find('.') {
+        file_name[0..index].to_string()
+    } else {
+        file_name.clone()
+    };
 
-    (
-        path,
-        PathData{
-            dir,
-            file_stem,
-            extension,
-            file_name,
-            file_prefix
-        }
-    )
+    PathData {
+        path: src.to_string(),
+        dir,
+        file_stem,
+        extension,
+        file_name,
+        file_prefix,
+    }
 }

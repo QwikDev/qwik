@@ -18,39 +18,41 @@ export const App = () => {
     return Header;
 });
     
-============================= test.js==
+============================= /user/qwik/src/test.js==
 
 export const App = ()=>{
     const Header = qComponent({
-        "onMount": qHook("h_test_App_Header_onMount.js#App_Header_onMount"),
-        onRender: qHook("h_test_App_Header_onRender.js#App_Header_onRender")
+        "onMount": qHook("h_test_App_Header_onMount#App_Header_onMount"),
+        onRender: qHook("h_test_App_Header_onRender#App_Header_onRender")
     });
     return Header;
 };
 
-============================= h_test_App_Header_onMount.js==
+============================= /user/qwik/src/h_test_App_Header_onMount==
 
 export const App_Header_onMount = qHook(()=>{
     console.log("mount");
 });
 
-============================= h_test_App_Header_onRender_div_onClick.js==
+============================= /user/qwik/src/h_test_App_Header_onRender_div_onClick==
 
 export const App_Header_onRender_div_onClick = qHook((ctx)=>console.log(ctx)
 );
 
-============================= h_test_App_Header_onRender.js==
+============================= /user/qwik/src/h_test_App_Header_onRender==
 
 export const App_Header_onRender = qHook(()=>{
-    return (<div onClick={qHook("h_test_App_Header_onRender_div_onClick.js#App_Header_onRender_div_onClick")}/>);
+    return (<div onClick={qHook("h_test_App_Header_onRender_div_onClick#App_Header_onRender_div_onClick")}/>);
 });
 
 == HOOKS ==
 
 [
   {
-    "path": "h_test_App_Header_onMount.js",
+    "origin": "test.tsx",
     "name": "App_Header_onMount",
+    "entry": null,
+    "canonical_filename": "h_test_App_Header_onMount",
     "local_decl": [],
     "local_idents": [
       "console",
@@ -59,8 +61,10 @@ export const App_Header_onRender = qHook(()=>{
     ]
   },
   {
-    "path": "h_test_App_Header_onRender_div_onClick.js",
+    "origin": "test.tsx",
     "name": "App_Header_onRender_div_onClick",
+    "entry": null,
+    "canonical_filename": "h_test_App_Header_onRender_div_onClick",
     "local_decl": [
       "ctx"
     ],
@@ -72,8 +76,10 @@ export const App_Header_onRender = qHook(()=>{
     ]
   },
   {
-    "path": "h_test_App_Header_onRender.js",
+    "origin": "test.tsx",
     "name": "App_Header_onRender",
+    "entry": null,
+    "canonical_filename": "h_test_App_Header_onRender",
     "local_decl": [],
     "local_idents": [
       "div",

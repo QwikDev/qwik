@@ -12,24 +12,27 @@ mod parse;
 mod transform;
 mod utils;
 
+use std::collections::HashSet;
 use std::error;
 use std::fs;
 use std::path::PathBuf;
 use std::str;
-use std::collections::HashSet;
+use swc_atoms::JsWord;
+use swc_common::{sync::Lrc, SourceMap, DUMMY_SP};
+use swc_ecmascript::ast::*;
 
 use crate::bundling::parse_bundling;
-use crate::parse::{transform_internal, InternalConfig, parse_path};
-use crate::utils::{MapVec};
 pub use crate::bundling::Bundling;
-pub use crate::parse::{ErrorBuffer, HookAnalysis, TransformResult, TransformModule};
+use crate::parse::{emit_source_code, transform_internal, InternalConfig};
+pub use crate::parse::{ErrorBuffer, HookAnalysis, TransformModule, TransformResult};
 pub use crate::transform::{Hook, TransformContext};
+use crate::utils::{Diagnostic, MapVec};
 
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Debug, Deserialize)]
 pub struct FSConfig {
-    pub input: String,
+    pub project_root: String,
     pub glob: Option<String>,
     pub source_maps: bool,
     pub minify: bool,
@@ -45,6 +48,7 @@ pub struct FileInput {
 
 #[derive(Serialize, Debug, Deserialize)]
 pub struct MultiConfig {
+    pub project_root: String,
     pub input: Vec<FileInput>,
     pub source_maps: bool,
     pub minify: bool,
@@ -54,26 +58,26 @@ pub struct MultiConfig {
 }
 
 pub fn transform_workdir(config: &FSConfig) -> Result<TransformResult, Box<dyn error::Error>> {
-    let srcdir = PathBuf::from(&config.input);
+    let project_root = PathBuf::from(&config.project_root);
     let pattern = if let Some(glob) = &config.glob {
-        srcdir.join(glob)
+        project_root.join(glob)
     } else {
-        srcdir.join("**/*.qwik.*")
+        project_root.join("**/*.qwik.*")
     };
 
     let bundling = parse_bundling(&config.bundling);
     let mut context = TransformContext::new(bundling);
     let paths = glob::glob(pattern.to_str().unwrap())?;
     let mut output = TransformResult {
-        project_root: Some(srcdir.to_str().unwrap().to_string()),
+        project_root: config.project_root.clone(),
         ..TransformResult::default()
     };
     for p in paths {
         let value = p.unwrap();
-        let pathstr = value.to_str().unwrap();
+        let pathstr = value.strip_prefix(&project_root)?.to_str().unwrap();
         let data = fs::read(&value).expect("Unable to read file");
         let mut result = transform_internal(InternalConfig {
-            project_root: None,
+            project_root: config.project_root.clone(),
             path: pathstr.to_string(),
             minify: config.minify,
             code: &data,
@@ -96,13 +100,18 @@ pub fn transform_workdir(config: &FSConfig) -> Result<TransformResult, Box<dyn e
     Ok(output)
 }
 
-pub fn transform_input(config: &MultiConfig) -> Result<TransformResult, Box<dyn error::Error>> {
+pub fn transform_input(
+    config: &MultiConfig,
+) -> Result<TransformEntryResult, Box<dyn error::Error>> {
     let bundling = parse_bundling(&config.bundling);
     let mut context = TransformContext::new(bundling);
-    let mut output = TransformResult::default();
+    let mut output = TransformResult {
+        project_root: config.project_root.clone(),
+        ..TransformResult::default()
+    };
     for p in &config.input {
         let mut result = transform_internal(InternalConfig {
-            project_root: None,
+            project_root: config.project_root.clone(),
             path: p.path.clone(),
             minify: config.minify,
             code: &p.code,
@@ -123,25 +132,81 @@ pub fn transform_input(config: &MultiConfig) -> Result<TransformResult, Box<dyn 
         }
     }
 
-    Ok(output)
+    Ok(generate_entries(output, context.source_map.clone()))
 }
 
 pub struct TransformEntryResult {
-    pub project_root: Option<String>,
+    pub project_root: String,
     pub modules: Vec<TransformModule>,
     pub diagnostics: Vec<Diagnostic>,
     pub hooks: Vec<HookAnalysis>,
+    pub entries: Vec<String>,
 }
 
-fn generate_entries(result: &TransformResult) {
+fn generate_entries(result: TransformResult, source_map: Lrc<SourceMap>) -> TransformEntryResult {
     let mut entries_set = HashSet::new();
     let mut entries_map = MapVec::new();
-    for hook in &hooks {
-        let mut entry = hook.canonical_filename;
-        if let Some(e) = hook.entry {
-            entries_map.push(e, hook);
-            entry = e;
+    for hook in &result.hooks {
+        let entry = if let Some(ref e) = hook.entry {
+            e.clone()
+        } else {
+            hook.canonical_filename.clone()
+        };
+        if hook.entry != None {
+            entries_map.push(entry.clone(), hook);
         }
         entries_set.insert(entry);
     }
+
+    let mut modules = result.modules;
+    for (entry, hooks) in entries_map.as_ref().iter() {
+        let module = new_entry_module(hooks);
+        let (code, map) =
+            emit_source_code(source_map.clone(), None, &module, false, false).unwrap();
+        modules.push(TransformModule {
+            path: entry.to_string(),
+            code,
+            map,
+        });
+    }
+    TransformEntryResult {
+        project_root: result.project_root,
+        modules,
+        diagnostics: result.diagnostics,
+        hooks: result.hooks,
+        entries: entries_set.into_iter().collect(),
+    }
+}
+
+fn new_entry_module(hooks: &[&HookAnalysis]) -> Module {
+    let mut module = Module {
+        span: DUMMY_SP,
+        body: vec![],
+        shebang: None,
+    };
+    for hook in hooks {
+        module
+            .body
+            .push(ModuleItem::ModuleDecl(ModuleDecl::ExportNamed(
+                NamedExport {
+                    span: DUMMY_SP,
+                    type_only: false,
+                    asserts: None,
+                    src: Some(Str {
+                        span: DUMMY_SP,
+                        value: JsWord::from(format!("./{}", hook.canonical_filename)),
+                        kind: StrKind::Synthesized,
+                        has_escape: false,
+                    }),
+                    specifiers: vec![ExportSpecifier::Named(ExportNamedSpecifier {
+                        is_type_only: false,
+                        span: DUMMY_SP,
+                        orig: Ident::new(JsWord::from(hook.name.clone()), DUMMY_SP),
+                        exported: None,
+                    })],
+                },
+            )));
+    }
+
+    module
 }

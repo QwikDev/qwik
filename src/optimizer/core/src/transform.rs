@@ -20,6 +20,7 @@ pub struct Hook {
     pub expr: Box<Expr>,
     pub local_decl: Vec<JsWord>,
     pub local_idents: Vec<JsWord>,
+    pub origin: String,
 }
 
 pub struct TransformContext {
@@ -50,7 +51,11 @@ pub struct HookTransform<'a> {
 }
 
 impl<'a> HookTransform<'a> {
-    pub fn new(ctx: &'a mut TransformContext, path: &'a PathData, hooks: &'a mut Vec<Hook>) -> Self {
+    pub fn new(
+        ctx: &'a mut TransformContext,
+        path: &'a PathData,
+        hooks: &'a mut Vec<Hook>,
+    ) -> Self {
         HookTransform {
             path,
             stack_ctxt: vec![],
@@ -227,21 +232,29 @@ impl<'a> Fold for HookTransform<'a> {
                         .bundling_policy
                         .get_entry_for_sym(&symbol_name, self.path);
 
-                    let canonical_filename = format!("h_{}_{}", &self.path.file_prefix, symbol_name);
+                    let canonical_filename =
+                        format!("h_{}_{}", &self.path.file_prefix, symbol_name);
                     let folded = node.fold_children_with(self);
                     let hook_collect = HookCollect::new(&folded);
 
                     self.hooks.push(Hook {
                         entry: entry.clone(),
                         canonical_filename: canonical_filename.clone(),
+
                         name: symbol_name.clone(),
                         module_index: self.module_item,
                         expr: Box::new(Expr::Call(folded)),
                         local_decl: hook_collect.get_local_decl(),
                         local_idents: hook_collect.get_local_idents(),
+
+                        origin: self.path.path.clone(),
                     });
 
-                    let filename = if let Some(entry) = entry { entry } else { canonical_filename };
+                    let filename = if let Some(entry) = entry {
+                        entry
+                    } else {
+                        canonical_filename
+                    };
                     let qurl = format!("{}#{}", filename, symbol_name);
                     self.context.hooks_names.insert(symbol_name);
                     return create_inline_qhook(&qurl);

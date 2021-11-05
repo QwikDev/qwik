@@ -214,9 +214,9 @@ const Header = qHook((decl1, {decl2}, [decl3]) => {
 #[test]
 fn example_11() {
     test_input(
-        "/user/project/test.tsx",
+        "project/test.tsx",
         r#"
-import {foo, bar as bbar} from "dep";
+import {foo, bar as bbar} from "../state";
 import * as dep2 from "dep2";
 import dep3 from "dep3/something";
 
@@ -273,6 +273,7 @@ export const App = qComponent({
 
 fn test_input(filename: &str, code: &str, print_ast: bool) {
     let res = transform_input(&MultiConfig {
+        project_root: "/user/qwik/src/".to_string(),
         input: vec![FileInput {
             code: code.as_bytes().to_vec(),
             path: filename.to_string(),

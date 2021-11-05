@@ -20,6 +20,8 @@ serde = "1.0.123"
 serde_bytes = "0.11.5"
 glob = "0.3.0"
 simple-error = "0.1.9"
+pathdiff = "0.2.1"
+relative-path = "1.5.0"
 
 [dev-dependencies]
 criterion = "0.3"

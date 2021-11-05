@@ -17,6 +17,7 @@ const Header = qComponent({
   })
 });
     "#,
+    Bundling::PerHook,
         false,
     );
 }
@@ -35,6 +36,8 @@ export const Header = qComponent({
   })
 });
     "#,
+    Bundling::PerHook,
+
         false,
     );
 }
@@ -56,6 +59,7 @@ export const App = () => {
     return Header;
 });
     "#,
+    Bundling::PerHook,
         false,
     );
 }
@@ -77,6 +81,7 @@ export function App() {
     return Header;
 }
     "#,
+    Bundling::PerHook,
         false,
     );
 }
@@ -97,6 +102,7 @@ export const Header = qComponent({
     })
 });
     "#,
+    Bundling::PerHook,
         false,
     );
 }
@@ -108,6 +114,7 @@ fn example_6() {
         r#"
 export const sym1 = qHook((ctx) => console.log("1"));
     "#,
+    Bundling::PerHook,
         false,
     );
 }
@@ -136,6 +143,7 @@ const App = qComponent({
         );
     })
 });"#,
+Bundling::PerHook,
         false,
     );
 }
@@ -158,6 +166,7 @@ const Header = qComponent({
     })
   });
 "#,
+Bundling::PerHook,
         false,
     );
 }
@@ -179,6 +188,7 @@ const Header = qHook((decl1, {decl2}, [decl3]) => {
     try{}catch({decl19}){}
 });
     "#,
+    Bundling::PerHook,
         false,
     );
 }
@@ -207,6 +217,7 @@ const Header = qHook((decl1, {decl2}, [decl3]) => {
     )
 });
     "#,
+    Bundling::PerHook,
         false,
     );
 }
@@ -238,6 +249,7 @@ export const App = qComponent({
     })
 });
     "#,
+        Bundling::Single,
         false,
     );
 }
@@ -271,7 +283,7 @@ export const App = qComponent({
 //     }
 // }
 
-fn test_input(filename: &str, code: &str, print_ast: bool) {
+fn test_input(filename: &str, code: &str, bundling: Bundling, print_ast: bool) {
     let res = transform_input(&MultiConfig {
         project_root: "/user/qwik/src/".to_string(),
         input: vec![FileInput {
@@ -282,7 +294,7 @@ fn test_input(filename: &str, code: &str, print_ast: bool) {
         minify: false,
         transpile: false,
         print_ast,
-        bundling: Bundling::PerHook,
+        bundling,
     });
     match res {
         Ok(v) => {

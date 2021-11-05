@@ -31,7 +31,7 @@ jobs:
         run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
 
       - name: Build
-        run: yarn build.prod
+        run: yarn build.ci
 
       - name: Upload Package Build Artifacts
         uses: actions/upload-artifact@master

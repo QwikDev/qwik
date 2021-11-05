@@ -16,9 +16,12 @@ export async function transformCode(opts: TransformCodeOptions) {
   };
   try {
     const binding = loadPlatformBinding();
-    console.log('Binding exports', binding);
-    const val = binding.sync_fn(88);
-    console.log('binding result:', val);
+
+    const val = binding.sync(88);
+    console.log('binding.sync(88):', val);
+
+    const val2 = await binding.sleep(99);
+    console.log('binding.sleep(99):', val2);
   } catch (e) {
     catchDiagnostics(result.diagnostics, e);
   }

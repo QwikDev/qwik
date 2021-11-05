@@ -16,7 +16,7 @@ export function apiExtractor(config: BuildConfig) {
 
   // the jsx-runtime.d.ts file was already generated with tsc, use this one
   const jsxRuntimeSrcPath = join(config.tscDir, 'src', 'jsx-runtime.d.ts');
-  const jsxRuntimeDestPath = join(config.pkgDir, 'jsx-runtime', 'index.d.ts');
+  const jsxRuntimeDestPath = join(config.distPkgDir, 'jsx-runtime', 'index.d.ts');
   fixDtsContent(jsxRuntimeSrcPath, jsxRuntimeDestPath, '../core');
 
   console.log('🥶', 'submodule APIs generated');
@@ -42,7 +42,7 @@ function createTypesApi(
     process.exit(1);
   }
   const srcPath = result.extractorConfig.untrimmedFilePath;
-  const destPath = join(config.pkgDir, outFileName);
+  const destPath = join(config.distPkgDir, outFileName);
   fixDtsContent(srcPath, destPath, corePath);
 }
 

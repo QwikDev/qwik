@@ -23,7 +23,7 @@ export async function submoduleTesting(config: BuildConfig) {
       'jest-preprocessor': join(config.srcDir, submodule, 'jest', 'preprocessor.ts'),
       'jest-preset': join(config.srcDir, submodule, 'jest', 'preset.ts'),
     },
-    outdir: join(config.pkgDir, submodule),
+    outdir: join(config.distPkgDir, submodule),
     sourcemap: config.dev,
     bundle: true,
     target,
@@ -68,5 +68,5 @@ export async function submoduleTesting(config: BuildConfig) {
 
   await Promise.all([esm, cjs]);
 
-  console.log('🦄', submodule);
+  console.log('🦁', submodule);
 }

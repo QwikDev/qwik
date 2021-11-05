@@ -5,9 +5,9 @@
 #[cfg(test)]
 mod test;
 
-mod bundling;
 mod code_move;
 mod collector;
+mod entry_strategy;
 mod parse;
 mod transform;
 mod utils;
@@ -21,8 +21,8 @@ use swc_atoms::JsWord;
 use swc_common::{sync::Lrc, SourceMap, DUMMY_SP};
 use swc_ecmascript::ast::*;
 
-use crate::bundling::parse_bundling;
-pub use crate::bundling::Bundling;
+use crate::entry_strategy::parse_entry_strategy;
+pub use crate::entry_strategy::EntryStrategy;
 use crate::parse::{emit_source_code, transform_internal, InternalConfig};
 pub use crate::parse::{ErrorBuffer, HookAnalysis, TransformModule, TransformResult};
 pub use crate::transform::{Hook, TransformContext};
@@ -37,7 +37,7 @@ pub struct FSConfig {
     pub source_maps: bool,
     pub minify: bool,
     pub transpile: bool,
-    pub bundling: Bundling,
+    pub entry_strategy: EntryStrategy,
 }
 
 #[derive(Serialize, Debug, Deserialize)]
@@ -54,7 +54,7 @@ pub struct MultiConfig {
     pub minify: bool,
     pub transpile: bool,
     pub print_ast: bool,
-    pub bundling: Bundling,
+    pub entry_strategy: EntryStrategy,
 }
 
 pub fn transform_workdir(config: &FSConfig) -> Result<TransformResult, Box<dyn error::Error>> {
@@ -65,7 +65,7 @@ pub fn transform_workdir(config: &FSConfig) -> Result<TransformResult, Box<dyn e
         root_dir.join("**/*.qwik.*")
     };
 
-    let bundling = parse_bundling(&config.bundling);
+    let bundling = parse_entry_strategy(&config.entry_strategy);
     let mut context = TransformContext::new(bundling);
     let paths = glob::glob(pattern.to_str().unwrap())?;
     let mut output = TransformResult {
@@ -111,7 +111,7 @@ pub fn transform_workdir(config: &FSConfig) -> Result<TransformResult, Box<dyn e
 }
 
 pub fn transform_input(config: &MultiConfig) -> Result<TransformResult, Box<dyn error::Error>> {
-    let bundling = parse_bundling(&config.bundling);
+    let bundling = parse_entry_strategy(&config.entry_strategy);
     let mut context = TransformContext::new(bundling);
     let mut output = TransformResult {
         root_dir: config.root_dir.clone(),

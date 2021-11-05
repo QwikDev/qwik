@@ -5,19 +5,19 @@ use swc_atoms::JsWord;
 
 // EntryStrategies
 #[derive(Debug, Serialize, Deserialize)]
-pub enum Bundling {
+pub enum EntryStrategy {
     Single,
     PerHook,
     Manual(Vec<Vec<String>>),
 }
-pub trait BundlingPolicy {
+pub trait EntryPolicy {
     fn get_entry_for_sym(&self, symbol: &str, path: &PathData) -> Option<String>;
 }
 
 #[derive(Default)]
 pub struct SingleBundle {}
 
-impl BundlingPolicy for SingleBundle {
+impl EntryPolicy for SingleBundle {
     fn get_entry_for_sym(&self, _symbol: &str, _path: &PathData) -> Option<String> {
         Some("entry_hooks".to_string())
     }
@@ -26,7 +26,7 @@ impl BundlingPolicy for SingleBundle {
 #[derive(Default)]
 pub struct PerHookBundle {}
 
-impl BundlingPolicy for PerHookBundle {
+impl EntryPolicy for PerHookBundle {
     fn get_entry_for_sym(&self, _symbol: &str, _path: &PathData) -> Option<String> {
         None
     }
@@ -52,7 +52,7 @@ impl ManualBundle {
     }
 }
 
-impl BundlingPolicy for ManualBundle {
+impl EntryPolicy for ManualBundle {
     fn get_entry_for_sym(&self, symbol: &str, _path: &PathData) -> Option<String> {
         let entry = self.map.get(symbol);
         Some(match entry {
@@ -62,10 +62,10 @@ impl BundlingPolicy for ManualBundle {
     }
 }
 
-pub fn parse_bundling(bundling: &Bundling) -> Box<dyn BundlingPolicy> {
-    match bundling {
-        Bundling::Single => Box::new(SingleBundle::default()),
-        Bundling::PerHook => Box::new(PerHookBundle::default()),
-        Bundling::Manual(ref groups) => Box::new(ManualBundle::new(groups)),
+pub fn parse_entry_strategy(strategy: &EntryStrategy) -> Box<dyn EntryPolicy> {
+    match strategy {
+        EntryStrategy::Single => Box::new(SingleBundle::default()),
+        EntryStrategy::PerHook => Box::new(PerHookBundle::default()),
+        EntryStrategy::Manual(ref groups) => Box::new(ManualBundle::new(groups)),
     }
 }

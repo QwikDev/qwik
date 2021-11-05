@@ -1,6 +1,6 @@
-use crate::bundling::BundlingPolicy;
 use crate::code_move::fix_path;
 use crate::collector::HookCollect;
+use crate::entry_strategy::EntryPolicy;
 use crate::parse::PathData;
 
 use ast::*;
@@ -27,11 +27,11 @@ pub struct Hook {
 pub struct TransformContext {
     pub source_map: Lrc<SourceMap>,
     pub hooks_names: HashSet<String>,
-    pub bundling_policy: Box<dyn BundlingPolicy>,
+    pub bundling_policy: Box<dyn EntryPolicy>,
 }
 
 impl TransformContext {
-    pub fn new(bundling_policy: Box<dyn BundlingPolicy>) -> Self {
+    pub fn new(bundling_policy: Box<dyn EntryPolicy>) -> Self {
         Self {
             hooks_names: HashSet::with_capacity(10),
             source_map: Lrc::new(SourceMap::default()),

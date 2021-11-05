@@ -17,7 +17,7 @@ const Header = qComponent({
   })
 });
     "#,
-        Bundling::PerHook,
+        EntryStrategy::PerHook,
         false,
     );
 }
@@ -36,7 +36,7 @@ export const Header = qComponent({
   })
 });
     "#,
-        Bundling::PerHook,
+        EntryStrategy::PerHook,
         false,
     );
 }
@@ -58,7 +58,7 @@ export const App = () => {
     return Header;
 });
     "#,
-        Bundling::PerHook,
+        EntryStrategy::PerHook,
         false,
     );
 }
@@ -80,7 +80,7 @@ export function App() {
     return Header;
 }
     "#,
-        Bundling::PerHook,
+        EntryStrategy::PerHook,
         false,
     );
 }
@@ -101,7 +101,7 @@ export const Header = qComponent({
     })
 });
     "#,
-        Bundling::PerHook,
+        EntryStrategy::PerHook,
         false,
     );
 }
@@ -113,7 +113,7 @@ fn example_6() {
         r#"
 export const sym1 = qHook((ctx) => console.log("1"));
     "#,
-        Bundling::PerHook,
+        EntryStrategy::PerHook,
         false,
     );
 }
@@ -142,7 +142,7 @@ const App = qComponent({
         );
     })
 });"#,
-        Bundling::PerHook,
+        EntryStrategy::PerHook,
         false,
     );
 }
@@ -165,7 +165,7 @@ const Header = qComponent({
     })
   });
 "#,
-        Bundling::PerHook,
+        EntryStrategy::PerHook,
         false,
     );
 }
@@ -187,7 +187,7 @@ const Header = qHook((decl1, {decl2}, [decl3]) => {
     try{}catch({decl19}){}
 });
     "#,
-        Bundling::PerHook,
+        EntryStrategy::PerHook,
         false,
     );
 }
@@ -216,7 +216,7 @@ const Header = qHook((decl1, {decl2}, [decl3]) => {
     )
 });
     "#,
-        Bundling::PerHook,
+        EntryStrategy::PerHook,
         false,
     );
 }
@@ -248,7 +248,7 @@ export const App = qComponent({
     })
 });
     "#,
-        Bundling::Single,
+        EntryStrategy::Single,
         false,
     );
 }
@@ -282,7 +282,7 @@ export const App = qComponent({
 //     }
 // }
 
-fn test_input(filename: &str, code: &str, bundling: Bundling, print_ast: bool) {
+fn test_input(filename: &str, code: &str, entry_strategy: EntryStrategy, print_ast: bool) {
     let res = transform_input(&MultiConfig {
         root_dir: "/user/qwik/src/".to_string(),
         input: vec![FileInput {
@@ -293,7 +293,7 @@ fn test_input(filename: &str, code: &str, bundling: Bundling, print_ast: bool) {
         minify: false,
         transpile: false,
         print_ast,
-        bundling,
+        entry_strategy,
     });
     match res {
         Ok(v) => {

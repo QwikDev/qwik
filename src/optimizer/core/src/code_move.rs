@@ -83,7 +83,7 @@ pub fn fix_path(src: &str, dest: &str, ident: &str) -> JsWord {
     if ident.starts_with('.') {
         let diff = pathdiff::diff_paths(
             Path::new(src).parent().unwrap(),
-            Path::new(dest).parent().unwrap()
+            Path::new(dest).parent().unwrap(),
         );
         if let Some(diff) = diff {
             let relative = relative_path::RelativePath::from_path(&diff).unwrap();

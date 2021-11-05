@@ -26,7 +26,7 @@ pub use crate::bundling::Bundling;
 use crate::parse::{emit_source_code, transform_internal, InternalConfig};
 pub use crate::parse::{ErrorBuffer, HookAnalysis, TransformModule, TransformResult};
 pub use crate::transform::{Hook, TransformContext};
-use crate::utils::{Diagnostic, MapVec};
+use crate::utils::MapVec;
 
 use serde::{Deserialize, Serialize};
 
@@ -72,6 +72,7 @@ pub fn transform_workdir(config: &FSConfig) -> Result<TransformResult, Box<dyn e
         project_root: config.project_root.clone(),
         ..TransformResult::default()
     };
+    let mut default_ext = "js";
     for p in paths {
         let value = p.unwrap();
         let pathstr = value.strip_prefix(&project_root)?.to_str().unwrap();
@@ -91,18 +92,24 @@ pub fn transform_workdir(config: &FSConfig) -> Result<TransformResult, Box<dyn e
                 output.modules.append(&mut result.modules);
                 output.hooks.append(&mut result.hooks);
                 output.diagnostics.append(&mut result.diagnostics);
+                if !config.transpile && result.is_type_script {
+                    default_ext = "ts";
+                }
             }
             Err(err) => {
                 return Err(err);
             }
         }
     }
-    Ok(output)
+
+    Ok(generate_entries(
+        output,
+        default_ext,
+        context.source_map.clone(),
+    ))
 }
 
-pub fn transform_input(
-    config: &MultiConfig,
-) -> Result<TransformResult, Box<dyn error::Error>> {
+pub fn transform_input(config: &MultiConfig) -> Result<TransformResult, Box<dyn error::Error>> {
     let bundling = parse_bundling(&config.bundling);
     let mut context = TransformContext::new(bundling);
     let mut output = TransformResult {

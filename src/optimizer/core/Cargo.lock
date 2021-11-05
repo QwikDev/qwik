@@ -1005,12 +1005,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f9629de8974fd69c97684736786b807edd3da456d3e3f95341dd9d4cbd8f5ad6"
 
 [[package]]
-name = "retain_mut"
-version = "0.1.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "448296241d034b96c11173591deaa1302f2c17b56092106c1f92c1bc0183a8c9"
-
-[[package]]
 name = "rustc-hash"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1272,7 +1266,6 @@ checksum = "7d0ebf30bbbc54bd2e2115f9bf9f3226b8e6039ed1a076992af4c09c49de7947"
 dependencies = [
  "ahash",
  "ast_node",
- "atty",
  "cfg-if 0.1.10",
  "either",
  "from_variant",
@@ -1286,7 +1279,6 @@ dependencies = [
  "string_cache",
  "swc_eq_ignore_macros",
  "swc_visit",
- "termcolor",
  "tracing",
  "unicode-width",
  "url",
@@ -1392,8 +1384,6 @@ dependencies = [
  "swc_ecma_parser",
  "swc_ecma_transforms_base",
  "swc_ecma_transforms_module",
- "swc_ecma_transforms_optimization",
- "swc_ecma_transforms_react",
  "swc_ecma_transforms_typescript",
  "swc_ecma_utils",
  "swc_ecma_visit",
@@ -1452,29 +1442,6 @@ dependencies = [
  "swc_ecma_transforms_base",
  "swc_ecma_utils",
  "swc_ecma_visit",
-]
-
-[[package]]
-name = "swc_ecma_transforms_optimization"
-version = "0.60.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "56fd9528f033331f6598798b181e35bb3e7f308ebc891223d5765c58523b1bbd"
-dependencies = [
- "ahash",
- "dashmap",
- "indexmap",
- "once_cell",
- "retain_mut",
- "serde_json",
- "swc_atoms",
- "swc_common",
- "swc_ecma_ast",
- "swc_ecma_parser",
- "swc_ecma_transforms_base",
- "swc_ecma_transforms_macros",
- "swc_ecma_utils",
- "swc_ecma_visit",
- "tracing",
 ]
 
 [[package]]
@@ -1618,15 +1585,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "unicode-xid",
-]
-
-[[package]]
-name = "termcolor"
-version = "1.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2dfed899f0eb03f32ee8c6a0aabdb8a7949659e3466561fc0adf54e26d88c5f4"
-dependencies = [
- "winapi-util",
 ]
 
 [[package]]

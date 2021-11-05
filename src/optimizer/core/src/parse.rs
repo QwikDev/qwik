@@ -57,7 +57,8 @@ impl TransformResult {
         for module in &self.modules {
             let origin = Path::new(&module.path).strip_prefix(&self.project_root)?;
             let write_path = destination.join(origin);
-            std::fs::create_dir_all(&write_path)?;
+
+            std::fs::create_dir_all(&write_path.parent().unwrap())?;
             fs::write(write_path, &module.code)?;
         }
         Ok(self.modules.len())
@@ -157,7 +158,7 @@ pub fn transform_internal(
                                 .unwrap()
                                 .to_string(),
 
-                            is_entry: h.entry == None
+                            is_entry: h.entry == None,
                         }
                     })
                     .collect();

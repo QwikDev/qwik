@@ -1,6 +1,6 @@
 use clap::Parser;
 use path_absolutize::*;
-use qwik_core::{transform_workdir, FSConfig};
+use qwik_core::{transform_workdir, Bundling, FSConfig};
 
 /// Qwik CLI allows to optimize qwik projects before bundling
 #[derive(Parser)]
@@ -63,11 +63,12 @@ fn optimize(t: Optimize) -> Result<qwik_core::TransformResult, Box<dyn std::erro
         .to_string();
 
     let result = transform_workdir(&FSConfig {
-        input: input,
+        project_root: input,
         glob: None,
         source_maps: true,
         minify: false,
         transpile: true,
+        bundling: Bundling::Single,
     })?;
 
     result.write_to_fs(&output)?;

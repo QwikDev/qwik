@@ -1,7 +1,7 @@
 use crate::bundling::BundlingPolicy;
+use crate::code_move::fix_path;
 use crate::collector::HookCollect;
 use crate::parse::PathData;
-use crate::code_move::fix_path;
 
 use ast::*;
 use std::collections::HashSet;
@@ -276,35 +276,30 @@ fn create_inline_qhook(url: JsWord, symbol: &str) -> CallExpr {
         args: vec![
             ExprOrSpread {
                 spread: None,
-                expr: Box::new(Expr::Arrow(ArrowExpr{
+                expr: Box::new(Expr::Arrow(ArrowExpr {
                     is_async: false,
                     is_generator: false,
                     span: DUMMY_SP,
                     params: vec![],
                     return_type: None,
                     type_params: None,
-                    body: BlockStmtOrExpr::Expr(
-                        Box::new(
-                            Expr::Call(
-                                CallExpr{
-                                    callee: ast::ExprOrSuper::Expr(Box::new(Expr::Ident(Ident::new("import".into(), DUMMY_SP)))),
-                                    span: DUMMY_SP,
-                                    type_args: None,
-                                    args: vec![
-                                        ExprOrSpread {
-                                            spread: None,
-                                            expr: Box::new(Expr::Lit(ast::Lit::Str(ast::Str {
-                                                span: DUMMY_SP,
-                                                value: url,
-                                                has_escape: false,
-                                                kind: ast::StrKind::Synthesized,
-                                            }))),
-                                        }
-                                    ]
-                                }
-                            )
-                        )
-                    )
+                    body: BlockStmtOrExpr::Expr(Box::new(Expr::Call(CallExpr {
+                        callee: ast::ExprOrSuper::Expr(Box::new(Expr::Ident(Ident::new(
+                            "import".into(),
+                            DUMMY_SP,
+                        )))),
+                        span: DUMMY_SP,
+                        type_args: None,
+                        args: vec![ExprOrSpread {
+                            spread: None,
+                            expr: Box::new(Expr::Lit(ast::Lit::Str(ast::Str {
+                                span: DUMMY_SP,
+                                value: url,
+                                has_escape: false,
+                                kind: ast::StrKind::Synthesized,
+                            }))),
+                        }],
+                    }))),
                 })),
             },
             ExprOrSpread {

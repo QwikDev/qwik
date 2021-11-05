@@ -20,15 +20,14 @@ export async function submoduleTesting(config: BuildConfig) {
   const opts: BuildOptions = {
     entryPoints: {
       index: join(config.srcDir, submodule, 'index.ts'),
-      'jest-preprocessor': join(config.srcDir, submodule, 'jest', 'preprocessor.ts'),
       'jest-preset': join(config.srcDir, submodule, 'jest', 'preset.ts'),
     },
-    outdir: join(config.pkgDir, submodule),
+    outdir: join(config.distPkgDir, submodule),
     sourcemap: config.dev,
     bundle: true,
     target,
     banner,
-    external: [...nodeBuiltIns],
+    external: [...nodeBuiltIns, 'ts-jest'],
   };
 
   const esm = build({
@@ -68,5 +67,5 @@ export async function submoduleTesting(config: BuildConfig) {
 
   await Promise.all([esm, cjs]);
 
-  console.log('🦄', submodule);
+  console.log('🦁', submodule);
 }

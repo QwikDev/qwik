@@ -19,9 +19,6 @@ export interface ManualEntryStrategy {
 export type MinifyOption = boolean | undefined | null;
 
 // @alpha (undocumented)
-export type ModuleOption = 'es' | 'cjs';
-
-// @alpha (undocumented)
 export class Optimizer {
     // (undocumented)
     getTransformedModule(path: string): TransformedOutput | undefined;
@@ -30,10 +27,10 @@ export class Optimizer {
     set isDirty(isDirty: boolean);
     // (undocumented)
     get isDirty(): boolean;
-    transformCode(opts: TransformCodeOptions): Promise<TransformResult>;
-    transformCodeSync(opts: TransformCodeOptions): TransformResult;
-    transformDirectory(opts: TransformDirectoryOptions): Promise<TransformResult>;
-    transformDirectorySync(opts: TransformDirectoryOptions): TransformResult;
+    transform(opts: TransformInMemoryOptions): Promise<TransformResult>;
+    transformFs(opts: TransformFsOptions): Promise<TransformResult>;
+    transformFsSync(opts: TransformFsOptions): TransformResult;
+    transformSync(opts: TransformInMemoryOptions): TransformResult;
     // (undocumented)
     watchChange(id: string, event: 'create' | 'update' | 'delete'): void;
 }
@@ -69,9 +66,6 @@ export interface SingleEntryStrategy {
 export type SourceMapsOption = 'external' | 'inline' | undefined | null;
 
 // @alpha (undocumented)
-export type TargetOption = 'latest';
-
-// @alpha (undocumented)
 export interface TransformCodeInput {
     // (undocumented)
     code: string;
@@ -79,27 +73,10 @@ export interface TransformCodeInput {
     path: string;
 }
 
-// Warning: (ae-forgotten-export) The symbol "TransformOptions" needs to be exported by the entry point index.d.ts
-//
-// @alpha (undocumented)
-export interface TransformCodeOptions extends TransformOptions {
-    // (undocumented)
-    input: TransformCodeInput[];
-}
-
 // @alpha (undocumented)
 export interface TransformDirectoryInput {
     // (undocumented)
     path: string;
-}
-
-// @alpha (undocumented)
-export interface TransformDirectoryOptions extends TransformOptions {
-    // (undocumented)
-    glob?: string;
-    // (undocumented)
-    inputDir: string;
-    outputDir?: string;
 }
 
 // @alpha (undocumented)
@@ -114,6 +91,27 @@ export interface TransformedOutput {
     outFile: string;
     // (undocumented)
     srcFile: string;
+}
+
+// Warning: (ae-forgotten-export) The symbol "TransformOptions" needs to be exported by the entry point index.d.ts
+//
+// @alpha (undocumented)
+export interface TransformFsOptions extends TransformOptions {
+    // (undocumented)
+    glob?: string;
+    outputDir?: string;
+    // (undocumented)
+    rootDir: string;
+}
+
+// @alpha (undocumented)
+export interface TransformInMemoryOptions extends TransformOptions {
+    // (undocumented)
+    input: TransformCodeInput[];
+    // (undocumented)
+    outputDir?: string;
+    // (undocumented)
+    rootDir: string;
 }
 
 // @alpha (undocumented)

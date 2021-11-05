@@ -21,10 +21,13 @@ const jestPreset = {
   modulePathIgnorePatterns: ['<rootDir>/build', '<rootDir>/dist'],
   testPathIgnorePatterns: ['/.cache', '/.github', '/.vscode', '/build', '/dist', '/node_modules'],
   testRegex: '(/__tests__/.*|\\.?(test|spec|unit))\\.' + moduleExtensionRegexp + '$',
-  transform: {
-    '^.+\\.(ts|tsx|jsx)$': join(__dirname, 'jest-preprocessor' + ext),
-  },
+  transform: {},
   watchPathIgnorePatterns: ['^.+\\.d\\.ts$'],
 };
+
+if ((globalThis as any).MODULE_EXT === 'cjs') {
+  const cjsTsJest = require('ts-jest/presets');
+  jestPreset.transform = { ...cjsTsJest.defaults };
+}
 
 export default jestPreset;

@@ -13,7 +13,7 @@ html_report = true
 crate-type = ["rlib"]
 
 [dependencies]
-swc_ecmascript = { version = "0.82.0", features = ["parser", "transforms", "module", "typescript", "utils", "visit", "codegen", "utils"] }
+swc_ecmascript = { version = "0.82.0", features = ["parser", "transforms", "module", "typescript", "react", "utils", "visit", "codegen", "utils"] }
 swc_common = { version = "0.14.2", features = ["sourcemap"] }
 swc_atoms = "0.2.9"
 serde = "1.0.123"

@@ -72,6 +72,7 @@ impl<'a> HookTransform<'a> {
         if self.stack_ctxt.is_empty() {
             ctx += "_h";
         }
+        ctx = escape_sym(&ctx);
         if self.context.hooks_names.contains(&ctx) {
             ctx += &self.hooks.len().to_string();
         }
@@ -316,4 +317,13 @@ fn create_inline_qhook(url: JsWord, symbol: &str) -> CallExpr {
             },
         ],
     }
+}
+
+fn escape_sym(str: &str) -> String {
+    str.chars()
+        .map(|x| match x {
+            'A'..='Z' | 'a'..='z' | '0'..='9' | '_' => x,
+            _ => '_',
+        })
+        .collect()
 }

@@ -63,13 +63,14 @@ fn optimize(t: Optimize) -> Result<qwik_core::TransformResult, Box<dyn std::erro
         .to_string();
 
     let result = transform_workdir(&FSConfig {
-        project_root: input,
+        root_dir: input,
         glob: None,
         source_maps: true,
         minify: false,
         transpile: true,
         bundling: Bundling::Single,
     })?;
+    // dbg!(&result);
 
     result.write_to_fs(&output)?;
     return Ok(result);

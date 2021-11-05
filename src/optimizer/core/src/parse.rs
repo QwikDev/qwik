@@ -12,12 +12,12 @@ use std::fs;
 
 use swc_common::comments::SingleThreadedComments;
 use swc_common::errors::{DiagnosticBuilder, Emitter, Handler};
-use swc_common::{chain, sync::Lrc, FileName, Globals, SourceMap};
+use swc_common::{chain, sync::Lrc, FileName, Globals, Mark, SourceMap};
 use swc_ecmascript::ast::*;
 use swc_ecmascript::codegen::text_writer::JsWriter;
 use swc_ecmascript::parser::lexer::Lexer;
 use swc_ecmascript::parser::{EsConfig, PResult, Parser, StringInput, Syntax, TsConfig};
-use swc_ecmascript::transforms::{pass, typescript};
+use swc_ecmascript::transforms::{pass, react, typescript};
 use swc_ecmascript::visit::FoldWith;
 
 #[derive(Debug, Serialize, Deserialize, Default)]
@@ -124,10 +124,44 @@ pub fn transform_internal(
             swc_common::GLOBALS.set(&Globals::new(), || {
                 let collect = global_collect(&main_module);
                 let mut hooks: Vec<Hook> = vec![];
+                let global_mark = Mark::fresh(Mark::root());
+                let mut react_options = react::Options::default();
+                if is_jsx {
+                    react_options.use_spread = true;
+                    react_options.import_source = "@builder.io/qwik".to_string();
+                    react_options.pragma = "h".to_string();
+                    react_options.pragma_frag = "Fragment".to_string();
+                };
+
                 let main_module = {
                     let mut passes = chain!(
-                        pass::Optional::new(typescript::strip(), transpile),
-                        HookTransform::new(config.context, &path, &mut hooks),
+                        pass::Optional::new(
+                            typescript::strip(),
+                            transpile && is_type_script && !is_jsx
+                        ),
+                        pass::Optional::new(
+                            typescript::strip_with_jsx(
+                                config.context.source_map.clone(),
+                                typescript::Config {
+                                    pragma: Some("h".to_string()),
+                                    pragma_frag: Some("Fragment".to_string()),
+                                    ..Default::default()
+                                },
+                                Some(&comments),
+                                global_mark,
+                            ),
+                            transpile && is_type_script && is_jsx
+                        ),
+                        pass::Optional::new(
+                            react::react(
+                                config.context.source_map.clone(),
+                                Some(&comments),
+                                react_options,
+                                global_mark
+                            ),
+                            transpile && is_jsx
+                        ),
+                        HookTransform::new(config.context, &path, &mut hooks)
                     );
                     main_module.fold_with(&mut passes)
                 };

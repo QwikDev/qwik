@@ -76,6 +76,7 @@ pub fn transform_workdir(config: &FSConfig) -> Result<TransformResult, Box<dyn e
     for p in paths {
         let value = p.unwrap();
         let pathstr = value.strip_prefix(&root_dir)?.to_str().unwrap();
+        println!("{:?}", &value);
         let data = fs::read(&value).expect("Unable to read file");
         let mut result = transform_internal(InternalConfig {
             root_dir: config.root_dir.clone(),

@@ -23,7 +23,8 @@ const Header = qComponent({
 
 import { qHook } from '@builderio/qwik';
 const Header = qComponent({
-    onRender: qHook("h_test_Header_onRender#Header_onRender")
+    onRender: qHook(()=>import("./h_test_Header_onRender")
+    , "Header_onRender")
 });
 
 ============================= /user/qwik/src/h_test_Header_onRender.tsx (ENTRY POINT)==

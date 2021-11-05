@@ -10,7 +10,8 @@ export const sym1 = qHook((ctx) => console.log("1"));
     
 ============================= /user/qwik/src/test.tsx ==
 
-export const sym1 = qHook("h_test_sym1#sym1");
+export const sym1 = qHook(()=>import("./h_test_sym1")
+, "sym1");
 
 ============================= /user/qwik/src/h_test_sym1.tsx (ENTRY POINT)==
 

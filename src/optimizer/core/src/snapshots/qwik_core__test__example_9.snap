@@ -20,7 +20,8 @@ const Header = qHook((decl1, {decl2}, [decl3]) => {
     
 ============================= /user/qwik/src/test.tsx ==
 
-const Header = qHook("h_test_Header#Header");
+const Header = qHook(()=>import("./h_test_Header")
+, "Header");
 
 ============================= /user/qwik/src/h_test_Header.tsx (ENTRY POINT)==
 

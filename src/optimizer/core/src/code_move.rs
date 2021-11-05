@@ -43,7 +43,7 @@ pub fn new_module(path: &PathData, hook: &Hook, global: &GlobalCollect) -> Modul
                     asserts: None,
                     src: Str {
                         span: DUMMY_SP,
-                        value: fix_path(&hook.origin, import.source.as_ref()),
+                        value: fix_path(&hook.origin, "a", import.source.as_ref()),
                         kind: StrKind::Synthesized,
                         has_escape: false,
                     },
@@ -58,7 +58,7 @@ pub fn new_module(path: &PathData, hook: &Hook, global: &GlobalCollect) -> Modul
                     asserts: None,
                     src: Str {
                         span: DUMMY_SP,
-                        value: fix_path(&hook.origin, &format!("./{}", path.file_stem)),
+                        value: fix_path(&hook.origin, "a", &format!("./{}", path.file_stem)),
                         kind: StrKind::Synthesized,
                         has_escape: false,
                     },
@@ -76,13 +76,15 @@ pub fn new_module(path: &PathData, hook: &Hook, global: &GlobalCollect) -> Modul
     module
 }
 
-fn fix_path(src: &str, ident: &str) -> JsWord {
+pub fn fix_path(src: &str, dest: &str, ident: &str) -> JsWord {
     if src.starts_with('/') {
         panic!("hola");
     }
     if ident.starts_with('.') {
-        let diff = pathdiff::diff_paths(Path::new(src).parent().unwrap(), Path::new(""));
-        println!("{:?}", diff);
+        let diff = pathdiff::diff_paths(
+            Path::new(src).parent().unwrap(),
+            Path::new(dest).parent().unwrap()
+        );
         if let Some(diff) = diff {
             let relative = relative_path::RelativePath::from_path(&diff).unwrap();
             let final_path = relative.join(ident).normalize();
@@ -120,21 +122,21 @@ fn create_named_export(hook: &Hook) -> ModuleItem {
 #[test]
 fn test_fix_path() {
     assert_eq!(
-        fix_path("src/components.tsx", "./state"),
+        fix_path("src/components.tsx", "a", "./state"),
         JsWord::from("./src/state")
     );
 
     assert_eq!(
-        fix_path("src/path/components.tsx", "./state"),
+        fix_path("src/path/components.tsx", "a", "./state"),
         JsWord::from("./src/path/state")
     );
 
     assert_eq!(
-        fix_path("src/components.tsx", "../state"),
+        fix_path("src/components.tsx", "a", "../state"),
         JsWord::from("./state")
     );
     assert_eq!(
-        fix_path("components.tsx", "./state"),
+        fix_path("components.tsx", "a", "./state"),
         JsWord::from("./state")
     );
 }

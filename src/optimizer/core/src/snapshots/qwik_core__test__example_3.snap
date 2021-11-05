@@ -22,8 +22,10 @@ export const App = () => {
 
 export const App = ()=>{
     const Header = qComponent({
-        "onMount": qHook("h_test_App_Header_onMount#App_Header_onMount"),
-        onRender: qHook("h_test_App_Header_onRender#App_Header_onRender")
+        "onMount": qHook(()=>import("./h_test_App_Header_onMount")
+        , "App_Header_onMount"),
+        onRender: qHook(()=>import("./h_test_App_Header_onRender")
+        , "App_Header_onRender")
     });
     return Header;
 };
@@ -42,7 +44,8 @@ export const App_Header_onRender_div_onClick = qHook((ctx)=>console.log(ctx)
 ============================= /user/qwik/src/h_test_App_Header_onRender.tsx (ENTRY POINT)==
 
 export const App_Header_onRender = qHook(()=>{
-    return (<div onClick={qHook("h_test_App_Header_onRender_div_onClick#App_Header_onRender_div_onClick")}/>);
+    return (<div onClick={qHook(()=>import("./h_test_App_Header_onRender_div_onClick")
+    , "App_Header_onRender_div_onClick")}/>);
 });
 
 == HOOKS ==
@@ -83,6 +86,7 @@ export const App_Header_onRender = qHook(()=>{
     "local_decl": [],
     "local_idents": [
       "div",
+      "import",
       "onClick",
       "qHook"
     ]

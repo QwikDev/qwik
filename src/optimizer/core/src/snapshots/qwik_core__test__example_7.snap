@@ -29,11 +29,14 @@ const App = qComponent({
 
 import { qHook } from '@builderio/qwik';
 const Header = qComponent({
-    "onMount": qHook("h_test_Header_onMount#Header_onMount"),
-    onRender: qHook("h_test_Header_onRender#Header_onRender")
+    "onMount": qHook(()=>import("./h_test_Header_onMount")
+    , "Header_onMount"),
+    onRender: qHook(()=>import("./h_test_Header_onRender")
+    , "Header_onRender")
 });
 const App = qComponent({
-    onRender: qHook("h_test_App_onRender#App_onRender")
+    onRender: qHook(()=>import("./h_test_App_onRender")
+    , "App_onRender")
 });
 
 ============================= /user/qwik/src/h_test_App_onRender.tsx (ENTRY POINT)==
@@ -60,7 +63,8 @@ export const Header_onRender_div_onClick = qHook((ctx)=>console.log(ctx)
 
 import { qHook } from "@builderio/qwik";
 export const Header_onRender = qHook(()=>{
-    return (<div onClick={qHook("h_test_Header_onRender_div_onClick#Header_onRender_div_onClick")}/>);
+    return (<div onClick={qHook(()=>import("./h_test_Header_onRender_div_onClick")
+    , "Header_onRender_div_onClick")}/>);
 });
 
 == HOOKS ==
@@ -112,6 +116,7 @@ export const Header_onRender = qHook(()=>{
     "local_decl": [],
     "local_idents": [
       "div",
+      "import",
       "onClick",
       "qHook"
     ]

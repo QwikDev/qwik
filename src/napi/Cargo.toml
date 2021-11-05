@@ -1,6 +1,6 @@
 [package]
 edition = "2018"
-name = "builder_io_qwik_optimizer"
+name = "builder_io_qwik"
 version = "0.0.0"
 
 [lib]

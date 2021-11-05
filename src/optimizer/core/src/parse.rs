@@ -47,6 +47,8 @@ pub struct TransformResult {
     pub modules: Vec<TransformModule>,
     pub diagnostics: Vec<Diagnostic>,
     pub hooks: Vec<HookAnalysis>,
+    pub is_type_script: bool,
+    pub is_jsx: bool,
 }
 
 impl TransformResult {
@@ -112,83 +114,98 @@ pub fn transform_internal(
     }
     let path = parse_path(&config.path);
     let dir = Path::new(&config.project_root);
-    let transpile = true;
+    let transpile = config.transpile;
 
     match module {
-        Ok((main_module, comments)) => swc_common::GLOBALS.set(&Globals::new(), || {
-            let collect = global_collect(&main_module);
-            let mut hooks: Vec<Hook> = vec![];
-            let main_module = {
-                let mut passes = chain!(
-                    pass::Optional::new(typescript::strip(), transpile),
-                    HookTransform::new(config.context, &path, &mut hooks),
-                );
-                main_module.fold_with(&mut passes)
-            };
+        Ok((main_module, comments, is_type_script, is_jsx)) => {
+            swc_common::GLOBALS.set(&Globals::new(), || {
+                let collect = global_collect(&main_module);
+                let mut hooks: Vec<Hook> = vec![];
+                let main_module = {
+                    let mut passes = chain!(
+                        pass::Optional::new(typescript::strip(), transpile),
+                        HookTransform::new(config.context, &path, &mut hooks),
+                    );
+                    main_module.fold_with(&mut passes)
+                };
 
-            let mut output_modules: Vec<TransformModule> = hooks
-                .iter()
-                .map(|h| {
-                    let hook_module = new_module(&path, h, &collect);
-                    let (code, map) = emit_source_code(
-                        config.context.source_map.clone(),
-                        None,
-                        &hook_module,
-                        config.minify,
-                        config.source_maps,
-                    )
-                    .unwrap();
+                let mut output_modules: Vec<TransformModule> = hooks
+                    .iter()
+                    .map(|h| {
+                        let hook_module = new_module(&path, h, &collect);
+                        let (code, map) = emit_source_code(
+                            config.context.source_map.clone(),
+                            None,
+                            &hook_module,
+                            config.minify,
+                            config.source_maps,
+                        )
+                        .unwrap();
+                        let extension = if config.transpile {
+                            "js"
+                        } else {
+                            &path.extension
+                        };
+                        TransformModule {
+                            code,
+                            map,
+                            path: dir
+                                .join(format!("{}.{}", &h.canonical_filename, extension))
+                                .to_str()
+                                .unwrap()
+                                .to_string(),
+                        }
+                    })
+                    .collect();
+
+                let hooks: Vec<HookAnalysis> = hooks
+                    .iter()
+                    .map(|h| HookAnalysis {
+                        origin: h.origin.clone(),
+                        name: h.name.clone(),
+                        entry: h.entry.clone(),
+                        canonical_filename: h.canonical_filename.clone(),
+                        local_decl: h.local_decl.iter().map(|d| d.to_string()).collect(),
+                        local_idents: h.local_idents.iter().map(|d| d.to_string()).collect(),
+                    })
+                    .collect();
+
+                let (code, map) = emit_source_code(
+                    config.context.source_map.clone(),
+                    Some(comments),
+                    &main_module,
+                    config.minify,
+                    config.source_maps,
+                )?;
+
+                let extension = if config.transpile {
+                    "js"
+                } else {
+                    &path.extension
+                };
+                output_modules.insert(
+                    0,
                     TransformModule {
-                        code,
-                        map,
                         path: dir
-                            .join(&h.canonical_filename)
+                            .join(format!("{}.{}", &path.file_stem, extension))
                             .to_str()
                             .unwrap()
                             .to_string(),
-                    }
+                        code,
+                        map,
+                    },
+                );
+
+                Ok(TransformResult {
+                    project_root: config.project_root.clone(),
+                    modules: output_modules,
+                    diagnostics: vec![],
+                    hooks,
+                    is_type_script,
+                    is_jsx,
                 })
-                .collect();
-
-            let hooks: Vec<HookAnalysis> = hooks
-                .iter()
-                .map(|h| HookAnalysis {
-                    origin: h.origin.clone(),
-                    name: h.name.clone(),
-                    entry: h.entry.clone(),
-                    canonical_filename: h.canonical_filename.clone(),
-                    local_decl: h.local_decl.iter().map(|d| d.to_string()).collect(),
-                    local_idents: h.local_idents.iter().map(|d| d.to_string()).collect(),
-                })
-                .collect();
-
-            let (code, map) = emit_source_code(
-                config.context.source_map.clone(),
-                Some(comments),
-                &main_module,
-                config.minify,
-                config.source_maps,
-            )?;
-            output_modules.insert(
-                0,
-                TransformModule {
-                    path: dir
-                        .join(format!("{}.js", &path.file_stem))
-                        .to_str()
-                        .unwrap()
-                        .to_string(),
-                    code,
-                    map,
-                },
-            );
-
-            Ok(TransformResult {
-                project_root: config.project_root.clone(),
-                modules: output_modules,
-                diagnostics: vec![],
-                hooks,
             })
-        }),
+        }
         Err(err) => {
             let error_buffer = ErrorBuffer::default();
             let handler = Handler::with_emitter(true, false, Box::new(error_buffer.clone()));
@@ -199,6 +216,8 @@ pub fn transform_internal(
                 hooks: vec![],
                 modules: vec![],
                 diagnostics,
+                is_type_script: false,
+                is_jsx: false,
             })
         }
     }
@@ -208,7 +227,7 @@ fn parse(
     code: &str,
     filename: &str,
     config: &InternalConfig,
-) -> PResult<(Module, SingleThreadedComments)> {
+) -> PResult<(Module, SingleThreadedComments, bool, bool)> {
     let source_map = &config.context.source_map;
     let source_file = source_map.new_source_file(FileName::Real(filename.into()), code.into());
 
@@ -241,7 +260,7 @@ fn parse(
     let mut parser = Parser::new_from(lexer);
     match parser.parse_module() {
         Err(err) => Err(err),
-        Ok(module) => Ok((module, comments)),
+        Ok(module) => Ok((module, comments, is_type_script, is_jsx)),
     }
 }
 

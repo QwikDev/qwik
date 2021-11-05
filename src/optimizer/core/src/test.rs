@@ -17,7 +17,7 @@ const Header = qComponent({
   })
 });
     "#,
-    Bundling::PerHook,
+        Bundling::PerHook,
         false,
     );
 }
@@ -36,8 +36,7 @@ export const Header = qComponent({
   })
 });
     "#,
-    Bundling::PerHook,
-
+        Bundling::PerHook,
         false,
     );
 }
@@ -59,7 +58,7 @@ export const App = () => {
     return Header;
 });
     "#,
-    Bundling::PerHook,
+        Bundling::PerHook,
         false,
     );
 }
@@ -81,7 +80,7 @@ export function App() {
     return Header;
 }
     "#,
-    Bundling::PerHook,
+        Bundling::PerHook,
         false,
     );
 }
@@ -102,7 +101,7 @@ export const Header = qComponent({
     })
 });
     "#,
-    Bundling::PerHook,
+        Bundling::PerHook,
         false,
     );
 }
@@ -114,7 +113,7 @@ fn example_6() {
         r#"
 export const sym1 = qHook((ctx) => console.log("1"));
     "#,
-    Bundling::PerHook,
+        Bundling::PerHook,
         false,
     );
 }
@@ -143,7 +142,7 @@ const App = qComponent({
         );
     })
 });"#,
-Bundling::PerHook,
+        Bundling::PerHook,
         false,
     );
 }
@@ -166,7 +165,7 @@ const Header = qComponent({
     })
   });
 "#,
-Bundling::PerHook,
+        Bundling::PerHook,
         false,
     );
 }
@@ -188,7 +187,7 @@ const Header = qHook((decl1, {decl2}, [decl3]) => {
     try{}catch({decl19}){}
 });
     "#,
-    Bundling::PerHook,
+        Bundling::PerHook,
         false,
     );
 }
@@ -217,7 +216,7 @@ const Header = qHook((decl1, {decl2}, [decl3]) => {
     )
 });
     "#,
-    Bundling::PerHook,
+        Bundling::PerHook,
         false,
     );
 }

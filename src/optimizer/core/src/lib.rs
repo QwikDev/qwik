@@ -15,7 +15,7 @@ mod utils;
 use std::collections::HashSet;
 use std::error;
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::str;
 use swc_atoms::JsWord;
 use swc_common::{sync::Lrc, SourceMap, DUMMY_SP};
@@ -109,6 +109,7 @@ pub fn transform_input(
         project_root: config.project_root.clone(),
         ..TransformResult::default()
     };
+    let mut default_ext = "js";
     for p in &config.input {
         let mut result = transform_internal(InternalConfig {
             project_root: config.project_root.clone(),
@@ -125,6 +126,9 @@ pub fn transform_input(
                 output.modules.append(&mut result.modules);
                 output.hooks.append(&mut result.hooks);
                 output.diagnostics.append(&mut result.diagnostics);
+                if !config.transpile && result.is_type_script {
+                    default_ext = "ts";
+                }
             }
             Err(err) => {
                 return Err(err);
@@ -132,7 +136,11 @@ pub fn transform_input(
         }
     }
 
-    Ok(generate_entries(output, context.source_map.clone()))
+    Ok(generate_entries(
+        output,
+        default_ext,
+        context.source_map.clone(),
+    ))
 }
 
 pub struct TransformEntryResult {
@@ -143,7 +151,11 @@ pub struct TransformEntryResult {
     pub entries: Vec<String>,
 }
 
-fn generate_entries(result: TransformResult, source_map: Lrc<SourceMap>) -> TransformEntryResult {
+fn generate_entries(
+    result: TransformResult,
+    default_ext: &str,
+    source_map: Lrc<SourceMap>,
+) -> TransformEntryResult {
     let mut entries_set = HashSet::new();
     let mut entries_map = MapVec::new();
     for hook in &result.hooks {
@@ -159,12 +171,17 @@ fn generate_entries(result: TransformResult, source_map: Lrc<SourceMap>) -> Tran
     }
 
     let mut modules = result.modules;
+    let dir = Path::new(&result.project_root);
     for (entry, hooks) in entries_map.as_ref().iter() {
         let module = new_entry_module(hooks);
         let (code, map) =
             emit_source_code(source_map.clone(), None, &module, false, false).unwrap();
         modules.push(TransformModule {
-            path: entry.to_string(),
+            path: dir
+                .join(format!("{}.{}", entry.to_string(), default_ext))
+                .to_str()
+                .unwrap()
+                .to_string(),
             code,
             map,
         });

@@ -8,11 +8,11 @@ expression: output
 
 export const sym1 = qHook((ctx) => console.log("1"));
     
-============================= /user/qwik/src/test.js==
+============================= /user/qwik/src/test.tsx==
 
 export const sym1 = qHook("h_test_sym1#sym1");
 
-============================= /user/qwik/src/h_test_sym1==
+============================= /user/qwik/src/h_test_sym1.tsx==
 
 export const sym1 = qHook((ctx)=>console.log("1")
 );

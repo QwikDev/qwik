@@ -36,7 +36,7 @@ export async function submodulePrefetch(config: BuildConfig) {
     });
 
     const generated = await build.generate({
-      dir: config.pkgDir,
+      dir: config.distPkgDir,
       format: 'es',
       exports: 'none',
       plugins: minifyCode
@@ -91,7 +91,7 @@ export async function submodulePrefetch(config: BuildConfig) {
   }
 
   const prefetchMinified: OutputOptions = {
-    dir: config.pkgDir,
+    dir: config.distPkgDir,
     format: 'es',
     exports: 'none',
     plugins: [
@@ -116,7 +116,7 @@ export async function submodulePrefetch(config: BuildConfig) {
   };
 
   const prefetchDebug: OutputOptions = {
-    dir: config.pkgDir,
+    dir: config.distPkgDir,
     format: 'es',
     entryFileNames: `[name].debug.js`,
     exports: 'none',
@@ -147,8 +147,8 @@ export async function submodulePrefetch(config: BuildConfig) {
   const build = await rollup(input);
   await Promise.all([build.write(prefetchMinified), build.write(prefetchDebug)]);
 
-  const prefetchFileSize = await fileSize(join(config.pkgDir, 'prefetch.js'));
-  console.log('🦙 prefetch:', prefetchFileSize);
+  const prefetchFileSize = await fileSize(join(config.distPkgDir, 'prefetch.js'));
+  console.log('🐨 prefetch:', prefetchFileSize);
 
   if (config.watch) {
     watch({ ...input, output: [prefetchMinified, prefetchDebug] });

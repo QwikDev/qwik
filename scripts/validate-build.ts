@@ -11,11 +11,11 @@ import ts from 'typescript';
  * the last task before publishing the build files to npm.
  */
 export async function validateBuild(config: BuildConfig) {
-  const pkgPath = join(config.pkgDir, 'package.json');
+  const pkgPath = join(config.distPkgDir, 'package.json');
   const pkg: PackageJSON = JSON.parse(await readFile(pkgPath, 'utf-8'));
 
   // triple checks these all exist and work
-  const expectedFiles = pkg.files.map((f) => join(config.pkgDir, f));
+  const expectedFiles = pkg.files.map((f) => join(config.distPkgDir, f));
 
   for (const filePath of expectedFiles) {
     try {
@@ -74,7 +74,7 @@ export async function validateBuild(config: BuildConfig) {
         }
       });
   }
-  getFiles(config.pkgDir);
+  getFiles(config.distPkgDir);
   const unexpectedFiles = allFiles.filter((f) => !expectedFiles.includes(f));
 
   if (unexpectedFiles.length > 0) {
@@ -149,10 +149,10 @@ async function validatePackageJson(config: BuildConfig, pkg: PackageJSON) {
 
 async function validatePath(config: BuildConfig, path: string) {
   try {
-    await access(join(config.pkgDir, path));
+    await access(join(config.distPkgDir, path));
   } catch (e) {
     console.error(
-      `Error validating path "${path}" inside of "${join(config.pkgDir, 'package.json')}"`
+      `Error validating path "${path}" inside of "${join(config.distPkgDir, 'package.json')}"`
     );
     console.error(e);
     process.exit(1);

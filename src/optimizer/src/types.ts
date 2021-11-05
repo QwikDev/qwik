@@ -18,37 +18,27 @@ export type TranspileOption = boolean | undefined | null;
 /**
  * @alpha
  */
-export type ModuleOption = 'es' | 'cjs';
-
-/**
- * @alpha
- */
-export type TargetOption = 'latest';
-
-/**
- * @alpha
- */
 interface TransformOptions {
   entryStrategy?: EntryStrategy;
   minify?: MinifyOption;
   sourceMaps?: SourceMapsOption;
   transpile?: TranspileOption;
-  module?: ModuleOption;
-  target?: TargetOption;
 }
 
 /**
  * @alpha
  */
-export interface TransformCodeOptions extends TransformOptions {
+export interface TransformInMemoryOptions extends TransformOptions {
+  rootDir: string;
   input: TransformCodeInput[];
+  outputDir?: string;
 }
 
 /**
  * @alpha
  */
-export interface TransformDirectoryOptions extends TransformOptions {
-  inputDir: string;
+export interface TransformFsOptions extends TransformOptions {
+  rootDir: string;
 
   // **/*.qwik.{js,jsx,ts,tsx}
   glob?: string;

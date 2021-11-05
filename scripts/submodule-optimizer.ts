@@ -16,7 +16,7 @@ import { watch } from 'rollup';
  */
 export async function submoduleOptimizer(config: BuildConfig) {
   const submodule = 'optimizer';
-  const optimizerDistDir = join(config.pkgDir, submodule);
+  const optimizerDistDir = join(config.distPkgDir, submodule);
 
   async function buildOptimizer() {
     const opts: BuildOptions = {
@@ -48,10 +48,10 @@ export async function submoduleOptimizer(config: BuildConfig) {
       inject: [injectGlobalThisPoly(config)],
     });
 
-    console.log('🦋', submodule);
+    console.log('🐹', submodule);
 
     if (config.watch) {
-      const watcher = watch({ input: join(config.pkgDir, 'prefetch.debug.js') });
+      const watcher = watch({ input: join(config.distPkgDir, 'prefetch.debug.js') });
       watcher.on('change', (id) => {
         esm.stop!();
         cjs.stop!();

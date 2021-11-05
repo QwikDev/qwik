@@ -9,7 +9,7 @@ import { join } from 'path';
  */
 export async function generatePackageJson(config: BuildConfig) {
   const pkgJsonRoot = join(config.rootDir, 'package.json');
-  const pkgJsonDist = join(config.pkgDir, 'package.json');
+  const pkgJsonDist = join(config.distPkgDir, 'package.json');
 
   const rootPkg: PackageJSON = JSON.parse(await readFile(pkgJsonRoot, 'utf-8'));
 
@@ -70,7 +70,7 @@ export async function generatePackageJson(config: BuildConfig) {
 
   await writeFile(pkgJsonDist, pkgContent);
 
-  console.log('👻', 'generate package.json');
+  console.log('🐷', 'generate package.json');
 }
 
 /**
@@ -119,8 +119,6 @@ const PACKAGE_FILES = [
   'testing/index.cjs',
   'testing/index.mjs',
   'testing/index.d.ts',
-  'testing/jest-preprocessor.cjs',
-  'testing/jest-preprocessor.mjs',
   'testing/jest-preset.cjs',
   'testing/jest-preset.mjs',
 

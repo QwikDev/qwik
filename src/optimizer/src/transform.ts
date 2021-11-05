@@ -1,7 +1,7 @@
 import type {
   OptimizerDiagnostic,
-  TransformCodeOptions,
-  TransformDirectoryOptions,
+  TransformInMemoryOptions,
+  TransformFsOptions,
   TransformResult,
 } from '.';
 import { loadPlatformBinding } from './platform-binding';
@@ -9,16 +9,19 @@ import { loadPlatformBinding } from './platform-binding';
 /**
  * Transforms the input code string, does not access the file system.
  */
-export async function transformCode(opts: TransformCodeOptions) {
+export async function transform(opts: TransformInMemoryOptions) {
   const result: TransformResult = {
     output: [],
     diagnostics: [],
   };
   try {
     const binding = loadPlatformBinding();
-    console.log('Binding exports', binding);
-    const val = binding.sync_fn(88);
-    console.log('binding result:', val);
+
+    const val = binding.sync(88);
+    console.log('binding.sync(88):', val);
+
+    const val2 = await binding.sleep(99);
+    console.log('binding.sleep(99):', val2);
   } catch (e) {
     catchDiagnostics(result.diagnostics, e);
   }
@@ -28,7 +31,7 @@ export async function transformCode(opts: TransformCodeOptions) {
 /**
  * Transforms the input code string, does not access the file system.
  */
-export function transformCodeSync(opts: TransformCodeOptions) {
+export function transformSync(opts: TransformInMemoryOptions) {
   const result: TransformResult = {
     output: [],
     diagnostics: [],
@@ -43,7 +46,7 @@ export function transformCodeSync(opts: TransformCodeOptions) {
 /**
  * Transforms the file read from the file system.
  */
-export async function transformDirectory(opts: TransformDirectoryOptions) {
+export async function transformDirectory(opts: TransformFsOptions) {
   const result: TransformResult = {
     output: [],
     diagnostics: [],
@@ -59,7 +62,7 @@ export async function transformDirectory(opts: TransformDirectoryOptions) {
 /**
  * Transforms the file read from the file system.
  */
-export function transformDirectorySync(opts: TransformDirectoryOptions) {
+export function transformDirectorySync(opts: TransformFsOptions) {
   const result: TransformResult = {
     output: [],
     diagnostics: [],

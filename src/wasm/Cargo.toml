@@ -9,7 +9,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 js-sys = "0.3"
-qwik-core = { path = "../core" }
+qwik-core = { path = "../optimizer/core" }
 serde = "1"
 serde-wasm-bindgen = "0.3.0"
 wasm-bindgen = "0.2"

@@ -1,11 +1,6 @@
 import type { TransformResult, TransformedOutput } from '.';
-import {
-  transformCode,
-  transformCodeSync,
-  transformDirectory,
-  transformDirectorySync,
-} from './transform';
-import type { TransformCodeOptions, TransformDirectoryOptions } from './types';
+import { transform, transformSync, transformDirectory, transformDirectorySync } from './transform';
+import type { TransformInMemoryOptions, TransformFsOptions } from './types';
 
 const TransformedOutputs = Symbol('TransformedOutputs');
 const LastDirectoryResult = Symbol('LastDirectoryResult');
@@ -20,23 +15,23 @@ export class Optimizer {
   /**
    * Transforms the input code string, does not access the file system.
    */
-  async transformCode(opts: TransformCodeOptions) {
-    const result = await transformCode(opts);
+  async transform(opts: TransformInMemoryOptions) {
+    const result = await transform(opts);
     return result;
   }
 
   /**
    * Transforms the input code string, does not access the file system.
    */
-  transformCodeSync(opts: TransformCodeOptions) {
-    const result = transformCodeSync(opts);
+  transformSync(opts: TransformInMemoryOptions) {
+    const result = transformSync(opts);
     return result;
   }
 
   /**
    * Transforms the directory from the file system.
    */
-  async transformDirectory(opts: TransformDirectoryOptions) {
+  async transformFs(opts: TransformFsOptions) {
     if (!this.isDirty) {
       return this[LastDirectoryResult]!;
     }
@@ -54,7 +49,7 @@ export class Optimizer {
   /**
    * Transforms the directory from the file system.
    */
-  transformDirectorySync(opts: TransformDirectoryOptions) {
+  transformFsSync(opts: TransformFsOptions) {
     if (!this.isDirty) {
       return this[LastDirectoryResult]!;
     }

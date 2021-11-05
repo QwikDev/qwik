@@ -4,6 +4,7 @@ import type {
   TransformDirectoryOptions,
   TransformResult,
 } from '.';
+import { Binding } from './platform-binding';
 
 /**
  * Transforms the input code string, does not access the file system.
@@ -14,7 +15,9 @@ export async function transformCode(opts: TransformCodeOptions) {
     diagnostics: [],
   };
   try {
-    // napi!!!!
+    console.log('Binding exports', Binding);
+    const val = Binding.sync_fn(88);
+    console.log('binding result:', val);
   } catch (e) {
     catchDiagnostics(result.diagnostics, e);
   }

@@ -251,7 +251,7 @@ jobs:
       - name: Download Build Artifacts
         uses: actions/download-artifact@v2
 
-      - name: Display Build Output
+      - name: Print Build Artifacts
         run: ls -R
 
       - name: Move Platform Bindings

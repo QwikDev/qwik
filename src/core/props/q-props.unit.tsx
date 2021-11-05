@@ -4,7 +4,7 @@ import { ParsedQRL } from '../import/qrl';
 import { diff, test_clearqPropsCache as test_clearQPropsCache } from './q-props';
 import type { QComponent } from '../component/q-component.public';
 import { qObject } from '../object/q-object.public';
-import { getQObjectId, _qObject } from '../object/q-object';
+import { getQObjectId, _stateQObject } from '../object/q-object';
 import { qDehydrate } from '../object/q-store.public';
 import { qProps, QProps } from './q-props.public';
 
@@ -120,8 +120,8 @@ describe('q-element', () => {
 
   describe('state', () => {
     it('should retrieve state by name', () => {
-      const state1 = _qObject({ mark: 1 }, '');
-      const state2 = _qObject({ mark: 2 }, 'foo');
+      const state1 = _stateQObject({ mark: 1 }, '');
+      const state2 = _stateQObject({ mark: 2 }, 'foo');
       qDiv['state:'] = state1;
       qDiv['state:foo'] = state2;
 
@@ -167,8 +167,8 @@ describe('q-element', () => {
 
     it('should read qrl as single function', async () => {
       qDiv['on:qRender'] = 'markAsHost';
-      qDiv['state:'] = _qObject({ mark: 'implicit' }, '');
-      qDiv['state:explicit'] = _qObject({ mark: 'explicit' }, 'explicit');
+      qDiv['state:'] = _stateQObject({ mark: 'implicit' }, '');
+      qDiv['state:explicit'] = _stateQObject({ mark: 'explicit' }, 'explicit');
       qDiv.isHost = 'YES';
 
       const child = document.createElement('child');

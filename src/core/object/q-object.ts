@@ -4,14 +4,25 @@ import { safeQSubscribe } from '../use/use-core.public';
 import type { QObject as IQObject } from './q-object.public';
 export const Q_OBJECT_PREFIX_SEP = ':';
 
-export function _qObject<T>(obj: T, prefix?: string, isId: boolean = false): T {
+export function _qObject<T>(obj: T): T {
   assertEqual(unwrapProxy(obj), obj, 'Unexpected proxy at this location');
-  const id = isId
-    ? (prefix as string)
-    : (prefix == null ? '' : prefix + Q_OBJECT_PREFIX_SEP) + generateId();
-  const proxy = readWriteProxy(obj as any as IQObject<T>, id);
+  const proxy = readWriteProxy(obj as any as IQObject<T>, generateId());
   Object.assign(proxy, obj);
   return proxy;
+}
+
+export function _stateQObject<T>(obj: T, prefix: string): T {
+  const id = getQObjectId(obj);
+  if (id) {
+    (obj as any)[QObjectIdSymbol] = prefix + Q_OBJECT_PREFIX_SEP + id;
+    return obj;
+  } else {
+    return readWriteProxy(obj as any as IQObject<T>, prefix + Q_OBJECT_PREFIX_SEP + generateId());
+  }
+}
+
+export function _restoreQObject<T>(obj: T, id: string): T {
+  return readWriteProxy(obj as any as IQObject<T>, id);
 }
 
 function QObject_notifyWrite(id: string, doc: Document | null) {
@@ -33,6 +44,17 @@ export function QObject_addDoc(qObj: IQObject<any>, doc: Document) {
 
 export function getQObjectId(obj: any): string | null {
   return (obj && typeof obj === 'object' && obj[QObjectIdSymbol]) || null;
+}
+
+export function getTransient<T>(obj: any, key: any): T | null {
+  assertDefined(getQObjectId(obj));
+  return obj[QOjectTransientsSymbol].get(key);
+}
+
+export function setTransient<T>(obj: any, key: any, value: T): T {
+  assertDefined(getQObjectId(obj));
+  obj[QOjectTransientsSymbol].set(key, value);
+  return value;
 }
 
 function idToComponentSelector(id: string): any {
@@ -61,6 +83,7 @@ export function readWriteProxy<T extends object>(target: T, id: string): T {
 }
 
 const QOjectTargetSymbol = ':target:';
+const QOjectTransientsSymbol = ':transients:';
 const QObjectIdSymbol = ':id:';
 const QObjectDocumentSymbol = ':doc:';
 
@@ -90,6 +113,7 @@ export function wrap<T>(value: T): T {
 class ReadWriteProxyHandler<T extends object> implements ProxyHandler<T> {
   private id: string;
   private doc: Document | null = null;
+  private transients: WeakMap<any, any> | null = null;
   constructor(id: string) {
     this.id = id;
   }
@@ -97,6 +121,9 @@ class ReadWriteProxyHandler<T extends object> implements ProxyHandler<T> {
   get(target: T, prop: string): any {
     if (prop === QOjectTargetSymbol) return target;
     if (prop === QObjectIdSymbol) return this.id;
+    if (prop === QOjectTransientsSymbol) {
+      return this.transients || (this.transients = new WeakMap());
+    }
     const value = (target as any)[prop];
     QObject_notifyRead(target);
     return wrap(value);
@@ -105,6 +132,8 @@ class ReadWriteProxyHandler<T extends object> implements ProxyHandler<T> {
   set(target: T, prop: string, newValue: any): boolean {
     if (prop === QObjectDocumentSymbol) {
       this.doc = newValue;
+    } else if (prop == QObjectIdSymbol) {
+      this.id = newValue;
     } else {
       const unwrappedNewValue = unwrapProxy(newValue);
       const oldValue = (target as any)[prop];

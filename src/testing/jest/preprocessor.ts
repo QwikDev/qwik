@@ -1,5 +1,5 @@
 import { extname } from 'path';
-import { Optimizer } from '@builder.io/qwik/optimizer';
+import { transformSync, version as esbuildVersion } from 'esbuild';
 
 const jestPreprocessor = {
   process(text: string, filePath: string, jestConfig: { rootDir: string }) {
@@ -10,20 +10,31 @@ const jestPreprocessor = {
     }
 
     if (this._shouldTransform(ext, text)) {
-      const optimizer = this._getOptimizer();
-
-      const results = optimizer.transformCodeSync({
-        input: [
-          {
-            path: filePath,
-            code: text,
-          },
-        ],
-        module: 'cjs',
-        sourceMaps: 'inline',
+      const result = transformSync(text, {
+        loader: 'tsx',
+        format: 'cjs',
+        target: 'es2018',
+        jsxFactory: 'h',
+        jsxFragment: 'Fragment',
+        sourcemap: true,
+        sourcesContent: false,
+        sourcefile: filePath,
+        sourceRoot: jestConfig.rootDir,
       });
 
-      return results.output[0].code;
+      let { map, code } = result;
+
+      map = {
+        ...JSON.parse(result.map),
+        sourcesContent: null,
+      };
+
+      code =
+        code +
+        '\n//# sourceMappingURL=data:application/json;base64,' +
+        Buffer.from(JSON.stringify(map)).toString('base64');
+
+      return { code, map };
     }
 
     return text;
@@ -35,17 +46,12 @@ const jestPreprocessor = {
     transformOptions: { instrument: boolean; rootDir: string; configString: string }
   ): string {
     if (!this._cacheKey) {
-      const optimizer = this._getOptimizer();
-      // const ts = optimizer.getTypeScriptSync();
-      // const tsconfig = optimizer.getTsconfigSync();
-
       this._cacheKey = JSON.stringify({
         n: process.version,
-        // t: ts.version,
+        e: esbuildVersion,
         j: transformOptions.configString,
         i: transformOptions.instrument,
-        cb: 2, // cache buster
-        // ...tsconfig,
+        cb: 0, // cache buster
       });
     }
 
@@ -72,15 +78,6 @@ const jestPreprocessor = {
     }
     return false;
   },
-
-  _getOptimizer() {
-    if (!this._optimizer) {
-      this._optimizer = new Optimizer();
-    }
-    return this._optimizer;
-  },
-
-  _optimizer: null as Optimizer | null,
 
   _cacheKey: null as string | null,
 };

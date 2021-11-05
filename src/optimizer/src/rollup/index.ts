@@ -1,4 +1,4 @@
-import { EntryStrategy, Optimizer, OutputEntryMap, TransformDirectoryOptions } from '..';
+import { EntryStrategy, Optimizer, OutputEntryMap, TransformFsOptions } from '..';
 import { dirname, isAbsolute } from 'path';
 import type { InputOption, OutputBundle, Plugin } from 'rollup';
 
@@ -12,14 +12,14 @@ export function qwik(opts: QwikPluginOptions = {}): Plugin {
       // Takes the user's Rollup input options to find the source input files,
       // then generates Qwik input files which rollup should use instead as input files.
 
-      const transformOpts: TransformDirectoryOptions = {
-        inputDir: findInputDirectory(rollupInputOpts.input),
+      const transformOpts: TransformFsOptions = {
+        rootDir: findInputDirectory(rollupInputOpts.input),
         entryStrategy: opts.entryStrategy,
         glob: opts.glob,
         sourceMaps: 'external',
       };
 
-      const result = await optimizer.transformDirectory(transformOpts);
+      const result = await optimizer.transformFs(transformOpts);
 
       // throw error or print logs if there are any diagnostics
       result.diagnostics.forEach((d) => {

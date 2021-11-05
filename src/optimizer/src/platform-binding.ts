@@ -23,7 +23,7 @@ export function loadPlatformBinding() {
           `qwik.${triple.platformArchABI}.node`
         );
         if (fs.existsSync(platformBindingPath)) {
-          // NodeJS Native Binding
+          // NodeJS Native Binding loaded with CJS
           loadedBinding = require(platformBindingPath);
           return loadedBinding!;
         }
@@ -35,7 +35,7 @@ export function loadPlatformBinding() {
   }
 
   if (typeof window !== 'undefined' && typeof document !== 'undefined') {
-    // Browser
+    // Browser WASM
     // TODO
   }
 

@@ -1,10 +1,15 @@
 import { platformArchTriples } from '@napi-rs/triples';
 
-function loadPlatformBinding() {
+export function loadPlatformBinding() {
+  if (loadedBinding) {
+    return loadedBinding;
+  }
+
   if (typeof process !== 'undefined' && process.versions && process.versions.node) {
     // NodeJS
     return loadNodeBinding();
   }
+
   throw new Error(`Platform not supported`);
 }
 
@@ -18,14 +23,15 @@ function loadNodeBinding() {
   for (const triple of triples) {
     const platformBindingPath = path.join(__dirname, `..`, `qwik.${triple.platformArchABI}.node`);
     if (fs.existsSync(platformBindingPath)) {
-      return require(platformBindingPath);
+      loadedBinding = require(platformBindingPath);
+      return loadedBinding!;
     }
   }
   throw new Error(`Unable to load Node Binding`);
 }
 
-export const Binding: PlatformBinding = loadPlatformBinding();
-
 export interface PlatformBinding {
   sync_fn: (num: number) => number;
 }
+
+let loadedBinding: PlatformBinding | null = null;

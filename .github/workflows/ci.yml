@@ -263,7 +263,7 @@ jobs:
       - name: Pack @builder.io/qwik
         if: ${{ github.event_name != 'release' }}
         run: |
-          cd package-build
+          cd dist-builder-io-qwik
           mv `npm pack` ../builder.io-qwik.tgz
 
       - name: Upload Qwik Package Artifact
@@ -275,6 +275,7 @@ jobs:
 
       - name: Publish @builder.io/qwik
         if: ${{ github.event_name == 'release' }}
+        # TODO!! Actual npm publish
         run: |
           cd dist-builder-io-qwik
           mv `npm pack` ../builder.io-qwik.tgz

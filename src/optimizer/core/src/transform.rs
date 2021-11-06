@@ -229,15 +229,18 @@ impl<'a> Fold for HookTransform<'a> {
             if let Expr::Ident(id) = &**expr {
                 if id.sym == *"qHook" {
                     let symbol_name = self.get_context_name();
-                    let entry = self
-                        .context
-                        .bundling_policy
-                        .get_entry_for_sym(&symbol_name, self.path);
-
                     let canonical_filename =
                         ["h_", &self.path.file_prefix, "_", &symbol_name].concat();
                     let folded = node.fold_children_with(self);
                     let hook_collect = HookCollect::new(&folded);
+
+                    let entry = self.context.bundling_policy.get_entry_for_sym(
+                        &symbol_name,
+                        self.path,
+                        &self.stack_ctxt,
+                        &hook_collect,
+                        &folded,
+                    );
 
                     let import_path = {
                         let filename = if let Some(ref entry) = entry {

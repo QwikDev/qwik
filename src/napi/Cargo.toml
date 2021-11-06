@@ -12,9 +12,6 @@ napi = { version = "1", features = ["serde-json"] }
 napi-derive = "1"
 qwik-core = { path = "../optimizer/core" }
 
-[target.'cfg(target_os = "macos")'.dependencies]
-jemallocator = { version = "0.3.2", features = ["disable_initial_exec_tls"] }
-
 [target.'cfg(windows)'.dependencies]
 mimalloc = { version = "0.1.25", default-features = false }
 

@@ -40,7 +40,8 @@ export class Optimizer {
     this[LastDirectoryResult] = result;
 
     result.modules.forEach((output) => {
-      this[TransformedOutputs].set(output.path, output);
+      const key = result.rootDir + "/" + output.path;
+      this[TransformedOutputs].set(key, output);
     });
 
     return result;
@@ -58,7 +59,8 @@ export class Optimizer {
     this[LastDirectoryResult] = result;
 
     result.modules.forEach((output) => {
-      this[TransformedOutputs].set(output.path, output);
+      const key = result.rootDir + "/" + output.path;
+      this[TransformedOutputs].set(key, output);
     });
 
     return result;
@@ -68,9 +70,6 @@ export class Optimizer {
     return this[TransformedOutputs].get(path);
   }
 
-  hasTransformedModule(path: string) {
-    return this[TransformedOutputs].has(path);
-  }
 
   set isDirty(isDirty: boolean) {
     if (isDirty) {

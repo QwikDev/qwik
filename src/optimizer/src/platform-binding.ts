@@ -1,5 +1,5 @@
 import { platformArchTriples } from '@napi-rs/triples';
-import type { TransformFsOptions, TransformModulesOptions, TransformResult } from '.';
+import type { TransformResult } from '.';
 
 export function loadPlatformBinding() {
   if (loadedBinding) {
@@ -23,6 +23,7 @@ export function loadPlatformBinding() {
           `..`,
           `qwik.${triple.platformArchABI}.node`
         );
+        console.log(platformBindingPath);
         if (fs.existsSync(platformBindingPath)) {
           // NodeJS Native Binding loaded with CJS
           loadedBinding = require(platformBindingPath);
@@ -44,8 +45,8 @@ export function loadPlatformBinding() {
 }
 
 export interface PlatformBinding {
-  transformFs: (opts: TransformFsOptions) => TransformResult;
-  transformModules: (opts: TransformModulesOptions) => TransformResult;
+  transformFs: (opts: any) => TransformResult;
+  transformModules: (opts: any) => TransformResult;
 }
 
 let loadedBinding: PlatformBinding | null = null;

@@ -20,8 +20,8 @@ export type TranspileOption = boolean | undefined | null;
  */
 interface TransformOptions {
   entryStrategy?: EntryStrategy;
-  minify?: MinifyOption;
-  sourceMaps?: SourceMapsOption;
+  minify?: boolean;
+  sourceMaps?: boolean;
   transpile?: boolean;
 }
 
@@ -87,8 +87,8 @@ export interface HookAnalysis {
 export interface TransformModule {
   path: string;
   isEntry: boolean;
-  code: string | null;
-  map: string;
+  code: string;
+  map: string | null;
 }
 
 // DIAGNOSTICS ***************
@@ -120,21 +120,21 @@ export type EntryStrategy = SingleEntryStrategy | PerHookEntryStrategy | ManualE
  * @alpha
  */
 export interface SingleEntryStrategy {
-  type: 'single';
+  type: 'Single';
 }
 
 /**
  * @alpha
  */
 export interface PerHookEntryStrategy {
-  type: 'per-hook';
+  type: 'PerHook';
 }
 
 /**
  * @alpha
  */
 export interface ManualEntryStrategy {
-  type: 'manual';
+  type: 'Manual';
   entries: string[][];
 }
 

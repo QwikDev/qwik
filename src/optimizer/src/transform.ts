@@ -11,7 +11,13 @@ import { loadPlatformBinding } from './platform-binding';
  */
 export async function transformModules(opts: TransformModulesOptions) {
   const binding = loadPlatformBinding();
-  return binding.transformModules(opts);
+  return binding.transformModules({
+    minify: false,
+    sourceMaps: false,
+    transpile: false,
+    ...opts,
+    entryStrategy: opts.entryStrategy?.type ?? 'Single',
+  });
 }
 
 /**
@@ -19,7 +25,13 @@ export async function transformModules(opts: TransformModulesOptions) {
  */
 export function transformModulesSync(opts: TransformModulesOptions) {
   const binding = loadPlatformBinding();
-  return binding.transformModules(opts);
+  return binding.transformModules({
+    minify: false,
+    sourceMaps: false,
+    transpile: false,
+    ...opts,
+    entryStrategy: opts.entryStrategy?.type ?? 'Single',
+  });
 }
 
 /**
@@ -27,7 +39,13 @@ export function transformModulesSync(opts: TransformModulesOptions) {
  */
 export async function transformFs(opts: TransformFsOptions) {
   const binding = loadPlatformBinding();
-  return binding.transformFs(opts);
+  return binding.transformFs({
+    minify: false,
+    sourceMaps: false,
+    transpile: false,
+    ...opts,
+    entryStrategy: opts.entryStrategy?.type ?? 'Single',
+  });
 }
 
 /**
@@ -35,6 +53,12 @@ export async function transformFs(opts: TransformFsOptions) {
  */
 export function transformFsSync(opts: TransformFsOptions) {
   const binding = loadPlatformBinding();
-  return binding.transformFs(opts);
+  return binding.transformFs({
+    minify: false,
+    sourceMaps: false,
+    transpile: false,
+    ...opts,
+    entryStrategy: opts.entryStrategy?.type ?? 'Single',
+  });
 }
 

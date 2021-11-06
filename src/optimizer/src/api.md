@@ -4,6 +4,8 @@
 
 ```ts
 
+import type { Plugin as Plugin_2 } from 'rollup';
+
 // @alpha (undocumented)
 export interface Diagnostic {
     // (undocumented)
@@ -45,7 +47,7 @@ export interface ManualEntryStrategy {
     // (undocumented)
     entries: string[][];
     // (undocumented)
-    type: 'manual';
+    type: 'Manual';
 }
 
 // @alpha (undocumented)
@@ -55,8 +57,6 @@ export type MinifyOption = boolean | undefined | null;
 export class Optimizer {
     // (undocumented)
     getTransformedModule(path: string): TransformModule | undefined;
-    // (undocumented)
-    hasTransformedModule(path: string): boolean;
     set isDirty(isDirty: boolean);
     // (undocumented)
     get isDirty(): boolean;
@@ -75,13 +75,28 @@ export interface OutputEntryMap {
 // @alpha (undocumented)
 export interface PerHookEntryStrategy {
     // (undocumented)
-    type: 'per-hook';
+    type: 'PerHook';
 }
+
+// @alpha (undocumented)
+export interface QwikPluginOptions {
+    // (undocumented)
+    entryStrategy?: EntryStrategy;
+    // (undocumented)
+    glob?: string;
+    // (undocumented)
+    minify?: boolean;
+    // (undocumented)
+    transpile?: boolean;
+}
+
+// @alpha (undocumented)
+export function qwikRollup(opts?: QwikPluginOptions): Plugin_2;
 
 // @alpha (undocumented)
 export interface SingleEntryStrategy {
     // (undocumented)
-    type: 'single';
+    type: 'Single';
 }
 
 // @alpha (undocumented)
@@ -100,11 +115,11 @@ export interface TransformFsOptions extends TransformOptions {
 // @alpha (undocumented)
 export interface TransformModule {
     // (undocumented)
-    code: string | null;
+    code: string;
     // (undocumented)
     isEntry: boolean;
     // (undocumented)
-    map: string;
+    map: string | null;
     // (undocumented)
     path: string;
 }

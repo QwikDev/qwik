@@ -1,22 +1,26 @@
 import { EntryStrategy, Optimizer, OutputEntryMap, TransformFsOptions } from '..';
-import { dirname, isAbsolute } from 'path';
+import { dirname, resolve } from 'path';
 import type { InputOption, OutputBundle, Plugin } from 'rollup';
 
-export function qwik(opts: QwikPluginOptions = {}): Plugin {
+/**
+ * @alpha
+ */
+export function qwikRollup(opts: QwikPluginOptions = {}): Plugin {
   const optimizer = new Optimizer();
 
   return {
     name: 'qwikPlugin',
 
-    async options(rollupInputOpts) {
+    async buildStart(options) {
       // Takes the user's Rollup input options to find the source input files,
       // then generates Qwik input files which rollup should use instead as input files.
 
       const transformOpts: TransformFsOptions = {
-        rootDir: findInputDirectory(rollupInputOpts.input),
+        rootDir: findInputDirectory(options.input),
         entryStrategy: opts.entryStrategy,
         glob: opts.glob,
-        sourceMaps: 'external',
+        minify: opts.minify,
+        transpile: opts.transpile
       };
 
       const result = await optimizer.transformFs(transformOpts);
@@ -31,19 +35,6 @@ export function qwik(opts: QwikPluginOptions = {}): Plugin {
           console.info('QWIK:', d.message);
         }
       });
-
-      // return the new rollup options which have been modified with Qwik's entry modules
-      return {
-        ...rollupInputOpts,
-      };
-    },
-
-    resolveId(id) {
-      if (optimizer.hasTransformedModule(id)) {
-        // this is one of Qwik's entry modules, which is only in-memory
-        return id;
-      }
-      return null;
     },
 
     load(id) {
@@ -51,7 +42,7 @@ export function qwik(opts: QwikPluginOptions = {}): Plugin {
       if (transformedModule) {
         // this is one of Qwik's entry modules, which is only in-memory
         return {
-          code: transformedModule.code!,
+          code: transformedModule.code,
           map: transformedModule.map,
         };
       }
@@ -78,7 +69,7 @@ export function qwik(opts: QwikPluginOptions = {}): Plugin {
 }
 
 function findInputDirectory(rollupInput: InputOption | undefined) {
-  const inputFilePaths: string[] = [];
+  let inputFilePaths: string[] = [];
 
   if (rollupInput) {
     if (typeof rollupInput === 'string') {
@@ -97,15 +88,10 @@ function findInputDirectory(rollupInput: InputOption | undefined) {
     }
   }
 
+  inputFilePaths = inputFilePaths.map(p => resolve(p));
   if (inputFilePaths.length === 0) {
     throw new Error(`Valid absolute input path required`);
   }
-
-  inputFilePaths.forEach((inputFilePath) => {
-    if (!isAbsolute(inputFilePath)) {
-      throw new Error(`Input path must be absolute: ${inputFilePath}`);
-    }
-  });
 
   const sortedInputDirPaths = Array.from(new Set(inputFilePaths.map(dirname))).sort((a, b) => {
     if (a.length < b.length) return -1;
@@ -129,7 +115,12 @@ function generateOutputEntryMap(rollupBundle: OutputBundle) {
   return JSON.stringify(outputEntryMap, null, 2);
 }
 
+/**
+ * @alpha
+ */
 export interface QwikPluginOptions {
   entryStrategy?: EntryStrategy;
   glob?: string;
+  transpile?: boolean;
+  minify?: boolean;
 }

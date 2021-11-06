@@ -16,7 +16,7 @@ import type { Todos } from './state.qwik';
  *
  * @returns a promise when all of the rendering is completed.
  */
-export default function (opts: RenderToStringOptions) {
+ function serverRender(opts: RenderToStringOptions) {
   const todos: Todos = {
     filter: 'all',
     items: [
@@ -39,3 +39,7 @@ export default function (opts: RenderToStringOptions) {
     opts
   );
 }
+
+serverRender({
+  outDir: './',
+});

@@ -76,4 +76,4 @@ export interface QHook<
 }
 
 // https://regexr.com/68v72
-const EXTRACT_IMPORT_PATH = /import\(\s*(['"])([^\1]+)\1\s*\)/;
+const EXTRACT_IMPORT_PATH = /\(\s*(['"])([^\1]+)\1\s*\)/;

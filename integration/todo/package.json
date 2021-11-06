@@ -5,9 +5,8 @@
   "main": "index.js",
   "scripts": {
     "clean": "rm -rf dist output",
-    "build.optimize": "qwik optimize --src src --dest dist",
     "build.rollup": "rollup -c",
-    "build": "npm run clean && npm run build.optimize && npm run build.rollup"
+    "build": "npm run clean && npm run build.rollup"
   },
   "author": "",
   "license": "ISC",

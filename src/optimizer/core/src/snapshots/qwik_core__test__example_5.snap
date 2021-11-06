@@ -19,7 +19,7 @@ export const Header = qComponent({
     
 ============================= test.tsx ==
 
-export const Header = qComponent({
+export const Header = /*#__PURE__*/ qComponent({
     onRender: qHook(()=>import("./h_test_Header_onRender")
     , "Header_onRender")
 });

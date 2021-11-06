@@ -22,7 +22,7 @@ const Header = qComponent({
 ============================= test.tsx ==
 
 import { qHook } from '@builderio/qwik';
-qComponent({
+/*#__PURE__*/ qComponent({
     onRender: qHook(()=>import("./h_test_Header_onRender")
     , "Header_onRender")
 });

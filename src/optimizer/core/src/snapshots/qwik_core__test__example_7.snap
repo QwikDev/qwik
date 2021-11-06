@@ -28,13 +28,13 @@ const App = qComponent({
 ============================= test.tsx ==
 
 import { qHook } from '@builderio/qwik';
-qComponent({
+/*#__PURE__*/ qComponent({
     "onMount": qHook(()=>import("./h_test_Header_onMount")
     , "Header_onMount"),
     onRender: qHook(()=>import("./h_test_Header_onRender")
     , "Header_onRender")
 });
-qComponent({
+/*#__PURE__*/ qComponent({
     onRender: qHook(()=>import("./h_test_App_onRender")
     , "App_onRender")
 });

@@ -30,11 +30,11 @@ export const App = qComponent({
     
 ============================= project/test.tsx ==
 
-export const Header = qComponent({
+export const Header = /*#__PURE__*/ qComponent({
     onRender: qHook(()=>import("../entry_hooks")
     , "Header_onRender")
 });
-export const App = qComponent({
+export const App = /*#__PURE__*/ qComponent({
     onRender: qHook(()=>import("../entry_hooks")
     , "App_onRender")
 });

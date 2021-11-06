@@ -21,7 +21,7 @@ export const App = () => {
 ============================= test.tsx ==
 
 export const App = ()=>{
-    const Header = qComponent({
+    const Header = /*#__PURE__*/ qComponent({
         "onMount": qHook(()=>import("./h_test_App_Header_onMount")
         , "App_Header_onMount"),
         onRender: qHook(()=>import("./h_test_App_Header_onRender")

@@ -163,7 +163,7 @@ pub fn transform_internal(
                             ),
                             transpile && is_jsx
                         ),
-                        HookTransform::new(config.context, &path, &mut hooks),
+                        HookTransform::new(config.context, &path, Some(&comments), &mut hooks),
                         pass::Optional::new(
                             resolver_with_mark(top_level_mark),
                             config.minify != MinifyMode::None
@@ -214,7 +214,7 @@ pub fn transform_internal(
                             hook_module = optimize(
                                 hook_module,
                                 config.context.source_map.clone(),
-                                Some(&comments),
+                                None,
                                 None,
                                 &MinifyOptions {
                                     compress: Some(CompressOptions {

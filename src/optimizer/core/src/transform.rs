@@ -7,6 +7,7 @@ use ast::*;
 use std::collections::HashSet;
 use std::vec;
 use swc_atoms::JsWord;
+use swc_common::comments::{Comments, SingleThreadedComments};
 use swc_common::{sync::Lrc, SourceMap, DUMMY_SP};
 use swc_ecmascript::ast;
 use swc_ecmascript::ast::{ExportDecl, Expr, Ident, VarDeclarator};
@@ -49,12 +50,15 @@ pub struct HookTransform<'a> {
     hooks: &'a mut Vec<Hook>,
 
     path: &'a PathData,
+
+    comments: Option<&'a SingleThreadedComments>,
 }
 
 impl<'a> HookTransform<'a> {
     pub fn new(
-        ctx: &'a mut TransformContext,
+        context: &'a mut TransformContext,
         path: &'a PathData,
+        comments: Option<&'a SingleThreadedComments>,
         hooks: &'a mut Vec<Hook>,
     ) -> Self {
         HookTransform {
@@ -63,7 +67,8 @@ impl<'a> HookTransform<'a> {
             hooks,
             module_item: 0,
             root_sym: None,
-            context: ctx,
+            comments,
+            context,
         }
     }
 
@@ -227,13 +232,16 @@ impl<'a> Fold for HookTransform<'a> {
     fn fold_call_expr(&mut self, node: CallExpr) -> CallExpr {
         if let ExprOrSuper::Expr(expr) = &node.callee {
             if let Expr::Ident(id) = &**expr {
-                if id.sym == *"qHook" {
+                if id.sym == *"qComponent" {
+                    if let Some(comments) = self.comments {
+                        comments.add_pure_comment(node.span.lo);
+                    }
+                } else if id.sym == *"qHook" {
                     let symbol_name = self.get_context_name();
                     let canonical_filename =
                         ["h_", &self.path.file_prefix, "_", &symbol_name].concat();
                     let folded = node.fold_children_with(self);
                     let hook_collect = HookCollect::new(&folded);
-
                     let entry = self.context.bundling_policy.get_entry_for_sym(
                         &symbol_name,
                         self.path,

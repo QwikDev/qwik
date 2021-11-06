@@ -57,6 +57,8 @@ export type MinifyOption = boolean | undefined | null;
 export class Optimizer {
     // (undocumented)
     getTransformedModule(path: string): TransformModule | undefined;
+    // (undocumented)
+    hasTransformedModule(path: string): boolean;
     set isDirty(isDirty: boolean);
     // (undocumented)
     get isDirty(): boolean;

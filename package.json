@@ -70,7 +70,8 @@
     "patch-m1-buildifier": "echo Patching Buildifier for Apple M1 architecture compatibility && sed -i .bak \"s/'x64' : 'amd64',\\$/'x64' : 'amd64', 'arm64' : 'amd64',/\" ./node_modules/@bazel/buildifier/buildifier.js",
     "bazel:format": "find . -type f \\( -name \"*.bzl\" -or -name WORKSPACE -or -name BUILD -or -name BUILD.bazel \\) ! -path \"*/node_modules/*\" | xargs buildifier --warnings=attr-cfg,attr-license,attr-non-empty,attr-output-default,attr-single-file,constant-glob,ctx-actions,ctx-args,depset-iteration,depset-union,dict-concatenation,duplicated-name,filetype,git-repository,http-archive,integer-division,load,load-on-top,native-build,native-package,out-of-order-load,output-group,package-name,package-on-top,positional-args,redefined-variable,repository-name,same-origin-load,string-iteration,unsorted-dict-items,unused-variable",
     "bazel:lint": "npm run bazel:format -- --mode=check --lint=warn",
-    "bazel:lint-fix": "npm run bazel:format -- --mode=fix --lint=fix"
+    "bazel:lint-fix": "npm run bazel:format -- --mode=fix --lint=fix",
+    "link": "cd dist-dev/@builder.io-qwik && npm link"
   },
   "contributors": [
     {

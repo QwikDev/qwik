@@ -1,8 +1,6 @@
 import type {
-  Diagnostic,
   TransformModulesOptions,
   TransformFsOptions,
-  TransformResult,
 } from '.';
 import { loadPlatformBinding } from './platform-binding';
 
@@ -11,13 +9,7 @@ import { loadPlatformBinding } from './platform-binding';
  */
 export async function transformModules(opts: TransformModulesOptions) {
   const binding = loadPlatformBinding();
-  return binding.transformModules({
-    minify: false,
-    sourceMaps: false,
-    transpile: false,
-    ...opts,
-    entryStrategy: opts.entryStrategy?.type ?? 'Single',
-  });
+  return binding.transformModules(convertOptions(opts));
 }
 
 /**
@@ -25,13 +17,7 @@ export async function transformModules(opts: TransformModulesOptions) {
  */
 export function transformModulesSync(opts: TransformModulesOptions) {
   const binding = loadPlatformBinding();
-  return binding.transformModules({
-    minify: false,
-    sourceMaps: false,
-    transpile: false,
-    ...opts,
-    entryStrategy: opts.entryStrategy?.type ?? 'Single',
-  });
+  return binding.transformModules(convertOptions(opts));
 }
 
 /**
@@ -39,26 +25,28 @@ export function transformModulesSync(opts: TransformModulesOptions) {
  */
 export async function transformFs(opts: TransformFsOptions) {
   const binding = loadPlatformBinding();
-  return binding.transformFs({
-    minify: false,
-    sourceMaps: false,
-    transpile: false,
-    ...opts,
-    entryStrategy: opts.entryStrategy?.type ?? 'Single',
-  });
+  return binding.transformFs(convertOptions(opts));
 }
 
 /**
  * Transforms the file read from the file system.
  */
-export function transformFsSync(opts: TransformFsOptions) {
+ export function transformFsSync(opts: TransformFsOptions) {
   const binding = loadPlatformBinding();
-  return binding.transformFs({
+  return binding.transformFs(convertOptions(opts));
+}
+
+export function convertOptions(opts: any) {
+  const output: any = {
     minify: false,
     sourceMaps: false,
     transpile: false,
-    ...opts,
-    entryStrategy: opts.entryStrategy?.type ?? 'Single',
+  };
+  Object.entries(opts).forEach(([key, value]) => {
+    if (value != null) {
+      output[key] = value;
+    }
   });
+  output.entryStrategy = opts.entryStrategy?.type ?? 'Single';
+  return output;
 }
-

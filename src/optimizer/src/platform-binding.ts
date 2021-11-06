@@ -23,7 +23,6 @@ export function loadPlatformBinding() {
           `..`,
           `qwik.${triple.platformArchABI}.node`
         );
-        console.log(platformBindingPath);
         if (fs.existsSync(platformBindingPath)) {
           // NodeJS Native Binding loaded with CJS
           loadedBinding = require(platformBindingPath);

@@ -1,5 +1,5 @@
 import { EntryStrategy, Optimizer, OutputEntryMap, TransformFsOptions } from '..';
-import { dirname, resolve } from 'path';
+import path from 'path';
 import type { InputOption, OutputBundle, Plugin } from 'rollup';
 
 /**
@@ -23,7 +23,9 @@ export function qwikRollup(opts: QwikPluginOptions = {}): Plugin {
         transpile: opts.transpile
       };
 
+      console.time("Qwik optimize");
       const result = await optimizer.transformFs(transformOpts);
+      console.timeEnd("Qwik optimize");
 
       // throw error or print logs if there are any diagnostics
       result.diagnostics.forEach((d) => {
@@ -35,6 +37,16 @@ export function qwikRollup(opts: QwikPluginOptions = {}): Plugin {
           console.info('QWIK:', d.message);
         }
       });
+    },
+
+    resolveId(id, importer) {
+      if (importer) {
+        id = path.resolve(path.dirname(importer), id);
+      }
+      if (optimizer.hasTransformedModule(id)) {
+        return id
+      }
+      return null;
     },
 
     load(id) {
@@ -88,12 +100,12 @@ function findInputDirectory(rollupInput: InputOption | undefined) {
     }
   }
 
-  inputFilePaths = inputFilePaths.map(p => resolve(p));
+  inputFilePaths = inputFilePaths.map(p => path.resolve(p));
   if (inputFilePaths.length === 0) {
     throw new Error(`Valid absolute input path required`);
   }
 
-  const sortedInputDirPaths = Array.from(new Set(inputFilePaths.map(dirname))).sort((a, b) => {
+  const sortedInputDirPaths = Array.from(new Set(inputFilePaths.map(path.dirname))).sort((a, b) => {
     if (a.length < b.length) return -1;
     if (a.length > b.length) return 1;
     return 0;
@@ -123,4 +135,8 @@ export interface QwikPluginOptions {
   glob?: string;
   transpile?: boolean;
   minify?: boolean;
+}
+
+export function normalizePath(fileName: string) {
+  return fileName.split(path.win32.sep).join(path.posix.sep);
 }

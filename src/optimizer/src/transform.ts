@@ -38,7 +38,7 @@ export async function transformFs(opts: TransformFsOptions) {
 
 export function convertOptions(opts: any) {
   const output: any = {
-    minify: false,
+    minify: 'simplify',
     sourceMaps: false,
     transpile: false,
   };

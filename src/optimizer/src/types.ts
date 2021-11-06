@@ -20,7 +20,7 @@ export type TranspileOption = boolean | undefined | null;
  */
 interface TransformOptions {
   entryStrategy?: EntryStrategy;
-  minify?: boolean;
+  minify?: MinifyMode;
   sourceMaps?: boolean;
   transpile?: boolean;
 }
@@ -115,6 +115,11 @@ export type DiagnosticType = 'error' | 'warn' | 'info';
  * @alpha
  */
 export type EntryStrategy = SingleEntryStrategy | PerHookEntryStrategy | ManualEntryStrategy;
+
+/**
+ * @alpha
+ */
+ export type MinifyMode = 'minify' | 'simplify' | 'none';
 
 /**
  * @alpha

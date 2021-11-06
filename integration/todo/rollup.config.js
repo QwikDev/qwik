@@ -10,7 +10,6 @@ export default {
     qwikRollup({
       entryStrategy: {type: "PerComponent"},
       transpile: true,
-      minify: true,
     }),
   ],
   output: [

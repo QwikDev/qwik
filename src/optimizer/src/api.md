@@ -51,6 +51,9 @@ export interface ManualEntryStrategy {
 }
 
 // @alpha (undocumented)
+export type MinifyMode = 'minify' | 'simplify' | 'none';
+
+// @alpha (undocumented)
 export type MinifyOption = boolean | undefined | null;
 
 // @alpha (undocumented)
@@ -87,7 +90,7 @@ export interface QwikPluginOptions {
     // (undocumented)
     glob?: string;
     // (undocumented)
-    minify?: boolean;
+    minify?: MinifyMode;
     // (undocumented)
     transpile?: boolean;
 }

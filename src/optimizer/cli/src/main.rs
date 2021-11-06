@@ -54,13 +54,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     Arg::new("strategy")
                     .long("strategy")
                         .possible_values(["single", "hook", "component"])
+                        .takes_value(true)
                         .about("entry strategy used to group hooks"),
                 )
-                .arg(Arg::new("no-transpile")
-                .long("no-transpile")
-                .about("transpile TS and JSX into JS")
-            .takes_value(false))
-                .arg(Arg::new("minify").long("minify").possible_values(["minify", "simplify", "none"]).about("outputs minified source code").takes_value(false))
+                .arg(
+                    Arg::new("no-transpile")
+                    .long("no-transpile")
+                    .about("transpile TS and JSX into JS").takes_value(false)
+                 )
+                .arg(Arg::new("minify").long("minify").takes_value(true).possible_values(["minify", "simplify", "none"]).about("outputs minified source code").takes_value(false))
                 .arg(Arg::new("sourcemaps").long("sourcemaps").about("generates sourcemaps").takes_value(false)),
         )
         .get_matches();

@@ -1,4 +1,4 @@
-import { EntryStrategy, Optimizer, OutputEntryMap, TransformFsOptions } from '..';
+import { EntryStrategy, MinifyMode, Optimizer, OutputEntryMap, TransformFsOptions } from '..';
 import path from 'path';
 import type { InputOption, OutputBundle, Plugin } from 'rollup';
 
@@ -134,7 +134,7 @@ export interface QwikPluginOptions {
   entryStrategy?: EntryStrategy;
   glob?: string;
   transpile?: boolean;
-  minify?: boolean;
+  minify?: MinifyMode;
 }
 
 export function normalizePath(fileName: string) {

@@ -5,6 +5,7 @@ extern crate napi_derive;
 use napi::{CallContext, JsObject, JsUnknown, Result};
 
 #[cfg(target_os = "macos")]
+#[cfg(target_arch = "x86_64")]
 #[global_allocator]
 static GLOBAL: jemallocator::Jemalloc = jemallocator::Jemalloc;
 

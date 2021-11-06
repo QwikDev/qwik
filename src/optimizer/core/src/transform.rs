@@ -19,7 +19,7 @@ pub struct Hook {
     pub canonical_filename: String,
     pub name: String,
     pub module_index: usize,
-    pub expr: Box<Expr>,
+    pub expr: CallExpr,
     pub local_decl: Vec<JsWord>,
     pub local_idents: Vec<JsWord>,
     pub origin: String,
@@ -265,7 +265,7 @@ impl<'a> Fold for HookTransform<'a> {
 
                         name: symbol_name.clone(),
                         module_index: self.module_item,
-                        expr: Box::new(Expr::Call(folded)),
+                        expr: folded,
                         local_decl: hook_collect.get_local_decl(),
                         local_idents: hook_collect.get_local_idents(),
 

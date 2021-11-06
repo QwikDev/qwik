@@ -15,7 +15,7 @@ export const sym1 = qHook(()=>import("./h_test_sym1")
 
 ============================= h_test_sym1.tsx (ENTRY POINT)==
 
-export const sym1 = qHook((ctx)=>console.log("1")
+export const sym1 = /*#__PURE__*/ qHook((ctx)=>console.log("1")
 );
 
 == HOOKS ==

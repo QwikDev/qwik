@@ -208,7 +208,7 @@ pub fn transform_internal(
                     .iter()
                     .map(|h| {
                         let hook_mark = Mark::fresh(Mark::root());
-                        let mut hook_module = new_module(&path, h, &collect);
+                        let (mut hook_module, comments) = new_module(&path, h, &collect);
                         if config.minify == MinifyMode::Minify {
                             hook_module = hook_module.fold_with(&mut resolver_with_mark(hook_mark));
                             hook_module = optimize(
@@ -242,7 +242,7 @@ pub fn transform_internal(
 
                         let (code, map) = emit_source_code(
                             config.context.source_map.clone(),
-                            None,
+                            Some(comments),
                             &hook_module,
                             config.minify == MinifyMode::Minify,
                             config.source_maps,

@@ -42,27 +42,27 @@ import { qHook } from '@builderio/qwik';
 ============================= h_test_App_onRender.tsx (ENTRY POINT)==
 
 import { qHook } from "@builderio/qwik";
-export const App_onRender = qHook(()=>{
+export const App_onRender = /*#__PURE__*/ qHook(()=>{
     return (<Header />);
 });
 
 ============================= h_test_Header_onMount.tsx (ENTRY POINT)==
 
 import { qHook } from "@builderio/qwik";
-export const Header_onMount = qHook(()=>{
+export const Header_onMount = /*#__PURE__*/ qHook(()=>{
     console.log("mount");
 });
 
 ============================= h_test_Header_onRender_div_onClick.tsx (ENTRY POINT)==
 
 import { qHook } from "@builderio/qwik";
-export const Header_onRender_div_onClick = qHook((ctx)=>console.log(ctx)
+export const Header_onRender_div_onClick = /*#__PURE__*/ qHook((ctx)=>console.log(ctx)
 );
 
 ============================= h_test_Header_onRender.tsx (ENTRY POINT)==
 
 import { qHook } from "@builderio/qwik";
-export const Header_onRender = qHook(()=>{
+export const Header_onRender = /*#__PURE__*/ qHook(()=>{
     return (<div onClick={qHook(()=>import("./h_test_Header_onRender_div_onClick")
     , "Header_onRender_div_onClick")}/>);
 });

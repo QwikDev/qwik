@@ -25,7 +25,7 @@ qHook(()=>import("./h_test_Header")
 
 ============================= h_test_Header.tsx (ENTRY POINT)==
 
-export const Header = qHook((decl1, { decl2  }, [decl3])=>{
+export const Header = /*#__PURE__*/ qHook((decl1, { decl2  }, [decl3])=>{
     const { decl4 , key: decl5  } = this;
     let [decl6, ...decl7] = stuff;
     const decl8 = 1, decl9;

@@ -4,10 +4,16 @@ use crate::transform::Hook;
 
 use std::path::Path;
 use swc_atoms::JsWord;
+use swc_common::comments::{Comments, SingleThreadedComments};
 use swc_common::DUMMY_SP;
 use swc_ecmascript::ast::*;
 
-pub fn new_module(path: &PathData, hook: &Hook, global: &GlobalCollect) -> Module {
+pub fn new_module(
+    path: &PathData,
+    hook: &Hook,
+    global: &GlobalCollect,
+) -> (Module, SingleThreadedComments) {
+    let comments = SingleThreadedComments::default();
     let mut module = Module {
         span: DUMMY_SP,
         body: vec![],
@@ -71,9 +77,9 @@ pub fn new_module(path: &PathData, hook: &Hook, global: &GlobalCollect) -> Modul
                 })));
         }
     }
-    module.body.push(create_named_export(hook));
+    module.body.push(create_named_export(hook, &comments));
 
-    module
+    (module, comments)
 }
 
 pub fn fix_path(src: &str, dest: &str, ident: &str) -> JsWord {
@@ -99,8 +105,11 @@ pub fn fix_path(src: &str, dest: &str, ident: &str) -> JsWord {
     JsWord::from(ident)
 }
 
-fn create_named_export(hook: &Hook) -> ModuleItem {
-    ModuleItem::ModuleDecl(ModuleDecl::ExportDecl(ExportDecl {
+fn create_named_export(hook: &Hook, comments: &SingleThreadedComments) -> ModuleItem {
+    let expr = hook.expr.clone();
+    comments.add_pure_comment(expr.span.lo);
+
+    let module_item = ModuleItem::ModuleDecl(ModuleDecl::ExportDecl(ExportDecl {
         span: DUMMY_SP,
         decl: Decl::Var(VarDecl {
             span: DUMMY_SP,
@@ -113,10 +122,12 @@ fn create_named_export(hook: &Hook) -> ModuleItem {
                     JsWord::from(hook.name.as_str()),
                     DUMMY_SP,
                 ))),
-                init: Some(hook.expr.clone()),
+                init: Some(Box::new(Expr::Call(expr))),
             }],
         }),
-    }))
+    }));
+
+    module_item
 }
 
 #[test]

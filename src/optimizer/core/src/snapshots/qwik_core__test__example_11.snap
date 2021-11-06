@@ -43,14 +43,14 @@ export const App = /*#__PURE__*/ qComponent({
 
 import { Header } from "./project/test";
 import { foo } from "./state";
-export const App_onRender = qHook(()=>{
+export const App_onRender = /*#__PURE__*/ qHook(()=>{
     return (<Header >{foo()}</Header>);
 });
 
 ============================= h_test_Header_onRender_Header_onClick.tsx ==
 
 import dep3 from "dep3/something";
-export const Header_onRender_Header_onClick = qHook((ev)=>dep3(ev)
+export const Header_onRender_Header_onClick = /*#__PURE__*/ qHook((ev)=>dep3(ev)
 );
 
 ============================= h_test_Header_onRender.tsx ==
@@ -58,7 +58,7 @@ export const Header_onRender_Header_onClick = qHook((ev)=>dep3(ev)
 import { Header } from "./project/test";
 import { bar as bbar } from "./state";
 import * as dep2 from "dep2";
-export const Header_onRender = qHook(()=>{
+export const Header_onRender = /*#__PURE__*/ qHook(()=>{
     return (<Header onClick={qHook(()=>import("../entry_hooks")
     , "Header_onRender_Header_onClick")}>
 

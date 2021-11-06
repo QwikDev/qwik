@@ -25,12 +25,12 @@ const Header = qHook((decl1, {decl2}, [decl3]) => {
     )
 });
     
-============================= /user/qwik/src/project/test.tsx ==
+============================= project/test.tsx ==
 
-const Header = qHook(()=>import("../h_test_Header")
+qHook(()=>import("../h_test_Header")
 , "Header");
 
-============================= /user/qwik/src/h_test_Header.tsx (ENTRY POINT)==
+============================= h_test_Header.tsx (ENTRY POINT)==
 
 export const Header = qHook((decl1, { decl2  }, [decl3])=>{
     const hola = ident1.no;
@@ -61,8 +61,8 @@ export const Header = qHook((decl1, { decl2  }, [decl3])=>{
     "origin": "project/test.tsx",
     "name": "Header",
     "entry": null,
-    "canonical_filename": "h_test_Header",
-    "local_decl": [
+    "canonicalFilename": "h_test_Header",
+    "localDecl": [
       "Some",
       "a",
       "b",
@@ -72,7 +72,7 @@ export const Header = qHook((decl1, { decl2  }, [decl3])=>{
       "hola",
       "ident11"
     ],
-    "local_idents": [
+    "localIdents": [
       "decl1",
       "decl2",
       "decl3",

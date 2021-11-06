@@ -17,24 +17,24 @@ export const Header = qComponent({
     })
 });
     
-============================= /user/qwik/src/test.tsx ==
+============================= test.tsx ==
 
 export const Header = qComponent({
     onRender: qHook(()=>import("./h_test_Header_onRender")
     , "Header_onRender")
 });
 
-============================= /user/qwik/src/h_test_Header_onRender_div_onClick.tsx (ENTRY POINT)==
+============================= h_test_Header_onRender_div_onClick.tsx (ENTRY POINT)==
 
 export const Header_onRender_div_onClick = qHook((ctx)=>console.log("1")
 );
 
-============================= /user/qwik/src/h_test_Header_onRender_div_onClick1.tsx (ENTRY POINT)==
+============================= h_test_Header_onRender_div_onClick1.tsx (ENTRY POINT)==
 
 export const Header_onRender_div_onClick1 = qHook((ctx)=>console.log("2")
 );
 
-============================= /user/qwik/src/h_test_Header_onRender.tsx (ENTRY POINT)==
+============================= h_test_Header_onRender.tsx (ENTRY POINT)==
 
 export const Header_onRender = qHook(()=>{
     return (<>
@@ -55,11 +55,11 @@ export const Header_onRender = qHook(()=>{
     "origin": "test.tsx",
     "name": "Header_onRender_div_onClick",
     "entry": null,
-    "canonical_filename": "h_test_Header_onRender_div_onClick",
-    "local_decl": [
+    "canonicalFilename": "h_test_Header_onRender_div_onClick",
+    "localDecl": [
       "ctx"
     ],
-    "local_idents": [
+    "localIdents": [
       "console",
       "ctx",
       "log",
@@ -70,11 +70,11 @@ export const Header_onRender = qHook(()=>{
     "origin": "test.tsx",
     "name": "Header_onRender_div_onClick1",
     "entry": null,
-    "canonical_filename": "h_test_Header_onRender_div_onClick1",
-    "local_decl": [
+    "canonicalFilename": "h_test_Header_onRender_div_onClick1",
+    "localDecl": [
       "ctx"
     ],
-    "local_idents": [
+    "localIdents": [
       "console",
       "ctx",
       "log",
@@ -85,9 +85,9 @@ export const Header_onRender = qHook(()=>{
     "origin": "test.tsx",
     "name": "Header_onRender",
     "entry": null,
-    "canonical_filename": "h_test_Header_onRender",
-    "local_decl": [],
-    "local_idents": [
+    "canonicalFilename": "h_test_Header_onRender",
+    "localDecl": [],
+    "localIdents": [
       "div",
       "import",
       "onClick",

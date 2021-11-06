@@ -8,12 +8,12 @@ expression: output
 
 export const sym1 = qHook((ctx) => console.log("1"));
     
-============================= /user/qwik/src/test.tsx ==
+============================= test.tsx ==
 
 export const sym1 = qHook(()=>import("./h_test_sym1")
 , "sym1");
 
-============================= /user/qwik/src/h_test_sym1.tsx (ENTRY POINT)==
+============================= h_test_sym1.tsx (ENTRY POINT)==
 
 export const sym1 = qHook((ctx)=>console.log("1")
 );
@@ -25,11 +25,11 @@ export const sym1 = qHook((ctx)=>console.log("1")
     "origin": "test.tsx",
     "name": "sym1",
     "entry": null,
-    "canonical_filename": "h_test_sym1",
-    "local_decl": [
+    "canonicalFilename": "h_test_sym1",
+    "localDecl": [
       "ctx"
     ],
-    "local_idents": [
+    "localIdents": [
       "console",
       "ctx",
       "log",

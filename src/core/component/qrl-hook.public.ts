@@ -29,15 +29,15 @@ export function qHook<COMP extends QComponent, ARGS extends {} | unknown = unkno
  * @public
  */
 export function qHook(hook: any, symbol?: string): any {
-  if (typeof hook === 'string') return hook;
   if (typeof symbol === 'string') {
     const match = String(hook).match(EXTRACT_IMPORT_PATH);
     if (match && match[2]) {
-      return (match[2] + '#' + symbol) as any;
+      hook = (match[2] + '#' + symbol) as any;
     } else {
       throw new Error('dynamic import not found: ' + String(hook));
     }
   }
+  if (typeof hook === 'string') return parseQRL(hook);
   const qrlFn = async (element: HTMLElement, event: Event, url: URL) => {
     const isQwikInternalHook = typeof event == 'string';
     // isQwikInternalHook && console.log('HOOK', event, element, url);

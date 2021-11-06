@@ -14,8 +14,12 @@ mod utils;
 
 use std::collections::HashSet;
 use std::error;
+
+#[cfg(feature = "fs")]
 use std::fs;
+#[cfg(feature = "fs")]
 use std::path::PathBuf;
+
 use std::str;
 use swc_atoms::JsWord;
 use swc_common::{sync::Lrc, SourceMap, DUMMY_SP};
@@ -30,6 +34,7 @@ use crate::utils::MapVec;
 
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "fs")]
 #[derive(Serialize, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TransformFsOptions {
@@ -56,10 +61,10 @@ pub struct TransformModulesOptions {
     pub source_maps: bool,
     pub minify: MinifyMode,
     pub transpile: bool,
-    pub print_ast: bool,
     pub entry_strategy: EntryStrategy,
 }
 
+#[cfg(feature = "fs")]
 pub fn transform_fs(config: &TransformFsOptions) -> Result<TransformResult, Box<dyn error::Error>> {
     let root_dir = PathBuf::from(&config.root_dir);
     let pattern = if let Some(glob) = &config.glob {

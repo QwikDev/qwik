@@ -29,10 +29,14 @@ export function loadPlatformBinding() {
           return loadedBinding!;
         }
       }
-    }
 
-    // NodeJS WASM
-    // TODO
+      const wasmBindingPath = path.join(
+        `..`,
+        `wasm`,
+      );
+      loadedBinding = require(wasmBindingPath);
+      return loadedBinding!;
+    }
   }
 
   if (typeof window !== 'undefined' && typeof document !== 'undefined') {
@@ -44,8 +48,8 @@ export function loadPlatformBinding() {
 }
 
 export interface PlatformBinding {
-  transformFs: (opts: any) => TransformResult;
-  transformModules: (opts: any) => TransformResult;
+  transform_fs?: (opts: any) => TransformResult;
+  transform_modules: (opts: any) => TransformResult;
 }
 
 let loadedBinding: PlatformBinding | null = null;

@@ -28,8 +28,8 @@ fn transform_modules(ctx: CallContext) -> Result<JsUnknown> {
 
 #[module_exports]
 fn init(mut exports: JsObject) -> Result<()> {
-  exports.create_named_method("transformFs", transform_fs)?;
-  exports.create_named_method("transformModules", transform_modules)?;
+  exports.create_named_method("transform_fs", transform_fs)?;
+  exports.create_named_method("transform_modules", transform_modules)?;
 
   Ok(())
 }

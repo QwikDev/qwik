@@ -40,6 +40,7 @@ export interface BuildConfig {
   platformBinding?: boolean;
   publish?: boolean;
   setVerison?: string;
+  wasm?: boolean;
   tsc?: boolean;
   validate?: boolean;
   validateDistTag?: string;

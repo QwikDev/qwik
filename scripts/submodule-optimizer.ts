@@ -61,7 +61,7 @@ export async function submoduleOptimizer(config: BuildConfig) {
     }
   }
 
-  async function buildOptimizerRollupPlgin() {
+  async function buildOptimizerRollupPlugin() {
     const opts: BuildOptions = {
       entryPoints: [join(config.srcDir, submodule, 'src', 'rollup', 'index.ts')],
       entryNames: 'rollup',
@@ -94,5 +94,5 @@ export async function submoduleOptimizer(config: BuildConfig) {
     console.log('🐼', 'rollup-plugin');
   }
 
-  await Promise.all([buildOptimizer(), buildOptimizerRollupPlgin()]);
+  await Promise.all([buildOptimizer(), buildOptimizerRollupPlugin()]);
 }

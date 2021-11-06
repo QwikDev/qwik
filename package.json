@@ -45,8 +45,8 @@
     "typescript": "^4.2.0"
   },
   "scripts": {
-    "build": "node scripts --tsc --build --api --platform-binding",
-    "build.ci": "node scripts --tsc --build --api --validate",
+    "build": "node scripts --tsc --build --api --platform-binding --wasm",
+    "build.ci": "node scripts --tsc --build --api --validate --wasm",
     "build.watch": "node scripts --build --watch --dev --platform-binding",
     "build.binding.ci": "cd src/napi && napi build --platform --release --config=napi.config.json",
     "api.update": "node scripts --tsc --api --dev",

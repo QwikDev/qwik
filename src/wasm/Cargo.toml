@@ -2,7 +2,7 @@
 authors = ["Manu Mtz-Almeida <manu@builder.io>"]
 name = "qwik-wasm"
 version = "0.0.1"
-edition = "2018"
+edition = "2021"
 
 [lib]
 crate-type = ["cdylib"]
@@ -13,3 +13,7 @@ qwik-core = { path = "../optimizer/core" }
 serde = "1"
 serde-wasm-bindgen = "0.3.0"
 wasm-bindgen = "0.2"
+parking_lot_core = "=0.8.0"
+
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = false

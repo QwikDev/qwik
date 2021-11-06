@@ -8,6 +8,8 @@ use crate::collector::global_collect;
 use crate::transform::{Hook, HookTransform, TransformContext};
 use crate::utils::{CodeHighlight, Diagnostic, DiagnosticSeverity, SourceLocation};
 use serde::{Deserialize, Serialize};
+
+#[cfg(feature = "fs")]
 use std::fs;
 
 use swc_common::comments::SingleThreadedComments;
@@ -71,11 +73,12 @@ pub struct TransformResult {
 }
 
 impl TransformResult {
+    #[cfg(feature = "fs")]
     pub fn write_to_fs(&self, destination: &str) -> Result<usize, Box<dyn std::error::Error>> {
         let destination = Path::new(destination);
         for module in &self.modules {
             let write_path = destination.join(&module.path);
-            std::fs::create_dir_all(&write_path.parent().unwrap())?;
+            fs::create_dir_all(&write_path.parent().unwrap())?;
             fs::write(write_path, &module.code)?;
         }
         Ok(self.modules.len())

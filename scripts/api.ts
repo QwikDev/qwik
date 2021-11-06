@@ -1,4 +1,4 @@
-import type { BuildConfig } from './util';
+import { BuildConfig, panic } from './util';
 import { Extractor, ExtractorConfig } from '@microsoft/api-extractor';
 import { join } from 'path';
 import { readFileSync, writeFileSync } from 'fs';
@@ -36,10 +36,9 @@ function createTypesApi(
     showVerboseMessages: true,
   });
   if (!result.succeeded) {
-    console.error(
-      `\n❌ Use "npm run api.update" to automatically update the .md files if the api changes were expected\n`
+    panic(
+      `Use "npm run api.update" to automatically update the .md files if the api changes were expected`
     );
-    process.exit(1);
   }
   const srcPath = result.extractorConfig.untrimmedFilePath;
   const destPath = join(config.distPkgDir, outFileName);

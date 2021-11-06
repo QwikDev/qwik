@@ -1,4 +1,4 @@
-import type { BuildConfig } from './util';
+import { BuildConfig, panic } from './util';
 import ts from 'typescript';
 
 export function tsc(config: BuildConfig) {
@@ -28,8 +28,7 @@ export function tsc(config: BuildConfig) {
         getCanonicalFileName: (f) => f,
         getNewLine: () => '\n',
       });
-      console.error(err);
-      process.exit(1);
+      panic(err);
     }
     program.emit();
     console.log('🐶 tsc');

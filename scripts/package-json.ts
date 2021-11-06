@@ -8,10 +8,7 @@ import { join } from 'path';
  * Note that some of the properties can be pulled from the root package.json.
  */
 export async function generatePackageJson(config: BuildConfig) {
-  const pkgJsonRoot = join(config.rootDir, 'package.json');
-  const pkgJsonDist = join(config.distPkgDir, 'package.json');
-
-  const rootPkg: PackageJSON = JSON.parse(await readFile(pkgJsonRoot, 'utf-8'));
+  const rootPkg = await readPackageJson(config.rootDir);
 
   const distPkg: PackageJSON = {
     name: rootPkg.name,
@@ -66,11 +63,21 @@ export async function generatePackageJson(config: BuildConfig) {
     engines: rootPkg.engines,
   };
 
-  const pkgContent = JSON.stringify(distPkg, null, 2);
+  await writePackageJson(config.distPkgDir, distPkg);
 
-  await writeFile(pkgJsonDist, pkgContent);
+  console.log('🐷', 'generated package.json');
+}
 
-  console.log('🐷', 'generate package.json');
+export async function readPackageJson(pkgJsonDir: string) {
+  const pkgJsonPath = join(pkgJsonDir, 'package.json');
+  const pkgJson: PackageJSON = JSON.parse(await readFile(pkgJsonPath, 'utf-8'));
+  return pkgJson;
+}
+
+export async function writePackageJson(pkgJsonDir: string, pkgJson: PackageJSON) {
+  const pkgJsonPath = join(pkgJsonDir, 'package.json');
+  const pkgJsonStr = JSON.stringify(pkgJson, null, 2) + '\n';
+  await writeFile(pkgJsonPath, pkgJsonStr);
 }
 
 /**

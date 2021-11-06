@@ -1,4 +1,4 @@
-import type { BuildConfig, PackageJSON } from './util';
+import { BuildConfig, PackageJSON, panic } from './util';
 import { access, readFile } from './util';
 import { extname, join } from 'path';
 import { pathToFileURL } from 'url';
@@ -78,7 +78,7 @@ export async function validateBuild(config: BuildConfig) {
   const unexpectedFiles = allFiles.filter((f) => !expectedFiles.includes(f));
 
   if (unexpectedFiles.length > 0) {
-    console.error(
+    panic(
       `Unexpected files found in the package build:\n${unexpectedFiles.join(
         '\n'
       )}\n\nIf this is on purpose, add the file(s) to the "PACKAGE_FILES" array in "${join(
@@ -86,7 +86,6 @@ export async function validateBuild(config: BuildConfig) {
         'package-json.ts'
       )}"`
     );
-    process.exit(1);
   }
 
   console.log('🏅', 'validated build');

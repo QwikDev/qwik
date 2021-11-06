@@ -34,11 +34,15 @@ export interface BuildConfig {
 
   api?: boolean;
   build?: boolean;
+  commit?: boolean;
   dev?: boolean;
   jsx?: boolean;
   platformBinding?: boolean;
+  publish?: boolean;
+  setVerison?: string;
   tsc?: boolean;
   validate?: boolean;
+  validateDistTag?: string;
   watch?: boolean;
 }
 
@@ -56,7 +60,10 @@ export function loadConfig(args: string[] = []) {
   config.distPkgDir = join(config.distDir, '@builder.io-qwik');
   config.tscDir = join(config.distDir, 'tsc-out');
   config.esmNode = parseInt(process.version.substr(1).split('.')[0], 10) >= 14;
-  config.platformBinding = args.includes('--platform-binding');
+  config.platformBinding = (config as any)['platform-binding'];
+  config.setVerison = (config as any)['set-version'];
+  config.setVerison = (config as any)['set-version'];
+  config.validateDistTag = (config as any)['validate-dist-tag'];
 
   return config;
 }
@@ -218,13 +225,20 @@ export function emptyDir(dir: string) {
         unlinkSync(item);
       }
     }
+  } else {
+    ensureDir(dir);
   }
 }
 
 export function ensureDir(dir: string) {
   try {
-    mkdirSync(dir);
+    mkdirSync(dir, { recursive: true });
   } catch (e) {}
+}
+
+export function panic(msg: string) {
+  console.error(`\n❌ ${msg}\n`);
+  process.exit(1);
 }
 
 /**

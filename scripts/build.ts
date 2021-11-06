@@ -1,4 +1,4 @@
-import type { BuildConfig } from './util';
+import { BuildConfig, ensureDir, panic } from './util';
 import { apiExtractor } from './api';
 import { buildDevServer } from './devserver';
 import { buildPlatformBinding } from './platform-binding';
@@ -6,7 +6,7 @@ import { copyFiles } from './copy-files';
 import { emptyDir } from './util';
 import { generateJsxTypes } from './jsx-types';
 import { generatePackageJson } from './package-json';
-import { mkdirSync } from 'fs';
+import { setVersion } from './release';
 import { submoduleCore } from './submodule-core';
 import { submoduleJsxRuntime } from './submodule-jsx-runtime';
 import { submoduleOptimizer } from './submodule-optimizer';
@@ -26,20 +26,20 @@ import { validateBuild } from './validate-build';
  */
 export async function build(config: BuildConfig) {
   try {
-    console.log(`🌎 building (nodejs ${process.version})`);
+    console.log(`🌎 Qwik (nodejs ${process.version})`);
+
+    // await setVersion(config);
 
     if (config.tsc) {
       tsc(config);
     }
 
     if (config.build) {
-      if (!config.dev) {
+      if (config.dev) {
+        ensureDir(config.distPkgDir);
+      } else {
         emptyDir(config.distPkgDir);
       }
-      try {
-        // ensure the build pkgDir exists
-        mkdirSync(config.distPkgDir, { recursive: true });
-      } catch (e) {}
 
       await Promise.all([
         submoduleCore(config),
@@ -73,8 +73,7 @@ export async function build(config: BuildConfig) {
     if (config.watch) {
       console.log('👀', 'watching...');
     }
-  } catch (e) {
-    console.error(e);
-    process.exit(1);
+  } catch (e: any) {
+    panic(String(e.stack || e));
   }
 }

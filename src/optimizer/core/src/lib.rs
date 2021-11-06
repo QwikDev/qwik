@@ -24,7 +24,7 @@ use swc_ecmascript::ast::*;
 use crate::entry_strategy::parse_entry_strategy;
 pub use crate::entry_strategy::EntryStrategy;
 use crate::parse::{emit_source_code, transform_internal, InternalConfig};
-pub use crate::parse::{ErrorBuffer, HookAnalysis, TransformModule, TransformResult};
+pub use crate::parse::{ErrorBuffer, HookAnalysis, MinifyMode, TransformModule, TransformResult};
 pub use crate::transform::{Hook, TransformContext};
 use crate::utils::MapVec;
 
@@ -36,7 +36,7 @@ pub struct TransformFsOptions {
     pub root_dir: String,
     pub glob: Option<String>,
     pub source_maps: bool,
-    pub minify: bool,
+    pub minify: MinifyMode,
     pub transpile: bool,
     pub entry_strategy: EntryStrategy,
 }
@@ -54,7 +54,7 @@ pub struct TransformModulesOptions {
     pub root_dir: String,
     pub input: Vec<TransformModuleInput>,
     pub source_maps: bool,
-    pub minify: bool,
+    pub minify: MinifyMode,
     pub transpile: bool,
     pub print_ast: bool,
     pub entry_strategy: EntryStrategy,

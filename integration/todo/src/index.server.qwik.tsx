@@ -42,4 +42,6 @@ import type { Todos } from './state.qwik';
 
 serverRender({
   outDir: './',
-});
+}).then(str => {
+  console.log(str.html);
+})

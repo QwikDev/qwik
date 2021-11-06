@@ -290,7 +290,7 @@ fn test_input(filename: &str, code: &str, entry_strategy: EntryStrategy, print_a
             path: filename.to_string(),
         }],
         source_maps: true,
-        minify: false,
+        minify: MinifyMode::Simplify,
         transpile: false,
         print_ast,
         entry_strategy,

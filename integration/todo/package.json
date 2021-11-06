@@ -6,6 +6,7 @@
   "scripts": {
     "clean": "rm -rf dist output",
     "build.rollup": "rollup -c",
+    "build.qwik": "qwik optimize --src src --dest dist --minify",
     "build": "npm run clean && npm run build.rollup"
   },
   "author": "",

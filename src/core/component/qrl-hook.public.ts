@@ -30,9 +30,16 @@ export function qHook<COMP extends QComponent, ARGS extends {} | unknown = unkno
  */
 export function qHook(hook: any, symbol?: string): any {
   if (typeof symbol === 'string') {
-    const match = String(hook).match(EXTRACT_IMPORT_PATH);
-    if (match && match[2]) {
+    let match;
+    if ((match = String(hook).match(EXTRACT_IMPORT_PATH)) && match[2]) {
       hook = (match[2] + '#' + symbol) as any;
+    } else if ((match = String(hook).match(EXTRACT_SELF_IMPORT))) {
+      const frame = new Error('SELF').stack!.split('\n')[2];
+      match = frame.match(EXTRACT_FILE_NAME);
+      if (!match) {
+        throw new Error('Could not filename in: ' + frame);
+      }
+      hook = match[1];
     } else {
       throw new Error('dynamic import not found: ' + String(hook));
     }
@@ -77,3 +84,9 @@ export interface QHook<
 
 // https://regexr.com/68v72
 const EXTRACT_IMPORT_PATH = /\(\s*(['"])([^\1]+)\1\s*\)/;
+
+// https://regexr.com/690ds
+const EXTRACT_SELF_IMPORT = /Promise\s*\.\s*resolve/;
+
+// https://regexr.com/690e2
+const EXTRACT_FILE_NAME = /([\w\d\.-_]+)\.(js|ts)x?:/;

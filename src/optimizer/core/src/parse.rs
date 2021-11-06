@@ -15,9 +15,18 @@ use swc_common::errors::{DiagnosticBuilder, Emitter, Handler};
 use swc_common::{chain, sync::Lrc, FileName, Globals, Mark, SourceMap};
 use swc_ecmascript::ast::*;
 use swc_ecmascript::codegen::text_writer::JsWriter;
+use swc_ecmascript::minifier::optimize;
+use swc_ecmascript::minifier::option::{
+    CompressOptions, ExtraOptions, MangleOptions, MinifyOptions,
+};
 use swc_ecmascript::parser::lexer::Lexer;
 use swc_ecmascript::parser::{EsConfig, PResult, Parser, StringInput, Syntax, TsConfig};
-use swc_ecmascript::transforms::{pass, react, typescript};
+use swc_ecmascript::transforms::{
+    fixer,
+    hygiene::{self, hygiene_with_config},
+    resolver_with_mark,
+};
+use swc_ecmascript::transforms::{optimization::simplify::simplifier, pass, react, typescript};
 use swc_ecmascript::visit::FoldWith;
 
 #[derive(Debug, Serialize, Deserialize, Default)]
@@ -31,11 +40,19 @@ pub struct HookAnalysis {
     pub local_idents: Vec<String>,
 }
 
+#[derive(Debug, Serialize, Deserialize, Copy, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub enum MinifyMode {
+    Minify,
+    Simplify,
+    None,
+}
+
 pub struct InternalConfig<'a> {
     pub root_dir: String,
     pub path: String,
     pub source_maps: bool,
-    pub minify: bool,
+    pub minify: MinifyMode,
     pub transpile: bool,
     pub print_ast: bool,
     pub code: &'a str,
@@ -117,7 +134,8 @@ pub fn transform_internal(
                     react_options.pragma_frag = "Fragment".to_string();
                 };
 
-                let main_module = {
+                let top_level_mark = Mark::fresh(Mark::root());
+                let mut main_module = {
                     let mut passes = chain!(
                         pass::Optional::new(
                             typescript::strip(),
@@ -145,20 +163,88 @@ pub fn transform_internal(
                             ),
                             transpile && is_jsx
                         ),
-                        HookTransform::new(config.context, &path, &mut hooks)
+                        HookTransform::new(config.context, &path, &mut hooks),
+                        pass::Optional::new(
+                            resolver_with_mark(top_level_mark),
+                            config.minify != MinifyMode::None
+                        ),
+                        pass::Optional::new(
+                            simplifier(Default::default()),
+                            config.minify != MinifyMode::None
+                        )
                     );
                     main_module.fold_with(&mut passes)
                 };
 
+                if config.minify == MinifyMode::Minify {
+                    main_module = optimize(
+                        main_module,
+                        config.context.source_map.clone(),
+                        Some(&comments),
+                        None,
+                        &MinifyOptions {
+                            compress: Some(CompressOptions {
+                                ..CompressOptions::default()
+                            }),
+                            mangle: Some(MangleOptions {
+                                top_level: true,
+                                ..MangleOptions::default()
+                            }),
+                            rename: true,
+                            wrap: false,
+                            enclose: false,
+                        },
+                        &ExtraOptions { top_level_mark },
+                    );
+
+                    main_module = main_module
+                        .fold_with(&mut hygiene_with_config(hygiene::Config {
+                            ..Default::default()
+                        }))
+                        .fold_with(&mut fixer(None));
+                }
+
                 let mut output_modules: Vec<TransformModule> = hooks
                     .iter()
                     .map(|h| {
-                        let hook_module = new_module(&path, h, &collect);
+                        let hook_mark = Mark::fresh(Mark::root());
+                        let mut hook_module = new_module(&path, h, &collect);
+                        if config.minify == MinifyMode::Minify {
+                            hook_module = hook_module.fold_with(&mut resolver_with_mark(hook_mark));
+                            hook_module = optimize(
+                                hook_module,
+                                config.context.source_map.clone(),
+                                Some(&comments),
+                                None,
+                                &MinifyOptions {
+                                    compress: Some(CompressOptions {
+                                        ..CompressOptions::default()
+                                    }),
+                                    mangle: Some(MangleOptions {
+                                        top_level: true,
+                                        ..MangleOptions::default()
+                                    }),
+                                    rename: true,
+                                    wrap: false,
+                                    enclose: false,
+                                },
+                                &ExtraOptions {
+                                    top_level_mark: hook_mark,
+                                },
+                            );
+
+                            hook_module = hook_module
+                                .fold_with(&mut hygiene_with_config(hygiene::Config {
+                                    ..Default::default()
+                                }))
+                                .fold_with(&mut fixer(None));
+                        }
+
                         let (code, map) = emit_source_code(
                             config.context.source_map.clone(),
                             None,
                             &hook_module,
-                            config.minify,
+                            config.minify == MinifyMode::Minify,
                             config.source_maps,
                         )
                         .unwrap();
@@ -192,7 +278,7 @@ pub fn transform_internal(
                     config.context.source_map.clone(),
                     Some(comments),
                     &main_module,
-                    config.minify,
+                    config.minify == MinifyMode::Minify,
                     config.source_maps,
                 )?;
 

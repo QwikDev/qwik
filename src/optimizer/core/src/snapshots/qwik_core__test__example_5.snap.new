@@ -1,0 +1,101 @@
+---
+source: src/test.rs
+expression: output
+
+---
+==INPUT==
+
+
+export const Header = qComponent({
+    onRender: qHook(() => {
+        return (
+            <>
+                <div onClick={qHook((ctx) => console.log("1"))}/>
+                <div onClick={qHook((ctx) => console.log("2"))}/>
+            </>
+        );
+    })
+});
+    
+============================= test.tsx ==
+
+export const Header = qComponent({
+    onRender: qHook(()=>import("./h_test_Header_onRender")
+    , "Header_onRender")
+});
+
+============================= h_test_Header_onRender_div_onClick.tsx (ENTRY POINT)==
+
+export const Header_onRender_div_onClick = qHook((ctx)=>console.log("1")
+);
+
+============================= h_test_Header_onRender_div_onClick1.tsx (ENTRY POINT)==
+
+export const Header_onRender_div_onClick1 = qHook((ctx)=>console.log("2")
+);
+
+============================= h_test_Header_onRender.tsx (ENTRY POINT)==
+
+export const Header_onRender = qHook(()=>{
+    return (<>
+
+                <div onClick={qHook(()=>import("./h_test_Header_onRender_div_onClick")
+    , "Header_onRender_div_onClick")}/>
+
+                <div onClick={qHook(()=>import("./h_test_Header_onRender_div_onClick1")
+    , "Header_onRender_div_onClick1")}/>
+
+            </>);
+});
+
+== HOOKS ==
+
+[
+  {
+    "origin": "test.tsx",
+    "name": "Header_onRender_div_onClick",
+    "entry": null,
+    "canonicalFilename": "h_test_Header_onRender_div_onClick",
+    "localDecl": [
+      "ctx"
+    ],
+    "localIdents": [
+      "console",
+      "ctx",
+      "log",
+      "qHook"
+    ]
+  },
+  {
+    "origin": "test.tsx",
+    "name": "Header_onRender_div_onClick1",
+    "entry": null,
+    "canonicalFilename": "h_test_Header_onRender_div_onClick1",
+    "localDecl": [
+      "ctx"
+    ],
+    "localIdents": [
+      "console",
+      "ctx",
+      "log",
+      "qHook"
+    ]
+  },
+  {
+    "origin": "test.tsx",
+    "name": "Header_onRender",
+    "entry": null,
+    "canonicalFilename": "h_test_Header_onRender",
+    "localDecl": [],
+    "localIdents": [
+      "div",
+      "import",
+      "onClick",
+      "qHook"
+    ]
+  }
+]
+
+== DIAGNOSTICS ==
+
+[]

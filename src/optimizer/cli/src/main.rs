@@ -1,6 +1,6 @@
 use clap::{App, AppSettings, Arg};
 use path_absolutize::*;
-use qwik_core::{transform_fs, EntryStrategy, TransformFsOptions};
+use qwik_core::{transform_fs, EntryStrategy, MinifyMode, TransformFsOptions};
 
 struct Optimize {
     glob: Option<String>,
@@ -8,7 +8,7 @@ struct Optimize {
     dest: String,
     strategy: EntryStrategy,
     transpile: bool,
-    minify: bool,
+    minify: MinifyMode,
     sourcemaps: bool,
 }
 
@@ -53,11 +53,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .arg(
                     Arg::new("strategy")
                     .long("strategy")
-                        .possible_values(["single", "per-hook"])
+                        .possible_values(["single", "hook", "component"])
                         .about("entry strategy used to group hooks"),
                 )
-                .arg(Arg::new("no-transpile").long("no-transpile").about("transpile TS and JSX into JS").takes_value(false))
-                .arg(Arg::new("minify").long("minify").about("outputs minified source code").takes_value(false))
+                .arg(Arg::new("no-transpile")
+                .long("no-transpile")
+                .about("transpile TS and JSX into JS")
+            .takes_value(false))
+                .arg(Arg::new("minify").long("minify").possible_values(["minify", "simplify", "none"]).about("outputs minified source code").takes_value(false))
                 .arg(Arg::new("sourcemaps").long("sourcemaps").about("generates sourcemaps").takes_value(false)),
         )
         .get_matches();
@@ -66,16 +69,25 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // matches just as you would the top level app
     if let Some(ref matches) = matches.subcommand_matches("optimize") {
         // "$ myapp test" was run
-        let mut strategy = EntryStrategy::Single;
-        if matches.value_of("strategy") == Some("per-hook") {
-            strategy = EntryStrategy::PerHook;
-        }
+        let strategy = match matches.value_of("strategy") {
+            Some("hook") => EntryStrategy::PerHook,
+            Some("single") => EntryStrategy::Single,
+            Some("component") | None => EntryStrategy::PerComponent,
+            _ => panic!("Unvalid strategy option"),
+        };
+
+        let minify = match matches.value_of("minify") {
+            Some("minify") => MinifyMode::Minify,
+            Some("none") => MinifyMode::None,
+            Some("simplify") | None => MinifyMode::Simplify,
+            _ => panic!("Unvalid minify option"),
+        };
         optimize(Optimize {
             src: matches.value_of_t_or_exit("src"),
             dest: matches.value_of_t_or_exit("dest"),
             glob: None,
             strategy,
-            minify: matches.is_present("minify"),
+            minify,
             transpile: !matches.is_present("no-transpile"),
             sourcemaps: matches.is_present("sourcemaps"),
         })?;

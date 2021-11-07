@@ -50,7 +50,7 @@ pub enum MinifyMode {
     None,
 }
 
-pub struct InternalConfig<'a> {
+pub struct TransformCodeOptions<'a> {
     pub root_dir: String,
     pub path: String,
     pub source_maps: bool,
@@ -113,8 +113,8 @@ impl Emitter for ErrorBuffer {
     }
 }
 
-pub fn transform_internal(
-    config: InternalConfig,
+pub fn transform_code(
+    config: TransformCodeOptions,
 ) -> Result<TransformResult, Box<dyn error::Error>> {
     let module = parse(config.code, config.path.as_str(), &config);
     if config.print_ast {
@@ -334,7 +334,7 @@ pub fn transform_internal(
 fn parse(
     code: &str,
     filename: &str,
-    config: &InternalConfig,
+    config: &TransformCodeOptions,
 ) -> PResult<(Module, SingleThreadedComments, bool, bool)> {
     let source_map = &config.context.source_map;
     let source_file = source_map.new_source_file(FileName::Real(filename.into()), code.into());

@@ -12,8 +12,6 @@ mod entry_strategy;
 mod parse;
 mod transform;
 mod utils;
-
-use std::collections::HashSet;
 use std::error;
 
 #[cfg(feature = "fs")]
@@ -21,19 +19,15 @@ use std::fs;
 #[cfg(feature = "fs")]
 use std::path::PathBuf;
 
+use serde::{Deserialize, Serialize};
 use std::str;
-use swc_atoms::JsWord;
-use swc_common::{sync::Lrc, SourceMap, DUMMY_SP};
-use swc_ecmascript::ast::*;
 
+use crate::code_move::generate_entries;
 use crate::entry_strategy::parse_entry_strategy;
 pub use crate::entry_strategy::EntryStrategy;
-use crate::parse::{emit_source_code, transform_internal, InternalConfig};
+use crate::parse::{transform_code, TransformCodeOptions};
 pub use crate::parse::{ErrorBuffer, HookAnalysis, MinifyMode, TransformModule, TransformResult};
-pub use crate::transform::{Hook, TransformContext};
-use crate::utils::MapVec;
-
-use serde::{Deserialize, Serialize};
+use crate::transform::TransformContext;
 
 #[cfg(feature = "fs")]
 #[derive(Serialize, Debug, Deserialize)]
@@ -86,7 +80,7 @@ pub fn transform_fs(config: &TransformFsOptions) -> Result<TransformResult, Box<
         let value = p.unwrap();
         let pathstr = value.strip_prefix(&root_dir)?.to_str().unwrap();
         let data = fs::read(&value).expect("Unable to read file");
-        let mut result = transform_internal(InternalConfig {
+        let mut result = transform_code(TransformCodeOptions {
             root_dir: config.root_dir.clone(),
             path: pathstr.to_string(),
             minify: config.minify,
@@ -129,7 +123,7 @@ pub fn transform_modules(
     };
     let mut default_ext = "js";
     for p in &config.input {
-        let mut result = transform_internal(InternalConfig {
+        let mut result = transform_code(TransformCodeOptions {
             root_dir: config.root_dir.clone(),
             path: p.path.clone(),
             minify: config.minify,
@@ -159,71 +153,4 @@ pub fn transform_modules(
         default_ext,
         context.source_map.clone(),
     ))
-}
-
-fn generate_entries(
-    result: TransformResult,
-    default_ext: &str,
-    source_map: Lrc<SourceMap>,
-) -> TransformResult {
-    let mut result = result;
-    let mut entries_set = HashSet::new();
-    let mut entries_map = MapVec::new();
-    for hook in &result.hooks {
-        let entry = if let Some(ref e) = hook.entry {
-            e.clone()
-        } else {
-            hook.canonical_filename.clone()
-        };
-        if hook.entry != None {
-            entries_map.push(entry.clone(), hook);
-        }
-        entries_set.insert(entry);
-    }
-
-    for (entry, hooks) in entries_map.as_ref().iter() {
-        let module = new_entry_module(hooks);
-        let (code, map) =
-            emit_source_code(source_map.clone(), None, &module, false, false).unwrap();
-        result.modules.push(TransformModule {
-            path: [entry, ".", default_ext].concat(),
-            code,
-            map,
-            is_entry: true,
-        });
-    }
-    result
-}
-
-fn new_entry_module(hooks: &[&HookAnalysis]) -> Module {
-    let mut module = Module {
-        span: DUMMY_SP,
-        body: vec![],
-        shebang: None,
-    };
-    for hook in hooks {
-        module
-            .body
-            .push(ModuleItem::ModuleDecl(ModuleDecl::ExportNamed(
-                NamedExport {
-                    span: DUMMY_SP,
-                    type_only: false,
-                    asserts: None,
-                    src: Some(Str {
-                        span: DUMMY_SP,
-                        value: JsWord::from(["./", &hook.canonical_filename].concat()),
-                        kind: StrKind::Synthesized,
-                        has_escape: false,
-                    }),
-                    specifiers: vec![ExportSpecifier::Named(ExportNamedSpecifier {
-                        is_type_only: false,
-                        span: DUMMY_SP,
-                        orig: Ident::new(JsWord::from(hook.name.clone()), DUMMY_SP),
-                        exported: None,
-                    })],
-                },
-            )));
-    }
-
-    module
 }

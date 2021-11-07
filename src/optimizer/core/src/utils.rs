@@ -99,22 +99,3 @@ pub enum SourceType {
     Script,
     Module,
 }
-
-#[macro_export]
-macro_rules! fold_member_expr_skip_prop {
-    () => {
-        fn fold_member_expr(
-            &mut self,
-            mut node: swc_ecmascript::ast::MemberExpr,
-        ) -> swc_ecmascript::ast::MemberExpr {
-            node.obj = node.obj.fold_children_with(self);
-
-            // To ensure that fold_expr doesn't replace `require` in non-computed member expressions
-            if node.computed {
-                node.prop = node.prop.fold_children_with(self);
-            }
-
-            node
-        }
-    };
-}

@@ -58,7 +58,14 @@ lint: lint-core lint-cli lint-napi lint-wasm lint-wasm
 test-core:
 	cd src/optimizer/core && cargo check
 
-
 test: test-core
+
+publish-core:
+	cd src/optimizer/core && cargo publish --all-features
+
+publish-cli:
+	cd src/optimizer/cli && cargo publish
+
+publish: publish-core publish-cli
 
 validate: check lint test

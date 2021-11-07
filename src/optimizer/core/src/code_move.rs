@@ -1,11 +1,13 @@
 use crate::collector::{GlobalCollect, ImportKind};
-use crate::parse::PathData;
+use crate::parse::{emit_source_code, HookAnalysis, PathData, TransformModule, TransformResult};
 use crate::transform::Hook;
+use crate::utils::MapVec;
 
+use std::collections::HashSet;
 use std::path::Path;
 use swc_atoms::JsWord;
 use swc_common::comments::{Comments, SingleThreadedComments};
-use swc_common::DUMMY_SP;
+use swc_common::{sync::Lrc, SourceMap, DUMMY_SP};
 use swc_ecmascript::ast::*;
 
 pub fn new_module(
@@ -150,4 +152,71 @@ fn test_fix_path() {
         fix_path("components.tsx", "a", "./state"),
         JsWord::from("./state")
     );
+}
+
+pub fn generate_entries(
+    result: TransformResult,
+    default_ext: &str,
+    source_map: Lrc<SourceMap>,
+) -> TransformResult {
+    let mut result = result;
+    let mut entries_set = HashSet::new();
+    let mut entries_map = MapVec::new();
+    for hook in &result.hooks {
+        let entry = if let Some(ref e) = hook.entry {
+            e.clone()
+        } else {
+            hook.canonical_filename.clone()
+        };
+        if hook.entry != None {
+            entries_map.push(entry.clone(), hook);
+        }
+        entries_set.insert(entry);
+    }
+
+    for (entry, hooks) in entries_map.as_ref().iter() {
+        let module = new_entry_module(hooks);
+        let (code, map) =
+            emit_source_code(source_map.clone(), None, &module, false, false).unwrap();
+        result.modules.push(TransformModule {
+            path: [entry, ".", default_ext].concat(),
+            code,
+            map,
+            is_entry: true,
+        });
+    }
+    result
+}
+
+fn new_entry_module(hooks: &[&HookAnalysis]) -> Module {
+    let mut module = Module {
+        span: DUMMY_SP,
+        body: vec![],
+        shebang: None,
+    };
+    for hook in hooks {
+        module
+            .body
+            .push(ModuleItem::ModuleDecl(ModuleDecl::ExportNamed(
+                NamedExport {
+                    span: DUMMY_SP,
+                    type_only: false,
+                    asserts: None,
+                    src: Some(Str {
+                        span: DUMMY_SP,
+                        value: JsWord::from(["./", &hook.canonical_filename].concat()),
+                        kind: StrKind::Synthesized,
+                        has_escape: false,
+                    }),
+                    specifiers: vec![ExportSpecifier::Named(ExportNamedSpecifier {
+                        is_type_only: false,
+                        span: DUMMY_SP,
+                        orig: Ident::new(JsWord::from(hook.name.clone()), DUMMY_SP),
+                        exported: None,
+                    })],
+                },
+            )));
+    }
+
+    module
 }

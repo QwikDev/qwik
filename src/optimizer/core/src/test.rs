@@ -17,7 +17,7 @@ const Header = qComponent({
   })
 });
     "#,
-        EntryStrategy::PerHook,
+        EntryStrategy::Hook,
         false,
     );
 }
@@ -36,7 +36,7 @@ export const Header = qComponent({
   })
 });
     "#,
-        EntryStrategy::PerHook,
+        EntryStrategy::Hook,
         false,
     );
 }
@@ -58,7 +58,7 @@ export const App = () => {
     return Header;
 });
     "#,
-        EntryStrategy::PerHook,
+        EntryStrategy::Hook,
         false,
     );
 }
@@ -80,7 +80,7 @@ export function App() {
     return Header;
 }
     "#,
-        EntryStrategy::PerHook,
+        EntryStrategy::Hook,
         false,
     );
 }
@@ -101,7 +101,7 @@ export const Header = qComponent({
     })
 });
     "#,
-        EntryStrategy::PerHook,
+        EntryStrategy::Hook,
         false,
     );
 }
@@ -113,7 +113,7 @@ fn example_6() {
         r#"
 export const sym1 = qHook((ctx) => console.log("1"));
     "#,
-        EntryStrategy::PerHook,
+        EntryStrategy::Hook,
         false,
     );
 }
@@ -142,7 +142,7 @@ const App = qComponent({
         );
     })
 });"#,
-        EntryStrategy::PerHook,
+        EntryStrategy::Hook,
         false,
     );
 }
@@ -165,7 +165,7 @@ const Header = qComponent({
     })
   });
 "#,
-        EntryStrategy::PerHook,
+        EntryStrategy::Hook,
         false,
     );
 }
@@ -187,7 +187,7 @@ const Header = qHook((decl1, {decl2}, [decl3]) => {
     try{}catch({decl19}){}
 });
     "#,
-        EntryStrategy::PerHook,
+        EntryStrategy::Hook,
         false,
     );
 }
@@ -216,7 +216,7 @@ const Header = qHook((decl1, {decl2}, [decl3]) => {
     )
 });
     "#,
-        EntryStrategy::PerHook,
+        EntryStrategy::Hook,
         false,
     );
 }

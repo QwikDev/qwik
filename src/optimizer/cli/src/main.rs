@@ -53,7 +53,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .arg(
                     Arg::new("strategy")
                     .long("strategy")
-                        .possible_values(["single", "hook", "component"])
+                        .possible_values(["single", "hook", "smart", "component"])
                         .takes_value(true)
                         .about("entry strategy used to group hooks"),
                 )
@@ -72,9 +72,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     if let Some(ref matches) = matches.subcommand_matches("optimize") {
         // "$ myapp test" was run
         let strategy = match matches.value_of("strategy") {
-            Some("hook") => EntryStrategy::PerHook,
+            Some("hook") => EntryStrategy::Hook,
             Some("single") => EntryStrategy::Single,
-            Some("component") | None => EntryStrategy::PerComponent,
+            Some("component") => EntryStrategy::Component,
+            Some("smart") | None => EntryStrategy::Smart,
             _ => panic!("Unvalid strategy option"),
         };
 

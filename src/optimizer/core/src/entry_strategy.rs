@@ -7,10 +7,12 @@ use swc_ecmascript::ast::CallExpr;
 
 // EntryStrategies
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub enum EntryStrategy {
     Single,
-    PerHook,
-    PerComponent,
+    Hook,
+    Component,
+    Smart,
     Manual(Vec<Vec<String>>),
 }
 pub trait EntryPolicy {
@@ -75,6 +77,30 @@ impl EntryPolicy for PerComponentStrategy {
         }
     }
 }
+
+#[derive(Default)]
+pub struct SmartStrategy {}
+
+impl EntryPolicy for SmartStrategy {
+    fn get_entry_for_sym(
+        &self,
+        _symbol: &str,
+        _path: &PathData,
+        context: &[String],
+        _analytics: &HookCollect,
+        _expr: &CallExpr,
+    ) -> Option<String> {
+        if context.iter().any(|h| h == "onMount") {
+            return Some("entry-server".to_string());
+        }
+        if let Some(root) = context.first() {
+            Some(["entry_", root].concat())
+        } else {
+            Some("entry-fallback".to_string())
+        }
+    }
+}
+
 pub struct ManualStrategy {
     map: HashMap<String, JsWord>,
     fallback: String,
@@ -116,8 +142,9 @@ impl EntryPolicy for ManualStrategy {
 pub fn parse_entry_strategy(strategy: &EntryStrategy) -> Box<dyn EntryPolicy> {
     match strategy {
         EntryStrategy::Single => Box::new(SingleStrategy::default()),
-        EntryStrategy::PerHook => Box::new(PerHookStrategy::default()),
-        EntryStrategy::PerComponent => Box::new(PerComponentStrategy::default()),
+        EntryStrategy::Hook => Box::new(PerHookStrategy::default()),
+        EntryStrategy::Component => Box::new(PerComponentStrategy::default()),
+        EntryStrategy::Smart => Box::new(SmartStrategy::default()),
         EntryStrategy::Manual(ref groups) => Box::new(ManualStrategy::new(groups)),
     }
 }

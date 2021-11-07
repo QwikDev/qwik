@@ -7,6 +7,12 @@
 import type { Plugin as Plugin_2 } from 'rollup';
 
 // @alpha (undocumented)
+export interface ComponentEntryStrategy {
+    // (undocumented)
+    type: 'component';
+}
+
+// @alpha (undocumented)
 export const createOptimizer: () => Promise<Optimizer>;
 
 // @alpha (undocumented)
@@ -27,7 +33,7 @@ export interface Diagnostic {
 export type DiagnosticType = 'error' | 'warn' | 'info';
 
 // @alpha (undocumented)
-export type EntryStrategy = SingleEntryStrategy | PerHookEntryStrategy | ManualEntryStrategy;
+export type EntryStrategy = SingleEntryStrategy | HookEntryStrategy | ComponentEntryStrategy | SmartEntryStrategy | ManualEntryStrategy;
 
 // @alpha (undocumented)
 export interface HookAnalysis {
@@ -46,11 +52,17 @@ export interface HookAnalysis {
 }
 
 // @alpha (undocumented)
+export interface HookEntryStrategy {
+    // (undocumented)
+    type: 'hook';
+}
+
+// @alpha (undocumented)
 export interface ManualEntryStrategy {
     // (undocumented)
     entries: string[][];
     // (undocumented)
-    type: 'Manual';
+    type: 'manual';
 }
 
 // @alpha (undocumented)
@@ -80,12 +92,6 @@ export interface OutputEntryMap {
 }
 
 // @alpha (undocumented)
-export interface PerHookEntryStrategy {
-    // (undocumented)
-    type: 'PerHook';
-}
-
-// @alpha (undocumented)
 export interface QwikPluginOptions {
     // (undocumented)
     entryStrategy?: EntryStrategy;
@@ -103,7 +109,13 @@ export function qwikRollup(opts?: QwikPluginOptions): Plugin_2;
 // @alpha (undocumented)
 export interface SingleEntryStrategy {
     // (undocumented)
-    type: 'Single';
+    type: 'single';
+}
+
+// @alpha (undocumented)
+export interface SmartEntryStrategy {
+    // (undocumented)
+    type: 'smart';
 }
 
 // @alpha (undocumented)

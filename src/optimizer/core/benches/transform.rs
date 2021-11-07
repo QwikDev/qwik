@@ -48,7 +48,7 @@ fn transform_benchmark(b: &mut Criterion) {
                 minify: MinifyMode::None,
                 transpile: false,
                 print_ast: false,
-                entry_strategy: EntryStrategy::PerHook,
+                entry_strategy: EntryStrategy::Hook,
             }))
         })
     });

@@ -50,9 +50,9 @@ jobs:
           path: dist-dev/@builder.io-qwik
           if-no-files-found: error
 
-  ############ BUILD WASM ############
-  build-wasm:
-    name: Build WASM
+  ############ BUILD NODEJS WASM ############
+  build-wasm-nodejs:
+    name: Build NodeJS WASM
     runs-on: ubuntu-latest
     steps:
       - name: Setup Node.js
@@ -61,28 +61,72 @@ jobs:
           node-version: 16.x
           registry-url: https://registry.npmjs.org/
 
+      - name: Install wasm-pack
+        uses: jetli/wasm-pack-action@v0.3.0
+        with:
+          version: 'latest'
+
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Cache NPM Dependencies
-        uses: actions/cache@v2
+      - name: Build NodeJS WASM
+        working-directory: ./src/wasm
+        run: wasm-pack build --target=nodejs --release --out-dir=../../dist-wasm
+
+      - name: Print Output
+        run: ls -R
+
+      - name: Upload NodeJS WASM Build Artifacts
+        uses: actions/upload-artifact@master
         with:
-          path: node_modules
-          key: npm-cache-ubuntu-${{ hashFiles('yarn.lock') }}
-          restore-keys: npm-cache-ubuntu-
+          name: qwik.nodejs.wasm
+          path: dist-wasm/qwik_wasm_bg.wasm
+          if-no-files-found: error
 
-      - name: Install NPM Dependencies
-        run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
+  ############ BUILD WEB WASM ############
+  build-wasm-web:
+    name: Build Web WASM
+    runs-on: ubuntu-latest
+    env:
+      CARGO_PROFILE_RELEASE_LTO: true
+      CARGO_PROFILE_RELEASE_PANIC: abort
+      CARGO_PROFILE_RELEASE_OPT_LEVEL: z
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
 
-      - name: Build WASM
-        run: node scripts --wasm
+      - name: Setup Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 16.x
+          registry-url: https://registry.npmjs.org/
 
-      # - name: Upload WASM Build Artifacts
-      #   uses: actions/upload-artifact@master
-      #   with:
-      #     name: dist-dev-wasm
-      #     path: dist-dev/@builder.io-qwik
-      #     if-no-files-found: error
+      - name: Install wasm-pack
+        uses: jetli/wasm-pack-action@v0.3.0
+        with:
+          version: 'latest'
+
+      - name: Install
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          override: true
+          toolchain: stable
+          target: ${{ matrix.settings.target }}
+
+      - name: Build Web WASM
+        working-directory: ./src/wasm
+        run: wasm-pack build --target=web --release --out-dir=../../dist-wasm
+
+      - name: Print Output
+        run: ls -R
+
+      - name: Upload Web WASM Build Artifacts
+        uses: actions/upload-artifact@master
+        with:
+          name: qwik.web.wasm
+          path: dist-wasm/qwik_wasm_bg.wasm
+          if-no-files-found: error
 
   ############ BUILD PLATFORM BINDINGS ############
   build-bindings:
@@ -96,11 +140,11 @@ jobs:
               yarn build.napi
               strip -x *.node
 
-          - host: macos-latest
-            target: aarch64-apple-darwin
-            build: |
-              yarn build.napi --target=aarch64-apple-darwin
-              strip -x *.node
+          # - host: macos-latest
+          #   target: aarch64-apple-darwin
+          #   build: |
+          #     yarn build.napi --target=aarch64-apple-darwin
+          #     strip -x *.node
 
           - host: windows-latest
             target: x86_64-pc-windows-msvc
@@ -187,7 +231,8 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - build-package
-      - build-wasm
+      - build-wasm-nodejs
+      - build-wasm-web
       - build-bindings
 
     steps:
@@ -217,9 +262,10 @@ jobs:
 
       - name: Move Platform Bindings Artifacts
         run: |
-          mv binding-aarch64-apple-darwin/qwik.darwin-arm64.node dist-builder-io-qwik/qwik.darwin-arm64.node
           mv binding-x86_64-apple-darwin/qwik.darwin-x64.node dist-builder-io-qwik/qwik.darwin-x64.node
           mv binding-x86_64-pc-windows-msvc/qwik.win32-x64-msvc.node dist-builder-io-qwik/qwik.win32-x64-msvc.node
+
+        # mv binding-aarch64-apple-darwin/qwik.darwin-arm64.node dist-builder-io-qwik/qwik.darwin-arm64.node
 
       - name: Pack @builder.io/qwik
         run: |

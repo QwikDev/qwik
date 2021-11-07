@@ -5,7 +5,7 @@ import type { TransformModulesOptions, TransformFsOptions } from './types';
 /**
  * @alpha
  */
- export interface Optimizer {
+export interface Optimizer {
   isDirty: boolean;
 
   /**
@@ -73,8 +73,8 @@ export const createOptimizer = async (): Promise<Optimizer> => {
       lastDirectoryResult = result;
 
       result.modules.forEach((output) => {
-        const path = (output.path.split('.').slice(0, -1)).join('.')
-        const key = result.rootDir + "/" + path;
+        const path = output.path.split('.').slice(0, -1).join('.');
+        const key = result.rootDir + '/' + path;
         transformedOutputs.set(key, output);
       });
 
@@ -93,8 +93,8 @@ export const createOptimizer = async (): Promise<Optimizer> => {
       lastDirectoryResult = result;
 
       result.modules.forEach((output) => {
-        const path = (output.path.split('.').slice(0, -1)).join('.')
-        const key = result.rootDir + "/" + path;
+        const path = output.path.split('.').slice(0, -1).join('.');
+        const key = result.rootDir + '/' + path;
         transformedOutputs.set(key, output);
       });
 
@@ -105,7 +105,6 @@ export const createOptimizer = async (): Promise<Optimizer> => {
       path = path.replace(/\.(j|t)sx?$/, '');
       return transformedOutputs.get(path);
     },
-
 
     hasTransformedModule(path: string) {
       return transformedOutputs.has(path);
@@ -123,33 +122,30 @@ export const createOptimizer = async (): Promise<Optimizer> => {
     watchChange(id: string, event: 'create' | 'update' | 'delete') {
       isDirty = true;
       console.debug('watch change', id, event);
-    }
+    },
   };
-}
-
+};
 
 /**
  * Transforms the input code string, does not access the file system.
  */
 const transformModules = (binding: PlatformBinding, opts: TransformModulesOptions) => {
   return binding.transform_modules(convertOptions(opts));
-}
-
+};
 
 const transformFs = (binding: PlatformBinding, opts: TransformFsOptions) => {
   if (binding.transform_fs) {
     return binding.transform_fs(convertOptions(opts));
   }
-  throw new Error('not implemented')
-}
-
+  throw new Error('not implemented');
+};
 
 const transformFsAsync = (binding: PlatformBinding, opts: TransformFsOptions) => {
   if (binding.transform_fs) {
     return binding.transform_fs(convertOptions(opts));
   }
   return transformFsVirtual(opts, binding);
-}
+};
 
 const transformFsVirtual = async (opts: TransformFsOptions, binding: PlatformBinding) => {
   const { promisify } = require('util');
@@ -159,23 +155,26 @@ const transformFsVirtual = async (opts: TransformFsOptions, binding: PlatformBin
   const stat = promisify(fs.stat);
   const read = promisify(fs.readFile);
 
-
   const extensions = ['.js', '.ts', '.tsx', '.jsx'];
   async function getFiles(dir: string) {
     const subdirs = await readdir(dir);
-    const files = await Promise.all(subdirs.flatMap(async (subdir: any) => {
-      const res = resolve(dir, subdir);
-      return (await stat(res)).isDirectory() ? getFiles(res) : res;
-    }));
-    return files.filter(a => extensions.includes(extname(a)));
+    const files = await Promise.all(
+      subdirs.flatMap(async (subdir: any) => {
+        const res = resolve(dir, subdir);
+        return (await stat(res)).isDirectory() ? getFiles(res) : res;
+      })
+    );
+    return files.filter((a) => extensions.includes(extname(a)));
   }
   const files = await getFiles(opts.rootDir);
-  const input: TransformModuleInput[] = await Promise.all(files.map(async file => {
-    return {
-      code: await read(file, 'utf-8') as string,
-      path: (file as string).slice(opts.rootDir.length + 1),
-    };
-  }));
+  const input: TransformModuleInput[] = await Promise.all(
+    files.map(async (file) => {
+      return {
+        code: (await read(file, 'utf-8')) as string,
+        path: (file as string).slice(opts.rootDir.length + 1),
+      };
+    })
+  );
 
   const newOpts: TransformModulesOptions = {
     rootDir: opts.rootDir,
@@ -186,7 +185,7 @@ const transformFsVirtual = async (opts: TransformFsOptions, binding: PlatformBin
     input,
   };
   return binding.transform_modules(convertOptions(newOpts));
-}
+};
 
 const convertOptions = (opts: any) => {
   const output: any = {
@@ -201,4 +200,4 @@ const convertOptions = (opts: any) => {
   });
   output.entryStrategy = opts.entryStrategy?.type ?? 'single';
   return output;
-}
+};

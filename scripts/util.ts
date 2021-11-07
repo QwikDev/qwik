@@ -26,6 +26,7 @@ import gzipSize from 'gzip-size';
 export interface BuildConfig {
   rootDir: string;
   distDir: string;
+  srcNapiDir: string;
   srcDir: string;
   scriptsDir: string;
   tscDir: string;
@@ -39,11 +40,10 @@ export interface BuildConfig {
   jsx?: boolean;
   platformBinding?: boolean;
   publish?: boolean;
+  setDistTag?: string;
   setVerison?: string;
-  wasm?: boolean;
   tsc?: boolean;
-  validate?: boolean;
-  validateDistTag?: string;
+  wasm?: boolean;
   watch?: boolean;
 }
 
@@ -57,14 +57,14 @@ export function loadConfig(args: string[] = []) {
   config.rootDir = join(__dirname, '..');
   config.distDir = join(config.rootDir, 'dist-dev');
   config.srcDir = join(config.rootDir, 'src');
+  config.srcNapiDir = join(config.srcDir, 'napi');
   config.scriptsDir = join(config.rootDir, 'scripts');
   config.distPkgDir = join(config.distDir, '@builder.io-qwik');
   config.tscDir = join(config.distDir, 'tsc-out');
   config.esmNode = parseInt(process.version.substr(1).split('.')[0], 10) >= 14;
   config.platformBinding = (config as any)['platform-binding'];
   config.setVerison = (config as any)['set-version'];
-  config.setVerison = (config as any)['set-version'];
-  config.validateDistTag = (config as any)['validate-dist-tag'];
+  config.setDistTag = (config as any)['set-dist-tag'];
 
   return config;
 }

@@ -46,9 +46,8 @@
   },
   "scripts": {
     "build": "node scripts --tsc --build --api --platform-binding --wasm",
-    "build.ci": "node scripts --tsc --build --api --validate --wasm",
+    "build.napi": "cd src/napi && napi build --platform --release --config=napi.config.json",
     "build.watch": "node scripts --build --watch --dev --platform-binding",
-    "build.binding.ci": "cd src/napi && napi build --platform --release --config=napi.config.json",
     "api.update": "node scripts --tsc --api --dev",
     "tsc.check": "tsc --noEmit",
     "tsc.watch": "tsc --noEmit --watch --preserveWatchOutput",

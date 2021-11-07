@@ -7,7 +7,7 @@ import { copyFiles } from './copy-files';
 import { emptyDir } from './util';
 import { generateJsxTypes } from './jsx-types';
 import { generatePackageJson } from './package-json';
-import { setVersion } from './release';
+import { publish, setVersion } from './publish';
 import { submoduleCore } from './submodule-core';
 import { submoduleJsxRuntime } from './submodule-jsx-runtime';
 import { submoduleOptimizer } from './submodule-optimizer';
@@ -16,7 +16,6 @@ import { submoduleQwikLoader } from './submodule-qwikloader';
 import { submoduleServer } from './submodule-server';
 import { submoduleTesting } from './submodule-testing';
 import { tsc } from './tsc';
-import { validateBuild } from './validate-build';
 
 /**
  * Complete a full build for all of the package's submodules. Passed in
@@ -29,7 +28,9 @@ export async function build(config: BuildConfig) {
   try {
     console.log(`🌎 Qwik (nodejs ${process.version})`);
 
-    // await setVersion(config);
+    if (config.setVerison) {
+      await setVersion(config);
+    }
 
     if (config.tsc) {
       tsc(config);
@@ -71,12 +72,12 @@ export async function build(config: BuildConfig) {
       await generateJsxTypes(config);
     }
 
-    if (config.validate) {
-      await validateBuild(config);
+    if (config.publish) {
+      await publish(config);
     }
 
     if (config.watch) {
-      console.log('👀', 'watching...');
+      console.log('👀 watching...');
     }
   } catch (e: any) {
     panic(String(e.stack || e));

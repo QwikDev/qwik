@@ -114,12 +114,17 @@ export type DiagnosticType = 'error' | 'warn' | 'info';
 /**
  * @alpha
  */
-export type EntryStrategy = SingleEntryStrategy | HookEntryStrategy | ComponentEntryStrategy | SmartEntryStrategy | ManualEntryStrategy;
+export type EntryStrategy =
+  | SingleEntryStrategy
+  | HookEntryStrategy
+  | ComponentEntryStrategy
+  | SmartEntryStrategy
+  | ManualEntryStrategy;
 
 /**
  * @alpha
  */
- export type MinifyMode = 'minify' | 'simplify' | 'none';
+export type MinifyMode = 'minify' | 'simplify' | 'none';
 
 /**
  * @alpha
@@ -135,18 +140,17 @@ export interface HookEntryStrategy {
   type: 'hook';
 }
 
-
 /**
  * @alpha
  */
- export interface ComponentEntryStrategy {
+export interface ComponentEntryStrategy {
   type: 'component';
 }
 
 /**
  * @alpha
  */
- export interface SmartEntryStrategy {
+export interface SmartEntryStrategy {
   type: 'smart';
 }
 

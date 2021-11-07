@@ -23,7 +23,9 @@ export function setServerPlatform(document: any, opts: DocumentOptions) {
       if (opts.outDir == null) {
         throw new Error(`Server platform missing "outDir"`);
       }
-      const pathname = !['.js', '.cjs', '.mjs'].includes(extname(url.pathname)) ? url.pathname  + '.js' : url.pathname;
+      const pathname = !['.js', '.cjs', '.mjs'].includes(extname(url.pathname))
+        ? url.pathname + '.js'
+        : url.pathname;
       const filePath = join(opts.outDir, pathname);
       return './' + filePath;
     },

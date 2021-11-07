@@ -30,10 +30,7 @@ export async function loadPlatformBinding() {
         }
       }
 
-      const wasmBindingPath = path.join(
-        `..`,
-        `wasm-nodejs`,
-      );
+      const wasmBindingPath = path.join(`..`, `wasm-nodejs`);
       loadedBinding = require(wasmBindingPath);
       return loadedBinding!;
     }
@@ -41,10 +38,10 @@ export async function loadPlatformBinding() {
 
   if (typeof window !== 'undefined' && typeof document !== 'undefined') {
     // @ts-ignore
-    const module = await import("../wasm-web/qwik_wasm.js");
+    const module = await import('../wasm-web/qwik_wasm.js');
     await module.default();
     loadedBinding = {
-      transform_modules: module.transform_modules
+      transform_modules: module.transform_modules,
     };
   }
 

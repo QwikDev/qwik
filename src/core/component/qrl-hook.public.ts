@@ -44,9 +44,7 @@ export function qHook(hook: any, symbol?: string): any {
       throw new Error('dynamic import not found: ' + String(hook));
     }
   }
-  if (typeof hook === 'string') {
-    return parseQRL(hook);
-  }
+  if (typeof hook === 'string') return parseQRL(hook);
   const qrlFn = async (element: HTMLElement, event: Event, url: URL) => {
     const isQwikInternalHook = typeof event == 'string';
     // isQwikInternalHook && console.log('HOOK', event, element, url);

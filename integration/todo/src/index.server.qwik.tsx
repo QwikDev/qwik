@@ -16,7 +16,7 @@ import type { Todos } from './state.qwik';
  *
  * @returns a promise when all of the rendering is completed.
  */
- function serverRender(opts: RenderToStringOptions) {
+function serverRender(opts: RenderToStringOptions) {
   const todos: Todos = {
     filter: 'all',
     items: [
@@ -42,6 +42,6 @@ import type { Todos } from './state.qwik';
 
 serverRender({
   outDir: './',
-}).then(str => {
+}).then((str) => {
   console.log(str.html);
-})
+});

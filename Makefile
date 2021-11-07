@@ -12,33 +12,39 @@ install-all: install-rust install-rust-deps
 install-cli:
 	cd src/optimizer/cli && cargo install --path .
 
-fmt-core:
+
+
+fix-core:
 	cd src/optimizer/core && cargo fmt
 
-fmt-cli:
+fix-cli:
 	cd src/optimizer/cli && cargo fmt
 
-fmt-napi:
+fix-napi:
 	cd src/napi && cargo fmt
 
-fmt-wasm:
+fix-wasm:
 	cd src/wasm && cargo fmt
 
-fmt: fmt-core fmt-cli fmt-napi fmt-wasm fmt-wasm
+fix: fix-core fix-cli fix-napi fix-wasm fix-wasm
+
+
 
 check-core:
-	cd src/optimizer/core && cargo check
+	cd src/optimizer/core && cargo fmt -- --check && cargo check
 
 check-cli:
-	cd src/optimizer/cli && cargo check
+	cd src/optimizer/cli && cargo fmt -- --check && cargo check
 
 check-napi:
-	cd src/napi && cargo check
+	cd src/napi && cargo fmt -- --check && cargo check
 
 check-wasm:
-	cd src/wasm && cargo check
+	cd src/wasm && cargo fmt -- --check && cargo check
 
 check: check-core check-cli check-napi check-wasm check-wasm
+
+
 
 lint-core:
 	cd src/optimizer/core && cargo clippy

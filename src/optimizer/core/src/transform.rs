@@ -4,13 +4,15 @@ use crate::entry_strategy::EntryPolicy;
 use crate::parse::PathData;
 
 use ast::*;
+use lazy_static::lazy_static;
+use regex::Regex;
 use std::collections::HashSet;
 use std::vec;
 use swc_atoms::JsWord;
 use swc_common::comments::{Comments, SingleThreadedComments};
-use swc_common::{sync::Lrc, SourceMap, DUMMY_SP};
+use swc_common::{errors::HANDLER, sync::Lrc, SourceMap, DUMMY_SP};
 use swc_ecmascript::ast;
-use swc_ecmascript::ast::{ExportDecl, Expr, Ident, VarDeclarator};
+use swc_ecmascript::ast::{ExportDecl, Expr, ExprOrSpread, Ident, VarDeclarator};
 use swc_ecmascript::visit::{noop_fold_type, Fold, FoldWith};
 
 #[derive(Debug)]
@@ -230,17 +232,41 @@ impl<'a> Fold for HookTransform<'a> {
     }
 
     fn fold_call_expr(&mut self, node: CallExpr) -> CallExpr {
+        lazy_static! {
+            static ref QHOOK: JsWord = JsWord::from("qHook");
+        }
         if let ExprOrSuper::Expr(expr) = &node.callee {
             if let Expr::Ident(id) = &**expr {
                 if id.sym == *"qComponent" {
                     if let Some(comments) = self.comments {
                         comments.add_pure_comment(node.span.lo);
                     }
-                } else if id.sym == *"qHook" {
-                    let symbol_name = self.get_context_name();
+                } else if id.sym == *QHOOK {
+                    let mut node = node;
+                    let mut symbol_name = self.get_context_name();
+                    if let Some(second_arg) = node.args.get(1) {
+                        if let Expr::Lit(Lit::Str(ref str)) = *second_arg.expr {
+                            if validate_sym(&str.value) {
+                                let custom_sym = str.value.to_string();
+                                symbol_name = custom_sym;
+                            } else {
+                                HANDLER.with(|handler| {
+                                    handler
+                                        .struct_span_err(
+                                            str.span,
+                                            "Second argument should be the name of a valid identifier",
+                                        )
+                                        .emit();
+                                });
+                            }
+                        }
+                    }
                     let mut canonical_filename =
                         ["h_", &self.path.file_prefix, "_", &symbol_name].concat();
                     canonical_filename.make_ascii_lowercase();
+
+                    // Remove last arguments
+                    node.args.drain(1..);
 
                     let folded = node.fold_children_with(self);
                     let hook_collect = HookCollect::new(&folded);
@@ -339,4 +365,11 @@ fn escape_sym(str: &str) -> String {
             _ => '_',
         })
         .collect()
+}
+
+fn validate_sym(sym: &str) -> bool {
+    lazy_static! {
+        static ref RE: Regex = Regex::new("^[_a-zA-Z][_a-zA-Z0-9]{0,30}$").unwrap();
+    }
+    RE.is_match(sym)
 }

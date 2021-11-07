@@ -1,0 +1,49 @@
+---
+source: src/test.rs
+expression: output
+
+---
+==INPUT==
+
+
+export const Header = qComponent({
+    onRender: qHook(() => console.log("hello sym2"), "sym2")
+});
+
+    
+============================= project/test.tsx ==
+
+export const Header = /*#__PURE__*/ qComponent({
+    onRender: qHook(()=>import("../entry_hooks")
+    , "sym2")
+});
+
+============================= h_test_sym2.tsx ==
+
+export const sym2 = /*#__PURE__*/ qHook(()=>console.log("hello sym2")
+);
+
+============================= entry_hooks.ts (ENTRY POINT)==
+
+export { sym2 } from "./h_test_sym2";
+
+== HOOKS ==
+
+[
+  {
+    "origin": "project/test.tsx",
+    "name": "sym2",
+    "entry": "entry_hooks",
+    "canonicalFilename": "h_test_sym2",
+    "localDecl": [],
+    "localIdents": [
+      "console",
+      "log",
+      "qHook"
+    ]
+  }
+]
+
+== DIAGNOSTICS ==
+
+[]

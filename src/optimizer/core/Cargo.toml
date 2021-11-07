@@ -27,6 +27,8 @@ glob = {version = "0.3.0", optional = true}
 simple-error = "0.2.3"
 pathdiff = "0.2.1"
 relative-path = "1.5.0"
+lazy_static = "1.4.0"
+regex = "1.5.4"
 
 [dev-dependencies]
 criterion = "0.3.5"

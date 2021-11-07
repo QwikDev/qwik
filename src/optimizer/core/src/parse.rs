@@ -125,192 +125,203 @@ pub fn transform_code(
 
     match module {
         Ok((main_module, comments, is_type_script, is_jsx)) => {
+            let error_buffer = ErrorBuffer::default();
+            let handler = swc_common::errors::Handler::with_emitter(
+                true,
+                false,
+                Box::new(error_buffer.clone()),
+            );
+
             swc_common::GLOBALS.set(&Globals::new(), || {
-                let collect = global_collect(&main_module);
-                let mut hooks: Vec<Hook> = vec![];
-                let global_mark = Mark::fresh(Mark::root());
-                let mut react_options = react::Options::default();
-                if is_jsx {
-                    react_options.use_spread = true;
-                    react_options.import_source = "@builder.io/qwik".to_string();
-                    react_options.pragma = "h".to_string();
-                    react_options.pragma_frag = "Fragment".to_string();
-                };
+                swc_common::errors::HANDLER.set(&handler, || {
+                    let collect = global_collect(&main_module);
+                    let mut hooks: Vec<Hook> = vec![];
+                    let global_mark = Mark::fresh(Mark::root());
+                    let mut react_options = react::Options::default();
+                    if is_jsx {
+                        react_options.use_spread = true;
+                        react_options.import_source = "@builder.io/qwik".to_string();
+                        react_options.pragma = "h".to_string();
+                        react_options.pragma_frag = "Fragment".to_string();
+                    };
 
-                let top_level_mark = Mark::fresh(Mark::root());
-                let mut main_module = {
-                    let mut passes = chain!(
-                        pass::Optional::new(
-                            typescript::strip(),
-                            transpile && is_type_script && !is_jsx
-                        ),
-                        pass::Optional::new(
-                            typescript::strip_with_jsx(
-                                config.context.source_map.clone(),
-                                typescript::Config {
-                                    pragma: Some("h".to_string()),
-                                    pragma_frag: Some("Fragment".to_string()),
-                                    ..Default::default()
-                                },
-                                Some(&comments),
-                                global_mark,
+                    let top_level_mark = Mark::fresh(Mark::root());
+                    let mut main_module = {
+                        let mut passes = chain!(
+                            pass::Optional::new(
+                                typescript::strip(),
+                                transpile && is_type_script && !is_jsx
                             ),
-                            transpile && is_type_script && is_jsx
-                        ),
-                        pass::Optional::new(
-                            react::react(
-                                config.context.source_map.clone(),
-                                Some(&comments),
-                                react_options,
-                                global_mark
+                            pass::Optional::new(
+                                typescript::strip_with_jsx(
+                                    config.context.source_map.clone(),
+                                    typescript::Config {
+                                        pragma: Some("h".to_string()),
+                                        pragma_frag: Some("Fragment".to_string()),
+                                        ..Default::default()
+                                    },
+                                    Some(&comments),
+                                    global_mark,
+                                ),
+                                transpile && is_type_script && is_jsx
                             ),
-                            transpile && is_jsx
-                        ),
-                        HookTransform::new(config.context, &path, Some(&comments), &mut hooks),
-                        pass::Optional::new(
-                            resolver_with_mark(top_level_mark),
-                            config.minify != MinifyMode::None
-                        ),
-                        pass::Optional::new(
-                            simplify::simplifier(Default::default()),
-                            config.minify != MinifyMode::None
-                        )
-                    );
-                    main_module.fold_with(&mut passes)
-                };
+                            pass::Optional::new(
+                                react::react(
+                                    config.context.source_map.clone(),
+                                    Some(&comments),
+                                    react_options,
+                                    global_mark
+                                ),
+                                transpile && is_jsx
+                            ),
+                            HookTransform::new(config.context, &path, Some(&comments), &mut hooks),
+                            pass::Optional::new(
+                                resolver_with_mark(top_level_mark),
+                                config.minify != MinifyMode::None
+                            ),
+                            pass::Optional::new(
+                                simplify::simplifier(Default::default()),
+                                config.minify != MinifyMode::None
+                            )
+                        );
+                        main_module.fold_with(&mut passes)
+                    };
 
-                if config.minify == MinifyMode::Minify {
-                    main_module = optimize(
-                        main_module,
-                        config.context.source_map.clone(),
-                        Some(&comments),
-                        None,
-                        &MinifyOptions {
-                            compress: Some(CompressOptions {
-                                ..CompressOptions::default()
-                            }),
-                            mangle: Some(MangleOptions {
-                                top_level: true,
-                                ..MangleOptions::default()
-                            }),
-                            rename: true,
-                            wrap: false,
-                            enclose: false,
-                        },
-                        &ExtraOptions { top_level_mark },
-                    );
-
-                    main_module = main_module
-                        .fold_with(&mut hygiene_with_config(hygiene::Config {
-                            ..Default::default()
-                        }))
-                        .fold_with(&mut fixer(None));
-                }
-
-                let mut output_modules: Vec<TransformModule> = hooks
-                    .iter()
-                    .map(|h| {
-                        let hook_mark = Mark::fresh(Mark::root());
-                        let (mut hook_module, comments) = new_module(&path, h, &collect);
-                        if config.minify == MinifyMode::Minify {
-                            hook_module = hook_module.fold_with(&mut resolver_with_mark(hook_mark));
-                            hook_module = optimize(
-                                hook_module,
-                                config.context.source_map.clone(),
-                                None,
-                                None,
-                                &MinifyOptions {
-                                    compress: Some(CompressOptions {
-                                        ..CompressOptions::default()
-                                    }),
-                                    mangle: Some(MangleOptions {
-                                        top_level: true,
-                                        ..MangleOptions::default()
-                                    }),
-                                    rename: true,
-                                    wrap: false,
-                                    enclose: false,
-                                },
-                                &ExtraOptions {
-                                    top_level_mark: hook_mark,
-                                },
-                            );
-
-                            hook_module = hook_module
-                                .fold_with(&mut hygiene_with_config(hygiene::Config {
-                                    ..Default::default()
-                                }))
-                                .fold_with(&mut fixer(None));
-                        }
-
-                        let (code, map) = emit_source_code(
+                    if config.minify == MinifyMode::Minify {
+                        main_module = optimize(
+                            main_module,
                             config.context.source_map.clone(),
-                            Some(comments),
-                            &hook_module,
-                            config.minify == MinifyMode::Minify,
-                            config.source_maps,
-                        )
-                        .unwrap();
-                        let extension = if config.transpile {
-                            "js"
-                        } else {
-                            &path.extension
-                        };
+                            Some(&comments),
+                            None,
+                            &MinifyOptions {
+                                compress: Some(CompressOptions {
+                                    ..CompressOptions::default()
+                                }),
+                                mangle: Some(MangleOptions {
+                                    top_level: true,
+                                    ..MangleOptions::default()
+                                }),
+                                rename: true,
+                                wrap: false,
+                                enclose: false,
+                            },
+                            &ExtraOptions { top_level_mark },
+                        );
+
+                        main_module = main_module
+                            .fold_with(&mut hygiene_with_config(hygiene::Config {
+                                ..Default::default()
+                            }))
+                            .fold_with(&mut fixer(None));
+                    }
+
+                    let mut output_modules: Vec<TransformModule> = hooks
+                        .iter()
+                        .map(|h| {
+                            let hook_mark = Mark::fresh(Mark::root());
+                            let (mut hook_module, comments) = new_module(&path, h, &collect);
+                            if config.minify == MinifyMode::Minify {
+                                hook_module =
+                                    hook_module.fold_with(&mut resolver_with_mark(hook_mark));
+                                hook_module = optimize(
+                                    hook_module,
+                                    config.context.source_map.clone(),
+                                    None,
+                                    None,
+                                    &MinifyOptions {
+                                        compress: Some(CompressOptions {
+                                            ..CompressOptions::default()
+                                        }),
+                                        mangle: Some(MangleOptions {
+                                            top_level: true,
+                                            ..MangleOptions::default()
+                                        }),
+                                        rename: true,
+                                        wrap: false,
+                                        enclose: false,
+                                    },
+                                    &ExtraOptions {
+                                        top_level_mark: hook_mark,
+                                    },
+                                );
+
+                                hook_module = hook_module
+                                    .fold_with(&mut hygiene_with_config(hygiene::Config {
+                                        ..Default::default()
+                                    }))
+                                    .fold_with(&mut fixer(None));
+                            }
+
+                            let (code, map) = emit_source_code(
+                                config.context.source_map.clone(),
+                                Some(comments),
+                                &hook_module,
+                                config.minify == MinifyMode::Minify,
+                                config.source_maps,
+                            )
+                            .unwrap();
+                            let extension = if config.transpile {
+                                "js"
+                            } else {
+                                &path.extension
+                            };
+                            TransformModule {
+                                code,
+                                map,
+                                path: [&h.canonical_filename, ".", extension].concat(),
+                                is_entry: h.entry == None,
+                            }
+                        })
+                        .collect();
+
+                    let hooks: Vec<HookAnalysis> = hooks
+                        .iter()
+                        .map(|h| HookAnalysis {
+                            origin: h.origin.clone(),
+                            name: h.name.clone(),
+                            entry: h.entry.clone(),
+                            canonical_filename: h.canonical_filename.clone(),
+                            local_decl: h.local_decl.iter().map(|d| d.to_string()).collect(),
+                            local_idents: h.local_idents.iter().map(|d| d.to_string()).collect(),
+                        })
+                        .collect();
+
+                    let (code, map) = emit_source_code(
+                        config.context.source_map.clone(),
+                        Some(comments),
+                        &main_module,
+                        config.minify == MinifyMode::Minify,
+                        config.source_maps,
+                    )?;
+
+                    let extension = if config.transpile {
+                        "js"
+                    } else {
+                        &path.extension
+                    };
+                    output_modules.insert(
+                        0,
                         TransformModule {
+                            path: Path::new(&path.dir)
+                                .join([&path.file_stem, ".", extension].concat())
+                                .to_str()
+                                .unwrap()
+                                .to_string(),
                             code,
                             map,
-                            path: [&h.canonical_filename, ".", extension].concat(),
-                            is_entry: h.entry == None,
-                        }
+                            is_entry: false,
+                        },
+                    );
+
+                    let diagnostics = handle_error(&error_buffer, &config.context.source_map);
+                    Ok(TransformResult {
+                        root_dir: config.root_dir.clone(),
+                        modules: output_modules,
+                        diagnostics,
+                        hooks,
+                        is_type_script,
+                        is_jsx,
                     })
-                    .collect();
-
-                let hooks: Vec<HookAnalysis> = hooks
-                    .iter()
-                    .map(|h| HookAnalysis {
-                        origin: h.origin.clone(),
-                        name: h.name.clone(),
-                        entry: h.entry.clone(),
-                        canonical_filename: h.canonical_filename.clone(),
-                        local_decl: h.local_decl.iter().map(|d| d.to_string()).collect(),
-                        local_idents: h.local_idents.iter().map(|d| d.to_string()).collect(),
-                    })
-                    .collect();
-
-                let (code, map) = emit_source_code(
-                    config.context.source_map.clone(),
-                    Some(comments),
-                    &main_module,
-                    config.minify == MinifyMode::Minify,
-                    config.source_maps,
-                )?;
-
-                let extension = if config.transpile {
-                    "js"
-                } else {
-                    &path.extension
-                };
-                output_modules.insert(
-                    0,
-                    TransformModule {
-                        path: Path::new(&path.dir)
-                            .join([&path.file_stem, ".", extension].concat())
-                            .to_str()
-                            .unwrap()
-                            .to_string(),
-                        code,
-                        map,
-                        is_entry: false,
-                    },
-                );
-
-                Ok(TransformResult {
-                    root_dir: config.root_dir.clone(),
-                    modules: output_modules,
-                    diagnostics: vec![],
-                    hooks,
-                    is_type_script,
-                    is_jsx,
                 })
             })
         }

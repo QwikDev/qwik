@@ -684,7 +684,9 @@ dependencies = [
 name = "qwik-core"
 version = "0.1.0"
 dependencies = [
+ "lazy_static",
  "pathdiff",
+ "regex",
  "relative-path",
  "serde",
  "serde_bytes",

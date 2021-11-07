@@ -1,0 +1,49 @@
+---
+source: src/test.rs
+expression: output
+
+---
+==INPUT==
+
+
+export const Header = qComponent({
+    onRender: qHook(() => console.log("hello sym2"), "2sym")
+});
+
+    
+============================= project/test.tsx ==
+
+export const Header = /*#__PURE__*/ qComponent({
+    onRender: qHook(()=>import("../entry_hooks")
+    , "Header_onRender")
+});
+
+============================= h_test_header_onrender.tsx ==
+
+export const Header_onRender = /*#__PURE__*/ qHook(()=>console.log("hello sym2")
+);
+
+============================= entry_hooks.ts (ENTRY POINT)==
+
+export { Header_onRender } from "./h_test_header_onrender";
+
+== HOOKS ==
+
+[
+  {
+    "origin": "project/test.tsx",
+    "name": "Header_onRender",
+    "entry": "entry_hooks",
+    "canonicalFilename": "h_test_header_onrender",
+    "localDecl": [],
+    "localIdents": [
+      "console",
+      "log",
+      "qHook"
+    ]
+  }
+]
+
+== DIAGNOSTICS ==
+
+[Diagnostic { message: "Second argument should be the name of a valid identifier", code_highlights: Some([CodeHighlight { message: None, loc: SourceLocation { start_line: 3, start_col: 54, end_line: 3, end_col: 59 } }]), hints: None, show_environment: false, severity: Error, documentation_url: None }]

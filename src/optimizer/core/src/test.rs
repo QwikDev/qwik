@@ -252,6 +252,37 @@ export const App = qComponent({
         false,
     );
 }
+
+#[test]
+fn example_12() {
+    test_input(
+        "project/test.tsx",
+        r#"
+export const Header = qComponent({
+    onRender: qHook(() => console.log("hello sym2"), "sym2")
+});
+
+    "#,
+        EntryStrategy::Single,
+        false,
+    );
+}
+
+#[test]
+fn example_13() {
+    test_input(
+        "project/test.tsx",
+        r#"
+export const Header = qComponent({
+    onRender: qHook(() => console.log("hello sym2"), "2sym")
+});
+
+    "#,
+        EntryStrategy::Single,
+        false,
+    );
+}
+
 // fn test_fixture(folder: &str) {
 //     let res = transform_workdir(&FSConfig {
 //         project_root: folder.to_string(),

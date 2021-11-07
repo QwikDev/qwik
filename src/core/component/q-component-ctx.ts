@@ -5,7 +5,7 @@ import { ComponentRenderQueue, visitJsxNode } from '../render/q-render';
 import { AttributeMarker } from '../util/markers';
 import { flattenPromiseTree } from '../util/promises';
 import { QrlStyles, styleContent, styleHost } from './qrl-styles';
-import { _qObject } from '../object/q-object';
+import { _stateQObject } from '../object/q-object';
 import { qProps } from '../props/q-props.public';
 
 // TODO(misko): Can we get rid of this whole file, and instead teach qProps to know how to render
@@ -41,7 +41,7 @@ export class QComponentCtx {
         if (hook) {
           const values: OnHookReturn[] = await hook('qMount');
           values.forEach((v) => {
-            props['state:' + v.state] = _qObject(v.value, v.state);
+            props['state:' + v.state] = _stateQObject(v.value, v.state);
           });
         }
       } catch (e) {

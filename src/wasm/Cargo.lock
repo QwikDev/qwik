@@ -682,7 +682,7 @@ dependencies = [
 
 [[package]]
 name = "qwik-core"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "pathdiff",
  "relative-path",
@@ -696,7 +696,7 @@ dependencies = [
 
 [[package]]
 name = "qwik-wasm"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "js-sys",
  "parking_lot_core",

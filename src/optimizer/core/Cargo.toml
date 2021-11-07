@@ -1,7 +1,7 @@
 [package]
 authors = ["Manu <manu@builder.io>"]
 name = "qwik-core"
-version = "0.0.1"
+version = "0.1.0"
 edition = "2021"
 repository = "https://github.com/builder.io/qwik"
 license = "MIT"

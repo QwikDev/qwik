@@ -1,7 +1,7 @@
 import { platformArchTriples } from '@napi-rs/triples';
 import type { TransformResult } from '.';
 
-export function loadPlatformBinding() {
+export async function loadPlatformBinding() {
   if (loadedBinding) {
     return loadedBinding;
   }
@@ -32,7 +32,7 @@ export function loadPlatformBinding() {
 
       const wasmBindingPath = path.join(
         `..`,
-        `wasm`,
+        `wasm-nodejs`,
       );
       loadedBinding = require(wasmBindingPath);
       return loadedBinding!;
@@ -40,8 +40,12 @@ export function loadPlatformBinding() {
   }
 
   if (typeof window !== 'undefined' && typeof document !== 'undefined') {
-    // Browser WASM
-    // TODO
+    // @ts-ignore
+    const module = await import("../wasm-web/qwik_wasm.js");
+    await module.default();
+    loadedBinding = {
+      transform_modules: module.transform_modules
+    };
   }
 
   throw new Error(`Platform not supported`);

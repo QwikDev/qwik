@@ -1,4 +1,4 @@
-import { EntryStrategy, MinifyMode, Optimizer, OutputEntryMap, TransformFsOptions } from '..';
+import { EntryStrategy, MinifyMode, Optimizer, createOptimizer, OutputEntryMap, TransformFsOptions } from '..';
 import path from 'path';
 import type { InputOption, OutputBundle, Plugin } from 'rollup';
 
@@ -6,7 +6,7 @@ import type { InputOption, OutputBundle, Plugin } from 'rollup';
  * @alpha
  */
 export function qwikRollup(opts: QwikPluginOptions = {}): Plugin {
-  const optimizer = new Optimizer();
+  let optimizer: Optimizer | undefined;
 
   return {
     name: 'qwikPlugin',
@@ -22,6 +22,10 @@ export function qwikRollup(opts: QwikPluginOptions = {}): Plugin {
         minify: opts.minify,
         transpile: opts.transpile
       };
+
+      if (!optimizer) {
+        optimizer = await createOptimizer();
+      }
 
       console.time("Qwik optimize");
       const result = await optimizer.transformFs(transformOpts);
@@ -43,14 +47,14 @@ export function qwikRollup(opts: QwikPluginOptions = {}): Plugin {
       if (importer) {
         id = path.resolve(path.dirname(importer), id);
       }
-      if (optimizer.hasTransformedModule(id)) {
+      if (optimizer!.hasTransformedModule(id)) {
         return id
       }
       return null;
     },
 
     load(id) {
-      const transformedModule = optimizer.getTransformedModule(id);
+      const transformedModule = optimizer!.getTransformedModule(id);
       if (transformedModule) {
         // this is one of Qwik's entry modules, which is only in-memory
         return {
@@ -75,7 +79,7 @@ export function qwikRollup(opts: QwikPluginOptions = {}): Plugin {
     },
 
     watchChange(id, change) {
-      optimizer.watchChange(id, change.event);
+      optimizer!.watchChange(id, change.event);
     },
   };
 }

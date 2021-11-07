@@ -10,10 +10,10 @@ export async function buildWasm(config: BuildConfig) {
 
   ensureDir(config.distPkgDir);
 
-  async function buildForTarget(target: string) {
+  async function buildForTarget(target: string, env = {}) {
 
     const cmd = `wasm-pack`;
-    const output = join(config.distPkgDir, `wasm`);
+    const output = join(config.distPkgDir, `wasm-${target}`);
     const args = [`build`, `--target`, target, `--out-dir`, output];
     if (!config.dev) {
       args.push(`--release`);
@@ -21,7 +21,14 @@ export async function buildWasm(config: BuildConfig) {
     const wasmCwd = join(config.srcDir, `wasm`);
 
     await new Promise((resolve, reject) => {
-      const child = spawn(cmd, args, { stdio: 'inherit', cwd: wasmCwd });
+      const child = spawn(cmd, args, {
+        stdio: 'inherit',
+        env: {
+          ...process.env,
+          ...env
+        },
+        cwd: wasmCwd
+      });
       child.on('error', reject);
 
       child.on('close', (code) => {
@@ -36,6 +43,12 @@ export async function buildWasm(config: BuildConfig) {
   }
 
   await buildForTarget("nodejs");
+  await buildForTarget("web", {
+    'CARGO_PROFILE_RELEASE_LTO': true,
+    'CARGO_PROFILE_RELEASE_PANIC': 'abort',
+    'CARGO_PROFILE_RELEASE_OPT_LEVEL': 'z'
+  });
+
 
   console.log('⚙️ wasm binding');
 }

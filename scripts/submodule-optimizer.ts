@@ -27,7 +27,7 @@ export async function submoduleOptimizer(config: BuildConfig) {
       sourcemap: config.dev,
       target,
       banner,
-      external: [...nodeBuiltIns],
+      external: [...nodeBuiltIns, join(config.srcDir, 'optimizer/wasm-web/qwik_wasm.js')], // TODO, horrible hack
       incremental: config.watch,
     };
 
@@ -61,38 +61,38 @@ export async function submoduleOptimizer(config: BuildConfig) {
     }
   }
 
-  async function buildOptimizerRollupPlugin() {
-    const opts: BuildOptions = {
-      entryPoints: [join(config.srcDir, submodule, 'src', 'rollup', 'index.ts')],
-      entryNames: 'rollup',
-      outdir: optimizerDistDir,
-      bundle: true,
-      sourcemap: false,
-      target,
-      banner,
-      external: [...nodeBuiltIns],
-      incremental: config.watch,
-    };
+  // async function buildOptimizerRollupPlugin() {
+  //   const opts: BuildOptions = {
+  //     entryPoints: [join(config.srcDir, submodule, 'src', 'rollup', 'index.ts')],
+  //     entryNames: 'rollup',
+  //     outdir: optimizerDistDir,
+  //     bundle: true,
+  //     sourcemap: false,
+  //     target,
+  //     banner,
+  //     external: [...nodeBuiltIns],
+  //     incremental: config.watch,
+  //   };
 
-    const esm = await build({
-      ...opts,
-      format: 'esm',
-      outExtension: { '.js': '.mjs' },
-      watch: watcher(config, 'rollup-plugin'),
-    });
+  //   const esm = await build({
+  //     ...opts,
+  //     format: 'esm',
+  //     outExtension: { '.js': '.mjs' },
+  //     watch: watcher(config, 'rollup-plugin'),
+  //   });
 
-    const cjs = await build({
-      ...opts,
-      format: 'cjs',
-      outExtension: { '.js': '.cjs' },
-      watch: watcher(config),
-      platform: 'node',
-      target: nodeTarget,
-      inject: [injectGlobalThisPoly(config)],
-    });
+  //   const cjs = await build({
+  //     ...opts,
+  //     format: 'cjs',
+  //     outExtension: { '.js': '.cjs' },
+  //     watch: watcher(config),
+  //     platform: 'node',
+  //     target: nodeTarget,
+  //     inject: [injectGlobalThisPoly(config)],
+  //   });
 
-    console.log('🐼', 'rollup-plugin');
-  }
+  //   console.log('🐼', 'rollup-plugin');
+  // }
 
-  await Promise.all([buildOptimizer(), buildOptimizerRollupPlugin()]);
+  await Promise.all([buildOptimizer()]);
 }

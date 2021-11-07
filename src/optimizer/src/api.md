@@ -7,6 +7,9 @@
 import type { Plugin as Plugin_2 } from 'rollup';
 
 // @alpha (undocumented)
+export const createOptimizer: () => Promise<Optimizer>;
+
+// @alpha (undocumented)
 export interface Diagnostic {
     // (undocumented)
     documentation_url?: string;
@@ -57,14 +60,13 @@ export type MinifyMode = 'minify' | 'simplify' | 'none';
 export type MinifyOption = boolean | undefined | null;
 
 // @alpha (undocumented)
-export class Optimizer {
+export interface Optimizer {
     // (undocumented)
     getTransformedModule(path: string): TransformModule | undefined;
     // (undocumented)
     hasTransformedModule(path: string): boolean;
-    set isDirty(isDirty: boolean);
     // (undocumented)
-    get isDirty(): boolean;
+    isDirty: boolean;
     transformFs(opts: TransformFsOptions): Promise<TransformResult>;
     transformFsSync(opts: TransformFsOptions): TransformResult;
     transformModules(opts: TransformModulesOptions): Promise<TransformResult>;

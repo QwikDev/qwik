@@ -29,41 +29,41 @@ const App = qComponent({
 
 import { qHook } from '@builderio/qwik';
 /*#__PURE__*/ qComponent({
-    "onMount": qHook(()=>import("./h_test_Header_onMount")
+    "onMount": qHook(()=>import("./h_test_header_onmount")
     , "Header_onMount"),
-    onRender: qHook(()=>import("./h_test_Header_onRender")
+    onRender: qHook(()=>import("./h_test_header_onrender")
     , "Header_onRender")
 });
 /*#__PURE__*/ qComponent({
-    onRender: qHook(()=>import("./h_test_App_onRender")
+    onRender: qHook(()=>import("./h_test_app_onrender")
     , "App_onRender")
 });
 
-============================= h_test_App_onRender.tsx (ENTRY POINT)==
+============================= h_test_app_onrender.tsx (ENTRY POINT)==
 
 import { qHook } from "@builderio/qwik";
 export const App_onRender = /*#__PURE__*/ qHook(()=>{
     return (<Header />);
 });
 
-============================= h_test_Header_onMount.tsx (ENTRY POINT)==
+============================= h_test_header_onmount.tsx (ENTRY POINT)==
 
 import { qHook } from "@builderio/qwik";
 export const Header_onMount = /*#__PURE__*/ qHook(()=>{
     console.log("mount");
 });
 
-============================= h_test_Header_onRender_div_onClick.tsx (ENTRY POINT)==
+============================= h_test_header_onrender_div_onclick.tsx (ENTRY POINT)==
 
 import { qHook } from "@builderio/qwik";
 export const Header_onRender_div_onClick = /*#__PURE__*/ qHook((ctx)=>console.log(ctx)
 );
 
-============================= h_test_Header_onRender.tsx (ENTRY POINT)==
+============================= h_test_header_onrender.tsx (ENTRY POINT)==
 
 import { qHook } from "@builderio/qwik";
 export const Header_onRender = /*#__PURE__*/ qHook(()=>{
-    return (<div onClick={qHook(()=>import("./h_test_Header_onRender_div_onClick")
+    return (<div onClick={qHook(()=>import("./h_test_header_onrender_div_onclick")
     , "Header_onRender_div_onClick")}/>);
 });
 
@@ -74,7 +74,7 @@ export const Header_onRender = /*#__PURE__*/ qHook(()=>{
     "origin": "test.tsx",
     "name": "App_onRender",
     "entry": null,
-    "canonicalFilename": "h_test_App_onRender",
+    "canonicalFilename": "h_test_app_onrender",
     "localDecl": [],
     "localIdents": [
       "Header",
@@ -85,7 +85,7 @@ export const Header_onRender = /*#__PURE__*/ qHook(()=>{
     "origin": "test.tsx",
     "name": "Header_onMount",
     "entry": null,
-    "canonicalFilename": "h_test_Header_onMount",
+    "canonicalFilename": "h_test_header_onmount",
     "localDecl": [],
     "localIdents": [
       "console",
@@ -97,7 +97,7 @@ export const Header_onRender = /*#__PURE__*/ qHook(()=>{
     "origin": "test.tsx",
     "name": "Header_onRender_div_onClick",
     "entry": null,
-    "canonicalFilename": "h_test_Header_onRender_div_onClick",
+    "canonicalFilename": "h_test_header_onrender_div_onclick",
     "localDecl": [
       "ctx"
     ],
@@ -112,7 +112,7 @@ export const Header_onRender = /*#__PURE__*/ qHook(()=>{
     "origin": "test.tsx",
     "name": "Header_onRender",
     "entry": null,
-    "canonicalFilename": "h_test_Header_onRender",
+    "canonicalFilename": "h_test_header_onrender",
     "localDecl": [],
     "localIdents": [
       "div",

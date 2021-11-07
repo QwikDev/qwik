@@ -47,7 +47,6 @@ fn transform_benchmark(b: &mut Criterion) {
                 source_maps: true,
                 minify: MinifyMode::None,
                 transpile: false,
-                print_ast: false,
                 entry_strategy: EntryStrategy::Hook,
             }))
         })

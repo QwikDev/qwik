@@ -238,8 +238,10 @@ impl<'a> Fold for HookTransform<'a> {
                     }
                 } else if id.sym == *"qHook" {
                     let symbol_name = self.get_context_name();
-                    let canonical_filename =
+                    let mut canonical_filename =
                         ["h_", &self.path.file_prefix, "_", &symbol_name].concat();
+                    canonical_filename.make_ascii_lowercase();
+
                     let folded = node.fold_children_with(self);
                     let hook_collect = HookCollect::new(&folded);
                     let entry = self.context.bundling_policy.get_entry_for_sym(

@@ -23,11 +23,11 @@ const Header = qComponent({
 
 import { qHook } from '@builderio/qwik';
 /*#__PURE__*/ qComponent({
-    onRender: qHook(()=>import("./h_test_Header_onRender")
+    onRender: qHook(()=>import("./h_test_header_onrender")
     , "Header_onRender")
 });
 
-============================= h_test_Header_onRender.tsx (ENTRY POINT)==
+============================= h_test_header_onrender.tsx (ENTRY POINT)==
 
 import { qHook } from "@builderio/qwik";
 export const Header_onRender = /*#__PURE__*/ qHook((hola)=>{
@@ -44,7 +44,7 @@ export const Header_onRender = /*#__PURE__*/ qHook((hola)=>{
     "origin": "test.tsx",
     "name": "Header_onRender",
     "entry": null,
-    "canonicalFilename": "h_test_Header_onRender",
+    "canonicalFilename": "h_test_header_onrender",
     "localDecl": [
       "hello",
       "hola",

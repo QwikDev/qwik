@@ -1,3 +1,7 @@
+#![deny(clippy::all)]
+#![deny(clippy::perf)]
+#![deny(clippy::nursery)]
+
 extern crate napi;
 #[macro_use]
 extern crate napi_derive;

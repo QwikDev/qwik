@@ -1,6 +1,7 @@
-#![warn(clippy::all)]
-#![warn(clippy::perf)]
-#![warn(clippy::nursery)]
+#![deny(clippy::all)]
+#![deny(clippy::perf)]
+#![deny(clippy::nursery)]
+#![deny(clippy::cargo)]
 
 #[cfg(test)]
 mod test;

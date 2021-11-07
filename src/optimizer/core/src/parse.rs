@@ -28,7 +28,7 @@ use swc_ecmascript::transforms::{
     hygiene::{self, hygiene_with_config},
     resolver_with_mark,
 };
-use swc_ecmascript::transforms::{optimization::simplify::simplifier, pass, react, typescript};
+use swc_ecmascript::transforms::{optimization::simplify, pass, react, typescript};
 use swc_ecmascript::visit::FoldWith;
 
 #[derive(Debug, Serialize, Deserialize, Default)]
@@ -172,7 +172,7 @@ pub fn transform_internal(
                             config.minify != MinifyMode::None
                         ),
                         pass::Optional::new(
-                            simplifier(Default::default()),
+                            simplify::simplifier(Default::default()),
                             config.minify != MinifyMode::None
                         )
                     );

@@ -65,6 +65,7 @@
     "jsx.types": "node scripts --jsx",
     "prepare": "husky install",
     "lint": "eslint \"**/*.ts*\" && npm run prettier-check",
+    "lint.rust": "make lint",
     "prettier-check": "prettier --check .",
     "prettier-fix": "prettier --write .",
     "patch-m1": "npm run patch-m1-bazel && npm run patch-m1-ibazel && npm run patch-m1-buildifier",

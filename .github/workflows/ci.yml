@@ -29,7 +29,6 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v2
-          ref: ${{ github.event.inputs.branch }}
 
       - name: Cache NPM Dependencies
         uses: actions/cache@v2

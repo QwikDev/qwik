@@ -202,7 +202,10 @@ export interface ManualEntryStrategy {
 /**
  * @alpha
  */
-export interface OutputEntryMap {}
+export interface OutputEntryMap {
+  version: '1',
+  mapping: {[canonicalName: string]: string};
+}
 
 // PATH UTIL  ***************
 

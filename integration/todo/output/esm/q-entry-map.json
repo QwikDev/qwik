@@ -1,1 +1,20 @@
-{}
+{
+  "version": "1",
+  "mapping": {
+    "h_components_footer_onrender_filter_on_click": "p-044ca95f.js",
+    "h_components_footer_onrender_on_click": "p-044ca95f.js",
+    "h_components_footer_onrender": "p-044ca95f.js",
+    "h_components_item_onmount": "p-8ae4a1fc.js",
+    "h_components_item_onrender_on_click": "p-fafe7905.js",
+    "h_components_item_onrender_on_dblclick": "p-fafe7905.js",
+    "h_components_item_onrender_on_click8": "p-fafe7905.js",
+    "h_components_item_onrender_on_blur": "p-fafe7905.js",
+    "h_components_item_onrender_on_keyup": "p-fafe7905.js",
+    "h_components_item_onrender": "p-fafe7905.js",
+    "h_components_main_onrender": "p-51322445.js",
+    "h_components_header_onmount": "p-8ae4a1fc.js",
+    "h_components_header_onrender_on_keyup": "p-fc04ec1d.js",
+    "h_components_header_onrender": "p-fc04ec1d.js",
+    "h_components_todoapp_onrender": "p-ebf54668.js"
+  }
+}

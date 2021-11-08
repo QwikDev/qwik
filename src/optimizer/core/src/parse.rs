@@ -12,6 +12,7 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "fs")]
 use std::fs;
 
+use swc_atoms::JsWord;
 use swc_common::comments::SingleThreadedComments;
 use swc_common::errors::{DiagnosticBuilder, Emitter, Handler};
 use swc_common::{chain, sync::Lrc, FileName, Globals, Mark, SourceMap};
@@ -31,15 +32,15 @@ use swc_ecmascript::transforms::{
 use swc_ecmascript::transforms::{optimization::simplify, pass, react, typescript};
 use swc_ecmascript::visit::FoldWith;
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct HookAnalysis {
     pub origin: String,
     pub name: String,
-    pub entry: Option<String>,
+    pub entry: Option<JsWord>,
     pub canonical_filename: String,
-    pub local_decl: Vec<String>,
-    pub local_idents: Vec<String>,
+    pub local_decl: Vec<JsWord>,
+    pub local_idents: Vec<JsWord>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Copy, Clone, PartialEq, Eq)]
@@ -51,8 +52,7 @@ pub enum MinifyMode {
 }
 
 pub struct TransformCodeOptions<'a> {
-    pub root_dir: String,
-    pub path: String,
+    pub path: &'a str,
     pub source_maps: bool,
     pub minify: MinifyMode,
     pub transpile: bool,
@@ -64,7 +64,6 @@ pub struct TransformCodeOptions<'a> {
 #[derive(Debug, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct TransformResult {
-    pub root_dir: String,
     pub modules: Vec<TransformModule>,
     pub diagnostics: Vec<Diagnostic>,
     pub hooks: Vec<HookAnalysis>,
@@ -73,6 +72,16 @@ pub struct TransformResult {
 }
 
 impl TransformResult {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn append(&mut self, output: &mut Self) {
+        self.modules.append(&mut output.modules);
+        self.hooks.append(&mut output.hooks);
+        self.diagnostics.append(&mut output.diagnostics);
+    }
+
     #[cfg(feature = "fs")]
     pub fn write_to_fs(&self, destination: &str) -> Result<usize, Box<dyn std::error::Error>> {
         let destination = Path::new(destination);
@@ -116,11 +125,11 @@ impl Emitter for ErrorBuffer {
 pub fn transform_code(
     config: TransformCodeOptions,
 ) -> Result<TransformResult, Box<dyn error::Error>> {
-    let module = parse(config.code, config.path.as_str(), &config);
+    let module = parse(config.code, config.path, &config);
     if config.print_ast {
         dbg!(&module);
     }
-    let path = parse_path(&config.path);
+    let path = parse_path(config.path);
     let transpile = config.transpile;
 
     match module {
@@ -134,9 +143,6 @@ pub fn transform_code(
 
             swc_common::GLOBALS.set(&Globals::new(), || {
                 swc_common::errors::HANDLER.set(&handler, || {
-                    let collect = global_collect(&main_module);
-                    let mut hooks: Vec<Hook> = vec![];
-                    let global_mark = Mark::fresh(Mark::root());
                     let mut react_options = react::Options::default();
                     if is_jsx {
                         react_options.use_spread = true;
@@ -145,7 +151,9 @@ pub fn transform_code(
                         react_options.pragma_frag = "Fragment".to_string();
                     };
 
+                    let collect = global_collect(&main_module);
                     let top_level_mark = Mark::fresh(Mark::root());
+                    let mut hooks: Vec<Hook> = vec![];
                     let mut main_module = {
                         let mut passes = chain!(
                             pass::Optional::new(
@@ -154,23 +162,23 @@ pub fn transform_code(
                             ),
                             pass::Optional::new(
                                 typescript::strip_with_jsx(
-                                    config.context.source_map.clone(),
+                                    Lrc::clone(&config.context.source_map),
                                     typescript::Config {
                                         pragma: Some("h".to_string()),
                                         pragma_frag: Some("Fragment".to_string()),
                                         ..Default::default()
                                     },
                                     Some(&comments),
-                                    global_mark,
+                                    top_level_mark,
                                 ),
                                 transpile && is_type_script && is_jsx
                             ),
                             pass::Optional::new(
                                 react::react(
-                                    config.context.source_map.clone(),
+                                    Lrc::clone(&config.context.source_map),
                                     Some(&comments),
                                     react_options,
-                                    global_mark
+                                    top_level_mark
                                 ),
                                 transpile && is_jsx
                             ),
@@ -190,7 +198,7 @@ pub fn transform_code(
                     if config.minify == MinifyMode::Minify {
                         main_module = optimize(
                             main_module,
-                            config.context.source_map.clone(),
+                            Lrc::clone(&config.context.source_map),
                             Some(&comments),
                             None,
                             &MinifyOptions {
@@ -215,76 +223,84 @@ pub fn transform_code(
                             .fold_with(&mut fixer(None));
                     }
 
-                    let mut output_modules: Vec<TransformModule> = hooks
-                        .iter()
-                        .map(|h| {
-                            let hook_mark = Mark::fresh(Mark::root());
-                            let (mut hook_module, comments) = new_module(&path, h, &collect);
-                            if config.minify == MinifyMode::Minify {
-                                hook_module =
-                                    hook_module.fold_with(&mut resolver_with_mark(hook_mark));
-                                hook_module = optimize(
-                                    hook_module,
-                                    config.context.source_map.clone(),
-                                    None,
-                                    None,
-                                    &MinifyOptions {
-                                        compress: Some(CompressOptions {
-                                            ..CompressOptions::default()
-                                        }),
-                                        mangle: Some(MangleOptions {
-                                            top_level: true,
-                                            ..MangleOptions::default()
-                                        }),
-                                        rename: true,
-                                        wrap: false,
-                                        enclose: false,
-                                    },
-                                    &ExtraOptions {
-                                        top_level_mark: hook_mark,
-                                    },
-                                );
+                    let mut hooks_analysis: Vec<HookAnalysis> = Vec::with_capacity(hooks.len());
+                    let mut modules: Vec<TransformModule> = Vec::with_capacity(hooks.len() + 10);
 
-                                hook_module = hook_module
-                                    .fold_with(&mut hygiene_with_config(hygiene::Config {
-                                        ..Default::default()
-                                    }))
-                                    .fold_with(&mut fixer(None));
-                            }
+                    for h in hooks.into_iter() {
+                        let is_entry = h.entry == None;
+                        let extension = if config.transpile {
+                            "js"
+                        } else {
+                            &path.extension
+                        };
+                        let hook_path = [&h.canonical_filename, ".", extension].concat();
 
-                            let (code, map) = emit_source_code(
-                                config.context.source_map.clone(),
-                                Some(comments),
-                                &hook_module,
-                                config.minify == MinifyMode::Minify,
-                                config.source_maps,
-                            )
-                            .unwrap();
-                            let extension = if config.transpile {
-                                "js"
-                            } else {
-                                &path.extension
-                            };
-                            TransformModule {
-                                code,
-                                map,
-                                path: [&h.canonical_filename, ".", extension].concat(),
-                                is_entry: h.entry == None,
-                            }
-                        })
-                        .collect();
+                        let hook_mark = Mark::fresh(Mark::root());
 
-                    let hooks: Vec<HookAnalysis> = hooks
-                        .iter()
-                        .map(|h| HookAnalysis {
-                            origin: h.origin.clone(),
-                            name: h.name.clone(),
-                            entry: h.entry.clone(),
-                            canonical_filename: h.canonical_filename.clone(),
-                            local_decl: h.local_decl.iter().map(|d| d.to_string()).collect(),
-                            local_idents: h.local_idents.iter().map(|d| d.to_string()).collect(),
-                        })
-                        .collect();
+                        let (mut hook_module, comments) = new_module(
+                            h.expr,
+                            &path,
+                            &h.name,
+                            &h.origin,
+                            &h.local_idents,
+                            &collect,
+                        );
+
+                        if config.minify == MinifyMode::Minify {
+                            hook_module = hook_module.fold_with(&mut resolver_with_mark(hook_mark));
+                            hook_module = optimize(
+                                hook_module,
+                                Lrc::clone(&config.context.source_map),
+                                None,
+                                None,
+                                &MinifyOptions {
+                                    compress: Some(CompressOptions {
+                                        ..CompressOptions::default()
+                                    }),
+                                    mangle: Some(MangleOptions {
+                                        top_level: true,
+                                        ..MangleOptions::default()
+                                    }),
+                                    rename: true,
+                                    wrap: false,
+                                    enclose: false,
+                                },
+                                &ExtraOptions {
+                                    top_level_mark: hook_mark,
+                                },
+                            );
+
+                            hook_module = hook_module
+                                .fold_with(&mut hygiene_with_config(hygiene::Config {
+                                    ..Default::default()
+                                }))
+                                .fold_with(&mut fixer(None));
+                        }
+
+                        let (code, map) = emit_source_code(
+                            Lrc::clone(&config.context.source_map),
+                            Some(comments),
+                            &hook_module,
+                            config.minify == MinifyMode::Minify,
+                            config.source_maps,
+                        )
+                        .unwrap();
+
+                        hooks_analysis.push(HookAnalysis {
+                            origin: h.origin,
+                            name: h.name,
+                            entry: h.entry,
+                            canonical_filename: h.canonical_filename,
+                            local_decl: h.local_decl,
+                            local_idents: h.local_idents,
+                        });
+                        modules.push(TransformModule {
+                            code,
+                            map,
+                            is_entry,
+                            path: hook_path,
+                        });
+                    }
 
                     let (code, map) = emit_source_code(
                         config.context.source_map.clone(),
@@ -299,9 +315,10 @@ pub fn transform_code(
                     } else {
                         &path.extension
                     };
-                    output_modules.insert(
+                    modules.insert(
                         0,
                         TransformModule {
+                            is_entry: false,
                             path: Path::new(&path.dir)
                                 .join([&path.file_stem, ".", extension].concat())
                                 .to_str()
@@ -309,16 +326,14 @@ pub fn transform_code(
                                 .to_string(),
                             code,
                             map,
-                            is_entry: false,
                         },
                     );
 
                     let diagnostics = handle_error(&error_buffer, &config.context.source_map);
                     Ok(TransformResult {
-                        root_dir: config.root_dir.clone(),
-                        modules: output_modules,
+                        modules,
                         diagnostics,
-                        hooks,
+                        hooks: hooks_analysis,
                         is_type_script,
                         is_jsx,
                     })
@@ -331,7 +346,6 @@ pub fn transform_code(
             err.into_diagnostic(&handler).emit();
             let diagnostics = handle_error(&error_buffer, &config.context.source_map);
             Ok(TransformResult {
-                root_dir: config.root_dir,
                 hooks: vec![],
                 modules: vec![],
                 diagnostics,
@@ -351,7 +365,7 @@ fn parse(
     let source_file = source_map.new_source_file(FileName::Real(filename.into()), code.into());
 
     let comments = SingleThreadedComments::default();
-    let (is_type_script, is_jsx) = parse_filename(&config.path);
+    let (is_type_script, is_jsx) = parse_filename(config.path);
     let syntax = if is_type_script {
         Syntax::Typescript(TsConfig {
             tsx: is_jsx,
@@ -404,7 +418,7 @@ pub fn emit_source_code(
     let mut buf = vec![];
     {
         let writer = Box::new(JsWriter::new(
-            source_map.clone(),
+            Lrc::clone(&source_map),
             "\n",
             &mut buf,
             if source_maps {
@@ -417,7 +431,7 @@ pub fn emit_source_code(
         let mut emitter = swc_ecmascript::codegen::Emitter {
             cfg: config,
             comments: Some(&comments),
-            cm: source_map.clone(),
+            cm: Lrc::clone(&source_map),
             wr: writer,
         };
         emitter.emit_module(program)?;

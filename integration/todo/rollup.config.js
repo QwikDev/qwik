@@ -7,10 +7,7 @@ export default {
   ],
   plugins: [
     nodeResolve(),
-    qwikRollup({
-      entryStrategy: {type: "PerComponent"},
-      transpile: true,
-    }),
+    qwikRollup(),
   ],
   output: [
     {
@@ -19,7 +16,6 @@ export default {
       format: 'es'
     },
     {
-      chunkFileNames: "[name]-[hash].js",
       dir: 'output/cjs',
       format: 'cjs'
     },

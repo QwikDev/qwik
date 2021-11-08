@@ -38,7 +38,7 @@ fn transform_benchmark(b: &mut Criterion) {
             try{}catch({decl19}){}
         });
             "#;
-            transform_modules(black_box(&TransformModulesOptions {
+            transform_modules(black_box(TransformModulesOptions {
                 root_dir: "/user/qwik/src/".to_string(),
                 input: vec![TransformModuleInput {
                     code: code.to_string(),

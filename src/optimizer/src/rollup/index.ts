@@ -6,6 +6,7 @@ import {
   OutputEntryMap,
   Path,
   TransformFsOptions,
+  TransformResult,
 } from '..';
 import type { InputOption, OutputBundle, Plugin } from 'rollup';
 
@@ -14,6 +15,7 @@ import type { InputOption, OutputBundle, Plugin } from 'rollup';
  */
 export function qwikRollup(opts: QwikPluginOptions = {}): Plugin {
   let optimizer: Optimizer | undefined;
+  let result: TransformResult | undefined;
 
   return {
     name: 'qwikPlugin',
@@ -30,11 +32,11 @@ export function qwikRollup(opts: QwikPluginOptions = {}): Plugin {
         entryStrategy: opts.entryStrategy,
         glob: opts.glob,
         minify: opts.minify,
-        transpile: opts.transpile,
+        transpile: opts.transpile ?? true,
       };
 
       console.time('Qwik optimize');
-      const result = await optimizer.transformFs(transformOpts);
+      result = await optimizer.transformFs(transformOpts);
       console.timeEnd('Qwik optimize');
 
       // throw error or print logs if there are any diagnostics
@@ -75,11 +77,30 @@ export function qwikRollup(opts: QwikPluginOptions = {}): Plugin {
     },
 
     generateBundle(_, rollupBundle) {
-      this.emitFile({
-        fileName: 'q-entry-map.json',
-        source: generateOutputEntryMap(rollupBundle),
-        type: 'asset',
-      });
+      const entryMapFile = opts.entryMapFile === undefined ? "q-entry-map.json" : null;
+      if (result && entryMapFile) {
+        const output = Object.entries(rollupBundle);
+        const outputEntryMap: OutputEntryMap = {
+          version: '1',
+          mapping: Object.fromEntries(result.hooks.map(h => {
+            let entry = h.canonicalFilename;
+            let value = entry;
+            let found = output.find(([_, v]) => {
+              return v.type == 'chunk' && v.isDynamicEntry === true && Object.keys(v.modules).find(f => f.endsWith(value))
+            });
+            if (found) {
+              value = found[0];
+            }
+            return [entry, value];
+          }))
+        };
+
+        this.emitFile({
+          fileName: entryMapFile,
+          source: JSON.stringify(outputEntryMap, undefined, 2),
+          type: 'asset',
+        });
+      }
     },
 
     watchChange(id, change) {
@@ -122,18 +143,6 @@ function findInputDirectory(path: Path, rollupInput: InputOption | undefined) {
   return sortedInputDirPaths[0];
 }
 
-function generateOutputEntryMap(rollupBundle: OutputBundle) {
-  const outputEntryMap: OutputEntryMap = {};
-
-  for (const fileName in rollupBundle) {
-    const file = rollupBundle[fileName];
-    if (file.type === 'chunk') {
-      // todo
-    }
-  }
-
-  return JSON.stringify(outputEntryMap, null, 2);
-}
 
 /**
  * @alpha
@@ -143,4 +152,5 @@ export interface QwikPluginOptions {
   glob?: string;
   transpile?: boolean;
   minify?: MinifyMode;
+  entryMapFile?: string | null;
 }

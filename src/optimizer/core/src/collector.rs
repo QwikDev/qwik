@@ -192,16 +192,12 @@ impl HookCollect {
         collect
     }
 
-    pub fn get_local_decl(&self) -> Vec<JsWord> {
-        let mut items: Vec<JsWord> = self.local_decl.iter().cloned().collect();
-        items.sort();
-        items
-    }
-
-    pub fn get_local_idents(&self) -> Vec<JsWord> {
-        let mut items: Vec<JsWord> = self.local_idents.iter().cloned().collect();
-        items.sort();
-        items
+    pub fn get_words(self) -> (Vec<JsWord>, Vec<JsWord>) {
+        let mut local_decl: Vec<JsWord> = self.local_decl.into_iter().collect();
+        let mut local_idents: Vec<JsWord> = self.local_idents.into_iter().collect();
+        local_idents.sort();
+        local_decl.sort();
+        (local_decl, local_idents)
     }
 }
 

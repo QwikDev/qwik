@@ -91,6 +91,12 @@ export interface Optimizer {
 
 // @alpha (undocumented)
 export interface OutputEntryMap {
+    // (undocumented)
+    mapping: {
+        [canonicalName: string]: string;
+    };
+    // (undocumented)
+    version: '1';
 }
 
 // @alpha (undocumented)
@@ -141,6 +147,8 @@ export interface PathObject {
 
 // @alpha (undocumented)
 export interface QwikPluginOptions {
+    // (undocumented)
+    entryMapFile?: string | null;
     // (undocumented)
     entryStrategy?: EntryStrategy;
     // (undocumented)

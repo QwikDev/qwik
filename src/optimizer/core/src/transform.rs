@@ -17,10 +17,9 @@ use swc_ecmascript::visit::{noop_fold_type, Fold, FoldWith};
 
 #[derive(Debug)]
 pub struct Hook {
-    pub entry: Option<String>,
+    pub entry: Option<JsWord>,
     pub canonical_filename: String,
     pub name: String,
-    pub module_index: usize,
     pub expr: CallExpr,
     pub local_decl: Vec<JsWord>,
     pub local_idents: Vec<JsWord>,
@@ -45,7 +44,6 @@ impl TransformContext {
 
 pub struct HookTransform<'a> {
     stack_ctxt: Vec<String>,
-    module_item: usize,
 
     root_sym: Option<String>,
     context: &'a mut TransformContext,
@@ -65,9 +63,8 @@ impl<'a> HookTransform<'a> {
     ) -> Self {
         HookTransform {
             path,
-            stack_ctxt: vec![],
+            stack_ctxt: Vec::with_capacity(16),
             hooks,
-            module_item: 0,
             root_sym: None,
             comments,
             context,
@@ -111,13 +108,6 @@ impl<'a> HookTransform<'a> {
 impl<'a> Fold for HookTransform<'a> {
     noop_fold_type!();
 
-    fn fold_module(&mut self, node: Module) -> Module {
-        let o = node.fold_children_with(self);
-        self.hooks
-            .sort_by(|a, b| b.module_index.cmp(&a.module_index));
-        o
-    }
-
     fn fold_module_item(&mut self, item: ModuleItem) -> ModuleItem {
         let item = match item {
             ModuleItem::Stmt(Stmt::Decl(Decl::Var(node))) => {
@@ -154,7 +144,6 @@ impl<'a> Fold for HookTransform<'a> {
 
             item => item.fold_children_with(self),
         };
-        self.module_item += 1;
         item
     }
 
@@ -280,22 +269,22 @@ impl<'a> Fold for HookTransform<'a> {
 
                     let import_path = {
                         let filename = if let Some(ref entry) = entry {
-                            entry
+                            entry.as_ref()
                         } else {
                             &canonical_filename
                         };
                         fix_path("a", &self.path.path, &["./", filename].concat())
                     };
 
+                    let (local_decl, local_idents) = hook_collect.get_words();
                     self.hooks.push(Hook {
                         entry,
                         canonical_filename,
 
                         name: symbol_name.clone(),
-                        module_index: self.module_item,
                         expr: folded,
-                        local_decl: hook_collect.get_local_decl(),
-                        local_idents: hook_collect.get_local_idents(),
+                        local_decl,
+                        local_idents,
 
                         origin: self.path.path.clone(),
                     });

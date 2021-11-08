@@ -5,6 +5,8 @@ use std::collections::HashMap;
 use swc_atoms::JsWord;
 use swc_ecmascript::ast::CallExpr;
 
+use lazy_static::lazy_static;
+
 // EntryStrategies
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -23,7 +25,7 @@ pub trait EntryPolicy {
         context: &[String],
         analytics: &HookCollect,
         expr: &CallExpr,
-    ) -> Option<String>;
+    ) -> Option<JsWord>;
 }
 
 #[derive(Default)]
@@ -37,8 +39,11 @@ impl EntryPolicy for SingleStrategy {
         _context: &[String],
         _analytics: &HookCollect,
         _expr: &CallExpr,
-    ) -> Option<String> {
-        Some("entry_hooks".to_string())
+    ) -> Option<JsWord> {
+        lazy_static! {
+            static ref WORD: JsWord = JsWord::from("entry_hooks");
+        }
+        Some(WORD.clone())
     }
 }
 
@@ -53,7 +58,7 @@ impl EntryPolicy for PerHookStrategy {
         _context: &[String],
         _analytics: &HookCollect,
         _expr: &CallExpr,
-    ) -> Option<String> {
+    ) -> Option<JsWord> {
         None
     }
 }
@@ -69,11 +74,14 @@ impl EntryPolicy for PerComponentStrategy {
         context: &[String],
         _analytics: &HookCollect,
         _expr: &CallExpr,
-    ) -> Option<String> {
+    ) -> Option<JsWord> {
         if let Some(root) = context.first() {
-            Some(["entry_", root].concat())
+            Some(JsWord::from(["entry_", root].concat()))
         } else {
-            Some("entry-fallback".to_string())
+            lazy_static! {
+                static ref WORD: JsWord = JsWord::from("entry-fallback");
+            }
+            Some(WORD.clone())
         }
     }
 }
@@ -89,35 +97,39 @@ impl EntryPolicy for SmartStrategy {
         context: &[String],
         _analytics: &HookCollect,
         _expr: &CallExpr,
-    ) -> Option<String> {
+    ) -> Option<JsWord> {
+        lazy_static! {
+            static ref SERVER: JsWord = JsWord::from("entry-server");
+            static ref FALLBACK: JsWord = JsWord::from("entry-fallback");
+        }
         if context.iter().any(|h| h == "onMount") {
-            return Some("entry-server".to_string());
+            return Some(SERVER.clone());
         }
         if let Some(root) = context.first() {
-            Some(["entry_", root].concat())
+            Some(JsWord::from(["entry_", root].concat()))
         } else {
-            Some("entry-fallback".to_string())
+            Some(FALLBACK.clone())
         }
     }
 }
 
 pub struct ManualStrategy {
     map: HashMap<String, JsWord>,
-    fallback: String,
+    fallback: JsWord,
 }
 
 impl ManualStrategy {
-    pub fn new(groups: &[Vec<String>]) -> Self {
+    pub fn new(groups: Vec<Vec<String>>) -> Self {
         let mut map: HashMap<String, JsWord> = HashMap::new();
-        for (count, group) in groups.iter().enumerate() {
+        for (count, group) in groups.into_iter().enumerate() {
             let group_name = JsWord::from(format!("entry_{}", count));
             for sym in group {
-                map.insert(sym.clone(), group_name.clone());
+                map.insert(sym, group_name.clone());
             }
         }
         Self {
             map,
-            fallback: "entry-fallback".to_string(),
+            fallback: JsWord::from("entry-fallback"),
         }
     }
 }
@@ -130,21 +142,21 @@ impl EntryPolicy for ManualStrategy {
         _context: &[String],
         _analytics: &HookCollect,
         _expr: &CallExpr,
-    ) -> Option<String> {
+    ) -> Option<JsWord> {
         let entry = self.map.get(symbol);
         Some(match entry {
-            Some(val) => val.to_string(),
+            Some(val) => val.clone(),
             None => self.fallback.clone(),
         })
     }
 }
 
-pub fn parse_entry_strategy(strategy: &EntryStrategy) -> Box<dyn EntryPolicy> {
+pub fn parse_entry_strategy(strategy: EntryStrategy) -> Box<dyn EntryPolicy> {
     match strategy {
         EntryStrategy::Single => Box::new(SingleStrategy::default()),
         EntryStrategy::Hook => Box::new(PerHookStrategy::default()),
         EntryStrategy::Component => Box::new(PerComponentStrategy::default()),
         EntryStrategy::Smart => Box::new(SmartStrategy::default()),
-        EntryStrategy::Manual(ref groups) => Box::new(ManualStrategy::new(groups)),
+        EntryStrategy::Manual(groups) => Box::new(ManualStrategy::new(groups)),
     }
 }

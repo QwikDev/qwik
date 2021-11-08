@@ -116,7 +116,7 @@ fn optimize(t: Optimize) -> Result<qwik_core::TransformResult, Box<dyn std::erro
         .unwrap()
         .to_string();
 
-    let result = transform_fs(&TransformFsOptions {
+    let result = transform_fs(TransformFsOptions {
         root_dir: input,
         glob: t.glob,
         source_maps: t.sourcemaps,

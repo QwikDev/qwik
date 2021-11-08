@@ -17,7 +17,7 @@ fn transform_fs(ctx: CallContext) -> Result<JsUnknown> {
     let opts = ctx.get::<JsObject>(0)?;
     let config: qwik_core::TransformFsOptions = ctx.env.from_js_value(opts)?;
 
-    let result = qwik_core::transform_fs(&config).unwrap();
+    let result = qwik_core::transform_fs(config).unwrap();
     ctx.env.to_js_value(&result)
 }
 

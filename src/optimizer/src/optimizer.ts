@@ -202,6 +202,6 @@ const convertOptions = (opts: any) => {
       output[key] = value;
     }
   });
-  output.entryStrategy = opts.entryStrategy?.type ?? 'single';
+  output.entryStrategy = opts.entryStrategy?.type ?? 'smart';
   return output;
 };

@@ -314,7 +314,7 @@ export const Header = qComponent({
 // }
 
 fn test_input(filename: &str, code: &str, entry_strategy: EntryStrategy, _print_ast: bool) {
-    let res = transform_modules(&TransformModulesOptions {
+    let res = transform_modules(TransformModulesOptions {
         root_dir: "/user/qwik/src/".to_string(),
         input: vec![TransformModuleInput {
             code: code.to_string(),

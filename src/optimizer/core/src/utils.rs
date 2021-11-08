@@ -1,39 +1,5 @@
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
-use std::collections::HashMap;
-use std::hash::Hash;
-
-#[derive(Debug)]
-pub struct MapVec<K, V> {
-    map: HashMap<K, Vec<V>>,
-}
-
-impl<K, V> MapVec<K, V>
-where
-    K: Eq + Hash,
-{
-    pub fn new() -> Self {
-        Self {
-            map: HashMap::new(),
-        }
-    }
-
-    pub fn push(&mut self, key: K, value: V)
-    where
-        K: Hash + Eq,
-    {
-        let vec = self.map.get_mut(&key);
-        if let Some(vec) = vec {
-            vec.push(value);
-        } else {
-            self.map.insert(key, vec![value]);
-        }
-    }
-
-    pub fn as_ref(&self) -> &HashMap<K, Vec<V>> {
-        &self.map
-    }
-}
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
 pub struct SourceLocation {

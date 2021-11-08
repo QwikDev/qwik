@@ -1,4 +1,3 @@
-use std::error;
 use std::ffi::OsStr;
 use std::path::Path;
 use std::str;
@@ -12,6 +11,7 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "fs")]
 use std::fs;
 
+use anyhow::{format_err, Context, Error};
 use swc_common::comments::SingleThreadedComments;
 use swc_common::errors::{DiagnosticBuilder, Emitter, Handler};
 use swc_common::{chain, sync::Lrc, FileName, Globals, Mark, SourceMap};
@@ -63,7 +63,7 @@ pub struct TransformCodeOptions<'a> {
 
 #[derive(Debug, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
-pub struct TransformResult {
+pub struct TransformOuput {
     pub root_dir: String,
     pub modules: Vec<TransformModule>,
     pub diagnostics: Vec<Diagnostic>,
@@ -72,13 +72,15 @@ pub struct TransformResult {
     pub is_jsx: bool,
 }
 
-impl TransformResult {
+impl TransformOuput {
     #[cfg(feature = "fs")]
-    pub fn write_to_fs(&self, destination: &str) -> Result<usize, Box<dyn std::error::Error>> {
+    pub fn write_to_fs(&self, destination: &str) -> Result<usize, Error> {
         let destination = Path::new(destination);
         for module in &self.modules {
             let write_path = destination.join(&module.path);
-            fs::create_dir_all(&write_path.parent().unwrap())?;
+            fs::create_dir_all(&write_path.parent().with_context(|| {
+                format!("Computing path parent of {}", write_path.to_string_lossy())
+            })?)?;
             fs::write(write_path, &module.code)?;
         }
         Ok(self.modules.len())
@@ -109,18 +111,23 @@ pub struct ErrorBuffer(std::sync::Arc<std::sync::Mutex<Vec<swc_common::errors::D
 
 impl Emitter for ErrorBuffer {
     fn emit(&mut self, db: &DiagnosticBuilder) {
-        self.0.lock().unwrap().push((**db).clone());
+        match self.0.lock() {
+            Ok(mut diagnostics) => {
+                diagnostics.push((**db).clone());
+            }
+            Err(_) => {
+                eprintln!("Error adquiring error buffer lock; some diagnostics might be dropped.");
+            }
+        }
     }
 }
 
-pub fn transform_code(
-    config: TransformCodeOptions,
-) -> Result<TransformResult, Box<dyn error::Error>> {
+pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOuput, anyhow::Error> {
     let module = parse(config.code, config.path.as_str(), &config);
     if config.print_ast {
         dbg!(&module);
     }
-    let path = parse_path(&config.path);
+    let path = parse_path(&config.path)?;
     let transpile = config.transpile;
 
     match module {
@@ -217,9 +224,9 @@ pub fn transform_code(
 
                     let mut output_modules: Vec<TransformModule> = hooks
                         .iter()
-                        .map(|h| {
+                        .map(|hook| -> Result<_, Error> {
+                            let (mut hook_module, comments) = new_module(&path, hook, &collect)?;
                             let hook_mark = Mark::fresh(Mark::root());
-                            let (mut hook_module, comments) = new_module(&path, h, &collect);
                             if config.minify == MinifyMode::Minify {
                                 hook_module =
                                     hook_module.fold_with(&mut resolver_with_mark(hook_mark));
@@ -253,26 +260,25 @@ pub fn transform_code(
                             }
 
                             let (code, map) = emit_source_code(
-                                config.context.source_map.clone(),
+                                &config.context.source_map,
                                 Some(comments),
                                 &hook_module,
                                 config.minify == MinifyMode::Minify,
                                 config.source_maps,
-                            )
-                            .unwrap();
+                            )?;
                             let extension = if config.transpile {
                                 "js"
                             } else {
                                 &path.extension
                             };
-                            TransformModule {
+                            Ok(TransformModule {
                                 code,
                                 map,
-                                path: [&h.canonical_filename, ".", extension].concat(),
-                                is_entry: h.entry == None,
-                            }
+                                path: format!("{}.{}", hook.canonical_filename, extension),
+                                is_entry: hook.entry.is_none(),
+                            })
                         })
-                        .collect();
+                        .collect::<Result<_, _>>()?;
 
                     let hooks: Vec<HookAnalysis> = hooks
                         .iter()
@@ -287,7 +293,7 @@ pub fn transform_code(
                         .collect();
 
                     let (code, map) = emit_source_code(
-                        config.context.source_map.clone(),
+                        &config.context.source_map,
                         Some(comments),
                         &main_module,
                         config.minify == MinifyMode::Minify,
@@ -303,10 +309,9 @@ pub fn transform_code(
                         0,
                         TransformModule {
                             path: Path::new(&path.dir)
-                                .join([&path.file_stem, ".", extension].concat())
-                                .to_str()
-                                .unwrap()
-                                .to_string(),
+                                .join(format!("{}.{}", path.file_stem, extension))
+                                .to_string_lossy()
+                                .into(),
                             code,
                             map,
                             is_entry: false,
@@ -314,7 +319,7 @@ pub fn transform_code(
                     );
 
                     let diagnostics = handle_error(&error_buffer, &config.context.source_map);
-                    Ok(TransformResult {
+                    Ok(TransformOuput {
                         root_dir: config.root_dir.clone(),
                         modules: output_modules,
                         diagnostics,
@@ -330,7 +335,7 @@ pub fn transform_code(
             let handler = Handler::with_emitter(true, false, Box::new(error_buffer.clone()));
             err.into_diagnostic(&handler).emit();
             let diagnostics = handle_error(&error_buffer, &config.context.source_map);
-            Ok(TransformResult {
+            Ok(TransformOuput {
                 root_dir: config.root_dir,
                 hooks: vec![],
                 modules: vec![],
@@ -394,14 +399,14 @@ fn parse_filename(filename: &str) -> (bool, bool) {
 }
 
 pub fn emit_source_code(
-    source_map: Lrc<SourceMap>,
+    source_map: &Lrc<SourceMap>,
     comments: Option<SingleThreadedComments>,
     program: &Module,
     minify: bool,
     source_maps: bool,
-) -> Result<(String, Option<Vec<u8>>), std::io::Error> {
-    let mut src_map_buf = vec![];
-    let mut buf = vec![];
+) -> Result<(String, Option<Vec<u8>>), Error> {
+    let mut src_map_buf = Vec::new();
+    let mut buf = Vec::new();
     {
         let writer = Box::new(JsWriter::new(
             source_map.clone(),
@@ -430,18 +435,19 @@ pub fn emit_source_code(
             .to_writer(&mut map_buf)
             .is_ok()
     {
-        Ok((
-            unsafe { str::from_utf8_unchecked(&buf).to_string() },
-            Some(map_buf),
-        ))
+        Ok((str::from_utf8(&buf)?.to_string(), Some(map_buf)))
     } else {
-        Ok((unsafe { str::from_utf8_unchecked(&buf).to_string() }, None))
+        Ok((str::from_utf8(&buf)?.to_string(), None))
     }
 }
 
 fn handle_error(error_buffer: &ErrorBuffer, source_map: &Lrc<SourceMap>) -> Vec<Diagnostic> {
-    let s = error_buffer.0.lock().unwrap().clone();
-    let diagnostics: Vec<Diagnostic> = s
+    error_buffer
+        .0
+        .lock()
+        .map(|diagnostics| diagnostics.clone())
+        .ok()
+        .unwrap_or_else(Vec::new)
         .iter()
         .map(|diagnostic| {
             let message = diagnostic.message();
@@ -483,9 +489,7 @@ fn handle_error(error_buffer: &ErrorBuffer, source_map: &Lrc<SourceMap>) -> Vec<
                 documentation_url: None,
             }
         })
-        .collect();
-
-    diagnostics
+        .collect()
 }
 
 pub struct PathData {
@@ -494,35 +498,40 @@ pub struct PathData {
     pub file_stem: String,
     pub extension: String,
     pub file_name: String,
-    pub file_prefix: String,
+    pub basename: String,
 }
 
-pub fn parse_path(src: &str) -> PathData {
+pub fn parse_path(src: &str) -> Result<PathData, Error> {
     let path = Path::new(src);
-    let file_stem = path.file_stem().unwrap().to_str().unwrap().to_string();
-    let dir = if let Some(dir) = path.parent() {
-        dir.to_str().unwrap().to_string()
-    } else {
-        "".to_string()
-    };
-    let extension = if let Some(ext) = path.extension() {
-        ext.to_str().unwrap().to_string()
-    } else {
-        "".to_string()
-    };
-    let file_name = path.file_name().unwrap().to_str().unwrap().to_string();
-    let file_prefix = if let Some(index) = file_name.find('.') {
-        file_name[0..index].to_string()
-    } else {
-        file_name.clone()
-    };
+    let file_stem = path
+        .file_stem()
+        .and_then(|f| f.to_str())
+        .map(Into::into)
+        .with_context(|| format!("Computing file stem for {}", path.to_string_lossy()))?;
 
-    PathData {
-        path: src.to_string(),
-        dir,
+    let dir = path.parent().and_then(|p| p.to_str()).unwrap_or("");
+    let extension = path.extension().and_then(|e| e.to_str()).unwrap_or("");
+    let file_name = path
+        .file_name()
+        .and_then(|p| p.to_str())
+        .with_context(|| format!("Computing filename for {}", path.to_string_lossy()))?;
+    let basename = file_name
+        .rsplitn(2, '.')
+        .last()
+        .with_context(|| format!("Computing basename for {}", path.to_string_lossy()))?;
+
+    // let file_prefix = if let Some(index) = file_name.find('.') {
+    //     file_name[0..index].to_string()
+    // } else {
+    //     file_name.clone()
+    // };
+
+    Ok(PathData {
+        path: src.into(),
+        dir: dir.into(),
         file_stem,
-        extension,
-        file_name,
-        file_prefix,
-    }
+        extension: extension.into(),
+        file_name: file_name.into(),
+        basename: basename.into(),
+    })
 }

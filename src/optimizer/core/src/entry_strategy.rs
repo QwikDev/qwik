@@ -27,7 +27,7 @@ pub trait EntryPolicy {
 }
 
 #[derive(Default)]
-pub struct SingleStrategy {}
+pub struct SingleStrategy;
 
 impl EntryPolicy for SingleStrategy {
     fn get_entry_for_sym(

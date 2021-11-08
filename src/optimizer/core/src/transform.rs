@@ -51,7 +51,7 @@ pub struct HookTransform<'a> {
     context: &'a mut TransformContext,
     hooks: &'a mut Vec<Hook>,
 
-    path: &'a PathData,
+    path_data: &'a PathData,
 
     comments: Option<&'a SingleThreadedComments>,
 }
@@ -59,12 +59,12 @@ pub struct HookTransform<'a> {
 impl<'a> HookTransform<'a> {
     pub fn new(
         context: &'a mut TransformContext,
-        path: &'a PathData,
+        path_data: &'a PathData,
         comments: Option<&'a SingleThreadedComments>,
         hooks: &'a mut Vec<Hook>,
     ) -> Self {
         HookTransform {
-            path,
+            path_data,
             stack_ctxt: vec![],
             hooks,
             module_item: 0,
@@ -262,7 +262,7 @@ impl<'a> Fold for HookTransform<'a> {
                         }
                     }
                     let mut canonical_filename =
-                        ["h_", &self.path.file_prefix, "_", &symbol_name].concat();
+                        ["h_", &self.path_data.basename, "_", &symbol_name].concat();
                     canonical_filename.make_ascii_lowercase();
 
                     // Remove last arguments
@@ -272,32 +272,29 @@ impl<'a> Fold for HookTransform<'a> {
                     let hook_collect = HookCollect::new(&folded);
                     let entry = self.context.bundling_policy.get_entry_for_sym(
                         &symbol_name,
-                        self.path,
+                        self.path_data,
                         &self.stack_ctxt,
                         &hook_collect,
                         &folded,
                     );
 
-                    let import_path = {
-                        let filename = if let Some(ref entry) = entry {
-                            entry
-                        } else {
-                            &canonical_filename
-                        };
-                        fix_path("a", &self.path.path, &["./", filename].concat())
-                    };
+                    let import_path = fix_path(
+                        "a",
+                        &self.path_data.path,
+                        &format!("./{}", entry.as_ref().unwrap_or(&canonical_filename)),
+                    )
+                    // TODO: check with manu
+                    .unwrap();
 
                     self.hooks.push(Hook {
                         entry,
                         canonical_filename,
-
                         name: symbol_name.clone(),
                         module_index: self.module_item,
                         expr: folded,
                         local_decl: hook_collect.get_local_decl(),
                         local_idents: hook_collect.get_local_idents(),
-
-                        origin: self.path.path.clone(),
+                        origin: self.path_data.path.clone(),
                     });
 
                     let node = create_inline_qhook(import_path, &symbol_name);

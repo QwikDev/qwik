@@ -1,9 +1,9 @@
 use crate::collector::{GlobalCollect, ImportKind};
-use crate::parse::{emit_source_code, HookAnalysis, PathData, TransformModule, TransformResult};
+use crate::parse::{emit_source_code, HookAnalysis, PathData, TransformModule, TransformOuput};
 use crate::transform::Hook;
-use crate::utils::MapVec;
 
-use std::collections::HashSet;
+use anyhow::{format_err, Context, Error};
+use std::collections::HashMap;
 use std::path::Path;
 use swc_atoms::JsWord;
 use swc_common::comments::{Comments, SingleThreadedComments};
@@ -14,7 +14,7 @@ pub fn new_module(
     path: &PathData,
     hook: &Hook,
     global: &GlobalCollect,
-) -> (Module, SingleThreadedComments) {
+) -> Result<(Module, SingleThreadedComments), Error> {
     let comments = SingleThreadedComments::default();
     let mut module = Module {
         span: DUMMY_SP,
@@ -51,7 +51,7 @@ pub fn new_module(
                     asserts: None,
                     src: Str {
                         span: DUMMY_SP,
-                        value: fix_path(&hook.origin, "a", import.source.as_ref()),
+                        value: fix_path(&hook.origin, "a", import.source.as_ref())?,
                         kind: StrKind::Synthesized,
                         has_escape: false,
                     },
@@ -66,7 +66,7 @@ pub fn new_module(
                     asserts: None,
                     src: Str {
                         span: DUMMY_SP,
-                        value: fix_path(&hook.origin, "a", &["./", &path.file_stem].concat()),
+                        value: fix_path(&hook.origin, "a", &format!("./{}", path.file_stem))?,
                         kind: StrKind::Synthesized,
                         has_escape: false,
                     },
@@ -81,30 +81,42 @@ pub fn new_module(
     }
     module.body.push(create_named_export(hook, &comments));
 
-    (module, comments)
+    Ok((module, comments))
 }
 
-pub fn fix_path(src: &str, dest: &str, ident: &str) -> JsWord {
+pub fn fix_path(src: &str, dest: &str, ident: &str) -> Result<JsWord, Error> {
     if src.starts_with('/') {
-        panic!("hola");
+        return Err(format_err!(
+            "`fix_path`: `src` doesn't start with a slash: {}",
+            src
+        ));
     }
+
     if ident.starts_with('.') {
         let diff = pathdiff::diff_paths(
-            Path::new(src).parent().unwrap(),
-            Path::new(dest).parent().unwrap(),
+            Path::new(src)
+                .parent()
+                .with_context(|| format!("`fix_path`: `src` doesn't have a parent: {}", src))?,
+            Path::new(dest)
+                .parent()
+                .with_context(|| format!("`fix_path`: `dest` doesn't have a parent: {}", dest))?,
         );
+
         if let Some(diff) = diff {
-            let relative = relative_path::RelativePath::from_path(&diff).unwrap();
+            let relative = relative_path::RelativePath::from_path(&diff).with_context(|| {
+                format!("Computing relative path from {}", diff.to_string_lossy())
+            })?;
             let final_path = relative.join(ident).normalize();
             let final_str = final_path.as_str();
-            if final_str.starts_with('.') {
-                return JsWord::from(final_str);
+            return Ok(if final_str.starts_with('.') {
+                JsWord::from(final_str)
             } else {
-                return JsWord::from(["./", final_str].concat());
-            }
+                JsWord::from(format!("./{}", final_str))
+            });
         }
     }
-    JsWord::from(ident)
+
+    Ok(JsWord::from(ident))
 }
 
 fn create_named_export(hook: &Hook, comments: &SingleThreadedComments) -> ModuleItem {
@@ -135,57 +147,53 @@ fn create_named_export(hook: &Hook, comments: &SingleThreadedComments) -> Module
 #[test]
 fn test_fix_path() {
     assert_eq!(
-        fix_path("src/components.tsx", "a", "./state"),
+        fix_path("src/components.tsx", "a", "./state").unwrap(),
         JsWord::from("./src/state")
     );
 
     assert_eq!(
-        fix_path("src/path/components.tsx", "a", "./state"),
+        fix_path("src/path/components.tsx", "a", "./state").unwrap(),
         JsWord::from("./src/path/state")
     );
 
     assert_eq!(
-        fix_path("src/components.tsx", "a", "../state"),
+        fix_path("src/components.tsx", "a", "../state").unwrap(),
         JsWord::from("./state")
     );
     assert_eq!(
-        fix_path("components.tsx", "a", "./state"),
+        fix_path("components.tsx", "a", "./state").unwrap(),
         JsWord::from("./state")
     );
+    assert!(fix_path("/components", "a", "./state").is_err())
 }
 
 pub fn generate_entries(
-    result: TransformResult,
+    mut result: TransformOuput,
     default_ext: &str,
-    source_map: Lrc<SourceMap>,
-) -> TransformResult {
-    let mut result = result;
-    let mut entries_set = HashSet::new();
-    let mut entries_map = MapVec::new();
+    source_map: &Lrc<SourceMap>,
+) -> Result<TransformOuput, anyhow::Error> {
+    let mut entries_map = HashMap::new();
     for hook in &result.hooks {
-        let entry = if let Some(ref e) = hook.entry {
-            e.clone()
-        } else {
-            hook.canonical_filename.clone()
-        };
         if hook.entry != None {
-            entries_map.push(entry.clone(), hook);
+            entries_map
+                .entry(hook.entry.as_ref().unwrap_or(&hook.canonical_filename))
+                .or_insert_with(Vec::new)
+                .push(hook);
         }
-        entries_set.insert(entry);
     }
 
-    for (entry, hooks) in entries_map.as_ref().iter() {
+    for (entry, hooks) in entries_map.iter() {
         let module = new_entry_module(hooks);
-        let (code, map) =
-            emit_source_code(source_map.clone(), None, &module, false, false).unwrap();
+        let (code, map) = emit_source_code(source_map, None, &module, false, false)
+            .context("Emitting source code")?;
         result.modules.push(TransformModule {
-            path: [entry, ".", default_ext].concat(),
+            path: format!("{}.{}", entry, default_ext),
             code,
             map,
             is_entry: true,
         });
     }
-    result
+    Ok(result)
 }
 
 fn new_entry_module(hooks: &[&HookAnalysis]) -> Module {

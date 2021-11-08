@@ -5,7 +5,7 @@ version = "0.1.0"
 edition = "2021"
 
 [lib]
-crate-type = ["cdylib"]
+crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 js-sys = "0.3"
@@ -17,3 +17,9 @@ parking_lot_core = "=0.8.0"
 
 [package.metadata.wasm-pack.profile.release]
 wasm-opt = false
+
+[profile.release]
+lto="y"
+codegen-units=1
+opt-level="z"
+panic="abort"

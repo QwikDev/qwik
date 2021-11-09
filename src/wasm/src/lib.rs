@@ -12,7 +12,7 @@ use wasm_bindgen::prelude::*;
 pub fn transform_modules(config_val: JsValue) -> Result<JsValue, JsValue> {
     let config: TransformModulesOptions = from_value(config_val).map_err(JsValue::from)?;
 
-    let result = qwik_core::transform_modules(&config)
+    let result = qwik_core::transform_modules(config)
         .map_err(|e| Error::from(JsValue::from_str(&e.to_string())))?;
 
     let serializer = Serializer::new().serialize_maps_as_objects(true);

@@ -111,7 +111,7 @@ fn optimize(
     let root_dir = current_dir.join(optimizer_input.src).canonicalize()?;
 
     let result = transform_fs(TransformFsOptions::new(
-        root_dir,
+        root_dir.to_string_lossy().to_string(),
         optimizer_input.glob,
         optimizer_input.sourcemaps,
         optimizer_input.minify,

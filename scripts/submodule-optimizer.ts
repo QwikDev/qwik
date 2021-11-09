@@ -17,7 +17,7 @@ export async function submoduleOptimizer(config: BuildConfig) {
       entryNames: 'optimizer',
       outdir: config.distPkgDir,
       bundle: true,
-      sourcemap: config.dev,
+      sourcemap: false,
       target,
       banner,
       external: [
@@ -61,11 +61,16 @@ export async function submoduleOptimizer(config: BuildConfig) {
           const src = await readFile(p, 'utf-8');
           const result = await minify(src, {
             compress: {
+              collapse_vars: false,
+              expression: false,
               keep_classnames: true,
               inline: false,
+              if_return: false,
               loops: false,
               passes: 1,
               drop_debugger: false,
+              reduce_funcs: false,
+              reduce_vars: false,
             },
             format: {
               comments: false,

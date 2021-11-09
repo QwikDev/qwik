@@ -46,7 +46,7 @@ export async function generatePackageJson(config: BuildConfig) {
       },
       './package.json': './package.json',
     },
-    files: Array.from(new Set(PACKAGE_FILES)).sort((a, b) => {
+    files: Array.from(new Set(rootPkg.files)).sort((a, b) => {
       if (a.toLocaleLowerCase() < b.toLocaleLowerCase()) return -1;
       if (a.toLocaleLowerCase() > b.toLocaleLowerCase()) return 1;
       return 0;
@@ -75,67 +75,3 @@ export async function writePackageJson(pkgJsonDir: string, pkgJson: PackageJSON)
   const pkgJsonStr = JSON.stringify(pkgJson, null, 2) + '\n';
   await writeFile(pkgJsonPath, pkgJsonStr);
 }
-
-/**
- * These are the exact outputs that should end up in the published package.
- * This is used to create the package.json "files" property.
- */
-const PACKAGE_FILES = [
-  // core
-  'core.cjs',
-  'core.cjs.map',
-  'core.min.mjs',
-  'core.mjs',
-  'core.mjs.map',
-  'core.d.ts',
-
-  // jsx-runtime
-  'jsx-runtime.cjs',
-  'jsx-runtime.cjs.map',
-  'jsx-runtime.mjs',
-  'jsx-runtime.mjs.map',
-  'jsx-runtime.d.ts',
-
-  // optimizer
-  'optimizer.cjs',
-  'optimizer.mjs',
-  'optimizer.d.ts',
-
-  // prefetch
-  'prefetch.js',
-  'prefetch.debug.js',
-
-  // qwikloader
-  'qwikloader.js',
-  'qwikloader.debug.js',
-  'qwikloader.optimize.js',
-  'qwikloader.optimize.debug.js',
-
-  // server
-  'server/index.cjs',
-  'server/index.mjs',
-  'server/index.d.ts',
-
-  // testing
-  'testing/index.cjs',
-  'testing/index.mjs',
-  'testing/index.d.ts',
-  'testing/jest-preset.cjs',
-  'testing/jest-preset.mjs',
-
-  // package files
-  'README.md',
-  'LICENSE',
-  'package.json',
-
-  // platform bindings
-  'qwik.darwin-x64.node',
-  // 'qwik.darwin-arm64.node',
-  'qwik.win32-x64-msvc.node',
-
-  // wasm
-  'qwik.nodejs.js',
-  'qwik.nodejs.wasm',
-  'qwik.web.js',
-  'qwik.web.wasm',
-];

@@ -1,6 +1,6 @@
-import { platformArchTriples } from '@napi-rs/triples';
 import type { Path, TransformResult } from '.';
 import pathBrowserify from 'path-browserify';
+import { QWIK_BINDING_MAP } from './qwik-binding-map';
 
 export async function getSystem() {
   const sys: InternalSystem = {} as any;
@@ -27,7 +27,6 @@ export async function getSystem() {
     // do not try to inline or rewrite require()
     const api = Object.assign({ require: 'require' });
     sys.dynamicImport = global[api.require].bind(global);
-    sys.__dirname = __dirname;
   }
 
   if (sys.isNode) {
@@ -43,22 +42,21 @@ export async function getSystem() {
 async function loadPlatformBinding(sys: InternalSystem) {
   if (sys.isNode) {
     // NodeJS
-    const triples = platformArchTriples[sys.platform!][sys.arch!];
-
-    for (const triple of triples) {
-      const platformBindingPath = sys.path.join(
-        sys.__dirname,
-        `qwik.${triple.platformArchABI}.node`
-      );
-      if (sys.fs.existsSync(platformBindingPath)) {
-        // NodeJS - Native Binding
-        return sys.dynamicImport(platformBindingPath);
+    const platform = (QWIK_BINDING_MAP as any)[sys.platform!];
+    if (platform) {
+      const triples = platform[sys.arch!];
+      if (triples) {
+        for (const triple of triples) {
+          // NodeJS - Native Binding
+          const platformBindingPath = sys.path.join(`..`, triple.platformArchABI);
+          return sys.dynamicImport(platformBindingPath);
+        }
       }
-
-      // NodeJS - WASM
-      const wasmBindingPath = sys.path.join(sys.__dirname, `qwik.nodejs.js`);
-      return sys.dynamicImport(wasmBindingPath);
     }
+
+    // NodeJS - WASM
+    const wasmJsPath = sys.path.join(`..`, `qwik.nodejs.js`);
+    return sys.dynamicImport(wasmJsPath);
   }
 
   if (globalThis.IS_ESM) {
@@ -81,7 +79,6 @@ export interface InternalSystem {
   dynamicImport: (path: string) => Promise<any>;
   fs: typeof import('fs');
   path: Path;
-  __dirname: string;
   binding: PlatformBinding;
 }
 
@@ -89,8 +86,6 @@ export interface PlatformBinding {
   transform_fs?: (opts: any) => TransformResult;
   transform_modules: (opts: any) => TransformResult;
 }
-
-let loadedSys: InternalSystem | null = null;
 
 declare var globalThis: { IS_CJS: boolean; IS_ESM: boolean };
 declare var global: { [key: string]: any };

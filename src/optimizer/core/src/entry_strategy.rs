@@ -1,9 +1,11 @@
-use crate::collector::HookCollect;
-use crate::parse::PathData;
-use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+
+use serde::{Deserialize, Serialize};
 use swc_atoms::JsWord;
 use swc_ecmascript::ast::CallExpr;
+
+use crate::collector::HookCollect;
+use crate::parse::PathData;
 
 // EntryStrategies
 #[derive(Debug, Serialize, Deserialize)]
@@ -70,16 +72,16 @@ impl EntryPolicy for PerComponentStrategy {
         _analytics: &HookCollect,
         _expr: &CallExpr,
     ) -> Option<String> {
-        if let Some(root) = context.first() {
-            Some(["entry_", root].concat())
-        } else {
-            Some("entry-fallback".to_string())
-        }
+        Some(
+            context
+                .first()
+                .map_or_else(|| "entry-fallback".into(), |root| format!("entry_{}", root)),
+        )
     }
 }
 
 #[derive(Default)]
-pub struct SmartStrategy {}
+pub struct SmartStrategy;
 
 impl EntryPolicy for SmartStrategy {
     fn get_entry_for_sym(
@@ -91,13 +93,13 @@ impl EntryPolicy for SmartStrategy {
         _expr: &CallExpr,
     ) -> Option<String> {
         if context.iter().any(|h| h == "onMount") {
-            return Some("entry-server".to_string());
+            return Some("entry-server".into());
         }
-        if let Some(root) = context.first() {
-            Some(["entry_", root].concat())
-        } else {
-            Some("entry-fallback".to_string())
-        }
+        Some(
+            context
+                .first()
+                .map_or_else(|| "entry-fallback".into(), |root| format!("entry_{}", root)),
+        )
     }
 }
 

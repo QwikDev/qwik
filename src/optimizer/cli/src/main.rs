@@ -2,14 +2,16 @@
 #![deny(clippy::perf)]
 #![deny(clippy::nursery)]
 
+use std::path::PathBuf;
+
 use clap::{App, AppSettings, Arg};
-use path_absolutize::*;
+use path_absolutize::Absolutize;
 use qwik_core::{transform_fs, EntryStrategy, MinifyMode, TransformFsOptions};
 
-struct Optimize {
+struct OptimizerInput {
     glob: Option<String>,
-    src: String,
-    dest: String,
+    src: PathBuf,
+    dest: PathBuf,
     strategy: EntryStrategy,
     transpile: bool,
     minify: MinifyMode,
@@ -89,7 +91,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             Some("simplify") | None => MinifyMode::Simplify,
             _ => panic!("Unvalid minify option"),
         };
-        optimize(Optimize {
+        optimize(OptimizerInput {
             src: matches.value_of_t_or_exit("src"),
             dest: matches.value_of_t_or_exit("dest"),
             glob: None,
@@ -102,30 +104,21 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-fn optimize(t: Optimize) -> Result<qwik_core::TransformResult, Box<dyn std::error::Error>> {
-    let path = std::env::current_dir()?;
-    let input = path
-        .join(t.src)
-        .canonicalize()?
-        .to_str()
-        .unwrap()
-        .to_string();
-    let output = std::path::Path::new(&path.join(t.dest))
-        .absolutize()?
-        .to_str()
-        .unwrap()
-        .to_string();
+fn optimize(
+    optimizer_input: OptimizerInput,
+) -> Result<qwik_core::TransformOuput, Box<dyn std::error::Error>> {
+    let current_dir = std::env::current_dir()?;
+    let root_dir = current_dir.join(optimizer_input.src).canonicalize()?;
 
-    let result = transform_fs(&TransformFsOptions {
-        root_dir: input,
-        glob: t.glob,
-        source_maps: t.sourcemaps,
-        minify: t.minify,
-        transpile: t.transpile,
-        entry_strategy: t.strategy,
-    })?;
-    // dbg!(&result);
+    let result = transform_fs(&TransformFsOptions::new(
+        root_dir,
+        optimizer_input.glob,
+        optimizer_input.sourcemaps,
+        optimizer_input.minify,
+        optimizer_input.transpile,
+        optimizer_input.strategy,
+    )?)?;
 
-    result.write_to_fs(&output)?;
+    result.write_to_fs(&current_dir.join(optimizer_input.dest).absolutize()?)?;
     Ok(result)
 }

@@ -1,7 +1,7 @@
 #![deny(clippy::all)]
 #![deny(clippy::perf)]
 #![deny(clippy::nursery)]
-#![deny(clippy::cargo)]
+// #![deny(clippy::cargo)]
 
 #[cfg(test)]
 mod test;
@@ -32,25 +32,49 @@ use crate::transform::TransformContext;
 #[derive(Serialize, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TransformFsOptions {
-    pub root_dir: String,
-    pub glob: Option<String>,
-    pub source_maps: bool,
-    pub minify: MinifyMode,
-    pub transpile: bool,
-    pub entry_strategy: EntryStrategy,
+    root_dir: PathBuf,
+    glob: Option<String>,
+    source_maps: bool,
+    minify: MinifyMode,
+    transpile: bool,
+    entry_strategy: EntryStrategy,
+}
+
+impl TransformFsOptions {
+    pub fn new(
+        root_dir: PathBuf,
+        glob: Option<String>,
+        source_maps: bool,
+        minify: MinifyMode,
+        transpile: bool,
+        entry_strategy: EntryStrategy,
+    ) -> Result<Self, Error> {
+        if let Some(ref pattern) = glob {
+            glob::glob(pattern)?;
+        }
+
+        Ok(Self {
+            root_dir,
+            glob,
+            source_maps,
+            minify,
+            transpile,
+            entry_strategy,
+        })
+    }
 }
 
 #[derive(Serialize, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TransformModuleInput {
-    pub path: String,
+    pub path: PathBuf,
     pub code: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TransformModulesOptions {
-    pub root_dir: String,
+    pub root_dir: PathBuf,
     pub input: Vec<TransformModuleInput>,
     pub source_maps: bool,
     pub minify: MinifyMode,
@@ -60,7 +84,6 @@ pub struct TransformModulesOptions {
 
 #[cfg(feature = "fs")]
 pub fn transform_fs(config: &TransformFsOptions) -> Result<TransformOuput, Error> {
-    let root_dir = PathBuf::from(&config.root_dir);
     let pattern =
         PathBuf::from(&config.root_dir).join(config.glob.as_deref().unwrap_or("**/*.qwik.*"));
 
@@ -80,10 +103,9 @@ pub fn transform_fs(config: &TransformFsOptions) -> Result<TransformOuput, Error
         let mut result = transform_code(TransformCodeOptions {
             root_dir: config.root_dir.clone(),
             path: path
-                .strip_prefix(&root_dir)?
-                .to_str()
+                .strip_prefix(&config.root_dir)
                 .with_context(|| format!("Stripping root prefix from {}", path.to_string_lossy()))?
-                .to_string(),
+                .into(),
             minify: config.minify,
             code: &code,
             source_maps: config.source_maps,

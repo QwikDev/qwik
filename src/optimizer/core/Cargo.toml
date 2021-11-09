@@ -30,6 +30,7 @@ relative-path = "1.5.0"
 lazy_static = "1.4.0"
 regex = "1.5.4"
 anyhow = "1.0.45"
+derivative = "2.2.0"
 
 [dev-dependencies]
 criterion = "0.3.5"

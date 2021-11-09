@@ -1,5 +1,5 @@
 use std::ffi::OsStr;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::str;
 
 use crate::code_move::new_module;
@@ -11,11 +11,11 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "fs")]
 use std::fs;
 
-use anyhow::{format_err, Context, Error};
+use anyhow::{Context, Error};
 use swc_common::comments::SingleThreadedComments;
 use swc_common::errors::{DiagnosticBuilder, Emitter, Handler};
 use swc_common::{chain, sync::Lrc, FileName, Globals, Mark, SourceMap};
-use swc_ecmascript::ast::*;
+use swc_ecmascript::ast;
 use swc_ecmascript::codegen::text_writer::JsWriter;
 use swc_ecmascript::minifier::optimize;
 use swc_ecmascript::minifier::option::{
@@ -51,8 +51,8 @@ pub enum MinifyMode {
 }
 
 pub struct TransformCodeOptions<'a> {
-    pub root_dir: String,
-    pub path: String,
+    pub root_dir: PathBuf,
+    pub path: PathBuf,
     pub source_maps: bool,
     pub minify: MinifyMode,
     pub transpile: bool,
@@ -64,7 +64,7 @@ pub struct TransformCodeOptions<'a> {
 #[derive(Debug, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct TransformOuput {
-    pub root_dir: String,
+    pub root_dir: PathBuf,
     pub modules: Vec<TransformModule>,
     pub diagnostics: Vec<Diagnostic>,
     pub hooks: Vec<HookAnalysis>,
@@ -74,8 +74,7 @@ pub struct TransformOuput {
 
 impl TransformOuput {
     #[cfg(feature = "fs")]
-    pub fn write_to_fs(&self, destination: &str) -> Result<usize, Error> {
-        let destination = Path::new(destination);
+    pub fn write_to_fs(&self, destination: &Path) -> Result<usize, Error> {
         for module in &self.modules {
             let write_path = destination.join(&module.path);
             fs::create_dir_all(&write_path.parent().with_context(|| {
@@ -90,7 +89,7 @@ impl TransformOuput {
 #[derive(Debug, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct TransformModule {
-    pub path: String,
+    pub path: PathBuf,
     pub code: String,
 
     #[serde(with = "serde_bytes")]
@@ -101,7 +100,7 @@ pub struct TransformModule {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TransformStringResult {
-    pub path: String,
+    pub path: PathBuf,
     pub code: String,
     pub map: Option<String>,
 }
@@ -123,9 +122,9 @@ impl Emitter for ErrorBuffer {
 }
 
 pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOuput, anyhow::Error> {
-    let module = parse(config.code, config.path.as_str(), &config);
+    let module = parse(config.code, &config.path, &config);
     if config.print_ast {
-        dbg!(&module);
+        eprintln!("{:?}", module);
     }
     let path = parse_path(&config.path)?;
     let transpile = config.transpile;
@@ -261,7 +260,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOuput, an
 
                             let (code, map) = emit_source_code(
                                 &config.context.source_map,
-                                Some(comments),
+                                &Some(comments),
                                 &hook_module,
                                 config.minify == MinifyMode::Minify,
                                 config.source_maps,
@@ -274,7 +273,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOuput, an
                             Ok(TransformModule {
                                 code,
                                 map,
-                                path: format!("{}.{}", hook.canonical_filename, extension),
+                                path: format!("{}.{}", hook.canonical_filename, extension).into(),
                                 is_entry: hook.entry.is_none(),
                             })
                         })
@@ -287,14 +286,14 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOuput, an
                             name: h.name.clone(),
                             entry: h.entry.clone(),
                             canonical_filename: h.canonical_filename.clone(),
-                            local_decl: h.local_decl.iter().map(|d| d.to_string()).collect(),
-                            local_idents: h.local_idents.iter().map(|d| d.to_string()).collect(),
+                            local_decl: h.local_decl.iter().map(ToString::to_string).collect(),
+                            local_idents: h.local_idents.iter().map(ToString::to_string).collect(),
                         })
                         .collect();
 
                     let (code, map) = emit_source_code(
                         &config.context.source_map,
-                        Some(comments),
+                        &Some(comments),
                         &main_module,
                         config.minify == MinifyMode::Minify,
                         config.source_maps,
@@ -309,9 +308,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOuput, an
                         0,
                         TransformModule {
                             path: Path::new(&path.dir)
-                                .join(format!("{}.{}", path.file_stem, extension))
-                                .to_string_lossy()
-                                .into(),
+                                .join(format!("{}.{}", path.file_stem, extension)),
                             code,
                             map,
                             is_entry: false,
@@ -349,9 +346,9 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOuput, an
 
 fn parse(
     code: &str,
-    filename: &str,
+    filename: &Path,
     config: &TransformCodeOptions,
-) -> PResult<(Module, SingleThreadedComments, bool, bool)> {
+) -> PResult<(ast::Module, SingleThreadedComments, bool, bool)> {
     let source_map = &config.context.source_map;
     let source_file = source_map.new_source_file(FileName::Real(filename.into()), code.into());
 
@@ -388,9 +385,8 @@ fn parse(
     }
 }
 
-fn parse_filename(filename: &str) -> (bool, bool) {
-    let extension = Path::new(filename).extension().and_then(OsStr::to_str);
-    match extension {
+fn parse_filename(filename: &Path) -> (bool, bool) {
+    match filename.extension().and_then(OsStr::to_str) {
         Some("ts") => (true, false),
         Some("js") => (false, false),
         Some("jsx") => (false, true),
@@ -400,8 +396,8 @@ fn parse_filename(filename: &str) -> (bool, bool) {
 
 pub fn emit_source_code(
     source_map: &Lrc<SourceMap>,
-    comments: Option<SingleThreadedComments>,
-    program: &Module,
+    comments: &Option<SingleThreadedComments>,
+    program: &ast::Module,
     minify: bool,
     source_maps: bool,
 ) -> Result<(String, Option<Vec<u8>>), Error> {
@@ -455,29 +451,29 @@ fn handle_error(error_buffer: &ErrorBuffer, source_map: &Lrc<SourceMap>) -> Vec<
             let suggestions = diagnostic.suggestions.clone();
 
             let span_labels = span.span_labels();
-            let code_highlights = if !span_labels.is_empty() {
-                let mut highlights = vec![];
-                for span_label in span_labels {
-                    highlights.push(CodeHighlight {
-                        message: span_label.label,
-                        loc: SourceLocation::from(source_map, span_label.span),
-                    });
-                }
-
-                Some(highlights)
-            } else {
+            let code_highlights = if span_labels.is_empty() {
                 None
+            } else {
+                Some(
+                    span_labels
+                        .into_iter()
+                        .map(|span_label| CodeHighlight {
+                            message: span_label.label,
+                            loc: SourceLocation::from(source_map, span_label.span),
+                        })
+                        .collect(),
+                )
             };
 
-            let hints = if !suggestions.is_empty() {
+            let hints = if suggestions.is_empty() {
+                None
+            } else {
                 Some(
                     suggestions
                         .into_iter()
                         .map(|suggestion| suggestion.msg)
                         .collect(),
                 )
-            } else {
-                None
             };
 
             Diagnostic {
@@ -493,7 +489,7 @@ fn handle_error(error_buffer: &ErrorBuffer, source_map: &Lrc<SourceMap>) -> Vec<
 }
 
 pub struct PathData {
-    pub path: String,
+    pub path: PathBuf,
     pub dir: String,
     pub file_stem: String,
     pub extension: String,
@@ -501,33 +497,26 @@ pub struct PathData {
     pub basename: String,
 }
 
-pub fn parse_path(src: &str) -> Result<PathData, Error> {
-    let path = Path::new(src);
+pub fn parse_path(path: &Path) -> Result<PathData, Error> {
     let file_stem = path
         .file_stem()
-        .and_then(|f| f.to_str())
+        .and_then(OsStr::to_str)
         .map(Into::into)
         .with_context(|| format!("Computing file stem for {}", path.to_string_lossy()))?;
 
-    let dir = path.parent().and_then(|p| p.to_str()).unwrap_or("");
-    let extension = path.extension().and_then(|e| e.to_str()).unwrap_or("");
+    let dir = path.parent().and_then(Path::to_str).unwrap_or("");
+    let extension = path.extension().and_then(OsStr::to_str).unwrap_or("");
     let file_name = path
         .file_name()
-        .and_then(|p| p.to_str())
+        .and_then(OsStr::to_str)
         .with_context(|| format!("Computing filename for {}", path.to_string_lossy()))?;
     let basename = file_name
         .rsplitn(2, '.')
         .last()
         .with_context(|| format!("Computing basename for {}", path.to_string_lossy()))?;
 
-    // let file_prefix = if let Some(index) = file_name.find('.') {
-    //     file_name[0..index].to_string()
-    // } else {
-    //     file_name.clone()
-    // };
-
     Ok(PathData {
-        path: src.into(),
+        path: path.into(),
         dir: dir.into(),
         file_stem,
         extension: extension.into(),

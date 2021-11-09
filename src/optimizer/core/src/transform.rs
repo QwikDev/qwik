@@ -1,19 +1,17 @@
-use crate::code_move::fix_path;
-use crate::collector::HookCollect;
-use crate::entry_strategy::EntryPolicy;
-use crate::parse::PathData;
+use std::collections::HashSet;
 
-use ast::*;
 use lazy_static::lazy_static;
 use regex::Regex;
-use std::collections::HashSet;
-use std::vec;
 use swc_atoms::JsWord;
 use swc_common::comments::{Comments, SingleThreadedComments};
 use swc_common::{errors::HANDLER, sync::Lrc, SourceMap, DUMMY_SP};
 use swc_ecmascript::ast;
-use swc_ecmascript::ast::{ExportDecl, Expr, ExprOrSpread, Ident, VarDeclarator};
 use swc_ecmascript::visit::{noop_fold_type, Fold, FoldWith};
+
+use crate::code_move::fix_path;
+use crate::collector::HookCollect;
+use crate::entry_strategy::EntryPolicy;
+use crate::parse::PathData;
 
 #[derive(Debug)]
 pub struct Hook {
@@ -21,7 +19,7 @@ pub struct Hook {
     pub canonical_filename: String,
     pub name: String,
     pub module_index: usize,
-    pub expr: CallExpr,
+    pub expr: ast::CallExpr,
     pub local_decl: Vec<JsWord>,
     pub local_idents: Vec<JsWord>,
     pub origin: String,
@@ -43,6 +41,7 @@ impl TransformContext {
     }
 }
 
+#[allow(clippy::module_name_repetitions)]
 pub struct HookTransform<'a> {
     stack_ctxt: Vec<String>,
     module_item: usize,
@@ -86,11 +85,11 @@ impl<'a> HookTransform<'a> {
         ctx
     }
 
-    fn handle_var_decl(&mut self, node: VarDecl) -> VarDecl {
+    fn handle_var_decl(&mut self, node: ast::VarDecl) -> ast::VarDecl {
         let mut newdecls = vec![];
         for decl in node.decls {
             match decl.name {
-                Pat::Ident(ref ident) => {
+                ast::Pat::Ident(ref ident) => {
                     self.root_sym = Some(ident.id.to_string());
                 }
                 _ => {
@@ -99,7 +98,7 @@ impl<'a> HookTransform<'a> {
             }
             newdecls.push(decl.fold_with(self));
         }
-        VarDecl {
+        ast::VarDecl {
             span: DUMMY_SP,
             kind: node.kind,
             decls: newdecls,
@@ -111,45 +110,47 @@ impl<'a> HookTransform<'a> {
 impl<'a> Fold for HookTransform<'a> {
     noop_fold_type!();
 
-    fn fold_module(&mut self, node: Module) -> Module {
+    fn fold_module(&mut self, node: ast::Module) -> ast::Module {
         let o = node.fold_children_with(self);
         self.hooks
             .sort_by(|a, b| b.module_index.cmp(&a.module_index));
         o
     }
 
-    fn fold_module_item(&mut self, item: ModuleItem) -> ModuleItem {
+    fn fold_module_item(&mut self, item: ast::ModuleItem) -> ast::ModuleItem {
         let item = match item {
-            ModuleItem::Stmt(Stmt::Decl(Decl::Var(node))) => {
+            ast::ModuleItem::Stmt(ast::Stmt::Decl(ast::Decl::Var(node))) => {
                 let transformed = self.handle_var_decl(node);
-                ModuleItem::Stmt(Stmt::Decl(Decl::Var(transformed)))
+                ast::ModuleItem::Stmt(ast::Stmt::Decl(ast::Decl::Var(transformed)))
             }
-            ModuleItem::ModuleDecl(ModuleDecl::ExportDecl(node)) => match node.decl {
-                Decl::Var(var) => {
+            ast::ModuleItem::ModuleDecl(ast::ModuleDecl::ExportDecl(node)) => match node.decl {
+                ast::Decl::Var(var) => {
                     let transformed = self.handle_var_decl(var);
-                    ModuleItem::ModuleDecl(ModuleDecl::ExportDecl(ExportDecl {
+                    ast::ModuleItem::ModuleDecl(ast::ModuleDecl::ExportDecl(ast::ExportDecl {
                         span: DUMMY_SP,
-                        decl: Decl::Var(transformed),
+                        decl: ast::Decl::Var(transformed),
                     }))
                 }
-                Decl::Class(class) => {
+                ast::Decl::Class(class) => {
                     self.root_sym = Some(class.ident.sym.to_string());
-                    ModuleItem::ModuleDecl(ModuleDecl::ExportDecl(ExportDecl {
+                    ast::ModuleItem::ModuleDecl(ast::ModuleDecl::ExportDecl(ast::ExportDecl {
                         span: DUMMY_SP,
-                        decl: Decl::Class(class.fold_with(self)),
+                        decl: ast::Decl::Class(class.fold_with(self)),
                     }))
                 }
-                Decl::Fn(function) => {
+                ast::Decl::Fn(function) => {
                     self.root_sym = Some(function.ident.sym.to_string());
-                    ModuleItem::ModuleDecl(ModuleDecl::ExportDecl(ExportDecl {
+                    ast::ModuleItem::ModuleDecl(ast::ModuleDecl::ExportDecl(ast::ExportDecl {
                         span: DUMMY_SP,
-                        decl: Decl::Fn(function.fold_with(self)),
+                        decl: ast::Decl::Fn(function.fold_with(self)),
                     }))
                 }
-                other => ModuleItem::ModuleDecl(ModuleDecl::ExportDecl(ExportDecl {
-                    span: DUMMY_SP,
-                    decl: other.fold_with(self),
-                })),
+                other => {
+                    ast::ModuleItem::ModuleDecl(ast::ModuleDecl::ExportDecl(ast::ExportDecl {
+                        span: DUMMY_SP,
+                        decl: other.fold_with(self),
+                    }))
+                }
             },
 
             item => item.fold_children_with(self),
@@ -158,9 +159,9 @@ impl<'a> Fold for HookTransform<'a> {
         item
     }
 
-    fn fold_var_declarator(&mut self, node: VarDeclarator) -> VarDeclarator {
+    fn fold_var_declarator(&mut self, node: ast::VarDeclarator) -> ast::VarDeclarator {
         let mut stacked = false;
-        if let Pat::Ident(ref ident) = node.name {
+        if let ast::Pat::Ident(ref ident) = node.name {
             self.stack_ctxt.push(ident.id.sym.to_string());
             stacked = true;
         };
@@ -171,7 +172,7 @@ impl<'a> Fold for HookTransform<'a> {
         o
     }
 
-    fn fold_fn_decl(&mut self, node: FnDecl) -> FnDecl {
+    fn fold_fn_decl(&mut self, node: ast::FnDecl) -> ast::FnDecl {
         self.stack_ctxt.push(node.ident.sym.to_string());
         let o = node.fold_children_with(self);
         self.stack_ctxt.pop();
@@ -179,7 +180,7 @@ impl<'a> Fold for HookTransform<'a> {
         o
     }
 
-    fn fold_class_decl(&mut self, node: ClassDecl) -> ClassDecl {
+    fn fold_class_decl(&mut self, node: ast::ClassDecl) -> ast::ClassDecl {
         self.stack_ctxt.push(node.ident.sym.to_string());
         let o = node.fold_children_with(self);
         self.stack_ctxt.pop();
@@ -187,10 +188,10 @@ impl<'a> Fold for HookTransform<'a> {
         o
     }
 
-    fn fold_jsx_opening_element(&mut self, node: JSXOpeningElement) -> JSXOpeningElement {
+    fn fold_jsx_opening_element(&mut self, node: ast::JSXOpeningElement) -> ast::JSXOpeningElement {
         let mut stacked = false;
 
-        if let JSXElementName::Ident(ref ident) = node.name {
+        if let ast::JSXElementName::Ident(ref ident) = node.name {
             self.stack_ctxt.push(ident.sym.to_string());
             stacked = true;
         }
@@ -201,13 +202,13 @@ impl<'a> Fold for HookTransform<'a> {
         o
     }
 
-    fn fold_key_value_prop(&mut self, node: KeyValueProp) -> KeyValueProp {
+    fn fold_key_value_prop(&mut self, node: ast::KeyValueProp) -> ast::KeyValueProp {
         let mut stacked = false;
-        if let PropName::Ident(ref ident) = node.key {
+        if let ast::PropName::Ident(ref ident) = node.key {
             self.stack_ctxt.push(ident.sym.to_string());
             stacked = true;
         }
-        if let PropName::Str(ref s) = node.key {
+        if let ast::PropName::Str(ref s) = node.key {
             self.stack_ctxt.push(s.value.to_string());
             stacked = true;
         }
@@ -218,9 +219,9 @@ impl<'a> Fold for HookTransform<'a> {
         o
     }
 
-    fn fold_jsx_attr(&mut self, node: JSXAttr) -> JSXAttr {
+    fn fold_jsx_attr(&mut self, node: ast::JSXAttr) -> ast::JSXAttr {
         let mut stacked = false;
-        if let JSXAttrName::Ident(ref ident) = node.name {
+        if let ast::JSXAttrName::Ident(ref ident) = node.name {
             self.stack_ctxt.push(ident.sym.to_string());
             stacked = true;
         }
@@ -231,12 +232,12 @@ impl<'a> Fold for HookTransform<'a> {
         o
     }
 
-    fn fold_call_expr(&mut self, node: CallExpr) -> CallExpr {
+    fn fold_call_expr(&mut self, node: ast::CallExpr) -> ast::CallExpr {
         lazy_static! {
             static ref QHOOK: JsWord = JsWord::from("qHook");
         }
-        if let ExprOrSuper::Expr(expr) = &node.callee {
-            if let Expr::Ident(id) = &**expr {
+        if let ast::ExprOrSuper::Expr(expr) = &node.callee {
+            if let ast::Expr::Ident(id) = &**expr {
                 if id.sym == *"qComponent" {
                     if let Some(comments) = self.comments {
                         comments.add_pure_comment(node.span.lo);
@@ -245,7 +246,7 @@ impl<'a> Fold for HookTransform<'a> {
                     let mut node = node;
                     let mut symbol_name = self.get_context_name();
                     if let Some(second_arg) = node.args.get(1) {
-                        if let Expr::Lit(Lit::Str(ref str)) = *second_arg.expr {
+                        if let ast::Expr::Lit(ast::Lit::Str(ref str)) = *second_arg.expr {
                             if validate_sym(&str.value) {
                                 let custom_sym = str.value.to_string();
                                 symbol_name = custom_sym;
@@ -294,7 +295,7 @@ impl<'a> Fold for HookTransform<'a> {
                         expr: folded,
                         local_decl: hook_collect.get_local_decl(),
                         local_idents: hook_collect.get_local_idents(),
-                        origin: self.path_data.path.clone(),
+                        origin: self.path_data.path.to_string_lossy().into(),
                     });
 
                     let node = create_inline_qhook(import_path, &symbol_name);
@@ -308,31 +309,33 @@ impl<'a> Fold for HookTransform<'a> {
     }
 }
 
-fn create_inline_qhook(url: JsWord, symbol: &str) -> CallExpr {
-    CallExpr {
-        callee: ast::ExprOrSuper::Expr(Box::new(Expr::Ident(Ident::new("qHook".into(), DUMMY_SP)))),
+fn create_inline_qhook(url: JsWord, symbol: &str) -> ast::CallExpr {
+    ast::CallExpr {
+        callee: ast::ExprOrSuper::Expr(Box::new(ast::Expr::Ident(ast::Ident::new(
+            "qHook".into(),
+            DUMMY_SP,
+        )))),
         span: DUMMY_SP,
         type_args: None,
         args: vec![
-            ExprOrSpread {
+            ast::ExprOrSpread {
                 spread: None,
-                expr: Box::new(Expr::Arrow(ArrowExpr {
+                expr: Box::new(ast::Expr::Arrow(ast::ArrowExpr {
                     is_async: false,
                     is_generator: false,
                     span: DUMMY_SP,
                     params: vec![],
                     return_type: None,
                     type_params: None,
-                    body: BlockStmtOrExpr::Expr(Box::new(Expr::Call(CallExpr {
-                        callee: ast::ExprOrSuper::Expr(Box::new(Expr::Ident(Ident::new(
-                            "import".into(),
-                            DUMMY_SP,
-                        )))),
+                    body: ast::BlockStmtOrExpr::Expr(Box::new(ast::Expr::Call(ast::CallExpr {
+                        callee: ast::ExprOrSuper::Expr(Box::new(ast::Expr::Ident(
+                            ast::Ident::new("import".into(), DUMMY_SP),
+                        ))),
                         span: DUMMY_SP,
                         type_args: None,
-                        args: vec![ExprOrSpread {
+                        args: vec![ast::ExprOrSpread {
                             spread: None,
-                            expr: Box::new(Expr::Lit(ast::Lit::Str(ast::Str {
+                            expr: Box::new(ast::Expr::Lit(ast::Lit::Str(ast::Str {
                                 span: DUMMY_SP,
                                 value: url,
                                 has_escape: false,
@@ -342,9 +345,9 @@ fn create_inline_qhook(url: JsWord, symbol: &str) -> CallExpr {
                     }))),
                 })),
             },
-            ExprOrSpread {
+            ast::ExprOrSpread {
                 spread: None,
-                expr: Box::new(Expr::Lit(ast::Lit::Str(ast::Str {
+                expr: Box::new(ast::Expr::Lit(ast::Lit::Str(ast::Str {
                     span: DUMMY_SP,
                     value: symbol.into(),
                     has_escape: false,

@@ -1,4 +1,4 @@
-extern crate insta;
+use std::path::{Path, PathBuf};
 
 use super::*;
 use serde_json::to_string_pretty;
@@ -313,12 +313,17 @@ export const Header = qComponent({
 //     }
 // }
 
-fn test_input(filename: &str, code: &str, entry_strategy: EntryStrategy, _print_ast: bool) {
+fn test_input<P: AsRef<Path>>(
+    filename: P,
+    code: &str,
+    entry_strategy: EntryStrategy,
+    _print_ast: bool,
+) {
     let res = transform_modules(&TransformModulesOptions {
-        root_dir: "/user/qwik/src/".to_string(),
+        root_dir: PathBuf::from("/user/qwik/src/"),
         input: vec![TransformModuleInput {
             code: code.to_string(),
-            path: filename.to_string(),
+            path: filename.as_ref().into(),
         }],
         source_maps: true,
         minify: MinifyMode::Simplify,
@@ -334,7 +339,9 @@ fn test_input(filename: &str, code: &str, entry_strategy: EntryStrategy, _print_
                 let is_entry = if module.is_entry { "(ENTRY POINT)" } else { "" };
                 output += format!(
                     "\n============================= {} {}==\n\n{}",
-                    module.path, is_entry, module.code
+                    module.path.to_string_lossy(),
+                    is_entry,
+                    module.code
                 )
                 .as_str();
                 // let map = if let Some(map) = s.map { map } else { "".to_string() };

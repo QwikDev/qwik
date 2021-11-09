@@ -1,6 +1,5 @@
-use std::error;
 use std::ffi::OsStr;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::str;
 
 use crate::code_move::new_module;
@@ -12,11 +11,12 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "fs")]
 use std::fs;
 
+use anyhow::{Context, Error};
 use swc_atoms::JsWord;
 use swc_common::comments::SingleThreadedComments;
 use swc_common::errors::{DiagnosticBuilder, Emitter, Handler};
 use swc_common::{chain, sync::Lrc, FileName, Globals, Mark, SourceMap};
-use swc_ecmascript::ast::*;
+use swc_ecmascript::ast;
 use swc_ecmascript::codegen::text_writer::JsWriter;
 use swc_ecmascript::minifier::optimize;
 use swc_ecmascript::minifier::option::{
@@ -63,7 +63,7 @@ pub struct TransformCodeOptions<'a> {
 
 #[derive(Debug, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
-pub struct TransformResult {
+pub struct TransformOutput {
     pub modules: Vec<TransformModule>,
     pub diagnostics: Vec<Diagnostic>,
     pub hooks: Vec<HookAnalysis>,
@@ -71,7 +71,7 @@ pub struct TransformResult {
     pub is_jsx: bool,
 }
 
-impl TransformResult {
+impl TransformOutput {
     pub fn new() -> Self {
         Self::default()
     }
@@ -83,11 +83,12 @@ impl TransformResult {
     }
 
     #[cfg(feature = "fs")]
-    pub fn write_to_fs(&self, destination: &str) -> Result<usize, Box<dyn std::error::Error>> {
-        let destination = Path::new(destination);
+    pub fn write_to_fs(&self, destination: &Path) -> Result<usize, Error> {
         for module in &self.modules {
             let write_path = destination.join(&module.path);
-            fs::create_dir_all(&write_path.parent().unwrap())?;
+            fs::create_dir_all(&write_path.parent().with_context(|| {
+                format!("Computing path parent of {}", write_path.to_string_lossy())
+            })?)?;
             fs::write(write_path, &module.code)?;
         }
         Ok(self.modules.len())
@@ -106,13 +107,6 @@ pub struct TransformModule {
     pub is_entry: bool,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct TransformStringResult {
-    pub path: String,
-    pub code: String,
-    pub map: Option<String>,
-}
-
 #[derive(Debug, Clone, Default)]
 pub struct ErrorBuffer(std::sync::Arc<std::sync::Mutex<Vec<swc_common::errors::Diagnostic>>>);
 
@@ -122,14 +116,16 @@ impl Emitter for ErrorBuffer {
     }
 }
 
-pub fn transform_code(
-    config: TransformCodeOptions,
-) -> Result<TransformResult, Box<dyn error::Error>> {
-    let module = parse(config.code, config.path, &config);
+pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, anyhow::Error> {
+    let path_data = parse_path(config.path)?;
+    let module = parse(
+        config.code,
+        &path_data,
+        Lrc::clone(&config.context.source_map),
+    );
     if config.print_ast {
-        dbg!(&module);
+        eprintln!("{:?}", module);
     }
-    let path = parse_path(config.path);
     let transpile = config.transpile;
 
     match module {
@@ -182,7 +178,12 @@ pub fn transform_code(
                                 ),
                                 transpile && is_jsx
                             ),
-                            HookTransform::new(config.context, &path, Some(&comments), &mut hooks),
+                            HookTransform::new(
+                                config.context,
+                                &path_data,
+                                Some(&comments),
+                                &mut hooks
+                            ),
                             pass::Optional::new(
                                 resolver_with_mark(top_level_mark),
                                 config.minify != MinifyMode::None
@@ -231,7 +232,7 @@ pub fn transform_code(
                         let extension = if config.transpile {
                             "js"
                         } else {
-                            &path.extension
+                            &path_data.extension
                         };
                         let hook_path = [&h.canonical_filename, ".", extension].concat();
 
@@ -239,12 +240,12 @@ pub fn transform_code(
 
                         let (mut hook_module, comments) = new_module(
                             h.expr,
-                            &path,
+                            &path_data,
                             &h.name,
                             &h.origin,
                             &h.local_idents,
                             &collect,
-                        );
+                        )?;
 
                         if config.minify == MinifyMode::Minify {
                             hook_module = hook_module.fold_with(&mut resolver_with_mark(hook_mark));
@@ -303,7 +304,7 @@ pub fn transform_code(
                     }
 
                     let (code, map) = emit_source_code(
-                        config.context.source_map.clone(),
+                        Lrc::clone(&config.context.source_map),
                         Some(comments),
                         &main_module,
                         config.minify == MinifyMode::Minify,
@@ -313,14 +314,14 @@ pub fn transform_code(
                     let extension = if config.transpile {
                         "js"
                     } else {
-                        &path.extension
+                        &path_data.extension
                     };
                     modules.insert(
                         0,
                         TransformModule {
                             is_entry: false,
-                            path: Path::new(&path.dir)
-                                .join([&path.file_stem, ".", extension].concat())
+                            path: Path::new(&path_data.dir)
+                                .join([&path_data.file_stem, ".", extension].concat())
                                 .to_str()
                                 .unwrap()
                                 .to_string(),
@@ -330,7 +331,7 @@ pub fn transform_code(
                     );
 
                     let diagnostics = handle_error(&error_buffer, &config.context.source_map);
-                    Ok(TransformResult {
+                    Ok(TransformOutput {
                         modules,
                         diagnostics,
                         hooks: hooks_analysis,
@@ -345,7 +346,7 @@ pub fn transform_code(
             let handler = Handler::with_emitter(true, false, Box::new(error_buffer.clone()));
             err.into_diagnostic(&handler).emit();
             let diagnostics = handle_error(&error_buffer, &config.context.source_map);
-            Ok(TransformResult {
+            Ok(TransformOutput {
                 hooks: vec![],
                 modules: vec![],
                 diagnostics,
@@ -358,14 +359,14 @@ pub fn transform_code(
 
 fn parse(
     code: &str,
-    filename: &str,
-    config: &TransformCodeOptions,
-) -> PResult<(Module, SingleThreadedComments, bool, bool)> {
-    let source_map = &config.context.source_map;
-    let source_file = source_map.new_source_file(FileName::Real(filename.into()), code.into());
+    path_data: &PathData,
+    source_map: Lrc<SourceMap>,
+) -> PResult<(ast::Module, SingleThreadedComments, bool, bool)> {
+    let source_file =
+        source_map.new_source_file(FileName::Real(path_data.path.clone()), code.into());
 
     let comments = SingleThreadedComments::default();
-    let (is_type_script, is_jsx) = parse_filename(config.path);
+    let (is_type_script, is_jsx) = parse_filename(path_data);
     let syntax = if is_type_script {
         Syntax::Typescript(TsConfig {
             tsx: is_jsx,
@@ -397,12 +398,11 @@ fn parse(
     }
 }
 
-fn parse_filename(filename: &str) -> (bool, bool) {
-    let extension = Path::new(filename).extension().and_then(OsStr::to_str);
-    match extension {
-        Some("ts") => (true, false),
-        Some("js") => (false, false),
-        Some("jsx") => (false, true),
+fn parse_filename(path_data: &PathData) -> (bool, bool) {
+    match path_data.extension.as_str() {
+        "ts" => (true, false),
+        "js" => (false, false),
+        "jsx" => (false, true),
         _ => (true, true),
     }
 }
@@ -410,12 +410,12 @@ fn parse_filename(filename: &str) -> (bool, bool) {
 pub fn emit_source_code(
     source_map: Lrc<SourceMap>,
     comments: Option<SingleThreadedComments>,
-    program: &Module,
+    program: &ast::Module,
     minify: bool,
     source_maps: bool,
-) -> Result<(String, Option<Vec<u8>>), std::io::Error> {
-    let mut src_map_buf = vec![];
-    let mut buf = vec![];
+) -> Result<(String, Option<Vec<u8>>), Error> {
+    let mut src_map_buf = Vec::new();
+    let mut buf = Vec::new();
     {
         let writer = Box::new(JsWriter::new(
             Lrc::clone(&source_map),
@@ -454,8 +454,12 @@ pub fn emit_source_code(
 }
 
 fn handle_error(error_buffer: &ErrorBuffer, source_map: &Lrc<SourceMap>) -> Vec<Diagnostic> {
-    let s = error_buffer.0.lock().unwrap().clone();
-    let diagnostics: Vec<Diagnostic> = s
+    error_buffer
+        .0
+        .lock()
+        .map(|diagnostics| diagnostics.clone())
+        .ok()
+        .unwrap_or_else(Vec::new)
         .iter()
         .map(|diagnostic| {
             let message = diagnostic.message();
@@ -463,29 +467,29 @@ fn handle_error(error_buffer: &ErrorBuffer, source_map: &Lrc<SourceMap>) -> Vec<
             let suggestions = diagnostic.suggestions.clone();
 
             let span_labels = span.span_labels();
-            let code_highlights = if !span_labels.is_empty() {
-                let mut highlights = vec![];
-                for span_label in span_labels {
-                    highlights.push(CodeHighlight {
-                        message: span_label.label,
-                        loc: SourceLocation::from(source_map, span_label.span),
-                    });
-                }
-
-                Some(highlights)
-            } else {
+            let code_highlights = if span_labels.is_empty() {
                 None
+            } else {
+                Some(
+                    span_labels
+                        .into_iter()
+                        .map(|span_label| CodeHighlight {
+                            message: span_label.label,
+                            loc: SourceLocation::from(source_map, span_label.span),
+                        })
+                        .collect(),
+                )
             };
 
-            let hints = if !suggestions.is_empty() {
+            let hints = if suggestions.is_empty() {
+                None
+            } else {
                 Some(
                     suggestions
                         .into_iter()
                         .map(|suggestion| suggestion.msg)
                         .collect(),
                 )
-            } else {
-                None
             };
 
             Diagnostic {
@@ -497,13 +501,11 @@ fn handle_error(error_buffer: &ErrorBuffer, source_map: &Lrc<SourceMap>) -> Vec<
                 documentation_url: None,
             }
         })
-        .collect();
-
-    diagnostics
+        .collect()
 }
 
 pub struct PathData {
-    pub path: String,
+    pub path: PathBuf,
     pub dir: String,
     pub file_stem: String,
     pub extension: String,
@@ -511,32 +513,31 @@ pub struct PathData {
     pub file_prefix: String,
 }
 
-pub fn parse_path(src: &str) -> PathData {
+pub fn parse_path(src: &str) -> Result<PathData, Error> {
     let path = Path::new(src);
-    let file_stem = path.file_stem().unwrap().to_str().unwrap().to_string();
-    let dir = if let Some(dir) = path.parent() {
-        dir.to_str().unwrap().to_string()
-    } else {
-        "".to_string()
-    };
-    let extension = if let Some(ext) = path.extension() {
-        ext.to_str().unwrap().to_string()
-    } else {
-        "".to_string()
-    };
-    let file_name = path.file_name().unwrap().to_str().unwrap().to_string();
-    let file_prefix = if let Some(index) = file_name.find('.') {
-        file_name[0..index].to_string()
-    } else {
-        file_name.clone()
-    };
+    let file_stem = path
+        .file_stem()
+        .and_then(OsStr::to_str)
+        .map(Into::into)
+        .with_context(|| format!("Computing file stem for {}", path.to_string_lossy()))?;
 
-    PathData {
-        path: src.to_string(),
-        dir,
+    let dir = path.parent().and_then(Path::to_str).unwrap_or("");
+    let extension = path.extension().and_then(OsStr::to_str).unwrap_or("");
+    let file_name = path
+        .file_name()
+        .and_then(OsStr::to_str)
+        .with_context(|| format!("Computing filename for {}", path.to_string_lossy()))?;
+    let file_prefix = file_name
+        .rsplitn(2, '.')
+        .last()
+        .with_context(|| format!("Computing file_prefix for {}", path.to_string_lossy()))?;
+
+    Ok(PathData {
+        path: path.into(),
+        dir: dir.into(),
         file_stem,
-        extension,
-        file_name,
-        file_prefix,
-    }
+        extension: extension.into(),
+        file_name: file_name.into(),
+        file_prefix: file_prefix.into(),
+    })
 }

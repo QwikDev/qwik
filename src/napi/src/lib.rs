@@ -12,6 +12,7 @@ use napi::{CallContext, JsObject, JsUnknown, Result};
 #[global_allocator]
 static ALLOC: mimalloc::MiMalloc = mimalloc::MiMalloc;
 
+#[allow(clippy::needless_pass_by_value)]
 #[js_function(1)]
 fn transform_fs(ctx: CallContext) -> Result<JsUnknown> {
     let opts = ctx.get::<JsObject>(0)?;
@@ -21,6 +22,7 @@ fn transform_fs(ctx: CallContext) -> Result<JsUnknown> {
     ctx.env.to_js_value(&result)
 }
 
+#[allow(clippy::needless_pass_by_value)]
 #[js_function(1)]
 fn transform_modules(ctx: CallContext) -> Result<JsUnknown> {
     let opts = ctx.get::<JsObject>(0)?;

@@ -1,7 +1,7 @@
 #![deny(clippy::all)]
 #![deny(clippy::perf)]
 #![deny(clippy::nursery)]
-#![deny(clippy::cargo)]
+// #![deny(clippy::cargo)]
 
 #[cfg(test)]
 mod test;
@@ -12,7 +12,6 @@ mod entry_strategy;
 mod parse;
 mod transform;
 mod utils;
-use std::error;
 
 // #[cfg(feature = "fs")]
 use std::fs;
@@ -20,6 +19,7 @@ use std::fs;
 // #[cfg(feature = "fs")]
 use std::path::Path;
 
+use anyhow::{Context, Error};
 use serde::{Deserialize, Serialize};
 use std::str;
 use swc_common::sync::Lrc;
@@ -28,19 +28,39 @@ use crate::code_move::generate_entries;
 use crate::entry_strategy::parse_entry_strategy;
 pub use crate::entry_strategy::EntryStrategy;
 use crate::parse::{transform_code, TransformCodeOptions};
-pub use crate::parse::{ErrorBuffer, HookAnalysis, MinifyMode, TransformModule, TransformResult};
+pub use crate::parse::{ErrorBuffer, HookAnalysis, MinifyMode, TransformModule, TransformOutput};
 use crate::transform::TransformContext;
 
 // #[cfg(feature = "fs")]
 #[derive(Serialize, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TransformFsOptions {
-    pub root_dir: String,
-    pub glob: Option<String>,
-    pub source_maps: bool,
-    pub minify: MinifyMode,
-    pub transpile: bool,
-    pub entry_strategy: EntryStrategy,
+    root_dir: String,
+    glob: Option<String>,
+    source_maps: bool,
+    minify: MinifyMode,
+    transpile: bool,
+    entry_strategy: EntryStrategy,
+}
+
+impl TransformFsOptions {
+    pub fn new(
+        root_dir: String,
+        glob: Option<String>,
+        source_maps: bool,
+        minify: MinifyMode,
+        transpile: bool,
+        entry_strategy: EntryStrategy,
+    ) -> Self {
+        Self {
+            root_dir,
+            glob,
+            source_maps,
+            minify,
+            transpile,
+            entry_strategy,
+        }
+    }
 }
 
 #[derive(Serialize, Debug, Deserialize)]
@@ -62,58 +82,49 @@ pub struct TransformModulesOptions {
 }
 
 // #[cfg(feature = "fs")]
-pub fn transform_fs(config: TransformFsOptions) -> Result<TransformResult, Box<dyn error::Error>> {
+pub fn transform_fs(config: TransformFsOptions) -> Result<TransformOutput, Error> {
     let root_dir = Path::new(&config.root_dir);
     let bundling = parse_entry_strategy(config.entry_strategy);
     let mut context = TransformContext::new(bundling);
     let mut paths = vec![];
     find_files(root_dir, &mut paths)?;
 
-    let mut output = TransformResult::new();
+    let mut final_output = TransformOutput::new();
     let mut default_ext = "js";
-    for value in paths {
-        let pathstr = value.strip_prefix(root_dir)?;
-        let data = fs::read(&value)?;
+    for path in paths {
+        let code = fs::read_to_string(&path)
+            .with_context(|| format!("Opening {}", &path.to_string_lossy()))?;
         let mut result = transform_code(TransformCodeOptions {
-            path: pathstr.to_str().unwrap(),
+            path: path
+                .strip_prefix(&config.root_dir)
+                .with_context(|| format!("Stripping root prefix from {}", path.to_string_lossy()))?
+                .to_str()
+                .unwrap(),
             minify: config.minify,
-            code: unsafe { std::str::from_utf8_unchecked(&data) },
+            code: &code,
             source_maps: config.source_maps,
             transpile: config.transpile,
             print_ast: false,
             context: &mut context,
-        });
-        match result {
-            Ok(ref mut result) => {
-                output.modules.append(&mut result.modules);
-                output.hooks.append(&mut result.hooks);
-                output.diagnostics.append(&mut result.diagnostics);
-                if !config.transpile && result.is_type_script {
-                    default_ext = "ts";
-                }
-            }
-            Err(err) => {
-                return Err(err);
-            }
+        })?;
+        final_output.modules.append(&mut result.modules);
+        final_output.hooks.append(&mut result.hooks);
+        final_output.diagnostics.append(&mut result.diagnostics);
+        if !config.transpile && result.is_type_script {
+            default_ext = "ts";
         }
     }
 
-    Ok(generate_entries(
-        output,
-        default_ext,
-        Lrc::clone(&context.source_map),
-    ))
+    generate_entries(final_output, default_ext, Lrc::clone(&context.source_map))
 }
 
-pub fn transform_modules(
-    config: TransformModulesOptions,
-) -> Result<TransformResult, Box<dyn error::Error>> {
+pub fn transform_modules(config: TransformModulesOptions) -> Result<TransformOutput, Error> {
     let bundling = parse_entry_strategy(config.entry_strategy);
     let mut context = TransformContext::new(bundling);
-    let mut output = TransformResult::new();
+    let mut final_output = TransformOutput::new();
     let mut default_ext = "js";
     for p in &config.input {
-        let mut result = transform_code(TransformCodeOptions {
+        let mut output = transform_code(TransformCodeOptions {
             path: &p.path,
             minify: config.minify,
             code: &p.code,
@@ -121,25 +132,15 @@ pub fn transform_modules(
             transpile: config.transpile,
             print_ast: false,
             context: &mut context,
-        });
-        match result {
-            Ok(ref mut result) => {
-                output.append(result);
-                if !config.transpile && result.is_type_script {
-                    default_ext = "ts";
-                }
-            }
-            Err(err) => {
-                return Err(err);
-            }
+        })?;
+        final_output.append(&mut output);
+
+        if !config.transpile && output.is_type_script {
+            default_ext = "ts";
         }
     }
 
-    Ok(generate_entries(
-        output,
-        default_ext,
-        Lrc::clone(&context.source_map),
-    ))
+    generate_entries(final_output, default_ext, Lrc::clone(&context.source_map))
 }
 
 // #[cfg(feature = "fs")]

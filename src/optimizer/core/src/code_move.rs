@@ -1,25 +1,26 @@
 use crate::collector::{GlobalCollect, ImportKind};
-use crate::parse::{emit_source_code, HookAnalysis, PathData, TransformModule, TransformResult};
-use crate::utils::MapVec;
+use crate::parse::{emit_source_code, HookAnalysis, PathData, TransformModule, TransformOutput};
 
-use std::collections::HashSet;
+use std::collections::HashMap;
 use std::path::Path;
+
+use anyhow::{format_err, Context, Error};
 use swc_atoms::JsWord;
 use swc_common::comments::{Comments, SingleThreadedComments};
 use swc_common::{sync::Lrc, SourceMap, DUMMY_SP};
-use swc_ecmascript::ast::*;
+use swc_ecmascript::ast;
 
 pub fn new_module(
-    expr: CallExpr,
+    expr: ast::CallExpr,
     path: &PathData,
     name: &str,
     origin: &str,
     local_idents: &[JsWord],
     global: &GlobalCollect,
-) -> (Module, SingleThreadedComments) {
+) -> Result<(ast::Module, SingleThreadedComments), Error> {
     let comments = SingleThreadedComments::default();
     let max_cap = global.imports.len() + global.exports.len();
-    let mut module = Module {
+    let mut module = ast::Module {
         span: DUMMY_SP,
         body: Vec::with_capacity(max_cap),
         shebang: None,
@@ -27,107 +28,134 @@ pub fn new_module(
     for ident in local_idents {
         if let Some(import) = global.imports.get(ident) {
             let specifier = match import.kind {
-                ImportKind::Named => ImportSpecifier::Named(ImportNamedSpecifier {
+                ImportKind::Named => ast::ImportSpecifier::Named(ast::ImportNamedSpecifier {
                     is_type_only: false,
                     span: DUMMY_SP,
                     imported: if &import.specifier == ident {
                         None
                     } else {
-                        Some(Ident::new(import.specifier.clone(), DUMMY_SP))
+                        Some(ast::Ident::new(import.specifier.clone(), DUMMY_SP))
                     },
-                    local: Ident::new(ident.clone(), DUMMY_SP),
+                    local: ast::Ident::new(ident.clone(), DUMMY_SP),
                 }),
-                ImportKind::Default => ImportSpecifier::Default(ImportDefaultSpecifier {
+                ImportKind::Default => ast::ImportSpecifier::Default(ast::ImportDefaultSpecifier {
                     span: DUMMY_SP,
-                    local: Ident::new(ident.clone(), DUMMY_SP),
+                    local: ast::Ident::new(ident.clone(), DUMMY_SP),
                 }),
-                ImportKind::All => ImportSpecifier::Namespace(ImportStarAsSpecifier {
+                ImportKind::All => ast::ImportSpecifier::Namespace(ast::ImportStarAsSpecifier {
                     span: DUMMY_SP,
-                    local: Ident::new(ident.clone(), DUMMY_SP),
+                    local: ast::Ident::new(ident.clone(), DUMMY_SP),
                 }),
             };
             module
                 .body
-                .push(ModuleItem::ModuleDecl(ModuleDecl::Import(ImportDecl {
-                    span: DUMMY_SP,
-                    type_only: false,
-                    asserts: None,
-                    src: Str {
+                .push(ast::ModuleItem::ModuleDecl(ast::ModuleDecl::Import(
+                    ast::ImportDecl {
                         span: DUMMY_SP,
-                        value: fix_path(origin, "a", import.source.as_ref()),
-                        kind: StrKind::Synthesized,
-                        has_escape: false,
+                        type_only: false,
+                        asserts: None,
+                        src: ast::Str {
+                            span: DUMMY_SP,
+                            value: fix_path(origin, "a", import.source.as_ref())?,
+                            kind: ast::StrKind::Synthesized,
+                            has_escape: false,
+                        },
+                        specifiers: vec![specifier],
                     },
-                    specifiers: vec![specifier],
-                })));
+                )));
         } else if let Some(export) = global.exports.get(ident) {
             module
                 .body
-                .push(ModuleItem::ModuleDecl(ModuleDecl::Import(ImportDecl {
-                    span: DUMMY_SP,
-                    type_only: false,
-                    asserts: None,
-                    src: Str {
+                .push(ast::ModuleItem::ModuleDecl(ast::ModuleDecl::Import(
+                    ast::ImportDecl {
                         span: DUMMY_SP,
-                        value: fix_path(origin, "a", &["./", &path.file_stem].concat()),
-                        kind: StrKind::Synthesized,
-                        has_escape: false,
+                        type_only: false,
+                        asserts: None,
+                        src: ast::Str {
+                            span: DUMMY_SP,
+                            value: fix_path(origin, "a", &format!("./{}", path.file_stem))?,
+                            kind: ast::StrKind::Synthesized,
+                            has_escape: false,
+                        },
+                        specifiers: vec![ast::ImportSpecifier::Named(ast::ImportNamedSpecifier {
+                            is_type_only: false,
+                            span: DUMMY_SP,
+                            imported: None,
+                            local: ast::Ident::new(export.clone(), DUMMY_SP),
+                        })],
                     },
-                    specifiers: vec![ImportSpecifier::Named(ImportNamedSpecifier {
-                        is_type_only: false,
-                        span: DUMMY_SP,
-                        imported: None,
-                        local: Ident::new(export.clone(), DUMMY_SP),
-                    })],
-                })));
+                )));
         }
     }
     module.body.push(create_named_export(expr, name, &comments));
 
-    (module, comments)
+    Ok((module, comments))
 }
 
-pub fn fix_path(src: &str, dest: &str, ident: &str) -> JsWord {
-    if src.starts_with('/') {
-        panic!("hola");
+pub fn fix_path<S: AsRef<Path>, D: AsRef<Path>>(
+    src: S,
+    dest: D,
+    ident: &str,
+) -> Result<JsWord, Error> {
+    let src = src.as_ref();
+    let dest = dest.as_ref();
+    let src_str = src.to_string_lossy();
+    let dest_str = dest.to_string_lossy();
+
+    if src_str.starts_with('/') {
+        return Err(format_err!(
+            "`fix_path`: `src` doesn't start with a slash: {}",
+            src_str
+        ));
     }
+
     if ident.starts_with('.') {
         let diff = pathdiff::diff_paths(
-            Path::new(src).parent().unwrap(),
-            Path::new(dest).parent().unwrap(),
+            src.parent()
+                .with_context(|| format!("`fix_path`: `src` doesn't have a parent: {}", src_str))?,
+            dest.parent().with_context(|| {
+                format!("`fix_path`: `dest` doesn't have a parent: {}", dest_str)
+            })?,
         );
+
         if let Some(diff) = diff {
-            let relative = relative_path::RelativePath::from_path(&diff).unwrap();
+            let relative = relative_path::RelativePath::from_path(&diff).with_context(|| {
+                format!("Computing relative path from {}", diff.to_string_lossy())
+            })?;
             let final_path = relative.join(ident).normalize();
             let final_str = final_path.as_str();
-            if final_str.starts_with('.') {
-                return JsWord::from(final_str);
+            return Ok(if final_str.starts_with('.') {
+                JsWord::from(final_str)
             } else {
-                return JsWord::from(["./", final_str].concat());
-            }
+                JsWord::from(format!("./{}", final_str))
+            });
         }
     }
-    JsWord::from(ident)
+
+    Ok(JsWord::from(ident))
 }
 
 fn create_named_export(
-    expr: CallExpr,
+    expr: ast::CallExpr,
     name: &str,
     comments: &SingleThreadedComments,
-) -> ModuleItem {
+) -> ast::ModuleItem {
     comments.add_pure_comment(expr.span.lo);
 
-    ModuleItem::ModuleDecl(ModuleDecl::ExportDecl(ExportDecl {
+    ast::ModuleItem::ModuleDecl(ast::ModuleDecl::ExportDecl(ast::ExportDecl {
         span: DUMMY_SP,
-        decl: Decl::Var(VarDecl {
+        decl: ast::Decl::Var(ast::VarDecl {
             span: DUMMY_SP,
-            kind: VarDeclKind::Const,
+            kind: ast::VarDeclKind::Const,
             declare: false,
-            decls: vec![VarDeclarator {
+            decls: vec![ast::VarDeclarator {
                 span: DUMMY_SP,
                 definite: false,
-                name: Pat::Ident(BindingIdent::from(Ident::new(JsWord::from(name), DUMMY_SP))),
-                init: Some(Box::new(Expr::Call(expr))),
+                name: ast::Pat::Ident(ast::BindingIdent::from(ast::Ident::new(
+                    JsWord::from(name),
+                    DUMMY_SP,
+                ))),
+                init: Some(Box::new(ast::Expr::Call(expr))),
             }],
         }),
     }))
@@ -136,62 +164,58 @@ fn create_named_export(
 #[test]
 fn test_fix_path() {
     assert_eq!(
-        fix_path("src/components.tsx", "a", "./state"),
+        fix_path("src/components.tsx", "a", "./state").unwrap(),
         JsWord::from("./src/state")
     );
 
     assert_eq!(
-        fix_path("src/path/components.tsx", "a", "./state"),
+        fix_path("src/path/components.tsx", "a", "./state").unwrap(),
         JsWord::from("./src/path/state")
     );
 
     assert_eq!(
-        fix_path("src/components.tsx", "a", "../state"),
+        fix_path("src/components.tsx", "a", "../state").unwrap(),
         JsWord::from("./state")
     );
     assert_eq!(
-        fix_path("components.tsx", "a", "./state"),
+        fix_path("components.tsx", "a", "./state").unwrap(),
         JsWord::from("./state")
     );
+    assert!(fix_path("/components", "a", "./state").is_err())
 }
 
 pub fn generate_entries(
-    result: TransformResult,
+    mut output: TransformOutput,
     default_ext: &str,
     source_map: Lrc<SourceMap>,
-) -> TransformResult {
-    let mut result = result;
-    let mut entries_set = HashSet::new();
-    let mut entries_map = MapVec::new();
-    for hook in &result.hooks {
-        let entry = if let Some(ref e) = hook.entry {
-            e.as_ref()
-        } else {
-            &hook.canonical_filename
-        };
-        if hook.entry != None {
-            entries_map.push(entry, hook);
+) -> Result<TransformOutput, anyhow::Error> {
+    let mut entries_map = HashMap::new();
+    for hook in &output.hooks {
+        if let Some(ref e) = hook.entry {
+            entries_map
+                .entry(e.as_ref())
+                .or_insert_with(Vec::new)
+                .push(hook);
         }
-        entries_set.insert(entry);
     }
 
-    for (entry, hooks) in entries_map.as_ref().iter() {
+    for (entry, hooks) in &entries_map {
         let module = new_entry_module(hooks);
-        let (code, map) =
-            emit_source_code(Lrc::clone(&source_map), None, &module, false, false).unwrap();
-
-        result.modules.push(TransformModule {
+        let (code, map) = emit_source_code(Lrc::clone(&source_map), None, &module, false, false)
+            .context("Emitting source code")?;
+        output.modules.push(TransformModule {
             path: [entry, ".", default_ext].concat(),
             code,
             map,
             is_entry: true,
         });
     }
-    result
+
+    Ok(output)
 }
 
-fn new_entry_module(hooks: &[&HookAnalysis]) -> Module {
-    let mut module = Module {
+fn new_entry_module(hooks: &[&HookAnalysis]) -> ast::Module {
+    let mut module = ast::Module {
         span: DUMMY_SP,
         body: Vec::with_capacity(hooks.len()),
         shebang: None,
@@ -199,21 +223,21 @@ fn new_entry_module(hooks: &[&HookAnalysis]) -> Module {
     for hook in hooks {
         module
             .body
-            .push(ModuleItem::ModuleDecl(ModuleDecl::ExportNamed(
-                NamedExport {
+            .push(ast::ModuleItem::ModuleDecl(ast::ModuleDecl::ExportNamed(
+                ast::NamedExport {
                     span: DUMMY_SP,
                     type_only: false,
                     asserts: None,
-                    src: Some(Str {
+                    src: Some(ast::Str {
                         span: DUMMY_SP,
                         value: JsWord::from(["./", &hook.canonical_filename].concat()),
-                        kind: StrKind::Synthesized,
+                        kind: ast::StrKind::Synthesized,
                         has_escape: false,
                     }),
-                    specifiers: vec![ExportSpecifier::Named(ExportNamedSpecifier {
+                    specifiers: vec![ast::ExportSpecifier::Named(ast::ExportNamedSpecifier {
                         is_type_only: false,
                         span: DUMMY_SP,
-                        orig: Ident::new(JsWord::from(hook.name.clone()), DUMMY_SP),
+                        orig: ast::Ident::new(JsWord::from(hook.name.clone()), DUMMY_SP),
                         exported: None,
                     })],
                 },

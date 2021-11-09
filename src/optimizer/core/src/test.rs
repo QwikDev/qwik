@@ -1,5 +1,3 @@
-extern crate insta;
-
 use super::*;
 use serde_json::to_string_pretty;
 
@@ -315,7 +313,7 @@ export const Header = qComponent({
 
 fn test_input(filename: &str, code: &str, entry_strategy: EntryStrategy, _print_ast: bool) {
     let res = transform_modules(TransformModulesOptions {
-        root_dir: "/user/qwik/src/".to_string(),
+        root_dir: "/user/qwik/src/".into(),
         input: vec![TransformModuleInput {
             code: code.to_string(),
             path: filename.to_string(),

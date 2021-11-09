@@ -29,7 +29,7 @@ pub trait EntryPolicy {
 }
 
 #[derive(Default)]
-pub struct SingleStrategy {}
+pub struct SingleStrategy;
 
 impl EntryPolicy for SingleStrategy {
     fn get_entry_for_sym(
@@ -87,7 +87,7 @@ impl EntryPolicy for PerComponentStrategy {
 }
 
 #[derive(Default)]
-pub struct SmartStrategy {}
+pub struct SmartStrategy;
 
 impl EntryPolicy for SmartStrategy {
     fn get_entry_for_sym(
@@ -105,11 +105,10 @@ impl EntryPolicy for SmartStrategy {
         if context.iter().any(|h| h == "onMount") {
             return Some(SERVER.clone());
         }
-        if let Some(root) = context.first() {
-            Some(JsWord::from(["entry_", root].concat()))
-        } else {
-            Some(FALLBACK.clone())
-        }
+        Some(context.first().map_or_else(
+            || FALLBACK.clone(),
+            |root| JsWord::from(["entry_", root].concat()),
+        ))
     }
 }
 

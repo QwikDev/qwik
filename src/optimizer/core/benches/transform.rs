@@ -39,10 +39,10 @@ fn transform_benchmark(b: &mut Criterion) {
         });
             "#;
             transform_modules(black_box(TransformModulesOptions {
-                root_dir: "/user/qwik/src/".to_string(),
+                root_dir: "/user/qwik/src/".into(),
                 input: vec![TransformModuleInput {
-                    code: code.to_string(),
-                    path: "file.tsx".to_string(),
+                    code: code.into(),
+                    path: "file.tsx".into(),
                 }],
                 source_maps: true,
                 minify: MinifyMode::None,

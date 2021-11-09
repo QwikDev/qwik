@@ -1,5 +1,5 @@
 import { readPackageJson, writePackageJson } from './package-json';
-import { BuildConfig, panic, writeFile } from './util';
+import { BuildConfig, PackageJSON, panic, writeFile } from './util';
 import semver from 'semver';
 import execa from 'execa';
 import { join } from 'path';
@@ -10,6 +10,7 @@ export async function setVersion(config: BuildConfig) {
     (typeof config.setVerison !== 'string' && typeof config.setVerison !== 'number') ||
     String(config.setVerison) === ''
   ) {
+    config.setVerison = undefined;
     return;
   }
 
@@ -30,7 +31,7 @@ export async function setVersion(config: BuildConfig) {
     );
   }
 
-  await checkExistingNpmVersion(newVersion);
+  await checkExistingNpmVersion(rootPkg, newVersion);
 
   const updatedPkg = { ...rootPkg };
   updatedPkg.version = newVersion;
@@ -42,73 +43,75 @@ export async function setVersion(config: BuildConfig) {
 }
 
 export async function publish(config: BuildConfig) {
-  const dryRun = true || !!config.dryRun;
+  const isDryRun = true || !!config.dryRun;
 
-  if (dryRun) {
-    console.log(`⛴ publishing (dry-run)`);
-  } else {
-    console.log(`🚢 publishing`);
-  }
+  const distPkg = await readPackageJson(config.distPkgDir);
+  const version = distPkg.version;
+  const gitTag = `v${version}`;
+  const distTag = String(config.setDistTag) || 'dryrun';
 
-  const rootPkg = await readPackageJson(config.rootDir);
-  const distTag = dryRun ? 'dryrun' : String(config.setDistTag);
-  const newVersion = dryRun ? rootPkg.version : config.setVerison!;
-  const gitTag = `v${newVersion}`;
+  console.log(`🚢 publishing ${version}`, isDryRun ? '(dry-run)' : '');
 
-  const pkgTarName = `builder.io-qwik-${newVersion}.tgz`;
+  const pkgTarName = `builder.io-qwik-${version}.tgz`;
   await execa('npm', ['pack'], { cwd: config.distPkgDir });
   await execa('mv', [pkgTarName, '../'], { cwd: config.distPkgDir });
 
-  if (!dryRun) {
-    await checkExistingNpmVersion(newVersion);
+  if (!isDryRun) {
+    await checkExistingNpmVersion(distPkg, version);
   }
 
   await validateBuild(config);
 
   await execa('yarn', ['changelog']);
 
-  if (!dryRun) {
-    const actor = process.env.GITHUB_ACTOR || 'builderbot';
-    const actorEmail = `${actor}@users.noreply.github.com`;
-    await execa('git', ['config', 'user.email', `"${actorEmail}"`]);
-    await execa('git', ['config', 'user.name', `"${actor}"`]);
+  const actor = process.env.GITHUB_ACTOR || 'builderbot';
+  const actorEmail = `${actor}@users.noreply.github.com`;
+  await run('git', ['config', 'user.email', `"${actorEmail}"`], isDryRun);
+  await run('git', ['config', 'user.name', `"${actor}"`], isDryRun);
 
-    const pkgJsonPath = join(config.rootDir, 'package.json');
-    const gitAddArgs = ['add', pkgJsonPath];
-    await execa('git', gitAddArgs);
+  const pkgJsonPath = join(config.rootDir, 'package.json');
+  const gitAddArgs = ['add', pkgJsonPath];
+  await run('git', gitAddArgs, isDryRun);
 
-    const gitCommitTitle = `"${newVersion}"`;
-    const gitCommitBody = `"skip ci"`;
-    const gitCommitArgs = ['commit', '-m', gitCommitTitle, '-m', gitCommitBody];
-    await execa('git', gitCommitArgs);
+  const gitCommitTitle = `"${version}"`;
+  const gitCommitBody = `"skip ci"`;
+  const gitCommitArgs = ['commit', '-m', gitCommitTitle, '-m', gitCommitBody];
+  await run('git', gitCommitArgs, isDryRun);
 
-    const gitTagArgs = ['tag', '-f', '-m', newVersion, gitTag];
-    await execa('git', gitTagArgs);
+  const gitTagArgs = ['tag', '-f', '-m', version, gitTag];
+  await run('git', gitTagArgs, isDryRun);
 
-    const gitPushArgs = ['push', '--follow-tags'];
-    await execa('git', gitPushArgs);
-  }
+  const gitPushArgs = ['push', '--follow-tags'];
+  await run('git', gitPushArgs, isDryRun);
 
   console.log(
-    `🐳 commit version "${newVersion}" with git tag "${gitTag}"${dryRun ? ` (dry-run)` : ``}`
+    `🐳 commit version "${version}" with git tag "${gitTag}"`,
+    isDryRun ? '(dry-run)' : ''
   );
 
   const npmPublishArgs = ['publish', '--tag', distTag, '--access', 'public'];
-  if (dryRun) {
+  if (isDryRun) {
     npmPublishArgs.push('--dry-run');
   }
   await execa('npm', npmPublishArgs, { cwd: config.distPkgDir });
+
   console.log(
-    `🐋 published version "${newVersion}" of @builder.io/qwik with dist-tag "${distTag}" to npm${
-      dryRun ? ` (dry-run)` : ``
-    }`
+    `🐋 published version "${version}" of ${distPkg.name} with dist-tag "${distTag}" to npm`,
+    isDryRun ? '(dry-run)' : ''
   );
 }
 
-async function checkExistingNpmVersion(newVersion: string) {
-  const npmVersionsCall = await execa('npm', ['view', '@builder.io/qwik', 'versions', '--json']);
+async function run(cmd: string, args: string[], isDryRun: boolean) {
+  console.log(`  ${cmd} ${args.join(' ')}`, isDryRun ? '(dry-run)' : '');
+  if (!isDryRun) {
+    await execa(cmd, args);
+  }
+}
+
+async function checkExistingNpmVersion(pkg: PackageJSON, newVersion: string) {
+  const npmVersionsCall = await execa('npm', ['view', pkg.name, 'versions', '--json']);
   const publishedVersions: string[] = JSON.parse(npmVersionsCall.stdout);
   if (publishedVersions.includes(newVersion)) {
-    panic(`Version "${newVersion}" of @builder.io/qwik is already published to npm`);
+    panic(`Version "${newVersion}" of ${pkg.name} is already published to npm`);
   }
 }

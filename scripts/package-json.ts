@@ -59,9 +59,20 @@ export async function generatePackageJson(config: BuildConfig) {
     engines: rootPkg.engines,
   };
 
+  if (!config.setVerison) {
+    const d = new Date();
+    distPkg.version += '.';
+    distPkg.version += d.getUTCFullYear() + '';
+    distPkg.version += ('0' + (d.getUTCMonth() + 1)).slice(-2);
+    distPkg.version += ('0' + d.getUTCDate()).slice(-2);
+    distPkg.version += ('0' + d.getUTCHours()).slice(-2);
+    distPkg.version += ('0' + d.getUTCMinutes()).slice(-2);
+    distPkg.version += ('0' + d.getUTCSeconds()).slice(-2);
+  }
+
   await writePackageJson(config.distPkgDir, distPkg);
 
-  console.log('🐷', 'generated package.json');
+  console.log(`🐷 generated package.json (${distPkg.version})`);
 }
 
 export async function readPackageJson(pkgJsonDir: string) {

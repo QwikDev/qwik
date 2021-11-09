@@ -17,6 +17,8 @@ import {
 } from 'fs';
 import { promisify } from 'util';
 import gzipSize from 'gzip-size';
+import { minify, MinifyOptions } from 'terser';
+import type { Plugin as RollupPlugin } from 'rollup';
 
 /**
  * Contains information about the build we're generating by parsing
@@ -37,6 +39,7 @@ export interface BuildConfig {
   build?: boolean;
   commit?: boolean;
   dev?: boolean;
+  dryRun?: boolean;
   jsx?: boolean;
   platformBinding?: boolean;
   publish?: boolean;
@@ -65,8 +68,24 @@ export function loadConfig(args: string[] = []) {
   config.platformBinding = (config as any)['platform-binding'];
   config.setVerison = (config as any)['set-version'];
   config.setDistTag = (config as any)['set-dist-tag'];
+  config.dryRun = (config as any)['dry-run'];
 
   return config;
+}
+
+export function terser(opts: MinifyOptions): RollupPlugin {
+  return {
+    name: 'terser',
+    async generateBundle(_, bundle) {
+      for (const fileName in bundle) {
+        const chunk = bundle[fileName];
+        if (chunk.type === 'chunk') {
+          const result = await minify(chunk.code, opts);
+          chunk.code = result.code!;
+        }
+      }
+    },
+  };
 }
 
 /**

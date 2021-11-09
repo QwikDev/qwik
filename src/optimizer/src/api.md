@@ -79,6 +79,8 @@ export interface Optimizer {
     hasTransformedModule(path: string): boolean;
     // (undocumented)
     isDirty: boolean;
+    // (undocumented)
+    path: Path;
     transformFs(opts: TransformFsOptions): Promise<TransformResult>;
     transformFsSync(opts: TransformFsOptions): TransformResult;
     transformModules(opts: TransformModulesOptions): Promise<TransformResult>;
@@ -89,6 +91,52 @@ export interface Optimizer {
 
 // @alpha (undocumented)
 export interface OutputEntryMap {
+}
+
+// @alpha (undocumented)
+export interface Path {
+    // (undocumented)
+    basename(path: string, ext?: string): string;
+    // (undocumented)
+    readonly delimiter: string;
+    // (undocumented)
+    dirname(path: string): string;
+    // (undocumented)
+    extname(path: string): string;
+    // (undocumented)
+    format(pathObject: Partial<PathObject>): string;
+    // (undocumented)
+    isAbsolute(path: string): boolean;
+    // (undocumented)
+    join(...paths: string[]): string;
+    // (undocumented)
+    normalize(path: string): string;
+    // (undocumented)
+    parse(path: string): PathObject;
+    // (undocumented)
+    readonly posix: Path;
+    // (undocumented)
+    relative(from: string, to: string): string;
+    // (undocumented)
+    resolve(...pathSegments: string[]): string;
+    // (undocumented)
+    readonly sep: string;
+    // (undocumented)
+    readonly win32: null;
+}
+
+// @alpha (undocumented)
+export interface PathObject {
+    // (undocumented)
+    base: string;
+    // (undocumented)
+    dir: string;
+    // (undocumented)
+    ext: string;
+    // (undocumented)
+    name: string;
+    // (undocumented)
+    root: string;
 }
 
 // @alpha (undocumented)

@@ -5,7 +5,7 @@ on:
   pull_request:
   workflow_dispatch:
     name: 'Release'
-    description: 'Create a release and publish to NPM.'
+    description: 'Commit version update to git, publish to NPM, and create a Github release.'
     inputs:
       version:
         description: 'Version'
@@ -18,6 +18,7 @@ on:
 jobs:
   ############ BUILD PACKAGE ############
   build-package:
+    if: "!contains(github.event.head_commit.message, 'skip ci')"
     name: Build Package
     runs-on: ubuntu-latest
     steps:
@@ -39,9 +40,11 @@ jobs:
 
       - name: Install NPM Dependencies
         run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Build Package
-        run: node scripts --tsc --build --api --set-version="${{ github.event.inputs.version }}"
+        run: node scripts --tsc --build --api --set-version="${{ github.event.inputs.version }}" --set-dist-tag="${{ github.event.inputs.disttag }}"
 
       - name: Upload Package Build Artifacts
         uses: actions/upload-artifact@master
@@ -52,6 +55,7 @@ jobs:
 
   ############ BUILD NODEJS WASM ############
   build-wasm-nodejs:
+    if: "!contains(github.event.head_commit.message, 'skip ci')"
     name: Build NodeJS WASM
     runs-on: ubuntu-latest
     steps:
@@ -71,7 +75,7 @@ jobs:
 
       - name: Build NodeJS WASM
         working-directory: ./src/wasm
-        run: wasm-pack build --target=nodejs --release --out-dir=../../dist-wasm
+        run: wasm-pack build --target=nodejs --release --out-dir=../../dist-wasm --out-name=qwik.nodejs.wasm
 
       - name: Print Output
         run: ls -R
@@ -79,12 +83,13 @@ jobs:
       - name: Upload NodeJS WASM Build Artifacts
         uses: actions/upload-artifact@master
         with:
-          name: qwik.nodejs.wasm
-          path: dist-wasm/qwik_wasm_bg.wasm
+          name: dist-wasm-nodejs
+          path: dist-wasm/
           if-no-files-found: error
 
   ############ BUILD WEB WASM ############
   build-wasm-web:
+    if: "!contains(github.event.head_commit.message, 'skip ci')"
     name: Build Web WASM
     runs-on: ubuntu-latest
     env:
@@ -106,17 +111,41 @@ jobs:
         with:
           version: 'latest'
 
-      - name: Install
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          override: true
-          toolchain: stable
-          target: ${{ matrix.settings.target }}
+  ############ BUILD PLATFORM BINDINGS ############
+  build-bindings:
+    strategy:
+      fail-fast: false
+      matrix:
+        settings:
+          - host: macos-latest
+            target: x86_64-apple-darwin
+            build: |
+              yarn build.napi
+              strip -x *.node
+
+          # - host: macos-latest
+          #   target: aarch64-apple-darwin
+          #   build: |
+          #     yarn build.napi --target=aarch64-apple-darwin
+          #     strip -x *.node
+
+          - host: windows-latest
+            target: x86_64-pc-windows-msvc
+            build: |
+              yarn build.napi --config=napi.config.json
+
+    name: Build ${{ matrix.settings.target }}
+    runs-on: ${{ matrix.settings.host }}
+    defaults:
+      run:
+        working-directory: ./src/napi/
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
 
       - name: Build Web WASM
         working-directory: ./src/wasm
-        run: wasm-pack build --target=web --release --out-dir=../../dist-wasm
+        run: wasm-pack build --target=web --release --out-dir=../../dist-wasm --out-name=qwik.web.wasm
 
       - name: Print Output
         run: ls -R
@@ -124,12 +153,13 @@ jobs:
       - name: Upload Web WASM Build Artifacts
         uses: actions/upload-artifact@master
         with:
-          name: qwik.web.wasm
-          path: dist-wasm/qwik_wasm_bg.wasm
+          name: dist-wasm-web
+          path: dist-wasm/
           if-no-files-found: error
 
   ############ BUILD PLATFORM BINDINGS ############
   build-bindings:
+    if: "!contains(github.event.head_commit.message, 'skip ci')"
     strategy:
       fail-fast: false
       matrix:
@@ -214,19 +244,24 @@ jobs:
 
       - name: Install NPM Dependencies
         run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Build Binding
         run: ${{ matrix.settings.build }}
         shell: bash
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Upload Binding Artifact
         uses: actions/upload-artifact@v2
         with:
-          name: binding-${{ matrix.settings.target }}
+          name: dist-platform-${{ matrix.settings.target }}
           path: src/napi/*.node
 
   ############ RELEASE ############
   release:
+    if: "!contains(github.event.head_commit.message, 'skip ci')"
     name: Release
     runs-on: ubuntu-latest
     needs:
@@ -248,41 +283,31 @@ jobs:
       - name: Download Build Artifacts
         uses: actions/download-artifact@v2
 
+      - name: Create dist-dev directory
+        run: mkdir dist-dev
+
       - name: Print Package Build Artifacts
         run: ls -R dist-dev-builder-io-qwik
 
-      - name: Print Platform Build Artifacts
-        run: ls -R binding-*
-
       - name: Move Package Artifacts
         run: |
-          mkdir dist-dev
-          mv dist-dev-builder-io-qwik @builder.io-qwik
-          mv @builder.io-qwik dist-dev/@builder.io-qwik
+          mv dist-dev-builder-io-qwik dist-dev
+          mv dist-dev/dist-dev-builder-io-qwik dist-dev/@builder.io-qwik
 
-      - name: Move Platform Bindings Artifacts
+      - name: Print WASM Build Artifacts
+        run: ls -R dist-wasm-*/*
+
+      - name: Move WASM Artifacts
         run: |
-          mv binding-x86_64-apple-darwin/qwik.darwin-x64.node dist-builder-io-qwik/qwik.darwin-x64.node
-          mv binding-x86_64-pc-windows-msvc/qwik.win32-x64-msvc.node dist-builder-io-qwik/qwik.win32-x64-msvc.node
+          mv dist-wasm-*/*.{wasm,js} dist-dev/@builder.io-qwik
 
-        # mv binding-aarch64-apple-darwin/qwik.darwin-arm64.node dist-builder-io-qwik/qwik.darwin-arm64.node
+      - name: Print Platform Build Artifacts
+        run: ls -R dist-platform-*/*.node
 
-      - name: Pack @builder.io/qwik
-        run: |
-          cd dist-dev/@builder.io-qwik
-          mv `npm pack` ../builder.io-qwik.tgz
-
-      - name: Print Dist Directory
-        run: ls -R dist-dev
-
-      - name: Upload Qwik Package Artifact
-        uses: actions/upload-artifact@master
-        with:
-          name: builder-io-qwik
-          path: dist-dev/builder.io-qwik.tgz
+      - name: Move Platform Binding Artifacts
+        run: mv dist-platform-*/*.node dist-dev/@builder.io-qwik
 
       - name: Cache NPM Dependencies
-        if: ${{ github.event_name == 'workflow_dispatch' }}
         uses: actions/cache@v2
         with:
           path: node_modules
@@ -290,12 +315,46 @@ jobs:
           restore-keys: npm-cache-ubuntu-
 
       - name: Install NPM Dependencies
-        if: ${{ github.event_name == 'workflow_dispatch' }}
         run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Dry-Run Publish @builder.io/qwik
+        if: ${{ github.event_name != 'workflow_dispatch' }}
+        run: node scripts --set-version="${{ github.event.inputs.version }}" --set-dist-tag="${{ github.event.inputs.disttag }}" --publish --dry-run
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish @builder.io/qwik
         if: ${{ github.event_name == 'workflow_dispatch' }}
-        run: node scripts --publish --set-version="${{ github.event.inputs.version }}" --set-dist-tag="${{ github.event.inputs.disttag }}" --publish
+        run: node scripts --set-version="${{ github.event.inputs.version }}" --set-dist-tag="${{ github.event.inputs.disttag }}" --publish
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create Github Release
+        if: ${{ github.event_name == 'workflow_dispatch' && success() }}
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: 'v${{ github.event.inputs.version }}'
+          files: dist-dev/CHANGELOG.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Qwik Package Artifact
+        if: ${{ always() }}
+        uses: actions/upload-artifact@master
+        with:
+          name: builder-io-qwik
+          path: dist-dev/*.tgz
+
+      - name: Upload Changelog Artifact
+        if: ${{ always() }}
+        uses: actions/upload-artifact@master
+        with:
+          name: Changelog
+          path: dist-dev/CHANGELOG.md
 
   ############ LINT ############
   # lint:
@@ -315,6 +374,8 @@ jobs:
 
   #     - name: Install NPM Dependencies
   #       run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
+  # env:
+  #   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   #     - name: Prettier Check
   #       run: yarn prettier-check
@@ -346,6 +407,8 @@ jobs:
 
   #     - name: Install NPM Dependencies
   #       run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
+  # env:
+  #   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   #     - name: Unit Tests
   #       run: |

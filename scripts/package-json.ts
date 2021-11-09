@@ -94,18 +94,16 @@ const PACKAGE_FILES = [
   'core.d.ts',
 
   // jsx-runtime
-  'jsx-runtime/index.cjs',
-  'jsx-runtime/index.cjs.map',
-  'jsx-runtime/index.mjs',
-  'jsx-runtime/index.mjs.map',
-  'jsx-runtime/index.d.ts',
+  'jsx-runtime.cjs',
+  'jsx-runtime.cjs.map',
+  'jsx-runtime.mjs',
+  'jsx-runtime.mjs.map',
+  'jsx-runtime.d.ts',
 
   // optimizer
-  'optimizer/index.cjs',
-  'optimizer/index.mjs',
-  'optimizer/index.d.ts',
-  'optimizer/rollup.cjs',
-  'optimizer/rollup.mjs',
+  'optimizer.cjs',
+  'optimizer.mjs',
+  'optimizer.d.ts',
 
   // prefetch
   'prefetch.js',
@@ -134,8 +132,14 @@ const PACKAGE_FILES = [
   'LICENSE',
   'package.json',
 
-  // platform bindings (only found in CI build)
-  'qwik.darwin-arm64.node',
+  // platform bindings
   'qwik.darwin-x64.node',
+  // 'qwik.darwin-arm64.node',
   'qwik.win32-x64-msvc.node',
+
+  // wasm
+  'qwik.nodejs.js',
+  'qwik.nodejs.wasm',
+  'qwik.web.js',
+  'qwik.web.wasm',
 ];

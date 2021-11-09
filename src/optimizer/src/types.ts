@@ -1,3 +1,38 @@
+/**
+ * @alpha
+ */
+export interface Optimizer {
+  isDirty: boolean;
+
+  /**
+   * Transforms the input code string, does not access the file system.
+   */
+  transformModules(opts: TransformModulesOptions): Promise<TransformResult>;
+
+  /**
+   * Transforms the input code string, does not access the file system.
+   */
+  transformModulesSync(opts: TransformModulesOptions): TransformResult;
+
+  /**
+   * Transforms the directory from the file system.
+   */
+  transformFs(opts: TransformFsOptions): Promise<TransformResult>;
+
+  /**
+   * Transforms the directory from the file system.
+   */
+  transformFsSync(opts: TransformFsOptions): TransformResult;
+
+  getTransformedModule(path: string): TransformModule | undefined;
+
+  hasTransformedModule(path: string): boolean;
+
+  watchChange(id: string, event: 'create' | 'update' | 'delete'): void;
+
+  path: Path;
+}
+
 // OPTIONS ***************
 
 /**
@@ -168,3 +203,36 @@ export interface ManualEntryStrategy {
  * @alpha
  */
 export interface OutputEntryMap {}
+
+// PATH UTIL  ***************
+
+/**
+ * @alpha
+ */
+export interface Path {
+  resolve(...pathSegments: string[]): string;
+  normalize(path: string): string;
+  isAbsolute(path: string): boolean;
+  join(...paths: string[]): string;
+  relative(from: string, to: string): string;
+  dirname(path: string): string;
+  basename(path: string, ext?: string): string;
+  extname(path: string): string;
+  format(pathObject: Partial<PathObject>): string;
+  parse(path: string): PathObject;
+  readonly sep: string;
+  readonly delimiter: string;
+  readonly win32: null;
+  readonly posix: Path;
+}
+
+/**
+ * @alpha
+ */
+export interface PathObject {
+  root: string;
+  dir: string;
+  base: string;
+  ext: string;
+  name: string;
+}

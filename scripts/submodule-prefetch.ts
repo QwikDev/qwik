@@ -1,6 +1,5 @@
-import { InputOptions, OutputOptions, rollup, Plugin, watch, OutputBundle } from 'rollup';
-import { minify, MinifyOptions } from 'terser';
-import { BuildConfig, fileSize, rollupOnWarn } from './util';
+import { InputOptions, OutputOptions, rollup, watch, OutputBundle } from 'rollup';
+import { BuildConfig, fileSize, rollupOnWarn, terser } from './util';
 import { join } from 'path';
 import { transform } from 'esbuild';
 
@@ -153,19 +152,4 @@ export async function submodulePrefetch(config: BuildConfig) {
   if (config.watch) {
     watch({ ...input, output: [prefetchMinified, prefetchDebug] });
   }
-}
-
-function terser(opts: MinifyOptions): Plugin {
-  return {
-    name: 'terser',
-    async generateBundle(_, bundle) {
-      for (const fileName in bundle) {
-        const chunk = bundle[fileName];
-        if (chunk.type === 'chunk') {
-          const result = await minify(chunk.code, opts);
-          chunk.code = result.code!;
-        }
-      }
-    },
-  };
 }

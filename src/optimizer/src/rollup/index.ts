@@ -4,9 +4,9 @@ import {
   Optimizer,
   createOptimizer,
   OutputEntryMap,
+  Path,
   TransformFsOptions,
 } from '..';
-import path from 'path';
 import type { InputOption, OutputBundle, Plugin } from 'rollup';
 
 /**
@@ -21,18 +21,17 @@ export function qwikRollup(opts: QwikPluginOptions = {}): Plugin {
     async buildStart(options) {
       // Takes the user's Rollup input options to find the source input files,
       // then generates Qwik input files which rollup should use instead as input files.
+      if (!optimizer) {
+        optimizer = await createOptimizer();
+      }
 
       const transformOpts: TransformFsOptions = {
-        rootDir: findInputDirectory(options.input),
+        rootDir: findInputDirectory(optimizer.path, options.input),
         entryStrategy: opts.entryStrategy,
         glob: opts.glob,
         minify: opts.minify,
         transpile: opts.transpile,
       };
-
-      if (!optimizer) {
-        optimizer = await createOptimizer();
-      }
 
       console.time('Qwik optimize');
       const result = await optimizer.transformFs(transformOpts);
@@ -50,9 +49,12 @@ export function qwikRollup(opts: QwikPluginOptions = {}): Plugin {
       });
     },
 
-    resolveId(id, importer) {
+    async resolveId(id, importer) {
       if (importer) {
-        id = path.resolve(path.dirname(importer), id);
+        if (!optimizer) {
+          optimizer = await createOptimizer();
+        }
+        id = optimizer.path.resolve(optimizer.path.dirname(importer), id);
       }
       if (optimizer!.hasTransformedModule(id)) {
         return id;
@@ -72,11 +74,6 @@ export function qwikRollup(opts: QwikPluginOptions = {}): Plugin {
       return null;
     },
 
-    renderDynamicImport() {
-      // todo??
-      return null;
-    },
-
     generateBundle(_, rollupBundle) {
       this.emitFile({
         fileName: 'q-entry-map.json',
@@ -91,7 +88,7 @@ export function qwikRollup(opts: QwikPluginOptions = {}): Plugin {
   };
 }
 
-function findInputDirectory(rollupInput: InputOption | undefined) {
+function findInputDirectory(path: Path, rollupInput: InputOption | undefined) {
   let inputFilePaths: string[] = [];
 
   if (rollupInput) {
@@ -146,8 +143,4 @@ export interface QwikPluginOptions {
   glob?: string;
   transpile?: boolean;
   minify?: MinifyMode;
-}
-
-export function normalizePath(fileName: string) {
-  return fileName.split(path.win32.sep).join(path.posix.sep);
 }

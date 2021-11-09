@@ -1,45 +1,14 @@
 import type { TransformResult, TransformModule, TransformModuleInput } from '.';
-import { loadPlatformBinding, PlatformBinding } from './platform-binding';
-import type { TransformModulesOptions, TransformFsOptions } from './types';
-
-/**
- * @alpha
- */
-export interface Optimizer {
-  isDirty: boolean;
-
-  /**
-   * Transforms the input code string, does not access the file system.
-   */
-  transformModules(opts: TransformModulesOptions): Promise<TransformResult>;
-
-  /**
-   * Transforms the input code string, does not access the file system.
-   */
-  transformModulesSync(opts: TransformModulesOptions): TransformResult;
-
-  /**
-   * Transforms the directory from the file system.
-   */
-  transformFs(opts: TransformFsOptions): Promise<TransformResult>;
-
-  /**
-   * Transforms the directory from the file system.
-   */
-  transformFsSync(opts: TransformFsOptions): TransformResult;
-
-  getTransformedModule(path: string): TransformModule | undefined;
-
-  hasTransformedModule(path: string): boolean;
-
-  watchChange(id: string, event: 'create' | 'update' | 'delete'): void;
-}
+import { getSystem, InternalSystem, PlatformBinding } from './platform';
+import type { TransformModulesOptions, TransformFsOptions, Optimizer } from './types';
 
 /**
  * @alpha
  */
 export const createOptimizer = async (): Promise<Optimizer> => {
-  const binding = await loadPlatformBinding();
+  const sys = await getSystem();
+  const binding = sys.binding;
+
   const transformedOutputs = new Map<string, TransformModule>();
   let lastDirectoryResult: TransformResult | undefined;
   let isDirty = true;
@@ -69,7 +38,7 @@ export const createOptimizer = async (): Promise<Optimizer> => {
         return lastDirectoryResult!;
       }
 
-      const result = await transformFsAsync(binding, opts);
+      const result = await transformFsAsync(sys, binding, opts);
       lastDirectoryResult = result;
 
       result.modules.forEach((output) => {
@@ -123,6 +92,8 @@ export const createOptimizer = async (): Promise<Optimizer> => {
       isDirty = true;
       console.debug('watch change', id, event);
     },
+
+    path: sys.path,
   };
 };
 
@@ -140,37 +111,37 @@ const transformFs = (binding: PlatformBinding, opts: TransformFsOptions) => {
   throw new Error('not implemented');
 };
 
-const transformFsAsync = (binding: PlatformBinding, opts: TransformFsOptions) => {
+const transformFsAsync = (
+  sys: InternalSystem,
+  binding: PlatformBinding,
+  opts: TransformFsOptions
+) => {
   if (binding.transform_fs) {
     return binding.transform_fs(convertOptions(opts));
   }
-  return transformFsVirtual(opts, binding);
+  return transformFsVirtual(sys, opts);
 };
 
-const transformFsVirtual = async (opts: TransformFsOptions, binding: PlatformBinding) => {
-  const { promisify } = require('util');
-  const { resolve, extname } = require('path');
-  const fs = require('fs');
-  const readdir = promisify(fs.readdir);
-  const stat = promisify(fs.stat);
-  const read = promisify(fs.readFile);
-
+const transformFsVirtual = async (sys: InternalSystem, opts: TransformFsOptions) => {
   const extensions = ['.js', '.ts', '.tsx', '.jsx'];
+
   async function getFiles(dir: string) {
-    const subdirs = await readdir(dir);
-    const files = await Promise.all(
+    const subdirs = await readDir(sys, dir);
+    const files: string[] = await Promise.all(
       subdirs.flatMap(async (subdir: any) => {
-        const res = resolve(dir, subdir);
-        return (await stat(res)).isDirectory() ? getFiles(res) : res;
+        const res = sys.path.resolve(dir, subdir);
+        const isDir = await isDirectory(sys, res);
+        return (isDir ? getFiles(res) : res) as any;
       })
     );
-    return files.filter((a) => extensions.includes(extname(a)));
+    return files.filter((a) => extensions.includes(sys.path.extname(a)));
   }
+
   const files = await getFiles(opts.rootDir);
   const input: TransformModuleInput[] = await Promise.all(
     files.map(async (file) => {
       return {
-        code: (await read(file, 'utf-8')) as string,
+        code: (await readFile(sys, file)) as string,
         path: (file as string).slice(opts.rootDir.length + 1),
       };
     })
@@ -184,8 +155,41 @@ const transformFsVirtual = async (opts: TransformFsOptions, binding: PlatformBin
     transpile: opts.transpile,
     input,
   };
-  return binding.transform_modules(convertOptions(newOpts));
+  return sys.binding.transform_modules(convertOptions(newOpts));
 };
+
+const readDir = (sys: InternalSystem, dirPath: string) =>
+  new Promise<string[]>((resolve, reject) => {
+    sys.fs.readdir(dirPath, (err, items) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(items);
+      }
+    });
+  });
+
+const readFile = (sys: InternalSystem, filePath: string) =>
+  new Promise<string>((resolve, reject) => {
+    sys.fs.readFile(filePath, 'utf-8', (err, data) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(data);
+      }
+    });
+  });
+
+const isDirectory = (sys: InternalSystem, path: string) =>
+  new Promise<boolean>((resolve, reject) => {
+    sys.fs.stat(path, (err, stat) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(stat.isDirectory());
+      }
+    });
+  });
 
 const convertOptions = (opts: any) => {
   const output: any = {

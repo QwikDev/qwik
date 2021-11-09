@@ -29,16 +29,12 @@ export async function generatePackageJson(config: BuildConfig) {
         require: './core.cjs',
       },
       './jsx-runtime': {
-        import: './jsx-runtime/index.mjs',
-        require: './jsx-runtime/index.cjs',
+        import: './jsx-runtime.mjs',
+        require: './jsx-runtime.cjs',
       },
       './optimizer': {
-        import: './optimizer/index.mjs',
-        require: './optimizer/index.cjs',
-      },
-      './optimizer/rollup': {
-        import: './optimizer/rollup.mjs',
-        require: './optimizer/rollup.cjs',
+        import: './optimizer.mjs',
+        require: './optimizer.cjs',
       },
       './server': {
         import: './server/index.mjs',

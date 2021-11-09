@@ -16,6 +16,61 @@ on:
         default: 'latest'
 
 jobs:
+  workspace-test:
+    name: Test Suite
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --manifest-path=src/Cargo.toml --all-features --workspace
+
+  workspace-rustfmt:
+    name: Rustfmt
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
+          components: rustfmt
+      - name: Check formatting
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --manifest-path=src/Cargo.toml --all -- --check
+
+  workspace-clippy:
+    name: Clippy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
+          components: clippy
+      - name: Clippy check
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: --manifest-path=src/Cargo.toml --all-targets --all-features --workspace -- -W clippy::pedantic
+
   ############ BUILD PACKAGE ############
   build-package:
     if: "!contains(github.event.head_commit.message, 'skip ci')"
@@ -74,8 +129,8 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Build NodeJS WASM
-        working-directory: ./src/wasm
-        run: wasm-pack build --target=nodejs --release --out-dir=../../dist-wasm --out-name=qwik.nodejs.wasm
+        working-directory: ./src
+        run: wasm-pack build wasm/ --target=nodejs --release --out-dir=../../dist-wasm --out-name=qwik.nodejs.wasm
 
       - name: Print Output
         run: ls -R
@@ -92,11 +147,10 @@ jobs:
     if: "!contains(github.event.head_commit.message, 'skip ci')"
     name: Build Web WASM
     runs-on: ubuntu-latest
-    env:
-      CARGO_PROFILE_RELEASE_LTO: true
-      CARGO_PROFILE_RELEASE_PANIC: abort
-      CARGO_PROFILE_RELEASE_OPT_LEVEL: z
     steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
       - name: Setup Node.js
         uses: actions/setup-node@v1
         with:
@@ -108,12 +162,17 @@ jobs:
         with:
           version: 'latest'
 
-      - name: Checkout
-        uses: actions/checkout@v2
+      - name: Install
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          override: true
+          toolchain: stable
+          target: ${{ matrix.settings.target }}
 
       - name: Build Web WASM
-        working-directory: ./src/wasm
-        run: wasm-pack build --target=web --release --out-dir=../../dist-wasm --out-name=qwik.web.wasm
+        working-directory: ./src
+        run: wasm-pack build wasm/ --target=web --release --out-dir=../../dist-wasm --out-name=qwik.web.wasm
 
       - name: Print Output
         run: ls -R
@@ -171,12 +230,6 @@ jobs:
           override: true
           toolchain: stable
           target: ${{ matrix.settings.target }}
-
-      - name: Generate Cargo.lock
-        uses: actions-rs/cargo@v1
-        with:
-          command: generate-lockfile
-          args: --manifest-path=src/napi/Cargo.toml
 
       - name: Cache Cargo Registry
         uses: actions/cache@v2
@@ -250,9 +303,6 @@ jobs:
 
       - name: Download Build Artifacts
         uses: actions/download-artifact@v2
-
-      - name: Create dist-dev directory
-        run: mkdir dist-dev
 
       - name: Print Package Build Artifacts
         run: ls -R dist-dev-builder-io-qwik

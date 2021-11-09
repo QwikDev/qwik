@@ -46,6 +46,7 @@ export interface BuildConfig {
   setDistTag?: string;
   setVerison?: string;
   tsc?: boolean;
+  validate?: boolean;
   wasm?: boolean;
   watch?: boolean;
 }

@@ -16,6 +16,7 @@ import { submoduleQwikLoader } from './submodule-qwikloader';
 import { submoduleServer } from './submodule-server';
 import { submoduleTesting } from './submodule-testing';
 import { tsc } from './tsc';
+import { validateBuild } from './validate-build';
 
 /**
  * Complete a full build for all of the package's submodules. Passed in
@@ -70,6 +71,10 @@ export async function build(config: BuildConfig) {
 
     if (config.jsx) {
       await generateJsxTypes(config);
+    }
+
+    if (config.validate) {
+      await validateBuild(config);
     }
 
     if (config.publish) {

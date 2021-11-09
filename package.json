@@ -50,6 +50,7 @@
   "scripts": {
     "build": "node scripts --tsc --build --api --platform-binding",
     "build.napi": "cd src/napi && napi build --platform --release --config=napi.config.json",
+    "build.validate": "node scripts --tsc --build --api --validate",
     "build.watch": "node scripts --build --watch --dev --platform-binding",
     "api.update": "node scripts --tsc --api --dev",
     "tsc.check": "tsc --noEmit",

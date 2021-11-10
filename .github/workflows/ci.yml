@@ -222,10 +222,10 @@ jobs:
         run: ls -R dist-dev-builder-io-qwik/
 
       - name: Move Package Artifacts
-        run: mv dist-dev-builder-io-qwik/**/* dist-dev/@builder.io-qwik/
+        run: mv dist-dev-builder-io-qwik/* dist-dev/@builder.io-qwik/
 
       - name: Print Bindings Artifacts
-        run: ls -R dist-bindings-*/*
+        run: ls -R dist-bindings-*/
 
       - name: Move Binding Artifacts
         run: mv dist-bindings-*/* dist-dev/@builder.io-qwik/bindings/

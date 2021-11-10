@@ -112,9 +112,7 @@
     "server/index.d.ts",
     "testing/index.cjs",
     "testing/index.mjs",
-    "testing/index.d.ts",
-    "testing/jest-preset.cjs",
-    "testing/jest-preset.mjs"
+    "testing/index.d.ts"
   ],
   "contributors": [
     {

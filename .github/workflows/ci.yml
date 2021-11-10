@@ -73,6 +73,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
+      - name: Install NPM Dependencies
+        run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
       - name: Build WASM
         run: node scripts --wasm --set-version="${{ github.event.inputs.version }}" --set-dist-tag="${{ github.event.inputs.disttag }}"
 

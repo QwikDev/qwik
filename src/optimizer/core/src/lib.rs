@@ -1,7 +1,7 @@
 #![deny(clippy::all)]
 #![deny(clippy::perf)]
 #![deny(clippy::nursery)]
-// #![deny(clippy::cargo)]
+use std::time::Instant;
 
 #[cfg(test)]
 mod test;
@@ -13,6 +13,8 @@ mod parse;
 mod transform;
 mod utils;
 
+use rayon::prelude::*;
+
 // #[cfg(feature = "fs")]
 use std::fs;
 
@@ -22,7 +24,6 @@ use std::path::Path;
 use anyhow::{Context, Error};
 use serde::{Deserialize, Serialize};
 use std::str;
-use swc_common::sync::Lrc;
 
 use crate::code_move::generate_entries;
 use crate::entry_strategy::parse_entry_strategy;
@@ -44,7 +45,7 @@ pub struct TransformFsOptions {
 }
 
 impl TransformFsOptions {
-    pub fn new(
+    pub const fn new(
         root_dir: String,
         glob: Option<String>,
         source_maps: bool,
@@ -84,63 +85,86 @@ pub struct TransformModulesOptions {
 // #[cfg(feature = "fs")]
 pub fn transform_fs(config: TransformFsOptions) -> Result<TransformOutput, Error> {
     let root_dir = Path::new(&config.root_dir);
-    let bundling = parse_entry_strategy(config.entry_strategy);
-    let mut context = TransformContext::new(bundling);
+    let context = TransformContext::new();
     let mut paths = vec![];
+    let entry_policy = &*parse_entry_strategy(config.entry_strategy);
     find_files(root_dir, &mut paths)?;
+
+    let start = Instant::now();
+    let outputs: Vec<_> = paths
+        .par_iter()
+        .map(|path| -> Result<TransformOutput, Error> {
+            let code = fs::read_to_string(&path)
+                .with_context(|| format!("Opening {}", &path.to_string_lossy()))?;
+
+            transform_code(TransformCodeOptions {
+                path: path
+                    .strip_prefix(&config.root_dir)
+                    .with_context(|| {
+                        format!("Stripping root prefix from {}", path.to_string_lossy())
+                    })?
+                    .to_str()
+                    .unwrap(),
+                minify: config.minify,
+                code: &code,
+                source_maps: config.source_maps,
+                transpile: config.transpile,
+                print_ast: false,
+                entry_policy,
+                context: context.clone(),
+            })
+        })
+        .collect();
 
     let mut final_output = TransformOutput::new();
     let mut default_ext = "js";
-    for path in paths {
-        let code = fs::read_to_string(&path)
-            .with_context(|| format!("Opening {}", &path.to_string_lossy()))?;
-        let mut result = transform_code(TransformCodeOptions {
-            path: path
-                .strip_prefix(&config.root_dir)
-                .with_context(|| format!("Stripping root prefix from {}", path.to_string_lossy()))?
-                .to_str()
-                .unwrap(),
-            minify: config.minify,
-            code: &code,
-            source_maps: config.source_maps,
-            transpile: config.transpile,
-            print_ast: false,
-            context: &mut context,
-        })?;
-        final_output.modules.append(&mut result.modules);
-        final_output.hooks.append(&mut result.hooks);
-        final_output.diagnostics.append(&mut result.diagnostics);
-        if !config.transpile && result.is_type_script {
-            default_ext = "ts";
+    for mut output in outputs {
+        if let Ok(output) = &mut output {
+            final_output.append(output);
+            if !config.transpile && output.is_type_script {
+                default_ext = "ts";
+            }
         }
     }
-
-    generate_entries(final_output, default_ext, Lrc::clone(&context.source_map))
+    final_output = generate_entries(final_output, default_ext)?;
+    final_output.elapsed = start.elapsed();
+    Ok(final_output)
 }
 
 pub fn transform_modules(config: TransformModulesOptions) -> Result<TransformOutput, Error> {
-    let bundling = parse_entry_strategy(config.entry_strategy);
-    let mut context = TransformContext::new(bundling);
+    let start = Instant::now();
+    let entry_policy = &*parse_entry_strategy(config.entry_strategy);
+    let context = TransformContext::new();
+    let outputs: Vec<_> = config
+        .input
+        .par_iter()
+        .map(|path| -> Result<TransformOutput, Error> {
+            transform_code(TransformCodeOptions {
+                path: &path.path,
+                minify: config.minify,
+                code: &path.code,
+                source_maps: config.source_maps,
+                transpile: config.transpile,
+                print_ast: false,
+                entry_policy,
+                context: context.clone(),
+            })
+        })
+        .collect();
+
     let mut final_output = TransformOutput::new();
     let mut default_ext = "js";
-    for p in &config.input {
-        let mut output = transform_code(TransformCodeOptions {
-            path: &p.path,
-            minify: config.minify,
-            code: &p.code,
-            source_maps: config.source_maps,
-            transpile: config.transpile,
-            print_ast: false,
-            context: &mut context,
-        })?;
-        final_output.append(&mut output);
-
-        if !config.transpile && output.is_type_script {
-            default_ext = "ts";
+    for mut output in outputs {
+        if let Ok(output) = &mut output {
+            final_output.append(output);
+            if !config.transpile && output.is_type_script {
+                default_ext = "ts";
+            }
         }
     }
-
-    generate_entries(final_output, default_ext, Lrc::clone(&context.source_map))
+    final_output = generate_entries(final_output, default_ext)?;
+    final_output.elapsed = start.elapsed();
+    Ok(final_output)
 }
 
 // #[cfg(feature = "fs")]

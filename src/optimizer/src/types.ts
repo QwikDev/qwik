@@ -7,22 +7,22 @@ export interface Optimizer {
   /**
    * Transforms the input code string, does not access the file system.
    */
-  transformModules(opts: TransformModulesOptions): Promise<TransformResult>;
+  transformModules(opts: TransformModulesOptions): Promise<TransformOutput>;
 
   /**
    * Transforms the input code string, does not access the file system.
    */
-  transformModulesSync(opts: TransformModulesOptions): TransformResult;
+  transformModulesSync(opts: TransformModulesOptions): TransformOutput;
 
   /**
    * Transforms the directory from the file system.
    */
-  transformFs(opts: TransformFsOptions): Promise<TransformResult>;
+  transformFs(opts: TransformFsOptions): Promise<TransformOutput>;
 
   /**
    * Transforms the directory from the file system.
    */
-  transformFsSync(opts: TransformFsOptions): TransformResult;
+  transformFsSync(opts: TransformFsOptions): TransformOutput;
 
   getTransformedModule(path: string): TransformModule | undefined;
 
@@ -93,8 +93,7 @@ export interface TransformModuleInput {
 /**
  * @alpha
  */
-export interface TransformResult {
-  rootDir: string;
+export interface TransformOutput {
   modules: TransformModule[];
   diagnostics: Diagnostic[];
   isTypeScript: boolean;

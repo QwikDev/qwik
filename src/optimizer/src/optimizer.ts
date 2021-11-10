@@ -1,4 +1,4 @@
-import type { TransformResult, TransformModule, TransformModuleInput } from '.';
+import type { TransformOutput, TransformModule, TransformModuleInput } from '.';
 import { getSystem, InternalSystem, PlatformBinding } from './platform';
 import type { TransformModulesOptions, TransformFsOptions, Optimizer } from './types';
 
@@ -10,7 +10,7 @@ export const createOptimizer = async (): Promise<Optimizer> => {
   const binding = sys.binding;
 
   const transformedOutputs = new Map<string, TransformModule>();
-  let lastDirectoryResult: TransformResult | undefined;
+  let lastDirectoryResult: TransformOutput | undefined;
   let isDirty = true;
 
   return {
@@ -43,7 +43,7 @@ export const createOptimizer = async (): Promise<Optimizer> => {
 
       result.modules.forEach((output) => {
         const path = output.path.split('.').slice(0, -1).join('.');
-        const key = result.rootDir + '/' + path;
+        const key = opts.rootDir + '/' + path;
         transformedOutputs.set(key, output);
       });
 
@@ -63,7 +63,7 @@ export const createOptimizer = async (): Promise<Optimizer> => {
 
       result.modules.forEach((output) => {
         const path = output.path.split('.').slice(0, -1).join('.');
-        const key = result.rootDir + '/' + path;
+        const key = opts.rootDir + '/' + path;
         transformedOutputs.set(key, output);
       });
 

@@ -1,4 +1,4 @@
-import type { Path, TransformResult } from '.';
+import type { Path, TransformOutput } from '.';
 import pathBrowserify from 'path-browserify';
 import { QWIK_BINDING_MAP } from './qwik-binding-map';
 
@@ -83,8 +83,8 @@ export interface InternalSystem {
 }
 
 export interface PlatformBinding {
-  transform_fs?: (opts: any) => TransformResult;
-  transform_modules: (opts: any) => TransformResult;
+  transform_fs?: (opts: any) => TransformOutput;
+  transform_modules: (opts: any) => TransformOutput;
 }
 
 declare const globalThis: { IS_CJS: boolean; IS_ESM: boolean };

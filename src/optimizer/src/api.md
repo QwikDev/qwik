@@ -81,10 +81,10 @@ export interface Optimizer {
     isDirty: boolean;
     // (undocumented)
     path: Path;
-    transformFs(opts: TransformFsOptions): Promise<TransformResult>;
-    transformFsSync(opts: TransformFsOptions): TransformResult;
-    transformModules(opts: TransformModulesOptions): Promise<TransformResult>;
-    transformModulesSync(opts: TransformModulesOptions): TransformResult;
+    transformFs(opts: TransformFsOptions): Promise<TransformOutput>;
+    transformFsSync(opts: TransformFsOptions): TransformOutput;
+    transformModules(opts: TransformModulesOptions): Promise<TransformOutput>;
+    transformModulesSync(opts: TransformModulesOptions): TransformOutput;
     // (undocumented)
     watchChange(id: string, event: 'create' | 'update' | 'delete'): void;
 }
@@ -216,7 +216,7 @@ export interface TransformModulesOptions extends TransformOptions {
 }
 
 // @alpha (undocumented)
-export interface TransformResult {
+export interface TransformOutput {
     // (undocumented)
     diagnostics: Diagnostic[];
     // (undocumented)
@@ -227,8 +227,6 @@ export interface TransformResult {
     isTypeScript: boolean;
     // (undocumented)
     modules: TransformModule[];
-    // (undocumented)
-    rootDir: string;
 }
 
 // @alpha (undocumented)

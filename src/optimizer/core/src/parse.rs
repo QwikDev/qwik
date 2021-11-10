@@ -1,10 +1,12 @@
 use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 use std::str;
+use std::time::Duration;
 
 use crate::code_move::new_module;
 use crate::collector::global_collect;
-use crate::transform::{Hook, HookTransform, TransformContext};
+use crate::entry_strategy::EntryPolicy;
+use crate::transform::{Hook, HookTransform, ThreadSafeTransformContext};
 use crate::utils::{CodeHighlight, Diagnostic, DiagnosticSeverity, SourceLocation};
 use serde::{Deserialize, Serialize};
 
@@ -58,7 +60,8 @@ pub struct TransformCodeOptions<'a> {
     pub transpile: bool,
     pub print_ast: bool,
     pub code: &'a str,
-    pub context: &'a mut TransformContext,
+    pub entry_policy: &'a dyn EntryPolicy,
+    pub context: ThreadSafeTransformContext,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
@@ -69,6 +72,7 @@ pub struct TransformOutput {
     pub hooks: Vec<HookAnalysis>,
     pub is_type_script: bool,
     pub is_jsx: bool,
+    pub elapsed: Duration,
 }
 
 impl TransformOutput {
@@ -117,12 +121,10 @@ impl Emitter for ErrorBuffer {
 }
 
 pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, anyhow::Error> {
+    let source_map = Lrc::new(SourceMap::default());
+
     let path_data = parse_path(config.path)?;
-    let module = parse(
-        config.code,
-        &path_data,
-        Lrc::clone(&config.context.source_map),
-    );
+    let module = parse(config.code, &path_data, Lrc::clone(&source_map));
     if config.print_ast {
         eprintln!("{:?}", module);
     }
@@ -158,7 +160,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                             ),
                             pass::Optional::new(
                                 typescript::strip_with_jsx(
-                                    Lrc::clone(&config.context.source_map),
+                                    Lrc::clone(&source_map),
                                     typescript::Config {
                                         pragma: Some("h".to_string()),
                                         pragma_frag: Some("Fragment".to_string()),
@@ -171,7 +173,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                             ),
                             pass::Optional::new(
                                 react::react(
-                                    Lrc::clone(&config.context.source_map),
+                                    Lrc::clone(&source_map),
                                     Some(&comments),
                                     react_options,
                                     top_level_mark
@@ -181,6 +183,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                             HookTransform::new(
                                 config.context,
                                 &path_data,
+                                config.entry_policy,
                                 Some(&comments),
                                 &mut hooks
                             ),
@@ -199,7 +202,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                     if config.minify == MinifyMode::Minify {
                         main_module = optimize(
                             main_module,
-                            Lrc::clone(&config.context.source_map),
+                            Lrc::clone(&source_map),
                             Some(&comments),
                             None,
                             &MinifyOptions {
@@ -251,7 +254,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                             hook_module = hook_module.fold_with(&mut resolver_with_mark(hook_mark));
                             hook_module = optimize(
                                 hook_module,
-                                Lrc::clone(&config.context.source_map),
+                                Lrc::clone(&source_map),
                                 None,
                                 None,
                                 &MinifyOptions {
@@ -279,7 +282,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                         }
 
                         let (code, map) = emit_source_code(
-                            Lrc::clone(&config.context.source_map),
+                            Lrc::clone(&source_map),
                             Some(comments),
                             &hook_module,
                             config.minify == MinifyMode::Minify,
@@ -304,7 +307,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                     }
 
                     let (code, map) = emit_source_code(
-                        Lrc::clone(&config.context.source_map),
+                        Lrc::clone(&source_map),
                         Some(comments),
                         &main_module,
                         config.minify == MinifyMode::Minify,
@@ -330,13 +333,14 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                         },
                     );
 
-                    let diagnostics = handle_error(&error_buffer, &config.context.source_map);
+                    let diagnostics = handle_error(&error_buffer, &source_map);
                     Ok(TransformOutput {
                         modules,
                         diagnostics,
                         hooks: hooks_analysis,
                         is_type_script,
                         is_jsx,
+                        elapsed: Duration::new(0, 0),
                     })
                 })
             })
@@ -345,13 +349,14 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
             let error_buffer = ErrorBuffer::default();
             let handler = Handler::with_emitter(true, false, Box::new(error_buffer.clone()));
             err.into_diagnostic(&handler).emit();
-            let diagnostics = handle_error(&error_buffer, &config.context.source_map);
+            let diagnostics = handle_error(&error_buffer, &source_map);
             Ok(TransformOutput {
                 hooks: vec![],
                 modules: vec![],
                 diagnostics,
                 is_type_script: false,
                 is_jsx: false,
+                elapsed: Duration::new(0, 0),
             })
         }
     }

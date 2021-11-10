@@ -7,6 +7,11 @@ use swc_ecmascript::ast::CallExpr;
 
 use lazy_static::lazy_static;
 
+lazy_static! {
+    static ref ENTRY_HOOKS: JsWord = JsWord::from("entry_hooks");
+    static ref ENTRY_SERVER: JsWord = JsWord::from("entry_server");
+}
+
 // EntryStrategies
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -17,7 +22,8 @@ pub enum EntryStrategy {
     Smart,
     Manual(Vec<Vec<String>>),
 }
-pub trait EntryPolicy {
+
+pub trait EntryPolicy: Send + Sync {
     fn get_entry_for_sym(
         &self,
         symbol_name: &str,
@@ -28,7 +34,7 @@ pub trait EntryPolicy {
     ) -> Option<JsWord>;
 }
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct SingleStrategy;
 
 impl EntryPolicy for SingleStrategy {
@@ -40,14 +46,11 @@ impl EntryPolicy for SingleStrategy {
         _analytics: &HookCollect,
         _expr: &CallExpr,
     ) -> Option<JsWord> {
-        lazy_static! {
-            static ref WORD: JsWord = JsWord::from("entry_hooks");
-        }
-        Some(WORD.clone())
+        Some(ENTRY_HOOKS.clone())
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct PerHookStrategy {}
 
 impl EntryPolicy for PerHookStrategy {
@@ -63,7 +66,7 @@ impl EntryPolicy for PerHookStrategy {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct PerComponentStrategy {}
 
 impl EntryPolicy for PerComponentStrategy {
@@ -78,15 +81,12 @@ impl EntryPolicy for PerComponentStrategy {
         if let Some(root) = context.first() {
             Some(JsWord::from(["entry_", root].concat()))
         } else {
-            lazy_static! {
-                static ref WORD: JsWord = JsWord::from("entry-fallback");
-            }
-            Some(WORD.clone())
+            Some(ENTRY_HOOKS.clone())
         }
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct SmartStrategy;
 
 impl EntryPolicy for SmartStrategy {
@@ -98,20 +98,17 @@ impl EntryPolicy for SmartStrategy {
         _analytics: &HookCollect,
         _expr: &CallExpr,
     ) -> Option<JsWord> {
-        lazy_static! {
-            static ref SERVER: JsWord = JsWord::from("entry-server");
-            static ref FALLBACK: JsWord = JsWord::from("entry-fallback");
-        }
         if context.iter().any(|h| h == "onMount") {
-            return Some(SERVER.clone());
+            return Some(ENTRY_SERVER.clone());
         }
         Some(context.first().map_or_else(
-            || FALLBACK.clone(),
+            || ENTRY_HOOKS.clone(),
             |root| JsWord::from(["entry_", root].concat()),
         ))
     }
 }
 
+#[derive(Default, Clone)]
 pub struct ManualStrategy {
     map: HashMap<String, JsWord>,
     fallback: JsWord,
@@ -128,7 +125,7 @@ impl ManualStrategy {
         }
         Self {
             map,
-            fallback: JsWord::from("entry-fallback"),
+            fallback: ENTRY_HOOKS.clone(),
         }
     }
 }

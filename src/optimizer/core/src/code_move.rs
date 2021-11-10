@@ -187,8 +187,8 @@ fn test_fix_path() {
 pub fn generate_entries(
     mut output: TransformOutput,
     default_ext: &str,
-    source_map: Lrc<SourceMap>,
 ) -> Result<TransformOutput, anyhow::Error> {
+    let source_map = Lrc::new(SourceMap::default());
     let mut entries_map = HashMap::new();
     for hook in &output.hooks {
         if let Some(ref e) = hook.entry {

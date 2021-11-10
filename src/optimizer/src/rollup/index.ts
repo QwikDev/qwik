@@ -6,7 +6,7 @@ import {
   OutputEntryMap,
   Path,
   TransformFsOptions,
-  TransformResult,
+  TransformOutput,
 } from '..';
 import type { InputOption, Plugin } from 'rollup';
 
@@ -15,7 +15,7 @@ import type { InputOption, Plugin } from 'rollup';
  */
 export function qwikRollup(opts: QwikPluginOptions = {}): Plugin {
   let optimizer: Optimizer | undefined;
-  let result: TransformResult | undefined;
+  let result: TransformOutput | undefined;
 
   return {
     name: 'qwikPlugin',

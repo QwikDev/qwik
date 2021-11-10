@@ -1,17 +1,17 @@
 use std::collections::HashSet;
 
-use lazy_static::lazy_static;
-use regex::Regex;
-use swc_atoms::JsWord;
-use swc_common::comments::{Comments, SingleThreadedComments};
-use swc_common::{errors::HANDLER, sync::Lrc, SourceMap, DUMMY_SP};
-use swc_ecmascript::ast;
-use swc_ecmascript::visit::{noop_fold_type, Fold, FoldWith};
-
 use crate::code_move::fix_path;
 use crate::collector::HookCollect;
 use crate::entry_strategy::EntryPolicy;
 use crate::parse::PathData;
+use lazy_static::lazy_static;
+use regex::Regex;
+use std::sync::{Arc, RwLock};
+use swc_atoms::JsWord;
+use swc_common::comments::{Comments, SingleThreadedComments};
+use swc_common::{errors::HANDLER, DUMMY_SP};
+use swc_ecmascript::ast;
+use swc_ecmascript::visit::{noop_fold_type, Fold, FoldWith};
 
 lazy_static! {
     static ref QHOOK: JsWord = JsWord::from("qHook");
@@ -30,38 +30,38 @@ pub struct Hook {
 }
 
 pub struct TransformContext {
-    pub source_map: Lrc<SourceMap>,
     pub hooks_names: HashSet<String>,
-    pub bundling_policy: Box<dyn EntryPolicy>,
 }
 
 impl TransformContext {
-    pub fn new(bundling_policy: Box<dyn EntryPolicy>) -> Self {
-        Self {
+    pub fn new() -> ThreadSafeTransformContext {
+        Arc::new(RwLock::new(Self {
             hooks_names: HashSet::with_capacity(10),
-            source_map: Lrc::new(SourceMap::default()),
-            bundling_policy,
-        }
+        }))
     }
 }
+
+pub type ThreadSafeTransformContext = Arc<RwLock<TransformContext>>;
 
 #[allow(clippy::module_name_repetitions)]
 pub struct HookTransform<'a> {
     stack_ctxt: Vec<String>,
 
     root_sym: Option<String>,
-    context: &'a mut TransformContext,
+    context: ThreadSafeTransformContext,
     hooks: &'a mut Vec<Hook>,
 
     path_data: &'a PathData,
 
     comments: Option<&'a SingleThreadedComments>,
+    entry_policy: &'a dyn EntryPolicy,
 }
 
 impl<'a> HookTransform<'a> {
     pub fn new(
-        context: &'a mut TransformContext,
+        context: ThreadSafeTransformContext,
         path_data: &'a PathData,
+        entry_policy: &'a dyn EntryPolicy,
         comments: Option<&'a SingleThreadedComments>,
         hooks: &'a mut Vec<Hook>,
     ) -> Self {
@@ -71,6 +71,7 @@ impl<'a> HookTransform<'a> {
             hooks,
             root_sym: None,
             comments,
+            entry_policy,
             context,
         }
     }
@@ -81,7 +82,7 @@ impl<'a> HookTransform<'a> {
             ctx += "_h";
         }
         ctx = escape_sym(&ctx);
-        if self.context.hooks_names.contains(&ctx) {
+        if self.context.read().unwrap().hooks_names.contains(&ctx) {
             ctx += &self.hooks.len().to_string();
         }
         ctx
@@ -113,17 +114,15 @@ impl<'a> Fold for HookTransform<'a> {
     noop_fold_type!();
 
     fn fold_module_item(&mut self, item: ast::ModuleItem) -> ast::ModuleItem {
-        let item = match item {
+        match item {
             ast::ModuleItem::Stmt(ast::Stmt::Decl(ast::Decl::Var(node))) => {
-                let transformed = self.handle_var_decl(node);
-                ast::ModuleItem::Stmt(ast::Stmt::Decl(ast::Decl::Var(transformed)))
+                ast::ModuleItem::Stmt(ast::Stmt::Decl(ast::Decl::Var(self.handle_var_decl(node))))
             }
             ast::ModuleItem::ModuleDecl(ast::ModuleDecl::ExportDecl(node)) => match node.decl {
                 ast::Decl::Var(var) => {
-                    let transformed = self.handle_var_decl(var);
                     ast::ModuleItem::ModuleDecl(ast::ModuleDecl::ExportDecl(ast::ExportDecl {
                         span: DUMMY_SP,
-                        decl: ast::Decl::Var(transformed),
+                        decl: ast::Decl::Var(self.handle_var_decl(var)),
                     }))
                 }
                 ast::Decl::Class(class) => {
@@ -149,8 +148,7 @@ impl<'a> Fold for HookTransform<'a> {
             },
 
             item => item.fold_children_with(self),
-        };
-        item
+        }
     }
 
     fn fold_var_declarator(&mut self, node: ast::VarDeclarator) -> ast::VarDeclarator {
@@ -262,7 +260,7 @@ impl<'a> Fold for HookTransform<'a> {
 
                     let folded = node.fold_children_with(self);
                     let hook_collect = HookCollect::new(&folded);
-                    let entry = self.context.bundling_policy.get_entry_for_sym(
+                    let entry = self.entry_policy.get_entry_for_sym(
                         &symbol_name,
                         self.path_data,
                         &self.stack_ctxt,
@@ -296,7 +294,11 @@ impl<'a> Fold for HookTransform<'a> {
                     });
 
                     let node = create_inline_qhook(import_path, &symbol_name);
-                    self.context.hooks_names.insert(symbol_name);
+                    self.context
+                        .write()
+                        .unwrap()
+                        .hooks_names
+                        .insert(symbol_name);
                     return node;
                 }
             }

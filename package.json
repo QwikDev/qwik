@@ -3,8 +3,9 @@
   "version": "0.0.12-pre.0",
   "description": "An Open-Source sub-framework designed with a focus on server-side-rendering, lazy-loading, and styling/animation.",
   "scripts": {
-    "build": "node scripts --tsc --build --api --platform-binding",
-    "build.napi": "cd src/napi && napi build --platform --release --config=napi.config.json",
+    "build": "node scripts --tsc --build --api --platform-binding --wasm",
+    "build.platform": "node scripts --platform-binding",
+    "build.wasm": "node scripts --wasm",
     "build.validate": "node scripts --tsc --build --api --validate",
     "build.watch": "node scripts --build --watch --dev --platform-binding",
     "api.update": "node scripts --tsc --api --dev",
@@ -36,7 +37,7 @@
     "bazel:format": "find . -type f \\( -name \"*.bzl\" -or -name WORKSPACE -or -name BUILD -or -name BUILD.bazel \\) ! -path \"*/node_modules/*\" | xargs buildifier --warnings=attr-cfg,attr-license,attr-non-empty,attr-output-default,attr-single-file,constant-glob,ctx-actions,ctx-args,depset-iteration,depset-union,dict-concatenation,duplicated-name,filetype,git-repository,http-archive,integer-division,load,load-on-top,native-build,native-package,out-of-order-load,output-group,package-name,package-on-top,positional-args,redefined-variable,repository-name,same-origin-load,string-iteration,unsorted-dict-items,unused-variable",
     "bazel:lint": "npm run bazel:format -- --mode=check --lint=warn",
     "bazel:lint-fix": "npm run bazel:format -- --mode=fix --lint=fix",
-    "link": "cd dist-dev/@builder.io-qwik && npm link"
+    "dist.link": "cd dist-dev/@builder.io-qwik && npm link"
   },
   "devDependencies": {
     "@microsoft/api-extractor": "^7.16.1",
@@ -81,6 +82,10 @@
     "typescript": "^4.2.0"
   },
   "files": [
+    "bindings/wasm/qwik.nodejs.js",
+    "bindings/wasm/qwik.nodejs.wasm",
+    "bindings/wasm/qwik.web.js",
+    "bindings/wasm/qwik.web.wasm",
     "core.cjs",
     "core.cjs.map",
     "core.min.mjs",
@@ -99,10 +104,6 @@
     "prefetch.debug.js",
     "qwik.darwin-x64.node",
     "qwik.win32-x64-msvc.node",
-    "qwik.nodejs.js",
-    "qwik.nodejs.wasm",
-    "qwik.web.js",
-    "qwik.web.wasm",
     "qwikloader.js",
     "qwikloader.debug.js",
     "qwikloader.optimize.js",

@@ -66,7 +66,9 @@ export async function submoduleOptimizer(config: BuildConfig) {
           const src = await readFile(p, 'utf-8');
           const result = await minify(src, {
             compress: {
+              booleans: false,
               collapse_vars: false,
+              comparisons: false,
               drop_debugger: false,
               expression: false,
               keep_classnames: true,
@@ -77,6 +79,8 @@ export async function submoduleOptimizer(config: BuildConfig) {
               passes: 1,
               reduce_funcs: false,
               reduce_vars: false,
+              sequences: false,
+              switches: false,
             },
             format: {
               comments: false,

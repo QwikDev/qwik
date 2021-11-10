@@ -53,10 +53,10 @@ jobs:
           path: dist-dev/@builder.io-qwik
           if-no-files-found: error
 
-  ############ BUILD NODEJS WASM ############
+  ############ BUILD WASM ############
   build-wasm:
     if: "!contains(github.event.head_commit.message, 'skip ci')"
-    name: Build NodeJS WASM
+    name: Build WASM
     runs-on: ubuntu-latest
     steps:
       - name: Setup Node.js
@@ -84,8 +84,8 @@ jobs:
       - name: Upload NodeJS WASM Build Artifacts
         uses: actions/upload-artifact@master
         with:
-          name: dist-wasm-nodejs
-          path: dist-wasm/
+          name: dist-bindings-wasm
+          path: dist-dev/@builder.io-qwik/bindings/wasm/
           if-no-files-found: error
 
   ############ BUILD PLATFORM BINDINGS ############
@@ -98,19 +98,19 @@ jobs:
           - host: macos-latest
             target: x86_64-apple-darwin
             build: |
-              yarn build.napi
+              yarn build.platform
               strip -x *.node
 
           # - host: macos-latest
           #   target: aarch64-apple-darwin
           #   build: |
-          #     yarn build.napi --target=aarch64-apple-darwin
+          #     yarn build.platform --target=aarch64-apple-darwin
           #     strip -x *.node
 
           - host: windows-latest
             target: x86_64-pc-windows-msvc
             build: |
-              yarn build.napi --config=napi.config.json
+              yarn build.platform
 
     name: Build ${{ matrix.settings.target }}
     runs-on: ${{ matrix.settings.host }}
@@ -181,7 +181,7 @@ jobs:
       - name: Upload Binding Artifact
         uses: actions/upload-artifact@v2
         with:
-          name: dist-platform-${{ matrix.settings.target }}
+          name: dist-bindings-${{ matrix.settings.target }}
           path: src/napi/*.node
 
   ############ RELEASE ############
@@ -218,18 +218,24 @@ jobs:
           mv dist-dev-builder-io-qwik dist-dev
           mv dist-dev/dist-dev-builder-io-qwik dist-dev/@builder.io-qwik
 
-      - name: Print WASM Build Artifacts
-        run: ls -R dist-wasm-*/*
+      - name: Create dist-dev/@builder.io-qwik/bindings directory
+        run: |
+          mkdir dist-dev/@builder.io-qwik/bindings
+          mkdir dist-dev/@builder.io-qwik/bindings/wasm
+
+      - name: Print Bindings Artifacts
+        run: ls -R dist-bindings-*/*
 
       - name: Move WASM Artifacts
         run: |
-          mv dist-wasm-*/*.{wasm,js} dist-dev/@builder.io-qwik
+          mv dist-bindings-wasm dist-dev/@builder.io-qwik/bindings/wasm
+          mv dist-dev/@builder.io-qwik/bindings/dist-bindings-wasm dist-dev/@builder.io-qwik/bindings/wasm
 
-      - name: Print Platform Build Artifacts
-        run: ls -R dist-platform-*/*.node
+      - name: Print dist-dev
+        run: ls -R dist-dev
 
       - name: Move Platform Binding Artifacts
-        run: mv dist-platform-*/*.node dist-dev/@builder.io-qwik
+        run: mv dist-bindings-*/*.node dist-dev/@builder.io-qwik/bindings
 
       - name: Cache NPM Dependencies
         uses: actions/cache@v2

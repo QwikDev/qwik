@@ -1,8 +1,8 @@
 import { BuildConfig, ensureDir, panic } from './util';
 import { apiExtractor } from './api';
 import { buildDevServer } from './devserver';
-import { buildPlatformBinding } from './platform-binding';
-import { buildWasm } from './wasm';
+import { buildPlatformBinding } from './binding-platform';
+import { buildWasmBinding } from './binding-wasm';
 import { copyFiles } from './copy-files';
 import { emptyDir } from './util';
 import { generateJsxTypes } from './jsx-types';
@@ -66,7 +66,7 @@ export async function build(config: BuildConfig) {
     }
 
     if (config.wasm) {
-      await buildWasm(config);
+      await buildWasmBinding(config);
     }
 
     if (config.api) {

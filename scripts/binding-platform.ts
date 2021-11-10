@@ -3,17 +3,13 @@ import spawn from 'cross-spawn';
 import { join } from 'path';
 
 export async function buildPlatformBinding(config: BuildConfig) {
-  if (!config.platformBinding) {
-    return;
-  }
-
   await new Promise((resolve, reject) => {
     try {
-      console.log('🐯 native binding');
       ensureDir(config.distPkgDir);
+      ensureDir(config.distBindingsDir);
 
       const cmd = `napi`;
-      const args = [`build`, `--platform`, `--config=napi.config.json`, config.distPkgDir];
+      const args = [`build`, `--platform`, `--config=napi.config.json`, config.distBindingsDir];
 
       if (!config.dev) {
         args.push(`--release`);
@@ -35,4 +31,6 @@ export async function buildPlatformBinding(config: BuildConfig) {
       reject(e);
     }
   });
+
+  console.log('🐯 native binding');
 }

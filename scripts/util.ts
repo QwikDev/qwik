@@ -32,6 +32,7 @@ export interface BuildConfig {
   scriptsDir: string;
   tscDir: string;
   distPkgDir: string;
+  distBindingsDir: string;
   esmNode: boolean;
   distVersion: string;
 
@@ -64,6 +65,7 @@ export function loadConfig(args: string[] = []) {
   config.srcNapiDir = join(config.srcDir, 'napi');
   config.scriptsDir = join(config.rootDir, 'scripts');
   config.distPkgDir = join(config.distDir, '@builder.io-qwik');
+  config.distBindingsDir = join(config.distPkgDir, 'bindings');
   config.tscDir = join(config.distDir, 'tsc-out');
   config.esmNode = parseInt(process.version.substr(1).split('.')[0], 10) >= 14;
   config.platformBinding = (config as any)['platform-binding'];

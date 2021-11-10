@@ -439,9 +439,9 @@ jobs:
         if: ${{ always() }}
         run: yarn lint.eslint
 
-  ########### RUST FMT ############
-  rust-fmt:
-    name: Rust fmt
+  ########### RUST VALIDATE ############
+  rust-validate:
+    name: Rust validate
     if: "!contains(github.event.head_commit.message, 'skip ci')"
     runs-on: ubuntu-latest
     steps:
@@ -453,30 +453,6 @@ jobs:
           toolchain: stable
           profile: minimal
           override: true
-          components: rustfmt
+          components: rustfmt, clippy
       - name: Check formatting
-        uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --manifest-path=src/Cargo.toml --all -- --check
-
-  ########### RUST CLIPPY ############
-  rust-clippy:
-    name: Rust Clippy
-    if: "!contains(github.event.head_commit.message, 'skip ci')"
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-      - name: Install Rust toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          profile: minimal
-          override: true
-          components: clippy
-      - name: Clippy check
-        uses: actions-rs/cargo@v1
-        with:
-          command: clippy
-          args: --manifest-path=src/Cargo.toml --all-targets --all-features --workspace -- -W clippy::pedantic
+        run: make validate

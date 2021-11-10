@@ -85,8 +85,8 @@
     "bindings/qwik.darwin-x64.node",
     "bindings/qwik.win32-x64-msvc.node",
     "bindings/qwik_wasm_bg.wasm",
-    "bindings/qwik.web.cjs",
-    "bindings/qwik.web.mjs",
+    "bindings/qwik.wasm.cjs",
+    "bindings/qwik.wasm.mjs",
     "core.cjs",
     "core.cjs.map",
     "core.min.mjs",
@@ -162,7 +162,7 @@
     "node": ">=10"
   },
   "jest": {
-    "preset": "./dist-dev/@builder.io-qwik/testing/jest-preset.cjs",
+    "preset": "ts-jest",
     "moduleFileExtensions": [
       "ts",
       "tsx",
@@ -173,7 +173,6 @@
       "d.ts"
     ],
     "moduleNameMapper": {
-      "^@builder.io/qwik/core$": "<rootDir>/src/core/index.ts",
       "^@builder.io/qwik/jsx-runtime$": "<rootDir>/src/jsx-runtime.ts",
       "^@builder.io/qwik/optimizer$": "<rootDir>/src/optimizer/index.ts",
       "^@builder.io/qwik/server$": "<rootDir>/src/server/index.ts",
@@ -184,8 +183,10 @@
       "<rootDir>/bazel-out",
       "<rootDir>/dist",
       "<rootDir>/dist-dev",
+      "<rootDir>/integration",
       "<rootDir>/node_modules",
-      "<rootDir>/tsc-out"
+      "<rootDir>/src/optimizer/core/src/snapshots/",
+      "<rootDir>/target"
     ],
     "testPathIgnorePatterns": [
       "<rootDir>/.github/",
@@ -199,7 +200,7 @@
       "<rootDir>/docs/",
       "<rootDir>/integration/",
       "<rootDir>/node_modules/",
-      "<rootDir>/tsc-out/"
+      "<rootDir>/target/"
     ],
     "testRegex": "/(scripts|src)/.*\\.unit\\.(ts|tsx)$"
   },

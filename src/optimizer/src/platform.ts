@@ -25,7 +25,6 @@ export async function getSystem() {
   if (globalThis.IS_CJS && sys.isNode) {
     // using this api object as a way to ensure bundlers
     // do not try to inline or rewrite require()
-    const api = Object.assign({ require: 'require' });
     sys.dynamicImport = (path) => require(path);
   }
 

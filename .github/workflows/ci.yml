@@ -85,7 +85,7 @@ jobs:
         uses: actions/upload-artifact@master
         with:
           name: dist-bindings-wasm
-          path: dist-dev/@builder.io-qwik/bindings/wasm/
+          path: dist-dev/@builder.io-qwik/bindings/
           if-no-files-found: error
 
   ############ BUILD PLATFORM BINDINGS ############
@@ -219,17 +219,13 @@ jobs:
           mv dist-dev/dist-dev-builder-io-qwik dist-dev/@builder.io-qwik
 
       - name: Create dist-dev/@builder.io-qwik/bindings directory
-        run: |
-          mkdir dist-dev/@builder.io-qwik/bindings
-          mkdir dist-dev/@builder.io-qwik/bindings/wasm
+        run: mkdir dist-dev/@builder.io-qwik/bindings
 
       - name: Print Bindings Artifacts
         run: ls -R dist-bindings-*/*
 
       - name: Move WASM Artifacts
-        run: |
-          mv dist-bindings-wasm dist-dev/@builder.io-qwik/bindings/wasm
-          mv dist-dev/@builder.io-qwik/bindings/dist-bindings-wasm dist-dev/@builder.io-qwik/bindings/wasm
+        run: mv dist-bindings-wasm/* dist-dev/@builder.io-qwik/bindings
 
       - name: Print dist-dev
         run: ls -R dist-dev

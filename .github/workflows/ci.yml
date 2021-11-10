@@ -452,3 +452,9 @@ jobs:
         with:
           command: clippy
           args: --all-features
+
+      - name: Unit tests
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --all-features

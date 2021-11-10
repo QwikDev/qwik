@@ -6,11 +6,15 @@ import { join } from 'path';
 import { validateBuild } from './validate-build';
 
 export async function setVersion(config: BuildConfig) {
+  const rootPkg = await readPackageJson(config.rootDir);
+  config.distVersion = rootPkg.version;
+
   if (
     (typeof config.setVerison !== 'string' && typeof config.setVerison !== 'number') ||
     String(config.setVerison) === ''
   ) {
     config.setVerison = undefined;
+    config.distVersion = generateDevVersion(rootPkg.version);
     return;
   }
 
@@ -24,7 +28,6 @@ export async function setVersion(config: BuildConfig) {
     panic(`Invalid semver version "${config.setVerison}"`);
   }
 
-  const rootPkg = await readPackageJson(config.rootDir);
   if (semver.lte(newVersion, rootPkg.version)) {
     panic(
       `New version "${newVersion}" is less than or equal to current version "${rootPkg.version}"`
@@ -37,9 +40,9 @@ export async function setVersion(config: BuildConfig) {
   updatedPkg.version = newVersion;
   await writePackageJson(config.rootDir, updatedPkg);
 
-  config.setVerison = newVersion;
+  config.distVersion = newVersion;
 
-  console.log(`⬆️ version set to "${config.setVerison}", dist tag set to "${distTag}"`);
+  console.log(`⬆️ version set to "${config.distVersion}", dist tag set to "${distTag}"`);
 }
 
 export async function publish(config: BuildConfig) {
@@ -114,4 +117,16 @@ async function checkExistingNpmVersion(pkg: PackageJSON, newVersion: string) {
   if (publishedVersions.includes(newVersion)) {
     panic(`Version "${newVersion}" of ${pkg.name} is already published to npm`);
   }
+}
+
+function generateDevVersion(v: string) {
+  const d = new Date();
+  v += '.';
+  v += d.getUTCFullYear() + '';
+  v += ('0' + (d.getUTCMonth() + 1)).slice(-2);
+  v += ('0' + d.getUTCDate()).slice(-2);
+  v += ('0' + d.getUTCHours()).slice(-2);
+  v += ('0' + d.getUTCMinutes()).slice(-2);
+  v += ('0' + d.getUTCSeconds()).slice(-2);
+  return v;
 }

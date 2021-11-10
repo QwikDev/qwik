@@ -12,7 +12,7 @@ export async function generatePackageJson(config: BuildConfig) {
 
   const distPkg: PackageJSON = {
     name: rootPkg.name,
-    version: rootPkg.version,
+    version: config.distVersion,
     description: rootPkg.description,
     license: rootPkg.license,
     main: './core.cjs',
@@ -58,17 +58,6 @@ export async function generatePackageJson(config: BuildConfig) {
     keywords: rootPkg.keywords,
     engines: rootPkg.engines,
   };
-
-  if (!config.setVerison) {
-    const d = new Date();
-    distPkg.version += '.';
-    distPkg.version += d.getUTCFullYear() + '';
-    distPkg.version += ('0' + (d.getUTCMonth() + 1)).slice(-2);
-    distPkg.version += ('0' + d.getUTCDate()).slice(-2);
-    distPkg.version += ('0' + d.getUTCHours()).slice(-2);
-    distPkg.version += ('0' + d.getUTCMinutes()).slice(-2);
-    distPkg.version += ('0' + d.getUTCSeconds()).slice(-2);
-  }
 
   await writePackageJson(config.distPkgDir, distPkg);
 

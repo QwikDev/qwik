@@ -24,6 +24,22 @@ async function submoduleCoreProd(config: BuildConfig) {
   const input: InputOptions = {
     input: join(config.tscDir, 'src', 'core', 'index.js'),
     onwarn: rollupOnWarn,
+    plugins: [
+      {
+        name: 'setVersion',
+        generateBundle(_, bundles) {
+          for (const f in bundles) {
+            const b = bundles[f];
+            if (b.type === 'chunk') {
+              b.code = b.code.replace(
+                'globalThis.QWIK_VERSION',
+                JSON.stringify(config.distVersion)
+              );
+            }
+          }
+        },
+      },
+    ],
   };
 
   const esmOutput: OutputOptions = {
@@ -60,6 +76,7 @@ async function submoduleCoreProd(config: BuildConfig) {
         // developer production builds could use core.min.js directly, or setup
         // their own build tools to define the globa `qwikDev` to false
         'globalThis.qDev': false,
+        'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
       },
       ecma: 2018,
       passes: 2,
@@ -100,6 +117,9 @@ async function submoduleCoreDev(config: BuildConfig) {
     sourcemap: 'external',
     target,
     banner,
+    define: {
+      'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
+    },
   };
 
   const esm = build({

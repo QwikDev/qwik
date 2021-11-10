@@ -11,6 +11,7 @@ import {
   target,
   watcher,
 } from './util';
+import { readPackageJson } from './package-json';
 
 /**
  * Builds @builder.io/server
@@ -31,7 +32,11 @@ export async function submoduleServer(config: BuildConfig) {
     target,
     banner,
     external: [...nodeBuiltIns, 'domino'],
-    define: await inlineQwikScripts(config),
+    define: {
+      ...(await inlineQwikScripts(config)),
+      'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
+      'globalThis.DOMINO_VERSION': JSON.stringify(await getDominoVersion()),
+    },
   };
 
   const esm = build({
@@ -138,4 +143,11 @@ async function bundleDomino(config: BuildConfig) {
   };
 
   return dominoPlugin;
+}
+
+async function getDominoVersion() {
+  const indexPath = require.resolve('domino');
+  const pkgJsonPath = join(indexPath, '..', '..');
+  const pkgJson = await readPackageJson(pkgJsonPath);
+  return pkgJson.version;
 }

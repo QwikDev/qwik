@@ -36,6 +36,7 @@ export async function submoduleOptimizer(config: BuildConfig) {
       define: {
         'globalThis.IS_CJS': 'false',
         'globalThis.IS_ESM': 'true',
+        'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
       },
       watch: watcher(config, submodule),
     });
@@ -47,6 +48,7 @@ export async function submoduleOptimizer(config: BuildConfig) {
       define: {
         'globalThis.IS_CJS': 'true',
         'globalThis.IS_ESM': 'false',
+        'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
       },
       watch: watcher(config),
       platform: 'node',

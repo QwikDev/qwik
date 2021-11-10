@@ -29,9 +29,7 @@ export async function build(config: BuildConfig) {
   try {
     console.log(`🌎 Qwik (nodejs ${process.version})`);
 
-    if (config.setVerison) {
-      await setVersion(config);
-    }
+    await setVersion(config);
 
     if (config.tsc) {
       tsc(config);
@@ -44,6 +42,9 @@ export async function build(config: BuildConfig) {
         emptyDir(config.distPkgDir);
       }
 
+      // create the dist package.json first so we get the version set
+      await generatePackageJson(config);
+
       await Promise.all([
         submoduleCore(config),
         submoduleJsxRuntime(config),
@@ -51,10 +52,10 @@ export async function build(config: BuildConfig) {
         submodulePrefetch(config),
         submoduleOptimizer(config),
         submoduleTesting(config),
-        generatePackageJson(config),
         copyFiles(config),
         buildDevServer(config),
       ]);
+
       // server bundling must happen after the results from the others
       // because it inlines the qwik loader and prefetch scripts
       await submoduleServer(config);

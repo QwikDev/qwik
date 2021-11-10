@@ -33,6 +33,7 @@ export interface BuildConfig {
   tscDir: string;
   distPkgDir: string;
   esmNode: boolean;
+  distVersion: string;
 
   api?: boolean;
   build?: boolean;

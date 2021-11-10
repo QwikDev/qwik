@@ -59,3 +59,5 @@ export { useTransient } from './use/use-transient.public';
 // Developer Low-Level API
 //////////////////////////////////////////////////////////////////////////////////////////
 export { ValueOrPromise } from './util/types';
+
+export const version = (globalThis as any).QWIK_VERSION;

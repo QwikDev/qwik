@@ -76,6 +76,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
+      - name: Cache NPM Dependencies
+        uses: actions/cache@v2
+        with:
+          path: node_modules
+          key: npm-cache-ubuntu-${{ hashFiles('yarn.lock') }}
+          restore-keys: npm-cache-ubuntu-
+
       - name: Install NPM Dependencies
         run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
         env:
@@ -196,7 +203,7 @@ jobs:
       - build-wasm
       - build-bindings
       - validate-rust
-      #- test-unit
+      - test-unit
       #- test-e2e
 
     steps:
@@ -285,36 +292,36 @@ jobs:
           if-no-files-found: error
 
   ############ UNIT TEST ############
-  # test-unit:
-  #   name: Unit Tests
-  #   runs-on: ubuntu-latest
+  test-unit:
+    name: Unit Tests
+    runs-on: ubuntu-latest
 
-  #   steps:
-  #     - name: Setup Node.js
-  #       uses: actions/setup-node@v1
-  #       with:
-  #         node-version: 10.x
-  #         registry-url: https://registry.npmjs.org/
+    steps:
+      - name: Setup Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 10.x
+          registry-url: https://registry.npmjs.org/
 
-  #     - name: Checkout
-  #       uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
 
-  # - name: Cache NPM Dependencies
-  #   uses: actions/cache@v2
-  #   with:
-  #     path: node_modules
-  #     key: npm-cache-ubuntu-${{ hashFiles('yarn.lock') }}
-  #     restore-keys: npm-cache-ubuntu-
+      - name: Cache NPM Dependencies
+        uses: actions/cache@v2
+        with:
+          path: node_modules
+          key: npm-cache-ubuntu-${{ hashFiles('yarn.lock') }}
+          restore-keys: npm-cache-ubuntu-
 
-  #     - name: Install NPM Dependencies
-  #       run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
-  # env:
-  #   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Install NPM Dependencies
+        run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-  #     - name: Unit Tests
-  #       run: |
-  #         yarn build
-  #         yarn test.unit
+      - name: Unit Tests
+        run: |
+          yarn build
+          yarn test.unit
 
   ############ E2E TEST ############
   # test-e2e:
@@ -354,33 +361,6 @@ jobs:
   #       with:
   #         name: Cypress Videos
   #         path: cypress/videos
-
-  ########### LINT PACKAGE ############
-  lint-package:
-    name: Lint Package
-    if: "!contains(github.event.head_commit.message, 'skip ci')"
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Cache NPM Dependencies
-        uses: actions/cache@v2
-        with:
-          path: node_modules
-          key: npm-cache-ubuntu-${{ hashFiles('yarn.lock') }}
-          restore-keys: npm-cache-ubuntu-
-
-      - name: Install NPM Dependencies
-        run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
-
-      - name: Prettier Check
-        if: ${{ always() }}
-        run: yarn lint.prettier
-
-      - name: ESLint Check
-        if: ${{ always() }}
-        run: yarn lint.eslint
 
   ########### VALIDATE RUST ############
   validate-rust:
@@ -422,3 +402,30 @@ jobs:
         with:
           command: test
           args: --all-features
+
+  ########### LINT PACKAGE ############
+  lint-package:
+    name: Lint Package
+    if: "!contains(github.event.head_commit.message, 'skip ci')"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Cache NPM Dependencies
+        uses: actions/cache@v2
+        with:
+          path: node_modules
+          key: npm-cache-ubuntu-${{ hashFiles('yarn.lock') }}
+          restore-keys: npm-cache-ubuntu-
+
+      - name: Install NPM Dependencies
+        run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
+
+      - name: Prettier Check
+        if: ${{ always() }}
+        run: yarn lint.prettier
+
+      - name: ESLint Check
+        if: ${{ always() }}
+        run: yarn lint.eslint

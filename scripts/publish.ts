@@ -46,7 +46,7 @@ export async function setVersion(config: BuildConfig) {
 }
 
 export async function publish(config: BuildConfig) {
-  const isDryRun = true || !!config.dryRun;
+  const isDryRun = !!config.dryRun;
 
   const distPkgDir = config.distPkgDir;
   const pkgJsonPath = join(config.rootDir, 'package.json');
@@ -62,6 +62,10 @@ export async function publish(config: BuildConfig) {
   await execa('npm', ['pack'], { cwd: distPkgDir });
   await execa('mv', [pkgTarName, '../'], { cwd: distPkgDir });
 
+  // create a changelog back to the last release tag
+  // this also gets uploaded as an artifact
+  await execa('yarn', ['changelog']);
+
   // make sure our build is good to go and has the files we expect
   // and each of the files can be parsed correctly
   await validateBuild(config);
@@ -69,10 +73,6 @@ export async function publish(config: BuildConfig) {
   // make sure this version hasn't already been published
   // a dev build should also not conflict
   await checkExistingNpmVersion(distPkg, version);
-
-  // create a changelog back to the last release tag
-  // this also gets uploaded as an artifact
-  await execa('yarn', ['changelog']);
 
   // check all is good with an npm publish --dry-run before we continue
   // dry-run does everything the same except actually publish to npm

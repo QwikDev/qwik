@@ -179,9 +179,6 @@ jobs:
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Print Platform Dist Build
-        run: ls -R dist-dev/@builder.io-qwik/bindings/
-
       - name: Upload Platform Binding Artifact
         uses: actions/upload-artifact@v2
         with:

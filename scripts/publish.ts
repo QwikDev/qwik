@@ -1,8 +1,8 @@
-import { readPackageJson, writePackageJson } from './package-json';
-import { BuildConfig, PackageJSON, panic, writeFile } from './util';
-import semver from 'semver';
+import { BuildConfig, PackageJSON, panic } from './util';
 import execa from 'execa';
 import { join } from 'path';
+import { readPackageJson, writePackageJson } from './package-json';
+import semver from 'semver';
 import { validateBuild } from './validate-build';
 
 export async function setVersion(config: BuildConfig) {
@@ -48,42 +48,66 @@ export async function setVersion(config: BuildConfig) {
 export async function publish(config: BuildConfig) {
   const isDryRun = true || !!config.dryRun;
 
-  const distPkg = await readPackageJson(config.distPkgDir);
+  const distPkgDir = config.distPkgDir;
+  const pkgJsonPath = join(config.rootDir, 'package.json');
+  const distPkg = await readPackageJson(distPkgDir);
   const version = distPkg.version;
   const gitTag = `v${version}`;
   const distTag = String(config.setDistTag) || 'dryrun';
 
-  console.log(`🚢 publishing ${version}`, isDryRun ? '(dry-run)' : '');
+  console.log(`🚢 publishing ${distPkg.name} ${version}`, isDryRun ? '(dry-run)' : '');
 
+  // create a pack.tgz which is useful for debugging and uploaded as an artifact
   const pkgTarName = `builder.io-qwik-${version}.tgz`;
-  await execa('npm', ['pack'], { cwd: config.distPkgDir });
-  await execa('mv', [pkgTarName, '../'], { cwd: config.distPkgDir });
+  await execa('npm', ['pack'], { cwd: distPkgDir });
+  await execa('mv', [pkgTarName, '../'], { cwd: distPkgDir });
 
-  if (!isDryRun) {
-    await checkExistingNpmVersion(distPkg, version);
-  }
-
+  // make sure our build is good to go and has the files we expect
+  // and each of the files can be parsed correctly
   await validateBuild(config);
 
+  // make sure this version hasn't already been published
+  // a dev build should also not conflict
+  await checkExistingNpmVersion(distPkg, version);
+
+  // create a changelog back to the last release tag
+  // this also gets uploaded as an artifact
   await execa('yarn', ['changelog']);
 
+  // check all is good with an npm publish --dry-run before we continue
+  // dry-run does everything the same except actually publish to npm
+  const npmPublishArgs = ['publish', '--tag', distTag, '--access', 'public'];
+  await run('npm', npmPublishArgs, true, true, { cwd: distPkgDir });
+
+  // looks like the npm publish --dry-run was successful and
+  // we have more confidence that it should work on a real publish
+
+  // set the user git config email
   const actor = process.env.GITHUB_ACTOR || 'builderbot';
   const actorEmail = `${actor}@users.noreply.github.com`;
-  await run('git', ['config', 'user.email', `"${actorEmail}"`], isDryRun);
-  await run('git', ['config', 'user.name', `"${actor}"`], isDryRun);
+  const gitConfigEmailArgs = ['config', 'user.email', `"${actorEmail}"`];
+  await run('git', gitConfigEmailArgs, isDryRun);
 
-  const pkgJsonPath = join(config.rootDir, 'package.json');
+  // set the user git config name
+  const gitConfigNameArgs = ['config', 'user.name', `"${actor}"`];
+  await run('git', gitConfigNameArgs, isDryRun);
+
+  // git add the changed package.json
   const gitAddArgs = ['add', pkgJsonPath];
   await run('git', gitAddArgs, isDryRun);
 
+  // git commit the changed package.json
+  // also adding "skip ci" to the message so the commit doesn't bother building
   const gitCommitTitle = `"${version}"`;
   const gitCommitBody = `"skip ci"`;
   const gitCommitArgs = ['commit', '-m', gitCommitTitle, '-m', gitCommitBody];
   await run('git', gitCommitArgs, isDryRun);
 
+  // git tag this commit
   const gitTagArgs = ['tag', '-f', '-m', version, gitTag];
   await run('git', gitTagArgs, isDryRun);
 
+  // git push to the repo
   const gitPushArgs = ['push', '--follow-tags'];
   await run('git', gitPushArgs, isDryRun);
 
@@ -92,11 +116,15 @@ export async function publish(config: BuildConfig) {
     isDryRun ? '(dry-run)' : ''
   );
 
-  const npmPublishArgs = ['publish', '--tag', distTag, '--access', 'public'];
-  if (isDryRun) {
-    npmPublishArgs.push('--dry-run');
+  if (!isDryRun) {
+    // if we've made it this far then the npm publish dry-run passed
+    // and all of the git command worked, time to publish!!
+    // ⛴ LET'S GO!!
+    const TODO_SET_TO_TRUE_WHEN_READY = false;
+    await run('npm', npmPublishArgs, TODO_SET_TO_TRUE_WHEN_READY, false, {
+      cwd: distPkgDir,
+    });
   }
-  await execa('npm', npmPublishArgs, { cwd: config.distPkgDir });
 
   console.log(
     `🐋 published version "${version}" of ${distPkg.name} with dist-tag "${distTag}" to npm`,
@@ -104,10 +132,19 @@ export async function publish(config: BuildConfig) {
   );
 }
 
-async function run(cmd: string, args: string[], isDryRun: boolean) {
-  console.log(`  ${cmd} ${args.join(' ')}`, isDryRun ? '(dry-run)' : '');
-  if (!isDryRun) {
-    await execa(cmd, args);
+async function run(
+  cmd: string,
+  args: string[],
+  exe?: boolean,
+  dryRunFlag?: boolean,
+  opts?: execa.Options
+) {
+  if (dryRunFlag) {
+    args = [...args, '--dry-run'];
+  }
+  console.log(`  ${cmd} ${args.join(' ')}`, opts ? JSON.stringify(opts) : '');
+  if (exe) {
+    await execa(cmd, args, opts);
   }
 }
 

@@ -2,6 +2,7 @@ import { BuildConfig, ensureDir } from './util';
 import spawn from 'cross-spawn';
 import { join } from 'path';
 import { renameSync } from 'fs';
+import { rollup } from 'rollup';
 
 export async function buildWasm(config: BuildConfig) {
   if (!config.wasm) {
@@ -10,10 +11,10 @@ export async function buildWasm(config: BuildConfig) {
 
   ensureDir(config.distPkgDir);
 
-  async function buildForTarget(target: string, env = {}) {
+  async function buildForTarget(env = {}) {
     const cmd = `wasm-pack`;
-    const output = join(config.distPkgDir, `wasm-${target}`);
-    const args = [`build`, `--target`, target, `--out-dir`, output];
+    const outputPath = join(config.distPkgDir, 'bindings', `wasm`);
+    const args = [`build`, '--target', 'web', `--out-dir`, outputPath];
     if (!config.dev) {
       args.push(`--release`);
     }
@@ -38,15 +39,35 @@ export async function buildWasm(config: BuildConfig) {
         }
       });
     });
-    // renameSync(join(output, 'qwik_wasm.js'), join(output, 'qwik_wasm.cjs'));
+    return {
+      output: join(outputPath, 'qwik_wasm.js'),
+      dir: outputPath,
+    };
   }
 
-  await buildForTarget('nodejs');
-  await buildForTarget('web', {
+  const data = await buildForTarget({
     CARGO_PROFILE_RELEASE_LTO: true,
     CARGO_PROFILE_RELEASE_PANIC: 'abort',
     CARGO_PROFILE_RELEASE_OPT_LEVEL: 'z',
   });
 
   console.log('⚙️ wasm binding');
+
+  const build = await rollup({
+    input: data.output,
+  });
+
+  await build.write({
+    format: 'es',
+    file: join(data.dir, 'index.mjs'),
+    exports: 'named'
+  });
+
+  await build.write({
+    format: 'cjs',
+    file: join(data.dir, 'index.cjs'),
+    exports: 'named'
+  });
+
+  console.log('⚙️ generating node glue code');
 }

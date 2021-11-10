@@ -26,7 +26,7 @@ export async function getSystem() {
     // using this api object as a way to ensure bundlers
     // do not try to inline or rewrite require()
     const api = Object.assign({ require: 'require' });
-    sys.dynamicImport = global[api.require].bind(global);
+    sys.dynamicImport = global[api.require];
   }
 
   if (sys.isNode) {
@@ -55,13 +55,12 @@ async function loadPlatformBinding(sys: InternalSystem) {
     }
 
     // NodeJS - WASM
-    const wasmJsPath = sys.path.join(`..`, `qwik.nodejs.js`);
-    return sys.dynamicImport(wasmJsPath);
+    return sys.dynamicImport('../bindings/wasm/index.cjs')
   }
 
   if (globalThis.IS_ESM) {
     // Browser ESM - WASM
-    const module = await sys.dynamicImport('../qwik.web.js');
+    const module = await sys.dynamicImport('../bindings/wasm/index.mjs');
     await module.default();
     const esmBinding: PlatformBinding = {
       transform_modules: module.transform_modules,

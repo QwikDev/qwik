@@ -73,59 +73,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Build NodeJS WASM
-        working-directory: ./src
-        run: wasm-pack build wasm/ --target=nodejs --release --out-dir=../../dist-wasm --out-name=qwik.nodejs.wasm
-
-      - name: Print Output
-        run: ls -R
+      - name: Build WASM
+        run: node scripts --wasm --set-version="${{ github.event.inputs.version }}" --set-dist-tag="${{ github.event.inputs.disttag }}"
 
       - name: Upload NodeJS WASM Build Artifacts
         uses: actions/upload-artifact@master
         with:
           name: dist-wasm-nodejs
-          path: dist-wasm/
-          if-no-files-found: error
-
-  ############ BUILD WEB WASM ############
-  build-wasm-web:
-    if: "!contains(github.event.head_commit.message, 'skip ci')"
-    name: Build Web WASM
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v1
-        with:
-          node-version: 16.x
-          registry-url: https://registry.npmjs.org/
-
-      - name: Install wasm-pack
-        uses: jetli/wasm-pack-action@v0.3.0
-        with:
-          version: 'latest'
-
-      - name: Install
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          override: true
-          toolchain: stable
-          target: ${{ matrix.settings.target }}
-
-      - name: Build Web WASM
-        working-directory: ./src
-        run: wasm-pack build wasm/ --target=web --release --out-dir=../../dist-wasm --out-name=qwik.web.wasm
-
-      - name: Print Output
-        run: ls -R
-
-      - name: Upload Web WASM Build Artifacts
-        uses: actions/upload-artifact@master
-        with:
-          name: dist-wasm-web
           path: dist-wasm/
           if-no-files-found: error
 

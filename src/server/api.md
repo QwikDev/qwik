@@ -96,6 +96,12 @@ export function serializeDocument(doc: Document, opts?: SerializeDocumentOptions
 // @public
 export function setServerPlatform(document: any, opts: DocumentOptions): void;
 
+// @alpha (undocumented)
+export const versions: {
+    qwik: any;
+    domino: any;
+};
+
 
 // (No @packageDocumentation comment for this package)
 

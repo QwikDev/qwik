@@ -135,21 +135,28 @@ pub fn transform_modules(config: TransformModulesOptions) -> Result<TransformOut
 
     #[cfg(not(feature = "parallel"))]
     let iterator = config.input.iter();
-    let mut final_output = iterator
-        .map(|path| -> Result<TransformOutput, Error> {
-            transform_code(TransformCodeOptions {
-                path: &path.path,
-                minify: config.minify,
-                code: &path.code,
-                source_maps: config.source_maps,
-                transpile: config.transpile,
-                print_ast: false,
-                entry_policy,
-                context: context.clone(),
-            })
+    let iterator = iterator.map(|path| -> Result<TransformOutput, Error> {
+        transform_code(TransformCodeOptions {
+            path: &path.path,
+            minify: config.minify,
+            code: &path.code,
+            source_maps: config.source_maps,
+            transpile: config.transpile,
+            print_ast: false,
+            entry_policy,
+            context: context.clone(),
         })
-        .reduce(|| Ok(TransformOutput::new()), |x, y| Ok(x?.append(&mut y?)))?;
+    });
 
+    #[cfg(feature = "parallel")]
+    let final_output: Result<TransformOutput, Error> =
+        iterator.reduce(|| Ok(TransformOutput::new()), |x, y| Ok(x?.append(&mut y?)));
+
+    #[cfg(not(feature = "parallel"))]
+    let final_output: Result<TransformOutput, Error> =
+        iterator.fold(Ok(TransformOutput::new()), |x, y| Ok(x?.append(&mut y?)));
+
+    let mut final_output = final_output?;
     final_output = generate_entries(final_output, config.transpile)?;
     final_output.elapsed = start.elapsed();
     Ok(final_output)

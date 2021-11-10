@@ -338,7 +338,7 @@ export function useURL(): URL;
 // @public
 export type ValueOrPromise<T> = T | Promise<T>;
 
-// @public (undocumented)
+// @alpha (undocumented)
 export const version: any;
 
 

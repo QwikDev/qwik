@@ -232,6 +232,11 @@ export interface TransformOutput {
 // @alpha (undocumented)
 export type TranspileOption = boolean | undefined | null;
 
+// @alpha (undocumented)
+export const versions: {
+    qwik: any;
+};
+
 
 // (No @packageDocumentation comment for this package)
 

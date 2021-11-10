@@ -5,3 +5,5 @@ members = [
     "src/optimizer/cli",
     "src/optimizer/core",
 ]
+
+exclude = ["src/wasm"]

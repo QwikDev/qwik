@@ -436,16 +436,16 @@ jobs:
           override: true
           components: rustfmt, clippy
       - name: Format check
-          uses: actions-rs/cargo@v1
-          with:
-            command: fmt
-            args: -- --check
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: -- --check
 
       - name: Build check
-          uses: actions-rs/cargo@v1
-          with:
-            command: check
-            args: --all-features
+        uses: actions-rs/cargo@v1
+        with:
+          command: check
+          args: --all-features
 
       - name: Clippy check
         uses: actions-rs/cargo@v1

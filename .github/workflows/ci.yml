@@ -46,11 +46,14 @@ jobs:
       - name: Build Package
         run: node scripts --tsc --build --api --set-version="${{ github.event.inputs.version }}" --set-dist-tag="${{ github.event.inputs.disttag }}"
 
+      - name: Print WASM Dist Build
+        run: ls -R dist-dev/@builder.io-qwik/
+
       - name: Upload Package Build Artifacts
         uses: actions/upload-artifact@master
         with:
           name: dist-dev-builder-io-qwik
-          path: dist-dev/@builder.io-qwik
+          path: dist-dev/@builder.io-qwik/
           if-no-files-found: error
 
   ############ BUILD WASM ############
@@ -81,11 +84,14 @@ jobs:
       - name: Build WASM
         run: node scripts --wasm --set-version="${{ github.event.inputs.version }}" --set-dist-tag="${{ github.event.inputs.disttag }}"
 
+      - name: Print WASM Dist Build
+        run: ls -R dist-dev/@builder.io-qwik/bindings/
+
       - name: Upload WASM Build Artifacts
         uses: actions/upload-artifact@master
         with:
           name: dist-bindings-wasm
-          path: dist-dev/@builder.io-qwik/bindings/*.{wasm,cjs,mjs}
+          path: dist-dev/@builder.io-qwik/bindings/*
           if-no-files-found: error
 
   ############ BUILD PLATFORM BINDINGS ############
@@ -173,6 +179,9 @@ jobs:
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
+      - name: Print Platform Dist Build
+        run: ls -R dist-dev/@builder.io-qwik/bindings/
+
       - name: Upload Platform Binding Artifact
         uses: actions/upload-artifact@v2
         with:
@@ -189,7 +198,7 @@ jobs:
       - build-package
       - build-wasm
       - build-bindings
-      - rust-validate
+      - validate-rust
       #- test-unit
       #- test-e2e
 
@@ -376,14 +385,15 @@ jobs:
         if: ${{ always() }}
         run: yarn lint.eslint
 
-  ########### RUST VALIDATE ############
-  rust-validate:
-    name: Rust validate
+  ########### VALIDATE RUST ############
+  validate-rust:
+    name: Validate Rust
     if: "!contains(github.event.head_commit.message, 'skip ci')"
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
+
       - name: Install Rust toolchain
         uses: actions-rs/toolchain@v1
         with:
@@ -391,6 +401,7 @@ jobs:
           profile: minimal
           override: true
           components: rustfmt, clippy
+
       - name: Format check
         uses: actions-rs/cargo@v1
         with:

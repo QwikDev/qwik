@@ -4,9 +4,10 @@ use crate::code_move::fix_path;
 use crate::collector::HookCollect;
 use crate::entry_strategy::EntryPolicy;
 use crate::parse::PathData;
+use anyhow::{bail, Error};
 use lazy_static::lazy_static;
 use regex::Regex;
-use std::sync::{Arc, RwLock};
+use std::sync::{Arc, Mutex};
 use swc_atoms::JsWord;
 use swc_common::comments::{Comments, SingleThreadedComments};
 use swc_common::{errors::HANDLER, DUMMY_SP};
@@ -35,13 +36,13 @@ pub struct TransformContext {
 
 impl TransformContext {
     pub fn new() -> ThreadSafeTransformContext {
-        Arc::new(RwLock::new(Self {
+        Arc::new(Mutex::new(Self {
             hooks_names: HashSet::with_capacity(10),
         }))
     }
 }
 
-pub type ThreadSafeTransformContext = Arc<RwLock<TransformContext>>;
+pub type ThreadSafeTransformContext = Arc<Mutex<TransformContext>>;
 
 #[allow(clippy::module_name_repetitions)]
 pub struct HookTransform<'a> {
@@ -76,16 +77,28 @@ impl<'a> HookTransform<'a> {
         }
     }
 
-    fn get_context_name(&self) -> String {
-        let mut ctx = self.stack_ctxt.join("_");
-        if self.stack_ctxt.is_empty() {
-            ctx += "_h";
-        }
-        ctx = escape_sym(&ctx);
-        if self.context.read().unwrap().hooks_names.contains(&ctx) {
-            ctx += &self.hooks.len().to_string();
-        }
-        ctx
+    fn register_context_name(&self, user_defined: &Option<String>) -> Result<String, Error> {
+        let mut context = self.context.lock().unwrap();
+
+        let symbol_name = if let Some(user_defined) = user_defined {
+            if context.hooks_names.contains(user_defined) {
+                bail!("Name collection for {}", user_defined);
+            }
+            user_defined.clone()
+        } else {
+            let mut symbol_name = self.stack_ctxt.join("_");
+            if self.stack_ctxt.is_empty() {
+                symbol_name += "_h";
+            }
+            symbol_name = escape_sym(&symbol_name);
+            if context.hooks_names.contains(&symbol_name) {
+                symbol_name += &context.hooks_names.len().to_string();
+            }
+            symbol_name
+        };
+
+        context.hooks_names.insert(symbol_name.clone());
+        Ok(symbol_name)
     }
 
     fn handle_var_decl(&mut self, node: ast::VarDecl) -> ast::VarDecl {
@@ -233,12 +246,12 @@ impl<'a> Fold for HookTransform<'a> {
                     }
                 } else if id.sym == *QHOOK {
                     let mut node = node;
-                    let mut symbol_name = self.get_context_name();
+                    let mut user_symbol = None;
                     if let Some(second_arg) = node.args.get(1) {
                         if let ast::Expr::Lit(ast::Lit::Str(ref str)) = *second_arg.expr {
                             if validate_sym(&str.value) {
                                 let custom_sym = str.value.to_string();
-                                symbol_name = custom_sym;
+                                user_symbol = Some(custom_sym);
                             } else {
                                 HANDLER.with(|handler| {
                                     handler
@@ -251,6 +264,19 @@ impl<'a> Fold for HookTransform<'a> {
                             }
                         }
                     }
+
+                    let symbol_name = match self.register_context_name(&user_symbol) {
+                        Ok(symbol_name) => symbol_name,
+                        Err(err) => {
+                            HANDLER.with(|handler| {
+                                handler
+                                    .struct_span_err(node.span, &format!("{}", err))
+                                    .emit();
+                            });
+                            user_symbol.unwrap()
+                        }
+                    };
+
                     let mut canonical_filename =
                         ["h_", &self.path_data.file_prefix, "_", &symbol_name].concat();
                     canonical_filename.make_ascii_lowercase();
@@ -293,13 +319,7 @@ impl<'a> Fold for HookTransform<'a> {
                         origin: self.path_data.path.to_string_lossy().into(),
                     });
 
-                    let node = create_inline_qhook(import_path, &symbol_name);
-                    self.context
-                        .write()
-                        .unwrap()
-                        .hooks_names
-                        .insert(symbol_name);
-                    return node;
+                    return create_inline_qhook(import_path, &symbol_name);
                 }
             }
         }

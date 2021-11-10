@@ -4,5 +4,4 @@ members = [
     "src/napi",
     "src/optimizer/cli",
     "src/optimizer/core",
-    "src/wasm",
 ]

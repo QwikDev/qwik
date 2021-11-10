@@ -26,6 +26,7 @@ const jestPreset = {
 };
 
 if ((globalThis as any).MODULE_EXT === 'cjs') {
+  // eslint-disable-next-line
   const cjsTsJest = require('ts-jest/presets');
   jestPreset.transform = { ...cjsTsJest.defaults };
 }

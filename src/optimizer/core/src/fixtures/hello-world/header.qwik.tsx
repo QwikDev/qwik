@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { qComponent, qHook, h } from '@builder.io/qwik';
 
 export const Header = qComponent({

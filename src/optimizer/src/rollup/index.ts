@@ -8,7 +8,7 @@ import {
   TransformFsOptions,
   TransformResult,
 } from '..';
-import type { InputOption, OutputBundle, Plugin } from 'rollup';
+import type { InputOption, Plugin } from 'rollup';
 
 /**
  * @alpha
@@ -35,17 +35,17 @@ export function qwikRollup(opts: QwikPluginOptions = {}): Plugin {
         transpile: opts.transpile ?? true,
       };
 
-      console.time('Qwik optimize');
       result = await optimizer.transformFs(transformOpts);
-      console.timeEnd('Qwik optimize');
 
       // throw error or print logs if there are any diagnostics
       result.diagnostics.forEach((d) => {
         if (d.severity === 'error') {
           throw d.message;
         } else if (d.severity === 'warn') {
+          // eslint-disable-next-line
           console.warn('QWIK:', d.message);
         } else {
+          // eslint-disable-next-line
           console.info('QWIK:', d.message);
         }
       });
@@ -77,22 +77,29 @@ export function qwikRollup(opts: QwikPluginOptions = {}): Plugin {
     },
 
     generateBundle(_, rollupBundle) {
-      const entryMapFile = opts.entryMapFile === undefined ? "q-entry-map.json" : null;
+      const entryMapFile = opts.entryMapFile === undefined ? 'q-entry-map.json' : null;
       if (result && entryMapFile) {
         const output = Object.entries(rollupBundle);
         const outputEntryMap: OutputEntryMap = {
           version: '1',
-          mapping: Object.fromEntries(result.hooks.map(h => {
-            let entry = h.canonicalFilename;
-            let value = entry;
-            let found = output.find(([_, v]) => {
-              return v.type == 'chunk' && v.isDynamicEntry === true && Object.keys(v.modules).find(f => f.endsWith(value))
-            });
-            if (found) {
-              value = found[0];
-            }
-            return [entry, value];
-          }))
+          mapping: Object.fromEntries(
+            result.hooks.map((h) => {
+              const entry = h.canonicalFilename;
+              let value = entry;
+              // eslint-disable-next-line
+              const found = output.find(([_, v]) => {
+                return (
+                  v.type == 'chunk' &&
+                  v.isDynamicEntry === true &&
+                  Object.keys(v.modules).find((f) => f.endsWith(value))
+                );
+              });
+              if (found) {
+                value = found[0];
+              }
+              return [entry, value];
+            })
+          ),
         };
 
         this.emitFile({
@@ -142,7 +149,6 @@ function findInputDirectory(path: Path, rollupInput: InputOption | undefined) {
 
   return sortedInputDirPaths[0];
 }
-
 
 /**
  * @alpha

@@ -43,5 +43,6 @@ function serverRender(opts: RenderToStringOptions) {
 serverRender({
   outDir: './',
 }).then((str) => {
+  // eslint-disable-next-line no-console
   console.log(str.html);
 });

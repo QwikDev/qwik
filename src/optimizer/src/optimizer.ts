@@ -90,6 +90,7 @@ export const createOptimizer = async (): Promise<Optimizer> => {
 
     watchChange(id: string, event: 'create' | 'update' | 'delete') {
       isDirty = true;
+      // eslint-disable-next-line no-console
       console.debug('watch change', id, event);
     },
 

@@ -89,4 +89,4 @@ const EXTRACT_IMPORT_PATH = /\(\s*(['"])([^\1]+)\1\s*\)/;
 const EXTRACT_SELF_IMPORT = /Promise\s*\.\s*resolve/;
 
 // https://regexr.com/690e2
-const EXTRACT_FILE_NAME = /([\w\d\.-_]+)\.(js|ts)x?:/;
+const EXTRACT_FILE_NAME = /([\w\d.-_]+)\.(js|ts)x?:/;

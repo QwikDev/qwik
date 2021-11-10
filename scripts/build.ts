@@ -49,12 +49,15 @@ export async function build(config: BuildConfig) {
         submoduleJsxRuntime(config),
         submoduleQwikLoader(config),
         submodulePrefetch(config),
+        submoduleOptimizer(config),
         submoduleTesting(config),
         generatePackageJson(config),
         copyFiles(config),
         buildDevServer(config),
       ]);
-      await Promise.all([submoduleOptimizer(config), submoduleServer(config)]);
+      // server bundling must happen after the results from the others
+      // because it inlines the qwik loader and prefetch scripts
+      await submoduleServer(config);
     }
 
     if (config.platformBinding) {

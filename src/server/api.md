@@ -26,6 +26,17 @@ export interface DocumentOptions {
 // @alpha
 export function getImports(filePath: string, readFileFn?: (path: string) => Promise<string>): Promise<string[]>;
 
+// @alpha
+export function getQwikLoaderScript(opts?: {
+    events?: string[];
+    debug?: boolean;
+}): string;
+
+// @alpha
+export function getQwikPrefetchScript(opts?: {
+    debug?: boolean;
+}): string;
+
 // @public
 export interface GlobalOptions extends DocumentOptions {
 }
@@ -50,11 +61,6 @@ export const QwikLoader: FunctionComponent<QwikLoaderProps>;
 //
 // @alpha (undocumented)
 export const QwikPrefetch: FunctionComponent<QwikPrefetchProps>;
-
-// Warning: (ae-forgotten-export) The symbol "QwikProtocolProps" needs to be exported by the entry point index.d.ts
-//
-// @alpha (undocumented)
-export const QwikProtocols: FunctionComponent<QwikProtocolProps>;
 
 // @public
 export function renderToDocument(doc: Document, rootNode: any, opts?: RenderToDocumentOptions): Promise<void>;

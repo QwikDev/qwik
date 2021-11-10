@@ -87,5 +87,5 @@ export interface PlatformBinding {
   transform_modules: (opts: any) => TransformResult;
 }
 
-declare var globalThis: { IS_CJS: boolean; IS_ESM: boolean };
-declare var global: { [key: string]: any };
+declare const globalThis: { IS_CJS: boolean; IS_ESM: boolean };
+declare const global: { [key: string]: any };

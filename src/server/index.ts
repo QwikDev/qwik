@@ -15,7 +15,7 @@ export {
   renderToDocument,
   renderToString,
 } from './document';
-// export { getQwikLoaderScript } from '../optimizer/loader';
-export { QwikLoader, QwikProtocols, QwikPrefetch } from './components';
+export { getQwikLoaderScript, getQwikPrefetchScript } from './scripts';
+export { QwikLoader, QwikPrefetch } from './components';
 export { setServerPlatform } from './platform';
 export { getImports } from './prefetch';

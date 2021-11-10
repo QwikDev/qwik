@@ -16,61 +16,6 @@ on:
         default: 'latest'
 
 jobs:
-  workspace-test:
-    name: Test Suite
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-      - name: Install Rust toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          profile: minimal
-          override: true
-      - uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --manifest-path=src/Cargo.toml --all-features --workspace
-
-  workspace-rustfmt:
-    name: Rustfmt
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-      - name: Install Rust toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          profile: minimal
-          override: true
-          components: rustfmt
-      - name: Check formatting
-        uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --manifest-path=src/Cargo.toml --all -- --check
-
-  workspace-clippy:
-    name: Clippy
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-      - name: Install Rust toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          profile: minimal
-          override: true
-          components: clippy
-      - name: Clippy check
-        uses: actions-rs/cargo@v1
-        with:
-          command: clippy
-          args: --manifest-path=src/Cargo.toml --all-targets --all-features --workspace -- -W clippy::pedantic
-
   ############ BUILD PACKAGE ############
   build-package:
     if: "!contains(github.event.head_commit.message, 'skip ci')"
@@ -290,6 +235,9 @@ jobs:
       - build-wasm-nodejs
       - build-wasm-web
       - build-bindings
+      - test-rust
+      #- test-unit
+      #- test-e2e
 
     steps:
       - name: Setup Node.js
@@ -374,35 +322,27 @@ jobs:
           name: Changelog
           path: dist-dev/CHANGELOG.md
 
-  ############ LINT ############
-  # lint:
-  #   name: Lint
-  #   if: ${{ github.event_name != 'release' }}
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v2
-
-  # - name: Cache NPM Dependencies
-  #   uses: actions/cache@v2
-  #   with:
-  #     path: node_modules
-  #     key: npm-cache-ubuntu-${{ hashFiles('yarn.lock') }}
-  #     restore-keys: npm-cache-ubuntu-
-
-  #     - name: Install NPM Dependencies
-  #       run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
-  # env:
-  #   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-  #     - name: Prettier Check
-  #       run: yarn prettier-check
-
-  #     - name: Lint Check
-  #       run: yarn lint
+  ########### RUST TEST ############
+  test-rust:
+    name: Rust Test
+    if: "!contains(github.event.head_commit.message, 'skip ci')"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --manifest-path=src/Cargo.toml --all-features --workspace
 
   ############ UNIT TEST ############
-  # unit-tests:
+  # test-unit:
   #   name: Unit Tests
   #   runs-on: ubuntu-latest
 
@@ -434,7 +374,7 @@ jobs:
   #         yarn test.unit
 
   ############ E2E TEST ############
-  # e2e-tests:
+  # test-e2e:
   #   name: E2E Tests
   #   runs-on: ubuntu-latest
 
@@ -471,3 +411,72 @@ jobs:
   #       with:
   #         name: Cypress Videos
   #         path: cypress/videos
+
+  ########### LINT PACKAGE ############
+  lint-package:
+    name: Lint Package
+    if: "!contains(github.event.head_commit.message, 'skip ci')"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Cache NPM Dependencies
+        uses: actions/cache@v2
+        with:
+          path: node_modules
+          key: npm-cache-ubuntu-${{ hashFiles('yarn.lock') }}
+          restore-keys: npm-cache-ubuntu-
+
+      - name: Install NPM Dependencies
+        run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
+
+      - name: Prettier Check
+        if: ${{ always() }}
+        run: yarn lint.prettier
+
+      - name: ESLint Check
+        if: ${{ always() }}
+        run: yarn lint.eslint
+
+  ########### RUST FMT ############
+  rust-fmt:
+    name: Rust fmt
+    if: "!contains(github.event.head_commit.message, 'skip ci')"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
+          components: rustfmt
+      - name: Check formatting
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --manifest-path=src/Cargo.toml --all -- --check
+
+  ########### RUST CLIPPY ############
+  rust-clippy:
+    name: Rust Clippy
+    if: "!contains(github.event.head_commit.message, 'skip ci')"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
+          components: clippy
+      - name: Clippy check
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: --manifest-path=src/Cargo.toml --all-targets --all-features --workspace -- -W clippy::pedantic

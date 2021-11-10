@@ -80,10 +80,13 @@ impl TransformOutput {
         Self::default()
     }
 
-    pub fn append(&mut self, output: &mut Self) {
+    pub fn append(mut self, output: &mut Self) -> Self {
         self.modules.append(&mut output.modules);
         self.hooks.append(&mut output.hooks);
         self.diagnostics.append(&mut output.diagnostics);
+        self.is_type_script = self.is_type_script || output.is_type_script;
+        self.is_jsx = self.is_jsx || output.is_jsx;
+        self
     }
 
     #[cfg(feature = "fs")]

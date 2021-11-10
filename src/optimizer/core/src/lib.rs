@@ -13,12 +13,13 @@ mod parse;
 mod transform;
 mod utils;
 
+#[cfg(feature = "parallel")]
 use rayon::prelude::*;
 
-// #[cfg(feature = "fs")]
+#[cfg(feature = "fs")]
 use std::fs;
 
-// #[cfg(feature = "fs")]
+#[cfg(feature = "fs")]
 use std::path::Path;
 
 use anyhow::{Context, Error};
@@ -82,7 +83,7 @@ pub struct TransformModulesOptions {
     pub entry_strategy: EntryStrategy,
 }
 
-// #[cfg(feature = "fs")]
+#[cfg(feature = "fs")]
 pub fn transform_fs(config: TransformFsOptions) -> Result<TransformOutput, Error> {
     let root_dir = Path::new(&config.root_dir);
     let context = TransformContext::new();
@@ -91,8 +92,12 @@ pub fn transform_fs(config: TransformFsOptions) -> Result<TransformOutput, Error
     find_files(root_dir, &mut paths)?;
 
     let start = Instant::now();
-    let outputs: Vec<_> = paths
-        .par_iter()
+    #[cfg(feature = "parallel")]
+    let iterator = paths.par_iter();
+
+    #[cfg(not(feature = "parallel"))]
+    let iterator = paths.iter();
+    let mut final_output = iterator
         .map(|path| -> Result<TransformOutput, Error> {
             let code = fs::read_to_string(&path)
                 .with_context(|| format!("Opening {}", &path.to_string_lossy()))?;
@@ -114,19 +119,9 @@ pub fn transform_fs(config: TransformFsOptions) -> Result<TransformOutput, Error
                 context: context.clone(),
             })
         })
-        .collect();
+        .reduce(|| Ok(TransformOutput::new()), |x, y| Ok(x?.append(&mut y?)))?;
 
-    let mut final_output = TransformOutput::new();
-    let mut default_ext = "js";
-    for mut output in outputs {
-        if let Ok(output) = &mut output {
-            final_output.append(output);
-            if !config.transpile && output.is_type_script {
-                default_ext = "ts";
-            }
-        }
-    }
-    final_output = generate_entries(final_output, default_ext)?;
+    final_output = generate_entries(final_output, config.transpile)?;
     final_output.elapsed = start.elapsed();
     Ok(final_output)
 }
@@ -135,9 +130,12 @@ pub fn transform_modules(config: TransformModulesOptions) -> Result<TransformOut
     let start = Instant::now();
     let entry_policy = &*parse_entry_strategy(config.entry_strategy);
     let context = TransformContext::new();
-    let outputs: Vec<_> = config
-        .input
-        .par_iter()
+    #[cfg(feature = "parallel")]
+    let iterator = config.input.par_iter();
+
+    #[cfg(not(feature = "parallel"))]
+    let iterator = config.input.iter();
+    let mut final_output = iterator
         .map(|path| -> Result<TransformOutput, Error> {
             transform_code(TransformCodeOptions {
                 path: &path.path,
@@ -150,24 +148,14 @@ pub fn transform_modules(config: TransformModulesOptions) -> Result<TransformOut
                 context: context.clone(),
             })
         })
-        .collect();
+        .reduce(|| Ok(TransformOutput::new()), |x, y| Ok(x?.append(&mut y?)))?;
 
-    let mut final_output = TransformOutput::new();
-    let mut default_ext = "js";
-    for mut output in outputs {
-        if let Ok(output) = &mut output {
-            final_output.append(output);
-            if !config.transpile && output.is_type_script {
-                default_ext = "ts";
-            }
-        }
-    }
-    final_output = generate_entries(final_output, default_ext)?;
+    final_output = generate_entries(final_output, config.transpile)?;
     final_output.elapsed = start.elapsed();
     Ok(final_output)
 }
 
-// #[cfg(feature = "fs")]
+#[cfg(feature = "fs")]
 fn find_files(dir: &std::path::Path, files: &mut Vec<std::path::PathBuf>) -> std::io::Result<()> {
     if dir.is_dir() {
         for entry in fs::read_dir(dir)? {

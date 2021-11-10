@@ -10,7 +10,7 @@ crate-type = ["cdylib"]
 [dependencies]
 napi = { version = "1", features = ["serde-json"] }
 napi-derive = "1"
-qwik-core = { path = "../optimizer/core", features = ["fs"] }
+qwik-core = { path = "../optimizer/core", features = ["fs", "parallel"] }
 
 [target.'cfg(windows)'.dependencies]
 mimalloc = { version = "0.1.25", default-features = false }

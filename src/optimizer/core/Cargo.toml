@@ -39,3 +39,4 @@ serde_json = "1.0.60"
 
 [features]
 fs=[]
+parallel=[]

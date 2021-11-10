@@ -68,7 +68,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     .long("no-transpile")
                     .about("transpile TS and JSX into JS").takes_value(false)
                  )
-                .arg(Arg::new("minify").long("minify").takes_value(true).possible_values(["minify", "simplify", "none"]).about("outputs minified source code").takes_value(false))
+                .arg(Arg::new("minify").long("minify").possible_values(["minify", "simplify", "none"]).takes_value(true).about("outputs minified source code"))
                 .arg(Arg::new("sourcemaps").long("sourcemaps").about("generates sourcemaps").takes_value(false)),
         )
         .get_matches();
@@ -120,5 +120,6 @@ fn optimize(
     ))?;
 
     result.write_to_fs(&current_dir.join(optimizer_input.dest).absolutize()?)?;
+    println!("Transformed {:?}", result.elapsed);
     Ok(result)
 }

@@ -186,10 +186,15 @@ fn test_fix_path() {
 
 pub fn generate_entries(
     mut output: TransformOutput,
-    default_ext: &str,
+    transpile: bool,
 ) -> Result<TransformOutput, anyhow::Error> {
     let source_map = Lrc::new(SourceMap::default());
     let mut entries_map = HashMap::new();
+    let default_ext = if !transpile && output.is_type_script {
+        "ts"
+    } else {
+        "js"
+    };
     for hook in &output.hooks {
         if let Some(ref e) = hook.entry {
             entries_map

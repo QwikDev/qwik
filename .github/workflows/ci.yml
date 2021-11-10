@@ -81,11 +81,11 @@ jobs:
       - name: Build WASM
         run: node scripts --wasm --set-version="${{ github.event.inputs.version }}" --set-dist-tag="${{ github.event.inputs.disttag }}"
 
-      - name: Upload NodeJS WASM Build Artifacts
+      - name: Upload WASM Build Artifacts
         uses: actions/upload-artifact@master
         with:
           name: dist-bindings-wasm
-          path: dist-dev/@builder.io-qwik/bindings/
+          path: dist-dev/@builder.io-qwik/bindings/*.{wasm,cjs,mjs}
           if-no-files-found: error
 
   ############ BUILD PLATFORM BINDINGS ############
@@ -167,17 +167,18 @@ jobs:
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Build Binding
+      - name: Build Platform Binding
         run: ${{ matrix.settings.build }}
         shell: bash
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Upload Binding Artifact
+      - name: Upload Platform Binding Artifact
         uses: actions/upload-artifact@v2
         with:
           name: dist-bindings-${{ matrix.settings.target }}
-          path: src/napi/*.node
+          path: dist-dev/@builder.io-qwik/bindings/*.node
+          if-no-files-found: error
 
   ############ RELEASE ############
   release:
@@ -202,31 +203,29 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
+      - name: Create dist-dev/@builder.io-qwik directory
+        run: |
+          mkdir dist-dev/
+          mkdir dist-dev/@builder.io-qwik/
+          mkdir dist-dev/@builder.io-qwik/bindings/
+
       - name: Download Build Artifacts
         uses: actions/download-artifact@v2
 
-      - name: Print Package Build Artifacts
-        run: ls -R dist-dev-builder-io-qwik
+      - name: Print Package Artifacts
+        run: ls -R dist-dev-builder-io-qwik/
 
       - name: Move Package Artifacts
-        run: |
-          mv dist-dev-builder-io-qwik dist-dev
-          mv dist-dev/dist-dev-builder-io-qwik dist-dev/@builder.io-qwik
-
-      - name: Create dist-dev/@builder.io-qwik/bindings directory
-        run: mkdir dist-dev/@builder.io-qwik/bindings
+        run: mv dist-dev-builder-io-qwik/**/* dist-dev/@builder.io-qwik/
 
       - name: Print Bindings Artifacts
         run: ls -R dist-bindings-*/*
 
-      - name: Move WASM Artifacts
-        run: mv dist-bindings-wasm/* dist-dev/@builder.io-qwik/bindings
+      - name: Move Binding Artifacts
+        run: mv dist-bindings-*/* dist-dev/@builder.io-qwik/bindings/
 
       - name: Print dist-dev
-        run: ls -R dist-dev
-
-      - name: Move Platform Binding Artifacts
-        run: mv dist-bindings-*/*.node dist-dev/@builder.io-qwik/bindings
+        run: ls -R dist-dev/
 
       - name: Cache NPM Dependencies
         uses: actions/cache@v2
@@ -269,6 +268,7 @@ jobs:
         with:
           name: builder-io-qwik
           path: dist-dev/*.tgz
+          if-no-files-found: error
 
       - name: Upload Changelog Artifact
         if: ${{ always() }}
@@ -276,6 +276,7 @@ jobs:
         with:
           name: Changelog
           path: dist-dev/CHANGELOG.md
+          if-no-files-found: error
 
   ############ UNIT TEST ############
   # test-unit:

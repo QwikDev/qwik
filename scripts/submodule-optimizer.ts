@@ -118,6 +118,9 @@ async function generatePlatformBindingsData(config: BuildConfig) {
   // - node_modules/@napi-rs/triples/index.js
 
   const pkg = await readPackageJson(config.rootDir);
+  const bindingFiles = pkg.files
+    .filter((f) => f.startsWith('bindings/'))
+    .map((f) => f.replace('bindings/', ''));
 
   const qwikArchTriples: typeof platformArchTriples = {};
 
@@ -127,7 +130,7 @@ async function generatePlatformBindingsData(config: BuildConfig) {
       const triples = platform[archName];
       for (const triple of triples) {
         const qwikArchABI = `qwik.${triple.platformArchABI}.node`;
-        if (pkg.files.includes(qwikArchABI)) {
+        if (bindingFiles.includes(qwikArchABI)) {
           const qwikTriple = {
             platform: triple.platform,
             arch: triple.arch,

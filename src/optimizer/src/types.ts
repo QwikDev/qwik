@@ -2,8 +2,6 @@
  * @alpha
  */
 export interface Optimizer {
-  isDirty: boolean;
-
   /**
    * Transforms the input code string, does not access the file system.
    */
@@ -23,12 +21,6 @@ export interface Optimizer {
    * Transforms the directory from the file system.
    */
   transformFsSync(opts: TransformFsOptions): TransformOutput;
-
-  getTransformedModule(path: string): TransformModule | undefined;
-
-  hasTransformedModule(path: string): boolean;
-
-  watchChange(id: string, event: 'create' | 'update' | 'delete'): void;
 
   path: Path;
 }

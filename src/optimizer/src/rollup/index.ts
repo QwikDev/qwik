@@ -7,6 +7,7 @@ import {
   Path,
   TransformFsOptions,
   TransformOutput,
+  TransformModule,
 } from '..';
 import type { InputOption, Plugin } from 'rollup';
 
@@ -14,8 +15,10 @@ import type { InputOption, Plugin } from 'rollup';
  * @alpha
  */
 export function qwikRollup(opts: QwikPluginOptions = {}): Plugin {
+  const transformedOutputs = new Map<string, TransformModule>();
   let optimizer: Optimizer | undefined;
   let result: TransformOutput | undefined;
+  let isDirty = true;
 
   return {
     name: 'qwikPlugin',
@@ -27,6 +30,10 @@ export function qwikRollup(opts: QwikPluginOptions = {}): Plugin {
         optimizer = await createOptimizer();
       }
 
+      if (!isDirty) {
+        return;
+      }
+
       const transformOpts: TransformFsOptions = {
         rootDir: findInputDirectory(optimizer.path, options.input),
         entryStrategy: opts.entryStrategy,
@@ -36,7 +43,11 @@ export function qwikRollup(opts: QwikPluginOptions = {}): Plugin {
       };
 
       result = await optimizer.transformFs(transformOpts);
-
+      result.modules.forEach((output) => {
+        const path = output.path.split('.').slice(0, -1).join('.');
+        const key = transformOpts.rootDir + '/' + path;
+        transformedOutputs.set(key, output);
+      });
       // throw error or print logs if there are any diagnostics
       result.diagnostics.forEach((d) => {
         if (d.severity === 'error') {
@@ -58,14 +69,15 @@ export function qwikRollup(opts: QwikPluginOptions = {}): Plugin {
         }
         id = optimizer.path.resolve(optimizer.path.dirname(importer), id);
       }
-      if (optimizer!.hasTransformedModule(id)) {
+      if (transformedOutputs.has(id)) {
         return id;
       }
       return null;
     },
 
     load(id) {
-      const transformedModule = optimizer!.getTransformedModule(id);
+      id = id.replace(/\.(j|t)sx?$/, '');
+      const transformedModule = transformedOutputs.get(id);
       if (transformedModule) {
         // this is one of Qwik's entry modules, which is only in-memory
         return {
@@ -111,7 +123,7 @@ export function qwikRollup(opts: QwikPluginOptions = {}): Plugin {
     },
 
     watchChange(id, change) {
-      optimizer!.watchChange(id, change.event);
+      isDirty = true;
     },
   };
 }
@@ -155,7 +167,6 @@ function findInputDirectory(path: Path, rollupInput: InputOption | undefined) {
  */
 export interface QwikPluginOptions {
   entryStrategy?: EntryStrategy;
-  glob?: string;
   transpile?: boolean;
   minify?: MinifyMode;
   entryMapFile?: string | null;

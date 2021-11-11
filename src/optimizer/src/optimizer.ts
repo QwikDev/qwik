@@ -1,4 +1,5 @@
-import type { TransformOutput, TransformModule, TransformModuleInput } from '.';
+import { json } from 'express';
+import type { TransformModuleInput } from '.';
 import { getSystem, InternalSystem, PlatformBinding } from './platform';
 import type { TransformModulesOptions, TransformFsOptions, Optimizer } from './types';
 
@@ -8,10 +9,6 @@ import type { TransformModulesOptions, TransformFsOptions, Optimizer } from './t
 export const createOptimizer = async (): Promise<Optimizer> => {
   const sys = await getSystem();
   const binding = sys.binding;
-
-  const transformedOutputs = new Map<string, TransformModule>();
-  let lastDirectoryResult: TransformOutput | undefined;
-  let isDirty = true;
 
   return {
     /**
@@ -34,19 +31,7 @@ export const createOptimizer = async (): Promise<Optimizer> => {
      * Transforms the directory from the file system.
      */
     async transformFs(opts: TransformFsOptions) {
-      if (!isDirty) {
-        return lastDirectoryResult!;
-      }
-
       const result = await transformFsAsync(sys, binding, opts);
-      lastDirectoryResult = result;
-
-      result.modules.forEach((output) => {
-        const path = output.path.split('.').slice(0, -1).join('.');
-        const key = opts.rootDir + '/' + path;
-        transformedOutputs.set(key, output);
-      });
-
       return result;
     },
 
@@ -54,44 +39,8 @@ export const createOptimizer = async (): Promise<Optimizer> => {
      * Transforms the directory from the file system.
      */
     transformFsSync(opts: TransformFsOptions) {
-      if (!isDirty) {
-        return lastDirectoryResult!;
-      }
-
       const result = transformFs(binding, opts);
-      lastDirectoryResult = result;
-
-      result.modules.forEach((output) => {
-        const path = output.path.split('.').slice(0, -1).join('.');
-        const key = opts.rootDir + '/' + path;
-        transformedOutputs.set(key, output);
-      });
-
       return result;
-    },
-
-    getTransformedModule(path: string) {
-      path = path.replace(/\.(j|t)sx?$/, '');
-      return transformedOutputs.get(path);
-    },
-
-    hasTransformedModule(path: string) {
-      return transformedOutputs.has(path);
-    },
-
-    set isDirty(isDirty: boolean) {
-      if (isDirty) {
-        lastDirectoryResult = undefined;
-      }
-    },
-    get isDirty(): boolean {
-      return lastDirectoryResult === undefined;
-    },
-
-    watchChange(id: string, event: 'create' | 'update' | 'delete') {
-      isDirty = true;
-      // eslint-disable-next-line no-console
-      console.debug('watch change', id, event);
     },
 
     path: sys.path,

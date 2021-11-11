@@ -74,19 +74,11 @@ export type MinifyOption = boolean | undefined | null;
 // @alpha (undocumented)
 export interface Optimizer {
     // (undocumented)
-    getTransformedModule(path: string): TransformModule | undefined;
-    // (undocumented)
-    hasTransformedModule(path: string): boolean;
-    // (undocumented)
-    isDirty: boolean;
-    // (undocumented)
     path: Path;
     transformFs(opts: TransformFsOptions): Promise<TransformOutput>;
     transformFsSync(opts: TransformFsOptions): TransformOutput;
     transformModules(opts: TransformModulesOptions): Promise<TransformOutput>;
     transformModulesSync(opts: TransformModulesOptions): TransformOutput;
-    // (undocumented)
-    watchChange(id: string, event: 'create' | 'update' | 'delete'): void;
 }
 
 // @alpha (undocumented)

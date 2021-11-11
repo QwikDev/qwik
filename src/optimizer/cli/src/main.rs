@@ -120,6 +120,5 @@ fn optimize(
     ))?;
 
     result.write_to_fs(&current_dir.join(optimizer_input.dest).absolutize()?)?;
-    println!("Transformed {:?}", result.elapsed);
     Ok(result)
 }

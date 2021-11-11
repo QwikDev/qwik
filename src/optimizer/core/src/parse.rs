@@ -1,7 +1,6 @@
 use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 use std::str;
-use std::time::Duration;
 
 use crate::code_move::new_module;
 use crate::collector::global_collect;
@@ -72,7 +71,6 @@ pub struct TransformOutput {
     pub hooks: Vec<HookAnalysis>,
     pub is_type_script: bool,
     pub is_jsx: bool,
-    pub elapsed: Duration,
 }
 
 impl TransformOutput {
@@ -343,7 +341,6 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                         hooks: hooks_analysis,
                         is_type_script,
                         is_jsx,
-                        elapsed: Duration::new(0, 0),
                     })
                 })
             })
@@ -359,7 +356,6 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                 diagnostics,
                 is_type_script: false,
                 is_jsx: false,
-                elapsed: Duration::new(0, 0),
             })
         }
     }

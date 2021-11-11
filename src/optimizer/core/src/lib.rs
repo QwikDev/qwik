@@ -1,7 +1,6 @@
 #![deny(clippy::all)]
 #![deny(clippy::perf)]
 #![deny(clippy::nursery)]
-use std::time::Instant;
 
 #[cfg(test)]
 mod test;
@@ -94,7 +93,6 @@ pub fn transform_fs(config: TransformFsOptions) -> Result<TransformOutput, Error
     let entry_policy = &*parse_entry_strategy(config.entry_strategy);
     find_files(root_dir, &mut paths)?;
 
-    let start = Instant::now();
     #[cfg(feature = "parallel")]
     let iterator = paths.par_iter();
 
@@ -125,12 +123,10 @@ pub fn transform_fs(config: TransformFsOptions) -> Result<TransformOutput, Error
         .reduce(|| Ok(TransformOutput::new()), |x, y| Ok(x?.append(&mut y?)))?;
 
     final_output = generate_entries(final_output, config.transpile)?;
-    final_output.elapsed = start.elapsed();
     Ok(final_output)
 }
 
 pub fn transform_modules(config: TransformModulesOptions) -> Result<TransformOutput, Error> {
-    let start = Instant::now();
     let entry_policy = &*parse_entry_strategy(config.entry_strategy);
     let context = TransformContext::new();
     #[cfg(feature = "parallel")]
@@ -161,7 +157,6 @@ pub fn transform_modules(config: TransformModulesOptions) -> Result<TransformOut
 
     let mut final_output = final_output?;
     final_output = generate_entries(final_output, config.transpile)?;
-    final_output.elapsed = start.elapsed();
     Ok(final_output)
 }
 

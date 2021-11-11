@@ -48,10 +48,10 @@ async function loadPlatformBinding(sys: InternalSystem) {
         for (const triple of triples) {
           // NodeJS - Native Binding
           try {
-            const platformBindingPath = sys.path.join('..', 'bindings', triple.platformArchABI);
-            return sys.dynamicImport(platformBindingPath);
+            const platformBindingPath = sys.path.join('bindings', triple.platformArchABI);
+            const mod = await sys.dynamicImport('./' + platformBindingPath);
+            return mod;
           } catch (e) {
-            // eslint-disable-next-line
             console.warn(e);
           }
         }
@@ -61,18 +61,32 @@ async function loadPlatformBinding(sys: InternalSystem) {
 
   if (globalThis.IS_CJS) {
     // CJS WASM
-    const cjsWasmPath = sys.path.join('..', 'bindings', 'qwik.wasm.cjs');
-    return sys.dynamicImport(cjsWasmPath);
+    const cjsWasmPath = sys.path.join('bindings', 'qwik.wasm.cjs');
+    const mod = await sys.dynamicImport('./' + cjsWasmPath);
+    return new Promise<Buffer>((resolve, reject) => {
+      sys.fs.readFile(
+        sys.path.join(__dirname, 'bindings', 'qwik_wasm_bg.wasm'),
+        undefined,
+        (err, data) => {
+          if (err != null) {
+            reject(err);
+          } else {
+            resolve(data);
+          }
+        }
+      );
+    })
+      .then((data) => WebAssembly.compile(data))
+      .then((module) => mod.default(module))
+      .then(() => mod);
   }
 
   if (globalThis.IS_ESM) {
     // ESM WASM
-    const module = await sys.dynamicImport('../bindings/index.mjs');
+    const mjsWasmPath = sys.path.join('bindings', 'qwik.wasm.mjs');
+    const module = await sys.dynamicImport('./' + mjsWasmPath);
     await module.default();
-    const esmBinding: PlatformBinding = {
-      transform_modules: module.transform_modules,
-    };
-    return esmBinding;
+    return module;
   }
 
   throw new Error(`Platform not supported`);

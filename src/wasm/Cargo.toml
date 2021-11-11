@@ -21,7 +21,8 @@ wee_alloc = { version = "0.4.2" }
 wasm-opt = false
 
 [profile.release]
-lto="y"
+debug = 0
+lto=true
 codegen-units=1
 opt-level="z"
 panic="abort"

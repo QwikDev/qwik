@@ -14,6 +14,10 @@ on:
         required: true
         default: 'latest'
 
+env:
+  # Disable incremental build, speeds up CI
+  CARGO_INCREMENTAL: 0
+
 jobs:
   ############ BUILD PACKAGE ############
   build-package:
@@ -94,10 +98,7 @@ jobs:
           restore-keys: cargo-deps-${{ matrix.settings.target }}-
 
       - name: Install wasm-pack
-        uses: actions-rs/cargo@v1
-        with:
-          command: install
-          args: wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
       - name: Cache cargo build
         uses: actions/cache@v2

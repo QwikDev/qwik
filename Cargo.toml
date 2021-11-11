@@ -5,5 +5,8 @@ members = [
     "src/optimizer/cli",
     "src/optimizer/core",
 ]
-
 exclude = ["src/wasm"]
+
+[profile.release]
+debug = 0
+

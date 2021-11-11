@@ -5,12 +5,13 @@ import {
   banner,
   importPath,
   injectGlobalThisPoly,
-  inlineQwikScripts,
   nodeBuiltIns,
   nodeTarget,
+  readFile,
   target,
   watcher,
 } from './util';
+import { readPackageJson } from './package-json';
 
 /**
  * Builds @builder.io/server
@@ -25,13 +26,17 @@ export async function submoduleServer(config: BuildConfig) {
 
   const opts: BuildOptions = {
     entryPoints: [join(config.srcDir, submodule, 'index.ts')],
-    outdir: join(config.pkgDir, submodule),
-    sourcemap: true,
+    outdir: join(config.distPkgDir, submodule),
+    sourcemap: config.dev,
     bundle: true,
     target,
     banner,
     external: [...nodeBuiltIns, 'domino'],
-    define: inlineQwikScripts(config),
+    define: {
+      ...(await inlineQwikScripts(config)),
+      'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
+      'globalThis.DOMINO_VERSION': JSON.stringify(await getDominoVersion()),
+    },
   };
 
   const esm = build({
@@ -63,7 +68,34 @@ export async function submoduleServer(config: BuildConfig) {
 
   await Promise.all([esm, cjs]);
 
-  console.log('🐠', submodule);
+  console.log('🐰', submodule);
+}
+
+/**
+ * Load each of the qwik scripts to be inlined with esbuild "define" as const varialbles.
+ */
+async function inlineQwikScripts(config: BuildConfig) {
+  const variableToFileMap = [
+    ['QWIK_LOADER_DEFAULT_MINIFIED', 'qwikloader.js'],
+    ['QWIK_LOADER_DEFAULT_DEBUG', 'qwikloader.debug.js'],
+    ['QWIK_LOADER_OPTIMIZE_MINIFIED', 'qwikloader.optimize.js'],
+    ['QWIK_LOADER_OPTIMIZE_DEBUG', 'qwikloader.optimize.debug.js'],
+    ['QWIK_PREFETCH_MINIFIED', 'prefetch.js'],
+    ['QWIK_PREFETCH_DEBUG', 'prefetch.debug.js'],
+  ];
+
+  const define: { [varName: string]: string } = {};
+
+  await Promise.all(
+    variableToFileMap.map(async (varToFile) => {
+      const varName = `global.${varToFile[0]}`;
+      const filePath = join(config.distPkgDir, varToFile[1]);
+      const content = await readFile(filePath, 'utf-8');
+      define[varName] = JSON.stringify(content.trim());
+    })
+  );
+
+  return define;
 }
 
 async function bundleDomino(config: BuildConfig) {
@@ -111,4 +143,11 @@ async function bundleDomino(config: BuildConfig) {
   };
 
   return dominoPlugin;
+}
+
+async function getDominoVersion() {
+  const indexPath = require.resolve('domino');
+  const pkgJsonPath = join(indexPath, '..', '..');
+  const pkgJson = await readPackageJson(pkgJsonPath);
+  return pkgJson.version;
 }

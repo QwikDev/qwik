@@ -8,7 +8,7 @@ const { dirname, join } = require('path');
 const { register } = require('esbuild-register/dist/node');
 
 const esmNode = parseInt(process.version.substr(1).split('.')[0], 10) >= 14;
-register({ target: esmNode ? 'node14' : 'node10' });
+register({ target: esmNode ? 'node16' : 'node10' });
 
 const { build } = require('./build.ts');
 const { loadConfig } = require('./util.ts');

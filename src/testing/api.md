@@ -12,6 +12,9 @@ export function createDocument(opts?: DocumentOptions): QwikDocument;
 // @public
 export function createGlobal(opts?: GlobalOptions): QwikGlobal;
 
+// @alpha
+export function createTimer(): () => number;
+
 // @public
 export interface DocumentOptions {
     // (undocumented)
@@ -26,6 +29,11 @@ export function getImports(filePath: string, readFileFn?: (path: string) => Prom
 // @alpha
 export function getQwikLoaderScript(opts?: {
     events?: string[];
+    debug?: boolean;
+}): string;
+
+// @alpha
+export function getQwikPrefetchScript(opts?: {
     debug?: boolean;
 }): string;
 
@@ -53,11 +61,6 @@ export const QwikLoader: FunctionComponent<QwikLoaderProps>;
 //
 // @alpha (undocumented)
 export const QwikPrefetch: FunctionComponent<QwikPrefetchProps>;
-
-// Warning: (ae-forgotten-export) The symbol "QwikProtocolProps" needs to be exported by the entry point index.d.ts
-//
-// @alpha (undocumented)
-export const QwikProtocols: FunctionComponent<QwikProtocolProps>;
 
 // @public
 export function renderToDocument(doc: Document, rootNode: any, opts?: RenderToDocumentOptions): Promise<void>;
@@ -92,6 +95,12 @@ export function serializeDocument(doc: Document, opts?: SerializeDocumentOptions
 
 // @public
 export function setServerPlatform(document: any, opts: DocumentOptions): void;
+
+// @alpha (undocumented)
+export const versions: {
+    qwik: any;
+    domino: any;
+};
 
 
 // (No @packageDocumentation comment for this package)

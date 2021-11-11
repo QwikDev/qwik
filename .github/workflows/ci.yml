@@ -318,10 +318,8 @@ jobs:
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Unit Tests
-        run: |
-          yarn build
-          yarn test.unit
+      - name: Jest Unit Tests
+        run: yarn test.unit
 
   ############ E2E TEST ############
   # test-e2e:

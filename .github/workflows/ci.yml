@@ -7,7 +7,7 @@ on:
     description: 'Commit version update to git, publish to NPM, and create a Github release.'
     inputs:
       version:
-        description: 'Version'
+        description: 'Version: 0.1.23'
         required: true
       disttag:
         description: 'NPM Dist Tag: latest, next, dev'

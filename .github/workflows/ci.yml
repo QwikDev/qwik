@@ -91,6 +91,7 @@ jobs:
             ~/.cargo/registry/cache
             ~/.cargo/git/db
           key: cargo-deps-${{ matrix.settings.target }}-${{ hashFiles('./Cargo.lock') }}
+          restore-keys: cargo-deps-${{ matrix.settings.target }}-
 
       - name: Install wasm-pack
         uses: actions-rs/cargo@v1
@@ -103,6 +104,7 @@ jobs:
         with:
           path: src/wasm/target
           key: cargo-build-wasm-${{ hashFiles('./src/wasm/Cargo.lock') }}
+          restore-keys: cargo-build-wasm-
 
       - name: Install NPM Dependencies
         run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
@@ -185,12 +187,14 @@ jobs:
             ~/.cargo/registry/cache
             ~/.cargo/git/db
           key: cargo-deps-${{ matrix.settings.target }}-${{ hashFiles('./Cargo.lock') }}
+          restore-keys: cargo-deps-${{ matrix.settings.target }}-
 
       - name: Cache cargo build
         uses: actions/cache@v2
         with:
           path: target
           key: cargo-build-${{ matrix.settings.target }}-${{ hashFiles('./Cargo.lock') }}
+          restore-keys: cargo-deps-${{ matrix.settings.target }}-
 
       - name: Setup Toolchain
         if: ${{ matrix.settings.setup }}
@@ -398,13 +402,15 @@ jobs:
             ~/.cargo/registry/index
             ~/.cargo/registry/cache
             ~/.cargo/git/db
-          key: cargo-deps-${{ hashFiles('./Cargo.lock') }}
+          key: ${{ runner.os }}-cargo-deps-${{ hashFiles('./Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-deps-
 
       - name: Cache cargo build
         uses: actions/cache@v2
         with:
           path: target
           key: ${{ runner.os }}-cargo-build-${{ hashFiles('./Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-build-
 
       - name: Format check
         uses: actions-rs/cargo@v1

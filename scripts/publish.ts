@@ -120,10 +120,7 @@ export async function publish(config: BuildConfig) {
     // if we've made it this far then the npm publish dry-run passed
     // and all of the git command worked, time to publish!!
     // ⛴ LET'S GO!!
-    const TODO_SET_TO_FALSE_WHEN_READY = true;
-    await run('npm', npmPublishArgs, TODO_SET_TO_FALSE_WHEN_READY, false, {
-      cwd: distPkgDir,
-    });
+    await run('npm', npmPublishArgs, false, false, { cwd: distPkgDir });
   }
 
   console.log(

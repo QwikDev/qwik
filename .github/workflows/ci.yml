@@ -2,7 +2,6 @@ name: Qwik CI
 
 on:
   push:
-  pull_request:
   workflow_dispatch:
     name: 'Release'
     description: 'Commit version update to git, publish to NPM, and create a Github release.'
@@ -66,10 +65,13 @@ jobs:
           node-version: 16.x
           registry-url: https://registry.npmjs.org/
 
-      - name: Install wasm-pack
-        uses: jetli/wasm-pack-action@v0.3.0
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
         with:
-          version: 'latest'
+          profile: minimal
+          override: true
+          toolchain: stable
+          target: wasm32-unknown-unknown
 
       - name: Checkout
         uses: actions/checkout@v2
@@ -89,6 +91,12 @@ jobs:
             ~/.cargo/registry/cache
             ~/.cargo/git/db
           key: cargo-deps-${{ matrix.settings.target }}-${{ hashFiles('./Cargo.lock') }}
+
+      - name: Install wasm-pack
+        uses: actions-rs/cargo@v1
+        with:
+          command: install
+          args: cargo-pack
 
       - name: Cache cargo build
         uses: actions/cache@v2
@@ -146,7 +154,7 @@ jobs:
           node-version: 16.x
           registry-url: https://registry.npmjs.org/
 
-      - name: Install
+      - name: Install Rust toolchain
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal

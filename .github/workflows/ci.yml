@@ -132,15 +132,15 @@ jobs:
         settings:
           - host: macos-latest
             target: x86_64-apple-darwin
-            build: node scripts --platform-binding
+            build: yarn build.platform
 
           - host: macos-latest
             target: aarch64-apple-darwin
-            build: node scripts --platform-binding --platform-target=aarch64-apple-darwin
+            build: yarn build.platform --platform-target=aarch64-apple-darwin
 
           - host: windows-latest
             target: x86_64-pc-windows-msvc
-            build: node scripts --platform-binding
+            build: yarn build.platform
 
     name: Build ${{ matrix.settings.target }}
     runs-on: ${{ matrix.settings.host }}

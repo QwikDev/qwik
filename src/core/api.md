@@ -338,6 +338,9 @@ export function useURL(): URL;
 // @public
 export type ValueOrPromise<T> = T | Promise<T>;
 
+// @alpha (undocumented)
+export const version: any;
+
 
 // (No @packageDocumentation comment for this package)
 

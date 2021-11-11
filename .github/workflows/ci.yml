@@ -303,7 +303,7 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@master
         with:
-          name: builder-io-qwik
+          name: BuilderIO-qwik
           path: dist-dev/*.tgz
           if-no-files-found: error
 

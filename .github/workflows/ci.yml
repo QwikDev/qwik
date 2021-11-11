@@ -17,7 +17,6 @@ on:
 env:
   # Disable incremental build, speeds up CI
   CARGO_INCREMENTAL: 0
-  MACOSX_DEPLOYMENT_TARGET: '10.13'
 
 jobs:
   ############ BUILD PACKAGE ############
@@ -137,7 +136,10 @@ jobs:
 
           - host: macos-latest
             target: aarch64-apple-darwin
-            build: yarn build.platform --platform-target=aarch64-apple-darwin
+            build: |
+              export SDKROOT=$(xcrun -sdk macosx11.1 --show-sdk-path)
+              export MACOSX_DEPLOYMENT_TARGET=$(xcrun -sdk macosx11.1 --show-sdk-platform-version)
+              yarn build.platform --platform-target=aarch64-apple-darwin
 
           - host: windows-latest
             target: x86_64-pc-windows-msvc

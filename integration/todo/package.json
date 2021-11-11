@@ -1,0 +1,21 @@
+{
+  "name": "todo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "clean": "rm -rf dist output",
+    "build.rollup": "rollup -c",
+    "build.qwik": "qwik optimize --src src --dest dist --minify",
+    "build": "npm run clean && npm run build.rollup"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@builder.io/qwik": "0.0.12-pre.1",
+    "rollup": "^2.59.0"
+  },
+  "devDependencies": {
+    "@rollup/plugin-node-resolve": "^13.0.6"
+  }
+}

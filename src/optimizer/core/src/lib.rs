@@ -1,0 +1,185 @@
+#![deny(clippy::all)]
+#![deny(clippy::perf)]
+#![deny(clippy::nursery)]
+
+#[cfg(test)]
+mod test;
+
+mod code_move;
+mod collector;
+mod entry_strategy;
+mod parse;
+mod transform;
+mod utils;
+
+#[cfg(feature = "parallel")]
+use rayon::prelude::*;
+
+#[cfg(feature = "parallel")]
+use anyhow::Context;
+
+#[cfg(feature = "fs")]
+use std::fs;
+
+#[cfg(feature = "fs")]
+use std::path::Path;
+
+use anyhow::Error;
+use serde::{Deserialize, Serialize};
+use std::str;
+
+use crate::code_move::generate_entries;
+use crate::entry_strategy::parse_entry_strategy;
+pub use crate::entry_strategy::EntryStrategy;
+use crate::parse::{transform_code, TransformCodeOptions};
+pub use crate::parse::{ErrorBuffer, HookAnalysis, MinifyMode, TransformModule, TransformOutput};
+use crate::transform::TransformContext;
+
+// #[cfg(feature = "fs")]
+#[derive(Serialize, Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TransformFsOptions {
+    root_dir: String,
+    glob: Option<String>,
+    source_maps: bool,
+    minify: MinifyMode,
+    transpile: bool,
+    entry_strategy: EntryStrategy,
+}
+
+impl TransformFsOptions {
+    pub const fn new(
+        root_dir: String,
+        glob: Option<String>,
+        source_maps: bool,
+        minify: MinifyMode,
+        transpile: bool,
+        entry_strategy: EntryStrategy,
+    ) -> Self {
+        Self {
+            root_dir,
+            glob,
+            source_maps,
+            minify,
+            transpile,
+            entry_strategy,
+        }
+    }
+}
+
+#[derive(Serialize, Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TransformModuleInput {
+    pub path: String,
+    pub code: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TransformModulesOptions {
+    pub root_dir: String,
+    pub input: Vec<TransformModuleInput>,
+    pub source_maps: bool,
+    pub minify: MinifyMode,
+    pub transpile: bool,
+    pub entry_strategy: EntryStrategy,
+}
+
+#[cfg(feature = "fs")]
+pub fn transform_fs(config: TransformFsOptions) -> Result<TransformOutput, Error> {
+    let root_dir = Path::new(&config.root_dir);
+    let context = TransformContext::new();
+    let mut paths = vec![];
+    let entry_policy = &*parse_entry_strategy(config.entry_strategy);
+    find_files(root_dir, &mut paths)?;
+
+    #[cfg(feature = "parallel")]
+    let iterator = paths.par_iter();
+
+    #[cfg(not(feature = "parallel"))]
+    let iterator = paths.iter();
+    let mut final_output = iterator
+        .map(|path| -> Result<TransformOutput, Error> {
+            let code = fs::read_to_string(&path)
+                .with_context(|| format!("Opening {}", &path.to_string_lossy()))?;
+
+            transform_code(TransformCodeOptions {
+                path: path
+                    .strip_prefix(&config.root_dir)
+                    .with_context(|| {
+                        format!("Stripping root prefix from {}", path.to_string_lossy())
+                    })?
+                    .to_str()
+                    .unwrap(),
+                minify: config.minify,
+                code: &code,
+                source_maps: config.source_maps,
+                transpile: config.transpile,
+                print_ast: false,
+                entry_policy,
+                context: context.clone(),
+            })
+        })
+        .reduce(|| Ok(TransformOutput::new()), |x, y| Ok(x?.append(&mut y?)))?;
+
+    final_output = generate_entries(final_output, config.transpile)?;
+    Ok(final_output)
+}
+
+pub fn transform_modules(config: TransformModulesOptions) -> Result<TransformOutput, Error> {
+    let entry_policy = &*parse_entry_strategy(config.entry_strategy);
+    let context = TransformContext::new();
+    #[cfg(feature = "parallel")]
+    let iterator = config.input.par_iter();
+
+    #[cfg(not(feature = "parallel"))]
+    let iterator = config.input.iter();
+    let iterator = iterator.map(|path| -> Result<TransformOutput, Error> {
+        transform_code(TransformCodeOptions {
+            path: &path.path,
+            minify: config.minify,
+            code: &path.code,
+            source_maps: config.source_maps,
+            transpile: config.transpile,
+            print_ast: false,
+            entry_policy,
+            context: context.clone(),
+        })
+    });
+
+    #[cfg(feature = "parallel")]
+    let final_output: Result<TransformOutput, Error> =
+        iterator.reduce(|| Ok(TransformOutput::new()), |x, y| Ok(x?.append(&mut y?)));
+
+    #[cfg(not(feature = "parallel"))]
+    let final_output: Result<TransformOutput, Error> =
+        iterator.fold(Ok(TransformOutput::new()), |x, y| Ok(x?.append(&mut y?)));
+
+    let mut final_output = final_output?;
+    final_output = generate_entries(final_output, config.transpile)?;
+    Ok(final_output)
+}
+
+#[cfg(feature = "fs")]
+fn find_files(dir: &std::path::Path, files: &mut Vec<std::path::PathBuf>) -> std::io::Result<()> {
+    if dir.is_dir() {
+        for entry in fs::read_dir(dir)? {
+            let entry = entry?;
+            let path = entry.path();
+            if path.is_dir() {
+                match path.file_name().and_then(|p| p.to_str()) {
+                    Some("node_modules" | "dist" | "build") => {}
+                    _ => {
+                        find_files(&path, files)?;
+                    }
+                }
+            } else {
+                let ext = path.extension().and_then(|p| p.to_str());
+                if let Some("ts" | "tsx" | "js" | "jsx") = ext {
+                    files.push(path);
+                }
+            }
+        }
+    }
+    Ok(())
+}

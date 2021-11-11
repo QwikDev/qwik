@@ -1,0 +1,19 @@
+[package]
+authors = ["Manu Mtz.-Almeida <manu@builder.io>"]
+name = "qwik-napi"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+napi = { version = "1", features = ["serde-json"] }
+napi-derive = "1"
+qwik-core = { path = "../optimizer/core", features = ["fs", "parallel"] }
+
+[target.'cfg(windows)'.dependencies]
+mimalloc = { version = "0.1.25", default-features = false }
+
+[build-dependencies]
+napi-build = { version = "1" }

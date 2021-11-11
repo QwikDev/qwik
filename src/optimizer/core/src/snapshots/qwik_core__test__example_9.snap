@@ -1,0 +1,87 @@
+---
+source: src/test.rs
+expression: output
+
+---
+==INPUT==
+
+
+const Header = qHook((decl1, {decl2}, [decl3]) => {
+    const {decl4, key: decl5} = this;
+    let [decl6, ...decl7] = stuff;
+    const decl8 = 1, decl9;
+    function decl10(decl11, {decl12}, [decl13]) {}
+    class decl14 {
+        method(decl15, {decl16}, [decl17]) {}
+    }
+    try{}catch(decl18){}
+    try{}catch({decl19}){}
+});
+    
+============================= test.tsx ==
+
+qHook(()=>import("./h_test_header")
+, "Header");
+
+============================= h_test_header.tsx (ENTRY POINT)==
+
+export const Header = /*#__PURE__*/ qHook((decl1, { decl2  }, [decl3])=>{
+    const { decl4 , key: decl5  } = this;
+    let [decl6, ...decl7] = stuff;
+    const decl8 = 1, decl9;
+    function decl10(decl11, { decl12  }, [decl13]) {
+    }
+    class decl14 {
+        method(decl15, { decl16  }, [decl17]) {
+        }
+    }
+    try {
+    } catch (decl18) {
+    }
+    try {
+    } catch ({ decl19  }) {
+    }
+});
+
+== HOOKS ==
+
+[
+  {
+    "origin": "test.tsx",
+    "name": "Header",
+    "entry": null,
+    "canonicalFilename": "h_test_header",
+    "localDecl": [
+      "decl1",
+      "decl10",
+      "decl11",
+      "decl12",
+      "decl13",
+      "decl14",
+      "decl15",
+      "decl16",
+      "decl17",
+      "decl18",
+      "decl19",
+      "decl2",
+      "decl3",
+      "decl4",
+      "decl5",
+      "decl6",
+      "decl7",
+      "decl8",
+      "decl9"
+    ],
+    "localIdents": [
+      "decl1",
+      "decl2",
+      "decl3",
+      "qHook",
+      "stuff"
+    ]
+  }
+]
+
+== DIAGNOSTICS ==
+
+[]

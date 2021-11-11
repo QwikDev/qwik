@@ -1,0 +1,8 @@
+{
+  "napi": {
+    "name": "qwik",
+    "triples": {
+      "defaults": true
+    }
+  }
+}

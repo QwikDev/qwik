@@ -331,7 +331,7 @@ export function Async<T>(props: {
   if (props.onPending || props.onResolved || props.onError) {
     throw new Error('IMPLEMENT');
   }
-  const children = props.children;
+  const children = [props.children].flat()[0];
   const renderFn = typeof children == 'function' ? children : null;
   const promiseValue: PromiseValue<any> = {
     isPending: true,

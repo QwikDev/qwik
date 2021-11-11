@@ -11,6 +11,9 @@ export async function buildPlatformBinding(config: BuildConfig) {
       const cmd = `napi`;
       const args = [`build`, `--platform`, `--config=napi.config.json`, config.distBindingsDir];
 
+      if (config.platformTarget) {
+        args.push(`--target`, config.platformTarget);
+      }
       if (!config.dev) {
         args.push(`--release`);
       }

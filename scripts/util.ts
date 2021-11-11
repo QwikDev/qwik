@@ -35,6 +35,7 @@ export interface BuildConfig {
   distBindingsDir: string;
   esmNode: boolean;
   distVersion: string;
+  platformTarget?: string;
 
   api?: boolean;
   build?: boolean;
@@ -45,7 +46,7 @@ export interface BuildConfig {
   platformBinding?: boolean;
   publish?: boolean;
   setDistTag?: string;
-  setVerison?: string;
+  setVersion?: string;
   tsc?: boolean;
   validate?: boolean;
   wasm?: boolean;
@@ -69,7 +70,8 @@ export function loadConfig(args: string[] = []) {
   config.tscDir = join(config.distDir, 'tsc-out');
   config.esmNode = parseInt(process.version.substr(1).split('.')[0], 10) >= 14;
   config.platformBinding = (config as any)['platform-binding'];
-  config.setVerison = (config as any)['set-version'];
+  config.platformTarget = (config as any)['platform-target'];
+  config.setVersion = (config as any)['set-version'];
   config.setDistTag = (config as any)['set-dist-tag'];
   config.dryRun = (config as any)['dry-run'];
 

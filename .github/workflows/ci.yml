@@ -18,8 +18,8 @@ on:
 jobs:
   ############ BUILD PACKAGE ############
   build-package:
-    if: "!contains(github.event.head_commit.message, 'skip ci')"
     name: Build Package
+    if: "!contains(github.event.head_commit.message, 'skip ci')"
     runs-on: ubuntu-latest
     steps:
       - name: Setup Node.js
@@ -58,8 +58,8 @@ jobs:
 
   ############ BUILD WASM ############
   build-wasm:
-    if: "!contains(github.event.head_commit.message, 'skip ci')"
     name: Build WASM
+    if: "!contains(github.event.head_commit.message, 'skip ci')"
     runs-on: ubuntu-latest
     steps:
       - name: Setup Node.js
@@ -82,6 +82,22 @@ jobs:
           path: node_modules
           key: npm-cache-ubuntu-${{ hashFiles('yarn.lock') }}
           restore-keys: npm-cache-ubuntu-
+
+
+      - name: Cache cargo dependencies
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            ~/.cargo/git/db
+          key: cargo-deps-${{ matrix.settings.target }}-${{ hashFiles('./Cargo.lock') }}
+
+      - name: Cache cargo build
+        uses: actions/cache@v2
+        with:
+          path: src/wasm/target
+          key: cargo-build-wasm-${{ hashFiles('./src/wasm/Cargo.lock') }}
 
       - name: Install NPM Dependencies
         run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
@@ -143,18 +159,6 @@ jobs:
           toolchain: stable
           target: ${{ matrix.settings.target }}
 
-      - name: Cache Cargo Registry
-        uses: actions/cache@v2
-        with:
-          path: ~/.cargo/registry
-          key: ${{ matrix.settings.target }}-node@16-cargo-registry-trimmed-${{ hashFiles('**/Cargo.lock') }}
-
-      - name: Cache Cargo Index
-        uses: actions/cache@v2
-        with:
-          path: ~/.cargo/git
-          key: ${{ matrix.settings.target }}-node@16-cargo-index-trimmed-${{ hashFiles('**/Cargo.lock') }}
-
       - name: Cache NPM Dependencies
         uses: actions/cache@v2
         with:
@@ -163,12 +167,27 @@ jobs:
           restore-keys: npm-cache-${{ matrix.settings.target }}-
 
       - name: Pull Latest Image
+        if: ${{ matrix.settings.docker }}
         run: ${{ matrix.settings.docker }}
         env:
           DOCKER_REGISTRY_URL: ghcr.io
           DOCKER_USERNAME: ${{ github.actor }}
           DOCKER_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
-        if: ${{ matrix.settings.docker }}
+
+      - name: Cache cargo dependencies
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            ~/.cargo/git/db
+          key: cargo-deps-${{ matrix.settings.target }}-${{ hashFiles('./Cargo.lock') }}
+
+      - name: Cache cargo build
+        uses: actions/cache@v2
+        with:
+          path: target
+          key: cargo-build-${{ matrix.settings.target }}-${{ hashFiles('./Cargo.lock') }}
 
       - name: Setup Toolchain
         if: ${{ matrix.settings.setup }}
@@ -195,8 +214,8 @@ jobs:
 
   ############ RELEASE ############
   release:
-    if: "!contains(github.event.head_commit.message, 'skip ci')"
     name: Release
+    if: "!contains(github.event.head_commit.message, 'skip ci')"
     runs-on: ubuntu-latest
     needs:
       - build-package

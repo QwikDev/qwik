@@ -16,13 +16,16 @@ mod utils;
 #[cfg(feature = "parallel")]
 use rayon::prelude::*;
 
+#[cfg(feature = "parallel")]
+use anyhow::Context;
+
 #[cfg(feature = "fs")]
 use std::fs;
 
 #[cfg(feature = "fs")]
 use std::path::Path;
 
-use anyhow::{Context, Error};
+use anyhow::Error;
 use serde::{Deserialize, Serialize};
 use std::str;
 

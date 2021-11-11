@@ -1,12 +1,13 @@
 import { assertDefined } from '../assert/assert';
-import { cursorForComponent, cursorReconcileEnd } from '../render/cursor';
+import { qImport } from '../import/qImport';
+import { _stateQObject } from '../object/q-object';
 import type { OnHookReturn } from '../props/q-props';
+import { qProps } from '../props/q-props.public';
+import { cursorForComponent, cursorReconcileEnd } from '../render/cursor';
 import { ComponentRenderQueue, visitJsxNode } from '../render/q-render';
 import { AttributeMarker } from '../util/markers';
 import { flattenPromiseTree } from '../util/promises';
-import { QrlStyles, styleContent, styleHost } from './qrl-styles';
-import { _stateQObject } from '../object/q-object';
-import { qProps } from '../props/q-props.public';
+import { styleContent, styleHost, styleKey } from './qrl-styles';
 
 // TODO(misko): Can we get rid of this whole file, and instead teach qProps to know how to render
 // the advantage will be that the render capability would then be exposed to the outside world as well.
@@ -21,10 +22,12 @@ export class QComponentCtx {
 
   constructor(hostElement: HTMLElement) {
     this.hostElement = hostElement;
-    const styleId = (this.styleId = hostElement.getAttribute(AttributeMarker.ComponentStyles));
-    if (styleId) {
-      this.styleHostClass = styleHost(styleId as any as QrlStyles<any>);
-      this.styleClass = styleContent(styleId as any as QrlStyles<any>);
+    const scopedStyleId = (this.styleId = styleKey(
+      hostElement.getAttribute(AttributeMarker.ComponentStyles) as any
+    )!);
+    if (scopedStyleId) {
+      this.styleHostClass = styleHost(scopedStyleId);
+      this.styleClass = styleContent(scopedStyleId);
     }
   }
 
@@ -37,6 +40,10 @@ export class QComponentCtx {
     // TODO(misko): extract constant
     if (props['state:'] == null) {
       try {
+        const scopedStyle: string | null = props[AttributeMarker.ComponentStyles];
+        const unscopedStyle: string | null = props[AttributeMarker.ComponentUnscopedStyles];
+        insertStyleIfNeeded(this, scopedStyle);
+        insertStyleIfNeeded(this, unscopedStyle);
         const hook = props['on:qMount'];
         if (hook) {
           const values: OnHookReturn[] = await hook('qMount');
@@ -100,4 +107,21 @@ export function getHostElement(element: Element): HTMLElement | null {
     element = element.parentElement!;
   }
   return element as HTMLElement | null;
+}
+
+function insertStyleIfNeeded(ctx: QComponentCtx, style: string | null) {
+  if (style) {
+    const styleId = styleKey(style as any)!;
+    const document = ctx.hostElement.ownerDocument;
+    const head = document.querySelector('head')!;
+    if (!head.querySelector(`style[q\\:style="${styleId}"]`)) {
+      const styleImport = Promise.resolve(qImport<string>(document, style));
+      styleImport.then((styles: string) => {
+        const style = document.createElement('style');
+        style.setAttribute('q:style', styleId);
+        style.textContent = styles.replace(/�/g, styleId);
+        head.appendChild(style);
+      });
+    }
+  }
 }

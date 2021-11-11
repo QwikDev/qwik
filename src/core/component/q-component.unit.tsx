@@ -1,10 +1,10 @@
 import { Fragment, h, qHook, qObject } from '@builder.io/qwik';
 import { ElementFixture, trigger } from '../../testing/element_fixture';
-import { expectDOM } from '../../testing/expect-dom';
+import { expectDOM } from '../../testing/expect-dom.unit';
 import { qRender } from '../render/q-render.public';
 import { TEST_CONFIG } from '../util/test_config';
 import { qComponent } from './q-component.public';
-import { qrlStyles } from './qrl-styles';
+import { qStyles } from './qrl-styles';
 
 describe('q-component', () => {
   it('should declare and render basic component', async () => {
@@ -90,7 +90,7 @@ export const HelloWorld = qComponent({
   onRender: qHook(() => {
     return <span>Hello World</span>;
   }),
-  styles: qrlStyles('./mock.unit.css#ABC123'),
+  styles: qStyles('./mock.unit.css#ABC123'),
 });
 
 /////////////////////////////////////////////////////////////////////////////

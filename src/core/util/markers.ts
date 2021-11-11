@@ -40,7 +40,12 @@ export const enum AttributeMarker {
   /**
    * Component Styles.
    */
-  ComponentStyles = 'q:style',
+  ComponentStyles = 'q:sstyle',
+
+  /**
+   * Unscoped Component Styles.
+   */
+  ComponentUnscopedStyles = 'q:ustyle',
 
   /**
    * Component style host prefix

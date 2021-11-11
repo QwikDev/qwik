@@ -119,4 +119,6 @@ interface QwikDOMEvents {
   'on:wheel'?: QRL;
 }
 
-export interface DOMAttributes<T> extends QwikProps, QwikGlobalEvents, QwikDOMEvents {}
+export interface DOMAttributes<T> extends QwikProps, QwikGlobalEvents, QwikDOMEvents {
+  children?: any;
+}

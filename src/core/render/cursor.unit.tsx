@@ -1,5 +1,5 @@
 import { Fragment, h, Slot } from '@builder.io/qwik';
-import { expectDOM } from '../../testing/expect-dom';
+import { expectDOM } from '../../testing/expect-dom.unit';
 import { toDOM } from '../../testing/jsx';
 import { qHook } from '../component/qrl-hook.public';
 import { AttributeMarker } from '../util/markers';

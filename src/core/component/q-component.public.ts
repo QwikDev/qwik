@@ -3,7 +3,7 @@ import type { HTMLAttributes } from '../render/jsx/types/jsx-generated';
 import type { FunctionComponent, JSXNode } from '../render/jsx/types/jsx-node';
 import { AttributeMarker } from '../util/markers';
 import type { QHook } from './qrl-hook.public';
-import { QrlStyles, styleContent, styleHost } from './qrl-styles';
+import { QStyles, styleContent, styleHost, styleKey } from './qrl-styles';
 
 // <docs markdown="./q-component.md#qComponent">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit ./q-component.md instead)
@@ -69,6 +69,7 @@ import { QrlStyles, styleContent, styleHost } from './qrl-styles';
 export function qComponent<PROPS = {}, STATE = {}>({
   onRender,
   styles,
+  unscopedStyles,
   tagName,
   props,
   onResume,
@@ -204,7 +205,8 @@ export function qComponent<PROPS = {}, STATE = {}>({
    */
   // </docs>
   // TODO(misko): finish documentation once implemented.
-  styles?: QrlStyles<any>;
+  styles?: QStyles<any>;
+  unscopedStyles?: QStyles<any>;
 
   // <docs markdown="./q-component.md#qComponent.props">
   // !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit ./q-component.md instead)
@@ -249,6 +251,7 @@ export function qComponent<PROPS = {}, STATE = {}>({
       [AttributeMarker.OnHydrate]: onHydrate,
       [AttributeMarker.OnDehydrate]: onDehydrate,
       [AttributeMarker.ComponentStyles]: styles,
+      [AttributeMarker.ComponentUnscopedStyles]: unscopedStyles,
       ...props,
       ...jsxProps,
     });
@@ -261,8 +264,9 @@ export function qComponent<PROPS = {}, STATE = {}>({
   QComponent.onHydrate = onHydrate || null;
   QComponent.onDehydrate = onDehydrate || null;
   QComponent.styles = styles || null;
-  QComponent.styleHostClass = styleHost(styles) || null;
-  QComponent.styleClass = styleContent(styles) || null;
+  const styleId = styleKey(styles);
+  QComponent.styleHostClass = styleHost(styleId) || null;
+  QComponent.styleClass = styleContent(styleId) || null;
   return QComponent;
 }
 
@@ -333,7 +337,7 @@ export interface QComponent<PROPS extends {} = any, STATE extends {} = any>
   onUnmount: QHook<PROPS, STATE, undefined, void> | null;
   onDehydrate: QHook<PROPS, STATE, undefined, void> | null;
   onHydrate: QHook<PROPS, STATE, undefined, void> | null;
-  styles: QrlStyles<any> | null;
+  styles: QStyles<any> | null;
   styleClass: string | null;
   styleHostClass: string | null;
   props: Record<string, any>;

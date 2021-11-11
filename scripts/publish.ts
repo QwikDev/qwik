@@ -107,20 +107,29 @@ export async function publish(config: BuildConfig) {
   const gitTagArgs = ['tag', '-f', '-m', version, gitTag];
   await run('git', gitTagArgs, isDryRun);
 
-  // git push to the repo
-  const gitPushArgs = ['push', '--follow-tags'];
-  await run('git', gitPushArgs, isDryRun);
-
   console.log(
     `🐳 commit version "${version}" with git tag "${gitTag}"`,
     isDryRun ? '(dry-run)' : ''
   );
 
-  if (!isDryRun) {
+  if (isDryRun) {
+    // git push does not execute in this dry run
+    const gitPushArgs = ['push', '--follow-tags'];
+    await run('git', gitPushArgs, true, false);
+  } else {
+    // production release
+    // git push to the repo w/ --dry-run flag to make sure we're good before publishing
+    const gitPushArgs = ['push', '--follow-tags'];
+    await run('git', gitPushArgs, false, true);
+
     // if we've made it this far then the npm publish dry-run passed
-    // and all of the git command worked, time to publish!!
+    // and all of the git commands worked, time to publish!!
     // ⛴ LET'S GO!!
     await run('npm', npmPublishArgs, false, false, { cwd: distPkgDir });
+
+    // git push to the production repo w/out the dry-run flag
+    // now that it's officially published to npm
+    await run('git', gitPushArgs, false, false);
   }
 
   console.log(

@@ -139,9 +139,13 @@ async function run(
   if (dryRunCliFlag) {
     args = [...args, '--dry-run'];
   }
-  console.log(`  ${cmd} ${args.join(' ')}`, opts ? JSON.stringify(opts) : '');
+  const bash = `  ${cmd} ${args.join(' ')}`;
+  console.log(bash, opts ? JSON.stringify(opts) : '');
   if (!skipExecution) {
-    await execa(cmd, args, opts);
+    const result = await execa(cmd, args, opts);
+    if (result.failed) {
+      panic(`Finished with error: ${bash}`);
+    }
   }
 }
 

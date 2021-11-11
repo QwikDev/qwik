@@ -37,7 +37,6 @@ export function qwikRollup(opts: QwikPluginOptions = {}): Plugin {
       const transformOpts: TransformFsOptions = {
         rootDir: findInputDirectory(optimizer.path, options.input),
         entryStrategy: opts.entryStrategy,
-        glob: opts.glob,
         minify: opts.minify,
         transpile: opts.transpile ?? true,
       };

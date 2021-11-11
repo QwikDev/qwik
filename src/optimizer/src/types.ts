@@ -65,9 +65,6 @@ export interface TransformModulesOptions extends TransformOptions {
  */
 export interface TransformFsOptions extends TransformOptions {
   rootDir: string;
-
-  // **/*.qwik.{js,jsx,ts,tsx}
-  glob?: string;
 }
 
 // OPTION INPUTS ***************

@@ -1,4 +1,3 @@
-import { json } from 'express';
 import type { TransformModuleInput } from '.';
 import { getSystem, InternalSystem, PlatformBinding } from './platform';
 import type { TransformModulesOptions, TransformFsOptions, Optimizer } from './types';

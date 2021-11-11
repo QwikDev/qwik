@@ -144,8 +144,6 @@ export interface QwikPluginOptions {
     // (undocumented)
     entryStrategy?: EntryStrategy;
     // (undocumented)
-    glob?: string;
-    // (undocumented)
     minify?: MinifyMode;
     // (undocumented)
     transpile?: boolean;
@@ -173,8 +171,6 @@ export type SourceMapsOption = 'external' | 'inline' | undefined | null;
 //
 // @alpha (undocumented)
 export interface TransformFsOptions extends TransformOptions {
-    // (undocumented)
-    glob?: string;
     // (undocumented)
     rootDir: string;
 }

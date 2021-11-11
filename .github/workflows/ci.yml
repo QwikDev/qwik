@@ -17,6 +17,7 @@ on:
 env:
   # Disable incremental build, speeds up CI
   CARGO_INCREMENTAL: 0
+  MACOSX_DEPLOYMENT_TARGET: '10.13'
 
 jobs:
   ############ BUILD PACKAGE ############

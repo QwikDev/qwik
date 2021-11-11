@@ -81,7 +81,6 @@ jobs:
           key: npm-cache-ubuntu-${{ hashFiles('yarn.lock') }}
           restore-keys: npm-cache-ubuntu-
 
-
       - name: Cache cargo dependencies
         uses: actions/cache@v2
         with:

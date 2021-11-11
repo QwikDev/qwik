@@ -97,15 +97,15 @@ jobs:
           key: cargo-deps-${{ matrix.settings.target }}-${{ hashFiles('./Cargo.lock') }}
           restore-keys: cargo-deps-${{ matrix.settings.target }}-
 
-      - name: Install wasm-pack
-        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
-
       - name: Cache cargo build
         uses: actions/cache@v2
         with:
           path: src/wasm/target
           key: cargo-build-wasm-${{ hashFiles('./src/wasm/Cargo.lock') }}
           restore-keys: cargo-build-wasm-
+
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
       - name: Install NPM Dependencies
         run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000

@@ -120,8 +120,8 @@ export async function publish(config: BuildConfig) {
     // if we've made it this far then the npm publish dry-run passed
     // and all of the git command worked, time to publish!!
     // ⛴ LET'S GO!!
-    const TODO_SET_TO_TRUE_WHEN_READY = false;
-    await run('npm', npmPublishArgs, TODO_SET_TO_TRUE_WHEN_READY, false, {
+    const TODO_SET_TO_FALSE_WHEN_READY = true;
+    await run('npm', npmPublishArgs, TODO_SET_TO_FALSE_WHEN_READY, false, {
       cwd: distPkgDir,
     });
   }
@@ -135,15 +135,15 @@ export async function publish(config: BuildConfig) {
 async function run(
   cmd: string,
   args: string[],
-  exe?: boolean,
-  dryRunFlag?: boolean,
+  skipExecution?: boolean,
+  dryRunCliFlag?: boolean,
   opts?: execa.Options
 ) {
-  if (dryRunFlag) {
+  if (dryRunCliFlag) {
     args = [...args, '--dry-run'];
   }
   console.log(`  ${cmd} ${args.join(' ')}`, opts ? JSON.stringify(opts) : '');
-  if (exe) {
+  if (!skipExecution) {
     await execa(cmd, args, opts);
   }
 }

@@ -91,11 +91,9 @@ jobs:
         uses: actions/cache@v2
         with:
           path: |
-            ~/.cargo/registry/index
-            ~/.cargo/registry/cache
-            ~/.cargo/git/db
-          key: cargo-deps-${{ matrix.settings.target }}-${{ hashFiles('./Cargo.lock') }}
-          restore-keys: cargo-deps-${{ matrix.settings.target }}-
+            ~/.cargo
+          key: cargo-deps-wasm-${{ hashFiles('Cargo.lock') }}
+          restore-keys: cargo-deps-wasm-
 
       - name: Cache cargo build
         uses: actions/cache@v2
@@ -187,17 +185,15 @@ jobs:
         uses: actions/cache@v2
         with:
           path: |
-            ~/.cargo/registry/index
-            ~/.cargo/registry/cache
-            ~/.cargo/git/db
-          key: cargo-deps-${{ matrix.settings.target }}-${{ hashFiles('./Cargo.lock') }}
+            ~/.cargo
+          key: cargo-deps-${{ matrix.settings.target }}-${{ hashFiles('Cargo.lock') }}
           restore-keys: cargo-deps-${{ matrix.settings.target }}-
 
       - name: Cache cargo build
         uses: actions/cache@v2
         with:
           path: target
-          key: cargo-build-${{ matrix.settings.target }}-${{ hashFiles('./Cargo.lock') }}
+          key: cargo-build-${{ matrix.settings.target }}-${{ hashFiles('Cargo.lock') }}
           restore-keys: cargo-deps-${{ matrix.settings.target }}-
 
       - name: Setup Toolchain
@@ -403,17 +399,15 @@ jobs:
         uses: actions/cache@v2
         with:
           path: |
-            ~/.cargo/registry/index
-            ~/.cargo/registry/cache
-            ~/.cargo/git/db
-          key: ${{ runner.os }}-cargo-deps-${{ hashFiles('./Cargo.lock') }}
+            ~/.cargo
+          key: ${{ runner.os }}-cargo-deps-${{ hashFiles('Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-deps-
 
       - name: Cache cargo build
         uses: actions/cache@v2
         with:
           path: target
-          key: ${{ runner.os }}-cargo-build-${{ hashFiles('./Cargo.lock') }}
+          key: ${{ runner.os }}-cargo-build-${{ hashFiles('Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-build-
 
       - name: Format check

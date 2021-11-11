@@ -1,0 +1,43 @@
+---
+source: src/test.rs
+expression: output
+
+---
+==INPUT==
+
+
+export const sym1 = qHook((ctx) => console.log("1"));
+    
+============================= test.tsx ==
+
+export const sym1 = qHook(()=>import("./h_test_sym1")
+, "sym1");
+
+============================= h_test_sym1.tsx (ENTRY POINT)==
+
+export const sym1 = /*#__PURE__*/ qHook((ctx)=>console.log("1")
+);
+
+== HOOKS ==
+
+[
+  {
+    "origin": "test.tsx",
+    "name": "sym1",
+    "entry": null,
+    "canonicalFilename": "h_test_sym1",
+    "localDecl": [
+      "ctx"
+    ],
+    "localIdents": [
+      "console",
+      "ctx",
+      "log",
+      "qHook"
+    ]
+  }
+]
+
+== DIAGNOSTICS ==
+
+[]

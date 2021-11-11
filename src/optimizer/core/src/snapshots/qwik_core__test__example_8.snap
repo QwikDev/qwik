@@ -1,0 +1,67 @@
+---
+source: src/test.rs
+expression: output
+
+---
+==INPUT==
+
+
+import {qHook} from '@builderio/qwik';
+
+const Header = qComponent({
+    onRender: qHook((hola) => {
+      const hola = this;
+      const {something, styff} = hola;
+      const hello = hola.nothere.stuff[global];
+      return (
+        <Header/>
+      );
+    })
+  });
+
+============================= test.tsx ==
+
+import { qHook } from '@builderio/qwik';
+/*#__PURE__*/ qComponent({
+    onRender: qHook(()=>import("./h_test_header_onrender")
+    , "Header_onRender")
+});
+
+============================= h_test_header_onrender.tsx (ENTRY POINT)==
+
+import { qHook } from "@builderio/qwik";
+export const Header_onRender = /*#__PURE__*/ qHook((hola)=>{
+    const hola = this;
+    const { something , styff  } = hola;
+    const hello = hola.nothere.stuff[global];
+    return (<Header />);
+});
+
+== HOOKS ==
+
+[
+  {
+    "origin": "test.tsx",
+    "name": "Header_onRender",
+    "entry": null,
+    "canonicalFilename": "h_test_header_onrender",
+    "localDecl": [
+      "hello",
+      "hola",
+      "something",
+      "styff"
+    ],
+    "localIdents": [
+      "Header",
+      "global",
+      "hola",
+      "nothere",
+      "qHook",
+      "stuff"
+    ]
+  }
+]
+
+== DIAGNOSTICS ==
+
+[]

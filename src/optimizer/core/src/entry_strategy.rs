@@ -78,11 +78,10 @@ impl EntryPolicy for PerComponentStrategy {
         _analytics: &HookCollect,
         _expr: &CallExpr,
     ) -> Option<JsWord> {
-        if let Some(root) = context.first() {
-            Some(JsWord::from(["entry_", root].concat()))
-        } else {
-            Some(ENTRY_HOOKS.clone())
-        }
+        context.first().map_or_else(
+            || Some(ENTRY_HOOKS.clone()),
+            |root| Some(JsWord::from(["entry_", root].concat())),
+        )
     }
 }
 

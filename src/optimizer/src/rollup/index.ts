@@ -121,7 +121,7 @@ export function qwikRollup(opts: QwikPluginOptions = {}): Plugin {
       }
     },
 
-    watchChange(id, change) {
+    watchChange() {
       isDirty = true;
     },
   };

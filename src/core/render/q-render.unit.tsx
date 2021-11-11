@@ -224,7 +224,7 @@ describe('q-render', () => {
         </div>
       );
       await resolve!(Promise.reject('REJECTION'));
-      await Promise.resolve('delay');
+      await delay(0);
       expectRendered(
         <div>
           {/<node:.*>/}
@@ -255,7 +255,7 @@ describe('q-render', () => {
         </div>
       );
       await resolve!('WORKS');
-      await Promise.resolve(1);
+      await delay(0);
       expectRendered(
         <div>
           {/<node:.*>/}
@@ -397,3 +397,6 @@ export const HostFixture = qComponent<{ hostAttrs?: string; content?: string }>(
     return h(Host, JSON.parse(props.hostAttrs || '{}'), [props.content]);
   }),
 });
+function delay(time: number) {
+  return new Promise((res) => setTimeout(res, time));
+}

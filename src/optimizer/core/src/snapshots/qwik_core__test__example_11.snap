@@ -1,0 +1,125 @@
+---
+source: src/test.rs
+expression: output
+
+---
+==INPUT==
+
+
+import {foo, bar as bbar} from "../state";
+import * as dep2 from "dep2";
+import dep3 from "dep3/something";
+
+export const Header = qComponent({
+    onRender: qHook(() => {
+        return (
+            <Header onClick={qHook((ev) => dep3(ev))}>
+                {dep2.stuff()}{bbar()}
+            </Header>
+        );
+    })
+});
+
+export const App = qComponent({
+    onRender: qHook(() => {
+        return (
+            <Header>{foo()}</Header>
+        );
+    })
+});
+    
+============================= project/test.tsx ==
+
+export const Header = /*#__PURE__*/ qComponent({
+    onRender: qHook(()=>import("../entry_hooks")
+    , "Header_onRender")
+});
+export const App = /*#__PURE__*/ qComponent({
+    onRender: qHook(()=>import("../entry_hooks")
+    , "App_onRender")
+});
+
+============================= h_test_header_onrender_header_onclick.tsx ==
+
+import dep3 from "dep3/something";
+export const Header_onRender_Header_onClick = /*#__PURE__*/ qHook((ev)=>dep3(ev)
+);
+
+============================= h_test_header_onrender.tsx ==
+
+import { Header } from "./project/test";
+import { bar as bbar } from "./state";
+import * as dep2 from "dep2";
+export const Header_onRender = /*#__PURE__*/ qHook(()=>{
+    return (<Header onClick={qHook(()=>import("../entry_hooks")
+    , "Header_onRender_Header_onClick")}>
+
+                {dep2.stuff()}{bbar()}
+
+            </Header>);
+});
+
+============================= h_test_app_onrender.tsx ==
+
+import { Header } from "./project/test";
+import { foo } from "./state";
+export const App_onRender = /*#__PURE__*/ qHook(()=>{
+    return (<Header >{foo()}</Header>);
+});
+
+============================= entry_hooks.ts (ENTRY POINT)==
+
+export { Header_onRender_Header_onClick } from "./h_test_header_onrender_header_onclick";
+export { Header_onRender } from "./h_test_header_onrender";
+export { App_onRender } from "./h_test_app_onrender";
+
+== HOOKS ==
+
+[
+  {
+    "origin": "project/test.tsx",
+    "name": "Header_onRender_Header_onClick",
+    "entry": "entry_hooks",
+    "canonicalFilename": "h_test_header_onrender_header_onclick",
+    "localDecl": [
+      "ev"
+    ],
+    "localIdents": [
+      "dep3",
+      "ev",
+      "qHook"
+    ]
+  },
+  {
+    "origin": "project/test.tsx",
+    "name": "Header_onRender",
+    "entry": "entry_hooks",
+    "canonicalFilename": "h_test_header_onrender",
+    "localDecl": [],
+    "localIdents": [
+      "Header",
+      "bbar",
+      "dep2",
+      "import",
+      "onClick",
+      "qHook",
+      "stuff"
+    ]
+  },
+  {
+    "origin": "project/test.tsx",
+    "name": "App_onRender",
+    "entry": "entry_hooks",
+    "canonicalFilename": "h_test_app_onrender",
+    "localDecl": [],
+    "localIdents": [
+      "Header",
+      "foo",
+      "qHook"
+    ]
+  }
+]
+
+== DIAGNOSTICS ==
+
+[]

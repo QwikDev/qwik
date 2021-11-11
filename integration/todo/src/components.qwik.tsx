@@ -19,7 +19,7 @@ import {
   Todos,
   toggleItem,
   updateFilter,
-} from './state';
+} from './state.qwik';
 /* eslint no-console: ["off"] */
 
 // TODO(misko): APIs for better debugger experience: qProps

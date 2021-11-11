@@ -8,14 +8,11 @@ import { join } from 'path';
  * Note that some of the properties can be pulled from the root package.json.
  */
 export async function generatePackageJson(config: BuildConfig) {
-  const pkgJsonRoot = join(config.rootDir, 'package.json');
-  const pkgJsonDist = join(config.pkgDir, 'package.json');
-
-  const rootPkg: PackageJSON = JSON.parse(await readFile(pkgJsonRoot, 'utf-8'));
+  const rootPkg = await readPackageJson(config.rootDir);
 
   const distPkg: PackageJSON = {
     name: rootPkg.name,
-    version: rootPkg.version,
+    version: config.distVersion,
     description: rootPkg.description,
     license: rootPkg.license,
     main: './core.cjs',
@@ -49,7 +46,7 @@ export async function generatePackageJson(config: BuildConfig) {
       },
       './package.json': './package.json',
     },
-    files: Array.from(new Set(PACKAGE_FILES)).sort((a, b) => {
+    files: Array.from(new Set(rootPkg.files)).sort((a, b) => {
       if (a.toLocaleLowerCase() < b.toLocaleLowerCase()) return -1;
       if (a.toLocaleLowerCase() > b.toLocaleLowerCase()) return 1;
       return 0;
@@ -62,57 +59,19 @@ export async function generatePackageJson(config: BuildConfig) {
     engines: rootPkg.engines,
   };
 
-  const pkgContent = JSON.stringify(distPkg, null, 2);
+  await writePackageJson(config.distPkgDir, distPkg);
 
-  await writeFile(pkgJsonDist, pkgContent);
-
-  console.log('👻', 'generate package.json');
+  console.log(`🐷 generated package.json (${distPkg.version})`);
 }
 
-/**
- * These are the exact outputs that should end up in the published package.
- * This is used to create the package.json "files" property.
- */
-const PACKAGE_FILES = [
-  'core.cjs',
-  'core.cjs.map',
-  'core.min.mjs',
-  'core.mjs',
-  'core.mjs.map',
-  'core.d.ts',
-  'jsx-runtime.cjs',
-  'jsx-runtime.mjs',
-  'jsx-runtime.d.ts',
-  'LICENSE',
-  'optimizer.cjs',
-  'optimizer.cjs.map',
-  'optimizer.mjs',
-  'optimizer.mjs.map',
-  'optimizer.d.ts',
-  'package.json',
-  'prefetch.js',
-  'prefetch.debug.js',
-  'qwikloader.js',
-  'qwikloader.debug.js',
-  'qwikloader.optimize.js',
-  'qwikloader.optimize.debug.js',
-  'README.md',
-  'server/index.cjs',
-  'server/index.cjs.map',
-  'server/index.mjs',
-  'server/index.mjs.map',
-  'server/index.d.ts',
-  'testing/index.cjs',
-  'testing/index.cjs.map',
-  'testing/index.mjs',
-  'testing/index.mjs.map',
-  'testing/index.d.ts',
-  'testing/jest-preprocessor.cjs',
-  'testing/jest-preprocessor.cjs.map',
-  'testing/jest-preprocessor.mjs',
-  'testing/jest-preprocessor.mjs.map',
-  'testing/jest-preset.cjs',
-  'testing/jest-preset.cjs.map',
-  'testing/jest-preset.mjs',
-  'testing/jest-preset.mjs.map',
-];
+export async function readPackageJson(pkgJsonDir: string) {
+  const pkgJsonPath = join(pkgJsonDir, 'package.json');
+  const pkgJson: PackageJSON = JSON.parse(await readFile(pkgJsonPath, 'utf-8'));
+  return pkgJson;
+}
+
+export async function writePackageJson(pkgJsonDir: string, pkgJson: PackageJSON) {
+  const pkgJsonPath = join(pkgJsonDir, 'package.json');
+  const pkgJsonStr = JSON.stringify(pkgJson, null, 2) + '\n';
+  await writeFile(pkgJsonPath, pkgJsonStr);
+}

@@ -1,11 +1,11 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/api-extractor/v7/api-extractor.schema.json",
   "extends": "../api-extractor.json",
-  "mainEntryPointFilePath": "<projectFolder>/dist-dev/tsc-out/src/optimizer/index.d.ts",
+  "mainEntryPointFilePath": "<projectFolder>/dist-dev/tsc-out/src/optimizer/src/index.d.ts",
   "apiReport": {
     "enabled": true,
     "reportFileName": "api.md",
-    "reportFolder": "<projectFolder>/src/optimizer/",
+    "reportFolder": "<projectFolder>/src/optimizer/src/",
     "reportTempFolder": "<projectFolder>/dist-dev/api-extractor/optimizer/"
   },
   "dtsRollup": {

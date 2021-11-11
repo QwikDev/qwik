@@ -1,7 +1,7 @@
 import type { CorePlatform } from '@builder.io/qwik';
 import { setPlatform } from '@builder.io/qwik';
 import type { DocumentOptions } from './types';
-import { join } from 'path';
+import { join, extname } from 'path';
 
 /**
  * Applies NodeJS specific platform APIs to the passed in document instance.
@@ -23,9 +23,11 @@ export function setServerPlatform(document: any, opts: DocumentOptions) {
       if (opts.outDir == null) {
         throw new Error(`Server platform missing "outDir"`);
       }
-      const pathname = url.pathname + '.js';
+      const pathname = !['.js', '.cjs', '.mjs'].includes(extname(url.pathname))
+        ? url.pathname + '.js'
+        : url.pathname;
       const filePath = join(opts.outDir, pathname);
-      return filePath;
+      return './' + filePath;
     },
     queueRender: (renderMarked) => {
       if (!queuePromise) {

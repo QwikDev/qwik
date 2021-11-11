@@ -10,11 +10,20 @@ export type {
 export {
   createDocument,
   createGlobal,
+  createTimer,
   serializeDocument,
   renderToDocument,
   renderToString,
 } from './document';
-export { getQwikLoaderScript } from '../optimizer/loader';
-export { QwikLoader, QwikProtocols, QwikPrefetch } from './components';
-export { setServerPlatform } from './platform';
 export { getImports } from './prefetch';
+export { getQwikLoaderScript, getQwikPrefetchScript } from './scripts';
+export { QwikLoader, QwikPrefetch } from './components';
+export { setServerPlatform } from './platform';
+
+/**
+ * @alpha
+ */
+export const versions = {
+  qwik: (globalThis as any).QWIK_VERSION,
+  domino: (globalThis as any).DOMINO_VERSION,
+};

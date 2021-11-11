@@ -18,13 +18,9 @@ export async function submoduleTesting(config: BuildConfig) {
   const submodule = 'testing';
 
   const opts: BuildOptions = {
-    entryPoints: {
-      index: join(config.srcDir, submodule, 'index.ts'),
-      'jest-preprocessor': join(config.srcDir, submodule, 'jest', 'preprocessor.ts'),
-      'jest-preset': join(config.srcDir, submodule, 'jest', 'preset.ts'),
-    },
-    outdir: join(config.pkgDir, submodule),
-    sourcemap: true,
+    entryPoints: [join(config.srcDir, submodule, 'index.ts')],
+    outdir: join(config.distPkgDir, submodule),
+    sourcemap: config.dev,
     bundle: true,
     target,
     banner,
@@ -37,7 +33,7 @@ export async function submoduleTesting(config: BuildConfig) {
     outExtension: { '.js': '.mjs' },
     plugins: [
       importPath(/^@builder\.io\/qwik$/, '../core.mjs'),
-      importPath(/^@builder\.io\/qwik\/optimizer$/, '../optimizer.mjs'),
+      importPath(/^@builder\.io\/qwik\/optimizer$/, '../optimizer/index.mjs'),
       importPath(/^@builder\.io\/qwik\/server$/, '../server/index.mjs'),
     ],
     watch: watcher(config, submodule),
@@ -54,7 +50,7 @@ export async function submoduleTesting(config: BuildConfig) {
     outExtension: { '.js': '.cjs' },
     plugins: [
       importPath(/^@builder\.io\/qwik$/, '../core.cjs'),
-      importPath(/^@builder\.io\/qwik\/optimizer$/, '../optimizer.cjs'),
+      importPath(/^@builder\.io\/qwik\/optimizer$/, '../optimizer/index.cjs'),
       importPath(/^@builder\.io\/qwik\/server$/, '../server/index.cjs'),
     ],
     watch: watcher(config),
@@ -68,5 +64,5 @@ export async function submoduleTesting(config: BuildConfig) {
 
   await Promise.all([esm, cjs]);
 
-  console.log('🦄', submodule);
+  console.log('🦁', submodule);
 }

@@ -377,6 +377,21 @@ jobs:
           override: true
           components: rustfmt, clippy
 
+      - name: Cache cargo dependencies
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            ~/.cargo/git/db
+          key: cargo-deps-${{ hashFiles('./Cargo.lock') }}
+
+      - name: Cache cargo build
+        uses: actions/cache@v2
+        with:
+          path: target
+          key: ${{ runner.os }}-cargo-build-${{ hashFiles('./Cargo.lock') }}
+
       - name: Format check
         uses: actions-rs/cargo@v1
         with:

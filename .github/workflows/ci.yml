@@ -96,7 +96,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: install
-          args: cargo-pack
+          args: wasm-pack
 
       - name: Cache cargo build
         uses: actions/cache@v2

@@ -85,11 +85,11 @@ export async function publish(config: BuildConfig) {
   // set the user git config email
   const actor = process.env.GITHUB_ACTOR || 'builderbot';
   const actorEmail = `${actor}@users.noreply.github.com`;
-  const gitConfigEmailArgs = ['config', 'user.email', `"${actorEmail}"`];
+  const gitConfigEmailArgs = ['config', 'user.email', actorEmail];
   await run('git', gitConfigEmailArgs, isDryRun);
 
   // set the user git config name
-  const gitConfigNameArgs = ['config', 'user.name', `"${actor}"`];
+  const gitConfigNameArgs = ['config', 'user.name', actor];
   await run('git', gitConfigNameArgs, isDryRun);
 
   // git add the changed package.json
@@ -98,8 +98,8 @@ export async function publish(config: BuildConfig) {
 
   // git commit the changed package.json
   // also adding "skip ci" to the message so the commit doesn't bother building
-  const gitCommitTitle = `"${version}"`;
-  const gitCommitBody = `"skip ci"`;
+  const gitCommitTitle = version;
+  const gitCommitBody = `skip ci`;
   const gitCommitArgs = ['commit', '-m', gitCommitTitle, '-m', gitCommitBody];
   await run('git', gitCommitArgs, isDryRun);
 

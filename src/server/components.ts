@@ -1,5 +1,5 @@
-import { ComponentChild, FunctionComponent, Fragment, jsx } from '@builder.io/qwik';
-import { getQwikLoaderScript, getQwikPrefetchScript } from '@builder.io/qwik/optimizer';
+import { FunctionComponent, jsx } from '@builder.io/qwik';
+import { getQwikLoaderScript, getQwikPrefetchScript } from './scripts';
 
 /**
  * @alpha
@@ -34,44 +34,4 @@ export const QwikPrefetch: FunctionComponent<QwikPrefetchProps> = ({ debug }) =>
     type: 'module',
     children: [getQwikPrefetchScript({ debug })],
   });
-};
-
-/**
- * @alpha
- */
-export interface QwikProtocolProps {
-  protocols?: { [protocol: string]: string };
-  baseURI?: string;
-}
-
-/**
- * @alpha
- */
-export const QwikProtocols: FunctionComponent<QwikProtocolProps> = ({ protocols, baseURI }) => {
-  const children: ComponentChild[] = [];
-
-  if (typeof baseURI === 'string') {
-    children.push(
-      jsx('link', {
-        rel: 'q.baseURI',
-        href: baseURI,
-      })
-    );
-  }
-
-  if (protocols) {
-    for (const protocol in protocols) {
-      const href = protocols[protocol];
-      if (typeof href === 'string') {
-        children.push(
-          jsx('link', {
-            rel: 'q.protocol.' + protocol,
-            href,
-          })
-        );
-      }
-    }
-  }
-
-  return jsx(Fragment, { children });
 };

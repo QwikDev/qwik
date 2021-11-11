@@ -1,8 +1,8 @@
-import type { BuildConfig, PackageJSON } from './util';
+import { BuildConfig, PackageJSON, panic } from './util';
 import { access, readFile } from './util';
 import { extname, join } from 'path';
 import { pathToFileURL } from 'url';
-import { readFileSync, readdirSync, statSync } from 'fs';
+import { readFileSync, readdirSync, statSync, existsSync } from 'fs';
 import ts from 'typescript';
 
 /**
@@ -11,11 +11,13 @@ import ts from 'typescript';
  * the last task before publishing the build files to npm.
  */
 export async function validateBuild(config: BuildConfig) {
-  const pkgPath = join(config.pkgDir, 'package.json');
+  const pkgPath = join(config.distPkgDir, 'package.json');
   const pkg: PackageJSON = JSON.parse(await readFile(pkgPath, 'utf-8'));
+  const errors: string[] = [];
 
-  // triple checks these all exist and work
-  const expectedFiles = pkg.files.map((f) => join(config.pkgDir, f));
+  // triple checks these package files all exist and parse
+  const pkgFiles = [...pkg.files, 'LICENSE', 'README.md', 'package.json'];
+  const expectedFiles = pkgFiles.map((f) => join(config.distPkgDir, f));
 
   for (const filePath of expectedFiles) {
     try {
@@ -41,20 +43,21 @@ export async function validateBuild(config: BuildConfig) {
           JSON.parse(readFileSync(filePath, 'utf-8'));
           break;
         default:
-          const content = readFileSync(filePath, 'utf-8');
-          if (content.trim() === '') {
-            throw new Error('empty file');
+          if (existsSync(filePath)) {
+            const content = readFileSync(filePath, 'utf-8');
+            if (content.trim() === '') {
+              errors.push(`Expected package.json file is empty: ${filePath}`);
+            }
+          } else {
+            errors.push(`Expected package.json file not found: ${filePath}`);
           }
       }
-    } catch (e) {
-      console.error('Validate Build File Error!');
-      console.error(filePath);
-      console.error(e);
-      process.exit(1);
+    } catch (e: any) {
+      errors.push(`${String(e.stack || e)}`);
     }
   }
 
-  await validatePackageJson(config, pkg);
+  await validatePackageJson(config, pkg, errors);
 
   const allFiles: string[] = [];
   function getFiles(dir: string) {
@@ -67,26 +70,27 @@ export async function validateBuild(config: BuildConfig) {
         } else if (s.isFile()) {
           allFiles.push(filePath);
         } else {
-          throw new Error(`unexpected ${filePath}`);
+          errors.push(`Unexpected: ${filePath}`);
         }
       });
   }
-  getFiles(config.pkgDir);
+  getFiles(config.distPkgDir);
   const unexpectedFiles = allFiles.filter((f) => !expectedFiles.includes(f));
 
   if (unexpectedFiles.length > 0) {
-    console.error(
+    errors.push(
       `Unexpected files found in the package build:\n${unexpectedFiles.join(
         '\n'
-      )}\n\nIf this is on purpose, add the file(s) to the "PACKAGE_FILES" array in "${join(
-        __dirname,
-        'package-json.ts'
-      )}"`
+      )}\n\nIf this file is expected, add the file(s) to the package.json "files" array`
     );
-    process.exit(1);
   }
 
-  console.log('🏅', 'validated build');
+  if (errors.length > 0) {
+    errors.unshift(`Build did not pass validation.`);
+    panic(errors.join('\n\n❌ '));
+  } else {
+    console.log('🏅 validated build');
+  }
 }
 
 /**
@@ -113,21 +117,22 @@ export function validateTypeScriptFile(config: BuildConfig, tsFilePath: string) 
       getNewLine: () => ts.sys.newLine,
       getCanonicalFileName: (f: string) => f,
     };
-    throw new Error('🧨  ' + ts.formatDiagnostics(tsDiagnostics, host));
+    throw new Error(ts.formatDiagnostics(tsDiagnostics, host));
   }
 }
 
-/**
- * The package.json should already have the "files" property, stating
- * all of the exact files that should be package should contain.
- * Let's loop through it and triple check this build has those files.
- */
-async function validatePackageJson(config: BuildConfig, pkg: PackageJSON) {
-  await Promise.all([
-    validatePath(config, pkg.main),
-    validatePath(config, pkg.module),
-    validatePath(config, pkg.types),
-  ]);
+async function validatePackageJson(config: BuildConfig, pkg: PackageJSON, errors: string[]) {
+  async function validatePath(path: string) {
+    try {
+      await access(join(config.distPkgDir, path));
+    } catch (e: any) {
+      errors.push(
+        `Error loading file "${path}" referenced in package.json: ${String(e.stack || e)}`
+      );
+    }
+  }
+
+  await Promise.all([validatePath(pkg.main), validatePath(pkg.module), validatePath(pkg.types)]);
 
   const exportKeys = Object.keys(pkg.exports);
 
@@ -135,23 +140,13 @@ async function validatePackageJson(config: BuildConfig, pkg: PackageJSON) {
     exportKeys.map(async (exportKey) => {
       const val = pkg.exports[exportKey];
       if (typeof val === 'string') {
-        await validatePath(config, val);
+        await validatePath(val);
       } else {
-        await validatePath(config, val.import);
-        await validatePath(config, val.require);
+        const exportKeys = Object.keys(val);
+        for (const key of exportKeys) {
+          await validatePath(val[key]);
+        }
       }
     })
   );
-}
-
-async function validatePath(config: BuildConfig, path: string) {
-  try {
-    await access(join(config.pkgDir, path));
-  } catch (e) {
-    console.error(
-      `Error validating path "${path}" inside of "${join(config.pkgDir, 'package.json')}"`
-    );
-    console.error(e);
-    process.exit(1);
-  }
 }

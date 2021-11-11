@@ -17,10 +17,11 @@ export async function submoduleJsxRuntime(config: BuildConfig) {
   const submodule = 'jsx-runtime';
 
   const opts: BuildOptions = {
-    entryPoints: [join(config.srcDir, 'jsx_runtime.ts')],
-    entryNames: submodule,
-    outdir: config.pkgDir,
+    entryPoints: [join(config.srcDir, 'jsx-runtime.ts')],
+    entryNames: 'jsx-runtime',
+    outdir: config.distPkgDir,
     bundle: true,
+    sourcemap: true,
     target,
   };
 
@@ -42,5 +43,5 @@ export async function submoduleJsxRuntime(config: BuildConfig) {
 
   await Promise.all([esm, cjs]);
 
-  console.log('👾', submodule);
+  console.log('🐮', submodule);
 }

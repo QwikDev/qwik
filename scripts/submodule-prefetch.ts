@@ -1,9 +1,7 @@
-import { InputOptions, OutputOptions, rollup, Plugin, watch, OutputBundle } from 'rollup';
-import { minify, MinifyOptions } from 'terser';
-import { BuildConfig, fileSize, rollupOnWarn } from './util';
+import { InputOptions, OutputOptions, rollup, watch, OutputBundle } from 'rollup';
+import { BuildConfig, fileSize, rollupOnWarn, terser } from './util';
 import { join } from 'path';
-import { Optimizer } from '../src/optimizer';
-import { readFileSync } from 'fs';
+import { transform } from 'esbuild';
 
 /**
  * Builds the qwikloader javascript files. These files can be used
@@ -14,10 +12,6 @@ import { readFileSync } from 'fs';
 export async function submodulePrefetch(config: BuildConfig) {
   const prefetchPath = join(config.srcDir, 'prefetch.ts');
   const prefetchWorkerPath = join(config.srcDir, 'prefetch-worker.ts');
-
-  const optimizer = new Optimizer({
-    rootDir: config.rootDir,
-  });
 
   async function generateWebWorkerBlob(minifyCode: boolean) {
     const build = await rollup({
@@ -32,12 +26,8 @@ export async function submodulePrefetch(config: BuildConfig) {
             return null;
           },
           async transform(code, id) {
-            const result = await optimizer.transformModule({
-              text: code,
-              filePath: id,
-              module: 'es',
-            });
-            return result.text;
+            const result = await transform(code, { sourcefile: id, format: 'esm', loader: 'ts' });
+            return result.code;
           },
         },
       ],
@@ -45,7 +35,7 @@ export async function submodulePrefetch(config: BuildConfig) {
     });
 
     const generated = await build.generate({
-      dir: config.pkgDir,
+      dir: config.distPkgDir,
       format: 'es',
       exports: 'none',
       plugins: minifyCode
@@ -81,12 +71,8 @@ export async function submodulePrefetch(config: BuildConfig) {
           return null;
         },
         async transform(code, id) {
-          const result = await optimizer.transformModule({
-            text: code,
-            filePath: id,
-            module: 'es',
-          });
-          return result.text;
+          const result = await transform(code, { sourcefile: id, format: 'esm', loader: 'ts' });
+          return result.code;
         },
       },
     ],
@@ -104,7 +90,7 @@ export async function submodulePrefetch(config: BuildConfig) {
   }
 
   const prefetchMinified: OutputOptions = {
-    dir: config.pkgDir,
+    dir: config.distPkgDir,
     format: 'es',
     exports: 'none',
     plugins: [
@@ -129,7 +115,7 @@ export async function submodulePrefetch(config: BuildConfig) {
   };
 
   const prefetchDebug: OutputOptions = {
-    dir: config.pkgDir,
+    dir: config.distPkgDir,
     format: 'es',
     entryFileNames: `[name].debug.js`,
     exports: 'none',
@@ -160,25 +146,10 @@ export async function submodulePrefetch(config: BuildConfig) {
   const build = await rollup(input);
   await Promise.all([build.write(prefetchMinified), build.write(prefetchDebug)]);
 
-  const prefetchFileSize = await fileSize(join(config.pkgDir, 'prefetch.js'));
-  console.log('🦙 prefetch:', prefetchFileSize);
+  const prefetchFileSize = await fileSize(join(config.distPkgDir, 'prefetch.js'));
+  console.log('🐨 prefetch:', prefetchFileSize);
 
   if (config.watch) {
     watch({ ...input, output: [prefetchMinified, prefetchDebug] });
   }
-}
-
-function terser(opts: MinifyOptions): Plugin {
-  return {
-    name: 'terser',
-    async generateBundle(_, bundle) {
-      for (const fileName in bundle) {
-        const chunk = bundle[fileName];
-        if (chunk.type === 'chunk') {
-          const result = await minify(chunk.code, opts);
-          chunk.code = result.code!;
-        }
-      }
-    },
-  };
 }

@@ -18,3 +18,5 @@ temp
 tsc-out
 tsdoc-metadata.json
 integration/**/*.js
+target
+output

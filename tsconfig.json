@@ -46,7 +46,7 @@
     "paths": {
       "@builder.io/qwik": ["src/core/index"],
       "@builder.io/qwik/jsx-runtime": ["src/jsx-runtime"],
-      "@builder.io/qwik/optimizer": ["src/optimizer/index"],
+      "@builder.io/qwik/optimizer": ["src/optimizer/src/index"],
       "@builder.io/qwik/server": ["src/server/index"],
       "@builder.io/qwik/testing": ["src/testing/index"]
     } /* List of root folders whose combined content represents the structure of the project at runtime. */,
@@ -68,6 +68,7 @@
     "skipLibCheck": true /* Skip type checking of declaration files. */,
     "forceConsistentCasingInFileNames": true /* Disallow inconsistently-cased references to the same file. */
   },
-  "include": ["src", "scripts", "integration"],
-  "exclude": ["cypress"]
+  // "include": ["src", "scripts", "integration"],
+  "include": ["src", "scripts"],
+  "exclude": ["cypress", "src/optimizer/core"]
 }

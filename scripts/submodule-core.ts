@@ -1,4 +1,4 @@
-import { BuildConfig, injectGlobalThisPoly } from './util';
+import { BuildConfig, injectGlobalThisPoly, rollupOnWarn } from './util';
 import { banner, fileSize, readFile, target, watcher, writeFile } from './util';
 import { build, BuildOptions } from 'esbuild';
 import { InputOptions, OutputOptions, rollup } from 'rollup';
@@ -23,17 +23,34 @@ export function submoduleCore(config: BuildConfig) {
 async function submoduleCoreProd(config: BuildConfig) {
   const input: InputOptions = {
     input: join(config.tscDir, 'src', 'core', 'index.js'),
+    onwarn: rollupOnWarn,
+    plugins: [
+      {
+        name: 'setVersion',
+        generateBundle(_, bundles) {
+          for (const f in bundles) {
+            const b = bundles[f];
+            if (b.type === 'chunk') {
+              b.code = b.code.replace(
+                'globalThis.QWIK_VERSION',
+                JSON.stringify(config.distVersion)
+              );
+            }
+          }
+        },
+      },
+    ],
   };
 
   const esmOutput: OutputOptions = {
-    dir: join(config.pkgDir),
+    dir: join(config.distPkgDir),
     format: 'es',
     entryFileNames: 'core.mjs',
     sourcemap: true,
   };
 
   const cjsOutput: OutputOptions = {
-    dir: join(config.pkgDir),
+    dir: join(config.distPkgDir),
     format: 'cjs',
     entryFileNames: 'core.cjs',
     sourcemap: true,
@@ -48,9 +65,9 @@ async function submoduleCoreProd(config: BuildConfig) {
 
   await Promise.all([build.write(esmOutput), build.write(cjsOutput)]);
 
-  console.log('🤖 core.mjs:', await fileSize(join(config.pkgDir, 'core.mjs')));
+  console.log('🦊 core.mjs:', await fileSize(join(config.distPkgDir, 'core.mjs')));
 
-  const esmCode = await readFile(join(config.pkgDir, 'core.mjs'), 'utf-8');
+  const esmCode = await readFile(join(config.distPkgDir, 'core.mjs'), 'utf-8');
   const minifyResult = await minify(esmCode, {
     module: true,
     compress: {
@@ -59,6 +76,7 @@ async function submoduleCoreProd(config: BuildConfig) {
         // developer production builds could use core.min.js directly, or setup
         // their own build tools to define the globa `qwikDev` to false
         'globalThis.qDev': false,
+        'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
       },
       ecma: 2018,
       passes: 2,
@@ -70,7 +88,7 @@ async function submoduleCoreProd(config: BuildConfig) {
     },
   });
 
-  const minFile = join(config.pkgDir, 'core.min.mjs');
+  const minFile = join(config.distPkgDir, 'core.min.mjs');
   const minCode = minifyResult.code!;
   await writeFile(minFile, minCode);
 
@@ -85,7 +103,7 @@ async function submoduleCoreProd(config: BuildConfig) {
     );
   }
 
-  console.log('👽 core.min.mjs:', await fileSize(minFile));
+  console.log('🐭 core.min.mjs:', await fileSize(minFile));
 }
 
 async function submoduleCoreDev(config: BuildConfig) {
@@ -94,11 +112,14 @@ async function submoduleCoreDev(config: BuildConfig) {
   const opts: BuildOptions = {
     entryPoints: [join(config.srcDir, submodule, 'index.ts')],
     entryNames: submodule,
-    outdir: config.pkgDir,
+    outdir: config.distPkgDir,
     bundle: true,
     sourcemap: 'external',
     target,
     banner,
+    define: {
+      'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
+    },
   };
 
   const esm = build({

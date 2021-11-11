@@ -1,59 +1,318 @@
 name: Qwik CI
-on: [push, pull_request]
+
+on:
+  push:
+  workflow_dispatch:
+    name: 'Release'
+    description: 'Commit version update to git, publish to NPM, and create a Github release.'
+    inputs:
+      version:
+        description: 'Version'
+        required: true
+      disttag:
+        description: 'NPM Dist Tag: latest, next, dev'
+        required: true
+        default: 'latest'
+
+env:
+  # Disable incremental build, speeds up CI
+  CARGO_INCREMENTAL: 0
 
 jobs:
-  build:
-    name: Build
+  ############ BUILD PACKAGE ############
+  build-package:
+    name: Build Package
+    if: "!contains(github.event.head_commit.message, 'skip ci')"
     runs-on: ubuntu-latest
     steps:
       - name: Setup Node.js
         uses: actions/setup-node@v1
         with:
-          node-version: 10.x
+          node-version: 16.x
+          registry-url: https://registry.npmjs.org/
 
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Setup Install Cache
-        uses: c-hive/gha-yarn-cache@v1
+      - name: Cache NPM Dependencies
+        uses: actions/cache@v2
+        with:
+          path: node_modules
+          key: npm-cache-ubuntu-${{ hashFiles('yarn.lock') }}
+          restore-keys: npm-cache-ubuntu-
 
-      - name: Install Dependencies
-        run: yarn install --frozen-lockfile --ignore-engines
+      - name: Install NPM Dependencies
+        run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
 
-      - name: Build
-        run: yarn build.prod
+      - name: Build Package
+        run: node scripts --tsc --build --api --set-version="${{ github.event.inputs.version }}" --set-dist-tag="${{ github.event.inputs.disttag }}"
 
-      - name: Pack Build Artifacts
-        run: |
-          cd dist-dev/@builder.io-qwik
-          mv `npm pack` ../../builder.io-qwik.tgz
+      - name: Print WASM Dist Build
+        run: ls -R dist-dev/@builder.io-qwik/
 
-      - name: Upload Build Artifacts
+      - name: Upload Package Build Artifacts
         uses: actions/upload-artifact@master
         with:
-          name: Qwik Package
-          path: builder.io-qwik.tgz
+          name: dist-dev-builder-io-qwik
+          path: dist-dev/@builder.io-qwik/
+          if-no-files-found: error
 
-  lint:
-    name: Lint
+  ############ BUILD WASM ############
+  build-wasm:
+    name: Build WASM
+    if: "!contains(github.event.head_commit.message, 'skip ci')"
     runs-on: ubuntu-latest
+    steps:
+      - name: Setup Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 16.x
+          registry-url: https://registry.npmjs.org/
+
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          override: true
+          toolchain: stable
+          target: wasm32-unknown-unknown
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Cache NPM Dependencies
+        uses: actions/cache@v2
+        with:
+          path: node_modules
+          key: npm-cache-ubuntu-${{ hashFiles('yarn.lock') }}
+          restore-keys: npm-cache-ubuntu-
+
+      - name: Cache cargo dependencies
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo
+          key: cargo-deps-wasm-${{ hashFiles('Cargo.lock') }}
+          restore-keys: cargo-deps-wasm-
+
+      - name: Cache cargo build
+        uses: actions/cache@v2
+        with:
+          path: src/wasm/target
+          key: cargo-build-wasm-${{ hashFiles('./src/wasm/Cargo.lock') }}
+          restore-keys: cargo-build-wasm-
+
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+      - name: Install NPM Dependencies
+        run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
+
+      - name: Build WASM
+        run: node scripts --wasm --set-version="${{ github.event.inputs.version }}" --set-dist-tag="${{ github.event.inputs.disttag }}"
+
+      - name: Print WASM Dist Build
+        run: ls -R dist-dev/@builder.io-qwik/bindings/
+
+      - name: Upload WASM Build Artifacts
+        uses: actions/upload-artifact@master
+        with:
+          name: dist-bindings-wasm
+          path: dist-dev/@builder.io-qwik/bindings/*
+          if-no-files-found: error
+
+  ############ BUILD PLATFORM BINDINGS ############
+  build-bindings:
+    if: "!contains(github.event.head_commit.message, 'skip ci')"
+    strategy:
+      fail-fast: false
+      matrix:
+        settings:
+          - host: macos-latest
+            target: x86_64-apple-darwin
+            build: yarn build.platform
+
+          - host: macos-latest
+            target: aarch64-apple-darwin
+            build: |
+              export SDKROOT=$(xcrun -sdk macosx11.1 --show-sdk-path)
+              export MACOSX_DEPLOYMENT_TARGET=$(xcrun -sdk macosx11.1 --show-sdk-platform-version)
+              yarn build.platform --platform-target=aarch64-apple-darwin
+
+          - host: windows-latest
+            target: x86_64-pc-windows-msvc
+            build: yarn build.platform
+
+    name: Build ${{ matrix.settings.target }}
+    runs-on: ${{ matrix.settings.host }}
+    defaults:
+      run:
+        working-directory: ./src/napi/
     steps:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Setup Install Cache
-        uses: c-hive/gha-yarn-cache@v1
+      - name: Setup Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 16.x
+          registry-url: https://registry.npmjs.org/
 
-      - name: Install Dependencies
-        run: yarn install --frozen-lockfile --ignore-engines
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          override: true
+          toolchain: stable
+          target: ${{ matrix.settings.target }}
 
-      - name: Prettier Check
-        run: yarn prettier-check
+      - name: Cache NPM Dependencies
+        uses: actions/cache@v2
+        with:
+          path: node_modules
+          key: npm-cache-${{ matrix.settings.target }}-${{ hashFiles('yarn.lock') }}
+          restore-keys: npm-cache-${{ matrix.settings.target }}-
 
-      - name: Lint Check
-        run: yarn lint
+      - name: Pull Latest Image
+        if: ${{ matrix.settings.docker }}
+        run: ${{ matrix.settings.docker }}
+        env:
+          DOCKER_REGISTRY_URL: ghcr.io
+          DOCKER_USERNAME: ${{ github.actor }}
+          DOCKER_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
 
-  unit-tests:
+      - name: Cache cargo dependencies
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo
+          key: cargo-deps-${{ matrix.settings.target }}-${{ hashFiles('Cargo.lock') }}
+          restore-keys: cargo-deps-${{ matrix.settings.target }}-
+
+      - name: Cache cargo build
+        uses: actions/cache@v2
+        with:
+          path: target
+          key: cargo-build-${{ matrix.settings.target }}-${{ hashFiles('Cargo.lock') }}
+          restore-keys: cargo-deps-${{ matrix.settings.target }}-
+
+      - name: Setup Toolchain
+        if: ${{ matrix.settings.setup }}
+        run: ${{ matrix.settings.setup }}
+        shell: bash
+
+      - name: Install NPM Dependencies
+        run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
+
+      - name: Build Platform Binding
+        run: ${{ matrix.settings.build }}
+        shell: bash
+
+      - name: Upload Platform Binding Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: dist-bindings-${{ matrix.settings.target }}
+          path: dist-dev/@builder.io-qwik/bindings/*.node
+          if-no-files-found: error
+
+  ############ RELEASE ############
+  release:
+    name: Release
+    if: "!contains(github.event.head_commit.message, 'skip ci')"
+    runs-on: ubuntu-latest
+    needs:
+      - build-package
+      - build-wasm
+      - build-bindings
+      - validate-rust
+      - test-unit
+      #- test-e2e
+
+    steps:
+      - name: Setup Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 16.x
+          registry-url: https://registry.npmjs.org/
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Create dist-dev/@builder.io-qwik directory
+        run: |
+          mkdir dist-dev/
+          mkdir dist-dev/@builder.io-qwik/
+          mkdir dist-dev/@builder.io-qwik/bindings/
+
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v2
+
+      - name: Print Package Artifacts
+        run: ls -R dist-dev-builder-io-qwik/
+
+      - name: Move Package Artifacts
+        run: mv dist-dev-builder-io-qwik/* dist-dev/@builder.io-qwik/
+
+      - name: Print Bindings Artifacts
+        run: ls -R dist-bindings-*/
+
+      - name: Move Binding Artifacts
+        run: mv dist-bindings-*/* dist-dev/@builder.io-qwik/bindings/
+
+      - name: Print dist-dev
+        run: ls -R dist-dev/
+
+      - name: Cache NPM Dependencies
+        uses: actions/cache@v2
+        with:
+          path: node_modules
+          key: npm-cache-ubuntu-${{ hashFiles('yarn.lock') }}
+          restore-keys: npm-cache-ubuntu-
+
+      - name: Install NPM Dependencies
+        run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
+
+      - name: Dry-Run Publish @builder.io/qwik
+        if: ${{ github.event_name != 'workflow_dispatch' }}
+        run: node scripts --set-version="${{ github.event.inputs.version }}" --set-dist-tag="${{ github.event.inputs.disttag }}" --publish --dry-run
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish @builder.io/qwik
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        run: node scripts --set-version="${{ github.event.inputs.version }}" --set-dist-tag="${{ github.event.inputs.disttag }}" --publish
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create Github Release
+        if: ${{ github.event_name == 'workflow_dispatch' && success() }}
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: 'v${{ github.event.inputs.version }}'
+          files: dist-dev/CHANGELOG.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Qwik Package Artifact
+        if: ${{ always() }}
+        uses: actions/upload-artifact@master
+        with:
+          name: BuilderIO-qwik
+          path: dist-dev/*.tgz
+          if-no-files-found: error
+
+      - name: Upload Changelog Artifact
+        if: ${{ always() }}
+        uses: actions/upload-artifact@master
+        with:
+          name: Changelog
+          path: dist-dev/CHANGELOG.md
+          if-no-files-found: error
+
+  ############ UNIT TEST ############
+  test-unit:
     name: Unit Tests
     runs-on: ubuntu-latest
 
@@ -61,57 +320,143 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v1
         with:
-          node-version: 10.x
+          node-version: 16.x
+          registry-url: https://registry.npmjs.org/
 
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Setup Install Cache
-        uses: c-hive/gha-yarn-cache@v1
+      - name: Cache NPM Dependencies
+        uses: actions/cache@v2
+        with:
+          path: node_modules
+          key: npm-cache-ubuntu-${{ hashFiles('yarn.lock') }}
+          restore-keys: npm-cache-ubuntu-
 
-      - name: Install Dependencies
-        run: yarn install --frozen-lockfile --ignore-engines
+      - name: Install NPM Dependencies
+        run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
 
-      - name: Unit Tests
-        run: |
-          yarn build
-          yarn test.unit
+      - name: Jest Unit Tests
+        run: yarn test.unit
 
-  e2e-tests:
-    name: E2E Tests
+  ############ E2E TEST ############
+  # test-e2e:
+  #   name: E2E Tests
+  #   runs-on: ubuntu-latest
+
+  #   steps:
+  #     - name: Setup Node.js
+  #       uses: actions/setup-node@v1
+  #       with:
+  #         node-version: 10.x
+  #         registry-url: https://registry.npmjs.org/
+
+  #     - name: Checkout
+  #       uses: actions/checkout@v2
+
+  #     - name: E2E Tests
+  #       uses: cypress-io/github-action@v2
+  #       with:
+  #         install-command: yarn --frozen-lockfile --ignore-engines
+  #         start: yarn integration.server.prod
+  #         wait-on: 'http://localhost:8081'
+  #         wait-on-timeout: 120
+  #         browser: chrome
+  #         record: true
+  #         group: 'Qwik E2E Test Group'
+  #         spec: cypress/integration/*
+  #         config-file: cypress/cypress.json
+  #         config: defaultCommandTimeout=10000
+  #       env:
+  #         CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  #     - name: Upload Videos Artifacts
+  #       uses: actions/upload-artifact@v1
+  #       if: always()
+  #       with:
+  #         name: Cypress Videos
+  #         path: cypress/videos
+
+  ########### VALIDATE RUST ############
+  validate-rust:
+    name: Validate Rust
+    if: "!contains(github.event.head_commit.message, 'skip ci')"
     runs-on: ubuntu-latest
-
-    timeout-minutes: 15
-
     steps:
-      - name: Setup Node.js
-        uses: actions/setup-node@v1
-        with:
-          node-version: 10.x
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
+          components: rustfmt, clippy
+
+      - name: Cache cargo dependencies
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo
+          key: ${{ runner.os }}-cargo-deps-${{ hashFiles('Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-deps-
+
+      - name: Cache cargo build
+        uses: actions/cache@v2
+        with:
+          path: target
+          key: ${{ runner.os }}-cargo-build-${{ hashFiles('Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-build-
+
+      - name: Format check
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: -- --check
+
+      - name: Build check
+        uses: actions-rs/cargo@v1
+        with:
+          command: check
+          args: --all-features
+
+      - name: Clippy check
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: --all-features
+
+      - name: Unit tests
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --all-features
+
+  ########### LINT PACKAGE ############
+  lint-package:
+    name: Lint Package
+    if: "!contains(github.event.head_commit.message, 'skip ci')"
+    runs-on: ubuntu-latest
+    steps:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: E2E Tests
-        uses: cypress-io/github-action@v2
+      - name: Cache NPM Dependencies
+        uses: actions/cache@v2
         with:
-          install-command: yarn --frozen-lockfile --ignore-engines
-          start: yarn integration.server.prod
-          wait-on: 'http://localhost:8081'
-          wait-on-timeout: 120
-          browser: chrome
-          record: true
-          group: 'Qwik E2E Test Group'
-          spec: cypress/integration/*
-          config-file: cypress/cypress.json
-          config: defaultCommandTimeout=10000
-        env:
-          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          path: node_modules
+          key: npm-cache-ubuntu-${{ hashFiles('yarn.lock') }}
+          restore-keys: npm-cache-ubuntu-
 
-      - name: Upload Videos Artifacts
-        uses: actions/upload-artifact@v1
-        if: always()
-        with:
-          name: Cypress Videos
-          path: cypress/videos
+      - name: Install NPM Dependencies
+        run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
+
+      - name: Prettier Check
+        if: ${{ always() }}
+        run: yarn lint.prettier
+
+      - name: ESLint Check
+        if: ${{ always() }}
+        run: yarn lint.eslint

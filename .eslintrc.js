@@ -23,7 +23,7 @@ module.exports = {
     '@typescript-eslint/ban-types': 'off',
     'prefer-spread': 'off',
     'no-case-declarations': 'off',
-    'no-console': ['error'],
+    'no-console': ['error', { allow: ['warn', 'error'] }],
     'no-only-tests/no-only-tests': 'error',
     '@typescript-eslint/no-unused-vars': ['error', { varsIgnorePattern: '^(h|Fragment)$' }],
   },

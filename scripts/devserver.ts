@@ -17,6 +17,8 @@ export async function buildDevServer(config: BuildConfig) {
     sourcemap: 'external',
     watch: watcher(config),
     external: [...nodeBuiltIns, 'esbuild', 'express', 'mri', 'source-map-support'],
-    plugins: [importPath(/^@builder\.io\/qwik\/optimizer$/, join(config.pkgDir, 'optimizer.cjs'))],
+    plugins: [
+      importPath(/^@builder\.io\/qwik\/optimizer$/, join(config.distPkgDir, 'optimizer.cjs')),
+    ],
   });
 }

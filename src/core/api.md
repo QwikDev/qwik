@@ -330,10 +330,16 @@ export function useEvent<EVENT extends {}>(expectEventType?: QEvent | string): E
 export function useHostElement(): Element;
 
 // @public (undocumented)
+export function useTransient<OBJ, ARGS extends any[], RET>(obj: OBJ, factory: (this: OBJ, ...args: ARGS) => RET, ...args: ARGS): RET;
+
+// @public (undocumented)
 export function useURL(): URL;
 
 // @public
 export type ValueOrPromise<T> = T | Promise<T>;
+
+// @alpha (undocumented)
+export const version: any;
 
 
 // (No @packageDocumentation comment for this package)

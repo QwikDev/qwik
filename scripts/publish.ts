@@ -10,10 +10,10 @@ export async function setVersion(config: BuildConfig) {
   config.distVersion = rootPkg.version;
 
   if (
-    (typeof config.setVerison !== 'string' && typeof config.setVerison !== 'number') ||
-    String(config.setVerison) === ''
+    (typeof config.setVersion !== 'string' && typeof config.setVersion !== 'number') ||
+    String(config.setVersion) === ''
   ) {
-    config.setVerison = undefined;
+    config.setVersion = undefined;
     config.distVersion = generateDevVersion(rootPkg.version);
     return;
   }
@@ -23,9 +23,9 @@ export async function setVersion(config: BuildConfig) {
     panic(`Invalid npm dist tag "${distTag}"`);
   }
 
-  const newVersion = semver.clean(String(config.setVerison), { loose: true })!;
+  const newVersion = semver.clean(String(config.setVersion), { loose: true })!;
   if (!newVersion) {
-    panic(`Invalid semver version "${config.setVerison}"`);
+    panic(`Invalid semver version "${config.setVersion}"`);
   }
 
   if (semver.lte(newVersion, rootPkg.version)) {

@@ -95,9 +95,6 @@ function toHTML(node: any) {
   }
 }
 
-
-
-
 describe('expect-dom', () => {
   it('should match element', () => {
     expectDOM(toDOM('<span></span>'), <span></span>);

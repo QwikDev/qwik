@@ -1,5 +1,13 @@
 import { build, BuildOptions } from 'esbuild';
-import { BuildConfig, banner, nodeTarget, target, watcher, writeFile, readFile } from './util';
+import {
+  BuildConfig,
+  banner,
+  nodeTarget,
+  target,
+  watcher,
+  writeFile,
+  readFile,
+} from './util';
 import { join } from 'path';
 import { minify } from 'terser';
 import { platformArchTriples } from '@napi-rs/triples';

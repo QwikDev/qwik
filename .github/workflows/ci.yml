@@ -2,6 +2,9 @@ name: Qwik CI
 
 on:
   push:
+    branches:
+      - main
+  pull_request:
   workflow_dispatch:
     name: 'Release'
     description: 'Commit version update to git, publish to NPM, and create a Github release.'
@@ -314,8 +317,8 @@ jobs:
   ############ UNIT TEST ############
   test-unit:
     name: Unit Tests
+    if: "!contains(github.event.head_commit.message, 'skip ci')"
     runs-on: ubuntu-latest
-
     steps:
       - name: Setup Node.js
         uses: actions/setup-node@v1

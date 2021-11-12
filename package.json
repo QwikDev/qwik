@@ -139,7 +139,7 @@
   "homepage": "https://github.com/BuilderIO/qwik#readme",
   "repository": {
     "type": "git",
-    "url": "https://github.com/BuilderIO/qwik"
+    "url": "https://github.com/BuilderIO/qwik.git"
   },
   "bugs": {
     "url": "https://github.com/BuilderIO/qwik/issues"

@@ -242,7 +242,7 @@ export function ensureDir(dir: string) {
 }
 
 export function panic(msg: string) {
-  console.error(`\n❌ ${msg}\n`);
+  console.error(`\n❌ ${msg}\n`, new Error(msg).stack);
   process.exit(1);
 }
 

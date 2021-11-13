@@ -11,6 +11,9 @@ nodejs_binary(
         "--dev",
         "--tsc",
         "--api",
+        # Dissable these flags, as we don't need them for now.
+        # "--platform-binding",
+        # "--wasm",
     ]
 )
 

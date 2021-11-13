@@ -1,10 +1,20 @@
 import { build, BuildOptions } from 'esbuild';
-import { BuildConfig, banner, nodeTarget, target, watcher, writeFile, readFile } from './util';
+import {
+  BuildConfig,
+  banner,
+  nodeTarget,
+  target,
+  watcher,
+  writeFile,
+  readFile,
+  access,
+} from './util';
 import { join } from 'path';
 import { minify } from 'terser';
 import { platformArchTriples } from '@napi-rs/triples';
 import { readPackageJson } from './package-json';
 import { watch } from 'rollup';
+import { constants } from 'fs';
 
 /**
  * Builds @builder.io/optimizer
@@ -156,5 +166,15 @@ async function generatePlatformBindingsData(config: BuildConfig) {
   const code = c.join('\n') + '\n';
 
   const platformBindingPath = join(config.srcDir, 'optimizer', 'src', 'qwik-binding-map.ts');
-  await writeFile(platformBindingPath, code);
+  let isWritable;
+  try {
+    await access(platformBindingPath, constants.W_OK);
+    isWritable = true;
+  } catch (e) {
+    // When running under bazel source files are read only.
+    isWritable = false;
+  }
+  if (isWritable) {
+    await writeFile(platformBindingPath, code);
+  }
 }

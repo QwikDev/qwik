@@ -27,7 +27,7 @@ export function setServerPlatform(document: any, opts: DocumentOptions) {
         ? url.pathname + '.js'
         : url.pathname;
       const filePath = join(opts.outDir, pathname);
-      return './' + filePath;
+      return '.' + (filePath.startsWith('/') ? '' : '/') + filePath;
     },
     queueRender: (renderMarked) => {
       if (!queuePromise) {

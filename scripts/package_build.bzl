@@ -25,6 +25,15 @@ def package_build(
             "@npm//source-map-support",
             "@npm//terser",
             "@npm//typescript",
+            "@npm//@types/cross-spawn",
+            "@npm//cross-spawn",
+            "@npm//gzip-size",
+            "@npm//execa",
+            "@npm//@napi-rs/triples",
+            "@npm//@types/semver",
+            "@npm//semver",
+            "@npm//path-browserify",
+            "@npm//@types/path-browserify",
             "//scripts:all_build_source",
         ],
         outs = [
@@ -54,7 +63,8 @@ def package_build(
             name + "/testing/index.mjs",
         ],
         args = [
-            "$(execpath %s/core.cjs)" % name,
+            "--bazelOutputDir",
+            "$(RULEDIR)"
         ],
         visibility = None,
     )

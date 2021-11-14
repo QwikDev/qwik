@@ -7,7 +7,10 @@ export default {
   ],
   plugins: [
     nodeResolve(),
-    qwikRollup(),
+    qwikRollup({
+      // minify: 'minify',
+      entryStrategy: {type: 'PerHook'}
+    }),
   ],
   output: [
     {

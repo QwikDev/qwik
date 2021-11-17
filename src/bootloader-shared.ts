@@ -108,7 +108,7 @@ export const qwikLoader = (doc: Document, hasInitialized?: boolean | number) => 
       // while (element && element.nodeType===1) {
       while (element && element.getAttribute) {
         dispatch(element, ev.type, ev);
-        element = element.parentElement;
+        element = ev.bubbles ? element.parentElement : null;
       }
     }
   };

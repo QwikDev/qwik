@@ -7,7 +7,13 @@ import { copyFiles } from './copy-files';
 import { emptyDir } from './util';
 import { generateJsxTypes } from './jsx-types';
 import { generatePackageJson } from './package-json';
-import { publish, setVersion } from './publish';
+import {
+  commitPrepareReleaseVersion,
+  prepareReleaseVersion,
+  publish,
+  setDevVersion,
+  setReleaseVersion,
+} from './release';
 import { submoduleCore } from './submodule-core';
 import { submoduleJsxRuntime } from './submodule-jsx-runtime';
 import { submoduleOptimizer } from './submodule-optimizer';
@@ -27,9 +33,18 @@ import { validateBuild } from './validate-build';
  */
 export async function build(config: BuildConfig) {
   try {
-    console.log(`🌎 Qwik (nodejs ${process.version})`);
+    if (config.prepareRelease) {
+      // locally set the version for the upcoming release
+      await prepareReleaseVersion(config);
+    } else if (config.release && !config.dryRun) {
+      // ci release, npm publish
+      await setReleaseVersion(config);
+    } else {
+      // local build or ci commit that's not for publishing
+      await setDevVersion(config);
+    }
 
-    await setVersion(config);
+    console.log(`🌎 Qwik v${config.distVersion}`);
 
     if (config.tsc) {
       tsc(config);
@@ -81,7 +96,11 @@ export async function build(config: BuildConfig) {
       await validateBuild(config);
     }
 
-    if (config.publish) {
+    if (config.prepareRelease) {
+      // locally commit the package.json change
+      await commitPrepareReleaseVersion(config);
+    } else if (config.release) {
+      // release from ci
       await publish(config);
     }
 

@@ -2,18 +2,15 @@ name: Qwik CI
 
 on:
   push:
+  pull_request:
     branches:
       - main
-  pull_request:
   workflow_dispatch:
     name: 'Release'
-    description: 'Commit version update to git, publish to NPM, and create a Github release.'
+    description: 'Publish to NPM, and create a Github release.'
     inputs:
-      version:
-        description: 'Version: 0.1.23'
-        required: true
       disttag:
-        description: 'NPM Dist Tag: latest, next, dev'
+        description: 'Workflow will publish to NPM, push the git tag and create a Github release. Enter the NPM Dist Tag to use, such as: latest, next, dev.'
         required: true
         default: 'latest'
 
@@ -48,7 +45,7 @@ jobs:
         run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
 
       - name: Build Package
-        run: node scripts --tsc --build --api --set-version="${{ github.event.inputs.version }}" --set-dist-tag="${{ github.event.inputs.disttag }}"
+        run: node scripts --tsc --build --api --set-dist-tag="${{ github.event.inputs.disttag }}"
 
       - name: Print WASM Dist Build
         run: ls -R dist-dev/@builder.io-qwik/
@@ -112,7 +109,7 @@ jobs:
         run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
 
       - name: Build WASM
-        run: node scripts --wasm --set-version="${{ github.event.inputs.version }}" --set-dist-tag="${{ github.event.inputs.disttag }}"
+        run: node scripts --wasm --set-dist-tag="${{ github.event.inputs.disttag }}"
 
       - name: Print WASM Dist Build
         run: ls -R dist-dev/@builder.io-qwik/bindings/
@@ -277,26 +274,17 @@ jobs:
 
       - name: Dry-Run Publish @builder.io/qwik
         if: ${{ github.event_name != 'workflow_dispatch' }}
-        run: node scripts --set-version="${{ github.event.inputs.version }}" --set-dist-tag="${{ github.event.inputs.disttag }}" --publish --dry-run
+        run: node scripts --set-dist-tag="${{ github.event.inputs.disttag }}" --release --dry-run
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish @builder.io/qwik
         if: ${{ github.event_name == 'workflow_dispatch' }}
-        run: node scripts --set-version="${{ github.event.inputs.version }}" --set-dist-tag="${{ github.event.inputs.disttag }}" --publish
+        run: node scripts --set-dist-tag="${{ github.event.inputs.disttag }}" --release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      - name: Create Github Release
-        if: ${{ github.event_name == 'workflow_dispatch' && success() }}
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: 'v${{ github.event.inputs.version }}'
-          files: dist-dev/CHANGELOG.md
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload Qwik Package Artifact
         if: ${{ always() }}
@@ -304,14 +292,6 @@ jobs:
         with:
           name: BuilderIO-qwik
           path: dist-dev/*.tgz
-          if-no-files-found: error
-
-      - name: Upload Changelog Artifact
-        if: ${{ always() }}
-        uses: actions/upload-artifact@master
-        with:
-          name: Changelog
-          path: dist-dev/CHANGELOG.md
           if-no-files-found: error
 
   ############ UNIT TEST ############

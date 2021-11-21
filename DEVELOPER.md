@@ -111,13 +111,16 @@ yarn jsx.types
 3. Generates `src/core/render/jsx/types/jsx-generated.ts`, which should be committed.
 4. Qwik's JSX implementation extends the generated `jsx-generated.ts` file.
 
-## Publishing
+## Releasing
 
-1. Run `npm run release`
-2. Use the [interactive UI](https://www.npmjs.com/package/np) to select the version/tag.
-3. The selected version number will become the commit message.
-4. After publishing it'll open a prefilled GitHub Releases draft.
-5. 🚀
+1. Run `npm run release.prepare`, which will test, lint and build locally.
+2. Use the interactive UI to select the next version, which will update the `package.json` `version` property, adds the git change, and starts a commit message.
+3. Create a PR with the `package.json` file change to merge to `main`.
+4. After the updated `package.json` with the next version is in `main`, click the [Run Workflow](https://github.com/BuilderIO/qwik/actions/workflows/ci.yml) button for the Qwik CI Github Action workflow.
+5. Enter the NPM dist tag that should be used for this version, then click "Run Workflow".
+6. The Github Action will dispatch the CI workflow to build each of the submodules, build WASM and native bindings, combine them into one package, and validate the package before publishing to NPM.
+7. If the build is successful and all tests and validation passes, the CI workflow will automatically publish to NPM, commit a git tag to the repo, and create a Github release.
+8. 🚀
 
 ## Bazel
 

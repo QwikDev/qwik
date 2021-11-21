@@ -61,7 +61,7 @@ export async function generatePackageJson(config: BuildConfig) {
 
   await writePackageJson(config.distPkgDir, distPkg);
 
-  console.log(`🐷 generated package.json (${distPkg.version})`);
+  console.log(`🐷 generated package.json`);
 }
 
 export async function readPackageJson(pkgJsonDir: string) {

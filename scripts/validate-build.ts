@@ -11,6 +11,7 @@ import ts from 'typescript';
  * the last task before publishing the build files to npm.
  */
 export async function validateBuild(config: BuildConfig) {
+  console.log('🕵️ validating build...');
   const pkgPath = join(config.distPkgDir, 'package.json');
   const pkg: PackageJSON = JSON.parse(await readFile(pkgPath, 'utf-8'));
   const errors: string[] = [];

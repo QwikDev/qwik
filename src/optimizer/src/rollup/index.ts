@@ -18,7 +18,6 @@ export function qwikRollup(opts: QwikPluginOptions = {}): Plugin {
   const transformedOutputs = new Map<string, TransformModule>();
   let optimizer: Optimizer | undefined;
   let result: TransformOutput | undefined;
-  let isDirty = true;
 
   return {
     name: 'qwikPlugin',
@@ -28,10 +27,6 @@ export function qwikRollup(opts: QwikPluginOptions = {}): Plugin {
       // then generates Qwik input files which rollup should use instead as input files.
       if (!optimizer) {
         optimizer = await createOptimizer();
-      }
-
-      if (!isDirty) {
-        return;
       }
 
       const transformOpts: TransformFsOptions = {
@@ -119,10 +114,6 @@ export function qwikRollup(opts: QwikPluginOptions = {}): Plugin {
           type: 'asset',
         });
       }
-    },
-
-    watchChange() {
-      isDirty = true;
     },
   };
 }

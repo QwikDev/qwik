@@ -35,7 +35,7 @@ export default function serverRender(opts: RenderToStringOptions) {
       </head>
       <body>
         <ToDoApp todos={todos} />
-        <QwikLoader debug={true} />
+        <QwikLoader debug={opts.debug} />
       </body>
     </html>,
     opts

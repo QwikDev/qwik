@@ -12,13 +12,31 @@ export function createDocument(opts?: DocumentOptions): QwikDocument;
 // @public
 export function createGlobal(opts?: GlobalOptions): QwikGlobal;
 
+// @public (undocumented)
+export interface CreateRenderToStringOptions {
+    // (undocumented)
+    clientDir: string;
+    entryMapPath?: string;
+    // (undocumented)
+    serverDir: string;
+    // (undocumented)
+    serverRenderPath: string;
+}
+
+// Warning: (ae-forgotten-export) The symbol "RenderToString" needs to be exported by the entry point index.d.ts
+//
+// @alpha
+export function createServerRenderer(opts: CreateRenderToStringOptions): Promise<RenderToString>;
+
 // @alpha
 export function createTimer(): () => number;
 
 // @public
 export interface DocumentOptions {
     // (undocumented)
-    outDir?: string;
+    debug?: boolean;
+    // (undocumented)
+    serverDir?: string;
     // (undocumented)
     url?: string;
 }
@@ -69,6 +87,11 @@ export function renderToDocument(doc: Document, rootNode: any, opts?: RenderToDo
 //
 // @public (undocumented)
 export interface RenderToDocumentOptions extends SerializeDocumentOptions, DocumentOptions {
+    dehydrate?: boolean;
+    // Warning: (ae-forgotten-export) The symbol "QrlMapper" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    qrlMapper?: QrlMapper;
 }
 
 // @public

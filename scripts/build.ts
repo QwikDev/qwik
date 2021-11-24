@@ -1,6 +1,5 @@
 import { BuildConfig, ensureDir, panic } from './util';
 import { apiExtractor } from './api';
-import { buildDevServer } from './devserver';
 import { buildPlatformBinding } from './binding-platform';
 import { buildWasmBinding } from './binding-wasm';
 import { copyFiles } from './copy-files';
@@ -23,6 +22,7 @@ import { submoduleServer } from './submodule-server';
 import { submoduleTesting } from './submodule-testing';
 import { tsc } from './tsc';
 import { validateBuild } from './validate-build';
+import { buildCli } from './cli';
 
 /**
  * Complete a full build for all of the package's submodules. Passed in
@@ -68,7 +68,6 @@ export async function build(config: BuildConfig) {
         submoduleOptimizer(config),
         submoduleTesting(config),
         copyFiles(config),
-        buildDevServer(config),
       ]);
 
       // server bundling must happen after the results from the others
@@ -94,6 +93,10 @@ export async function build(config: BuildConfig) {
 
     if (config.validate) {
       await validateBuild(config);
+    }
+
+    if (config.cli) {
+      await buildCli(config);
     }
 
     if (config.prepareRelease) {

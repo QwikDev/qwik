@@ -15,12 +15,11 @@ export function createGlobal(opts?: GlobalOptions): QwikGlobal;
 // @public (undocumented)
 export interface CreateRenderToStringOptions {
     // (undocumented)
-    clientDir: string;
-    entryMapPath?: string;
-    // (undocumented)
     serverDir: string;
     // (undocumented)
-    serverRenderPath: string;
+    serverMainPath: string;
+    // (undocumented)
+    symbolsPath: string;
 }
 
 // Warning: (ae-forgotten-export) The symbol "RenderToString" needs to be exported by the entry point index.d.ts
@@ -88,10 +87,6 @@ export function renderToDocument(doc: Document, rootNode: any, opts?: RenderToDo
 // @public (undocumented)
 export interface RenderToDocumentOptions extends SerializeDocumentOptions, DocumentOptions {
     dehydrate?: boolean;
-    // Warning: (ae-forgotten-export) The symbol "QrlMapper" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    qrlMapper?: QrlMapper;
 }
 
 // @public

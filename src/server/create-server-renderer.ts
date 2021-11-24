@@ -4,7 +4,7 @@ import { isAbsolute, resolve } from 'path';
 import { stat } from './utils';
 
 /**
- * Utility to load the app's server render function.
+ * Utility to load the app's server's main render function.
  * @alpha
  */
 export async function createServerRenderer(opts: CreateRenderToStringOptions) {
@@ -18,22 +18,12 @@ export async function createServerRenderer(opts: CreateRenderToStringOptions) {
     throw new Error(`serverDir "${serverDir}" must be a directory`);
   }
 
-  const clientDir = opts.clientDir;
-  if (!isAbsolute(clientDir)) {
-    throw new Error(`clientDir "${clientDir}" must be an absolute path`);
-  }
+  const serverMainPath = resolve(serverDir, opts.serverMainPath);
+  const serverMainModule = await import(serverMainPath);
+  const userRenderToString: RenderToString = serverMainModule.default;
 
-  const clientDirStat = await stat(clientDir);
-  if (!clientDirStat.isDirectory()) {
-    throw new Error(`clientDir "${clientDir}" must be a directory`);
-  }
-
-  const serverRenderPath = resolve(serverDir, opts.serverRenderPath);
-  const userServerModule = await import(serverRenderPath);
-  const userRenderToString: RenderToString = userServerModule.default;
-
-  const clientEntryMapPath = resolve(clientDir, opts.clientEntryMapPath || 'q-entry-map.json');
-  const qrlMapper = await createQrlMapper(clientEntryMapPath);
+  const symbolsPath = resolve(serverDir, opts.symbolsPath);
+  const qrlMapper = await createQrlMapper(symbolsPath);
 
   const renderToString: RenderToString = (renderOpts) => {
     return userRenderToString({

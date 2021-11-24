@@ -7,6 +7,7 @@ import {
   existsSync,
   mkdirSync,
   readdirSync,
+  readdir as fsReaddir,
   readFile as fsReadFile,
   rmdirSync,
   stat as fsStat,
@@ -31,6 +32,7 @@ export interface BuildConfig {
   srcNapiDir: string;
   srcDir: string;
   scriptsDir: string;
+  startersDir: string;
   tscDir: string;
   distPkgDir: string;
   distBindingsDir: string;
@@ -41,6 +43,7 @@ export interface BuildConfig {
 
   api?: boolean;
   build?: boolean;
+  cli?: boolean;
   commit?: boolean;
   dev?: boolean;
   dryRun?: boolean;
@@ -68,6 +71,7 @@ export function loadConfig(args: string[] = []) {
   config.srcDir = join(config.rootDir, 'src');
   config.srcNapiDir = join(config.srcDir, 'napi');
   config.scriptsDir = join(config.rootDir, 'scripts');
+  config.startersDir = join(config.rootDir, 'starters');
   config.distPkgDir = config.bazelOutputDir
     ? join(join(config.bazelOutputDir, 'package'))
     : join(config.distDir, '@builder.io-qwik');
@@ -214,6 +218,7 @@ function formatFileSize(bytes: number) {
 export const access = promisify(fsAccess);
 export const copyFile = promisify(fsCopyFile);
 export const readFile = promisify(fsReadFile);
+export const readdir = promisify(fsReaddir);
 export const stat = promisify(fsStat);
 export const writeFile = promisify(fsWriteFile);
 export const mkdir = promisify(fsMkdir);
@@ -225,7 +230,9 @@ export function emptyDir(dir: string) {
       const s = statSync(item);
       if (s.isDirectory()) {
         emptyDir(item);
-        rmdirSync(item);
+        try {
+          rmdirSync(item);
+        } catch (e) {}
       } else if (s.isFile()) {
         unlinkSync(item);
       }
@@ -266,4 +273,22 @@ export interface PackageJSON {
   bugs: { [key: string]: string };
   keywords: string[];
   engines: { [key: string]: string };
+}
+
+export interface CliGenerateOptions {
+  projectName?: string;
+  appId?: string;
+  serverId?: string;
+}
+
+export interface CliStarters {
+  apps: CliStarterData[];
+  servers: CliStarterData[];
+}
+
+export interface CliStarterData {
+  id: string;
+  name: string;
+  description: string;
+  dir: string;
 }

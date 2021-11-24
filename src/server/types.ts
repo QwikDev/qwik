@@ -75,12 +75,8 @@ export interface RenderToStringOptions extends RenderToDocumentOptions {}
  */
 export interface CreateRenderToStringOptions {
   serverDir: string;
-  serverRenderPath: string;
-  clientDir: string;
-  /**
-   * Defaults to `q-entry-map.json`
-   */
-  clientEntryMapPath?: string;
+  serverMainPath: string;
+  symbolsPath: string;
 }
 
 /**

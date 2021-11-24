@@ -1,0 +1,20 @@
+{
+  "name": "create-qwik",
+  "version": "0.0.2",
+  "description": "Interactive CLI for generating Qwik projects.",
+  "main": "index.js",
+  "files": [
+    "starters"
+  ],
+  "author": "Builder.io Team",
+  "license": "MIT",
+  "keywords": [
+    "qwik",
+    "generator",
+    "builder.io"
+  ],
+  "engines": {
+    "node": ">=10",
+    "npm": ">=6.0.0"
+  }
+}

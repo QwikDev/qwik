@@ -1,0 +1,21 @@
+{
+  "name": "qwik-hello-world",
+  "version": "0.0.1",
+  "description": "Minimal Hello World app",
+  "scripts": {
+    "build": "rollup -c",
+    "start": "rollup -c --configDev --watch",
+    "serve": "npm run build.rollup && ts-node -O '{\"module\":\"commonjs\"}' ./server.ts"
+  },
+  "devDependencies": {
+    "@builder.io/qwik": "~0.0.14-4",
+    "@rollup/plugin-node-resolve": "^13.0.6",
+    "rollup": "^2.59.0",
+    "typescript": "^4.5.2"
+  },
+  "author": "Builder.io Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.14.0"
+  }
+}

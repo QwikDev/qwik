@@ -6,7 +6,8 @@
     "build": "node scripts --tsc --build --api --platform-binding --wasm",
     "build.platform": "node scripts --platform-binding",
     "build.wasm": "node scripts --wasm",
-    "build.validate": "node scripts --tsc --build --api --validate",
+    "build.cli": "node scripts --cli --dev",
+    "build.cli.release": "node scripts --cli",
     "build.watch": "node scripts --build --watch --dev --platform-binding",
     "api.update": "node scripts --tsc --api --dev",
     "tsc.check": "tsc --noEmit",
@@ -19,8 +20,6 @@
     "test.watch": "jest --watch",
     "test.e2e": "start-server-and-test integration.server.prod http://localhost:8081 \"cypress run --config-file cypress/cypress.json\"",
     "test.e2e.open": "start-server-and-test integration.server.prod http://localhost:8081 \"cypress open --config-file cypress/cypress.json\"",
-    "integration.server": "node scripts --build --dev && node integration/devserver.js --port 8080 --mode development",
-    "integration.server.prod": "node scripts --tsc --build && node integration/devserver.js --port 8081 --mode production",
     "docs.sync": "node scripts/docs_sync",
     "jsx.types": "node scripts --jsx",
     "prepare": "husky install",
@@ -68,6 +67,7 @@
     "gzip-size": "^6.0.0",
     "husky": "^5.2.0",
     "jest": "^27.0.5",
+    "kleur": "^4.1.4",
     "lint-staged": "^10.5.4",
     "mri": "^1.1.6",
     "path-browserify": "^1.0.1",
@@ -81,7 +81,7 @@
     "todomvc-app-css": "^2.3.0",
     "todomvc-common": "^1.0.5",
     "ts-jest": "^27.0.7",
-    "typescript": "^4.2.0"
+    "typescript": "^4.5.2"
   },
   "files": [
     "bindings/qwik.darwin-x64.node",

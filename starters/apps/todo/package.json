@@ -1,0 +1,23 @@
+{
+  "name": "qwik-todo",
+  "version": "0.0.1",
+  "description": "Classic Todo app",
+  "scripts": {
+    "build": "npm run clean && rollup -c",
+    "clean": "rimraf */build/",
+    "start": "npm run clean && rollup -c --configDev --watch"
+  },
+  "devDependencies": {
+    "@builder.io/qwik": "~0.0.14-4",
+    "@rollup/plugin-node-resolve": "^13.0.6",
+    "@rollup/plugin-typescript": "^8.3.0",
+    "rimraf": "^3.0.2",
+    "rollup": "^2.59.0",
+    "typescript": "^4.5.2"
+  },
+  "author": "Builder.io Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.14.0"
+  }
+}

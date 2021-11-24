@@ -20,3 +20,4 @@ tsdoc-metadata.json
 integration/**/*.js
 target
 output
+build

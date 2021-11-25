@@ -16,7 +16,7 @@ import type { Todos } from './state.qwik';
  *
  * @returns a promise when all of the rendering is completed.
  */
-function serverRender(opts: RenderToStringOptions) {
+export default function serverRender(opts: RenderToStringOptions) {
   const todos: Todos = {
     filter: 'all',
     items: [
@@ -29,20 +29,15 @@ function serverRender(opts: RenderToStringOptions) {
   return renderToString(
     <html>
       <head>
-        <title>Hello World from Server</title>
+        <title>Qwik Demo: ToDo</title>
+        <link rel="stylesheet" href="base.css" />
+        <link rel="stylesheet" href="index.css" />
       </head>
       <body>
         <ToDoApp todos={todos} />
-        <QwikLoader debug={true} />
+        <QwikLoader debug={opts.debug} />
       </body>
     </html>,
     opts
   );
 }
-
-serverRender({
-  outDir: './',
-}).then((str) => {
-  // eslint-disable-next-line no-console
-  console.log(str.html);
-});

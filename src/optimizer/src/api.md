@@ -4,8 +4,6 @@
 
 ```ts
 
-import type { Plugin as Plugin_2 } from 'rollup';
-
 // @alpha (undocumented)
 export interface ComponentEntryStrategy {
     // (undocumented)
@@ -140,17 +138,17 @@ export interface PathObject {
 // @alpha (undocumented)
 export interface QwikPluginOptions {
     // (undocumented)
-    entryMapFile?: string | null;
-    // (undocumented)
     entryStrategy?: EntryStrategy;
     // (undocumented)
     minify?: MinifyMode;
+    // (undocumented)
+    symbolsPath?: string;
     // (undocumented)
     transpile?: boolean;
 }
 
 // @alpha (undocumented)
-export function qwikRollup(opts?: QwikPluginOptions): Plugin_2;
+export function qwikRollup(opts?: QwikPluginOptions): any;
 
 // @alpha (undocumented)
 export interface SingleEntryStrategy {
@@ -224,7 +222,6 @@ export type TranspileOption = boolean | undefined | null;
 export const versions: {
     qwik: any;
 };
-
 
 // (No @packageDocumentation comment for this package)
 

@@ -32,7 +32,7 @@ export function qHook(hook: any, symbol?: string): any {
   if (typeof symbol === 'string') {
     let match;
     if ((match = String(hook).match(EXTRACT_IMPORT_PATH)) && match[2]) {
-      hook = (match[2] + '#' + symbol) as any;
+      hook = match[2];
     } else if ((match = String(hook).match(EXTRACT_SELF_IMPORT))) {
       const frame = new Error('SELF').stack!.split('\n')[2];
       match = frame.match(EXTRACT_FILE_NAME);
@@ -43,6 +43,11 @@ export function qHook(hook: any, symbol?: string): any {
     } else {
       throw new Error('dynamic import not found: ' + String(hook));
     }
+    hook =
+      (hook.startsWith('.') ? '' : './') +
+      (hook.endsWith('.js') ? hook.substr(0, hook.length - 3) : hook) +
+      '#' +
+      symbol;
   }
   if (typeof hook === 'string') return parseQRL(hook);
   const qrlFn = async (element: HTMLElement, event: Event, url: URL) => {
@@ -88,5 +93,5 @@ const EXTRACT_IMPORT_PATH = /\(\s*(['"])([^\1]+)\1\s*\)/;
 // https://regexr.com/690ds
 const EXTRACT_SELF_IMPORT = /Promise\s*\.\s*resolve/;
 
-// https://regexr.com/690e2
-const EXTRACT_FILE_NAME = /([\w\d.-_]+)\.(js|ts)x?:/;
+// https://regexr.com/6a83h
+const EXTRACT_FILE_NAME = /[\\/(]([\w\d.\-_]+)\.(js|ts)x?:/;

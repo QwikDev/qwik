@@ -26,7 +26,8 @@ export interface QwikDocument extends Document {}
  */
 export interface DocumentOptions {
   url?: string;
-  outDir?: string;
+  serverDir?: string;
+  debug?: boolean;
 }
 
 /**
@@ -38,11 +39,8 @@ export interface GlobalOptions extends DocumentOptions {}
 /**
  * @public
  */
-export interface SerializeDocumentOptions {
-  /**
-   * Defaults to `true`
-   */
-  serializeState?: boolean;
+export interface SerializeDocumentOptions extends DocumentOptions {
+  qrlMapper?: QrlMapper;
 }
 
 /**
@@ -60,9 +58,33 @@ export interface RenderToStringResult {
 /**
  * @public
  */
-export interface RenderToDocumentOptions extends SerializeDocumentOptions, DocumentOptions {}
+export interface RenderToDocumentOptions extends SerializeDocumentOptions, DocumentOptions {
+  /**
+   * Defaults to `true`
+   */
+  dehydrate?: boolean;
+}
 
 /**
  * @public
  */
 export interface RenderToStringOptions extends RenderToDocumentOptions {}
+
+/**
+ * @public
+ */
+export interface CreateRenderToStringOptions {
+  serverDir: string;
+  serverMainPath: string;
+  symbolsPath: string;
+}
+
+/**
+ * @public
+ */
+export type RenderToString = (opts: RenderToStringOptions) => Promise<RenderToStringResult>;
+
+/**
+ * @public
+ */
+export type QrlMapper = (path: string, symbol: string) => string;

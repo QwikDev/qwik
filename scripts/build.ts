@@ -1,6 +1,5 @@
 import { BuildConfig, ensureDir, panic } from './util';
 import { apiExtractor } from './api';
-import { buildDevServer } from './devserver';
 import { buildPlatformBinding } from './binding-platform';
 import { buildWasmBinding } from './binding-wasm';
 import { copyFiles } from './copy-files';
@@ -68,7 +67,6 @@ export async function build(config: BuildConfig) {
         submoduleOptimizer(config),
         submoduleTesting(config),
         copyFiles(config),
-        buildDevServer(config),
       ]);
 
       // server bundling must happen after the results from the others

@@ -14,14 +14,39 @@ import type { InputOption, Plugin } from 'rollup';
 /**
  * @alpha
  */
-export function qwikRollup(opts: QwikPluginOptions = {}): Plugin {
+export function qwikRollup(opts: QwikPluginOptions = {}): any {
   const transformedOutputs = new Map<string, TransformModule>();
   let optimizer: Optimizer | undefined;
   let result: TransformOutput | undefined;
-  let isDirty = true;
 
-  return {
-    name: 'qwikPlugin',
+  const symbolsWriters: SymbolsWriter[] = [];
+  const clientOutputEntryMaps: OutputEntryMap[] = [];
+
+  const writeSymbols = () => {
+    for (const symbolsWriter of symbolsWriters) {
+      for (const clientOutputEntryMap of clientOutputEntryMaps) {
+        symbolsWriter(clientOutputEntryMap);
+      }
+    }
+  };
+
+  if (!opts.entryStrategy) {
+    opts.entryStrategy = { type: 'hook' };
+  }
+
+  const plugin: Plugin = {
+    name: 'qwik',
+
+    options(inputOptions) {
+      inputOptions.onwarn = (warning, warn) => {
+        if (warning.plugin === 'typescript' && warning.message.includes('outputToFilesystem')) {
+          // "@rollup/plugin-typescript: outputToFilesystem option is defaulting to true."
+          return;
+        }
+        warn(warning);
+      };
+      return inputOptions;
+    },
 
     async buildStart(options) {
       // Takes the user's Rollup input options to find the source input files,
@@ -29,10 +54,8 @@ export function qwikRollup(opts: QwikPluginOptions = {}): Plugin {
       if (!optimizer) {
         optimizer = await createOptimizer();
       }
-
-      if (!isDirty) {
-        return;
-      }
+      symbolsWriters.length = 0;
+      clientOutputEntryMaps.length = 0;
 
       const transformOpts: TransformFsOptions = {
         rootDir: findInputDirectory(optimizer.path, options.input),
@@ -47,6 +70,7 @@ export function qwikRollup(opts: QwikPluginOptions = {}): Plugin {
         const key = transformOpts.rootDir + '/' + path;
         transformedOutputs.set(key, output);
       });
+
       // throw error or print logs if there are any diagnostics
       result.diagnostics.forEach((d) => {
         if (d.severity === 'error') {
@@ -87,44 +111,58 @@ export function qwikRollup(opts: QwikPluginOptions = {}): Plugin {
       return null;
     },
 
-    generateBundle(_, rollupBundle) {
-      const entryMapFile = opts.entryMapFile === undefined ? 'q-entry-map.json' : null;
-      if (result && entryMapFile) {
+    outputOptions(outputOpts) {
+      if (outputOpts.format === 'cjs' && typeof outputOpts.exports !== 'string') {
+        outputOpts.exports = 'auto';
+        return outputOpts;
+      }
+      return null;
+    },
+
+    async generateBundle(outputOpts, rollupBundle) {
+      if (result && outputOpts.format === 'es') {
         const output = Object.entries(rollupBundle);
+
         const outputEntryMap: OutputEntryMap = {
-          version: '1',
           mapping: Object.fromEntries(
             result.hooks.map((h) => {
-              const entry = h.canonicalFilename;
-              let value = entry;
+              const symbolName = h.name;
+              let filename = h.canonicalFilename;
               // eslint-disable-next-line
               const found = output.find(([_, v]) => {
                 return (
                   v.type == 'chunk' &&
                   v.isDynamicEntry === true &&
-                  Object.keys(v.modules).find((f) => f.endsWith(value))
+                  Object.keys(v.modules).find((f) => f.endsWith(filename))
                 );
               });
               if (found) {
-                value = found[0];
+                filename = found[0];
               }
-              return [entry, value];
+              return [symbolName, filename];
             })
           ),
+          version: '1',
         };
 
-        this.emitFile({
-          fileName: entryMapFile,
-          source: JSON.stringify(outputEntryMap, undefined, 2),
-          type: 'asset',
-        });
+        clientOutputEntryMaps.push(outputEntryMap);
+        writeSymbols();
+      } else if (outputOpts.format === 'cjs') {
+        if (outputOpts.dir && opts.symbolsPath) {
+          symbolsWriters.push((outputEntryMap) => {
+            this.emitFile({
+              fileName: opts.symbolsPath,
+              source: JSON.stringify(outputEntryMap, null, 2),
+              type: 'asset',
+            });
+          });
+          writeSymbols();
+        }
       }
     },
-
-    watchChange() {
-      isDirty = true;
-    },
   };
+
+  return plugin;
 }
 
 function findInputDirectory(path: Path, rollupInput: InputOption | undefined) {
@@ -168,5 +206,7 @@ export interface QwikPluginOptions {
   entryStrategy?: EntryStrategy;
   transpile?: boolean;
   minify?: MinifyMode;
-  entryMapFile?: string | null;
+  symbolsPath?: string;
 }
+
+type SymbolsWriter = (outputEntryMap: OutputEntryMap) => void;

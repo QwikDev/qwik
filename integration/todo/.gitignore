@@ -1,0 +1,6 @@
+.cache
+.rollup.cache
+.vscode
+*.tsbuildinfo
+build
+node_modules

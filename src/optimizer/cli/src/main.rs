@@ -82,14 +82,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             Some("single") => EntryStrategy::Single,
             Some("component") => EntryStrategy::Component,
             Some("smart") | None => EntryStrategy::Smart,
-            _ => panic!("Unvalid strategy option"),
+            _ => panic!("Invalid strategy option"),
         };
 
         let minify = match matches.value_of("minify") {
             Some("minify") => MinifyMode::Minify,
             Some("none") => MinifyMode::None,
             Some("simplify") | None => MinifyMode::Simplify,
-            _ => panic!("Unvalid minify option"),
+            _ => panic!("Invalid minify option"),
         };
         optimize(OptimizerInput {
             src: matches.value_of_t_or_exit("src"),

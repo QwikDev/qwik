@@ -1,21 +1,24 @@
 {
-  "name": "todo",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "name": "qwik-todo",
+  "version": "0.0.1",
+  "description": "Classic Todo app",
   "scripts": {
-    "clean": "rm -rf dist output",
-    "build.rollup": "rollup -c",
-    "build.qwik": "qwik optimize --src src --dest dist --minify",
-    "build": "npm run clean && npm run build.rollup"
-  },
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "@builder.io/qwik": "0.0.12-pre.1",
-    "rollup": "^2.59.0"
+    "build": "npm run clean && rollup -c",
+    "start": "npm run clean && rollup -c --configDev --watch",
+    "serve": "node server",
+    "clean": "rimraf build && rimraf server/build"
   },
   "devDependencies": {
-    "@rollup/plugin-node-resolve": "^13.0.6"
+    "@builder.io/qwik": "file:../../dist-dev/@builder.io-qwik",
+    "@rollup/plugin-node-resolve": "^13.0.6",
+    "@rollup/plugin-typescript": "^8.3.0",
+    "rimraf": "^3.0.2",
+    "rollup": "^2.59.0",
+    "typescript": "^4.5.2"
+  },
+  "author": "Builder.io Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.14.0"
   }
 }

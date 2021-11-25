@@ -4,6 +4,8 @@
 
 ```ts
 
+/// <reference types="node" />
+
 import { FunctionComponent } from '@builder.io/qwik';
 
 // @public
@@ -12,13 +14,30 @@ export function createDocument(opts?: DocumentOptions): QwikDocument;
 // @public
 export function createGlobal(opts?: GlobalOptions): QwikGlobal;
 
+// @public (undocumented)
+export interface CreateRenderToStringOptions {
+    // (undocumented)
+    serverDir: string;
+    // (undocumented)
+    serverMainPath: string;
+    // (undocumented)
+    symbolsPath: string;
+}
+
+// Warning: (ae-forgotten-export) The symbol "RenderToString" needs to be exported by the entry point index.d.ts
+//
+// @alpha
+export function createServerRenderer(opts: CreateRenderToStringOptions): Promise<RenderToString>;
+
 // @alpha
 export function createTimer(): () => number;
 
 // @public
 export interface DocumentOptions {
     // (undocumented)
-    outDir?: string;
+    debug?: boolean;
+    // (undocumented)
+    serverDir?: string;
     // (undocumented)
     url?: string;
 }
@@ -69,6 +88,7 @@ export function renderToDocument(doc: Document, rootNode: any, opts?: RenderToDo
 //
 // @public (undocumented)
 export interface RenderToDocumentOptions extends SerializeDocumentOptions, DocumentOptions {
+    dehydrate?: boolean;
 }
 
 // @public
@@ -101,7 +121,6 @@ export const versions: {
     qwik: any;
     domino: any;
 };
-
 
 // (No @packageDocumentation comment for this package)
 

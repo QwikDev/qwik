@@ -1,3 +1,4 @@
+import { createTimer } from './utils';
 import type {
   DocumentOptions,
   GlobalOptions,
@@ -6,11 +7,11 @@ import type {
   RenderToDocumentOptions,
   RenderToStringOptions,
   RenderToStringResult,
-  SerializeDocumentOptions,
 } from './types';
-import { setServerPlatform } from './platform';
 import domino from 'domino';
 import { qDehydrate, qRender } from '@builder.io/qwik';
+import { setServerPlatform } from './platform';
+import { serializeDocument } from './serialize';
 
 /**
  * Create emulated `Global` for server environment. Does not implement a browser
@@ -19,10 +20,8 @@ import { qDehydrate, qRender } from '@builder.io/qwik';
  */
 export function createGlobal(opts?: GlobalOptions): QwikGlobal {
   opts = opts || {};
-  const doc: QwikDocument = domino.createDocument() as any;
-  // <!DOCTYPE html>
-  // doc.appendChild(document.implementation.createDocumentType('html', '', ''));
 
+  const doc: QwikDocument = domino.createDocument() as any;
   const baseURI = typeof opts.url !== 'string' ? BASE_URI : opts.url;
   const loc = new URL(baseURI, BASE_URI);
 
@@ -52,7 +51,7 @@ export function createGlobal(opts?: GlobalOptions): QwikGlobal {
  * Create emulated `Document` for server environment.
  * @public
  */
-export function createDocument(opts?: DocumentOptions): QwikDocument {
+export function createDocument(opts?: DocumentOptions) {
   const glb = createGlobal(opts);
   return glb.document;
 }
@@ -70,27 +69,18 @@ export async function renderToDocument(
   rootNode: any,
   opts?: RenderToDocumentOptions
 ) {
+  if (!doc || doc.nodeType !== 9) {
+    throw new Error(`Invalid document`);
+  }
+
   opts = opts || {};
   setServerPlatform(doc, opts);
-  await qRender(doc, rootNode);
-}
 
-/**
- * Serializes the given `document` to a string. Additionally, will serialize the
- * Qwik component state and optionally add Qwik protocols to the document.
- *
- * @param doc - The `document` to apply the the root node to.
- * @param rootNode - The root JSX node to apply onto the `document`.
- * @public
- */
-export function serializeDocument(doc: Document, opts?: SerializeDocumentOptions) {
-  if (doc) {
-    if (opts?.serializeState !== false) {
-      qDehydrate(doc);
-    }
-    return '<!DOCTYPE html>' + doc.documentElement.outerHTML;
+  await qRender(doc, rootNode);
+
+  if (opts.dehydrate !== false) {
+    qDehydrate(doc);
   }
-  return '';
 }
 
 /**
@@ -121,15 +111,3 @@ export async function renderToString(rootNode: any, opts?: RenderToStringOptions
 }
 
 const BASE_URI = `http://document.qwik.dev/`;
-
-/**
- * Utility timer function for performance profiling.
- * @alpha
- */
-export function createTimer() {
-  const start = process.hrtime();
-  return () => {
-    const end = process.hrtime(start);
-    return (end[0] * 1000000000 + end[1]) / 1000000;
-  };
-}

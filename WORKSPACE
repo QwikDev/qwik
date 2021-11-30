@@ -21,8 +21,8 @@ check_rules_nodejs_version(minimum_version_string = "2.2.0")
 
 # Setup the Node.js toolchain
 node_repositories(
-    node_version = "15.0.1",
     package_json = ["//:package.json"],
+    node_version = "16.6.2",
 )
 
 yarn_install(

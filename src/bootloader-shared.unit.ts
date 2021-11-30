@@ -98,30 +98,38 @@ describe('qwikloader', () => {
       doc = createDocument();
     });
 
-    it('get protocol, trim ending slash', () => {
-      const link = doc.createElement('link');
-      link.setAttribute('rel', 'q.protocol.test');
-      link.href = 'http://qwik.dev/test/';
-      doc.head.appendChild(link);
-
-      const url = qrlResolver(doc, 'test:/hi')!;
-      expect(url.pathname).toBe('/test/hi.js');
+    it('should resolve full URL', () => {
+      const div = doc.createElement('div');
+      expect(String(qrlResolver(doc, div, 'http://foo.bar/baz'))).toEqual('http://foo.bar/baz.js');
     });
 
-    it('get protocol', () => {
-      const link = doc.createElement('link');
-      link.setAttribute('rel', 'q.protocol.test');
-      link.href = 'http://qwik.dev/test';
-      doc.head.appendChild(link);
+    it('should resolve relative URL against base', () => {
+      const div = doc.createElement('div');
+      expect(String(qrlResolver(doc, div, './bar'))).toEqual('http://document.qwik.dev/bar.js');
+    });
 
-      const url = qrlResolver(doc, 'test:/hi')!;
-      expect(url.pathname).toBe('/test/hi.js');
+    it('should resolve relative URL against q:base', () => {
+      const div = doc.createElement('div');
+      div.setAttribute('q:base', '../baz/');
+      expect(String(qrlResolver(doc, div, './bar'))).toEqual('http://document.qwik.dev/baz/bar.js');
+    });
+
+    it('should resolve relative URL against nested q:base', () => {
+      const div = doc.createElement('div');
+      const parent = doc.createElement('parent');
+      doc.body.appendChild(parent);
+      parent.appendChild(div);
+      parent.setAttribute('q:base', './parent/');
+      div.setAttribute('q:base', './child/');
+      expect(String(qrlResolver(doc, div, './bar'))).toEqual(
+        'http://document.qwik.dev/parent/child/bar.js'
+      );
     });
 
     it('do nothing for null/undefined/empty string', () => {
-      expect(qrlResolver(doc, null)).toBeFalsy();
-      expect(qrlResolver(doc, undefined)).toBeFalsy();
-      expect(qrlResolver(doc, '')).toBeFalsy();
+      const div = doc.createElement('div');
+      expect(qrlResolver(doc, null, null)).toBeFalsy();
+      expect(qrlResolver(doc, div, '')).toBeFalsy();
     });
   });
 

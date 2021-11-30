@@ -16,14 +16,12 @@ import { assertDefined } from '../assert/assert';
 /**
  * Lazy load a `QRL` symbol and returns the resulting value.
  *
- * @param base -`QRL`s are relative, and therefore they need a base for resolution.
- *    - `Element` use `base.ownerDocument.baseURI`
- *    - `Document` use `base.baseURI`
+ * @param element - Location of the URL to resolve against.
  * @param url - A relative URL (as `string` or `QRL`) or fully qualified `URL`
  * @returns A cached value synchronously or promise of imported value.
  * @public
  */
-export function qImport<T>(node: Node | Document, url: string | QRL<T> | URL): T | Promise<T> {
+export function qImport<T>(element: Element, url: string | QRL<T> | URL): T | Promise<T> {
   if (isParsedQRL(url)) {
     assertDefined(url._serialized);
     url = Array.isArray(url._serialized) ? url._serialized[0] : url._serialized!;
@@ -35,9 +33,9 @@ export function qImport<T>(node: Node | Document, url: string | QRL<T> | URL): T
       return Promise.resolve<T>(testSymbol);
     }
   }
-  const doc: QDocument = node.ownerDocument || (node as Document);
+  const doc: QDocument = element.ownerDocument!;
   const corePlatform = getPlatform(doc);
-  const normalizedUrl = toUrl(doc, url);
+  const normalizedUrl = toUrl(doc, element, url);
   const importPath = corePlatform.toPath(normalizedUrl);
   const exportName = qExport(normalizedUrl);
   const cacheKey = importPath + '#' + exportName;
@@ -82,43 +80,27 @@ export function qImportSet(doc: QDocument, cacheKey: string, value: any): void {
  * @param url - relative URL
  * @returns fully qualified URL.
  */
-export function toUrl(doc: Document, url: string | QRL | URL): URL {
-  if (typeof url === 'string') {
-    const baseURI = getConfig(doc, `baseURI`) || doc.baseURI;
-    return new URL(adjustProtocol(doc, url), baseURI);
-  } else {
-    return url as URL;
-  }
-}
+export function toUrl(doc: Document, element: Element | null, url?: string | QRL | URL): URL {
+  let _url: string | QRL | URL;
+  let _base: string | URL | undefined = undefined;
 
-/**
- * Convert custom protocol to path by looking it up in `QConfig`
- *
- * Paths such as
- * ```
- * QRL`foo:/bar`
- * ```
- *
- * The `QRL` looks up `foo` in the document's `<link ref="q.protocol.foo" href="somePath">`
- * resulting in `somePath/bar`
- *
- * @param doc
- * @param qrl
- * @returns URL where the custom protocol has been resolved.
- */
-function adjustProtocol(doc: Document, qrl: string | QRL): string {
-  return String(qrl).replace(/(^\w+):\/?/, (all, protocol) => {
-    let value = getConfig(doc, `protocol.` + protocol);
-    if (value && !value.endsWith('/')) {
-      value = value + '/';
+  if (url === undefined) {
+    //  recursive call
+    if (element) {
+      _url = element.getAttribute('q:base')!;
+      _base = toUrl(
+        doc,
+        element.parentNode && (element.parentNode as HTMLElement).closest('[q\\:base]')
+      );
+    } else {
+      _url = doc.baseURI;
     }
-    return value || all;
-  });
-}
-
-function getConfig(doc: Document, configKey: string) {
-  const linkElm = doc.querySelector(`link[rel="q.${configKey}"]`) as HTMLLinkElement;
-  return linkElm && linkElm.getAttribute('href');
+  } else if (url) {
+    (_url = url), (_base = toUrl(doc, element!.closest('[q\\:base]')));
+  } else {
+    throw new Error('INTERNAL ERROR');
+  }
+  return new URL(String(_url), _base);
 }
 
 /**

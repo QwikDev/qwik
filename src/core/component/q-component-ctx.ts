@@ -112,10 +112,11 @@ export function getHostElement(element: Element): HTMLElement | null {
 function insertStyleIfNeeded(ctx: QComponentCtx, style: string | null) {
   if (style) {
     const styleId = styleKey(style as any)!;
-    const document = ctx.hostElement.ownerDocument;
+    const host = ctx.hostElement;
+    const document = host.ownerDocument;
     const head = document.querySelector('head')!;
     if (!head.querySelector(`style[q\\:style="${styleId}"]`)) {
-      const styleImport = Promise.resolve(qImport<string>(document, style));
+      const styleImport = Promise.resolve(qImport<string>(host, style));
       styleImport.then((styles: string) => {
         const style = document.createElement('style');
         style.setAttribute('q:style', styleId);

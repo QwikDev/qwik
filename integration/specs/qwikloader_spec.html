@@ -2,7 +2,6 @@
 <html>
   <head>
     <script src="/qwikloader.js" type="module"></script>
-    <link rel="q.protocol.base" href="./" />
   </head>
   <body>
     <h1>it should register all events</h1>
@@ -13,9 +12,7 @@
         - it can listen on all events an
         - and it can process protocol urls.
       </pre>
-      <button
-        on:click="base:qwikloader_spec#updateElement?selector=%23click_test>pre&content=PASSED"
-      >
+      <button on:click="./qwikloader_spec#updateElement?selector=%23click_test>pre&content=PASSED">
         click
       </button>
     </test>
@@ -26,7 +23,7 @@
         Verify that non-bubbling events are correctly captured.
       </pre>
       <button
-        on:mouseenter="base:qwikloader_spec#updateElement?selector=%23non_bubbling_event>pre&content=PASSED"
+        on:mouseenter="./qwikloader_spec#updateElement?selector=%23non_bubbling_event>pre&content=PASSED"
       >
         mouseenter
       </button>
@@ -35,7 +32,7 @@
     <h1>it should set up `$init` event</h1>
     <test id="autofire_$init">
       <pre
-        on:q-init="base:qwikloader_spec#updateElement?selector=%23autofire_\$init>pre&content=PASSED"
+        on:q-init="./qwikloader_spec#updateElement?selector=%23autofire_\$init>pre&content=PASSED"
       >
         Verify qwikloader correctly fires `$init` event on start.
       </pre>
@@ -44,7 +41,7 @@
     <h1>it should broadcast document events</h1>
     <test id="broadcast_scroll">
       <pre
-        on:document:scroll="base:qwikloader_spec#updateElement?selector=%23broadcast_scroll>pre&content=PASSED"
+        on:document:scroll="./qwikloader_spec#updateElement?selector=%23broadcast_scroll>pre&content=PASSED"
       >
         Verify qwikloader correctly fires `scroll` event on scroll.
       </pre>

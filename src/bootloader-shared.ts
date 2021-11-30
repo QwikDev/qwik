@@ -26,24 +26,26 @@
  */
 export const qrlResolver = (
   doc: Document,
-  eventUrl: string | null | undefined,
-  linkElm?: HTMLLinkElement,
-  href?: string,
-  url?: URL
+  element: Element | null,
+  eventUrl?: string | null,
+  _url?: string,
+  _base?: string | URL
 ): URL | undefined => {
-  if (eventUrl) {
-    url = new URL(
-      eventUrl.replace(/^(\w+):(\/)?/, (str, protocol, slash) => {
-        linkElm = doc.querySelector(`[rel="q.protocol.${protocol}"]`) as HTMLLinkElement;
-        href = linkElm && linkElm.href;
-        if (!href) error(protocol + ' not defined');
-        return href + (href!.endsWith('/') ? '' : slash || '');
-      }),
-      doc.baseURI
-    );
-    url.pathname += '.js';
+  if (eventUrl === undefined) {
+    //  recursive call
+    if (element) {
+      _url = element.getAttribute('q:base')!;
+      _base = qrlResolver(
+        doc,
+        element.parentNode && (element.parentNode as HTMLElement).closest('[q\\:base]')
+      );
+    } else {
+      _url = doc.baseURI;
+    }
+  } else if (eventUrl) {
+    (_url = eventUrl + '.js'), (_base = qrlResolver(doc, element!.closest('[q\\:base]')));
   }
-  return url;
+  return _url ? new URL(_url, _base) : undefined;
 };
 
 const error = (msg: string) => {
@@ -67,7 +69,7 @@ export const qwikLoader = (doc: Document, hasInitialized?: boolean | number) => 
   };
 
   const dispatch = async (element: Element, eventName: string, ev: Event, url?: URL) => {
-    url = qrlResolver(doc, element.getAttribute('on:' + eventName));
+    url = qrlResolver(doc, element, element.getAttribute('on:' + eventName));
     if (url) {
       const handler = getModuleExport(
         url,
@@ -172,13 +174,14 @@ export const setupPrefetching = (
   const intersectionObserverCallback = (items: IntersectionObserverEntry[]) => {
     items.forEach((item) => {
       if (item.intersectionRatio > 0) {
-        const attrs = item.target.attributes;
+        const element = item.target;
+        const attrs = element.attributes;
         for (let i = 0; i < attrs.length; i++) {
           const attr = attrs[i];
           const name = attr.name;
           const value = attr.value;
           if (name.startsWith('on:') && value) {
-            const url = qrlResolver(doc, value)!;
+            const url = qrlResolver(doc, element, value)!;
             url.hash = url.search = '';
             const key = url.toString();
             if (!qrlCache[key]) {

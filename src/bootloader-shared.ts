@@ -26,22 +26,24 @@
  */
 export const qrlResolver = (
   doc: Document,
-  element: Element|null,
+  element: Element | null,
   eventUrl?: string | null,
   _url?: string,
-  _base?: string | URL,
+  _base?: string | URL
 ): URL | undefined => {
   if (eventUrl === undefined) {
     //  recursive call
     if (element) {
       _url = element.getAttribute('q:base')!;
-      _base = qrlResolver(doc, element.parentNode && (element.parentNode as HTMLElement).closest('[q\\:base]'));
+      _base = qrlResolver(
+        doc,
+        element.parentNode && (element.parentNode as HTMLElement).closest('[q\\:base]')
+      );
     } else {
       _url = doc.baseURI;
     }
-  } else if (eventUrl) { 
-    _url = eventUrl,
-    _base = qrlResolver(doc, element!.closest('[q\\:base]'));
+  } else if (eventUrl) {
+    (_url = eventUrl + '.js'), (_base = qrlResolver(doc, element!.closest('[q\\:base]')));
   }
   return _url ? new URL(_url, _base) : undefined;
 };

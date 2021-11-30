@@ -24,6 +24,7 @@ def package_build(
             "@npm//rollup",
             "@npm//source-map-support",
             "@npm//terser",
+            "@npm//@octokit/action",
             "@npm//typescript",
             "@npm//@types/cross-spawn",
             "@npm//cross-spawn",
@@ -34,6 +35,8 @@ def package_build(
             "@npm//semver",
             "@npm//path-browserify",
             "@npm//@types/path-browserify",
+            "@npm//@types/prompts",
+            "@npm//prompts",
             "//scripts:all_build_source",
         ],
         outs = [

@@ -81,20 +81,22 @@ export function qImportSet(doc: QDocument, cacheKey: string, value: any): void {
  * @returns fully qualified URL.
  */
 export function toUrl(doc: Document, element: Element | null, url?: string | QRL | URL): URL {
-  let  _url: string | QRL | URL;
+  let _url: string | QRL | URL;
   let _base: string | URL | undefined = undefined;
 
   if (url === undefined) {
     //  recursive call
     if (element) {
       _url = element.getAttribute('q:base')!;
-      _base = toUrl(doc, element.parentNode && (element.parentNode as HTMLElement).closest('[q\\:base]'));
+      _base = toUrl(
+        doc,
+        element.parentNode && (element.parentNode as HTMLElement).closest('[q\\:base]')
+      );
     } else {
       _url = doc.baseURI;
     }
-  } else if (url) { 
-    _url = url,
-    _base = toUrl(doc, element!.closest('[q\\:base]'));
+  } else if (url) {
+    (_url = url), (_base = toUrl(doc, element!.closest('[q\\:base]')));
   } else {
     throw new Error('INTERNAL ERROR');
   }

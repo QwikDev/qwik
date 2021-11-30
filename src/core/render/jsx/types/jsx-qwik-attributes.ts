@@ -8,13 +8,13 @@ interface QwikProps {
   /**
    *
    */
-   'q:slot'?: string;
+  'q:slot'?: string;
 
   /**
    * URL against which relative QRLs should be resolved to.
    */
   'q:base'?: string;
-  }
+}
 
 interface QwikGlobalEvents {
   /**

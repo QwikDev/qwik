@@ -4,7 +4,6 @@ import { expectDOM } from '../../testing/expect-dom.unit';
 import { qComponent } from '../component/q-component.public';
 import { qHook } from '../component/qrl-hook.public';
 import { qStyles, styleKey } from '../component/qrl-styles';
-import { TEST_CONFIG } from '../util/test_config';
 import { Async, JSXPromise, PromiseValue } from './jsx/async.public';
 import { Slot } from './jsx/slot.public';
 import { qRender } from './q-render.public';
@@ -13,7 +12,7 @@ import { getTestPlatform } from '../../testing/platform';
 
 describe('q-render', () => {
   let fixture: ElementFixture;
-  beforeEach(() => (fixture = new ElementFixture(TEST_CONFIG)));
+  beforeEach(() => (fixture = new ElementFixture()));
   describe('basic JSX', () => {
     it('should render basic content', async () => {
       await qRender(fixture.host, <div></div>);

@@ -43,7 +43,8 @@ export const qrlResolver = (
       _url = doc.baseURI;
     }
   } else if (eventUrl) {
-    (_url = eventUrl + '.js'), (_base = qrlResolver(doc, element!.closest('[q\\:base]')));
+    _url = eventUrl;
+    _base = qrlResolver(doc, element!.closest('[q\\:base]'));
   }
   return _url ? new URL(_url, _base) : undefined;
 };
@@ -73,7 +74,7 @@ export const qwikLoader = (doc: Document, hasInitialized?: boolean | number) => 
     if (url) {
       const handler = getModuleExport(
         url,
-        (window as any)[url.pathname] || (await import(String(url).split('#')[0]))
+        (window as any)[url.pathname] || (await import(String(url).split('#')[0] + '.js'))
       );
       handler(element, ev, url);
     }
@@ -183,7 +184,7 @@ export const setupPrefetching = (
           if (name.startsWith('on:') && value) {
             const url = qrlResolver(doc, element, value)!;
             url.hash = url.search = '';
-            const key = url.toString();
+            const key = url.toString() + '.js';
             if (!qrlCache[key]) {
               qrlCache[key] = key;
               onEachNewQrl(key);

@@ -100,18 +100,18 @@ describe('qwikloader', () => {
 
     it('should resolve full URL', () => {
       const div = doc.createElement('div');
-      expect(String(qrlResolver(doc, div, 'http://foo.bar/baz'))).toEqual('http://foo.bar/baz.js');
+      expect(String(qrlResolver(doc, div, 'http://foo.bar/baz'))).toEqual('http://foo.bar/baz');
     });
 
     it('should resolve relative URL against base', () => {
       const div = doc.createElement('div');
-      expect(String(qrlResolver(doc, div, './bar'))).toEqual('http://document.qwik.dev/bar.js');
+      expect(String(qrlResolver(doc, div, './bar'))).toEqual('http://document.qwik.dev/bar');
     });
 
     it('should resolve relative URL against q:base', () => {
       const div = doc.createElement('div');
       div.setAttribute('q:base', '../baz/');
-      expect(String(qrlResolver(doc, div, './bar'))).toEqual('http://document.qwik.dev/baz/bar.js');
+      expect(String(qrlResolver(doc, div, './bar'))).toEqual('http://document.qwik.dev/baz/bar');
     });
 
     it('should resolve relative URL against nested q:base', () => {
@@ -122,7 +122,7 @@ describe('qwikloader', () => {
       parent.setAttribute('q:base', './parent/');
       div.setAttribute('q:base', './child/');
       expect(String(qrlResolver(doc, div, './bar'))).toEqual(
-        'http://document.qwik.dev/parent/child/bar.js'
+        'http://document.qwik.dev/parent/child/bar'
       );
     });
 

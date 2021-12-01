@@ -24,7 +24,7 @@
  * @param href
  * @returns
  */
- export const qrlResolver = (
+export const qrlResolver = (
   doc: Document,
   element: Element | null,
   eventUrl?: string | null,
@@ -74,7 +74,7 @@ export const qwikLoader = (doc: Document, hasInitialized?: boolean | number) => 
     if (url) {
       const handler = getModuleExport(
         url,
-        (window as any)[url.pathname] || (await import(String(url).split('#')[0]  + '.js'))
+        (window as any)[url.pathname] || (await import(String(url).split('#')[0] + '.js'))
       );
       handler(element, ev, url);
     }

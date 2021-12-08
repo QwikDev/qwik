@@ -17,7 +17,7 @@ export async function validateBuild(config: BuildConfig) {
   const errors: string[] = [];
 
   // triple checks these package files all exist and parse
-  const pkgFiles = [...pkg.files, 'LICENSE', 'README.md', 'package.json'];
+  const pkgFiles = [...pkg.files!, 'LICENSE', 'README.md', 'package.json'];
   const expectedFiles = pkgFiles.map((f) => join(config.distPkgDir, f));
 
   for (const filePath of expectedFiles) {
@@ -135,11 +135,11 @@ async function validatePackageJson(config: BuildConfig, pkg: PackageJSON, errors
 
   await Promise.all([validatePath(pkg.main), validatePath(pkg.module), validatePath(pkg.types)]);
 
-  const exportKeys = Object.keys(pkg.exports);
+  const exportKeys = Object.keys(pkg.exports!);
 
   await Promise.all(
     exportKeys.map(async (exportKey) => {
-      const val = pkg.exports[exportKey];
+      const val = pkg.exports![exportKey];
       if (typeof val === 'string') {
         await validatePath(val);
       } else {

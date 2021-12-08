@@ -1,7 +1,7 @@
 {
-  "name": "qwik-todo-express",
+  "name": "qwik-starter",
   "version": "0.0.1",
-  "description": "Classic Todo app",
+  "description": "Blank starter app",
   "scripts": {
     "build": "npm run clean && rollup -c",
     "clean": "rimraf */build/",

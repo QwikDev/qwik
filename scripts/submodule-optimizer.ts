@@ -128,8 +128,8 @@ async function generatePlatformBindingsData(config: BuildConfig) {
   // - node_modules/@napi-rs/triples/index.js
 
   const pkg = await readPackageJson(config.rootDir);
-  const bindingFiles = pkg.files
-    .filter((f) => f.startsWith('bindings/'))
+  const bindingFiles = pkg
+    .files!.filter((f) => f.startsWith('bindings/'))
     .map((f) => f.replace('bindings/', ''));
 
   const qwikArchTriples: typeof platformArchTriples = {};

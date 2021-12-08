@@ -2,13 +2,12 @@ import { Fragment, h, qHook, qObject } from '@builder.io/qwik';
 import { ElementFixture, trigger } from '../../testing/element_fixture';
 import { expectDOM } from '../../testing/expect-dom.unit';
 import { qRender } from '../render/q-render.public';
-import { TEST_CONFIG } from '../util/test_config';
 import { qComponent } from './q-component.public';
 import { qStyles } from './qrl-styles';
 
 describe('q-component', () => {
   it('should declare and render basic component', async () => {
-    const fixture = new ElementFixture(TEST_CONFIG);
+    const fixture = new ElementFixture();
     await qRender(fixture.host, <HelloWorld></HelloWorld>);
     expectDOM(
       fixture.host,
@@ -21,7 +20,7 @@ describe('q-component', () => {
   });
 
   it('should render Counter and accept events', async () => {
-    const fixture = new ElementFixture(TEST_CONFIG);
+    const fixture = new ElementFixture();
     await qRender(fixture.host, <MyCounter step={5} value={15} />);
     expectDOM(
       fixture.host,
@@ -51,7 +50,7 @@ describe('q-component', () => {
   });
 
   it('should render a collection of todo items', async () => {
-    const host = new ElementFixture(TEST_CONFIG).host;
+    const host = new ElementFixture().host;
     const items = qObject({
       items: [
         qObject({

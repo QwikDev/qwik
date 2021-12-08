@@ -230,7 +230,7 @@ export function qHook<PROPS extends {}, STATE extends {} | undefined | unknown, 
 export function qHook<COMP extends QComponent, ARGS extends {} | unknown = unknown, RET = unknown>(hook: (props: PropsOf<COMP>, state: StateOf<COMP>, args: ARGS) => ValueOrPromise<RET>): QHook<PropsOf<COMP>, StateOf<COMP>, any, RET>;
 
 // @public
-export function qImport<T>(node: Node | Document, url: string | QRL<T> | URL): T | Promise<T>;
+export function qImport<T>(element: Element, url: string | QRL<T> | URL): T | Promise<T>;
 
 // @public (undocumented)
 export type QObject<T extends {}> = T & {

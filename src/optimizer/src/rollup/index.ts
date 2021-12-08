@@ -14,7 +14,7 @@ import type { InputOption, Plugin } from 'rollup';
 /**
  * @alpha
  */
-export function qwik(opts: QwikPluginOptions = {}): any {
+export function qwikRollup(opts: QwikPluginOptions = {}): any {
   const transformedOutputs = new Map<string, TransformModule>();
   let optimizer: Optimizer | undefined;
   let result: TransformOutput | undefined;
@@ -56,10 +56,6 @@ export function qwik(opts: QwikPluginOptions = {}): any {
       }
       symbolsWriters.length = 0;
       clientOutputEntryMaps.length = 0;
-
-      const tsPlugin = options.plugins.find((p) => p.name === '');
-      if (tsPlugin) {
-      }
 
       const transformOpts: TransformFsOptions = {
         rootDir: findInputDirectory(optimizer.path, options.input),

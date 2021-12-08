@@ -27,4 +27,4 @@ export function serializeDocument(doc: Document, opts?: SerializeDocumentOptions
 }
 
 // https://regexr.com/69fs7
-const QRL_MATCHER = /="(.\/)?(([\w\d-_.]+)#([\w\d_]+))[\?"]/g;
+const QRL_MATCHER = /="(.\/)?(([\w\d-_.]+)#([\w\d_]+))[?"]/g;

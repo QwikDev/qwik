@@ -10,6 +10,7 @@ export async function createQrlMapper(entryMapPath: string) {
 
   const qrlMapper: QrlMapper = (path, symbolName) => {
     path = symbolManifest.get(symbolName) || path;
+    path = path.substr(0, path.length - 3);
     return `./${path}#${symbolName}`;
   };
 

@@ -7,11 +7,12 @@ import {
   injectGlobalThisPoly,
   nodeBuiltIns,
   nodeTarget,
+  PackageJSON,
   readFile,
   target,
   watcher,
 } from './util';
-import { readPackageJson } from './package-json';
+import { readPackageJson, writePackageJson } from './package-json';
 
 /**
  * Builds @builder.io/server
@@ -67,8 +68,22 @@ export async function submoduleServer(config: BuildConfig) {
   });
 
   await Promise.all([esm, cjs]);
+  await generateServerPackageJson(config);
 
   console.log('🐰', submodule);
+}
+
+async function generateServerPackageJson(config: BuildConfig) {
+  const pkg: PackageJSON = {
+    name: '@builder.io/qwik/server',
+    version: config.distVersion,
+    main: 'index.cjs',
+    module: 'index.mjs',
+    types: 'index.d.ts',
+    private: true,
+  };
+  const serverDistDir = join(config.distPkgDir, 'server');
+  await writePackageJson(serverDistDir, pkg);
 }
 
 /**

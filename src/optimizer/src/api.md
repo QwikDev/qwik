@@ -151,6 +151,9 @@ export interface QwikPluginOptions {
 }
 
 // @alpha (undocumented)
+export function qwikRollup(opts?: QwikPluginOptions): any;
+
+// @alpha (undocumented)
 export interface SingleEntryStrategy {
     // (undocumented)
     type: 'single';
@@ -222,7 +225,6 @@ export type TranspileOption = boolean | undefined | null;
 export const versions: {
     qwik: any;
 };
-
 
 // (No @packageDocumentation comment for this package)
 

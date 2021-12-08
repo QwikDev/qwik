@@ -1,4 +1,7 @@
-import { createTimer } from './utils';
+import { qDehydrate, qRender } from '@builder.io/qwik';
+import domino from 'domino';
+import { setServerPlatform } from './platform';
+import { serializeDocument } from './serialize';
 import type {
   DocumentOptions,
   GlobalOptions,
@@ -8,10 +11,7 @@ import type {
   RenderToStringOptions,
   RenderToStringResult,
 } from './types';
-import { setServerPlatform } from './platform';
-import { qDehydrate, qRender } from '@builder.io/qwik';
-import { serializeDocument } from './serialize';
-import domino from 'domino';
+import { createTimer } from './utils';
 
 /**
  * Create emulated `Global` for server environment. Does not implement a browser

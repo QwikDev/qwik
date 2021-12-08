@@ -6,22 +6,24 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { TEST_CONFIG } from '../util/test_config';
 import { qExport, qImport, qParams } from '../import/qImport';
 import { ElementFixture, isPromise } from '@builder.io/qwik/testing';
+import { getBaseUri } from '../util/base_uri';
 
 describe('qImport', () => {
   it('should import default symbol', async () => {
-    const fixture = new ElementFixture(TEST_CONFIG);
-    const valuePromise = qImport(fixture.host, 'import:qImport_default_unit');
+    const fixture = new ElementFixture();
+    fixture.host.setAttribute('q:base', 'file://' + getBaseUri());
+    const valuePromise = qImport(fixture.host, './qImport_default_unit');
     expect(isPromise(valuePromise)).toBe(true);
     expect(await valuePromise).toEqual('DEFAULT_VALUE');
     // second read is direct.
-    expect(qImport(fixture.host, 'import:qImport_default_unit')).toEqual('DEFAULT_VALUE');
+    expect(qImport(fixture.host, './qImport_default_unit')).toEqual('DEFAULT_VALUE');
   });
 
   it('should import symbol from extension', async () => {
-    const fixture = new ElementFixture(TEST_CONFIG);
+    const fixture = new ElementFixture();
+    fixture.host.setAttribute('q:base', 'file://' + getBaseUri());
     const valuePromise = qImport(fixture.host, '../import/qImport_symbol_unit#mySymbol');
     expect(isPromise(valuePromise)).toBe(true);
     expect(await valuePromise).toEqual('MY_SYMBOL_VALUE');

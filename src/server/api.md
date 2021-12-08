@@ -4,6 +4,8 @@
 
 ```ts
 
+/// <reference types="node" />
+
 import { FunctionComponent } from '@builder.io/qwik';
 
 // @public
@@ -119,7 +121,6 @@ export const versions: {
     qwik: any;
     domino: any;
 };
-
 
 // (No @packageDocumentation comment for this package)
 

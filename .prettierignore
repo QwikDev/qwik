@@ -21,3 +21,4 @@ integration/**/*.js
 target
 output
 rollup.config.js
+build

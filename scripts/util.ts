@@ -252,18 +252,19 @@ export function panic(msg: string) {
 export interface PackageJSON {
   name: string;
   version: string;
-  description: string;
-  license: string;
+  description?: string;
+  license?: string;
   main: string;
   module: string;
   types: string;
-  type: string;
-  files: string[];
-  exports: { [key: string]: string | { [key: string]: string } };
-  contributors: { [key: string]: string }[];
-  homepage: string;
-  repository: { [key: string]: string };
-  bugs: { [key: string]: string };
-  keywords: string[];
-  engines: { [key: string]: string };
+  type?: string;
+  files?: string[];
+  exports?: { [key: string]: string | { [key: string]: string } };
+  contributors?: { [key: string]: string }[];
+  homepage?: string;
+  repository?: { [key: string]: string };
+  bugs?: { [key: string]: string };
+  keywords?: string[];
+  engines?: { [key: string]: string };
+  private?: boolean;
 }

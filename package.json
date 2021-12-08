@@ -114,9 +114,11 @@
     "server/index.cjs",
     "server/index.mjs",
     "server/index.d.ts",
+    "server/package.json",
     "testing/index.cjs",
     "testing/index.mjs",
-    "testing/index.d.ts"
+    "testing/index.d.ts",
+    "testing/package.json"
   ],
   "contributors": [
     {

@@ -1,7 +1,7 @@
-import { mkdirSync, readFileSync, writeFileSync } from 'fs';
-import { join, relative } from 'path';
+import { mkdirSync } from 'fs';
+import color from 'kleur';
+import { relative } from 'path';
 import type { CliGenerateOptions, CliStarterData, CliStarters } from '../../scripts/util';
-import type { PackageJSON } from '../../scripts/util';
 import {
   cp,
   createOutDir,
@@ -12,7 +12,6 @@ import {
   validateOutDir,
   writePackageJson,
 } from './utils';
-import color from 'kleur';
 
 export function generateStarter(starters: CliStarters, opts: CliGenerateOptions) {
   if (!isValidOption(opts.projectName)) {

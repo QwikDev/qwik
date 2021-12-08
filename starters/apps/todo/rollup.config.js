@@ -1,5 +1,5 @@
 import { nodeResolve } from '@rollup/plugin-node-resolve';
-import { qwik } from '@builder.io/qwik/optimizer';
+import { qwikRollup } from '@builder.io/qwik/optimizer';
 import typescript from '@rollup/plugin-typescript';
 
 export default async function () {
@@ -10,7 +10,7 @@ export default async function () {
     ],
     plugins: [
       nodeResolve(),
-      qwik({
+      qwikRollup({
         symbolsPath: 'q-symbols.json',
       }), 
       typescript(),

@@ -24,3 +24,4 @@ src/napi/package-*
 target
 *.node
 todo-express/
+qwik-app/

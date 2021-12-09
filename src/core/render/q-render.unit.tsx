@@ -19,6 +19,28 @@ describe('q-render', () => {
       expectRendered(<div></div>);
     });
 
+    it('should only render string/number', async () => {
+      await qRender(
+        fixture.host,
+        <div>
+          {'string'}
+          {123}
+          {false}
+          {true}
+          {null}
+          {undefined}
+          {[]}
+          {function () {}}
+        </div>
+      );
+      expectRendered(
+        <div>
+          {'string'}
+          {'123'}
+        </div>
+      );
+    });
+
     it('should render into a document', () => {
       qRender(
         fixture.document,

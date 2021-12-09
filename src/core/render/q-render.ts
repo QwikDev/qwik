@@ -75,7 +75,7 @@ export function visitJsxNode(
     for (const jsxChild of jsxChildren) {
       visitJsxNode(component, renderQueue, cursor, jsxChild);
     }
-  } else if (jsxNode != null) {
+  } else if (typeof jsxNode === 'string' || typeof jsxNode === 'number') {
     // stringify
     cursorReconcileText(cursor, String(jsxNode));
   }

@@ -6,6 +6,11 @@ To build Qwik for local development, first [npm](https://docs.npmjs.com/) (or [y
 npm install
 ```
 
+`start` command requires `rust` and `cargo` installed
+- on linux or mac based systems enough to run `make` command and follow default install scenario and run `source $HOME/.cargo/env` in terminal after installation
+- for windows based systems follow [`rust install instructions`](https://doc.rust-lang.org/cargo/getting-started/installation.html)
+
+
 Next the `start` command will:
 
 - Build the source files

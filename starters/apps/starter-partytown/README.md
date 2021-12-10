@@ -1,3 +1,3 @@
-# Qwik Todo
+# Qwik + Partytown Starter
 
-Barebones Qwik Starter app for you.
+Barebones Qwik + Partytown starter app for you.

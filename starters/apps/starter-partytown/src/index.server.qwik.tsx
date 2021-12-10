@@ -27,7 +27,7 @@ export default function serverRender(opts: RenderToStringOptions) {
         <script type="text/partytown">
           ({partyTownExampleWhichBlocksMainThreadForOneSecond.toString()})()
         </script>
-        <QwikLoader debug={opts.debug} events={['click', 'keyup', 'expensivecomputationdone']} />
+        <QwikLoader debug={opts.debug} events={['click', 'keyup', 'expensive-computation-done']} />
       </body>
     </html>,
     opts
@@ -45,6 +45,5 @@ function partyTownExampleWhichBlocksMainThreadForOneSecond() {
   }
   // eslint-disable-next-line no-console
   console.log('Expensive computation ended at:', end);
-  const event = new Event('expensivecomputationdone', { bubbles: true });
-  document.querySelector('#my-app').dispatchEvent(event);
+  document.dispatchEvent(new Event('expensive-computation-done', { bubbles: true }));
 }

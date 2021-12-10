@@ -1,3 +1,3 @@
-# Qwik Todo
+# Qwik Starter
 
-Barebones Qwik Starter app for you.
+Barebones Qwik starter app.

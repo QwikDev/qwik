@@ -14,7 +14,9 @@ export interface QwikLoaderProps {
  */
 export const QwikLoader: FunctionComponent<QwikLoaderProps> = ({ events, debug }) => {
   return jsx('script', {
-    type: 'module',
+    // It is tempting to add `type="module"` but that breaks in FF because it allows `scroll`
+    // event to fire before the module is loaded.
+    // type: 'module',
     children: [getQwikLoaderScript({ events, debug })],
   });
 };

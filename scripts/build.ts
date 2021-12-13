@@ -22,6 +22,7 @@ import { submoduleServer } from './submodule-server';
 import { submoduleTesting } from './submodule-testing';
 import { tsc } from './tsc';
 import { validateBuild } from './validate-build';
+import { buildCli } from './cli';
 
 /**
  * Complete a full build for all of the package's submodules. Passed in
@@ -92,6 +93,10 @@ export async function build(config: BuildConfig) {
 
     if (config.validate) {
       await validateBuild(config);
+    }
+
+    if (config.cli) {
+      await buildCli(config);
     }
 
     if (config.prepareRelease) {

@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import prompts from 'prompts';
 import { generateStarter } from './generate';
 import color from 'kleur';

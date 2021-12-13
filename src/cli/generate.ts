@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { mkdirSync } from 'fs';
 import color from 'kleur';
 import { relative } from 'path';

@@ -1,6 +1,6 @@
 {
   "name": "create-qwik",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Interactive CLI for generating Qwik projects.",
   "bin": {
     "create-qwik": "index.js"

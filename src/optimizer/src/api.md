@@ -136,9 +136,6 @@ export interface PathObject {
 }
 
 // @alpha (undocumented)
-export function qwik(opts?: QwikPluginOptions): any;
-
-// @alpha (undocumented)
 export interface QwikPluginOptions {
     // (undocumented)
     entryStrategy?: EntryStrategy;

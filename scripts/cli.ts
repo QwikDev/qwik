@@ -1,10 +1,10 @@
 import { BuildConfig, copyFile, emptyDir, mkdir, stat } from './util';
-import { banner, fileSize, readdir, watcher } from './util';
+import { banner, fileSize, readdir, unlink, watcher } from './util';
 import { build } from 'esbuild';
 import { join } from 'path';
 
 export async function buildCli(config: BuildConfig) {
-  const distCliDir = join(config.distDir, 'cli');
+  const distCliDir = join(config.distDir, 'create-qwik');
   const outFile = join(distCliDir, 'index.js');
   emptyDir(distCliDir);
 
@@ -22,12 +22,13 @@ export async function buildCli(config: BuildConfig) {
 
   const distStartersDir = join(distCliDir, 'starters');
   await copyDir(config.startersDir, distStartersDir);
+  await unlink(join(distStartersDir, 'README.md'));
 
   const srcCliDir = join(config.srcDir, 'cli');
   await copyFile(join(srcCliDir, 'package.json'), join(distCliDir, 'package.json'));
   await copyFile(join(srcCliDir, 'README.md'), join(distCliDir, 'README.md'));
 
-  console.log('🐠 cli', await fileSize(outFile));
+  console.log('🐠 create-qwik cli', await fileSize(outFile));
 }
 
 async function copyDir(srcDir: string, destDir: string) {

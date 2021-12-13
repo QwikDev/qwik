@@ -12,6 +12,7 @@ import {
   rmdirSync,
   stat as fsStat,
   statSync,
+  unlink as fsUnlink,
   unlinkSync,
   writeFile as fsWriteFile,
   mkdir as fsMkdir,
@@ -219,6 +220,7 @@ export const access = promisify(fsAccess);
 export const copyFile = promisify(fsCopyFile);
 export const readFile = promisify(fsReadFile);
 export const readdir = promisify(fsReaddir);
+export const unlink = promisify(fsUnlink);
 export const stat = promisify(fsStat);
 export const writeFile = promisify(fsWriteFile);
 export const mkdir = promisify(fsMkdir);

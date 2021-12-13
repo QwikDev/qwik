@@ -10,4 +10,4 @@ export const versions = {
 
 // TODO: create separate @builder.io/qwik-rollup package
 export type { QwikPluginOptions } from './rollup/index';
-export { qwik } from './rollup/index';
+export { qwikRollup } from './rollup/index';

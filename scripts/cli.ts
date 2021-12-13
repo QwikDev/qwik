@@ -24,6 +24,7 @@ export async function buildCli(config: BuildConfig) {
 
   const distStartersDir = join(distCliDir, 'starters');
   await copyDir(config.startersDir, distStartersDir);
+  await unlink(join(distStartersDir, '.gitignore'));
   await unlink(join(distStartersDir, 'README.md'));
 
   const srcCliDir = join(config.srcDir, 'cli');
@@ -58,4 +59,5 @@ const IGNORE: { [path: string]: boolean } = {
   node_modules: true,
   'package-lock.json': true,
   'tsconfig.tsbuildinfo': true,
+  'yarn.lock': true,
 };

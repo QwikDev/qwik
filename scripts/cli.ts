@@ -16,7 +16,9 @@ export async function buildCli(config: BuildConfig) {
     target: 'node10',
     platform: 'node',
     minify: !config.dev,
-    banner,
+    banner: {
+      js: `#! /usr/bin/env node\n${banner.js}`,
+    },
     watch: watcher(config),
   });
 

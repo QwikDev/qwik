@@ -36,3 +36,9 @@ Here are steps to try out the CLI in local environment.
    npm install
    npm start
    ```
+
+## Publishing `create-qwik` CLI Package
+
+1. Manually bump the version in the `src/cli/package.json`.
+1. Commit the `src/cli/package.json` version change.
+1. From the root dir, run `npm run release.cli`.

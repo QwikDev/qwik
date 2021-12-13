@@ -1,0 +1,10 @@
+{
+  "name": "express",
+  "description": "Express.js Server",
+  "scripts": {
+    "serve": "node server/index.js"
+  },
+  "devDependencies": {
+    "express": "~4.17.1"
+  }
+}

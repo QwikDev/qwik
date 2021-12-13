@@ -6,7 +6,7 @@ export default async function () {
   return {
     input: [
       'src/index.server.qwik.tsx', 
-      'src/components.qwik.tsx'
+      'src/my-app.qwik.tsx'
     ],
     plugins: [
       nodeResolve(),
@@ -18,12 +18,12 @@ export default async function () {
     output: [
       {
         chunkFileNames: 'q-[hash].js',
-        dir: 'build',
+        dir: 'public/build',
         format: 'es', 
       },
       {
         dir: 'server/build',
-        format: 'cjs'
+        format: 'cjs',
       },
     ],
   };

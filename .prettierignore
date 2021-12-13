@@ -20,4 +20,5 @@ tsdoc-metadata.json
 integration/**/*.js
 target
 output
+rollup.config.js
 build

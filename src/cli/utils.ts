@@ -91,6 +91,8 @@ function isStackBlitz() {
   try {
     // /home/projects/abc123
     return process.cwd().startsWith('/home/projects/');
-  } catch (e) {}
+  } catch (e) {
+    /**/
+  }
   return false;
 }

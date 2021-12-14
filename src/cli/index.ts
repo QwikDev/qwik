@@ -12,6 +12,7 @@ if (args.length >= 2) {
   const opts: CliGenerateOptions = {
     appId: args[0],
     projectName: args[1],
+    serverId: 'express',
   };
   generateStarter(starters, opts);
 } else {

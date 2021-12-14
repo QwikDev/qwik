@@ -261,6 +261,7 @@ export function panic(msg: string) {
 export interface PackageJSON {
   name: string;
   version: string;
+  devDependencies?: { [pkgName: string]: string };
   description?: string;
   license?: string;
   main: string;

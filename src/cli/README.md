@@ -3,19 +3,19 @@
 ## Interactive mode
 
 ```
-npm init qwik
+npm init qwik@latest
 ```
 
 ## Command mode
 
 ```
-npm init qwik <starter> <projectName>
+npm init qwik@latest <starter> <projectName>
 ```
 
 #### Example:
 
 ```
-npm init qwik hello-world my-app
+npm init qwik@latest todo my-app
 ```
 
 ## Community

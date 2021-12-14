@@ -82,3 +82,17 @@ export function mergeSort(a: any, b: any, prop: string) {
     a[prop] = sorted;
   }
 }
+
+export function writeToCwd() {
+  return isStackBlitz();
+}
+
+function isStackBlitz() {
+  try {
+    // /home/projects/abc123
+    return process.cwd().startsWith('/home/projects/');
+  } catch (e) {
+    /**/
+  }
+  return false;
+}

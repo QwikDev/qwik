@@ -1,7 +1,9 @@
-import { BuildConfig, copyFile, emptyDir, mkdir, stat } from './util';
+import { BuildConfig, copyFile, emptyDir, mkdir, PackageJSON, readFile, stat } from './util';
 import { banner, fileSize, readdir, unlink, watcher } from './util';
 import { build } from 'esbuild';
-import { join } from 'path';
+import { basename, join } from 'path';
+import { readPackageJson, writePackageJson } from './package-json';
+import semver from 'semver';
 
 export async function buildCli(config: BuildConfig) {
   const distCliDir = join(config.distDir, 'create-qwik');
@@ -23,7 +25,7 @@ export async function buildCli(config: BuildConfig) {
   });
 
   const distStartersDir = join(distCliDir, 'starters');
-  await copyDir(config.startersDir, distStartersDir);
+  await copyDir(config, config.startersDir, distStartersDir);
   await unlink(join(distStartersDir, '.gitignore'));
   await unlink(join(distStartersDir, 'README.md'));
 
@@ -34,7 +36,7 @@ export async function buildCli(config: BuildConfig) {
   console.log('🐠 create-qwik cli', await fileSize(outFile));
 }
 
-async function copyDir(srcDir: string, destDir: string) {
+async function copyDir(config: BuildConfig, srcDir: string, destDir: string) {
   await mkdir(destDir);
   const items = await readdir(srcDir);
   await Promise.all(
@@ -44,13 +46,27 @@ async function copyDir(srcDir: string, destDir: string) {
         const destPath = join(destDir, itemName);
         const itemStat = await stat(srcPath);
         if (itemStat.isDirectory()) {
-          await copyDir(srcPath, destPath);
+          await copyDir(config, srcPath, destPath);
         } else if (itemStat.isFile()) {
           await copyFile(srcPath, destPath);
+          if (basename(destPath) === 'package.json') {
+            await updatePackageJson(config, destDir);
+          }
         }
       }
     })
   );
+}
+
+async function updatePackageJson(config: BuildConfig, destDir: string) {
+  const pkgJson = await readPackageJson(destDir);
+  if (pkgJson.devDependencies && pkgJson.devDependencies['@builder.io/qwik']) {
+    const rootPkg = await readPackageJson(config.rootDir);
+    if (!semver.prerelease(rootPkg.version)) {
+      pkgJson.devDependencies['@builder.io/qwik'] = `~${rootPkg.version}`;
+      await writePackageJson(destDir, pkgJson);
+    }
+  }
 }
 
 const IGNORE: { [path: string]: boolean } = {

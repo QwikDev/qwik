@@ -12,6 +12,7 @@ import {
   readPackageJson,
   validateOutDir,
   writePackageJson,
+  writeToCwd,
 } from './utils';
 
 export function generateStarter(starters: CliStarters, opts: CliGenerateOptions) {
@@ -23,10 +24,17 @@ export function generateStarter(starters: CliStarters, opts: CliGenerateOptions)
   }
 
   const outDirName = createOutDirName(opts.projectName!);
-  const outDir = createOutDir(outDirName);
+  let outDir: string;
 
-  validateOutDir(outDir);
-  mkdirSync(outDir, { recursive: true });
+  if (writeToCwd()) {
+    // write to the current working directory
+    outDir = process.cwd();
+  } else {
+    // create a sub directory
+    outDir = createOutDir(outDirName);
+    validateOutDir(outDir);
+    mkdirSync(outDir, { recursive: true });
+  }
 
   const starterApp = starters.apps.find((s) => s.id === opts.appId);
   const starterServer = starters.servers.find((s) => s.id === opts.serverId);
@@ -58,16 +66,26 @@ function generateUserStarter(
 
   writePackageJson(outDir, pkgJson);
 
+  const isCwdDir = process.cwd() === outDir;
   const relativeProjectPath = relative(process.cwd(), outDir);
   console.log(``);
-  console.log(
-    `⭐️ ${color.green(`Success! Project saved in`)} ${color.yellow(
-      relativeProjectPath
-    )} ${color.green(`directory`)}`
-  );
+
+  if (isCwdDir) {
+    console.log(`⭐️ ${color.green(`Success!`)}`);
+  } else {
+    console.log(
+      `⭐️ ${color.green(`Success! Project saved in`)} ${color.yellow(
+        relativeProjectPath
+      )} ${color.green(`directory`)}`
+    );
+  }
+
   console.log(``);
+
   console.log(`📟 ${color.cyan(`Next steps:`)}`);
-  console.log(`   cd ${relativeProjectPath}`);
+  if (!isCwdDir) {
+    console.log(`   cd ${relativeProjectPath}`);
+  }
   console.log(`   npm install`);
   console.log(`   npm start`);
   console.log(``);

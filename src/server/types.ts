@@ -26,7 +26,6 @@ export interface QwikDocument extends Document {}
  */
 export interface DocumentOptions {
   url?: string;
-  serverDir?: string;
   debug?: boolean;
 }
 
@@ -74,8 +73,6 @@ export interface RenderToStringOptions extends RenderToDocumentOptions {}
  * @public
  */
 export interface CreateRenderToStringOptions {
-  serverDir: string;
-  serverMainPath: string;
   symbolsPath: string;
 }
 

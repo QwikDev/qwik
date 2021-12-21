@@ -4,6 +4,11 @@
 
 ```ts
 
+import type { CorePlatform as CorePlatform_2 } from '@builder.io/qwik';
+
+// @alpha (undocumented)
+export const __internal_qHookMap: Map<any, any>;
+
 // @public
 export function Async<T>(props: {
     resolve: ValueOrPromise<T>;
@@ -26,10 +31,9 @@ export type ComponentChildren = ComponentChild[] | ComponentChild;
 
 // @public (undocumented)
 export interface CorePlatform {
-    import: (url: string) => Promise<any>;
+    importSymbol: (element: Element, url: string | QRL | URL) => Promise<any>;
     queueRender: (renderMarked: (doc: Document) => Promise<any>) => Promise<any>;
     queueStoreFlush: (flushStore: (doc: Document) => Promise<any>) => Promise<any>;
-    toPath: (url: URL) => string;
 }
 
 // @public (undocumented)
@@ -42,7 +46,7 @@ export interface FunctionComponent<P = {}> {
 }
 
 // @public (undocumented)
-export const getPlatform: (docOrNode: Document | Node) => CorePlatform;
+export const getPlatform: (docOrNode: Document | Node) => CorePlatform_2;
 
 // @public (undocumented)
 export function h<PROPS extends {} = {}>(type: string | FunctionComponent<PROPS>, props: PROPS | null, ...children: any[]): JSXNode;
@@ -89,11 +93,8 @@ export const Host: FunctionComponent<Record<string, any>>;
 function jsx(type: string | FunctionComponent, props: QwikDOMAttributes & Record<string, any> & {
     children?: ComponentChild[] | ComponentChild;
 }, key?: string): JSXNode;
-
 export { jsx }
-
 export { jsx as jsxDEV }
-
 export { jsx as jsxs }
 
 // @public (undocumented)
@@ -305,7 +306,7 @@ export type RenderableProps<P, RefType = any> = P & Readonly<{
 }>;
 
 // @public (undocumented)
-export const setPlatform: (doc: Document, plt: CorePlatform) => CorePlatform;
+export const setPlatform: (doc: Document, plt: CorePlatform_2) => CorePlatform_2;
 
 // @public (undocumented)
 export const Slot: FunctionComponent<HTMLAttributes<{
@@ -341,7 +342,6 @@ export type ValueOrPromise<T> = T | Promise<T>;
 
 // @alpha (undocumented)
 export const version: any;
-
 
 // (No @packageDocumentation comment for this package)
 

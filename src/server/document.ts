@@ -74,7 +74,7 @@ export async function renderToDocument(
   }
 
   opts = opts || {};
-  setServerPlatform(doc, opts);
+  await setServerPlatform(doc, opts);
 
   await qRender(doc, rootNode);
 

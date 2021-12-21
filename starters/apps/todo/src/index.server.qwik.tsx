@@ -30,10 +30,10 @@ export default function serverRender(opts: RenderToStringOptions) {
     <html>
       <head>
         <title>Qwik Demo: ToDo</title>
-        <link rel="stylesheet" href="base.css" />
-        <link rel="stylesheet" href="index.css" />
+        <link rel="stylesheet" href="/static/base.css" />
+        <link rel="stylesheet" href="/static/index.css" />
       </head>
-      <body>
+      <body q:base='/build/'>
         <ToDoApp todos={todos} />
         <QwikLoader debug={opts.debug} />
       </body>

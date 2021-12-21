@@ -1,16 +1,16 @@
 import type { OutputEntryMap } from '@builder.io/qwik/optimizer';
 import type { QrlMapper } from './types';
-import { readFile } from './utils';
 
-export async function createQrlMapper(entryMapPath: string) {
-  const mapContent = await readFile(entryMapPath, 'utf-8');
-
-  const qEntryMap: OutputEntryMap = JSON.parse(mapContent);
+/**
+ * Parses the QRL mapping JSON and returns the transform closure.
+ * @alpha
+ */
+export function createQrlMapper(qEntryMap: OutputEntryMap) {
   const symbolManifest = new Map<string, string>();
 
   const qrlMapper: QrlMapper = (path, symbolName) => {
     path = symbolManifest.get(symbolName) || path;
-    path = path.substr(0, path.length - 3);
+    path = path.slice(0, path.lastIndexOf('.'));
     return `./${path}#${symbolName}`;
   };
 
@@ -20,4 +20,24 @@ export async function createQrlMapper(entryMapPath: string) {
   }
 
   return qrlMapper;
+}
+
+/**
+ * Read the QRL mapping JSON and returns the transform closure.
+ * @alpha
+ */
+ export async function readQrlMapper(symbolsPath: string) {
+  const { readFile } = await import('fs');
+
+  const mapContentPromise = new Promise<string>((resolve, reject) => {
+    readFile(symbolsPath, 'utf-8', (err, data) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(data);
+      }
+    });
+  });
+  const qEntryMap: OutputEntryMap = JSON.parse(await mapContentPromise);
+  return createQrlMapper(qEntryMap);
 }

@@ -7,10 +7,15 @@
     "jsxFactory": "h",
     "jsxFragmentFactory": "Fragment",
     "strict": true,
+    "resolveJsonModule": true,
     "moduleResolution": "node",
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "incremental": true
+    "incremental": true,
+    "types": [
+      "@cloudflare/workers-types",
+      "@types/service-worker-mock"
+    ]
   },
   "include": ["src"]
 }

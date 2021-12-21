@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "description": "Blank starter app",
   "scripts": {
+    "serve": "echo 'IMPLEMENT'",
     "build": "npm run clean && rollup -c",
     "clean": "rimraf */build/",
     "start": "npm run clean && concurrently -c blue,green \"rollup -c --configDev --watch\" \"wait-on public/build && npm run serve\"",

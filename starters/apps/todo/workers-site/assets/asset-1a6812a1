@@ -1,0 +1,20 @@
+{
+  "mapping": {
+    "ToDoApp_onRender": "h_components.qwik_todoapp_onrender",
+    "Header_onMount": "h_components.qwik_header_onmount",
+    "Header_onRender_on_keyup": "h_components.qwik_header_onrender_on_keyup",
+    "Header_onRender": "h_components.qwik_header_onrender",
+    "Main_onRender": "h_components.qwik_main_onrender",
+    "Item_onMount": "h_components.qwik_item_onmount",
+    "Item_onRender_on_click": "h_components.qwik_item_onrender_on_click",
+    "Item_onRender_on_dblclick": "h_components.qwik_item_onrender_on_dblclick",
+    "Item_onRender_on_click9": "h_components.qwik_item_onrender_on_click9",
+    "Item_onRender_on_blur": "h_components.qwik_item_onrender_on_blur",
+    "Item_onRender_on_keyup": "h_components.qwik_item_onrender_on_keyup",
+    "Item_onRender": "h_components.qwik_item_onrender",
+    "Footer_onRender_Filter_on_click": "h_components.qwik_footer_onrender_filter_on_click",
+    "Footer_onRender_on_click": "h_components.qwik_footer_onrender_on_click",
+    "Footer_onRender": "h_components.qwik_footer_onrender"
+  },
+  "version": "1"
+}

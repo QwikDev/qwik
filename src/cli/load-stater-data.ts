@@ -23,7 +23,7 @@ function loadStarterData(startersDir: string, dirName: string) {
       const data: CliStarterData = {
         id,
         name: dashToTitlelCase(id),
-        description: pkgJson.description!,
+        description: pkgJson.description ?? '',
         dir: dataDir,
       };
       return data;

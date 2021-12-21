@@ -1,11 +1,4 @@
 /**
- * Contains utilities to allow qwik client to prefetch javascript before it is needed.
- */
-
-import { readFile as nodeReadFile } from 'fs';
-import { join } from 'path';
-
-/**
  * Returns a list of imports for a JavaScript file.
  * @param file contents of JS file
  * @internal
@@ -24,9 +17,11 @@ export function getImportsFromSource(file: string): string[] {
 /**
  * Basic implementation
  */
-export function readFile(filePath: string): Promise<string> {
+export async function readFile(filePath: string): Promise<string> {
+  const { readFile: nodeReadFile } = await import('fs');
+
   return new Promise((res, rej) =>
-    nodeReadFile(filePath, (err, data) => (err ? rej(err) : res(String(data))))
+    nodeReadFile(filePath, (err: any, data: any) => (err ? rej(err) : res(String(data))))
   );
 }
 
@@ -45,6 +40,7 @@ export async function getImports(
   filePath: string,
   readFileFn: (path: string) => Promise<string> = readFile
 ): Promise<string[]> {
+  const { join } = await import('path');
   const imports: string[] = [];
   await Promise.all(
     getImportsFromSource(await readFileFn(filePath)).map(async (fileImport) => {

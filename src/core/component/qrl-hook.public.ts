@@ -9,6 +9,11 @@ import { qProps } from '../props/q-props.public';
 import type { QPropsContext } from '../props/q-props';
 
 /**
+ * @alpha
+ */
+export const qHookMap = new Map();
+
+/**
  * @public
  */
 export function qHook<
@@ -25,21 +30,20 @@ export function qHook<
 export function qHook<COMP extends QComponent, ARGS extends {} | unknown = unknown, RET = unknown>(
   hook: (props: PropsOf<COMP>, state: StateOf<COMP>, args: ARGS) => ValueOrPromise<RET>
 ): QHook<PropsOf<COMP>, StateOf<COMP>, any, RET>;
+
 /**
  * @public
  */
 export function qHook(hook: any, symbol?: string): any {
   if (typeof symbol === 'string') {
+    qHookMap.set(symbol, hook);
+    console.log('setHook', symbol, hook);
+
     let match;
     if ((match = String(hook).match(EXTRACT_IMPORT_PATH)) && match[2]) {
       hook = match[2];
     } else if ((match = String(hook).match(EXTRACT_SELF_IMPORT))) {
-      const frame = new Error('SELF').stack!.split('\n')[2];
-      match = frame.match(EXTRACT_FILE_NAME);
-      if (!match) {
-        throw new Error('Could not filename in: ' + frame);
-      }
-      hook = match[1];
+      hook = 'main';
     } else {
       throw new Error('dynamic import not found: ' + String(hook));
     }
@@ -49,7 +53,9 @@ export function qHook(hook: any, symbol?: string): any {
       '#' +
       symbol;
   }
-  if (typeof hook === 'string') return parseQRL(hook);
+  if (typeof hook === 'string') {
+    return parseQRL(hook);
+  }
   const qrlFn = async (element: HTMLElement, event: Event, url: URL) => {
     const isQwikInternalHook = typeof event == 'string';
     // isQwikInternalHook && console.log('HOOK', event, element, url);

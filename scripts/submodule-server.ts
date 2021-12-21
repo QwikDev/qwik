@@ -59,7 +59,6 @@ export async function submoduleServer(config: BuildConfig) {
     plugins: [
       importPath(/^@builder\.io\/qwik$/, '../core.cjs'),
       importPath(/^@builder\.io\/qwik\/optimizer$/, '../optimizer.cjs'),
-      dominoPlugin,
     ],
     watch: watcher(config),
     platform: 'node',

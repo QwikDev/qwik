@@ -4,9 +4,9 @@
   "description": "Blank builder starter app",
   "scripts": {
     "build": "npm run clean && rollup -c",
-    "clean": "rimraf */build/",
-    "start": "npm run clean && concurrently -c blue,green \"rollup -c --configDev --watch\" \"wait-on public/build && npm run serve\"",
-    "serve": "echo \"server not setup\""
+    "serve": "echo \"server not setup\"",
+    "clean": "rimraf build",
+    "start": "npm run clean && concurrently -c blue,green \"rollup -c --configDev --watch\" \"wait-on public/build && npm run serve\""
   },
   "devDependencies": {
     "@builder.io/qwik": "~0.0.15",

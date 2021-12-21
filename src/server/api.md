@@ -4,9 +4,8 @@
 
 ```ts
 
-/// <reference types="node" />
-
 import { FunctionComponent } from '@builder.io/qwik';
+import type { OutputEntryMap } from '@builder.io/qwik/optimizer';
 
 // @public
 export function createDocument(opts?: DocumentOptions): QwikDocument;
@@ -14,20 +13,16 @@ export function createDocument(opts?: DocumentOptions): QwikDocument;
 // @public
 export function createGlobal(opts?: GlobalOptions): QwikGlobal;
 
+// Warning: (ae-forgotten-export) The symbol "QrlMapper" needs to be exported by the entry point index.d.ts
+//
+// @alpha
+export function createQrlMapper(qEntryMap: OutputEntryMap): QrlMapper;
+
 // @public (undocumented)
 export interface CreateRenderToStringOptions {
     // (undocumented)
-    serverDir: string;
-    // (undocumented)
-    serverMainPath: string;
-    // (undocumented)
     symbolsPath: string;
 }
-
-// Warning: (ae-forgotten-export) The symbol "RenderToString" needs to be exported by the entry point index.d.ts
-//
-// @alpha
-export function createServerRenderer(opts: CreateRenderToStringOptions): Promise<RenderToString>;
 
 // @alpha
 export function createTimer(): () => number;
@@ -36,8 +31,6 @@ export function createTimer(): () => number;
 export interface DocumentOptions {
     // (undocumented)
     debug?: boolean;
-    // (undocumented)
-    serverDir?: string;
     // (undocumented)
     url?: string;
 }
@@ -81,6 +74,9 @@ export const QwikLoader: FunctionComponent<QwikLoaderProps>;
 // @alpha (undocumented)
 export const QwikPrefetch: FunctionComponent<QwikPrefetchProps>;
 
+// @alpha
+export function readQrlMapper(symbolsPath: string): Promise<QrlMapper>;
+
 // @public
 export function renderToDocument(doc: Document, rootNode: any, opts?: RenderToDocumentOptions): Promise<void>;
 
@@ -114,7 +110,7 @@ export interface RenderToStringResult {
 export function serializeDocument(doc: Document, opts?: SerializeDocumentOptions): string;
 
 // @public
-export function setServerPlatform(document: any, opts: DocumentOptions): void;
+export function setServerPlatform(document: any, opts: DocumentOptions): Promise<void>;
 
 // @alpha (undocumented)
 export const versions: {

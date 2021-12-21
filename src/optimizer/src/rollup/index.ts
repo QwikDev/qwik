@@ -18,17 +18,7 @@ export function qwikRollup(opts: QwikPluginOptions = {}): any {
   const transformedOutputs = new Map<string, TransformModule>();
   let optimizer: Optimizer | undefined;
   let result: TransformOutput | undefined;
-
-  const symbolsWriters: SymbolsWriter[] = [];
-  const clientOutputEntryMaps: OutputEntryMap[] = [];
-
-  const writeSymbols = () => {
-    for (const symbolsWriter of symbolsWriters) {
-      for (const clientOutputEntryMap of clientOutputEntryMaps) {
-        symbolsWriter(clientOutputEntryMap);
-      }
-    }
-  };
+  let outputCount = 0;
 
   if (!opts.entryStrategy) {
     opts.entryStrategy = { type: 'hook' };
@@ -54,9 +44,7 @@ export function qwikRollup(opts: QwikPluginOptions = {}): any {
       if (!optimizer) {
         optimizer = await createOptimizer();
       }
-      symbolsWriters.length = 0;
-      clientOutputEntryMaps.length = 0;
-
+      outputCount = 0;
       const transformOpts: TransformFsOptions = {
         rootDir: findInputDirectory(optimizer.path, options.input),
         entryStrategy: opts.entryStrategy,
@@ -120,7 +108,8 @@ export function qwikRollup(opts: QwikPluginOptions = {}): any {
     },
 
     async generateBundle(outputOpts, rollupBundle) {
-      if (result && outputOpts.format === 'es') {
+      if (result && outputOpts.format === 'es' && outputCount === 0) {
+        outputCount++;
         const output = Object.entries(rollupBundle);
 
         const outputEntryMap: OutputEntryMap = {
@@ -144,20 +133,11 @@ export function qwikRollup(opts: QwikPluginOptions = {}): any {
           ),
           version: '1',
         };
-
-        clientOutputEntryMaps.push(outputEntryMap);
-        writeSymbols();
-      } else if (outputOpts.format === 'cjs') {
-        if (outputOpts.dir && opts.symbolsPath) {
-          symbolsWriters.push((outputEntryMap) => {
-            this.emitFile({
-              fileName: opts.symbolsPath,
-              source: JSON.stringify(outputEntryMap, null, 2),
-              type: 'asset',
-            });
-          });
-          writeSymbols();
-        }
+        this.emitFile({
+          fileName: opts.symbolsPath,
+          source: JSON.stringify(outputEntryMap, null, 2),
+          type: 'asset',
+        });
       }
     },
   };
@@ -208,5 +188,3 @@ export interface QwikPluginOptions {
   minify?: MinifyMode;
   symbolsPath?: string;
 }
-
-type SymbolsWriter = (outputEntryMap: OutputEntryMap) => void;

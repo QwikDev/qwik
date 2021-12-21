@@ -10,7 +10,7 @@ import { validateBuild } from './validate-build';
 export async function setDevVersion(config: BuildConfig) {
   const rootPkg = await readPackageJson(config.rootDir);
   const d = new Date();
-  let v = rootPkg.version + '.';
+  let v = rootPkg.version + '-dev';
   v += d.getUTCFullYear() + '';
   v += ('0' + (d.getUTCMonth() + 1)).slice(-2);
   v += ('0' + d.getUTCDate()).slice(-2);

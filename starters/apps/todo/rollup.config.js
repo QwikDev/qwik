@@ -6,13 +6,14 @@ import { outputJSON } from "fs-extra";
 export default async function () {
   return {
     input: [
-      'src/components.qwik.tsx'
+      'src/index.server.tsx',
+      'src/components.tsx'
     ],
     plugins: [
       nodeResolve(),
       qwikRollup({
         symbolsOutput: (data) => {
-          outputJSON('./server/build/q-symbols.json', JSON.stringify(data));
+          outputJSON('./server/build/q-symbols.json', data);
         },
       }),
       terser(),
@@ -22,6 +23,10 @@ export default async function () {
         chunkFileNames: 'q-[hash].js',
         dir: 'public/build',
         format: 'es',
+      },
+      {
+        dir: 'server/build',
+        format: 'cjs',
       },
     ],
   };

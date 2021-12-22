@@ -1,25 +1,25 @@
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 import { qwikRollup } from '@builder.io/qwik/optimizer';
-import typescript from '@rollup/plugin-typescript';
 
 export default async function () {
   return {
     input: [
-      'src/index.server.qwik.tsx', 
-      'src/my-app.qwik.tsx'
+      'src/index.server.tsx',
+      'src/my-app.tsx'
     ],
     plugins: [
       nodeResolve(),
       qwikRollup({
-        symbolsPath: 'q-symbols.json',
-      }), 
-      typescript(),
+        symbolsOutput: (data) => {
+          outputJSON('./server/build/q-symbols.json', data);
+        },
+      })
     ],
     output: [
       {
         chunkFileNames: 'q-[hash].js',
         dir: 'public/build',
-        format: 'es', 
+        format: 'es',
       },
       {
         dir: 'server/build',

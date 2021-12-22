@@ -1,20 +1,15 @@
 const express = require('express');
-const path = require('path');
-const qwik = require('@builder.io/qwik/server');
 const { join } = require('path');
 const { existsSync } = require('fs');
+const { renderApp } = require('./build/index.server.qwik.js');
+const symbols = require('./build/q-symbols.json');
 
 const PORT = process.env.PORT || 8080;
 
 async function startServer() {
-  const render = await qwik.createServerRenderer({
-    serverDir: path.join(__dirname, 'build'),
-    serverMainPath: 'index.server.qwik.js',
-    symbolsPath: 'q-symbols.json',
-  });
-
   async function indexHandler(req, res) {
-    const result = await render({
+    const result = await renderApp({
+      symbols,
       url: req.url,
       debug: true,
     });

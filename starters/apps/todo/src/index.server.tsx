@@ -8,8 +8,8 @@
 
 import { h } from '@builder.io/qwik';
 import { renderToString, RenderToStringOptions, QwikLoader } from '@builder.io/qwik/server';
-import { ToDoApp } from './components.qwik';
-import type { Todos } from './state.qwik';
+import { ToDoApp } from './components';
+import type { Todos } from './state';
 
 /**
  * Entry point for server-side pre-rendering.

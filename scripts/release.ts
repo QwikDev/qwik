@@ -90,7 +90,7 @@ export async function commitPrepareReleaseVersion(config: BuildConfig) {
 
   // git commit the changed package.json
   // also adding "skip ci" to the message so the commit doesn't bother building
-  const gitCommitArgs = ['commit', '--message', config.distVersion, '--edit'];
+  const gitCommitArgs = ['commit', '--message', config.distVersion];
   await run('git', gitCommitArgs);
 
   console.log(`🐳 commit version "${config.distVersion}"`);

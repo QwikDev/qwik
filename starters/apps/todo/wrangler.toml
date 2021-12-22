@@ -15,4 +15,4 @@ format = "service-worker"
 
 [site]
 bucket = "./public" # Add the directory with your static assets!
-entry-point = "./workers-site" # JS folder serving your assets
+entry-point = "./server" # JS folder serving your assets

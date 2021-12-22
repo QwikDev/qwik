@@ -37,7 +37,6 @@ export function qHook<COMP extends QComponent, ARGS extends {} | unknown = unkno
 export function qHook(hook: any, symbol?: string): any {
   if (typeof symbol === 'string') {
     qHookMap.set(symbol, hook);
-    console.log('setHook', symbol, hook);
 
     let match;
     if ((match = String(hook).match(EXTRACT_IMPORT_PATH)) && match[2]) {

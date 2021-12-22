@@ -6,7 +6,7 @@ import commonjs from '@rollup/plugin-commonjs';
 export default async function () {
   return {
     input: {
-      'index': 'src/cloudflare-main.tsx'
+      index: 'src/cloudflare-main.tsx',
     },
     inlineDynamicImports: true,
     plugins: [
@@ -14,15 +14,15 @@ export default async function () {
       jsonPlugin(),
       qwikRollup({
         entryStrategy: {
-          type:'single',
-        }
+          type: 'single',
+        },
       }),
       commonjs(),
     ],
     output: [
       {
         intro: 'const global = globalThis;',
-        dir: './workers-site',
+        dir: 'server/build',
         format: 'commonjs',
       },
     ],

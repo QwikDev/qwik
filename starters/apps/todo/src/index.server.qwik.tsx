@@ -16,7 +16,7 @@ import type { Todos } from './state.qwik';
  *
  * @returns a promise when all of the rendering is completed.
  */
-export default function serverRender(opts: RenderToStringOptions) {
+export function renderApp(opts: RenderToStringOptions) {
   const todos: Todos = {
     filter: 'all',
     items: [
@@ -30,10 +30,10 @@ export default function serverRender(opts: RenderToStringOptions) {
     <html>
       <head>
         <title>Qwik Demo: ToDo</title>
-        <link rel="stylesheet" href="/static/base.css" />
-        <link rel="stylesheet" href="/static/index.css" />
+        <link rel="stylesheet" href="/base.css" />
+        <link rel="stylesheet" href="/index.css" />
       </head>
-      <body q:base='/build/'>
+      <body q:base="/build/">
         <ToDoApp todos={todos} />
         <QwikLoader debug={opts.debug} />
       </body>

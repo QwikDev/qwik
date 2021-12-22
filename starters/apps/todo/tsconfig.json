@@ -12,10 +12,7 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "incremental": true,
-    "types": [
-      "@cloudflare/workers-types",
-      "@types/service-worker-mock"
-    ]
+    "types": ["@cloudflare/workers-types", "@types/service-worker-mock"]
   },
   "include": ["src"]
 }

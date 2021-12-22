@@ -1,6 +1,6 @@
 import { isDocument } from '../util/element';
 
-import type { CorePlatform, QRL } from "@builder.io/qwik";
+import type { CorePlatform, QRL } from '@builder.io/qwik';
 import { qExport } from '../import/qImport';
 
 export const createPlatform = (doc: Document): CorePlatform => {
@@ -61,7 +61,7 @@ export const createPlatform = (doc: Document): CorePlatform => {
  * @param url - relative URL
  * @returns fully qualified URL.
  */
- export function toUrl(doc: Document, element: Element | null, url?: string | QRL | URL): URL {
+export function toUrl(doc: Document, element: Element | null, url?: string | QRL | URL): URL {
   let _url: string | QRL | URL;
   let _base: string | URL | undefined = undefined;
 
@@ -95,10 +95,7 @@ export const setPlatform = (doc: Document, plt: CorePlatform) =>
  */
 export const getPlatform = (docOrNode: Document | Node) => {
   const doc = (isDocument(docOrNode) ? docOrNode : docOrNode.ownerDocument!) as PlatformDocument;
-  return (
-    doc[DocumentPlatform] ||
-    (doc[DocumentPlatform] = createPlatform(doc))
-  );
+  return doc[DocumentPlatform] || (doc[DocumentPlatform] = createPlatform(doc));
 };
 
 const DocumentPlatform = /*@__PURE__*/ Symbol();

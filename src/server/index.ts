@@ -10,7 +10,6 @@ export type {
 } from './types';
 export { createDocument, createGlobal, renderToDocument, renderToString } from './document';
 export { createTimer } from './utils';
-export { createQrlMapper, readQrlMapper } from './qrl-mapper';
 export { getImports } from './prefetch';
 export { getQwikLoaderScript, getQwikPrefetchScript } from './scripts';
 export { QwikLoader, QwikPrefetch } from './components';

@@ -9,7 +9,8 @@ import {
   TransformOutput,
   TransformModule,
 } from '..';
-import type { InputOption, Plugin } from 'rollup';
+
+import type { InputOption, NormalizedOutputOptions, Plugin } from 'rollup';
 
 /**
  * @alpha
@@ -108,7 +109,7 @@ export function qwikRollup(opts: QwikPluginOptions = {}): any {
     },
 
     async generateBundle(outputOpts, rollupBundle) {
-      if (result && outputOpts.format === 'es' && outputCount === 0) {
+      if (result && outputOpts.format === 'es' && outputCount === 0 && opts.symbolsOutput) {
         outputCount++;
         const output = Object.entries(rollupBundle);
 
@@ -133,11 +134,15 @@ export function qwikRollup(opts: QwikPluginOptions = {}): any {
           ),
           version: '1',
         };
-        this.emitFile({
-          fileName: opts.symbolsPath,
-          source: JSON.stringify(outputEntryMap, null, 2),
-          type: 'asset',
-        });
+        if (typeof opts.symbolsOutput === 'string') {
+          this.emitFile({
+            fileName: opts.symbolsOutput,
+            source: JSON.stringify(outputEntryMap, null, 2),
+            type: 'asset',
+          });
+        } else {
+          await opts.symbolsOutput(outputEntryMap, outputOpts);
+        }
       }
     },
   };
@@ -186,5 +191,7 @@ export interface QwikPluginOptions {
   entryStrategy?: EntryStrategy;
   transpile?: boolean;
   minify?: MinifyMode;
-  symbolsPath?: string;
+  symbolsOutput?:
+    | string
+    | ((data: OutputEntryMap, output: NormalizedOutputOptions) => Promise<void> | void);
 }

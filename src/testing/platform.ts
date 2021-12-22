@@ -28,7 +28,7 @@ function createPlatform(document: Document) {
       const symbolName = qExport(urlDoc.toString());
       const module = await import(path);
       if (module) {
-        return module[symbolName]
+        return module[symbolName];
       }
     },
     queueRender: (renderMarked) => {
@@ -97,7 +97,6 @@ export function setTestPlatform(document: any) {
   setPlatform(document, platform);
 }
 
-
 /**
  * Convert relative base URI and relative URL into a fully qualified URL.
  *
@@ -109,7 +108,7 @@ export function setTestPlatform(document: any) {
  * @param url - relative URL
  * @returns fully qualified URL.
  */
- export function toUrl(doc: Document, element: Element | null, url?: string | QRL | URL): URL {
+export function toUrl(doc: Document, element: Element | null, url?: string | QRL | URL): URL {
   let _url: string | QRL | URL;
   let _base: string | URL | undefined = undefined;
 

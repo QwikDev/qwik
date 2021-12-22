@@ -1,7 +1,7 @@
 {
   "name": "qwik-todo-express",
-  "main": "index.js",
-  "module": "index.js",
+  "main": "build/index.js",
+  "module": "build/index.js",
   "dependencies": {
     "@cloudflare/kv-asset-handler": "^0.2.0"
   }

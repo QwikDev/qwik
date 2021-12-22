@@ -53,7 +53,6 @@ export interface ParsedPath {
 
 export type FormatInputPathObject = Partial<ParsedPath>;
 
-
 // Resolves . and .. elements in a path with directory names
 function normalizeStringPosix(path: string, allowAboveRoot: boolean) {
   var res = '';
@@ -62,17 +61,19 @@ function normalizeStringPosix(path: string, allowAboveRoot: boolean) {
   var dots = 0;
   var code;
   for (var i = 0; i <= path.length; ++i) {
-    if (i < path.length)
-      code = path.charCodeAt(i);
-    else if (code === 47 /*/*/ )
-      break;
-    else
-      code = 47 /*/*/ ;
-    if (code === 47 /*/*/ ) {
+    if (i < path.length) code = path.charCodeAt(i);
+    else if (code === 47 /*/*/) break;
+    else code = 47 /*/*/;
+    if (code === 47 /*/*/) {
       if (lastSlash === i - 1 || dots === 1) {
         // NOOP
       } else if (lastSlash !== i - 1 && dots === 2) {
-        if (res.length < 2 || lastSegmentLength !== 2 || res.charCodeAt(res.length - 1) !== 46 /*.*/ || res.charCodeAt(res.length - 2) !== 46 /*.*/ ) {
+        if (
+          res.length < 2 ||
+          lastSegmentLength !== 2 ||
+          res.charCodeAt(res.length - 1) !== 46 /*.*/ ||
+          res.charCodeAt(res.length - 2) !== 46 /*.*/
+        ) {
           if (res.length > 2) {
             var lastSlashIndex = res.lastIndexOf('/');
             if (lastSlashIndex !== res.length - 1) {
@@ -96,17 +97,13 @@ function normalizeStringPosix(path: string, allowAboveRoot: boolean) {
           }
         }
         if (allowAboveRoot) {
-          if (res.length > 0)
-            res += '/..';
-          else
-            res = '..';
+          if (res.length > 0) res += '/..';
+          else res = '..';
           lastSegmentLength = 2;
         }
       } else {
-        if (res.length > 0)
-          res += '/' + path.slice(lastSlash + 1, i);
-        else
-          res = path.slice(lastSlash + 1, i);
+        if (res.length > 0) res += '/' + path.slice(lastSlash + 1, i);
+        else res = path.slice(lastSlash + 1, i);
         lastSegmentLength = i - lastSlash - 1;
       }
       lastSlash = i;
@@ -140,11 +137,9 @@ export const resolve = function resolve(...paths: string[]) {
 
   for (var i = paths.length - 1; i >= -1 && !resolvedAbsolute; i--) {
     var path;
-    if (i >= 0)
-      path = paths[i];
+    if (i >= 0) path = paths[i];
     else {
-      if (cwd === undefined)
-        cwd = process.cwd();
+      if (cwd === undefined) cwd = process.cwd();
       path = cwd;
     }
 
@@ -156,7 +151,7 @@ export const resolve = function resolve(...paths: string[]) {
     }
 
     resolvedPath = path + '/' + resolvedPath;
-    resolvedAbsolute = path.charCodeAt(0) === 47 /*/*/ ;
+    resolvedAbsolute = path.charCodeAt(0) === 47 /*/*/;
   }
 
   // At this point the path should be resolved to a full absolute path, but
@@ -166,10 +161,8 @@ export const resolve = function resolve(...paths: string[]) {
   resolvedPath = normalizeStringPosix(resolvedPath, !resolvedAbsolute);
 
   if (resolvedAbsolute) {
-    if (resolvedPath.length > 0)
-      return '/' + resolvedPath;
-    else
-      return '/';
+    if (resolvedPath.length > 0) return '/' + resolvedPath;
+    else return '/';
   } else if (resolvedPath.length > 0) {
     return resolvedPath;
   } else {
@@ -182,8 +175,8 @@ export const normalize = function normalize(path: string) {
 
   if (path.length === 0) return '.';
 
-  var isAbsolute = path.charCodeAt(0) === 47 /*/*/ ;
-  var trailingSeparator = path.charCodeAt(path.length - 1) === 47 /*/*/ ;
+  var isAbsolute = path.charCodeAt(0) === 47; /*/*/
+  var trailingSeparator = path.charCodeAt(path.length - 1) === 47; /*/*/
 
   // Normalize the path
   path = normalizeStringPosix(path, !isAbsolute);
@@ -197,25 +190,21 @@ export const normalize = function normalize(path: string) {
 
 export const isAbsolute = function isAbsolute(path: string) {
   assertPath(path);
-  return path.length > 0 && path.charCodeAt(0) === 47 /*/*/ ;
+  return path.length > 0 && path.charCodeAt(0) === 47 /*/*/;
 };
 
 export const join = function join(...paths: string[]) {
-  if (paths.length === 0)
-    return '.';
+  if (paths.length === 0) return '.';
   var joined;
   for (var i = 0; i < paths.length; ++i) {
     var arg = paths[i];
     assertPath(arg);
     if (arg.length > 0) {
-      if (joined === undefined)
-        joined = arg;
-      else
-        joined += '/' + arg;
+      if (joined === undefined) joined = arg;
+      else joined += '/' + arg;
     }
   }
-  if (joined === undefined)
-    return '.';
+  if (joined === undefined) return '.';
   return normalize(joined);
 };
 
@@ -233,8 +222,7 @@ export const relative = function relative(from: string, to: string) {
   // Trim any leading backslashes
   var fromStart = 1;
   for (; fromStart < from.length; ++fromStart) {
-    if (from.charCodeAt(fromStart) !== 47 /*/*/ )
-      break;
+    if (from.charCodeAt(fromStart) !== 47 /*/*/) break;
   }
   var fromEnd = from.length;
   var fromLen = fromEnd - fromStart;
@@ -242,8 +230,7 @@ export const relative = function relative(from: string, to: string) {
   // Trim any leading backslashes
   var toStart = 1;
   for (; toStart < to.length; ++toStart) {
-    if (to.charCodeAt(toStart) !== 47 /*/*/ )
-      break;
+    if (to.charCodeAt(toStart) !== 47 /*/*/) break;
   }
   var toEnd = to.length;
   var toLen = toEnd - toStart;
@@ -255,7 +242,7 @@ export const relative = function relative(from: string, to: string) {
   for (; i <= length; ++i) {
     if (i === length) {
       if (toLen > length) {
-        if (to.charCodeAt(toStart + i) === 47 /*/*/ ) {
+        if (to.charCodeAt(toStart + i) === 47 /*/*/) {
           // We get here if `from` is the exact base path for `to`.
           // For example: from='/foo/bar'; to='/foo/bar/baz'
           return to.slice(toStart + i + 1);
@@ -265,7 +252,7 @@ export const relative = function relative(from: string, to: string) {
           return to.slice(toStart + i);
         }
       } else if (fromLen > length) {
-        if (from.charCodeAt(fromStart + i) === 47 /*/*/ ) {
+        if (from.charCodeAt(fromStart + i) === 47 /*/*/) {
           // We get here if `to` is the exact base path for `from`.
           // For example: from='/foo/bar/baz'; to='/foo/bar'
           lastCommonSep = i;
@@ -279,32 +266,26 @@ export const relative = function relative(from: string, to: string) {
     }
     var fromCode = from.charCodeAt(fromStart + i);
     var toCode = to.charCodeAt(toStart + i);
-    if (fromCode !== toCode)
-      break;
-    else if (fromCode === 47 /*/*/ )
-      lastCommonSep = i;
+    if (fromCode !== toCode) break;
+    else if (fromCode === 47 /*/*/) lastCommonSep = i;
   }
 
   var out = '';
   // Generate the relative path based on the path difference between `to`
   // and `from`
   for (i = fromStart + lastCommonSep + 1; i <= fromEnd; ++i) {
-    if (i === fromEnd || from.charCodeAt(i) === 47 /*/*/ ) {
-      if (out.length === 0)
-        out += '..';
-      else
-        out += '/..';
+    if (i === fromEnd || from.charCodeAt(i) === 47 /*/*/) {
+      if (out.length === 0) out += '..';
+      else out += '/..';
     }
   }
 
   // Lastly, append the rest of the destination (`to`) path that comes after
   // the common path parts
-  if (out.length > 0)
-    return out + to.slice(toStart + lastCommonSep);
+  if (out.length > 0) return out + to.slice(toStart + lastCommonSep);
   else {
     toStart += lastCommonSep;
-    if (to.charCodeAt(toStart) === 47 /*/*/ )
-      ++toStart;
+    if (to.charCodeAt(toStart) === 47 /*/*/) ++toStart;
     return to.slice(toStart);
   }
 };
@@ -317,12 +298,12 @@ export const dirname = function dirname(path: string) {
   assertPath(path);
   if (path.length === 0) return '.';
   var code = path.charCodeAt(0);
-  var hasRoot = code === 47 /*/*/ ;
+  var hasRoot = code === 47; /*/*/
   var end = -1;
   var matchedSlash = true;
   for (var i = path.length - 1; i >= 1; --i) {
     code = path.charCodeAt(i);
-    if (code === 47 /*/*/ ) {
+    if (code === 47 /*/*/) {
       if (!matchedSlash) {
         end = i;
         break;
@@ -339,7 +320,8 @@ export const dirname = function dirname(path: string) {
 };
 
 export const basename = function basename(path: string, ext: string) {
-  if (ext !== undefined && typeof ext !== 'string') throw new TypeError('"ext" argument must be a string');
+  if (ext !== undefined && typeof ext !== 'string')
+    throw new TypeError('"ext" argument must be a string');
   assertPath(path);
 
   var start = 0;
@@ -353,7 +335,7 @@ export const basename = function basename(path: string, ext: string) {
     var firstNonSlashEnd = -1;
     for (i = path.length - 1; i >= 0; --i) {
       var code = path.charCodeAt(i);
-      if (code === 47 /*/*/ ) {
+      if (code === 47 /*/*/) {
         // If we reached a path separator that was not part of a set of path
         // separators at the end of the string, stop now
         if (!matchedSlash) {
@@ -390,7 +372,7 @@ export const basename = function basename(path: string, ext: string) {
     return path.slice(start, end);
   } else {
     for (i = path.length - 1; i >= 0; --i) {
-      if (path.charCodeAt(i) === 47 /*/*/ ) {
+      if (path.charCodeAt(i) === 47 /*/*/) {
         // If we reached a path separator that was not part of a set of path
         // separators at the end of the string, stop now
         if (!matchedSlash) {
@@ -421,7 +403,7 @@ export const extname = function extname(path: string) {
   var preDotState = 0;
   for (var i = path.length - 1; i >= 0; --i) {
     var code = path.charCodeAt(i);
-    if (code === 47 /*/*/ ) {
+    if (code === 47 /*/*/) {
       // If we reached a path separator that was not part of a set of path
       // separators at the end of the string, stop now
       if (!matchedSlash) {
@@ -436,12 +418,10 @@ export const extname = function extname(path: string) {
       matchedSlash = false;
       end = i + 1;
     }
-    if (code === 46 /*.*/ ) {
+    if (code === 46 /*.*/) {
       // If this is our first dot, mark it as the start of our extension
-      if (startDot === -1)
-        startDot = i;
-      else if (preDotState !== 1)
-        preDotState = 1;
+      if (startDot === -1) startDot = i;
+      else if (preDotState !== 1) preDotState = 1;
     } else if (startDot !== -1) {
       // We saw a non-dot and non-path separator before our dot, so we should
       // have a good chance at having a non-empty extension
@@ -449,11 +429,14 @@ export const extname = function extname(path: string) {
     }
   }
 
-  if (startDot === -1 || end === -1 ||
+  if (
+    startDot === -1 ||
+    end === -1 ||
     // We saw a non-dot character immediately before the dot
     preDotState === 0 ||
     // The (right-most) trimmed path component is exactly '..'
-    preDotState === 1 && startDot === end - 1 && startDot === startPart + 1) {
+    (preDotState === 1 && startDot === end - 1 && startDot === startPart + 1)
+  ) {
     return '';
   }
   return path.slice(startDot, end);
@@ -461,7 +444,9 @@ export const extname = function extname(path: string) {
 
 export const format = function format(pathObject: FormatInputPathObject) {
   if (pathObject === null || typeof pathObject !== 'object') {
-    throw new TypeError('The "pathObject" argument must be of type Object. Received type ' + typeof pathObject);
+    throw new TypeError(
+      'The "pathObject" argument must be of type Object. Received type ' + typeof pathObject
+    );
   }
   return _format('/', pathObject);
 };
@@ -474,11 +459,11 @@ export const parse = function parse(path: string): ParsedPath {
     dir: '',
     base: '',
     ext: '',
-    name: ''
+    name: '',
   };
   if (path.length === 0) return ret;
   var code = path.charCodeAt(0);
-  var isAbsolute = code === 47 /*/*/ ;
+  var isAbsolute = code === 47; /*/*/
   var start;
   if (isAbsolute) {
     ret.root = '/';
@@ -499,7 +484,7 @@ export const parse = function parse(path: string): ParsedPath {
   // Get non-dir info
   for (; i >= start; --i) {
     code = path.charCodeAt(i);
-    if (code === 47 /*/*/ ) {
+    if (code === 47 /*/*/) {
       // If we reached a path separator that was not part of a set of path
       // separators at the end of the string, stop now
       if (!matchedSlash) {
@@ -514,7 +499,7 @@ export const parse = function parse(path: string): ParsedPath {
       matchedSlash = false;
       end = i + 1;
     }
-    if (code === 46 /*.*/ ) {
+    if (code === 46 /*.*/) {
       // If this is our first dot, mark it as the start of our extension
       if (startDot === -1) startDot = i;
       else if (preDotState !== 1) preDotState = 1;
@@ -525,11 +510,14 @@ export const parse = function parse(path: string): ParsedPath {
     }
   }
 
-  if (startDot === -1 || end === -1 ||
+  if (
+    startDot === -1 ||
+    end === -1 ||
     // We saw a non-dot character immediately before the dot
     preDotState === 0 ||
     // The (right-most) trimmed path component is exactly '..'
-    preDotState === 1 && startDot === end - 1 && startDot === startPart + 1) {
+    (preDotState === 1 && startDot === end - 1 && startDot === startPart + 1)
+  ) {
     if (end !== -1) {
       if (startPart === 0 && isAbsolute) ret.base = ret.name = path.slice(1, end);
       else ret.base = ret.name = path.slice(startPart, end);
@@ -571,7 +559,6 @@ export interface Path {
   readonly win32: null;
   readonly posix: Path;
 }
-
 
 export const posix: Path = {
   relative,

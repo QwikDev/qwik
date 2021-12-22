@@ -5,21 +5,21 @@ import typescript from '@rollup/plugin-typescript';
 export default async function () {
   return {
     input: [
-      'src/index.server.qwik.tsx', 
+      'src/index.server.qwik.tsx',
       'src/my-app.qwik.tsx'
     ],
     plugins: [
       nodeResolve(),
       qwikRollup({
-        symbolsPath: 'q-symbols.json',
-      }), 
+        symbolsOutput: 'q-symbols.json',
+      }),
       typescript(),
     ],
     output: [
       {
         chunkFileNames: 'q-[hash].js',
         dir: 'public/build',
-        format: 'es', 
+        format: 'es',
       },
       {
         dir: 'server/build',

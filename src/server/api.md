@@ -13,11 +13,6 @@ export function createDocument(opts?: DocumentOptions): QwikDocument;
 // @public
 export function createGlobal(opts?: GlobalOptions): QwikGlobal;
 
-// Warning: (ae-forgotten-export) The symbol "QrlMapper" needs to be exported by the entry point index.d.ts
-//
-// @alpha
-export function createQrlMapper(qEntryMap: OutputEntryMap): QrlMapper;
-
 // @public (undocumented)
 export interface CreateRenderToStringOptions {
     // (undocumented)
@@ -74,11 +69,8 @@ export const QwikLoader: FunctionComponent<QwikLoaderProps>;
 // @alpha (undocumented)
 export const QwikPrefetch: FunctionComponent<QwikPrefetchProps>;
 
-// @alpha
-export function readQrlMapper(symbolsPath: string): Promise<QrlMapper>;
-
 // @public
-export function renderToDocument(doc: Document, rootNode: any, opts?: RenderToDocumentOptions): Promise<void>;
+export function renderToDocument(doc: Document, rootNode: any, opts: RenderToDocumentOptions): Promise<void>;
 
 // Warning: (ae-forgotten-export) The symbol "SerializeDocumentOptions" needs to be exported by the entry point index.d.ts
 //
@@ -88,7 +80,7 @@ export interface RenderToDocumentOptions extends SerializeDocumentOptions, Docum
 }
 
 // @public
-export function renderToString(rootNode: any, opts?: RenderToStringOptions): Promise<RenderToStringResult>;
+export function renderToString(rootNode: any, opts: RenderToStringOptions): Promise<RenderToStringResult>;
 
 // @public (undocumented)
 export interface RenderToStringOptions extends RenderToDocumentOptions {

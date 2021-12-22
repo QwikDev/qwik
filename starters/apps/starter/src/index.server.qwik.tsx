@@ -15,7 +15,7 @@ import { MyApp } from './my-app.qwik';
  *
  * @returns a promise when all of the rendering is completed.
  */
-export default function serverRender(opts: RenderToStringOptions) {
+export function serverRender(opts: RenderToStringOptions) {
   return renderToString(
     <html>
       <head>

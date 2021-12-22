@@ -18,7 +18,6 @@ function createPlatform(document: Document, _opts?: DocumentOptions) {
       await Promise.resolve(); // wait one microtask
       const symbolName = qExport(url.toString());
       const symbolFn = __internal_qHookMap.get(symbolName);
-      console.log('importSymbol', symbolName, symbolFn);
       const module = await symbolFn();
       return module[symbolName];
     },
@@ -38,7 +37,7 @@ function createPlatform(document: Document, _opts?: DocumentOptions) {
     queueStoreFlush: (flushStore) => {
       if (!queuePromise) {
         queuePromise = new Promise((resolve, reject) =>
-        _nextTick(() => {
+          _nextTick(() => {
             queuePromise = null;
             flushStore(doc).then(resolve, reject);
           })

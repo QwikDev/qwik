@@ -1,4 +1,4 @@
-import type { QRL } from "..";
+import type { QRL } from '..';
 
 /**
  * @public

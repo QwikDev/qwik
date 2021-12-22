@@ -1,3 +1,5 @@
+import type { OutputEntryMap } from '@builder.io/qwik/optimizer';
+
 /**
  * Partial Global used by Qwik Framework.
  *
@@ -39,7 +41,7 @@ export interface GlobalOptions extends DocumentOptions {}
  * @public
  */
 export interface SerializeDocumentOptions extends DocumentOptions {
-  qrlMapper?: QrlMapper;
+  symbols: QrlMapper | OutputEntryMap | null;
 }
 
 /**

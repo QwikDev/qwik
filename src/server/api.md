@@ -106,8 +106,8 @@ export function setServerPlatform(document: any, opts: DocumentOptions): Promise
 
 // @alpha (undocumented)
 export const versions: {
-    qwik: any;
-    domino: any;
+    qwik: string;
+    domino: string;
 };
 
 // (No @packageDocumentation comment for this package)

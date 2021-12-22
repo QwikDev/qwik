@@ -63,4 +63,4 @@ export { ValueOrPromise } from './util/types';
 /**
  * @alpha
  */
-export const version = (globalThis as any).QWIK_VERSION;
+export const version = (globalThis as any).QWIK_VERSION as string;

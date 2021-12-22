@@ -222,7 +222,7 @@ export type TranspileOption = boolean | undefined | null;
 
 // @alpha (undocumented)
 export const versions: {
-    qwik: any;
+    qwik: string;
 };
 
 // (No @packageDocumentation comment for this package)

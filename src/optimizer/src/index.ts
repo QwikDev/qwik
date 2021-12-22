@@ -5,7 +5,7 @@ export * from './types';
  * @alpha
  */
 export const versions = {
-  qwik: (globalThis as any).QWIK_VERSION,
+  qwik: (globalThis as any).QWIK_VERSION as string,
 };
 
 // TODO: create separate @builder.io/qwik-rollup package

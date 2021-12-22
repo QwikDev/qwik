@@ -341,7 +341,7 @@ export function useURL(): URL;
 export type ValueOrPromise<T> = T | Promise<T>;
 
 // @alpha (undocumented)
-export const version: any;
+export const version: string;
 
 // (No @packageDocumentation comment for this package)
 

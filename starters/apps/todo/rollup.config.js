@@ -1,7 +1,7 @@
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 import { qwikRollup } from '@builder.io/qwik/optimizer';
 import { terser } from "rollup-plugin-terser";
-import { writeFileSync } from "fs";
+import { outputJSON } from "fs-extra";
 
 export default async function () {
   return {
@@ -12,7 +12,7 @@ export default async function () {
       nodeResolve(),
       qwikRollup({
         symbolsOutput: (data) => {
-          writeFileSync('./q-symbols.json', JSON.stringify(data));
+          outputJSON('./server/build/q-symbols.json', JSON.stringify(data));
         },
       }),
       terser(),

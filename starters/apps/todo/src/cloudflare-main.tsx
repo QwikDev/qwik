@@ -1,5 +1,5 @@
 import { renderApp } from './index.server.qwik';
-import symbols from '../q-symbols.json';
+import symbols from '../server/build/q-symbols.json';
 import { getAssetFromKV } from '@cloudflare/kv-asset-handler';
 
 async function handleQwik(request: Request) {

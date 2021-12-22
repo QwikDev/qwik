@@ -21,15 +21,20 @@ function createPlatform(document: Document) {
   let render: Queue<any> | null = null;
   let store: Queue<any> | null = null;
 
+  const moduleCache = new Map<string, { [symbol: string]: any }>();
   const testPlatform: TestPlatform = {
-    async importSymbol(element, url) {
+    importSymbol(element, url) {
       const urlDoc = toUrl(element.ownerDocument, element, url);
-      const path = toPath(urlDoc);
+      const importPath = toPath(urlDoc);
       const symbolName = qExport(urlDoc.toString());
-      const module = await import(path);
-      if (module) {
-        return module[symbolName];
+      const mod = moduleCache.get(importPath);
+      if (mod) {
+        return mod[symbolName];
       }
+      return import(importPath).then((mod) => {
+        moduleCache.set(importPath, mod);
+        return mod[symbolName];
+      });
     },
     queueRender: (renderMarked) => {
       if (!render) {
@@ -146,6 +151,7 @@ function toPath(url: URL) {
 
   throw new Error(`Unable to find path for import "${url}"`);
 }
+
 export function getTestPlatform(document: any) {
   const testPlatform: TestPlatform = getPlatform(document) as any;
   if (!testPlatform) {

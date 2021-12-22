@@ -39,7 +39,7 @@ export function cp(srcDir: string, destDir: string) {
     const destChildPath = join(destDir, itemName);
     const s = statSync(srcChildPath);
     if (s.isDirectory()) {
-      mkdirSync(destChildPath, {recursive: true});
+      mkdirSync(destChildPath, { recursive: true });
       cp(srcChildPath, destChildPath);
     } else if (s.isFile()) {
       copyFileSync(srcChildPath, destChildPath);

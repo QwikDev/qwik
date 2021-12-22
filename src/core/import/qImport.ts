@@ -7,9 +7,8 @@
  */
 
 import { isParsedQRL, QRL } from './qrl';
-import { QError, qError } from '../error/error';
 import { getPlatform } from '../platform/platform';
-import { qTest, qDev } from '../util/qdev';
+import { qTest } from '../util/qdev';
 import { fromQRL } from './qrl-test';
 import { assertDefined } from '../assert/assert';
 

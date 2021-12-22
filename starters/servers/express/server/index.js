@@ -3,11 +3,10 @@ const { join } = require('path');
 const { existsSync } = require('fs');
 const { renderApp } = require('./build/index.server.qwik.js');
 const symbols = require('./build/q-symbols.json');
-
 const PORT = process.env.PORT || 8080;
 
 async function startServer() {
-  async function indexHandler(req, res) {
+  async function handleQwik(req, res) {
     const result = await renderApp({
       symbols,
       url: req.url,
@@ -28,7 +27,8 @@ async function startServer() {
     app.use('/~partytown', express.static(partytownDir));
   }
 
-  app.get('/', indexHandler);
+  app.get('/', handleQwik);
+
   app.listen(PORT, () => {
     // eslint-disable-next-line no-console
     console.log(`http://localhost:${PORT}/`);

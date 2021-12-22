@@ -6,20 +6,29 @@ import type { DocumentOptions } from './types';
 const _setInmediate = typeof setImmediate === 'function' ? setImmediate : setTimeout;
 const _nextTick = typeof queueMicrotask === 'function' ? queueMicrotask : process.nextTick;
 
-function createPlatform(document: Document, _opts?: DocumentOptions) {
+function createPlatform(document: Document, opts?: DocumentOptions) {
   if (!document || (document as Document).nodeType !== 9) {
     throw new Error(`Invalid Document implementation`);
   }
   let queuePromise: Promise<any> | null;
 
+  if (opts?.url) {
+    document.location.href = opts.url;
+  }
   const doc: Document = document;
+  const symbolCache = new Map<string, { [symbol: string]: any }>();
   const serverPlatform: CorePlatform = {
-    async importSymbol(_, url) {
-      await Promise.resolve(); // wait one microtask
+    importSymbol(_, url) {
       const symbolName = qExport(url.toString());
+      const symbol = symbolCache.get(symbolName);
+      if (symbol) {
+        return symbol;
+      }
       const symbolFn = __internal_qHookMap.get(symbolName);
-      const module = await symbolFn();
-      return module[symbolName];
+      return symbolFn().then((s: any) => {
+        symbolCache.set(symbolName, s);
+        return s;
+      });
     },
     queueRender: (renderMarked) => {
       if (!queuePromise) {

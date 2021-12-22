@@ -7,9 +7,9 @@ export const createPlatform = (doc: Document): CorePlatform => {
   let queuePromise: Promise<any> | null;
   let storePromise: Promise<any> | null;
 
-  const cache = new Map<string, any>();
+  const moduleCache = new Map<string, { [symbol: string]: any }>();
   return {
-    async importSymbol(element, url) {
+    importSymbol(element, url) {
       const urlDoc = toUrl(element.ownerDocument, element, url).toString();
 
       const symbolName = qExport(urlDoc);
@@ -17,13 +17,14 @@ export const createPlatform = (doc: Document): CorePlatform => {
       urlCopy.hash = '';
       urlCopy.search = '';
       const importURL = urlCopy.href + '.js';
-
-      let module = cache.get(importURL);
-      if (!module) {
-        module = import(importURL);
-        cache.set(importURL, module);
+      const mod = moduleCache.get(importURL);
+      if (mod) {
+        return mod[symbolName];
       }
-      return (await module)[symbolName];
+      return import(importURL).then((mod) => {
+        moduleCache.set(importURL, mod);
+        return mod[symbolName];
+      });
     },
     queueRender: (renderMarked) => {
       if (!queuePromise) {

@@ -10,9 +10,6 @@
   },
   "devDependencies": {
     "@builder.io/qwik": "~0.0.14",
-    "@cloudflare/kv-asset-handler": "^0.2.0",
-    "@cloudflare/workers-types": "^3.2.0",
-    "@rollup/plugin-json": "^4.1.0",
     "@rollup/plugin-node-resolve": "^13.0.6",
     "concurrently": "^6.4.0",
     "rimraf": "^3.0.2",

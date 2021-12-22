@@ -6,7 +6,7 @@ import commonjs from '@rollup/plugin-commonjs';
 export default async function () {
   return {
     input: {
-      index: 'src/cloudflare-main.tsx',
+      index: 'src/index.cloudflare.tsx',
     },
     inlineDynamicImports: true,
     plugins: [
@@ -22,7 +22,7 @@ export default async function () {
     output: [
       {
         intro: 'const global = globalThis;',
-        dir: 'server/build',
+        dir: 'workers-site/build',
         format: 'commonjs',
       },
     ],

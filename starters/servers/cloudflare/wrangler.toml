@@ -1,4 +1,4 @@
-name = "qwik-demo-2"
+name = "qwik-app"
 type = "javascript"
 
 account_id = ""
@@ -14,5 +14,5 @@ command = "npm run build"
 format = "service-worker"
 
 [site]
-bucket = "./public" # Add the directory with your static assets!
-entry-point = "./server" # JS folder serving your assets
+bucket = "public" # Add the directory with your static assets!
+entry-point = "workers-site" # JS folder serving your assets

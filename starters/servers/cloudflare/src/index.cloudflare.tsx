@@ -6,7 +6,7 @@ async function handleRequest(event: any) {
   const url = new URL(event.request.url);
   if (/\.\w+$/.test(url.pathname)) {
     try {
-      return getAssetFromKV(event);
+      return await getAssetFromKV(event);
     } catch (e) {
       return new Response(`"${url.pathname}" not found`, {
         status: 404,
@@ -25,5 +25,5 @@ async function handleRequest(event: any) {
 }
 
 addEventListener('fetch', (event: any) => {
-  event.respondWith(handleRequest(event.request));
+  event.respondWith(handleRequest(event));
 });

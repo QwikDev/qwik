@@ -144,7 +144,7 @@ export interface QwikPluginOptions {
     // (undocumented)
     minify?: MinifyMode;
     // (undocumented)
-    symbolsOutput?: string | ((data: OutputEntryMap, output: NormalizedOutputOptions) => (Promise<void> | void));
+    symbolsOutput?: string | ((data: OutputEntryMap, output: NormalizedOutputOptions) => Promise<void> | void);
     // (undocumented)
     transpile?: boolean;
 }

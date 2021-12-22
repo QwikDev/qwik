@@ -1,5 +1,5 @@
 {
-  "name": "cloudflare",
+  "name": "qwik-project-name",
   "description": "Cloudflare Workers Server",
   "scripts": {
     "build": "npm run clean && npm run build.client && npm run build.server",

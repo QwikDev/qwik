@@ -183,6 +183,10 @@ export function injectGlobalThisPoly(config: BuildConfig) {
   return join(config.scriptsDir, 'shim', 'globalthis.js');
 }
 
+export function injectGlobalPoly(config: BuildConfig) {
+  return join(config.scriptsDir, 'shim', 'global.js');
+}
+
 /**
  * Utility just to ignore certain rollup warns we already know aren't issues.
  */

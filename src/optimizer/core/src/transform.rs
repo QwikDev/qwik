@@ -373,6 +373,18 @@ fn create_inline_qhook(url: JsWord, symbol: &str) -> ast::CallExpr {
                     kind: ast::StrKind::Synthesized,
                 }))),
             },
+            // ast::ExprOrSpread {
+            //     spread: None,
+            //     expr: Box::new(ast::Expr::Member(ast::MemberExpr {
+            //         span: DUMMY_SP,
+            //         computed: false,
+            //         obj: ast::ExprOrSuper::Expr(Box::new(ast::Expr::MetaProp(ast::MetaPropExpr {
+            //             meta: ast::Ident::new(js_word!("import"), DUMMY_SP),
+            //             prop: ast::Ident::new(js_word!("meta"), DUMMY_SP),
+            //         }))),
+            //         prop: Box::new(ast::Expr::Ident(ast::Ident::new(js_word!("url"), DUMMY_SP))),
+            //     })),
+            // },
         ],
     }
 }

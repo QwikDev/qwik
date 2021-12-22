@@ -11,6 +11,7 @@ import {
   readFile,
   target,
   watcher,
+  injectGlobalPoly,
 } from './util';
 import { readPackageJson, writePackageJson } from './package-json';
 
@@ -50,6 +51,7 @@ export async function submoduleServer(config: BuildConfig) {
       dominoPlugin,
     ],
     watch: watcher(config, submodule),
+    inject: [injectGlobalPoly(config)],
   });
 
   const cjs = build({
@@ -63,7 +65,7 @@ export async function submoduleServer(config: BuildConfig) {
     watch: watcher(config),
     platform: 'node',
     target: nodeTarget,
-    inject: [injectGlobalThisPoly(config)],
+    inject: [injectGlobalThisPoly(config), injectGlobalPoly(config)],
   });
 
   await Promise.all([esm, cjs]);

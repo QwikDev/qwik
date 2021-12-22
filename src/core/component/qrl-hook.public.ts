@@ -42,7 +42,13 @@ export function qHook(hook: any, symbol?: string): any {
     if ((match = String(hook).match(EXTRACT_IMPORT_PATH)) && match[2]) {
       hook = match[2];
     } else if ((match = String(hook).match(EXTRACT_SELF_IMPORT))) {
-      hook = 'main';
+      const frame = new Error('SELF').stack!.split('\n')[2];
+      match = frame.match(EXTRACT_FILE_NAME);
+      if (!match) {
+        hook = 'main';
+      } else {
+        hook = match[1];
+      }
     } else {
       throw new Error('dynamic import not found: ' + String(hook));
     }
@@ -97,3 +103,6 @@ const EXTRACT_IMPORT_PATH = /\(\s*(['"])([^\1]+)\1\s*\)/;
 
 // https://regexr.com/690ds
 const EXTRACT_SELF_IMPORT = /Promise\s*\.\s*resolve/;
+
+// https://regexr.com/6a83h
+const EXTRACT_FILE_NAME = /[\\/(]([\w\d.\-_]+)\.(js|ts)x?:/;

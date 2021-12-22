@@ -127,7 +127,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
     let path_data = parse_path(config.path)?;
     let module = parse(config.code, &path_data, Lrc::clone(&source_map));
     if config.print_ast {
-        eprintln!("{:?}", module);
+        dbg!(&module);
     }
     let transpile = config.transpile;
 

@@ -24,10 +24,11 @@ function createPlatform(document: Document, opts?: DocumentOptions) {
       if (symbol) {
         return symbol;
       }
-      const symbolFn = __internal_qHookMap.get(symbolName);
-      return symbolFn().then((s: any) => {
-        symbolCache.set(symbolName, s);
-        return s;
+      const modFn = __internal_qHookMap.get(symbolName);
+      return modFn().then((mod: any) => {
+        const symbol = mod[symbolName];
+        symbolCache.set(symbolName, symbol);
+        return symbol;
       });
     },
     queueRender: (renderMarked) => {

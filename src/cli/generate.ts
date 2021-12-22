@@ -39,7 +39,7 @@ export function generateStarter(starters: CliStarters, opts: CliGenerateOptions)
   const starterApp = starters.apps.find((s) => s.id === opts.appId);
   const starterServer = starters.servers.find((s) => s.id === opts.serverId);
   if (starterApp) {
-    generateUserStarter(outDir, starterApp, starterServer);
+    generateUserStarter(outDir, starterApp, starterServer, opts.projectName!);
   } else {
     panic(`Invalid starter id "${opts.appId}".`);
   }
@@ -48,14 +48,15 @@ export function generateStarter(starters: CliStarters, opts: CliGenerateOptions)
 function generateUserStarter(
   outDir: string,
   starterApp: CliStarterData,
-  starterServer: CliStarterData | undefined
+  starterServer: CliStarterData | undefined,
+  projectName: string
 ) {
   cp(starterApp.dir, outDir);
 
   const pkgJson = readPackageJson(starterApp.dir);
 
   if (starterServer) {
-    pkgJson.name += '-' + starterServer.id;
+    pkgJson.name = projectName;
     cp(starterServer.dir, outDir);
 
     const serverPkgJson = readPackageJson(starterServer.dir);

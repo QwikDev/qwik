@@ -1,46 +1,42 @@
 import type { CorePlatform } from '@builder.io/qwik';
-import { setPlatform } from '@builder.io/qwik';
+import { setPlatform, __internal_qHookMap } from '@builder.io/qwik';
+import { qExport } from '../core/import/qImport';
 import type { DocumentOptions } from './types';
-import { extname, isAbsolute, resolve } from 'path';
 
-/**
- * Applies NodeJS specific platform APIs to the passed in document instance.
- * @public
- */
-export function setServerPlatform(document: any, opts: DocumentOptions) {
+const _setInmediate = typeof setImmediate === 'function' ? setImmediate : setTimeout;
+const _nextTick = typeof queueMicrotask === 'function' ? queueMicrotask : process.nextTick;
+
+function createPlatform(document: any, opts?: DocumentOptions) {
   if (!document || (document as Document).nodeType !== 9) {
     throw new Error(`Invalid Document implementation`);
   }
   let queuePromise: Promise<any> | null;
-
-  const serverDir = opts.serverDir;
-  if (serverDir == null) {
-    throw new Error(`Server platform missing "serverDir"`);
-  }
-  if (!isAbsolute(serverDir)) {
-    throw new Error(`serverDir "${serverDir}" must be an absolute path`);
-  }
-
   const doc: Document = document;
+
+  if (opts?.url) {
+    doc.location.href = new URL(opts.url, 'http://qwik.local').href;
+  }
+  const symbolCache = new Map<string, { [symbol: string]: any }>();
   const serverPlatform: CorePlatform = {
-    import: async (url: string) => {
-      const m = await import(url);
-      return m;
-    },
-    toPath: (url: URL) => {
-      const ext = extname(url.pathname);
-      const hasJsExt = JS_EXTS[ext];
-      const urlPathname = hasJsExt ? url.pathname : url.pathname + '.js';
-      const relativeUrlPathname = urlPathname.substring(1);
-      const filePath = resolve(serverDir, relativeUrlPathname);
-      return filePath;
+    importSymbol(_, url) {
+      const symbolName = qExport(url.toString());
+      const symbol = symbolCache.get(symbolName);
+      if (symbol) {
+        return symbol;
+      }
+      const modFn = __internal_qHookMap.get(symbolName);
+      return modFn().then((mod: any) => {
+        const symbol = mod[symbolName];
+        symbolCache.set(symbolName, symbol);
+        return symbol;
+      });
     },
     queueRender: (renderMarked) => {
       if (!queuePromise) {
         queuePromise = new Promise((resolve, reject) =>
           // Do not use process.nextTick, as this will execute at same priority as promises.
           // We need to execute after promisees.
-          setImmediate(() => {
+          _setInmediate(() => {
             queuePromise = null;
             renderMarked(doc).then(resolve, reject);
           })
@@ -51,7 +47,7 @@ export function setServerPlatform(document: any, opts: DocumentOptions) {
     queueStoreFlush: (flushStore) => {
       if (!queuePromise) {
         queuePromise = new Promise((resolve, reject) =>
-          process.nextTick(() => {
+          _nextTick(() => {
             queuePromise = null;
             flushStore(doc).then(resolve, reject);
           })
@@ -60,13 +56,14 @@ export function setServerPlatform(document: any, opts: DocumentOptions) {
       return queuePromise;
     },
   };
-
-  setPlatform(doc, serverPlatform);
+  return serverPlatform;
 }
 
-const JS_EXTS: { [ext: string]: boolean } = {
-  '.js': true,
-  '.cjs': true,
-  '.mjs': true,
-  '': false,
-};
+/**
+ * Applies NodeJS specific platform APIs to the passed in document instance.
+ * @public
+ */
+export async function setServerPlatform(document: any, opts: DocumentOptions) {
+  const platform = createPlatform(document, opts);
+  setPlatform(document, platform);
+}

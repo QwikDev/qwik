@@ -1,10 +1,10 @@
 import type { Path, TransformOutput } from '.';
-import pathBrowserify from 'path-browserify';
+import * as pathBrowser from '../../core/util/path';
 import { QWIK_BINDING_MAP } from './qwik-binding-map';
 
 export async function getSystem() {
   const sys: InternalSystem = {} as any;
-  sys.path = pathBrowserify;
+  sys.path = pathBrowser;
 
   if (globalThis.IS_ESM) {
     sys.dynamicImport = (path: string) => import(path);

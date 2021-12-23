@@ -1,25 +1,29 @@
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 import { qwikRollup } from '@builder.io/qwik/optimizer';
-import typescript from '@rollup/plugin-typescript';
+import { terser } from "rollup-plugin-terser";
+import { writeFile, mkdir } from "fs/promises";
+import { dirname } from "path";
 
 export default async function () {
   return {
     input: [
-      'src/index.server.qwik.tsx', 
-      'src/components.qwik.tsx'
+      'src/index.server.tsx',
+      'src/components.tsx'
     ],
     plugins: [
       nodeResolve(),
       qwikRollup({
-        symbolsPath: 'q-symbols.json',
-      }), 
-      typescript(),
+        symbolsOutput: (data) => {
+          outputJSON('./server/build/q-symbols.json', data);
+        },
+      }),
+      terser(),
     ],
     output: [
       {
         chunkFileNames: 'q-[hash].js',
         dir: 'public/build',
-        format: 'es', 
+        format: 'es',
       },
       {
         dir: 'server/build',
@@ -27,4 +31,9 @@ export default async function () {
       },
     ],
   };
+}
+
+async function outputJSON(path, data) {
+  await mkdir(dirname(path), {recursive: true});
+  await writeFile(path, JSON.stringify(data, null, 2));
 }

@@ -1,17 +1,16 @@
-import { readFile as fsReadFile, stat as fsStat } from 'fs';
-import { promisify } from 'util';
-
-export const readFile = promisify(fsReadFile);
-export const stat = promisify(fsStat);
-
 /**
- * Utility timer function for Nodejs performance profiling.
+ * Utility timer function for performance profiling.
+ * Returns a duration of 0 in environments that do not support performance.
  * @alpha
  */
 export function createTimer() {
-  const start = process.hrtime();
+  if (typeof performance === 'undefined') {
+    return () => 0;
+  }
+  const start = performance.now();
   return () => {
-    const end = process.hrtime(start);
-    return (end[0] * 1000000000 + end[1]) / 1000000;
+    const end = performance.now();
+    const delta = end - start;
+    return delta / 1000000;
   };
 }

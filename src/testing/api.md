@@ -4,9 +4,8 @@
 
 ```ts
 
-/// <reference types="node" />
-
 import { FunctionComponent } from '@builder.io/qwik';
+import type { OutputEntryMap } from '@builder.io/qwik/optimizer';
 
 // @public
 export function createDocument(opts?: DocumentOptions): QwikDocument;
@@ -17,17 +16,8 @@ export function createGlobal(opts?: GlobalOptions): QwikGlobal;
 // @public (undocumented)
 export interface CreateRenderToStringOptions {
     // (undocumented)
-    serverDir: string;
-    // (undocumented)
-    serverMainPath: string;
-    // (undocumented)
     symbolsPath: string;
 }
-
-// Warning: (ae-forgotten-export) The symbol "RenderToString" needs to be exported by the entry point index.d.ts
-//
-// @alpha
-export function createServerRenderer(opts: CreateRenderToStringOptions): Promise<RenderToString>;
 
 // @alpha
 export function createTimer(): () => number;
@@ -36,8 +26,6 @@ export function createTimer(): () => number;
 export interface DocumentOptions {
     // (undocumented)
     debug?: boolean;
-    // (undocumented)
-    serverDir?: string;
     // (undocumented)
     url?: string;
 }
@@ -82,7 +70,7 @@ export const QwikLoader: FunctionComponent<QwikLoaderProps>;
 export const QwikPrefetch: FunctionComponent<QwikPrefetchProps>;
 
 // @public
-export function renderToDocument(doc: Document, rootNode: any, opts?: RenderToDocumentOptions): Promise<void>;
+export function renderToDocument(doc: Document, rootNode: any, opts: RenderToDocumentOptions): Promise<void>;
 
 // Warning: (ae-forgotten-export) The symbol "SerializeDocumentOptions" needs to be exported by the entry point index.d.ts
 //
@@ -92,7 +80,7 @@ export interface RenderToDocumentOptions extends SerializeDocumentOptions, Docum
 }
 
 // @public
-export function renderToString(rootNode: any, opts?: RenderToStringOptions): Promise<RenderToStringResult>;
+export function renderToString(rootNode: any, opts: RenderToStringOptions): Promise<RenderToStringResult>;
 
 // @public (undocumented)
 export interface RenderToStringOptions extends RenderToDocumentOptions {
@@ -114,12 +102,12 @@ export interface RenderToStringResult {
 export function serializeDocument(doc: Document, opts?: SerializeDocumentOptions): string;
 
 // @public
-export function setServerPlatform(document: any, opts: DocumentOptions): void;
+export function setServerPlatform(document: any, opts: DocumentOptions): Promise<void>;
 
 // @alpha (undocumented)
 export const versions: {
-    qwik: any;
-    domino: any;
+    qwik: string;
+    domino: string;
 };
 
 // (No @packageDocumentation comment for this package)

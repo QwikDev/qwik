@@ -10,6 +10,7 @@ import {
   mergeSort,
   panic,
   readPackageJson,
+  Replacements,
   validateOutDir,
   writePackageJson,
   writeToCwd,
@@ -39,7 +40,7 @@ export function generateStarter(starters: CliStarters, opts: CliGenerateOptions)
   const starterApp = starters.apps.find((s) => s.id === opts.appId);
   const starterServer = starters.servers.find((s) => s.id === opts.serverId);
   if (starterApp) {
-    generateUserStarter(outDir, starterApp, starterServer);
+    generateUserStarter(outDir, starterApp, starterServer, opts.projectName!);
   } else {
     panic(`Invalid starter id "${opts.appId}".`);
   }
@@ -48,22 +49,24 @@ export function generateStarter(starters: CliStarters, opts: CliGenerateOptions)
 function generateUserStarter(
   outDir: string,
   starterApp: CliStarterData,
-  starterServer: CliStarterData | undefined
+  starterServer: CliStarterData | undefined,
+  projectName: string
 ) {
-  cp(starterApp.dir, outDir);
+  const replacements: Replacements = [[/\bqwik-project-name\b/g, projectName]];
+  cp(starterApp.dir, outDir, replacements);
 
   const pkgJson = readPackageJson(starterApp.dir);
 
   if (starterServer) {
-    pkgJson.name += '-' + starterServer.id;
-    cp(starterServer.dir, outDir);
+    pkgJson.name = projectName;
+    cp(starterServer.dir, outDir, replacements);
 
     const serverPkgJson = readPackageJson(starterServer.dir);
     mergeSort(pkgJson, serverPkgJson, 'scripts');
     mergeSort(pkgJson, serverPkgJson, 'dependencies');
     mergeSort(pkgJson, serverPkgJson, 'devDependencies');
   }
-
+  delete pkgJson.priority;
   writePackageJson(outDir, pkgJson);
 
   const isCwdDir = process.cwd() === outDir;

@@ -1,9 +1,10 @@
-import { getPlatform, setPlatform } from '@builder.io/qwik';
+import { getPlatform, QRL, setPlatform } from '@builder.io/qwik';
 import type { TestPlatform } from './types';
 import { existsSync } from 'fs';
 import { fileURLToPath } from 'url';
+import { qExport } from '../core/import/qImport';
 
-export function setTestPlatform(document: any) {
+function createPlatform(document: any) {
   if (!document || (document as Document).nodeType !== 9) {
     throw new Error(`Invalid Document implementation`);
   }
@@ -20,22 +21,20 @@ export function setTestPlatform(document: any) {
   let render: Queue<any> | null = null;
   let store: Queue<any> | null = null;
 
+  const moduleCache = new Map<string, { [symbol: string]: any }>();
   const testPlatform: TestPlatform = {
-    import: (url: string) => import(url),
-    toPath: (url: URL) => {
-      const normalizedUrl = new URL(String(url));
-      normalizedUrl.hash = '';
-      normalizedUrl.search = '';
-      const path = fileURLToPath(String(normalizedUrl));
-      const importPaths = [path, ...testExts.map((ext) => path + ext)];
-
-      for (const importPath of importPaths) {
-        if (existsSync(importPath)) {
-          return importPath;
-        }
+    importSymbol(element, url) {
+      const urlDoc = toUrl(element.ownerDocument, element, url);
+      const importPath = toPath(urlDoc);
+      const symbolName = qExport(urlDoc.toString());
+      const mod = moduleCache.get(importPath);
+      if (mod) {
+        return mod[symbolName];
       }
-
-      throw new Error(`Unable to find path for import "${url}"`);
+      return import(importPath).then((mod) => {
+        moduleCache.set(importPath, mod);
+        return mod[symbolName];
+      });
     },
     queueRender: (renderMarked) => {
       if (!render) {
@@ -95,8 +94,62 @@ export function setTestPlatform(document: any) {
       }
     },
   };
+  return testPlatform;
+}
 
-  setPlatform(doc, testPlatform);
+export function setTestPlatform(document: any) {
+  const platform = createPlatform(document);
+  setPlatform(document, platform);
+}
+
+/**
+ * Convert relative base URI and relative URL into a fully qualified URL.
+ *
+ * @param base -`QRL`s are relative, and therefore they need a base for resolution.
+ *    - `Element` use `base.ownerDocument.baseURI`
+ *    - `Document` use `base.baseURI`
+ *    - `string` use `base` as is
+ *    - `QConfig` use `base.baseURI`
+ * @param url - relative URL
+ * @returns fully qualified URL.
+ */
+export function toUrl(doc: Document, element: Element | null, url?: string | QRL | URL): URL {
+  let _url: string | QRL | URL;
+  let _base: string | URL | undefined = undefined;
+
+  if (url === undefined) {
+    //  recursive call
+    if (element) {
+      _url = element.getAttribute('q:base')!;
+      _base = toUrl(
+        doc,
+        element.parentNode && (element.parentNode as HTMLElement).closest('[q\\:base]')
+      );
+    } else {
+      _url = doc.baseURI;
+    }
+  } else if (url) {
+    (_url = url), (_base = toUrl(doc, element!.closest('[q\\:base]')));
+  } else {
+    throw new Error('INTERNAL ERROR');
+  }
+  return new URL(String(_url), _base);
+}
+
+function toPath(url: URL) {
+  const normalizedUrl = new URL(String(url));
+  normalizedUrl.hash = '';
+  normalizedUrl.search = '';
+  const path = fileURLToPath(String(normalizedUrl));
+  const importPaths = [path, ...testExts.map((ext) => path + ext)];
+
+  for (const importPath of importPaths) {
+    if (existsSync(importPath)) {
+      return importPath;
+    }
+  }
+
+  throw new Error(`Unable to find path for import "${url}"`);
 }
 
 export function getTestPlatform(document: any) {

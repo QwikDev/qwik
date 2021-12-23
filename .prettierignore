@@ -22,3 +22,9 @@ target
 output
 rollup.config.js
 build
+.cache
+.vscode
+.rollup.cache
+build
+node_modules
+tsconfig.tsbuildinfo

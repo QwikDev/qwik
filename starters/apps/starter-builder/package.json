@@ -1,17 +1,16 @@
 {
-  "name": "qwik-starter-builder",
+  "name": "qwik-project-name",
   "version": "0.0.1",
   "description": "Blank builder starter app",
   "scripts": {
     "build": "npm run clean && rollup -c",
-    "clean": "rimraf */build/",
-    "start": "npm run clean && concurrently -c blue,green \"rollup -c --configDev --watch\" \"wait-on public/build && npm run serve\"",
-    "serve": "echo \"server not setup\""
+    "serve": "echo \"server not setup\"",
+    "clean": "rimraf build",
+    "start": "npm run clean && concurrently -c blue,green \"rollup -c --configDev --watch\" \"wait-on public/build && npm run serve\""
   },
   "devDependencies": {
     "@builder.io/qwik": "~0.0.15",
     "@rollup/plugin-node-resolve": "^13.0.6",
-    "@rollup/plugin-typescript": "^8.3.0",
     "concurrently": "^6.4.0",
     "rimraf": "^3.0.2",
     "rollup": "^2.59.0",

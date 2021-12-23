@@ -1,0 +1,4 @@
+{
+  "name": "cloudflare-worker",
+  "main": "build/index.js"
+}

@@ -4,6 +4,9 @@
 
 ```ts
 
+// @alpha (undocumented)
+export const __internal_qHookMap: Map<any, any>;
+
 // @public
 export function Async<T>(props: {
     resolve: ValueOrPromise<T>;
@@ -26,10 +29,9 @@ export type ComponentChildren = ComponentChild[] | ComponentChild;
 
 // @public (undocumented)
 export interface CorePlatform {
-    import: (url: string) => Promise<any>;
+    importSymbol: (element: Element, url: string | QRL | URL) => Promise<any>;
     queueRender: (renderMarked: (doc: Document) => Promise<any>) => Promise<any>;
     queueStoreFlush: (flushStore: (doc: Document) => Promise<any>) => Promise<any>;
-    toPath: (url: URL) => string;
 }
 
 // @public (undocumented)
@@ -89,11 +91,8 @@ export const Host: FunctionComponent<Record<string, any>>;
 function jsx(type: string | FunctionComponent, props: QwikDOMAttributes & Record<string, any> & {
     children?: ComponentChild[] | ComponentChild;
 }, key?: string): JSXNode;
-
 export { jsx }
-
 export { jsx as jsxDEV }
-
 export { jsx as jsxs }
 
 // @public (undocumented)
@@ -340,8 +339,7 @@ export function useURL(): URL;
 export type ValueOrPromise<T> = T | Promise<T>;
 
 // @alpha (undocumented)
-export const version: any;
-
+export const version: string;
 
 // (No @packageDocumentation comment for this package)
 

@@ -183,6 +183,10 @@ export function injectGlobalThisPoly(config: BuildConfig) {
   return join(config.scriptsDir, 'shim', 'globalthis.js');
 }
 
+export function injectGlobalPoly(config: BuildConfig) {
+  return join(config.scriptsDir, 'shim', 'global.js');
+}
+
 /**
  * Utility just to ignore certain rollup warns we already know aren't issues.
  */
@@ -216,14 +220,14 @@ function formatFileSize(bytes: number) {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + '' + sizes[i];
 }
 
-export const access = promisify(fsAccess);
-export const copyFile = promisify(fsCopyFile);
-export const readFile = promisify(fsReadFile);
-export const readdir = promisify(fsReaddir);
-export const unlink = promisify(fsUnlink);
-export const stat = promisify(fsStat);
-export const writeFile = promisify(fsWriteFile);
-export const mkdir = promisify(fsMkdir);
+export const access = /*@__PURE__*/ promisify(fsAccess);
+export const copyFile = /*@__PURE__*/ promisify(fsCopyFile);
+export const readFile = /*@__PURE__*/ promisify(fsReadFile);
+export const readdir = /*@__PURE__*/ promisify(fsReaddir);
+export const unlink = /*@__PURE__*/ promisify(fsUnlink);
+export const stat = /*@__PURE__*/ promisify(fsStat);
+export const writeFile = /*@__PURE__*/ promisify(fsWriteFile);
+export const mkdir = /*@__PURE__*/ promisify(fsMkdir);
 
 export function emptyDir(dir: string) {
   if (existsSync(dir)) {
@@ -277,6 +281,7 @@ export interface PackageJSON {
   keywords?: string[];
   engines?: { [key: string]: string };
   private?: boolean;
+  priority?: number;
 }
 
 export interface CliGenerateOptions {
@@ -295,4 +300,5 @@ export interface CliStarterData {
   name: string;
   description: string;
   dir: string;
+  priority: number;
 }

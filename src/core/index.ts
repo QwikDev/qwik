@@ -10,7 +10,7 @@
 // Developer Core API
 //////////////////////////////////////////////////////////////////////////////////////////
 export { PropsOf, qComponent, QComponent, StateOf } from './component/q-component.public';
-export { qHook, QHook } from './component/qrl-hook.public';
+export { qHook, QHook, qHookMap as __internal_qHookMap } from './component/qrl-hook.public';
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Event API
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -63,4 +63,4 @@ export { ValueOrPromise } from './util/types';
 /**
  * @alpha
  */
-export const version = (globalThis as any).QWIK_VERSION;
+export const version = (globalThis as any).QWIK_VERSION as string;

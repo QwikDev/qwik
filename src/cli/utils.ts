@@ -10,6 +10,7 @@ import {
 import color from 'kleur';
 import { join, resolve } from 'path';
 import type { PackageJSON } from 'scripts/util';
+import { extname } from 'src/core/util/path';
 
 export function panic(msg: string) {
   console.error(`\n❌ ${color.red(msg)}\n`);
@@ -32,17 +33,30 @@ export function createOutDir(outDirName: string) {
   return resolve(process.cwd(), outDirName);
 }
 
-export function cp(srcDir: string, destDir: string) {
+export type Replacements = [RegExp, string][];
+
+export function cp(srcDir: string, destDir: string, replacements: Replacements) {
   const items = readdirSync(srcDir);
   for (const itemName of items) {
     const srcChildPath = join(srcDir, itemName);
     const destChildPath = join(destDir, itemName);
     const s = statSync(srcChildPath);
     if (s.isDirectory()) {
-      mkdirSync(destChildPath);
-      cp(srcChildPath, destChildPath);
+      mkdirSync(destChildPath, { recursive: true });
+      cp(srcChildPath, destChildPath, replacements);
     } else if (s.isFile()) {
-      copyFileSync(srcChildPath, destChildPath);
+      const shouldReplace =
+        replacements.length > 0 &&
+        ['.json', '.toml', '.md', '.html'].includes(extname(srcChildPath));
+      if (shouldReplace) {
+        let srcContent = readFileSync(srcChildPath, 'utf8');
+        for (const regex of replacements) {
+          srcContent = srcContent.replace(regex[0], regex[1]);
+        }
+        writeFileSync(destChildPath, srcContent);
+      } else {
+        copyFileSync(srcChildPath, destChildPath);
+      }
     }
   }
 }

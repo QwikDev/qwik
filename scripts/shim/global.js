@@ -1,11 +1,11 @@
-if (typeof globalThis == 'undefined') {
+if (typeof global == 'undefined') {
   const e =
-    'undefined' != typeof global
-      ? global
+    'undefined' != typeof globalThis
+      ? globalThis
       : 'undefined' != typeof window
       ? window
       : 'undefined' != typeof self
       ? self
       : {};
-  e.globalThis = e;
+  e.global = e;
 }

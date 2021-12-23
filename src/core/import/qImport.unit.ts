@@ -36,21 +36,28 @@ describe('qImport', () => {
 
 describe('qExport', () => {
   it('should return "default" if there is no hash', () => {
-    expect(qExport(new URL('http://localhost/path'))).toEqual('default');
+    expect(qExport('http://localhost/path')).toEqual('default');
+    expect(qExport('')).toEqual('default');
   });
 
   it('should return "default" if there is an empty hash', () => {
-    expect(qExport(new URL('http://localhost/path#'))).toEqual('default');
+    expect(qExport('http://localhost/path#')).toEqual('default');
+    expect(qExport('#')).toEqual('default');
   });
 
   it('should extract the export name from the hash', () => {
-    expect(qExport(new URL('http://localhost/path#abc'))).toEqual('abc');
+    expect(qExport('http://localhost/path#abc')).toEqual('abc');
+    expect(qExport('path#abc')).toEqual('abc');
   });
 
   it('should exclude QRL params from the export name', () => {
-    expect(qExport(new URL('http://localhost/path#abc?foo=bar'))).toEqual('abc');
-    expect(qExport(new URL('http://localhost/path?foo=bar'))).toEqual('default');
-    expect(qExport(new URL('http://localhost/path#?foo=bar'))).toEqual('default');
+    expect(qExport('http://localhost/path#abc?foo=bar')).toEqual('abc');
+    expect(qExport('http://localhost/path?foo=bar')).toEqual('default');
+    expect(qExport('http://localhost/path#?foo=bar')).toEqual('default');
+
+    expect(qExport('./path#abc?foo=bar')).toEqual('abc');
+    expect(qExport('path?foo=bar')).toEqual('default');
+    expect(qExport('/path#?foo=bar')).toEqual('default');
   });
 });
 

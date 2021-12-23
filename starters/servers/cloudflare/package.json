@@ -1,0 +1,19 @@
+{
+  "name": "qwik-project-name",
+  "description": "Cloudflare Workers (serverless)",
+  "priority": -1,
+  "scripts": {
+    "build": "npm run clean && npm run build.client && npm run build.server",
+    "build.client": "rollup -c",
+    "build.server": "rollup -c rollup.config.server.js",
+    "deploy": "wrangler publish",
+    "start": "wrangler dev"
+  },
+  "devDependencies": {
+    "@cloudflare/kv-asset-handler": "^0.2.0",
+    "@cloudflare/workers-types": "^3.2.0",
+    "@types/service-worker-mock": "^2.0.1",
+    "@rollup/plugin-commonjs": "^21.0.1",
+    "@rollup/plugin-json": "^4.1.0"
+  }
+}

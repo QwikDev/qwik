@@ -4,6 +4,8 @@
 
 ```ts
 
+import type { NormalizedOutputOptions } from 'rollup';
+
 // @alpha (undocumented)
 export interface ComponentEntryStrategy {
     // (undocumented)
@@ -142,7 +144,7 @@ export interface QwikPluginOptions {
     // (undocumented)
     minify?: MinifyMode;
     // (undocumented)
-    symbolsPath?: string;
+    symbolsOutput?: string | ((data: OutputEntryMap, output: NormalizedOutputOptions) => Promise<void> | void);
     // (undocumented)
     transpile?: boolean;
 }
@@ -220,7 +222,7 @@ export type TranspileOption = boolean | undefined | null;
 
 // @alpha (undocumented)
 export const versions: {
-    qwik: any;
+    qwik: string;
 };
 
 // (No @packageDocumentation comment for this package)

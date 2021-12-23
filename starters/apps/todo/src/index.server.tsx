@@ -8,15 +8,15 @@
 
 import { h } from '@builder.io/qwik';
 import { renderToString, RenderToStringOptions, QwikLoader } from '@builder.io/qwik/server';
-import { ToDoApp } from './components.qwik';
-import type { Todos } from './state.qwik';
+import { ToDoApp } from './components';
+import type { Todos } from './state';
 
 /**
  * Entry point for server-side pre-rendering.
  *
  * @returns a promise when all of the rendering is completed.
  */
-export default function serverRender(opts: RenderToStringOptions) {
+export function renderApp(opts: RenderToStringOptions) {
   const todos: Todos = {
     filter: 'all',
     items: [
@@ -30,10 +30,10 @@ export default function serverRender(opts: RenderToStringOptions) {
     <html>
       <head>
         <title>Qwik Demo: ToDo</title>
-        <link rel="stylesheet" href="base.css" />
-        <link rel="stylesheet" href="index.css" />
+        <link rel="stylesheet" href="/base.css" />
+        <link rel="stylesheet" href="/index.css" />
       </head>
-      <body>
+      <body q:base="/build/">
         <ToDoApp todos={todos} />
         <QwikLoader debug={opts.debug} />
       </body>

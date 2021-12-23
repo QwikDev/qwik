@@ -10,6 +10,7 @@ import {
   mergeSort,
   panic,
   readPackageJson,
+  Replacements,
   validateOutDir,
   writePackageJson,
   writeToCwd,
@@ -51,13 +52,14 @@ function generateUserStarter(
   starterServer: CliStarterData | undefined,
   projectName: string
 ) {
-  cp(starterApp.dir, outDir);
+  const replacements: Replacements = [[/\bqwik-project-name\b/g, projectName]];
+  cp(starterApp.dir, outDir, replacements);
 
   const pkgJson = readPackageJson(starterApp.dir);
 
   if (starterServer) {
     pkgJson.name = projectName;
-    cp(starterServer.dir, outDir);
+    cp(starterServer.dir, outDir, replacements);
 
     const serverPkgJson = readPackageJson(starterServer.dir);
     mergeSort(pkgJson, serverPkgJson, 'scripts');

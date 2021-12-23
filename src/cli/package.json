@@ -1,6 +1,6 @@
 {
   "name": "create-qwik",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Interactive CLI for generating Qwik projects.",
   "bin": {
     "create-qwik": "index.js"
@@ -14,7 +14,9 @@
   "keywords": [
     "qwik",
     "generator",
-    "builder.io"
+    "builder.io",
+    "partytown",
+    "mitosis"
   ],
   "homepage": "https://github.com/BuilderIO/qwik#readme",
   "repository": {

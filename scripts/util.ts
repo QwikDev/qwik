@@ -281,6 +281,7 @@ export interface PackageJSON {
   keywords?: string[];
   engines?: { [key: string]: string };
   private?: boolean;
+  priority?: number;
 }
 
 export interface CliGenerateOptions {
@@ -299,4 +300,5 @@ export interface CliStarterData {
   name: string;
   description: string;
   dir: string;
+  priority: number;
 }

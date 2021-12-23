@@ -1,6 +1,7 @@
 {
   "name": "qwik-project-name",
-  "description": "Cloudflare Workers Server",
+  "description": "Cloudflare Workers (serverless)",
+  "priority": -1,
   "scripts": {
     "build": "npm run clean && npm run build.client && npm run build.server",
     "build.client": "rollup -c",

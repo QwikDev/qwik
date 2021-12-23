@@ -66,7 +66,7 @@ function generateUserStarter(
     mergeSort(pkgJson, serverPkgJson, 'dependencies');
     mergeSort(pkgJson, serverPkgJson, 'devDependencies');
   }
-
+  delete pkgJson.priority;
   writePackageJson(outDir, pkgJson);
 
   const isCwdDir = process.cwd() === outDir;

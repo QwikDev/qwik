@@ -67,14 +67,13 @@ export function createDocument(opts?: DocumentOptions) {
 export async function renderToDocument(
   doc: Document,
   rootNode: any,
-  opts?: RenderToDocumentOptions
+  opts: RenderToDocumentOptions
 ) {
   if (!doc || doc.nodeType !== 9) {
     throw new Error(`Invalid document`);
   }
 
-  opts = opts || {};
-  setServerPlatform(doc, opts);
+  await setServerPlatform(doc, opts);
 
   await qRender(doc, rootNode);
 
@@ -88,7 +87,7 @@ export async function renderToDocument(
  * then serializes the document to a string.
  * @public
  */
-export async function renderToString(rootNode: any, opts?: RenderToStringOptions) {
+export async function renderToString(rootNode: any, opts: RenderToStringOptions) {
   const createDocTimer = createTimer();
   const doc = createDocument(opts);
   const createDocTime = createDocTimer();

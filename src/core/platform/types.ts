@@ -1,3 +1,5 @@
+import type { QRL } from '..';
+
 /**
  * @public
  */
@@ -5,11 +7,7 @@ export interface CorePlatform {
   /**
    * Dynamic import()
    */
-  import: (url: string) => Promise<any>;
-  /**
-   * Step to modify a dynamic import's path, such as adding .js, .mjs, or .cjs
-   */
-  toPath: (url: URL) => string;
+  importSymbol: (element: Element, url: string | QRL | URL) => Promise<any>;
   /**
    * Platform specific queue, such as process.nextTick() for Node
    * and requestAnimationFrame() for the browser.

@@ -1,0 +1,18 @@
+name = "qwik-project-name"
+type = "javascript"
+
+account_id = ""
+workers_dev = true
+route = ""
+zone_id = ""
+compatibility_date = "2021-12-13"
+
+[build]
+command = "npm run build"
+
+[build.upload]
+format = "service-worker"
+
+[site]
+bucket = "public" # directory with your static assets
+entry-point = "workers-site" # JS folder serving your assets

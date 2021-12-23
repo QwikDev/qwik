@@ -22,7 +22,7 @@ export function renderApp(opts: RenderToStringOptions) {
         <title>Qwik + Partytown Blank App</title>
         <script defer async src="~partytown/debug/partytown.js"></script>
       </head>
-      <body>
+      <body q:base="/build/">
         <MyApp />
         <script type="text/partytown">
           ({partyTownExampleWhichBlocksMainThreadForOneSecond.toString()})()

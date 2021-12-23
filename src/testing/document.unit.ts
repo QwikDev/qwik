@@ -12,7 +12,7 @@ import { pathToFileURL } from 'url';
 describe('global', () => {
   it('should create document', () => {
     const global = createGlobal({
-      url: pathToFileURL(__filename).href,
+      url: pathToFileURL(__filename),
     });
     expect(global.document.baseURI).toContain('file://');
     expect(global.document.baseURI).toContain('document.unit.ts');

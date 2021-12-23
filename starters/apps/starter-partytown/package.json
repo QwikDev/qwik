@@ -9,7 +9,7 @@
     "serve": "echo \"server not setup\""
   },
   "devDependencies": {
-    "@builder.io/qwik": "~0.0.15",
+    "@builder.io/qwik": "0.0.16-1",
     "@rollup/plugin-node-resolve": "^13.0.6",
     "concurrently": "^6.4.0",
     "rimraf": "^3.0.2",

@@ -14,7 +14,7 @@ function createPlatform(document: any, opts?: DocumentOptions) {
   const doc: Document = document;
 
   if (opts?.url) {
-    doc.location.href = new URL(opts.url, 'http://qwik.local').href;
+    doc.location.href = opts.url.href;
   }
   const symbolCache = new Map<string, { [symbol: string]: any }>();
   const serverPlatform: CorePlatform = {

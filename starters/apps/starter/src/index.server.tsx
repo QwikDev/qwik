@@ -21,7 +21,7 @@ export function renderApp(opts: RenderToStringOptions) {
       <head>
         <title>Qwik Blank App</title>
       </head>
-      <body>
+      <body q:base="/build/">
         <MyApp />
         <QwikLoader debug={opts.debug} />
       </body>

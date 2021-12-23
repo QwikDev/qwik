@@ -31,7 +31,7 @@ async function handleQwik(event: any, request: Request) {
   }
 
   const ssrResult = await renderApp({
-    url: request.url,
+    url: new URL(request.url),
     symbols,
   });
 

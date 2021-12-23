@@ -27,7 +27,7 @@ export interface QwikDocument extends Document {}
  * @public
  */
 export interface DocumentOptions {
-  url?: string;
+  url?: URL;
   debug?: boolean;
 }
 

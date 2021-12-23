@@ -22,7 +22,7 @@ export function createGlobal(opts?: GlobalOptions): QwikGlobal {
   opts = opts || {};
 
   const doc: QwikDocument = domino.createDocument() as any;
-  const baseURI = typeof opts.url !== 'string' ? BASE_URI : opts.url;
+  const baseURI = opts.url === undefined ? BASE_URI : opts.url.href;
   const loc = new URL(baseURI, BASE_URI);
 
   Object.defineProperty(doc, 'baseURI', {

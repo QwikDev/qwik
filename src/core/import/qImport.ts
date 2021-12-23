@@ -7,9 +7,8 @@
  */
 
 import { isParsedQRL, QRL } from './qrl';
-import { QError, qError } from '../error/error';
 import { getPlatform } from '../platform/platform';
-import { qTest, qDev } from '../util/qdev';
+import { qTest } from '../util/qdev';
 import { fromQRL } from './qrl-test';
 import { assertDefined } from '../assert/assert';
 
@@ -35,34 +34,8 @@ export function qImport<T>(element: Element, url: string | QRL<T> | URL): T | Pr
   }
   const doc: QDocument = element.ownerDocument!;
   const corePlatform = getPlatform(doc);
-  const normalizedUrl = toUrl(doc, element, url);
-  const importPath = corePlatform.toPath(normalizedUrl);
-  const exportName = qExport(normalizedUrl);
-  const cacheKey = importPath + '#' + exportName;
-  const cacheValue = (
-    doc[ImportCacheKey] || (doc[ImportCacheKey] = new Map<string, unknown | Promise<unknown>>())
-  ).get(cacheKey);
-  if (cacheValue) return cacheValue as T | Promise<T>;
-
-  const promise = corePlatform.import(importPath).then((module) => {
-    const handler = module[exportName];
-    if (!handler)
-      if (qDev) {
-        throw qError(
-          QError.Core_missingExport_name_url_props,
-          exportName,
-          importPath,
-          Object.keys(module)
-        );
-      } else {
-        throw qError(QError.Core_missingExport_name_url_props);
-      }
-
-    qImportSet(doc, cacheKey, handler);
-    return handler;
-  });
-  qImportSet(doc, cacheKey, promise);
-  return promise;
+  const handler = corePlatform.importSymbol(element, url);
+  return handler;
 }
 
 export function qImportSet(doc: QDocument, cacheKey: string, value: any): void {
@@ -70,51 +43,18 @@ export function qImportSet(doc: QDocument, cacheKey: string, value: any): void {
 }
 
 /**
- * Convert relative base URI and relative URL into a fully qualified URL.
- *
- * @param base -`QRL`s are relative, and therefore they need a base for resolution.
- *    - `Element` use `base.ownerDocument.baseURI`
- *    - `Document` use `base.baseURI`
- *    - `string` use `base` as is
- *    - `QConfig` use `base.baseURI`
- * @param url - relative URL
- * @returns fully qualified URL.
- */
-export function toUrl(doc: Document, element: Element | null, url?: string | QRL | URL): URL {
-  let _url: string | QRL | URL;
-  let _base: string | URL | undefined = undefined;
-
-  if (url === undefined) {
-    //  recursive call
-    if (element) {
-      _url = element.getAttribute('q:base')!;
-      _base = toUrl(
-        doc,
-        element.parentNode && (element.parentNode as HTMLElement).closest('[q\\:base]')
-      );
-    } else {
-      _url = doc.baseURI;
-    }
-  } else if (url) {
-    (_url = url), (_base = toUrl(doc, element!.closest('[q\\:base]')));
-  } else {
-    throw new Error('INTERNAL ERROR');
-  }
-  return new URL(String(_url), _base);
-}
-
-/**
  * Extract the QRL export name from a URL.
  *
  * This name is encoded in the hash of the URL, before any `?`.
  */
-export function qExport(url: URL): string {
+export function qExport(url: string): string {
   // 1 - optional `#` at the start.
   // 2 - capture group `$1` containing the export name, stopping at the first `?`.
   // 3 - the rest from the first `?` to the end.
   // The hash string is replaced by the captured group that contains only the export name.
   //                       1112222222333
-  return url.hash.replace(/^#?([^?]*).*$/, '$1') || 'default';
+  const match = url.match(/#([^?]*).*$/);
+  return match?.[1] || 'default';
 }
 
 /**

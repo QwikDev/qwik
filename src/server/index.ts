@@ -9,7 +9,6 @@ export type {
   RenderToStringResult,
 } from './types';
 export { createDocument, createGlobal, renderToDocument, renderToString } from './document';
-export { createServerRenderer } from './create-server-renderer';
 export { createTimer } from './utils';
 export { getImports } from './prefetch';
 export { getQwikLoaderScript, getQwikPrefetchScript } from './scripts';
@@ -21,6 +20,6 @@ export { setServerPlatform } from './platform';
  * @alpha
  */
 export const versions = {
-  qwik: (globalThis as any).QWIK_VERSION,
-  domino: (globalThis as any).DOMINO_VERSION,
+  qwik: (globalThis as any).QWIK_VERSION as string,
+  domino: (globalThis as any).DOMINO_VERSION as string,
 };

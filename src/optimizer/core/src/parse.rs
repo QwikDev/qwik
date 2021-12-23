@@ -127,7 +127,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
     let path_data = parse_path(config.path)?;
     let module = parse(config.code, &path_data, Lrc::clone(&source_map));
     if config.print_ast {
-        eprintln!("{:?}", module);
+        dbg!(&module);
     }
     let transpile = config.transpile;
 
@@ -156,7 +156,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                     let mut main_module = {
                         let mut passes = chain!(
                             pass::Optional::new(
-                                typescript::strip(),
+                                typescript::strip(top_level_mark),
                                 transpile && is_type_script && !is_jsx
                             ),
                             pass::Optional::new(
@@ -374,16 +374,12 @@ fn parse(
     let syntax = if is_type_script {
         Syntax::Typescript(TsConfig {
             tsx: is_jsx,
-            dynamic_import: true,
             ..Default::default()
         })
     } else {
         Syntax::Es(EsConfig {
             jsx: is_jsx,
-            dynamic_import: true,
             export_default_from: true,
-            export_namespace_from: true,
-            import_meta: true,
             ..Default::default()
         })
     };

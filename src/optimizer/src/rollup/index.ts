@@ -9,7 +9,8 @@ import {
   TransformOutput,
   TransformModule,
 } from '..';
-import type { InputOption, Plugin } from 'rollup';
+
+import type { InputOption, NormalizedOutputOptions, Plugin } from 'rollup';
 
 /**
  * @alpha
@@ -18,17 +19,7 @@ export function qwikRollup(opts: QwikPluginOptions = {}): any {
   const transformedOutputs = new Map<string, TransformModule>();
   let optimizer: Optimizer | undefined;
   let result: TransformOutput | undefined;
-
-  const symbolsWriters: SymbolsWriter[] = [];
-  const clientOutputEntryMaps: OutputEntryMap[] = [];
-
-  const writeSymbols = () => {
-    for (const symbolsWriter of symbolsWriters) {
-      for (const clientOutputEntryMap of clientOutputEntryMaps) {
-        symbolsWriter(clientOutputEntryMap);
-      }
-    }
-  };
+  let outputCount = 0;
 
   if (!opts.entryStrategy) {
     opts.entryStrategy = { type: 'hook' };
@@ -54,9 +45,7 @@ export function qwikRollup(opts: QwikPluginOptions = {}): any {
       if (!optimizer) {
         optimizer = await createOptimizer();
       }
-      symbolsWriters.length = 0;
-      clientOutputEntryMaps.length = 0;
-
+      outputCount = 0;
       const transformOpts: TransformFsOptions = {
         rootDir: findInputDirectory(optimizer.path, options.input),
         entryStrategy: opts.entryStrategy,
@@ -120,7 +109,8 @@ export function qwikRollup(opts: QwikPluginOptions = {}): any {
     },
 
     async generateBundle(outputOpts, rollupBundle) {
-      if (result && outputOpts.format === 'es') {
+      if (result && outputOpts.format === 'es' && outputCount === 0 && opts.symbolsOutput) {
+        outputCount++;
         const output = Object.entries(rollupBundle);
 
         const outputEntryMap: OutputEntryMap = {
@@ -144,19 +134,14 @@ export function qwikRollup(opts: QwikPluginOptions = {}): any {
           ),
           version: '1',
         };
-
-        clientOutputEntryMaps.push(outputEntryMap);
-        writeSymbols();
-      } else if (outputOpts.format === 'cjs') {
-        if (outputOpts.dir && opts.symbolsPath) {
-          symbolsWriters.push((outputEntryMap) => {
-            this.emitFile({
-              fileName: opts.symbolsPath,
-              source: JSON.stringify(outputEntryMap, null, 2),
-              type: 'asset',
-            });
+        if (typeof opts.symbolsOutput === 'string') {
+          this.emitFile({
+            fileName: opts.symbolsOutput,
+            source: JSON.stringify(outputEntryMap, null, 2),
+            type: 'asset',
           });
-          writeSymbols();
+        } else if (typeof opts.symbolsOutput === 'function') {
+          await opts.symbolsOutput(outputEntryMap, outputOpts);
         }
       }
     },
@@ -206,7 +191,7 @@ export interface QwikPluginOptions {
   entryStrategy?: EntryStrategy;
   transpile?: boolean;
   minify?: MinifyMode;
-  symbolsPath?: string;
+  symbolsOutput?:
+    | string
+    | ((data: OutputEntryMap, output: NormalizedOutputOptions) => Promise<void> | void);
 }
-
-type SymbolsWriter = (outputEntryMap: OutputEntryMap) => void;

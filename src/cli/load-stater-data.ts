@@ -23,12 +23,15 @@ function loadStarterData(startersDir: string, dirName: string) {
       const data: CliStarterData = {
         id,
         name: dashToTitlelCase(id),
-        description: pkgJson.description!,
+        description: pkgJson.description ?? '',
         dir: dataDir,
+        priority: pkgJson.priority ?? 0,
       };
       return data;
     })
     .sort((a, b) => {
+      if (a.priority > b.priority) return -1;
+      if (a.priority < b.priority) return 1;
       if (a.name < b.name) return -1;
       if (a.name > b.name) return 1;
       return 0;

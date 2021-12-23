@@ -1,4 +1,5 @@
-import type { SerializeDocumentOptions } from './types';
+import type { OutputEntryMap } from '@builder.io/qwik/optimizer';
+import type { QrlMapper, SerializeDocumentOptions } from './types';
 
 /**
  * Serializes the given `document` to a string. Additionally, will serialize the
@@ -15,8 +16,12 @@ export function serializeDocument(doc: Document, opts?: SerializeDocumentOptions
 
   let html = '<!DOCTYPE html>' + doc.documentElement.outerHTML;
 
-  const qrlMapper = opts?.qrlMapper;
-  if (typeof qrlMapper === 'function') {
+  let symbols = opts?.symbols;
+  if (typeof symbols === 'object' && symbols != null) {
+    symbols = createQrlMapper(symbols);
+  }
+  if (typeof symbols === 'function') {
+    const qrlMapper = symbols;
     html = html.replace(
       QRL_MATCHER,
       (_, _prefix, _qrl, path, symbol) => `="${qrlMapper(path, symbol)}"`
@@ -24,6 +29,32 @@ export function serializeDocument(doc: Document, opts?: SerializeDocumentOptions
   }
 
   return html;
+}
+
+/**
+ * Parses the QRL mapping JSON and returns the transform closure.
+ * @alpha
+ */
+function createQrlMapper(qEntryMap: OutputEntryMap) {
+  if (qEntryMap.version !== '1') {
+    throw new Error('QRL entry map version is not 1');
+  }
+  if (typeof qEntryMap.mapping !== 'object' || qEntryMap.mapping === null) {
+    throw new Error('QRL entry mapping is not an object');
+  }
+
+  const symbolManifest = new Map<string, string>();
+
+  Object.entries(qEntryMap.mapping).forEach(([symbolName, chunkName]) => {
+    symbolManifest.set(symbolName, chunkName);
+  });
+
+  const qrlMapper: QrlMapper = (path, symbolName) => {
+    path = symbolManifest.get(symbolName) || path;
+    path = path.slice(0, path.lastIndexOf('.'));
+    return `./${path}#${symbolName}`;
+  };
+  return qrlMapper;
 }
 
 // https://regexr.com/69fs7

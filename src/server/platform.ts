@@ -6,16 +6,16 @@ import type { DocumentOptions } from './types';
 const _setInmediate = typeof setImmediate === 'function' ? setImmediate : setTimeout;
 const _nextTick = typeof queueMicrotask === 'function' ? queueMicrotask : process.nextTick;
 
-function createPlatform(document: Document, opts?: DocumentOptions) {
+function createPlatform(document: any, opts?: DocumentOptions) {
   if (!document || (document as Document).nodeType !== 9) {
     throw new Error(`Invalid Document implementation`);
   }
   let queuePromise: Promise<any> | null;
+  const doc: Document = document;
 
   if (opts?.url) {
-    document.location.href = opts.url;
+    doc.location.href = opts.url;
   }
-  const doc: Document = document;
   const symbolCache = new Map<string, { [symbol: string]: any }>();
   const serverPlatform: CorePlatform = {
     importSymbol(_, url) {

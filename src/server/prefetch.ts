@@ -1,3 +1,5 @@
+import { join } from '../core/util/path';
+
 /**
  * Returns a list of imports for a JavaScript file.
  * @param file contents of JS file
@@ -40,7 +42,6 @@ export async function getImports(
   filePath: string,
   readFileFn: (path: string) => Promise<string> = readFile
 ): Promise<string[]> {
-  const { join } = await import('path');
   const imports: string[] = [];
   await Promise.all(
     getImportsFromSource(await readFileFn(filePath)).map(async (fileImport) => {

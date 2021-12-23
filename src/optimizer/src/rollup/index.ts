@@ -140,7 +140,7 @@ export function qwikRollup(opts: QwikPluginOptions = {}): any {
             source: JSON.stringify(outputEntryMap, null, 2),
             type: 'asset',
           });
-        } else {
+        } else if (typeof opts.symbolsOutput === 'function') {
           await opts.symbolsOutput(outputEntryMap, outputOpts);
         }
       }

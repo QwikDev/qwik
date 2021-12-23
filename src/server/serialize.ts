@@ -36,19 +36,24 @@ export function serializeDocument(doc: Document, opts?: SerializeDocumentOptions
  * @alpha
  */
 function createQrlMapper(qEntryMap: OutputEntryMap) {
+  if (qEntryMap.version !== '1') {
+    throw new Error('QRL entry map version is not 1');
+  }
+  if (typeof qEntryMap.mapping !== 'object' || qEntryMap.mapping === null) {
+    throw new Error('QRL entry mapping is not an object');
+  }
+
   const symbolManifest = new Map<string, string>();
+
+  Object.entries(qEntryMap.mapping).forEach(([symbolName, chunkName]) => {
+    symbolManifest.set(symbolName, chunkName);
+  });
 
   const qrlMapper: QrlMapper = (path, symbolName) => {
     path = symbolManifest.get(symbolName) || path;
     path = path.slice(0, path.lastIndexOf('.'));
     return `./${path}#${symbolName}`;
   };
-
-  for (const symbolName in qEntryMap.mapping) {
-    const chunkName = qEntryMap.mapping[symbolName];
-    symbolManifest.set(symbolName, chunkName);
-  }
-
   return qrlMapper;
 }
 

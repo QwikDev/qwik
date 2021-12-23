@@ -4,7 +4,7 @@ import { existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { qExport } from '../core/import/qImport';
 
-function createPlatform(document: Document) {
+function createPlatform(document: any) {
   if (!document || (document as Document).nodeType !== 9) {
     throw new Error(`Invalid Document implementation`);
   }

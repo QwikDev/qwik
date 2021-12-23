@@ -21,7 +21,6 @@ export default async function () {
     ],
     output: [
       {
-        intro: 'const global = globalThis;',
         dir: 'workers-site/build',
         format: 'commonjs',
       },

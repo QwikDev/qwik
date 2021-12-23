@@ -1,5 +1,6 @@
 /**
- * Utility timer function for Nodejs performance profiling.
+ * Utility timer function for performance profiling.
+ * Returns a duration of 0 in environments that do not support performance.
  * @alpha
  */
 export function createTimer() {

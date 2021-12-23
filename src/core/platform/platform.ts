@@ -1,7 +1,7 @@
 import { isDocument } from '../util/element';
 
-import type { CorePlatform, QRL } from '@builder.io/qwik';
 import { qExport } from '../import/qImport';
+import type { QRL, CorePlatform } from '..';
 
 export const createPlatform = (doc: Document): CorePlatform => {
   let queuePromise: Promise<any> | null;

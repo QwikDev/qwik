@@ -1,5 +1,6 @@
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 import { qwikRollup } from '@builder.io/qwik/optimizer';
+import { writeFile, mkdir } from "fs/promises";
 
 export default async function () {
   return {
@@ -27,4 +28,9 @@ export default async function () {
       },
     ],
   };
+}
+
+async function outputJSON(path, data) {
+  await mkdir(path, {recursive: true});
+  await writeFile(path, JSON.stringify(data, null, 2));
 }

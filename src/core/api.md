@@ -4,8 +4,6 @@
 
 ```ts
 
-import type { CorePlatform as CorePlatform_2 } from '@builder.io/qwik';
-
 // @alpha (undocumented)
 export const __internal_qHookMap: Map<any, any>;
 
@@ -46,7 +44,7 @@ export interface FunctionComponent<P = {}> {
 }
 
 // @public (undocumented)
-export const getPlatform: (docOrNode: Document | Node) => CorePlatform_2;
+export const getPlatform: (docOrNode: Document | Node) => CorePlatform;
 
 // @public (undocumented)
 export function h<PROPS extends {} = {}>(type: string | FunctionComponent<PROPS>, props: PROPS | null, ...children: any[]): JSXNode;
@@ -306,7 +304,7 @@ export type RenderableProps<P, RefType = any> = P & Readonly<{
 }>;
 
 // @public (undocumented)
-export const setPlatform: (doc: Document, plt: CorePlatform_2) => CorePlatform_2;
+export const setPlatform: (doc: Document, plt: CorePlatform) => CorePlatform;
 
 // @public (undocumented)
 export const Slot: FunctionComponent<HTMLAttributes<{

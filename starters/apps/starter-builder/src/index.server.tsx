@@ -21,7 +21,7 @@ export function renderApp(opts: RenderToStringOptions) {
       <head>
         <title>Qwik Blank App</title>
       </head>
-      <body>
+      <body q:base="/build/">
         <Header />
         <div id="my-content"></div>
         <Footer />

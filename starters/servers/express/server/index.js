@@ -9,7 +9,7 @@ async function startServer() {
   async function handleQwik(req, res) {
     const result = await renderApp({
       symbols,
-      url: req.url,
+      url: new URL(req.url),
       debug: true,
     });
     res.send(result.html);
@@ -17,9 +17,7 @@ async function startServer() {
 
   const app = express();
   const publicDir = join(__dirname, '..', 'public');
-  const buildDir = join(__dirname, '..', 'public', 'build');
   app.use(express.static(publicDir));
-  app.use(express.static(buildDir));
 
   // Optionally server Partytown if found.
   const partytownDir = join(__dirname, '..', 'node_modules', '@builder.io', 'partytown', 'lib');

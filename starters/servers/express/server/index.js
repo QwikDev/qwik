@@ -1,7 +1,7 @@
 const express = require('express');
 const { join } = require('path');
 const { existsSync } = require('fs');
-const { renderApp } = require('./build/index.server.qwik.js');
+const { renderApp } = require('./build/index.server.js');
 const symbols = require('./build/q-symbols.json');
 const PORT = process.env.PORT || 8080;
 

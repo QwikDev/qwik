@@ -1,20 +1,20 @@
 {
-  "name": "qwik-todo-express",
+  "name": "qwik-project-name",
   "version": "0.0.1",
   "description": "Classic Todo MVC app",
   "scripts": {
     "build": "npm run clean && rollup -c",
     "clean": "rimraf */build/",
-    "start": "npm run clean && concurrently -c blue,green \"rollup -c --configDev --watch\" \"wait-on public/build && npm run serve\"",
-    "serve": "echo \"server not setup\""
+    "serve": "echo 'missing server'",
+    "start": "npm run clean && concurrently -c blue,green \"rollup -c --configDev --watch\" \"wait-on public/build && npm run serve\""
   },
   "devDependencies": {
-    "@builder.io/qwik": "~0.0.15",
+    "@builder.io/qwik": "~0.0.14",
     "@rollup/plugin-node-resolve": "^13.0.6",
-    "@rollup/plugin-typescript": "^8.3.0",
     "concurrently": "^6.4.0",
     "rimraf": "^3.0.2",
     "rollup": "^2.59.0",
+    "rollup-plugin-terser": "^7.0.2",
     "typescript": "^4.5.2",
     "wait-on": "^6.0.0"
   },

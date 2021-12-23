@@ -1,20 +1,14 @@
 const express = require('express');
-const path = require('path');
-const qwik = require('@builder.io/qwik/server');
 const { join } = require('path');
 const { existsSync } = require('fs');
-
+const { renderApp } = require('./build/index.server.js');
+const symbols = require('./build/q-symbols.json');
 const PORT = process.env.PORT || 8080;
 
 async function startServer() {
-  const render = await qwik.createServerRenderer({
-    serverDir: path.join(__dirname, 'build'),
-    serverMainPath: 'index.server.qwik.js',
-    symbolsPath: 'q-symbols.json',
-  });
-
-  async function indexHandler(req, res) {
-    const result = await render({
+  async function handleQwik(req, res) {
+    const result = await renderApp({
+      symbols,
       url: req.url,
       debug: true,
     });
@@ -33,7 +27,8 @@ async function startServer() {
     app.use('/~partytown', express.static(partytownDir));
   }
 
-  app.get('/', indexHandler);
+  app.get('/', handleQwik);
+
   app.listen(PORT, () => {
     // eslint-disable-next-line no-console
     console.log(`http://localhost:${PORT}/`);

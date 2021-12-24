@@ -28,10 +28,10 @@ use swc_ecmascript::parser::{EsConfig, PResult, Parser, StringInput, Syntax, TsC
 use swc_ecmascript::transforms::{
     fixer,
     hygiene::{self, hygiene_with_config},
-    resolver_with_mark,
+    optimization::simplify,
+    pass, react, resolver_with_mark, typescript,
 };
-use swc_ecmascript::transforms::{optimization::simplify, pass, react, typescript};
-use swc_ecmascript::visit::FoldWith;
+use swc_ecmascript::visit::{FoldWith, VisitMutWith};
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -151,12 +151,17 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                     };
 
                     let collect = global_collect(&main_module);
-                    let top_level_mark = Mark::fresh(Mark::root());
+                    let global_mark = Mark::fresh(Mark::root());
+
                     let mut hooks: Vec<Hook> = vec![];
+                    let mut main_module = main_module;
+
+                    main_module.visit_mut_with(&mut resolver_with_mark(global_mark));
+
                     let mut main_module = {
                         let mut passes = chain!(
                             pass::Optional::new(
-                                typescript::strip(top_level_mark),
+                                typescript::strip(global_mark),
                                 transpile && is_type_script && !is_jsx
                             ),
                             pass::Optional::new(
@@ -168,7 +173,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                                         ..Default::default()
                                     },
                                     Some(&comments),
-                                    top_level_mark,
+                                    global_mark,
                                 ),
                                 transpile && is_type_script && is_jsx
                             ),
@@ -177,7 +182,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                                     Lrc::clone(&source_map),
                                     Some(&comments),
                                     react_options,
-                                    top_level_mark
+                                    global_mark
                                 ),
                                 transpile && is_jsx
                             ),
@@ -188,44 +193,40 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                                 Some(&comments),
                                 &mut hooks
                             ),
-                            pass::Optional::new(
-                                resolver_with_mark(top_level_mark),
-                                config.minify != MinifyMode::None
-                            ),
-                            pass::Optional::new(
-                                simplify::simplifier(Default::default()),
-                                config.minify != MinifyMode::None
-                            )
                         );
                         main_module.fold_with(&mut passes)
                     };
 
-                    if config.minify == MinifyMode::Minify {
-                        main_module = optimize(
-                            main_module,
-                            Lrc::clone(&source_map),
-                            Some(&comments),
-                            None,
-                            &MinifyOptions {
-                                compress: Some(CompressOptions {
-                                    ..CompressOptions::default()
-                                }),
-                                mangle: Some(MangleOptions {
-                                    top_level: true,
-                                    ..MangleOptions::default()
-                                }),
-                                rename: true,
-                                wrap: false,
-                                enclose: false,
-                            },
-                            &ExtraOptions { top_level_mark },
-                        );
+                    if config.minify != MinifyMode::None {
+                        let top_level_mark = Mark::fresh(Mark::root());
+                        main_module.visit_mut_with(&mut resolver_with_mark(top_level_mark));
+                        main_module =
+                            main_module.fold_with(&mut simplify::simplifier(Default::default()));
 
-                        main_module = main_module
-                            .fold_with(&mut hygiene_with_config(hygiene::Config {
-                                ..Default::default()
-                            }))
-                            .fold_with(&mut fixer(None));
+                        if config.minify == MinifyMode::Minify {
+                            main_module = optimize(
+                                main_module,
+                                Lrc::clone(&source_map),
+                                Some(&comments),
+                                None,
+                                &MinifyOptions {
+                                    compress: Some(CompressOptions {
+                                        ..CompressOptions::default()
+                                    }),
+                                    mangle: Some(MangleOptions {
+                                        top_level: true,
+                                        ..MangleOptions::default()
+                                    }),
+                                    rename: true,
+                                    wrap: false,
+                                    enclose: false,
+                                },
+                                &ExtraOptions { top_level_mark },
+                            );
+                        }
+
+                        main_module.visit_mut_with(&mut hygiene_with_config(Default::default()));
+                        main_module.visit_mut_with(&mut fixer(None));
                     }
 
                     let mut hooks_analysis: Vec<HookAnalysis> = Vec::with_capacity(hooks.len());

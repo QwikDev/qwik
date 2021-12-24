@@ -31,8 +31,7 @@ use swc_ecmascript::transforms::{
     optimization::simplify,
     pass, react, resolver_with_mark, typescript,
 };
-use swc_ecmascript::visit::FoldWith;
-use swc_ecmascript::visit::VisitMutWith;
+use swc_ecmascript::visit::{FoldWith, VisitMutWith};
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]

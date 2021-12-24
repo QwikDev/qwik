@@ -10,7 +10,7 @@ use regex::Regex;
 use std::sync::{Arc, Mutex};
 use swc_atoms::JsWord;
 use swc_common::comments::{Comments, SingleThreadedComments};
-use swc_common::{errors::HANDLER, DUMMY_SP};
+use swc_common::{errors::HANDLER, Span, DUMMY_SP};
 use swc_ecmascript::ast;
 use swc_ecmascript::visit::{noop_fold_type, Fold, FoldWith};
 
@@ -240,6 +240,7 @@ impl<'a> Fold for HookTransform<'a> {
     fn fold_call_expr(&mut self, node: ast::CallExpr) -> ast::CallExpr {
         if let ast::ExprOrSuper::Expr(expr) = &node.callee {
             if let ast::Expr::Ident(id) = &**expr {
+                let qhook_span = id.span;
                 if QCOMPONENT.eq(&id.sym) {
                     if let Some(comments) = self.comments {
                         comments.add_pure_comment(node.span.lo);
@@ -319,7 +320,7 @@ impl<'a> Fold for HookTransform<'a> {
                         origin: self.path_data.path.to_string_lossy().into(),
                     });
 
-                    return create_inline_qhook(import_path, &symbol_name);
+                    return create_inline_qhook(import_path, &symbol_name, qhook_span);
                 }
             }
         }
@@ -328,11 +329,11 @@ impl<'a> Fold for HookTransform<'a> {
     }
 }
 
-fn create_inline_qhook(url: JsWord, symbol: &str) -> ast::CallExpr {
+fn create_inline_qhook(url: JsWord, symbol: &str, span: Span) -> ast::CallExpr {
     ast::CallExpr {
         callee: ast::ExprOrSuper::Expr(Box::new(ast::Expr::Ident(ast::Ident::new(
             QHOOK.clone(),
-            DUMMY_SP,
+            span,
         )))),
         span: DUMMY_SP,
         type_args: None,

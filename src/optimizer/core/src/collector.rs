@@ -2,7 +2,7 @@ use std::collections::{BTreeMap, HashSet};
 
 use swc_atoms::{js_word, JsWord};
 use swc_ecmascript::ast;
-use swc_ecmascript::visit::{noop_visit_type, Visit, VisitWith};
+use swc_ecmascript::visit::{noop_visit_type, visit_expr, visit_stmt, Visit, VisitWith};
 
 macro_rules! id {
     ($ident: expr) => {
@@ -410,13 +410,13 @@ impl Visit for HookCollect {
 
     fn visit_expr(&mut self, node: &ast::Expr) {
         self.expr_ctxt.push(ExprOrSkip::Expr);
-        swc_ecmascript::visit::visit_expr(self, node);
+        visit_expr(self, node);
         self.expr_ctxt.pop();
     }
 
     fn visit_stmt(&mut self, node: &ast::Stmt) {
         self.expr_ctxt.push(ExprOrSkip::Skip);
-        swc_ecmascript::visit::visit_stmt(self, node);
+        visit_stmt(self, node);
         self.expr_ctxt.pop();
     }
 

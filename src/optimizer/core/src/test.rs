@@ -16,6 +16,7 @@ const Header = qComponent({
 });
     "#,
         EntryStrategy::Hook,
+        MinifyMode::Simplify,
         false,
     );
 }
@@ -35,6 +36,7 @@ export const Header = qComponent({
 });
     "#,
         EntryStrategy::Hook,
+        MinifyMode::Simplify,
         false,
     );
 }
@@ -57,6 +59,7 @@ export const App = () => {
 });
     "#,
         EntryStrategy::Hook,
+        MinifyMode::Simplify,
         false,
     );
 }
@@ -79,6 +82,7 @@ export function App() {
 }
     "#,
         EntryStrategy::Hook,
+        MinifyMode::Simplify,
         false,
     );
 }
@@ -100,6 +104,7 @@ export const Header = qComponent({
 });
     "#,
         EntryStrategy::Hook,
+        MinifyMode::Simplify,
         false,
     );
 }
@@ -112,6 +117,7 @@ fn example_6() {
 export const sym1 = qHook((ctx) => console.log("1"));
     "#,
         EntryStrategy::Hook,
+        MinifyMode::Simplify,
         false,
     );
 }
@@ -141,6 +147,7 @@ const App = qComponent({
     })
 });"#,
         EntryStrategy::Hook,
+        MinifyMode::Simplify,
         false,
     );
 }
@@ -164,6 +171,7 @@ const Header = qComponent({
   });
 "#,
         EntryStrategy::Hook,
+        MinifyMode::Simplify,
         false,
     );
 }
@@ -186,6 +194,7 @@ const Header = qHook((decl1, {decl2}, [decl3]) => {
 });
     "#,
         EntryStrategy::Hook,
+        MinifyMode::Simplify,
         false,
     );
 }
@@ -215,6 +224,7 @@ const Header = qHook((decl1, {decl2}, [decl3]) => {
 });
     "#,
         EntryStrategy::Hook,
+        MinifyMode::Simplify,
         false,
     );
 }
@@ -247,6 +257,7 @@ export const App = qComponent({
 });
     "#,
         EntryStrategy::Single,
+        MinifyMode::Simplify,
         false,
     );
 }
@@ -262,6 +273,7 @@ export const Header = qComponent({
 
     "#,
         EntryStrategy::Single,
+        MinifyMode::Simplify,
         false,
     );
 }
@@ -277,6 +289,20 @@ export const Header = qComponent({
 
     "#,
         EntryStrategy::Single,
+        MinifyMode::Simplify,
+        false,
+    );
+}
+
+#[test]
+fn issue_117() {
+    test_input(
+        "project/test.tsx",
+        r#"
+export const cache = patternCache[cacheKey] || (patternCache[cacheKey]={});
+    "#,
+        EntryStrategy::Single,
+        MinifyMode::Simplify,
         false,
     );
 }
@@ -311,7 +337,13 @@ export const Header = qComponent({
 //     }
 // }
 
-fn test_input(filename: &str, code: &str, entry_strategy: EntryStrategy, _print_ast: bool) {
+fn test_input(
+    filename: &str,
+    code: &str,
+    entry_strategy: EntryStrategy,
+    minify: MinifyMode,
+    transpile: bool,
+) {
     let res = transform_modules(TransformModulesOptions {
         root_dir: "/user/qwik/src/".into(),
         input: vec![TransformModuleInput {
@@ -319,8 +351,8 @@ fn test_input(filename: &str, code: &str, entry_strategy: EntryStrategy, _print_
             path: filename.to_string(),
         }],
         source_maps: true,
-        minify: MinifyMode::Simplify,
-        transpile: false,
+        minify,
+        transpile,
         entry_strategy,
     });
     match res {

@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 
 use crate::code_move::fix_path;
-use crate::collector::HookCollect;
+use crate::collector::{HookCollect, Id};
 use crate::entry_strategy::EntryPolicy;
 use crate::parse::PathData;
 use anyhow::{bail, Error};
@@ -26,7 +26,7 @@ pub struct Hook {
     pub name: String,
     pub expr: ast::CallExpr,
     pub local_decl: Vec<JsWord>,
-    pub local_idents: Vec<JsWord>,
+    pub local_idents: Vec<Id>,
     pub origin: String,
 }
 
@@ -245,7 +245,7 @@ impl<'a> Fold for HookTransform<'a> {
                     if let Some(comments) = self.comments {
                         comments.add_pure_comment(node.span.lo);
                     }
-                } else if id.sym == *QHOOK {
+                } else if QHOOK.eq(&id.sym) {
                     let mut node = node;
                     let mut user_symbol = None;
                     if let Some(second_arg) = node.args.get(1) {

@@ -1,13 +1,27 @@
 use std::collections::{BTreeMap, HashSet};
 
 use swc_atoms::{js_word, JsWord};
+use swc_common::{BytePos, Span, SyntaxContext};
 use swc_ecmascript::ast;
 use swc_ecmascript::visit::{noop_visit_type, visit_expr, visit_stmt, Visit, VisitWith};
 
 macro_rules! id {
     ($ident: expr) => {
-        $ident.sym.clone()
+        ($ident.sym.clone(), $ident.span.ctxt())
     };
+}
+
+pub type Id = (JsWord, SyntaxContext);
+
+pub fn new_ident_from_id(id: &Id) -> ast::Ident {
+    ast::Ident::new(
+        id.0.clone(),
+        Span {
+            lo: BytePos(0),
+            hi: BytePos(0),
+            ctxt: id.1,
+        },
+    )
 }
 
 #[derive(PartialEq, Clone, Copy)]
@@ -24,8 +38,8 @@ pub struct Import {
 }
 
 pub struct GlobalCollect {
-    pub imports: BTreeMap<JsWord, Import>,
-    pub exports: BTreeMap<JsWord, JsWord>,
+    pub imports: BTreeMap<Id, Import>,
+    pub exports: BTreeMap<Id, JsWord>,
     in_export_decl: bool,
 }
 
@@ -177,7 +191,7 @@ enum ExprOrSkip {
 #[derive(Debug)]
 pub struct HookCollect {
     pub local_decl: HashSet<JsWord>,
-    pub local_idents: HashSet<JsWord>,
+    pub local_idents: HashSet<Id>,
     expr_ctxt: Vec<ExprOrSkip>,
 }
 
@@ -192,9 +206,9 @@ impl HookCollect {
         collect
     }
 
-    pub fn get_words(self) -> (Vec<JsWord>, Vec<JsWord>) {
+    pub fn get_words(self) -> (Vec<JsWord>, Vec<Id>) {
         let mut local_decl: Vec<JsWord> = self.local_decl.into_iter().collect();
-        let mut local_idents: Vec<JsWord> = self.local_idents.into_iter().collect();
+        let mut local_idents: Vec<Id> = self.local_idents.into_iter().collect();
         local_idents.sort();
         local_decl.sort();
         (local_decl, local_idents)
@@ -422,7 +436,7 @@ impl Visit for HookCollect {
 
     fn visit_ident(&mut self, node: &ast::Ident) {
         if let Some(ExprOrSkip::Expr) = self.expr_ctxt.last() {
-            self.local_idents.insert(node.sym.clone());
+            self.local_idents.insert(id!(node));
         }
     }
 

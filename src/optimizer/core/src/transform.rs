@@ -44,9 +44,18 @@ impl TransformContext {
 
 pub type ThreadSafeTransformContext = Arc<Mutex<TransformContext>>;
 
+#[derive(Debug)]
+enum PositionToken {
+    QComponent,
+    ObjectProp,
+    JSXListener,
+    Any,
+}
+
 #[allow(clippy::module_name_repetitions)]
 pub struct HookTransform<'a> {
     stack_ctxt: Vec<String>,
+    position_ctxt: Vec<PositionToken>,
 
     root_sym: Option<String>,
     context: ThreadSafeTransformContext,
@@ -69,6 +78,7 @@ impl<'a> HookTransform<'a> {
         HookTransform {
             path_data,
             stack_ctxt: Vec::with_capacity(16),
+            position_ctxt: Vec::with_capacity(16),
             hooks,
             root_sym: None,
             comments,
@@ -120,6 +130,99 @@ impl<'a> HookTransform<'a> {
             decls: newdecls,
             declare: node.declare,
         }
+    }
+
+    fn create_synthetic_qhook(&mut self, fn_expr: ast::ArrowExpr) -> ast::CallExpr {
+        ast::CallExpr {
+            callee: ast::ExprOrSuper::Expr(Box::new(ast::Expr::Ident(ast::Ident::new(
+                QHOOK.clone(),
+                DUMMY_SP,
+            )))),
+            span: fn_expr.span,
+            type_args: None,
+            args: vec![ast::ExprOrSpread {
+                spread: None,
+                expr: Box::new(ast::Expr::Arrow(fn_expr)),
+            }],
+        }
+    }
+
+    fn handle_qhook(&mut self, node: ast::CallExpr, qhook_span: Span) -> ast::CallExpr {
+        let mut node = node;
+        let mut user_symbol = None;
+        if let Some(second_arg) = node.args.get(1) {
+            if let ast::Expr::Lit(ast::Lit::Str(ref str)) = *second_arg.expr {
+                if validate_sym(&str.value) {
+                    let custom_sym = str.value.to_string();
+                    user_symbol = Some(custom_sym);
+                } else {
+                    HANDLER.with(|handler| {
+                        handler
+                            .struct_span_err(
+                                str.span,
+                                "Second argument should be the name of a valid identifier",
+                            )
+                            .emit();
+                    });
+                }
+            }
+        }
+
+        let symbol_name = match self.register_context_name(&user_symbol) {
+            Ok(symbol_name) => symbol_name,
+            Err(err) => {
+                HANDLER.with(|handler| {
+                    handler
+                        .struct_span_err(node.span, &format!("{}", err))
+                        .emit();
+                });
+                user_symbol.unwrap()
+            }
+        };
+
+        let mut canonical_filename =
+            ["h_", &self.path_data.file_prefix, "_", &symbol_name].concat();
+        canonical_filename.make_ascii_lowercase();
+
+        // Remove last arguments
+        node.args.drain(1..);
+
+        let folded = node.fold_children_with(self);
+        let hook_collect = HookCollect::new(&folded);
+        let entry = self.entry_policy.get_entry_for_sym(
+            &symbol_name,
+            self.path_data,
+            &self.stack_ctxt,
+            &hook_collect,
+            &folded,
+        );
+
+        let import_path = fix_path(
+            "a",
+            &self.path_data.path,
+            &format!(
+                "./{}",
+                entry
+                    .as_ref()
+                    .map(|e| e.as_ref())
+                    .unwrap_or(&canonical_filename)
+            ),
+        )
+        // TODO: check with manu
+        .unwrap();
+
+        let (local_decl, local_idents) = hook_collect.get_words();
+        self.hooks.push(Hook {
+            entry,
+            canonical_filename,
+            name: symbol_name.clone(),
+            expr: folded,
+            local_decl,
+            local_idents,
+            origin: self.path_data.path.to_string_lossy().into(),
+        });
+
+        create_inline_qhook(import_path, &symbol_name, qhook_span)
     }
 }
 
@@ -211,121 +314,90 @@ impl<'a> Fold for HookTransform<'a> {
         let mut stacked = false;
         if let ast::PropName::Ident(ref ident) = node.key {
             self.stack_ctxt.push(ident.sym.to_string());
+            self.position_ctxt.push(PositionToken::ObjectProp);
             stacked = true;
         }
         if let ast::PropName::Str(ref s) = node.key {
             self.stack_ctxt.push(s.value.to_string());
+            self.position_ctxt.push(PositionToken::ObjectProp);
             stacked = true;
         }
         let o = node.fold_children_with(self);
         if stacked {
+            self.position_ctxt.pop();
             self.stack_ctxt.pop();
         }
         o
     }
 
     fn fold_jsx_attr(&mut self, node: ast::JSXAttr) -> ast::JSXAttr {
-        let mut stacked = false;
-        if let ast::JSXAttrName::Ident(ref ident) = node.name {
-            self.stack_ctxt.push(ident.sym.to_string());
-            stacked = true;
+        let mut is_listener = false;
+        match node.name {
+            ast::JSXAttrName::Ident(ref ident) => {
+                let ident_name = ident.sym.to_string();
+                println!("{}", ident_name);
+                self.stack_ctxt.push(ident_name);
+            }
+            ast::JSXAttrName::JSXNamespacedName(ref namespaced) => {
+                let ns_name = namespaced.ns.sym.as_ref();
+                let ident_name = [ns_name, namespaced.name.sym.as_ref()].concat();
+                println!("namespaced: {}", &ident_name);
+                self.stack_ctxt.push(ident_name);
+
+                is_listener = ns_name == "on";
+                if is_listener {
+                    self.position_ctxt.push(PositionToken::JSXListener);
+                }
+            }
         }
         let o = node.fold_children_with(self);
-        if stacked {
-            self.stack_ctxt.pop();
+        self.stack_ctxt.pop();
+        if is_listener {
+            self.position_ctxt.pop();
         }
         o
     }
 
+    fn fold_expr(&mut self, node: ast::Expr) -> ast::Expr {
+        let node = match (self.position_ctxt.as_slice(), node) {
+            (
+                [.., PositionToken::QComponent, PositionToken::Any, PositionToken::ObjectProp],
+                ast::Expr::Arrow(arrow),
+            )
+            | ([.., PositionToken::JSXListener], ast::Expr::Arrow(arrow)) => {
+                ast::Expr::Call(self.create_synthetic_qhook(arrow))
+            }
+            (_, node) => node,
+        };
+
+        self.position_ctxt.push(PositionToken::Any);
+        let o = node.fold_children_with(self);
+        self.position_ctxt.pop();
+        o
+    }
+
     fn fold_call_expr(&mut self, node: ast::CallExpr) -> ast::CallExpr {
+        let mut open_component = false;
         if let ast::ExprOrSuper::Expr(expr) = &node.callee {
             if let ast::Expr::Ident(id) = &**expr {
                 let qhook_span = id.span;
                 if QCOMPONENT.eq(&id.sym) {
+                    self.position_ctxt.push(PositionToken::QComponent);
+                    open_component = true;
                     if let Some(comments) = self.comments {
                         comments.add_pure_comment(node.span.lo);
                     }
                 } else if QHOOK.eq(&id.sym) {
-                    let mut node = node;
-                    let mut user_symbol = None;
-                    if let Some(second_arg) = node.args.get(1) {
-                        if let ast::Expr::Lit(ast::Lit::Str(ref str)) = *second_arg.expr {
-                            if validate_sym(&str.value) {
-                                let custom_sym = str.value.to_string();
-                                user_symbol = Some(custom_sym);
-                            } else {
-                                HANDLER.with(|handler| {
-                                    handler
-                                        .struct_span_err(
-                                            str.span,
-                                            "Second argument should be the name of a valid identifier",
-                                        )
-                                        .emit();
-                                });
-                            }
-                        }
-                    }
-
-                    let symbol_name = match self.register_context_name(&user_symbol) {
-                        Ok(symbol_name) => symbol_name,
-                        Err(err) => {
-                            HANDLER.with(|handler| {
-                                handler
-                                    .struct_span_err(node.span, &format!("{}", err))
-                                    .emit();
-                            });
-                            user_symbol.unwrap()
-                        }
-                    };
-
-                    let mut canonical_filename =
-                        ["h_", &self.path_data.file_prefix, "_", &symbol_name].concat();
-                    canonical_filename.make_ascii_lowercase();
-
-                    // Remove last arguments
-                    node.args.drain(1..);
-
-                    let folded = node.fold_children_with(self);
-                    let hook_collect = HookCollect::new(&folded);
-                    let entry = self.entry_policy.get_entry_for_sym(
-                        &symbol_name,
-                        self.path_data,
-                        &self.stack_ctxt,
-                        &hook_collect,
-                        &folded,
-                    );
-
-                    let import_path = fix_path(
-                        "a",
-                        &self.path_data.path,
-                        &format!(
-                            "./{}",
-                            entry
-                                .as_ref()
-                                .map(|e| e.as_ref())
-                                .unwrap_or(&canonical_filename)
-                        ),
-                    )
-                    // TODO: check with manu
-                    .unwrap();
-
-                    let (local_decl, local_idents) = hook_collect.get_words();
-                    self.hooks.push(Hook {
-                        entry,
-                        canonical_filename,
-                        name: symbol_name.clone(),
-                        expr: folded,
-                        local_decl,
-                        local_idents,
-                        origin: self.path_data.path.to_string_lossy().into(),
-                    });
-
-                    return create_inline_qhook(import_path, &symbol_name, qhook_span);
+                    return self.handle_qhook(node, qhook_span);
                 }
             }
         }
 
-        node.fold_children_with(self)
+        let o = node.fold_children_with(self);
+        if open_component {
+            self.position_ctxt.pop();
+        }
+        o
     }
 }
 

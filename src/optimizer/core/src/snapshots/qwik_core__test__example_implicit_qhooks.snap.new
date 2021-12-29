@@ -1,0 +1,124 @@
+---
+source: src/optimizer/core/src/test.rs
+expression: output
+
+---
+==INPUT==
+
+
+const Header = qComponent({
+  "onMount": qHook(() => { console.log("mount") }),
+  "otherThing": () => { console.log("otherThing") },
+  onRender: () => {
+    return (
+      <div
+        prop={(ctx) => console.log(ctx)}
+        on:click={(ctx) => console.log(ctx)}
+        />
+    );
+  }
+});
+    
+============================= test.tsx ==
+
+/*#__PURE__*/ qComponent({
+    "onMount": qHook(()=>import("./h_test_header_onmount")
+    , "Header_onMount"),
+    "otherThing": qHook(()=>import("./h_test_header_otherthing")
+    , "Header_otherThing"),
+    onRender: qHook(()=>import("./h_test_header_onrender")
+    , "Header_onRender")
+});
+
+============================= h_test_header_onmount.tsx (ENTRY POINT)==
+
+export const Header_onMount = /*#__PURE__*/ qHook(()=>{
+    console.log("mount");
+});
+
+============================= h_test_header_otherthing.tsx (ENTRY POINT)==
+
+export const Header_otherThing = /*#__PURE__*/ qHook(()=>{
+    console.log("otherThing");
+});
+
+============================= h_test_header_onrender_div_onclick.tsx (ENTRY POINT)==
+
+export const Header_onRender_div_onclick = /*#__PURE__*/ qHook((ctx)=>console.log(ctx)
+);
+
+============================= h_test_header_onrender.tsx (ENTRY POINT)==
+
+export const Header_onRender = /*#__PURE__*/ qHook(()=>{
+    return (<div prop={(ctx)=>console.log(ctx)
+    } on:click={qHook(()=>import("./h_test_header_onrender_div_onclick")
+    , "Header_onRender_div_onclick")}/>);
+});
+
+== HOOKS ==
+
+[
+  {
+    "origin": "test.tsx",
+    "name": "Header_onMount",
+    "entry": null,
+    "canonicalFilename": "h_test_header_onmount",
+    "localDecl": [],
+    "localIdents": [
+      "console",
+      "log",
+      "qHook"
+    ]
+  },
+  {
+    "origin": "test.tsx",
+    "name": "Header_otherThing",
+    "entry": null,
+    "canonicalFilename": "h_test_header_otherthing",
+    "localDecl": [],
+    "localIdents": [
+      "console",
+      "log",
+      "qHook"
+    ]
+  },
+  {
+    "origin": "test.tsx",
+    "name": "Header_onRender_div_onclick",
+    "entry": null,
+    "canonicalFilename": "h_test_header_onrender_div_onclick",
+    "localDecl": [
+      "ctx"
+    ],
+    "localIdents": [
+      "console",
+      "ctx",
+      "log",
+      "qHook"
+    ]
+  },
+  {
+    "origin": "test.tsx",
+    "name": "Header_onRender",
+    "entry": null,
+    "canonicalFilename": "h_test_header_onrender",
+    "localDecl": [
+      "ctx"
+    ],
+    "localIdents": [
+      "click",
+      "console",
+      "ctx",
+      "div",
+      "import",
+      "log",
+      "on",
+      "prop",
+      "qHook"
+    ]
+  }
+]
+
+== DIAGNOSTICS ==
+
+[]

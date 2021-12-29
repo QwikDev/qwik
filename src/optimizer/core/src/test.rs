@@ -295,6 +295,30 @@ export const Header = qComponent({
 }
 
 #[test]
+fn example_implicit_qhooks() {
+    test_input(
+        "test.tsx",
+        r#"
+const Header = qComponent({
+  "onMount": qHook(() => { console.log("mount") }),
+  "otherThing": () => { console.log("otherThing") },
+  onRender: () => {
+    return (
+      <div
+        prop={(ctx) => console.log(ctx)}
+        on:click={(ctx) => console.log(ctx)}
+        />
+    );
+  }
+});
+    "#,
+        EntryStrategy::Hook,
+        MinifyMode::Simplify,
+        false,
+    );
+}
+
+#[test]
 fn issue_117() {
     test_input(
         "project/test.tsx",

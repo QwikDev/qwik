@@ -2,7 +2,7 @@ import { join } from 'path';
 import type { CliGenerateOptions } from '../../scripts/util';
 import { generateStarter } from './generate';
 import { runInteractive } from './interactive';
-import { loadStarters } from './load-stater-data';
+import { loadStarters } from './load-starter-data';
 
 const args = process.argv.slice(2);
 

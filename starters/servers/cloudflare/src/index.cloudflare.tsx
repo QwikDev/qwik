@@ -37,7 +37,7 @@ async function handleQwik(event: any, request: Request) {
 
   const response = new Response(ssrResult.html, {
     headers: {
-      'Content-Type': 'text/html',
+      'Content-Type': 'text/html; charset=utf-8',
       'Cache-Control': `max-age=${60}`,
     },
   });

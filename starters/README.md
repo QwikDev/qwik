@@ -15,7 +15,7 @@ Here are steps to try out the CLI in local environment.
 1. Run CLI:
 
    ```
-   # node ./dist-dev/cli/index.js
+   # node ./dist-dev/create-qwik/index.js
    💫 Let's create a Qwik project 💫
 
    ✔ Project name … todo-express

@@ -1,4 +1,4 @@
-if ('undefined' == typeof globalThis) {
+if (typeof globalThis == 'undefined') {
   const e =
     'undefined' != typeof global
       ? global

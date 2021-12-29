@@ -1,5 +1,5 @@
 ---
-source: src/test.rs
+source: src/optimizer/core/src/test.rs
 expression: output
 
 ---
@@ -91,7 +91,6 @@ export const Header = /*#__PURE__*/ qHook((decl1, { decl2  }, [decl3])=>{
       "ident9",
       "no",
       "onClick",
-      "prop",
       "qHook",
       "required"
     ]

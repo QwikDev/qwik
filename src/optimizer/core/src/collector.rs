@@ -1,14 +1,27 @@
 use std::collections::{BTreeMap, HashSet};
 
 use swc_atoms::{js_word, JsWord};
-use swc_common::DUMMY_SP;
+use swc_common::{BytePos, Span, SyntaxContext};
 use swc_ecmascript::ast;
-use swc_ecmascript::visit::{noop_visit_type, Node, Visit, VisitWith};
+use swc_ecmascript::visit::{noop_visit_type, visit_expr, visit_stmt, Visit, VisitWith};
 
 macro_rules! id {
     ($ident: expr) => {
-        $ident.sym.clone()
+        ($ident.sym.clone(), $ident.span.ctxt())
     };
+}
+
+pub type Id = (JsWord, SyntaxContext);
+
+pub fn new_ident_from_id(id: &Id) -> ast::Ident {
+    ast::Ident::new(
+        id.0.clone(),
+        Span {
+            lo: BytePos(0),
+            hi: BytePos(0),
+            ctxt: id.1,
+        },
+    )
 }
 
 #[derive(PartialEq, Clone, Copy)]
@@ -25,8 +38,8 @@ pub struct Import {
 }
 
 pub struct GlobalCollect {
-    pub imports: BTreeMap<JsWord, Import>,
-    pub exports: BTreeMap<JsWord, JsWord>,
+    pub imports: BTreeMap<Id, Import>,
+    pub exports: BTreeMap<Id, JsWord>,
     in_export_decl: bool,
 }
 
@@ -36,14 +49,14 @@ pub fn global_collect(module: &ast::Module) -> GlobalCollect {
         exports: BTreeMap::new(),
         in_export_decl: false,
     };
-    module.visit_with(&ast::Invalid { span: DUMMY_SP } as _, &mut collect);
+    module.visit_with(&mut collect);
     collect
 }
 
 impl Visit for GlobalCollect {
     noop_visit_type!();
 
-    fn visit_import_decl(&mut self, node: &ast::ImportDecl, _parent: &dyn Node) {
+    fn visit_import_decl(&mut self, node: &ast::ImportDecl) {
         for specifier in &node.specifiers {
             match specifier {
                 ast::ImportSpecifier::Named(named) => {
@@ -84,7 +97,7 @@ impl Visit for GlobalCollect {
         }
     }
 
-    fn visit_named_export(&mut self, node: &ast::NamedExport, _parent: &dyn Node) {
+    fn visit_named_export(&mut self, node: &ast::NamedExport) {
         if node.src.is_some() {
             return;
         }
@@ -112,7 +125,7 @@ impl Visit for GlobalCollect {
         }
     }
 
-    fn visit_export_decl(&mut self, node: &ast::ExportDecl, _parent: &dyn Node) {
+    fn visit_export_decl(&mut self, node: &ast::ExportDecl) {
         match &node.decl {
             ast::Decl::Class(class) => {
                 self.exports
@@ -124,10 +137,10 @@ impl Visit for GlobalCollect {
             ast::Decl::Var(var) => {
                 for decl in &var.decls {
                     self.in_export_decl = true;
-                    decl.name.visit_with(decl, self);
+                    decl.name.visit_with(self);
                     self.in_export_decl = false;
 
-                    decl.init.visit_with(decl, self);
+                    decl.init.visit_with(self);
                 }
             }
             _ => {}
@@ -136,7 +149,7 @@ impl Visit for GlobalCollect {
         node.visit_children_with(self);
     }
 
-    fn visit_export_default_decl(&mut self, node: &ast::ExportDefaultDecl, _parent: &dyn Node) {
+    fn visit_export_default_decl(&mut self, node: &ast::ExportDefaultDecl) {
         match &node.decl {
             ast::DefaultDecl::Class(class) => {
                 if let Some(ident) = &class.ident {
@@ -156,13 +169,13 @@ impl Visit for GlobalCollect {
         node.visit_children_with(self);
     }
 
-    fn visit_binding_ident(&mut self, node: &ast::BindingIdent, _parent: &dyn Node) {
+    fn visit_binding_ident(&mut self, node: &ast::BindingIdent) {
         if self.in_export_decl {
             self.exports.insert(id!(node.id), node.id.sym.clone());
         }
     }
 
-    fn visit_assign_pat_prop(&mut self, node: &ast::AssignPatProp, _parent: &dyn Node) {
+    fn visit_assign_pat_prop(&mut self, node: &ast::AssignPatProp) {
         if self.in_export_decl {
             self.exports.insert(id!(node.key), node.key.sym.clone());
         }
@@ -178,7 +191,7 @@ enum ExprOrSkip {
 #[derive(Debug)]
 pub struct HookCollect {
     pub local_decl: HashSet<JsWord>,
-    pub local_idents: HashSet<JsWord>,
+    pub local_idents: HashSet<Id>,
     expr_ctxt: Vec<ExprOrSkip>,
 }
 
@@ -189,13 +202,13 @@ impl HookCollect {
             local_idents: HashSet::new(),
             expr_ctxt: vec![],
         };
-        node.visit_with(&ast::Invalid { span: DUMMY_SP } as _, &mut collect);
+        node.visit_with(&mut collect);
         collect
     }
 
-    pub fn get_words(self) -> (Vec<JsWord>, Vec<JsWord>) {
+    pub fn get_words(self) -> (Vec<JsWord>, Vec<Id>) {
         let mut local_decl: Vec<JsWord> = self.local_decl.into_iter().collect();
-        let mut local_idents: Vec<JsWord> = self.local_idents.into_iter().collect();
+        let mut local_idents: Vec<Id> = self.local_idents.into_iter().collect();
         local_idents.sort();
         local_decl.sort();
         (local_decl, local_idents)
@@ -203,7 +216,7 @@ impl HookCollect {
 }
 
 impl Visit for HookCollect {
-    fn visit_var_declarator(&mut self, node: &ast::VarDeclarator, _parent: &dyn Node) {
+    fn visit_var_declarator(&mut self, node: &ast::VarDeclarator) {
         match node.name {
             ast::Pat::Ident(ref ident) => {
                 self.local_decl.insert(ident.id.sym.clone());
@@ -251,7 +264,7 @@ impl Visit for HookCollect {
         node.visit_children_with(self);
     }
 
-    fn visit_arrow_expr(&mut self, node: &ast::ArrowExpr, _parent: &dyn Node) {
+    fn visit_arrow_expr(&mut self, node: &ast::ArrowExpr) {
         for param in &node.params {
             match param {
                 ast::Pat::Ident(ref ident) => {
@@ -301,7 +314,7 @@ impl Visit for HookCollect {
         node.visit_children_with(self);
     }
 
-    fn visit_catch_clause(&mut self, node: &ast::CatchClause, _parent: &dyn Node) {
+    fn visit_catch_clause(&mut self, node: &ast::CatchClause) {
         match node.param {
             Some(ast::Pat::Ident(ref ident)) => {
                 self.local_decl.insert(ident.id.sym.clone());
@@ -349,12 +362,12 @@ impl Visit for HookCollect {
         node.visit_children_with(self);
     }
 
-    fn visit_fn_decl(&mut self, node: &ast::FnDecl, _parent: &dyn Node) {
+    fn visit_fn_decl(&mut self, node: &ast::FnDecl) {
         self.local_decl.insert(node.ident.sym.clone());
         node.visit_children_with(self);
     }
 
-    fn visit_function(&mut self, node: &ast::Function, _parent: &dyn Node) {
+    fn visit_function(&mut self, node: &ast::Function) {
         for param in &node.params {
             match param.pat {
                 ast::Pat::Ident(ref ident) => {
@@ -404,30 +417,30 @@ impl Visit for HookCollect {
         node.visit_children_with(self);
     }
 
-    fn visit_class_decl(&mut self, node: &ast::ClassDecl, _parent: &dyn Node) {
+    fn visit_class_decl(&mut self, node: &ast::ClassDecl) {
         self.local_decl.insert(node.ident.sym.clone());
         node.visit_children_with(self);
     }
 
-    fn visit_expr(&mut self, node: &ast::Expr, parent: &dyn Node) {
+    fn visit_expr(&mut self, node: &ast::Expr) {
         self.expr_ctxt.push(ExprOrSkip::Expr);
-        swc_ecmascript::visit::visit_expr(self, node, parent);
+        visit_expr(self, node);
         self.expr_ctxt.pop();
     }
 
-    fn visit_stmt(&mut self, node: &ast::Stmt, parent: &dyn Node) {
+    fn visit_stmt(&mut self, node: &ast::Stmt) {
         self.expr_ctxt.push(ExprOrSkip::Skip);
-        swc_ecmascript::visit::visit_stmt(self, node, parent);
+        visit_stmt(self, node);
         self.expr_ctxt.pop();
     }
 
-    fn visit_ident(&mut self, node: &ast::Ident, _parent: &dyn Node) {
+    fn visit_ident(&mut self, node: &ast::Ident) {
         if let Some(ExprOrSkip::Expr) = self.expr_ctxt.last() {
-            self.local_idents.insert(node.sym.clone());
+            self.local_idents.insert(id!(node));
         }
     }
 
-    fn visit_key_value_prop(&mut self, node: &ast::KeyValueProp, _parent: &dyn Node) {
+    fn visit_key_value_prop(&mut self, node: &ast::KeyValueProp) {
         self.expr_ctxt.push(ExprOrSkip::Skip);
         node.visit_children_with(self);
         self.expr_ctxt.pop();

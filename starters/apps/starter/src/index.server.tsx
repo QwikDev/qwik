@@ -8,33 +8,21 @@
 
 import { h } from '@builder.io/qwik';
 import { renderToString, RenderToStringOptions, QwikLoader } from '@builder.io/qwik/server';
-import { ToDoApp } from './components.qwik';
-import type { Todos } from './state.qwik';
+import { MyApp } from './my-app';
 
 /**
  * Entry point for server-side pre-rendering.
  *
  * @returns a promise when all of the rendering is completed.
  */
-export default function serverRender(opts: RenderToStringOptions) {
-  const todos: Todos = {
-    filter: 'all',
-    items: [
-      { completed: false, title: 'Read Qwik docs' },
-      { completed: false, title: 'Build HelloWorld' },
-      { completed: false, title: 'Profit' },
-    ],
-  };
-
+export function renderApp(opts: RenderToStringOptions) {
   return renderToString(
     <html>
       <head>
-        <title>Qwik Demo: ToDo</title>
-        <link rel="stylesheet" href="base.css" />
-        <link rel="stylesheet" href="index.css" />
+        <title>Qwik Blank App</title>
       </head>
-      <body>
-        <ToDoApp todos={todos} />
+      <body q:base="/build/">
+        <MyApp />
         <QwikLoader debug={opts.debug} />
       </body>
     </html>,

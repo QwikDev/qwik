@@ -1,4 +1,7 @@
-import { createTimer } from './utils';
+import { qDehydrate, qRender } from '@builder.io/qwik';
+import domino from 'domino';
+import { setServerPlatform } from './platform';
+import { serializeDocument } from './serialize';
 import type {
   DocumentOptions,
   GlobalOptions,
@@ -8,10 +11,7 @@ import type {
   RenderToStringOptions,
   RenderToStringResult,
 } from './types';
-import domino from 'domino';
-import { qDehydrate, qRender } from '@builder.io/qwik';
-import { setServerPlatform } from './platform';
-import { serializeDocument } from './serialize';
+import { createTimer } from './utils';
 
 /**
  * Create emulated `Global` for server environment. Does not implement a browser
@@ -22,7 +22,7 @@ export function createGlobal(opts?: GlobalOptions): QwikGlobal {
   opts = opts || {};
 
   const doc: QwikDocument = domino.createDocument() as any;
-  const baseURI = typeof opts.url !== 'string' ? BASE_URI : opts.url;
+  const baseURI = opts.url === undefined ? BASE_URI : opts.url.href;
   const loc = new URL(baseURI, BASE_URI);
 
   Object.defineProperty(doc, 'baseURI', {
@@ -67,14 +67,13 @@ export function createDocument(opts?: DocumentOptions) {
 export async function renderToDocument(
   doc: Document,
   rootNode: any,
-  opts?: RenderToDocumentOptions
+  opts: RenderToDocumentOptions
 ) {
   if (!doc || doc.nodeType !== 9) {
     throw new Error(`Invalid document`);
   }
 
-  opts = opts || {};
-  setServerPlatform(doc, opts);
+  await setServerPlatform(doc, opts);
 
   await qRender(doc, rootNode);
 
@@ -88,7 +87,7 @@ export async function renderToDocument(
  * then serializes the document to a string.
  * @public
  */
-export async function renderToString(rootNode: any, opts?: RenderToStringOptions) {
+export async function renderToString(rootNode: any, opts: RenderToStringOptions) {
   const createDocTimer = createTimer();
   const doc = createDocument(opts);
   const createDocTime = createDocTimer();

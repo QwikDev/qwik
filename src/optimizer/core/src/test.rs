@@ -307,6 +307,32 @@ export const cache = patternCache[cacheKey] || (patternCache[cacheKey]={});
     );
 }
 
+#[test]
+fn issue_118() {
+    test_input(
+        "project/test.tsx",
+        r#"
+import {qHook, h} from '@builderio/qwik';
+import thing from 'lib';
+import * as all from 'lib';
+import {s as se} from 'lib';
+
+
+export const Header = qComponent({
+    onMount: <div/>,
+    onRender: qHook(() => <Footer>{thing}{all()}{se()}</Footer>)
+});
+
+export const Footer = qComponent();
+
+
+    "#,
+        EntryStrategy::Single,
+        MinifyMode::Minify,
+        true,
+    );
+}
+
 // fn test_fixture(folder: &str) {
 //     let res = transform_workdir(&FSConfig {
 //         project_root: folder.to_string(),

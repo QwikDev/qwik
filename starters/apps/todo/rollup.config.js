@@ -1,4 +1,5 @@
 import { nodeResolve } from '@rollup/plugin-node-resolve';
+import typescript from '@rollup/plugin-typescript';
 import { qwikRollup } from '@builder.io/qwik/optimizer';
 import { terser } from "rollup-plugin-terser";
 import { writeFile, mkdir } from "fs/promises";
@@ -17,6 +18,7 @@ export default async function () {
           outputJSON('./server/build/q-symbols.json', data);
         },
       }),
+      typescript(),
       terser(),
     ],
     output: [

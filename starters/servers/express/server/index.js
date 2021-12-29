@@ -9,7 +9,7 @@ async function startServer() {
   async function handleQwik(req, res) {
     const result = await renderApp({
       symbols,
-      url: new URL(req.url),
+      url: new URL(`${req.protocol}://${req.hostname}${req.url}`),
       debug: true,
     });
     res.send(result.html);

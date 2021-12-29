@@ -335,13 +335,11 @@ impl<'a> Fold for HookTransform<'a> {
         match node.name {
             ast::JSXAttrName::Ident(ref ident) => {
                 let ident_name = ident.sym.to_string();
-                println!("{}", ident_name);
                 self.stack_ctxt.push(ident_name);
             }
             ast::JSXAttrName::JSXNamespacedName(ref namespaced) => {
                 let ns_name = namespaced.ns.sym.as_ref();
                 let ident_name = [ns_name, namespaced.name.sym.as_ref()].concat();
-                println!("namespaced: {}", &ident_name);
                 self.stack_ctxt.push(ident_name);
 
                 is_listener = ns_name == "on";

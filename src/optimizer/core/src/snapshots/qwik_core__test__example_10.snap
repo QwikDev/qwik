@@ -76,7 +76,6 @@ export const Header = /*#__PURE__*/ qHook((decl1, { decl2  }, [decl3])=>{
       "decl1",
       "decl2",
       "decl3",
-      "div",
       "ident1",
       "ident10",
       "ident11",
@@ -89,10 +88,7 @@ export const Header = /*#__PURE__*/ qHook((decl1, { decl2  }, [decl3])=>{
       "ident7",
       "ident8",
       "ident9",
-      "no",
-      "onClick",
-      "qHook",
-      "required"
+      "qHook"
     ]
   }
 ]

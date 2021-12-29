@@ -1,5 +1,5 @@
 ---
-source: src/test.rs
+source: src/optimizer/core/src/test.rs
 expression: output
 
 ---
@@ -32,7 +32,6 @@ export const sym1 = /*#__PURE__*/ qHook((ctx)=>console.log("1")
     "localIdents": [
       "console",
       "ctx",
-      "log",
       "qHook"
     ]
   }

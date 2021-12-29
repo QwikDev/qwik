@@ -1,5 +1,5 @@
 ---
-source: src/test.rs
+source: src/optimizer/core/src/test.rs
 expression: output
 
 ---
@@ -100,10 +100,7 @@ export { App_onRender } from "./h_test_app_onrender";
       "Header",
       "bbar",
       "dep2",
-      "import",
-      "onClick",
-      "qHook",
-      "stuff"
+      "qHook"
     ]
   },
   {

@@ -1,5 +1,5 @@
 ---
-source: src/test.rs
+source: src/optimizer/core/src/test.rs
 expression: output
 
 ---
@@ -38,7 +38,6 @@ export { sym2 } from "./h_test_sym2";
     "localDecl": [],
     "localIdents": [
       "console",
-      "log",
       "qHook"
     ]
   }

@@ -1,5 +1,5 @@
 ---
-source: src/test.rs
+source: src/optimizer/core/src/test.rs
 expression: output
 
 ---
@@ -78,7 +78,6 @@ export const App_onRender = /*#__PURE__*/ qHook(()=>{
     "localDecl": [],
     "localIdents": [
       "console",
-      "log",
       "qHook"
     ]
   },
@@ -93,7 +92,6 @@ export const App_onRender = /*#__PURE__*/ qHook(()=>{
     "localIdents": [
       "console",
       "ctx",
-      "log",
       "qHook"
     ]
   },
@@ -104,9 +102,6 @@ export const App_onRender = /*#__PURE__*/ qHook(()=>{
     "canonicalFilename": "h_test_header_onrender",
     "localDecl": [],
     "localIdents": [
-      "div",
-      "import",
-      "onClick",
       "qHook"
     ]
   },

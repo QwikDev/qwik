@@ -1,5 +1,5 @@
 ---
-source: src/test.rs
+source: src/optimizer/core/src/test.rs
 expression: output
 
 ---
@@ -38,7 +38,6 @@ export { Header_onRender } from "./h_test_header_onrender";
     "localDecl": [],
     "localIdents": [
       "console",
-      "log",
       "qHook"
     ]
   }

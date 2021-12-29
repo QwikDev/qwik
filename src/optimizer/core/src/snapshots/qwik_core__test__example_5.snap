@@ -62,7 +62,6 @@ export const Header_onRender = /*#__PURE__*/ qHook(()=>{
     "localIdents": [
       "console",
       "ctx",
-      "log",
       "qHook"
     ]
   },
@@ -77,7 +76,6 @@ export const Header_onRender = /*#__PURE__*/ qHook(()=>{
     "localIdents": [
       "console",
       "ctx",
-      "log",
       "qHook"
     ]
   },
@@ -88,9 +86,6 @@ export const Header_onRender = /*#__PURE__*/ qHook(()=>{
     "canonicalFilename": "h_test_header_onrender",
     "localDecl": [],
     "localIdents": [
-      "div",
-      "import",
-      "onClick",
       "qHook"
     ]
   }

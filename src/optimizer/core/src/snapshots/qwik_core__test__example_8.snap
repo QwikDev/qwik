@@ -1,5 +1,5 @@
 ---
-source: src/test.rs
+source: src/optimizer/core/src/test.rs
 expression: output
 
 ---
@@ -55,9 +55,7 @@ export const Header_onRender = /*#__PURE__*/ qHook((hola)=>{
       "Header",
       "global",
       "hola",
-      "nothere",
-      "qHook",
-      "stuff"
+      "qHook"
     ]
   }
 ]

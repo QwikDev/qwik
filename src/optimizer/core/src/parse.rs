@@ -26,12 +26,10 @@ use swc_ecmascript::minifier::option::{
 use swc_ecmascript::parser::lexer::Lexer;
 use swc_ecmascript::parser::{EsConfig, PResult, Parser, StringInput, Syntax, TsConfig};
 use swc_ecmascript::transforms::{
-    fixer,
-    hygiene::{self, hygiene_with_config},
-    resolver_with_mark,
+    fixer, hygiene::hygiene_with_config, optimization::simplify, pass, react, resolver_with_mark,
+    typescript,
 };
-use swc_ecmascript::transforms::{optimization::simplify, pass, react, typescript};
-use swc_ecmascript::visit::FoldWith;
+use swc_ecmascript::visit::{FoldWith, VisitMutWith};
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -127,7 +125,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
     let path_data = parse_path(config.path)?;
     let module = parse(config.code, &path_data, Lrc::clone(&source_map));
     if config.print_ast {
-        eprintln!("{:?}", module);
+        dbg!(&module);
     }
     let transpile = config.transpile;
 
@@ -142,23 +140,13 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 
             swc_common::GLOBALS.set(&Globals::new(), || {
                 swc_common::errors::HANDLER.set(&handler, || {
-                    let mut react_options = react::Options::default();
-                    if is_jsx {
-                        react_options.use_spread = true;
-                        react_options.import_source = "@builder.io/qwik".to_string();
-                        react_options.pragma = "h".to_string();
-                        react_options.pragma_frag = "Fragment".to_string();
-                    };
+                    let global_mark = Mark::fresh(Mark::root());
+                    let mut main_module = main_module;
 
-                    let collect = global_collect(&main_module);
-                    let top_level_mark = Mark::fresh(Mark::root());
-                    let mut hooks: Vec<Hook> = vec![];
-                    let mut main_module = {
+                    // Transpile JSX
+                    if transpile && is_type_script {
                         let mut passes = chain!(
-                            pass::Optional::new(
-                                typescript::strip(),
-                                transpile && is_type_script && !is_jsx
-                            ),
+                            pass::Optional::new(typescript::strip(global_mark), !is_jsx),
                             pass::Optional::new(
                                 typescript::strip_with_jsx(
                                     Lrc::clone(&source_map),
@@ -168,64 +156,77 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                                         ..Default::default()
                                     },
                                     Some(&comments),
-                                    top_level_mark,
+                                    global_mark,
                                 ),
-                                transpile && is_type_script && is_jsx
+                                is_jsx
                             ),
-                            pass::Optional::new(
-                                react::react(
-                                    Lrc::clone(&source_map),
-                                    Some(&comments),
-                                    react_options,
-                                    top_level_mark
-                                ),
-                                transpile && is_jsx
-                            ),
-                            HookTransform::new(
-                                config.context,
-                                &path_data,
-                                config.entry_policy,
-                                Some(&comments),
-                                &mut hooks
-                            ),
-                            pass::Optional::new(
-                                resolver_with_mark(top_level_mark),
-                                config.minify != MinifyMode::None
-                            ),
-                            pass::Optional::new(
-                                simplify::simplifier(Default::default()),
-                                config.minify != MinifyMode::None
-                            )
                         );
-                        main_module.fold_with(&mut passes)
-                    };
+                        main_module = main_module.fold_with(&mut passes)
+                    }
 
-                    if config.minify == MinifyMode::Minify {
-                        main_module = optimize(
-                            main_module,
+                    // Resolve with mark
+                    main_module.visit_mut_with(&mut resolver_with_mark(global_mark));
+
+                    // Transpile JSX
+                    if transpile && is_jsx {
+                        let mut react_options = react::Options::default();
+                        if is_jsx {
+                            react_options.use_spread = true;
+                            react_options.import_source = "@builder.io/qwik".to_string();
+                            react_options.pragma = "h".to_string();
+                            react_options.pragma_frag = "Fragment".to_string();
+                        };
+                        main_module = main_module.fold_with(&mut react::react(
                             Lrc::clone(&source_map),
                             Some(&comments),
-                            None,
-                            &MinifyOptions {
-                                compress: Some(CompressOptions {
-                                    ..CompressOptions::default()
-                                }),
-                                mangle: Some(MangleOptions {
-                                    top_level: true,
-                                    ..MangleOptions::default()
-                                }),
-                                rename: true,
-                                wrap: false,
-                                enclose: false,
-                            },
-                            &ExtraOptions { top_level_mark },
-                        );
+                            react_options,
+                            global_mark,
+                        ));
+                    }
 
-                        main_module = main_module
-                            .fold_with(&mut hygiene_with_config(hygiene::Config {
-                                ..Default::default()
-                            }))
-                            .fold_with(&mut fixer(None));
+                    // Collect import/export metadata
+                    let collect = global_collect(&main_module);
+                    let mut hooks: Vec<Hook> = vec![];
+
+                    // Run main transform
+                    main_module = main_module.fold_with(&mut HookTransform::new(
+                        config.context,
+                        &path_data,
+                        config.entry_policy,
+                        Some(&comments),
+                        &mut hooks,
+                    ));
+
+                    if config.minify != MinifyMode::None {
+                        main_module =
+                            main_module.fold_with(&mut simplify::simplifier(Default::default()));
+
+                        if config.minify == MinifyMode::Minify {
+                            main_module = optimize(
+                                main_module,
+                                Lrc::clone(&source_map),
+                                Some(&comments),
+                                None,
+                                &MinifyOptions {
+                                    compress: Some(CompressOptions {
+                                        ..CompressOptions::default()
+                                    }),
+                                    mangle: Some(MangleOptions {
+                                        top_level: true,
+                                        ..MangleOptions::default()
+                                    }),
+                                    rename: true,
+                                    wrap: false,
+                                    enclose: false,
+                                },
+                                &ExtraOptions {
+                                    top_level_mark: global_mark,
+                                },
+                            );
+                        }
+
+                        main_module.visit_mut_with(&mut hygiene_with_config(Default::default()));
+                        main_module.visit_mut_with(&mut fixer(None));
                     }
 
                     let mut hooks_analysis: Vec<HookAnalysis> = Vec::with_capacity(hooks.len());
@@ -252,7 +253,6 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                         )?;
 
                         if config.minify == MinifyMode::Minify {
-                            hook_module = hook_module.fold_with(&mut resolver_with_mark(hook_mark));
                             hook_module = optimize(
                                 hook_module,
                                 Lrc::clone(&source_map),
@@ -276,9 +276,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                             );
 
                             hook_module = hook_module
-                                .fold_with(&mut hygiene_with_config(hygiene::Config {
-                                    ..Default::default()
-                                }))
+                                .fold_with(&mut hygiene_with_config(Default::default()))
                                 .fold_with(&mut fixer(None));
                         }
 
@@ -297,7 +295,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                             entry: h.entry,
                             canonical_filename: h.canonical_filename,
                             local_decl: h.local_decl,
-                            local_idents: h.local_idents,
+                            local_idents: h.local_idents.into_iter().map(|id| id.0).collect(),
                         });
                         modules.push(TransformModule {
                             code,
@@ -374,16 +372,12 @@ fn parse(
     let syntax = if is_type_script {
         Syntax::Typescript(TsConfig {
             tsx: is_jsx,
-            dynamic_import: true,
             ..Default::default()
         })
     } else {
         Syntax::Es(EsConfig {
             jsx: is_jsx,
-            dynamic_import: true,
             export_default_from: true,
-            export_namespace_from: true,
-            import_meta: true,
             ..Default::default()
         })
     };

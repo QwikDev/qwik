@@ -1,4 +1,4 @@
-use crate::collector::{GlobalCollect, ImportKind};
+use crate::collector::{new_ident_from_id, GlobalCollect, Id, ImportKind};
 use crate::parse::{emit_source_code, HookAnalysis, PathData, TransformModule, TransformOutput};
 
 use std::collections::HashMap;
@@ -15,7 +15,7 @@ pub fn new_module(
     path: &PathData,
     name: &str,
     origin: &str,
-    local_idents: &[JsWord],
+    local_idents: &[Id],
     global: &GlobalCollect,
 ) -> Result<(ast::Module, SingleThreadedComments), Error> {
     let comments = SingleThreadedComments::default();
@@ -25,26 +25,27 @@ pub fn new_module(
         body: Vec::with_capacity(max_cap),
         shebang: None,
     };
-    for ident in local_idents {
-        if let Some(import) = global.imports.get(ident) {
+
+    for id in local_idents {
+        if let Some(import) = global.imports.get(id) {
             let specifier = match import.kind {
                 ImportKind::Named => ast::ImportSpecifier::Named(ast::ImportNamedSpecifier {
                     is_type_only: false,
                     span: DUMMY_SP,
-                    imported: if &import.specifier == ident {
+                    imported: if import.specifier == id.0 {
                         None
                     } else {
                         Some(ast::Ident::new(import.specifier.clone(), DUMMY_SP))
                     },
-                    local: ast::Ident::new(ident.clone(), DUMMY_SP),
+                    local: new_ident_from_id(id),
                 }),
                 ImportKind::Default => ast::ImportSpecifier::Default(ast::ImportDefaultSpecifier {
                     span: DUMMY_SP,
-                    local: ast::Ident::new(ident.clone(), DUMMY_SP),
+                    local: new_ident_from_id(id),
                 }),
                 ImportKind::All => ast::ImportSpecifier::Namespace(ast::ImportStarAsSpecifier {
                     span: DUMMY_SP,
-                    local: ast::Ident::new(ident.clone(), DUMMY_SP),
+                    local: new_ident_from_id(id),
                 }),
             };
             module
@@ -63,7 +64,12 @@ pub fn new_module(
                         specifiers: vec![specifier],
                     },
                 )));
-        } else if let Some(export) = global.exports.get(ident) {
+        } else if let Some(export) = global.exports.get(id) {
+            let imported = if export == &id.0 {
+                None
+            } else {
+                Some(ast::Ident::new(export.clone(), DUMMY_SP))
+            };
             module
                 .body
                 .push(ast::ModuleItem::ModuleDecl(ast::ModuleDecl::Import(
@@ -80,8 +86,8 @@ pub fn new_module(
                         specifiers: vec![ast::ImportSpecifier::Named(ast::ImportNamedSpecifier {
                             is_type_only: false,
                             span: DUMMY_SP,
-                            imported: None,
-                            local: ast::Ident::new(export.clone(), DUMMY_SP),
+                            imported,
+                            local: new_ident_from_id(id),
                         })],
                     },
                 )));

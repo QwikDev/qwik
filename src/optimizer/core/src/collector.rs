@@ -437,8 +437,8 @@ impl Visit for HookCollect {
     fn visit_jsx_opening_element(&mut self, node: &ast::JSXOpeningElement) {
         let mut stacked = false;
         if let ast::JSXElementName::Ident(ref ident) = node.name {
-            let ident_name = ident.sym.as_ref().chars().next().unwrap();
-            if let 'A'..='Z' = ident_name {
+            let ident_name = ident.sym.as_ref().chars().next();
+            if let Some('A'..='Z') = ident_name {
                 self.expr_ctxt.push(ExprOrSkip::Expr);
             } else {
                 self.expr_ctxt.push(ExprOrSkip::Skip);

@@ -56,7 +56,8 @@ export function qwikRollup(opts: QwikPluginOptions = {}): any {
       result = await optimizer.transformFs(transformOpts);
       result.modules.forEach((output) => {
         const path = output.path.split('.').slice(0, -1).join('.');
-        const key = transformOpts.rootDir + '/' + path;
+        const sep = optimizer?.path?.sep || '/';
+        const key = transformOpts.rootDir + sep + path;
         transformedOutputs.set(key, output);
       });
 

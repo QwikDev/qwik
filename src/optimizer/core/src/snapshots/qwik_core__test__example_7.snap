@@ -6,7 +6,7 @@ expression: output
 ==INPUT==
 
 
-import {qHook} from '@builderio/qwik';
+import {qHook} from '@builder.io/qwik';
 
 
 const Header = qComponent({
@@ -27,43 +27,43 @@ const App = qComponent({
 });
 ============================= test.tsx ==
 
-import { qHook } from '@builderio/qwik';
+import * as __qwik__ from "@builder.io/qwik";
 /*#__PURE__*/ qComponent({
-    "onMount": qHook(()=>import("./h_test_header_onmount")
+    "onMount": __qwik__.qHook(()=>import("./h_test_header_onmount")
     , "Header_onMount"),
-    onRender: qHook(()=>import("./h_test_header_onrender")
+    onRender: __qwik__.qHook(()=>import("./h_test_header_onrender")
     , "Header_onRender")
 });
 /*#__PURE__*/ qComponent({
-    onRender: qHook(()=>import("./h_test_app_onrender")
+    onRender: __qwik__.qHook(()=>import("./h_test_app_onrender")
     , "App_onRender")
 });
 
 ============================= h_test_header_onmount.tsx (ENTRY POINT)==
 
-import { qHook } from "@builderio/qwik";
-export const Header_onMount = /*#__PURE__*/ qHook(()=>{
+import * as __qwik__ from "@builder.io/qwik";
+export const Header_onMount = __qwik__.qHook(()=>{
     console.log("mount");
 });
 
 ============================= h_test_header_onrender_div_onclick.tsx (ENTRY POINT)==
 
-import { qHook } from "@builderio/qwik";
-export const Header_onRender_div_onClick = /*#__PURE__*/ qHook((ctx)=>console.log(ctx)
+import * as __qwik__ from "@builder.io/qwik";
+export const Header_onRender_div_onClick = __qwik__.qHook((ctx)=>console.log(ctx)
 );
 
 ============================= h_test_header_onrender.tsx (ENTRY POINT)==
 
-import { qHook } from "@builderio/qwik";
-export const Header_onRender = /*#__PURE__*/ qHook(()=>{
-    return (<div onClick={qHook(()=>import("./h_test_header_onrender_div_onclick")
+import * as __qwik__ from "@builder.io/qwik";
+export const Header_onRender = __qwik__.qHook(()=>{
+    return (<div onClick={__qwik__.qHook(()=>import("./h_test_header_onrender_div_onclick")
     , "Header_onRender_div_onClick")}/>);
 });
 
 ============================= h_test_app_onrender.tsx (ENTRY POINT)==
 
-import { qHook } from "@builderio/qwik";
-export const App_onRender = /*#__PURE__*/ qHook(()=>{
+import * as __qwik__ from "@builder.io/qwik";
+export const App_onRender = __qwik__.qHook(()=>{
     return (<Header />);
 });
 
@@ -77,8 +77,7 @@ export const App_onRender = /*#__PURE__*/ qHook(()=>{
     "canonicalFilename": "h_test_header_onmount",
     "localDecl": [],
     "localIdents": [
-      "console",
-      "qHook"
+      "console"
     ]
   },
   {
@@ -91,8 +90,7 @@ export const App_onRender = /*#__PURE__*/ qHook(()=>{
     ],
     "localIdents": [
       "console",
-      "ctx",
-      "qHook"
+      "ctx"
     ]
   },
   {
@@ -101,9 +99,7 @@ export const App_onRender = /*#__PURE__*/ qHook(()=>{
     "entry": null,
     "canonicalFilename": "h_test_header_onrender",
     "localDecl": [],
-    "localIdents": [
-      "qHook"
-    ]
+    "localIdents": []
   },
   {
     "origin": "test.tsx",
@@ -112,8 +108,7 @@ export const App_onRender = /*#__PURE__*/ qHook(()=>{
     "canonicalFilename": "h_test_app_onrender",
     "localDecl": [],
     "localIdents": [
-      "Header",
-      "qHook"
+      "Header"
     ]
   }
 ]

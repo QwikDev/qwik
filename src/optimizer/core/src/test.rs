@@ -127,7 +127,7 @@ fn example_7() {
     test_input(
         "test.tsx",
         r#"
-import {qHook} from '@builderio/qwik';
+import {qHook} from '@builder.io/qwik';
 
 
 const Header = qComponent({
@@ -157,7 +157,7 @@ fn example_8() {
     test_input(
         "test.tsx",
         r#"
-import {qHook} from '@builderio/qwik';
+import {qHook} from '@builder.io/qwik';
 
 const Header = qComponent({
     onRender: qHook((hola) => {
@@ -336,7 +336,7 @@ fn issue_118() {
     test_input(
         "project/test.tsx",
         r#"
-import {qHook, h} from '@builderio/qwik';
+import {qHook, h} from '@builder.io/qwik';
 import thing from 'lib';
 import * as all from 'lib';
 import {s as se} from 'lib';

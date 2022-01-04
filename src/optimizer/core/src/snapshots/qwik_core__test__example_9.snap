@@ -1,5 +1,5 @@
 ---
-source: src/test.rs
+source: src/optimizer/core/src/test.rs
 expression: output
 
 ---
@@ -20,12 +20,14 @@ const Header = qHook((decl1, {decl2}, [decl3]) => {
     
 ============================= test.tsx ==
 
-qHook(()=>import("./h_test_header")
+import * as __qwik__ from "@builder.io/qwik";
+__qwik__.qHook(()=>import("./h_test_header")
 , "Header");
 
 ============================= h_test_header.tsx (ENTRY POINT)==
 
-export const Header = /*#__PURE__*/ qHook((decl1, { decl2  }, [decl3])=>{
+import * as __qwik__ from "@builder.io/qwik";
+export const Header = __qwik__.qHook((decl1, { decl2  }, [decl3])=>{
     const { decl4 , key: decl5  } = this;
     let [decl6, ...decl7] = stuff;
     const decl8 = 1, decl9;
@@ -73,10 +75,6 @@ export const Header = /*#__PURE__*/ qHook((decl1, { decl2  }, [decl3])=>{
       "decl9"
     ],
     "localIdents": [
-      "decl1",
-      "decl2",
-      "decl3",
-      "qHook",
       "stuff"
     ]
   }

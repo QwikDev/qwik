@@ -196,14 +196,12 @@ pub struct HookCollect {
 }
 
 impl HookCollect {
-    pub fn new(node: &ast::CallExpr) -> Self {
-        let mut collect = Self {
+    pub fn new() -> Self {
+        Self {
             local_decl: HashSet::new(),
             local_idents: HashSet::new(),
             expr_ctxt: vec![],
-        };
-        node.visit_with(&mut collect);
-        collect
+        }
     }
 
     pub fn get_words(self) -> (Vec<JsWord>, Vec<Id>) {

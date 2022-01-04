@@ -21,37 +21,42 @@ const Header = qComponent({
     
 ============================= test.tsx ==
 
+import * as __qwik__ from "@builder.io/qwik";
 /*#__PURE__*/ qComponent({
-    "onMount": qHook(()=>import("./h_test_header_onmount")
+    "onMount": __qwik__.qHook(()=>import("./h_test_header_onmount")
     , "Header_onMount"),
-    "otherThing": qHook(()=>import("./h_test_header_otherthing")
+    "otherThing": __qwik__.qHook(()=>import("./h_test_header_otherthing")
     , "Header_otherThing"),
-    onRender: qHook(()=>import("./h_test_header_onrender")
+    onRender: __qwik__.qHook(()=>import("./h_test_header_onrender")
     , "Header_onRender")
 });
 
 ============================= h_test_header_onmount.tsx (ENTRY POINT)==
 
-export const Header_onMount = /*#__PURE__*/ qHook(()=>{
+import * as __qwik__ from "@builder.io/qwik";
+export const Header_onMount = __qwik__.qHook(()=>{
     console.log("mount");
 });
 
 ============================= h_test_header_otherthing.tsx (ENTRY POINT)==
 
-export const Header_otherThing = /*#__PURE__*/ qHook(()=>{
+import * as __qwik__ from "@builder.io/qwik";
+export const Header_otherThing = __qwik__.qHook(()=>{
     console.log("otherThing");
 });
 
 ============================= h_test_header_onrender_div_onclick.tsx (ENTRY POINT)==
 
-export const Header_onRender_div_onclick = /*#__PURE__*/ qHook((ctx)=>console.log(ctx)
+import * as __qwik__ from "@builder.io/qwik";
+export const Header_onRender_div_onclick = __qwik__.qHook((ctx)=>console.log(ctx)
 );
 
 ============================= h_test_header_onrender.tsx (ENTRY POINT)==
 
-export const Header_onRender = /*#__PURE__*/ qHook(()=>{
+import * as __qwik__ from "@builder.io/qwik";
+export const Header_onRender = __qwik__.qHook(()=>{
     return (<div prop={(ctx)=>console.log(ctx)
-    } on:click={qHook(()=>import("./h_test_header_onrender_div_onclick")
+    } on:click={__qwik__.qHook(()=>import("./h_test_header_onrender_div_onclick")
     , "Header_onRender_div_onclick")}/>);
 });
 
@@ -65,8 +70,7 @@ export const Header_onRender = /*#__PURE__*/ qHook(()=>{
     "canonicalFilename": "h_test_header_onmount",
     "localDecl": [],
     "localIdents": [
-      "console",
-      "qHook"
+      "console"
     ]
   },
   {

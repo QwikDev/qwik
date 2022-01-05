@@ -27,12 +27,14 @@ const Header = qHook((decl1, {decl2}, [decl3]) => {
     
 ============================= project/test.tsx ==
 
-qHook(()=>import("../h_test_header")
+import * as __qwik__ from "@builder.io/qwik";
+__qwik__.qHook(()=>import("../h_test_header")
 , "Header");
 
 ============================= h_test_header.tsx (ENTRY POINT)==
 
-export const Header = /*#__PURE__*/ qHook((decl1, { decl2  }, [decl3])=>{
+import * as __qwik__ from "@builder.io/qwik";
+export const Header = __qwik__.qHook((decl1, { decl2  }, [decl3])=>{
     const hola = ident1.no;
     ident2;
     const a = ident1 + ident3;
@@ -73,10 +75,6 @@ export const Header = /*#__PURE__*/ qHook((decl1, { decl2  }, [decl3])=>{
       "ident11"
     ],
     "localIdents": [
-      "decl1",
-      "decl2",
-      "decl3",
-      "div",
       "ident1",
       "ident10",
       "ident11",
@@ -88,11 +86,7 @@ export const Header = /*#__PURE__*/ qHook((decl1, { decl2  }, [decl3])=>{
       "ident6",
       "ident7",
       "ident8",
-      "ident9",
-      "no",
-      "onClick",
-      "qHook",
-      "required"
+      "ident9"
     ]
   }
 ]

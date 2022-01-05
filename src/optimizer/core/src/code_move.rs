@@ -1,17 +1,19 @@
 use crate::collector::{new_ident_from_id, GlobalCollect, Id, ImportKind};
 use crate::parse::{emit_source_code, HookAnalysis, PathData, TransformModule, TransformOutput};
+use crate::transform::{create_internal_call, create_synthetic_wildcard_import};
+use crate::words::*;
 
 use std::collections::HashMap;
 use std::path::Path;
 
 use anyhow::{format_err, Context, Error};
 use swc_atoms::JsWord;
-use swc_common::comments::{Comments, SingleThreadedComments};
+use swc_common::comments::SingleThreadedComments;
 use swc_common::{sync::Lrc, SourceMap, DUMMY_SP};
 use swc_ecmascript::ast;
 
 pub fn new_module(
-    expr: ast::CallExpr,
+    expr: Box<ast::Expr>,
     path: &PathData,
     name: &str,
     origin: &str,
@@ -25,6 +27,12 @@ pub fn new_module(
         body: Vec::with_capacity(max_cap),
         shebang: None,
     };
+
+    // Inject qwik internal import
+    module.body.push(create_synthetic_wildcard_import(
+        &QWIK_INTERNAL,
+        &BUILDER_IO_QWIK,
+    ));
 
     for id in local_idents {
         if let Some(import) = global.imports.get(id) {
@@ -142,11 +150,17 @@ pub fn fix_path<S: AsRef<Path>, D: AsRef<Path>>(
 }
 
 fn create_named_export(
-    expr: ast::CallExpr,
+    expr: Box<ast::Expr>,
     name: &str,
-    comments: &SingleThreadedComments,
+    _comments: &SingleThreadedComments,
 ) -> ast::ModuleItem {
-    comments.add_pure_comment(expr.span.lo);
+    // comments.add_pure_comment(expr.span().lo);
+
+    let call_expr = Box::new(ast::Expr::Call(create_internal_call(
+        &QHOOK_HANDLER,
+        vec![*expr],
+        None,
+    )));
 
     ast::ModuleItem::ModuleDecl(ast::ModuleDecl::ExportDecl(ast::ExportDecl {
         span: DUMMY_SP,
@@ -161,7 +175,7 @@ fn create_named_export(
                     JsWord::from(name),
                     DUMMY_SP,
                 ))),
-                init: Some(Box::new(ast::Expr::Call(expr))),
+                init: Some(call_expr),
             }],
         }),
     }))

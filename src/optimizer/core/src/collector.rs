@@ -196,14 +196,12 @@ pub struct HookCollect {
 }
 
 impl HookCollect {
-    pub fn new(node: &ast::CallExpr) -> Self {
-        let mut collect = Self {
+    pub fn new() -> Self {
+        Self {
             local_decl: HashSet::new(),
             local_idents: HashSet::new(),
             expr_ctxt: vec![],
-        };
-        node.visit_with(&mut collect);
-        collect
+        }
     }
 
     pub fn get_words(self) -> (Vec<JsWord>, Vec<Id>) {
@@ -434,9 +432,34 @@ impl Visit for HookCollect {
         self.expr_ctxt.pop();
     }
 
+    fn visit_jsx_opening_element(&mut self, node: &ast::JSXOpeningElement) {
+        let mut stacked = false;
+        if let ast::JSXElementName::Ident(ref ident) = node.name {
+            let ident_name = ident.sym.as_ref().chars().next();
+            if let Some('A'..='Z') = ident_name {
+                self.expr_ctxt.push(ExprOrSkip::Expr);
+            } else {
+                self.expr_ctxt.push(ExprOrSkip::Skip);
+            }
+            stacked = true;
+        }
+
+        node.visit_children_with(self);
+        if stacked {
+            self.expr_ctxt.pop();
+        }
+    }
+    fn visit_jsx_attr(&mut self, node: &ast::JSXAttr) {
+        self.expr_ctxt.push(ExprOrSkip::Skip);
+        node.visit_children_with(self);
+        self.expr_ctxt.pop();
+    }
+
     fn visit_ident(&mut self, node: &ast::Ident) {
         if let Some(ExprOrSkip::Expr) = self.expr_ctxt.last() {
-            self.local_idents.insert(id!(node));
+            if node.span.ctxt() != SyntaxContext::empty() {
+                self.local_idents.insert(id!(node));
+            }
         }
     }
 

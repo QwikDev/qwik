@@ -1,5 +1,5 @@
 ---
-source: src/test.rs
+source: src/optimizer/core/src/test.rs
 expression: output
 
 ---
@@ -13,14 +13,16 @@ export const Header = qComponent({
     
 ============================= project/test.tsx ==
 
+import * as __qwik__ from "@builder.io/qwik";
 export const Header = /*#__PURE__*/ qComponent({
-    onRender: qHook(()=>import("../entry_hooks")
+    onRender: __qwik__.qHook(()=>import("../entry_hooks")
     , "sym2")
 });
 
 ============================= h_test_sym2.tsx ==
 
-export const sym2 = /*#__PURE__*/ qHook(()=>console.log("hello sym2")
+import * as __qwik__ from "@builder.io/qwik";
+export const sym2 = __qwik__.qHook(()=>console.log("hello sym2")
 );
 
 ============================= entry_hooks.ts (ENTRY POINT)==
@@ -37,9 +39,7 @@ export { sym2 } from "./h_test_sym2";
     "canonicalFilename": "h_test_sym2",
     "localDecl": [],
     "localIdents": [
-      "console",
-      "log",
-      "qHook"
+      "console"
     ]
   }
 ]

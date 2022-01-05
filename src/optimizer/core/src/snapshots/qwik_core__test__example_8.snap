@@ -1,12 +1,12 @@
 ---
-source: src/test.rs
+source: src/optimizer/core/src/test.rs
 expression: output
 
 ---
 ==INPUT==
 
 
-import {qHook} from '@builderio/qwik';
+import {qHook} from '@builder.io/qwik';
 
 const Header = qComponent({
     onRender: qHook((hola) => {
@@ -21,16 +21,16 @@ const Header = qComponent({
 
 ============================= test.tsx ==
 
-import { qHook } from '@builderio/qwik';
+import * as __qwik__ from "@builder.io/qwik";
 /*#__PURE__*/ qComponent({
-    onRender: qHook(()=>import("./h_test_header_onrender")
+    onRender: __qwik__.qHook(()=>import("./h_test_header_onrender")
     , "Header_onRender")
 });
 
 ============================= h_test_header_onrender.tsx (ENTRY POINT)==
 
-import { qHook } from "@builderio/qwik";
-export const Header_onRender = /*#__PURE__*/ qHook((hola)=>{
+import * as __qwik__ from "@builder.io/qwik";
+export const Header_onRender = __qwik__.qHook((hola)=>{
     const hola = this;
     const { something , styff  } = hola;
     const hello = hola.nothere.stuff[global];
@@ -54,10 +54,7 @@ export const Header_onRender = /*#__PURE__*/ qHook((hola)=>{
     "localIdents": [
       "Header",
       "global",
-      "hola",
-      "nothere",
-      "qHook",
-      "stuff"
+      "hola"
     ]
   }
 ]

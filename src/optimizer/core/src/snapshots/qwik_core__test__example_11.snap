@@ -1,5 +1,5 @@
 ---
-source: src/test.rs
+source: src/optimizer/core/src/test.rs
 expression: output
 
 ---
@@ -30,28 +30,31 @@ export const App = qComponent({
     
 ============================= project/test.tsx ==
 
+import * as __qwik__ from "@builder.io/qwik";
 export const Header = /*#__PURE__*/ qComponent({
-    onRender: qHook(()=>import("../entry_hooks")
+    onRender: __qwik__.qHook(()=>import("../entry_hooks")
     , "Header_onRender")
 });
 export const App = /*#__PURE__*/ qComponent({
-    onRender: qHook(()=>import("../entry_hooks")
+    onRender: __qwik__.qHook(()=>import("../entry_hooks")
     , "App_onRender")
 });
 
 ============================= h_test_header_onrender_header_onclick.tsx ==
 
+import * as __qwik__ from "@builder.io/qwik";
 import dep3 from "dep3/something";
-export const Header_onRender_Header_onClick = /*#__PURE__*/ qHook((ev)=>dep3(ev)
+export const Header_onRender_Header_onClick = __qwik__.qHook((ev)=>dep3(ev)
 );
 
 ============================= h_test_header_onrender.tsx ==
 
+import * as __qwik__ from "@builder.io/qwik";
 import { Header } from "./project/test";
 import { bar as bbar } from "./state";
 import * as dep2 from "dep2";
-export const Header_onRender = /*#__PURE__*/ qHook(()=>{
-    return (<Header onClick={qHook(()=>import("../entry_hooks")
+export const Header_onRender = __qwik__.qHook(()=>{
+    return (<Header onClick={__qwik__.qHook(()=>import("../entry_hooks")
     , "Header_onRender_Header_onClick")}>
 
                 {dep2.stuff()}{bbar()}
@@ -61,9 +64,10 @@ export const Header_onRender = /*#__PURE__*/ qHook(()=>{
 
 ============================= h_test_app_onrender.tsx ==
 
+import * as __qwik__ from "@builder.io/qwik";
 import { Header } from "./project/test";
 import { foo } from "./state";
-export const App_onRender = /*#__PURE__*/ qHook(()=>{
+export const App_onRender = __qwik__.qHook(()=>{
     return (<Header >{foo()}</Header>);
 });
 
@@ -86,8 +90,7 @@ export { App_onRender } from "./h_test_app_onrender";
     ],
     "localIdents": [
       "dep3",
-      "ev",
-      "qHook"
+      "ev"
     ]
   },
   {
@@ -99,11 +102,7 @@ export { App_onRender } from "./h_test_app_onrender";
     "localIdents": [
       "Header",
       "bbar",
-      "dep2",
-      "import",
-      "onClick",
-      "qHook",
-      "stuff"
+      "dep2"
     ]
   },
   {
@@ -114,8 +113,7 @@ export { App_onRender } from "./h_test_app_onrender";
     "localDecl": [],
     "localIdents": [
       "Header",
-      "foo",
-      "qHook"
+      "foo"
     ]
   }
 ]

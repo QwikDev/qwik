@@ -7,7 +7,7 @@ fn transform_benchmark(b: &mut Criterion) {
     b.bench_function("transform", |b| {
         b.iter(|| {
             let code = r#"
-        import {qHook} from '@builderio/qwik';
+    import {qHook} from '@builder.io/qwik';
 
 
     const Header2 = qComponent({

@@ -1,0 +1,75 @@
+---
+source: src/optimizer/core/src/test.rs
+expression: output
+
+---
+==INPUT==
+
+
+const Header = qComponent(() => {
+    const thing = useState();
+    const {foo, bar} = foo();
+
+    return (
+        <div/>
+    )
+});
+    
+============================= test.tsx ==
+
+/*#__PURE__*/ qComponent({
+    onMount: qHook(()=>import("./h_test_header_onmount")
+    , "Header_onMount"),
+    onRender: qHook(()=>import("./h_test_header_onrender")
+    , "Header_onRender")
+});
+
+============================= h_test_header_onmount.tsx (ENTRY POINT)==
+
+export const Header_onMount = qHook(()=>{
+    const _closure = useClosure();
+    const thing = useState();
+    _closure.thing = thing;
+    const { foo , bar  } = foo();
+    _closure.bar = bar;
+    _closure.foo = foo;
+});
+
+============================= h_test_header_onrender.tsx (ENTRY POINT)==
+
+export const Header_onRender = qHook(()=>{
+    return (<div />);
+});
+
+== HOOKS ==
+
+[
+  {
+    "origin": "test.tsx",
+    "name": "Header_onMount",
+    "entry": null,
+    "canonicalFilename": "h_test_header_onmount",
+    "localDecl": [
+      "_closure",
+      "bar",
+      "foo",
+      "thing"
+    ],
+    "localIdents": [
+      "foo",
+      "useState"
+    ]
+  },
+  {
+    "origin": "test.tsx",
+    "name": "Header_onRender",
+    "entry": null,
+    "canonicalFilename": "h_test_header_onrender",
+    "localDecl": [],
+    "localIdents": []
+  }
+]
+
+== DIAGNOSTICS ==
+
+[]

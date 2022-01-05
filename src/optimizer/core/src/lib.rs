@@ -11,6 +11,7 @@ mod entry_strategy;
 mod parse;
 mod transform;
 mod utils;
+mod words;
 
 #[cfg(feature = "parallel")]
 use rayon::prelude::*;

@@ -19,30 +19,34 @@ export const Header = qComponent({
     
 ============================= test.tsx ==
 
+import * as __qwik__ from "@builder.io/qwik";
 export const Header = /*#__PURE__*/ qComponent({
-    onRender: qHook(()=>import("./h_test_header_onrender")
+    onRender: __qwik__.qHook(()=>import("./h_test_header_onrender")
     , "Header_onRender")
 });
 
 ============================= h_test_header_onrender_div_onclick.tsx (ENTRY POINT)==
 
-export const Header_onRender_div_onClick = /*#__PURE__*/ qHook((ctx)=>console.log("1")
+import * as __qwik__ from "@builder.io/qwik";
+export const Header_onRender_div_onClick = __qwik__.qHook((ctx)=>console.log("1")
 );
 
 ============================= h_test_header_onrender_div_onclick2.tsx (ENTRY POINT)==
 
-export const Header_onRender_div_onClick2 = /*#__PURE__*/ qHook((ctx)=>console.log("2")
+import * as __qwik__ from "@builder.io/qwik";
+export const Header_onRender_div_onClick2 = __qwik__.qHook((ctx)=>console.log("2")
 );
 
 ============================= h_test_header_onrender.tsx (ENTRY POINT)==
 
-export const Header_onRender = /*#__PURE__*/ qHook(()=>{
+import * as __qwik__ from "@builder.io/qwik";
+export const Header_onRender = __qwik__.qHook(()=>{
     return (<>
 
-                <div onClick={qHook(()=>import("./h_test_header_onrender_div_onclick")
+                <div onClick={__qwik__.qHook(()=>import("./h_test_header_onrender_div_onclick")
     , "Header_onRender_div_onClick")}/>
 
-                <div onClick={qHook(()=>import("./h_test_header_onrender_div_onclick2")
+                <div onClick={__qwik__.qHook(()=>import("./h_test_header_onrender_div_onclick2")
     , "Header_onRender_div_onClick2")}/>
 
             </>);
@@ -60,10 +64,7 @@ export const Header_onRender = /*#__PURE__*/ qHook(()=>{
       "ctx"
     ],
     "localIdents": [
-      "console",
-      "ctx",
-      "log",
-      "qHook"
+      "console"
     ]
   },
   {
@@ -75,10 +76,7 @@ export const Header_onRender = /*#__PURE__*/ qHook(()=>{
       "ctx"
     ],
     "localIdents": [
-      "console",
-      "ctx",
-      "log",
-      "qHook"
+      "console"
     ]
   },
   {
@@ -87,12 +85,7 @@ export const Header_onRender = /*#__PURE__*/ qHook(()=>{
     "entry": null,
     "canonicalFilename": "h_test_header_onrender",
     "localDecl": [],
-    "localIdents": [
-      "div",
-      "import",
-      "onClick",
-      "qHook"
-    ]
+    "localIdents": []
   }
 ]
 

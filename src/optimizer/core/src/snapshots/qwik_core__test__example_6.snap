@@ -1,5 +1,5 @@
 ---
-source: src/test.rs
+source: src/optimizer/core/src/test.rs
 expression: output
 
 ---
@@ -10,12 +10,14 @@ export const sym1 = qHook((ctx) => console.log("1"));
     
 ============================= test.tsx ==
 
-export const sym1 = qHook(()=>import("./h_test_sym1")
+import * as __qwik__ from "@builder.io/qwik";
+export const sym1 = __qwik__.qHook(()=>import("./h_test_sym1")
 , "sym1");
 
 ============================= h_test_sym1.tsx (ENTRY POINT)==
 
-export const sym1 = /*#__PURE__*/ qHook((ctx)=>console.log("1")
+import * as __qwik__ from "@builder.io/qwik";
+export const sym1 = __qwik__.qHook((ctx)=>console.log("1")
 );
 
 == HOOKS ==
@@ -30,10 +32,7 @@ export const sym1 = /*#__PURE__*/ qHook((ctx)=>console.log("1")
       "ctx"
     ],
     "localIdents": [
-      "console",
-      "ctx",
-      "log",
-      "qHook"
+      "console"
     ]
   }
 ]

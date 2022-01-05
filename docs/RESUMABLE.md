@@ -14,7 +14,7 @@ We call the above information the framework-internal-state.
 
 ## Heap-centric frameworks are replayable
 
-Current generation of frameworks store the framework-internal-state in Javascript heap as a set of object, and closures. The frameworks build up their internal-state by bootstrapping the application. Because the frameworks are not designed with serializability in mind the framework-internal-state is not serializable and needs to be re-built on application bootstrap. The consequence of this is that if a site is server-side-rendered then the framework must re-bootstrap the application in order to rebuild the framework-internal-state. Bootstrapping the application is slow because:
+Current generation of frameworks store the framework-internal-state in Javascript heap as a set of objects, and closures. The frameworks build up their internal-state by bootstrapping the application. Because the frameworks are not designed with serializability in mind the framework-internal-state is not serializable and needs to be re-built on application bootstrap. The consequence of this is that if a site is server-side-rendered then the framework must re-bootstrap the application in order to rebuild the framework-internal-state. Bootstrapping the application is slow because:
 
 - Most of the framework needs to be downloaded and executed.
 - All component templates on the page need to be downloaded. (Proportional to the size of the application.)
@@ -44,7 +44,7 @@ By keeping the above state in the DOM the framework does not have any additional
 
 ## Writing applications with serializability in mind
 
-The resumability property of the framework must extend to resumability of the application as well. This means that the framework must provide mechanisms for the developer to express Component and Entities of the applications in a way which can be serialized and then resumed (without re-bootstrapping). This necessitates that applications are written with resumability constraints in mind. It is simply not possible for developers to continue to write applications in heap-centric way and expect that a better framework can somehow make up for this sub-optimal approach.
+The resumability property of the framework must extend to resumability of the application as well. This means that the framework must provide mechanisms for the developer to express Components and Entities of the applications in a way which can be serialized and then resumed (without re-bootstrapping). This necessitates that applications are written with resumability constraints in mind. It is simply not possible for developers to continue to write applications in heap-centric way and expect that a better framework can somehow make up for this sub-optimal approach.
 
 Developers must write their applications in DOM-centric way. This will require a change of behavior and retooling of web-developers skills. Frameworks need to provide the guidance and APIs to make it easy for the developers to write the applications in this way.
 

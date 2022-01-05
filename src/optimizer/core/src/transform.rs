@@ -46,6 +46,7 @@ enum PositionToken {
     QComponent,
     ObjectProp,
     JSXListener,
+    MarkerFunction,
     Any,
 }
 
@@ -131,12 +132,8 @@ impl<'a> HookTransform<'a> {
         }
     }
 
-    fn create_synthetic_qhook(&mut self, fn_expr: ast::ArrowExpr) -> ast::CallExpr {
-        create_internal_call(
-            &QHOOK,
-            vec![ast::Expr::Arrow(fn_expr)],
-            Some(self.qhook_mark),
-        )
+    fn create_synthetic_qhook(&mut self, expr: ast::Expr) -> ast::CallExpr {
+        create_internal_call(&QHOOK, vec![expr], Some(self.qhook_mark))
     }
 
     fn handle_qhook(&mut self, node: ast::CallExpr) -> ast::CallExpr {
@@ -364,12 +361,11 @@ impl<'a> Fold for HookTransform<'a> {
     fn fold_expr(&mut self, node: ast::Expr) -> ast::Expr {
         let node = match (self.position_ctxt.as_slice(), node) {
             (
-                [.., PositionToken::QComponent, PositionToken::Any, PositionToken::ObjectProp],
+                [.., PositionToken::QComponent, PositionToken::Any, PositionToken::ObjectProp]
+                | [.., PositionToken::JSXListener]
+                | [.., PositionToken::MarkerFunction],
                 ast::Expr::Arrow(arrow),
-            )
-            | ([.., PositionToken::JSXListener], ast::Expr::Arrow(arrow)) => {
-                ast::Expr::Call(self.create_synthetic_qhook(arrow))
-            }
+            ) => ast::Expr::Call(self.create_synthetic_qhook(ast::Expr::Arrow(arrow))),
             (_, node) => node,
         };
 
@@ -380,26 +376,28 @@ impl<'a> Fold for HookTransform<'a> {
     }
 
     fn fold_call_expr(&mut self, node: ast::CallExpr) -> ast::CallExpr {
-        let mut open_component = false;
+        let mut injected = false;
         if let ast::ExprOrSuper::Expr(expr) = &node.callee {
             if node.span.has_mark(self.qhook_mark) {
                 return self.handle_qhook(node);
-            } else if let ast::Expr::Ident(id) = &**expr {
-                if QCOMPONENT.eq(&id.sym) {
+            } else if let ast::Expr::Ident(ast::Ident { sym, .. }) = &**expr {
+                if QHOOK.eq(sym) {
+                    return self.handle_qhook(node);
+                } else if QCOMPONENT.eq(sym) {
                     self.position_ctxt.push(PositionToken::QComponent);
-                    open_component = true;
+                    injected = true;
                     if let Some(comments) = self.comments {
                         comments.add_pure_comment(node.span.lo);
                     }
-                } else if QHOOK.eq(&id.sym) {
-                    println!("{}", node.span.has_mark(self.qhook_mark));
-                    return self.handle_qhook(node);
+                } else if MARKER_FUNTIONS.contains(sym) {
+                    self.position_ctxt.push(PositionToken::MarkerFunction);
+                    injected = true;
                 }
             }
         }
 
         let o = node.fold_children_with(self);
-        if open_component {
+        if injected {
             self.position_ctxt.pop();
         }
         o

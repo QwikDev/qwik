@@ -1,6 +1,6 @@
 use crate::collector::{new_ident_from_id, GlobalCollect, Id, ImportKind};
 use crate::parse::{emit_source_code, HookAnalysis, PathData, TransformModule, TransformOutput};
-use crate::transform::create_synthetic_wildcard_import;
+use crate::transform::{create_internal_call, create_synthetic_wildcard_import};
 use crate::words::*;
 
 use std::collections::HashMap;
@@ -11,6 +11,7 @@ use swc_atoms::JsWord;
 use swc_common::comments::SingleThreadedComments;
 use swc_common::{sync::Lrc, SourceMap, DUMMY_SP};
 use swc_ecmascript::ast;
+use swc_ecmascript::visit::{Fold, FoldWith};
 
 pub fn new_module(
     expr: Box<ast::Expr>,
@@ -18,6 +19,7 @@ pub fn new_module(
     name: &str,
     origin: &str,
     local_idents: &[Id],
+    scoped_idents: &[Id],
     global: &GlobalCollect,
 ) -> Result<(ast::Module, SingleThreadedComments), Error> {
     let comments = SingleThreadedComments::default();
@@ -101,6 +103,12 @@ pub fn new_module(
                 )));
         }
     }
+    let expr = if !scoped_idents.is_empty() {
+        expr.fold_with(&mut HookScopeInjector { scoped_idents })
+    } else {
+        expr
+    };
+
     module.body.push(create_named_export(expr, name, &comments));
 
     Ok((module, comments))
@@ -262,4 +270,78 @@ fn new_entry_module(hooks: &[&HookAnalysis]) -> ast::Module {
     }
 
     module
+}
+
+struct HookScopeInjector<'a> {
+    scoped_idents: &'a [Id],
+}
+
+impl<'a> Fold for HookScopeInjector<'a> {
+    fn fold_expr(&mut self, node: ast::Expr) -> ast::Expr {
+        match node {
+            ast::Expr::Arrow(arrow) => match arrow.body {
+                ast::BlockStmtOrExpr::BlockStmt(mut block) => {
+                    let mut stmts = vec![create_use_closure(self.scoped_idents)];
+                    stmts.append(&mut block.stmts);
+                    ast::Expr::Arrow(ast::ArrowExpr {
+                        span: arrow.span,
+                        body: ast::BlockStmtOrExpr::BlockStmt(ast::BlockStmt {
+                            span: DUMMY_SP,
+                            stmts,
+                        }),
+                        ..arrow
+                    })
+                }
+                ast::BlockStmtOrExpr::Expr(expr) => ast::Expr::Arrow(ast::ArrowExpr {
+                    span: arrow.span,
+                    body: ast::BlockStmtOrExpr::BlockStmt(ast::BlockStmt {
+                        span: DUMMY_SP,
+                        stmts: vec![
+                            create_use_closure(self.scoped_idents),
+                            create_return_stmt(expr),
+                        ],
+                    }),
+                    ..arrow
+                }),
+            },
+            node => node,
+        }
+    }
+}
+
+const fn create_return_stmt(expr: Box<ast::Expr>) -> ast::Stmt {
+    ast::Stmt::Return(ast::ReturnStmt {
+        arg: Some(expr),
+        span: DUMMY_SP,
+    })
+}
+
+fn create_use_closure(scoped_idents: &[Id]) -> ast::Stmt {
+    ast::Stmt::Decl(ast::Decl::Var(ast::VarDecl {
+        span: DUMMY_SP,
+        declare: false,
+        kind: ast::VarDeclKind::Const,
+        decls: vec![ast::VarDeclarator {
+            definite: false,
+            span: DUMMY_SP,
+            init: Some(Box::new(ast::Expr::Call(create_internal_call(
+                &USE_CLOSURE,
+                vec![],
+                None,
+            )))),
+            name: ast::Pat::Array(ast::ArrayPat {
+                span: DUMMY_SP,
+                optional: false,
+                type_ann: None,
+                elems: scoped_idents
+                    .iter()
+                    .map(|id| {
+                        Some(ast::Pat::Ident(ast::BindingIdent::from(new_ident_from_id(
+                            id,
+                        ))))
+                    })
+                    .collect(),
+            }),
+        }],
+    }))
 }

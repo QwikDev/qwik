@@ -341,6 +341,46 @@ fn example_functional_component() {
 }
 
 #[test]
+fn example_functional_component_2() {
+    test_input(
+        "test.tsx",
+        r#"
+export const useCounter = () => {
+    return useState({count: 0});
+    }
+
+    export const App = qComponent(() => {
+    const state = useCounter();
+    const thing = useState({thing: 0});
+
+    // MISKO: Compromise to have both a return and a marker function
+    // onRender(() => {
+    return onRender(() => {
+        const count2 = state.count * 2;
+        return (
+            <div on:click={() => state.count+=count2 }>
+                <span>{state.count}</span>
+                {buttons.map(btn => (
+                    <button
+                        on:click={() => state.count += btn.offset + thing}
+                    >
+                        {btn.name}
+                    </button>
+                ))}
+
+            </div>
+
+        )
+    });
+    })
+    "#,
+        EntryStrategy::Hook,
+        MinifyMode::None,
+        false,
+    );
+}
+
+#[test]
 fn issue_117() {
     test_input(
         "project/test.tsx",

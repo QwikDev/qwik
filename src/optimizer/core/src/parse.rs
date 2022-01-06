@@ -248,6 +248,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                             &h.name,
                             &h.origin,
                             &h.local_idents,
+                            &h.scoped_idents,
                             &collect,
                         )?;
 

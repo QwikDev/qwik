@@ -197,22 +197,18 @@ impl<'a> HookTransform<'a> {
             // TODO: check with manu
             .unwrap();
 
-            let hook = Hook {
+            let local_idents = ident_collect.get_words();
+            let scoped_idents = compute_scoped_idents(&local_idents, &decl_collect);
+            let o = create_inline_qrl(import_path, &symbol_name, &scoped_idents);
+            self.hooks.push(Hook {
                 entry,
                 canonical_filename,
                 name: symbol_name.clone(),
                 expr: Box::new(folded),
-                local_idents: ident_collect.get_words(),
-                scoped_idents: vec![],
+                local_idents,
+                scoped_idents,
                 origin: self.path_data.path.to_string_lossy().into(),
-            };
-
-            let o = create_inline_qrl(
-                import_path,
-                &symbol_name,
-                &compute_scoped_idents(&hook.local_idents, &decl_collect),
-            );
-            self.hooks.push(hook);
+            });
             o
         } else {
             node
@@ -225,60 +221,62 @@ impl<'a> Fold for HookTransform<'a> {
 
     fn fold_module(&mut self, node: ast::Module) -> ast::Module {
         let node = add_qwik_runtime_import(node);
-        self.decl_stack.push(vec![]);
         node.fold_children_with(self)
     }
 
     // Variable tracking
     fn fold_var_declarator(&mut self, node: ast::VarDeclarator) -> ast::VarDeclarator {
         let mut stacked = false;
-        let current_scope = self.decl_stack.last_mut().unwrap();
-        match node.name {
-            ast::Pat::Ident(ref ident) => {
-                self.stack_ctxt.push(ident.id.sym.to_string());
-                stacked = true;
-                current_scope.push(id!(ident.id));
-            }
-            ast::Pat::Object(ref obj) => {
-                for prop in &obj.props {
-                    match prop {
-                        ast::ObjectPatProp::Assign(ref v) => {
-                            if let Some(ast::Expr::Ident(ident)) = v.value.as_deref() {
-                                current_scope.push(id!(ident));
-                            } else {
-                                current_scope.push(id!(v.key));
+        if let ast::Pat::Ident(ref ident) = node.name {
+            self.stack_ctxt.push(ident.id.sym.to_string());
+            stacked = true;
+        }
+        if let Some(current_scope) = self.decl_stack.last_mut() {
+            match node.name {
+                ast::Pat::Ident(ref ident) => {
+                    current_scope.push(id!(ident.id));
+                }
+                ast::Pat::Object(ref obj) => {
+                    for prop in &obj.props {
+                        match prop {
+                            ast::ObjectPatProp::Assign(ref v) => {
+                                if let Some(ast::Expr::Ident(ident)) = v.value.as_deref() {
+                                    current_scope.push(id!(ident));
+                                } else {
+                                    current_scope.push(id!(v.key));
+                                }
                             }
-                        }
-                        ast::ObjectPatProp::KeyValue(ref v) => {
-                            if let ast::Pat::Ident(ident) = v.value.as_ref() {
-                                current_scope.push(id!(ident.id));
+                            ast::ObjectPatProp::KeyValue(ref v) => {
+                                if let ast::Pat::Ident(ident) = v.value.as_ref() {
+                                    current_scope.push(id!(ident.id));
+                                }
                             }
-                        }
-                        ast::ObjectPatProp::Rest(ref v) => {
-                            if let ast::Pat::Ident(ident) = v.arg.as_ref() {
-                                current_scope.push(id!(ident.id));
+                            ast::ObjectPatProp::Rest(ref v) => {
+                                if let ast::Pat::Ident(ident) = v.arg.as_ref() {
+                                    current_scope.push(id!(ident.id));
+                                }
                             }
                         }
                     }
                 }
-            }
-            ast::Pat::Array(ref arr) => {
-                for el in &arr.elems {
-                    match el {
-                        Some(ast::Pat::Ident(ref ident)) => {
-                            current_scope.push(id!(ident.id));
-                        }
-                        Some(ast::Pat::Rest(ref rest)) => {
-                            if let ast::Pat::Ident(ref ident) = *rest.arg {
+                ast::Pat::Array(ref arr) => {
+                    for el in &arr.elems {
+                        match el {
+                            Some(ast::Pat::Ident(ref ident)) => {
                                 current_scope.push(id!(ident.id));
                             }
+                            Some(ast::Pat::Rest(ref rest)) => {
+                                if let ast::Pat::Ident(ref ident) = *rest.arg {
+                                    current_scope.push(id!(ident.id));
+                                }
+                            }
+                            _ => {}
                         }
-                        _ => {}
                     }
                 }
-            }
-            _ => {}
-        };
+                _ => {}
+            };
+        }
         let o = node.fold_children_with(self);
         if stacked {
             self.stack_ctxt.pop();
@@ -298,6 +296,54 @@ impl<'a> Fold for HookTransform<'a> {
 
     fn fold_arrow_expr(&mut self, node: ast::ArrowExpr) -> ast::ArrowExpr {
         self.decl_stack.push(vec![]);
+        let current_scope = self.decl_stack.last_mut().unwrap();
+
+        for param in &node.params {
+            match param {
+                ast::Pat::Ident(ref ident) => {
+                    current_scope.push(id!(ident.id));
+                }
+                ast::Pat::Object(ref obj) => {
+                    for prop in &obj.props {
+                        match prop {
+                            ast::ObjectPatProp::Assign(ref v) => {
+                                if let Some(ast::Expr::Ident(ident)) = v.value.as_deref() {
+                                    current_scope.push(id!(ident));
+                                } else {
+                                    current_scope.push(id!(v.key));
+                                }
+                            }
+                            ast::ObjectPatProp::KeyValue(ref v) => {
+                                if let ast::Pat::Ident(ident) = v.value.as_ref() {
+                                    current_scope.push(id!(ident.id));
+                                }
+                            }
+                            ast::ObjectPatProp::Rest(ref v) => {
+                                if let ast::Pat::Ident(ident) = v.arg.as_ref() {
+                                    current_scope.push(id!(ident.id));
+                                }
+                            }
+                        }
+                    }
+                }
+                ast::Pat::Array(ref arr) => {
+                    for el in &arr.elems {
+                        match el {
+                            Some(ast::Pat::Ident(ref ident)) => {
+                                current_scope.push(id!(ident.id));
+                            }
+                            Some(ast::Pat::Rest(ref rest)) => {
+                                if let ast::Pat::Ident(ref ident) = *rest.arg {
+                                    current_scope.push(id!(ident.id));
+                                }
+                            }
+                            _ => {}
+                        }
+                    }
+                }
+                _ => {}
+            }
+        }
         let o = node.fold_children_with(self);
         self.decl_stack.pop();
 
@@ -629,69 +675,6 @@ fn validate_sym(sym: &str) -> bool {
         static ref RE: Regex = Regex::new("^[_a-zA-Z][_a-zA-Z0-9]{0,30}$").unwrap();
     }
     RE.is_match(sym)
-}
-
-fn create_use_closure_stmt() -> ast::Stmt {
-    ast::Stmt::Decl(ast::Decl::Var(ast::VarDecl {
-        span: DUMMY_SP,
-        kind: ast::VarDeclKind::Const,
-        declare: false,
-        decls: vec![ast::VarDeclarator {
-            name: ast::Pat::Ident(ast::BindingIdent::from(ast::Ident::new(
-                CLOSURE_VAR.clone(),
-                DUMMY_SP,
-            ))),
-            span: DUMMY_SP,
-            definite: true,
-            init: Some(Box::new(ast::Expr::Call(ast::CallExpr {
-                callee: ast::ExprOrSuper::Expr(Box::new(ast::Expr::Ident(ast::Ident::new(
-                    USE_CLOSURE.clone(),
-                    DUMMY_SP,
-                )))),
-                span: DUMMY_SP,
-                type_args: None,
-                args: vec![],
-            }))),
-        }],
-    }))
-}
-
-fn create_closure_asign(sym: &JsWord) -> ast::Stmt {
-    ast::Stmt::Expr(ast::ExprStmt {
-        span: DUMMY_SP,
-        expr: Box::new(ast::Expr::Assign(ast::AssignExpr {
-            span: DUMMY_SP,
-            op: ast::AssignOp::Assign,
-            left: ast::PatOrExpr::Expr(Box::new(ast::Expr::Member(ast::MemberExpr {
-                span: DUMMY_SP,
-                computed: false,
-                obj: ast::ExprOrSuper::Expr(Box::new(ast::Expr::Ident(ast::Ident::new(
-                    CLOSURE_VAR.clone(),
-                    DUMMY_SP,
-                )))),
-                prop: Box::new(ast::Expr::Ident(ast::Ident::new(sym.clone(), DUMMY_SP))),
-            }))),
-            right: Box::new(ast::Expr::Ident(ast::Ident::new(sym.clone(), DUMMY_SP))),
-        })),
-    })
-}
-
-fn create_synthetic_prop(name: &JsWord, stmts: Vec<ast::Stmt>) -> ast::PropOrSpread {
-    ast::PropOrSpread::Prop(Box::new(ast::Prop::KeyValue(ast::KeyValueProp {
-        key: ast::PropName::Ident(ast::Ident::new(name.clone(), DUMMY_SP)),
-        value: Box::new(ast::Expr::Arrow(ast::ArrowExpr {
-            is_async: false,
-            is_generator: false,
-            params: vec![],
-            return_type: None,
-            type_params: None,
-            body: ast::BlockStmtOrExpr::BlockStmt(ast::BlockStmt {
-                span: DUMMY_SP,
-                stmts,
-            }),
-            span: DUMMY_SP,
-        })),
-    })))
 }
 
 pub fn compute_scoped_idents(all_idents: &[Id], all_decl: &[Id]) -> Vec<Id> {

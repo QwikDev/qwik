@@ -22,11 +22,9 @@ const Header = qComponent({
 ============================= test.tsx ==
 
 import * as __qwik__ from "@builder.io/qwik";
-const Header = /*#__PURE__*/ qComponent({
+/*#__PURE__*/ qComponent({
     onRender: __qwik__.qrl(()=>import("./h_test_header_onrender")
-    , "Header_onRender", [
-        Header
-    ])
+    , "Header_onRender")
 });
 
 ============================= h_test_header_onrender.tsx (ENTRY POINT)==

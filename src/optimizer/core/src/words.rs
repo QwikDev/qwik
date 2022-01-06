@@ -12,7 +12,6 @@ lazy_static! {
   pub static ref BUILDER_IO_QWIK: JsWord = JsWord::from("@builder.io/qwik");
   pub static ref QCOMPONENT: JsWord = JsWord::from("qComponent");
   pub static ref QHOOK_HANDLER: JsWord = JsWord::from("qHook");
-  pub static ref CLOSURE_VAR: JsWord = JsWord::from("_closure");
   pub static ref USE_CLOSURE: JsWord = JsWord::from("useClosure");
   pub static ref MARKER_FUNTIONS: Vec<JsWord> = vec![
     ON_RENDER.clone(),

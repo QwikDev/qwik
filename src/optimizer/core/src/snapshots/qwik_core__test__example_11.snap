@@ -33,15 +33,11 @@ export const App = qComponent({
 import * as __qwik__ from "@builder.io/qwik";
 export const Header = /*#__PURE__*/ qComponent({
     onRender: __qwik__.qrl(()=>import("../entry_hooks")
-    , "Header_onRender", [
-        Header
-    ])
+    , "Header_onRender")
 });
 export const App = /*#__PURE__*/ qComponent({
     onRender: __qwik__.qrl(()=>import("../entry_hooks")
-    , "App_onRender", [
-        Header
-    ])
+    , "App_onRender")
 });
 
 ============================= h_test_header_onrender_header_onclick.tsx ==

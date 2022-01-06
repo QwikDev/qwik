@@ -1,0 +1,143 @@
+---
+source: src/optimizer/core/src/test.rs
+expression: output
+
+---
+==INPUT==
+
+
+export const useCounter = () => {
+    return useState({count: 0});
+    }
+
+    export const App = qComponent(() => {
+    const state = useCounter();
+    const thing = useState({thing: 0});
+
+    // MISKO: Compromise to have both a return and a marker function
+    // onRender(() => {
+    return onRender(() => {
+        const count2 = state.count * 2;
+        return (
+            <div on:click={() => state.count+=count2 }>
+                <span>{state.count}</span>
+                {buttons.map(btn => (
+                    <button
+                        on:click={() => state.count += btn.offset + thing}
+                    >
+                        {btn.name}
+                    </button>
+                ))}
+
+            </div>
+
+        )
+    });
+    })
+    
+============================= test.tsx ==
+
+import * as __qwik__ from "@builder.io/qwik";
+export const useCounter = ()=>{
+    return useState({
+        count: 0
+    });
+};
+export const App = /*#__PURE__*/ qComponent(__qwik__.qrl(()=>import("./h_test_app")
+, "App"));
+
+============================= h_test_app_onrender_div_onclick.tsx (ENTRY POINT)==
+
+import * as __qwik__ from "@builder.io/qwik";
+export const App_onRender_div_onclick = ()=>{
+    const [count2, state] = __qwik__.useClosure();
+    return state.count += count2;
+};
+
+============================= h_test_app_onrender_button_onclick.tsx (ENTRY POINT)==
+
+import * as __qwik__ from "@builder.io/qwik";
+export const App_onRender_button_onclick = ()=>{
+    const [btn, state, thing] = __qwik__.useClosure();
+    return state.count += btn.offset + thing;
+};
+
+============================= h_test_app_onrender.tsx (ENTRY POINT)==
+
+import * as __qwik__ from "@builder.io/qwik";
+export const App_onRender = ()=>{
+    const [state, thing] = __qwik__.useClosure();
+    const count2 = state.count * 2;
+    return (<div on:click={__qwik__.qrl(()=>import("./h_test_app_onrender_div_onclick")
+    , "App_onRender_div_onclick", [
+        count2,
+        state
+    ])}>
+
+                <span >{state.count}</span>
+
+                {buttons.map((btn)=>(<button on:click={__qwik__.qrl(()=>import("./h_test_app_onrender_button_onclick")
+        , "App_onRender_button_onclick", [
+            btn,
+            state,
+            thing
+        ])}>
+
+                        {btn.name}
+
+                    </button>)
+    )}
+
+
+
+            </div>);
+};
+
+============================= h_test_app.tsx (ENTRY POINT)==
+
+import * as __qwik__ from "@builder.io/qwik";
+import { useCounter } from "./test";
+export const App = ()=>{
+    const state = useCounter();
+    const thing = useState({
+        thing: 0
+    });
+    return onRender(__qwik__.qrl(()=>import("./h_test_app_onrender")
+    , "App_onRender", [
+        state,
+        thing
+    ]));
+};
+
+== HOOKS ==
+
+[
+  {
+    "origin": "test.tsx",
+    "name": "App_onRender_div_onclick",
+    "entry": null,
+    "canonicalFilename": "h_test_app_onrender_div_onclick"
+  },
+  {
+    "origin": "test.tsx",
+    "name": "App_onRender_button_onclick",
+    "entry": null,
+    "canonicalFilename": "h_test_app_onrender_button_onclick"
+  },
+  {
+    "origin": "test.tsx",
+    "name": "App_onRender",
+    "entry": null,
+    "canonicalFilename": "h_test_app_onrender"
+  },
+  {
+    "origin": "test.tsx",
+    "name": "App",
+    "entry": null,
+    "canonicalFilename": "h_test_app"
+  }
+]
+
+== DIAGNOSTICS ==
+
+[]

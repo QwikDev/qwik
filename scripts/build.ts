@@ -32,9 +32,7 @@ import { buildCli } from './cli';
  * use TSC + Rollup + Terser for the core submodule.
  */
 export async function build(config: BuildConfig) {
-  config.devRelease = config.devRelease || (
-    !!config.release && config.setDistTag === 'dev'
-  );
+  config.devRelease = config.devRelease || (!!config.release && config.setDistTag === 'dev');
   try {
     if (config.prepareRelease) {
       // locally set the version for the upcoming release

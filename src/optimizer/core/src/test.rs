@@ -377,7 +377,7 @@ export const App = qComponent(() => {
     "#,
         EntryStrategy::Hook,
         MinifyMode::Simplify,
-        false,
+        true,
     );
 }
 

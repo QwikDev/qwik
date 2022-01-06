@@ -165,6 +165,19 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                     // Resolve with mark
                     main_module.visit_mut_with(&mut resolver_with_mark(global_mark));
 
+                    // Collect import/export metadata
+                    let collect = global_collect(&main_module);
+                    let mut hooks: Vec<Hook> = vec![];
+
+                    // Run main transform
+                    main_module = main_module.fold_with(&mut HookTransform::new(
+                        config.context,
+                        &path_data,
+                        config.entry_policy,
+                        Some(&comments),
+                        &mut hooks,
+                    ));
+
                     // Transpile JSX
                     if transpile && is_jsx {
                         let mut react_options = react::Options::default();
@@ -181,19 +194,6 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                             global_mark,
                         ));
                     }
-
-                    // Collect import/export metadata
-                    let collect = global_collect(&main_module);
-                    let mut hooks: Vec<Hook> = vec![];
-
-                    // Run main transform
-                    main_module = main_module.fold_with(&mut HookTransform::new(
-                        config.context,
-                        &path_data,
-                        config.entry_policy,
-                        Some(&comments),
-                        &mut hooks,
-                    ));
 
                     if config.minify != MinifyMode::None {
                         main_module =
@@ -250,6 +250,22 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                             &h.scoped_idents,
                             &collect,
                         )?;
+
+                        if transpile && is_jsx {
+                            let mut react_options = react::Options::default();
+                            if is_jsx {
+                                react_options.use_spread = true;
+                                react_options.import_source = "@builder.io/qwik".to_string();
+                                react_options.pragma = "h".to_string();
+                                react_options.pragma_frag = "Fragment".to_string();
+                            };
+                            hook_module = hook_module.fold_with(&mut react::react(
+                                Lrc::clone(&source_map),
+                                Some(&comments),
+                                react_options,
+                                global_mark,
+                            ));
+                        }
 
                         if config.minify == MinifyMode::Minify {
                             hook_module = optimize(

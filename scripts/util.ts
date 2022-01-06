@@ -52,6 +52,7 @@ export interface BuildConfig {
   platformBinding?: boolean;
   prepareRelease?: boolean;
   release?: boolean;
+  devRelease?: boolean;
   setDistTag?: string;
   tsc?: boolean;
   validate?: boolean;
@@ -83,6 +84,7 @@ export function loadConfig(args: string[] = []) {
   config.prepareRelease = (config as any)['prepare-release'];
   config.platformTarget = (config as any)['platform-target'];
   config.setDistTag = (config as any)['set-dist-tag'];
+  config.devRelease = !!(config as any)['dev-release'];
   config.dryRun = (config as any)['dry-run'];
 
   return config;

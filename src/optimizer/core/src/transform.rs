@@ -305,7 +305,7 @@ impl<'a> Fold for HookTransform<'a> {
 
     fn fold_arrow_expr(&mut self, node: ast::ArrowExpr) -> ast::ArrowExpr {
         self.decl_stack.push(vec![]);
-        let current_scope = self.decl_stack.last_mut().unwrap();
+        let current_scope = self.decl_stack.last_mut().expect("Declaration stack empty!");
 
         for param in &node.params {
             match param {

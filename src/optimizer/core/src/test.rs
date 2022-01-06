@@ -349,18 +349,21 @@ export const useCounter = () => {
     return useState({count: 0});
 }
 
+export const STEP = 1;
+
 export const App = qComponent(() => {
     const state = useCounter();
     const thing = useState({thing: 0});
+    const STEP_2 = 2;
 
-    onRender(() => {
+    return onRender(() => {
         const count2 = state.count * 2;
         return (
             <div on:click={() => state.count+=count2 }>
                 <span>{state.count}</span>
                 {buttons.map(btn => (
                     <button
-                        on:click={() => state.count += btn.offset + thing}
+                        on:click={() => state.count += btn.offset + thing + STEP + STEP_2}
                     >
                         {btn.name}
                     </button>
@@ -373,7 +376,7 @@ export const App = qComponent(() => {
     })
     "#,
         EntryStrategy::Hook,
-        MinifyMode::None,
+        MinifyMode::Simplify,
         false,
     );
 }

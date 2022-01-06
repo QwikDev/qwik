@@ -167,9 +167,12 @@ impl<'a> HookTransform<'a> {
 
             let symbol_name = JsWord::from(symbol_name);
 
-            // Collect idents
-            let mut ident_collect = IdentCollector::new();
-            first_arg.visit_with(&mut ident_collect);
+            // Collect descendent idents
+            let descendent_idents = {
+                let mut collector = IdentCollector::new();
+                first_arg.visit_with(&mut collector);
+                collector.get_words()
+            };
 
             let decl_collect: Vec<Id> = self
                 .decl_stack
@@ -178,6 +181,13 @@ impl<'a> HookTransform<'a> {
                 .cloned()
                 .collect();
             let folded = fold_expr(self, *first_arg);
+
+            // Collect local idents
+            let local_idents = {
+                let mut collector = IdentCollector::new();
+                folded.visit_with(&mut collector);
+                collector.get_words()
+            };
 
             let entry =
                 self.entry_policy
@@ -197,8 +207,7 @@ impl<'a> HookTransform<'a> {
             // TODO: check with manu
             .unwrap();
 
-            let local_idents = ident_collect.get_words();
-            let scoped_idents = compute_scoped_idents(&local_idents, &decl_collect);
+            let scoped_idents = compute_scoped_idents(&descendent_idents, &decl_collect);
             let o = create_inline_qrl(import_path, &symbol_name, &scoped_idents);
             self.hooks.push(Hook {
                 entry,

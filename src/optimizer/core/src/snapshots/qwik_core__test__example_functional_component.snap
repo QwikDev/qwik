@@ -27,7 +27,7 @@ const Header = /*#__PURE__*/ qComponent(__qwik__.qrl(()=>import("./h_test_header
 
 import * as __qwik__ from "@builder.io/qwik";
 export const Header_onRender = ()=>{
-    const [thing] = __qwik__.useClosure();
+    const [thing] = __qwik__.useLexicalScope();
     return (<div >{thing}</div>);
 };
 

@@ -10,18 +10,21 @@ export const useCounter = () => {
     return useState({count: 0});
 }
 
+export const STEP = 1;
+
 export const App = qComponent(() => {
     const state = useCounter();
     const thing = useState({thing: 0});
+    const STEP_2 = 2;
 
-    onRender(() => {
+    return onRender(() => {
         const count2 = state.count * 2;
         return (
             <div on:click={() => state.count+=count2 }>
                 <span>{state.count}</span>
                 {buttons.map(btn => (
                     <button
-                        on:click={() => state.count += btn.offset + thing}
+                        on:click={() => state.count += btn.offset + thing + STEP + STEP_2}
                     >
                         {btn.name}
                     </button>
@@ -41,6 +44,7 @@ export const useCounter = ()=>{
         count: 0
     });
 };
+export const STEP = 1;
 export const App = /*#__PURE__*/ qComponent(__qwik__.qrl(()=>import("./h_test_app")
 , "App"));
 
@@ -48,23 +52,24 @@ export const App = /*#__PURE__*/ qComponent(__qwik__.qrl(()=>import("./h_test_ap
 
 import * as __qwik__ from "@builder.io/qwik";
 export const App_onRender_div_onclick = ()=>{
-    const [count2, state] = __qwik__.useClosure();
+    const [count2, state] = __qwik__.useLexicalScope();
     return state.count += count2;
 };
 
 ============================= h_test_app_onrender_button_onclick.tsx (ENTRY POINT)==
 
 import * as __qwik__ from "@builder.io/qwik";
+import { STEP } from "./test";
 export const App_onRender_button_onclick = ()=>{
-    const [btn, state, thing] = __qwik__.useClosure();
-    return state.count += btn.offset + thing;
+    const [STEP_2, btn, state, thing] = __qwik__.useLexicalScope();
+    return state.count += btn.offset + thing + STEP + STEP_2;
 };
 
 ============================= h_test_app_onrender.tsx (ENTRY POINT)==
 
 import * as __qwik__ from "@builder.io/qwik";
 export const App_onRender = ()=>{
-    const [state, thing] = __qwik__.useClosure();
+    const [STEP_2, state, thing] = __qwik__.useLexicalScope();
     const count2 = state.count * 2;
     return (<div on:click={__qwik__.qrl(()=>import("./h_test_app_onrender_div_onclick")
     , "App_onRender_div_onclick", [
@@ -76,6 +81,7 @@ export const App_onRender = ()=>{
 
                 {buttons.map((btn)=>(<button on:click={__qwik__.qrl(()=>import("./h_test_app_onrender_button_onclick")
         , "App_onRender_button_onclick", [
+            STEP_2,
             btn,
             state,
             thing
@@ -100,8 +106,10 @@ export const App = ()=>{
     const thing = useState({
         thing: 0
     });
-    onRender(__qwik__.qrl(()=>import("./h_test_app_onrender")
+    const STEP_2 = 2;
+    return onRender(__qwik__.qrl(()=>import("./h_test_app_onrender")
     , "App_onRender", [
+        STEP_2,
         state,
         thing
     ]));

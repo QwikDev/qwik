@@ -39,7 +39,7 @@ export async function build(config: BuildConfig) {
     if (config.prepareRelease) {
       // locally set the version for the upcoming release
       await prepareReleaseVersion(config);
-    } else if ((config.release && !config.dryRun) || config.devRelease) {
+    } else if (config.release && !config.dryRun && !config.devRelease) {
       // ci release, npm publish
       await setReleaseVersion(config);
     } else {

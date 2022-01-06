@@ -347,15 +347,13 @@ fn example_functional_component_2() {
         r#"
 export const useCounter = () => {
     return useState({count: 0});
-    }
+}
 
-    export const App = qComponent(() => {
+export const App = qComponent(() => {
     const state = useCounter();
     const thing = useState({thing: 0});
 
-    // MISKO: Compromise to have both a return and a marker function
-    // onRender(() => {
-    return onRender(() => {
+    onRender(() => {
         const count2 = state.count * 2;
         return (
             <div on:click={() => state.count+=count2 }>

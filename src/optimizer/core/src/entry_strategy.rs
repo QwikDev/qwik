@@ -2,7 +2,6 @@ use crate::parse::PathData;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use swc_atoms::JsWord;
-use swc_ecmascript::ast::Expr;
 
 use lazy_static::lazy_static;
 

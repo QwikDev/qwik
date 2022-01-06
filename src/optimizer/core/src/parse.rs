@@ -1,10 +1,9 @@
-use std::collections::HashMap;
 use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 use std::str;
 
 use crate::code_move::new_module;
-use crate::collector::{global_collect, Id};
+use crate::collector::global_collect;
 use crate::entry_strategy::EntryPolicy;
 use crate::transform::{Hook, HookTransform, ThreadSafeTransformContext};
 use crate::utils::{CodeHighlight, Diagnostic, DiagnosticSeverity, SourceLocation};

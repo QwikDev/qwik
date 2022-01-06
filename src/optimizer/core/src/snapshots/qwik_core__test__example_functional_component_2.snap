@@ -8,15 +8,13 @@ expression: output
 
 export const useCounter = () => {
     return useState({count: 0});
-    }
+}
 
-    export const App = qComponent(() => {
+export const App = qComponent(() => {
     const state = useCounter();
     const thing = useState({thing: 0});
 
-    // MISKO: Compromise to have both a return and a marker function
-    // onRender(() => {
-    return onRender(() => {
+    onRender(() => {
         const count2 = state.count * 2;
         return (
             <div on:click={() => state.count+=count2 }>
@@ -102,7 +100,7 @@ export const App = ()=>{
     const thing = useState({
         thing: 0
     });
-    return onRender(__qwik__.qrl(()=>import("./h_test_app_onrender")
+    onRender(__qwik__.qrl(()=>import("./h_test_app_onrender")
     , "App_onRender", [
         state,
         thing

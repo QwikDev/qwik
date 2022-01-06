@@ -32,11 +32,12 @@ import { buildCli } from './cli';
  * use TSC + Rollup + Terser for the core submodule.
  */
 export async function build(config: BuildConfig) {
+  config.devRelease = config.devRelease || (!!config.release && config.setDistTag === 'dev');
   try {
     if (config.prepareRelease) {
       // locally set the version for the upcoming release
       await prepareReleaseVersion(config);
-    } else if (config.release && !config.dryRun) {
+    } else if (config.release && !config.dryRun && !config.devRelease) {
       // ci release, npm publish
       await setReleaseVersion(config);
     } else {

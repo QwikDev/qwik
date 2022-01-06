@@ -101,7 +101,7 @@ export async function publish(config: BuildConfig) {
 
   const distPkgDir = config.distPkgDir;
   const distPkg = await readPackageJson(distPkgDir);
-  const version = distPkg.version;
+  const version = config.devRelease ? config.distVersion : distPkg.version;
   const gitTag = `v${version}`;
   const distTag = config.setDistTag || 'dev';
 
@@ -146,7 +146,9 @@ export async function publish(config: BuildConfig) {
     // production release
     // git push to the repo w/ --dry-run flag to make sure we're good before publishing
     const gitPushArgs = ['push', '--follow-tags'];
-    await run('git', gitPushArgs, false, true);
+    if (!config.devRelease) {
+      await run('git', gitPushArgs, false, true);
+    }
 
     // if we've made it this far then the npm publish dry-run passed
     // and all of the git commands worked, time to publish!!
@@ -155,13 +157,17 @@ export async function publish(config: BuildConfig) {
 
     console.log(`   https://www.npmjs.com/package/${distPkg.name}`);
 
-    // git push to the production repo w/out the dry-run flag
-    // now that it's officially published to npm
-    await run('git', gitPushArgs, false, false);
+    if (!config.devRelease) {
+      // git push to the production repo w/out the dry-run flag
+      // now that it's officially published to npm
+      await run('git', gitPushArgs, false, false);
+    }
   }
 
-  // create a github release using the git tag we just pushed
-  await createGithubRelease(version, gitTag, isDryRun);
+  if (!config.devRelease) {
+    // create a github release using the git tag we just pushed
+    await createGithubRelease(version, gitTag, isDryRun);
+  }
 
   console.log(
     `🐋 published version "${version}" of ${distPkg.name} with dist-tag "${distTag}" to npm`,

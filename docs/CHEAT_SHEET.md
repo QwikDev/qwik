@@ -18,7 +18,7 @@ HTML attributes with the following syntax have a special meaning to Qwik.
 | `key:=JSON`         | State of the `Entity` identified by `key`, serialized into JSON.                                                        |
 | `:.=JSON`           | Component state, serialized into JSON.                                                                                  |
 
-### JSX Components
+### JSX Components
 
 | Syntax                               | Meaning                                                                           |
 | ------------------------------------ | --------------------------------------------------------------------------------- |

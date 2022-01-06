@@ -203,7 +203,7 @@ impl<'a> HookTransform<'a> {
             self.hooks.push(Hook {
                 entry,
                 canonical_filename,
-                name: symbol_name.clone(),
+                name: symbol_name,
                 expr: Box::new(folded),
                 local_idents,
                 scoped_idents,

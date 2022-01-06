@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 
 use crate::code_move::fix_path;
-use crate::collector::{HookCollect, Id};
+use crate::collector::{new_ident_from_id, Id, IdentCollector};
 use crate::entry_strategy::EntryPolicy;
 use crate::parse::PathData;
 use crate::words::*;
@@ -14,16 +14,23 @@ use swc_atoms::JsWord;
 use swc_common::comments::{Comments, SingleThreadedComments};
 use swc_common::{errors::HANDLER, Mark, DUMMY_SP};
 use swc_ecmascript::ast;
-use swc_ecmascript::visit::{fold_expr, noop_fold_type, visit_expr, Fold, FoldWith};
+use swc_ecmascript::visit::{fold_expr, noop_fold_type, Fold, FoldWith, VisitWith};
 
-#[derive(Debug)]
+macro_rules! id {
+    ($ident: expr) => {
+        ($ident.sym.clone(), $ident.span.ctxt())
+    };
+}
+
+#[derive(Debug, Clone)]
 pub struct Hook {
     pub entry: Option<JsWord>,
     pub canonical_filename: String,
-    pub name: String,
+    pub name: JsWord,
     pub expr: Box<ast::Expr>,
-    pub local_decl: Vec<JsWord>,
     pub local_idents: Vec<Id>,
+    pub scoped_idents: Vec<Id>,
+
     pub origin: String,
 }
 
@@ -54,8 +61,8 @@ enum PositionToken {
 pub struct HookTransform<'a> {
     stack_ctxt: Vec<String>,
     position_ctxt: Vec<PositionToken>,
+    decl_stack: Vec<Vec<Id>>,
 
-    root_sym: Option<String>,
     context: ThreadSafeTransformContext,
     hooks: &'a mut Vec<Hook>,
 
@@ -78,9 +85,9 @@ impl<'a> HookTransform<'a> {
             path_data,
             stack_ctxt: Vec::with_capacity(16),
             position_ctxt: Vec::with_capacity(16),
+            decl_stack: Vec::with_capacity(16),
             hooks,
             qhook_mark: Mark::fresh(Mark::root()),
-            root_sym: None,
             comments,
             entry_policy,
             context,
@@ -109,27 +116,6 @@ impl<'a> HookTransform<'a> {
 
         context.hooks_names.insert(symbol_name.clone());
         Ok(symbol_name)
-    }
-
-    fn handle_var_decl(&mut self, node: ast::VarDecl) -> ast::VarDecl {
-        let mut newdecls = vec![];
-        for decl in node.decls {
-            match decl.name {
-                ast::Pat::Ident(ref ident) => {
-                    self.root_sym = Some(ident.id.to_string());
-                }
-                _ => {
-                    self.root_sym = None;
-                }
-            }
-            newdecls.push(decl.fold_with(self));
-        }
-        ast::VarDecl {
-            span: DUMMY_SP,
-            kind: node.kind,
-            decls: newdecls,
-            declare: node.declare,
-        }
     }
 
     fn create_synthetic_qhook(&mut self, expr: ast::Expr) -> ast::CallExpr {
@@ -179,17 +165,23 @@ impl<'a> HookTransform<'a> {
                 ["h_", &self.path_data.file_prefix, "_", &symbol_name].concat();
             canonical_filename.make_ascii_lowercase();
 
-            let folded = fold_expr(self, *first_arg);
-            let mut hook_collect = HookCollect::new();
-            visit_expr(&mut hook_collect, &folded);
+            let symbol_name = JsWord::from(symbol_name);
 
-            let entry = self.entry_policy.get_entry_for_sym(
-                &symbol_name,
-                self.path_data,
-                &self.stack_ctxt,
-                &hook_collect,
-                &folded,
-            );
+            // Collect idents
+            let mut ident_collect = IdentCollector::new();
+            first_arg.visit_with(&mut ident_collect);
+
+            let decl_collect: Vec<Id> = self
+                .decl_stack
+                .iter()
+                .flat_map(|v| v.iter())
+                .cloned()
+                .collect();
+            let folded = fold_expr(self, *first_arg);
+
+            let entry =
+                self.entry_policy
+                    .get_entry_for_sym(&symbol_name, self.path_data, &self.stack_ctxt);
 
             let import_path = fix_path(
                 "a",
@@ -205,18 +197,23 @@ impl<'a> HookTransform<'a> {
             // TODO: check with manu
             .unwrap();
 
-            let (local_decl, local_idents) = hook_collect.get_words();
-            self.hooks.push(Hook {
+            let hook = Hook {
                 entry,
                 canonical_filename,
                 name: symbol_name.clone(),
                 expr: Box::new(folded),
-                local_decl,
-                local_idents,
+                local_idents: ident_collect.get_words(),
+                scoped_idents: vec![],
                 origin: self.path_data.path.to_string_lossy().into(),
-            });
+            };
 
-            create_inline_qhook(import_path, &symbol_name)
+            let o = create_inline_qrl(
+                import_path,
+                &symbol_name,
+                &compute_scoped_idents(&hook.local_idents, &decl_collect),
+            );
+            self.hooks.push(hook);
+            o
         } else {
             node
         }
@@ -228,52 +225,59 @@ impl<'a> Fold for HookTransform<'a> {
 
     fn fold_module(&mut self, node: ast::Module) -> ast::Module {
         let node = add_qwik_runtime_import(node);
+        self.decl_stack.push(vec![]);
         node.fold_children_with(self)
     }
 
-    fn fold_module_item(&mut self, item: ast::ModuleItem) -> ast::ModuleItem {
-        match item {
-            ast::ModuleItem::Stmt(ast::Stmt::Decl(ast::Decl::Var(node))) => {
-                ast::ModuleItem::Stmt(ast::Stmt::Decl(ast::Decl::Var(self.handle_var_decl(node))))
-            }
-            ast::ModuleItem::ModuleDecl(ast::ModuleDecl::ExportDecl(node)) => match node.decl {
-                ast::Decl::Var(var) => {
-                    ast::ModuleItem::ModuleDecl(ast::ModuleDecl::ExportDecl(ast::ExportDecl {
-                        span: DUMMY_SP,
-                        decl: ast::Decl::Var(self.handle_var_decl(var)),
-                    }))
-                }
-                ast::Decl::Class(class) => {
-                    self.root_sym = Some(class.ident.sym.to_string());
-                    ast::ModuleItem::ModuleDecl(ast::ModuleDecl::ExportDecl(ast::ExportDecl {
-                        span: DUMMY_SP,
-                        decl: ast::Decl::Class(class.fold_with(self)),
-                    }))
-                }
-                ast::Decl::Fn(function) => {
-                    self.root_sym = Some(function.ident.sym.to_string());
-                    ast::ModuleItem::ModuleDecl(ast::ModuleDecl::ExportDecl(ast::ExportDecl {
-                        span: DUMMY_SP,
-                        decl: ast::Decl::Fn(function.fold_with(self)),
-                    }))
-                }
-                other => {
-                    ast::ModuleItem::ModuleDecl(ast::ModuleDecl::ExportDecl(ast::ExportDecl {
-                        span: DUMMY_SP,
-                        decl: other.fold_with(self),
-                    }))
-                }
-            },
-
-            item => item.fold_children_with(self),
-        }
-    }
-
+    // Variable tracking
     fn fold_var_declarator(&mut self, node: ast::VarDeclarator) -> ast::VarDeclarator {
         let mut stacked = false;
-        if let ast::Pat::Ident(ref ident) = node.name {
-            self.stack_ctxt.push(ident.id.sym.to_string());
-            stacked = true;
+        let current_scope = self.decl_stack.last_mut().unwrap();
+        match node.name {
+            ast::Pat::Ident(ref ident) => {
+                self.stack_ctxt.push(ident.id.sym.to_string());
+                stacked = true;
+                current_scope.push(id!(ident.id));
+            }
+            ast::Pat::Object(ref obj) => {
+                for prop in &obj.props {
+                    match prop {
+                        ast::ObjectPatProp::Assign(ref v) => {
+                            if let Some(ast::Expr::Ident(ident)) = v.value.as_deref() {
+                                current_scope.push(id!(ident));
+                            } else {
+                                current_scope.push(id!(v.key));
+                            }
+                        }
+                        ast::ObjectPatProp::KeyValue(ref v) => {
+                            if let ast::Pat::Ident(ident) = v.value.as_ref() {
+                                current_scope.push(id!(ident.id));
+                            }
+                        }
+                        ast::ObjectPatProp::Rest(ref v) => {
+                            if let ast::Pat::Ident(ident) = v.arg.as_ref() {
+                                current_scope.push(id!(ident.id));
+                            }
+                        }
+                    }
+                }
+            }
+            ast::Pat::Array(ref arr) => {
+                for el in &arr.elems {
+                    match el {
+                        Some(ast::Pat::Ident(ref ident)) => {
+                            current_scope.push(id!(ident.id));
+                        }
+                        Some(ast::Pat::Rest(ref rest)) => {
+                            if let ast::Pat::Ident(ref ident) = *rest.arg {
+                                current_scope.push(id!(ident.id));
+                            }
+                        }
+                        _ => {}
+                    }
+                }
+            }
+            _ => {}
         };
         let o = node.fold_children_with(self);
         if stacked {
@@ -284,16 +288,76 @@ impl<'a> Fold for HookTransform<'a> {
 
     fn fold_fn_decl(&mut self, node: ast::FnDecl) -> ast::FnDecl {
         self.stack_ctxt.push(node.ident.sym.to_string());
+        self.decl_stack.push(vec![]);
         let o = node.fold_children_with(self);
         self.stack_ctxt.pop();
+        self.decl_stack.pop();
+
+        o
+    }
+
+    fn fold_arrow_expr(&mut self, node: ast::ArrowExpr) -> ast::ArrowExpr {
+        self.decl_stack.push(vec![]);
+        let o = node.fold_children_with(self);
+        self.decl_stack.pop();
+
+        o
+    }
+
+    fn fold_for_stmt(&mut self, node: ast::ForStmt) -> ast::ForStmt {
+        self.decl_stack.push(vec![]);
+        let o = node.fold_children_with(self);
+        self.decl_stack.pop();
+
+        o
+    }
+
+    fn fold_for_in_stmt(&mut self, node: ast::ForInStmt) -> ast::ForInStmt {
+        self.decl_stack.push(vec![]);
+        let o = node.fold_children_with(self);
+        self.decl_stack.pop();
+
+        o
+    }
+
+    fn fold_for_of_stmt(&mut self, node: ast::ForOfStmt) -> ast::ForOfStmt {
+        self.decl_stack.push(vec![]);
+        let o = node.fold_children_with(self);
+        self.decl_stack.pop();
+
+        o
+    }
+
+    fn fold_if_stmt(&mut self, node: ast::IfStmt) -> ast::IfStmt {
+        self.decl_stack.push(vec![]);
+        let o = node.fold_children_with(self);
+        self.decl_stack.pop();
+
+        o
+    }
+
+    fn fold_block_stmt(&mut self, node: ast::BlockStmt) -> ast::BlockStmt {
+        self.decl_stack.push(vec![]);
+        let o = node.fold_children_with(self);
+        self.decl_stack.pop();
+
+        o
+    }
+
+    fn fold_while_stmt(&mut self, node: ast::WhileStmt) -> ast::WhileStmt {
+        self.decl_stack.push(vec![]);
+        let o = node.fold_children_with(self);
+        self.decl_stack.pop();
 
         o
     }
 
     fn fold_class_decl(&mut self, node: ast::ClassDecl) -> ast::ClassDecl {
         self.stack_ctxt.push(node.ident.sym.to_string());
+        self.decl_stack.push(vec![]);
         let o = node.fold_children_with(self);
         self.stack_ctxt.pop();
+        self.decl_stack.pop();
 
         o
     }
@@ -363,7 +427,8 @@ impl<'a> Fold for HookTransform<'a> {
             (
                 [.., PositionToken::QComponent, PositionToken::Any, PositionToken::ObjectProp]
                 | [.., PositionToken::JSXListener]
-                | [.., PositionToken::MarkerFunction],
+                | [.., PositionToken::MarkerFunction]
+                | [.., PositionToken::QComponent],
                 ast::Expr::Arrow(arrow),
             ) => ast::Expr::Call(self.create_synthetic_qhook(ast::Expr::Arrow(arrow))),
             (_, node) => node,
@@ -376,7 +441,8 @@ impl<'a> Fold for HookTransform<'a> {
     }
 
     fn fold_call_expr(&mut self, node: ast::CallExpr) -> ast::CallExpr {
-        let mut injected = false;
+        let mut position_token = false;
+        let mut name_token = false;
         if let ast::ExprOrSuper::Expr(expr) = &node.callee {
             if node.span.has_mark(self.qhook_mark) {
                 return self.handle_qhook(node);
@@ -385,20 +451,25 @@ impl<'a> Fold for HookTransform<'a> {
                     return self.handle_qhook(node);
                 } else if QCOMPONENT.eq(sym) {
                     self.position_ctxt.push(PositionToken::QComponent);
-                    injected = true;
+                    position_token = true;
                     if let Some(comments) = self.comments {
                         comments.add_pure_comment(node.span.lo);
                     }
                 } else if MARKER_FUNTIONS.contains(sym) {
                     self.position_ctxt.push(PositionToken::MarkerFunction);
-                    injected = true;
+                    self.stack_ctxt.push(sym.to_string());
+                    position_token = true;
+                    name_token = true;
                 }
             }
         }
 
         let o = node.fold_children_with(self);
-        if injected {
+        if position_token {
             self.position_ctxt.pop();
+        }
+        if name_token {
+            self.stack_ctxt.pop();
         }
         o
     }
@@ -462,44 +533,58 @@ pub fn create_synthetic_wildcard_import(local: &JsWord, src: &JsWord) -> ast::Mo
 //     }))
 // }
 
-fn create_inline_qhook(url: JsWord, symbol: &str) -> ast::CallExpr {
-    create_internal_call(
-        &QHOOK,
-        vec![
-            ast::Expr::Arrow(ast::ArrowExpr {
-                is_async: false,
-                is_generator: false,
+fn create_inline_qrl(url: JsWord, symbol: &str, idents: &[Id]) -> ast::CallExpr {
+    let mut args = vec![
+        ast::Expr::Arrow(ast::ArrowExpr {
+            is_async: false,
+            is_generator: false,
+            span: DUMMY_SP,
+            params: vec![],
+            return_type: None,
+            type_params: None,
+            body: ast::BlockStmtOrExpr::Expr(Box::new(ast::Expr::Call(ast::CallExpr {
+                callee: ast::ExprOrSuper::Expr(Box::new(ast::Expr::Ident(ast::Ident::new(
+                    "import".into(),
+                    DUMMY_SP,
+                )))),
                 span: DUMMY_SP,
-                params: vec![],
-                return_type: None,
-                type_params: None,
-                body: ast::BlockStmtOrExpr::Expr(Box::new(ast::Expr::Call(ast::CallExpr {
-                    callee: ast::ExprOrSuper::Expr(Box::new(ast::Expr::Ident(ast::Ident::new(
-                        "import".into(),
-                        DUMMY_SP,
-                    )))),
-                    span: DUMMY_SP,
-                    type_args: None,
-                    args: vec![ast::ExprOrSpread {
+                type_args: None,
+                args: vec![ast::ExprOrSpread {
+                    spread: None,
+                    expr: Box::new(ast::Expr::Lit(ast::Lit::Str(ast::Str {
+                        span: DUMMY_SP,
+                        value: url,
+                        has_escape: false,
+                        kind: ast::StrKind::Synthesized,
+                    }))),
+                }],
+            }))),
+        }),
+        ast::Expr::Lit(ast::Lit::Str(ast::Str {
+            span: DUMMY_SP,
+            value: symbol.into(),
+            has_escape: false,
+            kind: ast::StrKind::Synthesized,
+        })),
+    ];
+
+    // Injects state
+    if !idents.is_empty() {
+        args.push(ast::Expr::Array(ast::ArrayLit {
+            span: DUMMY_SP,
+            elems: idents
+                .iter()
+                .map(|id| {
+                    Some(ast::ExprOrSpread {
                         spread: None,
-                        expr: Box::new(ast::Expr::Lit(ast::Lit::Str(ast::Str {
-                            span: DUMMY_SP,
-                            value: url,
-                            has_escape: false,
-                            kind: ast::StrKind::Synthesized,
-                        }))),
-                    }],
-                }))),
-            }),
-            ast::Expr::Lit(ast::Lit::Str(ast::Str {
-                span: DUMMY_SP,
-                value: symbol.into(),
-                has_escape: false,
-                kind: ast::StrKind::Synthesized,
-            })),
-        ],
-        None,
-    )
+                        expr: Box::new(ast::Expr::Ident(new_ident_from_id(id))),
+                    })
+                })
+                .collect(),
+        }))
+    }
+
+    create_internal_call(&QRL, args, None)
 }
 
 pub fn create_internal_call(
@@ -544,4 +629,77 @@ fn validate_sym(sym: &str) -> bool {
         static ref RE: Regex = Regex::new("^[_a-zA-Z][_a-zA-Z0-9]{0,30}$").unwrap();
     }
     RE.is_match(sym)
+}
+
+fn create_use_closure_stmt() -> ast::Stmt {
+    ast::Stmt::Decl(ast::Decl::Var(ast::VarDecl {
+        span: DUMMY_SP,
+        kind: ast::VarDeclKind::Const,
+        declare: false,
+        decls: vec![ast::VarDeclarator {
+            name: ast::Pat::Ident(ast::BindingIdent::from(ast::Ident::new(
+                CLOSURE_VAR.clone(),
+                DUMMY_SP,
+            ))),
+            span: DUMMY_SP,
+            definite: true,
+            init: Some(Box::new(ast::Expr::Call(ast::CallExpr {
+                callee: ast::ExprOrSuper::Expr(Box::new(ast::Expr::Ident(ast::Ident::new(
+                    USE_CLOSURE.clone(),
+                    DUMMY_SP,
+                )))),
+                span: DUMMY_SP,
+                type_args: None,
+                args: vec![],
+            }))),
+        }],
+    }))
+}
+
+fn create_closure_asign(sym: &JsWord) -> ast::Stmt {
+    ast::Stmt::Expr(ast::ExprStmt {
+        span: DUMMY_SP,
+        expr: Box::new(ast::Expr::Assign(ast::AssignExpr {
+            span: DUMMY_SP,
+            op: ast::AssignOp::Assign,
+            left: ast::PatOrExpr::Expr(Box::new(ast::Expr::Member(ast::MemberExpr {
+                span: DUMMY_SP,
+                computed: false,
+                obj: ast::ExprOrSuper::Expr(Box::new(ast::Expr::Ident(ast::Ident::new(
+                    CLOSURE_VAR.clone(),
+                    DUMMY_SP,
+                )))),
+                prop: Box::new(ast::Expr::Ident(ast::Ident::new(sym.clone(), DUMMY_SP))),
+            }))),
+            right: Box::new(ast::Expr::Ident(ast::Ident::new(sym.clone(), DUMMY_SP))),
+        })),
+    })
+}
+
+fn create_synthetic_prop(name: &JsWord, stmts: Vec<ast::Stmt>) -> ast::PropOrSpread {
+    ast::PropOrSpread::Prop(Box::new(ast::Prop::KeyValue(ast::KeyValueProp {
+        key: ast::PropName::Ident(ast::Ident::new(name.clone(), DUMMY_SP)),
+        value: Box::new(ast::Expr::Arrow(ast::ArrowExpr {
+            is_async: false,
+            is_generator: false,
+            params: vec![],
+            return_type: None,
+            type_params: None,
+            body: ast::BlockStmtOrExpr::BlockStmt(ast::BlockStmt {
+                span: DUMMY_SP,
+                stmts,
+            }),
+            span: DUMMY_SP,
+        })),
+    })))
+}
+
+pub fn compute_scoped_idents(all_idents: &[Id], all_decl: &[Id]) -> Vec<Id> {
+    let mut output = vec![];
+    for ident in all_idents {
+        if all_decl.contains(ident) {
+            output.push(ident.clone());
+        }
+    }
+    output
 }

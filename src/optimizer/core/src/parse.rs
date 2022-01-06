@@ -1,9 +1,10 @@
+use std::collections::HashMap;
 use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 use std::str;
 
 use crate::code_move::new_module;
-use crate::collector::global_collect;
+use crate::collector::{global_collect, Id};
 use crate::entry_strategy::EntryPolicy;
 use crate::transform::{Hook, HookTransform, ThreadSafeTransformContext};
 use crate::utils::{CodeHighlight, Diagnostic, DiagnosticSeverity, SourceLocation};
@@ -38,8 +39,6 @@ pub struct HookAnalysis {
     pub name: String,
     pub entry: Option<JsWord>,
     pub canonical_filename: String,
-    pub local_decl: Vec<JsWord>,
-    pub local_idents: Vec<JsWord>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Copy, Clone, PartialEq, Eq)]
@@ -291,11 +290,9 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 
                         hooks_analysis.push(HookAnalysis {
                             origin: h.origin,
-                            name: h.name,
+                            name: h.name.to_string(),
                             entry: h.entry,
                             canonical_filename: h.canonical_filename,
-                            local_decl: h.local_decl,
-                            local_idents: h.local_idents.into_iter().map(|id| id.0).collect(),
                         });
                         modules.push(TransformModule {
                             code,

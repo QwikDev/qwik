@@ -1,6 +1,6 @@
 use crate::collector::{new_ident_from_id, GlobalCollect, Id, ImportKind};
 use crate::parse::{emit_source_code, HookAnalysis, PathData, TransformModule, TransformOutput};
-use crate::transform::{create_internal_call, create_synthetic_wildcard_import};
+use crate::transform::create_synthetic_wildcard_import;
 use crate::words::*;
 
 use std::collections::HashMap;
@@ -154,14 +154,6 @@ fn create_named_export(
     name: &str,
     _comments: &SingleThreadedComments,
 ) -> ast::ModuleItem {
-    // comments.add_pure_comment(expr.span().lo);
-
-    let call_expr = Box::new(ast::Expr::Call(create_internal_call(
-        &QHOOK_HANDLER,
-        vec![*expr],
-        None,
-    )));
-
     ast::ModuleItem::ModuleDecl(ast::ModuleDecl::ExportDecl(ast::ExportDecl {
         span: DUMMY_SP,
         decl: ast::Decl::Var(ast::VarDecl {
@@ -175,7 +167,7 @@ fn create_named_export(
                     JsWord::from(name),
                     DUMMY_SP,
                 ))),
-                init: Some(call_expr),
+                init: Some(expr),
             }],
         }),
     }))

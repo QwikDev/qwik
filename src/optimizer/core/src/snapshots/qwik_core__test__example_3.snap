@@ -23,9 +23,9 @@ export const App = () => {
 import * as __qwik__ from "@builder.io/qwik";
 export const App = ()=>{
     const Header = /*#__PURE__*/ qComponent({
-        "onMount": __qwik__.qHook(()=>import("./h_test_app_header_onmount")
+        "onMount": __qwik__.qrl(()=>import("./h_test_app_header_onmount")
         , "App_Header_onMount"),
-        onRender: __qwik__.qHook(()=>import("./h_test_app_header_onrender")
+        onRender: __qwik__.qrl(()=>import("./h_test_app_header_onrender")
         , "App_Header_onRender")
     });
     return Header;
@@ -34,23 +34,23 @@ export const App = ()=>{
 ============================= h_test_app_header_onmount.tsx (ENTRY POINT)==
 
 import * as __qwik__ from "@builder.io/qwik";
-export const App_Header_onMount = __qwik__.qHook(()=>{
+export const App_Header_onMount = ()=>{
     console.log("mount");
-});
+};
 
 ============================= h_test_app_header_onrender_div_onclick.tsx (ENTRY POINT)==
 
 import * as __qwik__ from "@builder.io/qwik";
-export const App_Header_onRender_div_onClick = __qwik__.qHook((ctx)=>console.log(ctx)
-);
+export const App_Header_onRender_div_onClick = (ctx)=>console.log(ctx)
+;
 
 ============================= h_test_app_header_onrender.tsx (ENTRY POINT)==
 
 import * as __qwik__ from "@builder.io/qwik";
-export const App_Header_onRender = __qwik__.qHook(()=>{
-    return (<div onClick={__qwik__.qHook(()=>import("./h_test_app_header_onrender_div_onclick")
+export const App_Header_onRender = ()=>{
+    return (<div onClick={__qwik__.qrl(()=>import("./h_test_app_header_onrender_div_onclick")
     , "App_Header_onRender_div_onClick")}/>);
-});
+};
 
 == HOOKS ==
 
@@ -59,32 +59,19 @@ export const App_Header_onRender = __qwik__.qHook(()=>{
     "origin": "test.tsx",
     "name": "App_Header_onMount",
     "entry": null,
-    "canonicalFilename": "h_test_app_header_onmount",
-    "localDecl": [],
-    "localIdents": [
-      "console"
-    ]
+    "canonicalFilename": "h_test_app_header_onmount"
   },
   {
     "origin": "test.tsx",
     "name": "App_Header_onRender_div_onClick",
     "entry": null,
-    "canonicalFilename": "h_test_app_header_onrender_div_onclick",
-    "localDecl": [
-      "ctx"
-    ],
-    "localIdents": [
-      "console",
-      "ctx"
-    ]
+    "canonicalFilename": "h_test_app_header_onrender_div_onclick"
   },
   {
     "origin": "test.tsx",
     "name": "App_Header_onRender",
     "entry": null,
-    "canonicalFilename": "h_test_app_header_onrender",
-    "localDecl": [],
-    "localIdents": []
+    "canonicalFilename": "h_test_app_header_onrender"
   }
 ]
 

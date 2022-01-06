@@ -319,6 +319,28 @@ const Header = qComponent({
 }
 
 #[test]
+fn example_functional_component() {
+    test_input(
+        "test.tsx",
+        r#"
+        const Header = qComponent(() => {
+            const thing = useState();
+            const {foo, bar} = foo();
+
+            onRender(() => {
+                return (
+                    <div>{thing}</div>
+                );
+            });
+        });
+    "#,
+        EntryStrategy::Hook,
+        MinifyMode::None,
+        false,
+    );
+}
+
+#[test]
 fn issue_117() {
     test_input(
         "project/test.tsx",

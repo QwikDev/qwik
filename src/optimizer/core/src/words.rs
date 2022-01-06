@@ -2,6 +2,7 @@ use lazy_static::lazy_static;
 use swc_atoms::JsWord;
 
 lazy_static! {
+  pub static ref QRL: JsWord = JsWord::from("qrl");
   pub static ref QHOOK: JsWord = JsWord::from("qHook");
   pub static ref ON_RENDER: JsWord = JsWord::from("onRender");
   pub static ref ON_RESUME: JsWord = JsWord::from("onResume");
@@ -11,6 +12,8 @@ lazy_static! {
   pub static ref BUILDER_IO_QWIK: JsWord = JsWord::from("@builder.io/qwik");
   pub static ref QCOMPONENT: JsWord = JsWord::from("qComponent");
   pub static ref QHOOK_HANDLER: JsWord = JsWord::from("qHook");
+  pub static ref CLOSURE_VAR: JsWord = JsWord::from("_closure");
+  pub static ref USE_CLOSURE: JsWord = JsWord::from("useClosure");
   pub static ref MARKER_FUNTIONS: Vec<JsWord> = vec![
     ON_RENDER.clone(),
     ON_RESUME.clone(),

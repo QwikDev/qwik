@@ -62,6 +62,7 @@ pub struct HookTransform<'a> {
     stack_ctxt: Vec<String>,
     position_ctxt: Vec<PositionToken>,
     decl_stack: Vec<Vec<Id>>,
+    in_component: bool,
 
     context: ThreadSafeTransformContext,
     hooks: &'a mut Vec<Hook>,
@@ -86,6 +87,7 @@ impl<'a> HookTransform<'a> {
             stack_ctxt: Vec::with_capacity(16),
             position_ctxt: Vec::with_capacity(16),
             decl_stack: Vec::with_capacity(16),
+            in_component: false,
             hooks,
             qhook_mark: Mark::fresh(Mark::root()),
             comments,
@@ -106,6 +108,8 @@ impl<'a> HookTransform<'a> {
             let mut symbol_name = self.stack_ctxt.join("_");
             if self.stack_ctxt.is_empty() {
                 symbol_name += "_h";
+            } else if self.stack_ctxt.len() == 1 && self.in_component {
+                symbol_name += "_init";
             }
             symbol_name = escape_sym(&symbol_name);
             if context.hooks_names.contains(&symbol_name) {
@@ -501,6 +505,8 @@ impl<'a> Fold for HookTransform<'a> {
     fn fold_call_expr(&mut self, node: ast::CallExpr) -> ast::CallExpr {
         let mut position_token = false;
         let mut name_token = false;
+        let mut component_token = false;
+
         if let ast::ExprOrSuper::Expr(expr) = &node.callee {
             if node.span.has_mark(self.qhook_mark) {
                 return self.handle_qhook(node);
@@ -509,7 +515,9 @@ impl<'a> Fold for HookTransform<'a> {
                     return self.handle_qhook(node);
                 } else if QCOMPONENT.eq(sym) {
                     self.position_ctxt.push(PositionToken::QComponent);
+                    self.in_component = true;
                     position_token = true;
+                    component_token = true;
                     if let Some(comments) = self.comments {
                         comments.add_pure_comment(node.span.lo);
                     }
@@ -528,6 +536,9 @@ impl<'a> Fold for HookTransform<'a> {
         }
         if name_token {
             self.stack_ctxt.pop();
+        }
+        if component_token {
+            self.in_component = false;
         }
         o
     }

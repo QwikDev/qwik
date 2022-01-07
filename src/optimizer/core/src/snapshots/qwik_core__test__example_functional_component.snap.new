@@ -1,0 +1,65 @@
+---
+source: src/optimizer/core/src/test.rs
+expression: output
+
+---
+==INPUT==
+
+
+        const Header = qComponent(() => {
+            const thing = useState();
+            const {foo, bar} = foo();
+
+            onRender(() => {
+                return (
+                    <div>{thing}</div>
+                );
+            });
+        });
+    
+============================= test.tsx ==
+
+import * as __qwik__ from "@builder.io/qwik";
+const Header = /*#__PURE__*/ qComponent(__qwik__.qrl(()=>import("./h_test_header_init")
+, "Header_init"));
+
+============================= h_test_header_onrender.tsx (ENTRY POINT)==
+
+import * as __qwik__ from "@builder.io/qwik";
+export const Header_onRender = ()=>{
+    const [thing] = __qwik__.useLexicalScope();
+    return (<div >{thing}</div>);
+};
+
+============================= h_test_header_init.tsx (ENTRY POINT)==
+
+import * as __qwik__ from "@builder.io/qwik";
+export const Header_init = ()=>{
+    const thing = useState();
+    const { foo , bar  } = foo();
+    onRender(__qwik__.qrl(()=>import("./h_test_header_onrender")
+    , "Header_onRender", [
+        thing
+    ]));
+};
+
+== HOOKS ==
+
+[
+  {
+    "origin": "test.tsx",
+    "name": "Header_onRender",
+    "entry": null,
+    "canonicalFilename": "h_test_header_onrender"
+  },
+  {
+    "origin": "test.tsx",
+    "name": "Header_init",
+    "entry": null,
+    "canonicalFilename": "h_test_header_init"
+  }
+]
+
+== DIAGNOSTICS ==
+
+[]

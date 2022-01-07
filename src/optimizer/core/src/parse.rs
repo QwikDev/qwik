@@ -175,6 +175,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                         &path_data,
                         config.entry_policy,
                         Some(&comments),
+                        &collect,
                         &mut hooks,
                     ));
 

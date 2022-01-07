@@ -1,0 +1,68 @@
+---
+source: src/optimizer/core/src/test.rs
+expression: output
+
+---
+==INPUT==
+
+
+import { qComponent as Component, onRender as $, useState } from '@builder.io/qwik';
+
+export const App = Component((props) => {
+    const state = useState({thing: 0});
+
+    return $(() => (
+        <div>{state.thing}</div>
+    ));
+});
+    
+============================= test.js ==
+
+import * as __qwik__ from "@builder.io/qwik";
+import { qComponent as Component } from '@builder.io/qwik';
+export const App = /*#__PURE__*/ Component(__qwik__.qrl(()=>import("./h_test_app_init")
+, "App_init"));
+
+============================= h_test_app__.js (ENTRY POINT)==
+
+import * as __qwik__ from "@builder.io/qwik";
+export const App__ = ()=>{
+    const [state] = __qwik__.useLexicalScope();
+    return(/*#__PURE__*/ h("div", null, state.thing));
+};
+
+============================= h_test_app_init.js (ENTRY POINT)==
+
+import * as __qwik__ from "@builder.io/qwik";
+import { onRender as $ } from "@builder.io/qwik";
+import { useState } from "@builder.io/qwik";
+export const App_init = (props)=>{
+    const state = useState({
+        thing: 0
+    });
+    return $(__qwik__.qrl(()=>import("./h_test_app__")
+    , "App__", [
+        state
+    ]));
+};
+
+== HOOKS ==
+
+[
+  {
+    "origin": "test.tsx",
+    "name": "App__",
+    "entry": null,
+    "canonicalFilename": "h_test_app__"
+  },
+  {
+    "origin": "test.tsx",
+    "name": "App_init",
+    "entry": null,
+    "canonicalFilename": "h_test_app_init"
+  }
+]
+
+== DIAGNOSTICS ==
+
+[]

@@ -6,6 +6,7 @@ expression: output
 ==INPUT==
 
 
+import { qHook, qComponent, h } from '@builder.io/qwik';
 const Header = qHook((decl1, {decl2}, [decl3]) => {
 
     const hola = ident1.no;

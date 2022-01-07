@@ -6,6 +6,8 @@ fn example_1() {
     test_input(
         "test.tsx",
         r#"
+import { qHook, qComponent, h } from '@builder.io/qwik';
+
 const Header = qComponent({
   "onMount": qHook(() => { console.log("mount") }),
   onRender: qHook(() => {
@@ -26,6 +28,7 @@ fn example_2() {
     test_input(
         "test.tsx",
         r#"
+import { qHook, qComponent, h } from '@builder.io/qwik';
 export const Header = qComponent({
   "onMount": qHook(() => { console.log("mount") }),
   onRender: qHook(() => {
@@ -46,6 +49,7 @@ fn example_3() {
     test_input(
         "test.tsx",
         r#"
+import { qHook, qComponent, h } from '@builder.io/qwik';
 export const App = () => {
     const Header = qComponent({
         "onMount": qHook(() => { console.log("mount") }),
@@ -69,6 +73,7 @@ fn example_4() {
     test_input(
         "test.tsx",
         r#"
+import { qHook, qComponent, h } from '@builder.io/qwik';
 export function App() {
     const Header = qComponent({
         "onMount": qHook(() => { console.log("mount") }),
@@ -92,6 +97,7 @@ fn example_5() {
     test_input(
         "test.tsx",
         r#"
+import { qHook, qComponent, h } from '@builder.io/qwik';
 export const Header = qComponent({
     onRender: qHook(() => {
         return (
@@ -114,6 +120,7 @@ fn example_6() {
     test_input(
         "test.tsx",
         r#"
+import { qHook, qComponent, h } from '@builder.io/qwik';
 export const sym1 = qHook((ctx) => console.log("1"));
     "#,
         EntryStrategy::Hook,
@@ -127,8 +134,7 @@ fn example_7() {
     test_input(
         "test.tsx",
         r#"
-import {qHook} from '@builder.io/qwik';
-
+import { qHook, qComponent, h } from '@builder.io/qwik';
 
 const Header = qComponent({
     "onMount": qHook(() => { console.log("mount") }),
@@ -157,7 +163,7 @@ fn example_8() {
     test_input(
         "test.tsx",
         r#"
-import {qHook} from '@builder.io/qwik';
+import { qHook, qComponent, h } from '@builder.io/qwik';
 
 const Header = qComponent({
     onRender: qHook((hola) => {
@@ -181,6 +187,7 @@ fn example_9() {
     test_input(
         "test.tsx",
         r#"
+import { qHook, qComponent, h } from '@builder.io/qwik';
 const Header = qHook((decl1, {decl2}, [decl3]) => {
     const {decl4, key: decl5} = this;
     let [decl6, ...decl7] = stuff;
@@ -204,6 +211,7 @@ fn example_10() {
     test_input(
         "project/test.tsx",
         r#"
+import { qHook, qComponent, h } from '@builder.io/qwik';
 const Header = qHook((decl1, {decl2}, [decl3]) => {
 
     const hola = ident1.no;
@@ -234,6 +242,7 @@ fn example_11() {
     test_input(
         "project/test.tsx",
         r#"
+import { qHook, qComponent, h } from '@builder.io/qwik';
 import {foo, bar as bbar} from "../state";
 import * as dep2 from "dep2";
 import dep3 from "dep3/something";
@@ -267,6 +276,7 @@ fn example_12() {
     test_input(
         "project/test.tsx",
         r#"
+import { qHook, qComponent, h } from '@builder.io/qwik';
 export const Header = qComponent({
     onRender: qHook(() => console.log("hello sym2"), "sym2")
 });
@@ -283,6 +293,7 @@ fn example_13() {
     test_input(
         "project/test.tsx",
         r#"
+import { qHook, qComponent, h } from '@builder.io/qwik';
 export const Header = qComponent({
     onRender: qHook(() => console.log("hello sym2"), "2sym")
 });
@@ -299,6 +310,7 @@ fn example_implicit_qhooks() {
     test_input(
         "test.tsx",
         r#"
+import { qHook, qComponent, h } from '@builder.io/qwik';
 const Header = qComponent({
   "onMount": qHook(() => { console.log("mount") }),
   "otherThing": () => { console.log("otherThing") },
@@ -323,6 +335,7 @@ fn example_functional_component() {
     test_input(
         "test.tsx",
         r#"
+        import { qHook, qComponent, h } from '@builder.io/qwik';
         const Header = qComponent(() => {
             const thing = useState();
             const {foo, bar} = foo();
@@ -345,13 +358,14 @@ fn example_functional_component_2() {
     test_input(
         "test.tsx",
         r#"
+import { qHook, qComponent, h, onRender } from '@builder.io/qwik';
 export const useCounter = () => {
     return useState({count: 0});
 }
 
 export const STEP = 1;
 
-export const App = qComponent(() => {
+export const App = qComponent((props) => {
     const state = useCounter();
     const thing = useState({thing: 0});
     const STEP_2 = 2;
@@ -363,7 +377,7 @@ export const App = qComponent(() => {
                 <span>{state.count}</span>
                 {buttons.map(btn => (
                     <button
-                        on:click={() => state.count += btn.offset + thing + STEP + STEP_2}
+                        on:click={() => state.count += btn.offset + thing + STEP + STEP_2 + props.step}
                     >
                         {btn.name}
                     </button>
@@ -374,6 +388,27 @@ export const App = qComponent(() => {
         )
     });
     })
+    "#,
+        EntryStrategy::Hook,
+        MinifyMode::Simplify,
+        true,
+    );
+}
+
+#[test]
+fn example_renamed_exports() {
+    test_input(
+        "test.tsx",
+        r#"
+import { qComponent as Component, onRender as $, useState } from '@builder.io/qwik';
+
+export const App = Component((props) => {
+    const state = useState({thing: 0});
+
+    return $(() => (
+        <div>{state.thing}</div>
+    ));
+});
     "#,
         EntryStrategy::Hook,
         MinifyMode::Simplify,
@@ -399,7 +434,7 @@ fn issue_118() {
     test_input(
         "project/test.tsx",
         r#"
-import {qHook, h} from '@builder.io/qwik';
+import { qHook, qComponent, h } from '@builder.io/qwik';
 import thing from 'lib';
 import * as all from 'lib';
 import {s as se} from 'lib';

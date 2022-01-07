@@ -6,6 +6,7 @@ expression: output
 ==INPUT==
 
 
+import { qHook, qComponent, h } from '@builder.io/qwik';
 export function App() {
     const Header = qComponent({
         "onMount": qHook(() => { console.log("mount") }),
@@ -21,6 +22,7 @@ export function App() {
 ============================= test.tsx ==
 
 import * as __qwik__ from "@builder.io/qwik";
+import { qComponent } from '@builder.io/qwik';
 export function App() {
     const Header = /*#__PURE__*/ qComponent({
         "onMount": __qwik__.qrl(()=>import("./h_test_app_header_onmount")

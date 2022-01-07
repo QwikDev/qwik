@@ -6,7 +6,7 @@ expression: output
 ==INPUT==
 
 
-import {qHook, h} from '@builder.io/qwik';
+import { qHook, qComponent, h } from '@builder.io/qwik';
 import thing from 'lib';
 import * as all from 'lib';
 import {s as se} from 'lib';
@@ -23,7 +23,7 @@ export const Footer = qComponent();
     
 ============================= project/test.js ==
 
-import*as a from"@builder.io/qwik";import{h as b}from"@builder.io/qwik";export const Header=/*#__PURE__*/ qComponent({onMount:/*#__PURE__*/ b("div",null),onRender:a.qrl(()=>import("../entry_hooks"),"Header_onRender")});export const Footer=/*#__PURE__*/ qComponent();
+import*as a from"@builder.io/qwik";import{qComponent as b,h as c}from"@builder.io/qwik";export const Header=/*#__PURE__*/ b({onMount:/*#__PURE__*/ c("div",null),onRender:a.qrl(()=>import("../entry_hooks"),"Header_onRender")});export const Footer=/*#__PURE__*/ b();
 ============================= h_test_header_onrender.js ==
 
 import*as a from"@builder.io/qwik";import{Footer as b}from"./project/test";import*as c from"lib";import{s as d}from"lib";import e from"lib";export const Header_onRender=()=>/*#__PURE__*/ h(b,null,e,c(),d());

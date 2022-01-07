@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 
 use crate::code_move::fix_path;
-use crate::collector::{new_ident_from_id, Id, IdentCollector};
+use crate::collector::{new_ident_from_id, GlobalCollect, Id, IdentCollector};
 use crate::entry_strategy::EntryPolicy;
 use crate::parse::PathData;
 use crate::words::*;
@@ -19,6 +19,16 @@ use swc_ecmascript::visit::{fold_expr, noop_fold_type, Fold, FoldWith, VisitWith
 macro_rules! id {
     ($ident: expr) => {
         ($ident.sym.clone(), $ident.span.ctxt())
+    };
+}
+
+macro_rules! id_eq {
+    ($ident: expr, $cid: expr) => {
+        if let Some(cid) = $cid {
+            cid.0 == $ident.sym && cid.1 == $ident.span.ctxt()
+        } else {
+            false
+        }
     };
 }
 
@@ -63,6 +73,9 @@ pub struct HookTransform<'a> {
     position_ctxt: Vec<PositionToken>,
     decl_stack: Vec<Vec<Id>>,
     in_component: bool,
+    marker_functions: HashSet<Id>,
+    qcomponent_fn: Option<Id>,
+    qhook_fn: Option<Id>,
 
     context: ThreadSafeTransformContext,
     hooks: &'a mut Vec<Hook>,
@@ -80,6 +93,7 @@ impl<'a> HookTransform<'a> {
         path_data: &'a PathData,
         entry_policy: &'a dyn EntryPolicy,
         comments: Option<&'a SingleThreadedComments>,
+        global_collect: &GlobalCollect,
         hooks: &'a mut Vec<Hook>,
     ) -> Self {
         HookTransform {
@@ -88,6 +102,12 @@ impl<'a> HookTransform<'a> {
             position_ctxt: Vec::with_capacity(16),
             decl_stack: Vec::with_capacity(16),
             in_component: false,
+            qcomponent_fn: global_collect.get_imported_local(&QCOMPONENT, &BUILDER_IO_QWIK),
+            qhook_fn: global_collect.get_imported_local(&QHOOK, &BUILDER_IO_QWIK),
+            marker_functions: MARKER_FUNTIONS
+                .iter()
+                .flat_map(|word| global_collect.get_imported_local(word, &BUILDER_IO_QWIK))
+                .collect(),
             hooks,
             qhook_mark: Mark::fresh(Mark::root()),
             comments,
@@ -510,10 +530,10 @@ impl<'a> Fold for HookTransform<'a> {
         if let ast::ExprOrSuper::Expr(expr) = &node.callee {
             if node.span.has_mark(self.qhook_mark) {
                 return self.handle_qhook(node);
-            } else if let ast::Expr::Ident(ast::Ident { sym, .. }) = &**expr {
-                if QHOOK.eq(sym) {
+            } else if let ast::Expr::Ident(ident) = &**expr {
+                if id_eq!(ident, &self.qhook_fn) {
                     return self.handle_qhook(node);
-                } else if QCOMPONENT.eq(sym) {
+                } else if id_eq!(ident, &self.qcomponent_fn) {
                     self.position_ctxt.push(PositionToken::QComponent);
                     self.in_component = true;
                     position_token = true;
@@ -521,9 +541,9 @@ impl<'a> Fold for HookTransform<'a> {
                     if let Some(comments) = self.comments {
                         comments.add_pure_comment(node.span.lo);
                     }
-                } else if MARKER_FUNTIONS.contains(sym) {
+                } else if self.marker_functions.contains(&id!(ident)) {
                     self.position_ctxt.push(PositionToken::MarkerFunction);
-                    self.stack_ctxt.push(sym.to_string());
+                    self.stack_ctxt.push(ident.sym.to_string());
                     position_token = true;
                     name_token = true;
                 }

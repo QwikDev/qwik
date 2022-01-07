@@ -53,6 +53,15 @@ pub fn global_collect(module: &ast::Module) -> GlobalCollect {
     collect
 }
 
+impl GlobalCollect {
+    pub fn get_imported_local(&self, specifier: &JsWord, source: &JsWord) -> Option<Id> {
+        self.imports
+            .iter()
+            .find(|(_, import)| &import.specifier == specifier && &import.source == source)
+            .map(|s| s.0.clone())
+    }
+}
+
 impl Visit for GlobalCollect {
     noop_visit_type!();
 

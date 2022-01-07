@@ -6,6 +6,7 @@ expression: output
 ==INPUT==
 
 
+import { qHook, qComponent, h } from '@builder.io/qwik';
 export const sym1 = qHook((ctx) => console.log("1"));
     
 ============================= test.tsx ==

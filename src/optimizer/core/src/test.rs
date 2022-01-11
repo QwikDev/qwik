@@ -396,6 +396,29 @@ export const App = qComponent((props) => {
 }
 
 #[test]
+fn example_functional_component_capture_props() {
+    test_input(
+        "test.tsx",
+        r#"
+import { qHook, qComponent, h, onRender } from '@builder.io/qwik';
+
+export const App = qComponent(({count}) => {
+    const state = useState({count: 0});
+    return onRender(() => {
+        return (
+            <div on:click={() => state.count += count }>
+            </div>
+        )
+    });
+})
+    "#,
+        EntryStrategy::Hook,
+        MinifyMode::Simplify,
+        true,
+    );
+}
+
+#[test]
 fn example_renamed_exports() {
     test_input(
         "test.tsx",

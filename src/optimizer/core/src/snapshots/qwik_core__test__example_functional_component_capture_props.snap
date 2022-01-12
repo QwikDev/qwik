@@ -8,11 +8,11 @@ expression: output
 
 import { qHook, qComponent, h, onRender } from '@builder.io/qwik';
 
-export const App = qComponent(({count}) => {
+export const App = qComponent(({count, total}) => {
     const state = useState({count: 0});
     return onRender(() => {
         return (
-            <div on:click={() => state.count += count }>
+            <div on:click={() => state.count += count + total }>
             </div>
         )
     });
@@ -30,8 +30,8 @@ export const App = /*#__PURE__*/ qComponent(__qwik__.qrl(()=>import("./h_test_ap
 import * as __qwik__ from "@builder.io/qwik";
 export const App_onRender_div_onclick = ()=>{
     const [_arg0, state] = __qwik__.useLexicalScope();
-    let { count  } = _arg0;
-    return state.count += count;
+    let { count , total  } = _arg0;
+    return state.count += count + total;
 };
 
 ============================= h_test_app_onrender.js (ENTRY POINT)==
@@ -39,7 +39,7 @@ export const App_onRender_div_onclick = ()=>{
 import * as __qwik__ from "@builder.io/qwik";
 export const App_onRender = ()=>{
     const [_arg0, state] = __qwik__.useLexicalScope();
-    let { count  } = _arg0;
+    let { count , total  } = _arg0;
     return(/*#__PURE__*/ h("div", {
         "on:click": __qwik__.qrl(()=>import("./h_test_app_onrender_div_onclick")
         , "App_onRender_div_onclick", [
@@ -54,7 +54,7 @@ export const App_onRender = ()=>{
 import * as __qwik__ from "@builder.io/qwik";
 import { onRender } from "@builder.io/qwik";
 export const App_init = (_arg0)=>{
-    let { count  } = _arg0;
+    let { count , total  } = _arg0;
     const state = useState({
         count: 0
     });

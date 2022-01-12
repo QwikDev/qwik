@@ -67,7 +67,15 @@ enum PositionToken {
     Any,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum IdentType {
+    Var,
+    Fn,
+    Class,
+}
+
 pub type DestructuringUnit = (Id, ast::Pat);
+pub type IdPlusType = (Id, IdentType);
 
 #[allow(clippy::module_name_repetitions)]
 pub struct QwikTransform<'a> {
@@ -77,7 +85,7 @@ pub struct QwikTransform<'a> {
 
     stack_ctxt: Vec<String>,
     position_ctxt: Vec<PositionToken>,
-    decl_stack: Vec<Vec<Id>>,
+    decl_stack: Vec<Vec<IdPlusType>>,
     in_component: bool,
     marker_functions: HashSet<Id>,
     qcomponent_fn: Option<Id>,
@@ -206,12 +214,15 @@ impl<'a> QwikTransform<'a> {
                 collector.get_words()
             };
 
-            let decl_collect: Vec<Id> = self
+            let (valid_decl, invalid_decl): (_, Vec<_>) = self
                 .decl_stack
                 .iter()
                 .flat_map(|v| v.iter())
                 .cloned()
-                .collect();
+                .partition(|(_, t)| t == &IdentType::Var);
+
+            let decl_collect: HashSet<Id> = valid_decl.into_iter().map(|a| a.0).collect();
+            let invalid_decl: HashSet<Id> = invalid_decl.into_iter().map(|a| a.0).collect();
             let folded = fold_expr(self, *first_arg);
 
             // Collect local idents
@@ -251,6 +262,16 @@ impl<'a> QwikTransform<'a> {
                                         id.0
                                     ),
                                 )
+                                .emit();
+                        });
+                    }
+                    if invalid_decl.contains(id) {
+                        HANDLER.with(|handler| {
+                            handler
+                                .struct_err(&format!(
+                                    "Identifier can not capture because it's a function: {}",
+                                    id.0
+                                ))
                                 .emit();
                         });
                     }
@@ -298,26 +319,26 @@ impl<'a> Fold for QwikTransform<'a> {
         if let Some(current_scope) = self.decl_stack.last_mut() {
             match node.name {
                 ast::Pat::Ident(ref ident) => {
-                    current_scope.push(id!(ident.id));
+                    current_scope.push((id!(ident.id), IdentType::Var));
                 }
                 ast::Pat::Object(ref obj) => {
                     for prop in &obj.props {
                         match prop {
                             ast::ObjectPatProp::Assign(ref v) => {
                                 if let Some(ast::Expr::Ident(ident)) = v.value.as_deref() {
-                                    current_scope.push(id!(ident));
+                                    current_scope.push((id!(ident), IdentType::Var));
                                 } else {
-                                    current_scope.push(id!(v.key));
+                                    current_scope.push((id!(v.key), IdentType::Var));
                                 }
                             }
                             ast::ObjectPatProp::KeyValue(ref v) => {
                                 if let ast::Pat::Ident(ident) = v.value.as_ref() {
-                                    current_scope.push(id!(ident.id));
+                                    current_scope.push((id!(ident.id), IdentType::Var));
                                 }
                             }
                             ast::ObjectPatProp::Rest(ref v) => {
                                 if let ast::Pat::Ident(ident) = v.arg.as_ref() {
-                                    current_scope.push(id!(ident.id));
+                                    current_scope.push((id!(ident.id), IdentType::Var));
                                 }
                             }
                         }
@@ -327,11 +348,11 @@ impl<'a> Fold for QwikTransform<'a> {
                     for el in &arr.elems {
                         match el {
                             Some(ast::Pat::Ident(ref ident)) => {
-                                current_scope.push(id!(ident.id));
+                                current_scope.push((id!(ident.id), IdentType::Var));
                             }
                             Some(ast::Pat::Rest(ref rest)) => {
                                 if let ast::Pat::Ident(ref ident) = *rest.arg {
-                                    current_scope.push(id!(ident.id));
+                                    current_scope.push((id!(ident.id), IdentType::Var));
                                 }
                             }
                             _ => {}
@@ -349,6 +370,10 @@ impl<'a> Fold for QwikTransform<'a> {
     }
 
     fn fold_fn_decl(&mut self, node: ast::FnDecl) -> ast::FnDecl {
+        if let Some(current_scope) = self.decl_stack.last_mut() {
+            current_scope.push((id!(node.ident), IdentType::Fn));
+        }
+
         self.stack_ctxt.push(node.ident.sym.to_string());
         self.decl_stack.push(vec![]);
         let o = node.fold_children_with(self);
@@ -372,13 +397,13 @@ impl<'a> Fold for QwikTransform<'a> {
             .enumerate()
             .map(|(i, param)| match param {
                 ast::Pat::Ident(ref ident) => {
-                    current_scope.push(id!(ident.id));
+                    current_scope.push((id!(ident.id), IdentType::Var));
                     param
                 }
                 ast::Pat::Object(ref obj) => {
                     let new_ident = ast::Ident::new(JsWord::from(format!("_arg{}", i)), DUMMY_SP);
                     let ident_id = id!(new_ident);
-                    current_scope.push(ident_id.clone());
+                    current_scope.push((ident_id.clone(), IdentType::Var));
                     destructuring_ids.push((ident_id.clone(), param.clone()));
                     for prop in &obj.props {
                         match prop {
@@ -410,7 +435,7 @@ impl<'a> Fold for QwikTransform<'a> {
                 ast::Pat::Array(ref arr) => {
                     let new_ident = ast::Ident::new(JsWord::from(format!("_arg{}", i)), DUMMY_SP);
                     let ident_id = id!(new_ident);
-                    current_scope.push(ident_id.clone());
+                    current_scope.push((ident_id.clone(), IdentType::Var));
                     destructuring_ids.push((ident_id.clone(), param.clone()));
                     for el in &arr.elems {
                         match el {
@@ -498,6 +523,10 @@ impl<'a> Fold for QwikTransform<'a> {
     }
 
     fn fold_class_decl(&mut self, node: ast::ClassDecl) -> ast::ClassDecl {
+        if let Some(current_scope) = self.decl_stack.last_mut() {
+            current_scope.push((id!(node.ident), IdentType::Class));
+        }
+
         self.stack_ctxt.push(node.ident.sym.to_string());
         self.decl_stack.push(vec![]);
         let o = node.fold_children_with(self);
@@ -785,15 +814,17 @@ fn validate_sym(sym: &str) -> bool {
 
 fn compute_scoped_idents(
     all_idents: &[Id],
-    all_decl: &[Id],
+    all_decl: &HashSet<Id>,
     destructured_to_original: &HashMap<Id, Id>,
 ) -> Vec<Id> {
-    let mut output = vec![];
+    let mut set: HashSet<Id> = HashSet::new();
     for ident in all_idents {
         let ident = destructured_to_original.get(ident).unwrap_or(ident);
         if all_decl.contains(ident) {
-            output.push(ident.clone());
+            set.insert(ident.clone());
         }
     }
+    let mut output: Vec<Id> = set.into_iter().collect();
+    output.sort();
     output
 }

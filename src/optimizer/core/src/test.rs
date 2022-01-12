@@ -402,11 +402,13 @@ fn example_functional_component_capture_props() {
         r#"
 import { qHook, qComponent, h, onRender } from '@builder.io/qwik';
 
-export const App = qComponent(({count, total}) => {
+export const App = qComponent(({count, rest: [I2, {I3, v1: [I4], I5=v2, ...I6}, I7=v3, ...I8]}) => {
     const state = useState({count: 0});
     return onRender(() => {
         return (
             <div on:click={() => state.count += count + total }>
+                {I2}{I3}{I4}{I5}{I6}{I7}{I8}
+                {v1}{v2}{v3}
             </div>
         )
     });

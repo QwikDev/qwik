@@ -1,6 +1,6 @@
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
-use crate::code_move::fix_path;
+use crate::code_move::{fix_path, transform_qhook_function};
 use crate::collector::{new_ident_from_id, GlobalCollect, Id, IdentCollector};
 use crate::entry_strategy::EntryPolicy;
 use crate::parse::PathData;
@@ -67,8 +67,14 @@ enum PositionToken {
     Any,
 }
 
+pub type DestructuringUnit = (Id, ast::Pat);
+
 #[allow(clippy::module_name_repetitions)]
-pub struct HookTransform<'a> {
+pub struct QwikTransform<'a> {
+    pub hooks: Vec<Hook>,
+    pub original_to_destructured: HashMap<Id, ast::Pat>,
+    destructured_to_original: HashMap<Id, Id>,
+
     stack_ctxt: Vec<String>,
     position_ctxt: Vec<PositionToken>,
     decl_stack: Vec<Vec<Id>>,
@@ -78,37 +84,39 @@ pub struct HookTransform<'a> {
     qhook_fn: Option<Id>,
 
     context: ThreadSafeTransformContext,
-    hooks: &'a mut Vec<Hook>,
 
     path_data: &'a PathData,
     qhook_mark: swc_common::Mark,
 
     comments: Option<&'a SingleThreadedComments>,
     entry_policy: &'a dyn EntryPolicy,
+    global_collect: &'a GlobalCollect,
 }
 
-impl<'a> HookTransform<'a> {
+impl<'a> QwikTransform<'a> {
     pub fn new(
         context: ThreadSafeTransformContext,
         path_data: &'a PathData,
         entry_policy: &'a dyn EntryPolicy,
         comments: Option<&'a SingleThreadedComments>,
-        global_collect: &GlobalCollect,
-        hooks: &'a mut Vec<Hook>,
+        global_collect: &'a GlobalCollect,
     ) -> Self {
-        HookTransform {
+        QwikTransform {
             path_data,
             stack_ctxt: Vec::with_capacity(16),
             position_ctxt: Vec::with_capacity(16),
             decl_stack: Vec::with_capacity(16),
+            destructured_to_original: HashMap::new(),
+            original_to_destructured: HashMap::new(),
             in_component: false,
+            hooks: Vec::with_capacity(16),
+            global_collect,
             qcomponent_fn: global_collect.get_imported_local(&QCOMPONENT, &BUILDER_IO_QWIK),
             qhook_fn: global_collect.get_imported_local(&QHOOK, &BUILDER_IO_QWIK),
             marker_functions: MARKER_FUNTIONS
                 .iter()
                 .flat_map(|word| global_collect.get_imported_local(word, &BUILDER_IO_QWIK))
                 .collect(),
-            hooks,
             qhook_mark: Mark::fresh(Mark::root()),
             comments,
             entry_policy,
@@ -231,7 +239,30 @@ impl<'a> HookTransform<'a> {
             // TODO: check with manu
             .unwrap();
 
-            let scoped_idents = compute_scoped_idents(&descendent_idents, &decl_collect);
+            for id in &local_idents {
+                if !self.global_collect.exports.contains_key(id) {
+                    if let Some(span) = self.global_collect.root.get(id) {
+                        HANDLER.with(|handler| {
+                            handler
+                                .struct_span_err(
+                                    *span,
+                                    &format!(
+                                        "Reference to root level identifier needs to be exported: {}",
+                                        id.0
+                                    ),
+                                )
+                                .emit();
+                        });
+                    }
+                }
+            }
+
+            let scoped_idents = compute_scoped_idents(
+                &descendent_idents,
+                &decl_collect,
+                &self.destructured_to_original,
+            );
+
             let o = create_inline_qrl(import_path, &symbol_name, &scoped_idents);
             self.hooks.push(Hook {
                 entry,
@@ -249,7 +280,7 @@ impl<'a> HookTransform<'a> {
     }
 }
 
-impl<'a> Fold for HookTransform<'a> {
+impl<'a> Fold for QwikTransform<'a> {
     noop_fold_type!();
 
     fn fold_module(&mut self, node: ast::Module) -> ast::Module {
@@ -334,52 +365,84 @@ impl<'a> Fold for HookTransform<'a> {
             .last_mut()
             .expect("Declaration stack empty!");
 
-        for param in &node.params {
-            match param {
+        let mut destructuring_ids = vec![];
+        let params: Vec<ast::Pat> = node
+            .params
+            .into_iter()
+            .enumerate()
+            .map(|(i, param)| match param {
                 ast::Pat::Ident(ref ident) => {
                     current_scope.push(id!(ident.id));
+                    param
                 }
                 ast::Pat::Object(ref obj) => {
+                    let new_ident = ast::Ident::new(JsWord::from(format!("_arg{}", i)), DUMMY_SP);
+                    let ident_id = id!(new_ident);
+                    current_scope.push(ident_id.clone());
+                    destructuring_ids.push((ident_id.clone(), param.clone()));
                     for prop in &obj.props {
                         match prop {
                             ast::ObjectPatProp::Assign(ref v) => {
                                 if let Some(ast::Expr::Ident(ident)) = v.value.as_deref() {
-                                    current_scope.push(id!(ident));
+                                    self.destructured_to_original
+                                        .insert(id!(ident), ident_id.clone());
                                 } else {
-                                    current_scope.push(id!(v.key));
+                                    self.destructured_to_original
+                                        .insert(id!(v.key), ident_id.clone());
                                 }
                             }
                             ast::ObjectPatProp::KeyValue(ref v) => {
                                 if let ast::Pat::Ident(ident) = v.value.as_ref() {
-                                    current_scope.push(id!(ident.id));
+                                    self.destructured_to_original
+                                        .insert(id!(ident.id), ident_id.clone());
                                 }
                             }
                             ast::ObjectPatProp::Rest(ref v) => {
                                 if let ast::Pat::Ident(ident) = v.arg.as_ref() {
-                                    current_scope.push(id!(ident.id));
+                                    self.destructured_to_original
+                                        .insert(id!(ident.id), ident_id.clone());
                                 }
                             }
                         }
                     }
+                    ast::Pat::Ident(ast::BindingIdent::from(new_ident))
                 }
                 ast::Pat::Array(ref arr) => {
+                    let new_ident = ast::Ident::new(JsWord::from(format!("_arg{}", i)), DUMMY_SP);
+                    let ident_id = id!(new_ident);
+                    current_scope.push(ident_id.clone());
+                    destructuring_ids.push((ident_id.clone(), param.clone()));
                     for el in &arr.elems {
                         match el {
                             Some(ast::Pat::Ident(ref ident)) => {
-                                current_scope.push(id!(ident.id));
+                                self.destructured_to_original
+                                    .insert(id!(ident.id), ident_id.clone());
                             }
                             Some(ast::Pat::Rest(ref rest)) => {
                                 if let ast::Pat::Ident(ref ident) = *rest.arg {
-                                    current_scope.push(id!(ident.id));
+                                    self.destructured_to_original
+                                        .insert(id!(ident.id), ident_id.clone());
                                 }
                             }
                             _ => {}
                         }
                     }
+                    ast::Pat::Ident(ast::BindingIdent::from(new_ident))
                 }
-                _ => {}
-            }
+                _ => param,
+            })
+            .collect();
+        let node = ast::ArrowExpr { params, ..node };
+        for (id, expr) in destructuring_ids.iter() {
+            self.original_to_destructured
+                .insert(id.clone(), expr.clone());
         }
+        let node = if destructuring_ids.is_empty() {
+            node
+        } else {
+            transform_qhook_function(node, &[], destructuring_ids)
+        };
+
         let o = node.fold_children_with(self);
         self.decl_stack.pop();
 
@@ -720,9 +783,14 @@ fn validate_sym(sym: &str) -> bool {
     RE.is_match(sym)
 }
 
-pub fn compute_scoped_idents(all_idents: &[Id], all_decl: &[Id]) -> Vec<Id> {
+fn compute_scoped_idents(
+    all_idents: &[Id],
+    all_decl: &[Id],
+    destructured_to_original: &HashMap<Id, Id>,
+) -> Vec<Id> {
     let mut output = vec![];
     for ident in all_idents {
+        let ident = destructured_to_original.get(ident).unwrap_or(ident);
         if all_decl.contains(ident) {
             output.push(ident.clone());
         }

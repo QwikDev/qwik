@@ -136,7 +136,7 @@ fn example_7() {
         r#"
 import { qHook, qComponent, h } from '@builder.io/qwik';
 
-const Header = qComponent({
+export const Header = qComponent({
     "onMount": qHook(() => { console.log("mount") }),
     onRender: qHook(() => {
       return (
@@ -165,7 +165,7 @@ fn example_8() {
         r#"
 import { qHook, qComponent, h } from '@builder.io/qwik';
 
-const Header = qComponent({
+export const Header = qComponent({
     onRender: qHook((hola) => {
       const hola = this;
       const {something, styff} = hola;
@@ -419,6 +419,34 @@ export const App = qComponent(({count}) => {
 }
 
 #[test]
+fn example_invalid_references() {
+    test_input(
+        "test.tsx",
+        r#"
+import { qHook, qComponent, h, onRender } from '@builder.io/qwik';
+
+const I1 = 12;
+const [I2, {I3, v1: [I4], I5=v2, ...I6}, I7=v3, ...I8] = obj;
+function I9() {}
+class I10 {}
+
+export const App = qComponent(({count}) => {
+    console.log(I1, I2, I3, I4, I5, I6, I7, I8, I9);
+    console.log(itsok, v1, v2, v3, obj);
+    return onRender(() => {
+        return (
+            <I10></I10>
+        )
+    });
+})
+    "#,
+        EntryStrategy::Hook,
+        MinifyMode::Simplify,
+        true,
+    );
+}
+
+#[test]
 fn example_renamed_exports() {
     test_input(
         "test.tsx",
@@ -436,6 +464,42 @@ export const App = Component((props) => {
         EntryStrategy::Hook,
         MinifyMode::Simplify,
         true,
+    );
+}
+
+#[test]
+fn example_exports() {
+    test_input(
+        "project/test.tsx",
+        r#"
+import { qHook, qComponent, h } from '@builder.io/qwik';
+
+export const [a, {b, v1: [c], d=v2, ...e}, f=v3, ...g] = obj;
+
+const exp1 = 1;
+const internal = 2;
+export {exp1, internal as expr2};
+
+export function foo() { }
+export class bar {}
+
+export default function DefaultFn() {}
+
+export const Header = qComponent({
+    onRender: qHook(() => (
+        <Footer>
+            <div>{a}{b}{c}{d}{e}{f}{exp1}{internal}{foo}{bar}{DefaultFn}</div>
+            <div>{v1}{v2}{v3}{obj}</div>
+        </Footer>
+    ))
+});
+
+export const Footer = qComponent();
+
+    "#,
+        EntryStrategy::Hook,
+        MinifyMode::Simplify,
+        false,
     );
 }
 

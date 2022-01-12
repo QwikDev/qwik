@@ -8,7 +8,7 @@ expression: output
 
 import { qHook, qComponent, h } from '@builder.io/qwik';
 
-const Header = qComponent({
+export const Header = qComponent({
     onRender: qHook((hola) => {
       const hola = this;
       const {something, styff} = hola;
@@ -23,7 +23,7 @@ const Header = qComponent({
 
 import * as __qwik__ from "@builder.io/qwik";
 import { qComponent } from '@builder.io/qwik';
-/*#__PURE__*/ qComponent({
+export const Header = /*#__PURE__*/ qComponent({
     onRender: __qwik__.qrl(()=>import("./h_test_header_onrender")
     , "Header_onRender")
 });
@@ -31,6 +31,7 @@ import { qComponent } from '@builder.io/qwik';
 ============================= h_test_header_onrender.tsx (ENTRY POINT)==
 
 import * as __qwik__ from "@builder.io/qwik";
+import { Header } from "./test";
 export const Header_onRender = (hola)=>{
     const hola = this;
     const { something , styff  } = hola;

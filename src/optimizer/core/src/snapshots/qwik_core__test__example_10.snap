@@ -35,7 +35,9 @@ __qwik__.qrl(()=>import("../h_test_header")
 ============================= h_test_header.tsx (ENTRY POINT)==
 
 import * as __qwik__ from "@builder.io/qwik";
-export const Header = (decl1, { decl2  }, [decl3])=>{
+export const Header = (decl1, _arg1, _arg2)=>{
+    let { decl2  } = _arg1;
+    let [decl3] = _arg2;
     const hola = ident1.no;
     ident2;
     const a = ident1 + ident3;

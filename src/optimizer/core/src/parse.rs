@@ -2,10 +2,10 @@ use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 use std::str;
 
-use crate::code_move::new_module;
+use crate::code_move::{new_module, NewModuleCtx};
 use crate::collector::global_collect;
 use crate::entry_strategy::EntryPolicy;
-use crate::transform::{Hook, HookTransform, ThreadSafeTransformContext};
+use crate::transform::{QwikTransform, ThreadSafeTransformContext};
 use crate::utils::{CodeHighlight, Diagnostic, DiagnosticSeverity, SourceLocation};
 use serde::{Deserialize, Serialize};
 
@@ -167,17 +167,17 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 
                     // Collect import/export metadata
                     let collect = global_collect(&main_module);
-                    let mut hooks: Vec<Hook> = vec![];
-
-                    // Run main transform
-                    main_module = main_module.fold_with(&mut HookTransform::new(
+                    println!("{:?}", collect.exports);
+                    let mut qwik_transform = QwikTransform::new(
                         config.context,
                         &path_data,
                         config.entry_policy,
                         Some(&comments),
                         &collect,
-                        &mut hooks,
-                    ));
+                    );
+
+                    // Run main transform
+                    main_module = main_module.fold_with(&mut qwik_transform);
 
                     // Transpile JSX
                     if transpile && is_jsx {
@@ -228,6 +228,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                         main_module.visit_mut_with(&mut fixer(None));
                     }
 
+                    let hooks = qwik_transform.hooks;
                     let mut hooks_analysis: Vec<HookAnalysis> = Vec::with_capacity(hooks.len());
                     let mut modules: Vec<TransformModule> = Vec::with_capacity(hooks.len() + 10);
 
@@ -242,15 +243,16 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 
                         let hook_mark = Mark::fresh(Mark::root());
 
-                        let (mut hook_module, comments) = new_module(
-                            h.expr,
-                            &path_data,
-                            &h.name,
-                            &h.origin,
-                            &h.local_idents,
-                            &h.scoped_idents,
-                            &collect,
-                        )?;
+                        let (mut hook_module, comments) = new_module(NewModuleCtx {
+                            expr: h.expr,
+                            path: &path_data,
+                            name: &h.name,
+                            origin: &h.origin,
+                            local_idents: &h.local_idents,
+                            scoped_idents: &h.scoped_idents,
+                            global: &collect,
+                            original_to_destructured: &qwik_transform.original_to_destructured,
+                        })?;
 
                         if transpile && is_jsx {
                             let mut react_options = react::Options::default();

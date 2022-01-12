@@ -15,6 +15,7 @@ use swc_common::comments::{Comments, SingleThreadedComments};
 use swc_common::{errors::HANDLER, Mark, DUMMY_SP};
 use swc_ecmascript::ast;
 use swc_ecmascript::visit::{fold_expr, noop_fold_type, Fold, FoldWith, VisitWith};
+use swc_ecmascript::utils::{private_ident};
 
 macro_rules! id {
     ($ident: expr) => {
@@ -401,7 +402,7 @@ impl<'a> Fold for QwikTransform<'a> {
                     param
                 }
                 ast::Pat::Object(ref obj) => {
-                    let new_ident = ast::Ident::new(JsWord::from(format!("_arg{}", i)), DUMMY_SP);
+                    let new_ident = private_ident!(format!("_arg{}", i));
                     let ident_id = id!(new_ident);
                     current_scope.push((ident_id.clone(), IdentType::Var));
                     destructuring_ids.push((ident_id.clone(), param.clone()));

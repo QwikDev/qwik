@@ -32,7 +32,7 @@ export const Header_init = ()=>{
     const thing = useState();
     const { foo , bar  } = foo();
     onRender(()=>{
-        return (<div >{thing}</div>);
+        return <div >{thing}</div>;
     });
 };
 

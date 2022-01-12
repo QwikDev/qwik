@@ -421,6 +421,43 @@ export const App = qComponent(({count, rest: [I2, {I3, v1: [I4], I5=v2, ...I6}, 
 }
 
 #[test]
+fn example_multi_capture() {
+    test_input(
+        "test.tsx",
+        r#"
+import { qHook, qComponent, h, onRender } from '@builder.io/qwik';
+
+export const Foo = qComponent(({foo}) => {
+    const _arg0 = 20;
+    return onRender(() => {
+        const fn = ({aaa}) => aaa;
+        return (
+            <div>
+              {foo}{fn()}{_arg0}
+            </div>
+        )
+    });
+})
+
+export const Bar = qComponent(({bar}) => {
+    return onRender(() => {
+        return (
+            <div>
+              {bar}
+            </div>
+        )
+    });
+})
+
+    "#,
+        EntryStrategy::Hook,
+        MinifyMode::Simplify,
+        false,
+    );
+}
+
+
+#[test]
 fn example_invalid_references() {
     test_input(
         "test.tsx",

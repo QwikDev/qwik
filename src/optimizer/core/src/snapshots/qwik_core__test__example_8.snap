@@ -36,7 +36,7 @@ export const Header_onRender = (hola)=>{
     const hola = this;
     const { something , styff  } = hola;
     const hello = hola.nothere.stuff[global];
-    return (<Header />);
+    return <Header />;
 };
 
 == HOOKS ==

@@ -57,9 +57,9 @@ export const Header_onRender_div_onclick = (ctx)=>console.log(ctx)
 
 import * as __qwik__ from "@builder.io/qwik";
 export const Header_onRender = ()=>{
-    return (<div prop={(ctx)=>console.log(ctx)
+    return <div prop={(ctx)=>console.log(ctx)
     } on:click={__qwik__.qrl(()=>import("./h_test_header_onrender_div_onclick")
-    , "Header_onRender_div_onclick")}/>);
+    , "Header_onRender_div_onclick")}/>;
 };
 
 == HOOKS ==

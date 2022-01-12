@@ -223,10 +223,9 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                                 },
                             );
                         }
-
-                        main_module.visit_mut_with(&mut hygiene_with_config(Default::default()));
-                        main_module.visit_mut_with(&mut fixer(None));
                     }
+                    main_module.visit_mut_with(&mut hygiene_with_config(Default::default()));
+                    main_module.visit_mut_with(&mut fixer(None));
 
                     let hooks = qwik_transform.hooks;
                     let mut hooks_analysis: Vec<HookAnalysis> = Vec::with_capacity(hooks.len());
@@ -292,11 +291,10 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                                     top_level_mark: hook_mark,
                                 },
                             );
-
-                            hook_module = hook_module
-                                .fold_with(&mut hygiene_with_config(Default::default()))
-                                .fold_with(&mut fixer(None));
                         }
+                        hook_module = hook_module
+                            .fold_with(&mut hygiene_with_config(Default::default()))
+                            .fold_with(&mut fixer(None));
 
                         let (code, map) = emit_source_code(
                             Lrc::clone(&source_map),

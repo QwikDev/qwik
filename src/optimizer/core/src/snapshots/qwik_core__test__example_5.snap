@@ -43,7 +43,7 @@ export const Header_onRender_div_onClick2 = (ctx)=>console.log("2")
 
 import * as __qwik__ from "@builder.io/qwik";
 export const Header_onRender = ()=>{
-    return (<>
+    return <>
 
                 <div onClick={__qwik__.qrl(()=>import("./h_test_header_onrender_div_onclick")
     , "Header_onRender_div_onClick")}/>
@@ -51,7 +51,7 @@ export const Header_onRender = ()=>{
                 <div onClick={__qwik__.qrl(()=>import("./h_test_header_onrender_div_onclick2")
     , "Header_onRender_div_onClick2")}/>
 
-            </>);
+            </>;
 };
 
 == HOOKS ==

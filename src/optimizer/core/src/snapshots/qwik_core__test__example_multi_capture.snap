@@ -1,0 +1,130 @@
+---
+source: src/optimizer/core/src/test.rs
+expression: output
+
+---
+==INPUT==
+
+
+import { qHook, qComponent, h, onRender } from '@builder.io/qwik';
+
+export const Foo = qComponent(({foo}) => {
+    const _arg0 = 20;
+    return onRender(() => {
+        const fn = ({aaa}) => aaa;
+        return (
+            <div>
+              {foo}{fn()}{_arg0}
+            </div>
+        )
+    });
+})
+
+export const Bar = qComponent(({bar}) => {
+    return onRender(() => {
+        return (
+            <div>
+              {bar}
+            </div>
+        )
+    });
+})
+
+    
+============================= test.tsx ==
+
+import * as __qwik__ from "@builder.io/qwik";
+import { qComponent } from '@builder.io/qwik';
+export const Foo = /*#__PURE__*/ qComponent(__qwik__.qrl(()=>import("./h_test_foo_init")
+, "Foo_init"));
+export const Bar = /*#__PURE__*/ qComponent(__qwik__.qrl(()=>import("./h_test_bar_init")
+, "Bar_init"));
+
+============================= h_test_foo_onrender.tsx (ENTRY POINT)==
+
+import * as __qwik__ from "@builder.io/qwik";
+export const Foo_onRender = ()=>{
+    const [_arg02, _arg01] = __qwik__.useLexicalScope();
+    let { foo  } = _arg01;
+    const fn = (_arg0)=>{
+        let { aaa  } = _arg0;
+        return aaa;
+    };
+    return <div >
+
+              {foo}{fn()}{_arg02}
+
+            </div>;
+};
+
+============================= h_test_foo_init.tsx (ENTRY POINT)==
+
+import * as __qwik__ from "@builder.io/qwik";
+import { onRender } from "@builder.io/qwik";
+export const Foo_init = (_arg0)=>{
+    let { foo  } = _arg0;
+    const _arg01 = 20;
+    return onRender(__qwik__.qrl(()=>import("./h_test_foo_onrender")
+    , "Foo_onRender", [
+        _arg01,
+        _arg0
+    ]));
+};
+
+============================= h_test_bar_onrender.tsx (ENTRY POINT)==
+
+import * as __qwik__ from "@builder.io/qwik";
+export const Bar_onRender = ()=>{
+    const [_arg0] = __qwik__.useLexicalScope();
+    let { bar  } = _arg0;
+    return <div >
+
+              {bar}
+
+            </div>;
+};
+
+============================= h_test_bar_init.tsx (ENTRY POINT)==
+
+import * as __qwik__ from "@builder.io/qwik";
+import { onRender } from "@builder.io/qwik";
+export const Bar_init = (_arg0)=>{
+    let { bar  } = _arg0;
+    return onRender(__qwik__.qrl(()=>import("./h_test_bar_onrender")
+    , "Bar_onRender", [
+        _arg0
+    ]));
+};
+
+== HOOKS ==
+
+[
+  {
+    "origin": "test.tsx",
+    "name": "Foo_onRender",
+    "entry": null,
+    "canonicalFilename": "h_test_foo_onrender"
+  },
+  {
+    "origin": "test.tsx",
+    "name": "Foo_init",
+    "entry": null,
+    "canonicalFilename": "h_test_foo_init"
+  },
+  {
+    "origin": "test.tsx",
+    "name": "Bar_onRender",
+    "entry": null,
+    "canonicalFilename": "h_test_bar_onrender"
+  },
+  {
+    "origin": "test.tsx",
+    "name": "Bar_init",
+    "entry": null,
+    "canonicalFilename": "h_test_bar_init"
+  }
+]
+
+== DIAGNOSTICS ==
+
+[]

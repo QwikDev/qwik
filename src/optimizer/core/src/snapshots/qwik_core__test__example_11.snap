@@ -56,12 +56,12 @@ import { Header } from "./project/test";
 import { bar as bbar } from "./state";
 import * as dep2 from "dep2";
 export const Header_onRender = ()=>{
-    return (<Header onClick={__qwik__.qrl(()=>import("../entry_hooks")
+    return <Header onClick={__qwik__.qrl(()=>import("../entry_hooks")
     , "Header_onRender_Header_onClick")}>
 
                 {dep2.stuff()}{bbar()}
 
-            </Header>);
+            </Header>;
 };
 
 ============================= h_test_app_onrender.tsx ==
@@ -70,7 +70,7 @@ import * as __qwik__ from "@builder.io/qwik";
 import { Header } from "./project/test";
 import { foo } from "./state";
 export const App_onRender = ()=>{
-    return (<Header >{foo()}</Header>);
+    return <Header >{foo()}</Header>;
 };
 
 ============================= entry_hooks.ts (ENTRY POINT)==

@@ -56,8 +56,8 @@ export const Header_onRender_div_onClick = (ctx)=>console.log(ctx)
 
 import * as __qwik__ from "@builder.io/qwik";
 export const Header_onRender = ()=>{
-    return (<div onClick={__qwik__.qrl(()=>import("./h_test_header_onrender_div_onclick")
-    , "Header_onRender_div_onClick")}/>);
+    return <div onClick={__qwik__.qrl(()=>import("./h_test_header_onrender_div_onclick")
+    , "Header_onRender_div_onClick")}/>;
 };
 
 ============================= h_test_app_onrender.tsx (ENTRY POINT)==
@@ -65,7 +65,7 @@ export const Header_onRender = ()=>{
 import * as __qwik__ from "@builder.io/qwik";
 import { Header } from "./test";
 export const App_onRender = ()=>{
-    return (<Header />);
+    return <Header />;
 };
 
 == HOOKS ==

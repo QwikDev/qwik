@@ -55,8 +55,8 @@ export const Header = (decl1, _arg1, _arg2)=>{
             return ident10;
         }
     }
-    return (<div onClick={(ident11)=>ident11 + ident12
-    } required={false}/>);
+    return <div onClick={(ident11)=>ident11 + ident12
+    } required={false}/>;
 };
 
 == HOOKS ==

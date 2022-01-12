@@ -14,8 +14,8 @@ use swc_atoms::JsWord;
 use swc_common::comments::{Comments, SingleThreadedComments};
 use swc_common::{errors::HANDLER, Mark, DUMMY_SP};
 use swc_ecmascript::ast;
+use swc_ecmascript::utils::private_ident;
 use swc_ecmascript::visit::{fold_expr, noop_fold_type, Fold, FoldWith, VisitWith};
-use swc_ecmascript::utils::{private_ident};
 
 macro_rules! id {
     ($ident: expr) => {

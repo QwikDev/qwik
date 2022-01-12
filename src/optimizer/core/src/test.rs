@@ -456,7 +456,6 @@ export const Bar = qComponent(({bar}) => {
     );
 }
 
-
 #[test]
 fn example_invalid_references() {
     test_input(

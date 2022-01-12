@@ -3,6 +3,7 @@ import {
   h,
   Host,
   qComponent,
+  qHook,
   useHostElement,
   useEvent,
   notifyRender,
@@ -39,17 +40,18 @@ import {
  * Qwik knows that it should never need to be rerendered, and its code will never
  * download to the client.
  */
-export const ToDoApp = qComponent<{ todos: Todos }>(() => {
-  onRender(() => {
+export const ToDoApp = qComponent<{ todos: Todos }>({
+  tagName: 'todo', // optional
+  onRender: qHook(({ todos }) => {
     console.log('on:qRender => <ToDoApp/>');
     return (
       <section class="todoapp">
-        <Header todos={props.todos} />
-        <Main todos={props.todos} />
-        <Footer todos={props.todos} />
+        <Header todos={todos} />
+        <Main todos={todos} />
+        <Footer todos={todos} />
       </section>
     );
-  });
+  }),
 });
 
 /**
@@ -57,9 +59,10 @@ export const ToDoApp = qComponent<{ todos: Todos }>(() => {
  *
  * This component only rerenders if the user interacts with it through the input.
  */
-export const Header = qComponent<{ todos: Todos }>((props) => {
-  const state = useState({text: ''});
-  onRender(() => {
+export const Header = qComponent<{ todos: Todos }, { text: string }>({
+  tagName: 'header', // optional
+  onMount: qHook(() => ({ text: '' })),
+  onRender: qHook((_, { text }) => {
     console.log('on:qRender => <Header/>');
     return (
       <>
@@ -68,16 +71,16 @@ export const Header = qComponent<{ todos: Todos }>((props) => {
           class="new-todo"
           placeholder="What needs to be done?"
           autoFocus
-          value={state.text}
-          on:keyup={() => {
+          value={text}
+          on:keyup={qHook<typeof Header>(({ todos }, state) => {
             const event = useEvent<KeyboardEvent>();
             const inputValue = (event.target as HTMLInputElement).value;
             state.text = inputValue;
             if (event.key === 'Enter' && inputValue) {
-              addItem(props.todos, state.text);
+              addItem(todos, state.text);
               state.text = '';
             }
-          }}
+          })}
         />
       </>
     );
@@ -89,19 +92,20 @@ export const Header = qComponent<{ todos: Todos }>((props) => {
  *
  * This component only rerenders/hydrates/downloads if the list of todos changes.
  */
-export const Main = qComponent<{ todos: Todos }>((props) => {
-  onRender(() => {
+export const Main = qComponent<{ todos: Todos }>({
+  tagName: 'main', // optional
+  onRender: qHook(({ todos }) => {
     console.log('on:qRender => <Main/>');
     return (
       <Host class="main">
         <ul class="todo-list">
-          {getFilteredItems(props.todos).map((key) => (
-            <Item item={key} todos={props.todos} />
+          {getFilteredItems(todos).map((key) => (
+            <Item item={key} todos={todos} />
           ))}
         </ul>
       </Host>
     );
-  });
+  }),
 });
 
 /**
@@ -109,53 +113,54 @@ export const Main = qComponent<{ todos: Todos }>((props) => {
  *
  * It only rerenders if the user infarcts with it or if the item itself changes.
  */
-export const Item = qComponent<{ item: TodoItem; todos: Todos }>((props) => {
-  const state = useState({editing: false});
-  onRender(() => {
+export const Item = qComponent<{ item: TodoItem; todos: Todos }, { editing: boolean }>({
+  tagName: 'li', // optional
+  onMount: qHook(() => ({ editing: false })),
+  onRender: qHook(({ item }, { editing }) => {
     console.log(
       'on:qRender => <Item item="' +
-        JSON.stringify(props.item, (key, value) => (key.startsWith('__') ? undefined : value)) +
+        JSON.stringify(item, (key, value) => (key.startsWith('__') ? undefined : value)) +
         '"/>'
     );
     return (
-      <Host class={{ completed: props.item.completed, editing: state.editing }}>
+      <Host class={{ completed: item.completed, editing: editing }}>
         <div class="view">
           <input
             class="toggle"
             type="checkbox"
-            checked={props.item.completed}
-            on:click={() => toggleItem(todos, item)}
+            checked={item.completed}
+            on:click={qHook<typeof Item>(({ item, todos }) => toggleItem(todos, item))}
           />
           <label
-            on:dblclick={async () => {
+            on:dblclick={qHook<typeof Item>(async (props, state) => {
               state.editing = true;
               const hostElement = useHostElement()!;
               await notifyRender(hostElement);
               const inputEl = hostElement.querySelector('input.edit') as HTMLInputElement;
               inputEl.focus();
               inputEl.selectionStart = inputEl.selectionEnd = inputEl.value.length;
-            }}
+            })}
           >
-            {props.item.title}
+            {item.title}
           </label>
           <button
             class="destroy"
-            on:click={() => removeItem(props.todos, props.item)}
+            on:click={qHook<typeof Item>(({ item, todos }) => removeItem(todos, item))}
           ></button>
         </div>
-        {state.editing ? (
+        {editing ? (
           <input
             class="edit"
-            value={props.item.title}
-            on:blur={() => (state.editing = false)}
-            on:keyup={() => {
+            value={item.title}
+            on:blur={qHook<typeof Item>((_, state) => (state.editing = false))}
+            on:keyup={qHook<typeof Item>(({ item }, state) => {
               const event = useEvent<KeyboardEvent>();
               const inputValue = (event.target as HTMLInputElement).value;
-              props.item.title = inputValue;
+              item.title = inputValue;
               if (event.key === 'Enter') {
                 state.editing = false;
               }
-            }}
+            })}
           />
         ) : null}
       </Host>
@@ -168,8 +173,9 @@ export const Item = qComponent<{ item: TodoItem; todos: Todos }>((props) => {
  *
  * It only rerenders if the todos count changes or filters are reset.
  */
-export const Footer = qComponent<{ todos: Todos }>((props) => {
-  onRender(() => {
+export const Footer = qComponent<{ todos: Todos }>({
+  tagName: 'footer', // optional
+  onRender: qHook(({ todos }) => {
     console.log('on:qRender => <Footer/>');
     /**
      * Example of lite-component (it will always be included with the parent component)
@@ -179,20 +185,20 @@ export const Footer = qComponent<{ todos: Todos }>((props) => {
       return (
         <li>
           <a
-            class={{ selected: props.todos.filter == lMode }}
-            on:click={() =>
+            class={{ selected: todos.filter == lMode }}
+            on:click={qHook<typeof Footer, { filter: FilterStates }>((props, _, { filter }) =>
               updateFilter(props.todos, filter)
-            }
+            ).with({ filter })}
           >
             {filter[0].toUpperCase() + filter.substr(1)}
           </a>
         </li>
       );
     }
-    const remaining = getFilteredCount(props.todos);
+    const remaining = getFilteredCount(todos);
     return (
       <Host class="footer">
-        {props.todos.items.length > 0 ? (
+        {todos.items.length > 0 ? (
           <>
             <span class="todo-count">
               <strong>{remaining}</strong>
@@ -206,7 +212,7 @@ export const Footer = qComponent<{ todos: Todos }>((props) => {
             {remaining > 0 ? (
               <button
                 class="clear-completed"
-                on:click={() => clearCompleted(props.todos)}
+                on:click={qHook<typeof Footer>(({ todos }) => clearCompleted(todos))}
               >
                 Clear completed
               </button>

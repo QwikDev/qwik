@@ -25,3 +25,7 @@ target
 *.node
 todo-express/
 qwik-app/
+
+# Yarn
+.yarn/*
+!.yarn/releases

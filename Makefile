@@ -7,6 +7,9 @@ install-rust-deps:
 	cargo install wasm-pack
 	rustup component add clippy
 
+add-target:
+	rustup target add wasm32-unknown-unknown
+
 install-all: install-rust install-rust-deps
 
 install-cli:

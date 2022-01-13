@@ -428,12 +428,12 @@ fn example_multi_capture() {
 import { qHook, qComponent, h, onRender } from '@builder.io/qwik';
 
 export const Foo = qComponent(({foo}) => {
-    const _arg0 = 20;
+    const arg0 = 20;
     return onRender(() => {
         const fn = ({aaa}) => aaa;
         return (
             <div>
-              {foo}{fn()}{_arg0}
+              {foo}{fn()}{arg0}
             </div>
         )
     });

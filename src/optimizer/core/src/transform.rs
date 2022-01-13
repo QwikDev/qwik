@@ -402,7 +402,7 @@ impl<'a> Fold for QwikTransform<'a> {
                     param
                 }
                 ast::Pat::Object(ref obj) => {
-                    let new_ident = private_ident!(format!("_arg{}", i));
+                    let new_ident = private_ident!(format!("arg{}", i));
                     let ident_id = id!(new_ident);
                     current_scope.push((ident_id.clone(), IdentType::Var));
                     destructuring_ids.push((ident_id.clone(), param.clone()));
@@ -434,7 +434,7 @@ impl<'a> Fold for QwikTransform<'a> {
                     ast::Pat::Ident(ast::BindingIdent::from(new_ident))
                 }
                 ast::Pat::Array(ref arr) => {
-                    let new_ident = ast::Ident::new(JsWord::from(format!("_arg{}", i)), DUMMY_SP);
+                    let new_ident = ast::Ident::new(JsWord::from(format!("arg{}", i)), DUMMY_SP);
                     let ident_id = id!(new_ident);
                     current_scope.push((ident_id.clone(), IdentType::Var));
                     destructuring_ids.push((ident_id.clone(), param.clone()));

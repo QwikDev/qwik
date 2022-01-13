@@ -1,5 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
+assertion_line: 703
 expression: output
 
 ---
@@ -42,8 +43,8 @@ export const App_onRender = ()=>{
 
 import * as __qwik__ from "@builder.io/qwik";
 import { onRender } from "@builder.io/qwik";
-export const App_init = (_arg0)=>{
-    let { count  } = _arg0;
+export const App_init = (arg0)=>{
+    let { count  } = arg0;
     console.log(I1, I2, I3, I4, I5, I6, I7, I8, I9);
     console.log(itsok, v1, v2, v3, obj);
     return onRender(__qwik__.qrl(()=>import("./h_test_app_onrender")

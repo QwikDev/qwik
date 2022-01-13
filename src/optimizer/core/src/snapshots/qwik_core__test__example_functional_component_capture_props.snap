@@ -1,5 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
+assertion_line: 703
 expression: output
 
 ---
@@ -31,8 +32,8 @@ export const App = /*#__PURE__*/ qComponent(__qwik__.qrl(()=>import("./h_test_ap
 
 import * as __qwik__ from "@builder.io/qwik";
 export const App_onRender_div_onclick = ()=>{
-    const [_arg0, state] = __qwik__.useLexicalScope();
-    let { count , rest: [I2, { I3 , v1: [I4] , I5 =v2 , ...I6 }, I7 = v3, ...I8]  } = _arg0;
+    const [arg0, state] = __qwik__.useLexicalScope();
+    let { count , rest: [I2, { I3 , v1: [I4] , I5 =v2 , ...I6 }, I7 = v3, ...I8]  } = arg0;
     return state.count += count + total;
 };
 
@@ -40,12 +41,12 @@ export const App_onRender_div_onclick = ()=>{
 
 import * as __qwik__ from "@builder.io/qwik";
 export const App_onRender = ()=>{
-    const [_arg0, state] = __qwik__.useLexicalScope();
-    let { count , rest: [I2, { I3 , v1: [I4] , I5 =v2 , ...I6 }, I7 = v3, ...I8]  } = _arg0;
+    const [arg0, state] = __qwik__.useLexicalScope();
+    let { count , rest: [I2, { I3 , v1: [I4] , I5 =v2 , ...I6 }, I7 = v3, ...I8]  } = arg0;
     return(/*#__PURE__*/ h("div", {
         "on:click": __qwik__.qrl(()=>import("./h_test_app_onrender_div_onclick")
         , "App_onRender_div_onclick", [
-            _arg0,
+            arg0,
             state
         ])
     }, I2, I3, I4, I5, I6, I7, I8, v1, v2, v3));
@@ -55,14 +56,14 @@ export const App_onRender = ()=>{
 
 import * as __qwik__ from "@builder.io/qwik";
 import { onRender } from "@builder.io/qwik";
-export const App_init = (_arg0)=>{
-    let { count , rest: [I2, { I3 , v1: [I4] , I5 =v2 , ...I6 }, I7 = v3, ...I8]  } = _arg0;
+export const App_init = (arg0)=>{
+    let { count , rest: [I2, { I3 , v1: [I4] , I5 =v2 , ...I6 }, I7 = v3, ...I8]  } = arg0;
     const state = useState({
         count: 0
     });
     return onRender(__qwik__.qrl(()=>import("./h_test_app_onrender")
     , "App_onRender", [
-        _arg0,
+        arg0,
         state
     ]));
 };

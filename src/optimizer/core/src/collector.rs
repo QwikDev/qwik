@@ -289,7 +289,7 @@ impl Visit for IdentCollector {
     }
 }
 
-fn collect_from_pat(pat: &ast::Pat, identifiers: &mut HashMap<Id, Span>) {
+pub fn collect_from_pat(pat: &ast::Pat, identifiers: &mut HashMap<Id, Span>) {
     match pat {
         ast::Pat::Ident(ident) => {
             identifiers.insert(id!(ident.id), ident.id.span);

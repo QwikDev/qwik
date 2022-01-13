@@ -250,6 +250,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                             local_idents: &h.local_idents,
                             scoped_idents: &h.scoped_idents,
                             global: &collect,
+                            ignore_mark: qwik_transform.ignore_mark,
                             original_to_destructured: &qwik_transform.original_to_destructured,
                         })?;
 

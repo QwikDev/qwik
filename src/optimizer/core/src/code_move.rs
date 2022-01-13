@@ -1,6 +1,6 @@
 use crate::collector::{new_ident_from_id, GlobalCollect, Id, ImportKind};
 use crate::parse::{emit_source_code, HookAnalysis, PathData, TransformModule, TransformOutput};
-use crate::transform::{create_internal_call, create_synthetic_wildcard_import, DestructuringUnit};
+use crate::transform::{create_internal_call, create_synthetic_wildcard_import};
 use crate::words::*;
 
 use std::collections::HashMap;
@@ -9,7 +9,7 @@ use std::path::Path;
 use anyhow::{format_err, Context, Error};
 use swc_atoms::JsWord;
 use swc_common::comments::SingleThreadedComments;
-use swc_common::{sync::Lrc, SourceMap, DUMMY_SP};
+use swc_common::{sync::Lrc, Mark, SourceMap, DUMMY_SP};
 use swc_ecmascript::ast;
 
 pub struct NewModuleCtx<'a> {
@@ -21,6 +21,7 @@ pub struct NewModuleCtx<'a> {
     pub scoped_idents: &'a [Id],
     pub global: &'a GlobalCollect,
     pub original_to_destructured: &'a HashMap<Id, ast::Pat>,
+    pub ignore_mark: Mark,
 }
 
 pub fn new_module(ctx: NewModuleCtx) -> Result<(ast::Module, SingleThreadedComments), Error> {
@@ -107,22 +108,19 @@ pub fn new_module(ctx: NewModuleCtx) -> Result<(ast::Module, SingleThreadedComme
         }
     }
     let expr = if !ctx.scoped_idents.is_empty() {
-        let destructuring_ids: Vec<DestructuringUnit> = ctx
+        let destructuring_ids: Vec<_> = ctx
             .original_to_destructured
             .iter()
             .filter(|(id, _)| ctx.scoped_idents.contains(id))
             .map(|(id, value)| (id.clone(), value.clone()))
             .collect();
 
-        if let ast::Expr::Arrow(arrow) = *ctx.expr {
-            Box::new(ast::Expr::Arrow(transform_qhook_function(
-                arrow,
-                ctx.scoped_idents,
-                destructuring_ids,
-            )))
-        } else {
-            ctx.expr
-        }
+        Box::new(transform_function_expr(
+            *ctx.expr,
+            ctx.scoped_idents,
+            destructuring_ids,
+            ctx.ignore_mark,
+        ))
     } else {
         ctx.expr
     };
@@ -296,10 +294,34 @@ fn new_entry_module(hooks: &[&HookAnalysis]) -> ast::Module {
     module
 }
 
-pub fn transform_qhook_function(
+pub fn transform_function_expr(
+    expr: ast::Expr,
+    scoped_idents: &[Id],
+    destructuring_ids: Vec<(Id, ast::Pat)>,
+    ignore_mark: Mark,
+) -> ast::Expr {
+    match expr {
+        ast::Expr::Arrow(node) => ast::Expr::Arrow(transform_arrow_fn(
+            node,
+            scoped_idents,
+            destructuring_ids,
+            ignore_mark,
+        )),
+        ast::Expr::Fn(node) => ast::Expr::Fn(transform_fn(
+            node,
+            scoped_idents,
+            destructuring_ids,
+            ignore_mark,
+        )),
+        _ => expr,
+    }
+}
+
+pub fn transform_arrow_fn(
     arrow: ast::ArrowExpr,
     scoped_idents: &[Id],
-    destructuring_ids: Vec<DestructuringUnit>,
+    destructuring_ids: Vec<(Id, ast::Pat)>,
+    ignore_mark: Mark,
 ) -> ast::ArrowExpr {
     match arrow.body {
         ast::BlockStmtOrExpr::BlockStmt(mut block) => {
@@ -308,11 +330,13 @@ pub fn transform_qhook_function(
                 stmts.push(create_use_closure(scoped_idents));
             }
             if !destructuring_ids.is_empty() {
-                stmts.append(&mut create_destructuring_vars(destructuring_ids));
+                stmts.append(&mut create_destructuring_vars(
+                    destructuring_ids,
+                    ignore_mark,
+                ));
             }
             stmts.append(&mut block.stmts);
             ast::ArrowExpr {
-                span: arrow.span,
                 body: ast::BlockStmtOrExpr::BlockStmt(ast::BlockStmt {
                     span: DUMMY_SP,
                     stmts,
@@ -326,11 +350,13 @@ pub fn transform_qhook_function(
                 stmts.push(create_use_closure(scoped_idents));
             }
             if !destructuring_ids.is_empty() {
-                stmts.append(&mut create_destructuring_vars(destructuring_ids));
+                stmts.append(&mut create_destructuring_vars(
+                    destructuring_ids,
+                    ignore_mark,
+                ));
             }
             stmts.push(create_return_stmt(expr));
             ast::ArrowExpr {
-                span: arrow.span,
                 body: ast::BlockStmtOrExpr::BlockStmt(ast::BlockStmt {
                     span: DUMMY_SP,
                     stmts,
@@ -338,6 +364,37 @@ pub fn transform_qhook_function(
                 ..arrow
             }
         }
+    }
+}
+
+pub fn transform_fn(
+    node: ast::FnExpr,
+    scoped_idents: &[Id],
+    destructuring_ids: Vec<(Id, ast::Pat)>,
+    ignore_mark: Mark,
+) -> ast::FnExpr {
+    let mut stmts = vec![];
+    if !scoped_idents.is_empty() {
+        stmts.push(create_use_closure(scoped_idents));
+    }
+    if !destructuring_ids.is_empty() {
+        stmts.append(&mut create_destructuring_vars(
+            destructuring_ids,
+            ignore_mark,
+        ));
+    }
+    if let Some(mut body) = node.function.body {
+        stmts.append(&mut body.stmts);
+    }
+    ast::FnExpr {
+        function: ast::Function {
+            body: Some(ast::BlockStmt {
+                span: DUMMY_SP,
+                stmts,
+            }),
+            ..node.function
+        },
+        ..node
     }
 }
 
@@ -378,7 +435,7 @@ fn create_use_closure(scoped_idents: &[Id]) -> ast::Stmt {
     }))
 }
 
-fn create_destructuring_vars(vars: Vec<DestructuringUnit>) -> Vec<ast::Stmt> {
+fn create_destructuring_vars(vars: Vec<(Id, ast::Pat)>, ignore_mark: Mark) -> Vec<ast::Stmt> {
     vars.into_iter()
         .map(|unit| {
             ast::Stmt::Decl(ast::Decl::Var(ast::VarDecl {
@@ -386,7 +443,7 @@ fn create_destructuring_vars(vars: Vec<DestructuringUnit>) -> Vec<ast::Stmt> {
                 kind: ast::VarDeclKind::Let,
                 declare: false,
                 decls: vec![ast::VarDeclarator {
-                    span: DUMMY_SP,
+                    span: DUMMY_SP.apply_mark(ignore_mark),
                     name: unit.1,
                     definite: false,
                     init: Some(Box::new(ast::Expr::Ident(new_ident_from_id(&unit.0)))),

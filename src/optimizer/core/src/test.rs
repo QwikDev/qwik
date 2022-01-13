@@ -404,10 +404,12 @@ import { qHook, qComponent, h, onRender } from '@builder.io/qwik';
 
 export const App = qComponent(({count, rest: [I2, {I3, v1: [I4], I5=v2, ...I6}, I7=v3, ...I8]}) => {
     const state = useState({count: 0});
+    const {rest: [C2, {C3, v1: [C4], C5=v2, ...C6}, C7=v3, ...C8]} = foo();
     return onRender(() => {
         return (
             <div on:click={() => state.count += count + total }>
                 {I2}{I3}{I4}{I5}{I6}{I7}{I8}
+                {C2}{C3}{C4}{C5}{C6}{C7}{C8}
                 {v1}{v2}{v3}
             </div>
         )
@@ -471,6 +473,42 @@ export const Foo = qComponent("my-foo", () => {
         )
     });
 })
+    "#,
+        EntryStrategy::Hook,
+        MinifyMode::Simplify,
+        false,
+    );
+}
+
+#[test]
+fn example_lightweight_functional() {
+    test_input(
+        "test.tsx",
+        r#"
+import { qHook, qComponent, h, onRender } from '@builder.io/qwik';
+
+export const Foo = qComponent("my-foo", () => {
+    return onRender(() => {
+        return (
+            <div>
+                <Button/>
+                <ButtonArrow />
+            </div>
+        )
+    });
+})
+
+export function Button(text, {color}) {
+    return (
+        <button color={color} on:click={()=>console.log(text, color)}>{text}</button>
+    );
+}
+
+export const ButtonArrow = (text, {color}) => {
+    return (
+        <button color={color} on:click={()=>console.log(text, color)}>{text}</button>
+    );
+}
     "#,
         EntryStrategy::Hook,
         MinifyMode::Simplify,

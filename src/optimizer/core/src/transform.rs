@@ -323,12 +323,7 @@ impl<'a> Fold for QwikTransform<'a> {
             if let Some(current_scope) = self.decl_stack.last_mut() {
                 let mut identifiers: HashMap<Id, _> = HashMap::new();
                 collect_from_pat(&node.name, &mut identifiers);
-                current_scope.append(
-                    &mut identifiers
-                        .into_keys()
-                        .map(|id| (id, IdentType::Var))
-                        .collect(),
-                );
+                current_scope.extend(identifiers.into_keys().map(|id| (id, IdentType::Var)));
             }
         }
         let o = node.fold_children_with(self);
@@ -352,12 +347,7 @@ impl<'a> Fold for QwikTransform<'a> {
         self.decl_stack
             .last_mut()
             .expect("Declaration stack empty!")
-            .append(
-                &mut idents
-                    .into_keys()
-                    .map(|key| (key, IdentType::Var))
-                    .collect(),
-            );
+            .extend(idents.into_keys().map(|key| (key, IdentType::Var)));
 
         let o = node.fold_children_with(self);
         self.stack_ctxt.pop();

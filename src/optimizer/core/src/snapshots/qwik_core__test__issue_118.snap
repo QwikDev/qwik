@@ -1,5 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
+assertion_line: 703
 expression: output
 
 ---
@@ -29,8 +30,7 @@ import*as a from"@builder.io/qwik";import{qComponent as b,h as c}from"@builder.i
 import*as a from"@builder.io/qwik";import{Footer as b}from"./project/test";import*as c from"lib";import{s as d}from"lib";import e from"lib";export const Header_onRender=()=>/*#__PURE__*/ h(b,null,e,c(),d());
 ============================= entry_hooks.js (ENTRY POINT)==
 
-export { Header_onRender } from "./h_test_header_onrender";
-
+export{Header_onRender}from"./h_test_header_onrender";
 == HOOKS ==
 
 [

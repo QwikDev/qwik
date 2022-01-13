@@ -227,6 +227,7 @@ fn test_fix_path() {
 pub fn generate_entries(
     mut output: TransformOutput,
     transpile: bool,
+    minify: bool,
 ) -> Result<TransformOutput, anyhow::Error> {
     let source_map = Lrc::new(SourceMap::default());
     let mut entries_map = HashMap::new();
@@ -246,7 +247,7 @@ pub fn generate_entries(
 
     for (entry, hooks) in &entries_map {
         let module = new_entry_module(hooks);
-        let (code, map) = emit_source_code(Lrc::clone(&source_map), None, &module, false, false)
+        let (code, map) = emit_source_code(Lrc::clone(&source_map), None, &module, minify, false)
             .context("Emitting source code")?;
         output.modules.push(TransformModule {
             path: [entry, ".", default_ext].concat(),

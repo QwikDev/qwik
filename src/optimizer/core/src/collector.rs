@@ -39,7 +39,7 @@ pub struct Import {
 
 pub struct GlobalCollect {
     pub imports: BTreeMap<Id, Import>,
-    pub exports: BTreeMap<Id, JsWord>,
+    pub exports: BTreeMap<Id, Option<JsWord>>,
     pub root: HashMap<Id, Span>,
     in_export_decl: bool,
 }
@@ -93,8 +93,8 @@ impl Visit for GlobalCollect {
             match specifier {
                 ast::ImportSpecifier::Named(named) => {
                     let imported = match &named.imported {
-                        Some(imported) => imported.sym.clone(),
-                        None => named.local.sym.clone(),
+                        Some(ast::ModuleExportName::Ident(ident)) => ident.sym.clone(),
+                        _ => named.local.sym.clone(),
                     };
                     self.imports.insert(
                         id!(named.local),
@@ -137,21 +137,29 @@ impl Visit for GlobalCollect {
         for specifier in &node.specifiers {
             match specifier {
                 ast::ExportSpecifier::Named(named) => {
-                    let exported = match &named.exported {
-                        Some(exported) => exported.sym.clone(),
-                        None => named.orig.sym.clone(),
+                    let local = match &named.orig {
+                        ast::ModuleExportName::Ident(ident) => Some(id!(ident)),
+                        _ => None,
                     };
-                    self.exports.entry(id!(named.orig)).or_insert(exported);
+                    let exported = match &named.exported {
+                        Some(ast::ModuleExportName::Ident(exported)) => Some(exported.sym.clone()),
+                        _ => None,
+                    };
+                    if let Some(local) = local {
+                        self.exports.entry(local).or_insert(exported);
+                    }
                 }
                 ast::ExportSpecifier::Default(default) => {
                     self.exports
                         .entry(id!(default.exported))
-                        .or_insert(js_word!("default"));
+                        .or_insert(Some(js_word!("default")));
                 }
                 ast::ExportSpecifier::Namespace(namespace) => {
-                    self.exports
-                        .entry(id!(namespace.name))
-                        .or_insert_with(|| "*".into());
+                    if let ast::ModuleExportName::Ident(ident) = &namespace.name {
+                        self.exports
+                            .entry(id!(ident))
+                            .or_insert_with(|| Some("*".into()));
+                    }
                 }
             }
         }
@@ -160,11 +168,10 @@ impl Visit for GlobalCollect {
     fn visit_export_decl(&mut self, node: &ast::ExportDecl) {
         match &node.decl {
             ast::Decl::Class(class) => {
-                self.exports
-                    .insert(id!(class.ident), class.ident.sym.clone());
+                self.exports.insert(id!(class.ident), None);
             }
             ast::Decl::Fn(func) => {
-                self.exports.insert(id!(func.ident), func.ident.sym.clone());
+                self.exports.insert(id!(func.ident), None);
             }
             ast::Decl::Var(var) => {
                 for decl in &var.decls {
@@ -183,12 +190,12 @@ impl Visit for GlobalCollect {
         match &node.decl {
             ast::DefaultDecl::Class(class) => {
                 if let Some(ident) = &class.ident {
-                    self.exports.insert(id!(ident), "default".into());
+                    self.exports.insert(id!(ident), Some(js_word!("default")));
                 }
             }
             ast::DefaultDecl::Fn(func) => {
                 if let Some(ident) = &func.ident {
-                    self.exports.insert(id!(ident), "default".into());
+                    self.exports.insert(id!(ident), Some(js_word!("default")));
                 }
             }
             _ => {
@@ -199,13 +206,13 @@ impl Visit for GlobalCollect {
 
     fn visit_binding_ident(&mut self, node: &ast::BindingIdent) {
         if self.in_export_decl {
-            self.exports.insert(id!(node.id), node.id.sym.clone());
+            self.exports.insert(id!(node.id), None);
         }
     }
 
     fn visit_assign_pat_prop(&mut self, node: &ast::AssignPatProp) {
         if self.in_export_decl {
-            self.exports.insert(id!(node.key), node.key.sym.clone());
+            self.exports.insert(id!(node.key), None);
         }
     }
 }

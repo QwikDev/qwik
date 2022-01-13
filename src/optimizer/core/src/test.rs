@@ -457,6 +457,28 @@ export const Bar = qComponent(({bar}) => {
 }
 
 #[test]
+fn example_with_tagname() {
+    test_input(
+        "test.tsx",
+        r#"
+import { qHook, qComponent, h, onRender } from '@builder.io/qwik';
+
+export const Foo = qComponent("my-foo", () => {
+    return onRender(() => {
+        return (
+            <div>
+            </div>
+        )
+    });
+})
+    "#,
+        EntryStrategy::Hook,
+        MinifyMode::Simplify,
+        false,
+    );
+}
+
+#[test]
 fn example_invalid_references() {
     test_input(
         "test.tsx",

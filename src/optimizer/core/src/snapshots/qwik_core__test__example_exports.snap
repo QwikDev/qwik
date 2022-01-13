@@ -1,5 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
+assertion_line: 681
 expression: output
 
 ---
@@ -39,12 +40,10 @@ export const [a, { b , v1: [c] , d =v2 , ...e }, f = v3, ...g] = obj;
 const exp1 = 1;
 const internal = 2;
 export { exp1, internal as expr2 };
-export function foo() {
-}
+export function foo() {}
 export class bar {
 }
-export default function DefaultFn() {
-};
+export default function DefaultFn() {};
 export const Header = /*#__PURE__*/ qComponent({
     onRender: __qwik__.qrl(()=>import("../h_test_header_onrender")
     , "Header_onRender")

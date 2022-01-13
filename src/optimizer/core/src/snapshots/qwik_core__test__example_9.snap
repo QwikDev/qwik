@@ -1,5 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
+assertion_line: 681
 expression: output
 
 ---
@@ -34,18 +35,12 @@ export const Header = (decl1, _arg1, _arg2)=>{
     const { decl4 , key: decl5  } = this;
     let [decl6, ...decl7] = stuff;
     const decl8 = 1, decl9;
-    function decl10(decl11, { decl12  }, [decl13]) {
-    }
+    function decl10(decl11, { decl12  }, [decl13]) {}
     class decl14 {
-        method(decl15, { decl16  }, [decl17]) {
-        }
+        method(decl15, { decl16  }, [decl17]) {}
     }
-    try {
-    } catch (decl18) {
-    }
-    try {
-    } catch ({ decl19  }) {
-    }
+    try {} catch (decl18) {}
+    try {} catch ({ decl19  }) {}
 };
 
 == HOOKS ==

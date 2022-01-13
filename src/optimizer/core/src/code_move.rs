@@ -47,7 +47,10 @@ pub fn new_module(ctx: NewModuleCtx) -> Result<(ast::Module, SingleThreadedComme
                     imported: if import.specifier == id.0 {
                         None
                     } else {
-                        Some(ast::Ident::new(import.specifier.clone(), DUMMY_SP))
+                        Some(ast::ModuleExportName::Ident(ast::Ident::new(
+                            import.specifier.clone(),
+                            DUMMY_SP,
+                        )))
                     },
                     local: new_ident_from_id(id),
                 }),
@@ -77,11 +80,9 @@ pub fn new_module(ctx: NewModuleCtx) -> Result<(ast::Module, SingleThreadedComme
                     },
                 )));
         } else if let Some(export) = ctx.global.exports.get(id) {
-            let imported = if export == &id.0 {
-                None
-            } else {
-                Some(ast::Ident::new(export.clone(), DUMMY_SP))
-            };
+            let imported = export
+                .as_ref()
+                .map(|e| ast::ModuleExportName::Ident(ast::Ident::new(e.clone(), DUMMY_SP)));
             module
                 .body
                 .push(ast::ModuleItem::ModuleDecl(ast::ModuleDecl::Import(
@@ -281,7 +282,10 @@ fn new_entry_module(hooks: &[&HookAnalysis]) -> ast::Module {
                     specifiers: vec![ast::ExportSpecifier::Named(ast::ExportNamedSpecifier {
                         is_type_only: false,
                         span: DUMMY_SP,
-                        orig: ast::Ident::new(JsWord::from(hook.name.clone()), DUMMY_SP),
+                        orig: ast::ModuleExportName::Ident(ast::Ident::new(
+                            JsWord::from(hook.name.clone()),
+                            DUMMY_SP,
+                        )),
                         exported: None,
                     })],
                 },

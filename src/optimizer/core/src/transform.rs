@@ -620,7 +620,7 @@ impl<'a> Fold for QwikTransform<'a> {
         let mut name_token = false;
         let mut component_token = false;
 
-        if let ast::ExprOrSuper::Expr(expr) = &node.callee {
+        if let ast::Callee::Expr(expr) = &node.callee {
             if node.span.has_mark(self.qhook_mark) {
                 return self.handle_qhook(node);
             } else if let ast::Expr::Ident(ident) = &**expr {
@@ -725,7 +725,7 @@ fn create_inline_qrl(url: JsWord, symbol: &str, idents: &[Id]) -> ast::CallExpr 
             return_type: None,
             type_params: None,
             body: ast::BlockStmtOrExpr::Expr(Box::new(ast::Expr::Call(ast::CallExpr {
-                callee: ast::ExprOrSuper::Expr(Box::new(ast::Expr::Ident(ast::Ident::new(
+                callee: ast::Callee::Expr(Box::new(ast::Expr::Ident(ast::Ident::new(
                     "import".into(),
                     DUMMY_SP,
                 )))),
@@ -776,13 +776,12 @@ pub fn create_internal_call(
 ) -> ast::CallExpr {
     let span = mark.map_or(DUMMY_SP, |mark| DUMMY_SP.apply_mark(mark));
     ast::CallExpr {
-        callee: ast::ExprOrSuper::Expr(Box::new(ast::Expr::Member(ast::MemberExpr {
-            obj: ast::ExprOrSuper::Expr(Box::new(ast::Expr::Ident(ast::Ident::new(
+        callee: ast::Callee::Expr(Box::new(ast::Expr::Member(ast::MemberExpr {
+            obj: Box::new(ast::Expr::Ident(ast::Ident::new(
                 QWIK_INTERNAL.clone(),
                 DUMMY_SP,
-            )))),
-            prop: Box::new(ast::Expr::Ident(ast::Ident::new(fn_name.clone(), DUMMY_SP))),
-            computed: false,
+            ))),
+            prop: ast::MemberProp::Ident(ast::Ident::new(fn_name.clone(), DUMMY_SP)),
             span: DUMMY_SP,
         }))),
         span,

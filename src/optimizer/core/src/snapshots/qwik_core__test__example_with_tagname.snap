@@ -1,0 +1,65 @@
+---
+source: src/optimizer/core/src/test.rs
+assertion_line: 703
+expression: output
+
+---
+==INPUT==
+
+
+import { qHook, qComponent, h, onRender } from '@builder.io/qwik';
+
+export const Foo = qComponent("my-foo", () => {
+    return onRender(() => {
+        return (
+            <div>
+            </div>
+        )
+    });
+})
+    
+============================= test.tsx ==
+
+import * as __qwik__ from "@builder.io/qwik";
+import { qComponent } from '@builder.io/qwik';
+export const Foo = /*#__PURE__*/ qComponent("my-foo", __qwik__.qrl(()=>import("./h_test_foo_init")
+, "Foo_init"));
+
+============================= h_test_foo_onrender.tsx (ENTRY POINT)==
+
+import * as __qwik__ from "@builder.io/qwik";
+export const Foo_onRender = ()=>{
+    return <div >
+
+            </div>;
+};
+
+============================= h_test_foo_init.tsx (ENTRY POINT)==
+
+import * as __qwik__ from "@builder.io/qwik";
+import { onRender } from "@builder.io/qwik";
+export const Foo_init = ()=>{
+    return onRender(__qwik__.qrl(()=>import("./h_test_foo_onrender")
+    , "Foo_onRender"));
+};
+
+== HOOKS ==
+
+[
+  {
+    "origin": "test.tsx",
+    "name": "Foo_onRender",
+    "entry": null,
+    "canonicalFilename": "h_test_foo_onrender"
+  },
+  {
+    "origin": "test.tsx",
+    "name": "Foo_init",
+    "entry": null,
+    "canonicalFilename": "h_test_foo_init"
+  }
+]
+
+== DIAGNOSTICS ==
+
+[]

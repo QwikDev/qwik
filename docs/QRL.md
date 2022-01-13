@@ -4,7 +4,7 @@ QRL is Qwik-URL. It is a URL which contains custom protocols which is understood
 
 ## Protocol
 
-Javascript supports importing code through `import('./some_path')` function. The `import` function performs the `./some_path` import relative to the file where the `import()` function was invoked from. Normally this works great. The problem is that if the `import()` is in the framework code than all relative paths need to be relative to the framework.
+Javascript supports importing code through the `import('./some_path')` function. The `import` function performs the `./some_path` import relative to the file where the `import()` function was invoked. Normally this works great. The problem is that if the `import()` is in the framework code then all relative paths need to be relative to the framework.
 
 The relative nature of the `import()` statement is problematic when composing applications.
 
@@ -14,8 +14,8 @@ Assume this HTML:
 <button on:click="./handle_click"></button>
 ```
 
-1. First the QRLs are often embedded in HTML. In such a case the relative nature should be from HTML not from the framework. However the HTML URL often has custom URL due to routing, and so really URL has nothing to do with where the actual location of the code resides.
-2. To compose libraries, the library author does not know how the files will be layed out (or bundled) on the application server. So there needs to be a way to reefer to resources but give the configuration to the application developer.
+1. First the QRLs are often embedded in HTML. In such a case the relative nature should be from the HTML not from the framework. However the HTML URL often has a custom URL due to routing, and so really the URL has nothing to do with where the code actually resides.
+2. To compose libraries, the library author does not know how the files will be laid out (or bundled) on the application server. So there needs to be a way to refer to resources but give the configuration to the application developer.
 
 For the above two reasons relative imports just don't make much sense in Qwik and should be avoided. Instead we need to use absolute URLs. However sprinkling absolute URLs all over the code base is equally problematic as it makes the code hard to refactor or move.
 
@@ -29,7 +29,7 @@ Protocols solve this problem. Protocols allow the developer to express an absolu
 <button on:click="myApp:/handle_click"></button>
 ```
 
-The above says that the `/handle_click` can be found relative to `myApp:`. This requires that application developer can configure `myApp:`. The configuration needs to be done on server as well as on browser.
+The above says that the `/handle_click` can be found relative to `myApp:`. This requires that application developer can configure `myApp:`. The configuration needs to be done on the server as well as on the browser.
 
 ### Browser protocol configuration
 
@@ -43,7 +43,7 @@ The above says that the `/handle_click` can be found relative to `myApp:`. This 
 </script>
 ```
 
-The above global configuration simply says that `myApp:/handle_click` should be translated to `http://myserver.com/app/handle_click`. Notice that all which is needed to configure the protocol is declaration of `Q` property on global namespace such as `window`.
+The above global configuration simply says that `myApp:/handle_click` should be translated to `http://myserver.com/app/handle_click`. Notice that all that is needed to configure the protocol is the declaration of the `Q` property on a global namespace such as `window`.
 
 ## File extension
 

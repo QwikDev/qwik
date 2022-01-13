@@ -766,7 +766,7 @@ fn transform_destructuring_pat(
     match node {
         ast::Pat::Ident(ref ident) => {
             let ident_id = id!(ident.id);
-            current_scope.push((ident_id.clone(), IdentType::Var));
+            current_scope.push((ident_id, IdentType::Var));
             (None, node)
         }
         ast::Pat::Object(ref obj) => {

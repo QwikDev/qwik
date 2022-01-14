@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
-use crate::code_move::{fix_path, transform_arrow_fn};
+use crate::code_move::fix_path;
 use crate::collector::{collect_from_pat, new_ident_from_id, GlobalCollect, Id, IdentCollector};
 use crate::entry_strategy::EntryPolicy;
 use crate::parse::PathData;
@@ -14,7 +14,6 @@ use swc_atoms::JsWord;
 use swc_common::comments::{Comments, SingleThreadedComments};
 use swc_common::{errors::HANDLER, Mark, Span, DUMMY_SP};
 use swc_ecmascript::ast;
-use swc_ecmascript::utils::private_ident;
 use swc_ecmascript::visit::{fold_expr, noop_fold_type, Fold, FoldWith, VisitWith};
 
 macro_rules! id {
@@ -80,10 +79,6 @@ pub type IdPlusType = (Id, IdentType);
 #[allow(clippy::module_name_repetitions)]
 pub struct QwikTransform<'a> {
     pub hooks: Vec<Hook>,
-    pub original_to_destructured: HashMap<Id, ast::Pat>,
-    pub ignore_mark: swc_common::Mark,
-
-    destructured_to_original: HashMap<Id, Id>,
 
     stack_ctxt: Vec<String>,
     position_ctxt: Vec<PositionToken>,
@@ -116,8 +111,6 @@ impl<'a> QwikTransform<'a> {
             stack_ctxt: Vec::with_capacity(16),
             position_ctxt: Vec::with_capacity(16),
             decl_stack: Vec::with_capacity(16),
-            destructured_to_original: HashMap::new(),
-            original_to_destructured: HashMap::new(),
             in_component: false,
             hooks: Vec::with_capacity(16),
             global_collect,
@@ -128,7 +121,6 @@ impl<'a> QwikTransform<'a> {
                 .flat_map(|word| global_collect.get_imported_local(word, &BUILDER_IO_QWIK))
                 .collect(),
             qhook_mark: Mark::fresh(Mark::root()),
-            ignore_mark: Mark::fresh(Mark::root()),
             comments,
             entry_policy,
             context,
@@ -281,11 +273,7 @@ impl<'a> QwikTransform<'a> {
                 }
             }
 
-            let scoped_idents = compute_scoped_idents(
-                &descendent_idents,
-                &decl_collect,
-                &self.destructured_to_original,
-            );
+            let scoped_idents = compute_scoped_idents(&descendent_idents, &decl_collect);
 
             let o = create_inline_qrl(import_path, &symbol_name, &scoped_idents);
             self.hooks.push(Hook {
@@ -319,12 +307,10 @@ impl<'a> Fold for QwikTransform<'a> {
             self.stack_ctxt.push(ident.id.sym.to_string());
             stacked = true;
         }
-        if !node.span.has_mark(self.ignore_mark) {
-            if let Some(current_scope) = self.decl_stack.last_mut() {
-                let mut identifiers: HashMap<Id, _> = HashMap::new();
-                collect_from_pat(&node.name, &mut identifiers);
-                current_scope.extend(identifiers.into_keys().map(|id| (id, IdentType::Var)));
-            }
+        if let Some(current_scope) = self.decl_stack.last_mut() {
+            let mut identifiers: HashMap<Id, _> = HashMap::new();
+            collect_from_pat(&node.name, &mut identifiers);
+            current_scope.extend(identifiers.into_keys().map(|id| (id, IdentType::Var)));
         }
         let o = node.fold_children_with(self);
         if stacked {
@@ -358,43 +344,16 @@ impl<'a> Fold for QwikTransform<'a> {
 
     fn fold_arrow_expr(&mut self, node: ast::ArrowExpr) -> ast::ArrowExpr {
         self.decl_stack.push(vec![]);
+        let current_scope = self
+            .decl_stack
+            .last_mut()
+            .expect("Declaration stack empty!");
 
-        let transform_args = true;
-        let node = if transform_args {
-            let current_scope = self
-                .decl_stack
-                .last_mut()
-                .expect("Declaration stack empty!");
-
-            let mut destructuring_ids = vec![];
-            let params: Vec<ast::Pat> = node
-                .params
-                .into_iter()
-                .enumerate()
-                .map(|(i, param)| {
-                    let (destructuring, param) = transform_destructuring_pat(
-                        i,
-                        param,
-                        current_scope,
-                        &mut self.destructured_to_original,
-                        &mut self.original_to_destructured,
-                    );
-                    if let Some(destructuring) = destructuring {
-                        destructuring_ids.push(destructuring);
-                    }
-                    param
-                })
-                .collect();
-
-            let node = ast::ArrowExpr { params, ..node };
-            if destructuring_ids.is_empty() {
-                node
-            } else {
-                transform_arrow_fn(node, &[], destructuring_ids, self.ignore_mark)
-            }
-        } else {
-            node
-        };
+        for param in &node.params {
+            let mut identifiers: HashMap<Id, _> = HashMap::new();
+            collect_from_pat(param, &mut identifiers);
+            current_scope.extend(identifiers.into_keys().map(|id| (id, IdentType::Var)));
+        }
 
         let o = node.fold_children_with(self);
         self.decl_stack.pop();
@@ -739,14 +698,9 @@ fn validate_sym(sym: &str) -> bool {
     RE.is_match(sym)
 }
 
-fn compute_scoped_idents(
-    all_idents: &[Id],
-    all_decl: &HashSet<Id>,
-    destructured_to_original: &HashMap<Id, Id>,
-) -> Vec<Id> {
+fn compute_scoped_idents(all_idents: &[Id], all_decl: &HashSet<Id>) -> Vec<Id> {
     let mut set: HashSet<Id> = HashSet::new();
     for ident in all_idents {
-        let ident = destructured_to_original.get(ident).unwrap_or(ident);
         if all_decl.contains(ident) {
             set.insert(ident.clone());
         }
@@ -754,75 +708,4 @@ fn compute_scoped_idents(
     let mut output: Vec<Id> = set.into_iter().collect();
     output.sort();
     output
-}
-
-fn transform_destructuring_pat(
-    index: usize,
-    node: ast::Pat,
-    current_scope: &mut Vec<IdPlusType>,
-    destructured_to_original: &mut HashMap<Id, Id>,
-    original_to_destructured: &mut HashMap<Id, ast::Pat>,
-) -> (Option<(Id, ast::Pat)>, ast::Pat) {
-    match node {
-        ast::Pat::Ident(ref ident) => {
-            let ident_id = id!(ident.id);
-            current_scope.push((ident_id, IdentType::Var));
-            (None, node)
-        }
-        ast::Pat::Object(ref obj) => {
-            let new_ident = private_ident!(format!("arg{}", index));
-            let ident_id = id!(new_ident);
-            current_scope.push((ident_id.clone(), IdentType::Var));
-            for prop in &obj.props {
-                match prop {
-                    ast::ObjectPatProp::Assign(ref v) => {
-                        if let Some(ast::Expr::Ident(ident)) = v.value.as_deref() {
-                            destructured_to_original.insert(id!(ident), ident_id.clone());
-                        } else {
-                            destructured_to_original.insert(id!(v.key), ident_id.clone());
-                        }
-                    }
-                    ast::ObjectPatProp::KeyValue(ref v) => {
-                        if let ast::Pat::Ident(ident) = v.value.as_ref() {
-                            destructured_to_original.insert(id!(ident.id), ident_id.clone());
-                        }
-                    }
-                    ast::ObjectPatProp::Rest(ref v) => {
-                        if let ast::Pat::Ident(ident) = v.arg.as_ref() {
-                            destructured_to_original.insert(id!(ident.id), ident_id.clone());
-                        }
-                    }
-                }
-            }
-            original_to_destructured.insert(ident_id.clone(), node.clone());
-            (
-                Some((ident_id, node)),
-                ast::Pat::Ident(ast::BindingIdent::from(new_ident)),
-            )
-        }
-        ast::Pat::Array(ref arr) => {
-            let new_ident = ast::Ident::new(JsWord::from(format!("arg{}", index)), DUMMY_SP);
-            let ident_id = id!(new_ident);
-            current_scope.push((ident_id.clone(), IdentType::Var));
-            for el in &arr.elems {
-                match el {
-                    Some(ast::Pat::Ident(ref ident)) => {
-                        destructured_to_original.insert(id!(ident.id), ident_id.clone());
-                    }
-                    Some(ast::Pat::Rest(ref rest)) => {
-                        if let ast::Pat::Ident(ref ident) = *rest.arg {
-                            destructured_to_original.insert(id!(ident.id), ident_id.clone());
-                        }
-                    }
-                    _ => {}
-                }
-            }
-            original_to_destructured.insert(ident_id.clone(), node.clone());
-            (
-                Some((ident_id, node)),
-                ast::Pat::Ident(ast::BindingIdent::from(new_ident)),
-            )
-        }
-        _ => (None, node),
-    }
 }

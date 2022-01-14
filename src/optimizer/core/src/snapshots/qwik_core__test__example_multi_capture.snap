@@ -1,6 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 703
+assertion_line: 741
 expression: output
 
 ---
@@ -45,15 +45,12 @@ export const Bar = /*#__PURE__*/ qComponent(__qwik__.qrl(()=>import("./h_test_ba
 
 import * as __qwik__ from "@builder.io/qwik";
 export const Foo_onRender = ()=>{
-    const [arg02, arg01] = __qwik__.useLexicalScope();
-    let { foo  } = arg01;
-    const fn = (arg0)=>{
-        let { aaa  } = arg0;
-        return aaa;
-    };
+    const [arg0, foo] = __qwik__.useLexicalScope();
+    const fn = ({ aaa  })=>aaa
+    ;
     return <div >
 
-              {foo}{fn()}{arg02}
+              {foo}{fn()}{arg0}
 
             </div>;
 };
@@ -62,13 +59,12 @@ export const Foo_onRender = ()=>{
 
 import * as __qwik__ from "@builder.io/qwik";
 import { onRender } from "@builder.io/qwik";
-export const Foo_init = (arg0)=>{
-    let { foo  } = arg0;
-    const arg01 = 20;
+export const Foo_init = ({ foo  })=>{
+    const arg0 = 20;
     return onRender(__qwik__.qrl(()=>import("./h_test_foo_onrender")
     , "Foo_onRender", [
-        arg01,
-        arg0
+        arg0,
+        foo
     ]));
 };
 
@@ -76,8 +72,7 @@ export const Foo_init = (arg0)=>{
 
 import * as __qwik__ from "@builder.io/qwik";
 export const Bar_onRender = ()=>{
-    const [arg0] = __qwik__.useLexicalScope();
-    let { bar  } = arg0;
+    const [bar] = __qwik__.useLexicalScope();
     return <div >
 
               {bar}
@@ -89,11 +84,10 @@ export const Bar_onRender = ()=>{
 
 import * as __qwik__ from "@builder.io/qwik";
 import { onRender } from "@builder.io/qwik";
-export const Bar_init = (arg0)=>{
-    let { bar  } = arg0;
+export const Bar_init = ({ bar  })=>{
     return onRender(__qwik__.qrl(()=>import("./h_test_bar_onrender")
     , "Bar_onRender", [
-        arg0
+        bar
     ]));
 };
 

@@ -487,24 +487,24 @@ fn example_lightweight_functional() {
         r#"
 import { qHook, qComponent, h, onRender } from '@builder.io/qwik';
 
-export const Foo = qComponent("my-foo", () => {
+export const Foo = qComponent("my-foo", ({color}) => {
     return onRender(() => {
         return (
             <div>
-                <Button/>
-                <ButtonArrow />
+                <Button {...props} />
+                <ButtonArrow {...props} />
             </div>
         )
     });
 })
 
-export function Button(text, {color}) {
+export function Button({color}) {
     return (
         <button color={color} on:click={()=>console.log(text, color)}>{text}</button>
     );
 }
 
-export const ButtonArrow = (text, {color}) => {
+export const ButtonArrow = ({color}) => {
     return (
         <button color={color} on:click={()=>console.log(text, color)}>{text}</button>
     );

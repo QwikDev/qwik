@@ -9,24 +9,24 @@ expression: output
 
 import { qHook, qComponent, h, onRender } from '@builder.io/qwik';
 
-export const Foo = qComponent("my-foo", () => {
+export const Foo = qComponent("my-foo", ({color}) => {
     return onRender(() => {
         return (
             <div>
-                <Button/>
-                <ButtonArrow />
+                <Button {...props} />
+                <ButtonArrow {...props} />
             </div>
         )
     });
 })
 
-export function Button(text, {color}) {
+export function Button({color}) {
     return (
         <button color={color} on:click={()=>console.log(text, color)}>{text}</button>
     );
 }
 
-export const ButtonArrow = (text, {color}) => {
+export const ButtonArrow = ({color}) => {
     return (
         <button color={color} on:click={()=>console.log(text, color)}>{text}</button>
     );
@@ -38,19 +38,16 @@ import * as __qwik__ from "@builder.io/qwik";
 import { qComponent } from '@builder.io/qwik';
 export const Foo = /*#__PURE__*/ qComponent("my-foo", __qwik__.qrl(()=>import("./h_test_foo_init")
 , "Foo_init"));
-export function Button(text, { color  }) {
+export function Button({ color  }) {
     return <button color={color} on:click={__qwik__.qrl(()=>import("./h_test_button_button_onclick")
     , "Button_button_onclick", [
-        color,
-        text
+        color
     ])}>{text}</button>;
 }
-export const ButtonArrow = (text, arg1)=>{
-    let { color  } = arg1;
+export const ButtonArrow = ({ color  })=>{
     return <button color={color} on:click={__qwik__.qrl(()=>import("./h_test_buttonarrow_button_onclick")
     , "ButtonArrow_button_onclick", [
-        arg1,
-        text
+        color
     ])}>{text}</button>;
 };
 
@@ -62,9 +59,9 @@ import { ButtonArrow } from "./test";
 export const Foo_onRender = ()=>{
     return <div >
 
-                <Button />
+                <Button {...props}/>
 
-                <ButtonArrow />
+                <ButtonArrow {...props}/>
 
             </div>;
 };
@@ -73,7 +70,7 @@ export const Foo_onRender = ()=>{
 
 import * as __qwik__ from "@builder.io/qwik";
 import { onRender } from "@builder.io/qwik";
-export const Foo_init = ()=>{
+export const Foo_init = ({ color  })=>{
     return onRender(__qwik__.qrl(()=>import("./h_test_foo_onrender")
     , "Foo_onRender"));
 };
@@ -82,7 +79,7 @@ export const Foo_init = ()=>{
 
 import * as __qwik__ from "@builder.io/qwik";
 export const Button_button_onclick = ()=>{
-    const [color, text] = __qwik__.useLexicalScope();
+    const [color] = __qwik__.useLexicalScope();
     return console.log(text, color);
 };
 
@@ -90,8 +87,7 @@ export const Button_button_onclick = ()=>{
 
 import * as __qwik__ from "@builder.io/qwik";
 export const ButtonArrow_button_onclick = ()=>{
-    const [arg1, text] = __qwik__.useLexicalScope();
-    let { color  } = arg1;
+    const [color] = __qwik__.useLexicalScope();
     return console.log(text, color);
 };
 

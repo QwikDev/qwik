@@ -1,6 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 703
+assertion_line: 741
 expression: output
 
 ---
@@ -29,9 +29,7 @@ __qwik__.qrl(()=>import("./h_test_header")
 ============================= h_test_header.tsx (ENTRY POINT)==
 
 import * as __qwik__ from "@builder.io/qwik";
-export const Header = (decl1, arg1, arg2)=>{
-    let { decl2  } = arg1;
-    let [decl3] = arg2;
+export const Header = (decl1, { decl2  }, [decl3])=>{
     const { decl4 , key: decl5  } = this;
     let [decl6, ...decl7] = stuff;
     const decl8 = 1, decl9;

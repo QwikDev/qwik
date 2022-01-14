@@ -9,7 +9,7 @@ use std::path::Path;
 use anyhow::{format_err, Context, Error};
 use swc_atoms::JsWord;
 use swc_common::comments::SingleThreadedComments;
-use swc_common::{sync::Lrc, Mark, SourceMap, DUMMY_SP};
+use swc_common::{sync::Lrc, SourceMap, DUMMY_SP};
 use swc_ecmascript::ast;
 
 pub struct NewModuleCtx<'a> {
@@ -20,8 +20,6 @@ pub struct NewModuleCtx<'a> {
     pub local_idents: &'a [Id],
     pub scoped_idents: &'a [Id],
     pub global: &'a GlobalCollect,
-    pub original_to_destructured: &'a HashMap<Id, ast::Pat>,
-    pub ignore_mark: Mark,
 }
 
 pub fn new_module(ctx: NewModuleCtx) -> Result<(ast::Module, SingleThreadedComments), Error> {
@@ -108,19 +106,7 @@ pub fn new_module(ctx: NewModuleCtx) -> Result<(ast::Module, SingleThreadedComme
         }
     }
     let expr = if !ctx.scoped_idents.is_empty() {
-        let destructuring_ids: Vec<_> = ctx
-            .original_to_destructured
-            .iter()
-            .filter(|(id, _)| ctx.scoped_idents.contains(id))
-            .map(|(id, value)| (id.clone(), value.clone()))
-            .collect();
-
-        Box::new(transform_function_expr(
-            *ctx.expr,
-            ctx.scoped_idents,
-            destructuring_ids,
-            ctx.ignore_mark,
-        ))
+        Box::new(transform_function_expr(*ctx.expr, ctx.scoped_idents))
     } else {
         ctx.expr
     };
@@ -294,46 +280,20 @@ fn new_entry_module(hooks: &[&HookAnalysis]) -> ast::Module {
     module
 }
 
-pub fn transform_function_expr(
-    expr: ast::Expr,
-    scoped_idents: &[Id],
-    destructuring_ids: Vec<(Id, ast::Pat)>,
-    ignore_mark: Mark,
-) -> ast::Expr {
+pub fn transform_function_expr(expr: ast::Expr, scoped_idents: &[Id]) -> ast::Expr {
     match expr {
-        ast::Expr::Arrow(node) => ast::Expr::Arrow(transform_arrow_fn(
-            node,
-            scoped_idents,
-            destructuring_ids,
-            ignore_mark,
-        )),
-        ast::Expr::Fn(node) => ast::Expr::Fn(transform_fn(
-            node,
-            scoped_idents,
-            destructuring_ids,
-            ignore_mark,
-        )),
+        ast::Expr::Arrow(node) => ast::Expr::Arrow(transform_arrow_fn(node, scoped_idents)),
+        ast::Expr::Fn(node) => ast::Expr::Fn(transform_fn(node, scoped_idents)),
         _ => expr,
     }
 }
 
-pub fn transform_arrow_fn(
-    arrow: ast::ArrowExpr,
-    scoped_idents: &[Id],
-    destructuring_ids: Vec<(Id, ast::Pat)>,
-    ignore_mark: Mark,
-) -> ast::ArrowExpr {
+pub fn transform_arrow_fn(arrow: ast::ArrowExpr, scoped_idents: &[Id]) -> ast::ArrowExpr {
     match arrow.body {
         ast::BlockStmtOrExpr::BlockStmt(mut block) => {
             let mut stmts = vec![];
             if !scoped_idents.is_empty() {
                 stmts.push(create_use_closure(scoped_idents));
-            }
-            if !destructuring_ids.is_empty() {
-                stmts.append(&mut create_destructuring_vars(
-                    destructuring_ids,
-                    ignore_mark,
-                ));
             }
             stmts.append(&mut block.stmts);
             ast::ArrowExpr {
@@ -349,12 +309,6 @@ pub fn transform_arrow_fn(
             if !scoped_idents.is_empty() {
                 stmts.push(create_use_closure(scoped_idents));
             }
-            if !destructuring_ids.is_empty() {
-                stmts.append(&mut create_destructuring_vars(
-                    destructuring_ids,
-                    ignore_mark,
-                ));
-            }
             stmts.push(create_return_stmt(expr));
             ast::ArrowExpr {
                 body: ast::BlockStmtOrExpr::BlockStmt(ast::BlockStmt {
@@ -367,21 +321,10 @@ pub fn transform_arrow_fn(
     }
 }
 
-pub fn transform_fn(
-    node: ast::FnExpr,
-    scoped_idents: &[Id],
-    destructuring_ids: Vec<(Id, ast::Pat)>,
-    ignore_mark: Mark,
-) -> ast::FnExpr {
+pub fn transform_fn(node: ast::FnExpr, scoped_idents: &[Id]) -> ast::FnExpr {
     let mut stmts = vec![];
     if !scoped_idents.is_empty() {
         stmts.push(create_use_closure(scoped_idents));
-    }
-    if !destructuring_ids.is_empty() {
-        stmts.append(&mut create_destructuring_vars(
-            destructuring_ids,
-            ignore_mark,
-        ));
     }
     if let Some(mut body) = node.function.body {
         stmts.append(&mut body.stmts);
@@ -433,22 +376,4 @@ fn create_use_closure(scoped_idents: &[Id]) -> ast::Stmt {
             }),
         }],
     }))
-}
-
-fn create_destructuring_vars(vars: Vec<(Id, ast::Pat)>, ignore_mark: Mark) -> Vec<ast::Stmt> {
-    vars.into_iter()
-        .map(|unit| {
-            ast::Stmt::Decl(ast::Decl::Var(ast::VarDecl {
-                span: DUMMY_SP,
-                kind: ast::VarDeclKind::Let,
-                declare: false,
-                decls: vec![ast::VarDeclarator {
-                    span: DUMMY_SP.apply_mark(ignore_mark),
-                    name: unit.1,
-                    definite: false,
-                    init: Some(Box::new(ast::Expr::Ident(new_ident_from_id(&unit.0)))),
-                }],
-            }))
-        })
-        .collect()
 }

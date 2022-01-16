@@ -45,7 +45,10 @@ export async function build(config: BuildConfig) {
       await setDevVersion(config);
     }
 
-    console.log(`🌎 Qwik v${config.distVersion}`);
+    console.log(
+      `🌎 Qwik v${config.distVersion}`,
+      `[node:  ${process.version}, platform: ${process.platform}, arch: ${process.arch}]`
+    );
 
     if (config.tsc) {
       tsc(config);

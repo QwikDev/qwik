@@ -8,7 +8,8 @@ nodejs_binary(
     entry_point = ":index.js",
     templated_args = [
         "--build",
-        "--dev",
+        # Adding dev seems to break the output in a way where a CJS output still has `import()`
+        # "--dev",
         "--tsc",
         "--api",
         # Dissable these flags, as we don't need them for now.

@@ -1,38 +1,28 @@
 ---
 source: src/optimizer/core/src/test.rs
+assertion_line: 737
 expression: output
 
 ---
 ==INPUT==
 
 
-import { qHook, qComponent, h } from '@builder.io/qwik';
-export const Header = qComponent({
-  "onMount": qHook(() => { console.log("mount") }),
-  onRender: qHook(() => {
+import { qHook, qComponent, onRender, h } from '@builder.io/qwik';
+export const Header = qComponent(() => {
+  console.log("mount");
+  onRender(() => {
     return (
       <div onClick={qHook((ctx) => console.log(ctx))}/>
     );
-  })
+  });
 });
     
 ============================= test.tsx ==
 
 import * as __qwik__ from "@builder.io/qwik";
 import { qComponent } from '@builder.io/qwik';
-export const Header = /*#__PURE__*/ qComponent({
-    "onMount": __qwik__.qrl(()=>import("./h_test_header_onmount")
-    , "Header_onMount"),
-    onRender: __qwik__.qrl(()=>import("./h_test_header_onrender")
-    , "Header_onRender")
-});
-
-============================= h_test_header_onmount.tsx (ENTRY POINT)==
-
-import * as __qwik__ from "@builder.io/qwik";
-export const Header_onMount = ()=>{
-    console.log("mount");
-};
+export const Header = /*#__PURE__*/ qComponent(__qwik__.qrl(()=>import("./h_test_header_init")
+, "Header_init"));
 
 ============================= h_test_header_onrender_div_onclick.tsx (ENTRY POINT)==
 
@@ -48,15 +38,19 @@ export const Header_onRender = ()=>{
     , "Header_onRender_div_onClick")}/>;
 };
 
+============================= h_test_header_init.tsx (ENTRY POINT)==
+
+import * as __qwik__ from "@builder.io/qwik";
+import { onRender } from "@builder.io/qwik";
+export const Header_init = ()=>{
+    console.log("mount");
+    onRender(__qwik__.qrl(()=>import("./h_test_header_onrender")
+    , "Header_onRender"));
+};
+
 == HOOKS ==
 
 [
-  {
-    "origin": "test.tsx",
-    "name": "Header_onMount",
-    "entry": null,
-    "canonicalFilename": "h_test_header_onmount"
-  },
   {
     "origin": "test.tsx",
     "name": "Header_onRender_div_onClick",
@@ -68,6 +62,12 @@ export const Header_onRender = ()=>{
     "name": "Header_onRender",
     "entry": null,
     "canonicalFilename": "h_test_header_onrender"
+  },
+  {
+    "origin": "test.tsx",
+    "name": "Header_init",
+    "entry": null,
+    "canonicalFilename": "h_test_header_init"
   }
 ]
 

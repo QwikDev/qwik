@@ -110,8 +110,8 @@ impl<'a> QwikTransform<'a> {
         QwikTransform {
             path_data,
             stack_ctxt: Vec::with_capacity(16),
-            position_ctxt: Vec::with_capacity(16),
-            decl_stack: Vec::with_capacity(16),
+            position_ctxt: Vec::with_capacity(32),
+            decl_stack: Vec::with_capacity(32),
             in_component: false,
             hooks: Vec::with_capacity(16),
             global_collect,
@@ -488,10 +488,12 @@ impl<'a> Fold for QwikTransform<'a> {
         let node = match (self.position_ctxt.as_slice(), node) {
             (
                 [.., PositionToken::JSXListener]
-                | [.., PositionToken::MarkerFunction, PositionToken::Arg(0, _)]
                 | [.., PositionToken::QComponent, PositionToken::Arg(_, 0)],
-                expr,
-            ) => ast::Expr::Call(self.create_synthetic_qhook(expr)),
+                ast::Expr::Arrow(arrow),
+            ) => ast::Expr::Call(self.create_synthetic_qhook(ast::Expr::Arrow(arrow))),
+            ([.., PositionToken::MarkerFunction, PositionToken::Arg(0, _)], expr) => {
+                ast::Expr::Call(self.create_synthetic_qhook(expr))
+            }
             (_, node) => node,
         };
 
@@ -531,14 +533,14 @@ impl<'a> Fold for QwikTransform<'a> {
 
         let callee = node.callee.fold_with(self);
 
-        let total = node.args.len() - 1;
+        let total = node.args.len() as i8 - 1;
         let args: Vec<ast::ExprOrSpread> = node
             .args
             .into_iter()
             .enumerate()
             .map(|(i, arg)| {
                 self.position_ctxt
-                    .push(PositionToken::Arg(i as i8, (total - i) as i8));
+                    .push(PositionToken::Arg(i as i8, total - i as i8));
                 let o = arg.fold_with(self);
                 self.position_ctxt.pop();
                 o

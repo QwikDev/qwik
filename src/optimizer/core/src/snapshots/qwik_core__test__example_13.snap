@@ -1,14 +1,15 @@
 ---
 source: src/optimizer/core/src/test.rs
+assertion_line: 737
 expression: output
 
 ---
 ==INPUT==
 
 
-import { qHook, qComponent, h } from '@builder.io/qwik';
-export const Header = qComponent({
-    onRender: qHook(() => console.log("hello sym2"), "2sym")
+import { qHook, qComponent, onRender, h } from '@builder.io/qwik';
+export const Header = qComponent(() => {
+    onRender(() => console.log("hello sym2"), "2sym")
 });
 
     
@@ -16,10 +17,8 @@ export const Header = qComponent({
 
 import * as __qwik__ from "@builder.io/qwik";
 import { qComponent } from '@builder.io/qwik';
-export const Header = /*#__PURE__*/ qComponent({
-    onRender: __qwik__.qrl(()=>import("../entry_hooks")
-    , "Header_onRender")
-});
+export const Header = /*#__PURE__*/ qComponent(__qwik__.qrl(()=>import("../entry_hooks")
+, "Header_init"));
 
 ============================= h_test_header_onrender.tsx ==
 
@@ -27,9 +26,19 @@ import * as __qwik__ from "@builder.io/qwik";
 export const Header_onRender = ()=>console.log("hello sym2")
 ;
 
+============================= h_test_header_init.tsx ==
+
+import * as __qwik__ from "@builder.io/qwik";
+import { onRender } from "@builder.io/qwik";
+export const Header_init = ()=>{
+    onRender(__qwik__.qrl(()=>import("../entry_hooks")
+    , "Header_onRender"), "2sym");
+};
+
 ============================= entry_hooks.ts (ENTRY POINT)==
 
 export { Header_onRender } from "./h_test_header_onrender";
+export { Header_init } from "./h_test_header_init";
 
 == HOOKS ==
 
@@ -39,9 +48,15 @@ export { Header_onRender } from "./h_test_header_onrender";
     "name": "Header_onRender",
     "entry": "entry_hooks",
     "canonicalFilename": "h_test_header_onrender"
+  },
+  {
+    "origin": "project/test.tsx",
+    "name": "Header_init",
+    "entry": "entry_hooks",
+    "canonicalFilename": "h_test_header_init"
   }
 ]
 
 == DIAGNOSTICS ==
 
-[Diagnostic { message: "Second argument should be the name of a valid identifier", code_highlights: Some([CodeHighlight { message: None, loc: SourceLocation { start_line: 4, start_col: 54, end_line: 4, end_col: 59 } }]), hints: None, show_environment: false, severity: Error, documentation_url: None }]
+[]

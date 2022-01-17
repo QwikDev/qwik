@@ -1,13 +1,13 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 681
+assertion_line: 737
 expression: output
 
 ---
 ==INPUT==
 
 
-import { qHook, qComponent, h } from '@builder.io/qwik';
+import { qHook, qComponent, onRender, h } from '@builder.io/qwik';
 
 export const [a, {b, v1: [c], d=v2, ...e}, f=v3, ...g] = obj;
 
@@ -20,8 +20,8 @@ export class bar {}
 
 export default function DefaultFn() {}
 
-export const Header = qComponent({
-    onRender: qHook(() => (
+export const Header = qComponent(() => {
+    onRender(() => (
         <Footer>
             <div>{a}{b}{c}{d}{e}{f}{exp1}{internal}{foo}{bar}{DefaultFn}</div>
             <div>{v1}{v2}{v3}{obj}</div>
@@ -44,10 +44,8 @@ export function foo() {}
 export class bar {
 }
 export default function DefaultFn() {};
-export const Header = /*#__PURE__*/ qComponent({
-    onRender: __qwik__.qrl(()=>import("../h_test_header_onrender")
-    , "Header_onRender")
-});
+export const Header = /*#__PURE__*/ qComponent(__qwik__.qrl(()=>import("../h_test_header_init")
+, "Header_init"));
 export const Footer = /*#__PURE__*/ qComponent();
 
 ============================= h_test_header_onrender.tsx (ENTRY POINT)==
@@ -74,6 +72,15 @@ export const Header_onRender = ()=><Footer >
         </Footer>
 ;
 
+============================= h_test_header_init.tsx (ENTRY POINT)==
+
+import * as __qwik__ from "@builder.io/qwik";
+import { onRender } from "@builder.io/qwik";
+export const Header_init = ()=>{
+    onRender(__qwik__.qrl(()=>import("../h_test_header_onrender")
+    , "Header_onRender"));
+};
+
 == HOOKS ==
 
 [
@@ -82,6 +89,12 @@ export const Header_onRender = ()=><Footer >
     "name": "Header_onRender",
     "entry": null,
     "canonicalFilename": "h_test_header_onrender"
+  },
+  {
+    "origin": "project/test.tsx",
+    "name": "Header_init",
+    "entry": null,
+    "canonicalFilename": "h_test_header_init"
   }
 ]
 

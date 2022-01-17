@@ -293,7 +293,7 @@ fn example_13() {
     test_input(
         "project/test.tsx",
         r#"
-import { qHook, qComponent, h } from '@builder.io/qwik';
+import { qHook, qComponent, onRender, h } from '@builder.io/qwik';
 export const Header = qComponent(() => {
     onRender(() => console.log("hello sym2"), "2sym")
 });
@@ -310,7 +310,7 @@ fn example_functional_component() {
     test_input(
         "test.tsx",
         r#"
-        import { qHook, qComponent, h } from '@builder.io/qwik';
+        import { qHook, qComponent, onRender, h } from '@builder.io/qwik';
         const Header = qComponent(() => {
             const thing = useState();
             const {foo, bar} = foo();
@@ -596,7 +596,7 @@ fn example_exports() {
     test_input(
         "project/test.tsx",
         r#"
-import { qHook, qComponent, h } from '@builder.io/qwik';
+import { qHook, qComponent, onRender, h } from '@builder.io/qwik';
 
 export const [a, {b, v1: [c], d=v2, ...e}, f=v3, ...g] = obj;
 
@@ -645,7 +645,7 @@ fn issue_118() {
     test_input(
         "project/test.tsx",
         r#"
-import { qHook, qComponent, h } from '@builder.io/qwik';
+import { qHook, qComponent, onRender, h } from '@builder.io/qwik';
 import thing from 'lib';
 import * as all from 'lib';
 import {s as se} from 'lib';

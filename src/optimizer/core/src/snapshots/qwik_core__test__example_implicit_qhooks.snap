@@ -1,5 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
+assertion_line: 763
 expression: output
 
 ---
@@ -27,10 +28,14 @@ import { qComponent } from '@builder.io/qwik';
 /*#__PURE__*/ qComponent({
     "onMount": __qwik__.qrl(()=>import("./h_test_header_onmount")
     , "Header_onMount"),
-    "otherThing": __qwik__.qrl(()=>import("./h_test_header_otherthing")
-    , "Header_otherThing"),
-    onRender: __qwik__.qrl(()=>import("./h_test_header_onrender")
-    , "Header_onRender")
+    "otherThing": ()=>{
+        console.log("otherThing");
+    },
+    onRender: ()=>{
+        return <div prop={(ctx)=>console.log(ctx)
+        } on:click={__qwik__.qrl(()=>import("./h_test_header_onrender_div_onclick")
+        , "Header_onRender_div_onclick")}/>;
+    }
 });
 
 ============================= h_test_header_onmount.tsx (ENTRY POINT)==
@@ -40,27 +45,11 @@ export const Header_onMount = ()=>{
     console.log("mount");
 };
 
-============================= h_test_header_otherthing.tsx (ENTRY POINT)==
-
-import * as __qwik__ from "@builder.io/qwik";
-export const Header_otherThing = ()=>{
-    console.log("otherThing");
-};
-
 ============================= h_test_header_onrender_div_onclick.tsx (ENTRY POINT)==
 
 import * as __qwik__ from "@builder.io/qwik";
 export const Header_onRender_div_onclick = (ctx)=>console.log(ctx)
 ;
-
-============================= h_test_header_onrender.tsx (ENTRY POINT)==
-
-import * as __qwik__ from "@builder.io/qwik";
-export const Header_onRender = ()=>{
-    return <div prop={(ctx)=>console.log(ctx)
-    } on:click={__qwik__.qrl(()=>import("./h_test_header_onrender_div_onclick")
-    , "Header_onRender_div_onclick")}/>;
-};
 
 == HOOKS ==
 
@@ -73,21 +62,9 @@ export const Header_onRender = ()=>{
   },
   {
     "origin": "test.tsx",
-    "name": "Header_otherThing",
-    "entry": null,
-    "canonicalFilename": "h_test_header_otherthing"
-  },
-  {
-    "origin": "test.tsx",
     "name": "Header_onRender_div_onclick",
     "entry": null,
     "canonicalFilename": "h_test_header_onrender_div_onclick"
-  },
-  {
-    "origin": "test.tsx",
-    "name": "Header_onRender",
-    "entry": null,
-    "canonicalFilename": "h_test_header_onrender"
   }
 ]
 

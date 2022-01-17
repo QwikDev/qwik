@@ -1,0 +1,101 @@
+---
+source: src/optimizer/core/src/test.rs
+assertion_line: 737
+expression: output
+
+---
+==INPUT==
+
+
+import { qHook, qComponent, onRender, h } from '@builder.io/qwik';
+
+const Header = qComponent(qHook(() => {
+  console.log("mount");
+  onRender(qHook(() => {
+    return (
+      <div onClick={qHook((ctx) => console.log(ctx))}/>
+    );
+  }));
+}));
+    
+============================= test.tsx ==
+
+import * as __qwik__ from "@builder.io/qwik";
+import { qComponent } from '@builder.io/qwik';
+/*#__PURE__*/ qComponent(__qwik__.qrl(()=>import("./h_test_header_init")
+, "Header_init"));
+
+============================= h_test_header_onrender_div_onclick.tsx (ENTRY POINT)==
+
+import * as __qwik__ from "@builder.io/qwik";
+export const Header_onRender_div_onClick = (ctx)=>console.log(ctx)
+;
+
+============================= h_test_header_onrender3.tsx (ENTRY POINT)==
+
+import * as __qwik__ from "@builder.io/qwik";
+export const Header_onRender3 = ()=>{
+    return <div onClick={__qwik__.qrl(()=>import("./h_test_header_onrender_div_onclick")
+    , "Header_onRender_div_onClick")}/>;
+};
+
+============================= h_test_header_onrender.tsx (ENTRY POINT)==
+
+import * as __qwik__ from "@builder.io/qwik";
+export const Header_onRender = __qwik__.qrl(()=>import("./h_test_header_onrender3")
+, "Header_onRender3");
+
+============================= h_test_header_init1.tsx (ENTRY POINT)==
+
+import * as __qwik__ from "@builder.io/qwik";
+import { onRender } from "@builder.io/qwik";
+export const Header_init1 = ()=>{
+    console.log("mount");
+    onRender(__qwik__.qrl(()=>import("./h_test_header_onrender")
+    , "Header_onRender"));
+};
+
+============================= h_test_header_init.tsx (ENTRY POINT)==
+
+import * as __qwik__ from "@builder.io/qwik";
+export const Header_init = __qwik__.qrl(()=>import("./h_test_header_init1")
+, "Header_init1");
+
+== HOOKS ==
+
+[
+  {
+    "origin": "test.tsx",
+    "name": "Header_onRender_div_onClick",
+    "entry": null,
+    "canonicalFilename": "h_test_header_onrender_div_onclick"
+  },
+  {
+    "origin": "test.tsx",
+    "name": "Header_onRender3",
+    "entry": null,
+    "canonicalFilename": "h_test_header_onrender3"
+  },
+  {
+    "origin": "test.tsx",
+    "name": "Header_onRender",
+    "entry": null,
+    "canonicalFilename": "h_test_header_onrender"
+  },
+  {
+    "origin": "test.tsx",
+    "name": "Header_init1",
+    "entry": null,
+    "canonicalFilename": "h_test_header_init1"
+  },
+  {
+    "origin": "test.tsx",
+    "name": "Header_init",
+    "entry": null,
+    "canonicalFilename": "h_test_header_init"
+  }
+]
+
+== DIAGNOSTICS ==
+
+[]

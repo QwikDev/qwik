@@ -1,0 +1,69 @@
+---
+source: src/optimizer/core/src/test.rs
+assertion_line: 737
+expression: output
+
+---
+==INPUT==
+
+
+import { qHook, qComponent, onRender, h } from '@builder.io/qwik';
+
+export const Header = qComponent(() => {
+    onRender((hola) => {
+        const hola = this;
+        const {something, styff} = hola;
+        const hello = hola.nothere.stuff[global];
+        return (
+        <Header/>
+        );
+    });
+});
+
+============================= test.tsx ==
+
+import * as __qwik__ from "@builder.io/qwik";
+import { qComponent } from '@builder.io/qwik';
+export const Header = /*#__PURE__*/ qComponent(__qwik__.qrl(()=>import("./h_test_header_init")
+, "Header_init"));
+
+============================= h_test_header_onrender.tsx (ENTRY POINT)==
+
+import * as __qwik__ from "@builder.io/qwik";
+import { Header } from "./test";
+export const Header_onRender = (hola)=>{
+    const hola = this;
+    const { something , styff  } = hola;
+    const hello = hola.nothere.stuff[global];
+    return <Header />;
+};
+
+============================= h_test_header_init.tsx (ENTRY POINT)==
+
+import * as __qwik__ from "@builder.io/qwik";
+import { onRender } from "@builder.io/qwik";
+export const Header_init = ()=>{
+    onRender(__qwik__.qrl(()=>import("./h_test_header_onrender")
+    , "Header_onRender"));
+};
+
+== HOOKS ==
+
+[
+  {
+    "origin": "test.tsx",
+    "name": "Header_onRender",
+    "entry": null,
+    "canonicalFilename": "h_test_header_onrender"
+  },
+  {
+    "origin": "test.tsx",
+    "name": "Header_init",
+    "entry": null,
+    "canonicalFilename": "h_test_header_init"
+  }
+]
+
+== DIAGNOSTICS ==
+
+[]

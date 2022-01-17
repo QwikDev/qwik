@@ -64,6 +64,7 @@ enum PositionToken {
     ObjectProp,
     JSXListener,
     MarkerFunction,
+    Arg(i8, i8),
     Any,
 }
 
@@ -486,12 +487,11 @@ impl<'a> Fold for QwikTransform<'a> {
     fn fold_expr(&mut self, node: ast::Expr) -> ast::Expr {
         let node = match (self.position_ctxt.as_slice(), node) {
             (
-                [.., PositionToken::QComponent, PositionToken::Any, PositionToken::ObjectProp]
-                | [.., PositionToken::JSXListener]
-                | [.., PositionToken::MarkerFunction]
-                | [.., PositionToken::QComponent],
-                ast::Expr::Arrow(arrow),
-            ) => ast::Expr::Call(self.create_synthetic_qhook(ast::Expr::Arrow(arrow))),
+                [.., PositionToken::JSXListener]
+                | [.., PositionToken::MarkerFunction, PositionToken::Arg(0, _)]
+                | [.., PositionToken::QComponent, PositionToken::Arg(_, 0)],
+                expr,
+            ) => ast::Expr::Call(self.create_synthetic_qhook(expr)),
             (_, node) => node,
         };
 
@@ -529,7 +529,22 @@ impl<'a> Fold for QwikTransform<'a> {
             }
         }
 
-        let o = node.fold_children_with(self);
+        let callee = node.callee.fold_with(self);
+
+        let total = node.args.len() - 1;
+        let args: Vec<ast::ExprOrSpread> = node
+            .args
+            .into_iter()
+            .enumerate()
+            .map(|(i, arg)| {
+                self.position_ctxt
+                    .push(PositionToken::Arg(i as i8, (total - i) as i8));
+                let o = arg.fold_with(self);
+                self.position_ctxt.pop();
+                o
+            })
+            .collect();
+
         if position_token {
             self.position_ctxt.pop();
         }
@@ -539,7 +554,11 @@ impl<'a> Fold for QwikTransform<'a> {
         if component_token {
             self.in_component = false;
         }
-        o
+        ast::CallExpr {
+            callee,
+            args,
+            ..node
+        }
     }
 }
 

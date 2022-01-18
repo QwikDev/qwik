@@ -28,6 +28,8 @@ export async function generatePackageJson(config: BuildConfig) {
         import: './core.mjs',
         require: './core.cjs',
       },
+      './core.cjs': './core.cjs',
+      './core.mjs': './core.mjs',
       './jsx-runtime': {
         import: './jsx-runtime.mjs',
         require: './jsx-runtime.cjs',
@@ -36,6 +38,7 @@ export async function generatePackageJson(config: BuildConfig) {
         import: './optimizer.mjs',
         require: './optimizer.cjs',
       },
+      './server/index.cjs': './server/index.cjs',
       './server': {
         import: './server/index.mjs',
         require: './server/index.cjs',
@@ -44,6 +47,7 @@ export async function generatePackageJson(config: BuildConfig) {
         import: './testing/index.mjs',
         require: './testing/index.cjs',
       },
+      './qwikloader.js': './qwikloader.js',
       './package.json': './package.json',
     },
     files: Array.from(new Set(rootPkg.files)).sort((a, b) => {

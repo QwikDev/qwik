@@ -234,9 +234,6 @@ jobs:
           node-version: 16.x
           registry-url: https://registry.npmjs.org/
 
-      - name: Checkout
-        uses: actions/checkout@v2
-
       - name: Create dist-dev/@builder.io-qwik directory
         run: |
           mkdir dist-dev/
@@ -277,6 +274,8 @@ jobs:
     needs:
       - build-distribution
       - test-e2e-chromium
+      - test-e2e-firefox
+      - test-e2e-webkit
 
     steps:
       - name: Setup Node.js
@@ -363,8 +362,101 @@ jobs:
       - name: Install NPM Dependencies
         run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
 
+      - name: Install Chromium Playwright
+        run: npx playwright install chromium && npx playwright install-deps chromium
+
       - name: Playwright E2E Chromium Tests
         run: yarn test.e2e.chromium
+
+  ############ E2E WEBKIT/MAC TEST ############
+  test-e2e-webkit:
+    name: E2E WebKit/MacOS Tests
+    runs-on: macos-latest
+    needs:
+      - build-distribution
+
+    steps:
+      - name: Setup Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 16.x
+          registry-url: https://registry.npmjs.org/
+
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v2
+
+      - name: Print Distribution Artifacts
+        run: ls -R builderio-qwik-distribution/
+
+      - name: Move Distribution Artifacts
+        run: |
+          mkdir dist-dev/
+          mkdir dist-dev/@builder.io-qwik/
+          mv builderio-qwik-distribution/* dist-dev/@builder.io-qwik/
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Cache NPM Dependencies
+        uses: actions/cache@v2
+        with:
+          path: node_modules
+          key: npm-cache-macos-${{ hashFiles('yarn.lock') }}
+          restore-keys: npm-cache-macos-
+
+      - name: Install NPM Dependencies
+        run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
+
+      - name: Install WebKit Playwright
+        run: npx playwright install webkit && npx playwright install-deps webkit
+
+      - name: Playwright E2E WebKit Tests
+        run: yarn test.e2e.webkit
+
+  ############ E2E FIREFOX/WINDOWS TEST ############
+  test-e2e-firefox:
+    name: E2E Firefox/Windows Tests
+    runs-on: windows-latest
+    needs:
+      - build-distribution
+
+    steps:
+      - name: Setup Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 16.x
+          registry-url: https://registry.npmjs.org/
+
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v2
+
+      - name: Print Distribution Artifacts
+        run: ls -R builderio-qwik-distribution/
+
+      - name: Move Distribution Artifacts
+        run: |
+          mkdir dist-dev/
+          mkdir dist-dev/@builder.io-qwik/
+          mv builderio-qwik-distribution/* dist-dev/@builder.io-qwik/
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Cache NPM Dependencies
+        uses: actions/cache@v2
+        with:
+          path: node_modules
+          key: npm-cache-macos-${{ hashFiles('yarn.lock') }}
+          restore-keys: npm-cache-macos-
+
+      - name: Install NPM Dependencies
+        run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
+
+      - name: Install Firefox Playwright
+        run: npx playwright install firefox && npx playwright install-deps firefox
+
+      - name: Playwright E2E Firefox Tests
+        run: yarn test.e2e.firefox
 
   ############ UNIT TEST ############
   test-unit:

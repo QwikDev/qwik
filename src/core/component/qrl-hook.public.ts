@@ -82,11 +82,6 @@ export function qHook(hook: any, symbol?: string): any {
   if (qTest) {
     return toDevModeQRL(qrlFn, new Error());
   }
-  if (typeof qrlFn == 'function') {
-    throw new Error(
-      'Expected a QRL but got a function. Either optimizer did not run, or DevModeQRLs are not enabled.'
-    );
-  }
   return qrlFn;
 }
 

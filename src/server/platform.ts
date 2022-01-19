@@ -6,6 +6,8 @@ import type { DocumentOptions } from './types';
 const _setInmediate = typeof setImmediate === 'function' ? setImmediate : setTimeout;
 const _nextTick = typeof queueMicrotask === 'function' ? queueMicrotask : process.nextTick;
 
+declare const require: (module: string) => Record<string, any>;
+
 function createPlatform(document: any, opts?: DocumentOptions) {
   if (!document || (document as Document).nodeType !== 9) {
     throw new Error(`Invalid Document implementation`);
@@ -25,11 +27,25 @@ function createPlatform(document: any, opts?: DocumentOptions) {
         return symbol;
       }
       const modFn = __internal_qHookMap.get(symbolName);
-      return modFn().then((mod: any) => {
-        const symbol = mod[symbolName];
+      if (modFn) {
+        return modFn().then((mod: any) => {
+          const symbol = mod[symbolName];
+          symbolCache.set(symbolName, symbol);
+          return symbol;
+        });
+      } else {
+        let [modulePath] = String(url).split('#');
+        if (!modulePath.endsWith('.js')) {
+          modulePath += '.js';
+        }
+        const module = require(modulePath); // eslint-disable-line  @typescript-eslint/no-var-requires
+        const symbol = module[symbolName];
+        if (!symbol) {
+          throw new Error(`Q-ERROR: missing symbol '${symbolName}' in module '${modulePath}'.`);
+        }
         symbolCache.set(symbolName, symbol);
         return symbol;
-      });
+      }
     },
     queueRender: (renderMarked) => {
       if (!queuePromise) {

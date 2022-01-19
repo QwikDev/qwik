@@ -15,6 +15,7 @@ def package_build(
             "@npm//@types/node",
             "@npm//@types/prettier",
             "@npm//@types/source-map-support",
+            "@npm//kleur",
             "@npm//domino",
             "@npm//esbuild",
             "@npm//esbuild-register",

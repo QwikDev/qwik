@@ -140,7 +140,6 @@ jobs:
             target: x86_64-pc-windows-msvc
             build: yarn build.platform
 
-    name: Build ${{ matrix.settings.target }}
     runs-on: ${{ matrix.settings.host }}
     defaults:
       run:
@@ -421,13 +420,13 @@ jobs:
         with:
           path: |
             ~/.cargo
-          key: cargo-deps-${{ runner.os }}-${{ hashFiles('Cargo.lock') }} 
+          key: cargo-deps-${{ runner.os }}-${{ hashFiles('Cargo.lock') }}
 
       - name: Cache cargo build
         uses: actions/cache@v2
         with:
           path: target
-          key: cargo-build-${{ runner.os }}-${{ hashFiles('Cargo.lock') }} 
+          key: cargo-build-${{ runner.os }}-${{ hashFiles('Cargo.lock') }}
 
       - name: Format check
         uses: actions-rs/cargo@v1

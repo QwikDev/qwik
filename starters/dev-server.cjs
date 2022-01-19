@@ -129,6 +129,11 @@ async function ssrApp(req, appName, appDir) {
   return '<!DOCTYPE html>' + doc.documentElement.outerHTML;
 }
 
+function requireUncached(module) {
+  delete require.cache[require.resolve(module)];
+  return require(module);
+}
+
 function startersHomepage(req, res) {
   res.set('Content-Type', 'text/html');
   res.send(`
@@ -139,6 +144,12 @@ function startersHomepage(req, res) {
         body {
           font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji;
           line-height: 1.5;
+        }
+        a {
+          color: #4340C4;
+        }
+        a:hover {
+          text-decoration: none;
         }
       </style>
     </head>
@@ -152,9 +163,9 @@ function startersHomepage(req, res) {
   `);
 }
 
-function requireUncached(module) {
-  delete require.cache[require.resolve(module)];
-  return require(module);
+function favicon(req, res) {
+  const path = join(startersAppsDir, 'todo', 'public', 'favicon.ico');
+  res.sendFile(path);
 }
 
 appNames.forEach((appName) => {
@@ -166,6 +177,7 @@ appNames.forEach((appName) => {
 });
 
 app.get('/', startersHomepage);
+app.get('/favicon.ico', favicon);
 app.get('/*', handleApp);
 
 const server = app.listen(port, () => {

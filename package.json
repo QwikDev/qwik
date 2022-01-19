@@ -20,7 +20,7 @@
     "test.unit": "jest",
     "test.rust": "make test",
     "test.watch": "jest --watch",
-    "test.e2e": "npm run test.e2e.chromium",
+    "test.e2e": "npm run test.e2e.chromium && npm run test.e2e.firefox && npm run test.e2e.webkit",
     "test.e2e.chromium": "playwright test starters --browser=chromium --config starters/playwright.config.ts",
     "test.e2e.firefox": "playwright test starters --browser=firefox --config starters/playwright.config.ts",
     "test.e2e.webkit": "playwright test starters --browser=webkit --config starters/playwright.config.ts",

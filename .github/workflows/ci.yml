@@ -119,7 +119,6 @@ jobs:
 
   ############ BUILD PLATFORM BINDINGS ############
   build-bindings:
-    name: Build Bindings
     if: "!contains(github.event.head_commit.message, 'skip ci')"
     strategy:
       fail-fast: false
@@ -140,6 +139,7 @@ jobs:
             target: x86_64-pc-windows-msvc
             build: yarn build.platform
 
+    name: Build ${{ matrix.settings.target }}
     runs-on: ${{ matrix.settings.host }}
     defaults:
       run:

@@ -30,6 +30,7 @@
     "lint.rust": "make lint",
     "lint.prettier": "prettier --check .",
     "prettier.fix": "prettier --write .",
+    "fmt": "npm run prettier.fix",
     "patch-m1": "npm run patch-m1-bazel && npm run patch-m1-ibazel && npm run patch-m1-buildifier",
     "patch-m1-bazel": "echo Patching Bazel for Apple M1 architecture compatibility && ln -fs ./bazelisk-darwin_amd64 node_modules/@bazel/bazelisk/bazelisk-darwin_arm64",
     "patch-m1-ibazel": "echo Patching iBazel for Apple M1 architecture compatibility && sed -i .bak \"s/'x64' : 'amd64',\\$/'x64' : 'amd64', 'arm64' : 'amd64',/\" ./node_modules/@bazel/ibazel/index.js",

@@ -177,7 +177,7 @@ function verifySerializable<T>(value: T) {
     if (Object.getPrototypeOf(value) !== Object.prototype) {
       if (getQObjectId(value)) return;
       throw qError(QError.TODO, 'Only primitive and object literals can be serialized.');
-    }  
+    }
   }
 }
 

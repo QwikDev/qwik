@@ -13,7 +13,8 @@ import type { QwikEvents } from '../render/jsx/types/jsx-qwik-attributes';
 import type { ValueOrPromise } from '../util/types';
 
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onUnmount">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onUnmount instead)
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fc_nNpiLZSYugTU0c5JATJA%3Fboth#onUnmount instead)
 /**
  * A lazy-loadable reference to a component's destroy hook.
  *
@@ -27,7 +28,8 @@ export function onUnmount(unmountFn: QRL<() => void>): void {
 }
 
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onUnmount">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onUnmount instead)
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fc_nNpiLZSYugTU0c5JATJA%3Fboth#onUnmount instead)
 /**
  * A lazy-loadable reference to a component's destroy hook.
  *
@@ -39,7 +41,8 @@ export function onUnmount(unmountFn: QRL<() => void>): void {
 export const onUnmount$ = implicit$FirstArg(onUnmount);
 
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onResume">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onResume instead)
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fc_nNpiLZSYugTU0c5JATJA%3Fboth#onResume instead)
 /**
  * A lazy-loadable reference to a component's on resume hook.
  *
@@ -54,7 +57,8 @@ export function onResume(resumeFn: QRL<() => void>): void {
 }
 
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onResume">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onResume instead)
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fc_nNpiLZSYugTU0c5JATJA%3Fboth#onResume instead)
 /**
  * A lazy-loadable reference to a component's on resume hook.
  *
@@ -67,7 +71,8 @@ export function onResume(resumeFn: QRL<() => void>): void {
 export const onResume$ = implicit$FirstArg(onResume);
 
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onHydrate">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onHydrate instead)
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fc_nNpiLZSYugTU0c5JATJA%3Fboth#onHydrate instead)
 /**
  * A lazy-loadable reference to a component's on hydrate hook.
  *
@@ -82,7 +87,8 @@ export function onHydrate(hydrateFn: QRL<() => void>): void {
 }
 
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onHydrate">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onHydrate instead)
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fc_nNpiLZSYugTU0c5JATJA%3Fboth#onHydrate instead)
 /**
  * A lazy-loadable reference to a component's on hydrate hook.
  *
@@ -95,7 +101,8 @@ export function onHydrate(hydrateFn: QRL<() => void>): void {
 export const onHydrate$ = implicit$FirstArg(onHydrate);
 
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onDehydrate">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onDehydrate instead)
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fc_nNpiLZSYugTU0c5JATJA%3Fboth#onDehydrate instead)
 /**
  * A lazy-loadable reference to a component's on dehydrate hook.
  *
@@ -112,7 +119,8 @@ export function onDehydrate(dehydrateFn: QRL<() => void>): void {
 }
 
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onDehydrate">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onDehydrate instead)
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fc_nNpiLZSYugTU0c5JATJA%3Fboth#onDehydrate instead)
 /**
  * A lazy-loadable reference to a component's on dehydrate hook.
  *
@@ -127,7 +135,8 @@ export function onDehydrate(dehydrateFn: QRL<() => void>): void {
 export const onDehydrate$ = implicit$FirstArg(onDehydrate);
 
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#on">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#on instead)
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fc_nNpiLZSYugTU0c5JATJA%3Fboth#on instead)
 /**
  * Register a listener on the current component's host element.
  *
@@ -144,7 +153,8 @@ export function on(event: string, eventFn: QRL<() => void>): QRL<() => void> {
 }
 
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onDocument">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onDocument instead)
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fc_nNpiLZSYugTU0c5JATJA%3Fboth#onDocument instead)
 /**
  * Register a listener on `document`.
  *
@@ -161,7 +171,8 @@ export function onDocument(event: string, eventFn: QRL<() => void>): QRL<() => v
 }
 
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onWindow">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onWindow instead)
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fc_nNpiLZSYugTU0c5JATJA%3Fboth#onWindow instead)
 /**
  * Register a listener on `window`.
  *
@@ -177,36 +188,40 @@ export function onWindow(event: string, eventFn: QRL<() => void>): QRL<() => voi
   throw new Error('IMPLEMENT: onWindow' + eventFn);
 }
 
-// <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#useStyles">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#useStyles instead)
+// <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#withStyles">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fc_nNpiLZSYugTU0c5JATJA%3Fboth#withStyles instead)
 /**
  * @alpha
  */
 // </docs>
-export function useStyles(styles: QRL<string>): void {
-  _useStyles(styles, false);
+export function withStyles(styles: QRL<string>): void {
+  _withStyles(styles, false);
 }
 
-// <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#useStyles">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#useStyles instead)
+// <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#withStyles">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fc_nNpiLZSYugTU0c5JATJA%3Fboth#withStyles instead)
 /**
  * @alpha
  */
 // </docs>
-export const useStyles$ = implicit$FirstArg(useStyles);
+export const withStyles$ = implicit$FirstArg(withStyles);
 
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#withScopedStyles">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#withScopedStyles instead)
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fc_nNpiLZSYugTU0c5JATJA%3Fboth#withScopedStyles instead)
 /**
  * @alpha
  */
 // </docs>
 export function withScopedStyles(styles: QRL<string>): void {
-  _useStyles(styles, true);
+  _withStyles(styles, true);
 }
 
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#withScopedStyles">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#withScopedStyles instead)
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fc_nNpiLZSYugTU0c5JATJA%3Fboth#withScopedStyles instead)
 /**
  * @alpha
  */
@@ -239,95 +254,8 @@ export interface ComponentOptions {
 }
 
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#component">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#component instead)
-/**
- * Declare a Qwik component that can be used to create UI.
- *
- * Use `component` (and `component$`) to declare a Qwik component. A Qwik component is a special
- * kind of component that allows the Qwik framework to lazy load and execute the component
- * independently of other Qwik components as well as lazy load the component's life-cycle hooks
- * and event handlers.
- *
- * Side note: You can also declare regular (standard JSX) components that will have standard
- * synchronous behavior.
- *
- * Qwik component is a facade that describes how the component should be used without forcing the
- * implementation of the component to be eagerly loaded. A minimum Qwik definition consists of:
- *
- * - Component `onMount` method, which needs to return an
- * - `$` closure which constructs the component's JSX.
- *
- * ### Example:
- *
- * An example showing how to create a counter component:
- *
- * ```typescript
- * export const Counter = component$((props: { value?: number; step?: number }) => {
- *   const state = createStore({ count: props.value || 0 });
- *   return $(() => (
- *     <div>
- *       <span>{state.count}</span>
- *       <button on$:click={() => (state.count += props.step || 1)}>+</button>
- *     </div>
- *   ));
- * });
- * ```
- *
- * - `component$` is how a component gets declared.
- * - `{ value?: number; step?: number }` declares the public (props) interface of the component.
- * - `{ count: number }` declares the private (state) interface of the component.
- * - `onMount` closure: is used to create the data store (see: `createStore`);
- * - `onRender$`: is the required hook for rendering the component.
- * - `$`: mark which parts of the component will be lazy-loaded. (see `$` for details.)
- *
- * The above can then be used like so:
- *
- * ```typescript
- * export const OtherComponent = component$(() => {
- *   return $(() => <Counter value={100} />);
- * });
- * ```
- *
- * See also: `component`, `onUnmount`, `onHydrate`, `onDehydrate`, `onHalt`,
- * `onResume`, `on`, `onDocument`, `onWindow`, `useStyles`, `withScopedStyles`
- *
- * @param onMount - Initialization closure used when the component is first created.
- * @param tagName - Optional components options. It can be used to set a custom tag-name to be
- * used for the component's host element.
- *
- * @public
- */
-// </docs>
-export function component<PROPS extends {}>(
-  onMount: QRL<OnMountFn<PROPS>>,
-  options?: ComponentOptions
-): (props: PROPS & QwikEvents) => JSXNode<PROPS>;
-/**
- * @public
- */
-export function component<PROPS extends {}>(
-  onMount: QRL<OnMountFn<PROPS>>,
-  options: ComponentOptions = {}
-): (props: PROPS & QwikEvents) => JSXNode<PROPS> {
-  const tagName = options.tagName ?? 'div';
-
-  // Return a QComponent Factory function.
-  return function QComponent(props: PROPS & QwikEvents): JSXNode<PROPS> {
-    const onRenderFactory: qrlFactory = async (hostElement: Element): Promise<QRLInternal> => {
-      // Turn function into QRL
-      const onMountQrl = toQrlOrError(onMount);
-      const onMountFn = await resolveQrl(hostElement, onMountQrl);
-      const componentProps = Object.assign(getProps(hostElement), props);
-      const invokeCtx = newInvokeContext(hostElement);
-      return useInvoke(invokeCtx, onMountFn, componentProps) as QRLInternal;
-    };
-    onRenderFactory.__brand__ = 'QRLFactory';
-    return h(tagName, { 'on:qRender': onRenderFactory, ...props }) as any;
-  };
-}
-
-// <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#component">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#component instead)
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fc_nNpiLZSYugTU0c5JATJA%3Fboth#component instead)
 /**
  * Declare a Qwik component that can be used to create UI.
  *
@@ -365,7 +293,6 @@ export function component<PROPS extends {}>(
  * - `{ value?: number; step?: number }` declares the public (props) interface of the component.
  * - `{ count: number }` declares the private (state) interface of the component.
  * - `onMount` closure: is used to create the data store (see: `createStore`);
- * - `onRender$`: is the required hook for rendering the component.
  * - `$`: mark which parts of the component will be lazy-loaded. (see `$` for details.)
  *
  * The above can then be used like so:
@@ -376,8 +303,96 @@ export function component<PROPS extends {}>(
  * });
  * ```
  *
- * See also: `component`, `onRender`, `onUnmount`, `onHydrate`, `onDehydrate`, `onHalt`,
- * `onResume`, `on`, `onDocument`, `onWindow`, `useStyles`, `withScopedStyles`
+ * See also: `component`, `onUnmount`, `onHydrate`, `onDehydrate`, `onHalt`, `onResume`, `on`,
+ * `onDocument`, `onWindow`, `withStyles`, `withScopedStyles`
+ *
+ * @param onMount - Initialization closure used when the component is first created.
+ * @param tagName - Optional components options. It can be used to set a custom tag-name to be
+ * used for the component's host element.
+ *
+ * @public
+ */
+// </docs>
+export function component<PROPS extends {}>(
+  onMount: QRL<OnMountFn<PROPS>>,
+  options?: ComponentOptions
+): (props: PROPS & QwikEvents) => JSXNode<PROPS>;
+/**
+ * @public
+ */
+export function component<PROPS extends {}>(
+  onMount: QRL<OnMountFn<PROPS>>,
+  options: ComponentOptions = {}
+): (props: PROPS & QwikEvents) => JSXNode<PROPS> {
+  const tagName = options.tagName ?? 'div';
+
+  // Return a QComponent Factory function.
+  return function QComponent(props: PROPS & QwikEvents): JSXNode<PROPS> {
+    const onRenderFactory: qrlFactory = async (hostElement: Element): Promise<QRLInternal> => {
+      // Turn function into QRL
+      const onMountQrl = toQrlOrError(onMount);
+      const onMountFn = await resolveQrl(hostElement, onMountQrl);
+      const componentProps = Object.assign(getProps(hostElement), props);
+      const invokeCtx = newInvokeContext(hostElement);
+      return useInvoke(invokeCtx, onMountFn, componentProps) as QRLInternal;
+    };
+    onRenderFactory.__brand__ = 'QRLFactory';
+    return h(tagName, { 'on:qRender': onRenderFactory, ...props }) as any;
+  };
+}
+
+// <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#component">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fc_nNpiLZSYugTU0c5JATJA%3Fboth#component instead)
+/**
+ * Declare a Qwik component that can be used to create UI.
+ *
+ * Use `component` (and `component$`) to declare a Qwik component. A Qwik component is a special
+ * kind of component that allows the Qwik framework to lazy load and execute the component
+ * independently of other Qwik components as well as lazy load the component's life-cycle hooks
+ * and event handlers.
+ *
+ * Side note: You can also declare regular (standard JSX) components that will have standard
+ * synchronous behavior.
+ *
+ * Qwik component is a facade that describes how the component should be used without forcing the
+ * implementation of the component to be eagerly loaded. A minimum Qwik definition consists of:
+ *
+ * - Component `onMount` method, which needs to return an
+ * - `onRender` closure which constructs the component's JSX.
+ *
+ * ### Example:
+ *
+ * An example showing how to create a counter component:
+ *
+ * ```typescript
+ * export const Counter = component$((props: { value?: number; step?: number }) => {
+ *   const state = createStore({ count: props.value || 0 });
+ *   return $(() => (
+ *     <div>
+ *       <span>{state.count}</span>
+ *       <button on$:click={() => (state.count += props.step || 1)}>+</button>
+ *     </div>
+ *   ));
+ * });
+ * ```
+ *
+ * - `component$` is how a component gets declared.
+ * - `{ value?: number; step?: number }` declares the public (props) interface of the component.
+ * - `{ count: number }` declares the private (state) interface of the component.
+ * - `onMount` closure: is used to create the data store (see: `createStore`);
+ * - `$`: mark which parts of the component will be lazy-loaded. (see `$` for details.)
+ *
+ * The above can then be used like so:
+ *
+ * ```typescript
+ * export const OtherComponent = component$(() => {
+ *   return $(() => <Counter value={100} />);
+ * });
+ * ```
+ *
+ * See also: `component`, `onUnmount`, `onHydrate`, `onDehydrate`, `onHalt`, `onResume`, `on`,
+ * `onDocument`, `onWindow`, `withStyles`, `withScopedStyles`
  *
  * @param onMount - Initialization closure used when the component is first created.
  * @param tagName - Optional components options. It can be used to set a custom tag-name to be
@@ -411,7 +426,7 @@ function resolveQrl<PROPS extends {}>(
       });
 }
 
-function _useStyles(styles: QRL<string>, scoped: boolean) {
+function _withStyles(styles: QRL<string>, scoped: boolean) {
   const styleQrl = toQrlOrError(styles);
   const styleId = styleKey(styleQrl);
   const hostElement = useHostElement();

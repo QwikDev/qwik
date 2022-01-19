@@ -2,7 +2,7 @@
 // DO NO USE FOR PRODUCTION!!!
 
 const express = require('express');
-const { join } = require('path');
+const { isAbsolute, join } = require('path');
 const {
   readdirSync,
   statSync,
@@ -81,7 +81,7 @@ async function buildApp(appDir) {
             delete require.cache[qwikDistServerPath];
             return qwikDistServerPath;
           }
-          if (!id.startsWith('.') && !id.startsWith('/')) {
+          if (!id.startsWith('.') && !isAbsolute(id)) {
             return { id, external: true };
           }
           return null;

@@ -38,8 +38,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: node_modules
-          key: npm-cache-ubuntu-latest-${{ hashFiles('yarn.lock') }}
-          restore-keys: npm-cache-ubuntu-latest-
+          key: npm-cache-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
 
       - name: Install NPM Dependencies
         run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
@@ -84,23 +83,20 @@ jobs:
         uses: actions/cache@v2
         with:
           path: node_modules
-          key: npm-cache-ubuntu-latest-${{ hashFiles('yarn.lock') }}
-          restore-keys: npm-cache-ubuntu-latest-
+          key: npm-cache-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
 
       - name: Cache cargo dependencies
         uses: actions/cache@v2
         with:
           path: |
             ~/.cargo
-          key: cargo-deps-wasm-${{ hashFiles('Cargo.lock') }}
-          restore-keys: cargo-deps-wasm-
+          key: cargo-deps-wasm-${{ runner.os }}-${{ hashFiles('Cargo.lock') }}
 
       - name: Cache cargo build
         uses: actions/cache@v2
         with:
           path: src/wasm/target
-          key: cargo-build-wasm-${{ hashFiles('./src/wasm/Cargo.lock') }}
-          restore-keys: cargo-build-wasm-
+          key: cargo-build-wasm-${{ runner.os }}-${{ hashFiles('./src/wasm/Cargo.lock') }}
 
       - name: Install wasm-pack
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
@@ -123,6 +119,7 @@ jobs:
 
   ############ BUILD PLATFORM BINDINGS ############
   build-bindings:
+    name: Build Bindings
     if: "!contains(github.event.head_commit.message, 'skip ci')"
     strategy:
       fail-fast: false
@@ -171,7 +168,6 @@ jobs:
         with:
           path: node_modules
           key: npm-cache-${{ matrix.settings.target }}-${{ hashFiles('yarn.lock') }}
-          restore-keys: npm-cache-${{ matrix.settings.target }}-
 
       - name: Pull Latest Image
         if: ${{ matrix.settings.docker }}
@@ -187,14 +183,12 @@ jobs:
           path: |
             ~/.cargo
           key: cargo-deps-${{ matrix.settings.target }}-${{ hashFiles('Cargo.lock') }}
-          restore-keys: cargo-deps-${{ matrix.settings.target }}-
 
       - name: Cache cargo build
         uses: actions/cache@v2
         with:
           path: target
           key: cargo-build-${{ matrix.settings.target }}-${{ hashFiles('Cargo.lock') }}
-          restore-keys: cargo-deps-${{ matrix.settings.target }}-
 
       - name: Setup Toolchain
         if: ${{ matrix.settings.setup }}
@@ -301,8 +295,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: node_modules
-          key: npm-cache-ubuntu-latest-${{ hashFiles('yarn.lock') }}
-          restore-keys: npm-cache-ubuntu-latest-
+          key: npm-cache-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
 
       - name: Install NPM Dependencies
         run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
@@ -368,8 +361,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: node_modules
-          key: npm-cache-${{ matrix.settings.host }}-${{ hashFiles('yarn.lock') }}
-          restore-keys: npm-cache-${{ matrix.settings.host }}-
+          key: npm-cache-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
 
       - name: Install NPM Dependencies
         run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
@@ -399,8 +391,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: node_modules
-          key: npm-cache-ubuntu-latest-${{ hashFiles('yarn.lock') }}
-          restore-keys: npm-cache-ubuntu-latest-
+          key: npm-cache-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
 
       - name: Install NPM Dependencies
         run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
@@ -430,15 +421,13 @@ jobs:
         with:
           path: |
             ~/.cargo
-          key: ${{ runner.os }}-cargo-deps-${{ hashFiles('Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-cargo-deps-
+          key: cargo-deps-${{ runner.os }}-${{ hashFiles('Cargo.lock') }} 
 
       - name: Cache cargo build
         uses: actions/cache@v2
         with:
           path: target
-          key: ${{ runner.os }}-cargo-build-${{ hashFiles('Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-cargo-build-
+          key: cargo-build-${{ runner.os }}-${{ hashFiles('Cargo.lock') }} 
 
       - name: Format check
         uses: actions-rs/cargo@v1
@@ -477,8 +466,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: node_modules
-          key: npm-cache-ubuntu-latest-${{ hashFiles('yarn.lock') }}
-          restore-keys: npm-cache-ubuntu-latest-
+          key: npm-cache-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
 
       - name: Install NPM Dependencies
         run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000

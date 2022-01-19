@@ -3,16 +3,9 @@
 
 const express = require('express');
 const { isAbsolute, join } = require('path');
-const {
-  readdirSync,
-  statSync,
-  mkdirSync,
-  writeFileSync,
-  rmSync,
-  readFileSync,
-  existsSync,
-} = require('fs');
+const { readdirSync, statSync, mkdirSync, writeFileSync, rmSync, readFileSync } = require('fs');
 const { rollup } = require('rollup');
+const { createDocument } = require('domino');
 
 const app = express();
 const port = parseInt(process.argv[process.argv.length - 1], 10) || 3300;
@@ -34,17 +27,12 @@ async function handleApp(req, res) {
     const url = new URL(req.url, address);
     const paths = url.pathname.split('/');
     const appName = paths[1];
-    const lastPath = paths[paths.length - 1];
     const appDir = join(startersAppsDir, appName);
-
-    if (lastPath !== '') {
-      return staticPublicFile(req, res);
-    }
 
     console.log(req.method, req.url, `[${appName} build/ssr]`);
 
     await buildApp(appDir);
-    const html = await ssrApp(req, appDir);
+    const html = await ssrApp(req, appName, appDir);
 
     res.set('Content-Type', 'text/html');
     res.send(html);
@@ -61,6 +49,7 @@ async function buildApp(appDir) {
   const appBuildServerDir = join(appBuildDir, 'server');
   const symbolsPath = join(appBuildServerDir, 'q-symbols.json');
 
+  // always clean the build directory
   rmSync(appBuildDir, { force: true, recursive: true });
   mkdirSync(appBuildDir);
   mkdirSync(appBuildServerDir);
@@ -109,41 +98,35 @@ async function buildApp(appDir) {
   });
 }
 
-async function ssrApp(req, appDir) {
+async function ssrApp(req, appName, appDir) {
   const buildDir = join(appDir, 'build');
   const serverDir = join(buildDir, 'server');
   const serverPath = join(serverDir, 'index.server.js');
   const symbolsPath = join(serverDir, 'q-symbols.json');
+  const symbols = JSON.parse(readFileSync(symbolsPath, 'utf-8'));
 
+  // require the build's server index (avoiding nodejs require cache)
   const { renderApp } = requireUncached(serverPath);
 
+  // ssr the document
   const result = await renderApp({
-    symbols: JSON.parse(readFileSync(symbolsPath, 'utf-8')),
+    symbols,
     url: new URL(`${req.protocol}://${req.hostname}${req.url}`),
     debug: true,
   });
 
-  return result.html;
-}
-
-function staticPublicFile(req, res) {
-  try {
-    const paths = req.url.split('/').filter((p) => p.length);
-
-    for (const appName of appNames) {
-      const path = join(startersAppsDir, appName, 'public', ...paths);
-      if (existsSync(path)) {
-        console.log(req.method, req.url, `[${appName} static]`);
-        res.sendFile(path);
-        return;
-      }
+  // modify the ssr'd document so we can update the paths only for this
+  // local testing dev server (we don't need to do this for actual starters)
+  const doc = createDocument(result.html);
+  doc.body.setAttribute('q:base', `/${appName}/build/`);
+  const hrefElms = Array.from(doc.querySelectorAll('[href]'));
+  hrefElms.forEach((hrefElm) => {
+    const href = hrefElm.getAttribute('href') || '';
+    if (href.startsWith('/')) {
+      hrefElm.setAttribute('href', `/${appName}${href}`);
     }
-  } catch (e) {
-    res.status(500).send(String(e.stack || e));
-    return;
-  }
-
-  res.status(404).send(`404: ${req.url}`);
+  });
+  return '<!DOCTYPE html>' + doc.documentElement.outerHTML;
 }
 
 function startersHomepage(req, res) {
@@ -152,6 +135,12 @@ function startersHomepage(req, res) {
   <html>
     <head>
       <title>Starters Dev Server</title>
+      <style>
+        body {
+          font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji;
+          line-height: 1.5;
+        }
+      </style>
     </head>
     <body>
       <h1>Starters Dev Server</h1>
@@ -163,15 +152,23 @@ function startersHomepage(req, res) {
   `);
 }
 
+function requireUncached(module) {
+  delete require.cache[require.resolve(module)];
+  return require(module);
+}
+
 appNames.forEach((appName) => {
   const buildPath = join(startersAppsDir, appName, 'build');
   app.use(`/${appName}/build`, express.static(buildPath));
+
+  const publicPath = join(startersAppsDir, appName, 'public');
+  app.use(`/${appName}`, express.static(publicPath));
 });
 
 app.get('/', startersHomepage);
 app.get('/*', handleApp);
 
-app.listen(port, () => {
+const server = app.listen(port, () => {
   console.log(`Starter Dir: ${startersDir}`);
   console.log(`Dev Server: ${address}\n`);
 
@@ -182,13 +179,4 @@ app.listen(port, () => {
   console.log(``);
 });
 
-function requireUncached(module) {
-  delete require.cache[require.resolve(module)];
-  return require(module);
-}
-
-function emptyDir(dir) {
-  try {
-    mkdirSync(appBuildServerDir, { recursive: true });
-  } catch (e) {}
-}
+process.on('SIGTERM', () => server.close());

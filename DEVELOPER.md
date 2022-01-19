@@ -17,23 +17,9 @@ Next the `start` command will:
 npm start
 ```
 
-## Running Dev Server Integration Tests
-
-The `integration/` directory is for this local repo's end-to-end and integration testing (and not necessarily app demos). Its dev server is setup to always point to the local build and stay current with the watch process.
-
-First start the integration dev server, which will also ensure a build was completed:
-
-```
-npm run integration.server
-```
-
-Then navigate to http://localhost:8080/
-
-The `npm run integration.server` commands runs the server in `development` mode, where files are not minified, source maps are inlined, and there's additional logging. To run code minified with external source maps and without extra logs, run `npm run integration.server.prod`, which is what the end-to-end tests use.
-
 ## Running All Tests
 
-To run all Unit tests ([Jest](https://jestjs.io/)) and E2E/Integration tests ([Cypress](https://www.cypress.io/)), run:
+To run all Unit tests ([Jest](https://jestjs.io/)) and E2E tests [Playwright](https://playwright.dev/), run:
 
 ```
 npm test
@@ -61,18 +47,12 @@ To debug and step through unit tests, within VSCode you can use the "Integration
 
 ### E2E Tests Only
 
-E2E and Integration tests use [Cypress](https://www.cypress.io/).
+E2E tests use [Playwright](https://playwright.dev/).
 
-To run the Cypress tests headless, from start to finish, run:
+To run the Playwright tests headless, from start to finish, run:
 
 ```
 npm run test.e2e
-```
-
-To open Cypress in interactive mode and control through a browser, run:
-
-```
-npm run test.e2e.open
 ```
 
 ## Production Build

@@ -1,28 +1,32 @@
 import { assertDefined, assertEqual, assertNotEqual } from '../assert/assert';
 import { qNotifyRender } from '../render/q-notify-render';
-import { safeQSubscribe } from '../use/use-core.public';
-import type { QObject as IQObject } from './q-object.public';
-export const Q_OBJECT_PREFIX_SEP = ':';
+import { safeQSubscribe } from '../use/use-core';
+import { isElement } from '../util/element';
+import { AttributeMarker } from '../util/markers';
+import { debugStringify } from '../util/stringify';
 
-export function _qObject<T>(obj: T): T {
+export type QObject<T extends {}> = T & { __brand__: 'QObject' };
+
+export function qObject<T extends Object>(obj: T): T {
   assertEqual(unwrapProxy(obj), obj, 'Unexpected proxy at this location');
-  const proxy = readWriteProxy(obj as any as IQObject<T>, generateId());
+  if (obj == null || typeof obj !== 'object') {
+    // TODO(misko): centralize
+    throw new Error(
+      `Q-ERROR: Only objects can be wrapped in 'QObject', got ` + debugStringify(obj)
+    );
+  }
+  if (obj.constructor !== Object) {
+    throw new Error(
+      `Q-ERROR: Only objects literals can be wrapped in 'QObject', got ` + debugStringify(obj)
+    );
+  }
+  const proxy = readWriteProxy(obj as any as QObject<T>, generateId());
   Object.assign(proxy, obj);
   return proxy;
 }
 
-export function _stateQObject<T>(obj: T, prefix: string): T {
-  const id = getQObjectId(obj);
-  if (id) {
-    (obj as any)[QObjectIdSymbol] = prefix + Q_OBJECT_PREFIX_SEP + id;
-    return obj;
-  } else {
-    return readWriteProxy(obj as any as IQObject<T>, prefix + Q_OBJECT_PREFIX_SEP + generateId());
-  }
-}
-
 export function _restoreQObject<T>(obj: T, id: string): T {
-  return readWriteProxy(obj as any as IQObject<T>, id);
+  return readWriteProxy(obj as any as QObject<T>, id);
 }
 
 function QObject_notifyWrite(id: string, doc: Document | null) {
@@ -37,13 +41,24 @@ function QObject_notifyRead(target: any) {
   safeQSubscribe(proxy);
 }
 
-export function QObject_addDoc(qObj: IQObject<any>, doc: Document) {
+export function QObject_addDoc(qObj: QObject<any>, doc: Document) {
   assertNotEqual(unwrapProxy(qObj), qObj, 'Expected Proxy');
   qObj[QObjectDocumentSymbol] = doc;
 }
 
 export function getQObjectId(obj: any): string | null {
-  return (obj && typeof obj === 'object' && obj[QObjectIdSymbol]) || null;
+  let id: undefined | null | string;
+  if (obj && typeof obj === 'object') {
+    id = obj[QObjectIdSymbol];
+    if (!id && isElement(obj)) {
+      id = obj.getAttribute(AttributeMarker.ELEMENT_ID);
+      if (id == null) {
+        obj.setAttribute(AttributeMarker.ELEMENT_ID, (id = generateId()));
+      }
+      id = AttributeMarker.ELEMENT_ID_PREFIX + id;
+    }
+  }
+  return id || null;
 }
 
 export function getTransient<T>(obj: any, key: any): T | null {
@@ -59,15 +74,7 @@ export function setTransient<T>(obj: any, key: any, value: T): T {
 
 function idToComponentSelector(id: string): any {
   id = id.replace(/([^\w\d])/g, (_, v) => '\\' + v);
-  return '[q\\:obj*=' + (isStateObj(id) ? '' : '\\!') + id + ']';
-}
-
-export function isStateObj(id: any): boolean {
-  if (id && typeof id !== 'string') {
-    id = getQObjectId(id)!;
-    assertDefined(id);
-  }
-  return id.indexOf(Q_OBJECT_PREFIX_SEP) !== -1;
+  return '[q\\:obj*=\\!' + id + ']';
 }
 
 /**
@@ -84,7 +91,7 @@ export function readWriteProxy<T extends object>(target: T, id: string): T {
 
 const QOjectTargetSymbol = ':target:';
 const QOjectTransientsSymbol = ':transients:';
-const QObjectIdSymbol = ':id:';
+export const QObjectIdSymbol = ':id:';
 const QObjectDocumentSymbol = ':doc:';
 
 export function unwrapProxy<T>(proxy: T): T {

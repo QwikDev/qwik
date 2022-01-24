@@ -5,7 +5,7 @@
 // it to the desired comment location
 //
 
-import { Fragment, h, qHook, Async, PromiseValue } from '@builder.io/qwik';
+import { Fragment, h, Async, PromiseValue } from '@builder.io/qwik';
 
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
@@ -13,7 +13,7 @@ import { Fragment, h, qHook, Async, PromiseValue } from '@builder.io/qwik';
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
 
-export const PromiseValue_1 = qHook(() => (
+export const PromiseValue_1 = () => (
   // - 8>< -- 8>< -- 8>< -- 8>< -- 8>< -- 8>< -- 8>< -- 8>< -
   <Async resolve={Promise.resolve('some value')}>
     {(response: PromiseValue<string>) => {
@@ -23,7 +23,7 @@ export const PromiseValue_1 = qHook(() => (
     }}
   </Async>
   // - 8>< -- 8>< -- 8>< -- 8>< -- 8>< -- 8>< -- 8>< -- 8>< -
-));
+);
 
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
@@ -31,7 +31,7 @@ export const PromiseValue_1 = qHook(() => (
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
 
-export const Async_1 = qHook(() => (
+export const Async_1 = () => (
   // - 8>< -- 8>< -- 8>< -- 8>< -- 8>< -- 8>< -- 8>< -- 8>< -
   <Async
     resolve={Promise.resolve('some value')}
@@ -40,9 +40,9 @@ export const Async_1 = qHook(() => (
     onError={(rejection) => <pre>{rejection}</pre>}
   />
   // - 8>< -- 8>< -- 8>< -- 8>< -- 8>< -- 8>< -- 8>< -- 8>< -
-));
+);
 
-export const Async_2 = qHook(() => (
+export const Async_2 = () => (
   // - 8>< -- 8>< -- 8>< -- 8>< -- 8>< -- 8>< -- 8>< -- 8>< -
   <Async resolve={Promise.resolve('some value')}>
     {(response) => {
@@ -52,4 +52,4 @@ export const Async_2 = qHook(() => (
     }}
   </Async>
   // - 8>< -- 8>< -- 8>< -- 8>< -- 8>< -- 8>< -- 8>< -- 8>< -
-));
+);

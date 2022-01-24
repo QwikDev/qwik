@@ -105,10 +105,7 @@ export function serializeDocument(doc: Document, opts?: SerializeDocumentOptions
 export function setServerPlatform(document: any, opts: DocumentOptions): Promise<void>;
 
 // @alpha (undocumented)
-export const versions: {
-    qwik: string;
-    domino: string;
-};
+export const versions: {};
 
 // (No @packageDocumentation comment for this package)
 

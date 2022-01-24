@@ -3,12 +3,12 @@ import {
   h,
   Host,
   qComponent,
-  qHook,
-  QObject,
   Slot,
   PropsOf,
   qProps,
   useEvent,
+  onRender,
+  useState,
 } from '@builder.io/qwik';
 /* eslint no-console: ["off"] */
 
@@ -16,25 +16,29 @@ export interface Cmp {
   class?: string;
   isLazy?: boolean;
   isHydrated?: boolean;
-  children?: QObject<Cmp>[];
-  related?: QObject<Cmp>;
+  children?: Cmp[];
+  related?: Cmp;
 }
 
 type ArchMode = 'monolith' | 'island' | 'uIslet';
 
-export const ArchApp = qComponent<{ monolith: Cmp; islands: Cmp; uIslets: Cmp }>({
-  onRender: qHook(({ monolith, islands, uIslets }) => (
+export const ArchApp = qComponent((props: { monolith: Cmp; islands: Cmp; uIslets: Cmp }) => {
+  return onRender(() => (
     <>
       <h1>Monolith</h1>
       <b>Examples:</b> Angular, React, Solid, Svelte, Vue, WebComponents
-      <MonolithScrubber cmp={monolith} />
+      <MonolithScrubber cmp={props.monolith} />
       <Browser class="monolith">
-        <Component cmp={monolith} arch="monolith" class={getCmpClass(monolith, 'app')} />
+        <Component
+          cmp={props.monolith}
+          arch="monolith"
+          class={getCmpClass(props.monolith, 'app')}
+        />
       </Browser>
       <h1>Island</h1>
       <b>Examples:</b> Astro
       <Browser class="island">
-        <Component cmp={islands} arch="island" class={getCmpClass(islands, 'app')} />
+        <Component cmp={props.islands} arch="island" class={getCmpClass(props.islands, 'app')} />
       </Browser>
       <b>Issue:</b> Bootstrapping independent applications
       <ul>
@@ -49,15 +53,14 @@ export const ArchApp = qComponent<{ monolith: Cmp; islands: Cmp; uIslets: Cmp }>
         />
       </h1>
       <Browser class="uIselt">
-        <Component cmp={uIslets} arch="uIslet" class={getCmpClass(uIslets, 'app')} />
+        <Component cmp={props.uIslets} arch="uIslet" class={getCmpClass(props.uIslets, 'app')} />
       </Browser>
     </>
-  )),
+  ));
 });
 
-export const Browser = qComponent({
-  tagName: 'browser',
-  onRender: qHook(() => (
+export const Browser = qComponent('browser', () => {
+  return onRender(() => (
     <div class="browser">
       <div class="browser-url">
         <span>⇦ ⇨ ⟳</span>
@@ -67,20 +70,20 @@ export const Browser = qComponent({
         <Slot />
       </div>
     </div>
-  )),
+  ));
 });
 
-export const Component = qComponent<{ cmp: Cmp; arch: ArchMode }>({
-  tagName: 'component',
-  onRender: qHook(({ cmp, arch }) => (
-    <Host class={getCmpClass(cmp)} on:click={Component_click}>
-      {cmp.children && cmp.children.map((cmp) => <Component cmp={cmp} arch={arch} />)}
-      {cmp.children ? null : '...'}
+export const Component = qComponent('component', (props: { cmp: Cmp; arch: ArchMode }) => {
+  return onRender(() => (
+    <Host class={getCmpClass(props.cmp)} on:click={Component_click}>
+      {props.cmp.children &&
+        props.cmp.children.map((cmp) => <Component cmp={cmp} arch={props.arch} />)}
+      {props.cmp.children ? null : '...'}
     </Host>
-  )),
+  ));
 });
 
-export const Component_click = qHook(async () => {
+export const Component_click = async () => {
   // TODO(misko): Workaround for the fact that the click listener is sitting on `<Host>` and hence
   // has parent visibility. Correct solution is to have HOST mode when writing to qProps which would
   // take these issues into account.
@@ -103,7 +106,7 @@ export const Component_click = qHook(async () => {
       }
       break;
   }
-});
+};
 
 function getCmpClass(cmp: Cmp, ...additionalClasses: string[]) {
   const classes: string[] = [];
@@ -113,34 +116,28 @@ function getCmpClass(cmp: Cmp, ...additionalClasses: string[]) {
   return classes.join(' ');
 }
 
-export const MonolithScrubber = qComponent<{ cmp: Cmp }, { step: number }>({
-  onMount: qHook(() => ({ step: 1 })),
-  onRender: qHook((props, { step }) => (
+export const MonolithScrubber = qComponent((props: { cmp: Cmp }) => {
+  const state = useState({ step: 1 });
+  return onRender(() => (
     <>
       <ol>
-        <li class={step >= 1 ? 'active' : ''}>
+        <li class={state.step >= 1 ? 'active' : ''}>
           SSR HTML sent from the server and rendered by browser.
         </li>
-        <li class={step >= 2 ? 'active' : ''}>Browser downloads application Javascript.</li>
-        <li class={step >= 3 ? 'active' : ''}>
+        <li class={state.step >= 2 ? 'active' : ''}>Browser downloads application Javascript.</li>
+        <li class={state.step >= 3 ? 'active' : ''}>
           Browser executes application Javascript and starts the reconciliation process.
         </li>
-        <li class={step >= 4 ? 'active' : ''}>
+        <li class={state.step >= 4 ? 'active' : ''}>
           Framework requests the lazy loaded components because they are visible.
         </li>
-        <li class={step >= 5 ? 'active' : ''}>
+        <li class={state.step >= 5 ? 'active' : ''}>
           Framework completes the rehydration of the application.
         </li>
       </ol>
-      <button
-        on:click={qHook<typeof MonolithScrubber>((props, state) => {
-          monolithUpdate(props.cmp, ++state.step);
-        })}
-      >
-        &gt;&gt;&gt;
-      </button>
+      <button on:click={() => monolithUpdate(props.cmp, ++state.step)}>&gt;&gt;&gt;</button>
     </>
-  )),
+  ));
 });
 
 function monolithUpdate(cmp: Cmp, step: number) {

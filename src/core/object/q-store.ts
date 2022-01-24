@@ -13,6 +13,7 @@ export interface Store {
 export function QStore_hydrate(doc: Document): Record<string, object> | null {
   const script = doc.querySelector('script[type="qwik/json"]');
   let map: Record<string, object> | null = null;
+  (doc as any).qDehydrate = () => QStore_dehydrate(doc);
   if (script) {
     script.parentElement!.removeChild(script);
     map = JSON.parse(script.textContent || '{}');
@@ -22,8 +23,14 @@ export function QStore_hydrate(doc: Document): Record<string, object> | null {
   return map;
 }
 
+/**
+ * Serialize the current state of the application into DOM
+ *
+ * @param doc
+ */
 export function QStore_dehydrate(doc: Document) {
   const map: Record<string, any> = {};
+  // Find all Elements which have qObjects attached to them
   doc.querySelectorAll('[q\\:obj]').forEach((node) => {
     const props = qProps(node) as QPropsContext;
     const qMap = props.__qRefs__;
@@ -34,6 +41,7 @@ export function QStore_dehydrate(doc: Document) {
       collectQObjects(v, new Set(), (k, v) => (map[k] = v));
     });
   });
+  // Serialize
   const script = doc.createElement('script');
   script.setAttribute('type', 'qwik/json');
   script.textContent = JSON.stringify(

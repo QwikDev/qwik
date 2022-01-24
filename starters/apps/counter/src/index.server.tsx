@@ -1,0 +1,31 @@
+/**
+ * @license
+ * Copyright Builder.io, Inc. All Rights Reserved.
+ *
+ * Use of this source code is governed by an MIT-style license that can be
+ * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
+ */
+
+import { h } from '@builder.io/qwik';
+import { renderToString, RenderToStringOptions, QwikLoader } from '@builder.io/qwik/server';
+import { Counter } from './counter';
+
+/**
+ * Entry point for server-side pre-rendering.
+ *
+ * @returns a promise when all of the rendering is completed.
+ */
+export function renderApp(opts: RenderToStringOptions) {
+  return renderToString(
+    <html>
+      <head>
+        <title>Qwik Blank App</title>
+      </head>
+      <body q:base="/build/">
+        <Counter />
+        <QwikLoader debug={opts.debug} />
+      </body>
+    </html>,
+    opts
+  );
+}

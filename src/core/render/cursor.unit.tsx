@@ -1,7 +1,6 @@
 import { Fragment, h, Slot } from '@builder.io/qwik';
 import { expectDOM } from '../../testing/expect-dom.unit';
 import { toDOM } from '../../testing/jsx';
-import { qHook } from '../component/qrl-hook.public';
 import { AttributeMarker } from '../util/markers';
 import {
   cursorForParent,
@@ -13,6 +12,7 @@ import {
 } from './cursor';
 import type { ComponentRenderQueue } from './q-render';
 import { getQComponent } from '../component/q-component-ctx';
+import { runtimeQrl } from '../import/qrl';
 
 describe('cursor', () => {
   it('should build up DOM', () => {
@@ -21,12 +21,12 @@ describe('cursor', () => {
     expect(parentCursor.parent).toEqual(parent);
     expect(parentCursor.node).toEqual(null);
 
-    const divCursor = cursorReconcileElement(parentCursor, null, 'div', {}, null);
+    const divCursor = cursorReconcileElement(parentCursor, null, 'div', {}, [], false);
     expect(parentCursor.node).toEqual(null);
     cursorReconcileText(divCursor, 'A');
     cursorReconcileEnd(divCursor);
 
-    const spanCursor = cursorReconcileElement(parentCursor, null, 'span', {}, null);
+    const spanCursor = cursorReconcileElement(parentCursor, null, 'span', {}, [], false);
     expect(parentCursor.node).toEqual(null);
     cursorReconcileText(spanCursor, 'B');
     cursorReconcileEnd(spanCursor);
@@ -53,11 +53,11 @@ describe('cursor', () => {
     expect(parentCursor.parent).toEqual(parent);
     expect(parentCursor.node).toEqual(parent.querySelector('div'));
 
-    const divCursor = cursorReconcileElement(parentCursor, null, 'div', { id: 123 }, null);
+    const divCursor = cursorReconcileElement(parentCursor, null, 'div', { id: 123 }, [], false);
     cursorReconcileText(divCursor, 'A');
     cursorReconcileEnd(divCursor);
 
-    const spanCursor = cursorReconcileElement(parentCursor, null, 'span', {}, null);
+    const spanCursor = cursorReconcileElement(parentCursor, null, 'span', {}, [], false);
     cursorReconcileText(spanCursor, 'B');
     cursorReconcileEnd(spanCursor);
 
@@ -83,11 +83,11 @@ describe('cursor', () => {
     );
     const parentCursor = cursorForParent(parent);
 
-    const divCursor = cursorReconcileElement(parentCursor, null, 'div', {}, null);
+    const divCursor = cursorReconcileElement(parentCursor, null, 'div', {}, [], false);
     cursorReconcileText(divCursor, 'A');
     cursorReconcileEnd(divCursor);
 
-    const spanCursor = cursorReconcileElement(parentCursor, null, 'span', {}, null);
+    const spanCursor = cursorReconcileElement(parentCursor, null, 'span', {}, [], false);
     cursorReconcileText(spanCursor, 'B');
     cursorReconcileEnd(spanCursor);
 
@@ -120,7 +120,7 @@ describe('cursor', () => {
     );
     cursorReconcileStartVirtualNode(childCursor);
     cursorReconcileText(childCursor, 'ABC');
-    cursorReconcileElement(childCursor, null, 'div', {}, null);
+    cursorReconcileElement(childCursor, null, 'div', {}, [], false);
     cursorReconcileEnd(childCursor);
     expectDOM(
       parent,
@@ -146,7 +146,7 @@ describe('cursor', () => {
     const parentCursor = cursorForParent(parent);
     const span = parent.querySelector('span');
 
-    const spanCursor = cursorReconcileElement(parentCursor, null, 'span', {}, null);
+    const spanCursor = cursorReconcileElement(parentCursor, null, 'span', {}, [], false);
     cursorReconcileText(spanCursor, 'A');
     cursorReconcileEnd(spanCursor);
 
@@ -176,7 +176,8 @@ describe('cursor', () => {
         null,
         'component',
         COMPONENT_ATTRS,
-        log
+        log,
+        true
       );
       cursorReconcileText(componentCursor, 'ABC');
 
@@ -195,7 +196,7 @@ describe('cursor', () => {
     it('should reconcile non-projected nodes', () => {
       const parent = toDOM(
         <parent>
-          <component on:q-render={qHook(() => null) as any}>
+          <component on:q-render={() => null}>
             <template q:slot={true as any}>
               OLD
               <b />
@@ -210,7 +211,8 @@ describe('cursor', () => {
         null,
         'component',
         COMPONENT_ATTRS,
-        log
+        log,
+        true
       );
       cursorReconcileText(componentCursor, 'NEW');
       cursorReconcileEnd(componentCursor);
@@ -230,7 +232,7 @@ describe('cursor', () => {
     it('should reconcile projected element', () => {
       const parent = toDOM(
         <parent>
-          <component on:q-render={qHook(() => null) as any}>
+          <component on:q-render={() => null}>
             <q:slot name="detail">
               <b />
             </q:slot>
@@ -244,14 +246,16 @@ describe('cursor', () => {
         null,
         'component',
         COMPONENT_ATTRS,
-        log
+        log,
+        true
       );
       const divCursor = cursorReconcileElement(
         componentCursor,
         null,
         'div',
         { [AttributeMarker.QSlotAttr]: 'detail' },
-        null
+        log,
+        false
       );
       cursorReconcileText(divCursor, 'DETAIL');
 
@@ -275,7 +279,7 @@ describe('cursor', () => {
       const parent = toDOM(
         <parent>
           <component
-            on:q-render={qHook(() => (
+            on:q-render={runtimeQrl(() => (
               <Slot />
             ))}
           >
@@ -304,7 +308,7 @@ describe('cursor', () => {
       const parent = toDOM(
         <parent>
           <component
-            on:q-render={qHook(() => (
+            on:q-render={runtimeQrl(() => (
               <Slot />
             ))}
           >
@@ -335,7 +339,7 @@ describe('cursor', () => {
     it('should render component if it gets placed in non-inert slot', async () => {
       const parent = toDOM(
         <parent>
-          <component on:q-render={qHook(() => null) as any}>
+          <component on:q-render={runtimeQrl(() => null)}>
             <template q:slot={true as any}></template>
             <q:slot name=""></q:slot>
           </component>
@@ -347,14 +351,16 @@ describe('cursor', () => {
         null,
         'component',
         COMPONENT_ATTRS,
-        log
+        log,
+        true
       );
       const childCursor = cursorReconcileElement(
         componentCursor,
         null,
         'child',
-        { [AttributeMarker.OnRender]: childOnRender },
-        log
+        { [AttributeMarker.OnRenderAttr]: childOnRender },
+        log,
+        true
       );
       cursorReconcileEnd(childCursor);
       cursorReconcileEnd(componentCursor);
@@ -377,5 +383,5 @@ describe('cursor', () => {
   });
 });
 
-const childOnRender = qHook(() => <div>WORKS</div>);
-const COMPONENT_ATTRS = { [AttributeMarker.OnRender]: childOnRender };
+const childOnRender = runtimeQrl(() => <div>WORKS</div>);
+const COMPONENT_ATTRS = { [AttributeMarker.OnRenderAttr]: childOnRender };

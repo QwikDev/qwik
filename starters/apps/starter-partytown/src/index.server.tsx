@@ -20,14 +20,14 @@ export function renderApp(opts: RenderToStringOptions) {
     <html>
       <head>
         <title>Qwik + Partytown Blank App</title>
-        <script defer async src="~partytown/debug/partytown.js"></script>
+        <script defer async src="/~partytown/debug/partytown.js"></script>
       </head>
       <body q:base="/build/">
         <MyApp />
         <script type="text/partytown">
           ({partyTownExampleWhichBlocksMainThreadForOneSecond.toString()})()
         </script>
-        <QwikLoader debug={opts.debug} events={['click', 'keyup', 'expensive-computation-done']} />
+        <QwikLoader debug={opts.debug} events={['click', 'keyup', 'expensiveComputationDone']} />
       </body>
     </html>,
     opts
@@ -45,5 +45,5 @@ function partyTownExampleWhichBlocksMainThreadForOneSecond() {
   }
   // eslint-disable-next-line no-console
   console.log('Expensive computation ended at:', end);
-  document.dispatchEvent(new Event('expensive-computation-done', { bubbles: true }));
+  document.dispatchEvent(new Event('expensiveComputationDone', { bubbles: true }));
 }

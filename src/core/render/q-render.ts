@@ -88,13 +88,14 @@ function visitJsxLiteralNode(
   jsxNode: JSXNode<string>
 ): void {
   const jsxTag = jsxNode.type as string;
-  const isQComponent = AttributeMarker.OnRender in jsxNode.props;
+  const isQComponent = AttributeMarker.OnRenderProp in jsxNode.props;
   const elementCursor = cursorReconcileElement(
     cursor,
     component,
     jsxTag,
     jsxNode.props,
-    isQComponent ? renderQueue : null
+    renderQueue,
+    isQComponent
   );
   if (!hasInnerHtmlOrTextBinding(jsxNode)) {
     // we don't process children if we have inner-html bound to something.
@@ -125,7 +126,8 @@ export function visitQSlotJsxNode(
     component,
     AttributeMarker.QSlot,
     { [AttributeMarker.QSlotName]: slotName, ...jsxNode.props },
-    null
+    renderQueue,
+    false
   );
   const slotMap = getSlotMap(component);
   const namedSlot = keyValueArrayGet(slotMap, slotName);

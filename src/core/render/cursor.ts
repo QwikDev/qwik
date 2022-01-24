@@ -20,6 +20,7 @@ import { didQPropsChange } from '../props/q-props';
 import type { ComponentRenderQueue } from './q-render';
 import { getSlotMap, isSlotMap, NamedSlot, NamedSlotEnum, SlotMap } from './slots';
 import { qProps } from '../props/q-props.public';
+import type { Ref } from './ref';
 
 /**
  * Cursor represents a set of sibling elements at a given level in the DOM.
@@ -129,7 +130,8 @@ export function cursorReconcileElement(
   component: QComponentCtx | null,
   expectTag: string,
   expectProps: Record<string, any> | typeof String,
-  componentRenderQueue: ComponentRenderQueue | null
+  _componentRenderQueue: ComponentRenderQueue,
+  isComponent: boolean
 ): Cursor {
   let node = getNode(cursor);
   assertNotEqual(node, undefined, 'Cursor already closed');
@@ -142,7 +144,8 @@ export function cursorReconcileElement(
       component,
       expectTag,
       expectProps,
-      componentRenderQueue
+      _componentRenderQueue,
+      isComponent
     );
   } else {
     assertNotEqual(node, undefined, 'Cursor already closed');
@@ -153,11 +156,13 @@ export function cursorReconcileElement(
       component,
       expectTag,
       expectProps,
-      componentRenderQueue
+      _componentRenderQueue,
+      isComponent,
+      false
     );
     assertDefined(node);
     setNode(cursor, node.nextSibling);
-    return _reconcileElementChildCursor(node as Element, !!componentRenderQueue);
+    return _reconcileElementChildCursor(node as Element, isComponent);
   }
 }
 
@@ -168,7 +173,8 @@ function slotMapReconcileSlots(
   component: QComponentCtx | null,
   expectTag: string,
   expectProps: Record<string, any>,
-  componentRenderQueue: ComponentRenderQueue | null
+  _componentRenderQueue: ComponentRenderQueue,
+  isComponent: boolean
 ): Cursor {
   const slotName = expectProps[AttributeMarker.QSlotAttr] || '';
   const namedSlot = keyValueArrayGet(slots, slotName);
@@ -188,7 +194,9 @@ function slotMapReconcileSlots(
       component,
       expectTag,
       expectProps,
-      componentRenderQueue
+      _componentRenderQueue,
+      isComponent,
+      false
     );
     if (childNode !== node) {
       namedSlot[index] = node;
@@ -204,11 +212,13 @@ function slotMapReconcileSlots(
       component,
       expectTag,
       expectProps,
+      _componentRenderQueue,
+      isComponent,
       true
     );
     assertDefined(childNode);
   }
-  return _reconcileElementChildCursor(childNode as Element, !!componentRenderQueue);
+  return _reconcileElementChildCursor(childNode as Element, isComponent);
 }
 
 function _reconcileElement(
@@ -217,15 +227,17 @@ function _reconcileElement(
   end: Node | null,
   component: QComponentCtx | null,
   expectTag: string,
-  expectProps: Record<string, any> | StringConstructor,
-  componentRenderQueue: ComponentRenderQueue | null | true
+  expectProps: Record<string, any>,
+  componentRenderQueue: ComponentRenderQueue,
+  isComponent: boolean,
+  isProjected: boolean
 ): Element {
   let shouldDescendIntoComponent: boolean;
   let reconciledElement: HTMLElement;
   if (isDomElementWithTagName(existing, expectTag)) {
     const props = qProps(existing as HTMLElement) as any;
-    Object.assign(props, expectProps);
-    shouldDescendIntoComponent = didQPropsChange(props) && !!componentRenderQueue;
+    propAssign(existing, props, expectProps, componentRenderQueue);
+    shouldDescendIntoComponent = didQPropsChange(props) && isComponent;
     reconciledElement = existing as HTMLElement;
   } else {
     // Expected node and actual node did not match. Need to switch.
@@ -235,20 +247,40 @@ function _reconcileElement(
       (isDocument(parent) ? parent : parent.ownerDocument!).createElement(expectTag),
       end
     );
-    shouldDescendIntoComponent = !!componentRenderQueue;
-    Object.assign(qProps(reconciledElement), expectProps);
+    shouldDescendIntoComponent = isComponent;
+    propAssign(reconciledElement, qProps(reconciledElement), expectProps, componentRenderQueue);
   }
   component && component.styleClass && reconciledElement.classList.add(component.styleClass);
   if (shouldDescendIntoComponent) {
     const hostComponent = getQComponent(reconciledElement)!;
     hostComponent.styleHostClass && reconciledElement.classList.add(hostComponent.styleHostClass);
-    if (Array.isArray(componentRenderQueue)) {
+    if (isComponent && !isProjected) {
       componentRenderQueue.push(hostComponent.render());
-    } else if (reconciledElement.getAttribute(AttributeMarker.OnRender)) {
+    } else if (reconciledElement.getAttribute(AttributeMarker.OnRenderAttr)) {
       reconciledElement.setAttribute(AttributeMarker.RenderNotify, '');
     }
   }
   return reconciledElement;
+}
+
+function propAssign(
+  element: Element,
+  dst: Record<string, any>,
+  src: Record<string, any>,
+  componentRenderQueue: ComponentRenderQueue | null | true
+) {
+  for (const key in src) {
+    if (Object.prototype.hasOwnProperty.call(src, key)) {
+      if (key === 'q:ref') {
+        assertDefined(componentRenderQueue);
+        const ref: Ref = src[key];
+        ref.current = element;
+        (componentRenderQueue as ComponentRenderQueue).push(ref.onRender && ref.onRender(element));
+      } else {
+        dst[key] = src[key];
+      }
+    }
+  }
 }
 
 function _reconcileElementChildCursor(node: Element, isComponent: boolean) {

@@ -1,12 +1,15 @@
 // TODO(misko): need full object parsing /serializing
 
 import { assertDefined } from '../assert/assert';
-import { getQObjectId } from '../object/q-object';
+import { getQObjectId, qObject } from '../object/q-object';
+import type { QObjectMap } from '../props/q-props-obj-map';
+import { qProps } from '../props/q-props.public';
+import { AttributeMarker } from '../util/markers';
 
 export const JSON_OBJ_PREFIX = '\u0010';
 export const ATTR_OBJ_PREFIX = '*';
 
-export function qJsonStringify(obj: any, map?: Map<string, any>): string {
+export function qJsonStringify(obj: any, map?: QObjectMap): string {
   if (obj == undefined) return String(obj);
   if (typeof obj == 'number') return String(obj);
   if (typeof obj == 'boolean') return String(obj);
@@ -34,7 +37,7 @@ export function qJsonStringify(obj: any, map?: Map<string, any>): string {
   });
 }
 
-export function qJsonParse(txt: string, map?: Map<string, any>): any {
+export function qJsonParse(txt: string, map?: QObjectMap): any {
   if (txt == '') return '';
   if (txt == 'null') return null;
   if (txt == 'undefined') return undefined;
@@ -71,6 +74,51 @@ export function qJsonParse(txt: string, map?: Map<string, any>): any {
     });
   }
   return txt;
+}
+
+export function qDeflate(obj: any, map: QObjectMap): any {
+  if (obj && typeof obj === 'object') {
+    let id = getQObjectId(obj);
+    if (!id) {
+      obj = qObject(obj);
+      id = getQObjectId(obj)!;
+    }
+    map.set(id, obj);
+    return JSON_OBJ_PREFIX + id;
+  }
+  return obj;
+}
+
+export function qInflate(obj: any, map: QObjectMap): any {
+  if (typeof obj === 'string' && obj.charAt(0) === JSON_OBJ_PREFIX) {
+    const prefix = obj.charAt(1);
+    if (
+      prefix == AttributeMarker.ELEMENT_ID_PREFIX ||
+      prefix == AttributeMarker.ELEMENT_ID_Q_PROPS_PREFIX
+    ) {
+      const id = obj.substring(2);
+      const selector = AttributeMarker.ELEMENT_ID_SELECTOR.replace('{}', id);
+      const element = map.element;
+      const ourElement =
+        element.closest(selector) ||
+        element.querySelector(selector) ||
+        element.ownerDocument.querySelector(selector);
+      if (!ourElement) {
+        // TODO(misko): centralize
+        throw new Error(`Q-ERROR: Element with '${selector}' can not be located.`);
+      }
+      return prefix == AttributeMarker.ELEMENT_ID_Q_PROPS_PREFIX ? qProps(ourElement) : ourElement;
+    } else {
+      const id = obj.substring(1);
+      const ref = map.get(id);
+      if (!ref) {
+        // TODO(misko): centralize
+        throw new Error(`Q-ERROR: Unable to located object with id '${id}'.`);
+      }
+      return ref;
+    }
+  }
+  return obj;
 }
 
 function isDash(ch: number) {

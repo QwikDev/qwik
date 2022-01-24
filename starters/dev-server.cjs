@@ -20,6 +20,7 @@ const qwikDistDir = join(__dirname, '..', 'dist-dev', '@builder.io-qwik');
 const qwikDistCorePath = join(qwikDistDir, 'core.mjs');
 const qwikDistServerPath = join(qwikDistDir, 'server', 'index.mjs');
 const qwikDistOptimizerPath = join(qwikDistDir, 'optimizer.cjs');
+const qwikDistJsxRuntimePath = join(qwikDistDir, 'jsx-runtime.mjs');
 
 // dev server builds ssr's the starter app on-demand (don't do this in production)
 async function handleApp(req, res) {
@@ -69,6 +70,10 @@ async function buildApp(appDir) {
           if (id === '@builder.io/qwik/server') {
             delete require.cache[qwikDistServerPath];
             return qwikDistServerPath;
+          }
+          if (id === '@builder.io/qwik/jsx-runtime') {
+            delete require.cache[qwikDistJsxRuntimePath];
+            return qwikDistJsxRuntimePath;
           }
           if (!id.startsWith('.') && !isAbsolute(id)) {
             return { id, external: true };

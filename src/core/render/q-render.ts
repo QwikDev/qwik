@@ -94,8 +94,7 @@ function visitJsxLiteralNode(
     component,
     jsxTag,
     jsxNode.props,
-    renderQueue,
-    isQComponent
+    isQComponent ? renderQueue : null
   );
   if (!hasInnerHtmlOrTextBinding(jsxNode)) {
     // we don't process children if we have inner-html bound to something.
@@ -126,8 +125,7 @@ export function visitQSlotJsxNode(
     component,
     AttributeMarker.QSlot,
     { [AttributeMarker.QSlotName]: slotName, ...jsxNode.props },
-    renderQueue,
-    false
+    null
   );
   const slotMap = getSlotMap(component);
   const namedSlot = keyValueArrayGet(slotMap, slotName);

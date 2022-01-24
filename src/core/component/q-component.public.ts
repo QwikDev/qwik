@@ -1,4 +1,3 @@
-import { assertDefined } from '../assert/assert';
 import { qImport } from '../import/qImport';
 import { QRL, toQrlOrError } from '../import/qrl';
 import type { qrlFactory } from '../props/q-props-on';
@@ -147,7 +146,7 @@ export function qComponent<PROPS extends {}>(
       const invokeCtx = newInvokeContext(hostElement);
       return useInvoke(invokeCtx, onMount, componentProps);
     };
-    return h(tagName, { 'on:qRender': onRenderFactory }) as any;
+    return h(tagName, { 'on:qRender': onRenderFactory, ...props }) as any;
   };
 }
 

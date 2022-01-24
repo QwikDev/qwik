@@ -64,7 +64,7 @@ export const OtherComponent = qComponent(() => {
   //
   // <docs anchor="props">
   const MyComp = qComponent((props: { title: 'MyTitle'; label: 'defaultLabel' }) => {
-    withProps(...other);
+    withProps({ title: props.title, ...other });
     return onRender(() => <span></span>);
   });
   // </docs>

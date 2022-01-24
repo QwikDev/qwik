@@ -4,7 +4,6 @@ import { parseQRL, QRL } from '../import/qrl';
 import { qJsonParse, qJsonStringify } from '../json/q-json';
 import { getQObjectId, QObjectIdSymbol, wrap } from '../object/q-object';
 import { QStore_hydrate } from '../object/q-store';
-import { isRef } from '../render/ref';
 import { fromCamelToKebabCase } from '../util/case';
 import { EMPTY_ARRAY } from '../util/flyweight';
 import { AttributeMarker } from '../util/markers';

@@ -1,13 +1,10 @@
 import { qImport } from '../import/qImport';
 import { isQrl, parseQRL, QRL, stringifyQRL } from '../import/qrl';
 import { qDeflate } from '../json/q-json';
-import { h } from '../render/jsx/factory';
-import { Fragment } from '../render/jsx/jsx-runtime';
 import { getInvokeContext, useInvoke } from '../use/use-core';
 import { fromCamelToKebabCase } from '../util/case';
 import { EMPTY_ARRAY } from '../util/flyweight';
 import { isPromise } from '../util/promises';
-import { qGlobal } from '../util/qdev';
 import { debugStringify } from '../util/stringify';
 import type { ValueOrPromise } from '../util/types';
 import type { QPropsContext } from './q-props';
@@ -58,9 +55,6 @@ export function qPropReadQRL(
         if (!qrl.symbolRef) {
           qrl.symbolRef = await qImport(cache.__element__, qrl);
         }
-        // TODO(HACK): Hack to work around Optimizer bug.
-        qGlobal.h = h;
-        qGlobal.Fragment = Fragment;
 
         return useInvoke(context, qrl.symbolRef);
       })

@@ -21,12 +21,12 @@ describe('cursor', () => {
     expect(parentCursor.parent).toEqual(parent);
     expect(parentCursor.node).toEqual(null);
 
-    const divCursor = cursorReconcileElement(parentCursor, null, 'div', {}, [], false);
+    const divCursor = cursorReconcileElement(parentCursor, null, 'div', {}, null);
     expect(parentCursor.node).toEqual(null);
     cursorReconcileText(divCursor, 'A');
     cursorReconcileEnd(divCursor);
 
-    const spanCursor = cursorReconcileElement(parentCursor, null, 'span', {}, [], false);
+    const spanCursor = cursorReconcileElement(parentCursor, null, 'span', {}, null);
     expect(parentCursor.node).toEqual(null);
     cursorReconcileText(spanCursor, 'B');
     cursorReconcileEnd(spanCursor);
@@ -53,11 +53,11 @@ describe('cursor', () => {
     expect(parentCursor.parent).toEqual(parent);
     expect(parentCursor.node).toEqual(parent.querySelector('div'));
 
-    const divCursor = cursorReconcileElement(parentCursor, null, 'div', { id: 123 }, [], false);
+    const divCursor = cursorReconcileElement(parentCursor, null, 'div', { id: 123 }, null);
     cursorReconcileText(divCursor, 'A');
     cursorReconcileEnd(divCursor);
 
-    const spanCursor = cursorReconcileElement(parentCursor, null, 'span', {}, [], false);
+    const spanCursor = cursorReconcileElement(parentCursor, null, 'span', {}, null);
     cursorReconcileText(spanCursor, 'B');
     cursorReconcileEnd(spanCursor);
 
@@ -83,11 +83,11 @@ describe('cursor', () => {
     );
     const parentCursor = cursorForParent(parent);
 
-    const divCursor = cursorReconcileElement(parentCursor, null, 'div', {}, [], false);
+    const divCursor = cursorReconcileElement(parentCursor, null, 'div', {}, null);
     cursorReconcileText(divCursor, 'A');
     cursorReconcileEnd(divCursor);
 
-    const spanCursor = cursorReconcileElement(parentCursor, null, 'span', {}, [], false);
+    const spanCursor = cursorReconcileElement(parentCursor, null, 'span', {}, null);
     cursorReconcileText(spanCursor, 'B');
     cursorReconcileEnd(spanCursor);
 
@@ -120,7 +120,7 @@ describe('cursor', () => {
     );
     cursorReconcileStartVirtualNode(childCursor);
     cursorReconcileText(childCursor, 'ABC');
-    cursorReconcileElement(childCursor, null, 'div', {}, [], false);
+    cursorReconcileElement(childCursor, null, 'div', {}, null);
     cursorReconcileEnd(childCursor);
     expectDOM(
       parent,
@@ -146,7 +146,7 @@ describe('cursor', () => {
     const parentCursor = cursorForParent(parent);
     const span = parent.querySelector('span');
 
-    const spanCursor = cursorReconcileElement(parentCursor, null, 'span', {}, [], false);
+    const spanCursor = cursorReconcileElement(parentCursor, null, 'span', {}, null);
     cursorReconcileText(spanCursor, 'A');
     cursorReconcileEnd(spanCursor);
 
@@ -176,8 +176,7 @@ describe('cursor', () => {
         null,
         'component',
         COMPONENT_ATTRS,
-        log,
-        true
+        log
       );
       cursorReconcileText(componentCursor, 'ABC');
 
@@ -211,8 +210,7 @@ describe('cursor', () => {
         null,
         'component',
         COMPONENT_ATTRS,
-        log,
-        true
+        log
       );
       cursorReconcileText(componentCursor, 'NEW');
       cursorReconcileEnd(componentCursor);
@@ -246,16 +244,14 @@ describe('cursor', () => {
         null,
         'component',
         COMPONENT_ATTRS,
-        log,
-        true
+        log
       );
       const divCursor = cursorReconcileElement(
         componentCursor,
         null,
         'div',
         { [AttributeMarker.QSlotAttr]: 'detail' },
-        log,
-        false
+        null
       );
       cursorReconcileText(divCursor, 'DETAIL');
 
@@ -351,16 +347,14 @@ describe('cursor', () => {
         null,
         'component',
         COMPONENT_ATTRS,
-        log,
-        true
+        log
       );
       const childCursor = cursorReconcileElement(
         componentCursor,
         null,
         'child',
         { [AttributeMarker.OnRenderAttr]: childOnRender },
-        log,
-        true
+        log
       );
       cursorReconcileEnd(childCursor);
       cursorReconcileEnd(componentCursor);

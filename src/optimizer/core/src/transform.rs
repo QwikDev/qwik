@@ -88,7 +88,8 @@ pub struct QwikTransform<'a> {
     marker_functions: HashSet<Id>,
     qcomponent_fn: Option<Id>,
     qhook_fn: Option<Id>,
-
+    h_fn: Option<Id>,
+    fragment_fn: Option<Id>,
     context: ThreadSafeTransformContext,
 
     path_data: &'a PathData,
@@ -117,6 +118,8 @@ impl<'a> QwikTransform<'a> {
             global_collect,
             qcomponent_fn: global_collect.get_imported_local(&QCOMPONENT, &BUILDER_IO_QWIK),
             qhook_fn: global_collect.get_imported_local(&QHOOK, &BUILDER_IO_QWIK),
+            h_fn: global_collect.get_imported_local(&H, &BUILDER_IO_QWIK),
+            fragment_fn: global_collect.get_imported_local(&FRAGMENT, &BUILDER_IO_QWIK),
             marker_functions: MARKER_FUNTIONS
                 .iter()
                 .flat_map(|word| global_collect.get_imported_local(word, &BUILDER_IO_QWIK))
@@ -225,7 +228,22 @@ impl<'a> QwikTransform<'a> {
             let local_idents = {
                 let mut collector = IdentCollector::new();
                 folded.visit_with(&mut collector);
-                collector.get_words()
+
+                let use_h = collector.use_h;
+                let use_fragment = collector.use_fragment;
+
+                let mut idents = collector.get_words();
+                if use_h {
+                    if let Some(id) = &self.h_fn {
+                        idents.push(id.clone());
+                    }
+                }
+                if use_fragment {
+                    if let Some(id) = &self.fragment_fn {
+                        idents.push(id.clone());
+                    }
+                }
+                idents
             };
 
             let entry =

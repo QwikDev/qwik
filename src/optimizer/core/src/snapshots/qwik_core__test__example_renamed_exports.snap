@@ -1,5 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
+assertion_line: 737
 expression: output
 
 ---
@@ -25,10 +26,13 @@ export const App = /*#__PURE__*/ Component(__qwik__.qrl(()=>import("./h_test_app
 
 ============================= h_test_app__.js (ENTRY POINT)==
 
+import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 import * as __qwik__ from "@builder.io/qwik";
 export const App__ = ()=>{
     const [state] = __qwik__.useLexicalScope();
-    return(/*#__PURE__*/ h("div", null, state.thing));
+    return(/*#__PURE__*/ _jsx("div", {
+        children: state.thing
+    }));
 };
 
 ============================= h_test_app_init.js (ENTRY POINT)==

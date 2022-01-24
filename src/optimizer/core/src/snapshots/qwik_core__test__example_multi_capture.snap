@@ -1,6 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 741
+assertion_line: 737
 expression: output
 
 ---
@@ -44,6 +44,7 @@ export const Bar = /*#__PURE__*/ qComponent(__qwik__.qrl(()=>import("./h_test_ba
 ============================= h_test_foo_onrender.tsx (ENTRY POINT)==
 
 import * as __qwik__ from "@builder.io/qwik";
+import { h } from "@builder.io/qwik";
 export const Foo_onRender = ()=>{
     const [arg0, foo] = __qwik__.useLexicalScope();
     const fn = ({ aaa  })=>aaa
@@ -71,6 +72,7 @@ export const Foo_init = ({ foo  })=>{
 ============================= h_test_bar_onrender.tsx (ENTRY POINT)==
 
 import * as __qwik__ from "@builder.io/qwik";
+import { h } from "@builder.io/qwik";
 export const Bar_onRender = ()=>{
     const [bar] = __qwik__.useLexicalScope();
     return <div >

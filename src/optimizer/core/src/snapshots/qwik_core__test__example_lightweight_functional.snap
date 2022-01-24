@@ -1,6 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 741
+assertion_line: 737
 expression: output
 
 ---
@@ -56,6 +56,7 @@ export const ButtonArrow = ({ color  })=>{
 import * as __qwik__ from "@builder.io/qwik";
 import { Button } from "./test";
 import { ButtonArrow } from "./test";
+import { h } from "@builder.io/qwik";
 export const Foo_onRender = ()=>{
     return <div >
 

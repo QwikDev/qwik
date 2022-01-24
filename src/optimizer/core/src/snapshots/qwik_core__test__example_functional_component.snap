@@ -29,6 +29,7 @@ const Header = /*#__PURE__*/ qComponent(__qwik__.qrl(()=>import("./h_test_header
 ============================= h_test_header_onrender.tsx (ENTRY POINT)==
 
 import * as __qwik__ from "@builder.io/qwik";
+import { h } from "@builder.io/qwik";
 export const Header_onRender = ()=>{
     const [thing] = __qwik__.useLexicalScope();
     return <div >{thing}</div>;

@@ -1,5 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
+assertion_line: 737
 expression: output
 
 ---
@@ -33,11 +34,13 @@ export const App = /*#__PURE__*/ qComponent(__qwik__.qrl(()=>import("./h_test_ap
 
 ============================= h_test_app_onrender.js (ENTRY POINT)==
 
+import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 import * as __qwik__ from "@builder.io/qwik";
+import { h } from "@builder.io/qwik";
 export const App_onRender = ()=>{
     hola();
     new Thing();
-    return(/*#__PURE__*/ h("div", null));
+    return(/*#__PURE__*/ _jsx("div", {}));
 };
 
 ============================= h_test_app_init.js (ENTRY POINT)==

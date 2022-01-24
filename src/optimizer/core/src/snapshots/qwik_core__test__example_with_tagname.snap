@@ -1,6 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 703
+assertion_line: 737
 expression: output
 
 ---
@@ -28,6 +28,7 @@ export const Foo = /*#__PURE__*/ qComponent("my-foo", __qwik__.qrl(()=>import(".
 ============================= h_test_foo_onrender.tsx (ENTRY POINT)==
 
 import * as __qwik__ from "@builder.io/qwik";
+import { h } from "@builder.io/qwik";
 export const Foo_onRender = ()=>{
     return <div >
 

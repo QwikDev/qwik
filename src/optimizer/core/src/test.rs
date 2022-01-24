@@ -665,6 +665,54 @@ export const Footer = qComponent();
     );
 }
 
+#[test]
+fn example_jsx() {
+    test_input(
+        "test.tsx",
+        r#"
+import { qHook, qComponent, h, onRender, withStyle } from '@builder.io/qwik';
+
+export const Lightweight = () => {
+    return (
+        <div>
+            <>
+                <div/>
+                <button/>
+            </>
+        </div>
+    )
+};
+
+export const Foo = qComponent("my-foo", () => {
+    return onRender(() => {
+        return (
+            <div>
+                <>
+                    <div class="class"/>
+                    <div class="class"></div>
+                    <div class="class">12</div>
+                </>
+                <div class="class">
+                    <Lightweight/>
+                </div>
+                <div class="class">
+                    <div/>
+                    <div/>
+                    <div/>
+                </div>
+                <div class="class">
+                    {children}
+                </div>
+            </div>
+        )
+    });
+})
+    "#,
+        EntryStrategy::Hook,
+        MinifyMode::Simplify,
+        true,
+    );
+}
 // fn test_fixture(folder: &str) {
 //     let res = transform_workdir(&FSConfig {
 //         project_root: folder.to_string(),

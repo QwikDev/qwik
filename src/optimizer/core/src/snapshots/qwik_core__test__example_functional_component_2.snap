@@ -1,5 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
+assertion_line: 737
 expression: output
 
 ---
@@ -69,27 +70,36 @@ export const App_onRender_button_onclick = ()=>{
 
 ============================= h_test_app_onrender.js (ENTRY POINT)==
 
+import { jsx as _jsx, jsxs as _jsxs } from "@builder.io/qwik/jsx-runtime";
 import * as __qwik__ from "@builder.io/qwik";
+import { h } from "@builder.io/qwik";
 export const App_onRender = ()=>{
     const [STEP_2, props, state, thing] = __qwik__.useLexicalScope();
     const count2 = state.count * 2;
-    return(/*#__PURE__*/ h("div", {
+    return(/*#__PURE__*/ _jsxs("div", {
         "on:click": __qwik__.qrl(()=>import("./h_test_app_onrender_div_onclick")
         , "App_onRender_div_onclick", [
             count2,
             state
-        ])
-    }, /*#__PURE__*/ h("span", null, state.count), buttons.map((btn)=>/*#__PURE__*/ h("button", {
-            "on:click": __qwik__.qrl(()=>import("./h_test_app_onrender_button_onclick")
-            , "App_onRender_button_onclick", [
-                STEP_2,
-                btn,
-                props,
-                state,
-                thing
-            ])
-        }, btn.name)
-    )));
+        ]),
+        children: [
+            /*#__PURE__*/ _jsx("span", {
+                children: state.count
+            }),
+            buttons.map((btn)=>/*#__PURE__*/ _jsx("button", {
+                    "on:click": __qwik__.qrl(()=>import("./h_test_app_onrender_button_onclick")
+                    , "App_onRender_button_onclick", [
+                        STEP_2,
+                        btn,
+                        props,
+                        state,
+                        thing
+                    ]),
+                    children: btn.name
+                })
+            )
+        ]
+    }));
 };
 
 ============================= h_test_app_init.js (ENTRY POINT)==

@@ -1,6 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 741
+assertion_line: 737
 expression: output
 
 ---
@@ -40,16 +40,37 @@ export const App_onRender_div_onclick = ()=>{
 
 ============================= h_test_app_onrender.js (ENTRY POINT)==
 
+import { jsxs as _jsxs } from "@builder.io/qwik/jsx-runtime";
 import * as __qwik__ from "@builder.io/qwik";
+import { h } from "@builder.io/qwik";
 export const App_onRender = ()=>{
     const [C2, C3, C4, C5, C6, C7, C8, I2, I3, I4, I5, I6, I7, I8, count, state] = __qwik__.useLexicalScope();
-    return(/*#__PURE__*/ h("div", {
+    return(/*#__PURE__*/ _jsxs("div", {
         "on:click": __qwik__.qrl(()=>import("./h_test_app_onrender_div_onclick")
         , "App_onRender_div_onclick", [
             count,
             state
-        ])
-    }, I2, I3, I4, I5, I6, I7, I8, C2, C3, C4, C5, C6, C7, C8, v1, v2, v3));
+        ]),
+        children: [
+            I2,
+            I3,
+            I4,
+            I5,
+            I6,
+            I7,
+            I8,
+            C2,
+            C3,
+            C4,
+            C5,
+            C6,
+            C7,
+            C8,
+            v1,
+            v2,
+            v3
+        ]
+    }));
 };
 
 ============================= h_test_app_init.js (ENTRY POINT)==

@@ -63,6 +63,7 @@ import { exp1 } from "./project/test";
 import { f } from "./project/test";
 import { foo } from "./project/test";
 import { expr2 as internal } from "./project/test";
+import { h } from "@builder.io/qwik";
 export const Header_onRender = ()=><Footer >
 
             <div >{a}{b}{c}{d}{e}{f}{exp1}{internal}{foo}{bar}{DefaultFn}</div>

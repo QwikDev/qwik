@@ -35,6 +35,7 @@ export const Header_onRender_div_onClick = (ctx)=>console.log("2")
 ============================= h_test_header_onrender.tsx (ENTRY POINT)==
 
 import * as __qwik__ from "@builder.io/qwik";
+import { h } from "@builder.io/qwik";
 export const Header_onRender = ()=>{
     return <>
 

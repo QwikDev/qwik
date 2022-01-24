@@ -226,6 +226,9 @@ enum ExprOrSkip {
 #[derive(Debug)]
 pub struct IdentCollector {
     pub local_idents: HashSet<Id>,
+    pub use_h: bool,
+    pub use_fragment: bool,
+
     expr_ctxt: Vec<ExprOrSkip>,
 }
 
@@ -234,6 +237,8 @@ impl IdentCollector {
         Self {
             local_idents: HashSet::new(),
             expr_ctxt: vec![],
+            use_h: false,
+            use_fragment: false,
         }
     }
 
@@ -245,6 +250,8 @@ impl IdentCollector {
 }
 
 impl Visit for IdentCollector {
+    noop_visit_type!();
+
     fn visit_expr(&mut self, node: &ast::Expr) {
         self.expr_ctxt.push(ExprOrSkip::Expr);
         visit_expr(self, node);
@@ -255,6 +262,17 @@ impl Visit for IdentCollector {
         self.expr_ctxt.push(ExprOrSkip::Skip);
         visit_stmt(self, node);
         self.expr_ctxt.pop();
+    }
+
+    fn visit_jsx_element(&mut self, node: &ast::JSXElement) {
+        self.use_h = true;
+        node.visit_children_with(self);
+    }
+
+    fn visit_jsx_fragment(&mut self, node: &ast::JSXFragment) {
+        self.use_h = true;
+        self.use_fragment = true;
+        node.visit_children_with(self);
     }
 
     fn visit_jsx_element_name(&mut self, node: &ast::JSXElementName) {

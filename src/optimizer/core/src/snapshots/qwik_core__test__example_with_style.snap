@@ -33,6 +33,7 @@ export const Foo_withStyle = '.class {}';
 ============================= h_test_foo_onrender.tsx (ENTRY POINT)==
 
 import * as __qwik__ from "@builder.io/qwik";
+import { h } from "@builder.io/qwik";
 export const Foo_onRender = ()=>{
     return <div class="class"/>;
 };

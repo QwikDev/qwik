@@ -26,7 +26,7 @@ export const Footer = qComponent();
 import*as a from"@builder.io/qwik";import{qComponent as b}from"@builder.io/qwik";export const Header=/*#__PURE__*/ b(a.qrl(()=>import("../entry_hooks"),"Header_init"));export const Footer=/*#__PURE__*/ b();
 ============================= h_test_header_onrender.js ==
 
-import*as a from"@builder.io/qwik";import{Footer as b}from"./project/test";import*as c from"lib";import{s as d}from"lib";import e from"lib";export const Header_onRender=()=>/*#__PURE__*/ h(b,null,e,c(),d());
+import{jsxs as a}from"@builder.io/qwik/jsx-runtime";import*as b from"@builder.io/qwik";import{Footer as c}from"./project/test";import*as d from"lib";import{s as e}from"lib";import f from"lib";import{h as g}from"@builder.io/qwik";export const Header_onRender=()=>/*#__PURE__*/ a(c,{children:[f,d(),e()]});
 ============================= h_test_header_init.js ==
 
 import*as a from"@builder.io/qwik";import{onRender as b}from"@builder.io/qwik";export const Header_init=()=>{b(a.qrl(()=>import("../entry_hooks"),"Header_onRender"));};

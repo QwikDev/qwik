@@ -2,10 +2,10 @@ use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 use std::str;
 
-use crate::code_move::new_module;
+use crate::code_move::{new_module, NewModuleCtx};
 use crate::collector::global_collect;
 use crate::entry_strategy::EntryPolicy;
-use crate::transform::{Hook, HookTransform, ThreadSafeTransformContext};
+use crate::transform::{QwikTransform, ThreadSafeTransformContext};
 use crate::utils::{CodeHighlight, Diagnostic, DiagnosticSeverity, SourceLocation};
 use serde::{Deserialize, Serialize};
 
@@ -16,7 +16,7 @@ use anyhow::{Context, Error};
 use swc_atoms::JsWord;
 use swc_common::comments::SingleThreadedComments;
 use swc_common::errors::{DiagnosticBuilder, Emitter, Handler};
-use swc_common::{chain, sync::Lrc, FileName, Globals, Mark, SourceMap};
+use swc_common::{sync::Lrc, FileName, Globals, Mark, SourceMap};
 use swc_ecmascript::ast;
 use swc_ecmascript::codegen::text_writer::JsWriter;
 use swc_ecmascript::minifier::optimize;
@@ -26,7 +26,7 @@ use swc_ecmascript::minifier::option::{
 use swc_ecmascript::parser::lexer::Lexer;
 use swc_ecmascript::parser::{EsConfig, PResult, Parser, StringInput, Syntax, TsConfig};
 use swc_ecmascript::transforms::{
-    fixer, hygiene::hygiene_with_config, optimization::simplify, pass, react, resolver_with_mark,
+    fixer, hygiene::hygiene_with_config, optimization::simplify, react, resolver_with_mark,
     typescript,
 };
 use swc_ecmascript::visit::{FoldWith, VisitMutWith};
@@ -38,8 +38,6 @@ pub struct HookAnalysis {
     pub name: String,
     pub entry: Option<JsWord>,
     pub canonical_filename: String,
-    pub local_decl: Vec<JsWord>,
-    pub local_idents: Vec<JsWord>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Copy, Clone, PartialEq, Eq)]
@@ -145,36 +143,45 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 
                     // Transpile JSX
                     if transpile && is_type_script {
-                        let mut passes = chain!(
-                            pass::Optional::new(typescript::strip(global_mark), !is_jsx),
-                            pass::Optional::new(
-                                typescript::strip_with_jsx(
-                                    Lrc::clone(&source_map),
-                                    typescript::Config {
-                                        pragma: Some("h".to_string()),
-                                        pragma_frag: Some("Fragment".to_string()),
-                                        ..Default::default()
-                                    },
-                                    Some(&comments),
-                                    global_mark,
-                                ),
-                                is_jsx
-                            ),
-                        );
-                        main_module = main_module.fold_with(&mut passes)
+                        main_module = if is_jsx {
+                            main_module.fold_with(&mut typescript::strip_with_jsx(
+                                Lrc::clone(&source_map),
+                                typescript::Config {
+                                    pragma: Some("h".to_string()),
+                                    pragma_frag: Some("Fragment".to_string()),
+                                    ..Default::default()
+                                },
+                                Some(&comments),
+                                global_mark,
+                            ))
+                        } else {
+                            main_module.fold_with(&mut typescript::strip(global_mark))
+                        }
                     }
 
                     // Resolve with mark
                     main_module.visit_mut_with(&mut resolver_with_mark(global_mark));
 
+                    // Collect import/export metadata
+                    let collect = global_collect(&main_module);
+                    let mut qwik_transform = QwikTransform::new(
+                        config.context,
+                        &path_data,
+                        config.entry_policy,
+                        Some(&comments),
+                        &collect,
+                    );
+
+                    // Run main transform
+                    main_module = main_module.fold_with(&mut qwik_transform);
+
                     // Transpile JSX
                     if transpile && is_jsx {
                         let mut react_options = react::Options::default();
                         if is_jsx {
-                            react_options.use_spread = true;
+                            react_options.throw_if_namespace = false;
+                            react_options.runtime = Some(react::Runtime::Automatic);
                             react_options.import_source = "@builder.io/qwik".to_string();
-                            react_options.pragma = "h".to_string();
-                            react_options.pragma_frag = "Fragment".to_string();
                         };
                         main_module = main_module.fold_with(&mut react::react(
                             Lrc::clone(&source_map),
@@ -183,19 +190,6 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                             global_mark,
                         ));
                     }
-
-                    // Collect import/export metadata
-                    let collect = global_collect(&main_module);
-                    let mut hooks: Vec<Hook> = vec![];
-
-                    // Run main transform
-                    main_module = main_module.fold_with(&mut HookTransform::new(
-                        config.context,
-                        &path_data,
-                        config.entry_policy,
-                        Some(&comments),
-                        &mut hooks,
-                    ));
 
                     if config.minify != MinifyMode::None {
                         main_module =
@@ -224,11 +218,11 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                                 },
                             );
                         }
-
-                        main_module.visit_mut_with(&mut hygiene_with_config(Default::default()));
-                        main_module.visit_mut_with(&mut fixer(None));
                     }
+                    main_module.visit_mut_with(&mut hygiene_with_config(Default::default()));
+                    main_module.visit_mut_with(&mut fixer(None));
 
+                    let hooks = qwik_transform.hooks;
                     let mut hooks_analysis: Vec<HookAnalysis> = Vec::with_capacity(hooks.len());
                     let mut modules: Vec<TransformModule> = Vec::with_capacity(hooks.len() + 10);
 
@@ -243,14 +237,30 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 
                         let hook_mark = Mark::fresh(Mark::root());
 
-                        let (mut hook_module, comments) = new_module(
-                            h.expr,
-                            &path_data,
-                            &h.name,
-                            &h.origin,
-                            &h.local_idents,
-                            &collect,
-                        )?;
+                        let (mut hook_module, comments) = new_module(NewModuleCtx {
+                            expr: h.expr,
+                            path: &path_data,
+                            name: &h.name,
+                            origin: &h.origin,
+                            local_idents: &h.local_idents,
+                            scoped_idents: &h.scoped_idents,
+                            global: &collect,
+                        })?;
+
+                        if transpile && is_jsx {
+                            let mut react_options = react::Options::default();
+                            if is_jsx {
+                                react_options.throw_if_namespace = false;
+                                react_options.runtime = Some(react::Runtime::Automatic);
+                                react_options.import_source = "@builder.io/qwik".to_string();
+                            };
+                            hook_module = hook_module.fold_with(&mut react::react(
+                                Lrc::clone(&source_map),
+                                Some(&comments),
+                                react_options,
+                                global_mark,
+                            ));
+                        }
 
                         if config.minify == MinifyMode::Minify {
                             hook_module = optimize(
@@ -274,11 +284,10 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                                     top_level_mark: hook_mark,
                                 },
                             );
-
-                            hook_module = hook_module
-                                .fold_with(&mut hygiene_with_config(Default::default()))
-                                .fold_with(&mut fixer(None));
                         }
+                        hook_module = hook_module
+                            .fold_with(&mut hygiene_with_config(Default::default()))
+                            .fold_with(&mut fixer(None));
 
                         let (code, map) = emit_source_code(
                             Lrc::clone(&source_map),
@@ -291,11 +300,9 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 
                         hooks_analysis.push(HookAnalysis {
                             origin: h.origin,
-                            name: h.name,
+                            name: h.name.to_string(),
                             entry: h.entry,
                             canonical_filename: h.canonical_filename,
-                            local_decl: h.local_decl,
-                            local_idents: h.local_idents.into_iter().map(|id| id.0).collect(),
                         });
                         modules.push(TransformModule {
                             code,

@@ -1,46 +1,45 @@
 ---
 source: src/optimizer/core/src/test.rs
+assertion_line: 811
 expression: output
 
 ---
 ==INPUT==
 
 
-export const Header = qComponent({
-    onRender: qHook(() => console.log("hello sym2"), "sym2")
+import { qHook, qComponent, h } from '@builder.io/qwik';
+export const Header = qComponent(() => {
+    onRender(() => console.log("hello sym2"), "sym2")
 });
 
     
 ============================= project/test.tsx ==
 
 import * as __qwik__ from "@builder.io/qwik";
-export const Header = /*#__PURE__*/ qComponent({
-    onRender: __qwik__.qHook(()=>import("../entry_hooks")
-    , "sym2")
-});
+import { qComponent } from '@builder.io/qwik';
+export const Header = /*#__PURE__*/ qComponent(__qwik__.qrl(()=>import("../entry_hooks")
+, "Header_onmount"));
 
-============================= h_test_sym2.tsx ==
+============================= h_test_header_onmount.tsx ==
 
 import * as __qwik__ from "@builder.io/qwik";
-export const sym2 = __qwik__.qHook(()=>console.log("hello sym2")
-);
+export const Header_onmount = ()=>{
+    onRender(()=>console.log("hello sym2")
+    , "sym2");
+};
 
 ============================= entry_hooks.ts (ENTRY POINT)==
 
-export { sym2 } from "./h_test_sym2";
+export { Header_onmount } from "./h_test_header_onmount";
 
 == HOOKS ==
 
 [
   {
     "origin": "project/test.tsx",
-    "name": "sym2",
+    "name": "Header_onmount",
     "entry": "entry_hooks",
-    "canonicalFilename": "h_test_sym2",
-    "localDecl": [],
-    "localIdents": [
-      "console"
-    ]
+    "canonicalFilename": "h_test_header_onmount"
   }
 ]
 

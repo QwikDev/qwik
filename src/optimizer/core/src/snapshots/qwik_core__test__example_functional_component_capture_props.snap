@@ -1,0 +1,131 @@
+---
+source: src/optimizer/core/src/test.rs
+assertion_line: 811
+expression: output
+
+---
+==INPUT==
+
+
+import { qHook, qComponent, h, onRender } from '@builder.io/qwik';
+
+export const App = qComponent(({count, rest: [I2, {I3, v1: [I4], I5=v2, ...I6}, I7=v3, ...I8]}) => {
+    const state = useState({count: 0});
+    const {rest: [C2, {C3, v1: [C4], C5=v2, ...C6}, C7=v3, ...C8]} = foo();
+    return onRender(() => {
+        return (
+            <div on:click={() => state.count += count + total }>
+                {I2}{I3}{I4}{I5}{I6}{I7}{I8}
+                {C2}{C3}{C4}{C5}{C6}{C7}{C8}
+                {v1}{v2}{v3}
+            </div>
+        )
+    });
+})
+    
+============================= test.js ==
+
+import * as __qwik__ from "@builder.io/qwik";
+import { qComponent } from '@builder.io/qwik';
+export const App = /*#__PURE__*/ qComponent(__qwik__.qrl(()=>import("./h_test_app_onmount")
+, "App_onmount"));
+
+============================= h_test_app_onrender_div_onclick.js (ENTRY POINT)==
+
+import * as __qwik__ from "@builder.io/qwik";
+export const App_onRender_div_onclick = ()=>{
+    const [count, state] = __qwik__.useLexicalScope();
+    return state.count += count + total;
+};
+
+============================= h_test_app_onrender.js (ENTRY POINT)==
+
+import { jsxs as _jsxs } from "@builder.io/qwik/jsx-runtime";
+import * as __qwik__ from "@builder.io/qwik";
+import { h } from "@builder.io/qwik";
+export const App_onRender = ()=>{
+    const [C2, C3, C4, C5, C6, C7, C8, I2, I3, I4, I5, I6, I7, I8, count, state] = __qwik__.useLexicalScope();
+    return(/*#__PURE__*/ _jsxs("div", {
+        "on:click": __qwik__.qrl(()=>import("./h_test_app_onrender_div_onclick")
+        , "App_onRender_div_onclick", [
+            count,
+            state
+        ]),
+        children: [
+            I2,
+            I3,
+            I4,
+            I5,
+            I6,
+            I7,
+            I8,
+            C2,
+            C3,
+            C4,
+            C5,
+            C6,
+            C7,
+            C8,
+            v1,
+            v2,
+            v3
+        ]
+    }));
+};
+
+============================= h_test_app_onmount.js (ENTRY POINT)==
+
+import * as __qwik__ from "@builder.io/qwik";
+import { onRender } from "@builder.io/qwik";
+export const App_onmount = ({ count , rest: [I2, { I3 , v1: [I4] , I5 =v2 , ...I6 }, I7 = v3, ...I8]  })=>{
+    const state = useState({
+        count: 0
+    });
+    const { rest: [C2, { C3 , v1: [C4] , C5 =v2 , ...C6 }, C7 = v3, ...C8]  } = foo();
+    return onRender(__qwik__.qrl(()=>import("./h_test_app_onrender")
+    , "App_onRender", [
+        C2,
+        C3,
+        C4,
+        C5,
+        C6,
+        C7,
+        C8,
+        I2,
+        I3,
+        I4,
+        I5,
+        I6,
+        I7,
+        I8,
+        count,
+        state
+    ]));
+};
+
+== HOOKS ==
+
+[
+  {
+    "origin": "test.tsx",
+    "name": "App_onRender_div_onclick",
+    "entry": null,
+    "canonicalFilename": "h_test_app_onrender_div_onclick"
+  },
+  {
+    "origin": "test.tsx",
+    "name": "App_onRender",
+    "entry": null,
+    "canonicalFilename": "h_test_app_onrender"
+  },
+  {
+    "origin": "test.tsx",
+    "name": "App_onmount",
+    "entry": null,
+    "canonicalFilename": "h_test_app_onmount"
+  }
+]
+
+== DIAGNOSTICS ==
+
+[]

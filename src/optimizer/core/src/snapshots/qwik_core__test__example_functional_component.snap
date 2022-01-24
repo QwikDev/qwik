@@ -1,72 +1,67 @@
 ---
 source: src/optimizer/core/src/test.rs
+assertion_line: 811
 expression: output
 
 ---
 ==INPUT==
 
 
-const Header = qComponent(() => {
-    const thing = useState();
-    const {foo, bar} = foo();
+        import { qHook, qComponent, onRender, h } from '@builder.io/qwik';
+        const Header = qComponent(() => {
+            const thing = useState();
+            const {foo, bar} = foo();
 
-    return (
-        <div/>
-    )
-});
+            onRender(() => {
+                return (
+                    <div>{thing}</div>
+                );
+            });
+        });
     
 ============================= test.tsx ==
 
-/*#__PURE__*/ qComponent({
-    onMount: qHook(()=>import("./h_test_header_onmount")
-    , "Header_onMount"),
-    onRender: qHook(()=>import("./h_test_header_onrender")
-    , "Header_onRender")
-});
-
-============================= h_test_header_onmount.tsx (ENTRY POINT)==
-
-export const Header_onMount = qHook(()=>{
-    const _closure = useClosure();
-    const thing = useState();
-    _closure.thing = thing;
-    const { foo , bar  } = foo();
-    _closure.bar = bar;
-    _closure.foo = foo;
-});
+import * as __qwik__ from "@builder.io/qwik";
+import { qHook, qComponent, onRender, h } from '@builder.io/qwik';
+const Header = /*#__PURE__*/ qComponent(__qwik__.qrl(()=>import("./h_test_header_onmount")
+, "Header_onmount"));
 
 ============================= h_test_header_onrender.tsx (ENTRY POINT)==
 
-export const Header_onRender = qHook(()=>{
-    return (<div />);
-});
+import * as __qwik__ from "@builder.io/qwik";
+import { h } from "@builder.io/qwik";
+export const Header_onRender = ()=>{
+    const [thing] = __qwik__.useLexicalScope();
+    return <div >{thing}</div>;
+};
+
+============================= h_test_header_onmount.tsx (ENTRY POINT)==
+
+import * as __qwik__ from "@builder.io/qwik";
+import { onRender } from "@builder.io/qwik";
+export const Header_onmount = ()=>{
+    const thing = useState();
+    const { foo , bar  } = foo();
+    onRender(__qwik__.qrl(()=>import("./h_test_header_onrender")
+    , "Header_onRender", [
+        thing
+    ]));
+};
 
 == HOOKS ==
 
 [
   {
     "origin": "test.tsx",
-    "name": "Header_onMount",
+    "name": "Header_onRender",
     "entry": null,
-    "canonicalFilename": "h_test_header_onmount",
-    "localDecl": [
-      "_closure",
-      "bar",
-      "foo",
-      "thing"
-    ],
-    "localIdents": [
-      "foo",
-      "useState"
-    ]
+    "canonicalFilename": "h_test_header_onrender"
   },
   {
     "origin": "test.tsx",
-    "name": "Header_onRender",
+    "name": "Header_onmount",
     "entry": null,
-    "canonicalFilename": "h_test_header_onrender",
-    "localDecl": [],
-    "localIdents": []
+    "canonicalFilename": "h_test_header_onmount"
   }
 ]
 

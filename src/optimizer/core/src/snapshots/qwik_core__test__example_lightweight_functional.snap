@@ -1,0 +1,126 @@
+---
+source: src/optimizer/core/src/test.rs
+assertion_line: 811
+expression: output
+
+---
+==INPUT==
+
+
+import { qHook, qComponent, h, onRender } from '@builder.io/qwik';
+
+export const Foo = qComponent("my-foo", ({color}) => {
+    return onRender(() => {
+        return (
+            <div>
+                <Button {...props} />
+                <ButtonArrow {...props} />
+            </div>
+        )
+    });
+})
+
+export function Button({color}) {
+    return (
+        <button color={color} on:click={()=>console.log(text, color)}>{text}</button>
+    );
+}
+
+export const ButtonArrow = ({color}) => {
+    return (
+        <button color={color} on:click={()=>console.log(text, color)}>{text}</button>
+    );
+}
+    
+============================= test.tsx ==
+
+import * as __qwik__ from "@builder.io/qwik";
+import { qComponent } from '@builder.io/qwik';
+export const Foo = /*#__PURE__*/ qComponent("my-foo", __qwik__.qrl(()=>import("./h_test_foo_onmount")
+, "Foo_onmount"));
+export function Button({ color  }) {
+    return <button color={color} on:click={__qwik__.qrl(()=>import("./h_test_button_button_onclick")
+    , "Button_button_onclick", [
+        color
+    ])}>{text}</button>;
+}
+export const ButtonArrow = ({ color  })=>{
+    return <button color={color} on:click={__qwik__.qrl(()=>import("./h_test_buttonarrow_button_onclick")
+    , "ButtonArrow_button_onclick", [
+        color
+    ])}>{text}</button>;
+};
+
+============================= h_test_foo_onrender.tsx (ENTRY POINT)==
+
+import * as __qwik__ from "@builder.io/qwik";
+import { Button } from "./test";
+import { ButtonArrow } from "./test";
+import { h } from "@builder.io/qwik";
+export const Foo_onRender = ()=>{
+    return <div >
+
+                <Button {...props}/>
+
+                <ButtonArrow {...props}/>
+
+            </div>;
+};
+
+============================= h_test_foo_onmount.tsx (ENTRY POINT)==
+
+import * as __qwik__ from "@builder.io/qwik";
+import { onRender } from "@builder.io/qwik";
+export const Foo_onmount = ({ color  })=>{
+    return onRender(__qwik__.qrl(()=>import("./h_test_foo_onrender")
+    , "Foo_onRender"));
+};
+
+============================= h_test_button_button_onclick.tsx (ENTRY POINT)==
+
+import * as __qwik__ from "@builder.io/qwik";
+export const Button_button_onclick = ()=>{
+    const [color] = __qwik__.useLexicalScope();
+    return console.log(text, color);
+};
+
+============================= h_test_buttonarrow_button_onclick.tsx (ENTRY POINT)==
+
+import * as __qwik__ from "@builder.io/qwik";
+export const ButtonArrow_button_onclick = ()=>{
+    const [color] = __qwik__.useLexicalScope();
+    return console.log(text, color);
+};
+
+== HOOKS ==
+
+[
+  {
+    "origin": "test.tsx",
+    "name": "Foo_onRender",
+    "entry": null,
+    "canonicalFilename": "h_test_foo_onrender"
+  },
+  {
+    "origin": "test.tsx",
+    "name": "Foo_onmount",
+    "entry": null,
+    "canonicalFilename": "h_test_foo_onmount"
+  },
+  {
+    "origin": "test.tsx",
+    "name": "Button_button_onclick",
+    "entry": null,
+    "canonicalFilename": "h_test_button_button_onclick"
+  },
+  {
+    "origin": "test.tsx",
+    "name": "ButtonArrow_button_onclick",
+    "entry": null,
+    "canonicalFilename": "h_test_buttonarrow_button_onclick"
+  }
+]
+
+== DIAGNOSTICS ==
+
+[]

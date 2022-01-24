@@ -1,27 +1,29 @@
 ---
 source: src/optimizer/core/src/test.rs
+assertion_line: 811
 expression: output
 
 ---
 ==INPUT==
 
 
+import { qHook, qComponent, onRender, h } from '@builder.io/qwik';
 import {foo, bar as bbar} from "../state";
 import * as dep2 from "dep2";
 import dep3 from "dep3/something";
 
-export const Header = qComponent({
-    onRender: qHook(() => {
+export const Header = qComponent(() => {
+    onRender(() => {
         return (
             <Header onClick={qHook((ev) => dep3(ev))}>
                 {dep2.stuff()}{bbar()}
             </Header>
         );
-    })
+    });
 });
 
-export const App = qComponent({
-    onRender: qHook(() => {
+export const App = qComponent(() => {
+    onRender(() => {
         return (
             <Header>{foo()}</Header>
         );
@@ -31,21 +33,18 @@ export const App = qComponent({
 ============================= project/test.tsx ==
 
 import * as __qwik__ from "@builder.io/qwik";
-export const Header = /*#__PURE__*/ qComponent({
-    onRender: __qwik__.qHook(()=>import("../entry_hooks")
-    , "Header_onRender")
-});
-export const App = /*#__PURE__*/ qComponent({
-    onRender: __qwik__.qHook(()=>import("../entry_hooks")
-    , "App_onRender")
-});
+import { qComponent } from '@builder.io/qwik';
+export const Header = /*#__PURE__*/ qComponent(__qwik__.qrl(()=>import("../entry_hooks")
+, "Header_onmount"));
+export const App = /*#__PURE__*/ qComponent(__qwik__.qrl(()=>import("../entry_hooks")
+, "App_onmount"));
 
 ============================= h_test_header_onrender_header_onclick.tsx ==
 
 import * as __qwik__ from "@builder.io/qwik";
 import dep3 from "dep3/something";
-export const Header_onRender_Header_onClick = __qwik__.qHook((ev)=>dep3(ev)
-);
+export const Header_onRender_Header_onClick = (ev)=>dep3(ev)
+;
 
 ============================= h_test_header_onrender.tsx ==
 
@@ -53,29 +52,51 @@ import * as __qwik__ from "@builder.io/qwik";
 import { Header } from "./project/test";
 import { bar as bbar } from "./state";
 import * as dep2 from "dep2";
-export const Header_onRender = __qwik__.qHook(()=>{
-    return (<Header onClick={__qwik__.qHook(()=>import("../entry_hooks")
+import { h } from "@builder.io/qwik";
+export const Header_onRender = ()=>{
+    return <Header onClick={__qwik__.qrl(()=>import("../entry_hooks")
     , "Header_onRender_Header_onClick")}>
 
                 {dep2.stuff()}{bbar()}
 
-            </Header>);
-});
+            </Header>;
+};
+
+============================= h_test_header_onmount.tsx ==
+
+import * as __qwik__ from "@builder.io/qwik";
+import { onRender } from "@builder.io/qwik";
+export const Header_onmount = ()=>{
+    onRender(__qwik__.qrl(()=>import("../entry_hooks")
+    , "Header_onRender"));
+};
 
 ============================= h_test_app_onrender.tsx ==
 
 import * as __qwik__ from "@builder.io/qwik";
 import { Header } from "./project/test";
 import { foo } from "./state";
-export const App_onRender = __qwik__.qHook(()=>{
-    return (<Header >{foo()}</Header>);
-});
+import { h } from "@builder.io/qwik";
+export const App_onRender = ()=>{
+    return <Header >{foo()}</Header>;
+};
+
+============================= h_test_app_onmount.tsx ==
+
+import * as __qwik__ from "@builder.io/qwik";
+import { onRender } from "@builder.io/qwik";
+export const App_onmount = ()=>{
+    onRender(__qwik__.qrl(()=>import("../entry_hooks")
+    , "App_onRender"));
+};
 
 ============================= entry_hooks.ts (ENTRY POINT)==
 
 export { Header_onRender_Header_onClick } from "./h_test_header_onrender_header_onclick";
 export { Header_onRender } from "./h_test_header_onrender";
+export { Header_onmount } from "./h_test_header_onmount";
 export { App_onRender } from "./h_test_app_onrender";
+export { App_onmount } from "./h_test_app_onmount";
 
 == HOOKS ==
 
@@ -84,37 +105,31 @@ export { App_onRender } from "./h_test_app_onrender";
     "origin": "project/test.tsx",
     "name": "Header_onRender_Header_onClick",
     "entry": "entry_hooks",
-    "canonicalFilename": "h_test_header_onrender_header_onclick",
-    "localDecl": [
-      "ev"
-    ],
-    "localIdents": [
-      "dep3",
-      "ev"
-    ]
+    "canonicalFilename": "h_test_header_onrender_header_onclick"
   },
   {
     "origin": "project/test.tsx",
     "name": "Header_onRender",
     "entry": "entry_hooks",
-    "canonicalFilename": "h_test_header_onrender",
-    "localDecl": [],
-    "localIdents": [
-      "Header",
-      "bbar",
-      "dep2"
-    ]
+    "canonicalFilename": "h_test_header_onrender"
+  },
+  {
+    "origin": "project/test.tsx",
+    "name": "Header_onmount",
+    "entry": "entry_hooks",
+    "canonicalFilename": "h_test_header_onmount"
   },
   {
     "origin": "project/test.tsx",
     "name": "App_onRender",
     "entry": "entry_hooks",
-    "canonicalFilename": "h_test_app_onrender",
-    "localDecl": [],
-    "localIdents": [
-      "Header",
-      "foo"
-    ]
+    "canonicalFilename": "h_test_app_onrender"
+  },
+  {
+    "origin": "project/test.tsx",
+    "name": "App_onmount",
+    "entry": "entry_hooks",
+    "canonicalFilename": "h_test_app_onmount"
   }
 ]
 

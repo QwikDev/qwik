@@ -123,7 +123,11 @@ pub fn transform_fs(config: TransformFsOptions) -> Result<TransformOutput, Error
         })
         .reduce(|| Ok(TransformOutput::new()), |x, y| Ok(x?.append(&mut y?)))?;
 
-    final_output = generate_entries(final_output, config.transpile)?;
+    final_output = generate_entries(
+        final_output,
+        config.transpile,
+        config.minify == MinifyMode::Minify,
+    )?;
     Ok(final_output)
 }
 
@@ -157,7 +161,11 @@ pub fn transform_modules(config: TransformModulesOptions) -> Result<TransformOut
         iterator.fold(Ok(TransformOutput::new()), |x, y| Ok(x?.append(&mut y?)));
 
     let mut final_output = final_output?;
-    final_output = generate_entries(final_output, config.transpile)?;
+    final_output = generate_entries(
+        final_output,
+        config.transpile,
+        config.minify == MinifyMode::Minify,
+    )?;
     Ok(final_output)
 }
 

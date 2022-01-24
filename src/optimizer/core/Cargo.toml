@@ -17,8 +17,8 @@ harness = false
 crate-type = ["rlib"]
 
 [dependencies]
-swc_ecmascript = { version = "0.99.1", features = ["parser", "transforms", "module", "typescript", "optimization", "minifier", "react", "utils", "visit", "codegen", "utils"] }
-swc_common = { version = "0.15.1", features = ["sourcemap"] }
+swc_ecmascript = { version = "0.108.0", features = ["parser", "transforms", "module", "typescript", "optimization", "minifier", "react", "utils", "visit", "codegen", "utils"] }
+swc_common = { version = "0.17.0", features = ["sourcemap"] }
 swc_atoms = "0.2.9"
 serde = "1.0.132"
 serde_bytes = "0.11.5"
@@ -27,14 +27,14 @@ pathdiff = "0.2.1"
 relative-path = "1.6.0"
 lazy_static = "1.4.0"
 regex = "1.5.4"
-anyhow = "1.0.51"
+anyhow = "1.0.52"
 derivative = "2.2.0"
 rayon = "1.5.1"
 
 [dev-dependencies]
 criterion = "0.3.5"
-insta = "1.8.0"
-serde_json = "1.0.73"
+insta = "1.10.0"
+serde_json = "1.0.74"
 
 [features]
 fs=[]

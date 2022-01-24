@@ -1,11 +1,13 @@
 ---
 source: src/optimizer/core/src/test.rs
+assertion_line: 737
 expression: output
 
 ---
 ==INPUT==
 
 
+import { qHook, qComponent, h } from '@builder.io/qwik';
 const Header = qHook((decl1, {decl2}, [decl3]) => {
 
     const hola = ident1.no;
@@ -28,13 +30,14 @@ const Header = qHook((decl1, {decl2}, [decl3]) => {
 ============================= project/test.tsx ==
 
 import * as __qwik__ from "@builder.io/qwik";
-__qwik__.qHook(()=>import("../h_test_header")
+__qwik__.qrl(()=>import("../h_test_header")
 , "Header");
 
 ============================= h_test_header.tsx (ENTRY POINT)==
 
 import * as __qwik__ from "@builder.io/qwik";
-export const Header = __qwik__.qHook((decl1, { decl2  }, [decl3])=>{
+import { h } from "@builder.io/qwik";
+export const Header = (decl1, { decl2  }, [decl3])=>{
     const hola = ident1.no;
     ident2;
     const a = ident1 + ident3;
@@ -52,9 +55,9 @@ export const Header = __qwik__.qHook((decl1, { decl2  }, [decl3])=>{
             return ident10;
         }
     }
-    return (<div onClick={(ident11)=>ident11 + ident12
-    } required={false}/>);
-});
+    return <div onClick={(ident11)=>ident11 + ident12
+    } required={false}/>;
+};
 
 == HOOKS ==
 
@@ -63,31 +66,7 @@ export const Header = __qwik__.qHook((decl1, { decl2  }, [decl3])=>{
     "origin": "project/test.tsx",
     "name": "Header",
     "entry": null,
-    "canonicalFilename": "h_test_header",
-    "localDecl": [
-      "Some",
-      "a",
-      "b",
-      "decl1",
-      "decl2",
-      "decl3",
-      "hola",
-      "ident11"
-    ],
-    "localIdents": [
-      "ident1",
-      "ident10",
-      "ident11",
-      "ident12",
-      "ident2",
-      "ident3",
-      "ident4",
-      "ident5",
-      "ident6",
-      "ident7",
-      "ident8",
-      "ident9"
-    ]
+    "canonicalFilename": "h_test_header"
   }
 ]
 

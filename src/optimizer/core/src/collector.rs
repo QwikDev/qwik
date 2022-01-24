@@ -1,4 +1,4 @@
-use std::collections::{BTreeMap, HashSet};
+use std::collections::{BTreeMap, HashMap, HashSet};
 
 use swc_atoms::{js_word, JsWord};
 use swc_common::{BytePos, Span, SyntaxContext};
@@ -39,7 +39,8 @@ pub struct Import {
 
 pub struct GlobalCollect {
     pub imports: BTreeMap<Id, Import>,
-    pub exports: BTreeMap<Id, JsWord>,
+    pub exports: BTreeMap<Id, Option<JsWord>>,
+    pub root: HashMap<Id, Span>,
     in_export_decl: bool,
 }
 
@@ -47,22 +48,53 @@ pub fn global_collect(module: &ast::Module) -> GlobalCollect {
     let mut collect = GlobalCollect {
         imports: BTreeMap::new(),
         exports: BTreeMap::new(),
+        root: HashMap::new(),
         in_export_decl: false,
     };
     module.visit_with(&mut collect);
     collect
 }
 
+impl GlobalCollect {
+    pub fn get_imported_local(&self, specifier: &JsWord, source: &JsWord) -> Option<Id> {
+        self.imports
+            .iter()
+            .find(|(_, import)| &import.specifier == specifier && &import.source == source)
+            .map(|s| s.0.clone())
+    }
+}
+
 impl Visit for GlobalCollect {
     noop_visit_type!();
+
+    fn visit_module_item(&mut self, node: &ast::ModuleItem) {
+        if let ast::ModuleItem::Stmt(ast::Stmt::Decl(decl)) = node {
+            match decl {
+                ast::Decl::Fn(function) => {
+                    self.root.insert(id!(function.ident), function.ident.span);
+                }
+                ast::Decl::Class(class) => {
+                    self.root.insert(id!(class.ident), class.ident.span);
+                }
+                ast::Decl::Var(var) => {
+                    for decl in &var.decls {
+                        collect_from_pat(&decl.name, &mut self.root);
+                    }
+                }
+                _ => {}
+            }
+        } else {
+            node.visit_children_with(self);
+        }
+    }
 
     fn visit_import_decl(&mut self, node: &ast::ImportDecl) {
         for specifier in &node.specifiers {
             match specifier {
                 ast::ImportSpecifier::Named(named) => {
                     let imported = match &named.imported {
-                        Some(imported) => imported.sym.clone(),
-                        None => named.local.sym.clone(),
+                        Some(ast::ModuleExportName::Ident(ident)) => ident.sym.clone(),
+                        _ => named.local.sym.clone(),
                     };
                     self.imports.insert(
                         id!(named.local),
@@ -105,21 +137,29 @@ impl Visit for GlobalCollect {
         for specifier in &node.specifiers {
             match specifier {
                 ast::ExportSpecifier::Named(named) => {
-                    let exported = match &named.exported {
-                        Some(exported) => exported.sym.clone(),
-                        None => named.orig.sym.clone(),
+                    let local = match &named.orig {
+                        ast::ModuleExportName::Ident(ident) => Some(id!(ident)),
+                        _ => None,
                     };
-                    self.exports.entry(id!(named.orig)).or_insert(exported);
+                    let exported = match &named.exported {
+                        Some(ast::ModuleExportName::Ident(exported)) => Some(exported.sym.clone()),
+                        _ => None,
+                    };
+                    if let Some(local) = local {
+                        self.exports.entry(local).or_insert(exported);
+                    }
                 }
                 ast::ExportSpecifier::Default(default) => {
                     self.exports
                         .entry(id!(default.exported))
-                        .or_insert(js_word!("default"));
+                        .or_insert(Some(js_word!("default")));
                 }
                 ast::ExportSpecifier::Namespace(namespace) => {
-                    self.exports
-                        .entry(id!(namespace.name))
-                        .or_insert_with(|| "*".into());
+                    if let ast::ModuleExportName::Ident(ident) = &namespace.name {
+                        self.exports
+                            .entry(id!(ident))
+                            .or_insert_with(|| Some("*".into()));
+                    }
                 }
             }
         }
@@ -128,11 +168,10 @@ impl Visit for GlobalCollect {
     fn visit_export_decl(&mut self, node: &ast::ExportDecl) {
         match &node.decl {
             ast::Decl::Class(class) => {
-                self.exports
-                    .insert(id!(class.ident), class.ident.sym.clone());
+                self.exports.insert(id!(class.ident), None);
             }
             ast::Decl::Fn(func) => {
-                self.exports.insert(id!(func.ident), func.ident.sym.clone());
+                self.exports.insert(id!(func.ident), None);
             }
             ast::Decl::Var(var) => {
                 for decl in &var.decls {
@@ -145,39 +184,35 @@ impl Visit for GlobalCollect {
             }
             _ => {}
         }
-
-        node.visit_children_with(self);
     }
 
     fn visit_export_default_decl(&mut self, node: &ast::ExportDefaultDecl) {
         match &node.decl {
             ast::DefaultDecl::Class(class) => {
                 if let Some(ident) = &class.ident {
-                    self.exports.insert(id!(ident), "default".into());
+                    self.exports.insert(id!(ident), Some(js_word!("default")));
                 }
             }
             ast::DefaultDecl::Fn(func) => {
                 if let Some(ident) = &func.ident {
-                    self.exports.insert(id!(ident), "default".into());
+                    self.exports.insert(id!(ident), Some(js_word!("default")));
                 }
             }
             _ => {
                 unreachable!("unsupported export default declaration");
             }
         };
-
-        node.visit_children_with(self);
     }
 
     fn visit_binding_ident(&mut self, node: &ast::BindingIdent) {
         if self.in_export_decl {
-            self.exports.insert(id!(node.id), node.id.sym.clone());
+            self.exports.insert(id!(node.id), None);
         }
     }
 
     fn visit_assign_pat_prop(&mut self, node: &ast::AssignPatProp) {
         if self.in_export_decl {
-            self.exports.insert(id!(node.key), node.key.sym.clone());
+            self.exports.insert(id!(node.key), None);
         }
     }
 }
@@ -189,236 +224,33 @@ enum ExprOrSkip {
 }
 
 #[derive(Debug)]
-pub struct HookCollect {
-    pub local_decl: HashSet<JsWord>,
+pub struct IdentCollector {
     pub local_idents: HashSet<Id>,
+    pub use_h: bool,
+    pub use_fragment: bool,
+
     expr_ctxt: Vec<ExprOrSkip>,
 }
 
-impl HookCollect {
+impl IdentCollector {
     pub fn new() -> Self {
         Self {
-            local_decl: HashSet::new(),
             local_idents: HashSet::new(),
             expr_ctxt: vec![],
+            use_h: false,
+            use_fragment: false,
         }
     }
 
-    pub fn get_words(self) -> (Vec<JsWord>, Vec<Id>) {
-        let mut local_decl: Vec<JsWord> = self.local_decl.into_iter().collect();
+    pub fn get_words(self) -> Vec<Id> {
         let mut local_idents: Vec<Id> = self.local_idents.into_iter().collect();
         local_idents.sort();
-        local_decl.sort();
-        (local_decl, local_idents)
+        local_idents
     }
 }
 
-impl Visit for HookCollect {
-    fn visit_var_declarator(&mut self, node: &ast::VarDeclarator) {
-        match node.name {
-            ast::Pat::Ident(ref ident) => {
-                self.local_decl.insert(ident.id.sym.clone());
-            }
-            ast::Pat::Object(ref obj) => {
-                for prop in &obj.props {
-                    match prop {
-                        ast::ObjectPatProp::Assign(ref v) => {
-                            if let Some(ast::Expr::Ident(ident)) = v.value.as_deref() {
-                                self.local_decl.insert(ident.sym.clone());
-                            } else {
-                                self.local_decl.insert(v.key.sym.clone());
-                            }
-                        }
-                        ast::ObjectPatProp::KeyValue(ref v) => {
-                            if let ast::Pat::Ident(ident) = v.value.as_ref() {
-                                self.local_decl.insert(ident.id.sym.clone());
-                            }
-                        }
-                        ast::ObjectPatProp::Rest(ref v) => {
-                            if let ast::Pat::Ident(ident) = v.arg.as_ref() {
-                                self.local_decl.insert(ident.id.sym.clone());
-                            }
-                        }
-                    }
-                }
-            }
-            ast::Pat::Array(ref arr) => {
-                for el in &arr.elems {
-                    match el {
-                        Some(ast::Pat::Ident(ref ident)) => {
-                            self.local_decl.insert(ident.id.sym.clone());
-                        }
-                        Some(ast::Pat::Rest(ref rest)) => {
-                            if let ast::Pat::Ident(ref ident) = *rest.arg {
-                                self.local_decl.insert(ident.id.sym.clone());
-                            }
-                        }
-                        _ => {}
-                    }
-                }
-            }
-            _ => {}
-        };
-        node.visit_children_with(self);
-    }
-
-    fn visit_arrow_expr(&mut self, node: &ast::ArrowExpr) {
-        for param in &node.params {
-            match param {
-                ast::Pat::Ident(ref ident) => {
-                    self.local_decl.insert(ident.id.sym.clone());
-                }
-                ast::Pat::Object(ref obj) => {
-                    for prop in &obj.props {
-                        match prop {
-                            ast::ObjectPatProp::Assign(ref v) => {
-                                if let Some(ast::Expr::Ident(ident)) = v.value.as_deref() {
-                                    self.local_decl.insert(ident.sym.clone());
-                                } else {
-                                    self.local_decl.insert(v.key.sym.clone());
-                                }
-                            }
-                            ast::ObjectPatProp::KeyValue(ref v) => {
-                                if let ast::Pat::Ident(ident) = v.value.as_ref() {
-                                    self.local_decl.insert(ident.id.sym.clone());
-                                }
-                            }
-                            ast::ObjectPatProp::Rest(ref v) => {
-                                if let ast::Pat::Ident(ident) = v.arg.as_ref() {
-                                    self.local_decl.insert(ident.id.sym.clone());
-                                }
-                            }
-                        }
-                    }
-                }
-                ast::Pat::Array(ref arr) => {
-                    for el in &arr.elems {
-                        match el {
-                            Some(ast::Pat::Ident(ref ident)) => {
-                                self.local_decl.insert(ident.id.sym.clone());
-                            }
-                            Some(ast::Pat::Rest(ref rest)) => {
-                                if let ast::Pat::Ident(ref ident) = *rest.arg {
-                                    self.local_decl.insert(ident.id.sym.clone());
-                                }
-                            }
-                            _ => {}
-                        }
-                    }
-                }
-                _ => {}
-            }
-        }
-        node.visit_children_with(self);
-    }
-
-    fn visit_catch_clause(&mut self, node: &ast::CatchClause) {
-        match node.param {
-            Some(ast::Pat::Ident(ref ident)) => {
-                self.local_decl.insert(ident.id.sym.clone());
-            }
-            Some(ast::Pat::Object(ref obj)) => {
-                for prop in &obj.props {
-                    match prop {
-                        ast::ObjectPatProp::Assign(ref v) => {
-                            if let Some(ast::Expr::Ident(ident)) = v.value.as_deref() {
-                                self.local_decl.insert(ident.sym.clone());
-                            } else {
-                                self.local_decl.insert(v.key.sym.clone());
-                            }
-                        }
-                        ast::ObjectPatProp::KeyValue(ref v) => {
-                            if let ast::Pat::Ident(ident) = v.value.as_ref() {
-                                self.local_decl.insert(ident.id.sym.clone());
-                            }
-                        }
-                        ast::ObjectPatProp::Rest(ref v) => {
-                            if let ast::Pat::Ident(ident) = v.arg.as_ref() {
-                                self.local_decl.insert(ident.id.sym.clone());
-                            }
-                        }
-                    }
-                }
-            }
-            Some(ast::Pat::Array(ref arr)) => {
-                for el in &arr.elems {
-                    match el {
-                        Some(ast::Pat::Ident(ref ident)) => {
-                            self.local_decl.insert(ident.id.sym.clone());
-                        }
-                        Some(ast::Pat::Rest(ref rest)) => {
-                            if let ast::Pat::Ident(ref ident) = *rest.arg {
-                                self.local_decl.insert(ident.id.sym.clone());
-                            }
-                        }
-                        _ => {}
-                    }
-                }
-            }
-            _ => {}
-        }
-        node.visit_children_with(self);
-    }
-
-    fn visit_fn_decl(&mut self, node: &ast::FnDecl) {
-        self.local_decl.insert(node.ident.sym.clone());
-        node.visit_children_with(self);
-    }
-
-    fn visit_function(&mut self, node: &ast::Function) {
-        for param in &node.params {
-            match param.pat {
-                ast::Pat::Ident(ref ident) => {
-                    self.local_decl.insert(ident.id.sym.clone());
-                }
-                ast::Pat::Object(ref obj) => {
-                    for prop in &obj.props {
-                        match prop {
-                            ast::ObjectPatProp::Assign(ref v) => {
-                                if let Some(ast::Expr::Ident(ident)) = v.value.as_deref() {
-                                    self.local_decl.insert(ident.sym.clone());
-                                } else {
-                                    self.local_decl.insert(v.key.sym.clone());
-                                }
-                            }
-                            ast::ObjectPatProp::KeyValue(ref v) => {
-                                if let ast::Pat::Ident(ident) = v.value.as_ref() {
-                                    self.local_decl.insert(ident.id.sym.clone());
-                                }
-                            }
-                            ast::ObjectPatProp::Rest(ref v) => {
-                                if let ast::Pat::Ident(ident) = v.arg.as_ref() {
-                                    self.local_decl.insert(ident.id.sym.clone());
-                                }
-                            }
-                        }
-                    }
-                }
-                ast::Pat::Array(ref arr) => {
-                    for el in &arr.elems {
-                        match el {
-                            Some(ast::Pat::Ident(ref ident)) => {
-                                self.local_decl.insert(ident.id.sym.clone());
-                            }
-                            Some(ast::Pat::Rest(ref rest)) => {
-                                if let ast::Pat::Ident(ref ident) = *rest.arg {
-                                    self.local_decl.insert(ident.id.sym.clone());
-                                }
-                            }
-                            _ => {}
-                        }
-                    }
-                }
-                _ => {}
-            }
-        }
-        node.visit_children_with(self);
-    }
-
-    fn visit_class_decl(&mut self, node: &ast::ClassDecl) {
-        self.local_decl.insert(node.ident.sym.clone());
-        node.visit_children_with(self);
-    }
+impl Visit for IdentCollector {
+    noop_visit_type!();
 
     fn visit_expr(&mut self, node: &ast::Expr) {
         self.expr_ctxt.push(ExprOrSkip::Expr);
@@ -432,22 +264,27 @@ impl Visit for HookCollect {
         self.expr_ctxt.pop();
     }
 
-    fn visit_jsx_opening_element(&mut self, node: &ast::JSXOpeningElement) {
-        let mut stacked = false;
-        if let ast::JSXElementName::Ident(ref ident) = node.name {
+    fn visit_jsx_element(&mut self, node: &ast::JSXElement) {
+        self.use_h = true;
+        node.visit_children_with(self);
+    }
+
+    fn visit_jsx_fragment(&mut self, node: &ast::JSXFragment) {
+        self.use_h = true;
+        self.use_fragment = true;
+        node.visit_children_with(self);
+    }
+
+    fn visit_jsx_element_name(&mut self, node: &ast::JSXElementName) {
+        if let ast::JSXElementName::Ident(ref ident) = node {
             let ident_name = ident.sym.as_ref().chars().next();
             if let Some('A'..='Z') = ident_name {
-                self.expr_ctxt.push(ExprOrSkip::Expr);
             } else {
-                self.expr_ctxt.push(ExprOrSkip::Skip);
+                return;
             }
-            stacked = true;
         }
 
         node.visit_children_with(self);
-        if stacked {
-            self.expr_ctxt.pop();
-        }
     }
     fn visit_jsx_attr(&mut self, node: &ast::JSXAttr) {
         self.expr_ctxt.push(ExprOrSkip::Skip);
@@ -468,4 +305,45 @@ impl Visit for HookCollect {
         node.visit_children_with(self);
         self.expr_ctxt.pop();
     }
+}
+
+pub fn collect_from_pat(pat: &ast::Pat, identifiers: &mut HashMap<Id, Span>) {
+    match pat {
+        ast::Pat::Ident(ident) => {
+            identifiers.insert(id!(ident.id), ident.id.span);
+        }
+        ast::Pat::Array(array) => {
+            for el in array.elems.iter().flatten() {
+                collect_from_pat(el, identifiers);
+            }
+        }
+        ast::Pat::Rest(rest) => {
+            if let ast::Pat::Ident(ident) = rest.arg.as_ref() {
+                identifiers.insert(id!(ident.id), ident.id.span);
+            }
+        }
+        ast::Pat::Assign(expr) => {
+            if let ast::Pat::Ident(ident) = expr.left.as_ref() {
+                identifiers.insert(id!(ident.id), ident.id.span);
+            }
+        }
+        ast::Pat::Object(obj) => {
+            for prop in &obj.props {
+                match prop {
+                    ast::ObjectPatProp::Assign(ref v) => {
+                        identifiers.insert(id!(v.key), v.key.span);
+                    }
+                    ast::ObjectPatProp::KeyValue(ref v) => {
+                        collect_from_pat(&v.value, identifiers);
+                    }
+                    ast::ObjectPatProp::Rest(ref v) => {
+                        if let ast::Pat::Ident(ident) = v.arg.as_ref() {
+                            identifiers.insert(id!(ident.id), ident.id.span);
+                        }
+                    }
+                }
+            }
+        }
+        _ => {}
+    };
 }

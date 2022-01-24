@@ -1,6 +1,0 @@
-.cache
-.vscode
-.rollup.cache
-build
-node_modules
-tsconfig.tsbuildinfo

@@ -1,20 +1,20 @@
 ---
 source: src/optimizer/core/src/test.rs
+assertion_line: 811
 expression: output
 
 ---
 ==INPUT==
 
 
-import {qHook, h} from '@builder.io/qwik';
+import { qHook, qComponent, onRender, h } from '@builder.io/qwik';
 import thing from 'lib';
 import * as all from 'lib';
 import {s as se} from 'lib';
 
 
-export const Header = qComponent({
-    onMount: <div/>,
-    onRender: qHook(() => <Footer>{thing}{all()}{se()}</Footer>)
+export const Header = qComponent(() => {
+    onRender(() => <Footer>{thing}{all()}{se()}</Footer>)
 });
 
 export const Footer = qComponent();
@@ -23,14 +23,16 @@ export const Footer = qComponent();
     
 ============================= project/test.js ==
 
-import*as a from"@builder.io/qwik";import{h as b}from"@builder.io/qwik";export const Header=/*#__PURE__*/ qComponent({onMount:/*#__PURE__*/ b("div",null),onRender:a.qHook(()=>import("../entry_hooks"),"Header_onRender")});export const Footer=/*#__PURE__*/ qComponent();
+import*as a from"@builder.io/qwik";import{qComponent as b}from"@builder.io/qwik";export const Header=/*#__PURE__*/ b(a.qrl(()=>import("../entry_hooks"),"Header_onmount"));export const Footer=/*#__PURE__*/ b();
 ============================= h_test_header_onrender.js ==
 
-import*as a from"@builder.io/qwik";import{Footer as b}from"./project/test";import*as c from"lib";import{h as d}from"@builder.io/qwik";import{s as e}from"lib";import f from"lib";export const Header_onRender=a.qHook(()=>d(b,null,f,c(),e()));
+import{jsxs as a}from"@builder.io/qwik/jsx-runtime";import*as b from"@builder.io/qwik";import{Footer as c}from"./project/test";import*as d from"lib";import{s as e}from"lib";import f from"lib";import{h as g}from"@builder.io/qwik";export const Header_onRender=()=>/*#__PURE__*/ a(c,{children:[f,d(),e()]});
+============================= h_test_header_onmount.js ==
+
+import*as a from"@builder.io/qwik";import{onRender as b}from"@builder.io/qwik";export const Header_onmount=()=>{b(a.qrl(()=>import("../entry_hooks"),"Header_onRender"));};
 ============================= entry_hooks.js (ENTRY POINT)==
 
-export { Header_onRender } from "./h_test_header_onrender";
-
+export{Header_onRender}from"./h_test_header_onrender";export{Header_onmount}from"./h_test_header_onmount";
 == HOOKS ==
 
 [
@@ -38,15 +40,13 @@ export { Header_onRender } from "./h_test_header_onrender";
     "origin": "project/test.tsx",
     "name": "Header_onRender",
     "entry": "entry_hooks",
-    "canonicalFilename": "h_test_header_onrender",
-    "localDecl": [],
-    "localIdents": [
-      "Footer",
-      "all",
-      "h",
-      "se",
-      "thing"
-    ]
+    "canonicalFilename": "h_test_header_onrender"
+  },
+  {
+    "origin": "project/test.tsx",
+    "name": "Header_onmount",
+    "entry": "entry_hooks",
+    "canonicalFilename": "h_test_header_onmount"
   }
 ]
 

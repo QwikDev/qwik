@@ -34,6 +34,10 @@ export async function generatePackageJson(config: BuildConfig) {
         import: './jsx-runtime.mjs',
         require: './jsx-runtime.cjs',
       },
+      './jsx-dev-runtime': {
+        import: './jsx-runtime.mjs',
+        require: './jsx-runtime.cjs',
+      },
       './optimizer': {
         import: './optimizer.mjs',
         require: './optimizer.cjs',

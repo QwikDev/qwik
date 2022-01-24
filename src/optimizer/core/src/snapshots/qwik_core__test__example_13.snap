@@ -1,33 +1,44 @@
 ---
 source: src/optimizer/core/src/test.rs
+assertion_line: 811
 expression: output
 
 ---
 ==INPUT==
 
 
-export const Header = qComponent({
-    onRender: qHook(() => console.log("hello sym2"), "2sym")
+import { qHook, qComponent, onRender, h } from '@builder.io/qwik';
+export const Header = qComponent(() => {
+    onRender(() => console.log("hello sym2"), "2sym")
 });
 
     
 ============================= project/test.tsx ==
 
 import * as __qwik__ from "@builder.io/qwik";
-export const Header = /*#__PURE__*/ qComponent({
-    onRender: __qwik__.qHook(()=>import("../entry_hooks")
-    , "Header_onRender")
-});
+import { qComponent } from '@builder.io/qwik';
+export const Header = /*#__PURE__*/ qComponent(__qwik__.qrl(()=>import("../entry_hooks")
+, "Header_onmount"));
 
 ============================= h_test_header_onrender.tsx ==
 
 import * as __qwik__ from "@builder.io/qwik";
-export const Header_onRender = __qwik__.qHook(()=>console.log("hello sym2")
-);
+export const Header_onRender = ()=>console.log("hello sym2")
+;
+
+============================= h_test_header_onmount.tsx ==
+
+import * as __qwik__ from "@builder.io/qwik";
+import { onRender } from "@builder.io/qwik";
+export const Header_onmount = ()=>{
+    onRender(__qwik__.qrl(()=>import("../entry_hooks")
+    , "Header_onRender"), "2sym");
+};
 
 ============================= entry_hooks.ts (ENTRY POINT)==
 
 export { Header_onRender } from "./h_test_header_onrender";
+export { Header_onmount } from "./h_test_header_onmount";
 
 == HOOKS ==
 
@@ -36,14 +47,16 @@ export { Header_onRender } from "./h_test_header_onrender";
     "origin": "project/test.tsx",
     "name": "Header_onRender",
     "entry": "entry_hooks",
-    "canonicalFilename": "h_test_header_onrender",
-    "localDecl": [],
-    "localIdents": [
-      "console"
-    ]
+    "canonicalFilename": "h_test_header_onrender"
+  },
+  {
+    "origin": "project/test.tsx",
+    "name": "Header_onmount",
+    "entry": "entry_hooks",
+    "canonicalFilename": "h_test_header_onmount"
   }
 ]
 
 == DIAGNOSTICS ==
 
-[Diagnostic { message: "Second argument should be the name of a valid identifier", code_highlights: Some([CodeHighlight { message: None, loc: SourceLocation { start_line: 3, start_col: 54, end_line: 3, end_col: 59 } }]), hints: None, show_environment: false, severity: Error, documentation_url: None }]
+[]

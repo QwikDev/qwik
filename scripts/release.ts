@@ -101,7 +101,7 @@ export async function publish(config: BuildConfig) {
 
   const distPkgDir = config.distPkgDir;
   const distPkg = await readPackageJson(distPkgDir);
-  const version = config.devRelease ? config.distVersion : distPkg.version;
+  const version = distPkg.version;
   const gitTag = `v${version}`;
   const distTag = config.setDistTag || 'dev';
 

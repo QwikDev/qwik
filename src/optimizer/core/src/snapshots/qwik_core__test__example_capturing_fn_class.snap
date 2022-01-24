@@ -1,0 +1,81 @@
+---
+source: src/optimizer/core/src/test.rs
+assertion_line: 811
+expression: output
+
+---
+==INPUT==
+
+
+import { qHook, qComponent, h, onRender } from '@builder.io/qwik';
+
+export const App = qComponent(() => {
+    function hola() {
+      console.log('hola');
+    }
+    class Thing {}
+    class Other {}
+
+    return onRender(() => {
+      hola();
+      new Thing();
+      return (
+          <div></div>
+      )
+    });
+  })
+    
+============================= test.js ==
+
+import * as __qwik__ from "@builder.io/qwik";
+import { qComponent } from '@builder.io/qwik';
+export const App = /*#__PURE__*/ qComponent(__qwik__.qrl(()=>import("./h_test_app_onmount")
+, "App_onmount"));
+
+============================= h_test_app_onrender.js (ENTRY POINT)==
+
+import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
+import * as __qwik__ from "@builder.io/qwik";
+import { h } from "@builder.io/qwik";
+export const App_onRender = ()=>{
+    hola();
+    new Thing();
+    return(/*#__PURE__*/ _jsx("div", {}));
+};
+
+============================= h_test_app_onmount.js (ENTRY POINT)==
+
+import * as __qwik__ from "@builder.io/qwik";
+import { onRender } from "@builder.io/qwik";
+export const App_onmount = ()=>{
+    function hola() {
+        console.log('hola');
+    }
+    class Thing {
+    }
+    class Other {
+    }
+    return onRender(__qwik__.qrl(()=>import("./h_test_app_onrender")
+    , "App_onRender"));
+};
+
+== HOOKS ==
+
+[
+  {
+    "origin": "test.tsx",
+    "name": "App_onRender",
+    "entry": null,
+    "canonicalFilename": "h_test_app_onrender"
+  },
+  {
+    "origin": "test.tsx",
+    "name": "App_onmount",
+    "entry": null,
+    "canonicalFilename": "h_test_app_onmount"
+  }
+]
+
+== DIAGNOSTICS ==
+
+[Diagnostic { message: "Identifier can not capture because it's a function: Thing", code_highlights: None, hints: None, show_environment: false, severity: Error, documentation_url: None }, Diagnostic { message: "Identifier can not capture because it's a function: hola", code_highlights: None, hints: None, show_environment: false, severity: Error, documentation_url: None }]

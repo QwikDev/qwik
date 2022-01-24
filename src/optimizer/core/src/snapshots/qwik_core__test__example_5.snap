@@ -1,16 +1,18 @@
 ---
 source: src/optimizer/core/src/test.rs
+assertion_line: 811
 expression: output
 
 ---
 ==INPUT==
 
 
-export const Header = qComponent({
-    onRender: qHook(() => {
+import { qHook, qComponent, onRender, h } from '@builder.io/qwik';
+export const Header = qComponent(() => {
+    onRender(() => {
         return (
             <>
-                <div onClick={qHook((ctx) => console.log("1"))}/>
+                <div onClick={(ctx) => console.log("1")}/>
                 <div onClick={qHook((ctx) => console.log("2"))}/>
             </>
         );
@@ -20,37 +22,40 @@ export const Header = qComponent({
 ============================= test.tsx ==
 
 import * as __qwik__ from "@builder.io/qwik";
-export const Header = /*#__PURE__*/ qComponent({
-    onRender: __qwik__.qHook(()=>import("./h_test_header_onrender")
-    , "Header_onRender")
-});
+import { qComponent } from '@builder.io/qwik';
+export const Header = /*#__PURE__*/ qComponent(__qwik__.qrl(()=>import("./h_test_header_onmount")
+, "Header_onmount"));
 
 ============================= h_test_header_onrender_div_onclick.tsx (ENTRY POINT)==
 
 import * as __qwik__ from "@builder.io/qwik";
-export const Header_onRender_div_onClick = __qwik__.qHook((ctx)=>console.log("1")
-);
-
-============================= h_test_header_onrender_div_onclick2.tsx (ENTRY POINT)==
-
-import * as __qwik__ from "@builder.io/qwik";
-export const Header_onRender_div_onClick2 = __qwik__.qHook((ctx)=>console.log("2")
-);
+export const Header_onRender_div_onClick = (ctx)=>console.log("2")
+;
 
 ============================= h_test_header_onrender.tsx (ENTRY POINT)==
 
 import * as __qwik__ from "@builder.io/qwik";
-export const Header_onRender = __qwik__.qHook(()=>{
-    return (<>
+import { h } from "@builder.io/qwik";
+export const Header_onRender = ()=>{
+    return <>
 
-                <div onClick={__qwik__.qHook(()=>import("./h_test_header_onrender_div_onclick")
+                <div onClick={(ctx)=>console.log("1")
+    }/>
+
+                <div onClick={__qwik__.qrl(()=>import("./h_test_header_onrender_div_onclick")
     , "Header_onRender_div_onClick")}/>
 
-                <div onClick={__qwik__.qHook(()=>import("./h_test_header_onrender_div_onclick2")
-    , "Header_onRender_div_onClick2")}/>
+            </>;
+};
 
-            </>);
-});
+============================= h_test_header_onmount.tsx (ENTRY POINT)==
+
+import * as __qwik__ from "@builder.io/qwik";
+import { onRender } from "@builder.io/qwik";
+export const Header_onmount = ()=>{
+    onRender(__qwik__.qrl(()=>import("./h_test_header_onrender")
+    , "Header_onRender"));
+};
 
 == HOOKS ==
 
@@ -59,33 +64,19 @@ export const Header_onRender = __qwik__.qHook(()=>{
     "origin": "test.tsx",
     "name": "Header_onRender_div_onClick",
     "entry": null,
-    "canonicalFilename": "h_test_header_onrender_div_onclick",
-    "localDecl": [
-      "ctx"
-    ],
-    "localIdents": [
-      "console"
-    ]
-  },
-  {
-    "origin": "test.tsx",
-    "name": "Header_onRender_div_onClick2",
-    "entry": null,
-    "canonicalFilename": "h_test_header_onrender_div_onclick2",
-    "localDecl": [
-      "ctx"
-    ],
-    "localIdents": [
-      "console"
-    ]
+    "canonicalFilename": "h_test_header_onrender_div_onclick"
   },
   {
     "origin": "test.tsx",
     "name": "Header_onRender",
     "entry": null,
-    "canonicalFilename": "h_test_header_onrender",
-    "localDecl": [],
-    "localIdents": []
+    "canonicalFilename": "h_test_header_onrender"
+  },
+  {
+    "origin": "test.tsx",
+    "name": "Header_onmount",
+    "entry": null,
+    "canonicalFilename": "h_test_header_onmount"
   }
 ]
 

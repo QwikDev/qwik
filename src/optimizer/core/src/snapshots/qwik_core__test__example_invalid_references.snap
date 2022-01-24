@@ -1,0 +1,74 @@
+---
+source: src/optimizer/core/src/test.rs
+assertion_line: 811
+expression: output
+
+---
+==INPUT==
+
+
+import { qHook, qComponent, h, onRender } from '@builder.io/qwik';
+
+const I1 = 12;
+const [I2, {I3, v1: [I4], I5=v2, ...I6}, I7=v3, ...I8] = obj;
+function I9() {}
+class I10 {}
+
+export const App = qComponent(({count}) => {
+    console.log(I1, I2, I3, I4, I5, I6, I7, I8, I9);
+    console.log(itsok, v1, v2, v3, obj);
+    return onRender(() => {
+        return (
+            <I10></I10>
+        )
+    });
+})
+    
+============================= test.js ==
+
+import * as __qwik__ from "@builder.io/qwik";
+import { qComponent } from '@builder.io/qwik';
+const [I2, { I3 , v1: [I4] , I5 =v2 , ...I6 }, I7 = v3, ...I8] = obj;
+export const App = /*#__PURE__*/ qComponent(__qwik__.qrl(()=>import("./h_test_app_onmount")
+, "App_onmount"));
+
+============================= h_test_app_onrender.js (ENTRY POINT)==
+
+import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
+import * as __qwik__ from "@builder.io/qwik";
+import { h } from "@builder.io/qwik";
+export const App_onRender = ()=>{
+    return(/*#__PURE__*/ _jsx(I10, {}));
+};
+
+============================= h_test_app_onmount.js (ENTRY POINT)==
+
+import * as __qwik__ from "@builder.io/qwik";
+import { onRender } from "@builder.io/qwik";
+export const App_onmount = ({ count  })=>{
+    console.log(I1, I2, I3, I4, I5, I6, I7, I8, I9);
+    console.log(itsok, v1, v2, v3, obj);
+    return onRender(__qwik__.qrl(()=>import("./h_test_app_onrender")
+    , "App_onRender"));
+};
+
+== HOOKS ==
+
+[
+  {
+    "origin": "test.tsx",
+    "name": "App_onRender",
+    "entry": null,
+    "canonicalFilename": "h_test_app_onrender"
+  },
+  {
+    "origin": "test.tsx",
+    "name": "App_onmount",
+    "entry": null,
+    "canonicalFilename": "h_test_app_onmount"
+  }
+]
+
+== DIAGNOSTICS ==
+
+[Diagnostic { message: "Reference to root level identifier needs to be exported: I10", code_highlights: Some([CodeHighlight { message: None, loc: SourceLocation { start_line: 7, start_col: 7, end_line: 7, end_col: 9 } }]), hints: None, show_environment: false, severity: Error, documentation_url: None }, Diagnostic { message: "Reference to root level identifier needs to be exported: I1", code_highlights: Some([CodeHighlight { message: None, loc: SourceLocation { start_line: 4, start_col: 7, end_line: 4, end_col: 8 } }]), hints: None, show_environment: false, severity: Error, documentation_url: None }, Diagnostic { message: "Reference to root level identifier needs to be exported: I2", code_highlights: Some([CodeHighlight { message: None, loc: SourceLocation { start_line: 5, start_col: 8, end_line: 5, end_col: 9 } }]), hints: None, show_environment: false, severity: Error, documentation_url: None }, Diagnostic { message: "Reference to root level identifier needs to be exported: I3", code_highlights: Some([CodeHighlight { message: None, loc: SourceLocation { start_line: 5, start_col: 13, end_line: 5, end_col: 14 } }]), hints: None, show_environment: false, severity: Error, documentation_url: None }, Diagnostic { message: "Reference to root level identifier needs to be exported: I4", code_highlights: Some([CodeHighlight { message: None, loc: SourceLocation { start_line: 5, start_col: 22, end_line: 5, end_col: 23 } }]), hints: None, show_environment: false, severity: Error, documentation_url: None }, Diagnostic { message: "Reference to root level identifier needs to be exported: I5", code_highlights: Some([CodeHighlight { message: None, loc: SourceLocation { start_line: 5, start_col: 27, end_line: 5, end_col: 28 } }]), hints: None, show_environment: false, severity: Error, documentation_url: None }, Diagnostic { message: "Reference to root level identifier needs to be exported: I6", code_highlights: Some([CodeHighlight { message: None, loc: SourceLocation { start_line: 5, start_col: 37, end_line: 5, end_col: 38 } }]), hints: None, show_environment: false, severity: Error, documentation_url: None }, Diagnostic { message: "Reference to root level identifier needs to be exported: I7", code_highlights: Some([CodeHighlight { message: None, loc: SourceLocation { start_line: 5, start_col: 42, end_line: 5, end_col: 43 } }]), hints: None, show_environment: false, severity: Error, documentation_url: None }, Diagnostic { message: "Reference to root level identifier needs to be exported: I8", code_highlights: Some([CodeHighlight { message: None, loc: SourceLocation { start_line: 5, start_col: 52, end_line: 5, end_col: 53 } }]), hints: None, show_environment: false, severity: Error, documentation_url: None }, Diagnostic { message: "Reference to root level identifier needs to be exported: I9", code_highlights: Some([CodeHighlight { message: None, loc: SourceLocation { start_line: 6, start_col: 10, end_line: 6, end_col: 11 } }]), hints: None, show_environment: false, severity: Error, documentation_url: None }]

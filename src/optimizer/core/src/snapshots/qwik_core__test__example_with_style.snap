@@ -1,0 +1,78 @@
+---
+source: src/optimizer/core/src/test.rs
+assertion_line: 811
+expression: output
+
+---
+==INPUT==
+
+
+import { qHook, qComponent, h, onRender, withStyle } from '@builder.io/qwik';
+
+export const Foo = qComponent("my-foo", () => {
+    withStyle('.class {}');
+    return onRender(() => {
+        return (
+            <div class="class"/>
+        )
+    });
+})
+    
+============================= test.tsx ==
+
+import * as __qwik__ from "@builder.io/qwik";
+import { qComponent } from '@builder.io/qwik';
+export const Foo = /*#__PURE__*/ qComponent("my-foo", __qwik__.qrl(()=>import("./h_test_foo_onmount")
+, "Foo_onmount"));
+
+============================= h_test_foo_withstyle.tsx (ENTRY POINT)==
+
+import * as __qwik__ from "@builder.io/qwik";
+export const Foo_withStyle = '.class {}';
+
+============================= h_test_foo_onrender.tsx (ENTRY POINT)==
+
+import * as __qwik__ from "@builder.io/qwik";
+import { h } from "@builder.io/qwik";
+export const Foo_onRender = ()=>{
+    return <div class="class"/>;
+};
+
+============================= h_test_foo_onmount.tsx (ENTRY POINT)==
+
+import * as __qwik__ from "@builder.io/qwik";
+import { onRender } from "@builder.io/qwik";
+import { withStyle } from "@builder.io/qwik";
+export const Foo_onmount = ()=>{
+    withStyle(__qwik__.qrl(()=>import("./h_test_foo_withstyle")
+    , "Foo_withStyle"));
+    return onRender(__qwik__.qrl(()=>import("./h_test_foo_onrender")
+    , "Foo_onRender"));
+};
+
+== HOOKS ==
+
+[
+  {
+    "origin": "test.tsx",
+    "name": "Foo_withStyle",
+    "entry": null,
+    "canonicalFilename": "h_test_foo_withstyle"
+  },
+  {
+    "origin": "test.tsx",
+    "name": "Foo_onRender",
+    "entry": null,
+    "canonicalFilename": "h_test_foo_onrender"
+  },
+  {
+    "origin": "test.tsx",
+    "name": "Foo_onmount",
+    "entry": null,
+    "canonicalFilename": "h_test_foo_onmount"
+  }
+]
+
+== DIAGNOSTICS ==
+
+[]

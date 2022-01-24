@@ -1,6 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 737
+assertion_line: 811
 expression: output
 
 ---
@@ -44,8 +44,8 @@ export function foo() {}
 export class bar {
 }
 export default function DefaultFn() {};
-export const Header = /*#__PURE__*/ qComponent(__qwik__.qrl(()=>import("../h_test_header_init")
-, "Header_init"));
+export const Header = /*#__PURE__*/ qComponent(__qwik__.qrl(()=>import("../h_test_header_onmount")
+, "Header_onmount"));
 export const Footer = /*#__PURE__*/ qComponent();
 
 ============================= h_test_header_onrender.tsx (ENTRY POINT)==
@@ -73,11 +73,11 @@ export const Header_onRender = ()=><Footer >
         </Footer>
 ;
 
-============================= h_test_header_init.tsx (ENTRY POINT)==
+============================= h_test_header_onmount.tsx (ENTRY POINT)==
 
 import * as __qwik__ from "@builder.io/qwik";
 import { onRender } from "@builder.io/qwik";
-export const Header_init = ()=>{
+export const Header_onmount = ()=>{
     onRender(__qwik__.qrl(()=>import("../h_test_header_onrender")
     , "Header_onRender"));
 };
@@ -93,9 +93,9 @@ export const Header_init = ()=>{
   },
   {
     "origin": "project/test.tsx",
-    "name": "Header_init",
+    "name": "Header_onmount",
     "entry": null,
-    "canonicalFilename": "h_test_header_init"
+    "canonicalFilename": "h_test_header_onmount"
   }
 ]
 

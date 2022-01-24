@@ -1,6 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 737
+assertion_line: 811
 expression: output
 
 ---
@@ -48,8 +48,8 @@ export const useCounter = ()=>{
     });
 };
 export const STEP = 1;
-export const App = /*#__PURE__*/ qComponent(__qwik__.qrl(()=>import("./h_test_app_init")
-, "App_init"));
+export const App = /*#__PURE__*/ qComponent(__qwik__.qrl(()=>import("./h_test_app_onmount")
+, "App_onmount"));
 
 ============================= h_test_app_onrender_div_onclick.js (ENTRY POINT)==
 
@@ -102,12 +102,12 @@ export const App_onRender = ()=>{
     }));
 };
 
-============================= h_test_app_init.js (ENTRY POINT)==
+============================= h_test_app_onmount.js (ENTRY POINT)==
 
 import * as __qwik__ from "@builder.io/qwik";
 import { onRender } from "@builder.io/qwik";
 import { useCounter } from "./test";
-export const App_init = (props)=>{
+export const App_onmount = (props)=>{
     const state = useCounter();
     const thing = useState({
         thing: 0
@@ -145,9 +145,9 @@ export const App_init = (props)=>{
   },
   {
     "origin": "test.tsx",
-    "name": "App_init",
+    "name": "App_onmount",
     "entry": null,
-    "canonicalFilename": "h_test_app_init"
+    "canonicalFilename": "h_test_app_onmount"
   }
 ]
 

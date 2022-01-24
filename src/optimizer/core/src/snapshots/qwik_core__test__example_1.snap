@@ -1,6 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 737
+assertion_line: 811
 expression: output
 
 ---
@@ -22,8 +22,8 @@ const Header = qComponent(qHook(() => {
 
 import * as __qwik__ from "@builder.io/qwik";
 import { qComponent } from '@builder.io/qwik';
-/*#__PURE__*/ qComponent(__qwik__.qrl(()=>import("./h_test_header_init")
-, "Header_init"));
+/*#__PURE__*/ qComponent(__qwik__.qrl(()=>import("./h_test_header_onmount")
+, "Header_onmount"));
 
 ============================= h_test_header_onrender_div_onclick.tsx (ENTRY POINT)==
 
@@ -46,11 +46,11 @@ import * as __qwik__ from "@builder.io/qwik";
 export const Header_onRender = __qwik__.qrl(()=>import("./h_test_header_onrender2")
 , "Header_onRender2");
 
-============================= h_test_header_init.tsx (ENTRY POINT)==
+============================= h_test_header_onmount.tsx (ENTRY POINT)==
 
 import * as __qwik__ from "@builder.io/qwik";
 import { onRender } from "@builder.io/qwik";
-export const Header_init = ()=>{
+export const Header_onmount = ()=>{
     console.log("mount");
     onRender(__qwik__.qrl(()=>import("./h_test_header_onrender")
     , "Header_onRender"));
@@ -79,9 +79,9 @@ export const Header_init = ()=>{
   },
   {
     "origin": "test.tsx",
-    "name": "Header_init",
+    "name": "Header_onmount",
     "entry": null,
-    "canonicalFilename": "h_test_header_init"
+    "canonicalFilename": "h_test_header_onmount"
   }
 ]
 

@@ -1,6 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 737
+assertion_line: 811
 expression: output
 
 ---
@@ -29,8 +29,8 @@ export const App = qComponent(({count}) => {
 import * as __qwik__ from "@builder.io/qwik";
 import { qComponent } from '@builder.io/qwik';
 const [I2, { I3 , v1: [I4] , I5 =v2 , ...I6 }, I7 = v3, ...I8] = obj;
-export const App = /*#__PURE__*/ qComponent(__qwik__.qrl(()=>import("./h_test_app_init")
-, "App_init"));
+export const App = /*#__PURE__*/ qComponent(__qwik__.qrl(()=>import("./h_test_app_onmount")
+, "App_onmount"));
 
 ============================= h_test_app_onrender.js (ENTRY POINT)==
 
@@ -41,11 +41,11 @@ export const App_onRender = ()=>{
     return(/*#__PURE__*/ _jsx(I10, {}));
 };
 
-============================= h_test_app_init.js (ENTRY POINT)==
+============================= h_test_app_onmount.js (ENTRY POINT)==
 
 import * as __qwik__ from "@builder.io/qwik";
 import { onRender } from "@builder.io/qwik";
-export const App_init = ({ count  })=>{
+export const App_onmount = ({ count  })=>{
     console.log(I1, I2, I3, I4, I5, I6, I7, I8, I9);
     console.log(itsok, v1, v2, v3, obj);
     return onRender(__qwik__.qrl(()=>import("./h_test_app_onrender")
@@ -63,9 +63,9 @@ export const App_init = ({ count  })=>{
   },
   {
     "origin": "test.tsx",
-    "name": "App_init",
+    "name": "App_onmount",
     "entry": null,
-    "canonicalFilename": "h_test_app_init"
+    "canonicalFilename": "h_test_app_onmount"
   }
 ]
 

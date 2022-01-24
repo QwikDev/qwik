@@ -1,6 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 737
+assertion_line: 811
 expression: output
 
 ---
@@ -35,9 +35,9 @@ export const App = qComponent(() => {
 import * as __qwik__ from "@builder.io/qwik";
 import { qComponent } from '@builder.io/qwik';
 export const Header = /*#__PURE__*/ qComponent(__qwik__.qrl(()=>import("../entry_hooks")
-, "Header_init"));
+, "Header_onmount"));
 export const App = /*#__PURE__*/ qComponent(__qwik__.qrl(()=>import("../entry_hooks")
-, "App_init"));
+, "App_onmount"));
 
 ============================= h_test_header_onrender_header_onclick.tsx ==
 
@@ -62,11 +62,11 @@ export const Header_onRender = ()=>{
             </Header>;
 };
 
-============================= h_test_header_init.tsx ==
+============================= h_test_header_onmount.tsx ==
 
 import * as __qwik__ from "@builder.io/qwik";
 import { onRender } from "@builder.io/qwik";
-export const Header_init = ()=>{
+export const Header_onmount = ()=>{
     onRender(__qwik__.qrl(()=>import("../entry_hooks")
     , "Header_onRender"));
 };
@@ -81,11 +81,11 @@ export const App_onRender = ()=>{
     return <Header >{foo()}</Header>;
 };
 
-============================= h_test_app_init.tsx ==
+============================= h_test_app_onmount.tsx ==
 
 import * as __qwik__ from "@builder.io/qwik";
 import { onRender } from "@builder.io/qwik";
-export const App_init = ()=>{
+export const App_onmount = ()=>{
     onRender(__qwik__.qrl(()=>import("../entry_hooks")
     , "App_onRender"));
 };
@@ -94,9 +94,9 @@ export const App_init = ()=>{
 
 export { Header_onRender_Header_onClick } from "./h_test_header_onrender_header_onclick";
 export { Header_onRender } from "./h_test_header_onrender";
-export { Header_init } from "./h_test_header_init";
+export { Header_onmount } from "./h_test_header_onmount";
 export { App_onRender } from "./h_test_app_onrender";
-export { App_init } from "./h_test_app_init";
+export { App_onmount } from "./h_test_app_onmount";
 
 == HOOKS ==
 
@@ -115,9 +115,9 @@ export { App_init } from "./h_test_app_init";
   },
   {
     "origin": "project/test.tsx",
-    "name": "Header_init",
+    "name": "Header_onmount",
     "entry": "entry_hooks",
-    "canonicalFilename": "h_test_header_init"
+    "canonicalFilename": "h_test_header_onmount"
   },
   {
     "origin": "project/test.tsx",
@@ -127,9 +127,9 @@ export { App_init } from "./h_test_app_init";
   },
   {
     "origin": "project/test.tsx",
-    "name": "App_init",
+    "name": "App_onmount",
     "entry": "entry_hooks",
-    "canonicalFilename": "h_test_app_init"
+    "canonicalFilename": "h_test_app_onmount"
   }
 ]
 

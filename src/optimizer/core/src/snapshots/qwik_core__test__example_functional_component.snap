@@ -1,6 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 737
+assertion_line: 811
 expression: output
 
 ---
@@ -23,8 +23,8 @@ expression: output
 
 import * as __qwik__ from "@builder.io/qwik";
 import { qHook, qComponent, onRender, h } from '@builder.io/qwik';
-const Header = /*#__PURE__*/ qComponent(__qwik__.qrl(()=>import("./h_test_header_init")
-, "Header_init"));
+const Header = /*#__PURE__*/ qComponent(__qwik__.qrl(()=>import("./h_test_header_onmount")
+, "Header_onmount"));
 
 ============================= h_test_header_onrender.tsx (ENTRY POINT)==
 
@@ -35,11 +35,11 @@ export const Header_onRender = ()=>{
     return <div >{thing}</div>;
 };
 
-============================= h_test_header_init.tsx (ENTRY POINT)==
+============================= h_test_header_onmount.tsx (ENTRY POINT)==
 
 import * as __qwik__ from "@builder.io/qwik";
 import { onRender } from "@builder.io/qwik";
-export const Header_init = ()=>{
+export const Header_onmount = ()=>{
     const thing = useState();
     const { foo , bar  } = foo();
     onRender(__qwik__.qrl(()=>import("./h_test_header_onrender")
@@ -59,9 +59,9 @@ export const Header_init = ()=>{
   },
   {
     "origin": "test.tsx",
-    "name": "Header_init",
+    "name": "Header_onmount",
     "entry": null,
-    "canonicalFilename": "h_test_header_init"
+    "canonicalFilename": "h_test_header_onmount"
   }
 ]
 

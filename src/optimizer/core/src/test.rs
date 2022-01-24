@@ -713,6 +713,32 @@ export const Foo = qComponent("my-foo", () => {
         true,
     );
 }
+
+#[test]
+fn example_jsx_listeners() {
+    test_input(
+        "test.tsx",
+        r#"
+import { qHook, qComponent, h, onRender, withStyle } from '@builder.io/qwik';
+
+export const Foo = qComponent("my-foo", () => {
+
+    return onRender(() => {
+        return (
+            <div
+                on:click={()=>console.log('on:click')}
+                onDocument:scroll={()=>console.log('onDocument:scroll')}
+                onWindow:scroll={()=>console.log('onWindow:scroll')}
+            />
+        )
+    });
+})
+    "#,
+        EntryStrategy::Hook,
+        MinifyMode::Simplify,
+        true,
+    );
+}
 // fn test_fixture(folder: &str) {
 //     let res = transform_workdir(&FSConfig {
 //         project_root: folder.to_string(),

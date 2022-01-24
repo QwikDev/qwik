@@ -144,7 +144,7 @@ impl<'a> QwikTransform<'a> {
             if self.stack_ctxt.is_empty() {
                 symbol_name += "_h";
             } else if self.stack_ctxt.len() == 1 && self.in_component {
-                symbol_name += "_init";
+                symbol_name += "_onmount";
             }
             symbol_name = escape_sym(&symbol_name);
             if context.hooks_names.contains(&symbol_name) {
@@ -488,7 +488,7 @@ impl<'a> Fold for QwikTransform<'a> {
                 let ident_name = [ns_name, namespaced.name.sym.as_ref()].concat();
                 self.stack_ctxt.push(ident_name);
 
-                is_listener = ns_name == "on";
+                is_listener = matches!(ns_name, "on" | "onWindow" | "onDocument");
                 if is_listener {
                     self.position_ctxt.push(PositionToken::JSXListener);
                 }

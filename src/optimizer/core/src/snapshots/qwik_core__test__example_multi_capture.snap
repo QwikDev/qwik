@@ -1,6 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 737
+assertion_line: 811
 expression: output
 
 ---
@@ -36,10 +36,10 @@ export const Bar = qComponent(({bar}) => {
 
 import * as __qwik__ from "@builder.io/qwik";
 import { qComponent } from '@builder.io/qwik';
-export const Foo = /*#__PURE__*/ qComponent(__qwik__.qrl(()=>import("./h_test_foo_init")
-, "Foo_init"));
-export const Bar = /*#__PURE__*/ qComponent(__qwik__.qrl(()=>import("./h_test_bar_init")
-, "Bar_init"));
+export const Foo = /*#__PURE__*/ qComponent(__qwik__.qrl(()=>import("./h_test_foo_onmount")
+, "Foo_onmount"));
+export const Bar = /*#__PURE__*/ qComponent(__qwik__.qrl(()=>import("./h_test_bar_onmount")
+, "Bar_onmount"));
 
 ============================= h_test_foo_onrender.tsx (ENTRY POINT)==
 
@@ -56,11 +56,11 @@ export const Foo_onRender = ()=>{
             </div>;
 };
 
-============================= h_test_foo_init.tsx (ENTRY POINT)==
+============================= h_test_foo_onmount.tsx (ENTRY POINT)==
 
 import * as __qwik__ from "@builder.io/qwik";
 import { onRender } from "@builder.io/qwik";
-export const Foo_init = ({ foo  })=>{
+export const Foo_onmount = ({ foo  })=>{
     const arg0 = 20;
     return onRender(__qwik__.qrl(()=>import("./h_test_foo_onrender")
     , "Foo_onRender", [
@@ -82,11 +82,11 @@ export const Bar_onRender = ()=>{
             </div>;
 };
 
-============================= h_test_bar_init.tsx (ENTRY POINT)==
+============================= h_test_bar_onmount.tsx (ENTRY POINT)==
 
 import * as __qwik__ from "@builder.io/qwik";
 import { onRender } from "@builder.io/qwik";
-export const Bar_init = ({ bar  })=>{
+export const Bar_onmount = ({ bar  })=>{
     return onRender(__qwik__.qrl(()=>import("./h_test_bar_onrender")
     , "Bar_onRender", [
         bar
@@ -104,9 +104,9 @@ export const Bar_init = ({ bar  })=>{
   },
   {
     "origin": "test.tsx",
-    "name": "Foo_init",
+    "name": "Foo_onmount",
     "entry": null,
-    "canonicalFilename": "h_test_foo_init"
+    "canonicalFilename": "h_test_foo_onmount"
   },
   {
     "origin": "test.tsx",
@@ -116,9 +116,9 @@ export const Bar_init = ({ bar  })=>{
   },
   {
     "origin": "test.tsx",
-    "name": "Bar_init",
+    "name": "Bar_onmount",
     "entry": null,
-    "canonicalFilename": "h_test_bar_init"
+    "canonicalFilename": "h_test_bar_onmount"
   }
 ]
 

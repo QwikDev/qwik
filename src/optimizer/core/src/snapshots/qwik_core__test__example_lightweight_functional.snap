@@ -1,6 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 737
+assertion_line: 811
 expression: output
 
 ---
@@ -36,8 +36,8 @@ export const ButtonArrow = ({color}) => {
 
 import * as __qwik__ from "@builder.io/qwik";
 import { qComponent } from '@builder.io/qwik';
-export const Foo = /*#__PURE__*/ qComponent("my-foo", __qwik__.qrl(()=>import("./h_test_foo_init")
-, "Foo_init"));
+export const Foo = /*#__PURE__*/ qComponent("my-foo", __qwik__.qrl(()=>import("./h_test_foo_onmount")
+, "Foo_onmount"));
 export function Button({ color  }) {
     return <button color={color} on:click={__qwik__.qrl(()=>import("./h_test_button_button_onclick")
     , "Button_button_onclick", [
@@ -67,11 +67,11 @@ export const Foo_onRender = ()=>{
             </div>;
 };
 
-============================= h_test_foo_init.tsx (ENTRY POINT)==
+============================= h_test_foo_onmount.tsx (ENTRY POINT)==
 
 import * as __qwik__ from "@builder.io/qwik";
 import { onRender } from "@builder.io/qwik";
-export const Foo_init = ({ color  })=>{
+export const Foo_onmount = ({ color  })=>{
     return onRender(__qwik__.qrl(()=>import("./h_test_foo_onrender")
     , "Foo_onRender"));
 };
@@ -103,9 +103,9 @@ export const ButtonArrow_button_onclick = ()=>{
   },
   {
     "origin": "test.tsx",
-    "name": "Foo_init",
+    "name": "Foo_onmount",
     "entry": null,
-    "canonicalFilename": "h_test_foo_init"
+    "canonicalFilename": "h_test_foo_onmount"
   },
   {
     "origin": "test.tsx",

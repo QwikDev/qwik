@@ -14,6 +14,7 @@ export default async function () {
     plugins: [
       nodeResolve(),
       qwikRollup({
+        entryStrategy: {type: 'hook' }, 
         symbolsOutput: (data) => {
           outputJSON('./server/build/q-symbols.json', data);
         },

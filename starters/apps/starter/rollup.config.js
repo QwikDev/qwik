@@ -1,6 +1,6 @@
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 import typescript from '@rollup/plugin-typescript';
-import { qwikRollup, HookEntryStrategy } from '@builder.io/qwik/optimizer';
+import { qwikRollup } from '@builder.io/qwik/optimizer';
 import { writeFile, mkdir } from "fs/promises";
 import { dirname } from "path";
 
@@ -13,7 +13,7 @@ export default async function () {
     plugins: [
       nodeResolve(),
       qwikRollup({
-        entryStrategy: {type: 'PerHook' }, 
+        entryStrategy: {type: 'hook' }, 
         symbolsOutput: (data) => {
           outputJSON('./server/build/q-symbols.json', data);
         },

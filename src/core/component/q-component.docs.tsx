@@ -7,7 +7,7 @@
 
 import { Fragment, h, qComponent } from '@builder.io/qwik';
 import { useStore } from '../use/use-state.public';
-import { onRender, withProps } from './q-component.public';
+import { onRender } from './q-component.public';
 
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
@@ -64,10 +64,9 @@ export const OtherComponent = qComponent(() => {
   //
   // <docs anchor="props">
   const MyComp = qComponent((props: { title: 'MyTitle'; label: 'defaultLabel' }) => {
-    withProps({ title: props.title, ...other });
-    return onRender(() => <span></span>);
+    return onRender(() => <span title={props.label}></span>);
   });
   // </docs>
   //
-  return MyComp;
+  return [MyComp, other];
 };

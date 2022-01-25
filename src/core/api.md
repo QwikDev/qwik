@@ -289,9 +289,6 @@ export type ValueOrPromise<T> = T | Promise<T>;
 export const version: string;
 
 // @public (undocumented)
-export function withProps(props: Record<string, any>): void;
-
-// @public (undocumented)
 export function withScopedStyles(styles: TypeOrQRL<string>): void;
 
 // @public (undocumented)

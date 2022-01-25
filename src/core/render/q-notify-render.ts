@@ -21,7 +21,7 @@ import { getQComponent } from '../component/q-component-ctx';
 // TODO(misko): tests
 // TODO(misko): this should take QComponent as well.
 export function qNotifyRender(hostElement: Element): Promise<void> {
-  assertDefined(hostElement.getAttribute(AttributeMarker.OnRender));
+  assertDefined(hostElement.getAttribute(AttributeMarker.OnRenderAttr));
   hostElement.setAttribute(AttributeMarker.RenderNotify, '');
   return scheduleRender(hostElement.ownerDocument) as any;
 }

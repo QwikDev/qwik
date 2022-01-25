@@ -91,15 +91,18 @@ async function submoduleCoreProd(config: BuildConfig) {
   const minFile = join(config.distPkgDir, 'core.min.mjs');
   const minCode = minifyResult.code!;
   await writeFile(minFile, minCode);
+  const cleanCode = minCode.replace(/__self__/g, '__SELF__');
 
-  if (
-    minCode.includes('window') ||
-    minCode.includes(
+  const windowIdx = cleanCode.indexOf('window');
+  const selfIdx =
+    cleanCode.indexOf(
       'self'
-    ) /* || minCode.includes('global') // TODO(OPTIMIZER): Disable temporarily to make the tests work*/
-  ) {
+    ); /* || minCode.includes('global') // TODO(OPTIMIZER): Disable temporarily to make the tests work*/
+  const indx = Math.max(windowIdx, selfIdx);
+  if (indx !== -1) {
     throw new Error(
-      `"${minFile}" should not have any global references, and should have been removed for a production minified build`
+      `"${minFile}" should not have any global references, and should have been removed for a production minified build\n` +
+        cleanCode.substring(indx, indx + 20)
     );
   }
 

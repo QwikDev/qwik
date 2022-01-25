@@ -24,7 +24,7 @@ export function serializeDocument(doc: Document, opts?: SerializeDocumentOptions
     const qrlMapper = symbols;
     html = html.replace(
       QRL_MATCHER,
-      (_, _prefix, _qrl, path, symbol) => `="${qrlMapper(path, symbol)}"`
+      (_, _prefix, _qrl, path, symbol, rest) => `="${qrlMapper(path, symbol)}${rest}"`
     );
   }
 
@@ -51,11 +51,10 @@ function createQrlMapper(qEntryMap: OutputEntryMap) {
 
   const qrlMapper: QrlMapper = (path, symbolName) => {
     path = symbolManifest.get(symbolName) || path;
-    path = path.slice(0, path.lastIndexOf('.'));
     return `./${path}#${symbolName}`;
   };
   return qrlMapper;
 }
 
 // https://regexr.com/69fs7
-const QRL_MATCHER = /="(.\/)?(([\w\d-_.]+)#([\w\d_]+))[?"]/g;
+const QRL_MATCHER = /="(.\/)?(([\w\d-_.]+)#([\w\d$_]*)([^"]*))"/g;

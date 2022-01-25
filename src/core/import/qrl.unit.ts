@@ -6,67 +6,101 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { getQObjectId } from '../object/q-object';
-import { qObject } from '../object/q-object.public';
-import { dirname } from '../util/dirname';
-import { parseQRL, QRL, QRL_STATE, stringifyQRL } from './qrl';
+import { qrl, QRLClass } from '../import/qrl';
+import { parseQRL, stringifyQRL } from './qrl';
 
 describe('QRL', () => {
-  it('should build QRL from string', () => {
-    expect(parseQRL(QRL`./somePath`)).toEqual({
-      _serialized: './somePath',
-      url: './somePath',
-      symbol: '',
-      args: {},
+  describe('serialization', () => {
+    it('should parse', () => {
+      expect(parseQRL('./chunk')).toMatchObject({ chunk: './chunk', symbol: 'default' });
+      expect(parseQRL('./chunk#mySymbol')).toMatchObject({ chunk: './chunk', symbol: 'mySymbol' });
+      expect(parseQRL('./chunk#mySymbol')).toMatchObject({ chunk: './chunk', symbol: 'mySymbol' });
+      expect(parseQRL('./chunk#s1|a.propA|b.propB.propC')).toMatchObject({
+        chunk: './chunk',
+        symbol: 's1',
+        guard: new Map([
+          ['a', ['propA']],
+          ['b', ['propB', 'propC']],
+        ]),
+      });
+      expect(parseQRL('./chunk#s1[1,"b"]')).toMatchObject({
+        chunk: './chunk',
+        symbol: 's1',
+        capture: [1, 'b'],
+      });
+      expect(parseQRL('./chunk#s1|a|[1,"b"]')).toMatchObject({
+        chunk: './chunk',
+        symbol: 's1',
+        guard: new Map([['a', []]]),
+        capture: [1, 'b'],
+      });
+      expect(parseQRL('./chunk#s1|a[1,"b"]')).toMatchObject({
+        chunk: './chunk',
+        symbol: 's1',
+        guard: new Map([['a', []]]),
+        capture: [1, 'b'],
+      });
+      expect(parseQRL('./chunk[1,"b"]')).toMatchObject({
+        chunk: './chunk',
+        capture: [1, 'b'],
+      });
+      expect(parseQRL('./path#symbol[{"foo": "bar"}]')).toMatchObject({
+        chunk: './path',
+        symbol: 'symbol',
+        capture: [{ foo: 'bar' }],
+        guard: null,
+      });
     });
-    expect(parseQRL(QRL`./somePath#symbol?a=b`)).toEqual({
-      _serialized: './somePath#symbol?a=b',
-      url: './somePath',
-      symbol: 'symbol',
-      args: { a: 'b' },
-    });
-    expect(parseQRL(QRL`./somePath#symbol?a=b&c=1`)).toEqual({
-      _serialized: './somePath#symbol?a=b&c=1',
-      url: './somePath',
-      symbol: 'symbol',
-      args: { a: 'b', c: 1 },
+
+    it('should stringify', () => {
+      expect(stringifyQRL(new QRLClass('./chunk', '', null, null, null, null, null, null))).toEqual(
+        './chunk'
+      );
+      expect(stringifyQRL(new QRLClass('./c', 's1', null, null, null, null, null, null))).toEqual(
+        './c#s1'
+      );
+      expect(stringifyQRL(new QRLClass('./c', 's1', null, null, [], null, null, null))).toEqual(
+        './c#s1'
+      );
+      expect(
+        stringifyQRL(new QRLClass('./c', 's1', null, null, [1, '2'] as any, null, null, null))
+      ).toEqual('./c#s1[1,"2"]');
+      expect(
+        stringifyQRL(
+          new QRLClass(
+            './c',
+            's1',
+            null,
+            null,
+            [1 as any, '2'],
+            null,
+            new Map([
+              ['a', []],
+              ['b', ['c']],
+              ['c', ['d', 'e']],
+            ]),
+            null
+          )
+        )
+      ).toEqual('./c#s1|a|b.c|c.d.e[1,"2"]');
     });
   });
 
-  it('should encode state', () => {
-    const state = qObject({ mark: 'state' });
-    expect(parseQRL(QRL`./path`).with({ [QRL_STATE]: state })).toEqual({
-      _serialized: null,
-      url: './path',
-      symbol: '',
-      args: {
-        [QRL_STATE]: state,
-      },
+  describe('qrl', () => {
+    it('should parse reference', () => {
+      expect(
+        qrl(
+          () =>
+            Promise.resolve().then(function () {
+              return require('./h_my-app_myapp_init-73253fd4.js');
+            }),
+          'MyApp_init'
+        )
+      ).toMatchObject({
+        chunk: './h_my-app_myapp_init-73253fd4.js',
+        symbol: 'MyApp_init',
+      });
     });
-  });
-
-  it('should encode args', () => {
-    const obj = qObject({ mark: 'obj' });
-    expect(parseQRL(QRL`./path`).with({ data: obj })).toEqual({
-      _serialized: null,
-      url: './path',
-      symbol: '',
-      args: {
-        data: obj,
-      },
-    });
-  });
-
-  it('should stringify', () => {
-    const map = new Map<string, any>();
-    const obj = qObject({ mark: 'obj' });
-    const qrl = parseQRL(QRL`./path`)
-      .with({ data: obj })
-      .with({ [QRL_STATE]: 'foo' });
-    expect(stringifyQRL(qrl, map)).toEqual(`./path#?data=*${getQObjectId(obj)}&.=foo`);
-  });
-
-  it('should strip filename and keep ending slash', () => {
-    expect(dirname('dir/path/file.ext')).toEqual('dir/path/');
+    it('should parse self-reference', () => {});
   });
 });

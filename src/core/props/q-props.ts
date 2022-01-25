@@ -1,19 +1,23 @@
-import { qImport } from '../import/qImport';
-import { assertDefined, assertEqual } from '../assert/assert';
+import { assertEqual } from '../assert/assert';
+import { QError, qError } from '../error/error';
+import { parseQRL, QRL } from '../import/qrl';
 import { qJsonParse, qJsonStringify } from '../json/q-json';
-import { ParsedQRL, parseQRL, stringifyQRL } from '../import/qrl';
+import { getQObjectId, QObjectIdSymbol, wrap } from '../object/q-object';
+import { QStore_hydrate } from '../object/q-store';
 import { fromCamelToKebabCase } from '../util/case';
 import { EMPTY_ARRAY } from '../util/flyweight';
-import { getQObjectId, Q_OBJECT_PREFIX_SEP, wrap } from '../object/q-object';
-import { QStore_hydrate } from '../object/q-store';
-import { QError, qError } from '../error/error';
+import { AttributeMarker } from '../util/markers';
 import {
-  createMapFacade,
+  newQObjectMap,
   loadObjectsFromState,
   QObjRefMap,
+  QObjectMap,
   updateSubscriptions,
 } from './q-props-obj-map';
+import { qPropWriteQRL, qPropReadQRL, isOnProp } from './q-props-on';
 import { qProps, QProps } from './q-props.public';
+
+Error.stackTraceLimit = 9999;
 
 // TODO(misko): For better debugger experience the qProps should never store Proxy, always naked objects to make it easier to traverse in the debugger.
 
@@ -44,66 +48,77 @@ export function clearQProps(element: Element) {
 }
 
 export interface QPropsContext {
+  __self__: QProps;
   __element__: Element;
   __qRefs__: QObjRefMap;
-  __qMap__: Map<string, object>;
+  __qMap__: QObjectMap;
   __mutation__: boolean;
 }
+
+export const Q_MAP = '__qMap__';
 const Q_OBJECT_ATTR_SELECTOR = '[q\\:obj]';
-const STATE_PREFIX = 'state:';
-const ON_PREFIX = 'on:';
+
+const QProps_ = class QProps {
+  public __mutation__: boolean = false;
+  public __self__: QProps = null!;
+  constructor(
+    public __element__: Element,
+    public __qRefs__: QObjRefMap,
+    public __qMap__: QObjectMap
+  ) {}
+};
 
 export function newQProps(element: Element): QProps {
   const qObjRefMap: QObjRefMap = new Map();
-  const qObjMap: Map<string, object> = createMapFacade(element, qObjRefMap);
-  const cache: QPropsContext & Record<string | symbol, any> = {
-    __element__: element,
-    __qRefs__: qObjRefMap,
-    __qMap__: qObjMap,
-    __mutation__: false,
-  };
-  return ((element as any)[Q_PROP] = new Proxy(cache, {
-    get: (target: QPropsContext & Record<string | symbol, any>, prop) => {
-      if (typeof prop == 'string') {
-        if (prop === '__mutation__') {
-          const mutation = target.__mutation__;
-          target.__mutation__ = false;
-          return mutation;
-        } else if (prop == '__parent__') {
-          const parent = element.parentElement;
-          return parent && qProps(parent);
-        } else if (prop.startsWith(ON_PREFIX)) {
-          return createInvokeFn(cache, qObjMap, prop);
-        }
+  const qObjMap: QObjectMap = newQObjectMap(element, qObjRefMap);
+  const cache: QPropsContext & Record<string | symbol, any> = new QProps_(
+    element,
+    qObjRefMap,
+    qObjMap
+  );
 
-        if (prop in cache) {
-          return target[prop];
-        }
+  return ((element as any)[Q_PROP] = cache.__self__ =
+    new Proxy(cache, {
+      get: (target: QPropsContext & Record<string | symbol, any>, prop) => {
+        if (typeof prop == 'string') {
+          if (prop === '__mutation__') {
+            const mutation = target.__mutation__;
+            target.__mutation__ = false;
+            return mutation;
+          } else if (prop === '__qMap__') {
+            return target.__qMap__;
+          } else if (prop == '__parent__') {
+            const parent = element.parentElement;
+            return parent && qProps(parent);
+          } else if (isOnProp(prop)) {
+            return qPropReadQRL(cache, qObjMap, prop);
+          } else if (prop === QObjectIdSymbol) {
+            const id = getQObjectId(element)!;
+            assertEqual(id.charAt(0), AttributeMarker.ELEMENT_ID_PREFIX);
+            return AttributeMarker.ELEMENT_ID_Q_PROPS_PREFIX + id.substring(1);
+          }
 
-        if (prop.startsWith(STATE_PREFIX)) {
-          return (cache[prop] = findState(qObjMap, prop.substr(STATE_PREFIX.length)));
-        } else {
+          if (prop in cache) {
+            return target[prop];
+          }
+
           return (cache[prop] = readAttribute(element, qObjMap, prop));
         }
-      }
-    },
-    set: (target: QPropsContext & Record<string | symbol, any>, prop, value) => {
-      if (typeof prop == 'string') {
-        if (prop === 'children') return true;
-        if (prop.startsWith(STATE_PREFIX)) {
-          const id = getQObjectId(value)!;
-          assertDefined(id);
-          assertEqual(id.startsWith(prop.substr(STATE_PREFIX.length)), true);
-          qObjMap.set(id, (target[prop] = value));
-        } else if (prop.startsWith(ON_PREFIX)) {
-          addQrlListener(cache, qObjMap, prop, value);
-        } else if (prop === ':subscriptions') {
-          updateSubscriptions(element, qObjRefMap, value as Set<object>);
-        } else {
-          value = wrap(value);
-          const existingValue =
-            prop in target ? target[prop] : (target[prop] = readAttribute(element, qObjMap, prop));
-          /**
+      },
+      set: (target: QPropsContext & Record<string | symbol, any>, prop, value) => {
+        if (typeof prop == 'string') {
+          if (prop === 'children') return true;
+          if (isOnProp(prop)) {
+            qPropWriteQRL(cache, qObjMap, prop, value);
+          } else if (prop === ':subscriptions') {
+            updateSubscriptions(element, qObjRefMap, value as Set<object>);
+          } else {
+            value = wrap(value);
+            const existingValue =
+              prop in target
+                ? target[prop]
+                : (target[prop] = readAttribute(element, qObjMap, prop));
+            /**
           const qObjs = diff(existingValue, value);
           if (qObjs) {
             qObjs.forEach((id) => qObjMap.set(id, null!));
@@ -111,33 +126,33 @@ export function newQProps(element: Element): QProps {
             target.__mutation__ = true;
           }
           */
-          if (value !== existingValue) {
-            const existingId = getQObjectId(existingValue);
-            existingId && qObjMap.set(existingId, null!);
-            writeAttribute(element, qObjMap, prop, (target[prop] = value));
-            target.__mutation__ = true;
+            if (value !== existingValue) {
+              const existingId = getQObjectId(existingValue);
+              existingId && qObjMap.set(existingId, null!);
+              writeAttribute(element, qObjMap, prop, (target[prop] = value));
+              target.__mutation__ = true;
+            }
           }
+          return true;
+        } else {
+          // TODO(misko): Better error/test
+          throw new Error('Only string keys are supported');
         }
-        return true;
-      } else {
-        // TODO(misko): Better error/test
-        throw new Error('Only string keys are supported');
-      }
-    },
-  }));
+      },
+    }));
 }
 
 export function test_clearqPropsCache(element: Element) {
   (element as any)[Q_PROP] = undefined;
 }
 
-function readAttribute(element: Element, map: Map<string, object>, propName: string): any {
-  if (propName.startsWith(ON_PREFIX)) {
-    const attrName = fromCamelToKebabCase(propName.substr(3));
+function readAttribute(element: Element, map: QObjectMap, propName: string): any {
+  if (isOnProp(propName)) {
+    const attrName = fromCamelToKebabCase(propName.split(':')[1]);
     const attrValue = element.getAttribute(attrName);
-    const listeners: ParsedQRL[] = [];
+    const listeners: QRL[] = [];
     attrValue?.split('\n').forEach((qrl) => {
-      listeners.push(parseQRL(qrl, map));
+      listeners.push(parseQRL(qrl));
     });
     return listeners;
   } else {
@@ -151,12 +166,7 @@ function readAttribute(element: Element, map: Map<string, object>, propName: str
   }
 }
 
-function writeAttribute(
-  element: Element,
-  map: Map<string, object>,
-  propName: string,
-  value: any
-): void {
+function writeAttribute(element: Element, map: QObjectMap, propName: string, value: any): void {
   const attrName = fromCamelToKebabCase(propName);
   if (propName == 'class') {
     element.setAttribute('class', stringifyClassOrStyle(value, true));
@@ -207,134 +217,8 @@ export function diff(existing: any, actual: any): string[] | null {
   return EMPTY_ARRAY;
 }
 
-function findState(
-  map: Map<string, object | { obj: object; count: number }>,
-  stateName: string
-): any {
-  let state: any = null;
-  stateName += Q_OBJECT_PREFIX_SEP;
-  map.forEach((v, k) => {
-    if (k.startsWith(stateName)) {
-      state = v;
-    }
-  });
-  return state;
-}
-
-function addQrlListener(
-  cache: QPropsContext & Record<string | symbol, any>,
-  map: Map<string, any>,
-  prop: string,
-  value: any
-) {
-  if (!value) return;
-  if (typeof value == 'string' || value instanceof String) {
-    value = parseQRL(value as any, undefined /** Don't expect objects in strings */);
-  }
-  if (value instanceof ParsedQRL) {
-    const existingQRLs = getExistingQRLs(cache, map, prop);
-    let found = false;
-    for (let index = 0; index < existingQRLs.length; index++) {
-      const existingQRL = existingQRLs[index];
-      if (isSameHandler(existingQRL, value)) {
-        found = true;
-        replaceQRL(existingQRLs, map, index, value);
-        break;
-      }
-    }
-    if (!found) {
-      replaceQRL(existingQRLs, map, existingQRLs.length, value);
-    }
-    const kababProp = ON_PREFIX + fromCamelToKebabCase(prop.substr(ON_PREFIX.length));
-    cache.__element__.setAttribute(kababProp, serializeQRLs(existingQRLs));
-  } else {
-    // TODO(misko): Test/better text
-    throw new Error(`Not QRL: prop: ${prop}; value: ` + value);
-  }
-}
-
-function getExistingQRLs(
-  cache: QPropsContext & Record<string | symbol, any>,
-  map: Map<string, any>,
-  prop: string
-): ParsedQRL[] {
-  if (prop in cache) return cache[prop];
-  const kababProp = ON_PREFIX + fromCamelToKebabCase(prop.substr(ON_PREFIX.length));
-  const parts: ParsedQRL[] = [];
-  (cache.__element__.getAttribute(kababProp) || '').split('\n').forEach((qrl) => {
-    if (qrl) {
-      parts.push(parseQRL(qrl as any, map));
-    }
-  });
-  return (cache[prop] = parts);
-}
-
-function isSameHandler(existing: ParsedQRL<any>, actual: ParsedQRL<any>) {
-  return (
-    existing.url == actual.url &&
-    existing.symbol == actual.symbol &&
-    existing.getState() == actual.getState()
-  );
-}
-
-function serializeQRLs(existingQRLs: ParsedQRL<any>[]): string {
-  return existingQRLs
-    .map((qrl) => {
-      assertDefined(qrl._serialized);
-      return qrl._serialized;
-    })
-    .join('\n');
-}
-
-function replaceQRL(
-  existingQRLs: ParsedQRL<any>[],
-  map: Map<string, any>,
-  index: number,
-  newQrl: ParsedQRL<any>
-) {
-  const existing = index < existingQRLs.length ? existingQRLs[index] : null;
-  if (existing && Array.isArray(existing._serialized)) {
-    existing._serialized.forEach((key, index) => {
-      if (index) {
-        // need to skip the first one.
-        map.set(key, null);
-      }
-    });
-  }
-  stringifyQRL(newQrl, map);
-  existingQRLs[index] = newQrl;
-}
-function createInvokeFn(
-  cache: QPropsContext & Record<string | symbol, any>,
-  map: Map<string, any>,
-  prop: string
-): ((event: Event) => Promise<any[]>) | null {
-  const existingQRLs = getExistingQRLs(cache, map, prop);
-  if (existingQRLs.length === 0) return null;
-  return (event: Event) => {
-    return Promise.all(
-      existingQRLs.map(async (qrl) => {
-        const fn: EventHandler = await qImport(cache.__element__, qrl);
-        const element = cache.__element__;
-        const qrlString = Array.isArray(qrl._serialized) ? qrl._serialized[0] : qrl._serialized!;
-        const url = new URL(qrlString, element.ownerDocument.baseURI);
-        return { state: qrl.getState(), value: await fn(element, event, url) } as OnHookReturn;
-      })
-    );
-  };
-}
-
-interface EventHandler {
-  (element: Element, event: Event, url: URL): any;
-}
-
 export function didQPropsChange(qProps: QProps) {
   return (qProps as QPropsContext).__mutation__;
-}
-
-export interface OnHookReturn<T = any> {
-  state: string;
-  value: T;
 }
 
 /**

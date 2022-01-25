@@ -6,11 +6,14 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { applyDocumentConfig } from './util';
+import { qProps } from '@builder.io/qwik';
+import type { QwikDocument } from '../core/document';
+import { fromCamelToKebabCase } from '../core/util/case';
+import { qGlobal } from '../core/util/qdev';
 import { createGlobal } from './document';
-import type { MockDocument, MockGlobal } from './types';
 import { getTestPlatform } from './platform';
-import { qImport } from '@builder.io/qwik';
+import type { MockDocument, MockGlobal } from './types';
+import { applyDocumentConfig } from './util';
 
 /**
  * Creates a simple DOM structure for testing components.
@@ -64,33 +67,37 @@ export interface ElementFixtureOptions {
  * @param event
  * @returns
  */
-export function trigger(element: Element, selector: string, event: string): Promise<Element[]> {
+export async function trigger(
+  element: Element,
+  selector: string,
+  eventNameCamel: string
+): Promise<Element[]> {
   const elements: Promise<Element>[] = [];
   Array.from(element.querySelectorAll(selector)).forEach((element) => {
-    const qrl = element.getAttribute('on:' + event);
-    if (qrl) {
-      elements.push(
-        (async () => {
-          const eventHandler = (await qImport(element, qrl)) as (
-            element: HTMLElement,
-            event: Event,
-            url: URL
-          ) => void;
-          const url = new URL(qrl, element.ownerDocument.baseURI);
-          await eventHandler(element as HTMLElement, new MockEvent(event), url);
-          await getTestPlatform(element.ownerDocument).flush();
-          return element as Element;
-        })()
-      );
+    const kebabEventName = fromCamelToKebabCase(eventNameCamel);
+    const qrlAttr = element.getAttribute('on:' + kebabEventName);
+    if (qrlAttr) {
+      qrlAttr.split('/n').forEach((qrl) => {
+        const event = { type: kebabEventName };
+        const url = new URL(qrl, 'http://mock-test/');
+
+        // Create a mock document to simulate `qwikloader` environment.
+        const previousQDocument: QwikDocument = (qGlobal as any).document;
+        const document: QwikDocument = ((qGlobal as any).document = element.ownerDocument as any);
+        document.__q_context__ = [element, event, url];
+        try {
+          const props = qProps(element);
+          const handler = props['on:' + eventNameCamel];
+          if (handler) {
+            elements.push(handler());
+          }
+        } finally {
+          document.__q_context__ = undefined;
+          (qGlobal as any).document = previousQDocument;
+        }
+      });
     }
   });
+  await getTestPlatform(element.ownerDocument).flush();
   return Promise.all(elements);
 }
-
-const MockEvent: typeof CustomEvent = class MockEvent {
-  type: string;
-
-  constructor(type: string) {
-    this.type = type;
-  }
-} as any;

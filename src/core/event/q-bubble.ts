@@ -1,15 +1,14 @@
 import { qProps } from '../props/q-props.public';
-import { useHostElement } from '../use/use-core.public';
-import type { QEvent } from './q-event.public';
+import { newInvokeContext, useInvoke } from '../use/use-core';
+import { useHostElement } from '../use/use-host-element.public';
 
-export function _qBubble(eventType: string | QEvent, payload: {}): void {
+export function _qBubble(eventType: string, payload: {}): void {
   let props = qProps(useHostElement()) as any;
-  const type = typeof eventType == 'string' ? eventType : eventType.type;
-  payload = { type, ...payload };
-  const eventName = 'on:' + type;
+  payload = { type: eventType, ...payload };
+  const eventName = 'on:' + eventType;
   while (props) {
-    const listener: undefined | ((payload: {}) => void) = props[eventName];
-    listener && listener(payload);
+    const listener: undefined | (() => void) = props[eventName];
+    listener && useInvoke(newInvokeContext(props.__element__, payload), listener);
     props = props.__parent__;
   }
 }

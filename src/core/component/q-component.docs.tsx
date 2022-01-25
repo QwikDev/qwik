@@ -5,7 +5,9 @@
 // it to the desired comment location
 //
 
-import { Fragment, h, qComponent, qHook } from '@builder.io/qwik';
+import { Fragment, h, qComponent } from '@builder.io/qwik';
+import { useStore } from '../use/use-state.public';
+import { onRender } from './q-component.public';
 
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
@@ -15,28 +17,22 @@ import { Fragment, h, qComponent, qHook } from '@builder.io/qwik';
 
 //
 // <docs anchor="component">
-export const Counter = qComponent<{ value?: number; step?: number }, { count: number }>({
-  onMount: qHook((props) => ({ count: props.value || 0 })),
-  onRender: qHook((props, state) => (
+export const Counter = qComponent((props: { value?: number; step?: number }) => {
+  const state = useStore({ count: props.value || 0 });
+  return onRender(() => (
     <div>
       <span>{state.count}</span>
-      <button
-        on:click={qHook<typeof Counter>((props, state) => {
-          state.count += props.step || 1;
-        })}
-      >
-        +
-      </button>
+      <button on:click={() => (state.count += props.step || 1)}>+</button>
     </div>
-  )),
+  ));
 });
 // </docs>
 //
 
 //
 // <docs anchor="component-usage">
-export const OtherComponent = qComponent({
-  onRender: qHook(() => <Counter value={100} />),
+export const OtherComponent = qComponent(() => {
+  return onRender(() => <Counter value={100} />);
 });
 // </docs>
 //
@@ -44,8 +40,8 @@ export const OtherComponent = qComponent({
 () => {
   //
   // <docs anchor="on-render">
-  const Counter = qComponent<{ name: string }>({
-    onRender: qHook((props) => <div>{props.name}</div>),
+  const Counter = qComponent((props: { name: string }) => {
+    return onRender(() => <div>{props.name}</div>);
   });
   // </docs>
   //
@@ -55,23 +51,22 @@ export const OtherComponent = qComponent({
 () => {
   //
   // <docs anchor="on-mount">
-  const Counter = qComponent<{}, { count: number }>({
-    onMount: qHook(() => ({ count: 0 })),
-    onRender: qHook((props, state) => <div>{state.count}</div>),
+  const Counter = qComponent(() => {
+    const state = useStore({ count: 0 });
+    return onRender(() => <div>{state.count}</div>);
   });
   // </docs>
   //
   return Counter;
 };
 
-(other: any) => {
+(other: [Record<string, any>]) => {
   //
   // <docs anchor="props">
-  const MyComp = qComponent({
-    props: { title: 'MyTitle', label: 'defaultLabel' },
-    ...other,
+  const MyComp = qComponent((props: { title: 'MyTitle'; label: 'defaultLabel' }) => {
+    return onRender(() => <span title={props.label}></span>);
   });
   // </docs>
   //
-  return MyComp;
+  return [MyComp, other];
 };

@@ -1,21 +1,12 @@
-import { h, qEvent } from '@builder.io/qwik';
-import { qComponent, qHook, useEvent } from '@builder.io/qwik';
+import { h, qComponent, onRender, useEvent, useStore } from '@builder.io/qwik';
 
-export const expensiveComputationDone = qEvent('document:expensiveComputationDone');
-
-export const MyApp = qComponent<{}, { name: string; running: boolean }>({
-  tagName: 'my-app', // optional
-  onMount: qHook(() => ({ name: 'World', running: true })),
-  onRender: qHook((props, state) => {
+export const MyApp = qComponent('my-app', () => {
+  const state = useStore({ name: 'World', running: true });
+  return onRender(() => {
     // eslint-disable-next-line no-console
     console.log('Qwik: MyApp component is rendering...');
     return (
-      <div
-        id="my-app"
-        {...expensiveComputationDone(
-          qHook<typeof MyApp>((props, state) => (state.running = false))
-        )}
-      >
+      <div id="my-app" onDocument:expensiveComputationDone={() => (state.running = false)}>
         <p style={{ 'text-align': 'center' }}>
           <a href="https://github.com/builderio/qwik">
             <img
@@ -68,11 +59,11 @@ export const MyApp = qComponent<{}, { name: string; running: boolean }>({
             Try interacting with this component by changing{' '}
             <input
               value={state.name}
-              on:keyup={qHook<typeof MyApp>((props, state) => {
+              on:keyup={() => {
                 const event = useEvent<KeyboardEvent>();
                 const input = event.target as HTMLInputElement;
                 state.name = input.value;
-              })}
+              }}
             ></input>
             .
           </li>
@@ -99,5 +90,5 @@ export const MyApp = qComponent<{}, { name: string; running: boolean }>({
         </p>
       </div>
     );
-  }),
+  });
 });

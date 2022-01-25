@@ -22,4 +22,4 @@ export { setServerPlatform } from './platform';
 export const versions = {
   qwik: (globalThis as any).QWIK_VERSION as string,
   domino: (globalThis as any).DOMINO_VERSION as string,
-};
+} as const;

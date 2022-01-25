@@ -38,8 +38,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: node_modules
-          key: npm-cache-ubuntu-${{ hashFiles('yarn.lock') }}
-          restore-keys: npm-cache-ubuntu-
+          key: npm-cache-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
 
       - name: Install NPM Dependencies
         run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
@@ -84,23 +83,20 @@ jobs:
         uses: actions/cache@v2
         with:
           path: node_modules
-          key: npm-cache-ubuntu-${{ hashFiles('yarn.lock') }}
-          restore-keys: npm-cache-ubuntu-
+          key: npm-cache-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
 
       - name: Cache cargo dependencies
         uses: actions/cache@v2
         with:
           path: |
             ~/.cargo
-          key: cargo-deps-wasm-${{ hashFiles('Cargo.lock') }}
-          restore-keys: cargo-deps-wasm-
+          key: cargo-deps-wasm-${{ runner.os }}-${{ hashFiles('Cargo.lock') }}
 
       - name: Cache cargo build
         uses: actions/cache@v2
         with:
           path: src/wasm/target
-          key: cargo-build-wasm-${{ hashFiles('./src/wasm/Cargo.lock') }}
-          restore-keys: cargo-build-wasm-
+          key: cargo-build-wasm-${{ runner.os }}-${{ hashFiles('./src/wasm/Cargo.lock') }}
 
       - name: Install wasm-pack
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
@@ -171,7 +167,6 @@ jobs:
         with:
           path: node_modules
           key: npm-cache-${{ matrix.settings.target }}-${{ hashFiles('yarn.lock') }}
-          restore-keys: npm-cache-${{ matrix.settings.target }}-
 
       - name: Pull Latest Image
         if: ${{ matrix.settings.docker }}
@@ -187,14 +182,12 @@ jobs:
           path: |
             ~/.cargo
           key: cargo-deps-${{ matrix.settings.target }}-${{ hashFiles('Cargo.lock') }}
-          restore-keys: cargo-deps-${{ matrix.settings.target }}-
 
       - name: Cache cargo build
         uses: actions/cache@v2
         with:
           path: target
           key: cargo-build-${{ matrix.settings.target }}-${{ hashFiles('Cargo.lock') }}
-          restore-keys: cargo-deps-${{ matrix.settings.target }}-
 
       - name: Setup Toolchain
         if: ${{ matrix.settings.setup }}
@@ -215,18 +208,17 @@ jobs:
           path: dist-dev/@builder.io-qwik/bindings/*.node
           if-no-files-found: error
 
-  ############ RELEASE ############
-  release:
-    name: Release
+  ############ BUILD DISTRIBUTION ############
+  build-distribution:
+    name: Build Distribution
     if: "!contains(github.event.head_commit.message, 'skip ci')"
     runs-on: ubuntu-latest
     needs:
       - build-package
       - build-wasm
       - build-bindings
-      - validate-rust
       - test-unit
-      #- test-e2e
+      - validate-rust
 
     steps:
       - name: Setup Node.js
@@ -234,9 +226,6 @@ jobs:
         with:
           node-version: 16.x
           registry-url: https://registry.npmjs.org/
-
-      - name: Checkout
-        uses: actions/checkout@v2
 
       - name: Create dist-dev/@builder.io-qwik directory
         run: |
@@ -247,10 +236,10 @@ jobs:
       - name: Download Build Artifacts
         uses: actions/download-artifact@v2
 
-      - name: Print Package Artifacts
+      - name: Print Distribution Artifacts
         run: ls -R dist-dev-builder-io-qwik/
 
-      - name: Move Package Artifacts
+      - name: Move Distribution Artifacts
         run: mv dist-dev-builder-io-qwik/* dist-dev/@builder.io-qwik/
 
       - name: Print Bindings Artifacts
@@ -262,12 +251,50 @@ jobs:
       - name: Print dist-dev
         run: ls -R dist-dev/
 
+      - name: Upload Qwik Distribution Artifact
+        if: ${{ always() }}
+        uses: actions/upload-artifact@master
+        with:
+          name: builderio-qwik-distribution
+          path: dist-dev/@builder.io-qwik/*
+          if-no-files-found: error
+
+  ############ RELEASE ############
+  release:
+    name: Release
+    if: "!contains(github.event.head_commit.message, 'skip ci')"
+    runs-on: ubuntu-latest
+    needs:
+      - build-distribution
+      - test-e2e
+
+    steps:
+      - name: Setup Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 16.x
+          registry-url: https://registry.npmjs.org/
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v2
+
+      - name: Print Distribution Artifacts
+        run: ls -R builderio-qwik-distribution/
+
+      - name: Move Distribution Artifacts
+        run: |
+          mkdir dist-dev/
+          mkdir dist-dev/@builder.io-qwik/
+          mv builderio-qwik-distribution/* dist-dev/@builder.io-qwik/
+
       - name: Cache NPM Dependencies
         uses: actions/cache@v2
         with:
           path: node_modules
-          key: npm-cache-ubuntu-${{ hashFiles('yarn.lock') }}
-          restore-keys: npm-cache-ubuntu-
+          key: npm-cache-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
 
       - name: Install NPM Dependencies
         run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
@@ -286,13 +313,63 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Upload Qwik Package Artifact
-        if: ${{ always() }}
-        uses: actions/upload-artifact@master
+  ############ E2E TEST ############
+  test-e2e:
+    name: E2E Tests
+    strategy:
+      fail-fast: false
+      matrix:
+        settings:
+          - host: ubuntu-latest
+            browser: chromium
+          - host: macos-latest
+            browser: webkit
+          - host: windows-latest
+            browser: firefox
+
+    runs-on: ${{ matrix.settings.host }}
+    needs:
+      - build-distribution
+
+    steps:
+      - name: Setup Node.js
+        uses: actions/setup-node@v1
         with:
-          name: BuilderIO-qwik
-          path: dist-dev/*.tgz
-          if-no-files-found: error
+          node-version: 16.x
+          registry-url: https://registry.npmjs.org/
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v2
+
+      - name: Print Distribution Artifacts
+        run: ls -R builderio-qwik-distribution/
+
+      - name: Move Distribution Artifacts
+        run: |
+          mkdir dist-dev/
+          mkdir dist-dev/@builder.io-qwik/
+          mv builderio-qwik-distribution/* dist-dev/@builder.io-qwik/
+
+      - name: Print Directory
+        run: ls -R ./
+
+      - name: Cache NPM Dependencies
+        uses: actions/cache@v2
+        with:
+          path: node_modules
+          key: npm-cache-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+
+      - name: Install NPM Dependencies
+        run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
+
+      - name: Install Playwright
+        run: npx playwright install ${{ matrix.settings.browser }} && npx playwright install-deps ${{ matrix.settings.browser }}
+
+      - name: Playwright E2E Tests
+        run: yarn test.e2e.${{ matrix.settings.browser }}
 
   ############ UNIT TEST ############
   test-unit:
@@ -313,53 +390,13 @@ jobs:
         uses: actions/cache@v2
         with:
           path: node_modules
-          key: npm-cache-ubuntu-${{ hashFiles('yarn.lock') }}
-          restore-keys: npm-cache-ubuntu-
+          key: npm-cache-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
 
       - name: Install NPM Dependencies
         run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
 
       - name: Jest Unit Tests
         run: yarn test.unit
-
-  ############ E2E TEST ############
-  # test-e2e:
-  #   name: E2E Tests
-  #   runs-on: ubuntu-latest
-
-  #   steps:
-  #     - name: Setup Node.js
-  #       uses: actions/setup-node@v1
-  #       with:
-  #         node-version: 10.x
-  #         registry-url: https://registry.npmjs.org/
-
-  #     - name: Checkout
-  #       uses: actions/checkout@v2
-
-  #     - name: E2E Tests
-  #       uses: cypress-io/github-action@v2
-  #       with:
-  #         install-command: yarn --frozen-lockfile --ignore-engines
-  #         start: yarn integration.server.prod
-  #         wait-on: 'http://localhost:8081'
-  #         wait-on-timeout: 120
-  #         browser: chrome
-  #         record: true
-  #         group: 'Qwik E2E Test Group'
-  #         spec: cypress/integration/*
-  #         config-file: cypress/cypress.json
-  #         config: defaultCommandTimeout=10000
-  #       env:
-  #         CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
-  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  #     - name: Upload Videos Artifacts
-  #       uses: actions/upload-artifact@v1
-  #       if: always()
-  #       with:
-  #         name: Cypress Videos
-  #         path: cypress/videos
 
   ########### VALIDATE RUST ############
   validate-rust:
@@ -383,15 +420,13 @@ jobs:
         with:
           path: |
             ~/.cargo
-          key: ${{ runner.os }}-cargo-deps-${{ hashFiles('Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-cargo-deps-
+          key: cargo-deps-${{ runner.os }}-${{ hashFiles('Cargo.lock') }}
 
       - name: Cache cargo build
         uses: actions/cache@v2
         with:
           path: target
-          key: ${{ runner.os }}-cargo-build-${{ hashFiles('Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-cargo-build-
+          key: cargo-build-${{ runner.os }}-${{ hashFiles('Cargo.lock') }}
 
       - name: Format check
         uses: actions-rs/cargo@v1
@@ -430,8 +465,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: node_modules
-          key: npm-cache-ubuntu-${{ hashFiles('yarn.lock') }}
-          restore-keys: npm-cache-ubuntu-
+          key: npm-cache-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
 
       - name: Install NPM Dependencies
         run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000

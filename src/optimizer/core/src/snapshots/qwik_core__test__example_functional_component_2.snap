@@ -9,14 +9,14 @@ expression: output
 
 import { qHook, qComponent, h, onRender } from '@builder.io/qwik';
 export const useCounter = () => {
-    return useState({count: 0});
+    return useStore({count: 0});
 }
 
 export const STEP = 1;
 
 export const App = qComponent((props) => {
     const state = useCounter();
-    const thing = useState({thing: 0});
+    const thing = useStore({thing: 0});
     const STEP_2 = 2;
 
     return onRender(() => {
@@ -43,7 +43,7 @@ export const App = qComponent((props) => {
 import * as __qwik__ from "@builder.io/qwik";
 import { qComponent } from '@builder.io/qwik';
 export const useCounter = ()=>{
-    return useState({
+    return useStore({
         count: 0
     });
 };
@@ -109,7 +109,7 @@ import { onRender } from "@builder.io/qwik";
 import { useCounter } from "./test";
 export const App_onmount = (props)=>{
     const state = useCounter();
-    const thing = useState({
+    const thing = useStore({
         thing: 0
     });
     const STEP_2 = 2;

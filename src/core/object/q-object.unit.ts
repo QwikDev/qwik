@@ -2,7 +2,7 @@ import { ElementFixture } from '../../testing/element_fixture';
 import { didQPropsChange } from '../props/q-props';
 import { qProps, QProps } from '../props/q-props.public';
 import { getQObjectId, readWriteProxy, unwrapProxy } from './q-object';
-import { qObject } from './q-object.public';
+import { qObject } from './q-object';
 
 describe('q-object', () => {
   let fixture: ElementFixture;
@@ -96,6 +96,15 @@ describe('q-object', () => {
       expect(host.getAttribute('q:obj')).toEqual('#2 ' + id);
       expect(qHost.propA).toEqual(obj);
       expect(qHost.propB).toEqual(obj);
+    });
+  });
+
+  describe('getObjectId', () => {
+    it('should add ID to dome element', () => {
+      const id = getQObjectId(fixture.host)!;
+      expect(id).toBeDefined();
+      expect(id.charAt(0)).toBe('#');
+      expect(getQObjectId(fixture.host)).toBe(id);
     });
   });
 });

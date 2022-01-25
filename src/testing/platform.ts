@@ -1,8 +1,7 @@
-import { getPlatform, QRL, setPlatform } from '@builder.io/qwik';
+import { getPlatform, setPlatform } from '@builder.io/qwik';
 import type { TestPlatform } from './types';
 import { existsSync } from 'fs';
 import { fileURLToPath } from 'url';
-import { qExport } from '../core/import/qImport';
 
 function createPlatform(document: any) {
   if (!document || (document as Document).nodeType !== 9) {
@@ -23,10 +22,9 @@ function createPlatform(document: any) {
 
   const moduleCache = new Map<string, { [symbol: string]: any }>();
   const testPlatform: TestPlatform = {
-    importSymbol(element, url) {
+    importSymbol(element, url, symbolName) {
       const urlDoc = toUrl(element.ownerDocument, element, url);
       const importPath = toPath(urlDoc);
-      const symbolName = qExport(urlDoc.toString());
       const mod = moduleCache.get(importPath);
       if (mod) {
         return mod[symbolName];
@@ -113,8 +111,8 @@ export function setTestPlatform(document: any) {
  * @param url - relative URL
  * @returns fully qualified URL.
  */
-export function toUrl(doc: Document, element: Element | null, url?: string | QRL | URL): URL {
-  let _url: string | QRL | URL;
+export function toUrl(doc: Document, element: Element | null, url?: string | URL): URL {
+  let _url: string | URL;
   let _base: string | URL | undefined = undefined;
 
   if (url === undefined) {

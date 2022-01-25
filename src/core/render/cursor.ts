@@ -244,7 +244,7 @@ function _reconcileElement(
     hostComponent.styleHostClass && reconciledElement.classList.add(hostComponent.styleHostClass);
     if (Array.isArray(componentRenderQueue)) {
       componentRenderQueue.push(hostComponent.render());
-    } else if (reconciledElement.getAttribute(AttributeMarker.OnRender)) {
+    } else if (reconciledElement.getAttribute(AttributeMarker.OnRenderAttr)) {
       reconciledElement.setAttribute(AttributeMarker.RenderNotify, '');
     }
   }

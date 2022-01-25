@@ -1,7 +1,7 @@
 import { createDocument } from '../../testing/document';
 import { qProps, QProps } from '../props/q-props.public';
-import { qObject, qDehydrate } from '@builder.io/qwik';
-import { _stateQObject } from './q-object';
+import { qDehydrate } from '@builder.io/qwik';
+import { useStore } from '../use/use-state.public';
 
 describe('q-element', () => {
   let document: Document;
@@ -15,29 +15,18 @@ describe('q-element', () => {
   });
 
   it('should serialize content', () => {
-    const shared = qObject({ mark: 'CHILD' });
-    qDiv['state:'] = _stateQObject({ mark: 'WORKS', child: shared, child2: shared }, '');
+    const shared = useStore({ mark: 'CHILD' });
+    const state = useStore({ mark: 'WORKS', child: shared, child2: shared });
 
     qDehydrate(document);
 
     qDiv = qProps(div);
-    expect(qDiv['state:']).toEqual({ mark: 'WORKS', child: shared, child2: shared });
+    expect(state).toEqual({ mark: 'WORKS', child: shared, child2: shared });
   });
 
-  it('should serialize same objects multiple times', () => {
-    const foo = _stateQObject({ mark: 'CHILD' }, 'foo');
-    qDiv['state:foo'] = foo;
-    qDiv.foo = foo;
-
-    qDehydrate(document);
-
-    qDiv = qProps(div);
-    expect(qDiv['state:foo']).toEqual(foo);
-    expect(qDiv.foo).toEqual(foo);
-  });
   it('should serialize cyclic graphs', () => {
-    const foo = _stateQObject({ mark: 'foo', bar: {} }, 'foo');
-    const bar = _stateQObject({ mark: 'bar', foo: foo }, 'bar');
+    const foo = useStore({ mark: 'foo', bar: {} });
+    const bar = useStore({ mark: 'bar', foo: foo });
     foo.bar = bar;
     qDiv.foo = foo;
 

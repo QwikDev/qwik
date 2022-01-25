@@ -1,12 +1,14 @@
 import { createDocument } from '../../testing/document';
-import { qHook } from '../component/qrl-hook.public';
-import { ParsedQRL } from '../import/qrl';
 import { diff, test_clearqPropsCache as test_clearQPropsCache } from './q-props';
-import type { QComponent } from '../component/q-component.public';
-import { qObject } from '../object/q-object.public';
-import { getQObjectId, _stateQObject } from '../object/q-object';
+import { getQObjectId } from '../object/q-object';
 import { qDehydrate } from '../object/q-store.public';
 import { qProps, QProps } from './q-props.public';
+import { parseQRL, QRL, runtimeQrl } from '../import/qrl';
+import { useLexicalScope } from '../use/use-lexical-scope.public';
+import { useStore } from '../use/use-state.public';
+import { isPromise } from '../util/promises';
+import { useEvent } from '../use/use.event.public';
+import { newInvokeContext, useInvoke } from '../use/use-core';
 
 describe('q-element', () => {
   let document: Document;
@@ -83,7 +85,7 @@ describe('q-element', () => {
 
   describe('dehydrate/hydrate', () => {
     it('should serialize QObject', () => {
-      const qObj = qObject({ mark: 'QObj' });
+      const qObj = useStore({ mark: 'QObj' });
       qDiv.myObj = qObj;
       qDiv.ref = { qObj: qObj };
       expect(div.getAttribute('q:obj')).toEqual(getQObjectId(qObj) + ' ' + getQObjectId(qDiv.ref));
@@ -108,8 +110,8 @@ describe('q-element', () => {
       expect(diff({ name: 'a' }, {})).toEqual([]);
       expect(diff('a', 'c')).toEqual([]);
 
-      const obj1 = qObject({});
-      const obj2 = qObject({});
+      const obj1 = useStore({});
+      const obj2 = useStore({});
 
       expect(diff(obj1, obj2)).toEqual([getQObjectId(obj1)]);
       expect(diff(obj1, 'b')).toEqual([getQObjectId(obj1)]);
@@ -118,98 +120,89 @@ describe('q-element', () => {
     });
   });
 
-  describe('state', () => {
-    it('should retrieve state by name', () => {
-      const state1 = _stateQObject({ mark: 1 }, '');
-      const state2 = _stateQObject({ mark: 2 }, 'foo');
-      qDiv['state:'] = state1;
-      qDiv['state:foo'] = state2;
-
-      qDehydrate(document);
-      qDiv = qProps(div);
-
-      expect(qDiv['state:']).toEqual(state1);
-      expect(qDiv['state:foo']).toEqual(state2);
-    });
-  });
-
   describe('QRLs', () => {
     it('should serialize QRL', () => {
       qDiv['on:click'] = './path#symbol';
-      qDiv['on:dblclick'] = new ParsedQRL('./path', 'symbol', { foo: 'bar' });
+      qDiv['on:dblclick'] = parseQRL('./path#symbol[{"foo": "bar"}]');
 
       expect(div.getAttribute('on:click')).toEqual('./path#symbol');
-      expect(div.getAttribute('on:dblclick')).toEqual('./path#symbol?foo=bar');
+      expect(div.getAttribute('on:dblclick')).toEqual('./path#symbol[{"foo":"bar"}]');
     });
+
     it('should overwrite QRL', () => {
-      qDiv['on:click'] = './path#symbol';
-      qDiv['on:click'] = new ParsedQRL('./path', 'symbol', { foo: 'bar' });
+      qDiv['onDocument:click'] = './path#symbol';
+      qDiv['onDocument:click'] = parseQRL('./path#symbol[{"foo": "bar"}]');
 
-      expect(div.getAttribute('on:click')).toEqual('./path#symbol?foo=bar');
+      expect(div.getAttribute('on-document:click')).toEqual('./path#symbol[{"foo":"bar"}]');
     });
+
     it('should add if different QRL', () => {
-      qDiv['on:click'] = './path#symbol1';
-      qDiv['on:click'] = new ParsedQRL('./path', 'symbol', { foo: 'bar' });
+      qDiv['onWindow:click'] = './path#symbol1';
+      qDiv['onWindow:click'] = parseQRL('./path#symbol[{"foo": "bar"}]');
 
-      expect(div.getAttribute('on:click')).toEqual('./path#symbol1\n./path#symbol?foo=bar');
-    });
-    it('should add QRL if different state', () => {
-      qDiv['on:click'] = './path#symbol?.=bar';
-      qDiv['on:click'] = new ParsedQRL('./path', 'symbol', { foo: 'bar' });
-
-      expect(div.getAttribute('on:click')).toEqual('./path#symbol?.=bar\n./path#symbol?foo=bar');
-
-      qDiv['on:click'] = './path#symbol?.=bar&foo=bar';
-      expect(div.getAttribute('on:click')).toEqual(
-        './path#symbol?.=bar&foo=bar\n./path#symbol?foo=bar'
-      );
+      expect(div.getAttribute('on-window:click')?.split('\n')).toEqual([
+        './path#symbol1',
+        './path#symbol[{"foo":"bar"}]',
+      ]);
     });
 
     it('should read qrl as single function', async () => {
       qDiv['on:qRender'] = 'markAsHost';
-      qDiv['state:'] = _stateQObject({ mark: 'implicit' }, '');
-      qDiv['state:explicit'] = _stateQObject({ mark: 'explicit' }, 'explicit');
+      const state = useStore({ mark: 'implicit', isHost: null, args: null });
+      const stateExplicit = useStore({ mark: 'explicit', isHost: null, args: null });
       qDiv.isHost = 'YES';
 
       const child = document.createElement('child');
       div.appendChild(child);
       const qChild = qProps(child) as any;
-      qChild['on:click'] = implicitHandler.with({ mark: 'ARGS WORK' });
-      qChild['on:click'] = explicitHandler;
-      await qChild['on:click']('EVENT');
+      qChild['on:click'] = runtimeQrl(implicitHandler, [qDiv, state, { mark: 'ARGS WORK' }]);
+      qChild['on:click'] = runtimeQrl(explicitHandler, [qDiv, stateExplicit, { '.': 'explicit' }]);
+      await useInvoke(newInvokeContext(child, 'EVENT'), qChild['on:click']);
 
-      expect(qDiv['state:'].mark).toBe('implicit');
-      expect(qDiv['state:'].isHost).toBe('YES');
-      expect(qDiv['state:'].args).toEqual({ mark: 'ARGS WORK' });
+      expect(state.mark).toBe('implicit');
+      expect(state.isHost).toBe('YES');
+      expect(state.args).toEqual({ mark: 'ARGS WORK' });
 
-      expect(qDiv['state:explicit'].mark).toBe('explicit');
-      expect(qDiv['state:explicit'].isHost).toBe('YES');
-      expect(qDiv['state:explicit'].args).toEqual({ '.': 'explicit' });
-      expect(div.getAttribute('q:obj')).toEqual(
-        [getQObjectId(qDiv['state:']), getQObjectId(qDiv['state:explicit'])].join(' ')
+      expect(stateExplicit.mark).toBe('explicit');
+      expect(stateExplicit.isHost).toBe('YES');
+      expect(stateExplicit.args).toEqual({ '.': 'explicit' });
+    });
+
+    it('should accept a promise of QRL and return it resolved', async () => {
+      let resolve!: (qrl: QRL) => void;
+      const log: any[] = [];
+      const onRenderPromise = new Promise((res) => (resolve = res));
+      qDiv['on:qRender'] = onRenderPromise;
+      const renderPromise = useInvoke(newInvokeContext(div, 'qRender'), qDiv['on:qRender']);
+      expect(isPromise(renderPromise)).toBe(true);
+      resolve(
+        runtimeQrl(() => {
+          log.push('WORKS', useEvent());
+          return useEvent();
+        })
       );
+      expect(await renderPromise).toEqual(['qRender']);
+      expect(log).toEqual(['WORKS', 'qRender']);
     });
+  });
 
-    it('should restore QRLs from attribute', () => {
-      // TODO(misko) : implement
-    });
-
-    describe('traverse', () => {
-      it('should return logical parent', () => {
-        const parent = document.createElement('parent');
-        parent.appendChild(div);
-        expect(qDiv.__parent__).toBe(qProps(parent));
-        expect(qDiv.__parent__.__parent__).toBe(null);
-      });
+  describe('traverse', () => {
+    it('should return logical parent', () => {
+      const parent = document.createElement('parent');
+      parent.appendChild(div);
+      expect(qDiv.__parent__).toBe(qProps(parent));
+      expect(qDiv.__parent__.__parent__).toBe(null);
     });
   });
 });
 
-const implicitHandler = qHook((props: any, state: any, args: any) => {
+const implicitHandler = () => {
+  const [props, state, args] = useLexicalScope();
   state.isHost = props.isHost;
   state.args = args;
-});
-const explicitHandler = qHook<QComponent, {}>((props, state, args) => {
+};
+const explicitHandler = () => {
+  const [props, state, args] = useLexicalScope();
   state.isHost = props.isHost;
   state.args = args;
-}).with({ '.': 'explicit' });
+};

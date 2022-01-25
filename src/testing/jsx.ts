@@ -1,4 +1,5 @@
 import type { h } from '@builder.io/qwik';
+import { isQrl, stringifyQRL } from '../core/import/qrl';
 import { createGlobal } from './document';
 
 // TODO(docs)
@@ -8,7 +9,8 @@ export function toDOM(jsx: h.JSX.Element, parent?: HTMLElement): HTMLElement {
   let element = doc.createElement(jsx.type) as HTMLElement;
   for (const attrName in jsx.props) {
     if (attrName !== 'children') {
-      element.setAttribute(attrName, jsx.props[attrName]);
+      const jsxValue = jsx.props[attrName];
+      element.setAttribute(attrName, isQrl(jsxValue) ? stringifyQRL(jsxValue, element) : jsxValue);
     }
   }
   if (parent) {

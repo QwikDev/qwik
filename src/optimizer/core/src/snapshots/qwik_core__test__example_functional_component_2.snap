@@ -40,7 +40,7 @@ export const App = qComponent((props) => {
     
 ============================= test.js ==
 
-import * as __qwik__ from "@builder.io/qwik";
+import * as qwik from "@builder.io/qwik";
 import { qComponent } from '@builder.io/qwik';
 export const useCounter = ()=>{
     return useStore({
@@ -48,36 +48,36 @@ export const useCounter = ()=>{
     });
 };
 export const STEP = 1;
-export const App = /*#__PURE__*/ qComponent(__qwik__.qrl(()=>import("./h_test_app_onmount")
+export const App = /*#__PURE__*/ qComponent(qwik.qrl(()=>import("./h_test_app_onmount")
 , "App_onmount"));
 
 ============================= h_test_app_onrender_div_onclick.js (ENTRY POINT)==
 
-import * as __qwik__ from "@builder.io/qwik";
+import * as qwik from "@builder.io/qwik";
 export const App_onRender_div_onclick = ()=>{
-    const [count2, state] = __qwik__.useLexicalScope();
+    const [count2, state] = qwik.useLexicalScope();
     return state.count += count2;
 };
 
 ============================= h_test_app_onrender_button_onclick.js (ENTRY POINT)==
 
-import * as __qwik__ from "@builder.io/qwik";
+import * as qwik from "@builder.io/qwik";
 import { STEP } from "./test";
 export const App_onRender_button_onclick = ()=>{
-    const [STEP_2, btn, props, state, thing] = __qwik__.useLexicalScope();
+    const [STEP_2, btn, props, state, thing] = qwik.useLexicalScope();
     return state.count += btn.offset + thing + STEP + STEP_2 + props.step;
 };
 
 ============================= h_test_app_onrender.js (ENTRY POINT)==
 
 import { jsx as _jsx, jsxs as _jsxs } from "@builder.io/qwik/jsx-runtime";
-import * as __qwik__ from "@builder.io/qwik";
+import * as qwik from "@builder.io/qwik";
 import { h } from "@builder.io/qwik";
 export const App_onRender = ()=>{
-    const [STEP_2, props, state, thing] = __qwik__.useLexicalScope();
+    const [STEP_2, props, state, thing] = qwik.useLexicalScope();
     const count2 = state.count * 2;
     return(/*#__PURE__*/ _jsxs("div", {
-        "on:click": __qwik__.qrl(()=>import("./h_test_app_onrender_div_onclick")
+        "on:click": qwik.qrl(()=>import("./h_test_app_onrender_div_onclick")
         , "App_onRender_div_onclick", [
             count2,
             state
@@ -87,7 +87,7 @@ export const App_onRender = ()=>{
                 children: state.count
             }),
             buttons.map((btn)=>/*#__PURE__*/ _jsx("button", {
-                    "on:click": __qwik__.qrl(()=>import("./h_test_app_onrender_button_onclick")
+                    "on:click": qwik.qrl(()=>import("./h_test_app_onrender_button_onclick")
                     , "App_onRender_button_onclick", [
                         STEP_2,
                         btn,
@@ -104,7 +104,7 @@ export const App_onRender = ()=>{
 
 ============================= h_test_app_onmount.js (ENTRY POINT)==
 
-import * as __qwik__ from "@builder.io/qwik";
+import * as qwik from "@builder.io/qwik";
 import { onRender } from "@builder.io/qwik";
 import { useCounter } from "./test";
 export const App_onmount = (props)=>{
@@ -113,7 +113,7 @@ export const App_onmount = (props)=>{
         thing: 0
     });
     const STEP_2 = 2;
-    return onRender(__qwik__.qrl(()=>import("./h_test_app_onrender")
+    return onRender(qwik.qrl(()=>import("./h_test_app_onrender")
     , "App_onRender", [
         STEP_2,
         props,

@@ -739,6 +739,29 @@ export const Foo = qComponent("my-foo", () => {
         true,
     );
 }
+
+#[test]
+fn example_qwik_conflict() {
+    test_input(
+        "test.tsx",
+        r#"
+import { qHook, qComponent, h, onRender, withStyle } from '@builder.io/qwik';
+
+export const Foo = qComponent("my-foo", () => {
+    const qwik = 12;
+    console.log(qwik);
+    return onRender(() => {
+        return (
+            <div/>
+        )
+    });
+})
+    "#,
+        EntryStrategy::Hook,
+        MinifyMode::Simplify,
+        true,
+    );
+}
 // fn test_fixture(folder: &str) {
 //     let res = transform_workdir(&FSConfig {
 //         project_root: folder.to_string(),

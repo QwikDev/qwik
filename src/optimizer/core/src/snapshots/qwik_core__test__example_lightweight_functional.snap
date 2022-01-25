@@ -34,18 +34,18 @@ export const ButtonArrow = ({color}) => {
     
 ============================= test.tsx ==
 
-import * as __qwik__ from "@builder.io/qwik";
+import * as qwik from "@builder.io/qwik";
 import { qComponent } from '@builder.io/qwik';
-export const Foo = /*#__PURE__*/ qComponent("my-foo", __qwik__.qrl(()=>import("./h_test_foo_onmount")
+export const Foo = /*#__PURE__*/ qComponent("my-foo", qwik.qrl(()=>import("./h_test_foo_onmount")
 , "Foo_onmount"));
 export function Button({ color  }) {
-    return <button color={color} on:click={__qwik__.qrl(()=>import("./h_test_button_button_onclick")
+    return <button color={color} on:click={qwik.qrl(()=>import("./h_test_button_button_onclick")
     , "Button_button_onclick", [
         color
     ])}>{text}</button>;
 }
 export const ButtonArrow = ({ color  })=>{
-    return <button color={color} on:click={__qwik__.qrl(()=>import("./h_test_buttonarrow_button_onclick")
+    return <button color={color} on:click={qwik.qrl(()=>import("./h_test_buttonarrow_button_onclick")
     , "ButtonArrow_button_onclick", [
         color
     ])}>{text}</button>;
@@ -53,7 +53,7 @@ export const ButtonArrow = ({ color  })=>{
 
 ============================= h_test_foo_onrender.tsx (ENTRY POINT)==
 
-import * as __qwik__ from "@builder.io/qwik";
+import * as qwik from "@builder.io/qwik";
 import { Button } from "./test";
 import { ButtonArrow } from "./test";
 import { h } from "@builder.io/qwik";
@@ -69,26 +69,26 @@ export const Foo_onRender = ()=>{
 
 ============================= h_test_foo_onmount.tsx (ENTRY POINT)==
 
-import * as __qwik__ from "@builder.io/qwik";
+import * as qwik from "@builder.io/qwik";
 import { onRender } from "@builder.io/qwik";
 export const Foo_onmount = ({ color  })=>{
-    return onRender(__qwik__.qrl(()=>import("./h_test_foo_onrender")
+    return onRender(qwik.qrl(()=>import("./h_test_foo_onrender")
     , "Foo_onRender"));
 };
 
 ============================= h_test_button_button_onclick.tsx (ENTRY POINT)==
 
-import * as __qwik__ from "@builder.io/qwik";
+import * as qwik from "@builder.io/qwik";
 export const Button_button_onclick = ()=>{
-    const [color] = __qwik__.useLexicalScope();
+    const [color] = qwik.useLexicalScope();
     return console.log(text, color);
 };
 
 ============================= h_test_buttonarrow_button_onclick.tsx (ENTRY POINT)==
 
-import * as __qwik__ from "@builder.io/qwik";
+import * as qwik from "@builder.io/qwik";
 export const ButtonArrow_button_onclick = ()=>{
-    const [color] = __qwik__.useLexicalScope();
+    const [color] = qwik.useLexicalScope();
     return console.log(text, color);
 };
 

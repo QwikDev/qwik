@@ -245,6 +245,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                             local_idents: &h.local_idents,
                             scoped_idents: &h.scoped_idents,
                             global: &collect,
+                            qwik_ident: &qwik_transform.qwik_ident,
                         })?;
 
                         if transpile && is_jsx {

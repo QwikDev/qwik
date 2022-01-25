@@ -24,51 +24,51 @@ export const Foo = qComponent("my-foo", () => {
     
 ============================= test.js ==
 
-import * as __qwik__ from "@builder.io/qwik";
+import * as qwik from "@builder.io/qwik";
 import { qComponent } from '@builder.io/qwik';
-export const Foo = /*#__PURE__*/ qComponent("my-foo", __qwik__.qrl(()=>import("./h_test_foo_onmount")
+export const Foo = /*#__PURE__*/ qComponent("my-foo", qwik.qrl(()=>import("./h_test_foo_onmount")
 , "Foo_onmount"));
 
 ============================= h_test_foo_onrender_div_onclick.js (ENTRY POINT)==
 
-import * as __qwik__ from "@builder.io/qwik";
+import * as qwik from "@builder.io/qwik";
 export const Foo_onRender_div_onclick = ()=>console.log('on:click')
 ;
 
 ============================= h_test_foo_onrender_div_ondocumentscroll.js (ENTRY POINT)==
 
-import * as __qwik__ from "@builder.io/qwik";
+import * as qwik from "@builder.io/qwik";
 export const Foo_onRender_div_onDocumentscroll = ()=>console.log('onDocument:scroll')
 ;
 
 ============================= h_test_foo_onrender_div_onwindowscroll.js (ENTRY POINT)==
 
-import * as __qwik__ from "@builder.io/qwik";
+import * as qwik from "@builder.io/qwik";
 export const Foo_onRender_div_onWindowscroll = ()=>console.log('onWindow:scroll')
 ;
 
 ============================= h_test_foo_onrender.js (ENTRY POINT)==
 
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
-import * as __qwik__ from "@builder.io/qwik";
+import * as qwik from "@builder.io/qwik";
 import { h } from "@builder.io/qwik";
 export const Foo_onRender = ()=>{
     return(/*#__PURE__*/ _jsx("div", {
-        "on:click": __qwik__.qrl(()=>import("./h_test_foo_onrender_div_onclick")
+        "on:click": qwik.qrl(()=>import("./h_test_foo_onrender_div_onclick")
         , "Foo_onRender_div_onclick"),
-        "onDocument:scroll": __qwik__.qrl(()=>import("./h_test_foo_onrender_div_ondocumentscroll")
+        "onDocument:scroll": qwik.qrl(()=>import("./h_test_foo_onrender_div_ondocumentscroll")
         , "Foo_onRender_div_onDocumentscroll"),
-        "onWindow:scroll": __qwik__.qrl(()=>import("./h_test_foo_onrender_div_onwindowscroll")
+        "onWindow:scroll": qwik.qrl(()=>import("./h_test_foo_onrender_div_onwindowscroll")
         , "Foo_onRender_div_onWindowscroll")
     }));
 };
 
 ============================= h_test_foo_onmount.js (ENTRY POINT)==
 
-import * as __qwik__ from "@builder.io/qwik";
+import * as qwik from "@builder.io/qwik";
 import { onRender } from "@builder.io/qwik";
 export const Foo_onmount = ()=>{
-    return onRender(__qwik__.qrl(()=>import("./h_test_foo_onrender")
+    return onRender(qwik.qrl(()=>import("./h_test_foo_onrender")
     , "Foo_onRender"));
 };
 

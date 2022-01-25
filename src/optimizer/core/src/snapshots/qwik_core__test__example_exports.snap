@@ -34,7 +34,7 @@ export const Footer = qComponent();
     
 ============================= project/test.tsx ==
 
-import * as __qwik__ from "@builder.io/qwik";
+import * as qwik from "@builder.io/qwik";
 import { qComponent } from '@builder.io/qwik';
 export const [a, { b , v1: [c] , d =v2 , ...e }, f = v3, ...g] = obj;
 const exp1 = 1;
@@ -44,13 +44,13 @@ export function foo() {}
 export class bar {
 }
 export default function DefaultFn() {};
-export const Header = /*#__PURE__*/ qComponent(__qwik__.qrl(()=>import("../h_test_header_onmount")
+export const Header = /*#__PURE__*/ qComponent(qwik.qrl(()=>import("../h_test_header_onmount")
 , "Header_onmount"));
 export const Footer = /*#__PURE__*/ qComponent();
 
 ============================= h_test_header_onrender.tsx (ENTRY POINT)==
 
-import * as __qwik__ from "@builder.io/qwik";
+import * as qwik from "@builder.io/qwik";
 import { default as DefaultFn } from "./project/test";
 import { Footer } from "./project/test";
 import { a } from "./project/test";
@@ -75,10 +75,10 @@ export const Header_onRender = ()=><Footer >
 
 ============================= h_test_header_onmount.tsx (ENTRY POINT)==
 
-import * as __qwik__ from "@builder.io/qwik";
+import * as qwik from "@builder.io/qwik";
 import { onRender } from "@builder.io/qwik";
 export const Header_onmount = ()=>{
-    onRender(__qwik__.qrl(()=>import("../h_test_header_onrender")
+    onRender(qwik.qrl(()=>import("../h_test_header_onrender")
     , "Header_onRender"));
 };
 

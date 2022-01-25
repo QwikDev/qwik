@@ -27,15 +27,15 @@ export const App = qComponent(() => {
     
 ============================= test.js ==
 
-import * as __qwik__ from "@builder.io/qwik";
+import * as qwik from "@builder.io/qwik";
 import { qComponent } from '@builder.io/qwik';
-export const App = /*#__PURE__*/ qComponent(__qwik__.qrl(()=>import("./h_test_app_onmount")
+export const App = /*#__PURE__*/ qComponent(qwik.qrl(()=>import("./h_test_app_onmount")
 , "App_onmount"));
 
 ============================= h_test_app_onrender.js (ENTRY POINT)==
 
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
-import * as __qwik__ from "@builder.io/qwik";
+import * as qwik from "@builder.io/qwik";
 import { h } from "@builder.io/qwik";
 export const App_onRender = ()=>{
     hola();
@@ -45,7 +45,7 @@ export const App_onRender = ()=>{
 
 ============================= h_test_app_onmount.js (ENTRY POINT)==
 
-import * as __qwik__ from "@builder.io/qwik";
+import * as qwik from "@builder.io/qwik";
 import { onRender } from "@builder.io/qwik";
 export const App_onmount = ()=>{
     function hola() {
@@ -55,7 +55,7 @@ export const App_onmount = ()=>{
     }
     class Other {
     }
-    return onRender(__qwik__.qrl(()=>import("./h_test_app_onrender")
+    return onRender(qwik.qrl(()=>import("./h_test_app_onrender")
     , "App_onRender"));
 };
 

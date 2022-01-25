@@ -14,6 +14,7 @@ use swc_atoms::JsWord;
 use swc_common::comments::{Comments, SingleThreadedComments};
 use swc_common::{errors::HANDLER, Mark, Span, DUMMY_SP};
 use swc_ecmascript::ast;
+use swc_ecmascript::utils::private_ident;
 use swc_ecmascript::visit::{fold_expr, noop_fold_type, Fold, FoldWith, VisitWith};
 
 macro_rules! id {
@@ -80,6 +81,7 @@ pub type IdPlusType = (Id, IdentType);
 #[allow(clippy::module_name_repetitions)]
 pub struct QwikTransform<'a> {
     pub hooks: Vec<Hook>,
+    pub qwik_ident: Id,
 
     stack_ctxt: Vec<String>,
     position_ctxt: Vec<PositionToken>,
@@ -125,6 +127,7 @@ impl<'a> QwikTransform<'a> {
                 .flat_map(|word| global_collect.get_imported_local(word, &BUILDER_IO_QWIK))
                 .collect(),
             qhook_mark: Mark::fresh(Mark::root()),
+            qwik_ident: id!(private_ident!(QWIK_INTERNAL.clone())),
             comments,
             entry_policy,
             context,
@@ -158,7 +161,7 @@ impl<'a> QwikTransform<'a> {
     }
 
     fn create_synthetic_qhook(&mut self, expr: ast::Expr) -> ast::CallExpr {
-        create_internal_call(&QHOOK, vec![expr], Some(self.qhook_mark))
+        create_internal_call(&self.qwik_ident, &QHOOK, vec![expr], Some(self.qhook_mark))
     }
 
     fn handle_qhook(&mut self, node: ast::CallExpr) -> ast::CallExpr {
@@ -294,7 +297,7 @@ impl<'a> QwikTransform<'a> {
 
             let scoped_idents = compute_scoped_idents(&descendent_idents, &decl_collect);
 
-            let o = create_inline_qrl(import_path, &symbol_name, &scoped_idents);
+            let o = create_inline_qrl(&self.qwik_ident, import_path, &symbol_name, &scoped_idents);
             self.hooks.push(Hook {
                 entry,
                 canonical_filename,
@@ -309,13 +312,23 @@ impl<'a> QwikTransform<'a> {
             node
         }
     }
+
+    fn add_qwik_runtime_import(&self, mut module: ast::Module) -> ast::Module {
+        let mut body = Vec::with_capacity(module.body.len() + 1);
+        body.push(create_synthetic_wildcard_import(
+            &self.qwik_ident,
+            &BUILDER_IO_QWIK,
+        ));
+        body.append(&mut module.body);
+        ast::Module { body, ..module }
+    }
 }
 
 impl<'a> Fold for QwikTransform<'a> {
     noop_fold_type!();
 
     fn fold_module(&mut self, node: ast::Module) -> ast::Module {
-        let node = add_qwik_runtime_import(node);
+        let node = self.add_qwik_runtime_import(node);
         node.fold_children_with(self)
     }
 
@@ -582,17 +595,7 @@ impl<'a> Fold for QwikTransform<'a> {
     }
 }
 
-fn add_qwik_runtime_import(mut module: ast::Module) -> ast::Module {
-    let mut body = Vec::with_capacity(module.body.len() + 1);
-    body.push(create_synthetic_wildcard_import(
-        &QWIK_INTERNAL,
-        &BUILDER_IO_QWIK,
-    ));
-    body.append(&mut module.body);
-    ast::Module { body, ..module }
-}
-
-pub fn create_synthetic_wildcard_import(local: &JsWord, src: &JsWord) -> ast::ModuleItem {
+pub fn create_synthetic_wildcard_import(local: &Id, src: &JsWord) -> ast::ModuleItem {
     ast::ModuleItem::ModuleDecl(ast::ModuleDecl::Import(ast::ImportDecl {
         span: DUMMY_SP,
         src: ast::Str {
@@ -607,7 +610,7 @@ pub fn create_synthetic_wildcard_import(local: &JsWord, src: &JsWord) -> ast::Mo
         type_only: false,
         specifiers: vec![ast::ImportSpecifier::Namespace(
             ast::ImportStarAsSpecifier {
-                local: ast::Ident::new(local.clone(), DUMMY_SP),
+                local: new_ident_from_id(local),
                 span: DUMMY_SP,
             },
         )],
@@ -640,7 +643,7 @@ pub fn create_synthetic_wildcard_import(local: &JsWord, src: &JsWord) -> ast::Mo
 //     }))
 // }
 
-fn create_inline_qrl(url: JsWord, symbol: &str, idents: &[Id]) -> ast::CallExpr {
+fn create_inline_qrl(qwik_ident: &Id, url: JsWord, symbol: &str, idents: &[Id]) -> ast::CallExpr {
     let mut args = vec![
         ast::Expr::Arrow(ast::ArrowExpr {
             is_async: false,
@@ -691,10 +694,11 @@ fn create_inline_qrl(url: JsWord, symbol: &str, idents: &[Id]) -> ast::CallExpr 
         }))
     }
 
-    create_internal_call(&QRL, args, None)
+    create_internal_call(qwik_ident, &QRL, args, None)
 }
 
 pub fn create_internal_call(
+    qwik_ident: &Id,
     fn_name: &JsWord,
     exprs: Vec<ast::Expr>,
     mark: Option<Mark>,
@@ -702,10 +706,7 @@ pub fn create_internal_call(
     let span = mark.map_or(DUMMY_SP, |mark| DUMMY_SP.apply_mark(mark));
     ast::CallExpr {
         callee: ast::Callee::Expr(Box::new(ast::Expr::Member(ast::MemberExpr {
-            obj: Box::new(ast::Expr::Ident(ast::Ident::new(
-                QWIK_INTERNAL.clone(),
-                DUMMY_SP,
-            ))),
+            obj: Box::new(ast::Expr::Ident(new_ident_from_id(qwik_ident))),
             prop: ast::MemberProp::Ident(ast::Ident::new(fn_name.clone(), DUMMY_SP)),
             span: DUMMY_SP,
         }))),

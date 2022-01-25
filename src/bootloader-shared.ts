@@ -63,20 +63,37 @@ const error = (msg: string) => {
  *     determine all of the browser supported events.
  */
 export const qwikLoader = (doc: Document, hasInitialized?: boolean | number) => {
-  const broadcast = async (type: string, event: Event) => {
+  const Q_CONTEXT = '__q_context__';
+  const ON_PREFIXES = ['on:', 'on-window:', 'on-document:'];
+  const broadcast = async (infix: string, type: string, event: Event) => {
+    type = type.replace(/([A-Z])/g, (a) => '-' + a.toLowerCase());
     doc
-      .querySelectorAll('[on\\:' + type.replace(':', '\\:') + ']')
+      .querySelectorAll('[on' + infix + '\\:' + type + ']')
       .forEach((target) => dispatch(target, type, event));
   };
 
-  const dispatch = async (element: Element, eventName: string, ev: Event, url?: URL) => {
-    url = qrlResolver(doc, element, element.getAttribute('on:' + eventName));
-    if (url) {
-      const handler = getModuleExport(
-        url,
-        (window as any)[url.pathname] || (await import(String(url).split('#')[0] + '.js'))
-      );
-      handler(element, ev, url);
+  const dispatch = async (
+    element: Element,
+    eventName: string,
+    ev: Event,
+    url?: URL,
+    previousCtx?: any
+  ) => {
+    for (const on of ON_PREFIXES) {
+      url = qrlResolver(doc, element, element.getAttribute(on + eventName));
+      if (url) {
+        const handler = getModuleExport(
+          url,
+          (window as any)[url.pathname] || (await import(String(url).split('#')[0]))
+        );
+        previousCtx = (document as any)[Q_CONTEXT];
+        try {
+          (document as any)[Q_CONTEXT] = [element, ev, url];
+          handler(element, ev, url);
+        } finally {
+          (document as any)[Q_CONTEXT] = previousCtx;
+        }
+      }
     }
   };
 
@@ -86,7 +103,7 @@ export const qwikLoader = (doc: Document, hasInitialized?: boolean | number) => 
     // 3 - the rest from the first `?` to the end.
     // The hash string is replaced by the captured group that contains only the export name.
     // This is the same as in the `qExport()` function.
-    exportName = url.hash.replace(/^#?([^?]*).*$/, '$1') || 'default';
+    exportName = url.hash.replace(/^#?([^?[|]*).*$/, '$1') || 'default';
     return module[exportName] || error(url + ' does not export ' + exportName);
   };
 
@@ -105,7 +122,7 @@ export const qwikLoader = (doc: Document, hasInitialized?: boolean | number) => 
       // This is a event which fires on document only, we have to broadcast it instead
       // setTimeout. This is needed so we can dispatchEvent.
       // Without this we would be dispatching event from within existing event.
-      setTimeout(() => broadcast('document:' + ev.type, ev));
+      setTimeout(() => broadcast('-document', ev.type, ev));
     } else {
       // while (element && element.getAttribute) {
       // while (element && element.nodeType===1) {
@@ -124,7 +141,7 @@ export const qwikLoader = (doc: Document, hasInitialized?: boolean | number) => 
     readyState = doc.readyState;
     if (!hasInitialized && (readyState == 'interactive' || readyState == 'complete')) {
       hasInitialized = 1;
-      broadcast(qInit, new CustomEvent('qInit'));
+      broadcast('', qInit, new CustomEvent('qInit'));
     }
   };
 

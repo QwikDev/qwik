@@ -3,10 +3,10 @@ import {
   h,
   Host,
   qComponent,
-  qHook,
+  onRender,
+  useStore,
   useHostElement,
   useEvent,
-  notifyRender,
 } from '@builder.io/qwik';
 import {
   addItem,
@@ -40,18 +40,17 @@ import {
  * Qwik knows that it should never need to be rerendered, and its code will never
  * download to the client.
  */
-export const ToDoApp = qComponent<{ todos: Todos }>({
-  tagName: 'todo', // optional
-  onRender: qHook(({ todos }) => {
+export const ToDoApp = qComponent('todo', (props: { todos: Todos }) => {
+  return onRender(() => {
     console.log('on:qRender => <ToDoApp/>');
     return (
       <section class="todoapp">
-        <Header todos={todos} />
-        <Main todos={todos} />
-        <Footer todos={todos} />
+        <Header todos={props.todos} />
+        <Main todos={props.todos} />
+        <Footer todos={props.todos} />
       </section>
     );
-  }),
+  });
 });
 
 /**
@@ -59,10 +58,9 @@ export const ToDoApp = qComponent<{ todos: Todos }>({
  *
  * This component only rerenders if the user interacts with it through the input.
  */
-export const Header = qComponent<{ todos: Todos }, { text: string }>({
-  tagName: 'header', // optional
-  onMount: qHook(() => ({ text: '' })),
-  onRender: qHook((_, { text }) => {
+export const Header = qComponent('header', (props: { todos: Todos }) => {
+  const state = useStore({ text: '' });
+  return onRender(() => {
     console.log('on:qRender => <Header/>');
     return (
       <>
@@ -71,20 +69,20 @@ export const Header = qComponent<{ todos: Todos }, { text: string }>({
           class="new-todo"
           placeholder="What needs to be done?"
           autoFocus
-          value={text}
-          on:keyup={qHook<typeof Header>(({ todos }, state) => {
+          value={state.text}
+          on:keyup={() => {
             const event = useEvent<KeyboardEvent>();
             const inputValue = (event.target as HTMLInputElement).value;
             state.text = inputValue;
             if (event.key === 'Enter' && inputValue) {
-              addItem(todos, state.text);
+              addItem(props.todos, state.text);
               state.text = '';
             }
-          })}
+          }}
         />
       </>
     );
-  }),
+  });
 });
 
 /**
@@ -92,20 +90,19 @@ export const Header = qComponent<{ todos: Todos }, { text: string }>({
  *
  * This component only rerenders/hydrates/downloads if the list of todos changes.
  */
-export const Main = qComponent<{ todos: Todos }>({
-  tagName: 'main', // optional
-  onRender: qHook(({ todos }) => {
+export const Main = qComponent('main', (props: { todos: Todos }) => {
+  return onRender(() => {
     console.log('on:qRender => <Main/>');
     return (
       <Host class="main">
         <ul class="todo-list">
-          {getFilteredItems(todos).map((key) => (
-            <Item item={key} todos={todos} />
+          {getFilteredItems(props.todos).map((key) => (
+            <Item item={key} todos={props.todos} />
           ))}
         </ul>
       </Host>
     );
-  }),
+  });
 });
 
 /**
@@ -113,59 +110,55 @@ export const Main = qComponent<{ todos: Todos }>({
  *
  * It only rerenders if the user infarcts with it or if the item itself changes.
  */
-export const Item = qComponent<{ item: TodoItem; todos: Todos }, { editing: boolean }>({
-  tagName: 'li', // optional
-  onMount: qHook(() => ({ editing: false })),
-  onRender: qHook(({ item }, { editing }) => {
+export const Item = qComponent('li', (props: { item: TodoItem; todos: Todos }) => {
+  const state = useStore({ editing: false });
+  return onRender(() => {
     console.log(
       'on:qRender => <Item item="' +
-        JSON.stringify(item, (key, value) => (key.startsWith('__') ? undefined : value)) +
+        JSON.stringify(props.item, (key, value) => (key.startsWith('__') ? undefined : value)) +
         '"/>'
     );
     return (
-      <Host class={{ completed: item.completed, editing: editing }}>
+      <Host class={{ completed: props.item.completed, editing: state.editing }}>
         <div class="view">
           <input
             class="toggle"
             type="checkbox"
-            checked={item.completed}
-            on:click={qHook<typeof Item>(({ item, todos }) => toggleItem(todos, item))}
+            checked={props.item.completed}
+            on:click={() => toggleItem(props.todos, props.item)}
           />
           <label
-            on:dblclick={qHook<typeof Item>(async (props, state) => {
+            on:dblclick={async () => {
               state.editing = true;
               const hostElement = useHostElement()!;
-              await notifyRender(hostElement);
+              await qNotifyRender(hostElement);
               const inputEl = hostElement.querySelector('input.edit') as HTMLInputElement;
               inputEl.focus();
               inputEl.selectionStart = inputEl.selectionEnd = inputEl.value.length;
-            })}
+            }}
           >
-            {item.title}
+            {props.item.title}
           </label>
-          <button
-            class="destroy"
-            on:click={qHook<typeof Item>(({ item, todos }) => removeItem(todos, item))}
-          ></button>
+          <button class="destroy" on:click={() => removeItem(props.todos, props.item)}></button>
         </div>
-        {editing ? (
+        {state.editing ? (
           <input
             class="edit"
-            value={item.title}
-            on:blur={qHook<typeof Item>((_, state) => (state.editing = false))}
-            on:keyup={qHook<typeof Item>(({ item }, state) => {
+            value={props.item.title}
+            on:blur={() => (state.editing = false)}
+            on:keyup={() => {
               const event = useEvent<KeyboardEvent>();
               const inputValue = (event.target as HTMLInputElement).value;
-              item.title = inputValue;
+              props.item.title = inputValue;
               if (event.key === 'Enter') {
                 state.editing = false;
               }
-            })}
+            }}
           />
         ) : null}
       </Host>
     );
-  }),
+  });
 });
 
 /**
@@ -173,9 +166,8 @@ export const Item = qComponent<{ item: TodoItem; todos: Todos }, { editing: bool
  *
  * It only rerenders if the todos count changes or filters are reset.
  */
-export const Footer = qComponent<{ todos: Todos }>({
-  tagName: 'footer', // optional
-  onRender: qHook(({ todos }) => {
+export const Footer = qComponent('footer', (props: { todos: Todos }) => {
+  return onRender(() => {
     console.log('on:qRender => <Footer/>');
     /**
      * Example of lite-component (it will always be included with the parent component)
@@ -185,20 +177,18 @@ export const Footer = qComponent<{ todos: Todos }>({
       return (
         <li>
           <a
-            class={{ selected: todos.filter == lMode }}
-            on:click={qHook<typeof Footer, { filter: FilterStates }>((props, _, { filter }) =>
-              updateFilter(props.todos, filter)
-            ).with({ filter })}
+            class={{ selected: props.todos.filter == lMode }}
+            on:click={() => updateFilter(props.todos, filter)}
           >
             {filter[0].toUpperCase() + filter.substr(1)}
           </a>
         </li>
       );
     }
-    const remaining = getFilteredCount(todos);
+    const remaining = getFilteredCount(props.todos);
     return (
       <Host class="footer">
-        {todos.items.length > 0 ? (
+        {props.todos.items.length > 0 ? (
           <>
             <span class="todo-count">
               <strong>{remaining}</strong>
@@ -210,10 +200,7 @@ export const Footer = qComponent<{ todos: Todos }>({
               ))}
             </ul>
             {remaining > 0 ? (
-              <button
-                class="clear-completed"
-                on:click={qHook<typeof Footer>(({ todos }) => clearCompleted(todos))}
-              >
+              <button class="clear-completed" on:click={() => clearCompleted(props.todos)}>
                 Clear completed
               </button>
             ) : null}
@@ -221,5 +208,5 @@ export const Footer = qComponent<{ todos: Todos }>({
         ) : null}
       </Host>
     );
-  }),
+  });
 });

@@ -1,6 +1,7 @@
 import { assertDefined } from '../assert/assert';
 import { getQObjectId, QObject_addDoc } from '../object/q-object';
-import type { QObject } from '../object/q-object.public';
+import type { QObject } from '../object/q-object';
+import { AttributeMarker } from '../util/markers';
 import { newQProps, QPropsContext } from './q-props';
 
 const Q_OBJECT_ATTR = 'q:obj';
@@ -13,6 +14,13 @@ export type QObjRefMap = Map<
     isSub: boolean;
   }
 >;
+
+export interface QObjectMap {
+  element: Element;
+  forEach(fn: (value: QObject<any>, objectId: string) => void): void;
+  set(objectId: string, qObject: QObject<any>): void;
+  get(objectId: string): QObject<any> | undefined;
+}
 
 export function updateSubscriptions(
   element: Element,
@@ -52,8 +60,9 @@ export function writeQObjAttr(element: Element, map: QObjRefMap) {
   }
 }
 
-export function createMapFacade(element: Element, map: QObjRefMap) {
+export function newQObjectMap(element: Element, map: QObjRefMap): QObjectMap {
   return {
+    element: element,
     forEach(fn: (v: QObject<any>, k: string) => void) {
       return map.forEach((v, k) => {
         fn(v.obj, k);
@@ -64,10 +73,20 @@ export function createMapFacade(element: Element, map: QObjRefMap) {
       return value?.obj;
     },
     set(key: string, qObj: QObject<any>) {
-      setMapFacade(map, key, qObj, element, false, 1);
-      writeQObjAttr(element, map);
+      if (!isDomId(key)) {
+        setMapFacade(map, key, qObj, element, false, 1);
+        writeQObjAttr(element, map);
+      }
     },
-  } as any;
+  } as QObjectMap;
+}
+
+function isDomId(key: string): boolean {
+  const prefix = key.charAt(0);
+  return (
+    prefix === AttributeMarker.ELEMENT_ID_PREFIX ||
+    prefix === AttributeMarker.ELEMENT_ID_Q_PROPS_PREFIX
+  );
 }
 
 export function setMapFacade(

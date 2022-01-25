@@ -1,9 +1,9 @@
 import { createDocument } from '../../testing/document';
 import { qProps, QProps } from '../props/q-props.public';
-import { qObject } from '../object/q-object.public';
-import { useInvoke } from '../use/use-core.public';
+import { qObject } from '../object/q-object';
+import { newInvokeContext, useInvoke } from '../use/use-core';
 import { getQObjectId } from './q-object';
-import { qSubscribe } from './q-subscribe.public';
+import { qSubscribe } from './q-subscribe';
 
 describe('q-subscribe', () => {
   let document: Document;
@@ -21,29 +21,19 @@ describe('q-subscribe', () => {
     const qObjC = qObject({ mark: 'C' });
     qDiv.a = qObjA;
     qDiv.b = qObjB;
-    useInvoke(
-      () => {
-        qSubscribe(qObjB, qObjC);
-      },
-      div,
-      'qRender',
-      'url' as any
-    );
+    useInvoke(newInvokeContext(div, 'qRender', 'url' as any), () => {
+      qSubscribe(qObjB, qObjC);
+    });
     expect(div.getAttribute('q:obj')).toEqual(
       [getQObjectId(qObjA), '#2', '!' + getQObjectId(qObjB), '!' + getQObjectId(qObjC)].join(' ')
     );
-    useInvoke(
-      () => {
-        qSubscribe(qObjC);
-      },
-      div,
-      'qRender',
-      'url' as any
-    );
+    useInvoke(newInvokeContext(div, 'qRender', 'url' as any), () => {
+      qSubscribe(qObjC);
+    });
     expect(div.getAttribute('q:obj')).toEqual(
       [getQObjectId(qObjA), getQObjectId(qObjB), '!' + getQObjectId(qObjC)].join(' ')
     );
-    useInvoke(() => {}, div, 'qRender', 'url' as any);
+    useInvoke(newInvokeContext(div, 'qRender', 'url' as any), () => {});
     expect(div.getAttribute('q:obj')).toEqual([getQObjectId(qObjA), getQObjectId(qObjB)].join(' '));
   });
 });

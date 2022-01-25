@@ -1,5 +1,6 @@
 import { pathToFileURL } from 'url';
 import { isPromise } from '../core/util/promises';
+import type { QwikDocument } from '../server';
 import type { QConfig } from './types';
 
 export function toFileUrl(filePath: string) {
@@ -70,3 +71,18 @@ function isNode(value: any): value is Node {
 function isElement(value: any): value is HTMLElement {
   return isNode(value) && value.nodeType == 1 /*ELEMENT_NODE*/;
 }
+
+declare const WorkerGlobalScope: any;
+
+const __globalThis = typeof globalThis !== 'undefined' && globalThis;
+const __window = typeof window !== 'undefined' && window;
+const __self =
+  typeof self !== 'undefined' &&
+  typeof WorkerGlobalScope !== 'undefined' &&
+  self instanceof WorkerGlobalScope &&
+  self;
+const __global = typeof global !== 'undefined' && global;
+export const platformGlobal: { document: QwikDocument | undefined } = (__globalThis ||
+  __global ||
+  __window ||
+  __self) as any;

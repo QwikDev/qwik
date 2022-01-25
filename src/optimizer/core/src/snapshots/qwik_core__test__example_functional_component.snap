@@ -9,7 +9,7 @@ expression: output
 
         import { qHook, qComponent, onRender, h } from '@builder.io/qwik';
         const Header = qComponent(() => {
-            const thing = useState();
+            const thing = useStore();
             const {foo, bar} = foo();
 
             onRender(() => {
@@ -40,7 +40,7 @@ export const Header_onRender = ()=>{
 import * as __qwik__ from "@builder.io/qwik";
 import { onRender } from "@builder.io/qwik";
 export const Header_onmount = ()=>{
-    const thing = useState();
+    const thing = useStore();
     const { foo , bar  } = foo();
     onRender(__qwik__.qrl(()=>import("./h_test_header_onrender")
     , "Header_onRender", [

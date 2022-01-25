@@ -5,20 +5,20 @@
 // it to the desired comment location
 //
 
-import { Fragment, h, qComponent, qHook } from '@builder.io/qwik';
+import { Fragment, h, onRender, qComponent } from '@builder.io/qwik';
 
-export const MyApp = qComponent({
-  onRender: qHook(() => (
+export const MyApp = qComponent(() => {
+  return onRender(() => (
     <div>
       <Greeter name="World" />
     </div>
-  )),
+  ));
 });
 
-export const Greeter = qComponent<{ salutation?: string; name?: string }>({
-  onRender: qHook((props) => (
+export const Greeter = qComponent((props: { salutation?: string; name?: string }) => {
+  return onRender(() => (
     <span>
       {props.salutation || 'Hello'} <b>{props.name || 'World'}</b>
     </span>
-  )),
+  ));
 });

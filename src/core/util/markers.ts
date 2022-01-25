@@ -15,7 +15,8 @@ export const enum AttributeMarker {
   /**
    * State factory of the component.
    */
-  OnRender = 'on:q-render',
+  OnRenderAttr = 'on:q-render',
+  OnRenderProp = 'on:qRender',
 
   /**
    * State factory of the component.
@@ -40,7 +41,7 @@ export const enum AttributeMarker {
   /**
    * Component Styles.
    */
-  ComponentStyles = 'q:sstyle',
+  ComponentScopedStyles = 'q:sstyle',
 
   /**
    * Unscoped Component Styles.
@@ -93,4 +94,9 @@ export const enum AttributeMarker {
    */
   QSlotName = 'name',
   QSlotInertName = '\u0000',
+
+  ELEMENT_ID = 'q:id',
+  ELEMENT_ID_SELECTOR = '[q\\:id="{}"]',
+  ELEMENT_ID_PREFIX = '#',
+  ELEMENT_ID_Q_PROPS_PREFIX = '&',
 }

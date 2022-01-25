@@ -1,14 +1,15 @@
-import { Fragment, h, Host } from '@builder.io/qwik';
+import { Fragment, h, Host, useStore } from '@builder.io/qwik';
 import { ElementFixture, trigger } from '../../testing/element_fixture';
 import { expectDOM } from '../../testing/expect-dom.unit';
-import { qComponent } from '../component/q-component.public';
-import { qHook } from '../component/qrl-hook.public';
-import { qStyles, styleKey } from '../component/qrl-styles';
+import { getTestPlatform } from '../../testing/platform';
+import { onRender, qComponent, withScopedStyles } from '../component/q-component.public';
+import { runtimeQrl } from '../import/qrl';
+import { useLexicalScope } from '../use/use-lexical-scope.public';
+import { AttributeMarker } from '../util/markers';
 import { Async, JSXPromise, PromiseValue } from './jsx/async.public';
 import { Slot } from './jsx/slot.public';
-import { qRender } from './q-render.public';
 import { qNotifyRender } from './q-notify-render';
-import { getTestPlatform } from '../../testing/platform';
+import { qRender } from './q-render.public';
 
 describe('q-render', () => {
   let fixture: ElementFixture;
@@ -69,6 +70,40 @@ describe('q-render', () => {
           <span>text</span>
         </div>
       );
+    });
+  });
+
+  describe('component', () => {
+    it('should render a component', async () => {
+      await qRender(fixture.host, <HelloWorld name="World" />);
+      expectRendered(
+        <hello-world>
+          <span>
+            {'Hello'} {'World'}
+          </span>
+        </hello-world>
+      );
+    });
+
+    describe('handlers', () => {
+      it('should process clicks', async () => {
+        await qRender(fixture.host, <Counter step={5} />);
+        expectRendered(
+          <div>
+            <button>-</button>
+            <span>0</span>
+            <button>+</button>
+          </div>
+        );
+        await trigger(fixture.host, 'button.increment', 'click');
+        expectRendered(
+          <div>
+            <button>-</button>
+            <span>5</span>
+            <button>+</button>
+          </div>
+        );
+      });
     });
   });
 
@@ -287,57 +322,23 @@ describe('q-render', () => {
     });
   });
 
-  describe('component', () => {
-    it('should render a child component', async () => {
+  describe('styling', () => {
+    it('should insert a style', async () => {
       await qRender(fixture.host, <HelloWorld name="World" />);
+      const hellWorld = fixture.host.querySelector('hello-world')!;
+      const scopedStyleId = hellWorld.getAttribute(AttributeMarker.ComponentScopedStyles);
+      expect(scopedStyleId).toBeDefined();
+      const style = fixture.document.body.parentElement!.querySelector(
+        `style[q\\:style="${scopedStyleId}"]`
+      );
+      expect(style?.textContent).toContain('color: red');
       expectRendered(
-        <hello-world on:q-render={HelloWorld.onRender}>
-          <span>
+        <hello-world>
+          <span class={AttributeMarker.ComponentStylesPrefixContent + scopedStyleId}>
             {'Hello'} {'World'}
           </span>
         </hello-world>
       );
-    });
-
-    describe('handlers', () => {
-      it('should process clicks', async () => {
-        await qRender(fixture.host, <Counter step={5} />);
-        expectRendered(
-          <div on:q-render={Counter.onRender}>
-            <button on:click={Counter_add.with({ value: -5 })}>-</button>
-            <span>0</span>
-            <button on:click={Counter_add.with({ value: 5 })}>+</button>
-          </div>
-        );
-        await trigger(fixture.host, 'button.increment', 'click');
-        expectRendered(
-          <div on:q-render={Counter.onRender}>
-            <button on:click={Counter_add.with({ value: -5 })}>-</button>
-            <span>5</span>
-            <button on:click={Counter_add.with({ value: 5 })}>+</button>
-          </div>
-        );
-      });
-    });
-    describe('styles', () => {
-      it('should render a component with styles', async () => {
-        await qRender(fixture.host, <HelloWorld name="World" />);
-        expectRendered(
-          <hello-world
-            on:q-render={HelloWorld.onRender}
-            q:sstyle={HelloWorld_styles}
-            class={HelloWorld.styleHostClass as any}
-          >
-            <span class={HelloWorld.styleClass as any}>
-              {'Hello'} {'World'}
-            </span>
-          </hello-world>
-        );
-        const style = fixture.document.querySelector(
-          'style[q\\:style="' + styleKey(HelloWorld_styles) + '"]'
-        )!;
-        expect(style.textContent).toEqual('span { color: red; }');
-      });
     });
   });
 
@@ -348,51 +349,49 @@ describe('q-render', () => {
 //////////////////////////////////////////////////////////////////////////////////////////
 // Hello World
 //////////////////////////////////////////////////////////////////////////////////////////
-const HelloWorld_styles = qStyles<any>(`span { color: red; }`);
-export const HelloWorld = qComponent<{ name?: string }, { salutation: string }>({
-  tagName: 'hello-world',
-  styles: HelloWorld_styles,
-  onMount: qHook(() => ({ salutation: 'Hello' })),
-  onRender: qHook((props, state) => {
+export const HelloWorld = qComponent('hello-world', (props: { name?: string }) => {
+  withScopedStyles(`span.� { color: red; }`);
+  const state = useStore({ salutation: 'Hello' });
+  return onRender(() => {
     return (
       <span>
         {state.salutation} {props.name || 'World'}
       </span>
     );
-  }),
+  });
 });
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Counter
 //////////////////////////////////////////////////////////////////////////////////////////
 
-export const Counter = qComponent<{ step?: number }, { count: number }>({
-  onMount: qHook(() => ({ count: 0 })),
-  onRender: qHook((props, state) => {
+export const Counter = qComponent((props: { step?: number }) => {
+  const state = useStore({ count: 0 });
+  return onRender(() => {
     const step = Number(props.step || 1);
     return (
       <>
-        <button class="decrement" on:click={Counter_add.with({ value: -step })}>
+        <button class="decrement" on:click={runtimeQrl(Counter_add, [state, { value: -step }])}>
           -
         </button>
         <span>{state.count}</span>
-        <button class="increment" on:click={Counter_add.with({ value: step })}>
+        <button class="increment" on:click={runtimeQrl(Counter_add, [state, { value: step }])}>
           +
         </button>
       </>
     );
-  }),
+  });
 });
-export const Counter_add = qHook<typeof Counter, { value: number }>((props, state, args) => {
+export const Counter_add = () => {
+  const [state, args] = useLexicalScope();
   state.count += args.value;
-});
+};
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Project
 //////////////////////////////////////////////////////////////////////////////////////////
-export const Project = qComponent({
-  tagName: 'project',
-  onRender: qHook(() => {
+export const Project = qComponent('project', () => {
+  return onRender(() => {
     return (
       <section>
         <Slot>..default..</Slot>
@@ -400,29 +399,31 @@ export const Project = qComponent({
         <Slot name="description">..description..</Slot>
       </section>
     );
-  }),
+  });
 });
 
-export const SimpleProject = qComponent({
-  tagName: 'project',
-  onRender: qHook(() => {
+export const SimpleProject = qComponent('project', () => {
+  return onRender(() => {
     return (
       <section>
         <Slot>..default..</Slot>
       </section>
     );
-  }),
+  });
 });
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // HostFixture
 //////////////////////////////////////////////////////////////////////////////////////////
-export const HostFixture = qComponent<{ hostAttrs?: string; content?: string }>({
-  tagName: 'host-fixture',
-  onRender: qHook((props) => {
-    return h(Host, JSON.parse(props.hostAttrs || '{}'), [props.content]);
-  }),
-});
+export const HostFixture = qComponent(
+  'host-fixture',
+  (props: { hostAttrs?: string; content?: string }) => {
+    return onRender(() => {
+      return h(Host, JSON.parse(props.hostAttrs || '{}'), [props.content]);
+    });
+  }
+);
+
 function delay(time: number) {
   return new Promise((res) => setTimeout(res, time));
 }

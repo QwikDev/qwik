@@ -68,7 +68,6 @@
     "skipLibCheck": true /* Skip type checking of declaration files. */,
     "forceConsistentCasingInFileNames": true /* Disallow inconsistently-cased references to the same file. */
   },
-  // "include": ["src", "scripts", "integration"],
-  "include": ["src", "scripts"],
-  "exclude": ["cypress", "src/optimizer/core"]
+  "include": ["src", "scripts", "starters/playwright.config.ts"],
+  "exclude": ["src/optimizer/core"]
 }

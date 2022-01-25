@@ -17,9 +17,6 @@ integration/todo/output
 integration/*.js
 integration/*.cjs
 integration/*.map
-cypress/screenshots
-cypress/videos
-cypress/fixtures/
 src/napi/package-*
 target
 *.node

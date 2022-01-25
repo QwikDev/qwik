@@ -6,178 +6,209 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import type { QObject } from '..';
-import { assertDefined, assertEqual } from '../assert/assert';
-import { qJsonParse, qJsonStringify } from '../json/q-json';
+import { EMPTY_ARRAY } from '../util/flyweight';
+import type { ValueOrPromise } from '../util/types';
+
+let runtimeSymbolId = 0;
+const RUNTIME_QRL = '/runtimeQRL';
+
+// https://regexr.com/68v72
+const EXTRACT_IMPORT_PATH = /\(\s*(['"])([^\1]+)\1\s*\)/;
+
+// https://regexr.com/690ds
+const EXTRACT_SELF_IMPORT = /Promise\s*\.\s*resolve/;
+
+// https://regexr.com/6a83h
+const EXTRACT_FILE_NAME = /[\\/(]([\w\d.\-_]+)\.(js|ts)x?:/;
 
 /**
- * `QRL` (Qwik Resource Locator) represents an import which points to a lazy loaded resource.
- *
- * QRL is a URL pointing to a lazy loaded resource. Because the URLs need to be verified
- * (and possibly bundled) there needs to be a way to identify all URL strings in the system.
- * QRL serves the purpose of statically tagging all URLs for static code analysis and for
- * development mode verification.
- *
- * QRLs can use custom protocols for referring to URLs in a baseURI independent way. This is
- * useful for third-party libraries. Third-party libraries don't know what URL they will be
- * installed at. For this reason the third-party libraries do all QRLs prefixed with
- * custom protocol and rely on the application to configure such protocol.
- *
- * ```
- * QRL`someLibrary:/someImport`
- *
- * Q = {
- *   protocol: {
- *     'someLibrary': 'somePath'
- *   }
- * }
- * ```
- * The `QRL` looks up `foo` in `QRLProtocolMap` resulting in `somePath/someImport`.
- *
  * @public
  */
-export interface QRL<T = any> {
-  __brand__: 'QRL' | 'QHook';
-  __brand__T__: T;
-}
-
-/**
- * Tag template literal factory.
- *
- * SEE: `QRL` interface for details
- *
- * Intended usage:
- * ```
- * QRL`./path_to_resource`
- * ```
- * @public
- */
-export function QRL<T = any>(
-  messageParts: TemplateStringsArray,
-  ...expressions: readonly any[]
+export function qrl<T = any>(
+  chunkOrFn: string | (() => Promise<any>),
+  symbol: string,
+  lexicalScopeCapture: any[] = EMPTY_ARRAY
 ): QRL<T> {
-  let url = '';
-  for (let i = 0; i < messageParts.length; i++) {
-    const part = messageParts[i];
-    url += part;
-    if (i < expressions.length) {
-      url += expressions[i];
+  let chunk: string;
+  let symbolFn: null | (() => Promise<Record<string, any>>) = null;
+  if (typeof chunkOrFn === 'string') {
+    chunk = chunkOrFn;
+  } else if (typeof chunkOrFn === 'function') {
+    symbolFn = chunkOrFn;
+    let match: RegExpMatchArray | null;
+    const srcCode = String(chunkOrFn);
+    if ((match = srcCode.match(EXTRACT_IMPORT_PATH)) && match[2]) {
+      chunk = match[2];
+    } else if ((match = srcCode.match(EXTRACT_SELF_IMPORT))) {
+      const frame = new Error('SELF').stack!.split('\n')[2];
+      match = frame.match(EXTRACT_FILE_NAME);
+      if (!match) {
+        chunk = 'main';
+      } else {
+        chunk = match[1];
+      }
+    } else {
+      throw new Error('Q-ERROR: Dynamic import not found: ' + srcCode);
     }
+  } else {
+    throw new Error('Q-ERROR: Unknown type argument: ' + chunkOrFn);
   }
-  assertEqual(
-    !!url.match(/^[.|/|\w+:]/),
-    true,
-    "Expecting URL to start with '.', '/', '<protocol>:'. Was: " + url
+  return new QRLClass<T>(chunk, symbol, null, symbolFn, null, lexicalScopeCapture, null, null);
+}
+
+export function runtimeQrl<T>(symbol: T, lexicalScopeCapture: any[] = EMPTY_ARRAY): QRL<T> {
+  return new QRLClass<T>(
+    RUNTIME_QRL,
+    's' + runtimeSymbolId++,
+    symbol,
+    null,
+    null,
+    lexicalScopeCapture,
+    null,
+    null
   );
-
-  return url as unknown as QRL<T>;
 }
 
-export function isQRL(value: any): value is QRL {
-  return value && typeof value === 'string';
-}
-
-export function isParsedQRL(value: any): value is ParsedQRL {
-  return value instanceof ParsedQRL;
-}
-
-// TODO(misko): Split this to static and runtime because ParsedQRL should be internal
-export class ParsedQRL<T = any> implements QRL<T> {
-  // TODO(misko): this class does not feel right.
-  __brand__!: 'QRL' | 'QHook';
-  __brand__T__!: T;
-
-  _serialized: string | string[] | null = null;
-  url: string;
+/**
+ * @public
+ */
+export interface QRL<TYPE = any> {
+  chunk: string;
   symbol: string;
-  args: null | Record<string, any> = null;
-
-  get(name: string): any | null {
-    return (this.args && this.args[name]) || null;
-  }
-
-  getState(): string {
-    return (this.args && this.args[QRL_STATE]) || '';
-  }
-
-  constructor(url: string, symbol: string, params: Record<string, any> | null) {
-    this.url = url;
-    this.symbol = symbol;
-    this.args = params;
-  }
-
-  with(args: Record<string, any>) {
-    const p = cloneQrlParams(this);
-    Object.assign(p, args);
-    return new ParsedQRL(this.url, this.symbol, p);
-  }
-
-  toString(): string {
-    return stringifyQRL(this) as string;
-  }
+  symbolRef: null | ValueOrPromise<TYPE>;
+  symbolFn: null | (() => Promise<Record<string, any>>);
+  capture: null | (boolean | number | null | undefined | string)[];
+  captureRef: null | any[];
+  guard: null | Map<string, string[]>;
+  guardRef: null | WeakMap<Object, string[]>;
 }
 
-export const QRL_STATE = '.';
-const MOCK_BASE = 'http://q/';
+type IQRL<T> = QRL<T>;
 
-function cloneQrlParams(qrl: ParsedQRL): Record<string, any> {
-  return qrl.args ? { ...qrl.args } : {};
+export const QRLClass = class QRL<TYPE = any> implements IQRL<TYPE> {
+  constructor(
+    public chunk: string,
+    public symbol: string,
+    public symbolRef: null | ValueOrPromise<TYPE>,
+    public symbolFn: null | (() => Promise<Record<string, any>>),
+    public capture: null | (boolean | number | null | undefined | string)[],
+    public captureRef: null | any[],
+    public guard: null | Map<string, string[]>,
+    public guardRef: null | WeakMap<Object, string[]>
+  ) {}
+};
+
+export function isQrl(value: any): value is QRL {
+  return value instanceof QRLClass;
 }
 
-export function parseQRL<T = any>(
-  qrl: QRL<T> | string,
-  map?: Map<string, QObject<any>>
-): ParsedQRL<T> {
-  assertDefined(qrl);
-  const string = String(qrl);
-  let hashIdx = string.indexOf('#');
-  if (hashIdx == -1) hashIdx = string.length;
-  const url = string.substring(0, hashIdx);
-  const urlParsed = new URL(string.substr(hashIdx + 1), MOCK_BASE);
-  const symbol = urlParsed.pathname.substr(1);
-  const params: Record<string, any> = {};
-  const tMap = map && trackingMap(map);
-  urlParsed.searchParams.forEach((v, k) => {
-    params[k] = qJsonParse(v, tMap);
-  });
-  const parsedQRL = new ParsedQRL(url, symbol, params);
-  parsedQRL._serialized = tMap && tMap.items ? [string, ...tMap.items] : string;
-  return parsedQRL;
+export function stringifyQRL(qrl: QRL, element?: Element) {
+  const parts: string[] = [qrl.chunk];
+  const symbol = qrl.symbol;
+  if (symbol && symbol !== 'default') {
+    parts.push('#', symbol);
+  }
+  const guard = qrl.guard;
+  guard?.forEach((value, key) =>
+    parts.push('|', key, value && value.length ? '.' + value.join('.') : '')
+  );
+  const capture = qrl.capture;
+  capture && capture.length && parts.push(JSON.stringify(capture));
+
+  const qrlString = parts.join('');
+  if (qrl.chunk === RUNTIME_QRL && element) {
+    const qrls: Set<QRL> = (element as any).__qrls__ || ((element as any).__qrls__ = new Set());
+    qrls.add(qrl);
+  }
+  return qrlString;
 }
 
-export function stringifyQRL<T = any>(parsedQRL: ParsedQRL<T>, map?: Map<string, any>): string {
-  const url = new URL(parsedQRL.symbol, MOCK_BASE);
-  if (parsedQRL.args) {
-    for (const key in parsedQRL.args) {
-      if (Object.prototype.hasOwnProperty.call(parsedQRL.args, key)) {
-        const value = qJsonStringify(parsedQRL.args[key], map);
-        url.searchParams.set(key, value);
+export function qrlToUrl(element: Element, qrl: QRL): URL {
+  return new URL(stringifyQRL(qrl), element.ownerDocument.baseURI);
+}
+
+/**
+ * `./chunk#symbol|symbol.propA.propB|[captures]
+ */
+export function parseQRL(qrl: string, element?: Element): QRL {
+  if (element) {
+    const qrls: QRL[] | undefined = (element as any).__qrls__;
+    if (qrls) {
+      for (const runtimeQrl of qrls) {
+        if (stringifyQRL(runtimeQrl) == qrl) {
+          return runtimeQrl;
+        }
       }
     }
   }
-  const hash = url.toString().substr(MOCK_BASE.length);
-  const string = parsedQRL.url + (hash ? '#' + hash : '');
-  parsedQRL._serialized = string;
-  return string;
+  const endIdx = qrl.length;
+  const hashIdx = indexOf(qrl, 0, '#');
+  const guardIdx = indexOf(qrl, hashIdx, '|');
+  const captureIdx = indexOf(qrl, guardIdx, '[');
+
+  const chunkEndIdx = Math.min(hashIdx, guardIdx, captureIdx);
+  const chunk = qrl.substring(0, chunkEndIdx);
+
+  const symbolStartIdx = hashIdx == endIdx ? hashIdx : hashIdx + 1;
+  const symbolEndIdx = Math.min(guardIdx, captureIdx);
+  const symbol =
+    symbolStartIdx == symbolEndIdx ? 'default' : qrl.substring(symbolStartIdx, symbolEndIdx);
+
+  const guardStartIdx = guardIdx;
+  const guardEndIdx = captureIdx;
+  const guard =
+    guardStartIdx < guardEndIdx ? parseGuard(qrl.substring(guardStartIdx, guardEndIdx)) : null;
+
+  const captureStartIdx = captureIdx;
+  const captureEndIdx = endIdx;
+  const capture =
+    captureStartIdx === captureEndIdx
+      ? EMPTY_ARRAY
+      : JSONparse(qrl.substring(captureStartIdx, captureEndIdx));
+
+  if (chunk === RUNTIME_QRL) {
+    console.error(`Q-ERROR: '${qrl}' is runtime but no instance found on element.`);
+  }
+  return new QRLClass(chunk, symbol, null, null, capture, null, guard, null);
 }
 
-function trackingMap(map: Map<string, any>): Map<string, any> & { items: string[] | null } {
-  const tMap: {
-    items: string[] | null;
-    get: (key: string) => any;
-    set: (key: string, value: any) => void;
-  } = {
-    items: null,
-    get(key: string) {
-      const items = tMap.items || (tMap.items = []);
-      items.push(key);
-      return map.get(key);
-    },
-    set(key: string, value: any) {
-      const items = tMap.items || (tMap.items = []);
-      items.push(key);
-      map.set(key, value);
-    },
-  };
-  return tMap as any;
+function JSONparse(json: string): any {
+  try {
+    return JSON.parse(json);
+  } catch (e) {
+    console.error('JSON:', json);
+    throw e;
+  }
+}
+
+function parseGuard(text: string): null | Map<string, string[]> {
+  let map: null | Map<string, string[]> = null;
+  if (text) {
+    text.split('|').forEach((obj) => {
+      if (obj) {
+        const parts = obj.split('.');
+        const id = parts.shift()!;
+        if (!map) map = new Map<string, string[]>();
+        map.set(id, parts);
+      }
+    });
+  }
+  return map;
+}
+function indexOf(text: string, startIdx: number, char: string) {
+  const endIdx = text.length;
+  const charIdx = text.indexOf(char, startIdx == endIdx ? 0 : startIdx);
+  return charIdx == -1 ? endIdx : charIdx;
+}
+
+export function toQrlOrError<T>(symbolOrQrl: T | QRL<T>): QRL<T> {
+  if (!isQrl(symbolOrQrl)) {
+    if (typeof symbolOrQrl == 'function' || typeof symbolOrQrl == 'string') {
+      symbolOrQrl = runtimeQrl(symbolOrQrl);
+    } else {
+      // TODO(misko): centralize
+      throw new Error(`Q-ERROR Only 'function's and 'string's are supported.`);
+    }
+  }
+  return symbolOrQrl;
 }

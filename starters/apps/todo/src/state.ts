@@ -1,5 +1,3 @@
-import { qObject } from '@builder.io/qwik';
-
 ////////////////////////////////////////////////////////////////////////
 // Todo Application State Interfaces
 ////////////////////////////////////////////////////////////////////////
@@ -19,16 +17,16 @@ export interface Todos {
 ////////////////////////////////////////////////////////////////////////
 
 export function addItem(todos: Todos, text: string) {
-  todos.items.push(qObject({ completed: false, title: text }));
+  todos.items.push({ completed: false, title: text });
   updateFilter(todos);
 }
 
-export function removeItem(todos: Todos, TodoItem: TodoItem) {
-  todos.items = todos.items.filter((i) => i != TodoItem);
+export function removeItem(todos: Todos, todoItem: TodoItem) {
+  todos.items = todos.items.filter((i) => i != todoItem);
   updateFilter(todos);
 }
-export function toggleItem(todos: Todos, TodoItem: TodoItem) {
-  TodoItem.completed = !TodoItem.completed;
+export function toggleItem(todos: Todos, todoItem: TodoItem) {
+  todoItem.completed = !todoItem.completed;
   updateFilter(todos);
 }
 

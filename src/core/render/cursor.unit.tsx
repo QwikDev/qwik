@@ -1,7 +1,6 @@
 import { Fragment, h, Slot } from '@builder.io/qwik';
 import { expectDOM } from '../../testing/expect-dom.unit';
 import { toDOM } from '../../testing/jsx';
-import { qHook } from '../component/qrl-hook.public';
 import { AttributeMarker } from '../util/markers';
 import {
   cursorForParent,
@@ -13,6 +12,7 @@ import {
 } from './cursor';
 import type { ComponentRenderQueue } from './q-render';
 import { getQComponent } from '../component/q-component-ctx';
+import { runtimeQrl } from '../import/qrl';
 
 describe('cursor', () => {
   it('should build up DOM', () => {
@@ -195,7 +195,7 @@ describe('cursor', () => {
     it('should reconcile non-projected nodes', () => {
       const parent = toDOM(
         <parent>
-          <component on:q-render={qHook(() => null) as any}>
+          <component on:q-render={() => null}>
             <template q:slot={true as any}>
               OLD
               <b />
@@ -230,7 +230,7 @@ describe('cursor', () => {
     it('should reconcile projected element', () => {
       const parent = toDOM(
         <parent>
-          <component on:q-render={qHook(() => null) as any}>
+          <component on:q-render={() => null}>
             <q:slot name="detail">
               <b />
             </q:slot>
@@ -275,7 +275,7 @@ describe('cursor', () => {
       const parent = toDOM(
         <parent>
           <component
-            on:q-render={qHook(() => (
+            on:q-render={runtimeQrl(() => (
               <Slot />
             ))}
           >
@@ -304,7 +304,7 @@ describe('cursor', () => {
       const parent = toDOM(
         <parent>
           <component
-            on:q-render={qHook(() => (
+            on:q-render={runtimeQrl(() => (
               <Slot />
             ))}
           >
@@ -335,7 +335,7 @@ describe('cursor', () => {
     it('should render component if it gets placed in non-inert slot', async () => {
       const parent = toDOM(
         <parent>
-          <component on:q-render={qHook(() => null) as any}>
+          <component on:q-render={runtimeQrl(() => null)}>
             <template q:slot={true as any}></template>
             <q:slot name=""></q:slot>
           </component>
@@ -353,7 +353,7 @@ describe('cursor', () => {
         componentCursor,
         null,
         'child',
-        { [AttributeMarker.OnRender]: childOnRender },
+        { [AttributeMarker.OnRenderAttr]: childOnRender },
         log
       );
       cursorReconcileEnd(childCursor);
@@ -377,5 +377,5 @@ describe('cursor', () => {
   });
 });
 
-const childOnRender = qHook(() => <div>WORKS</div>);
-const COMPONENT_ATTRS = { [AttributeMarker.OnRender]: childOnRender };
+const childOnRender = runtimeQrl(() => <div>WORKS</div>);
+const COMPONENT_ATTRS = { [AttributeMarker.OnRenderAttr]: childOnRender };

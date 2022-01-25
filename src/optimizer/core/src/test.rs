@@ -312,7 +312,7 @@ fn example_functional_component() {
         r#"
         import { qHook, qComponent, onRender, h } from '@builder.io/qwik';
         const Header = qComponent(() => {
-            const thing = useState();
+            const thing = useStore();
             const {foo, bar} = foo();
 
             onRender(() => {
@@ -335,14 +335,14 @@ fn example_functional_component_2() {
         r#"
 import { qHook, qComponent, h, onRender } from '@builder.io/qwik';
 export const useCounter = () => {
-    return useState({count: 0});
+    return useStore({count: 0});
 }
 
 export const STEP = 1;
 
 export const App = qComponent((props) => {
     const state = useCounter();
-    const thing = useState({thing: 0});
+    const thing = useStore({thing: 0});
     const STEP_2 = 2;
 
     return onRender(() => {
@@ -378,7 +378,7 @@ fn example_functional_component_capture_props() {
 import { qHook, qComponent, h, onRender } from '@builder.io/qwik';
 
 export const App = qComponent(({count, rest: [I2, {I3, v1: [I4], I5=v2, ...I6}, I7=v3, ...I8]}) => {
-    const state = useState({count: 0});
+    const state = useStore({count: 0});
     const {rest: [C2, {C3, v1: [C4], C5=v2, ...C6}, C7=v3, ...C8]} = foo();
     return onRender(() => {
         return (
@@ -575,10 +575,10 @@ fn example_renamed_exports() {
     test_input(
         "test.tsx",
         r#"
-import { qComponent as Component, onRender as $, useState } from '@builder.io/qwik';
+import { qComponent as Component, onRender as $, useStore } from '@builder.io/qwik';
 
 export const App = Component((props) => {
-    const state = useState({thing: 0});
+    const state = useStore({thing: 0});
 
     return $(() => (
         <div>{state.thing}</div>

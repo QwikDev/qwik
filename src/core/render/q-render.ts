@@ -88,7 +88,7 @@ function visitJsxLiteralNode(
   jsxNode: JSXNode<string>
 ): void {
   const jsxTag = jsxNode.type as string;
-  const isQComponent = AttributeMarker.OnRender in jsxNode.props;
+  const isQComponent = AttributeMarker.OnRenderProp in jsxNode.props;
   const elementCursor = cursorReconcileElement(
     cursor,
     component,

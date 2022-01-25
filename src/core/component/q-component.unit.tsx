@@ -1,9 +1,9 @@
-import { Fragment, h, qHook, qObject } from '@builder.io/qwik';
+import { Fragment, h, useLexicalScope, useStore } from '@builder.io/qwik';
 import { ElementFixture, trigger } from '../../testing/element_fixture';
 import { expectDOM } from '../../testing/expect-dom.unit';
+import { runtimeQrl } from '../import/qrl';
 import { qRender } from '../render/q-render.public';
-import { qComponent } from './q-component.public';
-import { qStyles } from './qrl-styles';
+import { onRender, PropsOf, qComponent, withStyles } from './q-component.public';
 
 describe('q-component', () => {
   it('should declare and render basic component', async () => {
@@ -51,13 +51,13 @@ describe('q-component', () => {
 
   it('should render a collection of todo items', async () => {
     const host = new ElementFixture().host;
-    const items = qObject({
+    const items = useStore({
       items: [
-        qObject({
+        useStore({
           done: true,
           title: 'Task 1',
         }),
-        qObject({
+        useStore({
           done: false,
           title: 'Task 2',
         }),
@@ -85,48 +85,56 @@ describe('q-component', () => {
 });
 
 /////////////////////////////////////////////////////////////////////////////
-export const HelloWorld = qComponent({
-  onRender: qHook(() => {
+export const HelloWorld = qComponent(() => {
+  withStyles(runtimeQrl(`{}`));
+  return onRender(() => {
     return <span>Hello World</span>;
-  }),
-  styles: qStyles('./mock.unit.css#ABC123'),
+  });
 });
 
 /////////////////////////////////////////////////////////////////////////////
 // <Greeter salutation="" name=""/>
 
-export const Greeter = qComponent<{ salutation?: string; name?: string }, { count: number }>({
-  onMount: qHook(() => ({ count: 0 })),
-  onRender: qHook((props, state) => (
+export const Greeter = qComponent((props: { salutation?: string; name?: string }) => {
+  const state = useStore({ count: 0 });
+  return onRender(() => (
     <div>
-      {props.salutation} {props.name} ({state.count})
+      {' '}
+      {props.salutation} {props.name} ({state.count}){' '}
     </div>
-  )),
+  ));
 });
 
 //////////////////////////////////////////////
 // import { QComponent, qComponent, qView, qHandler, getState, markDirty } from '@builder.io/qwik';
 
 // Component view may need additional handlers describing the component's behavior.
-export const MyCounter_update = qHook<typeof MyCounter, { dir: number }>((props, state, args) => {
+export const MyCounter_update = () => {
+  const [props, state, args] =
+    useLexicalScope<[PropsOf<typeof MyCounter>, { count: number }, { dir: number }]>();
   state.count += args.dir * (props.step || 1);
-});
+};
 
 // Finally tie it all together into a component.
-export const MyCounter = qComponent<{ step?: number; value?: number }, { count: number }>({
-  tagName: 'my-counter',
-  onMount: qHook((props) => ({ count: props.value || 0 })),
-  onRender: qHook((props, state) => (
+export const MyCounter = qComponent('my-counter', (props: { step?: number; value?: number }) => {
+  const state = useStore({ count: props.value || 0 });
+  return onRender(() => (
     <div>
-      <button class="decrement" on:click={MyCounter_update.with({ dir: -1 })}>
+      <button
+        class="decrement"
+        on:click={runtimeQrl(MyCounter_update, [props, state, { dir: -1 }])}
+      >
         -
       </button>
       <span>{state.count}</span>
-      <button class="increment" on:click={MyCounter_update.with({ dir: +1 })}>
+      <button
+        class="increment"
+        on:click={runtimeQrl(MyCounter_update, [props, state, { dir: -1 }])}
+      >
         +
       </button>
     </div>
-  )),
+  ));
 });
 
 /////////////////////////////////////////////////////////////////////////////
@@ -145,30 +153,28 @@ interface ItemsObj {
 
 /////////////////////////////////////////////////////////////////////////////
 
-export const ItemDetail = qComponent<{ itemObj: ItemObj }, { editing: boolean }>({
-  tagName: 'item-detail',
-  onMount: qHook(() => ({ editing: false })),
-  onRender: qHook((props) => (
+export const ItemDetail = qComponent('item-detail', (props: { itemObj: ItemObj }) => {
+  // const state = useStore({ editing: false });
+  return onRender(() => (
     <>
       <input type="checkbox" checked={props.itemObj.done} />
       <span>{props.itemObj.title || 'loading...'}</span>
     </>
-  )),
+  ));
 });
 
 /////////////////////////////////////////////////////////////////////////////
 
-export const Items = qComponent<{ items: ItemsObj }, { editing: boolean }>({
-  tagName: 'items',
-  onMount: qHook(() => ({ editing: false })),
-  onRender: qHook((props) => (
+export const Items = qComponent('items', (props: { items: ItemsObj }) => {
+  // const state = useStore({ editing: false });
+  return onRender(() => (
     <>
       {props.items.items.map((item) => (
         <ItemDetail itemObj={item} />
       ))}
       Total: {props.items.items.length}
     </>
-  )),
+  ));
 });
 
 function delay(miliseconds: number): Promise<void> {

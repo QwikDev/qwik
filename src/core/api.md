@@ -4,9 +4,6 @@
 
 ```ts
 
-// @alpha (undocumented)
-export const __internal_qHookMap: Map<any, any>;
-
 // @public
 export function Async<T>(props: {
     resolve: ValueOrPromise<T>;
@@ -29,7 +26,7 @@ export type ComponentChildren = ComponentChild[] | ComponentChild;
 
 // @public (undocumented)
 export interface CorePlatform {
-    importSymbol: (element: Element, url: string | QRL | URL) => Promise<any>;
+    importSymbol: (element: Element, url: string | URL, symbol: string) => Promise<any>;
     queueRender: (renderMarked: (doc: Document) => Promise<any>) => Promise<any>;
     queueStoreFlush: (flushStore: (doc: Document) => Promise<any>) => Promise<any>;
 }
@@ -110,11 +107,34 @@ export interface JSXNode<T extends string | null | JSXFactory | unknown = unknow
     type: T;
 }
 
-// @public
-export function notifyRender(hostElement: Element): Promise<void>;
+// Warning: (ae-forgotten-export) The symbol "TypeOrQRL" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export function on(event: string, eventFn: TypeOrQRL<() => void>): QRL<() => void>;
 
 // @public (undocumented)
-export type PayloadOf<QEVENT extends QEvent> = QEVENT extends QEvent<infer PAYLOAD> ? PAYLOAD : never;
+export function onDehydrate(dehydrateFn: TypeOrQRL<() => void>): QRL<() => void>;
+
+// @public (undocumented)
+export function onDocument(event: string, eventFn: TypeOrQRL<() => void>): QRL<() => void>;
+
+// @public (undocumented)
+export function onHalt(haltFn: TypeOrQRL<() => void>): QRL<() => void>;
+
+// @public (undocumented)
+export function onHydrate(hydrateFn: TypeOrQRL<() => void>): QRL<() => void>;
+
+// @public (undocumented)
+export function onRender(renderFn: TypeOrQRL<() => JSXNode>): QRL<() => JSXNode>;
+
+// @public (undocumented)
+export function onResume(resumeFn: TypeOrQRL<() => void>): QRL<() => void>;
+
+// @public (undocumented)
+export function onUnmount(unmountFn: TypeOrQRL<() => void>): QRL<() => void>;
+
+// @public (undocumented)
+export function onWindow(event: string, eventFn: TypeOrQRL<() => void>): QRL<() => void>;
 
 // @public
 export type PromiseValue<T> = {
@@ -137,107 +157,26 @@ export type PromiseValue<T> = {
     readonly rejection: any;
 };
 
-// @public
-export type PropsOf<ENTITY extends QComponent> = ENTITY extends QComponent<infer PROPS> ? PROPS : never;
+// @public (undocumented)
+export type PropsOf<COMP extends (props: any) => JSXNode> = COMP extends (props: infer PROPS) => JSXNode<any> ? PROPS : never;
 
 // @public (undocumented)
-export function qBubble<PAYLOAD>(qEvent: string, payload: PAYLOAD): void;
+export function qBubble<PAYLOAD>(eventType: string, payload?: PAYLOAD): void;
 
 // @public (undocumented)
-export function qBubble<QEVENT extends QEvent>(qEvent: QEVENT, payload: PayloadOf<QEVENT>): void;
+export function qComponent<PROPS extends {}>(tagName: string, onMount: TypeOrQRL<(props: PROPS) => ReturnType<typeof onRender>>): (props: PROPS) => JSXNode<PROPS>;
 
-// Warning: (ae-forgotten-export) The symbol "HTMLAttributes" needs to be exported by the entry point index.d.ts
-//
-// @public
-export interface QComponent<PROPS extends {} = any, STATE extends {} = any> extends FunctionComponent<PROPS & HTMLAttributes<HTMLElement>> {
-    // (undocumented)
-    __brand__: 'QComponent';
-    // (undocumented)
-    __type_PROPS__: PROPS;
-    // (undocumented)
-    __type_STATE__: STATE;
-    // (undocumented)
-    onDehydrate: QHook<PROPS, STATE, undefined, void> | null;
-    // (undocumented)
-    onHydrate: QHook<PROPS, STATE, undefined, void> | null;
-    // (undocumented)
-    onMount: QHook<PROPS, undefined, undefined, STATE> | null;
-    // (undocumented)
-    onRender: QHook<PROPS, STATE, undefined, any>;
-    // (undocumented)
-    onResume: QHook<PROPS, STATE, undefined, void> | null;
-    // (undocumented)
-    onUnmount: QHook<PROPS, STATE, undefined, void> | null;
-    // (undocumented)
-    props: Record<string, any>;
-    // (undocumented)
-    styleClass: string | null;
-    // (undocumented)
-    styleHostClass: string | null;
-    // Warning: (ae-forgotten-export) The symbol "QStyles" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    styles: QStyles<any> | null;
-    // (undocumented)
-    tag: string;
-}
-
-// @public
-export function qComponent<PROPS = {}, STATE = {}>({ onRender, styles, unscopedStyles, tagName, props, onResume, onMount, onUnmount, onHydrate, onDehydrate, }: {
-    onRender: QHook<PROPS, STATE, undefined, any>;
-    tagName?: string;
-    onMount?: QHook<PROPS, undefined, undefined, STATE>;
-    onUnmount?: QHook<PROPS, STATE, undefined, void> | null;
-    onDehydrate?: QHook<PROPS, STATE, undefined, void> | null;
-    onHydrate?: QHook<PROPS, STATE, undefined, void> | null;
-    onResume?: QHook<PROPS, STATE, undefined, void> | null;
-    styles?: QStyles<any>;
-    unscopedStyles?: QStyles<any>;
-    props?: PROPS;
-}): QComponent<PROPS, STATE>;
+// @public (undocumented)
+export function qComponent<PROPS extends {}>(onMount: TypeOrQRL<(props: PROPS) => ReturnType<typeof onRender>>): (props: PROPS) => JSXNode<PROPS>;
 
 // @public (undocumented)
 export function qDehydrate(document: Document): void;
 
-// @public (undocumented)
-export interface QEvent<PAYLOAD extends {} = {}> {
-    // (undocumented)
-    <HOOK extends QHook<any, any, any, any>>(qrl: HOOK): Record<string, HOOK>;
-    // (undocumented)
-    __type_brand__: 'QEvent';
-    // (undocumented)
-    __type_payload__: PAYLOAD;
-    // (undocumented)
-    type: string;
-}
-
-// @public (undocumented)
-export function qEvent<PAYLOAD extends {} = {}>(type: string): QEvent<PAYLOAD>;
-
-// @public (undocumented)
-export interface QHook<PROPS extends {}, STATE extends {} | undefined | unknown = undefined, ARGS extends {} | undefined | unknown = undefined, RET = unknown> extends QRL<(props: PROPS, state: STATE, args: ARGS) => ValueOrPromise<RET>> {
-    // (undocumented)
-    __brand__: 'QHook';
-    // (undocumented)
-    with(args: ARGS): QHook<PROPS, STATE, ARGS, RET>;
-}
-
-// @public (undocumented)
-export function qHook<PROPS extends {}, STATE extends {} | undefined | unknown, ARGS extends {} | undefined | unknown, RET>(hook: (props: PROPS, state: STATE, args: ARGS) => ValueOrPromise<RET>): QHook<PROPS, STATE, ARGS, RET>;
-
-// @public (undocumented)
-export function qHook<COMP extends QComponent, ARGS extends {} | unknown = unknown, RET = unknown>(hook: (props: PropsOf<COMP>, state: StateOf<COMP>, args: ARGS) => ValueOrPromise<RET>): QHook<PropsOf<COMP>, StateOf<COMP>, any, RET>;
+// @public
+export function qImport<T>(element: Element, qrl: QRL<T>): Promise<T>;
 
 // @public
-export function qImport<T>(element: Element, url: string | QRL<T> | URL): T | Promise<T>;
-
-// @public (undocumented)
-export type QObject<T extends {}> = T & {
-    __brand__: 'QObject';
-};
-
-// @public (undocumented)
-export function qObject<T>(obj: T): QObject<T>;
+export function qNotifyRender(hostElement: Element): Promise<void>;
 
 // @public (undocumented)
 export type QProps<T extends {} = {}> = Record<string, any> & T;
@@ -248,19 +187,28 @@ export function qProps<T>(element: Element): QProps<T>;
 // @public
 export function qRender(parent: Element | Document, jsxNode: JSXNode<unknown>): Promise<HTMLElement[]>;
 
-// @public
-export function QRL<T = any>(messageParts: TemplateStringsArray, ...expressions: readonly any[]): QRL<T>;
-
-// @public
-export interface QRL<T = any> {
+// @public (undocumented)
+export interface QRL<TYPE = any> {
     // (undocumented)
-    __brand__: 'QRL' | 'QHook';
+    capture: null | (boolean | number | null | undefined | string)[];
     // (undocumented)
-    __brand__T__: T;
+    captureRef: null | any[];
+    // (undocumented)
+    chunk: string;
+    // (undocumented)
+    guard: null | Map<string, string[]>;
+    // (undocumented)
+    guardRef: null | WeakMap<Object, string[]>;
+    // (undocumented)
+    symbol: string;
+    // (undocumented)
+    symbolFn: null | (() => Promise<Record<string, any>>);
+    // (undocumented)
+    symbolRef: null | ValueOrPromise<TYPE>;
 }
 
 // @public (undocumented)
-export function qSubscribe<T extends QObject<any>>(qObject: T, ...rest: QObject<any>[]): T;
+export function qrl<T = any>(chunkOrFn: string | (() => Promise<any>), symbol: string, lexicalScopeCapture?: any[]): QRL<T>;
 
 // Warning: (ae-forgotten-export) The symbol "DOMAttributes" needs to be exported by the entry point index.d.ts
 //
@@ -306,13 +254,12 @@ export type RenderableProps<P, RefType = any> = P & Readonly<{
 // @public (undocumented)
 export const setPlatform: (doc: Document, plt: CorePlatform) => CorePlatform;
 
+// Warning: (ae-forgotten-export) The symbol "HTMLAttributes" needs to be exported by the entry point index.d.ts
+//
 // @public (undocumented)
 export const Slot: FunctionComponent<HTMLAttributes<{
     name?: string;
 }>>;
-
-// @public
-export type StateOf<ENTITY extends QComponent> = ENTITY extends QComponent<any, infer STATE> ? STATE : never;
 
 // @public (undocumented)
 export function useEvent(): Event;
@@ -321,13 +268,13 @@ export function useEvent(): Event;
 export function useEvent<EVENT extends {}>(): EVENT;
 
 // @public (undocumented)
-export function useEvent<EVENT extends QEvent>(qEvent: EVENT): PayloadOf<EVENT>;
-
-// @public (undocumented)
-export function useEvent<EVENT extends {}>(expectEventType?: QEvent | string): EVENT;
-
-// @public (undocumented)
 export function useHostElement(): Element;
+
+// @public (undocumented)
+export function useLexicalScope<VARS extends any[]>(): VARS;
+
+// @public (undocumented)
+export function useStore<STATE extends {}>(initialState: STATE): STATE;
 
 // @public (undocumented)
 export function useTransient<OBJ, ARGS extends any[], RET>(obj: OBJ, factory: (this: OBJ, ...args: ARGS) => RET, ...args: ARGS): RET;
@@ -340,6 +287,12 @@ export type ValueOrPromise<T> = T | Promise<T>;
 
 // @alpha (undocumented)
 export const version: string;
+
+// @public (undocumented)
+export function withScopedStyles(styles: TypeOrQRL<string>): void;
+
+// @public (undocumented)
+export function withStyles(styles: TypeOrQRL<string>): void;
 
 // (No @packageDocumentation comment for this package)
 

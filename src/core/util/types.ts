@@ -31,7 +31,7 @@ export function isQSLotTemplateElement(node: Node | null | undefined): node is H
  * @private
  */
 export function isComponentElement(node: Node | null | undefined): node is HTMLElement {
-  return isHtmlElement(node) && node.hasAttribute(AttributeMarker.OnRender);
+  return isHtmlElement(node) && node.hasAttribute(AttributeMarker.OnRenderAttr);
 }
 
 /**

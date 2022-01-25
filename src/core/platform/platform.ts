@@ -1,7 +1,5 @@
 import { isDocument } from '../util/element';
-
-import { qExport } from '../import/qImport';
-import type { QRL, CorePlatform } from '..';
+import type { CorePlatform } from './types';
 
 export const createPlatform = (doc: Document): CorePlatform => {
   let queuePromise: Promise<any> | null;
@@ -9,14 +7,13 @@ export const createPlatform = (doc: Document): CorePlatform => {
 
   const moduleCache = new Map<string, { [symbol: string]: any }>();
   return {
-    importSymbol(element, url) {
+    importSymbol(element, url, symbolName) {
       const urlDoc = toUrl(element.ownerDocument, element, url).toString();
 
-      const symbolName = qExport(urlDoc);
       const urlCopy = new URL(urlDoc);
       urlCopy.hash = '';
       urlCopy.search = '';
-      const importURL = urlCopy.href + '.js';
+      const importURL = urlCopy.href;
       const mod = moduleCache.get(importURL);
       if (mod) {
         return mod[symbolName];
@@ -62,8 +59,8 @@ export const createPlatform = (doc: Document): CorePlatform => {
  * @param url - relative URL
  * @returns fully qualified URL.
  */
-export function toUrl(doc: Document, element: Element | null, url?: string | QRL | URL): URL {
-  let _url: string | QRL | URL;
+export function toUrl(doc: Document, element: Element | null, url?: string | URL): URL {
+  let _url: string | URL;
   let _base: string | URL | undefined = undefined;
 
   if (url === undefined) {

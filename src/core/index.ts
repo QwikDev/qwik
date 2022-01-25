@@ -21,7 +21,6 @@ export {
   on,
   onDocument,
   onWindow,
-  withProps,
   withStyles,
   withScopedStyles,
 } from './component/q-component.public';
@@ -71,7 +70,7 @@ export { useURL } from './use/use-url.public';
 export { useHostElement } from './use/use-host-element.public';
 export { useEvent } from './use/use.event.public';
 export { useLexicalScope } from './use/use-lexical-scope.public';
-export { useState } from './use/use-state.public';
+export { useStore } from './use/use-state.public';
 export { useTransient } from './use/use-transient.public';
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Low-Level API

@@ -1,7 +1,7 @@
-import { h, qComponent, onRender, useEvent, useState } from '@builder.io/qwik';
+import { h, qComponent, onRender, useEvent, useStore } from '@builder.io/qwik';
 
 export const MyApp = qComponent('my-app', () => {
-  const state = useState({ name: 'World', running: true });
+  const state = useStore({ name: 'World', running: true });
   return onRender(() => {
     // eslint-disable-next-line no-console
     console.log('Qwik: MyApp component is rendering...');

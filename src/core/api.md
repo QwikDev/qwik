@@ -274,7 +274,7 @@ export function useHostElement(): Element;
 export function useLexicalScope<VARS extends any[]>(): VARS;
 
 // @public (undocumented)
-export function useState<STATE extends {}>(initialState: STATE): STATE;
+export function useStore<STATE extends {}>(initialState: STATE): STATE;
 
 // @public (undocumented)
 export function useTransient<OBJ, ARGS extends any[], RET>(obj: OBJ, factory: (this: OBJ, ...args: ARGS) => RET, ...args: ARGS): RET;

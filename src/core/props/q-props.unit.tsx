@@ -5,7 +5,7 @@ import { qDehydrate } from '../object/q-store.public';
 import { qProps, QProps } from './q-props.public';
 import { parseQRL, QRL, runtimeQrl } from '../import/qrl';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
-import { useState } from '../use/use-state.public';
+import { useStore } from '../use/use-state.public';
 import { isPromise } from '../util/promises';
 import { useEvent } from '../use/use.event.public';
 import { newInvokeContext, useInvoke } from '../use/use-core';
@@ -85,7 +85,7 @@ describe('q-element', () => {
 
   describe('dehydrate/hydrate', () => {
     it('should serialize QObject', () => {
-      const qObj = useState({ mark: 'QObj' });
+      const qObj = useStore({ mark: 'QObj' });
       qDiv.myObj = qObj;
       qDiv.ref = { qObj: qObj };
       expect(div.getAttribute('q:obj')).toEqual(getQObjectId(qObj) + ' ' + getQObjectId(qDiv.ref));
@@ -110,8 +110,8 @@ describe('q-element', () => {
       expect(diff({ name: 'a' }, {})).toEqual([]);
       expect(diff('a', 'c')).toEqual([]);
 
-      const obj1 = useState({});
-      const obj2 = useState({});
+      const obj1 = useStore({});
+      const obj2 = useStore({});
 
       expect(diff(obj1, obj2)).toEqual([getQObjectId(obj1)]);
       expect(diff(obj1, 'b')).toEqual([getQObjectId(obj1)]);
@@ -148,8 +148,8 @@ describe('q-element', () => {
 
     it('should read qrl as single function', async () => {
       qDiv['on:qRender'] = 'markAsHost';
-      const state = useState({ mark: 'implicit', isHost: null, args: null });
-      const stateExplicit = useState({ mark: 'explicit', isHost: null, args: null });
+      const state = useStore({ mark: 'implicit', isHost: null, args: null });
+      const stateExplicit = useStore({ mark: 'explicit', isHost: null, args: null });
       qDiv.isHost = 'YES';
 
       const child = document.createElement('child');

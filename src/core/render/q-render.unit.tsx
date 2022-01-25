@@ -1,4 +1,4 @@
-import { Fragment, h, Host, useState } from '@builder.io/qwik';
+import { Fragment, h, Host, useStore } from '@builder.io/qwik';
 import { ElementFixture, trigger } from '../../testing/element_fixture';
 import { expectDOM } from '../../testing/expect-dom.unit';
 import { getTestPlatform } from '../../testing/platform';
@@ -351,7 +351,7 @@ describe('q-render', () => {
 //////////////////////////////////////////////////////////////////////////////////////////
 export const HelloWorld = qComponent('hello-world', (props: { name?: string }) => {
   withScopedStyles(`span.� { color: red; }`);
-  const state = useState({ salutation: 'Hello' });
+  const state = useStore({ salutation: 'Hello' });
   return onRender(() => {
     return (
       <span>
@@ -366,7 +366,7 @@ export const HelloWorld = qComponent('hello-world', (props: { name?: string }) =
 //////////////////////////////////////////////////////////////////////////////////////////
 
 export const Counter = qComponent((props: { step?: number }) => {
-  const state = useState({ count: 0 });
+  const state = useStore({ count: 0 });
   return onRender(() => {
     const step = Number(props.step || 1);
     return (

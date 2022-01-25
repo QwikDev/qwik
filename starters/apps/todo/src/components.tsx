@@ -4,7 +4,7 @@ import {
   Host,
   qComponent,
   onRender,
-  useState,
+  useStore,
   useHostElement,
   useEvent,
 } from '@builder.io/qwik';
@@ -59,7 +59,7 @@ export const ToDoApp = qComponent('todo', (props: { todos: Todos }) => {
  * This component only rerenders if the user interacts with it through the input.
  */
 export const Header = qComponent('header', (props: { todos: Todos }) => {
-  const state = useState({ text: '' });
+  const state = useStore({ text: '' });
   return onRender(() => {
     console.log('on:qRender => <Header/>');
     return (
@@ -111,7 +111,7 @@ export const Main = qComponent('main', (props: { todos: Todos }) => {
  * It only rerenders if the user infarcts with it or if the item itself changes.
  */
 export const Item = qComponent('li', (props: { item: TodoItem; todos: Todos }) => {
-  const state = useState({ editing: false });
+  const state = useStore({ editing: false });
   return onRender(() => {
     console.log(
       'on:qRender => <Item item="' +

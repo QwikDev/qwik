@@ -7,7 +7,7 @@ expression: output
 ==INPUT==
 
 
-import { qHook, qComponent, h, onRender, withStyle } from '@builder.io/qwik';
+import { qHook, qComponent, h, onRender, useStyle } from '@builder.io/qwik';
 
 export const Lightweight = () => {
     return (

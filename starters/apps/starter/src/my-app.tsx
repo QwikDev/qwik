@@ -1,7 +1,7 @@
-import { h, useState, onRender, qComponent, useEvent } from '@builder.io/qwik';
+import { h, useStore, onRender, qComponent, useEvent } from '@builder.io/qwik';
 
 export const MyApp = qComponent('my-app', () => {
-  const state = useState({ name: 'World' });
+  const state = useStore({ name: 'World' });
   return onRender(() => (
     <div>
       <p style={{ 'text-align': 'center' }}>

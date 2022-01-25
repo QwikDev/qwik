@@ -80,13 +80,6 @@ export function onWindow(event: string, eventFn: TypeOrQRL<() => void>): QRL<() 
 /**
  * @public
  */
-export function withProps(props: Record<string, any>): void {
-  throw new Error('IMPLEMENT: withProps' + props);
-}
-
-/**
- * @public
- */
 export function withStyles(styles: TypeOrQRL<string>): void {
   _withStyles(styles, false);
 }

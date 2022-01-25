@@ -6,7 +6,7 @@
 //
 
 import { Fragment, h, qComponent } from '@builder.io/qwik';
-import { useState } from '../use/use-state.public';
+import { useStore } from '../use/use-state.public';
 import { onRender, withProps } from './q-component.public';
 
 //////////////////////////////////////////////////////////
@@ -18,7 +18,7 @@ import { onRender, withProps } from './q-component.public';
 //
 // <docs anchor="component">
 export const Counter = qComponent((props: { value?: number; step?: number }) => {
-  const state = useState({ count: props.value || 0 });
+  const state = useStore({ count: props.value || 0 });
   return onRender(() => (
     <div>
       <span>{state.count}</span>
@@ -52,7 +52,7 @@ export const OtherComponent = qComponent(() => {
   //
   // <docs anchor="on-mount">
   const Counter = qComponent(() => {
-    const state = useState({ count: 0 });
+    const state = useStore({ count: 0 });
     return onRender(() => <div>{state.count}</div>);
   });
   // </docs>

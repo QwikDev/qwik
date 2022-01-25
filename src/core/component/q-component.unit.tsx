@@ -1,7 +1,7 @@
-import { Fragment, h, useLexicalScope, useState } from '@builder.io/qwik';
+import { Fragment, h, useLexicalScope, useStore } from '@builder.io/qwik';
 import { ElementFixture, trigger } from '../../testing/element_fixture';
 import { expectDOM } from '../../testing/expect-dom.unit';
-import { runtimeQrl } from '../import/qrl';
+import { qrl, runtimeQrl } from '../import/qrl';
 import { qRender } from '../render/q-render.public';
 import { onRender, PropsOf, qComponent, withStyles } from './q-component.public';
 
@@ -51,13 +51,13 @@ describe('q-component', () => {
 
   it('should render a collection of todo items', async () => {
     const host = new ElementFixture().host;
-    const items = useState({
+    const items = useStore({
       items: [
-        useState({
+        useStore({
           done: true,
           title: 'Task 1',
         }),
-        useState({
+        useStore({
           done: false,
           title: 'Task 2',
         }),
@@ -86,7 +86,7 @@ describe('q-component', () => {
 
 /////////////////////////////////////////////////////////////////////////////
 export const HelloWorld = qComponent(() => {
-  withStyles('./mock.unit.css#ABC123');
+  withStyles(qrl('./mock.unit.css', 'ABC123'));
   return onRender(() => {
     return <span>Hello World</span>;
   });
@@ -96,7 +96,7 @@ export const HelloWorld = qComponent(() => {
 // <Greeter salutation="" name=""/>
 
 export const Greeter = qComponent((props: { salutation?: string; name?: string }) => {
-  const state = useState({ count: 0 });
+  const state = useStore({ count: 0 });
   return onRender(() => (
     <div>
       {' '}
@@ -117,7 +117,7 @@ export const MyCounter_update = () => {
 
 // Finally tie it all together into a component.
 export const MyCounter = qComponent('my-counter', (props: { step?: number; value?: number }) => {
-  const state = useState({ count: props.value || 0 });
+  const state = useStore({ count: props.value || 0 });
   return onRender(() => (
     <div>
       <button
@@ -154,7 +154,7 @@ interface ItemsObj {
 /////////////////////////////////////////////////////////////////////////////
 
 export const ItemDetail = qComponent('item-detail', (props: { itemObj: ItemObj }) => {
-  // const state = useState({ editing: false });
+  // const state = useStore({ editing: false });
   return onRender(() => (
     <>
       <input type="checkbox" checked={props.itemObj.done} />
@@ -166,7 +166,7 @@ export const ItemDetail = qComponent('item-detail', (props: { itemObj: ItemObj }
 /////////////////////////////////////////////////////////////////////////////
 
 export const Items = qComponent('items', (props: { items: ItemsObj }) => {
-  // const state = useState({ editing: false });
+  // const state = useStore({ editing: false });
   return onRender(() => (
     <>
       {props.items.items.map((item) => (

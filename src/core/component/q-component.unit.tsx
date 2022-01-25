@@ -1,7 +1,7 @@
 import { Fragment, h, useLexicalScope, useStore } from '@builder.io/qwik';
 import { ElementFixture, trigger } from '../../testing/element_fixture';
 import { expectDOM } from '../../testing/expect-dom.unit';
-import { qrl, runtimeQrl } from '../import/qrl';
+import { runtimeQrl } from '../import/qrl';
 import { qRender } from '../render/q-render.public';
 import { onRender, PropsOf, qComponent, withStyles } from './q-component.public';
 

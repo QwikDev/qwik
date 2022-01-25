@@ -7,10 +7,10 @@ expression: output
 ==INPUT==
 
 
-import { qHook, qComponent, h, onRender, useStyle } from '@builder.io/qwik';
+import { qHook, qComponent, h, onRender, withStyle } from '@builder.io/qwik';
 
 export const Foo = qComponent("my-foo", () => {
-    useStyle('.class {}');
+    withStyle('.class {}');
     return onRender(() => {
         return (
             <div class="class"/>
@@ -42,9 +42,9 @@ export const Foo_onRender = ()=>{
 
 import * as __qwik__ from "@builder.io/qwik";
 import { onRender } from "@builder.io/qwik";
-import { useStyle } from "@builder.io/qwik";
+import { withStyle } from "@builder.io/qwik";
 export const Foo_onmount = ()=>{
-    useStyle(__qwik__.qrl(()=>import("./h_test_foo_withstyle")
+    withStyle(__qwik__.qrl(()=>import("./h_test_foo_withstyle")
     , "Foo_withStyle"));
     return onRender(__qwik__.qrl(()=>import("./h_test_foo_onrender")
     , "Foo_onRender"));

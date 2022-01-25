@@ -460,10 +460,10 @@ fn example_with_style() {
     test_input(
         "test.tsx",
         r#"
-import { qHook, qComponent, h, onRender, useStyle } from '@builder.io/qwik';
+import { qHook, qComponent, h, onRender, withStyle } from '@builder.io/qwik';
 
 export const Foo = qComponent("my-foo", () => {
-    useStyle('.class {}');
+    withStyle('.class {}');
     return onRender(() => {
         return (
             <div class="class"/>
@@ -670,7 +670,7 @@ fn example_jsx() {
     test_input(
         "test.tsx",
         r#"
-import { qHook, qComponent, h, onRender, useStyle } from '@builder.io/qwik';
+import { qHook, qComponent, h, onRender, withStyle } from '@builder.io/qwik';
 
 export const Lightweight = () => {
     return (
@@ -719,7 +719,7 @@ fn example_jsx_listeners() {
     test_input(
         "test.tsx",
         r#"
-import { qHook, qComponent, h, onRender, useStyle } from '@builder.io/qwik';
+import { qHook, qComponent, h, onRender, withStyle } from '@builder.io/qwik';
 
 export const Foo = qComponent("my-foo", () => {
 

@@ -86,7 +86,7 @@ describe('q-component', () => {
 
 /////////////////////////////////////////////////////////////////////////////
 export const HelloWorld = qComponent(() => {
-  withStyles(qrl('./mock.unit.css', 'ABC123'));
+  withStyles(runtimeQrl(`{}`));
   return onRender(() => {
     return <span>Hello World</span>;
   });

@@ -13,7 +13,7 @@ lazy_static! {
     pub static ref QCOMPONENT: JsWord = JsWord::from("qComponent");
     pub static ref QHOOK_HANDLER: JsWord = JsWord::from("qHook");
     pub static ref USE_CLOSURE: JsWord = JsWord::from("useLexicalScope");
-    pub static ref WITH_STYLE: JsWord = JsWord::from("useStyle");
+    pub static ref WITH_STYLE: JsWord = JsWord::from("withStyle");
     pub static ref H: JsWord = JsWord::from("h");
     pub static ref FRAGMENT: JsWord = JsWord::from("Fragment");
     pub static ref MARKER_FUNTIONS: Vec<JsWord> = vec![

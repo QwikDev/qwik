@@ -1,19 +1,19 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 811
+assertion_line: 861
 expression: output
 
 ---
 ==INPUT==
 
 
-import { qHook, qComponent, onRender, h } from '@builder.io/qwik';
-export const Header = qComponent(() => {
-    onRender(() => {
+import { $, qComponent$, onRender$, h } from '@builder.io/qwik';
+export const Header = qComponent$(() => {
+    onRender$(() => {
         return (
             <>
                 <div onClick={(ctx) => console.log("1")}/>
-                <div onClick={qHook((ctx) => console.log("2"))}/>
+                <div onClick={$((ctx) => console.log("2"))}/>
             </>
         );
     })
@@ -22,8 +22,8 @@ export const Header = qComponent(() => {
 ============================= test.tsx ==
 
 import * as qwik from "@builder.io/qwik";
-import { qComponent } from '@builder.io/qwik';
-export const Header = /*#__PURE__*/ qComponent(qwik.qrl(()=>import("./h_test_header_onmount")
+import { qComponent$ } from '@builder.io/qwik';
+export const Header = /*#__PURE__*/ qComponent$(qwik.qrl(()=>import("./h_test_header_onmount")
 , "Header_onmount"));
 
 ============================= h_test_header_onrender_div_onclick.tsx (ENTRY POINT)==
@@ -51,9 +51,9 @@ export const Header_onRender = ()=>{
 ============================= h_test_header_onmount.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-import { onRender } from "@builder.io/qwik";
+import { onRender$ } from "@builder.io/qwik";
 export const Header_onmount = ()=>{
-    onRender(qwik.qrl(()=>import("./h_test_header_onrender")
+    onRender$(qwik.qrl(()=>import("./h_test_header_onrender")
     , "Header_onRender"));
 };
 

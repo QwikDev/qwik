@@ -1,19 +1,19 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 811
+assertion_line: 861
 expression: output
 
 ---
 ==INPUT==
 
 
-import { qHook, qComponent, onRender, h } from '@builder.io/qwik';
+import { $, qComponent$, onRender$, h } from '@builder.io/qwik';
 export const App = () => {
-    const Header = qComponent(() => {
+    const Header = qComponent$(() => {
         console.log("mount");
         onRende(() => {
             return (
-                <div onClick={qHook((ctx) => console.log(ctx))}/>
+                <div onClick={$((ctx) => console.log(ctx))}/>
             );
         });
     });
@@ -23,9 +23,9 @@ export const App = () => {
 ============================= test.tsx ==
 
 import * as qwik from "@builder.io/qwik";
-import { qComponent } from '@builder.io/qwik';
+import { qComponent$ } from '@builder.io/qwik';
 export const App = ()=>{
-    const Header = /*#__PURE__*/ qComponent(qwik.qrl(()=>import("./h_test_app_header")
+    const Header = /*#__PURE__*/ qComponent$(qwik.qrl(()=>import("./h_test_app_header")
     , "App_Header"));
     return Header;
 };

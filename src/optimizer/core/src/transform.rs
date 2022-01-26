@@ -12,7 +12,7 @@ use regex::Regex;
 use std::sync::{Arc, Mutex};
 use swc_atoms::JsWord;
 use swc_common::comments::{Comments, SingleThreadedComments};
-use swc_common::{errors::HANDLER, Mark, Span, DUMMY_SP};
+use swc_common::{errors::HANDLER, Mark, Span, Spanned, DUMMY_SP};
 use swc_ecmascript::ast;
 use swc_ecmascript::utils::private_ident;
 use swc_ecmascript::visit::{fold_expr, noop_fold_type, Fold, FoldWith, VisitWith};
@@ -87,7 +87,6 @@ pub struct QwikTransform<'a> {
     position_ctxt: Vec<PositionToken>,
     decl_stack: Vec<Vec<IdPlusType>>,
     in_component: bool,
-    marker_functions: HashSet<Id>,
     qcomponent_fn: Option<Id>,
     qhook_fn: Option<Id>,
     h_fn: Option<Id>,
@@ -122,10 +121,6 @@ impl<'a> QwikTransform<'a> {
             qhook_fn: global_collect.get_imported_local(&QHOOK, &BUILDER_IO_QWIK),
             h_fn: global_collect.get_imported_local(&H, &BUILDER_IO_QWIK),
             fragment_fn: global_collect.get_imported_local(&FRAGMENT, &BUILDER_IO_QWIK),
-            marker_functions: MARKER_FUNTIONS
-                .iter()
-                .flat_map(|word| global_collect.get_imported_local(word, &BUILDER_IO_QWIK))
-                .collect(),
             qhook_mark: Mark::fresh(Mark::root()),
             qwik_ident: id!(private_ident!(QWIK_INTERNAL.clone())),
             comments,
@@ -173,6 +168,8 @@ impl<'a> QwikTransform<'a> {
             expr: first_arg, ..
         }) = node.args.pop()
         {
+            let can_capture = can_capture_scope(&first_arg);
+            let first_arg_span = first_arg.span();
             if let Some(second_arg) = node.args.pop() {
                 if let ast::Expr::Lit(ast::Lit::Str(ref str)) = *second_arg.expr {
                     if validate_sym(&str.value) {
@@ -188,6 +185,15 @@ impl<'a> QwikTransform<'a> {
                                 .emit();
                         });
                     }
+                } else {
+                    HANDLER.with(|handler| {
+                        handler
+                            .struct_span_err(
+                                second_arg.span(),
+                                "Second argument should be a inlined string",
+                            )
+                            .emit();
+                    });
                 }
             }
 
@@ -295,7 +301,15 @@ impl<'a> QwikTransform<'a> {
                 }
             }
 
-            let scoped_idents = compute_scoped_idents(&descendent_idents, &decl_collect);
+            let mut scoped_idents = compute_scoped_idents(&descendent_idents, &decl_collect);
+            if !can_capture && !scoped_idents.is_empty() {
+                HANDLER.with(|handler| {
+                    handler
+                        .struct_span_err(first_arg_span, "Identifier can not be captured")
+                        .emit();
+                });
+                scoped_idents = vec![];
+            }
 
             let o = create_inline_qrl(&self.qwik_ident, import_path, &symbol_name, &scoped_idents);
             self.hooks.push(Hook {
@@ -501,7 +515,7 @@ impl<'a> Fold for QwikTransform<'a> {
                 let ident_name = [ns_name, namespaced.name.sym.as_ref()].concat();
                 self.stack_ctxt.push(ident_name);
 
-                is_listener = matches!(ns_name, "on" | "onWindow" | "onDocument");
+                is_listener = matches!(ns_name, "on$" | "onWindow$" | "onDocument$");
                 if is_listener {
                     self.position_ctxt.push(PositionToken::JSXListener);
                 }
@@ -553,7 +567,7 @@ impl<'a> Fold for QwikTransform<'a> {
                     if let Some(comments) = self.comments {
                         comments.add_pure_comment(node.span.lo);
                     }
-                } else if self.marker_functions.contains(&id!(ident)) {
+                } else if ident.as_ref().ends_with('$') {
                     self.position_ctxt.push(PositionToken::MarkerFunction);
                     self.stack_ctxt.push(ident.sym.to_string());
                     position_token = true;
@@ -724,9 +738,10 @@ pub fn create_internal_call(
 
 fn escape_sym(str: &str) -> String {
     str.chars()
-        .map(|x| match x {
-            'A'..='Z' | 'a'..='z' | '0'..='9' | '_' => x,
-            _ => '_',
+        .flat_map(|x| match x {
+            'A'..='Z' | 'a'..='z' | '0'..='9' | '_' => Some(x),
+            '$' => None,
+            _ => Some('_'),
         })
         .collect()
 }
@@ -736,6 +751,10 @@ fn validate_sym(sym: &str) -> bool {
         static ref RE: Regex = Regex::new("^[_a-zA-Z][_a-zA-Z0-9]{0,30}$").unwrap();
     }
     RE.is_match(sym)
+}
+
+const fn can_capture_scope(expr: &ast::Expr) -> bool {
+    matches!(expr, &ast::Expr::Fn(_) | &ast::Expr::Arrow(_))
 }
 
 fn compute_scoped_idents(all_idents: &[Id], all_decl: &HashSet<Id>) -> Vec<Id> {

@@ -1,23 +1,23 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 811
+assertion_line: 861
 expression: output
 
 ---
 ==INPUT==
 
 
-import { qHook, qComponent, onRender, h } from '@builder.io/qwik';
-export const Header = qComponent(() => {
-    onRender(() => console.log("hello sym2"), "2sym")
+import { $, qComponent$, onRender$, h } from '@builder.io/qwik';
+export const Header = qComponent$(() => {
+    onRender$(() => console.log("hello sym2"), "2sym")
 });
 
     
 ============================= project/test.tsx ==
 
 import * as qwik from "@builder.io/qwik";
-import { qComponent } from '@builder.io/qwik';
-export const Header = /*#__PURE__*/ qComponent(qwik.qrl(()=>import("../entry_hooks")
+import { qComponent$ } from '@builder.io/qwik';
+export const Header = /*#__PURE__*/ qComponent$(qwik.qrl(()=>import("../entry_hooks")
 , "Header_onmount"));
 
 ============================= h_test_header_onrender.tsx ==
@@ -29,9 +29,9 @@ export const Header_onRender = ()=>console.log("hello sym2")
 ============================= h_test_header_onmount.tsx ==
 
 import * as qwik from "@builder.io/qwik";
-import { onRender } from "@builder.io/qwik";
+import { onRender$ } from "@builder.io/qwik";
 export const Header_onmount = ()=>{
-    onRender(qwik.qrl(()=>import("../entry_hooks")
+    onRender$(qwik.qrl(()=>import("../entry_hooks")
     , "Header_onRender"), "2sym");
 };
 

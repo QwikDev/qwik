@@ -1,14 +1,14 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 811
+assertion_line: 861
 expression: output
 
 ---
 ==INPUT==
 
 
-import { qHook, qComponent, h } from '@builder.io/qwik';
-const Header = qHook((decl1, {decl2}, [decl3]) => {
+import { $, qComponent$, h } from '@builder.io/qwik';
+const Header = $((decl1, {decl2}, [decl3]) => {
 
     const hola = ident1.no;
     ident2;

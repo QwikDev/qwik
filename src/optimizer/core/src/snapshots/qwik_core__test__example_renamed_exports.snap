@@ -1,13 +1,13 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 811
+assertion_line: 861
 expression: output
 
 ---
 ==INPUT==
 
 
-import { qComponent as Component, onRender as $, useStore } from '@builder.io/qwik';
+import { qComponent$ as Component, onRender$ as $, useStore } from '@builder.io/qwik';
 
 export const App = Component((props) => {
     const state = useStore({thing: 0});
@@ -20,15 +20,15 @@ export const App = Component((props) => {
 ============================= test.js ==
 
 import * as qwik from "@builder.io/qwik";
-import { qComponent as Component } from '@builder.io/qwik';
+import { qComponent$ as Component } from '@builder.io/qwik';
 export const App = /*#__PURE__*/ Component(qwik.qrl(()=>import("./h_test_app_onmount")
 , "App_onmount"));
 
-============================= h_test_app__.js (ENTRY POINT)==
+============================= h_test_app_.js (ENTRY POINT)==
 
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 import * as qwik from "@builder.io/qwik";
-export const App__ = ()=>{
+export const App_ = ()=>{
     const [state] = qwik.useLexicalScope();
     return(/*#__PURE__*/ _jsx("div", {
         children: state.thing
@@ -38,14 +38,14 @@ export const App__ = ()=>{
 ============================= h_test_app_onmount.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-import { onRender as $ } from "@builder.io/qwik";
+import { onRender$ as $ } from "@builder.io/qwik";
 import { useStore } from "@builder.io/qwik";
 export const App_onmount = (props)=>{
     const state = useStore({
         thing: 0
     });
-    return $(qwik.qrl(()=>import("./h_test_app__")
-    , "App__", [
+    return $(qwik.qrl(()=>import("./h_test_app_")
+    , "App_", [
         state
     ]));
 };
@@ -55,9 +55,9 @@ export const App_onmount = (props)=>{
 [
   {
     "origin": "test.tsx",
-    "name": "App__",
+    "name": "App_",
     "entry": null,
-    "canonicalFilename": "h_test_app__"
+    "canonicalFilename": "h_test_app_"
   },
   {
     "origin": "test.tsx",

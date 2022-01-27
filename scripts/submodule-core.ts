@@ -67,8 +67,8 @@ async function submoduleCoreProd(config: BuildConfig) {
 
   console.log('🦊 core.mjs:', await fileSize(join(config.distPkgDir, 'core.mjs')));
 
-  const esmCode = await readFile(join(config.distPkgDir, 'core.mjs'), 'utf-8');
-  const minifyResult = await minify(esmCode, {
+  let esmCode = await readFile(join(config.distPkgDir, 'core.mjs'), 'utf-8');
+  const esmMinifyResult = await minify(esmCode, {
     module: true,
     compress: {
       global_defs: {
@@ -88,25 +88,29 @@ async function submoduleCoreProd(config: BuildConfig) {
     },
   });
 
-  const minFile = join(config.distPkgDir, 'core.min.mjs');
-  const minCode = minifyResult.code!;
-  await writeFile(minFile, minCode);
-  const cleanCode = minCode.replace(/__self__/g, '__SELF__');
+  const esmMinFile = join(config.distPkgDir, 'core.min.mjs');
+  const esmMinCode = esmMinifyResult.code!;
+  await writeFile(esmMinFile, esmMinCode);
+  const esmCleanCode = esmMinCode.replace(/__self__/g, '__SELF__');
 
-  const windowIdx = cleanCode.indexOf('window');
-  const selfIdx =
-    cleanCode.indexOf(
-      'self'
-    ); /* || minCode.includes('global') // TODO(OPTIMIZER): Disable temporarily to make the tests work*/
+  const windowIdx = esmCleanCode.indexOf('window');
+  const selfIdx = esmCleanCode.indexOf('self');
   const indx = Math.max(windowIdx, selfIdx);
   if (indx !== -1) {
     throw new Error(
-      `"${minFile}" should not have any global references, and should have been removed for a production minified build\n` +
-        cleanCode.substring(indx, indx + 20)
+      `"${esmMinFile}" should not have any global references, and should have been removed for a production minified build\n` +
+        esmCleanCode.substring(indx, indx + 20)
     );
   }
+  console.log('🐭 core.min.mjs:', await fileSize(esmMinFile));
 
-  console.log('🐭 core.min.mjs:', await fileSize(minFile));
+  esmCode = esmCode.replace(/globalThis\.qDev \!== false/g, 'true');
+  await writeFile(join(config.distPkgDir, 'core.mjs'), esmCode);
+
+  // always set the cjs version (probably imported serverside) to dev mode
+  let cjsCode = await readFile(join(config.distPkgDir, 'core.cjs'), 'utf-8');
+  cjsCode = cjsCode.replace(/globalThis\.qDev \!== false/g, 'true');
+  await writeFile(join(config.distPkgDir, 'core.cjs'), cjsCode);
 }
 
 async function submoduleCoreDev(config: BuildConfig) {

@@ -533,10 +533,11 @@ impl<'a> Fold for QwikTransform<'a> {
 
     fn fold_jsx_attr(&mut self, node: ast::JSXAttr) -> ast::JSXAttr {
         let mut is_listener = false;
-        match node.name {
+        let node = match node.name {
             ast::JSXAttrName::Ident(ref ident) => {
                 let ident_name = ident.sym.to_string();
                 self.stack_ctxt.push(ident_name);
+                node
             }
             ast::JSXAttrName::JSXNamespacedName(ref namespaced) => {
                 let ns_name = namespaced.ns.sym.as_ref();
@@ -544,11 +545,21 @@ impl<'a> Fold for QwikTransform<'a> {
                 self.stack_ctxt.push(ident_name);
 
                 is_listener = matches!(ns_name, "on$" | "onWindow$" | "onDocument$");
-                if is_listener {
+                let ns = if is_listener {
                     self.position_ctxt.push(PositionToken::JSXListener);
+                    ast::Ident::new(ns_name[0..ns_name.len() - 1].into(), DUMMY_SP)
+                } else {
+                    namespaced.ns.clone()
+                };
+                ast::JSXAttr {
+                    name: ast::JSXAttrName::JSXNamespacedName(ast::JSXNamespacedName {
+                        ns,
+                        name: namespaced.name.clone(),
+                    }),
+                    ..node
                 }
             }
-        }
+        };
         let o = node.fold_children_with(self);
         self.stack_ctxt.pop();
         if is_listener {

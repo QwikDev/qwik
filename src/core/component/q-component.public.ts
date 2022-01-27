@@ -91,8 +91,8 @@ export function withScopedStyles(styles: TypeOrQRL<string>): void {
   _withStyles(styles, true);
 }
 
-type PossiblyPromise<T> = Promise<T> | T;
-type OnMountFn<PROPS> = (props: PROPS) => MightPromise<ReturnType<typeof onRender>>;
+export type PossiblyPromise<T> = Promise<T> | T;
+type OnMountFn<PROPS> = (props: PROPS) => PossiblyPromise<ReturnType<typeof onRender>>;
 
 /**
  * @public
@@ -108,13 +108,13 @@ export type PropsOf<COMP extends (props: any) => JSXNode> = COMP extends (
  */
 export function qComponent<PROPS extends {}>(
   tagName: string,
-  onMount: TypeOrQRL<(props: PROPS) => MightPromise<ReturnType<typeof onRender>>>
+  onMount: TypeOrQRL<(props: PROPS) => PossiblyPromise<ReturnType<typeof onRender>>>
 ): (props: PROPS) => JSXNode<PROPS>;
 /**
  * @public
  */
 export function qComponent<PROPS extends {}>(
-  onMount: TypeOrQRL<(props: PROPS) => MightPromise<ReturnType<typeof onRender>>>
+  onMount: TypeOrQRL<(props: PROPS) => PossiblyPromise<ReturnType<typeof onRender>>>
 ): (props: PROPS) => JSXNode<PROPS>;
 /**
  * @public

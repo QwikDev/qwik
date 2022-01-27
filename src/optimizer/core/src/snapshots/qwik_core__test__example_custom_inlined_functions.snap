@@ -1,14 +1,13 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 977
+assertion_line: 982
 expression: output
 
 ---
 ==INPUT==
 
 
-import { qComponent$ as Component, onRender$, useStore, wrap, useEffect } from '@builder.io/qwik';
-
+import { qComponent$, onRender$, useStore, wrap, useEffect } from '@builder.io/qwik';
 
 export const useMemo = (qrt) => {
     useEffect(qrt);
@@ -25,29 +24,28 @@ export const App = qComponent$((props) => {
         <div>{state.count}</div>
     ));
 });
+
+export const Lightweight = (props) => {
+    useMemo$(() => {
+        console.log(state.count);
+    });
+});
     
 ============================= test.js ==
 
 import * as qwik from "@builder.io/qwik";
-import { onRender } from "@builder.io/qwik";
-import { useStore, wrap, useEffect } from '@builder.io/qwik';
+import { qComponent } from "@builder.io/qwik";
+import { wrap, useEffect } from '@builder.io/qwik';
 export const useMemo = (qrt)=>{
     useEffect(qrt);
 };
 export const useMemo$ = wrap(useMemo);
-export const App = qComponent$((props)=>{
-    const state = useStore({
-        count: 0
-    });
-    useMemo(qwik.qrl(()=>import("./h_test_app_usememo")
-    , "App_useMemo", [
-        state
-    ]));
-    return onRender(qwik.qrl(()=>import("./h_test_app_onrender")
-    , "App_onRender", [
-        state
-    ]));
-});
+export const App = /*#__PURE__*/ qComponent(qwik.qrl(()=>import("./h_test_app_onmount")
+, "App_onmount"));
+export const Lightweight = (props)=>{
+    useMemo(qwik.qrl(()=>import("./h_test_lightweight_usememo")
+    , "Lightweight_useMemo"));
+};
 
 ============================= h_test_app_usememo.js (ENTRY POINT)==
 
@@ -68,6 +66,33 @@ export const App_onRender = ()=>{
     }));
 };
 
+============================= h_test_app_onmount.js (ENTRY POINT)==
+
+import * as qwik from "@builder.io/qwik";
+import { onRender } from "@builder.io/qwik";
+import { useMemo } from "./test";
+import { useStore } from "@builder.io/qwik";
+export const App_onmount = (props)=>{
+    const state = useStore({
+        count: 0
+    });
+    useMemo(qwik.qrl(()=>import("./h_test_app_usememo")
+    , "App_useMemo", [
+        state
+    ]));
+    return onRender(qwik.qrl(()=>import("./h_test_app_onrender")
+    , "App_onRender", [
+        state
+    ]));
+};
+
+============================= h_test_lightweight_usememo.js (ENTRY POINT)==
+
+import * as qwik from "@builder.io/qwik";
+export const Lightweight_useMemo = ()=>{
+    console.log(state.count);
+};
+
 == HOOKS ==
 
 [
@@ -82,6 +107,18 @@ export const App_onRender = ()=>{
     "name": "App_onRender",
     "entry": null,
     "canonicalFilename": "h_test_app_onrender"
+  },
+  {
+    "origin": "test.tsx",
+    "name": "App_onmount",
+    "entry": null,
+    "canonicalFilename": "h_test_app_onmount"
+  },
+  {
+    "origin": "test.tsx",
+    "name": "Lightweight_useMemo",
+    "entry": null,
+    "canonicalFilename": "h_test_lightweight_usememo"
   }
 ]
 

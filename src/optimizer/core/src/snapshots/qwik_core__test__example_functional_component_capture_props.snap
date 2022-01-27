@@ -1,6 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 919
+assertion_line: 982
 expression: output
 
 ---
@@ -45,7 +45,7 @@ import * as qwik from "@builder.io/qwik";
 export const App_onRender = ()=>{
     const [C2, C3, C4, C5, C6, C7, C8, I2, I3, I4, I5, I6, I7, I8, count, state] = qwik.useLexicalScope();
     return(/*#__PURE__*/ _jsxs("div", {
-        "on$:click": qwik.qrl(()=>import("./h_test_app_onrender_div_onclick")
+        "on:click": qwik.qrl(()=>import("./h_test_app_onrender_div_onclick")
         , "App_onRender_div_onclick", [
             count,
             state

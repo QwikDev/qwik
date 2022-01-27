@@ -1,6 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 919
+assertion_line: 982
 expression: output
 
 ---
@@ -66,11 +66,11 @@ export const Foo_onRender = ()=>{
     const handler = qwik.qrl(()=>import("./h_test_foo_onrender_handler")
     , "Foo_onRender_handler");
     return(/*#__PURE__*/ _jsx("div", {
-        "on$:click": qwik.qrl(()=>import("./h_test_foo_onrender_div_onclick")
+        "on:click": qwik.qrl(()=>import("./h_test_foo_onrender_div_onclick")
         , "Foo_onRender_div_onclick"),
-        "onDocument$:scroll": qwik.qrl(()=>import("./h_test_foo_onrender_div_ondocumentscroll")
+        "onDocument:scroll": qwik.qrl(()=>import("./h_test_foo_onrender_div_ondocumentscroll")
         , "Foo_onRender_div_onDocumentscroll"),
-        "onWindow$:scroll": qwik.qrl(()=>import("./h_test_foo_onrender_div_onwindowscroll")
+        "onWindow:scroll": qwik.qrl(()=>import("./h_test_foo_onrender_div_onwindowscroll")
         , "Foo_onRender_div_onWindowscroll"),
         "on:keyup": handler,
         "onDocument:keyup": handler,

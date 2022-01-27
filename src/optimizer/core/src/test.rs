@@ -831,8 +831,7 @@ fn example_custom_inlined_functions() {
     test_input(
         "test.tsx",
         r#"
-import { qComponent$ as Component, onRender$, useStore, wrap, useEffect } from '@builder.io/qwik';
-
+import { qComponent$, onRender$, useStore, wrap, useEffect } from '@builder.io/qwik';
 
 export const useMemo = (qrt) => {
     useEffect(qrt);
@@ -848,6 +847,12 @@ export const App = qComponent$((props) => {
     return onRender$(() => (
         <div>{state.count}</div>
     ));
+});
+
+export const Lightweight = (props) => {
+    useMemo$(() => {
+        console.log(state.count);
+    });
 });
     "#,
         EntryStrategy::Hook,

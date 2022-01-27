@@ -322,10 +322,13 @@ jobs:
         settings:
           - host: ubuntu-latest
             browser: chromium
+            node: 16.x
           - host: macos-latest
             browser: webkit
+            node: 14.x
           - host: windows-latest
             browser: firefox
+            node: 12.x
 
     runs-on: ${{ matrix.settings.host }}
     needs:
@@ -335,7 +338,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v1
         with:
-          node-version: 16.x
+          node-version: ${{ matrix.settings.node }}
           registry-url: https://registry.npmjs.org/
 
       - name: Checkout
@@ -360,7 +363,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: node_modules
-          key: npm-cache-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+          key: npm-cache-${{ runner.os }}-node${{ matrix.settings.node }}-${{ hashFiles('yarn.lock') }}
 
       - name: Install NPM Dependencies
         run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000

@@ -2,8 +2,8 @@
 
 import { assertDefined } from '../assert/assert';
 import { getQObjectId, qObject } from '../object/q-object';
-import type { QObjectMap } from '../props/q-props-obj-map';
-import { qProps } from '../props/q-props.public';
+import type { QObjectMap } from '../props/props-obj-map';
+import { getProps } from '../props/props.public';
 import { AttributeMarker } from '../util/markers';
 
 export const JSON_OBJ_PREFIX = '\u0010';
@@ -107,7 +107,9 @@ export function qInflate(obj: any, map: QObjectMap): any {
         // TODO(misko): centralize
         throw new Error(`Q-ERROR: Element with '${selector}' can not be located.`);
       }
-      return prefix == AttributeMarker.ELEMENT_ID_Q_PROPS_PREFIX ? qProps(ourElement) : ourElement;
+      return prefix == AttributeMarker.ELEMENT_ID_Q_PROPS_PREFIX
+        ? getProps(ourElement)
+        : ourElement;
     } else {
       const id = obj.substring(1);
       const ref = map.get(id);

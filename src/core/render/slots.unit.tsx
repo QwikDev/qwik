@@ -3,7 +3,7 @@ import { html } from '../../testing/util';
 import { toDOM } from '../../testing/jsx';
 import { AttributeMarker } from '../util/markers';
 import { getSlotMap } from './slots';
-import { getQComponent } from '../component/q-component-ctx';
+import { getQComponent } from '../component/component-ctx';
 
 describe('slots', () => {
   describe('getSlotMap', () => {

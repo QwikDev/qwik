@@ -2,26 +2,27 @@ import { Fragment, h, Host, useStore } from '@builder.io/qwik';
 import { ElementFixture, trigger } from '../../testing/element_fixture';
 import { expectDOM } from '../../testing/expect-dom.unit';
 import { getTestPlatform } from '../../testing/platform';
-import { onRender, qComponent, withScopedStyles } from '../component/q-component.public';
+import { component, onRender$, withScopedStyles$, component$ } from '../component/component.public';
 import { runtimeQrl } from '../import/qrl';
+import { $ } from '../import/qrl.public';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
 import { AttributeMarker } from '../util/markers';
 import { Async, JSXPromise, PromiseValue } from './jsx/async.public';
 import { Slot } from './jsx/slot.public';
-import { qNotifyRender } from './q-notify-render';
-import { qRender } from './q-render.public';
+import { notifyRender } from './notify-render';
+import { render } from './render.public';
 
 describe('q-render', () => {
   let fixture: ElementFixture;
   beforeEach(() => (fixture = new ElementFixture()));
   describe('basic JSX', () => {
     it('should render basic content', async () => {
-      await qRender(fixture.host, <div></div>);
+      await render(fixture.host, <div></div>);
       expectRendered(<div></div>);
     });
 
     it('should only render string/number', async () => {
-      await qRender(
+      await render(
         fixture.host,
         <div>
           {'string'}
@@ -43,7 +44,7 @@ describe('q-render', () => {
     });
 
     it('should render into a document', () => {
-      qRender(
+      render(
         fixture.document,
         <html>
           <body>WORKS</body>
@@ -53,12 +54,12 @@ describe('q-render', () => {
     });
 
     it('should render attributes', async () => {
-      await qRender(fixture.host, <div id="abc" title="bar"></div>);
+      await render(fixture.host, <div id="abc" title="bar"></div>);
       expectRendered(<div title="bar" id="abc"></div>);
     });
 
     it('should render children', async () => {
-      await qRender(
+      await render(
         fixture.host,
         <div>
           <span>text</span>
@@ -75,7 +76,7 @@ describe('q-render', () => {
 
   describe('component', () => {
     it('should render a component', async () => {
-      await qRender(fixture.host, <HelloWorld name="World" />);
+      await render(fixture.host, <HelloWorld name="World" />);
       expectRendered(
         <hello-world>
           <span>
@@ -87,7 +88,7 @@ describe('q-render', () => {
 
     describe('handlers', () => {
       it('should process clicks', async () => {
-        await qRender(fixture.host, <Counter step={5} />);
+        await render(fixture.host, <Counter step={5} />);
         expectRendered(
           <div>
             <button>-</button>
@@ -109,7 +110,7 @@ describe('q-render', () => {
 
   describe('<Slot>', () => {
     it('should project no content', async () => {
-      await qRender(fixture.host, <Project></Project>);
+      await render(fixture.host, <Project></Project>);
       expectRendered(
         <project>
           <section>
@@ -122,7 +123,7 @@ describe('q-render', () => {
     });
 
     it('should project un-named slot text', async () => {
-      await qRender(fixture.host, <Project>projection</Project>);
+      await render(fixture.host, <Project>projection</Project>);
       expectRendered(
         <project>
           <template q:slot=""></template>
@@ -135,7 +136,7 @@ describe('q-render', () => {
       );
     });
     it('should project un-named slot component', async () => {
-      await qRender(
+      await render(
         fixture.host,
         <Project>
           <HelloWorld />
@@ -143,7 +144,7 @@ describe('q-render', () => {
       );
     });
     it('should project named slot component', async () => {
-      await qRender(
+      await render(
         fixture.host,
         <Project>
           PROJECTION
@@ -168,7 +169,7 @@ describe('q-render', () => {
     });
     it.todo('should render nested component when it is projected by parent');
     it('should project multiple slot with same name', async () => {
-      await qRender(
+      await render(
         fixture.host,
         <Project>
           <span q:slot="details">DETAILS1</span>
@@ -193,7 +194,7 @@ describe('q-render', () => {
       );
     });
     it('should not destroy projection when <Project> reruns', async () => {
-      await qRender(
+      await render(
         fixture.host,
         <SimpleProject>
           <span>PROJECTION</span>
@@ -207,7 +208,7 @@ describe('q-render', () => {
           </section>
         </project>
       );
-      qNotifyRender(fixture.host.firstElementChild!);
+      notifyRender(fixture.host.firstElementChild!);
       await getTestPlatform(fixture.document).flush();
       expectRendered(
         <project>
@@ -221,7 +222,7 @@ describe('q-render', () => {
   });
   describe('<Host>', () => {
     it('should render into host component', async () => {
-      await qRender(
+      await render(
         fixture.host,
         <HostFixture hostAttrs={JSON.stringify({ id: 'TEST', name: 'NAME' })} content="CONTENT" />
       );
@@ -235,7 +236,7 @@ describe('q-render', () => {
 
   describe('<Async>', () => {
     it('should render a promise', async () => {
-      await qRender(fixture.host, <div>{Promise.resolve('WORKS')}</div>);
+      await render(fixture.host, <div>{Promise.resolve('WORKS')}</div>);
       expectRendered(
         <div>
           {/<node:.*>/}
@@ -249,7 +250,7 @@ describe('q-render', () => {
       let resolve: (_: string | PromiseLike<string>) => void;
       const promise = new Promise<string>((res) => (resolve = res)) as JSXPromise<string>;
       promise.whilePending = 'pending...';
-      await qRender(fixture.host, <div>{promise}</div>);
+      await render(fixture.host, <div>{promise}</div>);
       expectRendered(
         <div>
           {/<node:.*>/}
@@ -271,7 +272,7 @@ describe('q-render', () => {
       let resolve: (_: string | PromiseLike<string>) => void;
       const promise = new Promise<string>((res) => (resolve = res)) as JSXPromise<string>;
       promise.whilePending = 'pending...';
-      await qRender(fixture.host, <div>{promise}</div>);
+      await render(fixture.host, <div>{promise}</div>);
       expectRendered(
         <div>
           {/<node:.*>/}
@@ -293,7 +294,7 @@ describe('q-render', () => {
     it('should render', async () => {
       let resolve: (value: string | PromiseLike<string>) => void;
       const promise = new Promise<string>((res) => (resolve = res));
-      await qRender(
+      await render(
         fixture.host,
         <div>
           <Async resolve={promise}>
@@ -324,7 +325,7 @@ describe('q-render', () => {
 
   describe('styling', () => {
     it('should insert a style', async () => {
-      await qRender(fixture.host, <HelloWorld name="World" />);
+      await render(fixture.host, <HelloWorld name="World" />);
       const hellWorld = fixture.host.querySelector('hello-world')!;
       const scopedStyleId = hellWorld.getAttribute(AttributeMarker.ComponentScopedStyles);
       expect(scopedStyleId).toBeDefined();
@@ -349,25 +350,28 @@ describe('q-render', () => {
 //////////////////////////////////////////////////////////////////////////////////////////
 // Hello World
 //////////////////////////////////////////////////////////////////////////////////////////
-export const HelloWorld = qComponent('hello-world', (props: { name?: string }) => {
-  withScopedStyles(`span.� { color: red; }`);
-  const state = useStore({ salutation: 'Hello' });
-  return onRender(() => {
-    return (
-      <span>
-        {state.salutation} {props.name || 'World'}
-      </span>
-    );
-  });
-});
+export const HelloWorld = component(
+  'hello-world',
+  $((props: { name?: string }) => {
+    withScopedStyles$(`span.� { color: red; }`);
+    const state = useStore({ salutation: 'Hello' });
+    return onRender$(() => {
+      return (
+        <span>
+          {state.salutation} {props.name || 'World'}
+        </span>
+      );
+    });
+  })
+);
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Counter
 //////////////////////////////////////////////////////////////////////////////////////////
 
-export const Counter = qComponent((props: { step?: number }) => {
+export const Counter = component$((props: { step?: number }) => {
   const state = useStore({ count: 0 });
-  return onRender(() => {
+  return onRender$(() => {
     const step = Number(props.step || 1);
     return (
       <>
@@ -390,38 +394,44 @@ export const Counter_add = () => {
 //////////////////////////////////////////////////////////////////////////////////////////
 // Project
 //////////////////////////////////////////////////////////////////////////////////////////
-export const Project = qComponent('project', () => {
-  return onRender(() => {
-    return (
-      <section>
-        <Slot>..default..</Slot>
-        <Slot name="details">..details..</Slot>
-        <Slot name="description">..description..</Slot>
-      </section>
-    );
-  });
-});
+export const Project = component(
+  'project',
+  $(() => {
+    return onRender$(() => {
+      return (
+        <section>
+          <Slot>..default..</Slot>
+          <Slot name="details">..details..</Slot>
+          <Slot name="description">..description..</Slot>
+        </section>
+      );
+    });
+  })
+);
 
-export const SimpleProject = qComponent('project', () => {
-  return onRender(() => {
-    return (
-      <section>
-        <Slot>..default..</Slot>
-      </section>
-    );
-  });
-});
+export const SimpleProject = component(
+  'project',
+  $(() => {
+    return onRender$(() => {
+      return (
+        <section>
+          <Slot>..default..</Slot>
+        </section>
+      );
+    });
+  })
+);
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // HostFixture
 //////////////////////////////////////////////////////////////////////////////////////////
-export const HostFixture = qComponent(
+export const HostFixture = component(
   'host-fixture',
-  (props: { hostAttrs?: string; content?: string }) => {
-    return onRender(() => {
+  $((props: { hostAttrs?: string; content?: string }) => {
+    return onRender$(() => {
       return h(Host, JSON.parse(props.hostAttrs || '{}'), [props.content]);
     });
-  }
+  })
 );
 
 function delay(time: number) {

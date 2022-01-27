@@ -1,26 +1,26 @@
 import { createDocument } from '../../testing/document';
-import { qProps, QProps } from '../props/q-props.public';
-import { qDehydrate } from '@builder.io/qwik';
+import { getProps, Props } from '../props/props.public';
+import { dehydrate } from '@builder.io/qwik';
 import { useStore } from '../use/use-state.public';
 
 describe('q-element', () => {
   let document: Document;
   let div: HTMLElement;
-  let qDiv: QProps;
+  let qDiv: Props;
   beforeEach(() => {
     document = createDocument();
     div = document.createElement('div');
     document.body.appendChild(div);
-    qDiv = qProps(div);
+    qDiv = getProps(div);
   });
 
   it('should serialize content', () => {
     const shared = useStore({ mark: 'CHILD' });
     const state = useStore({ mark: 'WORKS', child: shared, child2: shared });
 
-    qDehydrate(document);
+    dehydrate(document);
 
-    qDiv = qProps(div);
+    qDiv = getProps(div);
     expect(state).toEqual({ mark: 'WORKS', child: shared, child2: shared });
   });
 
@@ -30,9 +30,9 @@ describe('q-element', () => {
     foo.bar = bar;
     qDiv.foo = foo;
 
-    qDehydrate(document);
+    dehydrate(document);
 
-    qDiv = qProps(div);
+    qDiv = getProps(div);
     const foo2 = qDiv.foo;
     const bar2 = foo2.bar;
     expect(foo2.mark).toEqual('foo');

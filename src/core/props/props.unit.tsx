@@ -1,28 +1,29 @@
 import { createDocument } from '../../testing/document';
-import { diff, test_clearqPropsCache as test_clearQPropsCache } from './q-props';
+import { diff, test_clearqPropsCache as test_clearQPropsCache } from './props';
 import { getQObjectId } from '../object/q-object';
-import { qDehydrate } from '../object/q-store.public';
-import { qProps, QProps } from './q-props.public';
-import { parseQRL, QRL, runtimeQrl } from '../import/qrl';
+import { dehydrate } from '../object/store.public';
+import { getProps, Props } from './props.public';
+import { parseQRL, runtimeQrl } from '../import/qrl';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
 import { useStore } from '../use/use-state.public';
 import { isPromise } from '../util/promises';
 import { useEvent } from '../use/use.event.public';
 import { newInvokeContext, useInvoke } from '../use/use-core';
+import type { QRL } from '../import/qrl.public';
 
 describe('q-element', () => {
   let document: Document;
   let div: HTMLElement;
-  let qDiv: QProps;
+  let qDiv: Props;
   beforeEach(() => {
     document = createDocument();
     div = document.createElement('div');
     document.body.appendChild(div);
-    qDiv = qProps(div);
+    qDiv = getProps(div);
   });
 
   it('should retrieve the same instance', () => {
-    expect(qDiv).toBe(qProps(div));
+    expect(qDiv).toBe(getProps(div));
   });
 
   it('should perform basic read/writes', () => {
@@ -40,7 +41,7 @@ describe('q-element', () => {
     expect(qDiv.myObj).toEqual({ mark: 'OBJ' });
 
     test_clearQPropsCache(div);
-    qDiv = qProps(div);
+    qDiv = getProps(div);
 
     expect(qDiv.name).toBe('Qwik');
     expect(qDiv.age).toBe(42);
@@ -51,10 +52,10 @@ describe('q-element', () => {
 
   describe('<input>', () => {
     let input: HTMLInputElement;
-    let qInput: QProps;
+    let qInput: Props;
     beforeEach(() => {
       input = document.createElement('input');
-      qInput = qProps(input);
+      qInput = getProps(input);
     });
 
     it('should write value of inputs', () => {
@@ -71,14 +72,14 @@ describe('q-element', () => {
   it('should serialize innerHTML', () => {
     qDiv.innerHTML = '<span>WORKS</span>';
     test_clearQPropsCache(div);
-    qDiv = qProps(div);
+    qDiv = getProps(div);
     expect(div.getAttribute('inner-h-t-m-l')).toEqual('');
     expect(div.innerHTML.toUpperCase()).toEqual('<SPAN>WORKS</SPAN>');
   });
   it('should serialize innerText', () => {
     qDiv.innerText = 'TEXT';
     test_clearQPropsCache(div);
-    qDiv = qProps(div);
+    qDiv = getProps(div);
     expect(div.getAttribute('inner-text')).toEqual('');
     expect(div.innerText).toEqual('TEXT');
   });
@@ -90,8 +91,8 @@ describe('q-element', () => {
       qDiv.ref = { qObj: qObj };
       expect(div.getAttribute('q:obj')).toEqual(getQObjectId(qObj) + ' ' + getQObjectId(qDiv.ref));
 
-      qDehydrate(document);
-      qDiv = qProps(div);
+      dehydrate(document);
+      qDiv = getProps(div);
 
       expect(qDiv.myObj).toEqual(qObj);
       expect(qDiv.ref.qObj).toEqual(qObj);
@@ -154,7 +155,7 @@ describe('q-element', () => {
 
       const child = document.createElement('child');
       div.appendChild(child);
-      const qChild = qProps(child) as any;
+      const qChild = getProps(child) as any;
       qChild['on:click'] = runtimeQrl(implicitHandler, [qDiv, state, { mark: 'ARGS WORK' }]);
       qChild['on:click'] = runtimeQrl(explicitHandler, [qDiv, stateExplicit, { '.': 'explicit' }]);
       await useInvoke(newInvokeContext(child, 'EVENT'), qChild['on:click']);
@@ -190,7 +191,7 @@ describe('q-element', () => {
     it('should return logical parent', () => {
       const parent = document.createElement('parent');
       parent.appendChild(div);
-      expect(qDiv.__parent__).toBe(qProps(parent));
+      expect(qDiv.__parent__).toBe(getProps(parent));
       expect(qDiv.__parent__.__parent__).toBe(null);
     });
   });

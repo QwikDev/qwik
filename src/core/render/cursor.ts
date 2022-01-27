@@ -5,8 +5,8 @@ import {
   assertGreaterOrEqual,
   assertNotEqual,
 } from '../assert/assert';
-import type { QComponentCtx } from '../component/q-component-ctx';
-import { getQComponent } from '../component/q-component-ctx';
+import type { QComponentCtx } from '../component/component-ctx';
+import { getQComponent } from '../component/component-ctx';
 import { keyValueArrayGet } from '../util/array_map';
 import { isComment, isDocument } from '../util/element';
 import { AttributeMarker } from '../util/markers';
@@ -16,10 +16,10 @@ import {
   isQSLotTemplateElement,
   NodeType,
 } from '../util/types';
-import { didQPropsChange } from '../props/q-props';
-import type { ComponentRenderQueue } from './q-render';
+import { didQPropsChange } from '../props/props';
+import type { ComponentRenderQueue } from './render';
 import { getSlotMap, isSlotMap, NamedSlot, NamedSlotEnum, SlotMap } from './slots';
-import { qProps } from '../props/q-props.public';
+import { getProps } from '../props/props.public';
 
 /**
  * Cursor represents a set of sibling elements at a given level in the DOM.
@@ -223,7 +223,7 @@ function _reconcileElement(
   let shouldDescendIntoComponent: boolean;
   let reconciledElement: HTMLElement;
   if (isDomElementWithTagName(existing, expectTag)) {
-    const props = qProps(existing as HTMLElement) as any;
+    const props = getProps(existing as HTMLElement) as any;
     Object.assign(props, expectProps);
     shouldDescendIntoComponent = didQPropsChange(props) && !!componentRenderQueue;
     reconciledElement = existing as HTMLElement;
@@ -236,7 +236,7 @@ function _reconcileElement(
       end
     );
     shouldDescendIntoComponent = !!componentRenderQueue;
-    Object.assign(qProps(reconciledElement), expectProps);
+    Object.assign(getProps(reconciledElement), expectProps);
   }
   component && component.styleClass && reconciledElement.classList.add(component.styleClass);
   if (shouldDescendIntoComponent) {

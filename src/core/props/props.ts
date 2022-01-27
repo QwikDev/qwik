@@ -1,9 +1,10 @@
 import { assertEqual } from '../assert/assert';
 import { QError, qError } from '../error/error';
-import { parseQRL, QRL } from '../import/qrl';
+import { parseQRL } from '../import/qrl';
+import type { QRL } from '../import/qrl.public';
 import { qJsonParse, qJsonStringify } from '../json/q-json';
 import { getQObjectId, QObjectIdSymbol, wrap } from '../object/q-object';
-import { QStore_hydrate } from '../object/q-store';
+import { QStore_hydrate } from '../object/store';
 import { fromCamelToKebabCase } from '../util/case';
 import { EMPTY_ARRAY } from '../util/flyweight';
 import { AttributeMarker } from '../util/markers';
@@ -13,16 +14,16 @@ import {
   QObjRefMap,
   QObjectMap,
   updateSubscriptions,
-} from './q-props-obj-map';
-import { qPropWriteQRL, qPropReadQRL, isOnProp } from './q-props-on';
-import { qProps, QProps } from './q-props.public';
+} from './props-obj-map';
+import { qPropWriteQRL, qPropReadQRL, isOnProp } from './props-on';
+import { getProps, Props } from './props.public';
 
 Error.stackTraceLimit = 9999;
 
-// TODO(misko): For better debugger experience the qProps should never store Proxy, always naked objects to make it easier to traverse in the debugger.
+// TODO(misko): For better debugger experience the getProps should never store Proxy, always naked objects to make it easier to traverse in the debugger.
 
 const Q_IS_HYDRATED = '__isHydrated__';
-export const Q_PROP = 'qProps';
+export const Q_PROP = 'getProps';
 
 export function hydrateIfNeeded(element: Element): void {
   const doc = element.ownerDocument!;
@@ -48,7 +49,7 @@ export function clearQProps(element: Element) {
 }
 
 export interface QPropsContext {
-  __self__: QProps;
+  __self__: Props;
   __element__: Element;
   __qRefs__: QObjRefMap;
   __qMap__: QObjectMap;
@@ -68,7 +69,7 @@ const QProps_ = class QProps {
   ) {}
 };
 
-export function newQProps(element: Element): QProps {
+export function newQProps(element: Element): Props {
   const qObjRefMap: QObjRefMap = new Map();
   const qObjMap: QObjectMap = newQObjectMap(element, qObjRefMap);
   const cache: QPropsContext & Record<string | symbol, any> = new QProps_(
@@ -89,7 +90,7 @@ export function newQProps(element: Element): QProps {
             return target.__qMap__;
           } else if (prop == '__parent__') {
             const parent = element.parentElement;
-            return parent && qProps(parent);
+            return parent && getProps(parent);
           } else if (isOnProp(prop)) {
             return qPropReadQRL(cache, qObjMap, prop);
           } else if (prop === QObjectIdSymbol) {
@@ -217,8 +218,8 @@ export function diff(existing: any, actual: any): string[] | null {
   return EMPTY_ARRAY;
 }
 
-export function didQPropsChange(qProps: QProps) {
-  return (qProps as QPropsContext).__mutation__;
+export function didQPropsChange(getProps: Props) {
+  return (getProps as QPropsContext).__mutation__;
 }
 
 /**

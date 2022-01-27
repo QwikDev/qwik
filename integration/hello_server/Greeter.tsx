@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { qComponent, h, useEvent, onRender } from '@builder.io/qwik';
+import { component, h, useEvent, onRender } from '@builder.io/qwik';
 
 /**
  * Declares the public component `<Greeter>` to be used in parent component.
@@ -24,7 +24,7 @@ import { qComponent, h, useEvent, onRender } from '@builder.io/qwik';
  *
  * ```
  */
-export const Greeter = qComponent((props: { name: string }) => {
+export const Greeter = component((props: { name: string }) => {
   return onRender(() => (
     <div>
       <div>

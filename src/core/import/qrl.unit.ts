@@ -6,8 +6,9 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { qrl, QRLClass } from '../import/qrl';
 import { parseQRL, stringifyQRL } from './qrl';
+import { QRLClass } from './qrl-class';
+import { qrl } from './qrl.public';
 
 describe('QRL', () => {
   describe('serialization', () => {

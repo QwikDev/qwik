@@ -1,13 +1,13 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 861
+assertion_line: 919
 expression: output
 
 ---
 ==INPUT==
 
 
-import { $, qComponent$, h, onRender$ } from '@builder.io/qwik';
+import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 
 export const Foo = qComponent$("my-foo", () => {
 
@@ -30,8 +30,8 @@ export const Foo = qComponent$("my-foo", () => {
 ============================= test.js ==
 
 import * as qwik from "@builder.io/qwik";
-import { qComponent$ } from '@builder.io/qwik';
-export const Foo = /*#__PURE__*/ qComponent$("my-foo", qwik.qrl(()=>import("./h_test_foo_onmount")
+import { qComponent } from "@builder.io/qwik";
+export const Foo = /*#__PURE__*/ qComponent("my-foo", qwik.qrl(()=>import("./h_test_foo_onmount")
 , "Foo_onmount"));
 
 ============================= h_test_foo_onrender_handler.js (ENTRY POINT)==
@@ -62,7 +62,6 @@ export const Foo_onRender_div_onWindowscroll = ()=>console.log('onWindow:scroll'
 
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 import * as qwik from "@builder.io/qwik";
-import { h } from "@builder.io/qwik";
 export const Foo_onRender = ()=>{
     const handler = qwik.qrl(()=>import("./h_test_foo_onrender_handler")
     , "Foo_onRender_handler");
@@ -82,9 +81,9 @@ export const Foo_onRender = ()=>{
 ============================= h_test_foo_onmount.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-import { onRender$ } from "@builder.io/qwik";
+import { onRender } from "@builder.io/qwik";
 export const Foo_onmount = ()=>{
-    return onRender$(qwik.qrl(()=>import("./h_test_foo_onrender")
+    return onRender(qwik.qrl(()=>import("./h_test_foo_onrender")
     , "Foo_onRender"));
 };
 

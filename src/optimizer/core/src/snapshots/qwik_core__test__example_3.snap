@@ -1,13 +1,13 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 861
+assertion_line: 919
 expression: output
 
 ---
 ==INPUT==
 
 
-import { $, qComponent$, onRender$, h } from '@builder.io/qwik';
+import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 export const App = () => {
     const Header = qComponent$(() => {
         console.log("mount");
@@ -23,9 +23,9 @@ export const App = () => {
 ============================= test.tsx ==
 
 import * as qwik from "@builder.io/qwik";
-import { qComponent$ } from '@builder.io/qwik';
+import { qComponent } from "@builder.io/qwik";
 export const App = ()=>{
-    const Header = /*#__PURE__*/ qComponent$(qwik.qrl(()=>import("./h_test_app_header")
+    const Header = /*#__PURE__*/ qComponent(qwik.qrl(()=>import("./h_test_app_header")
     , "App_Header"));
     return Header;
 };
@@ -39,7 +39,6 @@ export const App_Header_div_onClick = (ctx)=>console.log(ctx)
 ============================= h_test_app_header.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-import { h } from "@builder.io/qwik";
 export const App_Header = ()=>{
     console.log("mount");
     onRende(()=>{

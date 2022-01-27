@@ -1,13 +1,13 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 861
+assertion_line: 919
 expression: output
 
 ---
 ==INPUT==
 
 
-import { $, qComponent, onRender, h } from '@builder.io/qwik';
+import { $, qComponent, onRender } from '@builder.io/qwik';
 
 const Header = qComponent($(() => {
   console.log("mount");
@@ -34,7 +34,6 @@ export const Header_div_onClick = (ctx)=>console.log(ctx)
 ============================= h_test_header1.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-import { h } from "@builder.io/qwik";
 export const Header1 = ()=>{
     return <div onClick={qwik.qrl(()=>import("./h_test_header_div_onclick")
     , "Header_div_onClick")}/>;

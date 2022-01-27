@@ -6,7 +6,7 @@ fn example_1() {
     test_input(
         "test.tsx",
         r#"
-import { $, qComponent, onRender, h } from '@builder.io/qwik';
+import { $, qComponent, onRender } from '@builder.io/qwik';
 
 const Header = qComponent($(() => {
   console.log("mount");
@@ -28,7 +28,7 @@ fn example_2() {
     test_input(
         "test.tsx",
         r#"
-import { $, qComponent$, onRender$, h } from '@builder.io/qwik';
+import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 export const Header = qComponent$(() => {
   console.log("mount");
   onRender$(() => {
@@ -49,7 +49,7 @@ fn example_3() {
     test_input(
         "test.tsx",
         r#"
-import { $, qComponent$, onRender$, h } from '@builder.io/qwik';
+import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 export const App = () => {
     const Header = qComponent$(() => {
         console.log("mount");
@@ -73,7 +73,7 @@ fn example_4() {
     test_input(
         "test.tsx",
         r#"
-import { $, qComponent$, onRender$, h } from '@builder.io/qwik';
+import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 export function App() {
     const Header = qComponent$(() => {
         console.log("mount");
@@ -97,7 +97,7 @@ fn example_5() {
     test_input(
         "test.tsx",
         r#"
-import { $, qComponent$, onRender$, h } from '@builder.io/qwik';
+import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 export const Header = qComponent$(() => {
     onRender$(() => {
         return (
@@ -120,7 +120,7 @@ fn example_6() {
     test_input(
         "test.tsx",
         r#"
-import { $, qComponent$, h } from '@builder.io/qwik';
+import { $, qComponent$ } from '@builder.io/qwik';
 export const sym1 = $((ctx) => console.log("1"));
     "#,
         EntryStrategy::Hook,
@@ -134,7 +134,7 @@ fn example_7() {
     test_input(
         "test.tsx",
         r#"
-import { $, qComponent$, onRender$, h } from '@builder.io/qwik';
+import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 
 export const Header = qComponent$(() => {
     console.log("mount");
@@ -163,7 +163,7 @@ fn example_8() {
     test_input(
         "test.tsx",
         r#"
-import { $, qComponent$, onRender$, h } from '@builder.io/qwik';
+import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 
 export const Header = qComponent$(() => {
     onRender$((hola) => {
@@ -187,7 +187,7 @@ fn example_9() {
     test_input(
         "test.tsx",
         r#"
-import { $, qComponent$, h } from '@builder.io/qwik';
+import { $, qComponent$ } from '@builder.io/qwik';
 const Header = $((decl1, {decl2}, [decl3]) => {
     const {decl4, key: decl5} = this;
     let [decl6, ...decl7] = stuff;
@@ -211,7 +211,7 @@ fn example_10() {
     test_input(
         "project/test.tsx",
         r#"
-import { $, qComponent$, h } from '@builder.io/qwik';
+import { $, qComponent$ } from '@builder.io/qwik';
 const Header = $((decl1, {decl2}, [decl3]) => {
 
     const hola = ident1.no;
@@ -242,7 +242,7 @@ fn example_11() {
     test_input(
         "project/test.tsx",
         r#"
-import { $, qComponent$, onRender$, h } from '@builder.io/qwik';
+import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 import {foo, bar as bbar} from "../state";
 import * as dep2 from "dep2";
 import dep3 from "dep3/something";
@@ -276,7 +276,7 @@ fn example_12() {
     test_input(
         "project/test.tsx",
         r#"
-import { $, qComponent$, h } from '@builder.io/qwik';
+import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 export const Header = qComponent$(() => {
     onRender$(() => console.log("hello sym2"), "sym2")
 });
@@ -293,7 +293,7 @@ fn example_13() {
     test_input(
         "project/test.tsx",
         r#"
-import { $, qComponent$, onRender$, h } from '@builder.io/qwik';
+import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 export const Header = qComponent$(() => {
     onRender$(() => console.log("hello sym2"), "2sym")
 });
@@ -310,7 +310,7 @@ fn example_functional_component() {
     test_input(
         "test.tsx",
         r#"
-        import { $, qComponent$, onRender$, h } from '@builder.io/qwik';
+        import { $, qComponent$, onRender$ } from '@builder.io/qwik';
         const Header = qComponent$(() => {
             const thing = useStore();
             const {foo, bar} = foo();
@@ -333,7 +333,7 @@ fn example_functional_component_2() {
     test_input(
         "test.tsx",
         r#"
-import { $, qComponent$, h, onRender$ } from '@builder.io/qwik';
+import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 export const useCounter = () => {
     return useStore({count: 0});
 }
@@ -375,7 +375,7 @@ fn example_functional_component_capture_props() {
     test_input(
         "test.tsx",
         r#"
-import { $, qComponent$, h, onRender$ } from '@builder.io/qwik';
+import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 
 export const App = qComponent$(({count, rest: [I2, {I3, v1: [I4], I5=v2, ...I6}, I7=v3, ...I8]}) => {
     const state = useStore({count: 0});
@@ -402,7 +402,7 @@ fn example_multi_capture() {
     test_input(
         "test.tsx",
         r#"
-import { $, qComponent$, h, onRender$ } from '@builder.io/qwik';
+import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 
 export const Foo = qComponent$(({foo}) => {
     const arg0 = 20;
@@ -438,7 +438,7 @@ fn example_with_tagname() {
     test_input(
         "test.tsx",
         r#"
-import { $, qComponent$, h, onRender$ } from '@builder.io/qwik';
+import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 
 export const Foo = qComponent$("my-foo", () => {
     return onRender$(() => {
@@ -460,7 +460,7 @@ fn example_with_style() {
     test_input(
         "test.tsx",
         r#"
-import { $, qComponent$, h, onRender$, withStyle$ } from '@builder.io/qwik';
+import { $, qComponent$, onRender$, withStyle$ } from '@builder.io/qwik';
 
 export const Foo = qComponent$("my-foo", () => {
     withStyle$('.class {}');
@@ -482,7 +482,7 @@ fn example_lightweight_functional() {
     test_input(
         "test.tsx",
         r#"
-import { $, qComponent$, h, onRender$ } from '@builder.io/qwik';
+import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 
 export const Foo = qComponent$("my-foo", ({color}) => {
     return onRender$(() => {
@@ -518,7 +518,7 @@ fn example_invalid_references() {
     test_input(
         "test.tsx",
         r#"
-import { $, qComponent$, h, onRender$ } from '@builder.io/qwik';
+import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 
 const I1 = 12;
 const [I2, {I3, v1: [I4], I5=v2, ...I6}, I7=v3, ...I8] = obj;
@@ -546,7 +546,7 @@ fn example_invalid_hook_expr1() {
     test_input(
         "test.tsx",
         r#"
-import { $, qComponent$, h, onRender$ } from '@builder.io/qwik';
+import { $, qComponent$, onRender$, withStyle$ } from '@builder.io/qwik';
 import css1 from './global.css';
 import css2 from './style.css';
 
@@ -573,7 +573,7 @@ fn example_capture_imports() {
     test_input(
         "test.tsx",
         r#"
-import { qComponent$ } from '@builder.io/qwik';
+import { qComponent$, withStyle$ } from '@builder.io/qwik';
 import css1 from './global.css';
 import css2 from './style.css';
 import css3 from './style.css';
@@ -594,7 +594,7 @@ fn example_capturing_fn_class() {
     test_input(
         "test.tsx",
         r#"
-import { $, qComponent$, h, onRender$ } from '@builder.io/qwik';
+import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 
 export const App = qComponent$(() => {
     function hola() {
@@ -623,12 +623,12 @@ fn example_renamed_exports() {
     test_input(
         "test.tsx",
         r#"
-import { qComponent$ as Component, onRender$ as $, useStore } from '@builder.io/qwik';
+import { qComponent$ as Component, onRender$ as onRender, useStore } from '@builder.io/qwik';
 
 export const App = Component((props) => {
     const state = useStore({thing: 0});
 
-    return $(() => (
+    return onRender(() => (
         <div>{state.thing}</div>
     ));
 });
@@ -644,7 +644,7 @@ fn example_exports() {
     test_input(
         "project/test.tsx",
         r#"
-import { $, qComponent$, onRender$, h } from '@builder.io/qwik';
+import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 
 export const [a, {b, v1: [c], d=v2, ...e}, f=v3, ...g] = obj;
 
@@ -693,7 +693,7 @@ fn issue_118() {
     test_input(
         "project/test.tsx",
         r#"
-import { $, qComponent$, onRender$, h } from '@builder.io/qwik';
+import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 import thing from 'lib';
 import * as all from 'lib';
 import {s as se} from 'lib';
@@ -718,7 +718,7 @@ fn example_jsx() {
     test_input(
         "test.tsx",
         r#"
-import { $, qComponent$, h, onRender$ } from '@builder.io/qwik';
+import { $, qComponent$, onRender$, h, Fragment } from '@builder.io/qwik';
 
 export const Lightweight = () => {
     return (
@@ -767,7 +767,7 @@ fn example_jsx_listeners() {
     test_input(
         "test.tsx",
         r#"
-import { $, qComponent$, h, onRender$ } from '@builder.io/qwik';
+import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 
 export const Foo = qComponent$("my-foo", () => {
 
@@ -798,8 +798,10 @@ fn example_qwik_conflict() {
     test_input(
         "test.tsx",
         r#"
-import { $, qComponent$, h, onRender$ } from '@builder.io/qwik';
+import { $, qComponent$, onRender, onRender$ } from '@builder.io/qwik';
 
+const qComponent = () => console.log('not this');
+qComponent();
 export const Foo = qComponent$("my-foo", () => {
     const qwik = 12;
     console.log(qwik);
@@ -809,6 +811,94 @@ export const Foo = qComponent$("my-foo", () => {
         )
     });
 })
+
+export const Root = qComponent$("my-foo", () => {
+    return onRender($(() => {
+        return (
+            <div/>
+        )
+    }));
+}))
+    "#,
+        EntryStrategy::Hook,
+        MinifyMode::Simplify,
+        true,
+    );
+}
+
+#[test]
+fn example_custom_inlined_functions() {
+    test_input(
+        "test.tsx",
+        r#"
+import { qComponent$ as Component, onRender$, useStore, wrap, useEffect } from '@builder.io/qwik';
+
+
+export const useMemo = (qrt) => {
+    useEffect(qrt);
+};
+
+export const useMemo$ = wrap(useMemo);
+
+export const App = qComponent$((props) => {
+    const state = useStore({count: 0});
+    useMemo$(() => {
+        console.log(state.count);
+    });
+    return onRender$(() => (
+        <div>{state.count}</div>
+    ));
+});
+    "#,
+        EntryStrategy::Hook,
+        MinifyMode::Simplify,
+        true,
+    );
+}
+
+#[test]
+fn example_missing_custom_inlined_functions() {
+    test_input(
+        "test.tsx",
+        r#"
+import { qComponent$ as Component, onRender$, useStore, wrap, useEffect } from '@builder.io/qwik';
+
+
+export const useMemo$ = (qrt) => {
+    useEffect(qrt);
+};
+
+export const App = qComponent$((props) => {
+    const state = useStore({count: 0});
+    useMemo$(() => {
+        console.log(state.count);
+    });
+    return onRender$(() => (
+        <div>{state.count}</div>
+    ));
+});
+    "#,
+        EntryStrategy::Hook,
+        MinifyMode::Simplify,
+        true,
+    );
+}
+
+#[test]
+fn example_skip_transform() {
+    test_input(
+        "test.tsx",
+        r#"
+import { qComponent$ as Component, onRender$ as onRender, useStore } from '@builder.io/qwik';
+
+export const handler = $(()=>console.log('hola'));
+
+export const App = qComponent$((props) => {
+    withStyle$('hola');
+    return onRender$(() => (
+        <div>{state.thing}</div>
+    ));
+});
     "#,
         EntryStrategy::Hook,
         MinifyMode::Simplify,

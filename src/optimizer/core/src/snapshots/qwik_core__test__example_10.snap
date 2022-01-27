@@ -1,13 +1,13 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 861
+assertion_line: 919
 expression: output
 
 ---
 ==INPUT==
 
 
-import { $, qComponent$, h } from '@builder.io/qwik';
+import { $, qComponent$ } from '@builder.io/qwik';
 const Header = $((decl1, {decl2}, [decl3]) => {
 
     const hola = ident1.no;
@@ -36,7 +36,6 @@ qwik.qrl(()=>import("../h_test_header")
 ============================= h_test_header.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-import { h } from "@builder.io/qwik";
 export const Header = (decl1, { decl2  }, [decl3])=>{
     const hola = ident1.no;
     ident2;

@@ -91,7 +91,7 @@ export function withScopedStyles(styles: TypeOrQRL<string>): void {
   _withStyles(styles, true);
 }
 
-type MightPromise<T> = Promise<T> | T;
+type PossiblyPromise<T> = Promise<T> | T;
 type OnMountFn<PROPS> = (props: PROPS) => MightPromise<ReturnType<typeof onRender>>;
 
 /**

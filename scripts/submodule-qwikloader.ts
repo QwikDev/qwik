@@ -22,7 +22,12 @@ export async function submoduleQwikLoader(config: BuildConfig) {
           return null;
         },
         async transform(code, id) {
-          const result = await transform(code, { sourcefile: id, format: 'esm', loader: 'ts' });
+          const result = await transform(code, {
+            sourcefile: id,
+            target: 'es2017',
+            format: 'esm',
+            loader: 'ts',
+          });
           return result.code;
         },
       },
@@ -35,10 +40,11 @@ export async function submoduleQwikLoader(config: BuildConfig) {
     dir: config.distPkgDir,
     format: 'es',
     exports: 'none',
+    intro: `(function(){`,
+    outro: `})()`,
     plugins: [
       terser({
         compress: {
-          module: true,
           global_defs: {
             'window.BuildEvents': false,
           },
@@ -59,6 +65,8 @@ export async function submoduleQwikLoader(config: BuildConfig) {
     format: 'es',
     entryFileNames: `[name].debug.js`,
     exports: 'none',
+    intro: `(function(){`,
+    outro: `})()`,
     plugins: [
       terser({
         compress: {
@@ -86,10 +94,11 @@ export async function submoduleQwikLoader(config: BuildConfig) {
     format: 'es',
     entryFileNames: `[name].optimize.js`,
     exports: 'none',
+    intro: `(function(){`,
+    outro: `})()`,
     plugins: [
       terser({
         compress: {
-          module: true,
           global_defs: {
             'window.BuildEvents': true,
           },
@@ -110,6 +119,8 @@ export async function submoduleQwikLoader(config: BuildConfig) {
     format: 'es',
     entryFileNames: `[name].optimize.debug.js`,
     exports: 'none',
+    intro: `(function(){`,
+    outro: `})()`,
     plugins: [
       terser({
         compress: {

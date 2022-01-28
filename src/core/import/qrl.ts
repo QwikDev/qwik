@@ -7,7 +7,8 @@
  */
 
 import { EMPTY_ARRAY } from '../util/flyweight';
-import type { ValueOrPromise } from '../util/types';
+import type { QRL } from './qrl.public';
+import { isQrl, QRLClass } from './qrl-class';
 
 let runtimeSymbolId = 0;
 const RUNTIME_QRL = '/runtimeQRL';
@@ -21,10 +22,7 @@ const EXTRACT_SELF_IMPORT = /Promise\s*\.\s*resolve/;
 // https://regexr.com/6a83h
 const EXTRACT_FILE_NAME = /[\\/(]([\w\d.\-_]+)\.(js|ts)x?:/;
 
-/**
- * @public
- */
-export function qrl<T = any>(
+export function staticQrl<T = any>(
   chunkOrFn: string | (() => Promise<any>),
   symbol: string,
   lexicalScopeCapture: any[] = EMPTY_ARRAY
@@ -67,39 +65,6 @@ export function runtimeQrl<T>(symbol: T, lexicalScopeCapture: any[] = EMPTY_ARRA
     null,
     null
   );
-}
-
-/**
- * @public
- */
-export interface QRL<TYPE = any> {
-  chunk: string;
-  symbol: string;
-  symbolRef: null | ValueOrPromise<TYPE>;
-  symbolFn: null | (() => Promise<Record<string, any>>);
-  capture: null | (boolean | number | null | undefined | string)[];
-  captureRef: null | any[];
-  guard: null | Map<string, string[]>;
-  guardRef: null | WeakMap<Object, string[]>;
-}
-
-type IQRL<T> = QRL<T>;
-
-export const QRLClass = class QRL<TYPE = any> implements IQRL<TYPE> {
-  constructor(
-    public chunk: string,
-    public symbol: string,
-    public symbolRef: null | ValueOrPromise<TYPE>,
-    public symbolFn: null | (() => Promise<Record<string, any>>),
-    public capture: null | (boolean | number | null | undefined | string)[],
-    public captureRef: null | any[],
-    public guard: null | Map<string, string[]>,
-    public guardRef: null | WeakMap<Object, string[]>
-  ) {}
-};
-
-export function isQrl(value: any): value is QRL {
-  return value instanceof QRLClass;
 }
 
 export function stringifyQRL(qrl: QRL, element?: Element) {

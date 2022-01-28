@@ -1,5 +1,5 @@
 import { getQObjectId } from '../object/q-object';
-import type { QObjectMap } from '../props/q-props-obj-map';
+import type { QObjectMap } from '../props/props-obj-map';
 import { useStore } from '../use/use-state.public';
 import { qJsonParse, qJsonStringify, ATTR_OBJ_PREFIX } from './q-json';
 

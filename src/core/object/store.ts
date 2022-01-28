@@ -1,9 +1,9 @@
 import { assertDefined } from '../assert/assert';
 import { JSON_OBJ_PREFIX } from '../json/q-json';
 import { qDev } from '../util/qdev';
-import { clearQProps, clearQPropsMap, QPropsContext } from '../props/q-props';
+import { clearQProps, clearQPropsMap, QPropsContext } from '../props/props';
 import { getQObjectId, _restoreQObject } from './q-object';
-import { qProps } from '../props/q-props.public';
+import { getProps } from '../props/props.public';
 
 export interface Store {
   doc: Document;
@@ -13,7 +13,7 @@ export interface Store {
 export function QStore_hydrate(doc: Document): Record<string, object> | null {
   const script = doc.querySelector('script[type="qwik/json"]');
   let map: Record<string, object> | null = null;
-  (doc as any).qDehydrate = () => QStore_dehydrate(doc);
+  (doc as any).dehydrate = () => QStore_dehydrate(doc);
   if (script) {
     script.parentElement!.removeChild(script);
     map = JSON.parse(script.textContent || '{}');
@@ -32,7 +32,7 @@ export function QStore_dehydrate(doc: Document) {
   const map: Record<string, any> = {};
   // Find all Elements which have qObjects attached to them
   doc.querySelectorAll('[q\\:obj]').forEach((node) => {
-    const props = qProps(node) as QPropsContext;
+    const props = getProps(node) as QPropsContext;
     const qMap = props.__qRefs__;
     clearQProps(node);
     assertDefined(qMap);

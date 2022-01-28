@@ -10,8 +10,8 @@ import {
   cursorReconcileText,
   cursorReconcileVirtualNode,
 } from './cursor';
-import type { ComponentRenderQueue } from './q-render';
-import { getQComponent } from '../component/q-component-ctx';
+import type { ComponentRenderQueue } from './render';
+import { getQComponent } from '../component/component-ctx';
 import { runtimeQrl } from '../import/qrl';
 
 describe('cursor', () => {

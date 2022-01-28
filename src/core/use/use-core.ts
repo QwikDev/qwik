@@ -1,9 +1,9 @@
 import { assertNotEqual } from '../assert/assert';
 import type { QwikDocument } from '../document';
-import type { QRL } from '../import/qrl';
+import type { QRL } from '../import/qrl.public';
 import { unwrapProxy } from '../object/q-object';
 import type { QObject } from '../object/q-object';
-import { qProps } from '../props/q-props.public';
+import { getProps } from '../props/props.public';
 
 declare const document: QwikDocument;
 
@@ -51,7 +51,7 @@ export function useInvoke<ARGS extends any[] = any[], RET = any>(
     const subscriptions = _context.subscriptions;
     if (subscriptions) {
       const element = _context.hostElement;
-      element && ((qProps(element) as any)[':subscriptions'] = subscriptions);
+      element && ((getProps(element) as any)[':subscriptions'] = subscriptions);
     }
     _context = previousContext;
   }

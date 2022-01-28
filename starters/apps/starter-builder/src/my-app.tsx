@@ -1,8 +1,8 @@
 import { h, Fragment } from '@builder.io/qwik';
-import { qComponent, onRender } from '@builder.io/qwik';
+import { component$, onRender$ } from '@builder.io/qwik';
 
-export const Header = qComponent(() => {
-  return onRender(() => (
+export const Header = component$(() => {
+  return onRender$(() => (
     <p style={{ 'text-align': 'center' }}>
       <a href="https://github.com/builderio/qwik">
         <img
@@ -15,8 +15,8 @@ export const Header = qComponent(() => {
   ));
 });
 
-export const Footer = qComponent(() => {
-  return onRender(() => (
+export const Footer = component$(() => {
+  return onRender$(() => (
     <>
       <hr />
       <p style={{ 'text-align': 'center' }}>

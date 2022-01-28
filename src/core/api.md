@@ -4,6 +4,9 @@
 
 ```ts
 
+// @public (undocumented)
+export function $<T>(value: T): QRL<T>;
+
 // @public
 export function Async<T>(props: {
     resolve: ValueOrPromise<T>;
@@ -19,6 +22,20 @@ export function Async<T>(props: {
 }): any;
 
 // @public (undocumented)
+export function bubble<PAYLOAD>(eventType: string, payload?: PAYLOAD): void;
+
+// Warning: (ae-forgotten-export) The symbol "OnMountFn" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export function component$<PROPS>(onMount: OnMountFn<PROPS>): (props: PROPS) => JSXNode<PROPS>;
+
+// @public (undocumented)
+export function component<PROPS extends {}>(tagName: string, onMount: QRL<(props: PROPS) => ReturnType<typeof onRender>>): (props: PROPS) => JSXNode<PROPS>;
+
+// @public (undocumented)
+export function component<PROPS extends {}>(onMount: QRL<(props: PROPS) => ReturnType<typeof onRender>>): (props: PROPS) => JSXNode<PROPS>;
+
+// @public (undocumented)
 export type ComponentChild = JSXNode<any> | object | string | number | bigint | boolean | null | undefined;
 
 // @public (undocumented)
@@ -32,6 +49,9 @@ export interface CorePlatform {
 }
 
 // @public (undocumented)
+export function dehydrate(document: Document): void;
+
+// @public (undocumented)
 export const Fragment: any;
 
 // @public (undocumented)
@@ -42,6 +62,9 @@ export interface FunctionComponent<P = {}> {
 
 // @public (undocumented)
 export const getPlatform: (docOrNode: Document | Node) => CorePlatform;
+
+// @public (undocumented)
+export function getProps<T>(element: Element): Props<T>;
 
 // @public (undocumented)
 export function h<PROPS extends {} = {}>(type: string | FunctionComponent<PROPS>, props: PROPS | null, ...children: any[]): JSXNode;
@@ -85,6 +108,9 @@ export namespace h {
 export const Host: FunctionComponent<Record<string, any>>;
 
 // @public (undocumented)
+export function implicit$FirstArg<FIRST, REST extends any[], RET>(fn: (first: QRL<FIRST>, ...rest: REST) => RET): (first: FIRST, ...rest: REST) => RET;
+
+// @public (undocumented)
 function jsx(type: string | FunctionComponent, props: QwikDOMAttributes & Record<string, any> & {
     children?: ComponentChild[] | ComponentChild;
 }, key?: string): JSXNode;
@@ -107,34 +133,53 @@ export interface JSXNode<T extends string | null | JSXFactory | unknown = unknow
     type: T;
 }
 
-// Warning: (ae-forgotten-export) The symbol "TypeOrQRL" needs to be exported by the entry point index.d.ts
-//
-// @public (undocumented)
-export function on(event: string, eventFn: TypeOrQRL<() => void>): QRL<() => void>;
+// @public
+export function notifyRender(hostElement: Element): Promise<void>;
 
 // @public (undocumented)
-export function onDehydrate(dehydrateFn: TypeOrQRL<() => void>): QRL<() => void>;
+export function on(event: string, eventFn: QRL<() => void>): QRL<() => void>;
 
 // @public (undocumented)
-export function onDocument(event: string, eventFn: TypeOrQRL<() => void>): QRL<() => void>;
+export const onDehydrate$: (first: () => void) => void;
 
 // @public (undocumented)
-export function onHalt(haltFn: TypeOrQRL<() => void>): QRL<() => void>;
+export function onDehydrate(dehydrateFn: QRL<() => void>): void;
 
 // @public (undocumented)
-export function onHydrate(hydrateFn: TypeOrQRL<() => void>): QRL<() => void>;
+export function onDocument(event: string, eventFn: QRL<() => void>): QRL<() => void>;
 
 // @public (undocumented)
-export function onRender(renderFn: TypeOrQRL<() => JSXNode>): QRL<() => JSXNode>;
+export const onHalt$: (first: () => void) => void;
 
 // @public (undocumented)
-export function onResume(resumeFn: TypeOrQRL<() => void>): QRL<() => void>;
+export function onHalt(haltFn: QRL<() => void>): void;
 
 // @public (undocumented)
-export function onUnmount(unmountFn: TypeOrQRL<() => void>): QRL<() => void>;
+export const onHydrate$: (first: () => void) => void;
 
 // @public (undocumented)
-export function onWindow(event: string, eventFn: TypeOrQRL<() => void>): QRL<() => void>;
+export function onHydrate(hydrateFn: QRL<() => void>): void;
+
+// @public (undocumented)
+export const onRender$: (first: () => JSXNode) => QRL<() => JSXNode>;
+
+// @public (undocumented)
+export function onRender(renderFn: QRL<() => JSXNode>): QRL<() => JSXNode>;
+
+// @public (undocumented)
+export const onResume$: (first: () => void) => void;
+
+// @public (undocumented)
+export function onResume(resumeFn: QRL<() => void>): void;
+
+// @public (undocumented)
+export const onUnmount$: (first: () => void) => void;
+
+// @public (undocumented)
+export function onUnmount(unmountFn: QRL<() => void>): void;
+
+// @public (undocumented)
+export function onWindow(event: string, eventFn: QRL<() => void>): QRL<() => void>;
 
 // @public
 export type PromiseValue<T> = {
@@ -158,36 +203,10 @@ export type PromiseValue<T> = {
 };
 
 // @public (undocumented)
+export type Props<T extends {} = {}> = Record<string, any> & T;
+
+// @public (undocumented)
 export type PropsOf<COMP extends (props: any) => JSXNode> = COMP extends (props: infer PROPS) => JSXNode<any> ? PROPS : never;
-
-// @public (undocumented)
-export function qBubble<PAYLOAD>(eventType: string, payload?: PAYLOAD): void;
-
-// Warning: (ae-forgotten-export) The symbol "PossiblyPromise" needs to be exported by the entry point index.d.ts
-//
-// @public (undocumented)
-export function qComponent<PROPS extends {}>(tagName: string, onMount: TypeOrQRL<(props: PROPS) => PossiblyPromise<ReturnType<typeof onRender>>>): (props: PROPS) => JSXNode<PROPS>;
-
-// @public (undocumented)
-export function qComponent<PROPS extends {}>(onMount: TypeOrQRL<(props: PROPS) => PossiblyPromise<ReturnType<typeof onRender>>>): (props: PROPS) => JSXNode<PROPS>;
-
-// @public (undocumented)
-export function qDehydrate(document: Document): void;
-
-// @public
-export function qImport<T>(element: Element, qrl: QRL<T>): Promise<T>;
-
-// @public
-export function qNotifyRender(hostElement: Element): Promise<void>;
-
-// @public (undocumented)
-export type QProps<T extends {} = {}> = Record<string, any> & T;
-
-// @public (undocumented)
-export function qProps<T>(element: Element): QProps<T>;
-
-// @public
-export function qRender(parent: Element | Document, jsxNode: JSXNode<unknown>): Promise<HTMLElement[]>;
 
 // @public (undocumented)
 export interface QRL<TYPE = any> {
@@ -210,7 +229,10 @@ export interface QRL<TYPE = any> {
 }
 
 // @public (undocumented)
-export function qrl<T = any>(chunkOrFn: string | (() => Promise<any>), symbol: string, lexicalScopeCapture?: any[]): QRL<T>;
+export const qrl: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: string, lexicalScopeCapture?: any[]) => QRL<T>;
+
+// @public
+export function qrlImport<T>(element: Element, qrl: QRL<T>): Promise<T>;
 
 // Warning: (ae-forgotten-export) The symbol "DOMAttributes" needs to be exported by the entry point index.d.ts
 //
@@ -247,6 +269,9 @@ export namespace QwikJSX {
     export interface IntrinsicElements extends QwikIntrinsicElements {
     }
 }
+
+// @public
+export function render(parent: Element | Document, jsxNode: JSXNode<unknown>): Promise<HTMLElement[]>;
 
 // @public (undocumented)
 export type RenderableProps<P, RefType = any> = P & Readonly<{
@@ -291,10 +316,16 @@ export type ValueOrPromise<T> = T | Promise<T>;
 export const version: string;
 
 // @public (undocumented)
-export function withScopedStyles(styles: TypeOrQRL<string>): void;
+export const withScopedStyles$: (first: string) => void;
 
 // @public (undocumented)
-export function withStyles(styles: TypeOrQRL<string>): void;
+export function withScopedStyles(styles: QRL<string>): void;
+
+// @public (undocumented)
+export const withStyles$: (first: string) => void;
+
+// @public (undocumented)
+export function withStyles(styles: QRL<string>): void;
 
 // (No @packageDocumentation comment for this package)
 

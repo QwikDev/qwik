@@ -1,4 +1,4 @@
-import type { QRL } from '../import/qrl';
+import type { QRL } from '../import/qrl.public';
 import { AttributeMarker } from '../util/markers';
 import { hashCode } from '../util/hash_code';
 

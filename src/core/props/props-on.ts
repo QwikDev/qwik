@@ -1,5 +1,6 @@
-import { qImport } from '../import/qImport';
-import { isQrl, parseQRL, QRL, stringifyQRL } from '../import/qrl';
+import { qrlImport } from '../import/qrl-import';
+import { parseQRL, stringifyQRL } from '../import/qrl';
+import type { QRL } from '../import/qrl.public';
 import { qDeflate } from '../json/q-json';
 import { getInvokeContext, useInvoke } from '../use/use-core';
 import { fromCamelToKebabCase } from '../util/case';
@@ -7,29 +8,36 @@ import { EMPTY_ARRAY } from '../util/flyweight';
 import { isPromise } from '../util/promises';
 import { debugStringify } from '../util/stringify';
 import type { ValueOrPromise } from '../util/types';
-import type { QPropsContext } from './q-props';
-import type { QObjectMap } from './q-props-obj-map';
+import type { QPropsContext } from './props';
+import type { QObjectMap } from './props-obj-map';
+import { isQrl } from '../import/qrl-class';
 
 const ON_PREFIX = 'on:';
+const ON_PREFIX_$ = 'on$:';
 const ON_DOCUMENT_PREFIX = 'onDocument:';
+const ON_DOCUMENT_PREFIX_$ = 'onDocument$:';
 const ON_WINDOW_PREFIX = 'onWindow:';
+const ON_WINDOW_PREFIX_$ = 'onWindow$:';
 
 export function isOnProp(prop: string): boolean {
   return (
     prop.startsWith(ON_PREFIX) ||
+    prop.startsWith(ON_PREFIX_$) ||
     prop.startsWith(ON_DOCUMENT_PREFIX) ||
-    prop.startsWith(ON_WINDOW_PREFIX)
+    prop.startsWith(ON_DOCUMENT_PREFIX_$) ||
+    prop.startsWith(ON_WINDOW_PREFIX) ||
+    prop.startsWith(ON_WINDOW_PREFIX_$)
   );
 }
 
 /**
  * In the case of a component, it is necessary to have `on:q-render` value.
- * However the `qComponent` can run when parent component is rendering only to
+ * However the `component` can run when parent component is rendering only to
  * realize that `on:q-render` already exists. This interface exists to solve that
  * problem.
  *
- * A parent component's `qComponent` returns a `qrlFactory` for `on:q-render`. The
- * `qProps` than looks to see if it already has a resolved value, and if so the
+ * A parent component's `component` returns a `qrlFactory` for `on:q-render`. The
+ * `getProps` than looks to see if it already has a resolved value, and if so the
  * `qrlFactory` is ignored, otherwise the `qrlFactory` is used to recover the `QRL`.
  */
 export type qrlFactory = (element: Element) => Promise<QRL<any>>;
@@ -53,7 +61,7 @@ export function qPropReadQRL(
         const qrl = await qrlOrPromise;
         context.qrl = qrl;
         if (!qrl.symbolRef) {
-          qrl.symbolRef = await qImport(cache.__element__, qrl);
+          qrl.symbolRef = await qrlImport(cache.__element__, qrl);
         }
 
         return useInvoke(context, qrl.symbolRef);
@@ -69,6 +77,7 @@ export function qPropWriteQRL(
   value: any
 ) {
   if (!value) return;
+  prop = prop.replace('$:', ':');
   if (typeof value == 'string') {
     value = parseQRL(value);
   }

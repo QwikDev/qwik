@@ -599,7 +599,7 @@ impl<'a> Fold for QwikTransform<'a> {
             } else if let ast::Expr::Ident(ident) = &**expr {
                 if id_eq!(ident, &self.qhook_fn) {
                     if let Some(comments) = self.comments {
-                        comments.add_pure_comment(node.span.lo);
+                        comments.add_pure_comment(ident.span.lo);
                     }
                     return self.handle_qhook(node);
                 } else if self.marker_functions.contains(&id!(ident)) {

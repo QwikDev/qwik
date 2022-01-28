@@ -5,22 +5,6 @@ on:
   - pull_request
 
 jobs:
-  binary-size:
-    name: Binary size
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Cache
-        uses: actions/cache@v1
-        with:
-          path: |
-            ./cache
-            ~/.cargo/
-            target
-          key: cargo-release-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            cargo-release-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
-
   benchmark:
     name: Performance regression check
     runs-on: ubuntu-latest
@@ -59,7 +43,7 @@ jobs:
           output-file-path: output.txt
           external-data-json-path: ./raw-data/${{ github.sha }}/benchmark-data.json
           # Workflow will fail when an alert happens
-          fail-on-alert: true
+          fail-on-alert: false
           # GitHub API token to make a commit comment
           github-token: ${{ secrets.GITHUB_TOKEN }}
           # Enable alert commit comment
@@ -84,7 +68,7 @@ jobs:
           # Enable alert commit comment
           comment-on-alert: true
           comment-always: true
-          alert-comment-cc-users: "@kdy1"
+          alert-comment-cc-users: "@manucorporat"
           skip-fetch-gh-pages: true
           max-items-in-chart: 250
 

@@ -4,6 +4,12 @@ on:
   - push
   - pull_request
 
+permissions:
+  # deployments permission to deploy GitHub pages website
+  deployments: write
+  # contents permission to update benchmark contents in gh-pages branch
+  contents: write
+
 jobs:
   benchmark:
     name: Performance regression check
@@ -69,8 +75,9 @@ jobs:
           comment-on-alert: true
           comment-always: true
           alert-comment-cc-users: '@manucorporat'
-          skip-fetch-gh-pages: true
           max-items-in-chart: 250
+          skip-fetch-gh-pages: ${{ github.ref != 'refs/heads/main' }}
+          auto-push: ${{ github.ref == 'refs/heads/main' }}
 
       - name: Deploy
         if: github.ref == 'refs/heads/main'

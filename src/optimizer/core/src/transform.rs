@@ -1,4 +1,4 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeMap, HashSet};
 
 use crate::code_move::fix_path;
 use crate::collector::{
@@ -86,7 +86,7 @@ pub struct QwikTransform<'a> {
     pub qwik_ident: Id,
     pub global_collect: GlobalCollect,
 
-    extra_module_items: HashMap<Id, ast::ModuleItem>,
+    extra_module_items: BTreeMap<Id, ast::ModuleItem>,
     stack_ctxt: Vec<String>,
     position_ctxt: Vec<PositionToken>,
     decl_stack: Vec<Vec<IdPlusType>>,
@@ -140,7 +140,7 @@ impl<'a> QwikTransform<'a> {
             in_component: false,
             hooks: Vec::with_capacity(16),
             hook_depth: 0,
-            extra_module_items: HashMap::with_capacity(8),
+            extra_module_items: BTreeMap::new(),
             qcomponent_fn: global_collect.get_imported_local(&QCOMPONENT, &BUILDER_IO_QWIK),
             qhook_fn: global_collect.get_imported_local(&QHOOK, &BUILDER_IO_QWIK),
             h_fn: global_collect.get_imported_local(&H, &BUILDER_IO_QWIK),

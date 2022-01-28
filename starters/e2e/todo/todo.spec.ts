@@ -36,7 +36,6 @@ test.describe('Todo', () => {
   test('should edit an item', async ({ page }) => {
     await page.locator('.todo-list>li:first-child label').dblclick();
     await page.locator('.todo-list>li:first-child input.edit').fill('');
-    page.wa;
     await page.locator('.todo-list>li:first-child input.edit').press('X');
     await page.locator('.todo-list>li:first-child input.edit').press('Enter');
     await expect(page.locator('.todo-list>li:first-child')).toContainText('X');

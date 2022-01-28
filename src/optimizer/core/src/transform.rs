@@ -1,4 +1,4 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeMap, HashSet};
 
 use crate::code_move::fix_path;
 use crate::collector::{
@@ -14,7 +14,7 @@ use regex::Regex;
 use std::sync::{Arc, Mutex};
 use swc_atoms::JsWord;
 use swc_common::comments::{Comments, SingleThreadedComments};
-use swc_common::{errors::HANDLER, Mark, Span, Spanned, DUMMY_SP};
+use swc_common::{errors::HANDLER, Mark, Spanned, DUMMY_SP};
 use swc_ecmascript::ast;
 use swc_ecmascript::utils::{private_ident, ExprFactory};
 use swc_ecmascript::visit::{fold_expr, noop_fold_type, Fold, FoldWith, VisitWith};
@@ -86,7 +86,7 @@ pub struct QwikTransform<'a> {
     pub qwik_ident: Id,
     pub global_collect: GlobalCollect,
 
-    extra_module_items: Vec<ast::ModuleItem>,
+    extra_module_items: BTreeMap<Id, ast::ModuleItem>,
     stack_ctxt: Vec<String>,
     position_ctxt: Vec<PositionToken>,
     decl_stack: Vec<Vec<IdPlusType>>,
@@ -140,7 +140,7 @@ impl<'a> QwikTransform<'a> {
             in_component: false,
             hooks: Vec::with_capacity(16),
             hook_depth: 0,
-            extra_module_items: Vec::with_capacity(8),
+            extra_module_items: BTreeMap::new(),
             qcomponent_fn: global_collect.get_imported_local(&QCOMPONENT, &BUILDER_IO_QWIK),
             qhook_fn: global_collect.get_imported_local(&QHOOK, &BUILDER_IO_QWIK),
             h_fn: global_collect.get_imported_local(&H, &BUILDER_IO_QWIK),
@@ -368,7 +368,7 @@ impl<'a> Fold for QwikTransform<'a> {
         ));
 
         let mut module_body = node.body.into_iter().map(|i| i.fold_with(self)).collect();
-        body.append(&mut self.extra_module_items);
+        body.extend(self.extra_module_items.values().cloned());
         body.append(&mut module_body);
 
         ast::Module { body, ..node }
@@ -382,9 +382,9 @@ impl<'a> Fold for QwikTransform<'a> {
             stacked = true;
         }
         if let Some(current_scope) = self.decl_stack.last_mut() {
-            let mut identifiers: HashMap<Id, _> = HashMap::new();
+            let mut identifiers = vec![];
             collect_from_pat(&node.name, &mut identifiers);
-            current_scope.extend(identifiers.into_keys().map(|id| (id, IdentType::Var)));
+            current_scope.extend(identifiers.into_iter().map(|(id, _)| (id, IdentType::Var)));
         }
         let o = node.fold_children_with(self);
         if stacked {
@@ -400,14 +400,18 @@ impl<'a> Fold for QwikTransform<'a> {
         self.stack_ctxt.push(node.ident.sym.to_string());
         self.decl_stack.push(vec![]);
 
-        let mut idents: HashMap<Id, Span> = HashMap::new();
+        let mut identifiers = vec![];
         for param in &node.function.params {
-            collect_from_pat(&param.pat, &mut idents);
+            collect_from_pat(&param.pat, &mut identifiers);
         }
         self.decl_stack
             .last_mut()
             .expect("Declaration stack empty!")
-            .extend(idents.into_keys().map(|key| (key, IdentType::Var)));
+            .extend(
+                identifiers
+                    .into_iter()
+                    .map(|(key, _)| (key, IdentType::Var)),
+            );
 
         let o = node.fold_children_with(self);
         self.stack_ctxt.pop();
@@ -424,9 +428,9 @@ impl<'a> Fold for QwikTransform<'a> {
             .expect("Declaration stack empty!");
 
         for param in &node.params {
-            let mut identifiers: HashMap<Id, _> = HashMap::new();
+            let mut identifiers = vec![];
             collect_from_pat(param, &mut identifiers);
-            current_scope.extend(identifiers.into_keys().map(|id| (id, IdentType::Var)));
+            current_scope.extend(identifiers.into_iter().map(|(id, _)| (id, IdentType::Var)));
         }
 
         let o = node.fold_children_with(self);
@@ -619,11 +623,17 @@ impl<'a> Fold for QwikTransform<'a> {
                     if let Some(import) = global_collect.imports.get(&id!(ident)).cloned() {
                         let specifier = import.specifier.to_string();
                         let new_specifier: &str = &specifier[0..specifier.len() - 1];
-                        let (new_local, is_new) =
+                        let new_local =
                             global_collect.import(new_specifier.into(), import.source.clone());
-                        if is_new && self.hook_depth == 0 {
-                            self.extra_module_items
-                                .push(create_synthetic_named_import(&new_local, &import.source));
+
+                        let is_synthetic =
+                            global_collect.imports.get(&new_local).unwrap().synthetic;
+
+                        if is_synthetic && self.hook_depth == 0 {
+                            self.extra_module_items.insert(
+                                new_local.clone(),
+                                create_synthetic_named_import(&new_local, &import.source),
+                            );
                         }
                         replace_callee = Some(new_ident_from_id(&new_local).as_callee());
                     } else {

@@ -26,6 +26,17 @@ export async function getSystem() {
     // using this api object as a way to ensure bundlers
     // do not try to inline or rewrite require()
     sys.dynamicImport = (path) => require(path);
+
+    if (typeof globalThis === 'undefined') {
+      global.globalThis = global;
+    }
+    if (typeof TextEncoder === 'undefined') {
+      // TextEncoder/TextDecoder needs to be on the global scope for the WASM file
+      // https://nodejs.org/api/util.html#class-utiltextdecoder
+      const nodeUtil: any = sys.dynamicImport('util');
+      global.TextEncoder = nodeUtil.TextEncoder;
+      global.TextDecoder = nodeUtil.TextDecoder;
+    }
   }
 
   if (sys.isNode) {

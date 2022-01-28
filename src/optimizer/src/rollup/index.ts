@@ -115,26 +115,27 @@ export function qwikRollup(opts: QwikPluginOptions = {}): any {
         const output = Object.entries(rollupBundle);
 
         const outputEntryMap: OutputEntryMap = {
-          mapping: Object.fromEntries(
-            result.hooks.map((h) => {
-              const symbolName = h.name;
-              let filename = h.canonicalFilename;
-              // eslint-disable-next-line
-              const found = output.find(([_, v]) => {
-                return (
-                  v.type == 'chunk' &&
-                  v.isDynamicEntry === true &&
-                  Object.keys(v.modules).find((f) => f.endsWith(filename))
-                );
-              });
-              if (found) {
-                filename = found[0];
-              }
-              return [symbolName, filename];
-            })
-          ),
+          mapping: {},
           version: '1',
         };
+
+        result.hooks.forEach((h) => {
+          const symbolName = h.name;
+          let filename = h.canonicalFilename;
+          // eslint-disable-next-line
+          const found = output.find(([_, v]) => {
+            return (
+              v.type == 'chunk' &&
+              v.isDynamicEntry === true &&
+              Object.keys(v.modules).find((f) => f.endsWith(filename))
+            );
+          });
+          if (found) {
+            filename = found[0];
+          }
+          outputEntryMap.mapping[symbolName] = filename;
+        });
+
         if (typeof opts.symbolsOutput === 'string') {
           this.emitFile({
             fileName: opts.symbolsOutput,

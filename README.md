@@ -13,7 +13,7 @@ Qwik is designed for the fastest possible page load time, by deliving pure HTML 
 Try out our starter:
 
 ```bash
-npm init qwik
+npm init qwik@latest
 ```
 
 - Understand the difference between [resumable and replayable](https://github.com/BuilderIO/qwik/blob/main/docs/RESUMABLE.md) applications.

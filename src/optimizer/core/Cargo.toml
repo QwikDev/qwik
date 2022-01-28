@@ -12,6 +12,7 @@ categories = ["development-tools", "development-tools::cargo-plugins"]
 [[bench]]
 name = "transform"
 harness = false
+html_reports = true
 
 [lib]
 crate-type = ["rlib"]

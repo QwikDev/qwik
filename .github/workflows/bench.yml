@@ -1,0 +1,86 @@
+name: Benchmark
+
+on:
+  - push
+  - pull_request
+
+jobs:
+  benchmark:
+    name: Performance regression check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Cache
+        uses: actions/cache@v1
+        with:
+          path: |
+            ./cache
+            ~/.cargo/
+            target
+          key: cargo-bench-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            cargo-bench-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: nightly-2021-09-30
+          override: true
+
+      - name: Run benchmark
+        run: cargo +nightly-2021-09-30 bench --workspace | tee output.txt
+
+      - name: Download previous benchmark results
+        run: mkdir raw-data && curl -o raw-data/benchmark-data.json https://raw.githubusercontent.com/BuilderIO/qwik-raw-data/gh-pages/benchmark-data.json
+
+      - name: Analyze benchmark result
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          # What benchmark tool the output.txt came from
+          tool: 'cargo'
+          # Where the output from the benchmark tool is stored
+          output-file-path: output.txt
+          external-data-json-path: ./raw-data/${{ github.sha }}/benchmark-data.json
+          # Workflow will fail when an alert happens
+          fail-on-alert: false
+          # GitHub API token to make a commit comment
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          # Enable alert commit comment
+          comment-on-alert: true
+          comment-always: true
+          alert-comment-cc-users: '@manucorporat'
+          skip-fetch-gh-pages: true
+
+      - name: Analyze benchmark result (root)
+        if: ${{ github.event_name == 'push' }}
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          # What benchmark tool the output.txt came from
+          tool: 'cargo'
+          # Where the output from the benchmark tool is stored
+          output-file-path: output.txt
+          external-data-json-path: ./raw-data/benchmark-data.json
+          # Workflow will fail when an alert happens
+          # fail-on-alert: true
+          # GitHub API token to make a commit comment
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          # Enable alert commit comment
+          comment-on-alert: true
+          comment-always: true
+          alert-comment-cc-users: '@manucorporat'
+          skip-fetch-gh-pages: true
+          max-items-in-chart: 250
+
+      - name: Deploy
+        if: github.ref == 'refs/heads/main'
+        uses: JamesIves/github-pages-deploy-action@4.1.0
+        with:
+          token: ${{ secrets.GH_TOKEN }}
+          branch: gh-pages
+          folder: raw-data
+          clean: false
+          single-commit: false
+          git-config-email: github-bot@builder.io
+          repository-name: BuilderIO/qwik-raw-data
+          commit-message: 'Update'

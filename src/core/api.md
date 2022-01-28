@@ -163,11 +163,13 @@ export type PropsOf<COMP extends (props: any) => JSXNode> = COMP extends (props:
 // @public (undocumented)
 export function qBubble<PAYLOAD>(eventType: string, payload?: PAYLOAD): void;
 
+// Warning: (ae-forgotten-export) The symbol "PossiblyPromise" needs to be exported by the entry point index.d.ts
+//
 // @public (undocumented)
-export function qComponent<PROPS extends {}>(tagName: string, onMount: TypeOrQRL<(props: PROPS) => ReturnType<typeof onRender>>): (props: PROPS) => JSXNode<PROPS>;
+export function qComponent<PROPS extends {}>(tagName: string, onMount: TypeOrQRL<(props: PROPS) => PossiblyPromise<ReturnType<typeof onRender>>>): (props: PROPS) => JSXNode<PROPS>;
 
 // @public (undocumented)
-export function qComponent<PROPS extends {}>(onMount: TypeOrQRL<(props: PROPS) => ReturnType<typeof onRender>>): (props: PROPS) => JSXNode<PROPS>;
+export function qComponent<PROPS extends {}>(onMount: TypeOrQRL<(props: PROPS) => PossiblyPromise<ReturnType<typeof onRender>>>): (props: PROPS) => JSXNode<PROPS>;
 
 // @public (undocumented)
 export function qDehydrate(document: Document): void;

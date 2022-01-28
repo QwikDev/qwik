@@ -6,13 +6,13 @@ fn example_1() {
     test_input(
         "test.tsx",
         r#"
-import { qHook, qComponent, onRender, h } from '@builder.io/qwik';
+import { $, qComponent, onRender } from '@builder.io/qwik';
 
-const Header = qComponent(qHook(() => {
+const Header = qComponent($(() => {
   console.log("mount");
-  onRender(qHook(() => {
+  onRender($(() => {
     return (
-      <div onClick={qHook((ctx) => console.log(ctx))}/>
+      <div onClick={$((ctx) => console.log(ctx))}/>
     );
   }));
 }));
@@ -28,12 +28,12 @@ fn example_2() {
     test_input(
         "test.tsx",
         r#"
-import { qHook, qComponent, onRender, h } from '@builder.io/qwik';
-export const Header = qComponent(() => {
+import { $, qComponent$, onRender$ } from '@builder.io/qwik';
+export const Header = qComponent$(() => {
   console.log("mount");
-  onRender(() => {
+  onRender$(() => {
     return (
-      <div onClick={qHook((ctx) => console.log(ctx))}/>
+      <div onClick={$((ctx) => console.log(ctx))}/>
     );
   });
 });
@@ -49,13 +49,13 @@ fn example_3() {
     test_input(
         "test.tsx",
         r#"
-import { qHook, qComponent, onRender, h } from '@builder.io/qwik';
+import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 export const App = () => {
-    const Header = qComponent(() => {
+    const Header = qComponent$(() => {
         console.log("mount");
         onRende(() => {
             return (
-                <div onClick={qHook((ctx) => console.log(ctx))}/>
+                <div onClick={$((ctx) => console.log(ctx))}/>
             );
         });
     });
@@ -73,13 +73,13 @@ fn example_4() {
     test_input(
         "test.tsx",
         r#"
-import { qHook, qComponent, onRender, h } from '@builder.io/qwik';
+import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 export function App() {
-    const Header = qComponent(() => {
+    const Header = qComponent$(() => {
         console.log("mount");
-        return onRender(() => {
+        return onRender$(() => {
             return (
-                <div onClick={qHook((ctx) => console.log(ctx))}/>
+                <div onClick={$((ctx) => console.log(ctx))}/>
             );
         });
     });
@@ -97,13 +97,13 @@ fn example_5() {
     test_input(
         "test.tsx",
         r#"
-import { qHook, qComponent, onRender, h } from '@builder.io/qwik';
-export const Header = qComponent(() => {
-    onRender(() => {
+import { $, qComponent$, onRender$ } from '@builder.io/qwik';
+export const Header = qComponent$(() => {
+    onRender$(() => {
         return (
             <>
                 <div onClick={(ctx) => console.log("1")}/>
-                <div onClick={qHook((ctx) => console.log("2"))}/>
+                <div onClick={$((ctx) => console.log("2"))}/>
             </>
         );
     })
@@ -120,8 +120,8 @@ fn example_6() {
     test_input(
         "test.tsx",
         r#"
-import { qHook, qComponent, h } from '@builder.io/qwik';
-export const sym1 = qHook((ctx) => console.log("1"));
+import { $, qComponent$ } from '@builder.io/qwik';
+export const sym1 = $((ctx) => console.log("1"));
     "#,
         EntryStrategy::Hook,
         MinifyMode::Simplify,
@@ -134,19 +134,19 @@ fn example_7() {
     test_input(
         "test.tsx",
         r#"
-import { qHook, qComponent, onRender, h } from '@builder.io/qwik';
+import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 
-export const Header = qComponent(() => {
+export const Header = qComponent$(() => {
     console.log("mount");
-    onRender(() => {
+    onRender$(() => {
       return (
-        <div onClick={qHook((ctx) => console.log(ctx))}/>
+        <div onClick={$((ctx) => console.log(ctx))}/>
       );
     });
   });
 
-const App = qComponent(() => {
-    onRender(() => {
+const App = qComponent$(() => {
+    onRender$(() => {
         return (
             <Header/>
         );
@@ -163,10 +163,10 @@ fn example_8() {
     test_input(
         "test.tsx",
         r#"
-import { qHook, qComponent, onRender, h } from '@builder.io/qwik';
+import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 
-export const Header = qComponent(() => {
-    onRender((hola) => {
+export const Header = qComponent$(() => {
+    onRender$((hola) => {
         const hola = this;
         const {something, styff} = hola;
         const hello = hola.nothere.stuff[global];
@@ -187,8 +187,8 @@ fn example_9() {
     test_input(
         "test.tsx",
         r#"
-import { qHook, qComponent, h } from '@builder.io/qwik';
-const Header = qHook((decl1, {decl2}, [decl3]) => {
+import { $, qComponent$ } from '@builder.io/qwik';
+const Header = $((decl1, {decl2}, [decl3]) => {
     const {decl4, key: decl5} = this;
     let [decl6, ...decl7] = stuff;
     const decl8 = 1, decl9;
@@ -211,8 +211,8 @@ fn example_10() {
     test_input(
         "project/test.tsx",
         r#"
-import { qHook, qComponent, h } from '@builder.io/qwik';
-const Header = qHook((decl1, {decl2}, [decl3]) => {
+import { $, qComponent$ } from '@builder.io/qwik';
+const Header = $((decl1, {decl2}, [decl3]) => {
 
     const hola = ident1.no;
     ident2;
@@ -242,23 +242,23 @@ fn example_11() {
     test_input(
         "project/test.tsx",
         r#"
-import { qHook, qComponent, onRender, h } from '@builder.io/qwik';
+import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 import {foo, bar as bbar} from "../state";
 import * as dep2 from "dep2";
 import dep3 from "dep3/something";
 
-export const Header = qComponent(() => {
-    onRender(() => {
+export const Header = qComponent$(() => {
+    onRender$(() => {
         return (
-            <Header onClick={qHook((ev) => dep3(ev))}>
+            <Header onClick={$((ev) => dep3(ev))}>
                 {dep2.stuff()}{bbar()}
             </Header>
         );
     });
 });
 
-export const App = qComponent(() => {
-    onRender(() => {
+export const App = qComponent$(() => {
+    onRender$(() => {
         return (
             <Header>{foo()}</Header>
         );
@@ -276,9 +276,9 @@ fn example_12() {
     test_input(
         "project/test.tsx",
         r#"
-import { qHook, qComponent, h } from '@builder.io/qwik';
-export const Header = qComponent(() => {
-    onRender(() => console.log("hello sym2"), "sym2")
+import { $, qComponent$, onRender$ } from '@builder.io/qwik';
+export const Header = qComponent$(() => {
+    onRender$(() => console.log("hello sym2"), "sym2")
 });
 
     "#,
@@ -293,9 +293,9 @@ fn example_13() {
     test_input(
         "project/test.tsx",
         r#"
-import { qHook, qComponent, onRender, h } from '@builder.io/qwik';
-export const Header = qComponent(() => {
-    onRender(() => console.log("hello sym2"), "2sym")
+import { $, qComponent$, onRender$ } from '@builder.io/qwik';
+export const Header = qComponent$(() => {
+    onRender$(() => console.log("hello sym2"), "2sym")
 });
 
     "#,
@@ -310,12 +310,12 @@ fn example_functional_component() {
     test_input(
         "test.tsx",
         r#"
-        import { qHook, qComponent, onRender, h } from '@builder.io/qwik';
-        const Header = qComponent(() => {
+        import { $, qComponent$, onRender$ } from '@builder.io/qwik';
+        const Header = qComponent$(() => {
             const thing = useStore();
             const {foo, bar} = foo();
 
-            onRender(() => {
+            onRender$(() => {
                 return (
                     <div>{thing}</div>
                 );
@@ -333,26 +333,26 @@ fn example_functional_component_2() {
     test_input(
         "test.tsx",
         r#"
-import { qHook, qComponent, h, onRender } from '@builder.io/qwik';
+import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 export const useCounter = () => {
     return useStore({count: 0});
 }
 
 export const STEP = 1;
 
-export const App = qComponent((props) => {
+export const App = qComponent$((props) => {
     const state = useCounter();
     const thing = useStore({thing: 0});
     const STEP_2 = 2;
 
-    return onRender(() => {
+    return onRender$(() => {
         const count2 = state.count * 2;
         return (
-            <div on:click={() => state.count+=count2 }>
+            <div on$:click={() => state.count+=count2 }>
                 <span>{state.count}</span>
                 {buttons.map(btn => (
                     <button
-                        on:click={() => state.count += btn.offset + thing + STEP + STEP_2 + props.step}
+                        on$:click={() => state.count += btn.offset + thing + STEP + STEP_2 + props.step}
                     >
                         {btn.name}
                     </button>
@@ -375,14 +375,14 @@ fn example_functional_component_capture_props() {
     test_input(
         "test.tsx",
         r#"
-import { qHook, qComponent, h, onRender } from '@builder.io/qwik';
+import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 
-export const App = qComponent(({count, rest: [I2, {I3, v1: [I4], I5=v2, ...I6}, I7=v3, ...I8]}) => {
+export const App = qComponent$(({count, rest: [I2, {I3, v1: [I4], I5=v2, ...I6}, I7=v3, ...I8]}) => {
     const state = useStore({count: 0});
     const {rest: [C2, {C3, v1: [C4], C5=v2, ...C6}, C7=v3, ...C8]} = foo();
-    return onRender(() => {
+    return onRender$(() => {
         return (
-            <div on:click={() => state.count += count + total }>
+            <div on$:click={() => state.count += count + total }>
                 {I2}{I3}{I4}{I5}{I6}{I7}{I8}
                 {C2}{C3}{C4}{C5}{C6}{C7}{C8}
                 {v1}{v2}{v3}
@@ -402,11 +402,11 @@ fn example_multi_capture() {
     test_input(
         "test.tsx",
         r#"
-import { qHook, qComponent, h, onRender } from '@builder.io/qwik';
+import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 
-export const Foo = qComponent(({foo}) => {
+export const Foo = qComponent$(({foo}) => {
     const arg0 = 20;
-    return onRender(() => {
+    return onRender$(() => {
         const fn = ({aaa}) => aaa;
         return (
             <div>
@@ -416,8 +416,8 @@ export const Foo = qComponent(({foo}) => {
     });
 })
 
-export const Bar = qComponent(({bar}) => {
-    return onRender(() => {
+export const Bar = qComponent$(({bar}) => {
+    return onRender$(() => {
         return (
             <div>
               {bar}
@@ -438,10 +438,10 @@ fn example_with_tagname() {
     test_input(
         "test.tsx",
         r#"
-import { qHook, qComponent, h, onRender } from '@builder.io/qwik';
+import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 
-export const Foo = qComponent("my-foo", () => {
-    return onRender(() => {
+export const Foo = qComponent$("my-foo", () => {
+    return onRender$(() => {
         return (
             <div>
             </div>
@@ -460,11 +460,11 @@ fn example_with_style() {
     test_input(
         "test.tsx",
         r#"
-import { qHook, qComponent, h, onRender, withStyle } from '@builder.io/qwik';
+import { $, qComponent$, onRender$, withStyle$ } from '@builder.io/qwik';
 
-export const Foo = qComponent("my-foo", () => {
-    withStyle('.class {}');
-    return onRender(() => {
+export const Foo = qComponent$("my-foo", () => {
+    withStyle$('.class {}');
+    return onRender$(() => {
         return (
             <div class="class"/>
         )
@@ -482,10 +482,10 @@ fn example_lightweight_functional() {
     test_input(
         "test.tsx",
         r#"
-import { qHook, qComponent, h, onRender } from '@builder.io/qwik';
+import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 
-export const Foo = qComponent("my-foo", ({color}) => {
-    return onRender(() => {
+export const Foo = qComponent$("my-foo", ({color}) => {
+    return onRender$(() => {
         return (
             <div>
                 <Button {...props} />
@@ -495,15 +495,15 @@ export const Foo = qComponent("my-foo", ({color}) => {
     });
 })
 
-export function Button({color}) {
+export function Button({text, color}) {
     return (
-        <button color={color} on:click={()=>console.log(text, color)}>{text}</button>
+        <button color={color} on$:click={()=>console.log(text, color)}>{text}</button>
     );
 }
 
-export const ButtonArrow = ({color}) => {
+export const ButtonArrow = ({text, color}) => {
     return (
-        <button color={color} on:click={()=>console.log(text, color)}>{text}</button>
+        <button color={color} on$:click={()=>console.log(text, color)}>{text}</button>
     );
 }
     "#,
@@ -518,17 +518,17 @@ fn example_invalid_references() {
     test_input(
         "test.tsx",
         r#"
-import { qHook, qComponent, h, onRender } from '@builder.io/qwik';
+import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 
 const I1 = 12;
 const [I2, {I3, v1: [I4], I5=v2, ...I6}, I7=v3, ...I8] = obj;
 function I9() {}
 class I10 {}
 
-export const App = qComponent(({count}) => {
+export const App = qComponent$(({count}) => {
     console.log(I1, I2, I3, I4, I5, I6, I7, I8, I9);
     console.log(itsok, v1, v2, v3, obj);
-    return onRender(() => {
+    return onRender$(() => {
         return (
             <I10></I10>
         )
@@ -542,20 +542,68 @@ export const App = qComponent(({count}) => {
 }
 
 #[test]
+fn example_invalid_hook_expr1() {
+    test_input(
+        "test.tsx",
+        r#"
+import { $, qComponent$, onRender$, withStyle$ } from '@builder.io/qwik';
+import css1 from './global.css';
+import css2 from './style.css';
+
+export const App = qComponent$(() => {
+    const style = `${css1}${css2}`;
+    withStyle$(style);
+    const render = () => {
+        return (
+            <div></div>
+        )
+    };
+    const styles =
+    return onRender$(render);
+})
+    "#,
+        EntryStrategy::Hook,
+        MinifyMode::Simplify,
+        true,
+    );
+}
+
+#[test]
+fn example_capture_imports() {
+    test_input(
+        "test.tsx",
+        r#"
+import { qComponent$, withStyle$ } from '@builder.io/qwik';
+import css1 from './global.css';
+import css2 from './style.css';
+import css3 from './style.css';
+
+export const App = qComponent$(() => {
+    withStyle$(`${css1}${css2}`);
+    withStyle$(css3);
+})
+    "#,
+        EntryStrategy::Hook,
+        MinifyMode::Simplify,
+        true,
+    );
+}
+
+#[test]
 fn example_capturing_fn_class() {
     test_input(
         "test.tsx",
         r#"
-import { qHook, qComponent, h, onRender } from '@builder.io/qwik';
+import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 
-export const App = qComponent(() => {
+export const App = qComponent$(() => {
     function hola() {
       console.log('hola');
     }
     class Thing {}
     class Other {}
 
-    return onRender(() => {
+    return onRender$(() => {
       hola();
       new Thing();
       return (
@@ -575,12 +623,12 @@ fn example_renamed_exports() {
     test_input(
         "test.tsx",
         r#"
-import { qComponent as Component, onRender as $, useStore } from '@builder.io/qwik';
+import { qComponent$ as Component, onRender$ as onRender, useStore } from '@builder.io/qwik';
 
 export const App = Component((props) => {
     const state = useStore({thing: 0});
 
-    return $(() => (
+    return onRender(() => (
         <div>{state.thing}</div>
     ));
 });
@@ -596,7 +644,7 @@ fn example_exports() {
     test_input(
         "project/test.tsx",
         r#"
-import { qHook, qComponent, onRender, h } from '@builder.io/qwik';
+import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 
 export const [a, {b, v1: [c], d=v2, ...e}, f=v3, ...g] = obj;
 
@@ -609,8 +657,8 @@ export class bar {}
 
 export default function DefaultFn() {}
 
-export const Header = qComponent(() => {
-    onRender(() => (
+export const Header = qComponent$(() => {
+    onRender$(() => (
         <Footer>
             <div>{a}{b}{c}{d}{e}{f}{exp1}{internal}{foo}{bar}{DefaultFn}</div>
             <div>{v1}{v2}{v3}{obj}</div>
@@ -618,7 +666,7 @@ export const Header = qComponent(() => {
     ))
 });
 
-export const Footer = qComponent();
+export const Footer = qComponent$();
 
     "#,
         EntryStrategy::Hook,
@@ -645,17 +693,17 @@ fn issue_118() {
     test_input(
         "project/test.tsx",
         r#"
-import { qHook, qComponent, onRender, h } from '@builder.io/qwik';
+import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 import thing from 'lib';
 import * as all from 'lib';
 import {s as se} from 'lib';
 
 
-export const Header = qComponent(() => {
-    onRender(() => <Footer>{thing}{all()}{se()}</Footer>)
+export const Header = qComponent$(() => {
+    onRender$(() => <Footer>{thing}{all()}{se()}</Footer>)
 });
 
-export const Footer = qComponent();
+export const Footer = qComponent$();
 
 
     "#,
@@ -670,7 +718,7 @@ fn example_jsx() {
     test_input(
         "test.tsx",
         r#"
-import { qHook, qComponent, h, onRender, withStyle } from '@builder.io/qwik';
+import { $, qComponent$, onRender$, h, Fragment } from '@builder.io/qwik';
 
 export const Lightweight = () => {
     return (
@@ -683,8 +731,8 @@ export const Lightweight = () => {
     )
 };
 
-export const Foo = qComponent("my-foo", () => {
-    return onRender(() => {
+export const Foo = qComponent$("my-foo", () => {
+    return onRender$(() => {
         return (
             <div>
                 <>
@@ -719,20 +767,143 @@ fn example_jsx_listeners() {
     test_input(
         "test.tsx",
         r#"
-import { qHook, qComponent, h, onRender, withStyle } from '@builder.io/qwik';
+import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 
-export const Foo = qComponent("my-foo", () => {
+export const Foo = qComponent$("my-foo", () => {
 
-    return onRender(() => {
+    return onRender$(() => {
+        const handler = $(() => console.log('reused'));
         return (
             <div
-                on:click={()=>console.log('on:click')}
-                onDocument:scroll={()=>console.log('onDocument:scroll')}
-                onWindow:scroll={()=>console.log('onWindow:scroll')}
+                on$:click={()=>console.log('on$:click')}
+                onDocument$:scroll={()=>console.log('onDocument:scroll')}
+                onWindow$:scroll={()=>console.log('onWindow:scroll')}
+
+                on:keyup={handler}
+                onDocument:keyup={handler}
+                onWindow:keyup={handler}
             />
         )
     });
 })
+    "#,
+        EntryStrategy::Hook,
+        MinifyMode::Simplify,
+        true,
+    );
+}
+
+#[test]
+fn example_qwik_conflict() {
+    test_input(
+        "test.tsx",
+        r#"
+import { $, qComponent$, onRender, onRender$ } from '@builder.io/qwik';
+
+const qComponent = () => console.log('not this');
+qComponent();
+export const Foo = qComponent$("my-foo", () => {
+    const qwik = 12;
+    console.log(qwik);
+    return onRender$(() => {
+        return (
+            <div/>
+        )
+    });
+})
+
+export const Root = qComponent$("my-foo", () => {
+    return onRender($(() => {
+        return (
+            <div/>
+        )
+    }));
+}))
+    "#,
+        EntryStrategy::Hook,
+        MinifyMode::Simplify,
+        true,
+    );
+}
+
+#[test]
+fn example_custom_inlined_functions() {
+    test_input(
+        "test.tsx",
+        r#"
+import { qComponent$, onRender$, useStore, wrap, useEffect } from '@builder.io/qwik';
+
+export const useMemo = (qrt) => {
+    useEffect(qrt);
+};
+
+export const useMemo$ = wrap(useMemo);
+
+export const App = qComponent$((props) => {
+    const state = useStore({count: 0});
+    useMemo$(() => {
+        console.log(state.count);
+    });
+    return onRender$(() => (
+        <div>{state.count}</div>
+    ));
+});
+
+export const Lightweight = (props) => {
+    useMemo$(() => {
+        console.log(state.count);
+    });
+});
+    "#,
+        EntryStrategy::Hook,
+        MinifyMode::Simplify,
+        true,
+    );
+}
+
+#[test]
+fn example_missing_custom_inlined_functions() {
+    test_input(
+        "test.tsx",
+        r#"
+import { qComponent$ as Component, onRender$, useStore, wrap, useEffect } from '@builder.io/qwik';
+
+
+export const useMemo$ = (qrt) => {
+    useEffect(qrt);
+};
+
+export const App = qComponent$((props) => {
+    const state = useStore({count: 0});
+    useMemo$(() => {
+        console.log(state.count);
+    });
+    return onRender$(() => (
+        <div>{state.count}</div>
+    ));
+});
+    "#,
+        EntryStrategy::Hook,
+        MinifyMode::Simplify,
+        true,
+    );
+}
+
+#[test]
+fn example_skip_transform() {
+    test_input(
+        "test.tsx",
+        r#"
+import { qComponent$ as Component, onRender$ as onRender, useStore } from '@builder.io/qwik';
+
+export const handler = $(()=>console.log('hola'));
+
+export const App = qComponent$((props) => {
+    withStyle$('hola');
+    return onRender$(() => (
+        <div>{state.thing}</div>
+    ));
+});
     "#,
         EntryStrategy::Hook,
         MinifyMode::Simplify,

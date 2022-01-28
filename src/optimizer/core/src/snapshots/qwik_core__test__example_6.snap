@@ -1,23 +1,24 @@
 ---
 source: src/optimizer/core/src/test.rs
+assertion_line: 919
 expression: output
 
 ---
 ==INPUT==
 
 
-import { qHook, qComponent, h } from '@builder.io/qwik';
-export const sym1 = qHook((ctx) => console.log("1"));
+import { $, qComponent$ } from '@builder.io/qwik';
+export const sym1 = $((ctx) => console.log("1"));
     
 ============================= test.tsx ==
 
-import * as __qwik__ from "@builder.io/qwik";
-export const sym1 = __qwik__.qrl(()=>import("./h_test_sym1")
+import * as qwik from "@builder.io/qwik";
+export const sym1 = qwik.qrl(()=>import("./h_test_sym1")
 , "sym1");
 
 ============================= h_test_sym1.tsx (ENTRY POINT)==
 
-import * as __qwik__ from "@builder.io/qwik";
+import * as qwik from "@builder.io/qwik";
 export const sym1 = (ctx)=>console.log("1")
 ;
 

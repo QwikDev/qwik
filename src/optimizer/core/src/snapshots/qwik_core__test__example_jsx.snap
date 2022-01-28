@@ -1,13 +1,13 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 811
+assertion_line: 919
 expression: output
 
 ---
 ==INPUT==
 
 
-import { qHook, qComponent, h, onRender, withStyle } from '@builder.io/qwik';
+import { $, qComponent$, onRender$, h, Fragment } from '@builder.io/qwik';
 
 export const Lightweight = () => {
     return (
@@ -20,8 +20,8 @@ export const Lightweight = () => {
     )
 };
 
-export const Foo = qComponent("my-foo", () => {
-    return onRender(() => {
+export const Foo = qComponent$("my-foo", () => {
+    return onRender$(() => {
         return (
             <div>
                 <>
@@ -48,8 +48,8 @@ export const Foo = qComponent("my-foo", () => {
 ============================= test.js ==
 
 import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
-import * as __qwik__ from "@builder.io/qwik";
-import { qComponent } from '@builder.io/qwik';
+import * as qwik from "@builder.io/qwik";
+import { qComponent } from "@builder.io/qwik";
 export const Lightweight = ()=>{
     return(/*#__PURE__*/ _jsx("div", {
         children: /*#__PURE__*/ _jsxs(_Fragment, {
@@ -60,15 +60,16 @@ export const Lightweight = ()=>{
         })
     }));
 };
-export const Foo = /*#__PURE__*/ qComponent("my-foo", __qwik__.qrl(()=>import("./h_test_foo_onmount")
+export const Foo = /*#__PURE__*/ qComponent("my-foo", qwik.qrl(()=>import("./h_test_foo_onmount")
 , "Foo_onmount"));
 
 ============================= h_test_foo_onrender.js (ENTRY POINT)==
 
 import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
-import * as __qwik__ from "@builder.io/qwik";
+import * as qwik from "@builder.io/qwik";
 import { Lightweight } from "./test";
 import { h } from "@builder.io/qwik";
+import { Fragment } from "@builder.io/qwik";
 export const Foo_onRender = ()=>{
     return(/*#__PURE__*/ _jsxs("div", {
         children: [
@@ -108,10 +109,10 @@ export const Foo_onRender = ()=>{
 
 ============================= h_test_foo_onmount.js (ENTRY POINT)==
 
-import * as __qwik__ from "@builder.io/qwik";
+import * as qwik from "@builder.io/qwik";
 import { onRender } from "@builder.io/qwik";
 export const Foo_onmount = ()=>{
-    return onRender(__qwik__.qrl(()=>import("./h_test_foo_onrender")
+    return onRender(qwik.qrl(()=>import("./h_test_foo_onrender")
     , "Foo_onRender"));
 };
 

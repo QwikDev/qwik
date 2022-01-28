@@ -7,6 +7,7 @@ const config: PlaywrightTestConfig = {
       height: 600,
     },
   },
+  retries: 3,
   webServer: {
     command: 'node starters/dev-server.cjs 3301',
     port: 3301,

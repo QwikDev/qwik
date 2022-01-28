@@ -29,7 +29,7 @@ jobs:
           override: true
 
       - name: Run benchmark
-        run: cargo +nightly-2021-09-30 bench --all | tee output.txt
+        run: cargo +nightly-2021-09-30 bench --workspace | tee output.txt
 
       - name: Download previous benchmark results
         run: mkdir raw-data && curl -o raw-data/benchmark-data.json https://raw.githubusercontent.com/BuilderIO/qwik-raw-data/gh-pages/benchmark-data.json
@@ -38,7 +38,7 @@ jobs:
         uses: benchmark-action/github-action-benchmark@v1
         with:
           # What benchmark tool the output.txt came from
-          tool: "cargo"
+          tool: 'cargo'
           # Where the output from the benchmark tool is stored
           output-file-path: output.txt
           external-data-json-path: ./raw-data/${{ github.sha }}/benchmark-data.json
@@ -49,7 +49,7 @@ jobs:
           # Enable alert commit comment
           comment-on-alert: true
           comment-always: true
-          alert-comment-cc-users: "@manucorporat"
+          alert-comment-cc-users: '@manucorporat'
           skip-fetch-gh-pages: true
 
       - name: Analyze benchmark result (root)
@@ -57,7 +57,7 @@ jobs:
         uses: benchmark-action/github-action-benchmark@v1
         with:
           # What benchmark tool the output.txt came from
-          tool: "cargo"
+          tool: 'cargo'
           # Where the output from the benchmark tool is stored
           output-file-path: output.txt
           external-data-json-path: ./raw-data/benchmark-data.json
@@ -68,7 +68,7 @@ jobs:
           # Enable alert commit comment
           comment-on-alert: true
           comment-always: true
-          alert-comment-cc-users: "@manucorporat"
+          alert-comment-cc-users: '@manucorporat'
           skip-fetch-gh-pages: true
           max-items-in-chart: 250
 
@@ -83,4 +83,4 @@ jobs:
           single-commit: false
           git-config-email: github-bot@builder.io
           repository-name: BuilderIO/qwik-raw-data
-          commit-message: "Update"
+          commit-message: 'Update'

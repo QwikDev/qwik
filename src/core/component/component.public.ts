@@ -11,146 +11,382 @@ import { AttributeMarker } from '../util/markers';
 import { styleKey } from './qrl-styles';
 import type { QwikEvents } from '../render/jsx/types/jsx-qwik-attributes';
 
+// <docs markdown="./component.public.md#onUnmount">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit ./component.public.md instead)
 /**
- * @public
+ * A lazy-loadable reference to a component's destroy hook.
+ * 
+ * Invoked when the component is destroyed (removed from render tree).
  */
+// </docs>
 export function onUnmount(unmountFn: QRL<() => void>): void {
   throw new Error('IMPLEMENT: onUnmount' + unmountFn);
 }
 
+// <docs markdown="./component.public.md#onUnmount">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit ./component.public.md instead)
 /**
- * @public
+ * A lazy-loadable reference to a component's destroy hook.
+ * 
+ * Invoked when the component is destroyed (removed from render tree).
  */
+// </docs>
 export const onUnmount$ = implicit$FirstArg(onUnmount);
 
+// <docs markdown="./component.public.md#onResume">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit ./component.public.md instead)
 /**
- * @public
+ * A lazy-loadable reference to a component's on resume hook.
+ * 
+ * The hook is eagerly invoked when the application resumes on the client. Because it is called
+ * eagerly, this allows the component to hydrate even if no user interaction has taken place.
  */
+// </docs>
 export function onResume(resumeFn: QRL<() => void>): void {
   throw new Error('IMPLEMENT: onRender' + resumeFn);
 }
 
+// <docs markdown="./component.public.md#onResume">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit ./component.public.md instead)
 /**
- * @public
+ * A lazy-loadable reference to a component's on resume hook.
+ * 
+ * The hook is eagerly invoked when the application resumes on the client. Because it is called
+ * eagerly, this allows the component to hydrate even if no user interaction has taken place.
  */
+// </docs>
 export const onResume$ = implicit$FirstArg(onResume);
 
+// <docs markdown="./component.public.md#onHydrate">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit ./component.public.md instead)
 /**
- * @public
+ * A lazy-loadable reference to a component's on hydrate hook.
+ * 
+ * Invoked when the component's state is re-hydrated from serialization. This allows the
+ * component to do any work to re-activate itself.
  */
-export function onHalt(haltFn: QRL<() => void>): void {
-  throw new Error('IMPLEMENT: onRender' + haltFn);
-}
-
-/**
- * @public
- */
-export const onHalt$ = implicit$FirstArg(onHalt);
-
-/**
- * @public
- */
+// </docs>
 export function onHydrate(hydrateFn: QRL<() => void>): void {
   throw new Error('IMPLEMENT: onHydrate' + hydrateFn);
 }
 
+// <docs markdown="./component.public.md#onHydrate">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit ./component.public.md instead)
 /**
- * @public
+ * A lazy-loadable reference to a component's on hydrate hook.
+ * 
+ * Invoked when the component's state is re-hydrated from serialization. This allows the
+ * component to do any work to re-activate itself.
  */
+// </docs>
 export const onHydrate$ = implicit$FirstArg(onHydrate);
 
+// <docs markdown="./component.public.md#onDehydrate">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit ./component.public.md instead)
 /**
- * @public
+ * A lazy-loadable reference to a component's on dehydrate hook.
+ * 
+ * Invoked when the component's state is being serialized (dehydrated) into the DOM. This allows
+ * the component to do last-minute clean-up before its state is serialized.
+ * 
+ * Typically used with transient state.
  */
+// </docs>
 export function onDehydrate(dehydrateFn: QRL<() => void>): void {
   throw new Error('IMPLEMENT: onDehydrate' + dehydrateFn);
 }
 
+// <docs markdown="./component.public.md#onDehydrate">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit ./component.public.md instead)
 /**
- * @public
+ * A lazy-loadable reference to a component's on dehydrate hook.
+ * 
+ * Invoked when the component's state is being serialized (dehydrated) into the DOM. This allows
+ * the component to do last-minute clean-up before its state is serialized.
+ * 
+ * Typically used with transient state.
  */
+// </docs>
 export const onDehydrate$ = implicit$FirstArg(onDehydrate);
 
+// <docs markdown="./component.public.md#onRender">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit ./component.public.md instead)
 /**
- * @public
+ * A lazy-loadable reference to a component's render hook.
+ * 
+ * See: `component`
+ * 
+ * ### Example
+ * 
+ * ```typescript
+ * const Counter = component$((props: { name: string }) => {
+ *   return onRender$(() => <div>{props.name}</div>);
+ * });
+ * ```
  */
 export function onRender<T>(renderFn: QRL<() => JSXNode<T>>): QRL<() => JSXNode<T>> {
   return toQrlOrError(renderFn);
 }
 
+// <docs markdown="./component.public.md#onRender">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit ./component.public.md instead)
 /**
- * @public
+ * A lazy-loadable reference to a component's render hook.
+ * 
+ * See: `component`
+ * 
+ * ### Example
+ * 
+ * ```typescript
+ * const Counter = component$((props: { name: string }) => {
+ *   return onRender$(() => <div>{props.name}</div>);
+ * });
+ * ```
  */
+// </docs>
 export const onRender$ = implicit$FirstArg(onRender);
 
+// <docs markdown="./component.public.md#on">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit ./component.public.md instead)
 /**
+ * Register a listener on the current component's host element.
+ * 
+ * Used to programmatically add event listeners. Useful from custom `use*` methods, which do not
+ * have access to the JSX.
+ * 
+ * See: `on`, `onWindow`, `onDocument`.
+ * 
  * @public
  */
+// </docs>
 export function on(event: string, eventFn: QRL<() => void>): QRL<() => void> {
   throw new Error('IMPLEMENT: on' + eventFn);
 }
 
+// <docs markdown="./component.public.md#onDocument">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit ./component.public.md instead)
 /**
+ * Register a listener on `document`.
+ * 
+ * Used to programmatically add event listeners. Useful from custom `use*` methods, which do not
+ * have access to the JSX.
+ * 
+ * See: `on`, `onWindow`, `onDocument`.
+ * 
  * @public
  */
+// </docs>
 export function onDocument(event: string, eventFn: QRL<() => void>): QRL<() => void> {
   throw new Error('IMPLEMENT: onDocument' + eventFn);
 }
 
+// <docs markdown="./component.public.md#onWindow">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit ./component.public.md instead)
 /**
+ * Register a listener on `window`.
+ * 
+ * Used to programmatically add event listeners. Useful from custom `use*` methods, which do not
+ * have access to the JSX.
+ * 
+ * See: `on`, `onWindow`, `onDocument`.
+ * 
  * @public
  */
+// </docs>
 export function onWindow(event: string, eventFn: QRL<() => void>): QRL<() => void> {
   throw new Error('IMPLEMENT: onWindow' + eventFn);
 }
 
+// <docs markdown="./component.public.md#withStyles">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit ./component.public.md instead)
 /**
- * @public
+ * @alpha
  */
+// </docs>
 export function withStyles(styles: QRL<string>): void {
   _withStyles(styles, false);
 }
 
+// <docs markdown="./component.public.md#withStyles">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit ./component.public.md instead)
 /**
- * @public
+ * @alpha
  */
+// </docs>
 export const withStyles$ = implicit$FirstArg(withStyles);
 
+// <docs markdown="./component.public.md#withScopedStyles">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit ./component.public.md instead)
 /**
- * @public
+ * @alpha
  */
+// </docs>
 export function withScopedStyles(styles: QRL<string>): void {
   _withStyles(styles, true);
 }
 
+// <docs markdown="./component.public.md#withScopedStyles">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit ./component.public.md instead)
 /**
- * @public
+ * @alpha
  */
+// </docs>
 export const withScopedStyles$ = implicit$FirstArg(withScopedStyles);
 
+<<<<<<< HEAD
 export type ProbablyPromise<T> = Promise<T> | T;
 
 export type OnMountFn<PROPS> = (props: PROPS) => ProbablyPromise<ReturnType<typeof onRender>>;
 
+=======
+// <docs markdown="./component.public.md#PropsOf">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit ./component.public.md instead)
+>>>>>>> e98747c (docs: Add jsdocs for component APIs)
 /**
+ * Infers `Props` from component.
+ * 
+ * ```typescript
+ * export const OtherComponent = component$(() => {
+ *   return onRender$(() => <Counter value={100} />);
+ * });
+ * ```
+ * 
  * @public
  */
+// </docs>
 export type PropsOf<COMP extends (props: any) => JSXNode> = COMP extends (
   props: infer PROPS
 ) => JSXNode<any>
   ? PROPS
   : never;
 
+// <docs markdown="./component.public.md#component">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit ./component.public.md instead)
 /**
+ * Declare a Qwik component that can be used to create UI.
+ * 
+ * Use `component` (and `component$`) to declare a Qwik component. Qwik component is a special
+ * kind of component that allows the Qwik framework to lazy load and executed the component
+ * independently of other Qwik components as well as lazy load the component's life-cycle hooks
+ * and event handlers.
+ * 
+ * Side note: You can also declare regular (standard JSX) components that will have standard
+ * synchronous behavior.
+ * 
+ * Qwik component is a facade that describes how the component should be used without forcing the
+ * implementation of the component to be eagerly loaded. A minimum Qwik definition consists of:
+ * 
+ * - Component `onMount` method, which needs to return an
+ * - `onRender` closure which constructs the component's JSX.
+ * 
+ * ### Example:
+ * 
+ * Example showing how to create a counter component.
+ * 
+ * ```typescript
+ * export const Counter = component$((props: { value?: number; step?: number }) => {
+ *   const state = useStore({ count: props.value || 0 });
+ *   return onRender$(() => (
+ *     <div>
+ *       <span>{state.count}</span>
+ *       <button on$:click={() => (state.count += props.step || 1)}>+</button>
+ *     </div>
+ *   ));
+ * });
+ * ```
+ * 
+ * - `component$` is how a component gets declared.
+ * - `{ value?: number; step?: number }` declares the public (props) interface of the component.
+ * - `{ count: number }` declares the private (state) interface of the component.
+ * - `onMount` closure: is used to create data store (see: `useStore`);
+ * - `onRender$`: is required hook for rendering the component.
+ * - `$`: mark which parts of the component will be lazy-loaded. (see `$` for details.)
+ * 
+ * The above can than be used like so:
+ * 
+ * ```typescript
+ * export const OtherComponent = component$(() => {
+ *   return onRender$(() => <Counter value={100} />);
+ * });
+ * ```
+ * 
+ * See also: `component`, `onRender`, `onUnmount`, `onHydrate`, `onDehydrate`, `onHalt`,
+ * `onResume`, `on`, `onDocument`, `onWindow`, `withStyles`, `withScopedStyles`
+ * 
+ * @param tagName: Optional element tag-name to be used for the component's host element.
+ * @param onMount: Initialization closure used when the component is first created.
+ * 
  * @public
  */
+// </docs>
 export function component<PROPS extends {}>(
   tagName: string,
+<<<<<<< HEAD
   onMount: QRL<OnMountFn<PROPS>>
 ): (props: PROPS & QwikEvents) => JSXNode<unknown>;
+=======
+  onMount: QRL<(props: PROPS) => ReturnType<typeof onRender>>
+): (props: PROPS) => JSXNode<PROPS>;
+// <docs markdown="./component.public.md#component">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit ./component.public.md instead)
+>>>>>>> e98747c (docs: Add jsdocs for component APIs)
 /**
+ * Declare a Qwik component that can be used to create UI.
+ * 
+ * Use `component` (and `component$`) to declare a Qwik component. Qwik component is a special
+ * kind of component that allows the Qwik framework to lazy load and executed the component
+ * independently of other Qwik components as well as lazy load the component's life-cycle hooks
+ * and event handlers.
+ * 
+ * Side note: You can also declare regular (standard JSX) components that will have standard
+ * synchronous behavior.
+ * 
+ * Qwik component is a facade that describes how the component should be used without forcing the
+ * implementation of the component to be eagerly loaded. A minimum Qwik definition consists of:
+ * 
+ * - Component `onMount` method, which needs to return an
+ * - `onRender` closure which constructs the component's JSX.
+ * 
+ * ### Example:
+ * 
+ * Example showing how to create a counter component.
+ * 
+ * ```typescript
+ * export const Counter = component$((props: { value?: number; step?: number }) => {
+ *   const state = useStore({ count: props.value || 0 });
+ *   return onRender$(() => (
+ *     <div>
+ *       <span>{state.count}</span>
+ *       <button on$:click={() => (state.count += props.step || 1)}>+</button>
+ *     </div>
+ *   ));
+ * });
+ * ```
+ * 
+ * - `component$` is how a component gets declared.
+ * - `{ value?: number; step?: number }` declares the public (props) interface of the component.
+ * - `{ count: number }` declares the private (state) interface of the component.
+ * - `onMount` closure: is used to create data store (see: `useStore`);
+ * - `onRender$`: is required hook for rendering the component.
+ * - `$`: mark which parts of the component will be lazy-loaded. (see `$` for details.)
+ * 
+ * The above can than be used like so:
+ * 
+ * ```typescript
+ * export const OtherComponent = component$(() => {
+ *   return onRender$(() => <Counter value={100} />);
+ * });
+ * ```
+ * 
+ * See also: `component`, `onRender`, `onUnmount`, `onHydrate`, `onDehydrate`, `onHalt`,
+ * `onResume`, `on`, `onDocument`, `onWindow`, `withStyles`, `withScopedStyles`
+ * 
+ * @param tagName: Optional element tag-name to be used for the component's host element.
+ * @param onMount: Initialization closure used when the component is first created.
+ * 
  * @public
  */
+// </docs>
 export function component<PROPS extends {}>(
   onMount: QRL<OnMountFn<PROPS>>
 ): (props: PROPS & QwikEvents) => JSXNode<unknown>;
@@ -158,9 +394,15 @@ export function component<PROPS extends {}>(
  * @public
  */
 export function component<PROPS extends {}>(
+<<<<<<< HEAD
   tagNameOrONMount: string | QRL<OnMountFn<PROPS>>,
   onMount?: QRL<OnMountFn<PROPS>>
 ) {
+=======
+  tagNameOrONMount: string | QRL<(props: PROPS) => ReturnType<typeof onRender>>,
+  onMount?: QRL<(props: PROPS) => ReturnType<typeof onRender>>
+): (props: PROPS) => JSXNode<PROPS> {
+>>>>>>> e98747c (docs: Add jsdocs for component APIs)
   // Sort of the argument position based on type / overload
   const hasTagName = typeof tagNameOrONMount == 'string';
   const tagName = hasTagName ? tagNameOrONMount : 'div';
@@ -181,13 +423,76 @@ export function component<PROPS extends {}>(
   };
 }
 
+// <docs markdown="./component.public.md#component">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit ./component.public.md instead)
 /**
- *
+ * Declare a Qwik component that can be used to create UI.
+ * 
+ * Use `component` (and `component$`) to declare a Qwik component. Qwik component is a special
+ * kind of component that allows the Qwik framework to lazy load and executed the component
+ * independently of other Qwik components as well as lazy load the component's life-cycle hooks
+ * and event handlers.
+ * 
+ * Side note: You can also declare regular (standard JSX) components that will have standard
+ * synchronous behavior.
+ * 
+ * Qwik component is a facade that describes how the component should be used without forcing the
+ * implementation of the component to be eagerly loaded. A minimum Qwik definition consists of:
+ * 
+ * - Component `onMount` method, which needs to return an
+ * - `onRender` closure which constructs the component's JSX.
+ * 
+ * ### Example:
+ * 
+ * Example showing how to create a counter component.
+ * 
+ * ```typescript
+ * export const Counter = component$((props: { value?: number; step?: number }) => {
+ *   const state = useStore({ count: props.value || 0 });
+ *   return onRender$(() => (
+ *     <div>
+ *       <span>{state.count}</span>
+ *       <button on$:click={() => (state.count += props.step || 1)}>+</button>
+ *     </div>
+ *   ));
+ * });
+ * ```
+ * 
+ * - `component$` is how a component gets declared.
+ * - `{ value?: number; step?: number }` declares the public (props) interface of the component.
+ * - `{ count: number }` declares the private (state) interface of the component.
+ * - `onMount` closure: is used to create data store (see: `useStore`);
+ * - `onRender$`: is required hook for rendering the component.
+ * - `$`: mark which parts of the component will be lazy-loaded. (see `$` for details.)
+ * 
+ * The above can than be used like so:
+ * 
+ * ```typescript
+ * export const OtherComponent = component$(() => {
+ *   return onRender$(() => <Counter value={100} />);
+ * });
+ * ```
+ * 
+ * See also: `component`, `onRender`, `onUnmount`, `onHydrate`, `onDehydrate`, `onHalt`,
+ * `onResume`, `on`, `onDocument`, `onWindow`, `withStyles`, `withScopedStyles`
+ * 
+ * @param tagName: Optional element tag-name to be used for the component's host element.
+ * @param onMount: Initialization closure used when the component is first created.
+ * 
  * @public
  */
+<<<<<<< HEAD
 export function component$<PROPS extends {}>(onMount: OnMountFn<PROPS>) {
+=======
+// </docs>
+export function component$<PROPS>(
+  onMount: (props: PROPS) => ReturnType<typeof onRender>
+): (props: PROPS) => JSXNode<PROPS> {
+>>>>>>> e98747c (docs: Add jsdocs for component APIs)
   return component($(onMount));
 }
+
+type OnMountFn<PROPS> = (props: PROPS) => ReturnType<typeof onRender>;
 
 function resolveQrl<PROPS extends {}>(
   hostElement: Element,

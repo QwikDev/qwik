@@ -61,29 +61,35 @@ export const ArchApp = component$((props: { monolith: Cmp; islands: Cmp; uIslets
   ));
 });
 
-export const Browser = component('browser', $(() => {
-  return onRender$(() => (
-    <div class="browser">
-      <div class="browser-url">
-        <span>⇦ ⇨ ⟳</span>
-        <input value="http://localhost/" />
+export const Browser = component(
+  'browser',
+  $(() => {
+    return onRender$(() => (
+      <div class="browser">
+        <div class="browser-url">
+          <span>⇦ ⇨ ⟳</span>
+          <input value="http://localhost/" />
+        </div>
+        <div class="browser-body">
+          <Slot />
+        </div>
       </div>
-      <div class="browser-body">
-        <Slot />
-      </div>
-    </div>
-  ));
-}));
+    ));
+  })
+);
 
-export const Component = component('component', $((props: { cmp: Cmp; arch: ArchMode }) => {
-  return onRender$(() => (
-    <Host class={getCmpClass(props.cmp)} on:click={Component_click}>
-      {props.cmp.children &&
-        props.cmp.children.map((cmp) => <Component cmp={cmp} arch={props.arch} />)}
-      {props.cmp.children ? null : '...'}
-    </Host>
-  ));
-}));
+export const Component = component(
+  'component',
+  $((props: { cmp: Cmp; arch: ArchMode }) => {
+    return onRender$(() => (
+      <Host class={getCmpClass(props.cmp)} on:click={Component_click}>
+        {props.cmp.children &&
+          props.cmp.children.map((cmp) => <Component cmp={cmp} arch={props.arch} />)}
+        {props.cmp.children ? null : '...'}
+      </Host>
+    ));
+  })
+);
 
 export const Component_click = async () => {
   // TODO(misko): Workaround for the fact that the click listener is sitting on `<Host>` and hence

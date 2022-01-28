@@ -27,13 +27,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - uses: dorny/paths-filter@v2
-        id: changes
-        with:
-          filters: |
-            optimizer:
-              - 'src/optimizer/core/**'
-
       - name: Cache
         uses: actions/cache@v1
         with:
@@ -76,7 +69,8 @@ jobs:
           alert-comment-cc-users: '@manucorporat'
           skip-fetch-gh-pages: true
 
-      - if: ${{ github.event_name == 'push' }}
+      - name: Analyze benchmark result (root)
+        if: ${{ github.event_name == 'push' }}
         uses: benchmark-action/github-action-benchmark@v1
         with:
           # What benchmark tool the output.txt came from

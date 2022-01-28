@@ -1,14 +1,14 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 741
+assertion_line: 919
 expression: output
 
 ---
 ==INPUT==
 
 
-import { qHook, qComponent, h } from '@builder.io/qwik';
-const Header = qHook((decl1, {decl2}, [decl3]) => {
+import { $, qComponent$ } from '@builder.io/qwik';
+const Header = $((decl1, {decl2}, [decl3]) => {
     const {decl4, key: decl5} = this;
     let [decl6, ...decl7] = stuff;
     const decl8 = 1, decl9;
@@ -22,13 +22,13 @@ const Header = qHook((decl1, {decl2}, [decl3]) => {
     
 ============================= test.tsx ==
 
-import * as __qwik__ from "@builder.io/qwik";
-__qwik__.qrl(()=>import("./h_test_header")
+import * as qwik from "@builder.io/qwik";
+qwik.qrl(()=>import("./h_test_header")
 , "Header");
 
 ============================= h_test_header.tsx (ENTRY POINT)==
 
-import * as __qwik__ from "@builder.io/qwik";
+import * as qwik from "@builder.io/qwik";
 export const Header = (decl1, { decl2  }, [decl3])=>{
     const { decl4 , key: decl5  } = this;
     let [decl6, ...decl7] = stuff;

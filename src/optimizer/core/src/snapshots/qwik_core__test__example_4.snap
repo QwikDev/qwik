@@ -1,19 +1,19 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 737
+assertion_line: 919
 expression: output
 
 ---
 ==INPUT==
 
 
-import { qHook, qComponent, onRender, h } from '@builder.io/qwik';
+import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 export function App() {
-    const Header = qComponent(() => {
+    const Header = qComponent$(() => {
         console.log("mount");
-        return onRender(() => {
+        return onRender$(() => {
             return (
-                <div onClick={qHook((ctx) => console.log(ctx))}/>
+                <div onClick={$((ctx) => console.log(ctx))}/>
             );
         });
     });
@@ -22,36 +22,35 @@ export function App() {
     
 ============================= test.tsx ==
 
-import * as __qwik__ from "@builder.io/qwik";
-import { qComponent } from '@builder.io/qwik';
+import * as qwik from "@builder.io/qwik";
+import { qComponent } from "@builder.io/qwik";
 export function App() {
-    const Header = /*#__PURE__*/ qComponent(__qwik__.qrl(()=>import("./h_test_app_header")
+    const Header = /*#__PURE__*/ qComponent(qwik.qrl(()=>import("./h_test_app_header")
     , "App_Header"));
     return Header;
 }
 
 ============================= h_test_app_header_onrender_div_onclick.tsx (ENTRY POINT)==
 
-import * as __qwik__ from "@builder.io/qwik";
+import * as qwik from "@builder.io/qwik";
 export const App_Header_onRender_div_onClick = (ctx)=>console.log(ctx)
 ;
 
 ============================= h_test_app_header_onrender.tsx (ENTRY POINT)==
 
-import * as __qwik__ from "@builder.io/qwik";
-import { h } from "@builder.io/qwik";
+import * as qwik from "@builder.io/qwik";
 export const App_Header_onRender = ()=>{
-    return <div onClick={__qwik__.qrl(()=>import("./h_test_app_header_onrender_div_onclick")
+    return <div onClick={qwik.qrl(()=>import("./h_test_app_header_onrender_div_onclick")
     , "App_Header_onRender_div_onClick")}/>;
 };
 
 ============================= h_test_app_header.tsx (ENTRY POINT)==
 
-import * as __qwik__ from "@builder.io/qwik";
+import * as qwik from "@builder.io/qwik";
 import { onRender } from "@builder.io/qwik";
 export const App_Header = ()=>{
     console.log("mount");
-    return onRender(__qwik__.qrl(()=>import("./h_test_app_header_onrender")
+    return onRender(qwik.qrl(()=>import("./h_test_app_header_onrender")
     , "App_Header_onRender"));
 };
 

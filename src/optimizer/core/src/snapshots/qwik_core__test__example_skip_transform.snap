@@ -1,0 +1,40 @@
+---
+source: src/optimizer/core/src/test.rs
+assertion_line: 909
+expression: output
+
+---
+==INPUT==
+
+
+import { qComponent$ as Component, onRender$ as onRender, useStore } from '@builder.io/qwik';
+
+export const handler = $(()=>console.log('hola'));
+
+export const App = qComponent$((props) => {
+    withStyle$('hola');
+    return onRender$(() => (
+        <div>{state.thing}</div>
+    ));
+});
+    
+============================= test.js ==
+
+import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
+export const handler = $(()=>console.log('hola')
+);
+export const App = qComponent$((props)=>{
+    withStyle$('hola');
+    return onRender$(()=>/*#__PURE__*/ _jsx("div", {
+            children: state.thing
+        })
+    );
+});
+
+== HOOKS ==
+
+[]
+
+== DIAGNOSTICS ==
+
+[]

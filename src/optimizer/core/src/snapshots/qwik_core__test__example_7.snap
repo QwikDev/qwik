@@ -1,25 +1,25 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 811
+assertion_line: 919
 expression: output
 
 ---
 ==INPUT==
 
 
-import { qHook, qComponent, onRender, h } from '@builder.io/qwik';
+import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 
-export const Header = qComponent(() => {
+export const Header = qComponent$(() => {
     console.log("mount");
-    onRender(() => {
+    onRender$(() => {
       return (
-        <div onClick={qHook((ctx) => console.log(ctx))}/>
+        <div onClick={$((ctx) => console.log(ctx))}/>
       );
     });
   });
 
-const App = qComponent(() => {
-    onRender(() => {
+const App = qComponent$(() => {
+    onRender$(() => {
         return (
             <Header/>
         );
@@ -27,53 +27,51 @@ const App = qComponent(() => {
 });
 ============================= test.tsx ==
 
-import * as __qwik__ from "@builder.io/qwik";
-import { qComponent } from '@builder.io/qwik';
-export const Header = /*#__PURE__*/ qComponent(__qwik__.qrl(()=>import("./h_test_header_onmount")
+import * as qwik from "@builder.io/qwik";
+import { qComponent } from "@builder.io/qwik";
+export const Header = /*#__PURE__*/ qComponent(qwik.qrl(()=>import("./h_test_header_onmount")
 , "Header_onmount"));
-/*#__PURE__*/ qComponent(__qwik__.qrl(()=>import("./h_test_app_onmount")
+/*#__PURE__*/ qComponent(qwik.qrl(()=>import("./h_test_app_onmount")
 , "App_onmount"));
 
 ============================= h_test_header_onrender_div_onclick.tsx (ENTRY POINT)==
 
-import * as __qwik__ from "@builder.io/qwik";
+import * as qwik from "@builder.io/qwik";
 export const Header_onRender_div_onClick = (ctx)=>console.log(ctx)
 ;
 
 ============================= h_test_header_onrender.tsx (ENTRY POINT)==
 
-import * as __qwik__ from "@builder.io/qwik";
-import { h } from "@builder.io/qwik";
+import * as qwik from "@builder.io/qwik";
 export const Header_onRender = ()=>{
-    return <div onClick={__qwik__.qrl(()=>import("./h_test_header_onrender_div_onclick")
+    return <div onClick={qwik.qrl(()=>import("./h_test_header_onrender_div_onclick")
     , "Header_onRender_div_onClick")}/>;
 };
 
 ============================= h_test_header_onmount.tsx (ENTRY POINT)==
 
-import * as __qwik__ from "@builder.io/qwik";
+import * as qwik from "@builder.io/qwik";
 import { onRender } from "@builder.io/qwik";
 export const Header_onmount = ()=>{
     console.log("mount");
-    onRender(__qwik__.qrl(()=>import("./h_test_header_onrender")
+    onRender(qwik.qrl(()=>import("./h_test_header_onrender")
     , "Header_onRender"));
 };
 
 ============================= h_test_app_onrender.tsx (ENTRY POINT)==
 
-import * as __qwik__ from "@builder.io/qwik";
+import * as qwik from "@builder.io/qwik";
 import { Header } from "./test";
-import { h } from "@builder.io/qwik";
 export const App_onRender = ()=>{
     return <Header />;
 };
 
 ============================= h_test_app_onmount.tsx (ENTRY POINT)==
 
-import * as __qwik__ from "@builder.io/qwik";
+import * as qwik from "@builder.io/qwik";
 import { onRender } from "@builder.io/qwik";
 export const App_onmount = ()=>{
-    onRender(__qwik__.qrl(()=>import("./h_test_app_onrender")
+    onRender(qwik.qrl(()=>import("./h_test_app_onrender")
     , "App_onRender"));
 };
 

@@ -1,4 +1,4 @@
-import { qDehydrate, qRender } from '@builder.io/qwik';
+import { dehydrate, render } from '@builder.io/qwik';
 import domino from 'domino';
 import { setServerPlatform } from './platform';
 import { serializeDocument } from './serialize';
@@ -75,10 +75,10 @@ export async function renderToDocument(
 
   await setServerPlatform(doc, opts);
 
-  await qRender(doc, rootNode);
+  await render(doc, rootNode);
 
   if (opts.dehydrate !== false) {
-    qDehydrate(doc);
+    dehydrate(doc);
   }
 }
 

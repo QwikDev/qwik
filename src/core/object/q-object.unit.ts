@@ -1,17 +1,17 @@
 import { ElementFixture } from '../../testing/element_fixture';
-import { didQPropsChange } from '../props/q-props';
-import { qProps, QProps } from '../props/q-props.public';
+import { didQPropsChange } from '../props/props';
+import { getProps, Props } from '../props/props.public';
 import { getQObjectId, readWriteProxy, unwrapProxy } from './q-object';
 import { qObject } from './q-object';
 
 describe('q-object', () => {
   let fixture: ElementFixture;
   let host: HTMLElement;
-  let qHost: QProps;
+  let qHost: Props;
   beforeEach(() => {
     fixture = new ElementFixture();
     host = fixture.host;
-    qHost = qProps(host);
+    qHost = getProps(host);
   });
 
   it('should create QObject', () => {

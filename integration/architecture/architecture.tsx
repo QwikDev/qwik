@@ -2,10 +2,10 @@ import {
   Fragment,
   h,
   Host,
-  qComponent,
+  component,
   Slot,
   PropsOf,
-  qProps,
+  getProps,
   useEvent,
   onRender,
   useState,
@@ -22,7 +22,7 @@ export interface Cmp {
 
 type ArchMode = 'monolith' | 'island' | 'uIslet';
 
-export const ArchApp = qComponent((props: { monolith: Cmp; islands: Cmp; uIslets: Cmp }) => {
+export const ArchApp = component((props: { monolith: Cmp; islands: Cmp; uIslets: Cmp }) => {
   return onRender(() => (
     <>
       <h1>Monolith</h1>
@@ -59,7 +59,7 @@ export const ArchApp = qComponent((props: { monolith: Cmp; islands: Cmp; uIslets
   ));
 });
 
-export const Browser = qComponent('browser', () => {
+export const Browser = component('browser', () => {
   return onRender(() => (
     <div class="browser">
       <div class="browser-url">
@@ -73,7 +73,7 @@ export const Browser = qComponent('browser', () => {
   ));
 });
 
-export const Component = qComponent('component', (props: { cmp: Cmp; arch: ArchMode }) => {
+export const Component = component('component', (props: { cmp: Cmp; arch: ArchMode }) => {
   return onRender(() => (
     <Host class={getCmpClass(props.cmp)} on:click={Component_click}>
       {props.cmp.children &&
@@ -85,11 +85,11 @@ export const Component = qComponent('component', (props: { cmp: Cmp; arch: ArchM
 
 export const Component_click = async () => {
   // TODO(misko): Workaround for the fact that the click listener is sitting on `<Host>` and hence
-  // has parent visibility. Correct solution is to have HOST mode when writing to qProps which would
+  // has parent visibility. Correct solution is to have HOST mode when writing to getProps which would
   // take these issues into account.
   const element = useEvent().target as Element;
   const event = useEvent();
-  const props = qProps<PropsOf<typeof Component>>(element);
+  const props = getProps<PropsOf<typeof Component>>(element);
   switch (props.arch) {
     case 'island':
       if (props.cmp.isLazy) {
@@ -116,7 +116,7 @@ function getCmpClass(cmp: Cmp, ...additionalClasses: string[]) {
   return classes.join(' ');
 }
 
-export const MonolithScrubber = qComponent((props: { cmp: Cmp }) => {
+export const MonolithScrubber = component((props: { cmp: Cmp }) => {
   const state = useState({ step: 1 });
   return onRender(() => (
     <>

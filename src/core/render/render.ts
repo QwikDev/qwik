@@ -1,7 +1,7 @@
-import { getQComponent, QComponentCtx } from '../component/q-component-ctx';
+import { getQComponent, QComponentCtx } from '../component/component-ctx';
 import { QError, qError } from '../error/error';
-import { didQPropsChange } from '../props/q-props';
-import { qProps } from '../props/q-props.public';
+import { didQPropsChange } from '../props/props';
+import { getProps } from '../props/props.public';
 import { keyValueArrayGet } from '../util/array_map';
 import { EMPTY_ARRAY } from '../util/flyweight';
 import { AttributeMarker } from '../util/markers';
@@ -42,7 +42,7 @@ export function visitJsxNode(
         visitJsxNode(component, renderQueue, cursor, jsxChild);
       }
     } else if (jsxNode.type === Host) {
-      const props = qProps(cursor.parent as Element);
+      const props = getProps(cursor.parent as Element);
       Object.assign(props, jsxNode.props);
       const jsxChildren = jsxNode.children || EMPTY_ARRAY;
       for (const jsxChild of jsxChildren) {

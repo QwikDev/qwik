@@ -5,18 +5,18 @@
 // it to the desired comment location
 //
 
-import { Fragment, h, onRender, qComponent } from '@builder.io/qwik';
+import { Fragment, h, onRender$, component$ } from '@builder.io/qwik';
 
-export const MyApp = qComponent(() => {
-  return onRender(() => (
+export const MyApp = component$(() => {
+  return onRender$(() => (
     <div>
       <Greeter name="World" />
     </div>
   ));
 });
 
-export const Greeter = qComponent((props: { salutation?: string; name?: string }) => {
-  return onRender(() => (
+export const Greeter = component$((props: { salutation?: string; name?: string }) => {
+  return onRender$(() => (
     <span>
       {props.salutation || 'Hello'} <b>{props.name || 'World'}</b>
     </span>

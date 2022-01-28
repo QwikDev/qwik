@@ -2,7 +2,7 @@ import { assertDefined } from '../assert/assert';
 import { getQObjectId, QObject_addDoc } from '../object/q-object';
 import type { QObject } from '../object/q-object';
 import { AttributeMarker } from '../util/markers';
-import { newQProps, QPropsContext } from './q-props';
+import { newQProps, QPropsContext } from './props';
 
 const Q_OBJECT_ATTR = 'q:obj';
 
@@ -129,11 +129,11 @@ function releaseRef(
 }
 
 export function loadObjectsFromState(element: Element, storeMap: Record<string, QObject<any>>) {
-  const qProps = newQProps(element);
+  const getProps = newQProps(element);
   const objs = element.getAttribute(Q_OBJECT_ATTR);
   if (objs) {
     const parts = objs.split(' ');
-    const qMap = (qProps as QPropsContext).__qRefs__;
+    const qMap = (getProps as QPropsContext).__qRefs__;
     let lastCount: number = 1;
     parts.forEach((key) => {
       if (key.startsWith('#')) {

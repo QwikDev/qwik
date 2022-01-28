@@ -7,7 +7,7 @@
  */
 
 import { getPlatform } from '../platform/platform';
-import type { QRL } from './qrl';
+import type { QRL } from './qrl.public';
 
 /**
  * Lazy load a `QRL` symbol and returns the resulting value.
@@ -17,7 +17,7 @@ import type { QRL } from './qrl';
  * @returns A cached value synchronously or promise of imported value.
  * @public
  */
-export async function qImport<T>(element: Element, qrl: QRL<T>): Promise<T> {
+export async function qrlImport<T>(element: Element, qrl: QRL<T>): Promise<T> {
   if (qrl.symbolRef) return qrl.symbolRef;
   const doc = element.ownerDocument!;
   const corePlatform = getPlatform(doc);

@@ -1,150 +1,195 @@
-[![hackmd-github-sync-badge](https://hackmd.io/Ge5Y6es0TbmFAEROhnhLkQ/badge)](https://hackmd.io/Ge5Y6es0TbmFAEROhnhLkQ)
+# `component`
 
-# Component
+Create a Qwik component that can be used in JSX.
 
-Components are the basic building blocks of Qwik applications. Qwik asks you to breaks up the component into three parts:
+Use `component` to declare a Qwik component. `QComponent` is a special kind of component that allows the Qwik framework to lazy load and executed the component independently of other `QComponent`s on the page as well as lazy load the `QComponent`s life-cycle hooks and event handlers.
 
-1. **view**: Contains the JSX code which renders the visual portion of the component.
-2. **state** factory: Contains code that creates a new component state.
-3. event **handlers**: Contains code used for component behavior/user interactions.
+Side note: You can also declare regular (standard JSX) components that will have standard synchronous behavior.
 
-## Why break up components into three parts?
+`QComponent` is a facade that describes how the component should be used without forcing the implementation of the component to be eagerly loaded. The definition consists of:
 
-Most frameworks keep view, state, and handler code together. Here is an example of how a pseudo framework might achieve this:
+- Component definition (`component`) a description of the public (props) and private (state) interface of a component.
+- a set of life-cycle hooks. (`onRender` is the only required hook).
+- `tag`/`props`: an optional tag and props to be placed on the host element of the component.
 
-```typescript
-export function Counter(props: {step?:number}) {
- const [count, setCount] = useStore({count: 50});
- const step = props.step || 1;
- return (
-   <div>
-     <button onclick={() => setCount(count - step)}>-</botton>
-     <span>{count}</span>
-     <button onclick={() => setCount(count + step)}>+</botton>
-   </div>
- )
-}
+### Example:
+
+Example showing how to create a counter component.
+
+<docs code="./q-component.docs.tsx#component"/>
+
+- `component` is how a component gets declared.
+- `{ value?: number; step?: number }` declares the public (props) interface of the component.
+- `{ count: number }` declares the private (state) interface of the component.
+- `onMount`: is used to initialize the private state.
+- `onRender`: is required hook for rendering the component.
+- `qHook`: mark which parts of the component will be lazy-loaded. (see `qHook` for details.)
+
+The above can than be used like so:
+
+<docs code="./q-component.docs.tsx#component-usage"/>
+
+@public
+
+# `component.onRender`
+
+A lazy-loadable `QHook` reference to a component's render hook.
+
+NOTE: This is the only required lifecycle hook for `QComponent`.
+
+### Example
+
+<docs code="./q-component.docs.tsx#on-render"/>
+
+# `component.tagName`
+
+HTML tag to be used for the component's host-element (defaults to `div`.)
+
+Component host-element must be inserted synchronously during rendering. However, the component's view is inserted asynchronously. When inserting the host-element it usually looks something like this:
+
+```html
+<div on:q-render="..." on:q-init="..." ...></div>
 ```
 
-Note that the components view, state, and handler are all inlined together and heavily rely on closing over variables in parent scope. The implication is that all of these parts (view, state, and handler) have to be downloaded, parsed, and executed together. This severely limits our lazy loading capability.
+A lot of developers like to stick to `<div>` as the host element, but
+one can choose any name they find helpful, such as `my-component`, to make
+the DOM more readable.
 
-The example above may be trivial, but imagine a more complex version of the above, which requires many KB worth of code to be downloaded, parsed, and executed together. In such a case, requiring the view, state, and handler to be eagerly loaded together is a problem. Let's look at some common user usage patterns to get a better idea as to why this is an issue:
-
-**User interacts with a component by clicking on it:**
-
-- some of the `handler`s are needed: Only the specific handler which is triggered needs to be downloaded. All other handlers are not needed.
-- `view` is **not needed**: View may not be needed because the handler may not cause a re-render or may cause a re-render of a different component.
-- `state factory` is **not needed**: The component is being rehydrated and so no state initialization code is needed.
-
-**Component state is mutated:**
-
-- `handler`s are **not needed**: No handlers need to execute.
-- `view` is needed: View is needed because the component needs to be rerendered.
-- `state factory` is **not needed**: The component is being rehydrated and so no state initialization code is needed.
-
-**New component is created by the parent:**
-
-- `handler`s are **not needed**: No handlers need to execute.
-- `view` is needed: View is needed because the component needs to be rendered.
-- `state factory` is needed: The component is being created and so state initialization code is needed.
-
-What the above demonstrates is that in each use-case only part of the view, state, handler information is required. The problem is that we have three distinct pieces of information which are all inlined together, but we only need to use them at different times of the component lifecycle. To achieve the optimal performance we need a way to download and execute the component in parts, based on what the component needs to do. The above code, as it is written, is permanently bound together.
-
-## Breaking up is easy to do
-
-Qwik solves this by only downloading and executing the code that is needed for the task at hand. Keep in mind that while the example above is simple, the complexity of the code is significantly larger in real-world scenarios. Furthermore, more complex code oftentimes contains more imports (which in turn have imports of their own), that adds even more code to the component.
-
-It is not possible to "tool" our way out of this. It isn’t possible to write a statically analyzable tool that can separate these pieces into parts that can then be lazy loaded as needed. The developer must break up the component into the corresponding parts to allow fine-grain lazy loading.
-
-Qwik has `qHook` marker functions for this purpose.
-
-**file:** `my-counter.tsx`
-
-```typescript
-import { qComponent, qHook } from '@builder.io/qwik';
-
-export const Counter = qComponent<{ value?: number; step?: number }, { count: number }>({
-  onMount: qHook((props) => ({ count: props.value || 0 })),
-  onRender: qHook((props, state) => (
-    <div>
-      <span>{state.count}</span>
-      <button
-        on:click={qHook<typeof Counter>((props, state) => {
-          state.count += props.step || 1;
-        })}
-      >
-        +
-      </button>
-    </div>
-  )),
-});
+```html
+<my-component on:q-render="..." on:q-init="..." ...></my-component>
 ```
 
-Compared to other frameworks, the above is a bit wordier. However, the cost of the explicit break up of components into their parts gives us the benefit of fine-grained lazy loading.
+# `component.onMount`
 
-- Keep in mind that this is a relatively fixed DevExp overhead per component. As the component complexity increases, the added overhead becomes less of an issue.
-- The benefit of this is that tooling now has the freedom to package up the component in multiple chunks which can be lazy loaded as needed.
+A lazy-loadable `QHook` reference to a component's initialization hook.
 
-## What happens behind the scenes
+`OnMount` is invoked when the component is first created and before the component is rendered. `OnMount`s primary purpose is to create component's state. Typically the `OnRender` will use the state for rendering.
 
-`qHook` is a marker for Qwik Optimizer, which tells the tooling that it needs to transform any reference to it into a QRLs. The resulting files can be seen here:
+`OnMount` invokes on `QComponent` creation, but not after rehydration. When performing SSR, the `OnMount` will invoke on the server because that is where the component is created. The server then dehydrates the application and sends it to the client. On the client, the `QComponent` may be rehydrated. Rehydration does not cause a second `OnMount` invocation. (Only one invocation per component instance, regardless if the lifespan of the component starts on the server and continues on the client.)
 
-**File:** `my-counter.js`
+NOTE: All lifecycle hooks can be synchronous or asynchronous.
 
-```typescript
-import { qComponent, qHook } from '@builder.io/qwik';
+See: `OnMount` for details.
 
-export const Counter = qComponent<{ value?: number; step?: number }, { count: number }>({
-  onMount: qHook('entry-cde#Counter_onMount'),
-  onRender: qHook('entry-abc#Counter_onRender'),
-});
+### Example
+
+<docs code="./q-component.docs.tsx#on-mount"/>
+
+# `component.onUnmount`
+
+A lazy-loadable `QHook` reference to a component's destroy hook.
+
+Invoked when the component is destroyed (removed from render tree).
+
+# `component.onDehydrate`
+
+A lazy-loadable `QHook` reference to a component's on dehydrate hook.
+
+Invoked when the component's state is being serialized (dehydrated) into the DOM. This allows the component to do last-minute clean-up before its state is serialized.
+
+# `component.onHydrate`
+
+A lazy-loadable `QHook` reference to a component's on hydrate hook.
+
+Invoked when the component's state is re-hydrated from serialization. This allows the component to do any work to re-activate itself.
+
+# `component.onResume`
+
+A lazy-loadable `QHook` reference to a component's on resume hook.
+
+The hook is eagerly invoked when the application resumes on the client. Because it is called eagerly, this allows the component to hydrate even if no user interaction has taken place.
+
+# `component.styles`
+
+A lazy-loadable reference to a component styles.
+
+Component styles allow Qwik to lazy load the style information for the component only when needed. (And avoid double loading it in case of SSR hydration.)
+
+# `component.props`
+
+A set of props to be automatically added to the host-element.
+
+Useful when the component needs to have a set of attributes present in the dom before the `OnRender` executes.
+
+### Example
+
+<docs code="./q-component.docs.tsx#props"/>
+
+When rendered as:
+
+```html
+<MyComp label="myLabel" name="World" />
 ```
 
-In addition to the source file transformation, the optimizer transformed references between the view, state, and handlers into QRLs. Optimizer also generates entry point files for the rollup. These entry points match the QRLs above.
+Would result in:
 
-**File:** `entry-abc.js`
-
-```typescript
-import { qHook } from '@builder.io/qwik';
-
-export const Counter_onRender = qHook((props, state) => (
-  <div>
-    <span>{state.count}</span>
-    <button on:click={qHook<typeof Counter>('entry-pqr#Counter_onClick')}>+</button>
-  </div>
-));
+```html
+<my-comp label="myLabel" name="World" title="MyTitle"></my-comp>
 ```
 
-**File:** `entry-pqr.js`
+Notice that `props` provides default values that will be auto-added to the component props (unless the component instantiation props override them.)
 
-```typescript=
-import { qHook } from '@builder.io/qwik';
-import type { Counter } from './my-counter';
+# `QComponent`
 
-export const Counter_onClick = qHook<typeof Counter>((props, state) => {
-  state.count += props.step || 1;
-});
+Defines `QComponent` type definition.
+
+`QComponent` is a type returned by the `component` method and is used to verify type-safety throughout the component definition.
+
+`QComponent` contains type information about:
+
+- `PROPS` public interfaces for props (to be used in `<MyComponent propA ...>`)
+- `STATE` private state. This will be serialized into HTML on dehydration, therefore it must be JSON serializable. (`OnRender` typically uses both `PROPS` and `STATE`.)
+
+### Example
+
+A simple example with no `STATE` only `PROPS`
+
+<docs code="./q-component.docs.tsx#component"/>
+
+The above allows one to use `Counter` like so:
+
+<docs code="./q-component.docs.tsx#component-usage"/>
+
+## Referring to types
+
+Normally `QComponent` is used in the application for type-safety as is. At times it is required to refer to the types of `PROPS` and, `STATE`directly. In such a case, one can use `PropsOf` and `StateOf`.
+
+See: `PropsOf`, `StateOf`.
+
+@public
+
+# `PropsOf`
+
+Infers `Props` from `QComponent`.
+
+Given:
+
+```
+type MyComponent = component<{propA: string}>({...});
 ```
 
-**File:** `entry-cde.js`
+Then:
 
-```typescript
-import { qHook } from '@builder.io/qwik';
-
-export const Counter_onMount = qHook((props) => ({ count: props.value || 0 }));
+```
+const myProps: PropsOf<typeof MyComponent> = ...; // Same as `{propA: string}`
 ```
 
-The important thing to note is that Qwik has great freedom on how many entry files should be generated, as well as which export goes into which entry file. This is because the developer never specified where the lazy loading boundaries are. Instead, the framework guided the developer to write code in a way that introduced many lazy loading boundaries in the codebase. This gives Qwik the power to generate optimal file distribution based on actual application usage. For small applications, Qwik can generate a single file. As the application size grows, more entry files can be generated. If a particular feature is rarely used, it can be placed in its own bundle.
+@public
 
-### Constraints
+# `StateOf`
 
-In order for the tooling to be able to move `qrlOnRender`, `qrlOnMount`, `qrlHandler` around the usage of these methods is restricted. (Not every valid JS program is a valid Qwik program.) The constraint is that all functions which are enclosed in `qHook` must be moveable into different files. In practice this means that functions can only close over symbols which are:
+Infers `State` from `QComponent`.
 
-1. `import`able (i.e. the symbol was `import`ed.)
-2. `export`ed (i.e. the symbol is already exported so that it can be imported from the entry file.)
+Given:
 
-## Tooling has choices
+```
+type MyComponent = component<{}, {propA: string}>({...});
+```
 
-It is possible (and all too common) to break up an application into too many small files, which negatively impacts download performance. For this reason, the tooling may choose to merge files together and over-bundle. This is desirable behavior. If your entire application is relatively small (less than 50KB) then breaking it up into hundreds of files would be counterproductive.
+Then:
 
-If your code structure is fine-grained, the tooling can always choose to create larger (and fewer) bundles. The opposite is not true. If your code structure is coarse, there is nothing the tooling can do to break it up. Qwik guides the developer to break up the application into the smallest possible chunks, and then rely on tooling to find the optimal bundle chunks. This way Qwik can provide optimal performance for applications of all sizes.
+```
+const myState: StateOf<typeof MyComponent> = ...; // Same as `{propA: string}`
+```
+
+@public

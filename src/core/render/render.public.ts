@@ -2,7 +2,7 @@ import { flattenPromiseTree } from '../util/promises';
 import { NodeType } from '../util/types';
 import { cursorForParent } from './cursor';
 import type { JSXNode } from './jsx/types/jsx-node';
-import { ComponentRenderQueue, visitJsxNode } from './q-render';
+import { ComponentRenderQueue, visitJsxNode } from './render';
 
 /**
  * Render JSX.
@@ -16,7 +16,7 @@ import { ComponentRenderQueue, visitJsxNode } from './q-render';
  * @param jsxNode - JSX to render
  * @public
  */
-export async function qRender(
+export async function render(
   parent: Element | Document,
   jsxNode: JSXNode<unknown>
 ): Promise<HTMLElement[]> {

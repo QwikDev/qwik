@@ -1,13 +1,13 @@
 import { assertDefined } from '../assert/assert';
-import { qProps } from '../props/q-props.public';
+import { getProps } from '../props/props.public';
 import { cursorForComponent, cursorReconcileEnd } from '../render/cursor';
-import { ComponentRenderQueue, visitJsxNode } from '../render/q-render';
+import { ComponentRenderQueue, visitJsxNode } from '../render/render';
 import { AttributeMarker } from '../util/markers';
 import { flattenPromiseTree } from '../util/promises';
 import { styleContent, styleHost } from './qrl-styles';
 import { newInvokeContext, useInvoke } from '../use/use-core';
 
-// TODO(misko): Can we get rid of this whole file, and instead teach qProps to know how to render
+// TODO(misko): Can we get rid of this whole file, and instead teach getProps to know how to render
 // the advantage will be that the render capability would then be exposed to the outside world as well.
 
 export class QComponentCtx {
@@ -24,7 +24,7 @@ export class QComponentCtx {
 
   async render(): Promise<HTMLElement[]> {
     const hostElement = this.hostElement;
-    const props = qProps(hostElement) as any;
+    const props = getProps(hostElement) as any;
     const onRender = props['on:qRender'] as () => void; // TODO(misko): extract constant
     assertDefined(onRender);
     hostElement.removeAttribute(AttributeMarker.RenderNotify);

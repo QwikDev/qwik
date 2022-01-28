@@ -1,4 +1,4 @@
-import { qRender, qDehydrate, h, qObject, QObject } from '@builder.io/qwik';
+import { render, dehydrate, h, qObject, QObject } from '@builder.io/qwik';
 import { ArchApp, Cmp } from './architecture';
 /* eslint no-console: ["off"] */
 
@@ -6,8 +6,8 @@ const monolith = createApp();
 const islands = createApp();
 const uIslets = createApp();
 
-qRender(document.querySelector('#app')!, h(ArchApp, { monolith, islands, uIslets })).then(() => {
-  qDehydrate(document);
+render(document.querySelector('#app')!, h(ArchApp, { monolith, islands, uIslets })).then(() => {
+  dehydrate(document);
   console.clear();
 });
 

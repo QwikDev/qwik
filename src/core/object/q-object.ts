@@ -1,5 +1,5 @@
 import { assertDefined, assertEqual, assertNotEqual } from '../assert/assert';
-import { qNotifyRender } from '../render/q-notify-render';
+import { notifyRender } from '../render/notify-render';
 import { safeQSubscribe } from '../use/use-core';
 import { isElement } from '../util/element';
 import { AttributeMarker } from '../util/markers';
@@ -31,7 +31,7 @@ export function _restoreQObject<T>(obj: T, id: string): T {
 
 function QObject_notifyWrite(id: string, doc: Document | null) {
   if (doc) {
-    doc.querySelectorAll(idToComponentSelector(id)).forEach(qNotifyRender);
+    doc.querySelectorAll(idToComponentSelector(id)).forEach(notifyRender);
   }
 }
 

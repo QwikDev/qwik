@@ -1,18 +1,18 @@
 import { createDocument } from '../../testing/document';
-import { qProps, QProps } from '../props/q-props.public';
-import { qObject } from '../object/q-object';
+import { getProps, Props } from '../props/props.public';
+import { qObject } from './q-object';
 import { newInvokeContext, useInvoke } from '../use/use-core';
 import { getQObjectId } from './q-object';
-import { qSubscribe } from './q-subscribe';
+import { subscribe } from './subscribe';
 
-describe('q-subscribe', () => {
+describe('subscribe', () => {
   let document: Document;
   let div: HTMLElement;
-  let qDiv: QProps;
+  let qDiv: Props;
   beforeEach(() => {
     document = createDocument();
     div = document.createElement('div');
-    qDiv = qProps(div);
+    qDiv = getProps(div);
   });
 
   it('should mark component dirty on change', async () => {
@@ -22,13 +22,13 @@ describe('q-subscribe', () => {
     qDiv.a = qObjA;
     qDiv.b = qObjB;
     useInvoke(newInvokeContext(div, 'qRender', 'url' as any), () => {
-      qSubscribe(qObjB, qObjC);
+      subscribe(qObjB, qObjC);
     });
     expect(div.getAttribute('q:obj')).toEqual(
       [getQObjectId(qObjA), '#2', '!' + getQObjectId(qObjB), '!' + getQObjectId(qObjC)].join(' ')
     );
     useInvoke(newInvokeContext(div, 'qRender', 'url' as any), () => {
-      qSubscribe(qObjC);
+      subscribe(qObjC);
     });
     expect(div.getAttribute('q:obj')).toEqual(
       [getQObjectId(qObjA), getQObjectId(qObjB), '!' + getQObjectId(qObjC)].join(' ')

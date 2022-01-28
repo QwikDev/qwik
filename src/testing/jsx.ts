@@ -1,5 +1,6 @@
 import type { h } from '@builder.io/qwik';
-import { isQrl, stringifyQRL } from '../core/import/qrl';
+import { isQrl } from '../core/import/qrl-class';
+import { stringifyQRL } from '../core/import/qrl';
 import { createGlobal } from './document';
 
 // TODO(docs)

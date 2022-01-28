@@ -7,9 +7,9 @@ Props is a mechanism by which components communicate with each other.
 Imagine a situation where the parent `<MyApp>` component needs to pass information to a child's <Greeter>` component. (Here is a code example)
 
 ```typescript
-import { qComponent, qHook } from '@builder.io/qwik';
+import { component, qHook } from '@builder.io/qwik';
 
-export const MyApp = qComponent({
+export const MyApp = component({
   onRender: qHook(() => (
     <div>
       <Greeter name="World" />
@@ -17,7 +17,7 @@ export const MyApp = qComponent({
   )),
 });
 
-export const Greeter = qComponent<{ salutation?: string; name?: string }>({
+export const Greeter = component<{ salutation?: string; name?: string }>({
   onRender: qHook((props) => (
     <span>
       {props.salutation || 'Hello'} <b>{props.name || 'World'}</b>
@@ -44,7 +44,7 @@ To perform the above responsibilities, Qwik provides `qProp` primitive.
 ```typescript
 const div = document.createElement('div');
 // <div/>
-const qDiv = qProps(div);
+const qDiv = getProps(div);
 
 qDiv.name = 'World';
 // <div name="World">
@@ -54,7 +54,7 @@ qDiv.planet = { name: 'Earth', age: '4p6bn' };
 // New object with id 'abc123' has been created
 
 const span = document.createElement('span');
-const qSpan = qProps(span);
+const qSpan = getProps(span);
 qSpan.foo = qDiv.planet;
 // <div name="World" planet="*abc123" q:obj="abc123">
 // <span planet="*abc123" q:obj="abc123">

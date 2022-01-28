@@ -1,4 +1,4 @@
-import type { QComponentCtx } from '../component/q-component-ctx';
+import type { QComponentCtx } from '../component/component-ctx';
 import { KeyValueArray, keyValueArrayGet } from '../util/array_map';
 import { AttributeMarker } from '../util/markers';
 import { isDomElementWithTagName, isHtmlElement } from '../util/types';

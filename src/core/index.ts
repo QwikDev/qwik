@@ -11,31 +11,40 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 export {
   PropsOf,
-  qComponent,
+  component,
+  component$,
   onRender,
+  onRender$,
   onUnmount,
+  onUnmount$,
   onHydrate,
+  onHydrate$,
   onDehydrate,
+  onDehydrate$,
   onHalt,
+  onHalt$,
   onResume,
+  onResume$,
   on,
   onDocument,
   onWindow,
   withStyles,
+  withStyles$,
   withScopedStyles,
-} from './component/q-component.public';
+  withScopedStyles$,
+} from './component/component.public';
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Event API
 //////////////////////////////////////////////////////////////////////////////////////////
-export { qBubble } from './event/q-bubble.public';
-export { qDehydrate } from './object/q-store.public';
+export { bubble } from './event/bubble.public';
+export { dehydrate } from './object/store.public';
 //////////////////////////////////////////////////////////////////////////////////////////
 // Internal Runtime
 //////////////////////////////////////////////////////////////////////////////////////////
-export { qrl, QRL } from './import/qrl';
-export { qImport } from './import/qImport';
-export { qProps, QProps } from './props/q-props.public';
-export { qNotifyRender } from './render/q-notify-render';
+export { $, implicit$FirstArg, qrl, QRL } from './import/qrl.public';
+export { qrlImport } from './import/qrl-import';
+export { getProps, Props } from './props/props.public';
+export { notifyRender } from './render/notify-render';
 //////////////////////////////////////////////////////////////////////////////////////////
 // PLATFORM
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -62,7 +71,7 @@ export {
 } from './render/jsx/types/jsx-node';
 export { QwikDOMAttributes, QwikJSX } from './render/jsx/types/jsx-qwik';
 export type { QwikIntrinsicElements } from './render/jsx/types/jsx-qwik-elements';
-export { qRender } from './render/q-render.public';
+export { render } from './render/render.public';
 //////////////////////////////////////////////////////////////////////////////////////////
 // use API
 //////////////////////////////////////////////////////////////////////////////////////////

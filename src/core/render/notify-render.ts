@@ -2,7 +2,7 @@ import { assertDefined } from '../assert/assert';
 import { getPlatform } from '../platform/platform';
 import type { HostElements } from './types';
 import { AttributeMarker } from '../util/markers';
-import { getQComponent } from '../component/q-component-ctx';
+import { getQComponent } from '../component/component-ctx';
 
 /**
  * Mark component for rendering.
@@ -20,7 +20,7 @@ import { getQComponent } from '../component/q-component-ctx';
  */
 // TODO(misko): tests
 // TODO(misko): this should take QComponent as well.
-export function qNotifyRender(hostElement: Element): Promise<void> {
+export function notifyRender(hostElement: Element): Promise<void> {
   assertDefined(hostElement.getAttribute(AttributeMarker.OnRenderAttr));
   hostElement.setAttribute(AttributeMarker.RenderNotify, '');
   return scheduleRender(hostElement.ownerDocument) as any;

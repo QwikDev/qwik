@@ -1,23 +1,23 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 811
+assertion_line: 919
 expression: output
 
 ---
 ==INPUT==
 
 
-import { qHook, qComponent, h, onRender } from '@builder.io/qwik';
+import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 
 const I1 = 12;
 const [I2, {I3, v1: [I4], I5=v2, ...I6}, I7=v3, ...I8] = obj;
 function I9() {}
 class I10 {}
 
-export const App = qComponent(({count}) => {
+export const App = qComponent$(({count}) => {
     console.log(I1, I2, I3, I4, I5, I6, I7, I8, I9);
     console.log(itsok, v1, v2, v3, obj);
-    return onRender(() => {
+    return onRender$(() => {
         return (
             <I10></I10>
         )
@@ -26,29 +26,28 @@ export const App = qComponent(({count}) => {
     
 ============================= test.js ==
 
-import * as __qwik__ from "@builder.io/qwik";
-import { qComponent } from '@builder.io/qwik';
+import * as qwik from "@builder.io/qwik";
+import { qComponent } from "@builder.io/qwik";
 const [I2, { I3 , v1: [I4] , I5 =v2 , ...I6 }, I7 = v3, ...I8] = obj;
-export const App = /*#__PURE__*/ qComponent(__qwik__.qrl(()=>import("./h_test_app_onmount")
+export const App = /*#__PURE__*/ qComponent(qwik.qrl(()=>import("./h_test_app_onmount")
 , "App_onmount"));
 
 ============================= h_test_app_onrender.js (ENTRY POINT)==
 
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
-import * as __qwik__ from "@builder.io/qwik";
-import { h } from "@builder.io/qwik";
+import * as qwik from "@builder.io/qwik";
 export const App_onRender = ()=>{
     return(/*#__PURE__*/ _jsx(I10, {}));
 };
 
 ============================= h_test_app_onmount.js (ENTRY POINT)==
 
-import * as __qwik__ from "@builder.io/qwik";
+import * as qwik from "@builder.io/qwik";
 import { onRender } from "@builder.io/qwik";
 export const App_onmount = ({ count  })=>{
     console.log(I1, I2, I3, I4, I5, I6, I7, I8, I9);
     console.log(itsok, v1, v2, v3, obj);
-    return onRender(__qwik__.qrl(()=>import("./h_test_app_onrender")
+    return onRender(qwik.qrl(()=>import("./h_test_app_onrender")
     , "App_onRender"));
 };
 

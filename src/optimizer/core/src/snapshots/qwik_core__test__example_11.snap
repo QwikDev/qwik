@@ -1,29 +1,29 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 811
+assertion_line: 919
 expression: output
 
 ---
 ==INPUT==
 
 
-import { qHook, qComponent, onRender, h } from '@builder.io/qwik';
+import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 import {foo, bar as bbar} from "../state";
 import * as dep2 from "dep2";
 import dep3 from "dep3/something";
 
-export const Header = qComponent(() => {
-    onRender(() => {
+export const Header = qComponent$(() => {
+    onRender$(() => {
         return (
-            <Header onClick={qHook((ev) => dep3(ev))}>
+            <Header onClick={$((ev) => dep3(ev))}>
                 {dep2.stuff()}{bbar()}
             </Header>
         );
     });
 });
 
-export const App = qComponent(() => {
-    onRender(() => {
+export const App = qComponent$(() => {
+    onRender$(() => {
         return (
             <Header>{foo()}</Header>
         );
@@ -32,29 +32,28 @@ export const App = qComponent(() => {
     
 ============================= project/test.tsx ==
 
-import * as __qwik__ from "@builder.io/qwik";
-import { qComponent } from '@builder.io/qwik';
-export const Header = /*#__PURE__*/ qComponent(__qwik__.qrl(()=>import("../entry_hooks")
+import * as qwik from "@builder.io/qwik";
+import { qComponent } from "@builder.io/qwik";
+export const Header = /*#__PURE__*/ qComponent(qwik.qrl(()=>import("../entry_hooks")
 , "Header_onmount"));
-export const App = /*#__PURE__*/ qComponent(__qwik__.qrl(()=>import("../entry_hooks")
+export const App = /*#__PURE__*/ qComponent(qwik.qrl(()=>import("../entry_hooks")
 , "App_onmount"));
 
 ============================= h_test_header_onrender_header_onclick.tsx ==
 
-import * as __qwik__ from "@builder.io/qwik";
+import * as qwik from "@builder.io/qwik";
 import dep3 from "dep3/something";
 export const Header_onRender_Header_onClick = (ev)=>dep3(ev)
 ;
 
 ============================= h_test_header_onrender.tsx ==
 
-import * as __qwik__ from "@builder.io/qwik";
+import * as qwik from "@builder.io/qwik";
 import { Header } from "./project/test";
 import { bar as bbar } from "./state";
 import * as dep2 from "dep2";
-import { h } from "@builder.io/qwik";
 export const Header_onRender = ()=>{
-    return <Header onClick={__qwik__.qrl(()=>import("../entry_hooks")
+    return <Header onClick={qwik.qrl(()=>import("../entry_hooks")
     , "Header_onRender_Header_onClick")}>
 
                 {dep2.stuff()}{bbar()}
@@ -64,29 +63,28 @@ export const Header_onRender = ()=>{
 
 ============================= h_test_header_onmount.tsx ==
 
-import * as __qwik__ from "@builder.io/qwik";
+import * as qwik from "@builder.io/qwik";
 import { onRender } from "@builder.io/qwik";
 export const Header_onmount = ()=>{
-    onRender(__qwik__.qrl(()=>import("../entry_hooks")
+    onRender(qwik.qrl(()=>import("../entry_hooks")
     , "Header_onRender"));
 };
 
 ============================= h_test_app_onrender.tsx ==
 
-import * as __qwik__ from "@builder.io/qwik";
+import * as qwik from "@builder.io/qwik";
 import { Header } from "./project/test";
 import { foo } from "./state";
-import { h } from "@builder.io/qwik";
 export const App_onRender = ()=>{
     return <Header >{foo()}</Header>;
 };
 
 ============================= h_test_app_onmount.tsx ==
 
-import * as __qwik__ from "@builder.io/qwik";
+import * as qwik from "@builder.io/qwik";
 import { onRender } from "@builder.io/qwik";
 export const App_onmount = ()=>{
-    onRender(__qwik__.qrl(()=>import("../entry_hooks")
+    onRender(qwik.qrl(()=>import("../entry_hooks")
     , "App_onRender"));
 };
 

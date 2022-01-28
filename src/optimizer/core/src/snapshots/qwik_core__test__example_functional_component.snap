@@ -1,18 +1,18 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 811
+assertion_line: 919
 expression: output
 
 ---
 ==INPUT==
 
 
-        import { qHook, qComponent, onRender, h } from '@builder.io/qwik';
-        const Header = qComponent(() => {
+        import { $, qComponent$, onRender$ } from '@builder.io/qwik';
+        const Header = qComponent$(() => {
             const thing = useStore();
             const {foo, bar} = foo();
 
-            onRender(() => {
+            onRender$(() => {
                 return (
                     <div>{thing}</div>
                 );
@@ -21,28 +21,28 @@ expression: output
     
 ============================= test.tsx ==
 
-import * as __qwik__ from "@builder.io/qwik";
-import { qHook, qComponent, onRender, h } from '@builder.io/qwik';
-const Header = /*#__PURE__*/ qComponent(__qwik__.qrl(()=>import("./h_test_header_onmount")
+import * as qwik from "@builder.io/qwik";
+import { qComponent } from "@builder.io/qwik";
+import { $, qComponent$, onRender$ } from '@builder.io/qwik';
+const Header = /*#__PURE__*/ qComponent(qwik.qrl(()=>import("./h_test_header_onmount")
 , "Header_onmount"));
 
 ============================= h_test_header_onrender.tsx (ENTRY POINT)==
 
-import * as __qwik__ from "@builder.io/qwik";
-import { h } from "@builder.io/qwik";
+import * as qwik from "@builder.io/qwik";
 export const Header_onRender = ()=>{
-    const [thing] = __qwik__.useLexicalScope();
+    const [thing] = qwik.useLexicalScope();
     return <div >{thing}</div>;
 };
 
 ============================= h_test_header_onmount.tsx (ENTRY POINT)==
 
-import * as __qwik__ from "@builder.io/qwik";
+import * as qwik from "@builder.io/qwik";
 import { onRender } from "@builder.io/qwik";
 export const Header_onmount = ()=>{
     const thing = useStore();
     const { foo , bar  } = foo();
-    onRender(__qwik__.qrl(()=>import("./h_test_header_onrender")
+    onRender(qwik.qrl(()=>import("./h_test_header_onrender")
     , "Header_onRender", [
         thing
     ]));

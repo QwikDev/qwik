@@ -77,7 +77,7 @@ const transformFsVirtual = async (sys: InternalSystem, opts: TransformFsOptions)
   async function getFiles(dir: string) {
     const subdirs = await readDir(sys, dir);
     const files: string[] = await Promise.all(
-      subdirs.flatMap(async (subdir: any) => {
+      subdirs.map(async (subdir: any) => {
         const res = sys.path.resolve(dir, subdir);
         const isDir = await isDirectory(sys, res);
         return (isDir ? getFiles(res) : res) as any;

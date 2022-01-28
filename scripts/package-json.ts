@@ -1,4 +1,4 @@
-import type { BuildConfig, PackageJSON } from './util';
+import { BuildConfig, ensureDir, PackageJSON } from './util';
 import { readFile, writeFile } from './util';
 import { join } from 'path';
 
@@ -69,7 +69,28 @@ export async function generatePackageJson(config: BuildConfig) {
 
   await writePackageJson(config.distPkgDir, distPkg);
 
+  await generateLegacyCjsSubmodule(config, 'core');
+  await generateLegacyCjsSubmodule(config, 'jsx-runtime');
+  await generateLegacyCjsSubmodule(config, 'optimizer');
+
   console.log(`🐷 generated package.json`);
+}
+
+export async function generateLegacyCjsSubmodule(config: BuildConfig, pkgName: string) {
+  // Modern nodejs will resolve the submodule packages using "exports": https://nodejs.org/api/packages.html#subpath-exports
+  // however, legacy nodejs still needs a directory and its own package.json
+  // this can be removed once node12 is in the distant past
+  const pkg: PackageJSON = {
+    name: `@builder.io/qwik/${pkgName}`,
+    version: config.distVersion,
+    main: `../${pkgName}.cjs`,
+    module: `../${pkgName}.mjs`,
+    types: `../${pkgName}.d.ts`,
+    private: true,
+  };
+  const submoduleDistDir = join(config.distPkgDir, pkgName);
+  ensureDir(submoduleDistDir);
+  await writePackageJson(submoduleDistDir, pkg);
 }
 
 export async function readPackageJson(pkgJsonDir: string) {

@@ -4,20 +4,14 @@ on:
   - push
   - pull_request
 
-permissions:
-  # deployments permission to deploy GitHub pages website
-  deployments: write
-  # contents permission to update benchmark contents in gh-pages branch
-  contents: write
-
 jobs:
   changes:
     runs-on: ubuntu-latest
-    # Set job outputs to values from filter step
     outputs:
       optimizer: ${{ steps.filter.outputs.optimizer }}
 
     steps:
+      - uses: actions/checkout@v2
       - uses: dorny/paths-filter@v2
         id: filter
         with:

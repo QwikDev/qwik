@@ -3,6 +3,7 @@ use std::collections::{BTreeMap, HashMap, HashSet};
 use swc_atoms::{js_word, JsWord};
 use swc_common::{BytePos, Span, SyntaxContext};
 use swc_ecmascript::ast;
+use swc_ecmascript::utils::private_ident;
 use swc_ecmascript::visit::{noop_visit_type, visit_expr, visit_stmt, Visit, VisitWith};
 
 macro_rules! id {
@@ -31,6 +32,7 @@ pub enum ImportKind {
     Default,
 }
 
+#[derive(Clone)]
 pub struct Import {
     pub source: JsWord,
     pub specifier: JsWord,
@@ -41,6 +43,8 @@ pub struct GlobalCollect {
     pub imports: BTreeMap<Id, Import>,
     pub exports: BTreeMap<Id, Option<JsWord>>,
     pub root: HashMap<Id, Span>,
+
+    rev_imports: HashMap<(JsWord, JsWord), Id>,
     in_export_decl: bool,
 }
 
@@ -48,7 +52,10 @@ pub fn global_collect(module: &ast::Module) -> GlobalCollect {
     let mut collect = GlobalCollect {
         imports: BTreeMap::new(),
         exports: BTreeMap::new(),
+
         root: HashMap::new(),
+        rev_imports: HashMap::new(),
+
         in_export_decl: false,
     };
     module.visit_with(&mut collect);
@@ -61,6 +68,35 @@ impl GlobalCollect {
             .iter()
             .find(|(_, import)| &import.specifier == specifier && &import.source == source)
             .map(|s| s.0.clone())
+    }
+
+    pub fn import(&mut self, specifier: JsWord, source: JsWord) -> (Id, bool) {
+        self.rev_imports
+            .get(&(specifier.clone(), source.clone()))
+            .cloned()
+            .map_or_else(
+                || {
+                    let local = id!(private_ident!(&specifier));
+                    self.add_import(
+                        local.clone(),
+                        Import {
+                            source,
+                            specifier,
+                            kind: ImportKind::Named,
+                        },
+                    );
+                    (local, true)
+                },
+                |local| (local, false),
+            )
+    }
+
+    pub fn add_import(&mut self, local: Id, import: Import) {
+        self.rev_imports.insert(
+            (import.specifier.clone(), import.source.clone()),
+            local.clone(),
+        );
+        self.imports.insert(local, import);
     }
 }
 
@@ -96,7 +132,7 @@ impl Visit for GlobalCollect {
                         Some(ast::ModuleExportName::Ident(ident)) => ident.sym.clone(),
                         _ => named.local.sym.clone(),
                     };
-                    self.imports.insert(
+                    self.add_import(
                         id!(named.local),
                         Import {
                             source: node.src.value.clone(),
@@ -106,7 +142,7 @@ impl Visit for GlobalCollect {
                     );
                 }
                 ast::ImportSpecifier::Default(default) => {
-                    self.imports.insert(
+                    self.add_import(
                         id!(default.local),
                         Import {
                             source: node.src.value.clone(),
@@ -116,7 +152,7 @@ impl Visit for GlobalCollect {
                     );
                 }
                 ast::ImportSpecifier::Namespace(namespace) => {
-                    self.imports.insert(
+                    self.add_import(
                         id!(namespace.local),
                         Import {
                             source: node.src.value.clone(),

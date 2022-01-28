@@ -1,0 +1,76 @@
+---
+source: src/optimizer/core/src/test.rs
+assertion_line: 887
+expression: output
+
+---
+==INPUT==
+
+
+import { qComponent$, withStyle$ } from '@builder.io/qwik';
+import css1 from './global.css';
+import css2 from './style.css';
+import css3 from './style.css';
+
+export const App = qComponent$(() => {
+    withStyle$(`${css1}${css2}`);
+    withStyle$(css3);
+})
+    
+============================= test.js ==
+
+import * as qwik from "@builder.io/qwik";
+import { qComponent } from "@builder.io/qwik";
+export const App = /*#__PURE__*/ qComponent(qwik.qrl(()=>import("./h_test_app_onmount")
+, "App_onmount"));
+
+============================= h_test_app_withstyle.js (ENTRY POINT)==
+
+import * as qwik from "@builder.io/qwik";
+import css1 from "./global.css";
+import css2 from "./style.css";
+export const App_withStyle = `${css1}${css2}`;
+
+============================= h_test_app_withstyle2.js (ENTRY POINT)==
+
+import * as qwik from "@builder.io/qwik";
+import css3 from "./style.css";
+export const App_withStyle2 = css3;
+
+============================= h_test_app_onmount.js (ENTRY POINT)==
+
+import * as qwik from "@builder.io/qwik";
+import { withStyle } from "@builder.io/qwik";
+export const App_onmount = ()=>{
+    withStyle(qwik.qrl(()=>import("./h_test_app_withstyle")
+    , "App_withStyle"));
+    withStyle(qwik.qrl(()=>import("./h_test_app_withstyle2")
+    , "App_withStyle2"));
+};
+
+== HOOKS ==
+
+[
+  {
+    "origin": "test.tsx",
+    "name": "App_withStyle",
+    "entry": null,
+    "canonicalFilename": "h_test_app_withstyle"
+  },
+  {
+    "origin": "test.tsx",
+    "name": "App_withStyle2",
+    "entry": null,
+    "canonicalFilename": "h_test_app_withstyle2"
+  },
+  {
+    "origin": "test.tsx",
+    "name": "App_onmount",
+    "entry": null,
+    "canonicalFilename": "h_test_app_onmount"
+  }
+]
+
+== DIAGNOSTICS ==
+
+[]

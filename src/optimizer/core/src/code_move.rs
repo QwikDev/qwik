@@ -20,6 +20,7 @@ pub struct NewModuleCtx<'a> {
     pub local_idents: &'a [Id],
     pub scoped_idents: &'a [Id],
     pub global: &'a GlobalCollect,
+    pub qwik_ident: &'a Id,
 }
 
 pub fn new_module(ctx: NewModuleCtx) -> Result<(ast::Module, SingleThreadedComments), Error> {
@@ -33,7 +34,7 @@ pub fn new_module(ctx: NewModuleCtx) -> Result<(ast::Module, SingleThreadedComme
 
     // Inject qwik internal import
     module.body.push(create_synthetic_wildcard_import(
-        &QWIK_INTERNAL,
+        ctx.qwik_ident,
         &BUILDER_IO_QWIK,
     ));
 
@@ -106,7 +107,11 @@ pub fn new_module(ctx: NewModuleCtx) -> Result<(ast::Module, SingleThreadedComme
         }
     }
     let expr = if !ctx.scoped_idents.is_empty() {
-        Box::new(transform_function_expr(*ctx.expr, ctx.scoped_idents))
+        Box::new(transform_function_expr(
+            *ctx.expr,
+            ctx.qwik_ident,
+            ctx.scoped_idents,
+        ))
     } else {
         ctx.expr
     };
@@ -280,20 +285,30 @@ fn new_entry_module(hooks: &[&HookAnalysis]) -> ast::Module {
     module
 }
 
-pub fn transform_function_expr(expr: ast::Expr, scoped_idents: &[Id]) -> ast::Expr {
+pub fn transform_function_expr(
+    expr: ast::Expr,
+    qwik_ident: &Id,
+    scoped_idents: &[Id],
+) -> ast::Expr {
     match expr {
-        ast::Expr::Arrow(node) => ast::Expr::Arrow(transform_arrow_fn(node, scoped_idents)),
-        ast::Expr::Fn(node) => ast::Expr::Fn(transform_fn(node, scoped_idents)),
+        ast::Expr::Arrow(node) => {
+            ast::Expr::Arrow(transform_arrow_fn(node, qwik_ident, scoped_idents))
+        }
+        ast::Expr::Fn(node) => ast::Expr::Fn(transform_fn(node, qwik_ident, scoped_idents)),
         _ => expr,
     }
 }
 
-pub fn transform_arrow_fn(arrow: ast::ArrowExpr, scoped_idents: &[Id]) -> ast::ArrowExpr {
+pub fn transform_arrow_fn(
+    arrow: ast::ArrowExpr,
+    qwik_ident: &Id,
+    scoped_idents: &[Id],
+) -> ast::ArrowExpr {
     match arrow.body {
         ast::BlockStmtOrExpr::BlockStmt(mut block) => {
             let mut stmts = vec![];
             if !scoped_idents.is_empty() {
-                stmts.push(create_use_closure(scoped_idents));
+                stmts.push(create_use_closure(qwik_ident, scoped_idents));
             }
             stmts.append(&mut block.stmts);
             ast::ArrowExpr {
@@ -307,7 +322,7 @@ pub fn transform_arrow_fn(arrow: ast::ArrowExpr, scoped_idents: &[Id]) -> ast::A
         ast::BlockStmtOrExpr::Expr(expr) => {
             let mut stmts = vec![];
             if !scoped_idents.is_empty() {
-                stmts.push(create_use_closure(scoped_idents));
+                stmts.push(create_use_closure(qwik_ident, scoped_idents));
             }
             stmts.push(create_return_stmt(expr));
             ast::ArrowExpr {
@@ -321,10 +336,10 @@ pub fn transform_arrow_fn(arrow: ast::ArrowExpr, scoped_idents: &[Id]) -> ast::A
     }
 }
 
-pub fn transform_fn(node: ast::FnExpr, scoped_idents: &[Id]) -> ast::FnExpr {
+pub fn transform_fn(node: ast::FnExpr, qwik_ident: &Id, scoped_idents: &[Id]) -> ast::FnExpr {
     let mut stmts = vec![];
     if !scoped_idents.is_empty() {
-        stmts.push(create_use_closure(scoped_idents));
+        stmts.push(create_use_closure(qwik_ident, scoped_idents));
     }
     if let Some(mut body) = node.function.body {
         stmts.append(&mut body.stmts);
@@ -348,7 +363,7 @@ const fn create_return_stmt(expr: Box<ast::Expr>) -> ast::Stmt {
     })
 }
 
-fn create_use_closure(scoped_idents: &[Id]) -> ast::Stmt {
+fn create_use_closure(qwik_ident: &Id, scoped_idents: &[Id]) -> ast::Stmt {
     ast::Stmt::Decl(ast::Decl::Var(ast::VarDecl {
         span: DUMMY_SP,
         declare: false,
@@ -357,6 +372,7 @@ fn create_use_closure(scoped_idents: &[Id]) -> ast::Stmt {
             definite: false,
             span: DUMMY_SP,
             init: Some(Box::new(ast::Expr::Call(create_internal_call(
+                qwik_ident,
                 &USE_CLOSURE,
                 vec![],
                 None,

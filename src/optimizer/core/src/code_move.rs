@@ -306,7 +306,7 @@ pub fn transform_arrow_fn(
 ) -> ast::ArrowExpr {
     match arrow.body {
         ast::BlockStmtOrExpr::BlockStmt(mut block) => {
-            let mut stmts = vec![];
+            let mut stmts = Vec::with_capacity(1 + block.stmts.len());
             if !scoped_idents.is_empty() {
                 stmts.push(create_use_closure(qwik_ident, scoped_idents));
             }
@@ -320,7 +320,7 @@ pub fn transform_arrow_fn(
             }
         }
         ast::BlockStmtOrExpr::Expr(expr) => {
-            let mut stmts = vec![];
+            let mut stmts = Vec::with_capacity(2);
             if !scoped_idents.is_empty() {
                 stmts.push(create_use_closure(qwik_ident, scoped_idents));
             }
@@ -337,7 +337,13 @@ pub fn transform_arrow_fn(
 }
 
 pub fn transform_fn(node: ast::FnExpr, qwik_ident: &Id, scoped_idents: &[Id]) -> ast::FnExpr {
-    let mut stmts = vec![];
+    let mut stmts = Vec::with_capacity(
+        1 + node
+            .function
+            .body
+            .as_ref()
+            .map_or(0, |body| body.stmts.len()),
+    );
     if !scoped_idents.is_empty() {
         stmts.push(create_use_closure(qwik_ident, scoped_idents));
     }

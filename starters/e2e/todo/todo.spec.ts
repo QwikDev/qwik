@@ -16,7 +16,7 @@ test.describe('Todo', () => {
 
   test('should add new item', async ({ page }) => {
     await addTodoItem(page, 'New Item');
-    await assertItemCount(page, 3);
+    await assertItemCount(page, 4);
     await expect(page.locator('.todo-list>li:last-child label')).toContainText('New Item');
   });
 
@@ -36,7 +36,6 @@ test.describe('Todo', () => {
   test('should edit an item', async ({ page }) => {
     await page.locator('.todo-list>li:first-child label').dblclick();
     await page.locator('.todo-list>li:first-child input.edit').fill('');
-    page.wa;
     await page.locator('.todo-list>li:first-child input.edit').press('X');
     await page.locator('.todo-list>li:first-child input.edit').press('Enter');
     await expect(page.locator('.todo-list>li:first-child')).toContainText('X');
@@ -77,4 +76,5 @@ async function assertItemCount(page: Page, count: number, total?: number) {
 async function addTodoItem(page: Page, text: string) {
   await page.fill('input.new-todo', text);
   await page.press('input.new-todo', 'Enter');
+  await page.waitForTimeout(50);
 }

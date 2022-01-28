@@ -910,6 +910,30 @@ export const App = qComponent$((props) => {
         true,
     );
 }
+
+#[test]
+fn issue_150() {
+    test_input(
+        "test.tsx",
+        r#"
+import { component$, onRender$ } from '@builder.io/qwik';
+
+export const Greeter = component$(() => {
+    onRender$(() => {
+    return (
+        <div/>
+    )
+    });
+});
+
+const d = onRender$(()=>console.log('thing'));
+    "#,
+        EntryStrategy::Hook,
+        MinifyMode::Simplify,
+        true,
+    );
+}
+
 // fn test_fixture(folder: &str) {
 //     let res = transform_workdir(&FSConfig {
 //         project_root: folder.to_string(),

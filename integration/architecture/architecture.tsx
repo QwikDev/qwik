@@ -2,13 +2,15 @@ import {
   Fragment,
   h,
   Host,
-  component,
+  $,
+  component$,
   Slot,
+  component,
   PropsOf,
   getProps,
   useEvent,
-  onRender,
-  useState,
+  onRender$,
+  useStore,
 } from '@builder.io/qwik';
 /* eslint no-console: ["off"] */
 
@@ -22,8 +24,8 @@ export interface Cmp {
 
 type ArchMode = 'monolith' | 'island' | 'uIslet';
 
-export const ArchApp = component((props: { monolith: Cmp; islands: Cmp; uIslets: Cmp }) => {
-  return onRender(() => (
+export const ArchApp = component$((props: { monolith: Cmp; islands: Cmp; uIslets: Cmp }) => {
+  return onRender$(() => (
     <>
       <h1>Monolith</h1>
       <b>Examples:</b> Angular, React, Solid, Svelte, Vue, WebComponents
@@ -59,29 +61,35 @@ export const ArchApp = component((props: { monolith: Cmp; islands: Cmp; uIslets:
   ));
 });
 
-export const Browser = component('browser', () => {
-  return onRender(() => (
-    <div class="browser">
-      <div class="browser-url">
-        <span>⇦ ⇨ ⟳</span>
-        <input value="http://localhost/" />
+export const Browser = component(
+  'browser',
+  $(() => {
+    return onRender$(() => (
+      <div class="browser">
+        <div class="browser-url">
+          <span>⇦ ⇨ ⟳</span>
+          <input value="http://localhost/" />
+        </div>
+        <div class="browser-body">
+          <Slot />
+        </div>
       </div>
-      <div class="browser-body">
-        <Slot />
-      </div>
-    </div>
-  ));
-});
+    ));
+  })
+);
 
-export const Component = component('component', (props: { cmp: Cmp; arch: ArchMode }) => {
-  return onRender(() => (
-    <Host class={getCmpClass(props.cmp)} on:click={Component_click}>
-      {props.cmp.children &&
-        props.cmp.children.map((cmp) => <Component cmp={cmp} arch={props.arch} />)}
-      {props.cmp.children ? null : '...'}
-    </Host>
-  ));
-});
+export const Component = component(
+  'component',
+  $((props: { cmp: Cmp; arch: ArchMode }) => {
+    return onRender$(() => (
+      <Host class={getCmpClass(props.cmp)} on:click={Component_click}>
+        {props.cmp.children &&
+          props.cmp.children.map((cmp) => <Component cmp={cmp} arch={props.arch} />)}
+        {props.cmp.children ? null : '...'}
+      </Host>
+    ));
+  })
+);
 
 export const Component_click = async () => {
   // TODO(misko): Workaround for the fact that the click listener is sitting on `<Host>` and hence
@@ -116,9 +124,9 @@ function getCmpClass(cmp: Cmp, ...additionalClasses: string[]) {
   return classes.join(' ');
 }
 
-export const MonolithScrubber = component((props: { cmp: Cmp }) => {
-  const state = useState({ step: 1 });
-  return onRender(() => (
+export const MonolithScrubber = component$((props: { cmp: Cmp }) => {
+  const state = useStore({ step: 1 });
+  return onRender$(() => (
     <>
       <ol>
         <li class={state.step >= 1 ? 'active' : ''}>
@@ -135,7 +143,7 @@ export const MonolithScrubber = component((props: { cmp: Cmp }) => {
           Framework completes the rehydration of the application.
         </li>
       </ol>
-      <button on:click={() => monolithUpdate(props.cmp, ++state.step)}>&gt;&gt;&gt;</button>
+      <button on$:click={() => monolithUpdate(props.cmp, ++state.step)}>&gt;&gt;&gt;</button>
     </>
   ));
 });

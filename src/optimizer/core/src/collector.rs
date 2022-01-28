@@ -51,11 +51,11 @@ pub struct GlobalCollect {
 
 pub fn global_collect(module: &ast::Module) -> GlobalCollect {
     let mut collect = GlobalCollect {
-        imports: HashMap::new(),
-        exports: HashMap::new(),
+        imports: HashMap::with_capacity(16),
+        exports: HashMap::with_capacity(16),
 
-        root: HashMap::new(),
-        rev_imports: HashMap::new(),
+        root: HashMap::with_capacity(16),
+        rev_imports: HashMap::with_capacity(16),
 
         in_export_decl: false,
     };
@@ -116,7 +116,9 @@ impl Visit for GlobalCollect {
                 }
                 ast::Decl::Var(var) => {
                     for decl in &var.decls {
-                        collect_from_pat(&decl.name, &mut self.root);
+                        let mut identifiers: Vec<(Id, Span)> = vec![];
+                        collect_from_pat(&decl.name, &mut identifiers);
+                        self.root.extend(identifiers.into_iter());
                     }
                 }
                 _ => {}
@@ -277,7 +279,7 @@ impl IdentCollector {
     pub fn new() -> Self {
         Self {
             local_idents: HashSet::new(),
-            expr_ctxt: vec![],
+            expr_ctxt: Vec::with_capacity(32),
             use_h: false,
             use_fragment: false,
         }
@@ -348,10 +350,10 @@ impl Visit for IdentCollector {
     }
 }
 
-pub fn collect_from_pat(pat: &ast::Pat, identifiers: &mut HashMap<Id, Span>) {
+pub fn collect_from_pat(pat: &ast::Pat, identifiers: &mut Vec<(Id, Span)>) {
     match pat {
         ast::Pat::Ident(ident) => {
-            identifiers.insert(id!(ident.id), ident.id.span);
+            identifiers.push((id!(ident.id), ident.id.span));
         }
         ast::Pat::Array(array) => {
             for el in array.elems.iter().flatten() {
@@ -360,26 +362,26 @@ pub fn collect_from_pat(pat: &ast::Pat, identifiers: &mut HashMap<Id, Span>) {
         }
         ast::Pat::Rest(rest) => {
             if let ast::Pat::Ident(ident) = rest.arg.as_ref() {
-                identifiers.insert(id!(ident.id), ident.id.span);
+                identifiers.push((id!(ident.id), ident.id.span));
             }
         }
         ast::Pat::Assign(expr) => {
             if let ast::Pat::Ident(ident) = expr.left.as_ref() {
-                identifiers.insert(id!(ident.id), ident.id.span);
+                identifiers.push((id!(ident.id), ident.id.span));
             }
         }
         ast::Pat::Object(obj) => {
             for prop in &obj.props {
                 match prop {
                     ast::ObjectPatProp::Assign(ref v) => {
-                        identifiers.insert(id!(v.key), v.key.span);
+                        identifiers.push((id!(v.key), v.key.span));
                     }
                     ast::ObjectPatProp::KeyValue(ref v) => {
                         collect_from_pat(&v.value, identifiers);
                     }
                     ast::ObjectPatProp::Rest(ref v) => {
                         if let ast::Pat::Ident(ident) = v.arg.as_ref() {
-                            identifiers.insert(id!(ident.id), ident.id.span);
+                            identifiers.push((id!(ident.id), ident.id.span));
                         }
                     }
                 }

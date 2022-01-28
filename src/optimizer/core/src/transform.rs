@@ -14,7 +14,7 @@ use regex::Regex;
 use std::sync::{Arc, Mutex};
 use swc_atoms::JsWord;
 use swc_common::comments::{Comments, SingleThreadedComments};
-use swc_common::{errors::HANDLER, Mark, Span, Spanned, DUMMY_SP};
+use swc_common::{errors::HANDLER, Mark, Spanned, DUMMY_SP};
 use swc_ecmascript::ast;
 use swc_ecmascript::utils::{private_ident, ExprFactory};
 use swc_ecmascript::visit::{fold_expr, noop_fold_type, Fold, FoldWith, VisitWith};
@@ -382,9 +382,9 @@ impl<'a> Fold for QwikTransform<'a> {
             stacked = true;
         }
         if let Some(current_scope) = self.decl_stack.last_mut() {
-            let mut identifiers: HashMap<Id, _> = HashMap::new();
+            let mut identifiers = vec![];
             collect_from_pat(&node.name, &mut identifiers);
-            current_scope.extend(identifiers.into_keys().map(|id| (id, IdentType::Var)));
+            current_scope.extend(identifiers.into_iter().map(|(id, _)| (id, IdentType::Var)));
         }
         let o = node.fold_children_with(self);
         if stacked {
@@ -400,14 +400,18 @@ impl<'a> Fold for QwikTransform<'a> {
         self.stack_ctxt.push(node.ident.sym.to_string());
         self.decl_stack.push(vec![]);
 
-        let mut idents: HashMap<Id, Span> = HashMap::new();
+        let mut identifiers = vec![];
         for param in &node.function.params {
-            collect_from_pat(&param.pat, &mut idents);
+            collect_from_pat(&param.pat, &mut identifiers);
         }
         self.decl_stack
             .last_mut()
             .expect("Declaration stack empty!")
-            .extend(idents.into_keys().map(|key| (key, IdentType::Var)));
+            .extend(
+                identifiers
+                    .into_iter()
+                    .map(|(key, _)| (key, IdentType::Var)),
+            );
 
         let o = node.fold_children_with(self);
         self.stack_ctxt.pop();
@@ -424,9 +428,9 @@ impl<'a> Fold for QwikTransform<'a> {
             .expect("Declaration stack empty!");
 
         for param in &node.params {
-            let mut identifiers: HashMap<Id, _> = HashMap::new();
+            let mut identifiers = vec![];
             collect_from_pat(param, &mut identifiers);
-            current_scope.extend(identifiers.into_keys().map(|id| (id, IdentType::Var)));
+            current_scope.extend(identifiers.into_iter().map(|(id, _)| (id, IdentType::Var)));
         }
 
         let o = node.fold_children_with(self);

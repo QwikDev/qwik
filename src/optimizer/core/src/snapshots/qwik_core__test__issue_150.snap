@@ -22,8 +22,8 @@ const d = onRender$(()=>console.log('thing'));
 ============================= test.js ==
 
 import * as qwik from "@builder.io/qwik";
-import { component } from "@builder.io/qwik";
 import { onRender } from "@builder.io/qwik";
+import { component } from "@builder.io/qwik";
 export const Greeter = component(qwik.qrl(()=>import("./h_test_greeter_component")
 , "Greeter_component"));
 onRender(qwik.qrl(()=>import("./h_test_d_onrender")

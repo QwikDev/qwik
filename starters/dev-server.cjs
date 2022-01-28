@@ -3,7 +3,15 @@
 
 const express = require('express');
 const { isAbsolute, join } = require('path');
-const { readdirSync, statSync, mkdirSync, writeFileSync, rmSync, readFileSync } = require('fs');
+const {
+  readdirSync,
+  statSync,
+  mkdirSync,
+  writeFileSync,
+  readFileSync,
+  unlinkSync,
+  rmdirSync,
+} = require('fs');
 const { rollup } = require('rollup');
 const { createDocument } = require('domino');
 
@@ -51,7 +59,7 @@ async function buildApp(appDir) {
   const symbolsPath = join(appBuildServerDir, 'q-symbols.json');
 
   // always clean the build directory
-  rmSync(appBuildDir, { force: true, recursive: true });
+  removeDir(appBuildDir);
   mkdirSync(appBuildDir);
   mkdirSync(appBuildServerDir);
 
@@ -102,6 +110,21 @@ async function buildApp(appDir) {
     dir: appBuildServerDir,
     format: 'cjs',
   });
+}
+
+function removeDir(dir) {
+  try {
+    const items = readdirSync(dir);
+    const itemPaths = items.map((i) => join(dir, i));
+    itemPaths.forEach((itemPath) => {
+      if (statSync(itemPath).isDirectory()) {
+        removeDir(itemPath);
+      } else {
+        unlinkSync(itemPath);
+      }
+    });
+    rmdirSync(dir);
+  } catch (e) {}
 }
 
 async function ssrApp(req, appName, appDir) {

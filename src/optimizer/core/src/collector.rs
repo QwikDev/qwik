@@ -37,6 +37,7 @@ pub struct Import {
     pub source: JsWord,
     pub specifier: JsWord,
     pub kind: ImportKind,
+    pub synthetic: bool,
 }
 
 pub struct GlobalCollect {
@@ -70,7 +71,7 @@ impl GlobalCollect {
             .map(|s| s.0.clone())
     }
 
-    pub fn import(&mut self, specifier: JsWord, source: JsWord) -> (Id, bool) {
+    pub fn import(&mut self, specifier: JsWord, source: JsWord) -> Id {
         self.rev_imports
             .get(&(specifier.clone(), source.clone()))
             .cloned()
@@ -83,11 +84,12 @@ impl GlobalCollect {
                             source,
                             specifier,
                             kind: ImportKind::Named,
+                            synthetic: true,
                         },
                     );
-                    (local, true)
+                    local
                 },
-                |local| (local, false),
+                |local| local,
             )
     }
 
@@ -138,6 +140,7 @@ impl Visit for GlobalCollect {
                             source: node.src.value.clone(),
                             specifier: imported,
                             kind: ImportKind::Named,
+                            synthetic: false,
                         },
                     );
                 }
@@ -148,6 +151,7 @@ impl Visit for GlobalCollect {
                             source: node.src.value.clone(),
                             specifier: js_word!("default"),
                             kind: ImportKind::Default,
+                            synthetic: false,
                         },
                     );
                 }
@@ -158,6 +162,7 @@ impl Visit for GlobalCollect {
                             source: node.src.value.clone(),
                             specifier: "*".into(),
                             kind: ImportKind::All,
+                            synthetic: false,
                         },
                     );
                 }

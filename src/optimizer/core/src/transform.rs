@@ -86,7 +86,7 @@ pub struct QwikTransform<'a> {
     pub qwik_ident: Id,
     pub global_collect: GlobalCollect,
 
-    extra_module_items: Vec<ast::ModuleItem>,
+    extra_module_items: HashMap<Id, ast::ModuleItem>,
     stack_ctxt: Vec<String>,
     position_ctxt: Vec<PositionToken>,
     decl_stack: Vec<Vec<IdPlusType>>,
@@ -140,7 +140,7 @@ impl<'a> QwikTransform<'a> {
             in_component: false,
             hooks: Vec::with_capacity(16),
             hook_depth: 0,
-            extra_module_items: Vec::with_capacity(8),
+            extra_module_items: HashMap::with_capacity(8),
             qcomponent_fn: global_collect.get_imported_local(&QCOMPONENT, &BUILDER_IO_QWIK),
             qhook_fn: global_collect.get_imported_local(&QHOOK, &BUILDER_IO_QWIK),
             h_fn: global_collect.get_imported_local(&H, &BUILDER_IO_QWIK),
@@ -368,7 +368,7 @@ impl<'a> Fold for QwikTransform<'a> {
         ));
 
         let mut module_body = node.body.into_iter().map(|i| i.fold_with(self)).collect();
-        body.append(&mut self.extra_module_items);
+        body.extend(self.extra_module_items.values().cloned());
         body.append(&mut module_body);
 
         ast::Module { body, ..node }
@@ -619,11 +619,17 @@ impl<'a> Fold for QwikTransform<'a> {
                     if let Some(import) = global_collect.imports.get(&id!(ident)).cloned() {
                         let specifier = import.specifier.to_string();
                         let new_specifier: &str = &specifier[0..specifier.len() - 1];
-                        let (new_local, is_new) =
+                        let new_local =
                             global_collect.import(new_specifier.into(), import.source.clone());
-                        if is_new && self.hook_depth == 0 {
-                            self.extra_module_items
-                                .push(create_synthetic_named_import(&new_local, &import.source));
+
+                        let is_synthetic =
+                            global_collect.imports.get(&new_local).unwrap().synthetic;
+
+                        if is_synthetic && self.hook_depth == 0 {
+                            self.extra_module_items.insert(
+                                new_local.clone(),
+                                create_synthetic_named_import(&new_local, &import.source),
+                            );
                         }
                         replace_callee = Some(new_ident_from_id(&new_local).as_callee());
                     } else {

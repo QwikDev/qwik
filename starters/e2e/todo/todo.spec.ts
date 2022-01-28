@@ -16,7 +16,7 @@ test.describe('Todo', () => {
 
   test('should add new item', async ({ page }) => {
     await addTodoItem(page, 'New Item');
-    await assertItemCount(page, 3);
+    await assertItemCount(page, 4);
     await expect(page.locator('.todo-list>li:last-child label')).toContainText('New Item');
   });
 
@@ -76,4 +76,5 @@ async function assertItemCount(page: Page, count: number, total?: number) {
 async function addTodoItem(page: Page, text: string) {
   await page.fill('input.new-todo', text);
   await page.press('input.new-todo', 'Enter');
+  await page.waitForTimeout(50);
 }

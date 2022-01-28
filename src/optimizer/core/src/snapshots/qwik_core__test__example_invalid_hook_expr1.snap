@@ -1,0 +1,74 @@
+---
+source: src/optimizer/core/src/test.rs
+assertion_line: 919
+expression: output
+
+---
+==INPUT==
+
+
+import { $, qComponent$, onRender$, withStyle$ } from '@builder.io/qwik';
+import css1 from './global.css';
+import css2 from './style.css';
+
+export const App = qComponent$(() => {
+    const style = `${css1}${css2}`;
+    withStyle$(style);
+    const render = () => {
+        return (
+            <div></div>
+        )
+    };
+    const styles =
+    return onRender$(render);
+})
+    
+============================= test.js ==
+
+import * as qwik from "@builder.io/qwik";
+import { qComponent } from "@builder.io/qwik";
+export const App = /*#__PURE__*/ qComponent(qwik.qrl(()=>import("./h_test_app_onmount")
+, "App_onmount"));
+
+============================= h_test_app_withstyle.js (ENTRY POINT)==
+
+import * as qwik from "@builder.io/qwik";
+export const App_withStyle = style;
+
+============================= h_test_app_onmount.js (ENTRY POINT)==
+
+import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
+import * as qwik from "@builder.io/qwik";
+import css1 from "./global.css";
+import css2 from "./style.css";
+import { withStyle } from "@builder.io/qwik";
+export const App_onmount = ()=>{
+    const style = `${css1}${css2}`;
+    withStyle(qwik.qrl(()=>import("./h_test_app_withstyle")
+    , "App_withStyle"));
+    const render = ()=>{
+        return(/*#__PURE__*/ _jsx("div", {}));
+    };
+    const styles = return;
+};
+
+== HOOKS ==
+
+[
+  {
+    "origin": "test.tsx",
+    "name": "App_withStyle",
+    "entry": null,
+    "canonicalFilename": "h_test_app_withstyle"
+  },
+  {
+    "origin": "test.tsx",
+    "name": "App_onmount",
+    "entry": null,
+    "canonicalFilename": "h_test_app_onmount"
+  }
+]
+
+== DIAGNOSTICS ==
+
+[Diagnostic { message: "Identifier can not be captured", code_highlights: Some([CodeHighlight { message: None, loc: SourceLocation { start_line: 8, start_col: 16, end_line: 8, end_col: 20 } }]), hints: None, show_environment: false, severity: Error, documentation_url: None }]

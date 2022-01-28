@@ -169,7 +169,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                         &path_data,
                         config.entry_policy,
                         Some(&comments),
-                        &collect,
+                        collect,
                     );
 
                     // Run main transform
@@ -244,7 +244,8 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                             origin: &h.origin,
                             local_idents: &h.local_idents,
                             scoped_idents: &h.scoped_idents,
-                            global: &collect,
+                            global: &qwik_transform.global_collect,
+                            qwik_ident: &qwik_transform.qwik_ident,
                         })?;
 
                         if transpile && is_jsx {

@@ -30,10 +30,10 @@ export function bubble<PAYLOAD>(eventType: string, payload?: PAYLOAD): void;
 export function component$<PROPS>(onMount: OnMountFn<PROPS>): (props: PROPS) => JSXNode<PROPS>;
 
 // @public (undocumented)
-export function component<PROPS extends {}>(tagName: string, onMount: QRL<(props: PROPS) => ReturnType<typeof onRender>>): (props: PROPS) => JSXNode<PROPS>;
+export function component<PROPS extends {}>(tagName: string, onMount: QRL<OnMountFn<PROPS>>): (props: PROPS) => JSXNode<PROPS>;
 
 // @public (undocumented)
-export function component<PROPS extends {}>(onMount: QRL<(props: PROPS) => ReturnType<typeof onRender>>): (props: PROPS) => JSXNode<PROPS>;
+export function component<PROPS extends {}>(onMount: QRL<OnMountFn<PROPS>>): (props: PROPS) => JSXNode<PROPS>;
 
 // @public (undocumented)
 export type ComponentChild = JSXNode<any> | object | string | number | bigint | boolean | null | undefined;

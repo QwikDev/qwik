@@ -9,6 +9,7 @@
 import { EMPTY_ARRAY } from '../util/flyweight';
 import type { QRL } from './qrl.public';
 import { isQrl, QRLClass } from './qrl-class';
+import { assertEqual } from '../assert/assert';
 
 let runtimeSymbolId = 0;
 const RUNTIME_QRL = '/runtimeQRL';
@@ -21,6 +22,11 @@ const EXTRACT_SELF_IMPORT = /Promise\s*\.\s*resolve/;
 
 // https://regexr.com/6a83h
 const EXTRACT_FILE_NAME = /[\\/(]([\w\d.\-_]+)\.(js|ts)x?:/;
+
+export function toInternalQRL<T>(qrl: QRL<T>): QRLClass<T> {
+  assertEqual(isQrl(qrl), true);
+  return qrl as QRLClass<T>;
+}
 
 export function staticQrl<T = any>(
   chunkOrFn: string | (() => Promise<any>),
@@ -68,20 +74,21 @@ export function runtimeQrl<T>(symbol: T, lexicalScopeCapture: any[] = EMPTY_ARRA
 }
 
 export function stringifyQRL(qrl: QRL, element?: Element) {
-  const parts: string[] = [qrl.chunk];
-  const symbol = qrl.symbol;
+  const qrl_ = toInternalQRL(qrl);
+  const parts: string[] = [qrl_.chunk];
+  const symbol = qrl_.symbol;
   if (symbol && symbol !== 'default') {
     parts.push('#', symbol);
   }
-  const guard = qrl.guard;
+  const guard = qrl_.guard;
   guard?.forEach((value, key) =>
     parts.push('|', key, value && value.length ? '.' + value.join('.') : '')
   );
-  const capture = qrl.capture;
+  const capture = qrl_.capture;
   capture && capture.length && parts.push(JSON.stringify(capture));
 
   const qrlString = parts.join('');
-  if (qrl.chunk === RUNTIME_QRL && element) {
+  if (qrl_.chunk === RUNTIME_QRL && element) {
     const qrls: Set<QRL> = (element as any).__qrls__ || ((element as any).__qrls__ = new Set());
     qrls.add(qrl);
   }

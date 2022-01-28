@@ -5,7 +5,8 @@ export function isQrl(value: any): value is IQRL {
   return value instanceof QRLClass;
 }
 
-export const QRLClass = class QRL<TYPE = any> implements IQRL<TYPE> {
+class QRL<TYPE = any> implements IQRL<TYPE> {
+  __brand__QRL__!: TYPE;
   constructor(
     public chunk: string,
     public symbol: string,
@@ -16,4 +17,7 @@ export const QRLClass = class QRL<TYPE = any> implements IQRL<TYPE> {
     public guard: null | Map<string, string[]>,
     public guardRef: null | WeakMap<Object, string[]>
   ) {}
-};
+}
+
+export type QRLClass<T> = QRL<T>;
+export const QRLClass: typeof QRL = QRL;

@@ -41,8 +41,7 @@ export { dehydrate } from './object/store.public';
 //////////////////////////////////////////////////////////////////////////////////////////
 // Internal Runtime
 //////////////////////////////////////////////////////////////////////////////////////////
-export { $, implicit$FirstArg, qrl, QRL } from './import/qrl.public';
-export { qrlImport } from './import/qrl-import';
+export { $, implicit$FirstArg, qrl, QRL, qrlImport } from './import/qrl.public';
 export { getProps, Props } from './props/props.public';
 export { notifyRender } from './render/notify-render';
 //////////////////////////////////////////////////////////////////////////////////////////

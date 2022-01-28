@@ -1,6 +1,5 @@
-import { qrlImport } from '../import/qrl-import';
 import { parseQRL, stringifyQRL } from '../import/qrl';
-import type { QRL } from '../import/qrl.public';
+import type { QRL, qrlImport } from '../import/qrl.public';
 import { qDeflate } from '../json/q-json';
 import { getInvokeContext, useInvoke } from '../use/use-core';
 import { fromCamelToKebabCase } from '../util/case';

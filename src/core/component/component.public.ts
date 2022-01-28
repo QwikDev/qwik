@@ -1,6 +1,5 @@
-import { qrlImport } from '../import/qrl-import';
 import { toQrlOrError } from '../import/qrl';
-import { $, implicit$FirstArg, QRL } from '../import/qrl.public';
+import { $, implicit$FirstArg, QRL, qrlImport } from '../import/qrl.public';
 import type { qrlFactory } from '../props/props-on';
 import { getProps } from '../props/props.public';
 import { h } from '../render/jsx/factory';

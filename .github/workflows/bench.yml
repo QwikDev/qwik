@@ -76,7 +76,7 @@ jobs:
         if: github.ref == 'refs/heads/main'
         uses: JamesIves/github-pages-deploy-action@4.1.0
         with:
-          token: ${{ secrets.GH_TOKEN }}
+          token: ${{ secrets.PAT_GITHUB_TOKEN }}
           branch: gh-pages
           folder: raw-data
           clean: false

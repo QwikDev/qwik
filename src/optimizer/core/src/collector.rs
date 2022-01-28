@@ -1,4 +1,4 @@
-use std::collections::{BTreeMap, HashMap, HashSet};
+use std::collections::{HashMap, HashSet};
 
 use swc_atoms::{js_word, JsWord};
 use swc_common::{BytePos, Span, SyntaxContext};
@@ -41,8 +41,8 @@ pub struct Import {
 }
 
 pub struct GlobalCollect {
-    pub imports: BTreeMap<Id, Import>,
-    pub exports: BTreeMap<Id, Option<JsWord>>,
+    pub imports: HashMap<Id, Import>,
+    pub exports: HashMap<Id, Option<JsWord>>,
     pub root: HashMap<Id, Span>,
 
     rev_imports: HashMap<(JsWord, JsWord), Id>,
@@ -51,8 +51,8 @@ pub struct GlobalCollect {
 
 pub fn global_collect(module: &ast::Module) -> GlobalCollect {
     let mut collect = GlobalCollect {
-        imports: BTreeMap::new(),
-        exports: BTreeMap::new(),
+        imports: HashMap::new(),
+        exports: HashMap::new(),
 
         root: HashMap::new(),
         rev_imports: HashMap::new(),

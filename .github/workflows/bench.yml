@@ -17,7 +17,15 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Cache
+      - uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            optimizer:
+              - 'src/optimizer/core/**'
+
+      - if: steps.changes.outputs.optimizer == 'true'
+        name: Cache
         uses: actions/cache@v1
         with:
           path: |
@@ -27,20 +35,25 @@ jobs:
           key: cargo-bench-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
             cargo-bench-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
-      - name: Install Rust
+
+      - if: steps.changes.outputs.optimizer == 'true'
+        name: Install Rust
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: nightly-2021-09-30
           override: true
 
-      - name: Run benchmark
+      - if: steps.changes.outputs.optimizer == 'true'
+        name: Run benchmark
         run: cargo +nightly-2021-09-30 bench --workspace | tee output.txt
 
-      - name: Download previous benchmark results
+      - if: steps.changes.outputs.optimizer == 'true'
+        name: Download previous benchmark results
         run: mkdir raw-data && curl -o raw-data/benchmark-data.json https://raw.githubusercontent.com/BuilderIO/qwik-raw-data/gh-pages/benchmark-data.json
 
-      - name: Analyze benchmark result
+      - if: steps.changes.outputs.optimizer == 'true'
+        name: Analyze benchmark result
         uses: benchmark-action/github-action-benchmark@v1
         with:
           # What benchmark tool the output.txt came from
@@ -58,8 +71,7 @@ jobs:
           alert-comment-cc-users: '@manucorporat'
           skip-fetch-gh-pages: true
 
-      - name: Analyze benchmark result (root)
-        if: ${{ github.event_name == 'push' }}
+      - if: ${{ steps.changes.outputs.optimizer == 'true' && github.event_name == 'push' }}
         uses: benchmark-action/github-action-benchmark@v1
         with:
           # What benchmark tool the output.txt came from
@@ -76,11 +88,11 @@ jobs:
           comment-always: true
           alert-comment-cc-users: '@manucorporat'
           max-items-in-chart: 250
-          skip-fetch-gh-pages: ${{ github.ref != 'refs/heads/main' }}
-          auto-push: ${{ github.ref == 'refs/heads/main' }}
+          skip-fetch-gh-pages: true
+          auto-push: false
 
       - name: Deploy
-        if: github.ref == 'refs/heads/main'
+        if: ${{ github.ref == 'refs/heads/main' && steps.changes.outputs.optimizer == 'true' }}
         uses: JamesIves/github-pages-deploy-action@4.1.0
         with:
           token: ${{ secrets.PAT_GITHUB_TOKEN }}

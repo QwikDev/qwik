@@ -76,7 +76,8 @@ jobs:
           comment-always: true
           alert-comment-cc-users: '@manucorporat'
           max-items-in-chart: 250
-          auto-push: true
+          skip-fetch-gh-pages: ${{ github.ref != 'refs/heads/main' }}
+          auto-push: ${{ github.ref == 'refs/heads/main' }}
 
       - name: Deploy
         if: github.ref == 'refs/heads/main'

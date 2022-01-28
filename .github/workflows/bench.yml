@@ -90,7 +90,7 @@ jobs:
           skip-fetch-gh-pages: true
           auto-push: false
 
-      - name: Deploy
+      - name: Deploy to qwik-raw-data
         if: ${{ github.ref == 'refs/heads/main' }}
         uses: JamesIves/github-pages-deploy-action@4.1.0
         with:
@@ -102,3 +102,13 @@ jobs:
           git-config-email: github-bot@builder.io
           repository-name: BuilderIO/qwik-raw-data
           commit-message: 'Update'
+
+      - name: Store benchmark result
+        if: ${{ github.ref == 'refs/heads/main' }}
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: Qwik Performance Metrics
+          tool: 'cargo'
+          output-file-path: output.txt
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          auto-push: true

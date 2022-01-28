@@ -25,7 +25,7 @@ jobs:
     if: "!contains(github.event.head_commit.message, 'skip ci')"
     runs-on: ubuntu-latest
     steps:
-      - name: Setup Node.js
+      - name: Setup Node
         uses: actions/setup-node@v1
         with:
           node-version: 16.x
@@ -46,7 +46,7 @@ jobs:
       - name: Build Package
         run: node scripts --tsc --build --api --set-dist-tag="${{ github.event.inputs.disttag }}"
 
-      - name: Print WASM Dist Build
+      - name: Print Package Dist Build
         run: ls -R dist-dev/@builder.io-qwik/
 
       - name: Upload Package Build Artifacts
@@ -56,13 +56,26 @@ jobs:
           path: dist-dev/@builder.io-qwik/
           if-no-files-found: error
 
+      - name: Build Create Qwik CLI
+        run: node scripts --cli
+
+      - name: Print Create Qwik CLI Dist Build
+        run: ls -R dist-dev/create-qwik/
+
+      - name: Upload Create Qwik CLI Build Artifacts
+        uses: actions/upload-artifact@master
+        with:
+          name: dist-dev-create-qwik
+          path: dist-dev/create-qwik/
+          if-no-files-found: error
+
   ############ BUILD WASM ############
   build-wasm:
     name: Build WASM
     if: "!contains(github.event.head_commit.message, 'skip ci')"
     runs-on: ubuntu-latest
     steps:
-      - name: Setup Node.js
+      - name: Setup Node
         uses: actions/setup-node@v1
         with:
           node-version: 16.x
@@ -148,7 +161,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Setup Node.js
+      - name: Setup Node
         uses: actions/setup-node@v1
         with:
           node-version: 16.x
@@ -221,7 +234,7 @@ jobs:
       - validate-rust
 
     steps:
-      - name: Setup Node.js
+      - name: Setup Node
         uses: actions/setup-node@v1
         with:
           node-version: 16.x
@@ -269,7 +282,7 @@ jobs:
       - test-e2e
 
     steps:
-      - name: Setup Node.js
+      - name: Setup Node
         uses: actions/setup-node@v1
         with:
           node-version: 16.x
@@ -335,7 +348,7 @@ jobs:
       - build-distribution
 
     steps:
-      - name: Setup Node.js
+      - name: Setup Node ${{ matrix.settings.node }}
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.settings.node }}
@@ -350,11 +363,16 @@ jobs:
       - name: Print Distribution Artifacts
         run: ls -R builderio-qwik-distribution/
 
+      - name: Print Create Qwik CLI Artifacts
+        run: ls -R dist-dev-create-qwik/
+
       - name: Move Distribution Artifacts
         run: |
           mkdir dist-dev/
           mkdir dist-dev/@builder.io-qwik/
           mv builderio-qwik-distribution/* dist-dev/@builder.io-qwik/
+          mkdir dist-dev/create-qwik/
+          mv dist-dev-create-qwik/* dist-dev/create-qwik/
 
       - name: Print Directory
         run: ls -R ./
@@ -374,13 +392,16 @@ jobs:
       - name: Playwright E2E Tests
         run: yarn test.e2e.${{ matrix.settings.browser }}
 
+      - name: Validate Create Qwik Cli
+        run: node scripts/validate-cli.cjs
+
   ############ UNIT TEST ############
   test-unit:
     name: Unit Tests
     if: "!contains(github.event.head_commit.message, 'skip ci')"
     runs-on: ubuntu-latest
     steps:
-      - name: Setup Node.js
+      - name: Setup Node
         uses: actions/setup-node@v1
         with:
           node-version: 16.x

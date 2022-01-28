@@ -254,7 +254,7 @@ export function Async<T>(props: {
    * </Async>
    * ```
    */
-  children: (observablePromise: PromiseValue<T>) => any;
+  children?: (observablePromise: PromiseValue<T>) => any;
 }): any;
 /**
  * @public

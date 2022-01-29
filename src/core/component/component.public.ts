@@ -9,6 +9,7 @@ import { newInvokeContext, useInvoke, useWaitOn } from '../use/use-core';
 import { useHostElement } from '../use/use-host-element.public';
 import { AttributeMarker } from '../util/markers';
 import { styleKey } from './qrl-styles';
+import type { QwikEvents } from '../render/jsx/types/jsx-qwik-attributes';
 
 /**
  * @public
@@ -73,7 +74,7 @@ export const onDehydrate$ = implicit$FirstArg(onDehydrate);
 /**
  * @public
  */
-export function onRender(renderFn: QRL<() => JSXNode>): QRL<() => JSXNode> {
+export function onRender<T>(renderFn: QRL<() => JSXNode<T>>): QRL<() => JSXNode<T>> {
   return toQrlOrError(renderFn);
 }
 
@@ -146,27 +147,27 @@ export type PropsOf<COMP extends (props: any) => JSXNode> = COMP extends (
 export function component<PROPS extends {}>(
   tagName: string,
   onMount: QRL<OnMountFn<PROPS>>
-): (props: PROPS) => JSXNode<PROPS>;
+): (props: PROPS & QwikEvents) => JSXNode<unknown>;
 /**
  * @public
  */
 export function component<PROPS extends {}>(
   onMount: QRL<OnMountFn<PROPS>>
-): (props: PROPS) => JSXNode<PROPS>;
+): (props: PROPS & QwikEvents) => JSXNode<unknown>;
 /**
  * @public
  */
 export function component<PROPS extends {}>(
   tagNameOrONMount: string | QRL<OnMountFn<PROPS>>,
   onMount?: QRL<OnMountFn<PROPS>>
-): (props: PROPS) => JSXNode<PROPS> {
+) {
   // Sort of the argument position based on type / overload
   const hasTagName = typeof tagNameOrONMount == 'string';
   const tagName = hasTagName ? tagNameOrONMount : 'div';
   const onMount_ = hasTagName ? onMount! : tagNameOrONMount;
 
   // Return a QComponent Factory function.
-  return function QComponent(props: PROPS): JSXNode<PROPS> {
+  return function QComponent(props: PROPS): JSXNode<unknown> {
     const onRenderFactory: qrlFactory = async (
       hostElement: Element
     ): Promise<ReturnType<typeof onRender>> => {
@@ -177,7 +178,7 @@ export function component<PROPS extends {}>(
       const invokeCtx = newInvokeContext(hostElement);
       return useInvoke(invokeCtx, onMount, componentProps);
     };
-    return h(tagName, { 'on:qRender': onRenderFactory, ...props }) as any;
+    return h(tagName, { 'on:qRender': onRenderFactory, ...props });
   };
 }
 
@@ -185,7 +186,7 @@ export function component<PROPS extends {}>(
  *
  * @public
  */
-export function component$<PROPS>(onMount: OnMountFn<PROPS>): (props: PROPS) => JSXNode<PROPS> {
+export function component$<PROPS extends {}>(onMount: OnMountFn<PROPS>) {
   return component($(onMount));
 }
 

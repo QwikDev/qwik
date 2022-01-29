@@ -6,11 +6,11 @@ import { qDev } from '../../util/qdev';
 /**
  * @public
  */
-export function jsx<PROPS>(
-  type: string | FunctionComponent<PROPS>,
+export function jsx<T extends string | FunctionComponent<PROPS>, PROPS>(
+  type: T,
   props: PROPS,
   key?: string
-): JSXNode<PROPS> {
+): JSXNode<T> {
   return new JSXNodeImpl(type, props, key);
 }
 

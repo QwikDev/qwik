@@ -3,7 +3,7 @@
 import type { QRL } from '../../../import/qrl.public';
 import type { JSXNode } from './jsx-node';
 
-interface QwikProps {
+export interface QwikProps {
   class?: string | { [className: string]: boolean };
   innerHTML?: string;
 
@@ -18,10 +18,10 @@ interface QwikProps {
   'q:base'?: string;
 }
 
-type Event<T extends Function = Function> = T;
+type Event = () => any;
 type QrlEvent<T extends Event = Event> = QRL<Event>;
 
-interface QwikEvents {
+export interface QwikEvents {
   // Host events
   [key: `on$:${string}`]: Event;
   [key: `on:${string}`]: QrlEvent;
@@ -35,8 +35,21 @@ interface QwikEvents {
   [key: `onWindow:${string}`]: QrlEvent;
 }
 
-export type JSXChild = string | number | boolean | null | JSXNode<any>;
+export interface QwikAttributes extends QwikProps, QwikEvents {}
+
+export type JSXPrimitive =
+  | string
+  | number
+  | boolean
+  | null
+  | undefined
+  | Function
+  | RegExp
+  | JSXNode<any>;
+export type JSXChild = JSXPrimitive | JSXPrimitive[] | Promise<JSXPrimitive>;
+export type JSXChildren = JSXChild | JSXChild[];
 
 export interface DOMAttributes<T> extends QwikProps, QwikEvents {
-  children?: JSXChild | JSXChild[];
+  children?: JSXChildren;
+  key?: string;
 }

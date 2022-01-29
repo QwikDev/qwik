@@ -29,15 +29,15 @@ export type RenderableProps<
  * @public
  */
 export interface FunctionComponent<P = {}> {
-  (props: RenderableProps<P>): JSXNode<any> | null;
+  (props: P): JSXNode<any> | null;
 }
 
 /**
  * @public
  */
-export interface JSXNode<T extends string | null | JSXFactory | unknown = unknown> {
-  type: T;
-  props: Record<string, any>;
+export interface JSXNode<PROPS = any> {
+  type: any;
+  props: PROPS;
   children: ComponentChild[];
   key: string | number | any;
 }
@@ -45,4 +45,4 @@ export interface JSXNode<T extends string | null | JSXFactory | unknown = unknow
 /**
  * @public
  */
-export type JSXFactory<PROPS extends {} = any> = (props: PROPS, state?: any) => JSXNode<unknown>;
+export type JSXFactory<PROPS extends {} = any> = (props: PROPS, state?: any) => JSXNode<PROPS>;

@@ -5,7 +5,7 @@
 // it to the desired comment location
 //
 
-import { Fragment, h, Async, PromiseValue } from '@builder.io/qwik';
+import { Async, PromiseValue } from '@builder.io/qwik';
 
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
@@ -31,16 +31,25 @@ export const PromiseValue_1 = () => (
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
 
-export const Async_1 = () => (
+export const Async_1 = () => {
   // - 8>< -- 8>< -- 8>< -- 8>< -- 8>< -- 8>< -- 8>< -- 8>< -
-  <Async
-    resolve={Promise.resolve('some value')}
-    onPending={() => <span>loading...</span>}
-    onResolved={(value) => <span>{value}</span>}
-    onError={(rejection) => <pre>{rejection}</pre>}
-  />
+  Async({
+    resolve: Promise.resolve('some value'),
+    onPending: () => <span>loading...</span>,
+    onResolved: (value) => <span>{value.length}</span>,
+    onError: (rejection) => <pre>{rejection}</pre>,
+  });
+
+  return (
+    <Async
+      resolve={Promise.resolve('some value')}
+      onPending={() => <span>loading...</span>}
+      onResolved={(value) => <span>{value}</span>}
+      onError={(rejection) => <pre>{rejection}</pre>}
+    />
+  );
   // - 8>< -- 8>< -- 8>< -- 8>< -- 8>< -- 8>< -- 8>< -- 8>< -
-);
+};
 
 export const Async_2 = () => (
   // - 8>< -- 8>< -- 8>< -- 8>< -- 8>< -- 8>< -- 8>< -- 8>< -

@@ -6,7 +6,7 @@ export const MyApp = component$(() => {
     // eslint-disable-next-line no-console
     console.log('Qwik: MyApp component is rendering...');
     return (
-      <div id="my-app" onDocument$:expensiveComputationDone={() => (state.running = false)}>
+      <div id="my-app" on$:click={() => (state.running = false)}>
         <p style={{ 'text-align': 'center' }}>
           <a href="https://github.com/builderio/qwik">
             <img

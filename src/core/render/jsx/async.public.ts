@@ -319,7 +319,7 @@ export type AsyncProps<T> = AsyncResolve<T> | AsyncWithChildren<T>;
  * @public
  */
 
-export function Async<T>(props: AsyncProps<T>): JSXNode<AsyncProps<T>> {
+export function Async<T>(props: AsyncProps<T>): JSXNode<any> {
   // TODO(misko): implement onPending/onResolved/onError
   if (!('children' in props)) {
     throw new Error('IMPLEMENT');

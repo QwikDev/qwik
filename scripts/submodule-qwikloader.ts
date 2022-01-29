@@ -44,6 +44,8 @@ export async function submoduleQwikLoader(config: BuildConfig) {
     outro: `})()`,
     plugins: [
       terser({
+        keep_fnames: true,
+        keep_classnames: true,
         compress: {
           global_defs: {
             'window.BuildEvents': false,
@@ -69,6 +71,8 @@ export async function submoduleQwikLoader(config: BuildConfig) {
     outro: `})()`,
     plugins: [
       terser({
+        keep_fnames: true,
+        keep_classnames: true,
         compress: {
           global_defs: {
             'window.BuildEvents': false,
@@ -98,6 +102,8 @@ export async function submoduleQwikLoader(config: BuildConfig) {
     outro: `})()`,
     plugins: [
       terser({
+        keep_fnames: true,
+        keep_classnames: true,
         compress: {
           global_defs: {
             'window.BuildEvents': true,
@@ -123,6 +129,8 @@ export async function submoduleQwikLoader(config: BuildConfig) {
     outro: `})()`,
     plugins: [
       terser({
+        keep_fnames: true,
+        keep_classnames: true,
         compress: {
           global_defs: {
             'window.BuildEvents': true,

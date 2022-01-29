@@ -252,7 +252,7 @@ export namespace QwikJSX {
     // (undocumented)
     export interface ElementChildrenAttribute {
         // (undocumented)
-        children: {};
+        children: any;
     }
     // (undocumented)
     export interface IntrinsicAttributes {

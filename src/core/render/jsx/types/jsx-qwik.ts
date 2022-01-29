@@ -11,7 +11,7 @@ export namespace QwikJSX {
     [key: string]: any;
   }
   export interface ElementChildrenAttribute {
-    children: {};
+    children: any;
   }
   export interface IntrinsicElements extends QwikIntrinsicElements {}
 }

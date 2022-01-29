@@ -21,7 +21,7 @@ interface QwikProps {
 type Event<T extends Function = Function> = T;
 type QrlEvent<T extends Event = Event> = QRL<Event>;
 
-interface QwiwEvents {
+interface QwikEvents {
   // Host events
   [key: `on$:${string}`]: Event;
   [key: `on:${string}`]: QrlEvent;
@@ -37,6 +37,6 @@ interface QwiwEvents {
 
 export type JSXChild = string | number | boolean | null | JSXNode<any>;
 
-export interface DOMAttributes<T> extends QwikProps, QwiwEvents {
+export interface DOMAttributes<T> extends QwikProps, QwikEvents {
   children?: JSXChild | JSXChild[];
 }

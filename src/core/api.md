@@ -7,19 +7,10 @@
 // @public (undocumented)
 export function $<T>(value: T): QRL<T>;
 
+// Warning: (ae-forgotten-export) The symbol "AsyncProps" needs to be exported by the entry point index.d.ts
+//
 // @public
-export function Async<T>(props: {
-    resolve: ValueOrPromise<T>;
-    children: (observablePromise: PromiseValue<T>) => any;
-}): any;
-
-// @public (undocumented)
-export function Async<T>(props: {
-    resolve: ValueOrPromise<T>;
-    onPending?: () => any;
-    onResolved: (value: T) => any;
-    onError?: (error: any) => any;
-}): any;
+export function Async<T>(props: AsyncProps<T>): JSXNode<AsyncProps<T>>;
 
 // @public (undocumented)
 export function bubble<PAYLOAD>(eventType: string, payload?: PAYLOAD): void;
@@ -30,10 +21,10 @@ export function bubble<PAYLOAD>(eventType: string, payload?: PAYLOAD): void;
 export function component$<PROPS>(onMount: OnMountFn<PROPS>): (props: PROPS) => JSXNode<PROPS>;
 
 // @public (undocumented)
-export function component<PROPS extends {}>(tagName: string, onMount: QRL<(props: PROPS) => ReturnType<typeof onRender>>): (props: PROPS) => JSXNode<PROPS>;
+export function component<PROPS extends {}>(tagName: string, onMount: QRL<OnMountFn<PROPS>>): (props: PROPS) => JSXNode<PROPS>;
 
 // @public (undocumented)
-export function component<PROPS extends {}>(onMount: QRL<(props: PROPS) => ReturnType<typeof onRender>>): (props: PROPS) => JSXNode<PROPS>;
+export function component<PROPS extends {}>(onMount: QRL<OnMountFn<PROPS>>): (props: PROPS) => JSXNode<PROPS>;
 
 // @public (undocumented)
 export type ComponentChild = JSXNode<any> | object | string | number | bigint | boolean | null | undefined;
@@ -57,7 +48,7 @@ export const Fragment: any;
 // @public (undocumented)
 export interface FunctionComponent<P = {}> {
     // (undocumented)
-    (props: RenderableProps<P>): JSXNode<any> | null;
+    (props: P): JSXNode<any> | null;
 }
 
 // @public (undocumented)
@@ -111,26 +102,24 @@ export const Host: FunctionComponent<Record<string, any>>;
 export function implicit$FirstArg<FIRST, REST extends any[], RET>(fn: (first: QRL<FIRST>, ...rest: REST) => RET): (first: FIRST, ...rest: REST) => RET;
 
 // @public (undocumented)
-function jsx(type: string | FunctionComponent, props: QwikDOMAttributes & Record<string, any> & {
-    children?: ComponentChild[] | ComponentChild;
-}, key?: string): JSXNode;
+function jsx<PROPS>(type: string | FunctionComponent<PROPS>, props: PROPS, key?: string): JSXNode<PROPS>;
 export { jsx }
 export { jsx as jsxDEV }
 export { jsx as jsxs }
 
 // @public (undocumented)
-export type JSXFactory<PROPS extends {} = any> = (props: PROPS, state?: any) => JSXNode<unknown>;
+export type JSXFactory<PROPS extends {} = any> = (props: PROPS, state?: any) => JSXNode<PROPS>;
 
 // @public (undocumented)
-export interface JSXNode<T extends string | null | JSXFactory | unknown = unknown> {
+export interface JSXNode<PROPS = any> {
     // (undocumented)
     children: ComponentChild[];
     // (undocumented)
     key: string | number | any;
     // (undocumented)
-    props: Record<string, any>;
+    props: PROPS;
     // (undocumented)
-    type: T;
+    type: any;
 }
 
 // @public
@@ -259,6 +248,11 @@ export interface QwikIntrinsicElements extends IntrinsicElements {
 export namespace QwikJSX {
     // (undocumented)
     export interface Element extends JSXNode<any> {
+    }
+    // (undocumented)
+    export interface ElementChildrenAttribute {
+        // (undocumented)
+        children: any;
     }
     // (undocumented)
     export interface IntrinsicAttributes {

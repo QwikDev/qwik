@@ -1,12 +1,11 @@
 import {
-  Fragment,
-  h,
   Host,
   component,
   onRender$,
   useStore,
   useHostElement,
   useEvent,
+  notifyRender,
   $,
 } from '@builder.io/qwik';
 import {
@@ -143,7 +142,7 @@ export const Item = component(
               on$:dblclick={async () => {
                 state.editing = true;
                 const hostElement = useHostElement()!;
-                await qNotifyRender(hostElement);
+                await notifyRender(hostElement);
                 const inputEl = hostElement.querySelector('input.edit') as HTMLInputElement;
                 inputEl.focus();
                 inputEl.selectionStart = inputEl.selectionEnd = inputEl.value.length;

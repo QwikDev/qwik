@@ -1,4 +1,4 @@
-import { Fragment, h, Host, useStore } from '@builder.io/qwik';
+import { h, Host, useStore } from '@builder.io/qwik';
 import { ElementFixture, trigger } from '../../testing/element_fixture';
 import { expectDOM } from '../../testing/expect-dom.unit';
 import { getTestPlatform } from '../../testing/platform';

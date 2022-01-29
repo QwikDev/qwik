@@ -1,10 +1,14 @@
-import { h } from '@builder.io/qwik';
+import type { QwikJSX } from '@builder.io/qwik';
 import domino from 'domino';
 import { isJSXNode } from '../core/render/jsx/jsx-runtime';
 import { isComment, isElement, isText } from '../core/util/element';
 import { isTemplateElement } from '../core/util/types';
 
-export function expectDOM(actual: Element, expected: h.JSX.Element, expectedErrors: string[] = []) {
+export function expectDOM(
+  actual: Element,
+  expected: QwikJSX.Element,
+  expectedErrors: string[] = []
+) {
   const diffs: string[] = [];
   expectMatchElement('', diffs, actual, expected);
   expect(diffs).toEqual(expectedErrors);
@@ -14,7 +18,7 @@ function expectMatchElement(
   path: string,
   diffs: string[],
   actual: Element,
-  expected: h.JSX.Element
+  expected: QwikJSX.Element
 ) {
   if (actual) {
     const actualTag = actual.tagName ? actual.tagName.toLowerCase() : '#text';
@@ -65,7 +69,7 @@ function expectMatchElement(
   }
 }
 
-function toAttrs(jsxNode: h.JSX.Element): string[] {
+function toAttrs(jsxNode: QwikJSX.Element): string[] {
   const attrs: string[] = [];
   Object.keys(jsxNode.props || {}).forEach((key) => {
     if (key !== 'children') {

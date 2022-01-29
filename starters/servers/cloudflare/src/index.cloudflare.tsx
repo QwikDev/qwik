@@ -1,5 +1,12 @@
+/* eslint-disable */
+
+// @ts-ignore
 import { renderApp } from './index.server';
+
+// @ts-ignore
 import { getAssetFromKV } from '@cloudflare/kv-asset-handler';
+
+// @ts-ignore
 import symbols from '../server/build/q-symbols.json';
 
 const CACHING = true;

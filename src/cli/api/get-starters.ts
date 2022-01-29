@@ -1,10 +1,19 @@
-import { readdirSync } from 'fs';
+import { readdirSync, statSync } from 'fs';
 import { join } from 'path';
-import type { CliStarterData, CliStarters } from 'scripts/util';
-import { dashToTitlelCase, readPackageJson } from './utils';
+import type { StarterData, Starters } from '../types';
+import { dashToTitlelCase, readPackageJson } from './utils-api';
 
-export function loadStarters(startersDir: string) {
-  const starters: CliStarters = {
+let starters: Starters | null = null;
+
+export async function getStarters() {
+  if (starters == null) {
+    starters = loadStarters(join(__dirname, 'starters'));
+  }
+  return starters;
+}
+
+function loadStarters(startersDir: string) {
+  const starters: Starters = {
     apps: loadStarterData(startersDir, 'apps'),
     servers: loadStarterData(startersDir, 'servers'),
   };
@@ -16,11 +25,15 @@ function loadStarterData(startersDir: string, dirName: string) {
   const ids = readdirSync(dir);
 
   return ids
+    .filter((id) => {
+      const s = statSync(join(dir, id));
+      return s.isDirectory();
+    })
     .map((id) => {
       const dataDir = join(dir, id);
       const pkgJson = readPackageJson(dataDir);
 
-      const data: CliStarterData = {
+      const data: StarterData = {
         id,
         name: dashToTitlelCase(id),
         description: pkgJson.description ?? '',

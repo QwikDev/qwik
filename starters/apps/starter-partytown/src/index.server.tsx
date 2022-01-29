@@ -6,7 +6,6 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { h } from '@builder.io/qwik';
 import { renderToString, RenderToStringOptions, QwikLoader } from '@builder.io/qwik/server';
 import { MyApp } from './my-app';
 

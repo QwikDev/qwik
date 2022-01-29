@@ -85,7 +85,7 @@ function visitJsxLiteralNode(
   component: QComponentCtx | null,
   renderQueue: ComponentRenderQueue,
   cursor: Cursor,
-  jsxNode: JSXNode<string>
+  jsxNode: JSXNode
 ): void {
   const jsxTag = jsxNode.type as string;
   const isQComponent = AttributeMarker.OnRenderProp in jsxNode.props;
@@ -109,7 +109,7 @@ function visitJsxLiteralNode(
   }
 }
 
-function hasInnerHtmlOrTextBinding(jsxNode: JSXNode<string>) {
+function hasInnerHtmlOrTextBinding(jsxNode: JSXNode) {
   return 'innerHTML' in jsxNode.props || 'innerText' in jsxNode.props;
 }
 

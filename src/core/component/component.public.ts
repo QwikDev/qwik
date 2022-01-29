@@ -127,7 +127,9 @@ export function withScopedStyles(styles: QRL<string>): void {
  */
 export const withScopedStyles$ = implicit$FirstArg(withScopedStyles);
 
-type OnMountFn<PROPS> = (props: PROPS) => ReturnType<typeof onRender>;
+export type ProbablyPromise<T> = Promise<T> | T;
+
+export type OnMountFn<PROPS> = (props: PROPS) => ProbablyPromise<ReturnType<typeof onRender>>;
 
 /**
  * @public
@@ -143,13 +145,13 @@ export type PropsOf<COMP extends (props: any) => JSXNode> = COMP extends (
  */
 export function component<PROPS extends {}>(
   tagName: string,
-  onMount: QRL<(props: PROPS) => ReturnType<typeof onRender>>
+  onMount: QRL<OnMountFn<PROPS>>
 ): (props: PROPS) => JSXNode<PROPS>;
 /**
  * @public
  */
 export function component<PROPS extends {}>(
-  onMount: QRL<(props: PROPS) => ReturnType<typeof onRender>>
+  onMount: QRL<OnMountFn<PROPS>>
 ): (props: PROPS) => JSXNode<PROPS>;
 /**
  * @public

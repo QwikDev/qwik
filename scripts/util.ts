@@ -285,22 +285,3 @@ export interface PackageJSON {
   private?: boolean;
   priority?: number;
 }
-
-export interface CliGenerateOptions {
-  projectName?: string;
-  appId?: string;
-  serverId?: string;
-}
-
-export interface CliStarters {
-  apps: CliStarterData[];
-  servers: CliStarterData[];
-}
-
-export interface CliStarterData {
-  id: string;
-  name: string;
-  description: string;
-  dir: string;
-  priority: number;
-}

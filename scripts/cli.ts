@@ -1,39 +1,79 @@
-import { BuildConfig, copyFile, emptyDir, mkdir, PackageJSON, readFile, stat } from './util';
-import { banner, fileSize, readdir, unlink, watcher } from './util';
+import { BuildConfig, copyFile, emptyDir, importPath, mkdir, stat } from './util';
+import { banner, readdir, watcher } from './util';
 import { build } from 'esbuild';
 import { basename, join } from 'path';
 import { readPackageJson, writePackageJson } from './package-json';
 import semver from 'semver';
+import { statSync } from 'fs';
 
 export async function buildCli(config: BuildConfig) {
   const distCliDir = join(config.distDir, 'create-qwik');
-  const outFile = join(distCliDir, 'index.js');
+
+  await bundleCli(config, distCliDir);
+
+  const distStartersDir = join(distCliDir, 'starters');
+  await mkdir(distStartersDir);
+
+  const copyDirs = ['apps', 'servers'];
+  await Promise.all(
+    copyDirs.map(async (dirName) => {
+      const srcDir = join(config.startersDir, dirName);
+      const distDir = join(distStartersDir, dirName);
+      await copyDir(config, srcDir, distDir);
+    })
+  );
+
+  const tsconfigSrcPath = join(config.startersDir, 'apps', 'starter.tsconfig.json');
+  const appDistDir = join(distStartersDir, 'apps');
+  const appNames = (await readdir(appDistDir)).filter((appName) => {
+    return statSync(join(appDistDir, appName)).isDirectory();
+  });
+  await Promise.all(
+    appNames.map(async (appName) => {
+      const appPath = join(appDistDir, appName);
+      const appTsconfigPath = join(appPath, 'tsconfig.json');
+      await copyFile(tsconfigSrcPath, appTsconfigPath);
+    })
+  );
+
+  const srcCliDir = join(config.srcDir, 'cli');
+  await copyFile(join(srcCliDir, 'package.json'), join(distCliDir, 'package.json'));
+  await copyFile(join(srcCliDir, 'README.md'), join(distCliDir, 'README.md'));
+
+  console.log('🐠 create-qwik cli');
+}
+
+async function bundleCli(config: BuildConfig, distCliDir: string) {
   emptyDir(distCliDir);
 
   await build({
-    entryPoints: [join(config.srcDir, 'cli', 'index.ts')],
-    outfile: outFile,
+    entryPoints: [join(config.srcDir, 'cli', 'interface', 'index.ts')],
+    outfile: join(distCliDir, 'create-qwik'),
     bundle: true,
     sourcemap: false,
     target: 'node10',
     platform: 'node',
     minify: !config.dev,
+    plugins: [importPath(/api$/, './index.js')],
     banner: {
       js: `#! /usr/bin/env node\n${banner.js}`,
     },
     watch: watcher(config),
   });
 
-  const distStartersDir = join(distCliDir, 'starters');
-  await copyDir(config, config.startersDir, distStartersDir);
-  await unlink(join(distStartersDir, '.gitignore'));
-  await unlink(join(distStartersDir, 'README.md'));
-
-  const srcCliDir = join(config.srcDir, 'cli');
-  await copyFile(join(srcCliDir, 'package.json'), join(distCliDir, 'package.json'));
-  await copyFile(join(srcCliDir, 'README.md'), join(distCliDir, 'README.md'));
-
-  console.log('🐠 create-qwik cli', await fileSize(outFile));
+  await build({
+    entryPoints: [join(config.srcDir, 'cli', 'api', 'index.ts')],
+    outfile: join(distCliDir, 'index.js'),
+    bundle: true,
+    sourcemap: false,
+    target: 'node10',
+    platform: 'node',
+    minify: !config.dev,
+    banner: {
+      js: banner.js,
+    },
+    watch: watcher(config),
+  });
 }
 
 async function copyDir(config: BuildConfig, srcDir: string, destDir: string) {
@@ -72,8 +112,17 @@ async function updatePackageJson(config: BuildConfig, destDir: string) {
 const IGNORE: { [path: string]: boolean } = {
   '.rollup.cache': true,
   build: true,
+  e2e: true,
   node_modules: true,
   'package-lock.json': true,
+  'starter.tsconfig.json': true,
   'tsconfig.tsbuildinfo': true,
   'yarn.lock': true,
 };
+
+export async function validateCreateQwikCli(config: BuildConfig, errors: string[]) {
+  try {
+  } catch (e: any) {
+    errors.push(String(e.message || e));
+  }
+}

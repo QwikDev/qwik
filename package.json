@@ -1,6 +1,6 @@
 {
   "name": "@builder.io/qwik",
-  "version": "0.0.16-5",
+  "version": "0.0.16-6",
   "description": "An Open-Source sub-framework designed with a focus on server-side-rendering, lazy-loading, and styling/animation.",
   "scripts": {
     "build": "node scripts --tsc --build --api --platform-binding --wasm",
@@ -9,7 +9,7 @@
     "build.cli": "node scripts --cli --dev",
     "build.cli.prod": "node scripts --cli",
     "release.cli": "npm run build.cli.prod && cd dist-dev/create-qwik && npm publish",
-    "cli": "npm run build.cli && node dist-dev/create-qwik/index.js",
+    "cli": "npm run build.cli && node dist-dev/create-qwik/create-qwik",
     "build.watch": "node scripts --build --watch --dev --platform-binding",
     "api.update": "node scripts --tsc --api --dev",
     "tsc.check": "tsc --noEmit",

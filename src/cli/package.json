@@ -1,13 +1,14 @@
 {
   "name": "create-qwik",
   "version": "0.0.10",
-  "description": "Interactive CLI for generating Qwik projects.",
+  "description": "Interactive CLI and API for generating Qwik projects.",
   "bin": {
-    "create-qwik": "index.js"
+    "create-qwik": "create-qwik"
   },
   "main": "index.js",
   "files": [
-    "starters"
+    "create-qwik",
+    "starters/"
   ],
   "author": "Builder.io Team",
   "license": "MIT",

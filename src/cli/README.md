@@ -18,6 +18,25 @@ npm init qwik@latest <starter> <projectName>
 npm init qwik@latest todo my-app
 ```
 
+## API
+
+```javascript
+const { getStarters, generateStarter } = require('create-qwik');
+
+const starters = await getStarters();
+console.log(starters);
+
+const opts = {
+  projectName: 'my-project',
+  appId: 'todo',
+  serverId: 'express',
+  outDir: '/path/to/output/dir',
+};
+
+const result = await generateStarter(opts);
+console.log(result);
+```
+
 ## Community
 
 - Ping us at [@QwikDev](https://twitter.com/QwikDev)

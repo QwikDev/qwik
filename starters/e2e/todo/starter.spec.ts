@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test('rendered', async ({ page }) => {
   await page.goto('/starter/');
 
-  const ol = page.locator('my-app');
+  const ol = page.locator('.my-app');
   await expect(ol).toContainText('Congratulations Qwik is working!');
 });
 

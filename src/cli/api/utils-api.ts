@@ -1,37 +1,7 @@
-import {
-  copyFileSync,
-  existsSync,
-  mkdirSync,
-  readdirSync,
-  readFileSync,
-  statSync,
-  writeFileSync,
-} from 'fs';
-import color from 'kleur';
-import { join, resolve } from 'path';
+import { copyFileSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'fs';
+import { join } from 'path';
 import type { PackageJSON } from 'scripts/util';
 import { extname } from 'src/core/util/path';
-
-export function panic(msg: string) {
-  console.error(`\n❌ ${color.red(msg)}\n`);
-  process.exit(1);
-}
-
-export function validateOutDir(outDir: string) {
-  if (existsSync(outDir)) {
-    panic(
-      `Directory "${outDir}" already exists. Please either remove this directory, or choose another location.`
-    );
-  }
-}
-
-export function createOutDirName(projectName: string) {
-  return projectName.toLocaleLowerCase().replace(/ /g, '-');
-}
-
-export function createOutDir(outDirName: string) {
-  return resolve(process.cwd(), outDirName);
-}
 
 export type Replacements = [RegExp, string][];
 
@@ -95,18 +65,4 @@ export function mergeSort(a: any, b: any, prop: string) {
     }
     a[prop] = sorted;
   }
-}
-
-export function writeToCwd() {
-  return isStackBlitz();
-}
-
-function isStackBlitz() {
-  try {
-    // /home/projects/abc123
-    return process.cwd().startsWith('/home/projects/');
-  } catch (e) {
-    /**/
-  }
-  return false;
 }

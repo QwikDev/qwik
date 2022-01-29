@@ -297,7 +297,6 @@ export type AriaRole =
   | 'treeitem'
   | (string & {});
 export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
-  children?: any;
   accessKey?: string | undefined;
   className?: string | undefined;
   contentEditable?: Booleanish | 'inherit' | undefined;

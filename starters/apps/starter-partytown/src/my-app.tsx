@@ -6,7 +6,7 @@ export const MyApp = component$(() => {
     // eslint-disable-next-line no-console
     console.log('Qwik: MyApp component is rendering...');
     return (
-      <div id="my-app" on$:click={() => (state.running = false)}>
+      <div id="my-app" on$:expensiveComputationDone={() => (state.running = false)}>
         <p style={{ 'text-align': 'center' }}>
           <a href="https://github.com/builderio/qwik">
             <img
@@ -51,7 +51,7 @@ export const MyApp = component$(() => {
           </li>
           <li>
             Once the expensive operation is finished it dispatches custom event (
-            <code>expensivecomputationdone</code>) that this component listens on. It is only at
+            <code>expensiveComputationDone</code>) that this component listens on. It is only at
             that time that Qwik lazy-loads the component render function and updates the UI. (See
             network tab.)
           </li>

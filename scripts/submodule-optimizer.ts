@@ -98,6 +98,8 @@ export async function submoduleOptimizer(config: BuildConfig) {
               beautify: true,
               indent_level: 2,
             },
+            keep_fnames: true,
+            keep_classnames: true,
             mangle: false,
           });
           await writeFile(p, result.code!);

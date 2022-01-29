@@ -201,19 +201,19 @@ async function generateLoaderSubmodule(config: BuildConfig) {
   const loaderDebugCode = await readFile(join(config.distPkgDir, 'qwikloader.debug.js'), 'utf-8');
 
   const code = [
-    `const QwikLoader = ${JSON.stringify(loaderCode.trim())};`,
-    `const QwikLoaderDebug = ${JSON.stringify(loaderDebugCode.trim())};`,
+    `const QWIK_LOADER = ${JSON.stringify(loaderCode.trim())};`,
+    `const QWIK_LOADER_DEBUG = ${JSON.stringify(loaderDebugCode.trim())};`,
   ];
 
-  const esmCode = [...code, `export { QwikLoader, QwikLoaderDebug };`];
+  const esmCode = [...code, `export { QWIK_LOADER, QWIK_LOADER_DEBUG };`];
   const cjsCode = [
     ...code,
-    `exports.QwikLoader = QwikLoader;`,
-    `exports.QwikLoaderDebug = QwikLoaderDebug;`,
+    `exports.QWIK_LOADER = QWIK_LOADER;`,
+    `exports.QWIK_LOADER_DEBUG = QWIK_LOADER_DEBUG;`,
   ];
   const dtsCode = [
-    `export declare const QwikLoader: string;`,
-    `export declare const QwikLoaderDebug: string;`,
+    `export declare const QWIK_LOADER: string;`,
+    `export declare const QWIK_LOADER_DEBUG: string;`,
   ];
 
   ensureDir(loaderDistDir);

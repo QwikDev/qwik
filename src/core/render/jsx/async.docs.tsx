@@ -16,7 +16,7 @@ import { Async, PromiseValue } from '@builder.io/qwik';
 export const PromiseValue_1 = () => (
   // - 8>< -- 8>< -- 8>< -- 8>< -- 8>< -- 8>< -- 8>< -- 8>< -
   <Async resolve={Promise.resolve('some value')}>
-    {(response: PromiseValue<string>) => {
+    {(response) => {
       if (response.isPending) return <span>loading...</span>;
       if (response.isResolved) return <span>{response.value}</span>;
       if (response.isRejected) return <pre>{response.rejection}</pre>;

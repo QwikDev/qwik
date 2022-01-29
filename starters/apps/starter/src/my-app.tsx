@@ -1,9 +1,9 @@
-import { useStore, onRender$, component$, useEvent } from '@builder.io/qwik';
+import { useStore, onRender$, component$, useEvent, Host } from '@builder.io/qwik';
 
 export const MyApp = component$(() => {
   const state = useStore({ name: 'World' });
   return onRender$(() => (
-    <div>
+    <Host class="my-app">
       <p style={{ 'text-align': 'center' }}>
         <a href="https://github.com/builderio/qwik">
           <img
@@ -54,6 +54,6 @@ export const MyApp = component$(() => {
           Builder.io
         </a>
       </p>
-    </div>
+    </Host>
   ));
 });

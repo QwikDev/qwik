@@ -1,16 +1,16 @@
 import { EMPTY_ARRAY } from '../../util/flyweight';
-import type { ComponentChild, FunctionComponent, JSXNode } from './types/jsx-node';
-import type { QwikDOMAttributes, QwikJSX } from './types/jsx-qwik';
+import type { FunctionComponent, JSXNode } from './types/jsx-node';
+import type { QwikJSX } from './types/jsx-qwik';
 import { qDev } from '../../util/qdev';
 
 /**
  * @public
  */
-export function jsx(
-  type: string | FunctionComponent,
-  props: QwikDOMAttributes & Record<string, any> & { children?: ComponentChild[] | ComponentChild },
+export function jsx<PROPS>(
+  type: string | FunctionComponent<PROPS>,
+  props: PROPS,
   key?: string
-): JSXNode {
+): JSXNode<PROPS> {
   return new JSXNodeImpl(type, props, key);
 }
 

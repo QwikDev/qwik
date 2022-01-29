@@ -1,4 +1,5 @@
 import type { ValueOrPromise } from '../../util/types';
+import type { JSXNode } from './types/jsx-node';
 
 /**
  * Represents queryable status of a `Promise`.
@@ -155,6 +156,111 @@ export type PromiseValue<T> =
       readonly rejection: any;
     };
 
+interface AsyncWithChildren<T> {
+  /**
+   * A `Promise` to await resolution on.
+   *
+   * The `resolved`/`rejected` value is that communicated to a single callback.
+   *
+   * The `callback` is invoked twice:
+   * 1. First with pending `PromiseValue` allowing the view to render text
+   *    communicating that application is waiting on some data to resolve.
+   * 2. Second with either `resolved` or `rejected` value allowing the view
+   *    to communicate the `resolved` value or the `error`.
+   *
+   * ```typescript
+   * <Async resolve={Promise.resolve('some value')}>
+   *   {(response) => {
+   *     if (response.isPending) return <span>loading...</span>;
+   *     if (response.isResolved) return <span>{response.value}</span>;
+   *     if (response.isRejected) return <pre>{response.rejection}</pre>;
+   *   }}
+   * </Async>
+   * ```
+   */
+  resolve: ValueOrPromise<T>;
+  /**
+   * A single callback which is invoke before `Promise` resolution and after it is `resolved`.
+   *
+   * The `callback` is invoked twice:
+   * 1. First with pending `PromiseValue` allowing the view to render text
+   *    communicating that application is waiting on some data to resolve.
+   * 2. Second with either `resolved` or `rejected` value allowing the view
+   *    to communicate the `resolved` value or the `error`.
+   *
+   * ```typescript
+   * <Async resolve={Promise.resolve('some value')}>
+   *   {(response) => {
+   *     if (response.isPending) return <span>loading...</span>;
+   *     if (response.isResolved) return <span>{response.value}</span>;
+   *     if (response.isRejected) return <pre>{response.rejection}</pre>;
+   *   }}
+   * </Async>
+   * ```
+   */
+  children: (observablePromise: PromiseValue<T>) => any;
+}
+
+export interface AsyncResolve<T> {
+  /**
+   * A `Promise` to await resolution on.
+   *
+   * The `resolved`/`rejected` value is that communicated to `onResolved`/`onRejected`
+   * respectively. While `<Async>` waits for resolution `onPending` is invoked.
+   *
+   * ```typescript
+   * <Async
+   *   resolve={Promise.resolve('some value')}
+   *   onPending={() => <span>loading...</span>}
+   *   onResolved={(value) => <span>{value}</span>}
+   *   onError={(rejection) => <pre>{rejection}</pre>}
+   * />
+   * ```
+   */
+  resolve: ValueOrPromise<T>;
+  /**
+   * Callback invoked allowing the view to render UI communicating to the user that
+   * application is waiting on data.
+   *
+   * ```typescript
+   * <Async
+   *   resolve={Promise.resolve('some value')}
+   *   onPending={() => <span>loading...</span>}
+   *   onResolved={(value) => <span>{value}</span>}
+   *   onError={(rejection) => <pre>{rejection}</pre>}
+   * />
+   * ```
+   */
+  onPending?: () => any;
+  /**
+   * Callback invoked allowing the view to render UI with the resolved value of the `Promise`.
+   *
+   * ```typescript
+   * <Async
+   *   resolve={Promise.resolve('some value')}
+   *   onPending={() => <span>loading...</span>}
+   *   onResolved={(value) => <span>{value}</span>}
+   *   onError={(rejection) => <pre>{rejection}</pre>}
+   * />
+   * ```
+   */
+  onResolved: (value: T) => any;
+  /**
+   * Callback invoked allowing the view to render UI when the `Promise` has been rejected.
+   *
+   * ```typescript
+   * <Async
+   *   resolve={Promise.resolve('some value')}
+   *   onPending={() => <span>loading...</span>}
+   *   onResolved={(value) => <span>{value}</span>}
+   *   onError={(rejection) => <pre>{rejection}</pre>}
+   * />
+   * ```
+   */
+  onError?: (error: any) => any;
+}
+export type AsyncProps<T> = AsyncResolve<T> | AsyncWithChildren<T>;
+
 /**
  * Use to render asynchronous (`Promise`) values.
  *
@@ -212,123 +318,10 @@ export type PromiseValue<T> =
  *
  * @public
  */
-export function Async<T>(props: {
-  /**
-   * A `Promise` to await resolution on.
-   *
-   * The `resolved`/`rejected` value is that communicated to a single callback.
-   *
-   * The `callback` is invoked twice:
-   * 1. First with pending `PromiseValue` allowing the view to render text
-   *    communicating that application is waiting on some data to resolve.
-   * 2. Second with either `resolved` or `rejected` value allowing the view
-   *    to communicate the `resolved` value or the `error`.
-   *
-   * ```typescript
-   * <Async resolve={Promise.resolve('some value')}>
-   *   {(response) => {
-   *     if (response.isPending) return <span>loading...</span>;
-   *     if (response.isResolved) return <span>{response.value}</span>;
-   *     if (response.isRejected) return <pre>{response.rejection}</pre>;
-   *   }}
-   * </Async>
-   * ```
-   */
-  resolve: ValueOrPromise<T>;
-  /**
-   * A single callback which is invoke before `Promise` resolution and after it is `resolved`.
-   *
-   * The `callback` is invoked twice:
-   * 1. First with pending `PromiseValue` allowing the view to render text
-   *    communicating that application is waiting on some data to resolve.
-   * 2. Second with either `resolved` or `rejected` value allowing the view
-   *    to communicate the `resolved` value or the `error`.
-   *
-   * ```typescript
-   * <Async resolve={Promise.resolve('some value')}>
-   *   {(response) => {
-   *     if (response.isPending) return <span>loading...</span>;
-   *     if (response.isResolved) return <span>{response.value}</span>;
-   *     if (response.isRejected) return <pre>{response.rejection}</pre>;
-   *   }}
-   * </Async>
-   * ```
-   */
-  children: (observablePromise: PromiseValue<T>) => any;
-}): any;
-/**
- * @public
- */
-export function Async<T>(props: {
-  /**
-   * A `Promise` to await resolution on.
-   *
-   * The `resolved`/`rejected` value is that communicated to `onResolved`/`onRejected`
-   * respectively. While `<Async>` waits for resolution `onPending` is invoked.
-   *
-   * ```typescript
-   * <Async
-   *   resolve={Promise.resolve('some value')}
-   *   onPending={() => <span>loading...</span>}
-   *   onResolved={(value) => <span>{value}</span>}
-   *   onError={(rejection) => <pre>{rejection}</pre>}
-   * />
-   * ```
-   */
-  resolve: ValueOrPromise<T>;
-  /**
-   * Callback invoked allowing the view to render UI communicating to the user that
-   * application is waiting on data.
-   *
-   * ```typescript
-   * <Async
-   *   resolve={Promise.resolve('some value')}
-   *   onPending={() => <span>loading...</span>}
-   *   onResolved={(value) => <span>{value}</span>}
-   *   onError={(rejection) => <pre>{rejection}</pre>}
-   * />
-   * ```
-   */
-  onPending?: () => any;
-  /**
-   * Callback invoked allowing the view to render UI with the resolved value of the `Promise`.
-   *
-   * ```typescript
-   * <Async
-   *   resolve={Promise.resolve('some value')}
-   *   onPending={() => <span>loading...</span>}
-   *   onResolved={(value) => <span>{value}</span>}
-   *   onError={(rejection) => <pre>{rejection}</pre>}
-   * />
-   * ```
-   */
-  onResolved: (value: T) => any;
-  /**
-   * Callback invoked allowing the view to render UI when the `Promise` has been rejected.
-   *
-   * ```typescript
-   * <Async
-   *   resolve={Promise.resolve('some value')}
-   *   onPending={() => <span>loading...</span>}
-   *   onResolved={(value) => <span>{value}</span>}
-   *   onError={(rejection) => <pre>{rejection}</pre>}
-   * />
-   * ```
-   */
-  onError?: (error: any) => any;
-}): any;
-export function Async<T>(props: {
-  /**
-   * text3
-   */
-  resolve: ValueOrPromise<T>;
-  children?: (observablePromise: PromiseValue<T>) => any;
-  onPending?: () => any;
-  onResolved?: (value: T) => any;
-  onError?: (error: any) => any;
-}): any {
+
+export function Async<T>(props: AsyncProps<T>): JSXNode<AsyncProps<T>> {
   // TODO(misko): implement onPending/onResolved/onError
-  if (props.onPending || props.onResolved || props.onError) {
+  if (!('children' in props)) {
     throw new Error('IMPLEMENT');
   }
   const children = [props.children].flat()[0];
@@ -359,7 +352,7 @@ export function Async<T>(props: {
     );
   }) as JSXPromise;
   jsxPromise.whilePending = pending;
-  return jsxPromise;
+  return jsxPromise as any;
 }
 
 export interface JSXPromise<T = any> extends Promise<T> {

@@ -1,4 +1,3 @@
-import { h, Fragment } from '@builder.io/qwik';
 import { component$, onRender$ } from '@builder.io/qwik';
 
 export const Header = component$(() => {

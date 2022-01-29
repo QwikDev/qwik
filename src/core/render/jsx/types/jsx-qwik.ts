@@ -10,6 +10,9 @@ export namespace QwikJSX {
   export interface IntrinsicAttributes {
     [key: string]: any;
   }
+  export interface ElementChildrenAttribute {
+    children: any;
+  }
   export interface IntrinsicElements extends QwikIntrinsicElements {}
 }
 

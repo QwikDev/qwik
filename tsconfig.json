@@ -8,9 +8,8 @@
     "lib": ["es2020", "DOM"] /* Specify library files to be included in the compilation. */,
     // "allowJs": true,                       /* Allow javascript files to be compiled. */
     // "checkJs": true,                       /* Report errors in .js files. */
-    "jsx": "react" /* Specify JSX code generation: 'preserve', 'react-native', 'react' or 'react-jsx'. */,
-    "jsxFactory": "h",
-    "jsxFragmentFactory": "Fragment",
+    "jsx": "react-jsx",
+    "jsxImportSource": "@builder.io/qwik",
     "declaration": true /* Generates corresponding '.d.ts' file. */,
     // "declarationMap": true,                /* Generates a sourcemap for each corresponding '.d.ts' file. */
     // "sourceMap": true,                     /* Generates corresponding '.map' file. */
@@ -68,6 +67,6 @@
     "skipLibCheck": true /* Skip type checking of declaration files. */,
     "forceConsistentCasingInFileNames": true /* Disallow inconsistently-cased references to the same file. */
   },
-  "include": ["src", "scripts", "starters/playwright.config.ts"],
+  "include": ["src", "scripts", "starters"],
   "exclude": ["src/optimizer/core"]
 }

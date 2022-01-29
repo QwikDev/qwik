@@ -81,6 +81,8 @@ async function submoduleCoreProd(config: BuildConfig) {
       ecma: 2018,
       passes: 2,
     },
+    keep_fnames: true,
+    keep_classnames: true,
     format: {
       comments: false,
       preamble: banner.js,

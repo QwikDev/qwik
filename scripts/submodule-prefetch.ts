@@ -41,6 +41,8 @@ export async function submodulePrefetch(config: BuildConfig) {
       plugins: minifyCode
         ? [
             terser({
+              keep_fnames: true,
+              keep_classnames: true,
               compress: {
                 module: true,
                 keep_fargs: false,
@@ -95,6 +97,8 @@ export async function submodulePrefetch(config: BuildConfig) {
     exports: 'none',
     plugins: [
       terser({
+        keep_fnames: true,
+        keep_classnames: true,
         compress: {
           module: true,
           keep_fargs: false,
@@ -121,6 +125,8 @@ export async function submodulePrefetch(config: BuildConfig) {
     exports: 'none',
     plugins: [
       terser({
+        keep_fnames: true,
+        keep_classnames: true,
         compress: {
           inline: false,
           join_vars: false,

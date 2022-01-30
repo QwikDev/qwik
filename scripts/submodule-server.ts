@@ -33,7 +33,7 @@ export async function submoduleServer(config: BuildConfig) {
     bundle: true,
     target,
     banner,
-    external: [...nodeBuiltIns, 'domino'],
+    external: [...nodeBuiltIns, '@builder.io/qwik-dom'],
     define: {
       ...(await inlineQwikScripts(config)),
       'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
@@ -119,7 +119,7 @@ async function bundleDomino(config: BuildConfig) {
   const outfile = join(config.distDir, 'domino.mjs');
 
   const opts: BuildOptions = {
-    entryPoints: [require.resolve('domino')],
+    entryPoints: [require.resolve('@builder.io/qwik-dom')],
     sourcemap: false,
     minify: true,
     bundle: true,
@@ -151,7 +151,7 @@ async function bundleDomino(config: BuildConfig) {
   const dominoPlugin: Plugin = {
     name: 'dominoPlugin',
     setup(build) {
-      build.onResolve({ filter: /domino/ }, () => {
+      build.onResolve({ filter: /@builder.io\/qwik-dom/ }, () => {
         return {
           path: outfile,
         };
@@ -163,7 +163,7 @@ async function bundleDomino(config: BuildConfig) {
 }
 
 async function getDominoVersion() {
-  const indexPath = require.resolve('domino');
+  const indexPath = require.resolve('@builder.io/qwik-dom');
   const pkgJsonPath = join(indexPath, '..', '..');
   const pkgJson = await readPackageJson(pkgJsonPath);
   return pkgJson.version;

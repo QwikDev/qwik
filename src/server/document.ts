@@ -1,5 +1,5 @@
 import { dehydrate, render } from '@builder.io/qwik';
-import domino from 'domino';
+import domino from '@builder.io/qwik-dom';
 import { setServerPlatform } from './platform';
 import { serializeDocument } from './serialize';
 import type {

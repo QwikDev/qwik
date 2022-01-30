@@ -69,7 +69,7 @@
     "@typescript-eslint/parser": "^4.19.0",
     "concurrently": "^6.2.0",
     "cross-spawn": "^7.0.3",
-    "domino": "^2.1.6",
+    "@builder.io/qwik-dom": "2.1.7",
     "esbuild": "^0.12.13",
     "esbuild-register": "^2.6.0",
     "eslint": "^7.23.0",

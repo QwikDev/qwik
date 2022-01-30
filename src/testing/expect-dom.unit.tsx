@@ -1,5 +1,5 @@
 import type { QwikJSX } from '@builder.io/qwik';
-import domino from 'domino';
+import domino from '@builder.io/qwik-dom';
 import { isJSXNode } from '../core/render/jsx/jsx-runtime';
 import { isComment, isElement, isText } from '../core/util/element';
 import { isTemplateElement } from '../core/util/types';

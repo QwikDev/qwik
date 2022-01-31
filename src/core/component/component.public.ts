@@ -178,6 +178,7 @@ export function component<PROPS extends {}>(
       const invokeCtx = newInvokeContext(hostElement);
       return useInvoke(invokeCtx, onMount, componentProps);
     };
+    onRenderFactory.__brand__ = 'QRLFactory';
     return h(tagName, { 'on:qRender': onRenderFactory, ...props });
   };
 }

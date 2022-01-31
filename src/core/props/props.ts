@@ -1,7 +1,7 @@
 import { assertEqual } from '../assert/assert';
 import { QError, qError } from '../error/error';
 import { parseQRL } from '../import/qrl';
-import type { QRL } from '../import/qrl.public';
+import { QRL, $ } from '../import/qrl.public';
 import { qJsonParse, qJsonStringify } from '../json/q-json';
 import { getQObjectId, QObjectIdSymbol, wrap } from '../object/q-object';
 import { QStore_hydrate } from '../object/store';
@@ -15,7 +15,7 @@ import {
   QObjectMap,
   updateSubscriptions,
 } from './props-obj-map';
-import { qPropWriteQRL, qPropReadQRL, isOnProp } from './props-on';
+import { qPropWriteQRL, qPropReadQRL, isOnProp, isOn$Prop } from './props-on';
 import { getProps, Props } from './props.public';
 
 Error.stackTraceLimit = 9999;
@@ -111,6 +111,8 @@ export function newQProps(element: Element): Props {
           if (prop === 'children') return true;
           if (isOnProp(prop)) {
             qPropWriteQRL(cache, qObjMap, prop, value);
+          } else if (isOn$Prop(prop)) {
+            qPropWriteQRL(cache, qObjMap, prop.replace('$', ''), $(value));
           } else if (prop === ':subscriptions') {
             updateSubscriptions(element, qObjRefMap, value as Set<object>);
           } else {
@@ -143,7 +145,7 @@ export function newQProps(element: Element): Props {
     }));
 }
 
-export function test_clearqPropsCache(element: Element) {
+export function test_clearPropsCache(element: Element) {
   (element as any)[Q_PROP] = undefined;
 }
 

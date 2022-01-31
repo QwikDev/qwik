@@ -22,10 +22,15 @@ const ON_WINDOW_PREFIX_$ = 'onWindow$:';
 export function isOnProp(prop: string): boolean {
   return (
     prop.startsWith(ON_PREFIX) ||
-    prop.startsWith(ON_PREFIX_$) ||
     prop.startsWith(ON_DOCUMENT_PREFIX) ||
+    prop.startsWith(ON_WINDOW_PREFIX)
+  );
+}
+
+export function isOn$Prop(prop: string): boolean {
+  return (
+    prop.startsWith(ON_PREFIX_$) ||
     prop.startsWith(ON_DOCUMENT_PREFIX_$) ||
-    prop.startsWith(ON_WINDOW_PREFIX) ||
     prop.startsWith(ON_WINDOW_PREFIX_$)
   );
 }
@@ -40,10 +45,13 @@ export function isOnProp(prop: string): boolean {
  * `getProps` than looks to see if it already has a resolved value, and if so the
  * `qrlFactory` is ignored, otherwise the `qrlFactory` is used to recover the `QRL`.
  */
-export type qrlFactory = (element: Element) => Promise<QRL<any>>;
+export interface qrlFactory {
+  __brand__: `QRLFactory`;
+  (element: Element): Promise<QRL<any>>;
+}
 
 function isQrlFactory(value: any): value is qrlFactory {
-  return typeof value === 'function';
+  return typeof value === 'function' && value.__brand__ === 'QRLFactory';
 }
 
 export function qPropReadQRL(

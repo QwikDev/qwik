@@ -1,5 +1,5 @@
 import { createDocument } from '../../testing/document';
-import { diff, test_clearqPropsCache as test_clearQPropsCache } from './props';
+import { diff, test_clearPropsCache } from './props';
 import { getQObjectId } from '../object/q-object';
 import { dehydrate } from '../object/store.public';
 import { getProps, Props } from './props.public';
@@ -9,7 +9,7 @@ import { useStore } from '../use/use-state.public';
 import { isPromise } from '../util/promises';
 import { useEvent } from '../use/use.event.public';
 import { newInvokeContext, useInvoke } from '../use/use-core';
-import type { QRL } from '../import/qrl.public';
+import { QRL, $ } from '../import/qrl.public';
 
 describe('q-element', () => {
   let document: Document;
@@ -40,7 +40,7 @@ describe('q-element', () => {
     expect(div.getAttribute('is-awesome')).toEqual('true');
     expect(qDiv.myObj).toEqual({ mark: 'OBJ' });
 
-    test_clearQPropsCache(div);
+    test_clearPropsCache(div);
     qDiv = getProps(div);
 
     expect(qDiv.name).toBe('Qwik');
@@ -71,14 +71,14 @@ describe('q-element', () => {
   });
   it('should serialize innerHTML', () => {
     qDiv.innerHTML = '<span>WORKS</span>';
-    test_clearQPropsCache(div);
+    test_clearPropsCache(div);
     qDiv = getProps(div);
     expect(div.getAttribute('inner-h-t-m-l')).toEqual('');
     expect(div.innerHTML.toUpperCase()).toEqual('<SPAN>WORKS</SPAN>');
   });
   it('should serialize innerText', () => {
     qDiv.innerText = 'TEXT';
-    test_clearQPropsCache(div);
+    test_clearPropsCache(div);
     qDiv = getProps(div);
     expect(div.getAttribute('inner-text')).toEqual('');
     expect(div.innerText).toEqual('TEXT');
@@ -184,6 +184,21 @@ describe('q-element', () => {
       );
       expect(await renderPromise).toEqual(['qRender']);
       expect(log).toEqual(['WORKS', 'qRender']);
+    });
+
+    it('should accept QRL factory fn with "on:"', async () => {
+      const log: string[] = [];
+      const promise = Promise.resolve($(() => log.push('WORKS')));
+      qDiv['on:click'] = Object.assign(() => promise, { __brand__: 'QRLFactory' });
+      await useInvoke(newInvokeContext(div), () => qDiv['on:click']());
+      expect(log).toEqual(['WORKS']);
+    });
+
+    it('should not accept QRL factory fn with "on$:"', async () => {
+      const log: string[] = [];
+      qDiv['on$:click'] = () => log.push('WORKS');
+      await useInvoke(newInvokeContext(div), () => qDiv['on:click']());
+      expect(log).toEqual(['WORKS']);
     });
   });
 

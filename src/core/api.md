@@ -4,8 +4,8 @@
 
 ```ts
 
-// @public (undocumented)
-export function $<T>(value: T): QRL<T>;
+// @public
+export function $<T>(expression: T): QRL<T>;
 
 // Warning: (ae-forgotten-export) The symbol "AsyncProps" needs to be exported by the entry point index.d.ts
 //
@@ -99,7 +99,7 @@ export namespace h {
 // @public
 export const Host: FunctionComponent<Record<string, any>>;
 
-// @public (undocumented)
+// @public
 export function implicit$FirstArg<FIRST, REST extends any[], RET>(fn: (first: QRL<FIRST>, ...rest: REST) => RET): (first: FIRST, ...rest: REST) => RET;
 
 // @public (undocumented)
@@ -198,27 +198,13 @@ export type Props<T extends {} = {}> = Record<string, any> & T;
 // @public (undocumented)
 export type PropsOf<COMP extends (props: any) => JSXNode> = COMP extends (props: infer PROPS) => JSXNode<any> ? PROPS : never;
 
-// @public (undocumented)
+// @public
 export interface QRL<TYPE = any> {
     // (undocumented)
-    capture: null | (boolean | number | null | undefined | string)[];
-    // (undocumented)
-    captureRef: null | any[];
-    // (undocumented)
-    chunk: string;
-    // (undocumented)
-    guard: null | Map<string, string[]>;
-    // (undocumented)
-    guardRef: null | WeakMap<Object, string[]>;
-    // (undocumented)
-    symbol: string;
-    // (undocumented)
-    symbolFn: null | (() => Promise<Record<string, any>>);
-    // (undocumented)
-    symbolRef: null | ValueOrPromise<TYPE>;
+    __brand__QRL__: TYPE;
 }
 
-// @public (undocumented)
+// @public
 export const qrl: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: string, lexicalScopeCapture?: any[]) => QRL<T>;
 
 // @public

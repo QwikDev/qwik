@@ -44,10 +44,8 @@ function doExtraStuff() {
   // </docs>
 })();
 
-export function importedFn() {}
-
 // <docs anchor="qrl-capturing-rules">
-import { importedFn } from './qrl.examples';
+import { importedFn } from './example';
 
 export const greet = () => console.log('greet');
 function topLevelFn() {}

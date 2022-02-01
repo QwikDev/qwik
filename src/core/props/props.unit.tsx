@@ -5,9 +5,9 @@ import { dehydrate } from '../object/store.public';
 import { getProps, Props } from './props.public';
 import { parseQRL, runtimeQrl } from '../import/qrl';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
-import { useStore } from '../use/use-state.public';
+import { useStore } from '../use/use-store.public';
 import { isPromise } from '../util/promises';
-import { useEvent } from '../use/use.event.public';
+import { useEvent } from '../use/use-event.public';
 import { newInvokeContext, useInvoke } from '../use/use-core';
 import { QRL, $ } from '../import/qrl.public';
 

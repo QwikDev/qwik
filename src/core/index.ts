@@ -21,8 +21,6 @@ export {
   onHydrate$,
   onDehydrate,
   onDehydrate$,
-  onHalt,
-  onHalt$,
   onResume,
   onResume$,
   on,

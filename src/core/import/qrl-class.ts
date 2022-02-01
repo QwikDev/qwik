@@ -1,11 +1,12 @@
 import type { ValueOrPromise } from '../util/types';
 import type { QRL as IQRL } from './qrl.public';
 
-export function isQrl(value: any): value is IQRL {
-  return value instanceof QRLClass;
+export function isQrl(value: any): value is QRLInternal {
+  return value instanceof QRLInternal;
 }
 
-export const QRLClass = class QRL<TYPE = any> implements IQRL<TYPE> {
+class QRL<TYPE = any> implements IQRL<TYPE> {
+  __brand__QRL__!: TYPE;
   constructor(
     public chunk: string,
     public symbol: string,
@@ -16,4 +17,7 @@ export const QRLClass = class QRL<TYPE = any> implements IQRL<TYPE> {
     public guard: null | Map<string, string[]>,
     public guardRef: null | WeakMap<Object, string[]>
   ) {}
-};
+}
+
+export type QRLInternal<T = any> = QRL<T>;
+export const QRLInternal: typeof QRL = QRL;

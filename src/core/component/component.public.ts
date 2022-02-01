@@ -1,6 +1,6 @@
-import { qrlImport } from '../import/qrl-import';
 import { toQrlOrError } from '../import/qrl';
-import { $, implicit$FirstArg, QRL } from '../import/qrl.public';
+import type { QRLInternal } from '../import/qrl-class';
+import { $, implicit$FirstArg, QRL, qrlImport } from '../import/qrl.public';
 import type { qrlFactory } from '../props/props-on';
 import { getProps } from '../props/props.public';
 import { h } from '../render/jsx/factory';
@@ -168,15 +168,13 @@ export function component<PROPS extends {}>(
 
   // Return a QComponent Factory function.
   return function QComponent(props: PROPS): JSXNode<unknown> {
-    const onRenderFactory: qrlFactory = async (
-      hostElement: Element
-    ): Promise<ReturnType<typeof onRender>> => {
+    const onRenderFactory: qrlFactory = async (hostElement: Element): Promise<QRLInternal> => {
       // Turn function into QRL
       const onMountQrl = toQrlOrError(onMount_);
       const onMount = await resolveQrl(hostElement, onMountQrl);
       const componentProps = Object.assign(getProps(hostElement), props);
       const invokeCtx = newInvokeContext(hostElement);
-      return useInvoke(invokeCtx, onMount, componentProps);
+      return useInvoke(invokeCtx, onMount, componentProps) as QRLInternal;
     };
     onRenderFactory.__brand__ = 'QRLFactory';
     return h(tagName, { 'on:qRender': onRenderFactory, ...props });
@@ -193,7 +191,7 @@ export function component$<PROPS extends {}>(onMount: OnMountFn<PROPS>) {
 
 function resolveQrl<PROPS extends {}>(
   hostElement: Element,
-  onMountQrl: QRL<OnMountFn<PROPS>>
+  onMountQrl: QRLInternal<OnMountFn<PROPS>>
 ): Promise<OnMountFn<PROPS>> {
   return onMountQrl.symbolRef
     ? Promise.resolve(onMountQrl.symbolRef!)

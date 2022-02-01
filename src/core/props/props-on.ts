@@ -1,6 +1,5 @@
-import { qrlImport } from '../import/qrl-import';
 import { parseQRL, stringifyQRL } from '../import/qrl';
-import type { QRL } from '../import/qrl.public';
+import { qrlImport } from '../import/qrl.public';
 import { qDeflate } from '../json/q-json';
 import { getInvokeContext, useInvoke } from '../use/use-core';
 import { fromCamelToKebabCase } from '../util/case';
@@ -10,7 +9,7 @@ import { debugStringify } from '../util/stringify';
 import type { ValueOrPromise } from '../util/types';
 import type { QPropsContext } from './props';
 import type { QObjectMap } from './props-obj-map';
-import { isQrl } from '../import/qrl-class';
+import { isQrl, QRLInternal } from '../import/qrl-class';
 
 const ON_PREFIX = 'on:';
 const ON_PREFIX_$ = 'on$:';
@@ -43,11 +42,11 @@ export function isOn$Prop(prop: string): boolean {
  *
  * A parent component's `component` returns a `qrlFactory` for `on:q-render`. The
  * `getProps` than looks to see if it already has a resolved value, and if so the
- * `qrlFactory` is ignored, otherwise the `qrlFactory` is used to recover the `QRL`.
+ * `qrlFactory` is ignored, otherwise the `qrlFactory` is used to recover the `QRLInternal`.
  */
 export interface qrlFactory {
   __brand__: `QRLFactory`;
-  (element: Element): Promise<QRL<any>>;
+  (element: Element): Promise<QRLInternal<any>>;
 }
 
 function isQrlFactory(value: any): value is qrlFactory {
@@ -110,12 +109,12 @@ export function qPropWriteQRL(
     existingQRLs.push(value);
   } else if (isQrlFactory(value)) {
     if (existingQRLs.length === 0) {
-      // if we don't have any than we use the `qrlFactory` to create a QRL
+      // if we don't have any than we use the `qrlFactory` to create a QRLInternal
       // (otherwise ignore the factory)
       qPropWriteQRL(cache, map, prop, value(cache.__element__));
     }
   } else if (isPromise(value)) {
-    const writePromise = value.then((qrl: QRL) => {
+    const writePromise = value.then((qrl: QRLInternal) => {
       existingQRLs.splice(existingQRLs.indexOf(writePromise), 1);
       qPropWriteQRL(cache, map, prop, qrl);
       return qrl;
@@ -123,7 +122,7 @@ export function qPropWriteQRL(
     existingQRLs.push(writePromise);
   } else {
     // TODO(misko): Test/better text
-    throw new Error(`Not QRL: prop: ${prop}; value: ` + value);
+    throw new Error(`Not QRLInternal: prop: ${prop}; value: ` + value);
   }
   const kababProp = fromCamelToKebabCase(prop);
   cache.__element__.setAttribute(kababProp, serializeQRLs(existingQRLs, map));
@@ -139,10 +138,10 @@ export function closureRefError(ref: any) {
 function getExistingQRLs(
   cache: QPropsContext & Record<string | symbol, any>,
   prop: string
-): ValueOrPromise<QRL>[] {
+): ValueOrPromise<QRLInternal>[] {
   if (prop in cache) return cache[prop];
   const kebabProp = fromCamelToKebabCase(prop);
-  const parts: QRL[] = [];
+  const parts: QRLInternal[] = [];
   const element = cache.__element__;
   (element.getAttribute(kebabProp) || '').split('\n').forEach((qrl) => {
     if (qrl) {
@@ -152,7 +151,7 @@ function getExistingQRLs(
   return (cache[prop] = parts);
 }
 
-function serializeQRLs(existingQRLs: ValueOrPromise<QRL>[], map: QObjectMap): string {
+function serializeQRLs(existingQRLs: ValueOrPromise<QRLInternal>[], map: QObjectMap): string {
   const element = map.element;
   return existingQRLs
     .map((qrl) => (isPromise(qrl) ? '' : stringifyQRL(qrl, element)))

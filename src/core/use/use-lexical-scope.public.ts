@@ -1,5 +1,6 @@
 import { assertDefined } from '../assert/assert';
 import { parseQRL } from '../import/qrl';
+import type { QRLInternal } from '../import/qrl-class';
 import { qInflate } from '../json/q-json';
 import { Q_MAP } from '../props/props';
 import type { QObjectMap } from '../props/props-obj-map';
@@ -12,7 +13,7 @@ import { useURL } from './use-url.public';
  * @public
  */
 export function useLexicalScope<VARS extends any[]>(): VARS {
-  const qrl = useQRL() || parseQRL(decodeURIComponent(String(useURL())));
+  const qrl = (useQRL() as QRLInternal) || parseQRL(decodeURIComponent(String(useURL())));
   if (qrl.captureRef == null) {
     const props = getProps(useHostElement());
     const qMap: QObjectMap = props[Q_MAP];

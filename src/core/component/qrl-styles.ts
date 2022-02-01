@@ -1,13 +1,13 @@
-import type { QRL } from '../import/qrl.public';
+import type { QRLInternal } from '../import/qrl-class';
 import { AttributeMarker } from '../util/markers';
 import { hashCode } from '../util/hash_code';
 
 /**
  * @public
  */
-export function styleKey(qStyles: QRL<string>): string;
-export function styleKey(qStyles: QRL<string> | null): string | null;
-export function styleKey(qStyles: QRL<string> | null): string | null {
+export function styleKey(qStyles: QRLInternal<string>): string;
+export function styleKey(qStyles: QRLInternal<string> | null): string | null;
+export function styleKey(qStyles: QRLInternal<string> | null): string | null {
   return qStyles && String(hashCode(qStyles.symbol));
 }
 

@@ -1,8 +1,8 @@
 import { runtimeQrl, staticQrl, toInternalQRL } from './qrl';
 import { getPlatform } from '../platform/platform';
 
-// <docs markdown="./qrl.public.md#QRL">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit ./qrl.public.md instead)
+// <docs markdown="https://hackmd.io/m5DzCi5MTa26LuUj5t3HpQ#QRL">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit https://hackmd.io/m5DzCi5MTa26LuUj5t3HpQ#QRL instead)
 /**
  * The `QRL` type represents a lazy-loadable AND serializable resource.
  *
@@ -129,8 +129,8 @@ export interface QRL<TYPE = any> {
   __brand__QRL__: TYPE;
 }
 
-// <docs markdown="./qrl.public.md#qrlImport">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit ./qrl.public.md instead)
+// <docs markdown="https://hackmd.io/m5DzCi5MTa26LuUj5t3HpQ#qrlImport">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit https://hackmd.io/m5DzCi5MTa26LuUj5t3HpQ#qrlImport instead)
 /**
  * Lazy-load a `QRL` symbol and return the lazy-loaded value.
  *
@@ -154,8 +154,8 @@ export async function qrlImport<T>(element: Element, qrl: QRL<T>): Promise<T> {
   }
 }
 
-// <docs markdown="./qrl.public.md#$">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit ./qrl.public.md instead)
+// <docs markdown="https://hackmd.io/m5DzCi5MTa26LuUj5t3HpQ#$">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit https://hackmd.io/m5DzCi5MTa26LuUj5t3HpQ#$ instead)
 /**
  * Qwik Optimizer marker function.
  *
@@ -234,8 +234,8 @@ export function $<T>(expression: T): QRL<T> {
   return runtimeQrl(expression);
 }
 
-// <docs markdown="./qrl.public.md#implicit$FirstArg">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit ./qrl.public.md instead)
+// <docs markdown="https://hackmd.io/m5DzCi5MTa26LuUj5t3HpQ#implicit$FirstArg">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit https://hackmd.io/m5DzCi5MTa26LuUj5t3HpQ#implicit$FirstArg instead)
 /**
  * Create a `____$(...)` convenience method from `___(...)`.
  *
@@ -282,8 +282,8 @@ export function implicit$FirstArg<FIRST, REST extends any[], RET>(
   };
 }
 
-// <docs markdown="./qrl.public.md#qrl">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit ./qrl.public.md instead)
+// <docs markdown="https://hackmd.io/m5DzCi5MTa26LuUj5t3HpQ#qrl">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit https://hackmd.io/m5DzCi5MTa26LuUj5t3HpQ#qrl instead)
 /**
  * Used by Qwik Optimizer to point to lazy-loaded resources.
  *

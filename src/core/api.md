@@ -18,14 +18,14 @@ export function bubble<PAYLOAD>(eventType: string, payload?: PAYLOAD): void;
 // Warning: (ae-forgotten-export) The symbol "OnMountFn" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "QwikEvents" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
-export function component$<PROPS extends {}>(onMount: OnMountFn<PROPS>): (props: PROPS & QwikEvents) => JSXNode<unknown>;
+// @public
+export function component$<PROPS extends {}>(onMount: OnMountFn<PROPS>): (props: PROPS & QwikEvents) => JSXNode<PROPS>;
 
-// @public (undocumented)
-export function component<PROPS extends {}>(tagName: string, onMount: QRL<OnMountFn<PROPS>>): (props: PROPS & QwikEvents) => JSXNode<unknown>;
+// @public
+export function component<PROPS extends {}>(tagName: string, onMount: QRL<OnMountFn<PROPS>>): (props: PROPS & QwikEvents) => JSXNode<PROPS>;
 
-// @public (undocumented)
-export function component<PROPS extends {}>(onMount: QRL<OnMountFn<PROPS>>): (props: PROPS & QwikEvents) => JSXNode<unknown>;
+// @public
+export function component<PROPS extends {}>(onMount: QRL<OnMountFn<PROPS>>): (props: PROPS & QwikEvents) => JSXNode<PROPS>;
 
 // @public (undocumented)
 export type ComponentChild = JSXNode<any> | object | string | number | bigint | boolean | null | undefined;
@@ -144,10 +144,10 @@ export const onHydrate$: (first: () => void) => void;
 // @public
 export function onHydrate(hydrateFn: QRL<() => void>): void;
 
-// @public (undocumented)
+// @public
 export const onRender$: <T>(first: () => JSXNode<T>) => QRL<() => JSXNode<T>>;
 
-// @public (undocumented)
+// @public
 export function onRender<T>(renderFn: QRL<() => JSXNode<T>>): QRL<() => JSXNode<T>>;
 
 // @public

@@ -10,6 +10,7 @@ import { useHostElement } from '../use/use-host-element.public';
 import { AttributeMarker } from '../util/markers';
 import { styleKey } from './qrl-styles';
 import type { QwikEvents } from '../render/jsx/types/jsx-qwik-attributes';
+import type { ValueOrPromise } from '../util/types';
 
 // <docs markdown="./component.public.md#onUnmount">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit ./component.public.md instead)
@@ -257,15 +258,6 @@ export function withScopedStyles(styles: QRL<string>): void {
 // </docs>
 export const withScopedStyles$ = implicit$FirstArg(withScopedStyles);
 
-<<<<<<< HEAD
-export type ProbablyPromise<T> = Promise<T> | T;
-
-export type OnMountFn<PROPS> = (props: PROPS) => ProbablyPromise<ReturnType<typeof onRender>>;
-
-=======
-// <docs markdown="./component.public.md#PropsOf">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit ./component.public.md instead)
->>>>>>> e98747c (docs: Add jsdocs for component APIs)
 /**
  * Infers `Props` from the component.
  *
@@ -345,15 +337,11 @@ export type PropsOf<COMP extends (props: any) => JSXNode> = COMP extends (
 // </docs>
 export function component<PROPS extends {}>(
   tagName: string,
-<<<<<<< HEAD
   onMount: QRL<OnMountFn<PROPS>>
-): (props: PROPS & QwikEvents) => JSXNode<unknown>;
-=======
-  onMount: QRL<(props: PROPS) => ReturnType<typeof onRender>>
-): (props: PROPS) => JSXNode<PROPS>;
+): (props: PROPS & QwikEvents) => JSXNode<PROPS>;
+
 // <docs markdown="./component.public.md#component">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit ./component.public.md instead)
->>>>>>> e98747c (docs: Add jsdocs for component APIs)
 /**
  * Declare a Qwik component that can be used to create UI.
  *
@@ -413,27 +401,21 @@ export function component<PROPS extends {}>(
 // </docs>
 export function component<PROPS extends {}>(
   onMount: QRL<OnMountFn<PROPS>>
-): (props: PROPS & QwikEvents) => JSXNode<unknown>;
+): (props: PROPS & QwikEvents) => JSXNode<PROPS>;
 /**
  * @public
  */
 export function component<PROPS extends {}>(
-<<<<<<< HEAD
   tagNameOrONMount: string | QRL<OnMountFn<PROPS>>,
   onMount?: QRL<OnMountFn<PROPS>>
-) {
-=======
-  tagNameOrONMount: string | QRL<(props: PROPS) => ReturnType<typeof onRender>>,
-  onMount?: QRL<(props: PROPS) => ReturnType<typeof onRender>>
-): (props: PROPS) => JSXNode<PROPS> {
->>>>>>> e98747c (docs: Add jsdocs for component APIs)
+): (props: PROPS & QwikEvents) => JSXNode<PROPS> {
   // Sort of the argument position based on type / overload
   const hasTagName = typeof tagNameOrONMount == 'string';
   const tagName = hasTagName ? tagNameOrONMount : 'div';
   const onMount_ = hasTagName ? onMount! : tagNameOrONMount;
 
   // Return a QComponent Factory function.
-  return function QComponent(props: PROPS): JSXNode<unknown> {
+  return function QComponent(props: PROPS & QwikEvents): JSXNode<PROPS> {
     const onRenderFactory: qrlFactory = async (hostElement: Element): Promise<QRLInternal> => {
       // Turn function into QRL
       const onMountQrl = toQrlOrError(onMount_);
@@ -443,7 +425,7 @@ export function component<PROPS extends {}>(
       return useInvoke(invokeCtx, onMount, componentProps) as QRLInternal;
     };
     onRenderFactory.__brand__ = 'QRLFactory';
-    return h(tagName, { 'on:qRender': onRenderFactory, ...props });
+    return h(tagName, { 'on:qRender': onRenderFactory, ...props }) as any;
   };
 }
 
@@ -505,18 +487,16 @@ export function component<PROPS extends {}>(
  *
  * @public
  */
-<<<<<<< HEAD
-export function component$<PROPS extends {}>(onMount: OnMountFn<PROPS>) {
-=======
-// </docs>
-export function component$<PROPS>(
-  onMount: (props: PROPS) => ReturnType<typeof onRender>
-): (props: PROPS) => JSXNode<PROPS> {
->>>>>>> e98747c (docs: Add jsdocs for component APIs)
-  return component($(onMount));
+export function component$<PROPS extends {}>(
+  onMount: OnMountFn<PROPS>
+): (props: PROPS & QwikEvents) => JSXNode<PROPS> {
+  return component<PROPS>($(onMount));
 }
 
-type OnMountFn<PROPS> = (props: PROPS) => ReturnType<typeof onRender>;
+/**
+ * @public
+ */
+export type OnMountFn<PROPS> = (props: PROPS) => ValueOrPromise<ReturnType<typeof onRender>>;
 
 function resolveQrl<PROPS extends {}>(
   hostElement: Element,

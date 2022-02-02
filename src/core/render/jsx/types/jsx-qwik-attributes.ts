@@ -23,16 +23,8 @@ type QrlEvent<T extends Event = Event> = QRL<Event>;
 
 export interface QwikEvents {
   // Host events
-  [key: `on$:${string}`]: Event;
-  [key: `on:${string}`]: QrlEvent;
-
-  // Document events
-  [key: `onDocument$:${string}`]: Event;
-  [key: `onDocument:${string}`]: QrlEvent;
-
-  // Window events
-  [key: `onWindow$:${string}`]: Event;
-  [key: `onWindow:${string}`]: QrlEvent;
+  [key: `${'on' | 'onDocument' | 'onWindow'}$:${string}`]: Event;
+  [key: `${'on' | 'onDocument' | 'onWindow'}:${string}`]: QrlEvent | QrlEvent[];
 }
 
 export interface QwikAttributes extends QwikProps, QwikEvents {}

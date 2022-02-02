@@ -22,10 +22,28 @@ export function serializeDocument(doc: Document, opts?: SerializeDocumentOptions
   }
   if (typeof symbols === 'function') {
     const qrlMapper = symbols;
-    html = html.replace(
-      QRL_MATCHER,
-      (_, _prefix, _qrl, path, symbol, rest) => `="${qrlMapper(path, symbol)}${rest}"`
-    );
+    const extractOnAttrs = function (_: string, attr: string, eventName: string, value: string) {
+      return (
+        attr +
+        '="' +
+        value
+          .split('\n')
+          .map((qrl) => qrl.trim().replace(QRL_MATCHER, replaceQRLs))
+          .join('\n') +
+        '"'
+      );
+    };
+
+    const replaceQRLs = function (
+      _: string,
+      chunk: string,
+      hashSymbol: string,
+      symbol: string,
+      scope: string
+    ) {
+      return qrlMapper(chunk, symbol) + scope;
+    };
+    html = html.replace(ON_ATTR_MATCHER, extractOnAttrs);
   }
 
   return html;
@@ -57,4 +75,7 @@ function createQrlMapper(qEntryMap: OutputEntryMap) {
 }
 
 // https://regexr.com/69fs7
-const QRL_MATCHER = /="(.\/)?(([\w\d-_.]+)#([\w\d$_]*)([^"]*))"/g;
+const ON_ATTR_MATCHER = /(on(|-window|-document):[\w\d\-$_]+)="([^"]+)+"/g;
+
+// https://regexr.com/6egnc
+const QRL_MATCHER = /^([^#]+)(#([\w\d$_]+))?(\[.*\])?$/g;

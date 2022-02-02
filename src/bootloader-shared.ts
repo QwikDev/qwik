@@ -77,21 +77,25 @@ export const qwikLoader = (doc: Document, hasInitialized?: boolean | number) => 
     eventName: string,
     ev: Event,
     url?: URL,
-    previousCtx?: any
+    previousCtx?: any,
+    attrValue?: string | null
   ) => {
     for (const on of ON_PREFIXES) {
-      url = qrlResolver(doc, element, element.getAttribute(on + eventName));
-      if (url) {
-        const handler = getModuleExport(
-          url,
-          (window as any)[url.pathname] || (await import(String(url).split('#')[0]))
-        );
-        previousCtx = (document as any)[Q_CONTEXT];
-        try {
-          (document as any)[Q_CONTEXT] = [element, ev, url];
-          handler(element, ev, url);
-        } finally {
-          (document as any)[Q_CONTEXT] = previousCtx;
+      attrValue = element.getAttribute(on + eventName) || '';
+      for (const qrl of attrValue.split('\n')) {
+        url = qrlResolver(doc, element, qrl);
+        if (url) {
+          const handler = getModuleExport(
+            url,
+            (window as any)[url.pathname] || (await import(String(url).split('#')[0]))
+          );
+          previousCtx = (document as any)[Q_CONTEXT];
+          try {
+            (document as any)[Q_CONTEXT] = [element, ev, url];
+            handler(element, ev, url);
+          } finally {
+            (document as any)[Q_CONTEXT] = previousCtx;
+          }
         }
       }
     }

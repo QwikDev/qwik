@@ -89,7 +89,9 @@ export function qPropWriteQRL(
     value = parseQRL(value);
   }
   const existingQRLs = getExistingQRLs(cache, prop);
-  if (isQrl(value)) {
+  if (Array.isArray(value)) {
+    value.forEach((value) => qPropWriteQRL(cache, map, prop, value));
+  } else if (isQrl(value)) {
     const capture = value.capture;
     if (capture == null) {
       // we need to serialize the lexical scope references

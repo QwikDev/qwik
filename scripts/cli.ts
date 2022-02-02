@@ -26,7 +26,7 @@ export async function buildCli(config: BuildConfig) {
   const tsconfigSrcPath = join(config.startersDir, 'apps', 'starter.tsconfig.json');
   const appDistDir = join(distStartersDir, 'apps');
   const appNames = (await readdir(appDistDir)).filter((appName) => {
-    return statSync(join(appDistDir, appName)).isDirectory();
+    return appName !== 'e2e' && statSync(join(appDistDir, appName)).isDirectory();
   });
   await Promise.all(
     appNames.map(async (appName) => {

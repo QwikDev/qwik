@@ -26,7 +26,7 @@ export function Counter(props: {step?:number}) {
 }
 ```
 
-Note that the components view, state, and handler are all inlined together and heavily rely on closing over variables in parent scope. The implication is that all of these parts (view, state, and handler) have to be downloaded, parsed, and executed together. This severely limits our lazy loading capability.
+Note that the components view, state, and handler are all inlined together and heavily rely on closing over variables in the parent scope. The implication is that all of these parts (view, state, and handler) have to be downloaded, parsed, and executed together. This severely limits our lazy loading capability.
 
 The example above may be trivial, but imagine a more complex version of the above, which requires many KB worth of code to be downloaded, parsed, and executed together. In such a case, requiring the view, state, and handler to be eagerly loaded together is a problem. Let's look at some common user usage patterns to get a better idea as to why this is an issue:
 
@@ -48,13 +48,13 @@ The example above may be trivial, but imagine a more complex version of the abov
 - `view` is needed: View is needed because the component needs to be rendered.
 - `state factory` is needed: The component is being created and so state initialization code is needed.
 
-What the above demonstrates is that in each use-case only part of the view, state, handler information is required. The problem is that we have three distinct pieces of information which are all inlined together, but we only need to use them at different times of the component lifecycle. To achieve the optimal performance we need a way to download and execute the component in parts, based on what the component needs to do. The above code, as it is written, is permanently bound together.
+What the above demonstrates is that in each use-case only part of the view, state, handler information is required. The problem is that we have three distinct pieces of information which are all inlined together, but we only need to use them at different times of the component lifecycle. To achieve optimal performance we need a way to download and execute the component in parts, based on what the component needs to do. The above code, as it is written, is permanently bound together.
 
 ## Breaking up is easy to do
 
-Qwik solves this by only downloading and executing the code that is needed for the task at hand. Keep in mind that while the example above is simple, the complexity of the code is significantly larger in real-world scenarios. Furthermore, more complex code oftentimes contains more imports (which in turn have imports of their own), that adds even more code to the component.
+Qwik solves this by only downloading and executing the code that is needed for the task at hand. Keep in mind that while the example above is simple, the complexity of the code is significantly larger in real-world scenarios. Furthermore, more complex code oftentimes contains more imports (which in turn have imports of their own), which adds even more code to the component.
 
-It is not possible to "tool" our way out of this. It isn’t possible to write a statically analyzable tool that can separate these pieces into parts that can then be lazy loaded as needed. The developer must break up the component into the corresponding parts to allow fine-grain lazy loading.
+It is not possible to "tool" our way out of this. It isn’t possible to write a statically analyzable tool that can separate these pieces into parts that can then be lazy-loaded as needed. The developer must break up the component into the corresponding parts to allow fine-grain lazy loading.
 
 Qwik has `qHook` marker functions for this purpose.
 
@@ -83,11 +83,11 @@ export const Counter = component<{ value?: number; step?: number }, { count: num
 Compared to other frameworks, the above is a bit wordier. However, the cost of the explicit break up of components into their parts gives us the benefit of fine-grained lazy loading.
 
 - Keep in mind that this is a relatively fixed DevExp overhead per component. As the component complexity increases, the added overhead becomes less of an issue.
-- The benefit of this is that tooling now has the freedom to package up the component in multiple chunks which can be lazy loaded as needed.
+- The benefit of this is that tooling now has the freedom to package up the component in multiple chunks which can be lazy-loaded as needed.
 
 ## What happens behind the scenes
 
-`qHook` is a marker for Qwik Optimizer, which tells the tooling that it needs to transform any reference to it into a QRLs. The resulting files can be seen here:
+`qHook` is a marker for Qwik Optimizer, which tells the tooling that it needs to transform any reference to it into a QRL. The resulting files can be seen here:
 
 **File:** `my-counter.js`
 
@@ -100,7 +100,7 @@ export const Counter = component<{ value?: number; step?: number }, { count: num
 });
 ```
 
-In addition to the source file transformation, the optimizer transformed references between the view, state, and handlers into QRLs. Optimizer also generates entry point files for the rollup. These entry points match the QRLs above.
+In addition to the source file transformation, the optimizer transformed references between the view, state, and handlers into QRLs. Qwik Optimizer also generates entry point files for the rollup. These entry points match the QRLs above.
 
 **File:** `entry-abc.js`
 

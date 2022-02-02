@@ -4,8 +4,8 @@
 
 ```ts
 
-// @public (undocumented)
-export function $<T>(value: T): QRL<T>;
+// @public
+export function $<T>(expression: T): QRL<T>;
 
 // Warning: (ae-forgotten-export) The symbol "AsyncProps" needs to be exported by the entry point index.d.ts
 //
@@ -18,14 +18,14 @@ export function bubble<PAYLOAD>(eventType: string, payload?: PAYLOAD): void;
 // Warning: (ae-forgotten-export) The symbol "OnMountFn" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "QwikEvents" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
-export function component$<PROPS extends {}>(onMount: OnMountFn<PROPS>): (props: PROPS & QwikEvents) => JSXNode<unknown>;
+// @public
+export function component$<PROPS extends {}>(onMount: OnMountFn<PROPS>): (props: PROPS & QwikEvents) => JSXNode<PROPS>;
 
-// @public (undocumented)
-export function component<PROPS extends {}>(tagName: string, onMount: QRL<OnMountFn<PROPS>>): (props: PROPS & QwikEvents) => JSXNode<unknown>;
+// @public
+export function component<PROPS extends {}>(tagName: string, onMount: QRL<OnMountFn<PROPS>>): (props: PROPS & QwikEvents) => JSXNode<PROPS>;
 
-// @public (undocumented)
-export function component<PROPS extends {}>(onMount: QRL<OnMountFn<PROPS>>): (props: PROPS & QwikEvents) => JSXNode<unknown>;
+// @public
+export function component<PROPS extends {}>(onMount: QRL<OnMountFn<PROPS>>): (props: PROPS & QwikEvents) => JSXNode<PROPS>;
 
 // @public (undocumented)
 export type ComponentChild = JSXNode<any> | object | string | number | bigint | boolean | null | undefined;
@@ -99,7 +99,7 @@ export namespace h {
 // @public
 export const Host: FunctionComponent<Record<string, any>>;
 
-// @public (undocumented)
+// @public
 export function implicit$FirstArg<FIRST, REST extends any[], RET>(fn: (first: QRL<FIRST>, ...rest: REST) => RET): (first: FIRST, ...rest: REST) => RET;
 
 // @public (undocumented)
@@ -126,49 +126,43 @@ export interface JSXNode<T = any> {
 // @public
 export function notifyRender(hostElement: Element): Promise<void>;
 
-// @public (undocumented)
+// @public
 export function on(event: string, eventFn: QRL<() => void>): QRL<() => void>;
 
-// @public (undocumented)
+// @public
 export const onDehydrate$: (first: () => void) => void;
 
-// @public (undocumented)
+// @public
 export function onDehydrate(dehydrateFn: QRL<() => void>): void;
 
-// @public (undocumented)
+// @public
 export function onDocument(event: string, eventFn: QRL<() => void>): QRL<() => void>;
 
-// @public (undocumented)
-export const onHalt$: (first: () => void) => void;
-
-// @public (undocumented)
-export function onHalt(haltFn: QRL<() => void>): void;
-
-// @public (undocumented)
+// @public
 export const onHydrate$: (first: () => void) => void;
 
-// @public (undocumented)
+// @public
 export function onHydrate(hydrateFn: QRL<() => void>): void;
 
-// @public (undocumented)
+// @public
 export const onRender$: <T>(first: () => JSXNode<T>) => QRL<() => JSXNode<T>>;
 
-// @public (undocumented)
+// @public
 export function onRender<T>(renderFn: QRL<() => JSXNode<T>>): QRL<() => JSXNode<T>>;
 
-// @public (undocumented)
+// @public
 export const onResume$: (first: () => void) => void;
 
-// @public (undocumented)
+// @public
 export function onResume(resumeFn: QRL<() => void>): void;
 
-// @public (undocumented)
+// @public
 export const onUnmount$: (first: () => void) => void;
 
-// @public (undocumented)
+// @public
 export function onUnmount(unmountFn: QRL<() => void>): void;
 
-// @public (undocumented)
+// @public
 export function onWindow(event: string, eventFn: QRL<() => void>): QRL<() => void>;
 
 // @public
@@ -195,30 +189,16 @@ export type PromiseValue<T> = {
 // @public (undocumented)
 export type Props<T extends {} = {}> = Record<string, any> & T;
 
-// @public (undocumented)
+// @public
 export type PropsOf<COMP extends (props: any) => JSXNode> = COMP extends (props: infer PROPS) => JSXNode<any> ? PROPS : never;
 
-// @public (undocumented)
+// @public
 export interface QRL<TYPE = any> {
     // (undocumented)
-    capture: null | (boolean | number | null | undefined | string)[];
-    // (undocumented)
-    captureRef: null | any[];
-    // (undocumented)
-    chunk: string;
-    // (undocumented)
-    guard: null | Map<string, string[]>;
-    // (undocumented)
-    guardRef: null | WeakMap<Object, string[]>;
-    // (undocumented)
-    symbol: string;
-    // (undocumented)
-    symbolFn: null | (() => Promise<Record<string, any>>);
-    // (undocumented)
-    symbolRef: null | ValueOrPromise<TYPE>;
+    __brand__QRL__: TYPE;
 }
 
-// @public (undocumented)
+// @public
 export const qrl: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: string, lexicalScopeCapture?: any[]) => QRL<T>;
 
 // @public
@@ -282,26 +262,20 @@ export const Slot: FunctionComponent<{
     children?: JSXChildren;
 }>;
 
-// @public (undocumented)
-export function useEvent(): Event;
+// @public
+export function useEvent<EVENT extends {}>(expectEventType?: string): EVENT;
 
-// @public (undocumented)
-export function useEvent<EVENT extends {}>(): EVENT;
-
-// @public (undocumented)
+// @public
 export function useHostElement(): Element;
 
-// @public (undocumented)
+// @public
 export function useLexicalScope<VARS extends any[]>(): VARS;
 
-// @public (undocumented)
+// @public
 export function useStore<STATE extends {}>(initialState: STATE): STATE;
 
 // @public (undocumented)
 export function useTransient<OBJ, ARGS extends any[], RET>(obj: OBJ, factory: (this: OBJ, ...args: ARGS) => RET, ...args: ARGS): RET;
-
-// @public (undocumented)
-export function useURL(): URL;
 
 // @public
 export type ValueOrPromise<T> = T | Promise<T>;
@@ -309,16 +283,16 @@ export type ValueOrPromise<T> = T | Promise<T>;
 // @alpha (undocumented)
 export const version: string;
 
-// @public (undocumented)
+// @alpha (undocumented)
 export const withScopedStyles$: (first: string) => void;
 
-// @public (undocumented)
+// @alpha (undocumented)
 export function withScopedStyles(styles: QRL<string>): void;
 
-// @public (undocumented)
+// @alpha (undocumented)
 export const withStyles$: (first: string) => void;
 
-// @public (undocumented)
+// @alpha (undocumented)
 export function withStyles(styles: QRL<string>): void;
 
 // Warnings were encountered during analysis:

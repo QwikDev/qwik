@@ -5,16 +5,17 @@
 // it to the desired comment location
 //
 
-import { Fragment, h, component$, useStore, onRender$ } from '@builder.io/qwik';
+import { component$, Fragment, h, onRender$, useStore } from '@builder.io/qwik';
+import type { PropsOf } from './component.public';
 
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
-// DOCS: component$
+// DOCS: component
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
 
 //
-// <docs anchor="component$">
+// <docs anchor="component">
 export const Counter = component$((props: { value?: number; step?: number }) => {
   const state = useStore({ count: props.value || 0 });
   return onRender$(() => (
@@ -28,7 +29,7 @@ export const Counter = component$((props: { value?: number; step?: number }) => 
 //
 
 //
-// <docs anchor="component$-usage">
+// <docs anchor="component-usage">
 export const OtherComponent = component$(() => {
   return onRender$(() => <Counter value={100} />);
 });
@@ -60,11 +61,18 @@ export const OtherComponent = component$(() => {
 
 (other: [Record<string, any>]) => {
   //
-  // <docs anchor="props">
+  // <docs anchor="propsof">
+  // Given
   const MyComp = component$((props: { title: 'MyTitle'; label: 'defaultLabel' }) => {
     return onRender$(() => <span title={props.label}></span>);
   });
+
+  // Inferred type:
+  type MyCompProps = PropsOf<typeof MyComp>;
+  // MyCompProps: { title: 'MyTitle'; label: 'defaultLabel' };
   // </docs>
   //
-  return [MyComp, other];
+
+  const x: MyCompProps = null!;
+  return [MyComp, other, x];
 };

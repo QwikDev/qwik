@@ -24,7 +24,7 @@ import { readPackageJson, writePackageJson } from './package-json';
 export async function submoduleServer(config: BuildConfig) {
   const submodule = 'server';
 
-  const dominoPlugin = await bundleDomino(config);
+  const qwikDomPlugin = await bundleQwikDom(config);
 
   const opts: BuildOptions = {
     entryPoints: [join(config.srcDir, submodule, 'index.ts')],
@@ -48,7 +48,7 @@ export async function submoduleServer(config: BuildConfig) {
     plugins: [
       importPath(/^@builder\.io\/qwik$/, '../core.mjs'),
       importPath(/^@builder\.io\/qwik\/optimizer$/, '../optimizer.mjs'),
-      dominoPlugin,
+      qwikDomPlugin,
     ],
     watch: watcher(config, submodule),
     inject: [injectGlobalPoly(config)],
@@ -61,7 +61,7 @@ export async function submoduleServer(config: BuildConfig) {
     plugins: [
       importPath(/^@builder\.io\/qwik$/, '../core.cjs'),
       importPath(/^@builder\.io\/qwik\/optimizer$/, '../optimizer.cjs'),
-      dominoPlugin,
+      qwikDomPlugin,
     ],
     watch: watcher(config),
     platform: 'node',
@@ -115,8 +115,8 @@ async function inlineQwikScripts(config: BuildConfig) {
   return define;
 }
 
-async function bundleDomino(config: BuildConfig) {
-  const outfile = join(config.distDir, 'domino.mjs');
+async function bundleQwikDom(config: BuildConfig) {
+  const outfile = join(config.distDir, 'qwikdom.mjs');
 
   const opts: BuildOptions = {
     entryPoints: [require.resolve('@builder.io/qwik-dom')],
@@ -148,8 +148,8 @@ async function bundleDomino(config: BuildConfig) {
 
   await build(opts);
 
-  const dominoPlugin: Plugin = {
-    name: 'dominoPlugin',
+  const qwikDomPlugin: Plugin = {
+    name: 'domiqwikDomPluginnoPlugin',
     setup(build) {
       build.onResolve({ filter: /@builder.io\/qwik-dom/ }, () => {
         return {
@@ -159,7 +159,7 @@ async function bundleDomino(config: BuildConfig) {
     },
   };
 
-  return dominoPlugin;
+  return qwikDomPlugin;
 }
 
 async function getDominoVersion() {

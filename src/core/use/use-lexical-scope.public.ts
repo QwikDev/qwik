@@ -9,9 +9,19 @@ import { useHostElement } from './use-host-element.public';
 import { useQRL } from './use-qrl';
 import { useURL } from './use-url.public';
 
+// <docs markdown="https://hackmd.io/lQ8v7fyhR-WD3b-2aRUpyw#useLexicalScope">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit https://hackmd.io/lQ8v7fyhR-WD3b-2aRUpyw#useLexicalScope instead)
 /**
+ * Used by the Qwik Optimizer to restore the lexical scoped variables.
+ *
+ * This method should not be present in the application source code.
+ *
+ * NOTE: `useLexicalScope` method can only be used in synchronous portion of the callback (before
+ * any `await` statements.)
+ *
  * @public
  */
+// </docs>
 export function useLexicalScope<VARS extends any[]>(): VARS {
   const qrl = (useQRL() as QRLInternal) || parseQRL(decodeURIComponent(String(useURL())));
   if (qrl.captureRef == null) {

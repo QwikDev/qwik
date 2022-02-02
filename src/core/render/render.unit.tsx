@@ -86,6 +86,19 @@ describe('q-render', () => {
       );
     });
 
+    it('should render a blank component', async () => {
+      await render(fixture.host, <InnerHTMLComponent />);
+      expectRendered(
+        <div>
+          {/<node:.*>/}
+          <div>
+            <span>WORKS</span>
+          </div>
+          {/<\/node:.*>/}
+        </div>
+      );
+    });
+
     describe('handlers', () => {
       it('should process clicks', async () => {
         await render(fixture.host, <Counter step={5} />);
@@ -437,3 +450,11 @@ export const HostFixture = component(
 function delay(time: number) {
   return new Promise((res) => setTimeout(res, time));
 }
+
+//////////////////////////////////////////////////////////////////////////////////////////
+export const InnerHTMLComponent = component$(async () => {
+  return onRender$(() => {
+    const html = Promise.resolve(`<span>WORKS</span>`);
+    return <Async resolve={html}>{(v) => <div innerHTML={v.value}></div>}</Async>;
+  });
+});

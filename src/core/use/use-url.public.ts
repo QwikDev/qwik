@@ -1,9 +1,5 @@
 import { getInvokeContext } from './use-core';
 
-/**
- * @public
- */
-
 export function useURL(): URL {
   const url = getInvokeContext().url;
   if (!url) {

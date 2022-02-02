@@ -72,11 +72,10 @@ export { render } from './render/render.public';
 //////////////////////////////////////////////////////////////////////////////////////////
 // use API
 //////////////////////////////////////////////////////////////////////////////////////////
-export { useURL } from './use/use-url.public';
 export { useHostElement } from './use/use-host-element.public';
-export { useEvent } from './use/use.event.public';
+export { useEvent } from './use/use-event.public';
 export { useLexicalScope } from './use/use-lexical-scope.public';
-export { useStore } from './use/use-state.public';
+export { useStore } from './use/use-store.public';
 export { useTransient } from './use/use-transient.public';
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Low-Level API

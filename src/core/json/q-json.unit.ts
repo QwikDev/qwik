@@ -1,6 +1,6 @@
 import { getQObjectId } from '../object/q-object';
 import type { QObjectMap } from '../props/props-obj-map';
-import { useStore } from '../use/use-state.public';
+import { useStore } from '../use/use-store.public';
 import { qJsonParse, qJsonStringify, ATTR_OBJ_PREFIX } from './q-json';
 
 describe('qjson', () => {

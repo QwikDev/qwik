@@ -262,26 +262,20 @@ export const Slot: FunctionComponent<{
     children?: JSXChildren;
 }>;
 
-// @public (undocumented)
-export function useEvent(): Event;
+// @public
+export function useEvent<EVENT extends {}>(expectEventType?: string): EVENT;
 
-// @public (undocumented)
-export function useEvent<EVENT extends {}>(): EVENT;
-
-// @public (undocumented)
+// @public
 export function useHostElement(): Element;
 
-// @public (undocumented)
+// @public
 export function useLexicalScope<VARS extends any[]>(): VARS;
 
-// @public (undocumented)
+// @public
 export function useStore<STATE extends {}>(initialState: STATE): STATE;
 
 // @public (undocumented)
 export function useTransient<OBJ, ARGS extends any[], RET>(obj: OBJ, factory: (this: OBJ, ...args: ARGS) => RET, ...args: ARGS): RET;
-
-// @public (undocumented)
-export function useURL(): URL;
 
 // @public
 export type ValueOrPromise<T> = T | Promise<T>;

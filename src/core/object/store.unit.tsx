@@ -1,7 +1,7 @@
 import { createDocument } from '../../testing/document';
 import { getProps, Props } from '../props/props.public';
 import { dehydrate } from '@builder.io/qwik';
-import { useStore } from '../use/use-state.public';
+import { useStore } from '../use/use-store.public';
 
 describe('q-element', () => {
   let document: Document;

@@ -8,7 +8,8 @@
 
 import { EMPTY_ARRAY } from '../util/flyweight';
 import type { QRL } from './qrl.public';
-import { isQrl, QRLClass } from './qrl-class';
+import { isQrl, QRLInternal } from './qrl-class';
+import { assertEqual } from '../assert/assert';
 
 let runtimeSymbolId = 0;
 const RUNTIME_QRL = '/runtimeQRL';
@@ -21,6 +22,11 @@ const EXTRACT_SELF_IMPORT = /Promise\s*\.\s*resolve/;
 
 // https://regexr.com/6a83h
 const EXTRACT_FILE_NAME = /[\\/(]([\w\d.\-_]+)\.(js|ts)x?:/;
+
+export function toInternalQRL<T>(qrl: QRL<T>): QRLInternal<T> {
+  assertEqual(isQrl(qrl), true);
+  return qrl as QRLInternal<T>;
+}
 
 export function staticQrl<T = any>(
   chunkOrFn: string | (() => Promise<any>),
@@ -51,11 +57,11 @@ export function staticQrl<T = any>(
   } else {
     throw new Error('Q-ERROR: Unknown type argument: ' + chunkOrFn);
   }
-  return new QRLClass<T>(chunk, symbol, null, symbolFn, null, lexicalScopeCapture, null, null);
+  return new QRLInternal<T>(chunk, symbol, null, symbolFn, null, lexicalScopeCapture, null, null);
 }
 
-export function runtimeQrl<T>(symbol: T, lexicalScopeCapture: any[] = EMPTY_ARRAY): QRL<T> {
-  return new QRLClass<T>(
+export function runtimeQrl<T>(symbol: T, lexicalScopeCapture: any[] = EMPTY_ARRAY): QRLInternal<T> {
+  return new QRLInternal<T>(
     RUNTIME_QRL,
     's' + runtimeSymbolId++,
     symbol,
@@ -68,20 +74,21 @@ export function runtimeQrl<T>(symbol: T, lexicalScopeCapture: any[] = EMPTY_ARRA
 }
 
 export function stringifyQRL(qrl: QRL, element?: Element) {
-  const parts: string[] = [qrl.chunk];
-  const symbol = qrl.symbol;
+  const qrl_ = toInternalQRL(qrl);
+  const parts: string[] = [qrl_.chunk];
+  const symbol = qrl_.symbol;
   if (symbol && symbol !== 'default') {
     parts.push('#', symbol);
   }
-  const guard = qrl.guard;
+  const guard = qrl_.guard;
   guard?.forEach((value, key) =>
     parts.push('|', key, value && value.length ? '.' + value.join('.') : '')
   );
-  const capture = qrl.capture;
+  const capture = qrl_.capture;
   capture && capture.length && parts.push(JSON.stringify(capture));
 
   const qrlString = parts.join('');
-  if (qrl.chunk === RUNTIME_QRL && element) {
+  if (qrl_.chunk === RUNTIME_QRL && element) {
     const qrls: Set<QRL> = (element as any).__qrls__ || ((element as any).__qrls__ = new Set());
     qrls.add(qrl);
   }
@@ -95,9 +102,9 @@ export function qrlToUrl(element: Element, qrl: QRL): URL {
 /**
  * `./chunk#symbol|symbol.propA.propB|[captures]
  */
-export function parseQRL(qrl: string, element?: Element): QRL {
+export function parseQRL(qrl: string, element?: Element): QRLInternal {
   if (element) {
-    const qrls: QRL[] | undefined = (element as any).__qrls__;
+    const qrls: QRLInternal[] | undefined = (element as any).__qrls__;
     if (qrls) {
       for (const runtimeQrl of qrls) {
         if (stringifyQRL(runtimeQrl) == qrl) {
@@ -134,7 +141,7 @@ export function parseQRL(qrl: string, element?: Element): QRL {
   if (chunk === RUNTIME_QRL) {
     console.error(`Q-ERROR: '${qrl}' is runtime but no instance found on element.`);
   }
-  return new QRLClass(chunk, symbol, null, null, capture, null, guard, null);
+  return new QRLInternal(chunk, symbol, null, null, capture, null, guard, null);
 }
 
 function JSONparse(json: string): any {
@@ -166,7 +173,7 @@ function indexOf(text: string, startIdx: number, char: string) {
   return charIdx == -1 ? endIdx : charIdx;
 }
 
-export function toQrlOrError<T>(symbolOrQrl: T | QRL<T>): QRL<T> {
+export function toQrlOrError<T>(symbolOrQrl: T | QRL<T>): QRLInternal<T> {
   if (!isQrl(symbolOrQrl)) {
     if (typeof symbolOrQrl == 'function' || typeof symbolOrQrl == 'string') {
       symbolOrQrl = runtimeQrl(symbolOrQrl);
@@ -175,5 +182,5 @@ export function toQrlOrError<T>(symbolOrQrl: T | QRL<T>): QRL<T> {
       throw new Error(`Q-ERROR Only 'function's and 'string's are supported.`);
     }
   }
-  return symbolOrQrl;
+  return symbolOrQrl as QRLInternal<T>;
 }

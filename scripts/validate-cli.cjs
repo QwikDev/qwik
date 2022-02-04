@@ -34,6 +34,7 @@ async function validateCreateQwikCli() {
   const starters = await api.getStarters();
   assert.ok(starters.apps.length > 0);
   assert.ok(starters.servers.length > 0);
+  assert.ok(starters.features.length > 0);
 
   const outDir = join(distDevDir, 'my-todo-app');
   const result = await api.generateStarter({
@@ -41,6 +42,7 @@ async function validateCreateQwikCli() {
     appId: 'todo',
     serverId: 'express',
     outDir: outDir,
+    featureIds: [],
   });
 
   assert.strictEqual(result.projectName, 'My ToDo App');

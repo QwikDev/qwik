@@ -9,8 +9,9 @@
     "deploy.dev": "wrangler dev"
   },
   "devDependencies": {
-    "@cloudflare/kv-asset-handler": "^0.2.0",
-    "@cloudflare/workers-types": "^3.2.0",
-    "@types/service-worker-mock": "^2.0.1"
+    "@cloudflare/kv-asset-handler": "0.2.0",
+    "@cloudflare/workers-types": "3.2.0",
+    "@cloudflare/wrangler": "1.19.7",
+    "@types/service-worker-mock": "2.0.1"
   }
 }

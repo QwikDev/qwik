@@ -1,7 +1,17 @@
 import { InputOptions, OutputOptions, rollup } from 'rollup';
-import { BuildConfig, fileSize, rollupOnWarn, terser } from './util';
+import {
+  BuildConfig,
+  ensureDir,
+  fileSize,
+  PackageJSON,
+  readFile,
+  rollupOnWarn,
+  terser,
+  writeFile,
+} from './util';
 import { join } from 'path';
 import { transform } from 'esbuild';
+import { writePackageJson } from './package-json';
 
 /**
  * Builds the qwikloader javascript files. These files can be used
@@ -151,6 +161,73 @@ export async function submoduleQwikLoader(config: BuildConfig) {
     build.write(optimizeDebug),
   ]);
 
+  await generateLoaderSubmodule(config);
+
   const optimizeFileSize = await fileSize(join(config.distPkgDir, 'qwikloader.optimize.js'));
   console.log('🐸 qwikloader:', optimizeFileSize);
+}
+
+/**
+ * Load each of the qwik scripts to be inlined with esbuild "define" as const varialbles.
+ */
+export async function inlineQwikScriptsEsBuild(config: BuildConfig) {
+  const variableToFileMap = [
+    ['QWIK_LOADER_DEFAULT_MINIFIED', 'qwikloader.js'],
+    ['QWIK_LOADER_DEFAULT_DEBUG', 'qwikloader.debug.js'],
+    ['QWIK_LOADER_OPTIMIZE_MINIFIED', 'qwikloader.optimize.js'],
+    ['QWIK_LOADER_OPTIMIZE_DEBUG', 'qwikloader.optimize.debug.js'],
+    ['QWIK_PREFETCH_MINIFIED', 'prefetch.js'],
+    ['QWIK_PREFETCH_DEBUG', 'prefetch.debug.js'],
+  ];
+
+  const define: { [varName: string]: string } = {};
+
+  await Promise.all(
+    variableToFileMap.map(async (varToFile) => {
+      const varName = `global.${varToFile[0]}`;
+      const filePath = join(config.distPkgDir, varToFile[1]);
+      const content = await readFile(filePath, 'utf-8');
+      define[varName] = JSON.stringify(content.trim());
+    })
+  );
+
+  return define;
+}
+
+async function generateLoaderSubmodule(config: BuildConfig) {
+  const loaderDistDir = join(config.distPkgDir, 'loader');
+
+  const loaderCode = await readFile(join(config.distPkgDir, 'qwikloader.js'), 'utf-8');
+  const loaderDebugCode = await readFile(join(config.distPkgDir, 'qwikloader.debug.js'), 'utf-8');
+
+  const code = [
+    `const QWIK_LOADER = ${JSON.stringify(loaderCode.trim())};`,
+    `const QWIK_LOADER_DEBUG = ${JSON.stringify(loaderDebugCode.trim())};`,
+  ];
+
+  const esmCode = [...code, `export { QWIK_LOADER, QWIK_LOADER_DEBUG };`];
+  const cjsCode = [
+    ...code,
+    `exports.QWIK_LOADER = QWIK_LOADER;`,
+    `exports.QWIK_LOADER_DEBUG = QWIK_LOADER_DEBUG;`,
+  ];
+  const dtsCode = [
+    `export declare const QWIK_LOADER: string;`,
+    `export declare const QWIK_LOADER_DEBUG: string;`,
+  ];
+
+  ensureDir(loaderDistDir);
+  await writeFile(join(loaderDistDir, 'index.mjs'), esmCode.join('\n') + '\n');
+  await writeFile(join(loaderDistDir, 'index.cjs'), cjsCode.join('\n') + '\n');
+  await writeFile(join(loaderDistDir, 'index.d.ts'), dtsCode.join('\n') + '\n');
+
+  const loaderPkg: PackageJSON = {
+    name: `@builder.io/qwik/loader`,
+    version: config.distVersion,
+    main: `index.cjs`,
+    module: `index.mjs`,
+    types: `index.d.ts`,
+    private: true,
+  };
+  await writePackageJson(loaderDistDir, loaderPkg);
 }

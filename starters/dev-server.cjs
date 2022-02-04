@@ -13,7 +13,7 @@ const {
   rmdirSync,
 } = require('fs');
 const { rollup } = require('rollup');
-const { createDocument } = require('domino');
+const { createDocument } = require('@builder.io/qwik-dom');
 
 const app = express();
 const port = parseInt(process.argv[process.argv.length - 1], 10) || 3300;

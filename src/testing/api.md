@@ -107,7 +107,7 @@ export function setServerPlatform(document: any, opts: DocumentOptions): Promise
 // @alpha (undocumented)
 export const versions: {
     readonly qwik: string;
-    readonly domino: string;
+    readonly qwikDom: string;
 };
 
 // (No @packageDocumentation comment for this package)

@@ -13,6 +13,7 @@ const {
   rmdirSync,
 } = require('fs');
 const { rollup } = require('rollup');
+
 const { createDocument } = require('@builder.io/qwik-dom');
 
 const app = express();
@@ -70,6 +71,12 @@ async function buildApp(appDir) {
     plugins: [
       {
         name: 'devNodeRequire',
+        transform(code, id) {
+          if (id.endsWith('.css')) {
+            return `export default ${JSON.stringify(code)}`;
+          }
+          return null;
+        },
         resolveId(id) {
           if (id === '@builder.io/qwik') {
             delete require.cache[qwikDistCorePath];
@@ -90,7 +97,8 @@ async function buildApp(appDir) {
         },
       },
       optimizer.qwikRollup({
-        entryStrategy: { type: 'hook' },
+        entryStrategy: { type: 'single' },
+        srcDir: appSrcDir,
         symbolsOutput: (data) => {
           writeFileSync(symbolsPath, JSON.stringify(data, null, 2));
         },
@@ -130,7 +138,7 @@ function removeDir(dir) {
 async function ssrApp(req, appName, appDir) {
   const buildDir = join(appDir, 'build');
   const serverDir = join(buildDir, 'server');
-  const serverPath = join(serverDir, 'entry.server.js');
+  const serverPath = join(serverDir, 'entry.js');
   const symbolsPath = join(serverDir, 'q-symbols.json');
   const symbols = JSON.parse(readFileSync(symbolsPath, 'utf-8'));
 

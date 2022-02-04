@@ -1,5 +1,5 @@
 import type { QwikJSX } from '@builder.io/qwik';
-import domino from 'domino';
+import qwikDom from '@builder.io/qwik-dom';
 import { isJSXNode } from '../core/render/jsx/jsx-runtime';
 import { isComment, isElement, isText } from '../core/util/element';
 import { isTemplateElement } from '../core/util/types';
@@ -125,7 +125,7 @@ describe('expect-dom', () => {
 });
 
 function toDOM(html: string): HTMLElement {
-  const doc = domino.createDocument();
+  const doc = qwikDom.createDocument();
   const host = doc.createElement('host');
   host.innerHTML = html;
   return host.firstElementChild! as HTMLElement;

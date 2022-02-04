@@ -1,5 +1,5 @@
 import { dehydrate, render } from '@builder.io/qwik';
-import domino from 'domino';
+import qwikDom from '@builder.io/qwik-dom';
 import { setServerPlatform } from './platform';
 import { serializeDocument } from './serialize';
 import type {
@@ -21,7 +21,7 @@ import { createTimer } from './utils';
 export function createGlobal(opts?: GlobalOptions): QwikGlobal {
   opts = opts || {};
 
-  const doc: QwikDocument = domino.createDocument() as any;
+  const doc: QwikDocument = qwikDom.createDocument() as any;
   const baseURI = opts.url === undefined ? BASE_URI : opts.url.href;
   const loc = new URL(baseURI, BASE_URI);
 

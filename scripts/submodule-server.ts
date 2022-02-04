@@ -24,7 +24,7 @@ import { readPackageJson, writePackageJson } from './package-json';
 export async function submoduleServer(config: BuildConfig) {
   const submodule = 'server';
 
-  const dominoPlugin = await bundleDomino(config);
+  const qwikDomPlugin = await bundleQwikDom(config);
 
   const opts: BuildOptions = {
     entryPoints: [join(config.srcDir, submodule, 'index.ts')],
@@ -33,7 +33,7 @@ export async function submoduleServer(config: BuildConfig) {
     bundle: true,
     target,
     banner,
-    external: [...nodeBuiltIns, 'domino'],
+    external: [...nodeBuiltIns, '@builder.io/qwik-dom'],
     define: {
       ...(await inlineQwikScripts(config)),
       'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
@@ -48,7 +48,7 @@ export async function submoduleServer(config: BuildConfig) {
     plugins: [
       importPath(/^@builder\.io\/qwik$/, '../core.mjs'),
       importPath(/^@builder\.io\/qwik\/optimizer$/, '../optimizer.mjs'),
-      dominoPlugin,
+      qwikDomPlugin,
     ],
     watch: watcher(config, submodule),
     inject: [injectGlobalPoly(config)],
@@ -61,7 +61,7 @@ export async function submoduleServer(config: BuildConfig) {
     plugins: [
       importPath(/^@builder\.io\/qwik$/, '../core.cjs'),
       importPath(/^@builder\.io\/qwik\/optimizer$/, '../optimizer.cjs'),
-      dominoPlugin,
+      qwikDomPlugin,
     ],
     watch: watcher(config),
     platform: 'node',
@@ -115,11 +115,11 @@ async function inlineQwikScripts(config: BuildConfig) {
   return define;
 }
 
-async function bundleDomino(config: BuildConfig) {
-  const outfile = join(config.distDir, 'domino.mjs');
+async function bundleQwikDom(config: BuildConfig) {
+  const outfile = join(config.distDir, 'qwikdom.mjs');
 
   const opts: BuildOptions = {
-    entryPoints: [require.resolve('domino')],
+    entryPoints: [require.resolve('@builder.io/qwik-dom')],
     sourcemap: false,
     minify: true,
     bundle: true,
@@ -148,10 +148,10 @@ async function bundleDomino(config: BuildConfig) {
 
   await build(opts);
 
-  const dominoPlugin: Plugin = {
-    name: 'dominoPlugin',
+  const qwikDomPlugin: Plugin = {
+    name: 'domiqwikDomPluginnoPlugin',
     setup(build) {
-      build.onResolve({ filter: /domino/ }, () => {
+      build.onResolve({ filter: /@builder.io\/qwik-dom/ }, () => {
         return {
           path: outfile,
         };
@@ -159,11 +159,11 @@ async function bundleDomino(config: BuildConfig) {
     },
   };
 
-  return dominoPlugin;
+  return qwikDomPlugin;
 }
 
 async function getDominoVersion() {
-  const indexPath = require.resolve('domino');
+  const indexPath = require.resolve('@builder.io/qwik-dom');
   const pkgJsonPath = join(indexPath, '..', '..');
   const pkgJson = await readPackageJson(pkgJsonPath);
   return pkgJson.version;

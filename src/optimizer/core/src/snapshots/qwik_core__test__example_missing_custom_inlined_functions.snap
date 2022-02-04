@@ -7,7 +7,7 @@ expression: output
 ==INPUT==
 
 
-import { qComponent$ as Component, onRender$, useStore, wrap, useEffect } from '@builder.io/qwik';
+import { qComponent$ as Component, onRender$, createStore, wrap, useEffect } from '@builder.io/qwik';
 
 
 export const useMemo$ = (qrt) => {
@@ -15,7 +15,7 @@ export const useMemo$ = (qrt) => {
 };
 
 export const App = qComponent$((props) => {
-    const state = useStore({count: 0});
+    const state = createStore({count: 0});
     useMemo$(() => {
         console.log(state.count);
     });
@@ -28,12 +28,12 @@ export const App = qComponent$((props) => {
 
 import * as qwik from "@builder.io/qwik";
 import { onRender } from "@builder.io/qwik";
-import { useStore, useEffect } from '@builder.io/qwik';
+import { createStore, useEffect } from '@builder.io/qwik';
 export const useMemo$ = (qrt)=>{
     useEffect(qrt);
 };
 export const App = qComponent$((props)=>{
-    const state = useStore({
+    const state = createStore({
         count: 0
     });
     useMemo$(qwik.qrl(()=>import("./h_test_app_usememo")

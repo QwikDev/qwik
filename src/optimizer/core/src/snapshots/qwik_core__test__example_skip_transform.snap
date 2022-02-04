@@ -7,7 +7,7 @@ expression: output
 ==INPUT==
 
 
-import { qComponent$ as Component, onRender$ as onRender, useStore } from '@builder.io/qwik';
+import { qComponent$ as Component, onRender$ as onRender } from '@builder.io/qwik';
 
 export const handler = $(()=>console.log('hola'));
 

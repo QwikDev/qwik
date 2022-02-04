@@ -7,9 +7,9 @@ expression: output
 ==INPUT==
 
 
-        import { $, qComponent$, onRender$ } from '@builder.io/qwik';
+        import { $, qComponent$, onRender$, createStore } from '@builder.io/qwik';
         const Header = qComponent$(() => {
-            const thing = useStore();
+            const thing = createStore();
             const {foo, bar} = foo();
 
             onRender$(() => {
@@ -23,7 +23,7 @@ expression: output
 
 import * as qwik from "@builder.io/qwik";
 import { qComponent } from "@builder.io/qwik";
-import { $, qComponent$, onRender$ } from '@builder.io/qwik';
+import { $, qComponent$, onRender$, createStore } from '@builder.io/qwik';
 const Header = /*#__PURE__*/ qComponent(qwik.qrl(()=>import("./h_test_header_onmount")
 , "Header_onmount"));
 
@@ -47,9 +47,10 @@ export const Header_onRender = ()=>{
 ============================= h_test_header_onmount.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
+import { createStore } from "@builder.io/qwik";
 import { onRender } from "@builder.io/qwik";
 export const Header_onmount = ()=>{
-    const thing = useStore();
+    const thing = createStore();
     const { foo , bar  } = foo();
     onRender(qwik.qrl(()=>import("./h_test_header_onrender")
     , "Header_onRender", [

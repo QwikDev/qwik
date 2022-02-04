@@ -1,10 +1,10 @@
-import { useStore, onRender$, component$, useEvent, Host, withStyles$ } from '@builder.io/qwik';
+import { createStore, onRender$, component$, useEvent, Host, withStyles$ } from '@builder.io/qwik';
 import styles from './root.css';
 
 export const Root = component$(() => {
   withStyles$(styles);
 
-  const state = useStore({ name: 'World' });
+  const state = createStore({ name: 'World' });
   return onRender$(() => (
     <Host class="my-app">
       <p style={{ 'text-align': 'center' }}>

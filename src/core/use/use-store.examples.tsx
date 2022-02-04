@@ -5,7 +5,7 @@
 // it to the desired comment location
 //
 
-import { component$, Fragment, h, onRender$, useStore } from '@builder.io/qwik';
+import { component$, onRender$, createStore } from '@builder.io/qwik';
 
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
@@ -14,9 +14,9 @@ import { component$, Fragment, h, onRender$, useStore } from '@builder.io/qwik';
 //////////////////////////////////////////////////////////
 
 //
-// <docs anchor="useStore">
+// <docs anchor="createStore">
 export const Counter = component$(() => {
-  const store = useStore({ count: 0 });
+  const store = createStore({ count: 0 });
   return onRender$(() => <button on$:click={() => store.count++}>{store.count}</button>);
 });
 // </docs>

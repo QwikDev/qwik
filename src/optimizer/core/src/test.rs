@@ -323,9 +323,9 @@ fn example_functional_component() {
     test_input(
         "test.tsx",
         r#"
-        import { $, qComponent$, onRender$ } from '@builder.io/qwik';
+        import { $, qComponent$, onRender$, createStore } from '@builder.io/qwik';
         const Header = qComponent$(() => {
-            const thing = useStore();
+            const thing = createStore();
             const {foo, bar} = foo();
 
             onRender$(() => {
@@ -347,16 +347,16 @@ fn example_functional_component_2() {
     test_input(
         "test.tsx",
         r#"
-import { $, qComponent$, onRender$ } from '@builder.io/qwik';
+import { $, qComponent$, onRender$, createStore } from '@builder.io/qwik';
 export const useCounter = () => {
-    return useStore({count: 0});
+    return createStore({count: 0});
 }
 
 export const STEP = 1;
 
 export const App = qComponent$((props) => {
     const state = useCounter();
-    const thing = useStore({thing: 0});
+    const thing = createStore({thing: 0});
     const STEP_2 = 2;
 
     return onRender$(() => {
@@ -390,10 +390,10 @@ fn example_functional_component_capture_props() {
     test_input(
         "test.tsx",
         r#"
-import { $, qComponent$, onRender$ } from '@builder.io/qwik';
+import { $, qComponent$, onRender$, createStore } from '@builder.io/qwik';
 
 export const App = qComponent$(({count, rest: [I2, {I3, v1: [I4], I5=v2, ...I6}, I7=v3, ...I8]}) => {
-    const state = useStore({count: 0});
+    const state = createStore({count: 0});
     const {rest: [C2, {C3, v1: [C4], C5=v2, ...C6}, C7=v3, ...C8]} = foo();
     return onRender$(() => {
         return (
@@ -647,10 +647,10 @@ fn example_renamed_exports() {
     test_input(
         "test.tsx",
         r#"
-import { qComponent$ as Component, onRender$ as onRender, useStore } from '@builder.io/qwik';
+import { qComponent$ as Component, onRender$ as onRender, createStore } from '@builder.io/qwik';
 
 export const App = Component((props) => {
-    const state = useStore({thing: 0});
+    const state = createStore({thing: 0});
 
     return onRender(() => (
         <div>{state.thing}</div>
@@ -862,7 +862,7 @@ fn example_custom_inlined_functions() {
     test_input(
         "test.tsx",
         r#"
-import { qComponent$, onRender$, useStore, wrap, useEffect } from '@builder.io/qwik';
+import { qComponent$, onRender$, createStore, wrap, useEffect } from '@builder.io/qwik';
 
 export const useMemo = (qrt) => {
     useEffect(qrt);
@@ -871,7 +871,7 @@ export const useMemo = (qrt) => {
 export const useMemo$ = wrap(useMemo);
 
 export const App = qComponent$((props) => {
-    const state = useStore({count: 0});
+    const state = createStore({count: 0});
     useMemo$(() => {
         console.log(state.count);
     });
@@ -898,7 +898,7 @@ fn example_missing_custom_inlined_functions() {
     test_input(
         "test.tsx",
         r#"
-import { qComponent$ as Component, onRender$, useStore, wrap, useEffect } from '@builder.io/qwik';
+import { qComponent$ as Component, onRender$, createStore, wrap, useEffect } from '@builder.io/qwik';
 
 
 export const useMemo$ = (qrt) => {
@@ -906,7 +906,7 @@ export const useMemo$ = (qrt) => {
 };
 
 export const App = qComponent$((props) => {
-    const state = useStore({count: 0});
+    const state = createStore({count: 0});
     useMemo$(() => {
         console.log(state.count);
     });
@@ -927,7 +927,7 @@ fn example_skip_transform() {
     test_input(
         "test.tsx",
         r#"
-import { qComponent$ as Component, onRender$ as onRender, useStore } from '@builder.io/qwik';
+import { qComponent$ as Component, onRender$ as onRender } from '@builder.io/qwik';
 
 export const handler = $(()=>console.log('hola'));
 

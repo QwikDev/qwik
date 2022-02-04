@@ -1,7 +1,7 @@
 import { createDocument } from '../../testing/document';
 import { getProps, Props } from '../props/props.public';
 import { dehydrate } from '@builder.io/qwik';
-import { useStore } from '../use/use-store.public';
+import { createStore } from '../use/use-store.public';
 
 describe('q-element', () => {
   let document: Document;
@@ -15,8 +15,8 @@ describe('q-element', () => {
   });
 
   it('should serialize content', () => {
-    const shared = useStore({ mark: 'CHILD' });
-    const state = useStore({ mark: 'WORKS', child: shared, child2: shared });
+    const shared = createStore({ mark: 'CHILD' });
+    const state = createStore({ mark: 'WORKS', child: shared, child2: shared });
 
     dehydrate(document);
 
@@ -25,8 +25,8 @@ describe('q-element', () => {
   });
 
   it('should serialize cyclic graphs', () => {
-    const foo = useStore({ mark: 'foo', bar: {} });
-    const bar = useStore({ mark: 'bar', foo: foo });
+    const foo = createStore({ mark: 'foo', bar: {} });
+    const bar = createStore({ mark: 'bar', foo: foo });
     foo.bar = bar;
     qDiv.foo = foo;
 

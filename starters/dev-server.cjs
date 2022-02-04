@@ -2,7 +2,7 @@
 // DO NO USE FOR PRODUCTION!!!
 
 const express = require('express');
-const { isAbsolute, join } = require('path');
+const { isAbsolute, join, resolve } = require('path');
 const {
   readdirSync,
   statSync,
@@ -11,6 +11,7 @@ const {
   readFileSync,
   unlinkSync,
   rmdirSync,
+  existsSync,
 } = require('fs');
 const { rollup } = require('rollup');
 
@@ -38,7 +39,9 @@ async function handleApp(req, res) {
     const paths = url.pathname.split('/');
     const appName = paths[1];
     const appDir = join(startersAppsDir, appName);
-
+    if (!existsSync(appDir)) {
+      return;
+    }
     console.log(req.method, req.url, `[${appName} build/ssr]`);
 
     await buildApp(appDir);
@@ -205,7 +208,7 @@ function favicon(req, res) {
   res.sendFile(path);
 }
 
-const partytownPath = join(startersDir, '..', 'node_modules', '@builder.io', 'partytown', 'lib');
+const partytownPath = resolve(startersDir, '..', 'node_modules', '@builder.io', 'partytown', 'lib');
 app.use(`/~partytown`, express.static(partytownPath));
 
 appNames.forEach((appName) => {

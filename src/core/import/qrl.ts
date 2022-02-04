@@ -44,7 +44,10 @@ export function staticQrl<T = any>(
     if ((match = srcCode.match(EXTRACT_IMPORT_PATH)) && match[2]) {
       chunk = match[2];
     } else if ((match = srcCode.match(EXTRACT_SELF_IMPORT))) {
-      const frame = new Error('SELF').stack!.split('\n')[2];
+      const ref = 'QWIK-SELF';
+      const frames = new Error(ref).stack!.split('\n');
+      const start = frames.findIndex((f) => f.includes(ref));
+      const frame = frames[start + 2];
       match = frame.match(EXTRACT_FILE_NAME);
       if (!match) {
         chunk = 'main';

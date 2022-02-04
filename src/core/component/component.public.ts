@@ -302,7 +302,7 @@ export type PropsOf<COMP extends (props: any) => JSXNode> = COMP extends (
  *
  * ```typescript
  * export const Counter = component$((props: { value?: number; step?: number }) => {
- *   const state = useStore({ count: props.value || 0 });
+ *   const state = createStore({ count: props.value || 0 });
  *   return onRender$(() => (
  *     <div>
  *       <span>{state.count}</span>
@@ -315,7 +315,7 @@ export type PropsOf<COMP extends (props: any) => JSXNode> = COMP extends (
  * - `component$` is how a component gets declared.
  * - `{ value?: number; step?: number }` declares the public (props) interface of the component.
  * - `{ count: number }` declares the private (state) interface of the component.
- * - `onMount` closure: is used to create the data store (see: `useStore`);
+ * - `onMount` closure: is used to create the data store (see: `createStore`);
  * - `onRender$`: is the required hook for rendering the component.
  * - `$`: mark which parts of the component will be lazy-loaded. (see `$` for details.)
  *
@@ -366,7 +366,7 @@ export function component<PROPS extends {}>(
  *
  * ```typescript
  * export const Counter = component$((props: { value?: number; step?: number }) => {
- *   const state = useStore({ count: props.value || 0 });
+ *   const state = createStore({ count: props.value || 0 });
  *   return onRender$(() => (
  *     <div>
  *       <span>{state.count}</span>
@@ -379,7 +379,7 @@ export function component<PROPS extends {}>(
  * - `component$` is how a component gets declared.
  * - `{ value?: number; step?: number }` declares the public (props) interface of the component.
  * - `{ count: number }` declares the private (state) interface of the component.
- * - `onMount` closure: is used to create the data store (see: `useStore`);
+ * - `onMount` closure: is used to create the data store (see: `createStore`);
  * - `onRender$`: is the required hook for rendering the component.
  * - `$`: mark which parts of the component will be lazy-loaded. (see `$` for details.)
  *
@@ -455,7 +455,7 @@ export function component<PROPS extends {}>(
  *
  * ```typescript
  * export const Counter = component$((props: { value?: number; step?: number }) => {
- *   const state = useStore({ count: props.value || 0 });
+ *   const state = createStore({ count: props.value || 0 });
  *   return onRender$(() => (
  *     <div>
  *       <span>{state.count}</span>
@@ -468,7 +468,7 @@ export function component<PROPS extends {}>(
  * - `component$` is how a component gets declared.
  * - `{ value?: number; step?: number }` declares the public (props) interface of the component.
  * - `{ count: number }` declares the private (state) interface of the component.
- * - `onMount` closure: is used to create the data store (see: `useStore`);
+ * - `onMount` closure: is used to create the data store (see: `createStore`);
  * - `onRender$`: is the required hook for rendering the component.
  * - `$`: mark which parts of the component will be lazy-loaded. (see `$` for details.)
  *

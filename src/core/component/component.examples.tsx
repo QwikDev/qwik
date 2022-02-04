@@ -5,7 +5,7 @@
 // it to the desired comment location
 //
 
-import { component$, Fragment, h, onRender$, useStore } from '@builder.io/qwik';
+import { component$, onRender$, createStore } from '@builder.io/qwik';
 import type { PropsOf } from './component.public';
 
 //////////////////////////////////////////////////////////
@@ -17,7 +17,7 @@ import type { PropsOf } from './component.public';
 //
 // <docs anchor="component">
 export const Counter = component$((props: { value?: number; step?: number }) => {
-  const state = useStore({ count: props.value || 0 });
+  const state = createStore({ count: props.value || 0 });
   return onRender$(() => (
     <div>
       <span>{state.count}</span>
@@ -51,7 +51,7 @@ export const OtherComponent = component$(() => {
   //
   // <docs anchor="on-mount">
   const Counter = component$(() => {
-    const state = useStore({ count: 0 });
+    const state = createStore({ count: 0 });
     return onRender$(() => <div>{state.count}</div>);
   });
   // </docs>

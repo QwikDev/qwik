@@ -75,7 +75,7 @@ export { render } from './render/render.public';
 export { useHostElement } from './use/use-host-element.public';
 export { useEvent } from './use/use-event.public';
 export { useLexicalScope } from './use/use-lexical-scope.public';
-export { useStore } from './use/use-store.public';
+export { createStore } from './use/use-store.public';
 export { useTransient } from './use/use-transient.public';
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Low-Level API

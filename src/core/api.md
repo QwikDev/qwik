@@ -40,6 +40,9 @@ export interface CorePlatform {
     queueStoreFlush: (flushStore: (doc: Document) => Promise<any>) => Promise<any>;
 }
 
+// @public
+export function createStore<STATE extends {}>(initialState: STATE): STATE;
+
 // @public (undocumented)
 export function dehydrate(document: Document): void;
 
@@ -270,9 +273,6 @@ export function useHostElement(): Element;
 
 // @public
 export function useLexicalScope<VARS extends any[]>(): VARS;
-
-// @public
-export function useStore<STATE extends {}>(initialState: STATE): STATE;
 
 // @public (undocumented)
 export function useTransient<OBJ, ARGS extends any[], RET>(obj: OBJ, factory: (this: OBJ, ...args: ARGS) => RET, ...args: ARGS): RET;

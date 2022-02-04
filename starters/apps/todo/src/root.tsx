@@ -2,7 +2,7 @@ import {
   Host,
   component,
   onRender$,
-  useStore,
+  createStore,
   useHostElement,
   useEvent,
   notifyRender,
@@ -69,7 +69,7 @@ export const Root = component(
 export const Header = component(
   'header',
   $((props: { todos: Todos }) => {
-    const state = useStore({ text: '' });
+    const state = createStore({ text: '' });
     return onRender$(() => {
       console.log('on:qRender => <Header/>');
       return (
@@ -127,7 +127,7 @@ export const Main = component(
 export const Item = component(
   'li',
   $((props: { item: TodoItem; todos: Todos }) => {
-    const state = useStore({ editing: false });
+    const state = createStore({ editing: false });
     return onRender$(() => {
       console.log(
         'on:qRender => <Item item="' +

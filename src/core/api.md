@@ -4,27 +4,28 @@
 
 ```ts
 
-// @public (undocumented)
-export function $<T>(value: T): QRL<T>;
+// @public
+export function $<T>(expression: T): QRL<T>;
 
 // Warning: (ae-forgotten-export) The symbol "AsyncProps" needs to be exported by the entry point index.d.ts
 //
 // @public
-export function Async<T>(props: AsyncProps<T>): JSXNode<AsyncProps<T>>;
+export function Async<T>(props: AsyncProps<T>): JSXNode<any>;
 
 // @public (undocumented)
 export function bubble<PAYLOAD>(eventType: string, payload?: PAYLOAD): void;
 
 // Warning: (ae-forgotten-export) The symbol "OnMountFn" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "QwikEvents" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
-export function component$<PROPS>(onMount: OnMountFn<PROPS>): (props: PROPS) => JSXNode<PROPS>;
+// @public
+export function component$<PROPS extends {}>(onMount: OnMountFn<PROPS>): (props: PROPS & QwikEvents) => JSXNode<PROPS>;
 
-// @public (undocumented)
-export function component<PROPS extends {}>(tagName: string, onMount: QRL<OnMountFn<PROPS>>): (props: PROPS) => JSXNode<PROPS>;
+// @public
+export function component<PROPS extends {}>(tagName: string, onMount: QRL<OnMountFn<PROPS>>): (props: PROPS & QwikEvents) => JSXNode<PROPS>;
 
-// @public (undocumented)
-export function component<PROPS extends {}>(onMount: QRL<OnMountFn<PROPS>>): (props: PROPS) => JSXNode<PROPS>;
+// @public
+export function component<PROPS extends {}>(onMount: QRL<OnMountFn<PROPS>>): (props: PROPS & QwikEvents) => JSXNode<PROPS>;
 
 // @public (undocumented)
 export type ComponentChild = JSXNode<any> | object | string | number | bigint | boolean | null | undefined;
@@ -48,7 +49,7 @@ export const Fragment: any;
 // @public (undocumented)
 export interface FunctionComponent<P = {}> {
     // (undocumented)
-    (props: P): JSXNode<any> | null;
+    (props: P): JSXNode | null;
 }
 
 // @public (undocumented)
@@ -98,76 +99,70 @@ export namespace h {
 // @public
 export const Host: FunctionComponent<Record<string, any>>;
 
-// @public (undocumented)
+// @public
 export function implicit$FirstArg<FIRST, REST extends any[], RET>(fn: (first: QRL<FIRST>, ...rest: REST) => RET): (first: FIRST, ...rest: REST) => RET;
 
 // @public (undocumented)
-function jsx<PROPS>(type: string | FunctionComponent<PROPS>, props: PROPS, key?: string): JSXNode<PROPS>;
+function jsx<T extends string | FunctionComponent<PROPS>, PROPS>(type: T, props: PROPS, key?: string): JSXNode<T>;
 export { jsx }
 export { jsx as jsxDEV }
 export { jsx as jsxs }
 
 // @public (undocumented)
-export type JSXFactory<PROPS extends {} = any> = (props: PROPS, state?: any) => JSXNode<PROPS>;
+export type JSXFactory<T, PROPS extends {} = any> = (props: PROPS, state?: any) => JSXNode<T>;
 
 // @public (undocumented)
-export interface JSXNode<PROPS = any> {
+export interface JSXNode<T = any> {
     // (undocumented)
     children: ComponentChild[];
     // (undocumented)
     key: string | number | any;
     // (undocumented)
-    props: PROPS;
+    props: any;
     // (undocumented)
-    type: any;
+    type: T;
 }
 
 // @public
 export function notifyRender(hostElement: Element): Promise<void>;
 
-// @public (undocumented)
+// @public
 export function on(event: string, eventFn: QRL<() => void>): QRL<() => void>;
 
-// @public (undocumented)
+// @public
 export const onDehydrate$: (first: () => void) => void;
 
-// @public (undocumented)
+// @public
 export function onDehydrate(dehydrateFn: QRL<() => void>): void;
 
-// @public (undocumented)
+// @public
 export function onDocument(event: string, eventFn: QRL<() => void>): QRL<() => void>;
 
-// @public (undocumented)
-export const onHalt$: (first: () => void) => void;
-
-// @public (undocumented)
-export function onHalt(haltFn: QRL<() => void>): void;
-
-// @public (undocumented)
+// @public
 export const onHydrate$: (first: () => void) => void;
 
-// @public (undocumented)
+// @public
 export function onHydrate(hydrateFn: QRL<() => void>): void;
 
-// @public (undocumented)
-export const onRender$: (first: () => JSXNode) => QRL<() => JSXNode>;
+// @public
+export const onRender$: <T>(first: () => JSXNode<T>) => QRL<() => JSXNode<T>>;
 
-// @public (undocumented)
-export function onRender(renderFn: QRL<() => JSXNode>): QRL<() => JSXNode>;
+// @public
+export function onRender<T>(renderFn: QRL<() => JSXNode<T>>): QRL<() => JSXNode<T>>;
 
-// @public (undocumented)
+// @public
 export const onResume$: (first: () => void) => void;
 
-// @public (undocumented)
+// @public
 export function onResume(resumeFn: QRL<() => void>): void;
 
-// @public (undocumented)
+// @public
 export const onUnmount$: (first: () => void) => void;
 
-// @public (undocumented)
+// @public
 export function onUnmount(unmountFn: QRL<() => void>): void;
 
-// @public (undocumented)
+// @public
 export function onWindow(event: string, eventFn: QRL<() => void>): QRL<() => void>;
 
 // @public
@@ -194,30 +189,16 @@ export type PromiseValue<T> = {
 // @public (undocumented)
 export type Props<T extends {} = {}> = Record<string, any> & T;
 
-// @public (undocumented)
+// @public
 export type PropsOf<COMP extends (props: any) => JSXNode> = COMP extends (props: infer PROPS) => JSXNode<any> ? PROPS : never;
 
-// @public (undocumented)
+// @public
 export interface QRL<TYPE = any> {
     // (undocumented)
-    capture: null | (boolean | number | null | undefined | string)[];
-    // (undocumented)
-    captureRef: null | any[];
-    // (undocumented)
-    chunk: string;
-    // (undocumented)
-    guard: null | Map<string, string[]>;
-    // (undocumented)
-    guardRef: null | WeakMap<Object, string[]>;
-    // (undocumented)
-    symbol: string;
-    // (undocumented)
-    symbolFn: null | (() => Promise<Record<string, any>>);
-    // (undocumented)
-    symbolRef: null | ValueOrPromise<TYPE>;
+    __brand__QRL__: TYPE;
 }
 
-// @public (undocumented)
+// @public
 export const qrl: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: string, lexicalScopeCapture?: any[]) => QRL<T>;
 
 // @public
@@ -247,17 +228,17 @@ export interface QwikIntrinsicElements extends IntrinsicElements {
 // @public (undocumented)
 export namespace QwikJSX {
     // (undocumented)
-    export interface Element extends JSXNode<any> {
+    export interface Element extends JSXNode {
     }
     // (undocumented)
     export interface ElementChildrenAttribute {
         // (undocumented)
         children: any;
     }
+    // Warning: (ae-forgotten-export) The symbol "QwikIntrinsicAttributes" needs to be exported by the entry point index.d.ts
+    //
     // (undocumented)
-    export interface IntrinsicAttributes {
-        // (undocumented)
-        [key: string]: any;
+    export interface IntrinsicAttributes extends QwikIntrinsicAttributes {
     }
     // (undocumented)
     export interface IntrinsicElements extends QwikIntrinsicElements {
@@ -275,33 +256,26 @@ export type RenderableProps<P, RefType = any> = P & Readonly<{
 // @public (undocumented)
 export const setPlatform: (doc: Document, plt: CorePlatform) => CorePlatform;
 
-// Warning: (ae-forgotten-export) The symbol "HTMLAttributes" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
-export const Slot: FunctionComponent<HTMLAttributes<{
+export const Slot: FunctionComponent<{
     name?: string;
-}>>;
+    children?: JSXChildren;
+}>;
 
-// @public (undocumented)
-export function useEvent(): Event;
+// @public
+export function useEvent<EVENT extends {}>(expectEventType?: string): EVENT;
 
-// @public (undocumented)
-export function useEvent<EVENT extends {}>(): EVENT;
-
-// @public (undocumented)
+// @public
 export function useHostElement(): Element;
 
-// @public (undocumented)
+// @public
 export function useLexicalScope<VARS extends any[]>(): VARS;
 
-// @public (undocumented)
+// @public
 export function useStore<STATE extends {}>(initialState: STATE): STATE;
 
 // @public (undocumented)
 export function useTransient<OBJ, ARGS extends any[], RET>(obj: OBJ, factory: (this: OBJ, ...args: ARGS) => RET, ...args: ARGS): RET;
-
-// @public (undocumented)
-export function useURL(): URL;
 
 // @public
 export type ValueOrPromise<T> = T | Promise<T>;
@@ -309,17 +283,21 @@ export type ValueOrPromise<T> = T | Promise<T>;
 // @alpha (undocumented)
 export const version: string;
 
-// @public (undocumented)
+// @alpha (undocumented)
 export const withScopedStyles$: (first: string) => void;
 
-// @public (undocumented)
+// @alpha (undocumented)
 export function withScopedStyles(styles: QRL<string>): void;
 
-// @public (undocumented)
+// @alpha (undocumented)
 export const withStyles$: (first: string) => void;
 
-// @public (undocumented)
+// @alpha (undocumented)
 export function withStyles(styles: QRL<string>): void;
+
+// Warnings were encountered during analysis:
+//
+// dist-dev/tsc-out/src/core/render/jsx/slot.public.d.ts:8:5 - (ae-forgotten-export) The symbol "JSXChildren" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

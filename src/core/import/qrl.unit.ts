@@ -7,7 +7,7 @@
  */
 
 import { parseQRL, stringifyQRL } from './qrl';
-import { QRLClass } from './qrl-class';
+import { QRLInternal } from './qrl-class';
 import { qrl } from './qrl.public';
 
 describe('QRL', () => {
@@ -54,21 +54,21 @@ describe('QRL', () => {
     });
 
     it('should stringify', () => {
-      expect(stringifyQRL(new QRLClass('./chunk', '', null, null, null, null, null, null))).toEqual(
-        './chunk'
-      );
-      expect(stringifyQRL(new QRLClass('./c', 's1', null, null, null, null, null, null))).toEqual(
-        './c#s1'
-      );
-      expect(stringifyQRL(new QRLClass('./c', 's1', null, null, [], null, null, null))).toEqual(
+      expect(
+        stringifyQRL(new QRLInternal('./chunk', '', null, null, null, null, null, null))
+      ).toEqual('./chunk');
+      expect(
+        stringifyQRL(new QRLInternal('./c', 's1', null, null, null, null, null, null))
+      ).toEqual('./c#s1');
+      expect(stringifyQRL(new QRLInternal('./c', 's1', null, null, [], null, null, null))).toEqual(
         './c#s1'
       );
       expect(
-        stringifyQRL(new QRLClass('./c', 's1', null, null, [1, '2'] as any, null, null, null))
+        stringifyQRL(new QRLInternal('./c', 's1', null, null, [1, '2'] as any, null, null, null))
       ).toEqual('./c#s1[1,"2"]');
       expect(
         stringifyQRL(
-          new QRLClass(
+          new QRLInternal(
             './c',
             's1',
             null,

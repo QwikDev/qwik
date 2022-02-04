@@ -71,7 +71,7 @@ export const Browser = component(
           <input value="http://localhost/" />
         </div>
         <div class="browser-body">
-          <Slot />
+          <Slot sdfdf="df" />
         </div>
       </div>
     ));

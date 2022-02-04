@@ -1,5 +1,6 @@
-import { dirname, join } from 'path';
-import { readdir, stat, readFile, writeFile, linkSync } from 'fs';
+import { join } from 'path';
+import { readdir, stat, readFile, writeFile } from 'fs';
+import { get } from 'https';
 
 export function main(dir: string) {
   console.log('DOC SYNC', dir);
@@ -36,10 +37,14 @@ async function scanForDocDirective(dir: string, file: string, lines: string[]) {
       const prefix = match[1];
       const ref = match[2];
       const section = match[3];
-      output.push(prefix + `// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit ${ref} instead)`);
+      output.push(
+        prefix + `// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit ${ref}#${section} instead)`
+      );
       output.push(prefix + '/**');
       (await resolveComment(dir, ref, section)).forEach((longLine) =>
-        breakLongLine(longLine).forEach((line) => output.push(prefix + ' * ' + line))
+        breakLongLine(longLine).forEach((line) =>
+          output.push(prefix + ' *' + (line ? ' ' + line : ''))
+        )
       );
       output.push(prefix + ' */');
       while (row < lines.length) {
@@ -85,10 +90,35 @@ async function resolveComment(dir: string, ref: string, section: string): Promis
   return output;
 }
 
+const hackMdCache = new Map<string, Promise<string[]>>();
+
 async function readFileLines(file: string): Promise<string[]> {
-  return new Promise((res, rej) =>
-    readFile(file, (err, data) => (err ? rej(err) : res(String(data).split('\n'))))
-  );
+  let promise = hackMdCache.get(file);
+  if (promise) return promise;
+
+  const index = file.indexOf('https:/hackmd.io/');
+  if (index === -1) {
+    promise = new Promise((res, rej) =>
+      readFile(file, (err, data) => (err ? rej(err) : res(String(data).split('\n'))))
+    );
+  } else {
+    const url = file.substring(index).replace('https:/', 'https://') + '/download';
+    console.log('FETCHING:', url);
+    promise = new Promise<string[]>((resolve, rej) => {
+      get(url, (res) => {
+        res.setEncoding('utf8');
+        let body = '';
+        res.on('data', (data) => {
+          body += String(data);
+        });
+        res.on('end', () => {
+          resolve(body.split('\n'));
+        });
+      });
+    });
+  }
+  hackMdCache.set(file, promise);
+  return promise;
 }
 
 async function readFileSection(file: string, section: string) {

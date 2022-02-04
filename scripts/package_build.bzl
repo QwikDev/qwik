@@ -16,7 +16,7 @@ def package_build(
             "@npm//@types/prettier",
             "@npm//@types/source-map-support",
             "@npm//kleur",
-            "@npm//domino",
+            "@npm//@builder.io/qwik-dom",
             "@npm//esbuild",
             "@npm//esbuild-register",
             "@npm//express",

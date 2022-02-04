@@ -1,4 +1,16 @@
-import { component$, onRender$ } from '@builder.io/qwik';
+import { component$, onRender$, withStyles$ } from '@builder.io/qwik';
+import styles from './root.css';
+
+export const Root = component$(() => {
+  withStyles$(styles);
+  return onRender$(() => (
+    <>
+      <Header />
+      <div id="my-content"></div>
+      <Footer />
+    </>
+  ));
+});
 
 export const Header = component$(() => {
   return onRender$(() => (

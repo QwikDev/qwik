@@ -1,6 +1,9 @@
-import { useStore, onRender$, component$, useEvent, Host } from '@builder.io/qwik';
+import { useStore, onRender$, component$, useEvent, Host, withStyles$ } from '@builder.io/qwik';
+import styles from './root.css';
 
-export const MyApp = component$(() => {
+export const Root = component$(() => {
+  withStyles$(styles);
+
   const state = useStore({ name: 'World' });
   return onRender$(() => (
     <Host class="my-app">

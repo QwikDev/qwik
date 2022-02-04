@@ -26,6 +26,9 @@ async function validateCreateQwikCli() {
   const serversDir = join(startersDir, 'servers');
   accessSync(serversDir);
 
+  const featuresDir = join(startersDir, 'features');
+  accessSync(featuresDir);
+
   const cliApi = join(cliDir, 'index.js');
   const api = require(cliApi);
   const starters = await api.getStarters();

@@ -1,13 +1,13 @@
 /* eslint-disable */
 
 // @ts-ignore
-import { renderApp } from './index.server';
+import { render } from './index.server';
 
 // @ts-ignore
 import { getAssetFromKV } from '@cloudflare/kv-asset-handler';
 
 // @ts-ignore
-import symbols from '../server/build/q-symbols.json';
+import symbols from '../server/q-symbols.json';
 
 const CACHING = true;
 
@@ -37,7 +37,7 @@ async function handleQwik(event: any, request: Request) {
     }
   }
 
-  const ssrResult = await renderApp({
+  const ssrResult = await render({
     url: new URL(request.url),
     symbols,
   });

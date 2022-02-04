@@ -135,10 +135,10 @@ async function ssrApp(req, appName, appDir) {
   const symbols = JSON.parse(readFileSync(symbolsPath, 'utf-8'));
 
   // require the build's server index (avoiding nodejs require cache)
-  const { renderApp } = requireUncached(serverPath);
+  const { render } = requireUncached(serverPath);
 
   // ssr the document
-  const result = await renderApp({
+  const result = await render({
     symbols,
     url: new URL(`${req.protocol}://${req.hostname}${req.url}`),
     debug: true,

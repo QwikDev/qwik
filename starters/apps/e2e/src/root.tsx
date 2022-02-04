@@ -1,6 +1,9 @@
-import { $, component$, onRender$, useStore } from '@builder.io/qwik';
+import { $, component$, onRender$, useStore, withStyles$ } from '@builder.io/qwik';
+import styles from './root.css';
 
-export const MyApp = component$(() => {
+export const Root = component$(() => {
+  withStyles$(styles);
+
   const store1 = useStore({ count: 1 });
   const store2 = useStore({ count: 1 });
   return onRender$(() => (

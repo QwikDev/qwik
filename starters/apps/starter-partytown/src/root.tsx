@@ -1,6 +1,9 @@
-import { component$, onRender$, useEvent, useStore } from '@builder.io/qwik';
+import { component$, onRender$, useEvent, useStore, withStyles$ } from '@builder.io/qwik';
+import styles from './root.css';
 
-export const MyApp = component$(() => {
+export const Root = component$(() => {
+  withStyles$(styles);
+
   const state = useStore({ name: 'World', running: true });
   return onRender$(() => {
     // eslint-disable-next-line no-console

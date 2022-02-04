@@ -7,22 +7,22 @@
  */
 
 import { renderToString, RenderToStringOptions, QwikLoader } from '@builder.io/qwik/server';
-import { MyApp } from './my-app';
+import { Root } from './root';
 
 /**
  * Entry point for server-side pre-rendering.
  *
  * @returns a promise when all of the rendering is completed.
  */
-export function renderApp(opts: RenderToStringOptions) {
+export function render(opts: RenderToStringOptions) {
   return renderToString(
     <html>
       <head>
         <title>Qwik Blank App</title>
       </head>
-      <body q:base="/build/">
-        <MyApp />
-        <QwikLoader debug={opts.debug} />
+      <body q:base="/">
+        <Root />
+        <QwikLoader debug={opts.debug} events={['click']} />
       </body>
     </html>,
     opts

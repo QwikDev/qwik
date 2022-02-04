@@ -64,7 +64,7 @@ export function qwikRollup(opts: QwikPluginOptions): any {
           }
 
           try {
-            const { renderApp } = await server.ssrLoadModule('/src/entry.server.tsx');
+            const { render } = await server.ssrLoadModule('/src/entry.server.tsx');
             const symbols = {
               version: '1',
               mapping: {} as Record<string, string>,
@@ -79,7 +79,7 @@ export function qwikRollup(opts: QwikPluginOptions): any {
               });
             });
             const host = req.headers.host ?? 'localhost';
-            const result = await renderApp({
+            const result = await render({
               url: new URL(`http://${host}${url}`),
               debug: true,
               symbols,

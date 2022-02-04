@@ -7,7 +7,7 @@
  */
 
 import { renderToString, RenderToStringOptions, QwikLoader } from '@builder.io/qwik/server';
-import { ToDoApp } from './components';
+import { Root } from './root';
 import type { Todos } from './state';
 
 /**
@@ -15,7 +15,7 @@ import type { Todos } from './state';
  *
  * @returns a promise when all of the rendering is completed.
  */
-export function renderApp(opts: RenderToStringOptions) {
+export function render(opts: RenderToStringOptions) {
   const todos: Todos = {
     filter: 'all',
     items: [
@@ -33,7 +33,7 @@ export function renderApp(opts: RenderToStringOptions) {
         <link rel="stylesheet" href="/index.css" />
       </head>
       <body q:base="/build/">
-        <ToDoApp todos={todos} />
+        <Root todos={todos} />
         <QwikLoader debug={opts.debug} />
       </body>
     </html>,

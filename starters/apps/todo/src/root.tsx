@@ -7,6 +7,7 @@ import {
   useEvent,
   notifyRender,
   $,
+  withStyles$,
 } from '@builder.io/qwik';
 import {
   addItem,
@@ -20,6 +21,9 @@ import {
   toggleItem,
   updateFilter,
 } from './state';
+
+import styles from './root.css';
+
 /* eslint no-console: ["off"] */
 
 // TODO(misko): APIs for better debugger experience: getProps
@@ -40,9 +44,10 @@ import {
  * Qwik knows that it should never need to be rerendered, and its code will never
  * download to the client.
  */
-export const ToDoApp = component(
+export const Root = component(
   'todo',
   $((props: { todos: Todos }) => {
+    withStyles$(styles);
     return onRender$(() => {
       console.log('on:qRender => <ToDoApp/>');
       return (

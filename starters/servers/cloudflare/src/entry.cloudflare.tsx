@@ -1,7 +1,7 @@
 /* eslint-disable */
 
 // @ts-ignore
-import { render } from './index.server';
+import { render } from './entry.server';
 
 // @ts-ignore
 import { getAssetFromKV } from '@cloudflare/kv-asset-handler';

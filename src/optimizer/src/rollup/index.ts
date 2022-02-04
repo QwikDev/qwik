@@ -86,7 +86,7 @@ export function qwikRollup(opts: QwikPluginOptions): any {
             });
 
             const html = await server.transformIndexHtml(url, result.html);
-            res.setHeader('Content-Type', 'text/html');
+            res.setHeader('Content-Type', 'text/html; charset=utf-8');
             res.writeHead(200);
             res.end(html);
           } catch (e) {

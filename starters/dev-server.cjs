@@ -130,7 +130,7 @@ function removeDir(dir) {
 async function ssrApp(req, appName, appDir) {
   const buildDir = join(appDir, 'build');
   const serverDir = join(buildDir, 'server');
-  const serverPath = join(serverDir, 'index.server.js');
+  const serverPath = join(serverDir, 'entry.server.js');
   const symbolsPath = join(serverDir, 'q-symbols.json');
   const symbols = JSON.parse(readFileSync(symbolsPath, 'utf-8'));
 

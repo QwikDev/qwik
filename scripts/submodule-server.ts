@@ -8,11 +8,11 @@ import {
   nodeBuiltIns,
   nodeTarget,
   PackageJSON,
-  readFile,
   target,
   watcher,
   injectGlobalPoly,
 } from './util';
+import { inlineQwikScriptsEsBuild } from './submodule-qwikloader';
 import { readPackageJson, writePackageJson } from './package-json';
 
 /**
@@ -35,7 +35,7 @@ export async function submoduleServer(config: BuildConfig) {
     banner,
     external: [...nodeBuiltIns, '@builder.io/qwik-dom'],
     define: {
-      ...(await inlineQwikScripts(config)),
+      ...(await inlineQwikScriptsEsBuild(config)),
       'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
       'globalThis.DOMINO_VERSION': JSON.stringify(await getDominoVersion()),
     },
@@ -86,33 +86,6 @@ async function generateServerPackageJson(config: BuildConfig) {
   };
   const serverDistDir = join(config.distPkgDir, 'server');
   await writePackageJson(serverDistDir, pkg);
-}
-
-/**
- * Load each of the qwik scripts to be inlined with esbuild "define" as const varialbles.
- */
-async function inlineQwikScripts(config: BuildConfig) {
-  const variableToFileMap = [
-    ['QWIK_LOADER_DEFAULT_MINIFIED', 'qwikloader.js'],
-    ['QWIK_LOADER_DEFAULT_DEBUG', 'qwikloader.debug.js'],
-    ['QWIK_LOADER_OPTIMIZE_MINIFIED', 'qwikloader.optimize.js'],
-    ['QWIK_LOADER_OPTIMIZE_DEBUG', 'qwikloader.optimize.debug.js'],
-    ['QWIK_PREFETCH_MINIFIED', 'prefetch.js'],
-    ['QWIK_PREFETCH_DEBUG', 'prefetch.debug.js'],
-  ];
-
-  const define: { [varName: string]: string } = {};
-
-  await Promise.all(
-    variableToFileMap.map(async (varToFile) => {
-      const varName = `global.${varToFile[0]}`;
-      const filePath = join(config.distPkgDir, varToFile[1]);
-      const content = await readFile(filePath, 'utf-8');
-      define[varName] = JSON.stringify(content.trim());
-    })
-  );
-
-  return define;
 }
 
 async function bundleQwikDom(config: BuildConfig) {

@@ -1,6 +1,6 @@
 import { getQObjectId } from '../object/q-object';
 import type { QObjectMap } from '../props/props-obj-map';
-import { useStore } from '../use/use-store.public';
+import { createStore } from '../use/use-store.public';
 import { qJsonParse, qJsonStringify, ATTR_OBJ_PREFIX } from './q-json';
 
 describe('qjson', () => {
@@ -29,7 +29,7 @@ describe('qjson', () => {
     });
 
     it('should serialize QObject', () => {
-      const obj = useStore({ salutation: 'Hello', name: 'World' });
+      const obj = createStore({ salutation: 'Hello', name: 'World' });
       const id = getQObjectId(obj)!;
       expect(qJsonStringify(obj, map)).toEqual(ATTR_OBJ_PREFIX + id);
       expect(map.get(id)).toBe(obj);
@@ -52,14 +52,14 @@ describe('qjson', () => {
     });
 
     it('should retrieve QObject', () => {
-      const obj = useStore({ salutation: 'Hello', name: 'World' });
+      const obj = createStore({ salutation: 'Hello', name: 'World' });
       const id = getQObjectId(obj)!;
       map.set(id, obj);
       expect(qJsonParse(ATTR_OBJ_PREFIX + id, map)).toEqual(obj);
     });
 
     it('should retrieve JSON', () => {
-      const obj = useStore({ salutation: 'Hello', name: 'World' });
+      const obj = createStore({ salutation: 'Hello', name: 'World' });
       const val = { obj: obj };
       const json = qJsonStringify(val, map);
 

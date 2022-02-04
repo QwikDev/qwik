@@ -1,6 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 982
+assertion_line: 1084
 expression: output
 
 ---
@@ -68,6 +68,15 @@ export const Foo_onRender = ()=>{
             </div>;
 };
 
+/*
+{
+  "origin": "test.tsx",
+  "name": "Foo_onRender",
+  "entry": null,
+  "canonicalFilename": "h_test_foo_onrender",
+  "extension": "tsx"
+}
+*/
 ============================= h_test_foo_onmount.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
@@ -77,6 +86,15 @@ export const Foo_onmount = ({ color  })=>{
     , "Foo_onRender"));
 };
 
+/*
+{
+  "origin": "test.tsx",
+  "name": "Foo_onmount",
+  "entry": null,
+  "canonicalFilename": "h_test_foo_onmount",
+  "extension": "tsx"
+}
+*/
 ============================= h_test_button_button_onclick.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
@@ -85,6 +103,15 @@ export const Button_button_onclick = ()=>{
     return console.log(text, color);
 };
 
+/*
+{
+  "origin": "test.tsx",
+  "name": "Button_button_onclick",
+  "entry": null,
+  "canonicalFilename": "h_test_button_button_onclick",
+  "extension": "tsx"
+}
+*/
 ============================= h_test_buttonarrow_button_onclick.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
@@ -93,35 +120,15 @@ export const ButtonArrow_button_onclick = ()=>{
     return console.log(text, color);
 };
 
-== HOOKS ==
-
-[
-  {
-    "origin": "test.tsx",
-    "name": "Foo_onRender",
-    "entry": null,
-    "canonicalFilename": "h_test_foo_onrender"
-  },
-  {
-    "origin": "test.tsx",
-    "name": "Foo_onmount",
-    "entry": null,
-    "canonicalFilename": "h_test_foo_onmount"
-  },
-  {
-    "origin": "test.tsx",
-    "name": "Button_button_onclick",
-    "entry": null,
-    "canonicalFilename": "h_test_button_button_onclick"
-  },
-  {
-    "origin": "test.tsx",
-    "name": "ButtonArrow_button_onclick",
-    "entry": null,
-    "canonicalFilename": "h_test_buttonarrow_button_onclick"
-  }
-]
-
+/*
+{
+  "origin": "test.tsx",
+  "name": "ButtonArrow_button_onclick",
+  "entry": null,
+  "canonicalFilename": "h_test_buttonarrow_button_onclick",
+  "extension": "tsx"
+}
+*/
 == DIAGNOSTICS ==
 
 []

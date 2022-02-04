@@ -2,7 +2,7 @@
 // DO NO USE FOR PRODUCTION!!!
 
 const express = require('express');
-const { isAbsolute, join } = require('path');
+const { isAbsolute, join, resolve } = require('path');
 const {
   readdirSync,
   statSync,
@@ -11,8 +11,10 @@ const {
   readFileSync,
   unlinkSync,
   rmdirSync,
+  existsSync,
 } = require('fs');
 const { rollup } = require('rollup');
+
 const { createDocument } = require('@builder.io/qwik-dom');
 
 const app = express();
@@ -37,7 +39,9 @@ async function handleApp(req, res) {
     const paths = url.pathname.split('/');
     const appName = paths[1];
     const appDir = join(startersAppsDir, appName);
-
+    if (!existsSync(appDir)) {
+      return;
+    }
     console.log(req.method, req.url, `[${appName} build/ssr]`);
 
     await buildApp(appDir);
@@ -70,6 +74,12 @@ async function buildApp(appDir) {
     plugins: [
       {
         name: 'devNodeRequire',
+        transform(code, id) {
+          if (id.endsWith('.css')) {
+            return `export default ${JSON.stringify(code)}`;
+          }
+          return null;
+        },
         resolveId(id) {
           if (id === '@builder.io/qwik') {
             delete require.cache[qwikDistCorePath];
@@ -90,7 +100,8 @@ async function buildApp(appDir) {
         },
       },
       optimizer.qwikRollup({
-        entryStrategy: { type: 'hook' },
+        entryStrategy: { type: 'single' },
+        srcDir: appSrcDir,
         symbolsOutput: (data) => {
           writeFileSync(symbolsPath, JSON.stringify(data, null, 2));
         },
@@ -130,15 +141,15 @@ function removeDir(dir) {
 async function ssrApp(req, appName, appDir) {
   const buildDir = join(appDir, 'build');
   const serverDir = join(buildDir, 'server');
-  const serverPath = join(serverDir, 'index.server.js');
+  const serverPath = join(serverDir, 'entry.js');
   const symbolsPath = join(serverDir, 'q-symbols.json');
   const symbols = JSON.parse(readFileSync(symbolsPath, 'utf-8'));
 
   // require the build's server index (avoiding nodejs require cache)
-  const { renderApp } = requireUncached(serverPath);
+  const { render } = requireUncached(serverPath);
 
   // ssr the document
-  const result = await renderApp({
+  const result = await render({
     symbols,
     url: new URL(`${req.protocol}://${req.hostname}${req.url}`),
     debug: true,
@@ -197,7 +208,7 @@ function favicon(req, res) {
   res.sendFile(path);
 }
 
-const partytownPath = join(startersDir, '..', 'node_modules', '@builder.io', 'partytown', 'lib');
+const partytownPath = resolve(startersDir, '..', 'node_modules', '@builder.io', 'partytown', 'lib');
 app.use(`/~partytown`, express.static(partytownPath));
 
 appNames.forEach((appName) => {

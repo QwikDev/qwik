@@ -7,6 +7,7 @@ export function isQrl(value: any): value is QRLInternal {
 
 class QRL<TYPE = any> implements IQRL<TYPE> {
   __brand__QRL__!: TYPE;
+  canonicalChunk: string;
   constructor(
     public chunk: string,
     public symbol: string,
@@ -16,8 +17,13 @@ class QRL<TYPE = any> implements IQRL<TYPE> {
     public captureRef: null | any[],
     public guard: null | Map<string, string[]>,
     public guardRef: null | WeakMap<Object, string[]>
-  ) {}
+  ) {
+    this.canonicalChunk = chunk.replace(FIND_EXT, '');
+  }
 }
 
 export type QRLInternal<T = any> = QRL<T>;
 export const QRLInternal: typeof QRL = QRL;
+
+// https://regexr.com/6enjv
+const FIND_EXT = /\.[\w?=&]+$/;

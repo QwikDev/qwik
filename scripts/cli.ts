@@ -14,7 +14,7 @@ export async function buildCli(config: BuildConfig) {
   const distStartersDir = join(distCliDir, 'starters');
   await mkdir(distStartersDir);
 
-  const copyDirs = ['apps', 'servers'];
+  const copyDirs = ['apps', 'servers', 'features'];
   await Promise.all(
     copyDirs.map(async (dirName) => {
       const srcDir = join(config.startersDir, dirName);

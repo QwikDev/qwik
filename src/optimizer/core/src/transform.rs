@@ -40,6 +40,7 @@ pub struct Hook {
     pub entry: Option<JsWord>,
     pub canonical_filename: String,
     pub name: JsWord,
+    pub extension: JsWord,
     pub expr: Box<ast::Expr>,
     pub local_idents: Vec<Id>,
     pub scoped_idents: Vec<Id>,
@@ -84,7 +85,7 @@ pub type IdPlusType = (Id, IdentType);
 pub struct QwikTransform<'a> {
     pub hooks: Vec<Hook>,
     pub qwik_ident: Id,
-    pub global_collect: GlobalCollect,
+    pub options: QwikTransformOptions<'a>,
 
     extra_module_items: BTreeMap<Id, ast::ModuleItem>,
     stack_ctxt: Vec<String>,
@@ -96,33 +97,36 @@ pub struct QwikTransform<'a> {
     qhook_fn: Option<Id>,
     h_fn: Option<Id>,
     fragment_fn: Option<Id>,
-    context: ThreadSafeTransformContext,
 
     hook_depth: i16,
-    path_data: &'a PathData,
     qhook_mark: swc_common::Mark,
+}
 
-    comments: Option<&'a SingleThreadedComments>,
-    entry_policy: &'a dyn EntryPolicy,
+pub struct QwikTransformOptions<'a> {
+    pub context: ThreadSafeTransformContext,
+    pub path_data: &'a PathData,
+    pub entry_policy: &'a dyn EntryPolicy,
+    pub extension: JsWord,
+    pub explicity_extensions: bool,
+    pub comments: Option<&'a SingleThreadedComments>,
+    pub global_collect: GlobalCollect,
 }
 
 impl<'a> QwikTransform<'a> {
-    pub fn new(
-        context: ThreadSafeTransformContext,
-        path_data: &'a PathData,
-        entry_policy: &'a dyn EntryPolicy,
-        comments: Option<&'a SingleThreadedComments>,
-        global_collect: GlobalCollect,
-    ) -> Self {
-        let imports = global_collect.imports.iter().flat_map(|(id, import)| {
-            if import.kind == ImportKind::Named && import.specifier.ends_with('$') {
-                Some(id.clone())
-            } else {
-                None
-            }
-        });
+    pub fn new(options: QwikTransformOptions<'a>) -> Self {
+        let imports = options
+            .global_collect
+            .imports
+            .iter()
+            .flat_map(|(id, import)| {
+                if import.kind == ImportKind::Named && import.specifier.ends_with('$') {
+                    Some(id.clone())
+                } else {
+                    None
+                }
+            });
 
-        let exports = global_collect.exports.keys().flat_map(|id| {
+        let exports = options.global_collect.exports.keys().flat_map(|id| {
             if id.0.ends_with('$') {
                 Some(id.clone())
             } else {
@@ -133,7 +137,6 @@ impl<'a> QwikTransform<'a> {
         let marker_functions = imports.chain(exports).collect();
 
         QwikTransform {
-            path_data,
             stack_ctxt: Vec::with_capacity(16),
             position_ctxt: Vec::with_capacity(32),
             decl_stack: Vec::with_capacity(32),
@@ -141,22 +144,27 @@ impl<'a> QwikTransform<'a> {
             hooks: Vec::with_capacity(16),
             hook_depth: 0,
             extra_module_items: BTreeMap::new(),
-            qcomponent_fn: global_collect.get_imported_local(&QCOMPONENT, &BUILDER_IO_QWIK),
-            qhook_fn: global_collect.get_imported_local(&QHOOK, &BUILDER_IO_QWIK),
-            h_fn: global_collect.get_imported_local(&H, &BUILDER_IO_QWIK),
-            fragment_fn: global_collect.get_imported_local(&FRAGMENT, &BUILDER_IO_QWIK),
+            qcomponent_fn: options
+                .global_collect
+                .get_imported_local(&QCOMPONENT, &BUILDER_IO_QWIK),
+            qhook_fn: options
+                .global_collect
+                .get_imported_local(&QHOOK, &BUILDER_IO_QWIK),
+            h_fn: options
+                .global_collect
+                .get_imported_local(&H, &BUILDER_IO_QWIK),
+            fragment_fn: options
+                .global_collect
+                .get_imported_local(&FRAGMENT, &BUILDER_IO_QWIK),
             marker_functions,
-            global_collect,
             qhook_mark: Mark::fresh(Mark::root()),
             qwik_ident: id!(private_ident!(QWIK_INTERNAL.clone())),
-            comments,
-            entry_policy,
-            context,
+            options,
         }
     }
 
     fn register_context_name(&self, user_defined: &Option<String>) -> Result<String, Error> {
-        let mut context = self.context.lock().unwrap();
+        let mut context = self.options.context.lock().unwrap();
 
         let symbol_name = if let Some(user_defined) = user_defined {
             if context.hooks_names.contains(user_defined) {
@@ -236,7 +244,7 @@ impl<'a> QwikTransform<'a> {
             };
 
             let mut canonical_filename =
-                ["h_", &self.path_data.file_prefix, "_", &symbol_name].concat();
+                ["h_", &self.options.path_data.file_prefix, "_", &symbol_name].concat();
             canonical_filename.make_ascii_lowercase();
 
             let symbol_name = JsWord::from(symbol_name);
@@ -284,27 +292,30 @@ impl<'a> QwikTransform<'a> {
                 idents
             };
 
-            let entry =
-                self.entry_policy
-                    .get_entry_for_sym(&symbol_name, self.path_data, &self.stack_ctxt);
+            let entry = self.options.entry_policy.get_entry_for_sym(
+                &symbol_name,
+                self.options.path_data,
+                &self.stack_ctxt,
+            );
 
-            let import_path = fix_path(
-                "a",
-                &self.path_data.path,
-                &format!(
-                    "./{}",
-                    entry
-                        .as_ref()
-                        .map(|e| e.as_ref())
-                        .unwrap_or(&canonical_filename)
-                ),
-            )
-            // TODO: check with manu
-            .unwrap();
+            let mut filename = format!(
+                "./{}",
+                entry
+                    .as_ref()
+                    .map(|e| e.as_ref())
+                    .unwrap_or(&canonical_filename)
+            );
+            if self.options.explicity_extensions {
+                filename.push('.');
+                filename.push_str(&self.options.extension);
+            }
+            let import_path = fix_path("a", &self.options.path_data.path, &filename)
+                // TODO: check with manu
+                .unwrap();
 
             for id in &local_idents {
-                if !self.global_collect.exports.contains_key(id) {
-                    if let Some(span) = self.global_collect.root.get(id) {
+                if !self.options.global_collect.exports.contains_key(id) {
+                    if let Some(span) = self.options.global_collect.root.get(id) {
                         HANDLER.with(|handler| {
                             handler
                                 .struct_span_err(
@@ -345,10 +356,11 @@ impl<'a> QwikTransform<'a> {
                 entry,
                 canonical_filename,
                 name: symbol_name,
+                extension: self.options.extension.clone(),
                 expr: Box::new(folded),
                 local_idents,
                 scoped_idents,
-                origin: self.path_data.path.to_string_lossy().into(),
+                origin: self.options.path_data.path.to_string_lossy().into(),
             });
             o
         } else {
@@ -602,7 +614,7 @@ impl<'a> Fold for QwikTransform<'a> {
                 return self.handle_qhook(node);
             } else if let ast::Expr::Ident(ident) = &**expr {
                 if id_eq!(ident, &self.qhook_fn) {
-                    if let Some(comments) = self.comments {
+                    if let Some(comments) = self.options.comments {
                         comments.add_pure_comment(ident.span.lo);
                     }
                     return self.handle_qhook(node);
@@ -611,7 +623,7 @@ impl<'a> Fold for QwikTransform<'a> {
                         self.position_ctxt.push(PositionToken::QComponent);
                         self.in_component = true;
                         component_token = true;
-                        if let Some(comments) = self.comments {
+                        if let Some(comments) = self.options.comments {
                             comments.add_pure_comment(node.span.lo);
                         }
                     } else {
@@ -619,7 +631,7 @@ impl<'a> Fold for QwikTransform<'a> {
                         self.stack_ctxt.push(ident.sym.to_string());
                         name_token = true;
                     }
-                    let global_collect = &mut self.global_collect;
+                    let global_collect = &mut self.options.global_collect;
                     if let Some(import) = global_collect.imports.get(&id!(ident)).cloned() {
                         let specifier = import.specifier.to_string();
                         let new_specifier: &str = &specifier[0..specifier.len() - 1];

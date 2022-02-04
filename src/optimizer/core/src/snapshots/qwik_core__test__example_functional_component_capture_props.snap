@@ -1,16 +1,16 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 982
+assertion_line: 1084
 expression: output
 
 ---
 ==INPUT==
 
 
-import { $, qComponent$, onRender$ } from '@builder.io/qwik';
+import { $, qComponent$, onRender$, createStore } from '@builder.io/qwik';
 
 export const App = qComponent$(({count, rest: [I2, {I3, v1: [I4], I5=v2, ...I6}, I7=v3, ...I8]}) => {
-    const state = useStore({count: 0});
+    const state = createStore({count: 0});
     const {rest: [C2, {C3, v1: [C4], C5=v2, ...C6}, C7=v3, ...C8]} = foo();
     return onRender$(() => {
         return (
@@ -38,6 +38,15 @@ export const App_onRender_div_onclick = ()=>{
     return state.count += count + total;
 };
 
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_onRender_div_onclick",
+  "entry": null,
+  "canonicalFilename": "h_test_app_onrender_div_onclick",
+  "extension": "js"
+}
+*/
 ============================= h_test_app_onrender.js (ENTRY POINT)==
 
 import { jsxs as _jsxs } from "@builder.io/qwik/jsx-runtime";
@@ -72,12 +81,22 @@ export const App_onRender = ()=>{
     }));
 };
 
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_onRender",
+  "entry": null,
+  "canonicalFilename": "h_test_app_onrender",
+  "extension": "js"
+}
+*/
 ============================= h_test_app_onmount.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
+import { createStore } from "@builder.io/qwik";
 import { onRender } from "@builder.io/qwik";
 export const App_onmount = ({ count , rest: [I2, { I3 , v1: [I4] , I5 =v2 , ...I6 }, I7 = v3, ...I8]  })=>{
-    const state = useStore({
+    const state = createStore({
         count: 0
     });
     const { rest: [C2, { C3 , v1: [C4] , C5 =v2 , ...C6 }, C7 = v3, ...C8]  } = foo();
@@ -102,29 +121,15 @@ export const App_onmount = ({ count , rest: [I2, { I3 , v1: [I4] , I5 =v2 , ...I
     ]));
 };
 
-== HOOKS ==
-
-[
-  {
-    "origin": "test.tsx",
-    "name": "App_onRender_div_onclick",
-    "entry": null,
-    "canonicalFilename": "h_test_app_onrender_div_onclick"
-  },
-  {
-    "origin": "test.tsx",
-    "name": "App_onRender",
-    "entry": null,
-    "canonicalFilename": "h_test_app_onrender"
-  },
-  {
-    "origin": "test.tsx",
-    "name": "App_onmount",
-    "entry": null,
-    "canonicalFilename": "h_test_app_onmount"
-  }
-]
-
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_onmount",
+  "entry": null,
+  "canonicalFilename": "h_test_app_onmount",
+  "extension": "js"
+}
+*/
 == DIAGNOSTICS ==
 
 []

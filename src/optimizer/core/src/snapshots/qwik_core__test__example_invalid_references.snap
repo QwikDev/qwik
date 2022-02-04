@@ -1,6 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 919
+assertion_line: 1084
 expression: output
 
 ---
@@ -40,6 +40,15 @@ export const App_onRender = ()=>{
     return(/*#__PURE__*/ _jsx(I10, {}));
 };
 
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_onRender",
+  "entry": null,
+  "canonicalFilename": "h_test_app_onrender",
+  "extension": "js"
+}
+*/
 ============================= h_test_app_onmount.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
@@ -51,23 +60,15 @@ export const App_onmount = ({ count  })=>{
     , "App_onRender"));
 };
 
-== HOOKS ==
-
-[
-  {
-    "origin": "test.tsx",
-    "name": "App_onRender",
-    "entry": null,
-    "canonicalFilename": "h_test_app_onrender"
-  },
-  {
-    "origin": "test.tsx",
-    "name": "App_onmount",
-    "entry": null,
-    "canonicalFilename": "h_test_app_onmount"
-  }
-]
-
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_onmount",
+  "entry": null,
+  "canonicalFilename": "h_test_app_onmount",
+  "extension": "js"
+}
+*/
 == DIAGNOSTICS ==
 
 [Diagnostic { message: "Reference to root level identifier needs to be exported: I10", code_highlights: Some([CodeHighlight { message: None, loc: SourceLocation { start_line: 7, start_col: 7, end_line: 7, end_col: 9 } }]), hints: None, show_environment: false, severity: Error, documentation_url: None }, Diagnostic { message: "Reference to root level identifier needs to be exported: I1", code_highlights: Some([CodeHighlight { message: None, loc: SourceLocation { start_line: 4, start_col: 7, end_line: 4, end_col: 8 } }]), hints: None, show_environment: false, severity: Error, documentation_url: None }, Diagnostic { message: "Reference to root level identifier needs to be exported: I2", code_highlights: Some([CodeHighlight { message: None, loc: SourceLocation { start_line: 5, start_col: 8, end_line: 5, end_col: 9 } }]), hints: None, show_environment: false, severity: Error, documentation_url: None }, Diagnostic { message: "Reference to root level identifier needs to be exported: I3", code_highlights: Some([CodeHighlight { message: None, loc: SourceLocation { start_line: 5, start_col: 13, end_line: 5, end_col: 14 } }]), hints: None, show_environment: false, severity: Error, documentation_url: None }, Diagnostic { message: "Reference to root level identifier needs to be exported: I4", code_highlights: Some([CodeHighlight { message: None, loc: SourceLocation { start_line: 5, start_col: 22, end_line: 5, end_col: 23 } }]), hints: None, show_environment: false, severity: Error, documentation_url: None }, Diagnostic { message: "Reference to root level identifier needs to be exported: I5", code_highlights: Some([CodeHighlight { message: None, loc: SourceLocation { start_line: 5, start_col: 27, end_line: 5, end_col: 28 } }]), hints: None, show_environment: false, severity: Error, documentation_url: None }, Diagnostic { message: "Reference to root level identifier needs to be exported: I6", code_highlights: Some([CodeHighlight { message: None, loc: SourceLocation { start_line: 5, start_col: 37, end_line: 5, end_col: 38 } }]), hints: None, show_environment: false, severity: Error, documentation_url: None }, Diagnostic { message: "Reference to root level identifier needs to be exported: I7", code_highlights: Some([CodeHighlight { message: None, loc: SourceLocation { start_line: 5, start_col: 42, end_line: 5, end_col: 43 } }]), hints: None, show_environment: false, severity: Error, documentation_url: None }, Diagnostic { message: "Reference to root level identifier needs to be exported: I8", code_highlights: Some([CodeHighlight { message: None, loc: SourceLocation { start_line: 5, start_col: 52, end_line: 5, end_col: 53 } }]), hints: None, show_environment: false, severity: Error, documentation_url: None }, Diagnostic { message: "Reference to root level identifier needs to be exported: I9", code_highlights: Some([CodeHighlight { message: None, loc: SourceLocation { start_line: 6, start_col: 10, end_line: 6, end_col: 11 } }]), hints: None, show_environment: false, severity: Error, documentation_url: None }]

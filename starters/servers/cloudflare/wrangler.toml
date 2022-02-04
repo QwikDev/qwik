@@ -14,5 +14,5 @@ command = "npm run build"
 format = "service-worker"
 
 [site]
-bucket = "public" # directory with your static assets
-entry-point = "workers-site" # JS folder serving your assets
+bucket = "dist" # directory with your static assets
+entry-point = "server" # JS folder serving your assets

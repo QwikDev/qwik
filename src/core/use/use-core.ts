@@ -1,9 +1,10 @@
-import { assertNotEqual } from '../assert/assert';
+import { assertDefined, assertNotEqual } from '../assert/assert';
 import type { QwikDocument } from '../document';
 import type { QRL } from '../import/qrl.public';
 import { unwrapProxy } from '../object/q-object';
 import type { QObject } from '../object/q-object';
 import { getProps } from '../props/props.public';
+import { AttributeMarker } from '../util/markers';
 
 declare const document: QwikDocument;
 
@@ -31,7 +32,9 @@ export function getInvokeContext(): InvokeContext {
       throw new Error("Q-ERROR: invoking 'use*()' method outside of invocation context.");
     }
     if (Array.isArray(context)) {
-      return (document.__q_context__ = newInvokeContext(context[0], context[1], context[2]));
+      const element = context[0].closest(AttributeMarker.OnRenderSelector)!;
+      assertDefined(element);
+      return (document.__q_context__ = newInvokeContext(element, context[1], context[2]));
     }
     return context as InvokeContext;
   }
@@ -42,23 +45,30 @@ export function useInvoke<ARGS extends any[] = any[], RET = any>(
   context: InvokeContext,
   fn: (...args: ARGS) => RET,
   ...args: ARGS
-): RET {
+): RET | Promise<RET> {
   const previousContext = _context;
+  let returnValue: RET;
   try {
     _context = context;
-    return fn.apply(null, args);
+    returnValue = fn.apply(null, args);
   } finally {
-    const subscriptions = _context.subscriptions;
+    const currentCtx = _context;
+    const subscriptions = currentCtx.subscriptions;
     if (subscriptions) {
-      const element = _context.hostElement;
+      const element = currentCtx.hostElement;
       element && ((getProps(element) as any)[':subscriptions'] = subscriptions);
     }
     _context = previousContext;
+    if (currentCtx.waitOn && currentCtx.waitOn.length > 0) {
+      // eslint-disable-next-line no-unsafe-finally
+      return Promise.all(currentCtx.waitOn).then(() => returnValue);
+    }
   }
+  return returnValue;
 }
-export function newInvokeContext(element: Element, event?: any, url?: URL): InvokeContext {
+export function newInvokeContext(hostElement: Element, event?: any, url?: URL): InvokeContext {
   return {
-    hostElement: element,
+    hostElement: hostElement,
     event: event,
     url: url || null,
     qrl: undefined,

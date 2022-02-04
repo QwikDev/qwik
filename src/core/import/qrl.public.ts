@@ -206,7 +206,7 @@ export async function qrlImport<T>(element: Element, qrl: QRL<T>): Promise<T> {
  * function topLevelFn() {}
  *
  * function myCode() {
- *   const store = useStore({});
+ *   const store = createStore({});
  *   function localFn() {}
  *   // Valid Examples
  *   $(greet); // greet is importable

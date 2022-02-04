@@ -1,6 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 919
+assertion_line: 1084
 expression: output
 
 ---
@@ -27,29 +27,30 @@ import*as a from"@builder.io/qwik";import{qComponent as b}from"@builder.io/qwik"
 ============================= h_test_header_onrender.js ==
 
 import{jsxs as a}from"@builder.io/qwik/jsx-runtime";import*as b from"@builder.io/qwik";import{Footer as c}from"./project/test";import*as d from"lib";import{s as e}from"lib";import f from"lib";export const Header_onRender=()=>/*#__PURE__*/ a(c,{children:[f,d(),e()]});
+/*
+{
+  "origin": "project/test.tsx",
+  "name": "Header_onRender",
+  "entry": "entry_hooks",
+  "canonicalFilename": "h_test_header_onrender",
+  "extension": "js"
+}
+*/
 ============================= h_test_header_onmount.js ==
 
 import*as a from"@builder.io/qwik";import{onRender as b}from"@builder.io/qwik";export const Header_onmount=()=>{b(a.qrl(()=>import("../entry_hooks"),"Header_onRender"));};
+/*
+{
+  "origin": "project/test.tsx",
+  "name": "Header_onmount",
+  "entry": "entry_hooks",
+  "canonicalFilename": "h_test_header_onmount",
+  "extension": "js"
+}
+*/
 ============================= entry_hooks.js (ENTRY POINT)==
 
 export{Header_onRender}from"./h_test_header_onrender";export{Header_onmount}from"./h_test_header_onmount";
-== HOOKS ==
-
-[
-  {
-    "origin": "project/test.tsx",
-    "name": "Header_onRender",
-    "entry": "entry_hooks",
-    "canonicalFilename": "h_test_header_onrender"
-  },
-  {
-    "origin": "project/test.tsx",
-    "name": "Header_onmount",
-    "entry": "entry_hooks",
-    "canonicalFilename": "h_test_header_onmount"
-  }
-]
-
 == DIAGNOSTICS ==
 
 []

@@ -18,7 +18,7 @@ export const createPlatform = (doc: Document): CorePlatform => {
       if (mod) {
         return mod[symbolName];
       }
-      return import(importURL).then((mod) => {
+      return import(/* @vite-ignore */ importURL).then((mod) => {
         moduleCache.set(importURL, mod);
         return mod[symbolName];
       });

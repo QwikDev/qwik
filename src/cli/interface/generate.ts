@@ -23,6 +23,7 @@ export async function runGenerate(appId: string, projectName: string) {
     projectName,
     serverId: 'express',
     outDir,
+    featureIds: [],
   };
 
   const result = await generateStarter(opts);

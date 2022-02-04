@@ -140,17 +140,19 @@ export interface PathObject {
 // @alpha (undocumented)
 export interface QwikPluginOptions {
     // (undocumented)
+    debug?: boolean;
+    // (undocumented)
     entryStrategy?: EntryStrategy;
     // (undocumented)
     minify?: MinifyMode;
     // (undocumented)
-    symbolsOutput?: string | ((data: OutputEntryMap, output: NormalizedOutputOptions) => Promise<void> | void);
+    srcDir: string;
     // (undocumented)
-    transpile?: boolean;
+    symbolsOutput?: string | ((data: OutputEntryMap, output: NormalizedOutputOptions) => Promise<void> | void);
 }
 
 // @alpha (undocumented)
-export function qwikRollup(opts?: QwikPluginOptions): any;
+export function qwikRollup(opts: QwikPluginOptions): any;
 
 // @alpha (undocumented)
 export interface SingleEntryStrategy {
@@ -180,6 +182,8 @@ export interface TransformModule {
     // (undocumented)
     code: string;
     // (undocumented)
+    hook: HookAnalysis | null;
+    // (undocumented)
     isEntry: boolean;
     // (undocumented)
     map: string | null;
@@ -207,8 +211,6 @@ export interface TransformModulesOptions extends TransformOptions {
 export interface TransformOutput {
     // (undocumented)
     diagnostics: Diagnostic[];
-    // (undocumented)
-    hooks: HookAnalysis[];
     // (undocumented)
     isJsx: boolean;
     // (undocumented)

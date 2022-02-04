@@ -1,4 +1,4 @@
-import { Fragment, h, Slot } from '@builder.io/qwik';
+import { Slot } from '@builder.io/qwik';
 import { expectDOM } from '../../testing/expect-dom.unit';
 import { toDOM } from '../../testing/jsx';
 import { AttributeMarker } from '../util/markers';

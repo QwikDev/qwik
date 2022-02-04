@@ -1,6 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 919
+assertion_line: 1084
 expression: output
 
 ---
@@ -35,6 +35,15 @@ export const App = /*#__PURE__*/ qComponent(qwik.qrl(()=>import("./h_test_app_on
 import * as qwik from "@builder.io/qwik";
 export const App_withStyle = style;
 
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_withStyle",
+  "entry": null,
+  "canonicalFilename": "h_test_app_withstyle",
+  "extension": "js"
+}
+*/
 ============================= h_test_app_onmount.js (ENTRY POINT)==
 
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
@@ -52,23 +61,15 @@ export const App_onmount = ()=>{
     const styles = return;
 };
 
-== HOOKS ==
-
-[
-  {
-    "origin": "test.tsx",
-    "name": "App_withStyle",
-    "entry": null,
-    "canonicalFilename": "h_test_app_withstyle"
-  },
-  {
-    "origin": "test.tsx",
-    "name": "App_onmount",
-    "entry": null,
-    "canonicalFilename": "h_test_app_onmount"
-  }
-]
-
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_onmount",
+  "entry": null,
+  "canonicalFilename": "h_test_app_onmount",
+  "extension": "js"
+}
+*/
 == DIAGNOSTICS ==
 
 [Diagnostic { message: "Identifier can not be captured", code_highlights: Some([CodeHighlight { message: None, loc: SourceLocation { start_line: 8, start_col: 16, end_line: 8, end_col: 20 } }]), hints: None, show_environment: false, severity: Error, documentation_url: None }]

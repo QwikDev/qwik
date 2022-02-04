@@ -5,7 +5,7 @@
 // it to the desired comment location
 //
 
-import { Fragment, h, onRender$, component$ } from '@builder.io/qwik';
+import { onRender$, component$ } from '@builder.io/qwik';
 
 export const MyApp = component$(() => {
   return onRender$(() => (

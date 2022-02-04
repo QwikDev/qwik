@@ -31,6 +31,7 @@ const opts = {
   appId: 'todo',
   serverId: 'express',
   outDir: '/path/to/output/dir',
+  featureIds: [],
 };
 
 const result = await generateStarter(opts);

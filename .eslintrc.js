@@ -25,6 +25,6 @@ module.exports = {
     'no-case-declarations': 'off',
     'no-console': ['error', { allow: ['warn', 'error'] }],
     'no-only-tests/no-only-tests': 'error',
-    '@typescript-eslint/no-unused-vars': ['error', { varsIgnorePattern: '^(h|Fragment)$' }],
+    '@typescript-eslint/no-unused-vars': ['error'],
   },
 };

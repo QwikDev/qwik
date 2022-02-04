@@ -1,6 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 919
+assertion_line: 1084
 expression: output
 
 ---
@@ -41,17 +41,15 @@ export const Header = (decl1, { decl2  }, [decl3])=>{
     try {} catch ({ decl19  }) {}
 };
 
-== HOOKS ==
-
-[
-  {
-    "origin": "test.tsx",
-    "name": "Header",
-    "entry": null,
-    "canonicalFilename": "h_test_header"
-  }
-]
-
+/*
+{
+  "origin": "test.tsx",
+  "name": "Header",
+  "entry": null,
+  "canonicalFilename": "h_test_header",
+  "extension": "tsx"
+}
+*/
 == DIAGNOSTICS ==
 
 []

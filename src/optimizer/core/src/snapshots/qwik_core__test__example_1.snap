@@ -1,6 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 919
+assertion_line: 1084
 expression: output
 
 ---
@@ -31,6 +31,15 @@ import * as qwik from "@builder.io/qwik";
 export const Header_div_onClick = (ctx)=>console.log(ctx)
 ;
 
+/*
+{
+  "origin": "test.tsx",
+  "name": "Header_div_onClick",
+  "entry": null,
+  "canonicalFilename": "h_test_header_div_onclick",
+  "extension": "tsx"
+}
+*/
 ============================= h_test_header1.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
@@ -39,6 +48,15 @@ export const Header1 = ()=>{
     , "Header_div_onClick")}/>;
 };
 
+/*
+{
+  "origin": "test.tsx",
+  "name": "Header1",
+  "entry": null,
+  "canonicalFilename": "h_test_header1",
+  "extension": "tsx"
+}
+*/
 ============================= h_test_header.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
@@ -49,29 +67,15 @@ export const Header = ()=>{
     , "Header1"));
 };
 
-== HOOKS ==
-
-[
-  {
-    "origin": "test.tsx",
-    "name": "Header_div_onClick",
-    "entry": null,
-    "canonicalFilename": "h_test_header_div_onclick"
-  },
-  {
-    "origin": "test.tsx",
-    "name": "Header1",
-    "entry": null,
-    "canonicalFilename": "h_test_header1"
-  },
-  {
-    "origin": "test.tsx",
-    "name": "Header",
-    "entry": null,
-    "canonicalFilename": "h_test_header"
-  }
-]
-
+/*
+{
+  "origin": "test.tsx",
+  "name": "Header",
+  "entry": null,
+  "canonicalFilename": "h_test_header",
+  "extension": "tsx"
+}
+*/
 == DIAGNOSTICS ==
 
 []

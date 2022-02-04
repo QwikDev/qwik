@@ -17,17 +17,6 @@ export function getImportsFromSource(file: string): string[] {
 }
 
 /**
- * Basic implementation
- */
-export async function readFile(filePath: string): Promise<string> {
-  const { readFile: nodeReadFile } = await import('fs');
-
-  return new Promise((res, rej) =>
-    nodeReadFile(filePath, (err: any, data: any) => (err ? rej(err) : res(String(data))))
-  );
-}
-
-/**
  * Returns a set of imports for a given source file.
  *
  * The function recursively visits the dependencies and returns a fully populated graph.
@@ -40,7 +29,7 @@ export async function readFile(filePath: string): Promise<string> {
  */
 export async function getImports(
   filePath: string,
-  readFileFn: (path: string) => Promise<string> = readFile
+  readFileFn: (path: string) => Promise<string>
 ): Promise<string[]> {
   const imports: string[] = [];
   await Promise.all(

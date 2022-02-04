@@ -1,6 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 887
+assertion_line: 1084
 expression: output
 
 ---
@@ -31,12 +31,30 @@ import css1 from "./global.css";
 import css2 from "./style.css";
 export const App_withStyle = `${css1}${css2}`;
 
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_withStyle",
+  "entry": null,
+  "canonicalFilename": "h_test_app_withstyle",
+  "extension": "js"
+}
+*/
 ============================= h_test_app_withstyle2.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
 import css3 from "./style.css";
 export const App_withStyle2 = css3;
 
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_withStyle2",
+  "entry": null,
+  "canonicalFilename": "h_test_app_withstyle2",
+  "extension": "js"
+}
+*/
 ============================= h_test_app_onmount.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
@@ -48,29 +66,15 @@ export const App_onmount = ()=>{
     , "App_withStyle2"));
 };
 
-== HOOKS ==
-
-[
-  {
-    "origin": "test.tsx",
-    "name": "App_withStyle",
-    "entry": null,
-    "canonicalFilename": "h_test_app_withstyle"
-  },
-  {
-    "origin": "test.tsx",
-    "name": "App_withStyle2",
-    "entry": null,
-    "canonicalFilename": "h_test_app_withstyle2"
-  },
-  {
-    "origin": "test.tsx",
-    "name": "App_onmount",
-    "entry": null,
-    "canonicalFilename": "h_test_app_onmount"
-  }
-]
-
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_onmount",
+  "entry": null,
+  "canonicalFilename": "h_test_app_onmount",
+  "extension": "js"
+}
+*/
 == DIAGNOSTICS ==
 
 []

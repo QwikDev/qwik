@@ -14,7 +14,7 @@ Most frameworks keep view, state, and handler code together. Here is an example 
 
 ```typescript
 export function Counter(props: {step?:number}) {
- const [count, setCount] = useStore({count: 50});
+ const [count, setCount] = useState(50);
  const step = props.step || 1;
  return (
    <div>

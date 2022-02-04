@@ -2,6 +2,7 @@ export interface GenerateOptions {
   projectName: string;
   appId: string;
   serverId?: string;
+  featureIds: string[];
   outDir: string;
 }
 
@@ -15,6 +16,7 @@ export interface GenerateResult {
 export interface Starters {
   apps: StarterData[];
   servers: StarterData[];
+  features: StarterData[];
 }
 
 export interface StarterData {

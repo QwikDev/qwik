@@ -1,6 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 919
+assertion_line: 1084
 expression: output
 
 ---
@@ -22,17 +22,15 @@ import * as qwik from "@builder.io/qwik";
 export const sym1 = (ctx)=>console.log("1")
 ;
 
-== HOOKS ==
-
-[
-  {
-    "origin": "test.tsx",
-    "name": "sym1",
-    "entry": null,
-    "canonicalFilename": "h_test_sym1"
-  }
-]
-
+/*
+{
+  "origin": "test.tsx",
+  "name": "sym1",
+  "entry": null,
+  "canonicalFilename": "h_test_sym1",
+  "extension": "tsx"
+}
+*/
 == DIAGNOSTICS ==
 
 []

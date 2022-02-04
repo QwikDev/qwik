@@ -1,0 +1,12 @@
+{
+  "name": "qwik-project-name",
+  "version": "0.0.1",
+  "description": "The de facto standard in JS formatting",
+  "scripts": {
+    "fmt": "prettier --write .",
+    "fmt.check": "prettier --check ."
+  },
+  "devDependencies": {
+    "prettier": "2.3.0"
+  }
+}

@@ -1,4 +1,4 @@
-import { h, Host, useStore } from '@builder.io/qwik';
+import { h, Host, createStore } from '@builder.io/qwik';
 import { ElementFixture, trigger } from '../../testing/element_fixture';
 import { expectDOM } from '../../testing/expect-dom.unit';
 import { getTestPlatform } from '../../testing/platform';
@@ -367,7 +367,7 @@ export const HelloWorld = component(
   'hello-world',
   $((props: { name?: string }) => {
     withScopedStyles$(`span.� { color: red; }`);
-    const state = useStore({ salutation: 'Hello' });
+    const state = createStore({ salutation: 'Hello' });
     return onRender$(() => {
       return (
         <span>
@@ -383,7 +383,7 @@ export const HelloWorld = component(
 //////////////////////////////////////////////////////////////////////////////////////////
 
 export const Counter = component$((props: { step?: number }) => {
-  const state = useStore({ count: 0 });
+  const state = createStore({ count: 0 });
   return onRender$(() => {
     const step = Number(props.step || 1);
     return (

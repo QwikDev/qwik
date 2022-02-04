@@ -145,6 +145,7 @@ const convertOptions = (opts: any) => {
     minify: 'simplify',
     sourceMaps: false,
     transpile: false,
+    explicityExtensions: false,
   };
   Object.entries(opts).forEach(([key, value]) => {
     if (value != null) {

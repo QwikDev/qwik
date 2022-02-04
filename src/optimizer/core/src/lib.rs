@@ -40,32 +40,13 @@ use crate::transform::TransformContext;
 #[derive(Serialize, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TransformFsOptions {
-    root_dir: String,
-    glob: Option<String>,
-    source_maps: bool,
-    minify: MinifyMode,
-    transpile: bool,
-    entry_strategy: EntryStrategy,
-}
-
-impl TransformFsOptions {
-    pub const fn new(
-        root_dir: String,
-        glob: Option<String>,
-        source_maps: bool,
-        minify: MinifyMode,
-        transpile: bool,
-        entry_strategy: EntryStrategy,
-    ) -> Self {
-        Self {
-            root_dir,
-            glob,
-            source_maps,
-            minify,
-            transpile,
-            entry_strategy,
-        }
-    }
+    pub root_dir: String,
+    pub glob: Option<String>,
+    pub minify: MinifyMode,
+    pub entry_strategy: EntryStrategy,
+    pub source_maps: bool,
+    pub transpile: bool,
+    pub explicity_extensions: bool,
 }
 
 #[derive(Serialize, Debug, Deserialize)]
@@ -84,6 +65,7 @@ pub struct TransformModulesOptions {
     pub minify: MinifyMode,
     pub transpile: bool,
     pub entry_strategy: EntryStrategy,
+    pub explicity_extensions: bool,
 }
 
 #[cfg(feature = "fs")]
@@ -114,6 +96,7 @@ pub fn transform_fs(config: TransformFsOptions) -> Result<TransformOutput, Error
                     .unwrap(),
                 minify: config.minify,
                 code: &code,
+                explicity_extensions: config.explicity_extensions,
                 source_maps: config.source_maps,
                 transpile: config.transpile,
                 print_ast: false,
@@ -123,11 +106,7 @@ pub fn transform_fs(config: TransformFsOptions) -> Result<TransformOutput, Error
         })
         .reduce(|| Ok(TransformOutput::new()), |x, y| Ok(x?.append(&mut y?)))?;
 
-    final_output = generate_entries(
-        final_output,
-        config.transpile,
-        config.minify == MinifyMode::Minify,
-    )?;
+    final_output = generate_entries(final_output, config.minify == MinifyMode::Minify)?;
     Ok(final_output)
 }
 
@@ -146,6 +125,7 @@ pub fn transform_modules(config: TransformModulesOptions) -> Result<TransformOut
             code: &path.code,
             source_maps: config.source_maps,
             transpile: config.transpile,
+            explicity_extensions: config.explicity_extensions,
             print_ast: false,
             entry_policy,
             context: context.clone(),
@@ -161,11 +141,7 @@ pub fn transform_modules(config: TransformModulesOptions) -> Result<TransformOut
         iterator.fold(Ok(TransformOutput::new()), |x, y| Ok(x?.append(&mut y?)));
 
     let mut final_output = final_output?;
-    final_output = generate_entries(
-        final_output,
-        config.transpile,
-        config.minify == MinifyMode::Minify,
-    )?;
+    final_output = generate_entries(final_output, config.minify == MinifyMode::Minify)?;
     Ok(final_output)
 }
 

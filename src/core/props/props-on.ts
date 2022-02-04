@@ -103,7 +103,11 @@ export function qPropWriteQRL(
     // Important we modify the array as it is cached.
     for (let i = 0; i < existingQRLs.length; i++) {
       const qrl = existingQRLs[i];
-      if (!isPromise(qrl) && qrl.chunk === value.chunk && qrl.symbol === value.symbol) {
+      if (
+        !isPromise(qrl) &&
+        qrl.canonicalChunk === value.canonicalChunk &&
+        qrl.symbol === value.symbol
+      ) {
         existingQRLs.splice(i, 1);
         i--;
       }

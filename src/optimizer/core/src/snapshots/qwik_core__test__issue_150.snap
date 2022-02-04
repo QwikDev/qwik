@@ -1,6 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 1006
+assertion_line: 1084
 expression: output
 
 ---
@@ -37,6 +37,15 @@ export const Greeter_component_onRender = ()=>{
     return(/*#__PURE__*/ _jsx("div", {}));
 };
 
+/*
+{
+  "origin": "test.tsx",
+  "name": "Greeter_component_onRender",
+  "entry": null,
+  "canonicalFilename": "h_test_greeter_component_onrender",
+  "extension": "js"
+}
+*/
 ============================= h_test_greeter_component.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
@@ -46,35 +55,30 @@ export const Greeter_component = ()=>{
     , "Greeter_component_onRender"));
 };
 
+/*
+{
+  "origin": "test.tsx",
+  "name": "Greeter_component",
+  "entry": null,
+  "canonicalFilename": "h_test_greeter_component",
+  "extension": "js"
+}
+*/
 ============================= h_test_d_onrender.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
 export const d_onRender = ()=>console.log('thing')
 ;
 
-== HOOKS ==
-
-[
-  {
-    "origin": "test.tsx",
-    "name": "Greeter_component_onRender",
-    "entry": null,
-    "canonicalFilename": "h_test_greeter_component_onrender"
-  },
-  {
-    "origin": "test.tsx",
-    "name": "Greeter_component",
-    "entry": null,
-    "canonicalFilename": "h_test_greeter_component"
-  },
-  {
-    "origin": "test.tsx",
-    "name": "d_onRender",
-    "entry": null,
-    "canonicalFilename": "h_test_d_onrender"
-  }
-]
-
+/*
+{
+  "origin": "test.tsx",
+  "name": "d_onRender",
+  "entry": null,
+  "canonicalFilename": "h_test_d_onrender",
+  "extension": "js"
+}
+*/
 == DIAGNOSTICS ==
 
 []

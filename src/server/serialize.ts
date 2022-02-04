@@ -69,7 +69,7 @@ function createQrlMapper(qEntryMap: OutputEntryMap) {
 
   const qrlMapper: QrlMapper = (path, symbolName) => {
     path = symbolManifest.get(symbolName) || path;
-    return `./${path}#${symbolName}`;
+    return `${path}#${symbolName}`;
   };
   return qrlMapper;
 }

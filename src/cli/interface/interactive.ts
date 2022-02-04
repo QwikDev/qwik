@@ -50,6 +50,17 @@ export async function runInteractive() {
         },
       ],
     },
+    {
+      type: 'multiselect',
+      name: 'featureIds',
+      message: 'Features',
+      instructions: false,
+      choices: [
+        ...starters.features.map((s) => {
+          return { title: s.name, value: s.id, description: s.description, selected: true };
+        }),
+      ],
+    },
   ]);
 
   const outDirName = createOutDirName(response.projectName);
@@ -59,6 +70,7 @@ export async function runInteractive() {
     projectName: response.projectName,
     appId: response.appId,
     serverId: response.serverId,
+    featureIds: response.featureIds,
     outDir,
   };
 

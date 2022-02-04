@@ -50,6 +50,7 @@ interface TransformOptions {
   minify?: MinifyMode;
   sourceMaps?: boolean;
   transpile?: boolean;
+  explicityExtensions?: boolean;
 }
 
 /**
@@ -87,7 +88,6 @@ export interface TransformOutput {
   diagnostics: Diagnostic[];
   isTypeScript: boolean;
   isJsx: boolean;
-  hooks: HookAnalysis[];
 }
 
 /**
@@ -112,6 +112,7 @@ export interface TransformModule {
   isEntry: boolean;
   code: string;
   map: string | null;
+  hook: HookAnalysis | null;
 }
 
 // DIAGNOSTICS ***************

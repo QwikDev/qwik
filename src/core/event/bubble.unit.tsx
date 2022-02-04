@@ -1,5 +1,5 @@
 import { createDocument } from '@builder.io/qwik/testing';
-import { render, component, h, bubble, onRender$ } from '@builder.io/qwik';
+import { render, component, bubble, onRender$ } from '@builder.io/qwik';
 import { trigger } from '../../testing/element_fixture';
 import { useEvent } from '../use/use-event.public';
 import { runtimeQrl } from '../import/qrl';

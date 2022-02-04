@@ -1,6 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 982
+assertion_line: 1084
 expression: output
 
 ---
@@ -40,24 +40,60 @@ import * as qwik from "@builder.io/qwik";
 export const Foo_onRender_handler = ()=>console.log('reused')
 ;
 
+/*
+{
+  "origin": "test.tsx",
+  "name": "Foo_onRender_handler",
+  "entry": null,
+  "canonicalFilename": "h_test_foo_onrender_handler",
+  "extension": "js"
+}
+*/
 ============================= h_test_foo_onrender_div_onclick.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
 export const Foo_onRender_div_onclick = ()=>console.log('on$:click')
 ;
 
+/*
+{
+  "origin": "test.tsx",
+  "name": "Foo_onRender_div_onclick",
+  "entry": null,
+  "canonicalFilename": "h_test_foo_onrender_div_onclick",
+  "extension": "js"
+}
+*/
 ============================= h_test_foo_onrender_div_ondocumentscroll.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
 export const Foo_onRender_div_onDocumentscroll = ()=>console.log('onDocument:scroll')
 ;
 
+/*
+{
+  "origin": "test.tsx",
+  "name": "Foo_onRender_div_onDocumentscroll",
+  "entry": null,
+  "canonicalFilename": "h_test_foo_onrender_div_ondocumentscroll",
+  "extension": "js"
+}
+*/
 ============================= h_test_foo_onrender_div_onwindowscroll.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
 export const Foo_onRender_div_onWindowscroll = ()=>console.log('onWindow:scroll')
 ;
 
+/*
+{
+  "origin": "test.tsx",
+  "name": "Foo_onRender_div_onWindowscroll",
+  "entry": null,
+  "canonicalFilename": "h_test_foo_onrender_div_onwindowscroll",
+  "extension": "js"
+}
+*/
 ============================= h_test_foo_onrender.js (ENTRY POINT)==
 
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
@@ -78,6 +114,15 @@ export const Foo_onRender = ()=>{
     }));
 };
 
+/*
+{
+  "origin": "test.tsx",
+  "name": "Foo_onRender",
+  "entry": null,
+  "canonicalFilename": "h_test_foo_onrender",
+  "extension": "js"
+}
+*/
 ============================= h_test_foo_onmount.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
@@ -87,47 +132,15 @@ export const Foo_onmount = ()=>{
     , "Foo_onRender"));
 };
 
-== HOOKS ==
-
-[
-  {
-    "origin": "test.tsx",
-    "name": "Foo_onRender_handler",
-    "entry": null,
-    "canonicalFilename": "h_test_foo_onrender_handler"
-  },
-  {
-    "origin": "test.tsx",
-    "name": "Foo_onRender_div_onclick",
-    "entry": null,
-    "canonicalFilename": "h_test_foo_onrender_div_onclick"
-  },
-  {
-    "origin": "test.tsx",
-    "name": "Foo_onRender_div_onDocumentscroll",
-    "entry": null,
-    "canonicalFilename": "h_test_foo_onrender_div_ondocumentscroll"
-  },
-  {
-    "origin": "test.tsx",
-    "name": "Foo_onRender_div_onWindowscroll",
-    "entry": null,
-    "canonicalFilename": "h_test_foo_onrender_div_onwindowscroll"
-  },
-  {
-    "origin": "test.tsx",
-    "name": "Foo_onRender",
-    "entry": null,
-    "canonicalFilename": "h_test_foo_onrender"
-  },
-  {
-    "origin": "test.tsx",
-    "name": "Foo_onmount",
-    "entry": null,
-    "canonicalFilename": "h_test_foo_onmount"
-  }
-]
-
+/*
+{
+  "origin": "test.tsx",
+  "name": "Foo_onmount",
+  "entry": null,
+  "canonicalFilename": "h_test_foo_onmount",
+  "extension": "js"
+}
+*/
 == DIAGNOSTICS ==
 
 []

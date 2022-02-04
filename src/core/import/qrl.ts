@@ -21,7 +21,7 @@ const EXTRACT_IMPORT_PATH = /\(\s*(['"])([^\1]+)\1\s*\)/;
 const EXTRACT_SELF_IMPORT = /Promise\s*\.\s*resolve/;
 
 // https://regexr.com/6a83h
-const EXTRACT_FILE_NAME = /[\\/(]([\w\d.\-_]+)\.(js|ts)x?:/;
+const EXTRACT_FILE_NAME = /[\\/(]([\w\d.\-_]+\.(js|ts)x?):/;
 
 export function toInternalQRL<T>(qrl: QRL<T>): QRLInternal<T> {
   assertEqual(isQrl(qrl), true);
@@ -44,7 +44,10 @@ export function staticQrl<T = any>(
     if ((match = srcCode.match(EXTRACT_IMPORT_PATH)) && match[2]) {
       chunk = match[2];
     } else if ((match = srcCode.match(EXTRACT_SELF_IMPORT))) {
-      const frame = new Error('SELF').stack!.split('\n')[2];
+      const ref = 'QWIK-SELF';
+      const frames = new Error(ref).stack!.split('\n');
+      const start = frames.findIndex((f) => f.includes(ref));
+      const frame = frames[start + 2];
       match = frame.match(EXTRACT_FILE_NAME);
       if (!match) {
         chunk = 'main';

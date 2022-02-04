@@ -16,6 +16,7 @@ function loadStarters(startersDir: string) {
   const starters: Starters = {
     apps: loadStarterData(startersDir, 'apps'),
     servers: loadStarterData(startersDir, 'servers'),
+    features: loadStarterData(startersDir, 'features'),
   };
   return starters;
 }

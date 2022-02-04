@@ -5,7 +5,7 @@ use std::str;
 use crate::code_move::{new_module, NewModuleCtx};
 use crate::collector::global_collect;
 use crate::entry_strategy::EntryPolicy;
-use crate::transform::{QwikTransform, ThreadSafeTransformContext};
+use crate::transform::{QwikTransform, QwikTransformOptions, ThreadSafeTransformContext};
 use crate::utils::{CodeHighlight, Diagnostic, DiagnosticSeverity, SourceLocation};
 use serde::{Deserialize, Serialize};
 
@@ -31,13 +31,14 @@ use swc_ecmascript::transforms::{
 };
 use swc_ecmascript::visit::{FoldWith, VisitMutWith};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct HookAnalysis {
     pub origin: String,
     pub name: String,
     pub entry: Option<JsWord>,
     pub canonical_filename: String,
+    pub extension: JsWord,
 }
 
 #[derive(Debug, Serialize, Deserialize, Copy, Clone, PartialEq, Eq)]
@@ -54,6 +55,7 @@ pub struct TransformCodeOptions<'a> {
     pub minify: MinifyMode,
     pub transpile: bool,
     pub print_ast: bool,
+    pub explicity_extensions: bool,
     pub code: &'a str,
     pub entry_policy: &'a dyn EntryPolicy,
     pub context: ThreadSafeTransformContext,
@@ -64,7 +66,6 @@ pub struct TransformCodeOptions<'a> {
 pub struct TransformOutput {
     pub modules: Vec<TransformModule>,
     pub diagnostics: Vec<Diagnostic>,
-    pub hooks: Vec<HookAnalysis>,
     pub is_type_script: bool,
     pub is_jsx: bool,
 }
@@ -76,7 +77,6 @@ impl TransformOutput {
 
     pub fn append(mut self, output: &mut Self) -> Self {
         self.modules.append(&mut output.modules);
-        self.hooks.append(&mut output.hooks);
         self.diagnostics.append(&mut output.diagnostics);
         self.is_type_script = self.is_type_script || output.is_type_script;
         self.is_jsx = self.is_jsx || output.is_jsx;
@@ -105,6 +105,7 @@ pub struct TransformModule {
     #[serde(with = "serde_bytes")]
     pub map: Option<Vec<u8>>,
 
+    pub hook: Option<HookAnalysis>,
     pub is_entry: bool,
 }
 
@@ -125,6 +126,11 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
     if config.print_ast {
         dbg!(&module);
     }
+    let extension = if config.transpile {
+        JsWord::from("js")
+    } else {
+        JsWord::from(path_data.extension.clone())
+    };
     let transpile = config.transpile;
 
     match module {
@@ -164,13 +170,15 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 
                     // Collect import/export metadata
                     let collect = global_collect(&main_module);
-                    let mut qwik_transform = QwikTransform::new(
-                        config.context,
-                        &path_data,
-                        config.entry_policy,
-                        Some(&comments),
-                        collect,
-                    );
+                    let mut qwik_transform = QwikTransform::new(QwikTransformOptions {
+                        context: config.context,
+                        path_data: &path_data,
+                        entry_policy: config.entry_policy,
+                        explicity_extensions: config.explicity_extensions,
+                        extension: extension.clone(),
+                        comments: Some(&comments),
+                        global_collect: collect,
+                    });
 
                     // Run main transform
                     main_module = main_module.fold_with(&mut qwik_transform);
@@ -223,17 +231,11 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                     main_module.visit_mut_with(&mut fixer(None));
 
                     let hooks = qwik_transform.hooks;
-                    let mut hooks_analysis: Vec<HookAnalysis> = Vec::with_capacity(hooks.len());
                     let mut modules: Vec<TransformModule> = Vec::with_capacity(hooks.len() + 10);
 
                     for h in hooks.into_iter() {
                         let is_entry = h.entry == None;
-                        let extension = if config.transpile {
-                            "js"
-                        } else {
-                            &path_data.extension
-                        };
-                        let hook_path = [&h.canonical_filename, ".", extension].concat();
+                        let hook_path = [&h.canonical_filename, ".", &h.extension].concat();
 
                         let hook_mark = Mark::fresh(Mark::root());
 
@@ -244,7 +246,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                             origin: &h.origin,
                             local_idents: &h.local_idents,
                             scoped_idents: &h.scoped_idents,
-                            global: &qwik_transform.global_collect,
+                            global: &qwik_transform.options.global_collect,
                             qwik_ident: &qwik_transform.qwik_ident,
                         })?;
 
@@ -299,17 +301,18 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                         )
                         .unwrap();
 
-                        hooks_analysis.push(HookAnalysis {
-                            origin: h.origin,
-                            name: h.name.to_string(),
-                            entry: h.entry,
-                            canonical_filename: h.canonical_filename,
-                        });
                         modules.push(TransformModule {
                             code,
                             map,
                             is_entry,
                             path: hook_path,
+                            hook: Some(HookAnalysis {
+                                origin: h.origin,
+                                name: h.name.to_string(),
+                                entry: h.entry,
+                                extension: h.extension,
+                                canonical_filename: h.canonical_filename,
+                            }),
                         });
                     }
 
@@ -321,22 +324,18 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                         config.source_maps,
                     )?;
 
-                    let extension = if config.transpile {
-                        "js"
-                    } else {
-                        &path_data.extension
-                    };
                     modules.insert(
                         0,
                         TransformModule {
                             is_entry: false,
                             path: Path::new(&path_data.dir)
-                                .join([&path_data.file_stem, ".", extension].concat())
+                                .join([&path_data.file_stem, ".", &extension].concat())
                                 .to_str()
                                 .unwrap()
                                 .to_string(),
                             code,
                             map,
+                            hook: None,
                         },
                     );
 
@@ -344,7 +343,6 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                     Ok(TransformOutput {
                         modules,
                         diagnostics,
-                        hooks: hooks_analysis,
                         is_type_script,
                         is_jsx,
                     })
@@ -357,7 +355,6 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
             err.into_diagnostic(&handler).emit();
             let diagnostics = handle_error(&error_buffer, &source_map);
             Ok(TransformOutput {
-                hooks: vec![],
                 modules: vec![],
                 diagnostics,
                 is_type_script: false,

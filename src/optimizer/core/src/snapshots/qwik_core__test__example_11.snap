@@ -1,6 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 919
+assertion_line: 1084
 expression: output
 
 ---
@@ -46,6 +46,15 @@ import dep3 from "dep3/something";
 export const Header_onRender_Header_onClick = (ev)=>dep3(ev)
 ;
 
+/*
+{
+  "origin": "project/test.tsx",
+  "name": "Header_onRender_Header_onClick",
+  "entry": "entry_hooks",
+  "canonicalFilename": "h_test_header_onrender_header_onclick",
+  "extension": "tsx"
+}
+*/
 ============================= h_test_header_onrender.tsx ==
 
 import * as qwik from "@builder.io/qwik";
@@ -61,6 +70,15 @@ export const Header_onRender = ()=>{
             </Header>;
 };
 
+/*
+{
+  "origin": "project/test.tsx",
+  "name": "Header_onRender",
+  "entry": "entry_hooks",
+  "canonicalFilename": "h_test_header_onrender",
+  "extension": "tsx"
+}
+*/
 ============================= h_test_header_onmount.tsx ==
 
 import * as qwik from "@builder.io/qwik";
@@ -70,6 +88,15 @@ export const Header_onmount = ()=>{
     , "Header_onRender"));
 };
 
+/*
+{
+  "origin": "project/test.tsx",
+  "name": "Header_onmount",
+  "entry": "entry_hooks",
+  "canonicalFilename": "h_test_header_onmount",
+  "extension": "tsx"
+}
+*/
 ============================= h_test_app_onrender.tsx ==
 
 import * as qwik from "@builder.io/qwik";
@@ -79,6 +106,15 @@ export const App_onRender = ()=>{
     return <Header >{foo()}</Header>;
 };
 
+/*
+{
+  "origin": "project/test.tsx",
+  "name": "App_onRender",
+  "entry": "entry_hooks",
+  "canonicalFilename": "h_test_app_onrender",
+  "extension": "tsx"
+}
+*/
 ============================= h_test_app_onmount.tsx ==
 
 import * as qwik from "@builder.io/qwik";
@@ -88,48 +124,22 @@ export const App_onmount = ()=>{
     , "App_onRender"));
 };
 
-============================= entry_hooks.ts (ENTRY POINT)==
+/*
+{
+  "origin": "project/test.tsx",
+  "name": "App_onmount",
+  "entry": "entry_hooks",
+  "canonicalFilename": "h_test_app_onmount",
+  "extension": "tsx"
+}
+*/
+============================= entry_hooks.js (ENTRY POINT)==
 
 export { Header_onRender_Header_onClick } from "./h_test_header_onrender_header_onclick";
 export { Header_onRender } from "./h_test_header_onrender";
 export { Header_onmount } from "./h_test_header_onmount";
 export { App_onRender } from "./h_test_app_onrender";
 export { App_onmount } from "./h_test_app_onmount";
-
-== HOOKS ==
-
-[
-  {
-    "origin": "project/test.tsx",
-    "name": "Header_onRender_Header_onClick",
-    "entry": "entry_hooks",
-    "canonicalFilename": "h_test_header_onrender_header_onclick"
-  },
-  {
-    "origin": "project/test.tsx",
-    "name": "Header_onRender",
-    "entry": "entry_hooks",
-    "canonicalFilename": "h_test_header_onrender"
-  },
-  {
-    "origin": "project/test.tsx",
-    "name": "Header_onmount",
-    "entry": "entry_hooks",
-    "canonicalFilename": "h_test_header_onmount"
-  },
-  {
-    "origin": "project/test.tsx",
-    "name": "App_onRender",
-    "entry": "entry_hooks",
-    "canonicalFilename": "h_test_app_onrender"
-  },
-  {
-    "origin": "project/test.tsx",
-    "name": "App_onmount",
-    "entry": "entry_hooks",
-    "canonicalFilename": "h_test_app_onmount"
-  }
-]
 
 == DIAGNOSTICS ==
 

@@ -1,13 +1,13 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 977
+assertion_line: 1084
 expression: output
 
 ---
 ==INPUT==
 
 
-import { qComponent$ as Component, onRender$, useStore, wrap, useEffect } from '@builder.io/qwik';
+import { qComponent$ as Component, onRender$, createStore, wrap, useEffect } from '@builder.io/qwik';
 
 
 export const useMemo$ = (qrt) => {
@@ -15,7 +15,7 @@ export const useMemo$ = (qrt) => {
 };
 
 export const App = qComponent$((props) => {
-    const state = useStore({count: 0});
+    const state = createStore({count: 0});
     useMemo$(() => {
         console.log(state.count);
     });
@@ -28,12 +28,12 @@ export const App = qComponent$((props) => {
 
 import * as qwik from "@builder.io/qwik";
 import { onRender } from "@builder.io/qwik";
-import { useStore, useEffect } from '@builder.io/qwik';
+import { createStore, useEffect } from '@builder.io/qwik';
 export const useMemo$ = (qrt)=>{
     useEffect(qrt);
 };
 export const App = qComponent$((props)=>{
-    const state = useStore({
+    const state = createStore({
         count: 0
     });
     useMemo$(qwik.qrl(()=>import("./h_test_app_usememo")
@@ -54,6 +54,15 @@ export const App_useMemo = ()=>{
     console.log(state.count);
 };
 
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_useMemo",
+  "entry": null,
+  "canonicalFilename": "h_test_app_usememo",
+  "extension": "js"
+}
+*/
 ============================= h_test_app_onrender.js (ENTRY POINT)==
 
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
@@ -65,23 +74,15 @@ export const App_onRender = ()=>{
     }));
 };
 
-== HOOKS ==
-
-[
-  {
-    "origin": "test.tsx",
-    "name": "App_useMemo",
-    "entry": null,
-    "canonicalFilename": "h_test_app_usememo"
-  },
-  {
-    "origin": "test.tsx",
-    "name": "App_onRender",
-    "entry": null,
-    "canonicalFilename": "h_test_app_onrender"
-  }
-]
-
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_onRender",
+  "entry": null,
+  "canonicalFilename": "h_test_app_onrender",
+  "extension": "js"
+}
+*/
 == DIAGNOSTICS ==
 
 [Diagnostic { message: "Version without $ is not exported.", code_highlights: Some([CodeHighlight { message: None, loc: SourceLocation { start_line: 11, start_col: 5, end_line: 11, end_col: 12 } }]), hints: None, show_environment: false, severity: Error, documentation_url: None }]

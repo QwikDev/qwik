@@ -1,6 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 919
+assertion_line: 1084
 expression: output
 
 ---
@@ -36,6 +36,15 @@ import * as qwik from "@builder.io/qwik";
 export const App_Header_onRender_div_onClick = (ctx)=>console.log(ctx)
 ;
 
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_Header_onRender_div_onClick",
+  "entry": null,
+  "canonicalFilename": "h_test_app_header_onrender_div_onclick",
+  "extension": "tsx"
+}
+*/
 ============================= h_test_app_header_onrender.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
@@ -44,6 +53,15 @@ export const App_Header_onRender = ()=>{
     , "App_Header_onRender_div_onClick")}/>;
 };
 
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_Header_onRender",
+  "entry": null,
+  "canonicalFilename": "h_test_app_header_onrender",
+  "extension": "tsx"
+}
+*/
 ============================= h_test_app_header.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
@@ -54,29 +72,15 @@ export const App_Header = ()=>{
     , "App_Header_onRender"));
 };
 
-== HOOKS ==
-
-[
-  {
-    "origin": "test.tsx",
-    "name": "App_Header_onRender_div_onClick",
-    "entry": null,
-    "canonicalFilename": "h_test_app_header_onrender_div_onclick"
-  },
-  {
-    "origin": "test.tsx",
-    "name": "App_Header_onRender",
-    "entry": null,
-    "canonicalFilename": "h_test_app_header_onrender"
-  },
-  {
-    "origin": "test.tsx",
-    "name": "App_Header",
-    "entry": null,
-    "canonicalFilename": "h_test_app_header"
-  }
-]
-
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_Header",
+  "entry": null,
+  "canonicalFilename": "h_test_app_header",
+  "extension": "tsx"
+}
+*/
 == DIAGNOSTICS ==
 
 []

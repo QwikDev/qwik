@@ -1,6 +1,4 @@
 import {
-  Fragment,
-  h,
   Host,
   $,
   component$,
@@ -10,7 +8,7 @@ import {
   getProps,
   useEvent,
   onRender$,
-  useStore,
+  createStore,
 } from '@builder.io/qwik';
 /* eslint no-console: ["off"] */
 
@@ -125,7 +123,7 @@ function getCmpClass(cmp: Cmp, ...additionalClasses: string[]) {
 }
 
 export const MonolithScrubber = component$((props: { cmp: Cmp }) => {
-  const state = useStore({ step: 1 });
+  const state = createStore({ step: 1 });
   return onRender$(() => (
     <>
       <ol>

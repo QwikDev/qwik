@@ -1,4 +1,3 @@
-import { Fragment, h } from '@builder.io/qwik';
 import { html } from '../../testing/util';
 import { toDOM } from '../../testing/jsx';
 import { AttributeMarker } from '../util/markers';

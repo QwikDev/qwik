@@ -1,6 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 919
+assertion_line: 1084
 expression: output
 
 ---
@@ -42,6 +42,15 @@ export const App_onRender = ()=>{
     return(/*#__PURE__*/ _jsx("div", {}));
 };
 
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_onRender",
+  "entry": null,
+  "canonicalFilename": "h_test_app_onrender",
+  "extension": "js"
+}
+*/
 ============================= h_test_app_onmount.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
@@ -58,23 +67,15 @@ export const App_onmount = ()=>{
     , "App_onRender"));
 };
 
-== HOOKS ==
-
-[
-  {
-    "origin": "test.tsx",
-    "name": "App_onRender",
-    "entry": null,
-    "canonicalFilename": "h_test_app_onrender"
-  },
-  {
-    "origin": "test.tsx",
-    "name": "App_onmount",
-    "entry": null,
-    "canonicalFilename": "h_test_app_onmount"
-  }
-]
-
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_onmount",
+  "entry": null,
+  "canonicalFilename": "h_test_app_onmount",
+  "extension": "js"
+}
+*/
 == DIAGNOSTICS ==
 
 [Diagnostic { message: "Identifier can not capture because it's a function: Thing", code_highlights: None, hints: None, show_environment: false, severity: Error, documentation_url: None }, Diagnostic { message: "Identifier can not capture because it's a function: hola", code_highlights: None, hints: None, show_environment: false, severity: Error, documentation_url: None }]

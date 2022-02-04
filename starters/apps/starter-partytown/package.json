@@ -3,20 +3,16 @@
   "version": "0.0.1",
   "description": "Blank starter app with Partytown",
   "scripts": {
-    "build": "npm run clean && rollup -c",
-    "clean": "rimraf */build/",
-    "start": "npm run clean && concurrently -c blue,green \"rollup -c --configDev --watch\" \"wait-on public/build && npm run serve\"",
-    "serve": "echo \"server not setup\""
+    "build": "npm run build.client && npm run build.server",
+    "build.client": "vite build",
+    "build.server": "vite build --outDir server/build --ssr src/entry.server.tsx",
+    "start": "npm run dev",
+    "dev": "vite"
   },
   "devDependencies": {
-    "@builder.io/qwik": "0.0.16-6",
-    "@rollup/plugin-node-resolve": "^13.0.6",
-    "@rollup/plugin-typescript": "^8.3.0",
-    "concurrently": "^6.4.0",
-    "rimraf": "^3.0.2",
-    "rollup": "^2.59.0",
-    "typescript": "^4.5.2",
-    "wait-on": "^6.0.0"
+    "@builder.io/qwik": "0.0.16-8",
+    "typescript": "4.5.2",
+    "vite": "2.7.13"
   },
   "author": "Builder.io Team",
   "license": "MIT",

@@ -1,6 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 681
+assertion_line: 1084
 expression: output
 
 ---
@@ -12,10 +12,6 @@ export const cache = patternCache[cacheKey] || (patternCache[cacheKey]={});
 ============================= project/test.tsx ==
 
 export const cache = patternCache[cacheKey] || (patternCache[cacheKey] = {});
-
-== HOOKS ==
-
-[]
 
 == DIAGNOSTICS ==
 

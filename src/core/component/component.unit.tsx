@@ -1,4 +1,4 @@
-import { Fragment, h, useLexicalScope, useStore } from '@builder.io/qwik';
+import { useLexicalScope, createStore } from '@builder.io/qwik';
 import { ElementFixture, trigger } from '../../testing/element_fixture';
 import { expectDOM } from '../../testing/expect-dom.unit';
 import { runtimeQrl } from '../import/qrl';
@@ -52,13 +52,13 @@ describe('q-component', () => {
 
   it('should render a collection of todo items', async () => {
     const host = new ElementFixture().host;
-    const items = useStore({
+    const items = createStore({
       items: [
-        useStore({
+        createStore({
           done: true,
           title: 'Task 1',
         }),
-        useStore({
+        createStore({
           done: false,
           title: 'Task 2',
         }),
@@ -97,7 +97,7 @@ export const HelloWorld = component$(() => {
 // <Greeter salutation="" name=""/>
 
 export const Greeter = component$((props: { salutation?: string; name?: string }) => {
-  const state = useStore({ count: 0 });
+  const state = createStore({ count: 0 });
   return onRender$(() => (
     <div>
       {' '}
@@ -120,7 +120,7 @@ export const MyCounter_update = () => {
 export const MyCounter = component(
   'my-counter',
   $((props: { step?: number; value?: number }) => {
-    const state = useStore({ count: props.value || 0 });
+    const state = createStore({ count: props.value || 0 });
     return onRender$(() => (
       <div>
         <button
@@ -160,7 +160,7 @@ interface ItemsObj {
 export const ItemDetail = component(
   'item-detail',
   $((props: { itemObj: ItemObj }) => {
-    // const state = useStore({ editing: false });
+    // const state = createStore({ editing: false });
     return onRender$(() => (
       <>
         <input type="checkbox" checked={props.itemObj.done} />
@@ -175,7 +175,7 @@ export const ItemDetail = component(
 export const Items = component(
   'items',
   $((props: { items: ItemsObj }) => {
-    // const state = useStore({ editing: false });
+    // const state = createStore({ editing: false });
     return onRender$(() => (
       <>
         {props.items.items.map((item) => (

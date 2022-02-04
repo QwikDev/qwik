@@ -21,7 +21,7 @@ const EXTRACT_IMPORT_PATH = /\(\s*(['"])([^\1]+)\1\s*\)/;
 const EXTRACT_SELF_IMPORT = /Promise\s*\.\s*resolve/;
 
 // https://regexr.com/6a83h
-const EXTRACT_FILE_NAME = /[\\/(]([\w\d.\-_]+)\.(js|ts)x?:/;
+const EXTRACT_FILE_NAME = /[\\/(]([\w\d.\-_]+\.(js|ts)x?):/;
 
 export function toInternalQRL<T>(qrl: QRL<T>): QRLInternal<T> {
   assertEqual(isQrl(qrl), true);

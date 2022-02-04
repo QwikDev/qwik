@@ -190,6 +190,7 @@ fn transform_todo_app(b: &mut Bencher) {
               path: "file.tsx".into(),
           }],
           source_maps: false,
+          explicity_extensions: false,
           minify: MinifyMode::Simplify,
           transpile: true,
           entry_strategy: EntryStrategy::Single,

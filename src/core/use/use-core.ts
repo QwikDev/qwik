@@ -42,19 +42,25 @@ export function useInvoke<ARGS extends any[] = any[], RET = any>(
   context: InvokeContext,
   fn: (...args: ARGS) => RET,
   ...args: ARGS
-): RET {
+): RET | Promise<RET> {
   const previousContext = _context;
+  let returnValue: RET;
   try {
     _context = context;
-    return fn.apply(null, args);
+    returnValue = fn.apply(null, args);
   } finally {
-    const subscriptions = _context.subscriptions;
+    const currentCtx = _context;
+    const subscriptions = currentCtx.subscriptions;
     if (subscriptions) {
-      const element = _context.hostElement;
+      const element = currentCtx.hostElement;
       element && ((getProps(element) as any)[':subscriptions'] = subscriptions);
     }
     _context = previousContext;
+    if (currentCtx.waitOn && currentCtx.waitOn.length > 0) {
+      return Promise.all(currentCtx.waitOn).then(() => returnValue);
+    }
   }
+  return returnValue;
 }
 export function newInvokeContext(element: Element, event?: any, url?: URL): InvokeContext {
   return {

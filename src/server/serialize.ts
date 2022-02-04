@@ -51,10 +51,10 @@ function createQrlMapper(qEntryMap: OutputEntryMap) {
 
   const qrlMapper: QrlMapper = (path, symbolName) => {
     path = symbolManifest.get(symbolName) || path;
-    return `./${path}#${symbolName}`;
+    return `${path}#${symbolName}`;
   };
   return qrlMapper;
 }
 
 // https://regexr.com/69fs7
-const QRL_MATCHER = /="(.\/)?(([\w\d-_.]+)#([\w\d$_]*)([^"]*))"/g;
+const QRL_MATCHER = /="(.\/)?(([\w/\d-_.]+)#([\w\d$_]*)([^"]*))"/g;

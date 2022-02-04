@@ -1,6 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 919
+assertion_line: 1084
 expression: output
 
 ---
@@ -35,6 +35,15 @@ export const Header_onRender = ()=>{
     return <div >{thing}</div>;
 };
 
+/*
+{
+  "origin": "test.tsx",
+  "name": "Header_onRender",
+  "entry": null,
+  "canonicalFilename": "h_test_header_onrender",
+  "extension": "tsx"
+}
+*/
 ============================= h_test_header_onmount.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
@@ -48,23 +57,15 @@ export const Header_onmount = ()=>{
     ]));
 };
 
-== HOOKS ==
-
-[
-  {
-    "origin": "test.tsx",
-    "name": "Header_onRender",
-    "entry": null,
-    "canonicalFilename": "h_test_header_onrender"
-  },
-  {
-    "origin": "test.tsx",
-    "name": "Header_onmount",
-    "entry": null,
-    "canonicalFilename": "h_test_header_onmount"
-  }
-]
-
+/*
+{
+  "origin": "test.tsx",
+  "name": "Header_onmount",
+  "entry": null,
+  "canonicalFilename": "h_test_header_onmount",
+  "extension": "tsx"
+}
+*/
 == DIAGNOSTICS ==
 
 []

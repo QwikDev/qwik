@@ -1,6 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 919
+assertion_line: 1084
 expression: output
 
 ---
@@ -26,6 +26,15 @@ import * as qwik from "@builder.io/qwik";
 export const Header_onRender = ()=>console.log("hello sym2")
 ;
 
+/*
+{
+  "origin": "project/test.tsx",
+  "name": "Header_onRender",
+  "entry": "entry_hooks",
+  "canonicalFilename": "h_test_header_onrender",
+  "extension": "tsx"
+}
+*/
 ============================= h_test_header_onmount.tsx ==
 
 import * as qwik from "@builder.io/qwik";
@@ -35,27 +44,19 @@ export const Header_onmount = ()=>{
     , "Header_onRender"), "2sym");
 };
 
-============================= entry_hooks.ts (ENTRY POINT)==
+/*
+{
+  "origin": "project/test.tsx",
+  "name": "Header_onmount",
+  "entry": "entry_hooks",
+  "canonicalFilename": "h_test_header_onmount",
+  "extension": "tsx"
+}
+*/
+============================= entry_hooks.js (ENTRY POINT)==
 
 export { Header_onRender } from "./h_test_header_onrender";
 export { Header_onmount } from "./h_test_header_onmount";
-
-== HOOKS ==
-
-[
-  {
-    "origin": "project/test.tsx",
-    "name": "Header_onRender",
-    "entry": "entry_hooks",
-    "canonicalFilename": "h_test_header_onrender"
-  },
-  {
-    "origin": "project/test.tsx",
-    "name": "Header_onmount",
-    "entry": "entry_hooks",
-    "canonicalFilename": "h_test_header_onmount"
-  }
-]
 
 == DIAGNOSTICS ==
 

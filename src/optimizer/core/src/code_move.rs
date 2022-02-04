@@ -215,36 +215,38 @@ fn test_fix_path() {
 
 pub fn generate_entries(
     mut output: TransformOutput,
-    transpile: bool,
     minify: bool,
 ) -> Result<TransformOutput, anyhow::Error> {
     let source_map = Lrc::new(SourceMap::default());
-    let mut entries_map = HashMap::new();
-    let default_ext = if !transpile && output.is_type_script {
-        "ts"
-    } else {
-        "js"
-    };
-    for hook in &output.hooks {
-        if let Some(ref e) = hook.entry {
-            entries_map
-                .entry(e.as_ref())
-                .or_insert_with(Vec::new)
-                .push(hook);
+    let mut entries_map: HashMap<&str, Vec<&HookAnalysis>> =
+        HashMap::with_capacity(output.modules.len());
+    let mut new_modules = Vec::with_capacity(output.modules.len());
+    {
+        let hooks: Vec<&HookAnalysis> = output.modules.iter().flat_map(|m| &m.hook).collect();
+        for hook in hooks {
+            if let Some(ref e) = hook.entry {
+                entries_map
+                    .entry(e.as_ref())
+                    .or_insert_with(Vec::new)
+                    .push(hook);
+            }
+        }
+
+        for (entry, hooks) in &entries_map {
+            let module = new_entry_module(hooks);
+            let (code, map) =
+                emit_source_code(Lrc::clone(&source_map), None, &module, minify, false)
+                    .context("Emitting source code")?;
+            new_modules.push(TransformModule {
+                path: [entry, ".js"].concat(),
+                code,
+                map,
+                is_entry: true,
+                hook: None,
+            });
         }
     }
-
-    for (entry, hooks) in &entries_map {
-        let module = new_entry_module(hooks);
-        let (code, map) = emit_source_code(Lrc::clone(&source_map), None, &module, minify, false)
-            .context("Emitting source code")?;
-        output.modules.push(TransformModule {
-            path: [entry, ".", default_ext].concat(),
-            code,
-            map,
-            is_entry: true,
-        });
-    }
+    output.modules.append(&mut new_modules);
 
     Ok(output)
 }

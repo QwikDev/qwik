@@ -20,6 +20,7 @@ const Header = qComponent($(() => {
         EntryStrategy::Hook,
         MinifyMode::Simplify,
         false,
+        false,
     );
 }
 
@@ -40,6 +41,7 @@ export const Header = qComponent$(() => {
     "#,
         EntryStrategy::Hook,
         MinifyMode::Simplify,
+        false,
         false,
     );
 }
@@ -65,6 +67,7 @@ export const App = () => {
         EntryStrategy::Hook,
         MinifyMode::Simplify,
         false,
+        false,
     );
 }
 
@@ -89,6 +92,7 @@ export function App() {
         EntryStrategy::Hook,
         MinifyMode::Simplify,
         false,
+        false,
     );
 }
 
@@ -112,6 +116,7 @@ export const Header = qComponent$(() => {
         EntryStrategy::Hook,
         MinifyMode::Simplify,
         false,
+        false,
     );
 }
 
@@ -125,6 +130,7 @@ export const sym1 = $((ctx) => console.log("1"));
     "#,
         EntryStrategy::Hook,
         MinifyMode::Simplify,
+        false,
         false,
     );
 }
@@ -155,6 +161,7 @@ const App = qComponent$(() => {
         EntryStrategy::Hook,
         MinifyMode::Simplify,
         false,
+        false,
     );
 }
 
@@ -179,6 +186,7 @@ export const Header = qComponent$(() => {
         EntryStrategy::Hook,
         MinifyMode::Simplify,
         false,
+        false,
     );
 }
 
@@ -202,6 +210,7 @@ const Header = $((decl1, {decl2}, [decl3]) => {
     "#,
         EntryStrategy::Hook,
         MinifyMode::Simplify,
+        false,
         false,
     );
 }
@@ -233,6 +242,7 @@ const Header = $((decl1, {decl2}, [decl3]) => {
     "#,
         EntryStrategy::Hook,
         MinifyMode::Simplify,
+        false,
         false,
     );
 }
@@ -268,6 +278,7 @@ export const App = qComponent$(() => {
         EntryStrategy::Single,
         MinifyMode::Simplify,
         false,
+        false,
     );
 }
 
@@ -285,6 +296,7 @@ export const Header = qComponent$(() => {
         EntryStrategy::Single,
         MinifyMode::Simplify,
         false,
+        false,
     );
 }
 
@@ -301,6 +313,7 @@ export const Header = qComponent$(() => {
     "#,
         EntryStrategy::Single,
         MinifyMode::Simplify,
+        false,
         false,
     );
 }
@@ -324,6 +337,7 @@ fn example_functional_component() {
     "#,
         EntryStrategy::Hook,
         MinifyMode::None,
+        false,
         false,
     );
 }
@@ -367,6 +381,7 @@ export const App = qComponent$((props) => {
         EntryStrategy::Hook,
         MinifyMode::Simplify,
         true,
+        false,
     );
 }
 
@@ -394,6 +409,7 @@ export const App = qComponent$(({count, rest: [I2, {I3, v1: [I4], I5=v2, ...I6},
         EntryStrategy::Hook,
         MinifyMode::Simplify,
         true,
+        false,
     );
 }
 
@@ -430,6 +446,7 @@ export const Bar = qComponent$(({bar}) => {
         EntryStrategy::Hook,
         MinifyMode::Simplify,
         false,
+        false,
     );
 }
 
@@ -452,6 +469,7 @@ export const Foo = qComponent$("my-foo", () => {
         EntryStrategy::Hook,
         MinifyMode::Simplify,
         false,
+        false,
     );
 }
 
@@ -473,6 +491,7 @@ export const Foo = qComponent$("my-foo", () => {
     "#,
         EntryStrategy::Hook,
         MinifyMode::Simplify,
+        false,
         false,
     );
 }
@@ -510,6 +529,7 @@ export const ButtonArrow = ({text, color}) => {
         EntryStrategy::Hook,
         MinifyMode::Simplify,
         false,
+        false,
     );
 }
 
@@ -538,6 +558,7 @@ export const App = qComponent$(({count}) => {
         EntryStrategy::Hook,
         MinifyMode::Simplify,
         true,
+        false,
     );
 }
 
@@ -565,6 +586,7 @@ export const App = qComponent$(() => {
         EntryStrategy::Hook,
         MinifyMode::Simplify,
         true,
+        false,
     );
 }
 
@@ -586,6 +608,7 @@ export const App = qComponent$(() => {
         EntryStrategy::Hook,
         MinifyMode::Simplify,
         true,
+        false,
     );
 }
 
@@ -615,6 +638,7 @@ export const App = qComponent$(() => {
         EntryStrategy::Hook,
         MinifyMode::Simplify,
         true,
+        false,
     );
 }
 
@@ -636,6 +660,7 @@ export const App = Component((props) => {
         EntryStrategy::Hook,
         MinifyMode::Simplify,
         true,
+        false,
     );
 }
 
@@ -672,6 +697,7 @@ export const Footer = qComponent$();
         EntryStrategy::Hook,
         MinifyMode::Simplify,
         false,
+        false,
     );
 }
 
@@ -684,6 +710,7 @@ export const cache = patternCache[cacheKey] || (patternCache[cacheKey]={});
     "#,
         EntryStrategy::Single,
         MinifyMode::Simplify,
+        false,
         false,
     );
 }
@@ -710,6 +737,7 @@ export const Footer = qComponent$();
         EntryStrategy::Single,
         MinifyMode::Minify,
         true,
+        false,
     );
 }
 
@@ -759,6 +787,7 @@ export const Foo = qComponent$("my-foo", () => {
         EntryStrategy::Hook,
         MinifyMode::Simplify,
         true,
+        false,
     );
 }
 
@@ -790,6 +819,7 @@ export const Foo = qComponent$("my-foo", () => {
         EntryStrategy::Hook,
         MinifyMode::Simplify,
         true,
+        false,
     );
 }
 
@@ -823,6 +853,7 @@ export const Root = qComponent$("my-foo", () => {
         EntryStrategy::Hook,
         MinifyMode::Simplify,
         true,
+        false,
     );
 }
 
@@ -858,6 +889,7 @@ export const Lightweight = (props) => {
         EntryStrategy::Hook,
         MinifyMode::Simplify,
         true,
+        false,
     );
 }
 
@@ -886,6 +918,7 @@ export const App = qComponent$((props) => {
         EntryStrategy::Hook,
         MinifyMode::Simplify,
         true,
+        false,
     );
 }
 
@@ -907,6 +940,49 @@ export const App = qComponent$((props) => {
     "#,
         EntryStrategy::Hook,
         MinifyMode::Simplify,
+        true,
+        false,
+    );
+}
+
+#[test]
+fn example_explicit_ext_transpile() {
+    test_input(
+        "test.tsx",
+        r#"
+import { qComponent$, onRender$, withStyle$ } from '@builder.io/qwik';
+
+export const App = qComponent$((props) => {
+    withStyle$('hola');
+    return onRender$(() => (
+        <div></div>
+    ));
+});
+    "#,
+        EntryStrategy::Hook,
+        MinifyMode::Simplify,
+        true,
+        true,
+    );
+}
+
+#[test]
+fn example_explicit_ext_no_transpile() {
+    test_input(
+        "test.tsx",
+        r#"
+import { qComponent$, onRender$, withStyle$ } from '@builder.io/qwik';
+
+export const App = qComponent$((props) => {
+    withStyle$('hola');
+    return onRender$(() => (
+        <div></div>
+    ));
+});
+    "#,
+        EntryStrategy::Hook,
+        MinifyMode::Simplify,
+        false,
         true,
     );
 }
@@ -931,6 +1007,7 @@ const d = onRender$(()=>console.log('thing'));
         EntryStrategy::Hook,
         MinifyMode::Simplify,
         true,
+        false,
     );
 }
 
@@ -970,6 +1047,7 @@ fn test_input(
     entry_strategy: EntryStrategy,
     minify: MinifyMode,
     transpile: bool,
+    explicity_extensions: bool,
 ) {
     let res = transform_modules(TransformModulesOptions {
         root_dir: "/user/qwik/src/".into(),
@@ -980,6 +1058,7 @@ fn test_input(
         source_maps: true,
         minify,
         transpile,
+        explicity_extensions,
         entry_strategy,
     });
     match res {
@@ -987,22 +1066,21 @@ fn test_input(
             let input = code.to_string();
             let mut output = format!("==INPUT==\n\n{}", input);
 
-            for module in v.modules {
+            for module in &v.modules {
                 let is_entry = if module.is_entry { "(ENTRY POINT)" } else { "" };
                 output += format!(
                     "\n============================= {} {}==\n\n{}",
                     module.path, is_entry, module.code
                 )
                 .as_str();
+                if let Some(hook) = &module.hook {
+                    let hook = to_string_pretty(&hook).unwrap();
+                    output += &format!("\n/*\n{}\n*/", hook);
+                }
                 // let map = if let Some(map) = s.map { map } else { "".to_string() };
                 // output += format!("\n== MAP ==\n{}", map).as_str();
             }
-            let hooks = to_string_pretty(&v.hooks).unwrap();
-            output += format!(
-                "\n== HOOKS ==\n\n{}\n\n== DIAGNOSTICS ==\n\n{:?}",
-                hooks, v.diagnostics
-            )
-            .as_str();
+            output += format!("\n== DIAGNOSTICS ==\n\n{:?}", v.diagnostics).as_str();
             insta::assert_display_snapshot!(output);
         }
         Err(err) => {

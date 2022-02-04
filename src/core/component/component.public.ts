@@ -528,6 +528,7 @@ function _withStyles(styles: QRL<string>, scoped: boolean) {
         style.setAttribute('q:style', styleId);
         style.textContent = scoped ? styleText.replace(/�/g, styleId) : styleText;
         head.appendChild(style);
+        console.log('adding style');
       }
     })
   );

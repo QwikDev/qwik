@@ -18,7 +18,6 @@ class QRL<TYPE = any> implements IQRL<TYPE> {
     public guard: null | Map<string, string[]>,
     public guardRef: null | WeakMap<Object, string[]>
   ) {
-    debugger;
     this.canonicalChunk = chunk.replace(FIND_EXT, '');
   }
 }

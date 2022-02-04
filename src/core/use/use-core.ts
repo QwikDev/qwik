@@ -57,6 +57,7 @@ export function useInvoke<ARGS extends any[] = any[], RET = any>(
     }
     _context = previousContext;
     if (currentCtx.waitOn && currentCtx.waitOn.length > 0) {
+      // eslint-disable-next-line no-unsafe-finally
       return Promise.all(currentCtx.waitOn).then(() => returnValue);
     }
   }

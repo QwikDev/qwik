@@ -4,7 +4,6 @@ import {
   Optimizer,
   createOptimizer,
   OutputEntryMap,
-  Path,
   TransformFsOptions,
   TransformOutput,
   TransformModule,
@@ -50,7 +49,6 @@ export function qwikRollup(opts: QwikPluginOptions): any {
           },
         },
         optimizeDeps: {
-          entries: ['src/root.tsx'],
           include: ['@builder.io/qwik', '@builder.io/qwik/jsx-runtime'],
         },
       };
@@ -61,6 +59,7 @@ export function qwikRollup(opts: QwikPluginOptions): any {
         const url = req.originalUrl!;
         if (!/\.[\w?=&]+$/.test(url) && !url.startsWith('/@')) {
           if (debug) {
+            // eslint-disable-next-line no-console
             console.log(`[QWIK PLUGIN] Handle SSR request: ${url}`);
           }
 
@@ -71,8 +70,8 @@ export function qwikRollup(opts: QwikPluginOptions): any {
               mapping: {} as Record<string, string>,
             };
 
-            Array.from(server.moduleGraph.fileToModulesMap.entries()).forEach(([key, value]) => {
-              value.forEach((v) => {
+            Array.from(server.moduleGraph.fileToModulesMap.entries()).forEach((entry) => {
+              entry[1].forEach((v) => {
                 const hook = v.info?.meta?.hook;
                 if (hook && v.lastHMRTimestamp) {
                   symbols.mapping[hook.name] = `${v.url}?t=${v.lastHMRTimestamp}`;
@@ -92,6 +91,7 @@ export function qwikRollup(opts: QwikPluginOptions): any {
             res.end(html);
           } catch (e) {
             server.ssrFixStacktrace(e as any);
+            // eslint-disable-next-line no-console
             console.error(e as any);
             res.writeHead(500);
             res.end((e as any).message);
@@ -113,7 +113,7 @@ export function qwikRollup(opts: QwikPluginOptions): any {
       return inputOptions;
     },
 
-    async buildStart(options) {
+    async buildStart() {
       if (!optimizer) {
         optimizer = await createOptimizer();
       }
@@ -136,7 +136,8 @@ export function qwikRollup(opts: QwikPluginOptions): any {
           let key = optimizer.path.join(transformOpts.rootDir, output.path)!;
           key = key.split('.').slice(0, -1).join('.');
           if (debug) {
-            console.log(`[QWIK PLUGIN] Module: ${key}`);
+            // eslint-disable-next-line no-console
+            console.debug(`[QWIK PLUGIN] Module: ${key}`);
           }
           transformedOutputs.set(key, [output, key]);
         }
@@ -146,11 +147,11 @@ export function qwikRollup(opts: QwikPluginOptions): any {
           if (d.severity === 'error') {
             throw d.message;
           } else if (d.severity === 'warn') {
-            // eslint-disable-next-line
-            console.warn('QWIK:', d.message);
+            // eslint-disable-next-line no-console
+            console.warn('[QWIK PLUGIN]', d.message);
           } else {
-            // eslint-disable-next-line
-            console.info('QWIK:', d.message);
+            // eslint-disable-next-line no-console
+            console.info('[QWIK PLUGIN]', d.message);
           }
         });
 
@@ -172,7 +173,8 @@ export function qwikRollup(opts: QwikPluginOptions): any {
       }
       if (transformedOutputs.has(id)) {
         if (debug) {
-          console.log(`[QWIK PLUGIN] Resolve: ${id} ${opts}`);
+          // eslint-disable-next-line no-console
+          console.debug(`[QWIK PLUGIN] Resolve: ${id} ${opts}`);
         }
         return {
           id,
@@ -183,7 +185,8 @@ export function qwikRollup(opts: QwikPluginOptions): any {
         id = id.split('.').slice(0, -1).join('.');
         if (transformedOutputs.has(id)) {
           if (debug) {
-            console.log(`[QWIK PLUGIN] Resolved: ${id}`);
+            // eslint-disable-next-line no-console
+            console.debug(`[QWIK PLUGIN] Resolved: ${id}`);
           }
           return id;
         }
@@ -195,7 +198,8 @@ export function qwikRollup(opts: QwikPluginOptions): any {
       const transformedModule = transformedOutputs.get(id);
       if (transformedModule) {
         if (debug) {
-          console.log(`[QWIK PLUGIN] Loading: ${id}`);
+          // eslint-disable-next-line no-console
+          console.debug(`[QWIK PLUGIN] Loading: ${id}`);
         }
         return {
           code: transformedModule[0].code,
@@ -214,7 +218,8 @@ export function qwikRollup(opts: QwikPluginOptions): any {
       const pregenerated = transformedOutputs.get(id);
       if (pregenerated) {
         if (debug) {
-          console.log(`[QWIK PLUGIN] Add deps ${id}`, pregenerated[0].hook);
+          // eslint-disable-next-line no-console
+          console.debug(`[QWIK PLUGIN] Add deps ${id}`, pregenerated[0].hook);
         }
         this.addWatchFile(pregenerated[1]);
         return {
@@ -247,18 +252,20 @@ export function qwikRollup(opts: QwikPluginOptions): any {
         if (output) {
           results.set(id, output);
           if (debug) {
-            console.log(`[QWIK PLUGIN] Transforming: ${id}`);
+            // eslint-disable-next-line no-console
+            console.debug(`[QWIK PLUGIN] Transforming: ${id}`);
             for (const mod of output.modules) {
               const key = optimizer.path.join(dir, mod.path);
               if (debug) {
-                console.log(`[QWIK PLUGIN] Regenerated asset: ${key}`);
+                // eslint-disable-next-line no-console
+                console.debug(`[QWIK PLUGIN] Regenerated asset: ${key}`);
               }
             }
           }
 
           transformedOutputs = new Map();
-          for (const [_, output] of results.entries()) {
-            for (const mod of output.modules) {
+          for (const entry of results.entries()) {
+            for (const mod of entry[1].modules) {
               if (mod.isEntry) {
                 const key = optimizer.path.join(dir, mod.path);
                 transformedOutputs.set(key, [mod, id]);

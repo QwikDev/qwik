@@ -131,7 +131,7 @@ export function qwikRollup(opts: QwikPluginOptions): any {
 
         const result = await optimizer.transformFs(transformOpts);
         for (const output of result.modules) {
-          let key = optimizer.path.join(transformOpts.rootDir, output.path)!;
+          const key = optimizer.path.join(transformOpts.rootDir, output.path)!;
           if (debug) {
             // eslint-disable-next-line no-console
             console.debug(`[QWIK PLUGIN] Module: ${key}`);

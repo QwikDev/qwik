@@ -32,15 +32,14 @@ export function qwikRollup(opts: QwikPluginOptions): any {
     name: 'qwik',
     enforce: 'pre',
 
-    config(_, { command }) {
+    config(config, { command }) {
       if (command === 'serve') {
         entryStrategy = { type: 'hook' };
+        if ((config as any).ssr) {
+          (config as any).ssr.noExternal = false;
+        }
       }
       return {
-        /**
-         * We only need esbuild on .ts or .js files.
-         * .tsx & .jsx files are handled by us
-         */
         esbuild: { include: /\.js$/ },
         build: {
           polyfillModulePreload: false,
@@ -48,12 +47,8 @@ export function qwikRollup(opts: QwikPluginOptions): any {
             exclude: [/./],
           },
         },
-        optimizeDeps: {
-          include: ['@builder.io/qwik', '@builder.io/qwik/jsx-runtime'],
-        },
       };
     },
-
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
         const url = req.originalUrl!;

@@ -41,6 +41,9 @@ export function qwikRollup(opts: QwikPluginOptions): any {
       }
       return {
         esbuild: { include: /\.js$/ },
+        optimizeDeps: {
+          include: ['@builder.io/qwik', '@builder.io/qwik/jsx-runtime'],
+        },
         build: {
           polyfillModulePreload: false,
           dynamicImportVarsOptions: {
@@ -128,8 +131,7 @@ export function qwikRollup(opts: QwikPluginOptions): any {
 
         const result = await optimizer.transformFs(transformOpts);
         for (const output of result.modules) {
-          let key = optimizer.path.join(transformOpts.rootDir, output.path)!;
-          key = key.split('.').slice(0, -1).join('.');
+          const key = optimizer.path.join(transformOpts.rootDir, output.path)!;
           if (debug) {
             // eslint-disable-next-line no-console
             console.debug(`[QWIK PLUGIN] Module: ${key}`);
@@ -166,24 +168,23 @@ export function qwikRollup(opts: QwikPluginOptions): any {
           id = optimizer.path.resolve(dir, id);
         }
       }
-      if (transformedOutputs.has(id)) {
-        if (debug) {
-          // eslint-disable-next-line no-console
-          console.debug(`[QWIK PLUGIN] Resolve: ${id} ${opts}`);
-        }
-        return {
-          id,
-          moduleSideEffects: false,
-        };
+      const tries = [id, id + '.js'];
+      if (['.jsx', '.ts', '.tsx'].includes(optimizer.path.extname(id))) {
+        tries.push(removeExtension(id) + '.js');
       }
-      if (['.js', '.jsx', '.ts', '.tsx'].includes(optimizer.path.extname(id))) {
-        id = id.split('.').slice(0, -1).join('.');
-        if (transformedOutputs.has(id)) {
+      for (const id of tries) {
+        const res = transformedOutputs.get(id);
+        if (res) {
           if (debug) {
             // eslint-disable-next-line no-console
-            console.debug(`[QWIK PLUGIN] Resolved: ${id}`);
+            console.debug(`[QWIK PLUGIN] Resolve: ${id} ${opts}`);
           }
-          return id;
+          const mod = res[0];
+          const sideEffects = !mod.isEntry || !mod.hook;
+          return {
+            id,
+            moduleSideEffects: sideEffects,
+          };
         }
       }
       return null;
@@ -310,7 +311,7 @@ export function qwikRollup(opts: QwikPluginOptions): any {
 
         hooks.forEach((h) => {
           const symbolName = h.name;
-          let filename = h.canonicalFilename;
+          let filename = h.canonicalFilename + '.js';
           // eslint-disable-next-line
           const found = output.find(([_, v]) => {
             return (
@@ -342,6 +343,10 @@ export function qwikRollup(opts: QwikPluginOptions): any {
   };
 
   return plugin;
+}
+
+function removeExtension(id: string) {
+  return id.split('.').slice(0, -1).join('.');
 }
 
 /**

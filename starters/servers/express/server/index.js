@@ -1,7 +1,7 @@
 const express = require('express');
 const { join } = require('path');
 const { existsSync } = require('fs');
-const { render } = require('./build/entry.js');
+const { render } = require('./build/entry.server.js');
 const symbols = require('./q-symbols.json');
 const PORT = process.env.PORT || 8080;
 

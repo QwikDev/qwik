@@ -21,7 +21,7 @@ export function render(opts: RenderToStringOptions) {
         <title>Qwik + Partytown Blank App</title>
         <script defer async src="/~partytown/debug/partytown.js"></script>
       </head>
-      <body q:base="/build/">
+      <body q:base="/">
         <Root />
         <script type="text/partytown">
           ({partyTownExampleWhichBlocksMainThreadForOneSecond.toString()})()

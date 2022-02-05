@@ -32,7 +32,7 @@ export function render(opts: RenderToStringOptions) {
         <link rel="stylesheet" href="/base.css" />
         <link rel="stylesheet" href="/index.css" />
       </head>
-      <body q:base="/build/">
+      <body q:base="/">
         <Root todos={todos} />
         <QwikLoader debug={opts.debug} />
       </body>

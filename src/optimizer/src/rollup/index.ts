@@ -8,7 +8,6 @@ import {
   TransformOutput,
   TransformModule,
   HookAnalysis,
-  SourceLocation,
   Diagnostic,
 } from '..';
 
@@ -40,24 +39,22 @@ export function qwikRollup(opts: QwikPluginOptions): any {
         column: loc.start_col,
         line: loc.start_line,
       },
-      stack: ''
+      stack: '',
     });
     return err;
-  }
+  };
 
   const handleDiagnostics = (ctx: PluginContext, rootDir: string, diagnostics: Diagnostic[]) => {
     diagnostics.forEach((d) => {
       if (d.severity === 'Error') {
         ctx.error(createRollupError(rootDir, d));
-
       } else if (d.severity === 'Warning') {
         ctx.warn(createRollupError(rootDir, d));
-
       } else {
         ctx.warn(createRollupError(rootDir, d));
       }
     });
-  }
+  };
 
   const plugin: Plugin = {
     name: 'qwik',
@@ -95,7 +92,6 @@ export function qwikRollup(opts: QwikPluginOptions): any {
           try {
             const { render } = await server.ssrLoadModule('/src/entry.server.tsx');
             if (render) {
-
               const symbols = {
                 version: '1',
                 mapping: {} as Record<string, string>,
@@ -382,97 +378,4 @@ export interface QwikPluginOptions {
   symbolsOutput?:
     | string
     | ((data: OutputEntryMap, output: NormalizedOutputOptions) => Promise<void> | void);
-}
-
-
-const getErrorHtml = (err: Error) => {
-  return `<!doctype html>
-  <html lang="en">
-    <head>
-      <script type="module" src="/@vite/client"></script>
-      <meta charset="UTF-8">
-      <title>500: Error</title>
-      <style>
-:root {
-  --gray-10: hsl(258, 7%, 10%);
-  --gray-20: hsl(258, 7%, 20%);
-  --gray-30: hsl(258, 7%, 30%);
-  --gray-40: hsl(258, 7%, 40%);
-  --gray-50: hsl(258, 7%, 50%);
-  --gray-60: hsl(258, 7%, 60%);
-  --gray-70: hsl(258, 7%, 70%);
-  --gray-80: hsl(258, 7%, 80%);
-  --gray-90: hsl(258, 7%, 90%);
-  --orange: #ff5d01;
-}
-
-* {
-  box-sizing: border-box;
-}
-
-body {
-  background-color: var(--gray-10);
-  color: var(--gray-80);
-  font-family: monospace;
-  line-height: 1.5;
-  margin: 0;
-}
-
-a {
-  color: var(--orange);
-}
-
-h1 {
-  font-weight: 800;
-  margin-top: 1rem;
-  margin-bottom: 0;
-}
-
-pre {
-  color:;
-  font-size: 1.2em;
-  margin-top: 0;
-  max-width: 60em;
-}
-
-
-        .wrapper {
-          max-width: 80rem;
-          margin-left: auto;
-          margin-right: auto;
-          padding-left: 1.5rem;
-          padding-right: 1.5rem;
-          width: 100%;
-        }
-
-        .statusCode {
-          color: var(--orange);
-        }
-
-        h1 {
-          margin-top: 0;
-        }
-
-        header {
-          margin-bottom: 3rem;
-          margin-top: 4rem;
-          text-align: center;
-        }
-
-        .astro {
-          height: 4rem;
-          width: 4rem;
-        }
-      </style>
-    </head>
-    <body>
-      <main class="wrapper">
-        <header>
-          <h1><span class="statusCode">500: </span> <span class="statusMessage">Internal Error</span></h1>
-        </header>
-        <pre>${err.message}</pre>
-        <pre>${err.stack}</pre>
-        </main>
-    </body>
-  </html>`;
 }

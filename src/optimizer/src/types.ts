@@ -142,10 +142,10 @@ export interface CodeHighlight {
  * @alpha
  */
 export interface SourceLocation {
-  start_line: number,
-  start_col: number,
-  end_line: number,
-  end_col: number,
+  start_line: number;
+  start_col: number;
+  end_line: number;
+  end_col: number;
 }
 
 /**

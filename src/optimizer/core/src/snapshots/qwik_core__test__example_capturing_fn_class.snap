@@ -78,4 +78,4 @@ export const App_onmount = ()=>{
 */
 == DIAGNOSTICS ==
 
-[Diagnostic { message: "Identifier can not capture because it's a function: Thing", code_highlights: None, hints: None, show_environment: false, severity: Error, documentation_url: None }, Diagnostic { message: "Identifier can not capture because it's a function: hola", code_highlights: None, hints: None, show_environment: false, severity: Error, documentation_url: None }]
+[Diagnostic { origin: Atom('test.tsx' type=dynamic), message: "Identifier can not capture because it's a function: Thing", code_highlights: None, hints: None, show_environment: false, severity: Error, documentation_url: None }, Diagnostic { origin: Atom('test.tsx' type=dynamic), message: "Identifier can not capture because it's a function: hola", code_highlights: None, hints: None, show_environment: false, severity: Error, documentation_url: None }]

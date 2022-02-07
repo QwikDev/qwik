@@ -72,4 +72,4 @@ export const App_onmount = ()=>{
 */
 == DIAGNOSTICS ==
 
-[Diagnostic { message: "Identifier can not be captured", code_highlights: Some([CodeHighlight { message: None, loc: SourceLocation { start_line: 8, start_col: 16, end_line: 8, end_col: 20 } }]), hints: None, show_environment: false, severity: Error, documentation_url: None }]
+[Diagnostic { origin: Atom('test.tsx' type=dynamic), message: "Identifier can not be captured", code_highlights: Some([CodeHighlight { message: None, loc: SourceLocation { start_line: 8, start_col: 16, end_line: 8, end_col: 20 } }]), hints: None, show_environment: false, severity: Error, documentation_url: None }]

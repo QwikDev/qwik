@@ -34,7 +34,7 @@ use swc_ecmascript::visit::{FoldWith, VisitMutWith};
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct HookAnalysis {
-    pub origin: String,
+    pub origin: JsWord,
     pub name: String,
     pub entry: Option<JsWord>,
     pub canonical_filename: String,
@@ -132,6 +132,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
         JsWord::from(path_data.extension.clone())
     };
     let transpile = config.transpile;
+    let origin: JsWord = path_data.path.to_string_lossy().into();
 
     match module {
         Ok((main_module, comments, is_type_script, is_jsx)) => {
@@ -339,7 +340,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                         },
                     );
 
-                    let diagnostics = handle_error(&error_buffer, &source_map);
+                    let diagnostics = handle_error(&error_buffer, origin, &source_map);
                     Ok(TransformOutput {
                         modules,
                         diagnostics,
@@ -353,7 +354,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
             let error_buffer = ErrorBuffer::default();
             let handler = Handler::with_emitter(true, false, Box::new(error_buffer.clone()));
             err.into_diagnostic(&handler).emit();
-            let diagnostics = handle_error(&error_buffer, &source_map);
+            let diagnostics = handle_error(&error_buffer, origin, &source_map);
             Ok(TransformOutput {
                 modules: vec![],
                 diagnostics,
@@ -456,7 +457,11 @@ pub fn emit_source_code(
     }
 }
 
-fn handle_error(error_buffer: &ErrorBuffer, source_map: &Lrc<SourceMap>) -> Vec<Diagnostic> {
+fn handle_error(
+    error_buffer: &ErrorBuffer,
+    origin: JsWord,
+    source_map: &Lrc<SourceMap>,
+) -> Vec<Diagnostic> {
     error_buffer
         .0
         .lock()
@@ -496,6 +501,7 @@ fn handle_error(error_buffer: &ErrorBuffer, source_map: &Lrc<SourceMap>) -> Vec<
             };
 
             Diagnostic {
+                origin: origin.clone(),
                 message,
                 code_highlights,
                 hints,

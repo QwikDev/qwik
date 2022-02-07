@@ -12,7 +12,68 @@ import {
 } from '..';
 
 import type { NormalizedOutputOptions, PluginContext, RollupError } from 'rollup';
-import type { Plugin } from 'vite';
+import type { Plugin, ViteDevServer } from 'vite';
+
+/**
+ * @alpha
+ */
+export function qwikVite(opts: QwikViteOptions): any {
+  const debug = !!opts.debug;
+  const plugin = qwikRollup(opts);
+  if (opts.ssr !== false) {
+    const entry = opts.ssr?.entry ?? '/src/entry.server.tsx';
+    Object.assign(plugin, {
+      configureServer(server: ViteDevServer) {
+        server.middlewares.use(async (req, res, next) => {
+          const url = req.originalUrl!;
+          if (!/\.[\w?=&]+$/.test(url) && !url.startsWith('/@')) {
+            if (debug) {
+              // eslint-disable-next-line no-console
+              console.log(`[QWIK PLUGIN] Handle SSR request: ${url}`);
+            }
+
+            try {
+              const { render } = await server.ssrLoadModule(entry);
+              if (render) {
+                const symbols = {
+                  version: '1',
+                  mapping: {} as Record<string, string>,
+                };
+
+                Array.from(server.moduleGraph.fileToModulesMap.entries()).forEach((entry) => {
+                  entry[1].forEach((v) => {
+                    const hook = v.info?.meta?.hook;
+                    if (hook && v.lastHMRTimestamp) {
+                      symbols.mapping[hook.name] = `${v.url}?t=${v.lastHMRTimestamp}`;
+                    }
+                  });
+                });
+                const host = req.headers.host ?? 'localhost';
+                const result = await render({
+                  url: new URL(`http://${host}${url}`),
+                  debug: true,
+                  symbols,
+                });
+
+                const html = await server.transformIndexHtml(url, result.html);
+                res.setHeader('Content-Type', 'text/html; charset=utf-8');
+                res.writeHead(200);
+                res.end(html);
+              }
+            } catch (e) {
+              server.ssrFixStacktrace(e as any);
+              res.writeHead(500);
+              next(e);
+            }
+          } else {
+            next();
+          }
+        });
+      },
+    });
+  }
+  return plugin;
+}
 
 /**
  * @alpha
@@ -79,53 +140,6 @@ export function qwikRollup(opts: QwikPluginOptions): any {
           },
         },
       };
-    },
-    configureServer(server) {
-      server.middlewares.use(async (req, res, next) => {
-        const url = req.originalUrl!;
-        if (!/\.[\w?=&]+$/.test(url) && !url.startsWith('/@')) {
-          if (debug) {
-            // eslint-disable-next-line no-console
-            console.log(`[QWIK PLUGIN] Handle SSR request: ${url}`);
-          }
-
-          try {
-            const { render } = await server.ssrLoadModule('/src/entry.server.tsx');
-            if (render) {
-              const symbols = {
-                version: '1',
-                mapping: {} as Record<string, string>,
-              };
-
-              Array.from(server.moduleGraph.fileToModulesMap.entries()).forEach((entry) => {
-                entry[1].forEach((v) => {
-                  const hook = v.info?.meta?.hook;
-                  if (hook && v.lastHMRTimestamp) {
-                    symbols.mapping[hook.name] = `${v.url}?t=${v.lastHMRTimestamp}`;
-                  }
-                });
-              });
-              const host = req.headers.host ?? 'localhost';
-              const result = await render({
-                url: new URL(`http://${host}${url}`),
-                debug: true,
-                symbols,
-              });
-
-              const html = await server.transformIndexHtml(url, result.html);
-              res.setHeader('Content-Type', 'text/html; charset=utf-8');
-              res.writeHead(200);
-              res.end(html);
-            }
-          } catch (e) {
-            server.ssrFixStacktrace(e as any);
-            res.writeHead(500);
-            next(e);
-          }
-        } else {
-          next();
-        }
-      });
     },
 
     options(inputOptions) {
@@ -378,4 +392,19 @@ export interface QwikPluginOptions {
   symbolsOutput?:
     | string
     | ((data: OutputEntryMap, output: NormalizedOutputOptions) => Promise<void> | void);
+}
+
+/**
+ * @alpha
+ */
+export interface QwikViteOptions extends QwikPluginOptions {
+  ssr?: QwikViteSSROptions | false;
+}
+
+/**
+ * @alpha
+ */
+export interface QwikViteSSROptions {
+  /** Defaults to `/src/entry.server.tsx` */
+  entry?: string;
 }

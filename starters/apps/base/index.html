@@ -1,8 +1,12 @@
-<script type="module">
-  // Vite Dev Mode Only
-  import '@builder.io/qwik/qwikloader.js';
-  import { render, jsx } from '@builder.io/qwik';
-  import { Root } from '/src/root.tsx';
-
-  render(document.body, jsx(Root));
-</script>
+<!DOCTYPE html>
+<html>
+  <body>
+    <script type="module">
+      // Vite Dev Mode Only
+      import '@builder.io/qwik/qwikloader.js';
+      import { render, jsx } from '@builder.io/qwik';
+      import { App } from '/src/app.tsx';
+      render(document.body, jsx(App));
+    </script>
+  </body>
+</html>

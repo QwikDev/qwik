@@ -155,7 +155,13 @@ function cleanup(content: string) {
     content = content.replace(rg, '// ' + commentOut);
   });
 
-  return removeLineComments(content);
+  content = removeLineComments(content);
+
+  // <meta charSet /> should be <meta charset />
+  // https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-charset
+  content = content.replace(/charSet\?\:/g, 'charset?:');
+
+  return content;
 }
 
 /**

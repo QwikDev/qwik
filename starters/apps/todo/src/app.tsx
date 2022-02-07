@@ -22,7 +22,7 @@ import {
   updateFilter,
 } from './state';
 
-import styles from './root.css';
+import styles from './app.css';
 
 /* eslint no-console: ["off"] */
 

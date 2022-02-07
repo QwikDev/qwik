@@ -22,8 +22,8 @@ const port = parseInt(process.argv[process.argv.length - 1], 10) || 3300;
 const address = `http://localhost:${port}/`;
 const startersDir = __dirname;
 const startersAppsDir = join(startersDir, 'apps');
-const appNames = readdirSync(startersAppsDir).filter((p) =>
-  statSync(join(startersAppsDir, p)).isDirectory()
+const appNames = readdirSync(startersAppsDir).filter(
+  (p) => statSync(join(startersAppsDir, p)).isDirectory() && p !== 'base'
 );
 
 const qwikDistDir = join(__dirname, '..', 'dist-dev', '@builder.io-qwik');

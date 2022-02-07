@@ -167,6 +167,20 @@ export interface QwikPluginOptions {
 export function qwikRollup(opts: QwikPluginOptions): any;
 
 // @alpha (undocumented)
+export function qwikVite(opts: QwikViteOptions): any;
+
+// @alpha (undocumented)
+export interface QwikViteOptions extends QwikPluginOptions {
+    // (undocumented)
+    ssr?: QwikViteSSROptions | false;
+}
+
+// @alpha (undocumented)
+export interface QwikViteSSROptions {
+    entry?: string;
+}
+
+// @alpha (undocumented)
 export interface SingleEntryStrategy {
     // (undocumented)
     type: 'single';

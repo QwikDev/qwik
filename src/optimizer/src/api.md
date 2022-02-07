@@ -7,6 +7,14 @@
 import type { NormalizedOutputOptions } from 'rollup';
 
 // @alpha (undocumented)
+export interface CodeHighlight {
+    // (undocumented)
+    loc: SourceLocation;
+    // (undocumented)
+    message: string | null;
+}
+
+// @alpha (undocumented)
 export interface ComponentEntryStrategy {
     // (undocumented)
     type: 'component';
@@ -18,11 +26,15 @@ export const createOptimizer: () => Promise<Optimizer>;
 // @alpha (undocumented)
 export interface Diagnostic {
     // (undocumented)
+    code_highlights: CodeHighlight[];
+    // (undocumented)
     documentation_url?: string;
     // (undocumented)
     hints?: string[];
     // (undocumented)
     message: string;
+    // (undocumented)
+    origin: string;
     // (undocumented)
     severity: DiagnosticType;
     // (undocumented)
@@ -30,7 +42,7 @@ export interface Diagnostic {
 }
 
 // @alpha (undocumented)
-export type DiagnosticType = 'error' | 'warn' | 'info';
+export type DiagnosticType = 'Error' | 'Warning' | 'SourceError';
 
 // @alpha (undocumented)
 export type EntryStrategy = SingleEntryStrategy | HookEntryStrategy | ComponentEntryStrategy | SmartEntryStrategy | ManualEntryStrategy;
@@ -164,6 +176,18 @@ export interface SingleEntryStrategy {
 export interface SmartEntryStrategy {
     // (undocumented)
     type: 'smart';
+}
+
+// @alpha (undocumented)
+export interface SourceLocation {
+    // (undocumented)
+    end_col: number;
+    // (undocumented)
+    end_line: number;
+    // (undocumented)
+    start_col: number;
+    // (undocumented)
+    start_line: number;
 }
 
 // @alpha (undocumented)

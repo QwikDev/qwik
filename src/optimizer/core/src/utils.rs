@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
+use swc_atoms::JsWord;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
 pub struct SourceLocation {
@@ -42,6 +43,7 @@ pub struct CodeHighlight {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Diagnostic {
+    pub origin: JsWord,
     pub message: String,
     pub code_highlights: Option<Vec<CodeHighlight>>,
     pub hints: Option<Vec<String>>,

@@ -8,9 +8,11 @@ import {
   TransformOutput,
   TransformModule,
   HookAnalysis,
+  SourceLocation,
+  Diagnostic,
 } from '..';
 
-import type { NormalizedOutputOptions } from 'rollup';
+import type { NormalizedOutputOptions, PluginContext, RollupError } from 'rollup';
 import type { Plugin } from 'vite';
 
 /**
@@ -27,6 +29,35 @@ export function qwikRollup(opts: QwikPluginOptions): any {
     type: 'single' as const,
     ...opts.entryStrategy,
   };
+
+  const createRollupError = (rootDir: string, diagnostic: Diagnostic) => {
+    const loc = diagnostic.code_highlights[0]?.loc ?? {};
+    const id = optimizer.path.join(rootDir, diagnostic.origin);
+    const err: RollupError = Object.assign(new Error(diagnostic.message), {
+      id,
+      plugin: 'qwik',
+      loc: {
+        column: loc.start_col,
+        line: loc.start_line,
+      },
+      stack: ''
+    });
+    return err;
+  }
+
+  const handleDiagnostics = (ctx: PluginContext, rootDir: string, diagnostics: Diagnostic[]) => {
+    diagnostics.forEach((d) => {
+      if (d.severity === 'Error') {
+        ctx.error(createRollupError(rootDir, d));
+
+      } else if (d.severity === 'Warning') {
+        ctx.warn(createRollupError(rootDir, d));
+
+      } else {
+        ctx.warn(createRollupError(rootDir, d));
+      }
+    });
+  }
 
   const plugin: Plugin = {
     name: 'qwik',
@@ -63,36 +94,37 @@ export function qwikRollup(opts: QwikPluginOptions): any {
 
           try {
             const { render } = await server.ssrLoadModule('/src/entry.server.tsx');
-            const symbols = {
-              version: '1',
-              mapping: {} as Record<string, string>,
-            };
+            if (render) {
 
-            Array.from(server.moduleGraph.fileToModulesMap.entries()).forEach((entry) => {
-              entry[1].forEach((v) => {
-                const hook = v.info?.meta?.hook;
-                if (hook && v.lastHMRTimestamp) {
-                  symbols.mapping[hook.name] = `${v.url}?t=${v.lastHMRTimestamp}`;
-                }
+              const symbols = {
+                version: '1',
+                mapping: {} as Record<string, string>,
+              };
+
+              Array.from(server.moduleGraph.fileToModulesMap.entries()).forEach((entry) => {
+                entry[1].forEach((v) => {
+                  const hook = v.info?.meta?.hook;
+                  if (hook && v.lastHMRTimestamp) {
+                    symbols.mapping[hook.name] = `${v.url}?t=${v.lastHMRTimestamp}`;
+                  }
+                });
               });
-            });
-            const host = req.headers.host ?? 'localhost';
-            const result = await render({
-              url: new URL(`http://${host}${url}`),
-              debug: true,
-              symbols,
-            });
+              const host = req.headers.host ?? 'localhost';
+              const result = await render({
+                url: new URL(`http://${host}${url}`),
+                debug: true,
+                symbols,
+              });
 
-            const html = await server.transformIndexHtml(url, result.html);
-            res.setHeader('Content-Type', 'text/html; charset=utf-8');
-            res.writeHead(200);
-            res.end(html);
+              const html = await server.transformIndexHtml(url, result.html);
+              res.setHeader('Content-Type', 'text/html; charset=utf-8');
+              res.writeHead(200);
+              res.end(html);
+            }
           } catch (e) {
             server.ssrFixStacktrace(e as any);
-            // eslint-disable-next-line no-console
-            console.error(e as any);
             res.writeHead(500);
-            res.end((e as any).message);
+            next(e);
           }
         } else {
           next();
@@ -131,26 +163,14 @@ export function qwikRollup(opts: QwikPluginOptions): any {
 
         const result = await optimizer.transformFs(transformOpts);
         for (const output of result.modules) {
-          const key = optimizer.path.join(transformOpts.rootDir, output.path)!;
+          const key = optimizer.path.join(rootDir, output.path)!;
           if (debug) {
             // eslint-disable-next-line no-console
             console.debug(`[QWIK PLUGIN] Module: ${key}`);
           }
           transformedOutputs.set(key, [output, key]);
         }
-
-        // throw error or print logs if there are any diagnostics
-        result.diagnostics.forEach((d) => {
-          if (d.severity === 'error') {
-            throw d.message;
-          } else if (d.severity === 'warn') {
-            // eslint-disable-next-line no-console
-            console.warn('[QWIK PLUGIN]', d.message);
-          } else {
-            // eslint-disable-next-line no-console
-            console.info('[QWIK PLUGIN]', d.message);
-          }
-        });
+        handleDiagnostics(this, rootDir, result.diagnostics);
 
         results.set('@buildStart', result);
       }
@@ -244,6 +264,8 @@ export function qwikRollup(opts: QwikPluginOptions): any {
           explicityExtensions: true,
           rootDir: dir,
         });
+
+        handleDiagnostics(this, base, output.diagnostics);
 
         if (output) {
           results.set(id, output);
@@ -360,4 +382,97 @@ export interface QwikPluginOptions {
   symbolsOutput?:
     | string
     | ((data: OutputEntryMap, output: NormalizedOutputOptions) => Promise<void> | void);
+}
+
+
+const getErrorHtml = (err: Error) => {
+  return `<!doctype html>
+  <html lang="en">
+    <head>
+      <script type="module" src="/@vite/client"></script>
+      <meta charset="UTF-8">
+      <title>500: Error</title>
+      <style>
+:root {
+  --gray-10: hsl(258, 7%, 10%);
+  --gray-20: hsl(258, 7%, 20%);
+  --gray-30: hsl(258, 7%, 30%);
+  --gray-40: hsl(258, 7%, 40%);
+  --gray-50: hsl(258, 7%, 50%);
+  --gray-60: hsl(258, 7%, 60%);
+  --gray-70: hsl(258, 7%, 70%);
+  --gray-80: hsl(258, 7%, 80%);
+  --gray-90: hsl(258, 7%, 90%);
+  --orange: #ff5d01;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--gray-10);
+  color: var(--gray-80);
+  font-family: monospace;
+  line-height: 1.5;
+  margin: 0;
+}
+
+a {
+  color: var(--orange);
+}
+
+h1 {
+  font-weight: 800;
+  margin-top: 1rem;
+  margin-bottom: 0;
+}
+
+pre {
+  color:;
+  font-size: 1.2em;
+  margin-top: 0;
+  max-width: 60em;
+}
+
+
+        .wrapper {
+          max-width: 80rem;
+          margin-left: auto;
+          margin-right: auto;
+          padding-left: 1.5rem;
+          padding-right: 1.5rem;
+          width: 100%;
+        }
+
+        .statusCode {
+          color: var(--orange);
+        }
+
+        h1 {
+          margin-top: 0;
+        }
+
+        header {
+          margin-bottom: 3rem;
+          margin-top: 4rem;
+          text-align: center;
+        }
+
+        .astro {
+          height: 4rem;
+          width: 4rem;
+        }
+      </style>
+    </head>
+    <body>
+      <main class="wrapper">
+        <header>
+          <h1><span class="statusCode">500: </span> <span class="statusMessage">Internal Error</span></h1>
+        </header>
+        <pre>${err.message}</pre>
+        <pre>${err.stack}</pre>
+        </main>
+    </body>
+  </html>`;
 }

@@ -21,12 +21,11 @@ export const App = component$(() => {
         </p>
         <p class="congrats">
           Congratulations <a href="https://github.com/builderio/qwik">Qwik</a> with{' '}
-          <a href="https://github.com/BuilderIO/partytown">Partytown</a> is working!
+          <a href="https://partytown.builder.io/">Partytown</a> is working!
         </p>
 
         <p>
-          Expensive script running in <a href="https://github.com/BuilderIO/partytown">Partytown</a>{' '}
-          is{' '}
+          Expensive script running in <a href="https://partytown.builder.io/">Partytown</a> is{' '}
           {state.running ? (
             <span style={{ 'background-color': 'red', color: 'white', padding: '.1em' }}>
               running

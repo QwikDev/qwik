@@ -28,6 +28,7 @@ export function render(opts: RenderToStringOptions) {
   return renderToString(
     <html>
       <head>
+        <meta charSet="utf-8" />
         <title>Qwik Demo: ToDo</title>
         <link rel="stylesheet" href="/base.css" />
         <link rel="stylesheet" href="/index.css" />

@@ -204,8 +204,8 @@ function startersHomepage(req, res) {
   `);
 }
 
-function favicon(req, res) {
-  const path = join(startersAppsDir, 'todo', 'public', 'favicon.ico');
+function favicon(_, res) {
+  const path = join(startersAppsDir, 'base', 'public', 'favicon.ico');
   res.sendFile(path);
 }
 

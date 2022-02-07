@@ -7,6 +7,7 @@
  */
 
 import { renderToString, RenderToStringOptions, QwikLoader } from '@builder.io/qwik/server';
+import { partytownSnippet } from '@builder.io/partytown/integration';
 import { App } from './app';
 
 /**
@@ -18,8 +19,9 @@ export function render(opts: RenderToStringOptions) {
   return renderToString(
     <html>
       <head>
+        <meta charSet="utf-8" />
         <title>Qwik + Partytown Blank App</title>
-        <script defer async src="/~partytown/debug/partytown.js"></script>
+        <script children={partytownSnippet({ debug: true })} />
       </head>
       <body q:base="/">
         <App />

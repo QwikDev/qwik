@@ -7,7 +7,7 @@
  */
 
 import { renderToString, RenderToStringOptions, QwikLoader } from '@builder.io/qwik/server';
-import { Root } from './root';
+import { App } from './app';
 
 /**
  * Entry point for server-side pre-rendering.
@@ -22,7 +22,7 @@ export function render(opts: RenderToStringOptions) {
         <script defer async src="/~partytown/debug/partytown.js"></script>
       </head>
       <body q:base="/">
-        <Root />
+        <App />
         <script type="text/partytown">
           ({partyTownExampleWhichBlocksMainThreadForOneSecond.toString()})()
         </script>

@@ -1,7 +1,5 @@
 {
-  "name": "qwik-project-name",
-  "description": "Cloudflare Workers (serverless)",
-  "priority": -1,
+  "description": "Cloudflare Workers (serverless).",
   "scripts": {
     "build.server": "vite build --outDir server/build --ssr src/entry.cloudflare.tsx",
     "deploy": "wrangler publish",
@@ -13,5 +11,8 @@
     "@cloudflare/workers-types": "3.2.0",
     "@cloudflare/wrangler": "1.19.7",
     "@types/service-worker-mock": "2.0.1"
+  },
+  "qwik": {
+    "priority": -1
   }
 }

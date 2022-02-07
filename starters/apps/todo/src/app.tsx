@@ -44,7 +44,7 @@ import styles from './root.css';
  * Qwik knows that it should never need to be rerendered, and its code will never
  * download to the client.
  */
-export const Root = component(
+export const App = component(
   'todo',
   $((props: { todos: Todos }) => {
     withStyles$(styles);

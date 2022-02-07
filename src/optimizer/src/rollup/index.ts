@@ -70,7 +70,7 @@ export function qwikVite(opts: QwikViteOptions): any {
           }
         });
       },
-    })
+    });
   }
   return plugin;
 }
@@ -397,14 +397,14 @@ export interface QwikPluginOptions {
 /**
  * @alpha
  */
- export interface QwikViteOptions extends QwikPluginOptions {
-   ssr?: QwikViteSSROptions | false,
- }
+export interface QwikViteOptions extends QwikPluginOptions {
+  ssr?: QwikViteSSROptions | false;
+}
 
 /**
  * @alpha
  */
- export interface QwikViteSSROptions {
+export interface QwikViteSSROptions {
   /** Defaults to `/src/entry.server.tsx` */
   entry?: string;
 }

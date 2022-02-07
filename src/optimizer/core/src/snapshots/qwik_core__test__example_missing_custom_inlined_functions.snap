@@ -85,4 +85,4 @@ export const App_onRender = ()=>{
 */
 == DIAGNOSTICS ==
 
-[Diagnostic { message: "Version without $ is not exported.", code_highlights: Some([CodeHighlight { message: None, loc: SourceLocation { start_line: 11, start_col: 5, end_line: 11, end_col: 12 } }]), hints: None, show_environment: false, severity: Error, documentation_url: None }]
+[Diagnostic { origin: Atom('test.tsx' type=dynamic), message: "Version without $ is not exported.", code_highlights: Some([CodeHighlight { message: None, loc: SourceLocation { start_line: 11, start_col: 5, end_line: 11, end_col: 12 } }]), hints: None, show_environment: false, severity: Error, documentation_url: None }]

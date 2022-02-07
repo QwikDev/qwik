@@ -45,7 +45,7 @@ pub struct Hook {
     pub local_idents: Vec<Id>,
     pub scoped_idents: Vec<Id>,
 
-    pub origin: String,
+    pub origin: JsWord,
 }
 
 pub struct TransformContext {

@@ -121,8 +121,10 @@ export interface TransformModule {
  * @alpha
  */
 export interface Diagnostic {
+  origin: string;
   message: string;
   severity: DiagnosticType;
+  code_highlights: CodeHighlight[];
   documentation_url?: string;
   show_environment: boolean;
   hints?: string[];
@@ -131,7 +133,25 @@ export interface Diagnostic {
 /**
  * @alpha
  */
-export type DiagnosticType = 'error' | 'warn' | 'info';
+export interface CodeHighlight {
+  message: string | null;
+  loc: SourceLocation;
+}
+
+/**
+ * @alpha
+ */
+export interface SourceLocation {
+  start_line: number;
+  start_col: number;
+  end_line: number;
+  end_col: number;
+}
+
+/**
+ * @alpha
+ */
+export type DiagnosticType = 'Error' | 'Warning' | 'SourceError';
 
 // ENTRY STRATEGY ***************
 

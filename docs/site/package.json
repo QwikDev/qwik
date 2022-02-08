@@ -1,0 +1,35 @@
+{
+  "name": "site",
+  "version": "0.0.0",
+  "description": "Blank Qwik starter app. Vite.js tooling. Cloudflare Workers (serverless). Prettier code formatter. Tailwind CSS framework.",
+  "scripts": {
+    "build": "npm run build.client && npm run build.server",
+    "build.client": "vite build",
+    "build.server": "vite build --outDir server/build --ssr src/entry.cloudflare.tsx",
+    "deploy": "wrangler publish",
+    "deploy.dev": "wrangler dev",
+    "deploy.preview": "wrangler preview",
+    "dev": "vite",
+    "fmt": "prettier --write .",
+    "fmt.check": "prettier --check .",
+    "start": "npm run dev"
+  },
+  "devDependencies": {
+    "@builder.io/qwik": "latest",
+    "@cloudflare/kv-asset-handler": "0.2.0",
+    "@cloudflare/workers-types": "3.2.0",
+    "@cloudflare/wrangler": "1.19.7",
+    "@types/service-worker-mock": "2.0.1",
+    "autoprefixer": "10.4.2",
+    "postcss": "8.4.6",
+    "prettier": "2.3.0",
+    "tailwindcss": "3.0.18",
+    "typescript": "^4.5.2",
+    "vite": "^2.7.13"
+  },
+  "author": "Builder.io Team",
+  "engines": {
+    "node": ">=14.14.0"
+  },
+  "license": "MIT"
+}

@@ -297,11 +297,16 @@ jobs:
       - name: Print Distribution Artifacts
         run: ls -R builderio-qwik-distribution/
 
+      - name: Print Create Qwik CLI Artifacts
+        run: ls -R dist-dev-create-qwik/
+
       - name: Move Distribution Artifacts
         run: |
           mkdir dist-dev/
           mkdir dist-dev/@builder.io-qwik/
           mv builderio-qwik-distribution/* dist-dev/@builder.io-qwik/
+          mkdir dist-dev/create-qwik/
+          mv dist-dev-create-qwik/* dist-dev/create-qwik/
 
       - name: Cache NPM Dependencies
         uses: actions/cache@v2

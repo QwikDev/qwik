@@ -204,7 +204,7 @@ async function publishStarerCli(
   console.log(`   update devDependencies["vite"] = "${viteDepVersion}"`);
   baseAppPkg.devDependencies['vite'] = viteDepVersion;
 
-  console.log(baseAppPkg, JSON.stringify(baseAppPkg, null, 2));
+  console.log(distCliBaseAppDir, JSON.stringify(baseAppPkg, null, 2));
   await writePackageJson(distCliBaseAppDir, baseAppPkg);
 
   console.log(`⛴ publishing ${cliPkg.name} ${version}`, isDryRun ? '(dry-run)' : '');

@@ -603,7 +603,7 @@ export interface LinkHTMLAttributes<T> extends HTMLAttributes<T> {
   rel?: string | undefined;
   sizes?: string | undefined;
   type?: string | undefined;
-  charset?: string | undefined;
+  charSet?: string | undefined;
 }
 export interface MapHTMLAttributes<T> extends HTMLAttributes<T> {
   name?: string | undefined;
@@ -612,7 +612,7 @@ export interface MenuHTMLAttributes<T> extends HTMLAttributes<T> {
   type?: string | undefined;
 }
 export interface MetaHTMLAttributes<T> extends HTMLAttributes<T> {
-  charset?: string | undefined;
+  charSet?: string | undefined;
   content?: string | undefined;
   httpEquiv?: string | undefined;
   name?: string | undefined;
@@ -675,7 +675,7 @@ export interface SlotHTMLAttributes<T> extends HTMLAttributes<T> {
 export interface ScriptHTMLAttributes<T> extends HTMLAttributes<T> {
   async?: boolean | undefined;
   /** @deprecated Deprecated */
-  charset?: string | undefined;
+  charSet?: string | undefined;
   crossOrigin?: string | undefined;
   defer?: boolean | undefined;
   integrity?: string | undefined;

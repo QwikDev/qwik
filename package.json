@@ -8,7 +8,6 @@
     "build.wasm": "node scripts --wasm",
     "build.cli": "node scripts --cli --dev",
     "build.cli.prod": "node scripts --cli",
-    "release.cli": "npm run build.cli.prod && cd dist-dev/create-qwik && npm publish",
     "cli": "npm run build.cli && node dist-dev/create-qwik/create-qwik",
     "build.watch": "node scripts --build --watch --dev --platform-binding",
     "api.update": "node scripts --tsc --api --dev",

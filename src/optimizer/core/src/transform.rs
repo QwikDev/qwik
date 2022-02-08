@@ -309,9 +309,13 @@ impl<'a> QwikTransform<'a> {
                 filename.push('.');
                 filename.push_str(&self.options.extension);
             }
-            let import_path = fix_path("a", &self.options.path_data.path, &filename)
-                // TODO: check with manu
-                .unwrap();
+            let import_path = if self.hook_depth > 0 {
+                JsWord::from(filename.to_string())
+            } else {
+                fix_path("a", &self.options.path_data.path, &filename)
+                    // TODO: check with manu
+                    .unwrap()
+            };
 
             for id in &local_idents {
                 if !self.options.global_collect.exports.contains_key(id) {

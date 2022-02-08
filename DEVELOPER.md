@@ -102,9 +102,9 @@ yarn jsx.types
 7. If the build is successful and all tests and validation passes, the CI workflow will automatically publish to NPM, commit a git tag to the repo, and create a Github release.
 8. 🚀
 
-## Releasing `create-qwik` CLI
+## Starter CLI `create-qwik`
 
-- [Publish Starter CLI](https://github.com/BuilderIO/qwik/blob/main/starters/README.md#publishing-create-qwik-cli-package)
+- [Starter CLI](https://github.com/BuilderIO/qwik/blob/main/starters/README.md)
 
 ## Bazel
 

@@ -40,7 +40,7 @@ export const Header_onRender = ()=>console.log("hello sym2")
 import * as qwik from "@builder.io/qwik";
 import { onRender } from "@builder.io/qwik";
 export const Header_onmount = ()=>{
-    onRender(qwik.qrl(()=>import("../entry_hooks")
+    onRender(qwik.qrl(()=>import("./entry_hooks")
     , "Header_onRender"), "2sym");
 };
 

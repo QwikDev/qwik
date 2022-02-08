@@ -173,6 +173,50 @@ export async function publish(config: BuildConfig) {
     `🐋 published version "${version}" of ${distPkg.name} with dist-tag "${distTag}" to npm`,
     isDryRun ? '(dry-run)' : ''
   );
+
+  await publishStarerCli(config, distTag, version, isDryRun);
+}
+
+async function publishStarerCli(
+  config: BuildConfig,
+  distTag: string,
+  version: string,
+  isDryRun: boolean
+) {
+  const distCliDir = join(config.distDir, 'create-qwik');
+  const cliPkg = await readPackageJson(distCliDir);
+
+  // update the base app's package.json
+  const distCliBaseAppDir = join(distCliDir, 'starters', 'apps', 'base');
+  const baseAppPkg = await readPackageJson(distCliBaseAppDir);
+  baseAppPkg.devDependencies = baseAppPkg.devDependencies || {};
+
+  console.log(`   update devDependencies["@builder.io/qwik"] = "${version}"`);
+  baseAppPkg.devDependencies['@builder.io/qwik'] = version;
+
+  const rootPkg = await readPackageJson(config.rootDir);
+  const typescriptDepVersion = rootPkg.devDependencies!.typescript;
+  const viteDepVersion = rootPkg.devDependencies!.vite;
+
+  console.log(`   update devDependencies["typescript"] = "${typescriptDepVersion}"`);
+  baseAppPkg.devDependencies['typescript'] = typescriptDepVersion;
+
+  console.log(`   update devDependencies["vite"] = "${viteDepVersion}"`);
+  baseAppPkg.devDependencies['vite'] = viteDepVersion;
+
+  console.log(distCliBaseAppDir, JSON.stringify(baseAppPkg, null, 2));
+  await writePackageJson(distCliBaseAppDir, baseAppPkg);
+
+  console.log(`⛴ publishing ${cliPkg.name} ${version}`, isDryRun ? '(dry-run)' : '');
+
+  const npmPublishArgs = ['publish', '--tag', distTag];
+
+  await run('npm', npmPublishArgs, isDryRun, isDryRun, { cwd: distCliDir });
+
+  console.log(
+    `🐳 published version "${version}" of ${cliPkg.name} with dist-tag "${distTag}" to npm`,
+    isDryRun ? '(dry-run)' : ''
+  );
 }
 
 async function run(

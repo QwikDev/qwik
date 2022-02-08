@@ -7,7 +7,7 @@
  */
 
 import { renderToString, RenderToStringOptions, QwikLoader } from '@builder.io/qwik/server';
-import { App } from './app';
+import { App } from './components/app/app';
 
 /**
  * Entry point for server-side pre-rendering.

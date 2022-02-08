@@ -4,7 +4,6 @@ import { build } from 'esbuild';
 import { basename, join } from 'path';
 import { readPackageJson, writePackageJson } from './package-json';
 import semver from 'semver';
-import { statSync } from 'fs';
 
 export async function buildCli(config: BuildConfig) {
   const distCliDir = join(config.distDir, 'create-qwik');
@@ -20,19 +19,6 @@ export async function buildCli(config: BuildConfig) {
       const srcDir = join(config.startersDir, dirName);
       const distDir = join(distStartersDir, dirName);
       await copyDir(config, srcDir, distDir);
-    })
-  );
-
-  const tsconfigSrcPath = join(config.startersDir, 'apps', 'starter.tsconfig.json');
-  const appDistDir = join(distStartersDir, 'apps');
-  const appNames = (await readdir(appDistDir)).filter((appName) => {
-    return appName !== 'e2e' && statSync(join(appDistDir, appName)).isDirectory();
-  });
-  await Promise.all(
-    appNames.map(async (appName) => {
-      const appPath = join(appDistDir, appName);
-      const appTsconfigPath = join(appPath, 'tsconfig.json');
-      await copyFile(tsconfigSrcPath, appTsconfigPath);
     })
   );
 

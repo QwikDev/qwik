@@ -1,7 +1,5 @@
 {
-  "name": "qwik-project-name",
-  "version": "0.0.1",
-  "description": "Utility-first CSS framework for rapidly building custom user interfaces",
+  "description": "Tailwind CSS framework.",
   "devDependencies": {
     "autoprefixer": "10.4.2",
     "postcss": "8.4.6",

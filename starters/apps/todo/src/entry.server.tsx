@@ -7,7 +7,7 @@
  */
 
 import { renderToString, RenderToStringOptions, QwikLoader } from '@builder.io/qwik/server';
-import { Root } from './root';
+import { App } from './app';
 import type { Todos } from './state';
 
 /**
@@ -28,12 +28,13 @@ export function render(opts: RenderToStringOptions) {
   return renderToString(
     <html>
       <head>
+        <meta charSet="utf-8" />
         <title>Qwik Demo: ToDo</title>
         <link rel="stylesheet" href="/base.css" />
         <link rel="stylesheet" href="/index.css" />
       </head>
       <body q:base="/">
-        <Root todos={todos} />
+        <App todos={todos} />
         <QwikLoader debug={opts.debug} />
       </body>
     </html>,

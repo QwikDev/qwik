@@ -1,5 +1,5 @@
 import { defineConfig } from 'vite';
-import { qwikRollup } from '@builder.io/qwik/optimizer';
+import { qwikVite } from '@builder.io/qwik/optimizer';
 import { writeFile, mkdir } from 'fs/promises';
 import { dirname, resolve } from 'path';
 
@@ -16,7 +16,7 @@ export default defineConfig({
     noExternal: true,
   },
   plugins: [
-    qwikRollup({
+    qwikVite({
       srcDir: resolve('./src'),
       entryStrategy: {
         type: 'single',

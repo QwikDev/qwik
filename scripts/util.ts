@@ -267,8 +267,10 @@ export function panic(msg: string) {
 export interface PackageJSON {
   name: string;
   version: string;
+  dependencies?: { [pkgName: string]: string };
   devDependencies?: { [pkgName: string]: string };
   description?: string;
+  scripts?: { [scriptName: string]: string };
   license?: string;
   main: string;
   module: string;
@@ -283,5 +285,8 @@ export interface PackageJSON {
   keywords?: string[];
   engines?: { [key: string]: string };
   private?: boolean;
-  priority?: number;
+  qwik?: {
+    priority: number;
+    featureOptions: string[];
+  };
 }

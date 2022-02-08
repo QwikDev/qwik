@@ -1,7 +1,7 @@
 export interface GenerateOptions {
   projectName: string;
   appId: string;
-  serverId?: string;
+  serverId: string;
   featureIds: string[];
   outDir: string;
 }
@@ -25,4 +25,5 @@ export interface StarterData {
   description: string;
   dir: string;
   priority: number;
+  featureOptions: string[];
 }

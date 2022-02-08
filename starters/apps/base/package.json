@@ -1,0 +1,22 @@
+{
+  "name": "qwik-project-name",
+  "version": "0.0.0",
+  "description": "",
+  "scripts": {
+    "build": "npm run build.client && npm run build.server",
+    "build.client": "vite build",
+    "build.server": "vite build --outDir server/build --ssr src/entry.server.tsx",
+    "dev": "vite",
+    "start": "npm run dev"
+  },
+  "devDependencies": {
+    "@builder.io/qwik": "latest",
+    "typescript": "^4.5.2",
+    "vite": "^2.7.13"
+  },
+  "author": "Builder.io Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.14.0"
+  }
+}

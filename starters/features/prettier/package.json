@@ -1,7 +1,5 @@
 {
-  "name": "qwik-project-name",
-  "version": "0.0.1",
-  "description": "The de facto standard in JS formatting",
+  "description": "Prettier code formatter.",
   "scripts": {
     "fmt": "prettier --write .",
     "fmt.check": "prettier --check ."

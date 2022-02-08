@@ -32,6 +32,7 @@ const qwikDistCorePath = join(qwikDistDir, 'core.mjs');
 const qwikDistServerPath = join(qwikDistDir, 'server', 'index.mjs');
 const qwikDistOptimizerPath = join(qwikDistDir, 'optimizer.cjs');
 const qwikDistJsxRuntimePath = join(qwikDistDir, 'jsx-runtime.mjs');
+Error.stackTraceLimit = 1000;
 
 // dev server builds ssr's the starter app on-demand (don't do this in production)
 async function handleApp(req, res) {
@@ -52,7 +53,8 @@ async function handleApp(req, res) {
     res.send(html);
   } catch (e) {
     console.error(e);
-    res.send(String(e.stack || e));
+    res.set('Content-Type', 'text/plain; charset=utf-8');
+    res.send(`❌ ${e.stack || e}`);
   }
 }
 
@@ -69,15 +71,13 @@ async function buildApp(appDir) {
   mkdirSync(appBuildServerDir);
 
   const rollupInputOpts = {
-    input: readdirSync(appSrcDir)
-      .filter((f) => f.endsWith('.tsx'))
-      .map((f) => join(appSrcDir, f)),
+    input: getSrcInput(appSrcDir),
     plugins: [
       {
         name: 'devNodeRequire',
         transform(code, id) {
           if (id.endsWith('.css')) {
-            return `export default ${JSON.stringify(code)}`;
+            return `const CSS = ${JSON.stringify(code)}; export default CSS;`;
           }
           return null;
         },
@@ -122,6 +122,27 @@ async function buildApp(appDir) {
     dir: appBuildServerDir,
     format: 'cjs',
   });
+}
+
+function getSrcInput(appSrcDir) {
+  // get all the entry points for tsx for DEV ONLY!
+  const srcInputs = [];
+
+  function readDir(dir) {
+    const items = readdirSync(dir);
+    for (const item of items) {
+      const itemPath = join(dir, item);
+      const s = statSync(itemPath);
+      if (s.isDirectory()) {
+        readDir(itemPath);
+      } else if (item.endsWith('.tsx')) {
+        srcInputs.push(itemPath);
+      }
+    }
+  }
+  readDir(appSrcDir);
+
+  return srcInputs;
 }
 
 function removeDir(dir) {
@@ -175,9 +196,9 @@ function requireUncached(module) {
   return require(module);
 }
 
-function startersHomepage(req, res) {
-  res.set('Content-Type', 'text/html');
-  res.send(`
+function startersHomepage(_, res) {
+  res.set('Content-Type', 'text/html; charset=utf-8');
+  res.send(`<!DOCTYPE html>
   <html>
     <head>
       <title>Starters Dev Server</title>
@@ -186,16 +207,13 @@ function startersHomepage(req, res) {
           font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji;
           line-height: 1.5;
         }
-        a {
-          color: #4340C4;
-        }
-        a:hover {
-          text-decoration: none;
-        }
+        a { color: #4340C4; }
+        a:hover { text-decoration: none; }
+        h1 { margin: 5px 0; }
       </style>
     </head>
     <body>
-      <h1>Starters Dev Server</h1>
+      <h1>⚡️ Starters Dev Server ⚡️</h1>
       <ul>
         ${appNames.map((a) => `<li><a href="/${a}/">${a}</a></li>`).join('')}
       </ul>

@@ -62,7 +62,7 @@ import { Header } from "./project/test";
 import { bar as bbar } from "./state";
 import * as dep2 from "dep2";
 export const Header_onRender = ()=>{
-    return <Header onClick={qwik.qrl(()=>import("../entry_hooks")
+    return <Header onClick={qwik.qrl(()=>import("./entry_hooks")
     , "Header_onRender_Header_onClick")}>
 
                 {dep2.stuff()}{bbar()}
@@ -84,7 +84,7 @@ export const Header_onRender = ()=>{
 import * as qwik from "@builder.io/qwik";
 import { onRender } from "@builder.io/qwik";
 export const Header_onmount = ()=>{
-    onRender(qwik.qrl(()=>import("../entry_hooks")
+    onRender(qwik.qrl(()=>import("./entry_hooks")
     , "Header_onRender"));
 };
 
@@ -120,7 +120,7 @@ export const App_onRender = ()=>{
 import * as qwik from "@builder.io/qwik";
 import { onRender } from "@builder.io/qwik";
 export const App_onmount = ()=>{
-    onRender(qwik.qrl(()=>import("../entry_hooks")
+    onRender(qwik.qrl(()=>import("./entry_hooks")
     , "App_onRender"));
 };
 

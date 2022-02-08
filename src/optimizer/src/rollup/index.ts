@@ -83,6 +83,7 @@ export function qwikRollup(opts: QwikPluginOptions): any {
   const results = new Map<string, TransformOutput>();
   let transformedOutputs = new Map<string, [TransformModule, string]>();
   let optimizer: Optimizer;
+  let isSSR = false;
   let outputCount = 0;
 
   let entryStrategy: EntryStrategy = {
@@ -186,7 +187,10 @@ export function qwikRollup(opts: QwikPluginOptions): any {
       }
     },
 
-    async resolveId(id, importer, opts: any) {
+    async resolveId(id, importer, opts) {
+      if (opts.ssr === true) {
+        isSSR = true;
+      }
       if (!optimizer) {
         optimizer = await createOptimizer();
       }
@@ -331,7 +335,7 @@ export function qwikRollup(opts: QwikPluginOptions): any {
         hooks.length > 0 &&
         outputOpts.format === 'es' &&
         outputCount === 0 &&
-        opts.symbolsOutput
+        !isSSR
       ) {
         outputCount++;
         const output = Object.entries(rollupBundle);

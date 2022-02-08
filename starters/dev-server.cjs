@@ -70,8 +70,6 @@ async function buildApp(appDir) {
   mkdirSync(appBuildDir);
   mkdirSync(appBuildServerDir);
 
-  console.log('appSrcDir', appSrcDir);
-
   const rollupInputOpts = {
     input: getSrcInput(appSrcDir),
     plugins: [
@@ -105,7 +103,6 @@ async function buildApp(appDir) {
       optimizer.qwikRollup({
         entryStrategy: { type: 'single' },
         srcDir: appSrcDir,
-        debug: true,
         symbolsOutput: (data) => {
           writeFileSync(symbolsPath, JSON.stringify(data, null, 2));
         },

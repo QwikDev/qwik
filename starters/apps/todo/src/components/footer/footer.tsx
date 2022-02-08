@@ -16,7 +16,6 @@ export const Footer = component(
   'footer',
   $((props: { todos: Todos }) => {
     return onRender$(() => {
-      console.log('on:qRender => <Footer/>');
       /**
        * Example of lite-component (it will always be included with the parent component)
        */

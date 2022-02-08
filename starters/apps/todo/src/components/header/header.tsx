@@ -11,7 +11,6 @@ export const Header = component(
   $((props: { todos: Todos }) => {
     const state = createStore({ text: '' });
     return onRender$(() => {
-      console.log('on:qRender => <Header/>');
       return (
         <>
           <h1>todos</h1>

@@ -20,11 +20,6 @@ export const Item = component(
   $((props: { item: TodoItem; todos: Todos }) => {
     const state = createStore({ editing: false });
     return onRender$(() => {
-      console.log(
-        'on:qRender => <Item item="' +
-          JSON.stringify(props.item, (key, value) => (key.startsWith('__') ? undefined : value)) +
-          '"/>'
-      );
       return (
         <Host class={{ completed: props.item.completed, editing: state.editing }}>
           <div class="view">

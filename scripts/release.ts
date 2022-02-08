@@ -191,20 +191,20 @@ async function publishStarerCli(
   const baseAppPkg = await readPackageJson(distCliBaseAppDir);
   baseAppPkg.devDependencies = baseAppPkg.devDependencies || {};
 
-  console.log(`  update devDependencies["@builder.io/qwik"] = "${version}"`);
+  console.log(`   update devDependencies["@builder.io/qwik"] = "${version}"`);
   baseAppPkg.devDependencies['@builder.io/qwik'] = version;
 
   const rootPkg = await readPackageJson(config.rootDir);
   const typescriptDepVersion = rootPkg.devDependencies!.typescript;
   const viteDepVersion = rootPkg.devDependencies!.vite;
 
-  console.log(`  update devDependencies["typescript"] = "${typescriptDepVersion}"`);
+  console.log(`   update devDependencies["typescript"] = "${typescriptDepVersion}"`);
   baseAppPkg.devDependencies['typescript'] = typescriptDepVersion;
 
-  console.log(`  update devDependencies["vite"] = "${viteDepVersion}"`);
+  console.log(`   update devDependencies["vite"] = "${viteDepVersion}"`);
   baseAppPkg.devDependencies['vite'] = viteDepVersion;
 
-  console.log(`base app package.json:`, JSON.stringify(baseAppPkg));
+  console.log(baseAppPkg, JSON.stringify(baseAppPkg, null, 2));
   await writePackageJson(distCliBaseAppDir, baseAppPkg);
 
   console.log(`⛴ publishing ${cliPkg.name} ${version}`, isDryRun ? '(dry-run)' : '');

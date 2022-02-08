@@ -50,12 +50,23 @@ export function dashToTitlelCase(str: string) {
     .join(' ');
 }
 
-export function mergeSort(a: any, b: any, prop: string) {
+export function toDashCase(str: string) {
+  return str.toLocaleLowerCase().replace(/ /g, '-');
+}
+
+export function mergePackageJSONs(a: any, b: any) {
+  const props = ['scripts', 'dependencies', 'devDependencies'];
+  props.forEach((prop) => {
+    mergeSort(a, b, prop);
+  });
+}
+
+function mergeSort(a: any, b: any, prop: string) {
   if (b[prop]) {
     if (a[prop]) {
-      Object.assign(a[prop], b[prop]);
+      Object.assign(a[prop], { ...b[prop] });
     } else {
-      a[prop] = b[prop];
+      a[prop] = { ...b[prop] };
     }
 
     const sorted: any = {};

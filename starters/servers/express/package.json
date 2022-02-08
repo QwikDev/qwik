@@ -1,6 +1,5 @@
 {
-  "name": "qwik-project-name",
-  "description": "Express.js Server",
+  "description": "Express.js server.",
   "scripts": {
     "serve": "node server/index.js"
   },

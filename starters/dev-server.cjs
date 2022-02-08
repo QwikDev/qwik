@@ -1,5 +1,6 @@
+// DO NOT USE FOR PRODUCTION!!!
 // Internal Testing/Dev Server
-// DO NO USE FOR PRODUCTION!!!
+// DO NOT USE FOR PRODUCTION!!!
 
 const express = require('express');
 const { isAbsolute, join, resolve } = require('path');
@@ -22,8 +23,8 @@ const port = parseInt(process.argv[process.argv.length - 1], 10) || 3300;
 const address = `http://localhost:${port}/`;
 const startersDir = __dirname;
 const startersAppsDir = join(startersDir, 'apps');
-const appNames = readdirSync(startersAppsDir).filter((p) =>
-  statSync(join(startersAppsDir, p)).isDirectory()
+const appNames = readdirSync(startersAppsDir).filter(
+  (p) => statSync(join(startersAppsDir, p)).isDirectory() && p !== 'base'
 );
 
 const qwikDistDir = join(__dirname, '..', 'dist-dev', '@builder.io-qwik');
@@ -203,8 +204,8 @@ function startersHomepage(req, res) {
   `);
 }
 
-function favicon(req, res) {
-  const path = join(startersAppsDir, 'todo', 'public', 'favicon.ico');
+function favicon(_, res) {
+  const path = join(startersAppsDir, 'base', 'public', 'favicon.ico');
   res.sendFile(path);
 }
 

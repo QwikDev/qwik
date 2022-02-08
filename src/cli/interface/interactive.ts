@@ -13,66 +13,84 @@ export async function runInteractive() {
   console.log(``);
 
   const starters = await getStarters();
+  const apps = starters.apps.filter((a) => a.id !== 'base');
 
-  const response = await prompts([
+  const opts: GenerateOptions = {
+    projectName: '',
+    appId: '',
+    serverId: '',
+    featureIds: [],
+    outDir: '',
+  };
+
+  await prompts([
     {
       type: 'text',
       name: 'projectName',
       message: 'Project name',
       initial: 'qwik-app',
-      validate: (value: string) => {
-        const outDirName = createOutDirName(value);
-        const outDir = createOutDir(outDirName);
-        validateOutDir(outDir);
+      validate: (projectName: string) => {
+        const outDirName = createOutDirName(projectName);
+        opts.outDir = createOutDir(outDirName);
+        validateOutDir(opts.outDir);
         return true;
+      },
+      format: (projectName: string) => {
+        return (opts.projectName = projectName);
       },
     },
     {
       type: 'select',
       name: 'appId',
       message: 'Select a starter',
-      choices: starters.apps.map((s) => {
+      choices: apps.map((s) => {
         return { title: s.name, value: s.id, description: s.description };
       }),
+      format: (appId: string) => {
+        return (opts.appId = appId);
+      },
     },
     {
       type: 'select',
       name: 'serverId',
       message: 'Select a server',
-      choices: [
-        ...starters.servers.map((s) => {
-          return { title: s.name, value: s.id, description: s.description };
-        }),
-        {
-          title: 'Setup later',
-          value: 'no-hosting',
-          description: `I'll setup my own hosting`,
-        },
-      ],
+      choices: () => {
+        return [
+          ...starters.servers.map((s) => {
+            return { title: s.name, value: s.id, description: s.description };
+          }),
+          {
+            title: 'Setup later',
+            value: 'no-hosting',
+            description: `I'll setup my own hosting`,
+          },
+        ];
+      },
+      format: (serverId: string) => {
+        return (opts.serverId = serverId);
+      },
     },
     {
-      type: 'multiselect',
+      type: () => {
+        const starter = starters.apps.find((a) => a.id === opts.appId);
+        return starter && starter.featureOptions.length > 0 ? 'multiselect' : null;
+      },
       name: 'featureIds',
       message: 'Features',
       instructions: false,
-      choices: [
-        ...starters.features.map((s) => {
-          return { title: s.name, value: s.id, description: s.description, selected: true };
-        }),
-      ],
+      choices: () => {
+        const starter = starters.apps.find((a) => a.id === opts.appId);
+        const featureOptions = [...starter!.featureOptions];
+        return featureOptions.map((featureId) => {
+          const f = starters.features.find((f) => f.id === featureId)!;
+          return { title: f.name, value: f.id, description: f.description, selected: true };
+        });
+      },
+      format: (featureIds: string[]) => {
+        return (opts.featureIds = featureIds);
+      },
     },
   ]);
-
-  const outDirName = createOutDirName(response.projectName);
-  const outDir = createOutDir(outDirName);
-
-  const opts: GenerateOptions = {
-    projectName: response.projectName,
-    appId: response.appId,
-    serverId: response.serverId,
-    featureIds: response.featureIds,
-    outDir,
-  };
 
   const result = await generateStarter(opts);
 

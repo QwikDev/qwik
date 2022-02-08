@@ -331,12 +331,7 @@ export function qwikRollup(opts: QwikPluginOptions): any {
         .map((mod) => mod.hook)
         .filter((h) => !!h) as HookAnalysis[];
 
-      if (
-        hooks.length > 0 &&
-        outputOpts.format === 'es' &&
-        outputCount === 0 &&
-        !isSSR
-      ) {
+      if (hooks.length > 0 && outputOpts.format === 'es' && outputCount === 0 && !isSSR) {
         outputCount++;
         const output = Object.entries(rollupBundle);
 

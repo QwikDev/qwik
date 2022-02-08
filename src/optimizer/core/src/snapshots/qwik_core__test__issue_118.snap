@@ -38,7 +38,7 @@ import{jsxs as a}from"@builder.io/qwik/jsx-runtime";import*as b from"@builder.io
 */
 ============================= h_test_header_onmount.js ==
 
-import*as a from"@builder.io/qwik";import{onRender as b}from"@builder.io/qwik";export const Header_onmount=()=>{b(a.qrl(()=>import("../entry_hooks"),"Header_onRender"));};
+import*as a from"@builder.io/qwik";import{onRender as b}from"@builder.io/qwik";export const Header_onmount=()=>{b(a.qrl(()=>import("./entry_hooks"),"Header_onRender"));};
 /*
 {
   "origin": "project/test.tsx",

@@ -86,7 +86,7 @@ export const Header_onRender = ()=><Footer >
 import * as qwik from "@builder.io/qwik";
 import { onRender } from "@builder.io/qwik";
 export const Header_onmount = ()=>{
-    onRender(qwik.qrl(()=>import("../h_test_header_onrender")
+    onRender(qwik.qrl(()=>import("./h_test_header_onrender")
     , "Header_onRender"));
 };
 

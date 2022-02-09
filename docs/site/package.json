@@ -1,7 +1,7 @@
 {
-  "name": "site",
+  "name": "qwik-docs-site",
   "version": "0.0.0",
-  "description": "Blank Qwik starter app. Vite.js tooling. Cloudflare Workers (serverless). Prettier code formatter. Tailwind CSS framework.",
+  "description": "Qwik Docs Site.",
   "scripts": {
     "build": "npm run build.client && npm run build.server",
     "build.client": "vite build",
@@ -15,7 +15,7 @@
     "start": "npm run dev"
   },
   "devDependencies": {
-    "@builder.io/qwik": "latest",
+    "@builder.io/qwik": "file:../../dist-dev/@builder.io-qwik",
     "@cloudflare/kv-asset-handler": "0.2.0",
     "@cloudflare/workers-types": "3.2.0",
     "@cloudflare/wrangler": "1.19.7",

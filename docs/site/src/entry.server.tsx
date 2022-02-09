@@ -15,15 +15,17 @@ import { App } from './app';
  * @returns a promise when all of the rendering is completed.
  */
 export function render(opts: RenderToStringOptions) {
+  const pathname = opts.url?.pathname || '/';
+
   return renderToString(
     <html>
       <head>
         <meta charSet="utf-8" />
-        <title>Qwik Blank App</title>
+        <title>Qwik</title>
       </head>
       <body q:base="/">
-        <App />
-        <QwikLoader debug={opts.debug} />
+        <App pathname={pathname} />
+        <QwikLoader />
       </body>
     </html>,
     opts

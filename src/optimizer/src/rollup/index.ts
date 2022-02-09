@@ -14,6 +14,7 @@ import {
 import type { NormalizedOutputOptions, PluginContext, RollupError } from 'rollup';
 import type { Plugin, ViteDevServer } from 'vite';
 
+const QWIK_BUILD = '@builder.io/qwik/build';
 /**
  * @alpha
  */
@@ -85,7 +86,7 @@ export function qwikRollup(opts: QwikPluginOptions): any {
   let optimizer: Optimizer;
   let isSSR = false;
   let outputCount = 0;
-
+  let isBuild = true;
   let entryStrategy: EntryStrategy = {
     type: 'single' as const,
     ...opts.entryStrategy,
@@ -124,6 +125,7 @@ export function qwikRollup(opts: QwikPluginOptions): any {
 
     config(config, { command }) {
       if (command === 'serve') {
+        isBuild = false;
         entryStrategy = { type: 'hook' };
         if ((config as any).ssr) {
           (config as any).ssr.noExternal = false;
@@ -187,10 +189,17 @@ export function qwikRollup(opts: QwikPluginOptions): any {
       }
     },
 
-    async resolveId(id, importer, opts) {
-      if (opts.ssr === true) {
+    async resolveId(id, importer, localOpts) {
+      if (localOpts.ssr === true) {
         isSSR = true;
       }
+      if ((isBuild || typeof opts.ssrBuild === 'boolean') && id === QWIK_BUILD) {
+        return {
+          id: QWIK_BUILD,
+          moduleSideEffects: false,
+        };
+      }
+
       if (!optimizer) {
         optimizer = await createOptimizer();
       }
@@ -225,6 +234,12 @@ export function qwikRollup(opts: QwikPluginOptions): any {
     },
 
     load(id) {
+      if (id === QWIK_BUILD) {
+        return {
+          code: getBuildFile(isSSR),
+        };
+      }
+
       const transformedModule = transformedOutputs.get(id);
       if (transformedModule) {
         if (debug) {
@@ -380,6 +395,13 @@ function removeExtension(id: string) {
   return id.split('.').slice(0, -1).join('.');
 }
 
+function getBuildFile(isSSR: boolean) {
+  return `
+export const isServer = ${isSSR};
+export const isBrowser = ${!isSSR};
+`;
+}
+
 /**
  * @alpha
  */
@@ -388,6 +410,7 @@ export interface QwikPluginOptions {
   srcDir: string;
   minify?: MinifyMode;
   debug?: boolean;
+  ssrBuild?: boolean;
   symbolsOutput?:
     | string
     | ((data: OutputEntryMap, output: NormalizedOutputOptions) => Promise<void> | void);

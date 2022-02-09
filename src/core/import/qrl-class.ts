@@ -15,8 +15,7 @@ class QRL<TYPE = any> implements IQRL<TYPE> {
     public symbolFn: null | (() => Promise<Record<string, any>>),
     public capture: null | (boolean | number | null | undefined | string)[],
     public captureRef: null | any[],
-    public guard: null | Map<string, string[]>,
-    public guardRef: null | WeakMap<Object, string[]>
+    public guard: null | Map<string, string[]>
   ) {
     this.canonicalChunk = chunk.replace(FIND_EXT, '');
   }

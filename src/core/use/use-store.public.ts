@@ -5,8 +5,8 @@ import { qObject } from '../object/q-object';
 /**
  * Creates a object that Qwik can track across serializations.
  *
- * Use `createStore` to create state for your application. The return object is a proxy which has a
- * unique ID. The ID of the object is used is the `QRL`s to refer to the store.
+ * Use `createStore` to create state for your application. The return object is a proxy which has
+ * a unique ID. The ID of the object is used in the `QRL`s to refer to the store.
  *
  * ## Example
  *

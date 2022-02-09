@@ -16,8 +16,8 @@ import { useURL } from './use-url.public';
  *
  * This method should not be present in the application source code.
  *
- * NOTE: `useLexicalScope` method can only be used in synchronous portion of the callback (before
- * any `await` statements.)
+ * NOTE: `useLexicalScope` method can only be used in the synchronous portion of the callback
+ * (before any `await` statements.)
  *
  * @public
  */

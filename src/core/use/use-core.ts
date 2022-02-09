@@ -1,9 +1,9 @@
 import { assertDefined, assertNotEqual } from '../assert/assert';
 import type { QwikDocument } from '../document';
-import type { QRL } from '../import/qrl.public';
-import { unwrapProxy } from '../object/q-object';
+import type { QRLInternal } from '../import/qrl-class';
 import type { QObject } from '../object/q-object';
-import { getProps } from '../props/props.public';
+import { unwrapProxy } from '../object/q-object';
+import { getProps, Props } from '../props/props.public';
 import { AttributeMarker } from '../util/markers';
 
 declare const document: QwikDocument;
@@ -17,9 +17,11 @@ interface InvokeContext {
   hostElement: Element;
   event: any;
   url: URL | null;
-  qrl?: QRL;
+  qrl?: QRLInternal;
   subscriptions?: Set<QObject<any>>;
   waitOn?: Promise<any>[];
+  props?: Props;
+  qrlGuard?: (qrl: QRLInternal) => boolean;
 }
 
 let _context: InvokeContext;

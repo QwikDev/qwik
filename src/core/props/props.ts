@@ -23,7 +23,7 @@ Error.stackTraceLimit = 9999;
 // TODO(misko): For better debugger experience the getProps should never store Proxy, always naked objects to make it easier to traverse in the debugger.
 
 const Q_IS_HYDRATED = '__isHydrated__';
-export const Q_PROP = 'getProps';
+export const Q_PROP = 'qProps';
 
 export function hydrateIfNeeded(element: Element): void {
   const doc = element.ownerDocument!;
@@ -59,7 +59,7 @@ export interface QPropsContext {
 export const Q_MAP = '__qMap__';
 const Q_OBJECT_ATTR_SELECTOR = '[q\\:obj]';
 
-const QProps_ = class QProps {
+export const QProps_ = class QProps {
   public __mutation__: boolean = false;
   public __self__: QProps = null!;
   constructor(

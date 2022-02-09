@@ -310,11 +310,9 @@ impl<'a> QwikTransform<'a> {
                 filename.push_str(&self.options.extension);
             }
             let import_path = if self.hook_depth > 0 {
-                JsWord::from(filename.to_string())
+                fix_path("a", &filename, &filename).unwrap()
             } else {
-                fix_path("a", &self.options.path_data.path, &filename)
-                    // TODO: check with manu
-                    .unwrap()
+                fix_path("a", &self.options.path_data.path, &filename).unwrap()
             };
 
             for id in &local_idents {

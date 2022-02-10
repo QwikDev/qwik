@@ -17,6 +17,7 @@ export default defineConfig({
   },
   plugins: [
     qwikVite({
+      debug: true,
       srcDir: resolve('./src'),
       entryStrategy: {
         type: 'single',

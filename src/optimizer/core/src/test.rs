@@ -682,18 +682,18 @@ fn example_jsx() {
         code: r#"
 import { $, qComponent$, onRender$, h, Fragment } from '@builder.io/qwik';
 
-export const Lightweight = () => {
+export const Lightweight = (props) => {
     return (
         <div>
             <>
                 <div/>
-                <button/>
+                <button {...props}/>
             </>
         </div>
     )
 };
 
-export const Foo = qComponent$("my-foo", () => {
+export const Foo = qComponent$("my-foo", (props) => {
     return onRender$(() => {
         return (
             <div>
@@ -703,7 +703,7 @@ export const Foo = qComponent$("my-foo", () => {
                     <div class="class">12</div>
                 </>
                 <div class="class">
-                    <Lightweight/>
+                    <Lightweight {...props}/>
                 </div>
                 <div class="class">
                     <div/>

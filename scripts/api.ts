@@ -13,6 +13,7 @@ export function apiExtractor(config: BuildConfig) {
   createTypesApi(config, 'optimizer', 'optimizer.d.ts', './core');
   createTypesApi(config, 'server', 'server/index.d.ts', '../core');
   createTypesApi(config, 'testing', 'testing/index.d.ts', '../core');
+  createTypesApi(config, 'build', 'build/index.d.ts', '../core');
 
   // the jsx-runtime.d.ts file was already generated with tsc, use this one
   const jsxRuntimeSrcPath = join(config.tscDir, 'src', 'jsx-runtime.d.ts');

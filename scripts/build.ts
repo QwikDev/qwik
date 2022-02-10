@@ -23,6 +23,7 @@ import { submoduleTesting } from './submodule-testing';
 import { tsc } from './tsc';
 import { validateBuild } from './validate-build';
 import { buildCli } from './cli';
+import { submoduleBuild } from './submodule-build';
 
 /**
  * Complete a full build for all of the package's submodules. Passed in
@@ -68,6 +69,7 @@ export async function build(config: BuildConfig) {
         submoduleCore(config),
         submoduleJsxRuntime(config),
         submoduleQwikLoader(config),
+        submoduleBuild(config),
         submodulePrefetch(config),
         submoduleOptimizer(config),
         submoduleTesting(config),

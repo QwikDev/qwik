@@ -160,6 +160,8 @@ export interface QwikPluginOptions {
     // (undocumented)
     srcDir: string;
     // (undocumented)
+    ssrBuild?: boolean;
+    // (undocumented)
     symbolsOutput?: string | ((data: OutputEntryMap, output: NormalizedOutputOptions) => Promise<void> | void);
 }
 

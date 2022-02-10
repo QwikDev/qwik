@@ -12,7 +12,69 @@ import {
 } from '..';
 
 import type { NormalizedOutputOptions, PluginContext, RollupError } from 'rollup';
-import type { Plugin } from 'vite';
+import type { Plugin, ViteDevServer } from 'vite';
+
+const QWIK_BUILD = '@builder.io/qwik/build';
+/**
+ * @alpha
+ */
+export function qwikVite(opts: QwikViteOptions): any {
+  const debug = !!opts.debug;
+  const plugin = qwikRollup(opts);
+  if (opts.ssr !== false) {
+    const entry = opts.ssr?.entry ?? '/src/entry.server.tsx';
+    Object.assign(plugin, {
+      configureServer(server: ViteDevServer) {
+        server.middlewares.use(async (req, res, next) => {
+          const url = req.originalUrl!;
+          if (!/\.[\w?=&]+$/.test(url) && !url.startsWith('/@')) {
+            if (debug) {
+              // eslint-disable-next-line no-console
+              console.log(`[QWIK PLUGIN] Handle SSR request: ${url}`);
+            }
+
+            try {
+              const { render } = await server.ssrLoadModule(entry);
+              if (render) {
+                const symbols = {
+                  version: '1',
+                  mapping: {} as Record<string, string>,
+                };
+
+                Array.from(server.moduleGraph.fileToModulesMap.entries()).forEach((entry) => {
+                  entry[1].forEach((v) => {
+                    const hook = v.info?.meta?.hook;
+                    if (hook && v.lastHMRTimestamp) {
+                      symbols.mapping[hook.name] = `${v.url}?t=${v.lastHMRTimestamp}`;
+                    }
+                  });
+                });
+                const host = req.headers.host ?? 'localhost';
+                const result = await render({
+                  url: new URL(`http://${host}${url}`),
+                  debug: true,
+                  symbols,
+                });
+
+                const html = await server.transformIndexHtml(url, result.html);
+                res.setHeader('Content-Type', 'text/html; charset=utf-8');
+                res.writeHead(200);
+                res.end(html);
+              }
+            } catch (e) {
+              server.ssrFixStacktrace(e as any);
+              res.writeHead(500);
+              next(e);
+            }
+          } else {
+            next();
+          }
+        });
+      },
+    });
+  }
+  return plugin;
+}
 
 /**
  * @alpha
@@ -22,8 +84,9 @@ export function qwikRollup(opts: QwikPluginOptions): any {
   const results = new Map<string, TransformOutput>();
   let transformedOutputs = new Map<string, [TransformModule, string]>();
   let optimizer: Optimizer;
+  let isSSR = false;
   let outputCount = 0;
-
+  let isBuild = true;
   let entryStrategy: EntryStrategy = {
     type: 'single' as const,
     ...opts.entryStrategy,
@@ -62,6 +125,7 @@ export function qwikRollup(opts: QwikPluginOptions): any {
 
     config(config, { command }) {
       if (command === 'serve') {
+        isBuild = false;
         entryStrategy = { type: 'hook' };
         if ((config as any).ssr) {
           (config as any).ssr.noExternal = false;
@@ -79,53 +143,6 @@ export function qwikRollup(opts: QwikPluginOptions): any {
           },
         },
       };
-    },
-    configureServer(server) {
-      server.middlewares.use(async (req, res, next) => {
-        const url = req.originalUrl!;
-        if (!/\.[\w?=&]+$/.test(url) && !url.startsWith('/@')) {
-          if (debug) {
-            // eslint-disable-next-line no-console
-            console.log(`[QWIK PLUGIN] Handle SSR request: ${url}`);
-          }
-
-          try {
-            const { render } = await server.ssrLoadModule('/src/entry.server.tsx');
-            if (render) {
-              const symbols = {
-                version: '1',
-                mapping: {} as Record<string, string>,
-              };
-
-              Array.from(server.moduleGraph.fileToModulesMap.entries()).forEach((entry) => {
-                entry[1].forEach((v) => {
-                  const hook = v.info?.meta?.hook;
-                  if (hook && v.lastHMRTimestamp) {
-                    symbols.mapping[hook.name] = `${v.url}?t=${v.lastHMRTimestamp}`;
-                  }
-                });
-              });
-              const host = req.headers.host ?? 'localhost';
-              const result = await render({
-                url: new URL(`http://${host}${url}`),
-                debug: true,
-                symbols,
-              });
-
-              const html = await server.transformIndexHtml(url, result.html);
-              res.setHeader('Content-Type', 'text/html; charset=utf-8');
-              res.writeHead(200);
-              res.end(html);
-            }
-          } catch (e) {
-            server.ssrFixStacktrace(e as any);
-            res.writeHead(500);
-            next(e);
-          }
-        } else {
-          next();
-        }
-      });
     },
 
     options(inputOptions) {
@@ -172,7 +189,17 @@ export function qwikRollup(opts: QwikPluginOptions): any {
       }
     },
 
-    async resolveId(id, importer, opts: any) {
+    async resolveId(id, importer, localOpts) {
+      if (localOpts.ssr === true) {
+        isSSR = true;
+      }
+      if ((isBuild || typeof opts.ssrBuild === 'boolean') && id === QWIK_BUILD) {
+        return {
+          id: QWIK_BUILD,
+          moduleSideEffects: false,
+        };
+      }
+
       if (!optimizer) {
         optimizer = await createOptimizer();
       }
@@ -207,6 +234,12 @@ export function qwikRollup(opts: QwikPluginOptions): any {
     },
 
     load(id) {
+      if (id === QWIK_BUILD) {
+        return {
+          code: getBuildFile(isSSR),
+        };
+      }
+
       const transformedModule = transformedOutputs.get(id);
       if (transformedModule) {
         if (debug) {
@@ -313,12 +346,7 @@ export function qwikRollup(opts: QwikPluginOptions): any {
         .map((mod) => mod.hook)
         .filter((h) => !!h) as HookAnalysis[];
 
-      if (
-        hooks.length > 0 &&
-        outputOpts.format === 'es' &&
-        outputCount === 0 &&
-        opts.symbolsOutput
-      ) {
+      if (hooks.length > 0 && outputOpts.format === 'es' && outputCount === 0 && !isSSR) {
         outputCount++;
         const output = Object.entries(rollupBundle);
 
@@ -367,6 +395,13 @@ function removeExtension(id: string) {
   return id.split('.').slice(0, -1).join('.');
 }
 
+function getBuildFile(isSSR: boolean) {
+  return `
+export const isServer = ${isSSR};
+export const isBrowser = ${!isSSR};
+`;
+}
+
 /**
  * @alpha
  */
@@ -375,7 +410,23 @@ export interface QwikPluginOptions {
   srcDir: string;
   minify?: MinifyMode;
   debug?: boolean;
+  ssrBuild?: boolean;
   symbolsOutput?:
     | string
     | ((data: OutputEntryMap, output: NormalizedOutputOptions) => Promise<void> | void);
+}
+
+/**
+ * @alpha
+ */
+export interface QwikViteOptions extends QwikPluginOptions {
+  ssr?: QwikViteSSROptions | false;
+}
+
+/**
+ * @alpha
+ */
+export interface QwikViteSSROptions {
+  /** Defaults to `/src/entry.server.tsx` */
+  entry?: string;
 }

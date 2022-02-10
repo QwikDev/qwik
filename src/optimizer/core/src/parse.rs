@@ -7,6 +7,7 @@ use crate::collector::global_collect;
 use crate::entry_strategy::EntryPolicy;
 use crate::transform::{QwikTransform, QwikTransformOptions, ThreadSafeTransformContext};
 use crate::utils::{CodeHighlight, Diagnostic, DiagnosticSeverity, SourceLocation};
+use path_slash::PathExt;
 use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "fs")]
@@ -132,7 +133,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
         JsWord::from(path_data.extension.clone())
     };
     let transpile = config.transpile;
-    let origin: JsWord = path_data.path.to_string_lossy().into();
+    let origin: JsWord = path_data.path.to_slash_lossy().into();
 
     match module {
         Ok((main_module, comments, is_type_script, is_jsx)) => {
@@ -331,9 +332,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                             is_entry: false,
                             path: Path::new(&path_data.dir)
                                 .join([&path_data.file_stem, ".", &extension].concat())
-                                .to_str()
-                                .unwrap()
-                                .to_string(),
+                                .to_slash_lossy(),
                             code,
                             map,
                             hook: None,

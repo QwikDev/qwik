@@ -1,7 +1,7 @@
 import { createStore, onRender$, component$, useEvent, Host, withStyles$ } from '@builder.io/qwik';
-import styles from './root.css';
+import styles from './app.css';
 
-export const Root = component$(() => {
+export const App = component$(() => {
   withStyles$(styles);
 
   const state = createStore({ name: 'World' });

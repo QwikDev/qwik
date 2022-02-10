@@ -39,7 +39,8 @@ function loadStarterData(startersDir: string, dirName: string) {
         name: dashToTitlelCase(id),
         description: pkgJson.description ?? '',
         dir: dataDir,
-        priority: pkgJson.priority ?? 0,
+        priority: pkgJson?.qwik?.priority ?? 0,
+        featureOptions: pkgJson?.qwik?.featureOptions ?? [],
       };
       return data;
     })

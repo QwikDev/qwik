@@ -47,7 +47,8 @@
       "@builder.io/qwik/jsx-runtime": ["src/jsx-runtime"],
       "@builder.io/qwik/optimizer": ["src/optimizer/src/index"],
       "@builder.io/qwik/server": ["src/server/index"],
-      "@builder.io/qwik/testing": ["src/testing/index"]
+      "@builder.io/qwik/testing": ["src/testing/index"],
+      "@builder.io/qwik/build": ["src/build/index"]
     } /* List of root folders whose combined content represents the structure of the project at runtime. */,
     // "typeRoots": [],                       /* List of folders to include type definitions from. */
     // "types": [],                           /* Type declaration files to be included in compilation. */

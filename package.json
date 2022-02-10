@@ -8,7 +8,6 @@
     "build.wasm": "node scripts --wasm",
     "build.cli": "node scripts --cli --dev",
     "build.cli.prod": "node scripts --cli",
-    "release.cli": "npm run build.cli.prod && cd dist-dev/create-qwik && npm publish",
     "cli": "npm run build.cli && node dist-dev/create-qwik/create-qwik",
     "build.watch": "node scripts --build --watch --dev --platform-binding",
     "api.update": "node scripts --tsc --api --dev",
@@ -101,6 +100,12 @@
     "bindings/qwik_wasm_bg.wasm",
     "bindings/qwik.wasm.cjs",
     "bindings/qwik.wasm.mjs",
+    "build/index.cjs",
+    "build/index.cjs.map",
+    "build/index.mjs",
+    "build/index.mjs.map",
+    "build/index.d.ts",
+    "build/package.json",
     "core/package.json",
     "core.cjs",
     "core.cjs.map",
@@ -198,6 +203,7 @@
       "^@builder.io/qwik/optimizer$": "<rootDir>/src/optimizer/index.ts",
       "^@builder.io/qwik/server$": "<rootDir>/src/server/index.ts",
       "^@builder.io/qwik/testing$": "<rootDir>/src/testing/index.ts",
+      "^@builder.io/qwik/build$": "<rootDir>/src/build/index.ts",
       "^@builder.io/qwik$": "<rootDir>/src/core/index.ts"
     },
     "modulePathIgnorePatterns": [

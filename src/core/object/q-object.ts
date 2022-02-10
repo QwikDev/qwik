@@ -4,6 +4,7 @@ import { safeQSubscribe } from '../use/use-core';
 import { isElement } from '../util/element';
 import { AttributeMarker } from '../util/markers';
 import { debugStringify } from '../util/stringify';
+import { notifyWatchers } from '../watch/watch';
 
 export type QObject<T extends {}> = T & { __brand__: 'QObject' };
 
@@ -29,9 +30,11 @@ export function _restoreQObject<T>(obj: T, id: string): T {
   return readWriteProxy(obj as any as QObject<T>, id);
 }
 
-function QObject_notifyWrite(id: string, doc: Document | null) {
+function QObject_notifyWrite(id: string, doc: Document | null, propName: string) {
   if (doc) {
-    doc.querySelectorAll(idToComponentSelector(id)).forEach(notifyRender);
+    const effectedElements = doc.querySelectorAll(idToComponentSelector(id));
+    effectedElements.forEach(notifyRender);
+    effectedElements.forEach((element) => notifyWatchers(element, id, propName));
   }
 }
 
@@ -146,7 +149,7 @@ class ReadWriteProxyHandler<T extends object> implements ProxyHandler<T> {
       const oldValue = (target as any)[prop];
       if (oldValue !== unwrappedNewValue) {
         (target as any)[prop] = unwrappedNewValue;
-        QObject_notifyWrite(this.id, this.doc);
+        QObject_notifyWrite(this.id, this.doc, prop);
       }
     }
     return true;

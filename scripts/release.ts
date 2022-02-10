@@ -84,8 +84,15 @@ export async function commitPrepareReleaseVersion(config: BuildConfig) {
   updatedPkg.version = config.distVersion;
   await writePackageJson(config.rootDir, updatedPkg);
 
+  // update the cli version
+  const distCliDir = join(config.rootDir, 'src', 'cli');
+  const cliPkgJsonPath = join(distCliDir, 'package.json');
+  const cliPkg = await readPackageJson(distCliDir);
+  cliPkg.version = config.distVersion;
+  await writePackageJson(distCliDir, cliPkg);
+
   // git add the changed package.json
-  const gitAddArgs = ['add', pkgJsonPath];
+  const gitAddArgs = ['add', pkgJsonPath, cliPkgJsonPath];
   await run('git', gitAddArgs);
 
   // git commit the changed package.json
@@ -174,10 +181,10 @@ export async function publish(config: BuildConfig) {
     isDryRun ? '(dry-run)' : ''
   );
 
-  await publishStarerCli(config, distTag, version, isDryRun);
+  await publishStarterCli(config, distTag, version, isDryRun);
 }
 
-async function publishStarerCli(
+async function publishStarterCli(
   config: BuildConfig,
   distTag: string,
   version: string,
@@ -185,6 +192,11 @@ async function publishStarerCli(
 ) {
   const distCliDir = join(config.distDir, 'create-qwik');
   const cliPkg = await readPackageJson(distCliDir);
+
+  // update the cli version
+  console.log(`   update version = "${version}"`);
+  cliPkg.version = version;
+  await writePackageJson(distCliDir, cliPkg);
 
   // update the base app's package.json
   const distCliBaseAppDir = join(distCliDir, 'starters', 'apps', 'base');

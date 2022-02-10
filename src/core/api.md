@@ -130,6 +130,11 @@ export interface JSXNode<T = any> {
 export function notifyRender(hostElement: Element): Promise<void>;
 
 // @public
+export interface Observer {
+    <T extends {}>(obj: T): T;
+}
+
+// @public
 export function on(event: string, eventFn: QRL<() => void>): QRL<() => void>;
 
 // @public
@@ -164,6 +169,12 @@ export const onUnmount$: (first: () => void) => void;
 
 // @public
 export function onUnmount(unmountFn: QRL<() => void>): void;
+
+// @public
+export const onWatch$: (first: (obs: Observer) => unknown | (() => void)) => void;
+
+// @public
+export function onWatch(watchFn: QRL<(obs: Observer) => unknown | (() => void)>): void;
 
 // @public
 export function onWindow(event: string, eventFn: QRL<() => void>): QRL<() => void>;

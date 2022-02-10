@@ -23,7 +23,7 @@ Error.stackTraceLimit = 9999;
 // TODO(misko): For better debugger experience the getProps should never store Proxy, always naked objects to make it easier to traverse in the debugger.
 
 const Q_IS_HYDRATED = '__isHydrated__';
-export const Q_PROP = 'getProps';
+export const Q_PROP = 'qProps';
 
 export function hydrateIfNeeded(element: Element): void {
   const doc = element.ownerDocument!;
@@ -59,7 +59,7 @@ export interface QPropsContext {
 export const Q_MAP = '__qMap__';
 const Q_OBJECT_ATTR_SELECTOR = '[q\\:obj]';
 
-const QProps_ = class QProps {
+export const QProps_ = class QProps {
   public __mutation__: boolean = false;
   public __self__: QProps = null!;
   constructor(
@@ -170,28 +170,45 @@ function readAttribute(element: Element, map: QObjectMap, propName: string): any
 }
 
 function writeAttribute(element: Element, map: QObjectMap, propName: string, value: any): void {
-  const attrName = fromCamelToKebabCase(propName);
-  if (propName == 'class') {
-    element.setAttribute('class', stringifyClassOrStyle(value, true));
-  } else if (propName == 'style') {
-    element.setAttribute('style', stringifyClassOrStyle(value, false));
+  let attrName = fromCamelToKebabCase(propName);
+
+  if (propName === 'class') {
+    element.setAttribute(propName, stringifyClassOrStyle(value, true));
+  } else if (propName === 'style') {
+    element.setAttribute(propName, stringifyClassOrStyle(value, false));
   } else if (propName === 'innerHTML' || propName === 'innerText') {
     element.setAttribute(attrName, '');
     (element as any)[propName] = value;
   } else {
-    const newValue = qJsonStringify(value, map);
-    if (value === undefined) {
+    if (propName in element) {
+      // INPUT properties like `value` and `checked` are special because they can go out of sync
+      // between the attribute and what the user entered, so they have special treatment.
+      (element as any)[propName] = value;
+      if (value === true) {
+        value = '';
+      }
+    } else if (LOWERCASE_PROP_TO_ATTR[propName] || propName.toLowerCase() in element) {
+      // JSX Prop "charSet" === HTML Attribute "charset"
+      // JSX Prop "autoComplete" === HTML Attribute "autocomplete"
+      attrName = propName.toLowerCase();
+      (element as any)[attrName] = value;
+    }
+
+    if (value === undefined || value === false) {
       element.removeAttribute(attrName);
     } else {
-      element.setAttribute(attrName, newValue);
+      element.setAttribute(attrName, qJsonStringify(value, map));
     }
   }
-  if ((propName == 'value' || propName == 'checked') && element.tagName === 'INPUT') {
-    // INPUT properties `value` and `checked` are special because they can go out of sync
-    // between the attribute and what the user entered, so they have special treatment.
-    (element as any)[propName] = value;
-  }
 }
+
+/**
+ * Special cases where a camelCase JSX prop should not be hyphenated html attribute
+ */
+const LOWERCASE_PROP_TO_ATTR: { [propName: string]: number } = {
+  // https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-charset
+  charSet: 1,
+};
 
 /**
  * Returns `null` if the two objects are equivalent.

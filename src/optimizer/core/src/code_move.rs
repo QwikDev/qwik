@@ -151,9 +151,8 @@ pub fn fix_path<S: AsRef<Path>, D: AsRef<Path>>(
         );
 
         if let Some(diff) = diff {
-            let relative = relative_path::RelativePath::from_path(&diff).with_context(|| {
-                format!("Computing relative path from {}", diff.to_string_lossy())
-            })?;
+            let normalize = diff.to_slash_lossy();
+            let relative = relative_path::RelativePath::new(&normalize);
             let final_path = relative.join(ident).normalize();
             let final_str = final_path.as_str();
             return Ok(if final_str.starts_with('.') {

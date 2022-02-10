@@ -6,8 +6,8 @@ import { getInvokeContext } from './use-core';
 /**
  * Retrieves the Host Element of the current component.
  *
- * NOTE: `useHostElement` method can only be used in synchronous portion of the callback (before
- * any `await` statements.)
+ * NOTE: `useHostElement` method can only be used in the synchronous portion of the callback
+ * (before any `await` statements.)
  *
  * @public
  */

@@ -6,8 +6,8 @@ import { getInvokeContext } from './use-core';
 /**
  * Retrieves the current event which triggered the action.
  *
- * NOTE: `useEvent` method can only be used in synchronous portion of the callback (before any
- * `await` statements.)
+ * NOTE: The `useEvent` method can only be used in the synchronous portion of the callback
+ * (before any `await` statements.)
  *
  * @public
  */

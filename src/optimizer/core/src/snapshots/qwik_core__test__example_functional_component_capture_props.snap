@@ -1,6 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 1084
+assertion_line: 1017
 expression: output
 
 ---
@@ -22,7 +22,7 @@ export const App = qComponent$(({count, rest: [I2, {I3, v1: [I4], I5=v2, ...I6},
         )
     });
 })
-    
+
 ============================= test.js ==
 
 import * as qwik from "@builder.io/qwik";

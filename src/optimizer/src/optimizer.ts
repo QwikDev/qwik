@@ -74,16 +74,20 @@ const transformFsAsync = (
 const transformFsVirtual = async (sys: InternalSystem, opts: TransformFsOptions) => {
   const extensions = ['.js', '.ts', '.tsx', '.jsx'];
 
-  async function getFiles(dir: string) {
+  async function getFiles(dir: string): Promise<string[]> {
     const subdirs = await readDir(sys, dir);
-    const files: string[] = await Promise.all(
+    const files = await Promise.all(
       subdirs.map(async (subdir: any) => {
         const res = sys.path.resolve(dir, subdir);
         const isDir = await isDirectory(sys, res);
-        return (isDir ? getFiles(res) : res) as any;
+        return isDir ? getFiles(res) : [res];
       })
     );
-    return files.filter((a) => extensions.includes(sys.path.extname(a)));
+    const flatted = [];
+    for (const file of files) {
+      flatted.push(...file);
+    }
+    return flatted.filter((a) => extensions.includes(sys.path.extname(a)));
   }
 
   const files = await getFiles(opts.rootDir);

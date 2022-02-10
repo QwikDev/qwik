@@ -1,6 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 1084
+assertion_line: 1017
 expression: output
 
 ---
@@ -19,7 +19,7 @@ const Header = $((decl1, {decl2}, [decl3]) => {
     try{}catch(decl18){}
     try{}catch({decl19}){}
 });
-    
+
 ============================= test.tsx ==
 
 import * as qwik from "@builder.io/qwik";

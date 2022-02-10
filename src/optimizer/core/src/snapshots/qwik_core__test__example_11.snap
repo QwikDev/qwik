@@ -1,6 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 1084
+assertion_line: 1017
 expression: output
 
 ---
@@ -29,7 +29,7 @@ export const App = qComponent$(() => {
         );
     })
 });
-    
+
 ============================= project/test.tsx ==
 
 import * as qwik from "@builder.io/qwik";

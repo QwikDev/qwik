@@ -5,5 +5,12 @@ interface BuilderProps {
 }
 
 export const Builder = component$(({ pathname }: BuilderProps) => {
-  return onRender$(() => <Host class="builder">Builder! {pathname}</Host>);
+  return onRender$(() => (
+    <Host class="builder">
+      <p>Builder! {pathname}</p>
+      <ul>
+        <a href="/docs">Docs</a>
+      </ul>
+    </Host>
+  ));
 });

@@ -1,30 +1,23 @@
-/**
- * @license
- * Copyright Builder.io, Inc. All Rights Reserved.
- *
- * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
- */
-
 import { renderToString, RenderToStringOptions, QwikLoader } from '@builder.io/qwik/server';
 import { App } from './app';
+import { Head } from './head';
+import { PageProps } from './types';
 
-/**
- * Entry point for server-side pre-rendering.
- *
- * @returns a promise when all of the rendering is completed.
- */
 export function render(opts: RenderToStringOptions) {
-  const pathname = opts.url?.pathname || '/';
+  const url = opts.url!;
+
+  const page: PageProps = {
+    url: url.href,
+    pathname: url.pathname,
+  };
 
   return renderToString(
-    <html>
+    <html lang="en" className="h-screen">
       <head>
-        <meta charSet="utf-8" />
-        <title>Qwik</title>
+        <Head {...page} />
       </head>
-      <body q:base="/">
-        <App pathname={pathname} />
+      <body q:base="/" className="bg-gray-900 text-slate-100 antialiased h-screen">
+        <App {...page} />
         <QwikLoader />
       </body>
     </html>,

@@ -10,7 +10,15 @@
     "moduleResolution": "node",
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "incremental": true
+    "incremental": true,
+    "baseUrl": "../../",
+    "paths": {
+      "@builder.io/qwik": ["src/core/index"],
+      "@builder.io/qwik/jsx-runtime": ["src/jsx-runtime"],
+      "@builder.io/qwik/optimizer": ["src/optimizer/src/index"],
+      "@builder.io/qwik/server": ["src/server/index"],
+      "@builder.io/qwik/testing": ["src/testing/index"]
+    }
   },
   "include": ["src"]
 }

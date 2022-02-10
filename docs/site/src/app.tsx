@@ -2,19 +2,17 @@ import { onRender$, component$, withStyles$ } from '@builder.io/qwik';
 import { Builder } from './builder';
 import { Docs } from './docs';
 import styles from './app.css';
+import { PageProps } from './types';
 
-interface AppProps {
-  pathname: string;
-}
-
-export const App = component$(({ pathname }: AppProps) => {
+export const App = component$((props: PageProps) => {
   withStyles$(styles);
 
   return onRender$(() => {
-    if (pathname.startsWith('/docs')) {
-      return <Docs pathname={pathname} />;
+    if (props.pathname.startsWith('/docs')) {
+      // TODO: Why won't spread operators work here?
+      return <Docs {...props} />;
     }
 
-    return <Builder pathname={pathname} />;
+    return <Builder pathname={props.pathname} />;
   });
 });

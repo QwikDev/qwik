@@ -15,6 +15,7 @@
     "start": "npm run dev"
   },
   "devDependencies": {
+    "@builder.io/partytown": "^0.3.4",
     "@builder.io/qwik": "file:../../dist-dev/@builder.io-qwik",
     "@cloudflare/kv-asset-handler": "0.2.0",
     "@cloudflare/workers-types": "3.2.0",

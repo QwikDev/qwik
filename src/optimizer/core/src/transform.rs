@@ -120,7 +120,7 @@ impl<'a> QwikTransform<'a> {
             .imports
             .iter()
             .flat_map(|(id, import)| {
-                if import.kind == ImportKind::Named && import.specifier.ends_with('$') {
+                if import.kind == ImportKind::Named && import.specifier.ends_with(SIGNAL) {
                     Some(id.clone())
                 } else {
                     None
@@ -128,7 +128,7 @@ impl<'a> QwikTransform<'a> {
             });
 
         let exports = options.global_collect.exports.keys().flat_map(|id| {
-            if id.0.ends_with('$') {
+            if id.0.ends_with(SIGNAL) {
                 Some(id.clone())
             } else {
                 None

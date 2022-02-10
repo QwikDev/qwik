@@ -1,6 +1,8 @@
 use lazy_static::lazy_static;
 use swc_atoms::JsWord;
 
+pub const SIGNAL: char = '$';
+
 lazy_static! {
     pub static ref QRL: JsWord = JsWord::from("qrl");
     pub static ref QHOOK: JsWord = JsWord::from("$");

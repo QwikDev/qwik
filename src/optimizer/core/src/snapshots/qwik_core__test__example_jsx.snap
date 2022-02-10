@@ -1,6 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 1017
+assertion_line: 1021
 expression: output
 
 ---
@@ -9,18 +9,18 @@ expression: output
 
 import { $, qComponent$, onRender$, h, Fragment } from '@builder.io/qwik';
 
-export const Lightweight = () => {
+export const Lightweight = (props) => {
     return (
         <div>
             <>
                 <div/>
-                <button/>
+                <button {...props}/>
             </>
         </div>
     )
 };
 
-export const Foo = qComponent$("my-foo", () => {
+export const Foo = qComponent$("my-foo", (props) => {
     return onRender$(() => {
         return (
             <div>
@@ -30,7 +30,7 @@ export const Foo = qComponent$("my-foo", () => {
                     <div class="class">12</div>
                 </>
                 <div class="class">
-                    <Lightweight/>
+                    <Lightweight {...props}/>
                 </div>
                 <div class="class">
                     <div/>
@@ -50,12 +50,14 @@ export const Foo = qComponent$("my-foo", () => {
 import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
 import * as qwik from "@builder.io/qwik";
 import { qComponent } from "@builder.io/qwik";
-export const Lightweight = ()=>{
+export const Lightweight = (props)=>{
     return(/*#__PURE__*/ _jsx("div", {
         children: /*#__PURE__*/ _jsxs(_Fragment, {
             children: [
                 /*#__PURE__*/ _jsx("div", {}),
-                /*#__PURE__*/ _jsx("button", {})
+                /*#__PURE__*/ _jsx("button", {
+                    ...props
+                })
             ]
         })
     }));
@@ -71,6 +73,7 @@ import { Lightweight } from "./test";
 import { h } from "@builder.io/qwik";
 import { Fragment } from "@builder.io/qwik";
 export const Foo_onRender = ()=>{
+    const [props] = qwik.useLexicalScope();
     return(/*#__PURE__*/ _jsxs("div", {
         children: [
             /*#__PURE__*/ _jsxs(_Fragment, {
@@ -89,7 +92,9 @@ export const Foo_onRender = ()=>{
             }),
             /*#__PURE__*/ _jsx("div", {
                 class: "class",
-                children: /*#__PURE__*/ _jsx(Lightweight, {})
+                children: /*#__PURE__*/ _jsx(Lightweight, {
+                    ...props
+                })
             }),
             /*#__PURE__*/ _jsxs("div", {
                 class: "class",
@@ -120,9 +125,11 @@ export const Foo_onRender = ()=>{
 
 import * as qwik from "@builder.io/qwik";
 import { onRender } from "@builder.io/qwik";
-export const Foo_onmount = ()=>{
+export const Foo_onmount = (props)=>{
     return onRender(qwik.qrl(()=>import("./h_test_foo_onrender")
-    , "Foo_onRender"));
+    , "Foo_onRender", [
+        props
+    ]));
 };
 
 /*

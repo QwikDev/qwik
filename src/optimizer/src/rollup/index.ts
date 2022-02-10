@@ -12,7 +12,7 @@ import {
 } from '..';
 
 import type { NormalizedOutputOptions, PluginContext, RollupError } from 'rollup';
-import type { Plugin, ViteDevServer } from 'vite';
+import type { HmrContext, Plugin, ViteDevServer } from 'vite';
 
 const QWIK_BUILD = '@builder.io/qwik/build';
 /**
@@ -24,6 +24,15 @@ export function qwikVite(opts: QwikViteOptions): any {
   if (opts.ssr !== false) {
     const entry = opts.ssr?.entry ?? '/src/entry.server.tsx';
     Object.assign(plugin, {
+      handleHotUpdate(ctx: HmrContext) {
+        if (ctx.file.endsWith('.css')) {
+          ctx.server.ws.send({
+            type: 'full-reload',
+          });
+          return [];
+        }
+        return null;
+      },
       configureServer(server: ViteDevServer) {
         server.middlewares.use(async (req, res, next) => {
           const url = req.originalUrl!;

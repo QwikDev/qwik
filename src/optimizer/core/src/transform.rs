@@ -7,6 +7,7 @@ use crate::collector::{
 use crate::entry_strategy::EntryPolicy;
 use crate::parse::PathData;
 use crate::words::*;
+use path_slash::PathExt;
 
 use anyhow::{bail, Error};
 use lazy_static::lazy_static;
@@ -362,7 +363,7 @@ impl<'a> QwikTransform<'a> {
                 expr: Box::new(folded),
                 local_idents,
                 scoped_idents,
-                origin: self.options.path_data.path.to_string_lossy().into(),
+                origin: self.options.path_data.path.to_slash_lossy().into(),
             });
             o
         } else {

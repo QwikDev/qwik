@@ -10,6 +10,14 @@ import { isPromise } from '../util/promises';
 import { useEvent } from '../use/use-event.public';
 import { newInvokeContext, useInvoke } from '../use/use-core';
 import { QRL, $ } from '../import/qrl.public';
+import type {
+  FormHTMLAttributes,
+  InputHTMLAttributes,
+  MetaHTMLAttributes,
+  SelectHTMLAttributes,
+  TableHTMLAttributes,
+  TextareaHTMLAttributes,
+} from '../render/jsx/types/jsx-generated';
 
 describe('q-element', () => {
   let document: Document;
@@ -48,11 +56,9 @@ describe('q-element', () => {
     expect(qDiv.isAwesome).toBe(true);
   });
 
-  it('should detect changes', () => {});
-
   describe('<input>', () => {
     let input: HTMLInputElement;
-    let qInput: Props;
+    let qInput: InputHTMLAttributes<Props>;
     beforeEach(() => {
       input = document.createElement('input');
       qInput = getProps(input);
@@ -69,6 +75,134 @@ describe('q-element', () => {
       expect(input.getAttribute('value')).toBe('BAR');
     });
   });
+
+  describe('<select>', () => {
+    // https://developer.mozilla.org/en-US/docs/Web/HTML/Element/select
+    let select: HTMLSelectElement;
+    let qSelect: SelectHTMLAttributes<Props>;
+    beforeEach(() => {
+      select = document.createElement('select');
+      qSelect = getProps(select);
+    });
+
+    it('autocomplete attr', () => {
+      qSelect.autoComplete = 'on';
+      expect(select.autocomplete).toBe('on');
+      expect(select.getAttribute('autocomplete')).toBe('on');
+    });
+
+    it('autoFocus prop', () => {
+      qSelect.autoFocus = true;
+      expect(select.autofocus).toBe(true);
+      expect(select.getAttribute('autofocus')).toBe('true');
+    });
+  });
+
+  describe('<textarea>', () => {
+    // https://developer.mozilla.org/en-US/docs/Web/HTML/Element/textarea#attributes
+    let textarea: HTMLTextAreaElement;
+    let qTextarea: TextareaHTMLAttributes<Props>;
+    beforeEach(() => {
+      textarea = document.createElement('textarea');
+      qTextarea = getProps(textarea);
+    });
+
+    it('autocomplete attr', () => {
+      qTextarea.autoComplete = 'on';
+      expect(textarea.autocomplete).toBe('on');
+      expect(textarea.getAttribute('autocomplete')).toBe('on');
+    });
+
+    it('minLength prop', () => {
+      qTextarea.minLength = 100;
+      expect(textarea.minLength).toBe(100);
+      expect(textarea.getAttribute('minlength')).toBe('100');
+    });
+
+    it('autoFocus true', () => {
+      qTextarea.autoFocus = true;
+      expect(textarea.autofocus).toBe(true);
+      expect(textarea.getAttribute('autofocus')).toBe('true');
+    });
+
+    it('autoFocus false', () => {
+      qTextarea.autoFocus = true;
+      qTextarea.autoFocus = false;
+      expect(textarea.autofocus).toBe(false);
+      expect(textarea.getAttribute('autofocus')).toBe(null);
+    });
+
+    it('autoFocus undefined', () => {
+      qTextarea.autoFocus = true;
+      qTextarea.autoFocus = undefined;
+      expect(textarea.autofocus).toBe(false);
+      expect(textarea.getAttribute('autofocus')).toBe(null);
+    });
+  });
+
+  describe('<form>', () => {
+    // https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form
+    let form: HTMLFormElement;
+    let qForm: FormHTMLAttributes<Props>;
+    beforeEach(() => {
+      form = document.createElement('form');
+      qForm = getProps(form);
+    });
+
+    it('accept-charset attr', () => {
+      expect(form.getAttribute('accept-charset')).toBe(null);
+      qForm.acceptCharset = 'utf-8';
+      expect(form.acceptCharset).toBe('utf-8');
+      expect(form.getAttribute('accept-charset')).toBe('utf-8');
+      expect(form.getAttribute('acceptcharset')).toBe(null);
+    });
+
+    it('noValidate prop', () => {
+      expect(form.getAttribute('novalidate')).toBe(null);
+      qForm.noValidate = true;
+      expect(form.noValidate).toBe(true);
+      expect(form.getAttribute('novalidate')).toBe('');
+      expect(form.getAttribute('noValidate')).toBe('');
+    });
+  });
+
+  describe('<table>', () => {
+    // https://developer.mozilla.org/en-US/docs/Web/HTML/Element/table
+    let table: HTMLTableElement;
+    let qTable: TableHTMLAttributes<Props>;
+    beforeEach(() => {
+      table = document.createElement('table');
+      qTable = getProps(table);
+    });
+
+    it('cellPadding prop', () => {
+      expect(table.getAttribute('accept-charset')).toBe(null);
+      qTable.cellPadding = '88';
+      expect(table.cellPadding).toBe('88');
+      expect(table.getAttribute('cellpadding')).toBe('88');
+      expect(table.getAttribute('cellPadding')).toBe('88');
+    });
+  });
+
+  describe('special case props', () => {
+    // https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta
+    it('charSet prop', () => {
+      const meta = document.createElement('meta');
+      const qMeta: MetaHTMLAttributes<Props> = getProps(meta);
+      qMeta.charSet = 'utf-8';
+      expect(meta.getAttribute('charset')).toBe('utf-8');
+      expect(meta.getAttribute('charSet')).toBe('utf-8');
+    });
+
+    it('httpEquiv prop', () => {
+      const meta = document.createElement('meta');
+      const qMeta: MetaHTMLAttributes<Props> = getProps(meta);
+      qMeta.httpEquiv = 'value';
+      expect(meta.getAttribute('http-equiv')).toBe('value');
+      expect(meta.getAttribute('httpequiv')).toBe(null);
+    });
+  });
+
   it('should serialize innerHTML', () => {
     qDiv.innerHTML = '<span>WORKS</span>';
     test_clearPropsCache(div);
@@ -76,6 +210,7 @@ describe('q-element', () => {
     expect(div.getAttribute('inner-h-t-m-l')).toEqual('');
     expect(div.innerHTML.toUpperCase()).toEqual('<SPAN>WORKS</SPAN>');
   });
+
   it('should serialize innerText', () => {
     qDiv.innerText = 'TEXT';
     test_clearPropsCache(div);

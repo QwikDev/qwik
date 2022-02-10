@@ -7,6 +7,7 @@ use std::collections::HashMap;
 use std::path::Path;
 
 use anyhow::{format_err, Context, Error};
+use path_slash::PathExt;
 use swc_atoms::JsWord;
 use swc_common::comments::SingleThreadedComments;
 use swc_common::{sync::Lrc, SourceMap, DUMMY_SP};
@@ -130,8 +131,8 @@ pub fn fix_path<S: AsRef<Path>, D: AsRef<Path>>(
 ) -> Result<JsWord, Error> {
     let src = src.as_ref();
     let dest = dest.as_ref();
-    let src_str = src.to_string_lossy();
-    let dest_str = dest.to_string_lossy();
+    let src_str = src.to_slash_lossy();
+    let dest_str = dest.to_slash_lossy();
 
     if src_str.starts_with('/') {
         return Err(format_err!(

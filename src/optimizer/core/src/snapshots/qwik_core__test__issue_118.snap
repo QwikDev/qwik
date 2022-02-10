@@ -1,6 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 1084
+assertion_line: 1017
 expression: output
 
 ---
@@ -12,15 +12,12 @@ import thing from 'lib';
 import * as all from 'lib';
 import {s as se} from 'lib';
 
-
 export const Header = qComponent$(() => {
     onRender$(() => <Footer>{thing}{all()}{se()}</Footer>)
 });
 
 export const Footer = qComponent$();
 
-
-    
 ============================= project/test.js ==
 
 import*as a from"@builder.io/qwik";import{qComponent as b}from"@builder.io/qwik";export const Header=/*#__PURE__*/ b(a.qrl(()=>import("../entry_hooks"),"Header_onmount"));export const Footer=/*#__PURE__*/ b();

@@ -1,6 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 1084
+assertion_line: 1017
 expression: output
 
 ---
@@ -28,7 +28,7 @@ export const Root = qComponent$("my-foo", () => {
         )
     }));
 }))
-    
+
 ============================= test.js ==
 
 import * as qwik from "@builder.io/qwik";

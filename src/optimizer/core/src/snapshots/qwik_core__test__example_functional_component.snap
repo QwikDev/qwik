@@ -1,24 +1,24 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 1084
+assertion_line: 1017
 expression: output
 
 ---
 ==INPUT==
 
 
-        import { $, qComponent$, onRender$, createStore } from '@builder.io/qwik';
-        const Header = qComponent$(() => {
-            const thing = createStore();
-            const {foo, bar} = foo();
+import { $, qComponent$, onRender$, createStore } from '@builder.io/qwik';
+const Header = qComponent$(() => {
+    const thing = createStore();
+    const {foo, bar} = foo();
 
-            onRender$(() => {
-                return (
-                    <div>{thing}</div>
-                );
-            });
-        });
-    
+    onRender$(() => {
+        return (
+            <div>{thing}</div>
+        );
+    });
+});
+
 ============================= test.tsx ==
 
 import * as qwik from "@builder.io/qwik";

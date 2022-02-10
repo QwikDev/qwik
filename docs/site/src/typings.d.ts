@@ -1,3 +1,8 @@
+declare module '*.module.css' {
+  const classNames: Record<string, string>;
+  export default classNames;
+}
+
 /* Allows Typescript to import .css files */
 declare module '*.css' {
   const content: string;

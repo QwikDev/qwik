@@ -10,6 +10,7 @@ export const Builder = component$(({ pathname }: BuilderProps) => {
       <p>Builder! {pathname}</p>
       <ul>
         <a href="/docs">Docs</a>
+        <a href="/">Homepage</a>
       </ul>
     </Host>
   ));

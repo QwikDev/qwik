@@ -193,6 +193,11 @@ async function publishStarterCli(
   const distCliDir = join(config.distDir, 'create-qwik');
   const cliPkg = await readPackageJson(distCliDir);
 
+  // update the cli version
+  console.log(`   update version = "${version}"`);
+  cliPkg.version = version;
+  await writePackageJson(distCliDir, cliPkg);
+
   // update the base app's package.json
   const distCliBaseAppDir = join(distCliDir, 'starters', 'apps', 'base');
   const baseAppPkg = await readPackageJson(distCliBaseAppDir);

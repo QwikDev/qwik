@@ -102,7 +102,6 @@
     "bindings/qwik.wasm.mjs",
     "build/index.cjs",
     "build/index.cjs.map",
-    "build/index.min.mjs",
     "build/index.mjs",
     "build/index.mjs.map",
     "build/index.d.ts",

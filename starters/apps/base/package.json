@@ -11,8 +11,8 @@
   },
   "devDependencies": {
     "@builder.io/qwik": "latest",
-    "typescript": "^4.5.2",
-    "vite": "^2.7.13"
+    "typescript": "latest",
+    "vite": "latest"
   },
   "author": "Builder.io Team",
   "license": "MIT",

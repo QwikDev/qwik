@@ -1,6 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 1084
+assertion_line: 1017
 expression: output
 
 ---
@@ -31,7 +31,7 @@ export const ButtonArrow = ({text, color}) => {
         <button color={color} on$:click={()=>console.log(text, color)}>{text}</button>
     );
 }
-    
+
 ============================= test.tsx ==
 
 import * as qwik from "@builder.io/qwik";

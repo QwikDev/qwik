@@ -1,11 +1,12 @@
+#![allow(unused_must_use)]
+
 use super::*;
 use serde_json::to_string_pretty;
 
 #[test]
 fn example_1() {
-    test_input(
-        "test.tsx",
-        r#"
+    test_input(TestInput {
+        code: r#"
 import { $, qComponent, onRender } from '@builder.io/qwik';
 
 const Header = qComponent($(() => {
@@ -16,19 +17,16 @@ const Header = qComponent($(() => {
     );
   }));
 }));
-    "#,
-        EntryStrategy::Hook,
-        MinifyMode::Simplify,
-        false,
-        false,
-    );
+"#
+        .to_string(),
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_2() {
-    test_input(
-        "test.tsx",
-        r#"
+    test_input(TestInput {
+        code: r#"
 import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 export const Header = qComponent$(() => {
   console.log("mount");
@@ -38,19 +36,16 @@ export const Header = qComponent$(() => {
     );
   });
 });
-    "#,
-        EntryStrategy::Hook,
-        MinifyMode::Simplify,
-        false,
-        false,
-    );
+"#
+        .to_string(),
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_3() {
-    test_input(
-        "test.tsx",
-        r#"
+    test_input(TestInput {
+        code: r#"
 import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 export const App = () => {
     const Header = qComponent$(() => {
@@ -63,19 +58,16 @@ export const App = () => {
     });
     return Header;
 });
-    "#,
-        EntryStrategy::Hook,
-        MinifyMode::Simplify,
-        false,
-        false,
-    );
+"#
+        .to_string(),
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_4() {
-    test_input(
-        "test.tsx",
-        r#"
+    test_input(TestInput {
+        code: r#"
 import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 export function App() {
     const Header = qComponent$(() => {
@@ -88,19 +80,16 @@ export function App() {
     });
     return Header;
 }
-    "#,
-        EntryStrategy::Hook,
-        MinifyMode::Simplify,
-        false,
-        false,
-    );
+"#
+        .to_string(),
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_5() {
-    test_input(
-        "test.tsx",
-        r#"
+    test_input(TestInput {
+        code: r#"
 import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 export const Header = qComponent$(() => {
     onRender$(() => {
@@ -112,34 +101,28 @@ export const Header = qComponent$(() => {
         );
     })
 });
-    "#,
-        EntryStrategy::Hook,
-        MinifyMode::Simplify,
-        false,
-        false,
-    );
+"#
+        .to_string(),
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_6() {
-    test_input(
-        "test.tsx",
-        r#"
+    test_input(TestInput {
+        code: r#"
 import { $, qComponent$ } from '@builder.io/qwik';
 export const sym1 = $((ctx) => console.log("1"));
-    "#,
-        EntryStrategy::Hook,
-        MinifyMode::Simplify,
-        false,
-        false,
-    );
+"#
+        .to_string(),
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_7() {
-    test_input(
-        "test.tsx",
-        r#"
+    test_input(TestInput {
+        code: r#"
 import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 
 export const Header = qComponent$(() => {
@@ -157,19 +140,17 @@ const App = qComponent$(() => {
             <Header/>
         );
     })
-});"#,
-        EntryStrategy::Hook,
-        MinifyMode::Simplify,
-        false,
-        false,
-    );
+});
+"#
+        .to_string(),
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_8() {
-    test_input(
-        "test.tsx",
-        r#"
+    test_input(TestInput {
+        code: r#"
 import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 
 export const Header = qComponent$(() => {
@@ -182,19 +163,16 @@ export const Header = qComponent$(() => {
         );
     });
 });
-"#,
-        EntryStrategy::Hook,
-        MinifyMode::Simplify,
-        false,
-        false,
-    );
+"#
+        .to_string(),
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_9() {
-    test_input(
-        "test.tsx",
-        r#"
+    test_input(TestInput {
+        code: r#"
 import { $, qComponent$ } from '@builder.io/qwik';
 const Header = $((decl1, {decl2}, [decl3]) => {
     const {decl4, key: decl5} = this;
@@ -207,19 +185,17 @@ const Header = $((decl1, {decl2}, [decl3]) => {
     try{}catch(decl18){}
     try{}catch({decl19}){}
 });
-    "#,
-        EntryStrategy::Hook,
-        MinifyMode::Simplify,
-        false,
-        false,
-    );
+"#
+        .to_string(),
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_10() {
-    test_input(
-        "project/test.tsx",
-        r#"
+    test_input(TestInput {
+        filename: "project/test.tsx".to_string(),
+        code: r#"
 import { $, qComponent$ } from '@builder.io/qwik';
 const Header = $((decl1, {decl2}, [decl3]) => {
 
@@ -239,19 +215,17 @@ const Header = $((decl1, {decl2}, [decl3]) => {
         <div onClick={(ident11) => ident11 + ident12} required={false}/>
     )
 });
-    "#,
-        EntryStrategy::Hook,
-        MinifyMode::Simplify,
-        false,
-        false,
-    );
+"#
+        .to_string(),
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_11() {
-    test_input(
-        "project/test.tsx",
-        r#"
+    test_input(TestInput {
+        filename: "project/test.tsx".to_string(),
+        code: r#"
 import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 import {foo, bar as bbar} from "../state";
 import * as dep2 from "dep2";
@@ -274,79 +248,71 @@ export const App = qComponent$(() => {
         );
     })
 });
-    "#,
-        EntryStrategy::Single,
-        MinifyMode::Simplify,
-        false,
-        false,
-    );
+"#
+        .to_string(),
+        entry_strategy: EntryStrategy::Single,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_12() {
-    test_input(
-        "project/test.tsx",
-        r#"
+    test_input(TestInput {
+        filename: "project/test.tsx".to_string(),
+        code: r#"
 import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 export const Header = qComponent$(() => {
     onRender$(() => console.log("hello sym2"), "sym2")
 });
-
-    "#,
-        EntryStrategy::Single,
-        MinifyMode::Simplify,
-        false,
-        false,
-    );
+"#
+        .to_string(),
+        entry_strategy: EntryStrategy::Single,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_13() {
-    test_input(
-        "project/test.tsx",
-        r#"
+    test_input(TestInput {
+        filename: "project/test.tsx".to_string(),
+        code: r#"
 import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 export const Header = qComponent$(() => {
     onRender$(() => console.log("hello sym2"), "2sym")
 });
-
-    "#,
-        EntryStrategy::Single,
-        MinifyMode::Simplify,
-        false,
-        false,
-    );
+"#
+        .to_string(),
+        entry_strategy: EntryStrategy::Single,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_functional_component() {
-    test_input(
-        "test.tsx",
-        r#"
-        import { $, qComponent$, onRender$, createStore } from '@builder.io/qwik';
-        const Header = qComponent$(() => {
-            const thing = createStore();
-            const {foo, bar} = foo();
+    test_input(TestInput {
+        code: r#"
+import { $, qComponent$, onRender$, createStore } from '@builder.io/qwik';
+const Header = qComponent$(() => {
+    const thing = createStore();
+    const {foo, bar} = foo();
 
-            onRender$(() => {
-                return (
-                    <div>{thing}</div>
-                );
-            });
-        });
-    "#,
-        EntryStrategy::Hook,
-        MinifyMode::None,
-        false,
-        false,
-    );
+    onRender$(() => {
+        return (
+            <div>{thing}</div>
+        );
+    });
+});
+"#
+        .to_string(),
+        minify: MinifyMode::None,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_functional_component_2() {
-    test_input(
-        "test.tsx",
-        r#"
+    test_input(TestInput {
+        code: r#"
 import { $, qComponent$, onRender$, createStore } from '@builder.io/qwik';
 export const useCounter = () => {
     return createStore({count: 0});
@@ -376,20 +342,18 @@ export const App = qComponent$((props) => {
 
         )
     });
-    })
-    "#,
-        EntryStrategy::Hook,
-        MinifyMode::Simplify,
-        true,
-        false,
-    );
+})
+"#
+        .to_string(),
+        transpile: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_functional_component_capture_props() {
-    test_input(
-        "test.tsx",
-        r#"
+    test_input(TestInput {
+        code: r#"
 import { $, qComponent$, onRender$, createStore } from '@builder.io/qwik';
 
 export const App = qComponent$(({count, rest: [I2, {I3, v1: [I4], I5=v2, ...I6}, I7=v3, ...I8]}) => {
@@ -405,19 +369,17 @@ export const App = qComponent$(({count, rest: [I2, {I3, v1: [I4], I5=v2, ...I6},
         )
     });
 })
-    "#,
-        EntryStrategy::Hook,
-        MinifyMode::Simplify,
-        true,
-        false,
-    );
+"#
+.to_string(),
+transpile: true,
+..TestInput::default()
+});
 }
 
 #[test]
 fn example_multi_capture() {
-    test_input(
-        "test.tsx",
-        r#"
+    test_input(TestInput {
+        code: r#"
 import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 
 export const Foo = qComponent$(({foo}) => {
@@ -441,20 +403,16 @@ export const Bar = qComponent$(({bar}) => {
         )
     });
 })
-
-    "#,
-        EntryStrategy::Hook,
-        MinifyMode::Simplify,
-        false,
-        false,
-    );
+"#
+        .to_string(),
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_with_tagname() {
-    test_input(
-        "test.tsx",
-        r#"
+    test_input(TestInput {
+        code: r#"
 import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 
 export const Foo = qComponent$("my-foo", () => {
@@ -465,19 +423,16 @@ export const Foo = qComponent$("my-foo", () => {
         )
     });
 })
-    "#,
-        EntryStrategy::Hook,
-        MinifyMode::Simplify,
-        false,
-        false,
-    );
+"#
+        .to_string(),
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_with_style() {
-    test_input(
-        "test.tsx",
-        r#"
+    test_input(TestInput {
+        code: r#"
 import { $, qComponent$, onRender$, withStyle$ } from '@builder.io/qwik';
 
 export const Foo = qComponent$("my-foo", () => {
@@ -488,19 +443,16 @@ export const Foo = qComponent$("my-foo", () => {
         )
     });
 })
-    "#,
-        EntryStrategy::Hook,
-        MinifyMode::Simplify,
-        false,
-        false,
-    );
+"#
+        .to_string(),
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_lightweight_functional() {
-    test_input(
-        "test.tsx",
-        r#"
+    test_input(TestInput {
+        code: r#"
 import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 
 export const Foo = qComponent$("my-foo", ({color}) => {
@@ -525,19 +477,16 @@ export const ButtonArrow = ({text, color}) => {
         <button color={color} on$:click={()=>console.log(text, color)}>{text}</button>
     );
 }
-    "#,
-        EntryStrategy::Hook,
-        MinifyMode::Simplify,
-        false,
-        false,
-    );
+"#
+        .to_string(),
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_invalid_references() {
-    test_input(
-        "test.tsx",
-        r#"
+    test_input(TestInput {
+        code: r#"
 import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 
 const I1 = 12;
@@ -554,19 +503,17 @@ export const App = qComponent$(({count}) => {
         )
     });
 })
-    "#,
-        EntryStrategy::Hook,
-        MinifyMode::Simplify,
-        true,
-        false,
-    );
+"#
+        .to_string(),
+        transpile: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_invalid_hook_expr1() {
-    test_input(
-        "test.tsx",
-        r#"
+    test_input(TestInput {
+        code: r#"
 import { $, qComponent$, onRender$, withStyle$ } from '@builder.io/qwik';
 import css1 from './global.css';
 import css2 from './style.css';
@@ -582,19 +529,17 @@ export const App = qComponent$(() => {
     const styles =
     return onRender$(render);
 })
-    "#,
-        EntryStrategy::Hook,
-        MinifyMode::Simplify,
-        true,
-        false,
-    );
+"#
+        .to_string(),
+        transpile: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_capture_imports() {
-    test_input(
-        "test.tsx",
-        r#"
+    test_input(TestInput {
+        code: r#"
 import { qComponent$, withStyle$ } from '@builder.io/qwik';
 import css1 from './global.css';
 import css2 from './style.css';
@@ -604,19 +549,17 @@ export const App = qComponent$(() => {
     withStyle$(`${css1}${css2}`);
     withStyle$(css3);
 })
-    "#,
-        EntryStrategy::Hook,
-        MinifyMode::Simplify,
-        true,
-        false,
-    );
+"#
+        .to_string(),
+        transpile: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_capturing_fn_class() {
-    test_input(
-        "test.tsx",
-        r#"
+    test_input(TestInput {
+        code: r#"
 import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 
 export const App = qComponent$(() => {
@@ -633,20 +576,18 @@ export const App = qComponent$(() => {
           <div></div>
       )
     });
-  })
-    "#,
-        EntryStrategy::Hook,
-        MinifyMode::Simplify,
-        true,
-        false,
-    );
+})
+"#
+        .to_string(),
+        transpile: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_renamed_exports() {
-    test_input(
-        "test.tsx",
-        r#"
+    test_input(TestInput {
+        code: r#"
 import { qComponent$ as Component, onRender$ as onRender, createStore } from '@builder.io/qwik';
 
 export const App = Component((props) => {
@@ -656,19 +597,18 @@ export const App = Component((props) => {
         <div>{state.thing}</div>
     ));
 });
-    "#,
-        EntryStrategy::Hook,
-        MinifyMode::Simplify,
-        true,
-        false,
-    );
+"#
+        .to_string(),
+        transpile: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_exports() {
-    test_input(
-        "project/test.tsx",
-        r#"
+    test_input(TestInput {
+        filename: "project/test.tsx".to_string(),
+        code: r#"
 import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 
 export const [a, {b, v1: [c], d=v2, ...e}, f=v3, ...g] = obj;
@@ -692,60 +632,54 @@ export const Header = qComponent$(() => {
 });
 
 export const Footer = qComponent$();
-
-    "#,
-        EntryStrategy::Hook,
-        MinifyMode::Simplify,
-        false,
-        false,
-    );
+"#
+        .to_string(),
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn issue_117() {
-    test_input(
-        "project/test.tsx",
-        r#"
+    test_input(TestInput {
+        filename: "project/test.tsx".to_string(),
+        code: r#"
 export const cache = patternCache[cacheKey] || (patternCache[cacheKey]={});
-    "#,
-        EntryStrategy::Single,
-        MinifyMode::Simplify,
-        false,
-        false,
-    );
+"#
+        .to_string(),
+        entry_strategy: EntryStrategy::Single,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn issue_118() {
-    test_input(
-        "project/test.tsx",
-        r#"
+    test_input(TestInput {
+        filename: "project/test.tsx".to_string(),
+        code: r#"
 import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 import thing from 'lib';
 import * as all from 'lib';
 import {s as se} from 'lib';
-
 
 export const Header = qComponent$(() => {
     onRender$(() => <Footer>{thing}{all()}{se()}</Footer>)
 });
 
 export const Footer = qComponent$();
+"#
+        .to_string(),
+        entry_strategy: EntryStrategy::Single,
+        minify: MinifyMode::Minify,
+        transpile: true,
 
-
-    "#,
-        EntryStrategy::Single,
-        MinifyMode::Minify,
-        true,
-        false,
-    );
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_jsx() {
-    test_input(
-        "test.tsx",
-        r#"
+    test_input(TestInput {
+        code: r#"
 import { $, qComponent$, onRender$, h, Fragment } from '@builder.io/qwik';
 
 export const Lightweight = () => {
@@ -783,19 +717,17 @@ export const Foo = qComponent$("my-foo", () => {
         )
     });
 })
-    "#,
-        EntryStrategy::Hook,
-        MinifyMode::Simplify,
-        true,
-        false,
-    );
+"#
+        .to_string(),
+        transpile: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_jsx_listeners() {
-    test_input(
-        "test.tsx",
-        r#"
+    test_input(TestInput {
+        code: r#"
 import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 
 export const Foo = qComponent$("my-foo", () => {
@@ -815,19 +747,17 @@ export const Foo = qComponent$("my-foo", () => {
         )
     });
 })
-    "#,
-        EntryStrategy::Hook,
-        MinifyMode::Simplify,
-        true,
-        false,
-    );
+"#
+        .to_string(),
+        transpile: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_qwik_conflict() {
-    test_input(
-        "test.tsx",
-        r#"
+    test_input(TestInput {
+        code: r#"
 import { $, qComponent$, onRender, onRender$ } from '@builder.io/qwik';
 
 const qComponent = () => console.log('not this');
@@ -849,19 +779,17 @@ export const Root = qComponent$("my-foo", () => {
         )
     }));
 }))
-    "#,
-        EntryStrategy::Hook,
-        MinifyMode::Simplify,
-        true,
-        false,
-    );
+"#
+        .to_string(),
+        transpile: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_custom_inlined_functions() {
-    test_input(
-        "test.tsx",
-        r#"
+    test_input(TestInput {
+        code: r#"
 import { qComponent$, onRender$, createStore, wrap, useEffect } from '@builder.io/qwik';
 
 export const useMemo = (qrt) => {
@@ -885,19 +813,17 @@ export const Lightweight = (props) => {
         console.log(state.count);
     });
 });
-    "#,
-        EntryStrategy::Hook,
-        MinifyMode::Simplify,
-        true,
-        false,
-    );
+"#
+        .to_string(),
+        transpile: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_missing_custom_inlined_functions() {
-    test_input(
-        "test.tsx",
-        r#"
+    test_input(TestInput {
+        code: r#"
 import { qComponent$ as Component, onRender$, createStore, wrap, useEffect } from '@builder.io/qwik';
 
 
@@ -914,19 +840,17 @@ export const App = qComponent$((props) => {
         <div>{state.count}</div>
     ));
 });
-    "#,
-        EntryStrategy::Hook,
-        MinifyMode::Simplify,
-        true,
-        false,
-    );
+"#
+.to_string(),
+transpile: true,
+..TestInput::default()
+});
 }
 
 #[test]
 fn example_skip_transform() {
-    test_input(
-        "test.tsx",
-        r#"
+    test_input(TestInput {
+        code: r#"
 import { qComponent$ as Component, onRender$ as onRender } from '@builder.io/qwik';
 
 export const handler = $(()=>console.log('hola'));
@@ -937,19 +861,17 @@ export const App = qComponent$((props) => {
         <div>{state.thing}</div>
     ));
 });
-    "#,
-        EntryStrategy::Hook,
-        MinifyMode::Simplify,
-        true,
-        false,
-    );
+"#
+        .to_string(),
+        transpile: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_explicit_ext_transpile() {
-    test_input(
-        "test.tsx",
-        r#"
+    test_input(TestInput {
+        code: r#"
 import { qComponent$, onRender$, withStyle$ } from '@builder.io/qwik';
 
 export const App = qComponent$((props) => {
@@ -958,19 +880,18 @@ export const App = qComponent$((props) => {
         <div></div>
     ));
 });
-    "#,
-        EntryStrategy::Hook,
-        MinifyMode::Simplify,
-        true,
-        true,
-    );
+"#
+        .to_string(),
+        transpile: true,
+        explicity_extensions: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_explicit_ext_no_transpile() {
-    test_input(
-        "test.tsx",
-        r#"
+    test_input(TestInput {
+        code: r#"
 import { qComponent$, onRender$, withStyle$ } from '@builder.io/qwik';
 
 export const App = qComponent$((props) => {
@@ -979,19 +900,17 @@ export const App = qComponent$((props) => {
         <div></div>
     ));
 });
-    "#,
-        EntryStrategy::Hook,
-        MinifyMode::Simplify,
-        false,
-        true,
-    );
+"#
+        .to_string(),
+        explicity_extensions: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn issue_150() {
-    test_input(
-        "test.tsx",
-        r#"
+    test_input(TestInput {
+        code: r#"
 import { component$, onRender$ } from '@builder.io/qwik';
 
 export const Greeter = component$(() => {
@@ -1003,88 +922,108 @@ export const Greeter = component$(() => {
 });
 
 const d = onRender$(()=>console.log('thing'));
-    "#,
-        EntryStrategy::Hook,
-        MinifyMode::Simplify,
-        true,
-        false,
-    );
+"#
+        .to_string(),
+        transpile: true,
+        ..TestInput::default()
+    });
 }
 
-// fn test_fixture(folder: &str) {
-//     let res = transform_workdir(&FSConfig {
-//         project_root: folder.to_string(),
-//         source_maps: true,
-//         minify: false,
-//         transpile: false,
-//     });
-//     match res {
-//         Ok(results) => {
-//             for file in results {
-//                 match file {
-//                     Ok(v) => {
-//                         let s = v.to_string();
-//                         let code = if let Some(code) = s.code { code } else { "".to_string() };
-//                         let map = if let Some(map) = s.map { map } else { "".to_string() };
-//                         let output = format!("== CODE ==\n\n{}== MAP ==\n\n{}== DIAGNOSTICS ==\n\n{:?}", code, map, v.diagnostics);
-//                         insta::assert_display_snapshot!(output);
-//                     }
-//                     Err(err) => {
-//                         insta::assert_display_snapshot!(err);
-//                     }
-//                 }
-//             }
-//         }
-//         Err(err) => {
-//             insta::assert_display_snapshot!(err);
-//         }
-//     }
-// }
+#[cfg(target_os = "windows")]
+#[test]
+fn issue_188() {
+    let res = test_input(TestInput {
+        filename: r"components\apps\apps.tsx".to_string(),
+        root_dir: r"C:\users\apps".to_string(),
+        code: r#"
+import { component$, onRender$ } from '@builder.io/qwik';
 
-fn test_input(
-    filename: &str,
-    code: &str,
-    entry_strategy: EntryStrategy,
-    minify: MinifyMode,
-    transpile: bool,
-    explicity_extensions: bool,
-) {
-    let res = transform_modules(TransformModulesOptions {
-        root_dir: "/user/qwik/src/".into(),
-        input: vec![TransformModuleInput {
-            code: code.to_string(),
-            path: filename.to_string(),
-        }],
-        source_maps: true,
-        minify,
-        transpile,
-        explicity_extensions,
-        entry_strategy,
+export const Greeter = component$(() => {
+    onRender$(() => {
+    return (
+        <div/>
+    )
     });
-    match res {
-        Ok(v) => {
-            let input = code.to_string();
-            let mut output = format!("==INPUT==\n\n{}", input);
+});
 
-            for module in &v.modules {
-                let is_entry = if module.is_entry { "(ENTRY POINT)" } else { "" };
-                output += format!(
-                    "\n============================= {} {}==\n\n{}",
-                    module.path, is_entry, module.code
-                )
-                .as_str();
-                if let Some(hook) = &module.hook {
-                    let hook = to_string_pretty(&hook).unwrap();
-                    output += &format!("\n/*\n{}\n*/", hook);
-                }
-                // let map = if let Some(map) = s.map { map } else { "".to_string() };
-                // output += format!("\n== MAP ==\n{}", map).as_str();
-            }
-            output += format!("\n== DIAGNOSTICS ==\n\n{:?}", v.diagnostics).as_str();
-            insta::assert_display_snapshot!(output);
-        }
-        Err(err) => {
-            insta::assert_display_snapshot!(err);
+const d = onRender$(()=>console.log('thing'));
+"#
+        .to_string(),
+        transpile: true,
+        snapshot: false,
+        ..TestInput::default()
+    })
+    .unwrap();
+    let last_module = res.modules.last().unwrap();
+    assert_eq!(last_module.path, r"C:/users/apps/components/apps/apps.tsx")
+}
+
+struct TestInput {
+    pub code: String,
+    pub filename: String,
+    pub root_dir: String,
+    pub entry_strategy: EntryStrategy,
+    pub minify: MinifyMode,
+    pub transpile: bool,
+    pub explicity_extensions: bool,
+    pub snapshot: bool,
+}
+
+impl TestInput {
+    pub fn default() -> Self {
+        Self {
+            filename: "test.tsx".to_string(),
+            root_dir: "/user/qwik/src/".to_string(),
+            code: "/user/qwik/src/".to_string(),
+            entry_strategy: EntryStrategy::Hook,
+            minify: MinifyMode::Simplify,
+            transpile: false,
+            explicity_extensions: false,
+            snapshot: true,
         }
     }
+}
+
+fn test_input(input: TestInput) -> Result<TransformOutput, Error> {
+    let res = transform_modules(TransformModulesOptions {
+        root_dir: input.root_dir,
+        input: vec![TransformModuleInput {
+            code: input.code.clone(),
+            path: input.filename,
+        }],
+        source_maps: true,
+        minify: input.minify,
+        transpile: input.transpile,
+        explicity_extensions: input.explicity_extensions,
+        entry_strategy: input.entry_strategy,
+    });
+    if input.snapshot {
+        match &res {
+            Ok(v) => {
+                let input = input.code.to_string();
+                let mut output = format!("==INPUT==\n\n{}", input);
+
+                for module in &v.modules {
+                    let is_entry = if module.is_entry { "(ENTRY POINT)" } else { "" };
+                    output += format!(
+                        "\n============================= {} {}==\n\n{}",
+                        module.path, is_entry, module.code
+                    )
+                    .as_str();
+                    if let Some(hook) = &module.hook {
+                        let hook = to_string_pretty(&hook).unwrap();
+                        output += &format!("\n/*\n{}\n*/", hook);
+                    }
+                    // let map = if let Some(map) = s.map { map } else { "".to_string() };
+                    // output += format!("\n== MAP ==\n{}", map).as_str();
+                }
+                output += format!("\n== DIAGNOSTICS ==\n\n{:?}", v.diagnostics).as_str();
+                insta::assert_display_snapshot!(output);
+            }
+            Err(err) => {
+                insta::assert_display_snapshot!(err);
+            }
+        }
+    }
+    res
 }

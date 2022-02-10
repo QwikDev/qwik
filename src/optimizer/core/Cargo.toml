@@ -26,6 +26,7 @@ regex = "1.5.4"
 anyhow = "1.0.52"
 derivative = "2.2.0"
 rayon = "1.5.1"
+path-slash="0.1.4"
 
 [dev-dependencies]
 insta = "1.10.0"

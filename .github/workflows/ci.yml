@@ -47,7 +47,7 @@ jobs:
         run: node scripts --tsc --build --api --set-dist-tag="${{ github.event.inputs.disttag }}"
 
       - name: Print Package Dist Build
-        run: ls -R dist-dev/@builder.io-qwik/
+        run: tree dist-dev/@builder.io-qwik/
 
       - name: Upload Package Build Artifacts
         uses: actions/upload-artifact@master
@@ -60,7 +60,7 @@ jobs:
         run: node scripts --cli
 
       - name: Print Create Qwik CLI Dist Build
-        run: ls -R dist-dev/create-qwik/
+        run: tree dist-dev/create-qwik/
 
       - name: Upload Create Qwik CLI Build Artifacts
         uses: actions/upload-artifact@master
@@ -121,7 +121,7 @@ jobs:
         run: node scripts --wasm --set-dist-tag="${{ github.event.inputs.disttag }}"
 
       - name: Print WASM Dist Build
-        run: ls -R dist-dev/@builder.io-qwik/bindings/
+        run: tree dist-dev/@builder.io-qwik/bindings/
 
       - name: Upload WASM Build Artifacts
         uses: actions/upload-artifact@master
@@ -250,19 +250,19 @@ jobs:
         uses: actions/download-artifact@v2
 
       - name: Print Distribution Artifacts
-        run: ls -R dist-dev-builder-io-qwik/
+        run: tree dist-dev-builder-io-qwik/
 
       - name: Move Distribution Artifacts
         run: mv dist-dev-builder-io-qwik/* dist-dev/@builder.io-qwik/
 
       - name: Print Bindings Artifacts
-        run: ls -R dist-bindings-*/
+        run: tree dist-bindings-*/
 
       - name: Move Binding Artifacts
         run: mv dist-bindings-*/* dist-dev/@builder.io-qwik/bindings/
 
       - name: Print dist-dev
-        run: ls -R dist-dev/
+        run: tree dist-dev/
 
       - name: Upload Qwik Distribution Artifact
         if: ${{ always() }}
@@ -295,13 +295,18 @@ jobs:
         uses: actions/download-artifact@v2
 
       - name: Print Distribution Artifacts
-        run: ls -R builderio-qwik-distribution/
+        run: tree builderio-qwik-distribution/
+
+      - name: Print Create Qwik CLI Artifacts
+        run: tree dist-dev-create-qwik/
 
       - name: Move Distribution Artifacts
         run: |
           mkdir dist-dev/
           mkdir dist-dev/@builder.io-qwik/
           mv builderio-qwik-distribution/* dist-dev/@builder.io-qwik/
+          mkdir dist-dev/create-qwik/
+          mv dist-dev-create-qwik/* dist-dev/create-qwik/
 
       - name: Cache NPM Dependencies
         uses: actions/cache@v2
@@ -360,12 +365,6 @@ jobs:
       - name: Download Build Artifacts
         uses: actions/download-artifact@v2
 
-      - name: Print Distribution Artifacts
-        run: ls -R builderio-qwik-distribution/
-
-      - name: Print Create Qwik CLI Artifacts
-        run: ls -R dist-dev-create-qwik/
-
       - name: Move Distribution Artifacts
         run: |
           mkdir dist-dev/
@@ -373,9 +372,6 @@ jobs:
           mv builderio-qwik-distribution/* dist-dev/@builder.io-qwik/
           mkdir dist-dev/create-qwik/
           mv dist-dev-create-qwik/* dist-dev/create-qwik/
-
-      - name: Print Directory
-        run: ls -R ./
 
       - name: Cache NPM Dependencies
         uses: actions/cache@v2

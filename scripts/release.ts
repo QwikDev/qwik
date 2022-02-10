@@ -84,8 +84,15 @@ export async function commitPrepareReleaseVersion(config: BuildConfig) {
   updatedPkg.version = config.distVersion;
   await writePackageJson(config.rootDir, updatedPkg);
 
+  // update the cli version
+  const distCliDir = join(config.rootDir, 'src', 'cli');
+  const cliPkgJsonPath = join(distCliDir, 'package.json');
+  const cliPkg = await readPackageJson(distCliDir);
+  cliPkg.version = config.distVersion;
+  await writePackageJson(distCliDir, cliPkg);
+
   // git add the changed package.json
-  const gitAddArgs = ['add', pkgJsonPath];
+  const gitAddArgs = ['add', pkgJsonPath, cliPkgJsonPath];
   await run('git', gitAddArgs);
 
   // git commit the changed package.json

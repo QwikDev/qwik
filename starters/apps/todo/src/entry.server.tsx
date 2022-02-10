@@ -5,10 +5,9 @@
  * Use of this source code is governed by an MIT-style license that can be
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
-
 import { renderToString, RenderToStringOptions, QwikLoader } from '@builder.io/qwik/server';
-import { App } from './app';
-import type { Todos } from './state';
+import { App } from './components/app/app';
+import type { Todos } from './state/state';
 
 /**
  * Entry point for server-side pre-rendering.

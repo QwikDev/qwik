@@ -319,7 +319,7 @@ export type PropsOf<COMP extends (props: any) => JSXNode> = COMP extends (
  * - `onRender$`: is the required hook for rendering the component.
  * - `$`: mark which parts of the component will be lazy-loaded. (see `$` for details.)
  *
- * The above can than be used like so:
+ * The above can then be used like so:
  *
  * ```typescript
  * export const OtherComponent = component$(() => {
@@ -383,7 +383,7 @@ export function component<PROPS extends {}>(
  * - `onRender$`: is the required hook for rendering the component.
  * - `$`: mark which parts of the component will be lazy-loaded. (see `$` for details.)
  *
- * The above can than be used like so:
+ * The above can then be used like so:
  *
  * ```typescript
  * export const OtherComponent = component$(() => {
@@ -472,7 +472,7 @@ export function component<PROPS extends {}>(
  * - `onRender$`: is the required hook for rendering the component.
  * - `$`: mark which parts of the component will be lazy-loaded. (see `$` for details.)
  *
- * The above can than be used like so:
+ * The above can then be used like so:
  *
  * ```typescript
  * export const OtherComponent = component$(() => {

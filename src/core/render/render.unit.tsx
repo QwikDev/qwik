@@ -12,7 +12,7 @@ import { Slot } from './jsx/slot.public';
 import { notifyRender } from './notify-render';
 import { render } from './render.public';
 
-describe('q-render', () => {
+describe('render', () => {
   let fixture: ElementFixture;
   beforeEach(() => (fixture = new ElementFixture()));
   describe('basic JSX', () => {

@@ -54,17 +54,17 @@ describe('QRL', () => {
     });
 
     it('should stringify', () => {
-      expect(
-        stringifyQRL(new QRLInternal('./chunk', '', null, null, null, null, null, null))
-      ).toEqual('./chunk');
-      expect(
-        stringifyQRL(new QRLInternal('./c', 's1', null, null, null, null, null, null))
-      ).toEqual('./c#s1');
-      expect(stringifyQRL(new QRLInternal('./c', 's1', null, null, [], null, null, null))).toEqual(
+      expect(stringifyQRL(new QRLInternal('./chunk', '', null, null, null, null, null))).toEqual(
+        './chunk'
+      );
+      expect(stringifyQRL(new QRLInternal('./c', 's1', null, null, null, null, null))).toEqual(
+        './c#s1'
+      );
+      expect(stringifyQRL(new QRLInternal('./c', 's1', null, null, [], null, null))).toEqual(
         './c#s1'
       );
       expect(
-        stringifyQRL(new QRLInternal('./c', 's1', null, null, [1, '2'] as any, null, null, null))
+        stringifyQRL(new QRLInternal('./c', 's1', null, null, [1, '2'] as any, null, null))
       ).toEqual('./c#s1[1,"2"]');
       expect(
         stringifyQRL(
@@ -79,8 +79,7 @@ describe('QRL', () => {
               ['a', []],
               ['b', ['c']],
               ['c', ['d', 'e']],
-            ]),
-            null
+            ])
           )
         )
       ).toEqual('./c#s1|a|b.c|c.d.e[1,"2"]');

@@ -13,7 +13,7 @@ export interface Store {
 export function QStore_hydrate(doc: Document): Record<string, object> | null {
   const script = doc.querySelector('script[type="qwik/json"]');
   let map: Record<string, object> | null = null;
-  (doc as any).dehydrate = () => QStore_dehydrate(doc);
+  (doc as any).qDehydrate = () => QStore_dehydrate(doc);
   if (script) {
     script.parentElement!.removeChild(script);
     map = JSON.parse(script.textContent || '{}');

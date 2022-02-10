@@ -60,7 +60,7 @@ export function staticQrl<T = any>(
   } else {
     throw new Error('Q-ERROR: Unknown type argument: ' + chunkOrFn);
   }
-  return new QRLInternal<T>(chunk, symbol, null, symbolFn, null, lexicalScopeCapture, null, null);
+  return new QRLInternal<T>(chunk, symbol, null, symbolFn, null, lexicalScopeCapture, null);
 }
 
 export function runtimeQrl<T>(symbol: T, lexicalScopeCapture: any[] = EMPTY_ARRAY): QRLInternal<T> {
@@ -71,7 +71,6 @@ export function runtimeQrl<T>(symbol: T, lexicalScopeCapture: any[] = EMPTY_ARRA
     null,
     null,
     lexicalScopeCapture,
-    null,
     null
   );
 }
@@ -144,7 +143,7 @@ export function parseQRL(qrl: string, element?: Element): QRLInternal {
   if (chunk === RUNTIME_QRL) {
     console.error(`Q-ERROR: '${qrl}' is runtime but no instance found on element.`);
   }
-  return new QRLInternal(chunk, symbol, null, null, capture, null, guard, null);
+  return new QRLInternal(chunk, symbol, null, null, capture, null, guard);
 }
 
 function JSONparse(json: string): any {

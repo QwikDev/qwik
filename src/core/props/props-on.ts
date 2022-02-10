@@ -1,4 +1,5 @@
 import { parseQRL, stringifyQRL } from '../import/qrl';
+import { isQrl, QRLInternal } from '../import/qrl-class';
 import { qrlImport } from '../import/qrl.public';
 import { qDeflate } from '../json/q-json';
 import { getInvokeContext, useInvoke } from '../use/use-core';
@@ -7,9 +8,9 @@ import { EMPTY_ARRAY } from '../util/flyweight';
 import { isPromise } from '../util/promises';
 import { debugStringify } from '../util/stringify';
 import type { ValueOrPromise } from '../util/types';
+import { invokeWatchFn } from '../watch/watch';
 import type { QPropsContext } from './props';
 import type { QObjectMap } from './props-obj-map';
-import { isQrl, QRLInternal } from '../import/qrl-class';
 
 const ON_PREFIX = 'on:';
 const ON_PREFIX_$ = 'on$:';
@@ -66,12 +67,18 @@ export function qPropReadQRL(
     return Promise.all(
       qrls.map(async (qrlOrPromise) => {
         const qrl = await qrlOrPromise;
-        context.qrl = qrl;
+        const qrlGuard = context.qrlGuard;
+        if (qrlGuard && !qrlGuard(qrl)) return;
         if (!qrl.symbolRef) {
           qrl.symbolRef = await qrlImport(cache.__element__, qrl);
         }
 
-        return useInvoke(context, qrl.symbolRef);
+        context.qrl = qrl;
+        if (qrlGuard) {
+          return invokeWatchFn(cache.__element__, qrl);
+        } else {
+          return useInvoke(context, qrl.symbolRef);
+        }
       })
     );
   };
@@ -130,8 +137,8 @@ export function qPropWriteQRL(
     // TODO(misko): Test/better text
     throw new Error(`Not QRLInternal: prop: ${prop}; value: ` + value);
   }
-  const kababProp = fromCamelToKebabCase(prop);
-  cache.__element__.setAttribute(kababProp, serializeQRLs(existingQRLs, map));
+  const kebabProp = fromCamelToKebabCase(prop);
+  cache.__element__.setAttribute(kebabProp, serializeQRLs(existingQRLs, map));
 }
 
 export function closureRefError(ref: any) {

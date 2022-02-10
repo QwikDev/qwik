@@ -6,8 +6,7 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 import { renderToString, RenderToStringOptions, QwikLoader } from '@builder.io/qwik/server';
-import { App } from './components/app/app';
-import type { Todos } from './state/state';
+import { App, todos } from './components/app/app';
 
 /**
  * Entry point for server-side pre-rendering.
@@ -15,15 +14,6 @@ import type { Todos } from './state/state';
  * @returns a promise when all of the rendering is completed.
  */
 export function render(opts: RenderToStringOptions) {
-  const todos: Todos = {
-    filter: 'all',
-    items: [
-      { completed: false, title: 'Read Qwik docs' },
-      { completed: false, title: 'Build HelloWorld' },
-      { completed: false, title: 'Profit' },
-    ],
-  };
-
   return renderToString(
     <html>
       <head>

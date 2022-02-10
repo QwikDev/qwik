@@ -1,4 +1,4 @@
-import { component$, onRender$, withStyles$ } from '@builder.io/qwik';
+import { component$, onRender$, render, withStyles$ } from '@builder.io/qwik';
 import { Footer } from '../footer/footer';
 import { Header } from '../header/header';
 import { Main } from '../main/main';
@@ -25,3 +25,18 @@ export const App = component$((props: { todos: Todos }) => {
     );
   });
 });
+
+export const todos: Todos = {
+  filter: 'all',
+  items: [
+    { completed: false, title: 'Read Qwik docs' },
+    { completed: false, title: 'Build HelloWorld' },
+    { completed: false, title: 'Profit' },
+  ],
+};
+
+// This function is only needed to bootstrap the application from the client.
+// See: client.html for details
+export function clientBootstrap() {
+  render(document.body, <App todos={todos} />);
+}

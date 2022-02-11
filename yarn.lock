@@ -507,10 +507,10 @@
   resolved "https://registry.yarnpkg.com/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz#75a2e8b51cb758a7553d6804a5932d7aace75c39"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
-"@builder.io/partytown@0.3.4":
-  version "0.3.4"
-  resolved "https://registry.yarnpkg.com/@builder.io/partytown/-/partytown-0.3.4.tgz#c588841d4af67171aa5dc1a914a6d0b6f61bbd74"
-  integrity sha512-lKFoVDoP/kiR7O4gjHFGnMKTIpJIvXoc0S+AcL0683NUUVWTMLy299lyB/0ClxNHVVqG+ebJGkzc/vXlP6sONw==
+"@builder.io/partytown@0.3.5":
+  version "0.3.5"
+  resolved "https://registry.yarnpkg.com/@builder.io/partytown/-/partytown-0.3.5.tgz#8c73916f7f0d1e7c9284175a183adb66308a8d2f"
+  integrity sha512-2rMDvRZgD+ABAHJDHzT6bbiGyrnTL3V4zgC4qd0EpDUqsmTU2+4X+BMngHIHFDZlXAWi02CX8INgKvNSOSu52A==
 
 "@builder.io/qwik-dom@2.1.7":
   version "2.1.7"

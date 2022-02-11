@@ -3,9 +3,56 @@
 use super::*;
 use serde_json::to_string_pretty;
 
+macro_rules! test_input {
+    ($input: expr) => {
+        let input = $input;
+        let res = transform_modules(TransformModulesOptions {
+            root_dir: input.root_dir,
+            input: vec![TransformModuleInput {
+                code: input.code.clone(),
+                path: input.filename,
+            }],
+            source_maps: true,
+            minify: input.minify,
+            transpile: input.transpile,
+            explicity_extensions: input.explicity_extensions,
+            entry_strategy: input.entry_strategy,
+        });
+        if input.snapshot {
+            match &res {
+                Ok(v) => {
+                    let input = input.code.to_string();
+                    let mut output = format!("==INPUT==\n\n{}", input);
+
+                    for module in &v.modules {
+                        let is_entry = if module.is_entry { "(ENTRY POINT)" } else { "" };
+                        output += format!(
+                            "\n============================= {} {}==\n\n{}",
+                            module.path, is_entry, module.code
+                        )
+                        .as_str();
+                        if let Some(hook) = &module.hook {
+                            let hook = to_string_pretty(&hook).unwrap();
+                            output += &format!("\n/*\n{}\n*/", hook);
+                        }
+                        // let map = if let Some(map) = s.map { map } else { "".to_string() };
+                        // output += format!("\n== MAP ==\n{}", map).as_str();
+                    }
+                    output += format!("\n== DIAGNOSTICS ==\n\n{:?}", v.diagnostics).as_str();
+                    insta::assert_display_snapshot!(output);
+                }
+                Err(err) => {
+                    insta::assert_display_snapshot!(err);
+                }
+            }
+        }
+        drop(res)
+    };
+}
+
 #[test]
 fn example_1() {
-    test_input(TestInput {
+    test_input!(TestInput {
         code: r#"
 import { $, qComponent, onRender } from '@builder.io/qwik';
 
@@ -25,7 +72,7 @@ const Header = qComponent($(() => {
 
 #[test]
 fn example_2() {
-    test_input(TestInput {
+    test_input!(TestInput {
         code: r#"
 import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 export const Header = qComponent$(() => {
@@ -44,7 +91,7 @@ export const Header = qComponent$(() => {
 
 #[test]
 fn example_3() {
-    test_input(TestInput {
+    test_input!(TestInput {
         code: r#"
 import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 export const App = () => {
@@ -66,7 +113,7 @@ export const App = () => {
 
 #[test]
 fn example_4() {
-    test_input(TestInput {
+    test_input!(TestInput {
         code: r#"
 import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 export function App() {
@@ -88,7 +135,7 @@ export function App() {
 
 #[test]
 fn example_5() {
-    test_input(TestInput {
+    test_input!(TestInput {
         code: r#"
 import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 export const Header = qComponent$(() => {
@@ -109,7 +156,7 @@ export const Header = qComponent$(() => {
 
 #[test]
 fn example_6() {
-    test_input(TestInput {
+    test_input!(TestInput {
         code: r#"
 import { $, qComponent$ } from '@builder.io/qwik';
 export const sym1 = $((ctx) => console.log("1"));
@@ -121,7 +168,7 @@ export const sym1 = $((ctx) => console.log("1"));
 
 #[test]
 fn example_7() {
-    test_input(TestInput {
+    test_input!(TestInput {
         code: r#"
 import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 
@@ -149,7 +196,7 @@ const App = qComponent$(() => {
 
 #[test]
 fn example_8() {
-    test_input(TestInput {
+    test_input!(TestInput {
         code: r#"
 import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 
@@ -171,7 +218,7 @@ export const Header = qComponent$(() => {
 
 #[test]
 fn example_9() {
-    test_input(TestInput {
+    test_input!(TestInput {
         code: r#"
 import { $, qComponent$ } from '@builder.io/qwik';
 const Header = $((decl1, {decl2}, [decl3]) => {
@@ -193,7 +240,7 @@ const Header = $((decl1, {decl2}, [decl3]) => {
 
 #[test]
 fn example_10() {
-    test_input(TestInput {
+    test_input!(TestInput {
         filename: "project/test.tsx".to_string(),
         code: r#"
 import { $, qComponent$ } from '@builder.io/qwik';
@@ -223,7 +270,7 @@ const Header = $((decl1, {decl2}, [decl3]) => {
 
 #[test]
 fn example_11() {
-    test_input(TestInput {
+    test_input!(TestInput {
         filename: "project/test.tsx".to_string(),
         code: r#"
 import { $, qComponent$, onRender$ } from '@builder.io/qwik';
@@ -257,7 +304,7 @@ export const App = qComponent$(() => {
 
 #[test]
 fn example_12() {
-    test_input(TestInput {
+    test_input!(TestInput {
         filename: "project/test.tsx".to_string(),
         code: r#"
 import { $, qComponent$, onRender$ } from '@builder.io/qwik';
@@ -273,7 +320,7 @@ export const Header = qComponent$(() => {
 
 #[test]
 fn example_13() {
-    test_input(TestInput {
+    test_input!(TestInput {
         filename: "project/test.tsx".to_string(),
         code: r#"
 import { $, qComponent$, onRender$ } from '@builder.io/qwik';
@@ -289,7 +336,7 @@ export const Header = qComponent$(() => {
 
 #[test]
 fn example_functional_component() {
-    test_input(TestInput {
+    test_input!(TestInput {
         code: r#"
 import { $, qComponent$, onRender$, createStore } from '@builder.io/qwik';
 const Header = qComponent$(() => {
@@ -311,7 +358,7 @@ const Header = qComponent$(() => {
 
 #[test]
 fn example_functional_component_2() {
-    test_input(TestInput {
+    test_input!(TestInput {
         code: r#"
 import { $, qComponent$, onRender$, createStore } from '@builder.io/qwik';
 export const useCounter = () => {
@@ -352,7 +399,7 @@ export const App = qComponent$((props) => {
 
 #[test]
 fn example_functional_component_capture_props() {
-    test_input(TestInput {
+    test_input!(TestInput {
         code: r#"
 import { $, qComponent$, onRender$, createStore } from '@builder.io/qwik';
 
@@ -378,7 +425,7 @@ transpile: true,
 
 #[test]
 fn example_multi_capture() {
-    test_input(TestInput {
+    test_input!(TestInput {
         code: r#"
 import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 
@@ -411,7 +458,7 @@ export const Bar = qComponent$(({bar}) => {
 
 #[test]
 fn example_with_tagname() {
-    test_input(TestInput {
+    test_input!(TestInput {
         code: r#"
 import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 
@@ -431,7 +478,7 @@ export const Foo = qComponent$("my-foo", () => {
 
 #[test]
 fn example_with_style() {
-    test_input(TestInput {
+    test_input!(TestInput {
         code: r#"
 import { $, qComponent$, onRender$, withStyle$ } from '@builder.io/qwik';
 
@@ -451,7 +498,7 @@ export const Foo = qComponent$("my-foo", () => {
 
 #[test]
 fn example_lightweight_functional() {
-    test_input(TestInput {
+    test_input!(TestInput {
         code: r#"
 import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 
@@ -485,7 +532,7 @@ export const ButtonArrow = ({text, color}) => {
 
 #[test]
 fn example_invalid_references() {
-    test_input(TestInput {
+    test_input!(TestInput {
         code: r#"
 import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 
@@ -512,7 +559,7 @@ export const App = qComponent$(({count}) => {
 
 #[test]
 fn example_invalid_hook_expr1() {
-    test_input(TestInput {
+    test_input!(TestInput {
         code: r#"
 import { $, qComponent$, onRender$, withStyle$ } from '@builder.io/qwik';
 import css1 from './global.css';
@@ -538,7 +585,7 @@ export const App = qComponent$(() => {
 
 #[test]
 fn example_capture_imports() {
-    test_input(TestInput {
+    test_input!(TestInput {
         code: r#"
 import { qComponent$, withStyle$ } from '@builder.io/qwik';
 import css1 from './global.css';
@@ -558,7 +605,7 @@ export const App = qComponent$(() => {
 
 #[test]
 fn example_capturing_fn_class() {
-    test_input(TestInput {
+    test_input!(TestInput {
         code: r#"
 import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 
@@ -586,7 +633,7 @@ export const App = qComponent$(() => {
 
 #[test]
 fn example_renamed_exports() {
-    test_input(TestInput {
+    test_input!(TestInput {
         code: r#"
 import { qComponent$ as Component, onRender$ as onRender, createStore } from '@builder.io/qwik';
 
@@ -606,7 +653,7 @@ export const App = Component((props) => {
 
 #[test]
 fn example_exports() {
-    test_input(TestInput {
+    test_input!(TestInput {
         filename: "project/test.tsx".to_string(),
         code: r#"
 import { $, qComponent$, onRender$ } from '@builder.io/qwik';
@@ -640,7 +687,7 @@ export const Footer = qComponent$();
 
 #[test]
 fn issue_117() {
-    test_input(TestInput {
+    test_input!(TestInput {
         filename: "project/test.tsx".to_string(),
         code: r#"
 export const cache = patternCache[cacheKey] || (patternCache[cacheKey]={});
@@ -653,7 +700,7 @@ export const cache = patternCache[cacheKey] || (patternCache[cacheKey]={});
 
 #[test]
 fn issue_118() {
-    test_input(TestInput {
+    test_input!(TestInput {
         filename: "project/test.tsx".to_string(),
         code: r#"
 import { $, qComponent$, onRender$ } from '@builder.io/qwik';
@@ -678,7 +725,7 @@ export const Footer = qComponent$();
 
 #[test]
 fn example_jsx() {
-    test_input(TestInput {
+    test_input!(TestInput {
         code: r#"
 import { $, qComponent$, onRender$, h, Fragment } from '@builder.io/qwik';
 
@@ -726,7 +773,7 @@ export const Foo = qComponent$("my-foo", (props) => {
 
 #[test]
 fn example_jsx_listeners() {
-    test_input(TestInput {
+    test_input!(TestInput {
         code: r#"
 import { $, qComponent$, onRender$ } from '@builder.io/qwik';
 
@@ -756,7 +803,7 @@ export const Foo = qComponent$("my-foo", () => {
 
 #[test]
 fn example_qwik_conflict() {
-    test_input(TestInput {
+    test_input!(TestInput {
         code: r#"
 import { $, qComponent$, onRender, onRender$ } from '@builder.io/qwik';
 
@@ -788,7 +835,7 @@ export const Root = qComponent$("my-foo", () => {
 
 #[test]
 fn example_custom_inlined_functions() {
-    test_input(TestInput {
+    test_input!(TestInput {
         code: r#"
 import { qComponent$, onRender$, createStore, wrap, useEffect } from '@builder.io/qwik';
 
@@ -822,7 +869,7 @@ export const Lightweight = (props) => {
 
 #[test]
 fn example_missing_custom_inlined_functions() {
-    test_input(TestInput {
+    test_input!(TestInput {
         code: r#"
 import { qComponent$ as Component, onRender$, createStore, wrap, useEffect } from '@builder.io/qwik';
 
@@ -849,7 +896,7 @@ transpile: true,
 
 #[test]
 fn example_skip_transform() {
-    test_input(TestInput {
+    test_input!(TestInput {
         code: r#"
 import { qComponent$ as Component, onRender$ as onRender } from '@builder.io/qwik';
 
@@ -870,7 +917,7 @@ export const App = qComponent$((props) => {
 
 #[test]
 fn example_explicit_ext_transpile() {
-    test_input(TestInput {
+    test_input!(TestInput {
         code: r#"
 import { qComponent$, onRender$, withStyle$ } from '@builder.io/qwik';
 
@@ -890,7 +937,7 @@ export const App = qComponent$((props) => {
 
 #[test]
 fn example_explicit_ext_no_transpile() {
-    test_input(TestInput {
+    test_input!(TestInput {
         code: r#"
 import { qComponent$, onRender$, withStyle$ } from '@builder.io/qwik';
 
@@ -909,7 +956,7 @@ export const App = qComponent$((props) => {
 
 #[test]
 fn issue_150() {
-    test_input(TestInput {
+    test_input!(TestInput {
         code: r#"
 import { component$, onRender$ } from '@builder.io/qwik';
 
@@ -932,7 +979,7 @@ const d = onRender$(()=>console.log('thing'));
 #[cfg(target_os = "windows")]
 #[test]
 fn issue_188() {
-    let res = test_input(TestInput {
+    let res = test_input!({
         filename: r"components\apps\apps.tsx".to_string(),
         root_dir: r"C:\users\apps".to_string(),
         code: r#"
@@ -951,7 +998,6 @@ const d = onRender$(()=>console.log('thing'));
         .to_string(),
         transpile: true,
         snapshot: false,
-        ..TestInput::default()
     })
     .unwrap();
     let last_module = res.modules.last().unwrap();
@@ -982,48 +1028,4 @@ impl TestInput {
             snapshot: true,
         }
     }
-}
-
-fn test_input(input: TestInput) -> Result<TransformOutput, Error> {
-    let res = transform_modules(TransformModulesOptions {
-        root_dir: input.root_dir,
-        input: vec![TransformModuleInput {
-            code: input.code.clone(),
-            path: input.filename,
-        }],
-        source_maps: true,
-        minify: input.minify,
-        transpile: input.transpile,
-        explicity_extensions: input.explicity_extensions,
-        entry_strategy: input.entry_strategy,
-    });
-    if input.snapshot {
-        match &res {
-            Ok(v) => {
-                let input = input.code.to_string();
-                let mut output = format!("==INPUT==\n\n{}", input);
-
-                for module in &v.modules {
-                    let is_entry = if module.is_entry { "(ENTRY POINT)" } else { "" };
-                    output += format!(
-                        "\n============================= {} {}==\n\n{}",
-                        module.path, is_entry, module.code
-                    )
-                    .as_str();
-                    if let Some(hook) = &module.hook {
-                        let hook = to_string_pretty(&hook).unwrap();
-                        output += &format!("\n/*\n{}\n*/", hook);
-                    }
-                    // let map = if let Some(map) = s.map { map } else { "".to_string() };
-                    // output += format!("\n== MAP ==\n{}", map).as_str();
-                }
-                output += format!("\n== DIAGNOSTICS ==\n\n{:?}", v.diagnostics).as_str();
-                insta::assert_display_snapshot!(output);
-            }
-            Err(err) => {
-                insta::assert_display_snapshot!(err);
-            }
-        }
-    }
-    res
 }

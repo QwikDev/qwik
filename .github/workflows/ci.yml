@@ -111,9 +111,6 @@ jobs:
           path: src/wasm/target
           key: cargo-build-wasm-${{ runner.os }}-${{ hashFiles('./src/wasm/Cargo.lock') }}
 
-      - name: Install wasm-pack
-        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
-
       - name: Install NPM Dependencies
         run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
 

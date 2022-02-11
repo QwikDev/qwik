@@ -1,5 +1,5 @@
 import { BuildConfig, PackageJSON, panic } from './util';
-import execa from 'execa';
+import { execa, Options } from 'execa';
 import { join } from 'path';
 import { Octokit } from '@octokit/action';
 import prompts from 'prompts';
@@ -236,7 +236,7 @@ async function run(
   args: string[],
   skipExecution?: boolean,
   dryRunCliFlag?: boolean,
-  opts?: execa.Options
+  opts?: Options
 ) {
   if (dryRunCliFlag) {
     args = [...args, '--dry-run'];

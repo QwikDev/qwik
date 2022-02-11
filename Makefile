@@ -5,7 +5,6 @@ install-rust-deps:
 	rustup update
 	rustup target add wasm32-unknown-unknown
 	cargo install cargo-insta
-	cargo install wasm-pack
 	rustup component add clippy
 
 add-target:

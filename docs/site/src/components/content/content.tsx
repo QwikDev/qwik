@@ -1,6 +1,6 @@
 import { onRender$, component, Host, withStyles$, $ } from '@builder.io/qwik';
 import { OnThisPage } from '../on-this-page/on-this-page';
-import styles from './mdx-content.css';
+import styles from './content.css';
 
 export const Content = component(
   'section',

@@ -1,6 +1,6 @@
 import { onRender$, component$, Host, withStyles$ } from '@builder.io/qwik';
 import { Header } from '../../components/header/header';
-import { Content } from '../../components/content.tsx/content';
+import { Content } from '../../components/content/content';
 import { Footer } from '../../components/footer/footer';
 import { SideBar } from '../../components/sidebar/sidebar';
 import styles from './docs.css';

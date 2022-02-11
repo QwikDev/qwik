@@ -7,7 +7,7 @@
  */
 
 import { renderToString, RenderToStringOptions, QwikLoader } from '@builder.io/qwik/server';
-import { partytownSnippet,  } from '@builder.io/partytown/integration';
+import { partytownSnippet } from '@builder.io/partytown/integration';
 import { App } from './components/app/app';
 
 /**

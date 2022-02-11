@@ -1,5 +1,5 @@
 import { BuildConfig, PackageJSON, panic } from './util';
-import { execa, Options} from 'execa';
+import { execa, Options } from 'execa';
 import { join } from 'path';
 import { Octokit } from '@octokit/action';
 import prompts from 'prompts';

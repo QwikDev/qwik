@@ -1,6 +1,6 @@
 import { renderToString, RenderToStringOptions, QwikLoader } from '@builder.io/qwik/server';
-import { App } from './app';
-import { Head } from './head';
+import { App } from './pages/app/app';
+import { Head } from './pages/app/head';
 import { PageProps } from './types';
 
 export function render(opts: RenderToStringOptions) {

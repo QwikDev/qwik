@@ -7,10 +7,9 @@ interface BuilderProps {
 export const Builder = component$(({ pathname }: BuilderProps) => {
   return onRender$(() => (
     <Host class="builder">
-      <p>Builder! {pathname}</p>
+      <p>Builder! </p>
       <ul>
         <a href="/docs">Docs</a>
-        <a href="/">Homepage</a>
       </ul>
     </Host>
   ));

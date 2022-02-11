@@ -1,8 +1,8 @@
 import { onRender$, component$, withStyles$ } from '@builder.io/qwik';
-import { Builder } from './builder';
-import { Docs } from './docs';
+import { Builder } from '../builder/builder';
+import { Docs } from '../docs/docs';
+import type { PageProps } from '../../types';
 import styles from './app.css';
-import { PageProps } from './types';
 
 export const App = component$((props: PageProps) => {
   withStyles$(styles);

@@ -1,20 +1,20 @@
 import { onRender$, component$, Host, withStyles$ } from '@builder.io/qwik';
-import styles from './docs.css';
 import { Header } from '../../components/header/header';
-import type { PageProps } from '../../types';
+import { Content } from '../../components/content.tsx/content';
+import { Footer } from '../../components/footer/footer';
+import { SideBar } from '../../components/sidebar/sidebar';
+import styles from './docs.css';
 
-export const Docs = component$((props: PageProps) => {
+export const Docs = component$(() => {
   withStyles$(styles);
 
   return onRender$(() => (
     <Host class="docs">
       <Header />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
-        <h1>Docs! {props.pathname}</h1>
-        <p>content content content</p>
-        <p>content content content</p>
-        <p>content content content</p>
-        <p>content content content</p>
+        <SideBar />
+        <Content />
+        <Footer />
       </main>
     </Host>
   ));

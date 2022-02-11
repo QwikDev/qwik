@@ -1,11 +1,15 @@
-import { onRender$, component$, Host } from '@builder.io/qwik';
+import { onRender$, component, Host, withStyles$, $ } from '@builder.io/qwik';
 import { GithubLogo } from '../svgs/github-logo';
 import { QwikLogo } from '../svgs/qwik-logo';
+import styles from './header.css';
 
-export const Header = component$(() => {
-  return onRender$(() => (
-    <Host class="builder">
-      <header className="sticky top-0 z-40 w-full flex-none p-4 bg-gray-900">
+export const Header = component(
+  'header',
+  $(() => {
+    withStyles$(styles);
+
+    return onRender$(() => (
+      <Host className="sticky top-0 z-40 w-full flex-none p-4 bg-gray-900">
         <div className="flex justify-between flex-wrap max-w-7xl mx-auto">
           <div className="flex items-center flex-shrink-0 text-white mr-6">
             <a href="/">
@@ -28,7 +32,7 @@ export const Header = component$(() => {
             <GithubLogo />
           </div>
         </div>
-      </header>
-    </Host>
-  ));
-});
+      </Host>
+    ));
+  })
+);

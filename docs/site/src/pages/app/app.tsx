@@ -13,6 +13,6 @@ export const App = component$((props: PageProps) => {
       return <Docs pathname={props.pathname} url={props.url} />;
     }
 
-    return <Builder pathname={props.pathname} />;
+    return <Builder />;
   });
 });

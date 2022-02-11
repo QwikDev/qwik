@@ -2,7 +2,6 @@ import { partytownSnippet } from '@builder.io/partytown/integration';
 import { PageProps } from '../../types';
 
 export const Head = (page: PageProps) => (
-  // TODO: Why is a <Host> required here?
   <>
     <meta charSet="utf-8" />
 

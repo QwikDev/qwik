@@ -1,13 +1,11 @@
 import { onRender$, component$, Host } from '@builder.io/qwik';
+import { Header } from '../../components/header/header';
 
-interface BuilderProps {
-  pathname: string;
-}
-
-export const Builder = component$(({ pathname }: BuilderProps) => {
+export const Builder = component$(() => {
   return onRender$(() => (
     <Host class="builder">
-      <p>Builder! </p>
+      <Header />
+      <h1>Qwik</h1>
       <ul>
         <a href="/docs">Docs</a>
       </ul>

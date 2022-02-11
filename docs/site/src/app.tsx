@@ -9,9 +9,9 @@ export const App = component$((props: PageProps) => {
 
   return onRender$(() => {
     function Router(props: PageProps) {
-      if (props.pathname.startsWith('/docs')) {
+      if (props.pathname.startsWith('/docs/')) {
         // TODO: Why won't spread operators work here?
-        return <Docs />;
+        return <Docs doc={props.pathname.slice('/docs/'.length)} />;
       } else {
         return <Builder />;
       }

@@ -5,7 +5,11 @@ import { Footer } from '../../components/footer/footer';
 import { SideBar } from '../../components/sidebar/sidebar';
 import styles from './docs.css';
 
-export const Docs = component$(() => {
+export interface DocsProps {
+  doc: string;
+}
+
+export const Docs = component$((props: DocsProps) => {
   withStyles$(styles);
 
   return onRender$(() => (
@@ -13,7 +17,7 @@ export const Docs = component$(() => {
       <Header />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
         <SideBar />
-        <Content />
+        <Content doc={props.doc} />
         <Footer />
       </main>
     </Host>

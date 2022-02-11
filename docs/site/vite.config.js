@@ -2,6 +2,7 @@ import { defineConfig } from 'vite';
 import { qwikVite } from '@builder.io/qwik/optimizer';
 import { writeFile, mkdir } from 'fs/promises';
 import { dirname, resolve } from 'path';
+import mdPlugin from 'vite-plugin-markdown';
 
 export default defineConfig({
   build: {
@@ -24,6 +25,9 @@ export default defineConfig({
       symbolsOutput: (data) => {
         outputJSON('./server/q-symbols.json', data);
       },
+    }),
+    mdPlugin({
+      mode: ['html'],
     }),
   ],
 });

@@ -1,0 +1,25 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the README at:
+// https://github.com/microsoft/vscode-dev-containers/tree/v0.217.2/containers/docker-existing-dockerfile
+{
+  "name": "Qwik devcontainer",
+
+  // Sets the run context to one level up instead of the .devcontainer folder.
+  "context": "..",
+
+  // Update the 'dockerFile' property if you aren't using the standard 'Dockerfile' filename.
+  "dockerFile": "./Dockerfile",
+
+  // Set *default* container specific settings.json values on container create.
+  "settings": {},
+
+  // Add the IDs of extensions you want installed when the container is created.
+  "extensions": [
+    "esbenp.prettier-vscode",
+    "rust-lang.rust",
+    "hdevalke.rust-test-lens",
+    "bradlc.vscode-tailwindcss",
+    "manucorporat.vermoji",
+    "ms-azuretools.vscode-docker",
+    "mitsuhiko.insta"
+  ]
+}

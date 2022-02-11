@@ -12,8 +12,8 @@ export async function buildWasmBinding(config: BuildConfig) {
   emptyDir(tmpBuildDir);
 
   async function buildForTarget(env = {}) {
-    const cmd = `wasm-pack`;
-    const args = [`build`, '--target', 'web', `--out-dir`, tmpBuildDir];
+    const cmd = `npx`;
+    const args = [`wasm-pack`, `build`, '--target', 'web', `--out-dir`, tmpBuildDir];
     if (!config.dev) {
       args.push(`--release`);
     }

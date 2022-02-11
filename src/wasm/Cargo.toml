@@ -1,8 +1,13 @@
 [package]
-authors = ["Manu Mtz-Almeida <manu@builder.io>"]
+authors = ["Manu <manu@builder.io>"]
 name = "qwik-wasm"
 version = "0.1.0"
 edition = "2021"
+repository = "https://github.com/builder.io/qwik"
+license = "MIT"
+description = "Qwik optimizer compiler"
+keywords = ["qwik", "swc", "javascript", "optimizer", "compiler"]
+categories = ["development-tools", "development-tools::cargo-plugins"]
 
 [lib]
 crate-type = ["cdylib"]

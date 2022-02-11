@@ -39,7 +39,7 @@ export function qwikVite(opts: QwikViteOptions): any {
           if (!/\.[\w?=&]+$/.test(url) && !url.startsWith('/@')) {
             if (debug) {
               // eslint-disable-next-line no-console
-              console.log(`[QWIK PLUGIN] Handle SSR request: ${url}`);
+              console.debug(`[QWIK PLUGIN] Handle SSR request: ${url}`);
             }
 
             try {
@@ -89,9 +89,10 @@ export function qwikVite(opts: QwikViteOptions): any {
  * @alpha
  */
 export function qwikRollup(opts: QwikPluginOptions): any {
+  const ID = Math.round(Math.random() * 8999) + 1000;
   const debug = !!opts.debug;
   const results = new Map<string, TransformOutput>();
-  let transformedOutputs = new Map<string, [TransformModule, string]>();
+  const transformedOutputs = new Map<string, [TransformModule, string]>();
   let optimizer: Optimizer;
   let isSSR = false;
   let outputCount = 0;
@@ -101,6 +102,10 @@ export function qwikRollup(opts: QwikPluginOptions): any {
     ...opts.entryStrategy,
   };
 
+  if (debug) {
+    // eslint-disable-next-line no-console
+    console.debug(`[QWIK PLUGIN: ${ID}] Starting in ${opts.srcDir}`);
+  }
   const createRollupError = (rootDir: string, diagnostic: Diagnostic) => {
     const loc = diagnostic.code_highlights[0]?.loc ?? {};
     const id = optimizer.path.join(rootDir, diagnostic.origin);
@@ -188,7 +193,7 @@ export function qwikRollup(opts: QwikPluginOptions): any {
           const key = optimizer.path.join(rootDir, output.path)!;
           if (debug) {
             // eslint-disable-next-line no-console
-            console.debug(`[QWIK PLUGIN] Module: ${key}`);
+            console.debug(`[QWIK PLUGIN: ${ID}] Module: ${key}`);
           }
           transformedOutputs.set(key, [output, key]);
         }
@@ -198,11 +203,11 @@ export function qwikRollup(opts: QwikPluginOptions): any {
       }
     },
 
-    async resolveId(id, importer, localOpts) {
+    async resolveId(originalID, importer, localOpts) {
       if (localOpts.ssr === true) {
         isSSR = true;
       }
-      if ((isBuild || typeof opts.ssrBuild === 'boolean') && id === QWIK_BUILD) {
+      if ((isBuild || typeof opts.ssrBuild === 'boolean') && originalID === QWIK_BUILD) {
         return {
           id: QWIK_BUILD,
           moduleSideEffects: false,
@@ -212,6 +217,7 @@ export function qwikRollup(opts: QwikPluginOptions): any {
       if (!optimizer) {
         optimizer = await createOptimizer();
       }
+      let id = originalID;
       if (importer) {
         const dir = optimizer.path.dirname(importer);
         if (importer.endsWith('.html')) {
@@ -220,6 +226,12 @@ export function qwikRollup(opts: QwikPluginOptions): any {
           id = optimizer.path.resolve(dir, id);
         }
       }
+
+      if (debug) {
+        // eslint-disable-next-line no-console
+        console.debug(`[QWIK PLUGIN: ${ID}] Trying to resolve: ${originalID} ${importer}\n${id}`);
+      }
+
       const tries = [id, id + '.js'];
       if (['.jsx', '.ts', '.tsx'].includes(optimizer.path.extname(id))) {
         tries.push(removeExtension(id) + '.js');
@@ -229,7 +241,7 @@ export function qwikRollup(opts: QwikPluginOptions): any {
         if (res) {
           if (debug) {
             // eslint-disable-next-line no-console
-            console.debug(`[QWIK PLUGIN] Resolve: ${id} ${opts}`);
+            console.debug(`[QWIK PLUGIN: ${ID}] Resolve: ${id} ${opts}`);
           }
           const mod = res[0];
           const sideEffects = !mod.isEntry || !mod.hook;
@@ -253,7 +265,7 @@ export function qwikRollup(opts: QwikPluginOptions): any {
       if (transformedModule) {
         if (debug) {
           // eslint-disable-next-line no-console
-          console.debug(`[QWIK PLUGIN] Loading: ${id}`);
+          console.debug(`[QWIK PLUGIN: ${ID}] Loading: ${id}`);
         }
         return {
           code: transformedModule[0].code,
@@ -273,7 +285,7 @@ export function qwikRollup(opts: QwikPluginOptions): any {
       if (pregenerated) {
         if (debug) {
           // eslint-disable-next-line no-console
-          console.debug(`[QWIK PLUGIN] Add deps ${id}`, pregenerated[0].hook);
+          console.debug(`[QWIK PLUGIN: ${ID}] Add deps ${id}`, pregenerated[0].hook);
         }
         this.addWatchFile(pregenerated[1]);
         return {
@@ -288,7 +300,7 @@ export function qwikRollup(opts: QwikPluginOptions): any {
       // Only run when moduleIsolated === true
       const { ext, dir, base } = optimizer.path.parse(id);
       if (['.tsx', '.ts', '.jsx'].includes(ext)) {
-        const output = optimizer.transformModulesSync({
+        const newOutput = optimizer.transformModulesSync({
           input: [
             {
               code,
@@ -303,32 +315,32 @@ export function qwikRollup(opts: QwikPluginOptions): any {
           rootDir: dir,
         });
 
-        handleDiagnostics(this, base, output.diagnostics);
+        handleDiagnostics(this, base, newOutput.diagnostics);
 
-        if (output) {
-          results.set(id, output);
+        if (newOutput) {
+          results.set(id, newOutput);
+
           if (debug) {
             // eslint-disable-next-line no-console
-            console.debug(`[QWIK PLUGIN] Transforming: ${id}`);
-            for (const mod of output.modules) {
-              const key = optimizer.path.join(dir, mod.path);
-              if (debug) {
-                // eslint-disable-next-line no-console
-                console.debug(`[QWIK PLUGIN] Regenerated asset: ${key}`);
-              }
-            }
+            console.debug(`[QWIK PLUGIN: ${ID}] Transforming: ${id}`);
           }
 
-          transformedOutputs = new Map();
-          for (const entry of results.entries()) {
-            for (const mod of entry[1].modules) {
+          transformedOutputs.clear();
+          for (const [id, output] of results.entries()) {
+            const justChanged = newOutput === output;
+            const dir = optimizer.path.dirname(id);
+            for (const mod of output.modules) {
               if (mod.isEntry) {
                 const key = optimizer.path.join(dir, mod.path);
                 transformedOutputs.set(key, [mod, id]);
+                if (debug) {
+                  // eslint-disable-next-line no-console
+                  console.debug(`[QWIK PLUGIN: ${ID}] New module (${justChanged}): ${key}`);
+                }
               }
             }
           }
-          const module = output.modules.find((m) => !m.isEntry)!;
+          const module = newOutput.modules.find((m) => !m.isEntry)!;
           return {
             code: module.code,
             map: module.map,

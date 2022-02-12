@@ -213,14 +213,15 @@ export function qwikRollup(opts: QwikPluginOptions): any {
           moduleSideEffects: false,
         };
       }
-
       if (!optimizer) {
         optimizer = await createOptimizer();
       }
       let id = originalID;
+      const [filteredId] = originalID.split('?');
       if (importer) {
-        const dir = optimizer.path.dirname(importer);
-        if (importer.endsWith('.html')) {
+        const [filteredImporter] = importer.split('?');
+        const dir = optimizer.path.dirname(filteredImporter);
+        if (filteredImporter.endsWith('.html') && !filteredId.endsWith('.html')) {
           id = optimizer.path.join(dir, id);
         } else {
           id = optimizer.path.resolve(dir, id);
@@ -233,7 +234,7 @@ export function qwikRollup(opts: QwikPluginOptions): any {
       }
 
       const tries = [id, id + '.js'];
-      if (['.jsx', '.ts', '.tsx'].includes(optimizer.path.extname(id))) {
+      if (['.jsx', '.ts', '.tsx'].includes(optimizer.path.extname(filteredId))) {
         tries.push(removeExtension(id) + '.js');
       }
       for (const id of tries) {
@@ -298,7 +299,9 @@ export function qwikRollup(opts: QwikPluginOptions): any {
         optimizer = await createOptimizer();
       }
       // Only run when moduleIsolated === true
-      const { ext, dir, base } = optimizer.path.parse(id);
+      const [filteredId] = id.split('?');
+
+      const { ext, dir, base } = optimizer.path.parse(filteredId);
       if (['.tsx', '.ts', '.jsx'].includes(ext)) {
         const newOutput = optimizer.transformModulesSync({
           input: [

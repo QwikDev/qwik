@@ -337,8 +337,9 @@ export interface ComponentOptions {
  * See also: `component`, `onRender`, `onUnmount`, `onHydrate`, `onDehydrate`, `onHalt`,
  * `onResume`, `on`, `onDocument`, `onWindow`, `withStyles`, `withScopedStyles`
  *
- * @param tagName - Optional element tag-name to be used for the component's host element.
  * @param onMount - Initialization closure used when the component is first created.
+ * @param tagName - Optional components options. It can be used to set a custom tag-name to be
+ * used for the component's host element.
  *
  * @public
  */
@@ -424,8 +425,9 @@ export function component<PROPS extends {}>(
  * See also: `component`, `onRender`, `onUnmount`, `onHydrate`, `onDehydrate`, `onHalt`,
  * `onResume`, `on`, `onDocument`, `onWindow`, `withStyles`, `withScopedStyles`
  *
- * @param tagName - Optional element tag-name to be used for the component's host element.
  * @param onMount - Initialization closure used when the component is first created.
+ * @param tagName - Optional components options. It can be used to set a custom tag-name to be
+ * used for the component's host element.
  *
  * @public
  */

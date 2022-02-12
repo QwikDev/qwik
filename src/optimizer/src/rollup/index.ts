@@ -13,6 +13,7 @@ import {
 
 import type { NormalizedOutputOptions, PluginContext, RollupError } from 'rollup';
 import type { HmrContext, Plugin, ViteDevServer } from 'vite';
+import type { Path } from 'src/core/util/path';
 
 const QWIK_BUILD = '@builder.io/qwik/build';
 /**
@@ -229,25 +230,21 @@ export function qwikRollup(opts: QwikPluginOptions): any {
       if (!optimizer) {
         optimizer = await createOptimizer();
       }
-      let id = originalID;
-      const [filteredId] = originalID.split('?');
+      let id = removeQueryParams(originalID);
       if (importer) {
-        const [filteredImporter] = importer.split('?');
+        const filteredImporter = removeQueryParams(importer);
         const dir = optimizer.path.dirname(filteredImporter);
-        if (filteredImporter.endsWith('.html') && !filteredId.endsWith('.html')) {
+        if (filteredImporter.endsWith('.html') && !id.endsWith('.html')) {
           id = optimizer.path.join(dir, id);
         } else {
           id = optimizer.path.resolve(dir, id);
         }
       }
 
-      log(`resolveId()`, 'Normalized', id);
+      const tries = [forceJSExtension(optimizer.path, id)];
 
-      const tries = [id, id + '.js'];
-      if (['.jsx', '.ts', '.tsx'].includes(optimizer.path.extname(filteredId))) {
-        tries.push(removeExtension(id) + '.js');
-      }
       for (const id of tries) {
+        log(`resolveId()`, 'Try', id);
         const res = transformedOutputs.get(id);
         if (res) {
           log(`resolveId()`, 'Resolved', id);
@@ -271,6 +268,11 @@ export function qwikRollup(opts: QwikPluginOptions): any {
         };
       }
 
+      // On full build, lets normalize the ID
+      if (entryStrategy.type !== 'hook') {
+        id = forceJSExtension(optimizer.path, id);
+      }
+
       const transformedModule = transformedOutputs.get(id);
       if (transformedModule) {
         log(`load()`, 'Found', id);
@@ -282,6 +284,7 @@ export function qwikRollup(opts: QwikPluginOptions): any {
     },
 
     async transform(code, id) {
+      // Only run when moduleIsolated === true
       if (entryStrategy.type !== 'hook') {
         return null;
       }
@@ -302,11 +305,10 @@ export function qwikRollup(opts: QwikPluginOptions): any {
       if (!optimizer) {
         optimizer = await createOptimizer();
       }
-      // Only run when moduleIsolated === true
-      const [filteredId] = id.split('?');
-
+      const filteredId = removeQueryParams(id);
       const { ext, dir, base } = optimizer.path.parse(filteredId);
       if (['.tsx', '.ts', '.jsx'].includes(ext)) {
+        log(`transform()`, 'Transforming', filteredId);
         const newOutput = optimizer.transformModulesSync({
           input: [
             {
@@ -323,33 +325,28 @@ export function qwikRollup(opts: QwikPluginOptions): any {
         });
 
         handleDiagnostics(this, base, newOutput.diagnostics);
+        results.set(filteredId, newOutput);
 
-        if (newOutput) {
-          results.set(id, newOutput);
-
-          log(`transform()`, 'Transforming', id);
-
-          transformedOutputs.clear();
-          for (const [id, output] of results.entries()) {
-            const justChanged = newOutput === output;
-            const dir = optimizer.path.dirname(id);
-            for (const mod of output.modules) {
-              if (mod.isEntry) {
-                const key = optimizer.path.join(dir, mod.path);
-                transformedOutputs.set(key, [mod, id]);
-                log(`transform()`, 'emitting', justChanged, key);
-              }
+        transformedOutputs.clear();
+        for (const [id, output] of results.entries()) {
+          const justChanged = newOutput === output;
+          const dir = optimizer.path.dirname(id);
+          for (const mod of output.modules) {
+            if (mod.isEntry) {
+              const key = optimizer.path.join(dir, mod.path);
+              transformedOutputs.set(key, [mod, id]);
+              log(`transform()`, 'emitting', justChanged, key);
             }
           }
-          const module = newOutput.modules.find((m) => !m.isEntry)!;
-          return {
-            code: module.code,
-            map: module.map,
-            meta: {
-              hook: module.hook,
-            },
-          };
         }
+        const module = newOutput.modules.find((m) => !m.isEntry)!;
+        return {
+          code: module.code,
+          map: module.map,
+          meta: {
+            hook: module.hook,
+          },
+        };
       }
       return null;
     },
@@ -414,6 +411,24 @@ export function qwikRollup(opts: QwikPluginOptions): any {
   };
 
   return plugin;
+}
+
+function removeQueryParams(id: string) {
+  const [filteredId] = id.split('?');
+  return filteredId;
+}
+
+const EXT = ['.jsx', '.ts', '.tsx'];
+
+function forceJSExtension(path: Path, id: string) {
+  const ext = path.extname(id);
+  if (ext === '') {
+    return id + '.js';
+  }
+  if (EXT.includes(ext)) {
+    return removeExtension(id) + '.js';
+  }
+  return id;
 }
 
 function removeExtension(id: string) {

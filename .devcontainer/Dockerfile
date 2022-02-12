@@ -23,10 +23,8 @@ RUN set -eux; \
     chmod -R a+w $RUSTUP_HOME $CARGO_HOME; \
     rustup --version; \
     cargo --version; \
-    rustc --version;
-
-RUN source /usr/local/cargo/env \
-    rustup update \
-    rustup target add wasm32-unknown-unknown \
-    cargo install cargo-insta \
-    rustup component add clippy
+    rustc --version; \
+    rustup update; \
+    rustup target add wasm32-unknown-unknown; \
+    cargo install cargo-insta; \
+    rustup component add clippy;

@@ -1,14 +1,18 @@
-import { onRender$, component$, Host } from '@builder.io/qwik';
+import { onRender$, component$, Host, withStyles$ } from '@builder.io/qwik';
+import { Footer } from '../../components/footer/footer';
 import { Header } from '../../components/header/header';
+import styles from './builder.css';
 
 export const Builder = component$(() => {
+  withStyles$(styles);
+
   return onRender$(() => (
     <Host class="builder">
       <Header />
-      <h1>Qwik</h1>
-      <ul>
-        <a href="/docs">Docs</a>
-      </ul>
+      <section class="p-4">
+        <h1>Qwik</h1>
+      </section>
+      <Footer />
     </Host>
   ));
 });

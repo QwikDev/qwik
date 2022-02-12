@@ -7,7 +7,7 @@ export const Footer = component(
     withStyles$(styles);
 
     return onRender$(() => (
-      <Host>
+      <Host class="p-4">
         <nav>
           <a href="https://github.com/BuilderIO/qwik" target="_blank">
             Github

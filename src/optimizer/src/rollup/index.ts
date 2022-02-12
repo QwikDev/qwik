@@ -13,7 +13,6 @@ import {
 
 import type { NormalizedOutputOptions, PluginContext, RollupError } from 'rollup';
 import type { HmrContext, Plugin, ViteDevServer } from 'vite';
-import type { Path } from 'src/core/util/path';
 
 const QWIK_BUILD = '@builder.io/qwik/build';
 /**
@@ -420,7 +419,7 @@ function removeQueryParams(id: string) {
 
 const EXT = ['.jsx', '.ts', '.tsx'];
 
-function forceJSExtension(path: Path, id: string) {
+function forceJSExtension(path: any, id: string) {
   const ext = path.extname(id);
   if (ext === '') {
     return id + '.js';

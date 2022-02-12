@@ -1,9 +1,7 @@
 import {
   Host,
-  $,
   component$,
   Slot,
-  component,
   PropsOf,
   getProps,
   useEvent,

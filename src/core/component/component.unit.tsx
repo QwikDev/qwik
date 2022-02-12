@@ -2,9 +2,8 @@ import { useLexicalScope, createStore } from '@builder.io/qwik';
 import { ElementFixture, trigger } from '../../testing/element_fixture';
 import { expectDOM } from '../../testing/expect-dom.unit';
 import { runtimeQrl } from '../import/qrl';
-import { $ } from '../import/qrl.public';
 import { render } from '../render/render.public';
-import { PropsOf, component, withStyles, onRender$, component$ } from './component.public';
+import { PropsOf, withStyles, onRender$, component$ } from './component.public';
 
 describe('q-component', () => {
   it('should declare and render basic component', async () => {

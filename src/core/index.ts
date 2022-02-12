@@ -31,11 +31,7 @@ export {
   withScopedStyles$,
 } from './component/component.public';
 
-export type {
-  PropsOf,
-  ComponentOptions,
-  OnMountFn,
-} from './component/component.public';
+export type { PropsOf, ComponentOptions, OnMountFn } from './component/component.public';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Event API

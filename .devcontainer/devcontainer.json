@@ -23,5 +23,6 @@
     "mitsuhiko.insta",
     "silvenon.mdx",
     "csstools.postcss"
-  ]
+  ],
+  "postStartCommand": "yarn install"
 }

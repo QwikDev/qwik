@@ -25,7 +25,8 @@ RUN set -eux; \
     cargo --version; \
     rustc --version;
 
-RUN rustup update \
+RUN source /usr/local/cargo/env \
+    rustup update \
     rustup target add wasm32-unknown-unknown \
     cargo install cargo-insta \
     rustup component add clippy

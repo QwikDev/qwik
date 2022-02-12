@@ -3,10 +3,7 @@ FROM node:16.12.0-buster
 ENV RUSTUP_HOME=/usr/local/rustup \
     CARGO_HOME=/usr/local/cargo \
     PATH=/usr/local/cargo/bin:$PATH \
-    RUST_VERSION=1.58.1 \
-    YARN_VERSION=1.22.17
-
-RUN npm install -g "yarn@$YARN_VERSION"
+    RUST_VERSION=1.58.1
 
 RUN set -eux; \
     dpkgArch="$(dpkg --print-architecture)"; \

@@ -6,7 +6,7 @@ ENV RUSTUP_HOME=/usr/local/rustup \
     RUST_VERSION=1.58.1 \
     YARN_VERSION=1.22.17
 
-RUN npm install "yarn@$RUSTUP_HOME"
+RUN npm install -g "yarn@$YARN_VERSION"
 
 RUN set -eux; \
     dpkgArch="$(dpkg --print-architecture)"; \

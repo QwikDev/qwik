@@ -1,6 +1,5 @@
 import {
-  $,
-  component,
+  component$,
   createStore,
   Host,
   notifyRender,
@@ -15,9 +14,8 @@ import { removeItem, TodoItem, Todos, toggleItem } from '../../state/state';
  *
  * It only rerenders if the user infarcts with it or if the item itself changes.
  */
-export const Item = component(
-  'li',
-  $((props: { item: TodoItem; todos: Todos }) => {
+export const Item = component$(
+  (props: { item: TodoItem; todos: Todos }) => {
     const state = createStore({ editing: false });
     return onRender$(() => {
       return (
@@ -61,5 +59,8 @@ export const Item = component(
         </Host>
       );
     });
-  })
+  },
+  {
+    tagName: 'li',
+  }
 );

@@ -2,9 +2,8 @@ import { h, Host, createStore } from '@builder.io/qwik';
 import { ElementFixture, trigger } from '../../testing/element_fixture';
 import { expectDOM } from '../../testing/expect-dom.unit';
 import { getTestPlatform } from '../../testing/platform';
-import { component, onRender$, withScopedStyles$, component$ } from '../component/component.public';
+import { onRender$, withScopedStyles$, component$ } from '../component/component.public';
 import { runtimeQrl } from '../import/qrl';
-import { $ } from '../import/qrl.public';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
 import { AttributeMarker } from '../util/markers';
 import { Async, JSXPromise, PromiseValue } from './jsx/async.public';
@@ -363,9 +362,8 @@ describe('render', () => {
 //////////////////////////////////////////////////////////////////////////////////////////
 // Hello World
 //////////////////////////////////////////////////////////////////////////////////////////
-export const HelloWorld = component(
-  'hello-world',
-  $((props: { name?: string }) => {
+export const HelloWorld = component$(
+  (props: { name?: string }) => {
     withScopedStyles$(`span.� { color: red; }`);
     const state = createStore({ salutation: 'Hello' });
     return onRender$(() => {
@@ -375,7 +373,10 @@ export const HelloWorld = component(
         </span>
       );
     });
-  })
+  },
+  {
+    tagName: 'hello-world',
+  }
 );
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -407,9 +408,8 @@ export const Counter_add = () => {
 //////////////////////////////////////////////////////////////////////////////////////////
 // Project
 //////////////////////////////////////////////////////////////////////////////////////////
-export const Project = component(
-  'project',
-  $(() => {
+export const Project = component$(
+  () => {
     return onRender$(() => {
       return (
         <section>
@@ -419,12 +419,14 @@ export const Project = component(
         </section>
       );
     });
-  })
+  },
+  {
+    tagName: 'project',
+  }
 );
 
-export const SimpleProject = component(
-  'project',
-  $(() => {
+export const SimpleProject = component$(
+  () => {
     return onRender$(() => {
       return (
         <section>
@@ -432,19 +434,24 @@ export const SimpleProject = component(
         </section>
       );
     });
-  })
+  },
+  {
+    tagName: 'project',
+  }
 );
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // HostFixture
 //////////////////////////////////////////////////////////////////////////////////////////
-export const HostFixture = component(
-  'host-fixture',
-  $((props: { hostAttrs?: string; content?: string }) => {
+export const HostFixture = component$(
+  (props: { hostAttrs?: string; content?: string }) => {
     return onRender$(() => {
       return h(Host, JSON.parse(props.hostAttrs || '{}'), [props.content]);
     });
-  })
+  },
+  {
+    tagName: 'host-fixture',
+  }
 );
 
 function delay(time: number) {

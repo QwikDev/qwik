@@ -1,4 +1,4 @@
-import { $, component, createStore, onRender$, useEvent } from '@builder.io/qwik';
+import { component$, createStore, onRender$, useEvent } from '@builder.io/qwik';
 import { addItem, Todos } from '../../state/state';
 
 /**
@@ -6,9 +6,8 @@ import { addItem, Todos } from '../../state/state';
  *
  * This component only rerenders if the user interacts with it through the input.
  */
-export const Header = component(
-  'header',
-  $((props: { todos: Todos }) => {
+export const Header = component$(
+  (props: { todos: Todos }) => {
     const state = createStore({ text: '' });
     return onRender$(() => {
       return (
@@ -32,5 +31,8 @@ export const Header = component(
         </>
       );
     });
-  })
+  },
+  {
+    tagName: 'header',
+  }
 );

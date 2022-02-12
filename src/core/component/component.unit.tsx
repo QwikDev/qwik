@@ -2,9 +2,8 @@ import { useLexicalScope, createStore } from '@builder.io/qwik';
 import { ElementFixture, trigger } from '../../testing/element_fixture';
 import { expectDOM } from '../../testing/expect-dom.unit';
 import { runtimeQrl } from '../import/qrl';
-import { $ } from '../import/qrl.public';
 import { render } from '../render/render.public';
-import { PropsOf, component, withStyles, onRender$, component$ } from './component.public';
+import { PropsOf, withStyles, onRender$, component$ } from './component.public';
 
 describe('q-component', () => {
   it('should declare and render basic component', async () => {
@@ -117,9 +116,8 @@ export const MyCounter_update = () => {
 };
 
 // Finally tie it all together into a component.
-export const MyCounter = component(
-  'my-counter',
-  $((props: { step?: number; value?: number }) => {
+export const MyCounter = component$(
+  (props: { step?: number; value?: number }) => {
     const state = createStore({ count: props.value || 0 });
     return onRender$(() => (
       <div>
@@ -138,7 +136,10 @@ export const MyCounter = component(
         </button>
       </div>
     ));
-  })
+  },
+  {
+    tagName: 'my-counter',
+  }
 );
 
 /////////////////////////////////////////////////////////////////////////////
@@ -157,9 +158,8 @@ interface ItemsObj {
 
 /////////////////////////////////////////////////////////////////////////////
 
-export const ItemDetail = component(
-  'item-detail',
-  $((props: { itemObj: ItemObj }) => {
+export const ItemDetail = component$(
+  (props: { itemObj: ItemObj }) => {
     // const state = createStore({ editing: false });
     return onRender$(() => (
       <>
@@ -167,14 +167,16 @@ export const ItemDetail = component(
         <span>{props.itemObj.title || 'loading...'}</span>
       </>
     ));
-  })
+  },
+  {
+    tagName: 'item-detail',
+  }
 );
 
 /////////////////////////////////////////////////////////////////////////////
 
-export const Items = component(
-  'items',
-  $((props: { items: ItemsObj }) => {
+export const Items = component$(
+  (props: { items: ItemsObj }) => {
     // const state = createStore({ editing: false });
     return onRender$(() => (
       <>
@@ -184,7 +186,10 @@ export const Items = component(
         Total: {props.items.items.length}
       </>
     ));
-  })
+  },
+  {
+    tagName: 'items',
+  }
 );
 
 function delay(miliseconds: number): Promise<void> {

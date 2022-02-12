@@ -1,9 +1,7 @@
 import {
   Host,
-  $,
   component$,
   Slot,
-  component,
   PropsOf,
   getProps,
   useEvent,
@@ -59,9 +57,8 @@ export const ArchApp = component$((props: { monolith: Cmp; islands: Cmp; uIslets
   ));
 });
 
-export const Browser = component(
-  'browser',
-  $(() => {
+export const Browser = component$(
+  () => {
     return onRender$(() => (
       <div class="browser">
         <div class="browser-url">
@@ -73,12 +70,14 @@ export const Browser = component(
         </div>
       </div>
     ));
-  })
+  },
+  {
+    tagName: 'browser',
+  }
 );
 
-export const Component = component(
-  'component',
-  $((props: { cmp: Cmp; arch: ArchMode }) => {
+export const Component = component$(
+  (props: { cmp: Cmp; arch: ArchMode }) => {
     return onRender$(() => (
       <Host class={getCmpClass(props.cmp)} on:click={Component_click}>
         {props.cmp.children &&
@@ -86,7 +85,10 @@ export const Component = component(
         {props.cmp.children ? null : '...'}
       </Host>
     ));
-  })
+  },
+  {
+    tagName: 'component',
+  }
 );
 
 export const Component_click = async () => {

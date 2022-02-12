@@ -1,4 +1,4 @@
-import { $, component, Host, onRender$ } from '@builder.io/qwik';
+import { component$, Host, onRender$ } from '@builder.io/qwik';
 import {
   clearCompleted,
   FilterStates,
@@ -12,9 +12,8 @@ import {
  *
  * It only rerenders if the todos count changes or filters are reset.
  */
-export const Footer = component(
-  'footer',
-  $((props: { todos: Todos }) => {
+export const Footer = component$(
+  (props: { todos: Todos }) => {
     return onRender$(() => {
       /**
        * Example of lite-component (it will always be included with the parent component)
@@ -56,5 +55,8 @@ export const Footer = component(
         </Host>
       );
     });
-  })
+  },
+  {
+    tagName: 'footer',
+  }
 );

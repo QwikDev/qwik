@@ -22,6 +22,8 @@
     "@cloudflare/kv-asset-handler": "0.2.0",
     "@cloudflare/workers-types": "3.2.0",
     "@cloudflare/wrangler": "1.19.7",
+    "@mdx-js/rollup": "^2.0.0",
+    "@types/mdx": "^2.0.1",
     "@types/service-worker-mock": "2.0.1",
     "autoprefixer": "10.4.2",
     "postcss": "8.4.6",

@@ -4,10 +4,10 @@ import { OnThisPage } from '../on-this-page/on-this-page';
 import styles from './content.css';
 
 export const getDocs = () => {
-  const modules = import.meta.glob('../../../../*.md');
+  const modules = import.meta.glob('../../markdown/*.mdx');
   return Object.fromEntries(
     Object.entries(modules).map(([key, fn]) => {
-      return [key.toLowerCase().split('/').pop()?.slice(0, -3), fn] as [string, Function];
+      return [key.toLowerCase().split('/').pop()?.slice(0, -4), fn] as [string, Function];
     })
   );
 };
@@ -19,12 +19,14 @@ export const Content = component(
 
     const docs = getDocs();
     const fn = docs[props.doc];
-    const html = fn ? (await fn()).html : undefined;
+    const Markdown = fn ? (await fn()).default : undefined;
     return onRender$(() => (
       <Host class="content">
-        {html ? (
+        {Markdown ? (
           <>
-            <article class="article-md" innerHTML={html} />
+            <article class="article-md">
+              <Markdown />
+            </article>
             <OnThisPage />
           </>
         ) : (

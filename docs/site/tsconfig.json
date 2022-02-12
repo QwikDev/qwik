@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "ES2017",
+    "target": "ES2020",
     "module": "ES2020",
     "lib": ["es2020", "DOM"],
     "jsx": "react-jsx",
@@ -19,7 +19,7 @@
       "@builder.io/qwik/server": ["src/server/index"],
       "@builder.io/qwik/testing": ["src/testing/index"]
     },
-    "types": ["vite/client"]
+    "types": ["vite/client", "@types/mdx"]
   },
   "include": ["src"]
 }

@@ -18,7 +18,7 @@ export const Header = component(
             </a>
           </div>
           <nav className="grow flex justify-end">
-            <a className="font-semibold text-slate-400 hover:text-slate-500 px-2 mx-2" href="/docs">
+            <a className="font-semibold text-slate-400 hover:text-slate-500 px-2 mx-2" href="/docs/">
               Docs
             </a>
             <a

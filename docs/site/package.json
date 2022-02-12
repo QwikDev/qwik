@@ -12,7 +12,9 @@
     "dev": "vite",
     "fmt": "prettier --write .",
     "fmt.check": "prettier --check .",
-    "start": "npm run dev"
+    "start": "npm run dev",
+    "link.builder": "npm link @builder.io/qwik",
+    "preinstall": "npm run link.builder"
   },
   "devDependencies": {
     "@builder.io/partytown": "^0.3.4",

@@ -19,7 +19,7 @@ export const Content = component(
 
     const docs = getDocs();
     const fn = docs[props.doc];
-    let html = fn ? (await fn()).html : undefined;
+    const html = fn ? (await fn()).html : undefined;
     return onRender$(() => (
       <Host class="content">
         {html ? (

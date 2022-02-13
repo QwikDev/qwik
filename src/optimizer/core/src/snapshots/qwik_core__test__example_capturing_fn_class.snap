@@ -1,22 +1,22 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 1017
+assertion_line: 614
 expression: output
 
 ---
 ==INPUT==
 
 
-import { $, qComponent$, onRender$ } from '@builder.io/qwik';
+import { $, component$ } from '@builder.io/qwik';
 
-export const App = qComponent$(() => {
+export const App = component$(() => {
     function hola() {
       console.log('hola');
     }
     class Thing {}
     class Other {}
 
-    return onRender$(() => {
+    return $(() => {
       hola();
       new Thing();
       return (
@@ -28,8 +28,8 @@ export const App = qComponent$(() => {
 ============================= test.js ==
 
 import * as qwik from "@builder.io/qwik";
-import { qComponent } from "@builder.io/qwik";
-export const App = /*#__PURE__*/ qComponent(qwik.qrl(()=>import("./h_test_app_onmount")
+import { component } from "@builder.io/qwik";
+export const App = /*#__PURE__*/ component(qwik.qrl(()=>import("./h_test_app_onmount")
 , "App_onmount"));
 
 ============================= h_test_app_onrender.js (ENTRY POINT)==
@@ -54,7 +54,6 @@ export const App_onRender = ()=>{
 ============================= h_test_app_onmount.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-import { onRender } from "@builder.io/qwik";
 export const App_onmount = ()=>{
     function hola() {
         console.log('hola');
@@ -63,8 +62,8 @@ export const App_onmount = ()=>{
     }
     class Other {
     }
-    return onRender(qwik.qrl(()=>import("./h_test_app_onrender")
-    , "App_onRender"));
+    return qwik.qrl(()=>import("./h_test_app_onrender")
+    , "App_onRender");
 };
 
 /*

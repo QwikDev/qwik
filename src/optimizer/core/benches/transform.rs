@@ -13,7 +13,7 @@ fn transform_todo_app(b: &mut Bencher) {
           Fragment,
           Host,
           qComponent$,
-          onRender$,
+          $,
           createStore,
           useHostElement,
           useEvent,
@@ -33,7 +33,7 @@ fn transform_todo_app(b: &mut Bencher) {
 
 
         export const ToDoApp = qComponent$((props: { todos: Todos }) => {
-          return onRender$(() => {
+          return $(() => {
             console.log('on$:qRender => <ToDoApp/>');
             return (
               <section class="todoapp">
@@ -47,7 +47,7 @@ fn transform_todo_app(b: &mut Bencher) {
 
         export const Header = qComponent$((props: { todos: Todos }) => {
           const state = createStore({ text: '' });
-          return onRender$(() => {
+          return $(() => {
             console.log('on$:qRender => <Header/>');
             return (
               <>
@@ -73,7 +73,7 @@ fn transform_todo_app(b: &mut Bencher) {
         });
 
         export const Main = qComponent$((props: { todos: Todos }) => {
-          return onRender$(() => {
+          return $(() => {
             console.log('on$:qRender => <Main/>');
             return (
               <Host class="main">
@@ -89,7 +89,7 @@ fn transform_todo_app(b: &mut Bencher) {
 
         export const Item = qComponent$((props: { item: TodoItem; todos: Todos }) => {
           const state = createStore({ editing: false });
-          return onRender$(() => {
+          return $(() => {
             console.log(
               'on$:qRender => <Item item="' +
                 JSON.stringify(props.item, (key, value) => (key.startsWith('__') ? undefined : value)) +
@@ -139,7 +139,7 @@ fn transform_todo_app(b: &mut Bencher) {
         });
 
         export const Footer = qComponent$((props: { todos: Todos }) => {
-          return onRender$(() => {
+          return $(() => {
             console.log('on$:qRender => <Footer/>');
             /**
              * Example of lite-component (it will always be included with the parent component)

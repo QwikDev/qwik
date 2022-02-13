@@ -12,8 +12,6 @@
 export {
   component,
   component$,
-  onRender,
-  onRender$,
   onUnmount,
   onUnmount$,
   onHydrate,

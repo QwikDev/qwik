@@ -2,8 +2,9 @@ import { h, Host, createStore } from '@builder.io/qwik';
 import { ElementFixture, trigger } from '../../testing/element_fixture';
 import { expectDOM } from '../../testing/expect-dom.unit';
 import { getTestPlatform } from '../../testing/platform';
-import { onRender$, withScopedStyles$, component$ } from '../component/component.public';
+import { withScopedStyles$, component$ } from '../component/component.public';
 import { runtimeQrl } from '../import/qrl';
+import { $ } from '../import/qrl.public';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
 import { AttributeMarker } from '../util/markers';
 import { Async, JSXPromise, PromiseValue } from './jsx/async.public';
@@ -366,7 +367,7 @@ export const HelloWorld = component$(
   (props: { name?: string }) => {
     withScopedStyles$(`span.� { color: red; }`);
     const state = createStore({ salutation: 'Hello' });
-    return onRender$(() => {
+    return $(() => {
       return (
         <span>
           {state.salutation} {props.name || 'World'}
@@ -385,7 +386,7 @@ export const HelloWorld = component$(
 
 export const Counter = component$((props: { step?: number }) => {
   const state = createStore({ count: 0 });
-  return onRender$(() => {
+  return $(() => {
     const step = Number(props.step || 1);
     return (
       <>
@@ -410,7 +411,7 @@ export const Counter_add = () => {
 //////////////////////////////////////////////////////////////////////////////////////////
 export const Project = component$(
   () => {
-    return onRender$(() => {
+    return $(() => {
       return (
         <section>
           <Slot>..default..</Slot>
@@ -427,7 +428,7 @@ export const Project = component$(
 
 export const SimpleProject = component$(
   () => {
-    return onRender$(() => {
+    return $(() => {
       return (
         <section>
           <Slot>..default..</Slot>
@@ -445,7 +446,7 @@ export const SimpleProject = component$(
 //////////////////////////////////////////////////////////////////////////////////////////
 export const HostFixture = component$(
   (props: { hostAttrs?: string; content?: string }) => {
-    return onRender$(() => {
+    return $(() => {
       return h(Host, JSON.parse(props.hostAttrs || '{}'), [props.content]);
     });
   },
@@ -460,7 +461,7 @@ function delay(time: number) {
 
 //////////////////////////////////////////////////////////////////////////////////////////
 export const InnerHTMLComponent = component$(async () => {
-  return onRender$(() => {
+  return $(() => {
     const html = Promise.resolve(`<span>WORKS</span>`);
     return <Async resolve={html}>{(v) => <div innerHTML={v.value}></div>}</Async>;
   });

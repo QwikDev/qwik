@@ -1,4 +1,4 @@
-import { component$, Host, onRender$ } from '@builder.io/qwik';
+import { component$, Host, $ } from '@builder.io/qwik';
 import { getFilteredItems, Todos } from '../../state/state';
 import { Item } from '../item/item';
 
@@ -8,7 +8,7 @@ import { Item } from '../item/item';
  * This component only rerenders/hydrates/downloads if the list of todos changes.
  */
 export const Main = component$((props: { todos: Todos }) => {
-  return onRender$(() => {
+  return $(() => {
     return (
       <Host class="main">
         <ul class="todo-list">

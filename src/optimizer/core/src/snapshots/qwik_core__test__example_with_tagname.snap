@@ -1,29 +1,33 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 1017
+assertion_line: 462
 expression: output
 
 ---
 ==INPUT==
 
 
-import { $, qComponent$, onRender$ } from '@builder.io/qwik';
+import { $, component$ } from '@builder.io/qwik';
 
-export const Foo = qComponent$("my-foo", () => {
-    return onRender$(() => {
+export const Foo = component$(() => {
+    return $(() => {
         return (
             <div>
             </div>
         )
     });
-})
+}, {
+    tagName: "my-foo",
+});
 
 ============================= test.tsx ==
 
 import * as qwik from "@builder.io/qwik";
-import { qComponent } from "@builder.io/qwik";
-export const Foo = /*#__PURE__*/ qComponent("my-foo", qwik.qrl(()=>import("./h_test_foo_onmount")
-, "Foo_onmount"));
+import { component } from "@builder.io/qwik";
+export const Foo = /*#__PURE__*/ component(qwik.qrl(()=>import("./h_test_foo_onmount")
+, "Foo_onmount"), {
+    tagName: "my-foo"
+});
 
 ============================= h_test_foo_onrender.tsx (ENTRY POINT)==
 
@@ -46,10 +50,9 @@ export const Foo_onRender = ()=>{
 ============================= h_test_foo_onmount.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-import { onRender } from "@builder.io/qwik";
 export const Foo_onmount = ()=>{
-    return onRender(qwik.qrl(()=>import("./h_test_foo_onrender")
-    , "Foo_onRender"));
+    return qwik.qrl(()=>import("./h_test_foo_onrender")
+    , "Foo_onRender");
 };
 
 /*

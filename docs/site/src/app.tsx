@@ -1,21 +1,23 @@
 import { $, component$, withStyles$ } from '@builder.io/qwik';
-import { Builder } from './pages/builder/builder';
-import { Docs } from './pages/docs/docs';
+import { Builder } from './layouts/builder/builder';
 import type { PageProps } from './types';
 import styles from './app.css';
+import { getContents } from './utils/get-content';
 
-export const App = component$((props: PageProps) => {
+export const App = component$(async (props: PageProps) => {
   withStyles$(styles);
 
-  return $(() => {
-    function Router(props: PageProps) {
-      if (props.pathname.startsWith('/docs/')) {
-        // TODO: Why won't spread operators work here?
-        return <Docs doc={props.pathname.slice('/docs/'.length)} />;
-      } else {
-        return <Builder />;
-      }
-    }
-    return <Router {...props} />;
+  let page = Builder;
+  let pageProps = {};
+
+  const contents = getContents();
+  const content = contents.find((c) => c.name === props.pathname);
+  if (content) {
+    const contentModule = await content.module();
+    Page = contentModule.default;
+  }
+
+  return $(async () => {
+    return <Builder />;
   });
 });

@@ -5,6 +5,9 @@ import { dirname, resolve, join } from 'path';
 
 export default defineConfig(async () => {
   const { default: mdx } = await import('@mdx-js/rollup');
+  const { default: remarkFrontmatter } = await import('remark-frontmatter');
+  const { default: remarkGfm } = await import('remark-gfm');
+  const { remarkMdxFrontmatter } = await import('remark-mdx-frontmatter');
 
   return {
     build: {
@@ -30,6 +33,7 @@ export default defineConfig(async () => {
       }),
       mdx({
         jsxImportSource: getQwik(),
+        remarkPlugins: [remarkGfm, remarkFrontmatter, remarkMdxFrontmatter],
       }),
     ],
   };

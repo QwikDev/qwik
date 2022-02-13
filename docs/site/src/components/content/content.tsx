@@ -1,38 +1,18 @@
-import { $, component, Host, withStyles$, $ } from '@builder.io/qwik';
-import { DocsProps } from '../../pages/docs/docs';
-import { OnThisPage } from '../on-this-page/on-this-page';
-import styles from './content.css';
+import { $, component } from '@builder.io/qwik';
+import { getContents } from '../../utils/get-content';
 
-export const getDocs = () => {
-  const modules = import.meta.glob('../../../../*.mdx');
-  return Object.fromEntries(
-    Object.entries(modules).map(([key, fn]) => {
-      return [key.toLowerCase().split('/').pop()?.slice(0, -4), fn] as [string, Function];
-    })
-  );
-};
+interface ContentProps {
+  content: string;
+}
 
 export const Content = component(
   'section',
-  $(async (props: DocsProps) => {
-    withStyles$(styles);
+  $(async (props: ContentProps) => {
+    const contents = getContents();
+    const content = contents.find((c) => c.name === props.content)!;
+    const contentModule = await content.module();
+    const Markdown = contentModule.default;
 
-    const docs = getDocs();
-    const fn = docs[props.doc];
-    const Markdown = fn ? (await fn()).default : undefined;
-    return $(() => (
-      <Host class="content">
-        {Markdown ? (
-          <>
-            <article class="article-md">
-              <Markdown />
-            </article>
-            <OnThisPage />
-          </>
-        ) : (
-          <div>doc not found</div>
-        )}
-      </Host>
-    ));
+    return $(() => <Markdown />);
   })
 );

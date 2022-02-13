@@ -1,9 +1,9 @@
-import { component$, onRender$, withStyles$ } from '@builder.io/qwik';
+import { component$, $, withStyles$ } from '@builder.io/qwik';
 import styles from './app.css';
 
 export const App = component$(() => {
   withStyles$(styles);
-  return onRender$(() => (
+  return $(() => (
     <>
       <Header />
       <div id="my-content"></div>
@@ -13,7 +13,7 @@ export const App = component$(() => {
 });
 
 export const Header = component$(() => {
-  return onRender$(() => (
+  return $(() => (
     <p style={{ 'text-align': 'center' }}>
       <a href="https://github.com/builderio/qwik">
         <img
@@ -27,7 +27,7 @@ export const Header = component$(() => {
 });
 
 export const Footer = component$(() => {
-  return onRender$(() => (
+  return $(() => (
     <>
       <hr />
       <p style={{ 'text-align': 'center' }}>

@@ -7,10 +7,10 @@ Props is a mechanism by which components communicate with each other.
 Imagine a situation where the parent `<MyApp>` component needs to pass information to a child's <Greeter>` component. (Here is a code example)
 
 ```tsx
-import { component$, onRender$ } from '@builder.io/qwik';
+import { component$, $ } from '@builder.io/qwik';
 
 export const MyApp = component$(() => {
-  onRender$(() => (
+  $(() => (
     <div>
       <Greeter name="World" />
     </div>
@@ -18,7 +18,7 @@ export const MyApp = component$(() => {
 });
 
 export const Greeter = component$((props: { salutation?: string; name?: string }) => {
-  onRender$((props) => (
+  $((props) => (
     <span>
       {props.salutation || 'Hello'} <b>{props.name || 'World'}</b>
     </span>

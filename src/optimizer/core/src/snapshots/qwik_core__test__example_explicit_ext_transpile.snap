@@ -1,17 +1,17 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 1017
+assertion_line: 936
 expression: output
 
 ---
 ==INPUT==
 
 
-import { qComponent$, onRender$, withStyle$ } from '@builder.io/qwik';
+import { component$, $, withStyle$ } from '@builder.io/qwik';
 
-export const App = qComponent$((props) => {
+export const App = component$((props) => {
     withStyle$('hola');
-    return onRender$(() => (
+    return $(() => (
         <div></div>
     ));
 });
@@ -19,8 +19,8 @@ export const App = qComponent$((props) => {
 ============================= test.js ==
 
 import * as qwik from "@builder.io/qwik";
-import { qComponent } from "@builder.io/qwik";
-export const App = /*#__PURE__*/ qComponent(qwik.qrl(()=>import("./h_test_app_onmount.js")
+import { component } from "@builder.io/qwik";
+export const App = /*#__PURE__*/ component(qwik.qrl(()=>import("./h_test_app_onmount.js")
 , "App_onmount"));
 
 ============================= h_test_app_withstyle.js (ENTRY POINT)==
@@ -56,13 +56,12 @@ export const App_onRender = ()=>/*#__PURE__*/ _jsx("div", {})
 ============================= h_test_app_onmount.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-import { onRender } from "@builder.io/qwik";
 import { withStyle } from "@builder.io/qwik";
 export const App_onmount = (props)=>{
     withStyle(qwik.qrl(()=>import("./h_test_app_withstyle.js")
     , "App_withStyle"));
-    return onRender(qwik.qrl(()=>import("./h_test_app_onrender.js")
-    , "App_onRender"));
+    return qwik.qrl(()=>import("./h_test_app_onrender.js")
+    , "App_onRender");
 };
 
 /*

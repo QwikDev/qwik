@@ -1,13 +1,13 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 1017
+assertion_line: 662
 expression: output
 
 ---
 ==INPUT==
 
 
-import { $, qComponent$, onRender$ } from '@builder.io/qwik';
+import { $, component$ } from '@builder.io/qwik';
 
 export const [a, {b, v1: [c], d=v2, ...e}, f=v3, ...g] = obj;
 
@@ -20,8 +20,8 @@ export class bar {}
 
 export default function DefaultFn() {}
 
-export const Header = qComponent$(() => {
-    onRender$(() => (
+export const Header = component$(() => {
+    return $(() => (
         <Footer>
             <div>{a}{b}{c}{d}{e}{f}{exp1}{internal}{foo}{bar}{DefaultFn}</div>
             <div>{v1}{v2}{v3}{obj}</div>
@@ -29,12 +29,12 @@ export const Header = qComponent$(() => {
     ))
 });
 
-export const Footer = qComponent$();
+export const Footer = component$();
 
 ============================= project/test.tsx ==
 
 import * as qwik from "@builder.io/qwik";
-import { qComponent } from "@builder.io/qwik";
+import { component } from "@builder.io/qwik";
 export const [a, { b , v1: [c] , d =v2 , ...e }, f = v3, ...g] = obj;
 const exp1 = 1;
 const internal = 2;
@@ -43,9 +43,9 @@ export function foo() {}
 export class bar {
 }
 export default function DefaultFn() {};
-export const Header = /*#__PURE__*/ qComponent(qwik.qrl(()=>import("../h_test_header_onmount")
+export const Header = /*#__PURE__*/ component(qwik.qrl(()=>import("../h_test_header_onmount")
 , "Header_onmount"));
-export const Footer = /*#__PURE__*/ qComponent();
+export const Footer = /*#__PURE__*/ component();
 
 ============================= h_test_header_onrender.tsx (ENTRY POINT)==
 
@@ -83,10 +83,9 @@ export const Header_onRender = ()=><Footer >
 ============================= h_test_header_onmount.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-import { onRender } from "@builder.io/qwik";
 export const Header_onmount = ()=>{
-    onRender(qwik.qrl(()=>import("./h_test_header_onrender")
-    , "Header_onRender"));
+    return qwik.qrl(()=>import("./h_test_header_onrender")
+    , "Header_onRender");
 };
 
 /*

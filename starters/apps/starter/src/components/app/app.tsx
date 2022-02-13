@@ -1,11 +1,11 @@
-import { createStore, onRender$, component$, useEvent, Host, withStyles$ } from '@builder.io/qwik';
+import { createStore, $, component$, useEvent, Host, withStyles$ } from '@builder.io/qwik';
 import styles from './app.css';
 
 export const App = component$(() => {
   withStyles$(styles);
 
   const state = createStore({ name: 'World' });
-  return onRender$(() => (
+  return $(() => (
     <Host class="my-app">
       <p style={{ 'text-align': 'center' }}>
         <a href="https://github.com/builderio/qwik">

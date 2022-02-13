@@ -155,13 +155,7 @@ export const onHydrate$: (first: () => void) => void;
 export function onHydrate(hydrateFn: QRL<() => void>): void;
 
 // @public (undocumented)
-export type OnMountFn<PROPS> = (props: PROPS) => ValueOrPromise<ReturnType<typeof onRender>>;
-
-// @public
-export const onRender$: <T>(first: () => JSXNode<T>) => QRL<() => JSXNode<T>>;
-
-// @public
-export function onRender<T>(renderFn: QRL<() => JSXNode<T>>): QRL<() => JSXNode<T>>;
+export type OnMountFn<PROPS> = (props: PROPS) => ValueOrPromise<QRL<() => ValueOrPromise<JSXNode<any>>>>;
 
 // @public
 export const onResume$: (first: () => void) => void;

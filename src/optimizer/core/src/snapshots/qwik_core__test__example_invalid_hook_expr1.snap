@@ -1,17 +1,17 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 1017
+assertion_line: 569
 expression: output
 
 ---
 ==INPUT==
 
 
-import { $, qComponent$, onRender$, withStyle$ } from '@builder.io/qwik';
+import { $, component$, withStyle$ } from '@builder.io/qwik';
 import css1 from './global.css';
 import css2 from './style.css';
 
-export const App = qComponent$(() => {
+export const App = component$(() => {
     const style = `${css1}${css2}`;
     withStyle$(style);
     const render = () => {
@@ -19,15 +19,14 @@ export const App = qComponent$(() => {
             <div></div>
         )
     };
-    const styles =
-    return onRender$(render);
+    return $(render);
 })
 
 ============================= test.js ==
 
 import * as qwik from "@builder.io/qwik";
-import { qComponent } from "@builder.io/qwik";
-export const App = /*#__PURE__*/ qComponent(qwik.qrl(()=>import("./h_test_app_onmount")
+import { component } from "@builder.io/qwik";
+export const App = /*#__PURE__*/ component(qwik.qrl(()=>import("./h_test_app_onmount")
 , "App_onmount"));
 
 ============================= h_test_app_withstyle.js (ENTRY POINT)==
@@ -41,6 +40,20 @@ export const App_withStyle = style;
   "name": "App_withStyle",
   "entry": null,
   "canonicalFilename": "h_test_app_withstyle",
+  "extension": "js"
+}
+*/
+============================= h_test_app_onrender.js (ENTRY POINT)==
+
+import * as qwik from "@builder.io/qwik";
+export const App_onRender = render;
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_onRender",
+  "entry": null,
+  "canonicalFilename": "h_test_app_onrender",
   "extension": "js"
 }
 */
@@ -58,7 +71,8 @@ export const App_onmount = ()=>{
     const render = ()=>{
         return(/*#__PURE__*/ _jsx("div", {}));
     };
-    const styles = return;
+    return qwik.qrl(()=>import("./h_test_app_onrender")
+    , "App_onRender");
 };
 
 /*
@@ -72,4 +86,4 @@ export const App_onmount = ()=>{
 */
 == DIAGNOSTICS ==
 
-[Diagnostic { origin: Atom('test.tsx' type=dynamic), message: "Identifier can not be captured", code_highlights: Some([CodeHighlight { message: None, loc: SourceLocation { start_line: 8, start_col: 16, end_line: 8, end_col: 20 } }]), hints: None, show_environment: false, severity: Error, documentation_url: None }]
+[Diagnostic { origin: Atom('test.tsx' type=dynamic), message: "Identifier can not be captured", code_highlights: Some([CodeHighlight { message: None, loc: SourceLocation { start_line: 8, start_col: 16, end_line: 8, end_col: 20 } }]), hints: None, show_environment: false, severity: Error, documentation_url: None }, Diagnostic { origin: Atom('test.tsx' type=dynamic), message: "Identifier can not be captured", code_highlights: Some([CodeHighlight { message: None, loc: SourceLocation { start_line: 14, start_col: 14, end_line: 14, end_col: 19 } }]), hints: None, show_environment: false, severity: Error, documentation_url: None }]

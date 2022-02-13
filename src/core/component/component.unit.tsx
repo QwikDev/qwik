@@ -2,8 +2,9 @@ import { useLexicalScope, createStore } from '@builder.io/qwik';
 import { ElementFixture, trigger } from '../../testing/element_fixture';
 import { expectDOM } from '../../testing/expect-dom.unit';
 import { runtimeQrl } from '../import/qrl';
+import { $ } from '../import/qrl.public';
 import { render } from '../render/render.public';
-import { PropsOf, withStyles, onRender$, component$ } from './component.public';
+import { PropsOf, withStyles, component$ } from './component.public';
 
 describe('q-component', () => {
   it('should declare and render basic component', async () => {
@@ -87,7 +88,7 @@ describe('q-component', () => {
 /////////////////////////////////////////////////////////////////////////////
 export const HelloWorld = component$(() => {
   withStyles(runtimeQrl(`{}`));
-  return onRender$(() => {
+  return $(() => {
     return <span>Hello World</span>;
   });
 });
@@ -97,7 +98,7 @@ export const HelloWorld = component$(() => {
 
 export const Greeter = component$((props: { salutation?: string; name?: string }) => {
   const state = createStore({ count: 0 });
-  return onRender$(() => (
+  return $(() => (
     <div>
       {' '}
       {props.salutation} {props.name} ({state.count}){' '}
@@ -119,7 +120,7 @@ export const MyCounter_update = () => {
 export const MyCounter = component$(
   (props: { step?: number; value?: number }) => {
     const state = createStore({ count: props.value || 0 });
-    return onRender$(() => (
+    return $(() => (
       <div>
         <button
           class="decrement"
@@ -161,7 +162,7 @@ interface ItemsObj {
 export const ItemDetail = component$(
   (props: { itemObj: ItemObj }) => {
     // const state = createStore({ editing: false });
-    return onRender$(() => (
+    return $(() => (
       <>
         <input type="checkbox" checked={props.itemObj.done} />
         <span>{props.itemObj.title || 'loading...'}</span>
@@ -178,7 +179,7 @@ export const ItemDetail = component$(
 export const Items = component$(
   (props: { items: ItemsObj }) => {
     // const state = createStore({ editing: false });
-    return onRender$(() => (
+    return $(() => (
       <>
         {props.items.items.map((item) => (
           <ItemDetail itemObj={item} />

@@ -5,7 +5,7 @@ import {
   PropsOf,
   getProps,
   useEvent,
-  onRender$,
+  $,
   createStore,
 } from '@builder.io/qwik';
 /* eslint no-console: ["off"] */
@@ -21,7 +21,7 @@ export interface Cmp {
 type ArchMode = 'monolith' | 'island' | 'uIslet';
 
 export const ArchApp = component$((props: { monolith: Cmp; islands: Cmp; uIslets: Cmp }) => {
-  return onRender$(() => (
+  return $(() => (
     <>
       <h1>Monolith</h1>
       <b>Examples:</b> Angular, React, Solid, Svelte, Vue, WebComponents
@@ -59,7 +59,7 @@ export const ArchApp = component$((props: { monolith: Cmp; islands: Cmp; uIslets
 
 export const Browser = component$(
   () => {
-    return onRender$(() => (
+    return $(() => (
       <div class="browser">
         <div class="browser-url">
           <span>⇦ ⇨ ⟳</span>
@@ -78,7 +78,7 @@ export const Browser = component$(
 
 export const Component = component$(
   (props: { cmp: Cmp; arch: ArchMode }) => {
-    return onRender$(() => (
+    return $(() => (
       <Host class={getCmpClass(props.cmp)} on:click={Component_click}>
         {props.cmp.children &&
           props.cmp.children.map((cmp) => <Component cmp={cmp} arch={props.arch} />)}
@@ -126,7 +126,7 @@ function getCmpClass(cmp: Cmp, ...additionalClasses: string[]) {
 
 export const MonolithScrubber = component$((props: { cmp: Cmp }) => {
   const state = createStore({ step: 1 });
-  return onRender$(() => (
+  return $(() => (
     <>
       <ol>
         <li class={state.step >= 1 ? 'active' : ''}>

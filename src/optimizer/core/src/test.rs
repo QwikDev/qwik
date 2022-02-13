@@ -54,15 +54,16 @@ macro_rules! test_input {
 fn example_1() {
     test_input!(TestInput {
         code: r#"
-import { $, qComponent, onRender } from '@builder.io/qwik';
+import { $, component, onRender } from '@builder.io/qwik';
 
-const Header = qComponent($(() => {
-  console.log("mount");
-  onRender($(() => {
+export const renderHeader = $(() => {
     return (
-      <div onClick={$((ctx) => console.log(ctx))}/>
+        <div onClick={$((ctx) => console.log(ctx))}/>
     );
-  }));
+});
+const renderHeader = component($(() => {
+  console.log("mount");
+  return render;
 }));
 "#
         .to_string(),
@@ -74,10 +75,10 @@ const Header = qComponent($(() => {
 fn example_2() {
     test_input!(TestInput {
         code: r#"
-import { $, qComponent$, onRender$ } from '@builder.io/qwik';
-export const Header = qComponent$(() => {
+import { $, component$ } from '@builder.io/qwik';
+export const Header = component$(() => {
   console.log("mount");
-  onRender$(() => {
+  return $(() => {
     return (
       <div onClick={$((ctx) => console.log(ctx))}/>
     );
@@ -93,11 +94,11 @@ export const Header = qComponent$(() => {
 fn example_3() {
     test_input!(TestInput {
         code: r#"
-import { $, qComponent$, onRender$ } from '@builder.io/qwik';
+import { $, component$ } from '@builder.io/qwik';
 export const App = () => {
-    const Header = qComponent$(() => {
+    const Header = component$(() => {
         console.log("mount");
-        onRende(() => {
+        return $(() => {
             return (
                 <div onClick={$((ctx) => console.log(ctx))}/>
             );
@@ -115,11 +116,11 @@ export const App = () => {
 fn example_4() {
     test_input!(TestInput {
         code: r#"
-import { $, qComponent$, onRender$ } from '@builder.io/qwik';
+import { $, component$ } from '@builder.io/qwik';
 export function App() {
-    const Header = qComponent$(() => {
+    const Header = component$(() => {
         console.log("mount");
-        return onRender$(() => {
+        return $(() => {
             return (
                 <div onClick={$((ctx) => console.log(ctx))}/>
             );
@@ -137,9 +138,9 @@ export function App() {
 fn example_5() {
     test_input!(TestInput {
         code: r#"
-import { $, qComponent$, onRender$ } from '@builder.io/qwik';
-export const Header = qComponent$(() => {
-    onRender$(() => {
+import { $, component$ } from '@builder.io/qwik';
+export const Header = component$(() => {
+    return $(() => {
         return (
             <>
                 <div onClick={(ctx) => console.log("1")}/>
@@ -158,7 +159,7 @@ export const Header = qComponent$(() => {
 fn example_6() {
     test_input!(TestInput {
         code: r#"
-import { $, qComponent$ } from '@builder.io/qwik';
+import { $, component$ } from '@builder.io/qwik';
 export const sym1 = $((ctx) => console.log("1"));
 "#
         .to_string(),
@@ -170,19 +171,19 @@ export const sym1 = $((ctx) => console.log("1"));
 fn example_7() {
     test_input!(TestInput {
         code: r#"
-import { $, qComponent$, onRender$ } from '@builder.io/qwik';
+import { $, component$ } from '@builder.io/qwik';
 
-export const Header = qComponent$(() => {
+export const Header = component$(() => {
     console.log("mount");
-    onRender$(() => {
+    return $(() => {
       return (
         <div onClick={$((ctx) => console.log(ctx))}/>
       );
     });
   });
 
-const App = qComponent$(() => {
-    onRender$(() => {
+const App = component$(() => {
+    return $(() => {
         return (
             <Header/>
         );
@@ -198,10 +199,10 @@ const App = qComponent$(() => {
 fn example_8() {
     test_input!(TestInput {
         code: r#"
-import { $, qComponent$, onRender$ } from '@builder.io/qwik';
+import { $, component$ } from '@builder.io/qwik';
 
-export const Header = qComponent$(() => {
-    onRender$((hola) => {
+export const Header = component$(() => {
+    return $((hola) => {
         const hola = this;
         const {something, styff} = hola;
         const hello = hola.nothere.stuff[global];
@@ -220,7 +221,7 @@ export const Header = qComponent$(() => {
 fn example_9() {
     test_input!(TestInput {
         code: r#"
-import { $, qComponent$ } from '@builder.io/qwik';
+import { $, component$ } from '@builder.io/qwik';
 const Header = $((decl1, {decl2}, [decl3]) => {
     const {decl4, key: decl5} = this;
     let [decl6, ...decl7] = stuff;
@@ -243,7 +244,7 @@ fn example_10() {
     test_input!(TestInput {
         filename: "project/test.tsx".to_string(),
         code: r#"
-import { $, qComponent$ } from '@builder.io/qwik';
+import { $, component$ } from '@builder.io/qwik';
 const Header = $((decl1, {decl2}, [decl3]) => {
 
     const hola = ident1.no;
@@ -273,13 +274,13 @@ fn example_11() {
     test_input!(TestInput {
         filename: "project/test.tsx".to_string(),
         code: r#"
-import { $, qComponent$, onRender$ } from '@builder.io/qwik';
+import { $, component$ } from '@builder.io/qwik';
 import {foo, bar as bbar} from "../state";
 import * as dep2 from "dep2";
 import dep3 from "dep3/something";
 
-export const Header = qComponent$(() => {
-    onRender$(() => {
+export const Header = component$(() => {
+    return $(() => {
         return (
             <Header onClick={$((ev) => dep3(ev))}>
                 {dep2.stuff()}{bbar()}
@@ -288,8 +289,8 @@ export const Header = qComponent$(() => {
     });
 });
 
-export const App = qComponent$(() => {
-    onRender$(() => {
+export const App = component$(() => {
+    return $(() => {
         return (
             <Header>{foo()}</Header>
         );
@@ -307,9 +308,9 @@ fn example_12() {
     test_input!(TestInput {
         filename: "project/test.tsx".to_string(),
         code: r#"
-import { $, qComponent$, onRender$ } from '@builder.io/qwik';
-export const Header = qComponent$(() => {
-    onRender$(() => console.log("hello sym2"), "sym2")
+import { $, component$ } from '@builder.io/qwik';
+export const Header = component$(() => {
+    return $(() => console.log("hello sym2"), "sym2")
 });
 "#
         .to_string(),
@@ -323,9 +324,9 @@ fn example_13() {
     test_input!(TestInput {
         filename: "project/test.tsx".to_string(),
         code: r#"
-import { $, qComponent$, onRender$ } from '@builder.io/qwik';
-export const Header = qComponent$(() => {
-    onRender$(() => console.log("hello sym2"), "2sym")
+import { $, component$ } from '@builder.io/qwik';
+export const Header = component$(() => {
+    return $(() => console.log("hello sym2"), "2sym")
 });
 "#
         .to_string(),
@@ -338,12 +339,12 @@ export const Header = qComponent$(() => {
 fn example_functional_component() {
     test_input!(TestInput {
         code: r#"
-import { $, qComponent$, onRender$, createStore } from '@builder.io/qwik';
-const Header = qComponent$(() => {
+import { $, component$, createStore } from '@builder.io/qwik';
+const Header = component$(() => {
     const thing = createStore();
     const {foo, bar} = foo();
 
-    onRender$(() => {
+    return $(() => {
         return (
             <div>{thing}</div>
         );
@@ -360,19 +361,19 @@ const Header = qComponent$(() => {
 fn example_functional_component_2() {
     test_input!(TestInput {
         code: r#"
-import { $, qComponent$, onRender$, createStore } from '@builder.io/qwik';
+import { $, component$, createStore } from '@builder.io/qwik';
 export const useCounter = () => {
     return createStore({count: 0});
 }
 
 export const STEP = 1;
 
-export const App = qComponent$((props) => {
+export const App = component$((props) => {
     const state = useCounter();
     const thing = createStore({thing: 0});
     const STEP_2 = 2;
 
-    return onRender$(() => {
+    return $(() => {
         const count2 = state.count * 2;
         return (
             <div on$:click={() => state.count+=count2 }>
@@ -401,12 +402,12 @@ export const App = qComponent$((props) => {
 fn example_functional_component_capture_props() {
     test_input!(TestInput {
         code: r#"
-import { $, qComponent$, onRender$, createStore } from '@builder.io/qwik';
+import { $, component$, createStore } from '@builder.io/qwik';
 
-export const App = qComponent$(({count, rest: [I2, {I3, v1: [I4], I5=v2, ...I6}, I7=v3, ...I8]}) => {
+export const App = component$(({count, rest: [I2, {I3, v1: [I4], I5=v2, ...I6}, I7=v3, ...I8]}) => {
     const state = createStore({count: 0});
     const {rest: [C2, {C3, v1: [C4], C5=v2, ...C6}, C7=v3, ...C8]} = foo();
-    return onRender$(() => {
+    return $(() => {
         return (
             <div on$:click={() => state.count += count + total }>
                 {I2}{I3}{I4}{I5}{I6}{I7}{I8}
@@ -417,21 +418,21 @@ export const App = qComponent$(({count, rest: [I2, {I3, v1: [I4], I5=v2, ...I6},
     });
 })
 "#
-.to_string(),
-transpile: true,
-..TestInput::default()
-});
+        .to_string(),
+        transpile: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_multi_capture() {
     test_input!(TestInput {
         code: r#"
-import { $, qComponent$, onRender$ } from '@builder.io/qwik';
+import { $, component$ } from '@builder.io/qwik';
 
-export const Foo = qComponent$(({foo}) => {
+export const Foo = component$(({foo}) => {
     const arg0 = 20;
-    return onRender$(() => {
+    return $(() => {
         const fn = ({aaa}) => aaa;
         return (
             <div>
@@ -441,8 +442,8 @@ export const Foo = qComponent$(({foo}) => {
     });
 })
 
-export const Bar = qComponent$(({bar}) => {
-    return onRender$(() => {
+export const Bar = component$(({bar}) => {
+    return $(() => {
         return (
             <div>
               {bar}
@@ -460,16 +461,18 @@ export const Bar = qComponent$(({bar}) => {
 fn example_with_tagname() {
     test_input!(TestInput {
         code: r#"
-import { $, qComponent$, onRender$ } from '@builder.io/qwik';
+import { $, component$ } from '@builder.io/qwik';
 
-export const Foo = qComponent$("my-foo", () => {
-    return onRender$(() => {
+export const Foo = component$(() => {
+    return $(() => {
         return (
             <div>
             </div>
         )
     });
-})
+}, {
+    tagName: "my-foo",
+});
 "#
         .to_string(),
         ..TestInput::default()
@@ -480,16 +483,18 @@ export const Foo = qComponent$("my-foo", () => {
 fn example_with_style() {
     test_input!(TestInput {
         code: r#"
-import { $, qComponent$, onRender$, withStyle$ } from '@builder.io/qwik';
+import { $, component$, withStyle$ } from '@builder.io/qwik';
 
-export const Foo = qComponent$("my-foo", () => {
+export const Foo = component$(() => {
     withStyle$('.class {}');
-    return onRender$(() => {
+    return $(() => {
         return (
             <div class="class"/>
         )
     });
-})
+}, {
+    tagName: "my-foo",
+});
 "#
         .to_string(),
         ..TestInput::default()
@@ -500,10 +505,10 @@ export const Foo = qComponent$("my-foo", () => {
 fn example_lightweight_functional() {
     test_input!(TestInput {
         code: r#"
-import { $, qComponent$, onRender$ } from '@builder.io/qwik';
+import { $, component$ } from '@builder.io/qwik';
 
-export const Foo = qComponent$("my-foo", ({color}) => {
-    return onRender$(() => {
+export const Foo = component$(({color}) => {
+    return $(() => {
         return (
             <div>
                 <Button {...props} />
@@ -511,7 +516,9 @@ export const Foo = qComponent$("my-foo", ({color}) => {
             </div>
         )
     });
-})
+}, {
+    tagName: "my-foo",
+});
 
 export function Button({text, color}) {
     return (
@@ -534,17 +541,17 @@ export const ButtonArrow = ({text, color}) => {
 fn example_invalid_references() {
     test_input!(TestInput {
         code: r#"
-import { $, qComponent$, onRender$ } from '@builder.io/qwik';
+import { $, component$ } from '@builder.io/qwik';
 
 const I1 = 12;
 const [I2, {I3, v1: [I4], I5=v2, ...I6}, I7=v3, ...I8] = obj;
 function I9() {}
 class I10 {}
 
-export const App = qComponent$(({count}) => {
+export const App = component$(({count}) => {
     console.log(I1, I2, I3, I4, I5, I6, I7, I8, I9);
     console.log(itsok, v1, v2, v3, obj);
-    return onRender$(() => {
+    return $(() => {
         return (
             <I10></I10>
         )
@@ -561,11 +568,11 @@ export const App = qComponent$(({count}) => {
 fn example_invalid_hook_expr1() {
     test_input!(TestInput {
         code: r#"
-import { $, qComponent$, onRender$, withStyle$ } from '@builder.io/qwik';
+import { $, component$, withStyle$ } from '@builder.io/qwik';
 import css1 from './global.css';
 import css2 from './style.css';
 
-export const App = qComponent$(() => {
+export const App = component$(() => {
     const style = `${css1}${css2}`;
     withStyle$(style);
     const render = () => {
@@ -573,8 +580,7 @@ export const App = qComponent$(() => {
             <div></div>
         )
     };
-    const styles =
-    return onRender$(render);
+    return $(render);
 })
 "#
         .to_string(),
@@ -587,12 +593,12 @@ export const App = qComponent$(() => {
 fn example_capture_imports() {
     test_input!(TestInput {
         code: r#"
-import { qComponent$, withStyle$ } from '@builder.io/qwik';
+import { component$, withStyle$ } from '@builder.io/qwik';
 import css1 from './global.css';
 import css2 from './style.css';
 import css3 from './style.css';
 
-export const App = qComponent$(() => {
+export const App = component$(() => {
     withStyle$(`${css1}${css2}`);
     withStyle$(css3);
 })
@@ -607,16 +613,16 @@ export const App = qComponent$(() => {
 fn example_capturing_fn_class() {
     test_input!(TestInput {
         code: r#"
-import { $, qComponent$, onRender$ } from '@builder.io/qwik';
+import { $, component$ } from '@builder.io/qwik';
 
-export const App = qComponent$(() => {
+export const App = component$(() => {
     function hola() {
       console.log('hola');
     }
     class Thing {}
     class Other {}
 
-    return onRender$(() => {
+    return $(() => {
       hola();
       new Thing();
       return (
@@ -635,7 +641,7 @@ export const App = qComponent$(() => {
 fn example_renamed_exports() {
     test_input!(TestInput {
         code: r#"
-import { qComponent$ as Component, onRender$ as onRender, createStore } from '@builder.io/qwik';
+import { component$ as Component, $ as onRender, createStore } from '@builder.io/qwik';
 
 export const App = Component((props) => {
     const state = createStore({thing: 0});
@@ -656,7 +662,7 @@ fn example_exports() {
     test_input!(TestInput {
         filename: "project/test.tsx".to_string(),
         code: r#"
-import { $, qComponent$, onRender$ } from '@builder.io/qwik';
+import { $, component$ } from '@builder.io/qwik';
 
 export const [a, {b, v1: [c], d=v2, ...e}, f=v3, ...g] = obj;
 
@@ -669,8 +675,8 @@ export class bar {}
 
 export default function DefaultFn() {}
 
-export const Header = qComponent$(() => {
-    onRender$(() => (
+export const Header = component$(() => {
+    return $(() => (
         <Footer>
             <div>{a}{b}{c}{d}{e}{f}{exp1}{internal}{foo}{bar}{DefaultFn}</div>
             <div>{v1}{v2}{v3}{obj}</div>
@@ -678,7 +684,7 @@ export const Header = qComponent$(() => {
     ))
 });
 
-export const Footer = qComponent$();
+export const Footer = component$();
 "#
         .to_string(),
         ..TestInput::default()
@@ -703,16 +709,16 @@ fn issue_118() {
     test_input!(TestInput {
         filename: "project/test.tsx".to_string(),
         code: r#"
-import { $, qComponent$, onRender$ } from '@builder.io/qwik';
+import { $, component$ } from '@builder.io/qwik';
 import thing from 'lib';
 import * as all from 'lib';
 import {s as se} from 'lib';
 
-export const Header = qComponent$(() => {
-    onRender$(() => <Footer>{thing}{all()}{se()}</Footer>)
+export const Header = component$(() => {
+    return $(() => <Footer>{thing}{all()}{se()}</Footer>)
 });
 
-export const Footer = qComponent$();
+export const Footer = component$();
 "#
         .to_string(),
         entry_strategy: EntryStrategy::Single,
@@ -727,7 +733,7 @@ export const Footer = qComponent$();
 fn example_jsx() {
     test_input!(TestInput {
         code: r#"
-import { $, qComponent$, onRender$, h, Fragment } from '@builder.io/qwik';
+import { $, component$, h, Fragment } from '@builder.io/qwik';
 
 export const Lightweight = (props) => {
     return (
@@ -740,8 +746,8 @@ export const Lightweight = (props) => {
     )
 };
 
-export const Foo = qComponent$("my-foo", (props) => {
-    return onRender$(() => {
+export const Foo = component$((props) => {
+    return $(() => {
         return (
             <div>
                 <>
@@ -763,7 +769,9 @@ export const Foo = qComponent$("my-foo", (props) => {
             </div>
         )
     });
-})
+}, {
+    tagName: "my-foo",
+});
 "#
         .to_string(),
         transpile: true,
@@ -775,11 +783,11 @@ export const Foo = qComponent$("my-foo", (props) => {
 fn example_jsx_listeners() {
     test_input!(TestInput {
         code: r#"
-import { $, qComponent$, onRender$ } from '@builder.io/qwik';
+import { $, component$ } from '@builder.io/qwik';
 
-export const Foo = qComponent$("my-foo", () => {
+export const Foo = component$(() => {
 
-    return onRender$(() => {
+    return $(() => {
         const handler = $(() => console.log('reused'));
         return (
             <div
@@ -793,7 +801,9 @@ export const Foo = qComponent$("my-foo", () => {
             />
         )
     });
-})
+}, {
+    tagName: "my-foo",
+});
 "#
         .to_string(),
         transpile: true,
@@ -805,27 +815,33 @@ export const Foo = qComponent$("my-foo", () => {
 fn example_qwik_conflict() {
     test_input!(TestInput {
         code: r#"
-import { $, qComponent$, onRender, onRender$ } from '@builder.io/qwik';
+import { $, component$, withStyle } from '@builder.io/qwik';
 
-const qComponent = () => console.log('not this');
-qComponent();
-export const Foo = qComponent$("my-foo", () => {
+const component = () => console.log('not this');
+component();
+export const Foo = component$(() => {
+    withStyle$('thing');
     const qwik = 12;
     console.log(qwik);
-    return onRender$(() => {
+    return $(() => {
         return (
             <div/>
         )
     });
-})
+}, {
+    tagName: "my-foo",
+});
 
-export const Root = qComponent$("my-foo", () => {
-    return onRender($(() => {
+export const Root = component$(() => {
+    withStyle($('thing'));
+    return $(() => {
         return (
             <div/>
         )
-    }));
-}))
+    });
+}, {
+    tagName: "my-foo",
+});
 "#
         .to_string(),
         transpile: true,
@@ -837,7 +853,7 @@ export const Root = qComponent$("my-foo", () => {
 fn example_custom_inlined_functions() {
     test_input!(TestInput {
         code: r#"
-import { qComponent$, onRender$, createStore, wrap, useEffect } from '@builder.io/qwik';
+import { component$, $, createStore, wrap, useEffect } from '@builder.io/qwik';
 
 export const useMemo = (qrt) => {
     useEffect(qrt);
@@ -845,12 +861,12 @@ export const useMemo = (qrt) => {
 
 export const useMemo$ = wrap(useMemo);
 
-export const App = qComponent$((props) => {
+export const App = component$((props) => {
     const state = createStore({count: 0});
     useMemo$(() => {
         console.log(state.count);
     });
-    return onRender$(() => (
+    return $(() => (
         <div>{state.count}</div>
     ));
 });
@@ -871,40 +887,40 @@ export const Lightweight = (props) => {
 fn example_missing_custom_inlined_functions() {
     test_input!(TestInput {
         code: r#"
-import { qComponent$ as Component, onRender$, createStore, wrap, useEffect } from '@builder.io/qwik';
+import { component$ as Component, $ as onRender, createStore, wrap, useEffect } from '@builder.io/qwik';
 
 
 export const useMemo$ = (qrt) => {
     useEffect(qrt);
 };
 
-export const App = qComponent$((props) => {
+export const App = component$((props) => {
     const state = createStore({count: 0});
     useMemo$(() => {
         console.log(state.count);
     });
-    return onRender$(() => (
+    return $(() => (
         <div>{state.count}</div>
     ));
 });
 "#
-.to_string(),
-transpile: true,
-..TestInput::default()
-});
+        .to_string(),
+        transpile: true,
+        ..TestInput::default()
+    });
 }
 
 #[test]
 fn example_skip_transform() {
     test_input!(TestInput {
         code: r#"
-import { qComponent$ as Component, onRender$ as onRender } from '@builder.io/qwik';
+import { component$ as Component, $ as onRender } from '@builder.io/qwik';
 
 export const handler = $(()=>console.log('hola'));
 
-export const App = qComponent$((props) => {
+export const App = component$((props) => {
     withStyle$('hola');
-    return onRender$(() => (
+    return $(() => (
         <div>{state.thing}</div>
     ));
 });
@@ -919,11 +935,11 @@ export const App = qComponent$((props) => {
 fn example_explicit_ext_transpile() {
     test_input!(TestInput {
         code: r#"
-import { qComponent$, onRender$, withStyle$ } from '@builder.io/qwik';
+import { component$, $, withStyle$ } from '@builder.io/qwik';
 
-export const App = qComponent$((props) => {
+export const App = component$((props) => {
     withStyle$('hola');
-    return onRender$(() => (
+    return $(() => (
         <div></div>
     ));
 });
@@ -939,11 +955,11 @@ export const App = qComponent$((props) => {
 fn example_explicit_ext_no_transpile() {
     test_input!(TestInput {
         code: r#"
-import { qComponent$, onRender$, withStyle$ } from '@builder.io/qwik';
+import { component$, $, withStyle$ } from '@builder.io/qwik';
 
-export const App = qComponent$((props) => {
+export const App = component$((props) => {
     withStyle$('hola');
-    return onRender$(() => (
+    return $(() => (
         <div></div>
     ));
 });
@@ -958,17 +974,17 @@ export const App = qComponent$((props) => {
 fn issue_150() {
     test_input!(TestInput {
         code: r#"
-import { component$, onRender$ } from '@builder.io/qwik';
+import { component$, $ } from '@builder.io/qwik';
 
 export const Greeter = component$(() => {
-    onRender$(() => {
-    return (
-        <div/>
-    )
+    return $(() => {
+        return (
+            <div/>
+        )
     });
 });
 
-const d = onRender$(()=>console.log('thing'));
+const d = $(()=>console.log('thing'));
 "#
         .to_string(),
         transpile: true,
@@ -983,17 +999,17 @@ fn issue_188() {
         filename: r"components\apps\apps.tsx".to_string(),
         root_dir: r"C:\users\apps".to_string(),
         code: r#"
-import { component$, onRender$ } from '@builder.io/qwik';
+import { component$, $ } from '@builder.io/qwik';
 
 export const Greeter = component$(() => {
-    onRender$(() => {
-    return (
-        <div/>
-    )
+    return $(() => {
+        return (
+            <div/>
+        )
     });
 });
 
-const d = onRender$(()=>console.log('thing'));
+const d = $(()=>console.log('thing'));
 "#
         .to_string(),
         transpile: true,

@@ -1,11 +1,11 @@
-import { component$, onRender$, useEvent, createStore, withStyles$ } from '@builder.io/qwik';
+import { component$, $, useEvent, createStore, withStyles$ } from '@builder.io/qwik';
 import styles from './app.css';
 
 export const App = component$(() => {
   withStyles$(styles);
 
   const state = createStore({ name: 'World', running: true });
-  return onRender$(() => {
+  return $(() => {
     // eslint-disable-next-line no-console
     console.log('Qwik: MyApp component is rendering...');
     return (

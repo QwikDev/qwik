@@ -1,22 +1,22 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 1017
+assertion_line: 324
 expression: output
 
 ---
 ==INPUT==
 
 
-import { $, qComponent$, onRender$ } from '@builder.io/qwik';
-export const Header = qComponent$(() => {
-    onRender$(() => console.log("hello sym2"), "2sym")
+import { $, component$ } from '@builder.io/qwik';
+export const Header = component$(() => {
+    return $(() => console.log("hello sym2"), "2sym")
 });
 
 ============================= project/test.tsx ==
 
 import * as qwik from "@builder.io/qwik";
-import { qComponent } from "@builder.io/qwik";
-export const Header = /*#__PURE__*/ qComponent(qwik.qrl(()=>import("../entry_hooks")
+import { component } from "@builder.io/qwik";
+export const Header = /*#__PURE__*/ component(qwik.qrl(()=>import("../entry_hooks")
 , "Header_onmount"));
 
 ============================= h_test_header_onrender.tsx ==
@@ -37,10 +37,9 @@ export const Header_onRender = ()=>console.log("hello sym2")
 ============================= h_test_header_onmount.tsx ==
 
 import * as qwik from "@builder.io/qwik";
-import { onRender } from "@builder.io/qwik";
 export const Header_onmount = ()=>{
-    onRender(qwik.qrl(()=>import("./entry_hooks")
-    , "Header_onRender"), "2sym");
+    return qwik.qrl(()=>import("./entry_hooks")
+    , "Header_onRender");
 };
 
 /*
@@ -59,4 +58,4 @@ export { Header_onmount } from "./h_test_header_onmount";
 
 == DIAGNOSTICS ==
 
-[]
+[Diagnostic { origin: Atom('project/test.tsx' type=dynamic), message: "Second argument should be the name of a valid identifier", code_highlights: Some([CodeHighlight { message: None, loc: SourceLocation { start_line: 4, start_col: 47, end_line: 4, end_col: 52 } }]), hints: None, show_environment: false, severity: Error, documentation_url: None }]

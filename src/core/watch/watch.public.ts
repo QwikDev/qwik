@@ -32,7 +32,7 @@ import { registerOnWatch, WatchFn } from './watch';
  *   onWatch$((obs) => {
  *     store.doubleCount = 2 * obs(store).count;
  *   });
- *   return onRender$(() => (
+ *   return $(() => (
  *     <div>
  *       <span>
  *         {store.count} / {store.doubleCount}
@@ -80,7 +80,7 @@ export function onWatch(watchFn: QRL<(obs: Observer) => unknown | (() => void)>)
  *   onWatch$((obs) => {
  *     store.doubleCount = 2 * obs(store).count;
  *   });
- *   return onRender$(() => (
+ *   return $(() => (
  *     <div>
  *       <span>
  *         {store.count} / {store.doubleCount}
@@ -118,7 +118,7 @@ export const onWatch$ = implicit$FirstArg(onWatch);
  *   onWatch$((obs) => {
  *     store.doubleCount = 2 * obs(store).count;
  *   });
- *   return onRender$(() => (
+ *   return $(() => (
  *     <div>
  *       <span>
  *         {store.count} / {store.doubleCount}
@@ -156,7 +156,7 @@ export interface Observer {
    *   onWatch$((obs) => {
    *     store.doubleCount = 2 * obs(store).count;
    *   });
-   *   return onRender$(() => (
+   *   return $(() => (
    *     <div>
    *       <span>
    *         {store.count} / {store.doubleCount}

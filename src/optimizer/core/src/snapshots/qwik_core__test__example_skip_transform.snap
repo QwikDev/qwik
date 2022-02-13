@@ -1,19 +1,19 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 1017
+assertion_line: 915
 expression: output
 
 ---
 ==INPUT==
 
 
-import { qComponent$ as Component, onRender$ as onRender } from '@builder.io/qwik';
+import { component$ as Component, $ as onRender } from '@builder.io/qwik';
 
 export const handler = $(()=>console.log('hola'));
 
-export const App = qComponent$((props) => {
+export const App = component$((props) => {
     withStyle$('hola');
-    return onRender$(() => (
+    return $(() => (
         <div>{state.thing}</div>
     ));
 });
@@ -23,9 +23,9 @@ export const App = qComponent$((props) => {
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 export const handler = $(()=>console.log('hola')
 );
-export const App = qComponent$((props)=>{
+export const App = component$((props)=>{
     withStyle$('hola');
-    return onRender$(()=>/*#__PURE__*/ _jsx("div", {
+    return $(()=>/*#__PURE__*/ _jsx("div", {
             children: state.thing
         })
     );

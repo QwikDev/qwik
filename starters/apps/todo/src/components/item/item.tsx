@@ -3,7 +3,7 @@ import {
   createStore,
   Host,
   notifyRender,
-  onRender$,
+  $,
   useEvent,
   useHostElement,
 } from '@builder.io/qwik';
@@ -17,7 +17,7 @@ import { removeItem, TodoItem, Todos, toggleItem } from '../../state/state';
 export const Item = component$(
   (props: { item: TodoItem; todos: Todos }) => {
     const state = createStore({ editing: false });
-    return onRender$(() => {
+    return $(() => {
       return (
         <Host class={{ completed: props.item.completed, editing: state.editing }}>
           <div class="view">

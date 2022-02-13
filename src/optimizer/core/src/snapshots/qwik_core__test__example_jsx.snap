@@ -1,13 +1,13 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 1021
+assertion_line: 734
 expression: output
 
 ---
 ==INPUT==
 
 
-import { $, qComponent$, onRender$, h, Fragment } from '@builder.io/qwik';
+import { $, component$, h, Fragment } from '@builder.io/qwik';
 
 export const Lightweight = (props) => {
     return (
@@ -20,8 +20,8 @@ export const Lightweight = (props) => {
     )
 };
 
-export const Foo = qComponent$("my-foo", (props) => {
-    return onRender$(() => {
+export const Foo = component$((props) => {
+    return $(() => {
         return (
             <div>
                 <>
@@ -43,13 +43,15 @@ export const Foo = qComponent$("my-foo", (props) => {
             </div>
         )
     });
-})
+}, {
+    tagName: "my-foo",
+});
 
 ============================= test.js ==
 
 import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
 import * as qwik from "@builder.io/qwik";
-import { qComponent } from "@builder.io/qwik";
+import { component } from "@builder.io/qwik";
 export const Lightweight = (props)=>{
     return(/*#__PURE__*/ _jsx("div", {
         children: /*#__PURE__*/ _jsxs(_Fragment, {
@@ -62,8 +64,10 @@ export const Lightweight = (props)=>{
         })
     }));
 };
-export const Foo = /*#__PURE__*/ qComponent("my-foo", qwik.qrl(()=>import("./h_test_foo_onmount")
-, "Foo_onmount"));
+export const Foo = /*#__PURE__*/ component(qwik.qrl(()=>import("./h_test_foo_onmount")
+, "Foo_onmount"), {
+    tagName: "my-foo"
+});
 
 ============================= h_test_foo_onrender.js (ENTRY POINT)==
 
@@ -124,12 +128,11 @@ export const Foo_onRender = ()=>{
 ============================= h_test_foo_onmount.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-import { onRender } from "@builder.io/qwik";
 export const Foo_onmount = (props)=>{
-    return onRender(qwik.qrl(()=>import("./h_test_foo_onrender")
+    return qwik.qrl(()=>import("./h_test_foo_onrender")
     , "Foo_onRender", [
         props
-    ]));
+    ]);
 };
 
 /*

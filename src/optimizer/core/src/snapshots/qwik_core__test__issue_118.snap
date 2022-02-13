@@ -1,26 +1,26 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 1017
+assertion_line: 709
 expression: output
 
 ---
 ==INPUT==
 
 
-import { $, qComponent$, onRender$ } from '@builder.io/qwik';
+import { $, component$ } from '@builder.io/qwik';
 import thing from 'lib';
 import * as all from 'lib';
 import {s as se} from 'lib';
 
-export const Header = qComponent$(() => {
-    onRender$(() => <Footer>{thing}{all()}{se()}</Footer>)
+export const Header = component$(() => {
+    return $(() => <Footer>{thing}{all()}{se()}</Footer>)
 });
 
-export const Footer = qComponent$();
+export const Footer = component$();
 
 ============================= project/test.js ==
 
-import*as a from"@builder.io/qwik";import{qComponent as b}from"@builder.io/qwik";export const Header=/*#__PURE__*/ b(a.qrl(()=>import("../entry_hooks"),"Header_onmount"));export const Footer=/*#__PURE__*/ b();
+import*as a from"@builder.io/qwik";import{component as b}from"@builder.io/qwik";export const Header=/*#__PURE__*/ b(a.qrl(()=>import("../entry_hooks"),"Header_onmount"));export const Footer=/*#__PURE__*/ b();
 ============================= h_test_header_onrender.js ==
 
 import{jsxs as a}from"@builder.io/qwik/jsx-runtime";import*as b from"@builder.io/qwik";import{Footer as c}from"./project/test";import*as d from"lib";import{s as e}from"lib";import f from"lib";export const Header_onRender=()=>/*#__PURE__*/ a(c,{children:[f,d(),e()]});
@@ -35,7 +35,7 @@ import{jsxs as a}from"@builder.io/qwik/jsx-runtime";import*as b from"@builder.io
 */
 ============================= h_test_header_onmount.js ==
 
-import*as a from"@builder.io/qwik";import{onRender as b}from"@builder.io/qwik";export const Header_onmount=()=>{b(a.qrl(()=>import("./entry_hooks"),"Header_onRender"));};
+import*as a from"@builder.io/qwik";export const Header_onmount=()=>a.qrl(()=>import("./entry_hooks"),"Header_onRender");
 /*
 {
   "origin": "project/test.tsx",

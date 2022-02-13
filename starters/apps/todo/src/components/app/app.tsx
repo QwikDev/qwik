@@ -1,4 +1,4 @@
-import { component$, onRender$, withStyles$ } from '@builder.io/qwik';
+import { component$, $, withStyles$ } from '@builder.io/qwik';
 import { Footer } from '../footer/footer';
 import { Header } from '../header/header';
 import { Main } from '../main/main';
@@ -15,7 +15,7 @@ import styles from './app.css';
 export const App = component$((props: { todos: Todos }) => {
   withStyles$(styles);
 
-  return onRender$(() => {
+  return $(() => {
     return (
       <section class="todoapp">
         <Header todos={props.todos} />

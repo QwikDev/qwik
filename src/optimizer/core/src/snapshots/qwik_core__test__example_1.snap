@@ -1,78 +1,79 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 1017
+assertion_line: 55
 expression: output
 
 ---
 ==INPUT==
 
 
-import { $, qComponent, onRender } from '@builder.io/qwik';
+import { $, component, onRender } from '@builder.io/qwik';
 
-const Header = qComponent($(() => {
-  console.log("mount");
-  onRender($(() => {
+export const renderHeader = $(() => {
     return (
-      <div onClick={$((ctx) => console.log(ctx))}/>
+        <div onClick={$((ctx) => console.log(ctx))}/>
     );
-  }));
+});
+const renderHeader = component($(() => {
+  console.log("mount");
+  return render;
 }));
 
 ============================= test.tsx ==
 
 import * as qwik from "@builder.io/qwik";
-import { qComponent } from '@builder.io/qwik';
-qComponent(qwik.qrl(()=>import("./h_test_header")
-, "Header"));
+import { component } from '@builder.io/qwik';
+export const renderHeader = qwik.qrl(()=>import("./h_test_renderheader")
+, "renderHeader");
+component(qwik.qrl(()=>import("./h_test_renderheader2")
+, "renderHeader2"));
 
-============================= h_test_header_div_onclick.tsx (ENTRY POINT)==
+============================= h_test_renderheader_div_onclick.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const Header_div_onClick = (ctx)=>console.log(ctx)
+export const renderHeader_div_onClick = (ctx)=>console.log(ctx)
 ;
 
 /*
 {
   "origin": "test.tsx",
-  "name": "Header_div_onClick",
+  "name": "renderHeader_div_onClick",
   "entry": null,
-  "canonicalFilename": "h_test_header_div_onclick",
+  "canonicalFilename": "h_test_renderheader_div_onclick",
   "extension": "tsx"
 }
 */
-============================= h_test_header1.tsx (ENTRY POINT)==
+============================= h_test_renderheader.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const Header1 = ()=>{
-    return <div onClick={qwik.qrl(()=>import("./h_test_header_div_onclick")
-    , "Header_div_onClick")}/>;
+export const renderHeader = ()=>{
+    return <div onClick={qwik.qrl(()=>import("./h_test_renderheader_div_onclick")
+    , "renderHeader_div_onClick")}/>;
 };
 
 /*
 {
   "origin": "test.tsx",
-  "name": "Header1",
+  "name": "renderHeader",
   "entry": null,
-  "canonicalFilename": "h_test_header1",
+  "canonicalFilename": "h_test_renderheader",
   "extension": "tsx"
 }
 */
-============================= h_test_header.tsx (ENTRY POINT)==
+============================= h_test_renderheader2.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-import { onRender } from "@builder.io/qwik";
-export const Header = ()=>{
+export const renderHeader2 = ()=>{
     console.log("mount");
-    onRender(qwik.qrl(()=>import("./h_test_header1")
-    , "Header1"));
+    return render;
 };
 
 /*
 {
   "origin": "test.tsx",
-  "name": "Header",
+  "name": "renderHeader2",
   "entry": null,
-  "canonicalFilename": "h_test_header",
+  "canonicalFilename": "h_test_renderheader2",
   "extension": "tsx"
 }
 */

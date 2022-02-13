@@ -1,13 +1,13 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 1017
+assertion_line: 160
 expression: output
 
 ---
 ==INPUT==
 
 
-import { $, qComponent$ } from '@builder.io/qwik';
+import { $, component$ } from '@builder.io/qwik';
 export const sym1 = $((ctx) => console.log("1"));
 
 ============================= test.tsx ==

@@ -1,19 +1,19 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 1017
+assertion_line: 274
 expression: output
 
 ---
 ==INPUT==
 
 
-import { $, qComponent$, onRender$ } from '@builder.io/qwik';
+import { $, component$ } from '@builder.io/qwik';
 import {foo, bar as bbar} from "../state";
 import * as dep2 from "dep2";
 import dep3 from "dep3/something";
 
-export const Header = qComponent$(() => {
-    onRender$(() => {
+export const Header = component$(() => {
+    return $(() => {
         return (
             <Header onClick={$((ev) => dep3(ev))}>
                 {dep2.stuff()}{bbar()}
@@ -22,8 +22,8 @@ export const Header = qComponent$(() => {
     });
 });
 
-export const App = qComponent$(() => {
-    onRender$(() => {
+export const App = component$(() => {
+    return $(() => {
         return (
             <Header>{foo()}</Header>
         );
@@ -33,10 +33,10 @@ export const App = qComponent$(() => {
 ============================= project/test.tsx ==
 
 import * as qwik from "@builder.io/qwik";
-import { qComponent } from "@builder.io/qwik";
-export const Header = /*#__PURE__*/ qComponent(qwik.qrl(()=>import("../entry_hooks")
+import { component } from "@builder.io/qwik";
+export const Header = /*#__PURE__*/ component(qwik.qrl(()=>import("../entry_hooks")
 , "Header_onmount"));
-export const App = /*#__PURE__*/ qComponent(qwik.qrl(()=>import("../entry_hooks")
+export const App = /*#__PURE__*/ component(qwik.qrl(()=>import("../entry_hooks")
 , "App_onmount"));
 
 ============================= h_test_header_onrender_header_onclick.tsx ==
@@ -82,10 +82,9 @@ export const Header_onRender = ()=>{
 ============================= h_test_header_onmount.tsx ==
 
 import * as qwik from "@builder.io/qwik";
-import { onRender } from "@builder.io/qwik";
 export const Header_onmount = ()=>{
-    onRender(qwik.qrl(()=>import("./entry_hooks")
-    , "Header_onRender"));
+    return qwik.qrl(()=>import("./entry_hooks")
+    , "Header_onRender");
 };
 
 /*
@@ -118,10 +117,9 @@ export const App_onRender = ()=>{
 ============================= h_test_app_onmount.tsx ==
 
 import * as qwik from "@builder.io/qwik";
-import { onRender } from "@builder.io/qwik";
 export const App_onmount = ()=>{
-    onRender(qwik.qrl(()=>import("./entry_hooks")
-    , "App_onRender"));
+    return qwik.qrl(()=>import("./entry_hooks")
+    , "App_onRender");
 };
 
 /*

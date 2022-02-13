@@ -1,25 +1,25 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 1017
+assertion_line: 172
 expression: output
 
 ---
 ==INPUT==
 
 
-import { $, qComponent$, onRender$ } from '@builder.io/qwik';
+import { $, component$ } from '@builder.io/qwik';
 
-export const Header = qComponent$(() => {
+export const Header = component$(() => {
     console.log("mount");
-    onRender$(() => {
+    return $(() => {
       return (
         <div onClick={$((ctx) => console.log(ctx))}/>
       );
     });
   });
 
-const App = qComponent$(() => {
-    onRender$(() => {
+const App = component$(() => {
+    return $(() => {
         return (
             <Header/>
         );
@@ -29,10 +29,10 @@ const App = qComponent$(() => {
 ============================= test.tsx ==
 
 import * as qwik from "@builder.io/qwik";
-import { qComponent } from "@builder.io/qwik";
-export const Header = /*#__PURE__*/ qComponent(qwik.qrl(()=>import("./h_test_header_onmount")
+import { component } from "@builder.io/qwik";
+export const Header = /*#__PURE__*/ component(qwik.qrl(()=>import("./h_test_header_onmount")
 , "Header_onmount"));
-/*#__PURE__*/ qComponent(qwik.qrl(()=>import("./h_test_app_onmount")
+/*#__PURE__*/ component(qwik.qrl(()=>import("./h_test_app_onmount")
 , "App_onmount"));
 
 ============================= h_test_header_onrender_div_onclick.tsx (ENTRY POINT)==
@@ -70,11 +70,10 @@ export const Header_onRender = ()=>{
 ============================= h_test_header_onmount.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-import { onRender } from "@builder.io/qwik";
 export const Header_onmount = ()=>{
     console.log("mount");
-    onRender(qwik.qrl(()=>import("./h_test_header_onrender")
-    , "Header_onRender"));
+    return qwik.qrl(()=>import("./h_test_header_onrender")
+    , "Header_onRender");
 };
 
 /*
@@ -106,10 +105,9 @@ export const App_onRender = ()=>{
 ============================= h_test_app_onmount.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-import { onRender } from "@builder.io/qwik";
 export const App_onmount = ()=>{
-    onRender(qwik.qrl(()=>import("./h_test_app_onrender")
-    , "App_onRender"));
+    return qwik.qrl(()=>import("./h_test_app_onrender")
+    , "App_onRender");
 };
 
 /*

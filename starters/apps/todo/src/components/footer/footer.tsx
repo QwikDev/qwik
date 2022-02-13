@@ -1,4 +1,4 @@
-import { component$, Host, onRender$ } from '@builder.io/qwik';
+import { component$, Host, $ } from '@builder.io/qwik';
 import {
   clearCompleted,
   FilterStates,
@@ -14,7 +14,7 @@ import {
  */
 export const Footer = component$(
   (props: { todos: Todos }) => {
-    return onRender$(() => {
+    return $(() => {
       /**
        * Example of lite-component (it will always be included with the parent component)
        */

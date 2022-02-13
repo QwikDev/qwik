@@ -5,7 +5,7 @@
 // it to the desired comment location
 //
 
-import { component$, onRender$, createStore } from '@builder.io/qwik';
+import { component$, $, createStore } from '@builder.io/qwik';
 import type { PropsOf } from './component.public';
 
 //////////////////////////////////////////////////////////
@@ -18,7 +18,7 @@ import type { PropsOf } from './component.public';
 // <docs anchor="component">
 export const Counter = component$((props: { value?: number; step?: number }) => {
   const state = createStore({ count: props.value || 0 });
-  return onRender$(() => (
+  return $(() => (
     <div>
       <span>{state.count}</span>
       <button on$:click={() => (state.count += props.step || 1)}>+</button>
@@ -31,7 +31,7 @@ export const Counter = component$((props: { value?: number; step?: number }) => 
 //
 // <docs anchor="component-usage">
 export const OtherComponent = component$(() => {
-  return onRender$(() => <Counter value={100} />);
+  return $(() => <Counter value={100} />);
 });
 // </docs>
 //
@@ -40,7 +40,7 @@ export const OtherComponent = component$(() => {
   //
   // <docs anchor="on-render">
   const Counter = component$((props: { name: string }) => {
-    return onRender$(() => <div>{props.name}</div>);
+    return $(() => <div>{props.name}</div>);
   });
   // </docs>
   //
@@ -52,7 +52,7 @@ export const OtherComponent = component$(() => {
   // <docs anchor="on-mount">
   const Counter = component$(() => {
     const state = createStore({ count: 0 });
-    return onRender$(() => <div>{state.count}</div>);
+    return $(() => <div>{state.count}</div>);
   });
   // </docs>
   //
@@ -64,7 +64,7 @@ export const OtherComponent = component$(() => {
   // <docs anchor="propsof">
   // Given
   const MyComp = component$((props: { title: 'MyTitle'; label: 'defaultLabel' }) => {
-    return onRender$(() => <span title={props.label}></span>);
+    return $(() => <span title={props.label}></span>);
   });
 
   // Inferred type:

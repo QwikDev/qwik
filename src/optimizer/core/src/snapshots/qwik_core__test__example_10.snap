@@ -1,13 +1,13 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 1017
+assertion_line: 244
 expression: output
 
 ---
 ==INPUT==
 
 
-import { $, qComponent$ } from '@builder.io/qwik';
+import { $, component$ } from '@builder.io/qwik';
 const Header = $((decl1, {decl2}, [decl3]) => {
 
     const hola = ident1.no;

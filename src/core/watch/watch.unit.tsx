@@ -1,4 +1,4 @@
-import { component$, h, onRender$, onWatch$, onWatch, render, createStore } from '@builder.io/qwik';
+import { component$, h, onWatch$, onWatch, render, createStore } from '@builder.io/qwik';
 import { ElementFixture, getTestPlatform } from '@builder.io/qwik/testing';
 import { expectDOM } from '../../testing/expect-dom.unit';
 import { stringifyQRL } from '../import/qrl';
@@ -13,7 +13,7 @@ describe('watch', () => {
     const WatchInitialRun = component$(() => {
       const store = createStore({ count: 0 });
       onWatch$(() => store.count++);
-      return onRender$(() => <>{store.count}</>);
+      return $(() => <>{store.count}</>);
     });
     await render(fixture.host, <WatchInitialRun />);
     expectRendered(<div>1</div>);
@@ -24,7 +24,7 @@ describe('watch', () => {
     const WatchInitialRun = component$(() => {
       const store = createStore({ src: 'initial', dst: '' });
       onWatch((watchFn = $((obs: Observer) => (store.dst = obs(store).src))));
-      return onRender$(() => <>{store.dst}</>);
+      return $(() => <>{store.dst}</>);
     });
     await render(fixture.host, <WatchInitialRun />);
     expectRendered(<div on:q-watch={stringifyQRL(watchFn)}>initial</div>);
@@ -34,7 +34,7 @@ describe('watch', () => {
     const store = createStore({ src: 'initial', dst: '' });
     const WatchInitialRun = component$(() => {
       onWatch$((obs: Observer) => (store.dst = obs(store).src));
-      return onRender$(() => <>{store.dst}</>);
+      return $(() => <>{store.dst}</>);
     });
     await render(fixture.host, <WatchInitialRun />);
     expectRendered(<div>initial</div>);

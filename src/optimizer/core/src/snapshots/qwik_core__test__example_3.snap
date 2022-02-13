@@ -1,17 +1,17 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 1017
+assertion_line: 95
 expression: output
 
 ---
 ==INPUT==
 
 
-import { $, qComponent$, onRender$ } from '@builder.io/qwik';
+import { $, component$ } from '@builder.io/qwik';
 export const App = () => {
-    const Header = qComponent$(() => {
+    const Header = component$(() => {
         console.log("mount");
-        onRende(() => {
+        return $(() => {
             return (
                 <div onClick={$((ctx) => console.log(ctx))}/>
             );
@@ -23,25 +23,42 @@ export const App = () => {
 ============================= test.tsx ==
 
 import * as qwik from "@builder.io/qwik";
-import { qComponent } from "@builder.io/qwik";
+import { component } from "@builder.io/qwik";
 export const App = ()=>{
-    const Header = /*#__PURE__*/ qComponent(qwik.qrl(()=>import("./h_test_app_header")
+    const Header = /*#__PURE__*/ component(qwik.qrl(()=>import("./h_test_app_header")
     , "App_Header"));
     return Header;
 };
 
-============================= h_test_app_header_div_onclick.tsx (ENTRY POINT)==
+============================= h_test_app_header_onrender_div_onclick.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const App_Header_div_onClick = (ctx)=>console.log(ctx)
+export const App_Header_onRender_div_onClick = (ctx)=>console.log(ctx)
 ;
 
 /*
 {
   "origin": "test.tsx",
-  "name": "App_Header_div_onClick",
+  "name": "App_Header_onRender_div_onClick",
   "entry": null,
-  "canonicalFilename": "h_test_app_header_div_onclick",
+  "canonicalFilename": "h_test_app_header_onrender_div_onclick",
+  "extension": "tsx"
+}
+*/
+============================= h_test_app_header_onrender.tsx (ENTRY POINT)==
+
+import * as qwik from "@builder.io/qwik";
+export const App_Header_onRender = ()=>{
+    return <div onClick={qwik.qrl(()=>import("./h_test_app_header_onrender_div_onclick")
+    , "App_Header_onRender_div_onClick")}/>;
+};
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_Header_onRender",
+  "entry": null,
+  "canonicalFilename": "h_test_app_header_onrender",
   "extension": "tsx"
 }
 */
@@ -50,10 +67,8 @@ export const App_Header_div_onClick = (ctx)=>console.log(ctx)
 import * as qwik from "@builder.io/qwik";
 export const App_Header = ()=>{
     console.log("mount");
-    onRende(()=>{
-        return <div onClick={qwik.qrl(()=>import("./h_test_app_header_div_onclick")
-        , "App_Header_div_onClick")}/>;
-    });
+    return qwik.qrl(()=>import("./h_test_app_header_onrender")
+    , "App_Header_onRender");
 };
 
 /*

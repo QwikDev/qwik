@@ -1,4 +1,4 @@
-import { component$, createStore, onRender$, useEvent } from '@builder.io/qwik';
+import { component$, createStore, $, useEvent } from '@builder.io/qwik';
 import { addItem, Todos } from '../../state/state';
 
 /**
@@ -9,7 +9,7 @@ import { addItem, Todos } from '../../state/state';
 export const Header = component$(
   (props: { todos: Todos }) => {
     const state = createStore({ text: '' });
-    return onRender$(() => {
+    return $(() => {
       return (
         <>
           <h1>todos</h1>

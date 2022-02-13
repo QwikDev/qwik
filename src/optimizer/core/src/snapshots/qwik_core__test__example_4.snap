@@ -1,17 +1,17 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 1017
+assertion_line: 117
 expression: output
 
 ---
 ==INPUT==
 
 
-import { $, qComponent$, onRender$ } from '@builder.io/qwik';
+import { $, component$ } from '@builder.io/qwik';
 export function App() {
-    const Header = qComponent$(() => {
+    const Header = component$(() => {
         console.log("mount");
-        return onRender$(() => {
+        return $(() => {
             return (
                 <div onClick={$((ctx) => console.log(ctx))}/>
             );
@@ -23,9 +23,9 @@ export function App() {
 ============================= test.tsx ==
 
 import * as qwik from "@builder.io/qwik";
-import { qComponent } from "@builder.io/qwik";
+import { component } from "@builder.io/qwik";
 export function App() {
-    const Header = /*#__PURE__*/ qComponent(qwik.qrl(()=>import("./h_test_app_header")
+    const Header = /*#__PURE__*/ component(qwik.qrl(()=>import("./h_test_app_header")
     , "App_Header"));
     return Header;
 }
@@ -65,11 +65,10 @@ export const App_Header_onRender = ()=>{
 ============================= h_test_app_header.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-import { onRender } from "@builder.io/qwik";
 export const App_Header = ()=>{
     console.log("mount");
-    return onRender(qwik.qrl(()=>import("./h_test_app_header_onrender")
-    , "App_Header_onRender"));
+    return qwik.qrl(()=>import("./h_test_app_header_onrender")
+    , "App_Header_onRender");
 };
 
 /*

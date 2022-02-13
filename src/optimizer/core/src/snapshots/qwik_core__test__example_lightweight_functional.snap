@@ -1,16 +1,16 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 1017
+assertion_line: 506
 expression: output
 
 ---
 ==INPUT==
 
 
-import { $, qComponent$, onRender$ } from '@builder.io/qwik';
+import { $, component$ } from '@builder.io/qwik';
 
-export const Foo = qComponent$("my-foo", ({color}) => {
-    return onRender$(() => {
+export const Foo = component$(({color}) => {
+    return $(() => {
         return (
             <div>
                 <Button {...props} />
@@ -18,7 +18,9 @@ export const Foo = qComponent$("my-foo", ({color}) => {
             </div>
         )
     });
-})
+}, {
+    tagName: "my-foo",
+});
 
 export function Button({text, color}) {
     return (
@@ -35,9 +37,11 @@ export const ButtonArrow = ({text, color}) => {
 ============================= test.tsx ==
 
 import * as qwik from "@builder.io/qwik";
-import { qComponent } from "@builder.io/qwik";
-export const Foo = /*#__PURE__*/ qComponent("my-foo", qwik.qrl(()=>import("./h_test_foo_onmount")
-, "Foo_onmount"));
+import { component } from "@builder.io/qwik";
+export const Foo = /*#__PURE__*/ component(qwik.qrl(()=>import("./h_test_foo_onmount")
+, "Foo_onmount"), {
+    tagName: "my-foo"
+});
 export function Button({ text , color  }) {
     return <button color={color} on:click={qwik.qrl(()=>import("./h_test_button_button_onclick")
     , "Button_button_onclick", [
@@ -80,10 +84,9 @@ export const Foo_onRender = ()=>{
 ============================= h_test_foo_onmount.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-import { onRender } from "@builder.io/qwik";
 export const Foo_onmount = ({ color  })=>{
-    return onRender(qwik.qrl(()=>import("./h_test_foo_onrender")
-    , "Foo_onRender"));
+    return qwik.qrl(()=>import("./h_test_foo_onrender")
+    , "Foo_onRender");
 };
 
 /*

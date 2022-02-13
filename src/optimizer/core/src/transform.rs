@@ -65,7 +65,7 @@ pub type ThreadSafeTransformContext = Arc<Mutex<TransformContext>>;
 
 #[derive(Debug)]
 enum PositionToken {
-    QComponent,
+    Component,
     ObjectProp,
     JSXListener,
     MarkerFunction,
@@ -589,20 +589,40 @@ impl<'a> Fold for QwikTransform<'a> {
 
     fn fold_expr(&mut self, node: ast::Expr) -> ast::Expr {
         let node = match (self.position_ctxt.as_slice(), node) {
-            (
-                [.., PositionToken::JSXListener]
-                | [.., PositionToken::QComponent, PositionToken::Arg(_, 0)],
-                ast::Expr::Arrow(arrow),
-            ) => ast::Expr::Call(self.create_synthetic_qhook(ast::Expr::Arrow(arrow))),
-            ([.., PositionToken::MarkerFunction, PositionToken::Arg(0, _)], expr) => {
-                ast::Expr::Call(self.create_synthetic_qhook(expr))
+            ([.., PositionToken::JSXListener], ast::Expr::Arrow(arrow)) => {
+                ast::Expr::Call(self.create_synthetic_qhook(ast::Expr::Arrow(arrow)))
             }
+            (
+                [.., PositionToken::MarkerFunction | PositionToken::Component, PositionToken::Arg(0, _)],
+                expr,
+            ) => ast::Expr::Call(self.create_synthetic_qhook(expr)),
             (_, node) => node,
         };
 
         self.position_ctxt.push(PositionToken::Any);
         let o = node.fold_children_with(self);
         self.position_ctxt.pop();
+        o
+    }
+
+    fn fold_return_stmt(&mut self, node: ast::ReturnStmt) -> ast::ReturnStmt {
+        println!("{:?}", self.position_ctxt.as_slice());
+        let component_return = matches!(
+            self.position_ctxt.as_slice(),
+            [
+                ..,
+                PositionToken::Component,
+                PositionToken::Arg(0, _),
+                PositionToken::Any
+            ]
+        );
+        if component_return {
+            self.stack_ctxt.push("onRender".into());
+        }
+        let o = node.fold_children_with(self);
+        if component_return {
+            self.stack_ctxt.pop();
+        }
         o
     }
 
@@ -622,8 +642,9 @@ impl<'a> Fold for QwikTransform<'a> {
                     }
                     return self.handle_qhook(node);
                 } else if self.marker_functions.contains(&id!(ident)) {
+                    position_token = true;
                     if id_eq!(ident, &self.qcomponent_fn) {
-                        self.position_ctxt.push(PositionToken::QComponent);
+                        self.position_ctxt.push(PositionToken::Component);
                         self.in_component = true;
                         component_token = true;
                         if let Some(comments) = self.options.comments {
@@ -672,7 +693,6 @@ impl<'a> Fold for QwikTransform<'a> {
                             });
                         }
                     }
-                    position_token = true;
                 }
             }
         }

@@ -1,9 +1,8 @@
-import { $, component, Host, withStyles$, $ } from '@builder.io/qwik';
+import { component$, Host, withStyles$, $ } from '@builder.io/qwik';
 import styles from './footer.css';
 
-export const Footer = component(
-  'footer',
-  $(() => {
+export const Footer = component$(
+  () => {
     withStyles$(styles);
 
     return $(() => (
@@ -15,5 +14,6 @@ export const Footer = component(
         </nav>
       </Host>
     ));
-  })
+  },
+  { tagName: 'footer' }
 );

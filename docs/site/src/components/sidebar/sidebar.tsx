@@ -1,14 +1,14 @@
-import { $, component, Host, withStyles$, $, createStore } from '@builder.io/qwik';
-import { getDocs } from '../content/content';
+import { component$, Host, withStyles$, $, createStore } from '@builder.io/qwik';
+import { getContents } from '../../utils/get-content';
+
 import styles from './sidebar.css';
 
-export const SideBar = component(
-  'aside',
-  $(() => {
+export const SideBar = component$(
+  () => {
     withStyles$(styles);
 
     const state = createStore({
-      docs: Object.keys(getDocs()),
+      docs: Object.keys(getContents()),
     });
 
     return $(() => (
@@ -30,5 +30,6 @@ export const SideBar = component(
         </nav>
       </Host>
     ));
-  })
+  },
+  { tagName: 'aside' }
 );

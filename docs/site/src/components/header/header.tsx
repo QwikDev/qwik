@@ -1,10 +1,9 @@
-import { $, component, Host, withStyles$, $ } from '@builder.io/qwik';
+import { component$, Host, withStyles$, $ } from '@builder.io/qwik';
 import { GithubLogo } from '../svgs/github-logo';
 import styles from './header.css';
 
-export const Header = component(
-  'header',
-  $(() => {
+export const Header = component$(
+  () => {
     withStyles$(styles);
 
     return $(() => (
@@ -43,5 +42,6 @@ export const Header = component(
         </div>
       </Host>
     ));
-  })
+  },
+  { tagName: 'header' }
 );

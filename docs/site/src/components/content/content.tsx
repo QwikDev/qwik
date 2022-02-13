@@ -4,7 +4,7 @@ import { OnThisPage } from '../on-this-page/on-this-page';
 import styles from './content.css';
 
 export const getDocs = () => {
-  const modules = import.meta.glob('../../markdown/*.mdx');
+  const modules = import.meta.glob('../../../../*.mdx');
   return Object.fromEntries(
     Object.entries(modules).map(([key, fn]) => {
       return [key.toLowerCase().split('/').pop()?.slice(0, -4), fn] as [string, Function];

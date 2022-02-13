@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 import { qwikVite } from '@builder.io/qwik/optimizer';
 import { writeFile, mkdir } from 'fs/promises';
-import { dirname, resolve } from 'path';
+import { dirname, resolve, join } from 'path';
 
 export default defineConfig(async () => {
   const { default: mdx } = await import('@mdx-js/rollup');
@@ -29,7 +29,7 @@ export default defineConfig(async () => {
         },
       }),
       mdx({
-        jsxImportSource: '@builder.io/qwik',
+        jsxImportSource: getQwik(),
       }),
     ],
   };
@@ -38,4 +38,11 @@ export default defineConfig(async () => {
 async function outputJSON(path, data) {
   await mkdir(dirname(path), { recursive: true });
   await writeFile(path, JSON.stringify(data, null, 2));
+}
+
+function getQwik() {
+  if (!process.env.CI) {
+    return join(__dirname, '..', '..', 'dist-dev', '@builder.io-qwik');
+  }
+  return '@builder.io/qwik';
 }

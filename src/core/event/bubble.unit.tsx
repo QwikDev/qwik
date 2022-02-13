@@ -1,9 +1,8 @@
 import { createDocument } from '@builder.io/qwik/testing';
-import { render, component, bubble, onRender$ } from '@builder.io/qwik';
+import { render, component$, bubble, onRender$ } from '@builder.io/qwik';
 import { trigger } from '../../testing/element_fixture';
 import { useEvent } from '../use/use-event.public';
 import { runtimeQrl } from '../import/qrl';
-import { $ } from '../import/qrl.public';
 
 describe('q-bubble', () => {
   let document: Document;
@@ -14,13 +13,15 @@ describe('q-bubble', () => {
   });
 
   it('should bubble event to parent', async () => {
-    const TestComp = component(
-      'test',
-      $(() => {
+    const TestComp = component$(
+      () => {
         return onRender$(() => (
           <button on:click={runtimeQrl(() => bubble('test', { text: 'from-button' }))}></button>
         ));
-      })
+      },
+      {
+        tagName: 'test',
+      }
     );
     let received!: string;
     await render(

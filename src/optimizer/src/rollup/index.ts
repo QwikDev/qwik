@@ -294,7 +294,8 @@ export function qwikRollup(opts: QwikPluginOptions): any {
 
       const pregenerated = transformedOutputs.get(id);
       if (pregenerated) {
-        log(`transform()`, 'addWatchFile', id, pregenerated[0].hook);
+        log(`transform()`, 'addWatchFile', id, pregenerated[1]);
+        this.addWatchFile(pregenerated[1]);
         return {
           meta: {
             hook: pregenerated[0].hook,

@@ -15,23 +15,25 @@ export function Async<T>(props: AsyncProps<T>): JSXNode<any>;
 // @public (undocumented)
 export function bubble<PAYLOAD>(eventType: string, payload?: PAYLOAD): void;
 
-// Warning: (ae-forgotten-export) The symbol "OnMountFn" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "QwikEvents" needs to be exported by the entry point index.d.ts
 //
 // @public
-export function component$<PROPS extends {}>(onMount: OnMountFn<PROPS>): (props: PROPS & QwikEvents) => JSXNode<PROPS>;
+export function component$<PROPS extends {}>(onMount: OnMountFn<PROPS>, options?: ComponentOptions): (props: PROPS & QwikEvents) => JSXNode<PROPS>;
 
 // @public
-export function component<PROPS extends {}>(tagName: string, onMount: QRL<OnMountFn<PROPS>>): (props: PROPS & QwikEvents) => JSXNode<PROPS>;
-
-// @public
-export function component<PROPS extends {}>(onMount: QRL<OnMountFn<PROPS>>): (props: PROPS & QwikEvents) => JSXNode<PROPS>;
+export function component<PROPS extends {}>(onMount: QRL<OnMountFn<PROPS>>, options?: ComponentOptions): (props: PROPS & QwikEvents) => JSXNode<PROPS>;
 
 // @public (undocumented)
 export type ComponentChild = JSXNode<any> | object | string | number | bigint | boolean | null | undefined;
 
 // @public (undocumented)
 export type ComponentChildren = ComponentChild[] | ComponentChild;
+
+// @public (undocumented)
+export interface ComponentOptions {
+    // (undocumented)
+    tagName?: string;
+}
 
 // @public (undocumented)
 export interface CorePlatform {
@@ -151,6 +153,9 @@ export const onHydrate$: (first: () => void) => void;
 
 // @public
 export function onHydrate(hydrateFn: QRL<() => void>): void;
+
+// @public (undocumented)
+export type OnMountFn<PROPS> = (props: PROPS) => ValueOrPromise<ReturnType<typeof onRender>>;
 
 // @public
 export const onRender$: <T>(first: () => JSXNode<T>) => QRL<() => JSXNode<T>>;

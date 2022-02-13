@@ -1,4 +1,4 @@
-import { onRender$, component, Host, withStyles$, $, createStore } from '@builder.io/qwik';
+import { $, component, Host, withStyles$, $, createStore } from '@builder.io/qwik';
 import { getDocs } from '../content/content';
 import styles from './sidebar.css';
 
@@ -11,7 +11,7 @@ export const SideBar = component(
       docs: Object.keys(getDocs()),
     });
 
-    return onRender$(() => (
+    return $(() => (
       <Host>
         <nav>
           <h5 class="mb-8 lg:mb-3 font-semibold text-slate-900 dark:text-slate-200">Docs</h5>

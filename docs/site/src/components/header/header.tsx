@@ -1,4 +1,4 @@
-import { onRender$, component, Host, withStyles$, $ } from '@builder.io/qwik';
+import { $, component, Host, withStyles$, $ } from '@builder.io/qwik';
 import { GithubLogo } from '../svgs/github-logo';
 import styles from './header.css';
 
@@ -7,7 +7,7 @@ export const Header = component(
   $(() => {
     withStyles$(styles);
 
-    return onRender$(() => (
+    return $(() => (
       <Host className="sticky top-0 z-40 w-full flex-none p-4 bg-gray-900">
         <div className="flex justify-between flex-wrap max-w-7xl mx-auto">
           <div className="flex items-center flex-shrink-0 text-white mr-6">

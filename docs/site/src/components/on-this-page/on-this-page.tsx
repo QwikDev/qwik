@@ -1,4 +1,4 @@
-import { onRender$, component, Host, withStyles$, $ } from '@builder.io/qwik';
+import { $, component, Host, withStyles$, $ } from '@builder.io/qwik';
 import styles from './on-this-page.css';
 
 export const OnThisPage = component(
@@ -6,7 +6,7 @@ export const OnThisPage = component(
   $(() => {
     withStyles$(styles);
 
-    return onRender$(() => (
+    return $(() => (
       <Host class="on-this-page">
         <nav>
           <h2>On This Page</h2>

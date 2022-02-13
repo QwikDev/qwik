@@ -1,4 +1,4 @@
-import { onRender$, component, Host, withStyles$, $ } from '@builder.io/qwik';
+import { $, component, Host, withStyles$, $ } from '@builder.io/qwik';
 import { DocsProps } from '../../pages/docs/docs';
 import { OnThisPage } from '../on-this-page/on-this-page';
 import styles from './content.css';
@@ -20,7 +20,7 @@ export const Content = component(
     const docs = getDocs();
     const fn = docs[props.doc];
     const Markdown = fn ? (await fn()).default : undefined;
-    return onRender$(() => (
+    return $(() => (
       <Host class="content">
         {Markdown ? (
           <>

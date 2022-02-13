@@ -6,7 +6,7 @@ import { SideBar } from '../../components/sidebar/sidebar';
 import styles from './docs.css';
 
 export interface DocsProps {
-  doc: string;
+  content: string;
 }
 
 export const Docs = component$((props: DocsProps) => {
@@ -17,7 +17,7 @@ export const Docs = component$((props: DocsProps) => {
       <Header />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
         <SideBar />
-        <Content doc={props.doc} />
+        <Content content={props.content} />
         <Footer />
       </main>
     </Host>

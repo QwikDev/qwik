@@ -1,13 +1,13 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 1017
+assertion_line: 854
 expression: output
 
 ---
 ==INPUT==
 
 
-import { qComponent$, onRender$, createStore, wrap, useEffect } from '@builder.io/qwik';
+import { component$, $, createStore, wrap, useEffect } from '@builder.io/qwik';
 
 export const useMemo = (qrt) => {
     useEffect(qrt);
@@ -15,12 +15,12 @@ export const useMemo = (qrt) => {
 
 export const useMemo$ = wrap(useMemo);
 
-export const App = qComponent$((props) => {
+export const App = component$((props) => {
     const state = createStore({count: 0});
     useMemo$(() => {
         console.log(state.count);
     });
-    return onRender$(() => (
+    return $(() => (
         <div>{state.count}</div>
     ));
 });
@@ -34,13 +34,13 @@ export const Lightweight = (props) => {
 ============================= test.js ==
 
 import * as qwik from "@builder.io/qwik";
-import { qComponent } from "@builder.io/qwik";
+import { component } from "@builder.io/qwik";
 import { wrap, useEffect } from '@builder.io/qwik';
 export const useMemo = (qrt)=>{
     useEffect(qrt);
 };
 export const useMemo$ = wrap(useMemo);
-export const App = /*#__PURE__*/ qComponent(qwik.qrl(()=>import("./h_test_app_onmount")
+export const App = /*#__PURE__*/ component(qwik.qrl(()=>import("./h_test_app_onmount")
 , "App_onmount"));
 export const Lightweight = (props)=>{
     useMemo(qwik.qrl(()=>import("./h_test_lightweight_usememo")
@@ -88,7 +88,6 @@ export const App_onRender = ()=>{
 
 import * as qwik from "@builder.io/qwik";
 import { createStore } from "@builder.io/qwik";
-import { onRender } from "@builder.io/qwik";
 import { useMemo } from "./test";
 export const App_onmount = (props)=>{
     const state = createStore({
@@ -98,10 +97,10 @@ export const App_onmount = (props)=>{
     , "App_useMemo", [
         state
     ]));
-    return onRender(qwik.qrl(()=>import("./h_test_app_onrender")
+    return qwik.qrl(()=>import("./h_test_app_onrender")
     , "App_onRender", [
         state
-    ]));
+    ]);
 };
 
 /*

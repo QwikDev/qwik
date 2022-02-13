@@ -1,81 +1,79 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 1017
+assertion_line: 975
 expression: output
 
 ---
 ==INPUT==
 
 
-import { component$, onRender$ } from '@builder.io/qwik';
+import { component$, $ } from '@builder.io/qwik';
 
 export const Greeter = component$(() => {
-    onRender$(() => {
-    return (
-        <div/>
-    )
+    return $(() => {
+        return (
+            <div/>
+        )
     });
 });
 
-const d = onRender$(()=>console.log('thing'));
+const d = $(()=>console.log('thing'));
 
 ============================= test.js ==
 
 import * as qwik from "@builder.io/qwik";
 import { component } from "@builder.io/qwik";
-import { onRender } from "@builder.io/qwik";
-export const Greeter = component(qwik.qrl(()=>import("./h_test_greeter_component")
-, "Greeter_component"));
-onRender(qwik.qrl(()=>import("./h_test_d_onrender")
-, "d_onRender"));
+export const Greeter = /*#__PURE__*/ component(qwik.qrl(()=>import("./h_test_greeter_onmount")
+, "Greeter_onmount"));
+qwik.qrl(()=>import("./h_test_d")
+, "d");
 
-============================= h_test_greeter_component_onrender.js (ENTRY POINT)==
+============================= h_test_greeter_onrender.js (ENTRY POINT)==
 
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 import * as qwik from "@builder.io/qwik";
-export const Greeter_component_onRender = ()=>{
+export const Greeter_onRender = ()=>{
     return(/*#__PURE__*/ _jsx("div", {}));
 };
 
 /*
 {
   "origin": "test.tsx",
-  "name": "Greeter_component_onRender",
+  "name": "Greeter_onRender",
   "entry": null,
-  "canonicalFilename": "h_test_greeter_component_onrender",
+  "canonicalFilename": "h_test_greeter_onrender",
   "extension": "js"
 }
 */
-============================= h_test_greeter_component.js (ENTRY POINT)==
+============================= h_test_greeter_onmount.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-import { onRender } from "@builder.io/qwik";
-export const Greeter_component = ()=>{
-    onRender(qwik.qrl(()=>import("./h_test_greeter_component_onrender")
-    , "Greeter_component_onRender"));
+export const Greeter_onmount = ()=>{
+    return qwik.qrl(()=>import("./h_test_greeter_onrender")
+    , "Greeter_onRender");
 };
 
 /*
 {
   "origin": "test.tsx",
-  "name": "Greeter_component",
+  "name": "Greeter_onmount",
   "entry": null,
-  "canonicalFilename": "h_test_greeter_component",
+  "canonicalFilename": "h_test_greeter_onmount",
   "extension": "js"
 }
 */
-============================= h_test_d_onrender.js (ENTRY POINT)==
+============================= h_test_d.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const d_onRender = ()=>console.log('thing')
+export const d = ()=>console.log('thing')
 ;
 
 /*
 {
   "origin": "test.tsx",
-  "name": "d_onRender",
+  "name": "d",
   "entry": null,
-  "canonicalFilename": "h_test_d_onrender",
+  "canonicalFilename": "h_test_d",
   "extension": "js"
 }
 */

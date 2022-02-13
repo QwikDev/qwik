@@ -15,7 +15,7 @@ import { qObject } from '../object/q-object';
  * ```typescript
  * export const Counter = component$(() => {
  *   const store = createStore({ count: 0 });
- *   return onRender$(() => <button on$:click={() => store.count++}>{store.count}</button>);
+ *   return $(() => <button on$:click={() => store.count++}>{store.count}</button>);
  * });
  * ```
  *

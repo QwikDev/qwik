@@ -1,45 +1,55 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 1017
+assertion_line: 816
 expression: output
 
 ---
 ==INPUT==
 
 
-import { $, qComponent$, onRender, onRender$ } from '@builder.io/qwik';
+import { $, component$, withStyle } from '@builder.io/qwik';
 
-const qComponent = () => console.log('not this');
-qComponent();
-export const Foo = qComponent$("my-foo", () => {
+const component = () => console.log('not this');
+component();
+export const Foo = component$(() => {
+    withStyle$('thing');
     const qwik = 12;
     console.log(qwik);
-    return onRender$(() => {
+    return $(() => {
         return (
             <div/>
         )
     });
-})
+}, {
+    tagName: "my-foo",
+});
 
-export const Root = qComponent$("my-foo", () => {
-    return onRender($(() => {
+export const Root = component$(() => {
+    withStyle($('thing'));
+    return $(() => {
         return (
             <div/>
         )
-    }));
-}))
+    });
+}, {
+    tagName: "my-foo",
+});
 
 ============================= test.js ==
 
 import * as qwik from "@builder.io/qwik";
-import { qComponent as qComponent1 } from "@builder.io/qwik";
-const qComponent = ()=>console.log('not this')
+import { component as component1 } from "@builder.io/qwik";
+const component = ()=>console.log('not this')
 ;
-qComponent();
-export const Foo = /*#__PURE__*/ qComponent1("my-foo", qwik.qrl(()=>import("./h_test_foo_onmount")
-, "Foo_onmount"));
-export const Root = /*#__PURE__*/ qComponent1("my-foo", qwik.qrl(()=>import("./h_test_root_onmount")
-, "Root_onmount"));
+component();
+export const Foo = /*#__PURE__*/ component1(qwik.qrl(()=>import("./h_test_foo_onmount")
+, "Foo_onmount"), {
+    tagName: "my-foo"
+});
+export const Root = /*#__PURE__*/ component1(qwik.qrl(()=>import("./h_test_root_onmount")
+, "Root_onmount"), {
+    tagName: "my-foo"
+});
 
 ============================= h_test_foo_onrender.js (ENTRY POINT)==
 
@@ -61,12 +71,12 @@ export const Foo_onRender = ()=>{
 ============================= h_test_foo_onmount.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-import { onRender } from "@builder.io/qwik";
 export const Foo_onmount = ()=>{
+    withStyle$('thing');
     const qwik1 = 12;
     console.log(qwik1);
-    return onRender(qwik.qrl(()=>import("./h_test_foo_onrender")
-    , "Foo_onRender"));
+    return qwik.qrl(()=>import("./h_test_foo_onrender")
+    , "Foo_onRender");
 };
 
 /*
@@ -80,11 +90,8 @@ export const Foo_onmount = ()=>{
 */
 ============================= h_test_root_onmount3.js (ENTRY POINT)==
 
-import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 import * as qwik from "@builder.io/qwik";
-export const Root_onmount3 = ()=>{
-    return(/*#__PURE__*/ _jsx("div", {}));
-};
+export const Root_onmount3 = 'thing';
 
 /*
 {
@@ -95,13 +102,32 @@ export const Root_onmount3 = ()=>{
   "extension": "js"
 }
 */
+============================= h_test_root_onrender.js (ENTRY POINT)==
+
+import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
+import * as qwik from "@builder.io/qwik";
+export const Root_onRender = ()=>{
+    return(/*#__PURE__*/ _jsx("div", {}));
+};
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "Root_onRender",
+  "entry": null,
+  "canonicalFilename": "h_test_root_onrender",
+  "extension": "js"
+}
+*/
 ============================= h_test_root_onmount.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-import { onRender } from "@builder.io/qwik";
+import { withStyle } from "@builder.io/qwik";
 export const Root_onmount = ()=>{
-    return onRender(qwik.qrl(()=>import("./h_test_root_onmount3")
+    withStyle(qwik.qrl(()=>import("./h_test_root_onmount3")
     , "Root_onmount3"));
+    return qwik.qrl(()=>import("./h_test_root_onrender")
+    , "Root_onRender");
 };
 
 /*

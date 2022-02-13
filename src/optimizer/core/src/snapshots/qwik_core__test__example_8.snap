@@ -1,16 +1,16 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 1084
+assertion_line: 200
 expression: output
 
 ---
 ==INPUT==
 
 
-import { $, qComponent$, onRender$ } from '@builder.io/qwik';
+import { $, component$ } from '@builder.io/qwik';
 
-export const Header = qComponent$(() => {
-    onRender$((hola) => {
+export const Header = component$(() => {
+    return $((hola) => {
         const hola = this;
         const {something, styff} = hola;
         const hello = hola.nothere.stuff[global];
@@ -23,8 +23,8 @@ export const Header = qComponent$(() => {
 ============================= test.tsx ==
 
 import * as qwik from "@builder.io/qwik";
-import { qComponent } from "@builder.io/qwik";
-export const Header = /*#__PURE__*/ qComponent(qwik.qrl(()=>import("./h_test_header_onmount")
+import { component } from "@builder.io/qwik";
+export const Header = /*#__PURE__*/ component(qwik.qrl(()=>import("./h_test_header_onmount")
 , "Header_onmount"));
 
 ============================= h_test_header_onrender.tsx (ENTRY POINT)==
@@ -50,10 +50,9 @@ export const Header_onRender = (hola)=>{
 ============================= h_test_header_onmount.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-import { onRender } from "@builder.io/qwik";
 export const Header_onmount = ()=>{
-    onRender(qwik.qrl(()=>import("./h_test_header_onrender")
-    , "Header_onRender"));
+    return qwik.qrl(()=>import("./h_test_header_onrender")
+    , "Header_onRender");
 };
 
 /*

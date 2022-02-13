@@ -1,25 +1,25 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 1017
+assertion_line: 362
 expression: output
 
 ---
 ==INPUT==
 
 
-import { $, qComponent$, onRender$, createStore } from '@builder.io/qwik';
+import { $, component$, createStore } from '@builder.io/qwik';
 export const useCounter = () => {
     return createStore({count: 0});
 }
 
 export const STEP = 1;
 
-export const App = qComponent$((props) => {
+export const App = component$((props) => {
     const state = useCounter();
     const thing = createStore({thing: 0});
     const STEP_2 = 2;
 
-    return onRender$(() => {
+    return $(() => {
         const count2 = state.count * 2;
         return (
             <div on$:click={() => state.count+=count2 }>
@@ -41,7 +41,7 @@ export const App = qComponent$((props) => {
 ============================= test.js ==
 
 import * as qwik from "@builder.io/qwik";
-import { qComponent } from "@builder.io/qwik";
+import { component } from "@builder.io/qwik";
 import { createStore } from '@builder.io/qwik';
 export const useCounter = ()=>{
     return createStore({
@@ -49,7 +49,7 @@ export const useCounter = ()=>{
     });
 };
 export const STEP = 1;
-export const App = /*#__PURE__*/ qComponent(qwik.qrl(()=>import("./h_test_app_onmount")
+export const App = /*#__PURE__*/ component(qwik.qrl(()=>import("./h_test_app_onmount")
 , "App_onmount"));
 
 ============================= h_test_app_onrender_div_onclick.js (ENTRY POINT)==
@@ -133,7 +133,6 @@ export const App_onRender = ()=>{
 
 import * as qwik from "@builder.io/qwik";
 import { createStore } from "@builder.io/qwik";
-import { onRender } from "@builder.io/qwik";
 import { useCounter } from "./test";
 export const App_onmount = (props)=>{
     const state = useCounter();
@@ -141,13 +140,13 @@ export const App_onmount = (props)=>{
         thing: 0
     });
     const STEP_2 = 2;
-    return onRender(qwik.qrl(()=>import("./h_test_app_onrender")
+    return qwik.qrl(()=>import("./h_test_app_onrender")
     , "App_onRender", [
         STEP_2,
         props,
         state,
         thing
-    ]));
+    ]);
 };
 
 /*

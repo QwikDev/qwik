@@ -1,38 +1,38 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 1017
+assertion_line: 888
 expression: output
 
 ---
 ==INPUT==
 
 
-import { qComponent$ as Component, onRender$, createStore, wrap, useEffect } from '@builder.io/qwik';
+import { component$ as Component, $ as onRender, createStore, wrap, useEffect } from '@builder.io/qwik';
 
 
 export const useMemo$ = (qrt) => {
     useEffect(qrt);
 };
 
-export const App = qComponent$((props) => {
+export const App = component$((props) => {
     const state = createStore({count: 0});
     useMemo$(() => {
         console.log(state.count);
     });
-    return onRender$(() => (
+    return $(() => (
         <div>{state.count}</div>
     ));
 });
 
 ============================= test.js ==
 
+import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 import * as qwik from "@builder.io/qwik";
-import { onRender } from "@builder.io/qwik";
 import { createStore, useEffect } from '@builder.io/qwik';
 export const useMemo$ = (qrt)=>{
     useEffect(qrt);
 };
-export const App = qComponent$((props)=>{
+export const App = component$((props)=>{
     const state = createStore({
         count: 0
     });
@@ -40,10 +40,10 @@ export const App = qComponent$((props)=>{
     , "App_useMemo", [
         state
     ]));
-    return onRender(qwik.qrl(()=>import("./h_test_app_onrender")
-    , "App_onRender", [
-        state
-    ]));
+    return $(()=>/*#__PURE__*/ _jsx("div", {
+            children: state.count
+        })
+    );
 });
 
 ============================= h_test_app_usememo.js (ENTRY POINT)==
@@ -60,26 +60,6 @@ export const App_useMemo = ()=>{
   "name": "App_useMemo",
   "entry": null,
   "canonicalFilename": "h_test_app_usememo",
-  "extension": "js"
-}
-*/
-============================= h_test_app_onrender.js (ENTRY POINT)==
-
-import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
-import * as qwik from "@builder.io/qwik";
-export const App_onRender = ()=>{
-    const [state] = qwik.useLexicalScope();
-    return(/*#__PURE__*/ _jsx("div", {
-        children: state.count
-    }));
-};
-
-/*
-{
-  "origin": "test.tsx",
-  "name": "App_onRender",
-  "entry": null,
-  "canonicalFilename": "h_test_app_onrender",
   "extension": "js"
 }
 */

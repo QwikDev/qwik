@@ -249,7 +249,7 @@ export function $<T>(expression: T): QRL<T> {
  * For example all of these function call are equivalent:
  *
  * - `component$(() => {...})` is same as `onRender($(() => {...}))`
- * - `onRender$(() => <>...</>)` is same as `onRender($(() => <>...</>))`
+ * - `$(() => <>...</>)` is same as `onRender($(() => <>...</>))`
  *
  * ```typescript
  * export function myApi(callback: QRL<() => void>): void {

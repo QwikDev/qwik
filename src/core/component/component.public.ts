@@ -126,52 +126,6 @@ export function onDehydrate(dehydrateFn: QRL<() => void>): void {
 // </docs>
 export const onDehydrate$ = implicit$FirstArg(onDehydrate);
 
-// <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onRender">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onRender instead)
-/**
- * A lazy-loadable reference to a component's render hook.
- *
- * See: `component`
- *
- * @public
- *
- * ### Example
- *
- * ```typescript
- * const Counter = component$((props: { name: string }) => {
- *   return onRender$(() => <div>{props.name}</div>);
- * });
- * ```
- *
- * @public
- */
-// </docs>
-export function onRender<T>(renderFn: QRL<() => JSXNode<T>>): QRL<() => JSXNode<T>> {
-  return toQrlOrError(renderFn);
-}
-
-// <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onRender">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onRender instead)
-/**
- * A lazy-loadable reference to a component's render hook.
- *
- * See: `component`
- *
- * @public
- *
- * ### Example
- *
- * ```typescript
- * const Counter = component$((props: { name: string }) => {
- *   return onRender$(() => <div>{props.name}</div>);
- * });
- * ```
- *
- * @public
- */
-// </docs>
-export const onRender$ = implicit$FirstArg(onRender);
-
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#on">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#on instead)
 /**
@@ -264,7 +218,7 @@ export const withScopedStyles$ = implicit$FirstArg(withScopedStyles);
  *
  * ```typescript
  * export const OtherComponent = component$(() => {
- *   return onRender$(() => <Counter value={100} />);
+ *   return $(() => <Counter value={100} />);
  * });
  * ```
  *
@@ -301,7 +255,7 @@ export interface ComponentOptions {
  * implementation of the component to be eagerly loaded. A minimum Qwik definition consists of:
  *
  * - Component `onMount` method, which needs to return an
- * - `onRender` closure which constructs the component's JSX.
+ * - `$` closure which constructs the component's JSX.
  *
  * ### Example:
  *
@@ -310,7 +264,7 @@ export interface ComponentOptions {
  * ```typescript
  * export const Counter = component$((props: { value?: number; step?: number }) => {
  *   const state = createStore({ count: props.value || 0 });
- *   return onRender$(() => (
+ *   return $(() => (
  *     <div>
  *       <span>{state.count}</span>
  *       <button on$:click={() => (state.count += props.step || 1)}>+</button>
@@ -330,11 +284,11 @@ export interface ComponentOptions {
  *
  * ```typescript
  * export const OtherComponent = component$(() => {
- *   return onRender$(() => <Counter value={100} />);
+ *   return $(() => <Counter value={100} />);
  * });
  * ```
  *
- * See also: `component`, `onRender`, `onUnmount`, `onHydrate`, `onDehydrate`, `onHalt`,
+ * See also: `component`, `onUnmount`, `onHydrate`, `onDehydrate`, `onHalt`,
  * `onResume`, `on`, `onDocument`, `onWindow`, `withStyles`, `withScopedStyles`
  *
  * @param onMount - Initialization closure used when the component is first created.
@@ -398,7 +352,7 @@ export function component<PROPS extends {}>(
  * ```typescript
  * export const Counter = component$((props: { value?: number; step?: number }) => {
  *   const state = createStore({ count: props.value || 0 });
- *   return onRender$(() => (
+ *   return $(() => (
  *     <div>
  *       <span>{state.count}</span>
  *       <button on$:click={() => (state.count += props.step || 1)}>+</button>
@@ -418,7 +372,7 @@ export function component<PROPS extends {}>(
  *
  * ```typescript
  * export const OtherComponent = component$(() => {
- *   return onRender$(() => <Counter value={100} />);
+ *   return $(() => <Counter value={100} />);
  * });
  * ```
  *
@@ -442,7 +396,9 @@ export function component$<PROPS extends {}>(
 /**
  * @public
  */
-export type OnMountFn<PROPS> = (props: PROPS) => ValueOrPromise<ReturnType<typeof onRender>>;
+export type OnMountFn<PROPS> = (
+  props: PROPS
+) => ValueOrPromise<QRL<() => ValueOrPromise<JSXNode<any>>>>;
 
 function resolveQrl<PROPS extends {}>(
   hostElement: Element,

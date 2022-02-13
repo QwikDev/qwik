@@ -396,7 +396,9 @@ export function component$<PROPS extends {}>(
 /**
  * @public
  */
-export type OnMountFn<PROPS> = (props: PROPS) => ValueOrPromise<QRL<() => ValueOrPromise<JSXNode<any>>>>;
+export type OnMountFn<PROPS> = (
+  props: PROPS
+) => ValueOrPromise<QRL<() => ValueOrPromise<JSXNode<any>>>>;
 
 function resolveQrl<PROPS extends {}>(
   hostElement: Element,

@@ -1,14 +1,17 @@
 import { component$, Host, withStyles$, $, createStore } from '@builder.io/qwik';
-import { getContents } from '../../utils/get-content';
-
 import styles from './sidebar.css';
 
+interface SidebarProps {
+  items: any[];
+}
+
 export const SideBar = component$(
-  () => {
+  (props: SidebarProps) => {
     withStyles$(styles);
 
     const state = createStore({
-      docs: Object.keys(getContents()),
+      // docs: Object.keys(getContents()),
+      docs: [],
     });
 
     return $(() => (

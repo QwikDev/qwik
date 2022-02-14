@@ -11,15 +11,15 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "incremental": true,
-    "baseUrl": "../../",
+    "baseUrl": ".",
     "paths": {
-      "@builder.io/qwik": ["src/core/index"],
-      "@builder.io/qwik/jsx-runtime": ["src/jsx-runtime"],
-      "@builder.io/qwik/optimizer": ["src/optimizer/src/index"],
-      "@builder.io/qwik/server": ["src/server/index"],
-      "@builder.io/qwik/testing": ["src/testing/index"]
+      "@builder.io/qwik": ["../../src/core/index"],
+      "@builder.io/qwik/jsx-runtime": ["../../src/jsx-runtime"],
+      "@builder.io/qwik/optimizer": ["../../src/optimizer/src/index"],
+      "@builder.io/qwik/server": ["../../src/server/index"],
+      "@builder.io/qwik/testing": ["../../src/testing/index"]
     },
-    "types": ["vite/client", "@types/mdx", "@cloudflare/workers-types"]
+    "types": ["vite/client", "@types/mdx", "@cloudflare/workers-types", "./quest"]
   },
-  "include": ["src", "functions"]
+  "include": ["src", "functions", "quest"]
 }

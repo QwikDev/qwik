@@ -20,7 +20,7 @@ export const Item = component$(
     return $(() => {
       return (
         <Host class={{ completed: props.item.completed, editing: state.editing }}>
-          <div class="view">
+          <div class="top-4">
             <input
               class="toggle"
               type="checkbox"

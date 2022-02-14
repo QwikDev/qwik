@@ -9,6 +9,7 @@ import {
   TransformModule,
   HookAnalysis,
   Diagnostic,
+  GlobalInjections,
 } from '..';
 
 import type { NormalizedOutputOptions, PluginContext, RollupError } from 'rollup';
@@ -48,6 +49,7 @@ export function qwikVite(opts: QwikViteOptions): any {
                 const symbols = {
                   version: '1',
                   mapping: {} as Record<string, string>,
+                  injections: [] as GlobalInjections[]
                 };
 
                 Array.from(server.moduleGraph.fileToModulesMap.entries()).forEach((entry) => {
@@ -58,8 +60,23 @@ export function qwikVite(opts: QwikViteOptions): any {
                     }
                   });
                 });
-
                 plugin.log(`handleSSR()`, 'symbols', symbols);
+
+                const mod = await server.moduleGraph.getModuleByUrl('/src/main.tsx');
+                if (mod) {
+                  mod.importedModules.forEach((value) => {
+                    if (value.url.endsWith('.css')) {
+                      symbols.injections.push({
+                        tag: 'link',
+                        location: 'head',
+                        attributes: {
+                          rel: 'stylesheet',
+                          href: value.url,
+                        }
+                      });
+                    }
+                  })
+                }
 
                 const host = req.headers.host ?? 'localhost';
                 const result = await render({
@@ -67,7 +84,6 @@ export function qwikVite(opts: QwikViteOptions): any {
                   debug: true,
                   symbols,
                 });
-
                 const html = await server.transformIndexHtml(url, result.html);
                 res.setHeader('Content-Type', 'text/html; charset=utf-8');
                 res.writeHead(200);
@@ -99,6 +115,7 @@ export function qwikRollup(opts: QwikPluginOptions): any {
   let isSSR = false;
   let outputCount = 0;
   let isBuild = true;
+  let injections: GlobalInjections[] = [];
   let entryStrategy: EntryStrategy = {
     type: 'single' as const,
     ...opts.entryStrategy,
@@ -179,6 +196,22 @@ export function qwikRollup(opts: QwikPluginOptions): any {
       return inputOptions;
     },
 
+    transformIndexHtml(_, ctx) {
+      if (ctx.bundle) {
+        Object.entries(ctx.bundle).forEach(([key, value]) => {
+          if (value.type === 'asset' && key.endsWith('.css')) {
+            injections.push({
+              tag: 'link',
+              location: 'head',
+              attributes: {
+                rel: 'stylesheet',
+                href: `/${key}`,
+              }
+            });
+          }
+        });
+      }
+    },
     async buildStart() {
       if (!optimizer) {
         optimizer = await createOptimizer();
@@ -374,6 +407,7 @@ export function qwikRollup(opts: QwikPluginOptions): any {
         const outputEntryMap: OutputEntryMap = {
           mapping: {},
           version: '1',
+          injections
         };
 
         hooks.forEach((h) => {

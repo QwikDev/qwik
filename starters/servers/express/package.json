@@ -1,7 +1,9 @@
 {
   "description": "Express.js server.",
   "scripts": {
-    "serve": "node server/index.js"
+    "build.client": "vite build --outDir server/public",
+    "build.server": "vite build --outDir server/build --ssr src/entry.express.tsx",
+    "serve": "node server/build/entry.express.js"
   },
   "devDependencies": {
     "express": "4.17.2"

@@ -212,7 +212,7 @@ export interface ManualEntryStrategy {
  * @alpha
  */
 export interface OutputEntryMap {
-  version: '1';
+  version: string;
   mapping: { [canonicalName: string]: string };
 }
 

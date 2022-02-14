@@ -19,7 +19,7 @@
       "@builder.io/qwik/server": ["src/server/index"],
       "@builder.io/qwik/testing": ["src/testing/index"]
     },
-    "types": ["vite/client", "@types/mdx"]
+    "types": ["vite/client", "@types/mdx", "@cloudflare/workers-types"]
   },
-  "include": ["src"]
+  "include": ["src", "functions"]
 }

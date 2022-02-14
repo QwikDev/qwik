@@ -1,4 +1,4 @@
-import { dehydrate, render } from '@builder.io/qwik';
+import { dehydrate, FunctionComponent, JSXNode, render } from '@builder.io/qwik';
 import qwikDom from '@builder.io/qwik-dom';
 import { setServerPlatform } from './platform';
 import { serializeDocument } from './serialize';
@@ -66,7 +66,7 @@ export function createDocument(opts?: DocumentOptions) {
  */
 export async function renderToDocument(
   doc: Document,
-  rootNode: any,
+  rootNode: JSXNode<unknown> | FunctionComponent<any>,
   opts: RenderToDocumentOptions
 ) {
   if (!doc || doc.nodeType !== 9) {

@@ -116,7 +116,7 @@ export interface OutputEntryMap {
         [canonicalName: string]: string;
     };
     // (undocumented)
-    version: '1';
+    version: string;
 }
 
 // @alpha (undocumented)

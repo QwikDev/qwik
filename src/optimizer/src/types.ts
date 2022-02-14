@@ -213,7 +213,7 @@ export interface ManualEntryStrategy {
  */
 export interface OutputEntryMap {
   version: string;
-  injections?: GlobalInjections[],
+  injections?: GlobalInjections[];
   mapping: { [canonicalName: string]: string };
 }
 
@@ -222,11 +222,10 @@ export interface OutputEntryMap {
  */
 export interface GlobalInjections {
   tag: string;
-  attributes?: {[key: string]: string};
+  attributes?: { [key: string]: string };
   location: 'head' | 'body';
   children?: string;
 }
-
 
 // PATH UTIL  ***************
 

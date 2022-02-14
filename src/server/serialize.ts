@@ -21,13 +21,13 @@ export function serializeDocument(doc: Document, opts?: SerializeDocumentOptions
         const el = doc.createElement(injection.tag);
         if (injection.attributes) {
           Object.entries(injection.attributes).forEach(([attr, value]) => {
-            el.setAttribute(attr, value)
+            el.setAttribute(attr, value);
           });
         }
         if (injection.children) {
           el.textContent = injection.children;
         }
-        const parent = (injection.location === 'head') ? doc.head : doc.body;
+        const parent = injection.location === 'head' ? doc.head : doc.body;
         parent.appendChild(el);
       }
     }

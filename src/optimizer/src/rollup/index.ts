@@ -49,7 +49,7 @@ export function qwikVite(opts: QwikViteOptions): any {
                 const symbols = {
                   version: '1',
                   mapping: {} as Record<string, string>,
-                  injections: [] as GlobalInjections[]
+                  injections: [] as GlobalInjections[],
                 };
 
                 Array.from(server.moduleGraph.fileToModulesMap.entries()).forEach((entry) => {
@@ -72,10 +72,10 @@ export function qwikVite(opts: QwikViteOptions): any {
                         attributes: {
                           rel: 'stylesheet',
                           href: value.url,
-                        }
+                        },
                       });
                     }
-                  })
+                  });
                 }
 
                 const host = req.headers.host ?? 'localhost';
@@ -110,12 +110,12 @@ export function qwikRollup(opts: QwikPluginOptions): any {
   const ID = `${Math.round(Math.random() * 8999) + 1000}`;
   const debug = !!opts.debug;
   const results = new Map<string, TransformOutput>();
+  const injections: GlobalInjections[] = [];
   const transformedOutputs = new Map<string, [TransformModule, string]>();
   let optimizer: Optimizer;
   let isSSR = false;
   let outputCount = 0;
   let isBuild = true;
-  let injections: GlobalInjections[] = [];
   let entryStrategy: EntryStrategy = {
     type: 'single' as const,
     ...opts.entryStrategy,
@@ -206,7 +206,7 @@ export function qwikRollup(opts: QwikPluginOptions): any {
               attributes: {
                 rel: 'stylesheet',
                 href: `/${key}`,
-              }
+              },
             });
           }
         });
@@ -407,7 +407,7 @@ export function qwikRollup(opts: QwikPluginOptions): any {
         const outputEntryMap: OutputEntryMap = {
           mapping: {},
           version: '1',
-          injections
+          injections,
         };
 
         hooks.forEach((h) => {

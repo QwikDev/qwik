@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 import express from 'express';
 import { join } from 'path';
 import { existsSync } from 'fs';
@@ -23,9 +25,11 @@ export const qwikMiddleware: RequestHandler = async (req, res) => {
 async function startServer() {
   const app = express();
   const publicDir = join(__dirname, '..', 'public');
-  app.use(express.static(publicDir, {
-    index: false,
-  }));
+  app.use(
+    express.static(publicDir, {
+      index: false,
+    })
+  );
 
   // Optionally server Partytown if found.
   const partytownDir = join(

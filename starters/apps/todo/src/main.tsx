@@ -1,4 +1,4 @@
-import { component$, $, withStyles$ } from '@builder.io/qwik';
+import { component$, $ } from '@builder.io/qwik';
 import { Footer } from './components/footer/footer';
 import { Header } from './components/header/header';
 import { Main } from './components/main/main';

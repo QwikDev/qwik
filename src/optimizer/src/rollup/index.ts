@@ -23,6 +23,8 @@ export function qwikVite(opts: QwikViteOptions): any {
   const plugin = qwikRollup(opts);
   if (opts.ssr !== false) {
     const entry = opts.ssr?.entry ?? '/src/entry.server.tsx';
+    const main = opts.ssr?.main ?? '/src/main.tsx';
+
     Object.assign(plugin, {
       handleHotUpdate(ctx: HmrContext) {
         plugin.log('handleHotUpdate()', ctx);
@@ -62,7 +64,7 @@ export function qwikVite(opts: QwikViteOptions): any {
                 });
                 plugin.log(`handleSSR()`, 'symbols', symbols);
 
-                const mod = await server.moduleGraph.getModuleByUrl('/src/main.tsx');
+                const mod = await server.moduleGraph.getModuleByUrl(main);
                 if (mod) {
                   mod.importedModules.forEach((value) => {
                     if (value.url.endsWith('.css')) {
@@ -503,4 +505,7 @@ export interface QwikViteOptions extends QwikPluginOptions {
 export interface QwikViteSSROptions {
   /** Defaults to `/src/entry.server.tsx` */
   entry?: string;
+
+  /** Defaults to `/src/main.tsx` */
+  main?: string;
 }

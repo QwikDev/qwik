@@ -1,6 +1,6 @@
 import { $, component$, createStore } from '@builder.io/qwik';
 
-import './main.css';
+import './global.css';
 
 export const App = component$(() => {
   const store1 = createStore({ count: 1 });

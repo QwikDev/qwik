@@ -213,8 +213,8 @@ export interface ManualEntryStrategy {
  */
 export interface OutputEntryMap {
   version: string;
-  injections?: GlobalInjections[];
   mapping: { [canonicalName: string]: string };
+  injections?: GlobalInjections[];
 }
 
 /**

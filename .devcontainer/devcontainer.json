@@ -20,6 +20,9 @@
     "bradlc.vscode-tailwindcss",
     "manucorporat.vermoji",
     "ms-azuretools.vscode-docker",
-    "mitsuhiko.insta"
-  ]
+    "mitsuhiko.insta",
+    "silvenon.mdx",
+    "csstools.postcss"
+  ],
+  "postStartCommand": "yarn install"
 }

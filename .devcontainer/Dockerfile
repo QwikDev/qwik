@@ -3,10 +3,8 @@ FROM node:16.12.0-buster
 ENV RUSTUP_HOME=/usr/local/rustup \
     CARGO_HOME=/usr/local/cargo \
     PATH=/usr/local/cargo/bin:$PATH \
-    RUST_VERSION=1.58.1 \
-    YARN_VERSION=1.22.17
+    RUST_VERSION=1.58.1
 
-RUN npm install "yarn@$RUSTUP_HOME"
 
 RUN set -eux; \
     dpkgArch="$(dpkg --print-architecture)"; \
@@ -26,9 +24,8 @@ RUN set -eux; \
     chmod -R a+w $RUSTUP_HOME $CARGO_HOME; \
     rustup --version; \
     cargo --version; \
-    rustc --version;
-
-RUN rustup update \
-    rustup target add wasm32-unknown-unknown \
-    cargo install cargo-insta \
-    rustup component add clippy
+    rustc --version; \
+    rustup update; \
+    rustup target add wasm32-unknown-unknown; \
+    cargo install cargo-insta; \
+    rustup component add clippy;

@@ -606,7 +606,6 @@ impl<'a> Fold for QwikTransform<'a> {
     }
 
     fn fold_return_stmt(&mut self, node: ast::ReturnStmt) -> ast::ReturnStmt {
-        println!("{:?}", self.position_ctxt.as_slice());
         let component_return = matches!(
             self.position_ctxt.as_slice(),
             [

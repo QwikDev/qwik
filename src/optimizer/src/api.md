@@ -48,6 +48,20 @@ export type DiagnosticType = 'Error' | 'Warning' | 'SourceError';
 export type EntryStrategy = SingleEntryStrategy | HookEntryStrategy | ComponentEntryStrategy | SmartEntryStrategy | ManualEntryStrategy;
 
 // @alpha (undocumented)
+export interface GlobalInjections {
+    // (undocumented)
+    attributes?: {
+        [key: string]: string;
+    };
+    // (undocumented)
+    children?: string;
+    // (undocumented)
+    location: 'head' | 'body';
+    // (undocumented)
+    tag: string;
+}
+
+// @alpha (undocumented)
 export interface HookAnalysis {
     // (undocumented)
     canonicalFilename: string;
@@ -96,11 +110,13 @@ export interface Optimizer {
 // @alpha (undocumented)
 export interface OutputEntryMap {
     // (undocumented)
+    injections?: GlobalInjections[];
+    // (undocumented)
     mapping: {
         [canonicalName: string]: string;
     };
     // (undocumented)
-    version: '1';
+    version: string;
 }
 
 // @alpha (undocumented)
@@ -180,6 +196,7 @@ export interface QwikViteOptions extends QwikPluginOptions {
 // @alpha (undocumented)
 export interface QwikViteSSROptions {
     entry?: string;
+    main?: string;
 }
 
 // @alpha (undocumented)

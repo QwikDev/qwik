@@ -39,22 +39,30 @@ export { dehydrate } from './object/store.public';
 //////////////////////////////////////////////////////////////////////////////////////////
 // Internal Runtime
 //////////////////////////////////////////////////////////////////////////////////////////
-export { $, implicit$FirstArg, qrl, QRL, qrlImport } from './import/qrl.public';
-export { getProps, Props } from './props/props.public';
+export { $, implicit$FirstArg, qrl, qrlImport } from './import/qrl.public';
+export type { QRL } from './import/qrl.public';
+
+export { getProps } from './props/props.public';
+export type { Props } from './props/props.public';
+
 export { notifyRender } from './render/notify-render';
 //////////////////////////////////////////////////////////////////////////////////////////
 // PLATFORM
 //////////////////////////////////////////////////////////////////////////////////////////
 export { getPlatform, setPlatform } from './platform/platform';
-export { CorePlatform } from './platform/types';
+export type { CorePlatform } from './platform/types';
 //////////////////////////////////////////////////////////////////////////////////////////
 // Watch
 //////////////////////////////////////////////////////////////////////////////////////////
-export { onWatch$, onWatch, Observer } from './watch/watch.public';
+export { onWatch$, onWatch } from './watch/watch.public';
+export type { Observer } from './watch/watch.public';
+
 //////////////////////////////////////////////////////////////////////////////////////////
 // JSX Support
 //////////////////////////////////////////////////////////////////////////////////////////
-export { Async, PromiseValue } from './render/jsx/async.public';
+export { Async } from './render/jsx/async.public';
+export type { PromiseValue } from './render/jsx/async.public';
+
 //////////////////////////////////////////////////////////////////////////////////////////
 // JSX Runtime
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -62,7 +70,7 @@ export { h } from './render/jsx/factory';
 export { Host } from './render/jsx/host.public';
 export { Slot } from './render/jsx/slot.public';
 export { Fragment, jsx, jsxDEV, jsxs } from './render/jsx/jsx-runtime';
-export {
+export type {
   ComponentChild,
   ComponentChildren,
   FunctionComponent,
@@ -70,7 +78,7 @@ export {
   JSXNode,
   RenderableProps,
 } from './render/jsx/types/jsx-node';
-export { QwikDOMAttributes, QwikJSX } from './render/jsx/types/jsx-qwik';
+export type { QwikDOMAttributes, QwikJSX } from './render/jsx/types/jsx-qwik';
 export type { QwikIntrinsicElements } from './render/jsx/types/jsx-qwik-elements';
 export { render } from './render/render.public';
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -84,7 +92,7 @@ export { useTransient } from './use/use-transient.public';
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Low-Level API
 //////////////////////////////////////////////////////////////////////////////////////////
-export { ValueOrPromise } from './util/types';
+export type { ValueOrPromise } from './util/types';
 
 /**
  * @alpha

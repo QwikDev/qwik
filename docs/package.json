@@ -1,24 +1,23 @@
 {
-  "name": "qwik-docs-site",
+  "name": "qwik-site",
   "version": "0.0.0",
-  "description": "Qwik Docs Site.",
+  "description": "Qwik Site.",
   "scripts": {
     "build": "npm run build.client && npm run build.server",
     "build.client": "vite build",
     "build.server": "vite build --outDir server/build --ssr src/entry.cloudflare.tsx",
-    "deploy": "wrangler publish",
-    "deploy.dev": "wrangler dev",
-    "deploy.preview": "wrangler preview",
-    "dev": "vite",
+    "preview": "vite preview",
+    "dev": "npm run dev.client",
+    "dev.ssr": "vite",
+    "dev.client": "vite --mode clientonly",
     "fmt": "prettier --write .",
     "fmt.check": "prettier --check .",
     "start": "npm run dev",
-    "link.builder": "npm link @builder.io/qwik",
-    "preinstall": "npm run link.builder"
+    "link.builder": "npm link @builder.io/qwik"
   },
   "devDependencies": {
     "@builder.io/partytown": "^0.3.4",
-    "@builder.io/qwik": "0.0.16-12-dev20220212122734",
+    "@builder.io/qwik": "0.0.16",
     "@cloudflare/kv-asset-handler": "0.2.0",
     "@cloudflare/workers-types": "^3.2.0",
     "@cloudflare/wrangler": "1.19.7",

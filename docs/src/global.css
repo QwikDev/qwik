@@ -3,5 +3,5 @@
 @tailwind utilities;
 
 body {
-  background-color: red;
+  @apply bg-gray-900 text-slate-100 antialiased h-screen;
 }

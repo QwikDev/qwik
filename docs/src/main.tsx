@@ -1,27 +1,31 @@
-import { $, component$ } from '@builder.io/qwik';
+import { $, component$, useHostElement } from '@builder.io/qwik';
 import { Builder } from './layouts/builder/builder';
-import type { PageProps } from './types';
 import { getPage } from '@builder.io/qwest';
 
 import './global.css';
 
-export const App = component$((props: PageProps) => {
+export const Main = component$(() => {
   return $(async () => {
+    const host = useHostElement();
+    const doc = host.ownerDocument;
+    const url = new URL(doc.baseURI);
+
     const page = await getPage({
-      pathname: props.pathname,
+      pathname: url.pathname,
     });
 
     if (page) {
       const [Layout, Content] = await Promise.all([page.getLayout(), page.getContent()]);
+
       if (Layout && Content) {
         return (
-          <Layout pathname={props.pathname}>
+          <Layout pathname={url.pathname}>
             <Content />
           </Layout>
         );
       }
     }
 
-    return <Builder pathname={props.pathname} />;
+    return <Builder pathname={url.pathname} />;
   });
 });

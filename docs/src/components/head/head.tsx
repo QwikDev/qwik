@@ -1,13 +1,16 @@
 import { partytownSnippet } from '@builder.io/partytown/integration';
-import { PageProps } from '../../types';
 
-export const Head = (page: PageProps) => (
+interface HeadProps {
+  href: string;
+}
+
+export const Head = (props: HeadProps) => (
   <>
     <meta charSet="utf-8" />
 
     <title>Docs</title>
 
-    <link rel="canonical" href={getCanonical(page)} />
+    <link rel="canonical" href={getCanonical(props.href)} />
 
     <link rel="apple-touch-icon" sizes="180x180" href="/favicons/apple-touch-icon.png" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicons/favicon-32x32.png" />
@@ -28,12 +31,12 @@ export const Head = (page: PageProps) => (
   </>
 );
 
-const getCanonical = (page: PageProps) => {
-  const url = new URL(page.url);
+const getCanonical = (href: string) => {
+  const url = new URL(href);
   url.protocol = 'https:';
   url.hash = '';
   url.search = '';
-  let href = url.href;
+  href = url.href;
   if (url.pathname !== '/' && href.endsWith('/')) {
     href = href.substring(0, href.length - 2);
   }

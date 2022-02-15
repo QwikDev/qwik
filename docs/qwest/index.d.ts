@@ -8,7 +8,7 @@ export interface Page {
   title: string;
   getContent: () => Promise<Content | null>;
   getLayout: () => Promise<Layout | null>;
-  getAttributes: () => Promise<{ [attrName: string]: any }>;
+  getMetadata: () => Promise<{ [attrName: string]: any }>;
 }
 
 export type PageData = [
@@ -54,10 +54,6 @@ export interface PluginOptions {
   extensions?: string[];
 }
 
-export interface NormalizedPluginOptions extends PluginOptions {
-  extensions: string[];
-}
+export declare function getPage(opts: PageOptions): Promise<Page | null>;
 
-export type GetPage = (opts: PageOptions) => Promise<Page | null>;
-
-export type GetNavItems = (opts: NavOptions | undefined) => Promise<NavItem[]>;
+export declare function getNavItems(opts: NavOptions | undefined): Promise<NavItem[]>;

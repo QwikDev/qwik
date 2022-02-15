@@ -28,10 +28,10 @@
   resolved "https://registry.yarnpkg.com/@builder.io/partytown/-/partytown-0.3.5.tgz#8c73916f7f0d1e7c9284175a183adb66308a8d2f"
   integrity sha512-2rMDvRZgD+ABAHJDHzT6bbiGyrnTL3V4zgC4qd0EpDUqsmTU2+4X+BMngHIHFDZlXAWi02CX8INgKvNSOSu52A==
 
-"@builder.io/qwik@0.0.16-12-dev20220212122734":
-  version "0.0.16-12-dev20220212122734"
-  resolved "https://registry.yarnpkg.com/@builder.io/qwik/-/qwik-0.0.16-12-dev20220212122734.tgz#b9d76296053d1519a2570a25ae532effee7dd024"
-  integrity sha512-c2lMe4PoSbP1rSgVDK5wFSjPgK2VNAxcE7lF8rT5bHinFDg2PPhKgsJQ8y+4YfPqj4ykDki+/KWgHva1Hn+E4A==
+"@builder.io/qwik@0.0.16":
+  version "0.0.16"
+  resolved "https://registry.yarnpkg.com/@builder.io/qwik/-/qwik-0.0.16.tgz#473653e0c0c2a46376528753616481ddca03284c"
+  integrity sha512-beZ9kA44zBry2cxLAXGsrgN0ollAVE3mtTUX2XPsfeRALRUwbtYXdcP6Isva/zv+rtNcbK01yTQ0C8DQAqXyiw==
 
 "@cloudflare/kv-asset-handler@0.2.0":
   version "0.2.0"
@@ -40,10 +40,10 @@
   dependencies:
     mime "^3.0.0"
 
-"@cloudflare/workers-types@3.2.0":
-  version "3.2.0"
-  resolved "https://registry.yarnpkg.com/@cloudflare/workers-types/-/workers-types-3.2.0.tgz#df300466f5f8a03b205bdd533990017b0538496e"
-  integrity sha512-y0+f7QeB5/fMMdU0wSwvBB18yE9kAD2s7Wben8a4uI4f/EJyE+eJrai5QO52Pq8EmWP0vRpKqZh0qU857WhY2A==
+"@cloudflare/workers-types@^3.2.0":
+  version "3.4.0"
+  resolved "https://registry.yarnpkg.com/@cloudflare/workers-types/-/workers-types-3.4.0.tgz#80311e14df2f7f8c2cfcdce945b4f4ad8f9b03b1"
+  integrity sha512-i/3czUrt6YqbOWl44OtIqd0cSZvEVXp/1oD/DZylC4PHZL3q/BhbamdEVeVhc/HPk4iD/7MZ2HGaIMO4Z4b12A==
 
 "@cloudflare/wrangler@1.19.7":
   version "1.19.7"

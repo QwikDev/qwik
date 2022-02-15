@@ -4,7 +4,7 @@ import { writeFile, mkdir } from 'fs/promises';
 import { dirname, resolve, join } from 'path';
 import { qwest } from './qwest/plugin';
 
-export default defineConfig(async () => {
+export default defineConfig(async ({ mode }) => {
   const { default: mdx } = await import('@mdx-js/rollup');
   const { default: remarkFrontmatter } = await import('remark-frontmatter');
   const { default: remarkGfm } = await import('remark-gfm');
@@ -24,6 +24,8 @@ export default defineConfig(async () => {
     },
     plugins: [
       qwikVite({
+        // On `clientonly` mode, lets disable SSR in development, so app is fully client bootstrapped
+        ssr: mode === 'clientonly' ? false : undefined,
         srcDir: resolve('./src'),
         entryStrategy: {
           type: 'single',
@@ -33,11 +35,11 @@ export default defineConfig(async () => {
         },
       }),
       mdx({
-        jsxImportSource: getQwik(),
+        jsxImportSource: '@builder.io/qwik',
         remarkPlugins: [remarkGfm, remarkFrontmatter, remarkMdxFrontmatter],
       }),
       qwest({
-        pagesDir: resolve('../'),
+        pagesDir: resolve('./pages'),
         layouts: {
           tutorial: resolve('./src/layouts/tutorial/tutorial.tsx'),
           default: resolve('./src/layouts/docs/docs.tsx'),
@@ -50,11 +52,4 @@ export default defineConfig(async () => {
 async function outputJSON(path, data) {
   await mkdir(dirname(path), { recursive: true });
   await writeFile(path, JSON.stringify(data, null, 2));
-}
-
-function getQwik() {
-  if (!process.env.CI) {
-    return join(__dirname, '..', '..', 'dist-dev', '@builder.io-qwik');
-  }
-  return '@builder.io/qwik';
 }

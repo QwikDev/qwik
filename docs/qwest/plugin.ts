@@ -1,38 +1,37 @@
 import { readdir, stat, readFile } from 'fs/promises';
 import { isAbsolute, join, extname, basename, dirname } from 'path';
+import type { PluginOptions } from './index';
+import type { ModuleNode, ModuleGraph, Plugin, ViteDevServer } from 'vite';
 import frontmatter from 'front-matter';
-import type { PluginOptions, NormalizedPluginOptions } from './types';
-import type { Plugin, ViteDevServer } from 'vite';
 import slugify from 'slugify';
-import { ModuleNode } from 'vite';
-import { ModuleGraph } from 'vite';
 
 export function qwest(options: PluginOptions) {
   const opts = normalizeOptions(options);
-  let qwestCode: string | null = null;
-  let server: ViteDevServer | undefined;
+  let viteDevServer: ViteDevServer | undefined;
   let hasValidatedOpts = false;
+  let qwestBuildCode: string | null = null;
 
   const plugin: Plugin = {
-    name: 'qwest-plugin',
+    name: 'vite-plugin-qwest',
 
-    configureServer(viteServer) {
-      server = viteServer;
+    configureServer(server) {
+      viteDevServer = server;
     },
 
     handleHotUpdate(ctx) {
       const changedFile = ctx.file;
-      if (server && typeof changedFile === 'string') {
-        const moduleGraph = server.moduleGraph;
+      if (viteDevServer && typeof changedFile === 'string') {
+        const moduleGraph = viteDevServer.moduleGraph;
         const qwestMod = moduleGraph.getModuleById(RESOLVED_QWEST_ID);
         if (isMarkdownFile(opts, changedFile) || isQuestModuleDependency(qwestMod, changedFile)) {
+          qwestBuildCode = null;
           invalidateModule(moduleGraph, qwestMod);
         }
       }
     },
 
     async buildStart() {
-      qwestCode = null;
+      qwestBuildCode = null;
       if (!hasValidatedOpts) {
         const err = await validatePlugin(opts);
         if (err) {
@@ -44,7 +43,7 @@ export function qwest(options: PluginOptions) {
     },
 
     resolveId(id) {
-      if (QWEST_ID === id) {
+      if (id === QWEST_ID) {
         return RESOLVED_QWEST_ID;
       }
       return null;
@@ -52,26 +51,146 @@ export function qwest(options: PluginOptions) {
 
     async load(id) {
       if (id === RESOLVED_QWEST_ID) {
-        if (qwestCode == null) {
-          const pages = await getPages(opts, opts.pagesDir, []);
-          const pagesSet = new Set(pages.map((p) => p.filePath));
-          pages.forEach((p) => {
-            this.addWatchFile(p.filePath);
-          });
-          qwestCode = loadQwest(opts, pages);
-
-          if (server) {
-            const mod = server.moduleGraph.getModuleById(id);
-            server.moduleGraph.updateModuleInfo(mod!, pagesSet, pagesSet, true);
-          }
+        // @builder.io/qwest
+        if (typeof qwestBuildCode === 'string') {
+          return qwestBuildCode;
         }
-        return qwestCode;
+
+        const pages = await loadPages(opts, opts.pagesDir, []);
+        pages.forEach((p) => {
+          this.addWatchFile(p.filePath);
+
+          if (!viteDevServer) {
+            // rollup build only
+            this.emitFile({
+              type: 'chunk',
+              id: p.filePath,
+              fileName: `pages${p.pathname}.js`,
+              preserveSignature: 'allow-extension',
+            });
+          }
+        });
+
+        if (viteDevServer) {
+          qwestBuildCode = createDevCode(opts, pages);
+        } else {
+          qwestBuildCode = createProdCode(opts);
+        }
+
+        return qwestBuildCode;
       }
+
       return null;
     },
   };
 
   return plugin as any;
+}
+
+function createDevCode(opts: NormalizedPluginOptions, pages: ParsedPage[]) {
+  const c = [];
+
+  c.push(...createLayoutsCode(opts));
+
+  c.push(`const PAGES = {`);
+  for (const p of pages) {
+    c.push(`  ${JSON.stringify(p.pathname)}: () => import(${JSON.stringify(p.filePath)}),`);
+  }
+  c.push(`};`);
+
+  c.push(`export const getPage = async (opts) => {`);
+  c.push(`  const pageImporter = PAGES[opts.pathname];`);
+  c.push(`  if (!pageImporter) {`);
+  c.push(`    return null;`);
+  c.push(`  }`);
+  c.push(`  const mod = await pageImporter();`);
+  c.push(`  if (!mod.default) {`);
+  c.push(`    return null;`);
+  c.push(`  }`);
+  c.push(`  const layoutImporter = LAYOUTS[mod.layout] || LAYOUTS.default;`);
+  c.push(`  const page = {`);
+  c.push(`    getContent: () => Promise.resolve(mod.default),`);
+  c.push(`    getLayout: async () => (await layoutImporter()).default,`);
+  c.push(`    getMetadata: () => Promise.resolve({})`);
+  c.push(`  };`);
+  c.push(`  return page;`);
+  c.push(`};`);
+
+  c.push(`export const getNavItems = (opts) => [];`);
+
+  const code = c.join('\n');
+
+  return code;
+}
+
+function createProdCode(opts: NormalizedPluginOptions) {
+  const c = [];
+
+  c.push(...createLayoutsCode(opts));
+
+  c.push(`export const getPage = async (opts) => {`);
+  c.push(`  const pagePath = "/pages" + opts.pathname + '.js'`);
+  c.push(`  const mod = await import(pagePath);`);
+  c.push(`  if (!mod.default) {`);
+  c.push(`    return null;`);
+  c.push(`  }`);
+  c.push(`  const layoutImporter = LAYOUTS[mod.layout] || LAYOUTS.default;`);
+  c.push(`  const page = {`);
+  c.push(`    getContent: () => Promise.resolve(mod.default),`);
+  c.push(`    getLayout: async () => (await layoutImporter()).default,`);
+  c.push(`    getMetadata: () => Promise.resolve({})`);
+  c.push(`  };`);
+  c.push(`  return page;`);
+  c.push(`};`);
+
+  c.push(`export const getNavItems = (opts) => [];`);
+
+  const code = c.join('\n');
+
+  return code;
+}
+
+function createLayoutsCode(opts: NormalizedPluginOptions) {
+  const c: string[] = [];
+  c.push(`const LAYOUTS = {`);
+  Object.entries(opts.layouts).forEach(([layoutName, layoutPath]) => {
+    let importPath = layoutPath;
+    if (importPath.endsWith('.tsx') || importPath.endsWith('.jsx')) {
+      importPath = importPath.substring(0, importPath.length - 4);
+    } else if (importPath.endsWith('.ts') || importPath.endsWith('.js')) {
+      importPath = importPath.substring(0, importPath.length - 3);
+    }
+
+    c.push(`  ${JSON.stringify(layoutName)}: () => import(${JSON.stringify(importPath)}),`);
+  });
+  c.push(`};`);
+  return c;
+}
+
+async function loadPages(opts: NormalizedPluginOptions, dir: string, pages: ParsedPage[]) {
+  const items = await readdir(dir);
+
+  await Promise.all(
+    items.map(async (itemName) => {
+      if (!IGNORE_NAMES[itemName]) {
+        const itemPath = join(dir, itemName);
+        const ext = extname(itemName);
+
+        if (isMarkdownFile(opts, itemName)) {
+          const page = await parsePage(opts, itemPath);
+          if (page) {
+            pages.push(page);
+          }
+        } else if (!IGNORE_EXT[ext]) {
+          const s = await stat(itemPath);
+          if (s.isDirectory()) {
+            await loadPages(opts, itemPath, pages);
+          }
+        }
+      }
+    })
+  );
+  return pages;
 }
 
 function invalidateModule(moduleGraph: ModuleGraph, qwestMod: ModuleNode | undefined) {
@@ -101,31 +220,6 @@ function isQuestModuleDependency(qwestMod: ModuleNode | undefined, changedFile: 
   };
   checkDep(qwestMod);
   return isDep;
-}
-
-async function getPages(opts: NormalizedPluginOptions, dir: string, pages: ParsedPage[]) {
-  const items = await readdir(dir);
-  await Promise.all(
-    items.map(async (itemName) => {
-      if (!IGNORE_NAMES[itemName]) {
-        const itemPath = join(dir, itemName);
-        const ext = extname(itemName);
-
-        if (isMarkdownFile(opts, itemName)) {
-          const page = await parsePage(opts, itemPath);
-          if (page) {
-            pages.push(page);
-          }
-        } else if (!IGNORE_EXT[ext]) {
-          const s = await stat(itemPath);
-          if (s.isDirectory()) {
-            await getPages(opts, itemPath, pages);
-          }
-        }
-      }
-    })
-  );
-  return pages;
 }
 
 async function parsePage(opts: NormalizedPluginOptions, filePath: string) {
@@ -224,55 +318,15 @@ function getFileName(filePath: string) {
   return basename(filePath);
 }
 
-function getLayoutVarName(layoutName: string) {
-  layoutName = slugify(layoutName, { replacement: '_' });
-  return `QUEST_LAYOUT_${layoutName}`;
-}
+// function getLayoutVarName(layoutName: string) {
+//   layoutName = slugify(layoutName, { replacement: '_' });
+//   return `QUEST_LAYOUT_${layoutName}`;
+// }
 
 function toTitleCase(str: string) {
   return str.replace(/\w\S*/g, function (txt: string) {
     return txt.charAt(0).toUpperCase() + txt.substring(1).toLowerCase();
   });
-}
-
-function loadQwest(opts: NormalizedPluginOptions, pages: ParsedPage[]) {
-  const c = [];
-
-  c.push(`import { getQuestPage, getQuestNavItems } from '${join(__dirname, 'util')}';`);
-
-  Object.entries(opts.layouts).forEach(([layoutName, layoutPath]) => {
-    let path = layoutPath;
-    if (path.endsWith('.tsx') || path.endsWith('.jsx')) {
-      path = path.substring(0, path.length - 4);
-    } else if (path.endsWith('.ts') || path.endsWith('.js')) {
-      path = path.substring(0, path.length - 3);
-    }
-    c.push(`const ${getLayoutVarName(layoutName)} = () => import(${JSON.stringify(path)});`);
-  });
-
-  c.push(`const QUEST_PAGES = [`);
-  for (const p of pages) {
-    c.push(`  [`);
-
-    c.push(`    ${JSON.stringify(p.id)},`);
-    c.push(`    ${JSON.stringify(p.pathname)},`);
-    c.push(`    ${JSON.stringify(p.title)},`);
-    c.push(`    () => import(${JSON.stringify(p.filePath)}),`);
-    c.push(`    ${getLayoutVarName(p.layout)}`);
-
-    c.push(`  ],`);
-  }
-  c.push(`];`);
-
-  c.push(`export const getPage = (opts) => getQuestPage(QUEST_PAGES, opts);`);
-
-  c.push(`export const getPages = async () => [...QUEST_PAGES];`);
-
-  c.push(`export const getNavItems = (opts) => getQuestNavItems(QUEST_PAGES, opts);`);
-
-  const code = c.join('\n');
-
-  return code;
 }
 
 function normalizeOptions(userOpts: PluginOptions) {
@@ -409,4 +463,8 @@ interface PageAttributes {
   layout?: string;
   pathname?: string;
   id?: string;
+}
+
+interface NormalizedPluginOptions extends PluginOptions {
+  extensions: string[];
 }

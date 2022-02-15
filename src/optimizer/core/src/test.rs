@@ -483,10 +483,10 @@ export const Foo = component$(() => {
 fn example_with_style() {
     test_input!(TestInput {
         code: r#"
-import { $, component$, withStyle$ } from '@builder.io/qwik';
+import { $, component$, useStyle$ } from '@builder.io/qwik';
 
 export const Foo = component$(() => {
-    withStyle$('.class {}');
+    useStyle$('.class {}');
     return $(() => {
         return (
             <div class="class"/>
@@ -568,13 +568,13 @@ export const App = component$(({count}) => {
 fn example_invalid_hook_expr1() {
     test_input!(TestInput {
         code: r#"
-import { $, component$, withStyle$ } from '@builder.io/qwik';
+import { $, component$, useStyle$ } from '@builder.io/qwik';
 import css1 from './global.css';
 import css2 from './style.css';
 
 export const App = component$(() => {
     const style = `${css1}${css2}`;
-    withStyle$(style);
+    useStyle$(style);
     const render = () => {
         return (
             <div></div>
@@ -593,14 +593,14 @@ export const App = component$(() => {
 fn example_capture_imports() {
     test_input!(TestInput {
         code: r#"
-import { component$, withStyle$ } from '@builder.io/qwik';
+import { component$, useStyle$ } from '@builder.io/qwik';
 import css1 from './global.css';
 import css2 from './style.css';
 import css3 from './style.css';
 
 export const App = component$(() => {
-    withStyle$(`${css1}${css2}`);
-    withStyle$(css3);
+    useStyle$(`${css1}${css2}`);
+    useStyle$(css3);
 })
 "#
         .to_string(),
@@ -815,12 +815,12 @@ export const Foo = component$(() => {
 fn example_qwik_conflict() {
     test_input!(TestInput {
         code: r#"
-import { $, component$, withStyle } from '@builder.io/qwik';
+import { $, component$, useStyle } from '@builder.io/qwik';
 
 const component = () => console.log('not this');
 component();
 export const Foo = component$(() => {
-    withStyle$('thing');
+    useStyle$('thing');
     const qwik = 12;
     console.log(qwik);
     return $(() => {
@@ -833,7 +833,7 @@ export const Foo = component$(() => {
 });
 
 export const Root = component$(() => {
-    withStyle($('thing'));
+    useStyle($('thing'));
     return $(() => {
         return (
             <div/>
@@ -919,7 +919,7 @@ import { component$ as Component, $ as onRender } from '@builder.io/qwik';
 export const handler = $(()=>console.log('hola'));
 
 export const App = component$((props) => {
-    withStyle$('hola');
+    useStyle$('hola');
     return $(() => (
         <div>{state.thing}</div>
     ));
@@ -935,10 +935,10 @@ export const App = component$((props) => {
 fn example_explicit_ext_transpile() {
     test_input!(TestInput {
         code: r#"
-import { component$, $, withStyle$ } from '@builder.io/qwik';
+import { component$, $, useStyle$ } from '@builder.io/qwik';
 
 export const App = component$((props) => {
-    withStyle$('hola');
+    useStyle$('hola');
     return $(() => (
         <div></div>
     ));
@@ -955,10 +955,10 @@ export const App = component$((props) => {
 fn example_explicit_ext_no_transpile() {
     test_input!(TestInput {
         code: r#"
-import { component$, $, withStyle$ } from '@builder.io/qwik';
+import { component$, $, useStyle$ } from '@builder.io/qwik';
 
 export const App = component$((props) => {
-    withStyle$('hola');
+    useStyle$('hola');
     return $(() => (
         <div></div>
     ));

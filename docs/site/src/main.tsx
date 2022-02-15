@@ -1,12 +1,11 @@
-import { $, component$, useStyles$ } from '@builder.io/qwik';
+import { $, component$ } from '@builder.io/qwik';
 import { Builder } from './layouts/builder/builder';
 import type { PageProps } from './types';
-import styles from './app.css';
 import { getPage } from '@builder.io/qwest';
 
-export const App = component$((props: PageProps) => {
-  useStyles$(styles);
+import './global.css';
 
+export const App = component$((props: PageProps) => {
   return $(async () => {
     const page = await getPage({
       pathname: props.pathname,

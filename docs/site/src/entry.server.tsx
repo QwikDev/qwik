@@ -1,5 +1,5 @@
 import { renderToString, RenderToStringOptions, QwikLoader } from '@builder.io/qwik/server';
-import { App } from './app';
+import { App } from './main';
 import { Head } from './components/head/head';
 import { PageProps } from './types';
 

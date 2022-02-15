@@ -3,6 +3,7 @@
 // @ts-ignore
 import { render } from './entry.server';
 
+// @ts-ignore
 import symbols from '../server/q-symbols.json';
 
 export const qwikSSR = async (req: any) => {

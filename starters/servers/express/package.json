@@ -6,6 +6,7 @@
     "serve": "node server/build/entry.express.js"
   },
   "devDependencies": {
+    "@types/express": "4.17.13",
     "express": "4.17.2"
   }
 }

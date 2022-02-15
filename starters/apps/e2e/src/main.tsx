@@ -1,9 +1,8 @@
-import { $, component$, createStore, withStyles$ } from '@builder.io/qwik';
-import styles from './app.css';
+import { $, component$, createStore } from '@builder.io/qwik';
+
+import './global.css';
 
 export const App = component$(() => {
-  withStyles$(styles);
-
   const store1 = createStore({ count: 1 });
   const store2 = createStore({ count: 1 });
   return $(() => (

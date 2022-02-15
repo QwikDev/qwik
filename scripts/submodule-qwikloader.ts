@@ -63,7 +63,7 @@ export async function submoduleQwikLoader(config: BuildConfig) {
           passes: 2,
         },
         format: {
-          comments: false,
+          comments: /@vite/,
         },
       }),
     ],

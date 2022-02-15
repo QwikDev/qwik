@@ -87,7 +87,8 @@ export const qwikLoader = (doc: Document, hasInitialized?: boolean | number) => 
         if (url) {
           const handler = getModuleExport(
             url,
-            (window as any)[url.pathname] || (await import(String(url).split('#')[0]))
+            (window as any)[url.pathname] ||
+              (await import(/* @vite-ignore */ String(url).split('#')[0]))
           );
           previousCtx = (document as any)[Q_CONTEXT];
           try {

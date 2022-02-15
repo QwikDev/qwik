@@ -1,21 +1,14 @@
-import { createStore, $, component$, useEvent, Host, withStyles$ } from '@builder.io/qwik';
-import styles from './app.css';
+import { createStore, $, component$, useEvent, Host } from '@builder.io/qwik';
+import { Logo } from './components/logo/logo';
+
+import './global.css';
 
 export const App = component$(() => {
-  withStyles$(styles);
-
   const state = createStore({ name: 'World' });
   return $(() => (
     <Host class="my-app">
-      <p style={{ 'text-align': 'center' }}>
-        <a href="https://github.com/builderio/qwik">
-          <img
-            alt="Qwik Logo"
-            width={400}
-            src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F667ab6c2283d4c4d878fb9083aacc10f"
-          />
-        </a>
-      </p>
+      <Logo />
+
       <p>Congratulations Qwik is working!</p>
 
       <p>Next steps:</p>

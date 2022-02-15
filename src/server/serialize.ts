@@ -14,12 +14,28 @@ export function serializeDocument(doc: Document, opts?: SerializeDocumentOptions
     throw new Error(`Invalid document to serialize`);
   }
 
-  let html = '<!DOCTYPE html>' + doc.documentElement.outerHTML;
-
   let symbols = opts?.symbols;
   if (typeof symbols === 'object' && symbols != null) {
+    if (symbols.injections) {
+      for (const injection of symbols.injections) {
+        const el = doc.createElement(injection.tag);
+        if (injection.attributes) {
+          Object.entries(injection.attributes).forEach(([attr, value]) => {
+            el.setAttribute(attr, value);
+          });
+        }
+        if (injection.children) {
+          el.textContent = injection.children;
+        }
+        const parent = injection.location === 'head' ? doc.head : doc.body;
+        parent.appendChild(el);
+      }
+    }
     symbols = createQrlMapper(symbols);
   }
+
+  let html = '<!DOCTYPE html>' + doc.documentElement.outerHTML;
+
   if (typeof symbols === 'function') {
     const qrlMapper = symbols;
     const extractOnAttrs = function (_: string, attr: string, eventName: string, value: string) {

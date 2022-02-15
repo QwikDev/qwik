@@ -1,4 +1,4 @@
-import { $, component$, Host, Slot, withStyles$ } from '@builder.io/qwik';
+import { $, component$, Host, Slot, useStyles$ } from '@builder.io/qwik';
 import { Header } from '../../components/header/header';
 import { Footer } from '../../components/footer/footer';
 import { SideBar } from '../../components/sidebar/sidebar';
@@ -10,7 +10,7 @@ export interface DocsProps {
 }
 
 const Docs = component$(() => {
-  withStyles$(styles);
+  useStyles$(styles);
 
   return $(async () => {
     const navItems = await getNavItems({

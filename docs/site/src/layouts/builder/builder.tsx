@@ -1,4 +1,4 @@
-import { $, component$, Host, withStyles$ } from '@builder.io/qwik';
+import { $, component$, Host, useStyles$ } from '@builder.io/qwik';
 import { Footer } from '../../components/footer/footer';
 import { Header } from '../../components/header/header';
 import styles from './builder.css';
@@ -8,7 +8,7 @@ interface BuilderProps {
 }
 
 export const Builder = component$((props: BuilderProps) => {
-  withStyles$(styles);
+  useStyles$(styles);
 
   return $(() => (
     <Host class="builder">

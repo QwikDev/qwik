@@ -1,19 +1,20 @@
 import { readdir, stat, readFile } from 'fs/promises';
 import { isAbsolute, join, extname, basename, dirname } from 'path';
 import frontmatter from 'front-matter';
-import type { QuestPluginOptions, NormalizedPluginOptions } from './types';
+import type { PluginOptions, NormalizedPluginOptions } from './types';
 import type { Plugin, ViteDevServer } from 'vite';
 import slugify from 'slugify';
 import { ModuleNode } from 'vite';
 import { ModuleGraph } from 'vite';
 
-export function quest(options: QuestPluginOptions) {
+export function qwest(options: PluginOptions) {
   const opts = normalizeOptions(options);
-  let questCode: string | null = null;
+  let qwestCode: string | null = null;
   let server: ViteDevServer | undefined;
+  let hasValidatedOpts = false;
 
   const plugin: Plugin = {
-    name: 'quest-plugin',
+    name: 'qwest-plugin',
 
     configureServer(viteServer) {
       server = viteServer;
@@ -23,53 +24,48 @@ export function quest(options: QuestPluginOptions) {
       const changedFile = ctx.file;
       if (server && typeof changedFile === 'string') {
         const moduleGraph = server.moduleGraph;
-        const questMod = moduleGraph.getModuleById(RESOLVED_QUEST_ID);
-        if (isMarkdownFile(opts, changedFile) || isQuestModuleDependency(questMod, changedFile)) {
-          invalidateQuestModule(moduleGraph, questMod);
+        const qwestMod = moduleGraph.getModuleById(RESOLVED_QWEST_ID);
+        if (isMarkdownFile(opts, changedFile) || isQuestModuleDependency(qwestMod, changedFile)) {
+          invalidateModule(moduleGraph, qwestMod);
         }
       }
     },
 
-    buildStart() {
-      questCode = null;
+    async buildStart() {
+      qwestCode = null;
+      if (!hasValidatedOpts) {
+        const err = await validatePlugin(opts);
+        if (err) {
+          this.error(err);
+        } else {
+          hasValidatedOpts = true;
+        }
+      }
     },
 
     resolveId(id) {
-      if (QUEST_ID === id) {
-        return RESOLVED_QUEST_ID;
+      if (QWEST_ID === id) {
+        return RESOLVED_QWEST_ID;
       }
       return null;
     },
 
     async load(id) {
-      if (id === RESOLVED_QUEST_ID) {
-        if (questCode == null) {
-          if (typeof opts.pagesDir !== 'string' || !isAbsolute(opts.pagesDir)) {
-            console.error('quest plugin "pagesDir" options must be an absolute path');
-            return null;
-          }
-          if (
-            !opts.layouts ||
-            typeof opts.layouts.default !== 'string' ||
-            !isAbsolute(opts.layouts.default)
-          ) {
-            console.error('quest plugin "layouts.default" option must be set to an absolute path');
-            return null;
-          }
-
+      if (id === RESOLVED_QWEST_ID) {
+        if (qwestCode == null) {
           const pages = await getPages(opts, opts.pagesDir, []);
           const pagesSet = new Set(pages.map((p) => p.filePath));
           pages.forEach((p) => {
             this.addWatchFile(p.filePath);
           });
-          questCode = loadQuest(opts, pages);
+          qwestCode = loadQwest(opts, pages);
 
           if (server) {
             const mod = server.moduleGraph.getModuleById(id);
             server.moduleGraph.updateModuleInfo(mod!, pagesSet, pagesSet, true);
           }
         }
-        return questCode;
+        return qwestCode;
       }
       return null;
     },
@@ -78,7 +74,7 @@ export function quest(options: QuestPluginOptions) {
   return plugin as any;
 }
 
-function invalidateQuestModule(moduleGraph: ModuleGraph, questMod: ModuleNode | undefined) {
+function invalidateModule(moduleGraph: ModuleGraph, qwestMod: ModuleNode | undefined) {
   const checkedFiles = new Set<string>();
   const invalidate = (mod: ModuleNode | undefined) => {
     if (mod && mod.file && !checkedFiles.has(mod.file)) {
@@ -87,10 +83,10 @@ function invalidateQuestModule(moduleGraph: ModuleGraph, questMod: ModuleNode | 
       mod.importedModules.forEach(invalidate);
     }
   };
-  invalidate(questMod);
+  invalidate(qwestMod);
 }
 
-function isQuestModuleDependency(questMod: ModuleNode | undefined, changedFile: string) {
+function isQuestModuleDependency(qwestMod: ModuleNode | undefined, changedFile: string) {
   const checkedFiles = new Set<string>();
   let isDep = false;
   const checkDep = (mod: ModuleNode | undefined) => {
@@ -103,7 +99,7 @@ function isQuestModuleDependency(questMod: ModuleNode | undefined, changedFile: 
       }
     }
   };
-  checkDep(questMod);
+  checkDep(qwestMod);
   return isDep;
 }
 
@@ -239,7 +235,7 @@ function toTitleCase(str: string) {
   });
 }
 
-function loadQuest(opts: NormalizedPluginOptions, pages: ParsedPage[]) {
+function loadQwest(opts: NormalizedPluginOptions, pages: ParsedPage[]) {
   const c = [];
 
   c.push(`import { getQuestPage, getQuestNavItems } from '${join(__dirname, 'util')}';`);
@@ -279,13 +275,59 @@ function loadQuest(opts: NormalizedPluginOptions, pages: ParsedPage[]) {
   return code;
 }
 
-function normalizeOptions(userOpts: QuestPluginOptions) {
+function normalizeOptions(userOpts: PluginOptions) {
   userOpts = { ...userOpts };
   const extensions = (Array.isArray(userOpts.extensions) ? userOpts.extensions : ['.md', '.mdx'])
     .filter((ext) => typeof ext === 'string')
     .map((ext) => ext.toLowerCase().trim());
   const opts: NormalizedPluginOptions = { ...userOpts, extensions };
   return opts;
+}
+
+async function validatePlugin(opts: NormalizedPluginOptions) {
+  if (typeof opts.pagesDir !== 'string') {
+    return `qwest plugin "pagesDir" option missing`;
+  }
+
+  if (!isAbsolute(opts.pagesDir)) {
+    return `qwest plugin "pagesDir" option must be an absolute path: ${opts.pagesDir}`;
+  }
+
+  try {
+    const s = await stat(opts.pagesDir);
+    if (!s.isDirectory()) {
+      return `qwest plugin "pagesDir" option must be a directory: ${opts.pagesDir}`;
+    }
+  } catch (e) {
+    return `qwest plugin "pagesDir" not found: ${e}`;
+  }
+
+  if (!opts.layouts) {
+    return `qwest plugin "layouts" option missing`;
+  }
+
+  if (typeof opts.layouts.default !== 'string') {
+    return `qwest plugin "layouts.default" option missing`;
+  }
+
+  if (!isAbsolute(opts.layouts.default)) {
+    return `qwest plugin "layouts.default" option must be set to an absolute path: ${opts.layouts.default}`;
+  }
+
+  const layoutNames = Object.keys(opts.layouts);
+  for (const layoutName of layoutNames) {
+    const layoutPath = opts.layouts[layoutName];
+    try {
+      const s = await stat(layoutPath);
+      if (!s.isFile()) {
+        return `qwest plugin layout "${layoutName}" must be a file: ${layoutPath}`;
+      }
+    } catch (e) {
+      return `qwest plugin layout "${layoutName}" not found: ${e}`;
+    }
+  }
+
+  return null;
 }
 
 function isMarkdownFile(opts: NormalizedPluginOptions, filePath: string) {
@@ -296,8 +338,8 @@ function isMarkdownFile(opts: NormalizedPluginOptions, filePath: string) {
   return false;
 }
 
-const QUEST_ID = '@quest';
-const RESOLVED_QUEST_ID = '\0' + QUEST_ID;
+const QWEST_ID = '@builder.io/qwest';
+const RESOLVED_QWEST_ID = '\0' + QWEST_ID;
 
 /** Known file extension we know are not directories so we can skip over them */
 const IGNORE_EXT: { [key: string]: boolean } = {

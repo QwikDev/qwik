@@ -17,9 +17,10 @@
       "@builder.io/qwik/jsx-runtime": ["../../src/jsx-runtime"],
       "@builder.io/qwik/optimizer": ["../../src/optimizer/src/index"],
       "@builder.io/qwik/server": ["../../src/server/index"],
-      "@builder.io/qwik/testing": ["../../src/testing/index"]
+      "@builder.io/qwik/testing": ["../../src/testing/index"],
+      "@builder.io/qwest": ["qwest/index"]
     },
-    "types": ["vite/client", "@types/mdx", "@cloudflare/workers-types", "./quest"]
+    "types": ["vite/client", "@types/mdx", "@cloudflare/workers-types"]
   },
-  "include": ["src", "functions", "quest"]
+  "include": ["src", "functions", "qwest"]
 }

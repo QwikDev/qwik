@@ -2,7 +2,7 @@ import { defineConfig } from 'vite';
 import { qwikVite } from '@builder.io/qwik/optimizer';
 import { writeFile, mkdir } from 'fs/promises';
 import { dirname, resolve, join } from 'path';
-import { quest } from './quest/plugin';
+import { qwest } from './qwest/plugin';
 
 export default defineConfig(async () => {
   const { default: mdx } = await import('@mdx-js/rollup');
@@ -36,10 +36,10 @@ export default defineConfig(async () => {
         jsxImportSource: getQwik(),
         remarkPlugins: [remarkGfm, remarkFrontmatter, remarkMdxFrontmatter],
       }),
-      quest({
+      qwest({
         pagesDir: resolve('../'),
         layouts: {
-          full: resolve('./src/layouts/full/full.tsx'),
+          tutorial: resolve('./src/layouts/tutorial/tutorial.tsx'),
           default: resolve('./src/layouts/docs/docs.tsx'),
         },
       }),

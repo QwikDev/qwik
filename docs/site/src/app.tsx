@@ -2,7 +2,7 @@ import { $, component$, withStyles$ } from '@builder.io/qwik';
 import { Builder } from './layouts/builder/builder';
 import type { PageProps } from './types';
 import styles from './app.css';
-import { getPage } from '@quest';
+import { getPage } from '@builder.io/qwest';
 
 export const App = component$((props: PageProps) => {
   withStyles$(styles);

@@ -42,7 +42,7 @@ export interface NavOptions {
   category?: string;
 }
 
-export interface QuestPluginOptions {
+export interface PluginOptions {
   layouts: {
     [layoutName: string]: string;
     default: string;
@@ -54,12 +54,10 @@ export interface QuestPluginOptions {
   extensions?: string[];
 }
 
-export interface NormalizedPluginOptions extends QuestPluginOptions {
+export interface NormalizedPluginOptions extends PluginOptions {
   extensions: string[];
 }
 
-export type getPage = (opts: PageOptions) => Promise<Page | null>;
+export type GetPage = (opts: PageOptions) => Promise<Page | null>;
 
-export type getPages = () => Promise<Page[]>;
-
-export type getNavItems = (opts: NavOptions | undefined) => Promise<NavItem[]>;
+export type GetNavItems = (opts: NavOptions | undefined) => Promise<NavItem[]>;

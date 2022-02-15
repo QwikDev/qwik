@@ -1,8 +1,8 @@
 import { defineConfig } from 'vite';
 import { qwikVite } from '@builder.io/qwik/optimizer';
 import { writeFile, mkdir } from 'fs/promises';
-import { dirname, resolve, join } from 'path';
-import { qwest } from './qwest/plugin';
+import { dirname, resolve } from 'path';
+import { qwest } from './qwest/vite/index';
 
 export default defineConfig(async ({ mode }) => {
   const { default: mdx } = await import('@mdx-js/rollup');

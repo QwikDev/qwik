@@ -42,18 +42,6 @@ export interface NavOptions {
   category?: string;
 }
 
-export interface PluginOptions {
-  layouts: {
-    [layoutName: string]: string;
-    default: string;
-  };
-  pagesDir: string;
-  /**
-   * File extensions to parse. Defaults to `['.md', '.mdx']`.
-   */
-  extensions?: string[];
-}
-
 export declare function getPage(opts: PageOptions): Promise<Page | null>;
 
 export declare function getNavItems(opts: NavOptions | undefined): Promise<NavItem[]>;

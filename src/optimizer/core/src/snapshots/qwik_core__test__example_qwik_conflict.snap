@@ -7,12 +7,12 @@ expression: output
 ==INPUT==
 
 
-import { $, component$, withStyle } from '@builder.io/qwik';
+import { $, component$, useStyles } from '@builder.io/qwik';
 
 const component = () => console.log('not this');
 component();
 export const Foo = component$(() => {
-    withStyle$('thing');
+    useStyles$('thing');
     const qwik = 12;
     console.log(qwik);
     return $(() => {
@@ -25,7 +25,7 @@ export const Foo = component$(() => {
 });
 
 export const Root = component$(() => {
-    withStyle($('thing'));
+    useStyles($('thing'));
     return $(() => {
         return (
             <div/>
@@ -72,7 +72,7 @@ export const Foo_onRender = ()=>{
 
 import * as qwik from "@builder.io/qwik";
 export const Foo_onmount = ()=>{
-    withStyle$('thing');
+    useStyles$('thing');
     const qwik1 = 12;
     console.log(qwik1);
     return qwik.qrl(()=>import("./h_test_foo_onrender")
@@ -122,9 +122,9 @@ export const Root_onRender = ()=>{
 ============================= h_test_root_onmount.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-import { withStyle } from "@builder.io/qwik";
+import { useStyles } from "@builder.io/qwik";
 export const Root_onmount = ()=>{
-    withStyle(qwik.qrl(()=>import("./h_test_root_onmount3")
+    useStyles(qwik.qrl(()=>import("./h_test_root_onmount3")
     , "Root_onmount3"));
     return qwik.qrl(()=>import("./h_test_root_onrender")
     , "Root_onRender");

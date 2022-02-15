@@ -55,9 +55,13 @@ export function serializeDocument(doc: Document, opts?: SerializeDocumentOptions
       chunk: string,
       hashSymbol: string,
       symbol: string,
-      scope: string
+      scope: string | undefined
     ) {
-      return qrlMapper(chunk, symbol) + scope;
+      let qrl = qrlMapper(chunk, symbol);
+      if (scope) {
+        qrl += scope;
+      }
+      return qrl;
     };
     html = html.replace(ON_ATTR_MATCHER, extractOnAttrs);
   }

@@ -12,9 +12,6 @@ export default defineConfig({
       },
     },
   },
-  ssr: {
-    noExternal: true,
-  },
   plugins: [
     qwikVite({
       srcDir: resolve('./src'),

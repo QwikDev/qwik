@@ -7,6 +7,7 @@
     "build.client": "vite build",
     "build.server": "vite build --outDir server/build --ssr src/entry.server.tsx",
     "dev": "vite",
+    "preview": "vite preview",
     "start": "npm run dev"
   },
   "devDependencies": {

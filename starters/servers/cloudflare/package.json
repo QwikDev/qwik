@@ -1,16 +1,10 @@
 {
-  "description": "Cloudflare Workers (serverless).",
+  "description": "Cloudflare Pages (serverless).",
   "scripts": {
-    "build.server": "vite build --outDir server/build --ssr src/entry.cloudflare.tsx",
-    "deploy": "wrangler publish",
-    "deploy.preview": "wrangler preview",
-    "deploy.dev": "wrangler dev"
+    "build.server": "vite build --outDir server/build --ssr src/entry.cloudflare.tsx"
   },
   "devDependencies": {
-    "@cloudflare/kv-asset-handler": "0.2.0",
-    "@cloudflare/workers-types": "3.2.0",
-    "@cloudflare/wrangler": "1.19.7",
-    "@types/service-worker-mock": "2.0.1"
+    "@cloudflare/workers-types": "3.2.0"
   },
   "qwik": {
     "priority": -1

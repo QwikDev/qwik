@@ -9,6 +9,7 @@ import {
   TransformModule,
   HookAnalysis,
   Diagnostic,
+  GlobalInjections,
 } from '..';
 
 import type { NormalizedOutputOptions, PluginContext, RollupError } from 'rollup';
@@ -22,6 +23,8 @@ export function qwikVite(opts: QwikViteOptions): any {
   const plugin = qwikRollup(opts);
   if (opts.ssr !== false) {
     const entry = opts.ssr?.entry ?? '/src/entry.server.tsx';
+    const main = opts.ssr?.main ?? '/src/main.tsx';
+
     Object.assign(plugin, {
       handleHotUpdate(ctx: HmrContext) {
         plugin.log('handleHotUpdate()', ctx);
@@ -48,6 +51,7 @@ export function qwikVite(opts: QwikViteOptions): any {
                 const symbols = {
                   version: '1',
                   mapping: {} as Record<string, string>,
+                  injections: [] as GlobalInjections[],
                 };
 
                 Array.from(server.moduleGraph.fileToModulesMap.entries()).forEach((entry) => {
@@ -58,8 +62,23 @@ export function qwikVite(opts: QwikViteOptions): any {
                     }
                   });
                 });
-
                 plugin.log(`handleSSR()`, 'symbols', symbols);
+
+                const mod = await server.moduleGraph.getModuleByUrl(main);
+                if (mod) {
+                  mod.importedModules.forEach((value) => {
+                    if (value.url.endsWith('.css')) {
+                      symbols.injections.push({
+                        tag: 'link',
+                        location: 'head',
+                        attributes: {
+                          rel: 'stylesheet',
+                          href: value.url,
+                        },
+                      });
+                    }
+                  });
+                }
 
                 const host = req.headers.host ?? 'localhost';
                 const result = await render({
@@ -67,7 +86,6 @@ export function qwikVite(opts: QwikViteOptions): any {
                   debug: true,
                   symbols,
                 });
-
                 const html = await server.transformIndexHtml(url, result.html);
                 res.setHeader('Content-Type', 'text/html; charset=utf-8');
                 res.writeHead(200);
@@ -94,6 +112,7 @@ export function qwikRollup(opts: QwikPluginOptions): any {
   const ID = `${Math.round(Math.random() * 8999) + 1000}`;
   const debug = !!opts.debug;
   const results = new Map<string, TransformOutput>();
+  const injections: GlobalInjections[] = [];
   const transformedOutputs = new Map<string, [TransformModule, string]>();
   let optimizer: Optimizer;
   let isSSR = false;
@@ -179,6 +198,22 @@ export function qwikRollup(opts: QwikPluginOptions): any {
       return inputOptions;
     },
 
+    transformIndexHtml(_, ctx) {
+      if (ctx.bundle) {
+        Object.entries(ctx.bundle).forEach(([key, value]) => {
+          if (value.type === 'asset' && key.endsWith('.css')) {
+            injections.push({
+              tag: 'link',
+              location: 'head',
+              attributes: {
+                rel: 'stylesheet',
+                href: `/${key}`,
+              },
+            });
+          }
+        });
+      }
+    },
     async buildStart() {
       if (!optimizer) {
         optimizer = await createOptimizer();
@@ -374,6 +409,7 @@ export function qwikRollup(opts: QwikPluginOptions): any {
         const outputEntryMap: OutputEntryMap = {
           mapping: {},
           version: '1',
+          injections,
         };
 
         hooks.forEach((h) => {
@@ -469,4 +505,7 @@ export interface QwikViteOptions extends QwikPluginOptions {
 export interface QwikViteSSROptions {
   /** Defaults to `/src/entry.server.tsx` */
   entry?: string;
+
+  /** Defaults to `/src/main.tsx` */
+  main?: string;
 }

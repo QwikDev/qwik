@@ -8,7 +8,7 @@
 
 import { renderToString, RenderToStringOptions, QwikLoader } from '@builder.io/qwik/server';
 import { partytownSnippet } from '@builder.io/partytown/integration';
-import { App } from './components/app/app';
+import { App } from './main';
 
 /**
  * Entry point for server-side pre-rendering.

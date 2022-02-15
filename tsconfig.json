@@ -69,5 +69,5 @@
     "forceConsistentCasingInFileNames": true /* Disallow inconsistently-cased references to the same file. */
   },
   "include": ["src", "scripts", "starters"],
-  "exclude": ["src/optimizer/core"]
+  "exclude": ["src/optimizer/core", "starters/servers"]
 }

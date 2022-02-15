@@ -212,8 +212,19 @@ export interface ManualEntryStrategy {
  * @alpha
  */
 export interface OutputEntryMap {
-  version: '1';
+  version: string;
   mapping: { [canonicalName: string]: string };
+  injections?: GlobalInjections[];
+}
+
+/**
+ * @alpha
+ */
+export interface GlobalInjections {
+  tag: string;
+  attributes?: { [key: string]: string };
+  location: 'head' | 'body';
+  children?: string;
 }
 
 // PATH UTIL  ***************

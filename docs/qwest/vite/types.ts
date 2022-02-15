@@ -1,16 +1,13 @@
 export interface ParsedPage {
-  id: string;
   pathname: string;
   title: string;
-  layout: string;
   filePath: string;
 }
 
 export interface PageAttributes {
   title?: string;
   layout?: string;
-  pathname?: string;
-  id?: string;
+  permalink?: string;
 }
 
 export interface NormalizedPluginOptions extends PluginOptions {

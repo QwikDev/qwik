@@ -196,24 +196,23 @@ async function loadPages(
     await Promise.all(
       items.map(async (itemName) => {
         if (!IGNORE_NAMES[itemName]) {
-          const itemPath = join(dir, itemName);
-          const ext = extname(itemName);
-
-          if (isMarkdownFile(opts, itemName)) {
-            try {
+          try {
+            const itemPath = join(dir, itemName);
+            const ext = extname(itemName);
+            if (isMarkdownFile(opts, itemName)) {
               const content = await readFile(itemPath, 'utf-8');
               const page = parseFile(opts, itemPath, content);
               if (page) {
                 pages.push(page);
               }
-            } catch (e) {
-              warn(String(e));
+            } else if (!IGNORE_EXT[ext]) {
+              const s = await stat(itemPath);
+              if (s.isDirectory()) {
+                await loadPages(opts, itemPath, pages, warn);
+              }
             }
-          } else if (!IGNORE_EXT[ext]) {
-            const s = await stat(itemPath);
-            if (s.isDirectory()) {
-              await loadPages(opts, itemPath, pages, warn);
-            }
+          } catch (e) {
+            warn(String(e));
           }
         }
       })

@@ -1,95 +1,95 @@
-import { extname, basename, dirname } from 'path';
+import { extname, basename, relative, dirname } from 'path';
 import type { NormalizedPluginOptions, PageAttributes, ParsedPage } from './types';
 import frontmatter from 'front-matter';
 import slugify from 'slugify';
 import { PluginOptions } from '.';
 
 export function parseFile(opts: NormalizedPluginOptions, filePath: string, content: string) {
-  try {
-    const parsed = frontmatter<any>(content);
-    if (parsed && parsed.attributes) {
-      return getPage(opts, filePath, parsed.attributes);
-    }
-  } catch (e) {
-    console.error(filePath, e);
+  const parsed = frontmatter<any>(content);
+  if (parsed) {
+    return parsePage(opts, filePath, parsed.attributes);
   }
 }
 
-function getPage(opts: NormalizedPluginOptions, filePath: string, attrs: PageAttributes) {
-  const id = getPageId(filePath, attrs);
-  const pathname = getPagePathname(filePath, id, attrs);
-  const title = getPageTitle(id, attrs);
-  const layout = getPageLayout(opts, attrs);
-
-  delete attrs.id;
-  delete attrs.pathname;
-  delete attrs.title;
-  delete attrs.layout;
-
+function parsePage(opts: NormalizedPluginOptions, filePath: string, attrs: PageAttributes) {
+  attrs = attrs || {};
+  validateLayout(opts, filePath, attrs);
   const page: ParsedPage = {
-    id,
-    pathname,
-    title,
-    layout,
+    pathname: getPagePathname(opts, filePath, attrs),
+    title: getPageTitle(filePath, attrs),
     filePath,
   };
   return page;
 }
 
-function getPageId(filePath: string, attrs: PageAttributes) {
-  let id = '';
-  if (typeof attrs.id === 'string' && attrs.id) {
-    id = attrs.id!;
-  } else {
-    let fileName = getFileName(filePath);
-    if (fileName === 'index') {
-      const dir = dirname(filePath);
-      fileName = getFileName(dir);
+export function getPagePathname(
+  opts: NormalizedPluginOptions,
+  filePath: string,
+  attrs: PageAttributes
+) {
+  if (typeof attrs.permalink === 'string' && attrs.permalink) {
+    const permalink = attrs.permalink!;
+    if (!permalink.startsWith('/')) {
+      throw new Error(`permalink "${permalink}" must start with a /`);
     }
-    id = fileName;
+    const url = new URL(permalink, 'http://normalize.me/');
+    return url.pathname;
   }
-  id = slugify(id);
-  return id;
-}
 
-function getPagePathname(filePath: string, id: string, attrs: PageAttributes) {
-  let pathname = '';
-  if (typeof attrs.pathname === 'string' && attrs.pathname) {
-    pathname = attrs.pathname!;
+  let pathname = toPosix(relative(opts.pagesDir, filePath));
+
+  const fileName = getBasename(pathname);
+  const dirName = toPosix(dirname(pathname));
+  if (fileName === 'index') {
+    pathname = dirName;
   } else {
-    pathname = id;
+    pathname = `/${dirName}/${fileName}`;
   }
 
-  const paths = pathname
-    .replace(/\\/g, '/')
+  pathname = pathname
+    .trim()
+    .toLocaleLowerCase()
+    .replace(/ /g, '-')
+    .replace(/_/g, '-')
     .split('/')
-    .map((p) => p.trim())
-    .filter((p) => p.length > 0)
-    .map((p) => slugify(p, { lower: true }));
+    .map((p) => slugify(p))
+    .join('/');
 
-  return '/' + paths.join('/');
+  const url = new URL(pathname, 'http://normalize.me/');
+
+  return url.pathname
+    .split('/')
+    .map((p) => slugify(p))
+    .join('/');
 }
 
-function getPageTitle(id: string, attrs: PageAttributes) {
+export function getPageTitle(filePath: string, attrs: PageAttributes) {
   let title = '';
-  if (typeof attrs.title === 'string' && attrs.title) {
-    title = attrs.title!;
-  } else {
-    title = toTitleCase(id.replace(/-/g, ' '));
+  if (typeof attrs.title === 'string') {
+    title = attrs.title!.trim();
   }
-  title = title.trim();
-  return title;
+  if (title === '') {
+    title = getBasename(filePath);
+    title = toTitleCase(title.replace(/-/g, ' '));
+  }
+  return title.trim();
 }
 
-function getPageLayout(opts: NormalizedPluginOptions, attrs: PageAttributes) {
-  let layout = 'default';
-  if (opts.layouts[attrs.layout!]) {
-    layout = attrs.layout!;
+export function validateLayout(
+  opts: NormalizedPluginOptions,
+  filePath: string,
+  attrs: PageAttributes
+) {
+  if (opts && opts.layouts != null) {
+    if (typeof attrs.layout === 'string' && attrs.layout !== 'default') {
+      if (!opts.layouts[attrs.layout as any]) {
+        throw new Error(`Invalid layout "${attrs.layout}" in ${filePath}`);
+      }
+    }
   }
-  return layout;
 }
 
-function getFileName(filePath: string) {
+function getBasename(filePath: string) {
   if (filePath.endsWith('.md')) {
     return basename(filePath, '.md');
   }
@@ -103,6 +103,10 @@ function toTitleCase(str: string) {
   return str.replace(/\w\S*/g, function (txt: string) {
     return txt.charAt(0).toUpperCase() + txt.substring(1).toLowerCase();
   });
+}
+
+function toPosix(p: string) {
+  return p.replace(/\\/g, '/');
 }
 
 export function normalizeOptions(userOpts: PluginOptions) {
@@ -154,7 +158,6 @@ export const IGNORE_NAMES: { [key: string]: boolean } = {
   build: true,
   dist: true,
   node_modules: true,
-  public: true,
   target: true,
   'README.md': true,
   README: true,

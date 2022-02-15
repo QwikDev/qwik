@@ -13,7 +13,7 @@
     "fmt": "prettier --write .",
     "fmt.check": "prettier --check .",
     "start": "npm run dev",
-    "test": "uvu -r tsm qwest/tests",
+    "test": "uvu -r tsm qwest/vite/tests",
     "link.builder": "npm link @builder.io/qwik"
   },
   "devDependencies": {

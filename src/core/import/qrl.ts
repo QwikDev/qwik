@@ -87,8 +87,9 @@ export function stringifyQRL(qrl: QRL, element?: Element) {
     parts.push('|', key, value && value.length ? '.' + value.join('.') : '')
   );
   const capture = qrl_.capture;
-  capture && capture.length && parts.push(JSON.stringify(capture));
-
+  if (capture && capture.length > 0) {
+    parts.push(JSON.stringify(capture));
+  }
   const qrlString = parts.join('');
   if (qrl_.chunk === RUNTIME_QRL && element) {
     const qrls: Set<QRL> = (element as any).__qrls__ || ((element as any).__qrls__ = new Set());

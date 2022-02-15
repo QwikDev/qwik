@@ -177,23 +177,23 @@ export function onWindow(event: string, eventFn: QRL<() => void>): QRL<() => voi
   throw new Error('IMPLEMENT: onWindow' + eventFn);
 }
 
-// <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#withStyles">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#withStyles instead)
+// <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#useStyles">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#useStyles instead)
 /**
  * @alpha
  */
 // </docs>
-export function withStyles(styles: QRL<string>): void {
-  _withStyles(styles, false);
+export function useStyles(styles: QRL<string>): void {
+  _useStyles(styles, false);
 }
 
-// <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#withStyles">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#withStyles instead)
+// <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#useStyles">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#useStyles instead)
 /**
  * @alpha
  */
 // </docs>
-export const withStyles$ = implicit$FirstArg(withStyles);
+export const useStyles$ = implicit$FirstArg(useStyles);
 
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#withScopedStyles">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#withScopedStyles instead)
@@ -202,7 +202,7 @@ export const withStyles$ = implicit$FirstArg(withStyles);
  */
 // </docs>
 export function withScopedStyles(styles: QRL<string>): void {
-  _withStyles(styles, true);
+  _useStyles(styles, true);
 }
 
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#withScopedStyles">
@@ -289,7 +289,7 @@ export interface ComponentOptions {
  * ```
  *
  * See also: `component`, `onUnmount`, `onHydrate`, `onDehydrate`, `onHalt`,
- * `onResume`, `on`, `onDocument`, `onWindow`, `withStyles`, `withScopedStyles`
+ * `onResume`, `on`, `onDocument`, `onWindow`, `useStyles`, `withScopedStyles`
  *
  * @param onMount - Initialization closure used when the component is first created.
  * @param tagName - Optional components options. It can be used to set a custom tag-name to be
@@ -377,7 +377,7 @@ export function component<PROPS extends {}>(
  * ```
  *
  * See also: `component`, `onRender`, `onUnmount`, `onHydrate`, `onDehydrate`, `onHalt`,
- * `onResume`, `on`, `onDocument`, `onWindow`, `withStyles`, `withScopedStyles`
+ * `onResume`, `on`, `onDocument`, `onWindow`, `useStyles`, `withScopedStyles`
  *
  * @param onMount - Initialization closure used when the component is first created.
  * @param tagName - Optional components options. It can be used to set a custom tag-name to be
@@ -411,7 +411,7 @@ function resolveQrl<PROPS extends {}>(
       });
 }
 
-function _withStyles(styles: QRL<string>, scoped: boolean) {
+function _useStyles(styles: QRL<string>, scoped: boolean) {
   const styleQrl = toQrlOrError(styles);
   const styleId = styleKey(styleQrl);
   const hostElement = useHostElement();

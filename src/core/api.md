@@ -284,6 +284,12 @@ export function useHostElement(): Element;
 // @public
 export function useLexicalScope<VARS extends any[]>(): VARS;
 
+// @alpha (undocumented)
+export const useStyles$: (first: string) => void;
+
+// @alpha (undocumented)
+export function useStyles(styles: QRL<string>): void;
+
 // @public (undocumented)
 export function useTransient<OBJ, ARGS extends any[], RET>(obj: OBJ, factory: (this: OBJ, ...args: ARGS) => RET, ...args: ARGS): RET;
 
@@ -298,12 +304,6 @@ export const withScopedStyles$: (first: string) => void;
 
 // @alpha (undocumented)
 export function withScopedStyles(styles: QRL<string>): void;
-
-// @alpha (undocumented)
-export const withStyles$: (first: string) => void;
-
-// @alpha (undocumented)
-export function withStyles(styles: QRL<string>): void;
 
 // Warnings were encountered during analysis:
 //

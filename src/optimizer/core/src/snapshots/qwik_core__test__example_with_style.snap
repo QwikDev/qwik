@@ -7,10 +7,10 @@ expression: output
 ==INPUT==
 
 
-import { $, component$, withStyle$ } from '@builder.io/qwik';
+import { $, component$, useStyles$ } from '@builder.io/qwik';
 
 export const Foo = component$(() => {
-    withStyle$('.class {}');
+    useStyles$('.class {}');
     return $(() => {
         return (
             <div class="class"/>
@@ -29,17 +29,17 @@ export const Foo = /*#__PURE__*/ component(qwik.qrl(()=>import("./h_test_foo_onm
     tagName: "my-foo"
 });
 
-============================= h_test_foo_withstyle.tsx (ENTRY POINT)==
+============================= h_test_foo_usestyles.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const Foo_withStyle = '.class {}';
+export const Foo_useStyles = '.class {}';
 
 /*
 {
   "origin": "test.tsx",
-  "name": "Foo_withStyle",
+  "name": "Foo_useStyles",
   "entry": null,
-  "canonicalFilename": "h_test_foo_withstyle",
+  "canonicalFilename": "h_test_foo_usestyles",
   "extension": "tsx"
 }
 */
@@ -62,10 +62,10 @@ export const Foo_onRender = ()=>{
 ============================= h_test_foo_onmount.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-import { withStyle } from "@builder.io/qwik";
+import { useStyles } from "@builder.io/qwik";
 export const Foo_onmount = ()=>{
-    withStyle(qwik.qrl(()=>import("./h_test_foo_withstyle")
-    , "Foo_withStyle"));
+    useStyles(qwik.qrl(()=>import("./h_test_foo_usestyles")
+    , "Foo_useStyles"));
     return qwik.qrl(()=>import("./h_test_foo_onrender")
     , "Foo_onRender");
 };

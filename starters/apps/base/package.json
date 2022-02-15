@@ -13,6 +13,7 @@
     "start": "npm run dev"
   },
   "devDependencies": {
+    "@types/node": "17.0.17",
     "@builder.io/qwik": "latest",
     "typescript": "latest",
     "vite": "latest"

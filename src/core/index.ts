@@ -23,8 +23,8 @@ export {
   on,
   onDocument,
   onWindow,
-  withStyles,
-  withStyles$,
+  useStyles,
+  useStyles$,
   withScopedStyles,
   withScopedStyles$,
 } from './component/component.public';

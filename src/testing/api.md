@@ -5,6 +5,7 @@
 ```ts
 
 import { FunctionComponent } from '@builder.io/qwik';
+import { JSXNode } from '@builder.io/qwik';
 import type { OutputEntryMap } from '@builder.io/qwik/optimizer';
 
 // @public
@@ -70,7 +71,7 @@ export const QwikLoader: FunctionComponent<QwikLoaderProps>;
 export const QwikPrefetch: FunctionComponent<QwikPrefetchProps>;
 
 // @public
-export function renderToDocument(doc: Document, rootNode: any, opts: RenderToDocumentOptions): Promise<void>;
+export function renderToDocument(doc: Document, rootNode: JSXNode<unknown> | FunctionComponent<any>, opts: RenderToDocumentOptions): Promise<void>;
 
 // Warning: (ae-forgotten-export) The symbol "SerializeDocumentOptions" needs to be exported by the entry point index.d.ts
 //

@@ -1,7 +1,8 @@
 import { flattenPromiseTree } from '../util/promises';
 import { NodeType } from '../util/types';
 import { cursorForParent } from './cursor';
-import type { JSXNode } from './jsx/types/jsx-node';
+import { isJSXNode, jsx } from './jsx/jsx-runtime';
+import type { JSXNode, FunctionComponent } from './jsx/types/jsx-node';
 import { ComponentRenderQueue, visitJsxNode } from './render';
 
 /**
@@ -18,8 +19,12 @@ import { ComponentRenderQueue, visitJsxNode } from './render';
  */
 export async function render(
   parent: Element | Document,
-  jsxNode: JSXNode<unknown>
+  jsxNode: JSXNode<unknown> | FunctionComponent<any>
 ): Promise<HTMLElement[]> {
+  // If input is not JSX, convert it
+  if (!isJSXNode(jsxNode)) {
+    jsxNode = jsx(jsxNode, null);
+  }
   const renderQueue: ComponentRenderQueue = [];
   let firstChild = parent.firstChild;
   while (firstChild && firstChild.nodeType > NodeType.COMMENT_NODE) {

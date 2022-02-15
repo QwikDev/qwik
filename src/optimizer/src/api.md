@@ -196,6 +196,7 @@ export interface QwikViteOptions extends QwikPluginOptions {
 // @alpha (undocumented)
 export interface QwikViteSSROptions {
     entry?: string;
+    main?: string;
 }
 
 // @alpha (undocumented)

@@ -1,11 +1,12 @@
-import { readdir, readFile, stat } from 'fs/promises';
-import { extname, isAbsolute, join } from 'path/posix';
+import { stat } from 'fs/promises';
+import { isAbsolute } from 'path/posix';
 import type { ModuleGraph, ViteDevServer } from 'vite';
 import { ModuleNode } from 'vite';
 import { Plugin } from 'vite';
 import { PluginOptions } from '.';
-import { NormalizedPluginOptions, ParsedPage } from './types';
-import { IGNORE_EXT, IGNORE_NAMES, isMarkdownFile, normalizeOptions, parseFile } from './utils';
+import { loadPages } from './load-pages';
+import { NormalizedPluginOptions, ParsedData } from './types';
+import { getPagesBuildPath, isMarkdownFile, normalizeOptions } from './utils';
 
 export function qwest(options: PluginOptions) {
   const opts = normalizeOptions(options);
@@ -58,11 +59,9 @@ export function qwest(options: PluginOptions) {
           return qwestBuildCode;
         }
 
-        const warn = (msg: string) => this.warn(msg);
+        const data = await loadPages(opts, (msg) => this.warn(msg));
 
-        const pages = await loadPages(opts, opts.pagesDir, [], warn);
-
-        pages.forEach((p) => {
+        data.pages.forEach((p) => {
           this.addWatchFile(p.filePath);
 
           if (!viteDevServer) {
@@ -70,14 +69,14 @@ export function qwest(options: PluginOptions) {
             this.emitFile({
               type: 'chunk',
               id: p.filePath,
-              fileName: `pages${p.pathname}.js`,
+              fileName: getPagesBuildPath(p),
               preserveSignature: 'allow-extension',
             });
           }
         });
 
         if (viteDevServer) {
-          qwestBuildCode = createDevCode(opts, pages);
+          qwestBuildCode = createDevCode(opts, data);
         } else {
           qwestBuildCode = createProdCode(opts);
         }
@@ -92,13 +91,13 @@ export function qwest(options: PluginOptions) {
   return plugin as any;
 }
 
-function createDevCode(opts: NormalizedPluginOptions, pages: ParsedPage[]) {
+function createDevCode(opts: NormalizedPluginOptions, data: ParsedData) {
   const c = [];
 
   c.push(...createLayoutsCode(opts));
 
   c.push(`const PAGES = {`);
-  for (const p of pages) {
+  for (const p of data.pages) {
     c.push(`  ${JSON.stringify(p.pathname)}: () => import(${JSON.stringify(p.filePath)}),`);
   }
   c.push(`};`);
@@ -182,45 +181,6 @@ function createLayoutsCode(opts: NormalizedPluginOptions) {
   });
   c.push(`};`);
   return c;
-}
-
-async function loadPages(
-  opts: NormalizedPluginOptions,
-  dir: string,
-  pages: ParsedPage[],
-  warn: (msg: string) => void
-) {
-  try {
-    const items = await readdir(dir);
-
-    await Promise.all(
-      items.map(async (itemName) => {
-        if (!IGNORE_NAMES[itemName]) {
-          try {
-            const itemPath = join(dir, itemName);
-            const ext = extname(itemName);
-            if (isMarkdownFile(opts, itemName)) {
-              const content = await readFile(itemPath, 'utf-8');
-              const page = parseFile(opts, itemPath, content);
-              if (page) {
-                pages.push(page);
-              }
-            } else if (!IGNORE_EXT[ext]) {
-              const s = await stat(itemPath);
-              if (s.isDirectory()) {
-                await loadPages(opts, itemPath, pages, warn);
-              }
-            }
-          } catch (e) {
-            warn(String(e));
-          }
-        }
-      })
-    );
-  } catch (e) {
-    warn(String(e));
-  }
-  return pages;
 }
 
 function invalidatePageModule(moduleGraph: ModuleGraph, qwestMod: ModuleNode | undefined) {

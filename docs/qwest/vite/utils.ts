@@ -1,26 +1,7 @@
 import { extname, basename, relative, dirname } from 'path';
 import type { NormalizedPluginOptions, PageAttributes, ParsedPage } from './types';
-import frontmatter from 'front-matter';
 import slugify from 'slugify';
 import { PluginOptions } from '.';
-
-export function parseFile(opts: NormalizedPluginOptions, filePath: string, content: string) {
-  const parsed = frontmatter<any>(content);
-  if (parsed) {
-    return parsePage(opts, filePath, parsed.attributes);
-  }
-}
-
-function parsePage(opts: NormalizedPluginOptions, filePath: string, attrs: PageAttributes) {
-  attrs = attrs || {};
-  validateLayout(opts, filePath, attrs);
-  const page: ParsedPage = {
-    pathname: getPagePathname(opts, filePath, attrs),
-    title: getPageTitle(filePath, attrs),
-    filePath,
-  };
-  return page;
-}
 
 export function getPagePathname(
   opts: NormalizedPluginOptions,
@@ -41,7 +22,13 @@ export function getPagePathname(
   const fileName = getBasename(pathname);
   const dirName = toPosix(dirname(pathname));
   if (fileName === 'index') {
-    pathname = dirName;
+    if (dirName === '.') {
+      return '/';
+    } else {
+      throw new Error(
+        `Subdirectories cannot have an index file: "${filePath}". Please rename the file to something like "overview.mdx" or "introduction.md".`
+      );
+    }
   } else {
     pathname = `/${dirName}/${fileName}`;
   }
@@ -56,11 +43,39 @@ export function getPagePathname(
     .join('/');
 
   const url = new URL(pathname, 'http://normalize.me/');
-
-  return url.pathname
+  pathname = url.pathname
     .split('/')
     .map((p) => slugify(p))
     .join('/');
+  if (opts.trailingSlash && !pathname.endsWith('/')) {
+    pathname += '/';
+  }
+  return pathname;
+}
+
+export function getIndexPathname(opts: NormalizedPluginOptions, filePath: string) {
+  let pathname = toPosix(relative(opts.pagesDir, filePath));
+  pathname = `/${toPosix(dirname(pathname))}`;
+  return normalizePathname(opts, pathname);
+}
+
+function normalizePathname(opts: NormalizedPluginOptions, pathname: string) {
+  pathname = pathname
+    .trim()
+    .toLocaleLowerCase()
+    .replace(/ /g, '-')
+    .replace(/_/g, '-')
+    .split('/')
+    .map((p) => slugify(p))
+    .join('/');
+
+  const url = new URL(pathname, 'http://normalize.me/');
+  pathname = url.pathname;
+
+  if (opts.trailingSlash && !pathname.endsWith('/')) {
+    pathname += '/';
+  }
+  return pathname;
 }
 
 export function getPageTitle(filePath: string, attrs: PageAttributes) {
@@ -119,11 +134,21 @@ export function normalizeOptions(userOpts: PluginOptions) {
 }
 
 export function isMarkdownFile(opts: NormalizedPluginOptions, filePath: string) {
-  if (typeof filePath === 'string') {
-    const ext = extname(filePath).toLowerCase();
-    return opts.extensions.includes(ext);
+  const ext = extname(filePath).toLowerCase();
+  return opts.extensions.includes(ext);
+}
+
+export function isReadmeFile(filePath: string) {
+  filePath = filePath.toLowerCase();
+  return filePath === 'readme.md' || filePath === 'readme';
+}
+
+export function getPagesBuildPath(page: ParsedPage) {
+  let pathname = page.pathname;
+  if (pathname === '/') {
+    pathname += 'index';
   }
-  return false;
+  return `pages${pathname}.js`;
 }
 
 /** Known file extension we know are not directories so we can skip over them */
@@ -159,8 +184,6 @@ export const IGNORE_NAMES: { [key: string]: boolean } = {
   dist: true,
   node_modules: true,
   target: true,
-  'README.md': true,
-  README: true,
   LICENSE: true,
   'LICENSE.md': true,
   Dockerfile: true,

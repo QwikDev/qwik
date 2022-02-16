@@ -44,4 +44,4 @@ export interface NavOptions {
 
 export declare function getPage(opts: PageOptions): Promise<Page | null>;
 
-export declare function getNavItems(opts: NavOptions | undefined): Promise<NavItem[]>;
+export declare function getDirectoryIndex(opts: NavOptions | undefined): Promise<NavItem[]>;

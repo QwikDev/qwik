@@ -16,7 +16,6 @@ export const Main = component$(() => {
     if (page) {
       return <Page page={page} pathname={url.pathname} />;
     }
-
-    return <Builder pathname={url.pathname} />;
+    return <Builder />;
   });
 });

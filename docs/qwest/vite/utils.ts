@@ -3,20 +3,7 @@ import type { NormalizedPluginOptions, PageAttributes, ParsedPage } from './type
 import slugify from 'slugify';
 import { PluginOptions } from '.';
 
-export function getPagePathname(
-  opts: NormalizedPluginOptions,
-  filePath: string,
-  attrs: PageAttributes
-) {
-  if (typeof attrs.permalink === 'string' && attrs.permalink) {
-    const permalink = attrs.permalink!;
-    if (!permalink.startsWith('/')) {
-      throw new Error(`permalink "${permalink}" must start with a /`);
-    }
-    const url = new URL(permalink, 'http://normalize.me/');
-    return url.pathname;
-  }
-
+export function getPagePathname(opts: NormalizedPluginOptions, filePath: string) {
   let pathname = toPosix(relative(opts.pagesDir, filePath));
 
   const fileName = getBasename(pathname);

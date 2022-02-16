@@ -25,7 +25,6 @@ export interface ParsedPage {
 export interface PageAttributes {
   title?: string;
   layout?: string;
-  permalink?: string;
 }
 
 export interface NormalizedPluginOptions extends PluginOptions {

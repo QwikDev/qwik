@@ -1,47 +1,26 @@
-export interface PageOptions {
-  pathname: string;
+export interface PageHandler {
+  getContent: () => Content | null;
+  getLayout: () => Layout | null;
+  getMetadata: () => { [attrName: string]: string };
 }
-
-export interface Page {
-  id: string;
-  pathname: string;
-  title: string;
-  getContent: () => Promise<Content | null>;
-  getLayout: () => Promise<Layout | null>;
-  getMetadata: () => Promise<{ [attrName: string]: any }>;
-}
-
-export type PageData = [
-  /** id */
-  type: string,
-  /** pathname */
-  type: string,
-  /** title */
-  type: string,
-  /** getContent */
-  type: () => Promise<Content | null>,
-  /** getLayout */
-  type: () => Promise<Content | null>,
-  /** getContentModule */
-  type: Promise<any> | undefined,
-  /** getLayoutModule */
-  type: Promise<any> | undefined
-];
 
 export type Content = any;
-
 export type Layout = any;
 
-export interface NavItem {
-  title: string;
+export interface LoadPageOptions {
+  pathname: string;
+}
+
+export interface LoadIndexOptions {
+  pathname: string;
+}
+
+export interface IndexItem {
+  text: string;
   href?: string;
-  children?: NavItem[];
+  items?: IndexItem[];
 }
 
-export interface NavOptions {
-  category?: string;
-}
+export declare function loadPage(opts: LoadIndexOptions): Promise<PageHandler | null>;
 
-export declare function getPage(opts: PageOptions): Promise<Page | null>;
-
-export declare function getDirectoryIndex(opts: NavOptions | undefined): Promise<NavItem[]>;
+export declare function loadIndex(opts: LoadIndexOptions): Promise<IndexItem | null>;

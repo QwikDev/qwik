@@ -1,9 +1,9 @@
-export const getPage = async (opts) => {
+export const loadPage = async (opts) => {
   opts;
   return null;
 };
 
-export const getNavItems = async (opts) => {
+export const loadIndex = async (opts) => {
   opts;
-  return [];
+  return null;
 };

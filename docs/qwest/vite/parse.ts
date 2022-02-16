@@ -19,7 +19,7 @@ export function parseMarkdownFile(
 
   validateLayout(opts, filePath, attrs);
   const page: ParsedPage = {
-    pathname: getPagePathname(opts, filePath, attrs),
+    pathname: getPagePathname(opts, filePath),
     title: getPageTitle(filePath, attrs),
     filePath,
   };

@@ -4,8 +4,9 @@ import type { ModuleGraph, ViteDevServer } from 'vite';
 import { ModuleNode } from 'vite';
 import { Plugin } from 'vite';
 import { PluginOptions } from '.';
+import { createDevCode, createProdCode } from './code-generation';
 import { loadPages } from './load-pages';
-import { NormalizedPluginOptions, ParsedData } from './types';
+import type { NormalizedPluginOptions } from './types';
 import { getPagesBuildPath, isMarkdownFile, normalizeOptions } from './utils';
 
 export function qwest(options: PluginOptions) {
@@ -78,7 +79,7 @@ export function qwest(options: PluginOptions) {
         if (viteDevServer) {
           qwestBuildCode = createDevCode(opts, data);
         } else {
-          qwestBuildCode = createProdCode(opts);
+          qwestBuildCode = createProdCode(opts, data);
         }
 
         return qwestBuildCode;
@@ -89,98 +90,6 @@ export function qwest(options: PluginOptions) {
   };
 
   return plugin as any;
-}
-
-function createDevCode(opts: NormalizedPluginOptions, data: ParsedData) {
-  const c = [];
-
-  c.push(...createLayoutsCode(opts));
-
-  c.push(`const PAGES = {`);
-  for (const p of data.pages) {
-    c.push(`  ${JSON.stringify(p.pathname)}: () => import(${JSON.stringify(p.filePath)}),`);
-  }
-  c.push(`};`);
-
-  c.push(`export const getPage = async (opts) => {`);
-  c.push(`  const pageImporter = PAGES[opts.pathname];`);
-  c.push(`  if (!pageImporter) {`);
-  c.push(`    return null;`);
-  c.push(`  }`);
-  c.push(`  const mod = await pageImporter();`);
-  c.push(`  if (!mod || !mod.default) {`);
-  c.push(`    return null;`);
-  c.push(`  }`);
-  c.push(`  const meta = {};`);
-  c.push(`  for (const k in mod) {`);
-  c.push(`    if (k !== 'default') {`);
-  c.push(`      meta[k] = mod[k];`);
-  c.push(`    }`);
-  c.push(`  }`);
-  c.push(`  const layoutImporter = LAYOUTS[mod.layout] || LAYOUTS.default;`);
-  c.push(`  const page = {`);
-  c.push(`    getContent: () => Promise.resolve(mod.default),`);
-  c.push(`    getLayout: async () => (await layoutImporter()).default,`);
-  c.push(`    getMetadata: () => Promise.resolve(meta)`);
-  c.push(`  };`);
-  c.push(`  return page;`);
-  c.push(`};`);
-
-  c.push(`export const getNavItems = (opts) => [];`);
-
-  const code = c.join('\n');
-
-  return code;
-}
-
-function createProdCode(opts: NormalizedPluginOptions) {
-  const c = [];
-
-  c.push(...createLayoutsCode(opts));
-
-  c.push(`export const getPage = async (opts) => {`);
-  c.push(`  const pagePath = "/pages" + opts.pathname + '.js'`);
-  c.push(`  const mod = await import(pagePath);`);
-  c.push(`  if (!mod || !mod.default) {`);
-  c.push(`    return null;`);
-  c.push(`  }`);
-  c.push(`  const meta = {};`);
-  c.push(`  for (const k in mod) {`);
-  c.push(`    if (k !== 'default') {`);
-  c.push(`      meta[k] = mod[k];`);
-  c.push(`    }`);
-  c.push(`  }`);
-  c.push(`  const layoutImporter = LAYOUTS[mod.layout] || LAYOUTS.default;`);
-  c.push(`  const page = {`);
-  c.push(`    getContent: () => Promise.resolve(mod.default),`);
-  c.push(`    getLayout: async () => (await layoutImporter()).default,`);
-  c.push(`    getMetadata: () => Promise.resolve(meta)`);
-  c.push(`  };`);
-  c.push(`  return page;`);
-  c.push(`};`);
-
-  c.push(`export const getNavItems = (opts) => [];`);
-
-  const code = c.join('\n');
-
-  return code;
-}
-
-function createLayoutsCode(opts: NormalizedPluginOptions) {
-  const c: string[] = [];
-  c.push(`const LAYOUTS = {`);
-  Object.entries(opts.layouts).forEach(([layoutName, layoutPath]) => {
-    let importPath = layoutPath;
-    if (importPath.endsWith('.tsx') || importPath.endsWith('.jsx')) {
-      importPath = importPath.substring(0, importPath.length - 4);
-    } else if (importPath.endsWith('.ts') || importPath.endsWith('.js')) {
-      importPath = importPath.substring(0, importPath.length - 3);
-    }
-
-    c.push(`  ${JSON.stringify(layoutName)}: () => import(${JSON.stringify(importPath)}),`);
-  });
-  c.push(`};`);
-  return c;
 }
 
 function invalidatePageModule(moduleGraph: ModuleGraph, qwestMod: ModuleNode | undefined) {

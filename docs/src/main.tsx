@@ -1,7 +1,7 @@
 import { $, component$, useHostElement } from '@builder.io/qwik';
 import { Builder } from './layouts/builder/builder';
-import { getPage } from '@builder.io/qwest';
-
+import { loadPage } from '@builder.io/qwest';
+import { Page } from './components/page/page';
 import './global.css';
 
 export const Main = component$(() => {
@@ -10,20 +10,11 @@ export const Main = component$(() => {
     const doc = host.ownerDocument;
     const url = new URL(doc.baseURI);
 
-    const page = await getPage({
+    const page = await loadPage({
       pathname: url.pathname,
     });
-
     if (page) {
-      const [Layout, Content] = await Promise.all([page.getLayout(), page.getContent()]);
-
-      if (Layout && Content) {
-        return (
-          <Layout pathname={url.pathname}>
-            <Content />
-          </Layout>
-        );
-      }
+      return <Page page={page} pathname={url.pathname} />;
     }
 
     return <Builder pathname={url.pathname} />;

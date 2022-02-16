@@ -1,12 +1,20 @@
 import { readdir, readFile, stat } from 'fs/promises';
 import { extname, join } from 'path';
 import { parseMarkdownFile, parseIndexFile } from './parse';
-import { NormalizedPluginOptions, ParsedData } from './types';
+import { NormalizedPluginOptions, ParsedData, ParsedIndexItem, ParsedPage } from './types';
 import { IGNORE_EXT, IGNORE_NAMES, isMarkdownFile, isReadmeFile } from './utils';
 
 export async function loadPages(opts: NormalizedPluginOptions, warn: (msg: string) => void) {
   const data: ParsedData = { pages: [], indexes: [] };
-  loadPagesDir(opts, opts.pagesDir, warn, data);
+
+  await loadPagesDir(opts, opts.pagesDir, warn, data);
+
+  for (const index of data.indexes) {
+    for (const item of index.items) {
+      updateIndexHrefs(data.pages, item);
+    }
+  }
+
   return data;
 }
 
@@ -27,11 +35,11 @@ async function loadPagesDir(
             if (isReadmeFile(itemName)) {
               const indexContent = await readFile(itemPath, 'utf-8');
               const index = parseIndexFile(opts, itemPath, indexContent);
-              data!.indexes.push(index);
+              data.indexes.push(index);
             } else if (isMarkdownFile(opts, itemName)) {
               const mdContent = await readFile(itemPath, 'utf-8');
               const page = parseMarkdownFile(opts, itemPath, mdContent);
-              data!.pages.push(page);
+              data.pages.push(page);
             } else if (!IGNORE_EXT[extname(itemName)]) {
               const s = await stat(itemPath);
               if (s.isDirectory()) {
@@ -46,5 +54,13 @@ async function loadPagesDir(
     );
   } catch (e) {
     warn(String(e));
+  }
+}
+
+function updateIndexHrefs(pages: ParsedPage[], item: ParsedIndexItem) {
+  if (item.items) {
+    for (const childItem of item.items) {
+      updateIndexHrefs(pages, childItem);
+    }
   }
 }

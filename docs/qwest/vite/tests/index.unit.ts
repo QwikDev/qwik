@@ -13,11 +13,11 @@ test('parse README.md index', ({ opts }) => {
   ## Section A
 
   - Text A1
-  - [Link A1](link-a1)
+  - [Link A1](/link-a1)
   
   ## Section B
 
-  - [Link B1](link-b1)
+  - [Link B1](link-b1.mdx)
   - Text B1
 
   ## [Section C](http://section-c.com) 
@@ -32,12 +32,12 @@ test('parse README.md index', ({ opts }) => {
   assert.is(i.items[0].items?.length, 2);
   assert.is(i.items[0].items![0].text, 'Text A1');
   assert.is(i.items[0].items![1].text, 'Link A1');
-  assert.is(i.items[0].items![1].href, 'link-a1');
+  assert.is(i.items[0].items![1].href, '/link-a1');
 
   assert.is(i.items[1].text, 'Section B');
   assert.is(i.items[1].items?.length, 2);
   assert.is(i.items[1].items![0].text, 'Link B1');
-  assert.is(i.items[1].items![0].href, 'link-b1');
+  assert.is(i.items[1].items![0].href, '/guide/link-b1');
   assert.is(i.items[1].items![1].text, 'Text B1');
 
   assert.is(i.items[2].text, 'Section C');

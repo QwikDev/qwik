@@ -83,4 +83,46 @@ test('index pathname from guide/README.md, trailingSlash', ({ opts }) => {
   assert.is(p, '/guide/');
 });
 
+test('index href guides/getting-started.mdx', ({ opts }) => {
+  const href = './getting-started.mdx';
+  const indexFilePath = join(opts.pagesDir, 'guide', 'README.md');
+  const p = utils.getIndexLinkHref(opts, indexFilePath, href);
+  assert.is(p, '/guide/getting-started');
+});
+
+test('index href guides/getting-started.mdx?intro', ({ opts }) => {
+  const href = './getting-started.mdx?intro';
+  const indexFilePath = join(opts.pagesDir, 'guide', 'components', 'README.md');
+  const p = utils.getIndexLinkHref(opts, indexFilePath, href);
+  assert.is(p, '/guide/components/getting-started?intro');
+});
+
+test('index href guides/getting-started.mdx#intro', ({ opts }) => {
+  const href = './getting-started.mdx#intro';
+  const indexFilePath = join(opts.pagesDir, 'guide', 'components', 'README.md');
+  const p = utils.getIndexLinkHref(opts, indexFilePath, href);
+  assert.is(p, '/guide/components/getting-started#intro');
+});
+
+test('index href /link', ({ opts }) => {
+  const href = '/link';
+  const indexFilePath = join(opts.pagesDir, 'guide', 'README.md');
+  const p = utils.getIndexLinkHref(opts, indexFilePath, href);
+  assert.is(p, '/link');
+});
+
+test('index href http://builder.io/', ({ opts }) => {
+  const href = 'http://builder.io/';
+  const indexFilePath = join(opts.pagesDir, 'guide', 'README.md');
+  const p = utils.getIndexLinkHref(opts, indexFilePath, href);
+  assert.is(p, 'http://builder.io/');
+});
+
+test('index href ./getting-started.txt', ({ opts }) => {
+  const href = './getting-started.txt';
+  const indexFilePath = join(opts.pagesDir, 'guide', 'README.md');
+  const p = utils.getIndexLinkHref(opts, indexFilePath, href);
+  assert.is(p, './getting-started.txt');
+});
+
 test.run();

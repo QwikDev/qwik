@@ -1,20 +1,12 @@
 import { readdir, readFile, stat } from 'fs/promises';
 import { extname, join } from 'path';
 import { parseMarkdownFile, parseIndexFile } from './parse';
-import { NormalizedPluginOptions, ParsedData, ParsedIndexItem, ParsedPage } from './types';
+import { NormalizedPluginOptions, ParsedData } from './types';
 import { IGNORE_EXT, IGNORE_NAMES, isMarkdownFile, isReadmeFile } from './utils';
 
 export async function loadPages(opts: NormalizedPluginOptions, warn: (msg: string) => void) {
   const data: ParsedData = { pages: [], indexes: [] };
-
   await loadPagesDir(opts, opts.pagesDir, warn, data);
-
-  for (const index of data.indexes) {
-    for (const item of index.items) {
-      updateIndexHrefs(data.pages, item);
-    }
-  }
-
   return data;
 }
 
@@ -54,13 +46,5 @@ async function loadPagesDir(
     );
   } catch (e) {
     warn(String(e));
-  }
-}
-
-function updateIndexHrefs(pages: ParsedPage[], item: ParsedIndexItem) {
-  if (item.items) {
-    for (const childItem of item.items) {
-      updateIndexHrefs(pages, childItem);
-    }
   }
 }

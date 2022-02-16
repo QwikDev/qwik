@@ -1,4 +1,4 @@
-import { extname, basename, relative, dirname } from 'path';
+import { extname, basename, relative, dirname, join } from 'path';
 import type { NormalizedPluginOptions, PageAttributes, ParsedPage } from './types';
 import slugify from 'slugify';
 import { PluginOptions } from '.';
@@ -44,6 +44,45 @@ export function getIndexPathname(opts: NormalizedPluginOptions, filePath: string
   let pathname = toPosix(relative(opts.pagesDir, filePath));
   pathname = `/${toPosix(dirname(pathname))}`;
   return normalizePathname(opts, pathname);
+}
+
+export function getIndexLinkHref(
+  opts: NormalizedPluginOptions,
+  indexFilePath: string,
+  href: string
+) {
+  const prefix = href.toLocaleLowerCase();
+  if (
+    prefix.startsWith('/') ||
+    prefix.startsWith('https:') ||
+    prefix.startsWith('http:') ||
+    prefix.startsWith('file:')
+  ) {
+    return href;
+  }
+
+  const querySplit = href.split('?');
+  const hashSplit = href.split('#');
+  href = href.split('?')[0].split('#')[0];
+
+  const suffix = href.toLocaleLowerCase();
+  if (!suffix.endsWith('.mdx') && !suffix.endsWith('.md')) {
+    return href;
+  }
+
+  const indexDir = dirname(indexFilePath);
+  const parts = toPosix(href)
+    .split('/')
+    .filter((p) => p.length > 0);
+  const filePath = join(indexDir, ...parts);
+
+  let pathname = getPagePathname(opts, filePath);
+  if (querySplit.length > 1) {
+    pathname += '?' + querySplit[1];
+  } else if (hashSplit.length > 1) {
+    pathname += '#' + hashSplit[1];
+  }
+  return pathname;
 }
 
 function normalizePathname(opts: NormalizedPluginOptions, pathname: string) {

@@ -8,7 +8,7 @@
 
 import { renderToString, RenderToStringOptions, QwikLoader } from '@builder.io/qwik/server';
 import { partytownSnippet } from '@builder.io/partytown/integration';
-import { App } from './main';
+import { Main } from './main';
 
 /**
  * Entry point for server-side pre-rendering.
@@ -24,7 +24,7 @@ export function render(opts: RenderToStringOptions) {
         <script children={partytownSnippet({ debug: true })} />
       </head>
       <body q:base="/">
-        <App />
+        <Main />
         <script type="text/partytown">
           ({partyTownExampleWhichBlocksMainThreadForOneSecond.toString()})()
         </script>

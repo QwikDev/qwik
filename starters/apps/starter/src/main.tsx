@@ -3,7 +3,7 @@ import { Logo } from './components/logo/logo';
 
 import './global.css';
 
-export const App = component$(() => {
+export const Main = component$(() => {
   const state = createStore({ name: 'World' });
   return $(() => (
     <Host class="my-app">

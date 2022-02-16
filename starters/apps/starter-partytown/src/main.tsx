@@ -1,7 +1,7 @@
 import { component$, $, useEvent, createStore } from '@builder.io/qwik';
 import './global.css';
 
-export const App = component$(() => {
+export const Main = component$(() => {
   const state = createStore({ name: 'World', running: true });
   return $(() => {
     // eslint-disable-next-line no-console

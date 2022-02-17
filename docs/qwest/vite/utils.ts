@@ -1,5 +1,5 @@
 import { extname, basename, relative, dirname, join } from 'path';
-import type { NormalizedPluginOptions, PageAttributes, ParsedPage } from './types';
+import type { NormalizedPluginOptions, PageAttributes, ParsedIndex, ParsedPage } from './types';
 import slugify from 'slugify';
 import { PluginOptions } from '.';
 
@@ -175,6 +175,10 @@ export function getPagesBuildPath(page: ParsedPage) {
     pathname += 'index';
   }
   return `pages${pathname}.js`;
+}
+
+export function getIndexBuildPath(index: ParsedIndex) {
+  return `pages${index.pathname}/index.json`;
 }
 
 /** Known file extension we know are not directories so we can skip over them */

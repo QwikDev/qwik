@@ -5,7 +5,6 @@ export interface ParsedData {
 
 export interface ParsedIndex {
   pathname: string;
-  filePath: string;
   title: string;
   items: ParsedIndexItem[];
 }

@@ -7,7 +7,7 @@ import { PluginOptions } from '.';
 import { createDevCode, createProdCode } from './code-generation';
 import { loadPages } from './load-pages';
 import type { NormalizedPluginOptions } from './types';
-import { getPagesBuildPath, isMarkdownFile, normalizeOptions } from './utils';
+import { getIndexBuildPath, getPagesBuildPath, isMarkdownFile, normalizeOptions } from './utils';
 
 export function qwest(options: PluginOptions) {
   const opts = normalizeOptions(options);
@@ -64,22 +64,31 @@ export function qwest(options: PluginOptions) {
 
         data.pages.forEach((p) => {
           this.addWatchFile(p.filePath);
+        });
 
-          if (!viteDevServer) {
-            // rollup build only
+        if (viteDevServer) {
+          // vite dev server build (esbuild)
+          qwestBuildCode = createDevCode(opts, data);
+        } else {
+          // production (rollup)
+          qwestBuildCode = createProdCode(opts, data);
+
+          data.pages.forEach((p) => {
             this.emitFile({
               type: 'chunk',
               id: p.filePath,
               fileName: getPagesBuildPath(p),
               preserveSignature: 'allow-extension',
             });
-          }
-        });
+          });
 
-        if (viteDevServer) {
-          qwestBuildCode = createDevCode(opts, data);
-        } else {
-          qwestBuildCode = createProdCode(opts, data);
+          data.indexes.forEach((index) => {
+            this.emitFile({
+              type: 'asset',
+              fileName: getIndexBuildPath(index),
+              source: JSON.stringify(index),
+            });
+          });
         }
 
         return qwestBuildCode;

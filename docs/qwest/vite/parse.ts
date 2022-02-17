@@ -39,7 +39,6 @@ export function parseIndexFile(
 ) {
   const index: ParsedIndex = {
     pathname: getIndexPathname(opts, indexFilePath),
-    filePath: indexFilePath,
     title: '',
     items: [],
   };

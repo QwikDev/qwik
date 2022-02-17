@@ -23,10 +23,10 @@
     chalk "^2.0.0"
     js-tokens "^4.0.0"
 
-"@builder.io/partytown@^0.3.4":
-  version "0.3.5"
-  resolved "https://registry.yarnpkg.com/@builder.io/partytown/-/partytown-0.3.5.tgz#8c73916f7f0d1e7c9284175a183adb66308a8d2f"
-  integrity sha512-2rMDvRZgD+ABAHJDHzT6bbiGyrnTL3V4zgC4qd0EpDUqsmTU2+4X+BMngHIHFDZlXAWi02CX8INgKvNSOSu52A==
+"@builder.io/partytown@^0.3.6":
+  version "0.3.6"
+  resolved "https://registry.yarnpkg.com/@builder.io/partytown/-/partytown-0.3.6.tgz#7bce38dceae58c70931cae95cdab31f6369f5d98"
+  integrity sha512-hmIfzL6rCxxM76ggyM0LMUp/LTJfLzf0JRrbzXFkNYJLw8ZTH8A4N9o170Aa7/EWbvNdk5SD4hBKIKWw03BgZg==
 
 "@builder.io/qwik@0.0.16":
   version "0.0.16"

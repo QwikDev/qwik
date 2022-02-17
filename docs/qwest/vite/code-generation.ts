@@ -25,19 +25,18 @@ export function createDevCode(opts: NormalizedPluginOptions, data: ParsedData) {
   c.push(`  if (!layoutImporter) {`);
   c.push(`    return null;`);
   c.push(`  }`);
+  c.push(`  const layout = await layoutImporter();`);
   c.push(`  const meta = {};`);
   c.push(`  for (const k in mod) {`);
   c.push(`    if (k !== 'default') {`);
   c.push(`      meta[k] = mod[k];`);
   c.push(`    }`);
   c.push(`  }`);
-  c.push(`  const layout = await layoutImporter();`);
-  c.push(`  const page = {`);
+  c.push(`  return {`);
   c.push(`    getContent: () => mod.default,`);
   c.push(`    getLayout: () => layout.default,`);
   c.push(`    getMetadata: () => meta`);
   c.push(`  };`);
-  c.push(`  return page;`);
   c.push(`};`);
 
   c.push(`const INDEXES = {`);
@@ -50,9 +49,8 @@ export function createDevCode(opts: NormalizedPluginOptions, data: ParsedData) {
   // c.push(`  debugger;`);
   c.push(`  let pathname = opts.pathname;`);
   c.push(`  for (let i = 0; i < 9; i++) {`);
-  c.push(`    const index = INDEXES[pathname];`);
-  c.push(`    if (index) {`);
-  c.push(`      return index;`);
+  c.push(`    if (INDEXES[pathname]) {`);
+  c.push(`      return INDEXES[pathname];`);
   c.push(`    }`);
   c.push(`    const parts = pathname.split('/');`);
   c.push(`    parts.pop();`);
@@ -73,32 +71,51 @@ export function createProdCode(opts: NormalizedPluginOptions, data: ParsedData) 
   c.push(...createLayoutsCode(opts));
 
   c.push(`export const loadPage = async (opts) => {`);
-  c.push(`  const pagePath = "/pages" + opts.pathname + '.js'`);
+  c.push(`  console.log("fu");`);
+  c.push(`  const pagePath = "/pages" + opts.pathname + '.js';`);
   c.push(`  const mod = await import(pagePath);`);
   c.push(`  if (!mod || !mod.default) {`);
   c.push(`    return null;`);
   c.push(`  }`);
+  c.push(`  const layoutImporter = LAYOUTS[mod.layout] || LAYOUTS.default;`);
+  c.push(`  if (!layoutImporter) {`);
+  c.push(`    return null;`);
+  c.push(`  }`);
+  c.push(`  const layout = await layoutImporter();`);
   c.push(`  const meta = {};`);
   c.push(`  for (const k in mod) {`);
   c.push(`    if (k !== 'default') {`);
   c.push(`      meta[k] = mod[k];`);
   c.push(`    }`);
   c.push(`  }`);
-  c.push(`  const layoutImporter = LAYOUTS[mod.layout] || LAYOUTS.default;`);
-  c.push(`  const page = {`);
-  c.push(`    getComponent: () => {`);
-  c.push(`      `);
-  c.push(`    },`);
-  c.push(`    getMetadata: () => Promise.resolve(meta)`);
+  c.push(`  return {`);
+  c.push(`    getContent: () => mod.default,`);
+  c.push(`    getLayout: () => layout.default,`);
+  c.push(`    getMetadata: () => meta`);
   c.push(`  };`);
-  c.push(`  return page;`);
   c.push(`};`);
 
-  c.push(`const INDEXES = ${JSON.stringify(data.indexes)};`);
+  c.push(`const INDEXES = {`);
+  for (const i of data.indexes) {
+    c.push(`  ${JSON.stringify(i.pathname)}: true,`);
+  }
+  c.push(`};`);
 
   c.push(`export const loadIndex = async (opts) => {`);
-  c.push(`  const index = INDEXES[opts.pathname];`);
-  c.push(`  return index;`);
+  // c.push(`  debugger;`);
+  c.push(`  let pathname = opts.pathname;`);
+  c.push(`  for (let i = 0; i < 9; i++) {`);
+  c.push(`    if (INDEXES[pathname]) {`);
+  c.push(`      const indexPath = "/pages" + pathname + '/index.json';`);
+  c.push(`      const rsp = await fetch(indexPath);`);
+  c.push(`      return rsp.json();`);
+  c.push(`    }`);
+  c.push(`    const parts = pathname.split('/');`);
+  c.push(`    parts.pop();`);
+  c.push(`    pathname = parts.join('/');`);
+  c.push(`    if (pathname === '/') break;`);
+  c.push(`  }`);
+  c.push(`  return null;`);
   c.push(`};`);
 
   const code = c.join('\n');

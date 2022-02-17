@@ -17,7 +17,7 @@
     "link.builder": "npm link @builder.io/qwik"
   },
   "devDependencies": {
-    "@builder.io/partytown": "^0.3.4",
+    "@builder.io/partytown": "^0.3.6",
     "@builder.io/qwik": "0.0.16",
     "@cloudflare/kv-asset-handler": "0.2.0",
     "@cloudflare/workers-types": "^3.2.0",

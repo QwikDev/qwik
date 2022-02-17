@@ -25,7 +25,6 @@ test('parse README.md index', ({ opts }) => {
   `;
   const i = parseIndexFile(opts, filePath, readme);
   assert.is(i.pathname, '/guide');
-  assert.is(i.filePath, filePath);
   assert.is(i.title, 'Heading');
 
   assert.is(i.items[0].text, 'Section A');

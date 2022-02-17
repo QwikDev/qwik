@@ -1,5 +1,4 @@
 import { $, component$, Host, useStyles$ } from '@builder.io/qwik';
-import { isServer } from '@builder.io/qwik/build';
 import { useLocation } from '../../utils/useLocation';
 import { Header } from '../../components/header/header';
 import styles from './builder.css';

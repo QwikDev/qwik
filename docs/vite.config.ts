@@ -1,8 +1,9 @@
 import { defineConfig } from 'vite';
 import { qwikVite } from '@builder.io/qwik/optimizer';
 import { writeFile, mkdir } from 'fs/promises';
-import { dirname, resolve } from 'path';
+import { dirname, join, resolve } from 'path';
 import { qwest } from './qwest/vite/index';
+import { partytownVite } from '@builder.io/partytown/utils';
 
 export default defineConfig(async ({ mode }) => {
   const { default: mdx } = await import('@mdx-js/rollup');
@@ -20,7 +21,7 @@ export default defineConfig(async ({ mode }) => {
       },
     },
     ssr: {
-      noExternal: true,
+      noExternal: ['stream'],
     },
     plugins: [
       qwikVite({
@@ -44,6 +45,9 @@ export default defineConfig(async ({ mode }) => {
           tutorial: resolve('./src/layouts/tutorial/tutorial.tsx'),
           default: resolve('./src/layouts/docs/docs.tsx'),
         },
+      }),
+      partytownVite({
+        dest: join(__dirname, 'dist', '~partytown'),
       }),
     ],
   };

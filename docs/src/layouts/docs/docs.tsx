@@ -21,7 +21,7 @@ const DocsLayout = component$((props: DocsLayoutProps) => {
       <Host class="docs">
         <Header />
         <main className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
-          {navIndex ? <SideBar index={navIndex} /> : null}
+          {navIndex ? <SideBar navIndex={navIndex} /> : null}
           <Slot />
           <Footer />
         </main>

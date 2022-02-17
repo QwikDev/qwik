@@ -3,17 +3,17 @@ import type { IndexItem } from '@builder.io/qwest';
 import styles from './sidebar.css';
 
 interface SidebarProps {
-  index: IndexItem;
+  navIndex: IndexItem;
 }
 
 export const SideBar = component$(
-  (props: SidebarProps) => {
+  ({ navIndex }: SidebarProps) => {
     useStyles$(styles);
 
     return $(() => (
       <Host>
         <nav>
-          {props.index.items?.map((item) => (
+          {navIndex.items?.map((item) => (
             <>
               <h5 class="mb-8 lg:mb-3 font-semibold text-slate-900 dark:text-slate-200">
                 {item.href ? (

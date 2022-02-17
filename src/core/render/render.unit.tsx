@@ -498,7 +498,7 @@ describe('render', () => {
               </svg>
               <fegaussianblur class="is-html">bye</fegaussianblur>
             </foreignObject>
-            <svg:text class="is-svg">Hello</svg:text>
+            <text class="is-svg">Hello</text>
             <text class="is-svg">Bye</text>
           </svg>
           <text class="is-html">end</text>

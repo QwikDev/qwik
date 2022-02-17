@@ -144,7 +144,10 @@ export function QStore_dehydrate(doc: Document) {
 
     if (props) {
       assertDefined(events);
-      node.setAttribute(OnRenderAttr, [props, events].map((obj) => ctx.refMap.indexOf(obj)).join(' '))
+      node.setAttribute(
+        OnRenderAttr,
+        [props, events].map((obj) => ctx.refMap.indexOf(obj)).join(' ')
+      );
     }
   });
 

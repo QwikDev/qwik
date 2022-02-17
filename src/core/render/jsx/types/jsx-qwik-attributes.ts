@@ -29,7 +29,7 @@ export interface QwikEvents {
 
 export interface QwikAttributes extends QwikProps, QwikEvents {}
 
-export type JSXPrimitive =
+export type JSXChildren =
   | string
   | number
   | boolean
@@ -37,9 +37,9 @@ export type JSXPrimitive =
   | undefined
   | Function
   | RegExp
+  | JSXChildren[]
+  | Promise<JSXChildren>
   | JSXNode<any>;
-export type JSXChild = JSXPrimitive | JSXPrimitive[] | Promise<JSXPrimitive>;
-export type JSXChildren = JSXChild | JSXChild[];
 
 export interface DOMAttributes<T> extends QwikProps, QwikEvents {
   children?: JSXChildren;

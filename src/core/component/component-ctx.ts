@@ -41,7 +41,7 @@ export class QComponentCtx {
           }
         }
         const cursor = cursorForComponent(this.hostElement);
-        visitJsxNode(this, renderQueue, cursor, jsxNode);
+        visitJsxNode(this, renderQueue, cursor, jsxNode, false);
         cursorReconcileEnd(cursor);
       });
     } catch (e) {

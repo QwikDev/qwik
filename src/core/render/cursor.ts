@@ -51,6 +51,8 @@ export interface Cursor {
   end: Node | null;
 }
 
+export const SVG_NS = 'http://www.w3.org/2000/svg';
+
 /**
  * Create a cursor which reconciles logical children.
  *
@@ -131,7 +133,8 @@ export function cursorReconcileElement(
   component: QComponentCtx | null,
   expectTag: string,
   expectProps: Record<string, any> | typeof String,
-  componentRenderQueue: ComponentRenderQueue | null
+  componentRenderQueue: ComponentRenderQueue | null,
+  isSvg: boolean
 ): Cursor {
   let node = getNode(cursor);
   assertNotEqual(node, undefined, 'Cursor already closed');
@@ -144,7 +147,8 @@ export function cursorReconcileElement(
       component,
       expectTag,
       expectProps,
-      componentRenderQueue
+      componentRenderQueue,
+      isSvg
     );
   } else {
     assertNotEqual(node, undefined, 'Cursor already closed');
@@ -155,7 +159,8 @@ export function cursorReconcileElement(
       component,
       expectTag,
       expectProps,
-      componentRenderQueue
+      componentRenderQueue,
+      isSvg
     );
     assertDefined(node);
     setNode(cursor, node.nextSibling);
@@ -170,7 +175,8 @@ function slotMapReconcileSlots(
   component: QComponentCtx | null,
   expectTag: string,
   expectProps: Record<string, any>,
-  componentRenderQueue: ComponentRenderQueue | null
+  componentRenderQueue: ComponentRenderQueue | null,
+  isSvg: boolean
 ): Cursor {
   const slotName = expectProps[QSlotAttr] || '';
   const namedSlot = keyValueArrayGet(slots, slotName);
@@ -190,7 +196,8 @@ function slotMapReconcileSlots(
       component,
       expectTag,
       expectProps,
-      componentRenderQueue
+      componentRenderQueue,
+      isSvg
     );
     if (childNode !== node) {
       namedSlot[index] = node;
@@ -206,7 +213,8 @@ function slotMapReconcileSlots(
       component,
       expectTag,
       expectProps,
-      true
+      true,
+      isSvg
     );
     assertDefined(childNode);
   }
@@ -220,24 +228,26 @@ function _reconcileElement(
   component: QComponentCtx | null,
   expectTag: string,
   expectProps: Record<string, any> | StringConstructor,
-  componentRenderQueue: ComponentRenderQueue | null | true
+  componentRenderQueue: ComponentRenderQueue | null | true,
+  isSvg: boolean
 ): Element {
   let shouldDescendIntoComponent: boolean;
-  let reconciledElement: HTMLElement;
+  let reconciledElement: Element;
   if (isDomElementWithTagName(existing, expectTag)) {
-    updateProperties(existing as HTMLElement, expectProps);
+    updateProperties(existing as HTMLElement, expectProps, isSvg);
     shouldDescendIntoComponent = !!componentRenderQueue;
     reconciledElement = existing as HTMLElement;
   } else {
     // Expected node and actual node did not match. Need to switch.
+    const doc = isDocument(parent) ? parent : parent.ownerDocument!;
     reconciledElement = replaceNode(
       parent,
       existing,
-      (isDocument(parent) ? parent : parent.ownerDocument!).createElement(expectTag),
+      isSvg ? doc.createElementNS(SVG_NS, expectTag) : doc.createElement(expectTag),
       end
     );
     shouldDescendIntoComponent = !!componentRenderQueue;
-    updateProperties(reconciledElement, expectProps);
+    updateProperties(reconciledElement, expectProps, isSvg);
   }
   component && component.styleClass && reconciledElement.classList.add(component.styleClass);
   if (shouldDescendIntoComponent) {
@@ -293,8 +303,7 @@ const PROP_HANDLER_MAP: Record<string, PropHandler> = {
 
 const ALLOWS_PROPS = ['className', 'class', 'style', 'id', 'title'];
 
-export function updateProperties(node: Element, expectProps: Record<string, any>) {
-  const isSVG = node.namespaceURI === 'SVG';
+export function updateProperties(node: Element, expectProps: Record<string, any>, isSvg: boolean) {
   const ctx = getContext(node);
   const qwikProps = OnRenderProp in expectProps ? getProps(ctx) : undefined;
 
@@ -326,7 +335,7 @@ export function updateProperties(node: Element, expectProps: Record<string, any>
       qwikProps[key] = newValue;
     } else {
       // Check of data- or aria-
-      if (key.startsWith('data-') || key.endsWith('aria-') || isSVG) {
+      if (key.startsWith('data-') || key.endsWith('aria-') || isSvg) {
         renderAttribute(node, key, newValue);
         continue;
       }

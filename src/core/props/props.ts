@@ -66,7 +66,7 @@ export function setEvent(ctx: QContext, prop: string, value: any) {
     const events = getEvents(ctx);
     const promise = then(value(el), (qrl: QRLInternal) => {
       if (!qrl.symbolRef) {
-        return qrlImport(el, qrl).then(sym => {
+        return qrlImport(el, qrl).then((sym) => {
           qrl.symbolRef = sym;
           return qrl;
         });

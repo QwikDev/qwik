@@ -72,6 +72,21 @@ describe('render', () => {
         </div>
       );
     });
+
+    it('should render svg', async () => {
+      await render(
+        fixture.host,
+        <svg viewBox="0 0 100 100">
+          <span>text</span>
+        </svg>
+      );
+      expectDOM(
+        fixture.host.firstElementChild!,
+        <svg viewBox="0 0 100 100">
+          <span>text</span>
+        </svg>
+      );
+    });
   });
 
   describe('component', () => {
@@ -352,6 +367,142 @@ describe('render', () => {
             {'Hello'} {'World'}
           </span>
         </hello-world>
+      );
+    });
+  });
+
+  describe('SVG element', () => {
+    it('should render #text nodes', async () => {
+      const lines = ['hola', 'adios'];
+      render(
+        fixture.host,
+        <svg viewBox="0 0 100 4">
+          {lines.map((a) => {
+            return <text>Hola {a}</text>;
+          })}
+        </svg>
+      );
+      expectRendered(
+        <svg viewBox="0 0 100 4">
+          <text>Hola {'hola'}</text>
+          <text>Hola {'adios'}</text>
+        </svg>
+      );
+
+      // Ensure all SVG elements have the SVG namespace
+      const namespaces = Array.from(fixture.host.querySelectorAll('text')).map(
+        (e: any) => e.namespaceURI
+      );
+      expect(namespaces).toEqual(['http://www.w3.org/2000/svg', 'http://www.w3.org/2000/svg']);
+    });
+
+    it('should render camelCase attributes', async () => {
+      render(
+        fixture.host,
+        <svg id="my-svg" viewBox="0 0 100 4" preserveAspectRatio="none">
+          <a href="/path"></a>
+        </svg>
+      );
+      expectRendered(
+        <svg id="my-svg" preserveAspectRatio="none" viewBox="0 0 100 4">
+          <a href="/path"></a>
+        </svg>
+      );
+    });
+
+    it('should render path', () => {
+      render(
+        fixture.host,
+        <div>
+          <a href="#">Dude!!</a>
+          <svg id="my-svg" viewBox="0 0 100 4" preserveAspectRatio="none">
+            <path
+              id="my-svg-path"
+              d="M 0,2 L 100,2"
+              stroke="#FFEA82"
+              stroke-width="4"
+              fill-opacity="0"
+            />
+          </svg>
+        </div>
+      );
+      expectRendered(
+        <div>
+          <a href="#">Dude!!</a>
+          <svg id="my-svg" viewBox="0 0 100 4" preserveAspectRatio="none">
+            <path
+              id="my-svg-path"
+              d="M 0,2 L 100,2"
+              stroke="#FFEA82"
+              stroke-width="4"
+              fill-opacity="0"
+            />
+          </svg>
+        </div>
+      );
+    });
+
+    it('should render foreignObject properly', async () => {
+      const Text = 'text' as any;
+      render(
+        fixture.host,
+        <div class="is-html">
+          <Text class="is-html" shouldKebab="true">
+            Start
+          </Text>
+          <svg class="is-svg" preserveAspectRatio="true">
+            <Text class="is-svg" shouldCamelCase="true">
+              start
+            </Text>
+            <foreignObject class="is-svg">
+              <div class="is-html">hello</div>
+              <svg class="is-svg">
+                <feGaussianBlur class="is-svg"></feGaussianBlur>
+                <foreignObject class="is-svg">
+                  <foreignObject class="is-html"></foreignObject>
+                  <div class="is-html">Still outside svg</div>
+                </foreignObject>
+              </svg>
+              <feGaussianBlur class="is-html">bye</feGaussianBlur>
+            </foreignObject>
+            <text class="is-svg">Hello</text>
+            <text class="is-svg">Bye</text>
+          </svg>
+          <text class="is-html">end</text>
+        </div>
+      );
+      for (const el of Array.from(fixture.host.querySelectorAll('.is-html'))) {
+        expect(el).toMatchObject({ namespaceURI: 'http://www.w3.org/1999/xhtml' });
+      }
+      for (const el of Array.from(fixture.host.querySelectorAll('.is-svg'))) {
+        expect(el).toMatchObject({ namespaceURI: 'http://www.w3.org/2000/svg' });
+      }
+
+      expectRendered(
+        <div class="is-html">
+          <Text class="is-html" should-kebab="true">
+            Start
+          </Text>
+          <svg class="is-svg" preserveAspectRatio="true">
+            <Text class="is-svg" shouldCamelCase="true">
+              start
+            </Text>
+            <foreignObject class="is-svg">
+              <div class="is-html">hello</div>
+              <svg class="is-svg">
+                <feGaussianBlur class="is-svg"></feGaussianBlur>
+                <foreignObject class="is-svg">
+                  <foreignobject class="is-html"></foreignobject>
+                  <div class="is-html">Still outside svg</div>
+                </foreignObject>
+              </svg>
+              <fegaussianblur class="is-html">bye</fegaussianblur>
+            </foreignObject>
+            <svg:text class="is-svg">Hello</svg:text>
+            <text class="is-svg">Bye</text>
+          </svg>
+          <text class="is-html">end</text>
+        </div>
       );
     });
   });

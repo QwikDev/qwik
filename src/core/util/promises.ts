@@ -33,6 +33,9 @@ export function isPromise(value: any): value is Promise<any> {
   return value instanceof Promise;
 }
 
-export const then = <T, B>(promise: ValueOrPromise<T>, thenFn: (arg: T) => ValueOrPromise<B>): ValueOrPromise<B> => {
+export const then = <T, B>(
+  promise: ValueOrPromise<T>,
+  thenFn: (arg: T) => ValueOrPromise<B>
+): ValueOrPromise<B> => {
   return isPromise(promise) ? promise.then(thenFn) : thenFn(promise);
 };

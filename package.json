@@ -26,7 +26,6 @@
     "test.e2e.webkit": "playwright test starters --browser=webkit --config starters/playwright.config.ts",
     "serve": "node --inspect starters/dev-server.cjs 3300",
     "docs.sync": "node scripts/docs_sync",
-    "jsx.types": "node scripts --jsx",
     "prepare": "husky install",
     "lint": "npm run lint.eslint && npm run lint.prettier && npm run lint.rust",
     "lint.eslint": "eslint \"**/*.ts*\"",

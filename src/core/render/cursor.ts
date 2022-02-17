@@ -49,6 +49,8 @@ export interface Cursor {
   end: Node | null;
 }
 
+export const SVG_NS = 'http://www.w3.org/2000/svg';
+
 /**
  * Create a cursor which reconciles logical children.
  *
@@ -129,7 +131,8 @@ export function cursorReconcileElement(
   component: QComponentCtx | null,
   expectTag: string,
   expectProps: Record<string, any> | typeof String,
-  componentRenderQueue: ComponentRenderQueue | null
+  componentRenderQueue: ComponentRenderQueue | null,
+  isSvg: boolean
 ): Cursor {
   let node = getNode(cursor);
   assertNotEqual(node, undefined, 'Cursor already closed');
@@ -142,7 +145,8 @@ export function cursorReconcileElement(
       component,
       expectTag,
       expectProps,
-      componentRenderQueue
+      componentRenderQueue,
+      isSvg
     );
   } else {
     assertNotEqual(node, undefined, 'Cursor already closed');
@@ -153,7 +157,8 @@ export function cursorReconcileElement(
       component,
       expectTag,
       expectProps,
-      componentRenderQueue
+      componentRenderQueue,
+      isSvg
     );
     assertDefined(node);
     setNode(cursor, node.nextSibling);
@@ -168,7 +173,8 @@ function slotMapReconcileSlots(
   component: QComponentCtx | null,
   expectTag: string,
   expectProps: Record<string, any>,
-  componentRenderQueue: ComponentRenderQueue | null
+  componentRenderQueue: ComponentRenderQueue | null,
+  isSvg: boolean
 ): Cursor {
   const slotName = expectProps[AttributeMarker.QSlotAttr] || '';
   const namedSlot = keyValueArrayGet(slots, slotName);
@@ -188,7 +194,8 @@ function slotMapReconcileSlots(
       component,
       expectTag,
       expectProps,
-      componentRenderQueue
+      componentRenderQueue,
+      isSvg
     );
     if (childNode !== node) {
       namedSlot[index] = node;
@@ -204,7 +211,8 @@ function slotMapReconcileSlots(
       component,
       expectTag,
       expectProps,
-      true
+      true,
+      isSvg
     );
     assertDefined(childNode);
   }
@@ -218,10 +226,11 @@ function _reconcileElement(
   component: QComponentCtx | null,
   expectTag: string,
   expectProps: Record<string, any> | StringConstructor,
-  componentRenderQueue: ComponentRenderQueue | null | true
+  componentRenderQueue: ComponentRenderQueue | null | true,
+  isSvg: boolean
 ): Element {
   let shouldDescendIntoComponent: boolean;
-  let reconciledElement: HTMLElement;
+  let reconciledElement: Element;
   if (isDomElementWithTagName(existing, expectTag)) {
     const props = getProps(existing as HTMLElement) as any;
     Object.assign(props, expectProps);
@@ -229,10 +238,11 @@ function _reconcileElement(
     reconciledElement = existing as HTMLElement;
   } else {
     // Expected node and actual node did not match. Need to switch.
+    const doc = isDocument(parent) ? parent : parent.ownerDocument!;
     reconciledElement = replaceNode(
       parent,
       existing,
-      (isDocument(parent) ? parent : parent.ownerDocument!).createElement(expectTag),
+      isSvg ? doc.createElementNS(SVG_NS, expectTag) : doc.createElement(expectTag),
       end
     );
     shouldDescendIntoComponent = !!componentRenderQueue;

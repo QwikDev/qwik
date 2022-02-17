@@ -29,30 +29,31 @@ export function visitJsxNode(
   component: QComponentCtx | null,
   renderQueue: ComponentRenderQueue,
   cursor: Cursor,
-  jsxNode: any
+  jsxNode: any,
+  isSvg: boolean
 ): void {
   if (isJSXNode(jsxNode)) {
     const nodeType = jsxNode.type;
     if (nodeType == null) return;
     if (typeof nodeType === 'string') {
-      visitJsxLiteralNode(component, renderQueue, cursor, jsxNode as JSXNode<string>);
+      visitJsxLiteralNode(component, renderQueue, cursor, jsxNode as JSXNode<string>, isSvg);
     } else if (nodeType === Fragment || nodeType == null) {
       const jsxChildren = jsxNode.children || EMPTY_ARRAY;
       for (const jsxChild of jsxChildren) {
-        visitJsxNode(component, renderQueue, cursor, jsxChild);
+        visitJsxNode(component, renderQueue, cursor, jsxChild, isSvg);
       }
     } else if (jsxNode.type === Host) {
       const props = getProps(cursor.parent as Element);
       Object.assign(props, jsxNode.props);
       const jsxChildren = jsxNode.children || EMPTY_ARRAY;
       for (const jsxChild of jsxChildren) {
-        visitJsxNode(component, renderQueue, cursor, jsxChild);
+        visitJsxNode(component, renderQueue, cursor, jsxChild, isSvg);
       }
       didQPropsChange(props);
     } else if (jsxNode.type === Slot) {
-      component && visitQSlotJsxNode(component, renderQueue, cursor, jsxNode);
+      component && visitQSlotJsxNode(component, renderQueue, cursor, jsxNode, isSvg);
     } else if (typeof jsxNode.type === 'function') {
-      visitJsxNode(component, renderQueue, cursor, jsxNode.type(jsxNode.props));
+      visitJsxNode(component, renderQueue, cursor, jsxNode.type(jsxNode.props), isSvg);
     } else {
       throw qError(QError.Render_unexpectedJSXNodeType_type, nodeType);
     }
@@ -60,20 +61,26 @@ export function visitJsxNode(
     const vNodeCursor = cursorReconcileVirtualNode(cursor);
     const render = (jsxNode: any) => {
       cursorReconcileStartVirtualNode(vNodeCursor);
-      visitJsxNode(component, renderQueue, vNodeCursor, jsxNode);
+      visitJsxNode(component, renderQueue, vNodeCursor, jsxNode, isSvg);
       cursorReconcileEnd(vNodeCursor);
     };
     jsxNode.then(render, render);
     if ((jsxNode as JSXPromise).whilePending) {
       const vNodePending = cursorClone(vNodeCursor);
       cursorReconcileStartVirtualNode(vNodePending);
-      visitJsxNode(component, renderQueue, vNodePending, (jsxNode as JSXPromise).whilePending);
+      visitJsxNode(
+        component,
+        renderQueue,
+        vNodePending,
+        (jsxNode as JSXPromise).whilePending,
+        isSvg
+      );
       cursorReconcileEnd(vNodePending);
     }
   } else if (Array.isArray(jsxNode)) {
     const jsxChildren = jsxNode;
     for (const jsxChild of jsxChildren) {
-      visitJsxNode(component, renderQueue, cursor, jsxChild);
+      visitJsxNode(component, renderQueue, cursor, jsxChild, isSvg);
     }
   } else if (typeof jsxNode === 'string' || typeof jsxNode === 'number') {
     // stringify
@@ -85,22 +92,31 @@ function visitJsxLiteralNode(
   component: QComponentCtx | null,
   renderQueue: ComponentRenderQueue,
   cursor: Cursor,
-  jsxNode: JSXNode
+  jsxNode: JSXNode,
+  isSvg: boolean
 ): void {
   const jsxTag = jsxNode.type as string;
   const isQComponent = AttributeMarker.OnRenderProp in jsxNode.props;
+  if (!isSvg) {
+    isSvg = jsxTag === 'svg';
+  }
   const elementCursor = cursorReconcileElement(
     cursor,
     component,
     jsxTag,
     jsxNode.props,
-    isQComponent ? renderQueue : null
+    isQComponent ? renderQueue : null,
+    isSvg
   );
+
+  if (isSvg && jsxTag === 'foreignObject') {
+    isSvg = false;
+  }
   if (!hasInnerHtmlOrTextBinding(jsxNode)) {
     // we don't process children if we have inner-html bound to something.
     const jsxChildren = jsxNode.children || EMPTY_ARRAY;
     for (const jsxChild of jsxChildren) {
-      visitJsxNode(component, renderQueue, elementCursor, jsxChild);
+      visitJsxNode(component, renderQueue, elementCursor, jsxChild, isSvg);
     }
     cursorReconcileEnd(elementCursor);
   } else if (isQComponent) {
@@ -117,7 +133,8 @@ export function visitQSlotJsxNode(
   component: QComponentCtx,
   renderQueue: ComponentRenderQueue,
   cursor: Cursor,
-  jsxNode: JSXNode
+  jsxNode: JSXNode,
+  isSvg: boolean
 ): void {
   const slotName: string = jsxNode.props.name || '';
   const slotCursor = cursorReconcileElement(
@@ -125,7 +142,8 @@ export function visitQSlotJsxNode(
     component,
     AttributeMarker.QSlot,
     { [AttributeMarker.QSlotName]: slotName, ...jsxNode.props },
-    null
+    null,
+    isSvg
   );
   const slotMap = getSlotMap(component);
   const namedSlot = keyValueArrayGet(slotMap, slotName);
@@ -149,7 +167,7 @@ export function visitQSlotJsxNode(
     // fallback to default value projection.
     const jsxChildren = jsxNode.children;
     for (const jsxChild of jsxChildren) {
-      visitJsxNode(component, renderQueue, slotCursor, jsxChild);
+      visitJsxNode(component, renderQueue, slotCursor, jsxChild, isSvg);
     }
     cursorReconcileEnd(slotCursor);
   }

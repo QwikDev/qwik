@@ -5,6 +5,7 @@ import { QRL, $ } from '../import/qrl.public';
 import { qJsonParse, qJsonStringify } from '../json/q-json';
 import { getQObjectId, QObjectIdSymbol, wrap } from '../object/q-object';
 import { QStore_hydrate } from '../object/store';
+import { SVG_NS } from '../render/cursor';
 import { fromCamelToKebabCase } from '../util/case';
 import { EMPTY_ARRAY } from '../util/flyweight';
 import { AttributeMarker } from '../util/markers';
@@ -170,8 +171,11 @@ function readAttribute(element: Element, map: QObjectMap, propName: string): any
 }
 
 function writeAttribute(element: Element, map: QObjectMap, propName: string, value: any): void {
+  if (element.namespaceURI === SVG_NS) {
+    element.setAttribute(propName, value);
+    return;
+  }
   let attrName = fromCamelToKebabCase(propName);
-
   if (propName === 'class') {
     element.setAttribute(propName, stringifyClassOrStyle(value, true));
   } else if (propName === 'style') {
@@ -197,7 +201,11 @@ function writeAttribute(element: Element, map: QObjectMap, propName: string, val
     if (value === undefined || value === false) {
       element.removeAttribute(attrName);
     } else {
-      element.setAttribute(attrName, qJsonStringify(value, map));
+      if (typeof value === 'string') {
+        element.setAttribute(attrName, value);
+      } else {
+        element.setAttribute(attrName, qJsonStringify(value, map));
+      }
     }
   }
 }

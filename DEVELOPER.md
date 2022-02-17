@@ -74,23 +74,6 @@ npm run build
 The build output will be written to `dist-dev/@builder.io-qwik`, which will be the directory that is published
 to [@builder.io/qwik](https://www.npmjs.com/package/@builder.io/qwik).
 
-## Qwik JSX Generate Script
-
-Qwik's JSX implementation is based on React's `@types/react`. However, React's JSX is declared as a `global` and adds its own events such as `onClick`. To avoid the global and allow Qwik to scope its own implementation of JSX, there's a generate script that gets the latest `@types/react/index.d.ts`, and parses the JSX type information.
-
-```
-yarn jsx.types
-```
-
-1. Downloads the React types from https://unpkg.com/@types/react/index.d.ts
-   and follows the redirect to get the latest version. It uses a download
-   instead of an npm install because we want to ensure our local build is not
-   polluted by React's global JSX, which may not show errors locally, but would
-   have errors for other users that do not have `@types/react` installed.
-2. Parses the `index.d.ts` file for its current `IntrinsicElements` interface.
-3. Generates `src/core/render/jsx/types/jsx-generated.ts`, which should be committed.
-4. Qwik's JSX implementation extends the generated `jsx-generated.ts` file.
-
 ## Releasing `@builder.io/qwik`
 
 1. Run `npm run release.prepare`, which will test, lint and build locally.

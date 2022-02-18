@@ -1,16 +1,16 @@
-import { $, component$, Host, Slot, useStyles$ } from '@builder.io/qwik';
+import { $, component$, Host, Slot, withScopedStyles$ } from '@builder.io/qwik';
 import { Header } from '../../components/header/header';
 import { Footer } from '../../components/footer/footer';
 import { SideBar } from '../../components/sidebar/sidebar';
-import styles from './docs.css';
 import { loadIndex } from '@builder.io/qwest';
+import styles from './docs.css';
 
 export interface DocsLayoutProps {
   pathname: string;
 }
 
 const DocsLayout = component$((props: DocsLayoutProps) => {
-  useStyles$(styles);
+  withScopedStyles$(styles);
 
   return $(async () => {
     const navIndex = await loadIndex({
@@ -20,10 +20,14 @@ const DocsLayout = component$((props: DocsLayoutProps) => {
     return (
       <Host class="docs">
         <Header />
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
+        <main class="max-w-7xl mx-auto md:px-8 flex">
           {navIndex ? <SideBar navIndex={navIndex} /> : null}
-          <Slot />
-          <Footer />
+          <section class="flex-1">
+            <article class="min-h-[600px]">
+              <Slot />
+            </article>
+            <Footer />
+          </section>
         </main>
       </Host>
     );

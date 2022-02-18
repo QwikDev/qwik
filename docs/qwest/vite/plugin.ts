@@ -8,6 +8,7 @@ import { createDevCode, createProdCode } from './code-generation';
 import { loadPages } from './load-pages';
 import type { NormalizedPluginOptions } from './types';
 import { getIndexBuildPath, getPagesBuildPath, isMarkdownFile, normalizeOptions } from './utils';
+import type { PageIndex } from '../index';
 
 export function qwest(options: PluginOptions) {
   const opts = normalizeOptions(options);
@@ -36,6 +37,7 @@ export function qwest(options: PluginOptions) {
 
     async buildStart() {
       qwestBuildCode = null;
+
       if (!hasValidatedOpts) {
         const err = await validatePlugin(opts);
         if (err) {
@@ -62,10 +64,6 @@ export function qwest(options: PluginOptions) {
 
         const data = await loadPages(opts, (msg) => this.warn(msg));
 
-        data.pages.forEach((p) => {
-          this.addWatchFile(p.filePath);
-        });
-
         if (viteDevServer) {
           // vite dev server build (esbuild)
           qwestBuildCode = createDevCode(opts, data);
@@ -82,11 +80,16 @@ export function qwest(options: PluginOptions) {
             });
           });
 
-          data.indexes.forEach((index) => {
+          data.indexes.forEach((parsedIndex) => {
+            const pageIndex: PageIndex = {
+              text: parsedIndex.text,
+              href: parsedIndex.href,
+              items: parsedIndex.items,
+            };
             this.emitFile({
               type: 'asset',
-              fileName: getIndexBuildPath(index),
-              source: JSON.stringify(index),
+              fileName: getIndexBuildPath(parsedIndex),
+              source: JSON.stringify(pageIndex),
             });
           });
         }

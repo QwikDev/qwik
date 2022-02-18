@@ -1,7 +1,13 @@
 export interface PageHandler {
   getContent: () => Content | null;
   getLayout: () => Layout | null;
-  getMetadata: () => { [attrName: string]: string };
+  getMetadata: () => PageMetadata;
+}
+
+export interface PageMetadata {
+  title: string;
+  description: string;
+  [pageAttribute: string]: string;
 }
 
 export type Content = any;
@@ -15,12 +21,12 @@ export interface LoadIndexOptions {
   pathname: string;
 }
 
-export interface IndexItem {
+export interface PageIndex {
   text: string;
   href?: string;
-  items?: IndexItem[];
+  items?: PageIndex[];
 }
 
 export declare function loadPage(opts: LoadIndexOptions): Promise<PageHandler | null>;
 
-export declare function loadIndex(opts: LoadIndexOptions): Promise<IndexItem | null>;
+export declare function loadIndex(opts: LoadIndexOptions): Promise<PageIndex | null>;

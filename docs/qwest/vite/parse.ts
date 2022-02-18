@@ -2,8 +2,8 @@ import {
   NormalizedPluginOptions,
   PageAttributes,
   ParsedIndex,
+  ParsedIndexData,
   ParsedPage,
-  ParsedIndexItem,
 } from './types';
 import frontmatter from 'front-matter';
 import { marked } from 'marked';
@@ -37,21 +37,22 @@ export function parseIndexFile(
   indexFilePath: string,
   content: string
 ) {
-  const index: ParsedIndex = {
+  const index: ParsedIndexData = {
     pathname: getIndexPathname(opts, indexFilePath),
-    title: '',
+    filePath: indexFilePath,
+    text: '',
     items: [],
   };
 
   const tokens = marked.lexer(content, {});
   let hasH1 = false;
-  let h2: ParsedIndexItem | null = null;
+  let h2: ParsedIndex | null = null;
 
   for (const t of tokens) {
     if (t.type === 'heading') {
       if (t.depth === 1) {
         if (!hasH1) {
-          index.title = t.text;
+          index.text = t.text;
           hasH1 = true;
         } else {
           throw new Error(`Only one h1 can be used in the index: ${indexFilePath}`);
@@ -65,13 +66,14 @@ export function parseIndexFile(
             h2 = {
               text: h2Token.text,
             };
-            index.items.push(h2);
+            index.items = index.items || [];
+            index.items!.push(h2);
           } else if (h2Token.type === 'link') {
             h2 = {
               text: h2Token.text,
               href: getIndexLinkHref(opts, indexFilePath, h2Token.href),
             };
-            index.items.push(h2);
+            index.items!.push(h2);
           } else {
             `Headings can only be a text or link. Received "${h2Token.type}", value "${h2Token.raw}", in index: ${indexFilePath}`;
           }

@@ -1,10 +1,10 @@
 # Guide
 
-## Introduction
+## Introductions
 
 - [Getting Started](getting-started.mdx)
 - [Mental Model](mental-model.mdx)
-- [Resumable vs. Replayable](resumable-vs-replayable.mdx)
+- [Resumable](resumable-vs-replayable.mdx)
 - [Lazy Loading](lazy-loading.mdx)
 - [Bootstrap](bootstrap.mdx)
 

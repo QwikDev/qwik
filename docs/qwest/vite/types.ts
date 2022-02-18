@@ -1,18 +1,17 @@
 export interface ParsedData {
   pages: ParsedPage[];
-  indexes: ParsedIndex[];
+  indexes: ParsedIndexData[];
+}
+
+export interface ParsedIndexData extends ParsedIndex {
+  pathname: string;
+  filePath: string;
 }
 
 export interface ParsedIndex {
-  pathname: string;
-  title: string;
-  items: ParsedIndexItem[];
-}
-
-export interface ParsedIndexItem {
   text: string;
   href?: string;
-  items?: ParsedIndexItem[];
+  items?: ParsedIndex[];
 }
 
 export interface ParsedPage {

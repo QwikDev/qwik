@@ -1,2 +1,9 @@
-.docs {
+.docs h1 {
+  @apply text-slate-200;
+  @apply text-2xl font-bold;
+}
+
+.docs h2 {
+  @apply text-slate-200;
+  @apply text-xl font-semibold;
 }

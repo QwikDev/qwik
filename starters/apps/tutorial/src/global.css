@@ -7,5 +7,25 @@
 }
 
 .rendered {
-  border: 1px blue solid;
+  box-shadow: 0px 0px 6px blue;
+}
+
+.max-h-5 {
+  max-height: 20px;
+}
+
+.max-h-100 {
+  max-height: 200px;
+}
+
+.max-w-5 {
+  max-width: 20px;
+}
+
+.max-w-100 {
+  max-width: 200px;
+}
+
+.pr-5 {
+  padding-right: 1em;
 }

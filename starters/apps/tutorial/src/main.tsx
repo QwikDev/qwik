@@ -7,6 +7,7 @@ import {
   onWatch$,
   useHostElement,
   useStyles$,
+  Slot,
 } from '@builder.io/qwik';
 
 import globalCss from './global.css';
@@ -81,6 +82,7 @@ export const Cart = component$(({ cart }: { cart: Cart }) => {
       <Host class="float-right">
         <table>
           <tr>
+            <th></th>
             <th>Qty</th>
             <th>Item</th>
             <th>Cost</th>
@@ -88,16 +90,17 @@ export const Cart = component$(({ cart }: { cart: Cart }) => {
           </tr>
           {cart.map((item) => (
             <tr>
-              <td>{item.qty}</td>
               <td>
-                {item.sku.image ? <img class="max-h-5 max-w-5" src={item.sku.image} /> : null}
-                {item.sku.name}
+                {item.sku.image ? <img class="max-h-5 max-w-5 pr-5" src={item.sku.image} /> : null}
               </td>
+              <td>{item.qty}</td>
+              <td>{item.sku.name}</td>
               <td>{item.sku.price.toFixed(2)}</td>
               <td>{item.cost.toFixed(2)}</td>
             </tr>
           ))}
           <tr>
+            <td></td>
             <td></td>
             <td></td>
             <td></td>
@@ -111,12 +114,12 @@ export const Cart = component$(({ cart }: { cart: Cart }) => {
 
 export const Item = component$(({ sku, cart }: { sku: Sku; cart: CartItem[] }) => {
   return $(() => {
-    console.log('Render: <Item/>');
+    markRender('<Item/>');
     return (
       <>
         <h1>{sku.name}</h1>
         <Image sku={sku} />
-        <Description sku={sku} />
+        <Toggle>{sku.description}</Toggle>
         <button
           on$:click={() => {
             for (const cartItem of cart) {
@@ -135,16 +138,29 @@ export const Item = component$(({ sku, cart }: { sku: Sku; cart: CartItem[] }) =
   });
 });
 
+export const Toggle = component$(() => {
+  const store = createStore({ isOpen: false });
+  return $(() => {
+    markRender('<Description/>');
+    return (
+      <div>
+        <span on$:click={() => (store.isOpen = !store.isOpen)}>{store.isOpen ? '[-]' : '[+]'}</span>
+        {store.isOpen ? <Slot /> : null}
+      </div>
+    );
+  });
+});
+
 export const Image = component$(({ sku }: { sku: Sku }) => {
   return $(() => {
-    console.log('Render: <Image/>');
-    return <img src={sku.image} />;
+    markRender('<Image/>');
+    return <img class="max-h-100 max-w-100" src={sku.image} />;
   });
 });
 
 export const Description = component$(({ sku }: { sku: Sku }) => {
   return $(() => {
-    console.log('Render: <Description/>');
+    markRender('<Description/>');
     return <div>{sku.description}</div>;
   });
 });

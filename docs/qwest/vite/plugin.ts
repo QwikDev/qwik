@@ -1,5 +1,5 @@
 import { stat } from 'fs/promises';
-import { isAbsolute } from 'path/posix';
+import { isAbsolute } from 'path';
 import type { ModuleGraph, ViteDevServer } from 'vite';
 import { ModuleNode } from 'vite';
 import { Plugin } from 'vite';

@@ -1,4 +1,4 @@
-import { join } from 'path/posix';
+import { join } from 'path';
 import { suite as uvuSuite } from 'uvu';
 import { NormalizedPluginOptions, PageAttributes } from '../types';
 

@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Qwik Client Dev Mode</title>
+  </head>
+  <body>
+    <script type="module">
+      // Vite Dev Mode Only
+      import '@builder.io/qwik/qwikloader.js';
+      import { render } from '@builder.io/qwik';
+      import { App } from '/src/main.tsx';
+      render(document.body, App);
+    </script>
+  </body>
+</html>

@@ -36,10 +36,8 @@ export function QStore_dehydrate(doc: Document) {
     const qMap = props.__qRefs__;
     clearQProps(node);
     assertDefined(qMap);
-    qMap.forEach((v, k) => {
-      map[k] = v.obj;
-      collectQObjects(v, new Set(), (k, v) => (map[k] = v));
-    });
+    const seen = new Set();
+    qMap.forEach((v) => collectQObjects(v, seen, (k, v) => (map[k] = v)));
   });
   // Serialize
   const script = doc.createElement('script');
@@ -97,6 +95,8 @@ function reviveNestedQObjects(obj: any, map: Record<string, any>) {
 function collectQObjects(obj: any, seen: Set<any>, foundFn: (key: string, obj: any) => void) {
   if (obj && typeof obj == 'object') {
     if (seen.has(obj)) return;
+    const id = getQObjectId(obj);
+    if (id) foundFn(id, obj);
     seen.add(obj);
     if (Array.isArray(obj)) {
       for (let i = 0; i < obj.length; i++) {
@@ -106,8 +106,6 @@ function collectQObjects(obj: any, seen: Set<any>, foundFn: (key: string, obj: a
       for (const key in obj) {
         if (Object.prototype.hasOwnProperty.call(obj, key)) {
           const value = obj[key];
-          const id = getQObjectId(value);
-          if (id) foundFn(id, value);
           collectQObjects(value, seen, foundFn);
         }
       }

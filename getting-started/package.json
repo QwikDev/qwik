@@ -1,0 +1,35 @@
+{
+  "name": "getting-started",
+  "version": "0.0.0",
+  "description": "Blank Qwik starter app. Vite.js tooling. Express.js server. Prettier code formatter. Tailwind CSS framework.",
+  "scripts": {
+    "build": "npm run typecheck && npm run build.client && npm run build.server",
+    "build.client": "vite build --outDir server/public",
+    "build.server": "vite build --outDir server/build --ssr src/entry.express.tsx",
+    "dev": "vite",
+    "dev.client": "vite --mode clientonly",
+    "fmt": "prettier --write .",
+    "fmt.check": "prettier --check .",
+    "preview": "vite preview",
+    "serve": "node server/build/entry.express.js",
+    "start": "npm run dev",
+    "typecheck": "npx tsc --noEmit"
+  },
+  "devDependencies": {
+    "@builder.io/qwik": "~0.0.16",
+    "@types/express": "4.17.13",
+    "@types/node": "17.0.17",
+    "autoprefixer": "10.4.2",
+    "express": "4.17.2",
+    "postcss": "8.4.6",
+    "prettier": "2.3.0",
+    "tailwindcss": "3.0.18",
+    "typescript": "latest",
+    "vite": "latest"
+  },
+  "author": "Builder.io Team",
+  "engines": {
+    "node": ">=14.14.0"
+  },
+  "license": "MIT"
+}

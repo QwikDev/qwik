@@ -92,10 +92,10 @@ export function readWriteProxy<T extends object>(target: T, id: string): T {
   return proxy;
 }
 
-const QOjectTargetSymbol = ':target:';
+export const QOjectTargetSymbol = ':target:';
 const QOjectTransientsSymbol = ':transients:';
 export const QObjectIdSymbol = ':id:';
-const QObjectDocumentSymbol = ':doc:';
+export const QObjectDocumentSymbol = ':doc:';
 
 export function unwrapProxy<T>(proxy: T): T {
   if (proxy && typeof proxy == 'object') {

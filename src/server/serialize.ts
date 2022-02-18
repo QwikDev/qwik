@@ -53,13 +53,12 @@ export function serializeDocument(doc: Document, opts?: SerializeDocumentOptions
     const replaceQRLs = function (
       _: string,
       chunk: string,
-      hashSymbol: string,
       symbol: string,
-      scope: string | undefined
+      rest: string | undefined
     ) {
       let qrl = qrlMapper(chunk, symbol);
-      if (scope) {
-        qrl += scope;
+      if (rest) {
+        qrl += rest;
       }
       return qrl;
     };
@@ -98,4 +97,4 @@ function createQrlMapper(qEntryMap: OutputEntryMap) {
 const ON_ATTR_MATCHER = /(on(|-window|-document):[\w\d\-$_]+)="([^"]+)+"/g;
 
 // https://regexr.com/6egnc
-const QRL_MATCHER = /^([^#]+)(#([\w\d$_]+))?(\[.*\])?$/g;
+const QRL_MATCHER = /^([^#]+)(?:#([\w\d$_]+))?((?:\|.*)?(?:\[.*\])?)$/g;

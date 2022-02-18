@@ -1,4 +1,10 @@
-import { getQObjectId, QObject_addDoc } from '../object/q-object';
+import { qError, QError } from '../error/error';
+import {
+  getQObjectId,
+  QObjectDocumentSymbol,
+  QObject_addDoc,
+  QOjectTargetSymbol,
+} from '../object/q-object';
 import type { Observer } from './watch.public';
 
 export type Subscriptions = Map<{}, { value: any; proxy: SubscribeProxy<any> }>;
@@ -42,15 +48,24 @@ export class SubscribeProxy<T extends Record<string, any>> {
     let value = target[prop];
     const props = this.properties || (this.properties = new Set());
     props.add(prop);
-    if (typeof value == 'object' && value != null) {
+    if (typeof value == 'object' && value != null && prop !== QOjectTargetSymbol) {
       value = this.wrap(value);
     }
     return value;
   }
 
   set(target: T, prop: string, newValue: any): boolean {
-    throw new Error('Writing to observables is not allowed! Property: ' + prop + ' ' + newValue);
-    // return true;
+    if (prop === QObjectDocumentSymbol) {
+      (target as any)[prop] = newValue;
+    } else {
+      // TODO(misko): We should throw error, but for now let's hack this through.
+      (target as any)[prop] = newValue;
+      // throw qError(
+      //   QError.Core_TODO,
+      //   'Writing to observables is not allowed! Property: ' + prop + ' ' + newValue
+      // );
+    }
+    return true;
   }
 
   has(target: T, property: string | symbol) {

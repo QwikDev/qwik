@@ -10,6 +10,7 @@ import { stringifyDebug } from './stringify';
 import { qDev } from '../util/qdev';
 
 export const enum QError {
+  Core_TODO = 0,
   // core 000-099
   Core_qConfigNotFound_path = 1,
   Core_unrecognizedStack_frame = 2,
@@ -95,6 +96,7 @@ function codeToText(code: QError): string {
     7: 'EVENT-ERROR',
   }[Math.floor(code / 100)];
   const text = {
+    [QError.Core_TODO]: '{}',
     [QError.Core_qConfigNotFound_path]: "QConfig not found in path '{}'.",
     [QError.Core_unrecognizedStack_frame]: "Unrecognized stack format '{}'",
     [QError.Core_noAttribute_atr1_element]:

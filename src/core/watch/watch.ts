@@ -32,7 +32,9 @@ export async function invokeWatchFn(element: Element, watchFnQrl: QRLInternal<Wa
   }
   const obs = createWatchFnObserver(element.ownerDocument);
   try {
-    const nextCleanupFn = watchFn(obs);
+    const useContext = newInvokeContext(element);
+    useContext.qrl = watchFnQrl;
+    const nextCleanupFn = useInvoke(useContext, watchFn, obs);
     if (isCleanupFn(nextCleanupFn)) {
       cleanupFnMap.set(watchFn, nextCleanupFn);
     }

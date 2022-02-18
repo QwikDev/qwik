@@ -1,0 +1,10 @@
+{
+  "description": "Blank Qwik starter app.",
+  "qwik": {
+    "priority": 0,
+    "featureOptions": [
+      "prettier",
+      "tailwindcss"
+    ]
+  }
+}

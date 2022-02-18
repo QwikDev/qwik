@@ -5,3 +5,7 @@
 .float-right {
   float: right;
 }
+
+.rendered {
+  border: 1px blue solid;
+}

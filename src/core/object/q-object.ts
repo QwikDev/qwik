@@ -30,7 +30,7 @@ export function _restoreQObject<T>(obj: T, id: string): T {
   return readWriteProxy(obj as any as QObject<T>, id);
 }
 
-function QObject_notifyWrite(id: string, doc: Document | null, propName: string) {
+function QObject_notifyWrite(id: string, doc: Document | null, propName: string | null) {
   if (doc) {
     const effectedElements = doc.querySelectorAll(idToComponentSelector(id));
     effectedElements.forEach(notifyRender);
@@ -149,7 +149,7 @@ class ReadWriteProxyHandler<T extends object> implements ProxyHandler<T> {
       const oldValue = (target as any)[prop];
       if (oldValue !== unwrappedNewValue) {
         (target as any)[prop] = unwrappedNewValue;
-        QObject_notifyWrite(this.id, this.doc, prop);
+        QObject_notifyWrite(this.id, this.doc, Array.isArray(target) ? null : prop);
       }
     }
     return true;

@@ -7,7 +7,7 @@ import type { Observer } from './watch.public';
 
 export type CleanupFn = () => void;
 export type WatchFn = (obs: Observer) => unknown | CleanupFn;
-export type OnWatchHandler = (qObjectId: string, propName: string) => Promise<unknown>;
+export type OnWatchHandler = (qObjectId: string, propName: string | null) => Promise<unknown>;
 
 const ON_WATCH = 'on:qWatch';
 
@@ -54,7 +54,7 @@ function isCleanupFn(value: any): value is CleanupFn {
 export async function notifyWatchers(
   element: Element,
   qObjectId: string,
-  propName: string
+  propName: string | null
 ): Promise<void> {
   const qProps = getProps(element);
   const onWatch: null | OnWatchHandler = qProps['on:qWatch'];
@@ -63,7 +63,7 @@ export async function notifyWatchers(
       const context = newInvokeContext(element);
       context.qrlGuard = (qrl: QRLInternal) => {
         const props = qrl.guard?.get(qObjectId);
-        return props ? props.indexOf(propName) !== -1 : false;
+        return props && propName ? props.indexOf(propName) !== -1 : true;
       };
       await useInvoke(context, onWatch, qObjectId, propName);
     } catch (e) {

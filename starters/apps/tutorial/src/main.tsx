@@ -1,6 +1,15 @@
-import { createStore, $, component$, useEvent, Host, onWatch$ } from '@builder.io/qwik';
+import {
+  createStore,
+  $,
+  component$,
+  useEvent,
+  Host,
+  onWatch$,
+  useHostElement,
+  useStyles$,
+} from '@builder.io/qwik';
 
-import './global.css';
+import globalCss from './global.css';
 
 interface AppState {
   cart: Cart;
@@ -27,18 +36,19 @@ export const App = component$(() => {
     name: 'hammer',
     description: 'Bast way to drive nails.',
     price: 19.99,
-    image: '',
+    image: './hammer.jpg',
   };
   const nail: Sku = {
-    name: 'nail',
+    name: 'nails',
     description: 'Use me to hold wood together.',
     price: 0.05,
-    image: '',
+    image: './nails.jpg',
   };
   const store = createStore<AppState>({
     cart: [{ sku: hammer, qty: 1, cost: 0 }],
     items: [hammer, nail],
   });
+  useStyles$(globalCss);
   return $(() => {
     console.log('Render: <Main/>');
     return (
@@ -66,30 +76,35 @@ export const Cart = component$(({ cart }: { cart: Cart }) => {
     }, 0);
   });
   return $(() => {
-    console.log('Render: <Cart/>');
+    markRender('<Cart/>');
     return (
-      <table style={{ float: 'right' }}>
-        <tr>
-          <th>Qty</th>
-          <th>Item</th>
-          <th>Cost</th>
-          <th>Total</th>
-        </tr>
-        {cart.map((item) => (
+      <Host class="float-right">
+        <table>
           <tr>
-            <td>{item.qty}</td>
-            <td>{item.sku.name}</td>
-            <td>{item.sku.price.toFixed(2)}</td>
-            <td>{item.cost.toFixed(2)}</td>
+            <th>Qty</th>
+            <th>Item</th>
+            <th>Cost</th>
+            <th>Total</th>
           </tr>
-        ))}
-        <tr>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td>{store.total.toFixed(2)}</td>
-        </tr>
-      </table>
+          {cart.map((item) => (
+            <tr>
+              <td>{item.qty}</td>
+              <td>
+                {item.sku.image ? <img class="max-h-5 max-w-5" src={item.sku.image} /> : null}
+                {item.sku.name}
+              </td>
+              <td>{item.sku.price.toFixed(2)}</td>
+              <td>{item.cost.toFixed(2)}</td>
+            </tr>
+          ))}
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td>{store.total.toFixed(2)}</td>
+          </tr>
+        </table>
+      </Host>
     );
   });
 });
@@ -133,3 +148,17 @@ export const Description = component$(({ sku }: { sku: Sku }) => {
     return <div>{sku.description}</div>;
   });
 });
+
+export function markRender(componentName: string) {
+  console.log('RENDER', componentName);
+  const isClient = typeof document == 'object';
+  if (isClient) {
+    const host = useHostElement();
+    setTimeout(() => {
+      host.classList.add('rendered');
+      setTimeout(() => {
+        host.classList.remove('rendered');
+      }, 500);
+    }, 10);
+  }
+}

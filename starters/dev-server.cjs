@@ -238,6 +238,7 @@ appNames.forEach((appName) => {
   app.use(`/${appName}`, express.static(publicPath));
 });
 
+console.log(__dirname);
 app.get('/', startersHomepage);
 app.get('/favicon.ico', favicon);
 app.get('/*', handleApp);

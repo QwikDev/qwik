@@ -1,4 +1,3 @@
-import { qError, QError } from '../error/error';
 import {
   getQObjectId,
   QObjectDocumentSymbol,
@@ -47,7 +46,9 @@ export class SubscribeProxy<T extends Record<string, any>> {
   get(target: T, prop: string): any {
     let value = target[prop];
     const props = this.properties || (this.properties = new Set());
-    props.add(prop);
+    if (!Array.isArray(target)) {
+      props.add(prop);
+    }
     if (typeof value == 'object' && value != null && prop !== QOjectTargetSymbol) {
       value = this.wrap(value);
     }

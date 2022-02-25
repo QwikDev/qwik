@@ -272,7 +272,7 @@ export const setPlatform: (doc: Document, plt: CorePlatform) => CorePlatform;
 // @public (undocumented)
 export const Slot: FunctionComponent<{
     name?: string;
-    children?: JSXChildren;
+    children?: any;
 }>;
 
 // @public
@@ -304,10 +304,6 @@ export const withScopedStyles$: (first: string) => void;
 
 // @alpha (undocumented)
 export function withScopedStyles(styles: QRL<string>): void;
-
-// Warnings were encountered during analysis:
-//
-// dist-dev/tsc-out/src/core/render/jsx/slot.public.d.ts:8:5 - (ae-forgotten-export) The symbol "JSXChildren" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

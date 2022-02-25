@@ -118,7 +118,6 @@ class ReadWriteProxyHandler<T extends object> implements ProxyHandler<T> {
     const isArray = Array.isArray(target);
     if (isArray) {
       (target as any)[prop] = unwrappedNewValue;
-      console.log('changed', prop, newValue);
       this.subs.forEach((_, el) => {
         notifyRender(el);
       });

@@ -119,9 +119,7 @@ function slotMapAddChildren(slots: SlotMap, parent: Node, name: string | null) {
   }
   while (child) {
     const slotName =
-      name !== null
-        ? name
-        : (isHtmlElement(child) && child.getAttribute(QSlotAttr)) || '';
+      name !== null ? name : (isHtmlElement(child) && child.getAttribute(QSlotAttr)) || '';
     keyValueArrayGet(slots, slotName, emptyArrayFactory).push(child);
     child = child.nextSibling;
   }

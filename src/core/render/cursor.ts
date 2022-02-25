@@ -311,7 +311,6 @@ export function updateProperties(node: Element, expectProps: Record<string, any>
       continue;
     }
 
-
     // Early exit if value didnt change
     const oldValue = ctx.cache.get(key);
     if (newValue === oldValue) {
@@ -466,10 +465,7 @@ export function cursorReconcileEnd(cursor: Cursor): void {
 function getUnSlottedStorage(componentElement: Element): HTMLTemplateElement {
   assertEqual(isComponentElement(componentElement), true, 'Must be component element');
   let template = componentElement?.firstElementChild as HTMLTemplateElement | null;
-  if (
-    !isDomElementWithTagName(template, 'template') ||
-    !template.hasAttribute(QSlotAttr)
-  ) {
+  if (!isDomElementWithTagName(template, 'template') || !template.hasAttribute(QSlotAttr)) {
     template = componentElement.insertBefore(
       componentElement.ownerDocument.createElement('template'),
       template

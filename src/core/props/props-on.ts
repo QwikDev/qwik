@@ -90,9 +90,7 @@ export function qPropWriteQRL(ctx: QContext, prop: string, value: any) {
       // we need to serialize the lexical scope references
       const captureRef = value.captureRef;
       value.capture =
-        captureRef && captureRef.length
-          ? captureRef.map((ref) => qDeflate(ref, ctx))
-          : EMPTY_ARRAY;
+        captureRef && captureRef.length ? captureRef.map((ref) => qDeflate(ref, ctx)) : EMPTY_ARRAY;
     }
 
     // Important we modify the array as it is cached.

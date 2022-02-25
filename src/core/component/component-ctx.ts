@@ -34,9 +34,7 @@ export class QComponentCtx {
       const event = 'qRender';
       const jsxNode = await useInvoke(newInvokeContext(hostElement, event), onRender);
       if (this.styleId === undefined) {
-        const scopedStyleId = (this.styleId = hostElement.getAttribute(
-          ComponentScopedStyles
-        ));
+        const scopedStyleId = (this.styleId = hostElement.getAttribute(ComponentScopedStyles));
         if (scopedStyleId) {
           this.styleHostClass = styleHost(scopedStyleId);
           this.styleClass = styleContent(scopedStyleId);

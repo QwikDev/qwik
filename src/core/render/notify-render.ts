@@ -41,9 +41,7 @@ export function scheduleRender(doc: Document): Promise<HostElements> {
 }
 
 async function renderMarked(doc: Document) {
-  const hosts = Array.from(
-    doc.querySelectorAll(RenderNotifySelector)
-  ) as HostElements;
+  const hosts = Array.from(doc.querySelectorAll(RenderNotifySelector)) as HostElements;
   return Promise.all(
     hosts.map((hostElement) => {
       hostElement.removeAttribute(RenderNotify);

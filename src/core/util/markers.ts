@@ -92,7 +92,6 @@ export const QObjAttr = 'q:obj';
 
 export const QObjSelector = '[q\\:obj]';
 
-
 /**
  * `<q:slot name="...">`
  */

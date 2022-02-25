@@ -2,7 +2,6 @@ import { toQrlOrError } from '../import/qrl';
 import type { QRLInternal } from '../import/qrl-class';
 import { $, implicit$FirstArg, QRL, qrlImport } from '../import/qrl.public';
 import type { qrlFactory } from '../props/props-on';
-import { getProps } from '../props/props.public';
 import { h } from '../render/jsx/factory';
 import type { JSXNode } from '../render/jsx/types/jsx-node';
 import { newInvokeContext, useInvoke, useWaitOn } from '../use/use-core';
@@ -11,6 +10,7 @@ import { AttributeMarker } from '../util/markers';
 import { styleKey } from './qrl-styles';
 import type { QwikEvents } from '../render/jsx/types/jsx-qwik-attributes';
 import type { ValueOrPromise } from '../util/types';
+import { getContext, getProps } from '../props/props';
 
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onUnmount">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onUnmount instead)
@@ -317,9 +317,10 @@ export function component<PROPS extends {}>(
       // Turn function into QRL
       const onMountQrl = toQrlOrError(onMount);
       const onMountFn = await resolveQrl(hostElement, onMountQrl);
-      const componentProps = Object.assign(getProps(hostElement), props);
+      const ctx = getContext(hostElement);
+      const props = getProps(ctx) as any;
       const invokeCtx = newInvokeContext(hostElement);
-      return useInvoke(invokeCtx, onMountFn, componentProps) as QRLInternal;
+      return useInvoke(invokeCtx, onMountFn, props) as QRLInternal;
     };
     onRenderFactory.__brand__ = 'QRLFactory';
     return h(tagName, { 'on:qRender': onRenderFactory, ...props }) as any;

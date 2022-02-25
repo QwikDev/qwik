@@ -1,10 +1,10 @@
-import { getQObjectId, QObject_addDoc } from '../object/q-object';
+import { getQObjectId } from '../object/q-object';
 import type { Observer } from './watch.public';
 
 export type Subscriptions = Map<{}, { value: any; proxy: SubscribeProxy<any> }>;
 
 export function createWatchFnObserver(
-  doc: Document
+  _doc: Document
 ): Observer & { getGuard(): Map<string, string[]> } {
   const subscriptions: Subscriptions = new Map();
   function wrap<T>(obj: T): T {
@@ -16,7 +16,6 @@ export function createWatchFnObserver(
     if (obs) {
       return obs.value;
     }
-    QObject_addDoc(obj, doc);
     const proxy = new SubscribeProxy<any>(obj, subscriptions, wrap);
     const value = new Proxy(obj, proxy);
     subscriptions.set(obj, { value, proxy });

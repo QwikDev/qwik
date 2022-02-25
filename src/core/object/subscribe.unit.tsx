@@ -1,5 +1,5 @@
 import { createDocument } from '../../testing/document';
-import { getProps, Props } from '../props/props.public';
+import { getCtxProxy, Props } from '../props/props.public';
 import { qObject } from './q-object';
 import { newInvokeContext, useInvoke } from '../use/use-core';
 import { getQObjectId } from './q-object';
@@ -12,7 +12,7 @@ describe('subscribe', () => {
   beforeEach(() => {
     document = createDocument();
     div = document.createElement('div');
-    qDiv = getProps(div);
+    qDiv = getCtxProxy(div);
   });
 
   it('should mark component dirty on change', async () => {

@@ -16,10 +16,11 @@ import {
   isQSLotTemplateElement,
   NodeType,
 } from '../util/types';
-import { didQPropsChange } from '../props/props';
+import { getContext, getProps, setEvent } from '../props/props';
 import type { ComponentRenderQueue } from './render';
 import { getSlotMap, isSlotMap, NamedSlot, NamedSlotEnum, SlotMap } from './slots';
-import { getProps } from '../props/props.public';
+import { isOn$Prop, isOnProp } from '../props/props-on';
+import { $ } from '../index';
 
 /**
  * Cursor represents a set of sibling elements at a given level in the DOM.
@@ -223,9 +224,8 @@ function _reconcileElement(
   let shouldDescendIntoComponent: boolean;
   let reconciledElement: HTMLElement;
   if (isDomElementWithTagName(existing, expectTag)) {
-    const props = getProps(existing as HTMLElement) as any;
-    Object.assign(props, expectProps);
-    shouldDescendIntoComponent = didQPropsChange(props) && !!componentRenderQueue;
+    updateProperties(existing as HTMLElement, expectProps);
+    shouldDescendIntoComponent = !!componentRenderQueue;
     reconciledElement = existing as HTMLElement;
   } else {
     // Expected node and actual node did not match. Need to switch.
@@ -236,7 +236,7 @@ function _reconcileElement(
       end
     );
     shouldDescendIntoComponent = !!componentRenderQueue;
-    Object.assign(getProps(reconciledElement), expectProps);
+    updateProperties(reconciledElement, expectProps);
   }
   component && component.styleClass && reconciledElement.classList.add(component.styleClass);
   if (shouldDescendIntoComponent) {
@@ -249,6 +249,125 @@ function _reconcileElement(
     }
   }
   return reconciledElement;
+}
+
+const parseClassListRegex = /\s/;
+const parseClassList = (value: string | undefined | null): string[] =>
+  !value
+    ? []
+    : typeof value === 'object'
+    ? Object.keys(value).filter((k) => value[k])
+    : value.split(parseClassListRegex);
+type PropHandler = (el: HTMLElement, key: string, newValue: any, oldValue: any) => boolean;
+const handleClassname: PropHandler = (elm, _, newValue, oldValue) => {
+  const classList = elm.classList;
+  const oldClasses = parseClassList(oldValue);
+  const newClasses = parseClassList(newValue);
+  classList.remove(...oldClasses.filter((c) => c && !newClasses.includes(c)));
+  classList.add(...newClasses.filter((c) => c && !oldClasses.includes(c)));
+  return true;
+};
+
+const handleStyle: PropHandler = (elm, _, newValue, oldValue) => {
+  if (typeof newValue == 'string') {
+    elm.style.cssText = newValue;
+  } else {
+    for (const prop in oldValue) {
+      if (!newValue || newValue[prop] == null) {
+        if (prop.includes('-')) {
+          elm.style.removeProperty(prop);
+        } else {
+          (elm as any).style[prop] = '';
+        }
+      }
+    }
+
+    for (const prop in newValue) {
+      if (!oldValue || newValue[prop] !== oldValue[prop]) {
+        if (prop.includes('-')) {
+          elm.style.setProperty(prop, newValue[prop]);
+        } else {
+          (elm as any).style[prop] = newValue[prop];
+        }
+      }
+    }
+  }
+  return true;
+};
+
+const PROP_HANDLER_MAP: Record<string, PropHandler> = {
+  className: handleClassname,
+  class: handleClassname,
+  style: handleStyle,
+};
+
+const ALLOWS_PROPS = ['className', 'class', 'style', 'id', 'title'];
+
+export function updateProperties(node: Element, expectProps: Record<string, any>) {
+  const isSVG = node.namespaceURI === 'SVG';
+  const ctx = getContext(node);
+  const qwikProps = AttributeMarker.OnRenderProp in expectProps ? getProps(ctx) : undefined;
+
+  for (const key of Object.keys(expectProps)) {
+    if (key === 'children') {
+      continue;
+    }
+    const newValue = expectProps[key];
+    const oldValue = ctx.cache.get(key);
+
+    // // Early exit if value didnt change
+    if (newValue === oldValue) {
+      continue;
+    }
+
+    if (isOnProp(key)) {
+      setEvent(ctx, key, newValue);
+      continue;
+    }
+    if (isOn$Prop(key)) {
+      setEvent(ctx, key.replace('$', ''), $(newValue));
+      continue;
+    }
+    const skipQwik = ALLOWS_PROPS.includes(key) || key.startsWith('h:');
+    if (qwikProps && !skipQwik) {
+      // Qwik props
+      qwikProps[key] = newValue;
+    } else {
+      // Check of data- or aria-
+      if (key.startsWith('data-') || key.endsWith('aria-') || isSVG) {
+        renderAttribute(node, key, newValue);
+        continue;
+      }
+
+      // Check if its an exception
+      const exception = PROP_HANDLER_MAP[key];
+      if (exception) {
+        if (exception(node as HTMLElement, key, newValue, oldValue)) {
+          continue;
+        }
+      }
+
+      // Check if property in prototype
+      if (key in node) {
+        try {
+          (node as any)[key] = newValue;
+        } catch {}
+        continue;
+      }
+
+      // Fallback to render attribute
+      renderAttribute(node, key, newValue);
+    }
+  }
+  return false;
+}
+
+function renderAttribute(node: Element, key: string, newValue: any) {
+  if (newValue == null) {
+    node.removeAttribute(key);
+  } else {
+    node.setAttribute(key, String(newValue));
+  }
 }
 
 function _reconcileElementChildCursor(node: Element, isComponent: boolean) {

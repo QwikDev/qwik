@@ -1,30 +1,27 @@
-import { assertDefined, assertNotEqual } from '../assert/assert';
+import type { Props } from '../index';
+import { assertDefined } from '../assert/assert';
 import type { QwikDocument } from '../document';
 import type { QRLInternal } from '../import/qrl-class';
-import type { QObject } from '../object/q-object';
-import { unwrapProxy } from '../object/q-object';
-import { getProps, Props } from '../props/props.public';
 import { AttributeMarker } from '../util/markers';
 
 declare const document: QwikDocument;
-
-export function safeQSubscribe(qObject: QObject<any>): void {
-  assertNotEqual(unwrapProxy(qObject), qObject, 'Expecting Proxy');
-  _context && _context.subscriptions && qObject && _context.subscriptions.add(qObject);
-}
 
 interface InvokeContext {
   hostElement: Element;
   event: any;
   url: URL | null;
   qrl?: QRLInternal;
-  subscriptions?: Set<QObject<any>>;
+  subscriptions: boolean;
   waitOn?: Promise<any>[];
   props?: Props;
   qrlGuard?: (qrl: QRLInternal) => boolean;
 }
 
-let _context: InvokeContext;
+let _context: InvokeContext | undefined;
+
+export function tryGetInvokeContext(): InvokeContext | undefined {
+  return _context;
+}
 
 export function getInvokeContext(): InvokeContext {
   if (!_context) {
@@ -54,12 +51,7 @@ export function useInvoke<ARGS extends any[] = any[], RET = any>(
     _context = context;
     returnValue = fn.apply(null, args);
   } finally {
-    const currentCtx = _context;
-    const subscriptions = currentCtx.subscriptions;
-    if (subscriptions) {
-      const element = currentCtx.hostElement;
-      element && ((getProps(element) as any)[':subscriptions'] = subscriptions);
-    }
+    const currentCtx = _context!;
     _context = previousContext;
     if (currentCtx.waitOn && currentCtx.waitOn.length > 0) {
       // eslint-disable-next-line no-unsafe-finally
@@ -74,7 +66,7 @@ export function newInvokeContext(hostElement: Element, event?: any, url?: URL): 
     event: event,
     url: url || null,
     qrl: undefined,
-    subscriptions: event === 'qRender' ? new Set() : undefined,
+    subscriptions: event === 'qRender',
   };
 }
 

@@ -1,8 +1,8 @@
 import { createDocument } from '../../testing/document';
-import { diff, test_clearPropsCache } from './props';
+import { test_clearPropsCache } from './props';
 import { getQObjectId } from '../object/q-object';
 import { dehydrate } from '../object/store.public';
-import { getProps, Props } from './props.public';
+import { getCtxProxy, Props } from './props.public';
 import { parseQRL, runtimeQrl } from '../import/qrl';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
 import { createStore } from '../use/use-store.public';
@@ -27,11 +27,11 @@ describe('q-element', () => {
     document = createDocument();
     div = document.createElement('div');
     document.body.appendChild(div);
-    qDiv = getProps(div);
+    qDiv = getCtxProxy(div);
   });
 
   it('should retrieve the same instance', () => {
-    expect(qDiv).toBe(getProps(div));
+    expect(qDiv).toBe(getCtxProxy(div));
   });
 
   it('should perform basic read/writes', () => {
@@ -49,7 +49,7 @@ describe('q-element', () => {
     expect(qDiv.myObj).toEqual({ mark: 'OBJ' });
 
     test_clearPropsCache(div);
-    qDiv = getProps(div);
+    qDiv = getCtxProxy(div);
 
     expect(qDiv.name).toBe('Qwik');
     expect(qDiv.age).toBe(42);
@@ -61,7 +61,7 @@ describe('q-element', () => {
     let qInput: InputHTMLAttributes<Props>;
     beforeEach(() => {
       input = document.createElement('input');
-      qInput = getProps(input);
+      qInput = getCtxProxy(input);
     });
 
     it('should write value of inputs', () => {
@@ -82,7 +82,7 @@ describe('q-element', () => {
     let qSelect: SelectHTMLAttributes<Props>;
     beforeEach(() => {
       select = document.createElement('select');
-      qSelect = getProps(select);
+      qSelect = getCtxProxy(select);
     });
 
     it('autocomplete attr', () => {
@@ -104,7 +104,7 @@ describe('q-element', () => {
     let qTextarea: TextareaHTMLAttributes<Props>;
     beforeEach(() => {
       textarea = document.createElement('textarea');
-      qTextarea = getProps(textarea);
+      qTextarea = getCtxProxy(textarea);
     });
 
     it('autocomplete attr', () => {
@@ -146,7 +146,7 @@ describe('q-element', () => {
     let qForm: FormHTMLAttributes<Props>;
     beforeEach(() => {
       form = document.createElement('form');
-      qForm = getProps(form);
+      qForm = getCtxProxy(form);
     });
 
     it('accept-charset attr', () => {
@@ -172,7 +172,7 @@ describe('q-element', () => {
     let qTable: TableHTMLAttributes<Props>;
     beforeEach(() => {
       table = document.createElement('table');
-      qTable = getProps(table);
+      qTable = getCtxProxy(table);
     });
 
     it('cellPadding prop', () => {
@@ -188,7 +188,7 @@ describe('q-element', () => {
     // https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta
     it('charSet prop', () => {
       const meta = document.createElement('meta');
-      const qMeta: MetaHTMLAttributes<Props> = getProps(meta);
+      const qMeta: MetaHTMLAttributes<Props> = getCtxProxy(meta);
       qMeta.charSet = 'utf-8';
       expect(meta.getAttribute('charset')).toBe('utf-8');
       expect(meta.getAttribute('charSet')).toBe('utf-8');
@@ -196,7 +196,7 @@ describe('q-element', () => {
 
     it('httpEquiv prop', () => {
       const meta = document.createElement('meta');
-      const qMeta: MetaHTMLAttributes<Props> = getProps(meta);
+      const qMeta: MetaHTMLAttributes<Props> = getCtxProxy(meta);
       qMeta.httpEquiv = 'value';
       expect(meta.getAttribute('http-equiv')).toBe('value');
       expect(meta.getAttribute('httpequiv')).toBe(null);
@@ -206,7 +206,7 @@ describe('q-element', () => {
   it('should serialize innerHTML', () => {
     qDiv.innerHTML = '<span>WORKS</span>';
     test_clearPropsCache(div);
-    qDiv = getProps(div);
+    qDiv = getCtxProxy(div);
     expect(div.getAttribute('inner-h-t-m-l')).toEqual('');
     expect(div.innerHTML.toUpperCase()).toEqual('<SPAN>WORKS</SPAN>');
   });
@@ -214,7 +214,7 @@ describe('q-element', () => {
   it('should serialize innerText', () => {
     qDiv.innerText = 'TEXT';
     test_clearPropsCache(div);
-    qDiv = getProps(div);
+    qDiv = getCtxProxy(div);
     expect(div.getAttribute('inner-text')).toEqual('');
     expect(div.innerText).toEqual('TEXT');
   });
@@ -227,32 +227,10 @@ describe('q-element', () => {
       expect(div.getAttribute('q:obj')).toEqual(getQObjectId(qObj) + ' ' + getQObjectId(qDiv.ref));
 
       dehydrate(document);
-      qDiv = getProps(div);
+      qDiv = getCtxProxy(div);
 
       expect(qDiv.myObj).toEqual(qObj);
       expect(qDiv.ref.qObj).toEqual(qObj);
-    });
-  });
-
-  describe('diff', () => {
-    it('should detect when difference', () => {
-      expect(diff(null, null)).toEqual(null);
-      expect(diff(undefined, undefined)).toEqual(null);
-      expect(diff('', '')).toEqual(null);
-      expect(diff('b', 'b')).toEqual(null);
-      expect(diff({}, {})).toEqual(null);
-      expect(diff({ name: 'a' }, { name: 'a' })).toEqual(null);
-      expect(diff({ name: 'a' }, { name: 'b' })).toEqual([]);
-      expect(diff({ name: 'a' }, {})).toEqual([]);
-      expect(diff('a', 'c')).toEqual([]);
-
-      const obj1 = createStore({});
-      const obj2 = createStore({});
-
-      expect(diff(obj1, obj2)).toEqual([getQObjectId(obj1)]);
-      expect(diff(obj1, 'b')).toEqual([getQObjectId(obj1)]);
-      expect(diff({ obj1 }, 'b')).toEqual([getQObjectId(obj1)]);
-      expect(diff({ obj1, obj2 }, 'b')).toEqual([getQObjectId(obj1), getQObjectId(obj2)]);
     });
   });
 
@@ -290,7 +268,7 @@ describe('q-element', () => {
 
       const child = document.createElement('child');
       div.appendChild(child);
-      const qChild = getProps(child) as any;
+      const qChild = getCtxProxy(child) as any;
       qChild['on:click'] = runtimeQrl(implicitHandler, [qDiv, state, { mark: 'ARGS WORK' }]);
       qChild['on:click'] = runtimeQrl(explicitHandler, [qDiv, stateExplicit, { '.': 'explicit' }]);
       await useInvoke(newInvokeContext(child, 'EVENT'), qChild['on:click']);
@@ -334,15 +312,6 @@ describe('q-element', () => {
       qDiv['on$:click'] = () => log.push('WORKS');
       await useInvoke(newInvokeContext(div), () => qDiv['on:click']());
       expect(log).toEqual(['WORKS']);
-    });
-  });
-
-  describe('traverse', () => {
-    it('should return logical parent', () => {
-      const parent = document.createElement('parent');
-      parent.appendChild(div);
-      expect(qDiv.__parent__).toBe(getProps(parent));
-      expect(qDiv.__parent__.__parent__).toBe(null);
     });
   });
 });

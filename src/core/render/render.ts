@@ -1,7 +1,5 @@
 import { getQComponent, QComponentCtx } from '../component/component-ctx';
 import { QError, qError } from '../error/error';
-import { didQPropsChange } from '../props/props';
-import { getProps } from '../props/props.public';
 import { keyValueArrayGet } from '../util/array_map';
 import { EMPTY_ARRAY } from '../util/flyweight';
 import { AttributeMarker } from '../util/markers';
@@ -15,6 +13,7 @@ import {
   cursorReconcileStartVirtualNode,
   cursorReconcileText,
   cursorReconcileVirtualNode,
+  updateProperties,
 } from './cursor';
 import type { JSXPromise } from './jsx/async.public';
 import { Host } from './jsx/host.public';
@@ -42,13 +41,11 @@ export function visitJsxNode(
         visitJsxNode(component, renderQueue, cursor, jsxChild);
       }
     } else if (jsxNode.type === Host) {
-      const props = getProps(cursor.parent as Element);
-      Object.assign(props, jsxNode.props);
+      updateProperties(cursor.parent as HTMLElement, jsxNode.props);
       const jsxChildren = jsxNode.children || EMPTY_ARRAY;
       for (const jsxChild of jsxChildren) {
         visitJsxNode(component, renderQueue, cursor, jsxChild);
       }
-      didQPropsChange(props);
     } else if (jsxNode.type === Slot) {
       component && visitQSlotJsxNode(component, renderQueue, cursor, jsxNode);
     } else if (typeof jsxNode.type === 'function') {

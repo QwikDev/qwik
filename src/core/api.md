@@ -61,9 +61,6 @@ export interface FunctionComponent<P = {}> {
 export const getPlatform: (docOrNode: Document | Node) => CorePlatform;
 
 // @public (undocumented)
-export function getProps<T>(element: Element): Props<T>;
-
-// @public (undocumented)
 export function h<PROPS extends {} = {}>(type: string | FunctionComponent<PROPS>, props: PROPS | null, ...children: any[]): JSXNode;
 
 // @public (undocumented)

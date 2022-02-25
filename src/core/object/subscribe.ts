@@ -8,6 +8,7 @@ export function subscribe(...qObjects: QObject<any>[]): any {
     getInvokeContext().subscriptions,
     'Invoking of `subscribe()` outside of `use*()` context of `onRender`.'
   );
-  qObjects.forEach((v) => getInvokeContext().subscriptions!.add(v));
+  throw new Error('to implement');
+  // qObjects.forEach((v) => getInvokeContext().subscriptions!.add(v));
   return qObjects[0];
 }

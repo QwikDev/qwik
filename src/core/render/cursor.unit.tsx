@@ -1,7 +1,7 @@
 import { Slot } from '@builder.io/qwik';
 import { expectDOM } from '../../testing/expect-dom.unit';
 import { toDOM } from '../../testing/jsx';
-import { AttributeMarker } from '../util/markers';
+import { OnRenderAttr, QSlotAttr } from '../util/markers';
 import {
   cursorForParent,
   cursorReconcileElement,
@@ -250,7 +250,7 @@ describe('cursor', () => {
         componentCursor,
         null,
         'div',
-        { [AttributeMarker.QSlotAttr]: 'detail' },
+        { [QSlotAttr]: 'detail' },
         null
       );
       cursorReconcileText(divCursor, 'DETAIL');
@@ -353,7 +353,7 @@ describe('cursor', () => {
         componentCursor,
         null,
         'child',
-        { [AttributeMarker.OnRenderAttr]: childOnRender },
+        { [OnRenderAttr]: childOnRender },
         log
       );
       cursorReconcileEnd(childCursor);
@@ -378,4 +378,4 @@ describe('cursor', () => {
 });
 
 const childOnRender = runtimeQrl(() => <div>WORKS</div>);
-const COMPONENT_ATTRS = { [AttributeMarker.OnRenderAttr]: childOnRender };
+const COMPONENT_ATTRS = { [OnRenderAttr]: childOnRender };

@@ -1,7 +1,7 @@
 import { assertDefined } from '../assert/assert';
 import { cursorForComponent, cursorReconcileEnd } from '../render/cursor';
 import { ComponentRenderQueue, visitJsxNode } from '../render/render';
-import { AttributeMarker } from '../util/markers';
+import { ComponentScopedStyles, RenderNotify } from '../util/markers';
 import { flattenPromiseTree } from '../util/promises';
 import { styleContent, styleHost } from './qrl-styles';
 import { newInvokeContext, useInvoke } from '../use/use-core';
@@ -12,7 +12,7 @@ import { getContext, getEvent, QContext } from '../props/props';
 
 export class QComponentCtx {
   __brand__!: 'QComponentCtx';
-  __ctx__: QContext;
+  ctx: QContext;
   hostElement: HTMLElement;
 
   styleId: string | undefined | null = undefined;
@@ -21,21 +21,21 @@ export class QComponentCtx {
 
   constructor(hostElement: HTMLElement) {
     this.hostElement = hostElement;
-    this.__ctx__ = getContext(hostElement);
+    this.ctx = getContext(hostElement);
   }
 
   async render(): Promise<HTMLElement[]> {
     const hostElement = this.hostElement;
-    const onRender = getEvent(this.__ctx__, 'on:qRender') as any as () => void;
+    const onRender = getEvent(this.ctx, 'on:qRender') as any as () => void;
     assertDefined(onRender);
-    hostElement.removeAttribute(AttributeMarker.RenderNotify);
+    hostElement.removeAttribute(RenderNotify);
     const renderQueue: ComponentRenderQueue = [];
     try {
       const event = 'qRender';
       const jsxNode = await useInvoke(newInvokeContext(hostElement, event), onRender);
       if (this.styleId === undefined) {
         const scopedStyleId = (this.styleId = hostElement.getAttribute(
-          AttributeMarker.ComponentScopedStyles
+          ComponentScopedStyles
         ));
         if (scopedStyleId) {
           this.styleHostClass = styleHost(scopedStyleId);

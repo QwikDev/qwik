@@ -19,7 +19,7 @@ export function qObject<T extends Object>(obj: T): T {
     );
   }
   const proxy = readWriteProxy(obj as any as QObject<T>);
-  Object.assign((proxy as any)[':target:'], obj);
+  Object.assign((proxy as any)[QOjectTargetSymbol], obj);
   return proxy;
 }
 
@@ -54,8 +54,8 @@ export function readWriteProxy<T extends object>(target: T, subs?: Map<Element, 
   return proxy;
 }
 
-const QOjectTargetSymbol = ':target:';
-const QOjectSubsSymbol = ':subs:';
+export const QOjectTargetSymbol = ':target:';
+export const QOjectSubsSymbol = ':subs:';
 const QOjectTransientsSymbol = ':transients:';
 export const QObjectIdSymbol = ':id:';
 

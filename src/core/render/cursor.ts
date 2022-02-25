@@ -9,7 +9,7 @@ import type { QComponentCtx } from '../component/component-ctx';
 import { getQComponent } from '../component/component-ctx';
 import { keyValueArrayGet } from '../util/array_map';
 import { isComment, isDocument } from '../util/element';
-import { AttributeMarker } from '../util/markers';
+import { OnRenderAttr, OnRenderProp, QSlotAttr, RenderNotify } from '../util/markers';
 import {
   isComponentElement,
   isDomElementWithTagName,
@@ -171,7 +171,7 @@ function slotMapReconcileSlots(
   expectProps: Record<string, any>,
   componentRenderQueue: ComponentRenderQueue | null
 ): Cursor {
-  const slotName = expectProps[AttributeMarker.QSlotAttr] || '';
+  const slotName = expectProps[QSlotAttr] || '';
   const namedSlot = keyValueArrayGet(slots, slotName);
   let childNode: Node;
   if (namedSlot) {
@@ -244,27 +244,16 @@ function _reconcileElement(
     hostComponent.styleHostClass && reconciledElement.classList.add(hostComponent.styleHostClass);
     if (Array.isArray(componentRenderQueue)) {
       componentRenderQueue.push(hostComponent.render());
-    } else if (reconciledElement.getAttribute(AttributeMarker.OnRenderAttr)) {
-      reconciledElement.setAttribute(AttributeMarker.RenderNotify, '');
+    } else if (reconciledElement.getAttribute(OnRenderAttr)) {
+      reconciledElement.setAttribute(RenderNotify, '');
     }
   }
   return reconciledElement;
 }
 
-const parseClassListRegex = /\s/;
-const parseClassList = (value: string | undefined | null): string[] =>
-  !value
-    ? []
-    : typeof value === 'object'
-    ? Object.keys(value).filter((k) => value[k])
-    : value.split(parseClassListRegex);
 type PropHandler = (el: HTMLElement, key: string, newValue: any, oldValue: any) => boolean;
-const handleClassname: PropHandler = (elm, _, newValue, oldValue) => {
-  const classList = elm.classList;
-  const oldClasses = parseClassList(oldValue);
-  const newClasses = parseClassList(newValue);
-  classList.remove(...oldClasses.filter((c) => c && !newClasses.includes(c)));
-  classList.add(...newClasses.filter((c) => c && !oldClasses.includes(c)));
+
+const noop: PropHandler = () => {
   return true;
 };
 
@@ -296,8 +285,7 @@ const handleStyle: PropHandler = (elm, _, newValue, oldValue) => {
 };
 
 const PROP_HANDLER_MAP: Record<string, PropHandler> = {
-  className: handleClassname,
-  class: handleClassname,
+  class: noop,
   style: handleStyle,
 };
 
@@ -306,19 +294,13 @@ const ALLOWS_PROPS = ['className', 'class', 'style', 'id', 'title'];
 export function updateProperties(node: Element, expectProps: Record<string, any>) {
   const isSVG = node.namespaceURI === 'SVG';
   const ctx = getContext(node);
-  const qwikProps = AttributeMarker.OnRenderProp in expectProps ? getProps(ctx) : undefined;
+  const qwikProps = OnRenderProp in expectProps ? getProps(ctx) : undefined;
 
   for (const key of Object.keys(expectProps)) {
     if (key === 'children') {
       continue;
     }
     const newValue = expectProps[key];
-    const oldValue = ctx.cache.get(key);
-
-    // // Early exit if value didnt change
-    if (newValue === oldValue) {
-      continue;
-    }
 
     if (isOnProp(key)) {
       setEvent(ctx, key, newValue);
@@ -328,6 +310,15 @@ export function updateProperties(node: Element, expectProps: Record<string, any>
       setEvent(ctx, key.replace('$', ''), $(newValue));
       continue;
     }
+
+
+    // Early exit if value didnt change
+    const oldValue = ctx.cache.get(key);
+    if (newValue === oldValue) {
+      continue;
+    }
+    ctx.cache.set(key, newValue);
+
     const skipQwik = ALLOWS_PROPS.includes(key) || key.startsWith('h:');
     if (qwikProps && !skipQwik) {
       // Qwik props
@@ -477,13 +468,13 @@ function getUnSlottedStorage(componentElement: Element): HTMLTemplateElement {
   let template = componentElement?.firstElementChild as HTMLTemplateElement | null;
   if (
     !isDomElementWithTagName(template, 'template') ||
-    !template.hasAttribute(AttributeMarker.QSlotAttr)
+    !template.hasAttribute(QSlotAttr)
   ) {
     template = componentElement.insertBefore(
       componentElement.ownerDocument.createElement('template'),
       template
     );
-    template.setAttribute(AttributeMarker.QSlotAttr, '');
+    template.setAttribute(QSlotAttr, '');
   }
   return template;
 }

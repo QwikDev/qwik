@@ -2,7 +2,7 @@ import type { Props } from '../index';
 import { assertDefined } from '../assert/assert';
 import type { QwikDocument } from '../document';
 import type { QRLInternal } from '../import/qrl-class';
-import { AttributeMarker } from '../util/markers';
+import { OnRenderSelector } from '../util/markers';
 
 declare const document: QwikDocument;
 
@@ -31,7 +31,7 @@ export function getInvokeContext(): InvokeContext {
       throw new Error("Q-ERROR: invoking 'use*()' method outside of invocation context.");
     }
     if (Array.isArray(context)) {
-      const element = context[0].closest(AttributeMarker.OnRenderSelector)!;
+      const element = context[0].closest(OnRenderSelector)!;
       assertDefined(element);
       return (document.__q_context__ = newInvokeContext(element, context[1], context[2]));
     }

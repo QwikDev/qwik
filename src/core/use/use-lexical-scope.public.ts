@@ -25,7 +25,7 @@ export function useLexicalScope<VARS extends any[]>(): VARS {
     const el = context.hostElement;
     const ctx = getContext(el);
     assertDefined(qrl.capture);
-    qrl.captureRef = qrl.capture!.map((obj) => qInflate(obj, ctx));
+    qrl.captureRef = qrl.capture!.map((idx) => qInflate(idx, ctx));
   }
   return qrl.captureRef as VARS;
 }

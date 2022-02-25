@@ -18,14 +18,22 @@ export class JSXNodeImpl<T> implements JSXNode<T> {
   children: any;
 
   constructor(public type: T, public props: any, public key: any) {
-    if (props && props.children !== undefined) {
-      if (Array.isArray(props.children)) {
-        this.children = props.children;
+    if (props) {
+      if (props.children !== undefined) {
+        if (Array.isArray(props.children)) {
+          this.children = props.children;
+        } else {
+          this.children = [props.children];
+        }
       } else {
-        this.children = [props.children];
+        this.children = EMPTY_ARRAY;
       }
-    } else {
-      this.children = EMPTY_ARRAY;
+      if ('class' in props) {
+        const className = props.class;
+        props.className = (className && typeof className == 'object')
+          ? Object.keys(className).filter((k) => className[k]).join(' ')
+          : className;
+      }
     }
   }
 }

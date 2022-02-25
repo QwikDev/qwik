@@ -10,7 +10,6 @@ Error.stackTraceLimit = 9999;
 // TODO(misko): For better debugger experience the getProps should never store Proxy, always naked objects to make it easier to traverse in the debugger.
 
 const Q_IS_HYDRATED = '__isHydrated__';
-export const Q_PROP = 'qProps';
 export const Q_CTX = '__ctx__';
 
 export function hydrateIfNeeded(element: Element): void {
@@ -21,16 +20,6 @@ export function hydrateIfNeeded(element: Element): void {
     QStore_hydrate(doc);
   }
 }
-
-export function clearQPropsMap(doc: Document) {
-  (doc as any)[Q_IS_HYDRATED] = undefined;
-}
-
-export function clearQProps(element: Element) {
-  (element as any)[Q_PROP] = undefined;
-}
-
-export const Q_MAP = '__qMap__';
 
 export interface QContext {
   cache: Map<string, any>;
@@ -79,8 +68,8 @@ export function getProps(ctx: QContext) {
   return ctx.props!;
 }
 
-export function test_clearPropsCache(element: Element) {
-  (element as any)[Q_PROP] = undefined;
+export function test_clearPropsCache(_element: Element) {
+  // NOTHING
 }
 
 /**

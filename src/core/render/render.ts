@@ -2,7 +2,7 @@ import { getQComponent, QComponentCtx } from '../component/component-ctx';
 import { QError, qError } from '../error/error';
 import { keyValueArrayGet } from '../util/array_map';
 import { EMPTY_ARRAY } from '../util/flyweight';
-import { AttributeMarker } from '../util/markers';
+import { OnRenderProp, QSlot, QSlotName, RenderNotifySelector } from '../util/markers';
 import { isPromise } from '../util/promises';
 import type { ValueOrPromise } from '../util/types';
 import {
@@ -85,7 +85,7 @@ function visitJsxLiteralNode(
   jsxNode: JSXNode
 ): void {
   const jsxTag = jsxNode.type as string;
-  const isQComponent = AttributeMarker.OnRenderProp in jsxNode.props;
+  const isQComponent = OnRenderProp in jsxNode.props;
   const elementCursor = cursorReconcileElement(
     cursor,
     component,
@@ -120,8 +120,8 @@ export function visitQSlotJsxNode(
   const slotCursor = cursorReconcileElement(
     cursor,
     component,
-    AttributeMarker.QSlot,
-    { [AttributeMarker.QSlotName]: slotName, ...jsxNode.props },
+    QSlot,
+    { [QSlotName]: slotName, ...jsxNode.props },
     null
   );
   const slotMap = getSlotMap(component);
@@ -139,7 +139,7 @@ export function visitQSlotJsxNode(
       }
       cursorReconcileEnd(slotCursor);
     }
-    cursorParent.querySelectorAll(AttributeMarker.RenderNotifySelector).forEach((compElem) => {
+    cursorParent.querySelectorAll(RenderNotifySelector).forEach((compElem) => {
       renderQueue.push(getQComponent(compElem)!.render());
     });
   } else {

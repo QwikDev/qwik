@@ -91,7 +91,7 @@ export function qPropWriteQRL(ctx: QContext, prop: string, value: any) {
       const captureRef = value.captureRef;
       value.capture =
         captureRef && captureRef.length
-          ? captureRef.map((ref) => qDeflate(ref, ctx.refMap))
+          ? captureRef.map((ref) => qDeflate(ref, ctx))
           : EMPTY_ARRAY;
     }
 

@@ -6,7 +6,7 @@ import { withScopedStyles$, component$ } from '../component/component.public';
 import { runtimeQrl } from '../import/qrl';
 import { $ } from '../import/qrl.public';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
-import { AttributeMarker } from '../util/markers';
+import { ComponentScopedStyles, ComponentStylesPrefixContent } from '../util/markers';
 import { Async, JSXPromise, PromiseValue } from './jsx/async.public';
 import { Slot } from './jsx/slot.public';
 import { notifyRender } from './notify-render';
@@ -340,7 +340,7 @@ describe('render', () => {
     it('should insert a style', async () => {
       await render(fixture.host, <HelloWorld name="World" />);
       const hellWorld = fixture.host.querySelector('hello-world')!;
-      const scopedStyleId = hellWorld.getAttribute(AttributeMarker.ComponentScopedStyles);
+      const scopedStyleId = hellWorld.getAttribute(ComponentScopedStyles);
       expect(scopedStyleId).toBeDefined();
       const style = fixture.document.body.parentElement!.querySelector(
         `style[q\\:style="${scopedStyleId}"]`
@@ -348,7 +348,7 @@ describe('render', () => {
       expect(style?.textContent).toContain('color: red');
       expectRendered(
         <hello-world>
-          <span class={AttributeMarker.ComponentStylesPrefixContent + scopedStyleId}>
+          <span class={ComponentStylesPrefixContent + scopedStyleId}>
             {'Hello'} {'World'}
           </span>
         </hello-world>

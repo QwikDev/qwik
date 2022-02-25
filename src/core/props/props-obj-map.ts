@@ -1,4 +1,5 @@
 import type { QObject } from '../object/q-object';
+import { QObjAttr } from '../util/markers';
 
 export interface QObjectMap {
   add(qObject: QObject<any>): number;
@@ -10,7 +11,7 @@ export interface QObjectMap {
 export function newQObjectMap(element: Element): QObjectMap {
   const map = new Map<QObject<any>, number>();
   const array: QObject<any>[] = [];
-  let added = element.hasAttribute('q:obj');
+  let added = element.hasAttribute(QObjAttr);
 
   return {
     array,
@@ -26,7 +27,7 @@ export function newQObjectMap(element: Element): QObjectMap {
         map.set(object, array.length);
         array.push(object);
         if (!added) {
-          element.setAttribute('q:obj', '');
+          element.setAttribute(QObjAttr, '');
         }
         return array.length - 1;
       }

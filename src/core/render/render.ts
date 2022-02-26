@@ -1,8 +1,8 @@
-import { getQComponent, QComponentCtx } from '../component/component-ctx';
+import type { QComponentCtx } from '../component/component-ctx';
 import { QError, qError } from '../error/error';
 import { keyValueArrayGet } from '../util/array_map';
 import { EMPTY_ARRAY } from '../util/flyweight';
-import { OnRenderProp, QSlot, QSlotName, RenderNotifySelector } from '../util/markers';
+import { OnRenderProp, QSlot, QSlotName } from '../util/markers';
 import { isPromise } from '../util/promises';
 import type { ValueOrPromise } from '../util/types';
 import {
@@ -20,6 +20,7 @@ import { Host } from './jsx/host.public';
 import { Fragment, isJSXNode } from './jsx/jsx-runtime';
 import { Slot } from './jsx/slot.public';
 import type { JSXNode } from './jsx/types/jsx-node';
+import { renderMarked } from './notify-render';
 import { getSlotMap, NamedSlotEnum } from './slots';
 
 export type ComponentRenderQueue = Promise<HTMLElement[]>[];
@@ -139,9 +140,11 @@ export function visitQSlotJsxNode(
       }
       cursorReconcileEnd(slotCursor);
     }
-    cursorParent.querySelectorAll(RenderNotifySelector).forEach((compElem) => {
-      renderQueue.push(getQComponent(compElem)!.render());
-    });
+    renderMarked(cursorParent.ownerDocument);
+    // TODO
+    // cursorParent.querySelectorAll(RenderNotifySelector).forEach((compElem) => {
+    //   renderQueue.push(getQComponent(compElem)!.render());
+    // });
   } else {
     // fallback to default value projection.
     const jsxChildren = jsxNode.children;

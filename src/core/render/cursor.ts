@@ -9,7 +9,7 @@ import type { QComponentCtx } from '../component/component-ctx';
 import { getQComponent } from '../component/component-ctx';
 import { keyValueArrayGet } from '../util/array_map';
 import { isComment, isDocument } from '../util/element';
-import { OnRenderAttr, OnRenderProp, QSlotAttr, RenderNotify } from '../util/markers';
+import { OnRenderAttr, OnRenderProp, QSlotAttr } from '../util/markers';
 import {
   isComponentElement,
   isDomElementWithTagName,
@@ -21,6 +21,7 @@ import type { ComponentRenderQueue } from './render';
 import { getSlotMap, isSlotMap, NamedSlot, NamedSlotEnum, SlotMap } from './slots';
 import { isOn$Prop, isOnProp } from '../props/props-on';
 import { $ } from '../index';
+import { getScheduled } from './notify-render';
 
 /**
  * Cursor represents a set of sibling elements at a given level in the DOM.
@@ -245,7 +246,8 @@ function _reconcileElement(
     if (Array.isArray(componentRenderQueue)) {
       componentRenderQueue.push(hostComponent.render());
     } else if (reconciledElement.getAttribute(OnRenderAttr)) {
-      reconciledElement.setAttribute(RenderNotify, '');
+      const set = getScheduled(reconciledElement.ownerDocument);
+      set.add(reconciledElement);
     }
   }
   return reconciledElement;

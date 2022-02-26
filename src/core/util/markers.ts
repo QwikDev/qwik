@@ -68,16 +68,6 @@ export const EventPrefix = 'on:';
 export const EventAny = 'on:.';
 
 /**
- * Render event broadcast
- */
-export const RenderNotify = 'on:q-render-notify';
-
-/**
- * Selector for all components marked with `EventRender`
- */
-export const RenderNotifySelector = '[on\\:q-render-notify]';
-
-/**
  * Tag name used for projection.
  */
 export const QSlot = 'Q:SLOT';

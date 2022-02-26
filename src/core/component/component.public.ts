@@ -6,7 +6,7 @@ import { h } from '../render/jsx/factory';
 import type { JSXNode } from '../render/jsx/types/jsx-node';
 import { newInvokeContext, useInvoke, useWaitOn } from '../use/use-core';
 import { useHostElement } from '../use/use-host-element.public';
-import { ComponentScopedStyles } from '../util/markers';
+import { ComponentScopedStyles, OnRenderProp } from '../util/markers';
 import { styleKey } from './qrl-styles';
 import type { QwikEvents } from '../render/jsx/types/jsx-qwik-attributes';
 import type { ValueOrPromise } from '../util/types';
@@ -323,7 +323,7 @@ export function component<PROPS extends {}>(
       return useInvoke(invokeCtx, onMountFn, props) as QRLInternal;
     };
     onRenderFactory.__brand__ = 'QRLFactory';
-    return h(tagName, { 'on:qRender': onRenderFactory, ...props }) as any;
+    return h(tagName, { [OnRenderProp]: onRenderFactory, ...props }) as any;
   };
 }
 

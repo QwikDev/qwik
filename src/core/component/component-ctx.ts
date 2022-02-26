@@ -1,7 +1,7 @@
 import { assertDefined } from '../assert/assert';
 import { cursorForComponent, cursorReconcileEnd } from '../render/cursor';
 import { ComponentRenderQueue, visitJsxNode } from '../render/render';
-import { ComponentScopedStyles, RenderNotify } from '../util/markers';
+import { ComponentScopedStyles, OnRenderProp } from '../util/markers';
 import { flattenPromiseTree } from '../util/promises';
 import { styleContent, styleHost } from './qrl-styles';
 import { newInvokeContext, useInvoke } from '../use/use-core';
@@ -26,9 +26,8 @@ export class QComponentCtx {
 
   async render(): Promise<HTMLElement[]> {
     const hostElement = this.hostElement;
-    const onRender = getEvent(this.ctx, 'on:qRender') as any as () => void;
+    const onRender = getEvent(this.ctx, OnRenderProp) as any as () => void;
     assertDefined(onRender);
-    hostElement.removeAttribute(RenderNotify);
     const renderQueue: ComponentRenderQueue = [];
     try {
       const event = 'qRender';

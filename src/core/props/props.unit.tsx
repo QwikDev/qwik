@@ -271,7 +271,7 @@ describe('q-element', () => {
       const qChild = getCtxProxy(child) as any;
       qChild['on:click'] = runtimeQrl(implicitHandler, [qDiv, state, { mark: 'ARGS WORK' }]);
       qChild['on:click'] = runtimeQrl(explicitHandler, [qDiv, stateExplicit, { '.': 'explicit' }]);
-      await useInvoke(newInvokeContext(child, 'EVENT'), qChild['on:click']);
+      await useInvoke(newInvokeContext(child, child, 'EVENT'), qChild['on:click']);
 
       expect(state.mark).toBe('implicit');
       expect(state.isHost).toBe('YES');
@@ -287,7 +287,7 @@ describe('q-element', () => {
       const log: any[] = [];
       const onRenderPromise = new Promise((res) => (resolve = res));
       qDiv['on:qRender'] = onRenderPromise;
-      const renderPromise = useInvoke(newInvokeContext(div, 'qRender'), qDiv['on:qRender']);
+      const renderPromise = useInvoke(newInvokeContext(div, div, 'qRender'), qDiv['on:qRender']);
       expect(isPromise(renderPromise)).toBe(true);
       resolve(
         runtimeQrl(() => {
@@ -303,14 +303,14 @@ describe('q-element', () => {
       const log: string[] = [];
       const promise = Promise.resolve($(() => log.push('WORKS')));
       qDiv['on:click'] = Object.assign(() => promise, { __brand__: 'QRLFactory' });
-      await useInvoke(newInvokeContext(div), () => qDiv['on:click']());
+      await useInvoke(newInvokeContext(div, div), () => qDiv['on:click']());
       expect(log).toEqual(['WORKS']);
     });
 
     it('should not accept QRL factory fn with "on$:"', async () => {
       const log: string[] = [];
       qDiv['on$:click'] = () => log.push('WORKS');
-      await useInvoke(newInvokeContext(div), () => qDiv['on:click']());
+      await useInvoke(newInvokeContext(div, div), () => qDiv['on:click']());
       expect(log).toEqual(['WORKS']);
     });
   });

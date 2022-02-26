@@ -8,6 +8,7 @@ declare const document: QwikDocument;
 
 interface InvokeContext {
   hostElement: Element;
+  element: Element;
   event: any;
   url: URL | null;
   qrl?: QRLInternal;
@@ -31,9 +32,15 @@ export function getInvokeContext(): InvokeContext {
       throw new Error("Q-ERROR: invoking 'use*()' method outside of invocation context.");
     }
     if (Array.isArray(context)) {
-      const element = context[0].closest(OnRenderSelector)!;
+      const element = context[0];
+      const hostElement = element.closest(OnRenderSelector)!;
       assertDefined(element);
-      return (document.__q_context__ = newInvokeContext(element, context[1], context[2]));
+      return (document.__q_context__ = newInvokeContext(
+        hostElement,
+        element,
+        context[1],
+        context[2]
+      ));
     }
     return context as InvokeContext;
   }
@@ -60,9 +67,15 @@ export function useInvoke<ARGS extends any[] = any[], RET = any>(
   }
   return returnValue;
 }
-export function newInvokeContext(hostElement: Element, event?: any, url?: URL): InvokeContext {
+export function newInvokeContext(
+  hostElement: Element,
+  element: Element,
+  event?: any,
+  url?: URL
+): InvokeContext {
   return {
-    hostElement: hostElement,
+    hostElement,
+    element,
     event: event,
     url: url || null,
     qrl: undefined,

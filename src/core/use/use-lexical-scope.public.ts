@@ -22,7 +22,7 @@ export function useLexicalScope<VARS extends any[]>(): VARS {
   const context = getInvokeContext();
   const qrl = context.qrl ?? parseQRL(decodeURIComponent(String(useURL())));
   if (qrl.captureRef == null) {
-    const el = context.hostElement;
+    const el = context.element;
     const ctx = getContext(el);
     assertDefined(qrl.capture);
     qrl.captureRef = qrl.capture!.map((idx) => qInflate(idx, ctx));

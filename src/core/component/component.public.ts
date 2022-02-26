@@ -319,7 +319,7 @@ export function component<PROPS extends {}>(
       const onMountFn = await resolveQrl(hostElement, onMountQrl);
       const ctx = getContext(hostElement);
       const props = getProps(ctx) as any;
-      const invokeCtx = newInvokeContext(hostElement);
+      const invokeCtx = newInvokeContext(hostElement, hostElement);
       return useInvoke(invokeCtx, onMountFn, props) as QRLInternal;
     };
     onRenderFactory.__brand__ = 'QRLFactory';

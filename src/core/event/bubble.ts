@@ -1,6 +1,7 @@
 import { getContext, getEvent } from '../props/props';
 import { newInvokeContext, useInvoke } from '../use/use-core';
 import { useHostElement } from '../use/use-host-element.public';
+import { OnRenderSelector } from '../util/markers';
 
 export function _bubble(eventType: string, payload: {}): void {
   let node = useHostElement() as HTMLElement | null;
@@ -9,7 +10,8 @@ export function _bubble(eventType: string, payload: {}): void {
   while (node) {
     const ctx = getContext(node) as any;
     const listener: undefined | (() => void) = getEvent(ctx, eventName);
-    listener && useInvoke(newInvokeContext(node, payload), listener);
+    const hostElement = node.closest(OnRenderSelector)!;
+    listener && useInvoke(newInvokeContext(hostElement, node, payload), listener);
     node = node.parentElement;
   }
 }

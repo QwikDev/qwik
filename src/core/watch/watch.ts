@@ -60,7 +60,8 @@ export async function notifyWatchers(
   const onWatch: null | OnWatchHandler = getEvent(ctx, 'on:qWatch');
   if (onWatch) {
     try {
-      const context = newInvokeContext(element);
+      // TODO
+      const context = newInvokeContext(element, element);
       context.qrlGuard = (qrl: QRLInternal) => {
         const props = qrl.guard?.get(qObjectId);
         return props ? props.indexOf(propName) !== -1 : false;

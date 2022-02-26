@@ -21,19 +21,19 @@ describe('subscribe', () => {
     const qObjC = qObject({ mark: 'C' });
     qDiv.a = qObjA;
     qDiv.b = qObjB;
-    useInvoke(newInvokeContext(div, 'qRender', 'url' as any), () => {
+    useInvoke(newInvokeContext(div, div, 'qRender', 'url' as any), () => {
       subscribe(qObjB, qObjC);
     });
     expect(div.getAttribute('q:obj')).toEqual(
       [getQObjectId(qObjA), '#2', '!' + getQObjectId(qObjB), '!' + getQObjectId(qObjC)].join(' ')
     );
-    useInvoke(newInvokeContext(div, 'qRender', 'url' as any), () => {
+    useInvoke(newInvokeContext(div, div, 'qRender', 'url' as any), () => {
       subscribe(qObjC);
     });
     expect(div.getAttribute('q:obj')).toEqual(
       [getQObjectId(qObjA), getQObjectId(qObjB), '!' + getQObjectId(qObjC)].join(' ')
     );
-    useInvoke(newInvokeContext(div, 'qRender', 'url' as any), () => {});
+    useInvoke(newInvokeContext(div, div, 'qRender', 'url' as any), () => {});
     expect(div.getAttribute('q:obj')).toEqual([getQObjectId(qObjA), getQObjectId(qObjB)].join(' '));
   });
 });

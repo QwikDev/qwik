@@ -14,13 +14,13 @@ export const OnMount = 'on:q-mount';
 /**
  * State factory of the component.
  */
-export const OnRenderAttr = 'on:q-render';
+export const OnRenderAttr = 'q:host';
 export const OnRenderProp = 'on:qRender';
 
 /**
  * State factory of the component.
  */
-export const OnRenderSelector = '[on\\:q\\-render]';
+export const OnRenderSelector = '[q\\:host]';
 
 /**
  * State factory of the component.

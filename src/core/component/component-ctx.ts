@@ -2,7 +2,7 @@ import { assertDefined } from '../assert/assert';
 import { cursorForComponent, cursorReconcileEnd } from '../render/cursor';
 import { ComponentRenderQueue, visitJsxNode } from '../render/render';
 import { ComponentScopedStyles, OnRenderProp } from '../util/markers';
-import { flattenPromiseTree } from '../util/promises';
+import { flattenPromiseTree, then } from '../util/promises';
 import { styleContent, styleHost } from './qrl-styles';
 import { newInvokeContext, useInvoke } from '../use/use-core';
 import { getContext, getEvent, QContext } from '../props/props';
@@ -31,17 +31,19 @@ export class QComponentCtx {
     const renderQueue: ComponentRenderQueue = [];
     try {
       const event = 'qRender';
-      const jsxNode = await useInvoke(newInvokeContext(hostElement, hostElement, event), onRender);
-      if (this.styleId === undefined) {
-        const scopedStyleId = (this.styleId = hostElement.getAttribute(ComponentScopedStyles));
-        if (scopedStyleId) {
-          this.styleHostClass = styleHost(scopedStyleId);
-          this.styleClass = styleContent(scopedStyleId);
+      const promise = useInvoke(newInvokeContext(hostElement, hostElement, event), onRender);
+      await then(promise, (jsxNode) => {
+        if (this.styleId === undefined) {
+          const scopedStyleId = (this.styleId = hostElement.getAttribute(ComponentScopedStyles));
+          if (scopedStyleId) {
+            this.styleHostClass = styleHost(scopedStyleId);
+            this.styleClass = styleContent(scopedStyleId);
+          }
         }
-      }
-      const cursor = cursorForComponent(this.hostElement);
-      visitJsxNode(this, renderQueue, cursor, jsxNode);
-      cursorReconcileEnd(cursor);
+        const cursor = cursorForComponent(this.hostElement);
+        visitJsxNode(this, renderQueue, cursor, jsxNode);
+        cursorReconcileEnd(cursor);
+      });
     } catch (e) {
       // TODO(misko): Proper error handling
       // eslint-disable-next-line no-console

@@ -1,4 +1,4 @@
-import type { Props } from '../index';
+import type { Props, ValueOrPromise } from '../index';
 import { assertDefined } from '../assert/assert';
 import type { QwikDocument } from '../document';
 import type { QRLInternal } from '../import/qrl-class';
@@ -51,7 +51,7 @@ export function useInvoke<ARGS extends any[] = any[], RET = any>(
   context: InvokeContext,
   fn: (...args: ARGS) => RET,
   ...args: ARGS
-): RET | Promise<RET> {
+): ValueOrPromise<RET> {
   const previousContext = _context;
   let returnValue: RET;
   try {

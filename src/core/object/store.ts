@@ -5,6 +5,7 @@ import {
   ELEMENT_ID,
   ELEMENT_ID_PREFIX,
   ELEMENT_ID_SELECTOR,
+  OnRenderAttr,
   QObjAttr,
   QObjSelector,
 } from '../util/markers';
@@ -123,8 +124,10 @@ export function QStore_dehydrate(doc: Document) {
 
   // Write back to the dom
   elements.forEach((node) => {
-    const props = getContext(node);
-    const attribute = props.refMap.array
+    const ctx = getContext(node);
+    const props = ctx.props;
+    const events = ctx.events;
+    const attribute = ctx.refMap.array
       .map((obj) => {
         if (isElement(obj)) {
           return getElementID(obj);
@@ -138,6 +141,11 @@ export function QStore_dehydrate(doc: Document) {
       })
       .join(' ');
     node.setAttribute(QObjAttr, attribute);
+
+    if (props) {
+      assertDefined(events);
+      node.setAttribute(OnRenderAttr, [props, events].map((obj) => ctx.refMap.indexOf(obj)).join(' '))
+    }
   });
 
   // Serialize

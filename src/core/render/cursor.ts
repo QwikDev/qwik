@@ -245,7 +245,7 @@ function _reconcileElement(
     hostComponent.styleHostClass && reconciledElement.classList.add(hostComponent.styleHostClass);
     if (Array.isArray(componentRenderQueue)) {
       componentRenderQueue.push(hostComponent.render());
-    } else if (reconciledElement.getAttribute(OnRenderAttr)) {
+    } else if (reconciledElement.hasAttribute(OnRenderAttr)) {
       const set = getScheduled(reconciledElement.ownerDocument);
       set.add(reconciledElement);
     }

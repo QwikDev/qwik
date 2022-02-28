@@ -428,9 +428,8 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           toolchain: 1.59.0
-          profile: minimal
+          profile: default
           override: true
-          components: rustfmt, clippy
 
       - name: Cache cargo dependencies
         uses: actions/cache@v2

@@ -37,13 +37,20 @@ export function QStore_hydrate(doc: Document) {
 
     doc.querySelectorAll(QObjSelector).forEach((el) => {
       const qobj = el.getAttribute(QObjAttr);
+      const host = el.getAttribute(OnRenderAttr);
       const ctx = getContext(el);
       qobj!.split(' ').forEach((part) => {
         const obj = part[0] === ELEMENT_ID_PREFIX ? elements.get(part) : meta.objs[strToInt(part)];
-
         assertDefined(obj);
         ctx.refMap.add(obj);
       });
+      if (host) {
+        const [props, events] = host.split(' ').map(strToInt);
+        assertDefined(props);
+        assertDefined(events);
+        ctx.props = ctx.refMap.get(props);
+        ctx.events = ctx.refMap.get(events);
+      }
     });
   }
 }
@@ -54,6 +61,7 @@ export function QStore_hydrate(doc: Document) {
  * @param doc
  */
 export function QStore_dehydrate(doc: Document) {
+  debugger;
   const objSet = new Set<any>();
 
   // Element to index
@@ -158,6 +166,9 @@ export function QStore_dehydrate(doc: Document) {
     data,
     function (this: any, key: string, value: any) {
       if (key.startsWith('__')) return undefined;
+      if (value && typeof value === 'object') {
+        value = value[QOjectTargetSymbol] ?? value;
+      }
       if (this === objs) return value;
       const idx = objToId.get(value);
       if (idx !== undefined) {

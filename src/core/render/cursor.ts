@@ -246,6 +246,9 @@ function _reconcileElement(
       isSvg ? doc.createElementNS(SVG_NS, expectTag) : doc.createElement(expectTag),
       end
     );
+    if (!!componentRenderQueue) {
+      reconciledElement.setAttribute(OnRenderAttr, '');
+    }
     shouldDescendIntoComponent = !!componentRenderQueue;
     updateProperties(reconciledElement, expectProps, isSvg);
   }

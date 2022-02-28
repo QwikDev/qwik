@@ -1,14 +1,8 @@
-import { qrlImport } from '../index';
 import { QError, qError } from '../error/error';
-import type { QRLInternal } from '../import/qrl-class';
 import { readWriteProxy, _restoreQObject } from '../object/q-object';
 import { QStore_hydrate } from '../object/store';
-import { getInvokeContext, useInvoke } from '../use/use-core';
-import { OnRenderAttr, OnRenderProp } from '../util/markers';
 import { newQObjectMap, QObjectMap } from './props-obj-map';
 import { qPropWriteQRL, qPropReadQRL, isOnProp, isOn$Prop } from './props-on';
-import { then } from '../util/promises';
-import { assertEqual } from '../assert/assert';
 
 Error.stackTraceLimit = 9999;
 
@@ -27,8 +21,7 @@ export function hydrateIfNeeded(element: Element): void {
 }
 
 export interface QContextEvents {
-  render?: Function;
-  watch?: Function[];
+  [eventName: string]: string | undefined;
 }
 
 export interface QContext {
@@ -58,62 +51,28 @@ export function getContext(element: Element): QContext {
 }
 
 export function setEvent(ctx: QContext, prop: string, value: any) {
-  if (prop === OnRenderProp) {
-    const el = ctx.element;
-    if (!el.hasAttribute(OnRenderAttr)) {
-      el.setAttribute(OnRenderAttr, '');
-    }
-    const events = getEvents(ctx);
-    const promise = then(value(el), (qrl: QRLInternal) => {
-      if (!qrl.symbolRef) {
-        return qrlImport(el, qrl).then((sym) => {
-          qrl.symbolRef = sym;
-          return qrl;
-        });
-      }
-      return qrl;
-    });
-
-    events.render = () => {
-      const context = getInvokeContext();
-      return then(promise, (qrl) => {
-        context.qrl = qrl;
-        return useInvoke(context, qrl.symbolRef);
-      });
-    };
-  } else {
-    qPropWriteQRL(ctx, prop, value);
-  }
+  qPropWriteQRL(ctx, prop, value);
 }
 
 export function getEvent(ctx: QContext, prop: string): any {
-  if (prop.startsWith(OnRenderProp)) {
-    return getEvents(ctx).render;
-  }
-  return qPropReadQRL(ctx.element, ctx.cache, prop);
+  return qPropReadQRL(ctx, prop);
 }
 
 export function getProps(ctx: QContext) {
-  // const id = getQObjectId(ctx.element)!.slice(1);
   if (!ctx.props) {
-    let props = ctx.refMap.get(0);
-    if (!props) {
-      assertEqual(ctx.refMap.array.length, 0);
-      ctx.props = readWriteProxy({});
-      ctx.refMap.add(ctx.props);
-    } else {
-      ctx.props = props;
-    }
+    ctx.props = readWriteProxy({});
+    ctx.refMap.add(ctx.props);
   }
   return ctx.props!;
 }
 
 export function getEvents(ctx: QContext): QContextEvents {
-  if (!ctx.events) {
-    ctx.events = {};
+  let events = ctx.events;
+  if (!events) {
+    events = ctx.events = {};
     ctx.refMap.add(ctx.events);
   }
-  return ctx.events!;
+  return events;
 }
 
 export function test_clearPropsCache(_element: Element) {

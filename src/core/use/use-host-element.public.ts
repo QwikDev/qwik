@@ -1,6 +1,4 @@
-import { createStore, onDocument, onWindow, useLexicalScope } from '..';
 import { assertDefined } from '../assert/assert';
-import { runtimeQrl } from '../import/qrl';
 import { getInvokeContext } from './use-core';
 
 // <docs markdown="https://hackmd.io/lQ8v7fyhR-WD3b-2aRUpyw#useHostElement">
@@ -18,15 +16,4 @@ export function useHostElement(): Element {
   const element = getInvokeContext().hostElement!;
   assertDefined(element);
   return element;
-}
-
-/**
- *
- * @public
-
- */
-export function useDocument(): Document {
-  const doc = useHostElement().ownerDocument;
-  assertDefined(doc);
-  return doc;
 }

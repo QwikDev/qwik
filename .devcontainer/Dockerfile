@@ -3,7 +3,7 @@ FROM node:16.12.0-buster
 ENV RUSTUP_HOME=/usr/local/rustup \
     CARGO_HOME=/usr/local/cargo \
     PATH=/usr/local/cargo/bin:$PATH \
-    RUST_VERSION=1.58.1
+    RUST_VERSION=1.59.0
 
 
 RUN set -eux; \

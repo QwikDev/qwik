@@ -679,18 +679,21 @@ impl<'a> Fold for QwikTransform<'a> {
                             .keys()
                             .find(|id| id.0 == new_specifier);
 
-                        if let Some(new_local) = new_local {
-                            replace_callee = Some(new_ident_from_id(new_local).as_callee());
-                        } else {
-                            HANDLER.with(|handler| {
-                                handler
-                                    .struct_span_err(
-                                        ident.span,
-                                        "Version without $ is not exported.",
-                                    )
-                                    .emit();
-                            });
-                        }
+                        new_local.map_or_else(
+                            || {
+                                HANDLER.with(|handler| {
+                                    handler
+                                        .struct_span_err(
+                                            ident.span,
+                                            "Version without $ is not exported.",
+                                        )
+                                        .emit();
+                                });
+                            },
+                            |new_local| {
+                                replace_callee = Some(new_ident_from_id(new_local).as_callee());
+                            },
+                        );
                     }
                 }
             }

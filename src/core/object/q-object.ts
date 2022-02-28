@@ -1,4 +1,4 @@
-import { assertDefined, assertEqual } from '../assert/assert';
+import { assertEqual } from '../assert/assert';
 import { notifyRender } from '../render/notify-render';
 import { tryGetInvokeContext } from '../use/use-core';
 import { debugStringify } from '../util/stringify';
@@ -27,17 +27,11 @@ export function _restoreQObject<T>(obj: T, subs: Map<Element, Set<string>>): T {
   return readWriteProxy(obj as any as QObject<T>, subs);
 }
 
-export function getQObjectId(obj: any): string | null {
-  return 'fake';
-}
-
 export function getTransient<T>(obj: any, key: any): T | null {
-  assertDefined(getQObjectId(obj));
   return obj[QOjectTransientsSymbol].get(key);
 }
 
 export function setTransient<T>(obj: any, key: any, value: T): T {
-  assertDefined(getQObjectId(obj));
   obj[QOjectTransientsSymbol].set(key, value);
   return value;
 }
@@ -146,12 +140,3 @@ class ReadWriteProxyHandler<T extends object> implements ProxyHandler<T> {
 }
 
 const proxyMap: WeakMap<any, any> = new WeakMap();
-
-export function generateId() {
-  return (
-    // TODO(misko): For now I have removed the data as I think it is overkill
-    // and makes the output unnecessarily big.
-    // new Date().getTime().toString(36) +
-    Math.round(Math.random() * Number.MAX_SAFE_INTEGER).toString(36)
-  );
-}

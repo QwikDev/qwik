@@ -54,14 +54,14 @@ describe('q-component', () => {
     const host = new ElementFixture().host;
     const items = createStore({
       items: [
-        createStore({
+        {
           done: true,
           title: 'Task 1',
-        }),
-        createStore({
+        },
+        {
           done: false,
           title: 'Task 2',
-        }),
+        },
       ],
     });
     await render(host, <Items items={items} />);

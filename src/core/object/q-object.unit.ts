@@ -1,6 +1,6 @@
 import { ElementFixture } from '../../testing/element_fixture';
 import { getCtxProxy, Props } from '../props/props.public';
-import { getQObjectId, readWriteProxy, unwrapProxy } from './q-object';
+import { readWriteProxy, unwrapProxy } from './q-object';
 import { qObject } from './q-object';
 
 describe('q-object', () => {
@@ -71,40 +71,6 @@ describe('q-object', () => {
 
     it('should support equality', () => {
       // TODO(misko): I don't think it is possible with proxy.
-    });
-  });
-
-  describe('DOM reference tracking', () => {
-    it('should add root when adding attribute', () => {
-      const obj = qObject({ salutation: 'Hello', name: 'World' });
-      const id = getQObjectId(obj)!;
-
-      // qHost.propA = obj;
-      // expect(didQPropsChange(qHost)).toBe(true);
-      // expect(didQPropsChange(qHost)).toBe(false);
-      // qHost.propA = obj;
-      // expect(didQPropsChange(qHost)).toBe(false);
-      // expect(host.getAttribute('q:obj')).toEqual(id);
-      // expect(qHost.propA).toEqual(obj);
-
-      // qHost.propA = obj;
-      // qHost.propB = obj;
-      // expect(didQPropsChange(qHost)).toBe(true);
-      // qHost.propA = obj;
-      // qHost.propB = obj;
-      // expect(didQPropsChange(qHost)).toBe(false);
-      // expect(host.getAttribute('q:obj')).toEqual('#2 ' + id);
-      // expect(qHost.propA).toEqual(obj);
-      // expect(qHost.propB).toEqual(obj);
-    });
-  });
-
-  describe('getObjectId', () => {
-    it('should add ID to dome element', () => {
-      const id = getQObjectId(fixture.host)!;
-      expect(id).toBeDefined();
-      expect(id.charAt(0)).toBe('#');
-      expect(getQObjectId(fixture.host)).toBe(id);
     });
   });
 });

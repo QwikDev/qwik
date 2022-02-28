@@ -16,4 +16,8 @@ export interface CorePlatform {
    * and requestAnimationFrame() for the browser.
    */
   queueStoreFlush: (flushStore: (doc: Document) => Promise<any>) => Promise<any>;
+  /**
+   * Takes a qrl and serializes into a string
+   */
+  chunkForSymbol: (symbolName: string) => string | undefined;
 }

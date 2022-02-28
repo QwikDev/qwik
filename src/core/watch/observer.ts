@@ -1,4 +1,3 @@
-import { getQObjectId } from '../object/q-object';
 import type { Observer } from './watch.public';
 
 export type Subscriptions = Map<{}, { value: any; proxy: SubscribeProxy<any> }>;
@@ -8,7 +7,7 @@ export function createWatchFnObserver(
 ): Observer & { getGuard(): Map<string, string[]> } {
   const subscriptions: Subscriptions = new Map();
   function wrap<T>(obj: T): T {
-    const id = getQObjectId(obj);
+    const id = 'TODO';
     if (!id) {
       throw new Error('Q-ERROR: only object stores can be observed.');
     }
@@ -24,8 +23,7 @@ export function createWatchFnObserver(
   wrap.getGuard = function () {
     const map = new Map();
     subscriptions.forEach((value, key) => {
-      const props = value.proxy.properties;
-      return props && map.set(getQObjectId(key)!, Array.from(props));
+      return '';
     });
     return map;
   };

@@ -1,7 +1,5 @@
 import { createDocument } from '../../testing/document';
 import { test_clearPropsCache } from './props';
-import { getQObjectId } from '../object/q-object';
-import { dehydrate } from '../object/store.public';
 import { getCtxProxy, Props } from './props.public';
 import { parseQRL, runtimeQrl } from '../import/qrl';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
@@ -217,21 +215,6 @@ describe('q-element', () => {
     qDiv = getCtxProxy(div);
     expect(div.getAttribute('inner-text')).toEqual('');
     expect(div.innerText).toEqual('TEXT');
-  });
-
-  describe('dehydrate/hydrate', () => {
-    it('should serialize QObject', () => {
-      const qObj = createStore({ mark: 'QObj' });
-      qDiv.myObj = qObj;
-      qDiv.ref = { qObj: qObj };
-      expect(div.getAttribute('q:obj')).toEqual(getQObjectId(qObj) + ' ' + getQObjectId(qDiv.ref));
-
-      dehydrate(document);
-      qDiv = getCtxProxy(div);
-
-      expect(qDiv.myObj).toEqual(qObj);
-      expect(qDiv.ref.qObj).toEqual(qObj);
-    });
   });
 
   describe('QRLs', () => {

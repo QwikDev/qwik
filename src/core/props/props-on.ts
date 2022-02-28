@@ -1,3 +1,4 @@
+import { getPlatform } from '../index';
 import { parseQRL, stringifyQRL } from '../import/qrl';
 import { isQrl, QRLInternal } from '../import/qrl-class';
 import { qrlImport } from '../import/qrl.public';
@@ -163,9 +164,10 @@ function getExistingQRLs(ctx: QContext, prop: string): ValueOrPromise<QRLInterna
 }
 
 function serializeQRLs(existingQRLs: ValueOrPromise<QRLInternal>[], ctx: QContext): string {
+  const platform = getPlatform(ctx.element.ownerDocument);
   const element = ctx.element;
   return existingQRLs
-    .map((qrl) => (isPromise(qrl) ? '' : stringifyQRL(qrl, element)))
+    .map((qrl) => (isPromise(qrl) ? '' : stringifyQRL(qrl, element, platform)))
     .filter((v) => !!v)
     .join('\n');
 }

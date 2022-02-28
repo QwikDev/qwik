@@ -103,7 +103,7 @@ export interface RenderToStringResult {
 export function serializeDocument(doc: Document, opts?: SerializeDocumentOptions): string;
 
 // @public
-export function setServerPlatform(document: any, opts: DocumentOptions): Promise<void>;
+export function setServerPlatform(document: any, opts: SerializeDocumentOptions): Promise<void>;
 
 // @alpha (undocumented)
 export const versions: {

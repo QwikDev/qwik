@@ -466,7 +466,7 @@ fn handle_error(
         .lock()
         .map(|diagnostics| diagnostics.clone())
         .ok()
-        .unwrap_or_else(Vec::new)
+        .unwrap_or_default()
         .iter()
         .map(|diagnostic| {
             let message = diagnostic.message();

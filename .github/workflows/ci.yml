@@ -86,7 +86,7 @@ jobs:
         with:
           profile: minimal
           override: true
-          toolchain: stable
+          toolchain: 1.59.0
           target: wasm32-unknown-unknown
 
       - name: Checkout
@@ -169,7 +169,7 @@ jobs:
         with:
           profile: minimal
           override: true
-          toolchain: stable
+          toolchain: 1.59.0
           target: ${{ matrix.settings.target }}
 
       - name: Cache NPM Dependencies
@@ -428,7 +428,7 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
-          profile: minimal
+          profile: 1.59.0
           override: true
           components: rustfmt, clippy
 

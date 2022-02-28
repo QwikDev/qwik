@@ -427,8 +427,8 @@ jobs:
       - name: Install Rust toolchain
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: stable
-          profile: 1.59.0
+          toolchain: 1.59.0
+          profile: minimal
           override: true
           components: rustfmt, clippy
 

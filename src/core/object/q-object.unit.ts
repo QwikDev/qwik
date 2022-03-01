@@ -1,18 +1,8 @@
-import { ElementFixture } from '../../testing/element_fixture';
-import { getCtxProxy, Props } from '../props/props.public';
 import { readWriteProxy, unwrapProxy } from './q-object';
 import { qObject } from './q-object';
 
 describe('q-object', () => {
-  let fixture: ElementFixture;
-  let host: HTMLElement;
-  let qHost: Props;
-
-  beforeEach(() => {
-    fixture = new ElementFixture();
-    host = fixture.host;
-    qHost = getCtxProxy(host);
-  });
+  beforeEach(() => {});
 
   it('should create QObject', () => {
     const obj = qObject({ salutation: 'Hello', name: 'World' });

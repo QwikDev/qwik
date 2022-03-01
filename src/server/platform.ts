@@ -1,6 +1,6 @@
 import type { CorePlatform } from '@builder.io/qwik';
 import { setPlatform } from '@builder.io/qwik';
-import type { DocumentOptions, SerializeDocumentOptions } from './types';
+import type { SerializeDocumentOptions } from './types';
 
 const _setImmediate = typeof setImmediate === 'function' ? setImmediate : setTimeout;
 const _nextTick = typeof queueMicrotask === 'function' ? queueMicrotask : process.nextTick;

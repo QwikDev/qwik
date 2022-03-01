@@ -28,6 +28,7 @@ export function newQObjectMap(element: Element): QObjectMap {
         array.push(object);
         if (!added) {
           element.setAttribute(QObjAttr, '');
+          added = true;
         }
         return array.length - 1;
       }

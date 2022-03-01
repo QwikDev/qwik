@@ -1,11 +1,5 @@
 import { component$, Host, $ } from '@builder.io/qwik';
-import {
-  clearCompleted,
-  FilterStates,
-  getFilteredCount,
-  Todos,
-  updateFilter,
-} from '../../state/state';
+import { FILTERS, FilterStates, Todos } from '../../state/state';
 
 /**
  * Footer showing items remaining and filtering options
@@ -24,14 +18,16 @@ export const Footer = component$(
           <li>
             <a
               class={{ selected: props.todos.filter == lMode }}
-              on$:click={() => updateFilter(props.todos, filter)}
+              on$:click={() => {
+                props.todos.filter = filter;
+              }}
             >
               {filter[0].toUpperCase() + filter.substr(1)}
             </a>
           </li>
         );
       }
-      const remaining = getFilteredCount(props.todos);
+      const remaining = props.todos.items.filter(FILTERS.active).length;
       return (
         <Host class="footer">
           {props.todos.items.length > 0 ? (
@@ -46,7 +42,12 @@ export const Footer = component$(
                 ))}
               </ul>
               {remaining > 0 ? (
-                <button class="clear-completed" on$:click={() => clearCompleted(props.todos)}>
+                <button
+                  class="clear-completed"
+                  on$:click={() => {
+                    props.todos.items = props.todos.items.filter(FILTERS.active);
+                  }}
+                >
                   Clear completed
                 </button>
               ) : null}

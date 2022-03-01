@@ -9,7 +9,7 @@ import type { QComponentCtx } from '../component/component-ctx';
 import { getQComponent } from '../component/component-ctx';
 import { keyValueArrayGet } from '../util/array_map';
 import { isComment, isDocument } from '../util/element';
-import { OnRenderAttr, OnRenderProp, QSlotAttr } from '../util/markers';
+import { QHostAttr, OnRenderProp, QSlotAttr } from '../util/markers';
 import {
   isComponentElement,
   isDomElementWithTagName,
@@ -246,8 +246,8 @@ function _reconcileElement(
       isSvg ? doc.createElementNS(SVG_NS, expectTag) : doc.createElement(expectTag),
       end
     );
-    if (!!componentRenderQueue) {
-      reconciledElement.setAttribute(OnRenderAttr, '');
+    if (componentRenderQueue) {
+      reconciledElement.setAttribute(QHostAttr, '');
     }
     shouldDescendIntoComponent = !!componentRenderQueue;
     updateProperties(reconciledElement, expectProps, isSvg);
@@ -258,7 +258,7 @@ function _reconcileElement(
     hostComponent.styleHostClass && reconciledElement.classList.add(hostComponent.styleHostClass);
     if (Array.isArray(componentRenderQueue)) {
       componentRenderQueue.push(hostComponent.render());
-    } else if (reconciledElement.hasAttribute(OnRenderAttr)) {
+    } else if (reconciledElement.hasAttribute(QHostAttr)) {
       const set = getScheduled(reconciledElement.ownerDocument);
       set.add(reconciledElement);
     }
@@ -310,6 +310,16 @@ export function updateProperties(node: Element, expectProps: Record<string, any>
   const ctx = getContext(node);
   const qwikProps = OnRenderProp in expectProps ? getProps(ctx) : undefined;
 
+  if ('class' in expectProps) {
+    const className = expectProps.class;
+    expectProps.className =
+      className && typeof className == 'object'
+        ? Object.keys(className)
+            .filter((k) => className[k])
+            .join(' ')
+        : className;
+  }
+
   for (const key of Object.keys(expectProps)) {
     if (key === 'children') {
       continue;
@@ -355,7 +365,9 @@ export function updateProperties(node: Element, expectProps: Record<string, any>
       if (key in node) {
         try {
           (node as any)[key] = newValue;
-        } catch {}
+        } catch (e) {
+          console.error(e);
+        }
         continue;
       }
 

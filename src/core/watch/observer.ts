@@ -3,11 +3,11 @@ import type { Observer } from './watch.public';
 export type Subscriptions = Map<{}, { value: any; proxy: SubscribeProxy<any> }>;
 
 export function createWatchFnObserver(
-  _doc: Document
+  doc: Document
 ): Observer & { getGuard(): Map<string, string[]> } {
   const subscriptions: Subscriptions = new Map();
   function wrap<T>(obj: T): T {
-    const id = 'TODO';
+    const id = `${doc}`;
     if (!id) {
       throw new Error('Q-ERROR: only object stores can be observed.');
     }
@@ -22,7 +22,7 @@ export function createWatchFnObserver(
   }
   wrap.getGuard = function () {
     const map = new Map();
-    subscriptions.forEach((value, key) => {
+    subscriptions.forEach(() => {
       return '';
     });
     return map;
@@ -45,7 +45,7 @@ export class SubscribeProxy<T extends Record<string, any>> {
     return value;
   }
 
-  set(target: T, prop: string, newValue: any): boolean {
+  set(_: T, prop: string, newValue: any): boolean {
     throw new Error('Writing to observables is not allowed! Property: ' + prop + ' ' + newValue);
     // return true;
   }

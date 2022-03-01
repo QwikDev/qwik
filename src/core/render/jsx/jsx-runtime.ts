@@ -28,15 +28,6 @@ export class JSXNodeImpl<T> implements JSXNode<T> {
       } else {
         this.children = EMPTY_ARRAY;
       }
-      if ('class' in props) {
-        const className = props.class;
-        props.className =
-          className && typeof className == 'object'
-            ? Object.keys(className)
-                .filter((k) => className[k])
-                .join(' ')
-            : className;
-      }
     }
   }
 }

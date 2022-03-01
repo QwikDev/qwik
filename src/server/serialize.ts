@@ -1,5 +1,4 @@
-import type { OutputEntryMap } from '@builder.io/qwik/optimizer';
-import type { QrlMapper, SerializeDocumentOptions } from './types';
+import type { SerializeDocumentOptions } from './types';
 
 /**
  * Serializes the given `document` to a string. Additionally, will serialize the
@@ -14,7 +13,7 @@ export function serializeDocument(doc: Document, opts?: SerializeDocumentOptions
     throw new Error(`Invalid document to serialize`);
   }
 
-  let symbols = opts?.symbols;
+  const symbols = opts?.symbols;
   if (typeof symbols === 'object' && symbols != null) {
     if (symbols.injections) {
       for (const injection of symbols.injections) {

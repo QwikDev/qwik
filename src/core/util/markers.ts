@@ -14,7 +14,7 @@ export const OnMount = 'on:q-mount';
 /**
  * State factory of the component.
  */
-export const OnRenderAttr = 'q:host';
+export const QHostAttr = 'q:host';
 export const OnRenderProp = 'on:qRender';
 
 /**

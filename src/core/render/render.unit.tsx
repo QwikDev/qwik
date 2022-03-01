@@ -480,7 +480,7 @@ describe('render', () => {
 
       expectRendered(
         <div class="is-html">
-          <Text class="is-html" should-kebab="true">
+          <Text class="is-html" shouldkebab="true">
             Start
           </Text>
           <svg class="is-svg" preserveAspectRatio="true">

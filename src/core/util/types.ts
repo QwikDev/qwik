@@ -1,4 +1,4 @@
-import { OnRenderAttr, QSlotAttr } from './markers';
+import { QHostAttr, QSlotAttr } from './markers';
 
 /**
  * Returns true if the `node` is `Element` and of the right `tagName`.
@@ -31,7 +31,7 @@ export function isQSLotTemplateElement(node: Node | null | undefined): node is H
  * @private
  */
 export function isComponentElement(node: Node | null | undefined): node is HTMLElement {
-  return isHtmlElement(node) && node.hasAttribute(OnRenderAttr);
+  return isHtmlElement(node) && node.hasAttribute(QHostAttr);
 }
 
 /**

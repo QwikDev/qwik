@@ -143,21 +143,24 @@ function getExistingQRLs(ctx: QContext, prop: string): ValueOrPromise<QRLInterna
   if (!parts) {
     if (prop.startsWith('on:q')) {
       parts = [];
-      (getEvents(ctx)[prop] || '').split('\n').forEach((qrl) => {
-        if (qrl) {
-          parts.push(parseQRL(qrl as any, ctx.element));
-        }
-      });
-      ctx.cache.set(prop, parts);
-    } else {
-      const attrName = fromCamelToKebabCase(prop);
-      parts = [];
-      (ctx.element.getAttribute(attrName) || '').split('\n').forEach((qrl) => {
-        if (qrl) {
-          parts.push(parseQRL(qrl as any, ctx.element));
-        }
-      });
+      const qrls = getEvents(ctx)[prop];
+      if (qrls) {
+        qrls.split('\n').forEach((qrl) => {
+          if (qrl) {
+            parts.push(parseQRL(qrl as any, ctx.element));
+          }
+        });
+        ctx.cache.set(prop, parts);
+        return parts;
+      }
     }
+    const attrName = fromCamelToKebabCase(prop);
+    parts = [];
+    (ctx.element.getAttribute(attrName) || '').split('\n').forEach((qrl) => {
+      if (qrl) {
+        parts.push(parseQRL(qrl as any, ctx.element));
+      }
+    });
     ctx.cache.set(prop, parts);
   }
   return parts;

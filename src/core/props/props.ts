@@ -1,8 +1,8 @@
 import { QError, qError } from '../error/error';
-import { readWriteProxy, _restoreQObject } from '../object/q-object';
+import { readWriteProxy } from '../object/q-object';
 import { QStore_hydrate } from '../object/store';
 import { newQObjectMap, QObjectMap } from './props-obj-map';
-import { qPropWriteQRL, qPropReadQRL, isOnProp, isOn$Prop } from './props-on';
+import { qPropWriteQRL, qPropReadQRL } from './props-on';
 
 Error.stackTraceLimit = 9999;
 
@@ -73,10 +73,6 @@ export function getEvents(ctx: QContext): QContextEvents {
     ctx.refMap.add(ctx.events);
   }
   return events;
-}
-
-export function test_clearPropsCache(_element: Element) {
-  // NOTHING
 }
 
 /**

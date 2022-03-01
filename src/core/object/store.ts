@@ -5,7 +5,7 @@ import {
   ELEMENT_ID,
   ELEMENT_ID_PREFIX,
   ELEMENT_ID_SELECTOR,
-  OnRenderAttr,
+  QHostAttr,
   QObjAttr,
   QObjSelector,
 } from '../util/markers';
@@ -37,7 +37,7 @@ export function QStore_hydrate(doc: Document) {
 
     doc.querySelectorAll(QObjSelector).forEach((el) => {
       const qobj = el.getAttribute(QObjAttr);
-      const host = el.getAttribute(OnRenderAttr);
+      const host = el.getAttribute(QHostAttr);
       const ctx = getContext(el);
       qobj!.split(' ').forEach((part) => {
         const obj = part[0] === ELEMENT_ID_PREFIX ? elements.get(part) : meta.objs[strToInt(part)];
@@ -61,7 +61,6 @@ export function QStore_hydrate(doc: Document) {
  * @param doc
  */
 export function QStore_dehydrate(doc: Document) {
-  debugger;
   const objSet = new Set<any>();
 
   // Element to index
@@ -151,11 +150,11 @@ export function QStore_dehydrate(doc: Document) {
     node.setAttribute(QObjAttr, attribute);
 
     if (props) {
-      assertDefined(events);
-      node.setAttribute(
-        OnRenderAttr,
-        [props, events].map((obj) => ctx.refMap.indexOf(obj)).join(' ')
-      );
+      const objs = [props];
+      if (events) {
+        objs.push(events);
+      }
+      node.setAttribute(QHostAttr, objs.map((obj) => ctx.refMap.indexOf(obj)).join(' '));
     }
   });
 

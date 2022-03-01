@@ -1,0 +1,29 @@
+{
+  "name": "qwik-site",
+  "version": "0.0.0",
+  "description": "Qwik Site.",
+  "scripts": {
+    "build": "vite build",
+    "preview": "vite preview",
+    "dev": "vite",
+    "fmt": "prettier --write .",
+    "fmt.check": "prettier --check .",
+    "start": "npm run dev"
+  },
+  "devDependencies": {
+    "@builder.io/partytown": "^0.4.1",
+    "@cloudflare/kv-asset-handler": "0.2.0",
+    "@cloudflare/workers-types": "^3.2.0",
+    "@cloudflare/wrangler": "1.19.7",
+    "@types/service-worker-mock": "2.0.1",
+    "prettier": "2.3.0",
+    "tsm": "^2.2.1",
+    "typescript": "^4.5.2",
+    "vite": "^2.7.13"
+  },
+  "author": "Builder.io Team",
+  "engines": {
+    "node": ">=14.14.0"
+  },
+  "license": "MIT"
+}

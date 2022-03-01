@@ -517,7 +517,7 @@
 
 "@builder.io/partytown@0.3.6":
   version "0.3.6"
-  resolved "https://registry.npmjs.org/@builder.io/partytown/-/partytown-0.3.6.tgz"
+  resolved "https://registry.yarnpkg.com/@builder.io/partytown/-/partytown-0.3.6.tgz#7bce38dceae58c70931cae95cdab31f6369f5d98"
   integrity sha512-hmIfzL6rCxxM76ggyM0LMUp/LTJfLzf0JRrbzXFkNYJLw8ZTH8A4N9o170Aa7/EWbvNdk5SD4hBKIKWw03BgZg==
 
 "@builder.io/qwik-dom@2.1.9":
@@ -5044,7 +5044,6 @@ tslib@^2.0.1, tslib@^2.1.0:
   version "2.3.1"
   resolved "https://registry.npmjs.org/tslib/-/tslib-2.3.1.tgz"
   integrity sha512-77EbyPPpMz+FRFRuAFlWMtmgUWGe9UOG2Z25NqCwiIjRhOf5iKGuzSe5P2w1laq+FkRy4p+PCuVkJSGkzTEKVw==
-
 
 tsutils@3.21.0, tsutils@^3.21.0:
   version "3.21.0"

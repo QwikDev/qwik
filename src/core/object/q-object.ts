@@ -1,8 +1,8 @@
 import { assertEqual } from '../assert/assert';
+import { QError, qError } from '../error/error';
 import { notifyRender } from '../render/notify-render';
 import { tryGetInvokeContext } from '../use/use-core';
 import { debugStringify } from '../util/stringify';
-
 
 export type QObject<T extends {}> = T & { __brand__: 'QObject' };
 
@@ -141,4 +141,12 @@ class ReadWriteProxyHandler<T extends object> implements ProxyHandler<T> {
   }
 }
 
+function verifySerializable<T>(value: T) {
+  if (typeof value == 'object' && value !== null) {
+    if (Array.isArray(value)) return;
+    if (Object.getPrototypeOf(value) !== Object.prototype) {
+      throw qError(QError.TODO, 'Only primitive and object literals can be serialized.');
+    }
+  }
+}
 const proxyMap: WeakMap<any, any> = new WeakMap();

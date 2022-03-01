@@ -5,6 +5,8 @@ import type { DocumentOptions } from './types';
 const _setImmediate = typeof setImmediate === 'function' ? setImmediate : setTimeout;
 const _nextTick = typeof queueMicrotask === 'function' ? queueMicrotask : process.nextTick;
 
+declare const require: (module: string) => Record<string, any>;
+
 function createPlatform(document: any, opts?: DocumentOptions) {
   if (!document || (document as Document).nodeType !== 9) {
     throw new Error(`Invalid Document implementation`);
@@ -16,8 +18,17 @@ function createPlatform(document: any, opts?: DocumentOptions) {
     doc.location.href = opts.url.href;
   }
   const serverPlatform: CorePlatform = {
-    async importSymbol(element, qrl, symbol) {
-      throw new Error('IMPLEMENT: Server.importSymbol ' + qrl + ' ' + symbol);
+    async importSymbol(element, qrl, symbolName) {
+      let [modulePath] = String(qrl).split('#');
+      if (!modulePath.endsWith('.js')) {
+        modulePath += '.js';
+      }
+      const module = require(modulePath); // eslint-disable-line  @typescript-eslint/no-var-requires
+      const symbol = module[symbolName];
+      if (!symbol) {
+        throw new Error(`Q-ERROR: missing symbol '${symbolName}' in module '${modulePath}'.`);
+      }
+      return symbol;
     },
     queueRender: (renderMarked) => {
       if (!queuePromise) {

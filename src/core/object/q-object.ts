@@ -1,10 +1,12 @@
 import { assertDefined, assertEqual, assertNotEqual } from '../assert/assert';
+import { QError, qError } from '../error/error';
 import { notifyRender } from '../render/notify-render';
 import { safeQSubscribe } from '../use/use-core';
 import { isElement } from '../util/element';
 import { AttributeMarker } from '../util/markers';
 import { debugStringify } from '../util/stringify';
 import { notifyWatchers } from '../watch/watch';
+export const Q_OBJECT_PREFIX_SEP = ':';
 
 export type QObject<T extends {}> = T & { __brand__: 'QObject' };
 
@@ -112,6 +114,7 @@ export function wrap<T>(value: T): T {
       // already a proxy return;
       return value;
     }
+    verifySerializable<T>(value);
 
     const proxy = proxyMap.get(value);
     return proxy ? proxy : readWriteProxy(value as any, generateId());
@@ -146,6 +149,7 @@ class ReadWriteProxyHandler<T extends object> implements ProxyHandler<T> {
       this.id = newValue;
     } else {
       const unwrappedNewValue = unwrapProxy(newValue);
+      verifySerializable(unwrappedNewValue);
       const oldValue = (target as any)[prop];
       if (oldValue !== unwrappedNewValue) {
         (target as any)[prop] = unwrappedNewValue;
@@ -166,6 +170,16 @@ class ReadWriteProxyHandler<T extends object> implements ProxyHandler<T> {
 }
 
 const proxyMap: WeakMap<any, any> = new WeakMap();
+
+function verifySerializable<T>(value: T) {
+  if (typeof value == 'object' && value !== null) {
+    if (Array.isArray(value)) return;
+    if (Object.getPrototypeOf(value) !== Object.prototype) {
+      if (getQObjectId(value)) return;
+      throw qError(QError.TODO, 'Only primitive and object literals can be serialized.');
+    }
+  }
+}
 
 function generateId() {
   return (

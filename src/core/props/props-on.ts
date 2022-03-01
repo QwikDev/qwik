@@ -1,3 +1,4 @@
+import { QError, qError } from '../error/error';
 import { parseQRL, stringifyQRL } from '../import/qrl';
 import { isQrl, QRLInternal } from '../import/qrl-class';
 import { qrlImport } from '../import/qrl.public';
@@ -135,7 +136,7 @@ export function qPropWriteQRL(
     existingQRLs.push(writePromise);
   } else {
     // TODO(misko): Test/better text
-    throw new Error(`Not QRLInternal: prop: ${prop}; value: ` + value);
+    throw qError(QError.TODO, `Not QRLInternal: prop: ${prop}; value: ` + value);
   }
   const kebabProp = fromCamelToKebabCase(prop);
   cache.__element__.setAttribute(kebabProp, serializeQRLs(existingQRLs, map));

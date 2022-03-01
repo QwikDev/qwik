@@ -272,7 +272,7 @@ export const setPlatform: (doc: Document, plt: CorePlatform) => CorePlatform;
 // @public (undocumented)
 export const Slot: FunctionComponent<{
     name?: string;
-    children?: JSXChildren;
+    children?: any;
 }>;
 
 // @public
@@ -283,12 +283,6 @@ export function useHostElement(): Element;
 
 // @public
 export function useLexicalScope<VARS extends any[]>(): VARS;
-
-// @alpha (undocumented)
-export const useStyles$: (first: string) => void;
-
-// @alpha (undocumented)
-export function useStyles(styles: QRL<string>): void;
 
 // @public (undocumented)
 export function useTransient<OBJ, ARGS extends any[], RET>(obj: OBJ, factory: (this: OBJ, ...args: ARGS) => RET, ...args: ARGS): RET;
@@ -305,9 +299,11 @@ export const withScopedStyles$: (first: string) => void;
 // @alpha (undocumented)
 export function withScopedStyles(styles: QRL<string>): void;
 
-// Warnings were encountered during analysis:
-//
-// dist-dev/tsc-out/src/core/render/jsx/slot.public.d.ts:8:5 - (ae-forgotten-export) The symbol "JSXChildren" needs to be exported by the entry point index.d.ts
+// @alpha (undocumented)
+export const withStyles$: (first: string) => void;
+
+// @alpha (undocumented)
+export function withStyles(styles: QRL<string>): void;
 
 // (No @packageDocumentation comment for this package)
 

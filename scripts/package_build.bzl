@@ -31,6 +31,7 @@ def package_build(
             "@npm//cross-spawn",
             "@npm//gzip-size",
             "@npm//execa",
+            "@npm//vite",
             "@npm//@napi-rs/triples",
             "@npm//@types/semver",
             "@npm//semver",

@@ -13,7 +13,8 @@ import type { ValueOrPromise } from '../util/types';
 import { getContext, getProps } from '../props/props';
 
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onUnmount">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onUnmount instead)
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fc_nNpiLZSYugTU0c5JATJA%3Fboth#onUnmount instead)
 /**
  * A lazy-loadable reference to a component's destroy hook.
  *
@@ -27,7 +28,8 @@ export function onUnmount(unmountFn: QRL<() => void>): void {
 }
 
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onUnmount">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onUnmount instead)
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fc_nNpiLZSYugTU0c5JATJA%3Fboth#onUnmount instead)
 /**
  * A lazy-loadable reference to a component's destroy hook.
  *
@@ -39,7 +41,8 @@ export function onUnmount(unmountFn: QRL<() => void>): void {
 export const onUnmount$ = implicit$FirstArg(onUnmount);
 
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onResume">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onResume instead)
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fc_nNpiLZSYugTU0c5JATJA%3Fboth#onResume instead)
 /**
  * A lazy-loadable reference to a component's on resume hook.
  *
@@ -54,7 +57,8 @@ export function onResume(resumeFn: QRL<() => void>): void {
 }
 
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onResume">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onResume instead)
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fc_nNpiLZSYugTU0c5JATJA%3Fboth#onResume instead)
 /**
  * A lazy-loadable reference to a component's on resume hook.
  *
@@ -67,7 +71,8 @@ export function onResume(resumeFn: QRL<() => void>): void {
 export const onResume$ = implicit$FirstArg(onResume);
 
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onHydrate">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onHydrate instead)
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fc_nNpiLZSYugTU0c5JATJA%3Fboth#onHydrate instead)
 /**
  * A lazy-loadable reference to a component's on hydrate hook.
  *
@@ -82,7 +87,8 @@ export function onHydrate(hydrateFn: QRL<() => void>): void {
 }
 
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onHydrate">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onHydrate instead)
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fc_nNpiLZSYugTU0c5JATJA%3Fboth#onHydrate instead)
 /**
  * A lazy-loadable reference to a component's on hydrate hook.
  *
@@ -95,7 +101,8 @@ export function onHydrate(hydrateFn: QRL<() => void>): void {
 export const onHydrate$ = implicit$FirstArg(onHydrate);
 
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onDehydrate">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onDehydrate instead)
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fc_nNpiLZSYugTU0c5JATJA%3Fboth#onDehydrate instead)
 /**
  * A lazy-loadable reference to a component's on dehydrate hook.
  *
@@ -112,7 +119,8 @@ export function onDehydrate(dehydrateFn: QRL<() => void>): void {
 }
 
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onDehydrate">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onDehydrate instead)
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fc_nNpiLZSYugTU0c5JATJA%3Fboth#onDehydrate instead)
 /**
  * A lazy-loadable reference to a component's on dehydrate hook.
  *
@@ -127,7 +135,8 @@ export function onDehydrate(dehydrateFn: QRL<() => void>): void {
 export const onDehydrate$ = implicit$FirstArg(onDehydrate);
 
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#on">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#on instead)
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fc_nNpiLZSYugTU0c5JATJA%3Fboth#on instead)
 /**
  * Register a listener on the current component's host element.
  *
@@ -144,7 +153,8 @@ export function on(event: string, eventFn: QRL<() => void>): QRL<() => void> {
 }
 
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onDocument">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onDocument instead)
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fc_nNpiLZSYugTU0c5JATJA%3Fboth#onDocument instead)
 /**
  * Register a listener on `document`.
  *
@@ -161,7 +171,8 @@ export function onDocument(event: string, eventFn: QRL<() => void>): QRL<() => v
 }
 
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onWindow">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onWindow instead)
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fc_nNpiLZSYugTU0c5JATJA%3Fboth#onWindow instead)
 /**
  * Register a listener on `window`.
  *
@@ -177,36 +188,40 @@ export function onWindow(event: string, eventFn: QRL<() => void>): QRL<() => voi
   throw new Error('IMPLEMENT: onWindow' + eventFn);
 }
 
-// <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#useStyles">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#useStyles instead)
+// <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#withStyles">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fc_nNpiLZSYugTU0c5JATJA%3Fboth#withStyles instead)
 /**
  * @alpha
  */
 // </docs>
-export function useStyles(styles: QRL<string>): void {
-  _useStyles(styles, false);
+export function withStyles(styles: QRL<string>): void {
+  _withStyles(styles, false);
 }
 
-// <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#useStyles">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#useStyles instead)
+// <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#withStyles">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fc_nNpiLZSYugTU0c5JATJA%3Fboth#withStyles instead)
 /**
  * @alpha
  */
 // </docs>
-export const useStyles$ = implicit$FirstArg(useStyles);
+export const withStyles$ = implicit$FirstArg(withStyles);
 
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#withScopedStyles">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#withScopedStyles instead)
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fc_nNpiLZSYugTU0c5JATJA%3Fboth#withScopedStyles instead)
 /**
  * @alpha
  */
 // </docs>
 export function withScopedStyles(styles: QRL<string>): void {
-  _useStyles(styles, true);
+  _withStyles(styles, true);
 }
 
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#withScopedStyles">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#withScopedStyles instead)
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fc_nNpiLZSYugTU0c5JATJA%3Fboth#withScopedStyles instead)
 /**
  * @alpha
  */
@@ -239,7 +254,8 @@ export interface ComponentOptions {
 }
 
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#component">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#component instead)
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fc_nNpiLZSYugTU0c5JATJA%3Fboth#component instead)
 /**
  * Declare a Qwik component that can be used to create UI.
  *
@@ -255,7 +271,7 @@ export interface ComponentOptions {
  * implementation of the component to be eagerly loaded. A minimum Qwik definition consists of:
  *
  * - Component `onMount` method, which needs to return an
- * - `$` closure which constructs the component's JSX.
+ * - `onRender` closure which constructs the component's JSX.
  *
  * ### Example:
  *
@@ -277,7 +293,6 @@ export interface ComponentOptions {
  * - `{ value?: number; step?: number }` declares the public (props) interface of the component.
  * - `{ count: number }` declares the private (state) interface of the component.
  * - `onMount` closure: is used to create the data store (see: `createStore`);
- * - `onRender$`: is the required hook for rendering the component.
  * - `$`: mark which parts of the component will be lazy-loaded. (see `$` for details.)
  *
  * The above can then be used like so:
@@ -288,8 +303,8 @@ export interface ComponentOptions {
  * });
  * ```
  *
- * See also: `component`, `onUnmount`, `onHydrate`, `onDehydrate`, `onHalt`,
- * `onResume`, `on`, `onDocument`, `onWindow`, `useStyles`, `withScopedStyles`
+ * See also: `component`, `onUnmount`, `onHydrate`, `onDehydrate`, `onHalt`, `onResume`, `on`,
+ * `onDocument`, `onWindow`, `withStyles`, `withScopedStyles`
  *
  * @param onMount - Initialization closure used when the component is first created.
  * @param tagName - Optional components options. It can be used to set a custom tag-name to be
@@ -328,7 +343,8 @@ export function component<PROPS extends {}>(
 }
 
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#component">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#component instead)
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fc_nNpiLZSYugTU0c5JATJA%3Fboth#component instead)
 /**
  * Declare a Qwik component that can be used to create UI.
  *
@@ -366,7 +382,6 @@ export function component<PROPS extends {}>(
  * - `{ value?: number; step?: number }` declares the public (props) interface of the component.
  * - `{ count: number }` declares the private (state) interface of the component.
  * - `onMount` closure: is used to create the data store (see: `createStore`);
- * - `onRender$`: is the required hook for rendering the component.
  * - `$`: mark which parts of the component will be lazy-loaded. (see `$` for details.)
  *
  * The above can then be used like so:
@@ -377,8 +392,8 @@ export function component<PROPS extends {}>(
  * });
  * ```
  *
- * See also: `component`, `onRender`, `onUnmount`, `onHydrate`, `onDehydrate`, `onHalt`,
- * `onResume`, `on`, `onDocument`, `onWindow`, `useStyles`, `withScopedStyles`
+ * See also: `component`, `onUnmount`, `onHydrate`, `onDehydrate`, `onHalt`, `onResume`, `on`,
+ * `onDocument`, `onWindow`, `withStyles`, `withScopedStyles`
  *
  * @param onMount - Initialization closure used when the component is first created.
  * @param tagName - Optional components options. It can be used to set a custom tag-name to be
@@ -412,7 +427,7 @@ function resolveQrl<PROPS extends {}>(
       });
 }
 
-function _useStyles(styles: QRL<string>, scoped: boolean) {
+function _withStyles(styles: QRL<string>, scoped: boolean) {
   const styleQrl = toQrlOrError(styles);
   const styleId = styleKey(styleQrl);
   const hostElement = useHostElement();

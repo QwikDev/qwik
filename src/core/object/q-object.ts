@@ -3,6 +3,7 @@ import { notifyRender } from '../render/notify-render';
 import { tryGetInvokeContext } from '../use/use-core';
 import { debugStringify } from '../util/stringify';
 
+
 export type QObject<T extends {}> = T & { __brand__: 'QObject' };
 
 export function qObject<T extends Object>(obj: T): T {
@@ -68,6 +69,7 @@ export function wrap<T>(value: T): T {
       // already a proxy return;
       return value;
     }
+    verifySerializable<T>(value);
 
     const proxy = proxyMap.get(value);
     return proxy ? proxy : readWriteProxy(value as any);

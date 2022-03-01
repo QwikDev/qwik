@@ -1,4 +1,5 @@
 import { getPlatform } from '../index';
+import { QError, qError } from '../error/error';
 import { parseQRL, stringifyQRL } from '../import/qrl';
 import { isQrl, QRLInternal } from '../import/qrl-class';
 import { qrlImport } from '../import/qrl.public';
@@ -121,7 +122,7 @@ export function qPropWriteQRL(ctx: QContext, prop: string, value: any) {
     existingQRLs.push(writePromise);
   } else {
     // TODO(misko): Test/better text
-    throw new Error(`Not QRLInternal: prop: ${prop}; value: ` + value);
+    throw qError(QError.TODO, `Not QRLInternal: prop: ${prop}; value: ` + value);
   }
   if (prop.startsWith('on:q')) {
     getEvents(ctx)[prop] = serializeQRLs(existingQRLs, ctx);

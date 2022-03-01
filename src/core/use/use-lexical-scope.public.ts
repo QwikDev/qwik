@@ -6,7 +6,8 @@ import { getInvokeContext } from './use-core';
 import { useURL } from './use-url.public';
 
 // <docs markdown="https://hackmd.io/lQ8v7fyhR-WD3b-2aRUpyw#useLexicalScope">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit https://hackmd.io/lQ8v7fyhR-WD3b-2aRUpyw#useLexicalScope instead)
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2FlQ8v7fyhR-WD3b-2aRUpyw%3Fboth#useLexicalScope instead)
 /**
  * Used by the Qwik Optimizer to restore the lexical scoped variables.
  *

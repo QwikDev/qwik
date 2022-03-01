@@ -7,7 +7,7 @@ export const Header = component$(
     useStyles$(styles);
 
     return $(() => (
-      <Host className="sticky top-0 z-40 w-full flex-none py-6">
+      <Host className="sticky top-0 z-40 w-full flex-none py-6 bg-gray-900">
         <div className="flex justify-between flex-wrap max-w-7xl mx-auto md:px-8">
           <div className="flex items-center flex-shrink-0 text-white">
             <a href="/" class="hover:opacity-70">

@@ -1,9 +1,35 @@
-.docs h1 {
+.content h1 {
   @apply text-slate-200;
-  @apply text-2xl font-bold;
+  @apply text-3xl font-bold;
+  @apply mb-5;
 }
 
-.docs h2 {
+.content h2 {
+  @apply text-slate-200;
+  @apply text-2xl font-semibold;
+  @apply mt-8;
+  @apply mb-5;
+}
+
+.content h3 {
   @apply text-slate-200;
   @apply text-xl font-semibold;
+  @apply mt-6;
+  @apply mb-5;
+}
+
+.content p {
+  @apply my-5;
+}
+
+.content ul,
+.content ol {
+  @apply my-5;
+  @apply ml-8;
+  list-style: disc;
+}
+
+.content li {
+  @apply my-2;
+  @apply pl-3;
 }

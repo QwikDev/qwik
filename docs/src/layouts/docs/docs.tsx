@@ -23,7 +23,7 @@ const DocsLayout = component$((props: DocsLayoutProps) => {
         <main class="max-w-7xl mx-auto md:px-8 flex">
           {navIndex ? <SideBar navIndex={navIndex} /> : null}
           <section class="flex-1">
-            <article class="min-h-[600px]">
+            <article class="min-h-[600px] content">
               <Slot />
             </article>
             <Footer />

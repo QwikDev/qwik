@@ -1,7 +1,8 @@
 import { getTransient, setTransient } from '../object/q-object';
 
 // <docs markdown="https://hackmd.io/lQ8v7fyhR-WD3b-2aRUpyw#useTransient">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit https://hackmd.io/lQ8v7fyhR-WD3b-2aRUpyw#useTransient instead)
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2FlQ8v7fyhR-WD3b-2aRUpyw%3Fboth#useTransient instead)
 /**
  * @public
  */

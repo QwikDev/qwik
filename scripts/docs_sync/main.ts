@@ -37,8 +37,10 @@ async function scanForDocDirective(dir: string, file: string, lines: string[]) {
       const prefix = match[1];
       const ref = match[2];
       const section = match[3];
+      const bookRef = ref.replace(/\/\/hackmd.io\//, '//hackmd.io/@qwik-docs/BkxpSz80Y/%2F');
       output.push(
-        prefix + `// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit ${ref}#${section} instead)`
+        prefix +
+          `// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!\n// (edit ${bookRef}%3Fboth#${section} instead)`
       );
       output.push(prefix + '/**');
       (await resolveComment(dir, ref, section)).forEach((longLine) =>

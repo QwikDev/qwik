@@ -11,6 +11,7 @@ import { qDev } from '../util/qdev';
 
 export const enum QError {
   // core 000-099
+  TODO = 0, // Temporary ID until we create a propr error code.
   Core_qConfigNotFound_path = 1,
   Core_unrecognizedStack_frame = 2,
   Core_noAttribute_atr1_element = 3,
@@ -95,6 +96,7 @@ function codeToText(code: QError): string {
     7: 'EVENT-ERROR',
   }[Math.floor(code / 100)];
   const text = {
+    [QError.TODO]: '{}',
     [QError.Core_qConfigNotFound_path]: "QConfig not found in path '{}'.",
     [QError.Core_unrecognizedStack_frame]: "Unrecognized stack format '{}'",
     [QError.Core_noAttribute_atr1_element]:

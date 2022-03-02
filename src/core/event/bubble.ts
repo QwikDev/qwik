@@ -1,14 +1,17 @@
-import { getProps } from '../props/props.public';
+import { getContext, getEvent } from '../props/props';
 import { newInvokeContext, useInvoke } from '../use/use-core';
 import { useHostElement } from '../use/use-host-element.public';
+import { OnRenderSelector } from '../util/markers';
 
 export function _bubble(eventType: string, payload: {}): void {
-  let props = getProps(useHostElement()) as any;
+  let node = useHostElement() as HTMLElement | null;
   payload = { type: eventType, ...payload };
   const eventName = 'on:' + eventType;
-  while (props) {
-    const listener: undefined | (() => void) = props[eventName];
-    listener && useInvoke(newInvokeContext(props.__element__, payload), listener);
-    props = props.__parent__;
+  while (node) {
+    const ctx = getContext(node) as any;
+    const listener: undefined | (() => void) = getEvent(ctx, eventName);
+    const hostElement = node.closest(OnRenderSelector)!;
+    listener && useInvoke(newInvokeContext(hostElement, node, payload), listener);
+    node = node.parentElement;
   }
 }

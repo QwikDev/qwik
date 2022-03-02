@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ES2020",
+    "lib": ["es2020", "DOM"],
+    "jsx": "react-jsx",
+    "jsxImportSource": "@builder.io/qwik",
+    "strict": true,
+    "resolveJsonModule": true,
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "incremental": true,
+    "baseUrl": ".",
+    "paths": {
+      "@builder.io/qwik": ["../src/core/index"],
+      "@builder.io/qwik/jsx-runtime": ["../src/jsx-runtime"],
+      "@builder.io/qwik/optimizer": ["../src/optimizer/src/index"],
+      "@builder.io/qwik/server": ["../src/server/index"],
+      "@builder.io/qwik/testing": ["../src/testing/index"]
+    },
+    "types": ["vite/client", "@cloudflare/workers-types"]
+  },
+  "include": ["src"]
+}

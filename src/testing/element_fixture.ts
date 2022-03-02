@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-import { getProps } from '@builder.io/qwik';
+import { getContext, getEvent } from '../core/props/props';
 import type { QwikDocument } from '../core/document';
 import { fromCamelToKebabCase } from '../core/util/case';
 import { qGlobal } from '../core/util/qdev';
@@ -86,8 +86,8 @@ export async function trigger(
         const document: QwikDocument = ((qGlobal as any).document = element.ownerDocument as any);
         document.__q_context__ = [element, event, url];
         try {
-          const props = getProps(element);
-          const handler = props['on:' + eventNameCamel];
+          const ctx = getContext(element);
+          const handler = getEvent(ctx, 'on:' + eventNameCamel);
           if (handler) {
             elements.push(handler());
           }

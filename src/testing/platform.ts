@@ -91,6 +91,9 @@ function createPlatform(document: any) {
         store = null;
       }
     },
+    chunkForSymbol() {
+      return undefined;
+    },
   };
   return testPlatform;
 }

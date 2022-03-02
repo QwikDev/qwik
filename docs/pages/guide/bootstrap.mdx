@@ -1,4 +1,8 @@
-[![hackmd-github-sync-badge](https://hackmd.io/gSlQBtwzTkO6hWgw93wSmg/badge)](https://hackmd.io/gSlQBtwzTkO6hWgw93wSmg)
+---
+title: Bootstrapping Qwik
+---
+
+import { Counter } from '../../src/components/counter/counter';
 
 # Bootstrapping Qwik
 
@@ -17,3 +21,5 @@ To bootstrap a Qwik application one needs to insert this into the page:
 - `src`: points to the location where the `qwikloader.js` can be found.
 - `async`: Tells the browser that it is not necessary to wait for the `qwikloader` to load and execute before continuing to parse the HTML. The application will work without this, but adding `async` will slightly improve the startup time.
 - `events`: An optional list of events which the `qwikloader` should listen to. If the list is not provided the `qwikloader` will listen to all of the browser events. While this may be convenient, it will result in longer bootstrap times. Listing the events is strongly preferred.
+
+<Counter />

@@ -1,6 +1,6 @@
 import type { QComponentCtx } from '../component/component-ctx';
 import { KeyValueArray, keyValueArrayGet } from '../util/array_map';
-import { AttributeMarker } from '../util/markers';
+import { QSlotAttr, QSlotSelector } from '../util/markers';
 import { isDomElementWithTagName, isHtmlElement } from '../util/types';
 
 /**
@@ -74,7 +74,7 @@ export function getSlotMap(component: QComponentCtx): SlotMap {
     slotMapAddChildren(slots, firstChild.content, null);
   }
   const previousSlots: Element[] = [];
-  host.querySelectorAll(AttributeMarker.QSlotSelector).forEach((qSlot) => {
+  host.querySelectorAll(QSlotSelector).forEach((qSlot) => {
     for (const parent of previousSlots) {
       if (parent.contains(qSlot)) {
         // When we do `querySelectorAll` it is possible that we get `<q:slot>`
@@ -100,7 +100,7 @@ export function getSlotMap(component: QComponentCtx): SlotMap {
  * Determines if the `node` is `<template q:slot>` used for storing un-projected items.
  */
 function isQSlotTemplate(node: Element | null): node is HTMLTemplateElement {
-  return isDomElementWithTagName(node, 'template') && node.hasAttribute(AttributeMarker.QSlotAttr);
+  return isDomElementWithTagName(node, 'template') && node.hasAttribute(QSlotAttr);
 }
 
 /**
@@ -119,9 +119,7 @@ function slotMapAddChildren(slots: SlotMap, parent: Node, name: string | null) {
   }
   while (child) {
     const slotName =
-      name !== null
-        ? name
-        : (isHtmlElement(child) && child.getAttribute(AttributeMarker.QSlotAttr)) || '';
+      name !== null ? name : (isHtmlElement(child) && child.getAttribute(QSlotAttr)) || '';
     keyValueArrayGet(slots, slotName, emptyArrayFactory).push(child);
     child = child.nextSibling;
   }

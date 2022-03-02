@@ -6,7 +6,7 @@
 
 # The HTML-first framework
 
-Qwik is designed for the fastest possible page load time, by deliving pure HTML with near 0 javascript for your pages to become interactive, regardless of how complex your site or app is. It achieves this via [resumability](https://github.com/BuilderIO/qwik/blob/main/docs/RESUMABLE.md) of HTML and [ultra fine-grained lazy-loading](https://github.com/BuilderIO/qwik/blob/main/docs/LAZY_LOADING.md) of code.
+Qwik is designed for the fastest possible page load time, by delivering pure HTML with near 0 javascript for your pages to become interactive, regardless of how complex your site or app is. It achieves this via [resumability](https://github.com/BuilderIO/qwik/blob/main/docs/RESUMABLE.md) of HTML and [ultra fine-grained lazy-loading](https://github.com/BuilderIO/qwik/blob/main/docs/LAZY_LOADING.md) of code.
 
 ## Getting Started
 

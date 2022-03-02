@@ -86,4 +86,4 @@ export type RenderToString = (opts: RenderToStringOptions) => Promise<RenderToSt
 /**
  * @public
  */
-export type QrlMapper = (path: string, symbol: string) => string;
+export type QrlMapper = (symbolName: string) => string | undefined;

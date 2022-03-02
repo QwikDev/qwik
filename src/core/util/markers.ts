@@ -1,102 +1,94 @@
 /**
  * @license
- * Copyright Builder.io, Inc. All Rights Reserved.
+ * Copyright Builder.io; Inc. All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-export const enum AttributeMarker {
-  /**
-   * State factory of the component.
-   */
-  OnMount = 'on:q-mount',
+/**
+ * State factory of the component.
+ */
+export const OnMount = 'on:q-mount';
 
-  /**
-   * State factory of the component.
-   */
-  OnRenderAttr = 'on:q-render',
-  OnRenderProp = 'on:qRender',
+/**
+ * State factory of the component.
+ */
+export const QHostAttr = 'q:host';
+export const OnRenderProp = 'on:qRender';
 
-  /**
-   * State factory of the component.
-   */
-  OnRenderSelector = '[on\\:q\\-render]',
+/**
+ * State factory of the component.
+ */
+export const OnRenderSelector = '[q\\:host]';
 
-  /**
-   * State factory of the component.
-   */
-  OnUnmount = 'on:q-unmount',
+/**
+ * State factory of the component.
+ */
+export const OnUnmount = 'on:q-unmount';
 
-  /**
-   * State factory of the component.
-   */
-  OnHydrate = 'on:q-hydrate',
+/**
+ * State factory of the component.
+ */
+export const OnHydrate = 'on:q-hydrate';
 
-  /**
-   * State factory of the component.
-   */
-  OnDehydrate = 'on:q-dehydrate',
+/**
+ * State factory of the component.
+ */
+export const OnDehydrate = 'on:q-dehydrate';
 
-  /**
-   * Component Styles.
-   */
-  ComponentScopedStyles = 'q:sstyle',
+/**
+ * Component Styles.
+ */
+export const ComponentScopedStyles = 'q:sstyle';
 
-  /**
-   * Unscoped Component Styles.
-   */
-  ComponentUnscopedStyles = 'q:ustyle',
+/**
+ * Unscoped Component Styles.
+ */
+export const ComponentUnscopedStyles = 'q:ustyle';
 
-  /**
-   * Component style host prefix
-   */
-  ComponentStylesPrefixHost = '📦',
+/**
+ * Component style host prefix
+ */
+export const ComponentStylesPrefixHost = '📦';
 
-  /**
-   * Component style content prefix
-   */
-  ComponentStylesPrefixContent = '🏷️',
+/**
+ * Component style content prefix
+ */
+export const ComponentStylesPrefixContent = '🏷️';
 
-  /**
-   * Prefix used to identify on listeners.
-   */
-  EventPrefix = 'on:',
+/**
+ * Prefix used to identify on listeners.
+ */
+export const EventPrefix = 'on:';
 
-  /**
-   * Attribute used to mark that an event listener is attached.
-   */
-  EventAny = 'on:.',
+/**
+ * Attribute used to mark that an event listener is attached.
+ */
+export const EventAny = 'on:.';
 
-  /**
-   * Render event broadcast
-   */
-  RenderNotify = 'on:q-render-notify',
+/**
+ * Tag name used for projection.
+ */
+export const QSlot = 'Q:SLOT';
+export const QSlotSelector = 'Q\\:SLOT';
 
-  /**
-   * Selector for all components marked with `EventRender`
-   */
-  RenderNotifySelector = '[on\\:q-render-notify]',
+/**
+ * `<some-element q:slot="...">`
+ */
+export const QSlotAttr = 'q:slot';
 
-  /**
-   * Tag name used for projection.
-   */
-  QSlot = 'Q:SLOT',
-  QSlotSelector = 'Q\\:SLOT',
+export const QObjAttr = 'q:obj';
 
-  /**
-   * `<some-element q:slot="...">`
-   */
-  QSlotAttr = 'q:slot',
+export const QObjSelector = '[q\\:obj]';
 
-  /**
-   * `<q:slot name="...">`
-   */
-  QSlotName = 'name',
-  QSlotInertName = '\u0000',
+/**
+ * `<q:slot name="...">`
+ */
+export const QSlotName = 'name';
+export const QSlotInertName = '\u0000';
 
-  ELEMENT_ID = 'q:id',
-  ELEMENT_ID_SELECTOR = '[q\\:id="{}"]',
-  ELEMENT_ID_PREFIX = '#',
-  ELEMENT_ID_Q_PROPS_PREFIX = '&',
-}
+export const ELEMENT_ID = 'q:id';
+export const ELEMENT_ID_SELECTOR = '[q\\:id]';
+export const ELEMENT_ID_PREFIX = '#';
+export const ELEMENT_ID_Q_PROPS_PREFIX = '&';

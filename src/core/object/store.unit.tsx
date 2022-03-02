@@ -1,7 +1,8 @@
 import { createDocument } from '../../testing/document';
-import { getProps, Props } from '../props/props.public';
 import { dehydrate } from '@builder.io/qwik';
 import { createStore } from '../use/use-store.public';
+import { getContext, getProps } from '../props/props';
+import type { Props } from '../props/props.public';
 
 describe('q-element', () => {
   let document: Document;
@@ -11,7 +12,7 @@ describe('q-element', () => {
     document = createDocument();
     div = document.createElement('div');
     document.body.appendChild(div);
-    qDiv = getProps(div);
+    qDiv = getProps(getContext(div));
   });
 
   it('should serialize content', () => {
@@ -20,7 +21,7 @@ describe('q-element', () => {
 
     dehydrate(document);
 
-    qDiv = getProps(div);
+    qDiv = getProps(getContext(div));
     expect(state).toEqual({ mark: 'WORKS', child: shared, child2: shared });
   });
 
@@ -32,7 +33,7 @@ describe('q-element', () => {
 
     dehydrate(document);
 
-    qDiv = getProps(div);
+    qDiv = getProps(getContext(div));
     const foo2 = qDiv.foo;
     const bar2 = foo2.bar;
     expect(foo2.mark).toEqual('foo');

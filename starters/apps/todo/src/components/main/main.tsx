@@ -1,5 +1,5 @@
 import { component$, Host, $ } from '@builder.io/qwik';
-import { getFilteredItems, Todos } from '../../state/state';
+import { FILTERS, Todos } from '../../state/state';
 import { Item } from '../item/item';
 
 /**
@@ -12,7 +12,7 @@ export const Main = component$((props: { todos: Todos }) => {
     return (
       <Host class="main">
         <ul class="todo-list">
-          {getFilteredItems(props.todos).map((key) => (
+          {props.todos.items.filter(FILTERS[props.todos.filter]).map((key) => (
             <Item item={key} todos={props.todos} />
           ))}
         </ul>

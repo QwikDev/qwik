@@ -42,7 +42,6 @@ export { dehydrate } from './object/store.public';
 export { $, implicit$FirstArg, qrl, qrlImport } from './import/qrl.public';
 export type { QRL } from './import/qrl.public';
 
-export { getProps } from './props/props.public';
 export type { Props } from './props/props.public';
 
 export { notifyRender } from './render/notify-render';

@@ -21,7 +21,7 @@ function expectMatchElement(
   expected: QwikJSX.Element
 ) {
   if (actual) {
-    const actualTag = actual.tagName ? actual.tagName.toLowerCase() : '#text';
+    const actualTag = actual.localName ? actual.localName : '#text';
     path += actualTag;
     if (actualTag !== expected.type) {
       diffs.push(`${path}: expected '${toHTML(expected)}', was '${toHTML(actual)}'.`);

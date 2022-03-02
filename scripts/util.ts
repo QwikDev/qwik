@@ -48,7 +48,6 @@ export interface BuildConfig {
   commit?: boolean;
   dev?: boolean;
   dryRun?: boolean;
-  jsx?: boolean;
   platformBinding?: boolean;
   prepareRelease?: boolean;
   release?: boolean;

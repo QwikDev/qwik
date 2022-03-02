@@ -1,5 +1,5 @@
 import type { QRLInternal } from '../import/qrl-class';
-import { AttributeMarker } from '../util/markers';
+import { ComponentStylesPrefixContent, ComponentStylesPrefixHost } from '../util/markers';
 import { hashCode } from '../util/hash_code';
 
 /**
@@ -17,7 +17,7 @@ export function styleKey(qStyles: QRLInternal<string> | null): string | null {
 export function styleHost(styleId: string): string;
 export function styleHost(styleId: string | undefined): string | undefined;
 export function styleHost(styleId: string | undefined): string | undefined {
-  return styleId && AttributeMarker.ComponentStylesPrefixHost + styleId;
+  return styleId && ComponentStylesPrefixHost + styleId;
 }
 
 /**
@@ -26,5 +26,5 @@ export function styleHost(styleId: string | undefined): string | undefined {
 export function styleContent(styleId: string): string;
 export function styleContent(styleId: string | undefined): string | undefined;
 export function styleContent(styleId: string | undefined): string | undefined {
-  return styleId && AttributeMarker.ComponentStylesPrefixContent + styleId;
+  return styleId && ComponentStylesPrefixContent + styleId;
 }

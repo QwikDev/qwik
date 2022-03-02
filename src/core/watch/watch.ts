@@ -1,6 +1,7 @@
 import type { QRLInternal } from '../import/qrl-class';
 import { qrlImport } from '../import/qrl.public';
-import { getProps, Props } from '../props/props.public';
+import { getContext, getEvent, setEvent } from '../props/props';
+import type { Props } from '../props/props.public';
 import { newInvokeContext, useInvoke } from '../use/use-core';
 import { createWatchFnObserver } from './observer';
 import type { Observer } from './watch.public';
@@ -42,7 +43,8 @@ export async function invokeWatchFn(element: Element, watchFnQrl: QRLInternal<Wa
   } finally {
     // const guardRef = (watchFnQrl.guardRef = new Map());
     watchFnQrl.guard = obs.getGuard();
-    getProps(element)[ON_WATCH] = watchFnQrl; // force a re-render of QRL.
+    const ctx = getContext(element);
+    setEvent(ctx, ON_WATCH, watchFnQrl);
   }
 }
 function isCleanupFn(value: any): value is CleanupFn {
@@ -54,11 +56,12 @@ export async function notifyWatchers(
   qObjectId: string,
   propName: string
 ): Promise<void> {
-  const qProps = getProps(element);
-  const onWatch: null | OnWatchHandler = qProps['on:qWatch'];
+  const ctx = getContext(element);
+  const onWatch: null | OnWatchHandler = getEvent(ctx, 'on:qWatch');
   if (onWatch) {
     try {
-      const context = newInvokeContext(element);
+      // TODO
+      const context = newInvokeContext(element, element);
       context.qrlGuard = (qrl: QRLInternal) => {
         const props = qrl.guard?.get(qObjectId);
         return props ? props.indexOf(propName) !== -1 : false;

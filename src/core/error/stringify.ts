@@ -22,7 +22,7 @@ export function stringifyDebug(value: any): string | null {
 }
 
 export function stringifyElement(element: Element): string {
-  let html = '<' + element.tagName.toLowerCase();
+  let html = '<' + element.localName;
   const attributes = element.attributes;
   const names = [];
   for (let i = 0; i < attributes.length; i++) {

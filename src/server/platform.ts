@@ -1,19 +1,19 @@
 import type { CorePlatform } from '@builder.io/qwik';
 import { setPlatform } from '@builder.io/qwik';
-import type { DocumentOptions } from './types';
+import type { SerializeDocumentOptions } from './types';
 
 const _setImmediate = typeof setImmediate === 'function' ? setImmediate : setTimeout;
 const _nextTick = typeof queueMicrotask === 'function' ? queueMicrotask : process.nextTick;
 
 declare const require: (module: string) => Record<string, any>;
 
-function createPlatform(document: any, opts?: DocumentOptions) {
+function createPlatform(document: any, opts: SerializeDocumentOptions) {
   if (!document || (document as Document).nodeType !== 9) {
     throw new Error(`Invalid Document implementation`);
   }
   let queuePromise: Promise<any> | null;
   const doc: Document = document;
-
+  const symbols = opts.symbols;
   if (opts?.url) {
     doc.location.href = opts.url.href;
   }
@@ -54,6 +54,17 @@ function createPlatform(document: any, opts?: DocumentOptions) {
       }
       return queuePromise;
     },
+    chunkForSymbol(symbolName: string) {
+      let symbol: string | undefined;
+      if (symbols) {
+        if (typeof symbols === 'object') {
+          symbol = symbols.mapping[symbolName];
+        } else {
+          symbol = symbols(symbolName);
+        }
+      }
+      return symbol;
+    },
   };
   return serverPlatform;
 }
@@ -62,7 +73,7 @@ function createPlatform(document: any, opts?: DocumentOptions) {
  * Applies NodeJS specific platform APIs to the passed in document instance.
  * @public
  */
-export async function setServerPlatform(document: any, opts: DocumentOptions) {
+export async function setServerPlatform(document: any, opts: SerializeDocumentOptions) {
   const platform = createPlatform(document, opts);
   setPlatform(document, platform);
 }

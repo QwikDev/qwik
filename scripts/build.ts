@@ -4,7 +4,6 @@ import { buildPlatformBinding } from './binding-platform';
 import { buildWasmBinding } from './binding-wasm';
 import { copyFiles } from './copy-files';
 import { emptyDir } from './util';
-import { generateJsxTypes } from './jsx-types';
 import { generatePackageJson } from './package-json';
 import {
   commitPrepareReleaseVersion,
@@ -91,10 +90,6 @@ export async function build(config: BuildConfig) {
 
     if (config.api) {
       apiExtractor(config);
-    }
-
-    if (config.jsx) {
-      await generateJsxTypes(config);
     }
 
     if (config.validate) {

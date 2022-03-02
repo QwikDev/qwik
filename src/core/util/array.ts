@@ -18,13 +18,3 @@ export function flattenArray<T>(array: (T | T[])[], dst?: T[]): T[] {
   }
   return dst;
 }
-
-export function equalArray(a: any[], b: any[]): boolean {
-  if (Array.isArray(a) && Array.isArray(b) && a.length == b.length) {
-    for (let i = 0; i < a.length; i++) {
-      if (a[i] !== b[i]) return false;
-    }
-    return true;
-  }
-  return false;
-}

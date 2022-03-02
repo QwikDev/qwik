@@ -10,6 +10,7 @@ import { EMPTY_ARRAY } from '../util/flyweight';
 import type { QRL } from './qrl.public';
 import { isQrl, QRLInternal } from './qrl-class';
 import { assertEqual } from '../assert/assert';
+import type { CorePlatform } from '../index';
 
 let runtimeSymbolId = 0;
 const RUNTIME_QRL = '/runtimeQRL';
@@ -75,10 +76,12 @@ export function runtimeQrl<T>(symbol: T, lexicalScopeCapture: any[] = EMPTY_ARRA
   );
 }
 
-export function stringifyQRL(qrl: QRL, element?: Element) {
+export function stringifyQRL(qrl: QRL, element?: Element, platform?: CorePlatform) {
   const qrl_ = toInternalQRL(qrl);
-  const parts: string[] = [qrl_.chunk];
   const symbol = qrl_.symbol;
+  const chunk = platform ? platform.chunkForSymbol(symbol) ?? qrl_.chunk : qrl_.chunk;
+
+  const parts: string[] = [chunk];
   if (symbol && symbol !== 'default') {
     parts.push('#', symbol);
   }

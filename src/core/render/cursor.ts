@@ -9,17 +9,19 @@ import type { QComponentCtx } from '../component/component-ctx';
 import { getQComponent } from '../component/component-ctx';
 import { keyValueArrayGet } from '../util/array_map';
 import { isComment, isDocument } from '../util/element';
-import { AttributeMarker } from '../util/markers';
+import { QHostAttr, OnRenderProp, QSlotAttr } from '../util/markers';
 import {
   isComponentElement,
   isDomElementWithTagName,
   isQSLotTemplateElement,
   NodeType,
 } from '../util/types';
-import { didQPropsChange } from '../props/props';
+import { getContext, getProps, setEvent } from '../props/props';
 import type { ComponentRenderQueue } from './render';
 import { getSlotMap, isSlotMap, NamedSlot, NamedSlotEnum, SlotMap } from './slots';
-import { getProps } from '../props/props.public';
+import { isOn$Prop, isOnProp } from '../props/props-on';
+import { $ } from '../index';
+import { getScheduled } from './notify-render';
 
 /**
  * Cursor represents a set of sibling elements at a given level in the DOM.
@@ -48,6 +50,8 @@ export interface Cursor {
   node: Node | SlotMap | null /** | undefined // not included as it is end state */;
   end: Node | null;
 }
+
+export const SVG_NS = 'http://www.w3.org/2000/svg';
 
 /**
  * Create a cursor which reconciles logical children.
@@ -129,7 +133,8 @@ export function cursorReconcileElement(
   component: QComponentCtx | null,
   expectTag: string,
   expectProps: Record<string, any> | typeof String,
-  componentRenderQueue: ComponentRenderQueue | null
+  componentRenderQueue: ComponentRenderQueue | null,
+  isSvg: boolean
 ): Cursor {
   let node = getNode(cursor);
   assertNotEqual(node, undefined, 'Cursor already closed');
@@ -142,7 +147,8 @@ export function cursorReconcileElement(
       component,
       expectTag,
       expectProps,
-      componentRenderQueue
+      componentRenderQueue,
+      isSvg
     );
   } else {
     assertNotEqual(node, undefined, 'Cursor already closed');
@@ -153,7 +159,8 @@ export function cursorReconcileElement(
       component,
       expectTag,
       expectProps,
-      componentRenderQueue
+      componentRenderQueue,
+      isSvg
     );
     assertDefined(node);
     setNode(cursor, node.nextSibling);
@@ -168,9 +175,10 @@ function slotMapReconcileSlots(
   component: QComponentCtx | null,
   expectTag: string,
   expectProps: Record<string, any>,
-  componentRenderQueue: ComponentRenderQueue | null
+  componentRenderQueue: ComponentRenderQueue | null,
+  isSvg: boolean
 ): Cursor {
-  const slotName = expectProps[AttributeMarker.QSlotAttr] || '';
+  const slotName = expectProps[QSlotAttr] || '';
   const namedSlot = keyValueArrayGet(slots, slotName);
   let childNode: Node;
   if (namedSlot) {
@@ -188,7 +196,8 @@ function slotMapReconcileSlots(
       component,
       expectTag,
       expectProps,
-      componentRenderQueue
+      componentRenderQueue,
+      isSvg
     );
     if (childNode !== node) {
       namedSlot[index] = node;
@@ -204,7 +213,8 @@ function slotMapReconcileSlots(
       component,
       expectTag,
       expectProps,
-      true
+      true,
+      isSvg
     );
     assertDefined(childNode);
   }
@@ -218,25 +228,29 @@ function _reconcileElement(
   component: QComponentCtx | null,
   expectTag: string,
   expectProps: Record<string, any> | StringConstructor,
-  componentRenderQueue: ComponentRenderQueue | null | true
+  componentRenderQueue: ComponentRenderQueue | null | true,
+  isSvg: boolean
 ): Element {
   let shouldDescendIntoComponent: boolean;
-  let reconciledElement: HTMLElement;
+  let reconciledElement: Element;
   if (isDomElementWithTagName(existing, expectTag)) {
-    const props = getProps(existing as HTMLElement) as any;
-    Object.assign(props, expectProps);
-    shouldDescendIntoComponent = didQPropsChange(props) && !!componentRenderQueue;
+    updateProperties(existing as HTMLElement, expectProps, isSvg);
+    shouldDescendIntoComponent = !!componentRenderQueue;
     reconciledElement = existing as HTMLElement;
   } else {
     // Expected node and actual node did not match. Need to switch.
+    const doc = isDocument(parent) ? parent : parent.ownerDocument!;
     reconciledElement = replaceNode(
       parent,
       existing,
-      (isDocument(parent) ? parent : parent.ownerDocument!).createElement(expectTag),
+      isSvg ? doc.createElementNS(SVG_NS, expectTag) : doc.createElement(expectTag),
       end
     );
+    if (componentRenderQueue) {
+      reconciledElement.setAttribute(QHostAttr, '');
+    }
     shouldDescendIntoComponent = !!componentRenderQueue;
-    Object.assign(getProps(reconciledElement), expectProps);
+    updateProperties(reconciledElement, expectProps, isSvg);
   }
   component && component.styleClass && reconciledElement.classList.add(component.styleClass);
   if (shouldDescendIntoComponent) {
@@ -244,11 +258,132 @@ function _reconcileElement(
     hostComponent.styleHostClass && reconciledElement.classList.add(hostComponent.styleHostClass);
     if (Array.isArray(componentRenderQueue)) {
       componentRenderQueue.push(hostComponent.render());
-    } else if (reconciledElement.getAttribute(AttributeMarker.OnRenderAttr)) {
-      reconciledElement.setAttribute(AttributeMarker.RenderNotify, '');
+    } else if (reconciledElement.hasAttribute(QHostAttr)) {
+      const set = getScheduled(reconciledElement.ownerDocument);
+      set.add(reconciledElement);
     }
   }
   return reconciledElement;
+}
+
+type PropHandler = (el: HTMLElement, key: string, newValue: any, oldValue: any) => boolean;
+
+const noop: PropHandler = () => {
+  return true;
+};
+
+const handleStyle: PropHandler = (elm, _, newValue, oldValue) => {
+  if (typeof newValue == 'string') {
+    elm.style.cssText = newValue;
+  } else {
+    for (const prop in oldValue) {
+      if (!newValue || newValue[prop] == null) {
+        if (prop.includes('-')) {
+          elm.style.removeProperty(prop);
+        } else {
+          (elm as any).style[prop] = '';
+        }
+      }
+    }
+
+    for (const prop in newValue) {
+      if (!oldValue || newValue[prop] !== oldValue[prop]) {
+        if (prop.includes('-')) {
+          elm.style.setProperty(prop, newValue[prop]);
+        } else {
+          (elm as any).style[prop] = newValue[prop];
+        }
+      }
+    }
+  }
+  return true;
+};
+
+const PROP_HANDLER_MAP: Record<string, PropHandler> = {
+  class: noop,
+  style: handleStyle,
+};
+
+const ALLOWS_PROPS = ['className', 'class', 'style', 'id', 'title'];
+
+export function updateProperties(node: Element, expectProps: Record<string, any>, isSvg: boolean) {
+  const ctx = getContext(node);
+  const qwikProps = OnRenderProp in expectProps ? getProps(ctx) : undefined;
+
+  if ('class' in expectProps) {
+    const className = expectProps.class;
+    expectProps.className =
+      className && typeof className == 'object'
+        ? Object.keys(className)
+            .filter((k) => className[k])
+            .join(' ')
+        : className;
+  }
+
+  for (const key of Object.keys(expectProps)) {
+    if (key === 'children') {
+      continue;
+    }
+    const newValue = expectProps[key];
+
+    if (isOnProp(key)) {
+      setEvent(ctx, key, newValue);
+      continue;
+    }
+    if (isOn$Prop(key)) {
+      setEvent(ctx, key.replace('$', ''), $(newValue));
+      continue;
+    }
+
+    // Early exit if value didnt change
+    const oldValue = ctx.cache.get(key);
+    if (newValue === oldValue) {
+      continue;
+    }
+    ctx.cache.set(key, newValue);
+
+    const skipQwik = ALLOWS_PROPS.includes(key) || key.startsWith('h:');
+    if (qwikProps && !skipQwik) {
+      // Qwik props
+      qwikProps[key] = newValue;
+    } else {
+      // Check of data- or aria-
+      if (key.startsWith('data-') || key.endsWith('aria-') || isSvg) {
+        renderAttribute(node, key, newValue);
+        continue;
+      }
+
+      // Check if its an exception
+      const exception = PROP_HANDLER_MAP[key];
+      if (exception) {
+        if (exception(node as HTMLElement, key, newValue, oldValue)) {
+          continue;
+        }
+      }
+
+      // Check if property in prototype
+      if (key in node) {
+        try {
+          (node as any)[key] = newValue;
+        } catch (e) {
+          console.error(e);
+        }
+        continue;
+      }
+
+      // Fallback to render attribute
+      renderAttribute(node, key, newValue);
+    }
+  }
+  return false;
+}
+
+function renderAttribute(node: Element, key: string, newValue: any) {
+  if (newValue == null) {
+    node.removeAttribute(key);
+  } else {
+    node.setAttribute(key, String(newValue));
+  }
 }
 
 function _reconcileElementChildCursor(node: Element, isComponent: boolean) {
@@ -356,15 +491,12 @@ export function cursorReconcileEnd(cursor: Cursor): void {
 function getUnSlottedStorage(componentElement: Element): HTMLTemplateElement {
   assertEqual(isComponentElement(componentElement), true, 'Must be component element');
   let template = componentElement?.firstElementChild as HTMLTemplateElement | null;
-  if (
-    !isDomElementWithTagName(template, 'template') ||
-    !template.hasAttribute(AttributeMarker.QSlotAttr)
-  ) {
+  if (!isDomElementWithTagName(template, 'template') || !template.hasAttribute(QSlotAttr)) {
     template = componentElement.insertBefore(
       componentElement.ownerDocument.createElement('template'),
       template
     );
-    template.setAttribute(AttributeMarker.QSlotAttr, '');
+    template.setAttribute(QSlotAttr, '');
   }
   return template;
 }

@@ -1,7 +1,7 @@
 import { assertDefined } from '../assert/assert';
 import { getPlatform } from '../platform/platform';
 import type { HostElements } from './types';
-import { AttributeMarker } from '../util/markers';
+import { QHostAttr } from '../util/markers';
 import { getQComponent } from '../component/component-ctx';
 
 /**
@@ -21,9 +21,18 @@ import { getQComponent } from '../component/component-ctx';
 // TODO(misko): tests
 // TODO(misko): this should take QComponent as well.
 export function notifyRender(hostElement: Element): Promise<void> {
-  assertDefined(hostElement.getAttribute(AttributeMarker.OnRenderAttr));
-  hostElement.setAttribute(AttributeMarker.RenderNotify, '');
+  assertDefined(hostElement.getAttribute(QHostAttr));
+  getScheduled(hostElement.ownerDocument).add(hostElement);
   return scheduleRender(hostElement.ownerDocument) as any;
+}
+
+const SCHEDULE = Symbol();
+export function getScheduled(doc: Document): Set<Element> {
+  let set = (doc as any)[SCHEDULE];
+  if (!set) {
+    set = (doc as any)[SCHEDULE] = new Set();
+  }
+  return set;
 }
 
 /**
@@ -40,13 +49,12 @@ export function scheduleRender(doc: Document): Promise<HostElements> {
   return getPlatform(doc).queueRender(renderMarked);
 }
 
-async function renderMarked(doc: Document) {
-  const hosts = Array.from(
-    doc.querySelectorAll(AttributeMarker.RenderNotifySelector)
-  ) as HostElements;
+export async function renderMarked(doc: Document) {
+  const set = getScheduled(doc);
+  const hosts = Array.from(set) as HostElements;
+  set.clear();
   return Promise.all(
     hosts.map((hostElement) => {
-      hostElement.removeAttribute(AttributeMarker.RenderNotify);
       const cmp = getQComponent(hostElement);
       return cmp && cmp.render();
     })

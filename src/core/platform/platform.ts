@@ -45,6 +45,9 @@ export const createPlatform = (doc: Document): CorePlatform => {
       }
       return storePromise;
     },
+    chunkForSymbol() {
+      return undefined;
+    },
   };
 };
 

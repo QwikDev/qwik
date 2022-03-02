@@ -13,7 +13,7 @@ class QRL<TYPE = any> implements IQRL<TYPE> {
     public symbol: string,
     public symbolRef: null | ValueOrPromise<TYPE>,
     public symbolFn: null | (() => Promise<Record<string, any>>),
-    public capture: null | (boolean | number | null | undefined | string)[],
+    public capture: null | number[],
     public captureRef: null | any[],
     public guard: null | Map<string, string[]>
   ) {

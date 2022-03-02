@@ -37,6 +37,7 @@ export interface ComponentOptions {
 
 // @public (undocumented)
 export interface CorePlatform {
+    chunkForSymbol: (symbolName: string) => string | undefined;
     importSymbol: (element: Element, url: string | URL, symbol: string) => Promise<any>;
     queueRender: (renderMarked: (doc: Document) => Promise<any>) => Promise<any>;
     queueStoreFlush: (flushStore: (doc: Document) => Promise<any>) => Promise<any>;
@@ -59,9 +60,6 @@ export interface FunctionComponent<P = {}> {
 
 // @public (undocumented)
 export const getPlatform: (docOrNode: Document | Node) => CorePlatform;
-
-// @public (undocumented)
-export function getProps<T>(element: Element): Props<T>;
 
 // @public (undocumented)
 export function h<PROPS extends {} = {}>(type: string | FunctionComponent<PROPS>, props: PROPS | null, ...children: any[]): JSXNode;

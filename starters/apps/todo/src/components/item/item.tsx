@@ -7,7 +7,7 @@ import {
   useEvent,
   useHostElement,
 } from '@builder.io/qwik';
-import { removeItem, TodoItem, Todos, toggleItem } from '../../state/state';
+import type { TodoItem, Todos } from '../../state/state';
 
 /**
  * Individual items of the component.
@@ -25,7 +25,9 @@ export const Item = component$(
               class="toggle"
               type="checkbox"
               checked={props.item.completed}
-              on$:click={() => toggleItem(props.todos, props.item)}
+              on$:click={() => {
+                props.item.completed = !props.item.completed;
+              }}
             />
             <label
               on$:dblclick={async () => {
@@ -39,7 +41,13 @@ export const Item = component$(
             >
               {props.item.title}
             </label>
-            <button class="destroy" on$:click={() => removeItem(props.todos, props.item)}></button>
+            <button
+              class="destroy"
+              on$:click={() => {
+                const todoItem = props.item;
+                props.todos.items = props.todos.items.filter((i) => i != todoItem);
+              }}
+            />
           </div>
           {state.editing ? (
             <input

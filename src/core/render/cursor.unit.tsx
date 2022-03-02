@@ -1,7 +1,5 @@
-import { Slot } from '@builder.io/qwik';
 import { expectDOM } from '../../testing/expect-dom.unit';
 import { toDOM } from '../../testing/jsx';
-import { AttributeMarker } from '../util/markers';
 import {
   cursorForParent,
   cursorReconcileElement,
@@ -10,9 +8,6 @@ import {
   cursorReconcileText,
   cursorReconcileVirtualNode,
 } from './cursor';
-import type { ComponentRenderQueue } from './render';
-import { getQComponent } from '../component/component-ctx';
-import { runtimeQrl } from '../import/qrl';
 
 describe('cursor', () => {
   it('should build up DOM', () => {
@@ -21,12 +16,12 @@ describe('cursor', () => {
     expect(parentCursor.parent).toEqual(parent);
     expect(parentCursor.node).toEqual(null);
 
-    const divCursor = cursorReconcileElement(parentCursor, null, 'div', {}, null);
+    const divCursor = cursorReconcileElement(parentCursor, null, 'div', {}, null, false);
     expect(parentCursor.node).toEqual(null);
     cursorReconcileText(divCursor, 'A');
     cursorReconcileEnd(divCursor);
 
-    const spanCursor = cursorReconcileElement(parentCursor, null, 'span', {}, null);
+    const spanCursor = cursorReconcileElement(parentCursor, null, 'span', {}, null, false);
     expect(parentCursor.node).toEqual(null);
     cursorReconcileText(spanCursor, 'B');
     cursorReconcileEnd(spanCursor);
@@ -53,11 +48,11 @@ describe('cursor', () => {
     expect(parentCursor.parent).toEqual(parent);
     expect(parentCursor.node).toEqual(parent.querySelector('div'));
 
-    const divCursor = cursorReconcileElement(parentCursor, null, 'div', { id: 123 }, null);
+    const divCursor = cursorReconcileElement(parentCursor, null, 'div', { id: 123 }, null, false);
     cursorReconcileText(divCursor, 'A');
     cursorReconcileEnd(divCursor);
 
-    const spanCursor = cursorReconcileElement(parentCursor, null, 'span', {}, null);
+    const spanCursor = cursorReconcileElement(parentCursor, null, 'span', {}, null, false);
     cursorReconcileText(spanCursor, 'B');
     cursorReconcileEnd(spanCursor);
 
@@ -83,11 +78,11 @@ describe('cursor', () => {
     );
     const parentCursor = cursorForParent(parent);
 
-    const divCursor = cursorReconcileElement(parentCursor, null, 'div', {}, null);
+    const divCursor = cursorReconcileElement(parentCursor, null, 'div', {}, null, false);
     cursorReconcileText(divCursor, 'A');
     cursorReconcileEnd(divCursor);
 
-    const spanCursor = cursorReconcileElement(parentCursor, null, 'span', {}, null);
+    const spanCursor = cursorReconcileElement(parentCursor, null, 'span', {}, null, false);
     cursorReconcileText(spanCursor, 'B');
     cursorReconcileEnd(spanCursor);
 
@@ -120,7 +115,7 @@ describe('cursor', () => {
     );
     cursorReconcileStartVirtualNode(childCursor);
     cursorReconcileText(childCursor, 'ABC');
-    cursorReconcileElement(childCursor, null, 'div', {}, null);
+    cursorReconcileElement(childCursor, null, 'div', {}, null, false);
     cursorReconcileEnd(childCursor);
     expectDOM(
       parent,
@@ -146,7 +141,7 @@ describe('cursor', () => {
     const parentCursor = cursorForParent(parent);
     const span = parent.querySelector('span');
 
-    const spanCursor = cursorReconcileElement(parentCursor, null, 'span', {}, null);
+    const spanCursor = cursorReconcileElement(parentCursor, null, 'span', {}, null, false);
     cursorReconcileText(spanCursor, 'A');
     cursorReconcileEnd(spanCursor);
 
@@ -162,220 +157,4 @@ describe('cursor', () => {
       </parent>
     );
   });
-
-  describe('projection', () => {
-    let log: ComponentRenderQueue;
-    beforeEach(() => (log = []));
-
-    it('should build up DOM', () => {
-      const parent = toDOM(<parent></parent>);
-      const parentCursor = cursorForParent(parent);
-
-      const componentCursor = cursorReconcileElement(
-        parentCursor,
-        null,
-        'component',
-        COMPONENT_ATTRS,
-        log
-      );
-      cursorReconcileText(componentCursor, 'ABC');
-
-      cursorReconcileEnd(parentCursor);
-
-      expectDOM(
-        parent,
-        <parent>
-          <component>
-            <template q:slot="">ABC</template>
-          </component>
-        </parent>
-      );
-    });
-
-    it('should reconcile non-projected nodes', () => {
-      const parent = toDOM(
-        <parent>
-          <component on:q-render={() => null}>
-            <template q:slot={true as any}>
-              OLD
-              <b />
-            </template>
-          </component>
-        </parent>
-      );
-      const parentCursor = cursorForParent(parent);
-
-      const componentCursor = cursorReconcileElement(
-        parentCursor,
-        null,
-        'component',
-        COMPONENT_ATTRS,
-        log
-      );
-      cursorReconcileText(componentCursor, 'NEW');
-      cursorReconcileEnd(componentCursor);
-
-      cursorReconcileEnd(parentCursor);
-
-      expectDOM(
-        parent,
-        <parent>
-          <component>
-            <template q:slot={true as any}>NEW</template>
-          </component>
-        </parent>
-      );
-    });
-
-    it('should reconcile projected element', () => {
-      const parent = toDOM(
-        <parent>
-          <component on:q-render={() => null}>
-            <q:slot name="detail">
-              <b />
-            </q:slot>
-          </component>
-        </parent>
-      );
-      const parentCursor = cursorForParent(parent);
-
-      const componentCursor = cursorReconcileElement(
-        parentCursor,
-        null,
-        'component',
-        COMPONENT_ATTRS,
-        log
-      );
-      const divCursor = cursorReconcileElement(
-        componentCursor,
-        null,
-        'div',
-        { [AttributeMarker.QSlotAttr]: 'detail' },
-        null
-      );
-      cursorReconcileText(divCursor, 'DETAIL');
-
-      cursorReconcileEnd(divCursor);
-      cursorReconcileEnd(componentCursor);
-      cursorReconcileEnd(parentCursor);
-
-      expectDOM(
-        parent,
-        <parent>
-          <component>
-            <q:slot name="detail">
-              <div q:slot="detail">DETAIL</div>
-            </q:slot>
-          </component>
-        </parent>
-      );
-    });
-
-    it('should not mark already rendered component for rendering if it gets moved to the inert slot', async () => {
-      const parent = toDOM(
-        <parent>
-          <component
-            on:q-render={runtimeQrl(() => (
-              <Slot />
-            ))}
-          >
-            <template q:slot={true as any}>
-              <child on:q-render={childOnRender}>DON'T OVERRIDE ME</child>
-            </template>
-          </component>
-        </parent>
-      );
-      const component = parent.querySelector('component')!;
-      const compCtx = getQComponent(component)!;
-      await compCtx.render();
-      expectDOM(
-        parent,
-        <parent>
-          <component>
-            <template q:slot="true"></template>
-            <q:slot name="">
-              <child>DON'T OVERRIDE ME</child>
-            </q:slot>
-          </component>
-        </parent>
-      );
-    });
-    it('should render a component when it is marked and gets moved out of inert slot', async () => {
-      const parent = toDOM(
-        <parent>
-          <component
-            on:q-render={runtimeQrl(() => (
-              <Slot />
-            ))}
-          >
-            <template q:slot={true as any}>
-              <child on:q-render={childOnRender} on:q-render-notify />
-            </template>
-          </component>
-        </parent>
-      );
-      const component = parent.querySelector('component')!;
-      const compCtx = getQComponent(component)!;
-      await compCtx.render();
-      expectDOM(
-        parent,
-        <parent>
-          <component>
-            <template q:slot="true"></template>
-            <q:slot name="">
-              <child>
-                <div>WORKS</div>
-              </child>
-            </q:slot>
-          </component>
-        </parent>
-      );
-    });
-
-    it('should render component if it gets placed in non-inert slot', async () => {
-      const parent = toDOM(
-        <parent>
-          <component on:q-render={runtimeQrl(() => null)}>
-            <template q:slot={true as any}></template>
-            <q:slot name=""></q:slot>
-          </component>
-        </parent>
-      );
-      const parentCursor = cursorForParent(parent);
-      const componentCursor = cursorReconcileElement(
-        parentCursor,
-        null,
-        'component',
-        COMPONENT_ATTRS,
-        log
-      );
-      const childCursor = cursorReconcileElement(
-        componentCursor,
-        null,
-        'child',
-        { [AttributeMarker.OnRenderAttr]: childOnRender },
-        log
-      );
-      cursorReconcileEnd(childCursor);
-      cursorReconcileEnd(componentCursor);
-      cursorReconcileEnd(parentCursor);
-      await Promise.all(log); // Wait for the component to render
-      expectDOM(
-        parent,
-        <parent>
-          <component>
-            <template q:slot="true"></template>
-            <q:slot name="">
-              <child>
-                <div>WORKS</div>
-              </child>
-            </q:slot>
-          </component>
-        </parent>
-      );
-    });
-  });
 });
-
-const childOnRender = runtimeQrl(() => <div>WORKS</div>);
-const COMPONENT_ATTRS = { [AttributeMarker.OnRenderAttr]: childOnRender };

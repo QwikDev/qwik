@@ -2,7 +2,7 @@ import { isTemplate } from './jsx';
 
 export function prettyHtml(element: HTMLElement, prefix: string = ''): any {
   const lines = [];
-  lines.push(prefix, '<', element.tagName.toLowerCase());
+  lines.push(prefix, '<', element.localName);
   const attrs = element.attributes;
   for (let i = 0; i < attrs.length; i++) {
     const attr = attrs[i];
@@ -18,7 +18,7 @@ export function prettyHtml(element: HTMLElement, prefix: string = ''): any {
     }
     child = child.nextSibling;
   }
-  lines.push('\n', prefix, '</', element.tagName.toLowerCase(), '>');
+  lines.push('\n', prefix, '</', element.localName, '>');
   return lines.join('');
 }
 

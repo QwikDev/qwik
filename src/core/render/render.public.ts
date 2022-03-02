@@ -31,6 +31,6 @@ export async function render(
     firstChild = firstChild.nextSibling;
   }
   const cursor = cursorForParent(parent);
-  visitJsxNode(null, renderQueue, cursor, jsxNode);
+  visitJsxNode(null, renderQueue, cursor, jsxNode, false);
   return flattenPromiseTree<HTMLElement>(renderQueue);
 }

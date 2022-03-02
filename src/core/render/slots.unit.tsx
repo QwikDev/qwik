@@ -1,6 +1,6 @@
 import { html } from '../../testing/util';
 import { toDOM } from '../../testing/jsx';
-import { AttributeMarker } from '../util/markers';
+import { QSlotSelector } from '../util/markers';
 import { getSlotMap } from './slots';
 import { getQComponent } from '../component/component-ctx';
 
@@ -108,7 +108,7 @@ describe('slots', () => {
         'include',
         [
           -1,
-          html(component.querySelector(AttributeMarker.QSlotSelector)),
+          html(component.querySelector(QSlotSelector)),
           html(component.querySelector('span[q\\:slot="include"]')),
         ],
       ]);

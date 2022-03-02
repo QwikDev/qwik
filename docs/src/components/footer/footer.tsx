@@ -1,9 +1,9 @@
-import { component$, Host, useStyles$, $ } from '@builder.io/qwik';
+import { component$, Host, withStyles$, $ } from '@builder.io/qwik';
 import styles from './footer.css';
 
 export const Footer = component$(
   () => {
-    useStyles$(styles);
+    withStyles$(styles);
 
     return $(() => (
       <Host class="p-4 border-t border-slate-700 flex justify-between">

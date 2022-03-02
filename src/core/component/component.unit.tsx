@@ -10,12 +10,13 @@ describe('q-component', () => {
   it('should declare and render basic component', async () => {
     const fixture = new ElementFixture();
     await render(fixture.host, <HelloWorld></HelloWorld>);
+    const Div = 'div' as any;
     expectDOM(
       fixture.host,
       <host>
-        <div on:q-render>
+        <Div q:host="" q:obj="">
           <span>Hello World</span>
-        </div>
+        </Div>
       </host>
     );
   });
@@ -54,14 +55,14 @@ describe('q-component', () => {
     const host = new ElementFixture().host;
     const items = createStore({
       items: [
-        createStore({
+        {
           done: true,
           title: 'Task 1',
-        }),
-        createStore({
+        },
+        {
           done: false,
           title: 'Task 2',
-        }),
+        },
       ],
     });
     await render(host, <Items items={items} />);

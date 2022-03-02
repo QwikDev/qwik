@@ -1,17 +1,18 @@
 import { assertDefined } from '../assert/assert';
-import { getProps } from '../props/props.public';
 import { cursorForComponent, cursorReconcileEnd } from '../render/cursor';
 import { ComponentRenderQueue, visitJsxNode } from '../render/render';
-import { AttributeMarker } from '../util/markers';
-import { flattenPromiseTree } from '../util/promises';
+import { ComponentScopedStyles, OnRenderProp } from '../util/markers';
+import { flattenPromiseTree, then } from '../util/promises';
 import { styleContent, styleHost } from './qrl-styles';
 import { newInvokeContext, useInvoke } from '../use/use-core';
+import { getContext, getEvent, QContext } from '../props/props';
 
 // TODO(misko): Can we get rid of this whole file, and instead teach getProps to know how to render
 // the advantage will be that the render capability would then be exposed to the outside world as well.
 
 export class QComponentCtx {
   __brand__!: 'QComponentCtx';
+  ctx: QContext;
   hostElement: HTMLElement;
 
   styleId: string | undefined | null = undefined;
@@ -20,30 +21,29 @@ export class QComponentCtx {
 
   constructor(hostElement: HTMLElement) {
     this.hostElement = hostElement;
+    this.ctx = getContext(hostElement);
   }
 
   async render(): Promise<HTMLElement[]> {
     const hostElement = this.hostElement;
-    const props = getProps(hostElement) as any;
-    const onRender = props['on:qRender'] as () => void; // TODO(misko): extract constant
+    const onRender = getEvent(this.ctx, OnRenderProp) as any as () => void;
     assertDefined(onRender);
-    hostElement.removeAttribute(AttributeMarker.RenderNotify);
     const renderQueue: ComponentRenderQueue = [];
     try {
       const event = 'qRender';
-      const jsxNode = await useInvoke(newInvokeContext(hostElement, event), onRender);
-      if (this.styleId === undefined) {
-        const scopedStyleId = (this.styleId = hostElement.getAttribute(
-          AttributeMarker.ComponentScopedStyles
-        ));
-        if (scopedStyleId) {
-          this.styleHostClass = styleHost(scopedStyleId);
-          this.styleClass = styleContent(scopedStyleId);
+      const promise = useInvoke(newInvokeContext(hostElement, hostElement, event), onRender);
+      await then(promise, (jsxNode) => {
+        if (this.styleId === undefined) {
+          const scopedStyleId = (this.styleId = hostElement.getAttribute(ComponentScopedStyles));
+          if (scopedStyleId) {
+            this.styleHostClass = styleHost(scopedStyleId);
+            this.styleClass = styleContent(scopedStyleId);
+          }
         }
-      }
-      const cursor = cursorForComponent(this.hostElement);
-      visitJsxNode(this, renderQueue, cursor, jsxNode);
-      cursorReconcileEnd(cursor);
+        const cursor = cursorForComponent(this.hostElement);
+        visitJsxNode(this, renderQueue, cursor, jsxNode, false);
+        cursorReconcileEnd(cursor);
+      });
     } catch (e) {
       // TODO(misko): Proper error handling
       // eslint-disable-next-line no-console

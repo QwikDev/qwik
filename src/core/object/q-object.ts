@@ -1,12 +1,8 @@
-import { assertDefined, assertEqual, assertNotEqual } from '../assert/assert';
+import { assertEqual } from '../assert/assert';
 import { QError, qError } from '../error/error';
 import { notifyRender } from '../render/notify-render';
-import { safeQSubscribe } from '../use/use-core';
-import { isElement } from '../util/element';
-import { AttributeMarker } from '../util/markers';
+import { tryGetInvokeContext } from '../use/use-core';
 import { debugStringify } from '../util/stringify';
-import { notifyWatchers } from '../watch/watch';
-export const Q_OBJECT_PREFIX_SEP = ':';
 
 export type QObject<T extends {}> = T & { __brand__: 'QObject' };
 
@@ -23,81 +19,40 @@ export function qObject<T extends Object>(obj: T): T {
       `Q-ERROR: Only objects literals can be wrapped in 'QObject', got ` + debugStringify(obj)
     );
   }
-  const proxy = readWriteProxy(obj as any as QObject<T>, generateId());
-  Object.assign(proxy, obj);
+  const proxy = readWriteProxy(obj as any as QObject<T>);
+  Object.assign((proxy as any)[QOjectTargetSymbol], obj);
   return proxy;
 }
 
-export function _restoreQObject<T>(obj: T, id: string): T {
-  return readWriteProxy(obj as any as QObject<T>, id);
-}
-
-function QObject_notifyWrite(id: string, doc: Document | null, propName: string) {
-  if (doc) {
-    const effectedElements = doc.querySelectorAll(idToComponentSelector(id));
-    effectedElements.forEach(notifyRender);
-    effectedElements.forEach((element) => notifyWatchers(element, id, propName));
-  }
-}
-
-function QObject_notifyRead(target: any) {
-  const proxy = proxyMap.get(target);
-  assertDefined(proxy);
-  safeQSubscribe(proxy);
-}
-
-export function QObject_addDoc(qObj: QObject<any>, doc: Document) {
-  assertNotEqual(unwrapProxy(qObj), qObj, 'Expected Proxy');
-  qObj[QObjectDocumentSymbol] = doc;
-}
-
-export function getQObjectId(obj: any): string | null {
-  let id: undefined | null | string;
-  if (obj && typeof obj === 'object') {
-    id = obj[QObjectIdSymbol];
-    if (!id && isElement(obj)) {
-      id = obj.getAttribute(AttributeMarker.ELEMENT_ID);
-      if (id == null) {
-        obj.setAttribute(AttributeMarker.ELEMENT_ID, (id = generateId()));
-      }
-      id = AttributeMarker.ELEMENT_ID_PREFIX + id;
-    }
-  }
-  return id || null;
+export function _restoreQObject<T>(obj: T, subs: Map<Element, Set<string>>): T {
+  return readWriteProxy(obj as any as QObject<T>, subs);
 }
 
 export function getTransient<T>(obj: any, key: any): T | null {
-  assertDefined(getQObjectId(obj));
   return obj[QOjectTransientsSymbol].get(key);
 }
 
 export function setTransient<T>(obj: any, key: any, value: T): T {
-  assertDefined(getQObjectId(obj));
   obj[QOjectTransientsSymbol].set(key, value);
   return value;
-}
-
-function idToComponentSelector(id: string): any {
-  id = id.replace(/([^\w\d])/g, (_, v) => '\\' + v);
-  return '[q\\:obj*=\\!' + id + ']';
 }
 
 /**
  * Creates a proxy which notifies of any writes.
  */
-export function readWriteProxy<T extends object>(target: T, id: string): T {
+export function readWriteProxy<T extends object>(target: T, subs?: Map<Element, Set<string>>): T {
   if (!target || typeof target !== 'object') return target;
   let proxy = proxyMap.get(target);
   if (proxy) return proxy;
-  proxy = new Proxy(target, new ReadWriteProxyHandler(id)) as any as T;
+  proxy = new Proxy(target, new ReadWriteProxyHandler(subs)) as any as T;
   proxyMap.set(target, proxy);
   return proxy;
 }
 
-const QOjectTargetSymbol = ':target:';
+export const QOjectTargetSymbol = ':target:';
+export const QOjectSubsSymbol = ':subs:';
 const QOjectTransientsSymbol = ':transients:';
 export const QObjectIdSymbol = ':id:';
-const QObjectDocumentSymbol = ':doc:';
 
 export function unwrapProxy<T>(proxy: T): T {
   if (proxy && typeof proxy == 'object') {
@@ -117,44 +72,61 @@ export function wrap<T>(value: T): T {
     verifySerializable<T>(value);
 
     const proxy = proxyMap.get(value);
-    return proxy ? proxy : readWriteProxy(value as any, generateId());
+    return proxy ? proxy : readWriteProxy(value as any);
   } else {
     return value;
   }
 }
 
 class ReadWriteProxyHandler<T extends object> implements ProxyHandler<T> {
-  private id: string;
-  private doc: Document | null = null;
   private transients: WeakMap<any, any> | null = null;
-  constructor(id: string) {
-    this.id = id;
+
+  constructor(private subs = new Map<Element, Set<string>>()) {}
+
+  getSub(el: Element) {
+    let sub = this.subs.get(el);
+    if (!sub) {
+      this.subs.set(el, (sub = new Set()));
+    }
+    return sub;
   }
 
   get(target: T, prop: string): any {
     if (prop === QOjectTargetSymbol) return target;
-    if (prop === QObjectIdSymbol) return this.id;
+    if (prop === QOjectSubsSymbol) return this.subs;
     if (prop === QOjectTransientsSymbol) {
       return this.transients || (this.transients = new WeakMap());
     }
     const value = (target as any)[prop];
-    QObject_notifyRead(target);
+    const invokeCtx = tryGetInvokeContext();
+    if (invokeCtx && invokeCtx.subscriptions) {
+      const isArray = Array.isArray(target);
+      const sub = this.getSub(invokeCtx.hostElement);
+      if (!isArray) {
+        sub.add(prop);
+      }
+    }
     return wrap(value);
   }
 
   set(target: T, prop: string, newValue: any): boolean {
-    if (prop === QObjectDocumentSymbol) {
-      this.doc = newValue;
-    } else if (prop == QObjectIdSymbol) {
-      this.id = newValue;
-    } else {
-      const unwrappedNewValue = unwrapProxy(newValue);
-      verifySerializable(unwrappedNewValue);
-      const oldValue = (target as any)[prop];
-      if (oldValue !== unwrappedNewValue) {
-        (target as any)[prop] = unwrappedNewValue;
-        QObject_notifyWrite(this.id, this.doc, prop);
-      }
+    const unwrappedNewValue = unwrapProxy(newValue);
+    const isArray = Array.isArray(target);
+    if (isArray) {
+      (target as any)[prop] = unwrappedNewValue;
+      this.subs.forEach((_, el) => {
+        notifyRender(el);
+      });
+      return true;
+    }
+    const oldValue = (target as any)[prop];
+    if (oldValue !== unwrappedNewValue) {
+      (target as any)[prop] = unwrappedNewValue;
+      this.subs.forEach((propSets, el) => {
+        if (propSets.has(prop)) {
+          notifyRender(el);
+        }
+      });
     }
     return true;
   }
@@ -169,23 +141,12 @@ class ReadWriteProxyHandler<T extends object> implements ProxyHandler<T> {
   }
 }
 
-const proxyMap: WeakMap<any, any> = new WeakMap();
-
 function verifySerializable<T>(value: T) {
   if (typeof value == 'object' && value !== null) {
     if (Array.isArray(value)) return;
     if (Object.getPrototypeOf(value) !== Object.prototype) {
-      if (getQObjectId(value)) return;
       throw qError(QError.TODO, 'Only primitive and object literals can be serialized.');
     }
   }
 }
-
-function generateId() {
-  return (
-    // TODO(misko): For now I have removed the data as I think it is overkill
-    // and makes the output unnecessarily big.
-    // new Date().getTime().toString(36) +
-    Math.round(Math.random() * Number.MAX_SAFE_INTEGER).toString(36)
-  );
-}
+const proxyMap: WeakMap<any, any> = new WeakMap();

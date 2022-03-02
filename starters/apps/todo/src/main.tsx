@@ -1,4 +1,4 @@
-import { component$, $ } from '@builder.io/qwik';
+import { component$, $, createStore } from '@builder.io/qwik';
 import { Footer } from './components/footer/footer';
 import { Header } from './components/header/header';
 import { Main } from './components/main/main';
@@ -6,15 +6,6 @@ import type { Todos } from './state/state';
 
 import './base.css';
 import './index.css';
-
-export const todos: Todos = {
-  filter: 'all',
-  items: [
-    { completed: false, title: 'Read Qwik docs' },
-    { completed: false, title: 'Build HelloWorld' },
-    { completed: false, title: 'Profit' },
-  ],
-};
 
 /**
  * Overall application component.
@@ -24,6 +15,14 @@ export const todos: Todos = {
  * download to the client.
  */
 export const App = component$(() => {
+  const todos = createStore<Todos>({
+    filter: 'all',
+    items: [
+      { completed: false, title: 'Read Qwik docs' },
+      { completed: false, title: 'Build HelloWorld' },
+      { completed: false, title: 'Profit' },
+    ],
+  });
   return $(() => {
     return (
       <section class="todoapp">

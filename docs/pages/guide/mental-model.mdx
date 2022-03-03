@@ -20,10 +20,10 @@ Because of the above goals, some design decisions may feel foreign compared to t
 
 Qwik applications consist of `Component`s and `Entity`s.
 
-- **Component:** Qwik application UIs are built from a collection of Qwik `Component`s. `Component`s can communicate with each other only through `Props`, `Entity`s, and by listening to or emitting/broadcasting `Event`s. (See [reactivity](./REACTIVITY.md).) No other form of communication is allowed as it would go against the goals outlined above.
+- **Component:** Qwik application UIs are built from a collection of Qwik `Component`s. `Component`s can communicate with each other only through `Props`, `Entity`s, and by listening to or emitting/broadcasting `Event`s. (See [reactivity](./reactivity/overview.mdx).) No other form of communication is allowed as it would go against the goals outlined above.
 - **Entity:** `Entity`s represent application data or shared behavior between `Component`s and the application backend. `Entity`s do not have UI representation and must be injected into a `Component` to have their data rendered. `Entity`s can perform communication with the server or other external resources.
 
-A Qwik application is a graph of `Component`s and `Entity`s that define data flow. The Qwik framework will hydrate `Component`s/`Entity`s on an as-needed basis to achieve the desired outcome. To do this, the Qwik framework must understand the data flow between `Component`s and `Entity`s to know which `Component` or `Entity` needs to be rehydrated and when. Most other frameworks do not have this understanding and need to re-render the whole application on any data update resulting in too much code that must be downloaded. (See [lazy loading](./LAZY_LOADING.md).)
+A Qwik application is a graph of `Component`s and `Entity`s that define data flow. The Qwik framework will hydrate `Component`s/`Entity`s on an as-needed basis to achieve the desired outcome. To do this, the Qwik framework must understand the data flow between `Component`s and `Entity`s to know which `Component` or `Entity` needs to be rehydrated and when. Most other frameworks do not have this understanding and need to re-render the whole application on any data update resulting in too much code that must be downloaded. (See [lazy loading](./lazy-loading.mdx).)
 
 ### Example
 
@@ -42,7 +42,7 @@ Above is a `Component`/`Entity` dependency graph of a hypothetical application. 
 A `Component` or `Entity` consists of:
 
 - **`Props`:** These are a hash of key/value strings (`{[key:string]:string}`), which tell Qwik about the `Component` or `Entity`.
-  - **`Component`:** These are just the DOM attributes of the `Component`'s host element. If the attributes change, then the `Component` gets notified. These `Props` are serialized into the [host element](./HOST_ELEMENT.md).
+  - **`Component`:** These are just the DOM attributes of the `Component`'s host element. If the attributes change, then the `Component` gets notified. These `Props` are serialized into the [host element](./components/host-element.mdx).
   - **`Entity`:** The `Props` for an `Entity` are usually serialized into a `EntityKey`, which uniquely identifies an entity instance. The `EntityKey` is constant for the lifetime of the entity. (For example `issue:org123:proj456:789` might identify an issue with id `789` in `org123/proj456`.)
 - **`State`:** A `Component` or `Entity` can have a `State` which is a `JSON` serializable object. If an application is dehydrated then the `State` is serialized into the DOM/HTML so that it can be quickly rehydrated on the client.
 - **Transient State:** is state that is only stored inside the instance of a `Component` or `Entity`. This state can include references to any other object. However, the transient state will not be serialized and therefore anything stored on the instance as transient state will have to be recomputed on rehydration.

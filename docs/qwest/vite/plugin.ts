@@ -1,10 +1,10 @@
-import { stat } from 'fs/promises';
-import { isAbsolute } from 'path';
+import { stat, readFile } from 'fs/promises';
+import { isAbsolute, join } from 'path';
 import type { ModuleGraph, ViteDevServer } from 'vite';
 import { ModuleNode } from 'vite';
 import { Plugin } from 'vite';
 import { PluginOptions } from '.';
-import { createDevCode, createProdCode } from './code-generation';
+import { createBuildCode } from './code-generation';
 import { loadPages } from './load-pages';
 import type { NormalizedPluginOptions } from './types';
 import { getIndexBuildPath, getPagesBuildPath, isMarkdownFile, normalizeOptions } from './utils';
@@ -49,6 +49,9 @@ export function qwest(options: PluginOptions) {
     },
 
     resolveId(id) {
+      if (id === QWEST_BUILD_ID) {
+        return RESOLVED_QWEST_BUILD_ID;
+      }
       if (id === QWEST_ID) {
         return RESOLVED_QWEST_ID;
       }
@@ -56,7 +59,7 @@ export function qwest(options: PluginOptions) {
     },
 
     async load(id) {
-      if (id === RESOLVED_QWEST_ID) {
+      if (id === RESOLVED_QWEST_BUILD_ID) {
         // @builder.io/qwest
         if (typeof qwestBuildCode === 'string') {
           return qwestBuildCode;
@@ -66,10 +69,10 @@ export function qwest(options: PluginOptions) {
 
         if (viteDevServer) {
           // vite dev server build (esbuild)
-          qwestBuildCode = createDevCode(opts, data);
+          qwestBuildCode = createBuildCode(opts, data, true);
         } else {
           // production (rollup)
-          qwestBuildCode = createProdCode(opts, data);
+          qwestBuildCode = createBuildCode(opts, data, false);
 
           data.pages.forEach((p) => {
             this.emitFile({
@@ -95,6 +98,10 @@ export function qwest(options: PluginOptions) {
         }
 
         return qwestBuildCode;
+      }
+
+      if (id === RESOLVED_QWEST_ID) {
+        return readFile(join(__dirname, '..', 'index.mjs'), 'utf-8');
       }
 
       return null;
@@ -135,6 +142,9 @@ function isPageModuleDependency(qwestMod: ModuleNode | undefined, changedFile: s
 
 const QWEST_ID = '@builder.io/qwest';
 const RESOLVED_QWEST_ID = '\0' + QWEST_ID;
+
+const QWEST_BUILD_ID = '@builder.io/qwest/build';
+const RESOLVED_QWEST_BUILD_ID = '\0' + QWEST_BUILD_ID;
 
 async function validatePlugin(opts: NormalizedPluginOptions) {
   if (typeof opts.pagesDir !== 'string') {

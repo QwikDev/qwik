@@ -1,10 +1,10 @@
-import { component$, Host, withStyles$, $ } from '@builder.io/qwik';
+import { component$, Host, useStyles$, $ } from '@builder.io/qwik';
 import { GithubLogo } from '../svgs/github-logo';
 import styles from './header.css';
 
 export const Header = component$(
   () => {
-    withStyles$(styles);
+    useStyles$(styles);
 
     return $(() => (
       <Host className="sticky top-0 z-40 w-full flex-none py-6 bg-gray-900">

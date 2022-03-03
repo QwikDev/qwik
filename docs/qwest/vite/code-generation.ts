@@ -1,131 +1,13 @@
 import type { NormalizedPluginOptions, ParsedData } from './types';
 
-export function createDevCode(opts: NormalizedPluginOptions, data: ParsedData) {
+export function createBuildCode(
+  opts: NormalizedPluginOptions,
+  data: ParsedData,
+  isDevMode: boolean
+) {
   const c = [];
 
-  c.push(...createLayoutsCode(opts));
-
-  c.push(`const PAGES = {`);
-  for (const p of data.pages) {
-    c.push(`  ${JSON.stringify(p.pathname)}: () => import(${JSON.stringify(p.filePath)}),`);
-  }
-  c.push(`};`);
-
-  c.push(`export const loadPage = async (opts) => {`);
-  // c.push(`  debugger;`);
-  c.push(`  const pageImporter = PAGES[opts.pathname];`);
-  c.push(`  if (!pageImporter) {`);
-  c.push(`    return null;`);
-  c.push(`  }`);
-  c.push(`  const mod = await pageImporter();`);
-  c.push(`  if (!mod || !mod.default) {`);
-  c.push(`    return null;`);
-  c.push(`  }`);
-  c.push(`  const layoutImporter = LAYOUTS[mod.layout] || LAYOUTS.default;`);
-  c.push(`  if (!layoutImporter) {`);
-  c.push(`    return null;`);
-  c.push(`  }`);
-  c.push(`  const layout = await layoutImporter();`);
-  c.push(`  const meta = {};`);
-  c.push(`  for (const k in mod) {`);
-  c.push(`    if (k !== 'default') {`);
-  c.push(`      meta[k] = mod[k];`);
-  c.push(`    }`);
-  c.push(`  }`);
-  c.push(`  return {`);
-  c.push(`    getContent: () => mod.default,`);
-  c.push(`    getLayout: () => layout.default,`);
-  c.push(`    getMetadata: () => meta`);
-  c.push(`  };`);
-  c.push(`};`);
-
-  c.push(`const INDEXES = {`);
-  for (const i of data.indexes) {
-    c.push(`  ${JSON.stringify(i.pathname)}: ${JSON.stringify(i)},`);
-  }
-  c.push(`};`);
-
-  c.push(`export const loadIndex = async (opts) => {`);
-  // c.push(`  debugger;`);
-  c.push(`  let pathname = opts.pathname;`);
-  c.push(`  for (let i = 0; i < 9; i++) {`);
-  c.push(`    if (INDEXES[pathname]) {`);
-  c.push(`      return INDEXES[pathname];`);
-  c.push(`    }`);
-  c.push(`    const parts = pathname.split('/');`);
-  c.push(`    parts.pop();`);
-  c.push(`    pathname = parts.join('/');`);
-  c.push(`    if (pathname === '/') break;`);
-  c.push(`  }`);
-  c.push(`  return null;`);
-  c.push(`};`);
-
-  const code = c.join('\n');
-
-  return code;
-}
-
-export function createProdCode(opts: NormalizedPluginOptions, data: ParsedData) {
-  const c = [];
-
-  c.push(...createLayoutsCode(opts));
-
-  c.push(`export const loadPage = async (opts) => {`);
-  c.push(`  console.log("fu");`);
-  c.push(`  const pagePath = "/pages" + opts.pathname + '.js';`);
-  c.push(`  const mod = await import(pagePath);`);
-  c.push(`  if (!mod || !mod.default) {`);
-  c.push(`    return null;`);
-  c.push(`  }`);
-  c.push(`  const layoutImporter = LAYOUTS[mod.layout] || LAYOUTS.default;`);
-  c.push(`  if (!layoutImporter) {`);
-  c.push(`    return null;`);
-  c.push(`  }`);
-  c.push(`  const layout = await layoutImporter();`);
-  c.push(`  const meta = {};`);
-  c.push(`  for (const k in mod) {`);
-  c.push(`    if (k !== 'default') {`);
-  c.push(`      meta[k] = mod[k];`);
-  c.push(`    }`);
-  c.push(`  }`);
-  c.push(`  return {`);
-  c.push(`    getContent: () => mod.default,`);
-  c.push(`    getLayout: () => layout.default,`);
-  c.push(`    getMetadata: () => meta`);
-  c.push(`  };`);
-  c.push(`};`);
-
-  c.push(`const INDEXES = {`);
-  for (const i of data.indexes) {
-    c.push(`  ${JSON.stringify(i.pathname)}: true,`);
-  }
-  c.push(`};`);
-
-  c.push(`export const loadIndex = async (opts) => {`);
-  // c.push(`  debugger;`);
-  c.push(`  let pathname = opts.pathname;`);
-  c.push(`  for (let i = 0; i < 9; i++) {`);
-  c.push(`    if (INDEXES[pathname]) {`);
-  c.push(`      const indexPath = "/pages" + pathname + '/index.json';`);
-  c.push(`      const rsp = await fetch(indexPath);`);
-  c.push(`      return rsp.json();`);
-  c.push(`    }`);
-  c.push(`    const parts = pathname.split('/');`);
-  c.push(`    parts.pop();`);
-  c.push(`    pathname = parts.join('/');`);
-  c.push(`    if (pathname === '/') break;`);
-  c.push(`  }`);
-  c.push(`  return null;`);
-  c.push(`};`);
-
-  const code = c.join('\n');
-
-  return code;
-}
-
-function createLayoutsCode(opts: NormalizedPluginOptions) {
-  const c: string[] = [];
-  c.push(`const LAYOUTS = {`);
+  c.push(`export const LAYOUTS = {`);
   Object.entries(opts.layouts).forEach(([layoutName, layoutPath]) => {
     let importPath = layoutPath;
     if (importPath.endsWith('.tsx') || importPath.endsWith('.jsx')) {
@@ -137,5 +19,30 @@ function createLayoutsCode(opts: NormalizedPluginOptions) {
     c.push(`  ${JSON.stringify(layoutName)}: () => import(${JSON.stringify(importPath)}),`);
   });
   c.push(`};`);
-  return c;
+
+  c.push(`export const INDEXES = {`);
+  for (const i of data.indexes) {
+    c.push(`  ${JSON.stringify(i.pathname)}: ${JSON.stringify(i)},`);
+  }
+  c.push(`};`);
+
+  c.push(`export const PAGES = {`);
+  if (isDevMode) {
+    for (const p of data.pages) {
+      c.push(`  ${JSON.stringify(p.pathname)}: () => import(${JSON.stringify(p.filePath)}),`);
+    }
+  }
+  c.push(`};`);
+
+  c.push(`export const IS_DEV = ${JSON.stringify(isDevMode)};`);
+
+  c.push(
+    `export const BUILD_ID = ${JSON.stringify(
+      Math.round(Math.random() * Number.MAX_SAFE_INTEGER)
+        .toString(36)
+        .toLowerCase()
+    )};`
+  );
+
+  return c.join('\n');
 }

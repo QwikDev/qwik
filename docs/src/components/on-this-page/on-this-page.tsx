@@ -1,10 +1,9 @@
-import { $, component, Host, withStyles$, $ } from '@builder.io/qwik';
+import { component, Host, useStyles$, $ } from '@builder.io/qwik';
 import styles from './on-this-page.css';
 
 export const OnThisPage = component(
-  'aside',
   $(() => {
-    withStyles$(styles);
+    useStyles$(styles);
 
     return $(() => (
       <Host class="on-this-page">
@@ -16,5 +15,6 @@ export const OnThisPage = component(
         </nav>
       </Host>
     ));
-  })
+  }),
+  { tagName: 'aside' }
 );

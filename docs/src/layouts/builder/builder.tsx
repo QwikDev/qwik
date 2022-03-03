@@ -1,11 +1,11 @@
-import { $, component$, Host, withStyles$ } from '@builder.io/qwik';
+import { $, component$, Host, useStyles$ } from '@builder.io/qwik';
 import { useLocation } from '../../utils/useLocation';
 import { Header } from '../../components/header/header';
 import styles from './builder.css';
 import { fetch } from '../../utils/fetch';
 
-export const Builder = component$(async () => {
-  withStyles$(styles);
+export const Builder = component$(() => {
+  useStyles$(styles);
   return $(async () => {
     const loc = useLocation();
     const html = await fetchQwikBuilderContent(loc.pathname);

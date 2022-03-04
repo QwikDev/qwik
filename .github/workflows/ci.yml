@@ -23,13 +23,13 @@ jobs:
     name: Setup
     runs-on: ubuntu-latest
     outputs:
-      fullbuild: ${{ steps.filter.outputs.fullbuild }}
+      fullbuild: ${{ steps.fullbuild.outputs.fullbuild }}
 
     steps:
+      - name: Branch
+        run: echo ${{ github.head_ref }}
       - name: NPM Dist Tag
         run: echo ${{ github.event.inputs.disttag }}
-      - name: Branch
-        run: echo ${GITHUB_REF##*/}
       - uses: actions/checkout@v2
       - uses: dorny/paths-filter@v2
         id: filter
@@ -39,6 +39,9 @@ jobs:
               - 'src/**/*.(ts|tsx|js|mjs|cjs|jsx|json|toml|rs)'
               - 'yarn.lock'
               - 'tsconfig.json'
+      - name: Full Build
+        id: fullbuild
+        run: echo "::set-output name=fullbuild::$(steps.fullbuild.outputs.fullbuild)"
 
   ############ BUILD PACKAGE ############
   build-package:

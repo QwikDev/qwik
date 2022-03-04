@@ -27,7 +27,7 @@ jobs:
 
     steps:
       - name: NPM Dist Tag
-        run: echo ${inputs.disttag}
+        run: echo ${{ github.event.inputs.disttag }}
       - name: Branch
         run: echo ${GITHUB_REF##*/}
       - uses: actions/checkout@v2

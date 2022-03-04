@@ -29,7 +29,7 @@ export type RenderableProps<
  * @public
  */
 export interface FunctionComponent<P = {}> {
-  (props: P): JSXNode | null;
+  (props: P, children: any, key?: string): JSXNode | null;
 }
 
 /**
@@ -38,8 +38,10 @@ export interface FunctionComponent<P = {}> {
 export interface JSXNode<T = any> {
   type: T;
   props: any;
-  children: ComponentChild[];
+  children: JSXNode[] | undefined;
   key: string | number | any;
+  elm?: Node;
+  text?: string;
 }
 
 /**

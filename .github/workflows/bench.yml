@@ -4,6 +4,25 @@ on:
   - push
   - pull_request
 
+
+jobs:
+  check-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      optimizer: ${{ steps.filter.outputs.optimizer }}
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            fullbuild:
+              - 'src/**/*.(ts|tsx|js|jsx|json)'
+              - 'package.json'
+              - 'tsconfig.json'
+
+
 jobs:
   changes:
     runs-on: ubuntu-latest

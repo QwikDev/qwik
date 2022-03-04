@@ -2,6 +2,7 @@ import { EMPTY_ARRAY } from '../../util/flyweight';
 import type { FunctionComponent, JSXNode } from './types/jsx-node';
 import type { QwikJSX } from './types/jsx-qwik';
 import { qDev } from '../../util/qdev';
+import { Host } from './host.public';
 
 /**
  * @public
@@ -11,24 +12,48 @@ export function jsx<T extends string | FunctionComponent<PROPS>, PROPS>(
   props: PROPS,
   key?: string
 ): JSXNode<T> {
-  return new JSXNodeImpl(type, props, key);
+  return processNode(new JSXNodeImpl(type, props, key)) as any;
 }
 
 export class JSXNodeImpl<T> implements JSXNode<T> {
-  children: any;
+  children: JSXNode[] | undefined;
+  text?: string | undefined = undefined;
 
   constructor(public type: T, public props: any, public key: any) {
     if (props) {
-      if (props.children !== undefined) {
-        if (Array.isArray(props.children)) {
-          this.children = props.children;
+      const children = processNode(props.children);
+      if (children !== undefined) {
+        if (Array.isArray(children)) {
+          this.children = children;
         } else {
-          this.children = [props.children];
+          this.children = [children];
         }
-      } else {
-        this.children = EMPTY_ARRAY;
       }
     }
+  }
+}
+
+function processNode(node: any): JSXNode[] | JSXNode | undefined {
+  if (node == null) {
+    return undefined;
+  }
+  if (isJSXNode(node)) {
+    if (node.type === Host) {
+      return node;
+    } else if (typeof node.type === 'function') {
+      return processNode(node.type(node.props, node.children, node.key));
+    } else {
+      return node;
+    }
+  } else if (Array.isArray(node)) {
+    return node.flatMap(processNode).filter(e => e != null) as JSXNode[];
+  } else if (typeof node === 'string' || typeof node === 'number'  || typeof node === 'boolean') {
+    const newNode = new JSXNodeImpl('#text', null, null);
+    newNode.text = String(node);
+    return newNode;
+  } else {
+    console.warn('Unvalid node, skipping');
+    return undefined;
   }
 }
 
@@ -49,7 +74,7 @@ export const isJSXNode = (n: any): n is JSXNode<unknown> => {
 /**
  * @public
  */
-export const Fragment = {} as any;
+export const Fragment: FunctionComponent = (_: any, children: any) => children as any;
 
 export type { QwikJSX as JSX };
 

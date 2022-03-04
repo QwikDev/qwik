@@ -21,23 +21,23 @@ describe('classic jsx factory h()', () => {
         'b'
       );
       expect(v.children).toHaveLength(4);
-      expect(v.children[0]).toEqual('a');
-      expect((v.children[1] as any).type).toEqual('child');
-      expect((v.children[1] as any).children).toHaveLength(1);
-      expect((v.children[1] as any).children[0]).toEqual(1);
-      expect((v.children[2] as any).type).toEqual('child');
-      expect((v.children[2] as any).children).toHaveLength(1);
-      expect((v.children[2] as any).children[0]).toEqual(2);
-      expect(v.children[3]).toEqual('b');
+      expect(v.children![0]).toEqual('a');
+      expect((v.children![1] as any).type).toEqual('child');
+      expect((v.children![1] as any).children).toHaveLength(1);
+      expect((v.children![1] as any).children[0]).toEqual(1);
+      expect((v.children![2] as any).type).toEqual('child');
+      expect((v.children![2] as any).children).toHaveLength(1);
+      expect((v.children![2] as any).children[0]).toEqual(2);
+      expect(v.children![3]).toEqual('b');
     });
 
     it('one child node', () => {
       // <parent><child></child></parent>
       const v = h('parent', null, h('child', null));
       expect(v.children).toHaveLength(1);
-      expect((v.children[0] as any).type).toEqual('child');
-      expect((v.children[0] as any).props).toEqual({ children: [] });
-      expect((v.children[0] as any).children).toEqual([]);
+      expect((v.children![0] as any).type).toEqual('child');
+      expect((v.children![0] as any).props).toEqual({ children: [] });
+      expect((v.children![0] as any).children).toEqual([]);
     });
 
     it('text w/ expression', () => {

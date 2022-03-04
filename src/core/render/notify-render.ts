@@ -3,6 +3,7 @@ import { getPlatform } from '../platform/platform';
 import type { HostElements } from './types';
 import { QHostAttr } from '../util/markers';
 import { getQComponent } from '../component/component-ctx';
+import type { RenderContext } from './cursor';
 
 /**
  * Mark component for rendering.
@@ -51,12 +52,18 @@ export function scheduleRender(doc: Document): Promise<HostElements> {
 
 export async function renderMarked(doc: Document) {
   const set = getScheduled(doc);
-  const hosts = Array.from(set) as HostElements;
+  // const hosts = Array.from(set) as HostElements;
   set.clear();
-  return Promise.all(
-    hosts.map((hostElement) => {
-      const cmp = getQComponent(hostElement);
-      return cmp && cmp.render();
-    })
-  );
+  console.log('re-rendering');
+  // const ctx: RenderContext = {
+  //   render: false,
+  //   operations: [],
+  //   doc,
+  // };
+  // return Promise.all(
+  //   hosts.map((hostElement) => {
+  //     const cmp = getQComponent(hostElement);
+  //     return cmp && cmp.render(ctx);
+  //   })
+  // );
 }

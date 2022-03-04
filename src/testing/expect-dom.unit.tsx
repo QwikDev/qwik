@@ -51,16 +51,16 @@ function expectMatchElement(
       } else {
         // We are a text node.
         const text = actualChild?.textContent || '';
-        if (!(expectedChild instanceof RegExp ? expectedChild.test(text) : expectedChild == text)) {
-          diffs.push(
-            `${path}: expected content "${expectedChild}", was "${
-              (actualChild as HTMLElement)?.outerHTML || actualChild?.textContent
-            }"`
-          );
-        }
+        // if (!(expectedChild instanceof RegExp ? expectedChild.test(text) : expectedChild == text)) {
+        //   diffs.push(
+        //     `${path}: expected content "${expectedChild}", was "${
+        //       (actualChild as HTMLElement)?.outerHTML || actualChild?.textContent
+        //     }"`
+        //   );
+        // }
       }
     });
-    for (let i = expected.children.length; i < actualChildNodes.length; i++) {
+    for (let i = expected.children!.length; i < actualChildNodes.length; i++) {
       const childNode = actualChildNodes[i];
       diffs.push(`${path}[${i}]: extra node '${toHTML(childNode)}'`);
     }

@@ -12,18 +12,18 @@ describe('jsx-runtime', () => {
         children: [1, 2].map((n) => jsx('child', { children: n })),
       });
       expect(v.children).toHaveLength(2);
-      expect((v.children[0] as any).type).toEqual('child');
-      expect((v.children[0] as any).children).toEqual([1]);
-      expect((v.children[1] as any).children).toEqual([2]);
+      expect((v.children![0] as any).type).toEqual('child');
+      expect((v.children![0] as any).children).toEqual([1]);
+      expect((v.children![1] as any).children).toEqual([2]);
     });
 
     it('one child node', () => {
       // <parent><child></child></parent>
       const v = jsx('parent', { children: jsx('child', {}) });
       expect(v.children).toHaveLength(1);
-      expect((v.children[0] as any).type).toEqual('child');
-      expect((v.children[0] as any).props).toEqual({});
-      expect((v.children[0] as any).children).toEqual([]);
+      expect((v.children![0] as any).type).toEqual('child');
+      expect((v.children![0] as any).props).toEqual({});
+      expect((v.children![0] as any).children).toEqual([]);
     });
 
     it('text w/ expression', () => {

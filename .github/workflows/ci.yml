@@ -102,6 +102,9 @@ jobs:
     needs: changes
 
     steps:
+      - name: Print fullbuild output
+        run: echo ${{ needs.changes.outputs.fullbuild }}
+
       - name: Setup Node
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/setup-node@v1

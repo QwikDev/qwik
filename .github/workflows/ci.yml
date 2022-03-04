@@ -357,19 +357,20 @@ jobs:
       - changes
 
     strategy:
-      fail-fast: false
       matrix:
-        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         settings:
           - host: ubuntu-latest
             browser: chromium
             node: 16.x
+            if: ${{ needs.changes.outputs.fullbuild == 'true' }}
           - host: macos-latest
             browser: webkit
             node: 14.x
+            if: ${{ needs.changes.outputs.fullbuild == 'true' }}
           - host: windows-latest
             browser: firefox
             node: 12.x
+            if: ${{ needs.changes.outputs.fullbuild == 'true' }}
 
     runs-on: ${{ matrix.settings.host }}
 

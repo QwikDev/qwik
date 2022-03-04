@@ -148,8 +148,6 @@ jobs:
 
   ############ BUILD PLATFORM BINDINGS ############
   build-bindings:
-    needs: changes
-
     strategy:
       matrix:
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -171,12 +169,13 @@ jobs:
 
     name: Build ${{ matrix.settings.target }}
     runs-on: ${{ matrix.settings.host }}
+    needs: changes
+
     defaults:
       run:
         working-directory: ./src/napi/
-    steps:
-      - name: Check Skip
 
+    steps:
       - name: Checkout
         uses: actions/checkout@v2
 

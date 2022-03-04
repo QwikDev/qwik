@@ -39,9 +39,11 @@ jobs:
               - 'src/**/*.(ts|tsx|js|mjs|cjs|jsx|json|toml|rs)'
               - 'yarn.lock'
               - 'tsconfig.json'
-      - name: Full Build
+      - name: Set fullbuild output
         id: fullbuild
-        run: echo "::set-output name=fullbuild::${{ steps.fullbuild.outputs.fullbuild }}"
+        run: echo ::set-output name=fullbuild::"${{ steps.filter.outputs.fullbuild }}"
+      - name: Print fullbuild output
+        run: echo ${{ steps.fullbuild.outputs.fullbuild }}
 
   ############ BUILD PACKAGE ############
   build-package:

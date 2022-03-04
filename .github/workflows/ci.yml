@@ -325,6 +325,8 @@ jobs:
     needs:
       - build-distribution
       - test-e2e
+      - changes
+    if: ${{ needs.changes.outputs.fullbuild == 'true' }}
 
     steps:
       - name: Setup Node

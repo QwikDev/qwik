@@ -149,11 +149,10 @@ jobs:
   ############ BUILD PLATFORM BINDINGS ############
   build-bindings:
     needs: changes
-    if: ${{ needs.changes.outputs.fullbuild == 'true' }}
 
     strategy:
-      fail-fast: false
       matrix:
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         settings:
           - host: macos-latest
             target: x86_64-apple-darwin
@@ -176,6 +175,8 @@ jobs:
       run:
         working-directory: ./src/napi/
     steps:
+      - name: Check Skip
+
       - name: Checkout
         uses: actions/checkout@v2
 
@@ -352,9 +353,14 @@ jobs:
   ############ E2E TEST ############
   test-e2e:
     name: E2E Tests
+    needs:
+      - build-distribution
+      - changes
+
     strategy:
       fail-fast: false
       matrix:
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         settings:
           - host: ubuntu-latest
             browser: chromium
@@ -367,11 +373,6 @@ jobs:
             node: 12.x
 
     runs-on: ${{ matrix.settings.host }}
-
-    needs:
-      - build-distribution
-      - changes
-    if: ${{ needs.changes.outputs.fullbuild == 'true' }}
 
     steps:
       - name: Setup Node ${{ matrix.settings.node }}

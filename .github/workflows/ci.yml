@@ -150,6 +150,7 @@ jobs:
   build-bindings:
     strategy:
       matrix:
+        skip: 'true'
         settings:
           - host: macos-latest
             target: x86_64-apple-darwin
@@ -167,8 +168,7 @@ jobs:
             build: yarn build.platform
 
         exclude:
-          - settings:
-              - host: macos-latest
+          - skip: 'true'
 
     name: Build ${{ matrix.settings.target }}
     runs-on: ${{ matrix.settings.host }}

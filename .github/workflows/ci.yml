@@ -269,6 +269,7 @@ jobs:
       - test-unit
       - validate-rust
       - changes
+    if: ${{ needs.changes.outputs.fullbuild == 'true' }}
 
     steps:
       - name: Setup Node

@@ -20,12 +20,16 @@ env:
 
 jobs:
   changes:
-    name: Check Full Build Changes
+    name: Setup
     runs-on: ubuntu-latest
     outputs:
       fullbuild: ${{ steps.filter.outputs.fullbuild }}
 
     steps:
+      - name: NPM Dist Tag
+        run: echo ${inputs.disttag}
+      - name: Branch
+        run: echo ${GITHUB_REF##*/}
       - uses: actions/checkout@v2
       - uses: dorny/paths-filter@v2
         id: filter

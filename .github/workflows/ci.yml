@@ -91,6 +91,7 @@ jobs:
     runs-on: ubuntu-latest
 
     needs: changes
+    if: ${{ needs.changes.outputs.fullbuild == 'true' }}
 
     steps:
       - name: Setup Node
@@ -269,7 +270,6 @@ jobs:
       - test-unit
       - validate-rust
       - changes
-    if: ${{ needs.changes.outputs.fullbuild == 'true' }}
 
     steps:
       - name: Setup Node

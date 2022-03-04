@@ -166,9 +166,10 @@ jobs:
             target: x86_64-pc-windows-msvc
             build: yarn build.platform
 
-        exclue:
+        exclude:
           - settings:
               - host: macos-latest
+          - settings.host: macos-latest
 
     name: Build ${{ matrix.settings.target }}
     runs-on: ${{ matrix.settings.host }}

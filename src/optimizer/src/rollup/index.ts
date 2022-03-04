@@ -443,7 +443,7 @@ export function qwikRollup(opts: QwikPluginOptions): any {
         } else if (typeof opts.symbolsOutput === 'function') {
           const symbolsOutput = opts.symbolsOutput;
           setTimeout(async () => {
-            await symbolsOutput(outputEntryMap, outputOpts);
+            await symbolsOutput(outputEntryMap, outputOpts as any);
           });
         }
       }

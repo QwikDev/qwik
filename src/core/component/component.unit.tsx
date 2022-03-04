@@ -4,7 +4,7 @@ import { expectDOM } from '../../testing/expect-dom.unit';
 import { runtimeQrl } from '../import/qrl';
 import { $ } from '../import/qrl.public';
 import { render } from '../render/render.public';
-import { PropsOf, withStyles, component$ } from './component.public';
+import { PropsOf, useStyles, component$ } from './component.public';
 
 describe('q-component', () => {
   it('should declare and render basic component', async () => {
@@ -88,7 +88,7 @@ describe('q-component', () => {
 
 /////////////////////////////////////////////////////////////////////////////
 export const HelloWorld = component$(() => {
-  withStyles(runtimeQrl(`{}`));
+  useStyles(runtimeQrl(`{}`));
   return $(() => {
     return <span>Hello World</span>;
   });

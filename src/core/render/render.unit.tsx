@@ -2,7 +2,7 @@ import { h, Host, createStore } from '@builder.io/qwik';
 import { ElementFixture, trigger } from '../../testing/element_fixture';
 import { expectDOM } from '../../testing/expect-dom.unit';
 import { getTestPlatform } from '../../testing/platform';
-import { withScopedStyles$, component$ } from '../component/component.public';
+import { useScopedStyles$, component$ } from '../component/component.public';
 import { runtimeQrl } from '../import/qrl';
 import { $ } from '../import/qrl.public';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
@@ -516,7 +516,7 @@ describe('render', () => {
 //////////////////////////////////////////////////////////////////////////////////////////
 export const HelloWorld = component$(
   (props: { name?: string }) => {
-    withScopedStyles$(`span.� { color: red; }`);
+    useScopedStyles$(`span.� { color: red; }`);
     const state = createStore({ salutation: 'Hello' });
     return $(() => {
       return (

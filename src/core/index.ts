@@ -23,10 +23,10 @@ export {
   on,
   onDocument,
   onWindow,
-  withStyles,
-  withStyles$,
-  withScopedStyles,
-  withScopedStyles$,
+  useStyles,
+  useStyles$,
+  useScopedStyles,
+  useScopedStyles$,
 } from './component/component.public';
 
 export type { PropsOf, ComponentOptions, OnMountFn } from './component/component.public';

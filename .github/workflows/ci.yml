@@ -177,15 +177,18 @@ jobs:
 
     steps:
       - name: Checkout
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/checkout@v2
 
       - name: Setup Node
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/setup-node@v1
         with:
           node-version: 16.x
           registry-url: https://registry.npmjs.org/
 
       - name: Install Rust toolchain
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
@@ -194,13 +197,14 @@ jobs:
           target: ${{ matrix.settings.target }}
 
       - name: Cache NPM Dependencies
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/cache@v2
         with:
           path: node_modules
           key: npm-cache-${{ matrix.settings.target }}-${{ hashFiles('yarn.lock') }}
 
       - name: Pull Latest Image
-        if: ${{ matrix.settings.docker }}
+        if: ${{ needs.changes.outputs.fullbuild == 'true' && matrix.settings.docker }}
         run: ${{ matrix.settings.docker }}
         env:
           DOCKER_REGISTRY_URL: ghcr.io
@@ -208,6 +212,7 @@ jobs:
           DOCKER_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Cache cargo dependencies
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/cache@v2
         with:
           path: |
@@ -215,24 +220,28 @@ jobs:
           key: cargo-deps-${{ matrix.settings.target }}-${{ hashFiles('Cargo.lock') }}
 
       - name: Cache cargo build
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/cache@v2
         with:
           path: target
           key: cargo-build-${{ matrix.settings.target }}-${{ hashFiles('Cargo.lock') }}
 
       - name: Setup Toolchain
-        if: ${{ matrix.settings.setup }}
+        if: ${{ needs.changes.outputs.fullbuild == 'true' && matrix.settings.setup }}
         run: ${{ matrix.settings.setup }}
         shell: bash
 
       - name: Install NPM Dependencies
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
 
       - name: Build Platform Binding
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: ${{ matrix.settings.build }}
         shell: bash
 
       - name: Upload Platform Binding Artifact
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/upload-artifact@v2
         with:
           name: dist-bindings-${{ matrix.settings.target }}

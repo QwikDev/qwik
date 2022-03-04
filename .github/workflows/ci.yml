@@ -357,7 +357,6 @@ jobs:
     needs:
       - build-distribution
       - changes
-    if: ${{ needs.changes.outputs.fullbuild == 'true' }}
 
     strategy:
       matrix:
@@ -365,32 +364,33 @@ jobs:
           - host: ubuntu-latest
             browser: chromium
             node: 16.x
-            if: ${{ needs.changes.outputs.fullbuild == 'true' }}
           - host: macos-latest
             browser: webkit
             node: 14.x
-            if: ${{ needs.changes.outputs.fullbuild == 'true' }}
           - host: windows-latest
             browser: firefox
             node: 12.x
-            if: ${{ needs.changes.outputs.fullbuild == 'true' }}
 
     runs-on: ${{ matrix.settings.host }}
 
     steps:
       - name: Setup Node ${{ matrix.settings.node }}
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.settings.node }}
           registry-url: https://registry.npmjs.org/
 
       - name: Checkout
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/checkout@v2
 
       - name: Download Build Artifacts
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/download-artifact@v2
 
       - name: Move Distribution Artifacts
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: |
           mkdir dist-dev/
           mkdir dist-dev/@builder.io-qwik/
@@ -399,21 +399,26 @@ jobs:
           mv dist-dev-create-qwik/* dist-dev/create-qwik/
 
       - name: Cache NPM Dependencies
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/cache@v2
         with:
           path: node_modules
           key: npm-cache-${{ runner.os }}-node${{ matrix.settings.node }}-${{ hashFiles('yarn.lock') }}
 
       - name: Install NPM Dependencies
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
 
       - name: Install Playwright
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: npx playwright install ${{ matrix.settings.browser }} && npx playwright install-deps ${{ matrix.settings.browser }}
 
       - name: Playwright E2E Tests
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: yarn test.e2e.${{ matrix.settings.browser }}
 
       - name: Validate Create Qwik Cli
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: node scripts/validate-cli.cjs
 
   ############ UNIT TEST ############

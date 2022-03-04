@@ -91,16 +91,17 @@ jobs:
     runs-on: ubuntu-latest
 
     needs: changes
-    if: ${{ needs.changes.outputs.fullbuild == 'true' }}
 
     steps:
       - name: Setup Node
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/setup-node@v1
         with:
           node-version: 16.x
           registry-url: https://registry.npmjs.org/
 
       - name: Install Rust toolchain
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
@@ -109,15 +110,18 @@ jobs:
           target: wasm32-unknown-unknown
 
       - name: Checkout
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/checkout@v2
 
       - name: Cache NPM Dependencies
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/cache@v2
         with:
           path: node_modules
           key: npm-cache-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
 
       - name: Cache cargo dependencies
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/cache@v2
         with:
           path: |
@@ -125,21 +129,26 @@ jobs:
           key: cargo-deps-wasm-${{ runner.os }}-${{ hashFiles('Cargo.lock') }}
 
       - name: Cache cargo build
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/cache@v2
         with:
           path: src/wasm/target
           key: cargo-build-wasm-${{ runner.os }}-${{ hashFiles('./src/wasm/Cargo.lock') }}
 
       - name: Install NPM Dependencies
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
 
       - name: Build WASM
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: node scripts --wasm --set-dist-tag="${{ github.event.inputs.disttag }}"
 
       - name: Print WASM Dist Build
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: tree dist-dev/@builder.io-qwik/bindings/
 
       - name: Upload WASM Build Artifacts
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/upload-artifact@master
         with:
           name: dist-bindings-wasm
@@ -259,40 +268,49 @@ jobs:
       - build-bindings
       - test-unit
       - validate-rust
+      - changes
 
     steps:
       - name: Setup Node
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/setup-node@v1
         with:
           node-version: 16.x
           registry-url: https://registry.npmjs.org/
 
       - name: Create dist-dev/@builder.io-qwik directory
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: |
           mkdir dist-dev/
           mkdir dist-dev/@builder.io-qwik/
           mkdir dist-dev/@builder.io-qwik/bindings/
 
       - name: Download Build Artifacts
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/download-artifact@v2
 
       - name: Print Distribution Artifacts
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: tree dist-dev-builder-io-qwik/
 
       - name: Move Distribution Artifacts
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: mv dist-dev-builder-io-qwik/* dist-dev/@builder.io-qwik/
 
       - name: Print Bindings Artifacts
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: tree dist-bindings-*/
 
       - name: Move Binding Artifacts
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: mv dist-bindings-*/* dist-dev/@builder.io-qwik/bindings/
 
       - name: Print dist-dev
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: tree dist-dev/
 
       - name: Upload Qwik Distribution Artifact
-        if: ${{ always() }}
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/upload-artifact@master
         with:
           name: builderio-qwik-distribution
@@ -457,13 +475,14 @@ jobs:
     runs-on: ubuntu-latest
 
     needs: changes
-    if: ${{ needs.changes.outputs.fullbuild == 'true' }}
 
     steps:
       - name: Checkout repository
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/checkout@v2
 
       - name: Install Rust toolchain
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions-rs/toolchain@v1
         with:
           toolchain: 1.59.0
@@ -471,6 +490,7 @@ jobs:
           override: true
 
       - name: Cache cargo dependencies
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/cache@v2
         with:
           path: |
@@ -478,30 +498,35 @@ jobs:
           key: cargo-deps-${{ runner.os }}-${{ hashFiles('Cargo.lock') }}
 
       - name: Cache cargo build
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/cache@v2
         with:
           path: target
           key: cargo-build-${{ runner.os }}-${{ hashFiles('Cargo.lock') }}
 
       - name: Format check
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions-rs/cargo@v1
         with:
           command: fmt
           args: -- --check
 
       - name: Build check
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions-rs/cargo@v1
         with:
           command: check
           args: --all-features
 
       - name: Clippy check
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions-rs/cargo@v1
         with:
           command: clippy
           args: --all-features
 
       - name: Unit tests
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions-rs/cargo@v1
         with:
           command: test

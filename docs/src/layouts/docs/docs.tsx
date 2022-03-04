@@ -1,4 +1,4 @@
-import { $, component$, Host, Slot, withScopedStyles$ } from '@builder.io/qwik';
+import { $, component$, Host, Slot, useScopedStyles$ } from '@builder.io/qwik';
 import { Header } from '../../components/header/header';
 import { Footer } from '../../components/footer/footer';
 import { SideBar } from '../../components/sidebar/sidebar';
@@ -10,7 +10,7 @@ export interface DocsLayoutProps {
 }
 
 const DocsLayout = component$((props: DocsLayoutProps) => {
-  withScopedStyles$(styles);
+  useScopedStyles$(styles);
 
   return $(async () => {
     const navIndex = await loadIndex({

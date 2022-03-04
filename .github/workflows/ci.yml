@@ -19,10 +19,35 @@ env:
   CARGO_INCREMENTAL: 0
 
 jobs:
+  changes:
+    name: Setup
+    runs-on: ubuntu-latest
+    outputs:
+      fullbuild: ${{ steps.fullbuild.outputs.fullbuild }}
+
+    steps:
+      - name: Branch
+        run: echo ${{ github.head_ref }}
+      - name: NPM Dist Tag
+        run: echo "${{ github.event.inputs.disttag }}"
+      - uses: actions/checkout@v2
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            fullbuild:
+              - 'src/**/*.(ts|tsx|js|mjs|cjs|jsx|json|toml|rs)'
+              - 'yarn.lock'
+              - 'tsconfig.json'
+      - name: Set fullbuild output
+        id: fullbuild
+        run: echo ::set-output name=fullbuild::"${{ steps.filter.outputs.fullbuild == 'true' && github.event.inputs.disttag != '' }}"
+      - name: Print fullbuild output
+        run: echo ${{ steps.fullbuild.outputs.fullbuild }}
+
   ############ BUILD PACKAGE ############
   build-package:
     name: Build Package
-    if: "!contains(github.event.head_commit.message, 'skip ci')"
     runs-on: ubuntu-latest
     steps:
       - name: Setup Node
@@ -72,16 +97,23 @@ jobs:
   ############ BUILD WASM ############
   build-wasm:
     name: Build WASM
-    if: "!contains(github.event.head_commit.message, 'skip ci')"
     runs-on: ubuntu-latest
+
+    needs: changes
+
     steps:
+      - name: Print fullbuild output
+        run: echo ${{ needs.changes.outputs.fullbuild }}
+
       - name: Setup Node
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/setup-node@v1
         with:
           node-version: 16.x
           registry-url: https://registry.npmjs.org/
 
       - name: Install Rust toolchain
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
@@ -90,15 +122,18 @@ jobs:
           target: wasm32-unknown-unknown
 
       - name: Checkout
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/checkout@v2
 
       - name: Cache NPM Dependencies
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/cache@v2
         with:
           path: node_modules
           key: npm-cache-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
 
       - name: Cache cargo dependencies
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/cache@v2
         with:
           path: |
@@ -106,21 +141,26 @@ jobs:
           key: cargo-deps-wasm-${{ runner.os }}-${{ hashFiles('Cargo.lock') }}
 
       - name: Cache cargo build
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/cache@v2
         with:
           path: src/wasm/target
           key: cargo-build-wasm-${{ runner.os }}-${{ hashFiles('./src/wasm/Cargo.lock') }}
 
       - name: Install NPM Dependencies
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
 
       - name: Build WASM
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: node scripts --wasm --set-dist-tag="${{ github.event.inputs.disttag }}"
 
       - name: Print WASM Dist Build
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: tree dist-dev/@builder.io-qwik/bindings/
 
       - name: Upload WASM Build Artifacts
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/upload-artifact@master
         with:
           name: dist-bindings-wasm
@@ -129,9 +169,7 @@ jobs:
 
   ############ BUILD PLATFORM BINDINGS ############
   build-bindings:
-    if: "!contains(github.event.head_commit.message, 'skip ci')"
     strategy:
-      fail-fast: false
       matrix:
         settings:
           - host: macos-latest
@@ -151,20 +189,27 @@ jobs:
 
     name: Build ${{ matrix.settings.target }}
     runs-on: ${{ matrix.settings.host }}
+
+    needs: changes
+
     defaults:
       run:
         working-directory: ./src/napi/
+
     steps:
       - name: Checkout
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/checkout@v2
 
       - name: Setup Node
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/setup-node@v1
         with:
           node-version: 16.x
           registry-url: https://registry.npmjs.org/
 
       - name: Install Rust toolchain
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
@@ -173,13 +218,14 @@ jobs:
           target: ${{ matrix.settings.target }}
 
       - name: Cache NPM Dependencies
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/cache@v2
         with:
           path: node_modules
           key: npm-cache-${{ matrix.settings.target }}-${{ hashFiles('yarn.lock') }}
 
       - name: Pull Latest Image
-        if: ${{ matrix.settings.docker }}
+        if: ${{ needs.changes.outputs.fullbuild == 'true' && matrix.settings.docker }}
         run: ${{ matrix.settings.docker }}
         env:
           DOCKER_REGISTRY_URL: ghcr.io
@@ -187,6 +233,7 @@ jobs:
           DOCKER_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Cache cargo dependencies
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/cache@v2
         with:
           path: |
@@ -194,24 +241,28 @@ jobs:
           key: cargo-deps-${{ matrix.settings.target }}-${{ hashFiles('Cargo.lock') }}
 
       - name: Cache cargo build
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/cache@v2
         with:
           path: target
           key: cargo-build-${{ matrix.settings.target }}-${{ hashFiles('Cargo.lock') }}
 
       - name: Setup Toolchain
-        if: ${{ matrix.settings.setup }}
+        if: ${{ needs.changes.outputs.fullbuild == 'true' && matrix.settings.setup }}
         run: ${{ matrix.settings.setup }}
         shell: bash
 
       - name: Install NPM Dependencies
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
 
       - name: Build Platform Binding
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: ${{ matrix.settings.build }}
         shell: bash
 
       - name: Upload Platform Binding Artifact
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/upload-artifact@v2
         with:
           name: dist-bindings-${{ matrix.settings.target }}
@@ -221,48 +272,57 @@ jobs:
   ############ BUILD DISTRIBUTION ############
   build-distribution:
     name: Build Distribution
-    if: "!contains(github.event.head_commit.message, 'skip ci')"
     runs-on: ubuntu-latest
+
     needs:
       - build-package
       - build-wasm
       - build-bindings
       - test-unit
       - validate-rust
+      - changes
 
     steps:
       - name: Setup Node
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/setup-node@v1
         with:
           node-version: 16.x
           registry-url: https://registry.npmjs.org/
 
       - name: Create dist-dev/@builder.io-qwik directory
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: |
           mkdir dist-dev/
           mkdir dist-dev/@builder.io-qwik/
           mkdir dist-dev/@builder.io-qwik/bindings/
 
       - name: Download Build Artifacts
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/download-artifact@v2
 
       - name: Print Distribution Artifacts
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: tree dist-dev-builder-io-qwik/
 
       - name: Move Distribution Artifacts
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: mv dist-dev-builder-io-qwik/* dist-dev/@builder.io-qwik/
 
       - name: Print Bindings Artifacts
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: tree dist-bindings-*/
 
       - name: Move Binding Artifacts
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: mv dist-bindings-*/* dist-dev/@builder.io-qwik/bindings/
 
       - name: Print dist-dev
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: tree dist-dev/
 
       - name: Upload Qwik Distribution Artifact
-        if: ${{ always() }}
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/upload-artifact@master
         with:
           name: builderio-qwik-distribution
@@ -272,11 +332,13 @@ jobs:
   ############ RELEASE ############
   release:
     name: Release
-    if: "!contains(github.event.head_commit.message, 'skip ci')"
     runs-on: ubuntu-latest
+
     needs:
       - build-distribution
       - test-e2e
+      - changes
+    if: ${{ needs.changes.outputs.fullbuild == 'true' }}
 
     steps:
       - name: Setup Node
@@ -331,8 +393,11 @@ jobs:
   ############ E2E TEST ############
   test-e2e:
     name: E2E Tests
+    needs:
+      - build-distribution
+      - changes
+
     strategy:
-      fail-fast: false
       matrix:
         settings:
           - host: ubuntu-latest
@@ -346,23 +411,25 @@ jobs:
             node: 12.x
 
     runs-on: ${{ matrix.settings.host }}
-    needs:
-      - build-distribution
 
     steps:
       - name: Setup Node ${{ matrix.settings.node }}
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.settings.node }}
           registry-url: https://registry.npmjs.org/
 
       - name: Checkout
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/checkout@v2
 
       - name: Download Build Artifacts
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/download-artifact@v2
 
       - name: Move Distribution Artifacts
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: |
           mkdir dist-dev/
           mkdir dist-dev/@builder.io-qwik/
@@ -371,27 +438,31 @@ jobs:
           mv dist-dev-create-qwik/* dist-dev/create-qwik/
 
       - name: Cache NPM Dependencies
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/cache@v2
         with:
           path: node_modules
           key: npm-cache-${{ runner.os }}-node${{ matrix.settings.node }}-${{ hashFiles('yarn.lock') }}
 
       - name: Install NPM Dependencies
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
 
       - name: Install Playwright
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: npx playwright install ${{ matrix.settings.browser }} && npx playwright install-deps ${{ matrix.settings.browser }}
 
       - name: Playwright E2E Tests
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: yarn test.e2e.${{ matrix.settings.browser }}
 
       - name: Validate Create Qwik Cli
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: node scripts/validate-cli.cjs
 
   ############ UNIT TEST ############
   test-unit:
     name: Unit Tests
-    if: "!contains(github.event.head_commit.message, 'skip ci')"
     runs-on: ubuntu-latest
     steps:
       - name: Setup Node
@@ -412,19 +483,20 @@ jobs:
       - name: Install NPM Dependencies
         run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
 
-      - name: Jest Unit Tests
-        run: yarn test.unit
-
   ########### VALIDATE RUST ############
   validate-rust:
     name: Validate Rust
-    if: "!contains(github.event.head_commit.message, 'skip ci')"
     runs-on: ubuntu-latest
+
+    needs: changes
+
     steps:
       - name: Checkout repository
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/checkout@v2
 
       - name: Install Rust toolchain
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions-rs/toolchain@v1
         with:
           toolchain: 1.59.0
@@ -432,6 +504,7 @@ jobs:
           override: true
 
       - name: Cache cargo dependencies
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/cache@v2
         with:
           path: |
@@ -439,30 +512,35 @@ jobs:
           key: cargo-deps-${{ runner.os }}-${{ hashFiles('Cargo.lock') }}
 
       - name: Cache cargo build
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/cache@v2
         with:
           path: target
           key: cargo-build-${{ runner.os }}-${{ hashFiles('Cargo.lock') }}
 
       - name: Format check
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions-rs/cargo@v1
         with:
           command: fmt
           args: -- --check
 
       - name: Build check
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions-rs/cargo@v1
         with:
           command: check
           args: --all-features
 
       - name: Clippy check
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions-rs/cargo@v1
         with:
           command: clippy
           args: --all-features
 
       - name: Unit tests
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions-rs/cargo@v1
         with:
           command: test
@@ -471,7 +549,6 @@ jobs:
   ########### LINT PACKAGE ############
   lint-package:
     name: Lint Package
-    if: "!contains(github.event.head_commit.message, 'skip ci')"
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

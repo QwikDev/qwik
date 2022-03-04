@@ -149,17 +149,18 @@ jobs:
   ############ BUILD PLATFORM BINDINGS ############
   build-bindings:
     needs: changes
-    if: ${{ needs.changes.outputs.fullbuild == 'true' }}
 
     strategy:
       fail-fast: false
       matrix:
         settings:
           - host: macos-latest
+            if: ${{ needs.changes.outputs.fullbuild == 'true' }}
             target: x86_64-apple-darwin
             build: yarn build.platform
 
           - host: macos-latest
+            if: ${{ needs.changes.outputs.fullbuild == 'true' }}
             target: aarch64-apple-darwin
             build: |
               export SDKROOT=$(xcrun -sdk macosx11.1 --show-sdk-path)
@@ -167,6 +168,7 @@ jobs:
               yarn build.platform --platform-target=aarch64-apple-darwin
 
           - host: windows-latest
+            if: ${{ needs.changes.outputs.fullbuild == 'true' }}
             target: x86_64-pc-windows-msvc
             build: yarn build.platform
 
@@ -250,8 +252,6 @@ jobs:
       - build-bindings
       - test-unit
       - validate-rust
-      - changes
-    if: ${{ needs.changes.outputs.fullbuild == 'true' }}
 
     steps:
       - name: Setup Node
@@ -300,8 +300,6 @@ jobs:
     needs:
       - build-distribution
       - test-e2e
-      - changes
-    if: ${{ needs.changes.outputs.fullbuild == 'true' }}
 
     steps:
       - name: Setup Node
@@ -361,12 +359,15 @@ jobs:
       matrix:
         settings:
           - host: ubuntu-latest
+            if: ${{ needs.changes.outputs.fullbuild == 'true' }}
             browser: chromium
             node: 16.x
           - host: macos-latest
+            if: ${{ needs.changes.outputs.fullbuild == 'true' }}
             browser: webkit
             node: 14.x
           - host: windows-latest
+            if: ${{ needs.changes.outputs.fullbuild == 'true' }}
             browser: firefox
             node: 12.x
 
@@ -375,7 +376,6 @@ jobs:
     needs:
       - build-distribution
       - changes
-    if: ${{ needs.changes.outputs.fullbuild == 'true' }}
 
     steps:
       - name: Setup Node ${{ matrix.settings.node }}

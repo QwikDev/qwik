@@ -169,7 +169,9 @@ jobs:
 
     name: Build ${{ matrix.settings.target }}
     runs-on: ${{ matrix.settings.host }}
+
     needs: changes
+    if: ${{ needs.changes.outputs.fullbuild == 'true' }}
 
     defaults:
       run:
@@ -355,6 +357,7 @@ jobs:
     needs:
       - build-distribution
       - changes
+    if: ${{ needs.changes.outputs.fullbuild == 'true' }}
 
     strategy:
       matrix:

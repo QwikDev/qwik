@@ -364,12 +364,17 @@ jobs:
           - host: ubuntu-latest
             browser: chromium
             node: 16.x
+            skip: ${{ needs.changes.outputs.fullbuild == 'true' }}
           - host: macos-latest
             browser: webkit
             node: 14.x
+            skip: ${{ needs.changes.outputs.fullbuild == 'true' }}
           - host: windows-latest
             browser: firefox
             node: 12.x
+            skip: ${{ needs.changes.outputs.fullbuild == 'true' }}
+        exclue:
+          - skip: 'true'
 
     runs-on: ${{ matrix.settings.host }}
 

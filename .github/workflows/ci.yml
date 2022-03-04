@@ -29,7 +29,7 @@ jobs:
       - name: Branch
         run: echo ${{ github.head_ref }}
       - name: NPM Dist Tag
-        run: echo ${{ github.event.inputs.disttag }}
+        run: echo "${{ github.event.inputs.disttag }}"
       - uses: actions/checkout@v2
       - uses: dorny/paths-filter@v2
         id: filter
@@ -41,7 +41,7 @@ jobs:
               - 'tsconfig.json'
       - name: Set fullbuild output
         id: fullbuild
-        run: echo ::set-output name=fullbuild::"${{ steps.filter.outputs.fullbuild }}"
+        run: echo ::set-output name=fullbuild::"${{ steps.filter.outputs.fullbuild == 'true' && github.event.inputs.disttag != '' }}"
       - name: Print fullbuild output
         run: echo ${{ steps.fullbuild.outputs.fullbuild }}
 

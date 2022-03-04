@@ -39,7 +39,7 @@ jobs:
         run: yarn lint.eslint
 
       - name: Build Package
-        run: node scripts --tsc --build --api"
+        run: node scripts --tsc --build --api
 
       - name: Build Create Qwik CLI
         run: node scripts --cli

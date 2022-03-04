@@ -188,45 +188,49 @@ export function onWindow(event: string, eventFn: QRL<() => void>): QRL<() => voi
   throw new Error('IMPLEMENT: onWindow' + eventFn);
 }
 
-// <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#withStyles">
+// <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#useStyles">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fc_nNpiLZSYugTU0c5JATJA%3Fboth#withStyles instead)
+// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fc_nNpiLZSYugTU0c5JATJA%3Fboth#useStyles instead)
 /**
+ * Refer to component styles.
+ *
  * @alpha
  */
 // </docs>
-export function withStyles(styles: QRL<string>): void {
-  _withStyles(styles, false);
+export function useStyles(styles: QRL<string>): void {
+  _useStyles(styles, false);
 }
 
-// <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#withStyles">
+// <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#useStyles">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fc_nNpiLZSYugTU0c5JATJA%3Fboth#withStyles instead)
+// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fc_nNpiLZSYugTU0c5JATJA%3Fboth#useStyles instead)
 /**
+ * Refer to component styles.
+ *
  * @alpha
  */
 // </docs>
-export const withStyles$ = implicit$FirstArg(withStyles);
+export const useStyles$ = implicit$FirstArg(useStyles);
 
-// <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#withScopedStyles">
+// <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#useScopedStyles">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fc_nNpiLZSYugTU0c5JATJA%3Fboth#withScopedStyles instead)
+// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fc_nNpiLZSYugTU0c5JATJA%3Fboth#useScopedStyles instead)
 /**
  * @alpha
  */
 // </docs>
-export function withScopedStyles(styles: QRL<string>): void {
-  _withStyles(styles, true);
+export function useScopedStyles(styles: QRL<string>): void {
+  _useStyles(styles, true);
 }
 
-// <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#withScopedStyles">
+// <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#useScopedStyles">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fc_nNpiLZSYugTU0c5JATJA%3Fboth#withScopedStyles instead)
+// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fc_nNpiLZSYugTU0c5JATJA%3Fboth#useScopedStyles instead)
 /**
  * @alpha
  */
 // </docs>
-export const withScopedStyles$ = implicit$FirstArg(withScopedStyles);
+export const useScopedStyles$ = implicit$FirstArg(useScopedStyles);
 
 /**
  * Infers `Props` from the component.
@@ -304,7 +308,7 @@ export interface ComponentOptions {
  * ```
  *
  * See also: `component`, `onUnmount`, `onHydrate`, `onDehydrate`, `onHalt`, `onResume`, `on`,
- * `onDocument`, `onWindow`, `withStyles`, `withScopedStyles`
+ * `onDocument`, `onWindow`, `useStyles`, `useScopedStyles`
  *
  * @param onMount - Initialization closure used when the component is first created.
  * @param tagName - Optional components options. It can be used to set a custom tag-name to be
@@ -393,7 +397,7 @@ export function component<PROPS extends {}>(
  * ```
  *
  * See also: `component`, `onUnmount`, `onHydrate`, `onDehydrate`, `onHalt`, `onResume`, `on`,
- * `onDocument`, `onWindow`, `withStyles`, `withScopedStyles`
+ * `onDocument`, `onWindow`, `useStyles`, `useScopedStyles`
  *
  * @param onMount - Initialization closure used when the component is first created.
  * @param tagName - Optional components options. It can be used to set a custom tag-name to be
@@ -427,7 +431,7 @@ function resolveQrl<PROPS extends {}>(
       });
 }
 
-function _withStyles(styles: QRL<string>, scoped: boolean) {
+function _useStyles(styles: QRL<string>, scoped: boolean) {
   const styleQrl = toQrlOrError(styles);
   const styleId = styleKey(styleQrl);
   const hostElement = useHostElement();

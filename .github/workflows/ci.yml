@@ -173,8 +173,8 @@ jobs:
     needs: changes
 
     defaults:
-      if: ${{ needs.changes.outputs.fullbuild == 'true' }}
       run:
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         working-directory: ./src/napi/
 
     steps:

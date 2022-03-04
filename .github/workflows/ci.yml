@@ -171,9 +171,9 @@ jobs:
     runs-on: ${{ matrix.settings.host }}
 
     needs: changes
-    if: ${{ needs.changes.outputs.fullbuild == 'true' }}
 
     defaults:
+      if: ${{ needs.changes.outputs.fullbuild == 'true' }}
       run:
         working-directory: ./src/napi/
 
@@ -364,17 +364,12 @@ jobs:
           - host: ubuntu-latest
             browser: chromium
             node: 16.x
-            skip: ${{ needs.changes.outputs.fullbuild == 'true' }}
           - host: macos-latest
             browser: webkit
             node: 14.x
-            skip: ${{ needs.changes.outputs.fullbuild == 'true' }}
           - host: windows-latest
             browser: firefox
             node: 12.x
-            skip: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        exclue:
-          - skip: 'true'
 
     runs-on: ${{ matrix.settings.host }}
 

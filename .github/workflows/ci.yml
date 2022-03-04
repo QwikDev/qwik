@@ -41,7 +41,7 @@ jobs:
               - 'tsconfig.json'
       - name: Full Build
         id: fullbuild
-        run: echo "::set-output name=fullbuild::$(steps.fullbuild.outputs.fullbuild)"
+        run: echo "::set-output name=fullbuild::${{ steps.fullbuild.outputs.fullbuild }}"
 
   ############ BUILD PACKAGE ############
   build-package:

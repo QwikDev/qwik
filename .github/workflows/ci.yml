@@ -169,7 +169,6 @@ jobs:
         exclude:
           - settings:
               - host: macos-latest
-          - settings.host: macos-latest
 
     name: Build ${{ matrix.settings.target }}
     runs-on: ${{ matrix.settings.host }}

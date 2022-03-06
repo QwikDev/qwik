@@ -44,11 +44,7 @@ export function render(
     queue: [elm],
   };
   return then(visitJsxNode(ctx, elm, jsxNode, false), () => {
-    return new Promise((resolve) => {
-      requestAnimationFrame(() => {
-        executeContext(ctx);
-        resolve(ctx);
-      });
-    });
+    executeContext(ctx);
+    return ctx;
   });
 }

@@ -34,7 +34,7 @@ function createPlatform(document: any, opts: SerializeDocumentOptions) {
       if (!queuePromise) {
         queuePromise = new Promise((resolve, reject) =>
           // Do not use process.nextTick, as this will execute at same priority as promises.
-          // We need to execute after promisees.
+          // We need to execute after promises.
           _setImmediate(() => {
             queuePromise = null;
             renderMarked(doc).then(resolve, reject);

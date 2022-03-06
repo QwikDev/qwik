@@ -4,6 +4,7 @@ import { getQComponent } from '../component/component-ctx';
 import { executeContext, getRenderStats, RenderContext } from './cursor';
 import { getContext } from '../props/props';
 import { qDev } from '../util/qdev';
+import { getPlatform } from '../index';
 
 /**
  * Mark component for rendering.
@@ -78,6 +79,7 @@ export async function renderMarked(doc: Document, state: RenderingState): Promis
   state.hostsRendering = new Set(state.hostsNext);
   state.hostsNext.clear();
 
+  const platform = getPlatform(doc);
   const renderingQueue = Array.from(state.hostsRendering);
   sortNodes(renderingQueue);
 
@@ -100,6 +102,7 @@ export async function renderMarked(doc: Document, state: RenderingState): Promis
 
   if (qDev) {
     const stats = getRenderStats(ctx);
+    // eslint-disable-next-line no-console
     console.log('Render stats', stats);
   }
 
@@ -109,12 +112,10 @@ export async function renderMarked(doc: Document, state: RenderingState): Promis
     return ctx;
   }
 
-  return new Promise((resolve) => {
-    requestAnimationFrame(() => {
-      executeContext(ctx);
-      postRendering(doc, state);
-      resolve(ctx);
-    });
+  return platform.queueRender(async () => {
+    executeContext(ctx);
+    postRendering(doc, state);
+    return ctx;
   });
 }
 

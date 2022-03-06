@@ -39,7 +39,7 @@ export interface ComponentOptions {
 export interface CorePlatform {
     chunkForSymbol: (symbolName: string) => string | undefined;
     importSymbol: (element: Element, url: string | URL, symbol: string) => Promise<any>;
-    queueRender: (renderMarked: (doc: Document) => Promise<any>) => Promise<any>;
+    queueRender: (renderMarked: (doc: Document) => any) => Promise<any>;
     queueStoreFlush: (flushStore: (doc: Document) => Promise<any>) => Promise<any>;
 }
 

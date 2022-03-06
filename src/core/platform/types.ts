@@ -10,7 +10,7 @@ export interface CorePlatform {
    * Platform specific queue, such as process.nextTick() for Node
    * and requestAnimationFrame() for the browser.
    */
-  queueRender: (renderMarked: (doc: Document) => Promise<any>) => Promise<any>;
+  queueRender: (renderMarked: (doc: Document) => any) => Promise<any>;
   /**
    * Platform specific queue, such as process.nextTick() for Node
    * and requestAnimationFrame() for the browser.

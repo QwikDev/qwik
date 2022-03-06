@@ -1,8 +1,9 @@
 import { assertDefined, assertEqual } from '../assert/assert';
 import { QHostAttr } from '../util/markers';
 import { getQComponent } from '../component/component-ctx';
-import { executeContext, RenderContext } from './cursor';
+import { executeContext, getRenderStats, RenderContext } from './cursor';
 import { getContext } from '../props/props';
+import { qDev } from '../util/qdev';
 
 /**
  * Mark component for rendering.
@@ -34,11 +35,19 @@ export function notifyRender(hostElement: Element) {
     state.hostsStaging.add(hostElement);
   } else {
     state.hostsNext.add(hostElement);
-    if (state.timeout === undefined) {
-      state.timeout = setTimeout(() => renderMarked(doc, state));
-    }
+    scheduleFrame(doc, state);
   }
   return state.renderPromise;
+}
+
+export function scheduleFrame(doc: Document, state: RenderingState) {
+  if (state.timeout === undefined) {
+    state.timeout = setTimeout(() => {
+      assertEqual(state.renderPromise, undefined);
+      assertDefined(state.timeout);
+      return (state.renderPromise = renderMarked(doc, state));
+    });
+  }
 }
 
 const SCHEDULE = Symbol();
@@ -65,23 +74,7 @@ export function getRenderingState(doc: Document): RenderingState {
   return set;
 }
 
-export function renderMarked(doc: Document, state: RenderingState): Promise<RenderContext> {
-  assertEqual(state.renderPromise, undefined);
-  assertDefined(state.timeout);
-
-  // Move elements from staging to nextRender
-  state.hostsStaging.forEach((el) => {
-    state.hostsNext.add(el);
-  });
-
-  // Clear elements
-  state.hostsStaging.clear();
-
-  state.timeout = undefined;
-  return (state.renderPromise = _renderMarked(doc, state));
-}
-
-export async function _renderMarked(doc: Document, state: RenderingState): Promise<RenderContext> {
+export async function renderMarked(doc: Document, state: RenderingState): Promise<RenderContext> {
   state.hostsRendering = new Set(state.hostsNext);
   state.hostsNext.clear();
 
@@ -91,9 +84,11 @@ export async function _renderMarked(doc: Document, state: RenderingState): Promi
   const ctx: RenderContext = {
     doc,
     operations: [],
+    queue: renderingQueue,
     component: undefined,
     hostElements: new Set(),
     globalState: state,
+    perf: [],
   };
 
   for (const el of renderingQueue) {
@@ -103,13 +98,42 @@ export async function _renderMarked(doc: Document, state: RenderingState): Promi
     }
   }
 
+  if (qDev) {
+    const stats = getRenderStats(ctx);
+    console.log('Render stats', stats);
+  }
+
+  // Early exist, no dom operations
+  if (ctx.operations.length === 0) {
+    postRendering(doc, state);
+    return ctx;
+  }
+
   return new Promise((resolve) => {
     requestAnimationFrame(() => {
-      state.renderPromise = undefined;
       executeContext(ctx);
+      postRendering(doc, state);
       resolve(ctx);
     });
   });
+}
+
+function postRendering(doc: Document, state: RenderingState) {
+  // Move elements from staging to nextRender
+  state.hostsStaging.forEach((el) => {
+    state.hostsNext.add(el);
+  });
+
+  // Clear staging
+  state.hostsStaging.clear();
+
+  // Allow new frames
+  state.renderPromise = undefined;
+  state.timeout = undefined;
+
+  if (state.hostsNext.size > 0) {
+    scheduleFrame(doc, state);
+  }
 }
 
 function sortNodes(elements: Element[]) {

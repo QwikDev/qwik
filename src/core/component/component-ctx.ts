@@ -1,5 +1,5 @@
 import { assertDefined } from '../assert/assert';
-import type { RenderContext } from '../render/cursor';
+import { RenderContext, startEvent } from '../render/cursor';
 import { visitJsxNode } from '../render/render';
 import { ComponentScopedStyles, OnRenderProp } from '../util/markers';
 import { then } from '../util/promises';
@@ -26,6 +26,7 @@ export class QComponentCtx {
   }
 
   render(ctx: RenderContext): ValueOrPromise<HTMLElement> {
+    startEvent(ctx, 'Render Component ${}');
     const hostElement = this.hostElement;
     const onRender = getEvent(this.ctx, OnRenderProp) as any as () => JSXNode;
     assertDefined(onRender);

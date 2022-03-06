@@ -8,118 +8,18 @@ import { promiseAll, then } from '../util/promises';
 import type { RenderingState } from './notify-render';
 import { assertEqual } from '../assert/assert';
 import { NodeType } from '../util/types';
-type PropHandler = (el: HTMLElement, key: string, newValue: any, oldValue: any) => boolean;
 
-const noop: PropHandler = () => {
-  return true;
-};
+type NonUndefined<T> = T extends undefined ? never : T;
 
-const handleStyle: PropHandler = (elm, _, newValue, oldValue) => {
-  if (typeof newValue == 'string') {
-    elm.style.cssText = newValue;
-  } else {
-    for (const prop in oldValue) {
-      if (!newValue || newValue[prop] == null) {
-        if (prop.includes('-')) {
-          elm.style.removeProperty(prop);
-        } else {
-          (elm as any).style[prop] = '';
-        }
-      }
-    }
+type KeyToIndexMap = { [key: string]: number };
 
-    for (const prop in newValue) {
-      if (!oldValue || newValue[prop] !== oldValue[prop]) {
-        if (prop.includes('-')) {
-          elm.style.setProperty(prop, newValue[prop]);
-        } else {
-          (elm as any).style[prop] = newValue[prop];
-        }
-      }
-    }
-  }
-  return true;
-};
-
-const PROP_HANDLER_MAP: Record<string, PropHandler> = {
-  class: noop,
-  style: handleStyle,
-};
-
-const ALLOWS_PROPS = ['className', 'class', 'style', 'id', 'title'];
-
-export function updateProperties(
-  rctx: RenderContext,
-  node: Element,
-  expectProps: Record<string, any>,
-  isSvg: boolean
-) {
-  const ctx = getContext(node);
-  const qwikProps = OnRenderProp in expectProps ? getProps(ctx) : undefined;
-
-  if ('class' in expectProps) {
-    const className = expectProps.class;
-    expectProps.className =
-      className && typeof className == 'object'
-        ? Object.keys(className)
-            .filter((k) => className[k])
-            .join(' ')
-        : className;
-  }
-
-  for (const key of Object.keys(expectProps)) {
-    if (key === 'children') {
-      continue;
-    }
-    const newValue = expectProps[key];
-
-    if (isOnProp(key)) {
-      setEvent(ctx, key, newValue);
-      continue;
-    }
-    if (isOn$Prop(key)) {
-      setEvent(ctx, key.replace('$', ''), $(newValue));
-      continue;
-    }
-
-    // Early exit if value didnt change
-    const oldValue = ctx.cache.get(key);
-    if (newValue === oldValue) {
-      continue;
-    }
-    ctx.cache.set(key, newValue);
-
-    const skipQwik = ALLOWS_PROPS.includes(key) || key.startsWith('h:');
-    if (qwikProps && !skipQwik) {
-      // Qwik props
-      qwikProps[key] = newValue;
-    } else {
-      // Check of data- or aria-
-      if (key.startsWith('data-') || key.endsWith('aria-') || isSvg) {
-        setAttribute(rctx, node, key, newValue);
-        continue;
-      }
-
-      // Check if its an exception
-      const exception = PROP_HANDLER_MAP[key];
-      if (exception) {
-        if (exception(node as HTMLElement, key, newValue, oldValue)) {
-          continue;
-        }
-      }
-
-      // Check if property in prototype
-      if (key in node) {
-        setProperty(rctx, node, key, newValue);
-        continue;
-      }
-
-      // Fallback to render attribute
-      setAttribute(rctx, node, key, newValue);
-    }
-  }
-  return ctx.dirty;
-}
+type PropHandler = (
+  ctx: RenderContext,
+  el: HTMLElement,
+  key: string,
+  newValue: any,
+  oldValue: any
+) => boolean;
 
 interface RenderOperation {
   el: Node;
@@ -130,177 +30,18 @@ interface RenderOperation {
 
 export interface RenderContext {
   doc: Document;
+  queue: Element[];
   hostElements: Set<Element>;
   operations: RenderOperation[];
   component?: QComponentCtx;
   globalState: RenderingState;
+  perf: PerfEvent[];
 }
 
-function setAttribute(ctx: RenderContext, el: Element, prop: string, value: string | null) {
-  const fn = () => {
-    if (value == null) {
-      el.removeAttribute(prop);
-    } else {
-      el.setAttribute(prop, String(value));
-    }
-  };
-  ctx.operations.push({
-    el,
-    operation: 'set-attribute',
-    args: [prop, value],
-    fn,
-  });
-}
-
-function setProperty(ctx: RenderContext, node: any, key: string, value: any) {
-  const fn = () => {
-    try {
-      node[key] = value;
-    } catch (err) {
-      console.error(err);
-    }
-  };
-  ctx.operations.push({
-    el: node,
-    operation: 'set-property',
-    args: [key, value],
-    fn,
-  });
-}
-
-function createElement(ctx: RenderContext, expectTag: string, isSvg: boolean): Element {
-  const el = isSvg ? ctx.doc.createElementNS(SVG_NS, expectTag) : ctx.doc.createElement(expectTag);
-  ctx.operations.push({
-    el,
-    operation: 'create-element',
-    args: [expectTag],
-    fn: () => {},
-  });
-  return el;
-}
-
-function insertBefore<T extends Node>(
-  ctx: RenderContext,
-  parent: Node,
-  newChild: T,
-  refChild: Node | null
-): T {
-  const fn = () => {
-    parent.insertBefore(newChild, refChild ? refChild : null);
-  };
-  ctx.operations.push({
-    el: parent,
-    operation: 'insert-before',
-    args: [newChild, refChild],
-    fn,
-  });
-  return newChild;
-}
-
-function appendChild<T extends Node>(ctx: RenderContext, parent: Node, newChild: T): T {
-  const fn = () => {
-    parent.appendChild(newChild);
-  };
-  ctx.operations.push({
-    el: parent,
-    operation: 'append-child',
-    args: [newChild],
-    fn,
-  });
-  return newChild;
-}
-
-function setTextContent(ctx: RenderContext, el: Node, text: string | null): void {
-  const fn = () => {
-    el.textContent = text;
-  };
-  ctx.operations.push({
-    el,
-    operation: 'set-text-content',
-    args: [text],
-    fn,
-  });
-}
-
-function removeNode(ctx: RenderContext, parent: Node, el: Node) {
-  const fn = () => {
-    parent.removeChild(el);
-  };
-  ctx.operations.push({
-    el: parent,
-    operation: 'remove',
-    args: [el],
-    fn,
-  });
-}
-
-function createTextNode(ctx: RenderContext, text: string): Text {
-  return ctx.doc.createTextNode(text);
-}
-
-export function executeContext(ctx: RenderContext) {
-  for (const op of ctx.operations) {
-    op.fn();
-  }
-  const stats = getRenderStats(ctx);
-  // eslint-disable-next-line no-console
-  console.log('ExecuteContext', stats);
-}
-
-export function getRenderStats(ctx: RenderContext) {
-  const byOp: Record<string, number> = {};
-  for (const op of ctx.operations) {
-    byOp[op.operation] = (byOp[op.operation] ?? 0) + 1;
-  }
-  const affectedElements = Array.from(new Set(ctx.operations.map((a) => a.el)));
-  const stats = {
-    total: ctx.operations.length,
-    byOp,
-    hostElements: Array.from(ctx.hostElements),
-    affectedElements,
-    operations: ctx.operations.map((v) => [v.operation, v.el, ...v.args]),
-  };
-  return stats;
-}
-
-type KeyToIndexMap = { [key: string]: number };
-
-function createKeyToOldIdx(children: Node[], beginIdx: number, endIdx: number): KeyToIndexMap {
-  const map: KeyToIndexMap = {};
-  for (let i = beginIdx; i <= endIdx; ++i) {
-    const child = children[i];
-    if (child.nodeType == NodeType.ELEMENT_NODE) {
-      const key = getKey(child as Element);
-      if (key !== undefined) {
-        map[key as string] = i;
-      }
-    }
-  }
-  return map;
-}
-
-const KEY_SYMBOL = Symbol('vnode key');
-
-function getKey(el: Element): string | null {
-  let key = (el as any)[KEY_SYMBOL];
-  if (key === undefined) {
-    key = (el as any)[KEY_SYMBOL] = el.getAttribute('q:key');
-  }
-  return key;
-}
-
-function setKey(el: Element, key: string | null) {
-  if (typeof key === 'string') {
-    el.setAttribute('q:key', key);
-  }
-  (el as any)[KEY_SYMBOL] = key;
-}
-
-function sameVnode(vnode1: Node, vnode2: JSXNode): boolean {
-  const isSameSel = vnode1.nodeName.toLowerCase() === vnode2.type;
-  const isSameKey =
-    vnode1.nodeType === NodeType.ELEMENT_NODE ? getKey(vnode1 as Element) === vnode2.key : true;
-  return isSameSel && isSameKey;
+export interface PerfEvent {
+  name: string;
+  timeStart: number;
+  timeEnd: number;
 }
 
 export function updateChildren(
@@ -450,15 +191,6 @@ export function patchVnode(
   }
 }
 
-function isUndef(s: any): s is undefined {
-  return s === undefined;
-}
-type NonUndefined<T> = T extends undefined ? never : T;
-
-function isDef<A>(s: A): s is NonUndefined<A> {
-  return s !== undefined;
-}
-
 function addVnodes(
   ctx: RenderContext,
   parentElm: Node,
@@ -533,4 +265,324 @@ function createElm(ctx: RenderContext, vnode: JSXNode, isSvg: boolean): ValueOrP
     }
     return elm;
   });
+}
+
+const handleStyle: PropHandler = (ctx, elm, _, newValue, oldValue) => {
+  // TODO, needs reimplementation
+  if (typeof newValue == 'string') {
+    elm.style.cssText = newValue;
+  } else {
+    for (const prop in oldValue) {
+      if (!newValue || newValue[prop] == null) {
+        if (prop.includes('-')) {
+          styleSetProperty(ctx, elm, prop, null);
+        } else {
+          setProperty(ctx, elm.style, prop, '');
+        }
+      }
+    }
+
+    for (const prop in newValue) {
+      const value = newValue[prop];
+      if (!oldValue || value !== oldValue[prop]) {
+        if (prop.includes('-')) {
+          styleSetProperty(ctx, elm, prop, value);
+        } else {
+          setProperty(ctx, elm.style, prop, value);
+        }
+      }
+    }
+  }
+  return true;
+};
+
+const checkBeforeAssign: PropHandler = (ctx, elm, prop, newValue) => {
+  if (prop in elm) {
+    if ((elm as any)[prop] !== newValue) {
+      setProperty(ctx, elm, prop, newValue);
+    }
+  }
+  return true;
+};
+
+const PROP_HANDLER_MAP: Record<string, PropHandler> = {
+  style: handleStyle,
+  value: checkBeforeAssign,
+  checked: checkBeforeAssign,
+};
+
+const ALLOWS_PROPS = ['className', 'style', 'id', 'title'];
+
+export function updateProperties(
+  rctx: RenderContext,
+  node: Element,
+  expectProps: Record<string, any>,
+  isSvg: boolean
+) {
+  const ctx = getContext(node);
+  const qwikProps = OnRenderProp in expectProps ? getProps(ctx) : undefined;
+
+  if ('class' in expectProps) {
+    const className = expectProps.class;
+    expectProps.className =
+      className && typeof className == 'object'
+        ? Object.keys(className)
+            .filter((k) => className[k])
+            .join(' ')
+        : className;
+  }
+  // TODO
+  // when a proper disappears, we cant reset the value
+
+  for (const key of Object.keys(expectProps)) {
+    if (key === 'children' || key === 'class') {
+      continue;
+    }
+    const newValue = expectProps[key];
+
+    if (isOnProp(key)) {
+      setEvent(ctx, key, newValue);
+      continue;
+    }
+    if (isOn$Prop(key)) {
+      setEvent(ctx, key.replace('$', ''), $(newValue));
+      continue;
+    }
+
+    // Early exit if value didnt change
+    const oldValue = ctx.cache.get(key);
+    if (newValue === oldValue) {
+      continue;
+    }
+    ctx.cache.set(key, newValue);
+
+    const skipQwik = ALLOWS_PROPS.includes(key) || key.startsWith('h:');
+    if (qwikProps && !skipQwik) {
+      // Qwik props
+      qwikProps[key] = newValue;
+    } else {
+      // Check of data- or aria-
+      if (key.startsWith('data-') || key.endsWith('aria-') || isSvg) {
+        setAttribute(rctx, node, key, newValue);
+        continue;
+      }
+
+      // Check if its an exception
+      const exception = PROP_HANDLER_MAP[key];
+      if (exception) {
+        if (exception(rctx, node as HTMLElement, key, newValue, oldValue)) {
+          continue;
+        }
+      }
+
+      // Check if property in prototype
+      if (key in node) {
+        setProperty(rctx, node, key, newValue);
+        continue;
+      }
+
+      // Fallback to render attribute
+      setAttribute(rctx, node, key, newValue);
+    }
+  }
+  return ctx.dirty;
+}
+
+export const startEvent = (ctx: RenderContext, name: string) => {
+  const event: PerfEvent = {
+    name,
+    timeStart: performance.now(),
+    timeEnd: 0,
+  };
+  ctx.perf.push(event);
+  return () => {
+    event.timeEnd = performance.now();
+  };
+};
+
+function setAttribute(ctx: RenderContext, el: Element, prop: string, value: string | null) {
+  const fn = () => {
+    if (value == null) {
+      el.removeAttribute(prop);
+    } else {
+      el.setAttribute(prop, String(value));
+    }
+  };
+  ctx.operations.push({
+    el,
+    operation: 'set-attribute',
+    args: [prop, value],
+    fn,
+  });
+}
+
+function styleSetProperty(ctx: RenderContext, el: HTMLElement, prop: string, value: string | null) {
+  const fn = () => {
+    if (value == null) {
+      el.style.removeProperty(prop);
+    } else {
+      el.style.setProperty(prop, String(value));
+    }
+  };
+  ctx.operations.push({
+    el,
+    operation: 'style-set-property',
+    args: [prop, value],
+    fn,
+  });
+}
+
+function setProperty(ctx: RenderContext, node: any, key: string, value: any) {
+  const fn = () => {
+    try {
+      node[key] = value;
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  ctx.operations.push({
+    el: node,
+    operation: 'set-property',
+    args: [key, value],
+    fn,
+  });
+}
+
+function createElement(ctx: RenderContext, expectTag: string, isSvg: boolean): Element {
+  const el = isSvg ? ctx.doc.createElementNS(SVG_NS, expectTag) : ctx.doc.createElement(expectTag);
+  ctx.operations.push({
+    el,
+    operation: 'create-element',
+    args: [expectTag],
+    fn: () => {},
+  });
+  return el;
+}
+
+function insertBefore<T extends Node>(
+  ctx: RenderContext,
+  parent: Node,
+  newChild: T,
+  refChild: Node | null
+): T {
+  const fn = () => {
+    parent.insertBefore(newChild, refChild ? refChild : null);
+  };
+  ctx.operations.push({
+    el: parent,
+    operation: 'insert-before',
+    args: [newChild, refChild],
+    fn,
+  });
+  return newChild;
+}
+
+function appendChild<T extends Node>(ctx: RenderContext, parent: Node, newChild: T): T {
+  const fn = () => {
+    parent.appendChild(newChild);
+  };
+  ctx.operations.push({
+    el: parent,
+    operation: 'append-child',
+    args: [newChild],
+    fn,
+  });
+  return newChild;
+}
+
+function setTextContent(ctx: RenderContext, el: Node, text: string | null): void {
+  const fn = () => {
+    el.textContent = text;
+  };
+  ctx.operations.push({
+    el,
+    operation: 'set-text-content',
+    args: [text],
+    fn,
+  });
+}
+
+function removeNode(ctx: RenderContext, parent: Node, el: Node) {
+  const fn = () => {
+    parent.removeChild(el);
+  };
+  ctx.operations.push({
+    el: parent,
+    operation: 'remove',
+    args: [el],
+    fn,
+  });
+}
+
+function createTextNode(ctx: RenderContext, text: string): Text {
+  return ctx.doc.createTextNode(text);
+}
+
+export function executeContext(ctx: RenderContext) {
+  for (const op of ctx.operations) {
+    op.fn();
+  }
+}
+
+export function getRenderStats(ctx: RenderContext) {
+  const byOp: Record<string, number> = {};
+  for (const op of ctx.operations) {
+    byOp[op.operation] = (byOp[op.operation] ?? 0) + 1;
+  }
+  const affectedElements = Array.from(new Set(ctx.operations.map((a) => a.el)));
+  const stats = {
+    total: ctx.operations.length,
+    byOp,
+    queue: ctx.queue,
+    hostElements: Array.from(ctx.hostElements),
+    affectedElements,
+    operations: ctx.operations.map((v) => [v.operation, v.el, ...v.args]),
+  };
+  return stats;
+}
+
+function createKeyToOldIdx(children: Node[], beginIdx: number, endIdx: number): KeyToIndexMap {
+  const map: KeyToIndexMap = {};
+  for (let i = beginIdx; i <= endIdx; ++i) {
+    const child = children[i];
+    if (child.nodeType == NodeType.ELEMENT_NODE) {
+      const key = getKey(child as Element);
+      if (key !== undefined) {
+        map[key as string] = i;
+      }
+    }
+  }
+  return map;
+}
+
+const KEY_SYMBOL = Symbol('vnode key');
+
+function getKey(el: Element): string | null {
+  let key = (el as any)[KEY_SYMBOL];
+  if (key === undefined) {
+    key = (el as any)[KEY_SYMBOL] = el.getAttribute('q:key');
+  }
+  return key;
+}
+
+function setKey(el: Element, key: string | null) {
+  if (typeof key === 'string') {
+    el.setAttribute('q:key', key);
+  }
+  (el as any)[KEY_SYMBOL] = key;
+}
+
+function sameVnode(vnode1: Node, vnode2: JSXNode): boolean {
+  const isSameSel = vnode1.nodeName.toLowerCase() === vnode2.type;
+  const isSameKey =
+    vnode1.nodeType === NodeType.ELEMENT_NODE ? getKey(vnode1 as Element) === vnode2.key : true;
+  return isSameSel && isSameKey;
+}
+
+function isUndef(s: any): s is undefined {
+  return s === undefined;
+}
+
+function isDef<A>(s: A): s is NonUndefined<A> {
+  return s !== undefined;
 }

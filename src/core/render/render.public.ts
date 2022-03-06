@@ -33,14 +33,16 @@ export function render(
     firstChild = firstChild.nextSibling;
   }
   const doc = isDocument(parent) ? parent : parent.ownerDocument;
+  const elm = isDocument(parent) ? parent.documentElement : parent;
   const ctx: RenderContext = {
     operations: [],
     doc,
     component: undefined,
     hostElements: new Set(),
     globalState: getRenderingState(doc),
+    perf: [],
+    queue: [elm],
   };
-  const elm = isDocument(parent) ? parent.documentElement : parent;
   return then(visitJsxNode(ctx, elm, jsxNode, false), () => {
     return new Promise((resolve) => {
       requestAnimationFrame(() => {

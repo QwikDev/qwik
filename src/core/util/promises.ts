@@ -40,10 +40,10 @@ export const then = <T, B>(
   return isPromise(promise) ? promise.then(thenFn) : thenFn(promise);
 };
 
-export const promiseAll = <T extends any[]> (promises: T): ValueOrPromise<T> => {
+export const promiseAll = <T extends any[]>(promises: T): ValueOrPromise<T> => {
   const hasPromise = promises.some(isPromise);
   if (hasPromise) {
     return Promise.all(promises);
   }
   return promises;
-}
+};

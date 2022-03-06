@@ -1,9 +1,8 @@
-import { assertDefined } from '../assert/assert';
-import { getPlatform } from '../platform/platform';
-import type { HostElements } from './types';
+import { assertDefined, assertEqual } from '../assert/assert';
 import { QHostAttr } from '../util/markers';
 import { getQComponent } from '../component/component-ctx';
-import type { RenderContext } from './cursor';
+import { executeContext, RenderContext } from './cursor';
+import { getContext } from '../props/props';
 
 /**
  * Mark component for rendering.
@@ -21,49 +20,98 @@ import type { RenderContext } from './cursor';
  */
 // TODO(misko): tests
 // TODO(misko): this should take QComponent as well.
-export function notifyRender(hostElement: Element): Promise<void> {
+export function notifyRender(hostElement: Element) {
   assertDefined(hostElement.getAttribute(QHostAttr));
-  getScheduled(hostElement.ownerDocument).add(hostElement);
-  return scheduleRender(hostElement.ownerDocument) as any;
+  const ctx = getContext(hostElement);
+  const doc = hostElement.ownerDocument;
+  const state = getRenderingState(doc);
+  if (ctx.dirty) {
+    return state.renderPromise;
+  }
+  ctx.dirty = true;
+  const activeRendering = !!state.renderPromise;
+  if (activeRendering) {
+    state.hostsStaging.add(hostElement);
+  } else {
+    state.hostsNext.add(hostElement);
+    if (state.timeout === undefined) {
+      state.timeout = setTimeout(() => renderMarked(doc, state));
+    }
+  }
+  return state.renderPromise;
 }
 
 const SCHEDULE = Symbol();
-export function getScheduled(doc: Document): Set<Element> {
-  let set = (doc as any)[SCHEDULE];
+
+export interface RenderingState {
+  hostsNext: Set<Element>;
+  hostsStaging: Set<Element>;
+  hostsRendering: Set<Element> | undefined;
+  renderPromise: Promise<RenderContext> | undefined;
+  timeout: any;
+}
+
+export function getRenderingState(doc: Document): RenderingState {
+  let set = (doc as any)[SCHEDULE] as RenderingState;
   if (!set) {
-    set = (doc as any)[SCHEDULE] = new Set();
+    (doc as any)[SCHEDULE] = set = {
+      hostsNext: new Set(),
+      hostsStaging: new Set(),
+      renderPromise: undefined,
+      timeout: undefined,
+      hostsRendering: undefined,
+    };
   }
   return set;
 }
 
-/**
- * Schedule rendering for the future.
- *
- * Multiple calls to this function result in a single `rAF` scheduling creating coalescence.
- *
- * Rendering is achieved by `querySelectorAll` looking for all `on:q-render` attributes.
- *
- * @returns a `Promise` of all of the `HostElements` which were re-rendered.
- * @internal
- */
-export function scheduleRender(doc: Document): Promise<HostElements> {
-  return getPlatform(doc).queueRender(renderMarked);
+export function renderMarked(doc: Document, state: RenderingState): Promise<RenderContext> {
+  assertEqual(state.renderPromise, undefined);
+  assertDefined(state.timeout);
+
+  // Move elements from staging to nextRender
+  state.hostsStaging.forEach((el) => {
+    state.hostsNext.add(el);
+  });
+
+  // Clear elements
+  state.hostsStaging.clear();
+
+  state.timeout = undefined;
+  return (state.renderPromise = _renderMarked(doc, state));
 }
 
-export async function renderMarked(doc: Document) {
-  const set = getScheduled(doc);
-  // const hosts = Array.from(set) as HostElements;
-  set.clear();
-  console.log('re-rendering');
-  // const ctx: RenderContext = {
-  //   render: false,
-  //   operations: [],
-  //   doc,
-  // };
-  // return Promise.all(
-  //   hosts.map((hostElement) => {
-  //     const cmp = getQComponent(hostElement);
-  //     return cmp && cmp.render(ctx);
-  //   })
-  // );
+export async function _renderMarked(doc: Document, state: RenderingState): Promise<RenderContext> {
+  state.hostsRendering = new Set(state.hostsNext);
+  state.hostsNext.clear();
+
+  const renderingQueue = Array.from(state.hostsRendering);
+  sortNodes(renderingQueue);
+
+  const ctx: RenderContext = {
+    doc,
+    operations: [],
+    component: undefined,
+    hostElements: new Set(),
+    globalState: state,
+  };
+
+  for (const el of renderingQueue) {
+    if (!ctx.hostElements.has(el)) {
+      const cmp = getQComponent(el)!;
+      await cmp.render(ctx);
+    }
+  }
+
+  return new Promise((resolve) => {
+    requestAnimationFrame(() => {
+      state.renderPromise = undefined;
+      executeContext(ctx);
+      resolve(ctx);
+    });
+  });
+}
+
+function sortNodes(elements: Element[]) {
+  elements.sort((a, b) => (a.compareDocumentPosition(b) & 2 ? 1 : -1));
 }

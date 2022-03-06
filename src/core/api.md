@@ -50,12 +50,12 @@ export function createStore<STATE extends {}>(initialState: STATE): STATE;
 export function dehydrate(document: Document): void;
 
 // @public (undocumented)
-export const Fragment: any;
+export const Fragment: FunctionComponent;
 
 // @public (undocumented)
 export interface FunctionComponent<P = {}> {
     // (undocumented)
-    (props: P): JSXNode | null;
+    (props: P, children: JSXNode[] | undefined, key?: string): JSXNode | null;
 }
 
 // @public (undocumented)
@@ -117,17 +117,23 @@ export type JSXFactory<T, PROPS extends {} = any> = (props: PROPS, state?: any) 
 // @public (undocumented)
 export interface JSXNode<T = any> {
     // (undocumented)
-    children: ComponentChild[];
+    children: JSXNode[] | undefined;
     // (undocumented)
-    key: string | number | any;
+    elm?: Node;
+    // (undocumented)
+    key: string | null;
     // (undocumented)
     props: any;
+    // (undocumented)
+    text?: string;
     // (undocumented)
     type: T;
 }
 
+// Warning: (ae-forgotten-export) The symbol "RenderContext" needs to be exported by the entry point index.d.ts
+//
 // @public
-export function notifyRender(hostElement: Element): Promise<void>;
+export function notifyRender(hostElement: Element): Promise<RenderContext> | undefined;
 
 // @public
 export interface Observer {
@@ -257,7 +263,7 @@ export namespace QwikJSX {
 }
 
 // @public
-export function render(parent: Element | Document, jsxNode: JSXNode<unknown> | FunctionComponent<any>): Promise<HTMLElement[]>;
+export function render(parent: Element | Document, jsxNode: JSXNode<unknown> | FunctionComponent<any>): ValueOrPromise<RenderContext>;
 
 // @public (undocumented)
 export type RenderableProps<P, RefType = any> = P & Readonly<{

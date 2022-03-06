@@ -1,10 +1,6 @@
 import { Host } from '../index';
 import type { ValueOrPromise } from '../util/types';
-import {
-  RenderContext,
-  updateChildren,
-  updateProperties,
-} from './cursor';
+import { RenderContext, updateChildren, updateProperties } from './cursor';
 import type { JSXNode } from './jsx/types/jsx-node';
 export type ComponentRenderQueue = Promise<HTMLElement[]>[];
 
@@ -12,7 +8,7 @@ export function visitJsxNode(
   ctx: RenderContext,
   elm: Element,
   jsxNode: JSXNode | JSXNode[],
-  isSvg: boolean,
+  isSvg: boolean
 ): ValueOrPromise<any> {
   if (Array.isArray(jsxNode)) {
     return updateChildren(ctx, elm, Array.from(elm.childNodes), jsxNode.flat(), isSvg);

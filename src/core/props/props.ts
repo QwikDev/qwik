@@ -28,9 +28,9 @@ export interface QContext {
   cache: Map<string, any>;
   refMap: QObjectMap;
   element: Element;
-  id: string | undefined;
+  dirty: boolean;
   props: Record<string, any> | undefined;
-  events?: QContextEvents;
+  events: QContextEvents | undefined;
 }
 
 export function getContext(element: Element): QContext {
@@ -43,8 +43,9 @@ export function getContext(element: Element): QContext {
       element,
       cache,
       refMap: newQObjectMap(element),
-      id: undefined,
+      dirty: false,
       props: undefined,
+      events: undefined,
     };
   }
   return ctx;

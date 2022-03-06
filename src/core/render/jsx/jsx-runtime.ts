@@ -1,4 +1,3 @@
-import { EMPTY_ARRAY } from '../../util/flyweight';
 import type { FunctionComponent, JSXNode } from './types/jsx-node';
 import type { QwikJSX } from './types/jsx-qwik';
 import { qDev } from '../../util/qdev';
@@ -19,7 +18,7 @@ export class JSXNodeImpl<T> implements JSXNode<T> {
   children: JSXNode[] | undefined;
   text?: string | undefined = undefined;
 
-  constructor(public type: T, public props: any, public key: any) {
+  constructor(public type: T, public props: any, public key: string | null = null) {
     if (props) {
       const children = processNode(props.children);
       if (children !== undefined) {
@@ -46,8 +45,8 @@ function processNode(node: any): JSXNode[] | JSXNode | undefined {
       return node;
     }
   } else if (Array.isArray(node)) {
-    return node.flatMap(processNode).filter(e => e != null) as JSXNode[];
-  } else if (typeof node === 'string' || typeof node === 'number'  || typeof node === 'boolean') {
+    return node.flatMap(processNode).filter((e) => e != null) as JSXNode[];
+  } else if (typeof node === 'string' || typeof node === 'number' || typeof node === 'boolean') {
     const newNode = new JSXNodeImpl('#text', null, null);
     newNode.text = String(node);
     return newNode;

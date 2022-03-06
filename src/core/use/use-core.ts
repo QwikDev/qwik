@@ -107,7 +107,7 @@ export function getHostElement(el: Element): Element | null {
     if (isSlot) {
       foundSlot = true;
     }
-    node = el.parentElement;
+    node = node.parentElement;
   }
   return node;
 }

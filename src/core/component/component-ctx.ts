@@ -26,11 +26,12 @@ export class QComponentCtx {
   }
 
   render(ctx: RenderContext): ValueOrPromise<HTMLElement> {
-    console.log('RENDERING');
     const hostElement = this.hostElement;
     const onRender = getEvent(this.ctx, OnRenderProp) as any as () => JSXNode;
     assertDefined(onRender);
     const event = 'qRender';
+    this.ctx.dirty = false;
+    ctx.globalState.hostsStaging.delete(hostElement);
     const promise = useInvoke(newInvokeContext(hostElement, hostElement, event), onRender);
     return then(promise, (jsxNode) => {
       jsxNode = (jsxNode as any)[0];
@@ -42,7 +43,12 @@ export class QComponentCtx {
           this.styleClass = styleContent(scopedStyleId);
         }
       }
-      return visitJsxNode(ctx, hostElement, jsxNode, false);
+      ctx.hostElements.add(hostElement);
+      const newCtx: RenderContext = {
+        component: this,
+        ...ctx,
+      };
+      return visitJsxNode(newCtx, hostElement, jsxNode, false);
     });
   }
 }

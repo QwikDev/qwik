@@ -41,24 +41,12 @@ function expectMatchElement(
       : actual.childNodes;
     (expected.children || []).forEach((expectedChild, index) => {
       const actualChild = actualChildNodes[index];
-      if (isJSXNode(expectedChild)) {
-        expectMatchElement(
-          path + `.[${index}]`,
-          diffs,
-          actualChild as HTMLElement,
-          expectedChild as any
-        );
-      } else {
-        // We are a text node.
-        const text = actualChild?.textContent || '';
-        // if (!(expectedChild instanceof RegExp ? expectedChild.test(text) : expectedChild == text)) {
-        //   diffs.push(
-        //     `${path}: expected content "${expectedChild}", was "${
-        //       (actualChild as HTMLElement)?.outerHTML || actualChild?.textContent
-        //     }"`
-        //   );
-        // }
-      }
+      expectMatchElement(
+        path + `.[${index}]`,
+        diffs,
+        actualChild as HTMLElement,
+        expectedChild as any
+      );
     });
     for (let i = expected.children!.length; i < actualChildNodes.length; i++) {
       const childNode = actualChildNodes[i];

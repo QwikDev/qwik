@@ -2,7 +2,6 @@ import { toQrlOrError } from '../import/qrl';
 import type { QRLInternal } from '../import/qrl-class';
 import { $, implicit$FirstArg, QRL, qrlImport } from '../import/qrl.public';
 import type { qrlFactory } from '../props/props-on';
-import { h } from '../render/jsx/factory';
 import type { JSXNode } from '../render/jsx/types/jsx-node';
 import { newInvokeContext, useInvoke, useWaitOn } from '../use/use-core';
 import { useHostElement } from '../use/use-host-element.public';
@@ -11,6 +10,7 @@ import { styleKey } from './qrl-styles';
 import type { QwikEvents } from '../render/jsx/types/jsx-qwik-attributes';
 import type { ValueOrPromise } from '../util/types';
 import { getContext, getProps } from '../props/props';
+import { jsx, FunctionComponent } from '../index';
 
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onUnmount">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -327,11 +327,11 @@ export function component<PROPS extends {}>(
 export function component<PROPS extends {}>(
   onMount: QRL<OnMountFn<PROPS>>,
   options: ComponentOptions = {}
-): (props: PROPS & QwikEvents) => JSXNode<PROPS> {
+): FunctionComponent<PROPS & QwikEvents> {
   const tagName = options.tagName ?? 'div';
 
   // Return a QComponent Factory function.
-  return function QComponent(props: PROPS & QwikEvents): JSXNode<PROPS> {
+  return function QComponent(props, _, key): JSXNode<PROPS> {
     const onRenderFactory: qrlFactory = async (hostElement: Element): Promise<QRLInternal> => {
       // Turn function into QRL
       const onMountQrl = toQrlOrError(onMount);
@@ -342,7 +342,8 @@ export function component<PROPS extends {}>(
       return useInvoke(invokeCtx, onMountFn, props) as QRLInternal;
     };
     onRenderFactory.__brand__ = 'QRLFactory';
-    return h(tagName, { [OnRenderProp]: onRenderFactory, ...props }) as any;
+
+    return jsx(tagName, { [OnRenderProp]: onRenderFactory, ...props }, key) as any;
   };
 }
 

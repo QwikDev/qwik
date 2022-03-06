@@ -6,6 +6,7 @@ import type { JSXNode, FunctionComponent } from './jsx/types/jsx-node';
 import { visitJsxNode } from './render';
 import type { ValueOrPromise } from '../index';
 import { then } from '../util/promises';
+import { getRenderingState } from './notify-render';
 
 /**
  * Render JSX.
@@ -22,7 +23,7 @@ import { then } from '../util/promises';
 export function render(
   parent: Element | Document,
   jsxNode: JSXNode<unknown> | FunctionComponent<any>
-): ValueOrPromise<Element> {
+): ValueOrPromise<RenderContext> {
   // If input is not JSX, convert it
   if (!isJSXNode(jsxNode)) {
     jsxNode = jsx(jsxNode, null);
@@ -31,14 +32,21 @@ export function render(
   while (firstChild && firstChild.nodeType > NodeType.COMMENT_NODE) {
     firstChild = firstChild.nextSibling;
   }
+  const doc = isDocument(parent) ? parent : parent.ownerDocument;
   const ctx: RenderContext = {
-    render: false,
     operations: [],
-    doc: isDocument(parent) ? parent : parent.ownerDocument,
-  }
+    doc,
+    component: undefined,
+    hostElements: new Set(),
+    globalState: getRenderingState(doc),
+  };
   const elm = isDocument(parent) ? parent.documentElement : parent;
   return then(visitJsxNode(ctx, elm, jsxNode, false), () => {
-    executeContext(ctx);
-    return elm
+    return new Promise((resolve) => {
+      requestAnimationFrame(() => {
+        executeContext(ctx);
+        resolve(ctx);
+      });
+    });
   });
 }

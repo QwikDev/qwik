@@ -41,6 +41,7 @@
     "bazel:lint": "npm run bazel:format -- --mode=check --lint=warn",
     "bazel:lint-fix": "npm run bazel:format -- --mode=fix --lint=fix",
     "link.dist": "cd dist-dev/@builder.io-qwik && npm link",
+    "qwik-save-artifacts": "node -r esbuild-register ./scripts/qwik-save-artifacts.ts",
     "preinstall": "node scripts/tools/preinstall-script.js"
   },
   "devDependencies": {

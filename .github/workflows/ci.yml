@@ -23,7 +23,7 @@ jobs:
     name: Setup
     runs-on: ubuntu-latest
     outputs:
-      fullbuild: ${{ steps.fullbuild.outputs.fullbuild }}
+      fullbuild: ${{ steps.filter.outputs.fullbuild }}
 
     steps:
       - name: Branch
@@ -51,7 +51,7 @@ jobs:
         id: fullbuild
         run: echo ::set-output name=fullbuild::"${{ steps.filter.outputs.fullbuild == 'true' && github.event.inputs.disttag != '' }}"
       - name: Print fullbuild output
-        run: echo ${{ steps.fullbuild.outputs.fullbuild }}
+        run: echo ${{ steps.filter.outputs.fullbuild }}
 
   ############ BUILD PACKAGE ############
   build-package:

@@ -274,13 +274,13 @@ export type RenderableProps<P, RefType = any> = P & Readonly<{
 export const setPlatform: (doc: Document, plt: CorePlatform) => CorePlatform;
 
 // @public (undocumented)
+export const SkipRerender: FunctionComponent<{}>;
+
+// @public (undocumented)
 export const Slot: FunctionComponent<{
     name?: string;
     children?: any;
 }>;
-
-// @public (undocumented)
-export const StaticChildren: FunctionComponent<{}>;
 
 // @public (undocumented)
 export function useDocument(): Document;

@@ -42,9 +42,9 @@ jobs:
               - 'src/**/*.mjs'
               - 'src/**/*.cjs'
               - 'src/**/*.jsx'
-              - 'src/**/*.json'
               - 'src/**/*.toml'
               - 'src/**/*.rs'
+              - 'src/**/*.lock'
               - 'yarn.lock'
               - 'tsconfig.json'
       - name: Print fullbuild output

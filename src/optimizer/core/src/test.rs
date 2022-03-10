@@ -339,9 +339,9 @@ export const Header = component$(() => {
 fn example_functional_component() {
     test_input!(TestInput {
         code: r#"
-import { $, component$, createStore } from '@builder.io/qwik';
+import { $, component$, useStore } from '@builder.io/qwik';
 const Header = component$(() => {
-    const thing = createStore();
+    const thing = useStore();
     const {foo, bar} = foo();
 
     return $(() => {
@@ -361,16 +361,16 @@ const Header = component$(() => {
 fn example_functional_component_2() {
     test_input!(TestInput {
         code: r#"
-import { $, component$, createStore } from '@builder.io/qwik';
+import { $, component$, useStore } from '@builder.io/qwik';
 export const useCounter = () => {
-    return createStore({count: 0});
+    return useStore({count: 0});
 }
 
 export const STEP = 1;
 
 export const App = component$((props) => {
     const state = useCounter();
-    const thing = createStore({thing: 0});
+    const thing = useStore({thing: 0});
     const STEP_2 = 2;
 
     return $(() => {
@@ -402,10 +402,10 @@ export const App = component$((props) => {
 fn example_functional_component_capture_props() {
     test_input!(TestInput {
         code: r#"
-import { $, component$, createStore } from '@builder.io/qwik';
+import { $, component$, useStore } from '@builder.io/qwik';
 
 export const App = component$(({count, rest: [I2, {I3, v1: [I4], I5=v2, ...I6}, I7=v3, ...I8]}) => {
-    const state = createStore({count: 0});
+    const state = useStore({count: 0});
     const {rest: [C2, {C3, v1: [C4], C5=v2, ...C6}, C7=v3, ...C8]} = foo();
     return $(() => {
         return (
@@ -641,10 +641,10 @@ export const App = component$(() => {
 fn example_renamed_exports() {
     test_input!(TestInput {
         code: r#"
-import { component$ as Component, $ as onRender, createStore } from '@builder.io/qwik';
+import { component$ as Component, $ as onRender, useStore } from '@builder.io/qwik';
 
 export const App = Component((props) => {
-    const state = createStore({thing: 0});
+    const state = useStore({thing: 0});
 
     return onRender(() => (
         <div>{state.thing}</div>
@@ -853,7 +853,7 @@ export const Root = component$(() => {
 fn example_custom_inlined_functions() {
     test_input!(TestInput {
         code: r#"
-import { component$, $, createStore, wrap, useEffect } from '@builder.io/qwik';
+import { component$, $, useStore, wrap, useEffect } from '@builder.io/qwik';
 
 export const useMemo = (qrt) => {
     useEffect(qrt);
@@ -862,7 +862,7 @@ export const useMemo = (qrt) => {
 export const useMemo$ = wrap(useMemo);
 
 export const App = component$((props) => {
-    const state = createStore({count: 0});
+    const state = useStore({count: 0});
     useMemo$(() => {
         console.log(state.count);
     });
@@ -887,7 +887,7 @@ export const Lightweight = (props) => {
 fn example_missing_custom_inlined_functions() {
     test_input!(TestInput {
         code: r#"
-import { component$ as Component, $ as onRender, createStore, wrap, useEffect } from '@builder.io/qwik';
+import { component$ as Component, $ as onRender, useStore, wrap, useEffect } from '@builder.io/qwik';
 
 
 export const useMemo$ = (qrt) => {
@@ -895,7 +895,7 @@ export const useMemo$ = (qrt) => {
 };
 
 export const App = component$((props) => {
-    const state = createStore({count: 0});
+    const state = useStore({count: 0});
     useMemo$(() => {
         console.log(state.count);
     });

@@ -6,30 +6,18 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
-/**
- * Remove `childNode` from `parentNode` and return `nextSibling`
- */
-export function removeNode(parentNode: Node, childNode: Node): Node | null {
-  const nextSibling = childNode.nextSibling as Node | null;
-  previousParent.set(childNode, parentNode as Element);
-  parentNode.removeChild(childNode);
-  return nextSibling;
-}
+import { assertDefined } from '../assert/assert';
 
-/**
- * Replace `existingNode` with `newNode`
- */
-export function replaceNode<T extends Node>(
-  parentNode: Node,
-  existingNode: Node | null,
-  newNode: T
-): T {
-  parentNode.insertBefore(newNode, existingNode);
-  if (existingNode) {
-    previousParent.set(existingNode, parentNode as Element);
-    parentNode.removeChild(existingNode);
+export function getDocument(node: Node): Document {
+  if (typeof document !== 'undefined') {
+    return document;
   }
-  return newNode;
+  let doc = node.ownerDocument;
+  while (doc && doc.nodeType !== 9) {
+    doc = doc.parentNode as any;
+  }
+  assertDefined(doc);
+  return doc!;
 }
 
 export function getParentElement(node: Node): Element | null {

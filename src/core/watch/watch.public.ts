@@ -5,7 +5,8 @@ import { useProps } from '../use/use-props.public';
 import { registerOnWatch, WatchFn } from './watch';
 
 // <docs markdown="https://hackmd.io/_Kl9br9tT8OB-1Dv8uR4Kg#onWatch">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit https://hackmd.io/_Kl9br9tT8OB-1Dv8uR4Kg#onWatch instead)
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2F_Kl9br9tT8OB-1Dv8uR4Kg%3Fboth#onWatch instead)
 /**
  * Reruns the `watchFn` when the observed inputs change.
  *
@@ -28,7 +29,7 @@ import { registerOnWatch, WatchFn } from './watch';
  *
  * ```typescript
  * export const MyComp = component$(() => {
- *   const store = createStore({ count: 0, doubleCount: 0 });
+ *   const store = useStore({ count: 0, doubleCount: 0 });
  *   onWatch$((obs) => {
  *     store.doubleCount = 2 * obs(store).count;
  *   });
@@ -53,7 +54,8 @@ export function onWatch(watchFn: QRL<(obs: Observer) => unknown | (() => void)>)
 }
 
 // <docs markdown="https://hackmd.io/_Kl9br9tT8OB-1Dv8uR4Kg#onWatch">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit https://hackmd.io/_Kl9br9tT8OB-1Dv8uR4Kg#onWatch instead)
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2F_Kl9br9tT8OB-1Dv8uR4Kg%3Fboth#onWatch instead)
 /**
  * Reruns the `watchFn` when the observed inputs change.
  *
@@ -76,7 +78,7 @@ export function onWatch(watchFn: QRL<(obs: Observer) => unknown | (() => void)>)
  *
  * ```typescript
  * export const MyComp = component$(() => {
- *   const store = createStore({ count: 0, doubleCount: 0 });
+ *   const store = useStore({ count: 0, doubleCount: 0 });
  *   onWatch$((obs) => {
  *     store.doubleCount = 2 * obs(store).count;
  *   });
@@ -99,7 +101,8 @@ export function onWatch(watchFn: QRL<(obs: Observer) => unknown | (() => void)>)
 export const onWatch$ = implicit$FirstArg(onWatch);
 
 // <docs markdown="https://hackmd.io/_Kl9br9tT8OB-1Dv8uR4Kg#Observer">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit https://hackmd.io/_Kl9br9tT8OB-1Dv8uR4Kg#Observer instead)
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2F_Kl9br9tT8OB-1Dv8uR4Kg%3Fboth#Observer instead)
 /**
  * Used to signal to Qwik which state should be watched for changes.
  *
@@ -114,7 +117,7 @@ export const onWatch$ = implicit$FirstArg(onWatch);
  *
  * ```typescript
  * export const MyComp = component$(() => {
- *   const store = createStore({ count: 0, doubleCount: 0 });
+ *   const store = useStore({ count: 0, doubleCount: 0 });
  *   onWatch$((obs) => {
  *     store.doubleCount = 2 * obs(store).count;
  *   });
@@ -137,7 +140,8 @@ export const onWatch$ = implicit$FirstArg(onWatch);
 // </docs>
 export interface Observer {
   // <docs markdown="https://hackmd.io/_Kl9br9tT8OB-1Dv8uR4Kg#Observer">
-  // !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit https://hackmd.io/_Kl9br9tT8OB-1Dv8uR4Kg#Observer instead)
+  // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+  // (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2F_Kl9br9tT8OB-1Dv8uR4Kg%3Fboth#Observer instead)
   /**
    * Used to signal to Qwik which state should be watched for changes.
    *
@@ -152,7 +156,7 @@ export interface Observer {
    *
    * ```typescript
    * export const MyComp = component$(() => {
-   *   const store = createStore({ count: 0, doubleCount: 0 });
+   *   const store = useStore({ count: 0, doubleCount: 0 });
    *   onWatch$((obs) => {
    *     store.doubleCount = 2 * obs(store).count;
    *   });

@@ -1,20 +1,11 @@
-import { component$, $ } from '@builder.io/qwik';
+import { component$, $, useStore } from '@builder.io/qwik';
 import { Footer } from './components/footer/footer';
 import { Header } from './components/header/header';
-import { Main } from './components/main/main';
+import { Body } from './components/body/body';
 import type { Todos } from './state/state';
 
 import './base.css';
 import './index.css';
-
-export const todos: Todos = {
-  filter: 'all',
-  items: [
-    { completed: false, title: 'Read Qwik docs' },
-    { completed: false, title: 'Build HelloWorld' },
-    { completed: false, title: 'Profit' },
-  ],
-};
 
 /**
  * Overall application component.
@@ -23,12 +14,20 @@ export const todos: Todos = {
  * Qwik knows that it should never need to be rerendered, and its code will never
  * download to the client.
  */
-export const App = component$(() => {
+export const Main = component$(() => {
+  const todos = useStore<Todos>({
+    filter: 'all',
+    items: [
+      { completed: false, title: 'Read Qwik docs' },
+      { completed: false, title: 'Build HelloWorld' },
+      { completed: false, title: 'Profit' },
+    ],
+  });
   return $(() => {
     return (
       <section class="todoapp">
         <Header todos={todos} />
-        <Main todos={todos} />
+        <Body todos={todos} />
         <Footer todos={todos} />
       </section>
     );

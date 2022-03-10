@@ -1,3 +1,4 @@
+import { logWarn } from '../../core/util/log';
 import type { Path, TransformOutput } from '.';
 import * as pathBrowser from '../../core/util/path';
 import { QWIK_BINDING_MAP } from './qwik-binding-map';
@@ -63,7 +64,7 @@ async function loadPlatformBinding(sys: InternalSystem) {
             const mod = await sys.dynamicImport('./' + platformBindingPath);
             return mod;
           } catch (e) {
-            console.warn(e);
+            logWarn(e);
           }
         }
       }

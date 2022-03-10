@@ -42,7 +42,11 @@ export function qwikVite(opts: QwikViteOptions): any {
 
         server.middlewares.use(async (req, res, next) => {
           const url = req.originalUrl!;
-          if (!/\.[\w?=&]+$/.test(url) && !url.startsWith('/@')) {
+          const hasExtension = /\.[\w?=&]+$/.test(url);
+          const isViteMod = url.startsWith('/@');
+          const isVitePing = url.endsWith('__vite_ping');
+          const skipSSR = url.includes('ssr=false');
+          if (!hasExtension && !isViteMod && !isVitePing && !skipSSR) {
             plugin.log(`handleSSR("${url}")`);
 
             try {
@@ -439,7 +443,7 @@ export function qwikRollup(opts: QwikPluginOptions): any {
         } else if (typeof opts.symbolsOutput === 'function') {
           const symbolsOutput = opts.symbolsOutput;
           setTimeout(async () => {
-            await symbolsOutput(outputEntryMap, outputOpts);
+            await symbolsOutput(outputEntryMap, outputOpts as any);
           });
         }
       }

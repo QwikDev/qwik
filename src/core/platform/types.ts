@@ -10,10 +10,10 @@ export interface CorePlatform {
    * Platform specific queue, such as process.nextTick() for Node
    * and requestAnimationFrame() for the browser.
    */
-  queueRender: (renderMarked: (doc: Document) => Promise<any>) => Promise<any>;
+  raf: (fn: () => any) => Promise<any>;
+  nextTick: (fn: () => any) => Promise<any>;
   /**
-   * Platform specific queue, such as process.nextTick() for Node
-   * and requestAnimationFrame() for the browser.
+   * Takes a qrl and serializes into a string
    */
-  queueStoreFlush: (flushStore: (doc: Document) => Promise<any>) => Promise<any>;
+  chunkForSymbol: (symbolName: string) => string | undefined;
 }

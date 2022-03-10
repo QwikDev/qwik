@@ -1,6 +1,6 @@
 {
   "name": "@builder.io/qwik",
-  "version": "0.0.16",
+  "version": "0.0.17-0",
   "description": "An Open-Source sub-framework designed with a focus on server-side-rendering, lazy-loading, and styling/animation.",
   "scripts": {
     "build": "node scripts --tsc --build --api --platform-binding --wasm",
@@ -27,7 +27,6 @@
     "test.e2e.webkit": "playwright test starters --browser=webkit --config starters/playwright.config.ts",
     "serve": "node --inspect starters/dev-server.cjs 3300",
     "docs.sync": "node scripts/docs_sync",
-    "jsx.types": "node scripts --jsx",
     "prepare": "husky install",
     "lint": "npm run lint.eslint && npm run lint.prettier && npm run lint.rust",
     "lint.eslint": "eslint \"**/*.ts*\"",
@@ -48,9 +47,9 @@
   "devDependencies": {
     "@bazel/bazelisk": "1.7.5",
     "@bazel/ibazel": "0.15.10",
-    "@bazel/typescript": "3.5.0",
-    "@builder.io/partytown": "0.3.5",
-    "@builder.io/qwik-dom": "2.1.7",
+    "@bazel/typescript": "4.6.1",
+    "@builder.io/partytown": "0.3.6",
+    "@builder.io/qwik-dom": "2.1.9",
     "@microsoft/api-extractor": "7.19.4",
     "@napi-rs/cli": "2.4.4",
     "@napi-rs/triples": "1.1.0",

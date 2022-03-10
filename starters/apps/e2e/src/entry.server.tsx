@@ -7,7 +7,7 @@
  */
 
 import { renderToString, RenderToStringOptions, QwikLoader } from '@builder.io/qwik/server';
-import { App } from './main';
+import { TwoListeners } from './twolisteners';
 
 /**
  * Entry point for server-side pre-rendering.
@@ -22,7 +22,7 @@ export function render(opts: RenderToStringOptions) {
         <title>Qwik Blank App</title>
       </head>
       <body q:base="/">
-        <App />
+        <TwoListeners />
         <QwikLoader debug={opts.debug} events={['click']} />
       </body>
     </html>,

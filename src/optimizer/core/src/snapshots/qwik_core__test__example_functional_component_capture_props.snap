@@ -7,10 +7,10 @@ expression: output
 ==INPUT==
 
 
-import { $, component$, createStore } from '@builder.io/qwik';
+import { $, component$, useStore } from '@builder.io/qwik';
 
 export const App = component$(({count, rest: [I2, {I3, v1: [I4], I5=v2, ...I6}, I7=v3, ...I8]}) => {
-    const state = createStore({count: 0});
+    const state = useStore({count: 0});
     const {rest: [C2, {C3, v1: [C4], C5=v2, ...C6}, C7=v3, ...C8]} = foo();
     return $(() => {
         return (
@@ -93,9 +93,9 @@ export const App_onRender = ()=>{
 ============================= h_test_app_onmount.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-import { createStore } from "@builder.io/qwik";
+import { useStore } from "@builder.io/qwik";
 export const App_onmount = ({ count , rest: [I2, { I3 , v1: [I4] , I5 =v2 , ...I6 }, I7 = v3, ...I8]  })=>{
-    const state = createStore({
+    const state = useStore({
         count: 0
     });
     const { rest: [C2, { C3 , v1: [C4] , C5 =v2 , ...C6 }, C7 = v3, ...C8]  } = foo();

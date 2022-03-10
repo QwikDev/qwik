@@ -1,12 +1,12 @@
-import { h, Host, createStore } from '@builder.io/qwik';
+import { h, Host, useStore } from '@builder.io/qwik';
 import { ElementFixture, trigger } from '../../testing/element_fixture';
 import { expectDOM } from '../../testing/expect-dom.unit';
 import { getTestPlatform } from '../../testing/platform';
-import { withScopedStyles$, component$ } from '../component/component.public';
+import { useScopedStyles$, component$ } from '../component/component.public';
 import { runtimeQrl } from '../import/qrl';
 import { $ } from '../import/qrl.public';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
-import { AttributeMarker } from '../util/markers';
+import { ComponentScopedStyles, ComponentStylesPrefixContent } from '../util/markers';
 import { Async, JSXPromise, PromiseValue } from './jsx/async.public';
 import { Slot } from './jsx/slot.public';
 import { notifyRender } from './notify-render';
@@ -72,6 +72,21 @@ describe('render', () => {
         </div>
       );
     });
+
+    it('should render svg', async () => {
+      await render(
+        fixture.host,
+        <svg viewBox="0 0 100 100">
+          <span>text</span>
+        </svg>
+      );
+      expectDOM(
+        fixture.host.firstElementChild!,
+        <svg viewBox="0 0 100 100">
+          <span>text</span>
+        </svg>
+      );
+    });
   });
 
   describe('component', () => {
@@ -83,6 +98,37 @@ describe('render', () => {
             {'Hello'} {'World'}
           </span>
         </hello-world>
+      );
+    });
+
+    it('should render component external props', async () => {
+      await render(
+        fixture.host,
+        <RenderProps
+          thing="World"
+          className="foo"
+          id="123"
+          q:slot="start"
+          aria-hidden="true"
+          data-value="hello world"
+          key={'special'}
+          h:title="Custom title"
+        />
+      );
+      expectRendered(
+        <render-props
+          q:obj=""
+          q:host=""
+          q:slot="start"
+          q:key="special"
+          class="foo"
+          id="123"
+          aria-hidden="true"
+          data-value="hello world"
+          title="Custom title"
+        >
+          <span>{'{"thing":"World"}'}</span>
+        </render-props>
       );
     });
 
@@ -127,9 +173,15 @@ describe('render', () => {
       expectRendered(
         <project>
           <section>
-            <q:slot>..default..</q:slot>
-            <q:slot name="details">..details..</q:slot>
-            <q:slot name="description">..description..</q:slot>
+            <q:slot>
+              <q:fallback>..default..</q:fallback>
+            </q:slot>
+            <q:slot name="details">
+              <q:fallback>..details..</q:fallback>
+            </q:slot>
+            <q:slot name="description">
+              <q:fallback>..description..</q:fallback>
+            </q:slot>
           </section>
         </project>
       );
@@ -139,11 +191,17 @@ describe('render', () => {
       await render(fixture.host, <Project>projection</Project>);
       expectRendered(
         <project>
-          <template q:slot=""></template>
           <section>
-            <q:slot>projection</q:slot>
-            <q:slot name="details">..details..</q:slot>
-            <q:slot name="description">..description..</q:slot>
+            <q:slot>
+              <q:fallback>..default..</q:fallback>
+              projection
+            </q:slot>
+            <q:slot name="details">
+              <q:fallback>..details..</q:fallback>
+            </q:slot>
+            <q:slot name="description">
+              <q:fallback>..description..</q:fallback>
+            </q:slot>
           </section>
         </project>
       );
@@ -167,13 +225,17 @@ describe('render', () => {
       );
       expectRendered(
         <project>
-          <template q:slot=""></template>
           <section>
-            <q:slot>PROJECTION</q:slot>
+            <q:slot>
+              <q:fallback>..default..</q:fallback>
+              PROJECTION
+            </q:slot>
             <q:slot name="details">
+              <q:fallback>..details..</q:fallback>
               <span q:slot="details">DETAILS</span>
             </q:slot>
             <q:slot name="description">
+              <q:fallback>..description..</q:fallback>
               <span q:slot="description">DESCRIPTION</span>
             </q:slot>
           </section>
@@ -192,16 +254,21 @@ describe('render', () => {
       );
       expectRendered(
         <project>
-          <template q:slot="">
+          <template q:slot="ignore">
             <span q:slot="ignore">IGNORE</span>
           </template>
           <section>
-            <q:slot>..default..</q:slot>
+            <q:slot>
+              <q:fallback>..default..</q:fallback>
+            </q:slot>
             <q:slot name="details">
+              <q:fallback>..details..</q:fallback>
               <span q:slot="details">DETAILS1</span>
               <span q:slot="details">DETAILS2</span>
             </q:slot>
-            <q:slot name="description">..description..</q:slot>
+            <q:slot name="description">
+              <q:fallback>..description..</q:fallback>
+            </q:slot>
           </section>
         </project>
       );
@@ -215,9 +282,11 @@ describe('render', () => {
       );
       expectRendered(
         <project>
-          <template q:slot=""></template>
           <section>
-            <q:slot>PROJECTION</q:slot>
+            <q:slot>
+              <q:fallback>..default..</q:fallback>
+              <span>PROJECTION</span>
+            </q:slot>
           </section>
         </project>
       );
@@ -225,9 +294,11 @@ describe('render', () => {
       await getTestPlatform(fixture.document).flush();
       expectRendered(
         <project>
-          <template q:slot=""></template>
           <section>
-            <q:slot>PROJECTION</q:slot>
+            <q:slot>
+              <q:fallback>..default..</q:fallback>
+              <span>PROJECTION</span>
+            </q:slot>
           </section>
         </project>
       );
@@ -237,17 +308,24 @@ describe('render', () => {
     it('should render into host component', async () => {
       await render(
         fixture.host,
-        <HostFixture hostAttrs={JSON.stringify({ id: 'TEST', name: 'NAME' })} content="CONTENT" />
+        <HostFixture
+          hostAttrs={JSON.stringify({
+            id: 'TEST',
+            class: { thing: true },
+            name: 'NAME',
+          })}
+          content="CONTENT"
+        />
       );
       expectRendered(
-        <host-fixture id="TEST" name="NAME">
+        <host-fixture id="TEST" name="NAME" class="thing">
           CONTENT
         </host-fixture>
       );
     });
   });
 
-  describe('<Async>', () => {
+  describe.skip('<Async>', () => {
     it('should render a promise', async () => {
       await render(fixture.host, <div>{Promise.resolve('WORKS')}</div>);
       expectRendered(
@@ -340,7 +418,7 @@ describe('render', () => {
     it('should insert a style', async () => {
       await render(fixture.host, <HelloWorld name="World" />);
       const hellWorld = fixture.host.querySelector('hello-world')!;
-      const scopedStyleId = hellWorld.getAttribute(AttributeMarker.ComponentScopedStyles);
+      const scopedStyleId = hellWorld.getAttribute(ComponentScopedStyles);
       expect(scopedStyleId).toBeDefined();
       const style = fixture.document.body.parentElement!.querySelector(
         `style[q\\:style="${scopedStyleId}"]`
@@ -348,10 +426,146 @@ describe('render', () => {
       expect(style?.textContent).toContain('color: red');
       expectRendered(
         <hello-world>
-          <span class={AttributeMarker.ComponentStylesPrefixContent + scopedStyleId}>
+          <span class={ComponentStylesPrefixContent + scopedStyleId}>
             {'Hello'} {'World'}
           </span>
         </hello-world>
+      );
+    });
+  });
+
+  describe('SVG element', () => {
+    it('should render #text nodes', async () => {
+      const lines = ['hola', 'adios'];
+      render(
+        fixture.host,
+        <svg viewBox="0 0 100 4">
+          {lines.map((a) => {
+            return <text>Hola {a}</text>;
+          })}
+        </svg>
+      );
+      expectRendered(
+        <svg viewBox="0 0 100 4">
+          <text>Hola {'hola'}</text>
+          <text>Hola {'adios'}</text>
+        </svg>
+      );
+
+      // Ensure all SVG elements have the SVG namespace
+      const namespaces = Array.from(fixture.host.querySelectorAll('text')).map(
+        (e: any) => e.namespaceURI
+      );
+      expect(namespaces).toEqual(['http://www.w3.org/2000/svg', 'http://www.w3.org/2000/svg']);
+    });
+
+    it('should render camelCase attributes', async () => {
+      render(
+        fixture.host,
+        <svg id="my-svg" viewBox="0 0 100 4" preserveAspectRatio="none">
+          <a href="/path"></a>
+        </svg>
+      );
+      expectRendered(
+        <svg id="my-svg" preserveAspectRatio="none" viewBox="0 0 100 4">
+          <a href="/path"></a>
+        </svg>
+      );
+    });
+
+    it('should render path', () => {
+      render(
+        fixture.host,
+        <div>
+          <a href="#">Dude!!</a>
+          <svg id="my-svg" viewBox="0 0 100 4" preserveAspectRatio="none">
+            <path
+              id="my-svg-path"
+              d="M 0,2 L 100,2"
+              stroke="#FFEA82"
+              stroke-width="4"
+              fill-opacity="0"
+            />
+          </svg>
+        </div>
+      );
+      expectRendered(
+        <div>
+          <a href="#">Dude!!</a>
+          <svg id="my-svg" viewBox="0 0 100 4" preserveAspectRatio="none">
+            <path
+              id="my-svg-path"
+              d="M 0,2 L 100,2"
+              stroke="#FFEA82"
+              stroke-width="4"
+              fill-opacity="0"
+            />
+          </svg>
+        </div>
+      );
+    });
+
+    it('should render foreignObject properly', async () => {
+      const Text = 'text' as any;
+      render(
+        fixture.host,
+        <div class="is-html">
+          <Text class="is-html" shouldKebab="true">
+            Start
+          </Text>
+          <svg class="is-svg" preserveAspectRatio="true">
+            <Text class="is-svg" shouldCamelCase="true">
+              start
+            </Text>
+            <foreignObject class="is-svg">
+              <div class="is-html">hello</div>
+              <svg class="is-svg">
+                <feGaussianBlur class="is-svg"></feGaussianBlur>
+                <foreignObject class="is-svg">
+                  <foreignObject class="is-html"></foreignObject>
+                  <div class="is-html">Still outside svg</div>
+                </foreignObject>
+              </svg>
+              <feGaussianBlur class="is-html">bye</feGaussianBlur>
+            </foreignObject>
+            <text className="is-svg">Hello</text>
+            <text className="is-svg">Bye</text>
+          </svg>
+          <text class="is-html">end</text>
+        </div>
+      );
+      for (const el of Array.from(fixture.host.querySelectorAll('.is-html'))) {
+        expect(el).toMatchObject({ namespaceURI: 'http://www.w3.org/1999/xhtml' });
+      }
+      for (const el of Array.from(fixture.host.querySelectorAll('.is-svg'))) {
+        expect(el).toMatchObject({ namespaceURI: 'http://www.w3.org/2000/svg' });
+      }
+
+      expectRendered(
+        <div class="is-html">
+          <Text class="is-html" shouldkebab="true">
+            Start
+          </Text>
+          <svg className="is-svg" preserveAspectRatio="true">
+            <Text className="is-svg" shouldCamelCase="true">
+              start
+            </Text>
+            <foreignObject className="is-svg">
+              <div class="is-html">hello</div>
+              <svg className="is-svg">
+                <feGaussianBlur className="is-svg"></feGaussianBlur>
+                <foreignObject className="is-svg">
+                  <foreignobject class="is-html"></foreignobject>
+                  <div class="is-html">Still outside svg</div>
+                </foreignObject>
+              </svg>
+              <fegaussianblur class="is-html">bye</fegaussianblur>
+            </foreignObject>
+            <text className="is-svg">Hello</text>
+            <text className="is-svg">Bye</text>
+          </svg>
+          <text class="is-html">end</text>
+        </div>
       );
     });
   });
@@ -365,8 +579,8 @@ describe('render', () => {
 //////////////////////////////////////////////////////////////////////////////////////////
 export const HelloWorld = component$(
   (props: { name?: string }) => {
-    withScopedStyles$(`span.� { color: red; }`);
-    const state = createStore({ salutation: 'Hello' });
+    useScopedStyles$(`span.� { color: red; }`);
+    const state = useStore({ salutation: 'Hello' });
     return $(() => {
       return (
         <span>
@@ -381,11 +595,25 @@ export const HelloWorld = component$(
 );
 
 //////////////////////////////////////////////////////////////////////////////////////////
+// Hello World
+//////////////////////////////////////////////////////////////////////////////////////////
+export const RenderProps = component$(
+  (props: { thing?: string }) => {
+    return $(() => {
+      return <span>{JSON.stringify(props)}</span>;
+    });
+  },
+  {
+    tagName: 'render-props',
+  }
+);
+
+//////////////////////////////////////////////////////////////////////////////////////////
 // Counter
 //////////////////////////////////////////////////////////////////////////////////////////
 
 export const Counter = component$((props: { step?: number }) => {
-  const state = createStore({ count: 0 });
+  const state = useStore({ count: 0 });
   return $(() => {
     const step = Number(props.step || 1);
     return (
@@ -447,7 +675,7 @@ export const SimpleProject = component$(
 export const HostFixture = component$(
   (props: { hostAttrs?: string; content?: string }) => {
     return $(() => {
-      return h(Host, JSON.parse(props.hostAttrs || '{}'), [props.content]);
+      return <Host {...JSON.parse(props.hostAttrs || '{}')}>{props.content}</Host>;
     });
   },
   {
@@ -462,7 +690,7 @@ function delay(time: number) {
 //////////////////////////////////////////////////////////////////////////////////////////
 export const InnerHTMLComponent = component$(async () => {
   return $(() => {
-    const html = Promise.resolve(`<span>WORKS</span>`);
-    return <Async resolve={html}>{(v) => <div innerHTML={v.value}></div>}</Async>;
+    const html = '<span>WORKS</span>';
+    return <div innerHTML={html}></div>;
   });
 });

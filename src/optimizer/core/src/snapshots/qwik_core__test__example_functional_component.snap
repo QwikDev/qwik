@@ -7,9 +7,9 @@ expression: output
 ==INPUT==
 
 
-import { $, component$, createStore } from '@builder.io/qwik';
+import { $, component$, useStore } from '@builder.io/qwik';
 const Header = component$(() => {
-    const thing = createStore();
+    const thing = useStore();
     const {foo, bar} = foo();
 
     return $(() => {
@@ -23,7 +23,7 @@ const Header = component$(() => {
 
 import * as qwik from "@builder.io/qwik";
 import { component } from "@builder.io/qwik";
-import { $, component$, createStore } from '@builder.io/qwik';
+import { $, component$, useStore } from '@builder.io/qwik';
 const Header = /*#__PURE__*/ component(qwik.qrl(()=>import("./h_test_header_onmount")
 , "Header_onmount"));
 
@@ -47,9 +47,9 @@ export const Header_onRender = ()=>{
 ============================= h_test_header_onmount.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-import { createStore } from "@builder.io/qwik";
+import { useStore } from "@builder.io/qwik";
 export const Header_onmount = ()=>{
-    const thing = createStore();
+    const thing = useStore();
     const { foo , bar  } = foo();
     return qwik.qrl(()=>import("./h_test_header_onrender")
     , "Header_onRender", [

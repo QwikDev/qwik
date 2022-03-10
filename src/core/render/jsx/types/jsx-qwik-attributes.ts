@@ -16,6 +16,9 @@ export interface QwikProps {
    * URL against which relative QRLs should be resolved to.
    */
   'q:base'?: string;
+
+  'q:obj'?: string;
+  'q:host'?: string;
 }
 
 type Event = () => any;
@@ -27,9 +30,25 @@ export interface QwikEvents {
   [key: `${'on' | 'onDocument' | 'onWindow'}:${string}`]: QrlEvent | QrlEvent[];
 }
 
+interface CSSProperties {
+  [key: string]: string | number;
+}
+
+export interface ComponentBaseProps extends QwikEvents {
+  class?: string | { [className: string]: boolean };
+  className?: string | undefined;
+  style?: CSSProperties | undefined;
+  key?: string | number;
+  id?: string | undefined;
+
+  'q:slot'?: string;
+  [key: `h:${string}`]: any;
+
+  children?: JSXChildren;
+}
 export interface QwikAttributes extends QwikProps, QwikEvents {}
 
-export type JSXPrimitive =
+export type JSXChildren =
   | string
   | number
   | boolean
@@ -37,11 +56,11 @@ export type JSXPrimitive =
   | undefined
   | Function
   | RegExp
+  | JSXChildren[]
+  | Promise<JSXChildren>
   | JSXNode<any>;
-export type JSXChild = JSXPrimitive | JSXPrimitive[] | Promise<JSXPrimitive>;
-export type JSXChildren = JSXChild | JSXChild[];
 
 export interface DOMAttributes<T> extends QwikProps, QwikEvents {
   children?: JSXChildren;
-  key?: string;
+  key?: string | number;
 }

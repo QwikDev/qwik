@@ -10,7 +10,7 @@ import { assertDefined, assertEqual } from '../assert/assert';
 import { NodeType } from '../util/types';
 import { intToStr } from '../object/store';
 import { EMPTY_ARRAY } from '../util/flyweight';
-import { StaticChildren } from './jsx/host.public';
+import { SkipRerender } from './jsx/host.public';
 import { logDebug, logError } from '../util/log';
 
 type KeyToIndexMap = { [key: string]: number };
@@ -59,7 +59,7 @@ export function smartUpdateChildren(
   mode: ChildrenMode,
   isSvg: boolean
 ) {
-  if (ch.length === 1 && ch[0].type === StaticChildren) {
+  if (ch.length === 1 && ch[0].type === SkipRerender) {
     if (elm.firstChild !== null) {
       return;
     }
@@ -239,7 +239,7 @@ export function patchVnode(
     return;
   }
 
-  if (tag === Host || tag === StaticChildren) {
+  if (tag === Host || tag === SkipRerender) {
     return;
   }
 
@@ -472,7 +472,7 @@ function createElm(ctx: RenderContext, vnode: JSXNode, isSvg: boolean): ValueOrP
   return then(wait, () => {
     let children = vnode.children;
     if (children.length > 0) {
-      if (children.length === 1 && children[0].type === StaticChildren) {
+      if (children.length === 1 && children[0].type === SkipRerender) {
         children = children[0].children;
       }
       const slotMap = isComponent ? getSlots(componentCtx, elm) : undefined;

@@ -1,8 +1,9 @@
 import type { FunctionComponent, JSXNode } from './types/jsx-node';
 import type { QwikJSX } from './types/jsx-qwik';
 import { qDev } from '../../util/qdev';
-import { Host } from './host.public';
+import { Host, StaticChildren } from './host.public';
 import { EMPTY_ARRAY } from '../../util/flyweight';
+import { logWarn } from '../../util/log';
 
 /**
  * @public
@@ -46,7 +47,7 @@ export function processNode(node: any): JSXNode[] | JSXNode | undefined {
     return undefined;
   }
   if (isJSXNode(node)) {
-    if (node.type === Host) {
+    if (node.type === Host || node.type === StaticChildren) {
       return node;
     } else if (typeof node.type === 'function') {
       return processNode(node.type({ ...node.props, children: node.children }, node.key));
@@ -60,7 +61,7 @@ export function processNode(node: any): JSXNode[] | JSXNode | undefined {
     newNode.text = String(node);
     return newNode;
   } else {
-    console.warn('Unvalid node, skipping');
+    logWarn('Unvalid node, skipping');
     return undefined;
   }
 }

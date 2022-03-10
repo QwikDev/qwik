@@ -1,12 +1,4 @@
-import {
-  onDocument,
-  QRL,
-  $,
-  qrl,
-  qrlImport,
-  createStore,
-  implicit$FirstArg,
-} from '@builder.io/qwik';
+import { onDocument, QRL, $, qrl, qrlImport, useStore, implicit$FirstArg } from '@builder.io/qwik';
 /* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
@@ -59,7 +51,7 @@ export const greet = () => console.log('greet');
 function topLevelFn() {}
 
 function myCode() {
-  const store = createStore({});
+  const store = useStore({});
   function localFn() {}
   // Valid Examples
   $(greet); // greet is importable

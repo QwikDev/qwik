@@ -1,4 +1,4 @@
-import { component$, createStore, $, useEvent } from '@builder.io/qwik';
+import { component$, useStore, $, useEvent } from '@builder.io/qwik';
 import type { Todos } from '../../state/state';
 
 /**
@@ -8,7 +8,7 @@ import type { Todos } from '../../state/state';
  */
 export const Header = component$(
   (props: { todos: Todos }) => {
-    const state = createStore({ text: '' });
+    const state = useStore({ text: '' });
     return $(() => {
       return (
         <>

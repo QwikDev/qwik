@@ -1,4 +1,4 @@
-import { component$, $, createStore } from '@builder.io/qwik';
+import { component$, $, useStore } from '@builder.io/qwik';
 import { Footer } from './components/footer/footer';
 import { Header } from './components/header/header';
 import { Main } from './components/main/main';
@@ -15,7 +15,7 @@ import './index.css';
  * download to the client.
  */
 export const App = component$(() => {
-  const todos = createStore<Todos>({
+  const todos = useStore<Todos>({
     filter: 'all',
     items: [
       { completed: false, title: 'Read Qwik docs' },

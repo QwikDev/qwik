@@ -7,16 +7,16 @@ expression: output
 ==INPUT==
 
 
-import { $, component$, createStore } from '@builder.io/qwik';
+import { $, component$, useStore } from '@builder.io/qwik';
 export const useCounter = () => {
-    return createStore({count: 0});
+    return useStore({count: 0});
 }
 
 export const STEP = 1;
 
 export const App = component$((props) => {
     const state = useCounter();
-    const thing = createStore({thing: 0});
+    const thing = useStore({thing: 0});
     const STEP_2 = 2;
 
     return $(() => {
@@ -42,9 +42,9 @@ export const App = component$((props) => {
 
 import * as qwik from "@builder.io/qwik";
 import { component } from "@builder.io/qwik";
-import { createStore } from '@builder.io/qwik';
+import { useStore } from '@builder.io/qwik';
 export const useCounter = ()=>{
-    return createStore({
+    return useStore({
         count: 0
     });
 };
@@ -132,11 +132,11 @@ export const App_onRender = ()=>{
 ============================= h_test_app_onmount.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-import { createStore } from "@builder.io/qwik";
 import { useCounter } from "./test";
+import { useStore } from "@builder.io/qwik";
 export const App_onmount = (props)=>{
     const state = useCounter();
-    const thing = createStore({
+    const thing = useStore({
         thing: 0
     });
     const STEP_2 = 2;

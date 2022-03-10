@@ -6,12 +6,18 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
+import { assertDefined } from '../assert/assert';
+
 export function getDocument(node: Node): Document {
-  let doc = node.ownerDocument!;
+  if (typeof document !== 'undefined') {
+    return document;
+  }
+  let doc = node.ownerDocument;
   while (doc && doc.nodeType !== 9) {
     doc = doc.parentNode as any;
   }
-  return doc || globalThis.document;
+  assertDefined(doc);
+  return doc!;
 }
 
 export function getParentElement(node: Node): Element | null {

@@ -1,10 +1,10 @@
-import { createStore, $, component$, useEvent, Host } from '@builder.io/qwik';
+import { useStore, $, component$, useEvent, Host } from '@builder.io/qwik';
 import { Logo } from './components/logo/logo';
 
 import './global.css';
 
 export const App = component$(() => {
-  const state = createStore({ name: 'World' });
+  const state = useStore({ name: 'World' });
   return $(() => (
     <Host class="my-app">
       <Logo />

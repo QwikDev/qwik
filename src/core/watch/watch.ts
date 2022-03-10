@@ -1,9 +1,9 @@
 import type { QRLInternal } from '../import/qrl-class';
 import { qrlImport } from '../import/qrl.public';
-import { getContext, getEvent, setEvent } from '../props/props';
+import { getContext, getEvent } from '../props/props';
 import type { Props } from '../props/props.public';
 import { newInvokeContext, useInvoke } from '../use/use-core';
-import { createWatchFnObserver } from './observer';
+import { logError } from '../util/log';
 import type { Observer } from './watch.public';
 
 export type CleanupFn = () => void;
@@ -28,24 +28,10 @@ export async function invokeWatchFn(element: Element, watchFnQrl: QRLInternal<Wa
       previousCleanupFn();
     } catch (e) {
       // TODO(misko): Centralize error handling
-      console.error(e);
+      logError(e);
     }
   }
-  const obs = createWatchFnObserver(element.ownerDocument);
-  try {
-    const nextCleanupFn = watchFn(obs);
-    if (isCleanupFn(nextCleanupFn)) {
-      cleanupFnMap.set(watchFn, nextCleanupFn);
-    }
-  } catch (e) {
-    // TODO(misko): Centralize error handling
-    console.error(e);
-  } finally {
-    // const guardRef = (watchFnQrl.guardRef = new Map());
-    watchFnQrl.guard = obs.getGuard();
-    const ctx = getContext(element);
-    setEvent(ctx, ON_WATCH, watchFnQrl);
-  }
+  throw new Error('TO IMPLEMENT');
 }
 function isCleanupFn(value: any): value is CleanupFn {
   return typeof value === 'function';
@@ -68,7 +54,7 @@ export async function notifyWatchers(
       };
       await useInvoke(context, onWatch, qObjectId, propName);
     } catch (e) {
-      console.error(e);
+      logError(e);
     }
   }
 }

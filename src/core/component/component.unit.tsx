@@ -1,4 +1,4 @@
-import { useLexicalScope, createStore } from '@builder.io/qwik';
+import { useLexicalScope, useStore } from '@builder.io/qwik';
 import { ElementFixture, trigger } from '../../testing/element_fixture';
 import { expectDOM } from '../../testing/expect-dom.unit';
 import { runtimeQrl } from '../import/qrl';
@@ -53,7 +53,7 @@ describe('q-component', () => {
 
   it('should render a collection of todo items', async () => {
     const host = new ElementFixture().host;
-    const items = createStore({
+    const items = {
       items: [
         {
           done: true,
@@ -64,7 +64,7 @@ describe('q-component', () => {
           title: 'Task 2',
         },
       ],
-    });
+    };
     await render(host, <Items items={items} />);
     await delay(0);
     expectDOM(
@@ -98,7 +98,7 @@ export const HelloWorld = component$(() => {
 // <Greeter salutation="" name=""/>
 
 export const Greeter = component$((props: { salutation?: string; name?: string }) => {
-  const state = createStore({ count: 0 });
+  const state = useStore({ count: 0 });
   return $(() => (
     <div>
       {' '}
@@ -120,7 +120,7 @@ export const MyCounter_update = () => {
 // Finally tie it all together into a component.
 export const MyCounter = component$(
   (props: { step?: number; value?: number }) => {
-    const state = createStore({ count: props.value || 0 });
+    const state = useStore({ count: props.value || 0 });
     return $(() => (
       <div>
         <button
@@ -162,7 +162,7 @@ interface ItemsObj {
 
 export const ItemDetail = component$(
   (props: { itemObj: ItemObj }) => {
-    // const state = createStore({ editing: false });
+    // const state = useStore({ editing: false });
     return $(() => (
       <>
         <input type="checkbox" checked={props.itemObj.done} />
@@ -179,7 +179,7 @@ export const ItemDetail = component$(
 
 export const Items = component$(
   (props: { items: ItemsObj }) => {
-    // const state = createStore({ editing: false });
+    // const state = useStore({ editing: false });
     return $(() => (
       <>
         {props.items.items.map((item) => (

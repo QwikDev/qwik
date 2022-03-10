@@ -66,7 +66,7 @@ export type { PromiseValue } from './render/jsx/async.public';
 // JSX Runtime
 //////////////////////////////////////////////////////////////////////////////////////////
 export { h } from './render/jsx/factory';
-export { Host } from './render/jsx/host.public';
+export { Host, StaticChildren } from './render/jsx/host.public';
 export { Slot } from './render/jsx/slot.public';
 export { Fragment, jsx, jsxDEV, jsxs } from './render/jsx/jsx-runtime';
 export type {
@@ -87,7 +87,7 @@ export { useHostElement } from './use/use-host-element.public';
 export { useDocument } from './use/use-document.public';
 export { useEvent } from './use/use-event.public';
 export { useLexicalScope } from './use/use-lexical-scope.public';
-export { createStore } from './use/use-store.public';
+export { useStore } from './use/use-store.public';
 export { useTransient } from './use/use-transient.public';
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Low-Level API

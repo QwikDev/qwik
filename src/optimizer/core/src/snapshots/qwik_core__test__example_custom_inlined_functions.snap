@@ -7,7 +7,7 @@ expression: output
 ==INPUT==
 
 
-import { component$, $, createStore, wrap, useEffect } from '@builder.io/qwik';
+import { component$, $, useStore, wrap, useEffect } from '@builder.io/qwik';
 
 export const useMemo = (qrt) => {
     useEffect(qrt);
@@ -16,7 +16,7 @@ export const useMemo = (qrt) => {
 export const useMemo$ = wrap(useMemo);
 
 export const App = component$((props) => {
-    const state = createStore({count: 0});
+    const state = useStore({count: 0});
     useMemo$(() => {
         console.log(state.count);
     });
@@ -87,10 +87,10 @@ export const App_onRender = ()=>{
 ============================= h_test_app_onmount.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-import { createStore } from "@builder.io/qwik";
 import { useMemo } from "./test";
+import { useStore } from "@builder.io/qwik";
 export const App_onmount = (props)=>{
-    const state = createStore({
+    const state = useStore({
         count: 0
     });
     useMemo(qwik.qrl(()=>import("./h_test_app_usememo")

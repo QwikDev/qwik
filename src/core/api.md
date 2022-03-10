@@ -44,9 +44,6 @@ export interface CorePlatform {
     raf: (fn: () => any) => Promise<any>;
 }
 
-// @public
-export function createStore<STATE extends {}>(initialState: STATE): STATE;
-
 // @public (undocumented)
 export function dehydrate(document: Document): void;
 
@@ -283,6 +280,9 @@ export const Slot: FunctionComponent<{
 }>;
 
 // @public (undocumented)
+export const StaticChildren: FunctionComponent<{}>;
+
+// @public (undocumented)
 export function useDocument(): Document;
 
 // @public
@@ -299,6 +299,9 @@ export const useScopedStyles$: (first: string) => void;
 
 // @alpha (undocumented)
 export function useScopedStyles(styles: QRL<string>): void;
+
+// @public
+export function useStore<STATE extends {}>(initialState: STATE): STATE;
 
 // @alpha
 export const useStyles$: (first: string) => void;

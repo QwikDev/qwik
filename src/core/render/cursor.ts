@@ -10,7 +10,8 @@ import { assertDefined, assertEqual } from '../assert/assert';
 import { NodeType } from '../util/types';
 import { intToStr } from '../object/store';
 import { EMPTY_ARRAY } from '../util/flyweight';
-import { Skip } from './jsx/host.public';
+import { StaticChildren } from './jsx/host.public';
+import { logDebug, logError } from '../util/log';
 
 type KeyToIndexMap = { [key: string]: number };
 
@@ -29,6 +30,12 @@ interface RenderOperation {
   fn: () => void;
 }
 
+export type ChildrenMode = 'root' | 'slot' | 'fallback' | 'default';
+
+export interface RenderPerf {
+  timing: PerfEvent[];
+  visited: number;
+}
 export interface RenderContext {
   doc: Document;
   roots: Element[];
@@ -36,13 +43,37 @@ export interface RenderContext {
   operations: RenderOperation[];
   component: QComponentCtx | undefined;
   globalState: RenderingState;
-  perf: PerfEvent[];
+  perf: RenderPerf;
 }
 
 export interface PerfEvent {
   name: string;
   timeStart: number;
   timeEnd: number;
+}
+
+export function smartUpdateChildren(
+  ctx: RenderContext,
+  elm: Node,
+  ch: JSXNode[],
+  mode: ChildrenMode,
+  isSvg: boolean
+) {
+  if (ch.length === 1 && ch[0].type === StaticChildren) {
+    if (elm.firstChild !== null) {
+      return;
+    }
+    ch = ch[0].children;
+  }
+  const oldCh = getChildren(elm, mode);
+
+  if (oldCh.length > 0 && ch.length > 0) {
+    return updateChildren(ctx, elm, oldCh, ch, isSvg);
+  } else if (ch.length > 0) {
+    return addVnodes(ctx, elm, null, ch, 0, ch.length - 1, isSvg);
+  } else if (oldCh.length > 0) {
+    return removeVnodes(ctx, elm, oldCh, 0, oldCh.length - 1);
+  }
 }
 
 export function updateChildren(
@@ -65,10 +96,6 @@ export function updateChildren(
   let elmToMove: Node;
   let before: any;
   const results = [];
-
-  if (newCh.length === 1 && newCh[0].type === Skip) {
-    return;
-  }
 
   while (oldStartIdx <= oldEndIdx && newStartIdx <= newEndIdx) {
     if (oldStartVnode == null) {
@@ -151,24 +178,24 @@ function isComponentNode(node: JSXNode) {
   return node.props && OnRenderProp in node.props;
 }
 
-export function getChildren(elm: Node): Node[] {
+function getCh(elm: Node) {
   return Array.from(elm.childNodes).filter(isNode);
 }
 
-export function getCmpChildren(elm: Node): Node[] {
-  return getChildren(elm).filter(isChildComponent);
+export function getChildren(elm: Node, mode: ChildrenMode): Node[] {
+  switch (mode) {
+    case 'default':
+      return getCh(elm);
+    case 'slot':
+      return getCh(elm).filter(isChildSlot);
+    case 'root':
+      return getCh(elm).filter(isChildComponent);
+    case 'fallback':
+      return getCh(elm).filter(isFallback);
+  }
 }
-
-export function getSlotChildren(elm: Node): Node[] {
-  return getChildren(elm).filter(isChildSlot);
-}
-
 export function isNode(elm: Node): boolean {
   return elm.nodeType === 1 || elm.nodeType === 3;
-}
-
-export function getDefaultChildren(elm: Node): Node[] {
-  return getChildren(elm).filter(isFallback);
 }
 
 function isFallback(node: Node): boolean {
@@ -203,6 +230,7 @@ export function patchVnode(
   vnode: JSXNode<any>,
   isSvg: boolean
 ): ValueOrPromise<void> {
+  ctx.perf.visited++;
   const tag = vnode.type;
   if (tag === '#text') {
     if ((elm as Text).data !== vnode.text) {
@@ -211,7 +239,7 @@ export function patchVnode(
     return;
   }
 
-  if (tag === Host || tag === Skip) {
+  if (tag === Host || tag === StaticChildren) {
     return;
   }
 
@@ -244,7 +272,7 @@ export function patchVnode(
       // Mark empty slots and remove content
       Object.entries(slotMaps.slots).forEach(([key, slotEl]) => {
         if (slotEl && !splittedChidren[key]) {
-          const oldCh = getSlotChildren(slotEl);
+          const oldCh = getChildren(slotEl, 'slot');
           if (oldCh.length > 0) {
             removeVnodes(ctx, slotEl, oldCh, 0, oldCh.length - 1);
           }
@@ -254,8 +282,7 @@ export function patchVnode(
       // Render into slots
       Object.entries(splittedChidren).forEach(([key, ch]) => {
         const slotElm = getSlotElement(ctx, slotMaps, elm as Element, key);
-        const oldCh = getSlotChildren(slotElm);
-        promises.push(prepareChildren(ctx, slotElm, oldCh, ch, isSvg));
+        promises.push(smartUpdateChildren(ctx, slotElm, ch, 'slot', isSvg));
       });
       return then(promiseAll(promises), () => {
         removeTemplates(ctx, slotMaps);
@@ -263,25 +290,9 @@ export function patchVnode(
     });
   }
   return then(promise, () => {
-    const oldCh = isSlot ? getDefaultChildren(elm) : getChildren(elm);
-    return prepareChildren(ctx, elm, oldCh, ch, isSvg);
+    const mode = isSlot ? 'fallback' : 'default';
+    return smartUpdateChildren(ctx, elm, ch, mode, isSvg);
   });
-}
-
-function prepareChildren(
-  ctx: RenderContext,
-  elm: Node,
-  oldCh: Node[],
-  ch: JSXNode[],
-  isSvg: boolean
-) {
-  if (oldCh.length > 0 && ch.length > 0) {
-    return updateChildren(ctx, elm, oldCh, ch, isSvg);
-  } else if (ch.length > 0) {
-    return addVnodes(ctx, elm, null, ch, 0, ch.length - 1, isSvg);
-  } else if (oldCh.length > 0) {
-    return removeVnodes(ctx, elm, oldCh, 0, oldCh.length - 1);
-  }
 }
 
 function addVnodes(
@@ -380,7 +391,7 @@ export function resolveSlotProjection(
       // Slot removed
       // Move slot to template
       const template = createTemplate(ctx, key);
-      const slotChildren = getSlotChildren(slotEl);
+      const slotChildren = getChildren(slotEl, 'slot');
       template.content.append(...slotChildren);
       hostElm.insertBefore(template, hostElm.firstChild);
 
@@ -417,6 +428,7 @@ function getSlotName(node: JSXNode): string {
 }
 
 function createElm(ctx: RenderContext, vnode: JSXNode, isSvg: boolean): ValueOrPromise<Node> {
+  ctx.perf.visited++;
   const tag = vnode.type;
   if (tag === '#text') {
     return (vnode.elm = createTextNode(ctx, vnode.text!));
@@ -426,7 +438,6 @@ function createElm(ctx: RenderContext, vnode: JSXNode, isSvg: boolean): ValueOrP
   }
 
   const data = vnode.props;
-  const children = vnode.children;
   const elm = (vnode.elm = createElement(ctx, tag, isSvg));
   const isComponent = isComponentNode(vnode);
   setKey(elm, vnode.key);
@@ -459,7 +470,11 @@ function createElm(ctx: RenderContext, vnode: JSXNode, isSvg: boolean): ValueOrP
     wait = componentCtx.render(ctx);
   }
   return then(wait, () => {
+    let children = vnode.children;
     if (children.length > 0) {
+      if (children.length === 1 && children[0].type === StaticChildren) {
+        children = children[0].children;
+      }
       const slotMap = isComponent ? getSlots(componentCtx, elm) : undefined;
       const promises = children.map((ch) => createElm(ctx, ch, isSvg));
       return then(promiseAll(promises) as any, () => {
@@ -545,13 +560,20 @@ const checkBeforeAssign: PropHandler = (ctx, elm, prop, newValue) => {
   return true;
 };
 
+const setInnerHTML: PropHandler = (ctx, elm, prop, newValue) => {
+  setProperty(ctx, elm, prop, newValue);
+  setAttribute(ctx, elm, 'q:static', '');
+  return true;
+};
+
 const PROP_HANDLER_MAP: Record<string, PropHandler> = {
   style: handleStyle,
   value: checkBeforeAssign,
   checked: checkBeforeAssign,
+  innerHTML: setInnerHTML,
 };
 
-const ALLOWS_PROPS = ['className', 'style', 'id'];
+const ALLOWS_PROPS = ['className', 'style', 'id', 'q:slot'];
 
 export function updateProperties(
   rctx: RenderContext,
@@ -577,18 +599,18 @@ export function updateProperties(
   // TODO
   // when a proper disappears, we cant reset the value
 
-  for (const key of Object.keys(expectProps)) {
+  for (let key of Object.keys(expectProps)) {
     if (key === 'children' || key === 'class') {
       continue;
     }
     const newValue = expectProps[key];
 
     if (isOnProp(key)) {
-      setEvent(ctx, key, newValue);
+      setEvent(rctx, ctx, key, newValue);
       continue;
     }
     if (isOn$Prop(key)) {
-      setEvent(ctx, key.replace('$', ''), $(newValue));
+      setEvent(rctx, ctx, key.replace('$', ''), $(newValue));
       continue;
     }
 
@@ -599,34 +621,41 @@ export function updateProperties(
     }
     ctx.cache.set(key, newValue);
 
-    const skipQwik = ALLOWS_PROPS.includes(key) || key.startsWith('h:');
-    if (qwikProps && !skipQwik) {
-      // Qwik props
-      qwikProps[key] = newValue;
-    } else {
-      // Check of data- or aria-
-      if (key.startsWith('data-') || key.endsWith('aria-') || isSvg) {
-        setAttribute(rctx, node, key, newValue);
-        continue;
-      }
-
-      // Check if its an exception
-      const exception = PROP_HANDLER_MAP[key];
-      if (exception) {
-        if (exception(rctx, node as HTMLElement, key, newValue, oldValue)) {
-          continue;
-        }
-      }
-
-      // Check if property in prototype
-      if (key in node) {
-        setProperty(rctx, node, key, newValue);
-        continue;
-      }
-
-      // Fallback to render attribute
+    // Check of data- or aria-
+    if (key.startsWith('data-') || key.startsWith('aria-') || isSvg) {
       setAttribute(rctx, node, key, newValue);
+      continue;
     }
+
+    if (qwikProps) {
+      const skipProperty = ALLOWS_PROPS.includes(key);
+      const hPrefixed = key.startsWith('h:');
+      if (!skipProperty && !hPrefixed) {
+        // Qwik props
+        qwikProps[key] = newValue;
+        continue;
+      }
+      if (hPrefixed) {
+        key = key.slice(2);
+      }
+    }
+
+    // Check if its an exception
+    const exception = PROP_HANDLER_MAP[key];
+    if (exception) {
+      if (exception(rctx, node as HTMLElement, key, newValue, oldValue)) {
+        continue;
+      }
+    }
+
+    // Check if property in prototype
+    if (key in node) {
+      setProperty(rctx, node, key, newValue);
+      continue;
+    }
+
+    // Fallback to render attribute
+    setAttribute(rctx, node, key, newValue);
   }
   return ctx.dirty;
 }
@@ -637,13 +666,13 @@ export const startEvent = (ctx: RenderContext, name: string) => {
     timeStart: performance.now(),
     timeEnd: 0,
   };
-  ctx.perf.push(event);
+  ctx.perf.timing.push(event);
   return () => {
     event.timeEnd = performance.now();
   };
 };
 
-function setAttribute(ctx: RenderContext, el: Element, prop: string, value: string | null) {
+export function setAttribute(ctx: RenderContext, el: Element, prop: string, value: string | null) {
   const fn = () => {
     if (value == null) {
       el.removeAttribute(prop);
@@ -692,7 +721,7 @@ function setProperty(ctx: RenderContext, node: any, key: string, value: any) {
     try {
       node[key] = value;
     } catch (err) {
-      console.error(err);
+      logError('Set property', { node, key, value }, err);
     }
   };
   ctx.operations.push({
@@ -779,20 +808,21 @@ export function executeContext(ctx: RenderContext) {
   }
 }
 
-export function getRenderStats(ctx: RenderContext) {
+export function printRenderStats(ctx: RenderContext) {
   const byOp: Record<string, number> = {};
   for (const op of ctx.operations) {
     byOp[op.operation] = (byOp[op.operation] ?? 0) + 1;
   }
   const affectedElements = Array.from(new Set(ctx.operations.map((a) => a.el)));
   const stats = {
-    total: ctx.operations.length,
     byOp,
     roots: ctx.roots,
     hostElements: Array.from(ctx.hostElements),
     affectedElements,
+    visitedNodes: ctx.perf.visited,
     operations: ctx.operations.map((v) => [v.operation, v.el, ...v.args]),
   };
+  logDebug('Render stats', stats);
   return stats;
 }
 

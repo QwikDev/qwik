@@ -1,6 +1,8 @@
 import { assertDefined } from '../assert/assert';
 import { getContext } from '../props/props';
+import { getDocument } from '../util/dom';
 import { isElement } from '../util/element';
+import { logWarn } from '../util/log';
 import {
   ELEMENT_ID,
   ELEMENT_ID_PREFIX,
@@ -10,7 +12,13 @@ import {
   QObjSelector,
 } from '../util/markers';
 import { qDev } from '../util/qdev';
-import { QOjectSubsSymbol, QOjectTargetSymbol, _restoreQObject } from './q-object';
+import {
+  getProxyMap,
+  ObjToProxyMap,
+  QOjectSubsSymbol,
+  QOjectTargetSymbol,
+  _restoreQObject,
+} from './q-object';
 
 export interface Store {
   doc: Document;
@@ -22,6 +30,7 @@ export const JSON_OBJ_PREFIX = '\u0010';
 export function QStore_hydrate(doc: Document) {
   const script = doc.querySelector('script[type="qwik/json"]');
   (doc as any).qDehydrate = () => QStore_dehydrate(doc);
+  const map = getProxyMap(doc);
   if (script) {
     script.parentElement!.removeChild(script);
     const meta = JSON.parse(script.textContent || '{}') as any;
@@ -33,7 +42,7 @@ export function QStore_hydrate(doc: Document) {
     for (const obj of meta.objs) {
       reviveNestedQObjects(obj, meta.objs);
     }
-    reviveQObjects(meta.objs, meta.subs, elements);
+    reviveQObjects(meta.objs, meta.subs, elements, map);
 
     doc.querySelectorAll(QObjSelector).forEach((el) => {
       const qobj = el.getAttribute(QObjAttr);
@@ -64,13 +73,17 @@ export function QStore_dehydrate(doc: Document) {
   const objSet = new Set<any>();
 
   // Element to index
-  const elementToIndex = new Map<Element, string>();
-  function getElementID(el: Element) {
+  const elementToIndex = new Map<Element, string | null>();
+  function getElementID(el: Element): string | null {
     let id = elementToIndex.get(el);
     if (id === undefined) {
-      id = intToStr(elementToIndex.size);
-      el.setAttribute(ELEMENT_ID, id);
-      id = ELEMENT_ID_PREFIX + id;
+      if (el.isConnected) {
+        id = intToStr(elementToIndex.size);
+        el.setAttribute(ELEMENT_ID, id);
+        id = ELEMENT_ID_PREFIX + id;
+      } else {
+        id = null;
+      }
       elementToIndex.set(el, id);
     }
     return id;
@@ -103,8 +116,8 @@ export function QStore_dehydrate(doc: Document) {
       if (subs) {
         return Object.fromEntries(
           Array.from(subs.entries()).map(([el, set]) => {
-            if (el.isConnected) {
-              const id = getElementID(el);
+            const id = getElementID(el);
+            if (id !== null) {
               return [id, Array.from(set)];
             } else {
               return [undefined, undefined];
@@ -161,7 +174,7 @@ export function QStore_dehydrate(doc: Document) {
     const attribute = ctx.refMap.array
       .map((obj) => {
         if (isElement(obj)) {
-          return getElementID(obj);
+          return getElementID(obj)!;
         }
 
         const idx =
@@ -182,6 +195,18 @@ export function QStore_dehydrate(doc: Document) {
     }
   });
 
+  // Sanity check of serialized element
+  if (qDev) {
+    elementToIndex.forEach((value, el) => {
+      if (getDocument(el) !== doc) {
+        logWarn('element from different document', value, el.tagName);
+      }
+      if (!value) {
+        logWarn('unconnected element', el.tagName, '\n');
+      }
+    });
+  }
+
   // Serialize
   const script = doc.createElement('script');
   script.setAttribute('type', 'qwik/json');
@@ -190,20 +215,27 @@ export function QStore_dehydrate(doc: Document) {
   doc.body.appendChild(script);
 }
 
-function reviveQObjects(objs: object[], subs: any[], elementMap: Map<string, Element>) {
+function reviveQObjects(
+  objs: object[],
+  subs: any[],
+  elementMap: Map<string, Element>,
+  map: ObjToProxyMap
+) {
   for (let i = 0; i < objs.length; i++) {
     const sub = subs[i];
     if (sub) {
       const value = objs[i];
-      const converted = new Map(
-        Object.entries(sub).map((entry) => {
-          const el = elementMap.get(entry[0])!;
-          assertDefined(el);
-          const set = new Set(entry[1] as any) as Set<string>;
-          return [el, set];
-        })
-      );
-      objs[i] = _restoreQObject(value, converted);
+      const converted = new Map();
+      Object.entries(sub).forEach((entry) => {
+        const el = elementMap.get(entry[0]);
+        if (!el) {
+          logWarn('QWIK can not revive subscriptions because of missing element ID', entry, value);
+          return;
+        }
+        const set = new Set(entry[1] as any) as Set<string>;
+        converted.set(el, set);
+      });
+      objs[i] = _restoreQObject(value, map, converted);
     }
   }
 }

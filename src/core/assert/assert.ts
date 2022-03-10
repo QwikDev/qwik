@@ -5,6 +5,7 @@
  * Use of this source code is governed by an MIT-style license that can be
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
+import { logError } from '../util/log';
 import { qDev } from '../util/qdev';
 
 export function assertDefined(value: any, text?: string) {
@@ -99,6 +100,6 @@ function typeOf(value: any) {
 function newError(text: string) {
   debugger; // eslint-disable-line no-debugger
   const error = new Error(text);
-  console.error(error); // eslint-disable-line no-console
+  logError(error); // eslint-disable-line no-console
   return error;
 }

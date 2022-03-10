@@ -1,13 +1,4 @@
-import {
-  Host,
-  component$,
-  Slot,
-  PropsOf,
-  getProps,
-  useEvent,
-  $,
-  createStore,
-} from '@builder.io/qwik';
+import { Host, component$, Slot, PropsOf, getProps, useEvent, $, useStore } from '@builder.io/qwik';
 /* eslint no-console: ["off"] */
 
 export interface Cmp {
@@ -125,7 +116,7 @@ function getCmpClass(cmp: Cmp, ...additionalClasses: string[]) {
 }
 
 export const MonolithScrubber = component$((props: { cmp: Cmp }) => {
-  const state = createStore({ step: 1 });
+  const state = useStore({ step: 1 });
   return $(() => (
     <>
       <ol>

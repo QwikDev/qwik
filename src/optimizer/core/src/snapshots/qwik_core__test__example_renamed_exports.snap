@@ -7,10 +7,10 @@ expression: output
 ==INPUT==
 
 
-import { component$ as Component, $ as onRender, createStore } from '@builder.io/qwik';
+import { component$ as Component, $ as onRender, useStore } from '@builder.io/qwik';
 
 export const App = Component((props) => {
-    const state = createStore({thing: 0});
+    const state = useStore({thing: 0});
 
     return onRender(() => (
         <div>{state.thing}</div>
@@ -47,9 +47,9 @@ export const App_onRender = ()=>{
 ============================= h_test_app_onmount.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-import { createStore } from "@builder.io/qwik";
+import { useStore } from "@builder.io/qwik";
 export const App_onmount = (props)=>{
-    const state = createStore({
+    const state = useStore({
         thing: 0
     });
     return qwik.qrl(()=>import("./h_test_app_onrender")

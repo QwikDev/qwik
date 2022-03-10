@@ -36,7 +36,15 @@ jobs:
         with:
           filters: |
             fullbuild:
-              - 'src/**/*.(ts|tsx|js|mjs|cjs|jsx|json|toml|rs)'
+              - 'src/**/*.ts'
+              - 'src/**/*.tsx'
+              - 'src/**/*.js'
+              - 'src/**/*.mjs'
+              - 'src/**/*.cjs'
+              - 'src/**/*.jsx'
+              - 'src/**/*.json'
+              - 'src/**/*.toml'
+              - 'src/**/*.rs'
               - 'yarn.lock'
               - 'tsconfig.json'
       - name: Set fullbuild output

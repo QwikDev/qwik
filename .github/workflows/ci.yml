@@ -491,6 +491,9 @@ jobs:
       - name: Install NPM Dependencies
         run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
 
+      - name: Jest Unit Tests
+        run: yarn test.unit
+
   ########### VALIDATE RUST ############
   validate-rust:
     name: Validate Rust

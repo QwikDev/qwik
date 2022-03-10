@@ -1,4 +1,4 @@
-import { h, Host, createStore } from '@builder.io/qwik';
+import { h, Host, useStore } from '@builder.io/qwik';
 import { ElementFixture, trigger } from '../../testing/element_fixture';
 import { expectDOM } from '../../testing/expect-dom.unit';
 import { getTestPlatform } from '../../testing/platform';
@@ -101,6 +101,37 @@ describe('render', () => {
       );
     });
 
+    it('should render component external props', async () => {
+      await render(
+        fixture.host,
+        <RenderProps
+          thing="World"
+          className="foo"
+          id="123"
+          q:slot="start"
+          aria-hidden="true"
+          data-value="hello world"
+          key={'special'}
+          h:title="Custom title"
+        />
+      );
+      expectRendered(
+        <render-props
+          q:obj=""
+          q:host=""
+          q:slot="start"
+          q:key="special"
+          class="foo"
+          id="123"
+          aria-hidden="true"
+          data-value="hello world"
+          title="Custom title"
+        >
+          <span>{'{"thing":"World"}'}</span>
+        </render-props>
+      );
+    });
+
     it('should render a blank component', async () => {
       await render(fixture.host, <InnerHTMLComponent />);
       expectRendered(
@@ -142,9 +173,15 @@ describe('render', () => {
       expectRendered(
         <project>
           <section>
-            <q:slot>..default..</q:slot>
-            <q:slot name="details">..details..</q:slot>
-            <q:slot name="description">..description..</q:slot>
+            <q:slot>
+              <q:fallback>..default..</q:fallback>
+            </q:slot>
+            <q:slot name="details">
+              <q:fallback>..details..</q:fallback>
+            </q:slot>
+            <q:slot name="description">
+              <q:fallback>..description..</q:fallback>
+            </q:slot>
           </section>
         </project>
       );
@@ -154,11 +191,17 @@ describe('render', () => {
       await render(fixture.host, <Project>projection</Project>);
       expectRendered(
         <project>
-          <template q:slot=""></template>
           <section>
-            <q:slot>projection</q:slot>
-            <q:slot name="details">..details..</q:slot>
-            <q:slot name="description">..description..</q:slot>
+            <q:slot>
+              <q:fallback>..default..</q:fallback>
+              projection
+            </q:slot>
+            <q:slot name="details">
+              <q:fallback>..details..</q:fallback>
+            </q:slot>
+            <q:slot name="description">
+              <q:fallback>..description..</q:fallback>
+            </q:slot>
           </section>
         </project>
       );
@@ -182,13 +225,17 @@ describe('render', () => {
       );
       expectRendered(
         <project>
-          <template q:slot=""></template>
           <section>
-            <q:slot>PROJECTION</q:slot>
+            <q:slot>
+              <q:fallback>..default..</q:fallback>
+              PROJECTION
+            </q:slot>
             <q:slot name="details">
+              <q:fallback>..details..</q:fallback>
               <span q:slot="details">DETAILS</span>
             </q:slot>
             <q:slot name="description">
+              <q:fallback>..description..</q:fallback>
               <span q:slot="description">DESCRIPTION</span>
             </q:slot>
           </section>
@@ -207,16 +254,21 @@ describe('render', () => {
       );
       expectRendered(
         <project>
-          <template q:slot="">
+          <template q:slot="ignore">
             <span q:slot="ignore">IGNORE</span>
           </template>
           <section>
-            <q:slot>..default..</q:slot>
+            <q:slot>
+              <q:fallback>..default..</q:fallback>
+            </q:slot>
             <q:slot name="details">
+              <q:fallback>..details..</q:fallback>
               <span q:slot="details">DETAILS1</span>
               <span q:slot="details">DETAILS2</span>
             </q:slot>
-            <q:slot name="description">..description..</q:slot>
+            <q:slot name="description">
+              <q:fallback>..description..</q:fallback>
+            </q:slot>
           </section>
         </project>
       );
@@ -230,9 +282,11 @@ describe('render', () => {
       );
       expectRendered(
         <project>
-          <template q:slot=""></template>
           <section>
-            <q:slot>PROJECTION</q:slot>
+            <q:slot>
+              <q:fallback>..default..</q:fallback>
+              <span>PROJECTION</span>
+            </q:slot>
           </section>
         </project>
       );
@@ -240,9 +294,11 @@ describe('render', () => {
       await getTestPlatform(fixture.document).flush();
       expectRendered(
         <project>
-          <template q:slot=""></template>
           <section>
-            <q:slot>PROJECTION</q:slot>
+            <q:slot>
+              <q:fallback>..default..</q:fallback>
+              <span>PROJECTION</span>
+            </q:slot>
           </section>
         </project>
       );
@@ -252,17 +308,24 @@ describe('render', () => {
     it('should render into host component', async () => {
       await render(
         fixture.host,
-        <HostFixture hostAttrs={JSON.stringify({ id: 'TEST', name: 'NAME' })} content="CONTENT" />
+        <HostFixture
+          hostAttrs={JSON.stringify({
+            id: 'TEST',
+            class: { thing: true },
+            name: 'NAME',
+          })}
+          content="CONTENT"
+        />
       );
       expectRendered(
-        <host-fixture id="TEST" name="NAME">
+        <host-fixture id="TEST" name="NAME" class="thing">
           CONTENT
         </host-fixture>
       );
     });
   });
 
-  describe('<Async>', () => {
+  describe.skip('<Async>', () => {
     it('should render a promise', async () => {
       await render(fixture.host, <div>{Promise.resolve('WORKS')}</div>);
       expectRendered(
@@ -465,8 +528,8 @@ describe('render', () => {
               </svg>
               <feGaussianBlur class="is-html">bye</feGaussianBlur>
             </foreignObject>
-            <text class="is-svg">Hello</text>
-            <text class="is-svg">Bye</text>
+            <text className="is-svg">Hello</text>
+            <text className="is-svg">Bye</text>
           </svg>
           <text class="is-html">end</text>
         </div>
@@ -483,23 +546,23 @@ describe('render', () => {
           <Text class="is-html" shouldkebab="true">
             Start
           </Text>
-          <svg class="is-svg" preserveAspectRatio="true">
-            <Text class="is-svg" shouldCamelCase="true">
+          <svg className="is-svg" preserveAspectRatio="true">
+            <Text className="is-svg" shouldCamelCase="true">
               start
             </Text>
-            <foreignObject class="is-svg">
+            <foreignObject className="is-svg">
               <div class="is-html">hello</div>
-              <svg class="is-svg">
-                <feGaussianBlur class="is-svg"></feGaussianBlur>
-                <foreignObject class="is-svg">
+              <svg className="is-svg">
+                <feGaussianBlur className="is-svg"></feGaussianBlur>
+                <foreignObject className="is-svg">
                   <foreignobject class="is-html"></foreignobject>
                   <div class="is-html">Still outside svg</div>
                 </foreignObject>
               </svg>
               <fegaussianblur class="is-html">bye</fegaussianblur>
             </foreignObject>
-            <text class="is-svg">Hello</text>
-            <text class="is-svg">Bye</text>
+            <text className="is-svg">Hello</text>
+            <text className="is-svg">Bye</text>
           </svg>
           <text class="is-html">end</text>
         </div>
@@ -517,7 +580,7 @@ describe('render', () => {
 export const HelloWorld = component$(
   (props: { name?: string }) => {
     useScopedStyles$(`span.� { color: red; }`);
-    const state = createStore({ salutation: 'Hello' });
+    const state = useStore({ salutation: 'Hello' });
     return $(() => {
       return (
         <span>
@@ -532,11 +595,25 @@ export const HelloWorld = component$(
 );
 
 //////////////////////////////////////////////////////////////////////////////////////////
+// Hello World
+//////////////////////////////////////////////////////////////////////////////////////////
+export const RenderProps = component$(
+  (props: { thing?: string }) => {
+    return $(() => {
+      return <span>{JSON.stringify(props)}</span>;
+    });
+  },
+  {
+    tagName: 'render-props',
+  }
+);
+
+//////////////////////////////////////////////////////////////////////////////////////////
 // Counter
 //////////////////////////////////////////////////////////////////////////////////////////
 
 export const Counter = component$((props: { step?: number }) => {
-  const state = createStore({ count: 0 });
+  const state = useStore({ count: 0 });
   return $(() => {
     const step = Number(props.step || 1);
     return (
@@ -598,7 +675,7 @@ export const SimpleProject = component$(
 export const HostFixture = component$(
   (props: { hostAttrs?: string; content?: string }) => {
     return $(() => {
-      return h(Host, JSON.parse(props.hostAttrs || '{}'), [props.content]);
+      return <Host {...JSON.parse(props.hostAttrs || '{}')}>{props.content}</Host>;
     });
   },
   {
@@ -613,7 +690,7 @@ function delay(time: number) {
 //////////////////////////////////////////////////////////////////////////////////////////
 export const InnerHTMLComponent = component$(async () => {
   return $(() => {
-    const html = Promise.resolve(`<span>WORKS</span>`);
-    return <Async resolve={html}>{(v) => <div innerHTML={v.value}></div>}</Async>;
+    const html = '<span>WORKS</span>';
+    return <div innerHTML={html}></div>;
   });
 });

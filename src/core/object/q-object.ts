@@ -4,9 +4,20 @@ import { notifyRender } from '../render/notify-render';
 import { tryGetInvokeContext } from '../use/use-core';
 import { debugStringify } from '../util/stringify';
 
+export type ObjToProxyMap = WeakMap<any, any>;
 export type QObject<T extends {}> = T & { __brand__: 'QObject' };
 
-export function qObject<T extends Object>(obj: T): T {
+const ProxyMapSymbol = Symbol('ProxyMapSymbol');
+
+export function getProxyMap(doc: Document): ObjToProxyMap {
+  let map = (doc as any)[ProxyMapSymbol];
+  if (!map) {
+    map = (doc as any)[ProxyMapSymbol] = new WeakMap();
+  }
+  return map;
+}
+
+export function qObject<T extends Object>(obj: T, proxyMap: ObjToProxyMap): T {
   assertEqual(unwrapProxy(obj), obj, 'Unexpected proxy at this location');
   if (obj == null || typeof obj !== 'object') {
     // TODO(misko): centralize
@@ -19,13 +30,13 @@ export function qObject<T extends Object>(obj: T): T {
       `Q-ERROR: Only objects literals can be wrapped in 'QObject', got ` + debugStringify(obj)
     );
   }
-  const proxy = readWriteProxy(obj as any as QObject<T>);
+  const proxy = readWriteProxy(obj as any as QObject<T>, proxyMap);
   Object.assign((proxy as any)[QOjectTargetSymbol], obj);
   return proxy;
 }
 
-export function _restoreQObject<T>(obj: T, subs: Map<Element, Set<string>>): T {
-  return readWriteProxy(obj as any as QObject<T>, subs);
+export function _restoreQObject<T>(obj: T, map: ObjToProxyMap, subs: Map<Element, Set<string>>): T {
+  return readWriteProxy(obj as any as QObject<T>, map, subs);
 }
 
 export function getTransient<T>(obj: any, key: any): T | null {
@@ -40,11 +51,15 @@ export function setTransient<T>(obj: any, key: any, value: T): T {
 /**
  * Creates a proxy which notifies of any writes.
  */
-export function readWriteProxy<T extends object>(target: T, subs?: Map<Element, Set<string>>): T {
+export function readWriteProxy<T extends object>(
+  target: T,
+  proxyMap: ObjToProxyMap,
+  subs?: Map<Element, Set<string>>
+): T {
   if (!target || typeof target !== 'object') return target;
   let proxy = proxyMap.get(target);
   if (proxy) return proxy;
-  proxy = new Proxy(target, new ReadWriteProxyHandler(subs)) as any as T;
+  proxy = new Proxy(target, new ReadWriteProxyHandler(proxyMap, subs)) as any as T;
   proxyMap.set(target, proxy);
   return proxy;
 }
@@ -62,7 +77,7 @@ export function unwrapProxy<T>(proxy: T): T {
   return proxy;
 }
 
-export function wrap<T>(value: T): T {
+export function wrap<T>(value: T, proxyMap: ObjToProxyMap): T {
   if (value && typeof value === 'object') {
     const nakedValue = unwrapProxy(value);
     if (nakedValue !== value) {
@@ -72,7 +87,7 @@ export function wrap<T>(value: T): T {
     verifySerializable<T>(value);
 
     const proxy = proxyMap.get(value);
-    return proxy ? proxy : readWriteProxy(value as any);
+    return proxy ? proxy : readWriteProxy(value as any, proxyMap);
   } else {
     return value;
   }
@@ -81,7 +96,7 @@ export function wrap<T>(value: T): T {
 class ReadWriteProxyHandler<T extends object> implements ProxyHandler<T> {
   private transients: WeakMap<any, any> | null = null;
 
-  constructor(private subs = new Map<Element, Set<string>>()) {}
+  constructor(private proxy: ObjToProxyMap, private subs = new Map<Element, Set<string>>()) {}
 
   getSub(el: Element) {
     let sub = this.subs.get(el);
@@ -106,7 +121,7 @@ class ReadWriteProxyHandler<T extends object> implements ProxyHandler<T> {
         sub.add(prop);
       }
     }
-    return wrap(value);
+    return wrap(value, this.proxy);
   }
 
   set(target: T, prop: string, newValue: any): boolean {
@@ -149,4 +164,3 @@ function verifySerializable<T>(value: T) {
     }
   }
 }
-const proxyMap: WeakMap<any, any> = new WeakMap();

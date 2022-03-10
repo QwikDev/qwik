@@ -1,6 +1,8 @@
 import { QError, qError } from '../error/error';
-import { readWriteProxy } from '../object/q-object';
+import { getProxyMap, readWriteProxy } from '../object/q-object';
 import { QStore_hydrate } from '../object/store';
+import type { RenderContext } from '../render/cursor';
+import { getDocument } from '../util/dom';
 import { newQObjectMap, QObjectMap } from './props-obj-map';
 import { qPropWriteQRL, qPropReadQRL } from './props-on';
 
@@ -12,7 +14,7 @@ const Q_IS_HYDRATED = '__isHydrated__';
 export const Q_CTX = '__ctx__';
 
 export function hydrateIfNeeded(element: Element): void {
-  const doc = element.ownerDocument!;
+  const doc = getDocument(element);
   const isHydrated = (doc as any)[Q_IS_HYDRATED];
   if (!isHydrated) {
     (doc as any)[Q_IS_HYDRATED] = true;
@@ -28,9 +30,9 @@ export interface QContext {
   cache: Map<string, any>;
   refMap: QObjectMap;
   element: Element;
-  id: string | undefined;
+  dirty: boolean;
   props: Record<string, any> | undefined;
-  events?: QContextEvents;
+  events: QContextEvents | undefined;
 }
 
 export function getContext(element: Element): QContext {
@@ -43,15 +45,16 @@ export function getContext(element: Element): QContext {
       element,
       cache,
       refMap: newQObjectMap(element),
-      id: undefined,
+      dirty: false,
       props: undefined,
+      events: undefined,
     };
   }
   return ctx;
 }
 
-export function setEvent(ctx: QContext, prop: string, value: any) {
-  qPropWriteQRL(ctx, prop, value);
+export function setEvent(rctx: RenderContext, ctx: QContext, prop: string, value: any) {
+  qPropWriteQRL(rctx, ctx, prop, value);
 }
 
 export function getEvent(ctx: QContext, prop: string): any {
@@ -60,7 +63,7 @@ export function getEvent(ctx: QContext, prop: string): any {
 
 export function getProps(ctx: QContext) {
   if (!ctx.props) {
-    ctx.props = readWriteProxy({});
+    ctx.props = readWriteProxy({}, getProxyMap(getDocument(ctx.element)));
     ctx.refMap.add(ctx.props);
   }
   return ctx.props!;

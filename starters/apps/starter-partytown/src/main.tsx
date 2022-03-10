@@ -1,7 +1,7 @@
 import { component$, $, useEvent, useStore } from '@builder.io/qwik';
 import './global.css';
 
-export const App = component$(() => {
+export const Main = component$(() => {
   const state = useStore({ name: 'World', running: true });
   return $(() => {
     return (

@@ -1,7 +1,7 @@
 import { component$, $, useStore } from '@builder.io/qwik';
 import { Footer } from './components/footer/footer';
 import { Header } from './components/header/header';
-import { Main } from './components/main/main';
+import { Body } from './components/body/body';
 import type { Todos } from './state/state';
 
 import './base.css';
@@ -14,7 +14,7 @@ import './index.css';
  * Qwik knows that it should never need to be rerendered, and its code will never
  * download to the client.
  */
-export const App = component$(() => {
+export const Main = component$(() => {
   const todos = useStore<Todos>({
     filter: 'all',
     items: [
@@ -27,7 +27,7 @@ export const App = component$(() => {
     return (
       <section class="todoapp">
         <Header todos={todos} />
-        <Main todos={todos} />
+        <Body todos={todos} />
         <Footer todos={todos} />
       </section>
     );

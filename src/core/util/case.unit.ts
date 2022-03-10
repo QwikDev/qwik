@@ -18,7 +18,7 @@ describe('case', () => {
 
   describe('fromKebabToCamelCase', () => {
     it('should convert to camel', () => {
-      expect(fromKebabToCamelCase('hello-world')).toEqual('HelloWorld');
+      expect(fromKebabToCamelCase('hello-world')).toEqual('helloWorld');
       expect(fromKebabToCamelCase('-hello-world')).toEqual('HelloWorld');
     });
   });

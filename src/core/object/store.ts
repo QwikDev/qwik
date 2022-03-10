@@ -1,26 +1,67 @@
 import { assertDefined } from '../assert/assert';
-import { JSON_OBJ_PREFIX } from '../json/q-json';
+import { getContext } from '../props/props';
+import { getDocument } from '../util/dom';
+import { isElement } from '../util/element';
+import { logWarn } from '../util/log';
+import {
+  ELEMENT_ID,
+  ELEMENT_ID_PREFIX,
+  ELEMENT_ID_SELECTOR,
+  QHostAttr,
+  QObjAttr,
+  QObjSelector,
+} from '../util/markers';
 import { qDev } from '../util/qdev';
-import { clearQProps, clearQPropsMap, QPropsContext } from '../props/props';
-import { getQObjectId, _restoreQObject } from './q-object';
-import { getProps } from '../props/props.public';
+import {
+  getProxyMap,
+  ObjToProxyMap,
+  QOjectSubsSymbol,
+  QOjectTargetSymbol,
+  _restoreQObject,
+} from './q-object';
 
 export interface Store {
   doc: Document;
   objs: Record<string, any>;
 }
 
-export function QStore_hydrate(doc: Document): Record<string, object> | null {
+export const JSON_OBJ_PREFIX = '\u0010';
+
+export function QStore_hydrate(doc: Document) {
   const script = doc.querySelector('script[type="qwik/json"]');
-  let map: Record<string, object> | null = null;
   (doc as any).qDehydrate = () => QStore_dehydrate(doc);
+  const map = getProxyMap(doc);
   if (script) {
     script.parentElement!.removeChild(script);
-    map = JSON.parse(script.textContent || '{}');
-    reviveQObjects(map);
-    reviveNestedQObjects(map, map!);
+    const meta = JSON.parse(script.textContent || '{}') as any;
+    const elements = new Map<string, Element>();
+    doc.querySelectorAll(ELEMENT_ID_SELECTOR).forEach((el) => {
+      const id = el.getAttribute(ELEMENT_ID)!;
+      elements.set(ELEMENT_ID_PREFIX + id, el);
+    });
+    for (const obj of meta.objs) {
+      reviveNestedQObjects(obj, meta.objs);
+    }
+    reviveQObjects(meta.objs, meta.subs, elements, map);
+
+    doc.querySelectorAll(QObjSelector).forEach((el) => {
+      const qobj = el.getAttribute(QObjAttr);
+      const host = el.getAttribute(QHostAttr);
+      const ctx = getContext(el);
+      qobj!.split(' ').forEach((part) => {
+        const obj = part[0] === ELEMENT_ID_PREFIX ? elements.get(part) : meta.objs[strToInt(part)];
+        assertDefined(obj);
+        ctx.refMap.add(obj);
+      });
+      if (host) {
+        const [props, events] = host.split(' ').map(strToInt);
+        assertDefined(props);
+        assertDefined(events);
+        ctx.props = ctx.refMap.get(props);
+        ctx.events = ctx.refMap.get(events);
+      }
+    });
   }
-  return map;
 }
 
 /**
@@ -29,52 +70,183 @@ export function QStore_hydrate(doc: Document): Record<string, object> | null {
  * @param doc
  */
 export function QStore_dehydrate(doc: Document) {
-  const map: Record<string, any> = {};
+  const objSet = new Set<any>();
+
+  // Element to index
+  const elementToIndex = new Map<Element, string | null>();
+  function getElementID(el: Element): string | null {
+    let id = elementToIndex.get(el);
+    if (id === undefined) {
+      if (el.isConnected) {
+        id = intToStr(elementToIndex.size);
+        el.setAttribute(ELEMENT_ID, id);
+        id = ELEMENT_ID_PREFIX + id;
+      } else {
+        id = null;
+      }
+      elementToIndex.set(el, id);
+    }
+    return id;
+  }
   // Find all Elements which have qObjects attached to them
-  doc.querySelectorAll('[q\\:obj]').forEach((node) => {
-    const props = getProps(node) as QPropsContext;
-    const qMap = props.__qRefs__;
-    clearQProps(node);
-    assertDefined(qMap);
-    qMap.forEach((v, k) => {
-      map[k] = v.obj;
-      collectQObjects(v, new Set(), (k, v) => (map[k] = v));
+  const elements = doc.querySelectorAll(QObjSelector);
+  elements.forEach((node) => {
+    const props = getContext(node);
+    const qMap = props.refMap;
+    qMap.array.forEach((v) => {
+      collectQObjects(v, objSet);
     });
   });
+
+  // Convert objSet to array
+  const objArray = Array.from(objSet);
+  objArray.sort((a, b) => {
+    const isProxyA = a[QOjectTargetSymbol] !== undefined ? 0 : 1;
+    const isProxyB = b[QOjectTargetSymbol] !== undefined ? 0 : 1;
+    return isProxyA - isProxyB;
+  });
+
+  const objs = objArray.map((a) => {
+    return a[QOjectTargetSymbol] ?? a;
+  });
+
+  const subs = objArray
+    .map((a) => {
+      const subs = a[QOjectSubsSymbol] as Map<Element, Set<string>>;
+      if (subs) {
+        return Object.fromEntries(
+          Array.from(subs.entries()).map(([el, set]) => {
+            const id = getElementID(el);
+            if (id !== null) {
+              return [id, Array.from(set)];
+            } else {
+              return [undefined, undefined];
+            }
+          })
+        );
+      } else {
+        return null;
+      }
+    })
+    .filter((a) => !!a);
+
+  const objToId = new Map<any, number>();
+  let count = 0;
+  for (const obj of objs) {
+    objToId.set(obj, count);
+    count++;
+  }
+
+  const convert = (value: any) => {
+    if (value && typeof value === 'object') {
+      value = value[QOjectTargetSymbol] ?? value;
+    }
+    const idx = objToId.get(value);
+    if (idx !== undefined) {
+      return intToStr(idx);
+    }
+    return elementToIndex.get(value) ?? value;
+  };
+
+  const convertedObjs = objs.map((obj) => {
+    if (Array.isArray(obj)) {
+      return obj.map(convert);
+    } else if (typeof obj === 'object') {
+      const output: Record<string, any> = {};
+      Object.entries(obj).forEach(([key, value]) => {
+        output[key] = convert(value);
+      });
+      return output;
+    }
+    return obj;
+  });
+
+  const data = {
+    objs: convertedObjs,
+    subs,
+  };
+
+  // Write back to the dom
+  elements.forEach((node) => {
+    const ctx = getContext(node);
+    const props = ctx.props;
+    const events = ctx.events;
+    const attribute = ctx.refMap.array
+      .map((obj) => {
+        if (isElement(obj)) {
+          return getElementID(obj)!;
+        }
+
+        const idx =
+          typeof obj === 'object' ? objToId.get(obj[QOjectTargetSymbol] ?? obj) : objToId.get(obj);
+
+        assertDefined(idx);
+        return intToStr(idx!);
+      })
+      .join(' ');
+    node.setAttribute(QObjAttr, attribute);
+
+    if (props) {
+      const objs = [props];
+      if (events) {
+        objs.push(events);
+      }
+      node.setAttribute(QHostAttr, objs.map((obj) => ctx.refMap.indexOf(obj)).join(' '));
+    }
+  });
+
+  // Sanity check of serialized element
+  if (qDev) {
+    elementToIndex.forEach((value, el) => {
+      if (getDocument(el) !== doc) {
+        logWarn('element from different document', value, el.tagName);
+      }
+      if (!value) {
+        logWarn('unconnected element', el.tagName, '\n');
+      }
+    });
+  }
+
   // Serialize
   const script = doc.createElement('script');
   script.setAttribute('type', 'qwik/json');
-  script.textContent = JSON.stringify(
-    map,
-    function (this: any, key: string, value: any) {
-      if (this === map) return value;
-      if (key.startsWith('__')) return undefined;
-      const id = getQObjectId(value);
-      if (id) return JSON_OBJ_PREFIX + id;
-      return value;
-    },
-    qDev ? '  ' : undefined
-  );
+  script.textContent = JSON.stringify(data, undefined, qDev ? '  ' : undefined);
+
   doc.body.appendChild(script);
-  clearQPropsMap(doc);
 }
 
-function reviveQObjects(map: Record<string, object> | null) {
-  for (const key in map) {
-    if (Object.prototype.hasOwnProperty.call(map, key)) {
-      const value = map[key];
-      map[key] = _restoreQObject(value, key);
+function reviveQObjects(
+  objs: object[],
+  subs: any[],
+  elementMap: Map<string, Element>,
+  map: ObjToProxyMap
+) {
+  for (let i = 0; i < objs.length; i++) {
+    const sub = subs[i];
+    if (sub) {
+      const value = objs[i];
+      const converted = new Map();
+      Object.entries(sub).forEach((entry) => {
+        const el = elementMap.get(entry[0]);
+        if (!el) {
+          logWarn('QWIK can not revive subscriptions because of missing element ID', entry, value);
+          return;
+        }
+        const set = new Set(entry[1] as any) as Set<string>;
+        converted.set(el, set);
+      });
+      objs[i] = _restoreQObject(value, map, converted);
     }
   }
 }
 
-function reviveNestedQObjects(obj: any, map: Record<string, any>) {
+function reviveNestedQObjects(obj: any, map: object[]) {
   if (obj && typeof obj == 'object') {
     if (Array.isArray(obj)) {
       for (let i = 0; i < obj.length; i++) {
         const value = obj[i];
-        if (typeof value == 'string' && value.startsWith(JSON_OBJ_PREFIX)) {
-          obj[i] = map[value.substring(JSON_OBJ_PREFIX.length)];
+        if (typeof value == 'string') {
+          obj[i] = map[strToInt(value)];
         } else {
           reviveNestedQObjects(value, map);
         }
@@ -83,8 +255,8 @@ function reviveNestedQObjects(obj: any, map: Record<string, any>) {
       for (const key in obj) {
         if (Object.prototype.hasOwnProperty.call(obj, key)) {
           const value = obj[key];
-          if (typeof value == 'string' && value.startsWith(JSON_OBJ_PREFIX)) {
-            obj[key] = map[value.substring(JSON_OBJ_PREFIX.length)];
+          if (typeof value == 'string') {
+            obj[key] = map[strToInt(value)];
           } else {
             reviveNestedQObjects(value, map);
           }
@@ -94,23 +266,39 @@ function reviveNestedQObjects(obj: any, map: Record<string, any>) {
   }
 }
 
-function collectQObjects(obj: any, seen: Set<any>, foundFn: (key: string, obj: any) => void) {
-  if (obj && typeof obj == 'object') {
+function collectQObjects(obj: any, seen: Set<any>) {
+  if (obj != null) {
+    if (isElement(obj)) {
+      return;
+    }
+    if (typeof obj === 'boolean') {
+      return;
+    }
+
     if (seen.has(obj)) return;
     seen.add(obj);
-    if (Array.isArray(obj)) {
-      for (let i = 0; i < obj.length; i++) {
-        collectQObjects(obj[i], seen, foundFn);
-      }
-    } else {
-      for (const key in obj) {
-        if (Object.prototype.hasOwnProperty.call(obj, key)) {
-          const value = obj[key];
-          const id = getQObjectId(value);
-          if (id) foundFn(id, value);
-          collectQObjects(value, seen, foundFn);
+
+    if (typeof obj === 'object') {
+      if (Array.isArray(obj)) {
+        for (let i = 0; i < obj.length; i++) {
+          collectQObjects(obj[i], seen);
+        }
+      } else {
+        for (const key in obj) {
+          if (Object.prototype.hasOwnProperty.call(obj, key)) {
+            const value = obj[key];
+            collectQObjects(value, seen);
+          }
         }
       }
     }
   }
 }
+
+export const intToStr = (nu: number) => {
+  return nu.toString(36);
+};
+
+export const strToInt = (nu: string) => {
+  return parseInt(nu, 36);
+};

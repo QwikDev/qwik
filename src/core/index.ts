@@ -25,8 +25,8 @@ export {
   onWindow,
   useStyles,
   useStyles$,
-  withScopedStyles,
-  withScopedStyles$,
+  useScopedStyles,
+  useScopedStyles$,
 } from './component/component.public';
 
 export type { PropsOf, ComponentOptions, OnMountFn } from './component/component.public';
@@ -42,7 +42,6 @@ export { dehydrate } from './object/store.public';
 export { $, implicit$FirstArg, qrl, qrlImport } from './import/qrl.public';
 export type { QRL } from './import/qrl.public';
 
-export { getProps } from './props/props.public';
 export type { Props } from './props/props.public';
 
 export { notifyRender } from './render/notify-render';
@@ -67,7 +66,7 @@ export type { PromiseValue } from './render/jsx/async.public';
 // JSX Runtime
 //////////////////////////////////////////////////////////////////////////////////////////
 export { h } from './render/jsx/factory';
-export { Host } from './render/jsx/host.public';
+export { Host, StaticChildren } from './render/jsx/host.public';
 export { Slot } from './render/jsx/slot.public';
 export { Fragment, jsx, jsxDEV, jsxs } from './render/jsx/jsx-runtime';
 export type {
@@ -85,9 +84,10 @@ export { render } from './render/render.public';
 // use API
 //////////////////////////////////////////////////////////////////////////////////////////
 export { useHostElement } from './use/use-host-element.public';
+export { useDocument } from './use/use-document.public';
 export { useEvent } from './use/use-event.public';
 export { useLexicalScope } from './use/use-lexical-scope.public';
-export { createStore } from './use/use-store.public';
+export { useStore } from './use/use-store.public';
 export { useTransient } from './use/use-transient.public';
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Low-Level API

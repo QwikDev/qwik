@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "description": "",
   "scripts": {
-    "typecheck": "npx tsc --noEmit",
+    "typecheck": "tsc --noEmit",
     "build": "npm run typecheck && npm run build.client && npm run build.server",
     "build.client": "vite build",
     "build.server": "vite build --outDir server/build --ssr src/entry.server.tsx",

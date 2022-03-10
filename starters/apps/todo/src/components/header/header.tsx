@@ -1,5 +1,5 @@
-import { component$, createStore, $, useEvent } from '@builder.io/qwik';
-import { addItem, Todos } from '../../state/state';
+import { component$, useStore, $, useEvent } from '@builder.io/qwik';
+import type { Todos } from '../../state/state';
 
 /**
  * Header component which is responsible for providing UI to ender new todo item.
@@ -8,7 +8,7 @@ import { addItem, Todos } from '../../state/state';
  */
 export const Header = component$(
   (props: { todos: Todos }) => {
-    const state = createStore({ text: '' });
+    const state = useStore({ text: '' });
     return $(() => {
       return (
         <>
@@ -23,7 +23,10 @@ export const Header = component$(
               const inputValue = (event.target as HTMLInputElement).value;
               state.text = inputValue;
               if (event.key === 'Enter' && inputValue) {
-                addItem(props.todos, state.text);
+                props.todos.items.push({
+                  completed: false,
+                  title: state.text,
+                });
                 state.text = '';
               }
             }}

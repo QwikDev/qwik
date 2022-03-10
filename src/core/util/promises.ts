@@ -6,6 +6,7 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
+import type { ValueOrPromise } from '..';
 import { flattenArray } from './array';
 
 export type PromiseTree<T> = T | Promise<T> | Promise<T[]> | Array<PromiseTree<T>>;
@@ -31,3 +32,18 @@ export function flattenPromiseTree<T>(tree: PromiseTree<T>): Promise<T[]> {
 export function isPromise(value: any): value is Promise<any> {
   return value instanceof Promise;
 }
+
+export const then = <T, B>(
+  promise: ValueOrPromise<T>,
+  thenFn: (arg: T) => ValueOrPromise<B>
+): ValueOrPromise<B> => {
+  return isPromise(promise) ? promise.then(thenFn) : thenFn(promise);
+};
+
+export const promiseAll = <T extends any[]>(promises: T): ValueOrPromise<T> => {
+  const hasPromise = promises.some(isPromise);
+  if (hasPromise) {
+    return Promise.all(promises);
+  }
+  return promises;
+};

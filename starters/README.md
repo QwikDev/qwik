@@ -47,10 +47,10 @@ The base app's package.json's devDependencies are updated with:
 
 ```json
 {
-   "devDependencies: {
-      "@builder.io/qwik": "<QWIK_VERSION_BEING_PUBLISHED>",
-      "typescript": "<SAME_AS_ROOT_PACKAGE>",
-      "vite": "<SAME_AS_ROOT_PACKAGE>"
-   }
+  "devDependencies": {
+    "@builder.io/qwik": "<QWIK_VERSION_BEING_PUBLISHED>",
+    "typescript": "<SAME_AS_ROOT_PACKAGE>",
+    "vite": "<SAME_AS_ROOT_PACKAGE>"
+  }
 }
 ```

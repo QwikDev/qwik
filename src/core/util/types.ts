@@ -1,4 +1,4 @@
-import { AttributeMarker } from './markers';
+import { QHostAttr, QSlotAttr } from './markers';
 
 /**
  * Returns true if the `node` is `Element` and of the right `tagName`.
@@ -24,14 +24,14 @@ export function isTemplateElement(node: Node | null | undefined): node is HTMLTe
  * @private
  */
 export function isQSLotTemplateElement(node: Node | null | undefined): node is HTMLTemplateElement {
-  return isTemplateElement(node) && node.hasAttribute(AttributeMarker.QSlotAttr);
+  return isTemplateElement(node) && node.hasAttribute(QSlotAttr);
 }
 
 /**
  * @private
  */
 export function isComponentElement(node: Node | null | undefined): node is HTMLElement {
-  return isHtmlElement(node) && node.hasAttribute(AttributeMarker.OnRenderAttr);
+  return isHtmlElement(node) && node.hasAttribute(QHostAttr);
 }
 
 /**
@@ -39,13 +39,6 @@ export function isComponentElement(node: Node | null | undefined): node is HTMLE
  */
 export function isHtmlElement(node: any): node is Element {
   return node ? node.nodeType === NodeType.ELEMENT_NODE : false;
-}
-
-/**
- * @private
- */
-export function isTextNode(node: Node | null | undefined): node is Text {
-  return node ? node.nodeType === NodeType.TEXT_NODE : false;
 }
 
 /**

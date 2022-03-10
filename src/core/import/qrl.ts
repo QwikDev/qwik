@@ -10,6 +10,9 @@ import { EMPTY_ARRAY } from '../util/flyweight';
 import type { QRL } from './qrl.public';
 import { isQrl, QRLInternal } from './qrl-class';
 import { assertEqual } from '../assert/assert';
+import type { CorePlatform } from '../index';
+import { getDocument } from '../util/dom';
+import { logError } from '../util/log';
 
 let runtimeSymbolId = 0;
 const RUNTIME_QRL = '/runtimeQRL';
@@ -75,10 +78,12 @@ export function runtimeQrl<T>(symbol: T, lexicalScopeCapture: any[] = EMPTY_ARRA
   );
 }
 
-export function stringifyQRL(qrl: QRL, element?: Element) {
+export function stringifyQRL(qrl: QRL, element?: Element, platform?: CorePlatform) {
   const qrl_ = toInternalQRL(qrl);
-  const parts: string[] = [qrl_.chunk];
   const symbol = qrl_.symbol;
+  const chunk = platform ? platform.chunkForSymbol(symbol) ?? qrl_.chunk : qrl_.chunk;
+
+  const parts: string[] = [chunk];
   if (symbol && symbol !== 'default') {
     parts.push('#', symbol);
   }
@@ -99,7 +104,7 @@ export function stringifyQRL(qrl: QRL, element?: Element) {
 }
 
 export function qrlToUrl(element: Element, qrl: QRL): URL {
-  return new URL(stringifyQRL(qrl), element.ownerDocument.baseURI);
+  return new URL(stringifyQRL(qrl), getDocument(element).baseURI);
 }
 
 /**
@@ -142,7 +147,7 @@ export function parseQRL(qrl: string, element?: Element): QRLInternal {
       : JSONparse(qrl.substring(captureStartIdx, captureEndIdx));
 
   if (chunk === RUNTIME_QRL) {
-    console.error(`Q-ERROR: '${qrl}' is runtime but no instance found on element.`);
+    logError(`Q-ERROR: '${qrl}' is runtime but no instance found on element.`);
   }
   return new QRLInternal(chunk, symbol, null, null, capture, null, guard);
 }
@@ -151,7 +156,7 @@ function JSONparse(json: string): any {
   try {
     return JSON.parse(json);
   } catch (e) {
-    console.error('JSON:', json);
+    logError('JSON:', json);
     throw e;
   }
 }

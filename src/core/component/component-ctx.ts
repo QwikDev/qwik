@@ -1,55 +1,61 @@
 import { assertDefined } from '../assert/assert';
-import { getProps } from '../props/props.public';
-import { cursorForComponent, cursorReconcileEnd } from '../render/cursor';
-import { ComponentRenderQueue, visitJsxNode } from '../render/render';
-import { AttributeMarker } from '../util/markers';
-import { flattenPromiseTree } from '../util/promises';
+import type { RenderContext } from '../render/cursor';
+import { visitJsxNode } from '../render/render';
+import { ComponentScopedStyles, OnRenderProp } from '../util/markers';
+import { then } from '../util/promises';
 import { styleContent, styleHost } from './qrl-styles';
 import { newInvokeContext, useInvoke } from '../use/use-core';
+import { getContext, getEvent, QContext } from '../props/props';
+import type { JSXNode, ValueOrPromise } from '..';
+import { processNode } from '../render/jsx/jsx-runtime';
 
 // TODO(misko): Can we get rid of this whole file, and instead teach getProps to know how to render
 // the advantage will be that the render capability would then be exposed to the outside world as well.
 
 export class QComponentCtx {
   __brand__!: 'QComponentCtx';
+  ctx: QContext;
   hostElement: HTMLElement;
 
   styleId: string | undefined | null = undefined;
   styleClass: string | null = null;
   styleHostClass: string | null = null;
 
+  slots: JSXNode[] = [];
+
   constructor(hostElement: HTMLElement) {
     this.hostElement = hostElement;
+    this.ctx = getContext(hostElement);
   }
 
-  async render(): Promise<HTMLElement[]> {
+  render(ctx: RenderContext): ValueOrPromise<void> {
     const hostElement = this.hostElement;
-    const props = getProps(hostElement) as any;
-    const onRender = props['on:qRender'] as () => void; // TODO(misko): extract constant
+    const onRender = getEvent(this.ctx, OnRenderProp) as any as () => JSXNode;
     assertDefined(onRender);
-    hostElement.removeAttribute(AttributeMarker.RenderNotify);
-    const renderQueue: ComponentRenderQueue = [];
-    try {
-      const event = 'qRender';
-      const jsxNode = await useInvoke(newInvokeContext(hostElement, event), onRender);
+    const event = 'qRender';
+    this.ctx.dirty = false;
+    ctx.globalState.hostsStaging.delete(hostElement);
+
+    const promise = useInvoke(newInvokeContext(hostElement, hostElement, event), onRender);
+    return then(promise, (jsxNode) => {
+      // Types are wrong here
+      jsxNode = (jsxNode as any)[0];
+
       if (this.styleId === undefined) {
-        const scopedStyleId = (this.styleId = hostElement.getAttribute(
-          AttributeMarker.ComponentScopedStyles
-        ));
+        const scopedStyleId = (this.styleId = hostElement.getAttribute(ComponentScopedStyles));
         if (scopedStyleId) {
           this.styleHostClass = styleHost(scopedStyleId);
           this.styleClass = styleContent(scopedStyleId);
         }
       }
-      const cursor = cursorForComponent(this.hostElement);
-      visitJsxNode(this, renderQueue, cursor, jsxNode);
-      cursorReconcileEnd(cursor);
-    } catch (e) {
-      // TODO(misko): Proper error handling
-      // eslint-disable-next-line no-console
-      console.log(e);
-    }
-    return [this.hostElement, ...(await flattenPromiseTree<HTMLElement>(renderQueue))];
+      ctx.hostElements.add(hostElement);
+      this.slots = [];
+      const newCtx: RenderContext = {
+        ...ctx,
+        component: this,
+      };
+      return visitJsxNode(newCtx, hostElement, processNode(jsxNode), false);
+    });
   }
 }
 

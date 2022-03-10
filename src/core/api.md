@@ -15,13 +15,13 @@ export function Async<T>(props: AsyncProps<T>): JSXNode<any>;
 // @public (undocumented)
 export function bubble<PAYLOAD>(eventType: string, payload?: PAYLOAD): void;
 
-// Warning: (ae-forgotten-export) The symbol "QwikEvents" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "ComponentBaseProps" needs to be exported by the entry point index.d.ts
 //
 // @public
-export function component$<PROPS extends {}>(onMount: OnMountFn<PROPS>, options?: ComponentOptions): (props: PROPS & QwikEvents) => JSXNode<PROPS>;
+export function component$<PROPS extends {}>(onMount: OnMountFn<PROPS>, options?: ComponentOptions): (props: PROPS & ComponentBaseProps) => JSXNode<PROPS>;
 
 // @public
-export function component<PROPS extends {}>(onMount: QRL<OnMountFn<PROPS>>, options?: ComponentOptions): (props: PROPS & QwikEvents) => JSXNode<PROPS>;
+export function component<PROPS extends {}>(onMount: QRL<OnMountFn<PROPS>>, options?: ComponentOptions): (props: PROPS & ComponentBaseProps) => JSXNode<PROPS>;
 
 // @public (undocumented)
 export type ComponentChild = JSXNode<any> | object | string | number | bigint | boolean | null | undefined;
@@ -37,31 +37,29 @@ export interface ComponentOptions {
 
 // @public (undocumented)
 export interface CorePlatform {
+    chunkForSymbol: (symbolName: string) => string | undefined;
     importSymbol: (element: Element, url: string | URL, symbol: string) => Promise<any>;
-    queueRender: (renderMarked: (doc: Document) => Promise<any>) => Promise<any>;
-    queueStoreFlush: (flushStore: (doc: Document) => Promise<any>) => Promise<any>;
+    // (undocumented)
+    nextTick: (fn: () => any) => Promise<any>;
+    raf: (fn: () => any) => Promise<any>;
 }
-
-// @public
-export function createStore<STATE extends {}>(initialState: STATE): STATE;
 
 // @public (undocumented)
 export function dehydrate(document: Document): void;
 
 // @public (undocumented)
-export const Fragment: any;
+export const Fragment: FunctionComponent<{
+    children?: any;
+}>;
 
 // @public (undocumented)
 export interface FunctionComponent<P = {}> {
     // (undocumented)
-    (props: P): JSXNode | null;
+    (props: P, key?: string): JSXNode | null;
 }
 
 // @public (undocumented)
 export const getPlatform: (docOrNode: Document | Node) => CorePlatform;
-
-// @public (undocumented)
-export function getProps<T>(element: Element): Props<T>;
 
 // @public (undocumented)
 export function h<PROPS extends {} = {}>(type: string | FunctionComponent<PROPS>, props: PROPS | null, ...children: any[]): JSXNode;
@@ -108,7 +106,7 @@ export const Host: FunctionComponent<Record<string, any>>;
 export function implicit$FirstArg<FIRST, REST extends any[], RET>(fn: (first: QRL<FIRST>, ...rest: REST) => RET): (first: FIRST, ...rest: REST) => RET;
 
 // @public (undocumented)
-function jsx<T extends string | FunctionComponent<PROPS>, PROPS>(type: T, props: PROPS, key?: string): JSXNode<T>;
+function jsx<T extends string | FunctionComponent<PROPS>, PROPS>(type: T, props: PROPS, key?: string | number): JSXNode<T>;
 export { jsx }
 export { jsx as jsxDEV }
 export { jsx as jsxs }
@@ -119,17 +117,23 @@ export type JSXFactory<T, PROPS extends {} = any> = (props: PROPS, state?: any) 
 // @public (undocumented)
 export interface JSXNode<T = any> {
     // (undocumented)
-    children: ComponentChild[];
+    children: JSXNode[];
     // (undocumented)
-    key: string | number | any;
+    elm?: Node;
     // (undocumented)
-    props: any;
+    key: string | null;
+    // (undocumented)
+    props: Record<string, any> | null;
+    // (undocumented)
+    text?: string;
     // (undocumented)
     type: T;
 }
 
+// Warning: (ae-forgotten-export) The symbol "RenderContext" needs to be exported by the entry point index.d.ts
+//
 // @public
-export function notifyRender(hostElement: Element): Promise<void>;
+export function notifyRender(hostElement: Element): Promise<RenderContext>;
 
 // @public
 export interface Observer {
@@ -259,7 +263,7 @@ export namespace QwikJSX {
 }
 
 // @public
-export function render(parent: Element | Document, jsxNode: JSXNode<unknown> | FunctionComponent<any>): Promise<HTMLElement[]>;
+export function render(parent: Element | Document, jsxNode: JSXNode<unknown> | FunctionComponent<any>): ValueOrPromise<RenderContext>;
 
 // @public (undocumented)
 export type RenderableProps<P, RefType = any> = P & Readonly<{
@@ -272,8 +276,14 @@ export const setPlatform: (doc: Document, plt: CorePlatform) => CorePlatform;
 // @public (undocumented)
 export const Slot: FunctionComponent<{
     name?: string;
-    children?: JSXChildren;
+    children?: any;
 }>;
+
+// @public (undocumented)
+export const StaticChildren: FunctionComponent<{}>;
+
+// @public (undocumented)
+export function useDocument(): Document;
 
 // @public
 export function useEvent<EVENT extends {}>(expectEventType?: string): EVENT;
@@ -285,9 +295,18 @@ export function useHostElement(): Element;
 export function useLexicalScope<VARS extends any[]>(): VARS;
 
 // @alpha (undocumented)
-export const useStyles$: (first: string) => void;
+export const useScopedStyles$: (first: string) => void;
 
 // @alpha (undocumented)
+export function useScopedStyles(styles: QRL<string>): void;
+
+// @public
+export function useStore<STATE extends {}>(initialState: STATE): STATE;
+
+// @alpha
+export const useStyles$: (first: string) => void;
+
+// @alpha
 export function useStyles(styles: QRL<string>): void;
 
 // @public (undocumented)
@@ -298,16 +317,6 @@ export type ValueOrPromise<T> = T | Promise<T>;
 
 // @alpha (undocumented)
 export const version: string;
-
-// @alpha (undocumented)
-export const withScopedStyles$: (first: string) => void;
-
-// @alpha (undocumented)
-export function withScopedStyles(styles: QRL<string>): void;
-
-// Warnings were encountered during analysis:
-//
-// dist-dev/tsc-out/src/core/render/jsx/slot.public.d.ts:8:5 - (ae-forgotten-export) The symbol "JSXChildren" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

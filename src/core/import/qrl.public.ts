@@ -1,8 +1,10 @@
 import { runtimeQrl, staticQrl, toInternalQRL } from './qrl';
 import { getPlatform } from '../platform/platform';
+import { getDocument } from '../util/dom';
 
 // <docs markdown="https://hackmd.io/m5DzCi5MTa26LuUj5t3HpQ#QRL">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit https://hackmd.io/m5DzCi5MTa26LuUj5t3HpQ#QRL instead)
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fm5DzCi5MTa26LuUj5t3HpQ%3Fboth#QRL instead)
 /**
  * The `QRL` type represents a lazy-loadable AND serializable resource.
  *
@@ -130,7 +132,8 @@ export interface QRL<TYPE = any> {
 }
 
 // <docs markdown="https://hackmd.io/m5DzCi5MTa26LuUj5t3HpQ#qrlImport">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit https://hackmd.io/m5DzCi5MTa26LuUj5t3HpQ#qrlImport instead)
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fm5DzCi5MTa26LuUj5t3HpQ%3Fboth#qrlImport instead)
 /**
  * Lazy-load a `QRL` symbol and return the lazy-loaded value.
  *
@@ -146,16 +149,20 @@ export interface QRL<TYPE = any> {
 export async function qrlImport<T>(element: Element, qrl: QRL<T>): Promise<T> {
   const qrl_ = toInternalQRL(qrl);
   if (qrl_.symbolRef) return qrl_.symbolRef;
-  const doc = element.ownerDocument!;
   if (qrl_.symbolFn) {
     return (qrl_.symbolRef = qrl_.symbolFn().then((module) => module[qrl_.symbol]));
   } else {
-    return (qrl_.symbolRef = await getPlatform(doc).importSymbol(element, qrl_.chunk, qrl_.symbol));
+    return (qrl_.symbolRef = await getPlatform(getDocument(element)).importSymbol(
+      element,
+      qrl_.chunk,
+      qrl_.symbol
+    ));
   }
 }
 
 // <docs markdown="https://hackmd.io/m5DzCi5MTa26LuUj5t3HpQ#$">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit https://hackmd.io/m5DzCi5MTa26LuUj5t3HpQ#$ instead)
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fm5DzCi5MTa26LuUj5t3HpQ%3Fboth#$ instead)
 /**
  * Qwik Optimizer marker function.
  *
@@ -206,7 +213,7 @@ export async function qrlImport<T>(element: Element, qrl: QRL<T>): Promise<T> {
  * function topLevelFn() {}
  *
  * function myCode() {
- *   const store = createStore({});
+ *   const store = useStore({});
  *   function localFn() {}
  *   // Valid Examples
  *   $(greet); // greet is importable
@@ -235,7 +242,8 @@ export function $<T>(expression: T): QRL<T> {
 }
 
 // <docs markdown="https://hackmd.io/m5DzCi5MTa26LuUj5t3HpQ#implicit$FirstArg">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit https://hackmd.io/m5DzCi5MTa26LuUj5t3HpQ#implicit$FirstArg instead)
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fm5DzCi5MTa26LuUj5t3HpQ%3Fboth#implicit$FirstArg instead)
 /**
  * Create a `____$(...)` convenience method from `___(...)`.
  *
@@ -246,10 +254,9 @@ export function $<T>(expression: T): QRL<T> {
  * This means that `foo$(arg0)` and `foo($(arg0))` are equivalent with respect to Qwik Optimizer.
  * The former is just a shorthand for the latter.
  *
- * For example all of these function call are equivalent:
+ * For example these function call are equivalent:
  *
  * - `component$(() => {...})` is same as `onRender($(() => {...}))`
- * - `$(() => <>...</>)` is same as `onRender($(() => <>...</>))`
  *
  * ```typescript
  * export function myApi(callback: QRL<() => void>): void {
@@ -283,7 +290,8 @@ export function implicit$FirstArg<FIRST, REST extends any[], RET>(
 }
 
 // <docs markdown="https://hackmd.io/m5DzCi5MTa26LuUj5t3HpQ#qrl">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!! (edit https://hackmd.io/m5DzCi5MTa26LuUj5t3HpQ#qrl instead)
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fm5DzCi5MTa26LuUj5t3HpQ%3Fboth#qrl instead)
 /**
  * Used by Qwik Optimizer to point to lazy-loaded resources.
  *

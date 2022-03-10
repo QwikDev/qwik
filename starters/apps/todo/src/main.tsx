@@ -14,7 +14,7 @@ import './index.css';
  * Qwik knows that it should never need to be rerendered, and its code will never
  * download to the client.
  */
-export const App = component$(() => {
+export const Main = component$(() => {
   const todos = useStore<Todos>({
     filter: 'all',
     items: [

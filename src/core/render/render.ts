@@ -1,22 +1,25 @@
 import { Host } from '../index';
 import type { ValueOrPromise } from '../util/types';
-import { RenderContext, updateChildren, updateProperties } from './cursor';
+import { getCmpChildren, RenderContext, updateChildren, updateProperties } from './cursor';
 import type { JSXNode } from './jsx/types/jsx-node';
 export type ComponentRenderQueue = Promise<HTMLElement[]>[];
 
 export function visitJsxNode(
   ctx: RenderContext,
   elm: Element,
-  jsxNode: JSXNode | JSXNode[],
+  jsxNode: JSXNode | JSXNode[] | undefined,
   isSvg: boolean
-): ValueOrPromise<any> {
+): ValueOrPromise<void> {
+  if (jsxNode === undefined) {
+    return updateChildren(ctx, elm, getCmpChildren(elm), [], isSvg);
+  }
   if (Array.isArray(jsxNode)) {
-    return updateChildren(ctx, elm, Array.from(elm.childNodes), jsxNode.flat(), isSvg);
+    return updateChildren(ctx, elm, getCmpChildren(elm), jsxNode.flat(), isSvg);
   } else if (jsxNode.type === Host) {
     updateProperties(ctx, elm, jsxNode.props, isSvg);
-    return updateChildren(ctx, elm, Array.from(elm.childNodes), jsxNode.children || [], isSvg);
+    return updateChildren(ctx, elm, getCmpChildren(elm), jsxNode.children || [], isSvg);
   } else {
-    return updateChildren(ctx, elm, Array.from(elm.childNodes), [jsxNode], isSvg);
+    return updateChildren(ctx, elm, getCmpChildren(elm), [jsxNode], isSvg);
   }
 }
 

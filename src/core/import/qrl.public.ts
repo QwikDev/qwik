@@ -1,5 +1,6 @@
 import { runtimeQrl, staticQrl, toInternalQRL } from './qrl';
 import { getPlatform } from '../platform/platform';
+import { getDocument } from '../util/dom';
 
 // <docs markdown="https://hackmd.io/m5DzCi5MTa26LuUj5t3HpQ#QRL">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -148,11 +149,14 @@ export interface QRL<TYPE = any> {
 export async function qrlImport<T>(element: Element, qrl: QRL<T>): Promise<T> {
   const qrl_ = toInternalQRL(qrl);
   if (qrl_.symbolRef) return qrl_.symbolRef;
-  const doc = element.ownerDocument!;
   if (qrl_.symbolFn) {
     return (qrl_.symbolRef = qrl_.symbolFn().then((module) => module[qrl_.symbol]));
   } else {
-    return (qrl_.symbolRef = await getPlatform(doc).importSymbol(element, qrl_.chunk, qrl_.symbol));
+    return (qrl_.symbolRef = await getPlatform(getDocument(element)).importSymbol(
+      element,
+      qrl_.chunk,
+      qrl_.symbol
+    ));
   }
 }
 

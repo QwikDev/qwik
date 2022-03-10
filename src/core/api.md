@@ -15,13 +15,13 @@ export function Async<T>(props: AsyncProps<T>): JSXNode<any>;
 // @public (undocumented)
 export function bubble<PAYLOAD>(eventType: string, payload?: PAYLOAD): void;
 
-// Warning: (ae-forgotten-export) The symbol "QwikEvents" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "ComponentBaseProps" needs to be exported by the entry point index.d.ts
 //
 // @public
-export function component$<PROPS extends {}>(onMount: OnMountFn<PROPS>, options?: ComponentOptions): (props: PROPS & QwikEvents) => JSXNode<PROPS>;
+export function component$<PROPS extends {}>(onMount: OnMountFn<PROPS>, options?: ComponentOptions): (props: PROPS & ComponentBaseProps) => JSXNode<PROPS>;
 
 // @public
-export function component<PROPS extends {}>(onMount: QRL<OnMountFn<PROPS>>, options?: ComponentOptions): (props: PROPS & QwikEvents) => JSXNode<PROPS>;
+export function component<PROPS extends {}>(onMount: QRL<OnMountFn<PROPS>>, options?: ComponentOptions): (props: PROPS & ComponentBaseProps) => JSXNode<PROPS>;
 
 // @public (undocumented)
 export type ComponentChild = JSXNode<any> | object | string | number | bigint | boolean | null | undefined;
@@ -39,8 +39,9 @@ export interface ComponentOptions {
 export interface CorePlatform {
     chunkForSymbol: (symbolName: string) => string | undefined;
     importSymbol: (element: Element, url: string | URL, symbol: string) => Promise<any>;
-    queueRender: (renderMarked: (doc: Document) => any) => Promise<any>;
-    queueStoreFlush: (flushStore: (doc: Document) => Promise<any>) => Promise<any>;
+    // (undocumented)
+    nextTick: (fn: () => any) => Promise<any>;
+    raf: (fn: () => any) => Promise<any>;
 }
 
 // @public
@@ -50,12 +51,14 @@ export function createStore<STATE extends {}>(initialState: STATE): STATE;
 export function dehydrate(document: Document): void;
 
 // @public (undocumented)
-export const Fragment: FunctionComponent;
+export const Fragment: FunctionComponent<{
+    children?: any;
+}>;
 
 // @public (undocumented)
 export interface FunctionComponent<P = {}> {
     // (undocumented)
-    (props: P, children: JSXNode[] | undefined, key?: string): JSXNode | null;
+    (props: P, key?: string): JSXNode | null;
 }
 
 // @public (undocumented)
@@ -106,7 +109,7 @@ export const Host: FunctionComponent<Record<string, any>>;
 export function implicit$FirstArg<FIRST, REST extends any[], RET>(fn: (first: QRL<FIRST>, ...rest: REST) => RET): (first: FIRST, ...rest: REST) => RET;
 
 // @public (undocumented)
-function jsx<T extends string | FunctionComponent<PROPS>, PROPS>(type: T, props: PROPS, key?: string): JSXNode<T>;
+function jsx<T extends string | FunctionComponent<PROPS>, PROPS>(type: T, props: PROPS, key?: string | number): JSXNode<T>;
 export { jsx }
 export { jsx as jsxDEV }
 export { jsx as jsxs }
@@ -117,13 +120,13 @@ export type JSXFactory<T, PROPS extends {} = any> = (props: PROPS, state?: any) 
 // @public (undocumented)
 export interface JSXNode<T = any> {
     // (undocumented)
-    children: JSXNode[] | undefined;
+    children: JSXNode[];
     // (undocumented)
     elm?: Node;
     // (undocumented)
     key: string | null;
     // (undocumented)
-    props: any;
+    props: Record<string, any> | null;
     // (undocumented)
     text?: string;
     // (undocumented)
@@ -133,7 +136,7 @@ export interface JSXNode<T = any> {
 // Warning: (ae-forgotten-export) The symbol "RenderContext" needs to be exported by the entry point index.d.ts
 //
 // @public
-export function notifyRender(hostElement: Element): Promise<RenderContext> | undefined;
+export function notifyRender(hostElement: Element): Promise<RenderContext>;
 
 // @public
 export interface Observer {
@@ -278,6 +281,9 @@ export const Slot: FunctionComponent<{
     name?: string;
     children?: any;
 }>;
+
+// @public (undocumented)
+export function useDocument(): Document;
 
 // @public
 export function useEvent<EVENT extends {}>(expectEventType?: string): EVENT;

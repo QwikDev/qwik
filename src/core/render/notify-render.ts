@@ -1,10 +1,11 @@
-import { assertDefined, assertEqual } from '../assert/assert';
+import { assertDefined } from '../assert/assert';
 import { QHostAttr } from '../util/markers';
 import { getQComponent } from '../component/component-ctx';
-import { executeContext, getRenderStats, RenderContext } from './cursor';
+import { executeContextWithSlots, getRenderStats, RenderContext } from './cursor';
 import { getContext } from '../props/props';
-import { qDev } from '../util/qdev';
+import { qDev, qTest } from '../util/qdev';
 import { getPlatform } from '../index';
+import { getDocument } from '../util/dom';
 
 /**
  * Mark component for rendering.
@@ -22,33 +23,38 @@ import { getPlatform } from '../index';
  */
 // TODO(misko): tests
 // TODO(misko): this should take QComponent as well.
-export function notifyRender(hostElement: Element) {
+export function notifyRender(hostElement: Element): Promise<RenderContext> {
   assertDefined(hostElement.getAttribute(QHostAttr));
   const ctx = getContext(hostElement);
-  const doc = hostElement.ownerDocument;
+  const doc = getDocument(hostElement);
   const state = getRenderingState(doc);
   if (ctx.dirty) {
-    return state.renderPromise;
+    // TODO
+    return state.renderPromise!;
   }
   ctx.dirty = true;
-  const activeRendering = !!state.renderPromise;
+  const activeRendering = state.hostsRendering !== undefined;
   if (activeRendering) {
     state.hostsStaging.add(hostElement);
+    return state.renderPromise!.then((ctx) => {
+      if (state.hostsNext.has(hostElement)) {
+        // TODO
+        return state.renderPromise!;
+      } else {
+        return ctx;
+      }
+    });
   } else {
     state.hostsNext.add(hostElement);
-    scheduleFrame(doc, state);
+    return scheduleFrame(doc, state);
   }
-  return state.renderPromise;
 }
 
-export function scheduleFrame(doc: Document, state: RenderingState) {
-  if (state.timeout === undefined) {
-    state.timeout = setTimeout(() => {
-      assertEqual(state.renderPromise, undefined);
-      assertDefined(state.timeout);
-      return (state.renderPromise = renderMarked(doc, state));
-    });
+export function scheduleFrame(doc: Document, state: RenderingState): Promise<RenderContext> {
+  if (state.renderPromise === undefined) {
+    state.renderPromise = getPlatform(doc).nextTick(() => renderMarked(doc, state));
   }
+  return state.renderPromise;
 }
 
 const SCHEDULE = Symbol();
@@ -58,7 +64,6 @@ export interface RenderingState {
   hostsStaging: Set<Element>;
   hostsRendering: Set<Element> | undefined;
   renderPromise: Promise<RenderContext> | undefined;
-  timeout: any;
 }
 
 export function getRenderingState(doc: Document): RenderingState {
@@ -68,7 +73,6 @@ export function getRenderingState(doc: Document): RenderingState {
       hostsNext: new Set(),
       hostsStaging: new Set(),
       renderPromise: undefined,
-      timeout: undefined,
       hostsRendering: undefined,
     };
   }
@@ -86,24 +90,19 @@ export async function renderMarked(doc: Document, state: RenderingState): Promis
   const ctx: RenderContext = {
     doc,
     operations: [],
-    queue: renderingQueue,
-    component: undefined,
+    roots: [],
     hostElements: new Set(),
     globalState: state,
     perf: [],
+    component: undefined,
   };
 
   for (const el of renderingQueue) {
     if (!ctx.hostElements.has(el)) {
+      ctx.roots.push(el);
       const cmp = getQComponent(el)!;
       await cmp.render(ctx);
     }
-  }
-
-  if (qDev) {
-    const stats = getRenderStats(ctx);
-    // eslint-disable-next-line no-console
-    console.log('Render stats', stats);
   }
 
   // Early exist, no dom operations
@@ -112,8 +111,13 @@ export async function renderMarked(doc: Document, state: RenderingState): Promis
     return ctx;
   }
 
-  return platform.queueRender(async () => {
-    executeContext(ctx);
+  return platform.raf(() => {
+    executeContextWithSlots(ctx);
+    if (qDev && !qTest) {
+      const stats = getRenderStats(ctx);
+      // eslint-disable-next-line no-console
+      console.log('Render stats', stats);
+    }
     postRendering(doc, state);
     return ctx;
   });
@@ -127,10 +131,8 @@ function postRendering(doc: Document, state: RenderingState) {
 
   // Clear staging
   state.hostsStaging.clear();
-
-  // Allow new frames
+  state.hostsRendering = undefined;
   state.renderPromise = undefined;
-  state.timeout = undefined;
 
   if (state.hostsNext.size > 0) {
     scheduleFrame(doc, state);

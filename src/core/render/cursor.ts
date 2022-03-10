@@ -1,4 +1,4 @@
-import { OnRenderProp, QHostAttr } from '../util/markers';
+import { OnRenderProp, QHostAttr, QSlotAttr } from '../util/markers';
 import { getContext, getProps, setEvent } from '../props/props';
 import { isOn$Prop, isOnProp } from '../props/props-on';
 export const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -6,10 +6,11 @@ import { $, Host, JSXNode, ValueOrPromise } from '../index';
 import { getQComponent, QComponentCtx } from '../component/component-ctx';
 import { promiseAll, then } from '../util/promises';
 import type { RenderingState } from './notify-render';
-import { assertEqual } from '../assert/assert';
+import { assertDefined, assertEqual } from '../assert/assert';
 import { NodeType } from '../util/types';
-
-type NonUndefined<T> = T extends undefined ? never : T;
+import { intToStr } from '../object/store';
+import { EMPTY_ARRAY } from '../util/flyweight';
+import { Skip } from './jsx/host.public';
 
 type KeyToIndexMap = { [key: string]: number };
 
@@ -30,10 +31,10 @@ interface RenderOperation {
 
 export interface RenderContext {
   doc: Document;
-  queue: Element[];
+  roots: Element[];
   hostElements: Set<Element>;
   operations: RenderOperation[];
-  component?: QComponentCtx;
+  component: QComponentCtx | undefined;
   globalState: RenderingState;
   perf: PerfEvent[];
 }
@@ -63,7 +64,11 @@ export function updateChildren(
   let idxInOld: number;
   let elmToMove: Node;
   let before: any;
-  const promises = [];
+  const results = [];
+
+  if (newCh.length === 1 && newCh[0].type === Skip) {
+    return;
+  }
 
   while (oldStartIdx <= oldEndIdx && newStartIdx <= newEndIdx) {
     if (oldStartVnode == null) {
@@ -75,23 +80,23 @@ export function updateChildren(
     } else if (newEndVnode == null) {
       newEndVnode = newCh[--newEndIdx];
     } else if (sameVnode(oldStartVnode, newStartVnode)) {
-      promises.push(patchVnode(ctx, oldStartVnode, newStartVnode, isSvg));
+      results.push(patchVnode(ctx, oldStartVnode, newStartVnode, isSvg));
       oldStartVnode = oldCh[++oldStartIdx];
       newStartVnode = newCh[++newStartIdx];
     } else if (sameVnode(oldEndVnode, newEndVnode)) {
-      promises.push(patchVnode(ctx, oldEndVnode, newEndVnode, isSvg));
+      results.push(patchVnode(ctx, oldEndVnode, newEndVnode, isSvg));
       oldEndVnode = oldCh[--oldEndIdx];
       newEndVnode = newCh[--newEndIdx];
     } else if (sameVnode(oldStartVnode, newEndVnode)) {
       // Vnode moved right
-      promises.push(patchVnode(ctx, oldStartVnode, newEndVnode, isSvg));
+      results.push(patchVnode(ctx, oldStartVnode, newEndVnode, isSvg));
 
       insertBefore(ctx, parentElm, oldStartVnode, oldEndVnode.nextSibling);
       oldStartVnode = oldCh[++oldStartIdx];
       newEndVnode = newCh[--newEndIdx];
     } else if (sameVnode(oldEndVnode, newStartVnode)) {
       // Vnode moved left
-      promises.push(patchVnode(ctx, oldEndVnode, newStartVnode, isSvg));
+      results.push(patchVnode(ctx, oldEndVnode, newStartVnode, isSvg));
 
       insertBefore(ctx, parentElm, oldEndVnode, oldStartVnode);
       oldEndVnode = oldCh[--oldEndIdx];
@@ -101,10 +106,10 @@ export function updateChildren(
         oldKeyToIdx = createKeyToOldIdx(oldCh, oldStartIdx, oldEndIdx);
       }
       idxInOld = oldKeyToIdx[newStartVnode.key as string];
-      if (isUndef(idxInOld)) {
+      if (idxInOld === undefined) {
         // New element
         const newElm = createElm(ctx, newStartVnode, isSvg);
-        promises.push(
+        results.push(
           then(newElm, (newElm) => {
             insertBefore(ctx, parentElm, newElm, oldStartVnode);
           })
@@ -113,13 +118,13 @@ export function updateChildren(
         elmToMove = oldCh[idxInOld];
         if (elmToMove.nodeName !== newStartVnode.type) {
           const newElm = createElm(ctx, newStartVnode, isSvg);
-          promises.push(
+          results.push(
             then(newElm, (newElm) => {
               insertBefore(ctx, parentElm, newElm, oldStartVnode);
             })
           );
         } else {
-          promises.push(patchVnode(ctx, elmToMove, newStartVnode, isSvg));
+          results.push(patchVnode(ctx, elmToMove, newStartVnode, isSvg));
           oldCh[idxInOld] = undefined as any;
           insertBefore(ctx, parentElm, elmToMove, oldStartVnode);
         }
@@ -130,10 +135,10 @@ export function updateChildren(
 
   if (newStartIdx <= newEndIdx) {
     before = newCh[newEndIdx + 1] == null ? null : newCh[newEndIdx + 1].elm;
-    promises.push(addVnodes(ctx, parentElm, before, newCh, newStartIdx, newEndIdx, isSvg));
+    results.push(addVnodes(ctx, parentElm, before, newCh, newStartIdx, newEndIdx, isSvg));
   }
 
-  let wait = promiseAll(promises) as any;
+  let wait = promiseAll(results) as any;
   if (oldStartIdx <= oldEndIdx) {
     wait = then(wait, () => {
       removeVnodes(ctx, parentElm, oldCh, oldStartIdx, oldEndIdx);
@@ -143,7 +148,53 @@ export function updateChildren(
 }
 
 function isComponentNode(node: JSXNode) {
-  return OnRenderProp in node.props;
+  return node.props && OnRenderProp in node.props;
+}
+
+export function getChildren(elm: Node): Node[] {
+  return Array.from(elm.childNodes).filter(isNode);
+}
+
+export function getCmpChildren(elm: Node): Node[] {
+  return getChildren(elm).filter(isChildComponent);
+}
+
+export function getSlotChildren(elm: Node): Node[] {
+  return getChildren(elm).filter(isChildSlot);
+}
+
+export function isNode(elm: Node): boolean {
+  return elm.nodeType === 1 || elm.nodeType === 3;
+}
+
+export function getDefaultChildren(elm: Node): Node[] {
+  return getChildren(elm).filter(isFallback);
+}
+
+function isFallback(node: Node): boolean {
+  return node.nodeName === 'Q:FALLBACK';
+}
+
+function isChildSlot(node: Node) {
+  return node.nodeName !== 'Q:FALLBACK' && isChildComponent(node);
+}
+
+function isSlotTemplate(node: Node): node is HTMLTemplateElement {
+  return node.nodeName === 'TEMPLATE' && (node as Element).hasAttribute(QSlotAttr);
+}
+
+function isChildComponent(node: Node): boolean {
+  return node.nodeName !== 'TEMPLATE' || !(node as Element).hasAttribute(QSlotAttr);
+}
+
+function splitBy<T>(input: T[], condition: (item: T) => string): Record<string, T[]> {
+  const output: Record<string, T[]> = {};
+  for (const item of input) {
+    const key = condition(item);
+    const array = output[key] ?? (output[key] = []);
+    array.push(item);
+  }
+  return output;
 }
 
 export function patchVnode(
@@ -152,42 +203,84 @@ export function patchVnode(
   vnode: JSXNode<any>,
   isSvg: boolean
 ): ValueOrPromise<void> {
-  const oldCh = Array.from(elm.childNodes);
-  const ch = vnode.children;
-  if (vnode.type === Host) {
-    // TODO handle error
-    // console.log('Host can not be used here');
-    return updateChildren(ctx, elm, oldCh, ch || [], isSvg);
+  const tag = vnode.type;
+  if (tag === '#text') {
+    if ((elm as Text).data !== vnode.text) {
+      setProperty(ctx, elm, 'data', vnode.text);
+    }
+    return;
   }
-  if (isUndef(vnode.text)) {
-    let promise: ValueOrPromise<any>;
-    const dirty = updateProperties(ctx, elm as Element, vnode.props, isSvg);
-    const isComponent = isComponentNode(vnode);
-    if (dirty) {
-      assertEqual(isComponent, true);
-      promise = getQComponent(elm as Element)?.render(ctx);
-    }
+
+  if (tag === Host || tag === Skip) {
+    return;
+  }
+
+  if (!isSvg) {
+    isSvg = tag === 'svg';
+  }
+
+  let promise: ValueOrPromise<void>;
+  const dirty = updateProperties(ctx, elm as Element, vnode.props, isSvg);
+  const isSlot = tag === 'q:slot';
+  if (isSvg && vnode.type === 'foreignObject') {
+    isSvg = false;
+  } else if (isSlot) {
+    ctx.component!.slots.push(vnode);
+  }
+  const isComponent = isComponentNode(vnode);
+  let componentCtx: QComponentCtx | undefined;
+  if (dirty) {
+    assertEqual(isComponent, true);
+    componentCtx = getQComponent(elm as Element)!;
+    promise = componentCtx.render(ctx);
+  }
+  const ch = vnode.children;
+  if (isComponent) {
     return then(promise, () => {
-      if (isComponent) {
-        console.warn('TODO: handle projection');
-        return;
-      }
-      if (isDef(oldCh) && isDef(ch)) {
-        return updateChildren(ctx, elm, oldCh, ch, isSvg);
-      } else if (ch != null) {
-        if (elm.textContent) setTextContent(ctx, elm, '');
-        return addVnodes(ctx, elm, null, ch, 0, ch.length - 1, isSvg);
-      } else if (isDef(oldCh)) {
-        return removeVnodes(ctx, elm, oldCh, 0, oldCh.length - 1);
-      } else if (elm.textContent) {
-        return setTextContent(ctx, elm, '');
-      }
+      const slotMaps = getSlots(componentCtx, elm as Element);
+      const splittedChidren = splitBy(ch, getSlotName);
+      const promises: ValueOrPromise<void>[] = [];
+
+      // Mark empty slots and remove content
+      Object.entries(slotMaps.slots).forEach(([key, slotEl]) => {
+        if (slotEl && !splittedChidren[key]) {
+          const oldCh = getSlotChildren(slotEl);
+          if (oldCh.length > 0) {
+            removeVnodes(ctx, slotEl, oldCh, 0, oldCh.length - 1);
+          }
+        }
+      });
+
+      // Render into slots
+      Object.entries(splittedChidren).forEach(([key, ch]) => {
+        const slotElm = getSlotElement(ctx, slotMaps, elm as Element, key);
+        const oldCh = getSlotChildren(slotElm);
+        promises.push(prepareChildren(ctx, slotElm, oldCh, ch, isSvg));
+      });
+      return then(promiseAll(promises), () => {
+        removeTemplates(ctx, slotMaps);
+      });
     });
-  } else if (elm.textContent !== vnode.text) {
-    if (isDef(oldCh)) {
-      removeVnodes(ctx, elm, oldCh, 0, oldCh.length - 1);
-    }
-    setTextContent(ctx, elm, vnode.text!);
+  }
+  return then(promise, () => {
+    const oldCh = isSlot ? getDefaultChildren(elm) : getChildren(elm);
+    return prepareChildren(ctx, elm, oldCh, ch, isSvg);
+  });
+}
+
+function prepareChildren(
+  ctx: RenderContext,
+  elm: Node,
+  oldCh: Node[],
+  ch: JSXNode[],
+  isSvg: boolean
+) {
+  if (oldCh.length > 0 && ch.length > 0) {
+    return updateChildren(ctx, elm, oldCh, ch, isSvg);
+  } else if (ch.length > 0) {
+    return addVnodes(ctx, elm, null, ch, 0, ch.length - 1, isSvg);
+  } else if (oldCh.length > 0) {
+    return removeVnodes(ctx, elm, oldCh, 0, oldCh.length - 1);
   }
 }
 
@@ -203,9 +296,8 @@ function addVnodes(
   const promises = [];
   for (; startIdx <= endIdx; ++startIdx) {
     const ch = vnodes[startIdx];
-    if (ch != null) {
-      promises.push(createElm(ctx, ch, isSvg));
-    }
+    assertDefined(ch);
+    promises.push(createElm(ctx, ch, isSvg));
   }
   return then(promiseAll(promises) as any, (children: Node[]) => {
     for (const child of children) {
@@ -217,48 +309,166 @@ function addVnodes(
 function removeVnodes(
   ctx: RenderContext,
   parentElm: Node,
-  vnodes: Node[],
+  nodes: Node[],
   startIdx: number,
   endIdx: number
 ): void {
   for (; startIdx <= endIdx; ++startIdx) {
-    const ch = vnodes[startIdx];
-    if (ch != null) {
-      removeNode(ctx, parentElm, ch);
-    }
+    const ch = nodes[startIdx];
+    assertDefined(ch);
+    removeNode(ctx, parentElm, ch);
   }
 }
 
+let refCount = 0;
+const RefSymbol = Symbol();
+
+function setSlotRef(ctx: RenderContext, hostElm: Element, slotEl: Element) {
+  let ref = (hostElm as any)[RefSymbol] ?? hostElm.getAttribute('q:sref');
+  if (ref === null) {
+    ref = intToStr(refCount++);
+    (hostElm as any)[RefSymbol] = ref;
+    setAttribute(ctx, hostElm, 'q:sref', ref);
+  }
+  slotEl.setAttribute('q:sref', ref);
+}
+
+function getSlotElement(
+  ctx: RenderContext,
+  slotMaps: SlotMaps,
+  parentEl: Element,
+  slotName: string
+): Element {
+  const slotEl = slotMaps.slots[slotName];
+  if (slotEl) {
+    return slotEl;
+  }
+  const templateEl = slotMaps.templates[slotName];
+  if (templateEl) {
+    return templateEl.content as any;
+  }
+  const template = createTemplate(ctx, slotName);
+  prepend(ctx, parentEl, template);
+  slotMaps.templates[slotName] = template;
+  return template.content as any;
+}
+
+function createTemplate(ctx: RenderContext, slotName: string) {
+  const template = createElement(ctx, 'template', false) as HTMLTemplateElement;
+  template.setAttribute(QSlotAttr, slotName);
+  return template;
+}
+
+function removeTemplates(ctx: RenderContext, slotMaps: SlotMaps) {
+  Object.keys(slotMaps.templates).forEach((key) => {
+    const template = slotMaps.templates[key]!;
+    if (template && slotMaps.slots[key] !== undefined) {
+      removeNode(ctx, template.parentNode!, template);
+      slotMaps.templates[key] = undefined;
+    }
+  });
+}
+
+export function resolveSlotProjection(
+  ctx: RenderContext,
+  hostElm: Element,
+  before: SlotMaps,
+  after: SlotMaps
+) {
+  Object.entries(before.slots).forEach(([key, slotEl]) => {
+    if (slotEl && !after.slots[key]) {
+      // Slot removed
+      // Move slot to template
+      const template = createTemplate(ctx, key);
+      const slotChildren = getSlotChildren(slotEl);
+      template.content.append(...slotChildren);
+      hostElm.insertBefore(template, hostElm.firstChild);
+
+      ctx.operations.push({
+        el: template,
+        operation: 'slot-to-template',
+        args: slotChildren,
+        fn: () => {},
+      });
+    }
+  });
+
+  Object.entries(after.slots).forEach(([key, slotEl]) => {
+    if (slotEl && !before.slots[key]) {
+      // Slot created
+      // Move template to slot
+      const template = before.templates[key];
+      if (template) {
+        slotEl.appendChild(template.content);
+        template.remove();
+        ctx.operations.push({
+          el: slotEl,
+          operation: 'template-to-slot',
+          args: [template],
+          fn: () => {},
+        });
+      }
+    }
+  });
+}
+
+function getSlotName(node: JSXNode): string {
+  return node.props?.['q:slot'] ?? '';
+}
+
 function createElm(ctx: RenderContext, vnode: JSXNode, isSvg: boolean): ValueOrPromise<Node> {
-  let i = 0;
-  const data = vnode.props;
-  const children = vnode.children;
   const tag = vnode.type;
   if (tag === '#text') {
-    return createTextNode(ctx, vnode.text!);
+    return (vnode.elm = createTextNode(ctx, vnode.text!));
   }
+  if (!isSvg) {
+    isSvg = tag === 'svg';
+  }
+
+  const data = vnode.props;
+  const children = vnode.children;
   const elm = (vnode.elm = createElement(ctx, tag, isSvg));
+  const isComponent = isComponentNode(vnode);
   setKey(elm, vnode.key);
   updateProperties(ctx, elm, data, isSvg);
 
-  let wait: ValueOrPromise<any>;
-  const isComponent = isComponentNode(vnode);
+  if (isSvg && tag === 'foreignObject') {
+    isSvg = false;
+  }
+  const currentComponent = ctx.component;
+  if (currentComponent) {
+    const styleTag = currentComponent.styleClass;
+    if (styleTag) {
+      classlistAdd(ctx, elm, styleTag);
+    }
+    if (tag === 'q:slot') {
+      setSlotRef(ctx, currentComponent.hostElement, elm);
+      ctx.component!.slots.push(vnode);
+    }
+  }
+
+  let wait: ValueOrPromise<void>;
+  let componentCtx: QComponentCtx | undefined;
   if (isComponent) {
-    setAttribute(ctx, elm, QHostAttr, '');
-    wait = getQComponent(elm as any)!.render(ctx);
+    componentCtx = getQComponent(elm as any)!;
+    const hostStyleTag = componentCtx.styleHostClass;
+    elm.setAttribute(QHostAttr, '');
+    if (hostStyleTag) {
+      classlistAdd(ctx, elm, hostStyleTag);
+    }
+    wait = componentCtx.render(ctx);
   }
   return then(wait, () => {
-    if (Array.isArray(children)) {
-      const promises = [];
-      for (i = 0; i < children.length; ++i) {
-        const ch = children[i];
-        if (ch != null) {
-          promises.push(createElm(ctx, ch as JSXNode, isSvg));
-        }
-      }
-      return then(promiseAll(promises) as any, (children: Node[]) => {
-        for (const child of children) {
-          appendChild(ctx, elm, child);
+    if (children.length > 0) {
+      const slotMap = isComponent ? getSlots(componentCtx, elm) : undefined;
+      const promises = children.map((ch) => createElm(ctx, ch, isSvg));
+      return then(promiseAll(promises) as any, () => {
+        let parent = elm;
+        for (const node of children) {
+          if (slotMap) {
+            parent = getSlotElement(ctx, slotMap, elm, getSlotName(node));
+          }
+          parent.appendChild(node.elm!);
         }
         return elm;
       });
@@ -266,6 +476,36 @@ function createElm(ctx: RenderContext, vnode: JSXNode, isSvg: boolean): ValueOrP
     return elm;
   });
 }
+interface SlotMaps {
+  slots: Record<string, Element | undefined>;
+  templates: Record<string, HTMLTemplateElement | undefined>;
+}
+
+const getSlots = (componentCtx: QComponentCtx | undefined, hostElm: Element): SlotMaps => {
+  const slots: Record<string, Element> = {};
+  const templates: Record<string, HTMLTemplateElement> = {};
+  const slotRef = hostElm.getAttribute('q:sref');
+  const existingSlots = Array.from(hostElm.querySelectorAll(`q\\:slot[q\\:sref="${slotRef}"]`));
+  const newSlots = componentCtx?.slots ?? EMPTY_ARRAY;
+  const t = Array.from(hostElm.childNodes).filter(isSlotTemplate);
+
+  // Map slots
+  for (const elm of existingSlots) {
+    slots[elm.getAttribute('name') ?? ''] = elm;
+  }
+
+  // Map virtual slots
+  for (const vnode of newSlots) {
+    slots[vnode.props?.name ?? ''] = vnode.elm as Element;
+  }
+
+  // Map templates
+  for (const elm of t) {
+    templates[elm.getAttribute('name') ?? ''] = elm;
+  }
+
+  return { slots, templates };
+};
 
 const handleStyle: PropHandler = (ctx, elm, _, newValue, oldValue) => {
   // TODO, needs reimplementation
@@ -311,14 +551,17 @@ const PROP_HANDLER_MAP: Record<string, PropHandler> = {
   checked: checkBeforeAssign,
 };
 
-const ALLOWS_PROPS = ['className', 'style', 'id', 'title'];
+const ALLOWS_PROPS = ['className', 'style', 'id'];
 
 export function updateProperties(
   rctx: RenderContext,
   node: Element,
-  expectProps: Record<string, any>,
+  expectProps: Record<string, any> | null,
   isSvg: boolean
 ) {
+  if (!expectProps) {
+    return false;
+  }
   const ctx = getContext(node);
   const qwikProps = OnRenderProp in expectProps ? getProps(ctx) : undefined;
 
@@ -432,6 +675,18 @@ function styleSetProperty(ctx: RenderContext, el: HTMLElement, prop: string, val
   });
 }
 
+function classlistAdd(ctx: RenderContext, el: Element, hostStyleTag: string) {
+  const fn = () => {
+    el.classList.add(hostStyleTag);
+  };
+  ctx.operations.push({
+    el,
+    operation: 'classlist-add',
+    args: [hostStyleTag],
+    fn,
+  });
+}
+
 function setProperty(ctx: RenderContext, node: any, key: string, value: any) {
   const fn = () => {
     try {
@@ -477,27 +732,14 @@ function insertBefore<T extends Node>(
   return newChild;
 }
 
-function appendChild<T extends Node>(ctx: RenderContext, parent: Node, newChild: T): T {
+function prepend(ctx: RenderContext, parent: Element, newChild: Node) {
   const fn = () => {
-    parent.appendChild(newChild);
+    parent.insertBefore(newChild, parent.firstChild);
   };
   ctx.operations.push({
     el: parent,
-    operation: 'append-child',
+    operation: 'prepend',
     args: [newChild],
-    fn,
-  });
-  return newChild;
-}
-
-function setTextContent(ctx: RenderContext, el: Node, text: string | null): void {
-  const fn = () => {
-    el.textContent = text;
-  };
-  ctx.operations.push({
-    el,
-    operation: 'set-text-content',
-    args: [text],
     fn,
   });
 }
@@ -507,15 +749,28 @@ function removeNode(ctx: RenderContext, parent: Node, el: Node) {
     parent.removeChild(el);
   };
   ctx.operations.push({
-    el: parent,
+    el: el,
     operation: 'remove',
-    args: [el],
+    args: [],
     fn,
   });
 }
 
 function createTextNode(ctx: RenderContext, text: string): Text {
   return ctx.doc.createTextNode(text);
+}
+
+export function executeContextWithSlots(ctx: RenderContext) {
+  const before = ctx.roots.map((elm) => getSlots(undefined, elm));
+
+  executeContext(ctx);
+
+  const after = ctx.roots.map((elm) => getSlots(undefined, elm));
+  assertEqual(before.length, after.length);
+
+  for (let i = 0; i < before.length; i++) {
+    resolveSlotProjection(ctx, ctx.roots[i], before[i], after[i]);
+  }
 }
 
 export function executeContext(ctx: RenderContext) {
@@ -533,7 +788,7 @@ export function getRenderStats(ctx: RenderContext) {
   const stats = {
     total: ctx.operations.length,
     byOp,
-    queue: ctx.queue,
+    roots: ctx.roots,
     hostElements: Array.from(ctx.hostElements),
     affectedElements,
     operations: ctx.operations.map((v) => [v.operation, v.el, ...v.args]),
@@ -577,12 +832,4 @@ function sameVnode(vnode1: Node, vnode2: JSXNode): boolean {
   const isSameKey =
     vnode1.nodeType === NodeType.ELEMENT_NODE ? getKey(vnode1 as Element) === vnode2.key : true;
   return isSameSel && isSameKey;
-}
-
-function isUndef(s: any): s is undefined {
-  return s === undefined;
-}
-
-function isDef<A>(s: A): s is NonUndefined<A> {
-  return s !== undefined;
 }

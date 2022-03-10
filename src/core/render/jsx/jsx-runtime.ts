@@ -2,6 +2,7 @@ import type { FunctionComponent, JSXNode } from './types/jsx-node';
 import type { QwikJSX } from './types/jsx-qwik';
 import { qDev } from '../../util/qdev';
 import { Host } from './host.public';
+import { EMPTY_ARRAY } from '../../util/flyweight';
 
 /**
  * @public
@@ -9,16 +10,24 @@ import { Host } from './host.public';
 export function jsx<T extends string | FunctionComponent<PROPS>, PROPS>(
   type: T,
   props: PROPS,
-  key?: string
+  key?: string | number
 ): JSXNode<T> {
-  return processNode(new JSXNodeImpl(type, props, key)) as any;
+  return new JSXNodeImpl(type, props, key) as any;
 }
 
 export class JSXNodeImpl<T> implements JSXNode<T> {
-  children: JSXNode[] | undefined;
+  children: JSXNode[] = EMPTY_ARRAY;
   text?: string | undefined = undefined;
+  key: string | null = null;
 
-  constructor(public type: T, public props: any, public key: string | null = null) {
+  constructor(
+    public type: T,
+    public props: Record<string, any> | null,
+    key: string | number | null = null
+  ) {
+    if (key != null) {
+      this.key = String(key);
+    }
     if (props) {
       const children = processNode(props.children);
       if (children !== undefined) {
@@ -32,15 +41,15 @@ export class JSXNodeImpl<T> implements JSXNode<T> {
   }
 }
 
-function processNode(node: any): JSXNode[] | JSXNode | undefined {
-  if (node == null) {
+export function processNode(node: any): JSXNode[] | JSXNode | undefined {
+  if (node == null || typeof node === 'boolean') {
     return undefined;
   }
   if (isJSXNode(node)) {
     if (node.type === Host) {
       return node;
     } else if (typeof node.type === 'function') {
-      return processNode(node.type(node.props, node.children, node.key));
+      return processNode(node.type({ ...node.props, children: node.children }, node.key));
     } else {
       return node;
     }
@@ -73,7 +82,7 @@ export const isJSXNode = (n: any): n is JSXNode<unknown> => {
 /**
  * @public
  */
-export const Fragment: FunctionComponent = (_: any, children: any) => children as any;
+export const Fragment: FunctionComponent<{ children?: any }> = (props) => props.children as any;
 
 export type { QwikJSX as JSX };
 

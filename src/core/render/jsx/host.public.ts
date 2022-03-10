@@ -24,3 +24,8 @@ import type { FunctionComponent } from './types/jsx-node';
  * @public
  */
 export const Host: FunctionComponent<Record<string, any>> = { __brand__: 'host' } as any;
+
+/**
+ * @public
+ */
+export const Skip: FunctionComponent<{}> = { __brand__: 'skip' } as any;

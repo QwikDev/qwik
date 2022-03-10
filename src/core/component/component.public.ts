@@ -7,10 +7,11 @@ import { newInvokeContext, useInvoke, useWaitOn } from '../use/use-core';
 import { useHostElement } from '../use/use-host-element.public';
 import { ComponentScopedStyles, OnRenderProp } from '../util/markers';
 import { styleKey } from './qrl-styles';
-import type { QwikEvents } from '../render/jsx/types/jsx-qwik-attributes';
+import type { ComponentBaseProps } from '../render/jsx/types/jsx-qwik-attributes';
 import type { ValueOrPromise } from '../util/types';
 import { getContext, getProps } from '../props/props';
 import { jsx, FunctionComponent } from '../index';
+import { getDocument } from '../util/dom';
 
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onUnmount">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -320,18 +321,18 @@ export interface ComponentOptions {
 export function component<PROPS extends {}>(
   onMount: QRL<OnMountFn<PROPS>>,
   options?: ComponentOptions
-): (props: PROPS & QwikEvents) => JSXNode<PROPS>;
+): (props: PROPS & ComponentBaseProps) => JSXNode<PROPS>;
 /**
  * @public
  */
 export function component<PROPS extends {}>(
   onMount: QRL<OnMountFn<PROPS>>,
   options: ComponentOptions = {}
-): FunctionComponent<PROPS & QwikEvents> {
+): FunctionComponent<PROPS & ComponentBaseProps> {
   const tagName = options.tagName ?? 'div';
 
   // Return a QComponent Factory function.
-  return function QComponent(props, _, key): JSXNode<PROPS> {
+  return function QComponent(props, key): JSXNode<PROPS> {
     const onRenderFactory: qrlFactory = async (hostElement: Element): Promise<QRLInternal> => {
       // Turn function into QRL
       const onMountQrl = toQrlOrError(onMount);
@@ -410,7 +411,7 @@ export function component<PROPS extends {}>(
 export function component$<PROPS extends {}>(
   onMount: OnMountFn<PROPS>,
   options?: ComponentOptions
-): (props: PROPS & QwikEvents) => JSXNode<PROPS> {
+): (props: PROPS & ComponentBaseProps) => JSXNode<PROPS> {
   return component<PROPS>($(onMount), options);
 }
 
@@ -442,7 +443,7 @@ function _useStyles(styles: QRL<string>, scoped: boolean) {
 
   useWaitOn(
     qrlImport(hostElement, styleQrl).then((styleText) => {
-      const document = hostElement.ownerDocument;
+      const document = getDocument(hostElement);
       const head = document.querySelector('head');
       if (head && !head.querySelector(`style[q\\:style="${styleId}"]`)) {
         const style = document.createElement('style');

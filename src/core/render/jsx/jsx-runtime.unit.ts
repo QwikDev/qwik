@@ -13,8 +13,7 @@ describe('jsx-runtime', () => {
       });
       expect(v.children).toHaveLength(2);
       expect((v.children![0] as any).type).toEqual('child');
-      expect((v.children![0] as any).children).toEqual([1]);
-      expect((v.children![1] as any).children).toEqual([2]);
+      expect((v.children![1] as any).type).toEqual('child');
     });
 
     it('one child node', () => {
@@ -29,13 +28,25 @@ describe('jsx-runtime', () => {
     it('text w/ expression', () => {
       // <div>1 {2} 3</div>
       const v = jsx('div', { children: ['1 ', 2, ' 3'] });
-      expect(v.children).toEqual(['1 ', 2, ' 3']);
+      expect((v.children[0] as any).type).toEqual('#text');
+      expect((v.children[0] as any).text).toEqual('1 ');
+      expect((v.children[0] as any).key).toEqual(null);
+
+      expect((v.children[1] as any).type).toEqual('#text');
+      expect((v.children[1] as any).text).toEqual('2');
+      expect((v.children[1] as any).key).toEqual(null);
+
+      expect((v.children[2] as any).type).toEqual('#text');
+      expect((v.children[2] as any).text).toEqual(' 3');
+      expect((v.children[2] as any).key).toEqual(null);
     });
 
     it('text child', () => {
       // <div>text</div>
       const v = jsx('div', { children: 'text' });
-      expect(v.children).toEqual(['text']);
+      expect((v.children[0] as any).type).toEqual('#text');
+      expect((v.children[0] as any).text).toEqual('text');
+      expect((v.children[0] as any).key).toEqual(null);
     });
 
     it('no children', () => {
@@ -69,7 +80,7 @@ describe('jsx-runtime', () => {
       // <div/>
       const v = jsx('div', {});
       expect(v.props).toEqual({});
-      expect(v.key).toBeUndefined();
+      expect(v.key).toBeNull();
     });
   });
 

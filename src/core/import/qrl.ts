@@ -11,6 +11,7 @@ import type { QRL } from './qrl.public';
 import { isQrl, QRLInternal } from './qrl-class';
 import { assertEqual } from '../assert/assert';
 import type { CorePlatform } from '../index';
+import { getDocument } from '../util/dom';
 
 let runtimeSymbolId = 0;
 const RUNTIME_QRL = '/runtimeQRL';
@@ -102,7 +103,7 @@ export function stringifyQRL(qrl: QRL, element?: Element, platform?: CorePlatfor
 }
 
 export function qrlToUrl(element: Element, qrl: QRL): URL {
-  return new URL(stringifyQRL(qrl), element.ownerDocument.baseURI);
+  return new URL(stringifyQRL(qrl), getDocument(element).baseURI);
 }
 
 /**

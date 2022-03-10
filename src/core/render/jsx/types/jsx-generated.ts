@@ -789,6 +789,7 @@ export interface WebViewHTMLAttributes<T> extends HTMLAttributes<T> {
 }
 export interface SVGAttributes<T> extends AriaAttributes, DOMAttributes<T> {
   class?: string | { [className: string]: boolean } | undefined;
+  className?: string;
   color?: string | undefined;
   height?: number | string | undefined;
   id?: string | undefined;

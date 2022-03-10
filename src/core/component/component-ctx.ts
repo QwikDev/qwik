@@ -1,5 +1,5 @@
 import { assertDefined } from '../assert/assert';
-import { RenderContext, startEvent } from '../render/cursor';
+import type { RenderContext } from '../render/cursor';
 import { visitJsxNode } from '../render/render';
 import { ComponentScopedStyles, OnRenderProp } from '../util/markers';
 import { then } from '../util/promises';
@@ -7,6 +7,7 @@ import { styleContent, styleHost } from './qrl-styles';
 import { newInvokeContext, useInvoke } from '../use/use-core';
 import { getContext, getEvent, QContext } from '../props/props';
 import type { JSXNode, ValueOrPromise } from '..';
+import { processNode } from '../render/jsx/jsx-runtime';
 
 // TODO(misko): Can we get rid of this whole file, and instead teach getProps to know how to render
 // the advantage will be that the render capability would then be exposed to the outside world as well.
@@ -20,21 +21,24 @@ export class QComponentCtx {
   styleClass: string | null = null;
   styleHostClass: string | null = null;
 
+  slots: JSXNode[] = [];
+
   constructor(hostElement: HTMLElement) {
     this.hostElement = hostElement;
     this.ctx = getContext(hostElement);
   }
 
-  render(ctx: RenderContext): ValueOrPromise<HTMLElement> {
-    startEvent(ctx, 'Render Component ${}');
+  render(ctx: RenderContext): ValueOrPromise<void> {
     const hostElement = this.hostElement;
     const onRender = getEvent(this.ctx, OnRenderProp) as any as () => JSXNode;
     assertDefined(onRender);
     const event = 'qRender';
     this.ctx.dirty = false;
     ctx.globalState.hostsStaging.delete(hostElement);
+
     const promise = useInvoke(newInvokeContext(hostElement, hostElement, event), onRender);
     return then(promise, (jsxNode) => {
+      // Types are wrong here
       jsxNode = (jsxNode as any)[0];
 
       if (this.styleId === undefined) {
@@ -45,11 +49,12 @@ export class QComponentCtx {
         }
       }
       ctx.hostElements.add(hostElement);
+      this.slots = [];
       const newCtx: RenderContext = {
-        component: this,
         ...ctx,
+        component: this,
       };
-      return visitJsxNode(newCtx, hostElement, jsxNode, false);
+      return visitJsxNode(newCtx, hostElement, processNode(jsxNode), false);
     });
   }
 }

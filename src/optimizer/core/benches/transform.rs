@@ -14,7 +14,7 @@ fn transform_todo_app(b: &mut Bencher) {
           Host,
           qComponent$,
           $,
-          createStore,
+          useStore,
           useHostElement,
           useEvent,
         } from '@builder.io/qwik';
@@ -46,7 +46,7 @@ fn transform_todo_app(b: &mut Bencher) {
         });
 
         export const Header = qComponent$((props: { todos: Todos }) => {
-          const state = createStore({ text: '' });
+          const state = useStore({ text: '' });
           return $(() => {
             console.log('on$:qRender => <Header/>');
             return (
@@ -88,7 +88,7 @@ fn transform_todo_app(b: &mut Bencher) {
         });
 
         export const Item = qComponent$((props: { item: TodoItem; todos: Todos }) => {
-          const state = createStore({ editing: false });
+          const state = useStore({ editing: false });
           return $(() => {
             console.log(
               'on$:qRender => <Item item="' +

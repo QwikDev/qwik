@@ -3,16 +3,17 @@ import { qObject } from './q-object';
 
 describe('q-object', () => {
   beforeEach(() => {});
+  const map = new WeakMap();
 
   it('should create QObject', () => {
-    const obj = qObject({ salutation: 'Hello', name: 'World' });
+    const obj = qObject({ salutation: 'Hello', name: 'World' }, map);
     expect(obj).toEqual({ salutation: 'Hello', name: 'World' });
   });
 
   describe('read write proxy', () => {
     it('should support basic operations', () => {
       const value = { a: 1, b: 2 };
-      const proxy = readWriteProxy(value);
+      const proxy = readWriteProxy(value, map);
       expect(proxy.a).toBe(1);
       expect(proxy.b).toBe(2);
       expect(unwrapProxy(proxy as any)).toBe(value);
@@ -24,7 +25,7 @@ describe('q-object', () => {
     it('should support child objects', () => {
       const child = { a: 1, b: 2 };
       const parent = { child: child };
-      const proxy = readWriteProxy(parent);
+      const proxy = readWriteProxy(parent, map);
       expect(proxy.child.a).toBe(1);
       const pChild = proxy.child;
       expect(proxy.child).not.toBe(child);
@@ -38,7 +39,7 @@ describe('q-object', () => {
       it('should support arrays', () => {
         const child = { a: 'a' };
         const list = [1, child];
-        const pList = readWriteProxy(list);
+        const pList = readWriteProxy(list, map);
         expect(Object.keys(pList)).toEqual(Object.keys(list));
         expect(pList).toEqual(list);
         const copy = [] as any;

@@ -1,9 +1,9 @@
 import { assertDefined } from '../assert/assert';
 import { QHostAttr } from '../util/markers';
 import { getQComponent } from '../component/component-ctx';
-import { executeContextWithSlots, getRenderStats, RenderContext } from './cursor';
+import { executeContextWithSlots, printRenderStats, RenderContext } from './cursor';
 import { getContext } from '../props/props';
-import { qDev, qTest } from '../util/qdev';
+import { qDev } from '../util/qdev';
 import { getPlatform } from '../index';
 import { getDocument } from '../util/dom';
 
@@ -93,7 +93,10 @@ export async function renderMarked(doc: Document, state: RenderingState): Promis
     roots: [],
     hostElements: new Set(),
     globalState: state,
-    perf: [],
+    perf: {
+      visited: 0,
+      timing: [],
+    },
     component: undefined,
   };
 
@@ -113,10 +116,10 @@ export async function renderMarked(doc: Document, state: RenderingState): Promis
 
   return platform.raf(() => {
     executeContextWithSlots(ctx);
-    if (qDev && !qTest) {
-      const stats = getRenderStats(ctx);
-      // eslint-disable-next-line no-console
-      console.log('Render stats', stats);
+    if (qDev) {
+      if (typeof window !== 'undefined' && window.document != null) {
+        printRenderStats(ctx);
+      }
     }
     postRendering(doc, state);
     return ctx;

@@ -1,6 +1,6 @@
 import {
   component$,
-  createStore,
+  useStore,
   Host,
   notifyRender,
   $,
@@ -16,7 +16,7 @@ import type { TodoItem, Todos } from '../../state/state';
  */
 export const Item = component$(
   (props: { item: TodoItem; todos: Todos }) => {
-    const state = createStore({ editing: false });
+    const state = useStore({ editing: false });
     return $(() => {
       return (
         <Host class={{ completed: props.item.completed, editing: state.editing }}>

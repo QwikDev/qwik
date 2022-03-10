@@ -1,7 +1,7 @@
-import { component$, $, createStore, Slot } from '@builder.io/qwik';
+import { component$, $, useStore, Slot } from '@builder.io/qwik';
 
 export const SlotParent = component$(() => {
-  const state = createStore({
+  const state = useStore({
     disableButtons: false,
     disableNested: false,
     removeContent: false,

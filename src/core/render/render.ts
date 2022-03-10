@@ -1,6 +1,6 @@
 import { Host } from '../index';
 import type { ValueOrPromise } from '../util/types';
-import { getCmpChildren, RenderContext, updateChildren, updateProperties } from './cursor';
+import { RenderContext, smartUpdateChildren, updateProperties } from './cursor';
 import type { JSXNode } from './jsx/types/jsx-node';
 export type ComponentRenderQueue = Promise<HTMLElement[]>[];
 
@@ -11,15 +11,15 @@ export function visitJsxNode(
   isSvg: boolean
 ): ValueOrPromise<void> {
   if (jsxNode === undefined) {
-    return updateChildren(ctx, elm, getCmpChildren(elm), [], isSvg);
+    return smartUpdateChildren(ctx, elm, [], 'root', isSvg);
   }
   if (Array.isArray(jsxNode)) {
-    return updateChildren(ctx, elm, getCmpChildren(elm), jsxNode.flat(), isSvg);
+    return smartUpdateChildren(ctx, elm, jsxNode.flat(), 'root', isSvg);
   } else if (jsxNode.type === Host) {
     updateProperties(ctx, elm, jsxNode.props, isSvg);
-    return updateChildren(ctx, elm, getCmpChildren(elm), jsxNode.children || [], isSvg);
+    return smartUpdateChildren(ctx, elm, jsxNode.children || [], 'root', isSvg);
   } else {
-    return updateChildren(ctx, elm, getCmpChildren(elm), [jsxNode], isSvg);
+    return smartUpdateChildren(ctx, elm, [jsxNode], 'root', isSvg);
   }
 }
 

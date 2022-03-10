@@ -1,11 +1,9 @@
-import { component$, $, useEvent, createStore } from '@builder.io/qwik';
+import { component$, $, useEvent, useStore } from '@builder.io/qwik';
 import './global.css';
 
 export const App = component$(() => {
-  const state = createStore({ name: 'World', running: true });
+  const state = useStore({ name: 'World', running: true });
   return $(() => {
-    // eslint-disable-next-line no-console
-    console.log('Qwik: MyApp component is rendering...');
     return (
       <div id="my-app" on$:expensiveComputationDone={() => (state.running = false)}>
         <p style={{ 'text-align': 'center' }}>

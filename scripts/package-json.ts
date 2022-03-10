@@ -60,6 +60,7 @@ export async function generatePackageJson(config: BuildConfig) {
         require: './testing/index.cjs',
       },
       './qwikloader.js': './qwikloader.js',
+      './qwikloader.debug.js': './qwikloader.debug.js',
       './package.json': './package.json',
     },
     files: Array.from(new Set(rootPkg.files)).sort((a, b) => {

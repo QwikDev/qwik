@@ -1,5 +1,5 @@
 import { isDocument } from '../util/element';
-import { executeContext, getRenderStats, RenderContext } from './cursor';
+import { executeContext, printRenderStats, RenderContext } from './cursor';
 import { isJSXNode, jsx, processNode } from './jsx/jsx-runtime';
 import type { JSXNode, FunctionComponent } from './jsx/types/jsx-node';
 import { visitJsxNode } from './render';
@@ -7,7 +7,7 @@ import type { ValueOrPromise } from '../index';
 import { then } from '../util/promises';
 import { getRenderingState } from './notify-render';
 import { getDocument } from '../util/dom';
-import { qDev, qTest } from '../util/qdev';
+import { qDev } from '../util/qdev';
 
 /**
  * Render JSX.
@@ -38,18 +38,21 @@ export function render(
     component: undefined,
     hostElements: new Set(),
     globalState: getRenderingState(doc),
-    perf: [],
     roots: [elm],
+    perf: {
+      visited: 0,
+      timing: [],
+    },
   };
   return then(visitJsxNode(ctx, elm, processNode(jsxNode), false), () => {
     executeContext(ctx);
     if (stylesParent) {
       injectQwikSlotCSS(stylesParent);
     }
-    if (qDev && !qTest) {
-      const stats = getRenderStats(ctx);
-      // eslint-disable-next-line no-console
-      console.log('Render stats', stats);
+    if (qDev) {
+      if (typeof window !== 'undefined' && window.document != null) {
+        printRenderStats(ctx);
+      }
     }
     return ctx;
   });

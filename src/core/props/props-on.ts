@@ -13,6 +13,7 @@ import type { ValueOrPromise } from '../util/types';
 import { invokeWatchFn } from '../watch/watch';
 import { getEvents, QContext } from './props';
 import { getDocument } from '../util/dom';
+import { RenderContext, setAttribute } from '../render/cursor';
 
 const ON_PROP_REGEX = /on(Document|Window)?:/;
 const ON$_PROP_REGEX = /on(Document|Window)?\$:/;
@@ -75,7 +76,7 @@ export function qPropReadQRL(
   };
 }
 
-export function qPropWriteQRL(ctx: QContext, prop: string, value: any) {
+export function qPropWriteQRL(rctx: RenderContext, ctx: QContext, prop: string, value: any) {
   if (!value) {
     return;
   }
@@ -85,7 +86,7 @@ export function qPropWriteQRL(ctx: QContext, prop: string, value: any) {
   }
   const existingQRLs = getExistingQRLs(ctx, prop);
   if (Array.isArray(value)) {
-    value.forEach((value) => qPropWriteQRL(ctx, prop, value));
+    value.forEach((value) => qPropWriteQRL(rctx, ctx, prop, value));
   } else if (isQrl(value)) {
     const capture = value.capture;
     if (capture == null) {
@@ -112,12 +113,12 @@ export function qPropWriteQRL(ctx: QContext, prop: string, value: any) {
     if (existingQRLs.length === 0) {
       // if we don't have any than we use the `qrlFactory` to create a QRLInternal
       // (otherwise ignore the factory)
-      qPropWriteQRL(ctx, prop, value(ctx.element));
+      qPropWriteQRL(rctx, ctx, prop, value(ctx.element));
     }
   } else if (isPromise(value)) {
     const writePromise = value.then((qrl: QRLInternal) => {
       existingQRLs.splice(existingQRLs.indexOf(writePromise), 1);
-      qPropWriteQRL(ctx, prop, qrl);
+      qPropWriteQRL(rctx, ctx, prop, qrl);
       return qrl;
     });
     existingQRLs.push(writePromise);
@@ -129,7 +130,10 @@ export function qPropWriteQRL(ctx: QContext, prop: string, value: any) {
     getEvents(ctx)[prop] = serializeQRLs(existingQRLs, ctx);
   } else {
     const kebabProp = fromCamelToKebabCase(prop);
-    ctx.element.setAttribute(kebabProp, serializeQRLs(existingQRLs, ctx));
+    const newValue = serializeQRLs(existingQRLs, ctx);
+    if (ctx.element.getAttribute(kebabProp) !== newValue) {
+      setAttribute(rctx, ctx.element, kebabProp, newValue);
+    }
   }
 }
 

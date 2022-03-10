@@ -29,7 +29,7 @@ import { registerOnWatch, WatchFn } from './watch';
  *
  * ```typescript
  * export const MyComp = component$(() => {
- *   const store = createStore({ count: 0, doubleCount: 0 });
+ *   const store = useStore({ count: 0, doubleCount: 0 });
  *   onWatch$((obs) => {
  *     store.doubleCount = 2 * obs(store).count;
  *   });
@@ -78,7 +78,7 @@ export function onWatch(watchFn: QRL<(obs: Observer) => unknown | (() => void)>)
  *
  * ```typescript
  * export const MyComp = component$(() => {
- *   const store = createStore({ count: 0, doubleCount: 0 });
+ *   const store = useStore({ count: 0, doubleCount: 0 });
  *   onWatch$((obs) => {
  *     store.doubleCount = 2 * obs(store).count;
  *   });
@@ -117,7 +117,7 @@ export const onWatch$ = implicit$FirstArg(onWatch);
  *
  * ```typescript
  * export const MyComp = component$(() => {
- *   const store = createStore({ count: 0, doubleCount: 0 });
+ *   const store = useStore({ count: 0, doubleCount: 0 });
  *   onWatch$((obs) => {
  *     store.doubleCount = 2 * obs(store).count;
  *   });
@@ -156,7 +156,7 @@ export interface Observer {
    *
    * ```typescript
    * export const MyComp = component$(() => {
-   *   const store = createStore({ count: 0, doubleCount: 0 });
+   *   const store = useStore({ count: 0, doubleCount: 0 });
    *   onWatch$((obs) => {
    *     store.doubleCount = 2 * obs(store).count;
    *   });

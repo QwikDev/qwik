@@ -1,4 +1,4 @@
-import { h, Host, createStore } from '@builder.io/qwik';
+import { h, Host, useStore } from '@builder.io/qwik';
 import { ElementFixture, trigger } from '../../testing/element_fixture';
 import { expectDOM } from '../../testing/expect-dom.unit';
 import { getTestPlatform } from '../../testing/platform';
@@ -98,6 +98,37 @@ describe('render', () => {
             {'Hello'} {'World'}
           </span>
         </hello-world>
+      );
+    });
+
+    it('should render component external props', async () => {
+      await render(
+        fixture.host,
+        <RenderProps
+          thing="World"
+          className="foo"
+          id="123"
+          q:slot="start"
+          aria-hidden="true"
+          data-value="hello world"
+          key={'special'}
+          h:title="Custom title"
+        />
+      );
+      expectRendered(
+        <render-props
+          q:obj=""
+          q:host=""
+          q:slot="start"
+          q:key="special"
+          class="foo"
+          id="123"
+          aria-hidden="true"
+          data-value="hello world"
+          title="Custom title"
+        >
+          <span>{'{"thing":"World"}'}</span>
+        </render-props>
       );
     });
 
@@ -277,10 +308,17 @@ describe('render', () => {
     it('should render into host component', async () => {
       await render(
         fixture.host,
-        <HostFixture hostAttrs={JSON.stringify({ id: 'TEST', name: 'NAME' })} content="CONTENT" />
+        <HostFixture
+          hostAttrs={JSON.stringify({
+            id: 'TEST',
+            class: { thing: true },
+            name: 'NAME',
+          })}
+          content="CONTENT"
+        />
       );
       expectRendered(
-        <host-fixture id="TEST" name="NAME">
+        <host-fixture id="TEST" name="NAME" class="thing">
           CONTENT
         </host-fixture>
       );
@@ -542,7 +580,7 @@ describe('render', () => {
 export const HelloWorld = component$(
   (props: { name?: string }) => {
     useScopedStyles$(`span.� { color: red; }`);
-    const state = createStore({ salutation: 'Hello' });
+    const state = useStore({ salutation: 'Hello' });
     return $(() => {
       return (
         <span>
@@ -557,11 +595,25 @@ export const HelloWorld = component$(
 );
 
 //////////////////////////////////////////////////////////////////////////////////////////
+// Hello World
+//////////////////////////////////////////////////////////////////////////////////////////
+export const RenderProps = component$(
+  (props: { thing?: string }) => {
+    return $(() => {
+      return <span>{JSON.stringify(props)}</span>;
+    });
+  },
+  {
+    tagName: 'render-props',
+  }
+);
+
+//////////////////////////////////////////////////////////////////////////////////////////
 // Counter
 //////////////////////////////////////////////////////////////////////////////////////////
 
 export const Counter = component$((props: { step?: number }) => {
-  const state = createStore({ count: 0 });
+  const state = useStore({ count: 0 });
   return $(() => {
     const step = Number(props.step || 1);
     return (
@@ -623,7 +675,7 @@ export const SimpleProject = component$(
 export const HostFixture = component$(
   (props: { hostAttrs?: string; content?: string }) => {
     return $(() => {
-      return h(Host, JSON.parse(props.hostAttrs || '{}'), [props.content]);
+      return <Host {...JSON.parse(props.hostAttrs || '{}')}>{props.content}</Host>;
     });
   },
   {

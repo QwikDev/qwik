@@ -1,6 +1,7 @@
 import { QError, qError } from '../error/error';
-import { readWriteProxy } from '../object/q-object';
+import { getProxyMap, readWriteProxy } from '../object/q-object';
 import { QStore_hydrate } from '../object/store';
+import type { RenderContext } from '../render/cursor';
 import { getDocument } from '../util/dom';
 import { newQObjectMap, QObjectMap } from './props-obj-map';
 import { qPropWriteQRL, qPropReadQRL } from './props-on';
@@ -52,8 +53,8 @@ export function getContext(element: Element): QContext {
   return ctx;
 }
 
-export function setEvent(ctx: QContext, prop: string, value: any) {
-  qPropWriteQRL(ctx, prop, value);
+export function setEvent(rctx: RenderContext, ctx: QContext, prop: string, value: any) {
+  qPropWriteQRL(rctx, ctx, prop, value);
 }
 
 export function getEvent(ctx: QContext, prop: string): any {
@@ -62,7 +63,7 @@ export function getEvent(ctx: QContext, prop: string): any {
 
 export function getProps(ctx: QContext) {
   if (!ctx.props) {
-    ctx.props = readWriteProxy({});
+    ctx.props = readWriteProxy({}, getProxyMap(getDocument(ctx.element)));
     ctx.refMap.add(ctx.props);
   }
   return ctx.props!;

@@ -28,4 +28,4 @@ export const Host: FunctionComponent<Record<string, any>> = { __brand__: 'host' 
 /**
  * @public
  */
-export const Skip: FunctionComponent<{}> = { __brand__: 'skip' } as any;
+export const StaticChildren: FunctionComponent<{}> = { __brand__: 'skip' } as any;

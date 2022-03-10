@@ -819,7 +819,7 @@ export function printRenderStats(ctx: RenderContext) {
     roots: ctx.roots,
     hostElements: Array.from(ctx.hostElements),
     affectedElements,
-    visitedElements: ctx.perf.visited,
+    visitedNodes: ctx.perf.visited,
     operations: ctx.operations.map((v) => [v.operation, v.el, ...v.args]),
   };
   logDebug('Render stats', stats);

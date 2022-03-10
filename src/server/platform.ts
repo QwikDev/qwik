@@ -3,7 +3,7 @@ import { setPlatform } from '@builder.io/qwik';
 import type { SerializeDocumentOptions } from './types';
 
 const _setImmediate = typeof setImmediate === 'function' ? setImmediate : setTimeout;
-const _nextTick = typeof queueMicrotask === 'function' ? queueMicrotask : process.nextTick;
+// const _nextTick = typeof queueMicrotask === 'function' ? queueMicrotask : process.nextTick;
 
 declare const require: (module: string) => Record<string, any>;
 
@@ -11,14 +11,13 @@ function createPlatform(document: any, opts: SerializeDocumentOptions) {
   if (!document || (document as Document).nodeType !== 9) {
     throw new Error(`Invalid Document implementation`);
   }
-  let queuePromise: Promise<any> | null;
   const doc: Document = document;
   const symbols = opts.symbols;
   if (opts?.url) {
     doc.location.href = opts.url.href;
   }
   const serverPlatform: CorePlatform = {
-    async importSymbol(element, qrl, symbolName) {
+    async importSymbol(_element, qrl, symbolName) {
       let [modulePath] = String(qrl).split('#');
       if (!modulePath.endsWith('.js')) {
         modulePath += '.js';
@@ -30,29 +29,23 @@ function createPlatform(document: any, opts: SerializeDocumentOptions) {
       }
       return symbol;
     },
-    queueRender: (renderMarked) => {
-      if (!queuePromise) {
-        queuePromise = new Promise((resolve, reject) =>
-          // Do not use process.nextTick, as this will execute at same priority as promises.
-          // We need to execute after promisees.
-          _setImmediate(() => {
-            queuePromise = null;
-            renderMarked(doc).then(resolve, reject);
-          })
-        );
-      }
-      return queuePromise;
+    raf: (fn) => {
+      return new Promise((resolve) => {
+        // Do not use process.nextTick, as this will execute at same priority as promises.
+        // We need to execute after promises.
+        _setImmediate(() => {
+          resolve(fn());
+        });
+      });
     },
-    queueStoreFlush: (flushStore) => {
-      if (!queuePromise) {
-        queuePromise = new Promise((resolve, reject) =>
-          _nextTick(() => {
-            queuePromise = null;
-            flushStore(doc).then(resolve, reject);
-          })
-        );
-      }
-      return queuePromise;
+    nextTick: (fn) => {
+      return new Promise((resolve) => {
+        // Do not use process.nextTick, as this will execute at same priority as promises.
+        // We need to execute after promises.
+        setTimeout(() => {
+          resolve(fn());
+        });
+      });
     },
     chunkForSymbol(symbolName: string) {
       let symbol: string | undefined;

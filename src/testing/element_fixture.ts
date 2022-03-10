@@ -14,6 +14,7 @@ import { createGlobal } from './document';
 import { getTestPlatform } from './platform';
 import type { MockDocument, MockGlobal } from './types';
 import { applyDocumentConfig } from './util';
+import { getDocument } from '../core/util/dom';
 
 /**
  * Creates a simple DOM structure for testing components.
@@ -98,6 +99,6 @@ export async function trigger(
       });
     }
   });
-  await getTestPlatform(element.ownerDocument).flush();
+  await getTestPlatform(getDocument(element)).flush();
   return Promise.all(elements);
 }

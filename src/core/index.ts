@@ -84,6 +84,7 @@ export { render } from './render/render.public';
 // use API
 //////////////////////////////////////////////////////////////////////////////////////////
 export { useHostElement } from './use/use-host-element.public';
+export { useDocument } from './use/use-document.public';
 export { useEvent } from './use/use-event.public';
 export { useLexicalScope } from './use/use-lexical-scope.public';
 export { createStore } from './use/use-store.public';

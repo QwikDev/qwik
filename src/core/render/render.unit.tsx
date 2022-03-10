@@ -142,9 +142,15 @@ describe('render', () => {
       expectRendered(
         <project>
           <section>
-            <q:slot>..default..</q:slot>
-            <q:slot name="details">..details..</q:slot>
-            <q:slot name="description">..description..</q:slot>
+            <q:slot>
+              <q:fallback>..default..</q:fallback>
+            </q:slot>
+            <q:slot name="details">
+              <q:fallback>..details..</q:fallback>
+            </q:slot>
+            <q:slot name="description">
+              <q:fallback>..description..</q:fallback>
+            </q:slot>
           </section>
         </project>
       );
@@ -154,11 +160,17 @@ describe('render', () => {
       await render(fixture.host, <Project>projection</Project>);
       expectRendered(
         <project>
-          <template q:slot=""></template>
           <section>
-            <q:slot>projection</q:slot>
-            <q:slot name="details">..details..</q:slot>
-            <q:slot name="description">..description..</q:slot>
+            <q:slot>
+              <q:fallback>..default..</q:fallback>
+              projection
+            </q:slot>
+            <q:slot name="details">
+              <q:fallback>..details..</q:fallback>
+            </q:slot>
+            <q:slot name="description">
+              <q:fallback>..description..</q:fallback>
+            </q:slot>
           </section>
         </project>
       );
@@ -182,13 +194,17 @@ describe('render', () => {
       );
       expectRendered(
         <project>
-          <template q:slot=""></template>
           <section>
-            <q:slot>PROJECTION</q:slot>
+            <q:slot>
+              <q:fallback>..default..</q:fallback>
+              PROJECTION
+            </q:slot>
             <q:slot name="details">
+              <q:fallback>..details..</q:fallback>
               <span q:slot="details">DETAILS</span>
             </q:slot>
             <q:slot name="description">
+              <q:fallback>..description..</q:fallback>
               <span q:slot="description">DESCRIPTION</span>
             </q:slot>
           </section>
@@ -207,16 +223,21 @@ describe('render', () => {
       );
       expectRendered(
         <project>
-          <template q:slot="">
+          <template q:slot="ignore">
             <span q:slot="ignore">IGNORE</span>
           </template>
           <section>
-            <q:slot>..default..</q:slot>
+            <q:slot>
+              <q:fallback>..default..</q:fallback>
+            </q:slot>
             <q:slot name="details">
+              <q:fallback>..details..</q:fallback>
               <span q:slot="details">DETAILS1</span>
               <span q:slot="details">DETAILS2</span>
             </q:slot>
-            <q:slot name="description">..description..</q:slot>
+            <q:slot name="description">
+              <q:fallback>..description..</q:fallback>
+            </q:slot>
           </section>
         </project>
       );
@@ -230,9 +251,11 @@ describe('render', () => {
       );
       expectRendered(
         <project>
-          <template q:slot=""></template>
           <section>
-            <q:slot>PROJECTION</q:slot>
+            <q:slot>
+              <q:fallback>..default..</q:fallback>
+              <span>PROJECTION</span>
+            </q:slot>
           </section>
         </project>
       );
@@ -240,9 +263,11 @@ describe('render', () => {
       await getTestPlatform(fixture.document).flush();
       expectRendered(
         <project>
-          <template q:slot=""></template>
           <section>
-            <q:slot>PROJECTION</q:slot>
+            <q:slot>
+              <q:fallback>..default..</q:fallback>
+              <span>PROJECTION</span>
+            </q:slot>
           </section>
         </project>
       );
@@ -262,7 +287,7 @@ describe('render', () => {
     });
   });
 
-  describe('<Async>', () => {
+  describe.skip('<Async>', () => {
     it('should render a promise', async () => {
       await render(fixture.host, <div>{Promise.resolve('WORKS')}</div>);
       expectRendered(
@@ -465,8 +490,8 @@ describe('render', () => {
               </svg>
               <feGaussianBlur class="is-html">bye</feGaussianBlur>
             </foreignObject>
-            <text class="is-svg">Hello</text>
-            <text class="is-svg">Bye</text>
+            <text className="is-svg">Hello</text>
+            <text className="is-svg">Bye</text>
           </svg>
           <text class="is-html">end</text>
         </div>
@@ -483,23 +508,23 @@ describe('render', () => {
           <Text class="is-html" shouldkebab="true">
             Start
           </Text>
-          <svg class="is-svg" preserveAspectRatio="true">
-            <Text class="is-svg" shouldCamelCase="true">
+          <svg className="is-svg" preserveAspectRatio="true">
+            <Text className="is-svg" shouldCamelCase="true">
               start
             </Text>
-            <foreignObject class="is-svg">
+            <foreignObject className="is-svg">
               <div class="is-html">hello</div>
-              <svg class="is-svg">
-                <feGaussianBlur class="is-svg"></feGaussianBlur>
-                <foreignObject class="is-svg">
+              <svg className="is-svg">
+                <feGaussianBlur className="is-svg"></feGaussianBlur>
+                <foreignObject className="is-svg">
                   <foreignobject class="is-html"></foreignobject>
                   <div class="is-html">Still outside svg</div>
                 </foreignObject>
               </svg>
               <fegaussianblur class="is-html">bye</fegaussianblur>
             </foreignObject>
-            <text class="is-svg">Hello</text>
-            <text class="is-svg">Bye</text>
+            <text className="is-svg">Hello</text>
+            <text className="is-svg">Bye</text>
           </svg>
           <text class="is-html">end</text>
         </div>
@@ -613,7 +638,7 @@ function delay(time: number) {
 //////////////////////////////////////////////////////////////////////////////////////////
 export const InnerHTMLComponent = component$(async () => {
   return $(() => {
-    const html = Promise.resolve(`<span>WORKS</span>`);
-    return <Async resolve={html}>{(v) => <div innerHTML={v.value}></div>}</Async>;
+    const html = '<span>WORKS</span>';
+    return <div innerHTML={html}></div>;
   });
 });

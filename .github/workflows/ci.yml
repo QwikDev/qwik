@@ -23,7 +23,7 @@ jobs:
     name: Setup
     runs-on: ubuntu-latest
     outputs:
-      fullbuild: ${{ steps.fullbuild.outputs.fullbuild }}
+      fullbuild: ${{ steps.filter.outputs.fullbuild == 'true' || github.event.inputs.disttag != '' }}
 
     steps:
       - name: Branch
@@ -36,14 +36,19 @@ jobs:
         with:
           filters: |
             fullbuild:
-              - 'src/**/*.(ts|tsx|js|mjs|cjs|jsx|json|toml|rs)'
+              - 'src/**/*.ts'
+              - 'src/**/*.tsx'
+              - 'src/**/*.js'
+              - 'src/**/*.mjs'
+              - 'src/**/*.cjs'
+              - 'src/**/*.jsx'
+              - 'src/**/*.json'
+              - 'src/**/*.toml'
+              - 'src/**/*.rs'
               - 'yarn.lock'
               - 'tsconfig.json'
-      - name: Set fullbuild output
-        id: fullbuild
-        run: echo ::set-output name=fullbuild::"${{ steps.filter.outputs.fullbuild == 'true' && github.event.inputs.disttag != '' }}"
       - name: Print fullbuild output
-        run: echo ${{ steps.fullbuild.outputs.fullbuild }}
+        run: echo ${{ steps.filter.outputs.fullbuild == 'true' || github.event.inputs.disttag != '' }}
 
   ############ BUILD PACKAGE ############
   build-package:
@@ -464,24 +469,35 @@ jobs:
   test-unit:
     name: Unit Tests
     runs-on: ubuntu-latest
+    needs:
+      - changes
+
     steps:
       - name: Setup Node
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/setup-node@v1
         with:
           node-version: 16.x
           registry-url: https://registry.npmjs.org/
 
       - name: Checkout
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/checkout@v2
 
       - name: Cache NPM Dependencies
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/cache@v2
         with:
           path: node_modules
           key: npm-cache-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
 
       - name: Install NPM Dependencies
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
+
+      - name: Jest Unit Tests
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
+        run: yarn test.unit
 
   ########### VALIDATE RUST ############
   validate-rust:

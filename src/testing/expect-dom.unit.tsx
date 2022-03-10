@@ -26,22 +26,24 @@ function expectMatchElement(
     if (actualTag !== expected.type) {
       diffs.push(`${path}: expected '${toHTML(expected)}', was '${toHTML(actual)}'.`);
     }
-    Object.keys(expected.props).forEach((key) => {
-      if (key !== 'children') {
-        const expectedValue = expected.props[key] as any;
-        const actualValue = actual.getAttribute ? actual.getAttribute(key) : '';
-        if (!(actualValue == expectedValue || (expectedValue === true && actualValue !== null))) {
-          diffs.push(`${path}: expected '${toHTML(expected)}', was '${toHTML(actual)}'.`);
+    if (expected.props) {
+      Object.keys(expected.props).forEach((key) => {
+        if (key !== 'children') {
+          const expectedValue = expected.props![key] as any;
+          const actualValue = actual.getAttribute ? actual.getAttribute(key) : '';
+          if (!(actualValue == expectedValue || (expectedValue === true && actualValue !== null))) {
+            diffs.push(`${path}: expected '${toHTML(expected)}', was '${toHTML(actual)}'.`);
+          }
         }
-      }
-    });
+      });
+    }
 
     const actualChildNodes = isTemplateElement(actual)
       ? actual.content.childNodes
       : actual.childNodes;
     (expected.children || []).forEach((expectedChild, index) => {
       const actualChild = actualChildNodes[index];
-      if (isJSXNode(expectedChild)) {
+      if (expectedChild.text === undefined) {
         expectMatchElement(
           path + `.[${index}]`,
           diffs,
@@ -51,16 +53,16 @@ function expectMatchElement(
       } else {
         // We are a text node.
         const text = actualChild?.textContent || '';
-        if (!(expectedChild instanceof RegExp ? expectedChild.test(text) : expectedChild == text)) {
+        if (expectedChild.text !== text) {
           diffs.push(
-            `${path}: expected content "${expectedChild}", was "${
+            `${path}: expected content "${expectedChild.text}", was "${
               (actualChild as HTMLElement)?.outerHTML || actualChild?.textContent
             }"`
           );
         }
       }
     });
-    for (let i = expected.children.length; i < actualChildNodes.length; i++) {
+    for (let i = expected.children!.length; i < actualChildNodes.length; i++) {
       const childNode = actualChildNodes[i];
       diffs.push(`${path}[${i}]: extra node '${toHTML(childNode)}'`);
     }
@@ -71,11 +73,13 @@ function expectMatchElement(
 
 function toAttrs(jsxNode: QwikJSX.Element): string[] {
   const attrs: string[] = [];
-  Object.keys(jsxNode.props || {}).forEach((key) => {
-    if (key !== 'children') {
-      attrs.push(key + '=' + JSON.stringify(jsxNode.props[key]));
-    }
-  });
+  if (jsxNode.props) {
+    Object.keys(jsxNode.props || {}).forEach((key) => {
+      if (key !== 'children') {
+        attrs.push(key + '=' + JSON.stringify(jsxNode.props![key]));
+      }
+    });
+  }
   return attrs;
 }
 

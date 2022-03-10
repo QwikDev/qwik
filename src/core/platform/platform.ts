@@ -1,14 +1,12 @@
+import { getDocument } from '../util/dom';
 import { isDocument } from '../util/element';
 import type { CorePlatform } from './types';
 
 export const createPlatform = (doc: Document): CorePlatform => {
-  let queuePromise: Promise<any> | null;
-  let storePromise: Promise<any> | null;
-
   const moduleCache = new Map<string, { [symbol: string]: any }>();
   return {
     importSymbol(element, url, symbolName) {
-      const urlDoc = toUrl(element.ownerDocument, element, url).toString();
+      const urlDoc = toUrl(doc, element, url).toString();
 
       const urlCopy = new URL(urlDoc);
       urlCopy.hash = '';
@@ -23,27 +21,19 @@ export const createPlatform = (doc: Document): CorePlatform => {
         return mod[symbolName];
       });
     },
-    queueRender: (renderMarked) => {
-      if (!queuePromise) {
-        queuePromise = new Promise((resolve, reject) =>
-          doc.defaultView!.requestAnimationFrame(() => {
-            queuePromise = null;
-            renderMarked(doc).then(resolve, reject);
-          })
-        );
-      }
-      return queuePromise;
+    raf: (fn) => {
+      return new Promise((resolve) => {
+        requestAnimationFrame(() => {
+          resolve(fn());
+        });
+      });
     },
-    queueStoreFlush: (flushStore) => {
-      if (!storePromise) {
-        storePromise = new Promise((resolve, reject) =>
-          doc.defaultView!.requestAnimationFrame(() => {
-            storePromise = null;
-            flushStore(doc).then(resolve, reject);
-          })
-        );
-      }
-      return storePromise;
+    nextTick: (fn) => {
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          resolve(fn());
+        });
+      });
     },
     chunkForSymbol() {
       return undefined;
@@ -95,7 +85,7 @@ export const setPlatform = (doc: Document, plt: CorePlatform) =>
  * @public
  */
 export const getPlatform = (docOrNode: Document | Node) => {
-  const doc = (isDocument(docOrNode) ? docOrNode : docOrNode.ownerDocument!) as PlatformDocument;
+  const doc = (isDocument(docOrNode) ? docOrNode : getDocument(docOrNode)!) as PlatformDocument;
   return doc[DocumentPlatform] || (doc[DocumentPlatform] = createPlatform(doc));
 };
 

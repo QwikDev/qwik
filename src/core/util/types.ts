@@ -42,13 +42,6 @@ export function isHtmlElement(node: any): node is Element {
 }
 
 /**
- * @private
- */
-export function isTextNode(node: Node | null | undefined): node is Text {
-  return node ? node.nodeType === NodeType.TEXT_NODE : false;
-}
-
-/**
  * Type representing a value which is either resolve or a promise.
  * @public
  */

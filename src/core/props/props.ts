@@ -1,6 +1,7 @@
 import { QError, qError } from '../error/error';
 import { readWriteProxy } from '../object/q-object';
 import { QStore_hydrate } from '../object/store';
+import { getDocument } from '../util/dom';
 import { newQObjectMap, QObjectMap } from './props-obj-map';
 import { qPropWriteQRL, qPropReadQRL } from './props-on';
 
@@ -12,7 +13,7 @@ const Q_IS_HYDRATED = '__isHydrated__';
 export const Q_CTX = '__ctx__';
 
 export function hydrateIfNeeded(element: Element): void {
-  const doc = element.ownerDocument!;
+  const doc = getDocument(element);
   const isHydrated = (doc as any)[Q_IS_HYDRATED];
   if (!isHydrated) {
     (doc as any)[Q_IS_HYDRATED] = true;
@@ -28,9 +29,9 @@ export interface QContext {
   cache: Map<string, any>;
   refMap: QObjectMap;
   element: Element;
-  id: string | undefined;
+  dirty: boolean;
   props: Record<string, any> | undefined;
-  events?: QContextEvents;
+  events: QContextEvents | undefined;
 }
 
 export function getContext(element: Element): QContext {
@@ -43,8 +44,9 @@ export function getContext(element: Element): QContext {
       element,
       cache,
       refMap: newQObjectMap(element),
-      id: undefined,
+      dirty: false,
       props: undefined,
+      events: undefined,
     };
   }
   return ctx;

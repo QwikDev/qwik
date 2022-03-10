@@ -1,297 +1,534 @@
-import {
-  assertDefined,
-  assertEqual,
-  assertGreater,
-  assertGreaterOrEqual,
-  assertNotEqual,
-} from '../assert/assert';
-import type { QComponentCtx } from '../component/component-ctx';
-import { getQComponent } from '../component/component-ctx';
-import { keyValueArrayGet } from '../util/array_map';
-import { isComment, isDocument } from '../util/element';
-import { QHostAttr, OnRenderProp, QSlotAttr } from '../util/markers';
-import {
-  isComponentElement,
-  isDomElementWithTagName,
-  isQSLotTemplateElement,
-  NodeType,
-} from '../util/types';
+import { OnRenderProp, QHostAttr, QSlotAttr } from '../util/markers';
 import { getContext, getProps, setEvent } from '../props/props';
-import type { ComponentRenderQueue } from './render';
-import { getSlotMap, isSlotMap, NamedSlot, NamedSlotEnum, SlotMap } from './slots';
 import { isOn$Prop, isOnProp } from '../props/props-on';
-import { $ } from '../index';
-import { getScheduled } from './notify-render';
-
-/**
- * Cursor represents a set of sibling elements at a given level in the DOM.
- *
- * The cursor is used for reconciling what the JSX expects vs what the DOM has.
- * NOTE: Descending to a child involves creating a new cursor.
- *
- * Cursor allows these operations:
- * - `cursorForParent`: creates cursor for a given parent.
- * - `cursorForComponent`: creates cursor if parent is component, and we are reconciling component
- *    view.
- * - `cursorReconcileElement`: Ensures that the current DOM node matches a given shape.
- * - `cursorReconcileText`: Ensures that the current DOM node matches a given text.
- * - `cursorReconcileEnd`: Ensures that there are no more dangling elements.
- */
-export interface Cursor {
-  parent: Node | null;
-  /**
-   * `Node`: points to the current node which needs to be reconciled.
-   * `SlotMap`: points to the current set of projections
-   * `null': points to the next element after the last sibling. (Reconciliation will insert new
-   *      element.)
-   * `undefined`: The cursor has been closed with `cursorReconcileEnd`. No further operations are
-   *      allowed.
-   */
-  node: Node | SlotMap | null /** | undefined // not included as it is end state */;
-  end: Node | null;
-}
-
 export const SVG_NS = 'http://www.w3.org/2000/svg';
+import { $, Host, JSXNode, ValueOrPromise } from '../index';
+import { getQComponent, QComponentCtx } from '../component/component-ctx';
+import { promiseAll, then } from '../util/promises';
+import type { RenderingState } from './notify-render';
+import { assertDefined, assertEqual } from '../assert/assert';
+import { NodeType } from '../util/types';
+import { intToStr } from '../object/store';
+import { EMPTY_ARRAY } from '../util/flyweight';
+import { Skip } from './jsx/host.public';
 
-/**
- * Create a cursor which reconciles logical children.
- *
- * Here logical means children as defined by JSX. (This will be same as DOM except
- * in the case of projection.) In case of projection the cursor will correctly
- * deal with the logical children of the View (rather then rendered children.)
- *
- * See: `cursorForComponent`
- *
- * @param parent Parent `Element` whose children should be reconciled.
- */
-export function cursorForParent(parent: Node): Cursor {
-  let firstChild = parent.firstChild;
-  if (firstChild && firstChild.nodeType === NodeType.DOCUMENT_TYPE_NODE) {
-    firstChild = firstChild.nextSibling;
-  }
-  return newCursor(parent, firstChild, null);
+type KeyToIndexMap = { [key: string]: number };
+
+type PropHandler = (
+  ctx: RenderContext,
+  el: HTMLElement,
+  key: string,
+  newValue: any,
+  oldValue: any
+) => boolean;
+
+interface RenderOperation {
+  el: Node;
+  operation: string;
+  args: any[];
+  fn: () => void;
 }
 
-function newCursor(parent: Node | null, node: Node | SlotMap | null, end: Node | null): Cursor {
-  return { parent, node, end };
+export interface RenderContext {
+  doc: Document;
+  roots: Element[];
+  hostElements: Set<Element>;
+  operations: RenderOperation[];
+  component: QComponentCtx | undefined;
+  globalState: RenderingState;
+  perf: PerfEvent[];
 }
 
-function getNode(cursor: Cursor) {
-  const node = cursor.node;
-  return cursor.end == node ? null : node;
+export interface PerfEvent {
+  name: string;
+  timeStart: number;
+  timeEnd: number;
 }
 
-function setNode(cursor: Cursor, node: Node | null) {
-  cursor.node = cursor.end == node ? null : node;
-}
-
-export function cursorClone(cursor: Cursor): Cursor {
-  return newCursor(cursor.parent, cursor.node, cursor.end);
-}
-
-/**
- * Reconcile view children of a component.
- *
- * Use this method to create a cursor when reconciling a component's view.
- *
- * The main point of this method is to skip the `<template q:slot/>` Node.
- *
- * @param componentHost Component host element for which view children should be
- *     reconciled.
- * @returns
- */
-export function cursorForComponent(componentHost: Node): Cursor {
-  assertEqual(isComponentElement(componentHost), true);
-  let firstNonTemplate = componentHost.firstChild;
-  if (isQSLotTemplateElement(firstNonTemplate)) {
-    firstNonTemplate = firstNonTemplate.nextSibling;
-  }
-  return newCursor(componentHost, firstNonTemplate, null);
-}
-
-/**
- * Ensure that node at cursor is an `Element` with given attributes.
- *
- * Reconciles the current cursor location with `expectTag`/`expectProps`.
- * This method will either leave the element alone if it matches, updates the
- * props, or completely removes and replaces the node with correct element.
- *
- * After invocation of this method, the cursor is advanced to the next sibling.
- *
- * @param cursor
- * @param component `ComponentRenderContext` of the component to whom the view childer
- *        logically belong.
- * @param expectTag
- * @param expectProps
- * @param componentRenderQueue Set if the current element is a component.
- *    This means that the reconciliation should detect input changes and if
- *    present add the component to the `componentRenderQueue` for further processing.
- * @returns Child `Cursor` to reconcile the children of this `Element`.
- */
-export function cursorReconcileElement(
-  cursor: Cursor,
-  component: QComponentCtx | null,
-  expectTag: string,
-  expectProps: Record<string, any> | typeof String,
-  componentRenderQueue: ComponentRenderQueue | null,
+export function updateChildren(
+  ctx: RenderContext,
+  parentElm: Node,
+  oldCh: Node[],
+  newCh: JSXNode[],
   isSvg: boolean
-): Cursor {
-  let node = getNode(cursor);
-  assertNotEqual(node, undefined, 'Cursor already closed');
-  if (isSlotMap(node)) {
-    assertDefined(cursor.parent);
-    return slotMapReconcileSlots(
-      cursor.parent!,
-      node,
-      cursor.end,
-      component,
-      expectTag,
-      expectProps,
-      componentRenderQueue,
-      isSvg
-    );
-  } else {
-    assertNotEqual(node, undefined, 'Cursor already closed');
-    node = _reconcileElement(
-      cursor.parent!,
-      node,
-      cursor.end,
-      component,
-      expectTag,
-      expectProps,
-      componentRenderQueue,
-      isSvg
-    );
-    assertDefined(node);
-    setNode(cursor, node.nextSibling);
-    return _reconcileElementChildCursor(node as Element, !!componentRenderQueue);
-  }
-}
+): ValueOrPromise<void> {
+  let oldStartIdx = 0;
+  let newStartIdx = 0;
+  let oldEndIdx = oldCh.length - 1;
+  let oldStartVnode = oldCh[0];
+  let oldEndVnode = oldCh[oldEndIdx];
+  let newEndIdx = newCh.length - 1;
+  let newStartVnode = newCh[0];
+  let newEndVnode = newCh[newEndIdx];
+  let oldKeyToIdx: KeyToIndexMap | undefined;
+  let idxInOld: number;
+  let elmToMove: Node;
+  let before: any;
+  const results = [];
 
-function slotMapReconcileSlots(
-  parent: Node,
-  slots: SlotMap,
-  end: Node | null,
-  component: QComponentCtx | null,
-  expectTag: string,
-  expectProps: Record<string, any>,
-  componentRenderQueue: ComponentRenderQueue | null,
-  isSvg: boolean
-): Cursor {
-  const slotName = expectProps[QSlotAttr] || '';
-  const namedSlot = keyValueArrayGet(slots, slotName);
-  let childNode: Node;
-  if (namedSlot) {
-    assertGreaterOrEqual(namedSlot.length, 2);
-    const parent = namedSlot[NamedSlotEnum.parent];
-    let index = namedSlot[NamedSlotEnum.index];
-    if (index == -1) {
-      index = 2;
+  if (newCh.length === 1 && newCh[0].type === Skip) {
+    return;
+  }
+
+  while (oldStartIdx <= oldEndIdx && newStartIdx <= newEndIdx) {
+    if (oldStartVnode == null) {
+      oldStartVnode = oldCh[++oldStartIdx]; // Vnode might have been moved left
+    } else if (oldEndVnode == null) {
+      oldEndVnode = oldCh[--oldEndIdx];
+    } else if (newStartVnode == null) {
+      newStartVnode = newCh[++newStartIdx];
+    } else if (newEndVnode == null) {
+      newEndVnode = newCh[--newEndIdx];
+    } else if (sameVnode(oldStartVnode, newStartVnode)) {
+      results.push(patchVnode(ctx, oldStartVnode, newStartVnode, isSvg));
+      oldStartVnode = oldCh[++oldStartIdx];
+      newStartVnode = newCh[++newStartIdx];
+    } else if (sameVnode(oldEndVnode, newEndVnode)) {
+      results.push(patchVnode(ctx, oldEndVnode, newEndVnode, isSvg));
+      oldEndVnode = oldCh[--oldEndIdx];
+      newEndVnode = newCh[--newEndIdx];
+    } else if (sameVnode(oldStartVnode, newEndVnode)) {
+      // Vnode moved right
+      results.push(patchVnode(ctx, oldStartVnode, newEndVnode, isSvg));
+
+      insertBefore(ctx, parentElm, oldStartVnode, oldEndVnode.nextSibling);
+      oldStartVnode = oldCh[++oldStartIdx];
+      newEndVnode = newCh[--newEndIdx];
+    } else if (sameVnode(oldEndVnode, newStartVnode)) {
+      // Vnode moved left
+      results.push(patchVnode(ctx, oldEndVnode, newStartVnode, isSvg));
+
+      insertBefore(ctx, parentElm, oldEndVnode, oldStartVnode);
+      oldEndVnode = oldCh[--oldEndIdx];
+      newStartVnode = newCh[++newStartIdx];
+    } else {
+      if (oldKeyToIdx === undefined) {
+        oldKeyToIdx = createKeyToOldIdx(oldCh, oldStartIdx, oldEndIdx);
+      }
+      idxInOld = oldKeyToIdx[newStartVnode.key as string];
+      if (idxInOld === undefined) {
+        // New element
+        const newElm = createElm(ctx, newStartVnode, isSvg);
+        results.push(
+          then(newElm, (newElm) => {
+            insertBefore(ctx, parentElm, newElm, oldStartVnode);
+          })
+        );
+      } else {
+        elmToMove = oldCh[idxInOld];
+        if (elmToMove.nodeName !== newStartVnode.type) {
+          const newElm = createElm(ctx, newStartVnode, isSvg);
+          results.push(
+            then(newElm, (newElm) => {
+              insertBefore(ctx, parentElm, newElm, oldStartVnode);
+            })
+          );
+        } else {
+          results.push(patchVnode(ctx, elmToMove, newStartVnode, isSvg));
+          oldCh[idxInOld] = undefined as any;
+          insertBefore(ctx, parentElm, elmToMove, oldStartVnode);
+        }
+      }
+      newStartVnode = newCh[++newStartIdx];
     }
-    childNode = (namedSlot.length > index ? namedSlot[index] : null) as Node;
-    const node = _reconcileElement(
-      parent,
-      childNode,
-      end,
-      component,
-      expectTag,
-      expectProps,
-      componentRenderQueue,
-      isSvg
-    );
-    if (childNode !== node) {
-      namedSlot[index] = node;
-      childNode = node;
-    }
-    namedSlot[NamedSlotEnum.index] = index + 1;
-  } else {
-    const template = getUnSlottedStorage(parent as Element);
-    childNode = _reconcileElement(
-      template.content,
-      null,
-      end,
-      component,
-      expectTag,
-      expectProps,
-      true,
-      isSvg
-    );
-    assertDefined(childNode);
   }
-  return _reconcileElementChildCursor(childNode as Element, !!componentRenderQueue);
+
+  if (newStartIdx <= newEndIdx) {
+    before = newCh[newEndIdx + 1] == null ? null : newCh[newEndIdx + 1].elm;
+    results.push(addVnodes(ctx, parentElm, before, newCh, newStartIdx, newEndIdx, isSvg));
+  }
+
+  let wait = promiseAll(results) as any;
+  if (oldStartIdx <= oldEndIdx) {
+    wait = then(wait, () => {
+      removeVnodes(ctx, parentElm, oldCh, oldStartIdx, oldEndIdx);
+    });
+  }
+  return wait;
 }
 
-function _reconcileElement(
-  parent: Node,
-  existing: Node | null,
-  end: Node | null,
-  component: QComponentCtx | null,
-  expectTag: string,
-  expectProps: Record<string, any> | StringConstructor,
-  componentRenderQueue: ComponentRenderQueue | null | true,
+function isComponentNode(node: JSXNode) {
+  return node.props && OnRenderProp in node.props;
+}
+
+export function getChildren(elm: Node): Node[] {
+  return Array.from(elm.childNodes).filter(isNode);
+}
+
+export function getCmpChildren(elm: Node): Node[] {
+  return getChildren(elm).filter(isChildComponent);
+}
+
+export function getSlotChildren(elm: Node): Node[] {
+  return getChildren(elm).filter(isChildSlot);
+}
+
+export function isNode(elm: Node): boolean {
+  return elm.nodeType === 1 || elm.nodeType === 3;
+}
+
+export function getDefaultChildren(elm: Node): Node[] {
+  return getChildren(elm).filter(isFallback);
+}
+
+function isFallback(node: Node): boolean {
+  return node.nodeName === 'Q:FALLBACK';
+}
+
+function isChildSlot(node: Node) {
+  return node.nodeName !== 'Q:FALLBACK' && isChildComponent(node);
+}
+
+function isSlotTemplate(node: Node): node is HTMLTemplateElement {
+  return node.nodeName === 'TEMPLATE' && (node as Element).hasAttribute(QSlotAttr);
+}
+
+function isChildComponent(node: Node): boolean {
+  return node.nodeName !== 'TEMPLATE' || !(node as Element).hasAttribute(QSlotAttr);
+}
+
+function splitBy<T>(input: T[], condition: (item: T) => string): Record<string, T[]> {
+  const output: Record<string, T[]> = {};
+  for (const item of input) {
+    const key = condition(item);
+    const array = output[key] ?? (output[key] = []);
+    array.push(item);
+  }
+  return output;
+}
+
+export function patchVnode(
+  ctx: RenderContext,
+  elm: Node,
+  vnode: JSXNode<any>,
   isSvg: boolean
+): ValueOrPromise<void> {
+  const tag = vnode.type;
+  if (tag === '#text') {
+    if ((elm as Text).data !== vnode.text) {
+      setProperty(ctx, elm, 'data', vnode.text);
+    }
+    return;
+  }
+
+  if (tag === Host || tag === Skip) {
+    return;
+  }
+
+  if (!isSvg) {
+    isSvg = tag === 'svg';
+  }
+
+  let promise: ValueOrPromise<void>;
+  const dirty = updateProperties(ctx, elm as Element, vnode.props, isSvg);
+  const isSlot = tag === 'q:slot';
+  if (isSvg && vnode.type === 'foreignObject') {
+    isSvg = false;
+  } else if (isSlot) {
+    ctx.component!.slots.push(vnode);
+  }
+  const isComponent = isComponentNode(vnode);
+  let componentCtx: QComponentCtx | undefined;
+  if (dirty) {
+    assertEqual(isComponent, true);
+    componentCtx = getQComponent(elm as Element)!;
+    promise = componentCtx.render(ctx);
+  }
+  const ch = vnode.children;
+  if (isComponent) {
+    return then(promise, () => {
+      const slotMaps = getSlots(componentCtx, elm as Element);
+      const splittedChidren = splitBy(ch, getSlotName);
+      const promises: ValueOrPromise<void>[] = [];
+
+      // Mark empty slots and remove content
+      Object.entries(slotMaps.slots).forEach(([key, slotEl]) => {
+        if (slotEl && !splittedChidren[key]) {
+          const oldCh = getSlotChildren(slotEl);
+          if (oldCh.length > 0) {
+            removeVnodes(ctx, slotEl, oldCh, 0, oldCh.length - 1);
+          }
+        }
+      });
+
+      // Render into slots
+      Object.entries(splittedChidren).forEach(([key, ch]) => {
+        const slotElm = getSlotElement(ctx, slotMaps, elm as Element, key);
+        const oldCh = getSlotChildren(slotElm);
+        promises.push(prepareChildren(ctx, slotElm, oldCh, ch, isSvg));
+      });
+      return then(promiseAll(promises), () => {
+        removeTemplates(ctx, slotMaps);
+      });
+    });
+  }
+  return then(promise, () => {
+    const oldCh = isSlot ? getDefaultChildren(elm) : getChildren(elm);
+    return prepareChildren(ctx, elm, oldCh, ch, isSvg);
+  });
+}
+
+function prepareChildren(
+  ctx: RenderContext,
+  elm: Node,
+  oldCh: Node[],
+  ch: JSXNode[],
+  isSvg: boolean
+) {
+  if (oldCh.length > 0 && ch.length > 0) {
+    return updateChildren(ctx, elm, oldCh, ch, isSvg);
+  } else if (ch.length > 0) {
+    return addVnodes(ctx, elm, null, ch, 0, ch.length - 1, isSvg);
+  } else if (oldCh.length > 0) {
+    return removeVnodes(ctx, elm, oldCh, 0, oldCh.length - 1);
+  }
+}
+
+function addVnodes(
+  ctx: RenderContext,
+  parentElm: Node,
+  before: Node | null,
+  vnodes: JSXNode[],
+  startIdx: number,
+  endIdx: number,
+  isSvg: boolean
+): ValueOrPromise<void> {
+  const promises = [];
+  for (; startIdx <= endIdx; ++startIdx) {
+    const ch = vnodes[startIdx];
+    assertDefined(ch);
+    promises.push(createElm(ctx, ch, isSvg));
+  }
+  return then(promiseAll(promises) as any, (children: Node[]) => {
+    for (const child of children) {
+      insertBefore(ctx, parentElm, child, before);
+    }
+  });
+}
+
+function removeVnodes(
+  ctx: RenderContext,
+  parentElm: Node,
+  nodes: Node[],
+  startIdx: number,
+  endIdx: number
+): void {
+  for (; startIdx <= endIdx; ++startIdx) {
+    const ch = nodes[startIdx];
+    assertDefined(ch);
+    removeNode(ctx, parentElm, ch);
+  }
+}
+
+let refCount = 0;
+const RefSymbol = Symbol();
+
+function setSlotRef(ctx: RenderContext, hostElm: Element, slotEl: Element) {
+  let ref = (hostElm as any)[RefSymbol] ?? hostElm.getAttribute('q:sref');
+  if (ref === null) {
+    ref = intToStr(refCount++);
+    (hostElm as any)[RefSymbol] = ref;
+    setAttribute(ctx, hostElm, 'q:sref', ref);
+  }
+  slotEl.setAttribute('q:sref', ref);
+}
+
+function getSlotElement(
+  ctx: RenderContext,
+  slotMaps: SlotMaps,
+  parentEl: Element,
+  slotName: string
 ): Element {
-  let shouldDescendIntoComponent: boolean;
-  let reconciledElement: Element;
-  if (isDomElementWithTagName(existing, expectTag)) {
-    updateProperties(existing as HTMLElement, expectProps, isSvg);
-    shouldDescendIntoComponent = !!componentRenderQueue;
-    reconciledElement = existing as HTMLElement;
-  } else {
-    // Expected node and actual node did not match. Need to switch.
-    const doc = isDocument(parent) ? parent : parent.ownerDocument!;
-    reconciledElement = replaceNode(
-      parent,
-      existing,
-      isSvg ? doc.createElementNS(SVG_NS, expectTag) : doc.createElement(expectTag),
-      end
-    );
-    if (componentRenderQueue) {
-      reconciledElement.setAttribute(QHostAttr, '');
-    }
-    shouldDescendIntoComponent = !!componentRenderQueue;
-    updateProperties(reconciledElement, expectProps, isSvg);
+  const slotEl = slotMaps.slots[slotName];
+  if (slotEl) {
+    return slotEl;
   }
-  component && component.styleClass && reconciledElement.classList.add(component.styleClass);
-  if (shouldDescendIntoComponent) {
-    const hostComponent = getQComponent(reconciledElement)!;
-    hostComponent.styleHostClass && reconciledElement.classList.add(hostComponent.styleHostClass);
-    if (Array.isArray(componentRenderQueue)) {
-      componentRenderQueue.push(hostComponent.render());
-    } else if (reconciledElement.hasAttribute(QHostAttr)) {
-      const set = getScheduled(reconciledElement.ownerDocument);
-      set.add(reconciledElement);
-    }
+  const templateEl = slotMaps.templates[slotName];
+  if (templateEl) {
+    return templateEl.content as any;
   }
-  return reconciledElement;
+  const template = createTemplate(ctx, slotName);
+  prepend(ctx, parentEl, template);
+  slotMaps.templates[slotName] = template;
+  return template.content as any;
 }
 
-type PropHandler = (el: HTMLElement, key: string, newValue: any, oldValue: any) => boolean;
+function createTemplate(ctx: RenderContext, slotName: string) {
+  const template = createElement(ctx, 'template', false) as HTMLTemplateElement;
+  template.setAttribute(QSlotAttr, slotName);
+  return template;
+}
 
-const noop: PropHandler = () => {
-  return true;
+function removeTemplates(ctx: RenderContext, slotMaps: SlotMaps) {
+  Object.keys(slotMaps.templates).forEach((key) => {
+    const template = slotMaps.templates[key]!;
+    if (template && slotMaps.slots[key] !== undefined) {
+      removeNode(ctx, template.parentNode!, template);
+      slotMaps.templates[key] = undefined;
+    }
+  });
+}
+
+export function resolveSlotProjection(
+  ctx: RenderContext,
+  hostElm: Element,
+  before: SlotMaps,
+  after: SlotMaps
+) {
+  Object.entries(before.slots).forEach(([key, slotEl]) => {
+    if (slotEl && !after.slots[key]) {
+      // Slot removed
+      // Move slot to template
+      const template = createTemplate(ctx, key);
+      const slotChildren = getSlotChildren(slotEl);
+      template.content.append(...slotChildren);
+      hostElm.insertBefore(template, hostElm.firstChild);
+
+      ctx.operations.push({
+        el: template,
+        operation: 'slot-to-template',
+        args: slotChildren,
+        fn: () => {},
+      });
+    }
+  });
+
+  Object.entries(after.slots).forEach(([key, slotEl]) => {
+    if (slotEl && !before.slots[key]) {
+      // Slot created
+      // Move template to slot
+      const template = before.templates[key];
+      if (template) {
+        slotEl.appendChild(template.content);
+        template.remove();
+        ctx.operations.push({
+          el: slotEl,
+          operation: 'template-to-slot',
+          args: [template],
+          fn: () => {},
+        });
+      }
+    }
+  });
+}
+
+function getSlotName(node: JSXNode): string {
+  return node.props?.['q:slot'] ?? '';
+}
+
+function createElm(ctx: RenderContext, vnode: JSXNode, isSvg: boolean): ValueOrPromise<Node> {
+  const tag = vnode.type;
+  if (tag === '#text') {
+    return (vnode.elm = createTextNode(ctx, vnode.text!));
+  }
+  if (!isSvg) {
+    isSvg = tag === 'svg';
+  }
+
+  const data = vnode.props;
+  const children = vnode.children;
+  const elm = (vnode.elm = createElement(ctx, tag, isSvg));
+  const isComponent = isComponentNode(vnode);
+  setKey(elm, vnode.key);
+  updateProperties(ctx, elm, data, isSvg);
+
+  if (isSvg && tag === 'foreignObject') {
+    isSvg = false;
+  }
+  const currentComponent = ctx.component;
+  if (currentComponent) {
+    const styleTag = currentComponent.styleClass;
+    if (styleTag) {
+      classlistAdd(ctx, elm, styleTag);
+    }
+    if (tag === 'q:slot') {
+      setSlotRef(ctx, currentComponent.hostElement, elm);
+      ctx.component!.slots.push(vnode);
+    }
+  }
+
+  let wait: ValueOrPromise<void>;
+  let componentCtx: QComponentCtx | undefined;
+  if (isComponent) {
+    componentCtx = getQComponent(elm as any)!;
+    const hostStyleTag = componentCtx.styleHostClass;
+    elm.setAttribute(QHostAttr, '');
+    if (hostStyleTag) {
+      classlistAdd(ctx, elm, hostStyleTag);
+    }
+    wait = componentCtx.render(ctx);
+  }
+  return then(wait, () => {
+    if (children.length > 0) {
+      const slotMap = isComponent ? getSlots(componentCtx, elm) : undefined;
+      const promises = children.map((ch) => createElm(ctx, ch, isSvg));
+      return then(promiseAll(promises) as any, () => {
+        let parent = elm;
+        for (const node of children) {
+          if (slotMap) {
+            parent = getSlotElement(ctx, slotMap, elm, getSlotName(node));
+          }
+          parent.appendChild(node.elm!);
+        }
+        return elm;
+      });
+    }
+    return elm;
+  });
+}
+interface SlotMaps {
+  slots: Record<string, Element | undefined>;
+  templates: Record<string, HTMLTemplateElement | undefined>;
+}
+
+const getSlots = (componentCtx: QComponentCtx | undefined, hostElm: Element): SlotMaps => {
+  const slots: Record<string, Element> = {};
+  const templates: Record<string, HTMLTemplateElement> = {};
+  const slotRef = hostElm.getAttribute('q:sref');
+  const existingSlots = Array.from(hostElm.querySelectorAll(`q\\:slot[q\\:sref="${slotRef}"]`));
+  const newSlots = componentCtx?.slots ?? EMPTY_ARRAY;
+  const t = Array.from(hostElm.childNodes).filter(isSlotTemplate);
+
+  // Map slots
+  for (const elm of existingSlots) {
+    slots[elm.getAttribute('name') ?? ''] = elm;
+  }
+
+  // Map virtual slots
+  for (const vnode of newSlots) {
+    slots[vnode.props?.name ?? ''] = vnode.elm as Element;
+  }
+
+  // Map templates
+  for (const elm of t) {
+    templates[elm.getAttribute('name') ?? ''] = elm;
+  }
+
+  return { slots, templates };
 };
 
-const handleStyle: PropHandler = (elm, _, newValue, oldValue) => {
+const handleStyle: PropHandler = (ctx, elm, _, newValue, oldValue) => {
+  // TODO, needs reimplementation
   if (typeof newValue == 'string') {
     elm.style.cssText = newValue;
   } else {
     for (const prop in oldValue) {
       if (!newValue || newValue[prop] == null) {
         if (prop.includes('-')) {
-          elm.style.removeProperty(prop);
+          styleSetProperty(ctx, elm, prop, null);
         } else {
-          (elm as any).style[prop] = '';
+          setProperty(ctx, elm.style, prop, '');
         }
       }
     }
 
     for (const prop in newValue) {
-      if (!oldValue || newValue[prop] !== oldValue[prop]) {
+      const value = newValue[prop];
+      if (!oldValue || value !== oldValue[prop]) {
         if (prop.includes('-')) {
-          elm.style.setProperty(prop, newValue[prop]);
+          styleSetProperty(ctx, elm, prop, value);
         } else {
-          (elm as any).style[prop] = newValue[prop];
+          setProperty(ctx, elm.style, prop, value);
         }
       }
     }
@@ -299,14 +536,32 @@ const handleStyle: PropHandler = (elm, _, newValue, oldValue) => {
   return true;
 };
 
-const PROP_HANDLER_MAP: Record<string, PropHandler> = {
-  class: noop,
-  style: handleStyle,
+const checkBeforeAssign: PropHandler = (ctx, elm, prop, newValue) => {
+  if (prop in elm) {
+    if ((elm as any)[prop] !== newValue) {
+      setProperty(ctx, elm, prop, newValue);
+    }
+  }
+  return true;
 };
 
-const ALLOWS_PROPS = ['className', 'class', 'style', 'id', 'title'];
+const PROP_HANDLER_MAP: Record<string, PropHandler> = {
+  style: handleStyle,
+  value: checkBeforeAssign,
+  checked: checkBeforeAssign,
+};
 
-export function updateProperties(node: Element, expectProps: Record<string, any>, isSvg: boolean) {
+const ALLOWS_PROPS = ['className', 'style', 'id'];
+
+export function updateProperties(
+  rctx: RenderContext,
+  node: Element,
+  expectProps: Record<string, any> | null,
+  isSvg: boolean
+) {
+  if (!expectProps) {
+    return false;
+  }
   const ctx = getContext(node);
   const qwikProps = OnRenderProp in expectProps ? getProps(ctx) : undefined;
 
@@ -319,9 +574,11 @@ export function updateProperties(node: Element, expectProps: Record<string, any>
             .join(' ')
         : className;
   }
+  // TODO
+  // when a proper disappears, we cant reset the value
 
   for (const key of Object.keys(expectProps)) {
-    if (key === 'children') {
+    if (key === 'children' || key === 'class') {
       continue;
     }
     const newValue = expectProps[key];
@@ -349,198 +606,230 @@ export function updateProperties(node: Element, expectProps: Record<string, any>
     } else {
       // Check of data- or aria-
       if (key.startsWith('data-') || key.endsWith('aria-') || isSvg) {
-        renderAttribute(node, key, newValue);
+        setAttribute(rctx, node, key, newValue);
         continue;
       }
 
       // Check if its an exception
       const exception = PROP_HANDLER_MAP[key];
       if (exception) {
-        if (exception(node as HTMLElement, key, newValue, oldValue)) {
+        if (exception(rctx, node as HTMLElement, key, newValue, oldValue)) {
           continue;
         }
       }
 
       // Check if property in prototype
       if (key in node) {
-        try {
-          (node as any)[key] = newValue;
-        } catch (e) {
-          console.error(e);
-        }
+        setProperty(rctx, node, key, newValue);
         continue;
       }
 
       // Fallback to render attribute
-      renderAttribute(node, key, newValue);
+      setAttribute(rctx, node, key, newValue);
     }
   }
-  return false;
+  return ctx.dirty;
 }
 
-function renderAttribute(node: Element, key: string, newValue: any) {
-  if (newValue == null) {
-    node.removeAttribute(key);
-  } else {
-    node.setAttribute(key, String(newValue));
-  }
-}
+export const startEvent = (ctx: RenderContext, name: string) => {
+  const event: PerfEvent = {
+    name,
+    timeStart: performance.now(),
+    timeEnd: 0,
+  };
+  ctx.perf.push(event);
+  return () => {
+    event.timeEnd = performance.now();
+  };
+};
 
-function _reconcileElementChildCursor(node: Element, isComponent: boolean) {
-  assertDefined(node);
-  if (isComponent) {
-    // We are a component. We need to return Slots
-    return newCursor(node, getSlotMap(getQComponent(node)!), null);
-  } else {
-    // Not a component, normal return.
-    return cursorForParent(node);
-  }
-}
-
-/**
- * Ensure that node at cursor is a `Text`.
- *
- * Reconciles the current cursor location with expected text.
- * This method will either leave the text alone if it matches, updates the
- * text, or completely removes and replaces the node with correct text.
- *
- * After invocation of this method, the cursor is advanced to the next sibling.
- *
- * @param cursor
- * @param expectText
- */
-export function cursorReconcileText(cursor: Cursor, expectText: string): void {
-  let node = getNode(cursor);
-  assertNotEqual(node, undefined, 'Cursor already closed');
-  assertDefined(cursor.parent);
-  if (isSlotMap(node)) {
-    let parent: Node;
-    let childNode: Node | null;
-    const namedSlot = keyValueArrayGet(node, '');
-    if (namedSlot) {
-      assertGreaterOrEqual(namedSlot.length, 2);
-      parent = namedSlot[NamedSlotEnum.parent];
-      let index = namedSlot[NamedSlotEnum.index];
-      if (index == -1) {
-        index = 2;
-      }
-      childNode = (namedSlot.length > index ? namedSlot[index] : null) as Node | null;
-      node = _reconcileText(parent, childNode, cursor.end, expectText);
-      if (childNode !== node) {
-        namedSlot[index] = node;
-      }
-      namedSlot[NamedSlotEnum.index] = index + 1;
+function setAttribute(ctx: RenderContext, el: Element, prop: string, value: string | null) {
+  const fn = () => {
+    if (value == null) {
+      el.removeAttribute(prop);
     } else {
-      const template = getUnSlottedStorage(cursor.parent as Element);
-      _reconcileText(template.content, null, cursor.end, expectText);
+      el.setAttribute(prop, String(value));
     }
-  } else {
-    node = _reconcileText(cursor.parent!, node, cursor.end, expectText);
-    setNode(cursor, node.nextSibling);
-  }
+  };
+  ctx.operations.push({
+    el,
+    operation: 'set-attribute',
+    args: [prop, value],
+    fn,
+  });
 }
 
-function _reconcileText(
+function styleSetProperty(ctx: RenderContext, el: HTMLElement, prop: string, value: string | null) {
+  const fn = () => {
+    if (value == null) {
+      el.style.removeProperty(prop);
+    } else {
+      el.style.setProperty(prop, String(value));
+    }
+  };
+  ctx.operations.push({
+    el,
+    operation: 'style-set-property',
+    args: [prop, value],
+    fn,
+  });
+}
+
+function classlistAdd(ctx: RenderContext, el: Element, hostStyleTag: string) {
+  const fn = () => {
+    el.classList.add(hostStyleTag);
+  };
+  ctx.operations.push({
+    el,
+    operation: 'classlist-add',
+    args: [hostStyleTag],
+    fn,
+  });
+}
+
+function setProperty(ctx: RenderContext, node: any, key: string, value: any) {
+  const fn = () => {
+    try {
+      node[key] = value;
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  ctx.operations.push({
+    el: node,
+    operation: 'set-property',
+    args: [key, value],
+    fn,
+  });
+}
+
+function createElement(ctx: RenderContext, expectTag: string, isSvg: boolean): Element {
+  const el = isSvg ? ctx.doc.createElementNS(SVG_NS, expectTag) : ctx.doc.createElement(expectTag);
+  ctx.operations.push({
+    el,
+    operation: 'create-element',
+    args: [expectTag],
+    fn: () => {},
+  });
+  return el;
+}
+
+function insertBefore<T extends Node>(
+  ctx: RenderContext,
   parent: Node,
-  node: Node | null,
-  beforeNode: Node | null,
-  expectText: string
-): Node {
-  // Reconcile as Text Node
-  if (node && node.nodeType == NodeType.TEXT_NODE) {
-    if (node.textContent !== expectText) {
-      node.textContent = expectText;
-    }
-  } else {
-    // Expected node and actual node did not match. Need to switch.
-    node = replaceNode(parent, node, parent.ownerDocument!.createTextNode(expectText), beforeNode);
-  }
-  return node;
+  newChild: T,
+  refChild: Node | null
+): T {
+  const fn = () => {
+    parent.insertBefore(newChild, refChild ? refChild : null);
+  };
+  ctx.operations.push({
+    el: parent,
+    operation: 'insert-before',
+    args: [newChild, refChild],
+    fn,
+  });
+  return newChild;
 }
 
-/**
- * Close out the cursor and clear any extra elements.
- *
- * Invocation of this method indicates that no mare Nodes after the cursor are expected.
- * This is a signal to remove any excess `Node`s if present.
- *
- * @param cursor
- */
-export function cursorReconcileEnd(cursor: Cursor): void {
-  let node = getNode(cursor);
-  if (isSlotMap(node)) {
-    for (let i = 0; i < node.length; i = i + 2) {
-      const namedSlot = node[i + 1] as NamedSlot;
-      if (namedSlot[NamedSlotEnum.index] !== -1) {
-        assertGreater(namedSlot[NamedSlotEnum.index], NamedSlotEnum.parent);
-        for (let k = namedSlot[NamedSlotEnum.index]; k < namedSlot.length; k++) {
-          namedSlot[NamedSlotEnum.parent].removeChild(namedSlot[k] as Element);
-        }
+function prepend(ctx: RenderContext, parent: Element, newChild: Node) {
+  const fn = () => {
+    parent.insertBefore(newChild, parent.firstChild);
+  };
+  ctx.operations.push({
+    el: parent,
+    operation: 'prepend',
+    args: [newChild],
+    fn,
+  });
+}
+
+function removeNode(ctx: RenderContext, parent: Node, el: Node) {
+  const fn = () => {
+    parent.removeChild(el);
+  };
+  ctx.operations.push({
+    el: el,
+    operation: 'remove',
+    args: [],
+    fn,
+  });
+}
+
+function createTextNode(ctx: RenderContext, text: string): Text {
+  return ctx.doc.createTextNode(text);
+}
+
+export function executeContextWithSlots(ctx: RenderContext) {
+  const before = ctx.roots.map((elm) => getSlots(undefined, elm));
+
+  executeContext(ctx);
+
+  const after = ctx.roots.map((elm) => getSlots(undefined, elm));
+  assertEqual(before.length, after.length);
+
+  for (let i = 0; i < before.length; i++) {
+    resolveSlotProjection(ctx, ctx.roots[i], before[i], after[i]);
+  }
+}
+
+export function executeContext(ctx: RenderContext) {
+  for (const op of ctx.operations) {
+    op.fn();
+  }
+}
+
+export function getRenderStats(ctx: RenderContext) {
+  const byOp: Record<string, number> = {};
+  for (const op of ctx.operations) {
+    byOp[op.operation] = (byOp[op.operation] ?? 0) + 1;
+  }
+  const affectedElements = Array.from(new Set(ctx.operations.map((a) => a.el)));
+  const stats = {
+    total: ctx.operations.length,
+    byOp,
+    roots: ctx.roots,
+    hostElements: Array.from(ctx.hostElements),
+    affectedElements,
+    operations: ctx.operations.map((v) => [v.operation, v.el, ...v.args]),
+  };
+  return stats;
+}
+
+function createKeyToOldIdx(children: Node[], beginIdx: number, endIdx: number): KeyToIndexMap {
+  const map: KeyToIndexMap = {};
+  for (let i = beginIdx; i <= endIdx; ++i) {
+    const child = children[i];
+    if (child.nodeType == NodeType.ELEMENT_NODE) {
+      const key = getKey(child as Element);
+      if (key !== undefined) {
+        map[key as string] = i;
       }
     }
-  } else {
-    while (node) {
-      const next = (node as Node).nextSibling as Node | null;
-      cursor.parent!.removeChild(node as Node);
-      node = next;
-    }
   }
-  setNode(cursor, undefined!);
+  return map;
 }
 
-function getUnSlottedStorage(componentElement: Element): HTMLTemplateElement {
-  assertEqual(isComponentElement(componentElement), true, 'Must be component element');
-  let template = componentElement?.firstElementChild as HTMLTemplateElement | null;
-  if (!isDomElementWithTagName(template, 'template') || !template.hasAttribute(QSlotAttr)) {
-    template = componentElement.insertBefore(
-      componentElement.ownerDocument.createElement('template'),
-      template
-    );
-    template.setAttribute(QSlotAttr, '');
+const KEY_SYMBOL = Symbol('vnode key');
+
+function getKey(el: Element): string | null {
+  let key = (el as any)[KEY_SYMBOL];
+  if (key === undefined) {
+    key = (el as any)[KEY_SYMBOL] = el.getAttribute('q:key');
   }
-  return template;
+  return key;
 }
 
-const V_NODE_START = '<node:';
-const V_NODE_END = '</node:';
-
-export function cursorReconcileVirtualNode(cursor: Cursor): Cursor {
-  let node = getNode(cursor);
-  if (isSlotMap(node)) {
-    // TODO(misko): proper error and test;
-    throw new Error('Not expecting slot map here');
-  } else {
-    if (isComment(node) && node.textContent?.startsWith(V_NODE_START)) {
-      throw new Error('IMPLEMENT');
-    } else {
-      const id = Math.round(Math.random() * Number.MAX_SAFE_INTEGER).toString(36);
-      const parent = cursor.parent!;
-      const doc = parent.ownerDocument!;
-      const startVNode = doc.createComment(V_NODE_START + id + '>');
-      const endVNode = doc.createComment(V_NODE_END + id + '>');
-      node = replaceNode(cursor.parent!, node, endVNode, null);
-      cursor.parent!.insertBefore(startVNode, endVNode);
-      setNode(cursor, endVNode.nextSibling);
-      return newCursor(parent, startVNode, endVNode);
-    }
+function setKey(el: Element, key: string | null) {
+  if (typeof key === 'string') {
+    el.setAttribute('q:key', key);
   }
+  (el as any)[KEY_SYMBOL] = key;
 }
 
-export function cursorReconcileStartVirtualNode(cursor: Cursor) {
-  const node = getNode(cursor);
-  assertEqual(isComment(node) && node.textContent!.startsWith(V_NODE_START), true);
-  setNode(cursor, node && (node as Node).nextSibling);
-}
-
-export function replaceNode<T extends Node>(
-  parentNode: Node,
-  existingNode: Node | null,
-  newNode: T,
-  insertBefore: Node | null
-): T {
-  parentNode.insertBefore(newNode, existingNode || insertBefore);
-  if (existingNode) {
-    parentNode.removeChild(existingNode);
-  }
-  return newNode;
+function sameVnode(vnode1: Node, vnode2: JSXNode): boolean {
+  const isSameSel = vnode1.nodeName.toLowerCase() === vnode2.type;
+  const isSameKey =
+    vnode1.nodeType === NodeType.ELEMENT_NODE ? getKey(vnode1 as Element) === vnode2.key : true;
+  return isSameSel && isSameKey;
 }

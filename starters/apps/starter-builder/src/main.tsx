@@ -4,7 +4,7 @@ import { Header } from './components/header/header';
 
 import './global.css';
 
-export const App = component$(() => {
+export const Main = component$(() => {
   return $(() => (
     <>
       <Header />

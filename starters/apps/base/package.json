@@ -7,9 +7,10 @@
     "build": "npm run typecheck && npm run build.client && npm run build.server",
     "build.client": "vite build",
     "build.server": "vite build --outDir server/build --ssr src/entry.server.tsx",
-    "preview": "vite preview",
-    "dev": "vite",
+    "dev.ssr": "vite",
     "dev.client": "vite --mode clientonly",
+    "dev.debug": "node --inspect-brk node_modules/vite/bin/vite.js",
+    "dev": "npm run dev.client",
     "start": "npm run dev"
   },
   "devDependencies": {

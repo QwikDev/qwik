@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 import { renderToString, RenderToStringOptions, QwikLoader } from '@builder.io/qwik/server';
-import { App } from './main';
+import { Main } from './main';
 
 /**
  * Entry point for server-side pre-rendering.
@@ -21,7 +21,7 @@ export function render(opts: RenderToStringOptions) {
         <title>Qwik Demo: ToDo</title>
       </head>
       <body q:base="/">
-        <App />
+        <Main />
         <QwikLoader debug={opts.debug} />
       </body>
     </html>,

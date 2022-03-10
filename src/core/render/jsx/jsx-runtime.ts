@@ -1,7 +1,7 @@
 import type { FunctionComponent, JSXNode } from './types/jsx-node';
 import type { QwikJSX } from './types/jsx-qwik';
 import { qDev } from '../../util/qdev';
-import { Host, StaticChildren } from './host.public';
+import { Host, SkipRerender } from './host.public';
 import { EMPTY_ARRAY } from '../../util/flyweight';
 import { logWarn } from '../../util/log';
 
@@ -47,7 +47,7 @@ export function processNode(node: any): JSXNode[] | JSXNode | undefined {
     return undefined;
   }
   if (isJSXNode(node)) {
-    if (node.type === Host || node.type === StaticChildren) {
+    if (node.type === Host || node.type === SkipRerender) {
       return node;
     } else if (typeof node.type === 'function') {
       return processNode(node.type({ ...node.props, children: node.children }, node.key));

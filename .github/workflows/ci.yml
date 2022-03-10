@@ -472,26 +472,34 @@ jobs:
   test-unit:
     name: Unit Tests
     runs-on: ubuntu-latest
+    needs:
+      - changes
+
     steps:
       - name: Setup Node
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/setup-node@v1
         with:
           node-version: 16.x
           registry-url: https://registry.npmjs.org/
 
       - name: Checkout
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/checkout@v2
 
       - name: Cache NPM Dependencies
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/cache@v2
         with:
           path: node_modules
           key: npm-cache-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
 
       - name: Install NPM Dependencies
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
 
       - name: Jest Unit Tests
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: yarn test.unit
 
   ########### VALIDATE RUST ############

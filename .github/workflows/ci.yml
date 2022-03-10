@@ -395,6 +395,12 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
+      - name: Save artifacts
+        if: ${{ needs.changes.outputs.fullbuild == 'true' && github.event_name == 'push' }}
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+        run: yarn qwik-save-artifacts
+
   ############ E2E TEST ############
   test-e2e:
     name: E2E Tests

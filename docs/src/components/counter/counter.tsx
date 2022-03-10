@@ -1,7 +1,7 @@
-import { $, component$, Host, createStore } from '@builder.io/qwik';
+import { $, component$, Host, useStore } from '@builder.io/qwik';
 
 export const Counter = component$(() => {
-  const state = createStore({ count: 0 });
+  const state = useStore({ count: 0 });
   return $(() => {
     return (
       <Host>

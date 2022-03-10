@@ -20,7 +20,7 @@ export function toDOM(jsx: h.JSX.Element, parent?: HTMLElement): HTMLElement {
       element = element.content as any;
     }
   }
-  jsx.children.forEach((child: any) => {
+  jsx.children!.forEach((child: any) => {
     if (isJSXNode(child)) {
       toDOM(child, element);
     } else {

@@ -30,10 +30,10 @@ export function QStore_hydrate(doc: Document) {
       const id = el.getAttribute(ELEMENT_ID)!;
       elements.set(ELEMENT_ID_PREFIX + id, el);
     });
-    reviveQObjects(meta.objs, meta.subs, elements);
     for (const obj of meta.objs) {
       reviveNestedQObjects(obj, meta.objs);
     }
+    reviveQObjects(meta.objs, meta.subs, elements);
 
     doc.querySelectorAll(QObjSelector).forEach((el) => {
       const qobj = el.getAttribute(QObjAttr);
@@ -124,8 +124,32 @@ export function QStore_dehydrate(doc: Document) {
     count++;
   }
 
+  const convert = (value: any) => {
+    if (value && typeof value === 'object') {
+      value = value[QOjectTargetSymbol] ?? value;
+    }
+    const idx = objToId.get(value);
+    if (idx !== undefined) {
+      return intToStr(idx);
+    }
+    return elementToIndex.get(value) ?? value;
+  };
+
+  const convertedObjs = objs.map((obj) => {
+    if (Array.isArray(obj)) {
+      return obj.map(convert);
+    } else if (typeof obj === 'object') {
+      const output: Record<string, any> = {};
+      Object.entries(obj).forEach(([key, value]) => {
+        output[key] = convert(value);
+      });
+      return output;
+    }
+    return obj;
+  });
+
   const data = {
-    objs,
+    objs: convertedObjs,
     subs,
   };
 
@@ -161,22 +185,7 @@ export function QStore_dehydrate(doc: Document) {
   // Serialize
   const script = doc.createElement('script');
   script.setAttribute('type', 'qwik/json');
-  script.textContent = JSON.stringify(
-    data,
-    function (this: any, key: string, value: any) {
-      if (key.startsWith('__')) return undefined;
-      if (value && typeof value === 'object') {
-        value = value[QOjectTargetSymbol] ?? value;
-      }
-      if (this === objs) return value;
-      const idx = objToId.get(value);
-      if (idx !== undefined) {
-        return intToStr(idx);
-      }
-      return elementToIndex.get(value) ?? value;
-    },
-    qDev ? '  ' : undefined
-  );
+  script.textContent = JSON.stringify(data, undefined, qDev ? '  ' : undefined);
 
   doc.body.appendChild(script);
 }

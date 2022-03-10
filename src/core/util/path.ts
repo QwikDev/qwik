@@ -54,7 +54,7 @@ export interface ParsedPath {
 export type FormatInputPathObject = Partial<ParsedPath>;
 
 // Resolves . and .. elements in a path with directory names
-function normalizeStringPosix(path: string, allowAboveRoot: boolean) {
+function normalizeStringPosix(path: string, allowAboveRoot: boolean): string {
   let res = '';
   let lastSegmentLength = 0;
   let lastSlash = -1;

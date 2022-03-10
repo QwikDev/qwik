@@ -2,7 +2,7 @@ import type { Props, ValueOrPromise } from '../index';
 import { assertDefined } from '../assert/assert';
 import type { QwikDocument } from '../document';
 import type { QRLInternal } from '../import/qrl-class';
-import { OnRenderSelector } from '../util/markers';
+import { QHostAttr } from '../util/markers';
 
 declare const document: QwikDocument;
 
@@ -33,7 +33,7 @@ export function getInvokeContext(): InvokeContext {
     }
     if (Array.isArray(context)) {
       const element = context[0];
-      const hostElement = element.closest(OnRenderSelector)!;
+      const hostElement = getHostElement(element)!;
       assertDefined(element);
       return (document.__q_context__ = newInvokeContext(
         hostElement,
@@ -89,4 +89,25 @@ export function newInvokeContext(
 export function useWaitOn(promise: Promise<any>): void {
   const ctx = getInvokeContext();
   (ctx.waitOn || (ctx.waitOn = [])).push(promise);
+}
+
+export function getHostElement(el: Element): Element | null {
+  let foundSlot = false;
+  let node: Element | null = el;
+  while (node) {
+    const isHost = node.hasAttribute(QHostAttr);
+    const isSlot = node.tagName === 'Q:SLOT';
+    if (isHost) {
+      if (!foundSlot) {
+        break;
+      } else {
+        foundSlot = false;
+      }
+    }
+    if (isSlot) {
+      foundSlot = true;
+    }
+    node = node.parentElement;
+  }
+  return node;
 }

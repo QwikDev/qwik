@@ -12,6 +12,7 @@ import { debugStringify } from '../util/stringify';
 import type { ValueOrPromise } from '../util/types';
 import { invokeWatchFn } from '../watch/watch';
 import { getEvents, QContext } from './props';
+import { getDocument } from '../util/dom';
 
 const ON_PROP_REGEX = /on(Document|Window)?:/;
 const ON$_PROP_REGEX = /on(Document|Window)?\$:/;
@@ -168,7 +169,7 @@ function getExistingQRLs(ctx: QContext, prop: string): ValueOrPromise<QRLInterna
 }
 
 function serializeQRLs(existingQRLs: ValueOrPromise<QRLInternal>[], ctx: QContext): string {
-  const platform = getPlatform(ctx.element.ownerDocument);
+  const platform = getPlatform(getDocument(ctx.element));
   const element = ctx.element;
   return existingQRLs
     .map((qrl) => (isPromise(qrl) ? '' : stringifyQRL(qrl, element, platform)))

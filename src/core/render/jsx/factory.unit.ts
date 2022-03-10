@@ -21,14 +21,12 @@ describe('classic jsx factory h()', () => {
         'b'
       );
       expect(v.children).toHaveLength(4);
-      expect(v.children[0]).toEqual('a');
+      expect(v.children[0].text).toEqual('a');
       expect((v.children[1] as any).type).toEqual('child');
       expect((v.children[1] as any).children).toHaveLength(1);
-      expect((v.children[1] as any).children[0]).toEqual(1);
       expect((v.children[2] as any).type).toEqual('child');
       expect((v.children[2] as any).children).toHaveLength(1);
-      expect((v.children[2] as any).children[0]).toEqual(2);
-      expect(v.children[3]).toEqual('b');
+      expect(v.children[3].text).toEqual('b');
     });
 
     it('one child node', () => {
@@ -43,13 +41,25 @@ describe('classic jsx factory h()', () => {
     it('text w/ expression', () => {
       // <div>1 {2} 3</div>
       const v = h('div', null, '1 ', 2, ' 3');
-      expect(v.children).toEqual(['1 ', 2, ' 3']);
+      expect((v.children[0] as any).type).toEqual('#text');
+      expect((v.children[0] as any).text).toEqual('1 ');
+      expect((v.children[0] as any).key).toEqual(null);
+
+      expect((v.children[1] as any).type).toEqual('#text');
+      expect((v.children[1] as any).text).toEqual('2');
+      expect((v.children[1] as any).key).toEqual(null);
+
+      expect((v.children[2] as any).type).toEqual('#text');
+      expect((v.children[2] as any).text).toEqual(' 3');
+      expect((v.children[2] as any).key).toEqual(null);
     });
 
     it('text child', () => {
       // <div>text</div>
       const v = h('div', null, 'text');
-      expect(v.children).toEqual(['text']);
+      expect((v.children[0] as any).type).toEqual('#text');
+      expect((v.children[0] as any).text).toEqual('text');
+      expect((v.children[0] as any).key).toEqual(null);
     });
 
     it('no children', () => {
@@ -83,7 +93,7 @@ describe('classic jsx factory h()', () => {
       // <div/>
       const v = h('div', null);
       expect(v.props).toEqual({ children: [] });
-      expect(v.key).toBeUndefined();
+      expect(v.key).toBeNull();
     });
   });
 

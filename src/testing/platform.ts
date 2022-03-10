@@ -18,7 +18,6 @@ function createPlatform(document: any) {
   }
 
   let render: Queue<any> | null = null;
-  let store: Queue<any> | null = null;
 
   const moduleCache = new Map<string, { [symbol: string]: any }>();
   const testPlatform: TestPlatform = {
@@ -34,7 +33,7 @@ function createPlatform(document: any) {
         return mod[symbolName];
       });
     },
-    queueRender: (renderMarked) => {
+    nextTick: (renderMarked) => {
       if (!render) {
         render = {
           fn: renderMarked,
@@ -52,43 +51,24 @@ function createPlatform(document: any) {
       }
       return render.promise;
     },
-    queueStoreFlush: (storeFlush) => {
-      if (!store) {
-        store = {
-          fn: storeFlush,
-          promise: null!,
-          resolve: null!,
-          reject: null!,
-        };
-        store.promise = new Promise((resolve, reject) => {
-          store!.resolve = resolve;
-          store!.reject = reject;
+    raf: (fn) => {
+      return new Promise((resolve) => {
+        // Do not use process.nextTick, as this will execute at same priority as promises.
+        // We need to execute after promises.
+        setTimeout(() => {
+          resolve(fn());
         });
-      } else if (storeFlush !== store.fn) {
-        // TODO(misko): proper error and test
-        throw new Error('Must be same function');
-      }
-      return store.promise;
+      });
     },
     flush: async () => {
       await Promise.resolve();
-
-      if (store) {
-        try {
-          store.resolve(await store.fn(doc));
-        } catch (e) {
-          store.reject(e);
-        }
-        store = null;
-      }
-
       if (render) {
         try {
           render.resolve(await render.fn(doc));
         } catch (e) {
           render.reject(e);
         }
-        store = null;
+        render = null;
       }
     },
     chunkForSymbol() {

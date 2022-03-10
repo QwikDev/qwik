@@ -18,7 +18,7 @@
   },
   "devDependencies": {
     "@builder.io/partytown": "^0.4.2",
-    "@builder.io/qwik": "0.0.17-0-dev20220304111503",
+    "@builder.io/qwik": "0.0.17-0-dev20220310192647",
     "@cloudflare/kv-asset-handler": "0.2.0",
     "@cloudflare/workers-types": "^3.2.0",
     "@cloudflare/wrangler": "1.19.7",

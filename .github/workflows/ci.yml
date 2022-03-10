@@ -23,7 +23,7 @@ jobs:
     name: Setup
     runs-on: ubuntu-latest
     outputs:
-      fullbuild: ${{ steps.filter.outputs.fullbuild }}
+      fullbuild: ${{ steps.filter.outputs.fullbuild == 'true' || github.event.inputs.disttag != '' }}
 
     steps:
       - name: Branch
@@ -47,11 +47,8 @@ jobs:
               - 'src/**/*.rs'
               - 'yarn.lock'
               - 'tsconfig.json'
-      - name: Set fullbuild output
-        id: fullbuild
-        run: echo ::set-output name=fullbuild::"${{ steps.filter.outputs.fullbuild == 'true' && github.event.inputs.disttag != '' }}"
       - name: Print fullbuild output
-        run: echo ${{ steps.filter.outputs.fullbuild }}
+        run: echo ${{ steps.filter.outputs.fullbuild == 'true' || github.event.inputs.disttag != '' }}
 
   ############ BUILD PACKAGE ############
   build-package:

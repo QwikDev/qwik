@@ -10,22 +10,22 @@
 // Developer Core API
 //////////////////////////////////////////////////////////////////////////////////////////
 export {
-  component,
+  componentFromQrl,
   component$,
-  onUnmount,
+  onUnmountFromQrl,
   onUnmount$,
-  onHydrate,
+  onHydrateFromQrl,
   onHydrate$,
-  onDehydrate,
+  onDehydrateFromQrl,
   onDehydrate$,
-  onResume,
+  onResumeFromQrl,
   onResume$,
   on,
   onDocument,
   onWindow,
-  useStyles,
+  useStylesFromQrl,
   useStyles$,
-  useScopedStyles,
+  useScopedStylesFromQrl,
   useScopedStyles$,
 } from './component/component.public';
 
@@ -53,7 +53,7 @@ export type { CorePlatform } from './platform/types';
 //////////////////////////////////////////////////////////////////////////////////////////
 // Watch
 //////////////////////////////////////////////////////////////////////////////////////////
-export { onWatch$, onWatch } from './watch/watch.public';
+export { onWatch$, onWatchFromQrl } from './watch/watch.public';
 export type { Observer } from './watch/watch.public';
 
 //////////////////////////////////////////////////////////////////////////////////////////

@@ -817,8 +817,8 @@ fn example_qwik_conflict() {
         code: r#"
 import { $, component$, useStyles } from '@builder.io/qwik';
 
-const component = () => console.log('not this');
-component();
+const componentFromQrl = () => console.log('not this');
+componentFromQrl();
 export const Foo = component$(() => {
     useStyles$('thing');
     const qwik = 12;

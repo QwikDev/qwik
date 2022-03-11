@@ -1,8 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 340
 expression: output
-
 ---
 ==INPUT==
 
@@ -22,9 +20,9 @@ const Header = component$(() => {
 ============================= test.tsx ==
 
 import * as qwik from "@builder.io/qwik";
-import { component } from "@builder.io/qwik";
+import { componentFromQrl } from "@builder.io/qwik";
 import { $, component$, useStore } from '@builder.io/qwik';
-const Header = /*#__PURE__*/ component(qwik.qrl(()=>import("./h_test_header_onmount")
+const Header = /*#__PURE__*/ componentFromQrl(qwik.qrl(()=>import("./h_test_header_onmount")
 , "Header_onmount"));
 
 ============================= h_test_header_onrender.tsx (ENTRY POINT)==

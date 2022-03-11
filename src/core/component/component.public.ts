@@ -1,7 +1,7 @@
 import { toQrlOrError } from '../import/qrl';
 import type { QRLInternal } from '../import/qrl-class';
 import { $, implicit$FirstArg, QRL, qrlImport } from '../import/qrl.public';
-import type { qrlFactory } from '../props/props-on';
+import { qPropWriteQRL, qrlFactory } from '../props/props-on';
 import type { JSXNode } from '../render/jsx/types/jsx-node';
 import { newInvokeContext, useInvoke, useWaitOn } from '../use/use-core';
 import { useHostElement } from '../use/use-host-element.public';
@@ -24,7 +24,7 @@ import { getDocument } from '../util/dom';
  * @public
  */
 // </docs>
-export function onUnmount(unmountFn: QRL<() => void>): void {
+export function onUnmountFromQrl(unmountFn: QRL<() => void>): void {
   throw new Error('IMPLEMENT: onUnmount' + unmountFn);
 }
 
@@ -39,7 +39,7 @@ export function onUnmount(unmountFn: QRL<() => void>): void {
  * @public
  */
 // </docs>
-export const onUnmount$ = implicit$FirstArg(onUnmount);
+export const onUnmount$ = implicit$FirstArg(onUnmountFromQrl);
 
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onResume">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -53,7 +53,7 @@ export const onUnmount$ = implicit$FirstArg(onUnmount);
  * @public
  */
 // </docs>
-export function onResume(resumeFn: QRL<() => void>): void {
+export function onResumeFromQrl(resumeFn: QRL<() => void>): void {
   throw new Error('IMPLEMENT: onRender' + resumeFn);
 }
 
@@ -69,7 +69,7 @@ export function onResume(resumeFn: QRL<() => void>): void {
  * @public
  */
 // </docs>
-export const onResume$ = implicit$FirstArg(onResume);
+export const onResume$ = implicit$FirstArg(onResumeFromQrl);
 
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onHydrate">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -83,7 +83,7 @@ export const onResume$ = implicit$FirstArg(onResume);
  * @public
  */
 // </docs>
-export function onHydrate(hydrateFn: QRL<() => void>): void {
+export function onHydrateFromQrl(hydrateFn: QRL<() => void>): void {
   throw new Error('IMPLEMENT: onHydrate' + hydrateFn);
 }
 
@@ -99,7 +99,7 @@ export function onHydrate(hydrateFn: QRL<() => void>): void {
  * @public
  */
 // </docs>
-export const onHydrate$ = implicit$FirstArg(onHydrate);
+export const onHydrate$ = implicit$FirstArg(onHydrateFromQrl);
 
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onDehydrate">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -115,7 +115,7 @@ export const onHydrate$ = implicit$FirstArg(onHydrate);
  * @public
  */
 // </docs>
-export function onDehydrate(dehydrateFn: QRL<() => void>): void {
+export function onDehydrateFromQrl(dehydrateFn: QRL<() => void>): void {
   throw new Error('IMPLEMENT: onDehydrate' + dehydrateFn);
 }
 
@@ -133,7 +133,7 @@ export function onDehydrate(dehydrateFn: QRL<() => void>): void {
  * @public
  */
 // </docs>
-export const onDehydrate$ = implicit$FirstArg(onDehydrate);
+export const onDehydrate$ = implicit$FirstArg(onDehydrateFromQrl);
 
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#on">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -149,8 +149,10 @@ export const onDehydrate$ = implicit$FirstArg(onDehydrate);
  * @public
  */
 // </docs>
-export function on(event: string, eventFn: QRL<() => void>): QRL<() => void> {
-  throw new Error('IMPLEMENT: on' + eventFn);
+export function on(event: string, eventFn: QRL<() => void>) {
+  const el = useHostElement();
+  const ctx = getContext(el);
+  qPropWriteQRL(undefined, ctx, `on:${event}`, eventFn);
 }
 
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onDocument">
@@ -167,8 +169,10 @@ export function on(event: string, eventFn: QRL<() => void>): QRL<() => void> {
  * @public
  */
 // </docs>
-export function onDocument(event: string, eventFn: QRL<() => void>): QRL<() => void> {
-  throw new Error('IMPLEMENT: onDocument' + eventFn);
+export function onDocument(event: string, eventFn: QRL<() => void>) {
+  const el = useHostElement();
+  const ctx = getContext(el);
+  qPropWriteQRL(undefined, ctx, `on-document:${event}`, eventFn);
 }
 
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onWindow">
@@ -185,8 +189,10 @@ export function onDocument(event: string, eventFn: QRL<() => void>): QRL<() => v
  * @public
  */
 // </docs>
-export function onWindow(event: string, eventFn: QRL<() => void>): QRL<() => void> {
-  throw new Error('IMPLEMENT: onWindow' + eventFn);
+export function onWindow(event: string, eventFn: QRL<() => void>) {
+  const el = useHostElement();
+  const ctx = getContext(el);
+  qPropWriteQRL(undefined, ctx, 'on-w' + `indow:${event}`, eventFn);
 }
 
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#useStyles">
@@ -198,7 +204,7 @@ export function onWindow(event: string, eventFn: QRL<() => void>): QRL<() => voi
  * @alpha
  */
 // </docs>
-export function useStyles(styles: QRL<string>): void {
+export function useStylesFromQrl(styles: QRL<string>): void {
   _useStyles(styles, false);
 }
 
@@ -211,7 +217,7 @@ export function useStyles(styles: QRL<string>): void {
  * @alpha
  */
 // </docs>
-export const useStyles$ = implicit$FirstArg(useStyles);
+export const useStyles$ = implicit$FirstArg(useStylesFromQrl);
 
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#useScopedStyles">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -220,7 +226,7 @@ export const useStyles$ = implicit$FirstArg(useStyles);
  * @alpha
  */
 // </docs>
-export function useScopedStyles(styles: QRL<string>): void {
+export function useScopedStylesFromQrl(styles: QRL<string>): void {
   _useStyles(styles, true);
 }
 
@@ -231,7 +237,7 @@ export function useScopedStyles(styles: QRL<string>): void {
  * @alpha
  */
 // </docs>
-export const useScopedStyles$ = implicit$FirstArg(useScopedStyles);
+export const useScopedStyles$ = implicit$FirstArg(useScopedStylesFromQrl);
 
 /**
  * Infers `Props` from the component.
@@ -318,14 +324,14 @@ export interface ComponentOptions {
  * @public
  */
 // </docs>
-export function component<PROPS extends {}>(
+export function componentFromQrl<PROPS extends {}>(
   onMount: QRL<OnMountFn<PROPS>>,
   options?: ComponentOptions
 ): (props: PROPS & ComponentBaseProps) => JSXNode<PROPS>;
 /**
  * @public
  */
-export function component<PROPS extends {}>(
+export function componentFromQrl<PROPS extends {}>(
   onMount: QRL<OnMountFn<PROPS>>,
   options: ComponentOptions = {}
 ): FunctionComponent<PROPS & ComponentBaseProps> {
@@ -412,7 +418,7 @@ export function component$<PROPS extends {}>(
   onMount: OnMountFn<PROPS>,
   options?: ComponentOptions
 ): (props: PROPS & ComponentBaseProps) => JSXNode<PROPS> {
-  return component<PROPS>($(onMount), options);
+  return componentFromQrl<PROPS>($(onMount), options);
 }
 
 /**

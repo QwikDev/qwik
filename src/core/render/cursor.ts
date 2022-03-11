@@ -11,7 +11,8 @@ import { NodeType } from '../util/types';
 import { intToStr } from '../object/store';
 import { EMPTY_ARRAY } from '../util/flyweight';
 import { SkipRerender } from './jsx/host.public';
-import { logDebug, logError } from '../util/log';
+import { logDebug, logError, logWarn } from '../util/log';
+import { qDev } from '../util/qdev';
 
 type KeyToIndexMap = { [key: string]: number };
 
@@ -248,7 +249,8 @@ export function patchVnode(
   }
 
   let promise: ValueOrPromise<void>;
-  const dirty = updateProperties(ctx, elm as Element, vnode.props, isSvg);
+  const props = vnode.props;
+  const dirty = updateProperties(ctx, elm as Element, props, isSvg);
   const isSlot = tag === 'q:slot';
   if (isSvg && vnode.type === 'foreignObject') {
     isSvg = false;
@@ -289,6 +291,13 @@ export function patchVnode(
       });
     });
   }
+  const setsInnerHTML = props && 'innerHTML' in props;
+  if (setsInnerHTML) {
+    if (qDev && ch.length > 0) {
+      logWarn('Node can not have children when innerHTML is set');
+    }
+    return;
+  }
   return then(promise, () => {
     const mode = isSlot ? 'fallback' : 'default';
     return smartUpdateChildren(ctx, elm, ch, mode, isSvg);
@@ -327,7 +336,7 @@ function removeVnodes(
   for (; startIdx <= endIdx; ++startIdx) {
     const ch = nodes[startIdx];
     assertDefined(ch);
-    removeNode(ctx, parentElm, ch);
+    removeNode(ctx, ch);
   }
 }
 
@@ -374,7 +383,7 @@ function removeTemplates(ctx: RenderContext, slotMaps: SlotMaps) {
   Object.keys(slotMaps.templates).forEach((key) => {
     const template = slotMaps.templates[key]!;
     if (template && slotMaps.slots[key] !== undefined) {
-      removeNode(ctx, template.parentNode!, template);
+      removeNode(ctx, template);
       slotMaps.templates[key] = undefined;
     }
   });
@@ -437,11 +446,11 @@ function createElm(ctx: RenderContext, vnode: JSXNode, isSvg: boolean): ValueOrP
     isSvg = tag === 'svg';
   }
 
-  const data = vnode.props;
+  const props = vnode.props;
   const elm = (vnode.elm = createElement(ctx, tag, isSvg));
   const isComponent = isComponentNode(vnode);
   setKey(elm, vnode.key);
-  updateProperties(ctx, elm, data, isSvg);
+  updateProperties(ctx, elm, props, isSvg);
 
   if (isSvg && tag === 'foreignObject') {
     isSvg = false;
@@ -468,6 +477,14 @@ function createElm(ctx: RenderContext, vnode: JSXNode, isSvg: boolean): ValueOrP
       classlistAdd(ctx, elm, hostStyleTag);
     }
     wait = componentCtx.render(ctx);
+  } else {
+    const setsInnerHTML = props && 'innerHTML' in props;
+    if (setsInnerHTML) {
+      if (qDev && vnode.children.length > 0) {
+        logWarn('Node can not have children when innerHTML is set');
+      }
+      return elm;
+    }
   }
   return then(wait, () => {
     let children = vnode.children;
@@ -560,17 +577,10 @@ const checkBeforeAssign: PropHandler = (ctx, elm, prop, newValue) => {
   return true;
 };
 
-const setInnerHTML: PropHandler = (ctx, elm, prop, newValue) => {
-  setProperty(ctx, elm, prop, newValue);
-  setAttribute(ctx, elm, 'q:static', '');
-  return true;
-};
-
 const PROP_HANDLER_MAP: Record<string, PropHandler> = {
   style: handleStyle,
   value: checkBeforeAssign,
   checked: checkBeforeAssign,
-  innerHTML: setInnerHTML,
 };
 
 const ALLOWS_PROPS = ['className', 'style', 'id', 'q:slot'];
@@ -773,9 +783,14 @@ function prepend(ctx: RenderContext, parent: Element, newChild: Node) {
   });
 }
 
-function removeNode(ctx: RenderContext, parent: Node, el: Node) {
+function removeNode(ctx: RenderContext, el: Node) {
   const fn = () => {
-    parent.removeChild(el);
+    const parent = el.parentNode;
+    if (parent) {
+      parent.removeChild(el);
+    } else if (qDev) {
+      logWarn('Trying to remove component already removed', el);
+    }
   };
   ctx.operations.push({
     el: el,

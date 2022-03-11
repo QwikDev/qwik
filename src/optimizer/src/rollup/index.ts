@@ -490,16 +490,14 @@ export const isBrowser = ${!isSSR};
 `;
 }
 
+function slash(p: string): string {
+  return p.replace(/\\/g, '/');
+}
+
 function fixSSRInput(config: UserConfig, optimizer: Optimizer) {
   if (typeof config?.build?.ssr === 'string' && config?.build.rollupOptions?.input) {
-    function slash(p: string): string {
-      return p.replace(/\\/g, '/');
-    }
-    function normalizePath(id: string): string {
-      return optimizer.path.normalize(slash(id));
-    }
-    const resolvedRoot = normalizePath(
-      config.root ? optimizer.path.resolve(config.root) : process.cwd()
+    const resolvedRoot = optimizer.path.normalize(
+      slash(config.root ? optimizer.path.resolve(config.root) : process.cwd())
     );
     config.build.rollupOptions.input = optimizer.path.resolve(resolvedRoot, config.build.ssr);
   }

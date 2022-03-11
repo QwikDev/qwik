@@ -1,8 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 362
 expression: output
-
 ---
 ==INPUT==
 
@@ -94,7 +92,7 @@ import * as qwik from "@builder.io/qwik";
 export const App_onRender = ()=>{
     const [STEP_2, props, state, thing] = qwik.useLexicalScope();
     const count2 = state.count * 2;
-    return(/*#__PURE__*/ _jsxs("div", {
+    return /*#__PURE__*/ _jsxs("div", {
         "on:click": qwik.qrl(()=>import("./h_test_app_onrender_div_onclick")
         , "App_onRender_div_onclick", [
             count2,
@@ -117,7 +115,7 @@ export const App_onRender = ()=>{
                 })
             )
         ]
-    }));
+    });
 };
 
 /*

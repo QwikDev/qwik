@@ -19,6 +19,7 @@ describe('render', () => {
     it('should render basic content', async () => {
       await render(fixture.host, <div></div>);
       expectRendered(<div></div>);
+      expect(fixture.host.getAttribute('q:version')).toEqual('');
     });
 
     it('should only render string/number', async () => {

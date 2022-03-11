@@ -1,4 +1,4 @@
-import { buildMdxPlugin } from './mdx';
+import { createMdxTransformer, MdxTransform } from './mdx';
 import { stat, readFile } from 'fs/promises';
 import { isAbsolute, join } from 'path';
 import type { ModuleGraph, ViteDevServer } from 'vite';
@@ -16,7 +16,7 @@ export function qwest(options: PluginOptions) {
   let viteDevServer: ViteDevServer | undefined;
   let hasValidatedOpts = false;
   let qwestBuildCode: string | null = null;
-  let mdxPlugin: Plugin | null = null;
+  let mdxTransform: MdxTransform | null = null;
 
   const plugin: Plugin = {
     name: 'vite-plugin-qwest',
@@ -47,6 +47,10 @@ export function qwest(options: PluginOptions) {
         } else {
           hasValidatedOpts = true;
         }
+      }
+
+      if (!mdxTransform) {
+        mdxTransform = await createMdxTransformer(opts.mdx);
       }
     },
 
@@ -109,13 +113,11 @@ export function qwest(options: PluginOptions) {
       return null;
     },
 
-    async transform(code, id, transformOpts) {
-      if (!mdxPlugin) {
-        mdxPlugin = await buildMdxPlugin(opts.mdx);
+    async transform(code, id) {
+      if (mdxTransform) {
+        const mdxResult = await mdxTransform(code, id);
+        return mdxResult;
       }
-
-      const mdxResult = await mdxPlugin.transform?.apply(this, [code, id, transformOpts]);
-      return mdxResult;
     },
   };
 

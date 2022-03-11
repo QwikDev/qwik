@@ -43,5 +43,7 @@ export interface PluginOptions {
    * Ensure a trailing slash ends page urls. Defaults to `false`.
    */
   trailingSlash?: boolean;
-  mdx?: any;
+  mdx?: MdxOptions;
 }
+
+export type MdxOptions = import('@mdx-js/mdx/lib/compile.js').CompileOptions;

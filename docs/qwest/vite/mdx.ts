@@ -1,20 +1,46 @@
-import type { Options as MdxRollupOptions } from '@mdx-js/rollup';
+import { extname } from 'path';
+import { SourceMapGenerator } from 'source-map';
+import type { MdxOptions } from './types';
 
-export async function buildMdxPlugin(userMdxOpts: MdxRollupOptions) {
-  const { default: mdx } = await import('@mdx-js/rollup');
+export async function createMdxTransformer(
+  userMdxOpts: MdxOptions | undefined
+): Promise<MdxTransform> {
+  const { createFormatAwareProcessors } = await import(
+    '@mdx-js/mdx/lib/util/create-format-aware-processors.js'
+  );
   const { default: remarkFrontmatter } = await import('remark-frontmatter');
   const { default: remarkGfm } = await import('remark-gfm');
   const { remarkMdxFrontmatter } = await import('remark-mdx-frontmatter');
+  const { VFile } = await import('vfile');
 
   userMdxOpts = userMdxOpts || {};
 
+  const userRemarkPlugins = userMdxOpts.remarkPlugins || [];
   const remarkPlugins = [remarkGfm, remarkFrontmatter, remarkMdxFrontmatter];
 
   const mdxOpts = {
+    SourceMapGenerator,
     jsxImportSource: '@builder.io/qwik',
     ...userMdxOpts,
-    remarkPlugins: [...(userMdxOpts.remarkPlugins || []), ...remarkPlugins],
+    remarkPlugins: [...userRemarkPlugins, ...remarkPlugins],
   };
 
-  return mdx(mdxOpts);
+  const { extnames, process } = createFormatAwareProcessors(mdxOpts);
+
+  return async function (code: string, id: string) {
+    const ext = extname(id);
+    if (extnames.includes(ext)) {
+      const file = new VFile({ value: code, path: id });
+      const compiled = await process(file);
+      return {
+        code: String(compiled.value),
+        map: compiled.map,
+      };
+    }
+  };
 }
+
+export type MdxTransform = (
+  code: string,
+  id: string
+) => Promise<{ code: string; map: any } | undefined>;

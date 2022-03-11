@@ -43,4 +43,5 @@ export interface PluginOptions {
    * Ensure a trailing slash ends page urls. Defaults to `false`.
    */
   trailingSlash?: boolean;
+  mdx?: any;
 }

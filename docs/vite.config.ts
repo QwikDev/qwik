@@ -6,11 +6,6 @@ import { qwest } from './qwest/vite/index';
 import { partytownVite } from '@builder.io/partytown/utils';
 
 export default defineConfig(async ({ mode }) => {
-  const { default: mdx } = await import('@mdx-js/rollup');
-  const { default: remarkFrontmatter } = await import('remark-frontmatter');
-  const { default: remarkGfm } = await import('remark-gfm');
-  const { remarkMdxFrontmatter } = await import('remark-mdx-frontmatter');
-
   return {
     build: {
       rollupOptions: {
@@ -34,10 +29,6 @@ export default defineConfig(async ({ mode }) => {
         symbolsOutput: (data) => {
           outputJSON('./server/q-symbols.json', data);
         },
-      }),
-      mdx({
-        jsxImportSource: '@builder.io/qwik',
-        remarkPlugins: [remarkGfm, remarkFrontmatter, remarkMdxFrontmatter],
       }),
       qwest({
         pagesDir: resolve('./pages'),

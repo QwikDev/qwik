@@ -1,8 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 569
 expression: output
-
 ---
 ==INPUT==
 
@@ -69,7 +67,7 @@ export const App_onmount = ()=>{
     useStyles(qwik.qrl(()=>import("./h_test_app_usestyles")
     , "App_useStyles"));
     const render = ()=>{
-        return(/*#__PURE__*/ _jsx("div", {}));
+        return /*#__PURE__*/ _jsx("div", {});
     };
     return qwik.qrl(()=>import("./h_test_app_onrender")
     , "App_onRender");

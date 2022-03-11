@@ -1,8 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 734
 expression: output
-
 ---
 ==INPUT==
 
@@ -53,7 +51,7 @@ import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "@builder.io/q
 import * as qwik from "@builder.io/qwik";
 import { component } from "@builder.io/qwik";
 export const Lightweight = (props)=>{
-    return(/*#__PURE__*/ _jsx("div", {
+    return /*#__PURE__*/ _jsx("div", {
         children: /*#__PURE__*/ _jsxs(_Fragment, {
             children: [
                 /*#__PURE__*/ _jsx("div", {}),
@@ -62,7 +60,7 @@ export const Lightweight = (props)=>{
                 })
             ]
         })
-    }));
+    });
 };
 export const Foo = /*#__PURE__*/ component(qwik.qrl(()=>import("./h_test_foo_onmount")
 , "Foo_onmount"), {
@@ -78,7 +76,7 @@ import { h } from "@builder.io/qwik";
 import { Fragment } from "@builder.io/qwik";
 export const Foo_onRender = ()=>{
     const [props] = qwik.useLexicalScope();
-    return(/*#__PURE__*/ _jsxs("div", {
+    return /*#__PURE__*/ _jsxs("div", {
         children: [
             /*#__PURE__*/ _jsxs(_Fragment, {
                 children: [
@@ -113,7 +111,7 @@ export const Foo_onRender = ()=>{
                 children: children
             })
         ]
-    }));
+    });
 };
 
 /*

@@ -1,8 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 975
 expression: output
-
 ---
 ==INPUT==
 
@@ -33,7 +31,7 @@ qwik.qrl(()=>import("./h_test_d")
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 import * as qwik from "@builder.io/qwik";
 export const Greeter_onRender = ()=>{
-    return(/*#__PURE__*/ _jsx("div", {}));
+    return /*#__PURE__*/ _jsx("div", {});
 };
 
 /*

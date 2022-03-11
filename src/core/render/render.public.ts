@@ -1,5 +1,5 @@
 import { isDocument } from '../util/element';
-import { executeContext, printRenderStats, RenderContext, setAttribute } from './cursor';
+import { executeContext, printRenderStats, RenderContext } from './cursor';
 import { isJSXNode, jsx, processNode } from './jsx/jsx-runtime';
 import type { JSXNode, FunctionComponent } from './jsx/types/jsx-node';
 import { visitJsxNode } from './render';

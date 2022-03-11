@@ -121,13 +121,14 @@ export const qwikLoader = (doc: Document, hasInitialized?: boolean | number) => 
     return url.hash.replace(/^#?([^?[|]*).*$/, '$1') || 'default';
   };
 
-  const getModuleExport = (url: URL, module: any) => {
+  const getModuleExport = (url: URL, module: any, exportName?: string) => {
     // 1 - optional `#` at the start.
     // 2 - capture group `$1` containing the export name, stopping at the first `?`.
     // 3 - the rest from the first `?` to the end.
     // The hash string is replaced by the captured group that contains only the export name.
     // This is the same as in the `qExport()` function.
-    return module[getSymbolName(url)];
+    exportName = getSymbolName(url);
+    return module[exportName] || error(url + ' does not export ' + exportName);
   };
 
   /**

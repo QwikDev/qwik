@@ -1,8 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 784
 expression: output
-
 ---
 ==INPUT==
 
@@ -105,7 +103,7 @@ import * as qwik from "@builder.io/qwik";
 export const Foo_onRender = ()=>{
     const handler = qwik.qrl(()=>import("./h_test_foo_onrender_handler")
     , "Foo_onRender_handler");
-    return(/*#__PURE__*/ _jsx("div", {
+    return /*#__PURE__*/ _jsx("div", {
         "on:click": qwik.qrl(()=>import("./h_test_foo_onrender_div_onclick")
         , "Foo_onRender_div_onclick"),
         "onDocument:scroll": qwik.qrl(()=>import("./h_test_foo_onrender_div_ondocumentscroll")
@@ -115,7 +113,7 @@ export const Foo_onRender = ()=>{
         "on:keyup": handler,
         "onDocument:keyup": handler,
         "onWindow:keyup": handler
-    }));
+    });
 };
 
 /*

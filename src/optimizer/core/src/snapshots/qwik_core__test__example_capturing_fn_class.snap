@@ -1,8 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 614
 expression: output
-
 ---
 ==INPUT==
 
@@ -39,7 +37,7 @@ import * as qwik from "@builder.io/qwik";
 export const App_onRender = ()=>{
     hola();
     new Thing();
-    return(/*#__PURE__*/ _jsx("div", {}));
+    return /*#__PURE__*/ _jsx("div", {});
 };
 
 /*

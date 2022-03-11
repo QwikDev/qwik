@@ -19,6 +19,7 @@ describe('render', () => {
     it('should render basic content', async () => {
       await render(fixture.host, <div></div>);
       expectRendered(<div></div>);
+      expect(fixture.host.getAttribute('q:version')).toEqual('');
     });
 
     it('should only render string/number', async () => {
@@ -136,11 +137,18 @@ describe('render', () => {
       await render(fixture.host, <InnerHTMLComponent />);
       expectRendered(
         <div>
-          {/<node:.*>/}
           <div>
             <span>WORKS</span>
           </div>
-          {/<\/node:.*>/}
+        </div>
+      );
+      notifyRender(fixture.host.firstElementChild!);
+      await getTestPlatform(fixture.document).flush();
+      expectRendered(
+        <div>
+          <div>
+            <span>WORKS</span>
+          </div>
         </div>
       );
     });
@@ -691,6 +699,10 @@ function delay(time: number) {
 export const InnerHTMLComponent = component$(async () => {
   return $(() => {
     const html = '<span>WORKS</span>';
-    return <div innerHTML={html}></div>;
+    return (
+      <div innerHTML={html}>
+        <div>not rendered</div>
+      </div>
+    );
   });
 });

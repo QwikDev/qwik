@@ -66,6 +66,7 @@ export function qPropReadQRL(
         }
 
         context.qrl = qrl;
+        symbolUsed(ctx.element, qrl.symbol);
         if (qrlGuard) {
           return invokeWatchFn(ctx.element, qrl);
         } else {
@@ -75,6 +76,18 @@ export function qPropReadQRL(
     );
   };
 }
+
+const symbolUsed = (el: Element, name: string) => {
+  if (typeof CustomEvent === 'function') {
+    el.dispatchEvent(
+      new CustomEvent('qSymbol', {
+        detail: { name },
+        bubbles: true,
+        composed: true,
+      })
+    );
+  }
+};
 
 export function qPropWriteQRL(rctx: RenderContext, ctx: QContext, prop: string, value: any) {
   if (!value) {

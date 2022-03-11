@@ -13,8 +13,7 @@ Error.stackTraceLimit = 9999;
 const Q_IS_HYDRATED = '__isHydrated__';
 export const Q_CTX = '__ctx__';
 
-export function hydrateIfNeeded(element: Element): void {
-  const doc = getDocument(element);
+export function hydrateIfNeeded(doc: Document): void {
   const isHydrated = (doc as any)[Q_IS_HYDRATED];
   if (!isHydrated) {
     (doc as any)[Q_IS_HYDRATED] = true;
@@ -36,8 +35,6 @@ export interface QContext {
 }
 
 export function getContext(element: Element): QContext {
-  hydrateIfNeeded(element);
-
   let ctx: QContext = (element as any)[Q_CTX];
   if (!ctx) {
     const cache = new Map();

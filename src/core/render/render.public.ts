@@ -8,6 +8,7 @@ import { then } from '../util/promises';
 import { getRenderingState } from './notify-render';
 import { getDocument } from '../util/dom';
 import { qDev } from '../util/qdev';
+import { hydrateIfNeeded } from '../props/props';
 
 /**
  * Render JSX.
@@ -31,6 +32,7 @@ export function render(
   }
   const doc = isDocument(parent) ? parent : getDocument(parent);
   const stylesParent = isDocument(parent) ? parent.head : parent.parentElement;
+  hydrateIfNeeded(doc);
 
   const ctx: RenderContext = {
     operations: [],

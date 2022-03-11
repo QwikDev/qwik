@@ -1,4 +1,4 @@
-import { h, Host, useStore } from '@builder.io/qwik';
+import { h, Host, useStore, version } from '@builder.io/qwik';
 import { ElementFixture, trigger } from '../../testing/element_fixture';
 import { expectDOM } from '../../testing/expect-dom.unit';
 import { getTestPlatform } from '../../testing/platform';
@@ -19,6 +19,7 @@ describe('render', () => {
     it('should render basic content', async () => {
       await render(fixture.host, <div></div>);
       expectRendered(<div></div>);
+      expect(fixture.host.getAttribute('q:version')).toEqual('');
     });
 
     it('should only render string/number', async () => {

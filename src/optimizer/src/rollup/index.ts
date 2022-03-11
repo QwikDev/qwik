@@ -13,7 +13,7 @@ import {
 } from '..';
 
 import type { NormalizedOutputOptions, PluginContext, RollupError } from 'rollup';
-import type { HmrContext, Plugin, ViteDevServer } from 'vite';
+import type { HmrContext, Plugin, UserConfig, ViteDevServer } from 'vite';
 
 const QWIK_BUILD = '@builder.io/qwik/build';
 /**
@@ -167,7 +167,10 @@ export function qwikRollup(opts: QwikPluginOptions): any {
     name: 'qwik',
     enforce: 'pre',
     log,
-    config(config, { command }) {
+    async config(config, { command }) {
+      if (!optimizer) {
+        optimizer = await createOptimizer();
+      }
       if (command === 'serve') {
         isBuild = false;
         entryStrategy = { type: 'hook' };
@@ -175,6 +178,11 @@ export function qwikRollup(opts: QwikPluginOptions): any {
           (config as any).ssr.noExternal = false;
         }
       }
+      if (command === 'build') {
+        // Removed if fixed: https://github.com/vitejs/vite/pull/7275
+        fixSSRInput(config, optimizer);
+      }
+
       log(`vite command`, command);
 
       return {
@@ -480,6 +488,19 @@ function getBuildFile(isSSR: boolean) {
 export const isServer = ${isSSR};
 export const isBrowser = ${!isSSR};
 `;
+}
+
+function slash(p: string): string {
+  return p.replace(/\\/g, '/');
+}
+
+function fixSSRInput(config: UserConfig, optimizer: Optimizer) {
+  if (typeof config?.build?.ssr === 'string' && config?.build.rollupOptions?.input) {
+    const resolvedRoot = optimizer.path.normalize(
+      slash(config.root ? optimizer.path.resolve(config.root) : process.cwd())
+    );
+    config.build.rollupOptions.input = optimizer.path.resolve(resolvedRoot, config.build.ssr);
+  }
 }
 
 /**

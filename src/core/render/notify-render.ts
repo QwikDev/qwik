@@ -2,7 +2,7 @@ import { assertDefined } from '../assert/assert';
 import { QHostAttr } from '../util/markers';
 import { getQComponent } from '../component/component-ctx';
 import { executeContextWithSlots, printRenderStats, RenderContext } from './cursor';
-import { getContext } from '../props/props';
+import { getContext, hydrateIfNeeded } from '../props/props';
 import { qDev } from '../util/qdev';
 import { getPlatform } from '../index';
 import { getDocument } from '../util/dom';
@@ -25,8 +25,9 @@ import { getDocument } from '../util/dom';
 // TODO(misko): this should take QComponent as well.
 export function notifyRender(hostElement: Element): Promise<RenderContext> {
   assertDefined(hostElement.getAttribute(QHostAttr));
-  const ctx = getContext(hostElement);
   const doc = getDocument(hostElement);
+  hydrateIfNeeded(doc);
+  const ctx = getContext(hostElement);
   const state = getRenderingState(doc);
   if (ctx.dirty) {
     // TODO

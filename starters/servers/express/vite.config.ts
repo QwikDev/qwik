@@ -7,6 +7,7 @@ export default defineConfig(({ mode }) => {
   return {
     build: {
       rollupOptions: {
+        input: ['src/main.tsx', 'index.html'],
         output: {
           // Qwik tends to generate long chunk names
           chunkFileNames: 'q-[hash].js',

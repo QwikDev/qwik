@@ -1,7 +1,7 @@
 [package]
 authors = ["Manu <manu@builder.io>"]
 name = "qwik-core"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 repository = "https://github.com/builder.io/qwik"
 license = "MIT"
@@ -13,8 +13,8 @@ categories = ["development-tools", "development-tools::cargo-plugins"]
 crate-type = ["rlib"]
 
 [dependencies]
-swc_ecmascript = { version = "0.113.2", features = ["parser", "transforms", "module", "typescript", "optimization", "minifier", "react", "utils", "visit", "codegen", "utils"] }
-swc_common = { version = "0.17.5", features = ["sourcemap"] }
+swc_ecmascript = { version = "0.131.0", features = ["parser", "transforms", "module", "typescript", "optimization", "minifier", "react", "utils", "visit", "codegen", "utils"] }
+swc_common = { version = "0.17.14", features = ["sourcemap"] }
 swc_atoms = "0.2.9"
 serde = "1.0.136"
 serde_bytes = "0.11.5"
@@ -23,7 +23,7 @@ pathdiff = "0.2.1"
 relative-path = "1.6.1"
 lazy_static = "1.4.0"
 regex = "1.5.4"
-anyhow = "1.0.52"
+anyhow = "1.0.53"
 derivative = "2.2.0"
 rayon = "1.5.1"
 path-slash="0.1.4"

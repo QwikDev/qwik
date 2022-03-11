@@ -179,6 +179,7 @@ export function qwikRollup(opts: QwikPluginOptions): any {
         }
       }
       if (command === 'build') {
+        // Removed if fixed: https://github.com/vitejs/vite/pull/7275
         fixSSRInput(config, optimizer);
       }
 

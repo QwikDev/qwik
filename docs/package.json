@@ -10,6 +10,7 @@
     "dev": "npm run dev.ssr",
     "dev.ssr": "vite",
     "dev.client": "vite --mode clientonly",
+    "dev.wrangler": "wrangler pages dev ./dist",
     "fmt": "prettier --write .",
     "fmt.check": "prettier --check .",
     "start": "npm run dev",
@@ -17,11 +18,10 @@
     "link.builder": "npm link @builder.io/qwik"
   },
   "devDependencies": {
-    "@builder.io/partytown": "^0.4.2",
+    "@builder.io/partytown": "^0.5.0",
     "@builder.io/qwik": "0.0.17-0-dev20220310192647",
     "@cloudflare/kv-asset-handler": "0.2.0",
     "@cloudflare/workers-types": "^3.2.0",
-    "@cloudflare/wrangler": "1.19.7",
     "@mdx-js/mdx": "^2.0.0",
     "@types/marked": "^4.0.2",
     "@types/mdx": "^2.0.1",
@@ -42,7 +42,8 @@
     "typescript": "^4.5.2",
     "uvu": "^0.5.3",
     "vfile": "^5.3.2",
-    "vite": "^2.7.13"
+    "vite": "^2.7.13",
+    "wrangler": "beta"
   },
   "author": "Builder.io Team",
   "engines": {

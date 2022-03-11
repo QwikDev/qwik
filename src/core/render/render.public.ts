@@ -3,7 +3,7 @@ import { executeContext, printRenderStats, RenderContext } from './cursor';
 import { isJSXNode, jsx, processNode } from './jsx/jsx-runtime';
 import type { JSXNode, FunctionComponent } from './jsx/types/jsx-node';
 import { visitJsxNode } from './render';
-import type { ValueOrPromise } from '../index';
+import { ValueOrPromise, version } from '../index';
 import { then } from '../util/promises';
 import { getRenderingState } from './notify-render';
 import { getDocument } from '../util/dom';
@@ -30,25 +30,26 @@ export function render(
     jsxNode = jsx(jsxNode, null);
   }
   const doc = isDocument(parent) ? parent : getDocument(parent);
-  const elm = parent as Element;
   const stylesParent = isDocument(parent) ? parent.head : parent.parentElement;
+
   const ctx: RenderContext = {
     operations: [],
     doc,
     component: undefined,
     hostElements: new Set(),
     globalState: getRenderingState(doc),
-    roots: [elm],
+    roots: [parent as Element],
     perf: {
       visited: 0,
       timing: [],
     },
   };
-  return then(visitJsxNode(ctx, elm, processNode(jsxNode), false), () => {
+  return then(visitJsxNode(ctx, parent as Element, processNode(jsxNode), false), () => {
     executeContext(ctx);
     if (stylesParent) {
       injectQwikSlotCSS(stylesParent);
     }
+    injectQVersion(parent);
     if (qDev) {
       if (typeof window !== 'undefined' && window.document != null) {
         printRenderStats(ctx);
@@ -63,4 +64,9 @@ export function injectQwikSlotCSS(parent: Element) {
   style.setAttribute('id', 'qwik/base-styles');
   style.textContent = `q\\:slot{display:contents}q\\:fallback{display:none}q\\:fallback:last-child{display:contents}`;
   parent.insertBefore(style, parent.firstChild);
+}
+
+export function injectQVersion(parent: Document | Element) {
+  const element = isDocument(parent) ? parent.documentElement : parent;
+  element.setAttribute('q:version', version || '');
 }

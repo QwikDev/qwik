@@ -35,12 +35,12 @@ export function render(
   hydrateIfNeeded(doc);
 
   const ctx: RenderContext = {
-    operations: [],
     doc,
-    component: undefined,
-    hostElements: new Set(),
     globalState: getRenderingState(doc),
+    hostElements: new Set(),
+    operations: [],
     roots: [parent as Element],
+    component: undefined,
     perf: {
       visited: 0,
       timing: [],

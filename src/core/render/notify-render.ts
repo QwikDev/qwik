@@ -1,11 +1,11 @@
 import { assertDefined } from '../assert/assert';
 import { QHostAttr } from '../util/markers';
-import { getQComponent } from '../component/component-ctx';
 import { executeContextWithSlots, printRenderStats, RenderContext } from './cursor';
 import { getContext, hydrateIfNeeded } from '../props/props';
 import { qDev } from '../util/qdev';
 import { getPlatform } from '../index';
 import { getDocument } from '../util/dom';
+import { renderComponent } from '../component/component-ctx';
 
 /**
  * Mark component for rendering.
@@ -90,22 +90,21 @@ export async function renderMarked(doc: Document, state: RenderingState): Promis
 
   const ctx: RenderContext = {
     doc,
+    globalState: state,
+    hostElements: new Set(),
     operations: [],
     roots: [],
-    hostElements: new Set(),
-    globalState: state,
+    component: undefined,
     perf: {
       visited: 0,
       timing: [],
     },
-    component: undefined,
   };
 
   for (const el of renderingQueue) {
     if (!ctx.hostElements.has(el)) {
       ctx.roots.push(el);
-      const cmp = getQComponent(el)!;
-      await cmp.render(ctx);
+      await renderComponent(ctx, getContext(el));
     }
   }
 

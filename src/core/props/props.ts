@@ -1,3 +1,4 @@
+import type { JSXNode } from '..';
 import { QError, qError } from '../error/error';
 import { getProxyMap, readWriteProxy } from '../object/q-object';
 import { QStore_hydrate } from '../object/store';
@@ -13,8 +14,7 @@ Error.stackTraceLimit = 9999;
 const Q_IS_HYDRATED = '__isHydrated__';
 export const Q_CTX = '__ctx__';
 
-export function hydrateIfNeeded(element: Element): void {
-  const doc = getDocument(element);
+export function hydrateIfNeeded(doc: Document): void {
   const isHydrated = (doc as any)[Q_IS_HYDRATED];
   if (!isHydrated) {
     (doc as any)[Q_IS_HYDRATED] = true;
@@ -26,6 +26,14 @@ export interface QContextEvents {
   [eventName: string]: string | undefined;
 }
 
+export interface ComponentCtx {
+  hostElement: HTMLElement;
+  styleId: string | undefined;
+  styleClass: string | undefined;
+  styleHostClass: string | undefined;
+  slots: JSXNode[];
+}
+
 export interface QContext {
   cache: Map<string, any>;
   refMap: QObjectMap;
@@ -33,11 +41,10 @@ export interface QContext {
   dirty: boolean;
   props: Record<string, any> | undefined;
   events: QContextEvents | undefined;
+  component: ComponentCtx | undefined;
 }
 
 export function getContext(element: Element): QContext {
-  hydrateIfNeeded(element);
-
   let ctx: QContext = (element as any)[Q_CTX];
   if (!ctx) {
     const cache = new Map();
@@ -48,6 +55,7 @@ export function getContext(element: Element): QContext {
       dirty: false,
       props: undefined,
       events: undefined,
+      component: undefined,
     };
   }
   return ctx;

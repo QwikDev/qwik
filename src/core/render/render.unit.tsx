@@ -19,6 +19,7 @@ describe('render', () => {
     it('should render basic content', async () => {
       await render(fixture.host, <div></div>);
       expectRendered(<div></div>);
+      expect(fixture.host.getAttribute('q:version')).toEqual('');
     });
 
     it('should only render string/number', async () => {
@@ -136,11 +137,18 @@ describe('render', () => {
       await render(fixture.host, <InnerHTMLComponent />);
       expectRendered(
         <div>
-          {/<node:.*>/}
           <div>
             <span>WORKS</span>
           </div>
-          {/<\/node:.*>/}
+        </div>
+      );
+      notifyRender(fixture.host.firstElementChild!);
+      await getTestPlatform(fixture.document).flush();
+      expectRendered(
+        <div>
+          <div>
+            <span>WORKS</span>
+          </div>
         </div>
       );
     });
@@ -206,6 +214,7 @@ describe('render', () => {
         </project>
       );
     });
+
     it('should project un-named slot component', async () => {
       await render(
         fixture.host,
@@ -214,6 +223,7 @@ describe('render', () => {
         </Project>
       );
     });
+
     it('should project named slot component', async () => {
       await render(
         fixture.host,
@@ -242,6 +252,7 @@ describe('render', () => {
         </project>
       );
     });
+
     it.todo('should render nested component when it is projected by parent');
     it('should project multiple slot with same name', async () => {
       await render(
@@ -434,7 +445,7 @@ describe('render', () => {
     });
   });
 
-  describe('SVG element', () => {
+  describe.skip('SVG element', () => {
     it('should render #text nodes', async () => {
       const lines = ['hola', 'adios'];
       render(
@@ -691,6 +702,10 @@ function delay(time: number) {
 export const InnerHTMLComponent = component$(async () => {
   return $(() => {
     const html = '<span>WORKS</span>';
-    return <div innerHTML={html}></div>;
+    return (
+      <div innerHTML={html}>
+        <div>not rendered</div>
+      </div>
+    );
   });
 });

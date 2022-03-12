@@ -1,8 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 542
 expression: output
-
 ---
 ==INPUT==
 
@@ -27,9 +25,9 @@ export const App = component$(({count}) => {
 ============================= test.js ==
 
 import * as qwik from "@builder.io/qwik";
-import { component } from "@builder.io/qwik";
+import { componentFromQrl } from "@builder.io/qwik";
 const [I2, { I3 , v1: [I4] , I5 =v2 , ...I6 }, I7 = v3, ...I8] = obj;
-export const App = /*#__PURE__*/ component(qwik.qrl(()=>import("./h_test_app_onmount")
+export const App = /*#__PURE__*/ componentFromQrl(qwik.qrl(()=>import("./h_test_app_onmount")
 , "App_onmount"));
 
 ============================= h_test_app_onrender.js (ENTRY POINT)==
@@ -37,7 +35,7 @@ export const App = /*#__PURE__*/ component(qwik.qrl(()=>import("./h_test_app_onm
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 import * as qwik from "@builder.io/qwik";
 export const App_onRender = ()=>{
-    return(/*#__PURE__*/ _jsx(I10, {}));
+    return /*#__PURE__*/ _jsx(I10, {});
 };
 
 /*

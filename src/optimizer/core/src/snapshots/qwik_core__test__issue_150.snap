@@ -1,8 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 975
 expression: output
-
 ---
 ==INPUT==
 
@@ -22,8 +20,8 @@ const d = $(()=>console.log('thing'));
 ============================= test.js ==
 
 import * as qwik from "@builder.io/qwik";
-import { component } from "@builder.io/qwik";
-export const Greeter = /*#__PURE__*/ component(qwik.qrl(()=>import("./h_test_greeter_onmount")
+import { componentFromQrl } from "@builder.io/qwik";
+export const Greeter = /*#__PURE__*/ componentFromQrl(qwik.qrl(()=>import("./h_test_greeter_onmount")
 , "Greeter_onmount"));
 qwik.qrl(()=>import("./h_test_d")
 , "d");
@@ -33,7 +31,7 @@ qwik.qrl(()=>import("./h_test_d")
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 import * as qwik from "@builder.io/qwik";
 export const Greeter_onRender = ()=>{
-    return(/*#__PURE__*/ _jsx("div", {}));
+    return /*#__PURE__*/ _jsx("div", {});
 };
 
 /*

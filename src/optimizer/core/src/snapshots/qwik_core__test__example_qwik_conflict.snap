@@ -1,16 +1,14 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 816
 expression: output
-
 ---
 ==INPUT==
 
 
 import { $, component$, useStyles } from '@builder.io/qwik';
 
-const component = () => console.log('not this');
-component();
+const componentFromQrl = () => console.log('not this');
+componentFromQrl();
 export const Foo = component$(() => {
     useStyles$('thing');
     const qwik = 12;
@@ -38,15 +36,15 @@ export const Root = component$(() => {
 ============================= test.js ==
 
 import * as qwik from "@builder.io/qwik";
-import { component as component1 } from "@builder.io/qwik";
-const component = ()=>console.log('not this')
+import { componentFromQrl as componentFromQrl1 } from "@builder.io/qwik";
+const componentFromQrl = ()=>console.log('not this')
 ;
-component();
-export const Foo = /*#__PURE__*/ component1(qwik.qrl(()=>import("./h_test_foo_onmount")
+componentFromQrl();
+export const Foo = /*#__PURE__*/ componentFromQrl1(qwik.qrl(()=>import("./h_test_foo_onmount")
 , "Foo_onmount"), {
     tagName: "my-foo"
 });
-export const Root = /*#__PURE__*/ component1(qwik.qrl(()=>import("./h_test_root_onmount")
+export const Root = /*#__PURE__*/ componentFromQrl1(qwik.qrl(()=>import("./h_test_root_onmount")
 , "Root_onmount"), {
     tagName: "my-foo"
 });
@@ -56,7 +54,7 @@ export const Root = /*#__PURE__*/ component1(qwik.qrl(()=>import("./h_test_root_
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 import * as qwik from "@builder.io/qwik";
 export const Foo_onRender = ()=>{
-    return(/*#__PURE__*/ _jsx("div", {}));
+    return /*#__PURE__*/ _jsx("div", {});
 };
 
 /*
@@ -107,7 +105,7 @@ export const Root_onmount3 = 'thing';
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 import * as qwik from "@builder.io/qwik";
 export const Root_onRender = ()=>{
-    return(/*#__PURE__*/ _jsx("div", {}));
+    return /*#__PURE__*/ _jsx("div", {});
 };
 
 /*

@@ -42,9 +42,9 @@ jobs:
               - 'src/**/*.mjs'
               - 'src/**/*.cjs'
               - 'src/**/*.jsx'
-              - 'src/**/*.json'
               - 'src/**/*.toml'
               - 'src/**/*.rs'
+              - 'src/**/*.lock'
               - 'yarn.lock'
               - 'tsconfig.json'
       - name: Print fullbuild output
@@ -394,6 +394,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Save artifacts
+        if: ${{ needs.changes.outputs.fullbuild == 'true' && github.event_name == 'push' }}
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+        run: yarn qwik-save-artifacts
 
   ############ E2E TEST ############
   test-e2e:

@@ -1,8 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 362
 expression: output
-
 ---
 ==INPUT==
 
@@ -41,7 +39,7 @@ export const App = component$((props) => {
 ============================= test.js ==
 
 import * as qwik from "@builder.io/qwik";
-import { component } from "@builder.io/qwik";
+import { componentFromQrl } from "@builder.io/qwik";
 import { useStore } from '@builder.io/qwik';
 export const useCounter = ()=>{
     return useStore({
@@ -49,7 +47,7 @@ export const useCounter = ()=>{
     });
 };
 export const STEP = 1;
-export const App = /*#__PURE__*/ component(qwik.qrl(()=>import("./h_test_app_onmount")
+export const App = /*#__PURE__*/ componentFromQrl(qwik.qrl(()=>import("./h_test_app_onmount")
 , "App_onmount"));
 
 ============================= h_test_app_onrender_div_onclick.js (ENTRY POINT)==
@@ -94,7 +92,7 @@ import * as qwik from "@builder.io/qwik";
 export const App_onRender = ()=>{
     const [STEP_2, props, state, thing] = qwik.useLexicalScope();
     const count2 = state.count * 2;
-    return(/*#__PURE__*/ _jsxs("div", {
+    return /*#__PURE__*/ _jsxs("div", {
         "on:click": qwik.qrl(()=>import("./h_test_app_onrender_div_onclick")
         , "App_onRender_div_onclick", [
             count2,
@@ -117,7 +115,7 @@ export const App_onRender = ()=>{
                 })
             )
         ]
-    }));
+    });
 };
 
 /*

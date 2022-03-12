@@ -72,6 +72,15 @@ export const qwikLoader = (doc: Document, hasInitialized?: boolean | number) => 
       .forEach((target) => dispatch(target, type, event));
   };
 
+  const symbolUsed = (el: Element, name: string) =>
+    el.dispatchEvent(
+      new CustomEvent('qSymbol', {
+        detail: { name },
+        bubbles: true,
+        composed: true,
+      })
+    );
+
   const dispatch = async (
     element: Element,
     eventName: string,
@@ -85,21 +94,31 @@ export const qwikLoader = (doc: Document, hasInitialized?: boolean | number) => 
       for (const qrl of attrValue.split('\n')) {
         url = qrlResolver(doc, element, qrl);
         if (url) {
-          const handler = getModuleExport(
-            url,
+          const symbolName = getSymbolName(url);
+          const module =
             (window as any)[url.pathname] ||
-              (await import(/* @vite-ignore */ String(url).split('#')[0]))
-          );
-          previousCtx = (document as any)[Q_CONTEXT];
+            (await import(/* @vite-ignore */ String(url).split('#')[0]));
+          const handler = module[symbolName] || error(url + ' does not export ' + symbolName);
+          previousCtx = (doc as any)[Q_CONTEXT];
           try {
-            (document as any)[Q_CONTEXT] = [element, ev, url];
+            (doc as any)[Q_CONTEXT] = [element, ev, url];
             handler(element, ev, url);
           } finally {
-            (document as any)[Q_CONTEXT] = previousCtx;
+            (doc as any)[Q_CONTEXT] = previousCtx;
+            symbolUsed(element, symbolName);
           }
         }
       }
     }
+  };
+
+  const getSymbolName = (url: URL) => {
+    // 1 - optional `#` at the start.
+    // 2 - capture group `$1` containing the export name, stopping at the first `?`.
+    // 3 - the rest from the first `?` to the end.
+    // The hash string is replaced by the captured group that contains only the export name.
+    // This is the same as in the `qExport()` function.
+    return url.hash.replace(/^#?([^?[|]*).*$/, '$1') || 'default';
   };
 
   const getModuleExport = (url: URL, module: any, exportName?: string) => {
@@ -108,7 +127,7 @@ export const qwikLoader = (doc: Document, hasInitialized?: boolean | number) => 
     // 3 - the rest from the first `?` to the end.
     // The hash string is replaced by the captured group that contains only the export name.
     // This is the same as in the `qExport()` function.
-    exportName = url.hash.replace(/^#?([^?[|]*).*$/, '$1') || 'default';
+    exportName = getSymbolName(url);
     return module[exportName] || error(url + ' does not export ' + exportName);
   };
 

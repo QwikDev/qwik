@@ -19,6 +19,7 @@ export interface QwikProps {
 
   'q:obj'?: string;
   'q:host'?: string;
+  'q:version'?: string;
 }
 
 type Event = () => any;

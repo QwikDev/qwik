@@ -1,8 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 594
 expression: output
-
 ---
 ==INPUT==
 
@@ -20,8 +18,8 @@ export const App = component$(() => {
 ============================= test.js ==
 
 import * as qwik from "@builder.io/qwik";
-import { component } from "@builder.io/qwik";
-export const App = /*#__PURE__*/ component(qwik.qrl(()=>import("./h_test_app_onmount")
+import { componentFromQrl } from "@builder.io/qwik";
+export const App = /*#__PURE__*/ componentFromQrl(qwik.qrl(()=>import("./h_test_app_onmount")
 , "App_onmount"));
 
 ============================= h_test_app_usestyles.js (ENTRY POINT)==
@@ -58,11 +56,11 @@ export const App_useStyles2 = css3;
 ============================= h_test_app_onmount.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-import { useStyles } from "@builder.io/qwik";
+import { useStylesFromQrl } from "@builder.io/qwik";
 export const App_onmount = ()=>{
-    useStyles(qwik.qrl(()=>import("./h_test_app_usestyles")
+    useStylesFromQrl(qwik.qrl(()=>import("./h_test_app_usestyles")
     , "App_useStyles"));
-    useStyles(qwik.qrl(()=>import("./h_test_app_usestyles2")
+    useStylesFromQrl(qwik.qrl(()=>import("./h_test_app_usestyles2")
     , "App_useStyles2"));
 };
 

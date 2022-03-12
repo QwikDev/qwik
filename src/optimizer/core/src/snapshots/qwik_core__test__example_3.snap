@@ -1,8 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 95
 expression: output
-
 ---
 ==INPUT==
 
@@ -23,9 +21,9 @@ export const App = () => {
 ============================= test.tsx ==
 
 import * as qwik from "@builder.io/qwik";
-import { component } from "@builder.io/qwik";
+import { componentFromQrl } from "@builder.io/qwik";
 export const App = ()=>{
-    const Header = /*#__PURE__*/ component(qwik.qrl(()=>import("./h_test_app_header")
+    const Header = /*#__PURE__*/ componentFromQrl(qwik.qrl(()=>import("./h_test_app_header")
     , "App_Header"));
     return Header;
 };

@@ -657,7 +657,8 @@ impl<'a> Fold for QwikTransform<'a> {
                     let global_collect = &mut self.options.global_collect;
                     if let Some(import) = global_collect.imports.get(&id!(ident)).cloned() {
                         let specifier = import.specifier.to_string();
-                        let new_specifier: &str = &specifier[0..specifier.len() - 1];
+                        let new_specifier =
+                            [&specifier[0..specifier.len() - 1], LONG_SUFFIX].concat();
                         let new_local =
                             global_collect.import(new_specifier.into(), import.source.clone());
 

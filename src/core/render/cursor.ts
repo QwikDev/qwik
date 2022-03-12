@@ -256,7 +256,7 @@ export function patchVnode(
   if (isSvg && vnode.type === 'foreignObject') {
     isSvg = false;
   } else if (isSlot) {
-    ctx.component!.slots.push(vnode);
+    rctx.component!.slots.push(vnode);
   }
   const isComponent = isComponentNode(vnode);
   if (dirty) {
@@ -706,7 +706,7 @@ function styleSetProperty(ctx: RenderContext, el: HTMLElement, prop: string, val
   });
 }
 
-function classlistAdd(ctx: RenderContext, el: Element, hostStyleTag: string) {
+export function classlistAdd(ctx: RenderContext, el: Element, hostStyleTag: string) {
   const fn = () => {
     el.classList.add(hostStyleTag);
   };

@@ -11,7 +11,11 @@ import { processNode } from '../render/jsx/jsx-runtime';
 
 export const firstRenderComponent = (rctx: RenderContext, ctx: QContext) => {
   ctx.element.setAttribute(QHostAttr, '');
-  return renderComponent(rctx, ctx);
+  const result = renderComponent(rctx, ctx);
+  // if (ctx.component?.styleHostClass) {
+  //   classlistAdd(rctx, ctx.element, ctx.component.styleHostClass);
+  // }
+  return result;
 };
 
 export const renderComponent = (rctx: RenderContext, ctx: QContext) => {
@@ -19,23 +23,6 @@ export const renderComponent = (rctx: RenderContext, ctx: QContext) => {
   const onRender = getEvent(ctx, OnRenderProp) as any as () => JSXNode;
   const event = 'qRender';
   assertDefined(onRender);
-  let componentCtx = ctx.component;
-  if (!componentCtx) {
-    componentCtx = ctx.component = {
-      hostElement,
-      slots: [],
-      styleHostClass: undefined,
-      styleClass: undefined,
-      styleId: undefined,
-    };
-    const scopedStyleId = hostElement.getAttribute(ComponentScopedStyles) ?? undefined;
-    if (scopedStyleId) {
-      componentCtx.styleId = scopedStyleId;
-      componentCtx.styleHostClass = styleHost(scopedStyleId);
-      componentCtx.styleClass = styleContent(scopedStyleId);
-      hostElement.classList.add(componentCtx.styleHostClass);
-    }
-  }
 
   // Component is not dirty any more
   ctx.dirty = false;
@@ -48,7 +35,25 @@ export const renderComponent = (rctx: RenderContext, ctx: QContext) => {
     // Types are wrong here
     jsxNode = (jsxNode as any)[0];
     rctx.hostElements.add(hostElement);
-    componentCtx!.slots = [];
+    let componentCtx = ctx.component;
+    if (!componentCtx) {
+      componentCtx = ctx.component = {
+        hostElement,
+        slots: [],
+        styleHostClass: undefined,
+        styleClass: undefined,
+        styleId: undefined,
+      };
+      const scopedStyleId = hostElement.getAttribute(ComponentScopedStyles) ?? undefined;
+      if (scopedStyleId) {
+        componentCtx.styleId = scopedStyleId;
+        componentCtx.styleHostClass = styleHost(scopedStyleId);
+        componentCtx.styleClass = styleContent(scopedStyleId);
+        hostElement.classList.add(componentCtx.styleHostClass);
+      }
+    }
+    componentCtx.slots = [];
+
     const newCtx: RenderContext = {
       ...rctx,
       component: componentCtx,

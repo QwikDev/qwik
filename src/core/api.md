@@ -20,14 +20,14 @@ export function bubble<PAYLOAD>(eventType: string, payload?: PAYLOAD): void;
 // @public
 export function component$<PROPS extends {}>(onMount: OnMountFn<PROPS>, options?: ComponentOptions): (props: PROPS & ComponentBaseProps) => JSXNode<PROPS>;
 
-// @public
-export function component<PROPS extends {}>(onMount: QRL<OnMountFn<PROPS>>, options?: ComponentOptions): (props: PROPS & ComponentBaseProps) => JSXNode<PROPS>;
-
 // @public (undocumented)
 export type ComponentChild = JSXNode<any> | object | string | number | bigint | boolean | null | undefined;
 
 // @public (undocumented)
 export type ComponentChildren = ComponentChild[] | ComponentChild;
+
+// @public
+export function componentFromQrl<PROPS extends {}>(onMount: QRL<OnMountFn<PROPS>>, options?: ComponentOptions): (props: PROPS & ComponentBaseProps) => JSXNode<PROPS>;
 
 // @public (undocumented)
 export interface ComponentOptions {
@@ -141,22 +141,22 @@ export interface Observer {
 }
 
 // @public
-export function on(event: string, eventFn: QRL<() => void>): QRL<() => void>;
+export function on(event: string, eventFn: QRL<() => void>): void;
 
 // @public
 export const onDehydrate$: (first: () => void) => void;
 
 // @public
-export function onDehydrate(dehydrateFn: QRL<() => void>): void;
+export function onDehydrateFromQrl(dehydrateFn: QRL<() => void>): void;
 
 // @public
-export function onDocument(event: string, eventFn: QRL<() => void>): QRL<() => void>;
+export function onDocument(event: string, eventFn: QRL<() => void>): void;
 
 // @public
 export const onHydrate$: (first: () => void) => void;
 
 // @public
-export function onHydrate(hydrateFn: QRL<() => void>): void;
+export function onHydrateFromQrl(hydrateFn: QRL<() => void>): void;
 
 // @public (undocumented)
 export type OnMountFn<PROPS> = (props: PROPS) => ValueOrPromise<QRL<() => ValueOrPromise<JSXNode<any>>>>;
@@ -165,22 +165,22 @@ export type OnMountFn<PROPS> = (props: PROPS) => ValueOrPromise<QRL<() => ValueO
 export const onResume$: (first: () => void) => void;
 
 // @public
-export function onResume(resumeFn: QRL<() => void>): void;
+export function onResumeFromQrl(resumeFn: QRL<() => void>): void;
 
 // @public
 export const onUnmount$: (first: () => void) => void;
 
 // @public
-export function onUnmount(unmountFn: QRL<() => void>): void;
+export function onUnmountFromQrl(unmountFn: QRL<() => void>): void;
 
 // @public
 export const onWatch$: (first: (obs: Observer) => unknown | (() => void)) => void;
 
 // @public
-export function onWatch(watchFn: QRL<(obs: Observer) => unknown | (() => void)>): void;
+export function onWatchFromQrl(watchFn: QRL<(obs: Observer) => unknown | (() => void)>): void;
 
 // @public
-export function onWindow(event: string, eventFn: QRL<() => void>): QRL<() => void>;
+export function onWindow(event: string, eventFn: QRL<() => void>): void;
 
 // @public
 export type PromiseValue<T> = {
@@ -298,7 +298,7 @@ export function useLexicalScope<VARS extends any[]>(): VARS;
 export const useScopedStyles$: (first: string) => void;
 
 // @alpha (undocumented)
-export function useScopedStyles(styles: QRL<string>): void;
+export function useScopedStylesFromQrl(styles: QRL<string>): void;
 
 // @public
 export function useStore<STATE extends {}>(initialState: STATE): STATE;
@@ -307,7 +307,7 @@ export function useStore<STATE extends {}>(initialState: STATE): STATE;
 export const useStyles$: (first: string) => void;
 
 // @alpha
-export function useStyles(styles: QRL<string>): void;
+export function useStylesFromQrl(styles: QRL<string>): void;
 
 // @public (undocumented)
 export function useTransient<OBJ, ARGS extends any[], RET>(obj: OBJ, factory: (this: OBJ, ...args: ARGS) => RET, ...args: ARGS): RET;

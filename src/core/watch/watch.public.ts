@@ -49,7 +49,7 @@ import { registerOnWatch, WatchFn } from './watch';
  * @public
  */
 // </docs>
-export function onWatch(watchFn: QRL<(obs: Observer) => unknown | (() => void)>): void {
+export function onWatchFromQrl(watchFn: QRL<(obs: Observer) => unknown | (() => void)>): void {
   registerOnWatch(useHostElement(), useProps(), watchFn as QRLInternal<WatchFn>);
 }
 
@@ -98,7 +98,7 @@ export function onWatch(watchFn: QRL<(obs: Observer) => unknown | (() => void)>)
  * @public
  */
 // </docs>
-export const onWatch$ = implicit$FirstArg(onWatch);
+export const onWatch$ = implicit$FirstArg(onWatchFromQrl);
 
 // <docs markdown="https://hackmd.io/_Kl9br9tT8OB-1Dv8uR4Kg#Observer">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!

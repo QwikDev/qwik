@@ -93,9 +93,9 @@ async function submoduleCoreProd(config: BuildConfig) {
   await writeFile(esmMinFile, esmMinCode);
   const esmCleanCode = esmMinCode.replace(/__self__/g, '__SELF__');
 
-  const windowIdx = esmCleanCode.indexOf('window');
+  // const windowIdx = esmCleanCode.indexOf('window');
   const selfIdx = esmCleanCode.indexOf('self');
-  const indx = Math.max(windowIdx, selfIdx);
+  const indx = Math.max(selfIdx);
   if (indx !== -1) {
     throw new Error(
       `"${esmMinFile}" should not have any global references, and should have been removed for a production minified build\n` +

@@ -1,8 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 484
 expression: output
-
 ---
 ==INPUT==
 
@@ -23,8 +21,8 @@ export const Foo = component$(() => {
 ============================= test.tsx ==
 
 import * as qwik from "@builder.io/qwik";
-import { component } from "@builder.io/qwik";
-export const Foo = /*#__PURE__*/ component(qwik.qrl(()=>import("./h_test_foo_onmount")
+import { componentFromQrl } from "@builder.io/qwik";
+export const Foo = /*#__PURE__*/ componentFromQrl(qwik.qrl(()=>import("./h_test_foo_onmount")
 , "Foo_onmount"), {
     tagName: "my-foo"
 });
@@ -62,9 +60,9 @@ export const Foo_onRender = ()=>{
 ============================= h_test_foo_onmount.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-import { useStyles } from "@builder.io/qwik";
+import { useStylesFromQrl } from "@builder.io/qwik";
 export const Foo_onmount = ()=>{
-    useStyles(qwik.qrl(()=>import("./h_test_foo_usestyles")
+    useStylesFromQrl(qwik.qrl(()=>import("./h_test_foo_usestyles")
     , "Foo_useStyles"));
     return qwik.qrl(()=>import("./h_test_foo_onrender")
     , "Foo_onRender");

@@ -18,7 +18,7 @@ export const Footer = component$();
 
 ============================= project/test.js ==
 
-import*as b from"@builder.io/qwik";import{component as a}from"@builder.io/qwik";export const Header=/*#__PURE__*/ a(b.qrl(()=>import("../entry_hooks"),"Header_onmount"));export const Footer=/*#__PURE__*/ a();
+import*as b from"@builder.io/qwik";import{componentFromQrl as a}from"@builder.io/qwik";export const Header=/*#__PURE__*/ a(b.qrl(()=>import("../entry_hooks"),"Header_onmount"));export const Footer=/*#__PURE__*/ a();
 ============================= h_test_header_onrender.js ==
 
 import{jsxs as a}from"@builder.io/qwik/jsx-runtime";import*as b from"@builder.io/qwik";import{Footer as c}from"./project/test";import*as d from"lib";import{s as e}from"lib";import f from"lib";export const Header_onRender=()=>/*#__PURE__*/ a(c,{children:[f,d(),e()]});

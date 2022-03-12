@@ -54,7 +54,7 @@ export const onUnmount$ = implicit$FirstArg(onUnmountFromQrl);
  */
 // </docs>
 export function onResumeFromQrl(resumeFn: QRL<() => void>): void {
-  throw new Error('IMPLEMENT: onRender' + resumeFn);
+  onWindow('load', resumeFn);
 }
 
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onResume">

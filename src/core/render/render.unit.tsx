@@ -214,6 +214,7 @@ describe('render', () => {
         </project>
       );
     });
+
     it('should project un-named slot component', async () => {
       await render(
         fixture.host,
@@ -222,6 +223,7 @@ describe('render', () => {
         </Project>
       );
     });
+
     it('should project named slot component', async () => {
       await render(
         fixture.host,
@@ -250,6 +252,7 @@ describe('render', () => {
         </project>
       );
     });
+
     it.todo('should render nested component when it is projected by parent');
     it('should project multiple slot with same name', async () => {
       await render(
@@ -442,7 +445,7 @@ describe('render', () => {
     });
   });
 
-  describe('SVG element', () => {
+  describe.skip('SVG element', () => {
     it('should render #text nodes', async () => {
       const lines = ['hola', 'adios'];
       render(

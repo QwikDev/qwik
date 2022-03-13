@@ -117,7 +117,7 @@ class ReadWriteProxyHandler<T extends object> implements ProxyHandler<T> {
     const value = (target as any)[prop];
     const invokeCtx = tryGetInvokeContext();
     if (qDev && !invokeCtx) {
-      logWarn(`State assigned outside invocation context. Getting prop: "${prop}"`, this);
+      logWarn(`State assigned outside invocation context. Getting prop`, prop, this);
     }
     if (invokeCtx && invokeCtx.subscriptions) {
       const isArray = Array.isArray(target);

@@ -161,7 +161,7 @@ export function updateChildren(
   }
 
   if (newStartIdx <= newEndIdx) {
-    let before = newCh[newEndIdx + 1] == null ? undefined : newCh[newEndIdx + 1].elm;
+    const before = newCh[newEndIdx + 1] == null ? undefined : newCh[newEndIdx + 1].elm;
     results.push(addVnodes(ctx, parentElm, before, newCh, newStartIdx, newEndIdx, isSvg));
   }
 

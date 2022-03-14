@@ -2,25 +2,28 @@
 
 ## Introductions
 
-- [Getting Started](getting-started.mdx)
-- [Mental Model](mental-model.mdx)
-- [Resumable](resumable-vs-replayable.mdx)
-- [Lazy Loading](lazy-loading.mdx)
-- [Bootstrap](bootstrap.mdx)
+- [Overview](introduction/overview.md)
+- [Getting Started](introduction/getting-started.md)
+- [Mental Model](introduction/mental-model.md)
+- [Philosophy](introduction/philosophy.md)
+- [Resumable](introduction/resumable.md)
+- [Rendering](introduction/rendering.md)
+- [Lazy Loading](introduction/lazy-loading.md)
+- [Qwikloader](introduction/qwikloader.md)
 
 ## Components
 
-- [Overview](components/overview.mdx)
-- [Templates](components/templates.mdx)
-- [Event Handling](components/event-handling.mdx)
-- [Host Element](components/host-element.mdx)
-- [QRL](components/qrl.mdx)
+- [Overview](components/overview.md)
+- [Host elements](components/host-element.md)
+- [Props](components/props.md)
+- [Projection](components/projection.md)
+- [QRL](components/qrl.md)
+- [Lite elements](components/lite-components.md)
 
 ## Reactivity
 
-- [Overview](reactivity/overview.mdx)
-- [State](reactivity/state.mdx)
+- [Overview](reactivity/overview.md)
 
-## Server-Side Rendering
+## Serialization
 
-- [Overview](server-side-rendering/overview.mdx)
+- [Overview](serialization/overview.md)

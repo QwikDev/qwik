@@ -1,23 +1,35 @@
-import { INDEXES, LAYOUTS, PAGES, IS_DEV, BUILD_ID } from '@builder.io/qwest/build';
+import { INDEXES, LAYOUTS, PAGES, INLINED_MODULES, BUILD_ID } from '@builder.io/qwest/build';
 import { useHostElement } from '@builder.io/qwik';
+
+const IS_CLIENT = typeof document !== 'undefined';
 
 export const loadPage = async (opts) => {
   let mod = null;
+  let pathname = opts.pathname.endsWith('/') ? opts.pathname + 'index' : opts.pathname;
 
-  if (IS_DEV) {
-    // dev
-    const pageImporter = PAGES[opts.pathname];
+  if (INLINED_MODULES) {
+    // all page modules are inlined into the same bundle
+    const pageImporter = PAGES[pathname];
     if (!pageImporter) {
       return null;
     }
 
     mod = await pageImporter();
   } else {
-    // prod
-    const pagePath = '/pages' + opts.pathname + '.js?v=' + BUILD_ID;
-    mod = await import(/* @vite-ignore */ pagePath);
-  }
+    // page modules are dynamically imported by the client
+    try {
+      // ./pages/guide/getting-started.js
+      let pagePath = './pages' + pathname + '.js';
+      if (IS_CLIENT) {
+        pagePath += '?v=' + BUILD_ID;
+      }
 
+      mod = await import(pagePath);
+    } catch (e) {
+      console.error(e);
+      return null;
+    }
+  }
   if (!mod || !mod.default) {
     return null;
   }

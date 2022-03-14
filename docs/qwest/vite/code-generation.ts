@@ -3,7 +3,7 @@ import type { NormalizedPluginOptions, ParsedData } from './types';
 export function createBuildCode(
   opts: NormalizedPluginOptions,
   data: ParsedData,
-  isDevMode: boolean
+  inlineModules: boolean
 ) {
   const c = [];
 
@@ -27,14 +27,14 @@ export function createBuildCode(
   c.push(`};`);
 
   c.push(`export const PAGES = {`);
-  if (isDevMode) {
+  if (inlineModules) {
     for (const p of data.pages) {
       c.push(`  ${JSON.stringify(p.pathname)}: () => import(${JSON.stringify(p.filePath)}),`);
     }
   }
   c.push(`};`);
 
-  c.push(`export const IS_DEV = ${JSON.stringify(isDevMode)};`);
+  c.push(`export const INLINED_MODULES = ${JSON.stringify(inlineModules)};`);
 
   c.push(
     `export const BUILD_ID = ${JSON.stringify(

@@ -17,12 +17,18 @@ export function qwest(options: PluginOptions) {
   let hasValidatedOpts = false;
   let qwestBuildCode: string | null = null;
   let mdxTransform: MdxTransform | null = null;
+  let inlinedModules = false;
 
   const plugin: Plugin = {
     name: 'vite-plugin-qwest',
 
+    config(userConfig) {
+      inlinedModules = !!userConfig.build?.ssr;
+    },
+
     configureServer(server) {
       viteDevServer = server;
+      inlinedModules = true;
     },
 
     handleHotUpdate(ctx) {
@@ -73,7 +79,7 @@ export function qwest(options: PluginOptions) {
 
         const data = await loadPages(opts, (msg) => this.warn(msg));
 
-        if (viteDevServer) {
+        if (inlinedModules) {
           // vite dev server build (esbuild)
           qwestBuildCode = createBuildCode(opts, data, true);
         } else {

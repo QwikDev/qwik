@@ -16,7 +16,7 @@ export default defineConfig(async ({ mode }) => {
       },
     },
     ssr: {
-      noExternal: ['stream'],
+      noExternal: true,
     },
     plugins: [
       qwikVite({

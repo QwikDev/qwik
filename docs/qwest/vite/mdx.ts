@@ -1,3 +1,4 @@
+import { CompileOptions } from '@mdx-js/mdx/lib/compile';
 import { extname } from 'path';
 import { SourceMapGenerator } from 'source-map';
 import type { MdxOptions } from './types';
@@ -18,7 +19,7 @@ export async function createMdxTransformer(
   const userRemarkPlugins = userMdxOpts.remarkPlugins || [];
   const remarkPlugins = [remarkGfm, remarkFrontmatter, remarkMdxFrontmatter];
 
-  const mdxOpts = {
+  const mdxOpts: CompileOptions = {
     SourceMapGenerator,
     jsxImportSource: '@builder.io/qwik',
     ...userMdxOpts,

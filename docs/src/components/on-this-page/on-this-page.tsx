@@ -1,8 +1,8 @@
-import { component, Host, useStyles$, $ } from '@builder.io/qwik';
+import { component$, Host, useStyles$, $ } from '@builder.io/qwik';
 import styles from './on-this-page.css';
 
-export const OnThisPage = component(
-  $(() => {
+export const OnThisPage = component$(
+  () => {
     useStyles$(styles);
 
     return $(() => (
@@ -15,6 +15,6 @@ export const OnThisPage = component(
         </nav>
       </Host>
     ));
-  }),
+  },
   { tagName: 'aside' }
 );

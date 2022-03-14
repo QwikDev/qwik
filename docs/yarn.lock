@@ -28,10 +28,10 @@
   resolved "https://registry.yarnpkg.com/@builder.io/partytown/-/partytown-0.5.0.tgz#4972e8ec0239bf50db6a444853719cccec776655"
   integrity sha512-kKSEZuHSc6yvxMWeDu4usa6tj76IMY7xOLkcuRLd4YEDixdW/4d38bURyAJJZAtnILUCO7zNzUVGJuxFV/Vb6Q==
 
-"@builder.io/qwik@0.0.17-0-dev20220310192647":
-  version "0.0.17-0-dev20220310192647"
-  resolved "https://registry.yarnpkg.com/@builder.io/qwik/-/qwik-0.0.17-0-dev20220310192647.tgz#432f5a88fb0ca79ff5ab71e5c888de3d673728f0"
-  integrity sha512-eCJtOB2HJXSzZSJ+x/6jUsZLtGL12q3wp4W1HK4zF5MUIIqgzAFO+iBagAi5cU5V4fJywsP9pOM9dOz3PpvLPQ==
+"@builder.io/qwik@0.0.18-2":
+  version "0.0.18-2"
+  resolved "https://registry.yarnpkg.com/@builder.io/qwik/-/qwik-0.0.18-2.tgz#60d0f9848a9c9a3310117ef58309be06316fcfb9"
+  integrity sha512-ro3HuIl+lwQfKzBLteUN3I3lVHss4r4Ao2elwfb4TlkhvQpY6Z/mQV3tW0aZZi5X305SeI9MZSguLEcW8/VgOA==
 
 "@cloudflare/kv-asset-handler@0.2.0":
   version "0.2.0"

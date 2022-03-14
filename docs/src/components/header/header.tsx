@@ -18,7 +18,7 @@ export const Header = component$(
           <nav className="grow flex justify-end">
             <a
               className="font-semibold text-slate-200 hover:text-slate-400 px-2 mx-2"
-              href="/guide/introduction/overview"
+              href="/guide/overview"
             >
               Guide
             </a>

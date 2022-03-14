@@ -2,14 +2,14 @@
 
 ## Introductions
 
-- [Overview](introduction/overview.md)
-- [Getting Started](introduction/getting-started.md)
-- [Mental Model](introduction/mental-model.md)
-- [Philosophy](introduction/philosophy.md)
-- [Resumable](introduction/resumable.md)
-- [Rendering](introduction/rendering.md)
-- [Lazy Loading](introduction/lazy-loading.md)
-- [Qwikloader](introduction/qwikloader.md)
+- [Overview](overview.md)
+- [Getting Started](getting-started.md)
+- [Mental Model](mental-model.md)
+- [Philosophy](philosophy.md)
+- [Resumable](resumable.md)
+- [Rendering](rendering.md)
+- [Lazy Loading](lazy-loading.md)
+- [Qwikloader](qwikloader.md)
 
 ## Components
 

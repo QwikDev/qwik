@@ -2,6 +2,8 @@ import { assertEqual } from '../assert/assert';
 import { QError, qError } from '../error/error';
 import { notifyRender } from '../render/notify-render';
 import { tryGetInvokeContext } from '../use/use-core';
+import { logWarn } from '../util/log';
+import { qDev } from '../util/qdev';
 import { debugStringify } from '../util/stringify';
 
 export type ObjToProxyMap = WeakMap<any, any>;
@@ -114,6 +116,9 @@ class ReadWriteProxyHandler<T extends object> implements ProxyHandler<T> {
     }
     const value = (target as any)[prop];
     const invokeCtx = tryGetInvokeContext();
+    if (qDev && !invokeCtx) {
+      logWarn(`State assigned outside invocation context. Getting prop`, prop, this);
+    }
     if (invokeCtx && invokeCtx.subscriptions) {
       const isArray = Array.isArray(target);
       const sub = this.getSub(invokeCtx.hostElement);
@@ -129,9 +134,7 @@ class ReadWriteProxyHandler<T extends object> implements ProxyHandler<T> {
     const isArray = Array.isArray(target);
     if (isArray) {
       (target as any)[prop] = unwrappedNewValue;
-      this.subs.forEach((_, el) => {
-        notifyRender(el);
-      });
+      this.subs.forEach((_, el) => notifyRender(el));
       return true;
     }
     const oldValue = (target as any)[prop];

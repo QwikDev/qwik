@@ -24,6 +24,12 @@
 
 - [Overview](reactivity/overview.md)
 
+## Optimizer
+
+- [Overview](optimizer/overview.md)
+- [$` and Optimizer Rules](optimizer/dollar.md)
+- [Lexical scope](optimizer/lexical-scope.md)
+
 ## Serialization
 
 - [Overview](serialization/overview.md)

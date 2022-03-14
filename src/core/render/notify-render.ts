@@ -6,6 +6,7 @@ import { qDev } from '../util/qdev';
 import { getPlatform } from '../index';
 import { getDocument } from '../util/dom';
 import { renderComponent } from '../component/component-ctx';
+import { logDebug } from '../util/log';
 
 /**
  * Mark component for rendering.
@@ -110,6 +111,12 @@ export async function renderMarked(doc: Document, state: RenderingState): Promis
 
   // Early exist, no dom operations
   if (ctx.operations.length === 0) {
+    if (qDev) {
+      if (typeof window !== 'undefined' && window.document != null) {
+        logDebug('Render skipped. No operations.');
+        printRenderStats(ctx);
+      }
+    }
     postRendering(doc, state);
     return ctx;
   }

@@ -3,16 +3,22 @@ import { Logo } from './components/logo/logo';
 
 import './global.css';
 
+export function delay(time: number) {
+  return new Promise<void>((resolve) => {
+    setTimeout(() => resolve(), time);
+  });
+}
+
 export const Main = component$(() => {
   const state = useStore({ name: 'World' });
   return $(() => (
-    <Host class="my-app">
-      <Logo />
+    <Host class="my-app p-20">
+      <Logo class="mb-10" />
 
-      <p>Congratulations Qwik is working!</p>
+      <h1 class="text-3xl mb-2">Congratulations Qwik is working!</h1>
 
-      <p>Next steps:</p>
-      <ol>
+      <h2 class="text-2xl my-1">Next steps:</h2>
+      <ol class="list-decimal list-inside ml-10">
         <li>
           Open dev-tools network tab and notice that no JavaScript was downloaded to render this
           page. (Zero JavaScript no matter the size of your app.)
@@ -21,6 +27,8 @@ export const Main = component$(() => {
           Try interacting with this component by changing{' '}
           <input
             value={state.name}
+            class="border-2 border-solid border-blue-500"
+            placeholder="Write some text"
             on$:keyup={() => {
               const event = useEvent<KeyboardEvent>();
               const input = event.target as HTMLInputElement;
@@ -43,8 +51,8 @@ export const Main = component$(() => {
         <li>Replace the content of this component with your code.</li>
         <li>Build amazing web-sites with unbeatable startup performance.</li>
       </ol>
-      <hr />
-      <p style={{ 'text-align': 'center' }}>
+      <hr class="mt-10" />
+      <p class="text-center text-sm mt-2">
         Made with ❤️ by{' '}
         <a target="_blank" href="https://www.builder.io/">
           Builder.io

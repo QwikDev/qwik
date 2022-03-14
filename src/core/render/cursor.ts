@@ -71,7 +71,7 @@ export function smartUpdateChildren(
   if (oldCh.length > 0 && ch.length > 0) {
     return updateChildren(ctx, elm, oldCh, ch, isSvg);
   } else if (ch.length > 0) {
-    return addVnodes(ctx, elm, null, ch, 0, ch.length - 1, isSvg);
+    return addVnodes(ctx, elm, undefined, ch, 0, ch.length - 1, isSvg);
   } else if (oldCh.length > 0) {
     return removeVnodes(ctx, elm, oldCh, 0, oldCh.length - 1);
   }
@@ -95,7 +95,6 @@ export function updateChildren(
   let oldKeyToIdx: KeyToIndexMap | undefined;
   let idxInOld: number;
   let elmToMove: Node;
-  let before: any;
   const results = [];
 
   while (oldStartIdx <= oldEndIdx && newStartIdx <= newEndIdx) {
@@ -162,7 +161,7 @@ export function updateChildren(
   }
 
   if (newStartIdx <= newEndIdx) {
-    before = newCh[newEndIdx + 1] == null ? null : newCh[newEndIdx + 1].elm;
+    const before = newCh[newEndIdx + 1] == null ? undefined : newCh[newEndIdx + 1].elm;
     results.push(addVnodes(ctx, parentElm, before, newCh, newStartIdx, newEndIdx, isSvg));
   }
 
@@ -232,6 +231,7 @@ export function patchVnode(
   isSvg: boolean
 ): ValueOrPromise<void> {
   rctx.perf.visited++;
+  vnode.elm = elm;
   const tag = vnode.type;
   if (tag === '#text') {
     if ((elm as Text).data !== vnode.text) {
@@ -305,7 +305,7 @@ export function patchVnode(
 function addVnodes(
   ctx: RenderContext,
   parentElm: Node,
-  before: Node | null,
+  before: Node | undefined,
   vnodes: JSXNode[],
   startIdx: number,
   endIdx: number,
@@ -749,7 +749,7 @@ function insertBefore<T extends Node>(
   ctx: RenderContext,
   parent: Node,
   newChild: T,
-  refChild: Node | null
+  refChild: Node | null | undefined
 ): T {
   const fn = () => {
     parent.insertBefore(newChild, refChild ? refChild : null);

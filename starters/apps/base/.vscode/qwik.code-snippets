@@ -1,0 +1,52 @@
+{
+	"Qwik componentn": {
+		"scope": "typescriptreact",
+		"prefix": "component$",
+		"body": [
+			"export interface ${1:MyCmp}Props {",
+			"  step: number;",
+			"}",
+			"",
+			"export const ${1:MyCmp} = component$((props: ${1:MyCmp}Props) => {",
+			"  const state = useStore({",
+			"    count: 0",
+			"  });",
+			"  $0",
+			"  return $(() => {",
+			"    return (",
+			"      <button on$:click={() => state.count += props.step}>",
+			"        {state.count}",
+			"      </button>",
+			"    );",
+			"  });",
+			"});"
+		],
+		"description": "Log output to console"
+	},
+	"Qwik component": {
+		"scope": "javascriptreact,typescriptreact",
+		"prefix": "component$basic",
+		"body": [
+			"export const ${1:MyCmp} = component$(() => {",
+			"  return $(() => {",
+			"    return (",
+			"      <div>",
+			"      </div>",
+			"    );",
+			"  });",
+			"});"
+		],
+		"description": "Log output to console"
+	},
+	"Qwik state": {
+		"scope": "javascriptreact",
+		"prefix": "useStore$",
+		"body": [
+			"const ${1:state} = useStore({",
+			"  $2",
+			"});",
+			"$0"
+		],
+		"description": "Log output to console"
+	}
+}

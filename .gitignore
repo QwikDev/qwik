@@ -1,5 +1,4 @@
 .history
-.vscode
 dist
 dist-dev
 bazel-*

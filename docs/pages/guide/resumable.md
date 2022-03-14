@@ -1,6 +1,5 @@
 ---
 title: Resumable
-published: true
 ---
 
 # Resumable

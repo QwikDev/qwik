@@ -1,6 +1,5 @@
 ---
 title: Rules
-published: true
 ---
 
 # Rules

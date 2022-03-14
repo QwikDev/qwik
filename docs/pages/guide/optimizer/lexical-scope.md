@@ -1,6 +1,5 @@
 ---
 title: Capturing and lexical scopes
-published: true
 ---
 
 # Capturing the lexical scope

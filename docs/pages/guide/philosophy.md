@@ -1,6 +1,5 @@
 ---
 title: Philosophy
-published: true
 ---
 
 # Philosophy

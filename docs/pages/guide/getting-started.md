@@ -1,6 +1,5 @@
 ---
 title: Getting started
-published: true
 ---
 
 # Getting Started

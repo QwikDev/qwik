@@ -1,6 +1,5 @@
 ---
 title: Projection
-published: true
 ---
 
 # Projection

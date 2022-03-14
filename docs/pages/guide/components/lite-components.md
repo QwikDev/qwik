@@ -1,6 +1,5 @@
 ---
 title: Lite components
-published: true
 ---
 
 # Lite Components

@@ -1,6 +1,5 @@
 ---
 title: Mental model
-published: true
 ---
 
 # Mental Model

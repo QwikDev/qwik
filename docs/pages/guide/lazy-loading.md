@@ -1,6 +1,5 @@
 ---
 title: Lazy loading
-published: true
 ---
 
 # Lazy Loading & Code Splitting

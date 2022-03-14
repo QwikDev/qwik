@@ -1,6 +1,5 @@
 ---
 title: `$` and Optimizer Rules
-published: true
 ---
 
 # `$` and Optimizer Rules

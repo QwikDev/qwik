@@ -1,6 +1,5 @@
 ---
 title: Rendering
-published: true
 ---
 
 # Rendering

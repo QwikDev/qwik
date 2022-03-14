@@ -1,6 +1,5 @@
 ---
 title: Qwikloader
-published: true
 ---
 
 # Qwikloader

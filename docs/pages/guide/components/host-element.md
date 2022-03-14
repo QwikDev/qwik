@@ -1,6 +1,5 @@
 ---
 title: Host element
-published: true
 ---
 
 # Host Element

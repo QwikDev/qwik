@@ -1,6 +1,5 @@
 ---
 title: Props
-published: true
 ---
 
 # Props

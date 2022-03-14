@@ -1,6 +1,5 @@
 ---
 title: Overview
-published: true
 ---
 
 # Components

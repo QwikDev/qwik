@@ -3,12 +3,6 @@ import { Logo } from './components/logo/logo';
 
 import './global.css';
 
-export function delay(time: number) {
-  return new Promise<void>((resolve) => {
-    setTimeout(() => resolve(), time);
-  });
-}
-
 export const Main = component$(() => {
   const state = useStore({ name: 'World' });
   return $(() => (

@@ -1,6 +1,6 @@
 # Guide
 
-## Introductions
+## Introduction
 
 - [Overview](overview.md)
 - [Getting Started](getting-started.md)
@@ -27,7 +27,7 @@
 ## Optimizer
 
 - [Overview](optimizer/overview.md)
-- [$` and Optimizer Rules](optimizer/dollar.md)
+- [$ and Optimizer Rules](optimizer/dollar.md)
 - [Lexical scope](optimizer/lexical-scope.md)
 
 ## Serialization

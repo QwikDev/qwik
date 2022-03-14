@@ -1,5 +1,5 @@
 ---
-title: `$` and Optimizer Rules
+title: Optimizer Rules
 ---
 
 # `$` and Optimizer Rules

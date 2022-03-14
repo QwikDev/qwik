@@ -24,7 +24,7 @@ export const loadPage = async (opts) => {
         pagePath += '?v=' + BUILD_ID;
       }
 
-      mod = await import(pagePath);
+      mod = await import(/* @vite-ignore */ pagePath);
     } catch (e) {
       console.error(e);
       return null;

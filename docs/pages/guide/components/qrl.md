@@ -1,6 +1,5 @@
 ---
 title: QRL
-published: true
 ---
 
 # QRL

@@ -20,16 +20,32 @@
 
 .content p {
   @apply my-5;
+  font-size: 18px;
 }
 
 .content ul,
 .content ol {
   @apply my-5;
   @apply ml-8;
+  font-size: 18px;
+  line-height: 1.9;
   list-style: disc;
 }
 
 .content li {
   @apply my-2;
   @apply pl-3;
+}
+
+.content pre {
+  overflow: auto;
+
+  background-color: black;
+  padding: 20px;
+  border-radius: 15px;
+}
+
+.content pre code {
+  display: block;
+  max-width: 50px;
 }

@@ -1,4 +1,5 @@
 .history
+.vscode/settings.json
 dist
 dist-dev
 bazel-*

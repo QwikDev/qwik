@@ -1,15 +1,12 @@
 import { createMdxTransformer, MdxTransform } from './mdx';
 import { stat, readFile } from 'fs/promises';
 import { isAbsolute, join } from 'path';
-import type { ModuleGraph, ViteDevServer } from 'vite';
-import { ModuleNode } from 'vite';
-import { Plugin } from 'vite';
-import { PluginOptions } from '.';
+import type { ModuleGraph, ModuleNode, Plugin, ViteDevServer } from 'vite';
 import { createBuildCode } from './code-generation';
 import { loadPages } from './load-pages';
-import type { NormalizedPluginOptions } from './types';
+import type { NormalizedPluginOptions, PluginOptions } from './types';
 import { getIndexBuildPath, getPagesBuildPath, isMarkdownFile, normalizeOptions } from './utils';
-import type { PageIndex } from '../index';
+import type { PageIndex } from '../runtime';
 
 export function qwest(options: PluginOptions) {
   const opts = normalizeOptions(options);
@@ -113,7 +110,9 @@ export function qwest(options: PluginOptions) {
       }
 
       if (id === RESOLVED_QWEST_ID) {
-        return readFile(join(__dirname, '..', 'index.mjs'), 'utf-8');
+        // TODO: resolved path incorrect with this local/vite build
+        const runtimePath = join(__dirname, 'qwest', 'dist', 'index.mjs');
+        return readFile(runtimePath, 'utf-8');
       }
 
       return null;

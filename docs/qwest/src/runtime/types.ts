@@ -31,14 +31,14 @@ export interface MetaOptions {
   title?: string;
   description?: string;
   keywords?: string;
-  [name: string]: content;
+  [name: string]: Content;
 }
 
 export interface HeadMeta {
   title?: string;
   description?: string;
   keywords?: string;
-  [name: string]: content;
+  [name: string]: Content;
 }
 
 export type HeadLinks = HeadLinkAttributes[];
@@ -61,10 +61,8 @@ export interface HeadLinkAttributes {
   type?: string;
 }
 
-export declare function loadPage(opts: LoadIndexOptions): Promise<PageHandler | null>;
-
-export declare function loadIndex(opts: LoadIndexOptions): Promise<PageIndex | null>;
-
-export declare function setHeadMeta(meta: HeadMeta): void;
-
-export declare function setHeadLinks(links: HeadLinks): void;
+export interface PageHeading {
+  text: string;
+  id: string;
+  level: number;
+}

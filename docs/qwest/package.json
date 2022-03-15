@@ -1,0 +1,51 @@
+{
+  "name": "@builder.io/qwest",
+  "description": "Static Site Generator for Qwik",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "uvu -r tsm src/vite/tests",
+    "tsc": "tsc"
+  },
+  "devDependencies": {
+    "@types/github-slugger": "^1.3.0",
+    "@types/marked": "^4.0.2",
+    "@types/service-worker-mock": "2.0.1",
+    "estree-util-value-to-estree": "^1.3.0",
+    "front-matter": "^4.0.2",
+    "github-slugger": "^1.4.0",
+    "hast-util-heading-rank": "^2.1.0",
+    "hast-util-to-string": "^2.0.0",
+    "marked": "^4.0.12",
+    "prettier": "2.3.0",
+    "remark-frontmatter": "^4.0.1",
+    "remark-gfm": "^3.0.1",
+    "remark-mdx-frontmatter": "^1.1.1",
+    "slugify": "^1.6.5",
+    "typescript": "^4.5.2",
+    "unified": "^10.1.2",
+    "unist-util-visit": "^4.1.0",
+    "uvu": "^0.5.3",
+    "vite": "^2.7.13"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    },
+    "./vite": {
+      "import": "./dist/vite/index.mjs",
+      "require": "./dist/vite/index.cjs"
+    }
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/BuilderIO/qwik#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/BuilderIO/qwik.git"
+  },
+  "bugs": {
+    "url": "https://github.com/BuilderIO/qwik/issues"
+  }
+}

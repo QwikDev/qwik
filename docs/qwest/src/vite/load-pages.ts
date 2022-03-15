@@ -1,7 +1,7 @@
 import { readdir, readFile, stat } from 'fs/promises';
 import { extname, join } from 'path';
 import { parseMarkdownFile, parseIndexFile } from './parse';
-import { NormalizedPluginOptions, ParsedData } from './types';
+import type { NormalizedPluginOptions, ParsedData } from './types';
 import { IGNORE_EXT, IGNORE_NAMES, isMarkdownFile, isReadmeFile } from './utils';
 
 export async function loadPages(opts: NormalizedPluginOptions, warn: (msg: string) => void) {

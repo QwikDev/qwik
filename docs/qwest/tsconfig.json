@@ -3,19 +3,21 @@
     "target": "ES2020",
     "module": "ES2020",
     "lib": ["es2020", "DOM"],
-    "jsx": "react-jsx",
-    "jsxImportSource": "@builder.io/qwik",
     "strict": true,
+    "importsNotUsedAsValues": "error",
     "resolveJsonModule": true,
     "moduleResolution": "node",
     "esModuleInterop": true,
+    "declaration": true,
     "skipLibCheck": true,
     "incremental": true,
     "baseUrl": ".",
     "paths": {
-      "@builder.io/qwest": ["qwest/src/index"]
+      "@builder.io/qwest": ["src/runtime/index"],
+      "@builder.io/qwest/build": ["src/runtime/build"]
     },
-    "types": ["vite/client", "@cloudflare/workers-types"]
+    "types": ["vite/client", "@cloudflare/workers-types"],
+    "outDir": "tsc-out"
   },
-  "include": ["src", "functions", "qwest"]
+  "include": ["src"]
 }

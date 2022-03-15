@@ -2,7 +2,7 @@ import { defineConfig } from 'vite';
 import { qwikVite } from '@builder.io/qwik/optimizer';
 import { writeFile, mkdir } from 'fs/promises';
 import { dirname, join, resolve } from 'path';
-import { qwest } from './qwest/vite/index';
+import { qwest } from './qwest/dist/vite/index.mjs';
 import { partytownVite } from '@builder.io/partytown/utils';
 
 export default defineConfig(async ({ mode }) => {

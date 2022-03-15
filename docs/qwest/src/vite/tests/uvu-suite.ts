@@ -1,6 +1,6 @@
 import { join } from 'path';
 import { suite as uvuSuite } from 'uvu';
-import { NormalizedPluginOptions, PageAttributes } from '../types';
+import type { NormalizedPluginOptions, PageAttributes } from '../types';
 
 export function suite(title?: string) {
   const s = uvuSuite<TestContext>(title);

@@ -1,7 +1,12 @@
 import { extname, basename, relative, dirname, join } from 'path';
-import type { NormalizedPluginOptions, PageAttributes, ParsedIndex, ParsedPage } from './types';
+import type {
+  NormalizedPluginOptions,
+  PageAttributes,
+  ParsedIndex,
+  ParsedPage,
+  PluginOptions,
+} from './types';
 import slugify from 'slugify';
-import { PluginOptions } from '.';
 
 export function getPagePathname(opts: NormalizedPluginOptions, filePath: string) {
   let pathname = toPosix(relative(opts.pagesDir, filePath));
@@ -178,7 +183,7 @@ export function getPagesBuildPath(page: ParsedPage) {
 }
 
 export function getIndexBuildPath(index: ParsedIndex) {
-  return `pages${index.pathname}/index.json`;
+  return `pages${index.href}/index.json`;
 }
 
 /** Known file extension we know are not directories so we can skip over them */

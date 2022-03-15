@@ -1,6 +1,7 @@
-import { CompileOptions } from '@mdx-js/mdx/lib/compile';
+import type { CompileOptions } from '@mdx-js/mdx/lib/compile';
 import { extname } from 'path';
 import { SourceMapGenerator } from 'source-map';
+import { rehypeHeadings } from './rehype';
 import type { MdxOptions } from './types';
 
 export async function createMdxTransformer(
@@ -17,13 +18,17 @@ export async function createMdxTransformer(
   userMdxOpts = userMdxOpts || {};
 
   const userRemarkPlugins = userMdxOpts.remarkPlugins || [];
+  const userRehypePlugins = userMdxOpts.rehypePlugins || [];
+
   const remarkPlugins = [remarkGfm, remarkFrontmatter, remarkMdxFrontmatter];
+  const rehypePlugins = [rehypeHeadings];
 
   const mdxOpts: CompileOptions = {
     SourceMapGenerator,
     jsxImportSource: '@builder.io/qwik',
     ...userMdxOpts,
     remarkPlugins: [...userRemarkPlugins, ...remarkPlugins],
+    rehypePlugins: [...userRehypePlugins, ...rehypePlugins],
   };
 
   const { extnames, process } = createFormatAwareProcessors(mdxOpts);

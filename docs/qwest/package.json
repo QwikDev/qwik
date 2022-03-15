@@ -1,0 +1,30 @@
+{
+  "name": "@builder.io/qwest",
+  "description": "Static Site Generator for Qwik",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "uvu -r tsm src/vite/tests",
+    "tsc": "tsc"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    },
+    "./vite": {
+      "import": "./dist/vite/index.mjs",
+      "require": "./dist/vite/index.cjs"
+    }
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/BuilderIO/qwik#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/BuilderIO/qwik.git"
+  },
+  "bugs": {
+    "url": "https://github.com/BuilderIO/qwik/issues"
+  }
+}

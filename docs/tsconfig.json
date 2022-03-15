@@ -13,13 +13,9 @@
     "incremental": true,
     "baseUrl": ".",
     "paths": {
-      "@builder.io/qwik": ["../src/core/index"],
-      "@builder.io/qwik/jsx-runtime": ["../src/jsx-runtime"],
-      "@builder.io/qwik/optimizer": ["../src/optimizer/src/index"],
-      "@builder.io/qwik/server": ["../src/server/index"],
-      "@builder.io/qwik/testing": ["../src/testing/index"]
+      "@builder.io/qwest": ["qwest/src/index"]
     },
     "types": ["vite/client", "@cloudflare/workers-types"]
   },
-  "include": ["src"]
+  "include": ["src", "functions", "qwest"]
 }

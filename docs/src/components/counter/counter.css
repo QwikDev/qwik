@@ -1,0 +1,13 @@
+@tailwind components;
+
+.article-md h1 {
+  @apply text-4xl py-4;
+}
+
+.article-md h2 {
+  @apply text-2xl py-3;
+}
+
+.article-md p {
+  @apply py-2;
+}

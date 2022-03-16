@@ -9,11 +9,9 @@ export const Main = component$(() => {
     const doc = useDocument();
     const url = new URL(doc.baseURI);
 
-    const page = await loadPage({
-      pathname: url.pathname,
-    });
+    const page = await loadPage({ url });
     if (page) {
-      return <Page page={page} pathname={url.pathname} />;
+      return <Page page={page} />;
     }
     return <Builder />;
   });

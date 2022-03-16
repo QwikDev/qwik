@@ -4,12 +4,9 @@ import { Footer } from '../../components/footer/footer';
 import { SideBar } from '../../components/sidebar/sidebar';
 import { loadIndex } from '@builder.io/qwest';
 import styles from './docs.css';
+import { OnThisPage } from 'src/components/on-this-page/on-this-page';
 
-export interface DocsLayoutProps {
-  pathname: string;
-}
-
-const DocsLayout = component$((props: DocsLayoutProps) => {
+const DocsLayout = component$(() => {
   useScopedStyles$(styles);
 
   return $(async () => {
@@ -28,6 +25,7 @@ const DocsLayout = component$((props: DocsLayoutProps) => {
             </article>
             <Footer />
           </section>
+          <OnThisPage />
         </main>
       </Host>
     );

@@ -3,24 +3,24 @@ import { component$, $ } from '@builder.io/qwik';
 
 interface QwestPageProps {
   page: PageHandler;
-  pathname: string;
 }
 
-export const Page = component$(({ page, pathname }: QwestPageProps) => {
+export const Page = component$(({ page }: QwestPageProps) => {
   return $(() => {
     const attrs = page.getAttributes();
     const Layout = page.getLayout();
     const Content = page.getContent();
+    const url = page.getURL();
 
     setHeadMeta({
       title: attrs.title + ' - Qwik',
       description: attrs.description,
     });
 
-    setHeadLinks([{ rel: 'canonical', href: pathname }]);
+    setHeadLinks([{ rel: 'canonical', href: url.href }]);
 
     return (
-      <Layout pathname={pathname}>
+      <Layout>
         <Content />
       </Layout>
     );

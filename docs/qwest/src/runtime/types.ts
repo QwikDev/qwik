@@ -5,6 +5,7 @@ export interface PageHandler {
   getContent: () => Content | null;
   getLayout: () => Layout | null;
   getAttributes: () => PageAttributes;
+  getURL: () => URL;
 }
 
 /**
@@ -39,14 +40,14 @@ export interface PageIndex {
  * @public
  */
 export interface LoadPageOptions {
-  pathname: string;
+  url: string | URL;
 }
 
 /**
  * @public
  */
 export interface LoadIndexOptions {
-  pathname: string;
+  url: string | URL;
 }
 
 /**

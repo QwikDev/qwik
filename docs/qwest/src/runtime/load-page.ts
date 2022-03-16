@@ -1,16 +1,19 @@
 import { BUILD_ID, INLINED_MODULES, LAYOUTS, PAGES } from '@builder.io/qwest/build';
 import type { LoadIndexOptions, PageHandler } from './types';
+import { normalizeUrl } from './utils';
 
 /**
  * @public
  */
 export const loadPage = async (opts: LoadIndexOptions): Promise<PageHandler | null> => {
   let mod: any = null;
-  const pathname = opts.pathname.endsWith('/') ? opts.pathname + 'index' : opts.pathname;
+
+  const url = normalizeUrl(opts.url);
+  const modulePath = url.pathname.endsWith('/') ? url.pathname + 'index' : url.pathname;
 
   if (INLINED_MODULES) {
     // all page modules are inlined into the same bundle
-    const pageImporter = PAGES[pathname];
+    const pageImporter = PAGES[modulePath];
     if (!pageImporter) {
       return null;
     }
@@ -20,7 +23,7 @@ export const loadPage = async (opts: LoadIndexOptions): Promise<PageHandler | nu
     // page modules are dynamically imported
     try {
       // ./pages/guide/getting-started.js
-      let pagePath = './pages' + pathname + '.js';
+      let pagePath = './pages' + modulePath + '.js';
       if (IS_CLIENT) {
         pagePath += '?v=' + BUILD_ID;
       }
@@ -46,6 +49,7 @@ export const loadPage = async (opts: LoadIndexOptions): Promise<PageHandler | nu
     getContent: () => mod.default,
     getLayout: () => layout.default,
     getAttributes: () => mod.attributes,
+    getURL: () => url,
   };
 };
 

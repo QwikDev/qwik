@@ -11,7 +11,7 @@ import type {
   RenderToStringOptions,
   RenderToStringResult,
 } from './types';
-import { createTimer } from './utils';
+import { createTimer, normalizeUrl } from './utils';
 
 /**
  * Create emulated `Global` for server environment. Does not implement a browser
@@ -22,8 +22,7 @@ export function createGlobal(opts?: GlobalOptions): QwikGlobal {
   opts = opts || {};
 
   const doc: QwikDocument = qwikDom.createDocument() as any;
-  const baseURI = opts.url === undefined ? BASE_URI : opts.url.href;
-  const loc = new URL(baseURI, BASE_URI);
+  const loc = normalizeUrl(opts.url);
 
   Object.defineProperty(doc, 'baseURI', {
     get: () => loc.href,
@@ -31,8 +30,15 @@ export function createGlobal(opts?: GlobalOptions): QwikGlobal {
   });
 
   const glb: any = {
-    document: doc,
-    location: loc,
+    get document() {
+      return doc;
+    },
+    get location() {
+      return loc;
+    },
+    get origin() {
+      return loc.origin;
+    },
     CustomEvent: class CustomEvent {
       type: string;
       constructor(type: string, details: any) {
@@ -108,5 +114,3 @@ export async function renderToString(rootNode: any, opts: RenderToStringOptions)
 
   return result;
 }
-
-const BASE_URI = `http://document.qwik.dev/`;

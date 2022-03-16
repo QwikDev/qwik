@@ -8,6 +8,9 @@ import type { NormalizedPluginOptions, PluginOptions } from './types';
 import { getIndexBuildPath, getPagesBuildPath, isMarkdownFile, normalizeOptions } from './utils';
 import type { PageIndex } from '../runtime';
 
+/**
+ * @public
+ */
 export function qwest(options: PluginOptions) {
   const opts = normalizeOptions(options);
   let viteDevServer: ViteDevServer | undefined;

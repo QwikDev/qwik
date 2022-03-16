@@ -8,16 +8,16 @@ interface QwestPageProps {
 
 export const Page = component$(({ page, pathname }: QwestPageProps) => {
   return $(() => {
-    const meta = page.getMetadata();
+    const attrs = page.getAttributes();
     const Layout = page.getLayout();
     const Content = page.getContent();
 
     setHeadMeta({
-      title: meta.title,
-      description: meta.description,
+      title: attrs.title,
+      description: attrs.description,
     });
 
-    setHeadLinks([{ rel: 'canonical', href: `https://qwik.dev${pathname}` }]);
+    setHeadLinks([{ rel: 'canonical', href: pathname }]);
 
     return (
       <Layout pathname={pathname}>

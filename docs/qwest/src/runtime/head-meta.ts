@@ -1,6 +1,9 @@
 import type { MetaOptions } from './types';
 import { useHostElement } from '@builder.io/qwik';
 
+/**
+ * @public
+ */
 export const setHeadMeta = (meta: MetaOptions) => {
   const hostElm = useHostElement();
   const doc = hostElm && hostElm.ownerDocument;

@@ -1,6 +1,7 @@
 import { join } from 'path';
 import { suite as uvuSuite } from 'uvu';
-import type { NormalizedPluginOptions, PageAttributes } from '../types';
+import type { NormalizedPluginOptions } from '../types';
+import type { PageAttributes } from '../../runtime';
 
 export function suite(title?: string) {
   const s = uvuSuite<TestContext>(title);
@@ -14,7 +15,7 @@ export function suite(title?: string) {
       extensions: ['.mdx', '.md'],
     };
     ctx.filePath = join(ctx.opts.pagesDir, 'welcome.mdx');
-    ctx.attrs = {};
+    ctx.attrs = { title: '', description: '' };
   });
   return s;
 }

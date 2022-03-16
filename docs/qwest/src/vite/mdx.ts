@@ -20,15 +20,17 @@ export async function createMdxTransformer(
   const userRemarkPlugins = userMdxOpts.remarkPlugins || [];
   const userRehypePlugins = userMdxOpts.rehypePlugins || [];
 
-  const remarkPlugins = [remarkGfm, remarkFrontmatter, remarkMdxFrontmatter];
-  const rehypePlugins = [rehypeHeadings];
-
   const mdxOpts: CompileOptions = {
     SourceMapGenerator,
     jsxImportSource: '@builder.io/qwik',
     ...userMdxOpts,
-    remarkPlugins: [...userRemarkPlugins, ...remarkPlugins],
-    rehypePlugins: [...userRehypePlugins, ...rehypePlugins],
+    remarkPlugins: [
+      ...userRemarkPlugins,
+      remarkGfm,
+      remarkFrontmatter,
+      [remarkMdxFrontmatter, { name: 'attributes' }],
+    ],
+    rehypePlugins: [...userRehypePlugins, rehypeHeadings],
   };
 
   const { extnames, process } = createFormatAwareProcessors(mdxOpts);

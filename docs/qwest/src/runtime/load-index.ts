@@ -1,6 +1,9 @@
 import { INDEXES } from '@builder.io/qwest/build';
 import type { LoadIndexOptions, PageIndex } from './types';
 
+/**
+ * @public
+ */
 export const loadIndex = async (opts: LoadIndexOptions): Promise<PageIndex | null> => {
   let pathname = opts.pathname;
 

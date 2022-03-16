@@ -1,27 +1,12 @@
 import { join } from 'path';
-import { readdir, stat, readFile, writeFile } from 'fs';
-import { get } from 'https';
+import { readLines, scanFiles, writeFileLines } from './util';
 
 export function main(dir: string) {
   console.log('DOC SYNC', dir);
-  scanFiles(dir);
-}
-
-function scanFiles(dir: string) {
-  readdir(dir, (err, files) => {
-    if (err) throw err;
-    files.forEach((file) => {
-      const path = join(dir, file);
-      stat(path, (err, status) => {
-        if (err) throw err;
-        if (status.isDirectory()) {
-          scanFiles(path);
-        }
-        if (status.isFile() && file.endsWith('.ts')) {
-          readFileLines(join(dir, file)).then((lines) => scanForDocDirective(dir, file, lines));
-        }
-      });
-    });
+  scanFiles(dir, async (file) => {
+    if (file.endsWith('.ts')) {
+      await readLines(join(dir, file)).then((lines) => scanForDocDirective(dir, file, lines));
+    }
   });
 }
 
@@ -35,13 +20,12 @@ async function scanForDocDirective(dir: string, file: string, lines: string[]) {
     const match = /^(\s*)\/\/ <docs markdown="(.*)#(.*)">/.exec(line);
     if (match) {
       const prefix = match[1];
+      console.log('line', line, JSON.stringify(prefix));
       const ref = match[2];
       const section = match[3];
       const bookRef = ref.replace(/\/\/hackmd.io\//, '//hackmd.io/@qwik-docs/BkxpSz80Y/%2F');
-      output.push(
-        prefix +
-          `// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!\n// (edit ${bookRef}%3Fboth#${section} instead)`
-      );
+      output.push(prefix + `// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!`);
+      output.push(prefix + `// (edit ${bookRef}%3Fboth#${section} instead)`);
       output.push(prefix + '/**');
       (await resolveComment(dir, ref, section)).forEach((longLine) =>
         breakLongLine(longLine).forEach((line) =>
@@ -69,7 +53,7 @@ async function scanForDocDirective(dir: string, file: string, lines: string[]) {
   }
 }
 
-function isComment(line: string) {
+function isComment(line: string): boolean {
   line = line.trim();
   return line.startsWith('//') || line.startsWith('/**') || line.startsWith('*');
 }
@@ -92,39 +76,8 @@ async function resolveComment(dir: string, ref: string, section: string): Promis
   return output;
 }
 
-const hackMdCache = new Map<string, Promise<string[]>>();
-
-async function readFileLines(file: string): Promise<string[]> {
-  let promise = hackMdCache.get(file);
-  if (promise) return promise;
-
-  const index = file.indexOf('https:/hackmd.io/');
-  if (index === -1) {
-    promise = new Promise((res, rej) =>
-      readFile(file, (err, data) => (err ? rej(err) : res(String(data).split('\n'))))
-    );
-  } else {
-    const url = file.substring(index).replace('https:/', 'https://') + '/download';
-    console.log('FETCHING:', url);
-    promise = new Promise<string[]>((resolve, rej) => {
-      get(url, (res) => {
-        res.setEncoding('utf8');
-        let body = '';
-        res.on('data', (data) => {
-          body += String(data);
-        });
-        res.on('end', () => {
-          resolve(body.split('\n'));
-        });
-      });
-    });
-  }
-  hackMdCache.set(file, promise);
-  return promise;
-}
-
 async function readFileSection(file: string, section: string) {
-  const lines = await readFileLines(file);
+  const lines = await readLines(file);
   let sectionStart = '# `' + section + '`';
   let row = 0;
   let output: string[] = [];
@@ -148,15 +101,9 @@ async function readFileSection(file: string, section: string) {
   return output;
 }
 
-async function writeFileLines(file: string, lines: string[]) {
-  return new Promise((res, rej) =>
-    writeFile(file, lines.join('\n'), (err) => (err ? rej(err) : res(null)))
-  );
-}
-
 async function resolveCodeExample(file: string, anchor: string): Promise<string[]> {
   const output: string[] = [];
-  const lines = await readFileLines(file);
+  const lines = await readLines(file);
   let row = 0;
   while (row < lines.length) {
     const line = lines[row++];

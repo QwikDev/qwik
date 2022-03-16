@@ -13,7 +13,7 @@ export const Page = component$(({ page, pathname }: QwestPageProps) => {
     const Content = page.getContent();
 
     setHeadMeta({
-      title: attrs.title,
+      title: attrs.title + ' - Qwik',
       description: attrs.description,
     });
 

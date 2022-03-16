@@ -3,7 +3,7 @@
   "version": "0.0.18-2",
   "description": "An Open-Source sub-framework designed with a focus on server-side-rendering, lazy-loading, and styling/animation.",
   "scripts": {
-    "build": "node scripts --tsc --build --api --platform-binding --wasm && npm run link.dist",
+    "build": "node scripts --tsc --build --api --platform-binding --wasm",
     "build.platform": "node scripts --platform-binding",
     "build.wasm": "node scripts --wasm",
     "build.cli": "node scripts --cli --dev",
@@ -25,6 +25,7 @@
     "test.e2e.firefox": "playwright test starters --browser=firefox --config starters/playwright.config.ts",
     "test.e2e.webkit": "playwright test starters --browser=webkit --config starters/playwright.config.ts",
     "serve": "node --inspect starters/dev-server.cjs 3300",
+    "docs.fetch.hackMD": "node --trace-warnings -r esbuild-register scripts/docs_sync/fetch_hackmd.ts",
     "docs.sync": "node scripts/docs_sync",
     "prepare": "husky install",
     "lint": "npm run lint.eslint && npm run lint.prettier && npm run lint.rust",

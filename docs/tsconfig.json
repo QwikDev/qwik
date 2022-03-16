@@ -13,7 +13,7 @@
     "incremental": true,
     "baseUrl": ".",
     "paths": {
-      "@builder.io/qwest": ["qwest/src/index"]
+      "@builder.io/qwest": ["qwest/src/runtime/index"]
     },
     "types": ["vite/client", "@cloudflare/workers-types"]
   },

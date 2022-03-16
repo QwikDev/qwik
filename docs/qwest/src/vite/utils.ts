@@ -1,12 +1,7 @@
 import { extname, basename, relative, dirname, join } from 'path';
-import type {
-  NormalizedPluginOptions,
-  PageAttributes,
-  ParsedIndex,
-  ParsedPage,
-  PluginOptions,
-} from './types';
+import type { NormalizedPluginOptions, ParsedIndex, ParsedPage, PluginOptions } from './types';
 import slugify from 'slugify';
+import type { PageAttributes } from '@builder.io/qwest';
 
 export function getPagePathname(opts: NormalizedPluginOptions, filePath: string) {
   let pathname = toPosix(relative(opts.pagesDir, filePath));

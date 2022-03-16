@@ -1,13 +1,15 @@
 export type {
+  Content,
   HeadLinkAttributes,
   HeadLinks,
+  Layout,
   LoadIndexOptions,
   LoadPageOptions,
   MetaOptions,
+  PageAttributes,
   PageHandler,
   PageHeading,
   PageIndex,
-  PageMetadata,
 } from './types';
 
 export { loadIndex } from './load-index';

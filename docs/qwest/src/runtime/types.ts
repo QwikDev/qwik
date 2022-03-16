@@ -1,32 +1,57 @@
+/**
+ * @public
+ */
 export interface PageHandler {
   getContent: () => Content | null;
   getLayout: () => Layout | null;
-  getMetadata: () => PageMetadata;
+  getAttributes: () => PageAttributes;
 }
 
-export interface PageMetadata {
-  title: string;
-  description: string;
-  [pageAttribute: string]: string;
+/**
+ * @public
+ */
+export interface PageAttributes {
+  title?: string;
+  description?: string;
+  [pageAttribute: string]: string | undefined;
 }
 
+/**
+ * @public
+ */
 export type Content = any;
+
+/**
+ * @public
+ */
 export type Layout = any;
 
+/**
+ * @public
+ */
 export interface PageIndex {
   text: string;
   href?: string;
   items?: PageIndex[];
 }
 
+/**
+ * @public
+ */
 export interface LoadPageOptions {
   pathname: string;
 }
 
+/**
+ * @public
+ */
 export interface LoadIndexOptions {
   pathname: string;
 }
 
+/**
+ * @public
+ */
 export interface MetaOptions {
   title?: string;
   description?: string;
@@ -41,8 +66,14 @@ export interface HeadMeta {
   [name: string]: Content;
 }
 
+/**
+ * @public
+ */
 export type HeadLinks = HeadLinkAttributes[];
 
+/**
+ * @public
+ */
 export interface HeadLinkAttributes {
   as?: string;
   crossorigin?: string;
@@ -61,6 +92,9 @@ export interface HeadLinkAttributes {
   type?: string;
 }
 
+/**
+ * @public
+ */
 export interface PageHeading {
   text: string;
   id: string;

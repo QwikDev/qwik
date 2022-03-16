@@ -579,7 +579,6 @@ const setInnerHTML: PropHandler = (ctx, elm, _, newValue) => {
   return true;
 };
 
-
 const PROP_HANDLER_MAP: Record<string, PropHandler> = {
   style: handleStyle,
   value: checkBeforeAssign,

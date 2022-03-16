@@ -2,34 +2,34 @@
 
 ## Introduction
 
-- [Overview](overview.md)
-- [Getting Started](getting-started.md)
-- [Mental Model](mental-model.md)
-- [Philosophy](philosophy.md)
-- [Resumable](resumable.md)
-- [Rendering](rendering.md)
-- [Lazy Loading](lazy-loading.md)
-- [Qwikloader](qwikloader.md)
+- [Overview](overview.mdx)
+- [Getting Started](getting-started.mdx)
+- [Mental Model](mental-model.mdx)
+- [Philosophy](philosophy.mdx)
+- [Resumable](resumable.mdx)
+- [Rendering](rendering.mdx)
+- [Lazy Loading](lazy-loading.mdx)
+- [Qwikloader](qwikloader.mdx)
 
 ## Components
 
-- [Overview](components/overview.md)
-- [Host elements](components/host-element.md)
-- [Props](components/props.md)
-- [Projection](components/projection.md)
-- [QRL](components/qrl.md)
-- [Lite elements](components/lite-components.md)
+- [Overview](components/overview.mdx)
+- [Host elements](components/host-element.mdx)
+- [Props](components/props.mdx)
+- [Projection](components/projection.mdx)
+- [QRL](components/qrl.mdx)
+- [Lite elements](components/lite-components.mdx)
 
 ## Reactivity
 
-- [Overview](reactivity/overview.md)
+- [Overview](reactivity/overview.mdx)
 
 ## Optimizer
 
-- [Overview](optimizer/overview.md)
-- [$ and Optimizer Rules](optimizer/dollar.md)
-- [Lexical scope](optimizer/lexical-scope.md)
+- [Overview](optimizer/overview.mdx)
+- [$ and Optimizer Rules](optimizer/dollar.mdx)
+- [Lexical scope](optimizer/lexical-scope.mdx)
 
 ## Serialization
 
-- [Overview](serialization/overview.md)
+- [Overview](serialization/overview.mdx)

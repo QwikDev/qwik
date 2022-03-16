@@ -14,7 +14,7 @@
     "dev.wrangler": "wrangler pages dev ./dist",
     "fmt": "prettier --write .",
     "fmt.check": "prettier --check .",
-    "start": "npm run dev",
+    "start": "npm run dev.client",
     "link.builder": "npm link @builder.io/qwik"
   },
   "devDependencies": {

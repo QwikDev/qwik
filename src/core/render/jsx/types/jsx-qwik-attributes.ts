@@ -6,6 +6,7 @@ import type { JSXNode } from './jsx-node';
 export interface QwikProps {
   class?: string | { [className: string]: boolean };
   innerHTML?: string;
+  dangerouslySetInnerHTML?: string;
 
   /**
    *

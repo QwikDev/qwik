@@ -571,10 +571,10 @@
   resolved "https://registry.yarnpkg.com/@builder.io/partytown/-/partytown-0.4.5.tgz#3c85e25a7102336b7da4c71a46e77722da052e74"
   integrity sha512-HcHlmMYSpOxfJ0lFVxgZrvgIjz1Q8knlGuWkBpvjIp68j+xVWg969+sn7BCfyKhcGaYlnVOY/CEBHapQBcl0jw==
 
-"@builder.io/qwik-dom@2.1.9":
-  version "2.1.9"
-  resolved "https://registry.yarnpkg.com/@builder.io/qwik-dom/-/qwik-dom-2.1.9.tgz#46e135a880966caa376572941c8b36e2ff4aa708"
-  integrity sha512-It21+oAzu28Ixc+IEyeTc4OPLZeiyDcXSzKHizkuLZewYJHYocsM+SZJK1jMtltmL9eyJEJqiOCcCeqQDr9ROw==
+"@builder.io/qwik-dom@2.1.11":
+  version "2.1.11"
+  resolved "https://registry.yarnpkg.com/@builder.io/qwik-dom/-/qwik-dom-2.1.11.tgz#c28db6762d26b4c63c7746851bdd22b2a8838c75"
+  integrity sha512-vY3RTmoH30ONELMO8+r96OUJw/Oa4VThX9UxRjYPUkMpe5wdRJNkyTqyZqnKF2NeZeoaCfXp1YUxB1H+w4IlUw==
 
 "@eslint/eslintrc@^1.2.0":
   version "1.2.0"

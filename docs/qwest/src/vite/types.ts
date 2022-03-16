@@ -20,15 +20,13 @@ export interface ParsedPage {
   filePath: string;
 }
 
-export interface PageAttributes {
-  title?: string;
-  layout?: string;
-}
-
 export interface NormalizedPluginOptions extends PluginOptions {
   extensions: string[];
 }
 
+/**
+ * @public
+ */
 export interface PluginOptions {
   layouts: {
     [layoutName: string]: string;
@@ -46,4 +44,7 @@ export interface PluginOptions {
   mdx?: MdxOptions;
 }
 
+/**
+ * @public
+ */
 export type MdxOptions = import('@mdx-js/mdx/lib/compile.js').CompileOptions;

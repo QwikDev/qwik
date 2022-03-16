@@ -1,6 +1,9 @@
 import { BUILD_ID, INLINED_MODULES, LAYOUTS, PAGES } from '@builder.io/qwest/build';
 import type { LoadIndexOptions, PageHandler } from './types';
 
+/**
+ * @public
+ */
 export const loadPage = async (opts: LoadIndexOptions): Promise<PageHandler | null> => {
   let mod: any = null;
   const pathname = opts.pathname.endsWith('/') ? opts.pathname + 'index' : opts.pathname;
@@ -39,17 +42,10 @@ export const loadPage = async (opts: LoadIndexOptions): Promise<PageHandler | nu
 
   const layout = await layoutImporter();
 
-  const meta: any = {};
-  for (const k in mod) {
-    if (k !== 'default') {
-      meta[k] = mod[k];
-    }
-  }
-
   return {
     getContent: () => mod.default,
     getLayout: () => layout.default,
-    getMetadata: () => meta,
+    getAttributes: () => mod.attributes,
   };
 };
 

@@ -1,21 +1,30 @@
 import type { HeadLinks } from './types';
 import { useHostElement } from '@builder.io/qwik';
 
+/**
+ * @public
+ */
 export const setHeadLinks = (links: HeadLinks) => {
   const hostElm = useHostElement();
   const doc = hostElm && hostElm.ownerDocument;
 
   if (doc && Array.isArray(links)) {
     for (const link of links) {
-      if (link && typeof link === 'object') {
-        const attrs = Object.entries(link);
-        if (attrs.length > 0) {
-          if (link.rel === 'canonical') {
-            setLink(doc, attrs);
-          } else {
-            ensureLink(doc, attrs);
+      try {
+        if (link && typeof link === 'object') {
+          let attrs = Object.entries(link);
+          if (attrs.length > 0) {
+            if (link.rel === 'canonical') {
+              link.href = new URL(link.href! || '/', doc.defaultView!.location.href).href;
+              attrs = Object.entries(link);
+              setLink(doc, attrs);
+            } else {
+              ensureLink(doc, attrs);
+            }
           }
         }
+      } catch (e) {
+        console.error(e);
       }
     }
   }

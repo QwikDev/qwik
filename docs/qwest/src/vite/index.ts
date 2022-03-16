@@ -1,2 +1,2 @@
 export { qwest } from './plugin';
-export type { PluginOptions } from './types';
+export type { MdxOptions, PluginOptions } from './types';

@@ -6,7 +6,7 @@ export function render(opts: RenderToStringOptions) {
   return renderToString(
     <html lang="en" className="h-screen">
       <head>
-        <Head href={opts.url!.href} />
+        <Head />
       </head>
       <body q:base="/">
         <Main />

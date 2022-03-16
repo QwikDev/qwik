@@ -1,10 +1,4 @@
-import type {
-  NormalizedPluginOptions,
-  PageAttributes,
-  ParsedIndex,
-  ParsedIndexData,
-  ParsedPage,
-} from './types';
+import type { NormalizedPluginOptions, ParsedIndex, ParsedIndexData, ParsedPage } from './types';
 import frontmatter from 'front-matter';
 import { marked } from 'marked';
 import {
@@ -14,6 +8,7 @@ import {
   getPageTitle,
   validateLayout,
 } from './utils';
+import type { PageAttributes } from '../runtime';
 
 export function parseMarkdownFile(
   opts: NormalizedPluginOptions,

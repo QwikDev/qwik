@@ -11,7 +11,7 @@ export const Builder = component$(() => {
     return (
       <Host>
         <Header />
-        {html && <main class="builder" innerHTML={html} />}
+        {html && <main class="builder" dangerouslySetInnerHTML={html} />}
       </Host>
     );
   });

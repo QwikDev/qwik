@@ -99,24 +99,6 @@ async function bundleQwikDom(config: BuildConfig) {
     target,
     outfile,
     format: 'esm',
-    plugins: [
-      {
-        name: 'sloppyDomino',
-        setup(build) {
-          build.onLoad({ filter: /.*sloppy\.js/ }, (args) => {
-            return {
-              // esm modules cannot use `with` statement
-              // and questionable if this feature is needed for ssr
-              contents: `
-              module.exports={
-                Window_run:function _run(){},
-                EventHandlerBuilder_build:function build(){}
-              };`,
-            };
-          });
-        },
-      },
-    ],
   };
 
   await build(opts);

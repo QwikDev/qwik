@@ -14,5 +14,5 @@ export type {
 
 export { loadIndex } from './load-index';
 export { loadPage } from './load-page';
-export { setHeadLinks } from './heat-links';
+export { setHeadLinks } from './head-links';
 export { setHeadMeta } from './head-meta';

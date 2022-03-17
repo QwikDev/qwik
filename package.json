@@ -5,6 +5,7 @@
   "scripts": {
     "build": "node scripts --tsc --build --api --platform-binding --wasm",
     "build.platform": "node scripts --platform-binding",
+    "build.only_javascript": "node scripts --tsc --build --api",
     "build.wasm": "node scripts --wasm",
     "build.cli": "node scripts --cli --dev",
     "build.cli.prod": "node scripts --cli",

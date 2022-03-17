@@ -426,7 +426,7 @@ export function component$<PROPS extends {}>(
  */
 export type OnMountFn<PROPS> = (
   props: PROPS
-) => ValueOrPromise<QRL<() => ValueOrPromise<JSXNode<any>>>>;
+) => ValueOrPromise<QRL<() => ValueOrPromise<JSXNode<any> | null>>>;
 
 function resolveQrl<PROPS extends {}>(
   hostElement: Element,

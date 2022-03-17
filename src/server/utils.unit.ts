@@ -1,4 +1,5 @@
-import { normalizeUrl } from './utils';
+import { createDocument, createGlobal } from './document';
+import { ensureGlobals, normalizeUrl } from './utils';
 
 describe('normalizeUrl', () => {
   it('no url', () => {
@@ -24,5 +25,68 @@ describe('normalizeUrl', () => {
     expect(url.searchParams.get('query')).toBe('string');
     expect(url.origin).toBe('http://document.qwik.dev');
     expect(url.href).toBe('http://document.qwik.dev/some-path?query=string#hash');
+  });
+});
+
+describe('ensureGlobals', () => {
+  it('baseURI', () => {
+    const glb = ensureGlobals({ nodeType: 9 }, { url: 'http://my.qwik.dev/my-path' });
+    expect(glb.document.baseURI).toBe('http://my.qwik.dev/my-path');
+
+    glb.document.baseURI = 'http://my.qwik.dev/new-path';
+    expect(glb.document.baseURI).toBe('http://my.qwik.dev/new-path');
+  });
+
+  it('location, no options', () => {
+    const glb = ensureGlobals({ nodeType: 9 }, {});
+    expect(glb.location.pathname).toBe('/');
+
+    glb.location.pathname = '/new-path';
+    expect(glb.location.pathname).toBe('/new-path');
+  });
+
+  it('location', () => {
+    const glb = ensureGlobals({ nodeType: 9 }, { url: '/my-path' });
+    expect(glb.location.pathname).toBe('/my-path');
+  });
+
+  it('origin, no options', () => {
+    const glb = ensureGlobals({ nodeType: 9 }, {});
+    expect(glb.origin).toBe('http://document.qwik.dev');
+  });
+
+  it('origin', () => {
+    const glb = ensureGlobals({ nodeType: 9 }, { url: '/my-path' });
+    expect(glb.origin).toBe('http://document.qwik.dev');
+  });
+
+  it('invalid document', () => {
+    expect(() => {
+      ensureGlobals({}, {});
+    }).toThrow();
+  });
+});
+
+describe('document ensureGlobals', () => {
+  it('qwik server createDocument()', () => {
+    const doc = createDocument();
+    expect(doc.defaultView).not.toBeUndefined();
+    expect(doc.defaultView!.document).toBe(doc);
+  });
+
+  it('qwik server createGlobal()', () => {
+    const gbl = createGlobal();
+    expect(gbl.document.defaultView).not.toBeUndefined();
+    expect(gbl.document.defaultView).toBe(gbl);
+  });
+
+  it('some other document', () => {
+    const doc: any = {
+      nodeType: 9,
+    };
+    ensureGlobals(doc, {});
+    ensureGlobals(doc, {}); // shouldn't reset
+    expect(doc.defaultView).not.toBeUndefined();
+    expect(doc.defaultView.document).toBe(doc);
   });
 });

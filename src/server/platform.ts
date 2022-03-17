@@ -1,7 +1,7 @@
 import type { CorePlatform } from '@builder.io/qwik';
+import { normalizeUrl } from './utils';
 import { setPlatform } from '@builder.io/qwik';
 import type { SerializeDocumentOptions } from './types';
-import { normalizeUrl } from './utils';
 
 const _setImmediate = typeof setImmediate === 'function' ? setImmediate : setTimeout;
 
@@ -13,8 +13,9 @@ function createPlatform(document: any, opts: SerializeDocumentOptions) {
   }
   const doc: Document = document;
   const symbols = opts.symbols;
-  doc.location.href = normalizeUrl(opts.url).href;
-
+  if (opts?.url) {
+    doc.location.href = normalizeUrl(opts.url).href;
+  }
   const serverPlatform: CorePlatform = {
     async importSymbol(_element, qrl, symbolName) {
       let [modulePath] = String(qrl).split('#');

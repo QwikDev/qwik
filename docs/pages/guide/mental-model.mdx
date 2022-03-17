@@ -1,130 +1,72 @@
 ---
-title: Mental Model
+title: Mental model
+fetch: https://hackmd.io/@mhevery/Hyh0420l5
 ---
 
 # Mental Model
 
-## Overview
+Qwik is very similar to other web frameworks on a high level. Qwik is a framework that renders a tree of components resulting in an interactive application.
 
-Qwik is a different kind of framework. Qwik stores all of the application information in the DOM/HTML rather than in the Javascript heap. The result is that applications written in Qwik can be serialized and resumed where they left off. Qwik's design decisions are governed by:
+The unique part of Qwik is not in what it does but in how it achieves its goals. Qwik's goal is to have instant-on applications, even on mobile devices. Qwik achieves this through two main strategies:
 
-- **Serializability:** Ability of the application to be serialized into HTML at any time and resumed later. (This supports resumability and server-side-rendering.)
-- **Resumability:** Ability of the application to continue where it left off when it was serialized. (This is needed to have fast application startup times independent of application size.)
-- **Out-of-order component rehydration:** Ability to rehydrate components on an as-needed basis regardless of where they are in the DOM hierarchy. (This is needed to rehydrate only the components that the user is interacting with (or components that need to be updated) rather than all of the components on the page.)
-- **Fine-grained lazy-loading:** Ability to download only the piece of code that is needed to achieve the current task. (Minimize the amount of code that needs to be downloaded into the browser, ensuring fast startup and responsiveness even on slow connections.)
-- **Startup Performance:** Have a constant startup time regardless of the size of the application. (No matter the application's size, the startup time should be constant to ensure a consistent user experience.)
+1. Delay execution and download of Javascript for as long as possible.
+2. Serialize the execution state of the application and the framework on the server and resume it on the client.
 
-Because of the above goals, some design decisions may feel foreign compared to the current generation of "heap-centric" frameworks. However, the design decisions are necessary to achieve the above objectives, ultimately leading to blazingly fast application startup on desktop and mobile devices.
+The goal of Qwik is having only to download and execute the bare minimum of the application. The remainder of the document lists the problems the framework will encounter to minimize the amount of code that needs to be downloaded and executed.
 
-## Component & Entities
+## 1. Qwikloader and event handler serialization
 
-Qwik applications consist of `Component`s and `Entity`s.
+The most expensive part for the startup for the current generation of frameworks is the cost of hydration. Hydration refers to attaching event listeners to the DOM elements to make the application interactive. Qwik does not require hydration because Qwik serializes the event handlers into HTML in the form of `on:event` attributes. Together with Qwikloader, Qwik can delay executing Javascript until user interaction. (See preloading for discussion on how to minimize the cost of loading code on interaction.)
 
-- **Component:** Qwik application UIs are built from a collection of Qwik `Component`s. `Component`s can communicate with each other only through `Props`, `Entity`s, and by listening to or emitting/broadcasting `Event`s. (See [reactivity](./reactivity/overview.mdx).) No other form of communication is allowed as it would go against the goals outlined above.
-- **Entity:** `Entity`s represent application data or shared behavior between `Component`s and the application backend. `Entity`s do not have UI representation and must be injected into a `Component` to have their data rendered. `Entity`s can perform communication with the server or other external resources.
+Without serializing event handlers into the HTML, the framework would be forced to hydrate on application startup. Hydration would require downloading all components currently in HTML and executing their templates to determine where the event listeners need to be attached.
 
-A Qwik application is a graph of `Component`s and `Entity`s that define data flow. The Qwik framework will hydrate `Component`s/`Entity`s on an as-needed basis to achieve the desired outcome. To do this, the Qwik framework must understand the data flow between `Component`s and `Entity`s to know which `Component` or `Entity` needs to be rehydrated and when. Most other frameworks do not have this understanding and need to re-render the whole application on any data update resulting in too much code that must be downloaded. (See [lazy loading](./lazy-loading.mdx).)
+## 2. Code splitting
 
-### Example
+Qwikloader and event handler serialization from above can delay the execution of javascript until later. However, serializing event handlers will not have benefits if the first interaction will have to download the whole application. Qwik puts a lot of emphasis on breaking up the application into many small lazy loadable chunks through Optimizer so that only a tiny portion of the application needs to be downloaded on the first interaction. The amount of code downloaded should be proportional to the complexity of the interaction rather than just forcing the download of all components currently in HTML.
 
-```
-TodoComponent   <---------- TodoDataEntity
-     |                           |
-     +-> ItemComponent  <-----   +--> ItemDataEntity
-```
+Without Optimizer, a typical application would end up a single chunk because all of the application parts are interconnected. Breaking up the application codebase requires explicit dynamic imports. Most current-generation frameworks make it best to place these lazy-loaded boundaries on routing boundaries only. Routing level lazy loading still results in chunks that are too big for the Qwik approach.
 
-Above is a `Component`/`Entity` dependency graph of a hypothetical application. In Qwik, relationships between `Component`s and `Entity`s are expressed in the DOM/HTML. Depending on which object updates, Qwik understands which other `Component`s need to be rehydrated and re-rendered as well. (Without this understanding, Qwik would have to re-render the whole application indiscriminately.)
+## 3. Bootstrap
 
-## Serializability of Components & Entities.
+All applications have a main entry point to get the application going. We call this the bootstrap code. Typically this involves importing the application root component and calling a framework method to render it. Rendering a root component, in turn, causes more components to be pulled in and rendered until the whole application renders.
 
-`Component`s and `Entity`s must be serializable so that they can be sent over HTML and resumed later. This serializability requirement is necessary to have resumable applications.
+On hydration, the bootstrap again takes a root component and calls a framework method to re-hydrate the current HTML (meaning re-attach the listeners as well as rebuild the framework internal state about the application component tree.)
 
-A `Component` or `Entity` consists of:
+Qwik does not need to do hydration. Qwik still has a bootstrap method, but that typically executes on the server to render the initial application. There is no reboostrap on the client. Instead, Qwik serializes not only the application state into HTML but also the framework state as well. The serialized state allows the Qwik framework to continue execution where the server left off. Not requiring a reboostrap is what makes Qwik resumable.
 
-- **`Props`:** These are a hash of key/value strings (`{[key:string]:string}`), which tell Qwik about the `Component` or `Entity`.
-  - **`Component`:** These are just the DOM attributes of the `Component`'s host element. If the attributes change, then the `Component` gets notified. These `Props` are serialized into the [host element](./components/host-element.mdx).
-  - **`Entity`:** The `Props` for an `Entity` are usually serialized into a `EntityKey`, which uniquely identifies an entity instance. The `EntityKey` is constant for the lifetime of the entity. (For example `issue:org123:proj456:789` might identify an issue with id `789` in `org123/proj456`.)
-- **`State`:** A `Component` or `Entity` can have a `State` which is a `JSON` serializable object. If an application is dehydrated then the `State` is serialized into the DOM/HTML so that it can be quickly rehydrated on the client.
-- **Transient State:** is state that is only stored inside the instance of a `Component` or `Entity`. This state can include references to any other object. However, the transient state will not be serialized and therefore anything stored on the instance as transient state will have to be recomputed on rehydration.
+If the Qwik application required a reboostrap in the browser, they would require pulling the root component and, with it, all child components. This would require an early download of the application code, the exact thing that Qwik aims to avoid.
 
-Example:
+## 4. State
 
-```typescript
-// Serialized into a entity Key.
-interface UserProps {
-  id: string;
-}
+A user interaction causes the browser to fire an event processed by the Qwikloader, which in turn downloads the specific event handler to process the user interaction. When the event handler starts execution, it needs the application state; otherwise, it will not perform useful work.
 
-// Serialized into HTML/DOM as JSON.
-interface User {
-  fullName: string;
-  age: number;
-}
+The current generation of frameworks rebuild application (and framework) state as part of the rehydration. Qwik explicitly avoids rehydration because doing so would require the download and execution of code. Instead, Qwik relies on serializing the application (and framework) state from the server into HTML and then restoring the state on the client. By deserializing (restoring) the state, the Qwik application can continue execution in the browser from where the server left off.
 
-// Transient instance. Will be recreated on re-hydration.
-class UserEntity extends Entity<UserProps, User> {
-  static $type = 'User';
-  static $qrl = QRL`location_of_entity_for_lazy_loading`;
-  static $keyProps = ['id'];
+Without restoring the state, the application would have to rebuild the state before the event handler runs. The rebuild of the state would require downloading and executing application initialization code that would not fit into a reasonable handler response.
 
-  cookie: Cookie; // Transient property must be recomputed on rehydration
-}
-```
+## 5. Reactivity
 
-Explanation:
+At this point, Qwik was able to download a minimal amount of code to process the event. The event most likely modified the application state, and therefore UI needs to be updated. To do this efficiently, Qwik must determine which components are invalidated due to the state change.
 
-```typescript
-// Example for retrieving a `Entity`.
-const userEntity: UserEntity = UserEntity.$hydrate(someElement, 'user:some_user_id');
+Most current-generation frameworks are not reactive, and they solve the above problem by simply rerendering all of the components from the root. (The frameworks can use tricks to limit the DOM updates and prune some tree branches to stay fast, but they still need to execute too many templates.) The consequence of this is that component templates are downloaded and executed even if no visible change is rendered. Qwik can't use this approach because doing so would require that most of the application would be downloaded on the first interaction.
 
-/**
- * A transient `Entity` instance.
- *
- * If the application gets hydrated a new instance of `UserEntity` will be created.
- */
-userEntity;
+An alternative approach is to use reactivity. A reactive framework keeps a graph of each state property and which component uses it. In this way, a reactive framework can efficiently answer which components need to be invalidated due to state change. However, to build up the graph, a framework must execute the whole application at least once to collect the graph information. The initial collection of the graph means that whole applications must be downloaded and executed before a framework can efficiently answer which component is invalidated due to a specific state change. This approach would invalidate the benefits of Qwik as it would force an early download and execution of the application.
 
-/**
- * A transient `Entity` property.
- *
- * It will not be serialized and rehydrated. `UserEntity` will have to recompute it.
- */
-userEntity.cookie;
+Qwik is reactive on the component level. To avoid the early download and execution of the component, Qwik serializes the reactivity graph on the server and restores it on the client. In this way, Qwik can easily answer which components need to be invalidated without forcing the whole application to download to the browser eagerly.
 
-/**
- * An immutable constant `Props` that identifies a `Entity`.
- *
- * `Props` which are parsed from the `EntityKey`.
- */
-expect(userEntity.$props).toEqual({ id: 'some_user_id' });
+## 6. Out-of-order Rendering
 
-/**
- * The serializable state of a `Entity`.
- *
- * A entity `State` is either rehydrated from DOM/HTML or the `Entity` can communicate with an external resource
- * (e.g. a server) to look up the associated `State` based on the `EntityKey`.
- */
-expect(userEntity.$state).toEqual({
-  fullName: 'Joe Someone',
-  age: 20,
-});
-```
+At this point, Qwik was able to download minimal code to process the event, restore the application state, and determine a minimal number of components that are invalidated due to the state change. The last major challenge is to rerender the invalidated components and not also require Qwik to render parent or child components.
 
-`Component`s are similar to `Entity`s except they are associated with a specific UI host-element, and a `Component`'s `Props` can change over time.
+The component that needs to be rendered will require props from the parent component. The Qwik serialization mechanism must serialize props on the server and restore props in the browser so that the parent component presence is not required. (A more complicated form of this is when the parent component creates projection children that child component does not render on the server. In the browser, the client component rerendering causes the projected content to be rendered. Qwik must restore the content children without forcing the parent component to rerender.)
 
-## DOM Centric
+Qwik also needs to prevent child components from being rerendered due to parent component rerendering. When the parent component rerenderes, the child components do not get updated unless their props have been modified.
 
-A Qwik application is DOM-centric. All of the information about the application `Component`s, `Entity`s, `Event`s, and entity bindings are stored in the DOM as custom attributes. There is no runtime Qwik framework heap state (with the exception of caches for performance). The result is that a Qwik application can easily be rehydrated because the Qwik framework has no runtime information which needs to be recreated on the client.
+Lastly, Qwik needs to ensure that downloading the parent component template does not force the download of a child template. Typically a component template directly references a child component as symbols—this forces bundler to include child component in the parent component bundle because there is a direct reference. In practice, this means that having a reference to a root component transitively includes all child components as well. Qwik optimizer is specifically designed to prevent this so that having a reference to any component does not transitively include child components as well.
 
-Here are some common ways Qwik framework keeps state in DOM/HTML.
+## Summary
 
-- `<some-component q:view="qrl_to_template">`: The `q:view` attribute identifies a component boundary. It also points to the location where the template can be found in case of rehydration. `Component`s can be rehydrated and rendered independently of each other.
-- `<div ::user="qrl_to_service">`: The `::user` attribute declares a `UserEntity` provider on this element's injector which points to the location where the `Entity` can be lazy loaded from.
-- `<div :user:some_user_id='{"fullName": "Joe Someone", "age": 20}'>`: The dehydrated, serialized form of a `UserEntity` with `Props: {id: 'some_user_id'}` and `State: {fullName: "Joe Someone", age: 20}`.
-- `<some-component bind:user:some_user_id="$user">`: A entity binding to a `Component`. This tells Qwik that if the `State` of `UserEntity ` with `EntityKey`: `user:some_user_id` changes, the component `<some-component>` will need to be re-rendered.
-- `<some-component on:click="qrl_to_handler">`: The `on:click` attribute notifies the Qwik framework that the component is interested in `click` events. The attribute points to the location where the click handler can be lazy-loaded from.
-  `Component`s are similar to `Entity`s except they are associated with a specific UI host-element, and `Component`'s `Props` can change over time.
+As you can see, Qwik is designed so that it can delay the download and execution of most of the code associated with the application for as long as possible. It achieves this through:
 
-The benefit of the DOM centric approach is that all of the application state is already serialized in the DOM/HTML. The Qwik framework itself has no additional information which it needs to store about the application.
-
-Another important benefit is that Qwik can use `querySelectorAll` to easily determine if there are any bindings for an `Entity` or if there are any listeners for a specific `Event` without having to consult any internal data structures. The DOM is Qwik's framework state.
+1. **The Optimizer**: breaks up the application into many small lazy-loadable chunks.
+2. **Resumability**: runtime is designed so that it does not require hydration; instead, it serializes all of the application and framework state into HTML, allowing the application to resume execution where the server left off.

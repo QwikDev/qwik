@@ -1,0 +1,51 @@
+.content h1 {
+  @apply text-slate-200;
+  @apply text-3xl font-bold;
+  @apply mb-5;
+}
+
+.content h2 {
+  @apply text-slate-200;
+  @apply text-2xl font-semibold;
+  @apply mt-8;
+  @apply mb-5;
+}
+
+.content h3 {
+  @apply text-slate-200;
+  @apply text-xl font-semibold;
+  @apply mt-6;
+  @apply mb-5;
+}
+
+.content p {
+  @apply my-5;
+  font-size: 18px;
+}
+
+.content ul,
+.content ol {
+  @apply my-5;
+  @apply ml-8;
+  font-size: 18px;
+  line-height: 1.9;
+  list-style: disc;
+}
+
+.content li {
+  @apply my-2;
+  @apply pl-3;
+}
+
+.content pre {
+  overflow: auto;
+
+  background-color: black;
+  padding: 20px;
+  border-radius: 15px;
+}
+
+.content pre code {
+  display: block;
+  max-width: 50px;
+}

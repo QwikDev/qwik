@@ -1,64 +1,96 @@
 ---
-title: Lazy-Loading
+title: Lazy loading
+fetch: https://hackmd.io/@mhevery/rkzgBnRlq
 ---
 
-# Fine-Grained Lazy-Loading
+# Lazy Loading & Code Splitting
 
-After [resumability](./resumable-vs-replayable.mdx), fine-grained lazy-loading is the next important goal to achieve low [time to interactive](https://web.dev/interactive/) score.
+Qwik's [core tenant](./philosophy) is to delay the loading and execution of JavaScript for as long as possible. Qwik needs to break up the application into many lazy loadable chunks to achieve that.
 
-## Frameworks lack lazy-loading primitives
+## Basic problem
 
-The current generation of frameworks lack lazy loading primitives. Many frameworks have ways of lazy loading routes or small section of templates, but they lack lazy loading at the core level of the framework and with sufficiently fine granularity.
+Let's start by looking at a simple `Counter` example.
 
-A good way to look at it is that if the browser downloads code, then close to 100% of that code should to be executed. Most frameworks today will download big chunks for code only to execute a small portion of it. Most of the unexecuted code will reside in event handlers and their dependencies.
-
-Frameworks also tend to have synchronous APIs making it hard for the developers to insert lazy-loading asynchronous boundaries.
-
-## Fined-grained lazy-loading as a core primitive
-
-Qwik takes fine-grained lazy-loading to the extreme. Almost all Qwik APIs can be called asynchronously so that lazy-loading can be inserted in case it is needed. That is not to say that you should make everything lazy-loaded as there are tradeoffs, but rather that the framework allows just about anything to be lazy-loaded in case the need arises.
-
-Lazy loading directly impacts the amount of code which needs to be downloaded, parsed and executed resulting in improved [time to interactive](https://web.dev/interactive/) score.
-
-## Lazy loading event handlers
-
-One of the biggest places where fine-grained lazy-loading can be applied is in the area of event handlers. Applications typically have many event handlers to support user interaction. Most of these event handlers do not get exercised during typical user interactions, but must still be downloaded just-in-case. The event handlers are in the form of closures which close over the dependencies of the event handler further increasing the download size. Additionally most frameworks require that templates be rendered for the framework to attach the event handlers to the DOM.
-
-In practice this means that [heap-centric](./resumable-vs-replayable.mdx) frameworks must execute all of the templates so that they can collect the event handlers and attach them to the DOM, just in case the user will perform an interaction. A developer could place dynamic imports in the event handlers, but in practice this is complicated because event bubbling is synchronous making composing event handlers hard. It also means that a heap-centric framework must download and execute all of the templates currently visible to the user. All of these complications slow down [time to interactive](https://web.dev/interactive/) and do not directly help the developer to do the right thing.
-
-Qwik stores event handlers as string annotations in the DOM. This has several advantages:
-
-- No template needs to be downloaded and rendered in order for the framework to know where the event handlers need to be registered.
-- No event handler code needs to be downloaded before it is needed.
-- Global event handler registration can be performed saving on event registration during [bootstrap](./bootstrap.mdx).
-- All event handlers automatically have lazy loaded boundaries. This guides the developer to do the high performance thing by default.
-
-## Lazy loading components
-
-The current generation of frameworks can't render individual components in isolation. The result is that rendering a component requires all of the component's children to be present and executed on each rendering.
-
-To explore this more in depth imagine following render tree:
-
-```html
-<parent>
-  <middle>
-    <child></child>
-  </middle>
-</parent>
+```typescript=
+const Counter = component$(() => {
+  const store = useStore({count: 0});
+  return $(() => (
+    <button on$:click={() => store.count++}>
+      {store.count}
+    </button>
+  ));
+});
 ```
 
-Let's say that the framework has determined that only the `<middle>` component needs to be re-rendered. The current generation of frameworks don't have a way to re-render `<middle>` but not to recurse into `<child>`. The lack of this capability means that re-hydration in current frameworks starts with a component and forces re-hydration of all its descendant components. This causes unnecessary downloading, executing and reconciliation. We can say that the approach of current frameworks causes "child component-coupling".
+As a developer, it is desirable to put all parts of the component together into an easily readable format, as shown above. However, while the component is concise, it is not lazy-loadable.
 
-The reverse is also true. Let's say that `<middle>` has a button with a `click` handler. Clicking the button will cause the application to change state (which may be a store in the Redux pattern). Most current frameworks don't directly track state and so there is no way of knowing which other components need to be invalidated due to execution of the event handler. The only thing the framework can do is to re-render the whole application from the root just-in-case there is a component which depends on the state. We can say that the current approach causes "parent component-coupling".
+Let's rewrite the component and give each function a name for easier discussion.
 
-> Yes, there are some frameworks which track data-flow through subscriptions (reactive frameworks), and such frameworks would know which exact component needs to be updated. The problem is that setting up these subscriptions necessitates the creation of closures which in turn need references to the components. Creation of these subscriptions forces all of the components to be materialized negating any benefits. (see: [Qwik reactivity](./reactivity/overview.mdx))
+```typescript=
+const Counter = component$(function onMount() {
+  const store = useStore({count: 0});
+  return $(function onRender() {
+    return (
+      <button on$:click={function onClick() {
+        return store.count++;
+      }>
+        {store.count}
+      </button>
+    );
+  });
+});
+```
 
-Child and parent component-coupling means that in practice all of the currently visible application must be downloaded and present for the application to be user interactive. As applications get bigger and more complicated this requirements means that the application startup gets slower over time.
+NOTE: Code written verbosely for easier discussion.
 
-Qwik focuses on breaking these dependencies so that neither child nor parent component-coupling are an issue resulting in a rendering model which does not require that templates or event handlers are downloaded until they are needed.
+Let's look at use cases:
 
-Breaking child component-coupling requires that Qwik's rendering system understands where component boundaries are, and can conditionally enter child components based on the dirty flag of the component. This means that the rendering pipeline of Qwik is asynchronous, and understands how to conditionally download component templates on an as needed basis. (Contrast this to current generation frameworks which have synchronous rendering pipelines. This complicates async template loading, and the rendering always enters child components.)
+- **initial render**: will require `onMount` to create component state and `onRender` to render the component. `onClick` is not needed as no user interaction has occurred.
+- **re-rendering**: (assume `store.count` changes by another component, not shown.) Only `onRender` is needed. `onMount` is not required as the component already exists (no new state needs to be created.) `onClick` is not necessary because the user did not interact with the component.
+- **interaction**: Clicking on the button needs `onClick`, which will mutate the `state.count`, which will require `onRender` to update the component. `onMount` is only needed on component creation, and in this case, the component already exists.
 
-## Out of order component re-hydration
+As you can see, different use cases need different parts of the code. In the above trivial code example, downloading all of the code together is inconsequential. However, In large applications, it is easy to create large islands that are coupled and hence can't be lazy-loaded independently. The result is that bandwidth is wasted downloading code that is not immediately needed.
 
-A key goal for Qwik is to allow components to re-hydrate and re-render only when it is necessary. The implication of this is that at times components can re-hydrate out of parent/child order. A non-obvious implication of this is that the framework rendering pipeline needs to understand how to render components from the root, skip non-hydrated components and continue with deep children.
+# Optimizer
+
+Optimizer (described in-depth [here](./optimizer)) is a code transformation that extracts functions into top-level importable symbols, which allows the Qwik runtime to lazy-load the JavaScript on a needed basis.
+
+The Optimizer and Qwik runtime work together to achieve the desired result of fine-grained lazy loading.
+
+Without Optimizer either:
+
+- The code would have to be broken up by the developer into importable parts. This would be unnatural to write an application, making for a bad DX.
+- The application would have to load a lot of unnecessary code as there would be no lazy-loaded boundaries.
+
+Qwik runtime must understand the Optimizer output. The biggest difference to comprehend is that by breaking up the component into lazy-loadable chunks, the lazy-loading requirement introduces asynchronous code into the framework. The framework has to be written differently to take asynchronicity into account. Existing frameworks assume that all code is available synchronously. This assumption prevents an easy insertion of lazy-loading into existing frameworks. (For example, when a new component is created, the framework assumes that its initialization code can be invoked in a synchronous fashion. If this is the first time component is referenced, then its code needs to be lazy-loaded, and therefore the framework must take that into account.)
+
+## Lazy-loading
+
+Lazy-loading is asynchronous. Qwik is an asynchronous framework. Qwik understands that at any time, it may not have a reference to a callback, and therefore, it may need to lazy-load it. (In contrast, most existing frameworks assume that all of the code is available synchronously, making lazy-loading non-trivial.)
+
+In Qwik everything is lazy-loadable:
+
+- Component on-mount (initialization block)
+- Component on-watch (side-effects, only downloaded if inputs change)
+- Component on-render (only downloaded when a component needs to be re-rendered)
+- Listeners (only downloaded on interaction)
+- Styles (Only downloaded if the server did not already provide them)
+
+Lazy-loading is a core property of the framework and not an afterthought.
+
+## Optimizer and `$`
+
+Let's look at our example again:
+
+```typescript=
+const Counter = component$(() => {
+  const store = useStore({count: 0});
+  return $(() => (
+    <button on$:click={() => store.count++}>
+      {store.count}
+    </button>
+  ));
+});
+```
+
+Notice the presence of `$` in the code. `$` is a marker that tells the Optimizer that the function following it should be lazy-loaded. (For a detailed discussion see [$ and Optimizer Rules](./optimizer_rules).) The `$` is a single character that hints to the Optimizer and the developer to let them know that asynchronous lazy-loading occurs here.

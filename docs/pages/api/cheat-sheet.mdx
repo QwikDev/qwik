@@ -13,14 +13,14 @@ HTML attributes with the following syntax have a special meaning to Qwik.
 
 ### General
 
-| Syntax              | Meaning                                                                                                                 |
-| ------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| `:`                 | Marker which signifies that the element has injector                                                                    |
-| `on:<name>="<QRL>"` | If the event `name` is detected then the handler defined by the `QRL` loaded and executed. See [QRL](#qrl) table below. |
-| `bind:<key>="attr"` | Bind the `attr` to the service identified by `key`. See the [bindings note](#bindings)                                  |
-| `::name=QRL`        | Entity with key `name` is defined at `QRL`.                                                                             |
-| `key:=JSON`         | State of the `Entity` identified by `key`, serialized into JSON.                                                        |
-| `:.=JSON`           | Component state, serialized into JSON.                                                                                  |
+| Syntax              | Meaning                                                                                                                    |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `:`                 | Marker which signifies that the element has injector                                                                       |
+| `on:<name>="<QRL>"` | If the event `name` is detected then the handler defined by the `QRL` is loaded and executed. See [QRL](#qrl) table below. |
+| `bind:<key>="attr"` | Bind the `attr` to the service identified by `key`. See the [bindings note](#bindings)                                     |
+| `::name=QRL`        | Entity with key `name` is defined at `QRL`.                                                                                |
+| `key:=JSON`         | State of the `Entity` identified by `key`, serialized into JSON.                                                           |
+| `:.=JSON`           | Component state, serialized into JSON.                                                                                     |
 
 ### JSX Components
 

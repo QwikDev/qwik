@@ -14,6 +14,7 @@ import { invokeWatchFn } from '../watch/watch';
 import { getEvents, QContext } from './props';
 import { getDocument } from '../util/dom';
 import { RenderContext, setAttribute } from '../render/cursor';
+import { emitEvent } from '../util/event';
 
 const ON_PROP_REGEX = /on(Document|Window)?:/;
 const ON$_PROP_REGEX = /on(Document|Window)?\$:/;
@@ -66,7 +67,7 @@ export function qPropReadQRL(
         }
 
         context.qrl = qrl;
-        symbolUsed(ctx.element, qrl.symbol);
+        emitEvent(ctx.element, 'qSymbol', { name: qrl.symbol }, true);
         if (qrlGuard) {
           return invokeWatchFn(ctx.element, qrl);
         } else {
@@ -77,19 +78,12 @@ export function qPropReadQRL(
   };
 }
 
-const symbolUsed = (el: Element, name: string) => {
-  if (typeof CustomEvent === 'function') {
-    el.dispatchEvent(
-      new CustomEvent('qSymbol', {
-        detail: { name },
-        bubbles: true,
-        composed: true,
-      })
-    );
-  }
-};
-
-export function qPropWriteQRL(rctx: RenderContext, ctx: QContext, prop: string, value: any) {
+export function qPropWriteQRL(
+  rctx: RenderContext | undefined,
+  ctx: QContext,
+  prop: string,
+  value: any
+) {
   if (!value) {
     return;
   }
@@ -145,7 +139,11 @@ export function qPropWriteQRL(rctx: RenderContext, ctx: QContext, prop: string, 
     const kebabProp = fromCamelToKebabCase(prop);
     const newValue = serializeQRLs(existingQRLs, ctx);
     if (ctx.element.getAttribute(kebabProp) !== newValue) {
-      setAttribute(rctx, ctx.element, kebabProp, newValue);
+      if (rctx) {
+        setAttribute(rctx, ctx.element, kebabProp, newValue);
+      } else {
+        ctx.element.setAttribute(kebabProp, newValue);
+      }
     }
   }
 }

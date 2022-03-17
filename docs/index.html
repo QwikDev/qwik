@@ -2,57 +2,15 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>Qwik: Web Framework focusing on Time-to-Interactive.</title>
-    <link rel="apple-touch-icon" sizes="'180x180'" href="/favicons/apple-touch-icon.png" />
-    <link rel="icon" type="image/png" sizes="'32x32'" href="/favicons/favicon-32x32.png" />
-    <link rel="icon" type="image/png" sizes="'16x16'" href="/favicons/favicon-16x16.png" />
-    <meta name="viewport" content="width=device-width" />
-    <meta name="apple-mobile-web-app-title" content="Qwik" />
-    <meta name="application-name" content="Qwik" />
-    <meta name="theme-color" content="#ffffff" />
-    <meta name="twitter:site" content="@QwikDev" />
-    <meta name="twitter:creator" content="@QwikDev" />
-    <meta name="twitter:description" content="Web Framework focusing on Time-to-Interactive." />
-    <meta name="twitter:card" content="summary" />
-    <style>
-      body {
-        background: rgb(17 24 39);
-        color: rgb(241 245 249);
-        font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto,
-          Helvetica Neue, Arial, Noto Sans, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-          Segoe UI Symbol, 'Noto Color Emoji';
-        padding-top: 40px;
-        text-align: center;
-      }
-      p {
-        font-size: 12px;
-        color: rgb(190 190 190);
-      }
-      img {
-        max-width: 320px;
-      }
-      nav {
-        margin-top: 10px;
-      }
-      nav a {
-        font-size: 12px;
-        text-decoration: none;
-        color: #0094ff;
-        margin: 0 10px;
-      }
-      nav a:hover {
-        text-decoration: underline;
-      }
-    </style>
+    <title>Qwik Client Dev Mode</title>
   </head>
   <body>
-    <p>Future Docs for</p>
-    <img src="logos/qwik.svg" alt="Qwik: Web Framework focusing on Time-to-Interactive" />
-    <nav>
-      <a href="https://github.com/builderio/qwik">Github</a>
-      <a href="https://twitter.com/QwikDev">@QwikDev</a>
-      <a href="https://twitter.com/builderio">@BuilderIO</a>
-      <a href="https://discord.gg/TcfjGpCr">Discord</a>
-    </nav>
+    <script type="module">
+      // Vite Dev Mode Only
+      import '@builder.io/qwik/qwikloader.js';
+      import { render, jsx } from '@builder.io/qwik';
+      import { Main } from '/src/main.tsx';
+      render(document.body, jsx(Main));
+    </script>
   </body>
 </html>

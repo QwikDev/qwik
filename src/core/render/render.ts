@@ -1,4 +1,5 @@
 import { Host } from '../index';
+import { getContext } from '../props/props';
 import type { ValueOrPromise } from '../util/types';
 import { RenderContext, smartUpdateChildren, updateProperties } from './cursor';
 import type { JSXNode } from './jsx/types/jsx-node';
@@ -16,7 +17,7 @@ export function visitJsxNode(
   if (Array.isArray(jsxNode)) {
     return smartUpdateChildren(ctx, elm, jsxNode.flat(), 'root', isSvg);
   } else if (jsxNode.type === Host) {
-    updateProperties(ctx, elm, jsxNode.props, isSvg);
+    updateProperties(ctx, getContext(elm), jsxNode.props, isSvg);
     return smartUpdateChildren(ctx, elm, jsxNode.children || [], 'root', isSvg);
   } else {
     return smartUpdateChildren(ctx, elm, [jsxNode], 'root', isSvg);

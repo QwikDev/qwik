@@ -1,8 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 308
 expression: output
-
 ---
 ==INPUT==
 
@@ -15,8 +13,8 @@ export const Header = component$(() => {
 ============================= project/test.tsx ==
 
 import * as qwik from "@builder.io/qwik";
-import { component } from "@builder.io/qwik";
-export const Header = /*#__PURE__*/ component(qwik.qrl(()=>import("../entry_hooks")
+import { componentFromQrl } from "@builder.io/qwik";
+export const Header = /*#__PURE__*/ componentFromQrl(qwik.qrl(()=>import("../entry_hooks")
 , "Header_onmount"));
 
 ============================= h_test_sym2.tsx ==

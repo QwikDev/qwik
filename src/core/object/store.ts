@@ -49,9 +49,12 @@ export function QStore_hydrate(doc: Document) {
       const host = el.getAttribute(QHostAttr);
       const ctx = getContext(el);
       qobj!.split(' ').forEach((part) => {
-        const obj = part[0] === ELEMENT_ID_PREFIX ? elements.get(part) : meta.objs[strToInt(part)];
-        assertDefined(obj);
-        ctx.refMap.add(obj);
+        if (part !== '') {
+          const obj =
+            part[0] === ELEMENT_ID_PREFIX ? elements.get(part) : meta.objs[strToInt(part)];
+          assertDefined(obj);
+          ctx.refMap.add(obj);
+        }
       });
       if (host) {
         const [props, events] = host.split(' ').map(strToInt);

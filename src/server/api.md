@@ -28,7 +28,7 @@ export interface DocumentOptions {
     // (undocumented)
     debug?: boolean;
     // (undocumented)
-    url?: URL;
+    url?: URL | string;
 }
 
 // @alpha

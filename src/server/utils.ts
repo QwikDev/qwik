@@ -1,3 +1,5 @@
+import type { DocumentOptions } from './types';
+
 /**
  * Utility timer function for performance profiling.
  * Returns a duration of 0 in environments that do not support performance.
@@ -14,3 +16,57 @@ export function createTimer() {
     return delta / 1000000;
   };
 }
+
+export function ensureGlobals(doc: any, opts: DocumentOptions) {
+  if (!doc[QWIK_DOC]) {
+    if (!doc || doc.nodeType !== 9) {
+      throw new Error(`Invalid document`);
+    }
+
+    doc[QWIK_DOC] = true;
+
+    const loc = normalizeUrl(opts.url);
+
+    Object.defineProperty(doc, 'baseURI', {
+      get: () => loc.href,
+      set: (url: string) => (loc.href = normalizeUrl(url).href),
+    });
+
+    doc.defaultView = {
+      get document() {
+        return doc;
+      },
+      get location() {
+        return loc;
+      },
+      get origin() {
+        return loc.origin;
+      },
+      CustomEvent: class CustomEvent {
+        type: string;
+        constructor(type: string, details: any) {
+          Object.assign(this, details);
+          this.type = type;
+        }
+      },
+    };
+  }
+
+  return doc.defaultView;
+}
+
+const QWIK_DOC = Symbol();
+
+export function normalizeUrl(url: string | URL | undefined | null) {
+  if (url != null) {
+    if (typeof url === 'string') {
+      return new URL(url || '/', BASE_URI);
+    }
+    if (typeof url.href === 'string') {
+      return new URL(url.href || '/', BASE_URI);
+    }
+  }
+  return new URL(BASE_URI);
+}
+
+const BASE_URI = `http://document.qwik.dev/`;

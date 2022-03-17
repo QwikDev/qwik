@@ -1,3 +1,4 @@
+import { createTimer, ensureGlobals } from './utils';
 import { dehydrate, FunctionComponent, JSXNode, render } from '@builder.io/qwik';
 import qwikDom from '@builder.io/qwik-dom';
 import { setServerPlatform } from './platform';
@@ -11,7 +12,6 @@ import type {
   RenderToStringOptions,
   RenderToStringResult,
 } from './types';
-import { createTimer } from './utils';
 
 /**
  * Create emulated `Global` for server environment. Does not implement a browser
@@ -22,27 +22,8 @@ export function createGlobal(opts?: GlobalOptions): QwikGlobal {
   opts = opts || {};
 
   const doc: QwikDocument = qwikDom.createDocument() as any;
-  const baseURI = opts.url === undefined ? BASE_URI : opts.url.href;
-  const loc = new URL(baseURI, BASE_URI);
 
-  Object.defineProperty(doc, 'baseURI', {
-    get: () => loc.href,
-    set: (url: string) => (loc.href = url),
-  });
-
-  const glb: any = {
-    document: doc,
-    location: loc,
-    CustomEvent: class CustomEvent {
-      type: string;
-      constructor(type: string, details: any) {
-        Object.assign(this, details);
-        this.type = type;
-      }
-    },
-  };
-
-  glb.document.defaultView = glb;
+  const glb = ensureGlobals(doc, opts);
 
   return glb;
 }
@@ -69,9 +50,7 @@ export async function renderToDocument(
   rootNode: JSXNode<unknown> | FunctionComponent<any>,
   opts: RenderToDocumentOptions
 ) {
-  if (!doc || doc.nodeType !== 9) {
-    throw new Error(`Invalid document`);
-  }
+  ensureGlobals(doc, opts);
 
   await setServerPlatform(doc, opts);
 
@@ -108,5 +87,3 @@ export async function renderToString(rootNode: any, opts: RenderToStringOptions)
 
   return result;
 }
-
-const BASE_URI = `http://document.qwik.dev/`;

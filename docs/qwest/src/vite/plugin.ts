@@ -56,7 +56,7 @@ export function qwest(options: PluginOptions) {
       }
 
       if (!mdxTransform) {
-        mdxTransform = await createMdxTransformer(opts.mdx);
+        mdxTransform = await createMdxTransformer(opts);
       }
     },
 

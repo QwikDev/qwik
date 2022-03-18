@@ -1,21 +1,20 @@
 import type { CompileOptions } from '@mdx-js/mdx/lib/compile';
 import { extname } from 'path';
 import { SourceMapGenerator } from 'source-map';
-import { rehypeHeadings } from './rehype';
-import type { MdxOptions } from './types';
+import { rehypeHeadings, rehypeSourcePath } from './rehype';
+import type { NormalizedPluginOptions } from './types';
 
-export async function createMdxTransformer(
-  userMdxOpts: MdxOptions | undefined
-): Promise<MdxTransform> {
+export async function createMdxTransformer(opts: NormalizedPluginOptions): Promise<MdxTransform> {
   const { createFormatAwareProcessors } = await import(
     '@mdx-js/mdx/lib/util/create-format-aware-processors.js'
   );
   const { default: remarkFrontmatter } = await import('remark-frontmatter');
   const { default: remarkGfm } = await import('remark-gfm');
   const { remarkMdxFrontmatter } = await import('remark-mdx-frontmatter');
+  const { default: rehypeAutolinkHeadings } = await import('rehype-autolink-headings');
   const { VFile } = await import('vfile');
 
-  userMdxOpts = userMdxOpts || {};
+  const userMdxOpts = opts.mdx || {};
 
   const userRemarkPlugins = userMdxOpts.remarkPlugins || [];
   const userRehypePlugins = userMdxOpts.rehypePlugins || [];
@@ -30,7 +29,12 @@ export async function createMdxTransformer(
       remarkFrontmatter,
       [remarkMdxFrontmatter, { name: 'attributes' }],
     ],
-    rehypePlugins: [...userRehypePlugins, rehypeHeadings],
+    rehypePlugins: [
+      ...userRehypePlugins,
+      rehypeHeadings,
+      [rehypeSourcePath, opts],
+      rehypeAutolinkHeadings,
+    ],
   };
 
   const { extnames, process } = createFormatAwareProcessors(mdxOpts);

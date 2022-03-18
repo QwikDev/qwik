@@ -2,10 +2,12 @@
  * @public
  */
 export interface PageHandler {
-  getContent: () => Content | null;
-  getLayout: () => Layout | null;
-  getAttributes: () => PageAttributes;
-  getURL: () => URL;
+  attributes: PageAttributes;
+  content: Content;
+  headings: PageHeading[];
+  layout: Layout;
+  source: PageSource;
+  url: URL;
 }
 
 /**
@@ -15,6 +17,13 @@ export interface PageAttributes {
   title?: string;
   description?: string;
   [pageAttribute: string]: string | undefined;
+}
+
+/**
+ * @public
+ */
+export interface PageSource {
+  path: string;
 }
 
 /**
@@ -34,20 +43,6 @@ export interface PageIndex {
   text: string;
   href?: string;
   items?: PageIndex[];
-}
-
-/**
- * @public
- */
-export interface LoadPageOptions {
-  url: string | URL;
-}
-
-/**
- * @public
- */
-export interface LoadIndexOptions {
-  url: string | URL;
 }
 
 /**

@@ -6,7 +6,9 @@ import { valueToEstree } from 'estree-util-value-to-estree';
 import { headingRank } from 'hast-util-heading-rank';
 import { toString } from 'hast-util-to-string';
 import { visit } from 'unist-util-visit';
-import type { PageHeading } from '../runtime';
+import type { PageHeading, PageSource } from '../runtime';
+import { relative } from 'path';
+import type { NormalizedPluginOptions } from './types';
 
 const slugs = new Slugger();
 
@@ -32,11 +34,26 @@ export function rehypeHeadings(): Transformer {
       }
     });
 
-    prependHeadings(mdast, headings);
+    const mdxjsEsm = createExport('headings', headings);
+    mdast.children.unshift(mdxjsEsm);
   };
 }
 
-function prependHeadings(mdast: Root, headings: any) {
+export function rehypeSourcePath(opts: NormalizedPluginOptions): Transformer {
+  return (ast, vfile) => {
+    const mdast = ast as Root;
+    const sourcePath = vfile.path;
+
+    const source: PageSource = {
+      path: relative(opts.pagesDir, sourcePath),
+    };
+
+    const mdxjsEsm = createExport('source', source);
+    mdast.children.unshift(mdxjsEsm);
+  };
+}
+
+function createExport(identifierName: string, val: any) {
   const mdxjsEsm: MdxjsEsm = {
     type: 'mdxjsEsm',
     value: '',
@@ -55,8 +72,8 @@ function prependHeadings(mdast: Root, headings: any) {
               declarations: [
                 {
                   type: 'VariableDeclarator',
-                  id: { type: 'Identifier', name: 'headings' },
-                  init: valueToEstree(headings),
+                  id: { type: 'Identifier', name: identifierName },
+                  init: valueToEstree(val),
                 },
               ],
             },
@@ -65,7 +82,7 @@ function prependHeadings(mdast: Root, headings: any) {
       },
     },
   };
-  mdast.children.unshift(mdxjsEsm);
+  return mdxjsEsm;
 }
 
 const own = {}.hasOwnProperty;

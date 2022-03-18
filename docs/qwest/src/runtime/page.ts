@@ -1,14 +1,21 @@
 import { BUILD_ID, INLINED_MODULES, LAYOUTS, PAGES } from '@builder.io/qwest/build';
-import type { LoadIndexOptions, PageHandler } from './types';
+import type { PageHandler } from './types';
 import { normalizeUrl } from './utils';
+import { useLocation } from './location';
 
 /**
  * @public
  */
-export const loadPage = async (opts: LoadIndexOptions): Promise<PageHandler | null> => {
+export const usePage = async (hostElm: any) => {
+  const loc = useLocation(hostElm);
+  const page = await loadPage(loc.href);
+  return page;
+};
+
+const loadPage = async (href: string): Promise<PageHandler | null> => {
   let mod: any = null;
 
-  const url = normalizeUrl(opts.url);
+  const url = normalizeUrl(href);
   const modulePath = url.pathname.endsWith('/') ? url.pathname + 'index' : url.pathname;
 
   if (INLINED_MODULES) {
@@ -46,10 +53,12 @@ export const loadPage = async (opts: LoadIndexOptions): Promise<PageHandler | nu
   const layout = await layoutImporter();
 
   return {
-    getContent: () => mod.default,
-    getLayout: () => layout.default,
-    getAttributes: () => mod.attributes,
-    getURL: () => url,
+    attributes: mod.attributes,
+    content: mod.default,
+    headings: mod.headings,
+    layout: layout.default,
+    source: mod.source,
+    url: url,
   };
 };
 

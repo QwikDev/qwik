@@ -1,12 +1,10 @@
 import type { HeadLinks } from './types';
-import { useHostElement } from '@builder.io/qwik';
 
 /**
  * @public
  */
-export const setHeadLinks = (links: HeadLinks) => {
-  const hostElm = useHostElement();
-  const doc = hostElm && hostElm.ownerDocument;
+export const setHeadLinks = (elm: any, links: HeadLinks) => {
+  const doc: Document = elm && elm.ownerDocument;
 
   if (doc && Array.isArray(links)) {
     for (const link of links) {

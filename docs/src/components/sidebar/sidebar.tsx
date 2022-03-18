@@ -9,7 +9,7 @@ export const SideBar = component$(
       const navIndex = usePageIndex(hostElm);
 
       return (
-        <Host class="fixed z-20 inset-0 pb-10 overflow-y-auto right-auto xl:top-[5.2rem] left-[max(0px,calc(50%-45rem))] xl:w-[18rem] xl:pl-4 xl:pr-4">
+        <Host class="fixed z-20 inset-0 pb-10 overflow-y-auto right-auto left-[max(0px,calc(50%-45rem))] top-[5.2rem] lg:w-[18rem] lg:pl-4 lg:pr-4">
           {navIndex
             ? navIndex.items?.map((item) => (
                 <>

@@ -15,7 +15,7 @@ const DocsLayout = component$(() => {
         <Header />
         <main class="mx-auto mt-14 min-h-[100vh] xl:max-w-[1400px]">
           <SideBar />
-          <article class="xl:max-w-none xl:ml-[19rem] xl:mr-[16.5rem] xl:pr-16 xl:pt-5 content">
+          <article class="pt-5 lg:ml-[19rem] lg:mr-[2rem] xl:pr-16 content xl:mr-[16.5rem]">
             <Slot />
             <ContentNav />
             <Footer />

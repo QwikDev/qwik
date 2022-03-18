@@ -1,5 +1,5 @@
 import { usePage } from '@builder.io/qwest';
-import { component$, Host, $, useHostElement, useEvent } from '@builder.io/qwik';
+import { component$, Host, $, useHostElement } from '@builder.io/qwik';
 
 export const OnThisPage = component$(
   () => {
@@ -15,19 +15,19 @@ export const OnThisPage = component$(
       );
 
       const onScroll = $(() => {
-        const ev = useEvent();
-        console.log('scroll', ev);
+        // const ev = useEvent();
+        // console.log('scroll', ev);
       });
 
       const onClick = $(() => {
-        const ev = useEvent();
-        console.log('onClick', ev);
+        // const ev = useEvent();
+        // console.log('onClick', ev);
       });
 
       return (
         <Host
           onDocument:scroll={onScroll}
-          class="on-this-page fixed text-sm z-20 bottom-0 right-[max(0px,calc(50%-45rem))] overflow-y-auto hidden xl:block  xl:w-[18rem] xl:top-[5rem]"
+          class="on-this-page fixed text-sm z-20 bottom-0 right-[max(0px,calc(50%-45rem))] overflow-y-auto hidden xl:block xl:w-[18rem] xl:top-[5rem]"
         >
           {headings.length > 0 ? (
             <>

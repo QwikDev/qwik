@@ -29,6 +29,55 @@ describe('normalizeUrl', () => {
 });
 
 describe('ensureGlobals', () => {
+  it('noop history.go()', () => {
+    const glb = ensureGlobals({ nodeType: 9 }, {});
+    expect(() => {
+      glb.history.go(1);
+    }).not.toThrow();
+  });
+
+  it('noop history.back()', () => {
+    const glb = ensureGlobals({ nodeType: 9 }, {});
+    expect(() => {
+      glb.history.back();
+    }).not.toThrow();
+  });
+
+  it('noop history.forward()', () => {
+    const glb = ensureGlobals({ nodeType: 9 }, {});
+    expect(() => {
+      glb.history.forward();
+    }).not.toThrow();
+  });
+
+  it('noop history.replaceState()', () => {
+    const glb = ensureGlobals({ nodeType: 9 }, {});
+    expect(() => {
+      glb.history.replaceState(null, '', '/url');
+    }).not.toThrow();
+  });
+
+  it('noop history.pushState()', () => {
+    const glb = ensureGlobals({ nodeType: 9 }, {});
+    expect(() => {
+      glb.history.pushState(null, '', '/url');
+    }).not.toThrow();
+  });
+
+  it('noop addEventListener', () => {
+    const glb = ensureGlobals({ nodeType: 9 }, {});
+    expect(() => {
+      glb.addEventListener('load', () => {});
+    }).not.toThrow();
+  });
+
+  it('noop removeEventListener', () => {
+    const glb = ensureGlobals({ nodeType: 9 }, {});
+    expect(() => {
+      glb.removeEventListener('load', () => {});
+    }).not.toThrow();
+  });
+
   it('baseURI', () => {
     const glb = ensureGlobals({ nodeType: 9 }, { url: 'http://my.qwik.dev/my-path' });
     expect(glb.document.baseURI).toBe('http://my.qwik.dev/my-path');

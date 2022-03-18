@@ -42,6 +42,15 @@ export function ensureGlobals(doc: any, opts: DocumentOptions) {
       get origin() {
         return loc.origin;
       },
+      addEventListener: noop,
+      removeEventListener: noop,
+      history: {
+        pushState: noop,
+        replaceState: noop,
+        go: noop,
+        back: noop,
+        forward: noop,
+      },
       CustomEvent: class CustomEvent {
         type: string;
         constructor(type: string, details: any) {
@@ -70,3 +79,5 @@ export function normalizeUrl(url: string | URL | undefined | null) {
 }
 
 const BASE_URI = `http://document.qwik.dev/`;
+
+const noop = () => {};

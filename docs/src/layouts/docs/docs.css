@@ -1,43 +1,64 @@
-.content a {
+.docs {
+  @apply bg-white text-gray-900;
+}
+
+.docs main {
+  @apply mx-auto mt-14 min-h-[100vh] xl:max-w-[1400px];
+}
+
+.docs article {
+  @apply pt-5;
+  @apply px-5;
+
+  /* medium */
+
+  /* large */
+  @apply lg:ml-[19rem] lg:mr-[2rem] lg:px-0;
+
+  /* xlarge */
+  @apply xl:pr-16 xl:mr-[16.5rem];
+}
+
+.docs article a {
   color: #312bb2;
   text-decoration: underline;
 }
 
-.content a:hover {
+.docs article a:hover {
   text-decoration: none;
 }
 
-.content h1 {
+.docs article h1 {
   @apply text-slate-900;
   @apply text-3xl font-bold;
   @apply mb-5;
-  position: relative;
+  @apply relative;
 }
 
-.content h2 {
+.docs article h2 {
   @apply text-slate-900;
   @apply text-2xl font-semibold;
   @apply mt-8;
   @apply mb-4;
-  position: relative;
+  @apply relative;
 }
 
-.content h3,
-.content h4,
-.content h5,
-.content h6 {
+.docs article h3,
+.docs article h4,
+.docsarticle h5,
+.docs article h6 {
   @apply text-slate-900;
   @apply text-xl font-semibold;
   @apply mt-8;
   @apply mb-4;
-  position: relative;
+  @apply relative;
 }
 
-h2 a,
-h3 a,
-h4 a,
-h5 a,
-h6 a {
+.docs h2 a,
+.docs h3 a,
+.docs h4 a,
+.docs h5 a,
+.docs h6 a {
   position: absolute;
   width: 100%;
   height: 32px;
@@ -61,13 +82,13 @@ h6 a:hover .icon {
   display: inline;
 }
 
-.content p {
+.docs article p {
   @apply my-5;
   font-size: 18px;
 }
 
-.content ul,
-.content ol {
+.docs article ul,
+.docs article ol {
   @apply my-4;
   @apply ml-8;
   font-size: 18px;
@@ -75,12 +96,12 @@ h6 a:hover .icon {
   list-style: disc;
 }
 
-.content li {
+.docs article li {
   @apply my-1;
   @apply pl-2;
 }
 
-.content pre {
+.docs article pre {
   overflow: auto;
   color: white;
   background-color: rgb(41, 41, 41);
@@ -88,68 +109,15 @@ h6 a:hover .icon {
   border-radius: 10px;
 }
 
-.content pre code {
+.docs article pre code {
   display: block;
   max-width: 50px;
   background-color: transparent;
 }
 
-.content code {
+.docs article code {
   background-color: rgb(224, 224, 224);
   padding: 2px 4px;
   border-radius: 3px;
   font-size: 16px;
-}
-
-.on-this-page a {
-  color: #312bb2;
-}
-
-.on-this-page a:hover {
-  text-decoration: underline;
-}
-
-.edit-page {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 576 512'%3E%3Cpath fill='%23312bb2' d='M402.3 344.9l32-32c5-5 13.7-1.5 13.7 5.7V464c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V112c0-26.5 21.5-48 48-48h273.5c7.1 0 10.7 8.6 5.7 13.7l-32 32c-1.5 1.5-3.5 2.3-5.7 2.3H48v352h352V350.5c0-2.1.8-4.1 2.3-5.6zm156.6-201.8L296.3 405.7l-90.4 10c-26.2 2.9-48.5-19.2-45.6-45.6l10-90.4L432.9 17.1c22.9-22.9 59.9-22.9 82.7 0l43.2 43.2c22.9 22.9 22.9 60 .1 82.8zM460.1 174L402 115.9 216.2 301.8l-7.3 65.3 65.3-7.3L460.1 174zm64.8-79.7l-43.2-43.2c-4.1-4.1-10.8-4.1-14.8 0L436 82l58.1 58.1 30.9-30.9c4-4.2 4-10.8-.1-14.9z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  padding-left: 30px;
-}
-
-.content-nav .prev,
-.content-nav .next {
-  position: relative;
-  background-color: #01b9ff;
-  border: 1px solid #01b9ff;
-  border-radius: 5px;
-  padding: 8px 12px;
-  text-decoration: none;
-  color: white;
-}
-
-.content-nav .prev:hover,
-.content-nav .next:hover {
-  background-color: white;
-  color: #01b9ff;
-}
-
-.content-nav .prev {
-  padding-left: 24px;
-}
-
-.content-nav .next {
-  padding-right: 24px;
-}
-
-.content-nav .prev::before {
-  position: absolute;
-  content: '\2039';
-  top: 5px;
-  left: 11px;
-}
-
-.content-nav .next::after {
-  position: absolute;
-  content: '\203A';
-  top: 5px;
-  right: 11px;
 }

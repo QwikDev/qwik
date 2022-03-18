@@ -1,0 +1,22 @@
+.breadcrumbs {
+  @apply border-b border-slate-300;
+  @apply py-1 px-5;
+
+  /* large */
+  @apply lg:hidden;
+}
+
+.menu {
+  @apply fixed z-20;
+  @apply overflow-y-auto;
+  @apply pb-10;
+  @apply hidden;
+
+  @apply right-auto left-[max(0px,calc(50%-45rem))];
+
+  /* large */
+  @apply lg:block;
+  @apply lg:pl-4 lg:pr-4;
+  @apply lg:top-[5.2rem];
+  @apply lg:w-[18rem];
+}

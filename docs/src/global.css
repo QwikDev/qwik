@@ -5,7 +5,3 @@
 body {
   @apply bg-gray-900 text-slate-100 antialiased h-screen;
 }
-
-.docs {
-  @apply bg-white text-gray-900;
-}

@@ -1,8 +1,11 @@
 import { usePage } from '@builder.io/qwest';
-import { component$, Host, $, useHostElement } from '@builder.io/qwik';
+import { component$, Host, $, useHostElement, useScopedStyles$ } from '@builder.io/qwik';
+import styles from './on-this-page.css';
 
 export const OnThisPage = component$(
   () => {
+    useScopedStyles$(styles);
+
     return $(async () => {
       const hostElm = useHostElement();
       const page = (await usePage(hostElm))!;

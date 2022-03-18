@@ -13,9 +13,9 @@ const DocsLayout = component$(() => {
     return (
       <Host class="docs">
         <Header />
-        <main class="mx-auto mt-14 min-h-[100vh] xl:max-w-[1400px]">
+        <main>
           <SideBar />
-          <article class="pt-5 lg:ml-[19rem] lg:mr-[2rem] xl:pr-16 content xl:mr-[16.5rem]">
+          <article>
             <Slot />
             <ContentNav />
             <Footer />

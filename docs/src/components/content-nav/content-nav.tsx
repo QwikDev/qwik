@@ -1,8 +1,11 @@
 import { usePage, usePageIndex, PageIndex } from '@builder.io/qwest';
-import { component$, Host, $, useHostElement } from '@builder.io/qwik';
+import { component$, Host, $, useHostElement, useScopedStyles$ } from '@builder.io/qwik';
+import styles from './content-nav.css';
 
 export const ContentNav = component$(
   () => {
+    useScopedStyles$(styles);
+
     return $(async () => {
       const hostElm = useHostElement();
 

@@ -5,8 +5,8 @@ import { suite } from './uvu-suite';
 
 const test = suite();
 
-test('parse README.md index', ({ opts }) => {
-  const filePath = join(opts.pagesDir, 'guide', 'README.md');
+test('parse README.md index', ({ ctx }) => {
+  const filePath = join(ctx.opts.pagesDir, 'guide', 'README.md');
   const readme = `
   # Heading
 
@@ -23,7 +23,7 @@ test('parse README.md index', ({ opts }) => {
   ## [Section C](http://section-c.com) 
 
   `;
-  const i = parseIndexFile(opts, filePath, readme);
+  const i = parseIndexFile(ctx, filePath, readme);
   assert.is(i.pathname, '/guide');
   assert.is(i.text, 'Heading');
 

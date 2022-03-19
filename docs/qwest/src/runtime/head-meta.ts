@@ -1,12 +1,10 @@
 import type { MetaOptions } from './types';
-import { useHostElement } from '@builder.io/qwik';
 
 /**
  * @public
  */
-export const setHeadMeta = (meta: MetaOptions) => {
-  const hostElm = useHostElement();
-  const doc = hostElm && hostElm.ownerDocument;
+export const setHeadMeta = (elm: any, meta: MetaOptions) => {
+  const doc: Document = elm && elm.ownerDocument;
 
   if (doc && meta && typeof meta === 'object') {
     const existingMeta = Array.from(doc.head.querySelectorAll('meta'))

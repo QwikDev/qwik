@@ -1,0 +1,68 @@
+.breadcrumbs {
+  @apply border-b border-slate-300;
+  @apply px-1;
+  @apply flex;
+  @apply text-slate-600;
+
+  /* large */
+  @apply lg:hidden;
+}
+
+.breadcrumbs button {
+  @apply block;
+  @apply p-3;
+  @apply opacity-70;
+  @apply hover:opacity-100;
+}
+
+.breadcrumbs ol {
+  @apply flex text-sm leading-6 whitespace-nowrap min-w-0;
+  @apply flex items-center;
+}
+
+.breadcrumbs li {
+  @apply pl-1 pr-5;
+  position: relative;
+}
+
+.breadcrumbs li:after {
+  position: absolute;
+  content: '\203A';
+  top: -1px;
+  right: 6px;
+}
+
+.breadcrumbs li:last-child::after {
+  content: '';
+}
+
+.menu {
+  @apply fixed z-20;
+  @apply overflow-y-auto;
+  @apply pb-10;
+  @apply hidden;
+
+  @apply right-auto left-[max(0px,calc(50%-45rem))];
+
+  /* large */
+  @apply lg:block;
+  @apply lg:pl-4 lg:pr-4;
+  @apply lg:top-[5.2rem];
+  @apply lg:w-[18rem];
+}
+
+.menu h5 {
+  @apply font-semibold text-slate-200 bg-slate-700 px-3 py-1 mb-1 rounded-md whitespace-nowrap;
+}
+
+.menu ul {
+  @apply border-slate-100 pb-5;
+}
+
+.menu li {
+  @apply whitespace-nowrap;
+}
+
+.menu li a {
+  @apply py-1 pl-3 block rounded-md text-slate-900 hover:bg-slate-200;
+}

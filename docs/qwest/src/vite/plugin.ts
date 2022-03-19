@@ -4,15 +4,14 @@ import { isAbsolute, join } from 'path';
 import type { ModuleGraph, ModuleNode, Plugin, ViteDevServer } from 'vite';
 import { createBuildCode } from './code-generation';
 import { loadPages } from './load-pages';
-import type { NormalizedPluginOptions, PluginOptions } from './types';
-import { getIndexBuildPath, getPagesBuildPath, isMarkdownFile, normalizeOptions } from './utils';
-import type { PageIndex } from '../runtime';
+import type { PluginContext, PluginOptions } from './types';
+import { getPagesBuildPath, isMarkdownFile, normalizeOptions } from './utils';
 
 /**
  * @public
  */
 export function qwest(options: PluginOptions) {
-  const opts = normalizeOptions(options);
+  const ctx = normalizeOptions(options);
   let viteDevServer: ViteDevServer | undefined;
   let hasValidatedOpts = false;
   let qwestBuildCode: string | null = null;
@@ -31,12 +30,12 @@ export function qwest(options: PluginOptions) {
       inlinedModules = true;
     },
 
-    handleHotUpdate(ctx) {
-      const changedFile = ctx.file;
+    handleHotUpdate(hmrCtx) {
+      const changedFile = hmrCtx.file;
       if (viteDevServer && typeof changedFile === 'string') {
         const moduleGraph = viteDevServer.moduleGraph;
         const qwestMod = moduleGraph.getModuleById(RESOLVED_QWEST_ID);
-        if (isMarkdownFile(opts, changedFile) || isPageModuleDependency(qwestMod, changedFile)) {
+        if (isMarkdownFile(ctx, changedFile) || isPageModuleDependency(qwestMod, changedFile)) {
           qwestBuildCode = null;
           invalidatePageModule(moduleGraph, qwestMod);
         }
@@ -47,7 +46,7 @@ export function qwest(options: PluginOptions) {
       qwestBuildCode = null;
 
       if (!hasValidatedOpts) {
-        const err = await validatePlugin(opts);
+        const err = await validatePlugin(ctx);
         if (err) {
           this.error(err);
         } else {
@@ -56,7 +55,7 @@ export function qwest(options: PluginOptions) {
       }
 
       if (!mdxTransform) {
-        mdxTransform = await createMdxTransformer(opts.mdx);
+        mdxTransform = await createMdxTransformer(ctx);
       }
     },
 
@@ -77,34 +76,21 @@ export function qwest(options: PluginOptions) {
           return qwestBuildCode;
         }
 
-        const data = await loadPages(opts, (msg) => this.warn(msg));
+        await loadPages(ctx, (msg) => this.warn(msg));
 
         if (inlinedModules) {
           // vite dev server build (esbuild)
-          qwestBuildCode = createBuildCode(opts, data, true);
+          qwestBuildCode = createBuildCode(ctx, true);
         } else {
           // production (rollup)
-          qwestBuildCode = createBuildCode(opts, data, false);
+          qwestBuildCode = createBuildCode(ctx, false);
 
-          data.pages.forEach((p) => {
+          ctx.pages.forEach((p) => {
             this.emitFile({
               type: 'chunk',
               id: p.filePath,
               fileName: getPagesBuildPath(p),
               preserveSignature: 'allow-extension',
-            });
-          });
-
-          data.indexes.forEach((parsedIndex) => {
-            const pageIndex: PageIndex = {
-              text: parsedIndex.text,
-              href: parsedIndex.href,
-              items: parsedIndex.items,
-            };
-            this.emitFile({
-              type: 'asset',
-              fileName: getIndexBuildPath(parsedIndex),
-              source: JSON.stringify(pageIndex),
             });
           });
         }
@@ -167,39 +153,39 @@ const RESOLVED_QWEST_ID = '\0' + QWEST_ID;
 const QWEST_BUILD_ID = '@builder.io/qwest/build';
 const RESOLVED_QWEST_BUILD_ID = '\0' + QWEST_BUILD_ID;
 
-async function validatePlugin(opts: NormalizedPluginOptions) {
-  if (typeof opts.pagesDir !== 'string') {
+async function validatePlugin(ctx: PluginContext) {
+  if (typeof ctx.opts.pagesDir !== 'string') {
     return `qwest plugin "pagesDir" option missing`;
   }
 
-  if (!isAbsolute(opts.pagesDir)) {
-    return `qwest plugin "pagesDir" option must be an absolute path: ${opts.pagesDir}`;
+  if (!isAbsolute(ctx.opts.pagesDir)) {
+    return `qwest plugin "pagesDir" option must be an absolute path: ${ctx.opts.pagesDir}`;
   }
 
   try {
-    const s = await stat(opts.pagesDir);
+    const s = await stat(ctx.opts.pagesDir);
     if (!s.isDirectory()) {
-      return `qwest plugin "pagesDir" option must be a directory: ${opts.pagesDir}`;
+      return `qwest plugin "pagesDir" option must be a directory: ${ctx.opts.pagesDir}`;
     }
   } catch (e) {
     return `qwest plugin "pagesDir" not found: ${e}`;
   }
 
-  if (!opts.layouts) {
+  if (!ctx.opts.layouts) {
     return `qwest plugin "layouts" option missing`;
   }
 
-  if (typeof opts.layouts.default !== 'string') {
+  if (typeof ctx.opts.layouts.default !== 'string') {
     return `qwest plugin "layouts.default" option missing`;
   }
 
-  if (!isAbsolute(opts.layouts.default)) {
-    return `qwest plugin "layouts.default" option must be set to an absolute path: ${opts.layouts.default}`;
+  if (!isAbsolute(ctx.opts.layouts.default)) {
+    return `qwest plugin "layouts.default" option must be set to an absolute path: ${ctx.opts.layouts.default}`;
   }
 
-  const layoutNames = Object.keys(opts.layouts);
+  const layoutNames = Object.keys(ctx.opts.layouts);
   for (const layoutName of layoutNames) {
-    const layoutPath = opts.layouts[layoutName];
+    const layoutPath = ctx.opts.layouts[layoutName];
     try {
       const s = await stat(layoutPath);
       if (!s.isFile()) {

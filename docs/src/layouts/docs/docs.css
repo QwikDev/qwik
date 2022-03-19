@@ -1,51 +1,123 @@
-.content h1 {
-  @apply text-slate-200;
+.docs {
+  @apply bg-white text-gray-900;
+}
+
+.docs main {
+  @apply mx-auto mt-14 min-h-[100vh] xl:max-w-[1400px];
+}
+
+.docs article {
+  @apply pt-5;
+  @apply px-5;
+
+  /* medium */
+
+  /* large */
+  @apply lg:ml-[19rem] lg:mr-[2rem] lg:px-0;
+
+  /* xlarge */
+  @apply xl:pr-16 xl:mr-[16.5rem];
+}
+
+.docs article a {
+  color: #312bb2;
+  text-decoration: underline;
+}
+
+.docs article a:hover {
+  text-decoration: none;
+}
+
+.docs article h1 {
+  @apply text-slate-900;
   @apply text-3xl font-bold;
   @apply mb-5;
+  @apply relative;
 }
 
-.content h2 {
-  @apply text-slate-200;
+.docs article h2 {
+  @apply text-slate-900;
   @apply text-2xl font-semibold;
   @apply mt-8;
-  @apply mb-5;
+  @apply mb-4;
+  @apply relative;
 }
 
-.content h3 {
-  @apply text-slate-200;
+.docs article h3,
+.docs article h4,
+.docsarticle h5,
+.docs article h6 {
+  @apply text-slate-900;
   @apply text-xl font-semibold;
-  @apply mt-6;
-  @apply mb-5;
+  @apply mt-8;
+  @apply mb-4;
+  @apply relative;
 }
 
-.content p {
+.docs h2 a,
+.docs h3 a,
+.docs h4 a,
+.docs h5 a,
+.docs h6 a {
+  position: absolute;
+  width: 100%;
+  height: 32px;
+}
+
+.icon-link {
+  display: none;
+}
+
+.icon-link::after {
+  position: absolute;
+  content: '#';
+  left: -23px;
+}
+
+h2 a:hover .icon,
+h3 a:hover .icon,
+h4 a:hover .icon,
+h5 a:hover .icon,
+h6 a:hover .icon {
+  display: inline;
+}
+
+.docs article p {
   @apply my-5;
   font-size: 18px;
 }
 
-.content ul,
-.content ol {
-  @apply my-5;
+.docs article ul,
+.docs article ol {
+  @apply my-4;
   @apply ml-8;
   font-size: 18px;
-  line-height: 1.9;
+  line-height: 1.7;
   list-style: disc;
 }
 
-.content li {
-  @apply my-2;
-  @apply pl-3;
+.docs article li {
+  @apply my-1;
+  @apply pl-2;
 }
 
-.content pre {
+.docs article pre {
   overflow: auto;
-
-  background-color: black;
+  color: white;
+  background-color: rgb(41, 41, 41);
   padding: 20px;
-  border-radius: 15px;
+  border-radius: 10px;
 }
 
-.content pre code {
+.docs article pre code {
   display: block;
   max-width: 50px;
+  background-color: transparent;
+}
+
+.docs article code {
+  background-color: rgb(224, 224, 224);
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-size: 16px;
 }

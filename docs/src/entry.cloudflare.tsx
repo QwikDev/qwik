@@ -14,6 +14,8 @@ export const qwikSSR: PagesFunction = async (req) => {
   const response = new Response(ssrResult.html, {
     headers: {
       'Content-Type': 'text/html; charset=utf-8',
+      'Cache-Control':
+        'max-age=5, s-maxage=10, stale-while-revalidate=604800, stale-if-error=604800',
     },
   });
   return response;

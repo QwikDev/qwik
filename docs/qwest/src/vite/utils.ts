@@ -1,10 +1,10 @@
 import { extname, basename, relative, dirname, join } from 'path';
-import type { NormalizedPluginOptions, ParsedIndex, ParsedPage, PluginOptions } from './types';
+import type { PluginContext, ParsedPage, PluginOptions } from './types';
 import slugify from 'slugify';
-import type { PageAttributes } from '@builder.io/qwest';
+import type { PageAttributes } from '../runtime';
 
-export function getPagePathname(opts: NormalizedPluginOptions, filePath: string) {
-  let pathname = toPosix(relative(opts.pagesDir, filePath));
+export function getPagePathname(ctx: PluginContext, filePath: string) {
+  let pathname = toPosix(relative(ctx.opts.pagesDir, filePath));
 
   const fileName = getBasename(pathname);
   const dirName = toPosix(dirname(pathname));
@@ -34,23 +34,19 @@ export function getPagePathname(opts: NormalizedPluginOptions, filePath: string)
     .split('/')
     .map((p) => slugify(p))
     .join('/');
-  if (opts.trailingSlash && !pathname.endsWith('/')) {
+  if (ctx.opts.trailingSlash && !pathname.endsWith('/')) {
     pathname += '/';
   }
   return pathname;
 }
 
-export function getIndexPathname(opts: NormalizedPluginOptions, filePath: string) {
-  let pathname = toPosix(relative(opts.pagesDir, filePath));
+export function getIndexPathname(ctx: PluginContext, filePath: string) {
+  let pathname = toPosix(relative(ctx.opts.pagesDir, filePath));
   pathname = `/${toPosix(dirname(pathname))}`;
-  return normalizePathname(opts, pathname);
+  return normalizePathname(ctx, pathname);
 }
 
-export function getIndexLinkHref(
-  opts: NormalizedPluginOptions,
-  indexFilePath: string,
-  href: string
-) {
+export function getIndexLinkHref(ctx: PluginContext, indexFilePath: string, href: string) {
   const prefix = href.toLocaleLowerCase();
   if (
     prefix.startsWith('/') ||
@@ -76,7 +72,7 @@ export function getIndexLinkHref(
     .filter((p) => p.length > 0);
   const filePath = join(indexDir, ...parts);
 
-  let pathname = getPagePathname(opts, filePath);
+  let pathname = getPagePathname(ctx, filePath);
   if (querySplit.length > 1) {
     pathname += '?' + querySplit[1];
   } else if (hashSplit.length > 1) {
@@ -85,7 +81,7 @@ export function getIndexLinkHref(
   return pathname;
 }
 
-function normalizePathname(opts: NormalizedPluginOptions, pathname: string) {
+function normalizePathname(ctx: PluginContext, pathname: string) {
   pathname = pathname
     .trim()
     .toLocaleLowerCase()
@@ -98,7 +94,7 @@ function normalizePathname(opts: NormalizedPluginOptions, pathname: string) {
   const url = new URL(pathname, 'http://normalize.me/');
   pathname = url.pathname;
 
-  if (opts.trailingSlash && !pathname.endsWith('/')) {
+  if (ctx.opts.trailingSlash && !pathname.endsWith('/')) {
     pathname += '/';
   }
   return pathname;
@@ -116,14 +112,10 @@ export function getPageTitle(filePath: string, attrs: PageAttributes) {
   return title.trim();
 }
 
-export function validateLayout(
-  opts: NormalizedPluginOptions,
-  filePath: string,
-  attrs: PageAttributes
-) {
-  if (opts && opts.layouts != null) {
+export function validateLayout(ctx: PluginContext, filePath: string, attrs: PageAttributes) {
+  if (ctx.opts && ctx.opts.layouts != null) {
     if (typeof attrs.layout === 'string' && attrs.layout !== 'default') {
-      if (!opts.layouts[attrs.layout as any]) {
+      if (!ctx.opts.layouts[attrs.layout as any]) {
         throw new Error(`Invalid layout "${attrs.layout}" in ${filePath}`);
       }
     }
@@ -155,13 +147,20 @@ export function normalizeOptions(userOpts: PluginOptions) {
   const extensions = (Array.isArray(userOpts.extensions) ? userOpts.extensions : ['.md', '.mdx'])
     .filter((ext) => typeof ext === 'string')
     .map((ext) => ext.toLowerCase().trim());
-  const opts: NormalizedPluginOptions = { ...userOpts, extensions };
-  return opts;
+
+  const ctx: PluginContext = {
+    opts: userOpts,
+    extensions,
+    pages: [],
+    indexes: [],
+  };
+
+  return ctx;
 }
 
-export function isMarkdownFile(opts: NormalizedPluginOptions, filePath: string) {
+export function isMarkdownFile(ctx: PluginContext, filePath: string) {
   const ext = extname(filePath).toLowerCase();
-  return opts.extensions.includes(ext);
+  return ctx.extensions.includes(ext);
 }
 
 export function isReadmeFile(filePath: string) {
@@ -175,10 +174,6 @@ export function getPagesBuildPath(page: ParsedPage) {
     pathname += 'index';
   }
   return `pages${pathname}.js`;
-}
-
-export function getIndexBuildPath(index: ParsedIndex) {
-  return `pages${index.href}/index.json`;
 }
 
 /** Known file extension we know are not directories so we can skip over them */

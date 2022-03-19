@@ -1,21 +1,16 @@
 import { readdir, readFile, stat } from 'fs/promises';
 import { extname, join } from 'path';
 import { parseMarkdownFile, parseIndexFile } from './parse';
-import type { NormalizedPluginOptions, ParsedData } from './types';
+import type { PluginContext } from './types';
 import { IGNORE_EXT, IGNORE_NAMES, isMarkdownFile, isReadmeFile } from './utils';
 
-export async function loadPages(opts: NormalizedPluginOptions, warn: (msg: string) => void) {
-  const data: ParsedData = { pages: [], indexes: [] };
-  await loadPagesDir(opts, opts.pagesDir, warn, data);
-  return data;
+export async function loadPages(ctx: PluginContext, warn: (msg: string) => void) {
+  ctx.pages = [];
+  ctx.indexes = [];
+  await loadPagesDir(ctx, ctx.opts.pagesDir, warn);
 }
 
-async function loadPagesDir(
-  opts: NormalizedPluginOptions,
-  dir: string,
-  warn: (msg: string) => void,
-  data: ParsedData
-) {
+async function loadPagesDir(ctx: PluginContext, dir: string, warn: (msg: string) => void) {
   try {
     const items = await readdir(dir);
 
@@ -26,16 +21,16 @@ async function loadPagesDir(
             const itemPath = join(dir, itemName);
             if (isReadmeFile(itemName)) {
               const indexContent = await readFile(itemPath, 'utf-8');
-              const index = parseIndexFile(opts, itemPath, indexContent);
-              data.indexes.push(index);
-            } else if (isMarkdownFile(opts, itemName)) {
+              const index = parseIndexFile(ctx, itemPath, indexContent);
+              ctx.indexes.push(index);
+            } else if (isMarkdownFile(ctx, itemName)) {
               const mdContent = await readFile(itemPath, 'utf-8');
-              const page = parseMarkdownFile(opts, itemPath, mdContent);
-              data.pages.push(page);
+              const page = parseMarkdownFile(ctx, itemPath, mdContent);
+              ctx.pages.push(page);
             } else if (!IGNORE_EXT[extname(itemName)]) {
               const s = await stat(itemPath);
               if (s.isDirectory()) {
-                await loadPagesDir(opts, itemPath, warn, data);
+                await loadPagesDir(ctx, itemPath, warn);
               }
             }
           } catch (e) {

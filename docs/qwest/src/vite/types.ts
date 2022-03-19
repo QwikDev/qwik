@@ -1,7 +1,4 @@
-export interface ParsedData {
-  pages: ParsedPage[];
-  indexes: ParsedIndexData[];
-}
+export interface ParsedData {}
 
 export interface ParsedIndexData extends ParsedIndex {
   pathname: string;
@@ -16,12 +13,15 @@ export interface ParsedIndex {
 
 export interface ParsedPage {
   pathname: string;
-  title: string;
   filePath: string;
+  attrs: { [prop: string]: string };
 }
 
-export interface NormalizedPluginOptions extends PluginOptions {
+export interface PluginContext {
+  opts: PluginOptions;
   extensions: string[];
+  pages: ParsedPage[];
+  indexes: ParsedIndexData[];
 }
 
 /**

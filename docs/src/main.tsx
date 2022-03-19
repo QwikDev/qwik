@@ -1,20 +1,32 @@
-import { $, component$, useDocument } from '@builder.io/qwik';
+import { $, component$, useHostElement } from '@builder.io/qwik';
 import { Builder } from './layouts/builder/builder';
-import { loadPage } from '@builder.io/qwest';
-import { Page } from './components/page/page';
+import { setHeadLinks, setHeadMeta, usePage } from '@builder.io/qwest';
 import './global.css';
 
 export const Main = component$(() => {
   return $(async () => {
-    const doc = useDocument();
-    const url = new URL(doc.baseURI);
+    const hostElm = useHostElement();
+    const page = await usePage(hostElm);
 
-    const page = await loadPage({
-      pathname: url.pathname,
-    });
     if (page) {
-      return <Page page={page} pathname={url.pathname} />;
+      const attrs = page.attributes;
+      const Layout = page.layout;
+      const Content = page.content;
+
+      setHeadMeta(hostElm, {
+        title: attrs.title + ' - Qwik',
+        description: attrs.description,
+      });
+
+      setHeadLinks(hostElm, [{ rel: 'canonical', href: page.url.href }]);
+
+      return (
+        <Layout>
+          <Content />
+        </Layout>
+      );
     }
+
     return <Builder />;
   });
 });

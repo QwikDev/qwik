@@ -1,10 +1,14 @@
-import { component$, Host, $, useHostElement, useScopedStyles$ } from '@builder.io/qwik';
+import { component$, Host, $, useHostElement, useScopedStyles$, useStore } from '@builder.io/qwik';
 import { usePage, usePageIndex } from '@builder.io/qwest';
 import styles from './sidebar.css';
 
 export const SideBar = component$(
   () => {
     useScopedStyles$(styles);
+
+    const store = useStore({
+      isOpen: false,
+    });
 
     return $(async () => {
       const hostElm = useHostElement();
@@ -14,7 +18,11 @@ export const SideBar = component$(
       return (
         <Host class="sidebar">
           <nav class="breadcrumbs">
-            <button>
+            <button
+              on$:click={() => {
+                store.isOpen = !store.isOpen;
+              }}
+            >
               <span class="sr-only">Navigation</span>
               <svg width="24" height="24">
                 <path
@@ -32,7 +40,12 @@ export const SideBar = component$(
               ))}
             </ol>
           </nav>
-          <nav class="menu">
+          <nav
+            class={{
+              menu: true,
+              'is-open': store.isOpen,
+            }}
+          >
             {navIndex
               ? navIndex.items?.map((item) => (
                   <>

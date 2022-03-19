@@ -1,20 +1,26 @@
-import { component$, Host, useStyles$, $ } from '@builder.io/qwik';
+import { component$, Host, $, useScopedStyles$ } from '@builder.io/qwik';
 import styles from './footer.css';
 
 export const Footer = component$(
   () => {
-    useStyles$(styles);
+    useScopedStyles$(styles);
 
     return $(() => (
-      <Host class="p-4 border-t border-slate-700 flex justify-between">
+      <Host class="pt-8 pb-12 px-2 flex justify-between text-sm">
         <div class="py-1">
-          <span>Made with 💜 by the </span>
+          <span>Made with ♡ by the </span>
           <a href="https://www.builder.io/">Builder.io</a>
           <span> team</span>
         </div>
         <nav class="flex">
-          <a class="px-3 py-1" href="https://github.com/BuilderIO/qwik">
+          <a class="px-3 py-1" href="https://github.com/BuilderIO/qwik" target="_blank">
             Github
+          </a>
+          <a class="px-3 py-1" href="https://discord.gg/Fd9Cwb3Z8D" target="_blank">
+            Discord
+          </a>
+          <a class="px-3 py-1" href="https://twitter.com/QwikDev" target="_blank">
+            @QwikDev
           </a>
         </nav>
       </Host>

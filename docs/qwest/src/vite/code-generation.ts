@@ -1,14 +1,10 @@
-import type { NormalizedPluginOptions, ParsedData } from './types';
+import type { PluginContext } from './types';
 
-export function createBuildCode(
-  opts: NormalizedPluginOptions,
-  data: ParsedData,
-  inlineModules: boolean
-) {
+export function createBuildCode(ctx: PluginContext, inlineModules: boolean) {
   const c = [];
 
   c.push(`export const LAYOUTS = {`);
-  Object.entries(opts.layouts).forEach(([layoutName, layoutPath]) => {
+  Object.entries(ctx.opts.layouts).forEach(([layoutName, layoutPath]) => {
     let importPath = layoutPath;
     if (importPath.endsWith('.tsx') || importPath.endsWith('.jsx')) {
       importPath = importPath.substring(0, importPath.length - 4);
@@ -21,14 +17,14 @@ export function createBuildCode(
   c.push(`};`);
 
   c.push(`export const INDEXES = {`);
-  for (const i of data.indexes) {
+  for (const i of ctx.indexes) {
     c.push(`  ${JSON.stringify(i.pathname)}: ${JSON.stringify(i)},`);
   }
   c.push(`};`);
 
   c.push(`export const PAGES = {`);
   if (inlineModules) {
-    for (const p of data.pages) {
+    for (const p of ctx.pages) {
       c.push(`  ${JSON.stringify(p.pathname)}: () => import(${JSON.stringify(p.filePath)}),`);
     }
   }

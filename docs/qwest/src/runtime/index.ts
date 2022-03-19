@@ -3,16 +3,17 @@ export type {
   HeadLinkAttributes,
   HeadLinks,
   Layout,
-  LoadIndexOptions,
-  LoadPageOptions,
   MetaOptions,
   PageAttributes,
+  PageBreadcrumb,
   PageHandler,
   PageHeading,
   PageIndex,
+  PageSource,
 } from './types';
 
-export { loadIndex } from './load-index';
-export { loadPage } from './load-page';
 export { setHeadLinks } from './head-links';
 export { setHeadMeta } from './head-meta';
+export { useLocation, useNavigate } from './location';
+export { usePage } from './page';
+export { usePageIndex } from './page-index';

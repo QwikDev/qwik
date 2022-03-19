@@ -1,39 +1,33 @@
-import type { NormalizedPluginOptions, ParsedIndex, ParsedIndexData, ParsedPage } from './types';
+import type { PluginContext, ParsedIndex, ParsedIndexData, ParsedPage } from './types';
 import frontmatter from 'front-matter';
 import { marked } from 'marked';
 import {
   getIndexPathname,
   getIndexLinkHref,
   getPagePathname,
-  getPageTitle,
   validateLayout,
+  getPageTitle,
 } from './utils';
-import type { PageAttributes } from '../runtime';
 
-export function parseMarkdownFile(
-  opts: NormalizedPluginOptions,
-  filePath: string,
-  content: string
-) {
+export function parseMarkdownFile(ctx: PluginContext, filePath: string, content: string) {
   const parsed = frontmatter<any>(content);
-  const attrs: PageAttributes = parsed.attributes || {};
+  const attrs: { [prop: string]: string } = parsed.attributes || {};
 
-  validateLayout(opts, filePath, attrs);
+  validateLayout(ctx, filePath, attrs);
+
+  attrs.title = getPageTitle(filePath, attrs);
+
   const page: ParsedPage = {
-    pathname: getPagePathname(opts, filePath),
-    title: getPageTitle(filePath, attrs),
+    pathname: getPagePathname(ctx, filePath),
+    attrs,
     filePath,
   };
   return page;
 }
 
-export function parseIndexFile(
-  opts: NormalizedPluginOptions,
-  indexFilePath: string,
-  content: string
-) {
+export function parseIndexFile(ctx: PluginContext, indexFilePath: string, content: string) {
   const index: ParsedIndexData = {
-    pathname: getIndexPathname(opts, indexFilePath),
+    pathname: getIndexPathname(ctx, indexFilePath),
     filePath: indexFilePath,
     text: '',
     items: [],
@@ -66,7 +60,7 @@ export function parseIndexFile(
           } else if (h2Token.type === 'link') {
             h2 = {
               text: h2Token.text,
-              href: getIndexLinkHref(opts, indexFilePath, h2Token.href),
+              href: getIndexLinkHref(ctx, indexFilePath, h2Token.href),
             };
             index.items!.push(h2);
           } else {
@@ -91,7 +85,7 @@ export function parseIndexFile(
                 } else if (liItem.type === 'link') {
                   h2.items.push({
                     text: liItem.text,
-                    href: getIndexLinkHref(opts, indexFilePath, liItem.href),
+                    href: getIndexLinkHref(ctx, indexFilePath, liItem.href),
                   });
                 } else {
                   throw new Error(
@@ -102,7 +96,7 @@ export function parseIndexFile(
             } else if (liToken.type === 'link') {
               h2.items.push({
                 text: liToken.text,
-                href: getIndexLinkHref(opts, indexFilePath, liToken.href),
+                href: getIndexLinkHref(ctx, indexFilePath, liToken.href),
               });
             } else {
               throw new Error(

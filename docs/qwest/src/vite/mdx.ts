@@ -1,20 +1,19 @@
 import type { CompileOptions } from '@mdx-js/mdx/lib/compile';
 import { extname } from 'path';
 import { SourceMapGenerator } from 'source-map';
-import { rehypeHeadings, rehypeSourcePath } from './rehype';
-import type { NormalizedPluginOptions } from './types';
+import { rehypePage } from './rehype';
+import type { PluginContext } from './types';
 
-export async function createMdxTransformer(opts: NormalizedPluginOptions): Promise<MdxTransform> {
+export async function createMdxTransformer(ctx: PluginContext): Promise<MdxTransform> {
   const { createFormatAwareProcessors } = await import(
     '@mdx-js/mdx/lib/util/create-format-aware-processors.js'
   );
   const { default: remarkFrontmatter } = await import('remark-frontmatter');
   const { default: remarkGfm } = await import('remark-gfm');
-  const { remarkMdxFrontmatter } = await import('remark-mdx-frontmatter');
   const { default: rehypeAutolinkHeadings } = await import('rehype-autolink-headings');
   const { VFile } = await import('vfile');
 
-  const userMdxOpts = opts.mdx || {};
+  const userMdxOpts = ctx.opts.mdx || {};
 
   const userRemarkPlugins = userMdxOpts.remarkPlugins || [];
   const userRehypePlugins = userMdxOpts.rehypePlugins || [];
@@ -23,18 +22,8 @@ export async function createMdxTransformer(opts: NormalizedPluginOptions): Promi
     SourceMapGenerator,
     jsxImportSource: '@builder.io/qwik',
     ...userMdxOpts,
-    remarkPlugins: [
-      ...userRemarkPlugins,
-      remarkGfm,
-      remarkFrontmatter,
-      [remarkMdxFrontmatter, { name: 'attributes' }],
-    ],
-    rehypePlugins: [
-      ...userRehypePlugins,
-      rehypeHeadings,
-      [rehypeSourcePath, opts],
-      rehypeAutolinkHeadings,
-    ],
+    remarkPlugins: [...userRemarkPlugins, remarkGfm, remarkFrontmatter],
+    rehypePlugins: [...userRehypePlugins, [rehypePage, ctx], rehypeAutolinkHeadings],
   };
 
   const { extnames, process } = createFormatAwareProcessors(mdxOpts);

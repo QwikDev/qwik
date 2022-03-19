@@ -3,8 +3,10 @@
  */
 export interface PageHandler {
   attributes: PageAttributes;
+  breadcrumbs: PageBreadcrumb[];
   content: Content;
   headings: PageHeading[];
+  index: { path: string };
   layout: Layout;
   source: PageSource;
   url: URL;
@@ -17,6 +19,14 @@ export interface PageAttributes {
   title?: string;
   description?: string;
   [pageAttribute: string]: string | undefined;
+}
+
+/**
+ * @public
+ */
+export interface PageBreadcrumb {
+  text: string;
+  href?: string;
 }
 
 /**

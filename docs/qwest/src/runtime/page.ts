@@ -54,11 +54,13 @@ const loadPage = async (href: string): Promise<PageHandler | null> => {
 
   return {
     attributes: mod.attributes,
+    breadcrumbs: mod.breadcrumbs,
     content: mod.default,
     headings: mod.headings,
+    index: mod.index,
     layout: layout.default,
     source: mod.source,
-    url: url,
+    url,
   };
 };
 

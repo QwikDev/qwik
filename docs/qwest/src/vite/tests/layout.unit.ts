@@ -4,21 +4,21 @@ import { suite } from './uvu-suite';
 
 const test = suite();
 
-test('ok if default', ({ opts, filePath, attrs }) => {
+test('ok if default', ({ ctx, filePath, attrs }) => {
   attrs.layout = 'default';
-  utils.validateLayout(opts, filePath, attrs);
+  utils.validateLayout(ctx, filePath, attrs);
 });
 
-test('ok if layout exists', ({ opts, filePath, attrs }) => {
+test('ok if layout exists', ({ ctx, filePath, attrs }) => {
   attrs.layout = 'full';
-  opts.layouts.full = '/path/to/layout.tsx';
-  utils.validateLayout(opts, filePath, attrs);
+  ctx.opts.layouts.full = '/path/to/layout.tsx';
+  utils.validateLayout(ctx, filePath, attrs);
 });
 
-test('error if not valid', ({ opts, filePath, attrs }) => {
+test('error if not valid', ({ ctx, filePath, attrs }) => {
   assert.throws(() => {
     attrs.layout = 'nope';
-    utils.validateLayout(opts, filePath, attrs);
+    utils.validateLayout(ctx, filePath, attrs);
   });
 });
 

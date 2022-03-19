@@ -5,6 +5,7 @@ export type {
   Layout,
   MetaOptions,
   PageAttributes,
+  PageBreadcrumb,
   PageHandler,
   PageHeading,
   PageIndex,

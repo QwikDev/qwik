@@ -120,4 +120,5 @@ h6 a:hover .icon {
   padding: 2px 4px;
   border-radius: 3px;
   font-size: 16px;
+  word-break: break-all;
 }

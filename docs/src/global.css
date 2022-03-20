@@ -5,3 +5,73 @@
 body {
   @apply bg-gray-900 text-slate-100 antialiased h-screen;
 }
+
+@media (max-width: 1023px) {
+  .menu-open .sidebar {
+    width: 100%;
+    @apply z-50;
+  }
+
+  .menu-open .menu {
+    @apply block;
+    @apply bg-gray-900;
+
+    @apply top-0;
+    @apply p-3;
+    @apply pr-16;
+    width: 360px;
+  }
+
+  .menu-open .menu h5 {
+    @apply p-2;
+  }
+
+  .menu-open .menu a {
+    @apply text-slate-100 hover:text-slate-800 p-3;
+  }
+
+  body.menu-open {
+    background-color: rgb(187, 187, 187);
+  }
+
+  .menu-open header {
+    pointer-events: none;
+    opacity: 0.4;
+    background-color: transparent;
+  }
+
+  .menu-open .breadcrumbs {
+    pointer-events: none;
+    opacity: 0.2;
+    background-color: transparent;
+  }
+
+  .menu-open main {
+    pointer-events: none;
+    opacity: 0.2;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    background: transparent;
+  }
+
+  .menu-close {
+    @apply text-slate-300;
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 300px;
+    width: 100%;
+    height: 100vh;
+    padding-left: 12px;
+    cursor: default;
+  }
+
+  .menu-close svg {
+    position: fixed;
+    top: 20px;
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+  }
+}

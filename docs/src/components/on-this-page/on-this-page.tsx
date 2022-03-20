@@ -30,7 +30,7 @@ export const OnThisPage = component$(
       return (
         <Host
           onDocument:scroll={onScroll}
-          class="on-this-page fixed text-sm z-20 bottom-0 right-[max(0px,calc(50%-45rem))] overflow-y-auto hidden xl:block xl:w-[18rem] xl:top-[5rem]"
+          class="on-this-page fixed text-sm z-20 bottom-0 pb-8 right-[max(0px,calc(50%-45rem))] overflow-y-auto hidden xl:block xl:w-[18rem] xl:top-[5rem]"
         >
           {headings.length > 0 ? (
             <>

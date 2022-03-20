@@ -1,14 +1,11 @@
-import { component$, Host, $, useHostElement, useScopedStyles$, useStore } from '@builder.io/qwik';
+import { component$, Host, $, useHostElement, useScopedStyles$ } from '@builder.io/qwik';
 import { usePage, usePageIndex } from '@builder.io/qwest';
 import styles from './sidebar.css';
+import { toggleMenu } from '../../utils/toggle-menu';
 
 export const SideBar = component$(
   () => {
     useScopedStyles$(styles);
-
-    const store = useStore({
-      isOpen: false,
-    });
 
     return $(async () => {
       const hostElm = useHostElement();
@@ -18,11 +15,7 @@ export const SideBar = component$(
       return (
         <Host class="sidebar">
           <nav class="breadcrumbs">
-            <button
-              on$:click={() => {
-                store.isOpen = !store.isOpen;
-              }}
-            >
+            <button on:click={toggleMenu}>
               <span class="sr-only">Navigation</span>
               <svg width="24" height="24">
                 <path
@@ -40,12 +33,18 @@ export const SideBar = component$(
               ))}
             </ol>
           </nav>
-          <nav
-            class={{
-              menu: true,
-              'is-open': store.isOpen,
-            }}
-          >
+          <nav class="menu">
+            <button class="menu-close lg:hidden" on:click={toggleMenu}>
+              <svg viewBox="0 0 10 10">
+                <path
+                  d="M0 0L10 10M10 0L0 10"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                />
+              </svg>
+            </button>
             {navIndex
               ? navIndex.items?.map((item) => (
                   <>

@@ -1,8 +1,13 @@
+.sidebar {
+  @apply fixed z-20 top-0 bottom-0;
+}
+
 .breadcrumbs {
+  @apply fixed z-10 top-[56px] w-[100%];
   @apply border-b border-slate-300;
   @apply px-1;
   @apply flex;
-  @apply text-slate-600;
+  @apply text-slate-600 bg-white;
 
   /* large */
   @apply lg:hidden;
@@ -10,7 +15,7 @@
 
 .breadcrumbs button {
   @apply block;
-  @apply p-3;
+  @apply p-4;
   @apply opacity-70;
   @apply hover:opacity-100;
 }
@@ -37,9 +42,9 @@
 }
 
 .menu {
-  @apply fixed z-20;
+  @apply fixed z-10 top-[78px] bottom-0;
+  @apply pb-6;
   @apply overflow-y-auto;
-  @apply pb-10;
   @apply hidden;
 
   @apply right-auto left-[max(0px,calc(50%-45rem))];
@@ -47,7 +52,6 @@
   /* large */
   @apply lg:block;
   @apply lg:pl-4 lg:pr-4;
-  @apply lg:top-[5.2rem];
   @apply lg:w-[18rem];
 }
 

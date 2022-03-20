@@ -7,13 +7,13 @@
 }
 
 .docs article {
-  @apply pt-5;
+  @apply pt-[66px];
   @apply px-5;
 
   /* medium */
 
   /* large */
-  @apply lg:ml-[19rem] lg:mr-[2rem] lg:px-0;
+  @apply lg:pt-5 lg:ml-[19rem] lg:mr-[2rem] lg:px-0;
 
   /* xlarge */
   @apply xl:pr-16 xl:mr-[16.5rem];

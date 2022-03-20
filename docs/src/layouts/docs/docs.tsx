@@ -13,8 +13,8 @@ const DocsLayout = component$(() => {
     return (
       <Host class="docs">
         <Header />
+        <SideBar />
         <main>
-          <SideBar />
           <article>
             <Slot />
             <ContentNav />

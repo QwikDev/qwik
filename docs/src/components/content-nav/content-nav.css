@@ -4,9 +4,12 @@
   background-color: #01b9ff;
   border: 1px solid #01b9ff;
   border-radius: 5px;
-  padding: 8px 12px;
+  padding: 6px 16px;
   text-decoration: none;
   color: white;
+  display: inline-block;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 .content-nav .prev:hover,

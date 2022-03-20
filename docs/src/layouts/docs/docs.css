@@ -7,13 +7,13 @@
 }
 
 .docs article {
-  @apply pt-5;
-  @apply px-5;
+  @apply pt-[66px];
+  @apply px-6;
 
   /* medium */
 
   /* large */
-  @apply lg:ml-[19rem] lg:mr-[2rem] lg:px-0;
+  @apply lg:pt-5 lg:ml-[19rem] lg:mr-[2rem] lg:px-0;
 
   /* xlarge */
   @apply xl:pr-16 xl:mr-[16.5rem];
@@ -120,4 +120,5 @@ h6 a:hover .icon {
   padding: 2px 4px;
   border-radius: 3px;
   font-size: 16px;
+  word-break: break-all;
 }

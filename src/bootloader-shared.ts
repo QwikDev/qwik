@@ -81,31 +81,28 @@ export const qwikLoader = (doc: Document, hasInitialized?: boolean | number) => 
       })
     );
 
-  const dispatch = async (
-    element: Element,
-    eventName: string,
-    ev: Event,
-    url?: URL,
-    previousCtx?: any,
-    attrValue?: string | null
-  ) => {
+  const dispatch = async (element: Element, eventName: string, ev: Event) => {
     for (const on of ON_PREFIXES) {
+      const attrValue = element.getAttribute(on + eventName);
+      if (!attrValue) {
+        continue;
+      }
       const preventDefault = element.hasAttribute('preventdefault:' + eventName);
       if (preventDefault) {
         ev.preventDefault();
       }
       for (const qrl of attrValue.split('\n')) {
-        url = qrlResolver(doc, element, qrl);
+        const url = qrlResolver(doc, element, qrl);
         if (url) {
           const symbolName = getSymbolName(url);
           const module =
             (window as any)[url.pathname] ||
             (await import(/* @vite-ignore */ String(url).split('#')[0]));
           const handler = module[symbolName] || error(url + ' does not export ' + symbolName);
-          previousCtx = (doc as any)[Q_CONTEXT];
+          const previousCtx = (doc as any)[Q_CONTEXT];
           try {
             (doc as any)[Q_CONTEXT] = [element, ev, url];
-            handler(element, ev, url);
+            handler(ev, element, url);
           } finally {
             (doc as any)[Q_CONTEXT] = previousCtx;
             symbolUsed(element, symbolName);

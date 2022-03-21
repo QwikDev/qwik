@@ -14,6 +14,7 @@ import { SkipRerender } from './jsx/host.public';
 import { logDebug, logError, logWarn } from '../util/log';
 import { qDev } from '../util/qdev';
 import { qError, QError } from '../error/error';
+import { fromCamelToKebabCase } from '../util/case';
 
 type KeyToIndexMap = { [key: string]: number };
 
@@ -862,7 +863,11 @@ export function stringifyClassOrStyle(obj: any, isClass: boolean): string {
       for (const key in obj) {
         if (Object.prototype.hasOwnProperty.call(obj, key)) {
           const value = obj[key];
-          text += isClass ? (value ? sep + key : '') : sep + key + ':' + value;
+          text += isClass
+            ? value
+              ? sep + key
+              : ''
+            : sep + fromCamelToKebabCase(key) + ':' + value;
           sep = isClass ? ' ' : ';';
         }
       }

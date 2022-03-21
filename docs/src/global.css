@@ -91,3 +91,13 @@ body {
     cursor: pointer;
   }
 }
+
+@media (max-width: 540px) {
+  body {
+    @apply bg-white;
+  }
+  .menu-open .menu a:hover {
+    @apply bg-transparent;
+    color: rgb(241 245 249 / var(--tw-text-opacity)) !important;
+  }
+}

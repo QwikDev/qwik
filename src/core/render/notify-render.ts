@@ -1,7 +1,7 @@
 import { assertDefined } from '../assert/assert';
 import { QHostAttr } from '../util/markers';
 import { executeContextWithSlots, printRenderStats, RenderContext } from './cursor';
-import { getContext, hydrateIfNeeded } from '../props/props';
+import { getContext, resumeIfNeeded } from '../props/props';
 import { qDev } from '../util/qdev';
 import { getPlatform } from '../index';
 import { getDocument } from '../util/dom';
@@ -27,7 +27,7 @@ import { logDebug } from '../util/log';
 export function notifyRender(hostElement: Element): Promise<RenderContext> {
   assertDefined(hostElement.getAttribute(QHostAttr));
   const doc = getDocument(hostElement);
-  hydrateIfNeeded(doc);
+  resumeIfNeeded(hostElement);
   const ctx = getContext(hostElement);
   const state = getRenderingState(doc);
   if (ctx.dirty) {
@@ -59,7 +59,7 @@ export function scheduleFrame(doc: Document, state: RenderingState): Promise<Ren
   return state.renderPromise;
 }
 
-const SCHEDULE = Symbol();
+const SCHEDULE = Symbol('Render state');
 
 export interface RenderingState {
   hostsNext: Set<Element>;

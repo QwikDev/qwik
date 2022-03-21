@@ -5,7 +5,7 @@ export const Main = component$(() => {
   const state = useStore({ name: 'World', running: true });
   return $(() => {
     return (
-      <div id="my-app" on$:expensiveComputationDone={() => (state.running = false)}>
+      <div id="my-app" onDocument$:expensiveComputationDone={() => (state.running = false)}>
         <p style={{ 'text-align': 'center' }}>
           <a href="https://github.com/builderio/qwik">
             <img
@@ -69,7 +69,7 @@ export const Main = component$(() => {
             Observe that the binding changes: <code>Hello {state.name}!</code>
           </li>
           <li>
-            Notice that Qwik automatically lazily-loaded and hydrated the component upon interaction
+            Notice that Qwik automatically lazily-loaded and resumed the component upon interaction
             without the developer having to code that behavior. (Lazy hydration is what gives even
             large apps instant on behavior.)
           </li>

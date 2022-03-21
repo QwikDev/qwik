@@ -11,7 +11,10 @@ export function toDOM(jsx: h.JSX.Element, parent?: HTMLElement): HTMLElement {
   for (const attrName in jsx.props) {
     if (attrName !== 'children') {
       const jsxValue = jsx.props[attrName];
-      element.setAttribute(attrName, isQrl(jsxValue) ? stringifyQRL(jsxValue, element) : jsxValue);
+      element.setAttribute(
+        attrName,
+        isQrl(jsxValue) ? stringifyQRL(jsxValue, undefined, element) : jsxValue
+      );
     }
   }
   if (parent) {

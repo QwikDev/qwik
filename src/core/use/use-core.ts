@@ -21,15 +21,10 @@ interface InvokeContext {
 let _context: InvokeContext | undefined;
 
 export function tryGetInvokeContext(): InvokeContext | undefined {
-  return _context;
-}
-
-export function getInvokeContext(): InvokeContext {
   if (!_context) {
     const context = typeof document !== 'undefined' && document && document.__q_context__;
     if (!context) {
-      // TODO(misko): centralize
-      throw new Error("Q-ERROR: invoking 'use*()' method outside of invocation context.");
+      return undefined;
     }
     if (Array.isArray(context)) {
       const element = context[0];
@@ -45,6 +40,14 @@ export function getInvokeContext(): InvokeContext {
     return context as InvokeContext;
   }
   return _context;
+}
+
+export function getInvokeContext(): InvokeContext {
+  const ctx = tryGetInvokeContext();
+  if (!ctx) {
+    throw new Error("Q-ERROR: invoking 'use*()' method outside of invocation context.");
+  }
+  return ctx;
 }
 
 export function useInvoke<ARGS extends any[] = any[], RET = any>(

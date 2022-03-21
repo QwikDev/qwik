@@ -199,7 +199,7 @@ NOTE: for the next steps, it is recommended that you open the application in an 
 
 ![](https://i.imgur.com/bnnCd2L.png)
 
-To resume a Qwik application, it takes less than 1kB of Javascript, which then executes on the client in about 10 ms. The thing to understand is that this code is in no way specific to the To-do application. The cost described above is fixed no matter the size or complexity of the application. Current generation frameworks must hydrate the application on the client to make it interactive. This requires downloading the framework and the application. The hydration cost is proportional to the size and complexity of the application. So it may start out small, but as the application grows, so will the hydration cost. With Qwik, the startup cost is 1) significantly smaller and 2) is fixed no matter the complexity of the application.
+To resume a Qwik application, it takes less than 1kB of Javascript, which then executes on the client in about 10 ms. The thing to understand is that this code is in no way specific to the To-do application. The cost described above is fixed no matter the size or complexity of the application. Current generation frameworks must resume the application on the client to make it interactive. This requires downloading the framework and the application. The hydration cost is proportional to the size and complexity of the application. So it may start out small, but as the application grows, so will the hydration cost. With Qwik, the startup cost is 1) significantly smaller and 2) is fixed no matter the complexity of the application.
 
 ## Understanding User Interactions
 

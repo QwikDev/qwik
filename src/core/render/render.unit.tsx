@@ -20,6 +20,7 @@ describe('render', () => {
       await render(fixture.host, <div></div>);
       expectRendered(<div></div>);
       expect(fixture.host.getAttribute('q:version')).toEqual('');
+      expect(fixture.host.getAttribute('q:container')).toEqual('');
     });
 
     it('should only render string/number', async () => {
@@ -55,8 +56,8 @@ describe('render', () => {
     });
 
     it('should render attributes', async () => {
-      await render(fixture.host, <div id="abc" title="bar"></div>);
-      expectRendered(<div title="bar" id="abc"></div>);
+      await render(fixture.host, <div id="abc" title="bar" preventDefault:click></div>);
+      expectRendered(<div title="bar" id="abc" preventDefault:click></div>);
     });
 
     it('should render children', async () => {
@@ -107,7 +108,7 @@ describe('render', () => {
         fixture.host,
         <RenderProps
           thing="World"
-          className="foo"
+          class="foo"
           id="123"
           q:slot="start"
           aria-hidden="true"
@@ -445,21 +446,29 @@ describe('render', () => {
     });
   });
 
-  describe.skip('SVG element', () => {
+  describe('SVG element', () => {
     it('should render #text nodes', async () => {
       const lines = ['hola', 'adios'];
       render(
         fixture.host,
-        <svg viewBox="0 0 100 4">
+        <svg viewBox="0 0 100 4" class={'svg-container'}>
           {lines.map((a) => {
-            return <text>Hola {a}</text>;
+            return (
+              <text class={'svg-text'} style={{ color: a }}>
+                Hola {a}
+              </text>
+            );
           })}
         </svg>
       );
       expectRendered(
-        <svg viewBox="0 0 100 4">
-          <text>Hola {'hola'}</text>
-          <text>Hola {'adios'}</text>
+        <svg viewBox="0 0 100 4" class="svg-container">
+          <text class={'svg-text'} style="color:hola">
+            Hola {'hola'}
+          </text>
+          <text class={'svg-text'} style="color:adios">
+            Hola {'adios'}
+          </text>
         </svg>
       );
 
@@ -557,23 +566,23 @@ describe('render', () => {
           <Text class="is-html" shouldkebab="true">
             Start
           </Text>
-          <svg className="is-svg" preserveAspectRatio="true">
-            <Text className="is-svg" shouldCamelCase="true">
+          <svg class="is-svg" preserveAspectRatio="true">
+            <Text class="is-svg" shouldCamelCase="true">
               start
             </Text>
-            <foreignObject className="is-svg">
+            <foreignObject class="is-svg">
               <div class="is-html">hello</div>
-              <svg className="is-svg">
-                <feGaussianBlur className="is-svg"></feGaussianBlur>
-                <foreignObject className="is-svg">
+              <svg class="is-svg">
+                <feGaussianBlur class="is-svg"></feGaussianBlur>
+                <foreignObject class="is-svg">
                   <foreignobject class="is-html"></foreignobject>
                   <div class="is-html">Still outside svg</div>
                 </foreignObject>
               </svg>
               <fegaussianblur class="is-html">bye</fegaussianblur>
             </foreignObject>
-            <text className="is-svg">Hello</text>
-            <text className="is-svg">Bye</text>
+            <text class="is-svg">Hello</text>
+            <text class="is-svg">Bye</text>
           </svg>
           <text class="is-html">end</text>
         </div>
@@ -611,7 +620,11 @@ export const HelloWorld = component$(
 export const RenderProps = component$(
   (props: { thing?: string }) => {
     return $(() => {
-      return <span>{JSON.stringify(props)}</span>;
+      return (
+        <Host>
+          <span>{JSON.stringify(props)}</span>
+        </Host>
+      );
     });
   },
   {

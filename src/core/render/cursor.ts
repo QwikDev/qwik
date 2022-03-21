@@ -13,6 +13,7 @@ import { EMPTY_ARRAY } from '../util/flyweight';
 import { SkipRerender } from './jsx/host.public';
 import { logDebug, logError, logWarn } from '../util/log';
 import { qDev } from '../util/qdev';
+import { qError, QError } from '../error/error';
 
 type KeyToIndexMap = { [key: string]: number };
 
@@ -531,32 +532,13 @@ const getSlots = (componentCtx: ComponentCtx | undefined, hostElm: Element): Slo
   return { slots, templates };
 };
 
-const handleStyle: PropHandler = (ctx, elm, _, newValue, oldValue) => {
-  // TODO, needs reimplementation
-  if (typeof newValue == 'string') {
-    elm.style.cssText = newValue;
-  } else {
-    for (const prop in oldValue) {
-      if (!newValue || newValue[prop] == null) {
-        if (prop.includes('-')) {
-          styleSetProperty(ctx, elm, prop, null);
-        } else {
-          setProperty(ctx, elm.style, prop, '');
-        }
-      }
-    }
+const handleStyle: PropHandler = (ctx, elm, _, newValue) => {
+  setAttribute(ctx, elm, 'style', stringifyClassOrStyle(newValue, false));
+  return true;
+};
 
-    for (const prop in newValue) {
-      const value = newValue[prop];
-      if (!oldValue || value !== oldValue[prop]) {
-        if (prop.includes('-')) {
-          styleSetProperty(ctx, elm, prop, value);
-        } else {
-          setProperty(ctx, elm.style, prop, value);
-        }
-      }
-    }
-  }
+const handleClass: PropHandler = (ctx, elm, _, newValue) => {
+  setAttribute(ctx, elm, 'class', stringifyClassOrStyle(newValue, true));
   return true;
 };
 
@@ -581,12 +563,14 @@ const setInnerHTML: PropHandler = (ctx, elm, _, newValue) => {
 
 const PROP_HANDLER_MAP: Record<string, PropHandler> = {
   style: handleStyle,
+  class: handleClass,
+  className: handleClass,
   value: checkBeforeAssign,
   checked: checkBeforeAssign,
   [dangerouslySetInnerHTML]: setInnerHTML,
 };
 
-const ALLOWS_PROPS = ['className', 'style', 'id', 'q:slot'];
+const ALLOWS_PROPS = ['class', 'className', 'style', 'id', 'q:slot'];
 
 export function updateProperties(
   rctx: RenderContext,
@@ -600,20 +584,11 @@ export function updateProperties(
   const elm = ctx.element;
   const qwikProps = OnRenderProp in expectProps ? getProps(ctx) : undefined;
 
-  if ('class' in expectProps) {
-    const className = expectProps.class;
-    expectProps.className =
-      className && typeof className == 'object'
-        ? Object.keys(className)
-            .filter((k) => className[k])
-            .join(' ')
-        : className;
-  }
   // TODO
   // when a proper disappears, we cant reset the value
 
   for (let key of Object.keys(expectProps)) {
-    if (key === 'children' || key === 'class') {
+    if (key === 'children') {
       continue;
     }
     const newValue = expectProps[key];
@@ -635,7 +610,7 @@ export function updateProperties(
     ctx.cache.set(key, newValue);
 
     // Check of data- or aria-
-    if (key.startsWith('data-') || key.startsWith('aria-') || isSvg) {
+    if (key.startsWith('data-') || key.startsWith('aria-')) {
       setAttribute(rctx, elm, key, newValue);
       continue;
     }
@@ -662,7 +637,7 @@ export function updateProperties(
     }
 
     // Check if property in prototype
-    if (key in elm) {
+    if (!isSvg && key in elm) {
       setProperty(rctx, elm, key, newValue);
       continue;
     }
@@ -696,22 +671,6 @@ export function setAttribute(ctx: RenderContext, el: Element, prop: string, valu
   ctx.operations.push({
     el,
     operation: 'set-attribute',
-    args: [prop, value],
-    fn,
-  });
-}
-
-function styleSetProperty(ctx: RenderContext, el: HTMLElement, prop: string, value: string | null) {
-  const fn = () => {
-    if (value == null) {
-      el.style.removeProperty(prop);
-    } else {
-      el.style.setProperty(prop, String(value));
-    }
-  };
-  ctx.operations.push({
-    el,
-    operation: 'style-set-property',
     args: [prop, value],
     fn,
   });
@@ -884,4 +843,31 @@ function sameVnode(vnode1: Node, vnode2: JSXNode): boolean {
 
 function checkInnerHTML(props: Record<string, any> | undefined | null) {
   return props && ('innerHTML' in props || dangerouslySetInnerHTML in props);
+}
+
+export function stringifyClassOrStyle(obj: any, isClass: boolean): string {
+  if (obj == null) return '';
+  if (typeof obj == 'object') {
+    let text = '';
+    let sep = '';
+    if (Array.isArray(obj)) {
+      if (!isClass) {
+        throw qError(QError.Render_unsupportedFormat_obj_attr, obj, 'style');
+      }
+      for (let i = 0; i < obj.length; i++) {
+        text += sep + obj[i];
+        sep = ' ';
+      }
+    } else {
+      for (const key in obj) {
+        if (Object.prototype.hasOwnProperty.call(obj, key)) {
+          const value = obj[key];
+          text += isClass ? (value ? sep + key : '') : sep + key + ':' + value;
+          sep = isClass ? ' ' : ';';
+        }
+      }
+    }
+    return text;
+  }
+  return String(obj);
 }

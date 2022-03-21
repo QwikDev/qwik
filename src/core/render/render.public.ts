@@ -8,7 +8,7 @@ import { then } from '../util/promises';
 import { getRenderingState } from './notify-render';
 import { getDocument } from '../util/dom';
 import { qDev } from '../util/qdev';
-import { hydrateIfNeeded } from '../props/props';
+import { resumeIfNeeded } from '../props/props';
 
 /**
  * Render JSX.
@@ -32,7 +32,7 @@ export function render(
   }
   const doc = isDocument(parent) ? parent : getDocument(parent);
   const stylesParent = isDocument(parent) ? parent.head : parent.parentElement;
-  hydrateIfNeeded(doc);
+  resumeIfNeeded(parent);
 
   const ctx: RenderContext = {
     doc,
@@ -71,4 +71,5 @@ export function injectQwikSlotCSS(parent: Element) {
 export function injectQVersion(parent: Document | Element) {
   const element = isDocument(parent) ? parent.documentElement : parent;
   element.setAttribute('q:version', version || '');
+  element.setAttribute('q:container', '');
 }

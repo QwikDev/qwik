@@ -21,7 +21,6 @@ export const firstRenderComponent = (rctx: RenderContext, ctx: QContext) => {
 export const renderComponent = (rctx: RenderContext, ctx: QContext) => {
   const hostElement = ctx.element as HTMLElement;
   const onRender = getEvent(ctx, OnRenderProp) as any as () => JSXNode;
-  const event = 'qRender';
   assertDefined(onRender);
 
   // Component is not dirty any more
@@ -29,7 +28,7 @@ export const renderComponent = (rctx: RenderContext, ctx: QContext) => {
   rctx.globalState.hostsStaging.delete(hostElement);
 
   // Invoke render hook
-  const promise = useInvoke(newInvokeContext(hostElement, hostElement, event), onRender);
+  const promise = useInvoke(newInvokeContext(hostElement, hostElement, 'qRender'), onRender);
 
   return then(promise, (jsxNode) => {
     // Types are wrong here

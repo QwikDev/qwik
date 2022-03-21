@@ -1,5 +1,5 @@
 // TODO(misko): need full object parsing /serializing
-import { assertDefined } from '../assert/assert';
+import { assertEqual } from '../assert/assert';
 import type { QContext } from '../props/props';
 
 export function qDeflate(obj: any, hostCtx: QContext): number {
@@ -8,6 +8,6 @@ export function qDeflate(obj: any, hostCtx: QContext): number {
 
 export function qInflate(ref: number, hostCtx: QContext): any {
   const obj = hostCtx.refMap.get(ref);
-  assertDefined(obj);
+  assertEqual(hostCtx.refMap.array.length > ref, true);
   return obj;
 }

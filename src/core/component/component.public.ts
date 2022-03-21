@@ -48,7 +48,7 @@ export const onUnmount$ = implicit$FirstArg(onUnmountFromQrl);
  * A lazy-loadable reference to a component's on resume hook.
  *
  * The hook is eagerly invoked when the application resumes on the client. Because it is called
- * eagerly, this allows the component to hydrate even if no user interaction has taken place.
+ * eagerly, this allows the component to resume even if no user interaction has taken place.
  *
  * @public
  */
@@ -57,53 +57,23 @@ export function onResumeFromQrl(resumeFn: QRL<() => void>): void {
   onWindow('load', resumeFn);
 }
 
-// <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onResume">
+// <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onHydrate">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fc_nNpiLZSYugTU0c5JATJA%3Fboth#onResume instead)
+// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fc_nNpiLZSYugTU0c5JATJA%3Fboth#onHydrate instead)
 /**
  * A lazy-loadable reference to a component's on resume hook.
  *
- * The hook is eagerly invoked when the application resumes on the client. Because it is called
- * eagerly, this allows the component to hydrate even if no user interaction has taken place.
+ * Invoked when the component's state is re-resumed from serialization. This allows the
+ * component to do any work to re-activate itself.
  *
  * @public
  */
 // </docs>
 export const onResume$ = implicit$FirstArg(onResumeFromQrl);
 
-// <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onHydrate">
+// <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#OnPause">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fc_nNpiLZSYugTU0c5JATJA%3Fboth#onHydrate instead)
-/**
- * A lazy-loadable reference to a component's on hydrate hook.
- *
- * Invoked when the component's state is re-hydrated from serialization. This allows the
- * component to do any work to re-activate itself.
- *
- * @public
- */
-// </docs>
-export function onHydrateFromQrl(hydrateFn: QRL<() => void>): void {
-  throw new Error('IMPLEMENT: onHydrate' + hydrateFn);
-}
-
-// <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onHydrate">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fc_nNpiLZSYugTU0c5JATJA%3Fboth#onHydrate instead)
-/**
- * A lazy-loadable reference to a component's on hydrate hook.
- *
- * Invoked when the component's state is re-hydrated from serialization. This allows the
- * component to do any work to re-activate itself.
- *
- * @public
- */
-// </docs>
-export const onHydrate$ = implicit$FirstArg(onHydrateFromQrl);
-
-// <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onDehydrate">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fc_nNpiLZSYugTU0c5JATJA%3Fboth#onDehydrate instead)
+// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fc_nNpiLZSYugTU0c5JATJA%3Fboth#OnPause instead)
 /**
  * A lazy-loadable reference to a component's on dehydrate hook.
  *
@@ -115,13 +85,13 @@ export const onHydrate$ = implicit$FirstArg(onHydrateFromQrl);
  * @public
  */
 // </docs>
-export function onDehydrateFromQrl(dehydrateFn: QRL<() => void>): void {
-  throw new Error('IMPLEMENT: onDehydrate' + dehydrateFn);
+export function onPauseFromQrl(dehydrateFn: QRL<() => void>): void {
+  throw new Error('IMPLEMENT: onPause' + dehydrateFn);
 }
 
-// <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onDehydrate">
+// <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#OnPause">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fc_nNpiLZSYugTU0c5JATJA%3Fboth#onDehydrate instead)
+// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fc_nNpiLZSYugTU0c5JATJA%3Fboth#OnPause instead)
 /**
  * A lazy-loadable reference to a component's on dehydrate hook.
  *
@@ -133,7 +103,7 @@ export function onDehydrateFromQrl(dehydrateFn: QRL<() => void>): void {
  * @public
  */
 // </docs>
-export const onDehydrate$ = implicit$FirstArg(onDehydrateFromQrl);
+export const onPause$ = implicit$FirstArg(onPauseFromQrl);
 
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#on">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -192,7 +162,7 @@ export function onDocument(event: string, eventFn: QRL<() => void>) {
 export function onWindow(event: string, eventFn: QRL<() => void>) {
   const el = useHostElement();
   const ctx = getContext(el);
-  qPropWriteQRL(undefined, ctx, 'on-w' + `indow:${event}`, eventFn);
+  qPropWriteQRL(undefined, ctx, `on-window:${event}`, eventFn);
 }
 
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#useStyles">
@@ -314,7 +284,7 @@ export interface ComponentOptions {
  * });
  * ```
  *
- * See also: `component`, `onUnmount`, `onHydrate`, `onDehydrate`, `onHalt`, `onResume`, `on`,
+ * See also: `component`, `onUnmount`, `onHydrate`, `OnPause`, `onHalt`, `onResume`, `on`,
  * `onDocument`, `onWindow`, `useStyles`, `useScopedStyles`
  *
  * @param onMount - Initialization closure used when the component is first created.
@@ -404,7 +374,7 @@ export function componentFromQrl<PROPS extends {}>(
  * });
  * ```
  *
- * See also: `component`, `onUnmount`, `onHydrate`, `onDehydrate`, `onHalt`, `onResume`, `on`,
+ * See also: `component`, `onUnmount`, `onHydrate`, `OnPause`, `onHalt`, `onResume`, `on`,
  * `onDocument`, `onWindow`, `useStyles`, `useScopedStyles`
  *
  * @param onMount - Initialization closure used when the component is first created.

@@ -134,7 +134,7 @@ export function qPropWriteQRL(
     throw qError(QError.TODO, `Not QRLInternal: prop: ${prop}; value: ` + value);
   }
   if (prop.startsWith('on:q')) {
-    getEvents(ctx)[prop] = serializeQRLs(existingQRLs, ctx);
+    getEvents(ctx)[prop] = existingQRLs.filter((a) => !isPromise(a)) as QRLInternal[];
   } else {
     const kebabProp = fromCamelToKebabCase(prop);
     const newValue = serializeQRLs(existingQRLs, ctx);
@@ -162,11 +162,7 @@ function getExistingQRLs(ctx: QContext, prop: string): ValueOrPromise<QRLInterna
       parts = [];
       const qrls = getEvents(ctx)[prop];
       if (qrls) {
-        qrls.split('\n').forEach((qrl) => {
-          if (qrl) {
-            parts.push(parseQRL(qrl as any, ctx.element));
-          }
-        });
+        parts.push(...qrls);
         ctx.cache.set(prop, parts);
         return parts;
       }
@@ -175,7 +171,7 @@ function getExistingQRLs(ctx: QContext, prop: string): ValueOrPromise<QRLInterna
     parts = [];
     (ctx.element.getAttribute(attrName) || '').split('\n').forEach((qrl) => {
       if (qrl) {
-        parts.push(parseQRL(qrl as any, ctx.element));
+        parts.push(parseQRL(qrl, ctx.element));
       }
     });
     ctx.cache.set(prop, parts);
@@ -187,7 +183,7 @@ function serializeQRLs(existingQRLs: ValueOrPromise<QRLInternal>[], ctx: QContex
   const platform = getPlatform(getDocument(ctx.element));
   const element = ctx.element;
   return existingQRLs
-    .map((qrl) => (isPromise(qrl) ? '' : stringifyQRL(qrl, element, platform)))
+    .map((qrl) => (isPromise(qrl) ? '' : stringifyQRL(qrl, platform, element)))
     .filter((v) => !!v)
     .join('\n');
 }

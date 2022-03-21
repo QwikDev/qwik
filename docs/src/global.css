@@ -2,6 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
+* {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+a,
+button,
+textarea,
+input,
+select {
+  touch-action: manipulation;
+}
+
 body {
   @apply bg-gray-900 text-slate-100 antialiased h-screen;
 }
@@ -36,18 +49,21 @@ body {
 
   .menu-open header {
     pointer-events: none;
+    touch-action: none;
     opacity: 0.4;
     background-color: transparent;
   }
 
   .menu-open .breadcrumbs {
     pointer-events: none;
+    touch-action: none;
     opacity: 0.2;
     background-color: transparent;
   }
 
   .menu-open main {
     pointer-events: none;
+    touch-action: none;
     opacity: 0.2;
     position: fixed;
     top: 0;
@@ -73,5 +89,19 @@ body {
     width: 24px;
     height: 24px;
     cursor: pointer;
+  }
+}
+
+@media (max-width: 540px) {
+  body {
+    @apply bg-white;
+  }
+  .menu-open .menu {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  .menu-open .menu a:hover {
+    @apply bg-transparent;
+    color: rgb(241 245 249 / var(--tw-text-opacity)) !important;
   }
 }

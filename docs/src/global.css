@@ -96,6 +96,10 @@ body {
   body {
     @apply bg-white;
   }
+  .menu-open .menu {
+    -webkit-user-select: none;
+    user-select: none;
+  }
   .menu-open .menu a:hover {
     @apply bg-transparent;
     color: rgb(241 245 249 / var(--tw-text-opacity)) !important;

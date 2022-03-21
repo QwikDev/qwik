@@ -18,9 +18,7 @@ export const Builder = component$(() => {
 });
 
 export const fetchQwikBuilderContent = async (url: string) => {
-  const qwikUrl = new URL(
-    'https://qa.builder.io/api/v1/qwik/content-page/889802a78f7041a0a71d2c9ee0437f5e'
-  );
+  const qwikUrl = new URL('https://qa.builder.io/api/v1/qwik/content-page');
   qwikUrl.searchParams.set('apiKey', 'fe30f73e01ef40558cd69a9493eba2a2'); // 889802a78f7041a0a71d2c9ee0437f5e
   qwikUrl.searchParams.set('userAttributes.urlPath', url);
 

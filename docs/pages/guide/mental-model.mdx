@@ -18,7 +18,7 @@ The goal of Qwik is having only to download and execute the bare minimum of the 
 
 The most expensive part for the startup for the current generation of frameworks is the cost of hydration. Hydration refers to attaching event listeners to the DOM elements to make the application interactive. Qwik does not require hydration because Qwik serializes the event handlers into HTML in the form of `on:event` attributes. Together with Qwikloader, Qwik can delay executing Javascript until user interaction. (See preloading for discussion on how to minimize the cost of loading code on interaction.)
 
-Without serializing event handlers into the HTML, the framework would be forced to hydrate on application startup. Hydration would require downloading all components currently in HTML and executing their templates to determine where the event listeners need to be attached.
+Without serializing event handlers into the HTML, the framework would be forced to resume on application startup. Hydration would require downloading all components currently in HTML and executing their templates to determine where the event listeners need to be attached.
 
 ## 2. Code splitting
 
@@ -30,7 +30,7 @@ Without Optimizer, a typical application would end up a single chunk because all
 
 All applications have a main entry point to get the application going. We call this the bootstrap code. Typically this involves importing the application root component and calling a framework method to render it. Rendering a root component, in turn, causes more components to be pulled in and rendered until the whole application renders.
 
-On hydration, the bootstrap again takes a root component and calls a framework method to re-hydrate the current HTML (meaning re-attach the listeners as well as rebuild the framework internal state about the application component tree.)
+On hydration, the bootstrap again takes a root component and calls a framework method to re-resume the current HTML (meaning re-attach the listeners as well as rebuild the framework internal state about the application component tree.)
 
 Qwik does not need to do hydration. Qwik still has a bootstrap method, but that typically executes on the server to render the initial application. There is no reboostrap on the client. Instead, Qwik serializes not only the application state into HTML but also the framework state as well. The serialized state allows the Qwik framework to continue execution where the server left off. Not requiring a reboostrap is what makes Qwik resumable.
 

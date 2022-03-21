@@ -6,8 +6,13 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
+import type { FunctionComponent } from '@builder.io/qwik';
 import { renderToString, RenderToStringOptions, QwikLoader } from '@builder.io/qwik/server';
-import { TwoListeners } from './twolisteners';
+import { Main } from './main';
+import { LexicalScope } from './components/lexical-scope/lexicalScope';
+import { SlotParent } from './components/slot/slot';
+import { TwoListeners } from './components/two-listeners/twolisteners';
+import { Render } from './components/render/render';
 
 /**
  * Entry point for server-side pre-rendering.
@@ -15,6 +20,16 @@ import { TwoListeners } from './twolisteners';
  * @returns a promise when all of the rendering is completed.
  */
 export function render(opts: RenderToStringOptions) {
+  const url = typeof opts.url === 'string' ? new URL(opts.url) : opts.url!;
+
+  const tests: Record<string, FunctionComponent> = {
+    '/e2e/': () => <Main />,
+    '/e2e/two-listeners': () => <TwoListeners />,
+    '/e2e/slot': () => <SlotParent />,
+    '/e2e/lexical-scope': () => <LexicalScope />,
+    '/e2e/render': () => <Render />,
+  };
+  const Test = tests[url.pathname];
   return renderToString(
     <html>
       <head>
@@ -22,7 +37,7 @@ export function render(opts: RenderToStringOptions) {
         <title>Qwik Blank App</title>
       </head>
       <body q:base="/">
-        <TwoListeners />
+        <Test />
         <QwikLoader debug={opts.debug} events={['click']} />
       </body>
     </html>,

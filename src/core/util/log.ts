@@ -6,12 +6,12 @@ const STYLE = qDev
 
 export const logError = (message?: any, ...optionalParams: any[]) => {
   // eslint-disable-next-line no-console
-  console.error('%cQWIK', STYLE, message, ...optionalParams);
+  console.error('%cQWIK ERROR', STYLE, message, ...optionalParams);
 };
 
 export const logWarn = (message?: any, ...optionalParams: any[]) => {
   // eslint-disable-next-line no-console
-  console.warn('%cQWIK', STYLE, message, ...optionalParams);
+  console.warn('%cQWIK WARN', STYLE, message, ...optionalParams);
 };
 
 export const logDebug = (message?: any, ...optionalParams: any[]) => {

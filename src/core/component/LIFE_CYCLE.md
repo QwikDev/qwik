@@ -18,8 +18,8 @@ three states: `Void`, `dehydrated`, and `Hydrated`.
 1. Component is created on the server. It is in the `Hydrated` state and can be passed around by reference (the normal way of passing objects in JS.)
 2. Server completes rendering and `dehydrate’s all of the components. This serializes all of the component states into the DOM attributes. Once the state is serialized in the DOM the server can convert the DOM into HTML and send the HTML to the client.
 3. At this point, the VM no longer has a reference to the component instances. However, it would be incorrect to say that the component no longer exists. Instead, the component is in a `dehydrated` state. It is somewhere between non-existing and fully existing.
-4. Client receives the HTML and turns it back to DOM. The DOM contains the component’s state, but the component is not yet hydrated.
-5. Some action is performed which requires that the component is fully hydrated. It is at this point that the component can be re-created. Obviously, from the reference point, the object on the server and on the client are different instances. But logically, we can say that it is the same component.
+4. Client receives the HTML and turns it back to DOM. The DOM contains the component’s state, but the component is not yet resumed.
+5. Some action is performed which requires that the component is fully resumed. It is at this point that the component can be re-created. Obviously, from the reference point, the object on the server and on the client are different instances. But logically, we can say that it is the same component.
 
 For these reasons, it is important to differentiate between a logical component and a component instance. A logical component is a component that can span creation on the server and execution on the client. A logical component survives dehydration/rehydration events
 (a component instance does not.)
@@ -53,7 +53,7 @@ component ||   DOM    ||   state  ||   state    ||         instance ||
 ---------------------------- dehydrate(document) -----------------------+
    ||          ||             ||       ||                         |||   |
    ||          ||             ||       ||           (11)          |||   |
-   ||          ||   (12)      ||       XX <-----[OnDehydrate]---- XXX <-+
+   ||          ||   (12)      ||       XX <-----[OnPause]---- XXX <-+
    ||   <my-comp {STATE}> <-- XX                                    (13)|
    ||   ===================  Serialized to HTML ===================== <-+
    ||   ==          (14)             HTTP                          ==
@@ -79,7 +79,7 @@ component ||   DOM    ||   state  ||   state    ||         instance ||
 (removed)      ||             ||       ||            (24)         |||
   (22)  +-->(removed) ---------------------------[OnUnmount]----> |||
               (23)            ||       ||            (25)         |||
-                              XX<------XX <-----[OnDehydrate]---- XXX
+                              XX<------XX <-----[OnPause]---- XXX
 ```
 
 Please match the numbers in the diagram to the explanation below.
@@ -93,11 +93,11 @@ Please match the numbers in the diagram to the explanation below.
 7. The new `TRANSIENT` state is assigned to `QComponent`. At this point, the component is fully rehydrated and can be used for rendering or event handling.
 8. `[OnRender]`: This invokes the `MyComp’s render function, which produces JSX nodes to be reconciled against the DOM.
 9. The result of `[OnRender]` and reconciliation is that the `<my-comp>` host-element now contains `MyComp’s view fully rendered..
-10. `dehydrate()`: At some point, the server determines that the SSR is finished and the rendered applications should be sent to the client. The first step is to serialize all of the data into the DOM. This method locates all of the components and triggers the `[OnDehydrate]` hook.
-11. `[OnDehydrate]` is responsible for doing the reverse of `[OnHydrate]`. The method is
+10. `dehydrate()`: At some point, the server determines that the SSR is finished and the rendered applications should be sent to the client. The first step is to serialize all of the data into the DOM. This method locates all of the components and triggers the `[OnPause]` hook.
+11. `[OnPause]` is responsible for doing the reverse of `[OnHydrate]`. The method is
     responsible for releasing any resources which the `[OnHydrate]` acquired and which are stored in `TRANSIENT` state.
 12. Qwik serializes the `STATE` of the component into the DOM. At this point, the `QComponent` is released and is available for garbage collection.
-13. After `dehydrate()` completes, the DOM can be serialized to HTML and sent to the client.
+13. After `snapshot()` completes, the DOM can be serialized to HTML and sent to the client.
 14. The client receives the HTML and deserializes it into DOM.
 15. The deserialized DOM contains the `<my-comp {STATE}>` element along with its serialized state. The components are deserialized lazily. Only when `QComponent` instance is needed does it go through the deserialization process.
 16. If a component is needed, it can go through a rehydration process. First, the component’s state is parsed from the DOM and passed to the `QComponent`
@@ -109,4 +109,4 @@ Please match the numbers in the diagram to the explanation below.
 22. At some point, the parent component removes the `<MyComp>` from its JSX tree. This triggers the destroy process.
 23. The DOM is updated, and `<my-comp>` is removed.
 24. `[OnUnmount]`: lifecycle hook is invoked to let the component know that it is being removed.
-25. `[OnDehydrate]`: lifecycle hook is invoked to clean up the transient state of the component.
+25. `[OnPause]`: lifecycle hook is invoked to clean up the transient state of the component.

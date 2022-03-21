@@ -57,7 +57,6 @@ describe('q-object', () => {
         pList.push(2, child);
         expect(pList).toEqual([1, child, 2, child]);
       });
-      // TODO(misko): write more tests for other array methods which can access data
     });
 
     it('should support equality', () => {

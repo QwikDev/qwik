@@ -63,7 +63,7 @@ export interface RenderToDocumentOptions extends SerializeDocumentOptions, Docum
   /**
    * Defaults to `true`
    */
-  dehydrate?: boolean;
+  snapshot?: boolean;
 }
 
 /**

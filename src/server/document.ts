@@ -1,5 +1,5 @@
 import { createTimer, ensureGlobals } from './utils';
-import { dehydrate, FunctionComponent, JSXNode, render } from '@builder.io/qwik';
+import { snapshot, FunctionComponent, JSXNode, render } from '@builder.io/qwik';
 import qwikDom from '@builder.io/qwik-dom';
 import { setServerPlatform } from './platform';
 import { serializeDocument } from './serialize';
@@ -56,8 +56,8 @@ export async function renderToDocument(
 
   await render(doc, rootNode);
 
-  if (opts.dehydrate !== false) {
-    dehydrate(doc);
+  if (opts.snapshot !== false) {
+    snapshot(doc);
   }
 }
 

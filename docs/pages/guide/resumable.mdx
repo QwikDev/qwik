@@ -18,7 +18,7 @@ The above step is expensive for two reasons:
 1. The frameworks have to download all of the component code associated with the current page.
 2. The frameworks have to execute the templates associated with the components on the page to rebuild the listener location and the internal component tree.
 
-The above describes why the current generation of frameworks have an expensive startup which is proportional to the complexity of the application which is being hydrated. The more complex the application is, the more expensive the hydration cost, both in terms of the code to download and the code to execute.
+The above describes why the current generation of frameworks have an expensive startup which is proportional to the complexity of the application which is being resumed. The more complex the application is, the more expensive the hydration cost, both in terms of the code to download and the code to execute.
 
 Hydration is a fundamental property of the current generation of frameworks.
 
@@ -66,4 +66,4 @@ Existing frameworks usually have a way of serializing the application state into
 
 The above describes the differences that make Qwik resumable. Qwik startup performance is fast because there is no startup. There is nothing that Qwik needs to do eagerly to resume the application.
 
-A good mental model is that Qwik applications at any point in their lifecycle can be serialized and moved to a different VM instance. (Server to browser). There, the application simply resumes where the serialization stopped. No hydration is required. This is why we say that Qwik applications don't hydrate; they resume.
+A good mental model is that Qwik applications at any point in their lifecycle can be serialized and moved to a different VM instance. (Server to browser). There, the application simply resumes where the serialization stopped. No hydration is required. This is why we say that Qwik applications don't resume; they resume.

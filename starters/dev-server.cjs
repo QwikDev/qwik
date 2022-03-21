@@ -46,8 +46,8 @@ async function handleApp(req, res) {
     }
     console.log(req.method, req.url, `[${appName} build/ssr]`);
 
-    await buildApp(appDir);
-    const html = await ssrApp(req, appName, appDir);
+    const symbols = await buildApp(appDir);
+    const html = await ssrApp(req, appName, appDir, symbols);
 
     res.set('Content-Type', 'text/html');
     res.send(html);
@@ -63,13 +63,13 @@ async function buildApp(appDir) {
   const appSrcDir = join(appDir, 'src');
   const appBuildDir = join(appDir, 'build');
   const appBuildServerDir = join(appBuildDir, 'server');
-  const symbolsPath = join(appBuildServerDir, 'q-symbols.json');
 
   // always clean the build directory
   removeDir(appBuildDir);
   mkdirSync(appBuildDir);
   mkdirSync(appBuildServerDir);
 
+  let symbols;
   const rollupInputOpts = {
     input: getSrcInput(appSrcDir),
     plugins: [
@@ -104,7 +104,7 @@ async function buildApp(appDir) {
         entryStrategy: { type: 'single' },
         srcDir: appSrcDir,
         symbolsOutput: (data) => {
-          writeFileSync(symbolsPath, JSON.stringify(data, null, 2));
+          symbols = data;
         },
       }),
     ],
@@ -122,6 +122,7 @@ async function buildApp(appDir) {
     dir: appBuildServerDir,
     format: 'cjs',
   });
+  return symbols;
 }
 
 function getSrcInput(appSrcDir) {
@@ -160,13 +161,11 @@ function removeDir(dir) {
   } catch (e) {}
 }
 
-async function ssrApp(req, appName, appDir) {
+async function ssrApp(req, appName, appDir, symbols) {
   const buildDir = join(appDir, 'build');
   const serverDir = join(buildDir, 'server');
   const serverPath = join(serverDir, 'entry.server.js');
-  const symbolsPath = join(serverDir, 'q-symbols.json');
-  const symbols = JSON.parse(readFileSync(symbolsPath, 'utf-8'));
-
+  console.log(symbols);
   // require the build's server index (avoiding nodejs require cache)
   const { render } = requireUncached(serverPath);
 

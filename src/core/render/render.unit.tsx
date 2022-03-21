@@ -20,6 +20,7 @@ describe('render', () => {
       await render(fixture.host, <div></div>);
       expectRendered(<div></div>);
       expect(fixture.host.getAttribute('q:version')).toEqual('');
+      expect(fixture.host.getAttribute('q:container')).toEqual('');
     });
 
     it('should only render string/number', async () => {
@@ -55,8 +56,8 @@ describe('render', () => {
     });
 
     it('should render attributes', async () => {
-      await render(fixture.host, <div id="abc" title="bar"></div>);
-      expectRendered(<div title="bar" id="abc"></div>);
+      await render(fixture.host, <div id="abc" title="bar" preventDefault:click></div>);
+      expectRendered(<div title="bar" id="abc" preventDefault:click></div>);
     });
 
     it('should render children', async () => {
@@ -107,7 +108,7 @@ describe('render', () => {
         fixture.host,
         <RenderProps
           thing="World"
-          className="foo"
+          class="foo"
           id="123"
           q:slot="start"
           aria-hidden="true"
@@ -619,7 +620,11 @@ export const HelloWorld = component$(
 export const RenderProps = component$(
   (props: { thing?: string }) => {
     return $(() => {
-      return <span>{JSON.stringify(props)}</span>;
+      return (
+        <Host>
+          <span>{JSON.stringify(props)}</span>
+        </Host>
+      );
     });
   },
   {

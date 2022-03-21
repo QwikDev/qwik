@@ -1,8 +1,7 @@
 import { assertDefined } from '../assert/assert';
 import { parseQRL } from '../import/qrl';
 import { qInflate } from '../json/q-json';
-import { getContext, hydrateIfNeeded } from '../props/props';
-import { getDocument } from '../util/dom';
+import { getContext, resumeIfNeeded } from '../props/props';
 import { getInvokeContext } from './use-core';
 import { useURL } from './use-url.public';
 
@@ -26,7 +25,7 @@ export function useLexicalScope<VARS extends any[]>(): VARS {
   const qrl = context.qrl ?? parseQRL(decodeURIComponent(String(useURL())));
   if (qrl.captureRef == null) {
     const el = context.element;
-    hydrateIfNeeded(getDocument(el));
+    resumeIfNeeded(el);
     const ctx = getContext(el);
     assertDefined(qrl.capture);
     qrl.captureRef = qrl.capture!.map((idx) => qInflate(idx, ctx));

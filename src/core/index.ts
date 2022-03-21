@@ -14,10 +14,8 @@ export {
   component$,
   onUnmountFromQrl,
   onUnmount$,
-  onHydrateFromQrl,
-  onHydrate$,
-  onDehydrateFromQrl,
-  onDehydrate$,
+  onPauseFromQrl,
+  onPause$,
   onResumeFromQrl,
   onResume$,
   on,
@@ -35,7 +33,7 @@ export type { PropsOf, ComponentOptions, OnMountFn } from './component/component
 // Developer Event API
 //////////////////////////////////////////////////////////////////////////////////////////
 export { bubble } from './event/bubble.public';
-export { dehydrate } from './object/store.public';
+export { snapshot } from './object/store.public';
 //////////////////////////////////////////////////////////////////////////////////////////
 // Internal Runtime
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -88,11 +86,13 @@ export { useDocument } from './use/use-document.public';
 export { useEvent } from './use/use-event.public';
 export { useLexicalScope } from './use/use-lexical-scope.public';
 export { useStore } from './use/use-store.public';
-export { useTransient } from './use/use-transient.public';
+
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Low-Level API
 //////////////////////////////////////////////////////////////////////////////////////////
 export type { ValueOrPromise } from './util/types';
+export type { NoSerialize } from './object/q-object';
+export { noSerialize } from './object/q-object';
 
 /**
  * @alpha

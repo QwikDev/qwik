@@ -1,29 +1,36 @@
-import type { JSXNode } from '..';
+import type { JSXNode } from '../index';
 import { QError, qError } from '../error/error';
 import { getProxyMap, readWriteProxy } from '../object/q-object';
-import { QStore_hydrate } from '../object/store';
+import { resume } from '../object/store';
 import type { RenderContext } from '../render/cursor';
 import { getDocument } from '../util/dom';
+import { isDocument } from '../util/element';
+import { logWarn } from '../util/log';
 import { newQObjectMap, QObjectMap } from './props-obj-map';
 import { qPropWriteQRL, qPropReadQRL } from './props-on';
+import type { QRLInternal } from '../import/qrl-class';
 
 Error.stackTraceLimit = 9999;
 
-// TODO(misko): For better debugger experience the getProps should never store Proxy, always naked objects to make it easier to traverse in the debugger.
+const Q_IS_RESUMED = '__isResumed__';
+const Q_CTX = '__ctx__';
 
-const Q_IS_HYDRATED = '__isHydrated__';
-export const Q_CTX = '__ctx__';
-
-export function hydrateIfNeeded(doc: Document): void {
-  const isHydrated = (doc as any)[Q_IS_HYDRATED];
+export function resumeIfNeeded(elm: Element | Document): void {
+  const doc = isDocument(elm) ? elm : getDocument(elm);
+  const root = isDocument(elm) ? elm : elm.closest('[q\\:root]') ?? doc;
+  if (!root) {
+    logWarn('cant find qwik app root');
+    return;
+  }
+  const isHydrated = (root as any)[Q_IS_RESUMED];
   if (!isHydrated) {
-    (doc as any)[Q_IS_HYDRATED] = true;
-    QStore_hydrate(doc);
+    (root as any)[Q_IS_RESUMED] = true;
+    resume(root);
   }
 }
 
 export interface QContextEvents {
-  [eventName: string]: string | undefined;
+  [eventName: string]: QRLInternal[] | undefined;
 }
 
 export interface ComponentCtx {

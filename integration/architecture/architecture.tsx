@@ -111,7 +111,7 @@ function getCmpClass(cmp: Cmp, ...additionalClasses: string[]) {
   const classes: string[] = [];
   classes.push(...additionalClasses);
   cmp.class && classes.push(cmp.class);
-  cmp.isHydrated && classes.push('hydrated');
+  cmp.isHydrated && classes.push('resumed');
   return classes.join(' ');
 }
 

@@ -50,7 +50,7 @@
     "@bazel/bazelisk": "1.7.5",
     "@bazel/ibazel": "0.15.10",
     "@bazel/typescript": "4.6.1",
-    "@builder.io/partytown": "0.4.5",
+    "@builder.io/partytown": "0.5.0",
     "@builder.io/qwik-dom": "2.1.11",
     "@microsoft/api-extractor": "7.19.4",
     "@napi-rs/cli": "2.4.5",

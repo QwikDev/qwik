@@ -3,7 +3,7 @@ import { QError, qError } from '../error/error';
 import { notifyRender } from '../render/notify-render';
 import { tryGetInvokeContext } from '../use/use-core';
 import { logWarn } from '../util/log';
-import { qDev } from '../util/qdev';
+import { qDev, qTest } from '../util/qdev';
 import { debugStringify } from '../util/stringify';
 
 export type ObjToProxyMap = WeakMap<any, any>;
@@ -32,22 +32,11 @@ export function qObject<T extends Object>(obj: T, proxyMap: ObjToProxyMap): T {
       `Q-ERROR: Only objects literals can be wrapped in 'QObject', got ` + debugStringify(obj)
     );
   }
-  const proxy = readWriteProxy(obj as any as QObject<T>, proxyMap);
-  Object.assign((proxy as any)[QOjectTargetSymbol], obj);
-  return proxy;
+  return readWriteProxy(obj as any as QObject<T>, proxyMap);
 }
 
 export function _restoreQObject<T>(obj: T, map: ObjToProxyMap, subs: Map<Element, Set<string>>): T {
   return readWriteProxy(obj as any as QObject<T>, map, subs);
-}
-
-export function getTransient<T>(obj: any, key: any): T | null {
-  return obj[QOjectTransientsSymbol].get(key);
-}
-
-export function setTransient<T>(obj: any, key: any, value: T): T {
-  obj[QOjectTransientsSymbol].set(key, value);
-  return value;
 }
 
 /**
@@ -68,8 +57,6 @@ export function readWriteProxy<T extends object>(
 
 export const QOjectTargetSymbol = ':target:';
 export const QOjectSubsSymbol = ':subs:';
-const QOjectTransientsSymbol = ':transients:';
-export const QObjectIdSymbol = ':id:';
 
 export function unwrapProxy<T>(proxy: T): T {
   if (proxy && typeof proxy == 'object') {
@@ -86,8 +73,9 @@ export function wrap<T>(value: T, proxyMap: ObjToProxyMap): T {
       // already a proxy return;
       return value;
     }
-    verifySerializable<T>(value);
-
+    if (qDev) {
+      verifySerializable<T>(value);
+    }
     const proxy = proxyMap.get(value);
     return proxy ? proxy : readWriteProxy(value as any, proxyMap);
   } else {
@@ -95,9 +83,9 @@ export function wrap<T>(value: T, proxyMap: ObjToProxyMap): T {
   }
 }
 
-class ReadWriteProxyHandler<T extends object> implements ProxyHandler<T> {
-  private transients: WeakMap<any, any> | null = null;
+type TargetType = Record<string | symbol, any>;
 
+class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
   constructor(private proxy: ObjToProxyMap, private subs = new Map<Element, Set<string>>()) {}
 
   getSub(el: Element) {
@@ -108,16 +96,16 @@ class ReadWriteProxyHandler<T extends object> implements ProxyHandler<T> {
     return sub;
   }
 
-  get(target: T, prop: string): any {
+  get(target: TargetType, prop: string | symbol): any {
     if (prop === QOjectTargetSymbol) return target;
     if (prop === QOjectSubsSymbol) return this.subs;
-    if (prop === QOjectTransientsSymbol) {
-      return this.transients || (this.transients = new WeakMap());
+    const value = target[prop];
+    if (typeof prop === 'symbol') {
+      return value;
     }
-    const value = (target as any)[prop];
     const invokeCtx = tryGetInvokeContext();
-    if (qDev && !invokeCtx) {
-      logWarn(`State assigned outside invocation context. Getting prop`, prop, this);
+    if (qDev && !invokeCtx && !qTest) {
+      logWarn(`State assigned outside invocation context. Getting prop "${prop}" of:`, target);
     }
     if (invokeCtx && invokeCtx.subscriptions) {
       const isArray = Array.isArray(target);
@@ -129,17 +117,22 @@ class ReadWriteProxyHandler<T extends object> implements ProxyHandler<T> {
     return wrap(value, this.proxy);
   }
 
-  set(target: T, prop: string, newValue: any): boolean {
+  set(target: TargetType, prop: string | symbol, newValue: any): boolean {
+    if (typeof prop === 'symbol') {
+      target[prop] = newValue;
+      return true;
+    }
     const unwrappedNewValue = unwrapProxy(newValue);
+    verifySerializable(unwrappedNewValue);
     const isArray = Array.isArray(target);
     if (isArray) {
-      (target as any)[prop] = unwrappedNewValue;
+      target[prop as any] = unwrappedNewValue;
       this.subs.forEach((_, el) => notifyRender(el));
       return true;
     }
-    const oldValue = (target as any)[prop];
+    const oldValue = target[prop];
     if (oldValue !== unwrappedNewValue) {
-      (target as any)[prop] = unwrappedNewValue;
+      target[prop] = unwrappedNewValue;
       this.subs.forEach((propSets, el) => {
         if (propSets.has(prop)) {
           notifyRender(el);
@@ -149,21 +142,46 @@ class ReadWriteProxyHandler<T extends object> implements ProxyHandler<T> {
     return true;
   }
 
-  has(target: T, property: string | symbol) {
+  has(target: TargetType, property: string | symbol) {
     if (property === QOjectTargetSymbol) return true;
+    if (property === QOjectSubsSymbol) return true;
+
     return Object.prototype.hasOwnProperty.call(target, property);
   }
 
-  ownKeys(target: T): ArrayLike<string | symbol> {
+  ownKeys(target: TargetType): ArrayLike<string | symbol> {
     return Object.getOwnPropertyNames(target);
   }
 }
 
 function verifySerializable<T>(value: T) {
-  if (typeof value == 'object' && value !== null) {
+  if (shouldSerialize(value) && typeof value == 'object' && value !== null) {
     if (Array.isArray(value)) return;
     if (Object.getPrototypeOf(value) !== Object.prototype) {
       throw qError(QError.TODO, 'Only primitive and object literals can be serialized.');
     }
   }
+}
+
+const NOSERIALIZE = Symbol('NoSerialize');
+
+export function shouldSerialize(obj: any): boolean {
+  if (obj !== null && (typeof obj == 'object' || typeof obj === 'function')) {
+    const noSerialize = (obj as any)[NOSERIALIZE] === true;
+    return !noSerialize;
+  }
+  return true;
+}
+
+/**
+ * @alpha
+ */
+export type NoSerialize<T> = (T & { [NOSERIALIZE]: true }) | undefined;
+
+/**
+ * @alpha
+ */
+export function noSerialize<T extends {}>(input: T): NoSerialize<T> {
+  (input as any)[NOSERIALIZE] = true;
+  return input as any;
 }

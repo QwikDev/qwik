@@ -78,7 +78,7 @@ export function runtimeQrl<T>(symbol: T, lexicalScopeCapture: any[] = EMPTY_ARRA
   );
 }
 
-export function stringifyQRL(qrl: QRL, element?: Element, platform?: CorePlatform) {
+export function stringifyQRL(qrl: QRL, platform?: CorePlatform, element?: Element) {
   const qrl_ = toInternalQRL(qrl);
   const symbol = qrl_.symbol;
   const chunk = platform ? platform.chunkForSymbol(symbol) ?? qrl_.chunk : qrl_.chunk;

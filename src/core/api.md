@@ -45,9 +45,6 @@ export interface CorePlatform {
 }
 
 // @public (undocumented)
-export function dehydrate(document: Document): void;
-
-// @public (undocumented)
 export const Fragment: FunctionComponent<{
     children?: any;
 }>;
@@ -130,6 +127,14 @@ export interface JSXNode<T = any> {
     type: T;
 }
 
+// @alpha (undocumented)
+export type NoSerialize<T> = (T & {
+    [NOSERIALIZE]: true;
+}) | undefined;
+
+// @alpha (undocumented)
+export function noSerialize<T extends {}>(input: T): NoSerialize<T>;
+
 // Warning: (ae-forgotten-export) The symbol "RenderContext" needs to be exported by the entry point index.d.ts
 //
 // @public
@@ -144,22 +149,16 @@ export interface Observer {
 export function on(event: string, eventFn: QRL<() => void>): void;
 
 // @public
-export const onDehydrate$: (first: () => void) => void;
-
-// @public
-export function onDehydrateFromQrl(dehydrateFn: QRL<() => void>): void;
-
-// @public
 export function onDocument(event: string, eventFn: QRL<() => void>): void;
 
-// @public
-export const onHydrate$: (first: () => void) => void;
-
-// @public
-export function onHydrateFromQrl(hydrateFn: QRL<() => void>): void;
-
 // @public (undocumented)
-export type OnMountFn<PROPS> = (props: PROPS) => ValueOrPromise<QRL<() => ValueOrPromise<JSXNode<any>>>>;
+export type OnMountFn<PROPS> = (props: PROPS) => ValueOrPromise<QRL<() => ValueOrPromise<JSXNode<any> | null>>>;
+
+// @public
+export const onPause$: (first: () => void) => void;
+
+// @public
+export function onPauseFromQrl(dehydrateFn: QRL<() => void>): void;
 
 // @public
 export const onResume$: (first: () => void) => void;
@@ -282,6 +281,9 @@ export const Slot: FunctionComponent<{
     children?: any;
 }>;
 
+// @public
+export function snapshot(elmOrDoc: Element | Document): void;
+
 // @public (undocumented)
 export function useDocument(): Document;
 
@@ -308,9 +310,6 @@ export const useStyles$: (first: string) => void;
 
 // @alpha
 export function useStylesFromQrl(styles: QRL<string>): void;
-
-// @public (undocumented)
-export function useTransient<OBJ, ARGS extends any[], RET>(obj: OBJ, factory: (this: OBJ, ...args: ARGS) => RET, ...args: ARGS): RET;
 
 // @public
 export type ValueOrPromise<T> = T | Promise<T>;

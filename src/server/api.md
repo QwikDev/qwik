@@ -77,7 +77,7 @@ export function renderToDocument(doc: Document, rootNode: JSXNode<unknown> | Fun
 //
 // @public (undocumented)
 export interface RenderToDocumentOptions extends SerializeDocumentOptions, DocumentOptions {
-    dehydrate?: boolean;
+    snapshot?: boolean;
 }
 
 // @public

@@ -30,12 +30,7 @@ export const OnUnmount = 'on:q-unmount';
 /**
  * State factory of the component.
  */
-export const OnHydrate = 'on:q-hydrate';
-
-/**
- * State factory of the component.
- */
-export const OnDehydrate = 'on:q-dehydrate';
+export const OnResume = 'on:q-resume';
 
 /**
  * Component Styles.

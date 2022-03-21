@@ -35,7 +35,7 @@ export const Main = component$(() => {
           Observe that the binding changes: <code>Hello {state.name}!</code>
         </li>
         <li>
-          Notice that Qwik automatically lazily-loaded and hydrated the component upon interaction
+          Notice that Qwik automatically lazily-loaded and resumed the component upon interaction
           without the developer having to code that behavior. (Lazy hydration is what gives even
           large apps instant on behavior.)
         </li>

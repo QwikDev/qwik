@@ -17,20 +17,25 @@ export interface QwikProps {
    * URL against which relative QRLs should be resolved to.
    */
   'q:base'?: string;
-
   'q:obj'?: string;
   'q:host'?: string;
   'q:version'?: string;
+  'q:container'?: '';
   [key: `preventDefault:${string}`]: boolean;
 }
 
-type Event = () => any;
-type QrlEvent<T extends Event = Event> = QRL<Event>;
+type EventHandler = (event: Event, element: Element) => any;
+type QrlEvent = QRL<EventHandler>;
 
 export interface QwikEvents {
-  // Host events
-  [key: `${'on' | 'onDocument' | 'onWindow'}$:${string}`]: Event;
-  [key: `${'on' | 'onDocument' | 'onWindow'}:${string}`]: QrlEvent | QrlEvent[];
+  [key: `on$:${string}`]: EventHandler;
+  [key: `on:${string}`]: QrlEvent | QrlEvent[];
+
+  [key: `onDocument$:${string}`]: EventHandler;
+  [key: `onDocument:${string}`]: QrlEvent | QrlEvent[];
+
+  [key: `onWindow$:${string}`]: EventHandler;
+  [key: `onWindow:${string}`]: QrlEvent | QrlEvent[];
 }
 
 interface CSSProperties {
@@ -40,7 +45,7 @@ interface CSSProperties {
 export interface ComponentBaseProps extends QwikEvents {
   class?: string | { [className: string]: boolean };
   className?: string | undefined;
-  style?: CSSProperties | undefined;
+  style?: CSSProperties | string | undefined;
   key?: string | number;
   id?: string | undefined;
 

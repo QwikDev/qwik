@@ -1,0 +1,71 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`store should serialize content 1`] = `
+Object {
+  "objs": Array [
+    Object {},
+    Object {},
+    Object {
+      "count": 0,
+    },
+    Object {
+      "on:qRender": "4",
+    },
+    Array [
+      "5",
+    ],
+    "/runtimeQRL#s2[2,3,4,5,6,7,8,9,10,11,12]",
+    1,
+    "hola",
+    Object {
+      "a": "9",
+      "b": "7",
+      "c": 123,
+      "d": "k",
+      "e": "j",
+      "f": "g",
+      "g": "f",
+      "h": "a",
+    },
+    Object {
+      "thing": 12,
+    },
+    Array [
+      "6",
+      "b",
+      "k",
+      "c",
+      "d",
+    ],
+    "string",
+    Object {
+      "hola": "6",
+    },
+    Array [
+      "e",
+    ],
+    "hello",
+    "",
+    null,
+    Array [
+      "6",
+      2,
+      "7",
+      "i",
+    ],
+    Object {},
+    true,
+    false,
+    "/runtimeQRL#s1",
+  ],
+  "subs": Array [
+    Object {},
+    Object {},
+    Object {
+      "#0": Array [
+        "count",
+      ],
+    },
+  ],
+}
+`;

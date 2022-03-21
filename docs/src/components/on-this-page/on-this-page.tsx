@@ -14,7 +14,7 @@ export const OnThisPage = component$(
 
       const editUrl = new URL(
         page.source.path,
-        'https://github.com/BuilderIO/qwik/blob/main/docs/pages/'
+        'https://github.com/BuilderIO/qwik/edit/main/docs/pages/'
       );
 
       const onScroll = $(() => {

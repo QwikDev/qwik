@@ -90,7 +90,10 @@ export const qwikLoader = (doc: Document, hasInitialized?: boolean | number) => 
     attrValue?: string | null
   ) => {
     for (const on of ON_PREFIXES) {
-      attrValue = element.getAttribute(on + eventName) || '';
+      const preventDefault = element.hasAttribute('preventdefault:' + eventName);
+      if (preventDefault) {
+        ev.preventDefault();
+      }
       for (const qrl of attrValue.split('\n')) {
         url = qrlResolver(doc, element, qrl);
         if (url) {

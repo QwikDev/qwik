@@ -21,6 +21,7 @@ export interface QwikProps {
   'q:obj'?: string;
   'q:host'?: string;
   'q:version'?: string;
+  [key: `preventDefault:${string}`]: boolean;
 }
 
 type Event = () => any;

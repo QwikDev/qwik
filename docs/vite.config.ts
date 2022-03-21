@@ -9,6 +9,7 @@ export default defineConfig(async ({ mode }) => {
   return {
     build: {
       rollupOptions: {
+        input: ['src/main.tsx', 'index.html'],
         output: {
           chunkFileNames: 'q-[hash].js',
           assetFileNames: 'q-[hash].[ext]',

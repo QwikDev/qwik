@@ -22,7 +22,7 @@ export const Footer = component$(
                 props.todos.filter = filter;
               }}
             >
-              {filter[0].toUpperCase() + filter.substr(1)}
+              {filter[0].toUpperCase() + filter.slice(1)}
             </a>
           </li>
         );

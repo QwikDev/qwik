@@ -78,7 +78,7 @@ export function loadConfig(args: string[] = []) {
     : join(config.distDir, '@builder.io-qwik');
   config.distBindingsDir = join(config.distPkgDir, 'bindings');
   config.tscDir = join(config.distDir, 'tsc-out');
-  config.esmNode = parseInt(process.version.substr(1).split('.')[0], 10) >= 14;
+  config.esmNode = parseInt(process.version.slice(1).split('.')[0], 10) >= 14;
   config.platformBinding = (config as any)['platform-binding'];
   config.prepareRelease = (config as any)['prepare-release'];
   config.platformTarget = (config as any)['platform-target'];

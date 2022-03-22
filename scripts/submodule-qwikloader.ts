@@ -89,7 +89,7 @@ export async function submoduleQwikLoader(config: BuildConfig) {
           sequences: false,
         },
         format: {
-          comments: false,
+          comments: true,
           beautify: true,
           braces: true,
         },
@@ -117,7 +117,7 @@ export async function submoduleQwikLoader(config: BuildConfig) {
           passes: 2,
         },
         format: {
-          comments: false,
+          comments: /@vite-ignore/g,
         },
       }),
     ],
@@ -143,7 +143,7 @@ export async function submoduleQwikLoader(config: BuildConfig) {
           sequences: false,
         },
         format: {
-          comments: false,
+          comments: /@vite-ignore/g,
           beautify: true,
           braces: true,
         },

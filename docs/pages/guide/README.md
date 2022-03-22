@@ -33,3 +33,9 @@
 ## Serialization
 
 - [Overview](serialization/overview.mdx)
+
+## Community
+
+- [Github](https://github.com/BuilderIO/qwik)
+- [@QwikDev](https://twitter.com/QwikDev)
+- [Discord](https://discord.gg/Fd9Cwb3Z8D)

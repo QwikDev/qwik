@@ -11,11 +11,11 @@ export const Footer = component$(
           <a class="px-4 py-1" href="https://github.com/BuilderIO/qwik" target="_blank">
             Github
           </a>
-          <a class="px-4 py-1" href="https://discord.gg/Fd9Cwb3Z8D" target="_blank">
-            Discord
-          </a>
           <a class="px-4 py-1" href="https://twitter.com/QwikDev" target="_blank">
             @QwikDev
+          </a>
+          <a class="px-4 py-1" href="https://discord.gg/Fd9Cwb3Z8D" target="_blank">
+            Discord
           </a>
         </nav>
         <div class="py-3 px-2 md:px-0">

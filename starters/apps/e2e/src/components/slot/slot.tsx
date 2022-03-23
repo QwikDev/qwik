@@ -10,16 +10,16 @@ export const SlotParent = component$(() => {
   return $(() => {
     return (
       <section class="todoapp">
-        <Button state={state}>
+        <Button state={state} id="btn1">
           {!state.removeContent && <>DEFAULT {state.count}</>}
           <span q:slot="ignore">IGNORE</span>
         </Button>
 
-        <Button state={state}>
+        <Button state={state} id="btn2">
           {!state.removeContent && <div q:slot="start">START {state.count}</div>}
         </Button>
 
-        <Thing state={state}>
+        <Thing state={state} id="btn3">
           <Button state={state}>{!state.removeContent && <>INSIDE THING {state.count}</>}</Button>
         </Thing>
 

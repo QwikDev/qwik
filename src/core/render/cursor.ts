@@ -533,7 +533,7 @@ const getSlots = (componentCtx: ComponentCtx | undefined, hostElm: Element): Slo
 
   // Map templates
   for (const elm of t) {
-    templates[elm.getAttribute('name') ?? ''] = elm;
+    templates[elm.getAttribute('q:slot') ?? ''] = elm;
   }
 
   return { slots, templates };

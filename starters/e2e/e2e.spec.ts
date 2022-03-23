@@ -20,27 +20,25 @@ test.describe('e2e', () => {
 
     test('should rerender without changes', async ({ page }) => {
       const content = await page.locator('#static');
-      expect(await content.innerHTML()).toMatchSnapshot({name: 'lexical-scope-static'})
+      expect(await content.innerHTML()).toMatchSnapshot({ name: 'lexical-scope-static' });
       const btn = await page.locator('#rerender');
       expect(await btn.textContent()).toEqual('Rerender 0');
-
 
       // Click button
       await btn.click();
       await page.waitForTimeout(100);
 
-      expect(await content.innerHTML()).toMatchSnapshot({name: 'lexical-scope-static'})
+      expect(await content.innerHTML()).toMatchSnapshot({ name: 'lexical-scope-static' });
       expect(await btn.textContent()).toEqual('Rerender 1');
 
       // Click button
       await btn.click();
       await page.waitForTimeout(100);
 
-      expect(await content.innerHTML()).toMatchSnapshot({name: 'lexical-scope-static'})
+      expect(await content.innerHTML()).toMatchSnapshot({ name: 'lexical-scope-static' });
       expect(await btn.textContent()).toEqual('Rerender 2');
     });
   });
-
 
   test.describe('events', () => {
     test.beforeEach(async ({ page }) => {
@@ -57,7 +55,6 @@ test.describe('e2e', () => {
       expect(await contentTransparent.textContent()).toEqual('countTransparent: 0');
       expect(await countWrapped.textContent()).toEqual('countWrapped: 0');
       expect(await btnWrapped.textContent()).toEqual('Wrapped 0');
-
 
       // Click wrapped
       await btnWrapped.click();
@@ -93,6 +90,5 @@ test.describe('e2e', () => {
     test.beforeEach(async ({ page }) => {
       await page.goto('/e2e/slot');
     });
-
   });
 });

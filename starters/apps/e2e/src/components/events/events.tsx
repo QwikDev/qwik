@@ -40,14 +40,11 @@ export const Buttons = component$((props: ButtonProps) => {
     return (
       <Host>
         <span>some</span>
-        <button
-          id='btn-transparent'
-          onClickQrl={props.onTransparentClickQrl}
-        >
+        <button id="btn-transparent" onClickQrl={props.onTransparentClickQrl}>
           Transparent
         </button>
         <button
-          id='btn-wrapped'
+          id="btn-wrapped"
           onClick$={() => {
             store.count++;
             props.onWrappedClickQrl!.invoke(store.count);

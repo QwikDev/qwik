@@ -171,7 +171,7 @@ export function parseQRL(qrl: string, el?: Element): QRLInternal {
   const capture =
     captureStartIdx === captureEndIdx
       ? EMPTY_ARRAY
-      : qrl.substring(captureStartIdx+1, captureEndIdx-1).split(' ');
+      : qrl.substring(captureStartIdx + 1, captureEndIdx - 1).split(' ');
 
   if (chunk === RUNTIME_QRL) {
     logError(`Q-ERROR: '${qrl}' is runtime but no instance found on element.`);

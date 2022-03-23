@@ -27,7 +27,7 @@ export const LexicalScope = component$(() => {
   return $(() => {
     return (
       <section>
-        <div id='static'>
+        <div id="static">
           <p>{JSON.stringify(a)}</p>
           <p>{JSON.stringify(b)}</p>
           <p>{JSON.stringify(c)}</p>
@@ -37,7 +37,9 @@ export const LexicalScope = component$(() => {
           <p>{JSON.stringify(g)}</p>
           <p>{JSON.stringify(h)}</p>
         </div>
-        <button onClickQrl={onclick} id="rerender">Rerender {state.count}</button>
+        <button onClickQrl={onclick} id="rerender">
+          Rerender {state.count}
+        </button>
       </section>
     );
   });

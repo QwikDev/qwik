@@ -9,7 +9,7 @@ Use props to pass data into the child component. Props are declared as named arg
 
 In this example a component `Item` declares optional `name`, `quantity`, `description`, and `price`.
 
-```typescript=
+```tsx
 const Item = component$((props: {
    name?: string,
    quantity?: number,
@@ -23,7 +23,7 @@ const Item = component$((props: {
 
 The resulting component can be used like so:
 
-```typescript=
+```tsx
 const MyApp = component$(() => {
   return $(() => (
     <>
@@ -42,7 +42,7 @@ const MyApp = component$(() => {
 
 Using TypeScript, the props type information correctly flows into the component.
 
-```typescript=
+```tsx
 interface ItemProps {
  name?: string,
  quantity?: number,
@@ -60,7 +60,7 @@ Notice that `Item` is of type `JSXNode<ItemProps>`, which constraints the `<Item
 
 It is possible to extract the type interface from the `Item` using `PropsOf`.
 
-```typescript=
+```tsx
 const props: PropsOf<Item> = {
   name: 'Item',
   ...
@@ -77,13 +77,13 @@ When components render, they need to have access to their props. Parent componen
 
 When re-rendering a component, the child component props can stay the same or be updated. A child component only invalidates if the child component props change.
 
-```typescript=
-const Child = component$((props: {count: number}) => {
+```tsx
+const Child = component$((props: { count: number }) => {
   return $(() => <span>{props.count}</span>);
-})
+});
 
 const MyApp = component$(() => {
-  const store = useStore({a: 0, b:0, c:0});
+  const store = useStore({ a: 0, b: 0, c: 0 });
   return $(() => (
     <>
       <button on$:click={() => store.a++}>a++</button>
@@ -91,8 +91,8 @@ const MyApp = component$(() => {
       <button on$:click={() => store.c++}>c++</button>
       {JSON.stringify(store)}
 
-      <Child count={store.a}/>
-      <Child count={store.b}/>
+      <Child count={store.a} />
+      <Child count={store.b} />
     </>
   ));
 });

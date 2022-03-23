@@ -8,14 +8,14 @@ The host element is an element in the DOM that represents component boundaries.
 
 Lite-components do not have host elements.
 
-```typescript=
+```tsx
 const Child() => <span>child</span>;
 const Parent() => <section><Child/></section>;
 ```
 
 Will result in:
 
-```htmlembedded=
+```html
 <section>
   <span>child</span>
 </section>
@@ -25,9 +25,9 @@ Looking at the resulting HTML, it is not possible to tell if a single component 
 
 On the other hand, Qwik-components rely on host elements because it must be possible by looking on the HTML to determine where one component starts and another ends. Without knowing the boundaries, it would not be possible to render components independently without forcing parent/child components to render as well. This is a crucial feature of Qwik.
 
-```typescript=
-const Child = component$(()=> $(() => <span>child</span>));
-const Parent = component$(()=> $(() => <section><Child/></section>));
+```tsx
+const Child = component$(() => $(() => <span>child</span>));
+const Parent = component$(() => $(() => <section><Child /></section>));
 ```
 
 Will result in:
@@ -48,21 +48,27 @@ Qwik host elements are marked with `q:host` attribute. (Default element is `div`
 
 The host component also serves an important role when breaking parent-child relationships for bundling purposes.
 
-```typescript=
+```tsx
 const Child() => <span>child</span>;
 const Parent() => <section><Child/></section>;
 ```
 
 In the above example, referring to the `Parent` component implies a transitive reference to the `Child` component. When bundler is creating chunk, a reference to `Parent` necessitates bundling `Child` as well. (`Parent` internally refers to `Child`.) These transitive dependencies are a problem because it means that having a reference to the root component will transitively refer to the remainder of the application—something which Qwik tries to avoid explicitly.
 
-```typescript=
-const Child = component$(()=> $(() => <span>child</span>));
-const Parent = component$(()=> $(() => <section><Child/></section>));
+```tsx
+const Child = component$(() => $(() => <span>child</span>));
+const Parent = component$(() =>
+  $(() => (
+    <section>
+      <Child />
+    </section>
+  ))
+);
 ```
 
 In the above example the Optimizer transforms the above to:
 
-```typescript=
+```tsx
 const Child = component$(qrl('./chunk-a', 'Child_onMount'));
 const Parent = component$(qrl('./chunk-b', 'Parent_onMount'));
 const Parent_onMount = () => qrl('./chunk-c', 'Parent_onRender');
@@ -93,7 +99,7 @@ The optimizer splits Qwik components into the host element and the behavior of t
 
 Assume you have a component defined as so:
 
-```typescript=
+```tsx
 const Greeter = component$((props: {salutation?: string, name: string, }) => {
   ...
 });

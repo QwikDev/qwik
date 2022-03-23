@@ -18,13 +18,13 @@ The first step is to create an application. Qwik comes with a CLI that allows yo
 
 1. Ask Qwik CLI to create a project:
 
-```shell=
+```shell
 $ npm create qwik@latest
 ```
 
 2. Create an application (`qwik-todo`)
 
-```shell=
+```shell
 💫 Let's create a Qwik project 💫
 
 ? Project name › qwik-todo
@@ -32,7 +32,7 @@ $ npm create qwik@latest
 
 3. Select `Todo` starter project:
 
-```shell=
+```shell
 ? Select a starter › - Use arrow-keys. Return to submit.
     Starter - Blank Qwik starter app.
     Starter Builder
@@ -42,7 +42,7 @@ $ npm create qwik@latest
 
 4. Qwik is a framework that starts on the server and then moves to the browser. Select serving technology:
 
-```shell=
+```shell
 ? Select a server › - Use arrow-keys. Return to submit.
 ❯   Express - Express.js server.
     Cloudflare
@@ -51,7 +51,7 @@ $ npm create qwik@latest
 
 The resulting output should look like this:
 
-```shell=
+```shell
 💫 Let's create a Qwik project 💫
 
 ✔ Project name … qwik-todo
@@ -74,25 +74,25 @@ The easiest way to get running application is to follow the steps from the `npm 
 
 1. Change into the directory created by the `npm create qwik@latest`.
 
-```shell=
+```shell
 cd qwik-todo
 ```
 
 2. Install NPM modules:
 
-```shell=
+```shell
 npm install
 ```
 
 3. Invoke the server
 
-```shell=
+```shell
 npm start
 ```
 
 4. You should see a server running with your To-do application
 
-```shell=
+```shell
   vite v2.8.6 dev server running at:
 
   > Local: http://localhost:3000/
@@ -115,13 +115,13 @@ Qwik is SSR/SSG framework that can 1) start execution in `node.js` 2) can serial
 
 1. Build the application:
 
-```shell=
+```shell
 $ npm run build
 ```
 
 2. Results in output similar to this.
 
-```shell=
+```shell
 > qwik-todo@0.0.0 build /Users/misko/qwik-todo
 > npm run typecheck && npm run build.client && npm run build.server
 
@@ -167,13 +167,13 @@ For those reasons, the bundling step is performed twice.
 
 After a successful build, the application can be served as it would be served in production:
 
-```shell=
+```shell
 $ npm run serve
 ```
 
 Output:
 
-```shell=
+```shell
 > qwik-todo@0.0.0 serve /Users/misko/qwik-todo
 > node server/build/entry.express.js
 
@@ -207,13 +207,13 @@ So far, we have shown how to run the Qwik application and how little code is nee
 
 1. Startup the application:
 
-```shell=
+```shell
 $ npm run dev.ssr
 ```
 
 This results in:
 
-```shell=
+```shell
   vite v2.8.6 dev server running at:
 
   > Local: http://localhost:3000/
@@ -283,7 +283,7 @@ Let's dive into how Qwik generates HTML either in SSR or SSG.
 
 1. The entry point for SSR/SSG is `src/entry.server.tsx`. It exports `render` function which invokes `renderToString()` function.
 
-```typescript=
+```tsx
 export function render(opts: RenderToStringOptions) {
   return renderToString(
     <html>
@@ -330,7 +330,7 @@ Together the information allows Qwik to understand and reason about the applicat
 
 Let's look at how components are written in Qwik. Open `src/main.tsx` to see the top level component.
 
-```typescript=
+```tsx
 export const Main = component$(() => {
   const todos = useStore<Todos>({
     filter: 'all',
@@ -364,7 +364,7 @@ The unique thing to notice is the present of the `$` on `component$()` as well a
 
 Open `src/components/header/header.tsx` to see an interactive component.
 
-```typescript=
+```tsx
 export const Header = component$(
   (props: { todos: Todos }) => {
     const state = useStore({ text: '' });
@@ -402,7 +402,7 @@ export const Header = component$(
 
 ### `useStore()`
 
-```typescript=
+```tsx
 export const Header = component$(
   (props: { todos: Todos }) => {
     const state = useStore({ text: '' });
@@ -419,7 +419,7 @@ Notice that the component can declare `props`, in this case `{todos: Todos}`. Pr
 
 The on-mount function is responsible for returning an on-render function.
 
-```typescript=
+```tsx
     return $(() => {
       return (
         <>
@@ -441,7 +441,7 @@ The runtime notices that the render function depends on `state.text`. This tells
 
 Finally let's look at event listener:
 
-```typescript=
+```tsx
 <input
   ...
   value={state.text}

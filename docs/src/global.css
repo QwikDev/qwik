@@ -1,3 +1,5 @@
+@import 'prism-themes/themes/prism-dracula.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

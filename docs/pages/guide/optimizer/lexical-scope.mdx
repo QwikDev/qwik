@@ -9,36 +9,36 @@ The Optimizer extracts expressions (usually functions) into new files and leaves
 
 Let's look at a simple case:
 
-```typescript=
+```tsx
 const Greeter = component$(() => {
   return $(() => <span>Hello World!</span>);
-})
+});
 ```
 
 this will result in:
 
-```typescript=
+```tsx
 const Greeter = component(qrl('./chunk-a.js', 'Greeter_onMount'));
 ```
 
 `chunk-a.js`:
 
-```typescript=
+```tsx
 const Greeter_onMount = () => {
   return qrl('./chunk-b.js', 'Greeter_onRender');
-}
+};
 ```
 
 `chunk-b.js`:
 
-```typescript=
-const Greeter_onRender = () => <span>Hello World!</span>
+```tsx
+const Greeter_onRender = () => <span>Hello World!</span>;
 ```
 
 The above is for simple cases where the extracted function closure does not capture any variables. Let's look at a more complicated case where the extracted function closure lexically captures variables.
 
-```typescript=
-const Greeter = component$((props: {name: string}) => {
+```tsx
+const Greeter = component$((props: { name: string }) => {
   const salutation = 'Hello';
   return $(() => <span>{salutation} {props.name}!</span>);
 })
@@ -46,42 +46,50 @@ const Greeter = component$((props: {name: string}) => {
 
 The naive way to extract functions will not work.
 
-```typescript=
+```tsx
 const Greeter = component(qrl('./chunk-a.js', 'Greeter_onMount'));
 ```
 
 `chunk-a.js`:
 
-```typescript=
+```tsx
 const Greeter_onMount = (props) => {
   const salutation = 'Hello';
   return qrl('./chunk-b.js', 'Greeter_onRender');
-}
+};
 ```
 
 `chunk-b.js`:
 
-```typescript=
-const Greeter_onRender = () => <span>{salutation} {props.name}!</span>
+```tsx
+const Greeter_onRender = () => (
+  <span>
+    {salutation} {props.name}!
+  </span>
+);
 ```
 
 The issue can be seen in `chunk-b.js`. The extracted function refers to `salutation` and `props`, which are no longer in the lexical scope of the function. For this reason, the generated code must be slightly different.
 
 `chunk-a.js`:
 
-```typescript=
+```tsx
 const Greeter_onMount = (props) => {
   const salutation = 'Hello';
   return qrl('./chunk-b.js', 'Greeter_onRender', [salutation, props]);
-}
+};
 ```
 
 `chunk-b.js`:
 
-```typescript=
+```tsx
 const Greeter_onRender = () => {
   const [salutation, props] = useLexicalScope();
-  return <span>{salutation} {props.name}!</span>;
+  return (
+    <span>
+      {salutation} {props.name}!
+    </span>
+  );
 };
 ```
 

@@ -7,11 +7,10 @@ fetch: https://hackmd.io/@mhevery/HkDvV6yb5
 
 In addition to standard Qwik components that have all of the lazy-loaded properties of Qwik, Qwik also supports lite components that act more like traditional frameworks.
 
-```typescript=
-function MyButton(props: {text: string}) {
-  return <button>{text}</button>
+```tsx
+function MyButton(props: { text: string }) {
+  return <button>{text}</button>;
 }
-
 
 const MyApp = component$(() => {
   return $(() => (

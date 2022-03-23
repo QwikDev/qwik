@@ -27,3 +27,4 @@ build
 .rollup.cache
 dist
 tsconfig.tsbuildinfo
+pages/**/*.mdx

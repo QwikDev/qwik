@@ -2,6 +2,7 @@ import type { CompileOptions } from '@mdx-js/mdx/lib/compile';
 import { extname } from 'path';
 import { SourceMapGenerator } from 'source-map';
 import { rehypePage } from './rehype';
+import { rehypeSyntaxHighlight } from './syntax-highlight';
 import type { PluginContext } from './types';
 
 export async function createMdxTransformer(ctx: PluginContext): Promise<MdxTransform> {
@@ -23,7 +24,12 @@ export async function createMdxTransformer(ctx: PluginContext): Promise<MdxTrans
     jsxImportSource: '@builder.io/qwik',
     ...userMdxOpts,
     remarkPlugins: [...userRemarkPlugins, remarkGfm, remarkFrontmatter],
-    rehypePlugins: [...userRehypePlugins, [rehypePage, ctx], rehypeAutolinkHeadings],
+    rehypePlugins: [
+      ...userRehypePlugins,
+      rehypeSyntaxHighlight,
+      [rehypePage, ctx],
+      rehypeAutolinkHeadings,
+    ],
   };
 
   const { extnames, process } = createFormatAwareProcessors(mdxOpts);

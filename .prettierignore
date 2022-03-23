@@ -29,3 +29,4 @@ build
 build
 node_modules
 tsconfig.tsbuildinfo
+docs/pages/

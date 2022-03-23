@@ -9,7 +9,7 @@ Content projection allows a component to treat the JSX children of the component
 
 An example of colapsable component which conditionally projects its content.
 
-```typescript=
+```tsx
 const Colapsable = component$(() => {
   const store = useStore({isOpen: true});
   return $(() => (
@@ -26,7 +26,7 @@ const Colapsable = component$(() => {
 
 The above component can be used from parent component like so:
 
-```typescript=
+```tsx
 const MyApp = component$(() => {
   return $(() => (
     <Collapsable>
@@ -64,14 +64,14 @@ Qwik uses slots as a way of connecting content from the parent component to the 
 
 The parent component uses `q:slot` attribute to identify the source of projection and `<Slot>` element to identify the destination of the projection. Unnamed (or unwrapped) content is assumed to have `q:slot=""` attribute
 
-```typescript=
+```tsx
 const Project = component$(() => {
   return $(() => (
     <div>
-      <Slot/>
+      <Slot />
     </div>
   ));
-})
+});
 
 const MyApp = component$(() => {
   return $(() => (
@@ -104,17 +104,17 @@ Results in:
 
 Use `q:slot` attributes to name slots.
 
-```typescript=
+```tsx
 const Project = component$(() => {
   return $(() => (
     <div>
       <div class="title">
-        <Slot name="title"/>
+        <Slot name="title" />
       </div>
-      <Slot/>
+      <Slot />
     </div>
   ));
-})
+});
 
 const MyApp = component$(() => {
   return $(() => (
@@ -156,10 +156,10 @@ Notice that:
 
 Qwik keeps all content around, even if not projected. This is because the content could be projected in the future.
 
-```typescript=
+```tsx
 const Project = component$(() => {
-  return $(() => <div/>);
-})
+  return $(() => <div />);
+});
 
 const MyApp = component$(() => {
   return $(() => (
@@ -187,7 +187,7 @@ Notice that the un-projected content is moved into inert `<template>`. This is d
 
 It is possible to insert default slot content if the parent component does not provide a value.
 
-```typescript=
+```tsx
 const Project = component$(() => {
   return $(() => (
     <>
@@ -244,7 +244,7 @@ q:slot.has-content > q:slot-default {
 
 The `q:slot` attribute must be a direct child of a component.
 
-```typescript=
+```tsx
 const Project = component$(() => { ... })
 
 const MyApp = component$(() => {

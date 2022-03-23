@@ -19,6 +19,7 @@ describe('QRL', () => {
       expect(parseQRL('./chunk#s1')).toMatchObject({
         chunk: './chunk',
         symbol: 's1',
+        capture: [],
       });
       expect(parseQRL('./chunk#s1[1 b]')).toMatchObject({
         chunk: './chunk',

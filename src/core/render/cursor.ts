@@ -474,6 +474,7 @@ function createElm(rctx: RenderContext, vnode: JSXNode, isSvg: boolean): ValueOr
     const renderQRLPromise = props![OnRenderProp]!(elm);
     wait = then(renderQRLPromise, (renderQrl) => {
       ctx.renderQrl = renderQrl;
+      ctx.refMap.add(renderQrl);
       return firstRenderComponent(rctx, ctx);
     });
   } else {

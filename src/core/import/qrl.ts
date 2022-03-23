@@ -156,23 +156,22 @@ export function qrlToUrl(element: Element, qrl: QRL): URL {
 export function parseQRL(qrl: string, el?: Element): QRLInternal {
   const endIdx = qrl.length;
   const hashIdx = indexOf(qrl, 0, '#');
-  const guardIdx = indexOf(qrl, hashIdx, '|');
-  const captureIdx = indexOf(qrl, guardIdx, '[');
+  const captureIdx = indexOf(qrl, hashIdx, '[');
 
-  const chunkEndIdx = Math.min(hashIdx, guardIdx, captureIdx);
+  const chunkEndIdx = Math.min(hashIdx, captureIdx);
   const chunk = qrl.substring(0, chunkEndIdx);
 
   const symbolStartIdx = hashIdx == endIdx ? hashIdx : hashIdx + 1;
-  const symbolEndIdx = Math.min(guardIdx, captureIdx);
+  const symbolEndIdx = captureIdx;
   const symbol =
     symbolStartIdx == symbolEndIdx ? 'default' : qrl.substring(symbolStartIdx, symbolEndIdx);
 
-  const captureStartIdx = captureIdx + 1;
-  const captureEndIdx = endIdx - 1;
+  const captureStartIdx = captureIdx;
+  const captureEndIdx = endIdx;
   const capture =
     captureStartIdx === captureEndIdx
       ? EMPTY_ARRAY
-      : qrl.substring(captureStartIdx, captureEndIdx).split(' ');
+      : qrl.substring(captureStartIdx+1, captureEndIdx-1).split(' ');
 
   if (chunk === RUNTIME_QRL) {
     logError(`Q-ERROR: '${qrl}' is runtime but no instance found on element.`);

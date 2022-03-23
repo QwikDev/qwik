@@ -22,8 +22,8 @@ export const Events = component$(() => {
           }}
         ></Buttons>
 
-        <p>countTransparent: {store.countTransparent}</p>
-        <p>countWrapped: {store.countWrapped}</p>
+        <p id="count-transparent">countTransparent: {store.countTransparent}</p>
+        <p id="count-wrapped">countWrapped: {store.countWrapped}</p>
       </Host>
     );
   });
@@ -40,8 +40,14 @@ export const Buttons = component$((props: ButtonProps) => {
     return (
       <Host>
         <span>some</span>
-        <button onClickQrl={props.onTransparentClickQrl}>Transparent</button>
         <button
+          id='btn-transparent'
+          onClickQrl={props.onTransparentClickQrl}
+        >
+          Transparent
+        </button>
+        <button
+          id='btn-wrapped'
           onClick$={() => {
             store.count++;
             props.onWrappedClickQrl!.invoke(store.count);

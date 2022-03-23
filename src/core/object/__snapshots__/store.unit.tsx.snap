@@ -5,10 +5,61 @@ Object {
   "objs": Array [
     Object {},
     Object {},
+    Object {
+      "count": 0,
+    },
+    "/runtimeQRL#s2[4 5 6 d e f h i 2! d j]",
+    1,
+    "hola",
+    Object {
+      "a": "7",
+      "b": "5",
+      "c": 123,
+      "d": "i",
+      "e": "h",
+      "f": "e",
+      "g": "d",
+      "h": "8",
+    },
+    Object {
+      "thing": 12,
+    },
+    Array [
+      "4",
+      "9",
+      "i",
+      "a",
+      "b",
+    ],
+    "string",
+    Object {
+      "hola": "4",
+    },
+    Array [
+      "c",
+    ],
+    "hello",
+    "",
+    null,
+    Array [
+      "4",
+      2,
+      "5",
+      "g",
+    ],
+    Object {},
+    true,
+    false,
+    "/runtimeQRL#s1",
   ],
   "subs": Array [
     Object {},
     Object {},
+    Object {
+      "#0": Array [
+        "count",
+      ],
+    },
   ],
 }
 `;

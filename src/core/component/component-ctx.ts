@@ -1,11 +1,11 @@
 import { assertDefined } from '../assert/assert';
 import type { RenderContext } from '../render/cursor';
 import { visitJsxNode } from '../render/render';
-import { ComponentScopedStyles, OnRenderProp, QHostAttr } from '../util/markers';
+import { ComponentScopedStyles, QHostAttr } from '../util/markers';
 import { then } from '../util/promises';
 import { styleContent, styleHost } from './qrl-styles';
 import { newInvokeContext, useInvoke } from '../use/use-core';
-import { getEvents, QContext } from '../props/props';
+import type { QContext } from '../props/props';
 import { processNode } from '../render/jsx/jsx-runtime';
 
 export const firstRenderComponent = (rctx: RenderContext, ctx: QContext) => {
@@ -19,7 +19,7 @@ export const firstRenderComponent = (rctx: RenderContext, ctx: QContext) => {
 
 export const renderComponent = (rctx: RenderContext, ctx: QContext) => {
   const hostElement = ctx.element as HTMLElement;
-  const onRenderQRL = getEvents(ctx)[OnRenderProp]!;
+  const onRenderQRL = ctx.renderQrl!;
   assertDefined(onRenderQRL);
   const onRenderFn = onRenderQRL.invokeFn();
 

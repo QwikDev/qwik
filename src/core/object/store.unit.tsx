@@ -11,7 +11,7 @@ import { component$ } from '../component/component.public';
 import { noSerialize } from './q-object';
 import { $ } from '../import/qrl.public';
 import { logDebug } from '../util/log';
-import { snapshot } from '../index';
+import { snapshot } from '../object/store.public';
 
 describe('store', () => {
   let document: Document;
@@ -91,7 +91,6 @@ export const LexicalScope = component$(() => {
     h: [1, 'string', false, { hola: 1 }, ['hello']],
   };
   const noserialize = noSerialize({ text: 'not included' });
-  noserialize;
   const d = undefined;
   const e = null;
   const f = [1, 2, 'hola', {}];

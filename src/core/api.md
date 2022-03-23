@@ -12,9 +12,6 @@ export function $<T>(expression: T): QRL<T>;
 // @public
 export function Async<T>(props: AsyncProps<T>): JSXNode<any>;
 
-// @public (undocumented)
-export function bubble<PAYLOAD>(eventType: string, payload?: PAYLOAD): void;
-
 // Warning: (ae-forgotten-export) The symbol "PublicProps" needs to be exported by the entry point index.d.ts
 //
 // @public

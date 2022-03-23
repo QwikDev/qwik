@@ -47,7 +47,7 @@ export interface QContext {
   element: Element;
   dirty: boolean;
   props: Record<string, any> | undefined;
-  events: QContextEvents | undefined;
+  renderQrl: QRLInternal | undefined;
   component: ComponentCtx | undefined;
 }
 
@@ -61,7 +61,7 @@ export function getContext(element: Element): QContext {
       refMap: newQObjectMap(element),
       dirty: false,
       props: undefined,
-      events: undefined,
+      renderQrl: undefined,
       component: undefined,
     };
   }
@@ -99,15 +99,6 @@ export function getProps(ctx: QContext) {
     ctx.refMap.add(ctx.props);
   }
   return ctx.props!;
-}
-
-export function getEvents(ctx: QContext): QContextEvents {
-  let events = ctx.events;
-  if (!events) {
-    events = ctx.events = {};
-    ctx.refMap.add(ctx.events);
-  }
-  return events;
 }
 
 /**

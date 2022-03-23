@@ -1,4 +1,4 @@
-import { getPlatform } from '../index';
+import { getPlatform } from '../platform/platform';
 import { assertDefined, assertEqual } from '../assert/assert';
 import { parseQRL, QRLSerializeOptions, stringifyQRL } from '../import/qrl';
 import { isQrl, QRLInternal } from '../import/qrl-class';
@@ -80,11 +80,11 @@ export function resume(elmOrDoc: Element | Document) {
       }
     });
     if (host) {
-      const [props, events] = host.split(' ').map(strToInt);
+      const [props, renderQrl] = host.split(' ').map(strToInt);
       assertDefined(props);
-      assertDefined(events);
+      assertDefined(renderQrl);
       ctx.props = ctx.refMap.get(props);
-      ctx.events = ctx.refMap.get(events);
+      ctx.renderQrl = ctx.refMap.get(renderQrl);
     }
   });
 }
@@ -207,7 +207,7 @@ export function snapshotState(elmOrDoc: Element | Document) {
   elements.forEach((node) => {
     const ctx = getContext(node);
     const props = ctx.props;
-    const events = ctx.events;
+    const renderQrl = ctx.renderQrl;
     const attribute = ctx.refMap.array
       .map((obj) => {
         const id = getObjId(obj);
@@ -219,8 +219,8 @@ export function snapshotState(elmOrDoc: Element | Document) {
 
     if (props) {
       const objs = [props];
-      if (events) {
-        objs.push(events);
+      if (renderQrl) {
+        objs.push(renderQrl);
       }
       node.setAttribute(QHostAttr, objs.map((obj) => ctx.refMap.indexOf(obj)).join(' '));
     }

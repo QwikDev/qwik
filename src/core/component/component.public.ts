@@ -10,7 +10,9 @@ import { styleKey } from './qrl-styles';
 import type { ComponentBaseProps } from '../render/jsx/types/jsx-qwik-attributes';
 import type { ValueOrPromise } from '../util/types';
 import { getContext, getProps } from '../props/props';
-import { jsx, FunctionComponent } from '../index';
+import type { FunctionComponent } from '../index';
+import { jsx } from '../render/jsx/jsx-runtime';
+
 import { getDocument } from '../util/dom';
 
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onUnmount">

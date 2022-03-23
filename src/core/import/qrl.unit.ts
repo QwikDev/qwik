@@ -20,29 +20,29 @@ describe('QRL', () => {
         chunk: './chunk',
         symbol: 's1',
       });
-      expect(parseQRL('./chunk#s1[1,"b"]')).toMatchObject({
+      expect(parseQRL('./chunk#s1[1 b]')).toMatchObject({
         chunk: './chunk',
         symbol: 's1',
-        capture: [1, 'b'],
+        capture: ['1', 'b'],
       });
-      expect(parseQRL('./chunk#s1[1,"b"]')).toMatchObject({
+      expect(parseQRL('./chunk#s1[1 b]')).toMatchObject({
         chunk: './chunk',
         symbol: 's1',
-        capture: [1, 'b'],
+        capture: ['1', 'b'],
       });
-      expect(parseQRL('./chunk#s1[1,"b"]')).toMatchObject({
+      expect(parseQRL('./chunk#s1[1 b]')).toMatchObject({
         chunk: './chunk',
         symbol: 's1',
-        capture: [1, 'b'],
+        capture: ['1', 'b'],
       });
-      expect(parseQRL('./chunk[1,"b"]')).toMatchObject({
+      expect(parseQRL('./chunk[1 b]')).toMatchObject({
         chunk: './chunk',
-        capture: [1, 'b'],
+        capture: ['1', 'b'],
       });
-      expect(parseQRL('./path#symbol[{"foo": "bar"}]')).toMatchObject({
+      expect(parseQRL('./path#symbol[2]')).toMatchObject({
         chunk: './path',
         symbol: 'symbol',
-        capture: [{ foo: 'bar' }],
+        capture: ['2'],
       });
     });
 
@@ -53,10 +53,10 @@ describe('QRL', () => {
       expect(stringifyQRL(new QRLInternal('./c', 's1', null, null, null, null))).toEqual('./c#s1');
       expect(stringifyQRL(new QRLInternal('./c', 's1', null, null, [], null))).toEqual('./c#s1');
       expect(stringifyQRL(new QRLInternal('./c', 's1', null, null, [1, '2'] as any, null))).toEqual(
-        './c#s1[1,"2"]'
+        './c#s1[1 2]'
       );
       expect(stringifyQRL(new QRLInternal('./c', 's1', null, null, [1 as any, '2'], null))).toEqual(
-        './c#s1[1,"2"]'
+        './c#s1[1 2]'
       );
     });
   });

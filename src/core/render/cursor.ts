@@ -1,5 +1,5 @@
 import { OnRenderProp, QSlotAttr } from '../util/markers';
-import { ComponentCtx, getContext, getEvents, getProps, QContext, setEvent } from '../props/props';
+import { ComponentCtx, getContext, getProps, QContext, setEvent } from '../props/props';
 import { isOn$Prop, isOnProp } from '../props/props-on';
 export const SVG_NS = 'http://www.w3.org/2000/svg';
 import { $, Host, JSXNode, ValueOrPromise } from '../index';
@@ -473,7 +473,7 @@ function createElm(rctx: RenderContext, vnode: JSXNode, isSvg: boolean): ValueOr
     // Run mount hook
     const renderQRLPromise = props![OnRenderProp]!(elm);
     wait = then(renderQRLPromise, (renderQrl) => {
-      getEvents(ctx)[OnRenderProp] = renderQrl;
+      ctx.renderQrl = renderQrl;
       return firstRenderComponent(rctx, ctx);
     });
   } else {
@@ -620,6 +620,9 @@ export function updateProperties(
       if (hPrefixed) {
         key = key.slice(2);
       }
+    } else if (qDev && key.startsWith('h:')) {
+      logWarn('h: prefix can not be used in non components');
+      continue;
     }
 
     if (isOnProp(key)) {

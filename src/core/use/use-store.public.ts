@@ -1,4 +1,4 @@
-import { useDocument } from '../index';
+import { useDocument } from '../use/use-document.public';
 import { getProxyMap, qObject } from '../object/q-object';
 
 // <docs markdown="https://hackmd.io/lQ8v7fyhR-WD3b-2aRUpyw#useStore">

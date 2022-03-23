@@ -1,4 +1,4 @@
-import { getPlatform } from '../index';
+import { getPlatform } from '../platform/platform';
 import { QError, qError } from '../error/error';
 import { parseQRL, qrlImport, stringifyQRL } from '../import/qrl';
 import { isQrl, QRLInternal } from '../import/qrl-class';

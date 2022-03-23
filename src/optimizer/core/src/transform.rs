@@ -586,10 +586,9 @@ impl<'a> Fold for QwikTransform<'a> {
                     namespaced.name.sym.as_ref(),
                 ]
                 .concat();
-                self.stack_ctxt.push(ident_name.to_string());
+                self.stack_ctxt.push(ident_name);
                 if let Some(new_ident) = new_ident {
                     is_listener = true;
-                    self.stack_ctxt.push(ident_name.to_string());
                     self.position_ctxt.push(PositionToken::JSXListener);
                     ast::JSXAttr {
                         name: ast::JSXAttrName::JSXNamespacedName(ast::JSXNamespacedName {

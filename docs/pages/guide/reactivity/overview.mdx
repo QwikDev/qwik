@@ -30,7 +30,7 @@ Because of the above constraints, Qwik uses proxies to keep track of the reactiv
 
 ## Counter Example
 
-```typescript=
+```tsx
 const Counter = component$(() => {
   const store = useStore({count: 0});
   return $(() => (
@@ -51,12 +51,12 @@ const Counter = component$(() => {
 
 ## Unsubscribe example
 
-```typescript=
+```tsx
 const ComplexCounter = component$(() => {
-  const store = useStore({count:0, visible: true});
+  const store = useStore({ count: 0, visible: true });
   return $(() => (
     <>
-      <button on$:click={store.visible = !store.visible}>
+      <button on$:click={(store.visible = !store.visible)}>
         {store.visible ? 'hide' : 'show'}
       </button>
       <button on$:click={store.count++}>
@@ -85,7 +85,7 @@ Notice how the set of subscriptions automatically updates as the component rende
 
 So far, the examples show the store (`creatStore()`) was a simple object with primitive values. However, the same behavior works on all properties of the store recursively.
 
-```typescript=
+```tsx
 const MyComp = component$(() => {
   const store = useStore({
     person: { first: null, last: null },
@@ -107,10 +107,10 @@ In the above examples, the Qwik will automatically wrap child objects `person` a
 
 The wrapping behavior described above has one surprising side-effect. Writing and reading from a proxy auto wraps the object, which means that the identity of the object changes. This should normally not be an issue, but it is something that the developer should keep in mind.
 
-```typescript=
+```tsx
 const MyComp = component$(() => {
-  const store = useStore({person: null});
-  const person = {first: 'John', last: 'Smith'};
+  const store = useStore({ person: null });
+  const person = { first: 'John', last: 'Smith' };
   store.person = person; // `store.person autowraps object into proxy`
   if (store.person !== person) {
     // The consequence of autowrapping is that the object identy changes.

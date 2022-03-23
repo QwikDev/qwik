@@ -12,7 +12,7 @@ Rendering is the process of updating the DOM based on 1) changes in the state of
 
 Simple counter example:
 
-```typescript=
+```tsx
 const Counter = component$(() => {
   const store = useStore({ count: 0 });
   return $(() => (
@@ -48,7 +48,7 @@ Qwik uses JSX to express the component's template. JSX discussion is outside of 
 
 Qwik lazy loads components on an as-needed basis. To minimize the number of components to download, Qwik only descends into child components if the component's props have changed.
 
-```typescript=
+```tsx
 const Parent = component$(() => {
   const store = useStore({count: 0, step: 1});
   return $(() => (

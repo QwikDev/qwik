@@ -120,5 +120,10 @@ h6 a:hover .icon {
   padding: 2px 4px;
   border-radius: 3px;
   font-size: 16px;
-  word-break: break-all;
+}
+
+@media (max-width: 640px) {
+  .docs article code {
+    word-break: break-all;
+  }
 }

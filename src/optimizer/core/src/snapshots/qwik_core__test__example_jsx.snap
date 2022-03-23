@@ -49,7 +49,7 @@ export const Foo = component$((props) => {
 
 import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
 import * as qwik from "@builder.io/qwik";
-import { componentFromQrl } from "@builder.io/qwik";
+import { componentQrl } from "@builder.io/qwik";
 export const Lightweight = (props)=>{
     return /*#__PURE__*/ _jsx("div", {
         children: /*#__PURE__*/ _jsxs(_Fragment, {
@@ -62,7 +62,7 @@ export const Lightweight = (props)=>{
         })
     });
 };
-export const Foo = /*#__PURE__*/ componentFromQrl(qwik.qrl(()=>import("./h_test_foo_onmount")
+export const Foo = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_foo_onmount")
 , "Foo_onmount"), {
     tagName: "my-foo"
 });

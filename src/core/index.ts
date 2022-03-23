@@ -10,20 +10,20 @@
 // Developer Core API
 //////////////////////////////////////////////////////////////////////////////////////////
 export {
-  componentFromQrl,
+  componentQrl,
   component$,
-  onUnmountFromQrl,
+  onUnmountQrl,
   onUnmount$,
-  onPauseFromQrl,
+  onPauseQrl,
   onPause$,
-  onResumeFromQrl,
+  onResumeQrl,
   onResume$,
   on,
   onDocument,
   onWindow,
-  useStylesFromQrl,
+  useStylesQrl,
   useStyles$,
-  useScopedStylesFromQrl,
+  useScopedStylesQrl,
   useScopedStyles$,
 } from './component/component.public';
 
@@ -37,8 +37,8 @@ export { snapshot } from './object/store.public';
 //////////////////////////////////////////////////////////////////////////////////////////
 // Internal Runtime
 //////////////////////////////////////////////////////////////////////////////////////////
-export { $, implicit$FirstArg, qrl, qrlImport } from './import/qrl.public';
-export type { QRL } from './import/qrl.public';
+export { $, implicit$FirstArg, qrl } from './import/qrl.public';
+export type { QRL, EventHandler } from './import/qrl.public';
 
 export type { Props } from './props/props.public';
 
@@ -51,7 +51,7 @@ export type { CorePlatform } from './platform/types';
 //////////////////////////////////////////////////////////////////////////////////////////
 // Watch
 //////////////////////////////////////////////////////////////////////////////////////////
-export { onWatch$, onWatchFromQrl } from './watch/watch.public';
+export { onWatch$, onWatchQrl } from './watch/watch.public';
 export type { Observer } from './watch/watch.public';
 
 //////////////////////////////////////////////////////////////////////////////////////////

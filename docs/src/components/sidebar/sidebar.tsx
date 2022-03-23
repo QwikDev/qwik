@@ -15,7 +15,7 @@ export const SideBar = component$(
       return (
         <Host class="sidebar">
           <nav class="breadcrumbs">
-            <button on:click={toggleMenu}>
+            <button onClickQrl={toggleMenu}>
               <span class="sr-only">Navigation</span>
               <svg width="24" height="24">
                 <path

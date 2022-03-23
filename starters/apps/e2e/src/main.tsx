@@ -18,6 +18,9 @@ export const Main = component$(() => {
         <p>
           <a href="/two-listeners">Two listener</a>
         </p>
+        <p>
+          <a href="/events">Events</a>
+        </p>
       </section>
     );
   });

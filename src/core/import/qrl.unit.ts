@@ -16,29 +16,23 @@ describe('QRL', () => {
       expect(parseQRL('./chunk')).toMatchObject({ chunk: './chunk', symbol: 'default' });
       expect(parseQRL('./chunk#mySymbol')).toMatchObject({ chunk: './chunk', symbol: 'mySymbol' });
       expect(parseQRL('./chunk#mySymbol')).toMatchObject({ chunk: './chunk', symbol: 'mySymbol' });
-      expect(parseQRL('./chunk#s1|a.propA|b.propB.propC')).toMatchObject({
+      expect(parseQRL('./chunk#s1')).toMatchObject({
         chunk: './chunk',
         symbol: 's1',
-        guard: new Map([
-          ['a', ['propA']],
-          ['b', ['propB', 'propC']],
-        ]),
       });
       expect(parseQRL('./chunk#s1[1,"b"]')).toMatchObject({
         chunk: './chunk',
         symbol: 's1',
         capture: [1, 'b'],
       });
-      expect(parseQRL('./chunk#s1|a|[1,"b"]')).toMatchObject({
+      expect(parseQRL('./chunk#s1[1,"b"]')).toMatchObject({
         chunk: './chunk',
         symbol: 's1',
-        guard: new Map([['a', []]]),
         capture: [1, 'b'],
       });
-      expect(parseQRL('./chunk#s1|a[1,"b"]')).toMatchObject({
+      expect(parseQRL('./chunk#s1[1,"b"]')).toMatchObject({
         chunk: './chunk',
         symbol: 's1',
-        guard: new Map([['a', []]]),
         capture: [1, 'b'],
       });
       expect(parseQRL('./chunk[1,"b"]')).toMatchObject({
@@ -49,40 +43,21 @@ describe('QRL', () => {
         chunk: './path',
         symbol: 'symbol',
         capture: [{ foo: 'bar' }],
-        guard: null,
       });
     });
 
     it('should stringify', () => {
-      expect(stringifyQRL(new QRLInternal('./chunk', '', null, null, null, null, null))).toEqual(
+      expect(stringifyQRL(new QRLInternal('./chunk', '', null, null, null, null))).toEqual(
         './chunk'
       );
-      expect(stringifyQRL(new QRLInternal('./c', 's1', null, null, null, null, null))).toEqual(
-        './c#s1'
+      expect(stringifyQRL(new QRLInternal('./c', 's1', null, null, null, null))).toEqual('./c#s1');
+      expect(stringifyQRL(new QRLInternal('./c', 's1', null, null, [], null))).toEqual('./c#s1');
+      expect(stringifyQRL(new QRLInternal('./c', 's1', null, null, [1, '2'] as any, null))).toEqual(
+        './c#s1[1,"2"]'
       );
-      expect(stringifyQRL(new QRLInternal('./c', 's1', null, null, [], null, null))).toEqual(
-        './c#s1'
+      expect(stringifyQRL(new QRLInternal('./c', 's1', null, null, [1 as any, '2'], null))).toEqual(
+        './c#s1[1,"2"]'
       );
-      expect(
-        stringifyQRL(new QRLInternal('./c', 's1', null, null, [1, '2'] as any, null, null))
-      ).toEqual('./c#s1[1,"2"]');
-      expect(
-        stringifyQRL(
-          new QRLInternal(
-            './c',
-            's1',
-            null,
-            null,
-            [1 as any, '2'],
-            null,
-            new Map([
-              ['a', []],
-              ['b', ['c']],
-              ['c', ['d', 'e']],
-            ])
-          )
-        )
-      ).toEqual('./c#s1|a|b.c|c.d.e[1,"2"]');
     });
   });
 

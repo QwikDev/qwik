@@ -22,12 +22,12 @@ import { useURL } from './use-url.public';
 export function useLexicalScope<VARS extends any[]>(): VARS {
   const context = getInvokeContext();
 
-  const qrl = context.qrl ?? parseQRL(decodeURIComponent(String(useURL())));
+  const qrl = context.qrl ?? parseQRL(decodeURIComponent(String(useURL())), context.hostElement);
   if (qrl.captureRef == null) {
-    const el = context.element;
+    const el = context.element!;
+    assertDefined(el);
     resumeIfNeeded(el);
     const ctx = getContext(el);
-    assertDefined(qrl.capture);
     qrl.captureRef = qrl.capture!.map((idx) => qInflate(idx, ctx));
   }
   return qrl.captureRef as VARS;

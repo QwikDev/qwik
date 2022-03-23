@@ -16,7 +16,7 @@ describe('q-bubble', () => {
     const TestComp = component$(
       () => {
         return $(() => (
-          <button on:click={runtimeQrl(() => bubble('test', { text: 'from-button' }))}></button>
+          <button onClickQrl={runtimeQrl(() => bubble('test', { text: 'from-button' }))}></button>
         ));
       },
       {
@@ -26,7 +26,7 @@ describe('q-bubble', () => {
     let received!: string;
     await render(
       div,
-      <TestComp on:test={runtimeQrl(() => (received = useEvent<{ text: string }>().text))} />
+      <TestComp h:onTestQrl={runtimeQrl(() => (received = useEvent<{ text: string }>().text))} />
     );
     await trigger(div, 'button', 'click');
     expect(received).toEqual('from-button');

@@ -35,6 +35,7 @@ const qwikDistJsxRuntimePath = join(qwikDistDir, 'jsx-runtime.mjs');
 Error.stackTraceLimit = 1000;
 
 // dev server builds ssr's the starter app on-demand (don't do this in production)
+const cache = new Map();
 async function handleApp(req, res) {
   try {
     const url = new URL(req.url, address);
@@ -46,7 +47,11 @@ async function handleApp(req, res) {
     }
     console.log(req.method, req.url, `[${appName} build/ssr]`);
 
-    const symbols = await buildApp(appDir);
+    let symbols = cache.get(appDir);
+    if (!symbols) {
+      symbols = await buildApp(appDir);
+      cache.set(appDir, symbols);
+    }
     const html = await ssrApp(req, appName, appDir, symbols);
 
     res.set('Content-Type', 'text/html');
@@ -165,7 +170,7 @@ async function ssrApp(req, appName, appDir, symbols) {
   const buildDir = join(appDir, 'build');
   const serverDir = join(buildDir, 'server');
   const serverPath = join(serverDir, 'entry.server.js');
-  console.log(symbols);
+
   // require the build's server index (avoiding nodejs require cache)
   const { render } = requireUncached(serverPath);
 

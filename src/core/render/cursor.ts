@@ -1,5 +1,5 @@
 import { OnRenderProp, QSlotAttr } from '../util/markers';
-import { ComponentCtx, getContext, getProps, QContext, setEvent } from '../props/props';
+import { ComponentCtx, getContext, getEvents, getProps, QContext, setEvent } from '../props/props';
 import { isOn$Prop, isOnProp } from '../props/props-on';
 export const SVG_NS = 'http://www.w3.org/2000/svg';
 import { $, Host, JSXNode, ValueOrPromise } from '../index';
@@ -470,7 +470,12 @@ function createElm(rctx: RenderContext, vnode: JSXNode, isSvg: boolean): ValueOr
 
   let wait: ValueOrPromise<void>;
   if (isComponent) {
-    wait = firstRenderComponent(rctx, ctx);
+    // Run mount hook
+    const renderQRLPromise = props![OnRenderProp]!(elm);
+    wait = then(renderQRLPromise, (renderQrl) => {
+      getEvents(ctx)[OnRenderProp] = renderQrl;
+      return firstRenderComponent(rctx, ctx);
+    });
   } else {
     const setsInnerHTML = checkInnerHTML(props);
     if (setsInnerHTML) {
@@ -585,23 +590,11 @@ export function updateProperties(
   const elm = ctx.element;
   const qwikProps = OnRenderProp in expectProps ? getProps(ctx) : undefined;
 
-  // TODO
-  // when a proper disappears, we cant reset the value
-
   for (let key of Object.keys(expectProps)) {
-    if (key === 'children') {
+    if (key === 'children' || key === OnRenderProp) {
       continue;
     }
     const newValue = expectProps[key];
-
-    if (isOnProp(key)) {
-      setEvent(rctx, ctx, key, newValue);
-      continue;
-    }
-    if (isOn$Prop(key)) {
-      setEvent(rctx, ctx, key.replace('$', ''), $(newValue));
-      continue;
-    }
 
     // Early exit if value didnt change
     const oldValue = ctx.cache.get(key);
@@ -627,6 +620,16 @@ export function updateProperties(
       if (hPrefixed) {
         key = key.slice(2);
       }
+    }
+
+    if (isOnProp(key)) {
+      setEvent(rctx, ctx, key.slice(0, -3), newValue);
+      continue;
+    }
+
+    if (isOn$Prop(key)) {
+      setEvent(rctx, ctx, key.slice(0, -1), $(newValue));
+      continue;
     }
 
     // Check if its an exception

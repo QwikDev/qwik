@@ -1,5 +1,6 @@
 import { assertEqual } from '../assert/assert';
 import { QError, qError } from '../error/error';
+import { isQrl } from '../import/qrl-class';
 import { notifyRender } from '../render/notify-render';
 import { tryGetInvokeContext } from '../use/use-core';
 import { logWarn } from '../util/log';
@@ -50,6 +51,7 @@ export function readWriteProxy<T extends object>(
   if (!target || typeof target !== 'object') return target;
   let proxy = proxyMap.get(target);
   if (proxy) return proxy;
+
   proxy = new Proxy(target, new ReadWriteProxyHandler(proxyMap, subs)) as any as T;
   proxyMap.set(target, proxy);
   return proxy;
@@ -68,6 +70,9 @@ export function unwrapProxy<T>(proxy: T): T {
 
 export function wrap<T>(value: T, proxyMap: ObjToProxyMap): T {
   if (value && typeof value === 'object') {
+    if (isQrl(value)) {
+      return value;
+    }
     const nakedValue = unwrapProxy(value);
     if (nakedValue !== value) {
       // already a proxy return;
@@ -107,7 +112,7 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
     if (qDev && !invokeCtx && !qTest) {
       logWarn(`State assigned outside invocation context. Getting prop "${prop}" of:`, target);
     }
-    if (invokeCtx && invokeCtx.subscriptions) {
+    if (invokeCtx && invokeCtx.subscriptions && invokeCtx.hostElement) {
       const isArray = Array.isArray(target);
       const sub = this.getSub(invokeCtx.hostElement);
       if (!isArray) {
@@ -157,6 +162,7 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
 function verifySerializable<T>(value: T) {
   if (shouldSerialize(value) && typeof value == 'object' && value !== null) {
     if (Array.isArray(value)) return;
+    if (isQrl(value)) return;
     if (Object.getPrototypeOf(value) !== Object.prototype) {
       throw qError(QError.TODO, 'Only primitive and object literals can be serialized.');
     }

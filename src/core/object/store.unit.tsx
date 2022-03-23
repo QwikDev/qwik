@@ -38,7 +38,7 @@ describe('store', () => {
   });
 
   it('should serialize cyclic graphs', () => {
-    useInvoke(newInvokeContext(div, div), () => {
+    useInvoke(newInvokeContext(document, div, div), () => {
       const foo = useStore({ mark: 'foo', bar: {} });
       const bar = useStore({ mark: 'bar', foo: foo });
       foo.bar = bar;
@@ -69,7 +69,7 @@ export const LexicalScope_render = () => {
       <p>{JSON.stringify(g)}</p>
       <p>{JSON.stringify(h)}</p>
       <p>{noserialize.text}</p>
-      <button onDocument$:click={() => state.count++}>Rerender {state.count}</button>
+      <button onDocumentClick$={() => state.count++}>Rerender {state.count}</button>
     </section>
   );
 };
@@ -91,6 +91,7 @@ export const LexicalScope = component$(() => {
     h: [1, 'string', false, { hola: 1 }, ['hello']],
   };
   const noserialize = noSerialize({ text: 'not included' });
+  noserialize;
   const d = undefined;
   const e = null;
   const f = [1, 2, 'hola', {}];

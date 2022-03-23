@@ -46,12 +46,13 @@ export function render(
       timing: [],
     },
   };
+  injectQVersion(parent);
+
   return then(visitJsxNode(ctx, parent as Element, processNode(jsxNode), false), () => {
     executeContext(ctx);
     if (stylesParent) {
       injectQwikSlotCSS(stylesParent);
     }
-    injectQVersion(parent);
     if (qDev) {
       if (typeof window !== 'undefined' && window.document != null) {
         printRenderStats(ctx);

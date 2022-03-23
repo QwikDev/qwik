@@ -35,7 +35,7 @@ export const LexicalScope = component$(() => {
         <p>{JSON.stringify(f)}</p>
         <p>{JSON.stringify(g)}</p>
         <p>{JSON.stringify(h)}</p>
-        <button on:click={onclick}>Rerender {state.count}</button>
+        <button onClickQrl={onclick}>Rerender {state.count}</button>
       </section>
     );
   });

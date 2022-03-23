@@ -27,7 +27,7 @@ export const SlotParent = component$(() => {
           <button
             id="btn-toggle-content"
             class="border border-cyan-600"
-            on$:click={() => (state.removeContent = !state.removeContent)}
+            onClick$={() => (state.removeContent = !state.removeContent)}
           >
             Toggle content
           </button>
@@ -36,7 +36,7 @@ export const SlotParent = component$(() => {
           <button
             id="btn-toggle-buttons"
             class="border border-cyan-600"
-            on$:click={() => (state.disableButtons = !state.disableButtons)}
+            onClick$={() => (state.disableButtons = !state.disableButtons)}
           >
             Toggle buttons
           </button>
@@ -45,13 +45,13 @@ export const SlotParent = component$(() => {
           <button
             id="btn-toggle-thing"
             class="border border-cyan-600"
-            on$:click={() => (state.disableNested = !state.disableNested)}
+            onClick$={() => (state.disableNested = !state.disableNested)}
           >
             Toogle Thing
           </button>
         </div>
         <div>
-          <button id="btn-count" class="border border-cyan-600" on$:click={() => state.count++}>
+          <button id="btn-count" class="border border-cyan-600" onClick$={() => state.count++}>
             Count
           </button>
         </div>

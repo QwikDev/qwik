@@ -45,7 +45,7 @@ export const OnThisPage = component$(
                       'border-l-2': true,
                     }}
                   >
-                    <a href={`#${h.id}`} class="pl-4 block" on:click={onClick}>
+                    <a href={`#${h.id}`} class="pl-4 block" onClickQrl={onClick}>
                       {h.text}
                     </a>
                   </li>

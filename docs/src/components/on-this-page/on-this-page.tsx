@@ -1,5 +1,9 @@
 import { usePage } from '@builder.io/qwest';
 import { component$, Host, $, useHostElement, useScopedStyles$ } from '@builder.io/qwik';
+import { ChatIcon } from '../svgs/chat-icon';
+import { EditIcon } from '../svgs/edit-icon';
+import { GithubLogo } from '../svgs/github-logo';
+import { TwitterLogo } from '../svgs/twitter-logo';
 import styles from './on-this-page.css';
 
 export const OnThisPage = component$(
@@ -30,22 +34,22 @@ export const OnThisPage = component$(
       return (
         <Host
           onDocument:scroll={onScroll}
-          class="on-this-page fixed text-sm z-20 bottom-0 pb-8 right-[max(0px,calc(50%-45rem))] overflow-y-auto hidden xl:block xl:w-[18rem] xl:top-[5rem]"
+          class="on-this-page fixed text-sm z-20 bottom-0 right-[max(0px,calc(50%-45rem))] overflow-y-auto hidden xl:block xl:w-[18rem] xl:top-[5rem]"
         >
           {headings.length > 0 ? (
             <>
-              <div class="font-semibold pb-4 uppercase">On This Page</div>
-              <ul class="pb-6">
+              <h6>On This Page</h6>
+              <ul>
                 {headings.map((h) => (
-                  <li
-                    class={{
-                      'pb-2': h.level === 2,
-                      'pb-3': h.level > 2,
-                      'pl-4': h.level > 2,
-                      'border-l-2': true,
-                    }}
-                  >
-                    <a href={`#${h.id}`} class="pl-4 block" on:click={onClick}>
+                  <li>
+                    <a
+                      href={`#${h.id}`}
+                      class={{
+                        block: true,
+                        indent: h.level > 2,
+                      }}
+                      on:click={onClick}
+                    >
                       {h.text}
                     </a>
                   </li>
@@ -54,9 +58,33 @@ export const OnThisPage = component$(
             </>
           ) : null}
 
-          <a class="edit-page" href={editUrl.href} target="_blank" rel="nofollow noopener">
-            Edit this page
-          </a>
+          <h6>More</h6>
+          <ul>
+            <li>
+              <a href={editUrl.href} target="_blank" rel="nofollow noopener">
+                <EditIcon width={22} height={22} />
+                <span>Edit this page</span>
+              </a>
+            </li>
+            <li>
+              <a href="https://discord.gg/Fd9Cwb3Z8D" target="_blank" rel="nofollow noopener">
+                <ChatIcon width={20} height={20} />
+                <span>Join our community</span>
+              </a>
+            </li>
+            <li>
+              <a href="https://github.com/BuilderIO/qwik" target="_blank" rel="nofollow noopener">
+                <GithubLogo width={20} height={20} />
+                <span>Github</span>
+              </a>
+            </li>
+            <li>
+              <a href="https://twitter.com/QwikDev" target="_blank" rel="nofollow noopener">
+                <TwitterLogo width={20} height={20} />
+                <span>@QwikDev</span>
+              </a>
+            </li>
+          </ul>
         </Host>
       );
     });

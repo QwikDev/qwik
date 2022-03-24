@@ -66,9 +66,9 @@ export function render(
   });
 }
 
-export function injectQwikSlotCSS(parent: Document | Element) {
-  const doc = getDocument(parent);
-  const element = isDocument(parent) ? parent.head : parent;
+export function injectQwikSlotCSS(docOrElm: Document | Element) {
+  const doc = getDocument(docOrElm);
+  const element = isDocument(docOrElm) ? docOrElm.head : docOrElm;
   const style = doc.createElement('style');
   style.setAttribute('id', 'qwik/base-styles');
   style.textContent = `q\\:slot{display:contents}q\\:fallback{display:none}q\\:fallback:last-child{display:contents}`;

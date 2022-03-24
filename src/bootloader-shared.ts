@@ -26,7 +26,7 @@
  */
 export const qrlResolver = (element: Element, eventUrl: string): URL => {
   const doc = element.ownerDocument!;
-  const container = element.closest('q\\:container');
+  const container = element.closest('[q\\:container]');
   const base = new URL(container?.getAttribute('q:base') ?? doc.baseURI, doc.baseURI);
   return new URL(eventUrl, base);
 };

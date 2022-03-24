@@ -482,14 +482,14 @@ function createElm(rctx: RenderContext, vnode: JSXNode, isSvg: boolean): ValueOr
   if (isComponent) {
     // Run mount hook
     const renderQRLPromise = props![OnRenderProp]!(elm) as Promise<RenderFactoryOutput>;
-    wait = then(renderQRLPromise, (renderQrl) => {
-      ctx.renderQrl = renderQrl.renderQRL;
-      renderQrl.waitOn.forEach((task) => {
+    wait = then(renderQRLPromise, (output) => {
+      ctx.renderQrl = output.renderQRL;
+      output.waitOn.forEach((task) => {
         if (isStyleTask(task)) {
           appendStyle(rctx, elm, task);
         }
       });
-      if (renderQrl.waitOn) ctx.refMap.add(renderQrl);
+      ctx.refMap.add(output.renderQRL);
       return firstRenderComponent(rctx, ctx);
     });
   } else {

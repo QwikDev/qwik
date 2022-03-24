@@ -1,4 +1,4 @@
-import { isDocument } from 'src/core/util/element';
+import { isDocument } from '../core/util/element';
 import type { SerializeDocumentOptions } from './types';
 
 /**

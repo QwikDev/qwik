@@ -110,7 +110,8 @@ describe('qwikloader', () => {
 
     it('should resolve relative URL against q:base', () => {
       const div = doc.createElement('div');
-      div.setAttribute('q:base', '../baz/');
+      div.setAttribute('q:container', '');
+      div.setAttribute('q:base', '/baz/');
       expect(String(qrlResolver(div, './bar'))).toEqual('http://document.qwik.dev/baz/bar');
     });
 
@@ -119,11 +120,9 @@ describe('qwikloader', () => {
       const parent = doc.createElement('parent');
       doc.body.appendChild(parent);
       parent.appendChild(div);
+      parent.setAttribute('q:container', '');
       parent.setAttribute('q:base', './parent/');
-      div.setAttribute('q:base', './child/');
-      expect(String(qrlResolver(div, './bar'))).toEqual(
-        'http://document.qwik.dev/parent/child/bar'
-      );
+      expect(String(qrlResolver(div, './bar'))).toEqual('http://document.qwik.dev/parent/bar');
     });
   });
 

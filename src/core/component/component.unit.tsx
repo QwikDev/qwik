@@ -4,7 +4,7 @@ import { expectDOM } from '../../testing/expect-dom.unit';
 import { runtimeQrl } from '../import/qrl';
 import { $ } from '../import/qrl.public';
 import { render } from '../render/render.public';
-import { PropsOf, useStylesFromQrl, component$ } from './component.public';
+import { PropsOf, useStylesQrl, component$ } from './component.public';
 
 describe('q-component', () => {
   it('should declare and render basic component', async () => {
@@ -88,7 +88,7 @@ describe('q-component', () => {
 
 /////////////////////////////////////////////////////////////////////////////
 export const HelloWorld = component$(() => {
-  useStylesFromQrl(runtimeQrl(`{}`));
+  useStylesQrl(runtimeQrl(`{}`));
   return $(() => {
     return <span>Hello World</span>;
   });
@@ -125,14 +125,14 @@ export const MyCounter = component$(
       <div>
         <button
           class="decrement"
-          on:click={runtimeQrl(MyCounter_update, [props, state, { dir: -1 }])}
+          onClickQrl={runtimeQrl(MyCounter_update, [props, state, { dir: -1 }])}
         >
           -
         </button>
         <span>{state.count}</span>
         <button
           class="increment"
-          on:click={runtimeQrl(MyCounter_update, [props, state, { dir: -1 }])}
+          onClickQrl={runtimeQrl(MyCounter_update, [props, state, { dir: -1 }])}
         >
           +
         </button>

@@ -11,7 +11,7 @@ import { component$ } from '../component/component.public';
 import { noSerialize } from './q-object';
 import { $ } from '../import/qrl.public';
 import { logDebug } from '../util/log';
-import { snapshot } from '../index';
+import { snapshot } from '../object/store.public';
 
 describe('store', () => {
   let document: Document;
@@ -38,7 +38,7 @@ describe('store', () => {
   });
 
   it('should serialize cyclic graphs', () => {
-    useInvoke(newInvokeContext(div, div), () => {
+    useInvoke(newInvokeContext(document, div, div), () => {
       const foo = useStore({ mark: 'foo', bar: {} });
       const bar = useStore({ mark: 'bar', foo: foo });
       foo.bar = bar;
@@ -69,7 +69,7 @@ export const LexicalScope_render = () => {
       <p>{JSON.stringify(g)}</p>
       <p>{JSON.stringify(h)}</p>
       <p>{noserialize.text}</p>
-      <button onDocument$:click={() => state.count++}>Rerender {state.count}</button>
+      <button onDocumentClick$={() => state.count++}>Rerender {state.count}</button>
     </section>
   );
 };

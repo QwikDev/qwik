@@ -25,12 +25,12 @@ export const Item = component$(
               class="toggle"
               type="checkbox"
               checked={props.item.completed}
-              on$:click={() => {
+              onClick$={() => {
                 props.item.completed = !props.item.completed;
               }}
             />
             <label
-              on$:dblclick={async () => {
+              onDblclick$={async () => {
                 state.editing = true;
                 const hostElement = useHostElement()!;
                 await notifyRender(hostElement);
@@ -43,7 +43,7 @@ export const Item = component$(
             </label>
             <button
               class="destroy"
-              on$:click={() => {
+              onClick$={() => {
                 const todoItem = props.item;
                 props.todos.items = props.todos.items.filter((i) => i != todoItem);
               }}
@@ -53,8 +53,8 @@ export const Item = component$(
             <input
               class="edit"
               value={props.item.title}
-              on$:blur={() => (state.editing = false)}
-              on$:keyup={() => {
+              onBlur$={() => (state.editing = false)}
+              onKeyup$={() => {
                 const event = useEvent<KeyboardEvent>();
                 const inputValue = (event.target as HTMLInputElement).value;
                 props.item.title = inputValue;

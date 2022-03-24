@@ -1,4 +1,4 @@
-import { Host } from '../index';
+import { Host } from '../render/jsx/host.public';
 import { getContext } from '../props/props';
 import type { ValueOrPromise } from '../util/types';
 import { RenderContext, smartUpdateChildren, updateProperties } from './cursor';

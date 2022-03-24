@@ -18,8 +18,8 @@ export const App = component$(() => {
 ============================= test.js ==
 
 import * as qwik from "@builder.io/qwik";
-import { componentFromQrl } from "@builder.io/qwik";
-export const App = /*#__PURE__*/ componentFromQrl(qwik.qrl(()=>import("./h_test_app_onmount")
+import { componentQrl } from "@builder.io/qwik";
+export const App = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_app_onmount")
 , "App_onmount"));
 
 ============================= h_test_app_usestyles.js (ENTRY POINT)==
@@ -56,11 +56,11 @@ export const App_useStyles2 = css3;
 ============================= h_test_app_onmount.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-import { useStylesFromQrl } from "@builder.io/qwik";
+import { useStylesQrl } from "@builder.io/qwik";
 export const App_onmount = ()=>{
-    useStylesFromQrl(qwik.qrl(()=>import("./h_test_app_usestyles")
+    useStylesQrl(qwik.qrl(()=>import("./h_test_app_usestyles")
     , "App_useStyles"));
-    useStylesFromQrl(qwik.qrl(()=>import("./h_test_app_usestyles2")
+    useStylesQrl(qwik.qrl(()=>import("./h_test_app_usestyles2")
     , "App_useStyles2"));
 };
 

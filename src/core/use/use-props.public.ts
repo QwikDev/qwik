@@ -1,4 +1,4 @@
-import type { Props } from '../index';
+import type { Props } from '../props/props.public';
 import { getContext, getProps } from '../props/props';
 import { getInvokeContext } from './use-core';
 import { useHostElement } from './use-host-element.public';

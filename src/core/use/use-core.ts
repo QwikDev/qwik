@@ -1,21 +1,23 @@
-import type { Props, ValueOrPromise } from '../index';
+import type { ValueOrPromise } from '../util/types';
+import type { Props } from '../props/props.public';
 import { assertDefined } from '../assert/assert';
 import type { QwikDocument } from '../document';
 import type { QRLInternal } from '../import/qrl-class';
 import { QHostAttr } from '../util/markers';
+import { getDocument } from '../util/dom';
 
 declare const document: QwikDocument;
 
-interface InvokeContext {
-  hostElement: Element;
-  element: Element;
+export interface InvokeContext {
+  doc?: Document;
+  hostElement?: Element;
+  element?: Element;
   event: any;
   url: URL | null;
   qrl?: QRLInternal;
   subscriptions: boolean;
   waitOn?: Promise<any>[];
   props?: Props;
-  qrlGuard?: (qrl: QRLInternal) => boolean;
 }
 
 let _context: InvokeContext | undefined;
@@ -31,6 +33,7 @@ export function tryGetInvokeContext(): InvokeContext | undefined {
       const hostElement = getHostElement(element)!;
       assertDefined(element);
       return (document.__q_context__ = newInvokeContext(
+        getDocument(element),
         hostElement,
         element,
         context[1],
@@ -71,12 +74,14 @@ export function useInvoke<ARGS extends any[] = any[], RET = any>(
   return returnValue;
 }
 export function newInvokeContext(
-  hostElement: Element,
-  element: Element,
+  doc?: Document,
+  hostElement?: Element,
+  element?: Element,
   event?: any,
   url?: URL
 ): InvokeContext {
   return {
+    doc,
     hostElement,
     element,
     event: event,

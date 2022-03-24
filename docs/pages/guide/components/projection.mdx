@@ -15,7 +15,7 @@ const Colapsable = component$(() => {
   return $(() => (
     <div class="colapsable">
       <div class="title"
-           on$:click={() => store.isOpen = !store.isOpen}>
+           onClick$={() => store.isOpen = !store.isOpen}>
         <Solt name="title"></Slot>
       </div>
       {store.isOpen ? <Slot/> : null}

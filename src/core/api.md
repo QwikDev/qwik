@@ -12,13 +12,10 @@ export function $<T>(expression: T): QRL<T>;
 // @public
 export function Async<T>(props: AsyncProps<T>): JSXNode<any>;
 
-// @public (undocumented)
-export function bubble<PAYLOAD>(eventType: string, payload?: PAYLOAD): void;
-
-// Warning: (ae-forgotten-export) The symbol "ComponentBaseProps" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "PublicProps" needs to be exported by the entry point index.d.ts
 //
 // @public
-export function component$<PROPS extends {}>(onMount: OnMountFn<PROPS>, options?: ComponentOptions): (props: PROPS & ComponentBaseProps) => JSXNode<PROPS>;
+export function component$<PROPS extends {}>(onMount: OnMountFn<PROPS>, options?: ComponentOptions): (props: PublicProps<PROPS>) => JSXNode<PROPS>;
 
 // @public (undocumented)
 export type ComponentChild = JSXNode<any> | object | string | number | bigint | boolean | null | undefined;
@@ -26,23 +23,26 @@ export type ComponentChild = JSXNode<any> | object | string | number | bigint | 
 // @public (undocumented)
 export type ComponentChildren = ComponentChild[] | ComponentChild;
 
-// @public
-export function componentFromQrl<PROPS extends {}>(onMount: QRL<OnMountFn<PROPS>>, options?: ComponentOptions): (props: PROPS & ComponentBaseProps) => JSXNode<PROPS>;
-
 // @public (undocumented)
 export interface ComponentOptions {
     // (undocumented)
     tagName?: string;
 }
 
+// @public
+export function componentQrl<PROPS extends {}>(onMount: QRL<OnMountFn<PROPS>>, options?: ComponentOptions): (props: PublicProps<PROPS>) => JSXNode<PROPS>;
+
 // @public (undocumented)
 export interface CorePlatform {
     chunkForSymbol: (symbolName: string) => string | undefined;
-    importSymbol: (element: Element, url: string | URL, symbol: string) => Promise<any>;
+    importSymbol: (element: Element, url: string | URL, symbol: string) => ValueOrPromise<any>;
     // (undocumented)
     nextTick: (fn: () => any) => Promise<any>;
     raf: (fn: () => any) => Promise<any>;
 }
+
+// @public (undocumented)
+export type EventHandler<T> = QRL<(value: T) => any>;
 
 // @public (undocumented)
 export const Fragment: FunctionComponent<{
@@ -96,8 +96,10 @@ export namespace h {
     }
 }
 
+// Warning: (ae-forgotten-export) The symbol "HTMLAttributes" needs to be exported by the entry point index.d.ts
+//
 // @public
-export const Host: FunctionComponent<Record<string, any>>;
+export const Host: FunctionComponent<HTMLAttributes<HTMLElement>>;
 
 // @public
 export function implicit$FirstArg<FIRST, REST extends any[], RET>(fn: (first: QRL<FIRST>, ...rest: REST) => RET): (first: FIRST, ...rest: REST) => RET;
@@ -158,25 +160,25 @@ export type OnMountFn<PROPS> = (props: PROPS) => ValueOrPromise<QRL<() => ValueO
 export const onPause$: (first: () => void) => void;
 
 // @public
-export function onPauseFromQrl(dehydrateFn: QRL<() => void>): void;
+export function onPauseQrl(dehydrateFn: QRL<() => void>): void;
 
 // @public
 export const onResume$: (first: () => void) => void;
 
 // @public
-export function onResumeFromQrl(resumeFn: QRL<() => void>): void;
+export function onResumeQrl(resumeFn: QRL<() => void>): void;
 
 // @public
 export const onUnmount$: (first: () => void) => void;
 
 // @public
-export function onUnmountFromQrl(unmountFn: QRL<() => void>): void;
+export function onUnmountQrl(unmountFn: QRL<() => void>): void;
 
 // @public
 export const onWatch$: (first: (obs: Observer) => unknown | (() => void)) => void;
 
 // @public
-export function onWatchFromQrl(watchFn: QRL<(obs: Observer) => unknown | (() => void)>): void;
+export function onWatchQrl(watchFn: QRL<(obs: Observer) => unknown | (() => void)>): void;
 
 // @public
 export function onWindow(event: string, eventFn: QRL<() => void>): void;
@@ -212,13 +214,16 @@ export type PropsOf<COMP extends (props: any) => JSXNode> = COMP extends (props:
 export interface QRL<TYPE = any> {
     // (undocumented)
     __brand__QRL__: TYPE;
+    // (undocumented)
+    invoke<ARGS extends any[]>(...args: ARGS): Promise<TYPE extends (...args: any) => any ? ReturnType<TYPE> : never>;
+    // (undocumented)
+    invokeFn(el?: Element): (...args: any[]) => any;
+    // (undocumented)
+    resolve(container?: Element): Promise<TYPE>;
 }
 
 // @public
-export const qrl: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: string, lexicalScopeCapture?: any[]) => QRL<T>;
-
-// @public
-export function qrlImport<T>(element: Element, qrl: QRL<T>): Promise<T>;
+export function qrl<T = any>(chunkOrFn: string | (() => Promise<any>), symbol: string, lexicalScopeCapture?: any[] | null): QRL<T>;
 
 // Warning: (ae-forgotten-export) The symbol "DOMAttributes" needs to be exported by the entry point index.d.ts
 //
@@ -284,6 +289,9 @@ export const Slot: FunctionComponent<{
 // @public
 export function snapshot(elmOrDoc: Element | Document): void;
 
+// @alpha (undocumented)
+export function unwrapSubscriber<T extends {}>(obj: T): any;
+
 // @public (undocumented)
 export function useDocument(): Document;
 
@@ -300,7 +308,7 @@ export function useLexicalScope<VARS extends any[]>(): VARS;
 export const useScopedStyles$: (first: string) => void;
 
 // @alpha (undocumented)
-export function useScopedStylesFromQrl(styles: QRL<string>): void;
+export function useScopedStylesQrl(styles: QRL<string>): void;
 
 // @public
 export function useStore<STATE extends {}>(initialState: STATE): STATE;
@@ -309,13 +317,19 @@ export function useStore<STATE extends {}>(initialState: STATE): STATE;
 export const useStyles$: (first: string) => void;
 
 // @alpha
-export function useStylesFromQrl(styles: QRL<string>): void;
+export function useStylesQrl(styles: QRL<string>): void;
+
+// @alpha (undocumented)
+export function useSubscriber<T extends {}>(obj: T): T;
 
 // @public
 export type ValueOrPromise<T> = T | Promise<T>;
 
 // @alpha (undocumented)
 export const version: string;
+
+// @alpha (undocumented)
+export function wrapSubscriber<T extends {}>(obj: T, subscriber: Element): any;
 
 // (No @packageDocumentation comment for this package)
 

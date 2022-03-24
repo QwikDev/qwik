@@ -11,7 +11,7 @@ export const Render = component$(() => {
     return (
       <Host>
         <button
-          on$:click={() => {
+          onClick$={() => {
             state.count++;
           }}
         >

@@ -27,15 +27,19 @@ export const LexicalScope = component$(() => {
   return $(() => {
     return (
       <section>
-        <p>{JSON.stringify(a)}</p>
-        <p>{JSON.stringify(b)}</p>
-        <p>{JSON.stringify(c)}</p>
-        <p>{String(d)}</p>
-        <p>{String(e)}</p>
-        <p>{JSON.stringify(f)}</p>
-        <p>{JSON.stringify(g)}</p>
-        <p>{JSON.stringify(h)}</p>
-        <button on:click={onclick}>Rerender {state.count}</button>
+        <div id="static">
+          <p>{JSON.stringify(a)}</p>
+          <p>{JSON.stringify(b)}</p>
+          <p>{JSON.stringify(c)}</p>
+          <p>{String(d)}</p>
+          <p>{String(e)}</p>
+          <p>{JSON.stringify(f)}</p>
+          <p>{JSON.stringify(g)}</p>
+          <p>{JSON.stringify(h)}</p>
+        </div>
+        <button onClickQrl={onclick} id="rerender">
+          Rerender {state.count}
+        </button>
       </section>
     );
   });

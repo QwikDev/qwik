@@ -1,6 +1,6 @@
 import { toQrlOrError } from '../import/qrl';
 import type { QRLInternal } from '../import/qrl-class';
-import { $, implicit$FirstArg, QRL, qrlImport } from '../import/qrl.public';
+import { $, implicit$FirstArg, QRL } from '../import/qrl.public';
 import { qPropWriteQRL, qrlFactory } from '../props/props-on';
 import type { JSXNode } from '../render/jsx/types/jsx-node';
 import { newInvokeContext, useInvoke, useWaitOn } from '../use/use-core';
@@ -10,7 +10,9 @@ import { styleKey } from './qrl-styles';
 import type { ComponentBaseProps } from '../render/jsx/types/jsx-qwik-attributes';
 import type { ValueOrPromise } from '../util/types';
 import { getContext, getProps } from '../props/props';
-import { jsx, FunctionComponent } from '../index';
+import type { FunctionComponent } from '../index';
+import { jsx } from '../render/jsx/jsx-runtime';
+
 import { getDocument } from '../util/dom';
 
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onUnmount">
@@ -24,7 +26,7 @@ import { getDocument } from '../util/dom';
  * @public
  */
 // </docs>
-export function onUnmountFromQrl(unmountFn: QRL<() => void>): void {
+export function onUnmountQrl(unmountFn: QRL<() => void>): void {
   throw new Error('IMPLEMENT: onUnmount' + unmountFn);
 }
 
@@ -39,7 +41,7 @@ export function onUnmountFromQrl(unmountFn: QRL<() => void>): void {
  * @public
  */
 // </docs>
-export const onUnmount$ = implicit$FirstArg(onUnmountFromQrl);
+export const onUnmount$ = implicit$FirstArg(onUnmountQrl);
 
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onResume">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -53,7 +55,7 @@ export const onUnmount$ = implicit$FirstArg(onUnmountFromQrl);
  * @public
  */
 // </docs>
-export function onResumeFromQrl(resumeFn: QRL<() => void>): void {
+export function onResumeQrl(resumeFn: QRL<() => void>): void {
   onWindow('load', resumeFn);
 }
 
@@ -69,7 +71,7 @@ export function onResumeFromQrl(resumeFn: QRL<() => void>): void {
  * @public
  */
 // </docs>
-export const onResume$ = implicit$FirstArg(onResumeFromQrl);
+export const onResume$ = implicit$FirstArg(onResumeQrl);
 
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#OnPause">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -85,7 +87,7 @@ export const onResume$ = implicit$FirstArg(onResumeFromQrl);
  * @public
  */
 // </docs>
-export function onPauseFromQrl(dehydrateFn: QRL<() => void>): void {
+export function onPauseQrl(dehydrateFn: QRL<() => void>): void {
   throw new Error('IMPLEMENT: onPause' + dehydrateFn);
 }
 
@@ -103,7 +105,7 @@ export function onPauseFromQrl(dehydrateFn: QRL<() => void>): void {
  * @public
  */
 // </docs>
-export const onPause$ = implicit$FirstArg(onPauseFromQrl);
+export const onPause$ = implicit$FirstArg(onPauseQrl);
 
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#on">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -174,7 +176,7 @@ export function onWindow(event: string, eventFn: QRL<() => void>) {
  * @alpha
  */
 // </docs>
-export function useStylesFromQrl(styles: QRL<string>): void {
+export function useStylesQrl(styles: QRL<string>): void {
   _useStyles(styles, false);
 }
 
@@ -187,7 +189,7 @@ export function useStylesFromQrl(styles: QRL<string>): void {
  * @alpha
  */
 // </docs>
-export const useStyles$ = implicit$FirstArg(useStylesFromQrl);
+export const useStyles$ = implicit$FirstArg(useStylesQrl);
 
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#useScopedStyles">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -196,7 +198,7 @@ export const useStyles$ = implicit$FirstArg(useStylesFromQrl);
  * @alpha
  */
 // </docs>
-export function useScopedStylesFromQrl(styles: QRL<string>): void {
+export function useScopedStylesQrl(styles: QRL<string>): void {
   _useStyles(styles, true);
 }
 
@@ -207,7 +209,7 @@ export function useScopedStylesFromQrl(styles: QRL<string>): void {
  * @alpha
  */
 // </docs>
-export const useScopedStyles$ = implicit$FirstArg(useScopedStylesFromQrl);
+export const useScopedStyles$ = implicit$FirstArg(useScopedStylesQrl);
 
 /**
  * Infers `Props` from the component.
@@ -233,6 +235,18 @@ export type PropsOf<COMP extends (props: any) => JSXNode> = COMP extends (
 export interface ComponentOptions {
   tagName?: string;
 }
+
+export type PublicProps<PROPS extends {}> = PROPS & On$Props<PROPS> & ComponentBaseProps;
+
+export type On$Props<T extends {}> = {
+  [K in keyof T as K extends `${infer A}Qrl`
+    ? NonNullable<T[K]> extends QRL
+      ? `${A}$`
+      : never
+    : never]?: NonNullable<T[K]> extends QRL<infer B> ? B : never;
+};
+
+export type EventHandler<T> = QRL<(value: T) => any>;
 
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#component">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -264,7 +278,7 @@ export interface ComponentOptions {
  *   return $(() => (
  *     <div>
  *       <span>{state.count}</span>
- *       <button on$:click={() => (state.count += props.step || 1)}>+</button>
+ *       <button onClick$={() => (state.count += props.step || 1)}>+</button>
  *     </div>
  *   ));
  * });
@@ -294,17 +308,17 @@ export interface ComponentOptions {
  * @public
  */
 // </docs>
-export function componentFromQrl<PROPS extends {}>(
+export function componentQrl<PROPS extends {}>(
   onMount: QRL<OnMountFn<PROPS>>,
   options?: ComponentOptions
-): (props: PROPS & ComponentBaseProps) => JSXNode<PROPS>;
+): (props: PublicProps<PROPS>) => JSXNode<PROPS>;
 /**
  * @public
  */
-export function componentFromQrl<PROPS extends {}>(
+export function componentQrl<PROPS extends {}>(
   onMount: QRL<OnMountFn<PROPS>>,
   options: ComponentOptions = {}
-): FunctionComponent<PROPS & ComponentBaseProps> {
+): FunctionComponent<PublicProps<PROPS>> {
   const tagName = options.tagName ?? 'div';
 
   // Return a QComponent Factory function.
@@ -315,7 +329,7 @@ export function componentFromQrl<PROPS extends {}>(
       const onMountFn = await resolveQrl(hostElement, onMountQrl);
       const ctx = getContext(hostElement);
       const props = getProps(ctx) as any;
-      const invokeCtx = newInvokeContext(hostElement, hostElement);
+      const invokeCtx = newInvokeContext(getDocument(hostElement), hostElement, hostElement);
       return useInvoke(invokeCtx, onMountFn, props) as QRLInternal;
     };
     onRenderFactory.__brand__ = 'QRLFactory';
@@ -354,7 +368,7 @@ export function componentFromQrl<PROPS extends {}>(
  *   return $(() => (
  *     <div>
  *       <span>{state.count}</span>
- *       <button on$:click={() => (state.count += props.step || 1)}>+</button>
+ *       <button onClick$={() => (state.count += props.step || 1)}>+</button>
  *     </div>
  *   ));
  * });
@@ -387,8 +401,8 @@ export function componentFromQrl<PROPS extends {}>(
 export function component$<PROPS extends {}>(
   onMount: OnMountFn<PROPS>,
   options?: ComponentOptions
-): (props: PROPS & ComponentBaseProps) => JSXNode<PROPS> {
-  return componentFromQrl<PROPS>($(onMount), options);
+): (props: PublicProps<PROPS>) => JSXNode<PROPS> {
+  return componentQrl<PROPS>($(onMount), options);
 }
 
 /**
@@ -405,7 +419,7 @@ function resolveQrl<PROPS extends {}>(
   return onMountQrl.symbolRef
     ? Promise.resolve(onMountQrl.symbolRef!)
     : Promise.resolve(null).then(() => {
-        return qrlImport<OnMountFn<PROPS>>(hostElement, onMountQrl);
+        return onMountQrl.resolve(hostElement);
       });
 }
 
@@ -418,7 +432,7 @@ function _useStyles(styles: QRL<string>, scoped: boolean) {
   }
 
   useWaitOn(
-    qrlImport(hostElement, styleQrl).then((styleText) => {
+    styleQrl.resolve(hostElement).then((styleText) => {
       const document = getDocument(hostElement);
       const head = document.querySelector('head');
       if (head && !head.querySelector(`style[q\\:style="${styleId}"]`)) {

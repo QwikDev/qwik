@@ -21,8 +21,8 @@ export const Header = component$(() => {
 ============================= test.tsx ==
 
 import * as qwik from "@builder.io/qwik";
-import { componentFromQrl } from "@builder.io/qwik";
-export const Header = /*#__PURE__*/ componentFromQrl(qwik.qrl(()=>import("./h_test_header_onmount")
+import { componentQrl } from "@builder.io/qwik";
+export const Header = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_header_onmount")
 , "Header_onmount"));
 
 ============================= h_test_header_onrender.tsx (ENTRY POINT)==

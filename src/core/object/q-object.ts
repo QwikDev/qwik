@@ -1,5 +1,6 @@
 import { assertEqual } from '../assert/assert';
 import { QError, qError } from '../error/error';
+import { isQrl } from '../import/qrl-class';
 import { notifyRender } from '../render/notify-render';
 import { tryGetInvokeContext } from '../use/use-core';
 import { logWarn } from '../util/log';
@@ -50,6 +51,7 @@ export function readWriteProxy<T extends object>(
   if (!target || typeof target !== 'object') return target;
   let proxy = proxyMap.get(target);
   if (proxy) return proxy;
+
   proxy = new Proxy(target, new ReadWriteProxyHandler(proxyMap, subs)) as any as T;
   proxyMap.set(target, proxy);
   return proxy;
@@ -57,6 +59,8 @@ export function readWriteProxy<T extends object>(
 
 export const QOjectTargetSymbol = ':target:';
 export const QOjectSubsSymbol = ':subs:';
+export const QOjectOriginalProxy = ':proxy:';
+export const SetSubscriber = Symbol('SetSubscriber');
 
 export function unwrapProxy<T>(proxy: T): T {
   if (proxy && typeof proxy == 'object') {
@@ -68,6 +72,9 @@ export function unwrapProxy<T>(proxy: T): T {
 
 export function wrap<T>(value: T, proxyMap: ObjToProxyMap): T {
   if (value && typeof value === 'object') {
+    if (isQrl(value)) {
+      return value;
+    }
     const nakedValue = unwrapProxy(value);
     if (nakedValue !== value) {
       // already a proxy return;
@@ -86,7 +93,8 @@ export function wrap<T>(value: T, proxyMap: ObjToProxyMap): T {
 type TargetType = Record<string | symbol, any>;
 
 class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
-  constructor(private proxy: ObjToProxyMap, private subs = new Map<Element, Set<string>>()) {}
+  private subscriber?: Element;
+  constructor(private proxyMap: ObjToProxyMap, private subs = new Map<Element, Set<string>>()) {}
 
   getSub(el: Element) {
     let sub = this.subs.get(el);
@@ -97,29 +105,41 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
   }
 
   get(target: TargetType, prop: string | symbol): any {
+    let subscriber = this.subscriber;
+    this.subscriber = undefined;
     if (prop === QOjectTargetSymbol) return target;
     if (prop === QOjectSubsSymbol) return this.subs;
+    if (prop === QOjectOriginalProxy) return this.proxyMap.get(target);
     const value = target[prop];
     if (typeof prop === 'symbol') {
       return value;
     }
-    const invokeCtx = tryGetInvokeContext();
-    if (qDev && !invokeCtx && !qTest) {
-      logWarn(`State assigned outside invocation context. Getting prop "${prop}" of:`, target);
+    if (!subscriber) {
+      const invokeCtx = tryGetInvokeContext();
+      if (qDev && !invokeCtx && !qTest) {
+        logWarn(`State assigned outside invocation context. Getting prop "${prop}" of:`, target);
+      }
+      if (invokeCtx && invokeCtx.subscriptions && invokeCtx.hostElement) {
+        subscriber = invokeCtx.hostElement;
+      }
     }
-    if (invokeCtx && invokeCtx.subscriptions) {
+    if (subscriber) {
       const isArray = Array.isArray(target);
-      const sub = this.getSub(invokeCtx.hostElement);
+      const sub = this.getSub(subscriber);
       if (!isArray) {
         sub.add(prop);
       }
     }
-    return wrap(value, this.proxy);
+    return wrap(value, this.proxyMap);
   }
 
   set(target: TargetType, prop: string | symbol, newValue: any): boolean {
     if (typeof prop === 'symbol') {
-      target[prop] = newValue;
+      if (prop === SetSubscriber) {
+        this.subscriber = newValue;
+      } else {
+        target[prop] = newValue;
+      }
       return true;
     }
     const unwrappedNewValue = unwrapProxy(newValue);
@@ -157,6 +177,7 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
 function verifySerializable<T>(value: T) {
   if (shouldSerialize(value) && typeof value == 'object' && value !== null) {
     if (Array.isArray(value)) return;
+    if (isQrl(value)) return;
     if (Object.getPrototypeOf(value) !== Object.prototype) {
       throw qError(QError.TODO, 'Only primitive and object literals can be serialized.');
     }

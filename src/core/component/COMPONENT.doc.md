@@ -69,7 +69,7 @@ export const Counter = component<{ value?: number; step?: number }, { count: num
     <div>
       <span>{state.count}</span>
       <button
-        on:click={qHook<typeof Counter>((props, state) => {
+        onClickQrl={qHook<typeof Counter>((props, state) => {
           state.count += props.step || 1;
         })}
       >

@@ -1,6 +1,4 @@
-import { runtimeQrl, staticQrl, toInternalQRL } from './qrl';
-import { getPlatform } from '../platform/platform';
-import { getDocument } from '../util/dom';
+import { runtimeQrl } from './qrl';
 
 // <docs markdown="https://hackmd.io/m5DzCi5MTa26LuUj5t3HpQ#QRL">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -103,7 +101,7 @@ import { getDocument } from '../util/dom';
  *
  * ```
  * <div q:base="/build/">
- *   <button on:click="./chunk-abc.js#onClick">...</button>
+ *   <button onClick="./chunk-abc.js#onClick">...</button>
  * </div>
  * ```
  *
@@ -129,36 +127,17 @@ import { getDocument } from '../util/dom';
 // </docs>
 export interface QRL<TYPE = any> {
   __brand__QRL__: TYPE;
+  resolve(container?: Element): Promise<TYPE>;
+  invoke<ARGS extends any[]>(
+    ...args: ARGS
+  ): Promise<TYPE extends (...args: any) => any ? ReturnType<TYPE> : never>;
+  invokeFn(el?: Element): (...args: any[]) => any;
 }
 
-// <docs markdown="https://hackmd.io/m5DzCi5MTa26LuUj5t3HpQ#qrlImport">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fm5DzCi5MTa26LuUj5t3HpQ%3Fboth#qrlImport instead)
 /**
- * Lazy-load a `QRL` symbol and return the lazy-loaded value.
- *
- * See: `QRL`
- *
- * @param element - Location of the URL to resolve against. This is needed to take `q:base` into
- * account.
- * @param qrl - QRL to load.
- * @returns A resolved QRL value as a Promise.
  * @public
  */
-// </docs>
-export async function qrlImport<T>(element: Element, qrl: QRL<T>): Promise<T> {
-  const qrl_ = toInternalQRL(qrl);
-  if (qrl_.symbolRef) return qrl_.symbolRef;
-  if (qrl_.symbolFn) {
-    return (qrl_.symbolRef = qrl_.symbolFn().then((module) => module[qrl_.symbol]));
-  } else {
-    return (qrl_.symbolRef = await getPlatform(getDocument(element)).importSymbol(
-      element,
-      qrl_.chunk,
-      qrl_.symbol
-    ));
-  }
-}
+export type EventHandler<T> = QRL<(value: T) => any>;
 
 // <docs markdown="https://hackmd.io/m5DzCi5MTa26LuUj5t3HpQ#$">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -288,26 +267,3 @@ export function implicit$FirstArg<FIRST, REST extends any[], RET>(
     return fn.call(null, $(first), ...rest);
   };
 }
-
-// <docs markdown="https://hackmd.io/m5DzCi5MTa26LuUj5t3HpQ#qrl">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fm5DzCi5MTa26LuUj5t3HpQ%3Fboth#qrl instead)
-/**
- * Used by Qwik Optimizer to point to lazy-loaded resources.
- *
- * This function should be used by the Qwik Optimizer only. The function should not be directly
- * referred to in the source code of the application.
- *
- * See: `QRL`, `$(...)`
- *
- * @param chunkOrFn - Chunk name (or function which is stringified to extract chunk name)
- * @param symbol - Symbol to lazy load
- * @param lexicalScopeCapture - a set of lexically scoped variables to capture.
- * @public
- */
-// </docs>
-export const qrl: <T = any>(
-  chunkOrFn: string | (() => Promise<any>),
-  symbol: string,
-  lexicalScopeCapture?: any[]
-) => QRL<T> = staticQrl;

@@ -1,8 +1,7 @@
-import { getPlatform } from '../index';
+import { getPlatform } from '../platform/platform';
 import { QError, qError } from '../error/error';
-import { parseQRL, stringifyQRL } from '../import/qrl';
+import { parseQRL, qrlImport, stringifyQRL } from '../import/qrl';
 import { isQrl, QRLInternal } from '../import/qrl-class';
-import { qrlImport } from '../import/qrl.public';
 import { qDeflate } from '../json/q-json';
 import { getInvokeContext, useInvoke } from '../use/use-core';
 import { fromCamelToKebabCase } from '../util/case';
@@ -10,14 +9,13 @@ import { EMPTY_ARRAY } from '../util/flyweight';
 import { isPromise } from '../util/promises';
 import { debugStringify } from '../util/stringify';
 import type { ValueOrPromise } from '../util/types';
-import { invokeWatchFn } from '../watch/watch';
-import { getEvents, QContext } from './props';
+import type { QContext } from './props';
 import { getDocument } from '../util/dom';
 import { RenderContext, setAttribute } from '../render/cursor';
 import { emitEvent } from '../util/event';
 
-const ON_PROP_REGEX = /on(Document|Window)?:/;
-const ON$_PROP_REGEX = /on(Document|Window)?\$:/;
+const ON_PROP_REGEX = /^on([A-Z]|-.).*Qrl$/;
+const ON$_PROP_REGEX = /^on([A-Z]|-.).*\$$/;
 
 export function isOnProp(prop: string): boolean {
   return ON_PROP_REGEX.test(prop);
@@ -42,10 +40,6 @@ export interface qrlFactory {
   (element: Element): Promise<QRLInternal<any>>;
 }
 
-function isQrlFactory(value: any): value is qrlFactory {
-  return typeof value === 'function' && value.__brand__ === 'QRLFactory';
-}
-
 export function qPropReadQRL(
   ctx: QContext,
   prop: string
@@ -60,19 +54,13 @@ export function qPropReadQRL(
     return Promise.all(
       qrls.map(async (qrlOrPromise) => {
         const qrl = await qrlOrPromise;
-        const qrlGuard = context.qrlGuard;
-        if (qrlGuard && !qrlGuard(qrl)) return;
         if (!qrl.symbolRef) {
           qrl.symbolRef = await qrlImport(ctx.element, qrl);
         }
 
         context.qrl = qrl;
         emitEvent(ctx.element, 'qSymbol', { name: qrl.symbol }, true);
-        if (qrlGuard) {
-          return invokeWatchFn(ctx.element, qrl);
-        } else {
-          return useInvoke(context, qrl.symbolRef);
-        }
+        return useInvoke(context, qrl.symbolRef);
       })
     );
   };
@@ -87,41 +75,32 @@ export function qPropWriteQRL(
   if (!value) {
     return;
   }
-  prop = prop.replace('$:', ':');
   if (typeof value == 'string') {
-    value = parseQRL(value);
+    value = parseQRL(value, ctx.element);
   }
   const existingQRLs = getExistingQRLs(ctx, prop);
   if (Array.isArray(value)) {
     value.forEach((value) => qPropWriteQRL(rctx, ctx, prop, value));
   } else if (isQrl(value)) {
-    const capture = value.capture;
+    const cp = value.copy();
+    cp.setContainer(ctx.element);
+    const capture = cp.capture;
     if (capture == null) {
       // we need to serialize the lexical scope references
-      const captureRef = value.captureRef;
-      value.capture =
+      const captureRef = cp.captureRef;
+      cp.capture =
         captureRef && captureRef.length ? captureRef.map((ref) => qDeflate(ref, ctx)) : EMPTY_ARRAY;
     }
 
     // Important we modify the array as it is cached.
     for (let i = 0; i < existingQRLs.length; i++) {
       const qrl = existingQRLs[i];
-      if (
-        !isPromise(qrl) &&
-        qrl.canonicalChunk === value.canonicalChunk &&
-        qrl.symbol === value.symbol
-      ) {
+      if (!isPromise(qrl) && qrl.canonicalChunk === cp.canonicalChunk && qrl.symbol === cp.symbol) {
         existingQRLs.splice(i, 1);
         i--;
       }
     }
-    existingQRLs.push(value);
-  } else if (isQrlFactory(value)) {
-    if (existingQRLs.length === 0) {
-      // if we don't have any than we use the `qrlFactory` to create a QRLInternal
-      // (otherwise ignore the factory)
-      qPropWriteQRL(rctx, ctx, prop, value(ctx.element));
-    }
+    existingQRLs.push(cp);
   } else if (isPromise(value)) {
     const writePromise = value.then((qrl: QRLInternal) => {
       existingQRLs.splice(existingQRLs.indexOf(writePromise), 1);
@@ -133,17 +112,13 @@ export function qPropWriteQRL(
     // TODO(misko): Test/better text
     throw qError(QError.TODO, `Not QRLInternal: prop: ${prop}; value: ` + value);
   }
-  if (prop.startsWith('on:q')) {
-    getEvents(ctx)[prop] = existingQRLs.filter((a) => !isPromise(a)) as QRLInternal[];
-  } else {
-    const kebabProp = fromCamelToKebabCase(prop);
-    const newValue = serializeQRLs(existingQRLs, ctx);
-    if (ctx.element.getAttribute(kebabProp) !== newValue) {
-      if (rctx) {
-        setAttribute(rctx, ctx.element, kebabProp, newValue);
-      } else {
-        ctx.element.setAttribute(kebabProp, newValue);
-      }
+  const kebabProp = fromCamelToKebabCase(prop);
+  const newValue = serializeQRLs(existingQRLs, ctx);
+  if (ctx.element.getAttribute(kebabProp) !== newValue) {
+    if (rctx) {
+      setAttribute(rctx, ctx.element, kebabProp, newValue);
+    } else {
+      ctx.element.setAttribute(kebabProp, newValue);
     }
   }
 }
@@ -156,17 +131,9 @@ export function closureRefError(ref: any) {
 }
 
 function getExistingQRLs(ctx: QContext, prop: string): ValueOrPromise<QRLInternal>[] {
-  let parts = ctx.cache.get(prop) as QRLInternal[];
+  const key = 'event:' + prop;
+  let parts = ctx.cache.get(key) as QRLInternal[];
   if (!parts) {
-    if (prop.startsWith('on:q')) {
-      parts = [];
-      const qrls = getEvents(ctx)[prop];
-      if (qrls) {
-        parts.push(...qrls);
-        ctx.cache.set(prop, parts);
-        return parts;
-      }
-    }
     const attrName = fromCamelToKebabCase(prop);
     parts = [];
     (ctx.element.getAttribute(attrName) || '').split('\n').forEach((qrl) => {
@@ -174,7 +141,7 @@ function getExistingQRLs(ctx: QContext, prop: string): ValueOrPromise<QRLInterna
         parts.push(parseQRL(qrl, ctx.element));
       }
     });
-    ctx.cache.set(prop, parts);
+    ctx.cache.set(key, parts);
   }
   return parts;
 }
@@ -182,8 +149,12 @@ function getExistingQRLs(ctx: QContext, prop: string): ValueOrPromise<QRLInterna
 function serializeQRLs(existingQRLs: ValueOrPromise<QRLInternal>[], ctx: QContext): string {
   const platform = getPlatform(getDocument(ctx.element));
   const element = ctx.element;
+  const opts = {
+    platform,
+    element,
+  };
   return existingQRLs
-    .map((qrl) => (isPromise(qrl) ? '' : stringifyQRL(qrl, platform, element)))
+    .map((qrl) => (isPromise(qrl) ? '' : stringifyQRL(qrl, opts)))
     .filter((v) => !!v)
     .join('\n');
 }

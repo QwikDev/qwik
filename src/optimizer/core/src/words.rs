@@ -2,7 +2,7 @@ use lazy_static::lazy_static;
 use swc_atoms::JsWord;
 
 pub const SIGNAL: char = '$';
-pub const LONG_SUFFIX: &str = "FromQrl";
+pub const LONG_SUFFIX: &str = "Qrl";
 
 lazy_static! {
     pub static ref QRL: JsWord = JsWord::from("qrl");

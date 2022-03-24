@@ -1,12 +1,11 @@
 import { assertDefined } from '../assert/assert';
 import type { RenderContext } from '../render/cursor';
 import { visitJsxNode } from '../render/render';
-import { ComponentScopedStyles, OnRenderProp, QHostAttr } from '../util/markers';
+import { ComponentScopedStyles, QHostAttr } from '../util/markers';
 import { then } from '../util/promises';
 import { styleContent, styleHost } from './qrl-styles';
 import { newInvokeContext, useInvoke } from '../use/use-core';
-import { getEvent, QContext } from '../props/props';
-import type { JSXNode } from '..';
+import type { QContext } from '../props/props';
 import { processNode } from '../render/jsx/jsx-runtime';
 
 export const firstRenderComponent = (rctx: RenderContext, ctx: QContext) => {
@@ -20,19 +19,21 @@ export const firstRenderComponent = (rctx: RenderContext, ctx: QContext) => {
 
 export const renderComponent = (rctx: RenderContext, ctx: QContext) => {
   const hostElement = ctx.element as HTMLElement;
-  const onRender = getEvent(ctx, OnRenderProp) as any as () => JSXNode;
-  assertDefined(onRender);
+  const onRenderQRL = ctx.renderQrl!;
+  assertDefined(onRenderQRL);
+  const onRenderFn = onRenderQRL.invokeFn();
 
   // Component is not dirty any more
   ctx.dirty = false;
   rctx.globalState.hostsStaging.delete(hostElement);
 
   // Invoke render hook
-  const promise = useInvoke(newInvokeContext(hostElement, hostElement, 'qRender'), onRender);
+  const invocatinContext = newInvokeContext(rctx.doc, hostElement, hostElement, 'qRender');
+  invocatinContext.qrl = onRenderQRL;
+
+  const promise = useInvoke(invocatinContext, onRenderFn);
 
   return then(promise, (jsxNode) => {
-    // Types are wrong here
-    jsxNode = (jsxNode as any)[0];
     rctx.hostElements.add(hostElement);
     let componentCtx = ctx.component;
     if (!componentCtx) {

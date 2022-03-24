@@ -18,7 +18,7 @@ export const MyComp = component$(() => {
       <span>
         {store.count} / {store.doubleCount}
       </span>
-      <button on$:click={() => store.count++}>+</button>
+      <button onClick$={() => store.count++}>+</button>
     </div>
   ));
 });

@@ -70,7 +70,7 @@ export const Browser = component$(
 export const Component = component$(
   (props: { cmp: Cmp; arch: ArchMode }) => {
     return $(() => (
-      <Host class={getCmpClass(props.cmp)} on:click={Component_click}>
+      <Host class={getCmpClass(props.cmp)} onClick$={Component_click}>
         {props.cmp.children &&
           props.cmp.children.map((cmp) => <Component cmp={cmp} arch={props.arch} />)}
         {props.cmp.children ? null : '...'}

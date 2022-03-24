@@ -1,9 +1,12 @@
-import { getDocument } from '../util/dom';
-import { useHostElement } from './use-host-element.public';
+import { getInvokeContext } from './use-core';
 
 /**
  * @public
  */
 export function useDocument(): Document {
-  return getDocument(useHostElement());
+  const doc = getInvokeContext().doc;
+  if (!doc) {
+    throw new Error('Cant access document for existing context');
+  }
+  return doc;
 }

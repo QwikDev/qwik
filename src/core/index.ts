@@ -10,20 +10,20 @@
 // Developer Core API
 //////////////////////////////////////////////////////////////////////////////////////////
 export {
-  componentFromQrl,
+  componentQrl,
   component$,
-  onUnmountFromQrl,
+  onUnmountQrl,
   onUnmount$,
-  onPauseFromQrl,
+  onPauseQrl,
   onPause$,
-  onResumeFromQrl,
+  onResumeQrl,
   onResume$,
   on,
   onDocument,
   onWindow,
-  useStylesFromQrl,
+  useStylesQrl,
   useStyles$,
-  useScopedStylesFromQrl,
+  useScopedStylesQrl,
   useScopedStyles$,
 } from './component/component.public';
 
@@ -32,13 +32,13 @@ export type { PropsOf, ComponentOptions, OnMountFn } from './component/component
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Event API
 //////////////////////////////////////////////////////////////////////////////////////////
-export { bubble } from './event/bubble.public';
 export { snapshot } from './object/store.public';
 //////////////////////////////////////////////////////////////////////////////////////////
 // Internal Runtime
 //////////////////////////////////////////////////////////////////////////////////////////
-export { $, implicit$FirstArg, qrl, qrlImport } from './import/qrl.public';
-export type { QRL } from './import/qrl.public';
+export { $, implicit$FirstArg } from './import/qrl.public';
+export { qrl } from './import/qrl';
+export type { QRL, EventHandler } from './import/qrl.public';
 
 export type { Props } from './props/props.public';
 
@@ -51,7 +51,7 @@ export type { CorePlatform } from './platform/types';
 //////////////////////////////////////////////////////////////////////////////////////////
 // Watch
 //////////////////////////////////////////////////////////////////////////////////////////
-export { onWatch$, onWatchFromQrl } from './watch/watch.public';
+export { onWatch$, onWatchQrl } from './watch/watch.public';
 export type { Observer } from './watch/watch.public';
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -86,6 +86,7 @@ export { useDocument } from './use/use-document.public';
 export { useEvent } from './use/use-event.public';
 export { useLexicalScope } from './use/use-lexical-scope.public';
 export { useStore } from './use/use-store.public';
+export { useSubscriber, wrapSubscriber, unwrapSubscriber } from './use/use-subscriber';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Low-Level API
@@ -94,7 +95,4 @@ export type { ValueOrPromise } from './util/types';
 export type { NoSerialize } from './object/q-object';
 export { noSerialize } from './object/q-object';
 
-/**
- * @alpha
- */
-export const version = (globalThis as any).QWIK_VERSION as string;
+export { version } from './version';

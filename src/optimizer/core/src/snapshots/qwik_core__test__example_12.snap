@@ -13,8 +13,8 @@ export const Header = component$(() => {
 ============================= project/test.tsx ==
 
 import * as qwik from "@builder.io/qwik";
-import { componentFromQrl } from "@builder.io/qwik";
-export const Header = /*#__PURE__*/ componentFromQrl(qwik.qrl(()=>import("../entry_hooks")
+import { componentQrl } from "@builder.io/qwik";
+export const Header = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("../entry_hooks")
 , "Header_onmount"));
 
 ============================= h_test_sym2.tsx ==

@@ -5,7 +5,7 @@ export const Main = component$(() => {
   const state = useStore({ name: 'World', running: true });
   return $(() => {
     return (
-      <div id="my-app" onDocument$:expensiveComputationDone={() => (state.running = false)}>
+      <div id="my-app" onDocumentExpensiveComputationDone$={() => (state.running = false)}>
         <p style={{ 'text-align': 'center' }}>
           <a href="https://github.com/builderio/qwik">
             <img
@@ -57,7 +57,7 @@ export const Main = component$(() => {
             Try interacting with this component by changing{' '}
             <input
               value={state.name}
-              on$:keyup={() => {
+              onKeyup$={() => {
                 const event = useEvent<KeyboardEvent>();
                 const input = event.target as HTMLInputElement;
                 state.name = input.value;

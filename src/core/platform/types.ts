@@ -1,3 +1,5 @@
+import type { ValueOrPromise } from '../util/types';
+
 /**
  * @public
  */
@@ -5,7 +7,7 @@ export interface CorePlatform {
   /**
    * Dynamic import()
    */
-  importSymbol: (element: Element, url: string | URL, symbol: string) => Promise<any>;
+  importSymbol: (element: Element, url: string | URL, symbol: string) => ValueOrPromise<any>;
   /**
    * Platform specific queue, such as process.nextTick() for Node
    * and requestAnimationFrame() for the browser.

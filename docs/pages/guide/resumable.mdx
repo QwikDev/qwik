@@ -39,7 +39,7 @@ The above approach does not scale. As the application becomes more complicated, 
 Qwik solves the above issue by serializing the event listens into DOM like so:
 
 ```htmlembedded=
-<button on:click="./chunk.js#handler_symbol">click me</button>
+<button onClickQrl="./chunk.js#handler_symbol">click me</button>
 ```
 
 Qwik still needs to collect the listener information, but this step is done as part of the SSR/SSG. The results of SSR/SSG are then serialized into HTML so that the browser does not need to do anything to resume the execution. Notice that the `on:click attribute contains all of the information to resume the application without doing anything eagerly.

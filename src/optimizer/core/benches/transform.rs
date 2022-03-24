@@ -34,7 +34,7 @@ fn transform_todo_app(b: &mut Bencher) {
 
         export const ToDoApp = qComponent$((props: { todos: Todos }) => {
           return $(() => {
-            console.log('on$:qRender => <ToDoApp/>');
+            console.log('on-qRender$ => <ToDoApp/>');
             return (
               <section class="todoapp">
                 <Header todos={props.todos} />
@@ -48,7 +48,7 @@ fn transform_todo_app(b: &mut Bencher) {
         export const Header = qComponent$((props: { todos: Todos }) => {
           const state = useStore({ text: '' });
           return $(() => {
-            console.log('on$:qRender => <Header/>');
+            console.log('on-qRender$ => <Header/>');
             return (
               <>
                 <h1>todos</h1>
@@ -57,7 +57,7 @@ fn transform_todo_app(b: &mut Bencher) {
                   placeholder="What needs to be done?"
                   autoFocus
                   value={state.text}
-                  on$:keyup={() => {
+                  onKeyup$={() => {
                     const event = useEvent<KeyboardEvent>();
                     const inputValue = (event.target as HTMLInputElement).value;
                     state.text = inputValue;
@@ -74,7 +74,7 @@ fn transform_todo_app(b: &mut Bencher) {
 
         export const Main = qComponent$((props: { todos: Todos }) => {
           return $(() => {
-            console.log('on$:qRender => <Main/>');
+            console.log('on-qRender$ => <Main/>');
             return (
               <Host class="main">
                 <ul class="todo-list">
@@ -91,7 +91,7 @@ fn transform_todo_app(b: &mut Bencher) {
           const state = useStore({ editing: false });
           return $(() => {
             console.log(
-              'on$:qRender => <Item item="' +
+              'on-qRender$ => <Item item="' +
                 JSON.stringify(props.item, (key, value) => (key.startsWith('__') ? undefined : value)) +
                 '"/>'
             );
@@ -102,10 +102,10 @@ fn transform_todo_app(b: &mut Bencher) {
                     class="toggle"
                     type="checkbox"
                     checked={props.item.completed}
-                    on$:click={() => toggleItem(props.todos, props.item)}
+                    onClick$={() => toggleItem(props.todos, props.item)}
                   />
                   <label
-                    on$:dblclick={async () => {
+                    onDblclick$={async () => {
                       state.editing = true;
                       const hostElement = useHostElement()!;
                       await qNotifyRender(hostElement);
@@ -116,14 +116,14 @@ fn transform_todo_app(b: &mut Bencher) {
                   >
                     {props.item.title}
                   </label>
-                  <button class="destroy" on$:click={() => removeItem(props.todos, props.item)}></button>
+                  <button class="destroy" onClick$={() => removeItem(props.todos, props.item)}></button>
                 </div>
                 {state.editing ? (
                   <input
                     class="edit"
                     value={props.item.title}
-                    on$:blur={() => (state.editing = false)}
-                    on$:keyup={() => {
+                    onBlur$={() => (state.editing = false)}
+                    onKeyup$={() => {
                       const event = useEvent<KeyboardEvent>();
                       const inputValue = (event.target as HTMLInputElement).value;
                       props.item.title = inputValue;
@@ -140,7 +140,7 @@ fn transform_todo_app(b: &mut Bencher) {
 
         export const Footer = qComponent$((props: { todos: Todos }) => {
           return $(() => {
-            console.log('on$:qRender => <Footer/>');
+            console.log('on-qRender$ => <Footer/>');
             /**
              * Example of lite-component (it will always be included with the parent component)
              */
@@ -150,7 +150,7 @@ fn transform_todo_app(b: &mut Bencher) {
                 <li>
                   <a
                     class={{ selected: props.todos.filter == lMode }}
-                    on$:click={() => updateFilter(props.todos, filter)}
+                    onClick$={() => updateFilter(props.todos, filter)}
                   >
                     {filter[0].toUpperCase() + filter.substr(1)}
                   </a>
@@ -172,7 +172,7 @@ fn transform_todo_app(b: &mut Bencher) {
                       ))}
                     </ul>
                     {remaining > 0 ? (
-                      <button class="clear-completed" on$:click={() => clearCompleted(props.todos)}>
+                      <button class="clear-completed" onClick$={() => clearCompleted(props.todos)}>
                         Clear completed
                       </button>
                     ) : null}

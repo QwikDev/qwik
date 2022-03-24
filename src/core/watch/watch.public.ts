@@ -38,7 +38,7 @@ import { registerOnWatch, WatchFn } from './watch';
  *       <span>
  *         {store.count} / {store.doubleCount}
  *       </span>
- *       <button on$:click={() => store.count++}>+</button>
+ *       <button onClick$={() => store.count++}>+</button>
  *     </div>
  *   ));
  * });
@@ -49,7 +49,7 @@ import { registerOnWatch, WatchFn } from './watch';
  * @public
  */
 // </docs>
-export function onWatchFromQrl(watchFn: QRL<(obs: Observer) => unknown | (() => void)>): void {
+export function onWatchQrl(watchFn: QRL<(obs: Observer) => unknown | (() => void)>): void {
   registerOnWatch(useHostElement(), useProps(), watchFn as QRLInternal<WatchFn>);
 }
 
@@ -87,7 +87,7 @@ export function onWatchFromQrl(watchFn: QRL<(obs: Observer) => unknown | (() => 
  *       <span>
  *         {store.count} / {store.doubleCount}
  *       </span>
- *       <button on$:click={() => store.count++}>+</button>
+ *       <button onClick$={() => store.count++}>+</button>
  *     </div>
  *   ));
  * });
@@ -98,7 +98,7 @@ export function onWatchFromQrl(watchFn: QRL<(obs: Observer) => unknown | (() => 
  * @public
  */
 // </docs>
-export const onWatch$ = implicit$FirstArg(onWatchFromQrl);
+export const onWatch$ = implicit$FirstArg(onWatchQrl);
 
 // <docs markdown="https://hackmd.io/_Kl9br9tT8OB-1Dv8uR4Kg#Observer">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -126,7 +126,7 @@ export const onWatch$ = implicit$FirstArg(onWatchFromQrl);
  *       <span>
  *         {store.count} / {store.doubleCount}
  *       </span>
- *       <button on$:click={() => store.count++}>+</button>
+ *       <button onClick$={() => store.count++}>+</button>
  *     </div>
  *   ));
  * });
@@ -165,7 +165,7 @@ export interface Observer {
    *       <span>
    *         {store.count} / {store.doubleCount}
    *       </span>
-   *       <button on$:click={() => store.count++}>+</button>
+   *       <button onClick$={() => store.count++}>+</button>
    *     </div>
    *   ));
    * });

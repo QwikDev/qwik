@@ -3,7 +3,7 @@ import { QHostAttr } from '../util/markers';
 import { executeContextWithSlots, printRenderStats, RenderContext } from './cursor';
 import { getContext, resumeIfNeeded } from '../props/props';
 import { qDev } from '../util/qdev';
-import { getPlatform } from '../index';
+import { getPlatform } from '../platform/platform';
 import { getDocument } from '../util/dom';
 import { renderComponent } from '../component/component-ctx';
 import { logDebug } from '../util/log';

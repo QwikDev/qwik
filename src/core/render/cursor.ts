@@ -2,7 +2,11 @@ import { OnRenderProp, QSlotAttr } from '../util/markers';
 import { ComponentCtx, getContext, getProps, QContext, setEvent } from '../props/props';
 import { isOn$Prop, isOnProp } from '../props/props-on';
 export const SVG_NS = 'http://www.w3.org/2000/svg';
-import { $, Host, JSXNode, ValueOrPromise } from '../index';
+import type { ValueOrPromise } from '../util/types';
+import type { JSXNode } from '../render/jsx/types/jsx-node';
+import { Host } from '../render/jsx/host.public';
+import { $ } from '../import/qrl.public';
+
 import { firstRenderComponent, renderComponent } from '../component/component-ctx';
 import { promiseAll, then } from '../util/promises';
 import type { RenderingState } from './notify-render';
@@ -470,7 +474,13 @@ function createElm(rctx: RenderContext, vnode: JSXNode, isSvg: boolean): ValueOr
 
   let wait: ValueOrPromise<void>;
   if (isComponent) {
-    wait = firstRenderComponent(rctx, ctx);
+    // Run mount hook
+    const renderQRLPromise = props![OnRenderProp]!(elm);
+    wait = then(renderQRLPromise, (renderQrl) => {
+      ctx.renderQrl = renderQrl;
+      ctx.refMap.add(renderQrl);
+      return firstRenderComponent(rctx, ctx);
+    });
   } else {
     const setsInnerHTML = checkInnerHTML(props);
     if (setsInnerHTML) {
@@ -527,7 +537,7 @@ const getSlots = (componentCtx: ComponentCtx | undefined, hostElm: Element): Slo
 
   // Map templates
   for (const elm of t) {
-    templates[elm.getAttribute('name') ?? ''] = elm;
+    templates[elm.getAttribute('q:slot') ?? ''] = elm;
   }
 
   return { slots, templates };
@@ -572,6 +582,7 @@ const PROP_HANDLER_MAP: Record<string, PropHandler> = {
 };
 
 const ALLOWS_PROPS = ['class', 'className', 'style', 'id', 'q:slot'];
+const HOST_PREFIX = 'host:';
 
 export function updateProperties(
   rctx: RenderContext,
@@ -585,23 +596,11 @@ export function updateProperties(
   const elm = ctx.element;
   const qwikProps = OnRenderProp in expectProps ? getProps(ctx) : undefined;
 
-  // TODO
-  // when a proper disappears, we cant reset the value
-
   for (let key of Object.keys(expectProps)) {
-    if (key === 'children') {
+    if (key === 'children' || key === OnRenderProp) {
       continue;
     }
     const newValue = expectProps[key];
-
-    if (isOnProp(key)) {
-      setEvent(rctx, ctx, key, newValue);
-      continue;
-    }
-    if (isOn$Prop(key)) {
-      setEvent(rctx, ctx, key.replace('$', ''), $(newValue));
-      continue;
-    }
 
     // Early exit if value didnt change
     const oldValue = ctx.cache.get(key);
@@ -618,15 +617,28 @@ export function updateProperties(
 
     if (qwikProps) {
       const skipProperty = ALLOWS_PROPS.includes(key);
-      const hPrefixed = key.startsWith('h:');
+      const hPrefixed = key.startsWith(HOST_PREFIX);
       if (!skipProperty && !hPrefixed) {
         // Qwik props
         qwikProps[key] = newValue;
         continue;
       }
       if (hPrefixed) {
-        key = key.slice(2);
+        key = key.slice(HOST_PREFIX.length);
       }
+    } else if (qDev && key.startsWith(HOST_PREFIX)) {
+      logWarn(`${HOST_PREFIX} prefix can not be used in non components`);
+      continue;
+    }
+
+    if (isOnProp(key)) {
+      setEvent(rctx, ctx, key.slice(0, -3), newValue);
+      continue;
+    }
+
+    if (isOn$Prop(key)) {
+      setEvent(rctx, ctx, key.slice(0, -1), $(newValue));
+      continue;
     }
 
     // Check if its an exception

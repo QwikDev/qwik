@@ -20,8 +20,8 @@ const d = $(()=>console.log('thing'));
 ============================= test.js ==
 
 import * as qwik from "@builder.io/qwik";
-import { componentFromQrl } from "@builder.io/qwik";
-export const Greeter = /*#__PURE__*/ componentFromQrl(qwik.qrl(()=>import("./h_test_greeter_onmount")
+import { componentQrl } from "@builder.io/qwik";
+export const Greeter = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_greeter_onmount")
 , "Greeter_onmount"));
 qwik.qrl(()=>import("./h_test_d")
 , "d");

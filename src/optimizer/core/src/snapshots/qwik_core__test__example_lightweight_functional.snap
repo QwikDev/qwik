@@ -22,34 +22,34 @@ export const Foo = component$(({color}) => {
 
 export function Button({text, color}) {
     return (
-        <button color={color} on$:click={()=>console.log(text, color)}>{text}</button>
+        <button color={color} onClick$={()=>console.log(text, color)}>{text}</button>
     );
 }
 
 export const ButtonArrow = ({text, color}) => {
     return (
-        <button color={color} on$:click={()=>console.log(text, color)}>{text}</button>
+        <button color={color} onClick$={()=>console.log(text, color)}>{text}</button>
     );
 }
 
 ============================= test.tsx ==
 
 import * as qwik from "@builder.io/qwik";
-import { componentFromQrl } from "@builder.io/qwik";
-export const Foo = /*#__PURE__*/ componentFromQrl(qwik.qrl(()=>import("./h_test_foo_onmount")
+import { componentQrl } from "@builder.io/qwik";
+export const Foo = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_foo_onmount")
 , "Foo_onmount"), {
     tagName: "my-foo"
 });
 export function Button({ text , color  }) {
-    return <button color={color} on:click={qwik.qrl(()=>import("./h_test_button_button_onclick")
-    , "Button_button_onclick", [
+    return <button color={color} onClickQrl={qwik.qrl(()=>import("./h_test_button_button_onclick")
+    , "Button_button_onClick", [
         color,
         text
     ])}>{text}</button>;
 }
 export const ButtonArrow = ({ text , color  })=>{
-    return <button color={color} on:click={qwik.qrl(()=>import("./h_test_buttonarrow_button_onclick")
-    , "ButtonArrow_button_onclick", [
+    return <button color={color} onClickQrl={qwik.qrl(()=>import("./h_test_buttonarrow_button_onclick")
+    , "ButtonArrow_button_onClick", [
         color,
         text
     ])}>{text}</button>;
@@ -99,7 +99,7 @@ export const Foo_onmount = ({ color  })=>{
 ============================= h_test_button_button_onclick.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const Button_button_onclick = ()=>{
+export const Button_button_onClick = ()=>{
     const [color, text] = qwik.useLexicalScope();
     return console.log(text, color);
 };
@@ -107,7 +107,7 @@ export const Button_button_onclick = ()=>{
 /*
 {
   "origin": "test.tsx",
-  "name": "Button_button_onclick",
+  "name": "Button_button_onClick",
   "entry": null,
   "canonicalFilename": "h_test_button_button_onclick",
   "extension": "tsx"
@@ -116,7 +116,7 @@ export const Button_button_onclick = ()=>{
 ============================= h_test_buttonarrow_button_onclick.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const ButtonArrow_button_onclick = ()=>{
+export const ButtonArrow_button_onClick = ()=>{
     const [color, text] = qwik.useLexicalScope();
     return console.log(text, color);
 };
@@ -124,7 +124,7 @@ export const ButtonArrow_button_onclick = ()=>{
 /*
 {
   "origin": "test.tsx",
-  "name": "ButtonArrow_button_onclick",
+  "name": "ButtonArrow_button_onClick",
   "entry": null,
   "canonicalFilename": "h_test_buttonarrow_button_onclick",
   "extension": "tsx"

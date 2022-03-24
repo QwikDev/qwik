@@ -32,10 +32,10 @@ export const Bar = component$(({bar}) => {
 ============================= test.tsx ==
 
 import * as qwik from "@builder.io/qwik";
-import { componentFromQrl } from "@builder.io/qwik";
-export const Foo = /*#__PURE__*/ componentFromQrl(qwik.qrl(()=>import("./h_test_foo_onmount")
+import { componentQrl } from "@builder.io/qwik";
+export const Foo = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_foo_onmount")
 , "Foo_onmount"));
-export const Bar = /*#__PURE__*/ componentFromQrl(qwik.qrl(()=>import("./h_test_bar_onmount")
+export const Bar = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_bar_onmount")
 , "Bar_onmount"));
 
 ============================= h_test_foo_onrender.tsx (ENTRY POINT)==

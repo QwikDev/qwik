@@ -183,6 +183,6 @@ function codeToText(code: QError): string {
       "Re-emitting event '{}' but no listener found at '{}' or any of its parents.",
   }[code];
   let textCode = '000' + code;
-  textCode = textCode.substr(textCode.length - 3);
+  textCode = textCode.slice(-3);
   return `${area}(Q-${textCode}): ${text}`;
 }

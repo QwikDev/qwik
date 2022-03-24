@@ -152,7 +152,7 @@ fn transform_todo_app(b: &mut Bencher) {
                     class={{ selected: props.todos.filter == lMode }}
                     onClick$={() => updateFilter(props.todos, filter)}
                   >
-                    {filter[0].toUpperCase() + filter.substr(1)}
+                    {filter[0].toUpperCase() + filter.slice(1)}
                   </a>
                 </li>
               );

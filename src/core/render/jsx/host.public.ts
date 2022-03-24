@@ -6,6 +6,7 @@
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
 
+import type { HTMLAttributes } from './types/jsx-generated';
 import type { FunctionComponent } from './types/jsx-node';
 
 /**
@@ -23,7 +24,7 @@ import type { FunctionComponent } from './types/jsx-node';
  * servers that purpose.
  * @public
  */
-export const Host: FunctionComponent<Record<string, any>> = { __brand__: 'host' } as any;
+export const Host: FunctionComponent<HTMLAttributes<HTMLElement>> = { __brand__: 'host' } as any;
 
 /**
  * @public

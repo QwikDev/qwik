@@ -578,6 +578,7 @@ const PROP_HANDLER_MAP: Record<string, PropHandler> = {
 };
 
 const ALLOWS_PROPS = ['class', 'className', 'style', 'id', 'q:slot'];
+const HOST_PREFIX = 'host:';
 
 export function updateProperties(
   rctx: RenderContext,
@@ -612,17 +613,17 @@ export function updateProperties(
 
     if (qwikProps) {
       const skipProperty = ALLOWS_PROPS.includes(key);
-      const hPrefixed = key.startsWith('h:');
+      const hPrefixed = key.startsWith(HOST_PREFIX);
       if (!skipProperty && !hPrefixed) {
         // Qwik props
         qwikProps[key] = newValue;
         continue;
       }
       if (hPrefixed) {
-        key = key.slice(2);
+        key = key.slice(HOST_PREFIX.length);
       }
-    } else if (qDev && key.startsWith('h:')) {
-      logWarn('h: prefix can not be used in non components');
+    } else if (qDev && key.startsWith(HOST_PREFIX)) {
+      logWarn(`${HOST_PREFIX} prefix can not be used in non components`);
       continue;
     }
 

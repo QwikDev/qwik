@@ -114,7 +114,7 @@ describe('render', () => {
           aria-hidden="true"
           data-value="hello world"
           key={'special'}
-          h:title="Custom title"
+          host:title="Custom title"
         />
       );
       expectRendered(

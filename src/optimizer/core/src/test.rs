@@ -799,9 +799,9 @@ export const Foo = component$(() => {
                 onDocument-sCroll$={()=>console.log('onDocument-sCroll')}
                 onDocument-scroLL$={()=>console.log('onDocument-scroLL')}
 
-                h:onClick$={()=>console.log('h:onClick$')}
-                h:onDocumentScroll$={()=>console.log('h:onDocument:scroll')}
-                h:onDocumentScroll$={()=>console.log('h:onWindow:scroll')}
+                host:onClick$={()=>console.log('host:onClick$')}
+                host:onDocumentScroll$={()=>console.log('host:onDocument:scroll')}
+                host:onDocumentScroll$={()=>console.log('host:onWindow:scroll')}
 
                 onKeyup={handler}
                 onDocument:keyup={handler}

@@ -256,7 +256,7 @@ You may want to know how does Qwik know which code to download based on the user
 ```htmlembedded=
 <input q:obj="9"
        type="checkbox"
-       on:click="/src/components/item/h_item_item_onrender_input_onclick.js#Item_onRender_input_onclick[0]"
+       onClickQrl="/src/components/item/h_item_item_onrender_input_onclick.js#Item_onRender_input_onclick[0]"
        class="toggle">
 ```
 
@@ -321,7 +321,7 @@ For the application to be resumable, the framework needs to know everything abou
 
 The above information is split into two parts:
 
-1. Structural and event handler information is encoded in HTML directly in form of attributes or element names. (`<q:slot>` or `<div q:slot="...">`, `<button on:click="./chunk.js#symbol">`)
+1. Structural and event handler information is encoded in HTML directly in form of attributes or element names. (`<q:slot>` or `<div q:slot="...">`, `<button onClickQrl="./chunk.js#symbol">`)
 2. Application and framework state as well as QRLs to component render functions is encoded in JSON format in `<script type="qwik/json">...</script>`
 
 Together the information allows Qwik to understand and reason about the application without downloading and executing any Javascript. This information removes the need for the framework to have hydration and thus makes Qwik resumable.
@@ -377,7 +377,7 @@ export const Header = component$(
             placeholder="What needs to be done?"
             autoFocus
             value={state.text}
-            on$:keyup={() => {
+            onKeyup$={() => {
               const event = useEvent<KeyboardEvent>();
               const inputValue = (event.target as HTMLInputElement).value;
               state.text = inputValue;
@@ -445,7 +445,7 @@ Finally let's look at event listener:
 <input
   ...
   value={state.text}
-  on$:keyup={() => {
+  onKeyup$={() => {
     const event = useEvent<KeyboardEvent>();
     const inputValue = (event.target as HTMLInputElement).value;
     state.text = inputValue;
@@ -460,7 +460,7 @@ Finally let's look at event listener:
 />
 ```
 
-The `on$:keyup` tells the Optimizer to automatically extract the event listener into a lazy loadable chunk. This allows the Qwik runtime delay the loading of the `keyup` handler until the user interacts with the page. The `keyup` handler modifies the `store.text` and `props.todos`. Both of these objects are stores and hence proxies. Any modification of the proxies automatically invalidates the subscribed on-render function s as described above. The Qwik knows about the subscriptions because the subscriptions were serialized as part of the server render.
+The `onKeyup$` tells the Optimizer to automatically extract the event listener into a lazy loadable chunk. This allows the Qwik runtime delay the loading of the `keyup` handler until the user interacts with the page. The `keyup` handler modifies the `store.text` and `props.todos`. Both of these objects are stores and hence proxies. Any modification of the proxies automatically invalidates the subscribed on-render function s as described above. The Qwik knows about the subscriptions because the subscriptions were serialized as part of the server render.
 
 ## Configuring Optimizer
 

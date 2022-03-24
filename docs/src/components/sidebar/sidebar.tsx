@@ -34,7 +34,7 @@ export const SideBar = component$(
             </ol>
           </nav>
           <nav class="menu">
-            <button class="menu-close lg:hidden" on:click={toggleMenu}>
+            <button class="menu-close lg:hidden" onClickQrl={toggleMenu}>
               <svg viewBox="0 0 10 10">
                 <path
                   d="M0 0L10 10M10 0L0 10"

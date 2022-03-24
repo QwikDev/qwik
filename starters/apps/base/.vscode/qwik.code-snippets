@@ -16,7 +16,7 @@
 			"  return $(() => {",
 			"    return (",
 			"      <Host>",
-			"        <button on$:click={() => state.count += props.step}>",
+			"        <button onClick$={() => state.count += props.step}>",
 			"          {state.count}",
 			"        </button>",
 			"      </Host>",

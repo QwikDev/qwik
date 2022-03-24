@@ -45,9 +45,9 @@ export interface ComponentBaseProps {
 
   'q:slot'?: string;
 
-  [key: `h:on${string}$`]: EventHandler;
-  [key: `h:on${string}Qrl`]: QrlEvent | QrlEvent[];
-  [key: `h:${string}`]: any;
+  [key: `host:on${string}$`]: EventHandler;
+  [key: `host:on${string}Qrl`]: QrlEvent | QrlEvent[];
+  [key: `host:${string}`]: any;
 
   children?: JSXChildren;
 }

@@ -86,9 +86,9 @@ const MyApp = component$(() => {
   const store = useStore({ a: 0, b: 0, c: 0 });
   return $(() => (
     <>
-      <button on$:click={() => store.a++}>a++</button>
-      <button on$:click={() => store.b++}>b++</button>
-      <button on$:click={() => store.c++}>c++</button>
+      <button onClick$={() => store.a++}>a++</button>
+      <button onClick$={() => store.b++}>b++</button>
+      <button onClick$={() => store.c++}>c++</button>
       {JSON.stringify(store)}
 
       <Child count={store.a} />

@@ -7,7 +7,7 @@ import type { ValueOrPromise } from '../util/types';
 import { then } from '../util/promises';
 import { getRenderingState } from './notify-render';
 import { getDocument } from '../util/dom';
-import { qDev } from '../util/qdev';
+import { qDev, qTest } from '../util/qdev';
 import { resumeIfNeeded } from '../props/props';
 import { version } from '../version';
 
@@ -50,7 +50,9 @@ export function render(
 
   return then(visitJsxNode(ctx, parent as Element, processNode(jsxNode), false), () => {
     executeContext(ctx);
-    injectQwikSlotCSS(parent);
+    if (!qTest) {
+      injectQwikSlotCSS(parent);
+    }
 
     if (qDev) {
       if (typeof window !== 'undefined' && window.document != null) {

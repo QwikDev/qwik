@@ -223,7 +223,7 @@ export interface QRL<TYPE = any> {
 }
 
 // @public
-export const qrl: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: string, lexicalScopeCapture?: any[]) => QRL<T>;
+export function qrl<T = any>(chunkOrFn: string | (() => Promise<any>), symbol: string, lexicalScopeCapture?: any[]): QRL<T>;
 
 // Warning: (ae-forgotten-export) The symbol "DOMAttributes" needs to be exported by the entry point index.d.ts
 //

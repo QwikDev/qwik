@@ -34,8 +34,8 @@ export function render(
   }
   const doc = getDocument(parent);
   const containerEl = getElement(parent);
-  injectQVersion(containerEl);
   resumeIfNeeded(containerEl);
+  injectQVersion(containerEl);
 
   const ctx: RenderContext = {
     doc,

@@ -2,6 +2,7 @@ import { getPlatform, setPlatform } from '@builder.io/qwik';
 import type { TestPlatform } from './types';
 import { existsSync } from 'fs';
 import { fileURLToPath } from 'url';
+import { getContainer } from '../core/use/use-core';
 
 function createPlatform(document: any) {
   if (!document || (document as Document).nodeType !== 9) {
@@ -94,27 +95,10 @@ export function setTestPlatform(document: any) {
  * @param url - relative URL
  * @returns fully qualified URL.
  */
-export function toUrl(doc: Document, element: Element | null, url?: string | URL): URL {
-  let _url: string | URL;
-  let _base: string | URL | undefined = undefined;
-
-  if (url === undefined) {
-    //  recursive call
-    if (element) {
-      _url = element.getAttribute('q:base')!;
-      _base = toUrl(
-        doc,
-        element.parentNode && (element.parentNode as HTMLElement).closest('[q\\:base]')
-      );
-    } else {
-      _url = doc.baseURI;
-    }
-  } else if (url) {
-    (_url = url), (_base = toUrl(doc, element!.closest('[q\\:base]')));
-  } else {
-    throw new Error('INTERNAL ERROR');
-  }
-  return new URL(String(_url), _base);
+export function toUrl(doc: Document, element: Element, url: string | URL): URL {
+  const containerEl = getContainer(element);
+  const base = new URL(containerEl?.getAttribute('q:base') ?? doc.baseURI, doc.baseURI);
+  return new URL(url, base);
 }
 
 function toPath(url: URL) {

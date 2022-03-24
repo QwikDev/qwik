@@ -82,28 +82,25 @@ export function qPropWriteQRL(
   if (Array.isArray(value)) {
     value.forEach((value) => qPropWriteQRL(rctx, ctx, prop, value));
   } else if (isQrl(value)) {
-    value.setContainer(ctx.element);
-    const capture = value.capture;
+    const cp = value.copy();
+    cp.setContainer(ctx.element);
+    const capture = cp.capture;
     if (capture == null) {
       // we need to serialize the lexical scope references
-      const captureRef = value.captureRef;
-      value.capture =
+      const captureRef = cp.captureRef;
+      cp.capture =
         captureRef && captureRef.length ? captureRef.map((ref) => qDeflate(ref, ctx)) : EMPTY_ARRAY;
     }
 
     // Important we modify the array as it is cached.
     for (let i = 0; i < existingQRLs.length; i++) {
       const qrl = existingQRLs[i];
-      if (
-        !isPromise(qrl) &&
-        qrl.canonicalChunk === value.canonicalChunk &&
-        qrl.symbol === value.symbol
-      ) {
+      if (!isPromise(qrl) && qrl.canonicalChunk === cp.canonicalChunk && qrl.symbol === cp.symbol) {
         existingQRLs.splice(i, 1);
         i--;
       }
     }
-    existingQRLs.push(value);
+    existingQRLs.push(cp);
   } else if (isPromise(value)) {
     const writePromise = value.then((qrl: QRLInternal) => {
       existingQRLs.splice(existingQRLs.indexOf(writePromise), 1);

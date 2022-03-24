@@ -85,6 +85,7 @@ export { useDocument } from './use/use-document.public';
 export { useEvent } from './use/use-event.public';
 export { useLexicalScope } from './use/use-lexical-scope.public';
 export { useStore } from './use/use-store.public';
+export { useSubscriber, wrapSubscriber, unwrapSubscriber } from './use/use-subscriber';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Low-Level API

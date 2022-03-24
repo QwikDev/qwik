@@ -19,8 +19,9 @@ test.describe('e2e', () => {
     });
 
     test('should rerender without changes', async ({ page }) => {
+      const SNAPSHOT = `<p>1</p><p>"hola"</p><p>{"a":{"thing":12},"b":"hola","c":123,"d":false,"e":true,"f":null,"h":[1,"string",false,{"hola":1},["hello"]]}</p><p>undefined</p><p>null</p><p>[1,2,"hola",{}]</p><p>true</p><p>false</p>`;
       const content = await page.locator('#static');
-      expect(await content.innerHTML()).toMatchSnapshot({ name: 'lexical-scope-static' });
+      expect(await content.innerHTML()).toEqual(SNAPSHOT);
       const btn = await page.locator('#rerender');
       expect(await btn.textContent()).toEqual('Rerender 0');
 
@@ -28,14 +29,14 @@ test.describe('e2e', () => {
       await btn.click();
       await page.waitForTimeout(100);
 
-      expect(await content.innerHTML()).toMatchSnapshot({ name: 'lexical-scope-static' });
+      expect(await content.innerHTML()).toEqual(SNAPSHOT);
       expect(await btn.textContent()).toEqual('Rerender 1');
 
       // Click button
       await btn.click();
       await page.waitForTimeout(100);
 
-      expect(await content.innerHTML()).toMatchSnapshot({ name: 'lexical-scope-static' });
+      expect(await content.innerHTML()).toEqual(SNAPSHOT);
       expect(await btn.textContent()).toEqual('Rerender 2');
     });
   });

@@ -43,7 +43,7 @@ export const Counter_onMount = () => {
 const Counter_onRender = () => {
   const [store] = useLexicalScope();
   return (
-    <button on:click={qrl('./chunk-c.js', 'Counter_onClick', [store])}>
+    <button onClickQrl={qrl('./chunk-c.js', 'Counter_onClick', [store])}>
       {store.count}
     </button>
   );

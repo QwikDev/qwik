@@ -32,6 +32,14 @@ export interface ComponentOptions {
 // @public
 export function componentQrl<PROPS extends {}>(onMount: QRL<OnMountFn<PROPS>>, options?: ComponentOptions): (props: PublicProps<PROPS>) => JSXNode<PROPS>;
 
+// @alpha (undocumented)
+export interface ContextRef<T> {
+    // (undocumented)
+    readonly __brand__: T;
+    // (undocumented)
+    readonly name: string;
+}
+
 // @public (undocumented)
 export interface CorePlatform {
     chunkForSymbol: (symbolName: string) => string | undefined;
@@ -40,6 +48,9 @@ export interface CorePlatform {
     nextTick: (fn: () => any) => Promise<any>;
     raf: (fn: () => any) => Promise<any>;
 }
+
+// @alpha (undocumented)
+export function createContextRef<T>(identifier: string): ContextRef<T>;
 
 // @public (undocumented)
 export type EventHandler<T> = QRL<(value: T) => any>;
@@ -287,6 +298,9 @@ export const Slot: FunctionComponent<{
 // @public
 export function snapshot(elmOrDoc: Element | Document): void;
 
+// @alpha (undocumented)
+export function unwrapSubscriber<T extends {}>(obj: T): any;
+
 // @public (undocumented)
 export function useDocument(): Document;
 
@@ -298,6 +312,9 @@ export function useHostElement(): Element;
 
 // @public
 export function useLexicalScope<VARS extends any[]>(): VARS;
+
+// @alpha (undocumented)
+export function useReadContext<T>(contextRef: ContextRef<T>): T;
 
 // @alpha (undocumented)
 export const useScopedStyles$: (first: string) => void;
@@ -314,11 +331,20 @@ export const useStyles$: (first: string) => void;
 // @alpha
 export function useStylesQrl(styles: QRL<string>): void;
 
+// @alpha (undocumented)
+export function useSubscriber<T extends {}>(obj: T): T;
+
+// @alpha (undocumented)
+export function useWriteContext<T>(contextRef: ContextRef<T>, value: T): void;
+
 // @public
 export type ValueOrPromise<T> = T | Promise<T>;
 
 // @alpha (undocumented)
 export const version: string;
+
+// @alpha (undocumented)
+export function wrapSubscriber<T extends {}>(obj: T, subscriber: Element): any;
 
 // (No @packageDocumentation comment for this package)
 

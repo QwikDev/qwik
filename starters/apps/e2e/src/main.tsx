@@ -21,6 +21,9 @@ export const Main = component$(() => {
         <p>
           <a href="/events">Events</a>
         </p>
+        <p>
+          <a href="/async">Async</a>
+        </p>
       </section>
     );
   });

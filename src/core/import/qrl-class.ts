@@ -53,6 +53,17 @@ class QRL<TYPE = any> implements IQRL<TYPE> {
     };
   }
 
+  copy(): QRLInternal<TYPE> {
+    return new QRLInternal(
+      this.chunk,
+      this.symbol,
+      this.symbolRef,
+      this.symbolFn,
+      null,
+      this.captureRef
+    );
+  }
+
   async invoke<ARGS extends any[]>(
     ...args: ARGS
   ): Promise<TYPE extends (...args: any) => any ? ReturnType<TYPE> : never> {

@@ -10,7 +10,7 @@ import { EMPTY_ARRAY } from '../util/flyweight';
 import type { QRL } from './qrl.public';
 import { isQrl, QRLInternal } from './qrl-class';
 import { assertEqual } from '../assert/assert';
-import type { CorePlatform, ValueOrPromise } from '../index';
+import { CorePlatform, unwrapSubscriber, ValueOrPromise } from '../index';
 import { getDocument } from '../util/dom';
 import { logError } from '../util/log';
 import { then } from '../util/promises';
@@ -96,6 +96,11 @@ export function staticQrl<T = any>(
     }
   } else {
     throw new Error('Q-ERROR: Unknown type argument: ' + chunkOrFn);
+  }
+
+  // Unwrap subscribers
+  for (let i = 0; i < lexicalScopeCapture.length; i++) {
+    lexicalScopeCapture[i] = lexicalScopeCapture[i].map(unwrapSubscriber);
   }
   return new QRLInternal<T>(chunk, symbol, null, symbolFn, null, lexicalScopeCapture);
 }

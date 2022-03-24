@@ -1,9 +1,9 @@
 import { toQrlOrError } from '../import/qrl';
 import type { QRLInternal } from '../import/qrl-class';
 import { $, implicit$FirstArg, QRL } from '../import/qrl.public';
-import { qPropWriteQRL, qrlFactory } from '../props/props-on';
+import { qPropWriteQRL } from '../props/props-on';
 import type { JSXNode } from '../render/jsx/types/jsx-node';
-import { newInvokeContext, useInvoke, useWaitOn } from '../use/use-core';
+import { newInvokeContext, StyleAppend, useInvoke, useWaitOn } from '../use/use-core';
 import { useHostElement } from '../use/use-host-element.public';
 import { ComponentScopedStyles, OnRenderProp } from '../util/markers';
 import { styleKey } from './qrl-styles';
@@ -14,6 +14,8 @@ import type { FunctionComponent } from '../index';
 import { jsx } from '../render/jsx/jsx-runtime';
 
 import { getDocument } from '../util/dom';
+import { promiseAll } from '../util/promises';
+import type { RenderFactoryOutput } from './component-ctx';
 
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onUnmount">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -323,14 +325,17 @@ export function componentQrl<PROPS extends {}>(
 
   // Return a QComponent Factory function.
   return function QComponent(props, key): JSXNode<PROPS> {
-    const onRenderFactory: qrlFactory = async (hostElement: Element): Promise<QRLInternal> => {
-      // Turn function into QRL
+    const onRenderFactory = async (hostElement: Element): Promise<RenderFactoryOutput> => {
       const onMountQrl = toQrlOrError(onMount);
       const onMountFn = await resolveQrl(hostElement, onMountQrl);
       const ctx = getContext(hostElement);
       const props = getProps(ctx) as any;
       const invokeCtx = newInvokeContext(getDocument(hostElement), hostElement, hostElement);
-      return useInvoke(invokeCtx, onMountFn, props) as QRLInternal;
+      const renderQRL = (await useInvoke(invokeCtx, onMountFn, props)) as QRLInternal;
+      return {
+        renderQRL,
+        waitOn: await promiseAll(invokeCtx.waitOn || []),
+      };
     };
     onRenderFactory.__brand__ = 'QRLFactory';
 
@@ -433,14 +438,12 @@ function _useStyles(styles: QRL<string>, scoped: boolean) {
 
   useWaitOn(
     styleQrl.resolve(hostElement).then((styleText) => {
-      const document = getDocument(hostElement);
-      const head = document.querySelector('head');
-      if (head && !head.querySelector(`style[q\\:style="${styleId}"]`)) {
-        const style = document.createElement('style');
-        style.setAttribute('q:style', styleId);
-        style.textContent = scoped ? styleText.replace(/�/g, styleId) : styleText;
-        head.appendChild(style);
-      }
+      const task: StyleAppend = {
+        type: 'style',
+        scope: styleId,
+        content: scoped ? styleText.replace(/�/g, styleId) : styleText,
+      };
+      return task;
     })
   );
 }

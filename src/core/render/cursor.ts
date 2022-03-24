@@ -1,13 +1,15 @@
 import { OnRenderProp, QSlotAttr } from '../util/markers';
 import { ComponentCtx, getContext, getProps, QContext, setEvent } from '../props/props';
 import { isOn$Prop, isOnProp } from '../props/props-on';
-export const SVG_NS = 'http://www.w3.org/2000/svg';
 import type { ValueOrPromise } from '../util/types';
 import type { JSXNode } from '../render/jsx/types/jsx-node';
 import { Host } from '../render/jsx/host.public';
 import { $ } from '../import/qrl.public';
-
-import { firstRenderComponent, renderComponent } from '../component/component-ctx';
+import {
+  firstRenderComponent,
+  renderComponent,
+  RenderFactoryOutput,
+} from '../component/component-ctx';
 import { promiseAll, then } from '../util/promises';
 import type { RenderingState } from './notify-render';
 import { assertDefined, assertEqual } from '../assert/assert';
@@ -19,6 +21,9 @@ import { logDebug, logError, logWarn } from '../util/log';
 import { qDev } from '../util/qdev';
 import { qError, QError } from '../error/error';
 import { fromCamelToKebabCase } from '../util/case';
+import { isStyleTask, StyleAppend } from '../use/use-core';
+
+export const SVG_NS = 'http://www.w3.org/2000/svg';
 
 type KeyToIndexMap = { [key: string]: number };
 
@@ -50,6 +55,7 @@ export interface RenderContext {
   operations: RenderOperation[];
   component: ComponentCtx | undefined;
   globalState: RenderingState;
+  containerEl: Element;
   perf: RenderPerf;
 }
 
@@ -475,10 +481,15 @@ function createElm(rctx: RenderContext, vnode: JSXNode, isSvg: boolean): ValueOr
   let wait: ValueOrPromise<void>;
   if (isComponent) {
     // Run mount hook
-    const renderQRLPromise = props![OnRenderProp]!(elm);
-    wait = then(renderQRLPromise, (renderQrl) => {
-      ctx.renderQrl = renderQrl;
-      ctx.refMap.add(renderQrl);
+    const renderQRLPromise = props![OnRenderProp]!(elm) as Promise<RenderFactoryOutput>;
+    wait = then(renderQRLPromise, (output) => {
+      ctx.renderQrl = output.renderQRL;
+      output.waitOn.forEach((task) => {
+        if (isStyleTask(task)) {
+          appendStyle(rctx, elm, task);
+        }
+      });
+      ctx.refMap.add(output.renderQRL);
       return firstRenderComponent(rctx, ctx);
     });
   } else {
@@ -746,6 +757,24 @@ function insertBefore<T extends Node>(
   return newChild;
 }
 
+function appendStyle(ctx: RenderContext, hostElement: Element, styleTask: StyleAppend) {
+  const fn = () => {
+    const containerEl = ctx.containerEl;
+    if (!containerEl.querySelector(`style[q\\:style="${styleTask.scope}"]`)) {
+      const style = ctx.doc.createElement('style');
+      const stylesParent = ctx.doc.documentElement === containerEl ? ctx.doc.head : containerEl;
+      style.setAttribute('q:style', styleTask.scope);
+      style.textContent = styleTask.content;
+      stylesParent.insertBefore(style, containerEl.firstChild);
+    }
+  };
+  ctx.operations.push({
+    el: hostElement,
+    operation: 'append-style',
+    args: [styleTask],
+    fn,
+  });
+}
 function prepend(ctx: RenderContext, parent: Element, newChild: Node) {
   const fn = () => {
     parent.insertBefore(newChild, parent.firstChild);

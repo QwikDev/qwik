@@ -184,7 +184,7 @@ async function ssrApp(req, appName, appDir, symbols) {
   // modify the ssr'd document so we can update the paths only for this
   // local testing dev server (we don't need to do this for actual starters)
   const doc = createDocument(result.html);
-  doc.body.setAttribute('q:base', `/${appName}/build/`);
+  doc.documentElement.setAttribute('q:base', `/${appName}/build/`);
   const hrefElms = Array.from(doc.querySelectorAll('[href]'));
   hrefElms.forEach((hrefElm) => {
     const href = hrefElm.getAttribute('href') || '';

@@ -1,12 +1,12 @@
 /**
  * Sample file demonstrating what the CSS may look like
  *
- * - 📦: Is prefixed to host elements and is the replacement for the `:host` selector.
- * - 🏷️: Is prefixed to all other elements.
+ * - 💎: Is prefixed to host elements and is the replacement for the `:host` selector.
+ * - ⭐️: Is prefixed to all other elements.
  */
 
-📦ABC123 {
+💎ABC123 {
 }
 
-🏷️ABC123 {
+⭐️ABC123 {
 }

@@ -12,6 +12,9 @@ import type {
   RenderToStringOptions,
   RenderToStringResult,
 } from './types';
+import { isDocument } from '../core/util/element';
+import { getDocument } from '../core/util/dom';
+import { getElement } from '../core/render/render.public';
 
 /**
  * Create emulated `Global` for server environment. Does not implement a browser
@@ -46,18 +49,23 @@ export function createDocument(opts?: DocumentOptions) {
  * @public
  */
 export async function renderToDocument(
-  doc: Document,
+  docOrElm: Document | Element,
   rootNode: JSXNode<unknown> | FunctionComponent<any>,
   opts: RenderToDocumentOptions
 ) {
+  const doc = isDocument(docOrElm) ? docOrElm : getDocument(docOrElm);
   ensureGlobals(doc, opts);
 
   await setServerPlatform(doc, opts);
 
-  await render(doc, rootNode);
+  await render(docOrElm, rootNode);
 
+  if (opts.base) {
+    const containerEl = getElement(docOrElm);
+    containerEl.setAttribute('q:base', opts.base);
+  }
   if (opts.snapshot !== false) {
-    snapshot(doc);
+    snapshot(docOrElm);
   }
 }
 
@@ -66,18 +74,23 @@ export async function renderToDocument(
  * then serializes the document to a string.
  * @public
  */
-export async function renderToString(rootNode: any, opts: RenderToStringOptions) {
+export async function renderToString(rootNode: JSXNode, opts: RenderToStringOptions) {
   const createDocTimer = createTimer();
   const doc = createDocument(opts);
   const createDocTime = createDocTimer();
 
   const renderDocTimer = createTimer();
-  await renderToDocument(doc, rootNode, opts);
+  let rootEl: Element | Document = doc;
+  if (typeof opts.fragmentTagName === 'string') {
+    rootEl = doc.createElement(opts.fragmentTagName);
+    doc.body.appendChild(rootEl);
+  }
+  await renderToDocument(rootEl, rootNode, opts);
   const renderDocTime = renderDocTimer();
 
   const docToStringTimer = createTimer();
   const result: RenderToStringResult = {
-    html: serializeDocument(doc, opts),
+    html: serializeDocument(rootEl, opts),
     timing: {
       createDocument: createDocTime,
       render: renderDocTime,

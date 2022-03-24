@@ -25,21 +25,6 @@ export function isOn$Prop(prop: string): boolean {
   return ON$_PROP_REGEX.test(prop);
 }
 
-/**
- * In the case of a component, it is necessary to have `on:q-render` value.
- * However the `component` can run when parent component is rendering only to
- * realize that `on:q-render` already exists. This interface exists to solve that
- * problem.
- *
- * A parent component's `component` returns a `qrlFactory` for `on:q-render`. The
- * `getProps` than looks to see if it already has a resolved value, and if so the
- * `qrlFactory` is ignored, otherwise the `qrlFactory` is used to recover the `QRLInternal`.
- */
-export interface qrlFactory {
-  __brand__: `QRLFactory`;
-  (element: Element): Promise<QRLInternal<any>>;
-}
-
 export function qPropReadQRL(
   ctx: QContext,
   prop: string

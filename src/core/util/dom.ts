@@ -12,6 +12,9 @@ export function getDocument(node: Node): Document {
   if (typeof document !== 'undefined') {
     return document;
   }
+  if (node.nodeType === 9) {
+    return node as Document;
+  }
   let doc = node.ownerDocument;
   while (doc && doc.nodeType !== 9) {
     doc = doc.parentNode as any;

@@ -16,7 +16,6 @@ export interface QwikProps {
   /**
    * URL against which relative QRLs should be resolved to.
    */
-  'q:base'?: string;
   'q:obj'?: string;
   'q:host'?: string;
   'q:version'?: string;

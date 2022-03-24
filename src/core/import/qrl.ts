@@ -67,7 +67,24 @@ export function qrlImport<T>(element: Element | undefined, qrl: QRL<T>): ValueOr
   }
 }
 
-export function staticQrl<T = any>(
+// <docs markdown="https://hackmd.io/m5DzCi5MTa26LuUj5t3HpQ#qrl">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fm5DzCi5MTa26LuUj5t3HpQ%3Fboth#qrl instead)
+/**
+ * Used by Qwik Optimizer to point to lazy-loaded resources.
+ *
+ * This function should be used by the Qwik Optimizer only. The function should not be directly
+ * referred to in the source code of the application.
+ *
+ * See: `QRL`, `$(...)`
+ *
+ * @param chunkOrFn - Chunk name (or function which is stringified to extract chunk name)
+ * @param symbol - Symbol to lazy load
+ * @param lexicalScopeCapture - a set of lexically scoped variables to capture.
+ * @public
+ */
+// </docs>
+export function qrl<T = any>(
   chunkOrFn: string | (() => Promise<any>),
   symbol: string,
   lexicalScopeCapture: any[] = EMPTY_ARRAY

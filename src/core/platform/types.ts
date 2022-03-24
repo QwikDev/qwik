@@ -1,4 +1,4 @@
-import type { ValueOrPromise } from '..';
+import type { ValueOrPromise } from '../util/types';
 
 /**
  * @public

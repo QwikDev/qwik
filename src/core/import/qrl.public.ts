@@ -1,4 +1,4 @@
-import { runtimeQrl, staticQrl } from './qrl';
+import { runtimeQrl } from './qrl';
 
 // <docs markdown="https://hackmd.io/m5DzCi5MTa26LuUj5t3HpQ#QRL">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -267,26 +267,3 @@ export function implicit$FirstArg<FIRST, REST extends any[], RET>(
     return fn.call(null, $(first), ...rest);
   };
 }
-
-// <docs markdown="https://hackmd.io/m5DzCi5MTa26LuUj5t3HpQ#qrl">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fm5DzCi5MTa26LuUj5t3HpQ%3Fboth#qrl instead)
-/**
- * Used by Qwik Optimizer to point to lazy-loaded resources.
- *
- * This function should be used by the Qwik Optimizer only. The function should not be directly
- * referred to in the source code of the application.
- *
- * See: `QRL`, `$(...)`
- *
- * @param chunkOrFn - Chunk name (or function which is stringified to extract chunk name)
- * @param symbol - Symbol to lazy load
- * @param lexicalScopeCapture - a set of lexically scoped variables to capture.
- * @public
- */
-// </docs>
-export const qrl: <T = any>(
-  chunkOrFn: string | (() => Promise<any>),
-  symbol: string,
-  lexicalScopeCapture?: any[]
-) => QRL<T> = staticQrl;

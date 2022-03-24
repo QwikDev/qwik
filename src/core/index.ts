@@ -36,7 +36,8 @@ export { snapshot } from './object/store.public';
 //////////////////////////////////////////////////////////////////////////////////////////
 // Internal Runtime
 //////////////////////////////////////////////////////////////////////////////////////////
-export { $, implicit$FirstArg, qrl } from './import/qrl.public';
+export { $, implicit$FirstArg } from './import/qrl.public';
+export { qrl } from './import/qrl';
 export type { QRL, EventHandler } from './import/qrl.public';
 
 export type { Props } from './props/props.public';
@@ -94,7 +95,4 @@ export type { ValueOrPromise } from './util/types';
 export type { NoSerialize } from './object/q-object';
 export { noSerialize } from './object/q-object';
 
-/**
- * @alpha
- */
-export const version = (globalThis as any).QWIK_VERSION as string;
+export { version } from './version';

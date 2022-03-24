@@ -8,7 +8,7 @@
 
 import { parseQRL, stringifyQRL } from './qrl';
 import { QRLInternal } from './qrl-class';
-import { qrl } from './qrl.public';
+import { qrl } from './qrl';
 
 describe('QRL', () => {
   describe('serialization', () => {

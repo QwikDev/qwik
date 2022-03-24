@@ -75,7 +75,9 @@ export interface RenderToDocumentOptions extends SerializeDocumentOptions, Docum
 /**
  * @public
  */
-export interface RenderToStringOptions extends RenderToDocumentOptions {}
+export interface RenderToStringOptions extends RenderToDocumentOptions {
+  fragmentTagName?: string;
+}
 
 /**
  * @public

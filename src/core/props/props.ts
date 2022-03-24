@@ -17,7 +17,7 @@ const Q_CTX = '__ctx__';
 
 export function resumeIfNeeded(elm: Element | Document): void {
   const doc = isDocument(elm) ? elm : getDocument(elm);
-  const root = isDocument(elm) ? elm : elm.closest('[q\\:root]') ?? doc;
+  const root = isDocument(elm) ? elm : elm.closest('[q\\:container]') ?? doc;
   if (!root) {
     logWarn('cant find qwik app root');
     return;

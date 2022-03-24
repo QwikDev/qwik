@@ -51,7 +51,7 @@
     "@bazel/ibazel": "0.15.10",
     "@bazel/typescript": "4.6.1",
     "@builder.io/partytown": "0.5.0",
-    "@builder.io/qwik-dom": "2.1.11",
+    "@builder.io/qwik-dom": "2.1.14",
     "@microsoft/api-extractor": "7.19.4",
     "@napi-rs/cli": "2.4.5",
     "@napi-rs/triples": "1.1.0",

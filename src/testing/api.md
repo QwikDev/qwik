@@ -77,6 +77,7 @@ export function renderToDocument(docOrElm: Document | Element, rootNode: JSXNode
 //
 // @public (undocumented)
 export interface RenderToDocumentOptions extends SerializeDocumentOptions, DocumentOptions {
+    base?: string;
     fragmentTagName?: string;
     snapshot?: boolean;
 }

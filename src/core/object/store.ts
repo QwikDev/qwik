@@ -34,7 +34,7 @@ export function resume(elmOrDoc: Element | Document) {
     // logWarn('Skipping hydration because parent element is not q:container');
     return;
   }
-  const doc = isDocument(elmOrDoc) ? elmOrDoc : getDocument(elmOrDoc);
+  const doc = getDocument(elmOrDoc);
   const isDoc = isDocument(elmOrDoc) || elmOrDoc === doc.documentElement;
   const parentJSON = isDoc ? doc.body : parentElm;
   const script = getQwikJSON(parentJSON);
@@ -90,7 +90,7 @@ export function resume(elmOrDoc: Element | Document) {
 }
 
 export function snapshotState(elmOrDoc: Element | Document) {
-  const doc = isDocument(elmOrDoc) ? elmOrDoc : getDocument(elmOrDoc);
+  const doc = getDocument(elmOrDoc);
   const parentElm = isDocument(elmOrDoc) ? elmOrDoc.documentElement : elmOrDoc;
   const proxyMap = getProxyMap(doc);
   const objSet = new Set<any>();

@@ -85,7 +85,7 @@ export const setPlatform = (doc: Document, plt: CorePlatform) =>
  * @public
  */
 export const getPlatform = (docOrNode: Document | Node) => {
-  const doc = (isDocument(docOrNode) ? docOrNode : getDocument(docOrNode)!) as PlatformDocument;
+  const doc = getDocument(docOrNode) as PlatformDocument;
   return doc[DocumentPlatform] || (doc[DocumentPlatform] = createPlatform(doc));
 };
 

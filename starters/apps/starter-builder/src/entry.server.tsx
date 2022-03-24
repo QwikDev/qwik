@@ -21,13 +21,16 @@ export function render(opts: RenderToStringOptions) {
         <meta charSet="utf-8" />
         <title>Qwik Blank App</title>
       </head>
-      <body q:base="/">
+      <body>
         <Main />
         <script>({fetchQwikBuilderContent.toString()})();</script>
         <QwikLoader debug={opts.debug} />
       </body>
     </html>,
-    opts
+    {
+      ...opts,
+      base: '/',
+    }
   );
 }
 

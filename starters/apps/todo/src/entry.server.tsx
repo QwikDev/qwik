@@ -20,11 +20,14 @@ export function render(opts: RenderToStringOptions) {
         <meta charSet="utf-8" />
         <title>Qwik Demo: ToDo</title>
       </head>
-      <body q:base="/">
+      <body>
         <Main />
         <QwikLoader debug={opts.debug} />
       </body>
     </html>,
-    opts
+    {
+      ...opts,
+      base: '/',
+    }
   );
 }

@@ -8,6 +8,16 @@ import { getDocument } from '../util/dom';
 
 declare const document: QwikDocument;
 
+export interface StyleAppend {
+  type: 'style';
+  scope: string;
+  content: string;
+}
+
+export function isStyleTask(obj: any): obj is StyleAppend {
+  return obj && typeof obj === 'object' && obj.type === 'style';
+}
+
 export interface InvokeContext {
   doc?: Document;
   hostElement?: Element;
@@ -118,4 +128,8 @@ export function getHostElement(el: Element): Element | null {
     node = node.parentElement;
   }
   return node;
+}
+
+export function getContainer(el: Element): Element | null {
+  return el.closest('[q\\:container]');
 }

@@ -12,8 +12,9 @@ import type {
   RenderToStringOptions,
   RenderToStringResult,
 } from './types';
-import { isDocument } from 'src/core/util/element';
-import { getDocument } from 'src/core/util/dom';
+import { isDocument } from '../core/util/element';
+import { getDocument } from '../core/util/dom';
+import { getElement } from '../core/render/render.public';
 
 /**
  * Create emulated `Global` for server environment. Does not implement a browser
@@ -59,6 +60,10 @@ export async function renderToDocument(
 
   await render(docOrElm, rootNode);
 
+  if (opts.base) {
+    const containerEl = getElement(docOrElm);
+    containerEl.setAttribute('q:base', opts.base);
+  }
   if (opts.snapshot !== false) {
     snapshot(docOrElm);
   }

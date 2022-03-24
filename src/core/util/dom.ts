@@ -7,10 +7,14 @@
  */
 
 import { assertDefined } from '../assert/assert';
+import { NodeType } from './types';
 
 export function getDocument(node: Node): Document {
   if (typeof document !== 'undefined') {
     return document;
+  }
+  if (node.nodeType === 9) {
+    return node as Document;
   }
   let doc = node.ownerDocument;
   while (doc && doc.nodeType !== 9) {

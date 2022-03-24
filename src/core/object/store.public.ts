@@ -9,7 +9,7 @@ import { snapshotState } from './store';
  * @public
  */
 export function snapshot(elmOrDoc: Element | Document) {
-  const doc = isDocument(elmOrDoc) ? elmOrDoc : getDocument(elmOrDoc);
+  const doc = getDocument(elmOrDoc);
   const data = snapshotState(elmOrDoc);
   const parentJSON = isDocument(elmOrDoc) ? elmOrDoc.body : elmOrDoc;
   const script = doc.createElement('script');

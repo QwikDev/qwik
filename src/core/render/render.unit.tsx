@@ -67,8 +67,7 @@ describe('render', () => {
           <span>text</span>
         </div>
       );
-      expectDOM(
-        fixture.host.firstElementChild!,
+      expectRendered(
         <div>
           <span>text</span>
         </div>
@@ -82,8 +81,7 @@ describe('render', () => {
           <span>text</span>
         </svg>
       );
-      expectDOM(
-        fixture.host.firstElementChild!,
+      expectRendered(
         <svg viewBox="0 0 100 100">
           <span>text</span>
         </svg>
@@ -143,7 +141,7 @@ describe('render', () => {
           </div>
         </div>
       );
-      notifyRender(fixture.host.firstElementChild!);
+      notifyRender(getFirstNode(fixture.host));
       await getTestPlatform(fixture.document).flush();
       expectRendered(
         <div>
@@ -302,7 +300,7 @@ describe('render', () => {
           </section>
         </project>
       );
-      notifyRender(fixture.host.firstElementChild!);
+      notifyRender(getFirstNode(fixture.host));
       await getTestPlatform(fixture.document).flush();
       expectRendered(
         <project>
@@ -591,9 +589,18 @@ describe('render', () => {
   });
 
   function expectRendered(expected: h.JSX.Element, expectedErrors: string[] = []) {
-    return expectDOM(fixture.host.firstElementChild!, expected, expectedErrors);
+    const firstNode = getFirstNode(fixture.host);
+    return expectDOM(firstNode, expected, expectedErrors);
   }
 });
+
+function getFirstNode(el: Element) {
+  let firstNode = el.firstElementChild!;
+  while (firstNode.nodeName === 'STYLE') {
+    firstNode = firstNode.nextElementSibling!;
+  }
+  return firstNode;
+}
 //////////////////////////////////////////////////////////////////////////////////////////
 // Hello World
 //////////////////////////////////////////////////////////////////////////////////////////

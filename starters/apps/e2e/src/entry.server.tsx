@@ -40,11 +40,14 @@ export function render(opts: RenderToStringOptions) {
         <meta charSet="utf-8" />
         <title>Qwik Blank App</title>
       </head>
-      <body q:base="/">
+      <body>
         <Test />
         <QwikLoader debug={opts.debug} events={['click']} />
       </body>
     </html>,
-    opts
+    {
+      ...opts,
+      base: '/',
+    }
   );
 }

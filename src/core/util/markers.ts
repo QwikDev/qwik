@@ -45,12 +45,12 @@ export const ComponentUnscopedStyles = 'q:ustyle';
 /**
  * Component style host prefix
  */
-export const ComponentStylesPrefixHost = '📦';
+export const ComponentStylesPrefixHost = '💎';
 
 /**
  * Component style content prefix
  */
-export const ComponentStylesPrefixContent = '🏷️';
+export const ComponentStylesPrefixContent = '⭐️';
 
 /**
  * Prefix used to identify on listeners.
@@ -75,7 +75,11 @@ export const QSlotAttr = 'q:slot';
 
 export const QObjAttr = 'q:obj';
 
+export const QContainerAttr = 'q:container';
+
 export const QObjSelector = '[q\\:obj]';
+
+export const QContainerSelector = '[q\\:container]';
 
 /**
  * `<q:slot name="...">`

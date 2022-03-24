@@ -24,29 +24,11 @@
  * @param href
  * @returns
  */
-export const qrlResolver = (
-  doc: Document,
-  element: Element | null,
-  eventUrl?: string | null,
-  _url?: string,
-  _base?: string | URL
-): URL | undefined => {
-  if (eventUrl === undefined) {
-    //  recursive call
-    if (element) {
-      _url = element.getAttribute('q:base')!;
-      _base = qrlResolver(
-        doc,
-        element.parentNode && (element.parentNode as HTMLElement).closest('[q\\:base]')
-      );
-    } else {
-      _url = doc.baseURI;
-    }
-  } else if (eventUrl) {
-    _url = eventUrl;
-    _base = qrlResolver(doc, element!.closest('[q\\:base]'));
-  }
-  return _url ? new URL(_url, _base) : undefined;
+export const qrlResolver = (element: Element, eventUrl: string): URL => {
+  const doc = element.ownerDocument!;
+  const containerEl = element.closest('[q\\:container]');
+  const base = new URL(containerEl?.getAttribute('q:base') ?? doc.baseURI, doc.baseURI);
+  return new URL(eventUrl, base);
 };
 
 const error = (msg: string) => {
@@ -92,7 +74,7 @@ export const qwikLoader = (doc: Document, hasInitialized?: boolean | number) => 
         ev.preventDefault();
       }
       for (const qrl of attrValue.split('\n')) {
-        const url = qrlResolver(doc, element, qrl);
+        const url = qrlResolver(element, qrl);
         if (url) {
           const symbolName = getSymbolName(url);
           const module =
@@ -223,7 +205,7 @@ export const setupPrefetching = (
           const name = attr.name;
           const value = attr.value;
           if (name.startsWith('on:') && value) {
-            const url = qrlResolver(doc, element, value)!;
+            const url = qrlResolver(element, value)!;
             url.hash = url.search = '';
             const key = url.toString() + '.js';
             if (!qrlCache[key]) {

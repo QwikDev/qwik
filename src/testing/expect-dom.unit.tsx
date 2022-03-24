@@ -18,7 +18,8 @@ function expectMatchElement(
   path: string,
   diffs: string[],
   actual: Element,
-  expected: QwikJSX.Element
+  expected: QwikJSX.Element,
+  keepStyles = false
 ) {
   if (actual) {
     const actualTag = actual.localName ? actual.localName : '#text';
@@ -38,9 +39,14 @@ function expectMatchElement(
       });
     }
 
-    const actualChildNodes = isTemplateElement(actual)
-      ? actual.content.childNodes
-      : actual.childNodes;
+    let actualChildNodes = Array.from(
+      isTemplateElement(actual) ? actual.content.childNodes : actual.childNodes
+    );
+
+    if (!keepStyles) {
+      actualChildNodes = actualChildNodes.filter((el) => el.nodeName !== 'STYLE');
+    }
+
     (expected.children || []).forEach((expectedChild, index) => {
       const actualChild = actualChildNodes[index];
       if (expectedChild.text === undefined) {

@@ -4,8 +4,6 @@ import { getProxyMap, readWriteProxy } from '../object/q-object';
 import { resume } from '../object/store';
 import type { RenderContext } from '../render/cursor';
 import { getDocument } from '../util/dom';
-import { isDocument } from '../util/element';
-import { logWarn } from '../util/log';
 import { newQObjectMap, QObjectMap } from './props-obj-map';
 import { qPropWriteQRL, qPropReadQRL } from './props-on';
 import type { QRLInternal } from '../import/qrl-class';
@@ -15,17 +13,11 @@ Error.stackTraceLimit = 9999;
 const Q_IS_RESUMED = '__isResumed__';
 const Q_CTX = '__ctx__';
 
-export function resumeIfNeeded(elm: Element | Document): void {
-  const doc = isDocument(elm) ? elm : getDocument(elm);
-  const root = isDocument(elm) ? elm : elm.closest('[q\\:container]') ?? doc;
-  if (!root) {
-    logWarn('cant find qwik app root');
-    return;
-  }
-  const isHydrated = (root as any)[Q_IS_RESUMED];
+export function resumeIfNeeded(containerEl: Element): void {
+  const isHydrated = (containerEl as any)[Q_IS_RESUMED];
   if (!isHydrated) {
-    (root as any)[Q_IS_RESUMED] = true;
-    resume(root);
+    (containerEl as any)[Q_IS_RESUMED] = true;
+    resume(containerEl);
   }
 }
 

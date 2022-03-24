@@ -1,3 +1,4 @@
+import { isDocument } from '../core/util/element';
 import type { SerializeDocumentOptions } from './types';
 
 /**
@@ -8,16 +9,16 @@ import type { SerializeDocumentOptions } from './types';
  * @param rootNode - The root JSX node to apply onto the `document`.
  * @public
  */
-export function serializeDocument(doc: Document, opts?: SerializeDocumentOptions) {
-  if (!doc || doc.nodeType !== 9) {
-    throw new Error(`Invalid document to serialize`);
+export function serializeDocument(docOrEl: Document | Element, opts?: SerializeDocumentOptions) {
+  if (!isDocument(docOrEl)) {
+    // TODO: move head styles
+    return docOrEl.outerHTML;
   }
-
   const symbols = opts?.symbols;
   if (typeof symbols === 'object' && symbols != null) {
     if (symbols.injections) {
       for (const injection of symbols.injections) {
-        const el = doc.createElement(injection.tag);
+        const el = docOrEl.createElement(injection.tag);
         if (injection.attributes) {
           Object.entries(injection.attributes).forEach(([attr, value]) => {
             el.setAttribute(attr, value);
@@ -26,11 +27,10 @@ export function serializeDocument(doc: Document, opts?: SerializeDocumentOptions
         if (injection.children) {
           el.textContent = injection.children;
         }
-        const parent = injection.location === 'head' ? doc.head : doc.body;
+        const parent = injection.location === 'head' ? docOrEl.head : docOrEl.body;
         parent.appendChild(el);
       }
     }
   }
-
-  return '<!DOCTYPE html>' + doc.documentElement.outerHTML;
+  return '<!DOCTYPE html>' + docOrEl.documentElement.outerHTML;
 }

@@ -71,21 +71,24 @@ export const QwikLoader: FunctionComponent<QwikLoaderProps>;
 export const QwikPrefetch: FunctionComponent<QwikPrefetchProps>;
 
 // @public
-export function renderToDocument(doc: Document, rootNode: JSXNode<unknown> | FunctionComponent<any>, opts: RenderToDocumentOptions): Promise<void>;
+export function renderToDocument(docOrElm: Document | Element, rootNode: JSXNode<unknown> | FunctionComponent<any>, opts: RenderToDocumentOptions): Promise<void>;
 
 // Warning: (ae-forgotten-export) The symbol "SerializeDocumentOptions" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
 export interface RenderToDocumentOptions extends SerializeDocumentOptions, DocumentOptions {
+    base?: string;
     fragmentTagName?: string;
     snapshot?: boolean;
 }
 
 // @public
-export function renderToString(rootNode: any, opts: RenderToStringOptions): Promise<RenderToStringResult>;
+export function renderToString(rootNode: JSXNode, opts: RenderToStringOptions): Promise<RenderToStringResult>;
 
 // @public (undocumented)
 export interface RenderToStringOptions extends RenderToDocumentOptions {
+    // (undocumented)
+    fragmentTagName?: string;
 }
 
 // @public (undocumented)
@@ -101,7 +104,7 @@ export interface RenderToStringResult {
 }
 
 // @public
-export function serializeDocument(doc: Document, opts?: SerializeDocumentOptions): string;
+export function serializeDocument(docOrEl: Document | Element, opts?: SerializeDocumentOptions): string;
 
 // @public
 export function setServerPlatform(document: any, opts: SerializeDocumentOptions): Promise<void>;

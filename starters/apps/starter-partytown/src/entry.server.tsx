@@ -23,7 +23,7 @@ export function render(opts: RenderToStringOptions) {
         <title>Qwik + Partytown Blank App</title>
         <script children={partytownSnippet({ debug: true })} />
       </head>
-      <body q:base="/">
+      <body>
         <Main />
         <script type="text/partytown">
           ({partyTownExampleWhichBlocksMainThreadForOneSecond.toString()})()
@@ -31,7 +31,10 @@ export function render(opts: RenderToStringOptions) {
         <QwikLoader debug={opts.debug} events={['click', 'keyup', 'expensiveComputationDone']} />
       </body>
     </html>,
-    opts
+    {
+      ...opts,
+      base: '/',
+    }
   );
 }
 

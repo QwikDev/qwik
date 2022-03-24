@@ -7,6 +7,12 @@ import { styleContent, styleHost } from './qrl-styles';
 import { newInvokeContext, useInvoke } from '../use/use-core';
 import type { QContext } from '../props/props';
 import { processNode } from '../render/jsx/jsx-runtime';
+import type { QRLInternal } from '../import/qrl-class';
+
+export interface RenderFactoryOutput {
+  renderQRL: QRLInternal;
+  waitOn: any[];
+}
 
 export const firstRenderComponent = (rctx: RenderContext, ctx: QContext) => {
   ctx.element.setAttribute(QHostAttr, '');

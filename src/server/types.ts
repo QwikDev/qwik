@@ -66,7 +66,13 @@ export interface RenderToDocumentOptions extends SerializeDocumentOptions, Docum
   snapshot?: boolean;
 
   /**
-   * When set,
+   * Specifies the root of the JS files of the client build.
+   * Setting a base, will cause the render of the `q:base` attribute in the `q:container` element.
+   */
+  base?: string;
+
+  /**
+   * When set, the app is serialized into a fragment. And the returned html is not a complete document.
    * Defaults to `undefined`
    */
   fragmentTagName?: string;
@@ -75,7 +81,9 @@ export interface RenderToDocumentOptions extends SerializeDocumentOptions, Docum
 /**
  * @public
  */
-export interface RenderToStringOptions extends RenderToDocumentOptions {}
+export interface RenderToStringOptions extends RenderToDocumentOptions {
+  fragmentTagName?: string;
+}
 
 /**
  * @public

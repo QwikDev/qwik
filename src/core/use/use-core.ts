@@ -3,10 +3,20 @@ import type { Props } from '../props/props.public';
 import { assertDefined } from '../assert/assert';
 import type { QwikDocument } from '../document';
 import type { QRLInternal } from '../import/qrl-class';
-import { QHostAttr } from '../util/markers';
+import { QContainerSelector, QHostAttr } from '../util/markers';
 import { getDocument } from '../util/dom';
 
 declare const document: QwikDocument;
+
+export interface StyleAppend {
+  type: 'style';
+  scope: string;
+  content: string;
+}
+
+export function isStyleTask(obj: any): obj is StyleAppend {
+  return obj && typeof obj === 'object' && obj.type === 'style';
+}
 
 export interface InvokeContext {
   doc?: Document;
@@ -118,4 +128,8 @@ export function getHostElement(el: Element): Element | null {
     node = node.parentElement;
   }
   return node;
+}
+
+export function getContainer(el: Element): Element | null {
+  return el.closest(QContainerSelector);
 }

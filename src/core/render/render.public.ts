@@ -10,6 +10,7 @@ import { getDocument } from '../util/dom';
 import { qDev, qTest } from '../util/qdev';
 import { resumeIfNeeded } from '../props/props';
 import { version } from '../version';
+import { QContainerAttr } from '../util/markers';
 
 /**
  * Render JSX.
@@ -31,22 +32,24 @@ export function render(
   if (!isJSXNode(jsxNode)) {
     jsxNode = jsx(jsxNode, null);
   }
-  const doc = isDocument(parent) ? parent : getDocument(parent);
-  resumeIfNeeded(parent);
+  const doc = getDocument(parent);
+  const containerEl = getElement(parent);
+  resumeIfNeeded(containerEl);
+  injectQVersion(containerEl);
 
   const ctx: RenderContext = {
     doc,
-    globalState: getRenderingState(doc),
+    globalState: getRenderingState(containerEl),
     hostElements: new Set(),
     operations: [],
     roots: [parent as Element],
     component: undefined,
+    containerEl,
     perf: {
       visited: 0,
       timing: [],
     },
   };
-  injectQVersion(parent);
 
   return then(visitJsxNode(ctx, parent as Element, processNode(jsxNode), false), () => {
     executeContext(ctx);
@@ -63,17 +66,20 @@ export function render(
   });
 }
 
-export function injectQwikSlotCSS(parent: Document | Element) {
-  const doc = isDocument(parent) ? parent : getDocument(parent);
-  const element = isDocument(parent) ? parent.head : parent;
+export function injectQwikSlotCSS(docOrElm: Document | Element) {
+  const doc = getDocument(docOrElm);
+  const element = isDocument(docOrElm) ? docOrElm.head : docOrElm;
   const style = doc.createElement('style');
   style.setAttribute('id', 'qwik/base-styles');
   style.textContent = `q\\:slot{display:contents}q\\:fallback{display:none}q\\:fallback:last-child{display:contents}`;
   element.insertBefore(style, element.firstChild);
 }
 
-export function injectQVersion(parent: Document | Element) {
-  const element = isDocument(parent) ? parent.documentElement : parent;
-  element.setAttribute('q:version', version || '');
-  element.setAttribute('q:container', '');
+export function getElement(docOrElm: Document | Element): Element {
+  return isDocument(docOrElm) ? docOrElm.documentElement : docOrElm;
+}
+
+export function injectQVersion(containerEl: Element) {
+  containerEl.setAttribute('q:version', version || '');
+  containerEl.setAttribute(QContainerAttr, '');
 }

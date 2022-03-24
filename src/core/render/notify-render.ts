@@ -7,6 +7,7 @@ import { getPlatform } from '../platform/platform';
 import { getDocument } from '../util/dom';
 import { renderComponent } from '../component/component-ctx';
 import { logDebug } from '../util/log';
+import { getContainer } from '../use/use-core';
 
 /**
  * Mark component for rendering.
@@ -22,14 +23,15 @@ import { logDebug } from '../util/log';
  * @returns A promise which is resolved when the component has been rendered.
  * @public
  */
-// TODO(misko): tests
-// TODO(misko): this should take QComponent as well.
 export function notifyRender(hostElement: Element): Promise<RenderContext> {
   assertDefined(hostElement.getAttribute(QHostAttr));
-  const doc = getDocument(hostElement);
-  resumeIfNeeded(hostElement);
+
+  const containerEl = getContainer(hostElement)!;
+  assertDefined(containerEl);
+  resumeIfNeeded(containerEl);
+
   const ctx = getContext(hostElement);
-  const state = getRenderingState(doc);
+  const state = getRenderingState(containerEl);
   if (ctx.dirty) {
     // TODO
     return state.renderPromise!;
@@ -48,13 +50,13 @@ export function notifyRender(hostElement: Element): Promise<RenderContext> {
     });
   } else {
     state.hostsNext.add(hostElement);
-    return scheduleFrame(doc, state);
+    return scheduleFrame(containerEl, state);
   }
 }
 
-export function scheduleFrame(doc: Document, state: RenderingState): Promise<RenderContext> {
+export function scheduleFrame(containerEl: Element, state: RenderingState): Promise<RenderContext> {
   if (state.renderPromise === undefined) {
-    state.renderPromise = getPlatform(doc).nextTick(() => renderMarked(doc, state));
+    state.renderPromise = getPlatform(containerEl).nextTick(() => renderMarked(containerEl, state));
   }
   return state.renderPromise;
 }
@@ -68,10 +70,10 @@ export interface RenderingState {
   renderPromise: Promise<RenderContext> | undefined;
 }
 
-export function getRenderingState(doc: Document): RenderingState {
-  let set = (doc as any)[SCHEDULE] as RenderingState;
+export function getRenderingState(containerEl: Element): RenderingState {
+  let set = (containerEl as any)[SCHEDULE] as RenderingState;
   if (!set) {
-    (doc as any)[SCHEDULE] = set = {
+    (containerEl as any)[SCHEDULE] = set = {
       hostsNext: new Set(),
       hostsStaging: new Set(),
       renderPromise: undefined,
@@ -81,11 +83,15 @@ export function getRenderingState(doc: Document): RenderingState {
   return set;
 }
 
-export async function renderMarked(doc: Document, state: RenderingState): Promise<RenderContext> {
+export async function renderMarked(
+  containerEl: Element,
+  state: RenderingState
+): Promise<RenderContext> {
   state.hostsRendering = new Set(state.hostsNext);
   state.hostsNext.clear();
 
-  const platform = getPlatform(doc);
+  const doc = getDocument(containerEl);
+  const platform = getPlatform(containerEl);
   const renderingQueue = Array.from(state.hostsRendering);
   sortNodes(renderingQueue);
 
@@ -95,6 +101,7 @@ export async function renderMarked(doc: Document, state: RenderingState): Promis
     hostElements: new Set(),
     operations: [],
     roots: [],
+    containerEl,
     component: undefined,
     perf: {
       visited: 0,
@@ -117,7 +124,7 @@ export async function renderMarked(doc: Document, state: RenderingState): Promis
         printRenderStats(ctx);
       }
     }
-    postRendering(doc, state);
+    postRendering(containerEl, state);
     return ctx;
   }
 
@@ -128,12 +135,12 @@ export async function renderMarked(doc: Document, state: RenderingState): Promis
         printRenderStats(ctx);
       }
     }
-    postRendering(doc, state);
+    postRendering(containerEl, state);
     return ctx;
   });
 }
 
-function postRendering(doc: Document, state: RenderingState) {
+function postRendering(containerEl: Element, state: RenderingState) {
   // Move elements from staging to nextRender
   state.hostsStaging.forEach((el) => {
     state.hostsNext.add(el);
@@ -145,7 +152,7 @@ function postRendering(doc: Document, state: RenderingState) {
   state.renderPromise = undefined;
 
   if (state.hostsNext.size > 0) {
-    scheduleFrame(doc, state);
+    scheduleFrame(containerEl, state);
   }
 }
 

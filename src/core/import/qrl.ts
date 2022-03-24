@@ -120,7 +120,7 @@ export function qrl<T = any>(
   // Unwrap subscribers
   if (Array.isArray(lexicalScopeCapture)) {
     for (let i = 0; i < lexicalScopeCapture.length; i++) {
-      lexicalScopeCapture[i] = lexicalScopeCapture[i].map(unwrapSubscriber);
+      lexicalScopeCapture[i] = unwrapSubscriber(lexicalScopeCapture[i]);
     }
   }
   return new QRLInternal<T>(chunk, symbol, null, symbolFn, null, lexicalScopeCapture);

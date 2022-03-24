@@ -20,8 +20,15 @@ export const Counter = component$((props: { value?: number; step?: number }) => 
   const state = useStore({ count: props.value || 0 });
   return $(() => (
     <div>
-      <span>{state.count}</span>
-      <button on$:click={() => (state.count += props.step || 1)}>+</button>
+      <span
+        onClick$={() => {}} //click
+        onClickSsdf$={() => {}} //clickssdf
+        onIonChange$={() => {}} // MyEvenonChange
+        on-ionChange$={() => {}} // keyup
+      >
+        {state.count}
+      </span>
+      <button onClick$={() => (state.count += props.step || 1)}>+</button>
     </div>
   ));
 });

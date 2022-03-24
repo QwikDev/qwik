@@ -88,9 +88,11 @@ export async function trigger(
         document.__q_context__ = [element, event, url];
         try {
           const ctx = getContext(element);
-          const handler = getEvent(ctx, 'on:' + eventNameCamel);
+          const handler = getEvent(ctx, 'on-' + eventNameCamel);
           if (handler) {
             elements.push(handler());
+          } else {
+            console.error('handler not available');
           }
         } finally {
           document.__q_context__ = undefined;

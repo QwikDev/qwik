@@ -113,6 +113,17 @@ pub struct QwikTransformOptions<'a> {
     pub global_collect: GlobalCollect,
 }
 
+fn convert_signal_ident(id: &ast::Ident) -> Option<ast::Ident> {
+    let ident_name = id.as_ref();
+    let has_signal = ident_name.ends_with(SIGNAL);
+    if has_signal {
+        let new_specifier = [&ident_name[0..ident_name.len() - 1], LONG_SUFFIX].concat();
+        Some(ast::Ident::new(JsWord::from(new_specifier), DUMMY_SP))
+    } else {
+        None
+    }
+}
+
 impl<'a> QwikTransform<'a> {
     pub fn new(options: QwikTransformOptions<'a>) -> Self {
         let imports = options
@@ -554,31 +565,44 @@ impl<'a> Fold for QwikTransform<'a> {
         let mut is_listener = false;
         let node = match node.name {
             ast::JSXAttrName::Ident(ref ident) => {
-                let ident_name = ident.sym.to_string();
-                self.stack_ctxt.push(ident_name);
-                node
+                let new_ident = convert_signal_ident(ident);
+                self.stack_ctxt.push(ident.sym.to_string());
+                if let Some(new_ident) = new_ident {
+                    is_listener = true;
+                    self.position_ctxt.push(PositionToken::JSXListener);
+                    ast::JSXAttr {
+                        name: ast::JSXAttrName::Ident(new_ident),
+                        ..node
+                    }
+                } else {
+                    node
+                }
             }
             ast::JSXAttrName::JSXNamespacedName(ref namespaced) => {
-                let ns_name = namespaced.ns.sym.as_ref();
-                let ident_name = [ns_name, namespaced.name.sym.as_ref()].concat();
+                let new_ident = convert_signal_ident(&namespaced.name);
+                let ident_name = [
+                    namespaced.ns.sym.as_ref(),
+                    "-",
+                    namespaced.name.sym.as_ref(),
+                ]
+                .concat();
                 self.stack_ctxt.push(ident_name);
-
-                is_listener = matches!(ns_name, "on$" | "onWindow$" | "onDocument$");
-                let ns = if is_listener {
+                if let Some(new_ident) = new_ident {
+                    is_listener = true;
                     self.position_ctxt.push(PositionToken::JSXListener);
-                    ast::Ident::new(ns_name[0..ns_name.len() - 1].into(), DUMMY_SP)
+                    ast::JSXAttr {
+                        name: ast::JSXAttrName::JSXNamespacedName(ast::JSXNamespacedName {
+                            ns: namespaced.ns.clone(),
+                            name: new_ident,
+                        }),
+                        ..node
+                    }
                 } else {
-                    namespaced.ns.clone()
-                };
-                ast::JSXAttr {
-                    name: ast::JSXAttrName::JSXNamespacedName(ast::JSXNamespacedName {
-                        ns,
-                        name: namespaced.name.clone(),
-                    }),
-                    ..node
+                    node
                 }
             }
         };
+
         let o = node.fold_children_with(self);
         self.stack_ctxt.pop();
         if is_listener {

@@ -18,8 +18,8 @@ export const App = Component((props) => {
 ============================= test.js ==
 
 import * as qwik from "@builder.io/qwik";
-import { componentFromQrl } from "@builder.io/qwik";
-export const App = /*#__PURE__*/ componentFromQrl(qwik.qrl(()=>import("./h_test_app_onmount")
+import { componentQrl } from "@builder.io/qwik";
+export const App = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_app_onmount")
 , "App_onmount"));
 
 ============================= h_test_app_onrender.js (ENTRY POINT)==

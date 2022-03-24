@@ -10,9 +10,13 @@ import { EMPTY_ARRAY } from '../util/flyweight';
 import type { QRL } from './qrl.public';
 import { isQrl, QRLInternal } from './qrl-class';
 import { assertEqual } from '../assert/assert';
-import type { CorePlatform } from '../index';
+import type { ValueOrPromise } from '../util/types';
+import type { CorePlatform } from '../platform/types';
 import { getDocument } from '../util/dom';
 import { logError } from '../util/log';
+import { then } from '../util/promises';
+import { getPlatform } from '../platform/platform';
+import { unwrapSubscriber } from '../use/use-subscriber';
 
 let runtimeSymbolId = 0;
 const RUNTIME_QRL = '/runtimeQRL';
@@ -31,10 +35,59 @@ export function toInternalQRL<T>(qrl: QRL<T>): QRLInternal<T> {
   return qrl as QRLInternal<T>;
 }
 
-export function staticQrl<T = any>(
+// <docs markdown="https://hackmd.io/m5DzCi5MTa26LuUj5t3HpQ#qrlImport">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fm5DzCi5MTa26LuUj5t3HpQ%3Fboth#qrlImport instead)
+/**
+ * Lazy-load a `QRL` symbol and return the lazy-loaded value.
+ *
+ * See: `QRL`
+ *
+ * @param element - Location of the URL to resolve against. This is needed to take `q:base` into
+ * account.
+ * @param qrl - QRL to load.
+ * @returns A resolved QRL value as a Promise.
+ */
+// </docs>
+export function qrlImport<T>(element: Element | undefined, qrl: QRL<T>): ValueOrPromise<T> {
+  const qrl_ = toInternalQRL(qrl);
+  if (qrl_.symbolRef) return qrl_.symbolRef;
+  if (qrl_.symbolFn) {
+    return (qrl_.symbolRef = qrl_
+      .symbolFn()
+      .then((module) => (qrl_.symbolRef = module[qrl_.symbol])));
+  } else {
+    if (!element) {
+      throw new Error('QRL does not have an attached container');
+    }
+    const symbol = getPlatform(getDocument(element)).importSymbol(element, qrl_.chunk, qrl_.symbol);
+    return (qrl_.symbolRef = then(symbol, (ref) => {
+      return (qrl_.symbolRef = ref);
+    }));
+  }
+}
+
+// <docs markdown="https://hackmd.io/m5DzCi5MTa26LuUj5t3HpQ#qrl">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fm5DzCi5MTa26LuUj5t3HpQ%3Fboth#qrl instead)
+/**
+ * Used by Qwik Optimizer to point to lazy-loaded resources.
+ *
+ * This function should be used by the Qwik Optimizer only. The function should not be directly
+ * referred to in the source code of the application.
+ *
+ * See: `QRL`, `$(...)`
+ *
+ * @param chunkOrFn - Chunk name (or function which is stringified to extract chunk name)
+ * @param symbol - Symbol to lazy load
+ * @param lexicalScopeCapture - a set of lexically scoped variables to capture.
+ * @public
+ */
+// </docs>
+export function qrl<T = any>(
   chunkOrFn: string | (() => Promise<any>),
   symbol: string,
-  lexicalScopeCapture: any[] = EMPTY_ARRAY
+  lexicalScopeCapture: any[] | null = EMPTY_ARRAY
 ): QRL<T> {
   let chunk: string;
   let symbolFn: null | (() => Promise<Record<string, any>>) = null;
@@ -63,37 +116,53 @@ export function staticQrl<T = any>(
   } else {
     throw new Error('Q-ERROR: Unknown type argument: ' + chunkOrFn);
   }
-  return new QRLInternal<T>(chunk, symbol, null, symbolFn, null, lexicalScopeCapture, null);
+
+  // Unwrap subscribers
+  if (Array.isArray(lexicalScopeCapture)) {
+    for (let i = 0; i < lexicalScopeCapture.length; i++) {
+      lexicalScopeCapture[i] = unwrapSubscriber(lexicalScopeCapture[i]);
+    }
+  }
+  return new QRLInternal<T>(chunk, symbol, null, symbolFn, null, lexicalScopeCapture);
 }
 
-export function runtimeQrl<T>(symbol: T, lexicalScopeCapture: any[] = EMPTY_ARRAY): QRLInternal<T> {
+export function runtimeQrl<T>(symbol: T, lexicalScopeCapture: any[] = EMPTY_ARRAY): QRL<T> {
   return new QRLInternal<T>(
     RUNTIME_QRL,
     's' + runtimeSymbolId++,
     symbol,
     null,
     null,
-    lexicalScopeCapture,
-    null
+    lexicalScopeCapture
   );
 }
 
-export function stringifyQRL(qrl: QRL, platform?: CorePlatform, element?: Element) {
+export interface QRLSerializeOptions {
+  platform?: CorePlatform;
+  element?: Element;
+  getObjId?: (obj: any) => string | null;
+}
+
+export function stringifyQRL(qrl: QRL, opts: QRLSerializeOptions = {}) {
   const qrl_ = toInternalQRL(qrl);
   const symbol = qrl_.symbol;
+  const platform = opts.platform;
+  const element = opts.element;
   const chunk = platform ? platform.chunkForSymbol(symbol) ?? qrl_.chunk : qrl_.chunk;
 
   const parts: string[] = [chunk];
   if (symbol && symbol !== 'default') {
     parts.push('#', symbol);
   }
-  const guard = qrl_.guard;
-  guard?.forEach((value, key) =>
-    parts.push('|', key, value && value.length ? '.' + value.join('.') : '')
-  );
   const capture = qrl_.capture;
-  if (capture && capture.length > 0) {
-    parts.push(JSON.stringify(capture));
+  const captureRef = qrl_.captureRef;
+  if (opts.getObjId) {
+    if (captureRef && captureRef.length) {
+      const capture = captureRef.map(opts.getObjId);
+      parts.push(`[${capture.join(' ')}]`);
+    }
+  } else if (capture && capture.length > 0) {
+    parts.push(`[${capture.join(' ')}]`);
   }
   const qrlString = parts.join('');
   if (qrl_.chunk === RUNTIME_QRL && element) {
@@ -110,71 +179,36 @@ export function qrlToUrl(element: Element, qrl: QRL): URL {
 /**
  * `./chunk#symbol|symbol.propA.propB|[captures]
  */
-export function parseQRL(qrl: string, element?: Element): QRLInternal {
-  if (element) {
-    const qrls: QRLInternal[] | undefined = (element as any).__qrls__;
-    if (qrls) {
-      for (const runtimeQrl of qrls) {
-        if (stringifyQRL(runtimeQrl) == qrl) {
-          return runtimeQrl;
-        }
-      }
-    }
-  }
+export function parseQRL(qrl: string, el?: Element): QRLInternal {
   const endIdx = qrl.length;
   const hashIdx = indexOf(qrl, 0, '#');
-  const guardIdx = indexOf(qrl, hashIdx, '|');
-  const captureIdx = indexOf(qrl, guardIdx, '[');
+  const captureIdx = indexOf(qrl, hashIdx, '[');
 
-  const chunkEndIdx = Math.min(hashIdx, guardIdx, captureIdx);
+  const chunkEndIdx = Math.min(hashIdx, captureIdx);
   const chunk = qrl.substring(0, chunkEndIdx);
 
   const symbolStartIdx = hashIdx == endIdx ? hashIdx : hashIdx + 1;
-  const symbolEndIdx = Math.min(guardIdx, captureIdx);
+  const symbolEndIdx = captureIdx;
   const symbol =
     symbolStartIdx == symbolEndIdx ? 'default' : qrl.substring(symbolStartIdx, symbolEndIdx);
-
-  const guardStartIdx = guardIdx;
-  const guardEndIdx = captureIdx;
-  const guard =
-    guardStartIdx < guardEndIdx ? parseGuard(qrl.substring(guardStartIdx, guardEndIdx)) : null;
 
   const captureStartIdx = captureIdx;
   const captureEndIdx = endIdx;
   const capture =
     captureStartIdx === captureEndIdx
       ? EMPTY_ARRAY
-      : JSONparse(qrl.substring(captureStartIdx, captureEndIdx));
+      : qrl.substring(captureStartIdx + 1, captureEndIdx - 1).split(' ');
 
   if (chunk === RUNTIME_QRL) {
     logError(`Q-ERROR: '${qrl}' is runtime but no instance found on element.`);
   }
-  return new QRLInternal(chunk, symbol, null, null, capture, null, guard);
+  const iQrl = new QRLInternal(chunk, symbol, null, null, capture, null);
+  if (el) {
+    iQrl.setContainer(el);
+  }
+  return iQrl;
 }
 
-function JSONparse(json: string): any {
-  try {
-    return JSON.parse(json);
-  } catch (e) {
-    logError('JSON:', json);
-    throw e;
-  }
-}
-
-function parseGuard(text: string): null | Map<string, string[]> {
-  let map: null | Map<string, string[]> = null;
-  if (text) {
-    text.split('|').forEach((obj) => {
-      if (obj) {
-        const parts = obj.split('.');
-        const id = parts.shift()!;
-        if (!map) map = new Map<string, string[]>();
-        map.set(id, parts);
-      }
-    });
-  }
-  return map;
-}
 function indexOf(text: string, startIdx: number, char: string) {
   const endIdx = text.length;
   const charIdx = text.indexOf(char, startIdx == endIdx ? 0 : startIdx);

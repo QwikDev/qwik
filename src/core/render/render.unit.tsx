@@ -114,7 +114,7 @@ describe('render', () => {
           aria-hidden="true"
           data-value="hello world"
           key={'special'}
-          h:title="Custom title"
+          host:title="Custom title"
         />
       );
       expectRendered(
@@ -642,11 +642,11 @@ export const Counter = component$((props: { step?: number }) => {
     const step = Number(props.step || 1);
     return (
       <>
-        <button class="decrement" on:click={runtimeQrl(Counter_add, [state, { value: -step }])}>
+        <button class="decrement" onClickQrl={runtimeQrl(Counter_add, [state, { value: -step }])}>
           -
         </button>
         <span>{state.count}</span>
-        <button class="increment" on:click={runtimeQrl(Counter_add, [state, { value: step }])}>
+        <button class="increment" onClickQrl={runtimeQrl(Counter_add, [state, { value: step }])}>
           +
         </button>
       </>

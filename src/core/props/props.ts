@@ -1,4 +1,4 @@
-import type { JSXNode } from '../index';
+import type { JSXNode } from '../render/jsx/types/jsx-node';
 import { QError, qError } from '../error/error';
 import { getProxyMap, readWriteProxy } from '../object/q-object';
 import { resume } from '../object/store';
@@ -17,7 +17,7 @@ const Q_CTX = '__ctx__';
 
 export function resumeIfNeeded(elm: Element | Document): void {
   const doc = isDocument(elm) ? elm : getDocument(elm);
-  const root = isDocument(elm) ? elm : elm.closest('[q\\:root]') ?? doc;
+  const root = isDocument(elm) ? elm : elm.closest('[q\\:container]') ?? doc;
   if (!root) {
     logWarn('cant find qwik app root');
     return;
@@ -30,7 +30,7 @@ export function resumeIfNeeded(elm: Element | Document): void {
 }
 
 export interface QContextEvents {
-  [eventName: string]: QRLInternal[] | undefined;
+  [eventName: string]: QRLInternal | undefined;
 }
 
 export interface ComponentCtx {
@@ -47,7 +47,7 @@ export interface QContext {
   element: Element;
   dirty: boolean;
   props: Record<string, any> | undefined;
-  events: QContextEvents | undefined;
+  renderQrl: QRLInternal | undefined;
   component: ComponentCtx | undefined;
 }
 
@@ -61,19 +61,36 @@ export function getContext(element: Element): QContext {
       refMap: newQObjectMap(element),
       dirty: false,
       props: undefined,
-      events: undefined,
+      renderQrl: undefined,
       component: undefined,
     };
   }
   return ctx;
 }
 
+const PREFIXES = ['onWindow', 'onWindow', 'on'];
+export function normalizeOnProp(prop: string) {
+  let scope = 'on';
+  for (const prefix of PREFIXES) {
+    if (prop.startsWith(prefix)) {
+      scope = prefix;
+      prop = prop.slice(prefix.length);
+    }
+  }
+  if (prop.startsWith('-')) {
+    prop = prop.slice(1);
+  } else {
+    prop = prop.toLowerCase();
+  }
+  return `${scope}:${prop}`;
+}
+
 export function setEvent(rctx: RenderContext, ctx: QContext, prop: string, value: any) {
-  qPropWriteQRL(rctx, ctx, prop, value);
+  qPropWriteQRL(rctx, ctx, normalizeOnProp(prop), value);
 }
 
 export function getEvent(ctx: QContext, prop: string): any {
-  return qPropReadQRL(ctx, prop);
+  return qPropReadQRL(ctx, normalizeOnProp(prop));
 }
 
 export function getProps(ctx: QContext) {
@@ -82,15 +99,6 @@ export function getProps(ctx: QContext) {
     ctx.refMap.add(ctx.props);
   }
   return ctx.props!;
-}
-
-export function getEvents(ctx: QContext): QContextEvents {
-  let events = ctx.events;
-  if (!events) {
-    events = ctx.events = {};
-    ctx.refMap.add(ctx.events);
-  }
-  return events;
 }
 
 /**

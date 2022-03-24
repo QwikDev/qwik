@@ -7,8 +7,8 @@ expression: output
 
 import { $, component$, useStyles } from '@builder.io/qwik';
 
-const componentFromQrl = () => console.log('not this');
-componentFromQrl();
+const componentQrl = () => console.log('not this');
+componentQrl();
 export const Foo = component$(() => {
     useStyles$('thing');
     const qwik = 12;
@@ -36,15 +36,15 @@ export const Root = component$(() => {
 ============================= test.js ==
 
 import * as qwik from "@builder.io/qwik";
-import { componentFromQrl as componentFromQrl1 } from "@builder.io/qwik";
-const componentFromQrl = ()=>console.log('not this')
+import { componentQrl as componentQrl1 } from "@builder.io/qwik";
+const componentQrl = ()=>console.log('not this')
 ;
-componentFromQrl();
-export const Foo = /*#__PURE__*/ componentFromQrl1(qwik.qrl(()=>import("./h_test_foo_onmount")
+componentQrl();
+export const Foo = /*#__PURE__*/ componentQrl1(qwik.qrl(()=>import("./h_test_foo_onmount")
 , "Foo_onmount"), {
     tagName: "my-foo"
 });
-export const Root = /*#__PURE__*/ componentFromQrl1(qwik.qrl(()=>import("./h_test_root_onmount")
+export const Root = /*#__PURE__*/ componentQrl1(qwik.qrl(()=>import("./h_test_root_onmount")
 , "Root_onmount"), {
     tagName: "my-foo"
 });

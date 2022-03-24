@@ -1,4 +1,4 @@
-import { onDocument, QRL, $, qrl, qrlImport, useStore, implicit$FirstArg } from '@builder.io/qwik';
+import { onDocument, QRL, $, qrl, useStore, implicit$FirstArg } from '@builder.io/qwik';
 /* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
@@ -37,7 +37,7 @@ function doExtraStuff() {
   const lazyGreet: QRL<() => void> = $(() => console.log('Hello World!'));
 
   // Use `qrlImport` to load / resolve the reference.
-  const greet: () => void = await qrlImport(element, lazyGreet);
+  const greet: () => void = await lazyGreet.resolve(element);
 
   //  Invoke it
   greet();

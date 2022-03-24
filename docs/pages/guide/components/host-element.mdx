@@ -125,26 +125,27 @@ in both above cases the rendered HTML would be:
 
 Because the host element is an actual element, there may be a desire to place HTML classes, styles, or attributes.
 
-What if you wanted to add a `name` attribute to the host element? The issue is that the `name` is already used by the component props. For this reason, we use `h:` prefix to refer to the host element's attributes.
+What if you wanted to add a `name` attribute to the host element? The issue is that the `name` is already used by the component props. For this reason, we use `host:` prefix to refer to the host element's attributes.
 
 ```htmlembedded=
-<Greeter h:name="abc" h:id="greeter" name="world"/>
+<Greeter host:name="abc" host:id="greeter" host:onClick$={() => {}} name="world"/>
 ```
 
 would render as
 
 ```htmlembedded=
-<div q:host name="abc" id="greeter"></div>
+<div q:host name="abc" id="greeter" on:click="..."></div>
 ```
 
-Using an `h:` prefix allows the developer to control the component's host element attributes independently from the component's props.
+Using an `host:` prefix allows the developer to control the component's host element attributes independently from the component's props.
 
 One can use the same approach for `class` and `styles`.
 
 ```htmlembedded=
-<Greeter h:class="greeter"
-        h:style={{backgroundColor: 'red'}}
-        name="world"/>
+<Greeter
+  host:class="greeter"
+  host:style={{backgroundColor: 'red'}}
+  name="world"/>
 ```
 
 would render
@@ -153,7 +154,7 @@ would render
 <div q:host class="greeter" style="background-color: red;"></div>
 ```
 
-However, many IDEs will not recognize `h:class` and `h:style` and would not trigger code completion. For this reason, `class` and `styles` are special, and they will automatically map to `h:class` and `h:styles` when placed on the host element.
+However, many IDEs will not recognize `host:class` and `host:style` and would not trigger code completion. For this reason, `class` and `styles` are special, and they will automatically map to `host:class` and `host:styles` when placed on the host element.
 
 ```htmlembedded=
 <Greeter class="greeter"

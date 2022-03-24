@@ -5,7 +5,7 @@ export const Counter = component$(() => {
   return $(() => {
     return (
       <Host>
-        <button class="bg-slate-200 p-10 text-zinc-900" on$:click={() => state.count++}>
+        <button class="bg-slate-200 p-10 text-zinc-900" onClick$={() => state.count++}>
           {state.count}
         </button>
       </Host>

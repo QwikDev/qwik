@@ -16,7 +16,7 @@ Simple counter example:
 const Counter = component$(() => {
   const store = useStore({ count: 0 });
   return $(() => (
-    <button on$:click={() => store.count++}>
+    <button onClick$={() => store.count++}>
       {store.count}
     </button>
   ));
@@ -27,7 +27,7 @@ Once rendered the HTML fragment may look something like this:
 
 ```htmlembedded=
 <div q:host>
-  <button q:obj="123" on:click="./chunk-a.js#Counter_button_click[0]">
+  <button q:obj="123" onClickQrl="./chunk-a.js#Counter_button_click[0]">
     0
   </button>
 </div>
@@ -52,8 +52,8 @@ Qwik lazy loads components on an as-needed basis. To minimize the number of comp
 const Parent = component$(() => {
   const store = useStore({count: 0, step: 1});
   return $(() => (
-    <button on$:click={store.step *= -1}>direction</button>
-    <button on$:click={()=> store.count += store.step}>
+    <button onClick$={store.step *= -1}>direction</button>
+    <button onClick$={()=> store.count += store.step}>
       {store.step}
     </button>
     <Greeter name={'World_' + store.count}/>

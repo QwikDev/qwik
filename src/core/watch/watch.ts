@@ -1,8 +1,8 @@
 import type { QRLInternal } from '../import/qrl-class';
-import { qrlImport } from '../import/qrl.public';
 import { getContext, getEvent } from '../props/props';
 import type { Props } from '../props/props.public';
 import { newInvokeContext, useInvoke } from '../use/use-core';
+import { getDocument } from '../util/dom';
 import { logError } from '../util/log';
 import type { Observer } from './watch.public';
 
@@ -20,7 +20,7 @@ export function registerOnWatch(element: Element, props: Props, watchFnQrl: QRLI
 const cleanupFnMap = new Map<WatchFn, CleanupFn>();
 
 export async function invokeWatchFn(element: Element, watchFnQrl: QRLInternal<WatchFn>) {
-  const watchFn = await qrlImport(element, watchFnQrl);
+  const watchFn = await watchFnQrl.resolve(element);
   const previousCleanupFn = cleanupFnMap.get(watchFn);
   cleanupFnMap.delete(watchFn);
   if (isCleanupFn(previousCleanupFn)) {
@@ -38,20 +38,16 @@ function isCleanupFn(value: any): value is CleanupFn {
 }
 
 export async function notifyWatchers(
-  element: Element,
+  hostElement: Element,
   qObjectId: string,
   propName: string
 ): Promise<void> {
-  const ctx = getContext(element);
+  const ctx = getContext(hostElement);
   const onWatch: null | OnWatchHandler = getEvent(ctx, 'on:qWatch');
   if (onWatch) {
     try {
       // TODO
-      const context = newInvokeContext(element, element);
-      context.qrlGuard = (qrl: QRLInternal) => {
-        const props = qrl.guard?.get(qObjectId);
-        return props ? props.indexOf(propName) !== -1 : false;
-      };
+      const context = newInvokeContext(getDocument(hostElement), hostElement);
       await useInvoke(context, onWatch, qObjectId, propName);
     } catch (e) {
       logError(e);

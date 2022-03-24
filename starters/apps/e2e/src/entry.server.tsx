@@ -14,7 +14,7 @@ import { SlotParent } from './components/slot/slot';
 import { TwoListeners } from './components/two-listeners/twolisteners';
 import { Render } from './components/render/render';
 import { Events } from './components/events/events';
-// import { Async } from './components/async/async';
+import { Async } from './components/async/async';
 
 /**
  * Entry point for server-side pre-rendering.
@@ -31,7 +31,7 @@ export function render(opts: RenderToStringOptions) {
     '/e2e/lexical-scope': () => <LexicalScope />,
     '/e2e/render': () => <Render />,
     '/e2e/events': () => <Events />,
-    // '/e2e/async': () => <Async />,
+    '/e2e/async': () => <Async />,
   };
   const Test = tests[url.pathname];
   return renderToString(

@@ -15,9 +15,9 @@ Components are basic building blocks of Qwik Applications. Qwik components are u
 
 Qwik components are declared with `component$` API.
 
-```typescript=
-const Counter = component$((props: {step?:number, initial?: number}) => {
-  const store = useStore({count: props.initial || 0});
+```tsx
+const Counter = component$((props: { step?: number; initial?: number }) => {
+  const store = useStore({ count: props.initial || 0 });
   return $(() => (
     <button on$:click={() => store.count += props.step||1}>
       {store.count}
@@ -49,7 +49,7 @@ An OnMount function can optionally take a reference to `props` object. See separ
 
 Typical use for the OnMount function is to declare stores, watches, or other third-party APIs that return objects. In our example:
 
-```typescript=
+```tsx
 const Counter = component$((props: {step:number, initial?: number}) => {
   const store = useStore({count: props.initial || 0});
   return ...;
@@ -64,9 +64,9 @@ The OnMount function is responsible for returning an OnRender function. OnRender
 
 For layout components, it is not uncommon to never need to invoke the re-render outside of the initial render on the server. In such a case, the render function will never lazy-load.
 
-```typescript=
-const Counter = component$((props: {step?:number, initial?: number}) => {
-  const store = useStore({count: props.initial || 0});
+```tsx
+const Counter = component$((props: { step?: number; initial?: number }) => {
+  const store = useStore({ count: props.initial || 0 });
   // Return OnRender function
   return $(() => (
     <button on$:click={() => store.count += props.step||1}>
@@ -84,7 +84,7 @@ An important property of Qwik components is out-of-order rendering. This means t
 
 Qwik components can use other components.
 
-```typescript=
+```tsx
 const Counter = component$((props: {step?:number, initial?: number}) => {
   ...
 });
@@ -116,7 +116,7 @@ For a detailed discussion of reactivity, see related discussion.
 
 Events handlers are closures placed in the JSX.
 
-```typescript=
+```tsx
 const Counter = component$(() => {
   const store = useStore({count: 0});
   return $(() => (

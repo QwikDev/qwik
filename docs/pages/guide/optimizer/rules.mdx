@@ -15,7 +15,7 @@ NOTE: There are plans for a linter that will be able to enforce these rules eage
 
 **RULE**: If a function that is being extracted by Optimizer refers to a top-level symbol, that symbol must either be imported or exported.
 
-```typescript=
+```tsx
 import {importedFn} from '...';
 export exportedFn = () => {...};
 const salutation = "Hello";
@@ -29,7 +29,7 @@ someApi$(() => {
 
 The reason for the above rule becomes obvious when the output is examined.
 
-```typescript=
+```tsx
 import {importedFn} from '...';
 export exportedFn = () => {...};
 const salutation = "Hello";
@@ -39,22 +39,22 @@ someApi(qrl('./chunk-a.js', 'someApi_1'));
 
 `chunk-a.js`:
 
-```typescript=
-import {importedFn} from '...';
-import {exportedFn} from './originalFile';
+```tsx
+import { importedFn } from '...';
+import { exportedFn } from './originalFile';
 
 export const someApi_1 = () => {
   importedFn(); // OK
   exportedFn(); // OK
   salutation; // Error: no way to get refference to this.
-}
+};
 ```
 
 ## Closures
 
 **RULE**: If a function lexically captures a variable (or parameter), that variable must be (1) a `const` and (2) the value must be serializable.
 
-```typescript=
+```tsx
 function somefn() {
   let count = 0;
   list.foreach((item) => {
@@ -71,7 +71,7 @@ function somefn() {
 
 Again looking at the generated code reveals why these rules must be so:
 
-```typescript=
+```tsx
 function somefn() {
   let count = 0;
   list.foreach((item) => {
@@ -88,7 +88,7 @@ function somefn() {
 
 `chunk-a.js`:
 
-```typescript=
+```tsx
 export _1 = () => {
   const [item, count, currentCount] = useLexicalScope();
 

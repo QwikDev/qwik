@@ -11,7 +11,7 @@ Qwik's [core tenant](./philosophy) is to delay the loading and execution of Java
 
 Let's start by looking at a simple `Counter` example.
 
-```typescript=
+```tsx
 const Counter = component$(() => {
   const store = useStore({count: 0});
   return $(() => (
@@ -26,7 +26,7 @@ As a developer, it is desirable to put all parts of the component together into 
 
 Let's rewrite the component and give each function a name for easier discussion.
 
-```typescript=
+```tsx
 const Counter = component$(function onMount() {
   const store = useStore({count: 0});
   return $(function onRender() {
@@ -82,7 +82,7 @@ Lazy-loading is a core property of the framework and not an afterthought.
 
 Let's look at our example again:
 
-```typescript=
+```tsx
 const Counter = component$(() => {
   const store = useStore({count: 0});
   return $(() => (

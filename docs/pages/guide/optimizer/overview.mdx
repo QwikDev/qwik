@@ -11,7 +11,7 @@ The Optimizer looks for `$` and applies a transformation that extracts the expre
 
 Let's start by looking at a simple `Counter` example:
 
-```typescript=
+```tsx
 const Counter = component$(() => {
   const store = useStore({count: 0});
   return $(() => (
@@ -24,22 +24,22 @@ const Counter = component$(() => {
 
 The above code represents what a developer would write to describe the component. Below are the transformations that the Optimizer applies to the code to make the code lazy-loadable.
 
-```typescript=
+```tsx
 const Counter = component(qrl('./chunk-a.js', 'Counter_onMount'));
 ```
 
 `chunk-a.js`:
 
-```typescript=
+```tsx
 export const Counter_onMount = () => {
-  const store = useStore({count: 0});
+  const store = useStore({ count: 0 });
   return qrl('./chunk-b.js', 'Counter_onRender', [store]);
 };
 ```
 
 `chunk-b.js`:
 
-```typescript=
+```tsx
 const Counter_onRender = () => {
   const [store] = useLexicalScope();
   return (
@@ -52,7 +52,7 @@ const Counter_onRender = () => {
 
 `chunk-c.js`:
 
-```typescript=
+```tsx
 const Counter_onClick = () => {
   const [store] = useLexicalScope();
   return store.count++;

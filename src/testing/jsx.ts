@@ -13,7 +13,7 @@ export function toDOM(jsx: h.JSX.Element, parent?: HTMLElement): HTMLElement {
       const jsxValue = jsx.props[attrName];
       element.setAttribute(
         attrName,
-        isQrl(jsxValue) ? stringifyQRL(jsxValue, undefined, element) : jsxValue
+        isQrl(jsxValue) ? stringifyQRL(jsxValue, { element }) : jsxValue
       );
     }
   }

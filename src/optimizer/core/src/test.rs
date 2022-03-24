@@ -376,11 +376,11 @@ export const App = component$((props) => {
     return $(() => {
         const count2 = state.count * 2;
         return (
-            <div on$:click={() => state.count+=count2 }>
+            <div onClick$={() => state.count+=count2 }>
                 <span>{state.count}</span>
                 {buttons.map(btn => (
                     <button
-                        on$:click={() => state.count += btn.offset + thing + STEP + STEP_2 + props.step}
+                        onClick$={() => state.count += btn.offset + thing + STEP + STEP_2 + props.step}
                     >
                         {btn.name}
                     </button>
@@ -409,7 +409,7 @@ export const App = component$(({count, rest: [I2, {I3, v1: [I4], I5=v2, ...I6}, 
     const {rest: [C2, {C3, v1: [C4], C5=v2, ...C6}, C7=v3, ...C8]} = foo();
     return $(() => {
         return (
-            <div on$:click={() => state.count += count + total }>
+            <div onClick$={() => state.count += count + total }>
                 {I2}{I3}{I4}{I5}{I6}{I7}{I8}
                 {C2}{C3}{C4}{C5}{C6}{C7}{C8}
                 {v1}{v2}{v3}
@@ -522,13 +522,13 @@ export const Foo = component$(({color}) => {
 
 export function Button({text, color}) {
     return (
-        <button color={color} on$:click={()=>console.log(text, color)}>{text}</button>
+        <button color={color} onClick$={()=>console.log(text, color)}>{text}</button>
     );
 }
 
 export const ButtonArrow = ({text, color}) => {
     return (
-        <button color={color} on$:click={()=>console.log(text, color)}>{text}</button>
+        <button color={color} onClick$={()=>console.log(text, color)}>{text}</button>
     );
 }
 "#
@@ -791,11 +791,19 @@ export const Foo = component$(() => {
         const handler = $(() => console.log('reused'));
         return (
             <div
-                on$:click={()=>console.log('on$:click')}
-                onDocument$:scroll={()=>console.log('onDocument:scroll')}
-                onWindow$:scroll={()=>console.log('onWindow:scroll')}
+                onClick$={()=>console.log('onClick$')}
+                onDocumentScroll$={()=>console.log('onDocumentScroll')}
+                onDocumentScroll$={()=>console.log('onWindowScroll')}
 
-                on:keyup={handler}
+                on-cLick$={()=>console.log('on-cLick$')}
+                onDocument-sCroll$={()=>console.log('onDocument-sCroll')}
+                onDocument-scroLL$={()=>console.log('onDocument-scroLL')}
+
+                host:onClick$={()=>console.log('host:onClick$')}
+                host:onDocumentScroll$={()=>console.log('host:onDocument:scroll')}
+                host:onDocumentScroll$={()=>console.log('host:onWindow:scroll')}
+
+                onKeyup={handler}
                 onDocument:keyup={handler}
                 onWindow:keyup={handler}
             />
@@ -817,8 +825,8 @@ fn example_qwik_conflict() {
         code: r#"
 import { $, component$, useStyles } from '@builder.io/qwik';
 
-const componentFromQrl = () => console.log('not this');
-componentFromQrl();
+const componentQrl = () => console.log('not this');
+componentQrl();
 export const Foo = component$(() => {
     useStyles$('thing');
     const qwik = 12;

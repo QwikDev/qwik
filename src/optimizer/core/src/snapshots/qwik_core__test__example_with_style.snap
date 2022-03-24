@@ -21,8 +21,8 @@ export const Foo = component$(() => {
 ============================= test.tsx ==
 
 import * as qwik from "@builder.io/qwik";
-import { componentFromQrl } from "@builder.io/qwik";
-export const Foo = /*#__PURE__*/ componentFromQrl(qwik.qrl(()=>import("./h_test_foo_onmount")
+import { componentQrl } from "@builder.io/qwik";
+export const Foo = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_foo_onmount")
 , "Foo_onmount"), {
     tagName: "my-foo"
 });
@@ -60,9 +60,9 @@ export const Foo_onRender = ()=>{
 ============================= h_test_foo_onmount.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-import { useStylesFromQrl } from "@builder.io/qwik";
+import { useStylesQrl } from "@builder.io/qwik";
 export const Foo_onmount = ()=>{
-    useStylesFromQrl(qwik.qrl(()=>import("./h_test_foo_usestyles")
+    useStylesQrl(qwik.qrl(()=>import("./h_test_foo_usestyles")
     , "Foo_useStyles"));
     return qwik.qrl(()=>import("./h_test_foo_onrender")
     , "Foo_onRender");

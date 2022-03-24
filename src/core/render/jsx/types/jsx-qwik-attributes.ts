@@ -28,21 +28,15 @@ type EventHandler = (event: Event, element: Element) => any;
 type QrlEvent = QRL<EventHandler>;
 
 export interface QwikEvents {
-  [key: `on$:${string}`]: EventHandler;
-  [key: `on:${string}`]: QrlEvent | QrlEvent[];
-
-  [key: `onDocument$:${string}`]: EventHandler;
-  [key: `onDocument:${string}`]: QrlEvent | QrlEvent[];
-
-  [key: `onWindow$:${string}`]: EventHandler;
-  [key: `onWindow:${string}`]: QrlEvent | QrlEvent[];
+  [key: `on${string}$`]: EventHandler | undefined;
+  [key: `on${string}Qrl`]: QrlEvent | QrlEvent[] | undefined;
 }
 
 interface CSSProperties {
   [key: string]: string | number;
 }
 
-export interface ComponentBaseProps extends QwikEvents {
+export interface ComponentBaseProps {
   class?: string | { [className: string]: boolean };
   className?: string | undefined;
   style?: CSSProperties | string | undefined;
@@ -50,7 +44,10 @@ export interface ComponentBaseProps extends QwikEvents {
   id?: string | undefined;
 
   'q:slot'?: string;
-  [key: `h:${string}`]: any;
+
+  [key: `host:on${string}$`]: EventHandler;
+  [key: `host:on${string}Qrl`]: QrlEvent | QrlEvent[];
+  [key: `host:${string}`]: any;
 
   children?: JSXChildren;
 }

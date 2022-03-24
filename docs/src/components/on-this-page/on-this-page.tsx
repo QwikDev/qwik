@@ -33,7 +33,7 @@ export const OnThisPage = component$(
 
       return (
         <Host
-          onDocument:scroll={onScroll}
+          onDocumentScrollQrl={onScroll}
           class="on-this-page fixed text-sm z-20 bottom-0 right-[max(0px,calc(50%-45rem))] overflow-y-auto hidden xl:block xl:w-[18rem] xl:top-[5rem]"
         >
           {headings.length > 0 ? (
@@ -48,7 +48,7 @@ export const OnThisPage = component$(
                         block: true,
                         indent: h.level > 2,
                       }}
-                      on:click={onClick}
+                      onClick$={onClick}
                     >
                       {h.text}
                     </a>

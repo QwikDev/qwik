@@ -64,6 +64,12 @@ export interface RenderToDocumentOptions extends SerializeDocumentOptions, Docum
    * Defaults to `true`
    */
   snapshot?: boolean;
+
+  /**
+   * When set,
+   * Defaults to `undefined`
+   */
+  fragmentTagName?: string;
 }
 
 /**

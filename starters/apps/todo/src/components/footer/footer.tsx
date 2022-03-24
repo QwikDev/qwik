@@ -18,7 +18,7 @@ export const Footer = component$(
           <li>
             <a
               class={{ selected: props.todos.filter == lMode }}
-              on$:click={() => {
+              onClick$={() => {
                 props.todos.filter = filter;
               }}
             >
@@ -44,7 +44,7 @@ export const Footer = component$(
               {remaining > 0 ? (
                 <button
                   class="clear-completed"
-                  on$:click={() => {
+                  onClick$={() => {
                     props.todos.items = props.todos.items.filter(FILTERS.active);
                   }}
                 >

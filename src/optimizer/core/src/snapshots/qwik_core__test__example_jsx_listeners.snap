@@ -13,11 +13,19 @@ export const Foo = component$(() => {
         const handler = $(() => console.log('reused'));
         return (
             <div
-                on$:click={()=>console.log('on$:click')}
-                onDocument$:scroll={()=>console.log('onDocument:scroll')}
-                onWindow$:scroll={()=>console.log('onWindow:scroll')}
+                onClick$={()=>console.log('onClick$')}
+                onDocumentScroll$={()=>console.log('onDocumentScroll')}
+                onDocumentScroll$={()=>console.log('onWindowScroll')}
 
-                on:keyup={handler}
+                on-cLick$={()=>console.log('on-cLick$')}
+                onDocument-sCroll$={()=>console.log('onDocument-sCroll')}
+                onDocument-scroLL$={()=>console.log('onDocument-scroLL')}
+
+                host:onClick$={()=>console.log('host:onClick$')}
+                host:onDocumentScroll$={()=>console.log('host:onDocument:scroll')}
+                host:onDocumentScroll$={()=>console.log('host:onWindow:scroll')}
+
+                onKeyup={handler}
                 onDocument:keyup={handler}
                 onWindow:keyup={handler}
             />
@@ -30,8 +38,8 @@ export const Foo = component$(() => {
 ============================= test.js ==
 
 import * as qwik from "@builder.io/qwik";
-import { componentFromQrl } from "@builder.io/qwik";
-export const Foo = /*#__PURE__*/ componentFromQrl(qwik.qrl(()=>import("./h_test_foo_onmount")
+import { componentQrl } from "@builder.io/qwik";
+export const Foo = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_foo_onmount")
 , "Foo_onmount"), {
     tagName: "my-foo"
 });
@@ -54,13 +62,13 @@ export const Foo_onRender_handler = ()=>console.log('reused')
 ============================= h_test_foo_onrender_div_onclick.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const Foo_onRender_div_onclick = ()=>console.log('on$:click')
+export const Foo_onRender_div_onClick = ()=>console.log('onClick$')
 ;
 
 /*
 {
   "origin": "test.tsx",
-  "name": "Foo_onRender_div_onclick",
+  "name": "Foo_onRender_div_onClick",
   "entry": null,
   "canonicalFilename": "h_test_foo_onrender_div_onclick",
   "extension": "js"
@@ -69,30 +77,120 @@ export const Foo_onRender_div_onclick = ()=>console.log('on$:click')
 ============================= h_test_foo_onrender_div_ondocumentscroll.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const Foo_onRender_div_onDocumentscroll = ()=>console.log('onDocument:scroll')
+export const Foo_onRender_div_onDocumentScroll = ()=>console.log('onDocumentScroll')
 ;
 
 /*
 {
   "origin": "test.tsx",
-  "name": "Foo_onRender_div_onDocumentscroll",
+  "name": "Foo_onRender_div_onDocumentScroll",
   "entry": null,
   "canonicalFilename": "h_test_foo_onrender_div_ondocumentscroll",
   "extension": "js"
 }
 */
-============================= h_test_foo_onrender_div_onwindowscroll.js (ENTRY POINT)==
+============================= h_test_foo_onrender_div_ondocumentscroll5.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const Foo_onRender_div_onWindowscroll = ()=>console.log('onWindow:scroll')
+export const Foo_onRender_div_onDocumentScroll5 = ()=>console.log('onWindowScroll')
 ;
 
 /*
 {
   "origin": "test.tsx",
-  "name": "Foo_onRender_div_onWindowscroll",
+  "name": "Foo_onRender_div_onDocumentScroll5",
   "entry": null,
-  "canonicalFilename": "h_test_foo_onrender_div_onwindowscroll",
+  "canonicalFilename": "h_test_foo_onrender_div_ondocumentscroll5",
+  "extension": "js"
+}
+*/
+============================= h_test_foo_onrender_div_on_click.js (ENTRY POINT)==
+
+import * as qwik from "@builder.io/qwik";
+export const Foo_onRender_div_on_cLick = ()=>console.log('on-cLick$')
+;
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "Foo_onRender_div_on_cLick",
+  "entry": null,
+  "canonicalFilename": "h_test_foo_onrender_div_on_click",
+  "extension": "js"
+}
+*/
+============================= h_test_foo_onrender_div_ondocument_scroll.js (ENTRY POINT)==
+
+import * as qwik from "@builder.io/qwik";
+export const Foo_onRender_div_onDocument_sCroll = ()=>console.log('onDocument-sCroll')
+;
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "Foo_onRender_div_onDocument_sCroll",
+  "entry": null,
+  "canonicalFilename": "h_test_foo_onrender_div_ondocument_scroll",
+  "extension": "js"
+}
+*/
+============================= h_test_foo_onrender_div_ondocument_scroll.js (ENTRY POINT)==
+
+import * as qwik from "@builder.io/qwik";
+export const Foo_onRender_div_onDocument_scroLL = ()=>console.log('onDocument-scroLL')
+;
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "Foo_onRender_div_onDocument_scroLL",
+  "entry": null,
+  "canonicalFilename": "h_test_foo_onrender_div_ondocument_scroll",
+  "extension": "js"
+}
+*/
+============================= h_test_foo_onrender_div_host_onclick.js (ENTRY POINT)==
+
+import * as qwik from "@builder.io/qwik";
+export const Foo_onRender_div_host_onClick = ()=>console.log('host:onClick$')
+;
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "Foo_onRender_div_host_onClick",
+  "entry": null,
+  "canonicalFilename": "h_test_foo_onrender_div_host_onclick",
+  "extension": "js"
+}
+*/
+============================= h_test_foo_onrender_div_host_ondocumentscroll.js (ENTRY POINT)==
+
+import * as qwik from "@builder.io/qwik";
+export const Foo_onRender_div_host_onDocumentScroll = ()=>console.log('host:onDocument:scroll')
+;
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "Foo_onRender_div_host_onDocumentScroll",
+  "entry": null,
+  "canonicalFilename": "h_test_foo_onrender_div_host_ondocumentscroll",
+  "extension": "js"
+}
+*/
+============================= h_test_foo_onrender_div_host_ondocumentscroll11.js (ENTRY POINT)==
+
+import * as qwik from "@builder.io/qwik";
+export const Foo_onRender_div_host_onDocumentScroll11 = ()=>console.log('host:onWindow:scroll')
+;
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "Foo_onRender_div_host_onDocumentScroll11",
+  "entry": null,
+  "canonicalFilename": "h_test_foo_onrender_div_host_ondocumentscroll11",
   "extension": "js"
 }
 */
@@ -104,13 +202,25 @@ export const Foo_onRender = ()=>{
     const handler = qwik.qrl(()=>import("./h_test_foo_onrender_handler")
     , "Foo_onRender_handler");
     return /*#__PURE__*/ _jsx("div", {
-        "on:click": qwik.qrl(()=>import("./h_test_foo_onrender_div_onclick")
-        , "Foo_onRender_div_onclick"),
-        "onDocument:scroll": qwik.qrl(()=>import("./h_test_foo_onrender_div_ondocumentscroll")
-        , "Foo_onRender_div_onDocumentscroll"),
-        "onWindow:scroll": qwik.qrl(()=>import("./h_test_foo_onrender_div_onwindowscroll")
-        , "Foo_onRender_div_onWindowscroll"),
-        "on:keyup": handler,
+        onClickQrl: qwik.qrl(()=>import("./h_test_foo_onrender_div_onclick")
+        , "Foo_onRender_div_onClick"),
+        onDocumentScrollQrl: qwik.qrl(()=>import("./h_test_foo_onrender_div_ondocumentscroll")
+        , "Foo_onRender_div_onDocumentScroll"),
+        onDocumentScrollQrl: qwik.qrl(()=>import("./h_test_foo_onrender_div_ondocumentscroll5")
+        , "Foo_onRender_div_onDocumentScroll5"),
+        "on-cLickQrl": qwik.qrl(()=>import("./h_test_foo_onrender_div_on_click")
+        , "Foo_onRender_div_on_cLick"),
+        "onDocument-sCrollQrl": qwik.qrl(()=>import("./h_test_foo_onrender_div_ondocument_scroll")
+        , "Foo_onRender_div_onDocument_sCroll"),
+        "onDocument-scroLLQrl": qwik.qrl(()=>import("./h_test_foo_onrender_div_ondocument_scroll")
+        , "Foo_onRender_div_onDocument_scroLL"),
+        "host:onClickQrl": qwik.qrl(()=>import("./h_test_foo_onrender_div_host_onclick")
+        , "Foo_onRender_div_host_onClick"),
+        "host:onDocumentScrollQrl": qwik.qrl(()=>import("./h_test_foo_onrender_div_host_ondocumentscroll")
+        , "Foo_onRender_div_host_onDocumentScroll"),
+        "host:onDocumentScrollQrl": qwik.qrl(()=>import("./h_test_foo_onrender_div_host_ondocumentscroll11")
+        , "Foo_onRender_div_host_onDocumentScroll11"),
+        onKeyup: handler,
         "onDocument:keyup": handler,
         "onWindow:keyup": handler
     });

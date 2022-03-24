@@ -17,7 +17,7 @@ import { component$, $, useStore } from '@builder.io/qwik';
 // <docs anchor="useStore">
 export const Counter = component$(() => {
   const store = useStore({ count: 0 });
-  return $(() => <button on$:click={() => store.count++}>{store.count}</button>);
+  return $(() => <button onClick$={() => store.count++}>{store.count}</button>);
 });
 // </docs>
 //

@@ -15,7 +15,7 @@ Let's start by looking at a simple `Counter` example.
 const Counter = component$(() => {
   const store = useStore({count: 0});
   return $(() => (
-    <button on$:click={() => store.count++}>
+    <button onClick$={() => store.count++}>
       {store.count}
     </button>
   ));
@@ -31,7 +31,7 @@ const Counter = component$(function onMount() {
   const store = useStore({count: 0});
   return $(function onRender() {
     return (
-      <button on$:click={function onClick() {
+      <button onClick$={function onClick() {
         return store.count++;
       }>
         {store.count}
@@ -86,7 +86,7 @@ Let's look at our example again:
 const Counter = component$(() => {
   const store = useStore({count: 0});
   return $(() => (
-    <button on$:click={() => store.count++}>
+    <button onClick$={() => store.count++}>
       {store.count}
     </button>
   ));

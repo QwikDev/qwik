@@ -1,3 +1,4 @@
+import { wrapSubscriber } from './use-subscriber';
 import { assertDefined } from '../assert/assert';
 import { parseQRL } from '../import/qrl';
 import { qInflate } from '../json/q-json';
@@ -21,14 +22,17 @@ import { useURL } from './use-url.public';
 // </docs>
 export function useLexicalScope<VARS extends any[]>(): VARS {
   const context = getInvokeContext();
-
-  const qrl = context.qrl ?? parseQRL(decodeURIComponent(String(useURL())));
+  const hostElement = context.hostElement;
+  const qrl = context.qrl ?? parseQRL(decodeURIComponent(String(useURL())), hostElement);
   if (qrl.captureRef == null) {
-    const el = context.element;
+    const el = context.element!;
+    assertDefined(el);
     resumeIfNeeded(el);
     const ctx = getContext(el);
-    assertDefined(qrl.capture);
     qrl.captureRef = qrl.capture!.map((idx) => qInflate(idx, ctx));
+  }
+  if (context.subscriptions && hostElement) {
+    return qrl.captureRef.map((obj) => wrapSubscriber(obj, hostElement)) as VARS;
   }
   return qrl.captureRef as VARS;
 }

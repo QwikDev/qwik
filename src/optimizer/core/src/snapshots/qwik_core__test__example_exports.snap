@@ -32,7 +32,7 @@ export const Footer = component$();
 ============================= project/test.tsx ==
 
 import * as qwik from "@builder.io/qwik";
-import { componentFromQrl } from "@builder.io/qwik";
+import { componentQrl } from "@builder.io/qwik";
 export const [a, { b , v1: [c] , d =v2 , ...e }, f = v3, ...g] = obj;
 const exp1 = 1;
 const internal = 2;
@@ -41,9 +41,9 @@ export function foo() {}
 export class bar {
 }
 export default function DefaultFn() {};
-export const Header = /*#__PURE__*/ componentFromQrl(qwik.qrl(()=>import("../h_test_header_onmount")
+export const Header = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("../h_test_header_onmount")
 , "Header_onmount"));
-export const Footer = /*#__PURE__*/ componentFromQrl();
+export const Footer = /*#__PURE__*/ componentQrl();
 
 ============================= h_test_header_onrender.tsx (ENTRY POINT)==
 

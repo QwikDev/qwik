@@ -17,8 +17,8 @@ export const App = component$((props) => {
 ============================= test.tsx ==
 
 import * as qwik from "@builder.io/qwik";
-import { componentFromQrl } from "@builder.io/qwik";
-export const App = /*#__PURE__*/ componentFromQrl(qwik.qrl(()=>import("./h_test_app_onmount.tsx")
+import { componentQrl } from "@builder.io/qwik";
+export const App = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_app_onmount.tsx")
 , "App_onmount"));
 
 ============================= h_test_app_usestyles.tsx (ENTRY POINT)==
@@ -53,9 +53,9 @@ export const App_onRender = ()=><div ></div>
 ============================= h_test_app_onmount.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-import { useStylesFromQrl } from "@builder.io/qwik";
+import { useStylesQrl } from "@builder.io/qwik";
 export const App_onmount = (props)=>{
-    useStylesFromQrl(qwik.qrl(()=>import("./h_test_app_usestyles.tsx")
+    useStylesQrl(qwik.qrl(()=>import("./h_test_app_usestyles.tsx")
     , "App_useStyles"));
     return qwik.qrl(()=>import("./h_test_app_onrender.tsx")
     , "App_onRender");

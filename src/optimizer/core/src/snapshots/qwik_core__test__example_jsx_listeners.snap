@@ -149,48 +149,48 @@ export const Foo_onRender_div_onDocument_scroLL = ()=>console.log('onDocument-sc
   "extension": "js"
 }
 */
-============================= h_test_foo_onrender_div_h_onclick_h_onclick.js (ENTRY POINT)==
+============================= h_test_foo_onrender_div_h_onclick.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const Foo_onRender_div_h_onClick_h_onClick = ()=>console.log('h:onClick$')
+export const Foo_onRender_div_h_onClick = ()=>console.log('h:onClick$')
 ;
 
 /*
 {
   "origin": "test.tsx",
-  "name": "Foo_onRender_div_h_onClick_h_onClick",
+  "name": "Foo_onRender_div_h_onClick",
   "entry": null,
-  "canonicalFilename": "h_test_foo_onrender_div_h_onclick_h_onclick",
+  "canonicalFilename": "h_test_foo_onrender_div_h_onclick",
   "extension": "js"
 }
 */
-============================= h_test_foo_onrender_div_h_onclick_h_ondocumentscroll_h_ondocumentscroll.js (ENTRY POINT)==
+============================= h_test_foo_onrender_div_h_ondocumentscroll.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const Foo_onRender_div_h_onClick_h_onDocumentScroll_h_onDocumentScroll = ()=>console.log('h:onDocument:scroll')
+export const Foo_onRender_div_h_onDocumentScroll = ()=>console.log('h:onDocument:scroll')
 ;
 
 /*
 {
   "origin": "test.tsx",
-  "name": "Foo_onRender_div_h_onClick_h_onDocumentScroll_h_onDocumentScroll",
+  "name": "Foo_onRender_div_h_onDocumentScroll",
   "entry": null,
-  "canonicalFilename": "h_test_foo_onrender_div_h_onclick_h_ondocumentscroll_h_ondocumentscroll",
+  "canonicalFilename": "h_test_foo_onrender_div_h_ondocumentscroll",
   "extension": "js"
 }
 */
-============================= h_test_foo_onrender_div_h_onclick_h_ondocumentscroll_h_ondocumentscroll_h_ondocumentscroll.js (ENTRY POINT)==
+============================= h_test_foo_onrender_div_h_ondocumentscroll11.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const Foo_onRender_div_h_onClick_h_onDocumentScroll_h_onDocumentScroll_h_onDocumentScroll = ()=>console.log('h:onWindow:scroll')
+export const Foo_onRender_div_h_onDocumentScroll11 = ()=>console.log('h:onWindow:scroll')
 ;
 
 /*
 {
   "origin": "test.tsx",
-  "name": "Foo_onRender_div_h_onClick_h_onDocumentScroll_h_onDocumentScroll_h_onDocumentScroll",
+  "name": "Foo_onRender_div_h_onDocumentScroll11",
   "entry": null,
-  "canonicalFilename": "h_test_foo_onrender_div_h_onclick_h_ondocumentscroll_h_ondocumentscroll_h_ondocumentscroll",
+  "canonicalFilename": "h_test_foo_onrender_div_h_ondocumentscroll11",
   "extension": "js"
 }
 */
@@ -214,12 +214,12 @@ export const Foo_onRender = ()=>{
         , "Foo_onRender_div_onDocument_sCroll"),
         "onDocument-scroLLQrl": qwik.qrl(()=>import("./h_test_foo_onrender_div_ondocument_scroll")
         , "Foo_onRender_div_onDocument_scroLL"),
-        "h:onClickQrl": qwik.qrl(()=>import("./h_test_foo_onrender_div_h_onclick_h_onclick")
-        , "Foo_onRender_div_h_onClick_h_onClick"),
-        "h:onDocumentScrollQrl": qwik.qrl(()=>import("./h_test_foo_onrender_div_h_onclick_h_ondocumentscroll_h_ondocumentscroll")
-        , "Foo_onRender_div_h_onClick_h_onDocumentScroll_h_onDocumentScroll"),
-        "h:onDocumentScrollQrl": qwik.qrl(()=>import("./h_test_foo_onrender_div_h_onclick_h_ondocumentscroll_h_ondocumentscroll_h_ondocumentscroll")
-        , "Foo_onRender_div_h_onClick_h_onDocumentScroll_h_onDocumentScroll_h_onDocumentScroll"),
+        "h:onClickQrl": qwik.qrl(()=>import("./h_test_foo_onrender_div_h_onclick")
+        , "Foo_onRender_div_h_onClick"),
+        "h:onDocumentScrollQrl": qwik.qrl(()=>import("./h_test_foo_onrender_div_h_ondocumentscroll")
+        , "Foo_onRender_div_h_onDocumentScroll"),
+        "h:onDocumentScrollQrl": qwik.qrl(()=>import("./h_test_foo_onrender_div_h_ondocumentscroll11")
+        , "Foo_onRender_div_h_onDocumentScroll11"),
         onKeyup: handler,
         "onDocument:keyup": handler,
         "onWindow:keyup": handler

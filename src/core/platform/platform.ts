@@ -1,5 +1,4 @@
 import { getDocument } from '../util/dom';
-import { isDocument } from '../util/element';
 import type { CorePlatform } from './types';
 
 export const createPlatform = (doc: Document): CorePlatform => {

@@ -75,7 +75,11 @@ export const QSlotAttr = 'q:slot';
 
 export const QObjAttr = 'q:obj';
 
+export const QContainerAttr = 'q:container';
+
 export const QObjSelector = '[q\\:obj]';
+
+export const QContainerSelector = '[q\\:container]';
 
 /**
  * `<q:slot name="...">`

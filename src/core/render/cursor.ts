@@ -762,9 +762,10 @@ function appendStyle(ctx: RenderContext, hostElement: Element, styleTask: StyleA
     const containerEl = ctx.containerEl;
     if (!containerEl.querySelector(`style[q\\:style="${styleTask.scope}"]`)) {
       const style = ctx.doc.createElement('style');
+      const stylesParent = ctx.doc.documentElement === containerEl ? ctx.doc.head : containerEl;
       style.setAttribute('q:style', styleTask.scope);
       style.textContent = styleTask.content;
-      containerEl.insertBefore(style, containerEl.firstChild);
+      stylesParent.insertBefore(style, containerEl.firstChild);
     }
   };
   ctx.operations.push({

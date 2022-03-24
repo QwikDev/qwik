@@ -6,7 +6,13 @@ import { getContext } from '../props/props';
 import { getDocument } from '../util/dom';
 import { isDocument, isElement } from '../util/element';
 import { logError, logWarn } from '../util/log';
-import { ELEMENT_ID, ELEMENT_ID_PREFIX, QHostAttr, QObjAttr } from '../util/markers';
+import {
+  ELEMENT_ID,
+  ELEMENT_ID_PREFIX,
+  QContainerAttr,
+  QHostAttr,
+  QObjAttr,
+} from '../util/markers';
 import { qDev } from '../util/qdev';
 import {
   getProxyMap,
@@ -427,7 +433,7 @@ export function isProxy(obj: any): boolean {
 }
 
 export function isContainer(el: Element) {
-  return el.hasAttribute('q:container');
+  return el.hasAttribute(QContainerAttr);
 }
 
 function hasQObj(el: Element) {

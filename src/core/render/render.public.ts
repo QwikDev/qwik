@@ -10,6 +10,7 @@ import { getDocument } from '../util/dom';
 import { qDev, qTest } from '../util/qdev';
 import { resumeIfNeeded } from '../props/props';
 import { version } from '../version';
+import { QContainerAttr } from '../util/markers';
 
 /**
  * Render JSX.
@@ -80,5 +81,5 @@ export function getElement(docOrElm: Document | Element): Element {
 
 export function injectQVersion(containerEl: Element) {
   containerEl.setAttribute('q:version', version || '');
-  containerEl.setAttribute('q:container', '');
+  containerEl.setAttribute(QContainerAttr, '');
 }

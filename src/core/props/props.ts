@@ -1,4 +1,4 @@
-import type { JSXNode } from '../index';
+import type { JSXNode } from '../render/jsx/types/jsx-node';
 import { QError, qError } from '../error/error';
 import { getProxyMap, readWriteProxy } from '../object/q-object';
 import { resume } from '../object/store';

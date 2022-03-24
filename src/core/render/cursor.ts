@@ -2,7 +2,11 @@ import { OnRenderProp, QSlotAttr } from '../util/markers';
 import { ComponentCtx, getContext, getProps, QContext, setEvent } from '../props/props';
 import { isOn$Prop, isOnProp } from '../props/props-on';
 export const SVG_NS = 'http://www.w3.org/2000/svg';
-import { $, Host, JSXNode, ValueOrPromise } from '../index';
+import type { ValueOrPromise } from '../util/types';
+import type { JSXNode } from '../render/jsx/types/jsx-node';
+import { Host } from '../render/jsx/host.public';
+import { $ } from '../import/qrl.public';
+
 import { firstRenderComponent, renderComponent } from '../component/component-ctx';
 import { promiseAll, then } from '../util/promises';
 import type { RenderingState } from './notify-render';

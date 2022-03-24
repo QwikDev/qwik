@@ -1,4 +1,5 @@
-import type { Props, ValueOrPromise } from '../index';
+import type { ValueOrPromise } from '../util/types';
+import type { Props } from '../props/props.public';
 import { assertDefined } from '../assert/assert';
 import type { QwikDocument } from '../document';
 import type { QRLInternal } from '../import/qrl-class';

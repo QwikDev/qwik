@@ -3,7 +3,7 @@ import { executeContext, printRenderStats, RenderContext } from './cursor';
 import { isJSXNode, jsx, processNode } from './jsx/jsx-runtime';
 import type { JSXNode, FunctionComponent } from './jsx/types/jsx-node';
 import { visitJsxNode } from './render';
-import { ValueOrPromise, version } from '../index';
+import { ValueOrPromise, version } from '../';
 import { then } from '../util/promises';
 import { getRenderingState } from './notify-render';
 import { getDocument } from '../util/dom';

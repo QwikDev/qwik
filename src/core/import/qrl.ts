@@ -10,11 +10,13 @@ import { EMPTY_ARRAY } from '../util/flyweight';
 import type { QRL } from './qrl.public';
 import { isQrl, QRLInternal } from './qrl-class';
 import { assertEqual } from '../assert/assert';
-import { CorePlatform, unwrapSubscriber, ValueOrPromise } from '../index';
+import type { ValueOrPromise } from '../util/types';
+import type { CorePlatform } from '../platform/types';
 import { getDocument } from '../util/dom';
 import { logError } from '../util/log';
 import { then } from '../util/promises';
 import { getPlatform } from '../platform/platform';
+import { unwrapSubscriber } from '../use/use-subscriber';
 
 let runtimeSymbolId = 0;
 const RUNTIME_QRL = '/runtimeQRL';

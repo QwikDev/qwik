@@ -87,7 +87,7 @@ export function qrlImport<T>(element: Element | undefined, qrl: QRL<T>): ValueOr
 export function qrl<T = any>(
   chunkOrFn: string | (() => Promise<any>),
   symbol: string,
-  lexicalScopeCapture: any[] = EMPTY_ARRAY
+  lexicalScopeCapture: any[] | null = EMPTY_ARRAY
 ): QRL<T> {
   let chunk: string;
   let symbolFn: null | (() => Promise<Record<string, any>>) = null;
@@ -118,8 +118,10 @@ export function qrl<T = any>(
   }
 
   // Unwrap subscribers
-  for (let i = 0; i < lexicalScopeCapture.length; i++) {
-    lexicalScopeCapture[i] = lexicalScopeCapture[i].map(unwrapSubscriber);
+  if (Array.isArray(lexicalScopeCapture)) {
+    for (let i = 0; i < lexicalScopeCapture.length; i++) {
+      lexicalScopeCapture[i] = lexicalScopeCapture[i].map(unwrapSubscriber);
+    }
   }
   return new QRLInternal<T>(chunk, symbol, null, symbolFn, null, lexicalScopeCapture);
 }

@@ -111,7 +111,7 @@ async function resolveCodeExample(file: string, anchor: string): Promise<string[
     if (match && match[2] == anchor) {
       while (row < lines.length) {
         const offset = match[1].length;
-        const line2 = lines[row++].substr(offset);
+        const line2 = lines[row++].slice(offset);
         const match2 = /\/\/ <\/docs>/.exec(line2);
         if (match2) {
           break;
@@ -144,8 +144,8 @@ function breakLongLine(longLine: string): string[] {
       output.push(longLine);
       break;
     }
-    output.push(longLine.substr(0, lastWhitespace - 1));
-    longLine = longLine.substr(lastWhitespace).trim();
+    output.push(longLine.slice(0, lastWhitespace - 1));
+    longLine = longLine.slice(lastWhitespace).trim();
   }
   return output;
 }

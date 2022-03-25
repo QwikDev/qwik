@@ -760,12 +760,13 @@ function insertBefore<T extends Node>(
 function appendStyle(ctx: RenderContext, hostElement: Element, styleTask: StyleAppend) {
   const fn = () => {
     const containerEl = ctx.containerEl;
-    if (!containerEl.querySelector(`style[q\\:style="${styleTask.scope}"]`)) {
+    const stylesParent =
+      ctx.doc.documentElement === containerEl ? ctx.doc.head ?? containerEl : containerEl;
+    if (!stylesParent.querySelector(`style[q\\:style="${styleTask.scope}"]`)) {
       const style = ctx.doc.createElement('style');
-      const stylesParent = ctx.doc.documentElement === containerEl ? ctx.doc.head : containerEl;
       style.setAttribute('q:style', styleTask.scope);
       style.textContent = styleTask.content;
-      stylesParent.insertBefore(style, containerEl.firstChild);
+      stylesParent.insertBefore(style, stylesParent.firstChild);
     }
   };
   ctx.operations.push({

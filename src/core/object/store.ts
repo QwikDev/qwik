@@ -4,8 +4,8 @@ import { parseQRL, QRLSerializeOptions, stringifyQRL } from '../import/qrl';
 import { isQrl, QRLInternal } from '../import/qrl-class';
 import { getContext } from '../props/props';
 import { getDocument } from '../util/dom';
-import { isDocument, isElement } from '../util/element';
-import { logError, logWarn } from '../util/log';
+import { isElement } from '../util/element';
+import { logDebug, logError, logWarn } from '../util/log';
 import {
   ELEMENT_ID,
   ELEMENT_ID_PREFIX,
@@ -34,15 +34,14 @@ export type GetObjID = (obj: any) => string | null;
 export const UNDEFINED_PREFIX = '\u0010';
 export const QRL_PREFIX = '\u0011';
 
-export function resume(elmOrDoc: Element | Document) {
-  const parentElm = isDocument(elmOrDoc) ? elmOrDoc.documentElement : elmOrDoc;
-  if (!isContainer(parentElm)) {
-    // logWarn('Skipping hydration because parent element is not q:container');
+export function resume(containerEl: Element) {
+  if (!isContainer(containerEl)) {
+    logWarn('Skipping hydration because parent element is not q:container');
     return;
   }
-  const doc = getDocument(elmOrDoc);
-  const isDoc = isDocument(elmOrDoc) || elmOrDoc === doc.documentElement;
-  const parentJSON = isDoc ? doc.body : parentElm;
+  const doc = getDocument(containerEl);
+  const isDocElement = containerEl === doc.documentElement;
+  const parentJSON = isDocElement ? doc.body : containerEl;
   const script = getQwikJSON(parentJSON);
   if (!script) {
     logWarn('Skipping hydration qwik/json metadata was not found.');
@@ -55,7 +54,7 @@ export function resume(elmOrDoc: Element | Document) {
 
   // Collect all elements
   const elements = new Map<string, Element>();
-  getNodesInScope(parentElm, hasQId).forEach((el) => {
+  getNodesInScope(containerEl, hasQId).forEach((el) => {
     const id = el.getAttribute(ELEMENT_ID)!;
     elements.set(ELEMENT_ID_PREFIX + id, el);
   });
@@ -73,7 +72,7 @@ export function resume(elmOrDoc: Element | Document) {
   }
 
   // Walk all elements with q:obj and resume their state
-  getNodesInScope(parentElm, hasQObj).forEach((el) => {
+  getNodesInScope(containerEl, hasQObj).forEach((el) => {
     const qobj = el.getAttribute(QObjAttr)!;
     const host = el.getAttribute(QHostAttr);
     const ctx = getContext(el);
@@ -93,18 +92,21 @@ export function resume(elmOrDoc: Element | Document) {
       ctx.renderQrl = ctx.refMap.get(renderQrl);
     }
   });
+  containerEl.setAttribute(QContainerAttr, 'resumed');
+  if (qDev) {
+    logDebug('Container resumed', containerEl);
+  }
 }
 
-export function snapshotState(elmOrDoc: Element | Document) {
-  const doc = getDocument(elmOrDoc);
-  const parentElm = isDocument(elmOrDoc) ? elmOrDoc.documentElement : elmOrDoc;
+export function snapshotState(containerEl: Element) {
+  const doc = getDocument(containerEl);
   const proxyMap = getProxyMap(doc);
   const objSet = new Set<any>();
   const platform = getPlatform(doc);
   const elementToIndex = new Map<Element, string | null>();
 
   // Collect all qObjected around the DOM
-  const elements = getNodesInScope(parentElm, hasQObj);
+  const elements = getNodesInScope(containerEl, hasQObj);
   elements.forEach((node) => {
     const props = getContext(node);
     const qMap = props.refMap;

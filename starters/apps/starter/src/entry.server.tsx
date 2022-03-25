@@ -28,7 +28,7 @@ export function render(opts: RenderToStringOptions) {
     </html>,
     {
       ...opts,
-      base: '/',
+      // base: '/',
     }
   );
 }

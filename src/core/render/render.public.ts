@@ -8,9 +8,9 @@ import { then } from '../util/promises';
 import { getRenderingState } from './notify-render';
 import { getDocument } from '../util/dom';
 import { qDev, qTest } from '../util/qdev';
-import { resumeIfNeeded } from '../props/props';
 import { version } from '../version';
 import { QContainerAttr } from '../util/markers';
+import { logError } from '../util/log';
 
 /**
  * Render JSX.
@@ -27,15 +27,18 @@ import { QContainerAttr } from '../util/markers';
 export function render(
   parent: Element | Document,
   jsxNode: JSXNode<unknown> | FunctionComponent<any>
-): ValueOrPromise<RenderContext> {
+): ValueOrPromise<RenderContext | undefined> {
   // If input is not JSX, convert it
   if (!isJSXNode(jsxNode)) {
     jsxNode = jsx(jsxNode, null);
   }
   const doc = getDocument(parent);
   const containerEl = getElement(parent);
-  resumeIfNeeded(containerEl);
-  injectQVersion(containerEl);
+  if (qDev && containerEl.hasAttribute('q:container')) {
+    logError('You can render over a existing q:container. Skipping render().');
+    return;
+  }
+  injectQContainer(containerEl);
 
   const ctx: RenderContext = {
     doc,
@@ -79,7 +82,7 @@ export function getElement(docOrElm: Document | Element): Element {
   return isDocument(docOrElm) ? docOrElm.documentElement : docOrElm;
 }
 
-export function injectQVersion(containerEl: Element) {
+export function injectQContainer(containerEl: Element) {
   containerEl.setAttribute('q:version', version || '');
-  containerEl.setAttribute(QContainerAttr, '');
+  containerEl.setAttribute(QContainerAttr, 'resumed');
 }

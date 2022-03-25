@@ -15,6 +15,7 @@ import { TwoListeners } from './components/two-listeners/twolisteners';
 import { Render } from './components/render/render';
 import { Events } from './components/events/events';
 import { Async } from './components/async/async';
+import { Containers } from './components/containers/container';
 
 /**
  * Entry point for server-side pre-rendering.
@@ -32,8 +33,25 @@ export function render(opts: RenderToStringOptions) {
     '/e2e/render': () => <Render />,
     '/e2e/events': () => <Events />,
     '/e2e/async': () => <Async />,
+    '/e2e/container': () => <Containers />,
   };
   const Test = tests[url.pathname];
+
+  // Render segment instead
+  if (url.searchParams.has('fragment')) {
+    const loader = url.searchParams.get('loader') !== 'false';
+    return renderToString(
+      <>
+        {loader && <QwikLoader debug={opts.debug} events={['click']} />}
+        <Test />
+      </>,
+      {
+        ...opts,
+        fragmentTagName: 'div',
+      }
+    );
+  }
+
   return renderToString(
     <html>
       <head>
@@ -45,9 +63,6 @@ export function render(opts: RenderToStringOptions) {
         <QwikLoader debug={opts.debug} events={['click']} />
       </body>
     </html>,
-    {
-      ...opts,
-      base: '/',
-    }
+    opts
   );
 }

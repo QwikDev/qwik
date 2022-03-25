@@ -3,5 +3,8 @@
   "qwik": {
     "priority": 0,
     "featureOptions": []
+  },
+  "dependencies": {
+    "node-fetch": "^3.2.3"
   }
 }

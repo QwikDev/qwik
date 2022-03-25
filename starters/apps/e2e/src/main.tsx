@@ -7,22 +7,25 @@ export const Main = component$(() => {
     return (
       <section>
         <p>
-          <a href="/slot">Slot</a>
+          <a href="/e2e/slot">Slot</a>
         </p>
         <p>
-          <a href="/render">Render</a>
+          <a href="/e2e/render">Render</a>
         </p>
         <p>
-          <a href="/lexical-scope">Lexical scope</a>
+          <a href="/e2e/lexical-scope">Lexical scope</a>
         </p>
         <p>
-          <a href="/two-listeners">Two listener</a>
+          <a href="/e2e/two-listeners">Two listener</a>
         </p>
         <p>
-          <a href="/events">Events</a>
+          <a href="/e2e/events">Events</a>
         </p>
         <p>
-          <a href="/async">Async</a>
+          <a href="/e2e/async">Async</a>
+        </p>
+        <p>
+          <a href="/e2e/container">Container</a>
         </p>
       </section>
     );

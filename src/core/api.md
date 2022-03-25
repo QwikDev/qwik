@@ -267,7 +267,7 @@ export namespace QwikJSX {
 }
 
 // @public
-export function render(parent: Element | Document, jsxNode: JSXNode<unknown> | FunctionComponent<any>): ValueOrPromise<RenderContext>;
+export function render(parent: Element | Document, jsxNode: JSXNode<unknown> | FunctionComponent<any>): ValueOrPromise<RenderContext | undefined>;
 
 // @public (undocumented)
 export type RenderableProps<P, RefType = any> = P & Readonly<{

@@ -7,16 +7,15 @@ import { getDocument } from '../util/dom';
 import { newQObjectMap, QObjectMap } from './props-obj-map';
 import { qPropWriteQRL, qPropReadQRL } from './props-on';
 import type { QRLInternal } from '../import/qrl-class';
+import { QContainerAttr } from '../util/markers';
 
 Error.stackTraceLimit = 9999;
 
-const Q_IS_RESUMED = '__isResumed__';
 const Q_CTX = '__ctx__';
 
 export function resumeIfNeeded(containerEl: Element): void {
-  const isHydrated = (containerEl as any)[Q_IS_RESUMED];
-  if (!isHydrated) {
-    (containerEl as any)[Q_IS_RESUMED] = true;
+  const isResumed = containerEl.getAttribute(QContainerAttr);
+  if (isResumed === 'paused') {
     resume(containerEl);
   }
 }

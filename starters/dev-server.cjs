@@ -86,6 +86,11 @@ async function buildApp(appDir) {
           }
           return null;
         },
+        renderDynamicImport({ targetModuleId }) {
+          if (targetModuleId === 'node-fetch') {
+            return { left: 'import(', right: ')' };
+          }
+        },
         resolveId(id) {
           if (id === '@builder.io/qwik') {
             delete require.cache[qwikDistCorePath];
@@ -179,20 +184,10 @@ async function ssrApp(req, appName, appDir, symbols) {
     symbols,
     url: new URL(`${req.protocol}://${req.hostname}${req.url}`),
     debug: true,
+    base: `/${appName}/build/`,
   });
 
-  // modify the ssr'd document so we can update the paths only for this
-  // local testing dev server (we don't need to do this for actual starters)
-  const doc = createDocument(result.html);
-  doc.documentElement.setAttribute('q:base', `/${appName}/build/`);
-  const hrefElms = Array.from(doc.querySelectorAll('[href]'));
-  hrefElms.forEach((hrefElm) => {
-    const href = hrefElm.getAttribute('href') || '';
-    if (href.startsWith('/')) {
-      hrefElm.setAttribute('href', `/${appName}${href}`);
-    }
-  });
-  return '<!DOCTYPE html>' + doc.documentElement.outerHTML;
+  return result.html;
 }
 
 function requireUncached(module) {

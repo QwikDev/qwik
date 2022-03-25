@@ -5,6 +5,7 @@ import { getTestPlatform } from '../../testing/platform';
 import { useScopedStyles$, component$ } from '../component/component.public';
 import { runtimeQrl } from '../import/qrl';
 import { $ } from '../import/qrl.public';
+import { snapshot } from '../object/store.public';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
 import { ComponentScopedStyles, ComponentStylesPrefixContent } from '../util/markers';
 import { Async, JSXPromise, PromiseValue } from './jsx/async.public';
@@ -20,7 +21,10 @@ describe('render', () => {
       await render(fixture.host, <div></div>);
       expectRendered(<div></div>);
       expect(fixture.host.getAttribute('q:version')).toEqual('');
-      expect(fixture.host.getAttribute('q:container')).toEqual('');
+      expect(fixture.host.getAttribute('q:container')).toEqual('resumed');
+
+      snapshot(fixture.host);
+      expect(fixture.host.getAttribute('q:container')).toEqual('paused');
     });
 
     it('should only render string/number', async () => {

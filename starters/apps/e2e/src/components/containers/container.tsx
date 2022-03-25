@@ -39,10 +39,10 @@ export const Container = component$((props: ContainerProps) => {
   `);
   return $(async () => {
     const url = `http://localhost:3300${props.url}?fragment&loader=false`;
-    const { default: fetch } = await import('node-fetch');
-
-    const res = await fetch(url);
-    const html = await res.text();
+    // const { default: fetch } = await import('node-fetch');
+    // const res = await fetch(url);
+    // const html = await res.text();
+    const html = '';
     return (
       <Host class="container">
         <div class="url">{url}</div>

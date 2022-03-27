@@ -208,7 +208,7 @@ export type PromiseValue<T> = {
 export type Props<T extends {} = {}> = Record<string, any> & T;
 
 // @public
-export type PropsOf<COMP extends (props: any) => (JSXNode<any> | null)> = COMP extends (props: infer PROPS) => (JSXNode<any> | null) ? NonNullable<PROPS> : never;
+export type PropsOf<COMP extends (props: any) => JSXNode<any> | null> = COMP extends (props: infer PROPS) => JSXNode<any> | null ? NonNullable<PROPS> : never;
 
 // @public
 export interface QRL<TYPE = any> {

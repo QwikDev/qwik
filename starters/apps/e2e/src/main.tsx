@@ -27,6 +27,9 @@ export const Main = component$(() => {
         <p>
           <a href="/e2e/container">Container</a>
         </p>
+        <p>
+          <a href="/e2e/factory">Factory</a>
+        </p>
       </section>
     );
   });

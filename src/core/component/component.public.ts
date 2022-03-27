@@ -225,10 +225,10 @@ export const useScopedStyles$ = implicit$FirstArg(useScopedStylesQrl);
  * @public
  */
 // </docs>
-export type PropsOf<COMP extends (props: any) => JSXNode> = COMP extends (
+export type PropsOf<COMP extends (props: any) => JSXNode<any> | null> = COMP extends (
   props: infer PROPS
-) => JSXNode<any>
-  ? PROPS
+) => JSXNode<any> | null
+  ? NonNullable<PROPS>
   : never;
 
 /**
@@ -237,6 +237,11 @@ export type PropsOf<COMP extends (props: any) => JSXNode> = COMP extends (
 export interface ComponentOptions {
   tagName?: string;
 }
+
+/**
+ * @public
+ */
+export type Component<PROPS extends {}> = FunctionComponent<PublicProps<PROPS>>;
 
 export type PublicProps<PROPS extends {}> = PROPS & On$Props<PROPS> & ComponentBaseProps;
 
@@ -312,15 +317,8 @@ export type EventHandler<T> = QRL<(value: T) => any>;
 // </docs>
 export function componentQrl<PROPS extends {}>(
   onMount: QRL<OnMountFn<PROPS>>,
-  options?: ComponentOptions
-): (props: PublicProps<PROPS>) => JSXNode<PROPS>;
-/**
- * @public
- */
-export function componentQrl<PROPS extends {}>(
-  onMount: QRL<OnMountFn<PROPS>>,
   options: ComponentOptions = {}
-): FunctionComponent<PublicProps<PROPS>> {
+): Component<PROPS> {
   const tagName = options.tagName ?? 'div';
 
   // Return a QComponent Factory function.
@@ -331,6 +329,7 @@ export function componentQrl<PROPS extends {}>(
       const ctx = getContext(hostElement);
       const props = getProps(ctx) as any;
       const invokeCtx = newInvokeContext(getDocument(hostElement), hostElement, hostElement);
+      invokeCtx.qrl = onMountQrl;
       const renderQRL = (await useInvoke(invokeCtx, onMountFn, props)) as QRLInternal;
       return {
         renderQRL,
@@ -406,7 +405,7 @@ export function componentQrl<PROPS extends {}>(
 export function component$<PROPS extends {}>(
   onMount: OnMountFn<PROPS>,
   options?: ComponentOptions
-): (props: PublicProps<PROPS>) => JSXNode<PROPS> {
+): Component<PROPS> {
   return componentQrl<PROPS>($(onMount), options);
 }
 

@@ -12,10 +12,10 @@ export function $<T>(expression: T): QRL<T>;
 // @public
 export function Async<T>(props: AsyncProps<T>): JSXNode<any>;
 
-// Warning: (ae-forgotten-export) The symbol "PublicProps" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "Component" needs to be exported by the entry point index.d.ts
 //
 // @public
-export function component$<PROPS extends {}>(onMount: OnMountFn<PROPS>, options?: ComponentOptions): (props: PublicProps<PROPS>) => JSXNode<PROPS>;
+export function component$<PROPS extends {}>(onMount: OnMountFn<PROPS>, options?: ComponentOptions): Component<PROPS>;
 
 // @public (undocumented)
 export type ComponentChild = JSXNode<any> | object | string | number | bigint | boolean | null | undefined;
@@ -30,7 +30,7 @@ export interface ComponentOptions {
 }
 
 // @public
-export function componentQrl<PROPS extends {}>(onMount: QRL<OnMountFn<PROPS>>, options?: ComponentOptions): (props: PublicProps<PROPS>) => JSXNode<PROPS>;
+export function componentQrl<PROPS extends {}>(onMount: QRL<OnMountFn<PROPS>>, options?: ComponentOptions): Component<PROPS>;
 
 // @public (undocumented)
 export interface CorePlatform {
@@ -208,7 +208,7 @@ export type PromiseValue<T> = {
 export type Props<T extends {} = {}> = Record<string, any> & T;
 
 // @public
-export type PropsOf<COMP extends (props: any) => JSXNode> = COMP extends (props: infer PROPS) => JSXNode<any> ? PROPS : never;
+export type PropsOf<COMP extends (props: any) => JSXNode<any> | null> = COMP extends (props: infer PROPS) => JSXNode<any> | null ? NonNullable<PROPS> : never;
 
 // @public
 export interface QRL<TYPE = any> {

@@ -27,6 +27,7 @@ export const renderComponent = (rctx: RenderContext, ctx: QContext) => {
   const hostElement = ctx.element as HTMLElement;
   const onRenderQRL = ctx.renderQrl!;
   assertDefined(onRenderQRL);
+  onRenderQRL.setContainer(rctx.containerEl);
   const onRenderFn = onRenderQRL.invokeFn();
 
   // Component is not dirty any more

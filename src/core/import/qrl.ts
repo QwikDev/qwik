@@ -17,6 +17,7 @@ import { logError } from '../util/log';
 import { then } from '../util/promises';
 import { getPlatform } from '../platform/platform';
 import { unwrapSubscriber } from '../use/use-subscriber';
+import { tryGetInvokeContext } from '../use/use-core';
 
 let runtimeSymbolId = 0;
 const RUNTIME_QRL = '/runtimeQRL';
@@ -123,7 +124,12 @@ export function qrl<T = any>(
       lexicalScopeCapture[i] = unwrapSubscriber(lexicalScopeCapture[i]);
     }
   }
-  return new QRLInternal<T>(chunk, symbol, null, symbolFn, null, lexicalScopeCapture);
+  const qrl = new QRLInternal<T>(chunk, symbol, null, symbolFn, null, lexicalScopeCapture);
+  const ctx = tryGetInvokeContext();
+  if (ctx && ctx.element) {
+    qrl.setContainer(ctx.element);
+  }
+  return qrl;
 }
 
 export function runtimeQrl<T>(symbol: T, lexicalScopeCapture: any[] = EMPTY_ARRAY): QRL<T> {

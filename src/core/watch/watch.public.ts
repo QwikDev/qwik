@@ -1,16 +1,19 @@
-import type { QRLInternal } from '../import/qrl-class';
+import { noSerialize, NoSerialize } from '../object/q-object';
 import { implicit$FirstArg, QRL } from '../import/qrl.public';
+import { getContext } from '../props/props';
+import { useWaitOn } from '../use/use-core';
 import { useHostElement } from '../use/use-host-element.public';
-import { useProps } from '../use/use-props.public';
-import { registerOnWatch, WatchFn } from './watch';
+import { logError } from '../util/log';
+import { then } from '../util/promises';
+import { wrapSubscriber } from '../use/use-subscriber';
 
-// <docs markdown="https://hackmd.io/_Kl9br9tT8OB-1Dv8uR4Kg#onWatch">
+// <docs markdown="https://hackmd.io/_Kl9br9tT8OB-1Dv8uR4Kg#useWatch">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2F_Kl9br9tT8OB-1Dv8uR4Kg%3Fboth#onWatch instead)
+// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2F_Kl9br9tT8OB-1Dv8uR4Kg%3Fboth#useWatch instead)
 /**
  * Reruns the `watchFn` when the observed inputs change.
  *
- * Use `onWatch` to observe changes on a set of inputs, and then re-execute the `watchFn` when
+ * Use `useWatch` to observe changes on a set of inputs, and then re-execute the `watchFn` when
  * those inputs change.
  *
  * The `watchFn` only executes if the observed inputs change. To observe the inputs use the `obs`
@@ -23,14 +26,14 @@ import { registerOnWatch, WatchFn } from './watch';
  *
  * ## Example
  *
- * The `onWatch` function is used to observe the `state.count` property. Any changes to the
+ * The `useWatch` function is used to observe the `state.count` property. Any changes to the
  * `state.count` cause the `watchFn` to execute which in turn updates the `state.doubleCount` to
  * the double of `state.count`.
  *
  * ```typescript
  * export const MyComp = component$(() => {
  *   const store = useStore({ count: 0, doubleCount: 0 });
- *   onWatch$((obs) => {
+ *   useWatch$((obs) => {
  *     store.doubleCount = 2 * obs(store).count;
  *   });
  *   return $(() => (
@@ -49,17 +52,58 @@ import { registerOnWatch, WatchFn } from './watch';
  * @public
  */
 // </docs>
-export function onWatchQrl(watchFn: QRL<(obs: Observer) => unknown | (() => void)>): void {
-  registerOnWatch(useHostElement(), useProps(), watchFn as QRLInternal<WatchFn>);
+export function useWatchQrl(watchQrl: QRL<(obs: Observer) => void | (() => void)>): void {
+  const hostElement = useHostElement();
+  const watch: WatchDescriptor = {
+    watchQrl: watchQrl,
+    hostElement,
+  };
+  getContext(hostElement).refMap.add(watch);
+  useWaitOn(runWatch(watch));
 }
 
-// <docs markdown="https://hackmd.io/_Kl9br9tT8OB-1Dv8uR4Kg#onWatch">
+export interface WatchDescriptor {
+  watchQrl: QRL<(obs: Observer) => void | (() => void)>;
+  hostElement: Element;
+  destroy?: NoSerialize<() => void>;
+  running?: NoSerialize<Promise<void>>;
+}
+
+export function runWatch(watch: WatchDescriptor) {
+  const promise = new Promise<void>((resolve) => {
+    return then(watch.running, () => {
+      const destroy = watch.destroy;
+      if (destroy) {
+        watch.destroy = undefined;
+        try {
+          destroy();
+        } catch (err) {
+          logError(err);
+        }
+      }
+      const hostElement = watch.hostElement;
+      const watchFn = watch.watchQrl.invokeFn(hostElement);
+      const obs = (obj: any) => wrapSubscriber(obj, watch);
+      resolve(
+        then(watchFn(obs), (returnValue) => {
+          if (typeof returnValue === 'function') {
+            watch.destroy = noSerialize(returnValue);
+          }
+        })
+      );
+    });
+  });
+  watch.running = noSerialize(promise);
+  return promise;
+}
+
+// <docs markdown="https://hackmd.io/_Kl9br9tT8OB-1Dv8uR4Kg#useWatch">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2F_Kl9br9tT8OB-1Dv8uR4Kg%3Fboth#onWatch instead)
+// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2F_Kl9br9tT8OB-1Dv8uR4Kg%3Fboth#useWatch instead)
 /**
  * Reruns the `watchFn` when the observed inputs change.
  *
- * Use `onWatch` to observe changes on a set of inputs, and then re-execute the `watchFn` when
+ * Use `useWatch` to observe changes on a set of inputs, and then re-execute the `watchFn` when
  * those inputs change.
  *
  * The `watchFn` only executes if the observed inputs change. To observe the inputs use the `obs`
@@ -72,14 +116,14 @@ export function onWatchQrl(watchFn: QRL<(obs: Observer) => unknown | (() => void
  *
  * ## Example
  *
- * The `onWatch` function is used to observe the `state.count` property. Any changes to the
+ * The `useWatch` function is used to observe the `state.count` property. Any changes to the
  * `state.count` cause the `watchFn` to execute which in turn updates the `state.doubleCount` to
  * the double of `state.count`.
  *
  * ```typescript
  * export const MyComp = component$(() => {
  *   const store = useStore({ count: 0, doubleCount: 0 });
- *   onWatch$((obs) => {
+ *   useWatch$((obs) => {
  *     store.doubleCount = 2 * obs(store).count;
  *   });
  *   return $(() => (
@@ -98,7 +142,7 @@ export function onWatchQrl(watchFn: QRL<(obs: Observer) => unknown | (() => void
  * @public
  */
 // </docs>
-export const onWatch$ = implicit$FirstArg(onWatchQrl);
+export const useWatch$ = implicit$FirstArg(useWatchQrl);
 
 // <docs markdown="https://hackmd.io/_Kl9br9tT8OB-1Dv8uR4Kg#Observer">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -106,7 +150,7 @@ export const onWatch$ = implicit$FirstArg(onWatchQrl);
 /**
  * Used to signal to Qwik which state should be watched for changes.
  *
- * The `Observer` is passed into the `watchFn` of `onWatch`. It is intended to be used to wrap
+ * The `Observer` is passed into the `watchFn` of `useWatch`. It is intended to be used to wrap
  * state objects in a read proxy which signals to Qwik which properties should be watched for
  * changes. A change to any of the properties cause the `watchFn` to re-run.
  *
@@ -118,7 +162,7 @@ export const onWatch$ = implicit$FirstArg(onWatchQrl);
  * ```typescript
  * export const MyComp = component$(() => {
  *   const store = useStore({ count: 0, doubleCount: 0 });
- *   onWatch$((obs) => {
+ *   useWatch$((obs) => {
  *     store.doubleCount = 2 * obs(store).count;
  *   });
  *   return $(() => (
@@ -133,7 +177,7 @@ export const onWatch$ = implicit$FirstArg(onWatchQrl);
  * ```
  *
  *
- * See: `onWatch`
+ * See: `useWatch`
  *
  * @public
  */
@@ -145,7 +189,7 @@ export interface Observer {
   /**
    * Used to signal to Qwik which state should be watched for changes.
    *
-   * The `Observer` is passed into the `watchFn` of `onWatch`. It is intended to be used to wrap
+   * The `Observer` is passed into the `watchFn` of `useWatch`. It is intended to be used to wrap
    * state objects in a read proxy which signals to Qwik which properties should be watched for
    * changes. A change to any of the properties cause the `watchFn` to re-run.
    *
@@ -157,7 +201,7 @@ export interface Observer {
    * ```typescript
    * export const MyComp = component$(() => {
    *   const store = useStore({ count: 0, doubleCount: 0 });
-   *   onWatch$((obs) => {
+   *   useWatch$((obs) => {
    *     store.doubleCount = 2 * obs(store).count;
    *   });
    *   return $(() => (
@@ -172,7 +216,7 @@ export interface Observer {
    * ```
    *
    *
-   * See: `onWatch`
+   * See: `useWatch`
    *
    * @public
    */

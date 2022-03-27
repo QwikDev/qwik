@@ -64,7 +64,7 @@ export function resume(containerEl: Element) {
   };
 
   // Revive proxies with subscriptions into the proxymap
-  reviveValues(meta.objs, meta.subs, elements, map, parentJSON);
+  reviveValues(meta.objs, meta.subs, getObject, map, parentJSON);
 
   // Rebuild target objects
   for (const obj of meta.objs) {
@@ -171,8 +171,8 @@ export function snapshotState(containerEl: Element) {
       const subs = proxyMap.get(obj)?.[QOjectSubsSymbol] as Map<Element, Set<string>>;
       if (subs) {
         return Object.fromEntries(
-          Array.from(subs.entries()).map(([el, set]) => {
-            const id = getElementID(el);
+          Array.from(subs.entries()).map(([sub, set]) => {
+            const id = getObjId(sub);
             if (id !== null) {
               return [id, Array.from(set)];
             } else {
@@ -284,7 +284,7 @@ export function walkNodes(nodes: Element[], parent: Element, predicate: (el: Ele
 function reviveValues(
   objs: any[],
   subs: any[],
-  elementMap: Map<string, Element>,
+  getObject: GetObject,
   map: ObjToProxyMap,
   containerEl: Element
 ) {
@@ -301,7 +301,7 @@ function reviveValues(
       if (sub) {
         const converted = new Map();
         Object.entries(sub).forEach((entry) => {
-          const el = elementMap.get(entry[0]);
+          const el = getObject(entry[0]);
           if (!el) {
             logWarn(
               'QWIK can not revive subscriptions because of missing element ID',

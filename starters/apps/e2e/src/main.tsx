@@ -30,6 +30,9 @@ export const Main = component$(() => {
         <p>
           <a href="/e2e/factory">Factory</a>
         </p>
+        <p>
+          <a href="/e2e/watch">Watch</a>
+        </p>
       </section>
     );
   });

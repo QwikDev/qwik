@@ -48,7 +48,7 @@ export const OnThisPage = component$(
                         block: true,
                         indent: h.level > 2,
                       }}
-                      onClick$={onClick}
+                      onClickQrl={onClick}
                     >
                       {h.text}
                     </a>

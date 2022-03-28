@@ -40,7 +40,6 @@ export interface BuildConfig {
   esmNode: boolean;
   distVersion: string;
   platformTarget?: string;
-  bazelOutputDir?: string;
 
   api?: boolean;
   build?: boolean;
@@ -66,17 +65,14 @@ export interface BuildConfig {
  */
 export function loadConfig(args: string[] = []) {
   const config: BuildConfig = mri(args) as any;
-  config.bazelOutputDir = config.bazelOutputDir && join(process.cwd(), config.bazelOutputDir);
 
   config.rootDir = join(__dirname, '..');
-  config.distDir = join(config.bazelOutputDir || config.rootDir, 'dist-dev');
+  config.distDir = join(config.rootDir, 'dist-dev');
   config.srcDir = join(config.rootDir, 'src');
   config.srcNapiDir = join(config.srcDir, 'napi');
   config.scriptsDir = join(config.rootDir, 'scripts');
   config.startersDir = join(config.rootDir, 'starters');
-  config.distPkgDir = config.bazelOutputDir
-    ? join(join(config.bazelOutputDir, 'package'))
-    : join(config.distDir, '@builder.io-qwik');
+  config.distPkgDir = join(config.distDir, '@builder.io-qwik');
   config.distBindingsDir = join(config.distPkgDir, 'bindings');
   config.tscDir = join(config.distDir, 'tsc-out');
   config.esmNode = parseInt(process.version.slice(1).split('.')[0], 10) >= 14;

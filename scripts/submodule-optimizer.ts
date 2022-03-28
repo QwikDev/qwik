@@ -171,7 +171,6 @@ async function generatePlatformBindingsData(config: BuildConfig) {
     await access(platformBindingPath, constants.W_OK);
     isWritable = true;
   } catch (e) {
-    // When running under bazel source files are read only.
     isWritable = false;
   }
   if (isWritable) {

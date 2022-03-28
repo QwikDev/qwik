@@ -15,7 +15,7 @@
     "tsc.check": "tsc --noEmit",
     "tsc.watch": "tsc --noEmit --watch --preserveWatchOutput",
     "start": "concurrently \"npm:build.watch\" \"npm:test.watch\" \"npm:tsc.watch\" -n build,test,tsc -c green,magenta,cyan",
-    "release.prepare": "npm run lint && npm run test.unit && node scripts --tsc --build --api --platform-binding --wasm --prepare-release",
+    "release.prepare": "npm run lint && npm run test.unit && node scripts --tsc --build --api --eslint --platform-binding --wasm --prepare-release",
     "test": "npm run build && jest && npm run test.e2e",
     "test.unit": "jest",
     "test.rust": "make test",

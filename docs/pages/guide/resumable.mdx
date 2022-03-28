@@ -18,7 +18,7 @@ The above step is expensive for two reasons:
 1. The frameworks have to download all of the component code associated with the current page.
 2. The frameworks have to execute the templates associated with the components on the page to rebuild the listener location and the internal component tree.
 
-The above describes why the current generation of frameworks have an expensive startup which is proportional to the complexity of the application which is being resumed. The more complex the application is, the more expensive the hydration cost, both in terms of the code to download and the code to execute.
+The above describes why the current generation of frameworks have an expensive startup which is proportional to the complexity of the application which is being hydrated. The more complex the application is, the more expensive the hydration cost, both in terms of the code to download and the code to execute.
 
 Hydration is a fundamental property of the current generation of frameworks.
 
@@ -42,7 +42,7 @@ Qwik solves the above issue by serializing the event listens into DOM like so:
 <button onClickQrl="./chunk.js#handler_symbol">click me</button>
 ```
 
-Qwik still needs to collect the listener information, but this step is done as part of the SSR/SSG. The results of SSR/SSG are then serialized into HTML so that the browser does not need to do anything to resume the execution. Notice that the `on:click attribute contains all of the information to resume the application without doing anything eagerly.
+Qwik still needs to collect the listener information, but this step is done as part of the SSR/SSG. The results of SSR/SSG are then serialized into HTML so that the browser does not need to do anything to resume the execution. Notice that the `onClickQrl` attribute contains all of the information to resume the application without doing anything eagerly.
 
 1. Qwikloader sets up a single global listener instead of many individual listeners per DOM element. This step can be done with no application code present.
 2. The HTML contains a URL to the chunk and symbol name. The attribute tells Qwikloader which code chunk to download and which symbol to retrieve from the chunk.
@@ -66,4 +66,4 @@ Existing frameworks usually have a way of serializing the application state into
 
 The above describes the differences that make Qwik resumable. Qwik startup performance is fast because there is no startup. There is nothing that Qwik needs to do eagerly to resume the application.
 
-A good mental model is that Qwik applications at any point in their lifecycle can be serialized and moved to a different VM instance. (Server to browser). There, the application simply resumes where the serialization stopped. No hydration is required. This is why we say that Qwik applications don't resume; they resume.
+A good mental model is that Qwik applications at any point in their lifecycle can be serialized and moved to a different VM instance. (Server to browser). There, the application simply resumes where the serialization stopped. No hydration is required. This is why we say that Qwik applications don't hydrate; they resume.

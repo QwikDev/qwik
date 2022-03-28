@@ -89,32 +89,6 @@ to [@builder.io/qwik](https://www.npmjs.com/package/@builder.io/qwik).
 
 - [Starter CLI](https://github.com/BuilderIO/qwik/blob/main/starters/README.md)
 
-## Bazel
-
-Bazel is currently used for further testing and builds between internal repos. However, it is not required for local development and contribution to Qwik.
-
-### Setting up the Bazel environment
-
-Best way to run `bazel` is with [`bazelisk`](https://github.com/bazelbuild/bazelisk) which will automatically download and execute the right version of `bazel`.
-
-_preferred way_
-
-```
-brew install bazelisk
-```
-
-or
-
-```
-npm install -g @bazel/bazelisk
-```
-
-`Bazel` will invoke `Yarn` and manage all dependencies.
-
-### `bazel` vs `ibazel`
-
-The difference between `bazel` and `ibazel` is that `ibazel` will re-invoke `bazel` if any relevant files change. This is useful for constantly updating the server and or tests as they are being developed. All commands are listed as `bazel`, but can be replaced for `ibazel` as needed.
-
 ## Pre-submit hooks
 
 The project has pre-submit hooks, which ensure that your code is correctly formatted. You can run them manually like so:

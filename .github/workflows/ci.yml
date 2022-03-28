@@ -108,7 +108,7 @@ jobs:
       - name: Upload Eslint rules Build Artifacts
         uses: actions/upload-artifact@master
         with:
-          name: dist-dev-eslint-plugin-qwik/
+          name: dist-dev-eslint-plugin-qwik
           path: dist-dev/eslint-plugin-qwik/
           if-no-files-found: error
 

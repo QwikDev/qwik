@@ -23,6 +23,7 @@ import { tsc } from './tsc';
 import { validateBuild } from './validate-build';
 import { buildCli } from './cli';
 import { submoduleBuild } from './submodule-build';
+import { buildEslint } from './eslint';
 
 /**
  * Complete a full build for all of the package's submodules. Passed in
@@ -78,6 +79,10 @@ export async function build(config: BuildConfig) {
       // server bundling must happen after the results from the others
       // because it inlines the qwik loader and prefetch scripts
       await submoduleServer(config);
+    }
+
+    if (config.eslint) {
+      await buildEslint(config);
     }
 
     if (config.platformBinding) {

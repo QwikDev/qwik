@@ -17,6 +17,7 @@ import { Events } from './components/events/events';
 import { Async } from './components/async/async';
 import { Containers } from './components/containers/container';
 import { Factory } from './components/factory/factory';
+import { Watch } from './components/watch/watch';
 
 /**
  * Entry point for server-side pre-rendering.
@@ -36,6 +37,7 @@ export function render(opts: RenderToStringOptions) {
     '/e2e/async': () => <Async />,
     '/e2e/container': () => <Containers />,
     '/e2e/factory': () => <Factory />,
+    '/e2e/watch': () => <Watch />,
   };
   const Test = tests[url.pathname];
 

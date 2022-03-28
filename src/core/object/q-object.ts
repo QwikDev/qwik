@@ -3,9 +3,11 @@ import { QError, qError } from '../error/error';
 import { isQrl } from '../import/qrl-class';
 import { notifyRender } from '../render/notify-render';
 import { tryGetInvokeContext } from '../use/use-core';
+import { isElement } from '../util/element';
 import { logWarn } from '../util/log';
 import { qDev, qTest } from '../util/qdev';
 import { debugStringify } from '../util/stringify';
+import { runWatch, WatchDescriptor } from '../watch/watch.public';
 
 export type ObjToProxyMap = WeakMap<any, any>;
 export type QObject<T extends {}> = T & { __brand__: 'QObject' };
@@ -94,7 +96,10 @@ type TargetType = Record<string | symbol, any>;
 
 class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
   private subscriber?: Element;
-  constructor(private proxyMap: ObjToProxyMap, private subs = new Map<Element, Set<string>>()) {}
+  constructor(
+    private proxyMap: ObjToProxyMap,
+    private subs = new Map<Element | WatchDescriptor, Set<string>>()
+  ) {}
 
   getSub(el: Element) {
     let sub = this.subs.get(el);
@@ -147,15 +152,15 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
     const isArray = Array.isArray(target);
     if (isArray) {
       target[prop as any] = unwrappedNewValue;
-      this.subs.forEach((_, el) => notifyRender(el));
+      this.subs.forEach((_, sub) => notifyChange(sub));
       return true;
     }
     const oldValue = target[prop];
     if (oldValue !== unwrappedNewValue) {
       target[prop] = unwrappedNewValue;
-      this.subs.forEach((propSets, el) => {
+      this.subs.forEach((propSets, sub) => {
         if (propSets.has(prop)) {
-          notifyRender(el);
+          notifyChange(sub);
         }
       });
     }
@@ -171,6 +176,14 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
 
   ownKeys(target: TargetType): ArrayLike<string | symbol> {
     return Object.getOwnPropertyNames(target);
+  }
+}
+
+export function notifyChange(subscriber: Element | WatchDescriptor) {
+  if (isElement(subscriber)) {
+    notifyRender(subscriber);
+  } else {
+    runWatch(subscriber as WatchDescriptor);
   }
 }
 

@@ -5,12 +5,12 @@
 // it to the desired comment location
 //
 
-import { component$, useStore, $, onWatch$ } from '@builder.io/qwik';
+import { component$, useStore, $, useWatch$ } from '@builder.io/qwik';
 
-// <docs anchor="onWatch">
+// <docs anchor="useWatch">
 export const MyComp = component$(() => {
   const store = useStore({ count: 0, doubleCount: 0 });
-  onWatch$((obs) => {
+  useWatch$((obs) => {
     store.doubleCount = 2 * obs(store).count;
   });
   return $(() => (

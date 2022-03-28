@@ -1,4 +1,5 @@
 import { InvokeContext, newInvokeContext, tryGetInvokeContext, useInvoke } from '../use/use-core';
+import { then } from '../util/promises';
 import type { ValueOrPromise } from '../util/types';
 import { qrlImport, QRLSerializeOptions, stringifyQRL } from './qrl';
 import type { QRL as IQRL } from './qrl.public';
@@ -33,24 +34,27 @@ class QRL<TYPE = any> implements IQRL<TYPE> {
     if (el) {
       this.setContainer(el);
     }
-    return qrlImport(this.el, this);
+    return qrlImport(this.el, this as any);
   }
 
-  invokeFn(): (...args: any[]) => any {
-    return async (...args: any[]) => {
+  invokeFn(el?: Element): any {
+    return ((...args: any[]): any => {
       const currentCtx = tryGetInvokeContext();
-      const fn = typeof this.symbolRef === 'function' ? this.symbolRef : await this.resolve();
+      const fn = (typeof this.symbolRef === 'function' ? this.symbolRef : this.resolve(el)) as TYPE;
 
-      if (typeof fn === 'function') {
-        const context: InvokeContext = {
-          ...newInvokeContext(),
-          ...currentCtx,
-          qrl: this,
-        };
-        return useInvoke(context, fn as any, ...args);
-      }
-      throw new Error('QRL is not a function');
-    };
+      return then(fn, (fn) => {
+        if (typeof fn === 'function') {
+          const context: InvokeContext = {
+            ...newInvokeContext(),
+            ...currentCtx,
+            qrl: this,
+            waitOn: undefined,
+          };
+          return useInvoke(context, fn as any, ...args);
+        }
+        throw new Error('QRL is not a function');
+      });
+    }) as any;
   }
 
   copy(): QRLInternal<TYPE> {
@@ -64,11 +68,9 @@ class QRL<TYPE = any> implements IQRL<TYPE> {
     );
   }
 
-  async invoke<ARGS extends any[]>(
-    ...args: ARGS
-  ): Promise<TYPE extends (...args: any) => any ? ReturnType<TYPE> : never> {
+  invoke(...args: TYPE extends (...args: infer ARGS) => any ? ARGS : never) {
     const fn = this.invokeFn();
-    return fn(...args);
+    return fn(...args) as any;
   }
 
   serialize(options?: QRLSerializeOptions) {

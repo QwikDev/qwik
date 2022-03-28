@@ -30,7 +30,7 @@ Without Optimizer, a typical application would end up a single chunk because all
 
 All applications have a main entry point to get the application going. We call this the bootstrap code. Typically this involves importing the application root component and calling a framework method to render it. Rendering a root component, in turn, causes more components to be pulled in and rendered until the whole application renders.
 
-On hydration, the bootstrap again takes a root component and calls a framework method to re-resume the current HTML (meaning re-attach the listeners as well as rebuild the framework internal state about the application component tree.)
+On hydration, the bootstrap again takes a root component and calls a framework method to resume the current HTML (meaning re-attach the listeners as well as rebuild the framework internal state about the application component tree.)
 
 Qwik does not need to do hydration. Qwik still has a bootstrap method, but that typically executes on the server to render the initial application. There is no reboostrap on the client. Instead, Qwik serializes not only the application state into HTML but also the framework state as well. The serialized state allows the Qwik framework to continue execution where the server left off. Not requiring a reboostrap is what makes Qwik resumable.
 

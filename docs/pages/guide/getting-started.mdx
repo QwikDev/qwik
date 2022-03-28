@@ -111,7 +111,7 @@ While HMR is great for development, Qwik runs like a traditional framework, wher
 
 ## Running in production mode
 
-Qwik is SSR/SSG framework that can 1) start execution in `node.js` 2) can serialize the application state into HTML 3) resume the application from HTML in the browser. This section is a tour of those capabilities.
+Qwik is SSR/SSG framework that can 1) start execution in `node.js` 2) serialize the application state into HTML and 3) resume the application from HTML in the browser. This section is a tour of those capabilities.
 
 1. Build the application:
 
@@ -119,7 +119,7 @@ Qwik is SSR/SSG framework that can 1) start execution in `node.js` 2) can serial
 $ npm run build
 ```
 
-2. Results in output similar to this.
+2. Results in output similar to this:
 
 ```shell
 > qwik-todo@0.0.0 build /Users/misko/qwik-todo
@@ -153,17 +153,17 @@ server/build/entry.express.js   13.23 KiB
 
 There are three parts to the build:
 
-1. TypeScript compilation which is performed with `tsc`.
+1. TypeScript compilation which is performed with `tsc`
 2. Bundling for the client
 3. Bundling for the server
 
 Because Qwik applications start their execution on the server and then resume on the client, it is necessary to bundle the application twice. There are a few reasons for this:
 
-1. Browser wants ES modules, whereas `node.js` runs better with `commonJS`.
+1. Browsers want ES modules, whereas `node.js` runs better with `commonJS`.
 2. Browsers need to take advantage of lazy loading, and therefore browsers need many small files. Servers are long-running, so lazy loading does not have benefits.
 3. Server code may execute different functions which allow the server to make direct connections to databases etc..
 
-For those reasons, the bundling step is performed twice.
+For these reasons, the bundling step is performed twice.
 
 After a successful build, the application can be served as it would be served in production:
 
@@ -184,26 +184,26 @@ We can now see the application running by visiting http://localhost:8080/.
 
 ## Tour of the production
 
-At this point, it is important to take a tour of the To-do application to understand the main differences with the current generation of frameworks. Understanding the differences will give you better insight into many technical decisions of the framework.
+At this point, it is important to take a tour of the To-do application to understand the main differences with the current generation of frameworks. Understanding the differences will give you a better insight into many of the technical decisions of the framework.
 
 1. First, visit http://localhost:8080/ to familiarize yourself with the To-do application and convince yourself that the application is working as expected.
 
 NOTE: for the next steps, it is recommended that you open the application in an incognito window, as many browser extensions inject code into sites which may make it look like Javascript is being downloaded.
 
-2. Open the networking tap in DevTools in your browser and notice that the application did not download any JavaScript to startup. And yet the application is fully interactive. We call this property resumability, and it is the main feature of Qwik that allows even the most complex applications to start up instantaneously.
+2. Open the networking tab in DevTools in your browser and notice that the application did not download any JavaScript to startup. And yet the application is fully interactive. We call this property resumability, and it is the main feature of Qwik that allows even the most complex applications to start up instantaneously.
    ![](https://i.imgur.com/QVyu5OX.png)
 
-3. The question to answer is how is it possible for the application to be interactive with no Javascript. The answer is that Qwik applications come with a small Qwikloader. The Qwikloader is responsible for setting up global event listeners for the application and then downloading the application code on user interaction. The Qwikloader is very small, less than 1kB, and therefore is inlined directly into `index.html` to save round trip cost.
+3. The question to answer is how is it possible for the application to be interactive with no Javascript. The answer is that Qwik applications come with a small Qwikloader. The Qwikloader is responsible for setting up global event listeners for the application and then downloading the application code on user interaction. The Qwikloader is very small, less than 1kB, and therefore is inlined directly into `index.html` to save round-trip cost.
 
 4. The Qwikloader is responsible for setting up global event listeners to make the application interactive. Open the DevTools Performance tab and profile the application. What you should see is that the Qwikloader should execute in about 10 ms. (Note: this can be further reduced by explicitly limiting the events to listen to.)
 
 ![](https://i.imgur.com/bnnCd2L.png)
 
-To resume a Qwik application, it takes less than 1kB of Javascript, which then executes on the client in about 10 ms. The thing to understand is that this code is in no way specific to the To-do application. The cost described above is fixed no matter the size or complexity of the application. Current generation frameworks must resume the application on the client to make it interactive. This requires downloading the framework and the application. The hydration cost is proportional to the size and complexity of the application. So it may start out small, but as the application grows, so will the hydration cost. With Qwik, the startup cost is 1) significantly smaller and 2) is fixed no matter the complexity of the application.
+To resume a Qwik application, it takes less than 1kB of Javascript, which then executes on the client in about 10 ms. The thing to understand is that this code is in no way specific to the To-do application. The cost described above is fixed no matter the size or complexity of the application. Current generation frameworks must hydrate the application on the client to make it interactive. This requires downloading the framework and the application. The hydration cost is proportional to the size and complexity of the application. So it may start out small, but as the application grows, so will the hydration cost. With Qwik, the startup cost 1) is significantly smaller and 2) is fixed no matter the complexity of the application.
 
 ## Understanding User Interactions
 
-So far, we have shown how to run the Qwik application and how little code is needed to make the application interactive. Now let's look into what happens upon interactivity.
+So far, we have shown how to run the Qwik application and how little code is needed to make the application interactive. Now let's look into what happens upon interaction.
 
 1. Startup the application:
 
@@ -224,7 +224,7 @@ This results in:
 
 Open http://localhost:3000 and open the browser DevTools.
 
-NOTE: Opening up network tab will add `client` and `env.mjs` files. These are from Vite and are used for HMR. They will not be present in the production build and are ignored for this discussion.
+NOTE: Opening up the network tab will add `client` and `env.mjs` files. These are from Vite and are used for HMR. They will not be present in the production build and are ignored for this discussion.
 
 With the network tab open, complete a to-do item by clicking on its checkmark button.
 
@@ -251,7 +251,7 @@ There are a few things to notice:
 
 ### QRLs
 
-You may want to know how does Qwik know which code to download based on the user interaction. You can do so by examining the DOM in the DevTools. Let's zoom in on the checkmark HTML. You should see something like this.
+You may want to know how Qwik knows which code to download based on the user interaction. You can explore this by examining the DOM in the DevTools. Let's zoom in on the checkmark HTML. You should see something like this:
 
 ```htmlembedded=
 <input q:obj="9"
@@ -263,7 +263,7 @@ You may want to know how does Qwik know which code to download based on the user
 There are a few things to notice:
 
 - `q:obj` is used when deserializing objects associated with your application. The attribute is a pointer to serialized JSON that contains the relevant data.
-- `on:click`: is a serialized version of the event handler. It describes:
+- `onClickQrl`: is a serialized version of the event handler. It describes:
   - `click`: Qwikloader should listen on the `click` event.
   - `..../h_item_item_onrender_input_onclick.js`: points to the URL that needs to be downloaded due to the click.
   - `Item_onRender_input_onclick`: points to the symbol which `h_item_item_onrender_input_onclick.js` exports which represents the handler for the click listener. (See Optimizer to understand how Qwik breaks up your application into lazy-loadable chunks.)
@@ -277,7 +277,7 @@ Because Qwik SSR serializes the event handlers into HTML, the Qwik application d
 
 ### Server
 
-Server-side rendering (SSR) and static-site generation (SSG) are a way of precomputing the HTML for faster site loading. Existing frameworks require that for a site to become interactive, it must undergo hydration. Qwik is unique in that it can serialize the event handlers, application state, and framework state information into HTML. The serialized information can then be used to skip hydration.
+Server-side rendering (SSR) and static-site generation (SSG) are ways of precomputing the HTML for faster site loading. Existing frameworks require that for a site to become interactive, it must undergo hydration. Qwik is unique in that it can serialize the event handlers, application state, and framework state information into HTML. The serialized information can then be used to skip hydration.
 
 Let's dive into how Qwik generates HTML either in SSR or SSG.
 
@@ -352,13 +352,13 @@ export const Main = component$(() => {
 });
 ```
 
-Components are declared using `component$()` function. A component optionally creates a state and return a on-render function (`return $(() => ...)`.
+Components are declared using `component$()` function. A component optionally creates a state and returns an on-render function (`return $(() => ...)`.
 
-The unique thing to notice is the present of the `$` on `component$()` as well as on-render function `return $(() => ...)`. The presence of `$` has a specific meaning:
+The unique thing to notice is the presence of the `$` on `component$()` as well as on-render function `return $(() => ...)`. The presence of `$` has a specific meaning:
 
 - **Developer**: The developer needs to understand that `$` means that a lazy loading boundary exists in this location. In our case the component on-mount (or create) function which is responsible for creating the `todos` (`useStore()`) will only execute on the server, as the `<Main/>` component gets created on server and no new instances get created on the client.
-- **Optimizer**: The Optimizer uses the `$` to refactor the code and pull out the closures into top level importable symbols and place them in related chunks. The Optimizer leaves a pointer, knows as QRL, to the refactored code in that location.
-- **Runtime**: The runtime uses the QRL to lazy load the symbol on as-needed basis. Many symbols such as the on-mount and on-render will never download to the client because `<Main>` component is static. No change to `todos` would require a re-render.
+- **Optimizer**: The Optimizer uses the `$` to refactor the code and pull out the closures into top level importable symbols and place them in related chunks. The Optimizer leaves a pointer, known as QRL, to the refactored code in that location.
+- **Runtime**: The runtime uses the QRL to lazy load the symbol on an as-needed basis. Many symbols such as the on-mount and on-render will never download to the client because the `<Main>` component is static. No change to `todos` would require a re-render.
 
 ## Interactive component
 
@@ -409,7 +409,7 @@ export const Header = component$(
     return $(() => ... );
 ```
 
-The `useStore()` is used to create state of the application which is serializable. In our example above the store is created and initialized to initial value. The creation happens on server during the initial rendering. The store is then serialized into HTML. In this component example, there is no need to re-run the creation code in the browser, for this reason on-render code will never be downloaded for this component.
+The `useStore()` is used to create state of the application which is serializable. In our example above the store is created and initialized to its initial value. The creation happens on server during the initial rendering. The store is then serialized into HTML. In this component example, there is no need to re-run the creation code in the browser; for this reason on-render code will never be downloaded for this component.
 
 ## Props
 
@@ -439,7 +439,7 @@ The runtime notices that the render function depends on `state.text`. This tells
 
 ### Event Listeners
 
-Finally let's look at event listener:
+Finally let's look at an event listener:
 
 ```tsx
 <input
@@ -460,7 +460,7 @@ Finally let's look at event listener:
 />
 ```
 
-The `onKeyup$` tells the Optimizer to automatically extract the event listener into a lazy loadable chunk. This allows the Qwik runtime delay the loading of the `keyup` handler until the user interacts with the page. The `keyup` handler modifies the `store.text` and `props.todos`. Both of these objects are stores and hence proxies. Any modification of the proxies automatically invalidates the subscribed on-render function s as described above. The Qwik knows about the subscriptions because the subscriptions were serialized as part of the server render.
+The `onKeyup$` tells the Optimizer to automatically extract the event listener into a lazy loadable chunk. This allows the Qwik runtime to delay the loading of the `keyup` handler until the user interacts with the page. The `keyup` handler modifies the `store.text` and `props.todos`. Both of these objects are stores and hence proxies. Any modification of the proxies automatically invalidates the subscribed on-render functions as described above. Qwik knows about the subscriptions because the subscriptions were serialized as part of the server render.
 
 ## Configuring Optimizer
 
@@ -472,4 +472,4 @@ Open `vite.config.ts` to see how the optimizer is configured. In this case the O
 
 ** Not yet implemented **
 
-Will allow Qwik to start prefetching symbols based on the likelihood that they will be needed in the browser. This removes any concerns over latancy on interaction over slow networks.
+Will allow Qwik to start prefetching symbols based on the likelihood that they will be needed in the browser. This removes any concerns over latency on interaction over slow networks.

@@ -58,7 +58,7 @@
   },
   "author": "Builder.io Team",
   "engines": {
-    "node": ">=14.14.0"
+    "node": ">=14"
   },
   "license": "MIT"
 }

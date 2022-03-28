@@ -3,7 +3,7 @@
   "version": "0.0.18-6",
   "description": "An Open-Source sub-framework designed with a focus on server-side-rendering, lazy-loading, and styling/animation.",
   "scripts": {
-    "build": "node scripts --tsc --build --api --platform-binding --wasm",
+    "build": "node scripts --tsc --build --api --eslint --platform-binding --wasm",
     "build.platform": "node scripts --platform-binding",
     "build.only_javascript": "node scripts --tsc --build --api",
     "build.wasm": "node scripts --wasm",
@@ -15,7 +15,7 @@
     "tsc.check": "tsc --noEmit",
     "tsc.watch": "tsc --noEmit --watch --preserveWatchOutput",
     "start": "concurrently \"npm:build.watch\" \"npm:test.watch\" \"npm:tsc.watch\" -n build,test,tsc -c green,magenta,cyan",
-    "release.prepare": "npm run lint && npm run test.unit && node scripts --tsc --build --api --platform-binding --wasm --prepare-release",
+    "release.prepare": "npm run lint && npm run test.unit && node scripts --tsc --build --api --eslint --platform-binding --wasm --prepare-release",
     "test": "npm run build && jest && npm run test.e2e",
     "test.unit": "jest",
     "test.rust": "make test",
@@ -59,6 +59,7 @@
     "@octokit/action": "^3.18.0",
     "@playwright/test": "1.19.2",
     "@types/cross-spawn": "6.0.2",
+    "@types/eslint": "^8.4.1",
     "@types/express": "4.17.13",
     "@types/jest": "27.4.1",
     "@types/mri": "1.1.1",
@@ -73,8 +74,9 @@
     "cross-spawn": "7.0.3",
     "esbuild": "0.14.25",
     "esbuild-register": "3.3.2",
-    "eslint": "8.10.0",
+    "eslint": "^8.12.0",
     "eslint-plugin-no-only-tests": "2.6.0",
+    "eslint-plugin-qwik": "0.0.18-dev123",
     "execa": "6.1.0",
     "express": "4.17.3",
     "gzip-size": "^6.0.0",
@@ -189,7 +191,7 @@
     "Builder.io"
   ],
   "engines": {
-    "node": ">=10"
+    "node": ">=14"
   },
   "jest": {
     "preset": "ts-jest",
@@ -247,7 +249,7 @@
       ".*/node_modules/",
       "<rootDir>/target/"
     ],
-    "testRegex": "/(scripts|src)/.*\\.unit\\.(ts|tsx)$"
+    "testRegex": "/(scripts|src|eslint-rules)/.*\\.unit\\.(ts|tsx)$"
   },
   "lint-staged": {
     "*.*": [

@@ -45,6 +45,7 @@ export interface BuildConfig {
   api?: boolean;
   build?: boolean;
   cli?: boolean;
+  eslint?: boolean;
   commit?: boolean;
   dev?: boolean;
   dryRun?: boolean;

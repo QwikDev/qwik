@@ -99,6 +99,19 @@ jobs:
           path: dist-dev/create-qwik/
           if-no-files-found: error
 
+      - name: Build Eslint rules
+        run: node scripts --eslint
+
+      - name: Print Eslint rules Dist Build
+        run: tree dist-dev/eslint-plugin-qwik/
+
+      - name: Upload Eslint rules Build Artifacts
+        uses: actions/upload-artifact@master
+        with:
+          name: dist-dev-eslint-plugin-qwik
+          path: dist-dev/eslint-plugin-qwik/
+          if-no-files-found: error
+
   ############ BUILD WASM ############
   build-wasm:
     name: Build WASM
@@ -371,6 +384,8 @@ jobs:
           mv builderio-qwik-distribution/* dist-dev/@builder.io-qwik/
           mkdir dist-dev/create-qwik/
           mv dist-dev-create-qwik/* dist-dev/create-qwik/
+          mkdir dist-dev/eslint-plugin-qwik/
+          mv dist-dev-eslint-plugin-qwik/* dist-dev/eslint-plugin-qwik/
 
       - name: Cache NPM Dependencies
         uses: actions/cache@v2
@@ -417,9 +432,6 @@ jobs:
           - host: macos-latest
             browser: webkit
             node: 14.x
-          - host: windows-latest
-            browser: firefox
-            node: 12.x
 
     runs-on: ${{ matrix.settings.host }}
 
@@ -447,6 +459,8 @@ jobs:
           mv builderio-qwik-distribution/* dist-dev/@builder.io-qwik/
           mkdir dist-dev/create-qwik/
           mv dist-dev-create-qwik/* dist-dev/create-qwik/
+          mkdir dist-dev/eslint-plugin-qwik/
+          mv dist-dev-eslint-plugin-qwik/* dist-dev/eslint-plugin-qwik/
 
       - name: Cache NPM Dependencies
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -480,29 +494,24 @@ jobs:
 
     steps:
       - name: Setup Node
-        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/setup-node@v1
         with:
           node-version: 16.x
           registry-url: https://registry.npmjs.org/
 
       - name: Checkout
-        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/checkout@v2
 
       - name: Cache NPM Dependencies
-        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/cache@v2
         with:
           path: node_modules
           key: npm-cache-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
 
       - name: Install NPM Dependencies
-        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
 
       - name: Jest Unit Tests
-        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: yarn test.unit
 
   ########### VALIDATE RUST ############

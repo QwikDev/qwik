@@ -91,8 +91,15 @@ export async function commitPrepareReleaseVersion(config: BuildConfig) {
   cliPkg.version = config.distVersion;
   await writePackageJson(distCliDir, cliPkg);
 
+  // update the eslint version
+  const distEslintDir = join(config.rootDir, 'eslint-rules');
+  const eslintPkgJsonPath = join(distEslintDir, 'package.json');
+  const eslintPkg = await readPackageJson(distEslintDir);
+  eslintPkg.version = config.distVersion;
+  await writePackageJson(distEslintDir, eslintPkg);
+
   // git add the changed package.json
-  const gitAddArgs = ['add', pkgJsonPath, cliPkgJsonPath];
+  const gitAddArgs = ['add', pkgJsonPath, cliPkgJsonPath, eslintPkgJsonPath];
   await run('git', gitAddArgs);
 
   // git commit the changed package.json
@@ -182,6 +189,7 @@ export async function publish(config: BuildConfig) {
   );
 
   await publishStarterCli(config, distTag, version, isDryRun);
+  await publishEslint(config, distTag, version, isDryRun);
 }
 
 async function publishStarterCli(
@@ -224,6 +232,31 @@ async function publishStarterCli(
   const npmPublishArgs = ['publish', '--tag', distTag];
 
   await run('npm', npmPublishArgs, isDryRun, isDryRun, { cwd: distCliDir });
+
+  console.log(
+    `🐳 published version "${version}" of ${cliPkg.name} with dist-tag "${distTag}" to npm`,
+    isDryRun ? '(dry-run)' : ''
+  );
+}
+
+async function publishEslint(
+  config: BuildConfig,
+  distTag: string,
+  version: string,
+  isDryRun: boolean
+) {
+  const distDir = join(config.distDir, 'eslint-plugin-qwik');
+  const cliPkg = await readPackageJson(distDir);
+
+  // update the cli version
+  console.log(`   update version = "${version}"`);
+  cliPkg.version = version;
+  await writePackageJson(distDir, cliPkg);
+
+  console.log(`⛴ publishing ${cliPkg.name} ${version}`, isDryRun ? '(dry-run)' : '');
+
+  const npmPublishArgs = ['publish', '--tag', distTag];
+  await run('npm', npmPublishArgs, isDryRun, isDryRun, { cwd: distDir });
 
   console.log(
     `🐳 published version "${version}" of ${cliPkg.name} with dist-tag "${distTag}" to npm`,

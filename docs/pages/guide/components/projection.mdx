@@ -7,13 +7,13 @@ fetch: https://hackmd.io/@mhevery/SJ9zqxxb9
 
 Content projection allows a component to treat the JSX children of the component as a form of input and project these children into the component's JSX.
 
-An example of colapsable component which conditionally projects its content.
+An example of collapsible component which conditionally projects its content.
 
 ```tsx
 const Colapsable = component$(() => {
   const store = useStore({isOpen: true});
   return $(() => (
-    <div class="colapsable">
+    <div class="collapsible">
       <div class="title"
            onClick$={() => store.isOpen = !store.isOpen}>
         <Solt name="title"></Slot>
@@ -29,16 +29,16 @@ The above component can be used from parent component like so:
 ```tsx
 const MyApp = component$(() => {
   return $(() => (
-    <Collapsable>
+    <Collapsible>
       <span q:slot="title">Title text</span>
       Lorem ipsum dolor sit amet, consectetur adipiscing elit.
       Vivamus vulputate accumsan pretium.
-    </Collapsable>
+    </Collapsible>
   ));
 });
 ```
 
-The `Colapsable` component will always display the title, but the body of the text will only display if `store.isOpen` is `true`.
+The `Collapsible` component will always display the title, but the body of the text will only display if `store.isOpen` is `true`.
 
 ## Rendered output
 
@@ -46,7 +46,7 @@ The above example would render into this HTML if `isOpen===true`:
 
 ```htmlembedded=
 <my-app>
-  <collapsable>
+  <collapsible>
     <q:slot name="title" has-content>
       <span q:slot="title" has-content>Title text</span>
     </q:slot>
@@ -54,7 +54,7 @@ The above example would render into this HTML if `isOpen===true`:
       Lorem ipsum dolor sit amet, consectetur adipiscing elit.
       Vivamus vulputate accumsan pretium.
     </q:slot>
-  </collapsable>
+  </collapsible>
 </my-app>
 ```
 
@@ -272,10 +272,10 @@ The two approaches can best be described as declarative vs imperative. They both
 
 Qwik uses the declarative projection approach. The reason for this is that Qwik needs to be able to render parent/children components independently from each other. With an imperative (`children`) approach, the child component can modify the `children` in countless ways. if a child component relied on `children` it would be forced to rerender whenever a parent component would rerender to reapply the imperative transformation to the `children`. The extra rendering goes explicitly against the goals of Qwik components rendering in isolation.
 
-For example, Let's go back to our `Colapsable` example from above:
+For example, Let's go back to our `Collapsible` example from above:
 
-- The parent needs to be able to change the title and the text without forcing the `Colapsable` to rerender. Qwik needs to be able to redistribute the changes to the `MyApp` template without affecting the `Colapsable` component.
-- The child component needs to change what is projected without having the parent component rerender. In our case, `Colapsable` should be able to show/hide the default `q:slot` without downloading and rerendering the `MpApp` component.
+- The parent needs to be able to change the title and the text without forcing the `Collapsible` to rerender. Qwik needs to be able to redistribute the changes to the `MyApp` template without affecting the `Collapsible` component.
+- The child component needs to change what is projected without having the parent component rerender. In our case, `Collapsible` should be able to show/hide the default `q:slot` without downloading and rerendering the `MpApp` component.
 
 In order for the two components to have an independent lifecycle, the projection needs to be declarative. In this way, either the parent or child can change what is projected or how it is projected without rerendering the other.
 

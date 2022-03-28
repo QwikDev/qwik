@@ -59,7 +59,9 @@ export function qrlImport<T>(element: Element | undefined, qrl: QRL<T>): ValueOr
       .then((module) => (qrl_.symbolRef = module[qrl_.symbol])));
   } else {
     if (!element) {
-      throw new Error('QRL does not have an attached container');
+      throw new Error(
+        `QRL '${qrl_.chunk}#${qrl_.symbol || 'default'}' does not have an attached container`
+      );
     }
     const symbol = getPlatform(getDocument(element)).importSymbol(element, qrl_.chunk, qrl_.symbol);
     return (qrl_.symbolRef = then(symbol, (ref) => {

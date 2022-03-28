@@ -78,7 +78,6 @@ export function renderToDocument(docOrElm: Document | Element, rootNode: JSXNode
 // @public (undocumented)
 export interface RenderToDocumentOptions extends SerializeDocumentOptions, DocumentOptions {
     base?: string;
-    fragmentTagName?: string;
     snapshot?: boolean;
 }
 
@@ -87,7 +86,6 @@ export function renderToString(rootNode: JSXNode, opts: RenderToStringOptions): 
 
 // @public (undocumented)
 export interface RenderToStringOptions extends RenderToDocumentOptions {
-    // (undocumented)
     fragmentTagName?: string;
 }
 

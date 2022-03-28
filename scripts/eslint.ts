@@ -7,7 +7,7 @@ import ts from 'typescript';
 
 export async function buildEslint(config: BuildConfig) {
   const eslintDir = join(config.rootDir, 'eslint-rules');
-  const eslintOutput = join(config.distDir, '@builder.io-eslint-config-qwik');
+  const eslintOutput = join(config.distDir, 'eslint-plugin-qwik');
 
   const tsconfigFile = ts.findConfigFile(eslintDir, ts.sys.fileExists);
   const tsconfig = ts.getParsedCommandLineOfConfigFile(tsconfigFile!, undefined, {
@@ -18,7 +18,6 @@ export async function buildEslint(config: BuildConfig) {
   });
   if (tsconfig && Array.isArray(tsconfig.fileNames)) {
     const rootNames = tsconfig.fileNames;
-    console.log(rootNames);
     const program = ts.createProgram({
       rootNames,
       options: { ...tsconfig.options, outDir: eslintOutput },

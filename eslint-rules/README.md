@@ -1,1 +1,1 @@
-# @builder.io/eslint-config-qwik
+# eslint-plugin-qwik

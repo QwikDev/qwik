@@ -30,11 +30,13 @@ export const noUseAfterAwait: Rule.RuleModule = {
       },
       AwaitExpression() {
         const last = stack[stack.length - 1];
-        last.await = true;
+        if (last) {
+          last.await = true;
+        }
       },
       'CallExpression[callee.name=/^use/]'(node: any) {
         const last = stack[stack.length - 1];
-        if (last.await) {
+        if (last && last.await) {
           context.report({
             node,
             message: 'Calling use* methods after await is not safe.',

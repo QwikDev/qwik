@@ -103,13 +103,13 @@ jobs:
         run: node scripts --eslint
 
       - name: Print Eslint rules Dist Build
-        run: tree dist-dev/@builder.io-eslint-config-qwik/
+        run: tree dist-dev/eslint-plugin-qwik/
 
       - name: Upload Eslint rules Build Artifacts
         uses: actions/upload-artifact@master
         with:
-          name: dist-dev-builder-io-eslint-config-qwik/
-          path: dist-dev/@builder.io-eslint-config-qwik/
+          name: dist-dev-eslint-plugin-qwik/
+          path: dist-dev/eslint-plugin-qwik/
           if-no-files-found: error
 
   ############ BUILD WASM ############
@@ -326,7 +326,7 @@ jobs:
       - name: Move Distribution Artifacts
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: mv dist-dev-builder-io-qwik/* dist-dev/@builder.io-qwik/
-        run: mv dist-dev-builder-io-eslint-config-qwik/* dist-dev/@builder.io-eslint-config-qwik/
+        run: mv dist-dev-eslint-plugin-qwik/* dist-dev/eslint-plugin-qwik/
 
       - name: Print Bindings Artifacts
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}

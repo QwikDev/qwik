@@ -3,7 +3,7 @@ import { useLocation } from '../../utils/useLocation';
 import { Header } from '../../components/header/header';
 import styles from './builder.css';
 
-export const Builder = component$(() => {
+export const Builder = component$(({ props }: any) => {
   useStyles$(styles);
   return $(async () => {
     const loc = useLocation();

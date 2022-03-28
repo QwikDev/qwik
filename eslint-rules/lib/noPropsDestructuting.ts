@@ -25,7 +25,7 @@ export const noPropsDestructuring: Rule.RuleModule = {
         node: any
       ) {
         context.report({
-          node,
+          node: node.arguments[0].params[0],
           message: 'Props destructuring is not a good practice in Qwik',
         });
       },

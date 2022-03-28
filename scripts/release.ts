@@ -245,7 +245,7 @@ async function publishEslint(
   version: string,
   isDryRun: boolean
 ) {
-  const distDir = join(config.distDir, '@builder.io-eslint-config-qwik');
+  const distDir = join(config.distDir, 'eslint-plugin-qwik');
   const cliPkg = await readPackageJson(distDir);
 
   // update the cli version

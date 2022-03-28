@@ -8,8 +8,9 @@ export type Replacements = [RegExp, string][];
 export function cp(srcDir: string, destDir: string, replacements: Replacements) {
   const items = readdirSync(srcDir);
   for (const itemName of items) {
+    const destName = itemName === 'gitignore' ? '.gitignore' : itemName;
     const srcChildPath = join(srcDir, itemName);
-    const destChildPath = join(destDir, itemName);
+    const destChildPath = join(destDir, destName);
     const s = statSync(srcChildPath);
     if (s.isDirectory()) {
       mkdirSync(destChildPath, { recursive: true });

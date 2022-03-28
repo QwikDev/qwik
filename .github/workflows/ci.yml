@@ -326,7 +326,6 @@ jobs:
       - name: Move Distribution Artifacts
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: mv dist-dev-builder-io-qwik/* dist-dev/@builder.io-qwik/
-        run: mv dist-dev-eslint-plugin-qwik/* dist-dev/eslint-plugin-qwik/
 
       - name: Print Bindings Artifacts
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -385,6 +384,8 @@ jobs:
           mv builderio-qwik-distribution/* dist-dev/@builder.io-qwik/
           mkdir dist-dev/create-qwik/
           mv dist-dev-create-qwik/* dist-dev/create-qwik/
+          mkdir dist-dev/eslint-plugin-qwik/
+          mv dist-dev-eslint-plugin-qwik/* dist-dev/eslint-plugin-qwik/
 
       - name: Cache NPM Dependencies
         uses: actions/cache@v2
@@ -461,6 +462,8 @@ jobs:
           mv builderio-qwik-distribution/* dist-dev/@builder.io-qwik/
           mkdir dist-dev/create-qwik/
           mv dist-dev-create-qwik/* dist-dev/create-qwik/
+          mkdir dist-dev/eslint-plugin-qwik/
+          mv dist-dev-eslint-plugin-qwik/* dist-dev/eslint-plugin-qwik/
 
       - name: Cache NPM Dependencies
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}

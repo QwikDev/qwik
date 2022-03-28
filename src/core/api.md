@@ -175,12 +175,6 @@ export const onUnmount$: (first: () => void) => void;
 export function onUnmountQrl(unmountFn: QRL<() => void>): void;
 
 // @public
-export const onWatch$: (first: (obs: Observer) => unknown | (() => void)) => void;
-
-// @public
-export function onWatchQrl(watchFn: QRL<(obs: Observer) => unknown | (() => void)>): void;
-
-// @public
 export function onWindow(event: string, eventFn: QRL<() => void>): void;
 
 // @public
@@ -215,9 +209,9 @@ export interface QRL<TYPE = any> {
     // (undocumented)
     __brand__QRL__: TYPE;
     // (undocumented)
-    invoke<ARGS extends any[]>(...args: ARGS): Promise<TYPE extends (...args: any) => any ? ReturnType<TYPE> : never>;
+    invoke(...args: TYPE extends (...args: infer ARGS) => any ? ARGS : never): TYPE extends (...args: any[]) => infer RETURN ? ValueOrPromise<RETURN> : never;
     // (undocumented)
-    invokeFn(el?: Element): (...args: any[]) => any;
+    invokeFn(el?: Element): TYPE extends (...args: infer ARGS) => infer RETURN ? (...args: ARGS) => ValueOrPromise<RETURN> : never;
     // (undocumented)
     resolve(container?: Element): Promise<TYPE>;
 }
@@ -323,13 +317,21 @@ export function useStylesQrl(styles: QRL<string>): void;
 export function useSubscriber<T extends {}>(obj: T): T;
 
 // @public
+export const useWatch$: (first: (obs: Observer) => void | (() => void)) => void;
+
+// @public
+export function useWatchQrl(watchQrl: QRL<(obs: Observer) => void | (() => void)>): void;
+
+// @public
 export type ValueOrPromise<T> = T | Promise<T>;
 
 // @alpha (undocumented)
 export const version: string;
 
+// Warning: (ae-forgotten-export) The symbol "WatchDescriptor" needs to be exported by the entry point index.d.ts
+//
 // @alpha (undocumented)
-export function wrapSubscriber<T extends {}>(obj: T, subscriber: Element): any;
+export function wrapSubscriber<T extends {}>(obj: T, subscriber: Element | WatchDescriptor): any;
 
 // (No @packageDocumentation comment for this package)
 

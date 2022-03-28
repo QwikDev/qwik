@@ -29,25 +29,9 @@ function createTypesApi(
   outFileName: string,
   corePath: string
 ) {
-  let extractorConfig;
-  if (config.bazelOutputDir) {
-    const configObjectFullPath = join(config.srcDir, submodule, 'api-extractor.json');
-    const configObject = ExtractorConfig.loadFile(configObjectFullPath);
-    configObject.mainEntryPointFilePath = configObject.mainEntryPointFilePath.replace(
-      '<projectFolder>',
-      config.bazelOutputDir
-    );
-    const packageJsonFullPath = join(config.srcDir, '..', 'package.json');
-    extractorConfig = ExtractorConfig.prepare({
-      configObject,
-      configObjectFullPath,
-      packageJsonFullPath,
-    });
-  } else {
-    extractorConfig = ExtractorConfig.loadFileAndPrepare(
-      join(config.srcDir, submodule, 'api-extractor.json')
-    );
-  }
+  const extractorConfig = ExtractorConfig.loadFileAndPrepare(
+    join(config.srcDir, submodule, 'api-extractor.json')
+  );
   const result = Extractor.invoke(extractorConfig, {
     localBuild: !!config.dev,
     showVerboseMessages: false,

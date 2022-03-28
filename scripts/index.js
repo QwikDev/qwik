@@ -19,15 +19,5 @@ const args = process.argv.slice(2);
 const config = loadConfig(args);
 config.esmNode = esmNode;
 
-if (process.env.BAZEL_NODE_MODULES_ROOTS) {
-  // This is a signal that Bazel has started this script
-  // If Bazel is running this, then find out where it
-  // would like to see the build output to be written.
-  if (!config.bazelOutputDir) {
-    console.error("When running under bazel must use '--bazelOutputDir $(RULEDIR)'");
-    process.exit(-1);
-  }
-}
-
 // let's do this!
 build(config);

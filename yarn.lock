@@ -2270,10 +2270,10 @@ eslint-plugin-no-only-tests@2.6.0:
   resolved "https://registry.yarnpkg.com/eslint-plugin-no-only-tests/-/eslint-plugin-no-only-tests-2.6.0.tgz#19f6c9620bda02b9b9221b436c5f070e42628d76"
   integrity sha512-T9SmE/g6UV1uZo1oHAqOvL86XWl7Pl2EpRpnLI8g/bkJu+h7XBCB+1LnubRZ2CUQXj805vh4/CYZdnqtVaEo2Q==
 
-eslint-plugin-qwik@0.0.18-dev123:
-  version "0.0.18-dev123"
-  resolved "https://registry.yarnpkg.com/eslint-plugin-qwik/-/eslint-plugin-qwik-0.0.18-dev123.tgz#0aa4421800790d5cbd73c04aa0740daf66a49dd3"
-  integrity sha512-EDX6LspZ77bEryYzRKeEaXzCscAHLmdlxAgkFVK+q9Qh1Af1P2xyJb9n8C7yn1KdQ7olob5XL+PJtVGgGGZTkg==
+eslint-plugin-qwik@0.0.18-7:
+  version "0.0.18-7"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-qwik/-/eslint-plugin-qwik-0.0.18-7.tgz#6afbd14fc02a39644730efe207960fec59012741"
+  integrity sha512-7555NhEKj9KCKPtufkn+QavLgWMtDCjhJiYeJtisyrRT4Jmh9fQi4jz4ePfUCaJ5sQJSkrMCi2JLgq7FSlFdtg==
 
 eslint-scope@^5.1.1:
   version "5.1.1"

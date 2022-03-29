@@ -199,7 +199,6 @@ export const IGNORE_EXT: { [key: string]: boolean } = {
   '.toml': true,
   '.lock': true,
   '.log': true,
-  '.bazel': true,
   '.bzl': true,
 };
 

@@ -17,6 +17,7 @@ import { logError } from '../util/log';
 import { then } from '../util/promises';
 import { getPlatform } from '../platform/platform';
 import { unwrapSubscriber } from '../use/use-subscriber';
+import { tryGetInvokeContext } from '../use/use-core';
 
 let runtimeSymbolId = 0;
 const RUNTIME_QRL = '/runtimeQRL';
@@ -58,7 +59,9 @@ export function qrlImport<T>(element: Element | undefined, qrl: QRL<T>): ValueOr
       .then((module) => (qrl_.symbolRef = module[qrl_.symbol])));
   } else {
     if (!element) {
-      throw new Error('QRL does not have an attached container');
+      throw new Error(
+        `QRL '${qrl_.chunk}#${qrl_.symbol || 'default'}' does not have an attached container`
+      );
     }
     const symbol = getPlatform(getDocument(element)).importSymbol(element, qrl_.chunk, qrl_.symbol);
     return (qrl_.symbolRef = then(symbol, (ref) => {
@@ -123,7 +126,12 @@ export function qrl<T = any>(
       lexicalScopeCapture[i] = unwrapSubscriber(lexicalScopeCapture[i]);
     }
   }
-  return new QRLInternal<T>(chunk, symbol, null, symbolFn, null, lexicalScopeCapture);
+  const qrl = new QRLInternal<T>(chunk, symbol, null, symbolFn, null, lexicalScopeCapture);
+  const ctx = tryGetInvokeContext();
+  if (ctx && ctx.element) {
+    qrl.setContainer(ctx.element);
+  }
+  return qrl;
 }
 
 export function runtimeQrl<T>(symbol: T, lexicalScopeCapture: any[] = EMPTY_ARRAY): QRL<T> {

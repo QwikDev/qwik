@@ -32,13 +32,13 @@ The `test` command will also ensure a build was completed.
 Unit tests use [Jest](https://jestjs.io/).
 
 ```
-npm run test.unit
+yarn test.unit
 ```
 
 To keep Jest open with the watch mode, run:
 
 ```
-npm run test.watch
+yarn test.watch
 ```
 
 > Note that the `test.watch` command isn't necessary if you're running the `npm start` command, since `start` will also concurrently run the Jest watch process.
@@ -52,7 +52,7 @@ E2E tests use [Playwright](https://playwright.dev/).
 To run the Playwright tests headless, from start to finish, run:
 
 ```
-npm run test.e2e
+yarn test.e2e
 ```
 
 ## Production Build
@@ -68,7 +68,7 @@ A full production build will:
 - Generates the publishing `package.json`
 
 ```
-npm run build
+yarn build
 ```
 
 The build output will be written to `dist-dev/@builder.io-qwik`, which will be the directory that is published
@@ -76,7 +76,7 @@ to [@builder.io/qwik](https://www.npmjs.com/package/@builder.io/qwik).
 
 ## Releasing `@builder.io/qwik`
 
-1. Run `npm run release.prepare`, which will test, lint and build locally.
+1. Run `yarn release.prepare`, which will test, lint and build locally.
 2. Use the interactive UI to select the next version, which will update the `package.json` `version` property, adds the git change, and starts a commit message.
 3. Create a PR with the `package.json` file change to merge to `main`.
 4. After the updated `package.json` with the next version is in `main`, click the [Run Workflow](https://github.com/BuilderIO/qwik/actions/workflows/ci.yml) button for the Qwik CI Github Action workflow.
@@ -89,45 +89,19 @@ to [@builder.io/qwik](https://www.npmjs.com/package/@builder.io/qwik).
 
 - [Starter CLI](https://github.com/BuilderIO/qwik/blob/main/starters/README.md)
 
-## Bazel
-
-Bazel is currently used for further testing and builds between internal repos. However, it is not required for local development and contribution to Qwik.
-
-### Setting up the Bazel environment
-
-Best way to run `bazel` is with [`bazelisk`](https://github.com/bazelbuild/bazelisk) which will automatically download and execute the right version of `bazel`.
-
-_preferred way_
-
-```
-brew install bazelisk
-```
-
-or
-
-```
-npm install -g @bazel/bazelisk
-```
-
-`Bazel` will invoke `Yarn` and manage all dependencies.
-
-### `bazel` vs `ibazel`
-
-The difference between `bazel` and `ibazel` is that `ibazel` will re-invoke `bazel` if any relevant files change. This is useful for constantly updating the server and or tests as they are being developed. All commands are listed as `bazel`, but can be replaced for `ibazel` as needed.
-
 ## Pre-submit hooks
 
 The project has pre-submit hooks, which ensure that your code is correctly formatted. You can run them manually like so:
 
 ```
-npm run lint
-npm run buildifier-check
-npm run prettier-check
+yarn lint
+yarn buildifier-check
+yarn prettier-check
 ```
 
 Some of the issues can be fixed automatically by using:
 
 ```
-npm run buildifier-fix
-npm run prettier-fix
+yarn buildifier-fix
+yarn prettier-fix
 ```

@@ -26,7 +26,7 @@ export interface InvokeContext {
   url: URL | null;
   qrl?: QRLInternal;
   subscriptions: boolean;
-  waitOn?: Promise<any>[];
+  waitOn?: ValueOrPromise<any>[];
   props?: Props;
 }
 
@@ -104,7 +104,7 @@ export function newInvokeContext(
 /**
  * @private
  */
-export function useWaitOn(promise: Promise<any>): void {
+export function useWaitOn(promise: ValueOrPromise<any>): void {
   const ctx = getInvokeContext();
   (ctx.waitOn || (ctx.waitOn = [])).push(promise);
 }

@@ -1,5 +1,6 @@
 import { useHostElement } from './use-host-element.public';
 import { QOjectOriginalProxy, QOjectTargetSymbol, SetSubscriber } from '../object/q-object';
+import type { WatchDescriptor } from '../watch/watch.public';
 
 /**
  * @alpha
@@ -11,7 +12,7 @@ export function useSubscriber<T extends {}>(obj: T): T {
 /**
  * @alpha
  */
-export function wrapSubscriber<T extends {}>(obj: T, subscriber: Element) {
+export function wrapSubscriber<T extends {}>(obj: T, subscriber: Element | WatchDescriptor) {
   if (obj && typeof obj === 'object') {
     const target = (obj as any)[QOjectTargetSymbol];
     if (!target) {

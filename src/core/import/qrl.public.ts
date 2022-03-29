@@ -1,3 +1,4 @@
+import type { ValueOrPromise } from '..';
 import { runtimeQrl } from './qrl';
 
 // <docs markdown="https://hackmd.io/m5DzCi5MTa26LuUj5t3HpQ#QRL">
@@ -128,10 +129,15 @@ import { runtimeQrl } from './qrl';
 export interface QRL<TYPE = any> {
   __brand__QRL__: TYPE;
   resolve(container?: Element): Promise<TYPE>;
-  invoke<ARGS extends any[]>(
-    ...args: ARGS
-  ): Promise<TYPE extends (...args: any) => any ? ReturnType<TYPE> : never>;
-  invokeFn(el?: Element): (...args: any[]) => any;
+  invoke(
+    ...args: TYPE extends (...args: infer ARGS) => any ? ARGS : never
+  ): TYPE extends (...args: any[]) => infer RETURN ? ValueOrPromise<RETURN> : never;
+
+  invokeFn(
+    el?: Element
+  ): TYPE extends (...args: infer ARGS) => infer RETURN
+    ? (...args: ARGS) => ValueOrPromise<RETURN>
+    : never;
 }
 
 /**

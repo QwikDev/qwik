@@ -14,14 +14,12 @@ export const onRequestGet: PagesFunction = async (req) => {
 
     // Early return from cache
     const cache = await caches.open('custom:qwik');
-    if (CACHE_CONTROL > 0) {
-      const cachedResponse = await cache.match(req.request);
-      if (cachedResponse) {
-        return cachedResponse;
-      }
+    const cachedResponse = await cache.match(req.request);
+    if (cachedResponse) {
+      return cachedResponse;
     }
 
-    // Generate SSR response
+    // Generate Qwik SSR response
     const res = (await qwikSSR(req)) as Response;
 
     // Cache results
@@ -31,9 +29,10 @@ export const onRequestGet: PagesFunction = async (req) => {
     );
     req.waitUntil(cache.put(req.request, res.clone()));
 
-    // Return SSR'd response
+    // Return Qwik SSR response
     return res;
   } catch (e) {
+    // 500 Error
     return new Response(String(e), { status: 500 });
   }
 };

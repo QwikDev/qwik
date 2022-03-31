@@ -40,7 +40,7 @@
     "preinstall": "node scripts/tools/preinstall-script.js"
   },
   "devDependencies": {
-    "@builder.io/partytown": "0.5.1",
+    "@builder.io/partytown": "0.5.2",
     "@builder.io/qwik-dom": "2.1.14",
     "@microsoft/api-extractor": "7.19.5",
     "@napi-rs/cli": "2.5.0",

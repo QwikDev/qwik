@@ -34,6 +34,6 @@ export const onRequestGet: PagesFunction = async (req) => {
     // Return SSR'd response
     return res;
   } catch (e) {
-    return new Response(String(e), { status: 5000 });
+    return new Response(String(e), { status: 500 });
   }
 };

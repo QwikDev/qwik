@@ -9,16 +9,16 @@ import { validateBuild } from './validate-build';
 
 export async function setDevVersion(config: BuildConfig) {
   let v = config.setDistTag;
-  if (!v) {
+  if (!v || v === 'dev') {
     const rootPkg = await readPackageJson(config.rootDir);
     const d = new Date();
     v = rootPkg.version + '-dev';
-    v += d.getUTCFullYear() + '';
-    v += ('0' + (d.getUTCMonth() + 1)).slice(-2);
-    v += ('0' + d.getUTCDate()).slice(-2);
-    v += ('0' + d.getUTCHours()).slice(-2);
-    v += ('0' + d.getUTCMinutes()).slice(-2);
-    v += ('0' + d.getUTCSeconds()).slice(-2);
+    v += String(d.getUTCFullYear());
+    v += String(d.getUTCMonth() + 1).padStart(2, '0');
+    v += String(d.getUTCDate()).padStart(2, '0');
+    v += String(d.getUTCHours()).padStart(2, '0');
+    v += String(d.getUTCMinutes()).padStart(2, '0');
+    v += String(d.getUTCSeconds()).padStart(2, '0');
   }
   config.distVersion = v;
 }

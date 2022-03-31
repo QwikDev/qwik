@@ -30,15 +30,15 @@
   dependencies:
     regenerator-runtime "^0.13.4"
 
-"@builder.io/partytown@^0.5.1":
-  version "0.5.1"
-  resolved "https://registry.yarnpkg.com/@builder.io/partytown/-/partytown-0.5.1.tgz#89373ff8c424c60e1b61dc9029b31b9f9d5ece56"
-  integrity sha512-Qs1CrHTT/I1xeNlPn6+KSxhQhvcJKv2mZhesLfEeEftRbCWb3TdXIghNNIxrnAmD7Sivdp8dSOGEAcM8BLybDA==
+"@builder.io/partytown@^0.5.2":
+  version "0.5.2"
+  resolved "https://registry.yarnpkg.com/@builder.io/partytown/-/partytown-0.5.2.tgz#ba40369f7c0fd22169eaf6906325c150d7f77dd0"
+  integrity sha512-DHJPs5WPVFExUuGMsuA6yZQ6OPtVVv/3JJK9pzGrNfvuGNvlip5v7xOhXwZG26HLU9ZrrOFsOGhn5FUT2H7dPw==
 
-"@builder.io/qwik@0.0.18-4-dev20220324145207":
-  version "0.0.18-4-dev20220324145207"
-  resolved "https://registry.yarnpkg.com/@builder.io/qwik/-/qwik-0.0.18-4-dev20220324145207.tgz#69d58ca0258633e49634d87935435ff3f20f37a4"
-  integrity sha512-spPpDDlgNNhYsJyXkLyLbRW6niCsxYDtzCm+8VaQRZ5z7CuFBG/kJ1E8oqzXIwxmBZXlRc0pVFF99fLu2Q9zLg==
+"@builder.io/qwik@0.0.18-7":
+  version "0.0.18-7"
+  resolved "https://registry.yarnpkg.com/@builder.io/qwik/-/qwik-0.0.18-7.tgz#2d227bb2fa1fb85ab80312c8c4794b50cd702e81"
+  integrity sha512-oihw8IvtUVT7/4whRsdYw3czm3Q9a6yAruKhu/RJrGHvv/LRp4hKEh+J+YmQxaogqwFt/rZnH4eXWSPk2+fwuQ==
 
 "@cloudflare/kv-asset-handler@0.2.0":
   version "0.2.0"

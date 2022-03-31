@@ -20,7 +20,11 @@ export const Head = () => (
     <meta name="twitter:description" content="Web Framework focusing on Time-to-Interactive." />
     <meta name="twitter:card" content="summary" />
 
-    <script innerHTML={partytownSnippet()} />
+    <script
+      innerHTML={partytownSnippet({
+        forward: ['dataLayer.push'],
+      })}
+    />
     <script
       type="text/partytown"
       innerHTML={`(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':

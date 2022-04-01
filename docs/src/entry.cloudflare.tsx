@@ -9,6 +9,7 @@ export const qwikSSR: PagesFunction = async (ev) => {
   const ssrResult = await render({
     url: new URL(ev.request.url),
     symbols,
+    base: '/',
   });
 
   const response = new Response(ssrResult.html, {

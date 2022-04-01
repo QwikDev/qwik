@@ -4,7 +4,7 @@ import { ChatIcon } from '../svgs/chat-icon';
 import { EditIcon } from '../svgs/edit-icon';
 import { GithubLogo } from '../svgs/github-logo';
 import { TwitterLogo } from '../svgs/twitter-logo';
-import styles from './on-this-page.css';
+import styles from './on-this-page.css?inline';
 
 export const OnThisPage = component$(
   () => {

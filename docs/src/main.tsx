@@ -1,9 +1,19 @@
-import { $, component$, useHostElement } from '@builder.io/qwik';
+import { $, component$, Host, useHostElement, useStore } from '@builder.io/qwik';
 import { Builder } from './layouts/builder/builder';
 import { setHeadLinks, setHeadMeta, usePage } from '@builder.io/qwest';
 import './global.css';
 
+export interface SiteStore {
+  headerMenuOpen: boolean;
+  sideMenuOpen: boolean;
+}
+
 export const Main = component$(() => {
+  const store = useStore<SiteStore>({
+    headerMenuOpen: false,
+    sideMenuOpen: false,
+  });
+
   return $(async () => {
     const hostElm = useHostElement();
     const page = await usePage(hostElm);
@@ -21,12 +31,19 @@ export const Main = component$(() => {
       setHeadLinks(hostElm, [{ rel: 'canonical', href: page.url.href }]);
 
       return (
-        <Layout>
-          <Content />
-        </Layout>
+        <Host
+          class={{
+            'header-open': store.headerMenuOpen,
+            'menu-open': store.sideMenuOpen,
+          }}
+        >
+          <Layout store={store}>
+            <Content store={store} />
+          </Layout>
+        </Host>
       );
     }
 
-    return <Builder />;
+    return <Builder store={store} />;
   });
 });

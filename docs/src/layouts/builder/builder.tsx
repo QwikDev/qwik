@@ -1,16 +1,21 @@
 import { $, component$, Host, useStyles$ } from '@builder.io/qwik';
 import { useLocation } from '../../utils/useLocation';
 import { Header } from '../../components/header/header';
+import type { SiteStore } from '../../main';
 import styles from './builder.css?inline';
 
-export const Builder = component$(() => {
+interface BuilderProps {
+  store: SiteStore;
+}
+
+export const Builder = component$((props: BuilderProps) => {
   useStyles$(styles);
   return $(async () => {
     const loc = useLocation();
     const html = await fetchQwikBuilderContent(loc.pathname);
     return (
       <Host>
-        <Header />
+        <Header store={props.store} />
         {html && <main class="builder" dangerouslySetInnerHTML={html} />}
       </Host>
     );

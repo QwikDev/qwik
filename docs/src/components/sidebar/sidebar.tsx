@@ -1,6 +1,6 @@
 import { component$, Host, $, useHostElement, useScopedStyles$ } from '@builder.io/qwik';
 import { usePage, usePageIndex } from '@builder.io/qwest';
-import styles from './sidebar.css';
+import styles from './sidebar.css?inline';
 import { toggleMenu } from '../../utils/toggle-menu';
 
 export const SideBar = component$(

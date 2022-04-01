@@ -1,6 +1,6 @@
 import { usePage, usePageIndex, PageIndex } from '@builder.io/qwest';
 import { component$, Host, $, useHostElement, useScopedStyles$ } from '@builder.io/qwik';
-import styles from './content-nav.css';
+import styles from './content-nav.css?inline';
 
 export const ContentNav = component$(
   () => {

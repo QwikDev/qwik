@@ -18,6 +18,8 @@ export const Main = component$(() => {
     const hostElm = useHostElement();
     const page = await usePage(hostElm);
 
+    let body = <Builder store={store} />;
+
     if (page) {
       const attrs = page.attributes;
       const Layout = page.layout;
@@ -29,21 +31,22 @@ export const Main = component$(() => {
       });
 
       setHeadLinks(hostElm, [{ rel: 'canonical', href: page.url.href }]);
-
-      return (
-        <Host
-          class={{
-            'header-open': store.headerMenuOpen,
-            'menu-open': store.sideMenuOpen,
-          }}
-        >
-          <Layout store={store}>
-            <Content store={store} />
-          </Layout>
-        </Host>
+      body = (
+        <Layout store={store}>
+          <Content store={store} />
+        </Layout>
       );
     }
 
-    return <Builder store={store} />;
+    return (
+      <Host
+        class={{
+          'header-open': store.headerMenuOpen,
+          'menu-open': store.sideMenuOpen,
+        }}
+      >
+        {body}
+      </Host>
+    );
   });
 });

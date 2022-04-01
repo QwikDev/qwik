@@ -16,6 +16,10 @@ export const Header = component$(
   (props: HeaderProps) => {
     useScopedStyles$(styles);
 
+    const toggleMenu = $(() => {
+      props.store.headerMenuOpen = !props.store.headerMenuOpen;
+    });
+
     return $(() => (
       <Host className="fixed top-0 z-40 w-full h-[56px]">
         <div class="max-w-[1400px] mx-auto">
@@ -25,10 +29,7 @@ export const Header = component$(
               <QwikLogo width={110} height={35} />
             </a>
           </div>
-          <button
-            onClick$={() => (props.store.headerMenuOpen = !props.store.headerMenuOpen)}
-            class="p-3 md:hidden fixed right-0"
-          >
+          <button onClickQrl={toggleMenu} class="p-3 md:hidden fixed right-0">
             <span class="more-icon">
               <MoreIcon width={30} height={30} />
             </span>
@@ -43,12 +44,12 @@ export const Header = component$(
               </a>
             </li>
             <li>
-              <a href="https://qwik-playground.builder.io/" target="_blank">
+              <a href="https://qwik-playground.builder.io/" target="_blank" onClickQrl={toggleMenu}>
                 <span>Playground</span>
               </a>
             </li>
             <li>
-              <a href="https://github.com/BuilderIO/qwik" target="_blank">
+              <a href="https://github.com/BuilderIO/qwik" target="_blank" onClickQrl={toggleMenu}>
                 <span class="md:hidden">Github</span>
                 <span class="hidden md:block">
                   <GithubLogo width={22} height={22} />
@@ -56,7 +57,7 @@ export const Header = component$(
               </a>
             </li>
             <li>
-              <a href="https://twitter.com/QwikDev" target="_blank">
+              <a href="https://twitter.com/QwikDev" target="_blank" onClickQrl={toggleMenu}>
                 <span class="md:hidden">@Builder.io</span>
                 <span class="hidden md:block">
                   <TwitterLogo width={22} height={22} />
@@ -64,7 +65,7 @@ export const Header = component$(
               </a>
             </li>
             <li>
-              <a href="https://discord.gg/Fd9Cwb3Z8D" target="_blank">
+              <a href="https://discord.gg/Fd9Cwb3Z8D" target="_blank" onClickQrl={toggleMenu}>
                 <span class="md:hidden">Discord</span>
                 <span class="hidden md:block">
                   <DiscordLogo width={22} height={22} />

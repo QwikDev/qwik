@@ -4,8 +4,6 @@
 import { render } from '../server/build/entry.server.js';
 import symbols from '../server/q-symbols.json';
 
-const CACHE_CONTROL = 60;
-
 export const onRequestGet: PagesFunction = async ({ request, next, waitUntil }) => {
   // Handle static assets
   try {
@@ -38,7 +36,7 @@ export const onRequestGet: PagesFunction = async ({ request, next, waitUntil }) 
       headers: {
         'Content-Type': 'text/html; charset=utf-8',
         'Cache-Control': useCache
-          ? `max-age=${CACHE_CONTROL}, s-maxage=10, stale-while-revalidate=604800, stale-if-error=604800`
+          ? `max-age=60, s-maxage=10, stale-while-revalidate=604800, stale-if-error=604800`
           : `no-cache, max-age=0`,
       },
     });

@@ -8,16 +8,16 @@ export interface SiteStore {
   sideMenuOpen: boolean;
 }
 
-export const Main = component$(() => {
+export const Main = component$(async () => {
   const store = useStore<SiteStore>({
     headerMenuOpen: false,
     sideMenuOpen: false,
   });
 
-  return $(async () => {
-    const hostElm = useHostElement();
-    const page = await usePage(hostElm);
+  const hostElm = useHostElement();
+  const page = await usePage(hostElm);
 
+  return $(() => {
     let body = <Builder store={store} />;
 
     if (page) {

@@ -5,7 +5,10 @@ import { Header } from './components/header/header';
 import './global.css';
 
 export const Main = component$(() => {
+  // setup
+
   return $(() => (
+    // render
     <>
       <Header />
       <div id="my-content"></div>

@@ -1,23 +1,25 @@
-import { $, component$, Host, useHostElement, useStore } from '@builder.io/qwik';
+import { $, component$, Host, useHostElement, useStore, useStyles$ } from '@builder.io/qwik';
 import { Builder } from './layouts/builder/builder';
 import { setHeadLinks, setHeadMeta, usePage } from '@builder.io/qwest';
-import './global.css';
+import styles from './global.css';
 
 export interface SiteStore {
   headerMenuOpen: boolean;
   sideMenuOpen: boolean;
 }
 
-export const Main = component$(async () => {
+export const Main = component$(() => {
+  useStyles$(styles);
+
   const store = useStore<SiteStore>({
     headerMenuOpen: false,
     sideMenuOpen: false,
   });
 
-  const hostElm = useHostElement();
-  const page = await usePage(hostElm);
+  return $(async () => {
+    const hostElm = useHostElement();
+    const page = await usePage(hostElm);
 
-  return $(() => {
     let body = <Builder store={store} />;
 
     if (page) {

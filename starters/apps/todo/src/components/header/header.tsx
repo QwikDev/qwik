@@ -9,7 +9,6 @@ import type { Todos } from '../../state/state';
 export const Header = component$(
   (props: { todos: Todos }) => {
     const state = useStore({ text: '' });
-
     return $(() => {
       return (
         <>

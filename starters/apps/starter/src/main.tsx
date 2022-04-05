@@ -5,7 +5,6 @@ import './global.css';
 
 export const Main = component$(() => {
   const state = useStore({ name: 'World' });
-
   return $(() => (
     <Host class="my-app p-20">
       <Logo class="mb-10" />

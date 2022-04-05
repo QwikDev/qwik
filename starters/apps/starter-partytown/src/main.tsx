@@ -3,7 +3,6 @@ import './global.css';
 
 export const Main = component$(() => {
   const state = useStore({ name: 'World', running: true });
-
   return $(() => {
     return (
       <div id="my-app" onDocumentExpensiveComputationDone$={() => (state.running = false)}>

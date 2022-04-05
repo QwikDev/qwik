@@ -23,7 +23,6 @@ export const Main = component$(() => {
       { completed: false, title: 'Profit' },
     ],
   });
-
   return $(() => {
     return (
       <section class="todoapp">

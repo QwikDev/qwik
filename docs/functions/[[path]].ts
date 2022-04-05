@@ -1,36 +1,52 @@
 /* eslint-disable */
 
 // @ts-ignore
-import { qwikSSR } from '../server/build/entry.cloudflare.js';
+import { render } from '../server/build/entry.server.js';
+import symbols from '../server/q-symbols.json';
 
-const CACHE_CONTROL = 60;
-
-export const onRequestGet: PagesFunction = async (req) => {
+export const onRequestGet: PagesFunction = async ({ request, next, waitUntil }) => {
   // Handle static assets
   try {
-    if (/\.\w+$/.test(req.request.url)) {
-      return req.next(req.request);
+    const url = new URL(request.url);
+
+    if (/\.\w+$/.test(url.pathname)) {
+      return next(request);
     }
+
+    // do not using caching during development
+    const useCache = url.hostname !== 'localhost';
 
     // Early return from cache
     const cache = await caches.open('custom:qwik');
-    const cachedResponse = await cache.match(req.request);
-    if (cachedResponse) {
-      return cachedResponse;
+    if (useCache) {
+      const cachedResponse = await cache.match(request);
+      if (cachedResponse) {
+        return cachedResponse;
+      }
     }
 
     // Generate Qwik SSR response
-    const res = (await qwikSSR(req)) as Response;
+    const ssrResult = await render({
+      url: new URL(request.url),
+      symbols,
+      base: '/',
+    });
 
-    // Cache results
-    res.headers.set(
-      'Cache-Control',
-      `max-age=${CACHE_CONTROL}, s-maxage=10, stale-while-revalidate=604800, stale-if-error=604800`
-    );
-    req.waitUntil(cache.put(req.request, res.clone()));
+    const response = new Response(ssrResult.html, {
+      headers: {
+        'Content-Type': 'text/html; charset=utf-8',
+        'Cache-Control': useCache
+          ? `max-age=60, s-maxage=10, stale-while-revalidate=604800, stale-if-error=604800`
+          : `no-cache, max-age=0`,
+      },
+    });
+
+    if (useCache) {
+      waitUntil(cache.put(request, response.clone()));
+    }
 
     // Return Qwik SSR response
-    return res;
+    return response;
   } catch (e) {
     // 500 Error
     return new Response(String(e), { status: 500 });

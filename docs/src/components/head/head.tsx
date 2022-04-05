@@ -21,6 +21,8 @@ export const Head = () => (
 
     <meta property="fb:app_id" content="676395883130092" />
 
+    <meta name="og:url" content="https://qwik.builder.io/" />
+    <meta name="og:type" content="website" />
     <meta name="og:title" content="Qwik" />
     <meta name="og:description" content="Qwik is Framework reimagined for the edge" />
     <meta

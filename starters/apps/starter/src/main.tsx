@@ -4,11 +4,9 @@ import { Logo } from './components/logo/logo';
 import './global.css';
 
 export const Main = component$(() => {
-  // setup
   const state = useStore({ name: 'World' });
 
   return $(() => (
-    // render
     <Host class="my-app p-20">
       <Logo class="mb-10" />
 

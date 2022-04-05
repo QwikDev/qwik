@@ -8,10 +8,7 @@ import { Item } from '../item/item';
  * This component only rerenders/hydrates/downloads if the list of todos changes.
  */
 export const Body = component$((props: { todos: Todos }) => {
-  // setup
-
   return $(() => {
-    // render
     return (
       <Host class="main">
         <ul class="todo-list">

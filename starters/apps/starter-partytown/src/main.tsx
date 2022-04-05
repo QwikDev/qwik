@@ -2,11 +2,9 @@ import { component$, $, useEvent, useStore } from '@builder.io/qwik';
 import './global.css';
 
 export const Main = component$(() => {
-  // setup
   const state = useStore({ name: 'World', running: true });
 
   return $(() => {
-    // render
     return (
       <div id="my-app" onDocumentExpensiveComputationDone$={() => (state.running = false)}>
         <p style={{ 'text-align': 'center' }}>

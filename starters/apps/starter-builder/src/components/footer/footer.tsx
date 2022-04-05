@@ -1,10 +1,7 @@
 import { component$, $ } from '@builder.io/qwik';
 
 export const Footer = component$(() => {
-  // setup
-
   return $(() => (
-    // render
     <>
       <hr />
       <p style={{ 'text-align': 'center' }}>

@@ -1,10 +1,7 @@
 import { component$, $ } from '@builder.io/qwik';
 
 export const Header = component$(() => {
-  // setup
-
   return $(() => (
-    //render
     <p style={{ 'text-align': 'center' }}>
       <a href="https://github.com/builderio/qwik">
         <img

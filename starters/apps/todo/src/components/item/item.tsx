@@ -16,11 +16,9 @@ import type { TodoItem, Todos } from '../../state/state';
  */
 export const Item = component$(
   (props: { item: TodoItem; todos: Todos }) => {
-    // setup
     const state = useStore({ editing: false });
 
     return $(() => {
-      // render
       return (
         <Host class={{ completed: props.item.completed, editing: state.editing }}>
           <div class="view">

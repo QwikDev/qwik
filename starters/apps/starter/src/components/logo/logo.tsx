@@ -1,10 +1,7 @@
 import { $, component$, Host } from '@builder.io/qwik';
 
 export const Logo = component$(() => {
-  // setup
-
   return $(() => (
-    // render
     <Host style={{ 'text-align': 'center' }}>
       <a href="https://github.com/builderio/qwik">
         <img

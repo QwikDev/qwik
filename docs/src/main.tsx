@@ -8,7 +8,6 @@ export interface SiteStore {
 }
 
 export const Main = component$(() => {
-  // setup
   useStyles$(styles);
 
   const store = useStore<SiteStore>({
@@ -17,7 +16,6 @@ export const Main = component$(() => {
   });
 
   return $(() => {
-    // render
     return (
       <Host
         class={{

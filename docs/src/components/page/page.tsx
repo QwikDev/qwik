@@ -8,10 +8,7 @@ interface PageProps {
 }
 
 export const Page = component$((props: PageProps) => {
-  // setup
-
   return $(async () => {
-    // render
     const hostElm = useHostElement();
     const page = await usePage(hostElm);
 

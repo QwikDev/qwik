@@ -15,7 +15,6 @@ import './index.css';
  * download to the client.
  */
 export const Main = component$(() => {
-  // setup
   const todos = useStore<Todos>({
     filter: 'all',
     items: [
@@ -26,7 +25,6 @@ export const Main = component$(() => {
   });
 
   return $(() => {
-    // render
     return (
       <section class="todoapp">
         <Header todos={todos} />

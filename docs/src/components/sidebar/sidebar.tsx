@@ -1,10 +1,15 @@
 import { component$, Host, $, useHostElement, useScopedStyles$ } from '@builder.io/qwik';
 import { usePage, usePageIndex } from '@builder.io/qwest';
+import type { SiteStore } from '../../main';
+import { CloseIcon } from '../svgs/close-icon';
 import styles from './sidebar.css?inline';
-import { toggleMenu } from '../../utils/toggle-menu';
+
+interface SideBarProps {
+  store: SiteStore;
+}
 
 export const SideBar = component$(
-  () => {
+  (props: SideBarProps) => {
     useScopedStyles$(styles);
 
     return $(async () => {
@@ -15,7 +20,7 @@ export const SideBar = component$(
       return (
         <Host class="sidebar">
           <nav class="breadcrumbs">
-            <button onClickQrl={toggleMenu}>
+            <button onClick$={() => (props.store.sideMenuOpen = !props.store.sideMenuOpen)}>
               <span class="sr-only">Navigation</span>
               <svg width="24" height="24">
                 <path
@@ -34,16 +39,11 @@ export const SideBar = component$(
             </ol>
           </nav>
           <nav class="menu">
-            <button class="menu-close lg:hidden" onClickQrl={toggleMenu}>
-              <svg viewBox="0 0 10 10">
-                <path
-                  d="M0 0L10 10M10 0L0 10"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                />
-              </svg>
+            <button
+              class="menu-close lg:hidden"
+              onClick$={() => (props.store.sideMenuOpen = !props.store.sideMenuOpen)}
+            >
+              <CloseIcon width={24} height={24} />
             </button>
             {navIndex
               ? navIndex.items?.map((item) => (

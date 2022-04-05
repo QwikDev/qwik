@@ -1,4 +1,4 @@
 {
   "name": "cloudflare-worker",
-  "main": "build/entry.cloudflare.js"
+  "main": "build/entry.server.js"
 }

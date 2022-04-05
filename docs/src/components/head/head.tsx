@@ -21,10 +21,10 @@ export const Head = () => (
 
     <meta property="fb:app_id" content="676395883130092" />
 
-    <meta name="og:url" content="https://qwik.builder.io/" />
-    <meta name="og:type" content="website" />
-    <meta name="og:title" content="Qwik" />
-    <meta name="og:description" content="Qwik is Framework reimagined for the edge" />
+    <meta property="og:url" content="https://qwik.builder.io/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Qwik" />
+    <meta property="og:description" content="Qwik is Framework reimagined for the edge" />
     <meta
       property="og:image"
       content="https://cdn.builder.io/api/v1/image/assets%2Ffe30f73e01ef40558cd69a9493eba2a2%2F6566e6d9309f44b4b346ab50abb5fc6d?width=1200"

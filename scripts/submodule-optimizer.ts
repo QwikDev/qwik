@@ -15,6 +15,7 @@ import { platformArchTriples } from '@napi-rs/triples';
 import { readPackageJson } from './package-json';
 import { watch } from 'rollup';
 import { constants } from 'fs';
+import { inlineQwikScriptsEsBuild } from './submodule-qwikloader';
 
 /**
  * Builds @builder.io/optimizer
@@ -39,6 +40,8 @@ export async function submoduleOptimizer(config: BuildConfig) {
       incremental: config.watch,
     };
 
+    const qwikloaderScripts = await inlineQwikScriptsEsBuild(config);
+
     const esmBuild = build({
       ...opts,
       format: 'esm',
@@ -47,6 +50,7 @@ export async function submoduleOptimizer(config: BuildConfig) {
         'globalThis.IS_CJS': 'false',
         'globalThis.IS_ESM': 'true',
         'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
+        ...qwikloaderScripts,
       },
       watch: watcher(config, submodule),
     });
@@ -59,6 +63,7 @@ export async function submoduleOptimizer(config: BuildConfig) {
         'globalThis.IS_CJS': 'true',
         'globalThis.IS_ESM': 'false',
         'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
+        ...qwikloaderScripts,
       },
       watch: watcher(config),
       platform: 'node',

@@ -11,7 +11,7 @@ import {
   Diagnostic,
   GlobalInjections,
 } from '..';
-
+import { QWIK_LOADER_DEFAULT_DEBUG } from '../scripts';
 import type { NormalizedOutputOptions, PluginContext, RollupError } from 'rollup';
 import type { HmrContext, Plugin, UserConfig, ViteDevServer } from 'vite';
 
@@ -26,6 +26,8 @@ export function qwikVite(opts: QwikViteOptions): any {
     const main = opts.ssr?.main ?? '/src/main.tsx';
 
     Object.assign(plugin, {
+      name: 'qwik-vite',
+
       handleHotUpdate(ctx: HmrContext) {
         plugin.log('handleHotUpdate()', ctx);
         if (ctx.file.endsWith('.css')) {
@@ -210,7 +212,7 @@ export function qwikRollup(opts: QwikPluginOptions): any {
       return inputOptions;
     },
 
-    transformIndexHtml(_, ctx) {
+    transformIndexHtml(html, ctx) {
       if (ctx.bundle) {
         Object.entries(ctx.bundle).forEach(([key, value]) => {
           if (value.type === 'asset' && key.endsWith('.css')) {
@@ -225,6 +227,8 @@ export function qwikRollup(opts: QwikPluginOptions): any {
           }
         });
       }
+      html = html.replace(`</head>`, `<script>${QWIK_LOADER_DEFAULT_DEBUG}</script>\n</head>`);
+      return html;
     },
     async buildStart() {
       if (!optimizer) {

@@ -71,14 +71,13 @@ export async function build(config: BuildConfig) {
         submoduleQwikLoader(config),
         submoduleBuild(config),
         submodulePrefetch(config),
-        submoduleOptimizer(config),
         submoduleTesting(config),
         copyFiles(config),
       ]);
 
       // server bundling must happen after the results from the others
       // because it inlines the qwik loader and prefetch scripts
-      await submoduleServer(config);
+      await Promise.all([submoduleServer(config), submoduleOptimizer(config)]);
     }
 
     if (config.eslint) {

@@ -1,13 +1,27 @@
-import { component$, Host, $ } from '@builder.io/qwik';
+import { component$, Host, $, useScopedStyles$ } from '@builder.io/qwik';
+import { CloseIcon } from '../svgs/close-icon';
 import { DiscordLogo } from '../svgs/discord-logo';
 import { GithubLogo } from '../svgs/github-logo';
+import { MoreIcon } from '../svgs/more-icon';
 import { QwikLogo } from '../svgs/qwik-logo';
 import { TwitterLogo } from '../svgs/twitter-logo';
+import type { SiteStore } from '../../main';
+import styles from './header.css?inline';
+
+interface HeaderProps {
+  store: SiteStore;
+}
 
 export const Header = component$(
-  () => {
+  (props: HeaderProps) => {
+    useScopedStyles$(styles);
+
+    const toggleMenu = $(() => {
+      props.store.headerMenuOpen = !props.store.headerMenuOpen;
+    });
+
     return $(() => (
-      <Host className="fixed top-0 z-40 w-full bg-gray-900 ">
+      <Host className="fixed top-0 z-40 w-full h-[56px]">
         <div class="max-w-[1400px] mx-auto">
           <div className="fixed top-[13px] left-[max(0px,calc(50%-45rem))] pl-4">
             <a href="/" class="hover:opacity-70">
@@ -15,45 +29,50 @@ export const Header = component$(
               <QwikLogo width={110} height={35} />
             </a>
           </div>
-          <div className="grow flex justify-end p-4">
-            <a
-              className="font-semibold text-slate-200 hover:text-slate-400 px-2 mx-2"
-              href="/guide/overview"
-            >
-              Guide
-            </a>
-            <a
-              className="font-semibold text-slate-200 hover:text-slate-400 px-2 ml-2"
-              href="https://qwik-playground.builder.io/"
-              target="_blank"
-            >
-              Playground
-            </a>
-            <a
-              className="font-semibold text-slate-200 hover:text-slate-400 px-2 ml-4"
-              href="https://github.com/BuilderIO/qwik"
-              target="_blank"
-            >
-              <span className="sr-only">Github</span>
-              <GithubLogo width={22} height={22} />
-            </a>
-            <a
-              className="font-semibold text-slate-200 hover:text-slate-400 px-2 ml-2"
-              href="https://twitter.com/QwikDev"
-              target="_blank"
-            >
-              <span className="sr-only">Twitter</span>
-              <TwitterLogo width={22} height={22} />
-            </a>
-            <a
-              className="font-semibold text-slate-200 hover:text-slate-400 px-2 ml-2"
-              href="https://discord.gg/Fd9Cwb3Z8D"
-              target="_blank"
-            >
-              <span className="sr-only">Discord</span>
-              <DiscordLogo width={22} height={22} />
-            </a>
-          </div>
+          <button onClickQrl={toggleMenu} class="p-3 md:hidden fixed right-0">
+            <span class="more-icon">
+              <MoreIcon width={30} height={30} />
+            </span>
+            <span class="close-icon">
+              <CloseIcon width={30} height={30} />
+            </span>
+          </button>
+          <ul className="md:grow md:flex md:justify-end md:p-4 bg-gray-900">
+            <li>
+              <a href="/guide/overview">
+                <span>Guide</span>
+              </a>
+            </li>
+            <li>
+              <a href="https://qwik-playground.builder.io/" target="_blank" onClickQrl={toggleMenu}>
+                <span>Playground</span>
+              </a>
+            </li>
+            <li>
+              <a href="https://github.com/BuilderIO/qwik" target="_blank" onClickQrl={toggleMenu}>
+                <span class="md:hidden">Github</span>
+                <span class="hidden md:block">
+                  <GithubLogo width={22} height={22} />
+                </span>
+              </a>
+            </li>
+            <li>
+              <a href="https://twitter.com/QwikDev" target="_blank" onClickQrl={toggleMenu}>
+                <span class="md:hidden">@Builder.io</span>
+                <span class="hidden md:block">
+                  <TwitterLogo width={22} height={22} />
+                </span>
+              </a>
+            </li>
+            <li>
+              <a href="https://discord.gg/Fd9Cwb3Z8D" target="_blank" onClickQrl={toggleMenu}>
+                <span class="md:hidden">Discord</span>
+                <span class="hidden md:block">
+                  <DiscordLogo width={22} height={22} />
+                </span>
+              </a>
+            </li>
+          </ul>
         </div>
       </Host>
     ));

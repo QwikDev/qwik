@@ -18,7 +18,7 @@ select {
 }
 
 body {
-  @apply bg-gray-900 text-slate-100 antialiased h-screen;
+  @apply text-slate-100 antialiased h-screen;
 }
 
 @media (max-width: 1023px) {
@@ -43,10 +43,6 @@ body {
 
   .menu-open .menu a {
     @apply text-slate-100 hover:text-slate-800 p-3;
-  }
-
-  body.menu-open {
-    background-color: rgb(187, 187, 187);
   }
 
   .menu-open header {

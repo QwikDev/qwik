@@ -5,7 +5,7 @@
   "scripts": {
     "build": "yarn build.qwest && yarn build.client && yarn build.server",
     "build.client": "vite build",
-    "build.server": "vite build --outDir server/build --ssr src/entry.cloudflare.tsx",
+    "build.server": "vite build --outDir server/build --ssr src/entry.server.tsx",
     "build.qwest": "cd qwest && yarn build",
     "preview": "vite preview",
     "dev": "yarn dev.ssr",
@@ -19,7 +19,7 @@
   },
   "devDependencies": {
     "@builder.io/partytown": "^0.5.2",
-    "@builder.io/qwik": "0.0.18-7",
+    "@builder.io/qwik": "0.0.18-7-dev20220405193739",
     "@cloudflare/kv-asset-handler": "0.2.0",
     "@cloudflare/workers-types": "^3.2.0",
     "@mdx-js/mdx": "^2.0.0",

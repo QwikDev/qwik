@@ -49,5 +49,13 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
 })(window,document,'script','dataLayer','GTM-NR2STLN');`}
     />
+
+    <script
+      src="//cdn.jsdelivr.net/npm/@builder.io/persist-attribution@latest/dist/persist-attribution.min.js"
+      id="persist-attribution-init"
+      data-send-page-view-events="true"
+      async
+      defer
+    />
   </>
 );

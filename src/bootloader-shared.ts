@@ -18,17 +18,13 @@
 /**
  * Resolve the protocol of the QRL and return a URL
  *
- * @param doc
+ * @param element
  * @param eventUrl
- * @param linkElm
- * @param href
  * @returns
  */
-export const qrlResolver = (element: Element, eventUrl: string): URL => {
-  const doc = element.ownerDocument!;
-  const containerEl = element.closest('[q\\:container]');
-  const base = new URL(containerEl?.getAttribute('q:base') ?? doc.baseURI, doc.baseURI);
-  return new URL(eventUrl, base);
+export const qrlResolver = (element: Element, eventUrl: string, baseURI: string): URL => {
+  element = element.closest('[q\\:container]')!;
+  return new URL(eventUrl, new URL(element ? element.getAttribute('q:base')! : baseURI, baseURI));
 };
 
 const error = (msg: string) => {
@@ -47,17 +43,18 @@ const error = (msg: string) => {
 export const qwikLoader = (doc: Document, hasInitialized?: boolean | number) => {
   const Q_CONTEXT = '__q_context__';
   const ON_PREFIXES = ['on:', 'on-window:', 'on-document:'];
-  const broadcast = async (infix: string, type: string, event: Event) => {
+
+  const broadcast = (infix: string, type: string, ev: Event) => {
     type = type.replace(/([A-Z])/g, (a) => '-' + a.toLowerCase());
     doc
       .querySelectorAll('[on' + infix + '\\:' + type + ']')
-      .forEach((target) => dispatch(target, type, event));
+      .forEach((target) => dispatch(target, type, ev));
   };
 
-  const symbolUsed = (el: Element, name: string) =>
+  const symbolUsed = (el: Element, symbolName: string) =>
     el.dispatchEvent(
       new CustomEvent('qSymbol', {
-        detail: { name },
+        detail: { name: symbolName },
         bubbles: true,
         composed: true,
       })
@@ -66,52 +63,46 @@ export const qwikLoader = (doc: Document, hasInitialized?: boolean | number) => 
   const dispatch = async (element: Element, eventName: string, ev: Event) => {
     for (const on of ON_PREFIXES) {
       const attrValue = element.getAttribute(on + eventName);
-      if (!attrValue) {
-        continue;
-      }
-      const preventDefault = element.hasAttribute('preventdefault:' + eventName);
-      if (preventDefault) {
-        ev.preventDefault();
-      }
-      for (const qrl of attrValue.split('\n')) {
-        const url = qrlResolver(element, qrl);
-        if (url) {
-          const symbolName = getSymbolName(url);
-          const module =
-            (window as any)[url.pathname] ||
-            (await import(/* @vite-ignore */ String(url).split('#')[0]));
-          const handler = module[symbolName] || error(url + ' does not export ' + symbolName);
-          const previousCtx = (doc as any)[Q_CONTEXT];
-          try {
-            (doc as any)[Q_CONTEXT] = [element, ev, url];
-            handler(ev, element, url);
-          } finally {
-            (doc as any)[Q_CONTEXT] = previousCtx;
-            symbolUsed(element, symbolName);
+      if (attrValue) {
+        const preventDefault = element.hasAttribute('preventdefault:' + eventName);
+        if (preventDefault) {
+          ev.preventDefault();
+        }
+        for (const qrl of attrValue.split('\n')) {
+          const url = qrlResolver(element, qrl, doc.baseURI);
+          if (url) {
+            const symbolName = getSymbolName(url);
+            const module = (window as any)[url.pathname] || (await import(url.href.split('#')[0]));
+            const handler = module[symbolName] || error(url + ' does not export ' + symbolName);
+            const previousCtx = (doc as any)[Q_CONTEXT];
+            try {
+              (doc as any)[Q_CONTEXT] = [element, ev, url];
+              handler(ev, element, url);
+            } finally {
+              (doc as any)[Q_CONTEXT] = previousCtx;
+              symbolUsed(element, symbolName);
+            }
           }
         }
       }
     }
   };
 
-  const getSymbolName = (url: URL) => {
+  const getSymbolName = (url: URL) =>
     // 1 - optional `#` at the start.
     // 2 - capture group `$1` containing the export name, stopping at the first `?`.
     // 3 - the rest from the first `?` to the end.
     // The hash string is replaced by the captured group that contains only the export name.
     // This is the same as in the `qExport()` function.
-    return url.hash.replace(/^#?([^?[|]*).*$/, '$1') || 'default';
-  };
+    url.hash.replace(/^#?([^?[|]*).*$/, '$1') || 'default';
 
-  const getModuleExport = (url: URL, module: any, exportName?: string) => {
+  const getModuleExport = (url: URL, module: any, exportName?: string) =>
     // 1 - optional `#` at the start.
     // 2 - capture group `$1` containing the export name, stopping at the first `?`.
     // 3 - the rest from the first `?` to the end.
     // The hash string is replaced by the captured group that contains only the export name.
     // This is the same as in the `qExport()` function.
-    exportName = getSymbolName(url);
-    return module[exportName] || error(url + ' does not export ' + exportName);
-  };
+    module[(exportName = getSymbolName(url))] || error(url + ' does not export ' + exportName);
 
   /**
    * Event handler responsible for processing browser events.
@@ -122,7 +113,7 @@ export const qwikLoader = (doc: Document, hasInitialized?: boolean | number) => 
    *
    * @param ev - Browser event.
    */
-  const processEvent = async (ev: Event, element?: Element | null) => {
+  const processEvent = (ev: Event, element?: Element | null) => {
     element = ev.target as Element | null;
     if ((element as any) == doc) {
       // This is a event which fires on document only, we have to broadcast it instead
@@ -159,14 +150,13 @@ export const qwikLoader = (doc: Document, hasInitialized?: boolean | number) => 
   } else {
     const scriptTag = doc.querySelector('script[events]');
     if (scriptTag) {
-      const events = scriptTag!.getAttribute('events') || '';
+      const events = scriptTag!.getAttribute('events')!;
       events.split(/[\s,;]+/).forEach(addEventListener);
     } else {
       for (const key in doc) {
-        if (key.indexOf('on') == 0) {
-          const eventName = key.substring(2);
+        if (key.startsWith('on')) {
           // For each `on*` property, set up a listener.
-          addEventListener(eventName);
+          addEventListener(key.slice(2));
         }
       }
     }
@@ -195,28 +185,26 @@ export const setupPrefetching = (
   doc: Document,
   IntersectionObserver: IntersectionObserverConstructor
 ) => {
-  const intersectionObserverCallback = (items: IntersectionObserverEntry[]) => {
+  const intersectionObserverCallback = (items: IntersectionObserverEntry[]) =>
     items.forEach((item) => {
       if (item.intersectionRatio > 0) {
         const element = item.target;
         const attrs = element.attributes;
         for (let i = 0; i < attrs.length; i++) {
           const attr = attrs[i];
-          const name = attr.name;
           const value = attr.value;
-          if (name.startsWith('on:') && value) {
-            const url = qrlResolver(element, value)!;
+          if (attrs[i].name.startsWith('on:') && value) {
+            const url = qrlResolver(element, value, doc.baseURI)!;
             url.hash = url.search = '';
-            const key = url.toString() + '.js';
+            const key = String(url) + '.js';
             if (!qrlCache[key]) {
-              qrlCache[key] = key;
-              onEachNewQrl(key);
+              onEachNewQrl((qrlCache[key] = key));
             }
           }
         }
       }
     });
-  };
+
   const qrlCache: Record<string, string> = {};
   const onEachNewQrl = (qrl: string) => {
     if (!worker) {

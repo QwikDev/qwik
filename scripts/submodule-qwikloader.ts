@@ -50,7 +50,7 @@ export async function submoduleQwikLoader(config: BuildConfig) {
     dir: config.distPkgDir,
     format: 'es',
     exports: 'none',
-    intro: `(function(){`,
+    intro: `(()=>{`,
     outro: `})()`,
     plugins: [
       terser({

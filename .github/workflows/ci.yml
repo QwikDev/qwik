@@ -10,9 +10,14 @@ on:
     description: 'Publish to NPM, and create a Github release.'
     inputs:
       disttag:
-        description: 'Workflow will publish to NPM, push the git tag and create a Github release. Enter the NPM Dist Tag to use, such as: latest, next, dev.'
+        description: 'Publish to NPM using this dist-tag, push the git-tag to the repo and create a Github release. A "latest" and "next" dist-tags will use the version number already committed in package.json.'
         required: true
-        default: 'latest'
+        type: choice
+        default: 'dev'
+        options:
+          - dev
+          - next
+          - latest
 
 env:
   # Disable incremental build, speeds up CI

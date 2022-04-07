@@ -57,15 +57,15 @@ export const ContentNav = component$(
       }
 
       return (
-        <Host class="content-nav border-t border-slate-300 flex py-6 px-2">
-          <div class="flex-1 mr-1">
+        <Host class="content-nav border-t border-slate-300 flex flex-wrap py-4">
+          <div class="flex-1">
             {prevText && prevHref ? (
               <a class="px-3 py-1 prev" href={prevHref}>
                 {prevText}
               </a>
             ) : null}
           </div>
-          <div class="flex-1 text-right ml-1">
+          <div class="flex-1 text-right">
             {nextText && nextHref ? (
               <a class="px-3 py-1 next" href={nextHref}>
                 {nextText}

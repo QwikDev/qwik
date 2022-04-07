@@ -10,6 +10,16 @@
   display: inline-block;
   white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 10px 0;
+  max-width: 150px;
+}
+
+@media (min-width: 540px) {
+  .content-nav .prev,
+  .content-nav .next {
+    max-width: 250px;
+  }
 }
 
 .content-nav .prev:hover,

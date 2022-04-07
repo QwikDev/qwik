@@ -35,24 +35,21 @@
   @apply relative;
 }
 
-.docs article h2 {
+.docs article h2,
+.docs article h3,
+.docs article h4,
+.docs article h5,
+.docs article h6 {
+  @apply text-xl font-semibold;
   @apply text-slate-900;
-  @apply text-2xl font-semibold;
   @apply mt-8;
   @apply mb-4;
   @apply relative;
   scroll-margin-top: 70px;
 }
 
-.docs article h3,
-.docs article h4,
-.docsarticle h5,
-.docs article h6 {
-  @apply text-slate-900;
-  @apply text-xl font-semibold;
-  @apply mt-8;
-  @apply mb-4;
-  @apply relative;
+.docs article h2 {
+  @apply text-2xl;
 }
 
 .docs h2 a,

@@ -1,25 +1,29 @@
 import { createDocument } from '@builder.io/qwik/testing';
-import type { LoaderWindow } from './bootloader-shared';
-import { qwikLoader, qrlResolver, setUpWebWorker } from './bootloader-shared';
+import type { LoaderWindow } from './qwikloader';
+import { qwikLoader } from './qwikloader';
 
 describe('qwikloader', () => {
+  let doc: Document;
+  let loaderWindow: LoaderWindow;
+
+  beforeEach(() => {
+    doc = createDocument();
+    loaderWindow = {
+      BuildEvents: false,
+      BuildWorkerBlob: '',
+      qEvents: [],
+    };
+    (global as any).window = loaderWindow;
+  });
+
   describe('getModuleExport', () => {
-    let doc: Document;
-    let loaderWindow: LoaderWindow;
-
-    beforeEach(() => {
-      doc = createDocument();
-      loaderWindow = {};
-      (global as any).window = loaderWindow;
-    });
-
     it('should throw error if missing named export', () => {
       expect(() => {
         const loader = qwikLoader(doc);
         const url = new URL('http://qwik.dev/event.js#someExport');
         const module = {};
         loader.getModuleExport(url, module);
-      }).toThrowError(`QWIK: http://qwik.dev/event.js#someExport does not export someExport`);
+      }).toThrowError(`QWIK http://qwik.dev/event.js#someExport does not export someExport`);
     });
 
     it('should get named export w/ ?', () => {
@@ -88,7 +92,7 @@ describe('qwikloader', () => {
         const url = new URL('http://qwik.dev/event.js');
         const module = {};
         loader.getModuleExport(url, module);
-      }).toThrowError(`QWIK: http://qwik.dev/event.js does not export default`);
+      }).toThrowError(`QWIK http://qwik.dev/event.js does not export default`);
     });
   });
 
@@ -99,38 +103,39 @@ describe('qwikloader', () => {
     });
 
     it('should resolve full URL', () => {
+      const loader = qwikLoader(doc);
       const div = doc.createElement('div');
-      expect(String(qrlResolver(div, 'http://foo.bar/baz', doc.baseURI))).toEqual(
+      expect(String(loader.qrlResolver(div, 'http://foo.bar/baz', doc.baseURI))).toEqual(
         'http://foo.bar/baz'
       );
     });
 
     it('should resolve relative URL against base', () => {
+      const loader = qwikLoader(doc);
       const div = doc.createElement('div');
-      expect(String(qrlResolver(div, './bar', doc.baseURI))).toEqual(
-        'http://document.qwik.dev/bar'
-      );
+      const resolvedQrl = loader.qrlResolver(div, './bar', doc.baseURI);
+      expect(resolvedQrl.href).toEqual('http://document.qwik.dev/bar');
     });
 
     it('should resolve relative URL against q:base', () => {
+      const loader = qwikLoader(doc);
       const div = doc.createElement('div');
       div.setAttribute('q:container', '');
       div.setAttribute('q:base', '/baz/');
-      expect(String(qrlResolver(div, './bar', doc.baseURI))).toEqual(
-        'http://document.qwik.dev/baz/bar'
-      );
+      const resolvedQrl = loader.qrlResolver(div, './bar', doc.baseURI);
+      expect(resolvedQrl.href).toEqual('http://document.qwik.dev/baz/bar');
     });
 
     it('should resolve relative URL against nested q:base', () => {
+      const loader = qwikLoader(doc);
       const div = doc.createElement('div');
       const parent = doc.createElement('parent');
       doc.body.appendChild(parent);
       parent.appendChild(div);
       parent.setAttribute('q:container', '');
       parent.setAttribute('q:base', './parent/');
-      expect(String(qrlResolver(div, './bar', doc.baseURI))).toEqual(
-        'http://document.qwik.dev/parent/bar'
-      );
+      const resolvedQrl = loader.qrlResolver(div, './bar', doc.baseURI);
+      expect(resolvedQrl.href).toEqual('http://document.qwik.dev/parent/bar');
     });
   });
 
@@ -144,47 +149,25 @@ describe('qwikloader', () => {
       delete (global as any).CustomEvent;
     });
 
-    it('should query on:q-init if document complete', () => {
+    it('should query on:q-resume document complete', () => {
       doc.readyState = 'complete';
       const spy = jest.spyOn(doc, 'querySelectorAll');
       qwikLoader(doc);
-      expect(spy).toHaveBeenCalledWith('[on\\:q-init]');
+      expect(spy).toHaveBeenCalledWith('[on\\:q-resume]');
     });
 
-    it('should query on:q-init if document interactive', () => {
+    it('should query on:q-resume if document interactive', () => {
       doc.readyState = 'interactive';
       const spy = jest.spyOn(doc, 'querySelectorAll');
       qwikLoader(doc);
-      expect(spy).toHaveBeenCalledWith('[on\\:q-init]');
+      expect(spy).toHaveBeenCalledWith('[on\\:q-resume]');
     });
 
-    it('should not query on:q-init if document loading', () => {
+    it('should not query on:q-resume if document loading', () => {
       doc.readyState = 'loading';
       const spy = jest.spyOn(doc, 'querySelectorAll');
       qwikLoader(doc);
       expect(spy).not.toHaveBeenCalled();
-    });
-  });
-});
-
-describe('prefetch', () => {
-  describe('setUpWebWorker', () => {
-    it('should listen on events and fire fetch', () => {
-      let listener!: Function;
-      const mockWindow: any = {
-        addEventListener: (name: string, value: Function) => {
-          expect(name).toEqual('message');
-          listener = value;
-        },
-      };
-      const mockFetch = jest.fn(() => ({
-        headers: {
-          get: () => '',
-        },
-      }));
-      setUpWebWorker(mockWindow, mockFetch as any);
-      listener({ data: 'somepath' });
-      expect(mockFetch.mock.calls).toEqual([['somepath']]);
     });
   });
 });

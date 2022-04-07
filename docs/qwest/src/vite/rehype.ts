@@ -208,8 +208,7 @@ function isLocalHref(href: string) {
     href.startsWith('#') ||
     href.startsWith('https://') ||
     href.startsWith('http://') ||
-    href.startsWith('about:') ||
-    href.startsWith('javascript:')
+    href.startsWith('about:')
   );
 }
 

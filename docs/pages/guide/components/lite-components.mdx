@@ -9,7 +9,7 @@ In addition to standard Qwik components that have all of the lazy-loaded propert
 
 ```tsx
 function MyButton(props: { text: string }) {
-  return <button>{text}</button>;
+  return <button>{props.text}</button>;
 }
 
 const MyApp = component$(() => {

@@ -8,6 +8,10 @@ export const onRequestGet: PagesFunction = async ({ request, next, waitUntil }) 
   // Handle static assets
   try {
     const url = new URL(request.url);
+    if (url.hostname === 'qwik.builder.io' && url.pathname === '/') {
+      // temporarily redirect homepage to the overview page
+      return Response.redirect('https://qwik.builder.io/guide/overview', 302);
+    }
 
     if (/\.\w+$/.test(url.pathname)) {
       return next(request);

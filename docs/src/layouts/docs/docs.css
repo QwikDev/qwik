@@ -41,6 +41,7 @@
   @apply mt-8;
   @apply mb-4;
   @apply relative;
+  scroll-margin-top: 70px;
 }
 
 .docs article h3,
@@ -146,4 +147,9 @@ h6 a:hover .icon {
 .docs article th:last-child,
 .docs article td:last-child {
   padding-right: 0;
+}
+
+.docs article img {
+  border-radius: 5px;
+  overflow: hidden;
 }

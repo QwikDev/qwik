@@ -52,7 +52,12 @@ export const SideBar = component$(
                     <ul>
                       {item.items?.map((item) => (
                         <li>
-                          <a href={item.href}>{item.text}</a>
+                          <a
+                            href={item.href}
+                            class={{ 'is-active': page.url.pathname === item.href }}
+                          >
+                            {item.text}
+                          </a>
                         </li>
                       ))}
                     </ul>

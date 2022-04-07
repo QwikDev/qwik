@@ -12,22 +12,24 @@ header ul {
   @apply pt-14 pb-6 md:pt-0;
 }
 
-.header-open header ul {
-  @apply block;
-}
-
 header .more-icon {
   @apply block;
-}
-
-.header-open header .more-icon {
-  @apply hidden;
 }
 
 header .close-icon {
   @apply hidden;
 }
 
-.header-open header .close-icon {
-  @apply block;
+@media (max-width: 767px) {
+  .header-open header ul {
+    @apply block;
+  }
+
+  .header-open header .more-icon {
+    @apply hidden;
+  }
+
+  .header-open header .close-icon {
+    @apply block;
+  }
 }

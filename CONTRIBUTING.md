@@ -43,8 +43,6 @@ yarn test.watch
 
 > Note that the `test.watch` command isn't necessary if you're running the `npm start` command, since `start` will also concurrently run the Jest watch process.
 
-To debug and step through unit tests, within VSCode you can use the "Integration Dev Server" Debug launch task.
-
 ### E2E Tests Only
 
 E2E tests use [Playwright](https://playwright.dev/).

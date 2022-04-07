@@ -5,7 +5,7 @@ fetch: https://hackmd.io/@mhevery/rkzgBnRlq
 
 # Lazy Loading & Code Splitting
 
-Qwik's [core tenant](./philosophy) is to delay the loading and execution of JavaScript for as long as possible. Qwik needs to break up the application into many lazy loadable chunks to achieve that.
+Qwik's [core tenant](./philosophy.mdx) is to delay the loading and execution of JavaScript for as long as possible. Qwik needs to break up the application into many lazy loadable chunks to achieve that.
 
 ## Basic problem
 
@@ -53,7 +53,7 @@ As you can see, different use cases need different parts of the code. In the abo
 
 # Optimizer
 
-Optimizer (described in-depth [here](./optimizer)) is a code transformation that extracts functions into top-level importable symbols, which allows the Qwik runtime to lazy-load the JavaScript on a needed basis.
+Optimizer (described in-depth [here](./optimizer/overview.mdx)) is a code transformation that extracts functions into top-level importable symbols, which allows the Qwik runtime to lazy-load the JavaScript on a needed basis.
 
 The Optimizer and Qwik runtime work together to achieve the desired result of fine-grained lazy loading.
 
@@ -93,4 +93,7 @@ const Counter = component$(() => {
 });
 ```
 
-Notice the presence of `$` in the code. `$` is a marker that tells the Optimizer that the function following it should be lazy-loaded. (For a detailed discussion see [$ and Optimizer Rules](./optimizer_rules).) The `$` is a single character that hints to the Optimizer and the developer to let them know that asynchronous lazy-loading occurs here.
+Notice the presence of `$` in the code. `$` is a marker that tells the Optimizer that the function 
+following it should be lazy-loaded. (For a detailed discussion see [$ and Optimizer Rules](./optimizer/rules.mdx).) 
+The `$` is a single character that hints to the Optimizer and the developer to let them know 
+that asynchronous lazy-loading occurs here.

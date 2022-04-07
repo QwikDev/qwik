@@ -4,8 +4,13 @@ interface EditIconProps {
 }
 
 export const EditIcon = ({ width, height }: EditIconProps) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width={width} height={height} viewBox="0 0 512 512">
-    <title>Edit</title>
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={width}
+    height={height}
+    viewBox="0 0 512 512"
+    aria-hidden="true"
+  >
     <path
       d="M384 224v184a40 40 0 01-40 40H104a40 40 0 01-40-40V168a40 40 0 0140-40h167.48"
       fill="none"

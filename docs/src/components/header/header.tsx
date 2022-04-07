@@ -20,6 +20,10 @@ export const Header = component$(
       props.store.headerMenuOpen = !props.store.headerMenuOpen;
     });
 
+    const closeMenu = $(() => {
+      props.store.headerMenuOpen = false;
+    });
+
     return $(() => (
       <Host className="fixed top-0 z-40 w-full h-[56px]">
         <div class="max-w-[1400px] mx-auto">
@@ -39,17 +43,17 @@ export const Header = component$(
           </button>
           <ul className="md:grow md:flex md:justify-end md:p-4 bg-gray-900">
             <li>
-              <a href="/guide/overview">
+              <a href="/guide/overview" onClickQrl={closeMenu}>
                 <span>Guide</span>
               </a>
             </li>
             <li>
-              <a href="https://qwik-playground.builder.io/" target="_blank" onClickQrl={toggleMenu}>
+              <a href="https://qwik-playground.builder.io/" target="_blank" onClickQrl={closeMenu}>
                 <span>Playground</span>
               </a>
             </li>
             <li>
-              <a href="https://github.com/BuilderIO/qwik" target="_blank" onClickQrl={toggleMenu}>
+              <a href="https://github.com/BuilderIO/qwik" target="_blank" onClickQrl={closeMenu}>
                 <span class="md:hidden">Github</span>
                 <span class="hidden md:block">
                   <GithubLogo width={22} height={22} />
@@ -57,7 +61,7 @@ export const Header = component$(
               </a>
             </li>
             <li>
-              <a href="https://twitter.com/QwikDev" target="_blank" onClickQrl={toggleMenu}>
+              <a href="https://twitter.com/QwikDev" target="_blank" onClickQrl={closeMenu}>
                 <span class="md:hidden">@Builder.io</span>
                 <span class="hidden md:block">
                   <TwitterLogo width={22} height={22} />
@@ -65,7 +69,7 @@ export const Header = component$(
               </a>
             </li>
             <li>
-              <a href="https://discord.gg/Fd9Cwb3Z8D" target="_blank" onClickQrl={toggleMenu}>
+              <a href="https://discord.gg/Fd9Cwb3Z8D" target="_blank" onClickQrl={closeMenu}>
                 <span class="md:hidden">Discord</span>
                 <span class="hidden md:block">
                   <DiscordLogo width={22} height={22} />

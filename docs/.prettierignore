@@ -12,7 +12,6 @@ node_modules
 temp
 tsc-out
 tsdoc-metadata.json
-integration/**/*.js
 target
 output
 rollup.config.js

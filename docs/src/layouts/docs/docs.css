@@ -127,3 +127,23 @@ h6 a:hover .icon {
     word-break: break-all;
   }
 }
+
+.docs article table {
+  @apply my-5;
+}
+
+.docs article th,
+.docs article td {
+  padding: 6px;
+  vertical-align: top;
+}
+
+.docs article th:first-child,
+.docs article td:first-child {
+  padding-left: 0;
+}
+
+.docs article th:last-child,
+.docs article td:last-child {
+  padding-right: 0;
+}

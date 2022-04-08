@@ -1,4 +1,4 @@
-import { component$, useStore, $, useEvent } from '@builder.io/qwik';
+import { component$, useStore, useEvent } from '@builder.io/qwik';
 import type { Todos } from '../../state/state';
 
 /**
@@ -9,31 +9,29 @@ import type { Todos } from '../../state/state';
 export const Header = component$(
   (props: { todos: Todos }) => {
     const state = useStore({ text: '' });
-    return $(() => {
-      return (
-        <>
-          <h1>todos</h1>
-          <input
-            class="new-todo"
-            placeholder="What needs to be done?"
-            autoFocus
-            value={state.text}
-            onKeyup$={() => {
-              const event = useEvent<KeyboardEvent>();
-              const inputValue = (event.target as HTMLInputElement).value;
-              state.text = inputValue;
-              if (event.key === 'Enter' && inputValue) {
-                props.todos.items.push({
-                  completed: false,
-                  title: state.text,
-                });
-                state.text = '';
-              }
-            }}
-          />
-        </>
-      );
-    });
+    return (
+      <>
+        <h1>todos</h1>
+        <input
+          class="new-todo"
+          placeholder="What needs to be done?"
+          autoFocus
+          value={state.text}
+          onKeyup$={() => {
+            const event = useEvent<KeyboardEvent>();
+            const inputValue = (event.target as HTMLInputElement).value;
+            state.text = inputValue;
+            if (event.key === 'Enter' && inputValue) {
+              props.todos.items.push({
+                completed: false,
+                title: state.text,
+              });
+              state.text = '';
+            }
+          }}
+        />
+      </>
+    );
   },
   {
     tagName: 'header',

@@ -1,7 +1,7 @@
-import { component$, $ } from '@builder.io/qwik';
+import { component$ } from '@builder.io/qwik';
 
 export const Header = component$(() => {
-  return $(() => (
+  return (
     <p style={{ 'text-align': 'center' }}>
       <a href="https://github.com/builderio/qwik">
         <img
@@ -11,5 +11,5 @@ export const Header = component$(() => {
         />
       </a>
     </p>
-  ));
+  );
 });

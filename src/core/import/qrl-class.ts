@@ -1,4 +1,4 @@
-import { InvokeContext, newInvokeContext, tryGetInvokeContext, useInvoke } from '../use/use-core';
+import { InvokeContext, newInvokeContext, useInvoke } from '../use/use-core';
 import { then } from '../util/promises';
 import type { ValueOrPromise } from '../util/types';
 import { qrlImport, QRLSerializeOptions, stringifyQRL } from './qrl';
@@ -37,18 +37,15 @@ class QRL<TYPE = any> implements IQRL<TYPE> {
     return qrlImport(this.el, this as any);
   }
 
-  invokeFn(el?: Element): any {
+  invokeFn(el?: Element, currentCtx?: InvokeContext): any {
     return ((...args: any[]): any => {
-      const currentCtx = tryGetInvokeContext();
       const fn = (typeof this.symbolRef === 'function' ? this.symbolRef : this.resolve(el)) as TYPE;
-
       return then(fn, (fn) => {
         if (typeof fn === 'function') {
           const context: InvokeContext = {
             ...newInvokeContext(),
             ...currentCtx,
             qrl: this,
-            waitOn: undefined,
           };
           return useInvoke(context, fn as any, ...args);
         }

@@ -1,21 +1,17 @@
 import { toQrlOrError } from '../import/qrl';
-import type { QRLInternal } from '../import/qrl-class';
 import { $, implicit$FirstArg, QRL } from '../import/qrl.public';
 import { qPropWriteQRL } from '../props/props-on';
 import type { JSXNode } from '../render/jsx/types/jsx-node';
-import { newInvokeContext, StyleAppend, useInvoke, useWaitOn } from '../use/use-core';
+import { StyleAppend, useWaitOn } from '../use/use-core';
 import { useHostElement } from '../use/use-host-element.public';
 import { ComponentScopedStyles, OnRenderProp } from '../util/markers';
 import { styleKey } from './qrl-styles';
 import type { ComponentBaseProps } from '../render/jsx/types/jsx-qwik-attributes';
 import type { ValueOrPromise } from '../util/types';
-import { getContext, getProps } from '../props/props';
+import { getContext } from '../props/props';
 import type { FunctionComponent } from '../index';
 import { jsx } from '../render/jsx/jsx-runtime';
-
-import { getDocument } from '../util/dom';
-import { promiseAll } from '../util/promises';
-import type { RenderFactoryOutput } from './component-ctx';
+import { useSequentialScope } from '../use/use-store.public';
 
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onUnmount">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -316,29 +312,14 @@ export type EventHandler<T> = QRL<(value: T) => any>;
  */
 // </docs>
 export function componentQrl<PROPS extends {}>(
-  onMount: QRL<OnMountFn<PROPS>>,
+  onRenderQrl: QRL<OnRenderFn<PROPS>>,
   options: ComponentOptions = {}
 ): Component<PROPS> {
   const tagName = options.tagName ?? 'div';
 
   // Return a QComponent Factory function.
-  return function QComponent(props, key): JSXNode<PROPS> {
-    const onRenderFactory = async (hostElement: Element): Promise<RenderFactoryOutput> => {
-      const onMountQrl = toQrlOrError(onMount);
-      const onMountFn = await resolveQrl(hostElement, onMountQrl);
-      const ctx = getContext(hostElement);
-      const props = getProps(ctx) as any;
-      const invokeCtx = newInvokeContext(getDocument(hostElement), hostElement, hostElement);
-      invokeCtx.qrl = onMountQrl;
-      const renderQRL = (await useInvoke(invokeCtx, onMountFn, props)) as QRLInternal;
-      return {
-        renderQRL,
-        waitOn: await promiseAll(invokeCtx.waitOn || []),
-      };
-    };
-    onRenderFactory.__brand__ = 'QRLFactory';
-
-    return jsx(tagName, { [OnRenderProp]: onRenderFactory, ...props }, key) as any;
+  return function QSimpleComponent(props, key): JSXNode<PROPS> {
+    return jsx(tagName, { [OnRenderProp]: onRenderQrl, ...props }, key) as any;
   };
 }
 
@@ -403,7 +384,7 @@ export function componentQrl<PROPS extends {}>(
  */
 // </docs>
 export function component$<PROPS extends {}>(
-  onMount: OnMountFn<PROPS>,
+  onMount: OnRenderFn<PROPS>,
   options?: ComponentOptions
 ): Component<PROPS> {
   return componentQrl<PROPS>($(onMount), options);
@@ -412,22 +393,19 @@ export function component$<PROPS extends {}>(
 /**
  * @public
  */
-export type OnMountFn<PROPS> = (
-  props: PROPS
-) => ValueOrPromise<QRL<() => ValueOrPromise<JSXNode<any> | null>>>;
+export type OnRenderFn<PROPS> = (props: PROPS) => ValueOrPromise<JSXNode<any> | null>;
 
-function resolveQrl<PROPS extends {}>(
-  hostElement: Element,
-  onMountQrl: QRLInternal<OnMountFn<PROPS>>
-): Promise<OnMountFn<PROPS>> {
-  return onMountQrl.symbolRef
-    ? Promise.resolve(onMountQrl.symbolRef!)
-    : Promise.resolve(null).then(() => {
-        return onMountQrl.resolve(hostElement);
-      });
+export interface RenderFactoryOutput<PROPS> {
+  renderQRL: QRL<OnRenderFn<PROPS>>;
+  waitOn: any[];
 }
 
 function _useStyles(styles: QRL<string>, scoped: boolean) {
+  const [style, setStyle] = useSequentialScope();
+  if (style === true) {
+    return;
+  }
+  setStyle(true);
   const styleQrl = toQrlOrError(styles);
   const styleId = styleKey(styleQrl);
   const hostElement = useHostElement();
@@ -439,7 +417,7 @@ function _useStyles(styles: QRL<string>, scoped: boolean) {
     styleQrl.resolve(hostElement).then((styleText) => {
       const task: StyleAppend = {
         type: 'style',
-        scope: styleId,
+        styleId,
         content: scoped ? styleText.replace(/�/g, styleId) : styleText,
       };
       return task;

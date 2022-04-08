@@ -1,13 +1,14 @@
 import type { JSXNode } from '../render/jsx/types/jsx-node';
 import { QError, qError } from '../error/error';
 import { getProxyMap, readWriteProxy } from '../object/q-object';
-import { resume } from '../object/store';
+import { resumeContainer } from '../object/store';
 import type { RenderContext } from '../render/cursor';
 import { getDocument } from '../util/dom';
 import { newQObjectMap, QObjectMap } from './props-obj-map';
 import { qPropWriteQRL, qPropReadQRL } from './props-on';
-import type { QRLInternal } from '../import/qrl-class';
 import { QContainerAttr } from '../util/markers';
+import type { QRL } from '../import/qrl.public';
+import type { OnRenderFn } from '../component/component.public';
 
 Error.stackTraceLimit = 9999;
 
@@ -16,12 +17,12 @@ const Q_CTX = '__ctx__';
 export function resumeIfNeeded(containerEl: Element): void {
   const isResumed = containerEl.getAttribute(QContainerAttr);
   if (isResumed === 'paused') {
-    resume(containerEl);
+    resumeContainer(containerEl);
   }
 }
 
 export interface QContextEvents {
-  [eventName: string]: QRLInternal | undefined;
+  [eventName: string]: QRL | undefined;
 }
 
 export interface ComponentCtx {
@@ -38,7 +39,8 @@ export interface QContext {
   element: Element;
   dirty: boolean;
   props: Record<string, any> | undefined;
-  renderQrl: QRLInternal | undefined;
+  renderQrl: QRL<OnRenderFn<any>> | undefined;
+  seq: number[];
   component: ComponentCtx | undefined;
 }
 
@@ -51,6 +53,7 @@ export function getContext(element: Element): QContext {
       cache,
       refMap: newQObjectMap(element),
       dirty: false,
+      seq: [],
       props: undefined,
       renderQrl: undefined,
       component: undefined,

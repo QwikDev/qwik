@@ -27,8 +27,8 @@ export const App = component$(() => {
 
 import * as qwik from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
-export const App = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_app_onmount")
-, "App_onmount"));
+export const App = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_app_render")
+, "App_render"));
 
 ============================= h_test_app_onrender.js (ENTRY POINT)==
 
@@ -49,10 +49,10 @@ export const App_onRender = ()=>{
   "extension": "js"
 }
 */
-============================= h_test_app_onmount.js (ENTRY POINT)==
+============================= h_test_app_render.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const App_onmount = ()=>{
+export const App_render = ()=>{
     function hola() {
         console.log('hola');
     }
@@ -67,9 +67,9 @@ export const App_onmount = ()=>{
 /*
 {
   "origin": "test.tsx",
-  "name": "App_onmount",
+  "name": "App_render",
   "entry": null,
-  "canonicalFilename": "h_test_app_onmount",
+  "canonicalFilename": "h_test_app_render",
   "extension": "js"
 }
 */

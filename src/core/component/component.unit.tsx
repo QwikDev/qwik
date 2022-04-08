@@ -2,7 +2,6 @@ import { useLexicalScope, useStore } from '@builder.io/qwik';
 import { ElementFixture, trigger } from '../../testing/element_fixture';
 import { expectDOM } from '../../testing/expect-dom.unit';
 import { runtimeQrl } from '../import/qrl';
-import { $ } from '../import/qrl.public';
 import { render } from '../render/render.public';
 import { PropsOf, useStylesQrl, component$ } from './component.public';
 
@@ -89,9 +88,7 @@ describe('q-component', () => {
 /////////////////////////////////////////////////////////////////////////////
 export const HelloWorld = component$(() => {
   useStylesQrl(runtimeQrl(`{}`));
-  return $(() => {
-    return <span>Hello World</span>;
-  });
+  return <span>Hello World</span>;
 });
 
 /////////////////////////////////////////////////////////////////////////////
@@ -99,12 +96,12 @@ export const HelloWorld = component$(() => {
 
 export const Greeter = component$((props: { salutation?: string; name?: string }) => {
   const state = useStore({ count: 0 });
-  return $(() => (
+  return (
     <div>
       {' '}
       {props.salutation} {props.name} ({state.count}){' '}
     </div>
-  ));
+  );
 });
 
 //////////////////////////////////////////////
@@ -121,7 +118,7 @@ export const MyCounter_update = () => {
 export const MyCounter = component$(
   (props: { step?: number; value?: number }) => {
     const state = useStore({ count: props.value || 0 });
-    return $(() => (
+    return (
       <div>
         <button
           class="decrement"
@@ -137,7 +134,7 @@ export const MyCounter = component$(
           +
         </button>
       </div>
-    ));
+    );
   },
   {
     tagName: 'my-counter',
@@ -163,12 +160,12 @@ interface ItemsObj {
 export const ItemDetail = component$(
   (props: { itemObj: ItemObj }) => {
     // const state = useStore({ editing: false });
-    return $(() => (
+    return (
       <>
         <input type="checkbox" checked={props.itemObj.done} />
         <span>{props.itemObj.title || 'loading...'}</span>
       </>
-    ));
+    );
   },
   {
     tagName: 'item-detail',
@@ -180,14 +177,14 @@ export const ItemDetail = component$(
 export const Items = component$(
   (props: { items: ItemsObj }) => {
     // const state = useStore({ editing: false });
-    return $(() => (
+    return (
       <>
         {props.items.items.map((item) => (
           <ItemDetail itemObj={item} />
         ))}
         Total: {props.items.items.length}
       </>
-    ));
+    );
   },
   {
     tagName: 'items',

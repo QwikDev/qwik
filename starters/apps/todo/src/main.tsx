@@ -1,4 +1,4 @@
-import { component$, $, useStore } from '@builder.io/qwik';
+import { component$, useStore } from '@builder.io/qwik';
 import { Footer } from './components/footer/footer';
 import { Header } from './components/header/header';
 import { Body } from './components/body/body';
@@ -23,13 +23,11 @@ export const Main = component$(() => {
       { completed: false, title: 'Profit' },
     ],
   });
-  return $(() => {
-    return (
-      <section class="todoapp">
-        <Header todos={todos} />
-        <Body todos={todos} />
-        <Footer todos={todos} />
-      </section>
-    );
-  });
+  return (
+    <section class="todoapp">
+      <Header todos={todos} />
+      <Body todos={todos} />
+      <Footer todos={todos} />
+    </section>
+  );
 });

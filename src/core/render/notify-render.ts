@@ -8,6 +8,8 @@ import { getDocument } from '../util/dom';
 import { renderComponent } from '../component/component-ctx';
 import { logDebug } from '../util/log';
 import { getContainer } from '../use/use-core';
+import { runWatch, WatchDescriptor } from '../watch/watch.public';
+import { waitForWatches } from '../object/q-object';
 
 /**
  * Mark component for rendering.
@@ -64,6 +66,10 @@ export function scheduleFrame(containerEl: Element, state: RenderingState): Prom
 const SCHEDULE = Symbol('Render state');
 
 export interface RenderingState {
+  watchRunning: Set<Promise<WatchDescriptor>>;
+  watchNext: Set<WatchDescriptor>;
+  watchStagging: Set<WatchDescriptor>;
+
   hostsNext: Set<Element>;
   hostsStaging: Set<Element>;
   hostsRendering: Set<Element> | undefined;
@@ -74,6 +80,10 @@ export function getRenderingState(containerEl: Element): RenderingState {
   let set = (containerEl as any)[SCHEDULE] as RenderingState;
   if (!set) {
     (containerEl as any)[SCHEDULE] = set = {
+      watchNext: new Set(),
+      watchStagging: new Set(),
+      watchRunning: new Set(),
+
       hostsNext: new Set(),
       hostsStaging: new Set(),
       renderPromise: undefined,
@@ -87,6 +97,8 @@ export async function renderMarked(
   containerEl: Element,
   state: RenderingState
 ): Promise<RenderContext> {
+  await waitForWatches(state);
+
   state.hostsRendering = new Set(state.hostsNext);
   state.hostsNext.clear();
 
@@ -150,6 +162,11 @@ function postRendering(containerEl: Element, state: RenderingState) {
   state.hostsStaging.clear();
   state.hostsRendering = undefined;
   state.renderPromise = undefined;
+
+  // Run useEffect() watch
+  state.watchNext.forEach((watch) => {
+    runWatch(watch);
+  });
 
   if (state.hostsNext.size > 0) {
     scheduleFrame(containerEl, state);

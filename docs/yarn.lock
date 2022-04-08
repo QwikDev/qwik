@@ -35,10 +35,10 @@
   resolved "https://registry.yarnpkg.com/@builder.io/partytown/-/partytown-0.5.2.tgz#ba40369f7c0fd22169eaf6906325c150d7f77dd0"
   integrity sha512-DHJPs5WPVFExUuGMsuA6yZQ6OPtVVv/3JJK9pzGrNfvuGNvlip5v7xOhXwZG26HLU9ZrrOFsOGhn5FUT2H7dPw==
 
-"@builder.io/qwik@0.0.18-7-dev20220405193739":
-  version "0.0.18-7-dev20220405193739"
-  resolved "https://registry.yarnpkg.com/@builder.io/qwik/-/qwik-0.0.18-7-dev20220405193739.tgz#95779ab98ab71bf54f9061cc71ae3220d6a6b88c"
-  integrity sha512-rnOkEuddpYsBt2GvkaVUSuZlW2PYCOvcgKQDMXdco2FoptwVY1WC7UKfJBuxTZ822V8Rk9G4veGTxVJb3vi/mg==
+"@builder.io/qwik@0.0.18-7-dev20220408224756":
+  version "0.0.18-7-dev20220408224756"
+  resolved "https://registry.yarnpkg.com/@builder.io/qwik/-/qwik-0.0.18-7-dev20220408224756.tgz#db8e81aaf880f7f192f8ddb10a6bc0b7f15b9dd7"
+  integrity sha512-vQr9W/lbDR+yriJCY9fra0yj9Vj/FnAsSlevki9O3SxebORmlBSNhos+9i+DOqwZhc5gjRJpnC1v3qFmB1Ne9A==
 
 "@cloudflare/kv-asset-handler@0.2.0":
   version "0.2.0"

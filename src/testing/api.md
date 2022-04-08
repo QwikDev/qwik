@@ -40,11 +40,6 @@ export function getQwikLoaderScript(opts?: {
     debug?: boolean;
 }): string;
 
-// @alpha
-export function getQwikPrefetchScript(opts?: {
-    debug?: boolean;
-}): string;
-
 // @public
 export interface GlobalOptions extends DocumentOptions {
 }
@@ -64,11 +59,6 @@ export interface QwikGlobal extends WindowProxy {
 //
 // @alpha (undocumented)
 export const QwikLoader: FunctionComponent<QwikLoaderProps>;
-
-// Warning: (ae-forgotten-export) The symbol "QwikPrefetchProps" needs to be exported by the entry point index.d.ts
-//
-// @alpha (undocumented)
-export const QwikPrefetch: FunctionComponent<QwikPrefetchProps>;
 
 // @public
 export function renderToDocument(docOrElm: Document | Element, rootNode: JSXNode<unknown> | FunctionComponent<any>, opts: RenderToDocumentOptions): Promise<void>;

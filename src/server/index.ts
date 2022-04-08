@@ -11,8 +11,8 @@ export type {
 export { createDocument, createGlobal, renderToDocument, renderToString } from './document';
 export { createTimer } from './utils';
 export { getImports } from './prefetch';
-export { getQwikLoaderScript, getQwikPrefetchScript } from './scripts';
-export { QwikLoader, QwikPrefetch } from './components';
+export { getQwikLoaderScript } from './scripts';
+export { QwikLoader } from './components';
 export { serializeDocument } from './serialize';
 export { setServerPlatform } from './platform';
 

@@ -1,4 +1,4 @@
-import { $, component$, Host, useStore, useStyles$ } from '@builder.io/qwik';
+import { component$, Host, useStore, useStyles$ } from '@builder.io/qwik';
 import styles from './global.css';
 import { Page } from './components/page/page';
 
@@ -15,16 +15,14 @@ export const Main = component$(() => {
     sideMenuOpen: false,
   });
 
-  return $(() => {
-    return (
-      <Host
-        class={{
-          'header-open': store.headerMenuOpen,
-          'menu-open': store.sideMenuOpen,
-        }}
-      >
-        <Page store={store} />
-      </Host>
-    );
-  });
+  return (
+    <Host
+      class={{
+        'header-open': store.headerMenuOpen,
+        'menu-open': store.sideMenuOpen,
+      }}
+    >
+      <Page store={store} />
+    </Host>
+  );
 });

@@ -1,4 +1,4 @@
-import { $, component$, Host, Slot, useScopedStyles$ } from '@builder.io/qwik';
+import { component$, Host, Slot, useScopedStyles$ } from '@builder.io/qwik';
 import type { SiteStore } from '../../main';
 import { ContentNav } from '../../components/content-nav/content-nav';
 import { Footer } from '../../components/footer/footer';
@@ -14,22 +14,20 @@ interface DocsLayoutProps {
 const DocsLayout = component$((props: DocsLayoutProps) => {
   useScopedStyles$(styles);
 
-  return $(() => {
-    return (
-      <Host class="docs">
-        <Header store={props.store} />
-        <SideBar store={props.store} />
-        <main>
-          <article>
-            <Slot />
-            <ContentNav />
-            <Footer />
-          </article>
-          <OnThisPage />
-        </main>
-      </Host>
-    );
-  });
+  return (
+    <Host class="docs">
+      <Header store={props.store} />
+      <SideBar store={props.store} />
+      <main>
+        <article>
+          <Slot />
+          <ContentNav />
+          <Footer />
+        </article>
+        <OnThisPage />
+      </main>
+    </Host>
+  );
 });
 
 export default DocsLayout;

@@ -24,7 +24,7 @@ export const Header = component$(
       props.store.headerMenuOpen = false;
     });
 
-    return $(() => (
+    return (
       <Host className="fixed top-0 z-40 w-full h-[56px]">
         <div class="max-w-[1400px] mx-auto">
           <div className="fixed top-[13px] left-[max(0px,calc(50%-45rem))] pl-4">
@@ -79,7 +79,7 @@ export const Header = component$(
           </ul>
         </div>
       </Host>
-    ));
+    );
   },
   { tagName: 'header' }
 );

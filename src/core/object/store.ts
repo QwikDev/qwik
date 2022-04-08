@@ -12,6 +12,7 @@ import {
   QContainerAttr,
   QHostAttr,
   QObjAttr,
+  QSeqAttr,
 } from '../util/markers';
 import { qDev } from '../util/qdev';
 import {
@@ -34,7 +35,7 @@ export type GetObjID = (obj: any) => string | null;
 export const UNDEFINED_PREFIX = '\u0010';
 export const QRL_PREFIX = '\u0011';
 
-export function resume(containerEl: Element) {
+export function resumeContainer(containerEl: Element) {
   if (!isContainer(containerEl)) {
     logWarn('Skipping hydration because parent element is not q:container');
     return;
@@ -74,8 +75,11 @@ export function resume(containerEl: Element) {
   // Walk all elements with q:obj and resume their state
   getNodesInScope(containerEl, hasQObj).forEach((el) => {
     const qobj = el.getAttribute(QObjAttr)!;
+    const seq = el.getAttribute(QSeqAttr)!;
     const host = el.getAttribute(QHostAttr);
     const ctx = getContext(el);
+
+    // Restore captured objets
     qobj.split(' ').forEach((part) => {
       if (part !== '') {
         const obj = getObject(part);
@@ -84,6 +88,10 @@ export function resume(containerEl: Element) {
         logError('QObj contains empty ref');
       }
     });
+
+    // Restore sequence scoping
+    ctx.seq = seq.split(' ').map((part) => strToInt(part));
+
     if (host) {
       const [props, renderQrl] = host.split(' ').map(strToInt);
       assertDefined(props);
@@ -94,7 +102,7 @@ export function resume(containerEl: Element) {
   });
   containerEl.setAttribute(QContainerAttr, 'resumed');
   if (qDev) {
-    logDebug('Container resumed', containerEl);
+    logDebug('Container resumed');
   }
 }
 
@@ -224,6 +232,9 @@ export function snapshotState(containerEl: Element) {
       })
       .join(' ');
     node.setAttribute(QObjAttr, attribute);
+
+    const seq = ctx.seq.map((index) => intToStr(index)).join(' ');
+    node.setAttribute(QSeqAttr, seq);
 
     if (props) {
       const objs = [props];

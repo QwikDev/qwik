@@ -41,8 +41,8 @@ export function foo() {}
 export class bar {
 }
 export default function DefaultFn() {};
-export const Header = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("../h_test_header_onmount")
-, "Header_onmount"));
+export const Header = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("../h_test_header_render")
+, "Header_render"));
 export const Footer = /*#__PURE__*/ componentQrl();
 
 ============================= h_test_header_onrender.tsx (ENTRY POINT)==
@@ -78,10 +78,10 @@ export const Header_onRender = ()=><Footer >
   "extension": "tsx"
 }
 */
-============================= h_test_header_onmount.tsx (ENTRY POINT)==
+============================= h_test_header_render.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const Header_onmount = ()=>{
+export const Header_render = ()=>{
     return qwik.qrl(()=>import("./h_test_header_onrender")
     , "Header_onRender");
 };
@@ -89,9 +89,9 @@ export const Header_onmount = ()=>{
 /*
 {
   "origin": "project/test.tsx",
-  "name": "Header_onmount",
+  "name": "Header_render",
   "entry": null,
-  "canonicalFilename": "h_test_header_onmount",
+  "canonicalFilename": "h_test_header_render",
   "extension": "tsx"
 }
 */

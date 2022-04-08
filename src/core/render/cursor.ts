@@ -4,12 +4,8 @@ import { isOn$Prop, isOnProp } from '../props/props-on';
 import type { ValueOrPromise } from '../util/types';
 import type { JSXNode } from '../render/jsx/types/jsx-node';
 import { Host } from '../render/jsx/host.public';
-import { $ } from '../import/qrl.public';
-import {
-  firstRenderComponent,
-  renderComponent,
-  RenderFactoryOutput,
-} from '../component/component-ctx';
+import { $, QRL } from '../import/qrl.public';
+import { firstRenderComponent, renderComponent } from '../component/component-ctx';
 import { promiseAll, then } from '../util/promises';
 import type { RenderingState } from './notify-render';
 import { assertDefined, assertEqual } from '../assert/assert';
@@ -21,7 +17,8 @@ import { logDebug, logError, logWarn } from '../util/log';
 import { qDev } from '../util/qdev';
 import { qError, QError } from '../error/error';
 import { fromCamelToKebabCase } from '../util/case';
-import { isStyleTask, StyleAppend } from '../use/use-core';
+import type { OnRenderFn } from '../component/component.public';
+import { CONTAINER, StyleAppend } from '../use/use-core';
 
 export const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -481,17 +478,10 @@ function createElm(rctx: RenderContext, vnode: JSXNode, isSvg: boolean): ValueOr
   let wait: ValueOrPromise<void>;
   if (isComponent) {
     // Run mount hook
-    const renderQRLPromise = props![OnRenderProp]!(elm) as Promise<RenderFactoryOutput>;
-    wait = then(renderQRLPromise, (output) => {
-      ctx.renderQrl = output.renderQRL;
-      output.waitOn.forEach((task) => {
-        if (isStyleTask(task)) {
-          appendStyle(rctx, elm, task);
-        }
-      });
-      ctx.refMap.add(output.renderQRL);
-      return firstRenderComponent(rctx, ctx);
-    });
+    const renderQRL = props![OnRenderProp]! as QRL<OnRenderFn<any>>;
+    ctx.renderQrl = renderQRL;
+    ctx.refMap.add(renderQRL);
+    wait = firstRenderComponent(rctx, ctx);
   } else {
     const setsInnerHTML = checkInnerHTML(props);
     if (setsInnerHTML) {
@@ -730,6 +720,7 @@ function setProperty(ctx: RenderContext, node: any, key: string, value: any) {
 
 function createElement(ctx: RenderContext, expectTag: string, isSvg: boolean): Element {
   const el = isSvg ? ctx.doc.createElementNS(SVG_NS, expectTag) : ctx.doc.createElement(expectTag);
+  (el as any)[CONTAINER] = ctx.containerEl;
   ctx.operations.push({
     el,
     operation: 'create-element',
@@ -757,14 +748,14 @@ function insertBefore<T extends Node>(
   return newChild;
 }
 
-function appendStyle(ctx: RenderContext, hostElement: Element, styleTask: StyleAppend) {
+export function appendStyle(ctx: RenderContext, hostElement: Element, styleTask: StyleAppend) {
   const fn = () => {
     const containerEl = ctx.containerEl;
     const stylesParent =
       ctx.doc.documentElement === containerEl ? ctx.doc.head ?? containerEl : containerEl;
-    if (!stylesParent.querySelector(`style[q\\:style="${styleTask.scope}"]`)) {
+    if (!stylesParent.querySelector(`style[q\\:style="${styleTask.styleId}"]`)) {
       const style = ctx.doc.createElement('style');
-      style.setAttribute('q:style', styleTask.scope);
+      style.setAttribute('q:style', styleTask.styleId);
       style.textContent = styleTask.content;
       stylesParent.insertBefore(style, stylesParent.firstChild);
     }

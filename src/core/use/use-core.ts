@@ -2,15 +2,17 @@ import type { ValueOrPromise } from '../util/types';
 import type { Props } from '../props/props.public';
 import { assertDefined } from '../assert/assert';
 import type { QwikDocument } from '../document';
-import type { QRLInternal } from '../import/qrl-class';
 import { QContainerSelector, QHostAttr } from '../util/markers';
 import { getDocument } from '../util/dom';
+import type { QRL } from '..';
 
 declare const document: QwikDocument;
 
+export const CONTAINER = Symbol('container');
+
 export interface StyleAppend {
   type: 'style';
-  scope: string;
+  styleId: string;
   content: string;
 }
 
@@ -24,7 +26,8 @@ export interface InvokeContext {
   element?: Element;
   event: any;
   url: URL | null;
-  qrl?: QRLInternal;
+  seq: number;
+  qrl?: QRL<any>;
   subscriptions: boolean;
   waitOn?: ValueOrPromise<any>[];
   props?: Props;
@@ -91,6 +94,7 @@ export function newInvokeContext(
   url?: URL
 ): InvokeContext {
   return {
+    seq: 0,
     doc,
     hostElement,
     element,
@@ -131,5 +135,10 @@ export function getHostElement(el: Element): Element | null {
 }
 
 export function getContainer(el: Element): Element | null {
-  return el.closest(QContainerSelector);
+  let container = (el as any)[CONTAINER];
+  if (!container) {
+    container = el.closest(QContainerSelector);
+    (el as any)[CONTAINER] = container;
+  }
+  return container;
 }

@@ -75,6 +75,8 @@ export const QSlotAttr = 'q:slot';
 
 export const QObjAttr = 'q:obj';
 
+export const QSeqAttr = 'q:seq';
+
 export const QContainerAttr = 'q:container';
 
 export const QObjSelector = '[q\\:obj]';

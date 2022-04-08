@@ -4,6 +4,7 @@ test.describe('e2e', () => {
   test.describe('two-listeners', () => {
     test.beforeEach(async ({ page }) => {
       await page.goto('/e2e/two-listeners');
+      page.on('pageerror', (err) => expect(err).toEqual(undefined));
     });
 
     test('should support two QRLs on event', async ({ page }) => {
@@ -16,6 +17,7 @@ test.describe('e2e', () => {
   test.describe('lexical-scope', () => {
     test.beforeEach(async ({ page }) => {
       await page.goto('/e2e/lexical-scope');
+      page.on('pageerror', (err) => expect(err).toEqual(undefined));
     });
 
     test('should rerender without changes', async ({ page }) => {
@@ -44,6 +46,7 @@ test.describe('e2e', () => {
   test.describe('events', () => {
     test.beforeEach(async ({ page }) => {
       await page.goto('/e2e/events');
+      page.on('pageerror', (err) => expect(err).toEqual(undefined));
     });
 
     test('should rerender correctly', async ({ page }) => {
@@ -90,6 +93,7 @@ test.describe('e2e', () => {
   test.describe('slot', () => {
     test.beforeEach(async ({ page }) => {
       await page.goto('/e2e/slot');
+      page.on('pageerror', (err) => expect(err).toEqual(undefined));
     });
 
     test('should update count', async ({ page }) => {

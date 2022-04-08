@@ -9,7 +9,7 @@ import { snapshotState } from './store';
  *
  * @public
  */
-export function snapshot(elmOrDoc: Element | Document) {
+export function pauseContainer(elmOrDoc: Element | Document) {
   const doc = getDocument(elmOrDoc);
   const containerEl = isDocument(elmOrDoc) ? elmOrDoc.documentElement : elmOrDoc;
   const parentJSON = isDocument(elmOrDoc) ? elmOrDoc.body : containerEl;

@@ -5,6 +5,7 @@ import { qInflate } from '../json/q-json';
 import { getContext, resumeIfNeeded } from '../props/props';
 import { getContainer, getInvokeContext } from './use-core';
 import { useURL } from './use-url.public';
+import type { QRLInternal } from '../import/qrl-class';
 
 // <docs markdown="https://hackmd.io/lQ8v7fyhR-WD3b-2aRUpyw#useLexicalScope">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -23,7 +24,8 @@ import { useURL } from './use-url.public';
 export function useLexicalScope<VARS extends any[]>(): VARS {
   const context = getInvokeContext();
   const hostElement = context.hostElement;
-  const qrl = context.qrl ?? parseQRL(decodeURIComponent(String(useURL())), hostElement);
+  const qrl = (context.qrl ??
+    parseQRL(decodeURIComponent(String(useURL())), hostElement)) as QRLInternal;
   if (qrl.captureRef == null) {
     const el = context.element!;
     assertDefined(el);

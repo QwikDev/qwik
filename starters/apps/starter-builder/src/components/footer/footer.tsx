@@ -1,7 +1,7 @@
-import { component$, $ } from '@builder.io/qwik';
+import { component$ } from '@builder.io/qwik';
 
 export const Footer = component$(() => {
-  return $(() => (
+  return (
     <>
       <hr />
       <p style={{ 'text-align': 'center' }}>
@@ -11,5 +11,5 @@ export const Footer = component$(() => {
         </a>
       </p>
     </>
-  ));
+  );
 });

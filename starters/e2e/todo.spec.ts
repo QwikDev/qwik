@@ -3,6 +3,7 @@ import { test, expect, Page } from '@playwright/test';
 test.describe('Todo', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/todo/');
+    page.on('pageerror', (err) => expect(err).toEqual(undefined));
   });
 
   test('todo title', async ({ page }) => {
@@ -52,6 +53,17 @@ test.describe('Todo', () => {
     await page.locator('.todo-list>li:first-child input[type=checkbox]').click();
     await page.locator('button.clear-completed').click();
     await assertItemCount(page, 2);
+  });
+
+  test('should remove first item and update last', async ({ page }) => {
+    await assertItemCount(page, 3);
+    await page.locator('.todo-list>li:first-child').hover();
+    await page.locator('.todo-list>li:first-child button').click();
+    await assertItemCount(page, 2);
+    await page.waitForTimeout(100);
+
+    await page.locator('.todo-list>li:last-child input').click();
+    await assertItemCount(page, 1, 2);
   });
 
   // Flaky on E2E Tests (ubuntu-latest, chromium)

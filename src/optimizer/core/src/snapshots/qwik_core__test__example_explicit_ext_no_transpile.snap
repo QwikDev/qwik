@@ -18,8 +18,8 @@ export const App = component$((props) => {
 
 import * as qwik from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
-export const App = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_app_onmount.tsx")
-, "App_onmount"));
+export const App = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_app_render.tsx")
+, "App_render"));
 
 ============================= h_test_app_usestyles.tsx (ENTRY POINT)==
 
@@ -50,11 +50,11 @@ export const App_onRender = ()=><div ></div>
   "extension": "tsx"
 }
 */
-============================= h_test_app_onmount.tsx (ENTRY POINT)==
+============================= h_test_app_render.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
 import { useStylesQrl } from "@builder.io/qwik";
-export const App_onmount = (props)=>{
+export const App_render = (props)=>{
     useStylesQrl(qwik.qrl(()=>import("./h_test_app_usestyles.tsx")
     , "App_useStyles"));
     return qwik.qrl(()=>import("./h_test_app_onrender.tsx")
@@ -64,9 +64,9 @@ export const App_onmount = (props)=>{
 /*
 {
   "origin": "test.tsx",
-  "name": "App_onmount",
+  "name": "App_render",
   "entry": null,
-  "canonicalFilename": "h_test_app_onmount",
+  "canonicalFilename": "h_test_app_render",
   "extension": "tsx"
 }
 */

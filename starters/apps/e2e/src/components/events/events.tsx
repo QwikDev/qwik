@@ -1,8 +1,4 @@
-import { component$, $, useStore, Host, EventHandler } from '@builder.io/qwik';
-
-const qrl = $(() => {});
-
-qrl.invoke();
+import { component$, useStore, Host, EventHandler } from '@builder.io/qwik';
 
 export const Events = component$(() => {
   const store = useStore({
@@ -10,23 +6,21 @@ export const Events = component$(() => {
     countWrapped: 0,
   });
 
-  return $(() => {
-    return (
-      <Host>
-        <Buttons
-          onTransparentClick$={() => {
-            store.countTransparent++;
-          }}
-          onWrappedClick$={() => {
-            store.countWrapped++;
-          }}
-        ></Buttons>
+  return (
+    <Host>
+      <Buttons
+        onTransparentClick$={() => {
+          store.countTransparent++;
+        }}
+        onWrappedClick$={() => {
+          store.countWrapped++;
+        }}
+      ></Buttons>
 
-        <p id="count-transparent">countTransparent: {store.countTransparent}</p>
-        <p id="count-wrapped">countWrapped: {store.countWrapped}</p>
-      </Host>
-    );
-  });
+      <p id="count-transparent">countTransparent: {store.countTransparent}</p>
+      <p id="count-wrapped">countWrapped: {store.countWrapped}</p>
+    </Host>
+  );
 });
 
 interface ButtonProps {
@@ -36,23 +30,21 @@ interface ButtonProps {
 
 export const Buttons = component$((props: ButtonProps) => {
   const store = useStore({ count: 0 });
-  return $(() => {
-    return (
-      <Host>
-        <span>some</span>
-        <button id="btn-transparent" onClickQrl={props.onTransparentClickQrl}>
-          Transparent
-        </button>
-        <button
-          id="btn-wrapped"
-          onClick$={() => {
-            store.count++;
-            props.onWrappedClickQrl!.invoke(store.count);
-          }}
-        >
-          Wrapped {store.count}
-        </button>
-      </Host>
-    );
-  });
+  return (
+    <Host>
+      <span>some</span>
+      <button id="btn-transparent" onClickQrl={props.onTransparentClickQrl}>
+        Transparent
+      </button>
+      <button
+        id="btn-wrapped"
+        onClick$={() => {
+          store.count++;
+          props.onWrappedClickQrl!.invoke(store.count);
+        }}
+      >
+        Wrapped {store.count}
+      </button>
+    </Host>
+  );
 });

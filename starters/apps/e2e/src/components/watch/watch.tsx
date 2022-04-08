@@ -1,13 +1,30 @@
+/* eslint-disable */
 import { $, component$, useStore, useWatch$ } from '@builder.io/qwik';
 
-export const Watch = component$(() => {
-  const store = useStore({ count: 0, doubleCount: 0, debounced: 0 });
+interface State {
+  count: number;
+  doubleCount: number;
+  debounced: number;
+}
 
-  useWatch$((obs) => {
-    store.doubleCount = 2 * obs(store).count;
+export const Watch = component$(() => {
+  const store = useStore<State>({
+    count: 1,
+    doubleCount: 0,
+    debounced: 0,
   });
 
+  // Double count watch
   useWatch$((obs) => {
+    console.log('here');
+    const { count } = obs(store);
+    store.doubleCount = 2 * count;
+  });
+  // doubleCount === 0
+
+  // Debouncer watch
+  useWatch$((obs) => {
+    console.log('here');
     const { doubleCount } = obs(store);
     const timer = setTimeout(() => {
       store.debounced = doubleCount;
@@ -17,13 +34,26 @@ export const Watch = component$(() => {
     };
   });
 
-  return $(() => (
+  console.log('PARENT renders');
+  return (
     <div>
       <div>
         {store.count} / {store.doubleCount}
       </div>
-      <div>Debounced: {store.debounced}</div>
+      <Child state={store} />
       <button onClick$={() => store.count++}>+</button>
     </div>
-  ));
+  );
+});
+
+export const Child = component$((props: { state: State }) => {
+  console.log('CHILD renders');
+  return (
+    <div>
+      <div>
+        {props.state.count} / {props.state.doubleCount}
+      </div>
+      <div>Debounced: {props.state.debounced}</div>
+    </div>
+  );
 });

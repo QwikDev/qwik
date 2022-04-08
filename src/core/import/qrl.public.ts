@@ -1,4 +1,5 @@
 import type { ValueOrPromise } from '..';
+import type { InvokeContext } from '../use/use-core';
 import { runtimeQrl } from './qrl';
 
 // <docs markdown="https://hackmd.io/m5DzCi5MTa26LuUj5t3HpQ#QRL">
@@ -134,7 +135,8 @@ export interface QRL<TYPE = any> {
   ): TYPE extends (...args: any[]) => infer RETURN ? ValueOrPromise<RETURN> : never;
 
   invokeFn(
-    el?: Element
+    el?: Element,
+    context?: InvokeContext
   ): TYPE extends (...args: infer ARGS) => infer RETURN
     ? (...args: ARGS) => ValueOrPromise<RETURN>
     : never;

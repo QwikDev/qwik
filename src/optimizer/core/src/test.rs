@@ -487,11 +487,9 @@ import { $, component$, useStyles$ } from '@builder.io/qwik';
 
 export const Foo = component$(() => {
     useStyles$('.class {}');
-    return $(() => {
-        return (
-            <div class="class"/>
-        )
-    });
+    return (
+        <div class="class"/>
+    );
 }, {
     tagName: "my-foo",
 });
@@ -508,14 +506,12 @@ fn example_lightweight_functional() {
 import { $, component$ } from '@builder.io/qwik';
 
 export const Foo = component$(({color}) => {
-    return $(() => {
-        return (
-            <div>
-                <Button {...props} />
-                <ButtonArrow {...props} />
-            </div>
-        )
-    });
+    return (
+        <div>
+            <Button {...props} />
+            <ButtonArrow {...props} />
+        </div>
+    );
 }, {
     tagName: "my-foo",
 });

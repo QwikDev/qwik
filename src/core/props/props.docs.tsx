@@ -5,20 +5,20 @@
 // it to the desired comment location
 //
 
-import { $, component$ } from '@builder.io/qwik';
+import { component$ } from '@builder.io/qwik';
 
 export const MyApp = component$(() => {
-  return $(() => (
+  return (
     <div>
       <Greeter name="World" />
     </div>
-  ));
+  );
 });
 
 export const Greeter = component$((props: { salutation?: string; name?: string }) => {
-  return $(() => (
+  return (
     <span>
       {props.salutation || 'Hello'} <b>{props.name || 'World'}</b>
     </span>
-  ));
+  );
 });

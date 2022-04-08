@@ -15,7 +15,7 @@ export const Header = component$(() => {
 import * as qwik from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
 export const Header = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("../entry_hooks")
-, "Header_onmount"));
+, "Header_render"));
 
 ============================= h_test_sym2.tsx ==
 
@@ -32,10 +32,10 @@ export const sym2 = ()=>console.log("hello sym2")
   "extension": "tsx"
 }
 */
-============================= h_test_header_onmount.tsx ==
+============================= h_test_header_render.tsx ==
 
 import * as qwik from "@builder.io/qwik";
-export const Header_onmount = ()=>{
+export const Header_render = ()=>{
     return qwik.qrl(()=>import("./entry_hooks")
     , "sym2");
 };
@@ -43,16 +43,16 @@ export const Header_onmount = ()=>{
 /*
 {
   "origin": "project/test.tsx",
-  "name": "Header_onmount",
+  "name": "Header_render",
   "entry": "entry_hooks",
-  "canonicalFilename": "h_test_header_onmount",
+  "canonicalFilename": "h_test_header_render",
   "extension": "tsx"
 }
 */
 ============================= entry_hooks.js (ENTRY POINT)==
 
 export { sym2 } from "./h_test_sym2";
-export { Header_onmount } from "./h_test_header_onmount";
+export { Header_render } from "./h_test_header_render";
 
 == DIAGNOSTICS ==
 

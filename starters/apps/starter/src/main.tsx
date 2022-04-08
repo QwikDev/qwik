@@ -1,11 +1,11 @@
-import { useStore, $, component$, useEvent, Host } from '@builder.io/qwik';
+import { useStore, component$, useEvent, Host } from '@builder.io/qwik';
 import { Logo } from './components/logo/logo';
 
 import './global.css';
 
 export const Main = component$(() => {
   const state = useStore({ name: 'World' });
-  return $(() => (
+  return (
     <Host class="my-app p-20">
       <Logo class="mb-10" />
 
@@ -53,5 +53,5 @@ export const Main = component$(() => {
         </a>
       </p>
     </Host>
-  ));
+  );
 });

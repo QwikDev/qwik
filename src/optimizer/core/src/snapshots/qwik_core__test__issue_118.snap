@@ -18,7 +18,7 @@ export const Footer = component$();
 
 ============================= project/test.js ==
 
-import*as b from"@builder.io/qwik";import{componentQrl as a}from"@builder.io/qwik";export const Header=/*#__PURE__*/ a(b.qrl(()=>import("../entry_hooks"),"Header_onmount"));export const Footer=/*#__PURE__*/ a();
+import*as b from"@builder.io/qwik";import{componentQrl as a}from"@builder.io/qwik";export const Header=/*#__PURE__*/ a(b.qrl(()=>import("../entry_hooks"),"Header_render"));export const Footer=/*#__PURE__*/ a();
 ============================= h_test_header_onrender.js ==
 
 import{jsxs as a}from"@builder.io/qwik/jsx-runtime";import*as b from"@builder.io/qwik";import{Footer as c}from"./project/test";import*as d from"lib";import{s as e}from"lib";import f from"lib";export const Header_onRender=()=>/*#__PURE__*/ a(c,{children:[f,d(),e()]});
@@ -31,21 +31,21 @@ import{jsxs as a}from"@builder.io/qwik/jsx-runtime";import*as b from"@builder.io
   "extension": "js"
 }
 */
-============================= h_test_header_onmount.js ==
+============================= h_test_header_render.js ==
 
-import*as a from"@builder.io/qwik";export const Header_onmount=()=>a.qrl(()=>import("./entry_hooks"),"Header_onRender");
+import*as a from"@builder.io/qwik";export const Header_render=()=>a.qrl(()=>import("./entry_hooks"),"Header_onRender");
 /*
 {
   "origin": "project/test.tsx",
-  "name": "Header_onmount",
+  "name": "Header_render",
   "entry": "entry_hooks",
-  "canonicalFilename": "h_test_header_onmount",
+  "canonicalFilename": "h_test_header_render",
   "extension": "js"
 }
 */
 ============================= entry_hooks.js (ENTRY POINT)==
 
-export{Header_onRender}from"./h_test_header_onrender";export{Header_onmount}from"./h_test_header_onmount";
+export{Header_onRender}from"./h_test_header_onrender";export{Header_render}from"./h_test_header_render";
 == DIAGNOSTICS ==
 
 []

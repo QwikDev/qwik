@@ -1,4 +1,4 @@
-import { $, component$, Host } from '@builder.io/qwik';
+import { component$, Host } from '@builder.io/qwik';
 import { factory$ } from './utils';
 
 export const A = factory$(() => {
@@ -16,13 +16,11 @@ export function Light(props: { prop: string }) {
 export const C = factory$(Light);
 
 export const Factory = component$(() => {
-  return $(() => {
-    return (
-      <Host>
-        <A />
-        <B />
-        <C prop="wow!" />
-      </Host>
-    );
-  });
+  return (
+    <Host>
+      <A />
+      <B />
+      <C prop="wow!" />
+    </Host>
+  );
 });

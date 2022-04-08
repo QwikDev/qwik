@@ -33,10 +33,10 @@ export const Bar = component$(({bar}) => {
 
 import * as qwik from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
-export const Foo = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_foo_onmount")
-, "Foo_onmount"));
-export const Bar = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_bar_onmount")
-, "Bar_onmount"));
+export const Foo = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_foo_render")
+, "Foo_render"));
+export const Bar = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_bar_render")
+, "Bar_render"));
 
 ============================= h_test_foo_onrender.tsx (ENTRY POINT)==
 
@@ -61,10 +61,10 @@ export const Foo_onRender = ()=>{
   "extension": "tsx"
 }
 */
-============================= h_test_foo_onmount.tsx (ENTRY POINT)==
+============================= h_test_foo_render.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const Foo_onmount = ({ foo  })=>{
+export const Foo_render = ({ foo  })=>{
     const arg0 = 20;
     return qwik.qrl(()=>import("./h_test_foo_onrender")
     , "Foo_onRender", [
@@ -76,9 +76,9 @@ export const Foo_onmount = ({ foo  })=>{
 /*
 {
   "origin": "test.tsx",
-  "name": "Foo_onmount",
+  "name": "Foo_render",
   "entry": null,
-  "canonicalFilename": "h_test_foo_onmount",
+  "canonicalFilename": "h_test_foo_render",
   "extension": "tsx"
 }
 */
@@ -103,10 +103,10 @@ export const Bar_onRender = ()=>{
   "extension": "tsx"
 }
 */
-============================= h_test_bar_onmount.tsx (ENTRY POINT)==
+============================= h_test_bar_render.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const Bar_onmount = ({ bar  })=>{
+export const Bar_render = ({ bar  })=>{
     return qwik.qrl(()=>import("./h_test_bar_onrender")
     , "Bar_onRender", [
         bar
@@ -116,9 +116,9 @@ export const Bar_onmount = ({ bar  })=>{
 /*
 {
   "origin": "test.tsx",
-  "name": "Bar_onmount",
+  "name": "Bar_render",
   "entry": null,
-  "canonicalFilename": "h_test_bar_onmount",
+  "canonicalFilename": "h_test_bar_render",
   "extension": "tsx"
 }
 */

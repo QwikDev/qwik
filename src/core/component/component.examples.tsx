@@ -5,7 +5,7 @@
 // it to the desired comment location
 //
 
-import { component$, $, useStore } from '@builder.io/qwik';
+import { component$, $, useStore, Slot, QRL } from '@builder.io/qwik';
 import type { PropsOf } from './component.public';
 
 //////////////////////////////////////////////////////////
@@ -82,4 +82,38 @@ export const OtherComponent = component$(() => {
 
   const x: MyCompProps = null!;
   return [MyComp, other, x];
+};
+
+() => {
+  const Counter = component$(() => {
+    const store = useStore({
+      htmlCount: 0,
+      cmpCount: 0,
+    });
+    return $(() => (
+      <>
+        <button onClick$={() => store.htmlCount++}>{store.htmlCount}</button>
+        <CmpButton onClick$={() => store.cmpCount++}>{store.cmpCount}</CmpButton>
+      </>
+    ));
+  });
+
+  interface CmpButtonProps {
+    onClickQrl?: QRL<() => void>;
+  }
+
+  const CmpButton = component$((props: CmpButtonProps) => {
+    return $(() => (
+      <button
+        onDblclickQrl={props.onClickQrl}
+        onClick$={async () => {
+          await (props.onClickQrl && props.onClickQrl.invoke());
+        }}
+      >
+        <Slot />
+      </button>
+    ));
+  });
+
+  return [Counter];
 };

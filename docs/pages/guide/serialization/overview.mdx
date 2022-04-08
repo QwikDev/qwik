@@ -16,9 +16,9 @@ Limitations of JSON which Qwik solves:
 - JSON can't serialize some object types. For example, DOM references, Dates, etc... Qwik serialization format ensures that such objects can correctly be serialized and restored. Here is a list of types that can be serialized with Qwik:
   - DOM references
   - Dates (not yet implemented)
-  - Functions if wrapped in QRL.
+  - Function closures (if wrapped in QRL).
 
 Limitations of JSON that Qwik does not solve:
 
-- Serialization of classes (data + functions)
-- Serialization of Functions
+- Serialization of classes (`instanceof` and prototype)
+- Serialization of `Promise`s, Streams, etc...

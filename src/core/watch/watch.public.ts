@@ -1,4 +1,4 @@
-import { noSerialize, NoSerialize } from '../object/q-object';
+import { noSerialize, NoSerialize, removeSub } from '../object/q-object';
 import { implicit$FirstArg, QRL } from '../import/qrl.public';
 import { getContext } from '../props/props';
 import { useWaitOn } from '../use/use-core';
@@ -6,6 +6,8 @@ import { useHostElement } from '../use/use-host-element.public';
 import { logError } from '../util/log';
 import { then } from '../util/promises';
 import { wrapSubscriber } from '../use/use-subscriber';
+import { useSequentialScope } from '../use/use-store.public';
+import type { QRLInternal } from '../import/qrl-class';
 
 // <docs markdown="https://hackmd.io/_Kl9br9tT8OB-1Dv8uR4Kg#useWatch">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -53,44 +55,60 @@ import { wrapSubscriber } from '../use/use-subscriber';
  */
 // </docs>
 export function useWatchQrl(watchQrl: QRL<(obs: Observer) => void | (() => void)>): void {
-  const hostElement = useHostElement();
-  const watch: WatchDescriptor = {
-    watchQrl: watchQrl,
-    hostElement,
-  };
-  getContext(hostElement).refMap.add(watch);
-  useWaitOn(runWatch(watch));
+  const [watch, setWatch] = useSequentialScope();
+  if (!watch) {
+    const hostElement = useHostElement();
+    const watch: WatchDescriptor = {
+      watchQrl: watchQrl,
+      hostElement,
+      isConnected: true,
+    };
+    setWatch(watch);
+    getContext(hostElement).refMap.add(watch);
+    useWaitOn(runWatch(watch));
+  }
+}
+
+export const enum WatchMode {
+  Watch,
+  LayoutEffect,
+  Effect,
 }
 
 export interface WatchDescriptor {
+  isConnected: boolean;
   watchQrl: QRL<(obs: Observer) => void | (() => void)>;
   hostElement: Element;
   destroy?: NoSerialize<() => void>;
-  running?: NoSerialize<Promise<void>>;
+  running?: NoSerialize<Promise<WatchDescriptor>>;
 }
 
-export function runWatch(watch: WatchDescriptor) {
-  const promise = new Promise<void>((resolve) => {
-    return then(watch.running, () => {
-      const destroy = watch.destroy;
-      if (destroy) {
-        watch.destroy = undefined;
-        try {
-          destroy();
-        } catch (err) {
-          logError(err);
-        }
+export function runWatch(watch: WatchDescriptor): Promise<WatchDescriptor> {
+  const runningPromise = watch.running ?? Promise.resolve();
+  const promise = runningPromise.then(() => {
+    const destroy = watch.destroy;
+    if (destroy) {
+      watch.destroy = undefined;
+      try {
+        destroy();
+      } catch (err) {
+        logError(err);
       }
-      const hostElement = watch.hostElement;
-      const watchFn = watch.watchQrl.invokeFn(hostElement);
-      const obs = (obj: any) => wrapSubscriber(obj, watch);
-      resolve(
-        then(watchFn(obs), (returnValue) => {
-          if (typeof returnValue === 'function') {
-            watch.destroy = noSerialize(returnValue);
-          }
-        })
-      );
+    }
+    const hostElement = watch.hostElement;
+    const watchFn = watch.watchQrl.invokeFn(hostElement);
+    const obs = (obj: any) => wrapSubscriber(obj, watch);
+    const captureRef = (watch.watchQrl as QRLInternal).captureRef;
+    if (Array.isArray(captureRef)) {
+      captureRef.forEach((obj) => {
+        removeSub(obj, watch);
+      });
+    }
+    return then(watchFn(obs), (returnValue) => {
+      if (typeof returnValue === 'function') {
+        watch.destroy = noSerialize(returnValue);
+      }
+      return watch;
     });
   });
   watch.running = noSerialize(promise);

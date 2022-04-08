@@ -4,8 +4,7 @@ import { expectDOM } from '../../testing/expect-dom.unit';
 import { getTestPlatform } from '../../testing/platform';
 import { useScopedStyles$, component$ } from '../component/component.public';
 import { runtimeQrl } from '../import/qrl';
-import { $ } from '../import/qrl.public';
-import { snapshot } from '../object/store.public';
+import { pauseContainer } from '../object/store.public';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
 import { ComponentScopedStyles, ComponentStylesPrefixContent } from '../util/markers';
 import { Async, JSXPromise, PromiseValue } from './jsx/async.public';
@@ -23,7 +22,7 @@ describe('render', () => {
       expect(fixture.host.getAttribute('q:version')).toEqual('');
       expect(fixture.host.getAttribute('q:container')).toEqual('resumed');
 
-      snapshot(fixture.host);
+      pauseContainer(fixture.host);
       expect(fixture.host.getAttribute('q:container')).toEqual('paused');
     });
 
@@ -612,13 +611,11 @@ export const HelloWorld = component$(
   (props: { name?: string }) => {
     useScopedStyles$(`span.� { color: red; }`);
     const state = useStore({ salutation: 'Hello' });
-    return $(() => {
-      return (
-        <span>
-          {state.salutation} {props.name || 'World'}
-        </span>
-      );
-    });
+    return (
+      <span>
+        {state.salutation} {props.name || 'World'}
+      </span>
+    );
   },
   {
     tagName: 'hello-world',
@@ -630,13 +627,11 @@ export const HelloWorld = component$(
 //////////////////////////////////////////////////////////////////////////////////////////
 export const RenderProps = component$(
   (props: { thing?: string }) => {
-    return $(() => {
-      return (
-        <Host>
-          <span>{JSON.stringify(props)}</span>
-        </Host>
-      );
-    });
+    return (
+      <Host>
+        <span>{JSON.stringify(props)}</span>
+      </Host>
+    );
   },
   {
     tagName: 'render-props',
@@ -649,20 +644,18 @@ export const RenderProps = component$(
 
 export const Counter = component$((props: { step?: number }) => {
   const state = useStore({ count: 0 });
-  return $(() => {
-    const step = Number(props.step || 1);
-    return (
-      <>
-        <button class="decrement" onClickQrl={runtimeQrl(Counter_add, [state, { value: -step }])}>
-          -
-        </button>
-        <span>{state.count}</span>
-        <button class="increment" onClickQrl={runtimeQrl(Counter_add, [state, { value: step }])}>
-          +
-        </button>
-      </>
-    );
-  });
+  const step = Number(props.step || 1);
+  return (
+    <>
+      <button class="decrement" onClickQrl={runtimeQrl(Counter_add, [state, { value: -step }])}>
+        -
+      </button>
+      <span>{state.count}</span>
+      <button class="increment" onClickQrl={runtimeQrl(Counter_add, [state, { value: step }])}>
+        +
+      </button>
+    </>
+  );
 });
 export const Counter_add = () => {
   const [state, args] = useLexicalScope();
@@ -674,15 +667,13 @@ export const Counter_add = () => {
 //////////////////////////////////////////////////////////////////////////////////////////
 export const Project = component$(
   () => {
-    return $(() => {
-      return (
-        <section>
-          <Slot>..default..</Slot>
-          <Slot name="details">..details..</Slot>
-          <Slot name="description">..description..</Slot>
-        </section>
-      );
-    });
+    return (
+      <section>
+        <Slot>..default..</Slot>
+        <Slot name="details">..details..</Slot>
+        <Slot name="description">..description..</Slot>
+      </section>
+    );
   },
   {
     tagName: 'project',
@@ -691,13 +682,11 @@ export const Project = component$(
 
 export const SimpleProject = component$(
   () => {
-    return $(() => {
-      return (
-        <section>
-          <Slot>..default..</Slot>
-        </section>
-      );
-    });
+    return (
+      <section>
+        <Slot>..default..</Slot>
+      </section>
+    );
   },
   {
     tagName: 'project',
@@ -709,9 +698,7 @@ export const SimpleProject = component$(
 //////////////////////////////////////////////////////////////////////////////////////////
 export const HostFixture = component$(
   (props: { hostAttrs?: string; content?: string }) => {
-    return $(() => {
-      return <Host {...JSON.parse(props.hostAttrs || '{}')}>{props.content}</Host>;
-    });
+    return <Host {...JSON.parse(props.hostAttrs || '{}')}>{props.content}</Host>;
   },
   {
     tagName: 'host-fixture',
@@ -724,12 +711,10 @@ function delay(time: number) {
 
 //////////////////////////////////////////////////////////////////////////////////////////
 export const InnerHTMLComponent = component$(async () => {
-  return $(() => {
-    const html = '<span>WORKS</span>';
-    return (
-      <div innerHTML={html}>
-        <div>not rendered</div>
-      </div>
-    );
-  });
+  const html = '<span>WORKS</span>';
+  return (
+    <div innerHTML={html}>
+      <div>not rendered</div>
+    </div>
+  );
 });

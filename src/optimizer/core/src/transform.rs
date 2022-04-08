@@ -188,7 +188,7 @@ impl<'a> QwikTransform<'a> {
             if self.stack_ctxt.is_empty() {
                 symbol_name += "_h";
             } else if self.stack_ctxt.len() == 1 && self.in_component {
-                symbol_name += "_onmount";
+                symbol_name += "_render";
             }
             symbol_name = escape_sym(&symbol_name);
             if context.hooks_names.contains(&symbol_name) {

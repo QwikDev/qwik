@@ -24,23 +24,21 @@ export const LexicalScope = component$(() => {
 
   const onclick = $(() => state.count++);
 
-  return $(() => {
-    return (
-      <section>
-        <div id="static">
-          <p>{JSON.stringify(a)}</p>
-          <p>{JSON.stringify(b)}</p>
-          <p>{JSON.stringify(c)}</p>
-          <p>{String(d)}</p>
-          <p>{String(e)}</p>
-          <p>{JSON.stringify(f)}</p>
-          <p>{JSON.stringify(g)}</p>
-          <p>{JSON.stringify(h)}</p>
-        </div>
-        <button onClickQrl={onclick} id="rerender">
-          Rerender {state.count}
-        </button>
-      </section>
-    );
-  });
+  return (
+    <section>
+      <div id="static">
+        <p>{JSON.stringify(a)}</p>
+        <p>{JSON.stringify(b)}</p>
+        <p>{JSON.stringify(c)}</p>
+        <p>{String(d)}</p>
+        <p>{String(e)}</p>
+        <p>{JSON.stringify(f)}</p>
+        <p>{JSON.stringify(g)}</p>
+        <p>{JSON.stringify(h)}</p>
+      </div>
+      <button onClickQrl={onclick} id="rerender">
+        Rerender {state.count}
+      </button>
+    </section>
+  );
 });

@@ -1,5 +1,6 @@
 import { createTimer, ensureGlobals } from './utils';
-import { snapshot, FunctionComponent, JSXNode, render } from '@builder.io/qwik';
+import { pauseContainer, render } from '@builder.io/qwik';
+import type { FunctionComponent, JSXNode } from '@builder.io/qwik';
 import qwikDom from '@builder.io/qwik-dom';
 import { setServerPlatform } from './platform';
 import { serializeDocument } from './serialize';
@@ -65,7 +66,7 @@ export async function renderToDocument(
     containerEl.setAttribute('q:base', opts.base);
   }
   if (opts.snapshot !== false) {
-    snapshot(docOrElm);
+    pauseContainer(docOrElm);
   }
 }
 

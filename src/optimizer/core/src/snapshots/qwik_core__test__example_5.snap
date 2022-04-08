@@ -21,8 +21,8 @@ export const Header = component$(() => {
 
 import * as qwik from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
-export const Header = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_header_onmount")
-, "Header_onmount"));
+export const Header = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_header_render")
+, "Header_render"));
 
 ============================= h_test_header_onrender_div_onclick.tsx (ENTRY POINT)==
 
@@ -63,10 +63,10 @@ export const Header_onRender = ()=>{
   "extension": "tsx"
 }
 */
-============================= h_test_header_onmount.tsx (ENTRY POINT)==
+============================= h_test_header_render.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const Header_onmount = ()=>{
+export const Header_render = ()=>{
     return qwik.qrl(()=>import("./h_test_header_onrender")
     , "Header_onRender");
 };
@@ -74,9 +74,9 @@ export const Header_onmount = ()=>{
 /*
 {
   "origin": "test.tsx",
-  "name": "Header_onmount",
+  "name": "Header_render",
   "entry": null,
-  "canonicalFilename": "h_test_header_onmount",
+  "canonicalFilename": "h_test_header_render",
   "extension": "tsx"
 }
 */

@@ -5,7 +5,7 @@
 // it to the desired comment location
 //
 
-import { component$, $, useStore } from '@builder.io/qwik';
+import { component$, useStore } from '@builder.io/qwik';
 import type { PropsOf } from './component.public';
 
 //////////////////////////////////////////////////////////
@@ -18,7 +18,7 @@ import type { PropsOf } from './component.public';
 // <docs anchor="component">
 export const Counter = component$((props: { value?: number; step?: number }) => {
   const state = useStore({ count: props.value || 0 });
-  return $(() => (
+  return (
     <div>
       <span
         onClick$={() => {}} //click
@@ -30,7 +30,7 @@ export const Counter = component$((props: { value?: number; step?: number }) => 
       </span>
       <button onClick$={() => (state.count += props.step || 1)}>+</button>
     </div>
-  ));
+  );
 });
 // </docs>
 //
@@ -38,7 +38,7 @@ export const Counter = component$((props: { value?: number; step?: number }) => 
 //
 // <docs anchor="component-usage">
 export const OtherComponent = component$(() => {
-  return $(() => <Counter value={100} />);
+  return <Counter value={100} />;
 });
 // </docs>
 //
@@ -47,7 +47,7 @@ export const OtherComponent = component$(() => {
   //
   // <docs anchor="on-render">
   const Counter = component$((props: { name: string }) => {
-    return $(() => <div>{props.name}</div>);
+    return <div>{props.name}</div>;
   });
   // </docs>
   //
@@ -59,7 +59,7 @@ export const OtherComponent = component$(() => {
   // <docs anchor="on-mount">
   const Counter = component$(() => {
     const state = useStore({ count: 0 });
-    return $(() => <div>{state.count}</div>);
+    return <div>{state.count}</div>;
   });
   // </docs>
   //
@@ -71,7 +71,7 @@ export const OtherComponent = component$(() => {
   // <docs anchor="propsof">
   // Given
   const MyComp = component$((props: { title: 'MyTitle'; label: 'defaultLabel' }) => {
-    return $(() => <span title={props.label}></span>);
+    return <span title={props.label}></span>;
   });
 
   // Inferred type:

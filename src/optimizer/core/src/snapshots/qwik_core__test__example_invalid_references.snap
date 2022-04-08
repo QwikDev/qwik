@@ -27,8 +27,8 @@ export const App = component$(({count}) => {
 import * as qwik from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
 const [I2, { I3 , v1: [I4] , I5 =v2 , ...I6 }, I7 = v3, ...I8] = obj;
-export const App = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_app_onmount")
-, "App_onmount"));
+export const App = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_app_render")
+, "App_render"));
 
 ============================= h_test_app_onrender.js (ENTRY POINT)==
 
@@ -47,10 +47,10 @@ export const App_onRender = ()=>{
   "extension": "js"
 }
 */
-============================= h_test_app_onmount.js (ENTRY POINT)==
+============================= h_test_app_render.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const App_onmount = ({ count  })=>{
+export const App_render = ({ count  })=>{
     console.log(I1, I2, I3, I4, I5, I6, I7, I8, I9);
     console.log(itsok, v1, v2, v3, obj);
     return qwik.qrl(()=>import("./h_test_app_onrender")
@@ -60,9 +60,9 @@ export const App_onmount = ({ count  })=>{
 /*
 {
   "origin": "test.tsx",
-  "name": "App_onmount",
+  "name": "App_render",
   "entry": null,
-  "canonicalFilename": "h_test_app_onmount",
+  "canonicalFilename": "h_test_app_render",
   "extension": "js"
 }
 */

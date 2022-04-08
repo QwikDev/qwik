@@ -5,13 +5,13 @@ import type { Props } from '../props/props.public';
 import { newInvokeContext, useInvoke } from '../use/use-core';
 import { render } from '../render/render.public';
 import { getQwikJSON } from './store';
-import { runtimeQrl } from '../import/qrl';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
 import { component$ } from '../component/component.public';
 import { noSerialize } from './q-object';
 import { $ } from '../import/qrl.public';
 import { logDebug } from '../util/log';
-import { snapshot } from '../object/store.public';
+import { runtimeQrl } from '../import/qrl';
+import { pauseContainer } from '../object/store.public';
 
 describe('store', () => {
   let document: Document;
@@ -32,7 +32,7 @@ describe('store', () => {
         <LexicalScope />
       </div>
     );
-    await snapshot(document.body);
+    await pauseContainer(document.body);
     const script = getQwikJSON(document.body)!;
     expect(JSON.parse(script.textContent!)).toMatchSnapshot();
   });
@@ -44,7 +44,7 @@ describe('store', () => {
       foo.bar = bar;
       qDiv.foo = foo;
 
-      snapshot(document);
+      pauseContainer(document);
 
       qDiv = getProps(getContext(div));
       const foo2 = qDiv.foo;
@@ -98,5 +98,6 @@ export const LexicalScope = component$(() => {
   const h = false;
   const qrl = $(() => logDebug('qrl'));
 
-  return runtimeQrl(LexicalScope_render, [a, b, c, d, e, f, g, h, state, noserialize, qrl]);
+  const thing = runtimeQrl(LexicalScope_render, [a, b, c, d, e, f, g, h, state, noserialize, qrl]);
+  return <div onClickQrl={thing}></div>;
 });

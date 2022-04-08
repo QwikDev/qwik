@@ -5,7 +5,7 @@
 // it to the desired comment location
 //
 
-import { component$, useStore, $, useWatch$ } from '@builder.io/qwik';
+import { component$, useStore, useWatch$ } from '@builder.io/qwik';
 
 // <docs anchor="useWatch">
 export const MyComp = component$(() => {
@@ -13,13 +13,13 @@ export const MyComp = component$(() => {
   useWatch$((obs) => {
     store.doubleCount = 2 * obs(store).count;
   });
-  return $(() => (
+  return (
     <div>
       <span>
         {store.count} / {store.doubleCount}
       </span>
       <button onClick$={() => store.count++}>+</button>
     </div>
-  ));
+  );
 });
 // </docs>

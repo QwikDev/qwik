@@ -1,8 +1,8 @@
 import { assertEqual } from '../assert/assert';
 import { QError, qError } from '../error/error';
 import { isQrl } from '../import/qrl-class';
-import { notifyRender } from '../render/notify-render';
-import { tryGetInvokeContext } from '../use/use-core';
+import { getRenderingState, notifyRender, RenderingState } from '../render/notify-render';
+import { getContainer, tryGetInvokeContext } from '../use/use-core';
 import { isElement } from '../util/element';
 import { logWarn } from '../util/log';
 import { qDev, qTest } from '../util/qdev';
@@ -147,20 +147,31 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
       }
       return true;
     }
+    const subs = this.subs;
     const unwrappedNewValue = unwrapProxy(newValue);
     verifySerializable(unwrappedNewValue);
     const isArray = Array.isArray(target);
     if (isArray) {
       target[prop as any] = unwrappedNewValue;
-      this.subs.forEach((_, sub) => notifyChange(sub));
+      subs.forEach((_, sub) => {
+        if (sub.isConnected) {
+          notifyChange(sub);
+        } else {
+          subs.delete(sub);
+        }
+      });
       return true;
     }
     const oldValue = target[prop];
     if (oldValue !== unwrappedNewValue) {
       target[prop] = unwrappedNewValue;
-      this.subs.forEach((propSets, sub) => {
-        if (propSets.has(prop)) {
-          notifyChange(sub);
+      subs.forEach((propSets, sub) => {
+        if (sub.isConnected) {
+          if (propSets.has(prop)) {
+            notifyChange(sub);
+          }
+        } else {
+          subs.delete(sub);
         }
       });
     }
@@ -179,11 +190,36 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
   }
 }
 
+export function removeSub(obj: any, subscriber: any) {
+  if (obj && typeof obj === 'object') {
+    const subs = obj[QOjectSubsSymbol] as Map<Element | WatchDescriptor, Set<string>> | undefined;
+    if (subs) {
+      subs.delete(subscriber);
+    }
+  }
+}
+
 export function notifyChange(subscriber: Element | WatchDescriptor) {
   if (isElement(subscriber)) {
     notifyRender(subscriber);
   } else {
-    runWatch(subscriber as WatchDescriptor);
+    notifyWatch(subscriber as WatchDescriptor);
+  }
+}
+
+export function notifyWatch(watch: WatchDescriptor) {
+  const containerEl = getContainer(watch.hostElement)!;
+  const state = getRenderingState(containerEl);
+  const promise = runWatch(watch);
+  state.watchRunning.add(promise);
+  promise.then(() => {
+    state.watchRunning.delete(promise);
+  });
+}
+
+export async function waitForWatches(state: RenderingState) {
+  while (state.watchRunning.size > 0) {
+    await Promise.all(state.watchRunning);
   }
 }
 

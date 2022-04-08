@@ -23,7 +23,7 @@ export const Main = component$(() => {
             value={state.name}
             class="border-2 border-solid border-blue-500"
             placeholder="Write some text"
-            onKeyup$={() => {
+            onInput$={() => {
               const event = useEvent<KeyboardEvent>();
               const input = event.target as HTMLInputElement;
               state.name = input.value;

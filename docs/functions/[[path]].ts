@@ -14,7 +14,11 @@ export const onRequestGet: PagesFunction = async ({ request, next, waitUntil }) 
     }
 
     if (/\.\w+$/.test(url.pathname)) {
-      return next(request);
+      const response = await req.next(req.request);
+      if (url.pathname.startsWith('/p-')) {
+        response.headers.set('Cache-Control', 'public, max-age=31536000, immutable');
+      }
+      return response;
     }
 
     // do not using caching during development

@@ -4,7 +4,7 @@
 
 use std::path::PathBuf;
 
-use clap::{App, AppSettings, Arg};
+use clap::{Arg, Command};
 use path_absolutize::Absolutize;
 use qwik_core::{transform_fs, EntryStrategy, MinifyMode, TransformFsOptions};
 
@@ -20,27 +20,29 @@ struct OptimizerInput {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let matches = App::new("qwik")
+    let matches = Command::new("qwik")
         .version("1.0")
-        .setting(
-            AppSettings::ArgRequiredElseHelp
-                | AppSettings::SubcommandRequiredElseHelp
-                | AppSettings::InferSubcommands
-                | AppSettings::DisableHelpSubcommand,
+        // .setting(
+        //     AppSettings::ArgRequiredElseHelp
+        //         | AppSettings::SubcommandRequiredElseHelp
+        //         | AppSettings::InferSubcommands
+        //         | AppSettings::DisableHelpSubcommand,
 
-        )
+        // )
+        .subcommand_required(true).arg_required_else_help(true)
         .about("Qwik CLI allows to optimize qwik projects before bundling")
         .subcommand(
-            App::new("optimize")
+            Command::new("optimize")
                 .about("takes a source directory of qwik code and outputs an optimized version that lazy loads")
-                .setting(AppSettings::ArgRequiredElseHelp)
+                // .setting(AppSettings::ArgRequiredElseHelp)
+                .arg_required_else_help(true)
                 .arg(
                     Arg::new("src")
                         .short('s')
                         .long("src")
                         .default_value(".")
                         .takes_value(true)
-                        .about("relative path to the source directory"),
+                        .help("relative path to the source directory"),
                 )
                 .arg(
                     Arg::new("dest")
@@ -48,29 +50,29 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         .long("dest")
                         .required(true)
                         .takes_value(true)
-                        .about("relative path to the output directory"),
+                        .help("relative path to the output directory"),
                 )
                 .arg(
                     Arg::new("glob")
                         .short('g')
                         .long("glob")
                         .takes_value(true)
-                        .about("glob used to match files within the source directory"),
+                        .help("glob used to match files within the source directory"),
                 )
                 .arg(
                     Arg::new("strategy")
                     .long("strategy")
                         .possible_values(["single", "hook", "smart", "component"])
                         .takes_value(true)
-                        .about("entry strategy used to group hooks"),
+                        .help("entry strategy used to group hooks"),
                 )
                 .arg(
                     Arg::new("no-transpile")
                     .long("no-transpile")
-                    .about("transpile TS and JSX into JS").takes_value(false)
+                    .help("transpile TS and JSX into JS").takes_value(false)
                  )
-                .arg(Arg::new("minify").long("minify").possible_values(["minify", "simplify", "none"]).takes_value(true).about("outputs minified source code"))
-                .arg(Arg::new("sourcemaps").long("sourcemaps").about("generates sourcemaps").takes_value(false)),
+                .arg(Arg::new("minify").long("minify").possible_values(["minify", "simplify", "none"]).takes_value(true).help("outputs minified source code"))
+                .arg(Arg::new("sourcemaps").long("sourcemaps").help("generates sourcemaps").takes_value(false)),
         )
         .get_matches();
 

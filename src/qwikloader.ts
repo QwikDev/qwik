@@ -48,9 +48,12 @@ export const qwikLoader = (doc: Document, hasInitialized?: number, prefetchWorke
     throw new Error('QWIK ' + msg);
   };
 
-  const qrlResolver = (element: Element, eventUrl: string, baseURI: string): URL => {
+  const qrlResolver = (element: Element, qrl: string): URL => {
     element = element.closest('[q\\:container]')!;
-    return new URL(eventUrl, new URL(element ? element.getAttribute('q:base')! : baseURI, baseURI));
+    return new URL(
+      qrl,
+      new URL(element ? element.getAttribute('q:base')! : doc.baseURI, doc.baseURI)
+    );
   };
 
   const dispatch = async (element: Element, eventName: string, ev: Event) => {
@@ -62,7 +65,7 @@ export const qwikLoader = (doc: Document, hasInitialized?: number, prefetchWorke
         }
 
         for (const qrl of attrValue.split('\n')) {
-          const url = qrlResolver(element, qrl, doc.baseURI);
+          const url = qrlResolver(element, qrl);
           if (url) {
             const symbolName = getSymbolName(url);
             const module = (window as any)[url.pathname] || (await import(url.href.split('#')[0]));
@@ -133,8 +136,15 @@ export const qwikLoader = (doc: Document, hasInitialized?: number, prefetchWorke
       );
     }
 
-    // send the qrls found in the attribute to the web worker
-    prefetchWorker.postMessage(element.getAttribute('q:prefetch'));
+    // send the qrls found in the attribute to the web worker to fetch
+    prefetchWorker.postMessage(
+      element
+        .getAttribute('q:prefetch')!
+        .split('\n')
+        .map((qrl) => qrlResolver(element, qrl) + '')
+    );
+
+    return prefetchWorker as any;
   };
 
   const processReadyStateChange = (readyState?: DocumentReadyState) => {
@@ -184,6 +194,7 @@ export const qwikLoader = (doc: Document, hasInitialized?: number, prefetchWorke
   return {
     getModuleExport,
     processReadyStateChange,
+    qrlPrefetch,
     qrlResolver,
   };
 };
@@ -197,5 +208,5 @@ export interface LoaderWindow {
 }
 
 export interface QwikLoaderMessage extends MessageEvent {
-  data: string;
+  data: string[];
 }

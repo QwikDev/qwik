@@ -97,23 +97,16 @@ describe('qwikloader', () => {
   });
 
   describe('qrlResolver', () => {
-    let doc: Document;
-    beforeEach(() => {
-      doc = createDocument();
-    });
-
     it('should resolve full URL', () => {
       const loader = qwikLoader(doc);
       const div = doc.createElement('div');
-      expect(String(loader.qrlResolver(div, 'http://foo.bar/baz', doc.baseURI))).toEqual(
-        'http://foo.bar/baz'
-      );
+      expect(String(loader.qrlResolver(div, 'http://foo.bar/baz'))).toEqual('http://foo.bar/baz');
     });
 
     it('should resolve relative URL against base', () => {
       const loader = qwikLoader(doc);
       const div = doc.createElement('div');
-      const resolvedQrl = loader.qrlResolver(div, './bar', doc.baseURI);
+      const resolvedQrl = loader.qrlResolver(div, './bar');
       expect(resolvedQrl.href).toEqual('http://document.qwik.dev/bar');
     });
 
@@ -122,7 +115,7 @@ describe('qwikloader', () => {
       const div = doc.createElement('div');
       div.setAttribute('q:container', '');
       div.setAttribute('q:base', '/baz/');
-      const resolvedQrl = loader.qrlResolver(div, './bar', doc.baseURI);
+      const resolvedQrl = loader.qrlResolver(div, './bar');
       expect(resolvedQrl.href).toEqual('http://document.qwik.dev/baz/bar');
     });
 
@@ -134,8 +127,40 @@ describe('qwikloader', () => {
       parent.appendChild(div);
       parent.setAttribute('q:container', '');
       parent.setAttribute('q:base', './parent/');
-      const resolvedQrl = loader.qrlResolver(div, './bar', doc.baseURI);
+      const resolvedQrl = loader.qrlResolver(div, './bar');
       expect(resolvedQrl.href).toEqual('http://document.qwik.dev/parent/bar');
+    });
+  });
+
+  describe('qrlPrefetch', () => {
+    class TestWorker {
+      qrls: string[] = [];
+      postMessage(qrls: string[]) {
+        this.qrls = qrls;
+      }
+    }
+
+    beforeEach(() => {
+      (global as any).Worker = TestWorker;
+      (global as any).Blob = class Blob {};
+      (URL as any).createObjectURL = () => {};
+    });
+
+    it('post prefetch urls to web worker', () => {
+      const loader = qwikLoader(doc);
+      const div = doc.createElement('div');
+      div.setAttribute('q:prefetch', './a.js\n./b.js');
+
+      const parent = doc.createElement('parent');
+      parent.setAttribute('q:container', '');
+      parent.setAttribute('q:base', './parent/');
+      parent.appendChild(div);
+
+      const worker: TestWorker = loader.qrlPrefetch(div);
+      expect(worker.qrls).toEqual([
+        'http://document.qwik.dev/parent/a.js',
+        'http://document.qwik.dev/parent/b.js',
+      ]);
     });
   });
 

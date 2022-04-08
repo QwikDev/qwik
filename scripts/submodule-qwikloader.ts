@@ -1,4 +1,4 @@
-import { InputOptions, OutputOptions, rollup } from 'rollup';
+import { InputOptions, OutputOptions, OutputPlugin, rollup } from 'rollup';
 import {
   BuildConfig,
   ensureDir,
@@ -20,11 +20,13 @@ import { writePackageJson } from './package-json';
  * a utility function.
  */
 export async function submoduleQwikLoader(config: BuildConfig) {
+  const prefetchBlobPlugin = await createPrefetchBlobPlugin(config);
+
   const input: InputOptions = {
-    input: join(config.srcDir, 'qwikloader.ts'),
+    input: join(config.srcDir, 'qwikloader-entry.ts'),
     plugins: [
       {
-        name: 'transpile',
+        name: 'qwikloaderTranspile',
         resolveId(id) {
           if (!id.endsWith('.ts')) {
             return join(config.srcDir, id + '.ts');
@@ -49,10 +51,12 @@ export async function submoduleQwikLoader(config: BuildConfig) {
     // QWIK_LOADER_DEFAULT_MINIFIED
     dir: config.distPkgDir,
     format: 'es',
+    entryFileNames: `qwikloader.js`,
     exports: 'none',
     intro: `(()=>{`,
     outro: `})()`,
     plugins: [
+      prefetchBlobPlugin,
       terser({
         compress: {
           global_defs: {
@@ -73,11 +77,12 @@ export async function submoduleQwikLoader(config: BuildConfig) {
     // QWIK_LOADER_DEFAULT_DEBUG
     dir: config.distPkgDir,
     format: 'es',
-    entryFileNames: `[name].debug.js`,
+    entryFileNames: `qwikloader.debug.js`,
     exports: 'none',
-    intro: `(function(){`,
+    intro: `(()=>{`,
     outro: `})()`,
     plugins: [
+      prefetchBlobPlugin,
       terser({
         compress: {
           global_defs: {
@@ -102,11 +107,12 @@ export async function submoduleQwikLoader(config: BuildConfig) {
     // QWIK_LOADER_OPTIMIZE_MINIFIED
     dir: config.distPkgDir,
     format: 'es',
-    entryFileNames: `[name].optimize.js`,
+    entryFileNames: `qwikloader.optimize.js`,
     exports: 'none',
-    intro: `(function(){`,
+    intro: `(()=>{`,
     outro: `})()`,
     plugins: [
+      prefetchBlobPlugin,
       terser({
         compress: {
           global_defs: {
@@ -127,11 +133,12 @@ export async function submoduleQwikLoader(config: BuildConfig) {
     // QWIK_LOADER_OPTIMIZE_DEBUG
     dir: config.distPkgDir,
     format: 'es',
-    entryFileNames: `[name].optimize.debug.js`,
+    entryFileNames: `qwikloader.optimize.debug.js`,
     exports: 'none',
-    intro: `(function(){`,
+    intro: `(()=>{`,
     outro: `})()`,
     plugins: [
+      prefetchBlobPlugin,
       terser({
         compress: {
           global_defs: {
@@ -176,8 +183,6 @@ export async function inlineQwikScriptsEsBuild(config: BuildConfig) {
     ['QWIK_LOADER_DEFAULT_DEBUG', 'qwikloader.debug.js'],
     ['QWIK_LOADER_OPTIMIZE_MINIFIED', 'qwikloader.optimize.js'],
     ['QWIK_LOADER_OPTIMIZE_DEBUG', 'qwikloader.optimize.debug.js'],
-    ['QWIK_PREFETCH_MINIFIED', 'prefetch.js'],
-    ['QWIK_PREFETCH_DEBUG', 'prefetch.debug.js'],
   ];
 
   const define: { [varName: string]: string } = {};
@@ -192,6 +197,61 @@ export async function inlineQwikScriptsEsBuild(config: BuildConfig) {
   );
 
   return define;
+}
+
+async function createPrefetchBlobPlugin(config: BuildConfig): Promise<OutputPlugin> {
+  const build = await rollup({
+    input: join(config.srcDir, 'qwikloader-prefetch.ts'),
+    plugins: [
+      {
+        name: 'generateWebWorkerBlob',
+        resolveId(id) {
+          if (!id.endsWith('.ts')) {
+            return join(config.srcDir, id + '.ts');
+          }
+          return null;
+        },
+        async transform(code, id) {
+          const result = await transform(code, { sourcefile: id, format: 'esm', loader: 'ts' });
+          return result.code;
+        },
+      },
+    ],
+    onwarn: rollupOnWarn,
+  });
+
+  const generated = await build.generate({
+    dir: config.distPkgDir,
+    format: 'es',
+    exports: 'none',
+    plugins: [
+      terser({
+        compress: {
+          module: true,
+          keep_fargs: false,
+          unsafe: true,
+          passes: 2,
+        },
+        format: {
+          comments: false,
+        },
+      }),
+    ],
+  });
+
+  const wwBlob = JSON.stringify(generated.output[0].code);
+
+  return {
+    name: 'qwikloaderPrefetchBlobPlugin',
+    async generateBundle(_, bundle) {
+      for (const fileName in bundle) {
+        const b = bundle[fileName];
+        if (b.type === 'chunk') {
+          b.code = b.code.replace('window.BuildWorkerBlob', wwBlob);
+        }
+      }
+    },
+  };
 }
 
 async function generateLoaderSubmodule(config: BuildConfig) {

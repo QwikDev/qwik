@@ -15,7 +15,6 @@ import {
 import { submoduleCore } from './submodule-core';
 import { submoduleJsxRuntime } from './submodule-jsx-runtime';
 import { submoduleOptimizer } from './submodule-optimizer';
-import { submodulePrefetch } from './submodule-prefetch';
 import { submoduleQwikLoader } from './submodule-qwikloader';
 import { submoduleServer } from './submodule-server';
 import { submoduleTesting } from './submodule-testing';
@@ -70,15 +69,13 @@ export async function build(config: BuildConfig) {
         submoduleJsxRuntime(config),
         submoduleQwikLoader(config),
         submoduleBuild(config),
-        submodulePrefetch(config),
-        submoduleOptimizer(config),
         submoduleTesting(config),
         copyFiles(config),
       ]);
 
       // server bundling must happen after the results from the others
       // because it inlines the qwik loader and prefetch scripts
-      await submoduleServer(config);
+      await Promise.all([submoduleServer(config), submoduleOptimizer(config)]);
     }
 
     if (config.eslint) {

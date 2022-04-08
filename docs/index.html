@@ -3,11 +3,11 @@
   <head>
     <meta charset="utf-8" />
     <title>Qwik Client Dev Mode</title>
+    <meta name="viewport" content="width=device-width" />
   </head>
   <body>
     <script type="module">
       // Vite Dev Mode Only
-      import '@builder.io/qwik/qwikloader.debug.js';
       import { render, jsx } from '@builder.io/qwik';
       import { Main } from '/src/main.tsx';
       render(document.body, jsx(Main));

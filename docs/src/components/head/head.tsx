@@ -17,10 +17,45 @@ export const Head = () => (
 
     <meta name="twitter:site" content="@QwikDev" />
     <meta name="twitter:creator" content="@QwikDev" />
-    <meta name="twitter:description" content="Web Framework focusing on Time-to-Interactive." />
-    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:card" content="summary_large_image" />
 
-    <script innerHTML={partytownSnippet()} />
-    <script type="text/partytown">console.debug("🎉");</script>
+    <meta property="fb:app_id" content="676395883130092" />
+
+    <meta property="og:url" content="https://qwik.builder.io/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Qwik" />
+    <meta property="og:description" content="Qwik is Framework reimagined for the edge" />
+    <meta
+      property="og:image"
+      content="https://cdn.builder.io/api/v1/image/assets%2Ffe30f73e01ef40558cd69a9493eba2a2%2F6566e6d9309f44b4b346ab50abb5fc6d?width=1200"
+    />
+    <meta
+      property="og:image:alt"
+      content="Image of Qwik Framework Logo, Framework reimagined for the edge. Code snippet npm init qwik@latest"
+    />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:site_name" content="QwikDev" />
+
+    <script
+      innerHTML={partytownSnippet({
+        forward: ['dataLayer.push'],
+      })}
+    />
+    <script
+      type="text/partytown"
+      innerHTML={`(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-NR2STLN');`}
+    />
+
+    <script
+      src="//cdn.jsdelivr.net/npm/@builder.io/persist-attribution@latest/dist/persist-attribution.min.js"
+      id="persist-attribution-init"
+      data-send-page-view-events="true"
+      async
+      defer
+    />
   </>
 );

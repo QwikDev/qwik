@@ -70,3 +70,7 @@
 .menu li a {
   @apply py-1 pl-3 block rounded-md text-slate-900 hover:bg-slate-200;
 }
+
+.menu li a.is-active {
+  @apply bg-slate-100;
+}

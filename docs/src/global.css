@@ -18,7 +18,7 @@ select {
 }
 
 body {
-  @apply bg-gray-900 text-slate-100 antialiased h-screen;
+  @apply text-slate-100 antialiased h-screen;
 }
 
 @media (max-width: 1023px) {
@@ -41,12 +41,10 @@ body {
     @apply p-2;
   }
 
-  .menu-open .menu a {
-    @apply text-slate-100 hover:text-slate-800 p-3;
-  }
-
-  body.menu-open {
-    background-color: rgb(187, 187, 187);
+  .menu-open .menu li a,
+  .menu-open .menu li a.is-active {
+    @apply p-3;
+    @apply text-slate-100 bg-transparent hover:text-slate-500;
   }
 
   .menu-open header {
@@ -98,10 +96,12 @@ body {
   body {
     @apply bg-white;
   }
+
   .menu-open .menu {
     -webkit-user-select: none;
     user-select: none;
   }
+
   .menu-open .menu a:hover {
     @apply bg-transparent;
     color: rgb(241 245 249 / var(--tw-text-opacity)) !important;

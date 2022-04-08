@@ -1,0 +1,35 @@
+header {
+  @apply text-slate-200 bg-gray-900;
+}
+
+header li {
+  @apply font-semibold hover:text-slate-400 px-2 mx-2 text-right;
+  @apply py-4 md:py-0;
+}
+
+header ul {
+  @apply hidden md:block;
+  @apply pt-14 pb-6 md:pt-0;
+}
+
+header .more-icon {
+  @apply block;
+}
+
+header .close-icon {
+  @apply hidden;
+}
+
+@media (max-width: 767px) {
+  .header-open header ul {
+    @apply block;
+  }
+
+  .header-open header .more-icon {
+    @apply hidden;
+  }
+
+  .header-open header .close-icon {
+    @apply block;
+  }
+}

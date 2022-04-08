@@ -40,7 +40,7 @@
     "preinstall": "node scripts/tools/preinstall-script.js"
   },
   "devDependencies": {
-    "@builder.io/partytown": "0.5.1",
+    "@builder.io/partytown": "0.5.2",
     "@builder.io/qwik-dom": "2.1.14",
     "@microsoft/api-extractor": "7.19.5",
     "@napi-rs/cli": "2.5.0",
@@ -123,8 +123,6 @@
     "optimizer.cjs",
     "optimizer.mjs",
     "optimizer.d.ts",
-    "prefetch.js",
-    "prefetch.debug.js",
     "qwikloader.js",
     "qwikloader.debug.js",
     "qwikloader.optimize.js",
@@ -212,7 +210,6 @@
       "<rootDir>/src/wasm/",
       "<rootDir>/dist",
       "<rootDir>/dist-dev",
-      "<rootDir>/integration",
       "<rootDir>/starters",
       "<rootDir>/node_modules",
       "<rootDir>/src/optimizer/core/src/snapshots/",
@@ -231,7 +228,6 @@
       "<rootDir>/dist/",
       "<rootDir>/dist-dev/",
       "<rootDir>/docs/",
-      "<rootDir>/integration/",
       "<rootDir>/starters/",
       "<rootDir>/node_modules",
       ".*/node_modules/",

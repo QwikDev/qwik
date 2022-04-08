@@ -35,23 +35,21 @@
   @apply relative;
 }
 
-.docs article h2 {
-  @apply text-slate-900;
-  @apply text-2xl font-semibold;
-  @apply mt-8;
-  @apply mb-4;
-  @apply relative;
-}
-
+.docs article h2,
 .docs article h3,
 .docs article h4,
-.docsarticle h5,
+.docs article h5,
 .docs article h6 {
-  @apply text-slate-900;
   @apply text-xl font-semibold;
+  @apply text-slate-900;
   @apply mt-8;
   @apply mb-4;
   @apply relative;
+  scroll-margin-top: 70px;
+}
+
+.docs article h2 {
+  @apply text-2xl;
 }
 
 .docs h2 a,
@@ -126,4 +124,29 @@ h6 a:hover .icon {
   .docs article code {
     word-break: break-all;
   }
+}
+
+.docs article table {
+  @apply my-5;
+}
+
+.docs article th,
+.docs article td {
+  padding: 6px;
+  vertical-align: top;
+}
+
+.docs article th:first-child,
+.docs article td:first-child {
+  padding-left: 0;
+}
+
+.docs article th:last-child,
+.docs article td:last-child {
+  padding-right: 0;
+}
+
+.docs article img {
+  border-radius: 5px;
+  overflow: hidden;
 }

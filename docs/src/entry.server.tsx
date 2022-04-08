@@ -8,7 +8,15 @@ export function render(opts: RenderToStringOptions) {
       <head>
         <Head />
       </head>
-      <body q:base="/">
+      <body>
+        <noscript>
+          <iframe
+            src="https://www.googletagmanager.com/ns.html?id=GTM-NR2STLN"
+            height="0"
+            width="0"
+            style="display:none;visibility:hidden"
+          />
+        </noscript>
         <Main />
         <QwikLoader />
       </body>

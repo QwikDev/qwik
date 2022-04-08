@@ -3,6 +3,7 @@
 ## Introduction
 
 - [Overview](overview.mdx)
+- [Why Qwik](why-qwik.mdx)
 - [Getting Started](getting-started.mdx)
 - [Mental Model](mental-model.mdx)
 - [Philosophy](philosophy.mdx)
@@ -20,6 +21,12 @@
 - [QRL](components/qrl.mdx)
 - [Lite elements](components/lite-components.mdx)
 
+## Events
+
+- [Overview](events/overview.mdx)
+- [Window/Document](events/on-window.mdx)
+- [Components](events/component.mdx)
+
 ## Reactivity
 
 - [Overview](reactivity/overview.mdx)
@@ -33,6 +40,10 @@
 ## Serialization
 
 - [Overview](serialization/overview.mdx)
+
+## Containers
+
+- [Overview](containers/overview.mdx)
 
 ## Community
 

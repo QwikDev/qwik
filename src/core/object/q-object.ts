@@ -8,6 +8,7 @@ import { logWarn } from '../util/log';
 import { qDev, qTest } from '../util/qdev';
 import { debugStringify } from '../util/stringify';
 import { runWatch, WatchDescriptor } from '../watch/watch.public';
+import { RenderEvent } from '../util/markers';
 
 export type ObjToProxyMap = WeakMap<any, any>;
 export type QObject<T extends {}> = T & { __brand__: 'QObject' };
@@ -124,7 +125,7 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
       if (qDev && !invokeCtx && !qTest) {
         logWarn(`State assigned outside invocation context. Getting prop "${prop}" of:`, target);
       }
-      if (invokeCtx && invokeCtx.subscriptions && invokeCtx.hostElement) {
+      if (invokeCtx && invokeCtx.event === RenderEvent && invokeCtx.hostElement) {
         subscriber = invokeCtx.hostElement;
       }
     }

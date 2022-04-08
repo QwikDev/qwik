@@ -28,7 +28,6 @@ export interface InvokeContext {
   url: URL | null;
   seq: number;
   qrl?: QRL<any>;
-  subscriptions: boolean;
   waitOn?: ValueOrPromise<any>[];
   props?: Props;
 }
@@ -101,7 +100,6 @@ export function newInvokeContext(
     event: event,
     url: url || null,
     qrl: undefined,
-    subscriptions: event === 'qRender',
   };
 }
 

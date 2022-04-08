@@ -6,6 +6,7 @@ import { getContext, resumeIfNeeded } from '../props/props';
 import { getContainer, getInvokeContext } from './use-core';
 import { useURL } from './use-url.public';
 import type { QRLInternal } from '../import/qrl-class';
+import { RenderEvent } from '../util/markers';
 
 // <docs markdown="https://hackmd.io/lQ8v7fyhR-WD3b-2aRUpyw#useLexicalScope">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -33,7 +34,7 @@ export function useLexicalScope<VARS extends any[]>(): VARS {
     const ctx = getContext(el);
     qrl.captureRef = qrl.capture!.map((idx) => qInflate(idx, ctx));
   }
-  if (context.subscriptions && hostElement) {
+  if (context.event === RenderEvent && hostElement) {
     return qrl.captureRef.map((obj) => wrapSubscriber(obj, hostElement)) as VARS;
   }
   return qrl.captureRef as VARS;

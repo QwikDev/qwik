@@ -3,7 +3,7 @@ title: Rules
 fetch: https://hackmd.io/@mhevery/S1-U7l1b9
 ---
 
-# Rules
+# Optimizer Rules
 
 The Optimizer can break up large applications into lots of small lazy-loadable chunks. In addition, the Optimizer can lazy-load function closure, which lexically captures variables. However, there are limits to what can be achieved, and therefore the Optimizer comes with a set of rules. Not all valid Javascript is valid Optimizer code. This section describes the rules that developer needs to follow for successful Optimizer transformation.
 
@@ -16,8 +16,9 @@ NOTE: There are plans for a linter that will be able to enforce these rules eage
 **RULE**: If a function that is being extracted by Optimizer refers to a top-level symbol, that symbol must either be imported or exported.
 
 ```tsx
-import {importedFn} from '...';
+import { importedFn } from '...';
 export exportedFn = () => {...};
+
 const salutation = "Hello";
 
 someApi$(() => {
@@ -30,8 +31,9 @@ someApi$(() => {
 The reason for the above rule becomes obvious when the output is examined.
 
 ```tsx
-import {importedFn} from '...';
-export exportedFn = () => {...};
+import { importedFn } from '...';
+export exportedFn = () => { ... };
+
 const salutation = "Hello";
 
 someApi(qrl('./chunk-a.js', 'someApi_1'));

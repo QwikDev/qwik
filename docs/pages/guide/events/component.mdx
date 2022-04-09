@@ -1,6 +1,5 @@
 ---
 title: Events and Components
-fetch: 
 ---
 
 # Events and Components
@@ -15,7 +14,8 @@ const Counter = component$(() => {
     htmlCount: 0,
     cmpCount: 0,
   });
-  return $(() => (
+
+  return (
     <>
       <button onClick$={() => store.htmlCount++}>
         {store.count}
@@ -24,7 +24,7 @@ const Counter = component$(() => {
         {store.count}
       </CmpButton>
     </>
-  ));
+  );
 });
 ```
 
@@ -55,11 +55,11 @@ So far, we have ignored the implementation detail of `<CmpButton>` because we wa
   }
 
   const CmpButton = component$((props: CmpButtonProps) => {
-    return $(() => (
+    return (
       <button onDblclickQrl={props.onClickQrl}>
         <Slot />
       </button>
-    ));
+    );
   });
 ```
 
@@ -108,7 +108,6 @@ interface CmpButtonProps {
 
 Notice that TypeScript automatically creates a correct prop with `$` suffix, which generates the parameterized `T` of `QRL<T>`. In our case `T` is `() => void`. This type information makes sure that you correctly pass `QRL` to `on<event>Qrl` suffix and closures to `on<ovent>$` suffix. 
 
-
 ## Working with QRLs
 
 Let's look at a variation of `<CmpButton>` implementation. In this example, we would like to demonstrate working with `<prop>Qrl` vs `<prop>$`. For this reason, we have created an additional listener `onClick$`
@@ -119,7 +118,7 @@ Let's look at a variation of `<CmpButton>` implementation. In this example, we w
   }
 
   const CmpButton = component$((props: CmpButtonProps) => {
-    return $(() => (
+    return (
       <button onDblclickQrl={props.onClickQrl}
               onClick$={async () => {
                 await (props.onClickQrl && props.onClickQrl.invoke());
@@ -127,7 +126,7 @@ Let's look at a variation of `<CmpButton>` implementation. In this example, we w
               }}>
         <Slot />
       </button>
-    ));
+    );
   });
 ```
 

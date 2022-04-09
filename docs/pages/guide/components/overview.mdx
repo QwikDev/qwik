@@ -31,55 +31,6 @@ NOTE:
 - For an explanation of `$` see lazy-loading and Optimizer discussion.
 - For a detailed discussion of props, see Component/props discussion.
 
-## OnMount
-
-Qwik components have an OnMount function. The OnMount function is invoked exactly once during the lifetime of the component. Remember that the component's lifetime may start at a server and continue on the client. For a component that is instantiated on the server, the OnMount function may never be downloaded to the client. This is common for layout components that are long-lived in your application.
-
-```typescript
-const Counter = component$(
-  function OnMount(props: {step?: number, initial?: number}) {
-    const store = useStore({count: props.initial || 0});
-    ...
-    return ${...}
-  }
-);
-```
-
-An OnMount function can optionally take a reference to `props` object. See separate props discussion.
-
-Typical use for the OnMount function is to declare stores, watches, or other third-party APIs that return objects. In our example:
-
-```tsx
-const Counter = component$((props: {step:number, initial?: number}) => {
-  const store = useStore({count: props.initial || 0});
-  return ...;
-});
-```
-
-In the above example, the OnMount function invokes `useStore()`, representing the component's state. (See Store discussion)
-
-## OnRender
-
-The OnMount function is responsible for returning an OnRender function. OnRender function is invoked whenever the component needs to be re-rendered.
-
-For layout components, it is not uncommon to never need to invoke the re-render outside of the initial render on the server. In such a case, the render function will never lazy-load.
-
-```tsx
-const Counter = component$((props: { step?: number; initial?: number }) => {
-  const store = useStore({ count: props.initial || 0 });
-  // Return OnRender function
-  return $(() => (
-    <button onClick$={() => store.count += props.step||1}>
-      {store.count}
-    </button>
-  ));
-});
-```
-
-OnRender function is responsible for returning JSX. JSX is then reconciled against the DOM.
-
-An important property of Qwik components is out-of-order rendering. This means that if a component is invalidated (needs re-rendering) it can re-render without forcing invalidation on parent or child components. This is very important to keep rendering to a minimum. While minimal rendering has positive performance implications, the main reason is to prevent unnecessary lazy-loading of other components' render functions.
-
 ## Using components
 
 Qwik components can use other components.
@@ -90,12 +41,12 @@ const Counter = component$((props: {step?:number, initial?: number}) => {
 });
 
 const MyApp = component$(() => {
-  return $(() => (
+  return (
     <>
-    <div>Single: <Counter /></div>
-    <div>Dozens: <Counter step={12}/></div>
+      <div>Single: <Counter /></div>
+      <div>Dozens: <Counter step={12}/></div>
     </>
-  ));
+  );
 });
 ```
 
@@ -119,11 +70,12 @@ Events handlers are closures placed in the JSX.
 ```tsx
 const Counter = component$(() => {
   const store = useStore({count: 0});
-  return $(() => (
+
+  return (
     <button onClick$={() => store.count++}>
       {store.count}
     </button>
-  ));
+  );
 });
 ```
 
@@ -133,6 +85,6 @@ When `() => store.count++` is invoked the `store` is a proxy that intercepts the
 
 NOTE: All reactive systems must at the beginning execute all of the templates in order to build up the subscription graph. Qwik is no different; however, this is performed, and the server and the subscription graph is then serialized into HTML and shipped to the browser. The browser can use the serialized graph to resume components without forcing a full-scale render to re-build the graph.
 
-## See Also
+## See Also:
 
-- Lite components
+- [Lite components](./lite-components.mdx)

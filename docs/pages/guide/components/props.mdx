@@ -25,7 +25,7 @@ The resulting component can be used like so:
 
 ```tsx
 const MyApp = component$(() => {
-  return $(() => (
+  return (
     <>
       - With no props: <Item/>
       - With some props: <Item description="Item description"/>
@@ -34,7 +34,7 @@ const MyApp = component$(() => {
                              description="Best organic hammer"
                              price={10.00} />
     </>
-  ));
+  );
 });
 ```
 
@@ -44,10 +44,10 @@ Using TypeScript, the props type information correctly flows into the component.
 
 ```tsx
 interface ItemProps {
- name?: string,
- quantity?: number,
- description?: string,
- price?: number
+  name?: string,
+  quantity?: number,
+  description?: string,
+  price?: number
 };
 
 
@@ -79,12 +79,15 @@ When re-rendering a component, the child component props can stay the same or be
 
 ```tsx
 const Child = component$((props: { count: number }) => {
-  return $(() => <span>{props.count}</span>);
+  return (
+    <span>{props.count}</span>
+  );
 });
 
 const MyApp = component$(() => {
   const store = useStore({ a: 0, b: 0, c: 0 });
-  return $(() => (
+
+  return (
     <>
       <button onClick$={() => store.a++}>a++</button>
       <button onClick$={() => store.b++}>b++</button>
@@ -94,7 +97,7 @@ const MyApp = component$(() => {
       <Child count={store.a} />
       <Child count={store.b} />
     </>
-  ));
+  );
 });
 ```
 

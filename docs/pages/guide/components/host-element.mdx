@@ -10,8 +10,13 @@ The host element is an element in the DOM that represents component boundaries.
 Lite-components do not have host elements.
 
 ```tsx
-const Child() => <span>child</span>;
-const Parent() => <section><Child/></section>;
+const Child = () => (
+  <span>child</span>
+);
+
+const Parent = () => (
+  <section><Child/></section>
+);
 ```
 
 Will result in:
@@ -27,13 +32,18 @@ Looking at the resulting HTML, it is not possible to tell if a single component 
 On the other hand, Qwik-components rely on host elements because it must be possible by looking on the HTML to determine where one component starts and another ends. Without knowing the boundaries, it would not be possible to render components independently without forcing parent/child components to render as well. This is a crucial feature of Qwik.
 
 ```tsx
-const Child = component$(() => $(() => <span>child</span>));
-const Parent = component$(() => $(() => <section><Child /></section>));
+const Child = component$(() => (
+  <span>child</span>
+));
+
+const Parent = component$(() => (
+  <section><Child /></section>
+));
 ```
 
 Will result in:
 
-```htmlembedded=
+```html
 <div q:host>
   <section>
     <div q:host>
@@ -45,26 +55,36 @@ Will result in:
 
 Qwik host elements are marked with `q:host` attribute. (Default element is `div` for host element, but that can be changed with `component$` options argument.) Qwik uses host elements in various ways. For example when using `useHostElement()` function which retrieves it. It is also used to attach props to the components for serialization.
 
-# Lazy loading
+## Lazy Loading
 
 The host component also serves an important role when breaking parent-child relationships for bundling purposes.
 
 ```tsx
-const Child() => <span>child</span>;
-const Parent() => <section><Child/></section>;
+const Child = () => (
+  <span>child</span>
+);
+
+const Parent = () => (
+  <section><Child/></section>
+);
 ```
 
 In the above example, referring to the `Parent` component implies a transitive reference to the `Child` component. When bundler is creating chunk, a reference to `Parent` necessitates bundling `Child` as well. (`Parent` internally refers to `Child`.) These transitive dependencies are a problem because it means that having a reference to the root component will transitively refer to the remainder of the application—something which Qwik tries to avoid explicitly.
 
 ```tsx
-const Child = component$(() => $(() => <span>child</span>));
-const Parent = component$(() =>
-  $(() => (
+const Child = component$(() => {
+  return (
+    <span>child</span>
+  );
+});
+
+const Parent = component$(() => {
+  return (
     <section>
       <Child />
     </section>
-  ))
-);
+  );
+});
 ```
 
 In the above example the Optimizer transforms the above to:
@@ -82,7 +102,7 @@ Notice that after the optimizer transforms the code, the `Parent` no longer dire
 
 So what happens when the `Parent` component renders and `Child` component has not yet been downloaded? First, the `Parent` component renders its JSX like so.
 
-```htmlembedded=
+```html
 <div q:host>
   <section>
     <div q:host></div>
@@ -108,33 +128,37 @@ const Greeter = component$((props: {salutation?: string, name: string, }) => {
 
 The component can be used like so:
 
-```htmlembedded=
-<Greeter name="World"/>
+```tsx
+<Greeter name="World" />
 ```
 
 or
 
-```htmlembedded=
-<Greeter salutation="Hello" name="World"/>
+```tsx
+<Greeter salutation="Hello" name="World" />
 ```
 
-in both above cases the rendered HTML would be:
+In both above cases the rendered HTML would be:
 
-```htmlembedded=
-<div q:host ></div>
+```html
+<div q:host></div>
 ```
 
 Because the host element is an actual element, there may be a desire to place HTML classes, styles, or attributes.
 
 What if you wanted to add a `name` attribute to the host element? The issue is that the `name` is already used by the component props. For this reason, we use `host:` prefix to refer to the host element's attributes.
 
-```htmlembedded=
-<Greeter host:name="abc" host:id="greeter" host:onClick$={() => {}} name="world"/>
+```tsx
+<Greeter 
+  host:name="abc" 
+  host:id="greeter" 
+  host:onClick$={() => {}} 
+  name="world" />
 ```
 
-would render as
+would render as:
 
-```htmlembedded=
+```html
 <div q:host name="abc" id="greeter" onClickQrl="..."></div>
 ```
 
@@ -142,30 +166,31 @@ Using an `host:` prefix allows the developer to control the component's host ele
 
 One can use the same approach for `class` and `styles`.
 
-```htmlembedded=
+```tsx
 <Greeter
   host:class="greeter"
   host:style={{backgroundColor: 'red'}}
-  name="world"/>
+  name="world" />
 ```
 
-would render
+would render:
 
-```htmlembedded=
+```html
 <div q:host class="greeter" style="background-color: red;"></div>
 ```
 
-However, many IDEs will not recognize `host:class` and `host:style` and would not trigger code completion. For this reason, `class` and `styles` are special, and they will automatically map to `host:class` and `host:styles` when placed on the host element.
+However, many IDEs will not recognize `host:class` and `host:style` and would not trigger code completion. For this reason, `class` and `styles` are special, and they will automatically map to `host:class` and `host:styles` 
+when placed on the host element.
 
-```htmlembedded=
+```jsx
 <Greeter class="greeter"
-        style={{backgroundColor: 'red'}}
+         style={{backgroundColor: 'red'}}
          name="world"/>
 ```
 
 would also render to the some output.
 
-```htmlembedded=
+```html
 <div q:host class="greeter" style="background-color: red;"></div>
 ```
 
@@ -173,19 +198,19 @@ would also render to the some output.
 
 It may also be desirable for a component to set `class`, `style` and `attributes` on the host element associated with the component itself. To do that, one can use `<Host>` tag.
 
-```typescript
+```tsx
 const Greeter = component$(() => {
-  return $(() => (
+  return (
     <Host class="padded" id="greeter">
       <span>Hello World</span>
     </Host>
-  ));
+  );
 });
 ```
 
 will result in:
 
-```htmlembedded=
+```html
 <div q:host class="padded" id="greeter">
   <span>Hello World</span>
 </div>

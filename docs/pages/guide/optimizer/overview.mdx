@@ -13,12 +13,13 @@ Let's start by looking at a simple `Counter` example:
 
 ```tsx
 const Counter = component$(() => {
-  const store = useStore({count: 0});
-  return $(() => (
+  const store = useStore({ count: 0 });
+
+  return (
     <button onClick$={() => store.count++}>
       {store.count}
     </button>
-  ));
+  );
 });
 ```
 
@@ -58,7 +59,3 @@ const Counter_onClick = () => {
   return store.count++;
 };
 ```
-
-## Prefetching
-
-## Runtime Based Optimization

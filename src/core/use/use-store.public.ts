@@ -41,6 +41,17 @@ export function useStore<STATE extends {}>(initialState: STATE): STATE {
   return wrapSubscriber(newStore, hostElement);
 }
 
+export interface Ref<T> {
+  current?: T;
+}
+/**
+ *
+ * @alpha
+ */
+export function useRef<T = Element>(current?: T): Ref<T> {
+  return useStore({ current });
+}
+
 export function useSequentialScope(): [any, (prop: any) => void] {
   const ctx = getInvokeContext();
   assertEqual(ctx.event, RenderEvent);

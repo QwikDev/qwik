@@ -1,5 +1,6 @@
 /* eslint-disable */
 
+import type { Ref } from '../../../use/use-store.public';
 import type { QRL } from '../../../import/qrl.public';
 import type { JSXNode } from './jsx-node';
 
@@ -7,6 +8,7 @@ export interface QwikProps {
   class?: string | { [className: string]: boolean };
   innerHTML?: string;
   dangerouslySetInnerHTML?: string;
+  ref?: Ref<Element>;
 
   /**
    *
@@ -41,6 +43,7 @@ export interface ComponentBaseProps {
   style?: CSSProperties | string | undefined;
   key?: string | number;
   id?: string | undefined;
+  ref?: Ref<Element>;
 
   'q:slot'?: string;
 

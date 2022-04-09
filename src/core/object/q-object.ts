@@ -1,14 +1,15 @@
 import { assertEqual } from '../assert/assert';
 import { QError, qError } from '../error/error';
 import { isQrl } from '../import/qrl-class';
-import { getRenderingState, notifyRender, RenderingState } from '../render/notify-render';
+import { getRenderingState, notifyRender, RenderingState, scheduleFrame } from '../render/notify-render';
 import { getContainer, tryGetInvokeContext } from '../use/use-core';
 import { isElement } from '../util/element';
 import { logWarn } from '../util/log';
 import { qDev, qTest } from '../util/qdev';
 import { debugStringify } from '../util/stringify';
-import { runWatch, WatchDescriptor } from '../watch/watch.public';
+import { runWatch, WatchDescriptor, WatchMode } from '../watch/watch.public';
 import { RenderEvent } from '../util/markers';
+import e from 'express';
 
 export type ObjToProxyMap = WeakMap<any, any>;
 export type QObject<T extends {}> = T & { __brand__: 'QObject' };
@@ -211,11 +212,22 @@ export function notifyChange(subscriber: Element | WatchDescriptor) {
 export function notifyWatch(watch: WatchDescriptor) {
   const containerEl = getContainer(watch.hostElement)!;
   const state = getRenderingState(containerEl);
-  const promise = runWatch(watch);
-  state.watchRunning.add(promise);
-  promise.then(() => {
-    state.watchRunning.delete(promise);
-  });
+  watch.dirty = true;
+  if (watch.mode === WatchMode.Watch) {
+    const promise = runWatch(watch);
+    state.watchRunning.add(promise);
+    promise.then(() => {
+      state.watchRunning.delete(promise);
+    });
+  } else {
+    const activeRendering = state.hostsRendering !== undefined;
+    if (activeRendering) {
+      state.watchStagging.add(watch);
+    } else {
+      state.watchNext.add(watch);
+      scheduleFrame(containerEl, state);
+    }
+  }
 }
 
 export async function waitForWatches(state: RenderingState) {

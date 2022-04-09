@@ -15,37 +15,6 @@ const testConfig = {
     sourceType: 'module',
   },
 };
-describe('no-props-destructuring', () => {
-  const ruleTester = new RuleTester(testConfig);
-  ruleTester.run('my-rule', rules['no-props-destructuring'], {
-    valid: [
-      `export const HelloWorld = component$((props) => {
-        return $(({prop}) => {
-          return (
-            <Host>
-              {prop}
-              {props}
-            </Host>
-          );
-        });
-      });`,
-    ],
-    invalid: [
-      {
-        code: `export const HelloWorld = component$(({prop}) => {
-              return $(() => {
-                return (
-                  <Host>
-                    {prop}
-                  </Host>
-                );
-              });
-            });`,
-        errors: ['Props destructuring is not a good practice in Qwik'],
-      },
-    ],
-  });
-});
 
 describe('no-use-after-await', () => {
   const ruleTester = new RuleTester(testConfig);

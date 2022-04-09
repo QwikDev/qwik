@@ -18,11 +18,12 @@ Qwik components are declared with `component$` API.
 ```tsx
 const Counter = component$((props: { step?: number; initial?: number }) => {
   const store = useStore({ count: props.initial || 0 });
-  return $(() => (
+
+  return (
     <button onClick$={() => store.count += props.step||1}>
       {store.count}
     </button>
-  ));
+  );
 });
 ```
 

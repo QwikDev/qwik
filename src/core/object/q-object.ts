@@ -9,7 +9,7 @@ import {
 } from '../render/notify-render';
 import { getContainer, tryGetInvokeContext } from '../use/use-core';
 import { isElement } from '../util/element';
-import { logDebug, logWarn } from '../util/log';
+import { logWarn } from '../util/log';
 import { qDev, qTest } from '../util/qdev';
 import { debugStringify } from '../util/stringify';
 import { runWatch, WatchDescriptor, WatchMode } from '../watch/watch.public';

@@ -99,7 +99,7 @@ export const OnThisPage = component$(
             </a>
           </li>
           <li>
-            <a href="https://discord.gg/Fd9Cwb3Z8D" target="_blank" rel="nofollow noopener">
+            <a href="https://discord.gg/bNVSQmPzqy" target="_blank" rel="nofollow noopener">
               <ChatIcon width={20} height={20} />
               <span>Join our community</span>
             </a>

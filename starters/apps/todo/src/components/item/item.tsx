@@ -1,11 +1,4 @@
-import {
-  component$,
-  useStore,
-  Host,
-  useEvent,
-  useRef,
-  useWatch$,
-} from '@builder.io/qwik';
+import { component$, useStore, Host, useRef, useEffect$ } from '@builder.io/qwik';
 import type { TodoItem, Todos } from '../../state/state';
 
 /**
@@ -13,13 +6,19 @@ import type { TodoItem, Todos } from '../../state/state';
  *
  * It only rerenders if the user infarcts with it or if the item itself changes.
  */
+
+export interface ItemProps {
+  item: TodoItem;
+  todos: Todos;
+}
+
 export const Item = component$(
-  (props: { item: TodoItem; todos: Todos }) => {
+  (props: ItemProps) => {
     const state = useStore({ editing: false });
     const editInput = useRef<HTMLInputElement>();
 
-    useWatch$((obs) => {
-      const {current} = obs(editInput);
+    useEffect$((obs) => {
+      const { current } = obs(editInput);
       if (current) {
         current.focus();
         current.selectionStart = current.selectionEnd = current.value.length;
@@ -58,8 +57,7 @@ export const Item = component$(
             ref={editInput}
             value={props.item.title}
             onBlur$={() => (state.editing = false)}
-            onKeyup$={() => {
-              const event = useEvent<KeyboardEvent>();
+            onKeyup$={(event: any) => {
               const inputValue = (event.target as HTMLInputElement).value;
               props.item.title = inputValue;
               if (event.key === 'Enter') {

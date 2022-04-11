@@ -41,11 +41,14 @@ export function useStore<STATE extends {}>(initialState: STATE): STATE {
   return wrapSubscriber(newStore, hostElement);
 }
 
+/**
+ * @alpha
+ */
 export interface Ref<T> {
   current?: T;
 }
+
 /**
- *
  * @alpha
  */
 export function useRef<T = Element>(current?: T): Ref<T> {

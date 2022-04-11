@@ -5,6 +5,8 @@ import type { QwikDocument } from '../document';
 import { QContainerSelector, QHostAttr } from '../util/markers';
 import { getDocument } from '../util/dom';
 import type { QRL } from '..';
+import type { Subscriber } from './use-subscriber';
+import type { WatchDescriptor } from '../watch/watch.public';
 
 declare const document: QwikDocument;
 
@@ -21,15 +23,17 @@ export function isStyleTask(obj: any): obj is StyleAppend {
 }
 
 export interface InvokeContext {
+  url: URL | null;
+  seq: number;
   doc?: Document;
   hostElement?: Element;
   element?: Element;
   event: any;
-  url: URL | null;
-  seq: number;
   qrl?: QRL<any>;
   waitOn?: ValueOrPromise<any>[];
   props?: Props;
+  subscriber?: Subscriber | null;
+  watch?: WatchDescriptor;
 }
 
 let _context: InvokeContext | undefined;

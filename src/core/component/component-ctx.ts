@@ -28,6 +28,7 @@ export const renderComponent = (rctx: RenderContext, ctx: QContext): ValueOrProm
 
   // Invoke render hook
   const invocatinContext = newInvokeContext(rctx.doc, hostElement, hostElement, RenderEvent);
+  invocatinContext.subscriber = hostElement;
   const waitOn = (invocatinContext.waitOn = [] as any[]);
 
   // Clean current subscription before render

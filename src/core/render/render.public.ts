@@ -3,14 +3,14 @@ import { executeContext, printRenderStats, RenderContext } from './cursor';
 import { isJSXNode, jsx, processNode } from './jsx/jsx-runtime';
 import type { JSXNode, FunctionComponent } from './jsx/types/jsx-node';
 import { visitJsxNode } from './render';
-import type { ValueOrPromise } from '../util/types';
-import { then } from '../util/promises';
 import { getRenderingState } from './notify-render';
 import { getDocument } from '../util/dom';
 import { qDev, qTest } from '../util/qdev';
 import { version } from '../version';
 import { QContainerAttr } from '../util/markers';
 import { logError } from '../util/log';
+import { isWatchDescriptor, runWatch, WatchDescriptor } from '../watch/watch.public';
+import { getContext } from '../props/props';
 
 /**
  * Render JSX.
@@ -24,10 +24,10 @@ import { logError } from '../util/log';
  * @param jsxNode - JSX to render
  * @public
  */
-export function render(
+export async function render(
   parent: Element | Document,
   jsxNode: JSXNode<unknown> | FunctionComponent<any>
-): ValueOrPromise<RenderContext | undefined> {
+): Promise<RenderContext | undefined> {
   // If input is not JSX, convert it
   if (!isJSXNode(jsxNode)) {
     jsxNode = jsx(jsxNode, null);
@@ -54,19 +54,30 @@ export function render(
     },
   };
 
-  return then(visitJsxNode(ctx, parent as Element, processNode(jsxNode), false), () => {
-    executeContext(ctx);
-    if (!qTest) {
-      injectQwikSlotCSS(parent);
-    }
+  await visitJsxNode(ctx, parent as Element, processNode(jsxNode), false);
 
-    if (qDev) {
-      if (typeof window !== 'undefined' && window.document != null) {
-        printRenderStats(ctx);
-      }
+  executeContext(ctx);
+  if (!qTest) {
+    injectQwikSlotCSS(parent);
+  }
+
+  if (qDev) {
+    if (typeof window !== 'undefined' && window.document != null) {
+      printRenderStats(ctx);
     }
-    return ctx;
+  }
+  const promises: Promise<WatchDescriptor>[] = [];
+  ctx.hostElements.forEach((host) => {
+    const elCtx = getContext(host);
+    elCtx.refMap.array.filter(isWatchDescriptor).forEach((watch) => {
+      if (watch.dirty) {
+        promises.push(runWatch(watch));
+      }
+    });
   });
+
+  await Promise.all(promises);
+  return ctx;
 }
 
 export function injectQwikSlotCSS(docOrElm: Document | Element) {

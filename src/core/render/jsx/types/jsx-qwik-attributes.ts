@@ -25,10 +25,15 @@ export interface QwikProps {
   [key: `preventDefault:${string}`]: boolean;
 }
 
-type EventHandler = (event: Event, element: Element) => any;
-type QrlEvent = QRL<EventHandler>;
+type EventHandler<Type = Event> = (event: Type, element: Element) => any;
+type QrlEvent<Type = Event> = QRL<EventHandler<Type>>;
 
 export interface QwikEvents {
+  [key: `on${string}$`]: EventHandler | undefined;
+  [key: `on${string}Qrl`]: QrlEvent | QrlEvent[] | undefined;
+}
+
+export interface QwikEvent {
   [key: `on${string}$`]: EventHandler | undefined;
   [key: `on${string}Qrl`]: QrlEvent | QrlEvent[] | undefined;
 }

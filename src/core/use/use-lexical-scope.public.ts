@@ -33,8 +33,9 @@ export function useLexicalScope<VARS extends any[]>(): VARS {
     const ctx = getContext(el);
     qrl.captureRef = qrl.capture!.map((idx) => qInflate(idx, ctx));
   }
-  if (context.subscriptions && hostElement) {
-    return qrl.captureRef.map((obj) => wrapSubscriber(obj, hostElement)) as VARS;
+  const subscriber = context.subscriber;
+  if (subscriber) {
+    return qrl.captureRef.map((obj) => wrapSubscriber(obj, subscriber)) as VARS;
   }
   return qrl.captureRef as VARS;
 }

@@ -42,7 +42,6 @@ export type { QRL, EventHandler } from './import/qrl.public';
 
 export type { Props } from './props/props.public';
 
-export { notifyRender } from './render/notify-render';
 //////////////////////////////////////////////////////////////////////////////////////////
 // PLATFORM
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -52,6 +51,7 @@ export type { CorePlatform } from './platform/types';
 // Watch
 //////////////////////////////////////////////////////////////////////////////////////////
 export { useWatch$, useWatchQrl } from './watch/watch.public';
+export { useEffect$, useEffectQrl } from './watch/watch.public';
 export type { Observer } from './watch/watch.public';
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -83,10 +83,10 @@ export { render } from './render/render.public';
 //////////////////////////////////////////////////////////////////////////////////////////
 export { useHostElement } from './use/use-host-element.public';
 export { useDocument } from './use/use-document.public';
-export { useEvent } from './use/use-event.public';
 export { useLexicalScope } from './use/use-lexical-scope.public';
-export { useStore } from './use/use-store.public';
+export { useStore, useRef } from './use/use-store.public';
 export { useSubscriber, wrapSubscriber, unwrapSubscriber } from './use/use-subscriber';
+export type { Ref } from './use/use-store.public';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Low-Level API

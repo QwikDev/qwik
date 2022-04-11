@@ -1,6 +1,5 @@
 ---
 title: Events Overview
-fetch: 
 ---
 
 # Events
@@ -10,11 +9,12 @@ For a web application to be interactive, there needs to be a way to respond to u
 ```tsx
 const Counter = component$(() => {
   const store = useStore({count: 0});
-  return $(() => (
+
+  return (
     <button onClick$={() => store.count++}>
       {store.count}
     </button>
-  ));
+  );
 });
 ```
 
@@ -30,11 +30,12 @@ In the above example, the `click` listener is trivial in implementation. But in 
 ```tsx
 const Counter = component$(() => {
   const store = useStore({count: 0});
-  return $(() => (
+
+  return (
     <button onClick$={() => store.count++}>
       {store.count}
     </button>
-  ));
+  );
 });
 ```
 
@@ -65,12 +66,13 @@ When a user interacts with the application, the browser fires relevant events th
 
 ```tsx
 const Counter = component$(() => {
-  const store = useStore({count: 0});
-  return $(() => (
+  const store = useStore({ count: 0 });
+
+  return (
     <button onClick$={() => store.count++}>
       {store.count}
     </button>
-  ));
+  );
 });
 ```
 

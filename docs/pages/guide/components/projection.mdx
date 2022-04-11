@@ -11,8 +11,9 @@ An example of collapsible component which conditionally projects its content.
 
 ```tsx
 const Colapsable = component$(() => {
-  const store = useStore({isOpen: true});
-  return $(() => (
+  const store = useStore({ isOpen: true });
+
+  return (
     <div class="collapsible">
       <div class="title"
            onClick$={() => store.isOpen = !store.isOpen}>
@@ -20,7 +21,7 @@ const Colapsable = component$(() => {
       </div>
       {store.isOpen ? <Slot/> : null}
     </div>
-  ))
+  );
 });
 ```
 
@@ -28,13 +29,13 @@ The above component can be used from parent component like so:
 
 ```tsx
 const MyApp = component$(() => {
-  return $(() => (
+  return (
     <Collapsible>
       <span q:slot="title">Title text</span>
       Lorem ipsum dolor sit amet, consectetur adipiscing elit.
       Vivamus vulputate accumsan pretium.
     </Collapsible>
-  ));
+  );
 });
 ```
 
@@ -44,7 +45,7 @@ The `Collapsible` component will always display the title, but the body of the t
 
 The above example would render into this HTML if `isOpen===true`:
 
-```htmlembedded=
+```html
 <my-app>
   <collapsible>
     <q:slot name="title" has-content>
@@ -66,27 +67,27 @@ The parent component uses `q:slot` attribute to identify the source of projectio
 
 ```tsx
 const Project = component$(() => {
-  return $(() => (
+  return (
     <div>
       <Slot />
     </div>
-  ));
+  );
 });
 
 const MyApp = component$(() => {
-  return $(() => (
+  return (
     <Project>
       unwrapped text
       <span>wrapped text with no q:slot</span>
       <span q:slot="">wrapped text with default name</span>
     </Project>
-  ));
+  );
 });
 ```
 
 Results in:
 
-```htmlembedded=
+```html
 <my-app>
   <project>
     <div>
@@ -106,31 +107,31 @@ Use `q:slot` attributes to name slots.
 
 ```tsx
 const Project = component$(() => {
-  return $(() => (
+  return (
     <div>
       <div class="title">
         <Slot name="title" />
       </div>
       <Slot />
     </div>
-  ));
+  );
 });
 
 const MyApp = component$(() => {
-  return $(() => (
+  return (
     <Project>
       unwrapped text
       <span q:slot="title">first title text</span>
       <span>wrapped text with no q:slot</span>
       <span q:slot="title">second title text</span>
     </Project>
-  ));
+  );
 });
 ```
 
 Results in:
 
-```htmlembedded=
+```html
 <my-app>
   <project>
     <div>
@@ -158,21 +159,23 @@ Qwik keeps all content around, even if not projected. This is because the conten
 
 ```tsx
 const Project = component$(() => {
-  return $(() => <div />);
+  return (
+    <div />
+  );
 });
 
 const MyApp = component$(() => {
-  return $(() => (
+  return (
     <Project>
       unwrapped text
     </Project>
-  ));
+  );
 });
 ```
 
 Results in:
 
-```htmlembedded=
+```html
 <my-app>
   <project>
     <template q:slot="">unwrapped text</template>
@@ -189,25 +192,26 @@ It is possible to insert default slot content if the parent component does not p
 
 ```tsx
 const Project = component$(() => {
-  return $(() => (
+  return (
     <>
       <Slot name="title">default title</Slot>
       <Slot>default content</Slot>
-    </>);
+    </>
+  );
 })
 
 const MyApp = component$(() => {
-  return $(() => (
+  return (
     <Project>
       some content
     </Project>
-  ));
+  );
 });
 ```
 
 Results in:
 
-```htmlembedded=
+```html
 <my-app>
   <project>
     <q:slot name="title">
@@ -227,7 +231,7 @@ Notice that default content can be included in the `<Slot>..default content</Slo
 
 On order for Qwik to be able to render components independently, it must be able to read the rules of projection from the HTML. This is achieved with `<q:slot>` element, `<q:slotdefault/>` element and `q:slot` attribute. The extra elements are necessary to achieve this. To make the elements act inert, Qwik adds the following CSS to the `<style>` tag.
 
-```htmlembedded=
+```html
 <style>
 q:slot,q:slot-default {
   /** This marks the extra elements inert for flex, etc... **/
@@ -248,18 +252,16 @@ The `q:slot` attribute must be a direct child of a component.
 const Project = component$(() => { ... })
 
 const MyApp = component$(() => {
-  return $(() => (
+  return (
     <Project>
       <span q:slot="title">ok, direct child of Project</span>
       <div>
         <span q:slot="title">Error, not a direct child of Project</span>
       </div>
     </Project>
-  ));
+  );
 });
 ```
-
-## Nested projection
 
 ## Projection vs `children`
 

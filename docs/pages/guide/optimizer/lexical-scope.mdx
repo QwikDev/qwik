@@ -11,7 +11,9 @@ Let's look at a simple case:
 
 ```tsx
 const Greeter = component$(() => {
-  return $(() => <span>Hello World!</span>);
+  return (
+    <span>Hello World!</span>
+  );
 });
 ```
 
@@ -40,7 +42,10 @@ The above is for simple cases where the extracted function closure does not capt
 ```tsx
 const Greeter = component$((props: { name: string }) => {
   const salutation = 'Hello';
-  return $(() => <span>{salutation} {props.name}!</span>);
+
+  return (
+    <span>{salutation} {props.name}!</span>
+  );
 })
 ```
 
@@ -85,6 +90,7 @@ const Greeter_onMount = (props) => {
 ```tsx
 const Greeter_onRender = () => {
   const [salutation, props] = useLexicalScope();
+
   return (
     <span>
       {salutation} {props.name}!

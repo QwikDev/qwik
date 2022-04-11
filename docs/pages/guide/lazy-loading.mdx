@@ -13,12 +13,13 @@ Let's start by looking at a simple `Counter` example.
 
 ```tsx
 const Counter = component$(() => {
-  const store = useStore({count: 0});
-  return $(() => (
+  const store = useStore({ count: 0 });
+
+  return (
     <button onClick$={() => store.count++}>
       {store.count}
     </button>
-  ));
+  );
 });
 ```
 
@@ -84,12 +85,13 @@ Let's look at our example again:
 
 ```tsx
 const Counter = component$(() => {
-  const store = useStore({count: 0});
-  return $(() => (
+  const store = useStore({ count: 0 });
+
+  return (
     <button onClick$={() => store.count++}>
       {store.count}
     </button>
-  ));
+  );
 });
 ```
 

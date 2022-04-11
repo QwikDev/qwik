@@ -1,18 +1,29 @@
-import { useHostElement } from './use-host-element.public';
 import { QOjectOriginalProxy, QOjectTargetSymbol, SetSubscriber } from '../object/q-object';
 import type { WatchDescriptor } from '../watch/watch.public';
+import { RenderEvent } from '../util/markers';
+import { assertDefined, assertEqual } from '../assert/assert';
+import { getInvokeContext } from './use-core';
+
+export type Subscriber = WatchDescriptor | Element;
 
 /**
  * @alpha
  */
 export function useSubscriber<T extends {}>(obj: T): T {
-  return wrapSubscriber(obj, useHostElement());
+  const ctx = getInvokeContext();
+  let subscriber: Subscriber | undefined = ctx.watch;
+  if (!subscriber) {
+    assertEqual(ctx.event, RenderEvent);
+    subscriber = ctx.hostElement;
+  }
+  assertDefined(subscriber);
+  return wrapSubscriber(obj, subscriber!);
 }
 
 /**
  * @alpha
  */
-export function wrapSubscriber<T extends {}>(obj: T, subscriber: Element | WatchDescriptor) {
+export function wrapSubscriber<T extends {}>(obj: T, subscriber: Subscriber) {
   if (obj && typeof obj === 'object') {
     const target = (obj as any)[QOjectTargetSymbol];
     if (!target) {

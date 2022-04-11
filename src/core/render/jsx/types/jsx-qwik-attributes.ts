@@ -1,5 +1,6 @@
 /* eslint-disable */
 
+import type { Ref } from '../../../use/use-store.public';
 import type { QRL } from '../../../import/qrl.public';
 import type { JSXNode } from './jsx-node';
 
@@ -7,6 +8,7 @@ export interface QwikProps {
   class?: string | { [className: string]: boolean };
   innerHTML?: string;
   dangerouslySetInnerHTML?: string;
+  ref?: Ref<Element>;
 
   /**
    *
@@ -23,10 +25,15 @@ export interface QwikProps {
   [key: `preventDefault:${string}`]: boolean;
 }
 
-type EventHandler = (event: Event, element: Element) => any;
-type QrlEvent = QRL<EventHandler>;
+type EventHandler<Type = Event> = (event: Type, element: Element) => any;
+type QrlEvent<Type = Event> = QRL<EventHandler<Type>>;
 
 export interface QwikEvents {
+  [key: `on${string}$`]: EventHandler | undefined;
+  [key: `on${string}Qrl`]: QrlEvent | QrlEvent[] | undefined;
+}
+
+export interface QwikEvent {
   [key: `on${string}$`]: EventHandler | undefined;
   [key: `on${string}Qrl`]: QrlEvent | QrlEvent[] | undefined;
 }
@@ -41,6 +48,7 @@ export interface ComponentBaseProps {
   style?: CSSProperties | string | undefined;
   key?: string | number;
   id?: string | undefined;
+  ref?: Ref<Element>;
 
   'q:slot'?: string;
 

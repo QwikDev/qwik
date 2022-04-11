@@ -137,11 +137,6 @@ export type NoSerialize<T> = (T & {
 // @alpha (undocumented)
 export function noSerialize<T extends {}>(input: T): NoSerialize<T>;
 
-// Warning: (ae-forgotten-export) The symbol "RenderContext" needs to be exported by the entry point index.d.ts
-//
-// @public
-export function notifyRender(hostElement: Element): Promise<RenderContext>;
-
 // @public
 export interface Observer {
     <T extends {}>(obj: T): T;
@@ -265,8 +260,16 @@ export namespace QwikJSX {
     }
 }
 
+// @alpha (undocumented)
+export interface Ref<T> {
+    // (undocumented)
+    current?: T;
+}
+
+// Warning: (ae-forgotten-export) The symbol "RenderContext" needs to be exported by the entry point index.d.ts
+//
 // @public
-export function render(parent: Element | Document, jsxNode: JSXNode<unknown> | FunctionComponent<any>): ValueOrPromise<RenderContext | undefined>;
+export function render(parent: Element | Document, jsxNode: JSXNode<unknown> | FunctionComponent<any>): Promise<RenderContext | undefined>;
 
 // @public (undocumented)
 export type RenderableProps<P, RefType = any> = P & Readonly<{
@@ -291,14 +294,20 @@ export function unwrapSubscriber<T extends {}>(obj: T): any;
 // @public (undocumented)
 export function useDocument(): Document;
 
-// @public
-export function useEvent<EVENT extends {}>(expectEventType?: string): EVENT;
+// @alpha (undocumented)
+export const useEffect$: (first: (obs: Observer) => void | (() => void)) => void;
+
+// @alpha (undocumented)
+export function useEffectQrl(watchQrl: QRL<(obs: Observer) => void | (() => void)>): void;
 
 // @public
 export function useHostElement(): Element;
 
 // @public
 export function useLexicalScope<VARS extends any[]>(): VARS;
+
+// @alpha (undocumented)
+export function useRef<T = Element>(current?: T): Ref<T>;
 
 // @alpha (undocumented)
 export const useScopedStyles$: (first: string) => void;
@@ -330,10 +339,10 @@ export type ValueOrPromise<T> = T | Promise<T>;
 // @alpha (undocumented)
 export const version: string;
 
-// Warning: (ae-forgotten-export) The symbol "WatchDescriptor" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "Subscriber" needs to be exported by the entry point index.d.ts
 //
 // @alpha (undocumented)
-export function wrapSubscriber<T extends {}>(obj: T, subscriber: Element | WatchDescriptor): any;
+export function wrapSubscriber<T extends {}>(obj: T, subscriber: Subscriber): any;
 
 // (No @packageDocumentation comment for this package)
 

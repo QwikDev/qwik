@@ -1,4 +1,4 @@
-import { component$, useEvent, useStore } from '@builder.io/qwik';
+import { component$, useStore } from '@builder.io/qwik';
 import './global.css';
 
 export const Main = component$(() => {
@@ -56,8 +56,7 @@ export const Main = component$(() => {
           Try interacting with this component by changing{' '}
           <input
             value={state.name}
-            onKeyup$={() => {
-              const event = useEvent<KeyboardEvent>();
+            onKeyup$={(event) => {
               const input = event.target as HTMLInputElement;
               state.name = input.value;
             }}

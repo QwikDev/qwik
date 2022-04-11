@@ -42,9 +42,9 @@ class QRL<TYPE = any> implements IQRL<TYPE> {
       const fn = (typeof this.symbolRef === 'function' ? this.symbolRef : this.resolve(el)) as TYPE;
       return then(fn, (fn) => {
         if (typeof fn === 'function') {
+          const baseContext = currentCtx ?? newInvokeContext();
           const context: InvokeContext = {
-            ...newInvokeContext(),
-            ...currentCtx,
+            ...baseContext,
             qrl: this,
           };
           return useInvoke(context, fn as any, ...args);

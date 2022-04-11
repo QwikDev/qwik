@@ -6,8 +6,9 @@ export function delay(time: number) {
   });
 }
 
-export const Async = component$(() => {
+export const Async = component$(async () => {
   const state = useStore({ name: 'World', count: 0 });
+  await delay(10);
   return (
     <Host class="my-app p-20">
       <button

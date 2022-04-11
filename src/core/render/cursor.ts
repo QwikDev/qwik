@@ -19,6 +19,7 @@ import { qError, QError } from '../error/error';
 import { fromCamelToKebabCase } from '../util/case';
 import type { OnRenderFn } from '../component/component.public';
 import { CONTAINER, StyleAppend } from '../use/use-core';
+import type { Ref } from '../use/use-store.public';
 
 export const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -602,6 +603,10 @@ export function updateProperties(
       continue;
     }
     const newValue = expectProps[key];
+    if (key === 'ref') {
+      (newValue as Ref<Element>).current = elm;
+      continue;
+    }
 
     // Early exit if value didnt change
     const oldValue = ctx.cache.get(key);

@@ -1,4 +1,4 @@
-import { useStore, component$, useEvent, Host } from '@builder.io/qwik';
+import { useStore, component$, Host } from '@builder.io/qwik';
 import { Logo } from './components/logo/logo';
 
 import './global.css';
@@ -23,8 +23,7 @@ export const Main = component$(() => {
             value={state.name}
             class="border-2 border-solid border-blue-500"
             placeholder="Write some text"
-            onInput$={() => {
-              const event = useEvent<KeyboardEvent>();
+            onInput$={(event) => {
               const input = event.target as HTMLInputElement;
               state.name = input.value;
             }}

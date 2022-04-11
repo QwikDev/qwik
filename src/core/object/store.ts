@@ -101,9 +101,7 @@ export function resumeContainer(containerEl: Element) {
     }
   });
   containerEl.setAttribute(QContainerAttr, 'resumed');
-  if (qDev) {
-    logDebug('Container resumed');
-  }
+  logDebug('Container resumed');
 }
 
 export function snapshotState(containerEl: Element) {

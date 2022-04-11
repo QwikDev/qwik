@@ -1,7 +1,7 @@
 import { assertDefined } from '../assert/assert';
 import { appendStyle, RenderContext } from '../render/cursor';
 import { visitJsxNode } from '../render/render';
-import { ComponentScopedStyles, QHostAttr } from '../util/markers';
+import { ComponentScopedStyles, QHostAttr, RenderEvent } from '../util/markers';
 import { promiseAll, then } from '../util/promises';
 import { styleContent, styleHost } from './qrl-styles';
 import { isStyleTask, newInvokeContext } from '../use/use-core';
@@ -27,7 +27,8 @@ export const renderComponent = (rctx: RenderContext, ctx: QContext): ValueOrProm
   rctx.globalState.hostsStaging.delete(hostElement);
 
   // Invoke render hook
-  const invocatinContext = newInvokeContext(rctx.doc, hostElement, hostElement, 'qRender');
+  const invocatinContext = newInvokeContext(rctx.doc, hostElement, hostElement, RenderEvent);
+  invocatinContext.subscriber = hostElement;
   const waitOn = (invocatinContext.waitOn = [] as any[]);
 
   // Clean current subscription before render

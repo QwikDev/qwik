@@ -48,8 +48,8 @@ describe('render', () => {
       );
     });
 
-    it('should render into a document', () => {
-      render(
+    it('should render into a document', async () => {
+      await render(
         fixture.document,
         <html>
           <body>WORKS</body>
@@ -450,7 +450,7 @@ describe('render', () => {
   describe('SVG element', () => {
     it('should render #text nodes', async () => {
       const lines = ['hola', 'adios'];
-      render(
+      await render(
         fixture.host,
         <svg viewBox="0 0 100 4" class={'svg-container'}>
           {lines.map((a) => {
@@ -481,7 +481,7 @@ describe('render', () => {
     });
 
     it('should render camelCase attributes', async () => {
-      render(
+      await render(
         fixture.host,
         <svg id="my-svg" viewBox="0 0 100 4" preserveAspectRatio="none">
           <a href="/path"></a>
@@ -494,8 +494,8 @@ describe('render', () => {
       );
     });
 
-    it('should render path', () => {
-      render(
+    it('should render path', async () => {
+      await render(
         fixture.host,
         <div>
           <a href="#">Dude!!</a>
@@ -528,7 +528,7 @@ describe('render', () => {
 
     it('should render foreignObject properly', async () => {
       const Text = 'text' as any;
-      render(
+      await render(
         fixture.host,
         <div class="is-html">
           <Text class="is-html" shouldKebab="true">

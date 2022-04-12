@@ -56,7 +56,7 @@ export async function submoduleServer(config: BuildConfig) {
     ...opts,
     format: 'cjs',
     banner: {
-      js: `globalThis.qwikServer = (function (module) {\n${getWebWorkerCjsRequireShim()}`,
+      js: `globalThis.qwikServer = (function (module) {\n${browserCjsRequireShim}`,
     },
     footer: {
       js: `return module.exports; })(typeof module === 'object' && module.exports ? module : { exports: {} });`,
@@ -117,19 +117,17 @@ async function getQwikDomVersion() {
   return pkgJson.version;
 }
 
-function getWebWorkerCjsRequireShim() {
-  return `
-  if (typeof require !== 'function' && typeof location !== 'undefined' && typeof navigator !== 'undefined') {
-    // shim cjs require() for core.cjs within a browser
-    self.require = function(path) {
-      if (path === './core.cjs') { 
-        if (!self.qwikCore) {
-          throw new Error('Qwik Core global, "globalThis.qwikCore", must already be loaded for the Qwik Server to be used within a browser.');
-        }
-        return self.qwikCore;
+const browserCjsRequireShim = `
+if (typeof require !== 'function' && typeof location !== 'undefined' && typeof navigator !== 'undefined') {
+  // shim cjs require() for core.cjs within a browser
+  self.require = function(path) {
+    if (path === './core.cjs') { 
+      if (!self.qwikCore) {
+        throw new Error('Qwik Core global, "globalThis.qwikCore", must already be loaded for the Qwik Server to be used within a browser.');
       }
-      throw new Error('Unable to require() path "' + path + '" from a browser environment.');
-    };
-  }
-  `;
-}
+      return self.qwikCore;
+    }
+    throw new Error('Unable to require() path "' + path + '" from a browser environment.');
+  };
+}`;
+

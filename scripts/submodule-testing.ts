@@ -1,5 +1,5 @@
 import {
-  banner,
+  getBanner,
   importPath,
   injectDirname,
   nodeBuiltIns,
@@ -24,7 +24,7 @@ export async function submoduleTesting(config: BuildConfig) {
     sourcemap: config.dev,
     bundle: true,
     target,
-    banner,
+    banner: { js: getBanner('@builder.io/qwik/testing') },
     external: [...nodeBuiltIns],
   };
 

@@ -2,7 +2,7 @@ import { build, BuildOptions, Plugin } from 'esbuild';
 import { join } from 'path';
 import {
   BuildConfig,
-  banner,
+  getBanner,
   importPath,
   injectGlobalThisPoly,
   injectGlobalPoly,
@@ -12,6 +12,7 @@ import {
 } from './util';
 import { inlineQwikScriptsEsBuild } from './submodule-qwikloader';
 import { readPackageJson } from './package-json';
+import { readFileSync } from 'fs';
 
 /**
  * Builds @builder.io/server
@@ -32,13 +33,13 @@ export async function submoduleServer(config: BuildConfig) {
     sourcemap: config.dev,
     bundle: true,
     target,
-    banner,
     external: [/* no nodejs built-in externals allowed! */ '@builder.io/qwik-dom'],
   };
 
   const esm = build({
     ...opts,
     format: 'esm',
+    banner: { js: getBanner('@builder.io/qwik/server') },
     outExtension: { '.js': '.mjs' },
     plugins: [importPath(/^@builder\.io\/qwik$/, './core.mjs'), qwikDomPlugin],
     watch: watcher(config, submodule),
@@ -52,11 +53,19 @@ export async function submoduleServer(config: BuildConfig) {
     },
   });
 
+  const cjsBanner = [
+    getBanner('@builder.io/qwik/server'),
+    readFileSync(injectGlobalThisPoly(config), 'utf-8'),
+    readFileSync(injectGlobalPoly(config), 'utf-8'),
+    `globalThis.qwikServer = (function (module) {`,
+    browserCjsRequireShim,
+  ].join('\n');
+
   const cjs = build({
     ...opts,
     format: 'cjs',
     banner: {
-      js: `globalThis.qwikServer = (function (module) {\n${browserCjsRequireShim}`,
+      js: cjsBanner,
     },
     footer: {
       js: `return module.exports; })(typeof module === 'object' && module.exports ? module : { exports: {} });`,
@@ -66,7 +75,6 @@ export async function submoduleServer(config: BuildConfig) {
     watch: watcher(config),
     platform: 'node',
     target: nodeTarget,
-    inject: [injectGlobalThisPoly(config), injectGlobalPoly(config)],
     define: {
       ...(await inlineQwikScriptsEsBuild(config)),
       'globalThis.IS_CJS': 'true',
@@ -120,7 +128,7 @@ async function getQwikDomVersion() {
 const browserCjsRequireShim = `
 if (typeof require !== 'function' && typeof location !== 'undefined' && typeof navigator !== 'undefined') {
   // shim cjs require() for core.cjs within a browser
-  self.require = function(path) {
+  globalThis.require = function(path) {
     if (path === './core.cjs') { 
       if (!self.qwikCore) {
         throw new Error('Qwik Core global, "globalThis.qwikCore", must already be loaded for the Qwik Server to be used within a browser.');

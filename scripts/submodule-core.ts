@@ -58,7 +58,10 @@ async function submoduleCoreProd(config: BuildConfig) {
      * Quick and dirty polyfill so globalThis is a global (really only needed for cjs and Node10)
      * and globalThis is only needed so globalThis.qDev can be set, and for dev dead code removal
      */
-    intro: readFileSync(join(config.scriptsDir, 'shim', 'globalthis.js'), 'utf-8'),
+    intro:
+      readFileSync(join(config.scriptsDir, 'shim', 'globalthis.js'), 'utf-8') +
+      `globalThis.qwikCore = (function (exports) {`,
+    outro: `return exports; })(typeof exports === 'object' ? exports : {});`,
   };
 
   const build = await rollup(input);

@@ -3,15 +3,15 @@ import { join } from 'path';
 import {
   BuildConfig,
   banner,
+  importPath,
   injectGlobalThisPoly,
+  injectGlobalPoly,
   nodeTarget,
-  PackageJSON,
   target,
   watcher,
-  injectGlobalPoly,
 } from './util';
 import { inlineQwikScriptsEsBuild } from './submodule-qwikloader';
-import { readPackageJson, writePackageJson } from './package-json';
+import { readPackageJson } from './package-json';
 
 /**
  * Builds @builder.io/server
@@ -40,7 +40,7 @@ export async function submoduleServer(config: BuildConfig) {
     ...opts,
     format: 'esm',
     outExtension: { '.js': '.mjs' },
-    plugins: [qwikDomPlugin],
+    plugins: [importPath(/^@builder\.io\/qwik$/, './core.mjs'), qwikDomPlugin],
     watch: watcher(config, submodule),
     inject: [injectGlobalPoly(config)],
     define: {
@@ -56,13 +56,13 @@ export async function submoduleServer(config: BuildConfig) {
     ...opts,
     format: 'cjs',
     banner: {
-      js: `globalThis.qwikServer = (function (module) {`,
+      js: `globalThis.qwikServer = (function (module) {\n${getWebWorkerCjsRequireShim()}`,
     },
     footer: {
       js: `return module.exports; })(typeof module === 'object' && module.exports ? module : { exports: {} });`,
     },
     outExtension: { '.js': '.cjs' },
-    plugins: [qwikDomPlugin],
+    plugins: [importPath(/^@builder\.io\/qwik$/, './core.cjs'), qwikDomPlugin],
     watch: watcher(config),
     platform: 'node',
     target: nodeTarget,
@@ -115,4 +115,29 @@ async function getQwikDomVersion() {
   const pkgJsonPath = join(indexPath, '..', '..');
   const pkgJson = await readPackageJson(pkgJsonPath);
   return pkgJson.version;
+}
+
+function getWebWorkerCjsRequireShim() {
+  return `
+  if (typeof require !== 'function' && typeof self !== 'undefined' && typeof location !== 'undefined' && typeof navigator !== 'undefined' && typeof XMLHttpRequest === 'function' && typeof WorkerGlobalScope === 'function' && typeof self.importScripts === 'function') {
+    // shim cjs require() for core.cjs within web worker env
+    // using sync xhr since service workers cannot use importScripts() and a require() cannot be async so we can't use fetch()
+    self.require = function(path) {
+      if (path === './core.cjs') { 
+        if (!self.qwikCore) {
+          const cdnUrl = 'https://cdn.jsdelivr.net/npm/@builder.io/qwik@' + versions.qwik + '/core.cjs';
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', cdnUrl, false);
+          xhr.send();
+          const mod = { exports: {} };
+          const exec = new Function(mod, mod.exports, xhr.responseText);
+          exec(mod, mod.exports);
+          self.qwikCore = mod.exports;
+        }
+        return self.qwikCore;
+      }
+      throw new Error('Unable to require() path "' + path + '" from web worker environment.');
+    };
+  }
+  `;
 }

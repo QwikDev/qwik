@@ -137,15 +137,16 @@ export function watcher(config: BuildConfig, filename?: string): WatchMode | boo
 /**
  * Standard license banner to place at the top of the generated files.
  */
-export const banner = {
-  js: `
+export const getBanner = (moduleName: string) => {
+  return `
 /**
  * @license
+ * ${moduleName}
  * Copyright Builder.io, Inc. All Rights Reserved.
  * Use of this source code is governed by an MIT-style license that can be
  * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
  */
-`.trim(),
+`.trim();
 };
 
 /**

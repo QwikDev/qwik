@@ -1,5 +1,5 @@
 import {
-  banner,
+  getBanner,
   importPath,
   injectDirname,
   nodeBuiltIns,
@@ -24,7 +24,7 @@ export async function submoduleTesting(config: BuildConfig) {
     sourcemap: config.dev,
     bundle: true,
     target,
-    banner,
+    banner: { js: getBanner('@builder.io/qwik/testing') },
     external: [...nodeBuiltIns],
   };
 
@@ -34,8 +34,8 @@ export async function submoduleTesting(config: BuildConfig) {
     outExtension: { '.js': '.mjs' },
     plugins: [
       importPath(/^@builder\.io\/qwik$/, '../core.mjs'),
-      importPath(/^@builder\.io\/qwik\/optimizer$/, '../optimizer/index.mjs'),
-      importPath(/^@builder\.io\/qwik\/server$/, '../server/index.mjs'),
+      importPath(/^@builder\.io\/qwik\/optimizer$/, '../optimizer.mjs'),
+      importPath(/^@builder\.io\/qwik\/server$/, '../server.mjs'),
     ],
     watch: watcher(config, submodule),
     define: {
@@ -51,8 +51,8 @@ export async function submoduleTesting(config: BuildConfig) {
     outExtension: { '.js': '.cjs' },
     plugins: [
       importPath(/^@builder\.io\/qwik$/, '../core.cjs'),
-      importPath(/^@builder\.io\/qwik\/optimizer$/, '../optimizer/index.cjs'),
-      importPath(/^@builder\.io\/qwik\/server$/, '../server/index.cjs'),
+      importPath(/^@builder\.io\/qwik\/optimizer$/, '../optimizer.cjs'),
+      importPath(/^@builder\.io\/qwik\/server$/, '../server.cjs'),
     ],
     watch: watcher(config),
     define: {

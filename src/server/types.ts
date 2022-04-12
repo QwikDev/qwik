@@ -1,4 +1,4 @@
-import type { OutputEntryMap } from '@builder.io/qwik/optimizer';
+import type { OutputEntryMap } from '../optimizer/src';
 
 /**
  * Partial Global used by Qwik Framework.

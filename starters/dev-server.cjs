@@ -29,7 +29,7 @@ const appNames = readdirSync(startersAppsDir).filter(
 
 const qwikDistDir = join(__dirname, '..', 'dist-dev', '@builder.io-qwik');
 const qwikDistCorePath = join(qwikDistDir, 'core.mjs');
-const qwikDistServerPath = join(qwikDistDir, 'server', 'index.mjs');
+const qwikDistServerPath = join(qwikDistDir, 'server.mjs');
 const qwikDistOptimizerPath = join(qwikDistDir, 'optimizer.cjs');
 const qwikDistJsxRuntimePath = join(qwikDistDir, 'jsx-runtime.mjs');
 Error.stackTraceLimit = 1000;

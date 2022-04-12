@@ -1,6 +1,6 @@
 import { BuildConfig, injectGlobalThisPoly, rollupOnWarn } from './util';
-import { banner, fileSize, readFile, target, watcher, writeFile } from './util';
 import { build, BuildOptions } from 'esbuild';
+import { getBanner, fileSize, readFile, target, watcher, writeFile } from './util';
 import { InputOptions, OutputOptions, rollup } from 'rollup';
 import { join } from 'path';
 import { minify } from 'terser';
@@ -47,18 +47,27 @@ async function submoduleCoreProd(config: BuildConfig) {
     format: 'es',
     entryFileNames: 'core.mjs',
     sourcemap: true,
+    banner: getBanner('@builder.io/qwik'),
   };
+
+  const cjsIntro = [
+    ,
+    /**
+     * Quick and dirty polyfill so globalThis is a global (really only needed for cjs and Node10)
+     * and globalThis is only needed so globalThis.qDev can be set, and for dev dead code removal
+     */
+    readFileSync(injectGlobalThisPoly(config), 'utf-8'),
+    `globalThis.qwikCore = (function (exports) {`,
+  ].join('');
 
   const cjsOutput: OutputOptions = {
     dir: join(config.distPkgDir),
     format: 'cjs',
     entryFileNames: 'core.cjs',
     sourcemap: true,
-    /**
-     * Quick and dirty polyfill so globalThis is a global (really only needed for cjs and Node10)
-     * and globalThis is only needed so globalThis.qDev can be set, and for dev dead code removal
-     */
-    intro: readFileSync(join(config.scriptsDir, 'shim', 'globalthis.js'), 'utf-8'),
+    banner: getBanner('@builder.io/qwik'),
+    intro: cjsIntro,
+    outro: `return exports; })(typeof exports === 'object' ? exports : {});`,
   };
 
   const build = await rollup(input);
@@ -83,7 +92,7 @@ async function submoduleCoreProd(config: BuildConfig) {
     },
     format: {
       comments: false,
-      preamble: banner.js,
+      preamble: getBanner('@builder.io/qwik'),
       ecma: 2018,
     },
   });
@@ -123,7 +132,6 @@ async function submoduleCoreDev(config: BuildConfig) {
     bundle: true,
     sourcemap: 'external',
     target,
-    banner,
     define: {
       'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
     },

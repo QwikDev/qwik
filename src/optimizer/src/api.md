@@ -279,7 +279,7 @@ export interface TransformOutput {
 // @alpha (undocumented)
 export type TranspileOption = boolean | undefined | null;
 
-// @alpha (undocumented)
+// @public (undocumented)
 export const versions: {
     qwik: string;
 };

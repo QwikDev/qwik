@@ -4,9 +4,8 @@
 
 ```ts
 
-import { FunctionComponent } from '@builder.io/qwik';
+import type { FunctionComponent } from '@builder.io/qwik';
 import type { JSXNode } from '@builder.io/qwik';
-import type { OutputEntryMap } from '@builder.io/qwik/optimizer';
 
 // @public
 export function createDocument(opts?: DocumentOptions): QwikDocument;
@@ -97,7 +96,7 @@ export function serializeDocument(docOrEl: Document | Element, opts?: SerializeD
 // @public
 export function setServerPlatform(document: any, opts: SerializeDocumentOptions): Promise<void>;
 
-// @alpha (undocumented)
+// @public (undocumented)
 export const versions: {
     readonly qwik: string;
     readonly qwikDom: string;

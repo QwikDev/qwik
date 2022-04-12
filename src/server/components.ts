@@ -1,4 +1,5 @@
-import { FunctionComponent, jsx } from '@builder.io/qwik';
+import type { FunctionComponent } from '@builder.io/qwik';
+import { jsx } from '@builder.io/qwik';
 import { getQwikLoaderScript } from './scripts';
 
 /**

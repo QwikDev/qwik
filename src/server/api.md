@@ -96,7 +96,7 @@ export function serializeDocument(docOrEl: Document | Element, opts?: SerializeD
 // @public
 export function setServerPlatform(document: any, opts: SerializeDocumentOptions): Promise<void>;
 
-// @alpha (undocumented)
+// @public (undocumented)
 export const versions: {
     readonly qwik: string;
     readonly qwikDom: string;

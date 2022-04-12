@@ -130,4 +130,3 @@ if (typeof require !== 'function' && typeof location !== 'undefined' && typeof n
     throw new Error('Unable to require() path "' + path + '" from a browser environment.');
   };
 }`;
-

@@ -46,14 +46,17 @@ export async function generatePackageJson(config: BuildConfig) {
         import: './loader/index.mjs',
         require: './loader/index.cjs',
       },
+      './optimizer.cjs': './optimizer.cjs',
+      './optimizer.mjs': './optimizer.mjs',
       './optimizer': {
         import: './optimizer.mjs',
         require: './optimizer.cjs',
       },
-      './server/index.cjs': './server/index.cjs',
+      './server.cjs': './server.cjs',
+      './server.mjs': './server.mjs',
       './server': {
-        import: './server/index.mjs',
-        require: './server/index.cjs',
+        import: './server.mjs',
+        require: './server.cjs',
       },
       './testing': {
         import: './testing/index.mjs',
@@ -81,6 +84,7 @@ export async function generatePackageJson(config: BuildConfig) {
   await generateLegacyCjsSubmodule(config, 'core');
   await generateLegacyCjsSubmodule(config, 'jsx-runtime');
   await generateLegacyCjsSubmodule(config, 'optimizer');
+  await generateLegacyCjsSubmodule(config, 'server');
 
   console.log(`🐷 generated package.json`);
 }
@@ -109,6 +113,7 @@ export async function readPackageJson(pkgJsonDir: string) {
 }
 
 export async function writePackageJson(pkgJsonDir: string, pkgJson: PackageJSON) {
+  ensureDir(pkgJsonDir);
   const pkgJsonPath = join(pkgJsonDir, 'package.json');
   const pkgJsonStr = JSON.stringify(pkgJson, null, 2) + '\n';
   await writeFile(pkgJsonPath, pkgJsonStr);

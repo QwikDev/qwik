@@ -1,7 +1,7 @@
 import { BuildConfig, copyFile, emptyDir, importPath, mkdir, stat } from './util';
-import { banner, readdir, watcher } from './util';
 import { build } from 'esbuild';
 import { basename, join } from 'path';
+import { getBanner, readdir, watcher } from './util';
 import { readPackageJson, writePackageJson } from './package-json';
 import semver from 'semver';
 
@@ -42,7 +42,7 @@ async function bundleCli(config: BuildConfig, distCliDir: string) {
     minify: !config.dev,
     plugins: [importPath(/api$/, './index.js')],
     banner: {
-      js: `#! /usr/bin/env node\n${banner.js}`,
+      js: `#! /usr/bin/env node\n${getBanner('create-qwik')}`,
     },
     watch: watcher(config),
   });
@@ -56,7 +56,7 @@ async function bundleCli(config: BuildConfig, distCliDir: string) {
     platform: 'node',
     minify: !config.dev,
     banner: {
-      js: banner.js,
+      js: getBanner('create-qwik'),
     },
     watch: watcher(config),
   });

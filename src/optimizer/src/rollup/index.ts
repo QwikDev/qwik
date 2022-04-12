@@ -11,7 +11,7 @@ import {
   Diagnostic,
   GlobalInjections,
 } from '..';
-import { QWIK_LOADER_DEFAULT_DEBUG } from '../scripts';
+import { QWIK_LOADER_DEFAULT_MINIFIED } from '../scripts';
 import type { NormalizedOutputOptions, PluginContext, RollupError } from 'rollup';
 import type { HmrContext, Plugin, UserConfig, ViteDevServer } from 'vite';
 
@@ -227,9 +227,10 @@ export function qwikRollup(opts: QwikPluginOptions): any {
           }
         });
       }
-      html = html.replace(`</head>`, `<script>${QWIK_LOADER_DEFAULT_DEBUG}</script>\n</head>`);
+      html = html.replace(`</head>`, `<script>${QWIK_LOADER_DEFAULT_MINIFIED}</script>\n</head>`);
       return html;
     },
+
     async buildStart() {
       if (!optimizer) {
         optimizer = await createOptimizer();

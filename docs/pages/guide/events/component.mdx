@@ -32,12 +32,12 @@ Notice that both `<button>` and `<CmpButton>` use the same syntax for registerin
 
 ```html
 <div q:host>
-  <button q:obj="1" on:cilck="./chunk-a.js#Counter_button_onClick[0]">0</button>
+  <button q:obj="1" on:click="./chunk-a.js#Counter_button_onClick[0]">0</button>
   <div q:host>...</div>
 </div>
 ```
 
-1. For the HTML `<button>` the resultning HTML is `<button>` along with `on:click` attribute for the event.
+1. For the HTML `<button>` the resulting HTML is `<button>` along with `on:click` attribute for the event.
 2. For the Component `<CmpButton>` the resulting HTML is `<div q:host>...</div>`.
    - See [Host Element](../components/host-element.mdx) for explanation of why components need host element.
    - Notice that because the `<CmpButton>` is an element, there is no corresponding `on:click` in the DOM. This makes sense because, in this case, the `onClick` event is something that `<CmpButton>` emits and should not be confused with the browser's `click` event. (It is likely that the implementation of the `<CmpButton>` will have an internal `on:click` listener which forwards the event, but that is an implementation detail of `<CmpButton>`)
@@ -106,7 +106,7 @@ interface CmpButtonProps {
 }
 ```
 
-Notice that TypeScript automatically creates a correct prop with `$` suffix, which generates the parameterized `T` of `QRL<T>`. In our case `T` is `() => void`. This type information makes sure that you correctly pass `QRL` to `on<event>Qrl` suffix and closures to `on<ovent>$` suffix. 
+Notice that TypeScript automatically creates a correct prop with `$` suffix, which generates the parameterized `T` of `QRL<T>`. In our case `T` is `() => void`. This type information makes sure that you correctly pass `QRL` to `on<event>Qrl` suffix and closures to `on<event>$` suffix. 
 
 ## Working with QRLs
 
@@ -130,6 +130,6 @@ Let's look at a variation of `<CmpButton>` implementation. In this example, we w
   });
 ```
 
-Notice that we can pass the `props.onClickQrl` directly to the `onDblclickQrl` as seen on `<button>`. (see attribute `onDblclickQrl={props.onClickQrl}`.) This is because both the inputing prop `onClickQrl` as well as JSX prop `onDblclickQrl` are of type `QRL<?>` (and both have `Qrl` suffix.)
+Notice that we can pass the `props.onClickQrl` directly to the `onDblclickQrl` as seen on `<button>`. (see attribute `onDblclickQrl={props.onClickQrl}`.) This is because both the inputting prop `onClickQrl` as well as JSX prop `onDblclickQrl` are of type `QRL<?>` (and both have `Qrl` suffix.)
 
 However, it is not possible to pass `props.onClickQrl` to `onClick$` because the types don't match. (This would result in type error: `onClick$={props.onClickQrl}`.) Instead, the `$` is reserved for inlined closures. In our example, we would like to print the `console.log("clicked")` after we process the `props.onClickQrl` callback. We can do so with the `props.onClickQrl.invoke()` method. This 1) lazy-loads the code, 2) restores the closure state, and 3) invokes the closure. The operation is asynchronous and therefore returns a promise, which we can resolve using the `await` statement. 

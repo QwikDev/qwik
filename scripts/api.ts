@@ -11,7 +11,7 @@ export function apiExtractor(config: BuildConfig) {
   // Run the api extractor for each of the submodules
   createTypesApi(config, 'core', 'core.d.ts', './core');
   createTypesApi(config, 'optimizer', 'optimizer.d.ts', './core');
-  createTypesApi(config, 'server', 'server/index.d.ts', '../core');
+  createTypesApi(config, 'server', 'server.d.ts', './core');
   createTypesApi(config, 'testing', 'testing/index.d.ts', '../core');
   createTypesApi(config, 'build', 'build/index.d.ts', '../core');
 

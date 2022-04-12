@@ -27,7 +27,7 @@ export const Head = () => (
     <meta property="og:description" content="Qwik is Framework reimagined for the edge" />
     <meta
       property="og:image"
-      content="https://cdn.builder.io/api/v1/image/assets%2Ffe30f73e01ef40558cd69a9493eba2a2%2F6566e6d9309f44b4b346ab50abb5fc6d?width=1200"
+      content="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F56f46c6818704d47957a587157e2444f?width=1200"
     />
     <meta
       property="og:image:alt"

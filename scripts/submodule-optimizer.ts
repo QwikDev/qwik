@@ -1,20 +1,21 @@
 import { build, BuildOptions } from 'esbuild';
 import {
+  access,
   BuildConfig,
-  banner,
+  getBanner,
+  injectGlobalThisPoly,
   nodeTarget,
+  readFile,
   target,
   watcher,
   writeFile,
-  readFile,
-  access,
 } from './util';
 import { join } from 'path';
 import { minify } from 'terser';
 import { platformArchTriples } from '@napi-rs/triples';
 import { readPackageJson } from './package-json';
 import { watch } from 'rollup';
-import { constants } from 'fs';
+import { constants, readFileSync } from 'fs';
 import { inlineQwikScriptsEsBuild } from './submodule-qwikloader';
 
 /**
@@ -33,7 +34,6 @@ export async function submoduleOptimizer(config: BuildConfig) {
       bundle: true,
       sourcemap: false,
       target,
-      banner,
       external: [
         /* no nodejs built-in externals allowed! */
       ],
@@ -45,6 +45,7 @@ export async function submoduleOptimizer(config: BuildConfig) {
     const esmBuild = build({
       ...opts,
       format: 'esm',
+      banner: { js: getBanner('@builder.io/qwik/optimizer') },
       outExtension: { '.js': '.mjs' },
       define: {
         'globalThis.IS_CJS': 'false',
@@ -55,9 +56,18 @@ export async function submoduleOptimizer(config: BuildConfig) {
       watch: watcher(config, submodule),
     });
 
+    const cjsBanner = [
+      readFileSync(injectGlobalThisPoly(config), 'utf-8'),
+      `globalThis.qwikOptimizer = (function (module) {`,
+    ].join('\n');
+
     const cjsBuild = build({
       ...opts,
       format: 'cjs',
+      banner: { js: cjsBanner },
+      footer: {
+        js: `return module.exports; })(typeof module === 'object' && module.exports ? module : { exports: {} });`,
+      },
       outExtension: { '.js': '.cjs' },
       define: {
         'globalThis.IS_CJS': 'true',
@@ -102,6 +112,7 @@ export async function submoduleOptimizer(config: BuildConfig) {
               braces: true,
               beautify: true,
               indent_level: 2,
+              preamble: getBanner('@builder.io/qwik/optimizer'),
             },
             mangle: false,
           });

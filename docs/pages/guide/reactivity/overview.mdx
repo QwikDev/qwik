@@ -113,10 +113,10 @@ The wrapping behavior described above has one surprising side-effect. Writing an
 const MyComp = component$(() => {
   const store = useStore({ person: null });
   const person = { first: 'John', last: 'Smith' };
-  store.person = person; // `store.person autowraps object into proxy`
+  store.person = person; // `store.person auto wraps object into proxy`
   
   if (store.person !== person) {
-    // The consequence of autowrapping is that the object identy changes.
+    // The consequence of auto wrapping is that the object identity changes.
     console.log('store auto-wrapped person into a proxy');
   }
 });

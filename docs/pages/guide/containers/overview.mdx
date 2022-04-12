@@ -43,7 +43,7 @@ We can model the two parts as two navigation and outlet containers. When the use
 
 1. The simplistic approach is to make a full round trip and download an entirely new page. The main downside is that the application loses all of its states on the client. 
 1. The classical approach is to treat any further navigation in JavaScript. We replace the current outlet component with the new outlet component and let the new component render. The disadvantage is that we need to download and execute the JavaScript.
-2. The Qwik approach treats the navigation and the outlet as two different containers. The first navigation downloads HTML representing the full page (with both containers.) The subsequent navigation fetches the HTML only for the outlet container. This approach is the best of both worlds. The navigations are fast (no JavaScript download or execution), and the application keeps its state in the parent container.
+2. The Qwik approach treats the navigation and the outlet as two different containers. The first navigation downloads HTML representing the full page (with both containers.) The subsequent navigation fetches the HTML only for the outlet container. This approach is the best of both worlds. The navigation is fast (no JavaScript download or execution), and the application keeps its state in the parent container.
 
 ### Micro-frontend
 

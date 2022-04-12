@@ -10,14 +10,14 @@ Content projection allows a component to treat the JSX children of the component
 An example of collapsible component which conditionally projects its content.
 
 ```tsx
-const Colapsable = component$(() => {
+const Collapsible = component$(() => {
   const store = useStore({ isOpen: true });
 
   return (
     <div class="collapsible">
       <div class="title"
            onClick$={() => store.isOpen = !store.isOpen}>
-        <Solt name="title"></Slot>
+        <Slot name="title"></Slot>
       </div>
       {store.isOpen ? <Slot/> : null}
     </div>
@@ -238,7 +238,7 @@ q:slot,q:slot-default {
   display: contents;
 }
 q:slot.has-content > q:slot-default {
-  /** Supress the default value of Slot if parent provided content **/
+  /** Suppress the default value of Slot if parent provided content **/
   display: none:
 }
 </style>

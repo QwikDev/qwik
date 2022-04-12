@@ -30,9 +30,9 @@ By aggressively delaying the application download and execution, Qwik can provid
 
 Qwik is fast not because it uses clever algorithms but because it is designed in a way where most of the JavaScript never needs to be downloaded or executed. Its speed comes from not doing things (such as hydration) that other frameworks have to do.
 
-## Resumabilty & Serialization
+## Resumability & Serialization
 
-Resumabilty is discussed in detail [here](./resumable.mdx). Resumability allows Qwik applications to continue execution where the server left off. All frameworks need to keep track of internal data structures about the application's state. The current generation of frameworks does not preserve this information from the server to browser transition. As a result, the framework's data structures need to be rebuilt in the browser. The rebuilding of data structures and attaching of listeners is called hydration.
+Resumability is discussed in detail [here](./resumable.mdx). Resumability allows Qwik applications to continue execution where the server left off. All frameworks need to keep track of internal data structures about the application's state. The current generation of frameworks does not preserve this information from the server to browser transition. As a result, the framework's data structures need to be rebuilt in the browser. The rebuilding of data structures and attaching of listeners is called hydration.
 
 Qwik serializes listeners, internal data structures, and application state into the HTML on server browser handoff. Because all of the information is serialized in HTML, the client can just resume execution where the server left of.
 

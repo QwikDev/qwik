@@ -4,9 +4,8 @@
 
 ```ts
 
-import { FunctionComponent } from '@builder.io/qwik';
+import type { FunctionComponent } from '@builder.io/qwik';
 import type { JSXNode } from '@builder.io/qwik';
-import type { OutputEntryMap } from '@builder.io/qwik/optimizer';
 
 // @public
 export function createDocument(opts?: DocumentOptions): QwikDocument;

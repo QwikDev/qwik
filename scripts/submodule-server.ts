@@ -3,9 +3,7 @@ import { join } from 'path';
 import {
   BuildConfig,
   banner,
-  importPath,
   injectGlobalThisPoly,
-  nodeBuiltIns,
   nodeTarget,
   PackageJSON,
   target,
@@ -25,67 +23,62 @@ export async function submoduleServer(config: BuildConfig) {
   const submodule = 'server';
 
   const qwikDomPlugin = await bundleQwikDom(config);
+  const qwikDomVersion = await getQwikDomVersion();
 
   const opts: BuildOptions = {
     entryPoints: [join(config.srcDir, submodule, 'index.ts')],
-    outdir: join(config.distPkgDir, submodule),
+    entryNames: 'server',
+    outdir: config.distPkgDir,
     sourcemap: config.dev,
     bundle: true,
     target,
     banner,
-    external: [...nodeBuiltIns, '@builder.io/qwik-dom'],
-    define: {
-      ...(await inlineQwikScriptsEsBuild(config)),
-      'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
-      'globalThis.DOMINO_VERSION': JSON.stringify(await getDominoVersion()),
-    },
+    external: [/* no nodejs built-in externals allowed! */ '@builder.io/qwik-dom'],
   };
 
   const esm = build({
     ...opts,
     format: 'esm',
     outExtension: { '.js': '.mjs' },
-    plugins: [
-      importPath(/^@builder\.io\/qwik$/, '../core.mjs'),
-      importPath(/^@builder\.io\/qwik\/optimizer$/, '../optimizer.mjs'),
-      qwikDomPlugin,
-    ],
+    plugins: [qwikDomPlugin],
     watch: watcher(config, submodule),
     inject: [injectGlobalPoly(config)],
+    define: {
+      ...(await inlineQwikScriptsEsBuild(config)),
+      'globalThis.IS_CJS': 'false',
+      'globalThis.IS_ESM': 'true',
+      'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
+      'globalThis.QWIK_DOM_VERSION': JSON.stringify(qwikDomVersion),
+    },
   });
 
   const cjs = build({
     ...opts,
     format: 'cjs',
+    banner: {
+      js: `globalThis.qwikServer = (function (module) {`,
+    },
+    footer: {
+      js: `return module.exports; })(typeof module === 'object' && module.exports ? module : { exports: {} });`,
+    },
     outExtension: { '.js': '.cjs' },
-    plugins: [
-      importPath(/^@builder\.io\/qwik$/, '../core.cjs'),
-      importPath(/^@builder\.io\/qwik\/optimizer$/, '../optimizer.cjs'),
-      qwikDomPlugin,
-    ],
+    plugins: [qwikDomPlugin],
     watch: watcher(config),
     platform: 'node',
     target: nodeTarget,
     inject: [injectGlobalThisPoly(config), injectGlobalPoly(config)],
+    define: {
+      ...(await inlineQwikScriptsEsBuild(config)),
+      'globalThis.IS_CJS': 'true',
+      'globalThis.IS_ESM': 'false',
+      'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
+      'globalThis.QWIK_DOM_VERSION': JSON.stringify(qwikDomVersion),
+    },
   });
 
   await Promise.all([esm, cjs]);
-  await generateServerPackageJson(config);
 
   console.log('🐰', submodule);
-}
-
-async function generateServerPackageJson(config: BuildConfig) {
-  const pkg: PackageJSON = {
-    name: '@builder.io/qwik/server',
-    version: config.distVersion,
-    main: 'index.cjs',
-    module: 'index.mjs',
-    types: 'index.d.ts',
-    private: true,
-  };
-  const serverDistDir = join(config.distPkgDir, 'server');
-  await writePackageJson(serverDistDir, pkg);
 }
 
 async function bundleQwikDom(config: BuildConfig) {
@@ -104,7 +97,7 @@ async function bundleQwikDom(config: BuildConfig) {
   await build(opts);
 
   const qwikDomPlugin: Plugin = {
-    name: 'domiqwikDomPluginnoPlugin',
+    name: 'qwikDomPlugin',
     setup(build) {
       build.onResolve({ filter: /@builder.io\/qwik-dom/ }, () => {
         return {
@@ -117,7 +110,7 @@ async function bundleQwikDom(config: BuildConfig) {
   return qwikDomPlugin;
 }
 
-async function getDominoVersion() {
+async function getQwikDomVersion() {
   const indexPath = require.resolve('@builder.io/qwik-dom');
   const pkgJsonPath = join(indexPath, '..', '..');
   const pkgJson = await readPackageJson(pkgJsonPath);

@@ -58,6 +58,12 @@ export async function submoduleOptimizer(config: BuildConfig) {
     const cjsBuild = build({
       ...opts,
       format: 'cjs',
+      banner: {
+        js: `globalThis.qwikOptimizer = (function (module) {`,
+      },
+      footer: {
+        js: `return module.exports; })(typeof module === 'object' && module.exports ? module : { exports: {} });`,
+      },
       outExtension: { '.js': '.cjs' },
       define: {
         'globalThis.IS_CJS': 'true',

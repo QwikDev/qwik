@@ -119,16 +119,16 @@ async function getQwikDomVersion() {
 
 function getWebWorkerCjsRequireShim() {
   return `
-  if (typeof require !== 'function' && typeof self !== 'undefined' && typeof location !== 'undefined' && typeof navigator !== 'undefined' && typeof WorkerGlobalScope === 'function' && typeof self.importScripts === 'function') {
-    // shim cjs require() for core.cjs within web worker env
+  if (typeof require !== 'function' && typeof location !== 'undefined' && typeof navigator !== 'undefined') {
+    // shim cjs require() for core.cjs within a browser
     self.require = function(path) {
       if (path === './core.cjs') { 
         if (!self.qwikCore) {
-          throw new Error('Qwik Core global, "globalThis.qwikCore", must already be loaded for the Qwik Server to be used within a web worker or service worker.');
+          throw new Error('Qwik Core global, "globalThis.qwikCore", must already be loaded for the Qwik Server to be used within a browser.');
         }
         return self.qwikCore;
       }
-      throw new Error('Unable to require() path "' + path + '" from web worker environment.');
+      throw new Error('Unable to require() path "' + path + '" from a browser environment.');
     };
   }
   `;

@@ -83,6 +83,7 @@ export const QObjSelector = '[q\\:obj]';
 
 export const QContainerSelector = '[q\\:container]';
 
+export const RenderEvent = 'qRender';
 /**
  * `<q:slot name="...">`
  */

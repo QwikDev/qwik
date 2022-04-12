@@ -12,6 +12,7 @@ import { $ } from '../import/qrl.public';
 import { logDebug } from '../util/log';
 import { runtimeQrl } from '../import/qrl';
 import { pauseContainer } from '../object/store.public';
+import { RenderEvent } from '../util/markers';
 
 describe('store', () => {
   let document: Document;
@@ -38,7 +39,7 @@ describe('store', () => {
   });
 
   it('should serialize cyclic graphs', () => {
-    useInvoke(newInvokeContext(document, div, div), () => {
+    useInvoke(newInvokeContext(document, div, div, RenderEvent), () => {
       const foo = useStore({ mark: 'foo', bar: {} });
       const bar = useStore({ mark: 'bar', foo: foo });
       foo.bar = bar;
@@ -51,7 +52,7 @@ describe('store', () => {
       const bar2 = foo2.bar;
       expect(foo2.mark).toEqual('foo');
       expect(bar2.mark).toEqual('bar');
-      expect(foo2.bar.foo == foo2).toBe(true);
+      expect(foo2.bar.foo).toStrictEqual(foo2);
     });
   });
 });

@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { $, component$, useStore, useWatch$ } from '@builder.io/qwik';
+import { $, component$, useEffect$, useStore, useSubscriber, useWatch$ } from '@builder.io/qwik';
 
 interface State {
   count: number;
@@ -16,15 +16,38 @@ export const Watch = component$(() => {
 
   // Double count watch
   useWatch$((obs) => {
-    console.log('here');
     const { count } = obs(store);
     store.doubleCount = 2 * count;
   });
-  // doubleCount === 0
+
+  useWatch$((observe) => {
+    const { count } = observe(store);
+    store.doubleCount = 2 * count;
+  });
+
+  useWatch$(() => {
+    const { count } = useSubscriber(store);
+    store.doubleCount = 2 * count;
+  });
+
+  useWatch$(() => {
+    store.doubleCount = 2 * store.count;
+  });
+
+  useWatch$(() => {
+    store.count++; // infinite loop
+  });
+
+  useEffect$(() => {
+    store.doubleCount = 2 * store.count;
+  });
+
+  useEffect$(() => {
+    store.doubleCount = 2 * store.count;
+  });
 
   // Debouncer watch
   useWatch$((obs) => {
-    console.log('here');
     const { doubleCount } = obs(store);
     const timer = setTimeout(() => {
       store.debounced = doubleCount;

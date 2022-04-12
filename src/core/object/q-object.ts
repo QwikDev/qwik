@@ -1,13 +1,19 @@
 import { assertEqual } from '../assert/assert';
 import { QError, qError } from '../error/error';
 import { isQrl } from '../import/qrl-class';
-import { getRenderingState, notifyRender, RenderingState } from '../render/notify-render';
+import {
+  getRenderingState,
+  notifyRender,
+  RenderingState,
+  scheduleFrame,
+} from '../render/notify-render';
 import { getContainer, tryGetInvokeContext } from '../use/use-core';
 import { isElement } from '../util/element';
 import { logWarn } from '../util/log';
 import { qDev, qTest } from '../util/qdev';
 import { debugStringify } from '../util/stringify';
-import { runWatch, WatchDescriptor } from '../watch/watch.public';
+import { runWatch, WatchDescriptor, WatchMode } from '../watch/watch.public';
+import type { Subscriber } from '../use/use-subscriber';
 
 export type ObjToProxyMap = WeakMap<any, any>;
 export type QObject<T extends {}> = T & { __brand__: 'QObject' };
@@ -77,6 +83,9 @@ export function wrap<T>(value: T, proxyMap: ObjToProxyMap): T {
     if (isQrl(value)) {
       return value;
     }
+    if (isElement(value)) {
+      return value;
+    }
     const nakedValue = unwrapProxy(value);
     if (nakedValue !== value) {
       // already a proxy return;
@@ -95,13 +104,10 @@ export function wrap<T>(value: T, proxyMap: ObjToProxyMap): T {
 type TargetType = Record<string | symbol, any>;
 
 class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
-  private subscriber?: Element;
-  constructor(
-    private proxyMap: ObjToProxyMap,
-    private subs = new Map<Element | WatchDescriptor, Set<string>>()
-  ) {}
+  private subscriber?: Subscriber;
+  constructor(private proxyMap: ObjToProxyMap, private subs = new Map<Subscriber, Set<string>>()) {}
 
-  getSub(el: Element) {
+  getSub(el: Subscriber) {
     let sub = this.subs.get(el);
     if (!sub) {
       this.subs.set(el, (sub = new Set()));
@@ -119,15 +125,20 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
     if (typeof prop === 'symbol') {
       return value;
     }
-    if (!subscriber) {
-      const invokeCtx = tryGetInvokeContext();
-      if (qDev && !invokeCtx && !qTest) {
-        logWarn(`State assigned outside invocation context. Getting prop "${prop}" of:`, target);
-      }
-      if (invokeCtx && invokeCtx.subscriptions && invokeCtx.hostElement) {
-        subscriber = invokeCtx.hostElement;
-      }
+    const invokeCtx = tryGetInvokeContext();
+    if (qDev && !invokeCtx && !qTest) {
+      logWarn(`State assigned outside invocation context. Getting prop "${prop}" of:`, target);
     }
+    if (invokeCtx) {
+      if (invokeCtx.subscriber === null) {
+        subscriber = undefined;
+      } else if (!subscriber) {
+        subscriber = invokeCtx.subscriber;
+      }
+    } else if (qDev && !qTest && !subscriber) {
+      logWarn(`State assigned outside invocation context. Getting prop "${prop}" of:`, target);
+    }
+
     if (subscriber) {
       const isArray = Array.isArray(target);
       const sub = this.getSub(subscriber);
@@ -192,14 +203,14 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
 
 export function removeSub(obj: any, subscriber: any) {
   if (obj && typeof obj === 'object') {
-    const subs = obj[QOjectSubsSymbol] as Map<Element | WatchDescriptor, Set<string>> | undefined;
+    const subs = obj[QOjectSubsSymbol] as Map<Subscriber, Set<string>> | undefined;
     if (subs) {
       subs.delete(subscriber);
     }
   }
 }
 
-export function notifyChange(subscriber: Element | WatchDescriptor) {
+export function notifyChange(subscriber: Subscriber) {
   if (isElement(subscriber)) {
     notifyRender(subscriber);
   } else {
@@ -210,11 +221,22 @@ export function notifyChange(subscriber: Element | WatchDescriptor) {
 export function notifyWatch(watch: WatchDescriptor) {
   const containerEl = getContainer(watch.hostElement)!;
   const state = getRenderingState(containerEl);
-  const promise = runWatch(watch);
-  state.watchRunning.add(promise);
-  promise.then(() => {
-    state.watchRunning.delete(promise);
-  });
+  watch.dirty = true;
+  if (watch.mode === WatchMode.Watch) {
+    const promise = runWatch(watch);
+    state.watchRunning.add(promise);
+    promise.then(() => {
+      state.watchRunning.delete(promise);
+    });
+  } else {
+    const activeRendering = state.hostsRendering !== undefined;
+    if (activeRendering) {
+      state.watchStagging.add(watch);
+    } else {
+      state.watchNext.add(watch);
+      scheduleFrame(containerEl, state);
+    }
+  }
 }
 
 export async function waitForWatches(state: RenderingState) {
@@ -226,8 +248,9 @@ export async function waitForWatches(state: RenderingState) {
 function verifySerializable<T>(value: T) {
   if (shouldSerialize(value) && typeof value == 'object' && value !== null) {
     if (Array.isArray(value)) return;
-    if (isQrl(value)) return;
     if (Object.getPrototypeOf(value) !== Object.prototype) {
+      if (isQrl(value)) return;
+      if (isElement(value)) return;
       throw qError(QError.TODO, 'Only primitive and object literals can be serialized.');
     }
   }

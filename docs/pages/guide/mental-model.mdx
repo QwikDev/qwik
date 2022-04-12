@@ -60,7 +60,7 @@ At this point, Qwik was able to download minimal code to process the event, rest
 
 The component that needs to be rendered will require props from the parent component. The Qwik serialization mechanism must serialize props on the server and restore props in the browser so that the parent component presence is not required. (A more complicated form of this is when the parent component creates projection children that child component does not render on the server. In the browser, the client component rerendering causes the projected content to be rendered. Qwik must restore the content children without forcing the parent component to rerender.)
 
-Qwik also needs to prevent child components from being rerendered due to parent component rerendering. When the parent component rerenderes, the child components do not get updated unless their props have been modified.
+Qwik also needs to prevent child components from being rerendered due to parent component rerendering. When the parent component rerenders, the child components do not get updated unless their props have been modified.
 
 Lastly, Qwik needs to ensure that downloading the parent component template does not force the download of a child template. Typically a component template directly references a child component as symbols—this forces bundler to include child component in the parent component bundle because there is a direct reference. In practice, this means that having a reference to a root component transitively includes all child components as well. Qwik optimizer is specifically designed to prevent this so that having a reference to any component does not transitively include child components as well.
 

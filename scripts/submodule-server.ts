@@ -119,20 +119,12 @@ async function getQwikDomVersion() {
 
 function getWebWorkerCjsRequireShim() {
   return `
-  if (typeof require !== 'function' && typeof self !== 'undefined' && typeof location !== 'undefined' && typeof navigator !== 'undefined' && typeof XMLHttpRequest === 'function' && typeof WorkerGlobalScope === 'function' && typeof self.importScripts === 'function') {
+  if (typeof require !== 'function' && typeof self !== 'undefined' && typeof location !== 'undefined' && typeof navigator !== 'undefined' && typeof WorkerGlobalScope === 'function' && typeof self.importScripts === 'function') {
     // shim cjs require() for core.cjs within web worker env
-    // using sync xhr since service workers cannot use importScripts() and a require() cannot be async so we can't use fetch()
     self.require = function(path) {
       if (path === './core.cjs') { 
         if (!self.qwikCore) {
-          const cdnUrl = 'https://cdn.jsdelivr.net/npm/@builder.io/qwik@' + versions.qwik + '/core.cjs';
-          const xhr = new XMLHttpRequest();
-          xhr.open('GET', cdnUrl, false);
-          xhr.send();
-          const mod = { exports: {} };
-          const exec = new Function(mod, mod.exports, xhr.responseText);
-          exec(mod, mod.exports);
-          self.qwikCore = mod.exports;
+          throw new Error('Qwik Core global, "globalThis.qwikCore", must already be loaded for the Qwik Server to be used within a web worker or service worker.');
         }
         return self.qwikCore;
       }

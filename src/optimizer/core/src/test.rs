@@ -77,12 +77,10 @@ fn example_2() {
         code: r#"
 import { $, component$ } from '@builder.io/qwik';
 export const Header = component$(() => {
-  console.log("mount");
-  return $(() => {
+    console.log("mount");
     return (
-      <div onClick={$((ctx) => console.log(ctx))}/>
+        <div onClick={$((ctx) => console.log(ctx))}/>
     );
-  });
 });
 "#
         .to_string(),
@@ -98,11 +96,9 @@ import { $, component$ } from '@builder.io/qwik';
 export const App = () => {
     const Header = component$(() => {
         console.log("mount");
-        return $(() => {
-            return (
-                <div onClick={$((ctx) => console.log(ctx))}/>
-            );
-        });
+        return (
+            <div onClick={$((ctx) => console.log(ctx))}/>
+        );
     });
     return Header;
 });
@@ -120,11 +116,9 @@ import { $, component$ } from '@builder.io/qwik';
 export function App() {
     const Header = component$(() => {
         console.log("mount");
-        return $(() => {
-            return (
-                <div onClick={$((ctx) => console.log(ctx))}/>
-            );
-        });
+        return (
+            <div onClick={$((ctx) => console.log(ctx))}/>
+        );
     });
     return Header;
 }
@@ -140,14 +134,12 @@ fn example_5() {
         code: r#"
 import { $, component$ } from '@builder.io/qwik';
 export const Header = component$(() => {
-    return $(() => {
-        return (
-            <>
-                <div onClick={(ctx) => console.log("1")}/>
-                <div onClick={$((ctx) => console.log("2"))}/>
-            </>
-        );
-    })
+    return (
+        <>
+            <div onClick={(ctx) => console.log("1")}/>
+            <div onClick={$((ctx) => console.log("2"))}/>
+        </>
+    );
 });
 "#
         .to_string(),
@@ -175,19 +167,15 @@ import { $, component$ } from '@builder.io/qwik';
 
 export const Header = component$(() => {
     console.log("mount");
-    return $(() => {
-      return (
+    return (
         <div onClick={$((ctx) => console.log(ctx))}/>
-      );
-    });
+    );
   });
 
 const App = component$(() => {
-    return $(() => {
-        return (
-            <Header/>
-        );
-    })
+    return (
+        <Header/>
+    );
 });
 "#
         .to_string(),
@@ -207,7 +195,7 @@ export const Header = component$(() => {
         const {something, styff} = hola;
         const hello = hola.nothere.stuff[global];
         return (
-        <Header/>
+            <Header/>
         );
     });
 });
@@ -280,21 +268,17 @@ import * as dep2 from "dep2";
 import dep3 from "dep3/something";
 
 export const Header = component$(() => {
-    return $(() => {
-        return (
-            <Header onClick={$((ev) => dep3(ev))}>
-                {dep2.stuff()}{bbar()}
-            </Header>
-        );
-    });
+    return (
+        <Header onClick={$((ev) => dep3(ev))}>
+            {dep2.stuff()}{bbar()}
+        </Header>
+    );
 });
 
 export const App = component$(() => {
-    return $(() => {
-        return (
-            <Header>{foo()}</Header>
-        );
-    })
+    return (
+        <Header>{foo()}</Header>
+    );
 });
 "#
         .to_string(),
@@ -344,11 +328,9 @@ const Header = component$(() => {
     const thing = useStore();
     const {foo, bar} = foo();
 
-    return $(() => {
-        return (
-            <div>{thing}</div>
-        );
-    });
+    return (
+        <div>{thing}</div>
+    );
 });
 "#
         .to_string(),
@@ -373,23 +355,21 @@ export const App = component$((props) => {
     const thing = useStore({thing: 0});
     const STEP_2 = 2;
 
-    return $(() => {
-        const count2 = state.count * 2;
-        return (
-            <div onClick$={() => state.count+=count2 }>
-                <span>{state.count}</span>
-                {buttons.map(btn => (
-                    <button
-                        onClick$={() => state.count += btn.offset + thing + STEP + STEP_2 + props.step}
-                    >
-                        {btn.name}
-                    </button>
-                ))}
+    const count2 = state.count * 2;
+    return (
+        <div onClick$={() => state.count+=count2 }>
+            <span>{state.count}</span>
+            {buttons.map(btn => (
+                <button
+                    onClick$={() => state.count += btn.offset + thing + STEP + STEP_2 + props.step}
+                >
+                    {btn.name}
+                </button>
+            ))}
 
-            </div>
+        </div>
 
-        )
-    });
+    );
 })
 "#
         .to_string(),
@@ -802,6 +782,8 @@ export const Foo = component$(() => {
                 onKeyup={handler}
                 onDocument:keyup={handler}
                 onWindow:keyup={handler}
+
+                custom$={()=>console.log('custom')}
             />
         )
     });
@@ -969,6 +951,29 @@ export const App = component$((props) => {
 });
 "#
         .to_string(),
+        explicity_extensions: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_jsx_import_source() {
+    test_input!(TestInput {
+        code: r#"
+/* @jsxImportSource react */
+
+import { qwikify$ } from './qwikfy';
+
+export const App = () => (
+    <div onClick$={()=>console.log('App')}></div>
+);
+
+export const App2 = qwikify$(() => (
+    <div onClick$={()=>console.log('App2')}></div>
+));
+"#
+        .to_string(),
+        transpile: true,
         explicity_extensions: true,
         ..TestInput::default()
     });

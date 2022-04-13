@@ -167,6 +167,22 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                         }
                     }
 
+                    // Transpile JSX
+                    if transpile && is_jsx {
+                        let mut react_options = react::Options::default();
+                        if is_jsx {
+                            react_options.throw_if_namespace = false;
+                            react_options.runtime = Some(react::Runtime::Automatic);
+                            react_options.import_source = "@builder.io/qwik".to_string();
+                        };
+                        main_module = main_module.fold_with(&mut react::react(
+                            Lrc::clone(&source_map),
+                            Some(&comments),
+                            react_options,
+                            global_mark,
+                        ));
+                    }
+
                     // Resolve with mark
                     main_module.visit_mut_with(&mut resolver_with_mark(global_mark));
 
@@ -184,22 +200,6 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 
                     // Run main transform
                     main_module = main_module.fold_with(&mut qwik_transform);
-
-                    // Transpile JSX
-                    if transpile && is_jsx {
-                        let mut react_options = react::Options::default();
-                        if is_jsx {
-                            react_options.throw_if_namespace = false;
-                            react_options.runtime = Some(react::Runtime::Automatic);
-                            react_options.import_source = "@builder.io/qwik".to_string();
-                        };
-                        main_module = main_module.fold_with(&mut react::react(
-                            Lrc::clone(&source_map),
-                            Some(&comments),
-                            react_options,
-                            global_mark,
-                        ));
-                    }
 
                     if config.minify != MinifyMode::None {
                         main_module =
@@ -235,6 +235,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                     let hooks = qwik_transform.hooks;
                     let mut modules: Vec<TransformModule> = Vec::with_capacity(hooks.len() + 10);
 
+                    let comments_maps = comments.clone().take_all();
                     for h in hooks.into_iter() {
                         let is_entry = h.entry == None;
                         let hook_path = [&h.canonical_filename, ".", &h.extension].concat();
@@ -250,6 +251,8 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                             scoped_idents: &h.scoped_idents,
                             global: &qwik_transform.options.global_collect,
                             qwik_ident: &qwik_transform.qwik_ident,
+                            leading_comments: comments_maps.0.clone(),
+                            trailing_comments: comments_maps.1.clone(),
                         })?;
 
                         if transpile && is_jsx {

@@ -18,55 +18,55 @@ export const App = component$((props) => {
 
 import * as qwik from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
-export const App = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_app_render.tsx")
-, "App_render"));
+export const App = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_app_component.tsx")
+, "App_component"));
 
-============================= h_test_app_usestyles.tsx (ENTRY POINT)==
+============================= h_test_app_component_usestyles.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const App_useStyles = 'hola';
+export const App_component_useStyles = 'hola';
 
 /*
 {
   "origin": "test.tsx",
-  "name": "App_useStyles",
+  "name": "App_component_useStyles",
   "entry": null,
-  "canonicalFilename": "h_test_app_usestyles",
+  "canonicalFilename": "h_test_app_component_usestyles",
   "extension": "tsx"
 }
 */
-============================= h_test_app_onrender.tsx (ENTRY POINT)==
+============================= h_test_app_component2.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const App_onRender = ()=><div ></div>
+export const App_component2 = ()=><div ></div>
 ;
 
 /*
 {
   "origin": "test.tsx",
-  "name": "App_onRender",
+  "name": "App_component2",
   "entry": null,
-  "canonicalFilename": "h_test_app_onrender",
+  "canonicalFilename": "h_test_app_component2",
   "extension": "tsx"
 }
 */
-============================= h_test_app_render.tsx (ENTRY POINT)==
+============================= h_test_app_component.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
 import { useStylesQrl } from "@builder.io/qwik";
-export const App_render = (props)=>{
-    useStylesQrl(qwik.qrl(()=>import("./h_test_app_usestyles.tsx")
-    , "App_useStyles"));
-    return qwik.qrl(()=>import("./h_test_app_onrender.tsx")
-    , "App_onRender");
+export const App_component = (props)=>{
+    useStylesQrl(qwik.qrl(()=>import("./h_test_app_component_usestyles.tsx")
+    , "App_component_useStyles"));
+    return qwik.qrl(()=>import("./h_test_app_component2.tsx")
+    , "App_component2");
 };
 
 /*
 {
   "origin": "test.tsx",
-  "name": "App_render",
+  "name": "App_component",
   "entry": null,
-  "canonicalFilename": "h_test_app_render",
+  "canonicalFilename": "h_test_app_component",
   "extension": "tsx"
 }
 */

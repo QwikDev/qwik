@@ -19,57 +19,57 @@ export const App = component$(() => {
 
 import * as qwik from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
-export const App = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_app_render")
-, "App_render"));
+export const App = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_app_component")
+, "App_component"));
 
-============================= h_test_app_usestyles.js (ENTRY POINT)==
+============================= h_test_app_component_usestyles.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
 import css1 from "./global.css";
 import css2 from "./style.css";
-export const App_useStyles = `${css1}${css2}`;
+export const App_component_useStyles = `${css1}${css2}`;
 
 /*
 {
   "origin": "test.tsx",
-  "name": "App_useStyles",
+  "name": "App_component_useStyles",
   "entry": null,
-  "canonicalFilename": "h_test_app_usestyles",
+  "canonicalFilename": "h_test_app_component_usestyles",
   "extension": "js"
 }
 */
-============================= h_test_app_usestyles2.js (ENTRY POINT)==
+============================= h_test_app_component_usestyles2.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
 import css3 from "./style.css";
-export const App_useStyles2 = css3;
+export const App_component_useStyles2 = css3;
 
 /*
 {
   "origin": "test.tsx",
-  "name": "App_useStyles2",
+  "name": "App_component_useStyles2",
   "entry": null,
-  "canonicalFilename": "h_test_app_usestyles2",
+  "canonicalFilename": "h_test_app_component_usestyles2",
   "extension": "js"
 }
 */
-============================= h_test_app_render.js (ENTRY POINT)==
+============================= h_test_app_component.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
 import { useStylesQrl } from "@builder.io/qwik";
-export const App_render = ()=>{
-    useStylesQrl(qwik.qrl(()=>import("./h_test_app_usestyles")
-    , "App_useStyles"));
-    useStylesQrl(qwik.qrl(()=>import("./h_test_app_usestyles2")
-    , "App_useStyles2"));
+export const App_component = ()=>{
+    useStylesQrl(qwik.qrl(()=>import("./h_test_app_component_usestyles")
+    , "App_component_useStyles"));
+    useStylesQrl(qwik.qrl(()=>import("./h_test_app_component_usestyles2")
+    , "App_component_useStyles2"));
 };
 
 /*
 {
   "origin": "test.tsx",
-  "name": "App_render",
+  "name": "App_component",
   "entry": null,
-  "canonicalFilename": "h_test_app_render",
+  "canonicalFilename": "h_test_app_component",
   "extension": "js"
 }
 */

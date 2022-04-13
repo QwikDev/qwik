@@ -9,11 +9,9 @@ import { $, component$ } from '@builder.io/qwik';
 export function App() {
     const Header = component$(() => {
         console.log("mount");
-        return $(() => {
-            return (
-                <div onClick={$((ctx) => console.log(ctx))}/>
-            );
-        });
+        return (
+            <div onClick={$((ctx) => console.log(ctx))}/>
+        );
     });
     return Header;
 }
@@ -23,58 +21,41 @@ export function App() {
 import * as qwik from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
 export function App() {
-    const Header = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_app_header")
-    , "App_Header"));
+    const Header = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_app_header_component")
+    , "App_Header_component"));
     return Header;
 }
 
-============================= h_test_app_header_onrender_div_onclick.tsx (ENTRY POINT)==
+============================= h_test_app_header_component_div_onclick.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const App_Header_onRender_div_onClick = (ctx)=>console.log(ctx)
+export const App_Header_component_div_onClick = (ctx)=>console.log(ctx)
 ;
 
 /*
 {
   "origin": "test.tsx",
-  "name": "App_Header_onRender_div_onClick",
+  "name": "App_Header_component_div_onClick",
   "entry": null,
-  "canonicalFilename": "h_test_app_header_onrender_div_onclick",
+  "canonicalFilename": "h_test_app_header_component_div_onclick",
   "extension": "tsx"
 }
 */
-============================= h_test_app_header_onrender.tsx (ENTRY POINT)==
+============================= h_test_app_header_component.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const App_Header_onRender = ()=>{
-    return <div onClick={qwik.qrl(()=>import("./h_test_app_header_onrender_div_onclick")
-    , "App_Header_onRender_div_onClick")}/>;
-};
-
-/*
-{
-  "origin": "test.tsx",
-  "name": "App_Header_onRender",
-  "entry": null,
-  "canonicalFilename": "h_test_app_header_onrender",
-  "extension": "tsx"
-}
-*/
-============================= h_test_app_header.tsx (ENTRY POINT)==
-
-import * as qwik from "@builder.io/qwik";
-export const App_Header = ()=>{
+export const App_Header_component = ()=>{
     console.log("mount");
-    return qwik.qrl(()=>import("./h_test_app_header_onrender")
-    , "App_Header_onRender");
+    return <div onClick={qwik.qrl(()=>import("./h_test_app_header_component_div_onclick")
+    , "App_Header_component_div_onClick")}/>;
 };
 
 /*
 {
   "origin": "test.tsx",
-  "name": "App_Header",
+  "name": "App_Header_component",
   "entry": null,
-  "canonicalFilename": "h_test_app_header",
+  "canonicalFilename": "h_test_app_header_component",
   "extension": "tsx"
 }
 */

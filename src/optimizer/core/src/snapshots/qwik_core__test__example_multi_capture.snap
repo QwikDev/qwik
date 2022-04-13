@@ -33,15 +33,15 @@ export const Bar = component$(({bar}) => {
 
 import * as qwik from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
-export const Foo = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_foo_render")
-, "Foo_render"));
-export const Bar = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_bar_render")
-, "Bar_render"));
+export const Foo = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_foo_component")
+, "Foo_component"));
+export const Bar = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_bar_component")
+, "Bar_component"));
 
-============================= h_test_foo_onrender.tsx (ENTRY POINT)==
+============================= h_test_foo_component1.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const Foo_onRender = ()=>{
+export const Foo_component1 = ()=>{
     const [arg0, foo] = qwik.useLexicalScope();
     const fn = ({ aaa  })=>aaa
     ;
@@ -55,19 +55,19 @@ export const Foo_onRender = ()=>{
 /*
 {
   "origin": "test.tsx",
-  "name": "Foo_onRender",
+  "name": "Foo_component1",
   "entry": null,
-  "canonicalFilename": "h_test_foo_onrender",
+  "canonicalFilename": "h_test_foo_component1",
   "extension": "tsx"
 }
 */
-============================= h_test_foo_render.tsx (ENTRY POINT)==
+============================= h_test_foo_component.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const Foo_render = ({ foo  })=>{
+export const Foo_component = ({ foo  })=>{
     const arg0 = 20;
-    return qwik.qrl(()=>import("./h_test_foo_onrender")
-    , "Foo_onRender", [
+    return qwik.qrl(()=>import("./h_test_foo_component1")
+    , "Foo_component1", [
         arg0,
         foo
     ]);
@@ -76,16 +76,16 @@ export const Foo_render = ({ foo  })=>{
 /*
 {
   "origin": "test.tsx",
-  "name": "Foo_render",
+  "name": "Foo_component",
   "entry": null,
-  "canonicalFilename": "h_test_foo_render",
+  "canonicalFilename": "h_test_foo_component",
   "extension": "tsx"
 }
 */
-============================= h_test_bar_onrender.tsx (ENTRY POINT)==
+============================= h_test_bar_component3.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const Bar_onRender = ()=>{
+export const Bar_component3 = ()=>{
     const [bar] = qwik.useLexicalScope();
     return <div >
 
@@ -97,18 +97,18 @@ export const Bar_onRender = ()=>{
 /*
 {
   "origin": "test.tsx",
-  "name": "Bar_onRender",
+  "name": "Bar_component3",
   "entry": null,
-  "canonicalFilename": "h_test_bar_onrender",
+  "canonicalFilename": "h_test_bar_component3",
   "extension": "tsx"
 }
 */
-============================= h_test_bar_render.tsx (ENTRY POINT)==
+============================= h_test_bar_component.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const Bar_render = ({ bar  })=>{
-    return qwik.qrl(()=>import("./h_test_bar_onrender")
-    , "Bar_onRender", [
+export const Bar_component = ({ bar  })=>{
+    return qwik.qrl(()=>import("./h_test_bar_component3")
+    , "Bar_component3", [
         bar
     ]);
 };
@@ -116,9 +116,9 @@ export const Bar_render = ({ bar  })=>{
 /*
 {
   "origin": "test.tsx",
-  "name": "Bar_render",
+  "name": "Bar_component",
   "entry": null,
-  "canonicalFilename": "h_test_bar_render",
+  "canonicalFilename": "h_test_bar_component",
   "extension": "tsx"
 }
 */

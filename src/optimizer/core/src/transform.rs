@@ -65,11 +65,7 @@ pub type ThreadSafeTransformContext = Arc<Mutex<TransformContext>>;
 
 #[derive(Debug)]
 enum PositionToken {
-    Component,
-    ObjectProp,
-    JSXListener,
-    MarkerFunction,
-    Arg(i8, i8),
+    JSXFunction,
     Any,
 }
 
@@ -94,6 +90,7 @@ pub struct QwikTransform<'a> {
     decl_stack: Vec<Vec<IdPlusType>>,
     in_component: bool,
     marker_functions: HashSet<Id>,
+    jsx_functions: HashSet<Id>,
     qcomponent_fn: Option<Id>,
     qhook_fn: Option<Id>,
     h_fn: Option<Id>,
@@ -113,12 +110,12 @@ pub struct QwikTransformOptions<'a> {
     pub global_collect: GlobalCollect,
 }
 
-fn convert_signal_ident(id: &ast::Ident) -> Option<ast::Ident> {
+fn convert_signal_ident(id: &JsWord) -> Option<JsWord> {
     let ident_name = id.as_ref();
     let has_signal = ident_name.ends_with(SIGNAL);
     if has_signal {
         let new_specifier = [&ident_name[0..ident_name.len() - 1], LONG_SUFFIX].concat();
-        Some(ast::Ident::new(JsWord::from(new_specifier), DUMMY_SP))
+        Some(JsWord::from(new_specifier))
     } else {
         None
     }
@@ -148,6 +145,19 @@ impl<'a> QwikTransform<'a> {
 
         let marker_functions = imports.chain(exports).collect();
 
+        let jsx_functions = options
+            .global_collect
+            .imports
+            .iter()
+            .flat_map(|(id, import)| {
+                if import.kind == ImportKind::Named && import.source == *BUILDER_IO_QWIK_JSX {
+                    Some(id.clone())
+                } else {
+                    None
+                }
+            })
+            .collect();
+
         QwikTransform {
             stack_ctxt: Vec::with_capacity(16),
             position_ctxt: Vec::with_capacity(32),
@@ -169,6 +179,7 @@ impl<'a> QwikTransform<'a> {
                 .global_collect
                 .get_imported_local(&FRAGMENT, &BUILDER_IO_QWIK),
             marker_functions,
+            jsx_functions,
             qhook_mark: Mark::fresh(Mark::root()),
             qwik_ident: id!(private_ident!(QWIK_INTERNAL.clone())),
             options,
@@ -187,8 +198,6 @@ impl<'a> QwikTransform<'a> {
             let mut symbol_name = self.stack_ctxt.join("_");
             if self.stack_ctxt.is_empty() {
                 symbol_name += "_h";
-            } else if self.stack_ctxt.len() == 1 && self.in_component {
-                symbol_name += "_render";
             }
             symbol_name = escape_sym(&symbol_name);
             if context.hooks_names.contains(&symbol_name) {
@@ -381,6 +390,49 @@ impl<'a> QwikTransform<'a> {
             node
         }
     }
+
+    fn handle_jsx(&mut self, node: ast::CallExpr) -> ast::CallExpr {
+        let mut name_token = false;
+        let first_arg = node.args.get(0);
+        if let Some(name) = first_arg {
+            match &*name.expr {
+                ast::Expr::Lit(ast::Lit::Str(str)) => {
+                    self.stack_ctxt.push(str.value.to_string());
+                    name_token = true;
+                }
+                ast::Expr::Ident(ident) => {
+                    self.stack_ctxt.push(ident.sym.to_string());
+                    name_token = true;
+                }
+                _ => {}
+            }
+        }
+        self.position_ctxt.push(PositionToken::JSXFunction);
+        let o = node.fold_children_with(self);
+        self.position_ctxt.pop();
+        if name_token {
+            self.stack_ctxt.pop();
+        }
+
+        o
+    }
+
+    fn handle_jsx_value(&mut self, value: Option<ast::JSXAttrValue>) -> Option<ast::JSXAttrValue> {
+        if let Some(ast::JSXAttrValue::JSXExprContainer(container)) = value {
+            if let ast::JSXExpr::Expr(expr) = container.expr {
+                Some(ast::JSXAttrValue::JSXExprContainer(ast::JSXExprContainer {
+                    span: DUMMY_SP,
+                    expr: ast::JSXExpr::Expr(Box::new(ast::Expr::Call(
+                        self.create_synthetic_qhook(*expr),
+                    ))),
+                }))
+            } else {
+                Some(ast::JSXAttrValue::JSXExprContainer(container))
+            }
+        } else {
+            value
+        }
+    }
 }
 
 impl<'a> Fold for QwikTransform<'a> {
@@ -541,45 +593,25 @@ impl<'a> Fold for QwikTransform<'a> {
         o
     }
 
-    fn fold_key_value_prop(&mut self, node: ast::KeyValueProp) -> ast::KeyValueProp {
-        let mut stacked = false;
-        if let ast::PropName::Ident(ref ident) = node.key {
-            self.stack_ctxt.push(ident.sym.to_string());
-            self.position_ctxt.push(PositionToken::ObjectProp);
-            stacked = true;
-        }
-        if let ast::PropName::Str(ref s) = node.key {
-            self.stack_ctxt.push(s.value.to_string());
-            self.position_ctxt.push(PositionToken::ObjectProp);
-            stacked = true;
-        }
-        let o = node.fold_children_with(self);
-        if stacked {
-            self.position_ctxt.pop();
-            self.stack_ctxt.pop();
-        }
-        o
-    }
-
     fn fold_jsx_attr(&mut self, node: ast::JSXAttr) -> ast::JSXAttr {
         let mut is_listener = false;
         let node = match node.name {
             ast::JSXAttrName::Ident(ref ident) => {
-                let new_ident = convert_signal_ident(ident);
+                let new_word = convert_signal_ident(&ident.sym);
                 self.stack_ctxt.push(ident.sym.to_string());
-                if let Some(new_ident) = new_ident {
+                if let Some(new_word) = new_word {
                     is_listener = true;
-                    self.position_ctxt.push(PositionToken::JSXListener);
                     ast::JSXAttr {
-                        name: ast::JSXAttrName::Ident(new_ident),
-                        ..node
+                        name: ast::JSXAttrName::Ident(ast::Ident::new(new_word, DUMMY_SP)),
+                        value: self.handle_jsx_value(node.value),
+                        span: DUMMY_SP,
                     }
                 } else {
                     node
                 }
             }
             ast::JSXAttrName::JSXNamespacedName(ref namespaced) => {
-                let new_ident = convert_signal_ident(&namespaced.name);
+                let new_word = convert_signal_ident(&namespaced.name.sym);
                 let ident_name = [
                     namespaced.ns.sym.as_ref(),
                     "-",
@@ -587,15 +619,15 @@ impl<'a> Fold for QwikTransform<'a> {
                 ]
                 .concat();
                 self.stack_ctxt.push(ident_name);
-                if let Some(new_ident) = new_ident {
+                if let Some(new_word) = new_word {
                     is_listener = true;
-                    self.position_ctxt.push(PositionToken::JSXListener);
                     ast::JSXAttr {
                         name: ast::JSXAttrName::JSXNamespacedName(ast::JSXNamespacedName {
                             ns: namespaced.ns.clone(),
-                            name: new_ident,
+                            name: ast::Ident::new(new_word, DUMMY_SP),
                         }),
-                        ..node
+                        value: self.handle_jsx_value(node.value),
+                        span: DUMMY_SP,
                     }
                 } else {
                     node
@@ -611,46 +643,61 @@ impl<'a> Fold for QwikTransform<'a> {
         o
     }
 
-    fn fold_expr(&mut self, node: ast::Expr) -> ast::Expr {
-        let node = match (self.position_ctxt.as_slice(), node) {
-            ([.., PositionToken::JSXListener], ast::Expr::Arrow(arrow)) => {
-                ast::Expr::Call(self.create_synthetic_qhook(ast::Expr::Arrow(arrow)))
+    fn fold_key_value_prop(&mut self, node: ast::KeyValueProp) -> ast::KeyValueProp {
+        let jsx_call = matches!(self.position_ctxt.last(), Some(PositionToken::JSXFunction));
+
+        let mut name_token = false;
+
+        let node = match node.key {
+            ast::PropName::Ident(ref ident) => {
+                self.stack_ctxt.push(ident.sym.to_string());
+                name_token = true;
+                if jsx_call {
+                    if let Some(new_word) = convert_signal_ident(&ident.sym) {
+                        ast::KeyValueProp {
+                            key: ast::PropName::Ident(ast::Ident::new(new_word, DUMMY_SP)),
+                            value: Box::new(ast::Expr::Call(
+                                self.create_synthetic_qhook(*node.value),
+                            )),
+                        }
+                    } else {
+                        node
+                    }
+                } else {
+                    node
+                }
             }
-            (
-                [.., PositionToken::MarkerFunction | PositionToken::Component, PositionToken::Arg(0, _)],
-                expr,
-            ) => ast::Expr::Call(self.create_synthetic_qhook(expr)),
-            (_, node) => node,
+            ast::PropName::Str(ref s) => {
+                self.stack_ctxt.push(s.value.to_string());
+                name_token = true;
+                if jsx_call {
+                    if let Some(new_word) = convert_signal_ident(&s.value) {
+                        ast::KeyValueProp {
+                            key: ast::PropName::Str(ast::Str::from(new_word)),
+                            value: Box::new(ast::Expr::Call(
+                                self.create_synthetic_qhook(*node.value),
+                            )),
+                        }
+                    } else {
+                        node
+                    }
+                } else {
+                    node
+                }
+            }
+            _ => node,
         };
 
         self.position_ctxt.push(PositionToken::Any);
         let o = node.fold_children_with(self);
         self.position_ctxt.pop();
-        o
-    }
-
-    fn fold_return_stmt(&mut self, node: ast::ReturnStmt) -> ast::ReturnStmt {
-        let component_return = matches!(
-            self.position_ctxt.as_slice(),
-            [
-                ..,
-                PositionToken::Component,
-                PositionToken::Arg(0, _),
-                PositionToken::Any
-            ]
-        );
-        if component_return {
-            self.stack_ctxt.push("onRender".into());
-        }
-        let o = node.fold_children_with(self);
-        if component_return {
+        if name_token {
             self.stack_ctxt.pop();
         }
         o
     }
 
     fn fold_call_expr(&mut self, node: ast::CallExpr) -> ast::CallExpr {
-        let mut position_token = false;
         let mut name_token = false;
         let mut component_token = false;
 
@@ -664,19 +711,18 @@ impl<'a> Fold for QwikTransform<'a> {
                         comments.add_pure_comment(ident.span.lo);
                     }
                     return self.handle_qhook(node);
+                } else if self.jsx_functions.contains(&id!(ident)) {
+                    return self.handle_jsx(node);
                 } else if self.marker_functions.contains(&id!(ident)) {
-                    position_token = true;
+                    self.stack_ctxt.push(ident.sym.to_string());
+                    name_token = true;
+
                     if id_eq!(ident, &self.qcomponent_fn) {
-                        self.position_ctxt.push(PositionToken::Component);
                         self.in_component = true;
                         component_token = true;
                         if let Some(comments) = self.options.comments {
                             comments.add_pure_comment(node.span.lo);
                         }
-                    } else {
-                        self.position_ctxt.push(PositionToken::MarkerFunction);
-                        self.stack_ctxt.push(ident.sym.to_string());
-                        name_token = true;
                     }
                     let global_collect = &mut self.options.global_collect;
                     if let Some(import) = global_collect.imports.get(&id!(ident)).cloned() {
@@ -724,30 +770,30 @@ impl<'a> Fold for QwikTransform<'a> {
             }
         }
 
+        let convert_qrl = replace_callee.is_some();
         let callee = if let Some(callee) = replace_callee {
             callee
         } else {
             node.callee
         };
         let callee = callee.fold_with(self);
-
-        let total = node.args.len() as i8 - 1;
         let args: Vec<ast::ExprOrSpread> = node
             .args
             .into_iter()
             .enumerate()
             .map(|(i, arg)| {
-                self.position_ctxt
-                    .push(PositionToken::Arg(i as i8, total - i as i8));
-                let o = arg.fold_with(self);
-                self.position_ctxt.pop();
-                o
+                if convert_qrl && i == 0 {
+                    ast::ExprOrSpread {
+                        expr: Box::new(ast::Expr::Call(self.create_synthetic_qhook(*arg.expr)))
+                            .fold_with(self),
+                        ..arg
+                    }
+                } else {
+                    arg.fold_with(self)
+                }
             })
             .collect();
 
-        if position_token {
-            self.position_ctxt.pop();
-        }
         if name_token {
             self.stack_ctxt.pop();
         }

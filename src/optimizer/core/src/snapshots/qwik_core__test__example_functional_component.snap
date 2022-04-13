@@ -10,11 +10,9 @@ const Header = component$(() => {
     const thing = useStore();
     const {foo, bar} = foo();
 
-    return $(() => {
-        return (
-            <div>{thing}</div>
-        );
-    });
+    return (
+        <div>{thing}</div>
+    );
 });
 
 ============================= test.tsx ==
@@ -22,45 +20,25 @@ const Header = component$(() => {
 import * as qwik from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
 import { $, component$, useStore } from '@builder.io/qwik';
-const Header = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_header_render")
-, "Header_render"));
+const Header = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_header_component")
+, "Header_component"));
 
-============================= h_test_header_onrender.tsx (ENTRY POINT)==
+============================= h_test_header_component.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const Header_onRender = ()=>{
-    const [thing] = qwik.useLexicalScope();
+import { useStore } from "@builder.io/qwik";
+export const Header_component = ()=>{
+    const thing = useStore();
+    const { foo , bar  } = foo();
     return <div >{thing}</div>;
 };
 
 /*
 {
   "origin": "test.tsx",
-  "name": "Header_onRender",
+  "name": "Header_component",
   "entry": null,
-  "canonicalFilename": "h_test_header_onrender",
-  "extension": "tsx"
-}
-*/
-============================= h_test_header_render.tsx (ENTRY POINT)==
-
-import * as qwik from "@builder.io/qwik";
-import { useStore } from "@builder.io/qwik";
-export const Header_render = ()=>{
-    const thing = useStore();
-    const { foo , bar  } = foo();
-    return qwik.qrl(()=>import("./h_test_header_onrender")
-    , "Header_onRender", [
-        thing
-    ]);
-};
-
-/*
-{
-  "origin": "test.tsx",
-  "name": "Header_render",
-  "entry": null,
-  "canonicalFilename": "h_test_header_render",
+  "canonicalFilename": "h_test_header_component",
   "extension": "tsx"
 }
 */

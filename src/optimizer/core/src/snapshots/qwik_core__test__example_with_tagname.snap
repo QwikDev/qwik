@@ -22,15 +22,15 @@ export const Foo = component$(() => {
 
 import * as qwik from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
-export const Foo = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_foo_render")
-, "Foo_render"), {
+export const Foo = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_foo_component")
+, "Foo_component"), {
     tagName: "my-foo"
 });
 
-============================= h_test_foo_onrender.tsx (ENTRY POINT)==
+============================= h_test_foo_component1.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const Foo_onRender = ()=>{
+export const Foo_component1 = ()=>{
     return <div >
 
             </div>;
@@ -39,26 +39,26 @@ export const Foo_onRender = ()=>{
 /*
 {
   "origin": "test.tsx",
-  "name": "Foo_onRender",
+  "name": "Foo_component1",
   "entry": null,
-  "canonicalFilename": "h_test_foo_onrender",
+  "canonicalFilename": "h_test_foo_component1",
   "extension": "tsx"
 }
 */
-============================= h_test_foo_render.tsx (ENTRY POINT)==
+============================= h_test_foo_component.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const Foo_render = ()=>{
-    return qwik.qrl(()=>import("./h_test_foo_onrender")
-    , "Foo_onRender");
+export const Foo_component = ()=>{
+    return qwik.qrl(()=>import("./h_test_foo_component1")
+    , "Foo_component1");
 };
 
 /*
 {
   "origin": "test.tsx",
-  "name": "Foo_render",
+  "name": "Foo_component",
   "entry": null,
-  "canonicalFilename": "h_test_foo_render",
+  "canonicalFilename": "h_test_foo_component",
   "extension": "tsx"
 }
 */

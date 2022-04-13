@@ -27,42 +27,42 @@ export const App = component$(({count}) => {
 import * as qwik from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
 const [I2, { I3 , v1: [I4] , I5 =v2 , ...I6 }, I7 = v3, ...I8] = obj;
-export const App = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_app_render")
-, "App_render"));
+export const App = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_app_component")
+, "App_component"));
 
-============================= h_test_app_onrender.js (ENTRY POINT)==
+============================= h_test_app_component1.js (ENTRY POINT)==
 
-import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 import * as qwik from "@builder.io/qwik";
-export const App_onRender = ()=>{
+import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
+export const App_component1 = ()=>{
     return /*#__PURE__*/ _jsx(I10, {});
 };
 
 /*
 {
   "origin": "test.tsx",
-  "name": "App_onRender",
+  "name": "App_component1",
   "entry": null,
-  "canonicalFilename": "h_test_app_onrender",
+  "canonicalFilename": "h_test_app_component1",
   "extension": "js"
 }
 */
-============================= h_test_app_render.js (ENTRY POINT)==
+============================= h_test_app_component.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const App_render = ({ count  })=>{
+export const App_component = ({ count  })=>{
     console.log(I1, I2, I3, I4, I5, I6, I7, I8, I9);
     console.log(itsok, v1, v2, v3, obj);
-    return qwik.qrl(()=>import("./h_test_app_onrender")
-    , "App_onRender");
+    return qwik.qrl(()=>import("./h_test_app_component1")
+    , "App_component1");
 };
 
 /*
 {
   "origin": "test.tsx",
-  "name": "App_render",
+  "name": "App_component",
   "entry": null,
-  "canonicalFilename": "h_test_app_render",
+  "canonicalFilename": "h_test_app_component",
   "extension": "js"
 }
 */

@@ -21,42 +21,42 @@ const d = $(()=>console.log('thing'));
 
 import * as qwik from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
-export const Greeter = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_greeter_render")
-, "Greeter_render"));
+export const Greeter = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_greeter_component")
+, "Greeter_component"));
 qwik.qrl(()=>import("./h_test_d")
 , "d");
 
-============================= h_test_greeter_onrender.js (ENTRY POINT)==
+============================= h_test_greeter_component1.js (ENTRY POINT)==
 
-import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 import * as qwik from "@builder.io/qwik";
-export const Greeter_onRender = ()=>{
+import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
+export const Greeter_component1 = ()=>{
     return /*#__PURE__*/ _jsx("div", {});
 };
 
 /*
 {
   "origin": "test.tsx",
-  "name": "Greeter_onRender",
+  "name": "Greeter_component1",
   "entry": null,
-  "canonicalFilename": "h_test_greeter_onrender",
+  "canonicalFilename": "h_test_greeter_component1",
   "extension": "js"
 }
 */
-============================= h_test_greeter_render.js (ENTRY POINT)==
+============================= h_test_greeter_component.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const Greeter_render = ()=>{
-    return qwik.qrl(()=>import("./h_test_greeter_onrender")
-    , "Greeter_onRender");
+export const Greeter_component = ()=>{
+    return qwik.qrl(()=>import("./h_test_greeter_component1")
+    , "Greeter_component1");
 };
 
 /*
 {
   "origin": "test.tsx",
-  "name": "Greeter_render",
+  "name": "Greeter_component",
   "entry": null,
-  "canonicalFilename": "h_test_greeter_render",
+  "canonicalFilename": "h_test_greeter_component",
   "extension": "js"
 }
 */

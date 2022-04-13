@@ -13,7 +13,7 @@ export const Header = component$(() => {
         const {something, styff} = hola;
         const hello = hola.nothere.stuff[global];
         return (
-        <Header/>
+            <Header/>
         );
     });
 });
@@ -22,14 +22,14 @@ export const Header = component$(() => {
 
 import * as qwik from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
-export const Header = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_header_render")
-, "Header_render"));
+export const Header = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_header_component")
+, "Header_component"));
 
-============================= h_test_header_onrender.tsx (ENTRY POINT)==
+============================= h_test_header_component1.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
 import { Header } from "./test";
-export const Header_onRender = (hola)=>{
+export const Header_component1 = (hola)=>{
     const hola = this;
     const { something , styff  } = hola;
     const hello = hola.nothere.stuff[global];
@@ -39,26 +39,26 @@ export const Header_onRender = (hola)=>{
 /*
 {
   "origin": "test.tsx",
-  "name": "Header_onRender",
+  "name": "Header_component1",
   "entry": null,
-  "canonicalFilename": "h_test_header_onrender",
+  "canonicalFilename": "h_test_header_component1",
   "extension": "tsx"
 }
 */
-============================= h_test_header_render.tsx (ENTRY POINT)==
+============================= h_test_header_component.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const Header_render = ()=>{
-    return qwik.qrl(()=>import("./h_test_header_onrender")
-    , "Header_onRender");
+export const Header_component = ()=>{
+    return qwik.qrl(()=>import("./h_test_header_component1")
+    , "Header_component1");
 };
 
 /*
 {
   "origin": "test.tsx",
-  "name": "Header_render",
+  "name": "Header_component",
   "entry": null,
-  "canonicalFilename": "h_test_header_render",
+  "canonicalFilename": "h_test_header_component",
   "extension": "tsx"
 }
 */

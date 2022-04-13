@@ -34,8 +34,8 @@ export const ButtonArrow = ({text, color}) => {
 
 import * as qwik from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
-export const Foo = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_foo_render")
-, "Foo_render"), {
+export const Foo = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_foo_component")
+, "Foo_component"), {
     tagName: "my-foo"
 });
 export function Button({ text , color  }) {
@@ -53,12 +53,12 @@ export const ButtonArrow = ({ text , color  })=>{
     ])}>{text}</button>;
 };
 
-============================= h_test_foo_render.tsx (ENTRY POINT)==
+============================= h_test_foo_component.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
 import { Button } from "./test";
 import { ButtonArrow } from "./test";
-export const Foo_render = ({ color  })=>{
+export const Foo_component = ({ color  })=>{
     return <div >
 
             <Button {...props}/>
@@ -71,9 +71,9 @@ export const Foo_render = ({ color  })=>{
 /*
 {
   "origin": "test.tsx",
-  "name": "Foo_render",
+  "name": "Foo_component",
   "entry": null,
-  "canonicalFilename": "h_test_foo_render",
+  "canonicalFilename": "h_test_foo_component",
   "extension": "tsx"
 }
 */

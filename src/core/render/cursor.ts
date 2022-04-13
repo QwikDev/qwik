@@ -548,7 +548,7 @@ const getSlots = (componentCtx: ComponentCtx | undefined, hostElm: Element): Slo
 const handleStyle: PropHandler = (ctx, elm, _, newValue) => {
   const style = stringifyClassOrStyle(newValue, false);
   if (Object.keys(style).length > 0) {
-      setAttribute(ctx, elm, 'style', style);
+    setAttribute(ctx, elm, 'style', style);
   }
 
   return true;
@@ -908,11 +908,11 @@ export function stringifyClassOrStyle(obj: any, isClass: boolean): string {
 
           if (value) {
             text += isClass
-            ? value
-              ? sep + key
-              : ''
-            : sep + fromCamelToKebabCase(key) + ':' + value;
-          sep = isClass ? ' ' : ';';
+              ? value
+                ? sep + key
+                : ''
+              : sep + fromCamelToKebabCase(key) + ':' + value;
+            sep = isClass ? ' ' : ';';
           }
         }
       }

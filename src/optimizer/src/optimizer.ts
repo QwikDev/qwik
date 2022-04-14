@@ -1,148 +1,79 @@
-import type { TransformModuleInput } from '.';
-import { getSystem, InternalSystem, PlatformBinding } from './platform';
-import type { TransformModulesOptions, TransformFsOptions, Optimizer } from './types';
+import { getPlatformInputFiles, getSystem, loadPlatformBinding, PlatformBinding } from './platform';
+import type {
+  TransformModulesOptions,
+  TransformFsOptions,
+  Optimizer,
+  OptimizerSystem,
+} from './types';
 
 /**
  * @alpha
  */
-export const createOptimizer = async (): Promise<Optimizer> => {
+export const createOptimizer = async () => {
   const sys = await getSystem();
-  const binding = sys.binding;
+  const binding = await loadPlatformBinding(sys);
 
-  return {
-    /**
-     * Transforms the input code string, does not access the file system.
-     */
+  const optimizer: Optimizer = {
     async transformModules(opts: TransformModulesOptions) {
-      const result = transformModules(binding, opts);
-      return result;
+      return transformModulesSync(binding, opts);
     },
-
-    /**
-     * Transforms the input code string, does not access the file system.
-     */
     transformModulesSync(opts: TransformModulesOptions) {
-      const result = transformModules(binding, opts);
-      return result;
+      return transformModulesSync(binding, opts);
     },
-
-    /**
-     * Transforms the directory from the file system.
-     */
     async transformFs(opts: TransformFsOptions) {
-      const result = await transformFsAsync(sys, binding, opts);
-      return result;
+      return transformFsAsync(sys, binding, opts);
     },
-
-    /**
-     * Transforms the directory from the file system.
-     */
     transformFsSync(opts: TransformFsOptions) {
-      const result = transformFs(binding, opts);
-      return result;
+      return transformFsSync(binding, opts);
     },
-
-    path: sys.path,
+    sys,
   };
+
+  return optimizer;
 };
 
 /**
  * Transforms the input code string, does not access the file system.
  */
-const transformModules = (binding: PlatformBinding, opts: TransformModulesOptions) => {
+const transformModulesSync = (binding: PlatformBinding, opts: TransformModulesOptions) => {
   return binding.transform_modules(convertOptions(opts));
 };
 
-const transformFs = (binding: PlatformBinding, opts: TransformFsOptions) => {
+const transformFsSync = (binding: PlatformBinding, opts: TransformFsOptions) => {
   if (binding.transform_fs) {
     return binding.transform_fs(convertOptions(opts));
   }
-  throw new Error('not implemented');
+  throw new Error('Not implemented');
 };
 
-const transformFsAsync = (
-  sys: InternalSystem,
+const transformFsAsync = async (
+  sys: OptimizerSystem,
   binding: PlatformBinding,
-  opts: TransformFsOptions
+  fsOpts: TransformFsOptions
 ) => {
-  if (binding.transform_fs) {
-    return binding.transform_fs(convertOptions(opts));
-  }
-  return transformFsVirtual(sys, opts);
-};
-
-const transformFsVirtual = async (sys: InternalSystem, opts: TransformFsOptions) => {
-  const extensions = ['.js', '.ts', '.tsx', '.jsx'];
-
-  async function getFiles(dir: string): Promise<string[]> {
-    const subdirs = await readDir(sys, dir);
-    const files = await Promise.all(
-      subdirs.map(async (subdir: any) => {
-        const res = sys.path.resolve(dir, subdir);
-        const isDir = await isDirectory(sys, res);
-        return isDir ? getFiles(res) : [res];
-      })
-    );
-    const flatted = [];
-    for (const file of files) {
-      flatted.push(...file);
-    }
-    return flatted.filter((a) => extensions.includes(sys.path.extname(a)));
+  if (binding.transform_fs && !sys.getInputFiles) {
+    return binding.transform_fs(convertOptions(fsOpts));
   }
 
-  const files = await getFiles(opts.rootDir);
-  const input: TransformModuleInput[] = await Promise.all(
-    files.map(async (file) => {
-      return {
-        code: (await readFile(sys, file)) as string,
-        path: (file as string).slice(opts.rootDir.length + 1),
-      };
-    })
-  );
+  const getInputFiles = await getPlatformInputFiles(sys);
 
-  const newOpts: TransformModulesOptions = {
-    rootDir: opts.rootDir,
-    entryStrategy: opts.entryStrategy,
-    minify: opts.minify,
-    sourceMaps: opts.sourceMaps,
-    transpile: opts.transpile,
-    input,
-  };
-  return sys.binding.transform_modules(convertOptions(newOpts));
+  if (getInputFiles) {
+    const input = await getInputFiles(fsOpts.rootDir);
+
+    const modulesOpts: TransformModulesOptions = {
+      rootDir: fsOpts.rootDir,
+      entryStrategy: fsOpts.entryStrategy,
+      minify: fsOpts.minify,
+      sourceMaps: fsOpts.sourceMaps,
+      transpile: fsOpts.transpile,
+      input,
+    };
+
+    return binding.transform_modules(convertOptions(modulesOpts));
+  }
+
+  throw new Error('Not implemented');
 };
-
-const readDir = (sys: InternalSystem, dirPath: string) =>
-  new Promise<string[]>((resolve, reject) => {
-    sys.fs.readdir(dirPath, (err, items) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(items);
-      }
-    });
-  });
-
-const readFile = (sys: InternalSystem, filePath: string) =>
-  new Promise<string>((resolve, reject) => {
-    sys.fs.readFile(filePath, 'utf-8', (err, data) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(data);
-      }
-    });
-  });
-
-const isDirectory = (sys: InternalSystem, path: string) =>
-  new Promise<boolean>((resolve, reject) => {
-    sys.fs.stat(path, (err, stat) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(stat.isDirectory());
-      }
-    });
-  });
 
 const convertOptions = (opts: any) => {
   const output: any = {

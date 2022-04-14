@@ -50,11 +50,13 @@ export async function validateBuild(config: BuildConfig) {
               errors.push(`Expected package.json file is empty: ${filePath}`);
             }
           } else {
-            errors.push(`Expected package.json file not found: ${filePath}`);
+            if (process.env.CI || (!process.env.CI && ext !== '.node')) {
+              errors.push(`Expected package.json file not found: ${filePath}`);
+            }
           }
       }
     } catch (e: any) {
-      errors.push(`${String(e.stack || e)}`);
+      errors.push(`${filePath}: ${String(e.stack || e)}`);
     }
   }
 

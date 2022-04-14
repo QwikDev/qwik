@@ -4,7 +4,6 @@ import { getBanner, fileSize, readFile, target, watcher, writeFile } from './uti
 import { InputOptions, OutputOptions, rollup } from 'rollup';
 import { join } from 'path';
 import { minify } from 'terser';
-import { readFileSync } from 'fs';
 
 /**
  * Build the core package which is also the root package: @builder.io/qwik
@@ -56,7 +55,7 @@ async function submoduleCoreProd(config: BuildConfig) {
      * Quick and dirty polyfill so globalThis is a global (really only needed for cjs and Node10)
      * and globalThis is only needed so globalThis.qDev can be set, and for dev dead code removal
      */
-    readFileSync(injectGlobalThisPoly(config), 'utf-8'),
+    injectGlobalThisPoly(),
     `globalThis.qwikCore = (function (exports) {`,
   ].join('');
 
@@ -149,7 +148,9 @@ async function submoduleCoreDev(config: BuildConfig) {
     format: 'cjs',
     outExtension: { '.js': '.cjs' },
     watch: watcher(config),
-    inject: [injectGlobalThisPoly(config)],
+    banner: {
+      js: injectGlobalThisPoly(),
+    },
   });
 
   await Promise.all([esm, cjs]);

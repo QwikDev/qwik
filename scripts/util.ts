@@ -174,16 +174,22 @@ export const nodeBuiltIns = [
   'util',
 ];
 
-export function injectDirname(config: BuildConfig) {
-  return join(config.scriptsDir, 'shim', '__dirname.js');
+export function injectGlobalThisPoly() {
+  return `
+if (typeof globalThis == 'undefined') {
+  const g = 'undefined' != typeof global ? global : 'undefined' != typeof window ? window : 'undefined' != typeof self ? self : {};
+  g.globalThis = g;
+}
+`;
 }
 
-export function injectGlobalThisPoly(config: BuildConfig) {
-  return join(config.scriptsDir, 'shim', 'globalthis.js');
+export function injectGlobalPoly() {
+  return `
+if (typeof global == 'undefined') {
+  const g = 'undefined' != typeof globalThis ? globalThis : 'undefined' != typeof window ? window : 'undefined' != typeof self ? self : {};
+  g.global = g;
 }
-
-export function injectGlobalPoly(config: BuildConfig) {
-  return join(config.scriptsDir, 'shim', 'global.js');
+`;
 }
 
 /**

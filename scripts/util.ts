@@ -174,21 +174,13 @@ export const nodeBuiltIns = [
   'util',
 ];
 
-export function injectDirname() {
-  return `
-import { dirname } from 'path';
-import { fileURLToPath } from 'url';
-export const __dirname = dirname(fileURLToPath(import.meta.url));
-`.trim();
-}
-
 export function injectGlobalThisPoly() {
   return `
 if (typeof globalThis == 'undefined') {
   const g = 'undefined' != typeof global ? global : 'undefined' != typeof window ? window : 'undefined' != typeof self ? self : {};
   g.globalThis = g;
 }
-`.trim();
+`;
 }
 
 export function injectGlobalPoly() {
@@ -197,7 +189,7 @@ if (typeof global == 'undefined') {
   const g = 'undefined' != typeof globalThis ? globalThis : 'undefined' != typeof window ? window : 'undefined' != typeof self ? self : {};
   g.global = g;
 }
-`.trim();
+`;
 }
 
 /**

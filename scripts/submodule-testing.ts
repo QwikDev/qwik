@@ -1,12 +1,4 @@
-import {
-  getBanner,
-  importPath,
-  injectDirname,
-  nodeBuiltIns,
-  nodeTarget,
-  target,
-  watcher,
-} from './util';
+import { getBanner, importPath, nodeBuiltIns, nodeTarget, target, watcher } from './util';
 import { build, BuildOptions } from 'esbuild';
 import { BuildConfig, injectGlobalThisPoly, PackageJSON } from './util';
 import { join } from 'path';
@@ -30,7 +22,7 @@ export async function submoduleTesting(config: BuildConfig) {
   const esm = build({
     ...opts,
     format: 'esm',
-    banner: { js: getBanner('@builder.io/qwik/testing') + injectDirname() },
+    banner: { js: getBanner('@builder.io/qwik/testing') },
     outExtension: { '.js': '.mjs' },
     plugins: [
       importPath(/^@builder\.io\/qwik$/, '../core.mjs'),

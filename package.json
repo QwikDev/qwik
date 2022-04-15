@@ -1,6 +1,6 @@
 {
   "name": "@builder.io/qwik",
-  "version": "0.0.18-7",
+  "version": "0.0.18",
   "description": "An Open-Source sub-framework designed with a focus on server-side-rendering, lazy-loading, and styling/animation.",
   "scripts": {
     "build": "node scripts --tsc --build --api --eslint --platform-binding --wasm",

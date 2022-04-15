@@ -1,18 +1,10 @@
-/**
- * @license
- * Copyright Builder.io, Inc. All Rights Reserved.
- *
- * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
- */
-
 import { getContext, getEvent } from '../core/props/props';
 import type { QwikDocument } from '../core/document';
 import { fromCamelToKebabCase } from '../core/util/case';
 import { qGlobal } from '../core/util/qdev';
-import { createGlobal } from './document';
+import { createWindow } from './document';
 import { getTestPlatform } from './platform';
-import type { MockDocument, MockGlobal } from './types';
+import type { MockDocument, MockWindow } from './types';
 import { applyDocumentConfig } from './util';
 import { getDocument } from '../core/util/dom';
 
@@ -31,7 +23,7 @@ import { getDocument } from '../core/util/dom';
  *
  */
 export class ElementFixture {
-  global: MockGlobal;
+  window: MockWindow;
   document: MockDocument;
   superParent: HTMLElement;
   parent: HTMLElement;
@@ -39,8 +31,8 @@ export class ElementFixture {
   child: HTMLElement;
 
   constructor(options: ElementFixtureOptions = {}) {
-    this.global = createGlobal();
-    this.document = this.global.document;
+    this.window = createWindow();
+    this.document = this.window.document;
     this.superParent = this.document.createElement('super-parent');
     this.parent = this.document.createElement('parent');
     this.host = this.document.createElement(options.tagName || 'host');

@@ -1,14 +1,14 @@
 import type { CorePlatform } from '@builder.io/qwik';
 import type {
   DocumentOptions,
-  GlobalOptions,
   QwikDocument,
-  QwikGlobal,
+  QwikWindow,
+  WindowOptions,
 } from '@builder.io/qwik/server';
 
 export interface MockDocument extends QwikDocument {}
 
-export interface MockGlobal extends QwikGlobal {
+export interface MockWindow extends QwikWindow {
   document: MockDocument;
 }
 
@@ -19,10 +19,10 @@ export interface MockGlobal extends QwikGlobal {
 export interface MockDocumentOptions extends DocumentOptions {}
 
 /**
- * Options when creating a mock Qwik Global object.
+ * Options when creating a mock Qwik Window object.
  * @public
  */
-export interface MockGlobalOptions extends GlobalOptions {}
+export interface MockWindowOptions extends WindowOptions {}
 
 /**
  * @public

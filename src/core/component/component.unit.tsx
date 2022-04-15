@@ -1,5 +1,5 @@
 import { useLexicalScope, useStore } from '@builder.io/qwik';
-import { ElementFixture, trigger } from '../../testing/element_fixture';
+import { ElementFixture, trigger } from '../../testing/element-fixture';
 import { expectDOM } from '../../testing/expect-dom.unit';
 import { runtimeQrl } from '../import/qrl';
 import { render } from '../render/render.public';

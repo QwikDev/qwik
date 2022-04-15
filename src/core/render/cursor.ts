@@ -547,7 +547,7 @@ const getSlots = (componentCtx: ComponentCtx | undefined, hostElm: Element): Slo
 
 const handleStyle: PropHandler = (ctx, elm, _, newValue) => {
   const style = stringifyClassOrStyle(newValue, false);
-  if (Object.keys(style).length > 0) {
+  if (style.length > 0) {
     setAttribute(ctx, elm, 'style', style);
   }
 

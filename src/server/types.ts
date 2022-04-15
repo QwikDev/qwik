@@ -1,12 +1,12 @@
 import type { OutputEntryMap } from '../optimizer/src';
 
 /**
- * Partial Global used by Qwik Framework.
+ * Partial Window used by Qwik Framework.
  *
  * A set of properties which the Qwik Framework expects to find on global.
  * @public
  */
-export interface QwikGlobal extends WindowProxy {
+export interface QwikWindow extends WindowProxy {
   /**
    * Document used by Qwik during rendering.
    */
@@ -28,14 +28,15 @@ export interface QwikDocument extends Document {}
  */
 export interface DocumentOptions {
   url?: URL | string;
+  html?: string;
   debug?: boolean;
 }
 
 /**
- * Options when creating a mock Qwik Global object.
+ * Options when creating a mock Qwik Window object.
  * @public
  */
-export interface GlobalOptions extends DocumentOptions {}
+export interface WindowOptions extends DocumentOptions {}
 
 /**
  * @public

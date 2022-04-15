@@ -110,7 +110,7 @@ pub struct QwikTransformOptions<'a> {
     pub global_collect: GlobalCollect,
 }
 
-fn convert_signal_ident(id: &JsWord) -> Option<JsWord> {
+fn convert_signal_word(id: &JsWord) -> Option<JsWord> {
     let ident_name = id.as_ref();
     let has_signal = ident_name.ends_with(SIGNAL);
     if has_signal {
@@ -597,7 +597,7 @@ impl<'a> Fold for QwikTransform<'a> {
         let mut is_listener = false;
         let node = match node.name {
             ast::JSXAttrName::Ident(ref ident) => {
-                let new_word = convert_signal_ident(&ident.sym);
+                let new_word = convert_signal_word(&ident.sym);
                 self.stack_ctxt.push(ident.sym.to_string());
                 if let Some(new_word) = new_word {
                     is_listener = true;
@@ -611,7 +611,7 @@ impl<'a> Fold for QwikTransform<'a> {
                 }
             }
             ast::JSXAttrName::JSXNamespacedName(ref namespaced) => {
-                let new_word = convert_signal_ident(&namespaced.name.sym);
+                let new_word = convert_signal_word(&namespaced.name.sym);
                 let ident_name = [
                     namespaced.ns.sym.as_ref(),
                     "-",
@@ -653,7 +653,7 @@ impl<'a> Fold for QwikTransform<'a> {
                 self.stack_ctxt.push(ident.sym.to_string());
                 name_token = true;
                 if jsx_call {
-                    if let Some(new_word) = convert_signal_ident(&ident.sym) {
+                    if let Some(new_word) = convert_signal_word(&ident.sym) {
                         ast::KeyValueProp {
                             key: ast::PropName::Ident(ast::Ident::new(new_word, DUMMY_SP)),
                             value: Box::new(ast::Expr::Call(
@@ -671,7 +671,7 @@ impl<'a> Fold for QwikTransform<'a> {
                 self.stack_ctxt.push(s.value.to_string());
                 name_token = true;
                 if jsx_call {
-                    if let Some(new_word) = convert_signal_ident(&s.value) {
+                    if let Some(new_word) = convert_signal_word(&s.value) {
                         ast::KeyValueProp {
                             key: ast::PropName::Str(ast::Str::from(new_word)),
                             value: Box::new(ast::Expr::Call(
@@ -726,11 +726,9 @@ impl<'a> Fold for QwikTransform<'a> {
                     }
                     let global_collect = &mut self.options.global_collect;
                     if let Some(import) = global_collect.imports.get(&id!(ident)).cloned() {
-                        let specifier = import.specifier.to_string();
                         let new_specifier =
-                            [&specifier[0..specifier.len() - 1], LONG_SUFFIX].concat();
-                        let new_local =
-                            global_collect.import(new_specifier.into(), import.source.clone());
+                            convert_signal_word(&import.specifier).expect("Specifier ends with $");
+                        let new_local = global_collect.import(new_specifier, import.source.clone());
 
                         let is_synthetic =
                             global_collect.imports.get(&new_local).unwrap().synthetic;
@@ -743,8 +741,8 @@ impl<'a> Fold for QwikTransform<'a> {
                         }
                         replace_callee = Some(new_ident_from_id(&new_local).as_callee());
                     } else {
-                        let specifier = ident.sym.to_string();
-                        let new_specifier = JsWord::from(&specifier[0..specifier.len() - 1]);
+                        let new_specifier =
+                            convert_signal_word(&ident.sym).expect("Specifier ends with $");
                         let new_local = global_collect
                             .exports
                             .keys()

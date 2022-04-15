@@ -70,6 +70,9 @@ export const QOjectSubsSymbol = ':subs:';
 export const QOjectOriginalProxy = ':proxy:';
 export const SetSubscriber = Symbol('SetSubscriber');
 
+/**
+ * @alpha
+ */
 export function unwrapProxy<T>(proxy: T): T {
   if (proxy && typeof proxy == 'object') {
     const value = (proxy as any)[QOjectTargetSymbol];
@@ -84,6 +87,9 @@ export function wrap<T>(value: T, proxyMap: ObjToProxyMap): T {
       return value;
     }
     if (isElement(value)) {
+      return value;
+    }
+    if (!shouldSerialize(value)) {
       return value;
     }
     const nakedValue = unwrapProxy(value);
@@ -103,13 +109,15 @@ export function wrap<T>(value: T, proxyMap: ObjToProxyMap): T {
 
 type TargetType = Record<string | symbol, any>;
 
+export type SubscriberMap = Map<Subscriber, Set<string> | null>;
+
 class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
   private subscriber?: Subscriber;
-  constructor(private proxyMap: ObjToProxyMap, private subs = new Map<Subscriber, Set<string>>()) {}
+  constructor(private proxyMap: ObjToProxyMap, private subs: SubscriberMap = new Map()) {}
 
   getSub(el: Subscriber) {
     let sub = this.subs.get(el);
-    if (!sub) {
+    if (sub === undefined) {
       this.subs.set(el, (sub = new Set()));
     }
     return sub;
@@ -117,7 +125,6 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
 
   get(target: TargetType, prop: string | symbol): any {
     let subscriber = this.subscriber;
-    this.subscriber = undefined;
     if (prop === QOjectTargetSymbol) return target;
     if (prop === QOjectSubsSymbol) return this.subs;
     if (prop === QOjectOriginalProxy) return this.proxyMap.get(target);
@@ -126,9 +133,6 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
       return value;
     }
     const invokeCtx = tryGetInvokeContext();
-    if (qDev && !invokeCtx && !qTest) {
-      logWarn(`State assigned outside invocation context. Getting prop "${prop}" of:`, target);
-    }
     if (invokeCtx) {
       if (invokeCtx.subscriber === null) {
         subscriber = undefined;
@@ -141,9 +145,13 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
 
     if (subscriber) {
       const isArray = Array.isArray(target);
-      const sub = this.getSub(subscriber);
-      if (!isArray) {
-        sub.add(prop);
+      if (isArray) {
+        this.subs.set(subscriber, null);
+      } else {
+        const sub = this.getSub(subscriber);
+        if (sub) {
+          sub.add(prop);
+        }
       }
     }
     return wrap(value, this.proxyMap);
@@ -178,7 +186,7 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
       target[prop] = unwrappedNewValue;
       subs.forEach((propSets, sub) => {
         if (sub.isConnected) {
-          if (propSets.has(prop)) {
+          if (propSets === null || propSets.has(prop)) {
             notifyChange(sub);
           }
         } else {
@@ -197,6 +205,22 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
   }
 
   ownKeys(target: TargetType): ArrayLike<string | symbol> {
+    let subscriber = this.subscriber;
+    this.subscriber = undefined;
+    const invokeCtx = tryGetInvokeContext();
+    if (invokeCtx) {
+      if (invokeCtx.subscriber === null) {
+        subscriber = undefined;
+      } else if (!subscriber) {
+        subscriber = invokeCtx.subscriber;
+      }
+    } else if (qDev && !qTest && !subscriber) {
+      logWarn(`State assigned outside invocation context. OwnKeys of:`, target);
+    }
+
+    if (subscriber) {
+      this.subs.set(subscriber, null);
+    }
     return Object.getOwnPropertyNames(target);
   }
 }

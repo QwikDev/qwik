@@ -21,6 +21,7 @@ import {
   QOjectSubsSymbol,
   QOjectTargetSymbol,
   shouldSerialize,
+  SubscriberMap,
   _restoreQObject,
 } from './q-object';
 
@@ -174,13 +175,13 @@ export function snapshotState(containerEl: Element) {
 
   const subs = objs
     .map((obj) => {
-      const subs = proxyMap.get(obj)?.[QOjectSubsSymbol] as Map<Element, Set<string>>;
+      const subs = proxyMap.get(obj)?.[QOjectSubsSymbol] as SubscriberMap;
       if (subs) {
         return Object.fromEntries(
           Array.from(subs.entries()).map(([sub, set]) => {
             const id = getObjId(sub);
             if (id !== null) {
-              return [id, Array.from(set)];
+              return [id, set ? Array.from(set) : null];
             } else {
               return [undefined, undefined];
             }
@@ -319,7 +320,7 @@ function reviveValues(
             );
             return;
           }
-          const set = new Set(entry[1] as any) as Set<string>;
+          const set = entry[1] === null ? null : (new Set(entry[1] as any) as Set<string>);
           converted.set(el, set);
         });
         _restoreQObject(value, map, converted);

@@ -138,11 +138,6 @@ export type NoSerialize<T> = (T & {
 export function noSerialize<T extends {}>(input: T): NoSerialize<T>;
 
 // @public
-export interface Observer {
-    <T extends {}>(obj: T): T;
-}
-
-// @public
 export function on(event: string, eventFn: QRL<() => void>): void;
 
 // @public
@@ -288,17 +283,29 @@ export const Slot: FunctionComponent<{
     children?: any;
 }>;
 
+// @public
+export interface Tracker {
+    <T extends {}>(obj: T): T;
+    // (undocumented)
+    <T extends {}, B extends keyof T>(obj: T, prop: B): T[B];
+}
+
+// @alpha (undocumented)
+export function untrack<T>(proxy: T): T;
+
 // @alpha (undocumented)
 export function unwrapSubscriber<T extends {}>(obj: T): any;
 
 // @public (undocumented)
 export function useDocument(): Document;
 
+// Warning: (ae-forgotten-export) The symbol "WatchFn" needs to be exported by the entry point index.d.ts
+//
 // @alpha (undocumented)
-export const useEffect$: (first: (obs: Observer) => void | (() => void)) => void;
+export const useEffect$: (first: WatchFn) => void;
 
 // @alpha (undocumented)
-export function useEffectQrl(watchQrl: QRL<(obs: Observer) => void | (() => void)>): void;
+export function useEffectQrl(watchQrl: QRL<WatchFn>): void;
 
 // @public
 export function useHostElement(): Element;
@@ -316,7 +323,7 @@ export const useScopedStyles$: (first: string) => void;
 export function useScopedStylesQrl(styles: QRL<string>): void;
 
 // @public
-export function useStore<STATE extends {}>(initialState: STATE): STATE;
+export function useStore<STATE extends object>(initialState: STATE | (() => STATE)): STATE;
 
 // @alpha
 export const useStyles$: (first: string) => void;
@@ -328,10 +335,10 @@ export function useStylesQrl(styles: QRL<string>): void;
 export function useSubscriber<T extends {}>(obj: T): T;
 
 // @public
-export const useWatch$: (first: (obs: Observer) => void | (() => void)) => void;
+export const useWatch$: (first: WatchFn) => void;
 
 // @public
-export function useWatchQrl(watchQrl: QRL<(obs: Observer) => void | (() => void)>): void;
+export function useWatchQrl(watchQrl: QRL<WatchFn>): void;
 
 // @public
 export type ValueOrPromise<T> = T | Promise<T>;

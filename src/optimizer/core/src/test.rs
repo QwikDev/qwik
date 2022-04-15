@@ -841,11 +841,11 @@ fn example_custom_inlined_functions() {
         code: r#"
 import { component$, $, useStore, wrap, useEffect } from '@builder.io/qwik';
 
-export const useMemo = (qrt) => {
+export const useMemoQrl = (qrt) => {
     useEffect(qrt);
 };
 
-export const useMemo$ = wrap(useMemo);
+export const useMemo$ = wrap(useMemoQrl);
 
 export const App = component$((props) => {
     const state = useStore({count: 0});

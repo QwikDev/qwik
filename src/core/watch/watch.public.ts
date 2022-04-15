@@ -9,6 +9,7 @@ import { wrapSubscriber } from '../use/use-subscriber';
 import { useSequentialScope } from '../use/use-store.public';
 import type { QRLInternal } from '../import/qrl-class';
 import { getDocument } from '../util/dom';
+import type { ValueOrPromise } from '..';
 
 export const enum WatchMode {
   Watch,
@@ -16,9 +17,11 @@ export const enum WatchMode {
   Effect,
 }
 
+export type WatchFn = (track: Tracker) => ValueOrPromise<void | (() => void)>;
+
 export interface WatchDescriptor {
   isConnected: boolean;
-  watchQrl: QRL<(obs: Observer) => void | (() => void)>;
+  watchQrl: QRL<WatchFn>;
   hostElement: Element;
   mode: WatchMode;
   destroy?: NoSerialize<() => void>;
@@ -71,7 +74,7 @@ export interface WatchDescriptor {
  * @public
  */
 // </docs>
-export function useWatchQrl(watchQrl: QRL<(obs: Observer) => void | (() => void)>): void {
+export function useWatchQrl(watchQrl: QRL<WatchFn>): void {
   const [watch, setWatch] = useSequentialScope();
   if (!watch) {
     const hostElement = useHostElement();
@@ -142,7 +145,7 @@ export const useWatch$ = implicit$FirstArg(useWatchQrl);
 /**
  * @alpha
  */
-export function useEffectQrl(watchQrl: QRL<(obs: Observer) => void | (() => void)>): void {
+export function useEffectQrl(watchQrl: QRL<WatchFn>): void {
   const [watch, setWatch] = useSequentialScope();
   if (!watch) {
     const hostElement = useHostElement();
@@ -189,17 +192,22 @@ export function runWatch(watch: WatchDescriptor): Promise<WatchDescriptor> {
         'WatchEvent'
       );
       invokationContext.watch = watch;
-      invokationContext.subscriber = watch;
 
       const watchFn = watch.watchQrl.invokeFn(hostElement, invokationContext);
-      const obs = (obj: any) => wrapSubscriber(obj, watch);
+      const tracker: Tracker = (obj: any, prop?: string) => {
+        const observed = wrapSubscriber(obj, watch);
+        if (prop) {
+          return observed[prop];
+        }
+        return observed;
+      };
       const captureRef = (watch.watchQrl as QRLInternal).captureRef;
       if (Array.isArray(captureRef)) {
         captureRef.forEach((obj) => {
           removeSub(obj, watch);
         });
       }
-      return then(watchFn(obs), (returnValue) => {
+      return then(watchFn(tracker), (returnValue) => {
         if (typeof returnValue === 'function') {
           watch.destroy = noSerialize(returnValue);
         }
@@ -249,7 +257,7 @@ export function runWatch(watch: WatchDescriptor): Promise<WatchDescriptor> {
  * @public
  */
 // </docs>
-export interface Observer {
+export interface Tracker {
   // <docs markdown="https://hackmd.io/_Kl9br9tT8OB-1Dv8uR4Kg#Observer">
   // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
   // (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2F_Kl9br9tT8OB-1Dv8uR4Kg%3Fboth#Observer instead)
@@ -289,4 +297,5 @@ export interface Observer {
    */
   // </docs>
   <T extends {}>(obj: T): T;
+  <T extends {}, B extends keyof T>(obj: T, prop: B): T[B];
 }

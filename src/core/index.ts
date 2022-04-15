@@ -52,7 +52,7 @@ export type { CorePlatform } from './platform/types';
 //////////////////////////////////////////////////////////////////////////////////////////
 export { useWatch$, useWatchQrl } from './watch/watch.public';
 export { useEffect$, useEffectQrl } from './watch/watch.public';
-export type { Observer } from './watch/watch.public';
+export type { Tracker } from './watch/watch.public';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // JSX Support
@@ -93,6 +93,8 @@ export type { Ref } from './use/use-store.public';
 //////////////////////////////////////////////////////////////////////////////////////////
 export type { ValueOrPromise } from './util/types';
 export type { NoSerialize } from './object/q-object';
+export { unwrapProxy as untrack } from './object/q-object';
+
 export { noSerialize } from './object/q-object';
 
 export { version } from './version';

@@ -7,11 +7,11 @@ expression: output
 
 import { component$, $, useStore, wrap, useEffect } from '@builder.io/qwik';
 
-export const useMemo = (qrt) => {
+export const useMemoQrl = (qrt) => {
     useEffect(qrt);
 };
 
-export const useMemo$ = wrap(useMemo);
+export const useMemo$ = wrap(useMemoQrl);
 
 export const App = component$((props) => {
     const state = useStore({count: 0});
@@ -34,14 +34,14 @@ export const Lightweight = (props) => {
 import * as qwik from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
 import { wrap, useEffect } from '@builder.io/qwik';
-export const useMemo = (qrt)=>{
+export const useMemoQrl = (qrt)=>{
     useEffect(qrt);
 };
-export const useMemo$ = wrap(useMemo);
+export const useMemo$ = wrap(useMemoQrl);
 export const App = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_app_component")
 , "App_component"));
 export const Lightweight = (props)=>{
-    useMemo(qwik.qrl(()=>import("./h_test_lightweight_usememo")
+    useMemoQrl(qwik.qrl(()=>import("./h_test_lightweight_usememo")
     , "Lightweight_useMemo"));
 };
 
@@ -85,13 +85,13 @@ export const App_component2 = ()=>{
 ============================= h_test_app_component.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-import { useMemo } from "./test";
+import { useMemoQrl } from "./test";
 import { useStore } from "@builder.io/qwik";
 export const App_component = (props)=>{
     const state = useStore({
         count: 0
     });
-    useMemo(qwik.qrl(()=>import("./h_test_app_component_usememo")
+    useMemoQrl(qwik.qrl(()=>import("./h_test_app_component_usememo")
     , "App_component_useMemo", [
         state
     ]));

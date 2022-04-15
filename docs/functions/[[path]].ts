@@ -14,26 +14,19 @@ export const onRequestGet: PagesFunction = async ({ request, next, waitUntil }) 
     }
 
     if (/\.\w+$/.test(url.pathname)) {
-      let response = await next(request);
-
-      // current workaround until this is merged: https://github.com/cloudflare/wrangler2/pull/796
-      const headers = new Headers();
-      response.headers.forEach((value, key) => headers.set(key, value));
-      headers.set('Cross-Origin-Embedder-Policy', 'credentialless');
-      headers.set('Cross-Origin-Opener-Policy', 'same-origin');
+      const response = await next(request);
 
       if (url.pathname.startsWith('/q-')) {
         // assets starting with `q-` we know can be forever cached
+        // current workaround until this is merged: https://github.com/cloudflare/wrangler2/pull/796
+        const headers = new Headers();
+        response.headers.forEach((value, key) => headers.set(key, value));
         headers.set('Cache-Control', 'public, max-age=31536000, immutable');
-        response = new Response(
-          [101, 204, 205, 304].includes(response.status) ? null : response.body,
-          {
-            ...response,
-            headers,
-          }
-        );
+        return new Response([101, 204, 205, 304].includes(response.status) ? null : response.body, {
+          ...response,
+          headers,
+        });
       }
-
       return response;
     }
 
@@ -58,6 +51,8 @@ export const onRequestGet: PagesFunction = async ({ request, next, waitUntil }) 
 
     const response = new Response(ssrResult.html, {
       headers: {
+        'Cross-Origin-Embedder-Policy': 'credentialless',
+        'Cross-Origin-Opener-Policy': 'same-origin',
         'Content-Type': 'text/html; charset=utf-8',
         'Cache-Control': useCache
           ? `max-age=60, s-maxage=10, stale-while-revalidate=604800, stale-if-error=604800`

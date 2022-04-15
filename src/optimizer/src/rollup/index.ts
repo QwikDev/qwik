@@ -14,6 +14,7 @@ import {
 import { QWIK_LOADER_DEFAULT_MINIFIED } from '../scripts';
 import type { NormalizedOutputOptions, PluginContext, RollupError } from 'rollup';
 import type { HmrContext, Plugin, UserConfig, ViteDevServer } from 'vite';
+import type { TransformModuleInput } from '../types';
 
 const QWIK_BUILD = '@builder.io/qwik/build';
 /**
@@ -39,6 +40,7 @@ export function qwikVite(opts: QwikViteOptions): any {
         }
         return null;
       },
+
       configureServer(server: ViteDevServer) {
         plugin.log('configureServer()');
 
@@ -140,7 +142,7 @@ export function qwikRollup(opts: QwikPluginOptions): any {
 
   const createRollupError = (rootDir: string, diagnostic: Diagnostic) => {
     const loc = diagnostic.code_highlights[0]?.loc ?? {};
-    const id = optimizer.path.join(rootDir, diagnostic.origin);
+    const id = optimizer.sys.path.join(rootDir, diagnostic.origin);
     const err: RollupError = Object.assign(new Error(diagnostic.message), {
       id,
       plugin: 'qwik',
@@ -232,17 +234,33 @@ export function qwikRollup(opts: QwikPluginOptions): any {
     },
 
     async buildStart() {
+      if (typeof opts.srcDir !== 'string' && !Array.isArray(opts.srcInputs)) {
+        throw new Error(`Qwik plugin must have either a "srcDir" or "srcInputs" option.`);
+      }
+      if (typeof opts.srcDir === 'string' && Array.isArray(opts.srcInputs)) {
+        throw new Error(`Qwik plugin cannot have both the "srcDir" and "srcInputs" options.`);
+      }
+
       if (!optimizer) {
         optimizer = await createOptimizer();
       }
+
       const fullBuild = entryStrategy.type !== 'hook';
       log(`buildStart()`, fullBuild ? 'full build' : 'isolated build');
 
       if (fullBuild) {
         outputCount = 0;
-        const rootDir = optimizer.path.isAbsolute(opts.srcDir)
-          ? opts.srcDir
-          : optimizer.path.resolve(opts.srcDir);
+
+        let rootDir = '/';
+        if (typeof opts.srcDir === 'string') {
+          rootDir = optimizer.sys.path.isAbsolute(opts.srcDir)
+            ? opts.srcDir
+            : optimizer.sys.path.resolve(opts.srcDir);
+        } else if (Array.isArray(opts.srcInputs)) {
+          optimizer.sys.getInputFiles = async () => {
+            return opts.srcInputs!;
+          };
+        }
 
         const transformOpts: TransformFsOptions = {
           rootDir,
@@ -254,7 +272,7 @@ export function qwikRollup(opts: QwikPluginOptions): any {
 
         const result = await optimizer.transformFs(transformOpts);
         for (const output of result.modules) {
-          const key = optimizer.path.join(rootDir, output.path)!;
+          const key = optimizer.sys.path.join(rootDir, output.path)!;
           log(`buildStart()`, 'qwik module', key);
           transformedOutputs.set(key, [output, key]);
         }
@@ -281,32 +299,34 @@ export function qwikRollup(opts: QwikPluginOptions): any {
       if (!optimizer) {
         optimizer = await createOptimizer();
       }
+
       let id = removeQueryParams(originalID);
       if (importer) {
         const filteredImporter = removeQueryParams(importer);
-        const dir = optimizer.path.dirname(filteredImporter);
+        const dir = optimizer.sys.path.dirname(filteredImporter);
         if (filteredImporter.endsWith('.html') && !id.endsWith('.html')) {
-          id = optimizer.path.join(dir, id);
+          id = optimizer.sys.path.join(dir, id);
         } else {
-          id = optimizer.path.resolve(dir, id);
+          id = optimizer.sys.path.resolve(dir, id);
         }
       }
 
-      const tries = [forceJSExtension(optimizer.path, id)];
+      const tries = [forceJSExtension(optimizer.sys.path, id)];
 
-      for (const id of tries) {
-        log(`resolveId()`, 'Try', id);
-        const res = transformedOutputs.get(id);
-        if (res) {
-          log(`resolveId()`, 'Resolved', id);
-          const mod = res[0];
-          const sideEffects = !mod.isEntry || !mod.hook;
+      for (const tryId of tries) {
+        log(`resolveId()`, 'Try', tryId);
+        const transformedOutput = transformedOutputs.get(tryId);
+        if (transformedOutput) {
+          log(`resolveId()`, 'Resolved', tryId);
+          const transformedModule = transformedOutput[0];
+          const sideEffects = !transformedModule.isEntry || !transformedModule.hook;
           return {
-            id,
+            id: tryId,
             moduleSideEffects: sideEffects,
           };
         }
       }
+
       return null;
     },
 
@@ -321,7 +341,7 @@ export function qwikRollup(opts: QwikPluginOptions): any {
 
       // On full build, lets normalize the ID
       if (entryStrategy.type !== 'hook') {
-        id = forceJSExtension(optimizer.path, id);
+        id = forceJSExtension(optimizer.sys.path, id);
       }
 
       const transformedModule = transformedOutputs.get(id);
@@ -358,7 +378,7 @@ export function qwikRollup(opts: QwikPluginOptions): any {
         optimizer = await createOptimizer();
       }
       const filteredId = removeQueryParams(id);
-      const { ext, dir, base } = optimizer.path.parse(filteredId);
+      const { ext, dir, base } = optimizer.sys.path.parse(filteredId);
       if (['.tsx', '.ts', '.jsx'].includes(ext)) {
         log(`transform()`, 'Transforming', filteredId);
         const newOutput = optimizer.transformModulesSync({
@@ -382,10 +402,10 @@ export function qwikRollup(opts: QwikPluginOptions): any {
         transformedOutputs.clear();
         for (const [id, output] of results.entries()) {
           const justChanged = newOutput === output;
-          const dir = optimizer.path.dirname(id);
+          const dir = optimizer.sys.path.dirname(id);
           for (const mod of output.modules) {
             if (mod.isEntry) {
-              const key = optimizer.path.join(dir, mod.path);
+              const key = optimizer.sys.path.join(dir, mod.path);
               transformedOutputs.set(key, [mod, id]);
               log(`transform()`, 'emitting', justChanged, key);
             }
@@ -501,10 +521,12 @@ function slash(p: string): string {
 
 function fixSSRInput(config: UserConfig, optimizer: Optimizer) {
   if (typeof config?.build?.ssr === 'string' && config?.build.rollupOptions?.input) {
-    const resolvedRoot = optimizer.path.normalize(
-      slash(config.root ? optimizer.path.resolve(config.root) : process.cwd())
+    const cwd =
+      typeof process !== 'undefined' && typeof process.cwd === 'function' ? process.cwd() : '/';
+    const resolvedRoot = optimizer.sys.path.normalize(
+      slash(config.root ? optimizer.sys.path.resolve(config.root) : cwd)
     );
-    config.build.rollupOptions.input = optimizer.path.resolve(resolvedRoot, config.build.ssr);
+    config.build.rollupOptions.input = optimizer.sys.path.resolve(resolvedRoot, config.build.ssr);
   }
 }
 
@@ -513,7 +535,8 @@ function fixSSRInput(config: UserConfig, optimizer: Optimizer) {
  */
 export interface QwikPluginOptions {
   entryStrategy?: EntryStrategy;
-  srcDir: string;
+  srcDir?: string;
+  srcInputs?: TransformModuleInput[];
   minify?: MinifyMode;
   debug?: boolean;
   ssrBuild?: boolean;

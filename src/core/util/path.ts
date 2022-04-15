@@ -139,7 +139,13 @@ export const resolve = function resolve(...paths: string[]) {
     let path;
     if (i >= 0) path = paths[i];
     else {
-      if (cwd === undefined) cwd = process.cwd();
+      if (cwd === undefined) {
+        if (typeof process !== 'undefined' && typeof process.cwd === 'function') {
+          cwd = process.cwd();
+        } else {
+          cwd = '/';
+        }
+      }
       path = cwd;
     }
 

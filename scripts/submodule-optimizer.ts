@@ -15,7 +15,7 @@ import { minify } from 'terser';
 import { platformArchTriples } from '@napi-rs/triples';
 import { readPackageJson } from './package-json';
 import { watch } from 'rollup';
-import { constants, readFileSync } from 'fs';
+import { constants } from 'fs';
 import { inlineQwikScriptsEsBuild } from './submodule-qwikloader';
 
 /**
@@ -57,7 +57,7 @@ export async function submoduleOptimizer(config: BuildConfig) {
     });
 
     const cjsBanner = [
-      readFileSync(injectGlobalThisPoly(config), 'utf-8'),
+      injectGlobalThisPoly(),
       `globalThis.qwikOptimizer = (function (module) {`,
     ].join('\n');
 

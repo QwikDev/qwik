@@ -1,12 +1,12 @@
 import type { h } from '@builder.io/qwik';
 import { isQrl } from '../core/import/qrl-class';
 import { stringifyQRL } from '../core/import/qrl';
-import { createGlobal } from './document';
+import { createDocument } from './document';
 
 // TODO(docs)
 // TODO(tests)
 export function toDOM(jsx: h.JSX.Element, parent?: HTMLElement): HTMLElement {
-  const doc = parent ? parent.ownerDocument : createGlobal().document;
+  const doc = parent ? parent.ownerDocument : createDocument();
   let element = doc.createElement(jsx.type) as HTMLElement;
   for (const attrName in jsx.props) {
     if (attrName !== 'children') {

@@ -32,9 +32,9 @@ All applications have a main entry point to get the application going. We call t
 
 On hydration, the bootstrap again takes a root component and calls a framework method to resume the current HTML (meaning re-attach the listeners as well as rebuild the framework internal state about the application component tree.)
 
-Qwik does not need to do hydration. Qwik still has a bootstrap method, but that typically executes on the server to render the initial application. There is no reboostrap on the client. Instead, Qwik serializes not only the application state into HTML but also the framework state as well. The serialized state allows the Qwik framework to continue execution where the server left off. Not requiring a reboostrap is what makes Qwik resumable.
+Qwik does not need to do hydration. Qwik still has a bootstrap method, but that typically executes on the server to render the initial application. There is no rebootstrap on the client. Instead, Qwik serializes not only the application state into HTML but also the framework state as well. The serialized state allows the Qwik framework to continue execution where the server left off. Not requiring a rebootstrap is what makes Qwik resumable.
 
-If the Qwik application required a reboostrap in the browser, they would require pulling the root component and, with it, all child components. This would require an early download of the application code, the exact thing that Qwik aims to avoid.
+If the Qwik application required a rebootstrap in the browser, they would require pulling the root component and, with it, all child components. This would require an early download of the application code, the exact thing that Qwik aims to avoid.
 
 ## 4. State
 
@@ -60,7 +60,7 @@ At this point, Qwik was able to download minimal code to process the event, rest
 
 The component that needs to be rendered will require props from the parent component. The Qwik serialization mechanism must serialize props on the server and restore props in the browser so that the parent component presence is not required. (A more complicated form of this is when the parent component creates projection children that child component does not render on the server. In the browser, the client component rerendering causes the projected content to be rendered. Qwik must restore the content children without forcing the parent component to rerender.)
 
-Qwik also needs to prevent child components from being rerendered due to parent component rerendering. When the parent component rerenderes, the child components do not get updated unless their props have been modified.
+Qwik also needs to prevent child components from being rerendered due to parent component rerendering. When the parent component rerenders, the child components do not get updated unless their props have been modified.
 
 Lastly, Qwik needs to ensure that downloading the parent component template does not force the download of a child template. Typically a component template directly references a child component as symbols—this forces bundler to include child component in the parent component bundle because there is a direct reference. In practice, this means that having a reference to a root component transitively includes all child components as well. Qwik optimizer is specifically designed to prevent this so that having a reference to any component does not transitively include child components as well.
 

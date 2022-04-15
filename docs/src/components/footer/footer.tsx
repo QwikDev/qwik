@@ -1,11 +1,11 @@
-import { component$, Host, $, useScopedStyles$ } from '@builder.io/qwik';
+import { component$, Host, useScopedStyles$ } from '@builder.io/qwik';
 import styles from './footer.css?inline';
 
 export const Footer = component$(
   () => {
     useScopedStyles$(styles);
 
-    return $(() => (
+    return (
       <Host class="pt-8 pb-12 px-2 flex flex-wrap justify-center sm:justify-between text-sm">
         <nav class="flex py-2 px-2 md:px-0">
           <a class="px-4 py-1" href="https://github.com/BuilderIO/qwik" target="_blank">
@@ -14,7 +14,7 @@ export const Footer = component$(
           <a class="px-4 py-1" href="https://twitter.com/QwikDev" target="_blank">
             @QwikDev
           </a>
-          <a class="px-4 py-1" href="https://discord.gg/Fd9Cwb3Z8D" target="_blank">
+          <a class="px-4 py-1" href="https://discord.gg/bNVSQmPzqy" target="_blank">
             Discord
           </a>
         </nav>
@@ -24,7 +24,7 @@ export const Footer = component$(
           <span> team</span>
         </div>
       </Host>
-    ));
+    );
   },
   { tagName: 'footer' }
 );

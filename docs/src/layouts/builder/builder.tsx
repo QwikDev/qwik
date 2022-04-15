@@ -1,4 +1,4 @@
-import { $, component$, Host, useStyles$ } from '@builder.io/qwik';
+import { component$, Host, useStyles$ } from '@builder.io/qwik';
 import { useLocation } from '../../utils/useLocation';
 import { Header } from '../../components/header/header';
 import type { SiteStore } from '../../main';
@@ -8,18 +8,16 @@ interface BuilderProps {
   store: SiteStore;
 }
 
-export const Builder = component$((props: BuilderProps) => {
+export const Builder = component$(async (props: BuilderProps) => {
   useStyles$(styles);
-  return $(async () => {
-    const loc = useLocation();
-    const html = await fetchQwikBuilderContent(loc.pathname);
-    return (
-      <Host>
-        <Header store={props.store} />
-        {html && <main class="builder" dangerouslySetInnerHTML={html} />}
-      </Host>
-    );
-  });
+  const loc = useLocation();
+  const html = await fetchQwikBuilderContent(loc.pathname);
+  return (
+    <Host>
+      <Header store={props.store} />
+      {html && <main class="builder" dangerouslySetInnerHTML={html} />}
+    </Host>
+  );
 });
 
 export const fetchQwikBuilderContent = async (url: string) => {

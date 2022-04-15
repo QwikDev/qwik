@@ -15,7 +15,7 @@ export function Async<T>(props: AsyncProps<T>): JSXNode<any>;
 // Warning: (ae-forgotten-export) The symbol "Component" needs to be exported by the entry point index.d.ts
 //
 // @public
-export function component$<PROPS extends {}>(onMount: OnMountFn<PROPS>, options?: ComponentOptions): Component<PROPS>;
+export function component$<PROPS extends {}>(onMount: OnRenderFn<PROPS>, options?: ComponentOptions): Component<PROPS>;
 
 // @public (undocumented)
 export type ComponentChild = JSXNode<any> | object | string | number | bigint | boolean | null | undefined;
@@ -30,7 +30,7 @@ export interface ComponentOptions {
 }
 
 // @public
-export function componentQrl<PROPS extends {}>(onMount: QRL<OnMountFn<PROPS>>, options?: ComponentOptions): Component<PROPS>;
+export function componentQrl<PROPS extends {}>(onRenderQrl: QRL<OnRenderFn<PROPS>>, options?: ComponentOptions): Component<PROPS>;
 
 // @public (undocumented)
 export interface CorePlatform {
@@ -137,11 +137,6 @@ export type NoSerialize<T> = (T & {
 // @alpha (undocumented)
 export function noSerialize<T extends {}>(input: T): NoSerialize<T>;
 
-// Warning: (ae-forgotten-export) The symbol "RenderContext" needs to be exported by the entry point index.d.ts
-//
-// @public
-export function notifyRender(hostElement: Element): Promise<RenderContext>;
-
 // @public
 export interface Observer {
     <T extends {}>(obj: T): T;
@@ -153,14 +148,14 @@ export function on(event: string, eventFn: QRL<() => void>): void;
 // @public
 export function onDocument(event: string, eventFn: QRL<() => void>): void;
 
-// @public (undocumented)
-export type OnMountFn<PROPS> = (props: PROPS) => ValueOrPromise<QRL<() => ValueOrPromise<JSXNode<any> | null>>>;
-
 // @public
 export const onPause$: (first: () => void) => void;
 
 // @public
 export function onPauseQrl(dehydrateFn: QRL<() => void>): void;
+
+// @public (undocumented)
+export type OnRenderFn<PROPS> = (props: PROPS) => ValueOrPromise<JSXNode<any> | null>;
 
 // @public
 export const onResume$: (first: () => void) => void;
@@ -176,6 +171,9 @@ export function onUnmountQrl(unmountFn: QRL<() => void>): void;
 
 // @public
 export function onWindow(event: string, eventFn: QRL<() => void>): void;
+
+// @public
+export function pauseContainer(elmOrDoc: Element | Document): void;
 
 // @public
 export type PromiseValue<T> = {
@@ -210,8 +208,10 @@ export interface QRL<TYPE = any> {
     __brand__QRL__: TYPE;
     // (undocumented)
     invoke(...args: TYPE extends (...args: infer ARGS) => any ? ARGS : never): TYPE extends (...args: any[]) => infer RETURN ? ValueOrPromise<RETURN> : never;
+    // Warning: (ae-forgotten-export) The symbol "InvokeContext" needs to be exported by the entry point index.d.ts
+    //
     // (undocumented)
-    invokeFn(el?: Element): TYPE extends (...args: infer ARGS) => infer RETURN ? (...args: ARGS) => ValueOrPromise<RETURN> : never;
+    invokeFn(el?: Element, context?: InvokeContext): TYPE extends (...args: infer ARGS) => infer RETURN ? (...args: ARGS) => ValueOrPromise<RETURN> : never;
     // (undocumented)
     resolve(container?: Element): Promise<TYPE>;
 }
@@ -260,8 +260,16 @@ export namespace QwikJSX {
     }
 }
 
+// @alpha (undocumented)
+export interface Ref<T> {
+    // (undocumented)
+    current?: T;
+}
+
+// Warning: (ae-forgotten-export) The symbol "RenderContext" needs to be exported by the entry point index.d.ts
+//
 // @public
-export function render(parent: Element | Document, jsxNode: JSXNode<unknown> | FunctionComponent<any>): ValueOrPromise<RenderContext | undefined>;
+export function render(parent: Element | Document, jsxNode: JSXNode<unknown> | FunctionComponent<any>): Promise<RenderContext | undefined>;
 
 // @public (undocumented)
 export type RenderableProps<P, RefType = any> = P & Readonly<{
@@ -280,23 +288,26 @@ export const Slot: FunctionComponent<{
     children?: any;
 }>;
 
-// @public
-export function snapshot(elmOrDoc: Element | Document): void;
-
 // @alpha (undocumented)
 export function unwrapSubscriber<T extends {}>(obj: T): any;
 
 // @public (undocumented)
 export function useDocument(): Document;
 
-// @public
-export function useEvent<EVENT extends {}>(expectEventType?: string): EVENT;
+// @alpha (undocumented)
+export const useEffect$: (first: (obs: Observer) => void | (() => void)) => void;
+
+// @alpha (undocumented)
+export function useEffectQrl(watchQrl: QRL<(obs: Observer) => void | (() => void)>): void;
 
 // @public
 export function useHostElement(): Element;
 
 // @public
 export function useLexicalScope<VARS extends any[]>(): VARS;
+
+// @alpha (undocumented)
+export function useRef<T = Element>(current?: T): Ref<T>;
 
 // @alpha (undocumented)
 export const useScopedStyles$: (first: string) => void;
@@ -328,10 +339,10 @@ export type ValueOrPromise<T> = T | Promise<T>;
 // @alpha (undocumented)
 export const version: string;
 
-// Warning: (ae-forgotten-export) The symbol "WatchDescriptor" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "Subscriber" needs to be exported by the entry point index.d.ts
 //
 // @alpha (undocumented)
-export function wrapSubscriber<T extends {}>(obj: T, subscriber: Element | WatchDescriptor): any;
+export function wrapSubscriber<T extends {}>(obj: T, subscriber: Subscriber): any;
 
 // (No @packageDocumentation comment for this package)
 

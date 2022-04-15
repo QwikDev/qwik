@@ -253,7 +253,7 @@ There are a few things to notice:
 
 You may want to know how Qwik knows which code to download based on the user interaction. You can explore this by examining the DOM in the DevTools. Let's zoom in on the checkmark HTML. You should see something like this:
 
-```htmlembedded=
+```html
 <input q:obj="9"
        type="checkbox"
        onClickQrl="/src/components/item/h_item_item_onrender_input_onclick.js#Item_onRender_input_onclick[0]"
@@ -340,15 +340,14 @@ export const Main = component$(() => {
       { completed: false, title: 'Profit' },
     ],
   });
-  return $(() => {
-    return (
-      <section class="todoapp">
-        <Header todos={todos} />
-        <Body todos={todos} />
-        <Footer todos={todos} />
-      </section>
-    );
-  });
+
+  return (
+    <section class="todoapp">
+      <Header todos={todos} />
+      <Body todos={todos} />
+      <Footer todos={todos} />
+    </section>
+  );
 });
 ```
 
@@ -368,31 +367,30 @@ Open `src/components/header/header.tsx` to see an interactive component.
 export const Header = component$(
   (props: { todos: Todos }) => {
     const state = useStore({ text: '' });
-    return $(() => {
-      return (
-        <>
-          <h1>todos</h1>
-          <input
-            class="new-todo"
-            placeholder="What needs to be done?"
-            autoFocus
-            value={state.text}
-            onKeyup$={() => {
-              const event = useEvent<KeyboardEvent>();
-              const inputValue = (event.target as HTMLInputElement).value;
-              state.text = inputValue;
-              if (event.key === 'Enter' && inputValue) {
-                props.todos.items.push({
-                  completed: false,
-                  title: state.text,
-                });
-                state.text = '';
-              }
-            }}
-          />
-        </>
-      );
-    });
+
+    return (
+      <>
+        <h1>todos</h1>
+        <input
+          class="new-todo"
+          placeholder="What needs to be done?"
+          autoFocus
+          value={state.text}
+          onKeyup$={() => {
+            const event = useEvent<KeyboardEvent>();
+            const inputValue = (event.target as HTMLInputElement).value;
+            state.text = inputValue;
+            if (event.key === 'Enter' && inputValue) {
+              props.todos.items.push({
+                completed: false,
+                title: state.text,
+              });
+              state.text = '';
+            }
+          }}
+        />
+      </>
+    );
   },
   {
     tagName: 'header',
@@ -406,7 +404,7 @@ export const Header = component$(
 export const Header = component$(
   (props: { todos: Todos }) => {
     const state = useStore({ text: '' });
-    return $(() => ... );
+    return ( ... );
 ```
 
 The `useStore()` is used to create state of the application which is serializable. In our example above the store is created and initialized to its initial value. The creation happens on server during the initial rendering. The store is then serialized into HTML. In this component example, there is no need to re-run the creation code in the browser; for this reason on-render code will never be downloaded for this component.
@@ -414,28 +412,6 @@ The `useStore()` is used to create state of the application which is serializabl
 ## Props
 
 Notice that the component can declare `props`, in this case `{todos: Todos}`. Props allow the component to get data from parent components.
-
-### Rendering
-
-The on-mount function is responsible for returning an on-render function.
-
-```tsx
-    return $(() => {
-      return (
-        <>
-          <h1>todos</h1>
-          <input
-            value={state.text}
-            ...
-             />
-        </>
-      );
-    });
-```
-
-The on render function is wrapped in `$`, this means that it can be lazy-loaded independently from on-mount. The on-mount function captures the `state` which is the result of the on-mount function which executed on the server as part of SSR/SSG.
-
-The runtime notices that the render function depends on `state.text`. This tells Qwik that whenever the `state.text` value changes the render function needs to be downloaded and executed. This makes Qwik reactive. The subscription information is automatic because `state` is a proxy.
 
 ### Event Listeners
 

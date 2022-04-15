@@ -2,15 +2,19 @@ import type { ValueOrPromise } from '../util/types';
 import type { Props } from '../props/props.public';
 import { assertDefined } from '../assert/assert';
 import type { QwikDocument } from '../document';
-import type { QRLInternal } from '../import/qrl-class';
 import { QContainerSelector, QHostAttr } from '../util/markers';
 import { getDocument } from '../util/dom';
+import type { QRL } from '..';
+import type { Subscriber } from './use-subscriber';
+import type { WatchDescriptor } from '../watch/watch.public';
 
 declare const document: QwikDocument;
 
+export const CONTAINER = Symbol('container');
+
 export interface StyleAppend {
   type: 'style';
-  scope: string;
+  styleId: string;
   content: string;
 }
 
@@ -19,15 +23,17 @@ export function isStyleTask(obj: any): obj is StyleAppend {
 }
 
 export interface InvokeContext {
+  url: URL | null;
+  seq: number;
   doc?: Document;
   hostElement?: Element;
   element?: Element;
   event: any;
-  url: URL | null;
-  qrl?: QRLInternal;
-  subscriptions: boolean;
+  qrl?: QRL<any>;
   waitOn?: ValueOrPromise<any>[];
   props?: Props;
+  subscriber?: Subscriber | null;
+  watch?: WatchDescriptor;
 }
 
 let _context: InvokeContext | undefined;
@@ -91,13 +97,13 @@ export function newInvokeContext(
   url?: URL
 ): InvokeContext {
   return {
+    seq: 0,
     doc,
     hostElement,
     element,
     event: event,
     url: url || null,
     qrl: undefined,
-    subscriptions: event === 'qRender',
   };
 }
 
@@ -131,5 +137,10 @@ export function getHostElement(el: Element): Element | null {
 }
 
 export function getContainer(el: Element): Element | null {
-  return el.closest(QContainerSelector);
+  let container = (el as any)[CONTAINER];
+  if (!container) {
+    container = el.closest(QContainerSelector);
+    (el as any)[CONTAINER] = container;
+  }
+  return container;
 }

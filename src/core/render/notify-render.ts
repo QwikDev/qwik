@@ -8,6 +8,8 @@ import { getDocument } from '../util/dom';
 import { renderComponent } from '../component/component-ctx';
 import { logDebug } from '../util/log';
 import { getContainer } from '../use/use-core';
+import { runWatch, WatchDescriptor } from '../watch/watch.public';
+import { waitForWatches } from '../object/q-object';
 
 /**
  * Mark component for rendering.
@@ -64,6 +66,10 @@ export function scheduleFrame(containerEl: Element, state: RenderingState): Prom
 const SCHEDULE = Symbol('Render state');
 
 export interface RenderingState {
+  watchRunning: Set<Promise<WatchDescriptor>>;
+  watchNext: Set<WatchDescriptor>;
+  watchStagging: Set<WatchDescriptor>;
+
   hostsNext: Set<Element>;
   hostsStaging: Set<Element>;
   hostsRendering: Set<Element> | undefined;
@@ -74,6 +80,10 @@ export function getRenderingState(containerEl: Element): RenderingState {
   let set = (containerEl as any)[SCHEDULE] as RenderingState;
   if (!set) {
     (containerEl as any)[SCHEDULE] = set = {
+      watchNext: new Set(),
+      watchStagging: new Set(),
+      watchRunning: new Set(),
+
       hostsNext: new Set(),
       hostsStaging: new Set(),
       renderPromise: undefined,
@@ -87,6 +97,8 @@ export async function renderMarked(
   containerEl: Element,
   state: RenderingState
 ): Promise<RenderContext> {
+  await waitForWatches(state);
+
   state.hostsRendering = new Set(state.hostsNext);
   state.hostsNext.clear();
 
@@ -124,7 +136,7 @@ export async function renderMarked(
         printRenderStats(ctx);
       }
     }
-    postRendering(containerEl, state);
+    postRendering(containerEl, state, ctx);
     return ctx;
   }
 
@@ -135,12 +147,30 @@ export async function renderMarked(
         printRenderStats(ctx);
       }
     }
-    postRendering(containerEl, state);
+    postRendering(containerEl, state, ctx);
     return ctx;
   });
 }
 
-function postRendering(containerEl: Element, state: RenderingState) {
+async function postRendering(containerEl: Element, state: RenderingState, ctx: RenderContext) {
+  // Run useEffect() watch
+  const promises: Promise<WatchDescriptor>[] = [];
+  state.watchNext.forEach((watch) => {
+    promises.push(runWatch(watch));
+  });
+
+  state.watchNext.clear();
+  state.watchStagging.forEach((watch) => {
+    if (ctx.hostElements.has(watch.hostElement)) {
+      promises.push(runWatch(watch));
+    } else {
+      state.watchNext.add(watch);
+    }
+  });
+
+  // Wait for all promises
+  await Promise.all(promises);
+
   // Move elements from staging to nextRender
   state.hostsStaging.forEach((el) => {
     state.hostsNext.add(el);
@@ -151,7 +181,7 @@ function postRendering(containerEl: Element, state: RenderingState) {
   state.hostsRendering = undefined;
   state.renderPromise = undefined;
 
-  if (state.hostsNext.size > 0) {
+  if (state.hostsNext.size + state.watchNext.size > 0) {
     scheduleFrame(containerEl, state);
   }
 }

@@ -15,17 +15,18 @@ Simple counter example:
 ```tsx
 const Counter = component$(() => {
   const store = useStore({ count: 0 });
-  return $(() => (
+
+  return (
     <button onClick$={() => store.count++}>
       {store.count}
     </button>
-  ));
+  );
 });
 ```
 
 Once rendered the HTML fragment may look something like this:
 
-```htmlembedded=
+```html
 <div q:host>
   <button q:obj="123" onClickQrl="./chunk-a.js#Counter_button_click[0]">
     0
@@ -50,19 +51,24 @@ Qwik lazy loads components on an as-needed basis. To minimize the number of comp
 
 ```tsx
 const Parent = component$(() => {
-  const store = useStore({count: 0, step: 1});
-  return $(() => (
-    <button onClick$={store.step *= -1}>direction</button>
-    <button onClick$={()=> store.count += store.step}>
-      {store.step}
-    </button>
-    <Greeter name={'World_' + store.count}/>
-  ))
+  const store = useStore({ count: 0, step: 1 });
+
+  return (
+    <>
+      <button onClick$={(store.step *= -1)}>
+        direction
+      </button>
+      <button onClick$={() => (store.count += store.step)}>
+        {store.step}
+      </button>
+      <Greeter name={'World_' + store.count} />
+    </>
+  );
 });
 
-const Greeter = component$((props: {name: string})=> {
-  return $(() => <span>Hello {props.name}</span>)
-})
+const Greeter = component$((props: { name: string }) => {
+  return <span>Hello {props.name}</span>;
+});
 ```
 
 In the above example, there are two buttons:

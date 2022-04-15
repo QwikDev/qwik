@@ -1,7 +1,7 @@
-import { $, component$, Host } from '@builder.io/qwik';
+import { component$, Host } from '@builder.io/qwik';
 
 export const Logo = component$(() => {
-  return $(() => (
+  return (
     <Host style={{ 'text-align': 'center' }}>
       <a href="https://github.com/builderio/qwik">
         <img
@@ -11,5 +11,5 @@ export const Logo = component$(() => {
         />
       </a>
     </Host>
-  ));
+  );
 });

@@ -1,30 +1,31 @@
 import { createTimer, ensureGlobals } from './utils';
-import { snapshot, FunctionComponent, JSXNode, render } from '@builder.io/qwik';
+import { pauseContainer, render } from '@builder.io/qwik';
+import type { FunctionComponent, JSXNode } from '@builder.io/qwik';
 import qwikDom from '@builder.io/qwik-dom';
 import { setServerPlatform } from './platform';
 import { serializeDocument } from './serialize';
 import type {
   DocumentOptions,
-  GlobalOptions,
   QwikDocument,
-  QwikGlobal,
+  QwikWindow,
   RenderToDocumentOptions,
   RenderToStringOptions,
   RenderToStringResult,
+  WindowOptions,
 } from './types';
 import { isDocument } from '../core/util/element';
 import { getDocument } from '../core/util/dom';
 import { getElement } from '../core/render/render.public';
 
 /**
- * Create emulated `Global` for server environment. Does not implement a browser
- * `window` API, but rather only includes and emulated `document` and `location`.
+ * Create emulated `Window` for server environment. Does not implement the full browser
+ * `window` API, but rather only emulates `document` and `location`.
  * @public
  */
-export function createGlobal(opts?: GlobalOptions): QwikGlobal {
+export function createWindow(opts?: WindowOptions): QwikWindow {
   opts = opts || {};
 
-  const doc: QwikDocument = qwikDom.createDocument() as any;
+  const doc: QwikDocument = qwikDom.createDocument(opts.html) as any;
 
   const glb = ensureGlobals(doc, opts);
 
@@ -36,15 +37,14 @@ export function createGlobal(opts?: GlobalOptions): QwikGlobal {
  * @public
  */
 export function createDocument(opts?: DocumentOptions) {
-  const glb = createGlobal(opts);
-  return glb.document;
+  return createWindow(opts).document;
 }
 
 /**
  * Updates the given `document` in place by rendering the root JSX node
  * and applying to the `document`.
  *
- * @param doc - The `document` to apply the the root node to.
+ * @param docOrElm - The `document` to apply the the root node to.
  * @param rootNode - The root JSX node to apply onto the `document`.
  * @public
  */
@@ -65,7 +65,7 @@ export async function renderToDocument(
     containerEl.setAttribute('q:base', opts.base);
   }
   if (opts.snapshot !== false) {
-    snapshot(docOrElm);
+    pauseContainer(docOrElm);
   }
 }
 

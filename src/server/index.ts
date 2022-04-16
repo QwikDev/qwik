@@ -6,6 +6,7 @@ export type {
   RenderToDocumentOptions,
   RenderToStringOptions,
   RenderToStringResult,
+  ServerOutputSymbols,
   WindowOptions,
 } from './types';
 export { createDocument, createWindow, renderToDocument, renderToString } from './document';

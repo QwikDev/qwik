@@ -3,7 +3,7 @@ import { qwikVite } from '@builder.io/qwik/optimizer';
 import { dirname, resolve } from 'path';
 import { writeFile, mkdir } from 'fs/promises';
 
-export default defineConfig(({ mode }) => {
+export default defineConfig((config) => {
   return {
     build: {
       rollupOptions: {
@@ -20,7 +20,7 @@ export default defineConfig(({ mode }) => {
     plugins: [
       qwikVite({
         // On `clientonly` mode, lets disable SSR in development, so app is fully client bootstrapped
-        ssr: mode === 'clientonly' ? false : undefined,
+        ssr: config.mode === 'clientonly' ? false : undefined,
         srcDir: resolve('./src'),
         entryStrategy: {
           type: 'single',

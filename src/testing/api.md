@@ -4,9 +4,6 @@
 
 ```ts
 
-import type { FunctionComponent } from '@builder.io/qwik';
-import type { JSXNode } from '@builder.io/qwik';
-
 // @public
 export function createDocument(opts?: DocumentOptions): QwikDocument;
 
@@ -45,6 +42,8 @@ export function getQwikLoaderScript(opts?: {
 export interface QwikDocument extends Document {
 }
 
+// Warning: (ae-forgotten-export) The symbol "FunctionComponent" needs to be exported by the entry point index.d.ts
+//
 // @alpha (undocumented)
 export const QwikLoader: FunctionComponent<QwikLoaderProps>;
 
@@ -63,6 +62,8 @@ export interface QwikWindow extends WindowProxy {
     location: Location;
 }
 
+// Warning: (ae-forgotten-export) The symbol "JSXNode" needs to be exported by the entry point index.d.ts
+//
 // @public
 export function renderToDocument(docOrElm: Document | Element, rootNode: JSXNode<unknown> | FunctionComponent<any>, opts: RenderToDocumentOptions): Promise<void>;
 
@@ -96,6 +97,12 @@ export interface RenderToStringResult {
 
 // @public
 export function serializeDocument(docOrEl: Document | Element, opts?: SerializeDocumentOptions): string;
+
+// Warning: (ae-forgotten-export) The symbol "QrlMapper" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "OutputEntryMap" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export type ServerOutputSymbols = QrlMapper | OutputEntryMap | null;
 
 // @public
 export function setServerPlatform(document: any, opts: SerializeDocumentOptions): Promise<void>;

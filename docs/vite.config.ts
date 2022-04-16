@@ -5,7 +5,7 @@ import { dirname, join, resolve } from 'path';
 import { qwest } from './qwest/dist/vite/index.mjs';
 import { partytownVite } from '@builder.io/partytown/utils';
 
-export default defineConfig(async ({ mode }) => {
+export default defineConfig((config) => {
   return {
     build: {
       rollupOptions: {
@@ -16,13 +16,10 @@ export default defineConfig(async ({ mode }) => {
         },
       },
     },
-    ssr: {
-      noExternal: true,
-    },
     plugins: [
       qwikVite({
         // On `clientonly` mode, lets disable SSR in development, so app is fully client bootstrapped
-        ssr: mode === 'clientonly' ? false : undefined,
+        ssr: config.mode === 'clientonly' ? false : undefined,
         srcDir: resolve('./src'),
         entryStrategy: {
           type: 'single',

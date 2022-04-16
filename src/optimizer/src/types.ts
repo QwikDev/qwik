@@ -42,11 +42,6 @@ export interface OptimizerSystem {
 /**
  * @alpha
  */
-export type MinifyOption = boolean | undefined | null;
-
-/**
- * @alpha
- */
 export type SourceMapsOption = 'external' | 'inline' | undefined | null;
 
 /**
@@ -245,7 +240,7 @@ export interface GlobalInjections {
  * @alpha
  */
 export interface Path {
-  resolve(...pathSegments: string[]): string;
+  resolve(...paths: string[]): string;
   normalize(path: string): string;
   isAbsolute(path: string): boolean;
   join(...paths: string[]): string;
@@ -253,21 +248,22 @@ export interface Path {
   dirname(path: string): string;
   basename(path: string, ext?: string): string;
   extname(path: string): string;
-  format(pathObject: Partial<PathObject>): string;
-  parse(path: string): PathObject;
+  format(pathObject: {
+    root: string;
+    dir: string;
+    base: string;
+    ext: string;
+    name: string;
+  }): string;
+  parse(path: string): {
+    root: string;
+    dir: string;
+    base: string;
+    ext: string;
+    name: string;
+  };
   readonly sep: string;
   readonly delimiter: string;
   readonly win32: null;
   readonly posix: Path;
-}
-
-/**
- * @alpha
- */
-export interface PathObject {
-  root: string;
-  dir: string;
-  base: string;
-  ext: string;
-  name: string;
 }

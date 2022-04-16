@@ -42,8 +42,13 @@ export interface WindowOptions extends DocumentOptions {}
  * @public
  */
 export interface SerializeDocumentOptions extends DocumentOptions {
-  symbols: QrlMapper | OutputEntryMap | null;
+  symbols: ServerOutputSymbols;
 }
+
+/**
+ * @public
+ */
+export type ServerOutputSymbols = QrlMapper | OutputEntryMap | null;
 
 /**
  * @public

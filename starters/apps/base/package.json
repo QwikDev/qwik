@@ -1,7 +1,7 @@
 {
   "name": "qwik-project-name",
-  "version": "0.0.0",
   "description": "",
+  "license": "",
   "scripts": {
     "typecheck": "tsc --noEmit",
     "build": "npm run typecheck && npm run build.client && npm run build.server",
@@ -19,8 +19,7 @@
     "typescript": "latest",
     "vite": "latest"
   },
-  "author": "Builder.io Team",
-  "license": "MIT",
+  "private": true,
   "engines": {
     "node": ">=14"
   }

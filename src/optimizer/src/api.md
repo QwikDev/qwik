@@ -4,8 +4,6 @@
 
 ```ts
 
-import type { NormalizedOutputOptions } from 'rollup';
-
 // @alpha (undocumented)
 export interface CodeHighlight {
     // (undocumented)
@@ -95,9 +93,6 @@ export interface ManualEntryStrategy {
 export type MinifyMode = 'minify' | 'simplify' | 'none';
 
 // @alpha (undocumented)
-export type MinifyOption = boolean | undefined | null;
-
-// @alpha (undocumented)
 export interface Optimizer {
     sys: OptimizerSystem;
     transformFs(opts: TransformFsOptions): Promise<TransformOutput>;
@@ -139,7 +134,13 @@ export interface Path {
     // (undocumented)
     extname(path: string): string;
     // (undocumented)
-    format(pathObject: Partial<PathObject>): string;
+    format(pathObject: {
+        root: string;
+        dir: string;
+        base: string;
+        ext: string;
+        name: string;
+    }): string;
     // (undocumented)
     isAbsolute(path: string): boolean;
     // (undocumented)
@@ -147,13 +148,19 @@ export interface Path {
     // (undocumented)
     normalize(path: string): string;
     // (undocumented)
-    parse(path: string): PathObject;
+    parse(path: string): {
+        root: string;
+        dir: string;
+        base: string;
+        ext: string;
+        name: string;
+    };
     // (undocumented)
     readonly posix: Path;
     // (undocumented)
     relative(from: string, to: string): string;
     // (undocumented)
-    resolve(...pathSegments: string[]): string;
+    resolve(...paths: string[]): string;
     // (undocumented)
     readonly sep: string;
     // (undocumented)
@@ -161,21 +168,10 @@ export interface Path {
 }
 
 // @alpha (undocumented)
-export interface PathObject {
-    // (undocumented)
-    base: string;
-    // (undocumented)
-    dir: string;
-    // (undocumented)
-    ext: string;
-    // (undocumented)
-    name: string;
-    // (undocumented)
-    root: string;
-}
+export function qwikRollup(opts: QwikRollupPluginOptions): any;
 
 // @alpha (undocumented)
-export interface QwikPluginOptions {
+export interface QwikRollupPluginOptions {
     // (undocumented)
     debug?: boolean;
     // (undocumented)
@@ -189,17 +185,14 @@ export interface QwikPluginOptions {
     // (undocumented)
     ssrBuild?: boolean;
     // (undocumented)
-    symbolsOutput?: string | ((data: OutputEntryMap, output: NormalizedOutputOptions) => Promise<void> | void);
+    symbolsOutput?: string | ((data: OutputEntryMap, outputOptions: any) => Promise<void> | void);
 }
-
-// @alpha (undocumented)
-export function qwikRollup(opts: QwikPluginOptions): any;
 
 // @alpha (undocumented)
 export function qwikVite(opts: QwikViteOptions): any;
 
 // @alpha (undocumented)
-export interface QwikViteOptions extends QwikPluginOptions {
+export interface QwikViteOptions extends QwikRollupPluginOptions {
     // (undocumented)
     ssr?: QwikViteSSROptions | false;
 }

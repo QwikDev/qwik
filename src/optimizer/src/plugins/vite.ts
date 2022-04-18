@@ -3,12 +3,13 @@ import type { Plugin as VitePlugin, UserConfig, ViteDevServer } from 'vite';
 import { createOptimizer } from '../optimizer';
 import type { Optimizer, OutputEntryMap } from '../types';
 import type { RenderToStringOptions, RenderToStringResult } from '../../../server';
-import { ENTRY_SERVER_DEFAULT, MAIN_DEFAULT, QWIK_CORE_ID, QWIK_JSX_RUNTIME_ID } from './utils';
+import { ENTRY_SERVER_DEFAULT, MAIN_DEFAULT, QWIK_CORE_ID, QWIK_JSX_RUNTIME_ID } from './shared';
 
 /**
  * @alpha
  */
-export function qwikVite(opts: QwikViteOptions): any {
+export function qwikVite(opts: QwikViteOptions = {}): any {
+  opts = opts || {};
   const rollupPlugin: QwikRollupPlugin = qwikRollup(opts);
 
   const api = rollupPlugin.api;
@@ -20,25 +21,24 @@ export function qwikVite(opts: QwikViteOptions): any {
 
     enforce: 'pre',
 
-    async config(config, { command }) {
+    async config(config, env) {
       if (!api.optimizer) {
         api.optimizer = await createOptimizer();
       }
 
-      if (command === 'serve') {
+      if (env.command === 'serve') {
         api.isBuild = false;
         api.entryStrategy = { type: 'hook' };
+
         if ((config as any).ssr) {
           (config as any).ssr.noExternal = false;
         }
-      }
-
-      if (command === 'build') {
+      } else if (env.command === 'build') {
         // Removed if fixed: https://github.com/vitejs/vite/pull/7275
         fixSSRInput(config, api.optimizer);
       }
 
-      api.log(`vite command`, command);
+      api.log(`vite command`, env.command);
 
       return {
         esbuild: { include: /\.js$/ },
@@ -51,6 +51,9 @@ export function qwikVite(opts: QwikViteOptions): any {
             exclude: [/./],
           },
         },
+        // ssr: {
+        //   noExternal: true,
+        // },
       };
     },
 

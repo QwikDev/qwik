@@ -6,16 +6,20 @@ import { qwest } from './qwest/dist/vite/index.mjs';
 import { partytownVite } from '@builder.io/partytown/utils';
 
 export default defineConfig((config) => {
+  console.log('mode', config.mode);
   return {
     build: {
       rollupOptions: {
         input: ['src/main.tsx', 'index.html'],
-        output: {
-          chunkFileNames: 'q-[hash].js',
-          assetFileNames: 'q-[hash].[ext]',
-        },
+        // output: {
+        //   chunkFileNames: 'q-[hash].js',
+        //   assetFileNames: 'q-[hash].[ext]',
+        // },
       },
     },
+    // ssr: {
+    //   noExternal: true,
+    // },
     plugins: [
       qwikVite({
         // On `clientonly` mode, lets disable SSR in development, so app is fully client bootstrapped

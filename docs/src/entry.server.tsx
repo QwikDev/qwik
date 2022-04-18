@@ -5,7 +5,7 @@ import { Head } from './components/head/head';
 export function render(opts: RenderToStringOptions) {
   return renderToString(
     <html lang="en" className="h-screen">
-      <head>
+      <head asdf>
         <Head />
       </head>
       <body>

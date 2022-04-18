@@ -1,78 +1,24 @@
-import type { Plugin as RollupPlugin, PluginContext, RollupError } from 'rollup';
+import type { Plugin as RollupPlugin } from 'rollup';
 import { createOptimizer } from '../optimizer';
-import type {
-  Diagnostic,
-  EntryStrategy,
-  GlobalInjections,
-  HookAnalysis,
-  MinifyMode,
-  Optimizer,
-  OutputEntryMap,
-  TransformFsOptions,
-  TransformModule,
-  TransformModuleInput,
-  TransformOutput,
-} from '../types';
-import { forceJSExtension, getBuildFile, QWIK_BUILD_ID, removeQueryParams } from './utils';
+import type { HookAnalysis, OutputEntryMap, TransformFsOptions } from '../types';
+import {
+  createPluginApi,
+  forceJSExtension,
+  getBuildFile,
+  handleDiagnostics,
+  QwikPluginOptions,
+  QwikRollupPluginApi,
+  QWIK_BUILD_ID,
+  removeQueryParams,
+} from './shared';
 
 /**
  * @alpha
  */
-export function qwikRollup(opts: QwikRollupPluginOptions): any {
-  const ID = `${Math.round(Math.random() * 8999) + 1000}`;
-  const debug = !!opts.debug;
-  const injections: GlobalInjections[] = [];
+export function qwikRollup(opts: QwikRollupPluginOptions = {}): any {
+  const api = createPluginApi(opts);
 
-  const api: QwikRollupPluginApi = {
-    debug,
-    entryStrategy: {
-      type: 'single',
-      ...opts.entryStrategy,
-    },
-    isBuild: true,
-    isSSR: false,
-    log: debug
-      ? (...str: any[]) => {
-          // eslint-disable-next-line no-console
-          console.debug(`[QWIK PLUGIN: ${ID}]`, ...str);
-        }
-      : () => {},
-    optimizer: null,
-    outputCount: 0,
-    results: new Map(),
-    transformedOutputs: new Map(),
-  };
-
-  api.log(`New`, opts);
-
-  const createRollupError = (rootDir: string, diagnostic: Diagnostic) => {
-    const loc = diagnostic.code_highlights[0]?.loc ?? {};
-    const id = api.optimizer
-      ? api.optimizer.sys.path.join(rootDir, diagnostic.origin)
-      : diagnostic.origin;
-    const err: RollupError = Object.assign(new Error(diagnostic.message), {
-      id,
-      plugin: 'qwik',
-      loc: {
-        column: loc.start_col,
-        line: loc.start_line,
-      },
-      stack: '',
-    });
-    return err;
-  };
-
-  const handleDiagnostics = (ctx: PluginContext, rootDir: string, diagnostics: Diagnostic[]) => {
-    diagnostics.forEach((d) => {
-      if (d.severity === 'Error') {
-        ctx.error(createRollupError(rootDir, d));
-      } else if (d.severity === 'Warning') {
-        ctx.warn(createRollupError(rootDir, d));
-      } else {
-        ctx.warn(createRollupError(rootDir, d));
-      }
-    });
-  };
+  api.log(`qwikRollup`, opts);
 
   const rollupPlugin: QwikRollupPlugin = {
     name: 'rollup-plugin-qwik',
@@ -109,9 +55,8 @@ export function qwikRollup(opts: QwikRollupPluginOptions): any {
       if (isFullBuild) {
         api.outputCount = 0;
 
-        let rootDir = '/';
         if (typeof opts.srcDir === 'string') {
-          rootDir = api.optimizer.sys.path.isAbsolute(opts.srcDir)
+          api.rootDir = api.optimizer.sys.path.isAbsolute(opts.srcDir)
             ? opts.srcDir
             : api.optimizer.sys.path.resolve(opts.srcDir);
         } else if (Array.isArray(opts.srcInputs)) {
@@ -121,7 +66,7 @@ export function qwikRollup(opts: QwikRollupPluginOptions): any {
         }
 
         const transformOpts: TransformFsOptions = {
-          rootDir,
+          rootDir: api.rootDir,
           entryStrategy: opts.entryStrategy,
           minify: opts.minify,
           transpile: true,
@@ -130,11 +75,11 @@ export function qwikRollup(opts: QwikRollupPluginOptions): any {
 
         const result = await api.optimizer.transformFs(transformOpts);
         for (const output of result.modules) {
-          const key = api.optimizer.sys.path.join(rootDir, output.path)!;
+          const key = api.optimizer.sys.path.join(api.rootDir, output.path)!;
           api.log(`buildStart()`, 'qwik module', key);
           api.transformedOutputs.set(key, [output, key]);
         }
-        handleDiagnostics(this, rootDir, result.diagnostics);
+        handleDiagnostics(this, api, result.diagnostics);
 
         api.results.set('@buildStart', result);
       }
@@ -262,7 +207,7 @@ export function qwikRollup(opts: QwikRollupPluginOptions): any {
           rootDir: dir,
         });
 
-        handleDiagnostics(this, base, newOutput.diagnostics);
+        handleDiagnostics(this, api, newOutput.diagnostics);
         api.results.set(filteredId, newOutput);
 
         api.transformedOutputs.clear();
@@ -295,9 +240,19 @@ export function qwikRollup(opts: QwikRollupPluginOptions): any {
     outputOptions(outputOpts) {
       if (outputOpts.format === 'cjs' && typeof outputOpts.exports !== 'string') {
         outputOpts.exports = 'auto';
-        return outputOpts;
       }
-      return null;
+
+      if (outputOpts.chunkFileNames === 'assets/[name].[hash].js') {
+        // rename if it's the default
+        outputOpts.chunkFileNames = 'build/q-[hash].js';
+      }
+
+      if (outputOpts.assetFileNames === 'assets/[name].[hash].[ext]') {
+        // rename if it's the default
+        outputOpts.assetFileNames = 'build/q-[hash].[ext]';
+      }
+
+      return outputOpts;
     },
 
     async generateBundle(outputOpts, rollupBundle) {
@@ -315,7 +270,7 @@ export function qwikRollup(opts: QwikRollupPluginOptions): any {
         const outputEntryMap: OutputEntryMap = {
           mapping: {},
           version: '1',
-          injections,
+          injections: api.injections,
         };
 
         hooks.forEach((h) => {
@@ -359,28 +314,8 @@ export function qwikRollup(opts: QwikRollupPluginOptions): any {
 /**
  * @alpha
  */
-export interface QwikRollupPluginOptions {
-  entryStrategy?: EntryStrategy;
-  srcDir?: string;
-  srcInputs?: TransformModuleInput[];
-  minify?: MinifyMode;
-  debug?: boolean;
-  ssrBuild?: boolean;
-  symbolsOutput?: string | ((data: OutputEntryMap, outputOptions: any) => Promise<void> | void);
-}
+export interface QwikRollupPluginOptions extends QwikPluginOptions {}
 
 export interface QwikRollupPlugin extends RollupPlugin {
   api: QwikRollupPluginApi;
-}
-
-export interface QwikRollupPluginApi {
-  debug: boolean;
-  entryStrategy: EntryStrategy;
-  isBuild: boolean;
-  isSSR: boolean;
-  log: (...msg: any[]) => void;
-  optimizer: Optimizer | null;
-  outputCount: number;
-  results: Map<string, TransformOutput>;
-  transformedOutputs: Map<string, [TransformModule, string]>;
 }

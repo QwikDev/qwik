@@ -1,3 +1,8 @@
-import { version } from '@builder.io/qwik';
+import { component$ } from '@builder.io/qwik';
 
-console.log('Qwik', version);
+export const Main = component$(() => {
+  return (
+    <div>
+    </div>
+  );
+});

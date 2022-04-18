@@ -2,19 +2,13 @@
 
 ## Production Builds
 
-### Client and SSR
-
-```
-vite build
-```
-
-### Client only
+### Client Modules
 
 ```
 vite build --mode client
 ```
 
-### SSR only
+### Server Modules
 
 ```
 vite build --mode server
@@ -22,9 +16,10 @@ vite build --mode server
 
 ## Development/Watch Builds
 
-### SSR
+### Client and SSR
 
-Server-side render index.html during development
+Server-side rendered index.html, with client-side modules loaded
+by the browser on-demand.
 
 ```
 vite
@@ -32,14 +27,12 @@ vite
 
 ### Client only
 
+The index.html is not a result of server-side rendering, but rather is
+a static HTML content and the entirety of the Qwik app is generated
+with client-side modules only.
+
 ```
 vite --mode client
-```
-
-### SSR only
-
-```
-vite --mode server
 ```
 
 ## Config
@@ -48,13 +41,9 @@ vite --mode server
 import { defineConfig } from 'vite';
 import { qwikVite } from '@builder.io/qwik/optimizer';
 
-export default defineConfig((config) => {
+export default defineConfig(() => {
   return {
-    plugins: [
-      qwikVite({
-        srcDr: resolve('./src'),
-      }),
-    ],
+    plugins: [qwikVite()],
   };
 });
 ```

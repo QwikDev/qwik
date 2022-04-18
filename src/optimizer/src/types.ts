@@ -28,14 +28,23 @@ export interface Optimizer {
   sys: OptimizerSystem;
 }
 
+export interface OptimizerOptions {
+  sys?: OptimizerSystem;
+  binding?: any;
+}
+
 /**
  * @alpha
  */
 export interface OptimizerSystem {
+  cwd: () => string;
+  env: () => SystemEnvironment;
   dynamicImport: (path: string) => Promise<any>;
   getInputFiles?: (rootDir: string) => Promise<TransformModuleInput[]>;
   path: Path;
 }
+
+export type SystemEnvironment = 'node' | 'deno' | 'webworker' | 'browsermain' | 'unknown';
 
 // OPTIONS ***************
 

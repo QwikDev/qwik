@@ -5,29 +5,29 @@ import { writeFile, mkdir } from 'fs/promises';
 
 export default defineConfig((config) => {
   return {
-    build: {
-      rollupOptions: {
-        input: ['src/main.tsx', 'index.html'],
-        output: {
-          chunkFileNames: 'q-[hash].js',
-          assetFileNames: 'q-[hash].[ext]',
-        },
-      },
-    },
-    ssr: {
-      noExternal: true,
-    },
+    // build: {
+    //   rollupOptions: {
+    //     input: ['src/main.tsx', 'index.html'],
+    //     output: {
+    //       chunkFileNames: 'q-[hash].js',
+    //       assetFileNames: 'q-[hash].[ext]',
+    //     },
+    //   },
+    // },
+    // ssr: {
+    //   noExternal: true,
+    // },
     plugins: [
       qwikVite({
-        // On `clientonly` mode, lets disable SSR in development, so app is fully client bootstrapped
-        ssr: config.mode === 'clientonly' ? false : undefined,
-        srcDir: resolve('./src'),
-        entryStrategy: {
-          type: 'single',
-        },
-        symbolsOutput: (data) => {
-          outputJSON('./server/q-symbols.json', data);
-        },
+        // // On `clientonly` mode, lets disable SSR in development, so app is fully client bootstrapped
+        // ssr: config.mode === 'clientonly' ? false : undefined,
+        // srcDir: resolve('./src'),
+        // entryStrategy: {
+        //   type: 'single',
+        // },
+        // symbolsOutput: (data) => {
+        //   outputJSON('./server/q-symbols.json', data);
+        // },
       }),
     ],
   };

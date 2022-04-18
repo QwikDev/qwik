@@ -1,95 +1,220 @@
-import { qwikRollup, QwikRollupPlugin, QwikRollupPluginOptions } from './rollup';
 import type { Plugin as VitePlugin, UserConfig, ViteDevServer } from 'vite';
-import { createOptimizer } from '../optimizer';
-import type { Optimizer, OutputEntryMap } from '../types';
+import type { OptimizerOptions, OutputEntryMap } from '../types';
 import type { RenderToStringOptions, RenderToStringResult } from '../../../server';
-import { ENTRY_SERVER_DEFAULT, MAIN_DEFAULT, QWIK_CORE_ID, QWIK_JSX_RUNTIME_ID } from './shared';
+import { createPlugin, QwikPluginOptions, QWIK_CORE_ID, QWIK_JSX_RUNTIME_ID } from './plugin';
+import { createRollupError } from './rollup';
 
 /**
  * @alpha
  */
-export function qwikVite(opts: QwikViteOptions = {}): any {
-  opts = opts || {};
-  const rollupPlugin: QwikRollupPlugin = qwikRollup(opts);
-
-  const api = rollupPlugin.api;
+export function qwikVite(inputOpts: QwikViteOptions = {}): any {
+  const qwikPlugin = createPlugin(inputOpts.optimizerOptions);
 
   const vitePlugin: VitePlugin = {
-    ...(rollupPlugin as any),
-
     name: 'vite-plugin-qwik',
 
     enforce: 'pre',
 
-    async config(config, env) {
-      if (!api.optimizer) {
-        api.optimizer = await createOptimizer();
-      }
+    api: {
+      getOptions: qwikPlugin.getOptions,
+    },
 
-      if (env.command === 'serve') {
-        api.isBuild = false;
-        api.entryStrategy = { type: 'hook' };
+    async config(viteConfig, viteEnv) {
+      qwikPlugin.log(`vite config(), command: ${viteEnv.command}, env.mode: ${viteEnv.mode}`);
 
-        if ((config as any).ssr) {
-          (config as any).ssr.noExternal = false;
-        }
-      } else if (env.command === 'build') {
-        // Removed if fixed: https://github.com/vitejs/vite/pull/7275
-        fixSSRInput(config, api.optimizer);
-      }
+      const userOpts: QwikPluginOptions = {
+        debug: !!inputOpts.debug,
+        isDevBuild: viteEnv.command === 'serve',
+        isSSRBuild: viteEnv.command === 'build' && viteEnv.mode === 'server',
+        entryStrategy: inputOpts.entryStrategy!,
+        minify: inputOpts.minify!,
+        rootDir: viteConfig.root!,
+        distClientDir: inputOpts.distClientDir!,
+        distServerDir: inputOpts.distServerDir!,
+        srcDir: inputOpts.srcDir!,
+        srcInputs: inputOpts.srcInputs!,
+        srcMain: inputOpts.srcMain!,
+        srcEntryServer: inputOpts.srcEntryServer!,
+        symbolsOutput: inputOpts.symbolsOutput!,
+      };
 
-      api.log(`vite command`, env.command);
+      const normalizeOpts = await qwikPlugin.normalizeOptions(userOpts);
 
-      return {
+      const updatedViteConfig: UserConfig = {
         esbuild: { include: /\.js$/ },
         optimizeDeps: {
           include: [QWIK_CORE_ID, QWIK_JSX_RUNTIME_ID],
         },
         build: {
+          rollupOptions: {
+            output: {
+              chunkFileNames: 'build/q-[hash].js',
+              assetFileNames: 'build/q-[hash].[ext]',
+            },
+            onwarn: (warning, warn) => {
+              if (
+                warning.plugin === 'typescript' &&
+                warning.message.includes('outputToFilesystem')
+              ) {
+                return;
+              }
+              warn(warning);
+            },
+          },
           polyfillModulePreload: false,
           dynamicImportVarsOptions: {
             exclude: [/./],
           },
         },
-        // ssr: {
-        //   noExternal: true,
-        // },
       };
-    },
 
-    async resolveId(importee, importer, resolveOpts) {
-      if (resolveOpts.ssr === true) {
-        api.isSSR = true;
+      if (viteEnv.command === 'serve') {
+        userOpts.entryStrategy = { type: 'hook' };
       }
-      return rollupPlugin.resolveId!.call(this, importee, importer, resolveOpts as any);
+
+      if (normalizeOpts.isSSRBuild) {
+        // Server input
+        updatedViteConfig.build!.rollupOptions!.input = normalizeOpts.srcEntryServer;
+
+        // Server outDir
+        updatedViteConfig.build!.outDir = normalizeOpts.distServerDir!;
+
+        // SSR Build
+        updatedViteConfig.build!.ssr = true;
+
+        // Do not empty the dist server dir since it may have the symbols map already
+        updatedViteConfig.build!.emptyOutDir = false;
+
+        // Server noExternal
+        (updatedViteConfig as any).ssr = {
+          noExternal: true,
+        };
+      } else {
+        // Client input
+        updatedViteConfig.build!.rollupOptions!.input = normalizeOpts.srcMain;
+
+        // Client outDir
+        updatedViteConfig.build!.outDir = normalizeOpts.distClientDir!;
+      }
+
+      return updatedViteConfig;
     },
 
-    configureServer(server: ViteDevServer) {
-      if (opts.ssr === false) {
+    async buildStart() {
+      qwikPlugin.onAddWatchFile((path) => this.addWatchFile(path));
+
+      qwikPlugin.onDiagnostics((diagnostics, optimizer) => {
+        diagnostics.forEach((d) => {
+          if (d.severity === 'Error') {
+            this.error(createRollupError(optimizer, d));
+          } else {
+            this.warn(createRollupError(optimizer, d));
+          }
+        });
+      });
+
+      await qwikPlugin.buildStart();
+    },
+
+    resolveId(id, importer) {
+      if (id.startsWith('\0')) {
+        return null;
+      }
+      return qwikPlugin.resolveId(id, importer);
+    },
+
+    load(id) {
+      if (id.startsWith('\0')) {
+        return null;
+      }
+      return qwikPlugin.load(id);
+    },
+
+    transform(code, id) {
+      if (id.startsWith('\0')) {
+        return null;
+      }
+      return qwikPlugin.transform(code, id);
+    },
+
+    outputOptions(outputOpts) {
+      if (outputOpts.format === 'cjs' && typeof outputOpts.exports !== 'string') {
+        outputOpts.exports = 'auto';
+      }
+      return outputOpts;
+    },
+
+    async generateBundle(outputOptions, rollupBundle) {
+      const opts = await qwikPlugin.getOptions();
+
+      if (!opts.isSSRBuild) {
+        const outputAnalyzer = qwikPlugin.createOutputAnalyzer();
+
+        for (const fileName in rollupBundle) {
+          const b = rollupBundle[fileName];
+          if (b.type === 'chunk' && b.isDynamicEntry) {
+            outputAnalyzer.addBundle({
+              fileName,
+              modules: b.modules,
+            });
+          }
+        }
+
+        const outputEntryMap = await outputAnalyzer.generateOutputEntryMap();
+        if (typeof opts.symbolsOutput === 'function') {
+          await opts.symbolsOutput(outputEntryMap, outputOptions);
+        } else if (typeof opts.distServerDir === 'string') {
+          const optimizer = await qwikPlugin.getOptimizer();
+          const symbolsOutputPath = optimizer.sys.path.resolve(
+            opts.distServerDir,
+            'q-symbols.json'
+          );
+          const symbolsOutputDir = optimizer.sys.path.dirname(symbolsOutputPath);
+          // await mkdir(symbolsOutputDir, { recursive: true });
+          // await writeFile(symbolsOutputPath, JSON.stringify(outputEntryMap, null, 2));
+        }
+      }
+    },
+
+    async configureServer(server: ViteDevServer) {
+      const opts = await qwikPlugin.getOptions();
+      if (opts.isSSRBuild) {
         return;
       }
 
-      const main = opts.ssr?.main ?? MAIN_DEFAULT;
-      const entry = opts.ssr?.entry ?? ENTRY_SERVER_DEFAULT;
+      qwikPlugin.log(`configureServer(), entry: ${opts.srcEntryServer}`);
 
-      api.log(`configureServer(), entry: ${entry}`);
+      const optimizer = await qwikPlugin.getOptimizer();
+      if (typeof global.fetch !== 'function' && optimizer.sys.env() === 'node') {
+        // polyfill fetch() when not available in NodeJS
+        qwikPlugin.log(`configureServer(), patch fetch()`);
+
+        const nodeFetch = await optimizer.sys.dynamicImport('node-fetch');
+        global.fetch = nodeFetch;
+        global.Headers = nodeFetch.Headers;
+        global.Request = nodeFetch.Request;
+        global.Response = nodeFetch.Response;
+      }
 
       server.middlewares.use(async (req, res, next) => {
-        const url = req.originalUrl!;
-        const hasExtension = /\.[\w?=&]+$/.test(url);
-        const isViteMod = url.startsWith('/@');
-        const isVitePing = url.endsWith('__vite_ping');
-        const skipSSR = url.includes('ssr=false');
+        const domain = 'http://' + (req.headers.host ?? 'localhost');
+        const url = new URL(req.originalUrl!, domain);
+        const pathname = url.pathname;
+
+        const hasExtension = /\.[\w?=&]+$/.test(pathname);
+        const isViteMod = pathname.startsWith('/@') || url.href.includes('?html-proxy');
+        const isVitePing = url.href.includes('__vite_ping');
+        const skipSSR = url.href.includes('ssr=false');
 
         if (hasExtension || isViteMod || isVitePing || skipSSR) {
           next();
           return;
         }
 
-        api.log(`handleSSR("${url}")`);
+        qwikPlugin.log(`handleSSR("${url}")`);
 
         try {
-          const { render } = await server.ssrLoadModule(entry);
+          const { render } = await server.ssrLoadModule(opts.srcEntryServer);
           if (render) {
             const symbols: OutputEntryMap = {
               version: '1',
@@ -106,9 +231,9 @@ export function qwikVite(opts: QwikViteOptions = {}): any {
               });
             });
 
-            api.log(`handleSSR()`, 'symbols', symbols);
+            qwikPlugin.log(`handleSSR()`, 'symbols', symbols);
 
-            const mainMod = await server.moduleGraph.getModuleByUrl(main);
+            const mainMod = await server.moduleGraph.getModuleByUrl(opts.srcMain);
             if (mainMod) {
               mainMod.importedModules.forEach((moduleNode) => {
                 if (moduleNode.url.endsWith('.css')) {
@@ -124,14 +249,13 @@ export function qwikVite(opts: QwikViteOptions = {}): any {
               });
             }
 
-            const domain = 'http://' + (req.headers.host ?? 'localhost');
             const renderToStringOpts: RenderToStringOptions = {
-              url: new URL(url, domain),
+              url: url.href,
               debug: true,
               symbols,
             };
             const result: RenderToStringResult = await render(renderToStringOpts);
-            const html = await server.transformIndexHtml(url, result.html);
+            const html = await server.transformIndexHtml(pathname, result.html);
 
             res.setHeader('Content-Type', 'text/html; charset=utf-8');
             res.writeHead(200);
@@ -146,15 +270,16 @@ export function qwikVite(opts: QwikViteOptions = {}): any {
       });
     },
 
-    handleHotUpdate(ctx) {
-      if (opts.ssr === false) {
+    async handleHotUpdate(ctx) {
+      const opts = await qwikPlugin.getOptions();
+      if (!opts.isSSRBuild) {
         return;
       }
 
-      api.log('handleHotUpdate()', ctx);
+      qwikPlugin.log('handleHotUpdate()', ctx);
 
       if (ctx.file.endsWith('.css')) {
-        api.log('handleHotUpdate()', 'force css reload');
+        qwikPlugin.log('handleHotUpdate()', 'force css reload');
 
         ctx.server.ws.send({
           type: 'full-reload',
@@ -167,36 +292,9 @@ export function qwikVite(opts: QwikViteOptions = {}): any {
   return vitePlugin;
 }
 
-function fixSSRInput(config: UserConfig, optimizer: Optimizer) {
-  if (typeof config?.build?.ssr === 'string' && config?.build.rollupOptions?.input) {
-    const cwd =
-      typeof process !== 'undefined' && typeof process.cwd === 'function' ? process.cwd() : '/';
-
-    const resolvedRoot = optimizer.sys.path.normalize(
-      slash(config.root ? optimizer.sys.path.resolve(config.root) : cwd)
-    );
-    config.build.rollupOptions.input = optimizer.sys.path.resolve(resolvedRoot, config.build.ssr);
-  }
-}
-
-function slash(p: string): string {
-  return p.replace(/\\/g, '/');
-}
-
 /**
  * @alpha
  */
-export interface QwikViteOptions extends QwikRollupPluginOptions {
-  ssr?: QwikViteSSROptions | false;
-}
-
-/**
- * @alpha
- */
-export interface QwikViteSSROptions {
-  /** Defaults to `/src/entry.server.tsx` */
-  entry?: string;
-
-  /** Defaults to `/src/main.tsx` */
-  main?: string;
+export interface QwikViteOptions extends QwikPluginOptions {
+  optimizerOptions?: OptimizerOptions;
 }

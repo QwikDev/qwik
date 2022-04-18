@@ -18,8 +18,10 @@ export interface ComponentEntryStrategy {
     type: 'component';
 }
 
+// Warning: (ae-forgotten-export) The symbol "OptimizerOptions" needs to be exported by the entry point index.d.ts
+//
 // @alpha (undocumented)
-export const createOptimizer: () => Promise<Optimizer>;
+export const createOptimizer: (optimizerOptions?: OptimizerOptions) => Promise<Optimizer>;
 
 // @alpha (undocumented)
 export interface Diagnostic {
@@ -104,7 +106,13 @@ export interface Optimizer {
 // @alpha (undocumented)
 export interface OptimizerSystem {
     // (undocumented)
+    cwd: () => string;
+    // (undocumented)
     dynamicImport: (path: string) => Promise<any>;
+    // Warning: (ae-forgotten-export) The symbol "SystemEnvironment" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    env: () => SystemEnvironment;
     // (undocumented)
     getInputFiles?: (rootDir: string) => Promise<TransformModuleInput[]>;
     // (undocumented)
@@ -168,39 +176,23 @@ export interface Path {
 }
 
 // @alpha (undocumented)
-export function qwikRollup(opts: QwikRollupPluginOptions): any;
+export function qwikRollup(inputOpts?: QwikRollupPluginOptions): any;
 
+// Warning: (ae-forgotten-export) The symbol "QwikPluginOptions" needs to be exported by the entry point index.d.ts
+//
 // @alpha (undocumented)
-export interface QwikRollupPluginOptions {
+export interface QwikRollupPluginOptions extends QwikPluginOptions {
     // (undocumented)
-    debug?: boolean;
-    // (undocumented)
-    entryStrategy?: EntryStrategy;
-    // (undocumented)
-    minify?: MinifyMode;
-    // (undocumented)
-    srcDir?: string;
-    // (undocumented)
-    srcInputs?: TransformModuleInput[];
-    // (undocumented)
-    ssrBuild?: boolean;
-    // (undocumented)
-    symbolsOutput?: string | ((data: OutputEntryMap, outputOptions: any) => Promise<void> | void);
+    optimizerOptions?: OptimizerOptions;
 }
 
 // @alpha (undocumented)
-export function qwikVite(opts: QwikViteOptions): any;
+export function qwikVite(inputOpts?: QwikViteOptions): any;
 
 // @alpha (undocumented)
-export interface QwikViteOptions extends QwikRollupPluginOptions {
+export interface QwikViteOptions extends QwikPluginOptions {
     // (undocumented)
-    ssr?: QwikViteSSROptions | false;
-}
-
-// @alpha (undocumented)
-export interface QwikViteSSROptions {
-    entry?: string;
-    main?: string;
+    optimizerOptions?: OptimizerOptions;
 }
 
 // @alpha (undocumented)

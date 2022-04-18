@@ -1,4 +1,4 @@
-import { component$, Host, useStore, useStyles$ } from '@builder.io/qwik';
+import { component$, Host, useStore, useScopedStyles$ } from '@builder.io/qwik';
 import styles from './global.css';
 import { Page } from './components/page/page';
 
@@ -8,7 +8,7 @@ export interface SiteStore {
 }
 
 export const Main = component$(() => {
-  useStyles$(styles);
+  useScopedStyles$(styles);
 
   const store = useStore<SiteStore>({
     headerMenuOpen: false,

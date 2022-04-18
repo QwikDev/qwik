@@ -1,34 +1,32 @@
-import type { Plugin as RollupPlugin } from 'rollup';
-import { createOptimizer } from '../optimizer';
-import type { HookAnalysis, OutputEntryMap, TransformFsOptions } from '../types';
-import {
-  createPluginApi,
-  forceJSExtension,
-  getBuildFile,
-  handleDiagnostics,
-  QwikPluginOptions,
-  QwikRollupPluginApi,
-  QWIK_BUILD_ID,
-  removeQueryParams,
-} from './shared';
+import type { Plugin as RollupPlugin, RollupError } from 'rollup';
+import type {
+  Diagnostic,
+  Optimizer,
+  OptimizerOptions,
+  OutputEntryMap,
+  TransformModule,
+} from '../types';
+import { createPlugin, QwikPluginOptions } from './plugin';
 
 /**
  * @alpha
  */
-export function qwikRollup(opts: QwikRollupPluginOptions = {}): any {
-  const api = createPluginApi(opts);
+export function qwikRollup(inputOpts: QwikRollupPluginOptions = {}): any {
+  const qwikPlugin = createPlugin(inputOpts as OptimizerOptions);
 
-  api.log(`qwikRollup`, opts);
+  const api: QwikRollupPluginApi = {
+    outputEntryMap: null,
+    transformedOutputs: null,
+  };
 
   const rollupPlugin: QwikRollupPlugin = {
     name: 'rollup-plugin-qwik',
 
     api,
 
-    options(inputOptions) {
+    async options(inputOptions) {
       inputOptions.onwarn = (warning, warn) => {
         if (warning.plugin === 'typescript' && warning.message.includes('outputToFilesystem')) {
-          // "@rollup/plugin-typescript: outputToFilesystem option is defaulting to true."
           return;
         }
         warn(warning);
@@ -37,285 +35,90 @@ export function qwikRollup(opts: QwikRollupPluginOptions = {}): any {
     },
 
     async buildStart() {
-      if (typeof opts.srcDir !== 'string' && !Array.isArray(opts.srcInputs)) {
-        throw new Error(`Qwik plugin must have either a "srcDir" or "srcInputs" option.`);
-      }
-      if (typeof opts.srcDir === 'string' && Array.isArray(opts.srcInputs)) {
-        throw new Error(`Qwik plugin cannot have both the "srcDir" and "srcInputs" options.`);
-      }
+      qwikPlugin.onAddWatchFile((path) => this.addWatchFile(path));
 
-      if (!api.optimizer) {
-        api.optimizer = await createOptimizer();
-      }
+      qwikPlugin.onDiagnostics((diagnostics, optimizer) => {
+        diagnostics.forEach((d) => {
+          if (d.severity === 'Error') {
+            this.error(createRollupError(optimizer, d));
+          } else {
+            this.warn(createRollupError(optimizer, d));
+          }
+        });
+      });
 
-      const isFullBuild = api.entryStrategy.type !== 'hook';
-
-      api.log(`buildStart()`, isFullBuild ? 'full build' : 'isolated build');
-
-      if (isFullBuild) {
-        api.outputCount = 0;
-
-        if (typeof opts.srcDir === 'string') {
-          api.rootDir = api.optimizer.sys.path.isAbsolute(opts.srcDir)
-            ? opts.srcDir
-            : api.optimizer.sys.path.resolve(opts.srcDir);
-        } else if (Array.isArray(opts.srcInputs)) {
-          api.optimizer.sys.getInputFiles = async () => {
-            return opts.srcInputs!;
-          };
-        }
-
-        const transformOpts: TransformFsOptions = {
-          rootDir: api.rootDir,
-          entryStrategy: opts.entryStrategy,
-          minify: opts.minify,
-          transpile: true,
-          explicityExtensions: true,
-        };
-
-        const result = await api.optimizer.transformFs(transformOpts);
-        for (const output of result.modules) {
-          const key = api.optimizer.sys.path.join(api.rootDir, output.path)!;
-          api.log(`buildStart()`, 'qwik module', key);
-          api.transformedOutputs.set(key, [output, key]);
-        }
-        handleDiagnostics(this, api, result.diagnostics);
-
-        api.results.set('@buildStart', result);
-      }
+      await qwikPlugin.buildStart();
     },
 
-    async resolveId(originalID, importer) {
-      api.log(`resolveId("${originalID}", "${importer}")`);
-
-      if ((api.isBuild || typeof opts.ssrBuild === 'boolean') && originalID === QWIK_BUILD_ID) {
-        api.log(`resolveId()`, 'Resolved', QWIK_BUILD_ID);
-
-        return {
-          id: QWIK_BUILD_ID,
-          moduleSideEffects: false,
-        };
-      }
-
-      if (!api.optimizer) {
-        api.optimizer = await createOptimizer();
-      }
-
-      let id = removeQueryParams(originalID);
-      if (importer) {
-        const filteredImporter = removeQueryParams(importer);
-        const dir = api.optimizer.sys.path.dirname(filteredImporter);
-
-        if (filteredImporter.endsWith('.html') && !id.endsWith('.html')) {
-          id = api.optimizer.sys.path.join(dir, id);
-        } else {
-          id = api.optimizer.sys.path.resolve(dir, id);
-        }
-      }
-
-      const tries = [forceJSExtension(api.optimizer.sys.path, id)];
-
-      for (const tryId of tries) {
-        api.log(`resolveId()`, 'Try', tryId);
-        const transformedOutput = api.transformedOutputs.get(tryId);
-        if (transformedOutput) {
-          api.log(`resolveId()`, 'Resolved', tryId);
-          const transformedModule = transformedOutput[0];
-          const sideEffects = !transformedModule.isEntry || !transformedModule.hook;
-          return {
-            id: tryId,
-            moduleSideEffects: sideEffects,
-          };
-        }
-      }
-
-      return null;
+    resolveId(importee, importer) {
+      return qwikPlugin.resolveId(importee, importer);
     },
 
-    async load(id) {
-      api.log(`load("${id}")`);
-      if (id === QWIK_BUILD_ID) {
-        api.log(`load()`, QWIK_BUILD_ID, api.isSSR ? 'ssr' : 'client');
-        return {
-          code: getBuildFile(api.isSSR),
-        };
-      }
-
-      if (!api.optimizer) {
-        api.optimizer = await createOptimizer();
-      }
-
-      // On full build, lets normalize the ID
-      if (api.entryStrategy.type !== 'hook') {
-        id = forceJSExtension(api.optimizer.sys.path, id);
-      }
-
-      const transformedModule = api.transformedOutputs.get(id);
-      if (transformedModule) {
-        api.log(`load()`, 'Found', id);
-
-        return {
-          code: transformedModule[0].code,
-          map: transformedModule[0].map,
-        };
-      }
+    load(id) {
+      return qwikPlugin.load(id);
     },
 
-    async transform(code, id) {
-      // Only run when moduleIsolated === true
-      if (api.entryStrategy.type !== 'hook') {
-        return null;
-      }
+    transform(code, id) {
       if (id.startsWith('\0')) {
         return null;
       }
-      api.log(`transform("${id}")`);
-
-      const pregenerated = api.transformedOutputs.get(id);
-      if (pregenerated) {
-        api.log(`transform()`, 'addWatchFile', id, pregenerated[1]);
-        this.addWatchFile(pregenerated[1]);
-
-        return {
-          meta: {
-            hook: pregenerated[0].hook,
-          },
-        };
-      }
-
-      if (!api.optimizer) {
-        api.optimizer = await createOptimizer();
-      }
-
-      const filteredId = removeQueryParams(id);
-      const { ext, dir, base } = api.optimizer.sys.path.parse(filteredId);
-      if (['.tsx', '.ts', '.jsx'].includes(ext)) {
-        api.log(`transform()`, 'Transforming', filteredId);
-
-        const newOutput = api.optimizer.transformModulesSync({
-          input: [
-            {
-              code,
-              path: base,
-            },
-          ],
-          entryStrategy: { type: 'hook' },
-          minify: opts.minify,
-          sourceMaps: false,
-          transpile: true,
-          explicityExtensions: true,
-          rootDir: dir,
-        });
-
-        handleDiagnostics(this, api, newOutput.diagnostics);
-        api.results.set(filteredId, newOutput);
-
-        api.transformedOutputs.clear();
-        for (const [id, output] of api.results.entries()) {
-          const justChanged = newOutput === output;
-          const dir = api.optimizer.sys.path.dirname(id);
-
-          for (const mod of output.modules) {
-            if (mod.isEntry) {
-              const key = api.optimizer.sys.path.join(dir, mod.path);
-              api.transformedOutputs.set(key, [mod, id]);
-
-              api.log(`transform()`, 'emitting', justChanged, key);
-            }
-          }
-        }
-
-        const module = newOutput.modules.find((m) => !m.isEntry)!;
-        return {
-          code: module.code,
-          map: module.map,
-          meta: {
-            hook: module.hook,
-          },
-        };
-      }
-      return null;
+      return qwikPlugin.transform(code, id);
     },
 
     outputOptions(outputOpts) {
       if (outputOpts.format === 'cjs' && typeof outputOpts.exports !== 'string') {
         outputOpts.exports = 'auto';
       }
-
-      if (outputOpts.chunkFileNames === 'assets/[name].[hash].js') {
-        // rename if it's the default
-        outputOpts.chunkFileNames = 'build/q-[hash].js';
-      }
-
-      if (outputOpts.assetFileNames === 'assets/[name].[hash].[ext]') {
-        // rename if it's the default
-        outputOpts.assetFileNames = 'build/q-[hash].[ext]';
-      }
-
       return outputOpts;
     },
 
-    async generateBundle(outputOpts, rollupBundle) {
-      api.log(`generateBundle()`);
-
-      const hooks = Array.from(api.results.values())
-        .flatMap((r) => r.modules)
-        .map((mod) => mod.hook)
-        .filter((h) => !!h) as HookAnalysis[];
-
-      if (hooks.length > 0 && outputOpts.format === 'es' && api.outputCount === 0 && !api.isSSR) {
-        api.outputCount++;
-        const output = Object.entries(rollupBundle);
-
-        const outputEntryMap: OutputEntryMap = {
-          mapping: {},
-          version: '1',
-          injections: api.injections,
-        };
-
-        hooks.forEach((h) => {
-          const symbolName = h.name;
-          let filename = h.canonicalFilename + '.js';
-          // eslint-disable-next-line
-          const found = output.find(([_, v]) => {
-            return (
-              v.type == 'chunk' &&
-              v.isDynamicEntry === true &&
-              Object.keys(v.modules).find((f) => f.endsWith(filename))
-            );
-          });
-          if (found) {
-            filename = found[0];
-          }
-          outputEntryMap.mapping[symbolName] = filename;
-        });
-
-        api.log(`generateBundle()`, outputEntryMap);
-
-        if (typeof opts.symbolsOutput === 'string') {
-          this.emitFile({
-            fileName: opts.symbolsOutput,
-            source: JSON.stringify(outputEntryMap, null, 2),
-            type: 'asset',
-          });
-        } else if (typeof opts.symbolsOutput === 'function') {
-          const symbolsOutput = opts.symbolsOutput;
-          setTimeout(async () => {
-            await symbolsOutput(outputEntryMap, outputOpts as any);
-          });
-        }
-      }
+    async generateBundle(_, rollupBundle) {
+      // for (const fileName in rollupBundle) {
+      //   const b = rollupBundle[fileName];
+      //   if (b.type === 'chunk' && b.isDynamicEntry) {
+      //     qwikPlugin.addOutputBundle({
+      //       fileName,
+      //       modules: b.modules,
+      //     });
+      //   }
+      // }
+      // api.outputEntryMap = await qwikPlugin.generateOutputEntryMap();
+      // api.transformedOutputs = await qwikPlugin.getTransformedOutputs();
     },
   };
 
   return rollupPlugin;
 }
 
+export const createRollupError = (optimizer: Optimizer, diagnostic: Diagnostic) => {
+  const loc = diagnostic.code_highlights[0]?.loc ?? {};
+  const id = optimizer
+    ? optimizer.sys.path.join(optimizer.sys.cwd(), diagnostic.origin)
+    : diagnostic.origin;
+  const err: RollupError = Object.assign(new Error(diagnostic.message), {
+    id,
+    plugin: 'qwik',
+    loc: {
+      column: loc.start_col,
+      line: loc.start_line,
+    },
+    stack: '',
+  });
+  return err;
+};
+
 /**
  * @alpha
  */
-export interface QwikRollupPluginOptions extends QwikPluginOptions {}
+export interface QwikRollupPluginOptions extends QwikPluginOptions {
+  optimizerOptions?: OptimizerOptions;
+}
 
 export interface QwikRollupPlugin extends RollupPlugin {
   api: QwikRollupPluginApi;
+}
+
+export interface QwikRollupPluginApi {
+  outputEntryMap: OutputEntryMap | null;
+  transformedOutputs: { [id: string]: TransformModule } | null;
 }

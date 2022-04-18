@@ -45,7 +45,7 @@ const loadPage = async (href: string): Promise<PageHandler | null> => {
     return null;
   }
 
-  const layoutImporter = LAYOUTS[mod.layout] || LAYOUTS.default;
+  const layoutImporter = LAYOUTS[mod.attributes.layout] || LAYOUTS.default;
   if (!layoutImporter) {
     return null;
   }

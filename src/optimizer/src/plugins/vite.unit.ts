@@ -37,6 +37,7 @@ describe('vite  plugin', () => {
 
       expect(opts.debug).toBe(false);
       expect(opts.isDevBuild).toBe(true);
+      expect(opts.isClientOnly).toBe(true);
       expect(opts.isSSRBuild).toBe(false);
       expect(opts.entryStrategy).toEqual({ type: 'hook' });
     });

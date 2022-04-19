@@ -1,8 +1,15 @@
 import type { Plugin as VitePlugin, UserConfig, ViteDevServer } from 'vite';
 import type { OptimizerOptions, OutputEntryMap } from '../types';
 import type { RenderToStringOptions, RenderToStringResult } from '../../../server';
-import { createPlugin, QwikPluginOptions, QWIK_CORE_ID, QWIK_JSX_RUNTIME_ID } from './plugin';
+import {
+  createPlugin,
+  QwikPluginOptions,
+  QWIK_CORE_ID,
+  QWIK_JSX_RUNTIME_ID,
+  Q_SYMBOLS_FILENAME,
+} from './plugin';
 import { createRollupError } from './rollup';
+import { QWIK_LOADER_DEFAULT_MINIFIED } from '../scripts';
 
 /**
  * @alpha
@@ -25,6 +32,7 @@ export function qwikVite(inputOpts: QwikViteOptions = {}): any {
       const userOpts: QwikPluginOptions = {
         debug: !!inputOpts.debug,
         isDevBuild: viteEnv.command === 'serve',
+        isClientOnly: viteEnv.command === 'serve' && viteEnv.mode === 'client',
         isSSRBuild: viteEnv.command === 'build' && viteEnv.mode === 'server',
         entryStrategy: inputOpts.entryStrategy!,
         minify: inputOpts.minify!,
@@ -120,6 +128,9 @@ export function qwikVite(inputOpts: QwikViteOptions = {}): any {
       if (id.startsWith('\0')) {
         return null;
       }
+
+      console.log(id, importer);
+
       return qwikPlugin.resolveId(id, importer);
     },
 
@@ -146,8 +157,29 @@ export function qwikVite(inputOpts: QwikViteOptions = {}): any {
 
     async generateBundle(outputOptions, rollupBundle) {
       const opts = await qwikPlugin.getOptions();
+      const optimizer = await qwikPlugin.getOptimizer();
 
-      if (!opts.isSSRBuild) {
+      if (opts.isSSRBuild) {
+        // server build
+        if (optimizer.sys.env() === 'node') {
+          try {
+            const fs: typeof import('fs') = await optimizer.sys.dynamicImport('fs');
+            const qSymbolsPath = optimizer.sys.path.join(opts.distClientDir, Q_SYMBOLS_FILENAME);
+            const qSymbolsContent = fs.readFileSync(qSymbolsPath, 'utf-8');
+            const qSymbols = JSON.stringify(JSON.parse(qSymbolsContent));
+
+            for (const fileName in rollupBundle) {
+              const b = rollupBundle[fileName];
+              if (b.type === 'chunk') {
+                b.code = b.code.replace(/("|')__qSymbolFallback__("|')/g, qSymbols);
+              }
+            }
+          } catch (e) {
+            /** */
+          }
+        }
+      } else {
+        // client build
         const outputAnalyzer = qwikPlugin.createOutputAnalyzer();
 
         for (const fileName in rollupBundle) {
@@ -164,14 +196,11 @@ export function qwikVite(inputOpts: QwikViteOptions = {}): any {
         if (typeof opts.symbolsOutput === 'function') {
           await opts.symbolsOutput(outputEntryMap, outputOptions);
         } else if (typeof opts.distServerDir === 'string') {
-          const optimizer = await qwikPlugin.getOptimizer();
-          const symbolsOutputPath = optimizer.sys.path.resolve(
-            opts.distServerDir,
-            'q-symbols.json'
-          );
-          const symbolsOutputDir = optimizer.sys.path.dirname(symbolsOutputPath);
-          // await mkdir(symbolsOutputDir, { recursive: true });
-          // await writeFile(symbolsOutputPath, JSON.stringify(outputEntryMap, null, 2));
+          this.emitFile({
+            type: 'asset',
+            fileName: Q_SYMBOLS_FILENAME,
+            source: JSON.stringify(outputEntryMap, null, 2),
+          });
         }
       }
     },
@@ -211,10 +240,14 @@ export function qwikVite(inputOpts: QwikViteOptions = {}): any {
           return;
         }
 
-        qwikPlugin.log(`handleSSR("${url}")`);
-
         try {
-          const { render } = await server.ssrLoadModule(opts.srcEntryServer);
+          qwikPlugin.log(`handleSSR("${url}"), ssr`);
+
+          console.log('------------');
+          const { render } = await server.ssrLoadModule(opts.srcEntryServer, {
+            fixStacktrace: true,
+          });
+          console.log('***********');
           if (render) {
             const symbols: OutputEntryMap = {
               version: '1',
@@ -252,10 +285,22 @@ export function qwikVite(inputOpts: QwikViteOptions = {}): any {
             const renderToStringOpts: RenderToStringOptions = {
               url: url.href,
               debug: true,
-              symbols,
+              symbols: opts.isClientOnly ? null : symbols,
+              snapshot: !opts.isClientOnly,
             };
+
             const result: RenderToStringResult = await render(renderToStringOpts);
-            const html = await server.transformIndexHtml(pathname, result.html);
+            let html = result.html;
+
+            if (opts.isClientOnly) {
+              const bodyStart = html.indexOf(`<body`);
+              const bodyEnd = html.indexOf(`</body>`) + 7;
+              const body = html.substring(bodyStart, bodyEnd);
+              const srcMainUrl = '/' + optimizer.sys.path.relative(opts.rootDir, opts.srcMain);
+              html = html.replace(body, getClientOnlyBody(srcMainUrl));
+            }
+
+            html = await server.transformIndexHtml(pathname, html, req.originalUrl);
 
             res.setHeader('Content-Type', 'text/html; charset=utf-8');
             res.writeHead(200);
@@ -289,7 +334,25 @@ export function qwikVite(inputOpts: QwikViteOptions = {}): any {
     },
   };
 
+  const clientOnlyBuild = async () => {
+    const ops = await qwikPlugin.getOptimizer();
+  };
+
   return vitePlugin;
+}
+
+function getClientOnlyBody(srcMainUrl: string) {
+  return `
+  <body>
+    <script type="module">
+      // Vite Dev Mode Only
+      import { render, jsx } from '@builder.io/qwik';
+      import { Main } from '${srcMainUrl}';
+      render(document.body, jsx(Main));
+    </script>
+    <script>${QWIK_LOADER_DEFAULT_MINIFIED}</script>
+  </body>
+`;
 }
 
 /**

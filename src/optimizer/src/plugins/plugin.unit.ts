@@ -11,6 +11,7 @@ describe('qwik plugin', () => {
       const opts = await plugin.normalizeOptions();
       expect(opts.debug).toBe(false);
       expect(opts.isDevBuild).toBe(false);
+      expect(opts.isClientOnly).toBe(false);
       expect(opts.isSSRBuild).toBe(false);
       expect(opts.rootDir).toBe(cwd);
       expect(opts.distClientDir).toBe(resolve(cwd, 'dist'));

@@ -1,7 +1,8 @@
 import type { CorePlatform } from '@builder.io/qwik';
 import { normalizeUrl } from './utils';
 import { setPlatform } from '@builder.io/qwik';
-import type { SerializeDocumentOptions } from './types';
+import type { QrlMapper, SerializeDocumentOptions } from './types';
+import type { OutputEntryMap } from '@builder.io/qwik/optimizer';
 
 const _setImmediate = typeof setImmediate === 'function' ? setImmediate : setTimeout;
 
@@ -12,7 +13,8 @@ function createPlatform(document: any, opts: SerializeDocumentOptions) {
     throw new Error(`Invalid Document implementation`);
   }
   const doc: Document = document;
-  const symbols = opts.symbols;
+  const symbols = opts.symbols || Q_SYMBOL_FALLBACK;
+
   if (opts?.url) {
     doc.location.href = normalizeUrl(opts.url).href;
   }
@@ -48,15 +50,15 @@ function createPlatform(document: any, opts: SerializeDocumentOptions) {
       });
     },
     chunkForSymbol(symbolName: string) {
-      let symbol: string | undefined;
       if (symbols) {
-        if (typeof symbols === 'object') {
-          symbol = symbols.mapping[symbolName];
-        } else {
-          symbol = symbols(symbolName);
+        if (typeof symbols === 'object' && typeof symbols.mapping === 'object') {
+          return symbols.mapping[symbolName];
+        }
+        if (typeof symbols === 'function') {
+          return symbols(symbolName);
         }
       }
-      return symbol;
+      return undefined;
     },
   };
   return serverPlatform;
@@ -70,3 +72,6 @@ export async function setServerPlatform(document: any, opts: SerializeDocumentOp
   const platform = createPlatform(document, opts);
   setPlatform(document, platform);
 }
+
+/** Object replaced at build-time to act as a fallback when a symbols map is not provided */
+const Q_SYMBOL_FALLBACK = '__qSymbolFallback__';

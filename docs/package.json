@@ -1,11 +1,10 @@
 {
   "name": "qwik-docs",
-  "version": "0.0.0",
   "description": "Qwik Docs Site",
   "homepage": "https://qwik.builder.io/",
   "main": "src/main.tsx",
   "scripts": {
-    "build": "yarn build.qwest && concurrently npm:build.client npm:build.server",
+    "build": "yarn build.qwest && yarn build.client && yarn build.server",
     "build.client": "vite build --mode client",
     "build.server": "vite build --mode server",
     "build.qwest": "cd qwest && yarn build",
@@ -31,7 +30,6 @@
     "@types/refractor": "^3.0.2",
     "@types/service-worker-mock": "2.0.1",
     "autoprefixer": "10.4.2",
-    "concurrently": "^7.1.0",
     "estree-util-value-to-estree": "^1.3.0",
     "front-matter": "^4.0.2",
     "github-slugger": "^1.4.0",

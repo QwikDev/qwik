@@ -31,6 +31,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     distClientDir: null as any,
     distServerDir: null as any,
     isDevBuild: true,
+    isClientOnly: false,
     isSSRBuild: false,
     entryStrategy: null as any,
     minify: null as any,
@@ -48,6 +49,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
     opts.debug = !!updatedOpts.debug;
     opts.isDevBuild = !!updatedOpts.isDevBuild;
+    opts.isClientOnly = !!updatedOpts.isClientOnly;
     opts.isSSRBuild = !!updatedOpts.isSSRBuild;
 
     if (updatedOpts.entryStrategy && typeof updatedOpts.entryStrategy === 'object') {
@@ -246,14 +248,14 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
   };
 
   const load = async (id: string) => {
+    const optimizer = await getOptimizer();
+
     if (id === QWIK_BUILD_ID) {
       log(`load()`, QWIK_BUILD_ID, opts.isSSRBuild ? 'ssr' : 'client');
       return {
-        code: getBuildFile(opts.isSSRBuild),
+        code: getBuildTimeModule(opts),
       };
     }
-
-    const optimizer = await getOptimizer();
 
     if (opts.entryStrategy.type !== 'hook') {
       // On full build, lets normalize the ID
@@ -355,8 +357,6 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
     const addBundle = (b: GeneratedOutputBundle) => bundles.push(b);
 
-    const getBundles = () => bundles;
-
     const generateOutputEntryMap = async () => {
       const outputEntryMap: OutputEntryMap = {
         version: '1',
@@ -392,7 +392,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       return outputEntryMap;
     };
 
-    return { addBundle, getBundles, generateOutputEntryMap };
+    return { addBundle, generateOutputEntryMap };
   };
 
   const getOptions = async () => ({ ...opts });
@@ -436,10 +436,10 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
   };
 }
 
-function getBuildFile(isSSR: boolean) {
+function getBuildTimeModule(opts: NormalizedQwikPluginConfig) {
   return `
-export const isServer = ${isSSR};
-export const isBrowser = ${!isSSR};
+export const isServer = ${opts.isSSRBuild};
+export const isBrowser = ${!opts.isSSRBuild};
 `;
 }
 
@@ -477,6 +477,8 @@ export const MAIN_FILENAME_DEFAULT = 'main.tsx';
 
 export const ENTRY_SERVER_FILENAME_DEFAULT = 'entry.server.tsx';
 
+export const Q_SYMBOLS_FILENAME = 'q-symbol.json';
+
 export interface QwikPluginOptions {
   rootDir?: string;
   distClientDir?: string;
@@ -491,6 +493,7 @@ export interface QwikPluginOptions {
   symbolsOutput?: ((data: OutputEntryMap, outputOptions: any) => Promise<void> | void) | null;
   isDevBuild?: boolean;
   isSSRBuild?: boolean;
+  isClientOnly?: boolean;
 }
 
 export interface NormalizedQwikPluginConfig extends Required<QwikPluginOptions> {}

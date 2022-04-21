@@ -7,7 +7,7 @@ import type {
   MinifyMode,
   Optimizer,
   OptimizerOptions,
-  OutputEntryMap,
+  SymbolsEntryMap,
   TransformFsOptions,
   TransformModule,
   TransformModuleInput,
@@ -28,19 +28,19 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
   const opts: NormalizedQwikPluginConfig = {
     debug: false,
     rootDir: null as any,
-    distClientDir: null as any,
-    distServerDir: null as any,
+    outClientDir: null as any,
+    outServerDir: null as any,
     isDevBuild: true,
-    isClientOnly: false,
-    isSSRBuild: false,
+    buildMode: 'client',
     entryStrategy: null as any,
     minify: null as any,
     srcDir: null as any,
     srcInputs: null as any,
     srcRootInput: null as any,
-    srcEntryDevInput: null as any,
     srcEntryServerInput: null as any,
+    symbolsInput: null,
     symbolsOutput: null,
+    transformedModuleOutput: null,
   };
 
   const getOptimizer = async () => {
@@ -57,8 +57,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
     opts.debug = !!updatedOpts.debug;
     opts.isDevBuild = !!updatedOpts.isDevBuild;
-    opts.isClientOnly = !!updatedOpts.isClientOnly;
-    opts.isSSRBuild = !!updatedOpts.isSSRBuild;
+    opts.buildMode = updatedOpts.buildMode === 'ssr' ? 'ssr' : 'client';
 
     if (updatedOpts.entryStrategy && typeof updatedOpts.entryStrategy === 'object') {
       opts.entryStrategy = { ...updatedOpts.entryStrategy };
@@ -122,12 +121,6 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       return optimizer.sys.path.resolve(srcDir, p);
     });
 
-    if (typeof updatedOpts.srcEntryDevInput === 'string') {
-      opts.srcEntryDevInput = optimizer.sys.path.resolve(srcDir, updatedOpts.srcEntryDevInput);
-    } else {
-      opts.srcEntryDevInput = optimizer.sys.path.resolve(srcDir, ENTRY_DEV_FILENAME_DEFAULT);
-    }
-
     if (typeof updatedOpts.srcEntryServerInput === 'string') {
       opts.srcEntryServerInput = optimizer.sys.path.resolve(
         srcDir,
@@ -137,23 +130,31 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       opts.srcEntryServerInput = optimizer.sys.path.resolve(srcDir, ENTRY_SERVER_FILENAME_DEFAULT);
     }
 
-    if (typeof updatedOpts.distClientDir === 'string') {
-      opts.distClientDir = updatedOpts.distClientDir;
+    if (typeof updatedOpts.outClientDir === 'string') {
+      opts.outClientDir = updatedOpts.outClientDir;
     }
-    if (typeof opts.distClientDir !== 'string') {
-      opts.distClientDir = DIST_DIR_DEFAULT;
+    if (typeof opts.outClientDir !== 'string') {
+      opts.outClientDir = DIST_DIR_DEFAULT;
     }
-    opts.distClientDir = optimizer.sys.path.resolve(opts.rootDir, opts.distClientDir);
+    opts.outClientDir = optimizer.sys.path.resolve(opts.rootDir, opts.outClientDir);
 
-    if (typeof updatedOpts.distServerDir === 'string') {
-      opts.distServerDir = updatedOpts.distServerDir;
+    if (typeof updatedOpts.outServerDir === 'string') {
+      opts.outServerDir = updatedOpts.outServerDir;
     }
-    if (typeof opts.distServerDir !== 'string') {
-      opts.distServerDir = SERVER_DIR_DEFAULT;
+    if (typeof opts.outServerDir !== 'string') {
+      opts.outServerDir = SERVER_DIR_DEFAULT;
     }
-    opts.distServerDir = optimizer.sys.path.resolve(opts.rootDir, opts.distServerDir);
+    opts.outServerDir = optimizer.sys.path.resolve(opts.rootDir, opts.outServerDir);
 
-    if (updatedOpts.symbolsOutput) {
+    if (
+      updatedOpts.symbolsInput &&
+      typeof updatedOpts.symbolsInput === 'object' &&
+      typeof updatedOpts.symbolsInput.mapping === 'object'
+    ) {
+      opts.symbolsInput = updatedOpts.symbolsInput;
+    }
+
+    if (typeof updatedOpts.symbolsOutput === 'function') {
       opts.symbolsOutput = updatedOpts.symbolsOutput;
     }
 
@@ -170,9 +171,6 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       if (typeof opts.srcDir === 'string' && !fs.existsSync(opts.srcDir)) {
         throw new Error(`Qwik srcDir "${opts.srcDir}" not found`);
       }
-      if (!fs.existsSync(opts.srcEntryDevInput)) {
-        throw new Error(`Qwik srcEntryDevInput "${opts.srcEntryDevInput}" not found`);
-      }
       if (!fs.existsSync(opts.srcEntryServerInput)) {
         throw new Error(`Qwik srcEntryServerInput "${opts.srcEntryServerInput}" not found`);
       }
@@ -187,7 +185,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
   const buildStart = async () => {
     const isFullBuild = opts.entryStrategy?.type !== 'hook';
 
-    log(`buildStart()`, isFullBuild ? 'full build' : 'isolated build');
+    log(`buildStart()`, opts.buildMode, isFullBuild ? 'full build' : 'isolated build');
 
     if (isFullBuild) {
       const optimizer = await getOptimizer();
@@ -273,7 +271,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     const optimizer = await getOptimizer();
 
     if (id === QWIK_BUILD_ID) {
-      log(`load()`, QWIK_BUILD_ID, opts.isSSRBuild ? 'ssr' : 'client');
+      log(`load()`, QWIK_BUILD_ID, opts.buildMode);
       return {
         code: getBuildTimeModule(opts),
       };
@@ -381,7 +379,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
     const generateOutputEntryMap = async () => {
       const optimizer = await getOptimizer();
-      const outputEntryMap: OutputEntryMap = {
+      const outputEntryMap: SymbolsEntryMap = {
         version: '1',
         mapping: {},
         injections,
@@ -423,12 +421,16 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
   const getOptions = () => ({ ...opts });
 
-  const getTransformedOutputs = async () => {
+  const getTransformedOutputs = () => {
     const to: { [id: string]: TransformModule } = {};
     for (const [v, id] of transformedOutputs.values()) {
       to[id] = v;
     }
     return to;
+  };
+
+  const updateSymbolsEntryMap = (symbolsStr: string, code: string) => {
+    return code.replace(/("|')__qSymbolsEntryMap__("|')/g, symbolsStr);
   };
 
   const log = (...str: any[]) => {
@@ -459,14 +461,15 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     onDiagnostics,
     resolveId,
     transform,
+    updateSymbolsEntryMap,
     validateSource,
   };
 }
 
 function getBuildTimeModule(opts: NormalizedQwikPluginConfig) {
   return `
-export const isServer = ${opts.isSSRBuild};
-export const isBrowser = ${!opts.isSSRBuild};
+export const isServer = ${opts.buildMode === 'ssr'};
+export const isBrowser = ${opts.buildMode === 'client'};
 `;
 }
 
@@ -506,8 +509,6 @@ export const SRC_DIR_DEFAULT = 'src';
 
 export const ROOT_FILENAME_DEFAULT = 'root.tsx';
 
-export const ENTRY_DEV_FILENAME_DEFAULT = 'entry.dev.tsx';
-
 export const ENTRY_SERVER_FILENAME_DEFAULT = 'entry.server.tsx';
 
 const DIST_DIR_DEFAULT = 'dist';
@@ -519,22 +520,26 @@ export const SYMBOLS_MANIFEST_FILENAME = 'symbols-manifest.json';
 export interface QwikPluginOptions extends BasePluginOptions {
   rootDir?: string;
   isDevBuild?: boolean;
-  isSSRBuild?: boolean;
-  isClientOnly?: boolean;
+  buildMode?: QwikBuildMode;
 }
+
+export type QwikBuildMode = 'client' | 'ssr';
 
 export interface BasePluginOptions {
   debug?: boolean;
-  distClientDir?: string;
-  distServerDir?: string;
+  outClientDir?: string;
+  outServerDir?: string;
   entryStrategy?: EntryStrategy;
   minify?: MinifyMode;
   srcRootInput?: string | string[];
-  srcEntryDevInput?: string;
   srcEntryServerInput?: string;
   srcDir?: string | null;
   srcInputs?: TransformModuleInput[] | null;
-  symbolsOutput?: ((data: OutputEntryMap, outputOptions: any) => Promise<void> | void) | null;
+  symbolsInput?: SymbolsEntryMap | null;
+  symbolsOutput?: ((data: SymbolsEntryMap) => Promise<void> | void) | null;
+  transformedModuleOutput?:
+    | ((data: { [id: string]: TransformModule }) => Promise<void> | void)
+    | null;
 }
 
 export interface NormalizedQwikPluginConfig extends Required<QwikPluginOptions> {

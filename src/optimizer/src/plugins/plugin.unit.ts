@@ -11,15 +11,13 @@ describe('qwik plugin', () => {
       const opts = await plugin.normalizeOptions();
       expect(opts.debug).toBe(false);
       expect(opts.isDevBuild).toBe(false);
-      expect(opts.isClientOnly).toBe(false);
-      expect(opts.isSSRBuild).toBe(false);
+      expect(opts.buildMode).toBe('client');
       expect(opts.rootDir).toBe(cwd);
-      expect(opts.distClientDir).toBe(resolve(cwd, 'dist'));
-      expect(opts.distServerDir).toBe(resolve(cwd, 'server'));
+      expect(opts.outClientDir).toBe(resolve(cwd, 'dist'));
+      expect(opts.outServerDir).toBe(resolve(cwd, 'server'));
       expect(opts.srcDir).toBe(resolve(cwd, 'src'));
       expect(opts.srcInputs).toBe(null);
       expect(opts.srcRootInput).toEqual([resolve(cwd, 'src', 'root.tsx')]);
-      expect(opts.srcEntryDevInput).toBe(resolve(cwd, 'src', 'entry.dev.tsx'));
       expect(opts.srcEntryServerInput).toBe(resolve(cwd, 'src', 'entry.server.tsx'));
       expect(opts.entryStrategy).toEqual({ type: 'single' });
       expect(opts.minify).toBe('minify');
@@ -40,10 +38,10 @@ describe('qwik plugin', () => {
       expect(opts.minify).toBe('none');
     });
 
-    it('isSSRBuild true', async () => {
+    it('ssr build mode', async () => {
       const plugin = mockPlugin();
-      const opts = await plugin.normalizeOptions({ isSSRBuild: true });
-      expect(opts.isSSRBuild).toBe(true);
+      const opts = await plugin.normalizeOptions({ buildMode: 'ssr' });
+      expect(opts.buildMode).toBe('ssr');
     });
 
     it('entryStrategy', async () => {

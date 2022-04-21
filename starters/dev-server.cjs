@@ -3,17 +3,8 @@
 // DO NOT USE FOR PRODUCTION!!!
 
 const express = require('express');
-const { isAbsolute, join, resolve } = require('path');
-const {
-  readdirSync,
-  statSync,
-  mkdirSync,
-  writeFileSync,
-  readFileSync,
-  unlinkSync,
-  rmdirSync,
-  existsSync,
-} = require('fs');
+const { isAbsolute, join, resolve, dirname } = require('path');
+const { readdirSync, statSync, mkdirSync, unlinkSync, rmdirSync, existsSync } = require('fs');
 const { rollup } = require('rollup');
 
 const app = express();
@@ -40,16 +31,22 @@ async function handleApp(req, res) {
     const paths = url.pathname.split('/');
     const appName = paths[1];
     const appDir = join(startersAppsDir, appName);
+
     if (!existsSync(appDir)) {
+      res.send(`❌ Invalid dev-server path: ${appDir}`);
       return;
     }
+
     console.log(req.method, req.url, `[${appName} build/ssr]`);
 
     let symbols = cache.get(appDir);
     if (!symbols) {
       symbols = await buildApp(appDir);
+      console.log('buildApp', symbols);
       cache.set(appDir, symbols);
     }
+
+    console.log('ssrApp', symbols);
     const html = await ssrApp(req, appName, appDir, symbols);
 
     res.set('Content-Type', 'text/html');
@@ -59,6 +56,47 @@ async function handleApp(req, res) {
     res.set('Content-Type', 'text/plain; charset=utf-8');
     res.send(`❌ ${e.stack || e}`);
   }
+}
+
+function devPlugin() {
+  return {
+    name: 'devPlugin',
+    resolveId(id, importee) {
+      if (id === '@builder.io/qwik') {
+        delete require.cache[qwikDistCorePath];
+        return qwikDistCorePath;
+      }
+      if (id === '@builder.io/qwik/server') {
+        delete require.cache[qwikDistServerPath];
+        return qwikDistServerPath;
+      }
+      if (id === '@builder.io/qwik/jsx-runtime') {
+        delete require.cache[qwikDistJsxRuntimePath];
+        return qwikDistJsxRuntimePath;
+      }
+      if (!id.startsWith('.') && !isAbsolute(id)) {
+        return { id, external: true };
+      }
+      if (importee) {
+        const fileId = id.split('?')[0];
+        if (fileId.endsWith('.css')) {
+          return resolve(dirname(importee), fileId);
+        }
+      }
+      return null;
+    },
+    transform(code, id) {
+      if (id.endsWith('.css')) {
+        return `const CSS = ${JSON.stringify(code)}; export default CSS;`;
+      }
+      return null;
+    },
+    renderDynamicImport({ targetModuleId }) {
+      if (targetModuleId === 'node-fetch') {
+        return { left: 'import(', right: ')' };
+      }
+    },
+  };
 }
 
 async function buildApp(appDir) {
@@ -72,64 +110,45 @@ async function buildApp(appDir) {
   mkdirSync(appBuildDir);
   mkdirSync(appBuildServerDir);
 
-  let symbols;
-  const rollupInputOpts = {
+  let symbols = null;
+
+  const clientInputOpts = {
     input: getSrcInput(appSrcDir),
     plugins: [
-      {
-        name: 'devNodeRequire',
-        transform(code, id) {
-          if (id.endsWith('.css')) {
-            return `const CSS = ${JSON.stringify(code)}; export default CSS;`;
-          }
-          return null;
-        },
-        renderDynamicImport({ targetModuleId }) {
-          if (targetModuleId === 'node-fetch') {
-            return { left: 'import(', right: ')' };
-          }
-        },
-        resolveId(id) {
-          if (id === '@builder.io/qwik') {
-            delete require.cache[qwikDistCorePath];
-            return qwikDistCorePath;
-          }
-          if (id === '@builder.io/qwik/server') {
-            delete require.cache[qwikDistServerPath];
-            return qwikDistServerPath;
-          }
-          if (id === '@builder.io/qwik/jsx-runtime') {
-            delete require.cache[qwikDistJsxRuntimePath];
-            return qwikDistJsxRuntimePath;
-          }
-          if (!id.startsWith('.') && !isAbsolute(id)) {
-            return { id, external: true };
-          }
-          return null;
-        },
-      },
+      devPlugin(),
       optimizer.qwikRollup({
-        entryStrategy: { type: 'single' },
+        buildMode: 'client',
         srcDir: appSrcDir,
-        symbolsOutput: (data) => {
-          symbols = data;
+        entryStrategy: { type: 'single' },
+        symbolsOutput: (clientSymbols) => {
+          symbols = clientSymbols;
         },
       }),
     ],
   };
 
-  const rollupBuild = await rollup(rollupInputOpts);
-
-  await rollupBuild.write({
-    chunkFileNames: 'q-[name]-[hash].js',
+  const clientBuild = await rollup(clientInputOpts);
+  await clientBuild.write({
     dir: appBuildDir,
-    format: 'es',
   });
 
-  await rollupBuild.write({
+  const ssrInputOpts = {
+    input: getSrcInput(appSrcDir),
+    plugins: [
+      devPlugin(),
+      optimizer.qwikRollup({
+        buildMode: 'ssr',
+        srcDir: appSrcDir,
+        symbolsInput: symbols,
+      }),
+    ],
+  };
+
+  const ssrBuild = await rollup(ssrInputOpts);
+  await ssrBuild.write({
     dir: appBuildServerDir,
-    format: 'cjs',
   });
+
   return symbols;
 }
 
@@ -245,7 +264,7 @@ const server = app.listen(port, () => {
 
   console.log(`Starters:`);
   appNames.forEach((appName) => {
-    console.log(`${address}${appName}/`);
+    console.log(`  ${address}${appName}/`);
   });
   console.log(``);
 });

@@ -13,8 +13,9 @@
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "@types/node": "latest",
     "@builder.io/qwik": "latest",
+    "@types/node": "latest",
+    "node-fetch": "latest",
     "typescript": "latest",
     "vite": "latest"
   },

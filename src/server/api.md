@@ -91,10 +91,10 @@ export interface RenderToStringResult {
 export function serializeDocument(docOrEl: Document | Element, opts?: SerializeDocumentOptions): string;
 
 // Warning: (ae-forgotten-export) The symbol "QrlMapper" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "OutputEntryMap" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "SymbolsEntryMap" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export type ServerOutputSymbols = QrlMapper | OutputEntryMap | null;
+export type ServerOutputSymbols = QrlMapper | SymbolsEntryMap | null;
 
 // @public
 export function setServerPlatform(document: any, opts: SerializeDocumentOptions): Promise<void>;

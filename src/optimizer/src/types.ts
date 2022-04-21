@@ -227,7 +227,7 @@ export interface ManualEntryStrategy {
 /**
  * @alpha
  */
-export interface OutputEntryMap {
+export interface SymbolsEntryMap {
   version: string;
   mapping: { [canonicalName: string]: string };
   injections?: GlobalInjections[];

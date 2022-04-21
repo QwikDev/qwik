@@ -37,8 +37,7 @@ describe('vite  plugin', () => {
 
       expect(opts.debug).toBe(false);
       expect(opts.isDevBuild).toBe(true);
-      expect(opts.isClientOnly).toBe(true);
-      expect(opts.isSSRBuild).toBe(false);
+      expect(opts.buildMode).toBe('client');
       expect(opts.entryStrategy).toEqual({ type: 'hook' });
     });
 
@@ -64,7 +63,7 @@ describe('vite  plugin', () => {
 
       expect(opts.debug).toBe(false);
       expect(opts.isDevBuild).toBe(false);
-      expect(opts.isSSRBuild).toBe(false);
+      expect(opts.buildMode).toBe('client');
       expect(opts.entryStrategy).toEqual({ type: 'single' });
     });
 
@@ -90,7 +89,7 @@ describe('vite  plugin', () => {
 
       expect(opts.debug).toBe(false);
       expect(opts.isDevBuild).toBe(false);
-      expect(opts.isSSRBuild).toBe(true);
+      expect(opts.buildMode).toBe('ssr');
       expect(opts.entryStrategy).toEqual({ type: 'single' });
     });
   });

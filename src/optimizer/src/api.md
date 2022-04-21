@@ -176,23 +176,33 @@ export interface Path {
 }
 
 // @alpha (undocumented)
-export function qwikRollup(inputOpts?: QwikRollupPluginOptions): any;
+export function qwikRollup(qwikRollupOpts?: QwikRollupPluginOptions): any;
 
 // Warning: (ae-forgotten-export) The symbol "BasePluginOptions" needs to be exported by the entry point index.d.ts
 //
 // @alpha (undocumented)
 export interface QwikRollupPluginOptions extends BasePluginOptions {
+    // Warning: (ae-forgotten-export) The symbol "QwikBuildMode" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    buildMode?: QwikBuildMode;
+    // (undocumented)
+    isDevBuild?: boolean;
     // (undocumented)
     optimizerOptions?: OptimizerOptions;
+    // (undocumented)
+    rootDir?: string;
 }
 
 // @alpha (undocumented)
-export function qwikVite(inputOpts?: QwikViteOptions): any;
+export function qwikVite(qwikViteOpts?: QwikViteOptions): any;
 
 // @alpha (undocumented)
 export interface QwikViteOptions extends BasePluginOptions {
     // (undocumented)
     optimizerOptions?: OptimizerOptions;
+    // (undocumented)
+    srcEntryDevInput?: string;
 }
 
 // @alpha (undocumented)

@@ -10,7 +10,7 @@
     "build.qwest": "cd qwest && yarn build",
     "dev": "vite",
     "dev.ssr": "vite --mode server",
-    "preview.wrangler": "yarn build && wrangler pages dev ./dist",
+    "serve.wrangler": "yarn build && wrangler pages dev ./dist",
     "start": "yarn dev",
     "fmt": "prettier --write .",
     "fmt.check": "prettier --check .",

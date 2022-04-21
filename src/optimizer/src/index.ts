@@ -14,7 +14,7 @@ export type {
   MinifyMode,
   Optimizer,
   OptimizerSystem,
-  OutputEntryMap,
+  SymbolsEntryMap as OutputEntryMap,
   Path,
   SingleEntryStrategy,
   SmartEntryStrategy,

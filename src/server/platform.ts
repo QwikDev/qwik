@@ -13,7 +13,7 @@ function createPlatform(document: any, opts: SerializeDocumentOptions) {
     throw new Error(`Invalid Document implementation`);
   }
   const doc: Document = document;
-  const symbols = opts.symbols || Q_SYMBOL_FALLBACK;
+  const symbols = opts.symbols || Q_SYMBOLS_ENTRY_MAP;
 
   if (opts?.url) {
     doc.location.href = normalizeUrl(opts.url).href;
@@ -74,4 +74,4 @@ export async function setServerPlatform(document: any, opts: SerializeDocumentOp
 }
 
 /** Object replaced at build-time to act as a fallback when a symbols map is not provided */
-const Q_SYMBOL_FALLBACK = '__qSymbolFallback__';
+const Q_SYMBOLS_ENTRY_MAP = '__qSymbolsEntryMap__';

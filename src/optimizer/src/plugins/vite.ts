@@ -17,6 +17,7 @@ import { QWIK_LOADER_DEFAULT_MINIFIED } from '../scripts';
  * @alpha
  */
 export function qwikVite(inputOpts: QwikViteOptions = {}): any {
+  let hasValidatedSource = false;
   const qwikPlugin = createPlugin(inputOpts.optimizerOptions);
 
   const vitePlugin: VitePlugin = {
@@ -42,14 +43,13 @@ export function qwikVite(inputOpts: QwikViteOptions = {}): any {
         distClientDir: inputOpts.distClientDir!,
         distServerDir: inputOpts.distServerDir!,
         srcInputs: inputOpts.srcInputs!,
-        srcRootModule: inputOpts.srcRootModule!,
-        srcEntryServerModule: inputOpts.srcEntryServerModule!,
+        srcRootInput: inputOpts.srcRootInput!,
+        srcEntryServerInput: inputOpts.srcEntryServerInput!,
         symbolsOutput: inputOpts.symbolsOutput!,
       };
 
+      const optimizer = await qwikPlugin.getOptimizer();
       const normalizeOpts = await qwikPlugin.normalizeOptions(pluginOpts);
-
-      await qwikPlugin.validateSource();
 
       const updatedViteConfig: UserConfig = {
         esbuild: { include: /\.js$/ },
@@ -60,8 +60,8 @@ export function qwikVite(inputOpts: QwikViteOptions = {}): any {
         build: {
           rollupOptions: {
             output: {
-              chunkFileNames: 'build/q-[hash].js',
-              assetFileNames: 'build/q-[hash].[ext]',
+              chunkFileNames: optimizer.sys.path.join('build', 'q-[hash].js'),
+              assetFileNames: optimizer.sys.path.join('build', 'q-[hash].[ext]'),
             },
             onwarn: (warning, warn) => {
               if (
@@ -86,7 +86,7 @@ export function qwikVite(inputOpts: QwikViteOptions = {}): any {
 
       if (normalizeOpts.isSSRBuild) {
         // Server input
-        updatedViteConfig.build!.rollupOptions!.input = normalizeOpts.srcEntryServerModule;
+        updatedViteConfig.build!.rollupOptions!.input = normalizeOpts.srcEntryServerInput;
 
         // Server outDir
         updatedViteConfig.build!.outDir = normalizeOpts.distServerDir!;
@@ -114,9 +114,9 @@ export function qwikVite(inputOpts: QwikViteOptions = {}): any {
       } else {
         // Client input
         if (normalizeOpts.isClientOnly) {
-          updatedViteConfig.build!.rollupOptions!.input = normalizeOpts.srcEntryDevModule;
+          updatedViteConfig.build!.rollupOptions!.input = normalizeOpts.srcEntryDevInput;
         } else {
-          updatedViteConfig.build!.rollupOptions!.input = normalizeOpts.srcRootModule;
+          updatedViteConfig.build!.rollupOptions!.input = normalizeOpts.srcRootInput;
         }
 
         // Client outDir
@@ -127,6 +127,11 @@ export function qwikVite(inputOpts: QwikViteOptions = {}): any {
     },
 
     async buildStart() {
+      if (!hasValidatedSource) {
+        await qwikPlugin.validateSource();
+        hasValidatedSource = true;
+      }
+
       qwikPlugin.onAddWatchFile((path) => this.addWatchFile(path));
 
       qwikPlugin.onDiagnostics((diagnostics, optimizer) => {
@@ -242,7 +247,7 @@ export function qwikVite(inputOpts: QwikViteOptions = {}): any {
         return;
       }
 
-      qwikPlugin.log(`configureServer(), entry module: ${opts.srcEntryServerModule}`);
+      qwikPlugin.log(`configureServer(), entry module: ${opts.srcEntryServerInput}`);
 
       const optimizer = await qwikPlugin.getOptimizer();
       if (typeof fetch !== 'function' && optimizer.sys.env() === 'node') {
@@ -275,7 +280,7 @@ export function qwikVite(inputOpts: QwikViteOptions = {}): any {
           if (opts.isClientOnly) {
             qwikPlugin.log(`handleClientEntry("${url}")`);
 
-            let entryUrl = optimizer.sys.path.relative(opts.rootDir, opts.srcEntryServerModule);
+            let entryUrl = optimizer.sys.path.relative(opts.rootDir, opts.srcEntryServerInput);
             entryUrl = '/' + entryUrl.replace(/\\/g, '/');
             let html = getQwikViteClientIndexHtml(entryUrl);
             html = await server.transformIndexHtml(pathname, html);
@@ -287,7 +292,7 @@ export function qwikVite(inputOpts: QwikViteOptions = {}): any {
           }
 
           qwikPlugin.log(`handleSSR("${url}")`);
-          const { render } = await server.ssrLoadModule(opts.srcEntryServerModule, {
+          const { render } = await server.ssrLoadModule(opts.srcEntryServerInput, {
             fixStacktrace: true,
           });
           if (render) {

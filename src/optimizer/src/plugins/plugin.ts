@@ -37,9 +37,9 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     minify: null as any,
     srcDir: null as any,
     srcInputs: null as any,
-    srcRootModule: null as any,
-    srcEntryDevModule: null as any,
-    srcEntryServerModule: null as any,
+    srcRootInput: null as any,
+    srcEntryDevInput: null as any,
+    srcEntryServerInput: null as any,
     symbolsOutput: null,
   };
 
@@ -87,92 +87,71 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     }
     if (typeof opts.rootDir !== 'string') {
       opts.rootDir = optimizer.sys.cwd();
-    } else if (!optimizer.sys.path.isAbsolute(opts.rootDir)) {
-      opts.rootDir = optimizer.sys.path.resolve(optimizer.sys.cwd(), opts.rootDir);
     }
+    opts.rootDir = optimizer.sys.path.resolve(optimizer.sys.cwd(), opts.rootDir);
 
+    let srcDir = optimizer.sys.path.resolve(opts.rootDir, SRC_DIR_DEFAULT);
     if (typeof updatedOpts.srcDir === 'string') {
-      opts.srcDir = updatedOpts.srcDir;
+      opts.srcDir = optimizer.sys.path.resolve(opts.rootDir, updatedOpts.srcDir);
+      srcDir = opts.srcDir;
       opts.srcInputs = null;
     } else if (Array.isArray(updatedOpts.srcInputs)) {
       opts.srcInputs = [...updatedOpts.srcInputs];
       opts.srcDir = null;
+    } else {
+      opts.srcDir = srcDir;
     }
 
     if (Array.isArray(opts.srcInputs)) {
       opts.srcInputs.forEach((i) => {
         i.path = optimizer.sys.path.resolve(opts.rootDir, i.path);
       });
-    } else {
-      opts.srcDir = optimizer.sys.path.resolve(opts.rootDir, SRC_DIR_DEFAULT);
-    }
-
-    if (typeof opts.srcDir === 'string' && !optimizer.sys.path.isAbsolute(opts.srcDir)) {
+    } else if (typeof opts.srcDir === 'string') {
       opts.srcDir = optimizer.sys.path.resolve(opts.rootDir, opts.srcDir);
     }
 
-    if (typeof updatedOpts.srcRootModule === 'string') {
-      opts.srcRootModule = updatedOpts.srcRootModule;
-    }
-    if (typeof opts.srcRootModule !== 'string') {
-      opts.srcRootModule = optimizer.sys.path.resolve(opts.srcDir!, ROOT_FILENAME_DEFAULT);
-    }
-    if (
-      typeof opts.srcRootModule === 'string' &&
-      !optimizer.sys.path.isAbsolute(opts.srcRootModule)
-    ) {
-      opts.srcRootModule = optimizer.sys.path.resolve(opts.rootDir, opts.srcRootModule);
+    if (typeof updatedOpts.srcRootInput === 'string') {
+      opts.srcRootInput = [updatedOpts.srcRootInput];
+    } else if (Array.isArray(updatedOpts.srcRootInput)) {
+      opts.srcRootInput = [...updatedOpts.srcRootInput];
+    } else {
+      opts.srcRootInput = [ROOT_FILENAME_DEFAULT];
     }
 
-    if (typeof updatedOpts.srcEntryDevModule === 'string') {
-      opts.srcEntryDevModule = updatedOpts.srcEntryDevModule;
-    }
-    if (typeof opts.srcEntryDevModule !== 'string') {
-      opts.srcEntryDevModule = optimizer.sys.path.resolve(opts.srcDir!, ENTRY_DEV_FILENAME_DEFAULT);
-    }
-    if (
-      typeof opts.srcEntryDevModule === 'string' &&
-      !optimizer.sys.path.isAbsolute(opts.srcEntryDevModule)
-    ) {
-      opts.srcEntryDevModule = optimizer.sys.path.resolve(opts.rootDir, opts.srcEntryDevModule);
+    opts.srcRootInput = opts.srcRootInput.map((p) => {
+      return optimizer.sys.path.resolve(srcDir, p);
+    });
+
+    if (typeof updatedOpts.srcEntryDevInput === 'string') {
+      opts.srcEntryDevInput = optimizer.sys.path.resolve(srcDir, updatedOpts.srcEntryDevInput);
+    } else {
+      opts.srcEntryDevInput = optimizer.sys.path.resolve(srcDir, ENTRY_DEV_FILENAME_DEFAULT);
     }
 
-    if (typeof updatedOpts.srcEntryServerModule === 'string') {
-      opts.srcEntryServerModule = updatedOpts.srcEntryServerModule;
-    }
-    if (typeof opts.srcEntryServerModule !== 'string') {
-      opts.srcEntryServerModule = optimizer.sys.path.resolve(
-        opts.srcDir!,
-        ENTRY_SERVER_FILENAME_DEFAULT
+    if (typeof updatedOpts.srcEntryServerInput === 'string') {
+      opts.srcEntryServerInput = optimizer.sys.path.resolve(
+        srcDir,
+        updatedOpts.srcEntryServerInput
       );
-    }
-    if (
-      typeof opts.srcEntryServerModule === 'string' &&
-      !optimizer.sys.path.isAbsolute(opts.srcEntryServerModule)
-    ) {
-      opts.srcEntryServerModule = optimizer.sys.path.resolve(
-        opts.rootDir,
-        opts.srcEntryServerModule
-      );
+    } else {
+      opts.srcEntryServerInput = optimizer.sys.path.resolve(srcDir, ENTRY_SERVER_FILENAME_DEFAULT);
     }
 
     if (typeof updatedOpts.distClientDir === 'string') {
       opts.distClientDir = updatedOpts.distClientDir;
     }
     if (typeof opts.distClientDir !== 'string') {
-      opts.distClientDir = optimizer.sys.path.resolve(optimizer.sys.cwd(), 'dist');
-    } else if (!optimizer.sys.path.isAbsolute(opts.distClientDir)) {
-      opts.distClientDir = optimizer.sys.path.resolve(optimizer.sys.cwd(), opts.distClientDir);
+      opts.distClientDir = DIST_DIR_DEFAULT;
     }
+    opts.distClientDir = optimizer.sys.path.resolve(opts.rootDir, opts.distClientDir);
 
     if (typeof updatedOpts.distServerDir === 'string') {
       opts.distServerDir = updatedOpts.distServerDir;
     }
     if (typeof opts.distServerDir !== 'string') {
-      opts.distServerDir = optimizer.sys.path.resolve(optimizer.sys.cwd(), 'server');
-    } else if (!optimizer.sys.path.isAbsolute(opts.distServerDir)) {
-      opts.distServerDir = optimizer.sys.path.resolve(optimizer.sys.cwd(), opts.distServerDir);
+      opts.distServerDir = SERVER_DIR_DEFAULT;
     }
+    opts.distServerDir = optimizer.sys.path.resolve(opts.rootDir, opts.distServerDir);
 
     if (updatedOpts.symbolsOutput) {
       opts.symbolsOutput = updatedOpts.symbolsOutput;
@@ -191,15 +170,17 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       if (typeof opts.srcDir === 'string' && !fs.existsSync(opts.srcDir)) {
         throw new Error(`Qwik srcDir "${opts.srcDir}" not found`);
       }
-      if (!fs.existsSync(opts.srcEntryDevModule)) {
-        throw new Error(`Qwik srcEntryDevModule "${opts.srcEntryDevModule}" not found`);
+      if (!fs.existsSync(opts.srcEntryDevInput)) {
+        throw new Error(`Qwik srcEntryDevInput "${opts.srcEntryDevInput}" not found`);
       }
-      if (!fs.existsSync(opts.srcEntryServerModule)) {
-        throw new Error(`Qwik srcEntryServerModule "${opts.srcEntryServerModule}" not found`);
+      if (!fs.existsSync(opts.srcEntryServerInput)) {
+        throw new Error(`Qwik srcEntryServerInput "${opts.srcEntryServerInput}" not found`);
       }
-      if (!fs.existsSync(opts.srcRootModule)) {
-        throw new Error(`Qwik srcRootModule "${opts.srcRootModule}" not found`);
-      }
+      opts.srcRootInput.forEach((input) => {
+        if (!fs.existsSync(input)) {
+          throw new Error(`Qwik srcRootInput "${input}" not found`);
+        }
+      });
     }
   };
 
@@ -525,6 +506,10 @@ export const ENTRY_DEV_FILENAME_DEFAULT = 'entry.dev.tsx';
 
 export const ENTRY_SERVER_FILENAME_DEFAULT = 'entry.server.tsx';
 
+const DIST_DIR_DEFAULT = 'dist';
+
+const SERVER_DIR_DEFAULT = 'server';
+
 export const Q_SYMBOLS_FILENAME = 'q-symbol.json';
 
 export interface QwikPluginOptions extends BasePluginOptions {
@@ -540,15 +525,17 @@ export interface BasePluginOptions {
   distServerDir?: string;
   entryStrategy?: EntryStrategy;
   minify?: MinifyMode;
-  srcRootModule?: string;
-  srcEntryDevModule?: string;
-  srcEntryServerModule?: string;
+  srcRootInput?: string | string[];
+  srcEntryDevInput?: string;
+  srcEntryServerInput?: string;
   srcDir?: string | null;
   srcInputs?: TransformModuleInput[] | null;
   symbolsOutput?: ((data: OutputEntryMap, outputOptions: any) => Promise<void> | void) | null;
 }
 
-export interface NormalizedQwikPluginConfig extends Required<QwikPluginOptions> {}
+export interface NormalizedQwikPluginConfig extends Required<QwikPluginOptions> {
+  srcRootInput: string[];
+}
 
 interface GeneratedOutputBundle {
   fileName: string;

@@ -433,10 +433,10 @@ jobs:
         settings:
           - host: ubuntu-latest
             browser: chromium
-            node: 16.x
+            node: 18.x
           - host: macos-latest
             browser: webkit
-            node: 14.x
+            node: 16.x
           - host: windows-latest
             browser: firefox
             node: 14.x
@@ -465,8 +465,6 @@ jobs:
           mkdir dist-dev/
           mkdir dist-dev/@builder.io-qwik/
           mv builderio-qwik-distribution/* dist-dev/@builder.io-qwik/
-          mkdir dist-dev/create-qwik/
-          mv dist-dev-create-qwik/* dist-dev/create-qwik/
           mkdir dist-dev/eslint-plugin-qwik/
           mv dist-dev-eslint-plugin-qwik/* dist-dev/eslint-plugin-qwik/
 

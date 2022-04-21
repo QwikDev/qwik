@@ -1,7 +1,7 @@
 /* eslint-disable */
 
 // @ts-ignore
-import { qwikSSR } from '../server/build/entry.cloudflare.js';
+import { qwikSSR } from '../server/entry.server.js';
 
 const CACHE_CONTROL = 60;
 

@@ -1,32 +1,52 @@
 /* eslint-disable */
 
 // @ts-ignore
-import { qwikSSR } from '../server/entry.server.js';
+import { render } from '../server/entry.server.js';
 
-const CACHE_CONTROL = 60;
+export const onRequestGet: PagesFunction = async ({ request, next, waitUntil }) => {
+  try {
+    const url = new URL(request.url);
 
-export const onRequestGet: PagesFunction = async (req) => {
-  // Handle static assets
-  if (/\.\w+$/.test(req.request.url)) {
-    return req.next(req.request);
-  }
-
-  // Early return from cache
-  const cache = await caches.open('custom:qwik');
-  if (CACHE_CONTROL > 0) {
-    const cachedResponse = await cache.match(req.request);
-    if (cachedResponse) {
-      return cachedResponse;
+    // Handle static assets
+    if (/\.\w+$/.test(request.url)) {
+      return next(request);
     }
-  }
 
-  // Generate SSR response
-  const response = (await qwikSSR(req)) as Response;
+    // Do not using caching during development
+    const useCache = url.hostname !== 'localhost';
 
-  // Cache results
-  if (CACHE_CONTROL > 0) {
-    response.headers.set('Cache-Control', `max-age=${CACHE_CONTROL}`);
-    req.waitUntil(cache.put(req.request, response.clone()));
+    // Early return from cache
+    const cache = await caches.open('custom:qwik');
+    if (useCache) {
+      const cachedResponse = await cache.match(request);
+      if (cachedResponse) {
+        return cachedResponse;
+      }
+    }
+
+    // Generate Qwik SSR response
+    const result = await render({
+      url: request.url,
+      base: '/build/',
+    });
+
+    const response = new Response(result.html, {
+      headers: {
+        'Content-Type': 'text/html; charset=utf-8',
+        'Cache-Control': useCache
+          ? `max-age=60, s-maxage=10, stale-while-revalidate=604800, stale-if-error=604800`
+          : `no-cache, max-age=0`,
+      },
+    });
+
+    if (useCache) {
+      waitUntil(cache.put(request, response.clone()));
+    }
+
+    // Return Qwik SSR response
+    return response;
+  } catch (e) {
+    // 500 Error
+    return new Response(String(e), { status: 500 });
   }
-  return response;
 };

@@ -4,6 +4,7 @@
     "serve": "node app.js"
   },
   "devDependencies": {
+    "@types/express": "4.17.13",
     "express": "4.17.3"
   }
 }

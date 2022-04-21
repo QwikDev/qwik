@@ -42,7 +42,7 @@ export interface WindowOptions extends DocumentOptions {}
  * @public
  */
 export interface SerializeDocumentOptions extends DocumentOptions {
-  symbols: ServerOutputSymbols;
+  symbols?: ServerOutputSymbols;
 }
 
 /**

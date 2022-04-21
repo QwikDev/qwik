@@ -1,4 +1,14 @@
-## Cloudflare Pages Deployment
+## Cloudflare Pages
+
+Cloudflare's [wrangler](https://github.com/cloudflare/wrangler) CLI can be used to preview a production build locally. To start a local server, run:
+
+```
+npm run serve
+```
+
+Then visit [http://localhost:8787/](http://localhost:8787/)
+
+### Deployments
 
 [Cloudflare Pages](https://pages.cloudflare.com/) are deployable through their [Git provider integrations](https://developers.cloudflare.com/pages/platform/git-integration/).
 

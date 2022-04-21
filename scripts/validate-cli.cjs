@@ -5,10 +5,8 @@ const { join } = require('path');
 async function validateCreateQwikCli() {
   console.log(`👾 validating create-qwik...`);
 
-  const distDevDir = join(__dirname, '..', 'dist-dev');
-  const distQwik = join(distDevDir, '@builder.io-qwik');
-
-  const cliDir = join(distDevDir, 'create-qwik');
+  const distDir = join(__dirname, '..', 'dist-dev');
+  const cliDir = join(distDir, 'create-qwik');
   accessSync(cliDir);
 
   const cliBin = join(cliDir, 'create-qwik');
@@ -39,28 +37,39 @@ async function validateCreateQwikCli() {
   assert.ok(starters.servers.length > 0);
   assert.ok(starters.features.length > 0);
 
-  const outDir = join(distDevDir, 'my-todo-app');
-  console.log(`🕵️‍♂️ creating app [todo/express]: ${outDir}`);
-  rmSync(outDir, { force: true, recursive: true });
+  await validateStarter(api, distDir, 'starter', 'express');
+  await validateStarter(api, distDir, 'starter-builder', 'cloudflare-pages');
+  await validateStarter(api, distDir, 'todo', 'express');
+
+  console.log(`👽 create-qwik validated\n`);
+}
+
+async function validateStarter(api, distDir, appId, serverId) {
+  const projectName = `${appId}-${serverId}`;
+  const appDir = join(distDir, 'app-' + projectName);
+
+  console.log(`\n------------------------------------\n`);
+  console.log(`🌎 ${projectName}: ${appDir}`);
+  rmSync(appDir, { force: true, recursive: true });
 
   const expressResult = await api.generateStarter({
-    projectName: 'My ToDo App',
-    appId: 'todo',
-    serverId: 'express',
-    outDir: outDir,
+    projectName,
+    appId,
+    serverId,
+    outDir: appDir,
     featureIds: [],
   });
 
-  assert.strictEqual(expressResult.projectName, 'My ToDo App');
-  assert.strictEqual(expressResult.appId, 'todo');
-  assert.strictEqual(expressResult.serverId, 'express');
-  assert.strictEqual(expressResult.outDir, outDir);
+  assert.strictEqual(expressResult.projectName, projectName);
+  assert.strictEqual(expressResult.appId, appId);
+  assert.strictEqual(expressResult.serverId, serverId);
+  assert.strictEqual(expressResult.outDir, appDir);
 
   accessSync(expressResult.outDir);
 
   const appPkgJsonPath = join(expressResult.outDir, 'package.json');
   const appPkgJson = JSON.parse(readFileSync(appPkgJsonPath, 'utf-8'));
-  assert.strictEqual(appPkgJson.name, 'my-todo-app');
+  assert.strictEqual(appPkgJson.name, projectName.toLowerCase());
 
   appPkgJson.devDependencies['@builder.io/qwik'] = 'latest';
   writeFileSync(appPkgJsonPath, JSON.stringify(appPkgJson, null, 2));
@@ -69,18 +78,34 @@ async function validateCreateQwikCli() {
   accessSync(tsconfigPath);
 
   const { execa } = await import('execa');
-  console.log(`🕵️‍♂️ npm install [todo/express]`);
-  await execa('npm', ['install'], { cwd: outDir, stdout: 'inherit' });
+  console.log(`💥 ${projectName}: npm install`);
+  await execa('npm', ['install'], { cwd: appDir, stdout: 'inherit' });
 
-  console.log(`🌟 copy @builder.io/qwik dist [todo/express]`);
-  const qwikNodeModule = join(outDir, 'node_modules', '@builder.io', 'qwik');
+  console.log(`🌟 ${projectName}: copy @builder.io/qwik distribution`);
+  const qwikNodeModule = join(appDir, 'node_modules', '@builder.io', 'qwik');
   rmSync(qwikNodeModule, { force: true, recursive: true });
+
+  const distQwik = join(__dirname, '..', 'dist-dev', '@builder.io-qwik');
   cpSync(distQwik, qwikNodeModule, { recursive: true });
 
-  console.log(`🌈 npm run build [todo/express]`);
-  await execa('npm', ['run', 'build'], { cwd: outDir, stdout: 'inherit' });
+  console.log(`🌈 ${projectName}: npm run build`);
+  await execa('npm', ['run', 'build'], { cwd: appDir, stdout: 'inherit' });
 
-  console.log(`👽 create-qwik validated\n`);
+  accessSync(join(appDir, '.vscode'));
+  accessSync(join(appDir, 'dist', 'favicon.ico'));
+  accessSync(join(appDir, 'dist', 'symbols-manifest.json'));
+  accessSync(join(appDir, 'dist', 'build'));
+  accessSync(join(appDir, 'server', 'entry.server.js'));
+  accessSync(join(appDir, 'server', 'favicon.ico'));
+  accessSync(join(appDir, 'README.md'));
+  accessSync(join(appDir, 'tsconfig.json'));
+  accessSync(join(appDir, 'tsconfig.tsbuildinfo'));
+
+  const { render } = await import(join(appDir, 'server', 'entry.server.js'));
+  const result = await render();
+  assert.ok(typeof result.html === 'string');
+
+  console.log(`⭐️ ${projectName}: validated\n`);
 }
 
 validateCreateQwikCli();

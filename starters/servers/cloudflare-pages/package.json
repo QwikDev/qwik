@@ -1,10 +1,11 @@
 {
-  "description": "Cloudflare Pages (serverless).",
+  "description": "Cloudflare Pages.",
   "scripts": {
-    "build.server": "vite build --outDir server/build --ssr src/entry.cloudflare.tsx"
+    "serve": "wrangler pages dev ./dist"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "3.2.0"
+    "@cloudflare/workers-types": "3.6.0",
+    "wrangler": "beta"
   },
   "qwik": {
     "priority": -1

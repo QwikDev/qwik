@@ -380,6 +380,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     const addBundle = (b: GeneratedOutputBundle) => bundles.push(b);
 
     const generateOutputEntryMap = async () => {
+      const optimizer = await getOptimizer();
       const outputEntryMap: OutputEntryMap = {
         version: '1',
         mapping: {},
@@ -396,16 +397,19 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
         hooks.forEach((h) => {
           const symbolName = h.name;
-          let filename = h.canonicalFilename + '.js';
+          let basename = h.canonicalFilename + '.js';
 
           const found = bundles.find((b) => {
-            return Object.keys(b.modules).find((f) => f.endsWith(filename));
+            return Object.keys(b.modules).find((f) => f.endsWith(basename));
           });
 
           if (found) {
-            filename = found.fileName;
+            basename = found.fileName;
           }
-          outputEntryMap.mapping[symbolName] = filename;
+
+          basename = optimizer.sys.path.basename(basename);
+
+          outputEntryMap.mapping[symbolName] = basename;
         });
       }
 
@@ -510,7 +514,7 @@ const DIST_DIR_DEFAULT = 'dist';
 
 const SERVER_DIR_DEFAULT = 'server';
 
-export const Q_SYMBOLS_FILENAME = 'q-symbol.json';
+export const SYMBOLS_MANIFEST_FILENAME = 'symbols-manifest.json';
 
 export interface QwikPluginOptions extends BasePluginOptions {
   rootDir?: string;

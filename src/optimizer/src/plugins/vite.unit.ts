@@ -68,9 +68,9 @@ describe('vite  plugin', () => {
       expect(opts.entryStrategy).toEqual({ type: 'single' });
     });
 
-    it('command: build, mode: server - defaults', async () => {
+    it('command: build, mode: ssr - defaults', async () => {
       const plugin: VitePlugin = qwikVite(inputOpts);
-      const c = (await plugin.config!({}, { command: 'build', mode: 'server' }))!;
+      const c = (await plugin.config!({}, { command: 'build', mode: 'ssr' }))!;
       const opts = await plugin.api?.getOptions();
       const build = c.build!;
       const rollupOptions = build!.rollupOptions!;

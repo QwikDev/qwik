@@ -4,7 +4,6 @@
 import { render } from '../server/entry.server.js';
 
 export const onRequestGet: PagesFunction = async ({ request, next, waitUntil }) => {
-  // Handle static assets
   try {
     const url = new URL(request.url);
     if (url.hostname === 'qwik.builder.io' && url.pathname === '/') {
@@ -12,6 +11,7 @@ export const onRequestGet: PagesFunction = async ({ request, next, waitUntil }) 
       return Response.redirect('https://qwik.builder.io/guide/overview', 302);
     }
 
+    // Handle static assets
     if (/\.\w+$/.test(url.pathname)) {
       const response = await next(request);
 

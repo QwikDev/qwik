@@ -1,32 +1,19 @@
 /* eslint-disable */
+
 const express = require('express');
 const { join } = require('path');
-const { render } = require('./server/entry.server');
 
-const PORT = process.env.PORT || 8080;
+const app = express();
 
-async function qwikMiddleware(req, res) {
-  const result = await render({
-    url: new URL(`${req.protocol}://${req.hostname}${req.url}`),
-  });
-  res.send(result.html);
-}
+// serves static files from the dist directory
+app.use(
+  express.static(join(__dirname, 'dist'), {
+    index: false,
+  })
+);
 
-async function startServer() {
-  const app = express();
-  const distDir = join(__dirname, 'dist');
+// server-side renders Qwik application
+const { qwikMiddleware } = require('./server/entry.server');
+app.get('/*', qwikMiddleware);
 
-  app.use(
-    express.static(distDir, {
-      index: false,
-    })
-  );
-
-  app.get('/*', qwikMiddleware);
-
-  app.listen(PORT, () => {
-    console.log(`http://localhost:${PORT}/`);
-  });
-}
-
-startServer();
+app.listen(8080, () => console.log(`http://localhost:8080/`));

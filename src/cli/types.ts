@@ -23,6 +23,7 @@ export interface StarterData {
   id: string;
   name: string;
   description: string;
+  readme: string | null;
   dir: string;
   priority: number;
   featureOptions: string[];

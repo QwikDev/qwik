@@ -1,11 +1,9 @@
-import { component$, useStore } from '@builder.io/qwik';
+import { component$, useStyles$, useStore } from '@builder.io/qwik';
 import { Footer } from '../footer/footer';
 import { Header } from '../header/header';
 import { Body } from '../body/body';
 import type { Todos } from '../../state/state';
-
-import './base.css';
-import './index.css';
+import styles from './index.css?inline';
 
 /**
  * Overall application component.
@@ -15,6 +13,8 @@ import './index.css';
  * download to the client.
  */
 export const App = component$(() => {
+  useStyles$(styles);
+
   const todos = useStore<Todos>({
     filter: 'all',
     items: [

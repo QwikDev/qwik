@@ -8,7 +8,7 @@ import {
   QwikPluginOptions,
   QWIK_CORE_ID,
   QWIK_JSX_RUNTIME_ID,
-  Q_SYMBOLS_FILENAME,
+  SYMBOLS_MANIFEST_FILENAME,
 } from './plugin';
 import { createRollupError } from './rollup';
 import { QWIK_LOADER_DEFAULT_MINIFIED } from '../scripts';
@@ -35,8 +35,8 @@ export function qwikVite(inputOpts: QwikViteOptions = {}): any {
       const pluginOpts: QwikPluginOptions = {
         debug: !!inputOpts.debug,
         isDevBuild: viteEnv.command === 'serve',
-        isClientOnly: viteEnv.command === 'serve' && viteEnv.mode !== 'server',
-        isSSRBuild: viteEnv.command === 'build' && viteEnv.mode === 'server',
+        isClientOnly: viteEnv.command === 'serve' && viteEnv.mode !== 'ssr',
+        isSSRBuild: viteEnv.command === 'build' && viteEnv.mode === 'ssr',
         entryStrategy: inputOpts.entryStrategy!,
         minify: inputOpts.minify!,
         rootDir: viteConfig.root!,
@@ -200,7 +200,10 @@ export function qwikVite(inputOpts: QwikViteOptions = {}): any {
         if (optimizer.sys.env() === 'node') {
           try {
             const fs: typeof import('fs') = await optimizer.sys.dynamicImport('fs');
-            const qSymbolsPath = optimizer.sys.path.join(opts.distClientDir, Q_SYMBOLS_FILENAME);
+            const qSymbolsPath = optimizer.sys.path.join(
+              opts.distClientDir,
+              SYMBOLS_MANIFEST_FILENAME
+            );
             const qSymbolsContent = fs.readFileSync(qSymbolsPath, 'utf-8');
             const qSymbols = JSON.stringify(JSON.parse(qSymbolsContent));
 
@@ -234,7 +237,7 @@ export function qwikVite(inputOpts: QwikViteOptions = {}): any {
         } else {
           this.emitFile({
             type: 'asset',
-            fileName: Q_SYMBOLS_FILENAME,
+            fileName: SYMBOLS_MANIFEST_FILENAME,
             source: JSON.stringify(outputEntryMap, null, 2),
           });
         }

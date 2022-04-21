@@ -53,7 +53,7 @@ export interface QwikWindow extends WindowProxy {
 // Warning: (ae-forgotten-export) The symbol "FunctionComponent" needs to be exported by the entry point index.d.ts
 //
 // @public
-export function renderToDocument(docOrElm: Document | Element, rootNode: JSXNode<unknown> | FunctionComponent<any>, opts: RenderToDocumentOptions): Promise<void>;
+export function renderToDocument(docOrElm: Document | Element, rootNode: JSXNode<unknown> | FunctionComponent<any>, opts?: RenderToDocumentOptions): Promise<void>;
 
 // Warning: (ae-forgotten-export) The symbol "SerializeDocumentOptions" needs to be exported by the entry point index.d.ts
 //
@@ -68,7 +68,7 @@ export interface RenderToDocumentOptions extends SerializeDocumentOptions, Docum
 }
 
 // @public
-export function renderToString(rootNode: JSXNode, opts: RenderToStringOptions): Promise<RenderToStringResult>;
+export function renderToString(rootNode: JSXNode, opts?: RenderToStringOptions): Promise<RenderToStringResult>;
 
 // @public (undocumented)
 export interface RenderToStringOptions extends RenderToDocumentOptions {

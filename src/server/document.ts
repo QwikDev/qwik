@@ -52,7 +52,7 @@ export function createDocument(opts?: DocumentOptions) {
 export async function renderToDocument(
   docOrElm: Document | Element,
   rootNode: JSXNode<unknown> | FunctionComponent<any>,
-  opts: RenderToDocumentOptions
+  opts: RenderToDocumentOptions = {}
 ) {
   const doc = isDocument(docOrElm) ? docOrElm : getDocument(docOrElm);
   ensureGlobals(doc, opts);
@@ -61,9 +61,13 @@ export async function renderToDocument(
 
   await render(docOrElm, rootNode);
 
-  if (opts.base) {
+  if (typeof opts.base === 'string') {
+    let qrlBase = opts.base;
+    if (!qrlBase.endsWith('/')) {
+      qrlBase += '/';
+    }
     const containerEl = getElement(docOrElm);
-    containerEl.setAttribute('q:base', opts.base);
+    containerEl.setAttribute('q:base', qrlBase);
   }
 
   if (opts.snapshot !== false) {
@@ -87,7 +91,7 @@ export async function renderToDocument(
  * then serializes the document to a string.
  * @public
  */
-export async function renderToString(rootNode: JSXNode, opts: RenderToStringOptions) {
+export async function renderToString(rootNode: JSXNode, opts: RenderToStringOptions = {}) {
   const createDocTimer = createTimer();
   const doc = createDocument(opts);
   const createDocTime = createDocTimer();

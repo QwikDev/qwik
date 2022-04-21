@@ -42,11 +42,9 @@ async function handleApp(req, res) {
     let symbols = cache.get(appDir);
     if (!symbols) {
       symbols = await buildApp(appDir);
-      console.log('buildApp', symbols);
       cache.set(appDir, symbols);
     }
 
-    console.log('ssrApp', symbols);
     const html = await ssrApp(req, appName, appDir, symbols);
 
     res.set('Content-Type', 'text/html');
@@ -112,7 +110,7 @@ async function buildApp(appDir) {
 
   let symbols = null;
 
-  const clientInputOpts = {
+  const clientBuild = await rollup({
     input: getSrcInput(appSrcDir),
     plugins: [
       devPlugin(),
@@ -125,14 +123,12 @@ async function buildApp(appDir) {
         },
       }),
     ],
-  };
-
-  const clientBuild = await rollup(clientInputOpts);
+  });
   await clientBuild.write({
     dir: appBuildDir,
   });
 
-  const ssrInputOpts = {
+  const ssrBuild = await rollup({
     input: getSrcInput(appSrcDir),
     plugins: [
       devPlugin(),
@@ -142,9 +138,7 @@ async function buildApp(appDir) {
         symbolsInput: symbols,
       }),
     ],
-  };
-
-  const ssrBuild = await rollup(ssrInputOpts);
+  });
   await ssrBuild.write({
     dir: appBuildServerDir,
   });

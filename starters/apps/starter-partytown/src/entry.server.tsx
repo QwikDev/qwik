@@ -1,12 +1,4 @@
-/**
- * @license
- * Copyright Builder.io, Inc. All Rights Reserved.
- *
- * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
- */
-
-import { renderToString, RenderToStringOptions, QwikLoader } from '@builder.io/qwik/server';
+import { renderToString, RenderToStringOptions } from '@builder.io/qwik/server';
 import { partytownSnippet } from '@builder.io/partytown/integration';
 import { Main } from './main';
 
@@ -28,11 +20,13 @@ export function render(opts: RenderToStringOptions) {
         <script type="text/partytown">
           ({partyTownExampleWhichBlocksMainThreadForOneSecond.toString()})()
         </script>
-        <QwikLoader debug={opts.debug} events={['click', 'keyup', 'expensiveComputationDone']} />
       </body>
     </html>,
     {
       ...opts,
+      qwikLoader: {
+        events: ['click', 'keyup', 'expensiveComputationDone'],
+      },
       // base: '/',
     }
   );

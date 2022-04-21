@@ -8,7 +8,7 @@ export const Main = component$(() => {
   return (
     <>
       <Header />
-      <div id="my-content"></div>
+      <div>Hello Builder</div>
       <Footer />
     </>
   );

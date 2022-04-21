@@ -1,13 +1,5 @@
-/**
- * @license
- * Copyright Builder.io, Inc. All Rights Reserved.
- *
- * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
- */
-
 import type { FunctionComponent } from '@builder.io/qwik';
-import { renderToString, RenderToStringOptions, QwikLoader } from '@builder.io/qwik/server';
+import { renderToString, RenderToStringOptions } from '@builder.io/qwik/server';
 import { Main } from './main';
 import { LexicalScope } from './components/lexical-scope/lexicalScope';
 import { SlotParent } from './components/slot/slot';
@@ -43,15 +35,18 @@ export function render(opts: RenderToStringOptions) {
 
   // Render segment instead
   if (url.searchParams.has('fragment')) {
-    const loader = url.searchParams.get('loader') !== 'false';
     return renderToString(
       <>
-        {loader && <QwikLoader debug={opts.debug} events={['click']} />}
         <Test />
       </>,
       {
         ...opts,
+        debug: true,
         fragmentTagName: 'div',
+        qwikLoader: {
+          include: url.searchParams.get('loader') !== 'false',
+          events: ['click'],
+        },
       }
     );
   }
@@ -64,9 +59,8 @@ export function render(opts: RenderToStringOptions) {
       </head>
       <body>
         <Test />
-        <QwikLoader debug={opts.debug} events={['click']} />
       </body>
     </html>,
-    opts
+    { ...opts, debug: true, qwikLoader: { include: true, events: ['click'] } }
   );
 }

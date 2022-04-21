@@ -5,14 +5,13 @@
   "main": "src/main.tsx",
   "scripts": {
     "build": "yarn build.qwest && yarn build.client && yarn build.server",
-    "build.client": "vite build --mode client",
+    "build.client": "vite build",
     "build.server": "vite build --mode server",
     "build.qwest": "cd qwest && yarn build",
     "dev": "vite",
-    "dev.client": "vite --mode client",
-    "dev.wrangler": "wrangler pages dev ./dist",
+    "dev.ssr": "vite --mode server",
+    "preview.wrangler": "yarn build && wrangler pages dev ./dist",
     "start": "yarn dev",
-    "preview": "vite preview",
     "fmt": "prettier --write .",
     "fmt.check": "prettier --check .",
     "link.builder": "npm link @builder.io/qwik"

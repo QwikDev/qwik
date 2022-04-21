@@ -16,6 +16,7 @@ import type {
 import { isDocument } from '../core/util/element';
 import { getDocument } from '../core/util/dom';
 import { getElement } from '../core/render/render.public';
+import { getQwikLoaderScript } from './scripts';
 
 /**
  * Create emulated `Window` for server environment. Does not implement the full browser
@@ -64,8 +65,20 @@ export async function renderToDocument(
     const containerEl = getElement(docOrElm);
     containerEl.setAttribute('q:base', opts.base);
   }
+
   if (opts.snapshot !== false) {
     pauseContainer(docOrElm);
+  }
+
+  if (!opts.qwikLoader || opts.qwikLoader.include !== false) {
+    const qwikLoaderScript = getQwikLoaderScript({
+      events: opts.qwikLoader?.events,
+      debug: opts.debug,
+    });
+    const scriptElm = doc.createElement('script');
+    scriptElm.setAttribute('id', 'qwikloader');
+    scriptElm.innerHTML = qwikLoaderScript;
+    doc.head.appendChild(scriptElm);
   }
 }
 
@@ -82,6 +95,12 @@ export async function renderToString(rootNode: JSXNode, opts: RenderToStringOpti
   const renderDocTimer = createTimer();
   let rootEl: Element | Document = doc;
   if (typeof opts.fragmentTagName === 'string') {
+    if (opts.qwikLoader) {
+      opts.qwikLoader.include = false;
+    } else {
+      opts.qwikLoader = { include: false };
+    }
+
     rootEl = doc.createElement(opts.fragmentTagName);
     doc.body.appendChild(rootEl);
   }

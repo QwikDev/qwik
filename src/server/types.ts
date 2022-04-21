@@ -76,6 +76,11 @@ export interface RenderToDocumentOptions extends SerializeDocumentOptions, Docum
    * Setting a base, will cause the render of the `q:base` attribute in the `q:container` element.
    */
   base?: string;
+
+  /**
+   * Specifies if the Qwik Loader script is added to the document or not. Defaults to `{ include: true }`.
+   */
+  qwikLoader?: { events?: string[]; include?: boolean };
 }
 
 /**

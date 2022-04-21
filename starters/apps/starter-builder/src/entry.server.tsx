@@ -1,13 +1,5 @@
-/**
- * @license
- * Copyright Builder.io, Inc. All Rights Reserved.
- *
- * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
- */
-
-import { renderToString, RenderToStringOptions, QwikLoader } from '@builder.io/qwik/server';
-import { Main } from './main';
+import { renderToString, RenderToStringOptions } from '@builder.io/qwik/server';
+import { Main } from './root';
 
 /**
  * Entry point for server-side pre-rendering.
@@ -24,7 +16,6 @@ export function render(opts: RenderToStringOptions) {
       <body>
         <Main />
         <script>({fetchQwikBuilderContent.toString()})();</script>
-        <QwikLoader debug={opts.debug} />
       </body>
     </html>,
     {

@@ -15,16 +15,16 @@ describe('vite  plugin', () => {
   });
 
   describe('config', () => {
-    it('command: serve, mode: client - defaults', async () => {
+    it('command: serve, missing mode - defaults', async () => {
       const plugin: VitePlugin = qwikVite(inputOpts);
-      const c = (await plugin.config!({}, { command: 'serve', mode: 'client' }))!;
+      const c = (await plugin.config!({}, { command: 'serve', mode: 'development' }))!;
       const opts = await plugin.api?.getOptions();
       const build = c.build!;
       const rollupOptions = build!.rollupOptions!;
       const outputOptions = rollupOptions.output as OutputOptions;
 
       expect(build.outDir).toBe(resolve(cwd, 'dist'));
-      expect(rollupOptions.input).toEqual(resolve(cwd, 'src', 'main.tsx'));
+      expect(rollupOptions.input).toEqual(resolve(cwd, 'src', 'entry.dev.tsx'));
       expect(outputOptions.assetFileNames).toBe('build/q-[hash].[ext]');
       expect(outputOptions.chunkFileNames).toBe('build/q-[hash].js');
       expect(build.polyfillModulePreload).toBe(false);
@@ -42,16 +42,16 @@ describe('vite  plugin', () => {
       expect(opts.entryStrategy).toEqual({ type: 'hook' });
     });
 
-    it('command: build, mode: client - defaults', async () => {
+    it('command: build, mode not set - defaults', async () => {
       const plugin: VitePlugin = qwikVite(inputOpts);
-      const c = (await plugin.config!({}, { command: 'build', mode: 'client' }))!;
+      const c = (await plugin.config!({}, { command: 'build', mode: 'production' }))!;
       const opts = await plugin.api?.getOptions();
       const build = c.build!;
       const rollupOptions = build!.rollupOptions!;
       const outputOptions = rollupOptions.output as OutputOptions;
 
       expect(build.outDir).toBe(resolve(cwd, 'dist'));
-      expect(rollupOptions.input).toEqual(resolve(cwd, 'src', 'main.tsx'));
+      expect(rollupOptions.input).toEqual(resolve(cwd, 'src', 'root.tsx'));
       expect(outputOptions.assetFileNames).toBe('build/q-[hash].[ext]');
       expect(outputOptions.chunkFileNames).toBe('build/q-[hash].js');
       expect(build.polyfillModulePreload).toBe(false);

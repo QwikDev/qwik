@@ -37,9 +37,17 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     minify: null as any,
     srcDir: null as any,
     srcInputs: null as any,
-    srcMain: null as any,
-    srcEntryServer: null as any,
+    srcRootModule: null as any,
+    srcEntryDevModule: null as any,
+    srcEntryServerModule: null as any,
     symbolsOutput: null,
+  };
+
+  const getOptimizer = async () => {
+    if (!optimizer) {
+      optimizer = await createOptimizer(optimizerOptions);
+    }
+    return optimizer;
   };
 
   const normalizeOptions = async (inputOpts?: QwikPluginOptions) => {
@@ -103,35 +111,49 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       opts.srcDir = optimizer.sys.path.resolve(opts.rootDir, opts.srcDir);
     }
 
-    if (typeof updatedOpts.srcMain === 'string') {
-      opts.srcMain = updatedOpts.srcMain;
+    if (typeof updatedOpts.srcRootModule === 'string') {
+      opts.srcRootModule = updatedOpts.srcRootModule;
     }
-    if (typeof opts.srcMain !== 'string') {
-      opts.srcMain = optimizer.sys.path.resolve(
-        opts.rootDir,
-        SRC_DIR_DEFAULT,
-        MAIN_FILENAME_DEFAULT
-      );
+    if (typeof opts.srcRootModule !== 'string') {
+      opts.srcRootModule = optimizer.sys.path.resolve(opts.srcDir!, ROOT_FILENAME_DEFAULT);
     }
-    if (typeof opts.srcMain === 'string' && !optimizer.sys.path.isAbsolute(opts.srcMain)) {
-      opts.srcMain = optimizer.sys.path.resolve(opts.rootDir, opts.srcMain);
+    if (
+      typeof opts.srcRootModule === 'string' &&
+      !optimizer.sys.path.isAbsolute(opts.srcRootModule)
+    ) {
+      opts.srcRootModule = optimizer.sys.path.resolve(opts.rootDir, opts.srcRootModule);
     }
 
-    if (typeof updatedOpts.srcEntryServer === 'string') {
-      opts.srcEntryServer = updatedOpts.srcEntryServer;
+    if (typeof updatedOpts.srcEntryDevModule === 'string') {
+      opts.srcEntryDevModule = updatedOpts.srcEntryDevModule;
     }
-    if (typeof opts.srcEntryServer !== 'string') {
-      opts.srcEntryServer = optimizer.sys.path.resolve(
-        opts.rootDir,
-        SRC_DIR_DEFAULT,
+    if (typeof opts.srcEntryDevModule !== 'string') {
+      opts.srcEntryDevModule = optimizer.sys.path.resolve(opts.srcDir!, ENTRY_DEV_FILENAME_DEFAULT);
+    }
+    if (
+      typeof opts.srcEntryDevModule === 'string' &&
+      !optimizer.sys.path.isAbsolute(opts.srcEntryDevModule)
+    ) {
+      opts.srcEntryDevModule = optimizer.sys.path.resolve(opts.rootDir, opts.srcEntryDevModule);
+    }
+
+    if (typeof updatedOpts.srcEntryServerModule === 'string') {
+      opts.srcEntryServerModule = updatedOpts.srcEntryServerModule;
+    }
+    if (typeof opts.srcEntryServerModule !== 'string') {
+      opts.srcEntryServerModule = optimizer.sys.path.resolve(
+        opts.srcDir!,
         ENTRY_SERVER_FILENAME_DEFAULT
       );
     }
     if (
-      typeof opts.srcEntryServer === 'string' &&
-      !optimizer.sys.path.isAbsolute(opts.srcEntryServer)
+      typeof opts.srcEntryServerModule === 'string' &&
+      !optimizer.sys.path.isAbsolute(opts.srcEntryServerModule)
     ) {
-      opts.srcEntryServer = optimizer.sys.path.resolve(opts.rootDir, opts.srcEntryServer);
+      opts.srcEntryServerModule = optimizer.sys.path.resolve(
+        opts.rootDir,
+        opts.srcEntryServerModule
+      );
     }
 
     if (typeof updatedOpts.distClientDir === 'string') {
@@ -159,11 +181,26 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     return { ...opts };
   };
 
-  const getOptimizer = async () => {
-    if (!optimizer) {
-      optimizer = await createOptimizer(optimizerOptions);
+  const validateSource = async () => {
+    const optimizer = await getOptimizer();
+    if (optimizer.sys.env() === 'node') {
+      const fs: typeof import('fs') = await optimizer.sys.dynamicImport('fs');
+      if (!fs.existsSync(opts.rootDir)) {
+        throw new Error(`Qwik rootDir "${opts.rootDir}" not found`);
+      }
+      if (typeof opts.srcDir === 'string' && !fs.existsSync(opts.srcDir)) {
+        throw new Error(`Qwik srcDir "${opts.srcDir}" not found`);
+      }
+      if (!fs.existsSync(opts.srcEntryDevModule)) {
+        throw new Error(`Qwik srcEntryDevModule "${opts.srcEntryDevModule}" not found`);
+      }
+      if (!fs.existsSync(opts.srcEntryServerModule)) {
+        throw new Error(`Qwik srcEntryServerModule "${opts.srcEntryServerModule}" not found`);
+      }
+      if (!fs.existsSync(opts.srcRootModule)) {
+        throw new Error(`Qwik srcRootModule "${opts.srcRootModule}" not found`);
+      }
     }
-    return optimizer;
   };
 
   const buildStart = async () => {
@@ -214,33 +251,37 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       };
     }
 
-    log(`resolveId("${id}", "${importer}")`);
     const optimizer = await getOptimizer();
 
-    let filteredId = removeQueryParams(id);
-    if (importer) {
-      const filteredImporter = removeQueryParams(importer);
-      const dir = optimizer.sys.path.dirname(filteredImporter);
+    const parsedId = parseId(id);
+    let importeePathId = parsedId.pathId;
 
-      if (filteredImporter.endsWith('.html') && !filteredId.endsWith('.html')) {
-        filteredId = optimizer.sys.path.join(dir, filteredId);
+    if (importer) {
+      log(`resolveId("${importeePathId}", "${importer}")`);
+      const parsedImporterId = parseId(importer);
+      const dir = optimizer.sys.path.dirname(parsedImporterId.pathId);
+      if (parsedImporterId.pathId.endsWith('.html') && !importeePathId.endsWith('.html')) {
+        importeePathId = optimizer.sys.path.join(dir, importeePathId);
       } else {
-        filteredId = optimizer.sys.path.resolve(dir, filteredId);
+        importeePathId = optimizer.sys.path.resolve(dir, importeePathId);
       }
+    } else {
+      log(`resolveId("${importeePathId}"), No importer`);
     }
 
-    const tries = [forceJSExtension(optimizer.sys.path, filteredId)];
-    for (const tryId of tries) {
-      log(`resolveId()`, 'Try', tryId);
+    const tryImportPathIds = [forceJSExtension(optimizer.sys.path, importeePathId)];
+    for (const tryId of tryImportPathIds) {
       const transformedOutput = transformedOutputs.get(tryId);
       if (transformedOutput) {
-        log(`resolveId()`, 'Resolved', tryId);
+        log(`resolveId() Resolved ${tryId}`);
         const transformedModule = transformedOutput[0];
         const sideEffects = !transformedModule.isEntry || !transformedModule.hook;
         return {
           id: tryId,
           moduleSideEffects: sideEffects,
         };
+      } else {
+        log(`resolveId() Resolved not found ${tryId}`);
       }
     }
 
@@ -296,11 +337,11 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
     const optimizer = await getOptimizer();
 
-    const filteredId = removeQueryParams(id);
-    const { ext, dir, base } = optimizer.sys.path.parse(filteredId);
+    const { pathId } = parseId(id);
+    const { ext, dir, base } = optimizer.sys.path.parse(pathId);
 
     if (TRANSFORM_EXTS[ext]) {
-      log(`transform()`, 'Transforming', filteredId);
+      log(`transform()`, 'Transforming', pathId);
 
       const newOutput = optimizer.transformModulesSync({
         input: [
@@ -319,9 +360,9 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
       diagnosticsCallback(newOutput.diagnostics, optimizer);
 
-      results.set(filteredId, newOutput);
+      results.set(pathId, newOutput);
 
-      transformedOutputs.clear();
+      // transformedOutputs.clear();
 
       for (const [id, output] of results.entries()) {
         const justChanged = newOutput === output;
@@ -395,7 +436,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     return { addBundle, generateOutputEntryMap };
   };
 
-  const getOptions = async () => ({ ...opts });
+  const getOptions = () => ({ ...opts });
 
   const getTransformedOutputs = async () => {
     const to: { [id: string]: TransformModule } = {};
@@ -433,6 +474,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     onDiagnostics,
     resolveId,
     transform,
+    validateSource,
   };
 }
 
@@ -443,9 +485,13 @@ export const isBrowser = ${!opts.isSSRBuild};
 `;
 }
 
-function removeQueryParams(id: string) {
-  const [filteredId] = id.split('?');
-  return filteredId;
+export function parseId(originalId: string) {
+  const [pathId, querystrings] = originalId.split('?');
+  return {
+    originalId,
+    pathId,
+    params: new URLSearchParams(querystrings || ''),
+  };
 }
 
 function forceJSExtension(path: any, id: string) {
@@ -473,27 +519,33 @@ export const QWIK_JSX_RUNTIME_ID = '@builder.io/qwik/jsx-runtime';
 
 export const SRC_DIR_DEFAULT = 'src';
 
-export const MAIN_FILENAME_DEFAULT = 'main.tsx';
+export const ROOT_FILENAME_DEFAULT = 'root.tsx';
+
+export const ENTRY_DEV_FILENAME_DEFAULT = 'entry.dev.tsx';
 
 export const ENTRY_SERVER_FILENAME_DEFAULT = 'entry.server.tsx';
 
 export const Q_SYMBOLS_FILENAME = 'q-symbol.json';
 
-export interface QwikPluginOptions {
+export interface QwikPluginOptions extends BasePluginOptions {
   rootDir?: string;
-  distClientDir?: string;
-  distServerDir?: string;
-  srcDir?: string | null;
-  srcInputs?: TransformModuleInput[] | null;
-  srcMain?: string;
-  srcEntryServer?: string;
-  entryStrategy?: EntryStrategy;
-  minify?: MinifyMode;
-  debug?: boolean;
-  symbolsOutput?: ((data: OutputEntryMap, outputOptions: any) => Promise<void> | void) | null;
   isDevBuild?: boolean;
   isSSRBuild?: boolean;
   isClientOnly?: boolean;
+}
+
+export interface BasePluginOptions {
+  debug?: boolean;
+  distClientDir?: string;
+  distServerDir?: string;
+  entryStrategy?: EntryStrategy;
+  minify?: MinifyMode;
+  srcRootModule?: string;
+  srcEntryDevModule?: string;
+  srcEntryServerModule?: string;
+  srcDir?: string | null;
+  srcInputs?: TransformModuleInput[] | null;
+  symbolsOutput?: ((data: OutputEntryMap, outputOptions: any) => Promise<void> | void) | null;
 }
 
 export interface NormalizedQwikPluginConfig extends Required<QwikPluginOptions> {}

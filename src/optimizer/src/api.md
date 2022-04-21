@@ -178,10 +178,10 @@ export interface Path {
 // @alpha (undocumented)
 export function qwikRollup(inputOpts?: QwikRollupPluginOptions): any;
 
-// Warning: (ae-forgotten-export) The symbol "QwikPluginOptions" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "BasePluginOptions" needs to be exported by the entry point index.d.ts
 //
 // @alpha (undocumented)
-export interface QwikRollupPluginOptions extends QwikPluginOptions {
+export interface QwikRollupPluginOptions extends BasePluginOptions {
     // (undocumented)
     optimizerOptions?: OptimizerOptions;
 }
@@ -190,7 +190,7 @@ export interface QwikRollupPluginOptions extends QwikPluginOptions {
 export function qwikVite(inputOpts?: QwikViteOptions): any;
 
 // @alpha (undocumented)
-export interface QwikViteOptions extends QwikPluginOptions {
+export interface QwikViteOptions extends BasePluginOptions {
     // (undocumented)
     optimizerOptions?: OptimizerOptions;
 }

@@ -42,19 +42,6 @@ export function getQwikLoaderScript(opts?: {
 export interface QwikDocument extends Document {
 }
 
-// Warning: (ae-forgotten-export) The symbol "FunctionComponent" needs to be exported by the entry point index.d.ts
-//
-// @alpha (undocumented)
-export const QwikLoader: FunctionComponent<QwikLoaderProps>;
-
-// @alpha (undocumented)
-export interface QwikLoaderProps {
-    // (undocumented)
-    debug?: boolean;
-    // (undocumented)
-    events?: string[];
-}
-
 // @public
 export interface QwikWindow extends WindowProxy {
     document: QwikDocument;
@@ -63,6 +50,7 @@ export interface QwikWindow extends WindowProxy {
 }
 
 // Warning: (ae-forgotten-export) The symbol "JSXNode" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "FunctionComponent" needs to be exported by the entry point index.d.ts
 //
 // @public
 export function renderToDocument(docOrElm: Document | Element, rootNode: JSXNode<unknown> | FunctionComponent<any>, opts: RenderToDocumentOptions): Promise<void>;
@@ -72,6 +60,10 @@ export function renderToDocument(docOrElm: Document | Element, rootNode: JSXNode
 // @public (undocumented)
 export interface RenderToDocumentOptions extends SerializeDocumentOptions, DocumentOptions {
     base?: string;
+    qwikLoader?: {
+        events?: string[];
+        include?: boolean;
+    };
     snapshot?: boolean;
 }
 

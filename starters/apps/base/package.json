@@ -3,22 +3,22 @@
   "description": "",
   "license": "",
   "scripts": {
-    "typecheck": "tsc --noEmit",
-    "build": "npm run typecheck && npm run build.client && npm run build.server",
+    "build": "npm run build.client && npm run build.server",
     "build.client": "vite build",
-    "build.server": "vite build --outDir server/build --ssr src/entry.server.tsx",
-    "dev.ssr": "vite",
-    "dev.client": "vite --mode clientonly",
+    "build.server": "vite build --mode server",
+    "dev": "vite",
+    "dev.server": "vite --mode server",
     "dev.debug": "node --inspect-brk node_modules/vite/bin/vite.js",
-    "dev": "npm run dev.client",
-    "start": "npm run dev"
+    "start": "npm run dev",
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "@types/node": "17.0.17",
+    "@types/node": "latest",
     "@builder.io/qwik": "latest",
     "typescript": "latest",
     "vite": "latest"
   },
+  "homepage": "https://qwik.builder.io/",
   "private": true,
   "engines": {
     "node": ">=14"

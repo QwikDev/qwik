@@ -6,7 +6,7 @@ import type {
   OutputEntryMap,
   TransformModule,
 } from '../types';
-import { createPlugin, QwikPluginOptions } from './plugin';
+import { BasePluginOptions, createPlugin } from './plugin';
 
 /**
  * @alpha
@@ -110,7 +110,7 @@ export const createRollupError = (optimizer: Optimizer, diagnostic: Diagnostic) 
 /**
  * @alpha
  */
-export interface QwikRollupPluginOptions extends QwikPluginOptions {
+export interface QwikRollupPluginOptions extends BasePluginOptions {
   optimizerOptions?: OptimizerOptions;
 }
 

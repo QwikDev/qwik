@@ -1,5 +1,5 @@
 import { component$, Host, Slot, useScopedStyles$ } from '@builder.io/qwik';
-import type { SiteStore } from '../../main';
+import type { SiteStore } from '../../components/app/app';
 import { ContentNav } from '../../components/content-nav/content-nav';
 import { Footer } from '../../components/footer/footer';
 import { Header } from '../../components/header/header';

@@ -17,8 +17,9 @@ describe('qwik plugin', () => {
       expect(opts.distClientDir).toBe(resolve(cwd, 'dist'));
       expect(opts.distServerDir).toBe(resolve(cwd, 'server'));
       expect(opts.srcDir).toBe(resolve(cwd, 'src'));
-      expect(opts.srcMain).toBe(resolve(cwd, 'src', 'main.tsx'));
-      expect(opts.srcEntryServer).toBe(resolve(cwd, 'src', 'entry.server.tsx'));
+      expect(opts.srcRootModule).toBe(resolve(cwd, 'src', 'root.tsx'));
+      expect(opts.srcEntryDevModule).toBe(resolve(cwd, 'src', 'entry.dev.tsx'));
+      expect(opts.srcEntryServerModule).toBe(resolve(cwd, 'src', 'entry.server.tsx'));
       expect(opts.srcInputs).toBe(null);
       expect(opts.entryStrategy).toEqual({ type: 'single' });
       expect(opts.minify).toBe('minify');

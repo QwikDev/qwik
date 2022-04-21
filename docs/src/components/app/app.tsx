@@ -1,13 +1,13 @@
 import { component$, Host, useStore, useScopedStyles$ } from '@builder.io/qwik';
 import styles from './global.css';
-import { Page } from './components/page/page';
+import { Page } from '../page/page';
 
 export interface SiteStore {
   headerMenuOpen: boolean;
   sideMenuOpen: boolean;
 }
 
-export const Main = component$(() => {
+export const App = component$(() => {
   useScopedStyles$(styles);
 
   const store = useStore<SiteStore>({

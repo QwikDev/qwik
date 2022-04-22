@@ -10,6 +10,7 @@ const {
 } = require('fs');
 const assert = require('assert');
 const { join } = require('path');
+const { pathToFileURL } = require('url');
 
 async function validateCreateQwikCli() {
   console.log(`👾 validating create-qwik...`);
@@ -111,7 +112,11 @@ async function validateStarter(api, distDir, appId, serverId) {
   accessSync(join(appDir, 'tsconfig.json'));
   accessSync(join(appDir, 'tsconfig.tsbuildinfo'));
 
-  const { render } = await import(join(appDir, 'server', 'entry.server.js'));
+  // pathToFileURL() required for windows
+  const importUrl = pathToFileURL(join(appDir, 'server', 'entry.server.js'));
+  console.log(`👑 ${projectName} import("${importUrl}")`);
+
+  const { render } = await import(importUrl);
   const result = await render();
   assert.ok(typeof result.html === 'string');
 

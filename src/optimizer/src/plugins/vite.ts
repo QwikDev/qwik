@@ -76,8 +76,8 @@ export function qwikVite(qwikViteOpts: QwikViteOptions = {}): any {
         build: {
           rollupOptions: {
             output: {
-              chunkFileNames: optimizer.sys.path.join('build', 'q-[hash].js'),
-              assetFileNames: optimizer.sys.path.join('build', 'q-[hash].[ext]'),
+              chunkFileNames: 'build/q-[hash].js',
+              assetFileNames: 'build/q-[hash].[ext]',
             },
             onwarn: (warning, warn) => {
               if (

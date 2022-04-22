@@ -25,8 +25,8 @@ describe('vite  plugin', () => {
 
       expect(build.outDir).toBe(resolve(cwd, 'dist'));
       expect(rollupOptions.input).toEqual(resolve(cwd, 'src', 'entry.dev.tsx'));
-      expect(outputOptions.assetFileNames).toBe(join('build', 'q-[hash].[ext]'));
-      expect(outputOptions.chunkFileNames).toBe(join('build', 'q-[hash].js'));
+      expect(outputOptions.assetFileNames).toBe('build/q-[hash].[ext]');
+      expect(outputOptions.chunkFileNames).toBe('build/q-[hash].js');
       expect(build.polyfillModulePreload).toBe(false);
       expect(build.dynamicImportVarsOptions?.exclude).toEqual([/./]);
       expect(build.ssr).toBe(undefined);
@@ -51,8 +51,8 @@ describe('vite  plugin', () => {
 
       expect(build.outDir).toBe(resolve(cwd, 'dist'));
       expect(rollupOptions.input).toEqual([resolve(cwd, 'src', 'root.tsx')]);
-      expect(outputOptions.assetFileNames).toBe(join('build', 'q-[hash].[ext]'));
-      expect(outputOptions.chunkFileNames).toBe(join('build', 'q-[hash].js'));
+      expect(outputOptions.assetFileNames).toBe('build/q-[hash].[ext]');
+      expect(outputOptions.chunkFileNames).toBe('build/q-[hash].js');
       expect(build.polyfillModulePreload).toBe(false);
       expect(build.dynamicImportVarsOptions?.exclude).toEqual([/./]);
       expect(build.ssr).toBe(undefined);
@@ -77,8 +77,8 @@ describe('vite  plugin', () => {
 
       expect(build.outDir).toBe(resolve(cwd, 'server'));
       expect(rollupOptions.input).toEqual(resolve(cwd, 'src', 'entry.server.tsx'));
-      expect(outputOptions.assetFileNames).toBe(join('build', 'q-[hash].[ext]'));
-      expect(outputOptions.chunkFileNames).toBe(join('build', 'q-[hash].js'));
+      expect(outputOptions.assetFileNames).toBe('build/q-[hash].[ext]');
+      expect(outputOptions.chunkFileNames).toBe('build/q-[hash].js');
       expect(build.polyfillModulePreload).toBe(false);
       expect(build.dynamicImportVarsOptions?.exclude).toEqual([/./]);
       expect(build.ssr).toBe(true);

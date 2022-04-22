@@ -1,12 +1,4 @@
 /**
- * @license
- * Copyright Builder.io; Inc. All Rights Reserved.
- *
- * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
- */
-
-/**
  * State factory of the component.
  */
 export const OnMount = 'on:q-mount';

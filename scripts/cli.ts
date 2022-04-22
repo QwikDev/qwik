@@ -86,18 +86,38 @@ async function copyDir(config: BuildConfig, srcDir: string, destDir: string) {
 
 async function updatePackageJson(config: BuildConfig, destDir: string) {
   const pkgJson = await readPackageJson(destDir);
-  if (pkgJson.devDependencies && pkgJson.devDependencies['@builder.io/qwik']) {
+  if (pkgJson.devDependencies) {
     const rootPkg = await readPackageJson(config.rootDir);
-    if (!semver.prerelease(rootPkg.version)) {
-      pkgJson.devDependencies['@builder.io/qwik'] = `~${rootPkg.version}`;
-      await writePackageJson(destDir, pkgJson);
+
+    const setVersionFromRoot = (pkgName: string) => {
+      if (pkgJson.devDependencies && pkgJson.devDependencies[pkgName]) {
+        if (
+          rootPkg.devDependencies &&
+          rootPkg.devDependencies[pkgName] &&
+          !semver.prerelease(rootPkg.devDependencies[pkgName])
+        ) {
+          pkgJson.devDependencies[pkgName] = rootPkg.devDependencies[pkgName];
+        }
+      }
+    };
+
+    if (pkgJson.devDependencies['@builder.io/qwik'] && !semver.prerelease(rootPkg.version)) {
+      pkgJson.devDependencies['@builder.io/qwik'] = rootPkg.version;
     }
+
+    setVersionFromRoot('@types/node');
+    setVersionFromRoot('prettier');
+    setVersionFromRoot('typescript');
+    setVersionFromRoot('vite');
+
+    await writePackageJson(destDir, pkgJson);
   }
 }
 
 const IGNORE: { [path: string]: boolean } = {
   '.rollup.cache': true,
   build: true,
+  server: true,
   e2e: true,
   node_modules: true,
   'package-lock.json': true,

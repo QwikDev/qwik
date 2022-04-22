@@ -4,14 +4,15 @@ import type {
   TransformFsOptions,
   Optimizer,
   OptimizerSystem,
+  OptimizerOptions,
 } from './types';
 
 /**
  * @alpha
  */
-export const createOptimizer = async () => {
-  const sys = await getSystem();
-  const binding = await loadPlatformBinding(sys);
+export const createOptimizer = async (optimizerOptions: OptimizerOptions = {}) => {
+  const sys = optimizerOptions?.sys || (await getSystem());
+  const binding = optimizerOptions?.binding || (await loadPlatformBinding(sys));
 
   const optimizer: Optimizer = {
     async transformModules(opts: TransformModulesOptions) {

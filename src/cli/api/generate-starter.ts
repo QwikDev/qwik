@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import type { PackageJSON } from 'scripts/util';
 import { getStarters } from '.';
@@ -68,6 +68,8 @@ function generateUserStarter(
   const starterPkgJson = readPackageJson(baseApp.dir);
   mergePackageJSONs(pkgJson, starterPkgJson);
 
+  let readmeContent = baseApp.readme!.trim() + '\n\n';
+
   const featureBullets = [starterApp.description, 'Vite.js tooling.'];
 
   // Merge server package.json
@@ -79,6 +81,10 @@ function generateUserStarter(
 
     if (serverPkgJson.description) {
       featureBullets.push(serverPkgJson.description);
+    }
+
+    if (starterServer.readme) {
+      readmeContent += starterServer.readme.trim() + '\n\n';
     }
   }
 
@@ -92,25 +98,49 @@ function generateUserStarter(
     if (featurerPkgJson.description) {
       featureBullets.push(featurerPkgJson.description);
     }
+
+    if (feature.readme) {
+      readmeContent += feature.readme.trim() + '\n\n';
+    }
   }
 
   pkgJson.name = toDashCase(result.projectName);
   pkgJson.description = featureBullets.join(' ').trim();
 
   const readmePath = join(result.outDir, 'README.md');
-  const baseReadme = readFileSync(readmePath, 'utf-8');
   const desciption = featureBullets
     .map((b) => `- ${b}`)
     .join('\n')
     .trim();
-  const readme = `# ${result.projectName}\n\n${desciption}\n\n${baseReadme}`;
+
+  const readme = [
+    `# Qwik ${result.projectName} ⚡️`,
+    ``,
+    desciption,
+    ``,
+    readmeContent.trim(),
+    ``,
+    `--------------------`,
+    ``,
+    `## Related`,
+    ``,
+    `- [Qwik Docs](https://qwik.builder.io/)`,
+    `- [Qwik Github](https://github.com/BuilderIO/qwik)`,
+    `- [@QwikDev](https://twitter.com/QwikDev)`,
+    `- [Discord](https://discord.gg/bNVSQmPzqy)`,
+    `- [Vite](https://vitejs.dev/)`,
+    `- [Partytown](https://partytown.builder.io/)`,
+    `- [Mitosis](https://github.com/BuilderIO/mitosis)`,
+    `- [Builder.io](https://www.builder.io/)`,
+  ].join('\n');
+
   writeFileSync(readmePath, readme.trim() + '\n');
 
   const cleanPkgJson = cleanPackageJson(pkgJson);
   writePackageJson(result.outDir, cleanPkgJson);
 }
 
-export function cleanPackageJson(srcPkg: PackageJSON) {
+function cleanPackageJson(srcPkg: PackageJSON) {
   srcPkg = { ...srcPkg };
 
   const cleanedPkg: any = {

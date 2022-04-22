@@ -1,7 +1,6 @@
 import { copyFileSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'fs';
-import { join } from 'path';
-import type { PackageJSON } from 'scripts/util';
-import { extname } from 'src/core/util/path';
+import { extname, join } from 'path';
+import type { PackageJSON } from '../../../scripts/util';
 
 export type Replacements = [RegExp, string][];
 

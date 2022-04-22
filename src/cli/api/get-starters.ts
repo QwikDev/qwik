@@ -1,4 +1,4 @@
-import { readdirSync, statSync } from 'fs';
+import { readdirSync, readFileSync, statSync } from 'fs';
 import { join } from 'path';
 import type { StarterData, Starters } from '../types';
 import { dashToTitlelCase, readPackageJson } from './utils-api';
@@ -33,11 +33,18 @@ function loadStarterData(startersDir: string, dirName: string) {
     .map((id) => {
       const dataDir = join(dir, id);
       const pkgJson = readPackageJson(dataDir);
+      let readme: string | null = null;
+      try {
+        readme = readFileSync(join(dataDir, 'README.md'), 'utf-8');
+      } catch (e) {
+        /**/
+      }
 
       const data: StarterData = {
         id,
         name: dashToTitlelCase(id),
         description: pkgJson.description ?? '',
+        readme,
         dir: dataDir,
         priority: pkgJson?.qwik?.priority ?? 0,
         featureOptions: pkgJson?.qwik?.featureOptions ?? [],

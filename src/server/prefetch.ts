@@ -1,4 +1,4 @@
-import { join } from '../core/util/path';
+import { createPath } from '../core/util/path';
 
 /**
  * Returns a list of imports for a JavaScript file.
@@ -32,9 +32,10 @@ export async function getImports(
   readFileFn: (path: string) => Promise<string>
 ): Promise<string[]> {
   const imports: string[] = [];
+  const path = createPath();
   await Promise.all(
     getImportsFromSource(await readFileFn(filePath)).map(async (fileImport) => {
-      let resolvedFile = join(filePath, '..', fileImport);
+      let resolvedFile = path.join(filePath, '..', fileImport);
       if (!resolvedFile.startsWith('.')) {
         resolvedFile = './' + resolvedFile;
       }

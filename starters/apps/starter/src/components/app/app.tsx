@@ -1,9 +1,9 @@
 import { useStore, component$, Host } from '@builder.io/qwik';
-import { Logo } from './components/logo/logo';
+import { Logo } from '../logo/logo';
 
 import './global.css';
 
-export const Main = component$(() => {
+export const App = component$(() => {
   const state = useStore({ name: 'World' });
   return (
     <Host class="my-app p-20">

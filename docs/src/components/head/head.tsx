@@ -10,7 +10,6 @@ export const Head = () => (
     <link rel="apple-touch-icon" sizes="180x180" href="/favicons/apple-touch-icon.png" />
     <link rel="icon" href="/favicons/favicon.svg" type="image/svg+xml" />
 
-    <meta name="viewport" content="width=device-width" />
     <meta name="apple-mobile-web-app-title" content="Qwik" />
     <meta name="application-name" content="Qwik" />
     <meta name="theme-color" content="#ffffff" />

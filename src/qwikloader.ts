@@ -1,21 +1,4 @@
 /**
- * @license
- * Copyright Builder.io, Inc. All Rights Reserved.
- *
- * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
- */
-
-/**
- * @fileoverview This is qwik-loader.
- *
- * This code should be included too bootstrap qwik sub-framework.
- * The purpose of the qwik-loader is to listen for browser events, find
- * corresponding event handler, and lazy load the code associated with the
- * handler.
- */
-
-/**
  * Set up event listening for browser.
  *
  * Determine all of the browser events and set up global listeners for them.

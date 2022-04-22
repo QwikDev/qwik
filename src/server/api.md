@@ -4,9 +4,6 @@
 
 ```ts
 
-import type { FunctionComponent } from '@builder.io/qwik';
-import type { JSXNode } from '@builder.io/qwik';
-
 // @public
 export function createDocument(opts?: DocumentOptions): QwikDocument;
 
@@ -45,17 +42,6 @@ export function getQwikLoaderScript(opts?: {
 export interface QwikDocument extends Document {
 }
 
-// @alpha (undocumented)
-export const QwikLoader: FunctionComponent<QwikLoaderProps>;
-
-// @alpha (undocumented)
-export interface QwikLoaderProps {
-    // (undocumented)
-    debug?: boolean;
-    // (undocumented)
-    events?: string[];
-}
-
 // @public
 export interface QwikWindow extends WindowProxy {
     document: QwikDocument;
@@ -63,19 +49,26 @@ export interface QwikWindow extends WindowProxy {
     location: Location;
 }
 
+// Warning: (ae-forgotten-export) The symbol "JSXNode" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "FunctionComponent" needs to be exported by the entry point index.d.ts
+//
 // @public
-export function renderToDocument(docOrElm: Document | Element, rootNode: JSXNode<unknown> | FunctionComponent<any>, opts: RenderToDocumentOptions): Promise<void>;
+export function renderToDocument(docOrElm: Document | Element, rootNode: JSXNode<unknown> | FunctionComponent<any>, opts?: RenderToDocumentOptions): Promise<void>;
 
 // Warning: (ae-forgotten-export) The symbol "SerializeDocumentOptions" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
 export interface RenderToDocumentOptions extends SerializeDocumentOptions, DocumentOptions {
     base?: string;
+    qwikLoader?: {
+        events?: string[];
+        include?: boolean;
+    };
     snapshot?: boolean;
 }
 
 // @public
-export function renderToString(rootNode: JSXNode, opts: RenderToStringOptions): Promise<RenderToStringResult>;
+export function renderToString(rootNode: JSXNode, opts?: RenderToStringOptions): Promise<RenderToStringResult>;
 
 // @public (undocumented)
 export interface RenderToStringOptions extends RenderToDocumentOptions {
@@ -96,6 +89,12 @@ export interface RenderToStringResult {
 
 // @public
 export function serializeDocument(docOrEl: Document | Element, opts?: SerializeDocumentOptions): string;
+
+// Warning: (ae-forgotten-export) The symbol "QrlMapper" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "SymbolsEntryMap" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export type ServerOutputSymbols = QrlMapper | SymbolsEntryMap | null;
 
 // @public
 export function setServerPlatform(document: any, opts: SerializeDocumentOptions): Promise<void>;

@@ -1,4 +1,4 @@
-import type { OutputEntryMap } from '../optimizer/src';
+import type { SymbolsEntryMap } from '../optimizer/src';
 
 /**
  * Partial Window used by Qwik Framework.
@@ -48,7 +48,7 @@ export interface SerializeDocumentOptions extends DocumentOptions {
 /**
  * @public
  */
-export type ServerOutputSymbols = QrlMapper | OutputEntryMap | null;
+export type ServerOutputSymbols = QrlMapper | SymbolsEntryMap | null;
 
 /**
  * @public

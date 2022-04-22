@@ -377,9 +377,9 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
     const addBundle = (b: GeneratedOutputBundle) => bundles.push(b);
 
-    const generateOutputEntryMap = async () => {
+    const generateSymbolsEntryMap = async () => {
       const optimizer = await getOptimizer();
-      const outputEntryMap: SymbolsEntryMap = {
+      const symbolsEntryMap: SymbolsEntryMap = {
         version: '1',
         mapping: {},
         injections,
@@ -407,16 +407,16 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
           basename = optimizer.sys.path.basename(basename);
 
-          outputEntryMap.mapping[symbolName] = basename;
+          symbolsEntryMap.mapping[symbolName] = basename;
         });
       }
 
-      log(`generateOutputEntryMap()`, outputEntryMap);
+      log(`generateSymbolsEntryMap()`, symbolsEntryMap);
 
-      return outputEntryMap;
+      return symbolsEntryMap;
     };
 
-    return { addBundle, generateOutputEntryMap };
+    return { addBundle, generateSymbolsEntryMap };
   };
 
   const getOptions = () => ({ ...opts });
@@ -536,7 +536,7 @@ export interface BasePluginOptions {
   srcDir?: string | null;
   srcInputs?: TransformModuleInput[] | null;
   symbolsInput?: SymbolsEntryMap | null;
-  symbolsOutput?: ((data: SymbolsEntryMap) => Promise<void> | void) | null;
+  symbolsOutput?: ((symbolsEntryMap: SymbolsEntryMap) => Promise<void> | void) | null;
   transformedModuleOutput?:
     | ((data: { [id: string]: TransformModule }) => Promise<void> | void)
     | null;

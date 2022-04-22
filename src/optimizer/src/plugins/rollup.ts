@@ -121,14 +121,14 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
           }
         }
 
-        const outputEntryMap = await outputAnalyzer.generateOutputEntryMap();
+        const symbolsEntryMap = await outputAnalyzer.generateSymbolsEntryMap();
         if (typeof opts.symbolsOutput === 'function') {
-          await opts.symbolsOutput(outputEntryMap);
+          await opts.symbolsOutput(symbolsEntryMap);
         } else {
           this.emitFile({
             type: 'asset',
             fileName: SYMBOLS_MANIFEST_FILENAME,
-            source: JSON.stringify(outputEntryMap, null, 2),
+            source: JSON.stringify(symbolsEntryMap, null, 2),
           });
         }
 

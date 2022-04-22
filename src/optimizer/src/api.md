@@ -120,18 +120,6 @@ export interface OptimizerSystem {
 }
 
 // @alpha (undocumented)
-export interface OutputEntryMap {
-    // (undocumented)
-    injections?: GlobalInjections[];
-    // (undocumented)
-    mapping: {
-        [canonicalName: string]: string;
-    };
-    // (undocumented)
-    version: string;
-}
-
-// @alpha (undocumented)
 export interface Path {
     // (undocumented)
     basename(path: string, ext?: string): string;
@@ -231,6 +219,18 @@ export interface SourceLocation {
 
 // @alpha (undocumented)
 export type SourceMapsOption = 'external' | 'inline' | undefined | null;
+
+// @alpha (undocumented)
+export interface SymbolsEntryMap {
+    // (undocumented)
+    injections?: GlobalInjections[];
+    // (undocumented)
+    mapping: {
+        [canonicalName: string]: string;
+    };
+    // (undocumented)
+    version: string;
+}
 
 // Warning: (ae-forgotten-export) The symbol "TransformOptions" needs to be exported by the entry point index.d.ts
 //

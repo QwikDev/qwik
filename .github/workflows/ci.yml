@@ -465,6 +465,8 @@ jobs:
           mkdir dist-dev/
           mkdir dist-dev/@builder.io-qwik/
           mv builderio-qwik-distribution/* dist-dev/@builder.io-qwik/
+          mkdir dist-dev/create-qwik/
+          mv dist-dev-create-qwik/* dist-dev/create-qwik/
           mkdir dist-dev/eslint-plugin-qwik/
           mv dist-dev-eslint-plugin-qwik/* dist-dev/eslint-plugin-qwik/
 

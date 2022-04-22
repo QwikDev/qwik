@@ -433,10 +433,10 @@ jobs:
         settings:
           - host: ubuntu-latest
             browser: chromium
-            node: 18.x
+            node: 16.x
           - host: macos-latest
             browser: webkit
-            node: 16.x
+            node: 14.x
           - host: windows-latest
             browser: firefox
             node: 14.x

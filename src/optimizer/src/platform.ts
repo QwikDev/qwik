@@ -1,23 +1,36 @@
 import { logWarn } from '../../core/util/log';
-import type { OptimizerSystem, TransformModuleInput, TransformOutput } from './types';
-import * as pathBrowser from '../../core/util/path';
+import type {
+  OptimizerSystem,
+  SystemEnvironment,
+  TransformModuleInput,
+  TransformOutput,
+} from './types';
+import { createPath } from '../../core/util/path';
 import { QWIK_BINDING_MAP } from './qwik-binding-map';
 import { versions } from './versions';
 
 export async function getSystem() {
   const sys: OptimizerSystem = {
-    dynamicImport: () => {
-      throw new Error(`Qwik Optimizer sys.dynamicImport() not implemented`);
+    dynamicImport: (path) => {
+      throw new Error(
+        `Qwik Optimizer sys.dynamicImport() not implemented, trying to import: "${path}"`
+      );
     },
-    path: pathBrowser,
+    path: null as any,
+    cwd: () => '/',
+    env,
   };
+
+  const sysEnv = env();
+
+  sys.path = createPath(sys);
 
   if (globalThis.IS_ESM) {
     sys.dynamicImport = (path: string) => import(path);
   }
 
   if (globalThis.IS_CJS) {
-    if (isNodeJs()) {
+    if (sysEnv === 'node') {
       // using this api object as a way to ensure bundlers
       // do not try to inline or rewrite require()
       sys.dynamicImport = (path) => require(path);
@@ -29,7 +42,7 @@ export async function getSystem() {
         global.TextEncoder = nodeUtil.TextEncoder;
         global.TextDecoder = nodeUtil.TextDecoder;
       }
-    } else if (isWebWorker() || isBrowserMain()) {
+    } else if (sysEnv === 'webworker' || sysEnv === 'browsermain') {
       sys.dynamicImport = async (path: string) => {
         const cjsRsp = await fetch(path);
         const cjsCode = await cjsRsp.text();
@@ -41,8 +54,9 @@ export async function getSystem() {
     }
   }
 
-  if (isNodeJs()) {
+  if (sysEnv === 'node') {
     sys.path = await sys.dynamicImport('path');
+    sys.cwd = () => process.cwd();
   }
 
   return sys;
@@ -53,7 +67,7 @@ export const getPlatformInputFiles = async (sys: OptimizerSystem) => {
     return sys.getInputFiles;
   }
 
-  if (isNodeJs()) {
+  if (sys.env() === 'node') {
     const fs: typeof import('fs') = await sys.dynamicImport('fs');
 
     return async (rootDir: string) => {
@@ -100,7 +114,9 @@ export const getPlatformInputFiles = async (sys: OptimizerSystem) => {
 };
 
 export async function loadPlatformBinding(sys: OptimizerSystem) {
-  if (isNodeJs()) {
+  const sysEnv = env();
+
+  if (sysEnv === 'node') {
     // NodeJS
     const platform = (QWIK_BINDING_MAP as any)[process.platform];
     if (platform) {
@@ -123,7 +139,7 @@ export async function loadPlatformBinding(sys: OptimizerSystem) {
   if (globalThis.IS_CJS) {
     // CJS WASM
 
-    if (isNodeJs()) {
+    if (sysEnv === 'node') {
       // CJS WASM NodeJS
       const cjsWasmPath = sys.path.join('bindings', 'qwik.wasm.cjs');
       const wasmPath = sys.path.join(__dirname, 'bindings', 'qwik_wasm_bg.wasm');
@@ -144,7 +160,7 @@ export async function loadPlatformBinding(sys: OptimizerSystem) {
         .then(() => mod);
     }
 
-    if (isWebWorker() || isBrowserMain()) {
+    if (sysEnv === 'webworker' || sysEnv === 'browsermain') {
       // CJS WASM Browser
       const cdnUrl = `https://cdn.jsdelivr.net/npm/@builder.io/qwik@${versions.qwik}/bindings/`;
       const cjsModuleUrl = new URL(`./qwik.wasm.cjs`, cdnUrl).href;
@@ -190,36 +206,44 @@ export interface PlatformBinding {
   transform_modules: (opts: any) => TransformOutput;
 }
 
-export function isNodeJs() {
-  return (
+const env = (): SystemEnvironment => {
+  if (typeof Deno !== 'undefined') {
+    return 'deno';
+  }
+
+  if (
     typeof process !== 'undefined' &&
     process.versions &&
     process.versions.node &&
     typeof global !== 'undefined'
-  );
-}
+  ) {
+    return 'node';
+  }
 
-export function isBrowserMain() {
-  return (
-    typeof window !== 'undefined' &&
-    typeof document !== 'undefined' &&
-    typeof location !== 'undefined' &&
-    typeof navigator !== 'undefined' &&
-    typeof Window === 'function' &&
-    typeof fetch === 'function'
-  );
-}
-
-export function isWebWorker() {
-  return (
+  if (
     typeof self !== 'undefined' &&
     typeof location !== 'undefined' &&
     typeof navigator !== 'undefined' &&
     typeof fetch === 'function' &&
     typeof WorkerGlobalScope === 'function' &&
     typeof (self as any).importScripts === 'function'
-  );
-}
+  ) {
+    return 'webworker';
+  }
+
+  if (
+    typeof window !== 'undefined' &&
+    typeof document !== 'undefined' &&
+    typeof location !== 'undefined' &&
+    typeof navigator !== 'undefined' &&
+    typeof Window === 'function' &&
+    typeof fetch === 'function'
+  ) {
+    return 'browsermain';
+  }
+
+  return 'unknown';
+};
 
 const extensions: { [ext: string]: boolean } = {
   '.js': true,
@@ -231,3 +255,4 @@ const extensions: { [ext: string]: boolean } = {
 declare const globalThis: { IS_CJS: boolean; IS_ESM: boolean };
 declare const global: { [key: string]: any };
 declare const WorkerGlobalScope: any;
+declare const Deno: any;

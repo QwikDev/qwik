@@ -1,0 +1,13 @@
+{
+  "description": "Cloudflare Pages.",
+  "scripts": {
+    "serve": "wrangler pages dev ./dist"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "3.6.0",
+    "wrangler": "beta"
+  },
+  "qwik": {
+    "priority": -1
+  }
+}

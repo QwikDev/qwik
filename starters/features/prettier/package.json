@@ -5,6 +5,6 @@
     "fmt.check": "prettier --check ."
   },
   "devDependencies": {
-    "prettier": "2.3.0"
+    "prettier": "latest"
   }
 }

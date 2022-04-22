@@ -1,26 +1,26 @@
 {
   "name": "qwik-project-name",
-  "version": "0.0.0",
   "description": "",
+  "license": "",
   "scripts": {
-    "typecheck": "tsc --noEmit",
-    "build": "npm run typecheck && npm run build.client && npm run build.server",
+    "build": "npm run typecheck && npm run build.client && npm run build.ssr",
     "build.client": "vite build",
-    "build.server": "vite build --outDir server/build --ssr src/entry.server.tsx",
-    "dev.ssr": "vite",
-    "dev.client": "vite --mode clientonly",
+    "build.ssr": "vite build --mode ssr",
+    "dev": "vite",
+    "dev.ssr": "vite --mode ssr",
     "dev.debug": "node --inspect-brk node_modules/vite/bin/vite.js",
-    "dev": "npm run dev.client",
-    "start": "npm run dev"
+    "start": "npm run dev",
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "@types/node": "17.0.17",
     "@builder.io/qwik": "latest",
+    "@types/node": "latest",
+    "node-fetch": "2.6.7",
     "typescript": "latest",
     "vite": "latest"
   },
-  "author": "Builder.io Team",
-  "license": "MIT",
+  "homepage": "https://qwik.builder.io/",
+  "private": true,
   "engines": {
     "node": ">=14"
   }

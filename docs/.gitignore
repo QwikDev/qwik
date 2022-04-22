@@ -2,8 +2,8 @@
 .mf
 .vscode
 .rollup.cache
-build
-dist
+/server
+/dist
 node_modules
 tsconfig.tsbuildinfo
 q-symbols.json

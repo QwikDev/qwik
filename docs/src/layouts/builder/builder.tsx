@@ -1,7 +1,7 @@
 import { component$, Host, useStyles$ } from '@builder.io/qwik';
 import { useLocation } from '../../utils/useLocation';
 import { Header } from '../../components/header/header';
-import type { SiteStore } from '../../main';
+import type { SiteStore } from '../../components/app/app';
 import styles from './builder.css?inline';
 
 interface BuilderProps {

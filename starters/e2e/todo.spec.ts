@@ -8,7 +8,7 @@ test.describe('Todo', () => {
 
   test('todo title', async ({ page }) => {
     const title = page.locator('title');
-    await expect(title).toHaveText('Qwik Demo: ToDo');
+    await expect(title).toHaveText('Qwik Demo: Todo');
   });
 
   test('should start with 3 items', async ({ page }) => {

@@ -16,6 +16,7 @@ import type {
 import { isDocument } from '../core/util/element';
 import { getDocument } from '../core/util/dom';
 import { getElement } from '../core/render/render.public';
+import { getQwikLoaderScript } from './scripts';
 
 /**
  * Create emulated `Window` for server environment. Does not implement the full browser
@@ -51,7 +52,7 @@ export function createDocument(opts?: DocumentOptions) {
 export async function renderToDocument(
   docOrElm: Document | Element,
   rootNode: JSXNode<unknown> | FunctionComponent<any>,
-  opts: RenderToDocumentOptions
+  opts: RenderToDocumentOptions = {}
 ) {
   const doc = isDocument(docOrElm) ? docOrElm : getDocument(docOrElm);
   ensureGlobals(doc, opts);
@@ -60,12 +61,28 @@ export async function renderToDocument(
 
   await render(docOrElm, rootNode);
 
-  if (opts.base) {
+  if (typeof opts.base === 'string') {
+    let qrlBase = opts.base;
+    if (!qrlBase.endsWith('/')) {
+      qrlBase += '/';
+    }
     const containerEl = getElement(docOrElm);
-    containerEl.setAttribute('q:base', opts.base);
+    containerEl.setAttribute('q:base', qrlBase);
   }
+
   if (opts.snapshot !== false) {
     pauseContainer(docOrElm);
+  }
+
+  if (!opts.qwikLoader || opts.qwikLoader.include !== false) {
+    const qwikLoaderScript = getQwikLoaderScript({
+      events: opts.qwikLoader?.events,
+      debug: opts.debug,
+    });
+    const scriptElm = doc.createElement('script');
+    scriptElm.setAttribute('id', 'qwikloader');
+    scriptElm.innerHTML = qwikLoaderScript;
+    doc.head.appendChild(scriptElm);
   }
 }
 
@@ -74,7 +91,7 @@ export async function renderToDocument(
  * then serializes the document to a string.
  * @public
  */
-export async function renderToString(rootNode: JSXNode, opts: RenderToStringOptions) {
+export async function renderToString(rootNode: JSXNode, opts: RenderToStringOptions = {}) {
   const createDocTimer = createTimer();
   const doc = createDocument(opts);
   const createDocTime = createDocTimer();
@@ -82,6 +99,12 @@ export async function renderToString(rootNode: JSXNode, opts: RenderToStringOpti
   const renderDocTimer = createTimer();
   let rootEl: Element | Document = doc;
   if (typeof opts.fragmentTagName === 'string') {
+    if (opts.qwikLoader) {
+      opts.qwikLoader.include = false;
+    } else {
+      opts.qwikLoader = { include: false };
+    }
+
     rootEl = doc.createElement(opts.fragmentTagName);
     doc.body.appendChild(rootEl);
   }

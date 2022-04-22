@@ -44,7 +44,7 @@ export const onRequestGet: PagesFunction = async ({ request, next, waitUntil }) 
     // Generate Qwik SSR response
     const ssrResult = await render({
       url: request.url,
-      base: '/',
+      base: '/build/',
     });
 
     const response = new Response(ssrResult.html, {

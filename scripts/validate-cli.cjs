@@ -63,7 +63,7 @@ async function validateStarter(api, distDir, appId, serverId) {
   console.log(`🌎 ${projectName}: ${appDir}`);
   rmSync(appDir, { force: true, recursive: true });
 
-  const expressResult = await api.generateStarter({
+  const result = await api.generateStarter({
     projectName,
     appId,
     serverId,
@@ -71,21 +71,21 @@ async function validateStarter(api, distDir, appId, serverId) {
     featureIds: [],
   });
 
-  assert.strictEqual(expressResult.projectName, projectName);
-  assert.strictEqual(expressResult.appId, appId);
-  assert.strictEqual(expressResult.serverId, serverId);
-  assert.strictEqual(expressResult.outDir, appDir);
+  assert.strictEqual(result.projectName, projectName);
+  assert.strictEqual(result.appId, appId);
+  assert.strictEqual(result.serverId, serverId);
+  assert.strictEqual(result.outDir, appDir);
 
-  accessSync(expressResult.outDir);
+  accessSync(result.outDir);
 
-  const appPkgJsonPath = join(expressResult.outDir, 'package.json');
+  const appPkgJsonPath = join(result.outDir, 'package.json');
   const appPkgJson = JSON.parse(readFileSync(appPkgJsonPath, 'utf-8'));
   assert.strictEqual(appPkgJson.name, projectName.toLowerCase());
 
   appPkgJson.devDependencies['@builder.io/qwik'] = 'latest';
   writeFileSync(appPkgJsonPath, JSON.stringify(appPkgJson, null, 2));
 
-  const tsconfigPath = join(expressResult.outDir, 'tsconfig.json');
+  const tsconfigPath = join(result.outDir, 'tsconfig.json');
   accessSync(tsconfigPath);
 
   const { execa } = await import('execa');
@@ -117,8 +117,8 @@ async function validateStarter(api, distDir, appId, serverId) {
   console.log(`👑 ${projectName} import("${importUrl}")`);
 
   const { render } = await import(importUrl);
-  const result = await render();
-  assert.ok(typeof result.html === 'string');
+  const ssrResult = await render();
+  assert.ok(typeof ssrResult.html === 'string');
 
   console.log(`⭐️ ${projectName} validated\n`);
 }

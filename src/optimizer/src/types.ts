@@ -28,6 +28,9 @@ export interface Optimizer {
   sys: OptimizerSystem;
 }
 
+/**
+ * @alpha
+ */
 export interface OptimizerOptions {
   sys?: OptimizerSystem;
   binding?: any;
@@ -44,6 +47,9 @@ export interface OptimizerSystem {
   path: Path;
 }
 
+/**
+ * @alpha
+ */
 export type SystemEnvironment = 'node' | 'deno' | 'webworker' | 'browsermain' | 'unknown';
 
 // OPTIONS ***************

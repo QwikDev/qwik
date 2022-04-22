@@ -18,8 +18,6 @@ export interface ComponentEntryStrategy {
     type: 'component';
 }
 
-// Warning: (ae-forgotten-export) The symbol "OptimizerOptions" needs to be exported by the entry point index.d.ts
-//
 // @alpha (undocumented)
 export const createOptimizer: (optimizerOptions?: OptimizerOptions) => Promise<Optimizer>;
 
@@ -104,13 +102,19 @@ export interface Optimizer {
 }
 
 // @alpha (undocumented)
+export interface OptimizerOptions {
+    // (undocumented)
+    binding?: any;
+    // (undocumented)
+    sys?: OptimizerSystem;
+}
+
+// @alpha (undocumented)
 export interface OptimizerSystem {
     // (undocumented)
     cwd: () => string;
     // (undocumented)
     dynamicImport: (path: string) => Promise<any>;
-    // Warning: (ae-forgotten-export) The symbol "SystemEnvironment" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
     env: () => SystemEnvironment;
     // (undocumented)
@@ -231,6 +235,9 @@ export interface SymbolsEntryMap {
     // (undocumented)
     version: string;
 }
+
+// @alpha (undocumented)
+export type SystemEnvironment = 'node' | 'deno' | 'webworker' | 'browsermain' | 'unknown';
 
 // Warning: (ae-forgotten-export) The symbol "TransformOptions" needs to be exported by the entry point index.d.ts
 //

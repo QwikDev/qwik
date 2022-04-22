@@ -15,7 +15,7 @@
   "devDependencies": {
     "@builder.io/qwik": "latest",
     "@types/node": "latest",
-    "node-fetch": "latest",
+    "node-fetch": "2.6.7",
     "typescript": "latest",
     "vite": "latest"
   },

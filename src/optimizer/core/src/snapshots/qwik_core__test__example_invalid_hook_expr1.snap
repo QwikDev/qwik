@@ -38,7 +38,11 @@ export const App_component_useStyles = style;
   "name": "App_component_useStyles",
   "entry": null,
   "canonicalFilename": "h_test_app_component_usestyles",
-  "extension": "js"
+  "extension": "js",
+  "parent": "App_component",
+  "ctxKind": "function",
+  "ctxName": "useStyles$",
+  "captures": false
 }
 */
 ============================= h_test_app_component2.js (ENTRY POINT)==
@@ -52,7 +56,11 @@ export const App_component2 = render;
   "name": "App_component2",
   "entry": null,
   "canonicalFilename": "h_test_app_component2",
-  "extension": "js"
+  "extension": "js",
+  "parent": "App_component",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false
 }
 */
 ============================= h_test_app_component.js (ENTRY POINT)==
@@ -79,7 +87,11 @@ export const App_component = ()=>{
   "name": "App_component",
   "entry": null,
   "canonicalFilename": "h_test_app_component",
-  "extension": "js"
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false
 }
 */
 == DIAGNOSTICS ==

@@ -59,7 +59,11 @@ export const App_component_useMemo = ()=>{
   "name": "App_component_useMemo",
   "entry": null,
   "canonicalFilename": "h_test_app_component_usememo",
-  "extension": "js"
+  "extension": "js",
+  "parent": "App_component",
+  "ctxKind": "function",
+  "ctxName": "useMemo$",
+  "captures": true
 }
 */
 ============================= h_test_app_component2.js (ENTRY POINT)==
@@ -79,7 +83,11 @@ export const App_component2 = ()=>{
   "name": "App_component2",
   "entry": null,
   "canonicalFilename": "h_test_app_component2",
-  "extension": "js"
+  "extension": "js",
+  "parent": "App_component",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true
 }
 */
 ============================= h_test_app_component.js (ENTRY POINT)==
@@ -107,7 +115,11 @@ export const App_component = (props)=>{
   "name": "App_component",
   "entry": null,
   "canonicalFilename": "h_test_app_component",
-  "extension": "js"
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false
 }
 */
 ============================= h_test_lightweight_usememo.js (ENTRY POINT)==
@@ -123,7 +135,11 @@ export const Lightweight_useMemo = ()=>{
   "name": "Lightweight_useMemo",
   "entry": null,
   "canonicalFilename": "h_test_lightweight_usememo",
-  "extension": "js"
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "useMemo$",
+  "captures": false
 }
 */
 == DIAGNOSTICS ==

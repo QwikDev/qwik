@@ -9,7 +9,7 @@ import { getProps, QContext } from '../props/props';
 import { processNode } from '../render/jsx/jsx-runtime';
 import { wrapSubscriber } from '../use/use-subscriber';
 import { logDebug } from '../util/log';
-import type { ValueOrPromise } from '..';
+import type { ValueOrPromise } from '../util/types';
 import { removeSub } from '../object/q-object';
 
 export const firstRenderComponent = (rctx: RenderContext, ctx: QContext): ValueOrPromise<void> => {

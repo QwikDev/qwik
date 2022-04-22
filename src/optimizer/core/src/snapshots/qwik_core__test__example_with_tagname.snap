@@ -42,7 +42,11 @@ export const Foo_component1 = ()=>{
   "name": "Foo_component1",
   "entry": null,
   "canonicalFilename": "h_test_foo_component1",
-  "extension": "tsx"
+  "extension": "tsx",
+  "parent": "Foo_component",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false
 }
 */
 ============================= h_test_foo_component.tsx (ENTRY POINT)==
@@ -59,7 +63,11 @@ export const Foo_component = ()=>{
   "name": "Foo_component",
   "entry": null,
   "canonicalFilename": "h_test_foo_component",
-  "extension": "tsx"
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false
 }
 */
 == DIAGNOSTICS ==

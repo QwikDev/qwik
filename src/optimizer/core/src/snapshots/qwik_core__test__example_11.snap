@@ -46,7 +46,11 @@ export const Header_component_Header_onClick = (ev)=>dep3(ev)
   "name": "Header_component_Header_onClick",
   "entry": "entry_hooks",
   "canonicalFilename": "h_test_header_component_header_onclick",
-  "extension": "tsx"
+  "extension": "tsx",
+  "parent": "Header_component",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false
 }
 */
 ============================= h_test_header_component.tsx ==
@@ -70,7 +74,11 @@ export const Header_component = ()=>{
   "name": "Header_component",
   "entry": "entry_hooks",
   "canonicalFilename": "h_test_header_component",
-  "extension": "tsx"
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false
 }
 */
 ============================= h_test_app_component.tsx ==
@@ -88,7 +96,11 @@ export const App_component = ()=>{
   "name": "App_component",
   "entry": "entry_hooks",
   "canonicalFilename": "h_test_app_component",
-  "extension": "tsx"
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false
 }
 */
 ============================= entry_hooks.js (ENTRY POINT)==

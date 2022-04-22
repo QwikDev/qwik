@@ -63,7 +63,11 @@ export const Foo_component1 = ()=>{
   "name": "Foo_component1",
   "entry": null,
   "canonicalFilename": "h_test_foo_component1",
-  "extension": "js"
+  "extension": "js",
+  "parent": "Foo_component",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false
 }
 */
 ============================= h_test_foo_component.js (ENTRY POINT)==
@@ -83,7 +87,11 @@ export const Foo_component = ()=>{
   "name": "Foo_component",
   "entry": null,
   "canonicalFilename": "h_test_foo_component",
-  "extension": "js"
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false
 }
 */
 ============================= h_test_root_component3.js (ENTRY POINT)==
@@ -97,7 +105,11 @@ export const Root_component3 = 'thing';
   "name": "Root_component3",
   "entry": null,
   "canonicalFilename": "h_test_root_component3",
-  "extension": "js"
+  "extension": "js",
+  "parent": "Root_component",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false
 }
 */
 ============================= h_test_root_component4.js (ENTRY POINT)==
@@ -114,7 +126,11 @@ export const Root_component4 = ()=>{
   "name": "Root_component4",
   "entry": null,
   "canonicalFilename": "h_test_root_component4",
-  "extension": "js"
+  "extension": "js",
+  "parent": "Root_component",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false
 }
 */
 ============================= h_test_root_component.js (ENTRY POINT)==
@@ -134,7 +150,11 @@ export const Root_component = ()=>{
   "name": "Root_component",
   "entry": null,
   "canonicalFilename": "h_test_root_component",
-  "extension": "js"
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false
 }
 */
 == DIAGNOSTICS ==

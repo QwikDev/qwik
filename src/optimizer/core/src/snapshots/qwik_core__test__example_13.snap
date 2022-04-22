@@ -56,4 +56,4 @@ export { Header_component } from "./h_test_header_component";
 
 == DIAGNOSTICS ==
 
-[Diagnostic { origin: Atom('project/test.tsx' type=dynamic), message: "Second argument should be the name of a valid identifier", code_highlights: Some([CodeHighlight { message: None, loc: SourceLocation { start_line: 4, start_col: 47, end_line: 4, end_col: 52 } }]), hints: None, show_environment: false, severity: Error, documentation_url: None }]
+[]

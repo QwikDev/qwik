@@ -66,6 +66,7 @@ export function readWriteProxy<T extends object>(
 }
 
 export const QOjectTargetSymbol = ':target:';
+export const QOjectAllSymbol = ':all:';
 export const QOjectSubsSymbol = ':subs:';
 export const QOjectOriginalProxy = ':proxy:';
 export const SetSubscriber = Symbol('SetSubscriber');
@@ -125,13 +126,13 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
 
   get(target: TargetType, prop: string | symbol): any {
     let subscriber = this.subscriber;
+    this.subscriber = undefined;
+    if (typeof prop === 'symbol') {
+      return target[prop];
+    }
     if (prop === QOjectTargetSymbol) return target;
     if (prop === QOjectSubsSymbol) return this.subs;
     if (prop === QOjectOriginalProxy) return this.proxyMap.get(target);
-    const value = target[prop];
-    if (typeof prop === 'symbol') {
-      return value;
-    }
     const invokeCtx = tryGetInvokeContext();
     if (invokeCtx) {
       if (invokeCtx.subscriber === null) {
@@ -141,6 +142,18 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
       }
     } else if (qDev && !qTest && !subscriber) {
       logWarn(`State assigned outside invocation context. Getting prop "${prop}" of:`, target);
+    }
+
+    if (prop === QOjectAllSymbol) {
+      if (subscriber) {
+        this.subs.set(subscriber, null);
+      }
+      return target;
+    }
+
+    const value = target[prop];
+    if (typeof prop === 'symbol') {
+      return value;
     }
 
     if (subscriber) {
@@ -206,7 +219,6 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
 
   ownKeys(target: TargetType): ArrayLike<string | symbol> {
     let subscriber = this.subscriber;
-    this.subscriber = undefined;
     const invokeCtx = tryGetInvokeContext();
     if (invokeCtx) {
       if (invokeCtx.subscriber === null) {

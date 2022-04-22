@@ -120,7 +120,11 @@ export const Foo_component1 = ()=>{
   "name": "Foo_component1",
   "entry": null,
   "canonicalFilename": "h_test_foo_component1",
-  "extension": "js"
+  "extension": "js",
+  "parent": "Foo_component",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true
 }
 */
 ============================= h_test_foo_component.js (ENTRY POINT)==
@@ -139,7 +143,11 @@ export const Foo_component = (props)=>{
   "name": "Foo_component",
   "entry": null,
   "canonicalFilename": "h_test_foo_component",
-  "extension": "js"
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false
 }
 */
 == DIAGNOSTICS ==

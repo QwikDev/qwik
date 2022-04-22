@@ -74,7 +74,11 @@ export const Foo_component = ({ color  })=>{
   "name": "Foo_component",
   "entry": null,
   "canonicalFilename": "h_test_foo_component",
-  "extension": "tsx"
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false
 }
 */
 ============================= h_test_button_button_onclick.tsx (ENTRY POINT)==
@@ -91,7 +95,11 @@ export const Button_button_onClick = ()=>{
   "name": "Button_button_onClick",
   "entry": null,
   "canonicalFilename": "h_test_button_button_onclick",
-  "extension": "tsx"
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "event",
+  "ctxName": "onClick$",
+  "captures": true
 }
 */
 ============================= h_test_buttonarrow_button_onclick.tsx (ENTRY POINT)==
@@ -108,7 +116,11 @@ export const ButtonArrow_button_onClick = ()=>{
   "name": "ButtonArrow_button_onClick",
   "entry": null,
   "canonicalFilename": "h_test_buttonarrow_button_onclick",
-  "extension": "tsx"
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "event",
+  "ctxName": "onClick$",
+  "captures": true
 }
 */
 == DIAGNOSTICS ==

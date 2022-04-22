@@ -1,8 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 160
 expression: output
-
 ---
 ==INPUT==
 
@@ -28,7 +26,11 @@ export const sym1 = (ctx)=>console.log("1")
   "name": "sym1",
   "entry": null,
   "canonicalFilename": "h_test_sym1",
-  "extension": "tsx"
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false
 }
 */
 == DIAGNOSTICS ==

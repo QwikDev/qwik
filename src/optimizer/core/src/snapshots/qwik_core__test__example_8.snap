@@ -42,7 +42,11 @@ export const Header_component1 = (hola)=>{
   "name": "Header_component1",
   "entry": null,
   "canonicalFilename": "h_test_header_component1",
-  "extension": "tsx"
+  "extension": "tsx",
+  "parent": "Header_component",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false
 }
 */
 ============================= h_test_header_component.tsx (ENTRY POINT)==
@@ -59,7 +63,11 @@ export const Header_component = ()=>{
   "name": "Header_component",
   "entry": null,
   "canonicalFilename": "h_test_header_component",
-  "extension": "tsx"
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false
 }
 */
 == DIAGNOSTICS ==

@@ -58,7 +58,11 @@ export const Foo_component1 = ()=>{
   "name": "Foo_component1",
   "entry": null,
   "canonicalFilename": "h_test_foo_component1",
-  "extension": "tsx"
+  "extension": "tsx",
+  "parent": "Foo_component",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true
 }
 */
 ============================= h_test_foo_component.tsx (ENTRY POINT)==
@@ -79,7 +83,11 @@ export const Foo_component = ({ foo  })=>{
   "name": "Foo_component",
   "entry": null,
   "canonicalFilename": "h_test_foo_component",
-  "extension": "tsx"
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false
 }
 */
 ============================= h_test_bar_component3.tsx (ENTRY POINT)==
@@ -100,7 +108,11 @@ export const Bar_component3 = ()=>{
   "name": "Bar_component3",
   "entry": null,
   "canonicalFilename": "h_test_bar_component3",
-  "extension": "tsx"
+  "extension": "tsx",
+  "parent": "Bar_component",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true
 }
 */
 ============================= h_test_bar_component.tsx (ENTRY POINT)==
@@ -119,7 +131,11 @@ export const Bar_component = ({ bar  })=>{
   "name": "Bar_component",
   "entry": null,
   "canonicalFilename": "h_test_bar_component",
-  "extension": "tsx"
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false
 }
 */
 == DIAGNOSTICS ==

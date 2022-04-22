@@ -42,7 +42,11 @@ export const App_component_div_onClick = ()=>{
   "name": "App_component_div_onClick",
   "entry": null,
   "canonicalFilename": "h_test_app_component_div_onclick",
-  "extension": "js"
+  "extension": "js",
+  "parent": "App_component1",
+  "ctxKind": "event",
+  "ctxName": "onClick$",
+  "captures": true
 }
 */
 ============================= h_test_app_component1.js (ENTRY POINT)==
@@ -85,7 +89,11 @@ export const App_component1 = ()=>{
   "name": "App_component1",
   "entry": null,
   "canonicalFilename": "h_test_app_component1",
-  "extension": "js"
+  "extension": "js",
+  "parent": "App_component",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true
 }
 */
 ============================= h_test_app_component.js (ENTRY POINT)==
@@ -124,7 +132,11 @@ export const App_component = ({ count , rest: [I2, { I3 , v1: [I4] , I5 =v2 , ..
   "name": "App_component",
   "entry": null,
   "canonicalFilename": "h_test_app_component",
-  "extension": "js"
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false
 }
 */
 == DIAGNOSTICS ==

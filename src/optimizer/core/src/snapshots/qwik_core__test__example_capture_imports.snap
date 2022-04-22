@@ -35,7 +35,11 @@ export const App_component_useStyles = `${css1}${css2}`;
   "name": "App_component_useStyles",
   "entry": null,
   "canonicalFilename": "h_test_app_component_usestyles",
-  "extension": "js"
+  "extension": "js",
+  "parent": "App_component",
+  "ctxKind": "function",
+  "ctxName": "useStyles$",
+  "captures": false
 }
 */
 ============================= h_test_app_component_usestyles2.js (ENTRY POINT)==
@@ -50,7 +54,11 @@ export const App_component_useStyles2 = css3;
   "name": "App_component_useStyles2",
   "entry": null,
   "canonicalFilename": "h_test_app_component_usestyles2",
-  "extension": "js"
+  "extension": "js",
+  "parent": "App_component",
+  "ctxKind": "function",
+  "ctxName": "useStyles$",
+  "captures": false
 }
 */
 ============================= h_test_app_component.js (ENTRY POINT)==
@@ -70,7 +78,11 @@ export const App_component = ()=>{
   "name": "App_component",
   "entry": null,
   "canonicalFilename": "h_test_app_component",
-  "extension": "js"
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false
 }
 */
 == DIAGNOSTICS ==

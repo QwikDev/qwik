@@ -1,4 +1,4 @@
-import { component$, useStore, Host, useRef, useEffect$ } from '@builder.io/qwik';
+import { component$, useStore, Host, useRef, useWatchEffect$ } from '@builder.io/qwik';
 import type { TodoItem, Todos } from '../../state/state';
 
 /**
@@ -17,7 +17,7 @@ export const Item = component$(
     const state = useStore({ editing: false });
     const editInput = useRef<HTMLInputElement>();
 
-    useEffect$((obs) => {
+    useWatchEffect$((obs) => {
       const { current } = obs(editInput);
       if (current) {
         current.focus();

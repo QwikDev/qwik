@@ -288,38 +288,6 @@ export const App = component$(() => {
 }
 
 #[test]
-fn example_12() {
-    test_input!(TestInput {
-        filename: "project/test.tsx".to_string(),
-        code: r#"
-import { $, component$ } from '@builder.io/qwik';
-export const Header = component$(() => {
-    return $(() => console.log("hello sym2"), "sym2")
-});
-"#
-        .to_string(),
-        entry_strategy: EntryStrategy::Single,
-        ..TestInput::default()
-    });
-}
-
-#[test]
-fn example_13() {
-    test_input!(TestInput {
-        filename: "project/test.tsx".to_string(),
-        code: r#"
-import { $, component$ } from '@builder.io/qwik';
-export const Header = component$(() => {
-    return $(() => console.log("hello sym2"), "2sym")
-});
-"#
-        .to_string(),
-        entry_strategy: EntryStrategy::Single,
-        ..TestInput::default()
-    });
-}
-
-#[test]
 fn example_functional_component() {
     test_input!(TestInput {
         code: r#"

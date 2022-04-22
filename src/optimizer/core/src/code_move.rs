@@ -274,7 +274,7 @@ fn new_entry_module(hooks: &[&HookAnalysis]) -> ast::Module {
                         is_type_only: false,
                         span: DUMMY_SP,
                         orig: ast::ModuleExportName::Ident(ast::Ident::new(
-                            JsWord::from(hook.name.clone()),
+                            hook.name.clone(),
                             DUMMY_SP,
                         )),
                         exported: None,

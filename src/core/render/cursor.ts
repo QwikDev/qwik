@@ -205,7 +205,8 @@ export function getChildren(elm: Node, mode: ChildrenMode): Node[] {
   }
 }
 export function isNode(elm: Node): boolean {
-  return elm.nodeType === 1 || elm.nodeType === 3;
+  const type = elm.nodeType;
+  return type === 1 || type === 3 || type === 8;
 }
 
 function isFallback(node: Node): boolean {
@@ -245,6 +246,12 @@ export function patchVnode(
   const tag = vnode.type;
   if (tag === '#text') {
     if ((elm as Text).data !== vnode.text) {
+      setProperty(rctx, elm, 'data', vnode.text);
+    }
+    return;
+  }
+  if (tag === '#comment') {
+    if ((elm as Comment).data !== vnode.text) {
       setProperty(rctx, elm, 'data', vnode.text);
     }
     return;
@@ -449,6 +456,9 @@ function createElm(rctx: RenderContext, vnode: JSXNode, isSvg: boolean): ValueOr
   const tag = vnode.type;
   if (tag === '#text') {
     return (vnode.elm = createTextNode(rctx, vnode.text!));
+  }
+  if (tag === '#comment') {
+    return (vnode.elm = createCommentNode(rctx, vnode.text!));
   }
   if (!isSvg) {
     isSvg = tag === 'svg';
@@ -803,6 +813,10 @@ function removeNode(ctx: RenderContext, el: Node) {
 
 function createTextNode(ctx: RenderContext, text: string): Text {
   return ctx.doc.createTextNode(text);
+}
+
+function createCommentNode(ctx: RenderContext, text: string): Comment {
+  return ctx.doc.createComment(text);
 }
 
 export function executeContextWithSlots(ctx: RenderContext) {

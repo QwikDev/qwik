@@ -58,7 +58,11 @@ export const Foo_component_handler = ()=>console.log('reused')
   "name": "Foo_component_handler",
   "entry": null,
   "canonicalFilename": "h_test_foo_component_handler",
-  "extension": "js"
+  "extension": "js",
+  "parent": "Foo_component1",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false
 }
 */
 ============================= h_test_foo_component_div_onclick.js (ENTRY POINT)==
@@ -73,7 +77,11 @@ export const Foo_component_div_onClick = ()=>console.log('onClick$')
   "name": "Foo_component_div_onClick",
   "entry": null,
   "canonicalFilename": "h_test_foo_component_div_onclick",
-  "extension": "js"
+  "extension": "js",
+  "parent": "Foo_component1",
+  "ctxKind": "event",
+  "ctxName": "onClick$",
+  "captures": false
 }
 */
 ============================= h_test_foo_component_div_ondocumentscroll.js (ENTRY POINT)==
@@ -88,7 +96,11 @@ export const Foo_component_div_onDocumentScroll = ()=>console.log('onDocumentScr
   "name": "Foo_component_div_onDocumentScroll",
   "entry": null,
   "canonicalFilename": "h_test_foo_component_div_ondocumentscroll",
-  "extension": "js"
+  "extension": "js",
+  "parent": "Foo_component1",
+  "ctxKind": "event",
+  "ctxName": "onDocumentScroll$",
+  "captures": false
 }
 */
 ============================= h_test_foo_component_div_ondocumentscroll5.js (ENTRY POINT)==
@@ -103,7 +115,11 @@ export const Foo_component_div_onDocumentScroll5 = ()=>console.log('onWindowScro
   "name": "Foo_component_div_onDocumentScroll5",
   "entry": null,
   "canonicalFilename": "h_test_foo_component_div_ondocumentscroll5",
-  "extension": "js"
+  "extension": "js",
+  "parent": "Foo_component1",
+  "ctxKind": "event",
+  "ctxName": "onDocumentScroll$",
+  "captures": false
 }
 */
 ============================= h_test_foo_component_div_on_click.js (ENTRY POINT)==
@@ -118,7 +134,11 @@ export const Foo_component_div_on_cLick = ()=>console.log('on-cLick$')
   "name": "Foo_component_div_on_cLick",
   "entry": null,
   "canonicalFilename": "h_test_foo_component_div_on_click",
-  "extension": "js"
+  "extension": "js",
+  "parent": "Foo_component1",
+  "ctxKind": "event",
+  "ctxName": "on-cLick$",
+  "captures": false
 }
 */
 ============================= h_test_foo_component_div_ondocument_scroll.js (ENTRY POINT)==
@@ -133,7 +153,11 @@ export const Foo_component_div_onDocument_sCroll = ()=>console.log('onDocument-s
   "name": "Foo_component_div_onDocument_sCroll",
   "entry": null,
   "canonicalFilename": "h_test_foo_component_div_ondocument_scroll",
-  "extension": "js"
+  "extension": "js",
+  "parent": "Foo_component1",
+  "ctxKind": "event",
+  "ctxName": "onDocument-sCroll$",
+  "captures": false
 }
 */
 ============================= h_test_foo_component_div_ondocument_scroll.js (ENTRY POINT)==
@@ -148,7 +172,11 @@ export const Foo_component_div_onDocument_scroLL = ()=>console.log('onDocument-s
   "name": "Foo_component_div_onDocument_scroLL",
   "entry": null,
   "canonicalFilename": "h_test_foo_component_div_ondocument_scroll",
-  "extension": "js"
+  "extension": "js",
+  "parent": "Foo_component1",
+  "ctxKind": "event",
+  "ctxName": "onDocument-scroLL$",
+  "captures": false
 }
 */
 ============================= h_test_foo_component_div_host_onclick.js (ENTRY POINT)==
@@ -163,7 +191,11 @@ export const Foo_component_div_host_onClick = ()=>console.log('host:onClick$')
   "name": "Foo_component_div_host_onClick",
   "entry": null,
   "canonicalFilename": "h_test_foo_component_div_host_onclick",
-  "extension": "js"
+  "extension": "js",
+  "parent": "Foo_component1",
+  "ctxKind": "event",
+  "ctxName": "host:onClick$",
+  "captures": false
 }
 */
 ============================= h_test_foo_component_div_host_ondocumentscroll.js (ENTRY POINT)==
@@ -178,7 +210,11 @@ export const Foo_component_div_host_onDocumentScroll = ()=>console.log('host:onD
   "name": "Foo_component_div_host_onDocumentScroll",
   "entry": null,
   "canonicalFilename": "h_test_foo_component_div_host_ondocumentscroll",
-  "extension": "js"
+  "extension": "js",
+  "parent": "Foo_component1",
+  "ctxKind": "event",
+  "ctxName": "host:onDocumentScroll$",
+  "captures": false
 }
 */
 ============================= h_test_foo_component_div_host_ondocumentscroll11.js (ENTRY POINT)==
@@ -193,7 +229,11 @@ export const Foo_component_div_host_onDocumentScroll11 = ()=>console.log('host:o
   "name": "Foo_component_div_host_onDocumentScroll11",
   "entry": null,
   "canonicalFilename": "h_test_foo_component_div_host_ondocumentscroll11",
-  "extension": "js"
+  "extension": "js",
+  "parent": "Foo_component1",
+  "ctxKind": "event",
+  "ctxName": "host:onDocumentScroll$",
+  "captures": false
 }
 */
 ============================= h_test_foo_component_div_custom.js (ENTRY POINT)==
@@ -208,7 +248,11 @@ export const Foo_component_div_custom = ()=>console.log('custom')
   "name": "Foo_component_div_custom",
   "entry": null,
   "canonicalFilename": "h_test_foo_component_div_custom",
-  "extension": "js"
+  "extension": "js",
+  "parent": "Foo_component1",
+  "ctxKind": "event",
+  "ctxName": "custom$",
+  "captures": false
 }
 */
 ============================= h_test_foo_component1.js (ENTRY POINT)==
@@ -251,7 +295,11 @@ export const Foo_component1 = ()=>{
   "name": "Foo_component1",
   "entry": null,
   "canonicalFilename": "h_test_foo_component1",
-  "extension": "js"
+  "extension": "js",
+  "parent": "Foo_component",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false
 }
 */
 ============================= h_test_foo_component.js (ENTRY POINT)==
@@ -268,7 +316,11 @@ export const Foo_component = ()=>{
   "name": "Foo_component",
   "entry": null,
   "canonicalFilename": "h_test_foo_component",
-  "extension": "js"
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false
 }
 */
 == DIAGNOSTICS ==

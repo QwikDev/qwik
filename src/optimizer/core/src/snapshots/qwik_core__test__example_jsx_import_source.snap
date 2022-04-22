@@ -44,7 +44,11 @@ export const App2_qwikify = ()=>/*#__PURE__*/ _jsx("div", {
   "name": "App2_qwikify",
   "entry": null,
   "canonicalFilename": "h_test_app2_qwikify",
-  "extension": "js"
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "qwikify$",
+  "captures": false
 }
 */
 == DIAGNOSTICS ==

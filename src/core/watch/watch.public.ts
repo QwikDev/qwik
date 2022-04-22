@@ -1,15 +1,20 @@
-import { noSerialize, NoSerialize, removeSub } from '../object/q-object';
+import {
+  noSerialize,
+  NoSerialize,
+  QOjectAllSymbol,
+  removeSub,
+  SetSubscriber,
+} from '../object/q-object';
 import { implicit$FirstArg, QRL } from '../import/qrl.public';
 import { getContext } from '../props/props';
 import { newInvokeContext, useWaitOn } from '../use/use-core';
 import { useHostElement } from '../use/use-host-element.public';
 import { logDebug, logError } from '../util/log';
 import { then } from '../util/promises';
-import { wrapSubscriber } from '../use/use-subscriber';
 import { useSequentialScope } from '../use/use-store.public';
 import type { QRLInternal } from '../import/qrl-class';
 import { getDocument } from '../util/dom';
-import type { ValueOrPromise } from '..';
+import type { ValueOrPromise } from '../util/types';
 
 export const enum WatchMode {
   Watch,
@@ -145,7 +150,7 @@ export const useWatch$ = implicit$FirstArg(useWatchQrl);
 /**
  * @alpha
  */
-export function useEffectQrl(watchQrl: QRL<WatchFn>): void {
+export function useWatchEffectQrl(watchQrl: QRL<WatchFn>): void {
   const [watch, setWatch] = useSequentialScope();
   if (!watch) {
     const hostElement = useHostElement();
@@ -164,7 +169,7 @@ export function useEffectQrl(watchQrl: QRL<WatchFn>): void {
 /**
  * @alpha
  */
-export const useEffect$ = implicit$FirstArg(useEffectQrl);
+export const useWatchEffect$ = implicit$FirstArg(useWatchEffectQrl);
 
 export function runWatch(watch: WatchDescriptor): Promise<WatchDescriptor> {
   if (!watch.dirty) {
@@ -195,11 +200,12 @@ export function runWatch(watch: WatchDescriptor): Promise<WatchDescriptor> {
 
       const watchFn = watch.watchQrl.invokeFn(hostElement, invokationContext);
       const tracker: Tracker = (obj: any, prop?: string) => {
-        const observed = wrapSubscriber(obj, watch);
+        obj[SetSubscriber] = watch;
         if (prop) {
-          return observed[prop];
+          return obj[prop];
+        } else {
+          return obj[QOjectAllSymbol];
         }
-        return observed;
       };
       const captureRef = (watch.watchQrl as QRLInternal).captureRef;
       if (Array.isArray(captureRef)) {

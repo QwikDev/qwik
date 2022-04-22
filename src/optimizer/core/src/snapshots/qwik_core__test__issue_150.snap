@@ -40,7 +40,11 @@ export const Greeter_component1 = ()=>{
   "name": "Greeter_component1",
   "entry": null,
   "canonicalFilename": "h_test_greeter_component1",
-  "extension": "js"
+  "extension": "js",
+  "parent": "Greeter_component",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false
 }
 */
 ============================= h_test_greeter_component.js (ENTRY POINT)==
@@ -57,7 +61,11 @@ export const Greeter_component = ()=>{
   "name": "Greeter_component",
   "entry": null,
   "canonicalFilename": "h_test_greeter_component",
-  "extension": "js"
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false
 }
 */
 ============================= h_test_d.js (ENTRY POINT)==
@@ -72,7 +80,11 @@ export const d = ()=>console.log('thing')
   "name": "d",
   "entry": null,
   "canonicalFilename": "h_test_d",
-  "extension": "js"
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false
 }
 */
 == DIAGNOSTICS ==

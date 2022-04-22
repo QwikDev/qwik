@@ -1,8 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 222
 expression: output
-
 ---
 ==INPUT==
 
@@ -47,7 +45,11 @@ export const Header = (decl1, { decl2  }, [decl3])=>{
   "name": "Header",
   "entry": null,
   "canonicalFilename": "h_test_header",
-  "extension": "tsx"
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false
 }
 */
 == DIAGNOSTICS ==

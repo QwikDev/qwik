@@ -32,7 +32,11 @@ export const Header_component_div_onClick = (ctx)=>console.log(ctx)
   "name": "Header_component_div_onClick",
   "entry": null,
   "canonicalFilename": "h_test_header_component_div_onclick",
-  "extension": "tsx"
+  "extension": "tsx",
+  "parent": "Header_component",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false
 }
 */
 ============================= h_test_header_component.tsx (ENTRY POINT)==
@@ -50,7 +54,11 @@ export const Header_component = ()=>{
   "name": "Header_component",
   "entry": null,
   "canonicalFilename": "h_test_header_component",
-  "extension": "tsx"
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false
 }
 */
 == DIAGNOSTICS ==

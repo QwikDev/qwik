@@ -5,7 +5,7 @@ use std::str;
 use crate::code_move::{new_module, NewModuleCtx};
 use crate::collector::global_collect;
 use crate::entry_strategy::EntryPolicy;
-use crate::transform::{QwikTransform, QwikTransformOptions, ThreadSafeTransformContext};
+use crate::transform::{HookKind, QwikTransform, QwikTransformOptions, ThreadSafeTransformContext};
 use crate::utils::{CodeHighlight, Diagnostic, DiagnosticSeverity, SourceLocation};
 use path_slash::PathExt;
 use serde::{Deserialize, Serialize};
@@ -36,10 +36,14 @@ use swc_ecmascript::visit::{FoldWith, VisitMutWith};
 #[serde(rename_all = "camelCase")]
 pub struct HookAnalysis {
     pub origin: JsWord,
-    pub name: String,
+    pub name: JsWord,
     pub entry: Option<JsWord>,
     pub canonical_filename: String,
     pub extension: JsWord,
+    pub parent: Option<JsWord>,
+    pub ctx_kind: HookKind,
+    pub ctx_name: JsWord,
+    pub captures: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize, Copy, Clone, PartialEq, Eq)]
@@ -238,7 +242,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                     let comments_maps = comments.clone().take_all();
                     for h in hooks.into_iter() {
                         let is_entry = h.entry == None;
-                        let hook_path = [&h.canonical_filename, ".", &h.extension].concat();
+                        let hook_path = [&h.canonical_filename, ".", &h.data.extension].concat();
 
                         let hook_mark = Mark::fresh(Mark::root());
 
@@ -246,9 +250,9 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                             expr: h.expr,
                             path: &path_data,
                             name: &h.name,
-                            origin: &h.origin,
-                            local_idents: &h.local_idents,
-                            scoped_idents: &h.scoped_idents,
+                            origin: &h.data.origin,
+                            local_idents: &h.data.local_idents,
+                            scoped_idents: &h.data.scoped_idents,
                             global: &qwik_transform.options.global_collect,
                             qwik_ident: &qwik_transform.qwik_ident,
                             leading_comments: comments_maps.0.clone(),
@@ -312,11 +316,15 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                             is_entry,
                             path: hook_path,
                             hook: Some(HookAnalysis {
-                                origin: h.origin,
-                                name: h.name.to_string(),
+                                origin: h.data.origin,
+                                name: h.name,
                                 entry: h.entry,
-                                extension: h.extension,
+                                extension: h.data.extension,
                                 canonical_filename: h.canonical_filename,
+                                parent: h.data.parent_hook,
+                                ctx_kind: h.data.ctx_kind,
+                                ctx_name: h.data.ctx_name,
+                                captures: !h.data.scoped_idents.is_empty(),
                             }),
                         });
                     }

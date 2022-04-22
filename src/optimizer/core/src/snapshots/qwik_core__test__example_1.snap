@@ -1,8 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 55
 expression: output
-
 ---
 ==INPUT==
 
@@ -40,7 +38,11 @@ export const renderHeader_div_onClick = (ctx)=>console.log(ctx)
   "name": "renderHeader_div_onClick",
   "entry": null,
   "canonicalFilename": "h_test_renderheader_div_onclick",
-  "extension": "tsx"
+  "extension": "tsx",
+  "parent": "renderHeader",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false
 }
 */
 ============================= h_test_renderheader.tsx (ENTRY POINT)==
@@ -57,7 +59,11 @@ export const renderHeader = ()=>{
   "name": "renderHeader",
   "entry": null,
   "canonicalFilename": "h_test_renderheader",
-  "extension": "tsx"
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false
 }
 */
 ============================= h_test_renderheader2.tsx (ENTRY POINT)==
@@ -74,7 +80,11 @@ export const renderHeader2 = ()=>{
   "name": "renderHeader2",
   "entry": null,
   "canonicalFilename": "h_test_renderheader2",
-  "extension": "tsx"
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false
 }
 */
 == DIAGNOSTICS ==

@@ -4,6 +4,7 @@ import { qDev } from '../../util/qdev';
 import { Host, SkipRerender } from './host.public';
 import { EMPTY_ARRAY } from '../../util/flyweight';
 import { logWarn } from '../../util/log';
+import { Children } from 'react';
 
 /**
  * @public
@@ -78,6 +79,15 @@ export const isJSXNode = (n: any): n is JSXNode<unknown> => {
   } else {
     return n instanceof JSXNodeImpl;
   }
+};
+
+/**
+ * @public
+ */
+export const Comment: FunctionComponent<{ text?: string }> = (props) => {
+  const newNode = new JSXNodeImpl('#comment', null, null);
+  newNode.text = props.text || '';
+  return newNode;
 };
 
 /**

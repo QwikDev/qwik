@@ -46,7 +46,11 @@ export const App_component1 = ()=>{
   "name": "App_component1",
   "entry": null,
   "canonicalFilename": "h_test_app_component1",
-  "extension": "js"
+  "extension": "js",
+  "parent": "App_component",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false
 }
 */
 ============================= h_test_app_component.js (ENTRY POINT)==
@@ -70,7 +74,11 @@ export const App_component = ()=>{
   "name": "App_component",
   "entry": null,
   "canonicalFilename": "h_test_app_component",
-  "extension": "js"
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false
 }
 */
 == DIAGNOSTICS ==

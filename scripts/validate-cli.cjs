@@ -1,4 +1,4 @@
-const { accessSync, readFileSync, writeFileSync, rmSync, mkdirSync, cpSync } = require('fs');
+const { accessSync, readFileSync, writeFileSync, rmSync, cpSync } = require('fs');
 const assert = require('assert');
 const { join } = require('path');
 
@@ -39,7 +39,8 @@ async function validateCreateQwikCli() {
 
   await validateStarter(api, distDir, 'starter', 'express');
   await validateStarter(api, distDir, 'starter-builder', 'cloudflare-pages');
-  await validateStarter(api, distDir, 'todo', 'express');
+  await validateStarter(api, distDir, 'starter-partytown', 'express');
+  await validateStarter(api, distDir, 'todo', 'cloudflare-pages');
 
   console.log(`👽 create-qwik validated\n`);
 }
@@ -105,7 +106,7 @@ async function validateStarter(api, distDir, appId, serverId) {
   const result = await render();
   assert.ok(typeof result.html === 'string');
 
-  console.log(`⭐️ ${projectName}: validated\n`);
+  console.log(`⭐️ ${projectName} validated\n`);
 }
 
 validateCreateQwikCli();

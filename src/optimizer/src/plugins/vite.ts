@@ -174,11 +174,9 @@ export function qwikVite(qwikViteOpts: QwikViteOptions = {}): any {
       if (id.startsWith('\0')) {
         return null;
       }
-
-      if (isClientOnly && id === VITE_CLIENT_RENDER_MODULE) {
+      if (isClientOnly && id === VITE_CLIENT_MODULE) {
         return id;
       }
-
       return qwikPlugin.resolveId(id, importer);
     },
 
@@ -186,8 +184,8 @@ export function qwikVite(qwikViteOpts: QwikViteOptions = {}): any {
       if (id.startsWith('\0')) {
         return null;
       }
-      if (isClientOnly && id === VITE_CLIENT_RENDER_MODULE) {
-        return getQwikViteDevServerModule();
+      if (isClientOnly && id === VITE_CLIENT_MODULE) {
+        return getViteDevModule();
       }
       return qwikPlugin.load(id);
     },
@@ -196,14 +194,12 @@ export function qwikVite(qwikViteOpts: QwikViteOptions = {}): any {
       if (id.startsWith('\0')) {
         return null;
       }
-
       if (isClientOnly) {
         const parsedId = parseId(id);
-        if (parsedId.params.has(VITE_CLIENT_ENTRY_QS)) {
-          code = updateEntryServerForClient(code);
+        if (parsedId.params.has(VITE_DEV_CLIENT_QS)) {
+          code = updateEntryDev(code);
         }
       }
-
       return qwikPlugin.transform(code, id);
     },
 
@@ -305,12 +301,16 @@ export function qwikVite(qwikViteOpts: QwikViteOptions = {}): any {
           if (isClientOnly) {
             qwikPlugin.log(`handleClientEntry("${url}")`);
 
-            let entryUrl = optimizer.sys.path.relative(opts.rootDir, opts.srcEntryServerInput);
+            let entryUrl = optimizer.sys.path.relative(opts.rootDir, srcEntryDevInput);
             entryUrl = '/' + entryUrl.replace(/\\/g, '/');
-            let html = getQwikViteClientIndexHtml(entryUrl);
+
+            let html = getViteDevIndexHtml(entryUrl);
             html = await server.transformIndexHtml(pathname, html);
 
             res.setHeader('Content-Type', 'text/html; charset=utf-8');
+            res.setHeader('Cache-Control', 'no-cache');
+            res.setHeader('Access-Control-Allow-Origin', '*');
+            res.setHeader('X-Powered-By', 'Qwik Vite Dev Server');
             res.writeHead(200);
             res.end(html);
             return;
@@ -365,6 +365,9 @@ export function qwikVite(qwikViteOpts: QwikViteOptions = {}): any {
             const html = await server.transformIndexHtml(pathname, result.html, req.originalUrl);
 
             res.setHeader('Content-Type', 'text/html; charset=utf-8');
+            res.setHeader('Cache-Control', 'no-cache');
+            res.setHeader('Access-Control-Allow-Origin', '*');
+            res.setHeader('X-Powered-By', 'Qwik Vite Dev Server');
             res.writeHead(200);
             res.end(html);
           } else {
@@ -394,44 +397,52 @@ export function qwikVite(qwikViteOpts: QwikViteOptions = {}): any {
   return vitePlugin;
 }
 
-function getQwikViteClientIndexHtml(entryUrl: string) {
-  return `
+function getViteDevIndexHtml(entryUrl: string) {
+  return `<!-- Qwik Vite Dev Mode -->
 <!DOCTYPE html>
 <html>
-  <head>
-    <script type="module" src="${entryUrl}?${VITE_CLIENT_ENTRY_QS}=" data-qwik-client-entry></script>
-  </head>
-  <body></body>
-</html>
-`.trim();
+  <head></head>
+  <body>
+    <script type="module" src="${entryUrl}?${VITE_DEV_CLIENT_QS}="></script>
+  </body>
+</html>`;
 }
 
-function updateEntryServerForClient(code: string) {
-  code = code.replace(/@builder.io\/qwik\/server/g, VITE_CLIENT_RENDER_MODULE);
-  code += 'render();';
+function updateEntryDev(code: string) {
+  code = code.replace(/("|')@builder.io\/qwik("|')/g, `'${VITE_CLIENT_MODULE}'`);
   return code;
 }
 
-function getQwikViteDevServerModule() {
-  return `
-import { render, jsx } from '@builder.io/qwik';
+function getViteDevModule() {
+  return `// Qwik Vite Dev Module
+import { render as qwikRender } from '@builder.io/qwik';
 
-export function renderToString(rootNode, opts) {
-  opts = opts || {};
-  opts.url = location.href;
-  render(document.body, rootNode);
+export function render(document, rootNode) {
+  const headNodes = [];
+  document.head.childNodes.forEach(n => headNodes.push(n));
+  document.head.textContent = '';
+
+  qwikRender(document, rootNode);
+
+  headNodes.forEach(n => document.head.appendChild(n));
+  
+  let qwikLoader = document.getElementById('qwikloader');
+  if (!qwikLoader) {
+    qwikLoader = document.createElement('script');
+    qwikLoader.id = 'qwikloader';
+    qwikLoader.innerHTML = ${JSON.stringify(QWIK_LOADER_DEFAULT_MINIFIED)};
+    document.head.appendChild(qwikLoader);
+  }
+
+  if (!window.__qwikViteLog) {
+    window.__qwikViteLog = true;
+    console.debug("%c⭐️ Qwik Dev Mode","background: #0c75d2; color: white; padding: 2px 3px; border-radius: 2px; font-size: 0.8em;","Do not use this mode in production!\\n - No portion of the application is pre-rendered on the server\\n - All of the application is running eagerly in the browser\\n - Optimizer/Serialization/Deserialization code is not exercised!");
+  }
+}`;
 }
 
-export function QwikLoader() {
-  return jsx('script', { dangerouslySetInnerHTML: ${JSON.stringify(
-    QWIK_LOADER_DEFAULT_MINIFIED
-  )} });
-}
-`;
-}
-
-const VITE_CLIENT_RENDER_MODULE = `@builder.io/qwik/vite-client-render`;
-const VITE_CLIENT_ENTRY_QS = `vite-client-entry`;
+const VITE_CLIENT_MODULE = `@builder.io/qwik/vite-client`;
+const VITE_DEV_CLIENT_QS = `qwik-vite-dev-client`;
 const ENTRY_DEV_FILENAME_DEFAULT = 'entry.dev.tsx';
 
 /**

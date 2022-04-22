@@ -8,7 +8,7 @@ export const App = component$(() => {
   return (
     <>
       <Header />
-      <div>Hello Builder</div>
+      <div id="builder-content"></div>
       <Footer />
     </>
   );

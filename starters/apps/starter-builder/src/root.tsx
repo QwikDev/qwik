@@ -23,5 +23,5 @@ const fetchQwikBuilderContent = async () => {
 
   const response = await fetch(String(qwikUrl));
   const { html } = await response.json();
-  document.querySelector('#my-content')!.innerHTML = html;
+  document.querySelector('#builder-content')!.innerHTML = html;
 };

@@ -1,4 +1,13 @@
-const { accessSync, readFileSync, writeFileSync, rmSync, cpSync } = require('fs');
+const {
+  accessSync,
+  readFileSync,
+  writeFileSync,
+  rmSync,
+  statSync,
+  mkdirSync,
+  readdirSync,
+  copyFileSync,
+} = require('fs');
 const assert = require('assert');
 const { join } = require('path');
 
@@ -109,4 +118,28 @@ async function validateStarter(api, distDir, appId, serverId) {
   console.log(`⭐️ ${projectName} validated\n`);
 }
 
-validateCreateQwikCli();
+function cpSync(src, dest) {
+  // cpSync() not available until Node v16.7.0
+  try {
+    const stats = statSync(src);
+    if (stats.isDirectory()) {
+      mkdirSync(dest, { recursive: true });
+      readdirSync(src).forEach((childItem) => {
+        const childSrc = join(src, childItem);
+        const childDest = join(dest, childItem);
+        cpSync(childSrc, childDest);
+      });
+    } else {
+      copyFileSync(src, dest);
+    }
+  } catch (e) {}
+}
+
+(async () => {
+  try {
+    await validateCreateQwikCli();
+  } catch (e) {
+    console.error('❌', e);
+    process.exit(1);
+  }
+})();

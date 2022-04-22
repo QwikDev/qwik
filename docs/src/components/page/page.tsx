@@ -1,7 +1,7 @@
 import { component$, useHostElement } from '@builder.io/qwik';
 import { Builder } from '../../layouts/builder/builder';
 import { setHeadLinks, setHeadMeta, usePage } from '@builder.io/qwest';
-import { SiteStore } from '../../main';
+import { SiteStore } from '../app/app';
 
 interface PageProps {
   store: SiteStore;

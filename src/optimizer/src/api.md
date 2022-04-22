@@ -4,8 +4,6 @@
 
 ```ts
 
-import type { NormalizedOutputOptions } from 'rollup';
-
 // @alpha (undocumented)
 export interface CodeHighlight {
     // (undocumented)
@@ -21,7 +19,7 @@ export interface ComponentEntryStrategy {
 }
 
 // @alpha (undocumented)
-export const createOptimizer: () => Promise<Optimizer>;
+export const createOptimizer: (optimizerOptions?: OptimizerOptions) => Promise<Optimizer>;
 
 // @alpha (undocumented)
 export interface Diagnostic {
@@ -95,9 +93,6 @@ export interface ManualEntryStrategy {
 export type MinifyMode = 'minify' | 'simplify' | 'none';
 
 // @alpha (undocumented)
-export type MinifyOption = boolean | undefined | null;
-
-// @alpha (undocumented)
 export interface Optimizer {
     sys: OptimizerSystem;
     transformFs(opts: TransformFsOptions): Promise<TransformOutput>;
@@ -107,25 +102,25 @@ export interface Optimizer {
 }
 
 // @alpha (undocumented)
+export interface OptimizerOptions {
+    // (undocumented)
+    binding?: any;
+    // (undocumented)
+    sys?: OptimizerSystem;
+}
+
+// @alpha (undocumented)
 export interface OptimizerSystem {
     // (undocumented)
+    cwd: () => string;
+    // (undocumented)
     dynamicImport: (path: string) => Promise<any>;
+    // (undocumented)
+    env: () => SystemEnvironment;
     // (undocumented)
     getInputFiles?: (rootDir: string) => Promise<TransformModuleInput[]>;
     // (undocumented)
     path: Path;
-}
-
-// @alpha (undocumented)
-export interface OutputEntryMap {
-    // (undocumented)
-    injections?: GlobalInjections[];
-    // (undocumented)
-    mapping: {
-        [canonicalName: string]: string;
-    };
-    // (undocumented)
-    version: string;
 }
 
 // @alpha (undocumented)
@@ -139,7 +134,13 @@ export interface Path {
     // (undocumented)
     extname(path: string): string;
     // (undocumented)
-    format(pathObject: Partial<PathObject>): string;
+    format(pathObject: {
+        root: string;
+        dir: string;
+        base: string;
+        ext: string;
+        name: string;
+    }): string;
     // (undocumented)
     isAbsolute(path: string): boolean;
     // (undocumented)
@@ -147,13 +148,19 @@ export interface Path {
     // (undocumented)
     normalize(path: string): string;
     // (undocumented)
-    parse(path: string): PathObject;
+    parse(path: string): {
+        root: string;
+        dir: string;
+        base: string;
+        ext: string;
+        name: string;
+    };
     // (undocumented)
     readonly posix: Path;
     // (undocumented)
     relative(from: string, to: string): string;
     // (undocumented)
-    resolve(...pathSegments: string[]): string;
+    resolve(...paths: string[]): string;
     // (undocumented)
     readonly sep: string;
     // (undocumented)
@@ -161,53 +168,33 @@ export interface Path {
 }
 
 // @alpha (undocumented)
-export interface PathObject {
+export function qwikRollup(qwikRollupOpts?: QwikRollupPluginOptions): any;
+
+// Warning: (ae-forgotten-export) The symbol "BasePluginOptions" needs to be exported by the entry point index.d.ts
+//
+// @alpha (undocumented)
+export interface QwikRollupPluginOptions extends BasePluginOptions {
+    // Warning: (ae-forgotten-export) The symbol "QwikBuildMode" needs to be exported by the entry point index.d.ts
+    //
     // (undocumented)
-    base: string;
+    buildMode?: QwikBuildMode;
     // (undocumented)
-    dir: string;
+    isDevBuild?: boolean;
     // (undocumented)
-    ext: string;
+    optimizerOptions?: OptimizerOptions;
     // (undocumented)
-    name: string;
-    // (undocumented)
-    root: string;
+    rootDir?: string;
 }
 
 // @alpha (undocumented)
-export interface QwikPluginOptions {
-    // (undocumented)
-    debug?: boolean;
-    // (undocumented)
-    entryStrategy?: EntryStrategy;
-    // (undocumented)
-    minify?: MinifyMode;
-    // (undocumented)
-    srcDir?: string;
-    // (undocumented)
-    srcInputs?: TransformModuleInput[];
-    // (undocumented)
-    ssrBuild?: boolean;
-    // (undocumented)
-    symbolsOutput?: string | ((data: OutputEntryMap, output: NormalizedOutputOptions) => Promise<void> | void);
-}
+export function qwikVite(qwikViteOpts?: QwikViteOptions): any;
 
 // @alpha (undocumented)
-export function qwikRollup(opts: QwikPluginOptions): any;
-
-// @alpha (undocumented)
-export function qwikVite(opts: QwikViteOptions): any;
-
-// @alpha (undocumented)
-export interface QwikViteOptions extends QwikPluginOptions {
+export interface QwikViteOptions extends BasePluginOptions {
     // (undocumented)
-    ssr?: QwikViteSSROptions | false;
-}
-
-// @alpha (undocumented)
-export interface QwikViteSSROptions {
-    entry?: string;
-    main?: string;
+    optimizerOptions?: OptimizerOptions;
+    // (undocumented)
+    srcEntryDevInput?: string;
 }
 
 // @alpha (undocumented)
@@ -236,6 +223,21 @@ export interface SourceLocation {
 
 // @alpha (undocumented)
 export type SourceMapsOption = 'external' | 'inline' | undefined | null;
+
+// @alpha (undocumented)
+export interface SymbolsEntryMap {
+    // (undocumented)
+    injections?: GlobalInjections[];
+    // (undocumented)
+    mapping: {
+        [canonicalName: string]: string;
+    };
+    // (undocumented)
+    version: string;
+}
+
+// @alpha (undocumented)
+export type SystemEnvironment = 'node' | 'deno' | 'webworker' | 'browsermain' | 'unknown';
 
 // Warning: (ae-forgotten-export) The symbol "TransformOptions" needs to be exported by the entry point index.d.ts
 //

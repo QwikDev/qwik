@@ -14,8 +14,8 @@ tsc-out
 tsdoc-metadata.json
 target
 output
-rollup.config.js
 build
+server
 .cache
 .vscode
 .rollup.cache

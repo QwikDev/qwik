@@ -1,8 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 222
 expression: output
-
 ---
 ==INPUT==
 
@@ -23,13 +21,13 @@ const Header = $((decl1, {decl2}, [decl3]) => {
 ============================= test.tsx ==
 
 import * as qwik from "@builder.io/qwik";
-qwik.qrl(()=>import("./h_test_header")
-, "Header");
+qwik.qrl(()=>import("./header_af6qei0srxm")
+, "Header_aF6qeI0SRxM");
 
-============================= h_test_header.tsx (ENTRY POINT)==
+============================= header_af6qei0srxm.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const Header = (decl1, { decl2  }, [decl3])=>{
+export const Header_aF6qeI0SRxM = (decl1, { decl2  }, [decl3])=>{
     const { decl4 , key: decl5  } = this;
     let [decl6, ...decl7] = stuff;
     const decl8 = 1, decl9;
@@ -44,10 +42,14 @@ export const Header = (decl1, { decl2  }, [decl3])=>{
 /*
 {
   "origin": "test.tsx",
-  "name": "Header",
+  "name": "Header_aF6qeI0SRxM",
   "entry": null,
-  "canonicalFilename": "h_test_header",
-  "extension": "tsx"
+  "canonicalFilename": "header_af6qei0srxm",
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false
 }
 */
 == DIAGNOSTICS ==

@@ -12,6 +12,12 @@ export function $<T>(expression: T): QRL<T>;
 // @public
 export function Async<T>(props: AsyncProps<T>): JSXNode<any>;
 
+// @public (undocumented)
+const Comment_2: FunctionComponent<{
+    text?: string;
+}>;
+export { Comment_2 as Comment }
+
 // Warning: (ae-forgotten-export) The symbol "Component" needs to be exported by the entry point index.d.ts
 //
 // @public
@@ -137,40 +143,8 @@ export type NoSerialize<T> = (T & {
 // @alpha (undocumented)
 export function noSerialize<T extends {}>(input: T): NoSerialize<T>;
 
-// @public
-export interface Observer {
-    <T extends {}>(obj: T): T;
-}
-
-// @public
-export function on(event: string, eventFn: QRL<() => void>): void;
-
-// @public
-export function onDocument(event: string, eventFn: QRL<() => void>): void;
-
-// @public
-export const onPause$: (first: () => void) => void;
-
-// @public
-export function onPauseQrl(dehydrateFn: QRL<() => void>): void;
-
 // @public (undocumented)
 export type OnRenderFn<PROPS> = (props: PROPS) => ValueOrPromise<JSXNode<any> | null>;
-
-// @public
-export const onResume$: (first: () => void) => void;
-
-// @public
-export function onResumeQrl(resumeFn: QRL<() => void>): void;
-
-// @public
-export const onUnmount$: (first: () => void) => void;
-
-// @public
-export function onUnmountQrl(unmountFn: QRL<() => void>): void;
-
-// @public
-export function onWindow(event: string, eventFn: QRL<() => void>): void;
 
 // @public
 export function pauseContainer(elmOrDoc: Element | Document): void;
@@ -288,17 +262,27 @@ export const Slot: FunctionComponent<{
     children?: any;
 }>;
 
+// @public
+export interface Tracker {
+    <T extends {}>(obj: T): T;
+    // (undocumented)
+    <T extends {}, B extends keyof T>(obj: T, prop: B): T[B];
+}
+
+// @alpha (undocumented)
+export function untrack<T>(proxy: T): T;
+
 // @alpha (undocumented)
 export function unwrapSubscriber<T extends {}>(obj: T): any;
 
+// @public
+export const useCleanup$: (first: () => void) => void;
+
+// @public
+export function useCleanupQrl(unmountFn: QRL<() => void>): void;
+
 // @public (undocumented)
 export function useDocument(): Document;
-
-// @alpha (undocumented)
-export const useEffect$: (first: (obs: Observer) => void | (() => void)) => void;
-
-// @alpha (undocumented)
-export function useEffectQrl(watchQrl: QRL<(obs: Observer) => void | (() => void)>): void;
 
 // @public
 export function useHostElement(): Element;
@@ -306,8 +290,29 @@ export function useHostElement(): Element;
 // @public
 export function useLexicalScope<VARS extends any[]>(): VARS;
 
+// @public
+export function useOn(event: string, eventFn: QRL<() => void>): void;
+
+// @public
+export function useOnDocument(event: string, eventFn: QRL<() => void>): void;
+
+// @public
+export function useOnWindow(event: string, eventFn: QRL<() => void>): void;
+
+// @public
+export const usePause$: (first: () => void) => void;
+
+// @public
+export function usePauseQrl(dehydrateFn: QRL<() => void>): void;
+
 // @alpha (undocumented)
 export function useRef<T = Element>(current?: T): Ref<T>;
+
+// @public
+export const useResume$: (first: () => void) => void;
+
+// @public
+export function useResumeQrl(resumeFn: QRL<() => void>): void;
 
 // @alpha (undocumented)
 export const useScopedStyles$: (first: string) => void;
@@ -316,7 +321,7 @@ export const useScopedStyles$: (first: string) => void;
 export function useScopedStylesQrl(styles: QRL<string>): void;
 
 // @public
-export function useStore<STATE extends {}>(initialState: STATE): STATE;
+export function useStore<STATE extends object>(initialState: STATE | (() => STATE)): STATE;
 
 // @alpha
 export const useStyles$: (first: string) => void;
@@ -327,11 +332,19 @@ export function useStylesQrl(styles: QRL<string>): void;
 // @alpha (undocumented)
 export function useSubscriber<T extends {}>(obj: T): T;
 
+// Warning: (ae-forgotten-export) The symbol "WatchFn" needs to be exported by the entry point index.d.ts
+//
 // @public
-export const useWatch$: (first: (obs: Observer) => void | (() => void)) => void;
+export const useWatch$: (first: WatchFn) => void;
+
+// @alpha (undocumented)
+export const useWatchEffect$: (first: WatchFn) => void;
+
+// @alpha (undocumented)
+export function useWatchEffectQrl(watchQrl: QRL<WatchFn>): void;
 
 // @public
-export function useWatchQrl(watchQrl: QRL<(obs: Observer) => void | (() => void)>): void;
+export function useWatchQrl(watchQrl: QRL<WatchFn>): void;
 
 // @public
 export type ValueOrPromise<T> = T | Promise<T>;

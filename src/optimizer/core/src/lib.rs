@@ -34,7 +34,6 @@ use crate::entry_strategy::parse_entry_strategy;
 pub use crate::entry_strategy::EntryStrategy;
 use crate::parse::{transform_code, TransformCodeOptions};
 pub use crate::parse::{ErrorBuffer, HookAnalysis, MinifyMode, TransformModule, TransformOutput};
-use crate::transform::TransformContext;
 
 // #[cfg(feature = "fs")]
 #[derive(Serialize, Debug, Deserialize)]
@@ -47,6 +46,7 @@ pub struct TransformFsOptions {
     pub source_maps: bool,
     pub transpile: bool,
     pub explicity_extensions: bool,
+    pub dev: bool,
 }
 
 #[derive(Serialize, Debug, Deserialize)]
@@ -66,12 +66,12 @@ pub struct TransformModulesOptions {
     pub transpile: bool,
     pub entry_strategy: EntryStrategy,
     pub explicity_extensions: bool,
+    pub dev: bool,
 }
 
 #[cfg(feature = "fs")]
 pub fn transform_fs(config: TransformFsOptions) -> Result<TransformOutput, Error> {
     let root_dir = Path::new(&config.root_dir);
-    let context = TransformContext::new();
     let mut paths = vec![];
     let entry_policy = &*parse_entry_strategy(config.entry_strategy);
     find_files(root_dir, &mut paths)?;
@@ -101,7 +101,7 @@ pub fn transform_fs(config: TransformFsOptions) -> Result<TransformOutput, Error
                 transpile: config.transpile,
                 print_ast: false,
                 entry_policy,
-                context: context.clone(),
+                dev: config.dev,
             })
         })
         .reduce(|| Ok(TransformOutput::new()), |x, y| Ok(x?.append(&mut y?)))?;
@@ -112,7 +112,6 @@ pub fn transform_fs(config: TransformFsOptions) -> Result<TransformOutput, Error
 
 pub fn transform_modules(config: TransformModulesOptions) -> Result<TransformOutput, Error> {
     let entry_policy = &*parse_entry_strategy(config.entry_strategy);
-    let context = TransformContext::new();
     #[cfg(feature = "parallel")]
     let iterator = config.input.par_iter();
 
@@ -128,7 +127,7 @@ pub fn transform_modules(config: TransformModulesOptions) -> Result<TransformOut
             explicity_extensions: config.explicity_extensions,
             print_ast: false,
             entry_policy,
-            context: context.clone(),
+            dev: config.dev,
         })
     });
 

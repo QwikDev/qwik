@@ -19,58 +19,70 @@ export const App = component$(() => {
 
 import * as qwik from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
-export const App = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_app_render")
-, "App_render"));
+export const App = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./app_component_aj0udc0imoo")
+, "App_component_aJ0UdC0imoo"));
 
-============================= h_test_app_usestyles.js (ENTRY POINT)==
+============================= app_component_usestyles_41n1oqyi5xi.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
 import css1 from "./global.css";
 import css2 from "./style.css";
-export const App_useStyles = `${css1}${css2}`;
+export const App_component_useStyles_41n1OqyI5XI = `${css1}${css2}`;
 
 /*
 {
   "origin": "test.tsx",
-  "name": "App_useStyles",
+  "name": "App_component_useStyles_41n1OqyI5XI",
   "entry": null,
-  "canonicalFilename": "h_test_app_usestyles",
-  "extension": "js"
+  "canonicalFilename": "app_component_usestyles_41n1oqyi5xi",
+  "extension": "js",
+  "parent": "App_component_aJ0UdC0imoo",
+  "ctxKind": "function",
+  "ctxName": "useStyles$",
+  "captures": false
 }
 */
-============================= h_test_app_usestyles2.js (ENTRY POINT)==
+============================= app_component_usestyles$1_g8ltvcmlekw.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
 import css3 from "./style.css";
-export const App_useStyles2 = css3;
+export const App_component_useStyles$1_g8LtVcmLekw = css3;
 
 /*
 {
   "origin": "test.tsx",
-  "name": "App_useStyles2",
+  "name": "App_component_useStyles$1_g8LtVcmLekw",
   "entry": null,
-  "canonicalFilename": "h_test_app_usestyles2",
-  "extension": "js"
+  "canonicalFilename": "app_component_usestyles$1_g8ltvcmlekw",
+  "extension": "js",
+  "parent": "App_component_aJ0UdC0imoo",
+  "ctxKind": "function",
+  "ctxName": "useStyles$",
+  "captures": false
 }
 */
-============================= h_test_app_render.js (ENTRY POINT)==
+============================= app_component_aj0udc0imoo.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
 import { useStylesQrl } from "@builder.io/qwik";
-export const App_render = ()=>{
-    useStylesQrl(qwik.qrl(()=>import("./h_test_app_usestyles")
-    , "App_useStyles"));
-    useStylesQrl(qwik.qrl(()=>import("./h_test_app_usestyles2")
-    , "App_useStyles2"));
+export const App_component_aJ0UdC0imoo = ()=>{
+    useStylesQrl(qwik.qrl(()=>import("./app_component_usestyles_41n1oqyi5xi")
+    , "App_component_useStyles_41n1OqyI5XI"));
+    useStylesQrl(qwik.qrl(()=>import("./app_component_usestyles$1_g8ltvcmlekw")
+    , "App_component_useStyles$1_g8LtVcmLekw"));
 };
 
 /*
 {
   "origin": "test.tsx",
-  "name": "App_render",
+  "name": "App_component_aJ0UdC0imoo",
   "entry": null,
-  "canonicalFilename": "h_test_app_render",
-  "extension": "js"
+  "canonicalFilename": "app_component_aj0udc0imoo",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false
 }
 */
 == DIAGNOSTICS ==

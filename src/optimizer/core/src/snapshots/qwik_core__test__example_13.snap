@@ -15,45 +15,45 @@ export const Header = component$(() => {
 import * as qwik from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
 export const Header = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("../entry_hooks")
-, "Header_render"));
+, "Header_component"));
 
-============================= h_test_header_onrender.tsx ==
+============================= h_test_header_component1.tsx ==
 
 import * as qwik from "@builder.io/qwik";
-export const Header_onRender = ()=>console.log("hello sym2")
+export const Header_component1 = ()=>console.log("hello sym2")
 ;
 
 /*
 {
   "origin": "project/test.tsx",
-  "name": "Header_onRender",
+  "name": "Header_component1",
   "entry": "entry_hooks",
-  "canonicalFilename": "h_test_header_onrender",
+  "canonicalFilename": "h_test_header_component1",
   "extension": "tsx"
 }
 */
-============================= h_test_header_render.tsx ==
+============================= h_test_header_component.tsx ==
 
 import * as qwik from "@builder.io/qwik";
-export const Header_render = ()=>{
+export const Header_component = ()=>{
     return qwik.qrl(()=>import("./entry_hooks")
-    , "Header_onRender");
+    , "Header_component1");
 };
 
 /*
 {
   "origin": "project/test.tsx",
-  "name": "Header_render",
+  "name": "Header_component",
   "entry": "entry_hooks",
-  "canonicalFilename": "h_test_header_render",
+  "canonicalFilename": "h_test_header_component",
   "extension": "tsx"
 }
 */
 ============================= entry_hooks.js (ENTRY POINT)==
 
-export { Header_onRender } from "./h_test_header_onrender";
-export { Header_render } from "./h_test_header_render";
+export { Header_component1 } from "./h_test_header_component1";
+export { Header_component } from "./h_test_header_component";
 
 == DIAGNOSTICS ==
 
-[Diagnostic { origin: Atom('project/test.tsx' type=dynamic), message: "Second argument should be the name of a valid identifier", code_highlights: Some([CodeHighlight { message: None, loc: SourceLocation { start_line: 4, start_col: 47, end_line: 4, end_col: 52 } }]), hints: None, show_environment: false, severity: Error, documentation_url: None }]
+[]

@@ -7,11 +7,11 @@ expression: output
 
 import { component$, $, useStore, wrap, useEffect } from '@builder.io/qwik';
 
-export const useMemo = (qrt) => {
+export const useMemoQrl = (qrt) => {
     useEffect(qrt);
 };
 
-export const useMemo$ = wrap(useMemo);
+export const useMemo$ = wrap(useMemoQrl);
 
 export const App = component$((props) => {
     const state = useStore({count: 0});
@@ -34,21 +34,21 @@ export const Lightweight = (props) => {
 import * as qwik from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
 import { wrap, useEffect } from '@builder.io/qwik';
-export const useMemo = (qrt)=>{
+export const useMemoQrl = (qrt)=>{
     useEffect(qrt);
 };
-export const useMemo$ = wrap(useMemo);
-export const App = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_app_render")
-, "App_render"));
+export const useMemo$ = wrap(useMemoQrl);
+export const App = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./app_component_aj0udc0imoo")
+, "App_component_aJ0UdC0imoo"));
 export const Lightweight = (props)=>{
-    useMemo(qwik.qrl(()=>import("./h_test_lightweight_usememo")
-    , "Lightweight_useMemo"));
+    useMemoQrl(qwik.qrl(()=>import("./lightweight_usememo_rx2j0yl31sg")
+    , "Lightweight_useMemo_RX2j0yl31sg"));
 };
 
-============================= h_test_app_usememo.js (ENTRY POINT)==
+============================= app_component_usememo_fsndwbsnir4.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const App_useMemo = ()=>{
+export const App_component_useMemo_fSnDwbsnir4 = ()=>{
     const [state] = qwik.useLexicalScope();
     console.log(state.count);
 };
@@ -56,17 +56,21 @@ export const App_useMemo = ()=>{
 /*
 {
   "origin": "test.tsx",
-  "name": "App_useMemo",
+  "name": "App_component_useMemo_fSnDwbsnir4",
   "entry": null,
-  "canonicalFilename": "h_test_app_usememo",
-  "extension": "js"
+  "canonicalFilename": "app_component_usememo_fsndwbsnir4",
+  "extension": "js",
+  "parent": "App_component_aJ0UdC0imoo",
+  "ctxKind": "function",
+  "ctxName": "useMemo$",
+  "captures": true
 }
 */
-============================= h_test_app_onrender.js (ENTRY POINT)==
+============================= app_component$1_et9ngtxjeka.js (ENTRY POINT)==
 
-import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 import * as qwik from "@builder.io/qwik";
-export const App_onRender = ()=>{
+import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
+export const App_component$1_eT9NGtXJEKA = ()=>{
     const [state] = qwik.useLexicalScope();
     return /*#__PURE__*/ _jsx("div", {
         children: state.count
@@ -76,27 +80,31 @@ export const App_onRender = ()=>{
 /*
 {
   "origin": "test.tsx",
-  "name": "App_onRender",
+  "name": "App_component$1_eT9NGtXJEKA",
   "entry": null,
-  "canonicalFilename": "h_test_app_onrender",
-  "extension": "js"
+  "canonicalFilename": "app_component$1_et9ngtxjeka",
+  "extension": "js",
+  "parent": "App_component_aJ0UdC0imoo",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true
 }
 */
-============================= h_test_app_render.js (ENTRY POINT)==
+============================= app_component_aj0udc0imoo.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-import { useMemo } from "./test";
+import { useMemoQrl } from "./test";
 import { useStore } from "@builder.io/qwik";
-export const App_render = (props)=>{
+export const App_component_aJ0UdC0imoo = (props)=>{
     const state = useStore({
         count: 0
     });
-    useMemo(qwik.qrl(()=>import("./h_test_app_usememo")
-    , "App_useMemo", [
+    useMemoQrl(qwik.qrl(()=>import("./app_component_usememo_fsndwbsnir4")
+    , "App_component_useMemo_fSnDwbsnir4", [
         state
     ]));
-    return qwik.qrl(()=>import("./h_test_app_onrender")
-    , "App_onRender", [
+    return qwik.qrl(()=>import("./app_component$1_et9ngtxjeka")
+    , "App_component$1_eT9NGtXJEKA", [
         state
     ]);
 };
@@ -104,26 +112,34 @@ export const App_render = (props)=>{
 /*
 {
   "origin": "test.tsx",
-  "name": "App_render",
+  "name": "App_component_aJ0UdC0imoo",
   "entry": null,
-  "canonicalFilename": "h_test_app_render",
-  "extension": "js"
+  "canonicalFilename": "app_component_aj0udc0imoo",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false
 }
 */
-============================= h_test_lightweight_usememo.js (ENTRY POINT)==
+============================= lightweight_usememo_rx2j0yl31sg.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const Lightweight_useMemo = ()=>{
+export const Lightweight_useMemo_RX2j0yl31sg = ()=>{
     console.log(state.count);
 };
 
 /*
 {
   "origin": "test.tsx",
-  "name": "Lightweight_useMemo",
+  "name": "Lightweight_useMemo_RX2j0yl31sg",
   "entry": null,
-  "canonicalFilename": "h_test_lightweight_usememo",
-  "extension": "js"
+  "canonicalFilename": "lightweight_usememo_rx2j0yl31sg",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "useMemo$",
+  "captures": false
 }
 */
 == DIAGNOSTICS ==

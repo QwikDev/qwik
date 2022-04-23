@@ -1,8 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 55
 expression: output
-
 ---
 ==INPUT==
 
@@ -23,47 +21,55 @@ const renderHeader = component($(() => {
 
 import * as qwik from "@builder.io/qwik";
 import { component } from '@builder.io/qwik';
-export const renderHeader = qwik.qrl(()=>import("./h_test_renderheader")
-, "renderHeader");
-component(qwik.qrl(()=>import("./h_test_renderheader2")
-, "renderHeader2"));
+export const renderHeader = qwik.qrl(()=>import("./renderheader_9rwwyyncz7m")
+, "renderHeader_9RwWYyNCZ7M");
+component(qwik.qrl(()=>import("./renderheader$1_9rmgqkba4im")
+, "renderHeader$1_9RMGqkBA4IM"));
 
-============================= h_test_renderheader_div_onclick.tsx (ENTRY POINT)==
+============================= renderheader_div_onclick_h3jziaq5tae.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const renderHeader_div_onClick = (ctx)=>console.log(ctx)
+export const renderHeader_div_onClick_H3JZIaQ5TaE = (ctx)=>console.log(ctx)
 ;
 
 /*
 {
   "origin": "test.tsx",
-  "name": "renderHeader_div_onClick",
+  "name": "renderHeader_div_onClick_H3JZIaQ5TaE",
   "entry": null,
-  "canonicalFilename": "h_test_renderheader_div_onclick",
-  "extension": "tsx"
+  "canonicalFilename": "renderheader_div_onclick_h3jziaq5tae",
+  "extension": "tsx",
+  "parent": "renderHeader_9RwWYyNCZ7M",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false
 }
 */
-============================= h_test_renderheader.tsx (ENTRY POINT)==
+============================= renderheader_9rwwyyncz7m.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const renderHeader = ()=>{
-    return <div onClick={qwik.qrl(()=>import("./h_test_renderheader_div_onclick")
-    , "renderHeader_div_onClick")}/>;
+export const renderHeader_9RwWYyNCZ7M = ()=>{
+    return <div onClick={qwik.qrl(()=>import("./renderheader_div_onclick_h3jziaq5tae")
+    , "renderHeader_div_onClick_H3JZIaQ5TaE")}/>;
 };
 
 /*
 {
   "origin": "test.tsx",
-  "name": "renderHeader",
+  "name": "renderHeader_9RwWYyNCZ7M",
   "entry": null,
-  "canonicalFilename": "h_test_renderheader",
-  "extension": "tsx"
+  "canonicalFilename": "renderheader_9rwwyyncz7m",
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false
 }
 */
-============================= h_test_renderheader2.tsx (ENTRY POINT)==
+============================= renderheader$1_9rmgqkba4im.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const renderHeader2 = ()=>{
+export const renderHeader$1_9RMGqkBA4IM = ()=>{
     console.log("mount");
     return render;
 };
@@ -71,10 +77,14 @@ export const renderHeader2 = ()=>{
 /*
 {
   "origin": "test.tsx",
-  "name": "renderHeader2",
+  "name": "renderHeader$1_9RMGqkBA4IM",
   "entry": null,
-  "canonicalFilename": "h_test_renderheader2",
-  "extension": "tsx"
+  "canonicalFilename": "renderheader$1_9rmgqkba4im",
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false
 }
 */
 == DIAGNOSTICS ==

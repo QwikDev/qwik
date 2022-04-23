@@ -11,21 +11,17 @@ import * as dep2 from "dep2";
 import dep3 from "dep3/something";
 
 export const Header = component$(() => {
-    return $(() => {
-        return (
-            <Header onClick={$((ev) => dep3(ev))}>
-                {dep2.stuff()}{bbar()}
-            </Header>
-        );
-    });
+    return (
+        <Header onClick={$((ev) => dep3(ev))}>
+            {dep2.stuff()}{bbar()}
+        </Header>
+    );
 });
 
 export const App = component$(() => {
-    return $(() => {
-        return (
-            <Header>{foo()}</Header>
-        );
-    })
+    return (
+        <Header>{foo()}</Header>
+    );
 });
 
 ============================= project/test.tsx ==
@@ -33,109 +29,85 @@ export const App = component$(() => {
 import * as qwik from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
 export const Header = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("../entry_hooks")
-, "Header_render"));
+, "Header_component_ZdVwofEnicA"));
 export const App = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("../entry_hooks")
-, "App_render"));
+, "App_component_qkSifjb55lg"));
 
-============================= h_test_header_onrender_header_onclick.tsx ==
+============================= header_component_header_onclick_pomfydrqs0o.tsx ==
 
 import * as qwik from "@builder.io/qwik";
 import dep3 from "dep3/something";
-export const Header_onRender_Header_onClick = (ev)=>dep3(ev)
+export const Header_component_Header_onClick_POMfYDRQS0o = (ev)=>dep3(ev)
 ;
 
 /*
 {
   "origin": "project/test.tsx",
-  "name": "Header_onRender_Header_onClick",
+  "name": "Header_component_Header_onClick_POMfYDRQS0o",
   "entry": "entry_hooks",
-  "canonicalFilename": "h_test_header_onrender_header_onclick",
-  "extension": "tsx"
+  "canonicalFilename": "header_component_header_onclick_pomfydrqs0o",
+  "extension": "tsx",
+  "parent": "Header_component_ZdVwofEnicA",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false
 }
 */
-============================= h_test_header_onrender.tsx ==
+============================= header_component_zdvwofenica.tsx ==
 
 import * as qwik from "@builder.io/qwik";
 import { Header } from "./project/test";
 import { bar as bbar } from "./state";
 import * as dep2 from "dep2";
-export const Header_onRender = ()=>{
+export const Header_component_ZdVwofEnicA = ()=>{
     return <Header onClick={qwik.qrl(()=>import("./entry_hooks")
-    , "Header_onRender_Header_onClick")}>
+    , "Header_component_Header_onClick_POMfYDRQS0o")}>
 
-                {dep2.stuff()}{bbar()}
+            {dep2.stuff()}{bbar()}
 
-            </Header>;
+        </Header>;
 };
 
 /*
 {
   "origin": "project/test.tsx",
-  "name": "Header_onRender",
+  "name": "Header_component_ZdVwofEnicA",
   "entry": "entry_hooks",
-  "canonicalFilename": "h_test_header_onrender",
-  "extension": "tsx"
+  "canonicalFilename": "header_component_zdvwofenica",
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false
 }
 */
-============================= h_test_header_render.tsx ==
-
-import * as qwik from "@builder.io/qwik";
-export const Header_render = ()=>{
-    return qwik.qrl(()=>import("./entry_hooks")
-    , "Header_onRender");
-};
-
-/*
-{
-  "origin": "project/test.tsx",
-  "name": "Header_render",
-  "entry": "entry_hooks",
-  "canonicalFilename": "h_test_header_render",
-  "extension": "tsx"
-}
-*/
-============================= h_test_app_onrender.tsx ==
+============================= app_component_qksifjb55lg.tsx ==
 
 import * as qwik from "@builder.io/qwik";
 import { Header } from "./project/test";
 import { foo } from "./state";
-export const App_onRender = ()=>{
+export const App_component_qkSifjb55lg = ()=>{
     return <Header >{foo()}</Header>;
 };
 
 /*
 {
   "origin": "project/test.tsx",
-  "name": "App_onRender",
+  "name": "App_component_qkSifjb55lg",
   "entry": "entry_hooks",
-  "canonicalFilename": "h_test_app_onrender",
-  "extension": "tsx"
-}
-*/
-============================= h_test_app_render.tsx ==
-
-import * as qwik from "@builder.io/qwik";
-export const App_render = ()=>{
-    return qwik.qrl(()=>import("./entry_hooks")
-    , "App_onRender");
-};
-
-/*
-{
-  "origin": "project/test.tsx",
-  "name": "App_render",
-  "entry": "entry_hooks",
-  "canonicalFilename": "h_test_app_render",
-  "extension": "tsx"
+  "canonicalFilename": "app_component_qksifjb55lg",
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false
 }
 */
 ============================= entry_hooks.js (ENTRY POINT)==
 
-export { Header_onRender_Header_onClick } from "./h_test_header_onrender_header_onclick";
-export { Header_onRender } from "./h_test_header_onrender";
-export { Header_render } from "./h_test_header_render";
-export { App_onRender } from "./h_test_app_onrender";
-export { App_render } from "./h_test_app_render";
+export { Header_component_Header_onClick_POMfYDRQS0o } from "./header_component_header_onclick_pomfydrqs0o";
+export { Header_component_ZdVwofEnicA } from "./header_component_zdvwofenica";
+export { App_component_qkSifjb55lg } from "./app_component_qksifjb55lg";
 
 == DIAGNOSTICS ==
 

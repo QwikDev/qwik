@@ -37,6 +37,10 @@ export function wrapSubscriber<T extends {}>(obj: T, subscriber: Subscriber) {
         target[SetSubscriber] = subscriber;
         return target[prop];
       },
+      ownKeys(target) {
+        target[SetSubscriber] = subscriber;
+        return Reflect.ownKeys(target);
+      },
     });
   }
   return obj;

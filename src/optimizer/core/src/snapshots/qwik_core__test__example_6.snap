@@ -1,8 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 160
 expression: output
-
 ---
 ==INPUT==
 
@@ -13,22 +11,26 @@ export const sym1 = $((ctx) => console.log("1"));
 ============================= test.tsx ==
 
 import * as qwik from "@builder.io/qwik";
-export const sym1 = qwik.qrl(()=>import("./h_test_sym1")
-, "sym1");
+export const sym1 = qwik.qrl(()=>import("./sym1_m7o9wqhv9rw")
+, "sym1_M7o9WQHV9rw");
 
-============================= h_test_sym1.tsx (ENTRY POINT)==
+============================= sym1_m7o9wqhv9rw.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const sym1 = (ctx)=>console.log("1")
+export const sym1_M7o9WQHV9rw = (ctx)=>console.log("1")
 ;
 
 /*
 {
   "origin": "test.tsx",
-  "name": "sym1",
+  "name": "sym1_M7o9WQHV9rw",
   "entry": null,
-  "canonicalFilename": "h_test_sym1",
-  "extension": "tsx"
+  "canonicalFilename": "sym1_m7o9wqhv9rw",
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false
 }
 */
 == DIAGNOSTICS ==

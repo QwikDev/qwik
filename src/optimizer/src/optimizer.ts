@@ -82,6 +82,7 @@ const convertOptions = (opts: any) => {
     sourceMaps: false,
     transpile: false,
     explicityExtensions: false,
+    dev: true,
   };
   Object.entries(opts).forEach(([key, value]) => {
     if (value != null) {

@@ -30,13 +30,14 @@ import { RenderEvent } from '../util/markers';
  * @public
  */
 // </docs>
-export function useStore<STATE extends {}>(initialState: STATE): STATE {
+export function useStore<STATE extends object>(initialState: STATE | (() => STATE)): STATE {
   const [store, setStore] = useSequentialScope();
   const hostElement = useHostElement();
   if (store != null) {
     return wrapSubscriber(store, hostElement);
   }
-  const newStore = qObject(initialState, getProxyMap(useDocument()));
+  const value = typeof initialState === 'function' ? (initialState as Function)() : initialState;
+  const newStore = qObject(value, getProxyMap(useDocument()));
   setStore(newStore);
   return wrapSubscriber(newStore, hostElement);
 }

@@ -5,7 +5,7 @@ use std::str;
 use crate::code_move::{new_module, NewModuleCtx};
 use crate::collector::global_collect;
 use crate::entry_strategy::EntryPolicy;
-use crate::transform::{QwikTransform, QwikTransformOptions, ThreadSafeTransformContext};
+use crate::transform::{HookKind, QwikTransform, QwikTransformOptions};
 use crate::utils::{CodeHighlight, Diagnostic, DiagnosticSeverity, SourceLocation};
 use path_slash::PathExt;
 use serde::{Deserialize, Serialize};
@@ -36,10 +36,14 @@ use swc_ecmascript::visit::{FoldWith, VisitMutWith};
 #[serde(rename_all = "camelCase")]
 pub struct HookAnalysis {
     pub origin: JsWord,
-    pub name: String,
+    pub name: JsWord,
     pub entry: Option<JsWord>,
     pub canonical_filename: String,
     pub extension: JsWord,
+    pub parent: Option<JsWord>,
+    pub ctx_kind: HookKind,
+    pub ctx_name: JsWord,
+    pub captures: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize, Copy, Clone, PartialEq, Eq)]
@@ -59,7 +63,7 @@ pub struct TransformCodeOptions<'a> {
     pub explicity_extensions: bool,
     pub code: &'a str,
     pub entry_policy: &'a dyn EntryPolicy,
-    pub context: ThreadSafeTransformContext,
+    pub dev: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
@@ -167,24 +171,6 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                         }
                     }
 
-                    // Resolve with mark
-                    main_module.visit_mut_with(&mut resolver_with_mark(global_mark));
-
-                    // Collect import/export metadata
-                    let collect = global_collect(&main_module);
-                    let mut qwik_transform = QwikTransform::new(QwikTransformOptions {
-                        context: config.context,
-                        path_data: &path_data,
-                        entry_policy: config.entry_policy,
-                        explicity_extensions: config.explicity_extensions,
-                        extension: extension.clone(),
-                        comments: Some(&comments),
-                        global_collect: collect,
-                    });
-
-                    // Run main transform
-                    main_module = main_module.fold_with(&mut qwik_transform);
-
                     // Transpile JSX
                     if transpile && is_jsx {
                         let mut react_options = react::Options::default();
@@ -200,6 +186,24 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                             global_mark,
                         ));
                     }
+
+                    // Resolve with mark
+                    main_module.visit_mut_with(&mut resolver_with_mark(global_mark));
+
+                    // Collect import/export metadata
+                    let collect = global_collect(&main_module);
+                    let mut qwik_transform = QwikTransform::new(QwikTransformOptions {
+                        path_data: &path_data,
+                        entry_policy: config.entry_policy,
+                        explicity_extensions: config.explicity_extensions,
+                        extension: extension.clone(),
+                        comments: Some(&comments),
+                        global_collect: collect,
+                        dev: config.dev,
+                    });
+
+                    // Run main transform
+                    main_module = main_module.fold_with(&mut qwik_transform);
 
                     if config.minify != MinifyMode::None {
                         main_module =
@@ -235,9 +239,10 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                     let hooks = qwik_transform.hooks;
                     let mut modules: Vec<TransformModule> = Vec::with_capacity(hooks.len() + 10);
 
+                    let comments_maps = comments.clone().take_all();
                     for h in hooks.into_iter() {
                         let is_entry = h.entry == None;
-                        let hook_path = [&h.canonical_filename, ".", &h.extension].concat();
+                        let hook_path = [&h.canonical_filename, ".", &h.data.extension].concat();
 
                         let hook_mark = Mark::fresh(Mark::root());
 
@@ -245,11 +250,13 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                             expr: h.expr,
                             path: &path_data,
                             name: &h.name,
-                            origin: &h.origin,
-                            local_idents: &h.local_idents,
-                            scoped_idents: &h.scoped_idents,
+                            origin: &h.data.origin,
+                            local_idents: &h.data.local_idents,
+                            scoped_idents: &h.data.scoped_idents,
                             global: &qwik_transform.options.global_collect,
                             qwik_ident: &qwik_transform.qwik_ident,
+                            leading_comments: comments_maps.0.clone(),
+                            trailing_comments: comments_maps.1.clone(),
                         })?;
 
                         if transpile && is_jsx {
@@ -309,11 +316,15 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                             is_entry,
                             path: hook_path,
                             hook: Some(HookAnalysis {
-                                origin: h.origin,
-                                name: h.name.to_string(),
+                                origin: h.data.origin,
+                                name: h.name,
                                 entry: h.entry,
-                                extension: h.extension,
+                                extension: h.data.extension,
                                 canonical_filename: h.canonical_filename,
+                                parent: h.data.parent_hook,
+                                ctx_kind: h.data.ctx_kind,
+                                ctx_name: h.data.ctx_name,
+                                captures: !h.data.scoped_idents.is_empty(),
                             }),
                         });
                     }

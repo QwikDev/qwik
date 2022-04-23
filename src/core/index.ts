@@ -4,15 +4,15 @@
 export {
   componentQrl,
   component$,
-  onUnmountQrl,
-  onUnmount$,
-  onPauseQrl,
-  onPause$,
-  onResumeQrl,
-  onResume$,
-  on,
-  onDocument,
-  onWindow,
+  useCleanupQrl,
+  useCleanup$,
+  usePauseQrl,
+  usePause$,
+  useResumeQrl,
+  useResume$,
+  useOn,
+  useOnDocument,
+  useOnWindow,
   useStylesQrl,
   useStyles$,
   useScopedStylesQrl,
@@ -43,8 +43,8 @@ export type { CorePlatform } from './platform/types';
 // Watch
 //////////////////////////////////////////////////////////////////////////////////////////
 export { useWatch$, useWatchQrl } from './watch/watch.public';
-export { useEffect$, useEffectQrl } from './watch/watch.public';
-export type { Observer } from './watch/watch.public';
+export { useWatchEffect$, useWatchEffectQrl } from './watch/watch.public';
+export type { Tracker } from './watch/watch.public';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // JSX Support
@@ -58,7 +58,7 @@ export type { PromiseValue } from './render/jsx/async.public';
 export { h } from './render/jsx/factory';
 export { Host, SkipRerender } from './render/jsx/host.public';
 export { Slot } from './render/jsx/slot.public';
-export { Fragment, jsx, jsxDEV, jsxs } from './render/jsx/jsx-runtime';
+export { Fragment, jsx, jsxDEV, jsxs, Comment } from './render/jsx/jsx-runtime';
 export type {
   ComponentChild,
   ComponentChildren,
@@ -85,6 +85,8 @@ export type { Ref } from './use/use-store.public';
 //////////////////////////////////////////////////////////////////////////////////////////
 export type { ValueOrPromise } from './util/types';
 export type { NoSerialize } from './object/q-object';
+export { unwrapProxy as untrack } from './object/q-object';
+
 export { noSerialize } from './object/q-object';
 
 export { version } from './version';

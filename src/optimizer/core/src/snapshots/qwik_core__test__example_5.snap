@@ -7,77 +7,66 @@ expression: output
 
 import { $, component$ } from '@builder.io/qwik';
 export const Header = component$(() => {
-    return $(() => {
-        return (
-            <>
-                <div onClick={(ctx) => console.log("1")}/>
-                <div onClick={$((ctx) => console.log("2"))}/>
-            </>
-        );
-    })
+    return (
+        <>
+            <div onClick={(ctx) => console.log("1")}/>
+            <div onClick={$((ctx) => console.log("2"))}/>
+        </>
+    );
 });
 
 ============================= test.tsx ==
 
 import * as qwik from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
-export const Header = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_header_render")
-, "Header_render"));
+export const Header = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./header_component_d2lmh0dh3zy")
+, "Header_component_D2lmH0Dh3zY"));
 
-============================= h_test_header_onrender_div_onclick.tsx (ENTRY POINT)==
+============================= header_component_div_onclick_ihjexlkqsxg.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const Header_onRender_div_onClick = (ctx)=>console.log("2")
+export const Header_component_div_onClick_IHjeXLKQSXg = (ctx)=>console.log("2")
 ;
 
 /*
 {
   "origin": "test.tsx",
-  "name": "Header_onRender_div_onClick",
+  "name": "Header_component_div_onClick_IHjeXLKQSXg",
   "entry": null,
-  "canonicalFilename": "h_test_header_onrender_div_onclick",
-  "extension": "tsx"
+  "canonicalFilename": "header_component_div_onclick_ihjexlkqsxg",
+  "extension": "tsx",
+  "parent": "Header_component_D2lmH0Dh3zY",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false
 }
 */
-============================= h_test_header_onrender.tsx (ENTRY POINT)==
+============================= header_component_d2lmh0dh3zy.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const Header_onRender = ()=>{
+export const Header_component_D2lmH0Dh3zY = ()=>{
     return <>
 
-                <div onClick={(ctx)=>console.log("1")
+            <div onClick={(ctx)=>console.log("1")
     }/>
 
-                <div onClick={qwik.qrl(()=>import("./h_test_header_onrender_div_onclick")
-    , "Header_onRender_div_onClick")}/>
+            <div onClick={qwik.qrl(()=>import("./header_component_div_onclick_ihjexlkqsxg")
+    , "Header_component_div_onClick_IHjeXLKQSXg")}/>
 
-            </>;
+        </>;
 };
 
 /*
 {
   "origin": "test.tsx",
-  "name": "Header_onRender",
+  "name": "Header_component_D2lmH0Dh3zY",
   "entry": null,
-  "canonicalFilename": "h_test_header_onrender",
-  "extension": "tsx"
-}
-*/
-============================= h_test_header_render.tsx (ENTRY POINT)==
-
-import * as qwik from "@builder.io/qwik";
-export const Header_render = ()=>{
-    return qwik.qrl(()=>import("./h_test_header_onrender")
-    , "Header_onRender");
-};
-
-/*
-{
-  "origin": "test.tsx",
-  "name": "Header_render",
-  "entry": null,
-  "canonicalFilename": "h_test_header_render",
-  "extension": "tsx"
+  "canonicalFilename": "header_component_d2lmh0dh3zy",
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false
 }
 */
 == DIAGNOSTICS ==

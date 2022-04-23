@@ -1,4 +1,5 @@
 use crate::parse::PathData;
+use crate::transform::HookData;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use swc_atoms::JsWord;
@@ -27,6 +28,7 @@ pub trait EntryPolicy: Send + Sync {
         symbol_name: &str,
         location: &PathData,
         context: &[String],
+        hook_data: &HookData,
     ) -> Option<JsWord>;
 }
 
@@ -39,6 +41,7 @@ impl EntryPolicy for SingleStrategy {
         _symbol: &str,
         _path: &PathData,
         _context: &[String],
+        _hook_data: &HookData,
     ) -> Option<JsWord> {
         Some(ENTRY_HOOKS.clone())
     }
@@ -53,6 +56,7 @@ impl EntryPolicy for PerHookStrategy {
         _symbol: &str,
         _path: &PathData,
         _context: &[String],
+        _hook_data: &HookData,
     ) -> Option<JsWord> {
         None
     }
@@ -67,6 +71,7 @@ impl EntryPolicy for PerComponentStrategy {
         _symbol: &str,
         _path: &PathData,
         context: &[String],
+        _hook_data: &HookData,
     ) -> Option<JsWord> {
         context.first().map_or_else(
             || Some(ENTRY_HOOKS.clone()),
@@ -84,6 +89,7 @@ impl EntryPolicy for SmartStrategy {
         _symbol: &str,
         _path: &PathData,
         context: &[String],
+        _hook_data: &HookData,
     ) -> Option<JsWord> {
         if context.iter().any(|h| h == "onMount") {
             return Some(ENTRY_SERVER.clone());
@@ -123,6 +129,7 @@ impl EntryPolicy for ManualStrategy {
         symbol: &str,
         _path: &PathData,
         _context: &[String],
+        _hook_data: &HookData,
     ) -> Option<JsWord> {
         let entry = self.map.get(symbol);
         Some(match entry {

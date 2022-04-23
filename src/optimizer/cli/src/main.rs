@@ -120,6 +120,7 @@ fn optimize(
         transpile: optimizer_input.transpile,
         entry_strategy: optimizer_input.strategy,
         explicity_extensions: optimizer_input.explicity_extensions,
+        dev: true,
     })?;
 
     result.write_to_fs(&current_dir.join(optimizer_input.dest).absolutize()?)?;

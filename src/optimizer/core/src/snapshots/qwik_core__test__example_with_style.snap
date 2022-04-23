@@ -20,42 +20,50 @@ export const Foo = component$(() => {
 
 import * as qwik from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
-export const Foo = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_foo_render")
-, "Foo_render"), {
+export const Foo = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./foo_component_7n2avllyvuo")
+, "Foo_component_7N2avlLYVuo"), {
     tagName: "my-foo"
 });
 
-============================= h_test_foo_usestyles.tsx (ENTRY POINT)==
+============================= foo_component_usestyles_pdrqszjgrtk.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const Foo_useStyles = '.class {}';
+export const Foo_component_useStyles_PDrQszjGRtk = '.class {}';
 
 /*
 {
   "origin": "test.tsx",
-  "name": "Foo_useStyles",
+  "name": "Foo_component_useStyles_PDrQszjGRtk",
   "entry": null,
-  "canonicalFilename": "h_test_foo_usestyles",
-  "extension": "tsx"
+  "canonicalFilename": "foo_component_usestyles_pdrqszjgrtk",
+  "extension": "tsx",
+  "parent": "Foo_component_7N2avlLYVuo",
+  "ctxKind": "function",
+  "ctxName": "useStyles$",
+  "captures": false
 }
 */
-============================= h_test_foo_render.tsx (ENTRY POINT)==
+============================= foo_component_7n2avllyvuo.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
 import { useStylesQrl } from "@builder.io/qwik";
-export const Foo_render = ()=>{
-    useStylesQrl(qwik.qrl(()=>import("./h_test_foo_usestyles")
-    , "Foo_useStyles"));
+export const Foo_component_7N2avlLYVuo = ()=>{
+    useStylesQrl(qwik.qrl(()=>import("./foo_component_usestyles_pdrqszjgrtk")
+    , "Foo_component_useStyles_PDrQszjGRtk"));
     return <div class="class"/>;
 };
 
 /*
 {
   "origin": "test.tsx",
-  "name": "Foo_render",
+  "name": "Foo_component_7N2avlLYVuo",
   "entry": null,
-  "canonicalFilename": "h_test_foo_render",
-  "extension": "tsx"
+  "canonicalFilename": "foo_component_7n2avllyvuo",
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false
 }
 */
 == DIAGNOSTICS ==

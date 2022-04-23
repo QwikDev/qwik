@@ -1,0 +1,56 @@
+---
+source: src/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+/* @jsxImportSource react */
+
+import { qwikify$ } from './qwikfy';
+
+export const App = () => (
+    <div onClick$={()=>console.log('App')}></div>
+);
+
+export const App2 = qwikify$(() => (
+    <div onClick$={()=>console.log('App2')}></div>
+));
+
+============================= test.js ==
+
+import * as qwik from "@builder.io/qwik";
+import { qwikifyQrl } from "./qwikfy";
+import { jsx as _jsx } from "react/jsx-runtime";
+export const App = ()=>/*#__PURE__*/ _jsx("div", {
+        onClick$: ()=>console.log('App')
+    })
+;
+export const App2 = qwikifyQrl(qwik.qrl(()=>import("./app2_qwikify_bmuaj4wh2wc.js")
+, "App2_qwikify_bmuAj4WH2wc"));
+
+============================= app2_qwikify_bmuaj4wh2wc.js (ENTRY POINT)==
+
+import * as qwik from "@builder.io/qwik";
+import { jsx as _jsx } from "react/jsx-runtime";
+export const App2_qwikify_bmuAj4WH2wc = ()=>/*#__PURE__*/ _jsx("div", {
+        onClick$: ()=>console.log('App2')
+    })
+;
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "App2_qwikify_bmuAj4WH2wc",
+  "entry": null,
+  "canonicalFilename": "app2_qwikify_bmuaj4wh2wc",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "qwikify$",
+  "captures": false
+}
+*/
+== DIAGNOSTICS ==
+
+[]

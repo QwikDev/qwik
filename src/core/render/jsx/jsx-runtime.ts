@@ -83,6 +83,15 @@ export const isJSXNode = (n: any): n is JSXNode<unknown> => {
 /**
  * @public
  */
+export const Comment: FunctionComponent<{ text?: string }> = (props) => {
+  const newNode = new JSXNodeImpl('#comment', null, null);
+  newNode.text = props.text || '';
+  return newNode;
+};
+
+/**
+ * @public
+ */
 export const Fragment: FunctionComponent<{ children?: any }> = (props) => props.children as any;
 
 export type { QwikJSX as JSX };

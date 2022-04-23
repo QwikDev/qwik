@@ -1,0 +1,117 @@
+---
+source: src/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$ } from '@builder.io/qwik';
+
+export const Foo = component$(() => {
+    return (
+        <div>
+            <div onClick$={() => console.log('first')}/>
+            <div onClick$={() => console.log('second')}/>
+            <div onClick$={() => console.log('third')}/>
+        </div>
+    );
+});
+
+============================= test.tsx ==
+
+import * as qwik from "@builder.io/qwik";
+import { componentQrl } from "@builder.io/qwik";
+export const Foo = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./s_7n2avllyvuo")
+, "s_7N2avlLYVuo"));
+
+============================= s_oz0voj5y0fe.tsx (ENTRY POINT)==
+
+import * as qwik from "@builder.io/qwik";
+export const s_oZ0voj5y0fE = ()=>console.log('first')
+;
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "s_oZ0voj5y0fE",
+  "entry": null,
+  "canonicalFilename": "s_oz0voj5y0fe",
+  "extension": "tsx",
+  "parent": "s_7N2avlLYVuo",
+  "ctxKind": "event",
+  "ctxName": "onClick$",
+  "captures": false
+}
+*/
+============================= s_x06cg4v3nci.tsx (ENTRY POINT)==
+
+import * as qwik from "@builder.io/qwik";
+export const s_X06CG4v3NCI = ()=>console.log('second')
+;
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "s_X06CG4v3NCI",
+  "entry": null,
+  "canonicalFilename": "s_x06cg4v3nci",
+  "extension": "tsx",
+  "parent": "s_7N2avlLYVuo",
+  "ctxKind": "event",
+  "ctxName": "onClick$",
+  "captures": false
+}
+*/
+============================= s_34nshw8hpva.tsx (ENTRY POINT)==
+
+import * as qwik from "@builder.io/qwik";
+export const s_34NSHw8hPvA = ()=>console.log('third')
+;
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "s_34NSHw8hPvA",
+  "entry": null,
+  "canonicalFilename": "s_34nshw8hpva",
+  "extension": "tsx",
+  "parent": "s_7N2avlLYVuo",
+  "ctxKind": "event",
+  "ctxName": "onClick$",
+  "captures": false
+}
+*/
+============================= s_7n2avllyvuo.tsx (ENTRY POINT)==
+
+import * as qwik from "@builder.io/qwik";
+export const s_7N2avlLYVuo = ()=>{
+    return <div >
+
+            <div onClickQrl={qwik.qrl(()=>import("./s_oz0voj5y0fe")
+    , "s_oZ0voj5y0fE")}/>
+
+            <div onClickQrl={qwik.qrl(()=>import("./s_x06cg4v3nci")
+    , "s_X06CG4v3NCI")}/>
+
+            <div onClickQrl={qwik.qrl(()=>import("./s_34nshw8hpva")
+    , "s_34NSHw8hPvA")}/>
+
+        </div>;
+};
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "s_7N2avlLYVuo",
+  "entry": null,
+  "canonicalFilename": "s_7n2avllyvuo",
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false
+}
+*/
+== DIAGNOSTICS ==
+
+[]

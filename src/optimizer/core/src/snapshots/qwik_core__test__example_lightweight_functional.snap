@@ -34,31 +34,31 @@ export const ButtonArrow = ({text, color}) => {
 
 import * as qwik from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
-export const Foo = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_foo_render")
-, "Foo_render"), {
+export const Foo = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./foo_component_7n2avllyvuo")
+, "Foo_component_7N2avlLYVuo"), {
     tagName: "my-foo"
 });
 export function Button({ text , color  }) {
-    return <button color={color} onClickQrl={qwik.qrl(()=>import("./h_test_button_button_onclick")
-    , "Button_button_onClick", [
+    return <button color={color} onClickQrl={qwik.qrl(()=>import("./button_button_onclick_6wewdakugho")
+    , "Button_button_onClick_6WewdAKUGHo", [
         color,
         text
     ])}>{text}</button>;
 }
 export const ButtonArrow = ({ text , color  })=>{
-    return <button color={color} onClickQrl={qwik.qrl(()=>import("./h_test_buttonarrow_button_onclick")
-    , "ButtonArrow_button_onClick", [
+    return <button color={color} onClickQrl={qwik.qrl(()=>import("./buttonarrow_button_onclick_fefzxib1knq")
+    , "ButtonArrow_button_onClick_FEfZXIB1knQ", [
         color,
         text
     ])}>{text}</button>;
 };
 
-============================= h_test_foo_render.tsx (ENTRY POINT)==
+============================= foo_component_7n2avllyvuo.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
 import { Button } from "./test";
 import { ButtonArrow } from "./test";
-export const Foo_render = ({ color  })=>{
+export const Foo_component_7N2avlLYVuo = ({ color  })=>{
     return <div >
 
             <Button {...props}/>
@@ -71,16 +71,20 @@ export const Foo_render = ({ color  })=>{
 /*
 {
   "origin": "test.tsx",
-  "name": "Foo_render",
+  "name": "Foo_component_7N2avlLYVuo",
   "entry": null,
-  "canonicalFilename": "h_test_foo_render",
-  "extension": "tsx"
+  "canonicalFilename": "foo_component_7n2avllyvuo",
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false
 }
 */
-============================= h_test_button_button_onclick.tsx (ENTRY POINT)==
+============================= button_button_onclick_6wewdakugho.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const Button_button_onClick = ()=>{
+export const Button_button_onClick_6WewdAKUGHo = ()=>{
     const [color, text] = qwik.useLexicalScope();
     return console.log(text, color);
 };
@@ -88,16 +92,20 @@ export const Button_button_onClick = ()=>{
 /*
 {
   "origin": "test.tsx",
-  "name": "Button_button_onClick",
+  "name": "Button_button_onClick_6WewdAKUGHo",
   "entry": null,
-  "canonicalFilename": "h_test_button_button_onclick",
-  "extension": "tsx"
+  "canonicalFilename": "button_button_onclick_6wewdakugho",
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "event",
+  "ctxName": "onClick$",
+  "captures": true
 }
 */
-============================= h_test_buttonarrow_button_onclick.tsx (ENTRY POINT)==
+============================= buttonarrow_button_onclick_fefzxib1knq.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const ButtonArrow_button_onClick = ()=>{
+export const ButtonArrow_button_onClick_FEfZXIB1knQ = ()=>{
     const [color, text] = qwik.useLexicalScope();
     return console.log(text, color);
 };
@@ -105,10 +113,14 @@ export const ButtonArrow_button_onClick = ()=>{
 /*
 {
   "origin": "test.tsx",
-  "name": "ButtonArrow_button_onClick",
+  "name": "ButtonArrow_button_onClick_FEfZXIB1knQ",
   "entry": null,
-  "canonicalFilename": "h_test_buttonarrow_button_onclick",
-  "extension": "tsx"
+  "canonicalFilename": "buttonarrow_button_onclick_fefzxib1knq",
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "event",
+  "ctxName": "onClick$",
+  "captures": true
 }
 */
 == DIAGNOSTICS ==

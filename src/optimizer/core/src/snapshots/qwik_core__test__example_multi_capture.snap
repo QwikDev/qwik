@@ -33,15 +33,15 @@ export const Bar = component$(({bar}) => {
 
 import * as qwik from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
-export const Foo = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_foo_render")
-, "Foo_render"));
-export const Bar = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_bar_render")
-, "Bar_render"));
+export const Foo = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./foo_component_7n2avllyvuo")
+, "Foo_component_7N2avlLYVuo"));
+export const Bar = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./bar_component_uznktldcnik")
+, "Bar_component_uZnKTldcnIk"));
 
-============================= h_test_foo_onrender.tsx (ENTRY POINT)==
+============================= foo_component$1_642otg035oo.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const Foo_onRender = ()=>{
+export const Foo_component$1_642OtG035oo = ()=>{
     const [arg0, foo] = qwik.useLexicalScope();
     const fn = ({ aaa  })=>aaa
     ;
@@ -55,19 +55,23 @@ export const Foo_onRender = ()=>{
 /*
 {
   "origin": "test.tsx",
-  "name": "Foo_onRender",
+  "name": "Foo_component$1_642OtG035oo",
   "entry": null,
-  "canonicalFilename": "h_test_foo_onrender",
-  "extension": "tsx"
+  "canonicalFilename": "foo_component$1_642otg035oo",
+  "extension": "tsx",
+  "parent": "Foo_component_7N2avlLYVuo",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true
 }
 */
-============================= h_test_foo_render.tsx (ENTRY POINT)==
+============================= foo_component_7n2avllyvuo.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const Foo_render = ({ foo  })=>{
+export const Foo_component_7N2avlLYVuo = ({ foo  })=>{
     const arg0 = 20;
-    return qwik.qrl(()=>import("./h_test_foo_onrender")
-    , "Foo_onRender", [
+    return qwik.qrl(()=>import("./foo_component$1_642otg035oo")
+    , "Foo_component$1_642OtG035oo", [
         arg0,
         foo
     ]);
@@ -76,16 +80,20 @@ export const Foo_render = ({ foo  })=>{
 /*
 {
   "origin": "test.tsx",
-  "name": "Foo_render",
+  "name": "Foo_component_7N2avlLYVuo",
   "entry": null,
-  "canonicalFilename": "h_test_foo_render",
-  "extension": "tsx"
+  "canonicalFilename": "foo_component_7n2avllyvuo",
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false
 }
 */
-============================= h_test_bar_onrender.tsx (ENTRY POINT)==
+============================= bar_component$1_enygimsrfyw.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const Bar_onRender = ()=>{
+export const Bar_component$1_ENYgimSRFyw = ()=>{
     const [bar] = qwik.useLexicalScope();
     return <div >
 
@@ -97,18 +105,22 @@ export const Bar_onRender = ()=>{
 /*
 {
   "origin": "test.tsx",
-  "name": "Bar_onRender",
+  "name": "Bar_component$1_ENYgimSRFyw",
   "entry": null,
-  "canonicalFilename": "h_test_bar_onrender",
-  "extension": "tsx"
+  "canonicalFilename": "bar_component$1_enygimsrfyw",
+  "extension": "tsx",
+  "parent": "Bar_component_uZnKTldcnIk",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true
 }
 */
-============================= h_test_bar_render.tsx (ENTRY POINT)==
+============================= bar_component_uznktldcnik.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const Bar_render = ({ bar  })=>{
-    return qwik.qrl(()=>import("./h_test_bar_onrender")
-    , "Bar_onRender", [
+export const Bar_component_uZnKTldcnIk = ({ bar  })=>{
+    return qwik.qrl(()=>import("./bar_component$1_enygimsrfyw")
+    , "Bar_component$1_ENYgimSRFyw", [
         bar
     ]);
 };
@@ -116,10 +128,14 @@ export const Bar_render = ({ bar  })=>{
 /*
 {
   "origin": "test.tsx",
-  "name": "Bar_render",
+  "name": "Bar_component_uZnKTldcnIk",
   "entry": null,
-  "canonicalFilename": "h_test_bar_render",
-  "extension": "tsx"
+  "canonicalFilename": "bar_component_uznktldcnik",
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false
 }
 */
 == DIAGNOSTICS ==

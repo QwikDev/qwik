@@ -1,9 +1,9 @@
-import { onDocument, QRL, $, qrl, useStore, implicit$FirstArg } from '@builder.io/qwik';
+import { useOnDocument, QRL, $, qrl, useStore, implicit$FirstArg } from '@builder.io/qwik';
 /* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 // <docs anchor="qrl-usage-$">
-onDocument(
+useOnDocument(
   'mousemove',
   $(() => console.log('mousemove'))
 );
@@ -11,7 +11,7 @@ onDocument(
 
 // <docs anchor="qrl-usage-$-optimized">
 // FILE: <current file>
-onDocument('mousemove', qrl('./chunk-abc.js', 'onMousemove'));
+useOnDocument('mousemove', qrl('./chunk-abc.js', 'onMousemove'));
 
 // FILE: chunk-abc.js
 export const onMousemove = () => console.log('mousemove');
@@ -22,7 +22,7 @@ export const onMousemove = () => console.log('mousemove');
 export function useMyFunction(callback: QRL<() => void>) {
   doExtraStuff();
   // The callback passed to `onDocument` requires `QRL`.
-  onDocument('mousemove', callback);
+  useOnDocument('mousemove', callback);
 }
 // </docs>
 

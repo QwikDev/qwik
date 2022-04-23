@@ -9,7 +9,7 @@ use std::path::Path;
 use anyhow::{format_err, Context, Error};
 use path_slash::PathExt;
 use swc_atoms::JsWord;
-use swc_common::comments::SingleThreadedComments;
+use swc_common::comments::{SingleThreadedComments, SingleThreadedCommentsMap};
 use swc_common::{sync::Lrc, SourceMap, DUMMY_SP};
 use swc_ecmascript::ast;
 
@@ -22,10 +22,15 @@ pub struct NewModuleCtx<'a> {
     pub scoped_idents: &'a [Id],
     pub global: &'a GlobalCollect,
     pub qwik_ident: &'a Id,
+    pub leading_comments: SingleThreadedCommentsMap,
+    pub trailing_comments: SingleThreadedCommentsMap,
 }
 
 pub fn new_module(ctx: NewModuleCtx) -> Result<(ast::Module, SingleThreadedComments), Error> {
-    let comments = SingleThreadedComments::default();
+    let comments = SingleThreadedComments::from_leading_and_trailing(
+        ctx.leading_comments,
+        ctx.trailing_comments,
+    );
     let max_cap = ctx.global.imports.len() + ctx.global.exports.len();
     let mut module = ast::Module {
         span: DUMMY_SP,
@@ -117,9 +122,7 @@ pub fn new_module(ctx: NewModuleCtx) -> Result<(ast::Module, SingleThreadedComme
         ctx.expr
     };
 
-    module
-        .body
-        .push(create_named_export(expr, ctx.name, &comments));
+    module.body.push(create_named_export(expr, ctx.name));
 
     Ok((module, comments))
 }
@@ -166,11 +169,7 @@ pub fn fix_path<S: AsRef<Path>, D: AsRef<Path>>(
     Ok(JsWord::from(ident))
 }
 
-fn create_named_export(
-    expr: Box<ast::Expr>,
-    name: &str,
-    _comments: &SingleThreadedComments,
-) -> ast::ModuleItem {
+fn create_named_export(expr: Box<ast::Expr>, name: &str) -> ast::ModuleItem {
     ast::ModuleItem::ModuleDecl(ast::ModuleDecl::ExportDecl(ast::ExportDecl {
         span: DUMMY_SP,
         decl: ast::Decl::Var(ast::VarDecl {
@@ -275,7 +274,7 @@ fn new_entry_module(hooks: &[&HookAnalysis]) -> ast::Module {
                         is_type_only: false,
                         span: DUMMY_SP,
                         orig: ast::ModuleExportName::Ident(ast::Ident::new(
-                            JsWord::from(hook.name.clone()),
+                            hook.name.clone(),
                             DUMMY_SP,
                         )),
                         exported: None,

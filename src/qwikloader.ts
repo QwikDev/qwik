@@ -135,11 +135,42 @@ export const qwikLoader = (doc: Document, hasInitialized?: number, prefetchWorke
     if (!hasInitialized && (readyState == 'interactive' || readyState == 'complete')) {
       // document is ready
       hasInitialized = 1;
+
       broadcast('', 'q-resume', new CustomEvent('qResume'));
 
       // query for any qrls that should be prefetched
       // and send them to a web worker to be fetched off the main-thread
       doc.querySelectorAll('[q\\:prefetch]').forEach(qrlPrefetch);
+
+      if (typeof IntersectionObserver !== 'undefined') {
+        const observer = new IntersectionObserver((entries) => {
+          for (const entry of entries) {
+            if (entry.isIntersecting) {
+              observer.unobserve(entry.target);
+              dispatch(
+                entry.target,
+                'q-visible',
+                new CustomEvent('qVisible', {
+                  bubbles: false,
+                  detail: entry,
+                })
+              );
+            }
+          }
+        });
+        const mutation = new MutationObserver((mutations) => {
+          for (const mutation of mutations) {
+            if ((mutation.target as Element).hasAttribute('on:q-visible')) {
+              observer.observe(mutation.target as Element);
+            }
+          }
+        });
+        mutation.observe(document.body, {
+          attributeFilter: ['on:q-visible'],
+          subtree: true,
+        });
+        doc.querySelectorAll('[on\\:q-visible]').forEach((el) => observer.observe(el));
+      }
     }
   };
 

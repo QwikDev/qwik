@@ -27,43 +27,51 @@ export const App = component$(({count}) => {
 import * as qwik from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
 const [I2, { I3 , v1: [I4] , I5 =v2 , ...I6 }, I7 = v3, ...I8] = obj;
-export const App = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_app_render")
-, "App_render"));
+export const App = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./app_component_aj0udc0imoo")
+, "App_component_aJ0UdC0imoo"));
 
-============================= h_test_app_onrender.js (ENTRY POINT)==
+============================= app_component$1_et9ngtxjeka.js (ENTRY POINT)==
 
-import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 import * as qwik from "@builder.io/qwik";
-export const App_onRender = ()=>{
+import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
+export const App_component$1_eT9NGtXJEKA = ()=>{
     return /*#__PURE__*/ _jsx(I10, {});
 };
 
 /*
 {
   "origin": "test.tsx",
-  "name": "App_onRender",
+  "name": "App_component$1_eT9NGtXJEKA",
   "entry": null,
-  "canonicalFilename": "h_test_app_onrender",
-  "extension": "js"
+  "canonicalFilename": "app_component$1_et9ngtxjeka",
+  "extension": "js",
+  "parent": "App_component_aJ0UdC0imoo",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false
 }
 */
-============================= h_test_app_render.js (ENTRY POINT)==
+============================= app_component_aj0udc0imoo.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const App_render = ({ count  })=>{
+export const App_component_aJ0UdC0imoo = ({ count  })=>{
     console.log(I1, I2, I3, I4, I5, I6, I7, I8, I9);
     console.log(itsok, v1, v2, v3, obj);
-    return qwik.qrl(()=>import("./h_test_app_onrender")
-    , "App_onRender");
+    return qwik.qrl(()=>import("./app_component$1_et9ngtxjeka")
+    , "App_component$1_eT9NGtXJEKA");
 };
 
 /*
 {
   "origin": "test.tsx",
-  "name": "App_render",
+  "name": "App_component_aJ0UdC0imoo",
   "entry": null,
-  "canonicalFilename": "h_test_app_render",
-  "extension": "js"
+  "canonicalFilename": "app_component_aj0udc0imoo",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false
 }
 */
 == DIAGNOSTICS ==

@@ -9,7 +9,7 @@ import { styleKey } from './qrl-styles';
 import type { ComponentBaseProps } from '../render/jsx/types/jsx-qwik-attributes';
 import type { ValueOrPromise } from '../util/types';
 import { getContext } from '../props/props';
-import type { FunctionComponent } from '../index';
+import type { FunctionComponent } from '../render/jsx/types/jsx-node';
 import { jsx } from '../render/jsx/jsx-runtime';
 import { useSequentialScope } from '../use/use-store.public';
 
@@ -24,8 +24,8 @@ import { useSequentialScope } from '../use/use-store.public';
  * @public
  */
 // </docs>
-export function onUnmountQrl(unmountFn: QRL<() => void>): void {
-  throw new Error('IMPLEMENT: onUnmount' + unmountFn);
+export function useCleanupQrl(unmountFn: QRL<() => void>): void {
+  throw new Error('IMPLEMENT: useCleanupQrl' + unmountFn);
 }
 
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onUnmount">
@@ -39,7 +39,7 @@ export function onUnmountQrl(unmountFn: QRL<() => void>): void {
  * @public
  */
 // </docs>
-export const onUnmount$ = implicit$FirstArg(onUnmountQrl);
+export const useCleanup$ = implicit$FirstArg(useCleanupQrl);
 
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onResume">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -53,8 +53,8 @@ export const onUnmount$ = implicit$FirstArg(onUnmountQrl);
  * @public
  */
 // </docs>
-export function onResumeQrl(resumeFn: QRL<() => void>): void {
-  onWindow('load', resumeFn);
+export function useResumeQrl(resumeFn: QRL<() => void>): void {
+  useOnWindow('qInit', resumeFn);
 }
 
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onHydrate">
@@ -69,7 +69,13 @@ export function onResumeQrl(resumeFn: QRL<() => void>): void {
  * @public
  */
 // </docs>
-export const onResume$ = implicit$FirstArg(onResumeQrl);
+export const useResume$ = implicit$FirstArg(useResumeQrl);
+
+export function useVisibleQrl(resumeFn: QRL<() => void>): void {
+  useOn('qVisible', resumeFn);
+}
+
+export const useVisible$ = implicit$FirstArg(useVisibleQrl);
 
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#OnPause">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -85,7 +91,7 @@ export const onResume$ = implicit$FirstArg(onResumeQrl);
  * @public
  */
 // </docs>
-export function onPauseQrl(dehydrateFn: QRL<() => void>): void {
+export function usePauseQrl(dehydrateFn: QRL<() => void>): void {
   throw new Error('IMPLEMENT: onPause' + dehydrateFn);
 }
 
@@ -103,7 +109,7 @@ export function onPauseQrl(dehydrateFn: QRL<() => void>): void {
  * @public
  */
 // </docs>
-export const onPause$ = implicit$FirstArg(onPauseQrl);
+export const usePause$ = implicit$FirstArg(usePauseQrl);
 
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#on">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -119,7 +125,7 @@ export const onPause$ = implicit$FirstArg(onPauseQrl);
  * @public
  */
 // </docs>
-export function on(event: string, eventFn: QRL<() => void>) {
+export function useOn(event: string, eventFn: QRL<() => void>) {
   const el = useHostElement();
   const ctx = getContext(el);
   qPropWriteQRL(undefined, ctx, `on:${event}`, eventFn);
@@ -139,7 +145,7 @@ export function on(event: string, eventFn: QRL<() => void>) {
  * @public
  */
 // </docs>
-export function onDocument(event: string, eventFn: QRL<() => void>) {
+export function useOnDocument(event: string, eventFn: QRL<() => void>) {
   const el = useHostElement();
   const ctx = getContext(el);
   qPropWriteQRL(undefined, ctx, `on-document:${event}`, eventFn);
@@ -159,7 +165,7 @@ export function onDocument(event: string, eventFn: QRL<() => void>) {
  * @public
  */
 // </docs>
-export function onWindow(event: string, eventFn: QRL<() => void>) {
+export function useOnWindow(event: string, eventFn: QRL<() => void>) {
   const el = useHostElement();
   const ctx = getContext(el);
   qPropWriteQRL(undefined, ctx, `on-window:${event}`, eventFn);

@@ -19,14 +19,14 @@ export const App = Component((props) => {
 
 import * as qwik from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
-export const App = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_app_render")
-, "App_render"));
+export const App = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./app_component_fude1doyyty")
+, "App_Component_FUDE1DoYyTY"));
 
-============================= h_test_app_onrender.js (ENTRY POINT)==
+============================= app_component$1_4rr0wdqlrpu.js (ENTRY POINT)==
 
-import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 import * as qwik from "@builder.io/qwik";
-export const App_onRender = ()=>{
+import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
+export const App_Component$1_4Rr0WdqLRPU = ()=>{
     const [state] = qwik.useLexicalScope();
     return /*#__PURE__*/ _jsx("div", {
         children: state.thing
@@ -36,22 +36,26 @@ export const App_onRender = ()=>{
 /*
 {
   "origin": "test.tsx",
-  "name": "App_onRender",
+  "name": "App_Component$1_4Rr0WdqLRPU",
   "entry": null,
-  "canonicalFilename": "h_test_app_onrender",
-  "extension": "js"
+  "canonicalFilename": "app_component$1_4rr0wdqlrpu",
+  "extension": "js",
+  "parent": "App_Component_FUDE1DoYyTY",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true
 }
 */
-============================= h_test_app_render.js (ENTRY POINT)==
+============================= app_component_fude1doyyty.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
 import { useStore } from "@builder.io/qwik";
-export const App_render = (props)=>{
+export const App_Component_FUDE1DoYyTY = (props)=>{
     const state = useStore({
         thing: 0
     });
-    return qwik.qrl(()=>import("./h_test_app_onrender")
-    , "App_onRender", [
+    return qwik.qrl(()=>import("./app_component$1_4rr0wdqlrpu")
+    , "App_Component$1_4Rr0WdqLRPU", [
         state
     ]);
 };
@@ -59,10 +63,14 @@ export const App_render = (props)=>{
 /*
 {
   "origin": "test.tsx",
-  "name": "App_render",
+  "name": "App_Component_FUDE1DoYyTY",
   "entry": null,
-  "canonicalFilename": "h_test_app_render",
-  "extension": "js"
+  "canonicalFilename": "app_component_fude1doyyty",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false
 }
 */
 == DIAGNOSTICS ==

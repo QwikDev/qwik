@@ -1,14 +1,20 @@
-import { noSerialize, NoSerialize, removeSub } from '../object/q-object';
+import {
+  noSerialize,
+  NoSerialize,
+  QOjectAllSymbol,
+  removeSub,
+  SetSubscriber,
+} from '../object/q-object';
 import { implicit$FirstArg, QRL } from '../import/qrl.public';
 import { getContext } from '../props/props';
 import { newInvokeContext, useWaitOn } from '../use/use-core';
 import { useHostElement } from '../use/use-host-element.public';
 import { logDebug, logError } from '../util/log';
 import { then } from '../util/promises';
-import { wrapSubscriber } from '../use/use-subscriber';
 import { useSequentialScope } from '../use/use-store.public';
 import type { QRLInternal } from '../import/qrl-class';
 import { getDocument } from '../util/dom';
+import type { ValueOrPromise } from '../util/types';
 
 export const enum WatchMode {
   Watch,
@@ -16,9 +22,11 @@ export const enum WatchMode {
   Effect,
 }
 
+export type WatchFn = (track: Tracker) => ValueOrPromise<void | (() => void)>;
+
 export interface WatchDescriptor {
   isConnected: boolean;
-  watchQrl: QRL<(obs: Observer) => void | (() => void)>;
+  watchQrl: QRL<WatchFn>;
   hostElement: Element;
   mode: WatchMode;
   destroy?: NoSerialize<() => void>;
@@ -71,7 +79,7 @@ export interface WatchDescriptor {
  * @public
  */
 // </docs>
-export function useWatchQrl(watchQrl: QRL<(obs: Observer) => void | (() => void)>): void {
+export function useWatchQrl(watchQrl: QRL<WatchFn>): void {
   const [watch, setWatch] = useSequentialScope();
   if (!watch) {
     const hostElement = useHostElement();
@@ -142,7 +150,7 @@ export const useWatch$ = implicit$FirstArg(useWatchQrl);
 /**
  * @alpha
  */
-export function useEffectQrl(watchQrl: QRL<(obs: Observer) => void | (() => void)>): void {
+export function useWatchEffectQrl(watchQrl: QRL<WatchFn>): void {
   const [watch, setWatch] = useSequentialScope();
   if (!watch) {
     const hostElement = useHostElement();
@@ -161,7 +169,7 @@ export function useEffectQrl(watchQrl: QRL<(obs: Observer) => void | (() => void
 /**
  * @alpha
  */
-export const useEffect$ = implicit$FirstArg(useEffectQrl);
+export const useWatchEffect$ = implicit$FirstArg(useWatchEffectQrl);
 
 export function runWatch(watch: WatchDescriptor): Promise<WatchDescriptor> {
   if (!watch.dirty) {
@@ -189,17 +197,23 @@ export function runWatch(watch: WatchDescriptor): Promise<WatchDescriptor> {
         'WatchEvent'
       );
       invokationContext.watch = watch;
-      invokationContext.subscriber = watch;
 
       const watchFn = watch.watchQrl.invokeFn(hostElement, invokationContext);
-      const obs = (obj: any) => wrapSubscriber(obj, watch);
+      const tracker: Tracker = (obj: any, prop?: string) => {
+        obj[SetSubscriber] = watch;
+        if (prop) {
+          return obj[prop];
+        } else {
+          return obj[QOjectAllSymbol];
+        }
+      };
       const captureRef = (watch.watchQrl as QRLInternal).captureRef;
       if (Array.isArray(captureRef)) {
         captureRef.forEach((obj) => {
           removeSub(obj, watch);
         });
       }
-      return then(watchFn(obs), (returnValue) => {
+      return then(watchFn(tracker), (returnValue) => {
         if (typeof returnValue === 'function') {
           watch.destroy = noSerialize(returnValue);
         }
@@ -249,7 +263,7 @@ export function runWatch(watch: WatchDescriptor): Promise<WatchDescriptor> {
  * @public
  */
 // </docs>
-export interface Observer {
+export interface Tracker {
   // <docs markdown="https://hackmd.io/_Kl9br9tT8OB-1Dv8uR4Kg#Observer">
   // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
   // (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2F_Kl9br9tT8OB-1Dv8uR4Kg%3Fboth#Observer instead)
@@ -289,4 +303,5 @@ export interface Observer {
    */
   // </docs>
   <T extends {}>(obj: T): T;
+  <T extends {}, B extends keyof T>(obj: T, prop: B): T[B];
 }

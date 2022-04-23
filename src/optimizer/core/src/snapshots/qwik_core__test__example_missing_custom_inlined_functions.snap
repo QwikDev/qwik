@@ -1,8 +1,6 @@
 ---
 source: src/optimizer/core/src/test.rs
-assertion_line: 888
 expression: output
-
 ---
 ==INPUT==
 
@@ -27,7 +25,6 @@ export const App = component$((props) => {
 ============================= test.js ==
 
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
-import * as qwik from "@builder.io/qwik";
 import { useStore, useEffect } from '@builder.io/qwik';
 export const useMemo$ = (qrt)=>{
     useEffect(qrt);
@@ -36,33 +33,15 @@ export const App = component$((props)=>{
     const state = useStore({
         count: 0
     });
-    useMemo$(qwik.qrl(()=>import("./h_test_app_usememo")
-    , "App_useMemo", [
-        state
-    ]));
+    useMemo$(()=>{
+        console.log(state.count);
+    });
     return $(()=>/*#__PURE__*/ _jsx("div", {
             children: state.count
         })
     );
 });
 
-============================= h_test_app_usememo.js (ENTRY POINT)==
-
-import * as qwik from "@builder.io/qwik";
-export const App_useMemo = ()=>{
-    const [state] = qwik.useLexicalScope();
-    console.log(state.count);
-};
-
-/*
-{
-  "origin": "test.tsx",
-  "name": "App_useMemo",
-  "entry": null,
-  "canonicalFilename": "h_test_app_usememo",
-  "extension": "js"
-}
-*/
 == DIAGNOSTICS ==
 
 [Diagnostic { origin: Atom('test.tsx' type=dynamic), message: "Version without $ is not exported.", code_highlights: Some([CodeHighlight { message: None, loc: SourceLocation { start_line: 11, start_col: 5, end_line: 11, end_col: 12 } }]), hints: None, show_environment: false, severity: Error, documentation_url: None }]

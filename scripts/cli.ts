@@ -3,7 +3,6 @@ import { build } from 'esbuild';
 import { basename, join } from 'path';
 import { getBanner, readdir, watcher } from './util';
 import { readPackageJson, writePackageJson } from './package-json';
-import semver from 'semver';
 
 export async function buildCli(config: BuildConfig) {
   const distCliDir = join(config.distDir, 'create-qwik');
@@ -85,33 +84,31 @@ async function copyDir(config: BuildConfig, srcDir: string, destDir: string) {
 }
 
 async function updatePackageJson(config: BuildConfig, destDir: string) {
+  const rootPkg = await readPackageJson(config.rootDir);
   const pkgJson = await readPackageJson(destDir);
-  if (pkgJson.devDependencies) {
-    const rootPkg = await readPackageJson(config.rootDir);
 
-    const setVersionFromRoot = (pkgName: string) => {
-      if (pkgJson.devDependencies && pkgJson.devDependencies[pkgName]) {
-        if (
-          rootPkg.devDependencies &&
-          rootPkg.devDependencies[pkgName] &&
-          !semver.prerelease(rootPkg.devDependencies[pkgName])
-        ) {
-          pkgJson.devDependencies[pkgName] = rootPkg.devDependencies[pkgName];
-        }
+  const setVersionFromRoot = (pkgName: string) => {
+    if (pkgJson.devDependencies && pkgJson.devDependencies[pkgName]) {
+      if (rootPkg.devDependencies && rootPkg.devDependencies[pkgName]) {
+        pkgJson.devDependencies[pkgName] = rootPkg.devDependencies[pkgName];
       }
-    };
-
-    if (pkgJson.devDependencies['@builder.io/qwik'] && !semver.prerelease(rootPkg.version)) {
-      pkgJson.devDependencies['@builder.io/qwik'] = rootPkg.version;
     }
+  };
 
-    setVersionFromRoot('@types/node');
-    setVersionFromRoot('prettier');
-    setVersionFromRoot('typescript');
-    setVersionFromRoot('vite');
-
-    await writePackageJson(destDir, pkgJson);
+  if (pkgJson.devDependencies && pkgJson.devDependencies['@builder.io/qwik']) {
+    pkgJson.devDependencies['@builder.io/qwik'] = rootPkg.version;
   }
+
+  setVersionFromRoot('@types/eslint');
+  setVersionFromRoot('@types/node');
+  setVersionFromRoot('@typescript-eslint/eslint-plugin');
+  setVersionFromRoot('@typescript-eslint/parser');
+  setVersionFromRoot('eslint');
+  setVersionFromRoot('prettier');
+  setVersionFromRoot('typescript');
+  setVersionFromRoot('vite');
+
+  await writePackageJson(destDir, pkgJson);
 }
 
 const IGNORE: { [path: string]: boolean } = {
@@ -125,10 +122,3 @@ const IGNORE: { [path: string]: boolean } = {
   'tsconfig.tsbuildinfo': true,
   'yarn.lock': true,
 };
-
-export async function validateCreateQwikCli(config: BuildConfig, errors: string[]) {
-  try {
-  } catch (e: any) {
-    errors.push(String(e.message || e));
-  }
-}

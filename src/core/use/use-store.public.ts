@@ -36,7 +36,7 @@ export function useStore<STATE extends object>(initialState: STATE | (() => STAT
   if (store != null) {
     return wrapSubscriber(store, hostElement);
   }
-  const value = typeof initialState === 'function' ? initialState() : initialState;
+  const value = typeof initialState === 'function' ? (initialState as Function)() : initialState;
   const newStore = qObject(value, getProxyMap(useDocument()));
   setStore(newStore);
   return wrapSubscriber(newStore, hostElement);

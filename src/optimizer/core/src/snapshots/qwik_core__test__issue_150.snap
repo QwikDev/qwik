@@ -21,46 +21,46 @@ const d = $(()=>console.log('thing'));
 
 import * as qwik from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
-export const Greeter = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_greeter_component")
-, "Greeter_component"));
-qwik.qrl(()=>import("./h_test_d")
-, "d");
+export const Greeter = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./greeter_component_sm3gbborfg0")
+, "Greeter_component_SM3gBboRfG0"));
+qwik.qrl(()=>import("./d_lpkevhzmi40")
+, "d_lPkevhzMI40");
 
-============================= h_test_greeter_component1.js (ENTRY POINT)==
+============================= greeter_component$1_xhafc9njq4e.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
-export const Greeter_component1 = ()=>{
+export const Greeter_component$1_xhAFc9NjQ4E = ()=>{
     return /*#__PURE__*/ _jsx("div", {});
 };
 
 /*
 {
   "origin": "test.tsx",
-  "name": "Greeter_component1",
+  "name": "Greeter_component$1_xhAFc9NjQ4E",
   "entry": null,
-  "canonicalFilename": "h_test_greeter_component1",
+  "canonicalFilename": "greeter_component$1_xhafc9njq4e",
   "extension": "js",
-  "parent": "Greeter_component",
+  "parent": "Greeter_component_SM3gBboRfG0",
   "ctxKind": "function",
   "ctxName": "$",
   "captures": false
 }
 */
-============================= h_test_greeter_component.js (ENTRY POINT)==
+============================= greeter_component_sm3gbborfg0.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const Greeter_component = ()=>{
-    return qwik.qrl(()=>import("./h_test_greeter_component1")
-    , "Greeter_component1");
+export const Greeter_component_SM3gBboRfG0 = ()=>{
+    return qwik.qrl(()=>import("./greeter_component$1_xhafc9njq4e")
+    , "Greeter_component$1_xhAFc9NjQ4E");
 };
 
 /*
 {
   "origin": "test.tsx",
-  "name": "Greeter_component",
+  "name": "Greeter_component_SM3gBboRfG0",
   "entry": null,
-  "canonicalFilename": "h_test_greeter_component",
+  "canonicalFilename": "greeter_component_sm3gbborfg0",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -68,18 +68,18 @@ export const Greeter_component = ()=>{
   "captures": false
 }
 */
-============================= h_test_d.js (ENTRY POINT)==
+============================= d_lpkevhzmi40.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const d = ()=>console.log('thing')
+export const d_lPkevhzMI40 = ()=>console.log('thing')
 ;
 
 /*
 {
   "origin": "test.tsx",
-  "name": "d",
+  "name": "d_lPkevhzMI40",
   "entry": null,
-  "canonicalFilename": "h_test_d",
+  "canonicalFilename": "d_lpkevhzmi40",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",

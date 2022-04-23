@@ -17,6 +17,7 @@ macro_rules! test_input {
             transpile: input.transpile,
             explicity_extensions: input.explicity_extensions,
             entry_strategy: input.entry_strategy,
+            dev: input.dev,
         });
         if input.snapshot {
             match &res {
@@ -948,6 +949,28 @@ export const App2 = qwikify$(() => (
 }
 
 #[test]
+fn example_prod_node() {
+    test_input!(TestInput {
+        code: r#"
+import { component$ } from '@builder.io/qwik';
+
+export const Foo = component$(() => {
+    return (
+        <div>
+            <div onClick$={() => console.log('first')}/>
+            <div onClick$={() => console.log('second')}/>
+            <div onClick$={() => console.log('third')}/>
+        </div>
+    );
+});
+"#
+        .to_string(),
+        dev: false,
+        ..TestInput::default()
+    });
+}
+
+#[test]
 fn issue_150() {
     test_input!(TestInput {
         code: r#"
@@ -1006,6 +1029,7 @@ struct TestInput {
     pub transpile: bool,
     pub explicity_extensions: bool,
     pub snapshot: bool,
+    pub dev: bool,
 }
 
 impl TestInput {
@@ -1019,6 +1043,7 @@ impl TestInput {
             transpile: false,
             explicity_extensions: false,
             snapshot: true,
+            dev: true,
         }
     }
 }

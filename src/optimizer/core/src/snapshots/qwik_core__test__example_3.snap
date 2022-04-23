@@ -21,45 +21,45 @@ export const App = () => {
 import * as qwik from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
 export const App = ()=>{
-    const Header = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_app_header_component")
-    , "App_Header_component"));
+    const Header = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./app_header_component_eeebld30rns")
+    , "App_Header_component_eEEbLD30rns"));
     return Header;
 };
 
-============================= h_test_app_header_component_div_onclick.tsx (ENTRY POINT)==
+============================= app_header_component_div_onclick_odvseeloykg.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const App_Header_component_div_onClick = (ctx)=>console.log(ctx)
+export const App_Header_component_div_onClick_odvSeeLOykg = (ctx)=>console.log(ctx)
 ;
 
 /*
 {
   "origin": "test.tsx",
-  "name": "App_Header_component_div_onClick",
+  "name": "App_Header_component_div_onClick_odvSeeLOykg",
   "entry": null,
-  "canonicalFilename": "h_test_app_header_component_div_onclick",
+  "canonicalFilename": "app_header_component_div_onclick_odvseeloykg",
   "extension": "tsx",
-  "parent": "App_Header_component",
+  "parent": "App_Header_component_eEEbLD30rns",
   "ctxKind": "function",
   "ctxName": "$",
   "captures": false
 }
 */
-============================= h_test_app_header_component.tsx (ENTRY POINT)==
+============================= app_header_component_eeebld30rns.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const App_Header_component = ()=>{
+export const App_Header_component_eEEbLD30rns = ()=>{
     console.log("mount");
-    return <div onClick={qwik.qrl(()=>import("./h_test_app_header_component_div_onclick")
-    , "App_Header_component_div_onClick")}/>;
+    return <div onClick={qwik.qrl(()=>import("./app_header_component_div_onclick_odvseeloykg")
+    , "App_Header_component_div_onClick_odvSeeLOykg")}/>;
 };
 
 /*
 {
   "origin": "test.tsx",
-  "name": "App_Header_component",
+  "name": "App_Header_component_eEEbLD30rns",
   "entry": null,
-  "canonicalFilename": "h_test_app_header_component",
+  "canonicalFilename": "app_header_component_eeebld30rns",
   "extension": "tsx",
   "parent": null,
   "ctxKind": "function",

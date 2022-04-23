@@ -4,7 +4,6 @@ import { qDev } from '../../util/qdev';
 import { Host, SkipRerender } from './host.public';
 import { EMPTY_ARRAY } from '../../util/flyweight';
 import { logWarn } from '../../util/log';
-import { Children } from 'react';
 
 /**
  * @public

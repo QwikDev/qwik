@@ -27,14 +27,14 @@ export const App = component$(() => {
 
 import * as qwik from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
-export const App = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_app_component")
-, "App_component"));
+export const App = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./app_component_aj0udc0imoo")
+, "App_component_aJ0UdC0imoo"));
 
-============================= h_test_app_component1.js (ENTRY POINT)==
+============================= app_component$1_et9ngtxjeka.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
-export const App_component1 = ()=>{
+export const App_component$1_eT9NGtXJEKA = ()=>{
     hola();
     new Thing();
     return /*#__PURE__*/ _jsx("div", {});
@@ -43,20 +43,20 @@ export const App_component1 = ()=>{
 /*
 {
   "origin": "test.tsx",
-  "name": "App_component1",
+  "name": "App_component$1_eT9NGtXJEKA",
   "entry": null,
-  "canonicalFilename": "h_test_app_component1",
+  "canonicalFilename": "app_component$1_et9ngtxjeka",
   "extension": "js",
-  "parent": "App_component",
+  "parent": "App_component_aJ0UdC0imoo",
   "ctxKind": "function",
   "ctxName": "$",
   "captures": false
 }
 */
-============================= h_test_app_component.js (ENTRY POINT)==
+============================= app_component_aj0udc0imoo.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const App_component = ()=>{
+export const App_component_aJ0UdC0imoo = ()=>{
     function hola() {
         console.log('hola');
     }
@@ -64,16 +64,16 @@ export const App_component = ()=>{
     }
     class Other {
     }
-    return qwik.qrl(()=>import("./h_test_app_component1")
-    , "App_component1");
+    return qwik.qrl(()=>import("./app_component$1_et9ngtxjeka")
+    , "App_component$1_eT9NGtXJEKA");
 };
 
 /*
 {
   "origin": "test.tsx",
-  "name": "App_component",
+  "name": "App_component_aJ0UdC0imoo",
   "entry": null,
-  "canonicalFilename": "h_test_app_component",
+  "canonicalFilename": "app_component_aj0udc0imoo",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",

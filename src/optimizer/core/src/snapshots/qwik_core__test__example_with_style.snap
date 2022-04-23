@@ -20,45 +20,45 @@ export const Foo = component$(() => {
 
 import * as qwik from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
-export const Foo = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_foo_component")
-, "Foo_component"), {
+export const Foo = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./foo_component_7n2avllyvuo")
+, "Foo_component_7N2avlLYVuo"), {
     tagName: "my-foo"
 });
 
-============================= h_test_foo_component_usestyles.tsx (ENTRY POINT)==
+============================= foo_component_usestyles_pdrqszjgrtk.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const Foo_component_useStyles = '.class {}';
+export const Foo_component_useStyles_PDrQszjGRtk = '.class {}';
 
 /*
 {
   "origin": "test.tsx",
-  "name": "Foo_component_useStyles",
+  "name": "Foo_component_useStyles_PDrQszjGRtk",
   "entry": null,
-  "canonicalFilename": "h_test_foo_component_usestyles",
+  "canonicalFilename": "foo_component_usestyles_pdrqszjgrtk",
   "extension": "tsx",
-  "parent": "Foo_component",
+  "parent": "Foo_component_7N2avlLYVuo",
   "ctxKind": "function",
   "ctxName": "useStyles$",
   "captures": false
 }
 */
-============================= h_test_foo_component.tsx (ENTRY POINT)==
+============================= foo_component_7n2avllyvuo.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
 import { useStylesQrl } from "@builder.io/qwik";
-export const Foo_component = ()=>{
-    useStylesQrl(qwik.qrl(()=>import("./h_test_foo_component_usestyles")
-    , "Foo_component_useStyles"));
+export const Foo_component_7N2avlLYVuo = ()=>{
+    useStylesQrl(qwik.qrl(()=>import("./foo_component_usestyles_pdrqszjgrtk")
+    , "Foo_component_useStyles_PDrQszjGRtk"));
     return <div class="class"/>;
 };
 
 /*
 {
   "origin": "test.tsx",
-  "name": "Foo_component",
+  "name": "Foo_component_7N2avlLYVuo",
   "entry": null,
-  "canonicalFilename": "h_test_foo_component",
+  "canonicalFilename": "foo_component_7n2avllyvuo",
   "extension": "tsx",
   "parent": null,
   "ctxKind": "function",

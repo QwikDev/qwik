@@ -20,14 +20,14 @@ const Header = component$(() => {
 import * as qwik from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
 import { $, component$, useStore } from '@builder.io/qwik';
-const Header = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_header_component")
-, "Header_component"));
+const Header = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./header_component_d2lmh0dh3zy")
+, "Header_component_D2lmH0Dh3zY"));
 
-============================= h_test_header_component.tsx (ENTRY POINT)==
+============================= header_component_d2lmh0dh3zy.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
 import { useStore } from "@builder.io/qwik";
-export const Header_component = ()=>{
+export const Header_component_D2lmH0Dh3zY = ()=>{
     const thing = useStore();
     const { foo , bar  } = foo();
     return <div >{thing}</div>;
@@ -36,9 +36,9 @@ export const Header_component = ()=>{
 /*
 {
   "origin": "test.tsx",
-  "name": "Header_component",
+  "name": "Header_component_D2lmH0Dh3zY",
   "entry": null,
-  "canonicalFilename": "h_test_header_component",
+  "canonicalFilename": "header_component_d2lmh0dh3zy",
   "extension": "tsx",
   "parent": null,
   "ctxKind": "function",

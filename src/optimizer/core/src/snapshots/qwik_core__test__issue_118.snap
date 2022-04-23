@@ -18,32 +18,32 @@ export const Footer = component$();
 
 ============================= project/test.js ==
 
-import*as b from"@builder.io/qwik";import{componentQrl as a}from"@builder.io/qwik";export const Header=/*#__PURE__*/ a(b.qrl(()=>import("../entry_hooks"),"Header_component"));export const Footer=/*#__PURE__*/ a();
-============================= h_test_header_component1.js ==
+import*as b from"@builder.io/qwik";import{componentQrl as a}from"@builder.io/qwik";export const Header=/*#__PURE__*/ a(b.qrl(()=>import("../entry_hooks"),"Header_component_ZdVwofEnicA"));export const Footer=/*#__PURE__*/ a();
+============================= header_component$1_l87wgr7zvxa.js ==
 
-import*as a from"@builder.io/qwik";import{Footer as b}from"./project/test";import{jsxs as c}from"@builder.io/qwik/jsx-runtime";import*as d from"lib";import{s as e}from"lib";import f from"lib";export const Header_component1=()=>/*#__PURE__*/ c(b,{children:[f,d(),e()]});
+import*as a from"@builder.io/qwik";import{Footer as b}from"./project/test";import{jsxs as c}from"@builder.io/qwik/jsx-runtime";import*as d from"lib";import{s as e}from"lib";import f from"lib";export const Header_component$1_l87wgr7ZvxA=()=>/*#__PURE__*/ c(b,{children:[f,d(),e()]});
 /*
 {
   "origin": "project/test.tsx",
-  "name": "Header_component1",
+  "name": "Header_component$1_l87wgr7ZvxA",
   "entry": "entry_hooks",
-  "canonicalFilename": "h_test_header_component1",
+  "canonicalFilename": "header_component$1_l87wgr7zvxa",
   "extension": "js",
-  "parent": "Header_component",
+  "parent": "Header_component_ZdVwofEnicA",
   "ctxKind": "function",
   "ctxName": "$",
   "captures": false
 }
 */
-============================= h_test_header_component.js ==
+============================= header_component_zdvwofenica.js ==
 
-import*as a from"@builder.io/qwik";export const Header_component=()=>a.qrl(()=>import("./entry_hooks"),"Header_component1");
+import*as a from"@builder.io/qwik";export const Header_component_ZdVwofEnicA=()=>a.qrl(()=>import("./entry_hooks"),"Header_component$1_l87wgr7ZvxA");
 /*
 {
   "origin": "project/test.tsx",
-  "name": "Header_component",
+  "name": "Header_component_ZdVwofEnicA",
   "entry": "entry_hooks",
-  "canonicalFilename": "h_test_header_component",
+  "canonicalFilename": "header_component_zdvwofenica",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -53,7 +53,7 @@ import*as a from"@builder.io/qwik";export const Header_component=()=>a.qrl(()=>i
 */
 ============================= entry_hooks.js (ENTRY POINT)==
 
-export{Header_component1}from"./h_test_header_component1";export{Header_component}from"./h_test_header_component";
+export{Header_component$1_l87wgr7ZvxA}from"./header_component$1_l87wgr7zvxa";export{Header_component_ZdVwofEnicA}from"./header_component_zdvwofenica";
 == DIAGNOSTICS ==
 
 []

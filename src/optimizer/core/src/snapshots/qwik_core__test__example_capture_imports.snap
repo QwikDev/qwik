@@ -19,65 +19,65 @@ export const App = component$(() => {
 
 import * as qwik from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
-export const App = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_app_component")
-, "App_component"));
+export const App = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./app_component_aj0udc0imoo")
+, "App_component_aJ0UdC0imoo"));
 
-============================= h_test_app_component_usestyles.js (ENTRY POINT)==
+============================= app_component_usestyles_41n1oqyi5xi.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
 import css1 from "./global.css";
 import css2 from "./style.css";
-export const App_component_useStyles = `${css1}${css2}`;
+export const App_component_useStyles_41n1OqyI5XI = `${css1}${css2}`;
 
 /*
 {
   "origin": "test.tsx",
-  "name": "App_component_useStyles",
+  "name": "App_component_useStyles_41n1OqyI5XI",
   "entry": null,
-  "canonicalFilename": "h_test_app_component_usestyles",
+  "canonicalFilename": "app_component_usestyles_41n1oqyi5xi",
   "extension": "js",
-  "parent": "App_component",
+  "parent": "App_component_aJ0UdC0imoo",
   "ctxKind": "function",
   "ctxName": "useStyles$",
   "captures": false
 }
 */
-============================= h_test_app_component_usestyles2.js (ENTRY POINT)==
+============================= app_component_usestyles$1_g8ltvcmlekw.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
 import css3 from "./style.css";
-export const App_component_useStyles2 = css3;
+export const App_component_useStyles$1_g8LtVcmLekw = css3;
 
 /*
 {
   "origin": "test.tsx",
-  "name": "App_component_useStyles2",
+  "name": "App_component_useStyles$1_g8LtVcmLekw",
   "entry": null,
-  "canonicalFilename": "h_test_app_component_usestyles2",
+  "canonicalFilename": "app_component_usestyles$1_g8ltvcmlekw",
   "extension": "js",
-  "parent": "App_component",
+  "parent": "App_component_aJ0UdC0imoo",
   "ctxKind": "function",
   "ctxName": "useStyles$",
   "captures": false
 }
 */
-============================= h_test_app_component.js (ENTRY POINT)==
+============================= app_component_aj0udc0imoo.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
 import { useStylesQrl } from "@builder.io/qwik";
-export const App_component = ()=>{
-    useStylesQrl(qwik.qrl(()=>import("./h_test_app_component_usestyles")
-    , "App_component_useStyles"));
-    useStylesQrl(qwik.qrl(()=>import("./h_test_app_component_usestyles2")
-    , "App_component_useStyles2"));
+export const App_component_aJ0UdC0imoo = ()=>{
+    useStylesQrl(qwik.qrl(()=>import("./app_component_usestyles_41n1oqyi5xi")
+    , "App_component_useStyles_41n1OqyI5XI"));
+    useStylesQrl(qwik.qrl(()=>import("./app_component_usestyles$1_g8ltvcmlekw")
+    , "App_component_useStyles$1_g8LtVcmLekw"));
 };
 
 /*
 {
   "origin": "test.tsx",
-  "name": "App_component",
+  "name": "App_component_aJ0UdC0imoo",
   "entry": null,
-  "canonicalFilename": "h_test_app_component",
+  "canonicalFilename": "app_component_aj0udc0imoo",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",

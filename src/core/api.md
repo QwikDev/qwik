@@ -14,7 +14,7 @@ export function Async<T>(props: AsyncProps<T>): JSXNode<any>;
 
 // @public (undocumented)
 const Comment_2: FunctionComponent<{
-    children?: string;
+    text?: string;
 }>;
 export { Comment_2 as Comment }
 

@@ -780,6 +780,7 @@ name = "qwik-core"
 version = "0.2.0"
 dependencies = [
  "anyhow",
+ "base64 0.13.0",
  "derivative",
  "lazy_static",
  "path-slash",

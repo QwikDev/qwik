@@ -1,6 +1,3 @@
-use serde::{Deserialize, Serialize};
-use std::collections::{BTreeMap, HashMap, HashSet};
-
 use crate::code_move::fix_path;
 use crate::collector::{
     collect_from_pat, new_ident_from_id, GlobalCollect, Id, IdentCollector, ImportKind,
@@ -9,8 +6,12 @@ use crate::entry_strategy::EntryPolicy;
 use crate::parse::PathData;
 use crate::words::*;
 use path_slash::PathExt;
+use serde::{Deserialize, Serialize};
+use std::collections::hash_map::DefaultHasher;
+use std::collections::{BTreeMap, HashMap, HashSet};
+use std::hash::Hash;
+use std::hash::Hasher;
 
-use std::sync::{Arc, Mutex};
 use swc_atoms::JsWord;
 use swc_common::comments::{Comments, SingleThreadedComments};
 use swc_common::{errors::HANDLER, Mark, Spanned, DUMMY_SP};
@@ -61,20 +62,6 @@ pub struct HookData {
     pub origin: JsWord,
 }
 
-pub struct TransformContext {
-    pub hooks_names: HashSet<String>,
-}
-
-impl TransformContext {
-    pub fn new() -> ThreadSafeTransformContext {
-        Arc::new(Mutex::new(Self {
-            hooks_names: HashSet::with_capacity(10),
-        }))
-    }
-}
-
-pub type ThreadSafeTransformContext = Arc<Mutex<TransformContext>>;
-
 #[derive(Debug)]
 enum PositionToken {
     JSXFunction,
@@ -96,6 +83,7 @@ pub struct QwikTransform<'a> {
     pub qwik_ident: Id,
     pub options: QwikTransformOptions<'a>,
 
+    hooks_names: HashMap<String, u32>,
     extra_module_items: BTreeMap<Id, ast::ModuleItem>,
     stack_ctxt: Vec<String>,
     position_ctxt: Vec<PositionToken>,
@@ -112,13 +100,13 @@ pub struct QwikTransform<'a> {
 }
 
 pub struct QwikTransformOptions<'a> {
-    pub context: ThreadSafeTransformContext,
     pub path_data: &'a PathData,
     pub entry_policy: &'a dyn EntryPolicy,
     pub extension: JsWord,
     pub explicity_extensions: bool,
     pub comments: Option<&'a SingleThreadedComments>,
     pub global_collect: GlobalCollect,
+    pub dev: bool,
 }
 
 fn convert_signal_word(id: &JsWord) -> Option<JsWord> {
@@ -168,6 +156,7 @@ impl<'a> QwikTransform<'a> {
             hooks: Vec::with_capacity(16),
             hook_stack: Vec::with_capacity(16),
             extra_module_items: BTreeMap::new(),
+            hooks_names: HashMap::new(),
             qcomponent_fn: options
                 .global_collect
                 .get_imported_local(&QCOMPONENT, &BUILDER_IO_QWIK),
@@ -187,20 +176,33 @@ impl<'a> QwikTransform<'a> {
         }
     }
 
-    fn register_context_name(&self) -> String {
-        let mut context = self.options.context.lock().unwrap();
-
+    fn register_context_name(&mut self) -> String {
         let mut symbol_name = self.stack_ctxt.join("_");
         if self.stack_ctxt.is_empty() {
-            symbol_name += "_h";
+            symbol_name += "s_";
         }
         symbol_name = escape_sym(&symbol_name);
-        if context.hooks_names.contains(&symbol_name) {
-            symbol_name += &context.hooks_names.len().to_string();
+        let index = match self.hooks_names.get_mut(&symbol_name) {
+            Some(count) => {
+                *count += 1;
+                *count
+            }
+            None => 0,
+        };
+        if index == 0 {
+            self.hooks_names.insert(symbol_name.clone(), 0);
+        } else {
+            symbol_name += &format!("${}", index);
         }
-
-        context.hooks_names.insert(symbol_name.clone());
-        symbol_name
+        let mut hasher = DefaultHasher::new();
+        hasher.write(symbol_name.as_bytes());
+        hasher.write(self.options.path_data.path.to_str().unwrap().as_bytes());
+        if self.options.dev {
+            symbol_name += &format!("_{}", base64(hasher.finish()));
+            symbol_name
+        } else {
+            format!("s_{}", base64(hasher.finish()))
+        }
     }
 
     fn handle_qhook(&mut self, node: ast::CallExpr) -> ast::CallExpr {
@@ -228,8 +230,7 @@ impl<'a> QwikTransform<'a> {
 
         let symbol_name = self.register_context_name();
 
-        let mut canonical_filename =
-            ["h_", &self.options.path_data.file_prefix, "_", &symbol_name].concat();
+        let mut canonical_filename = symbol_name.clone();
         canonical_filename.make_ascii_lowercase();
 
         let symbol_name = JsWord::from(symbol_name);
@@ -922,6 +923,12 @@ fn escape_sym(str: &str) -> String {
 
 const fn can_capture_scope(expr: &ast::Expr) -> bool {
     matches!(expr, &ast::Expr::Fn(_) | &ast::Expr::Arrow(_))
+}
+
+fn base64(nu: u64) -> String {
+    base64::encode_config(nu.to_le_bytes(), base64::URL_SAFE_NO_PAD)
+        .replace('-', "0")
+        .replace('_', "0")
 }
 
 fn compute_scoped_idents(all_idents: &[Id], all_decl: &HashSet<Id>) -> Vec<Id> {

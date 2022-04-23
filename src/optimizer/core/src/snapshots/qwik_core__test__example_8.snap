@@ -22,14 +22,14 @@ export const Header = component$(() => {
 
 import * as qwik from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
-export const Header = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_header_component")
-, "Header_component"));
+export const Header = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./header_component_d2lmh0dh3zy")
+, "Header_component_D2lmH0Dh3zY"));
 
-============================= h_test_header_component1.tsx (ENTRY POINT)==
+============================= header_component$1_l1n77dg76o0.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
 import { Header } from "./test";
-export const Header_component1 = (hola)=>{
+export const Header_component$1_L1N77dG76O0 = (hola)=>{
     const hola = this;
     const { something , styff  } = hola;
     const hello = hola.nothere.stuff[global];
@@ -39,30 +39,30 @@ export const Header_component1 = (hola)=>{
 /*
 {
   "origin": "test.tsx",
-  "name": "Header_component1",
+  "name": "Header_component$1_L1N77dG76O0",
   "entry": null,
-  "canonicalFilename": "h_test_header_component1",
+  "canonicalFilename": "header_component$1_l1n77dg76o0",
   "extension": "tsx",
-  "parent": "Header_component",
+  "parent": "Header_component_D2lmH0Dh3zY",
   "ctxKind": "function",
   "ctxName": "$",
   "captures": false
 }
 */
-============================= h_test_header_component.tsx (ENTRY POINT)==
+============================= header_component_d2lmh0dh3zy.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const Header_component = ()=>{
-    return qwik.qrl(()=>import("./h_test_header_component1")
-    , "Header_component1");
+export const Header_component_D2lmH0Dh3zY = ()=>{
+    return qwik.qrl(()=>import("./header_component$1_l1n77dg76o0")
+    , "Header_component$1_L1N77dG76O0");
 };
 
 /*
 {
   "origin": "test.tsx",
-  "name": "Header_component",
+  "name": "Header_component_D2lmH0Dh3zY",
   "entry": null,
-  "canonicalFilename": "h_test_header_component",
+  "canonicalFilename": "header_component_d2lmh0dh3zy",
   "extension": "tsx",
   "parent": null,
   "ctxKind": "function",

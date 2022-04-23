@@ -19,14 +19,14 @@ export const App = Component((props) => {
 
 import * as qwik from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
-export const App = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_app_component")
-, "App_Component"));
+export const App = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./app_component_fude1doyyty")
+, "App_Component_FUDE1DoYyTY"));
 
-============================= h_test_app_component1.js (ENTRY POINT)==
+============================= app_component$1_4rr0wdqlrpu.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
-export const App_Component1 = ()=>{
+export const App_Component$1_4Rr0WdqLRPU = ()=>{
     const [state] = qwik.useLexicalScope();
     return /*#__PURE__*/ _jsx("div", {
         children: state.thing
@@ -36,26 +36,26 @@ export const App_Component1 = ()=>{
 /*
 {
   "origin": "test.tsx",
-  "name": "App_Component1",
+  "name": "App_Component$1_4Rr0WdqLRPU",
   "entry": null,
-  "canonicalFilename": "h_test_app_component1",
+  "canonicalFilename": "app_component$1_4rr0wdqlrpu",
   "extension": "js",
-  "parent": "App_Component",
+  "parent": "App_Component_FUDE1DoYyTY",
   "ctxKind": "function",
   "ctxName": "$",
   "captures": true
 }
 */
-============================= h_test_app_component.js (ENTRY POINT)==
+============================= app_component_fude1doyyty.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
 import { useStore } from "@builder.io/qwik";
-export const App_Component = (props)=>{
+export const App_Component_FUDE1DoYyTY = (props)=>{
     const state = useStore({
         thing: 0
     });
-    return qwik.qrl(()=>import("./h_test_app_component1")
-    , "App_Component1", [
+    return qwik.qrl(()=>import("./app_component$1_4rr0wdqlrpu")
+    , "App_Component$1_4Rr0WdqLRPU", [
         state
     ]);
 };
@@ -63,9 +63,9 @@ export const App_Component = (props)=>{
 /*
 {
   "origin": "test.tsx",
-  "name": "App_Component",
+  "name": "App_Component_FUDE1DoYyTY",
   "entry": null,
-  "canonicalFilename": "h_test_app_component",
+  "canonicalFilename": "app_component_fude1doyyty",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",

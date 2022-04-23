@@ -45,13 +45,13 @@ export const useCounter = ()=>{
     });
 };
 export const STEP = 1;
-export const App = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_app_component")
-, "App_component"));
+export const App = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./app_component_aj0udc0imoo")
+, "App_component_aJ0UdC0imoo"));
 
-============================= h_test_app_component_div_onclick.js (ENTRY POINT)==
+============================= app_component_div_onclick_cnjgsj2zcca.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const App_component_div_onClick = ()=>{
+export const App_component_div_onClick_cnJgsj2zcCA = ()=>{
     const [count2, state] = qwik.useLexicalScope();
     return state.count += count2;
 };
@@ -59,21 +59,21 @@ export const App_component_div_onClick = ()=>{
 /*
 {
   "origin": "test.tsx",
-  "name": "App_component_div_onClick",
+  "name": "App_component_div_onClick_cnJgsj2zcCA",
   "entry": null,
-  "canonicalFilename": "h_test_app_component_div_onclick",
+  "canonicalFilename": "app_component_div_onclick_cnjgsj2zcca",
   "extension": "js",
-  "parent": "App_component",
+  "parent": "App_component_aJ0UdC0imoo",
   "ctxKind": "event",
   "ctxName": "onClick$",
   "captures": true
 }
 */
-============================= h_test_app_component_div_children_button_onclick.js (ENTRY POINT)==
+============================= app_component_div_children_button_onclick_wvrwast0w8q.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
 import { STEP } from "./test";
-export const App_component_div_children_button_onClick = ()=>{
+export const App_component_div_children_button_onClick_wVrwaSt0w8Q = ()=>{
     const [STEP_2, btn, props, state, thing] = qwik.useLexicalScope();
     return state.count += btn.offset + thing + STEP + STEP_2 + props.step;
 };
@@ -81,24 +81,24 @@ export const App_component_div_children_button_onClick = ()=>{
 /*
 {
   "origin": "test.tsx",
-  "name": "App_component_div_children_button_onClick",
+  "name": "App_component_div_children_button_onClick_wVrwaSt0w8Q",
   "entry": null,
-  "canonicalFilename": "h_test_app_component_div_children_button_onclick",
+  "canonicalFilename": "app_component_div_children_button_onclick_wvrwast0w8q",
   "extension": "js",
-  "parent": "App_component",
+  "parent": "App_component_aJ0UdC0imoo",
   "ctxKind": "event",
   "ctxName": "onClick$",
   "captures": true
 }
 */
-============================= h_test_app_component.js (ENTRY POINT)==
+============================= app_component_aj0udc0imoo.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 import { jsxs as _jsxs } from "@builder.io/qwik/jsx-runtime";
 import { useCounter } from "./test";
 import { useStore } from "@builder.io/qwik";
-export const App_component = (props)=>{
+export const App_component_aJ0UdC0imoo = (props)=>{
     const state = useCounter();
     const thing = useStore({
         thing: 0
@@ -106,8 +106,8 @@ export const App_component = (props)=>{
     const STEP_2 = 2;
     const count2 = state.count * 2;
     return /*#__PURE__*/ _jsxs("div", {
-        onClickQrl: qwik.qrl(()=>import("./h_test_app_component_div_onclick")
-        , "App_component_div_onClick", [
+        onClickQrl: qwik.qrl(()=>import("./app_component_div_onclick_cnjgsj2zcca")
+        , "App_component_div_onClick_cnJgsj2zcCA", [
             count2,
             state
         ]),
@@ -116,8 +116,8 @@ export const App_component = (props)=>{
                 children: state.count
             }),
             buttons.map((btn)=>/*#__PURE__*/ _jsx("button", {
-                    onClickQrl: qwik.qrl(()=>import("./h_test_app_component_div_children_button_onclick")
-                    , "App_component_div_children_button_onClick", [
+                    onClickQrl: qwik.qrl(()=>import("./app_component_div_children_button_onclick_wvrwast0w8q")
+                    , "App_component_div_children_button_onClick_wVrwaSt0w8Q", [
                         STEP_2,
                         btn,
                         props,
@@ -134,9 +134,9 @@ export const App_component = (props)=>{
 /*
 {
   "origin": "test.tsx",
-  "name": "App_component",
+  "name": "App_component_aJ0UdC0imoo",
   "entry": null,
-  "canonicalFilename": "h_test_app_component",
+  "canonicalFilename": "app_component_aj0udc0imoo",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",

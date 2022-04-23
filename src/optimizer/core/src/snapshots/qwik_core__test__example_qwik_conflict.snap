@@ -40,53 +40,53 @@ import { componentQrl as componentQrl1 } from "@builder.io/qwik";
 const componentQrl = ()=>console.log('not this')
 ;
 componentQrl();
-export const Foo = /*#__PURE__*/ componentQrl1(qwik.qrl(()=>import("./h_test_foo_component")
-, "Foo_component"), {
+export const Foo = /*#__PURE__*/ componentQrl1(qwik.qrl(()=>import("./foo_component_7n2avllyvuo")
+, "Foo_component_7N2avlLYVuo"), {
     tagName: "my-foo"
 });
-export const Root = /*#__PURE__*/ componentQrl1(qwik.qrl(()=>import("./h_test_root_component")
-, "Root_component"), {
+export const Root = /*#__PURE__*/ componentQrl1(qwik.qrl(()=>import("./root_component_0xhmgr6gqgo")
+, "Root_component_0xHmGR6gqGo"), {
     tagName: "my-foo"
 });
 
-============================= h_test_foo_component1.js (ENTRY POINT)==
+============================= foo_component$1_642otg035oo.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
-export const Foo_component1 = ()=>{
+export const Foo_component$1_642OtG035oo = ()=>{
     return /*#__PURE__*/ _jsx("div", {});
 };
 
 /*
 {
   "origin": "test.tsx",
-  "name": "Foo_component1",
+  "name": "Foo_component$1_642OtG035oo",
   "entry": null,
-  "canonicalFilename": "h_test_foo_component1",
+  "canonicalFilename": "foo_component$1_642otg035oo",
   "extension": "js",
-  "parent": "Foo_component",
+  "parent": "Foo_component_7N2avlLYVuo",
   "ctxKind": "function",
   "ctxName": "$",
   "captures": false
 }
 */
-============================= h_test_foo_component.js (ENTRY POINT)==
+============================= foo_component_7n2avllyvuo.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const Foo_component = ()=>{
+export const Foo_component_7N2avlLYVuo = ()=>{
     useStyles$('thing');
     const qwik1 = 12;
     console.log(qwik1);
-    return qwik.qrl(()=>import("./h_test_foo_component1")
-    , "Foo_component1");
+    return qwik.qrl(()=>import("./foo_component$1_642otg035oo")
+    , "Foo_component$1_642OtG035oo");
 };
 
 /*
 {
   "origin": "test.tsx",
-  "name": "Foo_component",
+  "name": "Foo_component_7N2avlLYVuo",
   "entry": null,
-  "canonicalFilename": "h_test_foo_component",
+  "canonicalFilename": "foo_component_7n2avllyvuo",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -94,62 +94,62 @@ export const Foo_component = ()=>{
   "captures": false
 }
 */
-============================= h_test_root_component3.js (ENTRY POINT)==
+============================= root_component$1_mttxdhl10sk.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const Root_component3 = 'thing';
+export const Root_component$1_MTtxdhL10sk = 'thing';
 
 /*
 {
   "origin": "test.tsx",
-  "name": "Root_component3",
+  "name": "Root_component$1_MTtxdhL10sk",
   "entry": null,
-  "canonicalFilename": "h_test_root_component3",
+  "canonicalFilename": "root_component$1_mttxdhl10sk",
   "extension": "js",
-  "parent": "Root_component",
+  "parent": "Root_component_0xHmGR6gqGo",
   "ctxKind": "function",
   "ctxName": "$",
   "captures": false
 }
 */
-============================= h_test_root_component4.js (ENTRY POINT)==
+============================= root_component$2_utkmluvopbg.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
-export const Root_component4 = ()=>{
+export const Root_component$2_utKMluVoPbg = ()=>{
     return /*#__PURE__*/ _jsx("div", {});
 };
 
 /*
 {
   "origin": "test.tsx",
-  "name": "Root_component4",
+  "name": "Root_component$2_utKMluVoPbg",
   "entry": null,
-  "canonicalFilename": "h_test_root_component4",
+  "canonicalFilename": "root_component$2_utkmluvopbg",
   "extension": "js",
-  "parent": "Root_component",
+  "parent": "Root_component_0xHmGR6gqGo",
   "ctxKind": "function",
   "ctxName": "$",
   "captures": false
 }
 */
-============================= h_test_root_component.js (ENTRY POINT)==
+============================= root_component_0xhmgr6gqgo.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
 import { useStyles } from "@builder.io/qwik";
-export const Root_component = ()=>{
-    useStyles(qwik.qrl(()=>import("./h_test_root_component3")
-    , "Root_component3"));
-    return qwik.qrl(()=>import("./h_test_root_component4")
-    , "Root_component4");
+export const Root_component_0xHmGR6gqGo = ()=>{
+    useStyles(qwik.qrl(()=>import("./root_component$1_mttxdhl10sk")
+    , "Root_component$1_MTtxdhL10sk"));
+    return qwik.qrl(()=>import("./root_component$2_utkmluvopbg")
+    , "Root_component$2_utKMluVoPbg");
 };
 
 /*
 {
   "origin": "test.tsx",
-  "name": "Root_component",
+  "name": "Root_component_0xHmGR6gqGo",
   "entry": null,
-  "canonicalFilename": "h_test_root_component",
+  "canonicalFilename": "root_component_0xhmgr6gqgo",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",

@@ -5,7 +5,7 @@ use std::str;
 use crate::code_move::{new_module, NewModuleCtx};
 use crate::collector::global_collect;
 use crate::entry_strategy::EntryPolicy;
-use crate::transform::{HookKind, QwikTransform, QwikTransformOptions, ThreadSafeTransformContext};
+use crate::transform::{HookKind, QwikTransform, QwikTransformOptions};
 use crate::utils::{CodeHighlight, Diagnostic, DiagnosticSeverity, SourceLocation};
 use path_slash::PathExt;
 use serde::{Deserialize, Serialize};
@@ -63,7 +63,7 @@ pub struct TransformCodeOptions<'a> {
     pub explicity_extensions: bool,
     pub code: &'a str,
     pub entry_policy: &'a dyn EntryPolicy,
-    pub context: ThreadSafeTransformContext,
+    pub dev: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
@@ -193,13 +193,13 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                     // Collect import/export metadata
                     let collect = global_collect(&main_module);
                     let mut qwik_transform = QwikTransform::new(QwikTransformOptions {
-                        context: config.context,
                         path_data: &path_data,
                         entry_policy: config.entry_policy,
                         explicity_extensions: config.explicity_extensions,
                         extension: extension.clone(),
                         comments: Some(&comments),
                         global_collect: collect,
+                        dev: config.dev,
                     });
 
                     // Run main transform

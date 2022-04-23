@@ -19,39 +19,39 @@ export const Header = component$(() => {
 
 import * as qwik from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
-export const Header = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./h_test_header_component")
-, "Header_component"));
+export const Header = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./header_component_d2lmh0dh3zy")
+, "Header_component_D2lmH0Dh3zY"));
 
-============================= h_test_header_component_div_onclick.tsx (ENTRY POINT)==
+============================= header_component_div_onclick_ihjexlkqsxg.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const Header_component_div_onClick = (ctx)=>console.log("2")
+export const Header_component_div_onClick_IHjeXLKQSXg = (ctx)=>console.log("2")
 ;
 
 /*
 {
   "origin": "test.tsx",
-  "name": "Header_component_div_onClick",
+  "name": "Header_component_div_onClick_IHjeXLKQSXg",
   "entry": null,
-  "canonicalFilename": "h_test_header_component_div_onclick",
+  "canonicalFilename": "header_component_div_onclick_ihjexlkqsxg",
   "extension": "tsx",
-  "parent": "Header_component",
+  "parent": "Header_component_D2lmH0Dh3zY",
   "ctxKind": "function",
   "ctxName": "$",
   "captures": false
 }
 */
-============================= h_test_header_component.tsx (ENTRY POINT)==
+============================= header_component_d2lmh0dh3zy.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const Header_component = ()=>{
+export const Header_component_D2lmH0Dh3zY = ()=>{
     return <>
 
             <div onClick={(ctx)=>console.log("1")
     }/>
 
-            <div onClick={qwik.qrl(()=>import("./h_test_header_component_div_onclick")
-    , "Header_component_div_onClick")}/>
+            <div onClick={qwik.qrl(()=>import("./header_component_div_onclick_ihjexlkqsxg")
+    , "Header_component_div_onClick_IHjeXLKQSXg")}/>
 
         </>;
 };
@@ -59,9 +59,9 @@ export const Header_component = ()=>{
 /*
 {
   "origin": "test.tsx",
-  "name": "Header_component",
+  "name": "Header_component_D2lmH0Dh3zY",
   "entry": null,
-  "canonicalFilename": "h_test_header_component",
+  "canonicalFilename": "header_component_d2lmh0dh3zy",
   "extension": "tsx",
   "parent": null,
   "ctxKind": "function",

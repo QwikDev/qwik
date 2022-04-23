@@ -1,6 +1,6 @@
 {
   "name": "create-qwik",
-  "version": "0.0.18",
+  "version": "0.0.19-0",
   "description": "Interactive CLI and API for generating Qwik projects.",
   "bin": {
     "create-qwik": "create-qwik"

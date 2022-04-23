@@ -5,7 +5,7 @@ import { GithubLogo } from '../svgs/github-logo';
 import { MoreIcon } from '../svgs/more-icon';
 import { QwikLogo } from '../svgs/qwik-logo';
 import { TwitterLogo } from '../svgs/twitter-logo';
-import type { SiteStore } from '../../main';
+import type { SiteStore } from '../app/app';
 import styles from './header.css?inline';
 
 interface HeaderProps {

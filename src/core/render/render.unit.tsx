@@ -1,5 +1,5 @@
 import { h, Host, useStore } from '@builder.io/qwik';
-import { ElementFixture, trigger } from '../../testing/element_fixture';
+import { ElementFixture, trigger } from '../../testing/element-fixture';
 import { expectDOM } from '../../testing/expect-dom.unit';
 import { getTestPlatform } from '../../testing/platform';
 import { useScopedStyles$, component$ } from '../component/component.public';
@@ -61,7 +61,26 @@ describe('render', () => {
 
     it('should render attributes', async () => {
       await render(fixture.host, <div id="abc" title="bar" preventDefault:click></div>);
-      expectRendered(<div title="bar" id="abc" preventDefault:click></div>);
+      expectRendered(<div title="bar" id="abc"></div>);
+    });
+
+    it('should render style only for defined attributes', async () => {
+      await render(
+        fixture.host,
+        <div id="both" style={{ color: 'red', display: 'block' }}>
+          <div
+            id="only-color"
+            style={{ display: undefined as unknown as string, color: 'red' }}
+          ></div>
+          <div id="no-style" style={{ display: undefined as unknown as string }}></div>
+        </div>
+      );
+      expectRendered(
+        <div id="both" style="color:red;display:block">
+          <div id="only-color" style="color:red"></div>
+          <div id="no-style"></div>
+        </div>
+      );
     });
 
     it('should render children', async () => {

@@ -3,7 +3,6 @@ import { build } from 'esbuild';
 import { basename, join } from 'path';
 import { getBanner, readdir, watcher } from './util';
 import { readPackageJson, writePackageJson } from './package-json';
-import semver from 'semver';
 
 export async function buildCli(config: BuildConfig) {
   const distCliDir = join(config.distDir, 'create-qwik');
@@ -85,19 +84,37 @@ async function copyDir(config: BuildConfig, srcDir: string, destDir: string) {
 }
 
 async function updatePackageJson(config: BuildConfig, destDir: string) {
+  const rootPkg = await readPackageJson(config.rootDir);
   const pkgJson = await readPackageJson(destDir);
-  if (pkgJson.devDependencies && pkgJson.devDependencies['@builder.io/qwik']) {
-    const rootPkg = await readPackageJson(config.rootDir);
-    if (!semver.prerelease(rootPkg.version)) {
-      pkgJson.devDependencies['@builder.io/qwik'] = `~${rootPkg.version}`;
-      await writePackageJson(destDir, pkgJson);
+
+  const setVersionFromRoot = (pkgName: string) => {
+    if (pkgJson.devDependencies && pkgJson.devDependencies[pkgName]) {
+      if (rootPkg.devDependencies && rootPkg.devDependencies[pkgName]) {
+        pkgJson.devDependencies[pkgName] = rootPkg.devDependencies[pkgName];
+      }
     }
+  };
+
+  if (pkgJson.devDependencies && pkgJson.devDependencies['@builder.io/qwik']) {
+    pkgJson.devDependencies['@builder.io/qwik'] = rootPkg.version;
   }
+
+  setVersionFromRoot('@types/eslint');
+  setVersionFromRoot('@types/node');
+  setVersionFromRoot('@typescript-eslint/eslint-plugin');
+  setVersionFromRoot('@typescript-eslint/parser');
+  setVersionFromRoot('eslint');
+  setVersionFromRoot('prettier');
+  setVersionFromRoot('typescript');
+  setVersionFromRoot('vite');
+
+  await writePackageJson(destDir, pkgJson);
 }
 
 const IGNORE: { [path: string]: boolean } = {
   '.rollup.cache': true,
   build: true,
+  server: true,
   e2e: true,
   node_modules: true,
   'package-lock.json': true,
@@ -105,10 +122,3 @@ const IGNORE: { [path: string]: boolean } = {
   'tsconfig.tsbuildinfo': true,
   'yarn.lock': true,
 };
-
-export async function validateCreateQwikCli(config: BuildConfig, errors: string[]) {
-  try {
-  } catch (e: any) {
-    errors.push(String(e.message || e));
-  }
-}

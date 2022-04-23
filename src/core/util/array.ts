@@ -1,11 +1,3 @@
-/**
- * @license
- * Copyright Builder.io, Inc. All Rights Reserved.
- *
- * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
- */
-
 export function flattenArray<T>(array: (T | T[])[], dst?: T[]): T[] {
   // Yes this function is just Array.flat, but we need to run on old versions of Node.
   if (!dst) dst = [];

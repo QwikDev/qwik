@@ -4,14 +4,8 @@
 
 ```ts
 
-import type { FunctionComponent } from '@builder.io/qwik';
-import type { JSXNode } from '@builder.io/qwik';
-
 // @public
 export function createDocument(opts?: DocumentOptions): QwikDocument;
-
-// @public
-export function createGlobal(opts?: GlobalOptions): QwikGlobal;
 
 // @public (undocumented)
 export interface CreateRenderToStringOptions {
@@ -23,9 +17,14 @@ export interface CreateRenderToStringOptions {
 export function createTimer(): () => number;
 
 // @public
+export function createWindow(opts?: WindowOptions): QwikWindow;
+
+// @public
 export interface DocumentOptions {
     // (undocumented)
     debug?: boolean;
+    // (undocumented)
+    html?: string;
     // (undocumented)
     url?: URL | string;
 }
@@ -40,38 +39,36 @@ export function getQwikLoaderScript(opts?: {
 }): string;
 
 // @public
-export interface GlobalOptions extends DocumentOptions {
-}
-
-// @public
 export interface QwikDocument extends Document {
 }
 
 // @public
-export interface QwikGlobal extends WindowProxy {
+export interface QwikWindow extends WindowProxy {
     document: QwikDocument;
     // (undocumented)
     location: Location;
 }
 
-// Warning: (ae-forgotten-export) The symbol "QwikLoaderProps" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "JSXNode" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "FunctionComponent" needs to be exported by the entry point index.d.ts
 //
-// @alpha (undocumented)
-export const QwikLoader: FunctionComponent<QwikLoaderProps>;
-
 // @public
-export function renderToDocument(docOrElm: Document | Element, rootNode: JSXNode<unknown> | FunctionComponent<any>, opts: RenderToDocumentOptions): Promise<void>;
+export function renderToDocument(docOrElm: Document | Element, rootNode: JSXNode<unknown> | FunctionComponent<any>, opts?: RenderToDocumentOptions): Promise<void>;
 
 // Warning: (ae-forgotten-export) The symbol "SerializeDocumentOptions" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
 export interface RenderToDocumentOptions extends SerializeDocumentOptions, DocumentOptions {
     base?: string;
+    qwikLoader?: {
+        events?: string[];
+        include?: boolean;
+    };
     snapshot?: boolean;
 }
 
 // @public
-export function renderToString(rootNode: JSXNode, opts: RenderToStringOptions): Promise<RenderToStringResult>;
+export function renderToString(rootNode: JSXNode, opts?: RenderToStringOptions): Promise<RenderToStringResult>;
 
 // @public (undocumented)
 export interface RenderToStringOptions extends RenderToDocumentOptions {
@@ -93,6 +90,12 @@ export interface RenderToStringResult {
 // @public
 export function serializeDocument(docOrEl: Document | Element, opts?: SerializeDocumentOptions): string;
 
+// Warning: (ae-forgotten-export) The symbol "QrlMapper" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "SymbolsEntryMap" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export type ServerOutputSymbols = QrlMapper | SymbolsEntryMap | null;
+
 // @public
 export function setServerPlatform(document: any, opts: SerializeDocumentOptions): Promise<void>;
 
@@ -101,6 +104,10 @@ export const versions: {
     readonly qwik: string;
     readonly qwikDom: string;
 };
+
+// @public
+export interface WindowOptions extends DocumentOptions {
+}
 
 // (No @packageDocumentation comment for this package)
 

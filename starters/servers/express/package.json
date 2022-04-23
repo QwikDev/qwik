@@ -1,12 +1,10 @@
 {
   "description": "Express.js server.",
   "scripts": {
-    "build.client": "vite build --outDir server/public",
-    "build.server": "vite build --outDir server/build --ssr src/entry.express.tsx",
-    "serve": "node server/build/entry.express.js"
+    "serve": "node app.js"
   },
   "devDependencies": {
     "@types/express": "4.17.13",
-    "express": "4.17.2"
+    "express": "4.17.3"
   }
 }

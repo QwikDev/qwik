@@ -1,12 +1,12 @@
-import type { OutputEntryMap } from '../optimizer/src';
+import type { SymbolsEntryMap } from '../optimizer/src';
 
 /**
- * Partial Global used by Qwik Framework.
+ * Partial Window used by Qwik Framework.
  *
  * A set of properties which the Qwik Framework expects to find on global.
  * @public
  */
-export interface QwikGlobal extends WindowProxy {
+export interface QwikWindow extends WindowProxy {
   /**
    * Document used by Qwik during rendering.
    */
@@ -28,21 +28,27 @@ export interface QwikDocument extends Document {}
  */
 export interface DocumentOptions {
   url?: URL | string;
+  html?: string;
   debug?: boolean;
 }
 
 /**
- * Options when creating a mock Qwik Global object.
+ * Options when creating a mock Qwik Window object.
  * @public
  */
-export interface GlobalOptions extends DocumentOptions {}
+export interface WindowOptions extends DocumentOptions {}
 
 /**
  * @public
  */
 export interface SerializeDocumentOptions extends DocumentOptions {
-  symbols: QrlMapper | OutputEntryMap | null;
+  symbols?: ServerOutputSymbols;
 }
+
+/**
+ * @public
+ */
+export type ServerOutputSymbols = QrlMapper | SymbolsEntryMap | null;
 
 /**
  * @public
@@ -70,6 +76,11 @@ export interface RenderToDocumentOptions extends SerializeDocumentOptions, Docum
    * Setting a base, will cause the render of the `q:base` attribute in the `q:container` element.
    */
   base?: string;
+
+  /**
+   * Specifies if the Qwik Loader script is added to the document or not. Defaults to `{ include: true }`.
+   */
+  qwikLoader?: { events?: string[]; include?: boolean };
 }
 
 /**

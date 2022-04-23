@@ -1,11 +1,9 @@
 /* eslint-disable */
 
 // @ts-ignore
-import { render } from '../server/build/entry.server.js';
-import symbols from '../server/q-symbols.json';
+import { render } from '../server/entry.server.js';
 
 export const onRequestGet: PagesFunction = async ({ request, next, waitUntil }) => {
-  // Handle static assets
   try {
     const url = new URL(request.url);
     if (url.hostname === 'qwik.builder.io' && url.pathname === '/') {
@@ -13,8 +11,22 @@ export const onRequestGet: PagesFunction = async ({ request, next, waitUntil }) 
       return Response.redirect('https://qwik.builder.io/guide/overview', 302);
     }
 
+    // Handle static assets
     if (/\.\w+$/.test(url.pathname)) {
-      return next(request);
+      const response = await next(request);
+
+      if (url.pathname.startsWith('/q-')) {
+        // assets starting with `q-` we know can be forever cached
+        // current workaround until this is merged: https://github.com/cloudflare/wrangler2/pull/796
+        const headers = new Headers();
+        response.headers.forEach((value, key) => headers.set(key, value));
+        headers.set('Cache-Control', 'public, max-age=31536000, immutable');
+        return new Response([101, 204, 205, 304].includes(response.status) ? null : response.body, {
+          ...response,
+          headers,
+        });
+      }
+      return response;
     }
 
     // do not using caching during development
@@ -31,13 +43,14 @@ export const onRequestGet: PagesFunction = async ({ request, next, waitUntil }) 
 
     // Generate Qwik SSR response
     const ssrResult = await render({
-      url: new URL(request.url),
-      symbols,
-      base: '/',
+      url: request.url,
+      base: '/build/',
     });
 
     const response = new Response(ssrResult.html, {
       headers: {
+        'Cross-Origin-Embedder-Policy': 'credentialless',
+        'Cross-Origin-Opener-Policy': 'same-origin',
         'Content-Type': 'text/html; charset=utf-8',
         'Cache-Control': useCache
           ? `max-age=60, s-maxage=10, stale-while-revalidate=604800, stale-if-error=604800`

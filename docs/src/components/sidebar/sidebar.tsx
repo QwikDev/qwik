@@ -1,6 +1,6 @@
 import { component$, Host, useHostElement, useScopedStyles$ } from '@builder.io/qwik';
 import { usePage, usePageIndex } from '@builder.io/qwest';
-import type { SiteStore } from '../../main';
+import type { SiteStore } from '../app/app';
 import { CloseIcon } from '../svgs/close-icon';
 import styles from './sidebar.css?inline';
 

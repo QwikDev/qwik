@@ -1,12 +1,4 @@
-import {
-  getBanner,
-  importPath,
-  injectDirname,
-  nodeBuiltIns,
-  nodeTarget,
-  target,
-  watcher,
-} from './util';
+import { getBanner, importPath, nodeBuiltIns, nodeTarget, target, watcher } from './util';
 import { build, BuildOptions } from 'esbuild';
 import { BuildConfig, injectGlobalThisPoly, PackageJSON } from './util';
 import { join } from 'path';
@@ -24,13 +16,13 @@ export async function submoduleTesting(config: BuildConfig) {
     sourcemap: config.dev,
     bundle: true,
     target,
-    banner: { js: getBanner('@builder.io/qwik/testing') },
     external: [...nodeBuiltIns],
   };
 
   const esm = build({
     ...opts,
     format: 'esm',
+    banner: { js: getBanner('@builder.io/qwik/testing') },
     outExtension: { '.js': '.mjs' },
     plugins: [
       importPath(/^@builder\.io\/qwik$/, '../core.mjs'),
@@ -41,7 +33,6 @@ export async function submoduleTesting(config: BuildConfig) {
     define: {
       'globalThis.MODULE_EXT': `"mjs"`,
     },
-    inject: [injectDirname(config)],
     target: 'es2020' /* needed for import.meta */,
   });
 
@@ -49,6 +40,7 @@ export async function submoduleTesting(config: BuildConfig) {
     ...opts,
     format: 'cjs',
     outExtension: { '.js': '.cjs' },
+    banner: { js: getBanner('@builder.io/qwik/testing') + injectGlobalThisPoly() },
     plugins: [
       importPath(/^@builder\.io\/qwik$/, '../core.cjs'),
       importPath(/^@builder\.io\/qwik\/optimizer$/, '../optimizer.cjs'),
@@ -60,7 +52,6 @@ export async function submoduleTesting(config: BuildConfig) {
     },
     platform: 'node',
     target: nodeTarget,
-    inject: [injectGlobalThisPoly(config)],
   });
 
   await Promise.all([esm, cjs]);

@@ -76,7 +76,7 @@ jobs:
         run: yarn install --immutable --network-timeout 300000
 
       - name: Build Package
-        run: node scripts --tsc --build --api --set-dist-tag="${{ github.event.inputs.disttag }}"
+        run: yarn node scripts --tsc --build --api --set-dist-tag="${{ github.event.inputs.disttag }}"
 
       - name: Print Package Dist Build
         run: tree packages/qwik/dist/
@@ -89,7 +89,7 @@ jobs:
           if-no-files-found: error
 
       - name: Build Create Qwik CLI
-        run: node scripts --cli
+        run: yarn node scripts --cli
 
       - name: Print Create Qwik CLI Dist Build
         run: tree packages/create-qwik/dist/
@@ -102,7 +102,7 @@ jobs:
           if-no-files-found: error
 
       - name: Build Eslint rules
-        run: node scripts --eslint
+        run: yarn node scripts --eslint
 
       - name: Print Eslint rules Dist Build
         run: tree packages/eslint-plugin-qwik/dist/
@@ -170,7 +170,7 @@ jobs:
 
       - name: Build WASM
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: node scripts --wasm --set-dist-tag="${{ github.event.inputs.disttag }}"
+        run: yarn node scripts --wasm --set-dist-tag="${{ github.event.inputs.disttag }}"
 
       - name: Print WASM Dist Build
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -225,9 +225,6 @@ jobs:
           node-version: 17.x
           cache: 'yarn'
           registry-url: https://registry.npmjs.org/
-
-      - if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: corepack enable
 
       - name: Install Rust toolchain
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -393,14 +390,14 @@ jobs:
 
       - name: Dry-Run Publish @builder.io/qwik
         if: ${{ github.event_name != 'workflow_dispatch' }}
-        run: node scripts --set-dist-tag="${{ github.event.inputs.disttag }}" --release --dry-run
+        run: yarn node scripts --set-dist-tag="${{ github.event.inputs.disttag }}" --release --dry-run
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish @builder.io/qwik
         if: ${{ github.event_name == 'workflow_dispatch' }}
-        run: node scripts --set-dist-tag="${{ github.event.inputs.disttag }}" --release
+        run: yarn node scripts --set-dist-tag="${{ github.event.inputs.disttag }}" --release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -474,7 +471,7 @@ jobs:
 
       - name: Validate Create Qwik Cli
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: node scripts/validate-cli.cjs
+        run: yarn node scripts/validate-cli.cjs
 
   ############ UNIT TEST ############
   test-unit:

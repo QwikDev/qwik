@@ -16,7 +16,7 @@ integration/todo/output
 integration/*.js
 integration/*.cjs
 integration/*.map
-src/napi/package-*
+packages/qwik/src/napi/package-*
 target
 *.node
 todo-express/

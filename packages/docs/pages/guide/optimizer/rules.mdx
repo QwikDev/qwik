@@ -79,11 +79,7 @@ function somefn() {
   list.foreach((item) => {
     count++;
     const currentCount = count;
-    someApi$(qrl('./chunk-a.js', '_1', [
-      item,
-      count,
-      currentCount,
-    ]));
+    someApi$(qrl('./chunk-a.js', '_1', [item, count, currentCount]));
   });
 }
 ```

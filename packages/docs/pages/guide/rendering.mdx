@@ -16,11 +16,7 @@ Simple counter example:
 const Counter = component$(() => {
   const store = useStore({ count: 0 });
 
-  return (
-    <button onClick$={() => store.count++}>
-      {store.count}
-    </button>
-  );
+  return <button onClick$={() => store.count++}>{store.count}</button>;
 });
 ```
 
@@ -28,9 +24,7 @@ Once rendered the HTML fragment may look something like this:
 
 ```html
 <div q:host>
-  <button q:obj="123" onClickQrl="./chunk-a.js#Counter_button_click[0]">
-    0
-  </button>
+  <button q:obj="123" onClickQrl="./chunk-a.js#Counter_button_click[0]">0</button>
 </div>
 ```
 
@@ -55,12 +49,8 @@ const Parent = component$(() => {
 
   return (
     <>
-      <button onClick$={(store.step *= -1)}>
-        direction
-      </button>
-      <button onClick$={() => (store.count += store.step)}>
-        {store.step}
-      </button>
+      <button onClick$={(store.step *= -1)}>direction</button>
+      <button onClick$={() => (store.count += store.step)}>{store.step}</button>
       <Greeter name={'World_' + store.count} />
     </>
   );

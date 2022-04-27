@@ -42,14 +42,10 @@ Let's look at an example of how all of the pieces of the QRL tie together.
 The developer writes code for a simple component.
 
 ```tsx
-const Counter = component$((props: {step: number}) => {
-  const state = createState({count: 0});
+const Counter = component$((props: { step: number }) => {
+  const state = createState({ count: 0 });
 
-  return (
-    <button onClick$={state.count += props.step || 1}>
-      {state.count}
-    </button>
-  );
+  return <button onClick$={(state.count += props.step || 1)}>{state.count}</button>;
 });
 ```
 
@@ -100,14 +96,14 @@ Assume: `http://localhost/index.html`
 <html>
   <body q:base="/build/">
     <div q:id="123" q:obj="456" q:host>
-      <button
-        q:obj="456, 123"
-        onClickQrl="./chunk-c.js#Counter_onClick[0,1]">
-        0
-      </button>
+      <button q:obj="456, 123" onClickQrl="./chunk-c.js#Counter_onClick[0,1]">0</button>
     </div>
-    <script>/*Qwikloader script*/</script>
-    <script type="qwik/json">{...json...}</script>
+    <script>
+      /*Qwikloader script*/
+    </script>
+    <script type="qwik/json">
+      {...json...}
+    </script>
   </body>
 </html>
 ```

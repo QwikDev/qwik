@@ -3,8 +3,6 @@ import { join } from 'path';
 import { build } from 'esbuild';
 import { readPackageJson, writePackageJson } from './package-json';
 
-
-
 const PACKAGE = 'eslint-plugin-qwik';
 
 export async function buildEslint(config: BuildConfig) {

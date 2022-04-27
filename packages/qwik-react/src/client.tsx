@@ -11,7 +11,7 @@ const cache = createCache({ key });
 function Cmp({ Cmp, ev, ...props }: any) {
   useEffect(() => {
     if (ev) {
-      console.log('redispatch', ev);
+      // console.log('redispatch', ev);
       (ev.target as Element).dispatchEvent(ev);
     }
   });

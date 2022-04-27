@@ -254,10 +254,12 @@ There are a few things to notice:
 You may want to know how Qwik knows which code to download based on the user interaction. You can explore this by examining the DOM in the DevTools. Let's zoom in on the checkmark HTML. You should see something like this:
 
 ```html
-<input q:obj="9"
-       type="checkbox"
-       onClickQrl="/src/components/item/h_item_item_onrender_input_onclick.js#Item_onRender_input_onclick[0]"
-       class="toggle">
+<input
+  q:obj="9"
+  type="checkbox"
+  onClickQrl="/src/components/item/h_item_item_onrender_input_onclick.js#Item_onRender_input_onclick[0]"
+  class="toggle"
+/>
 ```
 
 There are a few things to notice:

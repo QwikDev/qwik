@@ -10,12 +10,12 @@ The host element is an element in the DOM that represents component boundaries.
 Lite-components do not have host elements.
 
 ```tsx
-const Child = () => (
-  <span>child</span>
-);
+const Child = () => <span>child</span>;
 
 const Parent = () => (
-  <section><Child/></section>
+  <section>
+    <Child />
+  </section>
 );
 ```
 
@@ -32,12 +32,12 @@ Looking at the resulting HTML, it is not possible to tell if a single component 
 On the other hand, Qwik-components rely on host elements because it must be possible by looking on the HTML to determine where one component starts and another ends. Without knowing the boundaries, it would not be possible to render components independently without forcing parent/child components to render as well. This is a crucial feature of Qwik.
 
 ```tsx
-const Child = component$(() => (
-  <span>child</span>
-));
+const Child = component$(() => <span>child</span>);
 
 const Parent = component$(() => (
-  <section><Child /></section>
+  <section>
+    <Child />
+  </section>
 ));
 ```
 
@@ -60,12 +60,12 @@ Qwik host elements are marked with `q:host` attribute. (Default element is `div`
 The host component also serves an important role when breaking parent-child relationships for bundling purposes.
 
 ```tsx
-const Child = () => (
-  <span>child</span>
-);
+const Child = () => <span>child</span>;
 
 const Parent = () => (
-  <section><Child/></section>
+  <section>
+    <Child />
+  </section>
 );
 ```
 
@@ -73,9 +73,7 @@ In the above example, referring to the `Parent` component implies a transitive r
 
 ```tsx
 const Child = component$(() => {
-  return (
-    <span>child</span>
-  );
+  return <span>child</span>;
 });
 
 const Parent = component$(() => {
@@ -93,7 +91,11 @@ In the above example the Optimizer transforms the above to:
 const Child = component$(qrl('./chunk-a', 'Child_onMount'));
 const Parent = component$(qrl('./chunk-b', 'Parent_onMount'));
 const Parent_onMount = () => qrl('./chunk-c', 'Parent_onRender');
-const Parent_onRender = () => <section><Child/></section>;
+const Parent_onRender = () => (
+  <section>
+    <Child />
+  </section>
+);
 ```
 
 NOTE: for simplicity, not all of the transformations are shown; all resulting symbols are kept in the same file for succinctness.
@@ -149,11 +151,7 @@ Because the host element is an actual element, there may be a desire to place HT
 What if you wanted to add a `name` attribute to the host element? The issue is that the `name` is already used by the component props. For this reason, we use `host:` prefix to refer to the host element's attributes.
 
 ```tsx
-<Greeter 
-  host:name="abc" 
-  host:id="greeter" 
-  host:onClick$={() => {}} 
-  name="world" />
+<Greeter host:name="abc" host:id="greeter" host:onClick$={() => {}} name="world" />
 ```
 
 would render as:
@@ -167,10 +165,7 @@ Using an `host:` prefix allows the developer to control the component's host ele
 One can use the same approach for `class` and `styles`.
 
 ```tsx
-<Greeter
-  host:class="greeter"
-  host:style={{backgroundColor: 'red'}}
-  name="world" />
+<Greeter host:class="greeter" host:style={{ backgroundColor: 'red' }} name="world" />
 ```
 
 would render:
@@ -179,13 +174,11 @@ would render:
 <div q:host class="greeter" style="background-color: red;"></div>
 ```
 
-However, many IDEs will not recognize `host:class` and `host:style` and would not trigger code completion. For this reason, `class` and `styles` are special, and they will automatically map to `host:class` and `host:styles` 
+However, many IDEs will not recognize `host:class` and `host:style` and would not trigger code completion. For this reason, `class` and `styles` are special, and they will automatically map to `host:class` and `host:styles`
 when placed on the host element.
 
 ```jsx
-<Greeter class="greeter"
-         style={{backgroundColor: 'red'}}
-         name="world"/>
+<Greeter class="greeter" style={{ backgroundColor: 'red' }} name="world" />
 ```
 
 would also render to the some output.

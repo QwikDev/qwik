@@ -17,12 +17,8 @@ const Counter = component$(() => {
 
   return (
     <>
-      <button onClick$={() => store.htmlCount++}>
-        {store.count}
-      </button>
-      <CmpButton onClick$={() => store.cmpCount++}>
-        {store.count}
-      </CmpButton>
+      <button onClick$={() => store.htmlCount++}>{store.count}</button>
+      <CmpButton onClick$={() => store.cmpCount++}>{store.count}</CmpButton>
     </>
   );
 });
@@ -44,23 +40,22 @@ Notice that both `<button>` and `<CmpButton>` use the same syntax for registerin
 
 The main point here is that while the syntax of the events is consistent between HTML elements and Components, the resulting HTML only has `on:<event>` attributes for the DOM events, not for the component props.
 
-
 ## Declaring Component Events
 
 So far, we have ignored the implementation detail of `<CmpButton>` because we wanted to talk about its usage only. Now let's look at how one declares a child component that can be used with events.
 
 ```tsx
-  interface CmpButtonProps {
-    onClickQrl?: QRL<() => void>;
-  }
+interface CmpButtonProps {
+  onClickQrl?: QRL<() => void>;
+}
 
-  const CmpButton = component$((props: CmpButtonProps) => {
-    return (
-      <button onDblclickQrl={props.onClickQrl}>
-        <Slot />
-      </button>
-    );
-  });
+const CmpButton = component$((props: CmpButtonProps) => {
+  return (
+    <button onDblclickQrl={props.onClickQrl}>
+      <Slot />
+    </button>
+  );
+});
 ```
 
 As far as Qwik is concerned, passing events to a component is equivalent to passing props. In our example, we declare all props in `CmpButtonProps` interface. Specifically, notice `onClickQrl?: QRL<() => void>` declaration.
@@ -70,9 +65,7 @@ As far as Qwik is concerned, passing events to a component is equivalent to pass
 On the usage side, when referring to the `<CmpButton>`, it would be a lot more convenient to pass in a closure rather than `QRL` of the closure. The translation from closure to`QRL` closure is what Qwik Optimizer performs for us. For this reason, the usage is in the format where the closure is inlined like so:
 
 ```tsx
-<CmpButton onClick$={() => store.cmpCount++}>
-  {store.count}
-</CmpButton>
+<CmpButton onClick$={() => store.cmpCount++}>{store.count}</CmpButton>
 ```
 
 Here the prop is `onClick$` rather than `onClickQrl`. We rely on the Qwik Optimizer to perform the translation. The above is roughly translated to:
@@ -84,14 +77,16 @@ Here the prop is `onClick$` rather than `onClickQrl`. We rely on the Qwik Optimi
 ```
 
 Assume: `chunk-a.js`:
+
 ```tsx
 export const Counter_onRender_CmpButton_onClick = () => {
   const [store] = useLexicalScope();
   store.cmpCount++;
-}
+};
 ```
 
 Notice that:
+
 - `onClick$` was translated to `onClickQrl`.
 - The closure `() => store.cmpCount++` was replaced by `qrl('./chunk-a.js', 'Counter_onRender_CmpButton_onClick', [state]`.
 - The closure was exported as `Counter_onRender_CmpButton_onClick`.
@@ -106,30 +101,32 @@ interface CmpButtonProps {
 }
 ```
 
-Notice that TypeScript automatically creates a correct prop with `$` suffix, which generates the parameterized `T` of `QRL<T>`. In our case `T` is `() => void`. This type information makes sure that you correctly pass `QRL` to `on<event>Qrl` suffix and closures to `on<event>$` suffix. 
+Notice that TypeScript automatically creates a correct prop with `$` suffix, which generates the parameterized `T` of `QRL<T>`. In our case `T` is `() => void`. This type information makes sure that you correctly pass `QRL` to `on<event>Qrl` suffix and closures to `on<event>$` suffix.
 
 ## Working with QRLs
 
 Let's look at a variation of `<CmpButton>` implementation. In this example, we would like to demonstrate working with `<prop>Qrl` vs `<prop>$`. For this reason, we have created an additional listener `onClick$`
 
 ```tsx
-  interface CmpButtonProps {
-    onClickQrl?: QRL<() => void>;
-  }
+interface CmpButtonProps {
+  onClickQrl?: QRL<() => void>;
+}
 
-  const CmpButton = component$((props: CmpButtonProps) => {
-    return (
-      <button onDblclickQrl={props.onClickQrl}
-              onClick$={async () => {
-                await (props.onClickQrl && props.onClickQrl.invoke());
-                console.log("clicked");
-              }}>
-        <Slot />
-      </button>
-    );
-  });
+const CmpButton = component$((props: CmpButtonProps) => {
+  return (
+    <button
+      onDblclickQrl={props.onClickQrl}
+      onClick$={async () => {
+        await (props.onClickQrl && props.onClickQrl.invoke());
+        console.log('clicked');
+      }}
+    >
+      <Slot />
+    </button>
+  );
+});
 ```
 
 Notice that we can pass the `props.onClickQrl` directly to the `onDblclickQrl` as seen on `<button>`. (see attribute `onDblclickQrl={props.onClickQrl}`.) This is because both the inputting prop `onClickQrl` as well as JSX prop `onDblclickQrl` are of type `QRL<?>` (and both have `Qrl` suffix.)
 
-However, it is not possible to pass `props.onClickQrl` to `onClick$` because the types don't match. (This would result in type error: `onClick$={props.onClickQrl}`.) Instead, the `$` is reserved for inlined closures. In our example, we would like to print the `console.log("clicked")` after we process the `props.onClickQrl` callback. We can do so with the `props.onClickQrl.invoke()` method. This 1) lazy-loads the code, 2) restores the closure state, and 3) invokes the closure. The operation is asynchronous and therefore returns a promise, which we can resolve using the `await` statement. 
+However, it is not possible to pass `props.onClickQrl` to `onClick$` because the types don't match. (This would result in type error: `onClick$={props.onClickQrl}`.) Instead, the `$` is reserved for inlined closures. In our example, we would like to print the `console.log("clicked")` after we process the `props.onClickQrl` callback. We can do so with the `props.onClickQrl.invoke()` method. This 1) lazy-loads the code, 2) restores the closure state, and 3) invokes the closure. The operation is asynchronous and therefore returns a promise, which we can resolve using the `await` statement.

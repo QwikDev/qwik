@@ -5,7 +5,7 @@ const repo = `https://${token}:x-oauth-basic@github.com/BuilderIO/qwik-build.git
 const srcRepoRef = 'https://github.com/BuilderIO/qwik/commit/';
 const root = __dirname + '/..';
 const qwik_build_artifacts = root + '/dist-dev/qwik-build';
-const qwik_package = root + '/dist-dev/@builder.io-qwik';
+const qwik_package = root + '/packages/qwik/dist';
 
 (async () => {
   await $('rm', '-rf', qwik_build_artifacts);

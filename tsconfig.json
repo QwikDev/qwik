@@ -50,7 +50,7 @@
       "@builder.io/qwik/build": ["packages/qwik/src/build/index"],
       "@builder.io/qwik-city": ["packages/qwik-city/src/runtime/index"],
       "@builder.io/qwik-city/build": ["packages/qwik-city/src/runtime/build"],
-      "@builder.io/qwik-city/vite":["packages/qwik-city/src/vite"],
+      "@builder.io/qwik-city/vite": ["packages/qwik-city/src/vite"]
     } /* List of root folders whose combined content represents the structure of the project at runtime. */,
     // "typeRoots": [],                       /* List of folders to include type definitions from. */
     "types": [
@@ -84,7 +84,5 @@
     "packages/create-cli",
     "starters"
   ],
-  "exclude": [
-    "starters/servers"
-  ]
+  "exclude": ["starters/servers"]
 }

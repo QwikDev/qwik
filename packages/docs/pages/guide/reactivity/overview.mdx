@@ -34,11 +34,7 @@ Because of the above constraints, Qwik uses proxies to keep track of the reactiv
 const Counter = component$(() => {
   const store = useStore({ count: 0 });
 
-  return (
-    <button onClick$={store.count++}>
-      {store.count}
-    </button>
-  );
+  return <button onClick$={store.count++}>{store.count}</button>;
 });
 ```
 
@@ -58,12 +54,8 @@ const ComplexCounter = component$(() => {
 
   return (
     <>
-      <button onClick$={(store.visible = !store.visible)}>
-        {store.visible ? 'hide' : 'show'}
-      </button>
-      <button onClick$={store.count++}>
-        increment
-      </button>
+      <button onClick$={(store.visible = !store.visible)}>{store.visible ? 'hide' : 'show'}</button>
+      <button onClick$={store.count++}>increment</button>
       {store.visible ? <span>{store.count}</span> : null}
     </>
   );
@@ -114,7 +106,7 @@ const MyComp = component$(() => {
   const store = useStore({ person: null });
   const person = { first: 'John', last: 'Smith' };
   store.person = person; // `store.person auto wraps object into proxy`
-  
+
   if (store.person !== person) {
     // The consequence of auto wrapping is that the object identity changes.
     console.log('store auto-wrapped person into a proxy');

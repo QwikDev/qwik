@@ -15,11 +15,7 @@ Let's start by looking at a simple `Counter` example:
 const Counter = component$(() => {
   const store = useStore({ count: 0 });
 
-  return (
-    <button onClick$={() => store.count++}>
-      {store.count}
-    </button>
-  );
+  return <button onClick$={() => store.count++}>{store.count}</button>;
 });
 ```
 
@@ -44,9 +40,7 @@ export const Counter_onMount = () => {
 const Counter_onRender = () => {
   const [store] = useLexicalScope();
   return (
-    <button onClickQrl={qrl('./chunk-c.js', 'Counter_onClick', [store])}>
-      {store.count}
-    </button>
+    <button onClickQrl={qrl('./chunk-c.js', 'Counter_onClick', [store])}>{store.count}</button>
   );
 };
 ```

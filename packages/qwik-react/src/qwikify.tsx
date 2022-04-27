@@ -79,10 +79,7 @@ export function qwikifyQrl<PROPS extends {}>(qrl: QRL<FunctionComponent<PROPS>>)
 
             let root: Root;
             if (hostElement.childElementCount > 0) {
-              root = client.hydrateRoot(
-                hostElement,
-                client.Main(Cmp, { ...props }, store.event)
-              );
+              root = client.hydrateRoot(hostElement, client.Main(Cmp, { ...props }, store.event));
             } else {
               root = client.createRoot(hostElement);
               root.render(client.Main(Cmp, { ...props }));

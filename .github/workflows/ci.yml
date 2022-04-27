@@ -82,39 +82,39 @@ jobs:
         run: node scripts --tsc --build --api --set-dist-tag="${{ github.event.inputs.disttag }}"
 
       - name: Print Package Dist Build
-        run: tree dist-dev/@builder.io-qwik/
+        run: tree packages/qwik/dist/
 
       - name: Upload Package Build Artifacts
         uses: actions/upload-artifact@master
         with:
           name: dist-dev-builder-io-qwik
-          path: dist-dev/@builder.io-qwik/
+          path: packages/qwik/dist/
           if-no-files-found: error
 
       - name: Build Create Qwik CLI
         run: node scripts --cli
 
       - name: Print Create Qwik CLI Dist Build
-        run: tree dist-dev/create-qwik/
+        run: tree packages/create-qwik/dist/
 
       - name: Upload Create Qwik CLI Build Artifacts
         uses: actions/upload-artifact@master
         with:
           name: dist-dev-create-qwik
-          path: dist-dev/create-qwik/
+          path: packages/create-qwik/dist/
           if-no-files-found: error
 
       - name: Build Eslint rules
         run: node scripts --eslint
 
       - name: Print Eslint rules Dist Build
-        run: tree dist-dev/eslint-plugin-qwik/
+        run: tree packages/eslint-plugin-qwik/dist/
 
       - name: Upload Eslint rules Build Artifacts
         uses: actions/upload-artifact@master
         with:
           name: dist-dev-eslint-plugin-qwik
-          path: dist-dev/eslint-plugin-qwik/
+          path: packages/eslint-plugin-qwik/dist/
           if-no-files-found: error
 
   ############ BUILD WASM ############
@@ -180,14 +180,14 @@ jobs:
 
       - name: Print WASM Dist Build
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: tree dist-dev/@builder.io-qwik/bindings/
+        run: tree packages/qwik/dist/bindings/
 
       - name: Upload WASM Build Artifacts
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/upload-artifact@master
         with:
           name: dist-bindings-wasm
-          path: dist-dev/@builder.io-qwik/bindings/*
+          path: packages/qwik/dist/bindings/*
           if-no-files-found: error
 
   ############ BUILD PLATFORM BINDINGS ############
@@ -289,7 +289,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: dist-bindings-${{ matrix.settings.target }}
-          path: dist-dev/@builder.io-qwik/bindings/*.node
+          path: packages/qwik/dist/bindings/*.node
           if-no-files-found: error
 
   ############ BUILD DISTRIBUTION ############
@@ -316,9 +316,8 @@ jobs:
       - name: Create dist-dev/@builder.io-qwik directory
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: |
-          mkdir dist-dev/
-          mkdir dist-dev/@builder.io-qwik/
-          mkdir dist-dev/@builder.io-qwik/bindings/
+          mkdir packages/qwik/dist/
+          mkdir packages/qwik/dist/bindings/
 
       - name: Download Build Artifacts
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -330,7 +329,7 @@ jobs:
 
       - name: Move Distribution Artifacts
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: mv dist-dev-builder-io-qwik/* dist-dev/@builder.io-qwik/
+        run: mv dist-dev-builder-io-qwik/* packages/qwik/dist/
 
       - name: Print Bindings Artifacts
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -338,18 +337,18 @@ jobs:
 
       - name: Move Binding Artifacts
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: mv dist-bindings-*/* dist-dev/@builder.io-qwik/bindings/
+        run: mv dist-bindings-*/* packages/qwik/dist/bindings/
 
       - name: Print dist-dev
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: tree dist-dev/
+        run: tree packages/qwik/dist/
 
       - name: Upload Qwik Distribution Artifact
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/upload-artifact@master
         with:
           name: builderio-qwik-distribution
-          path: dist-dev/@builder.io-qwik/*
+          path: packages/qwik/dist/*
           if-no-files-found: error
 
   ############ RELEASE ############
@@ -384,13 +383,12 @@ jobs:
 
       - name: Move Distribution Artifacts
         run: |
-          mkdir dist-dev/
-          mkdir dist-dev/@builder.io-qwik/
-          mv builderio-qwik-distribution/* dist-dev/@builder.io-qwik/
-          mkdir dist-dev/create-qwik/
-          mv dist-dev-create-qwik/* dist-dev/create-qwik/
-          mkdir dist-dev/eslint-plugin-qwik/
-          mv dist-dev-eslint-plugin-qwik/* dist-dev/eslint-plugin-qwik/
+          mkdir packages/qwik/dist/
+          mv builderio-qwik-distribution/* packages/qwik/dist/
+          mkdir packages/create-qwik/dist/
+          mv dist-dev-create-qwik/* packages/create-qwik/dist/
+          mkdir packages/eslint-plugin-qwik/dist/
+          mv dist-dev-eslint-plugin-qwik/* packages/eslint-plugin-qwik/dist/
 
       - name: Cache NPM Dependencies
         uses: actions/cache@v2
@@ -462,13 +460,12 @@ jobs:
       - name: Move Distribution Artifacts
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: |
-          mkdir dist-dev/
-          mkdir dist-dev/@builder.io-qwik/
-          mv builderio-qwik-distribution/* dist-dev/@builder.io-qwik/
-          mkdir dist-dev/create-qwik/
-          mv dist-dev-create-qwik/* dist-dev/create-qwik/
-          mkdir dist-dev/eslint-plugin-qwik/
-          mv dist-dev-eslint-plugin-qwik/* dist-dev/eslint-plugin-qwik/
+          mkdir packages/qwik/dist/
+          mv builderio-qwik-distribution/* packages/qwik/dist/
+          mkdir packages/create-qwik/dist/
+          mv dist-dev-create-qwik/* packages/create-qwik/dist/
+          mkdir packages/eslint-plugin-qwik/dist/
+          mv dist-dev-eslint-plugin-qwik/* packages/eslint-plugin-qwik/dist/
 
       - name: Cache NPM Dependencies
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}

@@ -60,11 +60,7 @@ export interface BuildConfig {
   wasm?: boolean;
   watch?: boolean;
 
-  otherPackages: [
-    'packages/eslint-rules',
-    'packages/create-qwik',
-    'packages/qwik-react'
-  ]
+  otherPackages: ['packages/eslint-rules', 'packages/create-qwik', 'packages/qwik-react'];
 }
 
 /**
@@ -267,7 +263,6 @@ export function ensureDir(dir: string) {
     mkdirSync(dir, { recursive: true });
   } catch (e) {}
 }
-
 
 export async function run(
   cmd: string,

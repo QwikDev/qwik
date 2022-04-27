@@ -7,7 +7,7 @@ import { readPackageJson, writePackageJson } from './package-json';
 const PACKAGE = 'create-qwik';
 
 export async function buildCli(config: BuildConfig) {
-  const srcCliDir = join(config.packagesDir,  PACKAGE);
+  const srcCliDir = join(config.packagesDir, PACKAGE);
   const distCliDir = join(srcCliDir, 'dist');
 
   await bundleCli(config, srcCliDir, distCliDir);
@@ -63,14 +63,13 @@ async function bundleCli(config: BuildConfig, srcCliDir: string, distCliDir: str
   });
 }
 
-
 export async function publishStarterCli(
   config: BuildConfig,
   distTag: string,
   version: string,
   isDryRun: boolean
 ) {
-  const distCliDir = join(config.packagesDir,  PACKAGE, 'dist');
+  const distCliDir = join(config.packagesDir, PACKAGE, 'dist');
   const cliPkg = await readPackageJson(distCliDir);
 
   // update the cli version

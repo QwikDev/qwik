@@ -15,11 +15,10 @@ const Collapsible = component$(() => {
 
   return (
     <div class="collapsible">
-      <div class="title"
-           onClick$={() => store.isOpen = !store.isOpen}>
+      <div class="title" onClick$={() => (store.isOpen = !store.isOpen)}>
         <Slot name="title"></Slot>
       </div>
-      {store.isOpen ? <Slot/> : null}
+      {store.isOpen ? <Slot /> : null}
     </div>
   );
 });
@@ -32,8 +31,7 @@ const MyApp = component$(() => {
   return (
     <Collapsible>
       <span q:slot="title">Title text</span>
-      Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-      Vivamus vulputate accumsan pretium.
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus vulputate accumsan pretium.
     </Collapsible>
   );
 });
@@ -52,8 +50,7 @@ The above example would render into this HTML if `isOpen===true`:
       <span q:slot="title" has-content>Title text</span>
     </q:slot>
     <q:slot>
-      Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-      Vivamus vulputate accumsan pretium.
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus vulputate accumsan pretium.
     </q:slot>
   </collapsible>
 </my-app>
@@ -159,17 +156,11 @@ Qwik keeps all content around, even if not projected. This is because the conten
 
 ```tsx
 const Project = component$(() => {
-  return (
-    <div />
-  );
+  return <div />;
 });
 
 const MyApp = component$(() => {
-  return (
-    <Project>
-      unwrapped text
-    </Project>
-  );
+  return <Project>unwrapped text</Project>;
 });
 ```
 
@@ -198,14 +189,10 @@ const Project = component$(() => {
       <Slot>default content</Slot>
     </>
   );
-})
+});
 
 const MyApp = component$(() => {
-  return (
-    <Project>
-      some content
-    </Project>
-  );
+  return <Project>some content</Project>;
 });
 ```
 
@@ -233,14 +220,14 @@ On order for Qwik to be able to render components independently, it must be able
 
 ```html
 <style>
-q:slot,q:slot-default {
-  /** This marks the extra elements inert for flex, etc... **/
-  display: contents;
-}
-q:slot.has-content > q:slot-default {
-  /** Suppress the default value of Slot if parent provided content **/
-  display: none:
-}
+  q:slot,q:slot-default {
+    /** This marks the extra elements inert for flex, etc... **/
+    display: contents;
+  }
+  q:slot.has-content > q:slot-default {
+    /** Suppress the default value of Slot if parent provided content **/
+    display: none:
+  }
 </style>
 ```
 

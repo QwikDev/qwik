@@ -15,11 +15,7 @@ Let's start by looking at a simple `Counter` example.
 const Counter = component$(() => {
   const store = useStore({ count: 0 });
 
-  return (
-    <button onClick$={() => store.count++}>
-      {store.count}
-    </button>
-  );
+  return <button onClick$={() => store.count++}>{store.count}</button>;
 });
 ```
 
@@ -87,15 +83,11 @@ Let's look at our example again:
 const Counter = component$(() => {
   const store = useStore({ count: 0 });
 
-  return (
-    <button onClick$={() => store.count++}>
-      {store.count}
-    </button>
-  );
+  return <button onClick$={() => store.count++}>{store.count}</button>;
 });
 ```
 
-Notice the presence of `$` in the code. `$` is a marker that tells the Optimizer that the function 
-following it should be lazy-loaded. (For a detailed discussion see [$ and Optimizer Rules](./optimizer/rules.mdx).) 
-The `$` is a single character that hints to the Optimizer and the developer to let them know 
+Notice the presence of `$` in the code. `$` is a marker that tells the Optimizer that the function
+following it should be lazy-loaded. (For a detailed discussion see [$ and Optimizer Rules](./optimizer/rules.mdx).)
+The `$` is a single character that hints to the Optimizer and the developer to let them know
 that asynchronous lazy-loading occurs here.

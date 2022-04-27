@@ -6,11 +6,10 @@
     "@builder.io/qwik": "workspace:*",
     "@emotion/react": "^11.9.0",
     "@emotion/server": "^11.4.0",
-    "@mui/core": "^5.0.0-alpha.54",
-    "@types/react": "^18.0.1",
-    "@types/react-dom": "^18.0.0",
-    "react": "^18.0.0",
-    "react-dom": "^18.0.0"
+    "@types/react": "18.0.8",
+    "@types/react-dom": "18.0.0",
+    "react": "18.1.0",
+    "react-dom": "18.1.0"
   },
   "contributors": [
     {

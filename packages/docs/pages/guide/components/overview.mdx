@@ -19,11 +19,7 @@ Qwik components are declared with `component$` API.
 const Counter = component$((props: { step?: number; initial?: number }) => {
   const store = useStore({ count: props.initial || 0 });
 
-  return (
-    <button onClick$={() => store.count += props.step||1}>
-      {store.count}
-    </button>
-  );
+  return <button onClick$={() => (store.count += props.step || 1)}>{store.count}</button>;
 });
 ```
 
@@ -70,13 +66,9 @@ Events handlers are closures placed in the JSX.
 
 ```tsx
 const Counter = component$(() => {
-  const store = useStore({count: 0});
+  const store = useStore({ count: 0 });
 
-  return (
-    <button onClick$={() => store.count++}>
-      {store.count}
-    </button>
-  );
+  return <button onClick$={() => store.count++}>{store.count}</button>;
 });
 ```
 

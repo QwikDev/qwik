@@ -10,7 +10,7 @@
     "build.validate": "yarn node scripts --tsc --build --api --eslint --platform-binding --wasm --validate",
     "build.cli": "yarn node scripts --cli --dev",
     "build.cli.prod": "yarn node scripts --cli",
-    "cli": "yarn build.cli && node dist-dev/create-qwik/create-qwik",
+    "cli": "yarn build.cli && node packages/create-qwik/dist/create-qwik",
     "build.watch": "yarn node scripts --build --watch --dev --platform-binding",
     "api.update": "yarn node scripts --tsc --api --dev",
     "tsc.check": "tsc --noEmit",

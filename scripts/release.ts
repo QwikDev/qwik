@@ -82,29 +82,38 @@ export async function prepareReleaseVersion(config: BuildConfig) {
 }
 
 export async function commitPrepareReleaseVersion(config: BuildConfig) {
-  const rootPkg = await readPackageJson(config.rootDir);
-  const pkgJsonPath = join(config.rootDir, 'package.json');
+  const commitPaths: string[] = [];
 
+  // update root
+  const rootPkg = await readPackageJson(config.rootDir);
+  commitPaths.push(join(config.rootDir, 'package.json'));
   const updatedPkg = { ...rootPkg };
   updatedPkg.version = config.distVersion;
   await writePackageJson(config.rootDir, updatedPkg);
 
+  // update packages/qwik
+  const qwikDir = join(config.packagesDir, 'qwik');
+  const qwikPkg = await readPackageJson(qwikDir);
+  commitPaths.push(join(qwikDir, 'package.json'));
+  qwikPkg.version = config.distVersion;
+  await writePackageJson(qwikDir, qwikPkg);
+
   // update the cli version
   const distCliDir = join(config.packagesDir, 'create-qwik');
-  const cliPkgJsonPath = join(distCliDir, 'package.json');
+  commitPaths.push(join(distCliDir, 'package.json'));
   const cliPkg = await readPackageJson(distCliDir);
   cliPkg.version = config.distVersion;
   await writePackageJson(distCliDir, cliPkg);
 
   // update the eslint version
   const distEslintDir = join(config.packagesDir, 'eslint-rules');
-  const eslintPkgJsonPath = join(distEslintDir, 'package.json');
+  commitPaths.push(join(distEslintDir, 'package.json'));
   const eslintPkg = await readPackageJson(distEslintDir);
   eslintPkg.version = config.distVersion;
   await writePackageJson(distEslintDir, eslintPkg);
 
   // git add the changed package.json
-  const gitAddArgs = ['add', pkgJsonPath, cliPkgJsonPath, eslintPkgJsonPath];
+  const gitAddArgs = ['add', ...commitPaths];
   await run('git', gitAddArgs);
 
   // git commit the changed package.json

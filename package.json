@@ -113,6 +113,7 @@
       "url": "https://twitter.com/manucorporat"
     }
   ],
+  "packageManager": "yarn@3.2.0",
   "engines": {
     "node": ">=14"
   },

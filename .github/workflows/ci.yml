@@ -60,6 +60,8 @@ jobs:
     name: Build Package
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v3
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
@@ -67,8 +69,6 @@ jobs:
           cache: 'yarn'
           registry-url: https://registry.npmjs.org/
       - run: corepack enable
-      - name: Checkout
-        uses: actions/checkout@v3
 
       - name: Install NPM Dependencies
         run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
@@ -123,6 +123,10 @@ jobs:
       - name: Print fullbuild output
         run: echo ${{ needs.changes.outputs.fullbuild }}
 
+      - name: Checkout
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
+        uses: actions/checkout@v3
+
       - name: Setup Node
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/setup-node@v3
@@ -140,10 +144,6 @@ jobs:
           override: true
           toolchain: 1.59.0
           target: wasm32-unknown-unknown
-
-      - name: Checkout
-        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/checkout@v3
 
       - name: Cache cargo dependencies
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -350,16 +350,17 @@ jobs:
     if: ${{ needs.changes.outputs.fullbuild == 'true' }}
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
           node-version: 17.x
           cache: 'yarn'
           registry-url: https://registry.npmjs.org/
-      - run: corepack enable
 
-      - name: Checkout
-        uses: actions/checkout@v3
+      - run: corepack enable
 
       - name: Download Build Artifacts
         uses: actions/download-artifact@v2
@@ -425,6 +426,10 @@ jobs:
     runs-on: ${{ matrix.settings.host }}
 
     steps:
+      - name: Checkout
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
+        uses: actions/checkout@v3
+
       - name: Setup Node ${{ matrix.settings.node }}
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/setup-node@v3
@@ -432,11 +437,8 @@ jobs:
           node-version: ${{ matrix.settings.node }}
           cache: 'yarn'
           registry-url: https://registry.npmjs.org/
-      - run: corepack enable
 
-      - name: Checkout
-        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/checkout@v3
+      - run: corepack enable
 
       - name: Download Build Artifacts
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -476,16 +478,17 @@ jobs:
       - changes
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
           node-version: 17.x
           cache: 'yarn'
           registry-url: https://registry.npmjs.org/
-      - run: corepack enable
 
-      - name: Checkout
-        uses: actions/checkout@v3
+      - run: corepack enable
 
       - name: Install NPM Dependencies
         run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
@@ -501,7 +504,7 @@ jobs:
     needs: changes
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/checkout@v3
 

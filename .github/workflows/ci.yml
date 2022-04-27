@@ -35,7 +35,7 @@ jobs:
         run: echo ${{ github.head_ref }}
       - name: NPM Dist Tag
         run: echo "${{ github.event.inputs.disttag }}"
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: dorny/paths-filter@v2
         id: filter
         with:
@@ -61,19 +61,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Setup Node
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: 17.x
+          cache: 'yarn'
           registry-url: https://registry.npmjs.org/
-
+      - run: corepack enable
       - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Cache NPM Dependencies
-        uses: actions/cache@v2
-        with:
-          path: node_modules
-          key: npm-cache-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+        uses: actions/checkout@v3
 
       - name: Install NPM Dependencies
         run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
@@ -130,10 +125,12 @@ jobs:
 
       - name: Setup Node
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: 17.x
+          cache: 'yarn'
           registry-url: https://registry.npmjs.org/
+      - run: corepack enable
 
       - name: Install Rust toolchain
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -146,14 +143,7 @@ jobs:
 
       - name: Checkout
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/checkout@v2
-
-      - name: Cache NPM Dependencies
-        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/cache@v2
-        with:
-          path: node_modules
-          key: npm-cache-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+        uses: actions/checkout@v3
 
       - name: Cache cargo dependencies
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -222,14 +212,16 @@ jobs:
     steps:
       - name: Checkout
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Setup Node
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: 17.x
+          cache: 'yarn'
           registry-url: https://registry.npmjs.org/
+      - run: corepack enable
 
       - name: Install Rust toolchain
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -239,13 +231,6 @@ jobs:
           override: true
           toolchain: 1.59.0
           target: ${{ matrix.settings.target }}
-
-      - name: Cache NPM Dependencies
-        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/cache@v2
-        with:
-          path: node_modules
-          key: npm-cache-${{ matrix.settings.target }}-${{ hashFiles('yarn.lock') }}
 
       - name: Pull Latest Image
         if: ${{ needs.changes.outputs.fullbuild == 'true' && matrix.settings.docker }}
@@ -308,10 +293,12 @@ jobs:
     steps:
       - name: Setup Node
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: 17.x
+          cache: 'yarn'
           registry-url: https://registry.npmjs.org/
+      - run: corepack enable
 
       - name: Create dist-dev/@builder.io-qwik directory
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -364,13 +351,15 @@ jobs:
 
     steps:
       - name: Setup Node
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: 17.x
+          cache: 'yarn'
           registry-url: https://registry.npmjs.org/
+      - run: corepack enable
 
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Download Build Artifacts
         uses: actions/download-artifact@v2
@@ -389,12 +378,6 @@ jobs:
           mv dist-dev-create-qwik/* packages/create-qwik/dist/
           mkdir packages/eslint-plugin-qwik/dist/
           mv dist-dev-eslint-plugin-qwik/* packages/eslint-plugin-qwik/dist/
-
-      - name: Cache NPM Dependencies
-        uses: actions/cache@v2
-        with:
-          path: node_modules
-          key: npm-cache-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
 
       - name: Install NPM Dependencies
         run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
@@ -431,7 +414,7 @@ jobs:
         settings:
           - host: ubuntu-latest
             browser: chromium
-            node: 16.x
+            node: 17.x
           - host: macos-latest
             browser: webkit
             node: 14.x
@@ -444,14 +427,16 @@ jobs:
     steps:
       - name: Setup Node ${{ matrix.settings.node }}
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.settings.node }}
+          cache: 'yarn'
           registry-url: https://registry.npmjs.org/
+      - run: corepack enable
 
       - name: Checkout
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Download Build Artifacts
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -466,13 +451,6 @@ jobs:
           mv dist-dev-create-qwik/* packages/create-qwik/dist/
           mkdir packages/eslint-plugin-qwik/dist/
           mv dist-dev-eslint-plugin-qwik/* packages/eslint-plugin-qwik/dist/
-
-      - name: Cache NPM Dependencies
-        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/cache@v2
-        with:
-          path: node_modules
-          key: npm-cache-${{ runner.os }}-node${{ matrix.settings.node }}-${{ hashFiles('yarn.lock') }}
 
       - name: Install NPM Dependencies
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -499,19 +477,15 @@ jobs:
 
     steps:
       - name: Setup Node
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: 17.x
+          cache: 'yarn'
           registry-url: https://registry.npmjs.org/
+      - run: corepack enable
 
       - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Cache NPM Dependencies
-        uses: actions/cache@v2
-        with:
-          path: node_modules
-          key: npm-cache-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+        uses: actions/checkout@v3
 
       - name: Install NPM Dependencies
         run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
@@ -529,7 +503,7 @@ jobs:
     steps:
       - name: Checkout repository
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install Rust toolchain
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -588,13 +562,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
-      - name: Cache NPM Dependencies
-        uses: actions/cache@v2
+      - name: Setup Node
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
+        uses: actions/setup-node@v3
         with:
-          path: node_modules
-          key: npm-cache-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+          node-version: 17.x
+          cache: 'yarn'
+          registry-url: https://registry.npmjs.org/
+      - run: corepack enable
 
       - name: Install NPM Dependencies
         run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000

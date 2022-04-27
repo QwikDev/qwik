@@ -71,7 +71,7 @@ jobs:
       - run: corepack enable
 
       - name: Install NPM Dependencies
-        run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
+        run: yarn install --immutable --network-timeout 300000
 
       - name: Build Package
         run: node scripts --tsc --build --api --set-dist-tag="${{ github.event.inputs.disttag }}"
@@ -162,7 +162,7 @@ jobs:
 
       - name: Install NPM Dependencies
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
+        run: yarn install --immutable --network-timeout 300000
 
       - name: Build WASM
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -262,7 +262,7 @@ jobs:
 
       - name: Install NPM Dependencies
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
+        run: yarn install --immutable --network-timeout 300000
 
       - name: Build Platform Binding
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -381,7 +381,7 @@ jobs:
           mv dist-dev-eslint-plugin-qwik/* packages/eslint-plugin-qwik/dist/
 
       - name: Install NPM Dependencies
-        run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
+        run: yarn install --immutable --network-timeout 300000
 
       - name: Dry-Run Publish @builder.io/qwik
         if: ${{ github.event_name != 'workflow_dispatch' }}
@@ -456,7 +456,7 @@ jobs:
 
       - name: Install NPM Dependencies
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
+        run: yarn install --immutable --network-timeout 300000
 
       - name: Install Playwright
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -491,7 +491,7 @@ jobs:
       - run: corepack enable
 
       - name: Install NPM Dependencies
-        run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
+        run: yarn install --immutable --network-timeout 300000
 
       - name: Jest Unit Tests
         run: yarn test.unit
@@ -577,7 +577,7 @@ jobs:
       - run: corepack enable
 
       - name: Install NPM Dependencies
-        run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
+        run: yarn install --immutable --network-timeout 300000
 
       - name: Prettier Check
         if: ${{ always() }}

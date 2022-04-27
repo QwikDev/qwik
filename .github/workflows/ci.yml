@@ -580,7 +580,7 @@ jobs:
           cache: 'yarn'
           registry-url: https://registry.npmjs.org/
 
-        run: corepack enable
+      - run: corepack enable
 
       - name: Install NPM Dependencies
         run: yarn install --immutable --network-timeout 300000

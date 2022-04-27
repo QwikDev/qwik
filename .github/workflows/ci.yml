@@ -226,6 +226,10 @@ jobs:
           cache: 'yarn'
           registry-url: https://registry.npmjs.org/
 
+      - if: ${{ needs.changes.outputs.fullbuild == 'true' }}
+        run: corepack enable
+        shell: bash
+
       - name: Install Rust toolchain
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions-rs/toolchain@v1
@@ -442,6 +446,10 @@ jobs:
           node-version: ${{ matrix.settings.node }}
           cache: 'yarn'
           registry-url: https://registry.npmjs.org/
+
+      - if: ${{ needs.changes.outputs.fullbuild == 'true' }}
+        run: corepack enable
+        shell: bash
 
       - name: Download Build Artifacts
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}

@@ -418,10 +418,10 @@ jobs:
             node: 17.x
           - host: macos-latest
             browser: webkit
-            node: 14.x
+            node: 17.x
           - host: windows-latest
             browser: firefox
-            node: 14.x
+            node: 17.x
 
     runs-on: ${{ matrix.settings.host }}
 

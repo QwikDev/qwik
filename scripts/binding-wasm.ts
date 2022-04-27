@@ -5,7 +5,7 @@ import { rollup } from 'rollup';
 
 export async function buildWasmBinding(config: BuildConfig) {
   const srcWasmDir = join(config.srcDir, `wasm`);
-  const tmpBuildDir = join(config.distDir, `wasm-out`);
+  const tmpBuildDir = join(config.tmpDir, `wasm-out`);
 
   ensureDir(config.distPkgDir);
   ensureDir(config.distBindingsDir);

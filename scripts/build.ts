@@ -51,7 +51,7 @@ export async function build(config: BuildConfig) {
     );
 
     if (config.tsc) {
-      tsc(config);
+      await tsc(config);
     }
 
     if (config.build) {

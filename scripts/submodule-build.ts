@@ -5,7 +5,7 @@ import { writePackageJson } from './package-json';
 
 export async function submoduleBuild(config: BuildConfig) {
   const submodule = 'build';
-  const buildSrcDir = join(config.tscDir, 'src', submodule);
+  const buildSrcDir = join(config.tscDir, 'packages', 'qwik', 'src', submodule);
   const buildDestDir = join(config.distPkgDir, submodule);
 
   ensureDir(buildDestDir);

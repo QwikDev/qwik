@@ -21,7 +21,7 @@ export function submoduleCore(config: BuildConfig) {
 
 async function submoduleCoreProd(config: BuildConfig) {
   const input: InputOptions = {
-    input: join(config.tscDir, 'src', 'core', 'index.js'),
+    input: join(config.tscDir, 'packages', 'qwik', 'src', 'core', 'index.js'),
     onwarn: rollupOnWarn,
     plugins: [
       {

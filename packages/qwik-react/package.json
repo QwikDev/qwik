@@ -1,0 +1,60 @@
+{
+  "name": "@builder.io/qwik-react",
+  "version": "0.0.19-0",
+  "description": "An Open-Source sub-framework designed with a focus on server-side-rendering, lazy-loading, and styling/animation.",
+  "devDependencies": {
+    "@builder.io/qwik": "workspace:*",
+    "@emotion/react": "^11.9.0",
+    "@emotion/server": "^11.4.0",
+    "@mui/core": "^5.0.0-alpha.54",
+    "@types/react": "^18.0.1",
+    "@types/react-dom": "^18.0.0",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
+  },
+  "contributors": [
+    {
+      "name": "Miško Hevery",
+      "email": "misko@hevery.com",
+      "url": "https://github.com/BuilderIO/qwik"
+    },
+    {
+      "name": "Adam Bradley",
+      "email": "adam@builder.io",
+      "url": "https://twitter.com/adamdbradley"
+    },
+    {
+      "name": "Manu Mtz.-Almeida",
+      "email": "manu@builder.io",
+      "url": "https://twitter.com/manucorporat"
+    }
+  ],
+  "main": "index.js",
+  "@comment type": "Setting type to 'commonjs' is important as many of the bazel tooling assumes 'commonjs'. For code which wants ESM a second 'package.json' file needs to be created for just those files.",
+  "type": "commonjs",
+  "license": "MIT",
+  "homepage": "https://qwik.builder.io/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/BuilderIO/qwik.git"
+  },
+  "bugs": {
+    "url": "https://github.com/BuilderIO/qwik/issues"
+  },
+  "keywords": [
+    "ssr",
+    "server-side-render",
+    "prerender",
+    "ssg",
+    "static-site-generator",
+    "static-site",
+    "generator",
+    "website",
+    "webapp",
+    "framework",
+    "Builder.io"
+  ],
+  "engines": {
+    "node": ">=14"
+  }
+}

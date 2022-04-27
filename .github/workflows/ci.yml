@@ -41,15 +41,15 @@ jobs:
         with:
           filters: |
             fullbuild:
-              - 'src/**/*.ts'
-              - 'src/**/*.tsx'
-              - 'src/**/*.js'
-              - 'src/**/*.mjs'
-              - 'src/**/*.cjs'
-              - 'src/**/*.jsx'
-              - 'src/**/*.toml'
-              - 'src/**/*.rs'
-              - 'src/**/*.lock'
+              - 'packages/qwik/src/**/*.ts'
+              - 'packages/qwik/src/**/*.tsx'
+              - 'packages/qwik/src/**/*.js'
+              - 'packages/qwik/src/**/*.mjs'
+              - 'packages/qwik/src/**/*.cjs'
+              - 'packages/qwik/src/**/*.jsx'
+              - 'packages/qwik/src/**/*.toml'
+              - 'packages/qwik/src/**/*.rs'
+              - 'packages/qwik/src/**/*.lock'
               - 'yarn.lock'
               - 'tsconfig.json'
       - name: Print fullbuild output
@@ -161,8 +161,8 @@ jobs:
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/cache@v2
         with:
-          path: src/wasm/target
-          key: cargo-build-wasm-${{ runner.os }}-${{ hashFiles('./src/wasm/Cargo.lock') }}
+          path: packages/qwik/src/wasm/target
+          key: cargo-build-wasm-${{ runner.os }}-${{ hashFiles('./packages/qwik/src/wasm/Cargo.lock') }}
 
       - name: Install NPM Dependencies
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -211,7 +211,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: ./src/napi/
+        working-directory: ./packages/qwik/src/napi/
 
     steps:
       - name: Checkout

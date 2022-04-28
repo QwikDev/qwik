@@ -294,18 +294,7 @@ jobs:
       - changes
 
     steps:
-      - name: Setup Node
-        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16.x
-          cache: 'yarn'
-          registry-url: https://registry.npmjs.org/
-
-      - if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: corepack enable
-
-      - name: Create dist-dev/@builder.io-qwik directory
+      - name: Create packages/qwik/dist/ directory
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: |
           mkdir packages/qwik/dist/

@@ -459,7 +459,7 @@ jobs:
 
       - name: Playwright E2E Tests
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: yarnrun  test.e2e.${{ matrix.settings.browser }}
+        run: yarn run test.e2e.${{ matrix.settings.browser }}
 
       - name: Validate Create Qwik Cli
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}

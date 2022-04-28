@@ -191,18 +191,18 @@ jobs:
         settings:
           - host: macos-latest
             target: x86_64-apple-darwin
-            build: yarn run build.platform
+            build: yarn node scripts --platform-binding
 
           - host: macos-latest
             target: aarch64-apple-darwin
             build: |
               export SDKROOT=$(xcrun -sdk macosx11.1 --show-sdk-path)
               export MACOSX_DEPLOYMENT_TARGET=$(xcrun -sdk macosx11.1 --show-sdk-platform-version)
-              yarn run build.platform --platform-target=aarch64-apple-darwin
+              yarn node scripts --platform-binding --platform-target=aarch64-apple-darwin
 
           - host: windows-latest
             target: x86_64-pc-windows-msvc
-            build: yarn run build.platform
+            build: yarn node scripts --platform-binding
 
     name: Build ${{ matrix.settings.target }}
     runs-on: ${{ matrix.settings.host }}

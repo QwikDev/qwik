@@ -9,6 +9,10 @@
     "build.api": "tsc && api-extractor run -c src/runtime/api-extractor.json --local && api-extractor run -c src/vite/api-extractor.json --local",
     "test": "uvu -r tsm src/vite/tests"
   },
+  "devDependencies": {
+    "@mdx-js/mdx": "^2.1.1",
+    "@types/mdx": "2.0.1"
+  },
   "exports": {
     ".": {
       "import": "./dist/index.mjs",
@@ -17,6 +21,10 @@
     "./vite": {
       "import": "./dist/vite/index.mjs",
       "require": "./dist/vite/index.cjs"
+    },
+    "./build": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
     }
   },
   "files": [

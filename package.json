@@ -73,7 +73,7 @@
     "jest": "27.5.1",
     "lint-staged": "12.4.1",
     "mri": "1.2.0",
-    "node-fetch": "3.2.3",
+    "node-fetch": "^2.0.0",
     "path-browserify": "1.0.1",
     "prettier": "2.6.2",
     "rollup": "2.70.2",

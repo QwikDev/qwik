@@ -297,8 +297,7 @@ jobs:
       - name: Create packages/qwik/dist/ directory
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: |
-          mkdir packages/qwik/dist/
-          mkdir packages/qwik/dist/bindings/
+          mkdir -p packages/qwik/dist/bindings/
 
       - name: Download Build Artifacts
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -367,11 +366,11 @@ jobs:
 
       - name: Move Distribution Artifacts
         run: |
-          mkdir packages/qwik/dist/
+          mkdir -p packages/qwik/dist/
           mv builderio-qwik-distribution/* packages/qwik/dist/
-          mkdir packages/create-qwik/dist/
+          mkdir -p packages/create-qwik/dist/
           mv dist-dev-create-qwik/* packages/create-qwik/dist/
-          mkdir packages/eslint-plugin-qwik/dist/
+          mkdir -p packages/eslint-plugin-qwik/dist/
           mv dist-dev-eslint-plugin-qwik/* packages/eslint-plugin-qwik/dist/
 
       - name: Install NPM Dependencies
@@ -443,11 +442,11 @@ jobs:
       - name: Move Distribution Artifacts
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: |
-          mkdir packages/qwik/dist/
+          mkdir -p packages/qwik/dist/
           mv builderio-qwik-distribution/* packages/qwik/dist/
-          mkdir packages/create-qwik/dist/
+          mkdir -p packages/create-qwik/dist/
           mv dist-dev-create-qwik/* packages/create-qwik/dist/
-          mkdir packages/eslint-plugin-qwik/dist/
+          mkdir -p packages/eslint-plugin-qwik/dist/
           mv dist-dev-eslint-plugin-qwik/* packages/eslint-plugin-qwik/dist/
 
       - name: Install NPM Dependencies

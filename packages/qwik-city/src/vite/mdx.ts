@@ -7,7 +7,7 @@ import type { PluginContext } from './types';
 
 export async function createMdxTransformer(ctx: PluginContext): Promise<MdxTransform> {
   const { createFormatAwareProcessors } = await import(
-    '@mdx-js/mdx/lib/util/create-format-aware-processors'
+    '@mdx-js/mdx/lib/util/create-format-aware-processors.js'
   );
   const { default: remarkFrontmatter } = await import('remark-frontmatter');
   const { default: remarkGfm } = await import('remark-gfm');

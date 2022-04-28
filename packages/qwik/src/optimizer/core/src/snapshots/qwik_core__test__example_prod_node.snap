@@ -1,5 +1,5 @@
 ---
-source: src/optimizer/core/src/test.rs
+source: packages/qwik/src/optimizer/core/src/test.rs
 expression: output
 ---
 ==INPUT==
@@ -43,18 +43,18 @@ export const s_oZ0voj5y0fE = ()=>console.log('first')
   "captures": false
 }
 */
-============================= s_x06cg4v3nci.tsx (ENTRY POINT)==
+============================= s_0s4iez0lxsw.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const s_X06CG4v3NCI = ()=>console.log('second')
+export const s_0s4ieZ0lXsw = ()=>console.log('second')
 ;
 
 /*
 {
   "origin": "test.tsx",
-  "name": "s_X06CG4v3NCI",
+  "name": "s_0s4ieZ0lXsw",
   "entry": null,
-  "canonicalFilename": "s_x06cg4v3nci",
+  "canonicalFilename": "s_0s4iez0lxsw",
   "extension": "tsx",
   "parent": "s_7N2avlLYVuo",
   "ctxKind": "event",
@@ -62,18 +62,18 @@ export const s_X06CG4v3NCI = ()=>console.log('second')
   "captures": false
 }
 */
-============================= s_34nshw8hpva.tsx (ENTRY POINT)==
+============================= s_l55d90ob54m.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const s_34NSHw8hPvA = ()=>console.log('third')
+export const s_l55D90Ob54M = ()=>console.log('third')
 ;
 
 /*
 {
   "origin": "test.tsx",
-  "name": "s_34NSHw8hPvA",
+  "name": "s_l55D90Ob54M",
   "entry": null,
-  "canonicalFilename": "s_34nshw8hpva",
+  "canonicalFilename": "s_l55d90ob54m",
   "extension": "tsx",
   "parent": "s_7N2avlLYVuo",
   "ctxKind": "event",
@@ -90,11 +90,11 @@ export const s_7N2avlLYVuo = ()=>{
             <div onClickQrl={qwik.qrl(()=>import("./s_oz0voj5y0fe")
     , "s_oZ0voj5y0fE")}/>
 
-            <div onClickQrl={qwik.qrl(()=>import("./s_x06cg4v3nci")
-    , "s_X06CG4v3NCI")}/>
+            <div onClickQrl={qwik.qrl(()=>import("./s_0s4iez0lxsw")
+    , "s_0s4ieZ0lXsw")}/>
 
-            <div onClickQrl={qwik.qrl(()=>import("./s_34nshw8hpva")
-    , "s_34NSHw8hPvA")}/>
+            <div onClickQrl={qwik.qrl(()=>import("./s_l55d90ob54m")
+    , "s_l55D90Ob54M")}/>
 
         </div>;
 };

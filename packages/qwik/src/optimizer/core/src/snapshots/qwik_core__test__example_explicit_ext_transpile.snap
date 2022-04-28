@@ -1,5 +1,5 @@
 ---
-source: src/optimizer/core/src/test.rs
+source: packages/qwik/src/optimizer/core/src/test.rs
 expression: output
 ---
 ==INPUT==
@@ -39,19 +39,19 @@ export const App_component_useStyles_41n1OqyI5XI = 'hola';
   "captures": false
 }
 */
-============================= app_component$1_et9ngtxjeka.js (ENTRY POINT)==
+============================= app_component_1_5lmk4chgyso.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
-export const App_component$1_eT9NGtXJEKA = ()=>/*#__PURE__*/ _jsx("div", {})
+export const App_component_1_5Lmk4ChgYSo = ()=>/*#__PURE__*/ _jsx("div", {})
 ;
 
 /*
 {
   "origin": "test.tsx",
-  "name": "App_component$1_eT9NGtXJEKA",
+  "name": "App_component_1_5Lmk4ChgYSo",
   "entry": null,
-  "canonicalFilename": "app_component$1_et9ngtxjeka",
+  "canonicalFilename": "app_component_1_5lmk4chgyso",
   "extension": "js",
   "parent": "App_component_aJ0UdC0imoo",
   "ctxKind": "function",
@@ -66,8 +66,8 @@ import { useStylesQrl } from "@builder.io/qwik";
 export const App_component_aJ0UdC0imoo = (props)=>{
     useStylesQrl(qwik.qrl(()=>import("./app_component_usestyles_41n1oqyi5xi.js")
     , "App_component_useStyles_41n1OqyI5XI"));
-    return qwik.qrl(()=>import("./app_component$1_et9ngtxjeka.js")
-    , "App_component$1_eT9NGtXJEKA");
+    return qwik.qrl(()=>import("./app_component_1_5lmk4chgyso.js")
+    , "App_component_1_5Lmk4ChgYSo");
 };
 
 /*

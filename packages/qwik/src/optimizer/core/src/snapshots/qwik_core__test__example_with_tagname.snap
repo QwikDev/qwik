@@ -1,5 +1,5 @@
 ---
-source: src/optimizer/core/src/test.rs
+source: packages/qwik/src/optimizer/core/src/test.rs
 expression: output
 ---
 ==INPUT==
@@ -27,10 +27,10 @@ export const Foo = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./foo_compone
     tagName: "my-foo"
 });
 
-============================= foo_component$1_642otg035oo.tsx (ENTRY POINT)==
+============================= foo_component_1_hm6unygc0fq.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const Foo_component$1_642OtG035oo = ()=>{
+export const Foo_component_1_Hm6UNYgc0fQ = ()=>{
     return <div >
 
             </div>;
@@ -39,9 +39,9 @@ export const Foo_component$1_642OtG035oo = ()=>{
 /*
 {
   "origin": "test.tsx",
-  "name": "Foo_component$1_642OtG035oo",
+  "name": "Foo_component_1_Hm6UNYgc0fQ",
   "entry": null,
-  "canonicalFilename": "foo_component$1_642otg035oo",
+  "canonicalFilename": "foo_component_1_hm6unygc0fq",
   "extension": "tsx",
   "parent": "Foo_component_7N2avlLYVuo",
   "ctxKind": "function",
@@ -53,8 +53,8 @@ export const Foo_component$1_642OtG035oo = ()=>{
 
 import * as qwik from "@builder.io/qwik";
 export const Foo_component_7N2avlLYVuo = ()=>{
-    return qwik.qrl(()=>import("./foo_component$1_642otg035oo")
-    , "Foo_component$1_642OtG035oo");
+    return qwik.qrl(()=>import("./foo_component_1_hm6unygc0fq")
+    , "Foo_component_1_Hm6UNYgc0fQ");
 };
 
 /*

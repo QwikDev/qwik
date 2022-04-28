@@ -1,5 +1,5 @@
 ---
-source: src/optimizer/core/src/test.rs
+source: packages/qwik/src/optimizer/core/src/test.rs
 expression: output
 ---
 ==INPUT==
@@ -67,14 +67,14 @@ export const Foo = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./foo_compone
     tagName: "my-foo"
 });
 
-============================= foo_component$1_642otg035oo.js (ENTRY POINT)==
+============================= foo_component_1_hm6unygc0fq.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
 import { Lightweight } from "./test";
 import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 import { jsxs as _jsxs } from "@builder.io/qwik/jsx-runtime";
-export const Foo_component$1_642OtG035oo = ()=>{
+export const Foo_component_1_Hm6UNYgc0fQ = ()=>{
     const [props] = qwik.useLexicalScope();
     return /*#__PURE__*/ _jsxs("div", {
         children: [
@@ -117,9 +117,9 @@ export const Foo_component$1_642OtG035oo = ()=>{
 /*
 {
   "origin": "test.tsx",
-  "name": "Foo_component$1_642OtG035oo",
+  "name": "Foo_component_1_Hm6UNYgc0fQ",
   "entry": null,
-  "canonicalFilename": "foo_component$1_642otg035oo",
+  "canonicalFilename": "foo_component_1_hm6unygc0fq",
   "extension": "js",
   "parent": "Foo_component_7N2avlLYVuo",
   "ctxKind": "function",
@@ -131,8 +131,8 @@ export const Foo_component$1_642OtG035oo = ()=>{
 
 import * as qwik from "@builder.io/qwik";
 export const Foo_component_7N2avlLYVuo = (props)=>{
-    return qwik.qrl(()=>import("./foo_component$1_642otg035oo")
-    , "Foo_component$1_642OtG035oo", [
+    return qwik.qrl(()=>import("./foo_component_1_hm6unygc0fq")
+    , "Foo_component_1_Hm6UNYgc0fQ", [
         props
     ]);
 };

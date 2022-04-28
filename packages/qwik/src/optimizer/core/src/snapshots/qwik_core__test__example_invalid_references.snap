@@ -1,5 +1,5 @@
 ---
-source: src/optimizer/core/src/test.rs
+source: packages/qwik/src/optimizer/core/src/test.rs
 expression: output
 ---
 ==INPUT==
@@ -30,20 +30,20 @@ const [I2, { I3 , v1: [I4] , I5 =v2 , ...I6 }, I7 = v3, ...I8] = obj;
 export const App = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./app_component_aj0udc0imoo")
 , "App_component_aJ0UdC0imoo"));
 
-============================= app_component$1_et9ngtxjeka.js (ENTRY POINT)==
+============================= app_component_1_5lmk4chgyso.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
-export const App_component$1_eT9NGtXJEKA = ()=>{
+export const App_component_1_5Lmk4ChgYSo = ()=>{
     return /*#__PURE__*/ _jsx(I10, {});
 };
 
 /*
 {
   "origin": "test.tsx",
-  "name": "App_component$1_eT9NGtXJEKA",
+  "name": "App_component_1_5Lmk4ChgYSo",
   "entry": null,
-  "canonicalFilename": "app_component$1_et9ngtxjeka",
+  "canonicalFilename": "app_component_1_5lmk4chgyso",
   "extension": "js",
   "parent": "App_component_aJ0UdC0imoo",
   "ctxKind": "function",
@@ -57,8 +57,8 @@ import * as qwik from "@builder.io/qwik";
 export const App_component_aJ0UdC0imoo = ({ count  })=>{
     console.log(I1, I2, I3, I4, I5, I6, I7, I8, I9);
     console.log(itsok, v1, v2, v3, obj);
-    return qwik.qrl(()=>import("./app_component$1_et9ngtxjeka")
-    , "App_component$1_eT9NGtXJEKA");
+    return qwik.qrl(()=>import("./app_component_1_5lmk4chgyso")
+    , "App_component_1_5Lmk4ChgYSo");
 };
 
 /*

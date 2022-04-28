@@ -1,5 +1,5 @@
 ---
-source: src/optimizer/core/src/test.rs
+source: packages/qwik/src/optimizer/core/src/test.rs
 expression: output
 ---
 ==INPUT==
@@ -66,11 +66,11 @@ export const App_component_useMemo_fSnDwbsnir4 = ()=>{
   "captures": true
 }
 */
-============================= app_component$1_et9ngtxjeka.js (ENTRY POINT)==
+============================= app_component_1_5lmk4chgyso.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
-export const App_component$1_eT9NGtXJEKA = ()=>{
+export const App_component_1_5Lmk4ChgYSo = ()=>{
     const [state] = qwik.useLexicalScope();
     return /*#__PURE__*/ _jsx("div", {
         children: state.count
@@ -80,9 +80,9 @@ export const App_component$1_eT9NGtXJEKA = ()=>{
 /*
 {
   "origin": "test.tsx",
-  "name": "App_component$1_eT9NGtXJEKA",
+  "name": "App_component_1_5Lmk4ChgYSo",
   "entry": null,
-  "canonicalFilename": "app_component$1_et9ngtxjeka",
+  "canonicalFilename": "app_component_1_5lmk4chgyso",
   "extension": "js",
   "parent": "App_component_aJ0UdC0imoo",
   "ctxKind": "function",
@@ -103,8 +103,8 @@ export const App_component_aJ0UdC0imoo = (props)=>{
     , "App_component_useMemo_fSnDwbsnir4", [
         state
     ]));
-    return qwik.qrl(()=>import("./app_component$1_et9ngtxjeka")
-    , "App_component$1_eT9NGtXJEKA", [
+    return qwik.qrl(()=>import("./app_component_1_5lmk4chgyso")
+    , "App_component_1_5Lmk4ChgYSo", [
         state
     ]);
 };

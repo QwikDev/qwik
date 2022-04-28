@@ -1,5 +1,5 @@
 ---
-source: src/optimizer/core/src/test.rs
+source: packages/qwik/src/optimizer/core/src/test.rs
 expression: output
 ---
 ==INPUT==
@@ -26,20 +26,20 @@ export const Greeter = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./greeter
 qwik.qrl(()=>import("./d_lpkevhzmi40")
 , "d_lPkevhzMI40");
 
-============================= greeter_component$1_xhafc9njq4e.js (ENTRY POINT)==
+============================= greeter_component_1_gsxlhtv0lzu.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
-export const Greeter_component$1_xhAFc9NjQ4E = ()=>{
+export const Greeter_component_1_gsxlhtv0lZU = ()=>{
     return /*#__PURE__*/ _jsx("div", {});
 };
 
 /*
 {
   "origin": "test.tsx",
-  "name": "Greeter_component$1_xhAFc9NjQ4E",
+  "name": "Greeter_component_1_gsxlhtv0lZU",
   "entry": null,
-  "canonicalFilename": "greeter_component$1_xhafc9njq4e",
+  "canonicalFilename": "greeter_component_1_gsxlhtv0lzu",
   "extension": "js",
   "parent": "Greeter_component_SM3gBboRfG0",
   "ctxKind": "function",
@@ -51,8 +51,8 @@ export const Greeter_component$1_xhAFc9NjQ4E = ()=>{
 
 import * as qwik from "@builder.io/qwik";
 export const Greeter_component_SM3gBboRfG0 = ()=>{
-    return qwik.qrl(()=>import("./greeter_component$1_xhafc9njq4e")
-    , "Greeter_component$1_xhAFc9NjQ4E");
+    return qwik.qrl(()=>import("./greeter_component_1_gsxlhtv0lzu")
+    , "Greeter_component_1_gsxlhtv0lZU");
 };
 
 /*

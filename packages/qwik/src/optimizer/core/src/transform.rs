@@ -192,7 +192,7 @@ impl<'a> QwikTransform<'a> {
         if index == 0 {
             self.hooks_names.insert(symbol_name.clone(), 0);
         } else {
-            symbol_name += &format!("${}", index);
+            symbol_name += &format!("_{}", index);
         }
         let mut hasher = DefaultHasher::new();
         hasher.write(symbol_name.as_bytes());

@@ -1,5 +1,5 @@
 ---
-source: src/optimizer/core/src/test.rs
+source: packages/qwik/src/optimizer/core/src/test.rs
 expression: output
 ---
 ==INPUT==
@@ -19,15 +19,15 @@ export const Footer = component$();
 ============================= project/test.js ==
 
 import*as b from"@builder.io/qwik";import{componentQrl as a}from"@builder.io/qwik";export const Header=/*#__PURE__*/ a(b.qrl(()=>import("../entry_hooks"),"Header_component_ZdVwofEnicA"));export const Footer=/*#__PURE__*/ a();
-============================= header_component$1_l87wgr7zvxa.js ==
+============================= header_component_1_0qe8a9tkfwq.js ==
 
-import*as a from"@builder.io/qwik";import{Footer as b}from"./project/test";import{jsxs as c}from"@builder.io/qwik/jsx-runtime";import*as d from"lib";import{s as e}from"lib";import f from"lib";export const Header_component$1_l87wgr7ZvxA=()=>/*#__PURE__*/ c(b,{children:[f,d(),e()]});
+import*as a from"@builder.io/qwik";import{Footer as b}from"./project/test";import{jsxs as c}from"@builder.io/qwik/jsx-runtime";import*as d from"lib";import{s as e}from"lib";import f from"lib";export const Header_component_1_0qE8a9tkFwQ=()=>/*#__PURE__*/ c(b,{children:[f,d(),e()]});
 /*
 {
   "origin": "project/test.tsx",
-  "name": "Header_component$1_l87wgr7ZvxA",
+  "name": "Header_component_1_0qE8a9tkFwQ",
   "entry": "entry_hooks",
-  "canonicalFilename": "header_component$1_l87wgr7zvxa",
+  "canonicalFilename": "header_component_1_0qe8a9tkfwq",
   "extension": "js",
   "parent": "Header_component_ZdVwofEnicA",
   "ctxKind": "function",
@@ -37,7 +37,7 @@ import*as a from"@builder.io/qwik";import{Footer as b}from"./project/test";impor
 */
 ============================= header_component_zdvwofenica.js ==
 
-import*as a from"@builder.io/qwik";export const Header_component_ZdVwofEnicA=()=>a.qrl(()=>import("./entry_hooks"),"Header_component$1_l87wgr7ZvxA");
+import*as a from"@builder.io/qwik";export const Header_component_ZdVwofEnicA=()=>a.qrl(()=>import("./entry_hooks"),"Header_component_1_0qE8a9tkFwQ");
 /*
 {
   "origin": "project/test.tsx",
@@ -53,7 +53,7 @@ import*as a from"@builder.io/qwik";export const Header_component_ZdVwofEnicA=()=
 */
 ============================= entry_hooks.js (ENTRY POINT)==
 
-export{Header_component$1_l87wgr7ZvxA}from"./header_component$1_l87wgr7zvxa";export{Header_component_ZdVwofEnicA}from"./header_component_zdvwofenica";
+export{Header_component_1_0qE8a9tkFwQ}from"./header_component_1_0qe8a9tkfwq";export{Header_component_ZdVwofEnicA}from"./header_component_zdvwofenica";
 == DIAGNOSTICS ==
 
 []

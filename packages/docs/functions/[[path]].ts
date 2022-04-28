@@ -1,7 +1,7 @@
 /* eslint-disable */
 
 // @ts-ignore
-import { render } from '../server/entry.server.js.js';
+import { render } from '../server/entry.server.js';
 
 export const onRequestGet: PagesFunction = async ({ request, next, waitUntil }) => {
   try {

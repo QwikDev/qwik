@@ -1,5 +1,5 @@
 ---
-source: src/optimizer/core/src/test.rs
+source: packages/qwik/src/optimizer/core/src/test.rs
 expression: output
 ---
 ==INPUT==
@@ -25,11 +25,11 @@ import { componentQrl } from "@builder.io/qwik";
 export const Header = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./header_component_d2lmh0dh3zy")
 , "Header_component_D2lmH0Dh3zY"));
 
-============================= header_component$1_l1n77dg76o0.tsx (ENTRY POINT)==
+============================= header_component_1_ouelp0ehcsm.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
 import { Header } from "./test";
-export const Header_component$1_L1N77dG76O0 = (hola)=>{
+export const Header_component_1_ouELP0EHCsM = (hola)=>{
     const hola = this;
     const { something , styff  } = hola;
     const hello = hola.nothere.stuff[global];
@@ -39,9 +39,9 @@ export const Header_component$1_L1N77dG76O0 = (hola)=>{
 /*
 {
   "origin": "test.tsx",
-  "name": "Header_component$1_L1N77dG76O0",
+  "name": "Header_component_1_ouELP0EHCsM",
   "entry": null,
-  "canonicalFilename": "header_component$1_l1n77dg76o0",
+  "canonicalFilename": "header_component_1_ouelp0ehcsm",
   "extension": "tsx",
   "parent": "Header_component_D2lmH0Dh3zY",
   "ctxKind": "function",
@@ -53,8 +53,8 @@ export const Header_component$1_L1N77dG76O0 = (hola)=>{
 
 import * as qwik from "@builder.io/qwik";
 export const Header_component_D2lmH0Dh3zY = ()=>{
-    return qwik.qrl(()=>import("./header_component$1_l1n77dg76o0")
-    , "Header_component$1_L1N77dG76O0");
+    return qwik.qrl(()=>import("./header_component_1_ouelp0ehcsm")
+    , "Header_component_1_ouELP0EHCsM");
 };
 
 /*

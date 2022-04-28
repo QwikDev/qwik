@@ -88,7 +88,7 @@ export async function submoduleServer(config: BuildConfig) {
 }
 
 async function bundleQwikDom(config: BuildConfig) {
-  const outfile = join(config.distPkgDir, 'qwikdom.mjs');
+  const outfile = join(config.tmpDir, 'qwikdom.mjs');
 
   const opts: BuildOptions = {
     entryPoints: [require.resolve('@builder.io/qwik-dom')],

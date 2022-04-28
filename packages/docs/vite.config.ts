@@ -4,7 +4,6 @@ import { resolve } from 'path';
 import { qwikCity } from '@builder.io/qwik-city/vite';
 import { partytownVite } from '@builder.io/partytown/utils';
 
-
 export default defineConfig(() => {
   return {
     clearScreen: false,

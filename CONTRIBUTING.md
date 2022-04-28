@@ -69,7 +69,7 @@ A full production build will:
 yarn build
 ```
 
-The build output will be written to `dist-dev/@builder.io-qwik`, which will be the directory that is published
+The build output will be written to `packages/qwik/dist`, which will be the directory that is published
 to [@builder.io/qwik](https://www.npmjs.com/package/@builder.io/qwik).
 
 ## Releasing `@builder.io/qwik`

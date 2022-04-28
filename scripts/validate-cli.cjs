@@ -96,7 +96,7 @@ async function validateStarter(api, distDir, appId, serverId) {
   const qwikNodeModule = join(appDir, 'node_modules', '@builder.io', 'qwik');
   rmSync(qwikNodeModule, { force: true, recursive: true });
 
-  const distQwik = join(__dirname, '..', 'dist-dev', '@builder.io-qwik');
+  const distQwik = join(__dirname, '..', 'packages', 'qwik', 'dist');
   cpSync(distQwik, qwikNodeModule, { recursive: true });
 
   console.log(`🌈 ${projectName}: npm run build`);

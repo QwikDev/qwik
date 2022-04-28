@@ -6,8 +6,6 @@ on:
     branches:
       - main
   workflow_dispatch:
-    name: 'Release'
-    description: 'Publish to NPM, and create a Github release.'
     inputs:
       disttag:
         description: 'Publish to NPM using this dist-tag, push the git-tag to the repo and create a Github release. A "latest" and "next" dist-tags will use the version number already committed in package.json.'

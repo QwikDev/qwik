@@ -83,7 +83,7 @@ export function unwrapProxy<T>(proxy: T): T {
 }
 
 export function wrap<T>(value: T, proxyMap: ObjToProxyMap): T {
-  if (value && typeof value === 'object' && !(NOSERIALIZE in value)) {
+  if (value && typeof value === 'object') {
     if (isQrl(value)) {
       return value;
     }

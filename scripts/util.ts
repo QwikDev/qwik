@@ -59,8 +59,6 @@ export interface BuildConfig {
   validate?: boolean;
   wasm?: boolean;
   watch?: boolean;
-
-  otherPackages: ['packages/eslint-rules', 'packages/create-qwik', 'packages/qwik-react'];
 }
 
 /**

@@ -92,7 +92,6 @@
     "packages/docs",
     "packages/create-qwik",
     "packages/qwik",
-    "packages/qwik-react",
     "packages/qwik-city",
     "packages/eslint-plugin-qwik"
   ],

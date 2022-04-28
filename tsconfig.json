@@ -80,7 +80,6 @@
     "packages/qwik",
     "packages/qwik-city",
     "packages/docs",
-    "packages/qwik-react",
     "packages/create-cli",
     "starters"
   ],

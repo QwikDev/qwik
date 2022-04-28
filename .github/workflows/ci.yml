@@ -191,18 +191,18 @@ jobs:
         settings:
           - host: macos-latest
             target: x86_64-apple-darwin
-            build: yarn build.platform
+            build: yarn run build.platform
 
           - host: macos-latest
             target: aarch64-apple-darwin
             build: |
               export SDKROOT=$(xcrun -sdk macosx11.1 --show-sdk-path)
               export MACOSX_DEPLOYMENT_TARGET=$(xcrun -sdk macosx11.1 --show-sdk-platform-version)
-              yarn build.platform --platform-target=aarch64-apple-darwin
+              yarn run build.platform --platform-target=aarch64-apple-darwin
 
           - host: windows-latest
             target: x86_64-pc-windows-msvc
-            build: yarn build.platform
+            build: yarn run build.platform
 
     name: Build ${{ matrix.settings.target }}
     runs-on: ${{ matrix.settings.host }}
@@ -410,7 +410,7 @@ jobs:
         if: ${{ needs.changes.outputs.fullbuild == 'true' && github.event_name == 'push' }}
         env:
           API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
-        run: yarn qwik-save-artifacts
+        run: yarn run qwik-save-artifacts
 
   ############ E2E TEST ############
   test-e2e:
@@ -475,7 +475,7 @@ jobs:
 
       - name: Playwright E2E Tests
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: yarn test.e2e.${{ matrix.settings.browser }}
+        run: yarnrun  test.e2e.${{ matrix.settings.browser }}
 
       - name: Validate Create Qwik Cli
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -505,7 +505,7 @@ jobs:
         run: yarn install --immutable --network-timeout 300000
 
       - name: Jest Unit Tests
-        run: yarn test.unit
+        run: yarn run test.unit
 
   ########### VALIDATE RUST ############
   validate-rust:
@@ -592,8 +592,8 @@ jobs:
 
       - name: Prettier Check
         if: ${{ always() }}
-        run: yarn lint.prettier
+        run: yarn run lint.prettier
 
       - name: ESLint Check
         if: ${{ always() }}
-        run: yarn lint.eslint
+        run: yarn run lint.eslint

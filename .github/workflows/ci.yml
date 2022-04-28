@@ -209,10 +209,6 @@ jobs:
 
     needs: changes
 
-    defaults:
-      run:
-        working-directory: ./packages/qwik/src/napi/
-
     steps:
       - name: Checkout
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}

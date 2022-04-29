@@ -68,7 +68,7 @@ const SCHEDULE = Symbol('Render state');
 export interface RenderingState {
   watchRunning: Set<Promise<WatchDescriptor>>;
   watchNext: Set<WatchDescriptor>;
-  watchStagging: Set<WatchDescriptor>;
+  watchStaging: Set<WatchDescriptor>;
 
   hostsNext: Set<Element>;
   hostsStaging: Set<Element>;
@@ -81,7 +81,7 @@ export function getRenderingState(containerEl: Element): RenderingState {
   if (!set) {
     (containerEl as any)[SCHEDULE] = set = {
       watchNext: new Set(),
-      watchStagging: new Set(),
+      watchStaging: new Set(),
       watchRunning: new Set(),
 
       hostsNext: new Set(),
@@ -160,13 +160,15 @@ async function postRendering(containerEl: Element, state: RenderingState, ctx: R
   });
 
   state.watchNext.clear();
-  state.watchStagging.forEach((watch) => {
+  state.watchStaging.forEach((watch) => {
     if (ctx.hostElements.has(watch.hostElement)) {
       promises.push(runWatch(watch));
     } else {
       state.watchNext.add(watch);
     }
   });
+
+  state.watchStaging.clear();
 
   // Wait for all promises
   await Promise.all(promises);

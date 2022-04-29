@@ -128,7 +128,7 @@
       "d.ts"
     ],
     "moduleNameMapper": {
-      "^@builder.io/qwik/jsx-runtime$": "<rootDir>/packages/qwik/src/jsx-runtime.ts",
+      "^@builder.io/qwik/jsx-runtime$": "<rootDir>/packages/qwik/src/jsx-runtime/index.ts",
       "^@builder.io/qwik/optimizer$": "<rootDir>/packages/qwik/src/optimizer/index.ts",
       "^@builder.io/qwik/server$": "<rootDir>/packages/qwik/src/server/index.ts",
       "^@builder.io/qwik/testing$": "<rootDir>/packages/qwik/src/testing/index.ts",

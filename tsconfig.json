@@ -43,7 +43,7 @@
     "baseUrl": "." /* Base directory to resolve non-absolute module names. */,
     "paths": {
       "@builder.io/qwik": ["packages/qwik/src/core/index"],
-      "@builder.io/qwik/jsx-runtime": ["packages/qwik/src/jsx-runtime"],
+      "@builder.io/qwik/jsx-runtime": ["packages/qwik/src/jsx-runtime/index"],
       "@builder.io/qwik/optimizer": ["packages/qwik/src/optimizer/src/index"],
       "@builder.io/qwik/server": ["packages/qwik/src/server/index"],
       "@builder.io/qwik/testing": ["packages/qwik/src/testing/index"],

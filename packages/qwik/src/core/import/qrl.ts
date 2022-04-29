@@ -146,9 +146,10 @@ export interface QRLSerializeOptions {
 export function stringifyQRL(qrl: QRL, opts: QRLSerializeOptions = {}) {
   const qrl_ = toInternalQRL(qrl);
   const symbol = qrl_.symbol;
+  const refSymbol = qrl_.refSymbol ?? symbol;
   const platform = opts.platform;
   const element = opts.element;
-  const chunk = platform ? platform.chunkForSymbol(symbol) ?? qrl_.chunk : qrl_.chunk;
+  const chunk = platform ? platform.chunkForSymbol(refSymbol) ?? qrl_.chunk : qrl_.chunk;
 
   const parts: string[] = [chunk];
   if (symbol && symbol !== 'default') {

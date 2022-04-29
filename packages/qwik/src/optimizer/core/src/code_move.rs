@@ -222,10 +222,7 @@ fn test_fix_path() {
     assert!(fix_path("/components", "a", "./state").is_err())
 }
 
-pub fn generate_entries(
-    mut output: TransformOutput,
-    minify: bool,
-) -> Result<TransformOutput, anyhow::Error> {
+pub fn generate_entries(mut output: TransformOutput) -> Result<TransformOutput, anyhow::Error> {
     let source_map = Lrc::new(SourceMap::default());
     let mut entries_map: HashMap<&str, Vec<&HookAnalysis>> =
         HashMap::with_capacity(output.modules.len());
@@ -243,9 +240,8 @@ pub fn generate_entries(
 
         for (entry, hooks) in &entries_map {
             let module = new_entry_module(hooks);
-            let (code, map) =
-                emit_source_code(Lrc::clone(&source_map), None, &module, minify, false)
-                    .context("Emitting source code")?;
+            let (code, map) = emit_source_code(Lrc::clone(&source_map), None, &module, false)
+                .context("Emitting source code")?;
             new_modules.push(TransformModule {
                 path: [entry, ".js"].concat(),
                 code,

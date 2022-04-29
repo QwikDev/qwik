@@ -98,6 +98,7 @@ export function useEffectQrl(watchQrl: QRL<WatchFn>, opts?: UseEffectOptions): v
         null,
         [watch]
       );
+      watchHandler.refSymbol = (watchQrl as QRLInternal).symbol;
       if (opts?.run === 'load') {
         useResumeQrl(watchHandler);
       } else {
@@ -138,6 +139,7 @@ export function useClientEffectQrl(watchQrl: QRL<WatchFn>, opts?: UseEffectOptio
         null,
         [watch]
       );
+      watchHandler.refSymbol = (watchQrl as QRLInternal).symbol;
       if (opts?.run === 'load') {
         useResumeQrl(watchHandler);
       } else {
@@ -159,7 +161,10 @@ export function useServerQrl(watchQrl: QRL<ServerFn>): void {
   const [watch, setWatch] = useSequentialScope();
   if (!watch) {
     setWatch(true);
-    useWaitOn(watchQrl.invoke());
+    const isServer = getPlatform(useDocument()).isServer;
+    if (isServer) {
+      useWaitOn(watchQrl.invoke());
+    }
   }
 }
 

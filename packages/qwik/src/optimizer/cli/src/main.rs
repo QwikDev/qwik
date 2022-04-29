@@ -87,7 +87,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         };
 
         let minify = match matches.value_of("minify") {
-            Some("minify") => MinifyMode::Minify,
             Some("none") => MinifyMode::None,
             Some("simplify") | None => MinifyMode::Simplify,
             _ => panic!("Invalid minify option"),

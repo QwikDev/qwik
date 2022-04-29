@@ -191,7 +191,7 @@ export type EntryStrategy =
 /**
  * @alpha
  */
-export type MinifyMode = 'minify' | 'simplify' | 'none';
+export type MinifyMode = 'simplify' | 'none';
 
 /**
  * @alpha

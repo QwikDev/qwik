@@ -106,7 +106,7 @@ export async function commitPrepareReleaseVersion(config: BuildConfig) {
   await writePackageJson(distCliDir, cliPkg);
 
   // update the eslint version
-  const distEslintDir = join(config.packagesDir, 'eslint-rules');
+  const distEslintDir = join(config.packagesDir, 'eslint-plugin-qwik');
   commitPaths.push(join(distEslintDir, 'package.json'));
   const eslintPkg = await readPackageJson(distEslintDir);
   eslintPkg.version = config.distVersion;

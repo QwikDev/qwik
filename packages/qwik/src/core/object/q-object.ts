@@ -267,7 +267,7 @@ export function notifyWatch(watch: WatchDescriptor) {
   } else {
     const activeRendering = state.hostsRendering !== undefined;
     if (activeRendering) {
-      state.watchStagging.add(watch);
+      state.watchStaging.add(watch);
     } else {
       state.watchNext.add(watch);
       scheduleFrame(containerEl, state);

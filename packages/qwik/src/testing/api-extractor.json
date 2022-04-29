@@ -1,0 +1,14 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/api-extractor/v7/api-extractor.schema.json",
+  "extends": "../api-extractor.json",
+  "mainEntryPointFilePath": "<projectFolder>/dist-dev/tsc-out/packages/qwik/src/server/index.d.ts",
+  "apiReport": {
+    "enabled": true,
+    "reportFileName": "api.md",
+    "reportFolder": "<projectFolder>/packages/qwik/src/testing/",
+    "reportTempFolder": "<projectFolder>/dist-dev/api-extractor/testing/"
+  },
+  "dtsRollup": {
+    "enabled": true
+  }
+}

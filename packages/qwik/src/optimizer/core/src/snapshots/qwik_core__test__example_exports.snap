@@ -1,0 +1,108 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { $, component$ } from '@builder.io/qwik';
+
+export const [a, {b, v1: [c], d=v2, ...e}, f=v3, ...g] = obj;
+
+const exp1 = 1;
+const internal = 2;
+export {exp1, internal as expr2};
+
+export function foo() { }
+export class bar {}
+
+export default function DefaultFn() {}
+
+export const Header = component$(() => {
+    return $(() => (
+        <Footer>
+            <div>{a}{b}{c}{d}{e}{f}{exp1}{internal}{foo}{bar}{DefaultFn}</div>
+            <div>{v1}{v2}{v3}{obj}</div>
+        </Footer>
+    ))
+});
+
+export const Footer = component$();
+
+============================= project/test.tsx ==
+
+import * as qwik from "@builder.io/qwik";
+import { componentQrl } from "@builder.io/qwik";
+export const [a, { b , v1: [c] , d =v2 , ...e }, f = v3, ...g] = obj;
+const exp1 = 1;
+const internal = 2;
+export { exp1, internal as expr2 };
+export function foo() {}
+export class bar {
+}
+export default function DefaultFn() {};
+export const Header = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("../header_component_zdvwofenica")
+, "Header_component_ZdVwofEnicA"));
+export const Footer = /*#__PURE__*/ componentQrl();
+
+============================= header_component_1_0qe8a9tkfwq.tsx (ENTRY POINT)==
+
+import * as qwik from "@builder.io/qwik";
+import { default as DefaultFn } from "./project/test";
+import { Footer } from "./project/test";
+import { a } from "./project/test";
+import { b } from "./project/test";
+import { bar } from "./project/test";
+import { c } from "./project/test";
+import { d } from "./project/test";
+import { e } from "./project/test";
+import { exp1 } from "./project/test";
+import { f } from "./project/test";
+import { foo } from "./project/test";
+import { expr2 as internal } from "./project/test";
+export const Header_component_1_0qE8a9tkFwQ = ()=><Footer >
+
+            <div >{a}{b}{c}{d}{e}{f}{exp1}{internal}{foo}{bar}{DefaultFn}</div>
+
+            <div >{v1}{v2}{v3}{obj}</div>
+
+        </Footer>
+;
+
+/*
+{
+  "origin": "project/test.tsx",
+  "name": "Header_component_1_0qE8a9tkFwQ",
+  "entry": null,
+  "canonicalFilename": "header_component_1_0qe8a9tkfwq",
+  "extension": "tsx",
+  "parent": "Header_component_ZdVwofEnicA",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false
+}
+*/
+============================= header_component_zdvwofenica.tsx (ENTRY POINT)==
+
+import * as qwik from "@builder.io/qwik";
+export const Header_component_ZdVwofEnicA = ()=>{
+    return qwik.qrl(()=>import("./header_component_1_0qe8a9tkfwq")
+    , "Header_component_1_0qE8a9tkFwQ");
+};
+
+/*
+{
+  "origin": "project/test.tsx",
+  "name": "Header_component_ZdVwofEnicA",
+  "entry": null,
+  "canonicalFilename": "header_component_zdvwofenica",
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false
+}
+*/
+== DIAGNOSTICS ==
+
+[]

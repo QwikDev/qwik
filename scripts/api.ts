@@ -16,7 +16,7 @@ export function apiExtractor(config: BuildConfig) {
   createTypesApi(config, 'build', 'build/index.d.ts', '../core');
 
   // the jsx-runtime.d.ts file was already generated with tsc, use this one
-  const jsxRuntimeSrcPath = join(config.tscDir, 'src', 'jsx-runtime.d.ts');
+  const jsxRuntimeSrcPath = join(config.tscDir, 'packages', 'qwik', 'src', 'jsx-runtime.d.ts');
   const jsxRuntimeDestPath = join(config.distPkgDir, 'jsx-runtime.d.ts');
   fixDtsContent(jsxRuntimeSrcPath, jsxRuntimeDestPath, './core');
 

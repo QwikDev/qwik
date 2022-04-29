@@ -1,0 +1,144 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { $, component$, useStore } from '@builder.io/qwik';
+
+export const App = component$(({count, rest: [I2, {I3, v1: [I4], I5=v2, ...I6}, I7=v3, ...I8]}) => {
+    const state = useStore({count: 0});
+    const {rest: [C2, {C3, v1: [C4], C5=v2, ...C6}, C7=v3, ...C8]} = foo();
+    return $(() => {
+        return (
+            <div onClick$={() => state.count += count + total }>
+                {I2}{I3}{I4}{I5}{I6}{I7}{I8}
+                {C2}{C3}{C4}{C5}{C6}{C7}{C8}
+                {v1}{v2}{v3}
+            </div>
+        )
+    });
+})
+
+============================= test.js ==
+
+import * as qwik from "@builder.io/qwik";
+import { componentQrl } from "@builder.io/qwik";
+export const App = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./app_component_aj0udc0imoo")
+, "App_component_aJ0UdC0imoo"));
+
+============================= app_component_div_onclick_cnjgsj2zcca.js (ENTRY POINT)==
+
+import * as qwik from "@builder.io/qwik";
+export const App_component_div_onClick_cnJgsj2zcCA = ()=>{
+    const [count, state] = qwik.useLexicalScope();
+    return state.count += count + total;
+};
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_div_onClick_cnJgsj2zcCA",
+  "entry": null,
+  "canonicalFilename": "app_component_div_onclick_cnjgsj2zcca",
+  "extension": "js",
+  "parent": "App_component_1_5Lmk4ChgYSo",
+  "ctxKind": "event",
+  "ctxName": "onClick$",
+  "captures": true
+}
+*/
+============================= app_component_1_5lmk4chgyso.js (ENTRY POINT)==
+
+import * as qwik from "@builder.io/qwik";
+import { jsxs as _jsxs } from "@builder.io/qwik/jsx-runtime";
+export const App_component_1_5Lmk4ChgYSo = ()=>{
+    const [C2, C3, C4, C5, C6, C7, C8, I2, I3, I4, I5, I6, I7, I8, count, state] = qwik.useLexicalScope();
+    return /*#__PURE__*/ _jsxs("div", {
+        onClickQrl: qwik.qrl(()=>import("./app_component_div_onclick_cnjgsj2zcca")
+        , "App_component_div_onClick_cnJgsj2zcCA", [
+            count,
+            state
+        ]),
+        children: [
+            I2,
+            I3,
+            I4,
+            I5,
+            I6,
+            I7,
+            I8,
+            C2,
+            C3,
+            C4,
+            C5,
+            C6,
+            C7,
+            C8,
+            v1,
+            v2,
+            v3
+        ]
+    });
+};
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_1_5Lmk4ChgYSo",
+  "entry": null,
+  "canonicalFilename": "app_component_1_5lmk4chgyso",
+  "extension": "js",
+  "parent": "App_component_aJ0UdC0imoo",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true
+}
+*/
+============================= app_component_aj0udc0imoo.js (ENTRY POINT)==
+
+import * as qwik from "@builder.io/qwik";
+import { useStore } from "@builder.io/qwik";
+export const App_component_aJ0UdC0imoo = ({ count , rest: [I2, { I3 , v1: [I4] , I5 =v2 , ...I6 }, I7 = v3, ...I8]  })=>{
+    const state = useStore({
+        count: 0
+    });
+    const { rest: [C2, { C3 , v1: [C4] , C5 =v2 , ...C6 }, C7 = v3, ...C8]  } = foo();
+    return qwik.qrl(()=>import("./app_component_1_5lmk4chgyso")
+    , "App_component_1_5Lmk4ChgYSo", [
+        C2,
+        C3,
+        C4,
+        C5,
+        C6,
+        C7,
+        C8,
+        I2,
+        I3,
+        I4,
+        I5,
+        I6,
+        I7,
+        I8,
+        count,
+        state
+    ]);
+};
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_aJ0UdC0imoo",
+  "entry": null,
+  "canonicalFilename": "app_component_aj0udc0imoo",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false
+}
+*/
+== DIAGNOSTICS ==
+
+[]

@@ -1,0 +1,92 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { $, component, onRender } from '@builder.io/qwik';
+
+export const renderHeader = $(() => {
+    return (
+        <div onClick={$((ctx) => console.log(ctx))}/>
+    );
+});
+const renderHeader = component($(() => {
+  console.log("mount");
+  return render;
+}));
+
+============================= test.tsx ==
+
+import * as qwik from "@builder.io/qwik";
+import { component } from '@builder.io/qwik';
+export const renderHeader = qwik.qrl(()=>import("./renderheader_9rwwyyncz7m")
+, "renderHeader_9RwWYyNCZ7M");
+component(qwik.qrl(()=>import("./renderheader_1_sjvgw9zkb70")
+, "renderHeader_1_Sjvgw9ZKB70"));
+
+============================= renderheader_div_onclick_h3jziaq5tae.tsx (ENTRY POINT)==
+
+import * as qwik from "@builder.io/qwik";
+export const renderHeader_div_onClick_H3JZIaQ5TaE = (ctx)=>console.log(ctx)
+;
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "renderHeader_div_onClick_H3JZIaQ5TaE",
+  "entry": null,
+  "canonicalFilename": "renderheader_div_onclick_h3jziaq5tae",
+  "extension": "tsx",
+  "parent": "renderHeader_9RwWYyNCZ7M",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false
+}
+*/
+============================= renderheader_9rwwyyncz7m.tsx (ENTRY POINT)==
+
+import * as qwik from "@builder.io/qwik";
+export const renderHeader_9RwWYyNCZ7M = ()=>{
+    return <div onClick={qwik.qrl(()=>import("./renderheader_div_onclick_h3jziaq5tae")
+    , "renderHeader_div_onClick_H3JZIaQ5TaE")}/>;
+};
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "renderHeader_9RwWYyNCZ7M",
+  "entry": null,
+  "canonicalFilename": "renderheader_9rwwyyncz7m",
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false
+}
+*/
+============================= renderheader_1_sjvgw9zkb70.tsx (ENTRY POINT)==
+
+import * as qwik from "@builder.io/qwik";
+export const renderHeader_1_Sjvgw9ZKB70 = ()=>{
+    console.log("mount");
+    return render;
+};
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "renderHeader_1_Sjvgw9ZKB70",
+  "entry": null,
+  "canonicalFilename": "renderheader_1_sjvgw9zkb70",
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false
+}
+*/
+== DIAGNOSTICS ==
+
+[]

@@ -16,7 +16,7 @@ const appNames = readdirSync(startersAppsDir).filter(
   (p) => statSync(join(startersAppsDir, p)).isDirectory() && p !== 'base'
 );
 
-const qwikDistDir = join(__dirname, '..', 'dist-dev', '@builder.io-qwik');
+const qwikDistDir = join(__dirname, '..', 'packages', 'qwik', 'dist');
 const qwikDistCorePath = join(qwikDistDir, 'core.mjs');
 const qwikDistServerPath = join(qwikDistDir, 'server.mjs');
 const qwikDistOptimizerPath = join(qwikDistDir, 'optimizer.cjs');

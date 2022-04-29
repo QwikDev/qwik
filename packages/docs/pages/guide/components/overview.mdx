@@ -1,0 +1,83 @@
+---
+title: Overview
+fetch: https://hackmd.io/@mhevery/H1Rzr30l5
+---
+
+# Components
+
+Components are basic building blocks of Qwik Applications. Qwik components are unique in that:
+
+- Qwik components automatically get broken down into lazy-loaded chunks by the Optimizer. (See Optimizer discussion)
+- Are resumable. (A component can get created on a server and continue its execution on the client.) (See resumable discussion)
+- Can render independently of other components on the page. (See rendering discussion)
+
+## `component$`
+
+Qwik components are declared with `component$` API.
+
+```tsx
+const Counter = component$((props: { step?: number; initial?: number }) => {
+  const store = useStore({ count: props.initial || 0 });
+
+  return <button onClick$={() => (store.count += props.step || 1)}>{store.count}</button>;
+});
+```
+
+NOTE:
+
+- For an explanation of `$` see lazy-loading and Optimizer discussion.
+- For a detailed discussion of props, see Component/props discussion.
+
+## Using components
+
+Qwik components can use other components.
+
+```tsx
+const Counter = component$((props: {step?:number, initial?: number}) => {
+  ...
+});
+
+const MyApp = component$(() => {
+  return (
+    <>
+      <div>Single: <Counter /></div>
+      <div>Dozens: <Counter step={12}/></div>
+    </>
+  );
+});
+```
+
+The above example shows how the `MyApp` component can use the `Counter` component. The second example shows how one can use binding to pass values to the `Counter` component's props.
+
+## Re-rendering on Reactivity
+
+Qwik components are reactive on the component level. Component props, as well as stores, are proxies. These proxies track reads as well as writes.
+
+- A proxy-read during OnRender function execution lets Qwik know that the OnRender function depends on a given property. A read creates a subscription on that property. In our example, OnRender reads`{store.count}`, which creates a subscription that tells Qwik that whenever the `store.count` changes, the component should be invalidated.
+- A proxy-write notifies Qwik that all associated subscriptions should be invalidated.
+
+When components get invalidated, they are added to the invalidation queue, which is flushed (rendered) on the next `requestAnimationFrame`. This acts as a form of coalescing for component rendering.
+
+For a detailed discussion of reactivity, see related discussion.
+
+## Events
+
+Events handlers are closures placed in the JSX.
+
+```tsx
+const Counter = component$(() => {
+  const store = useStore({ count: 0 });
+
+  return <button onClick$={() => store.count++}>{store.count}</button>;
+});
+```
+
+In the above example, `() => store.count++` is the event handler that is invoked on the user clicking on the `<button>`.
+
+When `() => store.count++` is invoked the `store` is a proxy that intercepts the `count` write. It then looks up all of the subscriptions on count (finds that `Counter` OnRender has a subscription due to `{store.count}`) and invalidates the associated components. Once the component is invalidated, the `Counter` OnRender method is lazy-loaded and executed to update the view.
+
+NOTE: All reactive systems must at the beginning execute all of the templates in order to build up the subscription graph. Qwik is no different; however, this is performed, and the server and the subscription graph is then serialized into HTML and shipped to the browser. The browser can use the serialized graph to resume components without forcing a full-scale render to re-build the graph.
+
+## See Also:
+
+- [Lite components](./lite-components.mdx)

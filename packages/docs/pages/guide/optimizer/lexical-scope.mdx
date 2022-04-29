@@ -1,0 +1,107 @@
+---
+title: Capturing and lexical scopes
+fetch: https://hackmd.io/@mhevery/rJ6dXxy-c
+---
+
+# Capturing the lexical scope
+
+The Optimizer extracts expressions (usually functions) into new files and leaves behind a `QRL` pointing to the lazy-loaded location.
+
+Let's look at a simple case:
+
+```tsx
+const Greeter = component$(() => {
+  return <span>Hello World!</span>;
+});
+```
+
+this will result in:
+
+```tsx
+const Greeter = component(qrl('./chunk-a.js', 'Greeter_onMount'));
+```
+
+`chunk-a.js`:
+
+```tsx
+const Greeter_onMount = () => {
+  return qrl('./chunk-b.js', 'Greeter_onRender');
+};
+```
+
+`chunk-b.js`:
+
+```tsx
+const Greeter_onRender = () => <span>Hello World!</span>;
+```
+
+The above is for simple cases where the extracted function closure does not capture any variables. Let's look at a more complicated case where the extracted function closure lexically captures variables.
+
+```tsx
+const Greeter = component$((props: { name: string }) => {
+  const salutation = 'Hello';
+
+  return (
+    <span>
+      {salutation} {props.name}!
+    </span>
+  );
+});
+```
+
+The naive way to extract functions will not work.
+
+```tsx
+const Greeter = component(qrl('./chunk-a.js', 'Greeter_onMount'));
+```
+
+`chunk-a.js`:
+
+```tsx
+const Greeter_onMount = (props) => {
+  const salutation = 'Hello';
+  return qrl('./chunk-b.js', 'Greeter_onRender');
+};
+```
+
+`chunk-b.js`:
+
+```tsx
+const Greeter_onRender = () => (
+  <span>
+    {salutation} {props.name}!
+  </span>
+);
+```
+
+The issue can be seen in `chunk-b.js`. The extracted function refers to `salutation` and `props`, which are no longer in the lexical scope of the function. For this reason, the generated code must be slightly different.
+
+`chunk-a.js`:
+
+```tsx
+const Greeter_onMount = (props) => {
+  const salutation = 'Hello';
+  return qrl('./chunk-b.js', 'Greeter_onRender', [salutation, props]);
+};
+```
+
+`chunk-b.js`:
+
+```tsx
+const Greeter_onRender = () => {
+  const [salutation, props] = useLexicalScope();
+
+  return (
+    <span>
+      {salutation} {props.name}!
+    </span>
+  );
+};
+```
+
+Notice two changes:
+
+1. The `QRL` in `Greeter_onMount` now stores the `salutation` and `props`. This performs the role of capturing the constants inside closures.
+2. The generated closure `Greeter_onRender` now has a preamble which restores the `salutation` and `props` (`const [salutation, props] = useLexicalScope()`.)
+
+The ability for the Optimizer (and Qwik runtime) to capture lexically scoped constants significantly improves which functions can be extracted into lazy-loaded resources. It is a powerful tool for breaking up complex applications into smaller lazy-loadable chunks.

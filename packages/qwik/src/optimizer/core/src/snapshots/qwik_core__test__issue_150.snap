@@ -1,0 +1,92 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$, $ } from '@builder.io/qwik';
+
+export const Greeter = component$(() => {
+    return $(() => {
+        return (
+            <div/>
+        )
+    });
+});
+
+const d = $(()=>console.log('thing'));
+
+============================= test.js ==
+
+import * as qwik from "@builder.io/qwik";
+import { componentQrl } from "@builder.io/qwik";
+export const Greeter = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./greeter_component_sm3gbborfg0")
+, "Greeter_component_SM3gBboRfG0"));
+qwik.qrl(()=>import("./d_lpkevhzmi40")
+, "d_lPkevhzMI40");
+
+============================= greeter_component_1_gsxlhtv0lzu.js (ENTRY POINT)==
+
+import * as qwik from "@builder.io/qwik";
+import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
+export const Greeter_component_1_gsxlhtv0lZU = ()=>{
+    return /*#__PURE__*/ _jsx("div", {});
+};
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "Greeter_component_1_gsxlhtv0lZU",
+  "entry": null,
+  "canonicalFilename": "greeter_component_1_gsxlhtv0lzu",
+  "extension": "js",
+  "parent": "Greeter_component_SM3gBboRfG0",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false
+}
+*/
+============================= greeter_component_sm3gbborfg0.js (ENTRY POINT)==
+
+import * as qwik from "@builder.io/qwik";
+export const Greeter_component_SM3gBboRfG0 = ()=>{
+    return qwik.qrl(()=>import("./greeter_component_1_gsxlhtv0lzu")
+    , "Greeter_component_1_gsxlhtv0lZU");
+};
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "Greeter_component_SM3gBboRfG0",
+  "entry": null,
+  "canonicalFilename": "greeter_component_sm3gbborfg0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false
+}
+*/
+============================= d_lpkevhzmi40.js (ENTRY POINT)==
+
+import * as qwik from "@builder.io/qwik";
+export const d_lPkevhzMI40 = ()=>console.log('thing')
+;
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "d_lPkevhzMI40",
+  "entry": null,
+  "canonicalFilename": "d_lpkevhzmi40",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false
+}
+*/
+== DIAGNOSTICS ==
+
+[]

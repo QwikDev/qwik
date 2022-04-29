@@ -1,0 +1,79 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { $, component$ } from '@builder.io/qwik';
+
+const I1 = 12;
+const [I2, {I3, v1: [I4], I5=v2, ...I6}, I7=v3, ...I8] = obj;
+function I9() {}
+class I10 {}
+
+export const App = component$(({count}) => {
+    console.log(I1, I2, I3, I4, I5, I6, I7, I8, I9);
+    console.log(itsok, v1, v2, v3, obj);
+    return $(() => {
+        return (
+            <I10></I10>
+        )
+    });
+})
+
+============================= test.js ==
+
+import * as qwik from "@builder.io/qwik";
+import { componentQrl } from "@builder.io/qwik";
+const [I2, { I3 , v1: [I4] , I5 =v2 , ...I6 }, I7 = v3, ...I8] = obj;
+export const App = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./app_component_aj0udc0imoo")
+, "App_component_aJ0UdC0imoo"));
+
+============================= app_component_1_5lmk4chgyso.js (ENTRY POINT)==
+
+import * as qwik from "@builder.io/qwik";
+import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
+export const App_component_1_5Lmk4ChgYSo = ()=>{
+    return /*#__PURE__*/ _jsx(I10, {});
+};
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_1_5Lmk4ChgYSo",
+  "entry": null,
+  "canonicalFilename": "app_component_1_5lmk4chgyso",
+  "extension": "js",
+  "parent": "App_component_aJ0UdC0imoo",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false
+}
+*/
+============================= app_component_aj0udc0imoo.js (ENTRY POINT)==
+
+import * as qwik from "@builder.io/qwik";
+export const App_component_aJ0UdC0imoo = ({ count  })=>{
+    console.log(I1, I2, I3, I4, I5, I6, I7, I8, I9);
+    console.log(itsok, v1, v2, v3, obj);
+    return qwik.qrl(()=>import("./app_component_1_5lmk4chgyso")
+    , "App_component_1_5Lmk4ChgYSo");
+};
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_aJ0UdC0imoo",
+  "entry": null,
+  "canonicalFilename": "app_component_aj0udc0imoo",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false
+}
+*/
+== DIAGNOSTICS ==
+
+[Diagnostic { origin: Atom('test.tsx' type=dynamic), message: "Reference to root level identifier needs to be exported: I10", code_highlights: Some([CodeHighlight { message: None, loc: SourceLocation { start_line: 7, start_col: 7, end_line: 7, end_col: 9 } }]), hints: None, show_environment: false, severity: Error, documentation_url: None }, Diagnostic { origin: Atom('test.tsx' type=dynamic), message: "Reference to root level identifier needs to be exported: I1", code_highlights: Some([CodeHighlight { message: None, loc: SourceLocation { start_line: 4, start_col: 7, end_line: 4, end_col: 8 } }]), hints: None, show_environment: false, severity: Error, documentation_url: None }, Diagnostic { origin: Atom('test.tsx' type=dynamic), message: "Reference to root level identifier needs to be exported: I2", code_highlights: Some([CodeHighlight { message: None, loc: SourceLocation { start_line: 5, start_col: 8, end_line: 5, end_col: 9 } }]), hints: None, show_environment: false, severity: Error, documentation_url: None }, Diagnostic { origin: Atom('test.tsx' type=dynamic), message: "Reference to root level identifier needs to be exported: I3", code_highlights: Some([CodeHighlight { message: None, loc: SourceLocation { start_line: 5, start_col: 13, end_line: 5, end_col: 14 } }]), hints: None, show_environment: false, severity: Error, documentation_url: None }, Diagnostic { origin: Atom('test.tsx' type=dynamic), message: "Reference to root level identifier needs to be exported: I4", code_highlights: Some([CodeHighlight { message: None, loc: SourceLocation { start_line: 5, start_col: 22, end_line: 5, end_col: 23 } }]), hints: None, show_environment: false, severity: Error, documentation_url: None }, Diagnostic { origin: Atom('test.tsx' type=dynamic), message: "Reference to root level identifier needs to be exported: I5", code_highlights: Some([CodeHighlight { message: None, loc: SourceLocation { start_line: 5, start_col: 27, end_line: 5, end_col: 28 } }]), hints: None, show_environment: false, severity: Error, documentation_url: None }, Diagnostic { origin: Atom('test.tsx' type=dynamic), message: "Reference to root level identifier needs to be exported: I6", code_highlights: Some([CodeHighlight { message: None, loc: SourceLocation { start_line: 5, start_col: 37, end_line: 5, end_col: 38 } }]), hints: None, show_environment: false, severity: Error, documentation_url: None }, Diagnostic { origin: Atom('test.tsx' type=dynamic), message: "Reference to root level identifier needs to be exported: I7", code_highlights: Some([CodeHighlight { message: None, loc: SourceLocation { start_line: 5, start_col: 42, end_line: 5, end_col: 43 } }]), hints: None, show_environment: false, severity: Error, documentation_url: None }, Diagnostic { origin: Atom('test.tsx' type=dynamic), message: "Reference to root level identifier needs to be exported: I8", code_highlights: Some([CodeHighlight { message: None, loc: SourceLocation { start_line: 5, start_col: 52, end_line: 5, end_col: 53 } }]), hints: None, show_environment: false, severity: Error, documentation_url: None }, Diagnostic { origin: Atom('test.tsx' type=dynamic), message: "Reference to root level identifier needs to be exported: I9", code_highlights: Some([CodeHighlight { message: None, loc: SourceLocation { start_line: 6, start_col: 10, end_line: 6, end_col: 11 } }]), hints: None, show_environment: false, severity: Error, documentation_url: None }]

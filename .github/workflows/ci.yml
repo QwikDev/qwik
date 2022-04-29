@@ -6,8 +6,6 @@ on:
     branches:
       - main
   workflow_dispatch:
-    name: 'Release'
-    description: 'Publish to NPM, and create a Github release.'
     inputs:
       disttag:
         description: 'Publish to NPM using this dist-tag, push the git-tag to the repo and create a Github release. A "latest" and "next" dist-tags will use the version number already committed in package.json.'
@@ -35,21 +33,21 @@ jobs:
         run: echo ${{ github.head_ref }}
       - name: NPM Dist Tag
         run: echo "${{ github.event.inputs.disttag }}"
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: dorny/paths-filter@v2
         id: filter
         with:
           filters: |
             fullbuild:
-              - 'src/**/*.ts'
-              - 'src/**/*.tsx'
-              - 'src/**/*.js'
-              - 'src/**/*.mjs'
-              - 'src/**/*.cjs'
-              - 'src/**/*.jsx'
-              - 'src/**/*.toml'
-              - 'src/**/*.rs'
-              - 'src/**/*.lock'
+              - 'packages/qwik/src/**/*.ts'
+              - 'packages/qwik/src/**/*.tsx'
+              - 'packages/qwik/src/**/*.js'
+              - 'packages/qwik/src/**/*.mjs'
+              - 'packages/qwik/src/**/*.cjs'
+              - 'packages/qwik/src/**/*.jsx'
+              - 'packages/qwik/src/**/*.toml'
+              - 'packages/qwik/src/**/*.rs'
+              - 'packages/qwik/src/**/*.lock'
               - 'yarn.lock'
               - 'tsconfig.json'
       - name: Print fullbuild output
@@ -60,61 +58,58 @@ jobs:
     name: Build Package
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
       - name: Setup Node
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: 16.x
+          cache: 'yarn'
           registry-url: https://registry.npmjs.org/
 
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Cache NPM Dependencies
-        uses: actions/cache@v2
-        with:
-          path: node_modules
-          key: npm-cache-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+      - run: corepack enable
 
       - name: Install NPM Dependencies
-        run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
+        run: yarn install --immutable --network-timeout 300000
 
       - name: Build Package
-        run: node scripts --tsc --build --api --set-dist-tag="${{ github.event.inputs.disttag }}"
+        run: yarn node scripts --tsc --build --api --set-dist-tag="${{ github.event.inputs.disttag }}"
 
       - name: Print Package Dist Build
-        run: tree dist-dev/@builder.io-qwik/
+        run: tree packages/qwik/dist/
 
       - name: Upload Package Build Artifacts
         uses: actions/upload-artifact@master
         with:
           name: dist-dev-builder-io-qwik
-          path: dist-dev/@builder.io-qwik/
+          path: packages/qwik/dist/
           if-no-files-found: error
 
       - name: Build Create Qwik CLI
-        run: node scripts --cli
+        run: yarn node scripts --cli
 
       - name: Print Create Qwik CLI Dist Build
-        run: tree dist-dev/create-qwik/
+        run: tree packages/create-qwik/dist/
 
       - name: Upload Create Qwik CLI Build Artifacts
         uses: actions/upload-artifact@master
         with:
           name: dist-dev-create-qwik
-          path: dist-dev/create-qwik/
+          path: packages/create-qwik/dist/
           if-no-files-found: error
 
       - name: Build Eslint rules
-        run: node scripts --eslint
+        run: yarn node scripts --eslint
 
       - name: Print Eslint rules Dist Build
-        run: tree dist-dev/eslint-plugin-qwik/
+        run: tree packages/eslint-plugin-qwik/dist/
 
       - name: Upload Eslint rules Build Artifacts
         uses: actions/upload-artifact@master
         with:
           name: dist-dev-eslint-plugin-qwik
-          path: dist-dev/eslint-plugin-qwik/
+          path: packages/eslint-plugin-qwik/dist/
           if-no-files-found: error
 
   ############ BUILD WASM ############
@@ -128,12 +123,20 @@ jobs:
       - name: Print fullbuild output
         run: echo ${{ needs.changes.outputs.fullbuild }}
 
+      - name: Checkout
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
+        uses: actions/checkout@v3
+
       - name: Setup Node
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: 16.x
+          cache: 'yarn'
           registry-url: https://registry.npmjs.org/
+
+      - if: ${{ needs.changes.outputs.fullbuild == 'true' }}
+        run: corepack enable
 
       - name: Install Rust toolchain
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -143,17 +146,6 @@ jobs:
           override: true
           toolchain: 1.59.0
           target: wasm32-unknown-unknown
-
-      - name: Checkout
-        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/checkout@v2
-
-      - name: Cache NPM Dependencies
-        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/cache@v2
-        with:
-          path: node_modules
-          key: npm-cache-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
 
       - name: Cache cargo dependencies
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -167,27 +159,27 @@ jobs:
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/cache@v2
         with:
-          path: src/wasm/target
-          key: cargo-build-wasm-${{ runner.os }}-${{ hashFiles('./src/wasm/Cargo.lock') }}
+          path: packages/qwik/src/wasm/target
+          key: cargo-build-wasm-${{ runner.os }}-${{ hashFiles('./packages/qwik/src/wasm/Cargo.lock') }}
 
       - name: Install NPM Dependencies
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
+        run: yarn install --immutable --network-timeout 300000
 
       - name: Build WASM
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: node scripts --wasm --set-dist-tag="${{ github.event.inputs.disttag }}"
+        run: yarn node scripts --wasm --set-dist-tag="${{ github.event.inputs.disttag }}"
 
       - name: Print WASM Dist Build
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: tree dist-dev/@builder.io-qwik/bindings/
+        run: tree packages/qwik/dist/bindings/
 
       - name: Upload WASM Build Artifacts
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/upload-artifact@master
         with:
           name: dist-bindings-wasm
-          path: dist-dev/@builder.io-qwik/bindings/*
+          path: packages/qwik/dist/bindings/*
           if-no-files-found: error
 
   ############ BUILD PLATFORM BINDINGS ############
@@ -197,39 +189,40 @@ jobs:
         settings:
           - host: macos-latest
             target: x86_64-apple-darwin
-            build: yarn build.platform
+            build: yarn node scripts --platform-binding
 
           - host: macos-latest
             target: aarch64-apple-darwin
             build: |
               export SDKROOT=$(xcrun -sdk macosx11.1 --show-sdk-path)
               export MACOSX_DEPLOYMENT_TARGET=$(xcrun -sdk macosx11.1 --show-sdk-platform-version)
-              yarn build.platform --platform-target=aarch64-apple-darwin
+              yarn node scripts --platform-binding --platform-target=aarch64-apple-darwin
 
           - host: windows-latest
             target: x86_64-pc-windows-msvc
-            build: yarn build.platform
+            build: yarn node scripts --platform-binding
 
     name: Build ${{ matrix.settings.target }}
     runs-on: ${{ matrix.settings.host }}
 
     needs: changes
 
-    defaults:
-      run:
-        working-directory: ./src/napi/
-
     steps:
       - name: Checkout
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Setup Node
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: 16.x
+          cache: 'yarn'
           registry-url: https://registry.npmjs.org/
+
+      - if: ${{ needs.changes.outputs.fullbuild == 'true' }}
+        run: corepack enable
+        shell: bash
 
       - name: Install Rust toolchain
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -239,13 +232,6 @@ jobs:
           override: true
           toolchain: 1.59.0
           target: ${{ matrix.settings.target }}
-
-      - name: Cache NPM Dependencies
-        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/cache@v2
-        with:
-          path: node_modules
-          key: npm-cache-${{ matrix.settings.target }}-${{ hashFiles('yarn.lock') }}
 
       - name: Pull Latest Image
         if: ${{ needs.changes.outputs.fullbuild == 'true' && matrix.settings.docker }}
@@ -277,7 +263,7 @@ jobs:
 
       - name: Install NPM Dependencies
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
+        run: yarn install --immutable --network-timeout 300000
 
       - name: Build Platform Binding
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -289,7 +275,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: dist-bindings-${{ matrix.settings.target }}
-          path: dist-dev/@builder.io-qwik/bindings/*.node
+          path: packages/qwik/dist/bindings/*.node
           if-no-files-found: error
 
   ############ BUILD DISTRIBUTION ############
@@ -306,19 +292,10 @@ jobs:
       - changes
 
     steps:
-      - name: Setup Node
-        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/setup-node@v1
-        with:
-          node-version: 16.x
-          registry-url: https://registry.npmjs.org/
-
-      - name: Create dist-dev/@builder.io-qwik directory
+      - name: Create packages/qwik/dist/ directory
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: |
-          mkdir dist-dev/
-          mkdir dist-dev/@builder.io-qwik/
-          mkdir dist-dev/@builder.io-qwik/bindings/
+          mkdir -p packages/qwik/dist/bindings/
 
       - name: Download Build Artifacts
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -330,7 +307,7 @@ jobs:
 
       - name: Move Distribution Artifacts
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: mv dist-dev-builder-io-qwik/* dist-dev/@builder.io-qwik/
+        run: mv dist-dev-builder-io-qwik/* packages/qwik/dist/
 
       - name: Print Bindings Artifacts
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -338,18 +315,18 @@ jobs:
 
       - name: Move Binding Artifacts
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: mv dist-bindings-*/* dist-dev/@builder.io-qwik/bindings/
+        run: mv dist-bindings-*/* packages/qwik/dist/bindings/
 
       - name: Print dist-dev
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: tree dist-dev/
+        run: tree packages/qwik/dist/
 
       - name: Upload Qwik Distribution Artifact
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/upload-artifact@master
         with:
           name: builderio-qwik-distribution
-          path: dist-dev/@builder.io-qwik/*
+          path: packages/qwik/dist/*
           if-no-files-found: error
 
   ############ RELEASE ############
@@ -364,14 +341,17 @@ jobs:
     if: ${{ needs.changes.outputs.fullbuild == 'true' }}
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
       - name: Setup Node
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: 16.x
+          cache: 'yarn'
           registry-url: https://registry.npmjs.org/
 
-      - name: Checkout
-        uses: actions/checkout@v2
+      - run: corepack enable
 
       - name: Download Build Artifacts
         uses: actions/download-artifact@v2
@@ -384,33 +364,26 @@ jobs:
 
       - name: Move Distribution Artifacts
         run: |
-          mkdir dist-dev/
-          mkdir dist-dev/@builder.io-qwik/
-          mv builderio-qwik-distribution/* dist-dev/@builder.io-qwik/
-          mkdir dist-dev/create-qwik/
-          mv dist-dev-create-qwik/* dist-dev/create-qwik/
-          mkdir dist-dev/eslint-plugin-qwik/
-          mv dist-dev-eslint-plugin-qwik/* dist-dev/eslint-plugin-qwik/
-
-      - name: Cache NPM Dependencies
-        uses: actions/cache@v2
-        with:
-          path: node_modules
-          key: npm-cache-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+          mkdir -p packages/qwik/dist/
+          mv builderio-qwik-distribution/* packages/qwik/dist/
+          mkdir -p packages/create-qwik/dist/
+          mv dist-dev-create-qwik/* packages/create-qwik/dist/
+          mkdir -p packages/eslint-plugin-qwik/dist/
+          mv dist-dev-eslint-plugin-qwik/* packages/eslint-plugin-qwik/dist/
 
       - name: Install NPM Dependencies
-        run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
+        run: yarn install --immutable --network-timeout 300000
 
       - name: Dry-Run Publish @builder.io/qwik
         if: ${{ github.event_name != 'workflow_dispatch' }}
-        run: node scripts --set-dist-tag="${{ github.event.inputs.disttag }}" --release --dry-run
+        run: yarn node scripts --set-dist-tag="${{ github.event.inputs.disttag }}" --release --dry-run
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish @builder.io/qwik
         if: ${{ github.event_name == 'workflow_dispatch' }}
-        run: node scripts --set-dist-tag="${{ github.event.inputs.disttag }}" --release
+        run: yarn node scripts --set-dist-tag="${{ github.event.inputs.disttag }}" --release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -419,7 +392,7 @@ jobs:
         if: ${{ needs.changes.outputs.fullbuild == 'true' && github.event_name == 'push' }}
         env:
           API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
-        run: yarn qwik-save-artifacts
+        run: yarn run qwik-save-artifacts
 
   ############ E2E TEST ############
   test-e2e:
@@ -436,24 +409,29 @@ jobs:
             node: 16.x
           - host: macos-latest
             browser: webkit
-            node: 14.x
+            node: 16.x
           - host: windows-latest
             browser: firefox
-            node: 14.x
+            node: 16.x
 
     runs-on: ${{ matrix.settings.host }}
 
     steps:
-      - name: Setup Node ${{ matrix.settings.node }}
-        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/setup-node@v1
-        with:
-          node-version: ${{ matrix.settings.node }}
-          registry-url: https://registry.npmjs.org/
-
       - name: Checkout
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+
+      - name: Setup Node ${{ matrix.settings.node }}
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.settings.node }}
+          cache: 'yarn'
+          registry-url: https://registry.npmjs.org/
+
+      - if: ${{ needs.changes.outputs.fullbuild == 'true' }}
+        run: corepack enable
+        shell: bash
 
       - name: Download Build Artifacts
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -462,24 +440,16 @@ jobs:
       - name: Move Distribution Artifacts
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: |
-          mkdir dist-dev/
-          mkdir dist-dev/@builder.io-qwik/
-          mv builderio-qwik-distribution/* dist-dev/@builder.io-qwik/
-          mkdir dist-dev/create-qwik/
-          mv dist-dev-create-qwik/* dist-dev/create-qwik/
-          mkdir dist-dev/eslint-plugin-qwik/
-          mv dist-dev-eslint-plugin-qwik/* dist-dev/eslint-plugin-qwik/
-
-      - name: Cache NPM Dependencies
-        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/cache@v2
-        with:
-          path: node_modules
-          key: npm-cache-${{ runner.os }}-node${{ matrix.settings.node }}-${{ hashFiles('yarn.lock') }}
+          mkdir -p packages/qwik/dist/
+          mv builderio-qwik-distribution/* packages/qwik/dist/
+          mkdir -p packages/create-qwik/dist/
+          mv dist-dev-create-qwik/* packages/create-qwik/dist/
+          mkdir -p packages/eslint-plugin-qwik/dist/
+          mv dist-dev-eslint-plugin-qwik/* packages/eslint-plugin-qwik/dist/
 
       - name: Install NPM Dependencies
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
+        run: yarn install --immutable --network-timeout 300000
 
       - name: Install Playwright
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -487,11 +457,11 @@ jobs:
 
       - name: Playwright E2E Tests
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: yarn test.e2e.${{ matrix.settings.browser }}
+        run: yarn run test.e2e.${{ matrix.settings.browser }}
 
       - name: Validate Create Qwik Cli
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: node scripts/validate-cli.cjs
+        run: yarn node scripts/validate-cli.cjs
 
   ############ UNIT TEST ############
   test-unit:
@@ -501,26 +471,23 @@ jobs:
       - changes
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
       - name: Setup Node
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: 16.x
+          cache: 'yarn'
           registry-url: https://registry.npmjs.org/
 
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Cache NPM Dependencies
-        uses: actions/cache@v2
-        with:
-          path: node_modules
-          key: npm-cache-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+      - run: corepack enable
 
       - name: Install NPM Dependencies
-        run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
+        run: yarn install --immutable --network-timeout 300000
 
       - name: Jest Unit Tests
-        run: yarn test.unit
+        run: yarn run test.unit
 
   ########### VALIDATE RUST ############
   validate-rust:
@@ -530,9 +497,9 @@ jobs:
     needs: changes
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install Rust toolchain
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -591,21 +558,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
-      - name: Cache NPM Dependencies
-        uses: actions/cache@v2
+      - name: Setup Node
+        uses: actions/setup-node@v3
         with:
-          path: node_modules
-          key: npm-cache-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+          node-version: 16.x
+          cache: 'yarn'
+          registry-url: https://registry.npmjs.org/
+
+      - run: corepack enable
 
       - name: Install NPM Dependencies
-        run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
+        run: yarn install --immutable --network-timeout 300000
 
       - name: Prettier Check
         if: ${{ always() }}
-        run: yarn lint.prettier
+        run: yarn run lint.prettier
 
       - name: ESLint Check
         if: ${{ always() }}
-        run: yarn lint.eslint
+        run: yarn run lint.eslint

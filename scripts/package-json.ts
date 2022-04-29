@@ -8,7 +8,7 @@ import { join } from 'path';
  * Note that some of the properties can be pulled from the root package.json.
  */
 export async function generatePackageJson(config: BuildConfig) {
-  const rootPkg = await readPackageJson(config.rootDir);
+  const rootPkg = await readPackageJson(join(config.packagesDir, 'qwik'));
 
   const distPkg: PackageJSON = {
     name: rootPkg.name,
@@ -80,6 +80,7 @@ export async function generatePackageJson(config: BuildConfig) {
   };
 
   await writePackageJson(config.distPkgDir, distPkg);
+  console.log(config.distPkgDir);
 
   await generateLegacyCjsSubmodule(config, 'core');
   await generateLegacyCjsSubmodule(config, 'jsx-runtime');

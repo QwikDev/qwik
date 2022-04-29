@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    /* Visit https://aka.ms/tsconfig.json to read more about this file */
     /* Basic Options */
     "incremental": true /* Enable incremental compilation */,
     "target": "ES2020" /* Specify ECMAScript target version: 'ES3' (default), 'ES5', 'ES2015', 'ES2016', 'ES2017', 'ES2018', 'ES2019', 'ES2020', or 'ESNEXT'. */,
@@ -43,18 +42,22 @@
     "moduleResolution": "node" /* Specify module resolution strategy: 'node' (Node.js) or 'classic' (TypeScript pre-1.6). */,
     "baseUrl": "." /* Base directory to resolve non-absolute module names. */,
     "paths": {
-      "@builder.io/qwik": ["src/core/index"],
-      "@builder.io/qwik/jsx-runtime": ["src/jsx-runtime"],
-      "@builder.io/qwik/optimizer": ["src/optimizer/src/index"],
-      "@builder.io/qwik/server": ["src/server/index"],
-      "@builder.io/qwik/testing": ["src/testing/index"],
-      "@builder.io/qwik/build": ["src/build/index"]
+      "@builder.io/qwik": ["packages/qwik/src/core/index"],
+      "@builder.io/qwik/jsx-runtime": ["packages/qwik/src/jsx-runtime"],
+      "@builder.io/qwik/optimizer": ["packages/qwik/src/optimizer/src/index"],
+      "@builder.io/qwik/server": ["packages/qwik/src/server/index"],
+      "@builder.io/qwik/testing": ["packages/qwik/src/testing/index"],
+      "@builder.io/qwik/build": ["packages/qwik/src/build/index"],
+      "@builder.io/qwik-city": ["packages/qwik-city/src/runtime/index"],
+      "@builder.io/qwik-city/build": ["packages/qwik-city/src/runtime/build"],
+      "@builder.io/qwik-city/vite": ["packages/qwik-city/src/vite"]
     } /* List of root folders whose combined content represents the structure of the project at runtime. */,
     // "typeRoots": [],                       /* List of folders to include type definitions from. */
     "types": [
       "jest",
       "node",
-      "vite/client"
+      "vite/client",
+      "@cloudflare/workers-types"
     ] /* Type declaration files to be included in compilation. */,
     // "allowSyntheticDefaultImports": true,  /* Allow default imports from modules with no default export. This does not affect code emit, just typechecking. */
     "esModuleInterop": true /* Enables emit interoperability between CommonJS and ES Modules via creation of namespace objects for all imports. Implies 'allowSyntheticDefaultImports'. */,
@@ -72,6 +75,13 @@
     "skipLibCheck": true /* Skip type checking of declaration files. */,
     "forceConsistentCasingInFileNames": true /* Disallow inconsistently-cased references to the same file. */
   },
-  "include": ["src", "scripts", "starters"],
-  "exclude": ["src/optimizer/core", "starters/servers"]
+  "include": [
+    "scripts",
+    "packages/qwik",
+    "packages/qwik-city",
+    "packages/docs",
+    "packages/create-cli",
+    "starters"
+  ],
+  "exclude": ["starters/servers"]
 }

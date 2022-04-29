@@ -1,0 +1,147 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$, $, useStore, wrap, useEffect } from '@builder.io/qwik';
+
+export const useMemoQrl = (qrt) => {
+    useEffect(qrt);
+};
+
+export const useMemo$ = wrap(useMemoQrl);
+
+export const App = component$((props) => {
+    const state = useStore({count: 0});
+    useMemo$(() => {
+        console.log(state.count);
+    });
+    return $(() => (
+        <div>{state.count}</div>
+    ));
+});
+
+export const Lightweight = (props) => {
+    useMemo$(() => {
+        console.log(state.count);
+    });
+});
+
+============================= test.js ==
+
+import * as qwik from "@builder.io/qwik";
+import { componentQrl } from "@builder.io/qwik";
+import { wrap, useEffect } from '@builder.io/qwik';
+export const useMemoQrl = (qrt)=>{
+    useEffect(qrt);
+};
+export const useMemo$ = wrap(useMemoQrl);
+export const App = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./app_component_aj0udc0imoo")
+, "App_component_aJ0UdC0imoo"));
+export const Lightweight = (props)=>{
+    useMemoQrl(qwik.qrl(()=>import("./lightweight_usememo_rx2j0yl31sg")
+    , "Lightweight_useMemo_RX2j0yl31sg"));
+};
+
+============================= app_component_usememo_fsndwbsnir4.js (ENTRY POINT)==
+
+import * as qwik from "@builder.io/qwik";
+export const App_component_useMemo_fSnDwbsnir4 = ()=>{
+    const [state] = qwik.useLexicalScope();
+    console.log(state.count);
+};
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_useMemo_fSnDwbsnir4",
+  "entry": null,
+  "canonicalFilename": "app_component_usememo_fsndwbsnir4",
+  "extension": "js",
+  "parent": "App_component_aJ0UdC0imoo",
+  "ctxKind": "function",
+  "ctxName": "useMemo$",
+  "captures": true
+}
+*/
+============================= app_component_1_5lmk4chgyso.js (ENTRY POINT)==
+
+import * as qwik from "@builder.io/qwik";
+import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
+export const App_component_1_5Lmk4ChgYSo = ()=>{
+    const [state] = qwik.useLexicalScope();
+    return /*#__PURE__*/ _jsx("div", {
+        children: state.count
+    });
+};
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_1_5Lmk4ChgYSo",
+  "entry": null,
+  "canonicalFilename": "app_component_1_5lmk4chgyso",
+  "extension": "js",
+  "parent": "App_component_aJ0UdC0imoo",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true
+}
+*/
+============================= app_component_aj0udc0imoo.js (ENTRY POINT)==
+
+import * as qwik from "@builder.io/qwik";
+import { useMemoQrl } from "./test";
+import { useStore } from "@builder.io/qwik";
+export const App_component_aJ0UdC0imoo = (props)=>{
+    const state = useStore({
+        count: 0
+    });
+    useMemoQrl(qwik.qrl(()=>import("./app_component_usememo_fsndwbsnir4")
+    , "App_component_useMemo_fSnDwbsnir4", [
+        state
+    ]));
+    return qwik.qrl(()=>import("./app_component_1_5lmk4chgyso")
+    , "App_component_1_5Lmk4ChgYSo", [
+        state
+    ]);
+};
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_aJ0UdC0imoo",
+  "entry": null,
+  "canonicalFilename": "app_component_aj0udc0imoo",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false
+}
+*/
+============================= lightweight_usememo_rx2j0yl31sg.js (ENTRY POINT)==
+
+import * as qwik from "@builder.io/qwik";
+export const Lightweight_useMemo_RX2j0yl31sg = ()=>{
+    console.log(state.count);
+};
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "Lightweight_useMemo_RX2j0yl31sg",
+  "entry": null,
+  "canonicalFilename": "lightweight_usememo_rx2j0yl31sg",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "useMemo$",
+  "captures": false
+}
+*/
+== DIAGNOSTICS ==
+
+[]

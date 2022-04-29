@@ -1,0 +1,146 @@
+{
+  "name": "@builder.io/qwik",
+  "version": "0.0.19-0",
+  "description": "An Open-Source sub-framework designed with a focus on server-side-rendering, lazy-loading, and styling/animation.",
+  "main": "./dist/core.cjs",
+  "module": "./dist/core.mjs",
+  "types": "./core.d.ts",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/core.mjs",
+      "require": "./dist/core.cjs"
+    },
+    "./core": {
+      "import": "./dist/core.mjs",
+      "require": "./dist/core.cjs"
+    },
+    "./core.cjs": "./dist/core.cjs",
+    "./core.mjs": "./dist/core.mjs",
+    "./jsx-runtime": {
+      "import": "./dist/jsx-runtime.mjs",
+      "require": "./dist/jsx-runtime.cjs"
+    },
+    "./build": {
+      "import": "./dist/build/index.mjs",
+      "require": "./dist/build/index.cjs"
+    },
+    "./jsx-dev-runtime": {
+      "import": "./dist/jsx-runtime.mjs",
+      "require": "./dist/jsx-runtime.cjs"
+    },
+    "./loader": {
+      "import": "./dist/loader/index.mjs",
+      "require": "./dist/loader/index.cjs"
+    },
+    "./optimizer.cjs": "./dist/optimizer.cjs",
+    "./optimizer.mjs": "./dist/optimizer.mjs",
+    "./optimizer": {
+      "import": "./dist/optimizer.mjs",
+      "require": "./dist/optimizer.cjs"
+    },
+    "./server.cjs": "./dist/server.cjs",
+    "./server.mjs": "./dist/server.mjs",
+    "./server": {
+      "import": "./dist/server.mjs",
+      "require": "./dist/server.cjs"
+    },
+    "./testing": {
+      "import": "./dist/testing/index.mjs",
+      "require": "./dist/testing/index.cjs"
+    },
+    "./qwikloader.js": "./dist/qwikloader.js",
+    "./qwikloader.debug.js": "./dist/qwikloader.debug.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "bindings/qwik.darwin-x64.node",
+    "bindings/qwik.darwin-arm64.node",
+    "bindings/qwik.win32-x64-msvc.node",
+    "bindings/qwik_wasm_bg.wasm",
+    "bindings/qwik.wasm.cjs",
+    "bindings/qwik.wasm.mjs",
+    "build/index.cjs",
+    "build/index.cjs.map",
+    "build/index.mjs",
+    "build/index.mjs.map",
+    "build/index.d.ts",
+    "build/package.json",
+    "core/package.json",
+    "core.cjs",
+    "core.cjs.map",
+    "core.min.mjs",
+    "core.mjs",
+    "core.mjs.map",
+    "core.d.ts",
+    "jsx-runtime/package.json",
+    "jsx-runtime.cjs",
+    "jsx-runtime.cjs.map",
+    "jsx-runtime.mjs",
+    "jsx-runtime.mjs.map",
+    "jsx-runtime.d.ts",
+    "loader/index.cjs",
+    "loader/index.mjs",
+    "loader/index.d.ts",
+    "loader/package.json",
+    "optimizer/package.json",
+    "optimizer.cjs",
+    "optimizer.mjs",
+    "optimizer.d.ts",
+    "qwikloader.js",
+    "qwikloader.debug.js",
+    "qwikloader.optimize.js",
+    "qwikloader.optimize.debug.js",
+    "server.cjs",
+    "server.mjs",
+    "server.d.ts",
+    "server/package.json",
+    "testing/index.cjs",
+    "testing/index.mjs",
+    "testing/index.d.ts",
+    "testing/package.json"
+  ],
+  "contributors": [
+    {
+      "name": "Miško Hevery",
+      "email": "misko@hevery.com",
+      "url": "https://github.com/BuilderIO/qwik"
+    },
+    {
+      "name": "Adam Bradley",
+      "email": "adam@builder.io",
+      "url": "https://twitter.com/adamdbradley"
+    },
+    {
+      "name": "Manu Mtz.-Almeida",
+      "email": "manu@builder.io",
+      "url": "https://twitter.com/manucorporat"
+    }
+  ],
+  "license": "MIT",
+  "homepage": "https://qwik.builder.io/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/BuilderIO/qwik.git",
+    "directory": "packages/qwik"
+  },
+  "bugs": {
+    "url": "https://github.com/BuilderIO/qwik/issues"
+  },
+  "keywords": [
+    "ssr",
+    "server-side-render",
+    "prerender",
+    "ssg",
+    "static-site-generator",
+    "static-site",
+    "generator",
+    "website",
+    "webapp",
+    "framework",
+    "Builder.io"
+  ],
+  "engines": {
+    "node": ">=14"
+  }
+}

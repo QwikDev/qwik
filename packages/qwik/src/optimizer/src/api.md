@@ -187,10 +187,10 @@ export interface QwikRollupPluginOptions extends BasePluginOptions {
 }
 
 // @alpha (undocumented)
-export function qwikVite(qwikViteOpts?: QwikViteOptions): any;
+export function qwikVite(qwikViteOpts?: QwikVitePluginOptions): any;
 
 // @alpha (undocumented)
-export interface QwikViteOptions extends BasePluginOptions {
+export interface QwikVitePluginOptions extends BasePluginOptions {
     // (undocumented)
     optimizerOptions?: OptimizerOptions;
     // (undocumented)
@@ -243,8 +243,6 @@ export type SystemEnvironment = 'node' | 'deno' | 'webworker' | 'browsermain' | 
 //
 // @alpha (undocumented)
 export interface TransformFsOptions extends TransformOptions {
-    // (undocumented)
-    rootDir: string;
 }
 
 // @alpha (undocumented)
@@ -273,8 +271,6 @@ export interface TransformModuleInput {
 export interface TransformModulesOptions extends TransformOptions {
     // (undocumented)
     input: TransformModuleInput[];
-    // (undocumented)
-    rootDir: string;
 }
 
 // @alpha (undocumented)

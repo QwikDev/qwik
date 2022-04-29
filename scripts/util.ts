@@ -21,6 +21,7 @@ import { promisify } from 'util';
 import gzipSize from 'gzip-size';
 import { minify, MinifyOptions } from 'terser';
 import type { Plugin as RollupPlugin } from 'rollup';
+import { execa, Options } from 'execa';
 
 /**
  * Contains information about the build we're generating by parsing
@@ -29,7 +30,8 @@ import type { Plugin as RollupPlugin } from 'rollup';
  */
 export interface BuildConfig {
   rootDir: string;
-  distDir: string;
+  packagesDir: string;
+  tmpDir: string;
   srcNapiDir: string;
   srcDir: string;
   scriptsDir: string;
@@ -67,14 +69,15 @@ export function loadConfig(args: string[] = []) {
   const config: BuildConfig = mri(args) as any;
 
   config.rootDir = join(__dirname, '..');
-  config.distDir = join(config.rootDir, 'dist-dev');
-  config.srcDir = join(config.rootDir, 'src');
+  config.packagesDir = join(config.rootDir, 'packages');
+  config.tmpDir = join(config.rootDir, 'dist-dev');
+  config.srcDir = join(config.packagesDir, 'qwik', 'src');
   config.srcNapiDir = join(config.srcDir, 'napi');
   config.scriptsDir = join(config.rootDir, 'scripts');
   config.startersDir = join(config.rootDir, 'starters');
-  config.distPkgDir = join(config.distDir, '@builder.io-qwik');
+  config.distPkgDir = join(config.packagesDir, 'qwik', 'dist');
   config.distBindingsDir = join(config.distPkgDir, 'bindings');
-  config.tscDir = join(config.distDir, 'tsc-out');
+  config.tscDir = join(config.tmpDir, 'tsc-out');
   config.esmNode = parseInt(process.version.slice(1).split('.')[0], 10) >= 14;
   config.platformBinding = (config as any)['platform-binding'];
   config.prepareRelease = (config as any)['prepare-release'];
@@ -257,6 +260,26 @@ export function ensureDir(dir: string) {
   try {
     mkdirSync(dir, { recursive: true });
   } catch (e) {}
+}
+
+export async function run(
+  cmd: string,
+  args: string[],
+  skipExecution?: boolean,
+  dryRunCliFlag?: boolean,
+  opts?: Options
+) {
+  if (dryRunCliFlag) {
+    args = [...args, '--dry-run'];
+  }
+  const bash = `   ${cmd} ${args.join(' ')}`;
+  console.log(bash, opts ? JSON.stringify(opts) : '');
+  if (!skipExecution) {
+    const result = await execa(cmd, args, opts);
+    if (result.failed) {
+      panic(`Finished with error: ${bash}`);
+    }
+  }
 }
 
 export function panic(msg: string) {

@@ -1,0 +1,89 @@
+---
+title: Why Qwik?
+---
+
+# Why Qwik?
+
+The JavaScript ecosystem already has a large selection of frameworks. Why build another one?
+
+The short answer is that Qwik solves a problem that other frameworks can't solve. Qwik has instant-on startup performance no matter the application complexity.
+
+## What is the problem?
+
+Modern websites require vast amounts of JavaScript to become interactive. Too much JavaScript manifests itself in two problems:
+
+1. **Network bandwidth**: A large amount of code is shipped to the client, which may take a long time on slow networks.
+2. **Startup time**: Once on the client, the code needs to be executed (as part of hydration) to get the site interactive.
+
+As our applications get more complex with a higher fidelity of interactivity, the amount of code has steadily increased over the years with no sign of stopping. Simply put, our sites are getting more complex. An increase in site complexity, in turn, requires more code. All of this code negatively impacts site startup performance.
+
+To make matters worse, JavaScript is single-threaded; therefore, our complex sites can't take advantage of modern multi-core CPUs.
+
+## Why is the problem worth solving?
+
+Because there is a lot of evidence that says that site startup performance affects the bottom line. Slow sites:
+
+- Frustrate users
+- Lower conversion rates
+- Decrease profits
+
+Put simply: slow sites deter visitors, costing businesses millions. Fast sites have better SEO, better UX, and are more profitable.
+
+Some examples from [web.dev](https://web.dev):
+
+|                                                                                                                                                                                                                                               |                                                                                                                                                        |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Every 100ms faster → 1% more conversions** <br /> For Mobify, every 100ms decrease in homepage load speed worked out to a 1.11% increase in session-based conversion, yielding an average annual revenue increase of nearly $380,000.       | **50% faster → 12% more sales** <br /> When AutoAnything reduced page load time by half, they saw a boost of 12% to 13% in sales.                      |
+| **20% faster → 10% more conversions** <br /> Retailer Furniture Village audited their site speed and developed a plan to address the problems they found, leading to a 20% reduction in page load time and a 10% increase in conversion rate. | **40% faster → 15% more sign-ups** <br /> Pinterest reduced perceived wait times by 40% and this increased search engine traffic and sign-ups by 15%.  |
+| **850ms faster → 7% more conversions** <br /> COOK reduced average page load time by 850 milliseconds which increased conversions by 7%, decreased bounce rates by 7%, and increased pages per session by 10%.                                | **1 seconds slowness → 10% less users** <br /> The BBC found they lost an additional 10% of users for every additional second their site took to load. |
+|                                                                                                                                                                                                                                               |                                                                                                                                                        |
+
+## How did we get here?
+
+The solution to the above problem is both obvious and hard: Ship less JavaScript.
+
+It's obvious because we all agree that sites with less JavaScript would perform better.
+
+It is hard because our tools don't help us to get there. Almost all of our tools solve problems in a way that makes shipping less JavaScript hard. This is because most of our tools are designed to solve a specific problem without thinking about the amount of JavaScript they generate.
+
+Do you need to solve rendering, styling, animation, A/B testing, analytics, etc.? There is a tool for that. Just import or add a `<script>` tag, and these tools will solve your problems, but at the expense of making the initial bundle bigger.
+
+As an industry, we have failed to think about the implication of bundle size. Each tool solves a specific problem individually, but the size is not part of the equation. Size is the problem that emerges when you put all of the tools together, and by that point, there is very little the developer can do about it.
+
+# Solution
+
+Qwik is designed from the ground up to address the size problem. Small bundle size is its initial goal, and all other design decisions are subservient to that goal.
+
+Qwik is not about creating less JavaScript. Qwik is about not having to ship all of that JavaScript to the client at once on application startup. Qwik is what you end up with when you take the idea of delay loading of JavaScript to the extreme.
+
+Yes, Qwik requires a different way of thinking and designing your application, but the result is near zero initial JavaScript with progressive JavaScript download based on user interactions.
+
+## Size should not be a developer problem
+
+Today, size is the developers' problem. If you follow best practices for each of the frameworks, tools, etc., you will have a large bundle size. It is at that time when developers start to mitigate the problem with some sort of lazy loading boundaries etc. (But as anyone who has tried will tell you, the options are limited.)
+
+Our industry best practices lead to large bundles, and the web is full of examples.
+
+The mantra of Qwik is that bundle size should not be something that developers should think about. It should just naturally emerge as part of how the framework is designed.
+
+Qwik is designed from the ground up to produce lots of lazy loadable boundaries. Tooling can break up your application into many lazy-loadable chunks, and the runtime can download them only when needed.
+
+## What is Qwik
+
+Qwik is a framework that, above all else, desires to have instant-on application. Qwik achieves this through:
+
+1. **Philosophy**: Qwik's philosophy extends into API designed in such a way so that lazy loading is introduced into the codebase without undue burden on the developer.
+2. **Optimizer**: A Build system that can take advantage of the philosophy to produce a lot of entry points for your application (a large number of entry points allows you to break the application into many small chunks.)
+3. **runtime**: A runtime that understands the bundling strategy to deliver on the promise of instant-on applications (In many cases, the application can be interactive with near-zero JavaScript.)
+
+## Why not fix existing frameworks/tools
+
+In short, the lazy loading philosophy is at a low level and can not be retroactively added to the existing frameworks/tools without changing them fundamentally. Such fundamental change would be incompatible with the framework/tools and their respective ecosystems, rendering them useless.
+
+When a framework makes certain assumptions, such as that all rendering is synchronous, adding asynchronous lazy loading becomes pretty close to impossible. Or, if a framework recovers the listener location from templates, then download and execution of those templates is a must before the site can be interactive. These are just some of the more obvious examples, but in practice, there is a long tail of endless reasons why the current mental model does not fit the requirements of resumability.
+
+The above also means that it is not feasible for existing frameworks to add resumability as a feature. Existing frameworks will never be able to do what Qwik can (without breaking backward compatibility).
+
+## Why are we building Qwik?
+
+Because we believe there is a better way to build sites. A way that does not involve massive amounts of JavaScript that must be downloaded eagerly on startup before your site becomes interactive. A way that allows the developer to think about adding features rather than how to break up the huge codebase into smaller chunks. A way to have instant-on sites for a better user experience. And all of that, in a way that is independent of the size of the application codebase.

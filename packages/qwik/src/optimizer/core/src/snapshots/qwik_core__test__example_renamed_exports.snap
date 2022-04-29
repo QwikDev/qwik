@@ -1,0 +1,78 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$ as Component, $ as onRender, useStore } from '@builder.io/qwik';
+
+export const App = Component((props) => {
+    const state = useStore({thing: 0});
+
+    return onRender(() => (
+        <div>{state.thing}</div>
+    ));
+});
+
+============================= test.js ==
+
+import * as qwik from "@builder.io/qwik";
+import { componentQrl } from "@builder.io/qwik";
+export const App = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./app_component_fude1doyyty")
+, "App_Component_FUDE1DoYyTY"));
+
+============================= app_component_1_ifurk0ircu0.js (ENTRY POINT)==
+
+import * as qwik from "@builder.io/qwik";
+import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
+export const App_Component_1_ifurK0IrCu0 = ()=>{
+    const [state] = qwik.useLexicalScope();
+    return /*#__PURE__*/ _jsx("div", {
+        children: state.thing
+    });
+};
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_Component_1_ifurK0IrCu0",
+  "entry": null,
+  "canonicalFilename": "app_component_1_ifurk0ircu0",
+  "extension": "js",
+  "parent": "App_Component_FUDE1DoYyTY",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true
+}
+*/
+============================= app_component_fude1doyyty.js (ENTRY POINT)==
+
+import * as qwik from "@builder.io/qwik";
+import { useStore } from "@builder.io/qwik";
+export const App_Component_FUDE1DoYyTY = (props)=>{
+    const state = useStore({
+        thing: 0
+    });
+    return qwik.qrl(()=>import("./app_component_1_ifurk0ircu0")
+    , "App_Component_1_ifurK0IrCu0", [
+        state
+    ]);
+};
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_Component_FUDE1DoYyTY",
+  "entry": null,
+  "canonicalFilename": "app_component_fude1doyyty",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false
+}
+*/
+== DIAGNOSTICS ==
+
+[]

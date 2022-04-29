@@ -143,7 +143,7 @@ async function generatePlatformBindingsData(config: BuildConfig) {
   // - node_modules/@node-rs/helper/lib/loader.js
   // - node_modules/@napi-rs/triples/index.js
 
-  const pkg = await readPackageJson(config.rootDir);
+  const pkg = await readPackageJson(join(config.packagesDir, 'qwik'));
   const bindingFiles = pkg
     .files!.filter((f) => f.startsWith('bindings/'))
     .map((f) => f.replace('bindings/', ''));

@@ -88,7 +88,7 @@ export async function submoduleServer(config: BuildConfig) {
 }
 
 async function bundleQwikDom(config: BuildConfig) {
-  const outfile = join(config.distDir, 'qwikdom.mjs');
+  const outfile = join(config.tmpDir, 'qwikdom.mjs');
 
   const opts: BuildOptions = {
     entryPoints: [require.resolve('@builder.io/qwik-dom')],
@@ -127,7 +127,7 @@ const browserCjsRequireShim = `
 if (typeof require !== 'function' && typeof location !== 'undefined' && typeof navigator !== 'undefined') {
   // shim cjs require() for core.cjs within a browser
   globalThis.require = function(path) {
-    if (path === './core.cjs') { 
+    if (path === './core.cjs') {
       if (!self.qwikCore) {
         throw new Error('Qwik Core global, "globalThis.qwikCore", must already be loaded for the Qwik Server to be used within a browser.');
       }

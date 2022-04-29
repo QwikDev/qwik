@@ -1,11 +1,11 @@
 [workspace]
 
 members = [
-    "src/napi",
-    "src/optimizer/cli",
-    "src/optimizer/core",
+    "packages/qwik/src/napi",
+    "packages/qwik/src/optimizer/cli",
+    "packages/qwik/src/optimizer/core",
 ]
-exclude = ["src/wasm"]
+exclude = ["packages/qwik/src/wasm"]
 
 [profile.release]
 debug = 0

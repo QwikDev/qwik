@@ -15,8 +15,7 @@ const { pathToFileURL } = require('url');
 async function validateCreateQwikCli() {
   console.log(`👾 validating create-qwik...`);
 
-  const distDir = join(__dirname, '..', 'dist-dev');
-  const cliDir = join(distDir, 'create-qwik');
+  const cliDir = join(__dirname, '..', 'packages', 'create-qwik', 'dist');
   accessSync(cliDir);
 
   const cliBin = join(cliDir, 'create-qwik');
@@ -47,10 +46,11 @@ async function validateCreateQwikCli() {
   assert.ok(starters.servers.length > 0);
   assert.ok(starters.features.length > 0);
 
-  await validateStarter(api, distDir, 'starter', 'express');
-  await validateStarter(api, distDir, 'starter-builder', 'cloudflare-pages');
-  await validateStarter(api, distDir, 'starter-partytown', 'express');
-  await validateStarter(api, distDir, 'todo', 'cloudflare-pages');
+  const tmpDir = join(__dirname, '..', 'dist-dev');
+  await validateStarter(api, tmpDir, 'starter', 'express');
+  await validateStarter(api, tmpDir, 'starter-builder', 'cloudflare-pages');
+  await validateStarter(api, tmpDir, 'starter-partytown', 'express');
+  await validateStarter(api, tmpDir, 'todo', 'cloudflare-pages');
 
   console.log(`👽 create-qwik validated\n`);
 }
@@ -96,7 +96,7 @@ async function validateStarter(api, distDir, appId, serverId) {
   const qwikNodeModule = join(appDir, 'node_modules', '@builder.io', 'qwik');
   rmSync(qwikNodeModule, { force: true, recursive: true });
 
-  const distQwik = join(__dirname, '..', 'dist-dev', '@builder.io-qwik');
+  const distQwik = join(__dirname, '..', 'packages', 'qwik', 'dist');
   cpSync(distQwik, qwikNodeModule, { recursive: true });
 
   console.log(`🌈 ${projectName}: npm run build`);

@@ -1,0 +1,143 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { $, component$ } from '@builder.io/qwik';
+
+export const Foo = component$(({foo}) => {
+    const arg0 = 20;
+    return $(() => {
+        const fn = ({aaa}) => aaa;
+        return (
+            <div>
+              {foo}{fn()}{arg0}
+            </div>
+        )
+    });
+})
+
+export const Bar = component$(({bar}) => {
+    return $(() => {
+        return (
+            <div>
+              {bar}
+            </div>
+        )
+    });
+})
+
+============================= test.tsx ==
+
+import * as qwik from "@builder.io/qwik";
+import { componentQrl } from "@builder.io/qwik";
+export const Foo = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./foo_component_7n2avllyvuo")
+, "Foo_component_7N2avlLYVuo"));
+export const Bar = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./bar_component_uznktldcnik")
+, "Bar_component_uZnKTldcnIk"));
+
+============================= foo_component_1_hm6unygc0fq.tsx (ENTRY POINT)==
+
+import * as qwik from "@builder.io/qwik";
+export const Foo_component_1_Hm6UNYgc0fQ = ()=>{
+    const [arg0, foo] = qwik.useLexicalScope();
+    const fn = ({ aaa  })=>aaa
+    ;
+    return <div >
+
+              {foo}{fn()}{arg0}
+
+            </div>;
+};
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "Foo_component_1_Hm6UNYgc0fQ",
+  "entry": null,
+  "canonicalFilename": "foo_component_1_hm6unygc0fq",
+  "extension": "tsx",
+  "parent": "Foo_component_7N2avlLYVuo",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true
+}
+*/
+============================= foo_component_7n2avllyvuo.tsx (ENTRY POINT)==
+
+import * as qwik from "@builder.io/qwik";
+export const Foo_component_7N2avlLYVuo = ({ foo  })=>{
+    const arg0 = 20;
+    return qwik.qrl(()=>import("./foo_component_1_hm6unygc0fq")
+    , "Foo_component_1_Hm6UNYgc0fQ", [
+        arg0,
+        foo
+    ]);
+};
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "Foo_component_7N2avlLYVuo",
+  "entry": null,
+  "canonicalFilename": "foo_component_7n2avllyvuo",
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false
+}
+*/
+============================= bar_component_1_ok7ugeck8a0.tsx (ENTRY POINT)==
+
+import * as qwik from "@builder.io/qwik";
+export const Bar_component_1_Ok7UgECk8A0 = ()=>{
+    const [bar] = qwik.useLexicalScope();
+    return <div >
+
+              {bar}
+
+            </div>;
+};
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "Bar_component_1_Ok7UgECk8A0",
+  "entry": null,
+  "canonicalFilename": "bar_component_1_ok7ugeck8a0",
+  "extension": "tsx",
+  "parent": "Bar_component_uZnKTldcnIk",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true
+}
+*/
+============================= bar_component_uznktldcnik.tsx (ENTRY POINT)==
+
+import * as qwik from "@builder.io/qwik";
+export const Bar_component_uZnKTldcnIk = ({ bar  })=>{
+    return qwik.qrl(()=>import("./bar_component_1_ok7ugeck8a0")
+    , "Bar_component_1_Ok7UgECk8A0", [
+        bar
+    ]);
+};
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "Bar_component_uZnKTldcnIk",
+  "entry": null,
+  "canonicalFilename": "bar_component_uznktldcnik",
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false
+}
+*/
+== DIAGNOSTICS ==
+
+[]

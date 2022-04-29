@@ -1,0 +1,162 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { $, component$, useStyles } from '@builder.io/qwik';
+
+const componentQrl = () => console.log('not this');
+componentQrl();
+export const Foo = component$(() => {
+    useStyles$('thing');
+    const qwik = 12;
+    console.log(qwik);
+    return $(() => {
+        return (
+            <div/>
+        )
+    });
+}, {
+    tagName: "my-foo",
+});
+
+export const Root = component$(() => {
+    useStyles($('thing'));
+    return $(() => {
+        return (
+            <div/>
+        )
+    });
+}, {
+    tagName: "my-foo",
+});
+
+============================= test.js ==
+
+import * as qwik from "@builder.io/qwik";
+import { componentQrl as componentQrl1 } from "@builder.io/qwik";
+const componentQrl = ()=>console.log('not this')
+;
+componentQrl();
+export const Foo = /*#__PURE__*/ componentQrl1(qwik.qrl(()=>import("./foo_component_7n2avllyvuo")
+, "Foo_component_7N2avlLYVuo"), {
+    tagName: "my-foo"
+});
+export const Root = /*#__PURE__*/ componentQrl1(qwik.qrl(()=>import("./root_component_0xhmgr6gqgo")
+, "Root_component_0xHmGR6gqGo"), {
+    tagName: "my-foo"
+});
+
+============================= foo_component_1_hm6unygc0fq.js (ENTRY POINT)==
+
+import * as qwik from "@builder.io/qwik";
+import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
+export const Foo_component_1_Hm6UNYgc0fQ = ()=>{
+    return /*#__PURE__*/ _jsx("div", {});
+};
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "Foo_component_1_Hm6UNYgc0fQ",
+  "entry": null,
+  "canonicalFilename": "foo_component_1_hm6unygc0fq",
+  "extension": "js",
+  "parent": "Foo_component_7N2avlLYVuo",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false
+}
+*/
+============================= foo_component_7n2avllyvuo.js (ENTRY POINT)==
+
+import * as qwik from "@builder.io/qwik";
+export const Foo_component_7N2avlLYVuo = ()=>{
+    useStyles$('thing');
+    const qwik1 = 12;
+    console.log(qwik1);
+    return qwik.qrl(()=>import("./foo_component_1_hm6unygc0fq")
+    , "Foo_component_1_Hm6UNYgc0fQ");
+};
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "Foo_component_7N2avlLYVuo",
+  "entry": null,
+  "canonicalFilename": "foo_component_7n2avllyvuo",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false
+}
+*/
+============================= root_component_1_coqyhuaakko.js (ENTRY POINT)==
+
+import * as qwik from "@builder.io/qwik";
+export const Root_component_1_CoQyHuAaKko = 'thing';
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "Root_component_1_CoQyHuAaKko",
+  "entry": null,
+  "canonicalFilename": "root_component_1_coqyhuaakko",
+  "extension": "js",
+  "parent": "Root_component_0xHmGR6gqGo",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false
+}
+*/
+============================= root_component_2_vg0hwihqrq8.js (ENTRY POINT)==
+
+import * as qwik from "@builder.io/qwik";
+import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
+export const Root_component_2_VG0hWIhQRQ8 = ()=>{
+    return /*#__PURE__*/ _jsx("div", {});
+};
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "Root_component_2_VG0hWIhQRQ8",
+  "entry": null,
+  "canonicalFilename": "root_component_2_vg0hwihqrq8",
+  "extension": "js",
+  "parent": "Root_component_0xHmGR6gqGo",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false
+}
+*/
+============================= root_component_0xhmgr6gqgo.js (ENTRY POINT)==
+
+import * as qwik from "@builder.io/qwik";
+import { useStyles } from "@builder.io/qwik";
+export const Root_component_0xHmGR6gqGo = ()=>{
+    useStyles(qwik.qrl(()=>import("./root_component_1_coqyhuaakko")
+    , "Root_component_1_CoQyHuAaKko"));
+    return qwik.qrl(()=>import("./root_component_2_vg0hwihqrq8")
+    , "Root_component_2_VG0hWIhQRQ8");
+};
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "Root_component_0xHmGR6gqGo",
+  "entry": null,
+  "canonicalFilename": "root_component_0xhmgr6gqgo",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false
+}
+*/
+== DIAGNOSTICS ==
+
+[]

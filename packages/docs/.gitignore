@@ -1,0 +1,9 @@
+.cache
+.mf
+.vscode
+.rollup.cache
+server
+dist
+node_modules
+tsconfig.tsbuildinfo
+q-symbols.json

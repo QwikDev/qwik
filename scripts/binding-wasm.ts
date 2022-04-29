@@ -5,15 +5,15 @@ import { rollup } from 'rollup';
 
 export async function buildWasmBinding(config: BuildConfig) {
   const srcWasmDir = join(config.srcDir, `wasm`);
-  const tmpBuildDir = join(config.distDir, `wasm-out`);
+  const tmpBuildDir = join(config.tmpDir, `wasm-out`);
 
   ensureDir(config.distPkgDir);
   ensureDir(config.distBindingsDir);
   emptyDir(tmpBuildDir);
 
   async function buildForTarget(env = {}) {
-    const cmd = `npx`;
-    const args = [`wasm-pack`, `build`, '--target', 'web', `--out-dir`, tmpBuildDir];
+    const cmd = `wasm-pack`;
+    const args = [`build`, '--target', 'web', `--out-dir`, tmpBuildDir];
     if (!config.dev) {
       args.push(`--release`);
     }

@@ -1,0 +1,106 @@
+---
+title: Props
+fetch: https://hackmd.io/@mhevery/SJRM4p1W5
+---
+
+# Props
+
+Use props to pass data into the child component. Props are declared as named arguments to the OnMount function.
+
+In this example a component `Item` declares optional `name`, `quantity`, `description`, and `price`.
+
+```tsx
+const Item = component$((props: {
+   name?: string,
+   quantity?: number,
+   description?: string,
+   price?: number
+  }) => {
+    return ...;
+  }
+);
+```
+
+The resulting component can be used like so:
+
+```tsx
+const MyApp = component$(() => {
+  return (
+    <>
+      - With no props: <Item />
+      - With some props: <Item description="Item description" />- With all props:{' '}
+      <Item name="Hammer" quantity={3} description="Best organic hammer" price={10.0} />
+    </>
+  );
+});
+```
+
+## Type information
+
+Using TypeScript, the props type information correctly flows into the component.
+
+```tsx
+interface ItemProps {
+  name?: string,
+  quantity?: number,
+  description?: string,
+  price?: number
+};
+
+
+const Item: JSXNode<ItemProps> = component$((props: ItemProps) => {
+  return ...;
+});
+```
+
+Notice that `Item` is of type `JSXNode<ItemProps>`, which constraints the `<Item />` usage to only declared properties. (`<Item foo="bar"/>` would produce a type error as `foo` is not part of the `Item`'s props.)
+
+It is possible to extract the type interface from the `Item` using `PropsOf`.
+
+```tsx
+const props: PropsOf<Item> = {
+  name: 'Item',
+  ...
+};
+```
+
+## Serialization
+
+Qwik components can render out of order. A component can render without forcing a parent component to render first or to force child components to render as a consequence of the component render. This is an important property of Qwik because it allows Qwik applications to only re-render components which have been invalidated due to state change rather than re-rendering the whole component tree on change.
+
+When components render, they need to have access to their props. Parent components create props. The props must be serializable for the component to render independently from the parent. (See serialization for an in-depth discussion on what is serializable.)
+
+## Invalidating child components
+
+When re-rendering a component, the child component props can stay the same or be updated. A child component only invalidates if the child component props change.
+
+```tsx
+const Child = component$((props: { count: number }) => {
+  return <span>{props.count}</span>;
+});
+
+const MyApp = component$(() => {
+  const store = useStore({ a: 0, b: 0, c: 0 });
+
+  return (
+    <>
+      <button onClick$={() => store.a++}>a++</button>
+      <button onClick$={() => store.b++}>b++</button>
+      <button onClick$={() => store.c++}>c++</button>
+      {JSON.stringify(store)}
+
+      <Child count={store.a} />
+      <Child count={store.b} />
+    </>
+  );
+});
+```
+
+In the above example, there are two `<Child/>` components.
+
+- Every time a button is clicked, one of the three counters is incremented. A change of counter state will cause the `MyApp` component to re-render on each click.
+- If `store.c` has been incremented, none of the child components get re-render. (And therefore, their code does not get lazy-loaded.)
+- If `store.a` has been incremented than only `<Child count={store.a}/>` will re-render.
+- If `store.b` has been incremented than only `<Child count={store.b}/>` will re-render.
+
+Notice that the child components only re-render when their props change. This is an important property of Qwik applications as it significantly limits the amount of re-rendering the application must do on state change. While less re-rendering has performance benefits, the real benefit is that large portions of the applications do not get downloaded if they don't need to be re-rendered.

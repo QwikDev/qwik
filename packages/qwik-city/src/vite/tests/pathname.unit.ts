@@ -24,12 +24,17 @@ test('pathname from index.md', ({ ctx }) => {
   assert.is(p, '/');
 });
 
-test('index in subdirectory not allowed', ({ ctx }) => {
-  assert.throws(() => {
-    const filePath = join(ctx.opts.pagesDir, 'Dir', 'index.md');
-    const p = utils.getPagePathname(ctx, filePath);
-    assert.is(p, '/dir');
-  });
+test('index in subdirectory, trailingSlash', ({ ctx }) => {
+  ctx.opts.trailingSlash = true;
+  const filePath = join(ctx.opts.pagesDir, 'Dir', 'index.md');
+  const p = utils.getPagePathname(ctx, filePath);
+  assert.is(p, '/dir/');
+});
+
+test('index in subdirectory', ({ ctx }) => {
+  const filePath = join(ctx.opts.pagesDir, 'Dir', 'index.md');
+  const p = utils.getPagePathname(ctx, filePath);
+  assert.is(p, '/dir');
 });
 
 test('pathname from page.mdx', ({ ctx }) => {
@@ -123,6 +128,21 @@ test('index href ./getting-started.txt', ({ ctx }) => {
   const indexFilePath = join(ctx.opts.pagesDir, 'guide', 'README.md');
   const p = utils.getIndexLinkHref(ctx, indexFilePath, href);
   assert.is(p, './getting-started.txt');
+});
+
+test('js module / path', () => {
+  const p = utils.getPagesBuildPath('/');
+  assert.is(p, 'pages/index.js');
+});
+
+test('js module /basics path', () => {
+  const p = utils.getPagesBuildPath('/basics');
+  assert.is(p, 'pages/basics/index.js');
+});
+
+test('js module /basics/index path', () => {
+  const p = utils.getPagesBuildPath('/basics/index');
+  assert.is(p, 'pages/basics/index.js');
 });
 
 test.run();

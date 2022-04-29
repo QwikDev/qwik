@@ -1,11 +1,11 @@
 import { createMdxTransformer, MdxTransform } from './mdx';
-import { stat, readFile } from 'fs/promises';
-import { isAbsolute, join } from 'path';
+import { stat } from 'fs/promises';
+import { isAbsolute } from 'path';
 import type { ModuleGraph, ModuleNode, Plugin, ViteDevServer } from 'vite';
 import { createBuildCode } from './code-generation';
 import { loadPages } from './load-pages';
 import type { PluginContext, PluginOptions } from './types';
-import { getPagesBuildPath, isMarkdownFile, normalizeOptions } from './utils';
+import { getPagesBuildPath, normalizeOptions } from './utils';
 
 /**
  * @public
@@ -19,8 +19,9 @@ export function qwikCity(options: PluginOptions) {
   let inlinedModules = false;
 
   const plugin: Plugin = {
-    enforce: 'pre',
     name: 'vite-plugin-qwik-city',
+
+    enforce: 'pre',
 
     config(userConfig) {
       inlinedModules = !!userConfig.build?.ssr;
@@ -87,7 +88,7 @@ export function qwikCity(options: PluginOptions) {
             this.emitFile({
               type: 'chunk',
               id: p.filePath,
-              fileName: getPagesBuildPath(p),
+              fileName: getPagesBuildPath(p.pathname),
               preserveSignature: 'allow-extension',
             });
           });
@@ -137,9 +138,6 @@ function isPageModuleDependency(qwikCityMod: ModuleNode | undefined, changedFile
   checkDep(qwikCityMod);
   return isDep;
 }
-
-// const QWIK_CITY_ID = '@builder.io/qwik-city';
-// const RESOLVED_QWIK_CITY_ID = '\0' + QWIK_CITY_ID;
 
 const QWIK_CITY_BUILD_ID = '@builder.io/qwik-city/build';
 const RESOLVED_QWIK_CITY_BUILD_ID = '\0' + QWIK_CITY_BUILD_ID;

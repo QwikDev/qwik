@@ -686,7 +686,29 @@ __metadata:
   resolution: "@builder.io/qwik-city@workspace:packages/qwik-city"
   dependencies:
     "@mdx-js/mdx": ^2.1.1
+    "@microsoft/api-extractor": ^7.23.0
+    "@types/github-slugger": ^1.3.0
+    "@types/marked": ^4.0.3
     "@types/mdx": 2.0.1
+    "@types/refractor": ^3.0.2
+    estree-util-value-to-estree: ^1.3.0
+    front-matter: ^4.0.2
+    github-slugger: ^1.4.0
+    hast-util-heading-rank: ^2.1.0
+    hast-util-to-string: ^2.0.0
+    history: ^5.3.0
+    marked: ^4.0.14
+    refractor: ^4.6.0
+    rehype-autolink-headings: ^6.1.1
+    remark-frontmatter: ^4.0.1
+    remark-gfm: ^3.0.1
+    slugify: ^1.6.5
+    source-map: ^0.7.3
+    tsm: ^2.2.1
+    unified: ^10.1.2
+    unist-util-visit: ^4.1.0
+    uvu: ^0.5.3
+    vfile: ^5.3.2
   languageName: unknown
   linkType: soft
 
@@ -1921,7 +1943,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/refractor@npm:3.0.2":
+"@types/refractor@npm:^3.0.2":
   version: 3.0.2
   resolution: "@types/refractor@npm:3.0.2"
   dependencies:
@@ -4215,7 +4237,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"estree-util-value-to-estree@npm:1.3.0":
+"estree-util-value-to-estree@npm:^1.3.0":
   version: 1.3.0
   resolution: "estree-util-value-to-estree@npm:1.3.0"
   dependencies:
@@ -4571,7 +4593,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"front-matter@npm:4.0.2":
+"front-matter@npm:^4.0.2":
   version: 4.0.2
   resolution: "front-matter@npm:4.0.2"
   dependencies:
@@ -4739,7 +4761,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"github-slugger@npm:1.4.0":
+"github-slugger@npm:^1.4.0":
   version: 1.4.0
   resolution: "github-slugger@npm:1.4.0"
   checksum: 4f52e7a21f5c6a4c5328f01fe4fe13ae8881fea78bfe31f9e72c4038f97e3e70d52fb85aa7633a52c501dc2486874474d9abd22aa61cbe9b113099a495551c6b
@@ -4891,7 +4913,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"hast-util-heading-rank@npm:2.1.0, hast-util-heading-rank@npm:^2.0.0":
+"hast-util-heading-rank@npm:^2.0.0, hast-util-heading-rank@npm:^2.1.0":
   version: 2.1.0
   resolution: "hast-util-heading-rank@npm:2.1.0"
   dependencies:
@@ -4941,7 +4963,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"hast-util-to-string@npm:2.0.0":
+"hast-util-to-string@npm:^2.0.0":
   version: 2.0.0
   resolution: "hast-util-to-string@npm:2.0.0"
   dependencies:
@@ -4970,7 +4992,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"history@npm:5.3.0":
+"history@npm:^5.3.0":
   version: 5.3.0
   resolution: "history@npm:5.3.0"
   dependencies:
@@ -6366,7 +6388,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"marked@npm:4.0.14":
+"marked@npm:^4.0.14":
   version: 4.0.14
   resolution: "marked@npm:4.0.14"
   bin:
@@ -8129,38 +8151,12 @@ __metadata:
     "@builder.io/qwik-city": "workspace:*"
     "@cloudflare/kv-asset-handler": 0.2.0
     "@cloudflare/workers-types": ^3.7.1
-    "@mdx-js/mdx": ^2.1.1
-    "@microsoft/api-extractor": ^7.23.0
-    "@types/github-slugger": ^1.3.0
-    "@types/marked": ^4.0.3
-    "@types/mdx": 2.0.1
-    "@types/node": 17.0.29
-    "@types/refractor": 3.0.2
     autoprefixer: 10.4.5
-    estree-util-value-to-estree: 1.3.0
-    front-matter: 4.0.2
-    github-slugger: 1.4.0
-    hast-util-heading-rank: 2.1.0
-    hast-util-to-string: 2.0.0
-    history: 5.3.0
-    marked: 4.0.14
     node-fetch: 2.6.7
     postcss: 8.4.12
-    prettier: 2.6.2
     prism-themes: 1.9.0
-    refractor: ^4.6.0
-    rehype-autolink-headings: 6.1.1
-    remark-frontmatter: 4.0.1
-    remark-gfm: 3.0.1
-    slugify: 1.6.5
-    source-map: 0.7.3
     tailwindcss: 3.0.24
-    tsm: 2.2.1
-    typescript: 4.6.3
-    unified: 10.1.2
-    unist-util-visit: 4.1.0
     uvu: 0.5.3
-    vfile: 5.3.2
     vite: 2.9.6
     wrangler: beta
   languageName: unknown
@@ -8305,7 +8301,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rehype-autolink-headings@npm:6.1.1":
+"rehype-autolink-headings@npm:^6.1.1":
   version: 6.1.1
   resolution: "rehype-autolink-headings@npm:6.1.1"
   dependencies:
@@ -8320,7 +8316,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"remark-frontmatter@npm:4.0.1":
+"remark-frontmatter@npm:^4.0.1":
   version: 4.0.1
   resolution: "remark-frontmatter@npm:4.0.1"
   dependencies:
@@ -8332,7 +8328,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"remark-gfm@npm:3.0.1":
+"remark-gfm@npm:^3.0.1":
   version: 3.0.1
   resolution: "remark-gfm@npm:3.0.1"
   dependencies:
@@ -8770,7 +8766,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"slugify@npm:1.6.5":
+"slugify@npm:^1.6.5":
   version: 1.6.5
   resolution: "slugify@npm:1.6.5"
   checksum: a955a1b600201030f4c1daa9bb74a17d4402a0693fc40978bbd17e44e64fd72dad3bac4037422aa8aed55b5170edd57f3f4cd8f59ba331f5cf0f10f1a7795609
@@ -8853,13 +8849,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"source-map@npm:0.7.3, source-map@npm:^0.7.3":
-  version: 0.7.3
-  resolution: "source-map@npm:0.7.3"
-  checksum: cd24efb3b8fa69b64bf28e3c1b1a500de77e84260c5b7f2b873f88284df17974157cc88d386ee9b6d081f08fdd8242f3fc05c953685a6ad81aad94c7393dedea
-  languageName: node
-  linkType: hard
-
 "source-map@npm:^0.5.0, source-map@npm:^0.5.6":
   version: 0.5.7
   resolution: "source-map@npm:0.5.7"
@@ -8871,6 +8860,13 @@ __metadata:
   version: 0.6.1
   resolution: "source-map@npm:0.6.1"
   checksum: 59ce8640cf3f3124f64ac289012c2b8bd377c238e316fb323ea22fbfe83da07d81e000071d7242cad7a23cd91c7de98e4df8830ec3f133cb6133a5f6e9f67bc2
+  languageName: node
+  linkType: hard
+
+"source-map@npm:^0.7.3":
+  version: 0.7.3
+  resolution: "source-map@npm:0.7.3"
+  checksum: cd24efb3b8fa69b64bf28e3c1b1a500de77e84260c5b7f2b873f88284df17974157cc88d386ee9b6d081f08fdd8242f3fc05c953685a6ad81aad94c7393dedea
   languageName: node
   linkType: hard
 
@@ -9375,7 +9371,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tsm@npm:2.2.1":
+"tsm@npm:^2.2.1":
   version: 2.2.1
   resolution: "tsm@npm:2.2.1"
   dependencies:
@@ -9482,7 +9478,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"unified@npm:10.1.2, unified@npm:^10.0.0":
+"unified@npm:^10.0.0, unified@npm:^10.1.2":
   version: 10.1.2
   resolution: "unified@npm:10.1.2"
   dependencies:
@@ -9595,17 +9591,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"unist-util-visit@npm:4.1.0, unist-util-visit@npm:^4.0.0":
-  version: 4.1.0
-  resolution: "unist-util-visit@npm:4.1.0"
-  dependencies:
-    "@types/unist": ^2.0.0
-    unist-util-is: ^5.0.0
-    unist-util-visit-parents: ^5.0.0
-  checksum: 3521abee2ed4535092aac073d05f46255475c89781b8e9d8c951a473d91b5d6e4d5912ae4a68a4c1cf17a42ed0108cb93103c7f5c736977529969997451363fb
-  languageName: node
-  linkType: hard
-
 "unist-util-visit@npm:^3.0.0":
   version: 3.1.0
   resolution: "unist-util-visit@npm:3.1.0"
@@ -9614,6 +9599,17 @@ __metadata:
     unist-util-is: ^5.0.0
     unist-util-visit-parents: ^4.0.0
   checksum: c37dbc0c5509f85f3abdf46d927b3dd11e6c419159771b1f1a5ce446d36ac993d04b087e28bc6173a172e0fbe9d77e997f120029b2b449766ebe55b6f6e0cc2c
+  languageName: node
+  linkType: hard
+
+"unist-util-visit@npm:^4.0.0, unist-util-visit@npm:^4.1.0":
+  version: 4.1.0
+  resolution: "unist-util-visit@npm:4.1.0"
+  dependencies:
+    "@types/unist": ^2.0.0
+    unist-util-is: ^5.0.0
+    unist-util-visit-parents: ^5.0.0
+  checksum: 3521abee2ed4535092aac073d05f46255475c89781b8e9d8c951a473d91b5d6e4d5912ae4a68a4c1cf17a42ed0108cb93103c7f5c736977529969997451363fb
   languageName: node
   linkType: hard
 
@@ -9661,7 +9657,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"uvu@npm:0.5.3, uvu@npm:^0.5.0":
+"uvu@npm:0.5.3, uvu@npm:^0.5.0, uvu@npm:^0.5.3":
   version: 0.5.3
   resolution: "uvu@npm:0.5.3"
   dependencies:
@@ -9727,7 +9723,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vfile@npm:5.3.2, vfile@npm:^5.0.0":
+"vfile@npm:^5.0.0, vfile@npm:^5.3.2":
   version: 5.3.2
   resolution: "vfile@npm:5.3.2"
   dependencies:

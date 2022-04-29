@@ -8,13 +8,16 @@
     "enabled": true,
     "untrimmedFilePath": "<projectFolder>/dist/index.d.ts"
   },
+  "apiReport": {
+    "enabled": true,
+    "reportFileName": "api.md",
+    "reportFolder": "<projectFolder>/src/runtime/",
+    "reportTempFolder": "<projectFolder>/dist-dev/api-extractor/qwik-city/"
+  },
   "docModel": {
     "enabled": false
   },
   "tsdocMetadata": {
-    "enabled": false
-  },
-  "apiReport": {
     "enabled": false
   },
   "messages": {

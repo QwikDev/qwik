@@ -139,6 +139,8 @@
       "<rootDir>/.github/",
       "<rootDir>/.husky/",
       "<rootDir>/.vscode/",
+      "<rootDir>/packages/eslint-plugin-qwik/dist/",
+      "<rootDir>/packages/qwik/dist/",
       "<rootDir>/packages/qwik/src/cli/",
       "<rootDir>/packages/qwik/src/napi/",
       "<rootDir>/packages/qwik/src/optimizer/cli/",

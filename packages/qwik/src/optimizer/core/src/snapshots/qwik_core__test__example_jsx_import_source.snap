@@ -1,5 +1,5 @@
 ---
-source: src/optimizer/core/src/test.rs
+source: packages/qwik/src/optimizer/core/src/test.rs
 expression: output
 ---
 ==INPUT==
@@ -37,6 +37,7 @@ export const App2_qwikify_bmuAj4WH2wc = ()=>/*#__PURE__*/ _jsx("div", {
         onClick$: ()=>console.log('App2')
     })
 ;
+export { handleWatch } from "@builder.io/qwik";
 
 /*
 {

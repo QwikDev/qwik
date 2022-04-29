@@ -32,6 +32,7 @@ export const App_Component_1_ifurK0IrCu0 = ()=>{
         children: state.thing
     });
 };
+export { handleWatch } from "@builder.io/qwik";
 
 /*
 {
@@ -59,6 +60,7 @@ export const App_Component_FUDE1DoYyTY = (props)=>{
         state
     ]);
 };
+export { handleWatch } from "@builder.io/qwik";
 
 /*
 {

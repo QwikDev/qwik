@@ -255,24 +255,10 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                             scoped_idents: &h.data.scoped_idents,
                             global: &qwik_transform.options.global_collect,
                             qwik_ident: &qwik_transform.qwik_ident,
+                            is_entry,
                             leading_comments: comments_maps.0.clone(),
                             trailing_comments: comments_maps.1.clone(),
                         })?;
-
-                        if transpile && is_jsx {
-                            let mut react_options = react::Options::default();
-                            if is_jsx {
-                                react_options.throw_if_namespace = false;
-                                react_options.runtime = Some(react::Runtime::Automatic);
-                                react_options.import_source = "@builder.io/qwik".to_string();
-                            };
-                            hook_module = hook_module.fold_with(&mut react::react(
-                                Lrc::clone(&source_map),
-                                Some(&comments),
-                                react_options,
-                                global_mark,
-                            ));
-                        }
 
                         if config.minify == MinifyMode::Minify {
                             hook_module = optimize(

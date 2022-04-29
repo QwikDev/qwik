@@ -35,6 +35,7 @@ export const App_component_div_onClick_cnJgsj2zcCA = ()=>{
     const [count, state] = qwik.useLexicalScope();
     return state.count += count + total;
 };
+export { handleWatch } from "@builder.io/qwik";
 
 /*
 {
@@ -82,6 +83,7 @@ export const App_component_1_5Lmk4ChgYSo = ()=>{
         ]
     });
 };
+export { handleWatch } from "@builder.io/qwik";
 
 /*
 {
@@ -125,6 +127,7 @@ export const App_component_aJ0UdC0imoo = ({ count , rest: [I2, { I3 , v1: [I4] ,
         state
     ]);
 };
+export { handleWatch } from "@builder.io/qwik";
 
 /*
 {

@@ -33,6 +33,7 @@ import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 export const Greeter_component_1_gsxlhtv0lZU = ()=>{
     return /*#__PURE__*/ _jsx("div", {});
 };
+export { handleWatch } from "@builder.io/qwik";
 
 /*
 {
@@ -54,6 +55,7 @@ export const Greeter_component_SM3gBboRfG0 = ()=>{
     return qwik.qrl(()=>import("./greeter_component_1_gsxlhtv0lzu")
     , "Greeter_component_1_gsxlhtv0lZU");
 };
+export { handleWatch } from "@builder.io/qwik";
 
 /*
 {
@@ -73,6 +75,7 @@ export const Greeter_component_SM3gBboRfG0 = ()=>{
 import * as qwik from "@builder.io/qwik";
 export const d_lPkevhzMI40 = ()=>console.log('thing')
 ;
+export { handleWatch } from "@builder.io/qwik";
 
 /*
 {

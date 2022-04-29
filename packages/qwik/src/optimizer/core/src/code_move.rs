@@ -1,6 +1,8 @@
 use crate::collector::{new_ident_from_id, GlobalCollect, Id, ImportKind};
 use crate::parse::{emit_source_code, HookAnalysis, PathData, TransformModule, TransformOutput};
-use crate::transform::{create_internal_call, create_synthetic_wildcard_import};
+use crate::transform::{
+    create_internal_call, create_synthetic_named_export, create_synthetic_wildcard_import,
+};
 use crate::words::*;
 
 use std::collections::HashMap;
@@ -22,6 +24,7 @@ pub struct NewModuleCtx<'a> {
     pub scoped_idents: &'a [Id],
     pub global: &'a GlobalCollect,
     pub qwik_ident: &'a Id,
+    pub is_entry: bool,
     pub leading_comments: SingleThreadedCommentsMap,
     pub trailing_comments: SingleThreadedCommentsMap,
 }
@@ -112,6 +115,7 @@ pub fn new_module(ctx: NewModuleCtx) -> Result<(ast::Module, SingleThreadedComme
                 )));
         }
     }
+
     let expr = if !ctx.scoped_idents.is_empty() {
         Box::new(transform_function_expr(
             *ctx.expr,
@@ -123,7 +127,13 @@ pub fn new_module(ctx: NewModuleCtx) -> Result<(ast::Module, SingleThreadedComme
     };
 
     module.body.push(create_named_export(expr, ctx.name));
-
+    if ctx.is_entry {
+        // Inject qwik internal import
+        module.body.push(create_synthetic_named_export(
+            &HANDLE_WATCH,
+            &BUILDER_IO_QWIK,
+        ));
+    }
     Ok((module, comments))
 }
 
@@ -282,6 +292,11 @@ fn new_entry_module(hooks: &[&HookAnalysis]) -> ast::Module {
                 },
             )));
     }
+
+    module.body.push(create_synthetic_named_export(
+        &HANDLE_WATCH,
+        &BUILDER_IO_QWIK,
+    ));
 
     module
 }

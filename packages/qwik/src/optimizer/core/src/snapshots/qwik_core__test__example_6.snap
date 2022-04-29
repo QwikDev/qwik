@@ -1,5 +1,5 @@
 ---
-source: src/optimizer/core/src/test.rs
+source: packages/qwik/src/optimizer/core/src/test.rs
 expression: output
 ---
 ==INPUT==
@@ -19,6 +19,7 @@ export const sym1 = qwik.qrl(()=>import("./sym1_m7o9wqhv9rw")
 import * as qwik from "@builder.io/qwik";
 export const sym1_M7o9WQHV9rw = (ctx)=>console.log("1")
 ;
+export { handleWatch } from "@builder.io/qwik";
 
 /*
 {

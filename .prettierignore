@@ -5,6 +5,7 @@
 .vscode/settings.json
 .history
 .yarn
+.yarnrc.yml
 .mf
 dist
 dist-dev
@@ -25,5 +26,5 @@ build
 build
 node_modules
 tsconfig.tsbuildinfo
-packages/docs/pages/
+packages/docs/pages/*.mdx
 packages/docs/server/

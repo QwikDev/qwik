@@ -19,10 +19,10 @@ export const loadDependencies = async (version: string, options: ReplInputOption
     console.time('Load dependencies');
     self.qwikCore = self.qwikOptimizer = self.qwikServer = self.rollup = null as any;
 
-    const coreCjsUrl = `/repl/core.cjs`;
-    const coreEsmUrl = `/repl/core.mjs`;
-    const optimizerCjsUrl = `/repl/optimizer.cjs`;
-    const serverCjsUrl = `/repl/server.cjs`;
+    const coreCjsUrl = getNpmCdnUrl('@builder.io/qwik', version, '/core.cjs');
+    const coreEsmUrl = getNpmCdnUrl('@builder.io/qwik', version, '/core.mjs');
+    const optimizerCjsUrl = getNpmCdnUrl('@builder.io/qwik', version, '/optimizer.mjs');
+    const serverCjsUrl = getNpmCdnUrl('@builder.io/qwik', version, '/server.mjs');
     const rollupUrl = getNpmCdnUrl('rollup', ROLLUP_VERSION, '/dist/rollup.browser.js');
     const prettierUrl = getNpmCdnUrl('prettier', PRETTIER_VERSION, '/standalone.js');
     const prettierHtmlUrl = getNpmCdnUrl('prettier', PRETTIER_VERSION, '/parser-html.js');

@@ -43,7 +43,7 @@ export const Repl = component$(async (props: ReplProps) => {
     debug: false,
     iframeUrl: 'about:blank',
     iframeWindow: null,
-    version: props.version || '0.0.19-0',
+    version: props.version || '0.0.19-1',
   });
 
   if (!store.selectedInputPath) {

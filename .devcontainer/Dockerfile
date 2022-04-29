@@ -1,4 +1,4 @@
-FROM node:16.12.0-buster
+FROM node:17.9.0-buster
 
 ENV RUSTUP_HOME=/usr/local/rustup \
     CARGO_HOME=/usr/local/cargo \
@@ -27,4 +27,5 @@ RUN set -eux; \
     rustup update; \
     rustup target add wasm32-unknown-unknown; \
     cargo install cargo-insta; \
-    rustup component add clippy;
+    rustup component add clippy; \
+    corepack enable

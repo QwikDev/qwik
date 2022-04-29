@@ -1,4 +1,5 @@
 import { execa } from 'execa';
+import { mkdir } from 'fs/promises';
 
 const token = process.env.API_TOKEN_GITHUB;
 const repo = `https://${token}:x-oauth-basic@github.com/BuilderIO/qwik-build.git`;
@@ -10,6 +11,9 @@ const qwik_package = root + '/packages/qwik/dist';
 (async () => {
   await $('rm', '-rf', qwik_build_artifacts);
   const SHA = await $('git', 'rev-parse', 'HEAD');
+  await mkdir(`${root}/dist-dev`, {
+    recursive: true,
+  });
   process.chdir(`${root}/dist-dev`);
   await $('git', 'clone', repo);
   const branch = await $('git', 'branch', '--show-current');

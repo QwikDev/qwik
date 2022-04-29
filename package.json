@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "qwik-monorepo",
-  "version": "0.0.19-0",
+  "version": "0.0.19-1",
   "scripts": {
     "build": "yarn node scripts --tsc --build --api --eslint --platform-binding --wasm",
     "build.platform": "yarn node scripts --platform-binding",

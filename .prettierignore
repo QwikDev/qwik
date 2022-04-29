@@ -5,6 +5,7 @@
 .vscode/settings.json
 .history
 .yarn
+.yarnrc.yml
 .mf
 dist
 dist-dev

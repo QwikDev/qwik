@@ -1,5 +1,4 @@
 import { resolve } from 'path';
-import type { OptimizerOptions } from '../types';
 import { createPlugin } from './plugin';
 
 describe('qwik plugin', () => {
@@ -13,6 +12,7 @@ describe('qwik plugin', () => {
       expect(opts.isDevBuild).toBe(false);
       expect(opts.buildMode).toBe('client');
       expect(opts.rootDir).toBe(cwd);
+      expect(opts.forceFullBuild).toBe(true);
       expect(opts.outClientDir).toBe(resolve(cwd, 'dist'));
       expect(opts.outServerDir).toBe(resolve(cwd, 'server'));
       expect(opts.srcDir).toBe(resolve(cwd, 'src'));
@@ -48,6 +48,26 @@ describe('qwik plugin', () => {
       const plugin = mockPlugin();
       const opts = await plugin.normalizeOptions({ entryStrategy: { type: 'component' } });
       expect(opts.entryStrategy.type).toBe('component');
+      expect(opts.forceFullBuild).toBe(true);
+    });
+
+    it('entryStrategy, hook no forceFullBuild', async () => {
+      const plugin = mockPlugin();
+      const opts = await plugin.normalizeOptions({ entryStrategy: { type: 'hook' } });
+      expect(opts.entryStrategy.type).toBe('hook');
+      expect(opts.forceFullBuild).toBe(false);
+    });
+
+    it('entryStrategy, forceFullBuild false', async () => {
+      const plugin = mockPlugin();
+      const opts = await plugin.normalizeOptions({ forceFullBuild: false });
+      expect(opts.forceFullBuild).toBe(false);
+    });
+
+    it('entryStrategy, forceFullBuild true', async () => {
+      const plugin = mockPlugin();
+      const opts = await plugin.normalizeOptions({ forceFullBuild: true });
+      expect(opts.forceFullBuild).toBe(true);
     });
 
     it('minify', async () => {

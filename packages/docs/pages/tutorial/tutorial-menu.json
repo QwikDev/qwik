@@ -1,0 +1,32 @@
+[
+  {
+    "id": "introduction",
+    "title": "Introduction",
+    "tutorials": [
+      {
+        "id": "basics",
+        "title": "Basics",
+        "enableHtmlOutput": false,
+        "enableClientOutput": false,
+        "enableSsrOutput": false
+      },
+      {
+        "id": "lazy-loading",
+        "title": "Lazy Loading",
+        "enableHtmlOutput": false,
+        "enableClientOutput": false,
+        "enableSsrOutput": false
+      }
+    ]
+  },
+  {
+    "id": "reactivity",
+    "title": "Reactivity",
+    "tutorials": [
+      {
+        "id": "assignments",
+        "title": "Assignments"
+      }
+    ]
+  }
+]

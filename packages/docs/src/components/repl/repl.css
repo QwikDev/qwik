@@ -1,0 +1,251 @@
+.repl {
+  color: rgb(43, 43, 43);
+  background-color: white;
+}
+
+.repl-panel {
+  position: relative;
+  height: 100%;
+}
+
+.repl-tab-buttons {
+  grid-area: repl-tab-buttons;
+  background-color: var(--repl-tab-bg-color);
+  height: var(--repl-tab-height);
+  font-size: 14px;
+}
+
+.repl-tab {
+  position: relative;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: calc(100% - var(--repl-tab-height));
+}
+
+.repl-input-panel {
+  grid-area: repl-input-panel;
+}
+
+.repl-output-panel {
+  grid-area: repl-output-panel;
+}
+
+.repl-detail-panel {
+  grid-area: repl-detail-panel;
+}
+
+.repl-tab-button {
+  display: inline-block;
+  border-top: 4px solid transparent;
+  height: calc(var(--repl-tab-height) - 8px);
+  margin: 8px 0 0 0;
+  padding: 0;
+}
+
+.repl-tab-button.active-tab {
+  border-top-color: #0084ff;
+  background-color: white;
+}
+
+.repl-tab-button:not(.active-tab):hover {
+  border-top-color: #0084ff75;
+  background-color: rgb(223, 223, 223);
+}
+
+.repl-input-panel .repl-tab-button.active-tab {
+  border-top-color: #564ce1;
+}
+
+.repl-input-panel .repl-tab-button:not(.active-tab):hover {
+  border-top-color: #564ce175;
+}
+
+.repl-detail-panel .repl-tab-button.active-tab {
+  border-top-color: #4ce152;
+}
+
+.repl-detail-panel .repl-tab-button:not(.active-tab):hover {
+  border-top-color: #4ce15275;
+}
+
+.repl-tab-diagnostics {
+  border-top-color: #ff00905c;
+  background-color: rgb(223, 223, 223);
+}
+
+.repl-tab-diagnostics.active-tab {
+  border-top-color: #ff0090;
+}
+
+.repl-tab-diagnostics:not(.active-tab):hover {
+  border-top-color: #ff0090;
+}
+
+.repl-tab-button-select {
+  padding: 3px 12px 4px 12px;
+}
+
+.repl-tab-button-close {
+  padding: 5px 8px 5px 0;
+  margin-left: 2px;
+  opacity: 0.2;
+}
+
+.repl-tab-button-delete:hover {
+  opacity: 1;
+}
+
+.repl-output-panel .repl-tab {
+  background-color: white;
+
+  font-family: Menlo, Monaco, 'Courier New', monospace;
+  font-weight: normal;
+  font-size: 12px;
+  font-feature-settings: 'liga' 0, 'calt' 0;
+  line-height: 18px;
+  letter-spacing: 0px;
+}
+
+.output-result {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  background-color: white;
+}
+
+.output-result.output-app {
+  pointer-events: none;
+}
+
+.output-result.output-app-active {
+  z-index: 10;
+  pointer-events: auto;
+  display: block;
+}
+
+.output-app iframe {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  width: calc(100% - 20px);
+  height: calc(100% - 20px);
+}
+
+.editor-container {
+  height: 100%;
+}
+
+.output-html {
+  padding: 15px 20px;
+  height: 100%;
+  overflow: auto;
+}
+
+.output-modules {
+  display: grid;
+  grid-template-columns: minmax(200px, 25%) auto;
+  grid-template-areas: 'repl-file-tree repl-file-text';
+  height: 100%;
+  overflow: hidden;
+}
+
+.output-modules .file-tree {
+  padding: 15px;
+  grid-area: repl-file-tree;
+  overflow-y: auto;
+}
+
+.output-modules .file-tree-header {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.output-modules .file-tree-items a {
+  display: block;
+  margin: 4px 0px 2px 9px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.output-modules .file-tree-items a:hover {
+  color: #0084ff;
+}
+
+.output-modules .file-modules {
+  padding: 15px 15px 15px 0;
+  grid-area: repl-file-text;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.output-modules .file-item {
+  scroll-margin-top: 15px;
+  margin-bottom: 30px;
+  padding-bottom: 30px;
+  border: 1px solid var(--repl-tab-bg-color);
+  border-radius: 3px;
+}
+
+.output-modules .file-info {
+  font-weight: bold;
+  margin-bottom: 15px;
+  background-color: rgb(33 104 170 / 15%);
+  padding: 5px 10px;
+  border-top-left-radius: 3px;
+  border-top-right-radius: 3px;
+}
+
+.output-modules .file-size {
+  font-weight: normal;
+  color: #0084ff;
+  padding-left: 8px;
+}
+
+.output-modules .file-text {
+  padding-left: 10px;
+  overflow-x: auto;
+}
+
+.output-diagnostics {
+  color: #c90674;
+  font-weight: bold;
+  padding: 15px;
+}
+
+.details-panel {
+  grid-area: details-panel;
+}
+
+.details-tab-buttons {
+  grid-area: details-tab-buttons;
+}
+
+.details-panel {
+  grid-area: repl-details-panel;
+}
+
+.output-detail {
+  padding: 15px;
+}
+
+.detail-options label {
+  display: block;
+  margin: 10px;
+  font-size: 14px;
+}
+
+.detail-options label span {
+  font-weight: bold;
+  display: inline-block;
+  width: 130px;
+}
+
+.detail-options select {
+  border: 1px solid var(--repl-tab-bg-color);
+  border-radius: 3px;
+}

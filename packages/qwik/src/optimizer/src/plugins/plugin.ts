@@ -31,6 +31,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     outClientDir: null as any,
     outServerDir: null as any,
     isDevBuild: true,
+    forceFullBuild: false,
     buildMode: 'client',
     entryStrategy: null as any,
     minify: null as any,
@@ -68,6 +69,12 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       } else {
         opts.entryStrategy = { type: 'single' };
       }
+    }
+
+    if (typeof updatedOpts.forceFullBuild === 'boolean') {
+      opts.forceFullBuild = updatedOpts.forceFullBuild;
+    } else {
+      opts.forceFullBuild = opts.entryStrategy.type !== 'hook';
     }
 
     if (updatedOpts.minify) {
@@ -183,11 +190,9 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
   };
 
   const buildStart = async () => {
-    const isFullBuild = opts.entryStrategy?.type !== 'hook';
+    log(`buildStart()`, opts.buildMode, opts.forceFullBuild ? 'full build' : 'isolated build');
 
-    log(`buildStart()`, opts.buildMode, isFullBuild ? 'full build' : 'isolated build');
-
-    if (isFullBuild) {
+    if (opts.forceFullBuild) {
       const optimizer = await getOptimizer();
       outputCount = 0;
 
@@ -196,7 +201,14 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         rootDir = opts.srcDir;
         log(`buildStart() srcDir`, opts.srcDir);
       } else if (Array.isArray(opts.srcInputs)) {
-        optimizer.sys.getInputFiles = async () => opts.srcInputs!;
+        optimizer.sys.getInputFiles = async (rootDir) =>
+          opts.srcInputs!.map((i) => {
+            const relInput: TransformModuleInput = {
+              path: optimizer.sys.path.relative(rootDir, i.path),
+              code: i.code,
+            };
+            return relInput;
+          });
         log(`buildStart() opts.srcInputs (${opts.srcInputs.length})`);
       }
 
@@ -277,7 +289,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       };
     }
 
-    if (opts.entryStrategy.type !== 'hook') {
+    if (opts.forceFullBuild) {
       // On full build, lets normalize the ID
       id = forceJSExtension(optimizer.sys.path, id);
     }
@@ -297,7 +309,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
   };
 
   const transform = async (code: string, id: string) => {
-    if (opts.entryStrategy.type !== 'hook') {
+    if (opts.forceFullBuild) {
       // Only run when moduleIsolated === true
       return null;
     }
@@ -341,7 +353,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
       results.set(pathId, newOutput);
 
-      // transformedOutputs.clear();
+      transformedOutputs.clear();
 
       for (const [id, output] of results.entries()) {
         const justChanged = newOutput === output;
@@ -530,6 +542,7 @@ export interface BasePluginOptions {
   outClientDir?: string;
   outServerDir?: string;
   entryStrategy?: EntryStrategy;
+  forceFullBuild?: boolean;
   minify?: MinifyMode;
   srcRootInput?: string | string[];
   srcEntryServerInput?: string;

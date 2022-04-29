@@ -4,7 +4,7 @@ import type { SiteStore } from '../app/app';
 import { CloseIcon } from '../svgs/close-icon';
 import styles from './sidebar.css?inline';
 
-export interface SideBarProps {
+interface SideBarProps {
   store: SiteStore;
 }
 

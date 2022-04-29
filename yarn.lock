@@ -698,6 +698,7 @@ __metadata:
     hast-util-to-string: ^2.0.0
     history: ^5.3.0
     marked: ^4.0.14
+    monaco-editor: ^0.33.0
     refractor: ^4.6.0
     rehype-autolink-headings: ^6.1.1
     remark-frontmatter: ^4.0.1
@@ -7307,6 +7308,13 @@ __metadata:
   bin:
     mkdirp: bin/cmd.js
   checksum: a96865108c6c3b1b8e1d5e9f11843de1e077e57737602de1b82030815f311be11f96f09cce59bd5b903d0b29834733e5313f9301e3ed6d6f6fba2eae0df4298f
+  languageName: node
+  linkType: hard
+
+"monaco-editor@npm:^0.33.0":
+  version: 0.33.0
+  resolution: "monaco-editor@npm:0.33.0"
+  checksum: f88fd1c9be0d6845436aa92ee7f7bcc49f9e9bf452f73bb5efbbe52e50678d1c2aec4d612a943310f5e2282c1d9fcc41b792b65a5b9008e6054908e7e10311ea
   languageName: node
   linkType: hard
 

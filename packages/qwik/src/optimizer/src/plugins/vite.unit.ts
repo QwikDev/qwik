@@ -1,22 +1,22 @@
-import { join, resolve } from 'path';
-import { qwikVite, QwikViteOptions } from './vite';
+import { resolve } from 'path';
+import { qwikVite, QwikVitePluginOptions } from './vite';
 import type { Plugin as VitePlugin } from 'vite';
 import type { OptimizerOptions } from '../types';
 import type { OutputOptions } from 'rollup';
 
 describe('vite  plugin', () => {
   const cwd = process.cwd();
-  let inputOpts: QwikViteOptions = {};
+  let initOpts: QwikVitePluginOptions = {};
 
   beforeEach(() => {
-    inputOpts = {
+    initOpts = {
       optimizerOptions: mockOptimizerOptions(),
     };
   });
 
   describe('config', () => {
     it('command: serve, missing mode - defaults', async () => {
-      const plugin: VitePlugin = qwikVite(inputOpts);
+      const plugin: VitePlugin = qwikVite(initOpts);
       const c = (await plugin.config!({}, { command: 'serve', mode: 'development' }))!;
       const opts = await plugin.api?.getOptions();
       const build = c.build!;
@@ -25,8 +25,9 @@ describe('vite  plugin', () => {
 
       expect(build.outDir).toBe(resolve(cwd, 'dist'));
       expect(rollupOptions.input).toEqual(resolve(cwd, 'src', 'entry.dev.tsx'));
-      expect(outputOptions.assetFileNames).toBe('build/q-[hash].[ext]');
-      expect(outputOptions.chunkFileNames).toBe('build/q-[hash].js');
+      expect(outputOptions.assetFileNames).toBe('build/[name].[ext]');
+      expect(outputOptions.chunkFileNames).toBe('build/[name].js');
+      expect(outputOptions.entryFileNames).toBe('build/[name].js');
       expect(build.polyfillModulePreload).toBe(false);
       expect(build.dynamicImportVarsOptions?.exclude).toEqual([/./]);
       expect(build.ssr).toBe(undefined);
@@ -42,17 +43,19 @@ describe('vite  plugin', () => {
     });
 
     it('command: build, mode not set - defaults', async () => {
-      const plugin: VitePlugin = qwikVite(inputOpts);
+      const plugin: VitePlugin = qwikVite(initOpts);
       const c = (await plugin.config!({}, { command: 'build', mode: 'production' }))!;
       const opts = await plugin.api?.getOptions();
       const build = c.build!;
       const rollupOptions = build!.rollupOptions!;
       const outputOptions = rollupOptions.output as OutputOptions;
 
+      expect(plugin.enforce).toBe('pre');
       expect(build.outDir).toBe(resolve(cwd, 'dist'));
       expect(rollupOptions.input).toEqual([resolve(cwd, 'src', 'root.tsx')]);
       expect(outputOptions.assetFileNames).toBe('build/q-[hash].[ext]');
       expect(outputOptions.chunkFileNames).toBe('build/q-[hash].js');
+      expect(outputOptions.entryFileNames).toBe('build/q-[hash].js');
       expect(build.polyfillModulePreload).toBe(false);
       expect(build.dynamicImportVarsOptions?.exclude).toEqual([/./]);
       expect(build.ssr).toBe(undefined);
@@ -68,17 +71,19 @@ describe('vite  plugin', () => {
     });
 
     it('command: build, mode: ssr - defaults', async () => {
-      const plugin: VitePlugin = qwikVite(inputOpts);
+      const plugin: VitePlugin = qwikVite(initOpts);
       const c = (await plugin.config!({}, { command: 'build', mode: 'ssr' }))!;
       const opts = await plugin.api?.getOptions();
       const build = c.build!;
       const rollupOptions = build!.rollupOptions!;
       const outputOptions = rollupOptions.output as OutputOptions;
 
+      expect(plugin.enforce).toBe('pre');
       expect(build.outDir).toBe(resolve(cwd, 'server'));
       expect(rollupOptions.input).toEqual(resolve(cwd, 'src', 'entry.server.tsx'));
-      expect(outputOptions.assetFileNames).toBe('build/q-[hash].[ext]');
-      expect(outputOptions.chunkFileNames).toBe('build/q-[hash].js');
+      expect(outputOptions.assetFileNames).toBe('[name].[ext]');
+      expect(outputOptions.chunkFileNames).toBe('[name].js');
+      expect(outputOptions.entryFileNames).toBe('[name].js');
       expect(build.polyfillModulePreload).toBe(false);
       expect(build.dynamicImportVarsOptions?.exclude).toEqual([/./]);
       expect(build.ssr).toBe(true);

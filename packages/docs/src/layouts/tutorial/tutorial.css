@@ -1,0 +1,133 @@
+.tutorial {
+  position: fixed;
+  top: var(--header-height);
+  width: 100%;
+  height: calc(100vh - var(--header-height));
+}
+
+.tutorial .repl {
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  grid-template-areas:
+    'repl-input-panel'
+    'repl-output-panel';
+  height: calc(100vh - var(--header-height) - var(--repl-tab-height));
+}
+
+.tutorial .repl .repl-detail-panel {
+  display: none;
+}
+
+.tutorial .repl-input-panel .repl-tab-button-close {
+  display: none;
+}
+
+.tutorial-repl-footer {
+  height: var(--repl-tab-height);
+  background: var(--repl-tab-bg-color);
+}
+
+.tutorial main {
+  display: grid;
+  grid-template-columns: minmax(450px, 33%) auto;
+  grid-template-areas: 'tutorial-content-panel tutorial-repl-panel';
+  height: 100%;
+}
+
+.tutorial-repl-panel {
+  grid-area: tutorial-repl-panel;
+}
+
+.tutorial-content-panel {
+  grid-area: tutorial-content-panel;
+  position: relative;
+
+  background-color: #eee;
+  color: rgb(37, 37, 37);
+
+  display: grid;
+  grid-template-rows: var(--repl-tab-height) 1fr var(--repl-tab-height);
+  grid-template-areas:
+    'content-header'
+    'content-main'
+    'content-footer';
+  height: calc(100vh - var(--header-height));
+}
+
+.content-header {
+  grid-area: content-header;
+  position: relative;
+  background-color: var(--repl-tab-bg-color);
+}
+
+.content-header svg {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+}
+
+.content-header select {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.0001;
+  cursor: pointer;
+  -webkit-appearance: none;
+}
+
+.content-header h1 {
+  display: block;
+  font-size: 18px;
+  font-weight: bold;
+  padding: 8px 4px 6px 42px;
+}
+
+.content-main {
+  grid-area: content-main;
+  padding: 15px;
+  overflow-y: auto;
+}
+
+.content-main a {
+  color: #0084ff;
+  text-decoration: underline;
+}
+
+.content-main a:hover {
+  text-decoration: none;
+}
+
+.content-footer {
+  grid-area: content-footer;
+  padding: 7px 15px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background-color: var(--repl-tab-bg-color);
+}
+
+.content-footer nav {
+  text-align: right;
+}
+
+.next-link {
+  margin-top: 20px;
+}
+
+.nav-link {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: 5px;
+  background: rgb(140 140 140);
+  color: white;
+  margin: 0 0 0 15px;
+  border: 1px solid transparent;
+  font-size: 14px;
+}
+
+.nav-link:hover {
+  background: white;
+  color: rgb(140 140 140);
+  border: 1px solid rgb(140 140 140);
+}

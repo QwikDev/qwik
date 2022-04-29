@@ -3,7 +3,8 @@
 }
 
 .breadcrumbs {
-  @apply fixed z-10 top-[56px] w-[100%];
+  @apply fixed z-10 w-[100%];
+  top: var(--header-height);
   @apply border-b border-slate-300;
   @apply px-1;
   @apply flex;

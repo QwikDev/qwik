@@ -1,5 +1,5 @@
 import { extname, basename, relative, dirname, join } from 'path';
-import type { PluginContext, ParsedPage, PluginOptions } from './types';
+import type { PluginContext, PluginOptions } from './types';
 import slugify from 'slugify';
 import type { PageAttributes } from '../runtime';
 
@@ -11,11 +11,8 @@ export function getPagePathname(ctx: PluginContext, filePath: string) {
   if (fileName === 'index') {
     if (dirName === '.') {
       return '/';
-    } else {
-      throw new Error(
-        `Subdirectories cannot have an index file: "${filePath}". Please rename the file to something like "overview.mdx" or "introduction.md".`
-      );
     }
+    pathname = `/${dirName}`;
   } else {
     pathname = `/${dirName}/${fileName}`;
   }
@@ -168,10 +165,13 @@ export function isReadmeFile(filePath: string) {
   return filePath === 'readme.md' || filePath === 'readme';
 }
 
-export function getPagesBuildPath(page: ParsedPage) {
-  let pathname = page.pathname;
+export function getPagesBuildPath(pathname: string) {
   if (pathname === '/') {
     pathname += 'index';
+  }
+  const filename = pathname.split('/').pop();
+  if (filename !== 'index') {
+    pathname += '/index';
   }
   return `pages${pathname}.js`;
 }

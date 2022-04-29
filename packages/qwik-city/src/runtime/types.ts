@@ -101,6 +101,20 @@ export interface HeadLinkAttributes {
 /**
  * @public
  */
+export type HeadStyles = HeadStyle[];
+
+/**
+ * @public
+ */
+export interface HeadStyle {
+  style: string;
+  uniqueId?: string;
+  attributes?: { [attrName: string]: string };
+}
+
+/**
+ * @public
+ */
 export interface PageHeading {
   text: string;
   id: string;

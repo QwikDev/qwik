@@ -30,7 +30,7 @@ jobs:
 
     steps:
       - name: Branch
-        run: echo ${{ github.head_ref }}
+        run: echo "${{ github.ref }}"
       - name: NPM Dist Tag
         run: echo "${{ github.event.inputs.disttag }}"
       - uses: actions/checkout@v3

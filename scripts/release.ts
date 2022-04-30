@@ -1,4 +1,4 @@
-import { BuildConfig, PackageJSON, panic, run } from './util';
+import { BuildConfig, panic, run } from './util';
 import { execa } from 'execa';
 import { join } from 'path';
 import { Octokit } from '@octokit/action';
@@ -10,11 +10,12 @@ import { publishStarterCli } from './cli';
 import { publishEslint } from './eslint';
 
 export async function setDevVersion(config: BuildConfig) {
-  let v = config.setDistTag;
-  if (!v || v === 'dev') {
-    const rootPkg = await readPackageJson(config.rootDir);
+  const distTag = config.setDistTag;
+  const rootPkg = await readPackageJson(config.rootDir);
+  let v = rootPkg.version;
+  if (!distTag || distTag === 'dev') {
     const d = new Date();
-    v = rootPkg.version + '-dev';
+    v += '-dev';
     v += String(d.getUTCFullYear());
     v += String(d.getUTCMonth() + 1).padStart(2, '0');
     v += String(d.getUTCDate()).padStart(2, '0');
@@ -32,6 +33,8 @@ export async function setReleaseVersion(config: BuildConfig) {
     panic(`Invalid npm dist tag "${distTag}"`);
   }
 
+  console.log(`💫 Set release npm dist tag: ${distTag}`);
+
   const rootPkg = await readPackageJson(config.rootDir);
   config.distVersion = rootPkg.version;
 
@@ -40,8 +43,10 @@ export async function setReleaseVersion(config: BuildConfig) {
     panic(`Invalid semver version "${config.distVersion}"`);
   }
 
+  console.log(`🔥 Set release npm version: ${config.distVersion}`);
+
   // check this version isn't already published
-  await checkExistingNpmVersion(rootPkg, config.distVersion);
+  await checkExistingNpmVersion(config.distVersion);
 
   const distPkg = await readPackageJson(config.distPkgDir);
   distPkg.version = config.distVersion;
@@ -61,11 +66,11 @@ export async function prepareReleaseVersion(config: BuildConfig) {
       if (!validVersion) {
         panic(`Invalid semver version "${version}"`);
       }
-      await checkExistingNpmVersion(rootPkg, version);
+      await checkExistingNpmVersion(version);
       return true;
     },
     choices: [
-      ...['major', 'premajor', 'minor', 'preminor', 'patch', 'prepatch', 'prerelease'].map((v) => {
+      ...['prerelease', 'prepatch', 'patch', 'preminor', 'minor', 'premajor', 'major'].map((v) => {
         return {
           title: `${v}  ${semver.inc(currentVersion, v as any)}`,
           value: semver.inc(currentVersion, v as any),
@@ -230,10 +235,12 @@ async function createGithubRelease(version: string, gitTag: string, isDryRun: bo
   }
 }
 
-async function checkExistingNpmVersion(pkg: PackageJSON, newVersion: string) {
-  const npmVersionsCall = await execa('npm', ['view', pkg.name, 'versions', '--json']);
+async function checkExistingNpmVersion(newVersion: string) {
+  const npmVersionsCall = await execa('npm', ['view', '@builder.io/qwik', 'versions', '--json']);
   const publishedVersions: string[] = JSON.parse(npmVersionsCall.stdout);
   if (publishedVersions.includes(newVersion)) {
-    panic(`Version "${newVersion}" of ${pkg.name} is already published to npm`);
+    panic(`Version "${newVersion}" of @builder.io/qwik is already published to npm`);
+  } else {
+    console.log(`✅ Version "${newVersion}" of @builder.io/qwik is not already published to npm`);
   }
 }

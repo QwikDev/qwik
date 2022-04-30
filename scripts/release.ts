@@ -46,7 +46,7 @@ export async function setReleaseVersion(config: BuildConfig) {
   console.log(`🔥 Set release npm version: ${config.distVersion}`);
 
   // check this version isn't already published
-  await checkExistingNpmVersion(rootPkg, config.distVersion);
+  await checkExistingNpmVersion(config.distVersion);
 
   const distPkg = await readPackageJson(config.distPkgDir);
   distPkg.version = config.distVersion;
@@ -66,7 +66,7 @@ export async function prepareReleaseVersion(config: BuildConfig) {
       if (!validVersion) {
         panic(`Invalid semver version "${version}"`);
       }
-      await checkExistingNpmVersion(rootPkg, version);
+      await checkExistingNpmVersion(version);
       return true;
     },
     choices: [

@@ -4,11 +4,8 @@
 
 ```ts
 
-import type { Listener } from 'history';
-
 // @public (undocumented)
-type Content_2 = any;
-export { Content_2 as Content }
+export type Content = any;
 
 // @public (undocumented)
 export interface HeadLinkAttributes {
@@ -68,7 +65,7 @@ export type Layout = any;
 // @public (undocumented)
 export interface MetaOptions {
     // (undocumented)
-    [name: string]: Content_2;
+    [name: string]: Content;
     // (undocumented)
     description?: string;
     // (undocumented)
@@ -102,7 +99,7 @@ export interface PageHandler {
     // (undocumented)
     breadcrumbs: PageBreadcrumb[];
     // (undocumented)
-    content: Content_2;
+    content: Content;
     // (undocumented)
     headings: PageHeading[];
     // (undocumented)
@@ -160,7 +157,7 @@ export const useLocation: (hostElm: any) => {
     readonly searchParams: URLSearchParams;
     readonly hash: string;
     readonly origin: string;
-    listen(listener: Listener): any;
+    listen(listener: any): any;
 };
 
 // @public (undocumented)

@@ -46,7 +46,7 @@ export async function setReleaseVersion(config: BuildConfig) {
   console.log(`🔥 Set release npm version: ${config.distVersion}`);
 
   // check this version isn't already published
-  await checkExistingNpmVersion(config.distVersion);
+  await checkExistingNpmVersion('@builder.io/qwik', config.distVersion);
 
   const distPkg = await readPackageJson(config.distPkgDir);
   distPkg.version = config.distVersion;
@@ -55,35 +55,13 @@ export async function setReleaseVersion(config: BuildConfig) {
 
 export async function prepareReleaseVersion(config: BuildConfig) {
   const rootPkg = await readPackageJson(config.rootDir);
-  const currentVersion = rootPkg.version;
 
-  const response = await prompts({
-    type: 'select',
-    name: 'version',
-    message: 'Version',
-    validate: async (version: string) => {
-      const validVersion = semver.valid(version)!;
-      if (!validVersion) {
-        panic(`Invalid semver version "${version}"`);
-      }
-      await checkExistingNpmVersion(version);
-      return true;
-    },
-    choices: [
-      ...['prerelease', 'prepatch', 'patch', 'preminor', 'minor', 'premajor', 'major'].map((v) => {
-        return {
-          title: `${v}  ${semver.inc(currentVersion, v as any)}`,
-          value: semver.inc(currentVersion, v as any),
-        };
-      }),
-    ],
-  });
-
-  config.distVersion = response.version;
-
-  if (!config.distVersion) {
-    panic(`Version not set`);
+  const answers = await releaseVersionPrompt('@builder.io/qwik', rootPkg.version);
+  if (!semver.valid(answers.version)) {
+    panic(`Invalid version`);
   }
+
+  config.distVersion = answers.version;
 }
 
 export async function commitPrepareReleaseVersion(config: BuildConfig) {
@@ -122,11 +100,15 @@ export async function commitPrepareReleaseVersion(config: BuildConfig) {
   await run('git', gitAddArgs);
 
   // git commit the changed package.json
-  // also adding "skip ci" to the message so the commit doesn't bother building
   const gitCommitArgs = ['commit', '--message', config.distVersion];
   await run('git', gitCommitArgs);
 
-  console.log(`🐳 commit version "${config.distVersion}"`);
+  console.log(``);
+  console.log(`Next:`);
+  console.log(` - Submit a PR to main with the package.json update`);
+  console.log(` - Once merged, run the "Qwik CI" release workflow`);
+  console.log(` - https://github.com/BuilderIO/qwik/actions/workflows/ci.yml`);
+  console.log(``);
 }
 
 export async function publish(config: BuildConfig) {
@@ -235,12 +217,47 @@ async function createGithubRelease(version: string, gitTag: string, isDryRun: bo
   }
 }
 
-async function checkExistingNpmVersion(newVersion: string) {
-  const npmVersionsCall = await execa('npm', ['view', '@builder.io/qwik', 'versions', '--json']);
-  const publishedVersions: string[] = JSON.parse(npmVersionsCall.stdout);
-  if (publishedVersions.includes(newVersion)) {
-    panic(`Version "${newVersion}" of @builder.io/qwik is already published to npm`);
-  } else {
-    console.log(`✅ Version "${newVersion}" of @builder.io/qwik is not already published to npm`);
+export async function checkExistingNpmVersion(pkgName: string, newVersion: string) {
+  if (newVersion !== '0.0.1') {
+    const npmVersionsCall = await execa('npm', ['view', pkgName, 'versions', '--json']);
+    const publishedVersions: string[] = JSON.parse(npmVersionsCall.stdout);
+    if (publishedVersions.includes(newVersion)) {
+      panic(`Version "${newVersion}" of ${pkgName} is already published to npm`);
+    } else {
+      console.log(`✅ Version "${newVersion}" of ${pkgName} is not already published to npm`);
+    }
   }
 }
+
+export async function releaseVersionPrompt(pkgName: string, currentVersion: string) {
+  const answers = await prompts({
+    type: 'select',
+    name: 'version',
+    message: `Select ${pkgName} version`,
+    validate: async (version: string) => {
+      const validVersion = semver.valid(version)!;
+      if (!validVersion) {
+        panic(`Invalid semver version "${version}" for ${pkgName}`);
+      }
+      await checkExistingNpmVersion(pkgName, version);
+      return true;
+    },
+    choices: SEMVER_RELEASE_TYPES.map((v) => {
+      return {
+        title: `${v}  ${semver.inc(currentVersion, v)}`,
+        value: semver.inc(currentVersion, v),
+      };
+    }),
+  });
+  return answers;
+}
+
+const SEMVER_RELEASE_TYPES: semver.ReleaseType[] = [
+  'prerelease',
+  'prepatch',
+  'patch',
+  'preminor',
+  'minor',
+  'premajor',
+  'major',
+];

@@ -1,6 +1,6 @@
 {
   "name": "@builder.io/qwik-city",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Static Site Generator for Qwik",
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
@@ -55,7 +55,7 @@
     }
   },
   "files": [
-    "./dist"
+    "dist"
   ],
   "license": "MIT",
   "homepage": "https://qwik.builder.io/",

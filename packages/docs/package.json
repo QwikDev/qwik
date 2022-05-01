@@ -11,15 +11,15 @@
     "build.qwikcity": "cd ../qwik-city && yarn build",
     "dev": "vite --force",
     "dev.ssr": "vite --mode ssr",
-    "serve": "yarn build && wrangler pages dev ./dist",
+    "serve": "wrangler pages dev ./dist",
     "start": "yarn dev",
     "fmt": "prettier --write .",
     "fmt.check": "prettier --check ."
   },
   "devDependencies": {
     "@builder.io/partytown": "^0.5.2",
-    "@builder.io/qwik": "0.0.19-0",
-    "@builder.io/qwik-city": "workspace:*",
+    "@builder.io/qwik": "0.0.19-1",
+    "@builder.io/qwik-city": "0.0.2",
     "@cloudflare/kv-asset-handler": "0.2.0",
     "@cloudflare/workers-types": "^3.7.1",
     "autoprefixer": "10.4.5",

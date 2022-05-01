@@ -64,8 +64,8 @@ export const onRequestGet: PagesFunction = async ({ request, next, waitUntil }) 
 
     // Return Qwik SSR response
     return response;
-  } catch (e) {
+  } catch (e: any) {
     // 500 Error
-    return new Response(String(e), { status: 500 });
+    return new Response(String(e.stack || e), { status: 500 });
   }
 };

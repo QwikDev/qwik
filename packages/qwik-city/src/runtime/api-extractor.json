@@ -12,7 +12,7 @@
     "enabled": true,
     "reportFileName": "api.md",
     "reportFolder": "<projectFolder>/src/runtime/",
-    "reportTempFolder": "<projectFolder>/dist-dev/api-extractor/qwik-city/"
+    "reportTempFolder": "<projectFolder>/../../dist-dev/api-extractor/qwik-city/"
   },
   "docModel": {
     "enabled": false

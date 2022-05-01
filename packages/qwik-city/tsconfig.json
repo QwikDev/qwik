@@ -16,7 +16,7 @@
       "@builder.io/qwik-city": ["src/runtime/index"],
       "@builder.io/qwik-city/build": ["src/runtime/build"]
     },
-    "types": ["vite/client", "@cloudflare/workers-types"],
+    "types": ["vite/client"],
     "outDir": "tsc-out"
   },
   "include": ["src"]

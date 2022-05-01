@@ -17,6 +17,7 @@
     "tsc.watch": "tsc --noEmit --watch --preserveWatchOutput",
     "start": "concurrently \"npm:build.watch\" \"npm:test.watch\" \"npm:tsc.watch\" -n build,test,tsc -c green,magenta,cyan",
     "release.prepare": "yarn lint && yarn test.unit && yarn node scripts --tsc --build --api --eslint --platform-binding --wasm --prepare-release",
+    "release.prepare.qwik-city": "cd packages/qwik-city && yarn test && yarn build && yarn node -r esbuild-register scripts/prepare-release.ts",
     "test": "yarn build && jest && yarn test.e2e",
     "test.unit": "jest",
     "test.rust": "make test",
@@ -99,7 +100,7 @@
     {
       "name": "Miško Hevery",
       "email": "misko@hevery.com",
-      "url": "https://github.com/BuilderIO/qwik"
+      "url": "https://twitter.com/mhevery"
     },
     {
       "name": "Adam Bradley",

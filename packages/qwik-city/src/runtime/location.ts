@@ -1,4 +1,3 @@
-import type { Listener } from 'history';
 import { createBrowserHistory } from 'history';
 import { getDocument } from './utils';
 
@@ -30,7 +29,7 @@ export const useLocation = (hostElm: any) => {
     get origin() {
       return url.origin;
     },
-    listen(listener: Listener) {
+    listen(listener: any) {
       return history.listen(listener);
     },
   };

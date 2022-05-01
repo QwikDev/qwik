@@ -15,7 +15,7 @@ on:
 
 jobs:
   publish:
-    name: Publish Qwik City
+    name: 'Release @builder.io/qwik-city'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -33,11 +33,13 @@ jobs:
       - name: Install NPM Dependencies
         run: yarn install --immutable --network-timeout 300000
 
-      - name: Build Qwik City
-        run: cd packages/qwik-city && yarn build
-
       - name: Test Qwik City
         run: cd packages/qwik-city && yarn test
 
+      - name: Build Qwik City
+        run: cd packages/qwik-city && yarn build
+
       - name: Publish Qwik City
         run: cd packages/qwik-city && yarn node -r esbuild-register scripts/release.ts --set-dist-tag="${{ github.event.inputs.disttag }}"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

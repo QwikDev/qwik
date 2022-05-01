@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       disttag:
-        description: 'Publish to NPM using this dist-tag. The version number will come from version found in package.json.'
+        description: 'Publish "@builder.io/qwik-city" to NPM using this dist-tag. The version number will come from version found in package.json.'
         required: true
         type: choice
         default: 'dev'

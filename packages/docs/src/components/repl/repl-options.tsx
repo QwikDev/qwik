@@ -46,7 +46,7 @@ const Select = (props: SelectProps) => {
   );
 };
 
-const MINIFY_OPTIONS: MinifyMode[] = ['none', 'simplify', 'minify'];
+const MINIFY_OPTIONS: MinifyMode[] = ['none', 'simplify'];
 
 const ENTRY_STRATEGY_OPTIONS: string[] = ['component', 'hook', 'manual', 'single', 'smart'];
 

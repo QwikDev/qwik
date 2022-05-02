@@ -4,7 +4,7 @@ import {
   Host,
   useHostElement,
   useScopedStyles$,
-  useWatchEffect$,
+  useEffect$,
   useStore,
 } from '@builder.io/qwik';
 import type { TransformModuleInput } from '@builder.io/qwik/optimizer';
@@ -34,7 +34,7 @@ const Playground = component$((props: PlaygroundLayoutProps) => {
   store.title = helloWorldApp.title;
   store.inputs = helloWorldApp.inputs;
 
-  useWatchEffect$(() => {
+  useEffect$(() => {
     setHeadMeta(hostElm, { title: `${store.title} - Qwik Playground` });
     setHeadStyles(hostElm, [
       {

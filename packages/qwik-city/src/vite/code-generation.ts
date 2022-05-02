@@ -16,7 +16,7 @@ export function createDynamicImportedCode(ctx: PluginContext) {
   }
   c.push(`};`);
 
-  c.push(`export const INLINED_MODULES = false`);
+  c.push(`export const INLINED_MODULES = false;`);
 
   c.push(...createPageIndex(ctx));
 
@@ -48,7 +48,7 @@ export function createEsmImportedCode(ctx: PluginContext) {
   }
   c.push(`};`);
 
-  c.push(`export const INLINED_MODULES = true`);
+  c.push(`export const INLINED_MODULES = true;`);
 
   c.push(...createPageIndex(ctx));
 

@@ -263,9 +263,6 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         log(`resolveId() Resolved ${tryId}`);
         const transformedModule = transformedOutput[0];
         const sideEffects = !transformedModule.isEntry || !transformedModule.hook;
-        if (id.includes('state/')) {
-          console.log('tryId', tryId);
-        }
         return {
           id: tryId,
           moduleSideEffects: sideEffects,

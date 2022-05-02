@@ -18,7 +18,7 @@ export default defineConfig(() => {
       rollupOptions: {
         input: [
           resolve('src', 'components', 'app', 'app.tsx'),
-          resolve('src', 'components', 'repl', 'worker', 'repl-service-worker.tsx'),
+          resolve('src', 'components', 'repl', 'worker', 'repl-service-worker.ts'),
         ],
       },
     },

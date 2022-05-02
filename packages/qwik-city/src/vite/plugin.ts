@@ -2,7 +2,7 @@ import { createMdxTransformer, MdxTransform } from './mdx';
 import { stat } from 'fs/promises';
 import { isAbsolute } from 'path';
 import type { ModuleGraph, ModuleNode, Plugin, ViteDevServer } from 'vite';
-import { createBuildCode } from './code-generation';
+import { createDynamicImportedCode, createEsmImportedCode } from './code-generation';
 import { loadPages } from './load-pages';
 import type { PluginContext, PluginOptions } from './types';
 import { getPagesBuildPath, normalizeOptions } from './utils';
@@ -23,8 +23,9 @@ export function qwikCity(options: PluginOptions) {
 
     enforce: 'pre',
 
-    config(userConfig) {
-      inlinedModules = !!userConfig.build?.ssr;
+    config(config) {
+      const isSSR = !!config.build?.ssr || config.mode === 'ssr';
+      inlinedModules = isSSR;
     },
 
     configureServer(server) {
@@ -78,21 +79,19 @@ export function qwikCity(options: PluginOptions) {
         await loadPages(ctx, (msg) => this.warn(msg));
 
         if (inlinedModules) {
-          // vite dev server build (esbuild)
-          qwikCityBuildCode = createBuildCode(ctx, true);
+          qwikCityBuildCode = createEsmImportedCode(ctx);
         } else {
-          // production (rollup)
-          qwikCityBuildCode = createBuildCode(ctx, false);
-
-          ctx.pages.forEach((p) => {
-            this.emitFile({
-              type: 'chunk',
-              id: p.filePath,
-              fileName: getPagesBuildPath(p.pathname),
-              preserveSignature: 'allow-extension',
-            });
-          });
+          qwikCityBuildCode = createDynamicImportedCode(ctx);
         }
+
+        ctx.pages.forEach((p) => {
+          this.emitFile({
+            type: 'chunk',
+            id: p.filePath,
+            fileName: getPagesBuildPath(p.pathname),
+            preserveSignature: 'allow-extension',
+          });
+        });
 
         return qwikCityBuildCode;
       }

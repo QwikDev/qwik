@@ -12,14 +12,14 @@ describe('qwik plugin', () => {
       expect(opts.isDevBuild).toBe(false);
       expect(opts.buildMode).toBe('client');
       expect(opts.rootDir).toBe(cwd);
-      expect(opts.forceFullBuild).toBe(true);
+      expect(opts.forceFullBuild).toBe(false);
       expect(opts.outClientDir).toBe(resolve(cwd, 'dist'));
       expect(opts.outServerDir).toBe(resolve(cwd, 'server'));
       expect(opts.srcDir).toBe(resolve(cwd, 'src'));
       expect(opts.srcInputs).toBe(null);
       expect(opts.srcRootInput).toEqual([resolve(cwd, 'src', 'root.tsx')]);
       expect(opts.srcEntryServerInput).toBe(resolve(cwd, 'src', 'entry.server.tsx'));
-      expect(opts.entryStrategy).toEqual({ type: 'single' });
+      expect(opts.entryStrategy).toEqual({ type: 'hook' });
       expect(opts.minify).toBe('minify');
       expect(opts.symbolsOutput).toBe(null);
     });

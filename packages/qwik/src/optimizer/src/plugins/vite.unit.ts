@@ -31,7 +31,6 @@ describe('vite  plugin', () => {
       expect(build.polyfillModulePreload).toBe(false);
       expect(build.dynamicImportVarsOptions?.exclude).toEqual([/./]);
       expect(build.ssr).toBe(undefined);
-      expect(build.emptyOutDir).toBe(undefined);
       expect(c.optimizeDeps?.include).toEqual(['@builder.io/qwik', '@builder.io/qwik/jsx-runtime']);
       expect(c.esbuild).toEqual({ include: /\.js$/ });
       expect((c as any).ssr).toBeUndefined();
@@ -59,7 +58,6 @@ describe('vite  plugin', () => {
       expect(build.polyfillModulePreload).toBe(false);
       expect(build.dynamicImportVarsOptions?.exclude).toEqual([/./]);
       expect(build.ssr).toBe(undefined);
-      expect(build.emptyOutDir).toBe(undefined);
       expect(c.optimizeDeps?.include).toEqual(['@builder.io/qwik', '@builder.io/qwik/jsx-runtime']);
       expect(c.esbuild).toEqual({ include: /\.js$/ });
       expect((c as any).ssr).toBeUndefined();
@@ -67,7 +65,7 @@ describe('vite  plugin', () => {
       expect(opts.debug).toBe(false);
       expect(opts.isDevBuild).toBe(false);
       expect(opts.buildMode).toBe('client');
-      expect(opts.entryStrategy).toEqual({ type: 'single' });
+      expect(opts.entryStrategy).toEqual({ type: 'hook' });
     });
 
     it('command: build, mode: ssr - defaults', async () => {
@@ -87,7 +85,6 @@ describe('vite  plugin', () => {
       expect(build.polyfillModulePreload).toBe(false);
       expect(build.dynamicImportVarsOptions?.exclude).toEqual([/./]);
       expect(build.ssr).toBe(true);
-      expect(build.emptyOutDir).toBe(false);
       expect(c.optimizeDeps?.include).toEqual(['@builder.io/qwik', '@builder.io/qwik/jsx-runtime']);
       expect(c.esbuild).toEqual({ include: /\.js$/ });
       expect((c as any).ssr).toEqual({ noExternal: true });
@@ -95,7 +92,7 @@ describe('vite  plugin', () => {
       expect(opts.debug).toBe(false);
       expect(opts.isDevBuild).toBe(false);
       expect(opts.buildMode).toBe('ssr');
-      expect(opts.entryStrategy).toEqual({ type: 'single' });
+      expect(opts.entryStrategy).toEqual({ type: 'hook' });
     });
   });
 

@@ -13,6 +13,7 @@ import {
 } from './plugin';
 import { createRollupError } from './rollup';
 import { QWIK_LOADER_DEFAULT_DEBUG, QWIK_LOADER_DEFAULT_MINIFIED } from '../scripts';
+import type { OutputOptions } from 'rollup';
 
 /**
  * @alpha
@@ -68,17 +69,20 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         );
       }
 
-      let assetFileNames = 'build/q-[hash].[ext]';
-      let entryFileNames = 'build/q-[hash].js';
-      let chunkFileNames = 'build/q-[hash].js';
+      const outputOptions: OutputOptions = {
+        assetFileNames: 'build/q-[hash].[ext]',
+        entryFileNames: 'build/q-[hash].js',
+        chunkFileNames: 'build/q-[hash].js',
+      };
+
       if (opts.buildMode === 'ssr') {
-        assetFileNames = '[name].[ext]';
-        entryFileNames = '[name].js';
-        chunkFileNames = '[name].js';
+        outputOptions.assetFileNames = '[name].[ext]';
+        outputOptions.entryFileNames = '[name].js';
+        outputOptions.chunkFileNames = '[name].js';
       } else if (opts.isDevBuild) {
-        assetFileNames = 'build/[name].[ext]';
-        entryFileNames = 'build/[name].js';
-        chunkFileNames = 'build/[name].js';
+        outputOptions.assetFileNames = 'build/[name].[ext]';
+        outputOptions.entryFileNames = 'build/[name].js';
+        outputOptions.chunkFileNames = 'build/[name].js';
       }
 
       const updatedViteConfig: UserConfig = {
@@ -89,11 +93,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         },
         build: {
           rollupOptions: {
-            output: {
-              assetFileNames,
-              entryFileNames,
-              chunkFileNames,
-            },
+            output: outputOptions,
             onwarn: (warning, warn) => {
               if (
                 warning.plugin === 'typescript' &&
@@ -124,9 +124,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
         // SSR Build
         updatedViteConfig.build!.ssr = true;
-
-        // Do not empty the dist server dir since it may have the symbols map already
-        updatedViteConfig.build!.emptyOutDir = false;
 
         // Server noExternal
         // ssr.noExternal by default, unless user config already has it set to false

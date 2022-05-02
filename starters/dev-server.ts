@@ -1,11 +1,13 @@
 // DO NOT USE FOR PRODUCTION!!!
 // Internal Testing/Dev Server
 // DO NOT USE FOR PRODUCTION!!!
+/* eslint-disable no-console */
 
-const express = require('express');
-const { isAbsolute, join, resolve, dirname } = require('path');
-const { readdirSync, statSync, mkdirSync, unlinkSync, rmdirSync, existsSync } = require('fs');
-const { rollup } = require('rollup');
+import express, { Request, Response } from 'express';
+import { isAbsolute, join, resolve, dirname } from 'path';
+import { readdirSync, statSync, mkdirSync, unlinkSync, rmdirSync, existsSync } from 'fs';
+import { Plugin, rollup } from 'rollup';
+import type { SymbolsEntryMap } from '@builder.io/qwik/optimizer';
 
 const app = express();
 const port = parseInt(process.argv[process.argv.length - 1], 10) || 3300;
@@ -24,8 +26,8 @@ const qwikDistJsxRuntimePath = join(qwikDistDir, 'jsx-runtime.mjs');
 Error.stackTraceLimit = 1000;
 
 // dev server builds ssr's the starter app on-demand (don't do this in production)
-const cache = new Map();
-async function handleApp(req, res) {
+const cache = new Map<string, SymbolsEntryMap>();
+async function handleApp(req: Request, res: Response) {
   try {
     const url = new URL(req.url, address);
     const paths = url.pathname.split('/');
@@ -42,21 +44,21 @@ async function handleApp(req, res) {
     let symbols = cache.get(appDir);
     if (!symbols) {
       symbols = await buildApp(appDir);
-      cache.set(appDir, symbols);
+      cache.set(appDir, symbols!);
     }
 
-    const html = await ssrApp(req, appName, appDir, symbols);
+    const html = await ssrApp(req, appName, appDir, symbols!);
 
     res.set('Content-Type', 'text/html');
     res.send(html);
-  } catch (e) {
+  } catch (e: any) {
     console.error(e);
     res.set('Content-Type', 'text/plain; charset=utf-8');
     res.send(`❌ ${e.stack || e}`);
   }
 }
 
-function devPlugin() {
+function devPlugin(): Plugin {
   return {
     name: 'devPlugin',
     resolveId(id, importee) {
@@ -97,8 +99,9 @@ function devPlugin() {
   };
 }
 
-async function buildApp(appDir) {
-  const optimizer = requireUncached(qwikDistOptimizerPath);
+async function buildApp(appDir: string) {
+  const optimizer: typeof import('@builder.io/qwik/optimizer') =
+    requireUncached(qwikDistOptimizerPath);
   const appSrcDir = join(appDir, 'src');
   const appBuildDir = join(appDir, 'build');
   const appBuildServerDir = join(appBuildDir, 'server');
@@ -108,7 +111,7 @@ async function buildApp(appDir) {
   mkdirSync(appBuildDir);
   mkdirSync(appBuildServerDir);
 
-  let symbols = null;
+  let symbols: SymbolsEntryMap | undefined = undefined;
 
   const clientBuild = await rollup({
     input: getSrcInput(appSrcDir),
@@ -135,6 +138,7 @@ async function buildApp(appDir) {
       optimizer.qwikRollup({
         buildMode: 'ssr',
         srcDir: appSrcDir,
+        entryStrategy: { type: 'single' },
         symbolsInput: symbols,
       }),
     ],
@@ -146,11 +150,11 @@ async function buildApp(appDir) {
   return symbols;
 }
 
-function getSrcInput(appSrcDir) {
+function getSrcInput(appSrcDir: string) {
   // get all the entry points for tsx for DEV ONLY!
-  const srcInputs = [];
+  const srcInputs: string[] = [];
 
-  function readDir(dir) {
+  function readDir(dir: string) {
     const items = readdirSync(dir);
     for (const item of items) {
       const itemPath = join(dir, item);
@@ -167,7 +171,7 @@ function getSrcInput(appSrcDir) {
   return srcInputs;
 }
 
-function removeDir(dir) {
+function removeDir(dir: string) {
   try {
     const items = readdirSync(dir);
     const itemPaths = items.map((i) => join(dir, i));
@@ -179,10 +183,12 @@ function removeDir(dir) {
       }
     });
     rmdirSync(dir);
-  } catch (e) {}
+  } catch (e) {
+    /**/
+  }
 }
 
-async function ssrApp(req, appName, appDir, symbols) {
+async function ssrApp(req: Request, appName: string, appDir: string, symbols: SymbolsEntryMap) {
   const buildDir = join(appDir, 'build');
   const serverDir = join(buildDir, 'server');
   const serverPath = join(serverDir, 'entry.server.js');
@@ -201,12 +207,12 @@ async function ssrApp(req, appName, appDir, symbols) {
   return result.html;
 }
 
-function requireUncached(module) {
+function requireUncached(module: string) {
   delete require.cache[require.resolve(module)];
   return require(module);
 }
 
-function startersHomepage(_, res) {
+function startersHomepage(_: Request, res: Response) {
   res.set('Content-Type', 'text/html; charset=utf-8');
   res.send(`<!DOCTYPE html>
   <html>
@@ -232,7 +238,7 @@ function startersHomepage(_, res) {
   `);
 }
 
-function favicon(_, res) {
+function favicon(_: Request, res: Response) {
   const path = join(startersAppsDir, 'base', 'public', 'favicon.ico');
   res.sendFile(path);
 }

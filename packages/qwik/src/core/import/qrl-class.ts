@@ -11,6 +11,8 @@ export function isQrl(value: any): value is QRLInternal {
 class QRL<TYPE = any> implements IQRL<TYPE> {
   __brand__QRL__!: TYPE;
   canonicalChunk: string;
+  refSymbol?: string;
+
   private el: Element | undefined;
 
   constructor(
@@ -55,7 +57,7 @@ class QRL<TYPE = any> implements IQRL<TYPE> {
   }
 
   copy(): QRLInternal<TYPE> {
-    return new QRLInternal(
+    const copy = new QRLInternal(
       this.chunk,
       this.symbol,
       this.symbolRef,
@@ -63,6 +65,8 @@ class QRL<TYPE = any> implements IQRL<TYPE> {
       null,
       this.captureRef
     );
+    copy.refSymbol = this.refSymbol;
+    return copy;
   }
 
   invoke(...args: TYPE extends (...args: infer ARGS) => any ? ARGS : never) {

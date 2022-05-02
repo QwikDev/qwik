@@ -35,6 +35,7 @@ export const Foo_component_1_Hm6UNYgc0fQ = ()=>{
 
             </div>;
 };
+export { handleWatch } from "@builder.io/qwik";
 
 /*
 {
@@ -56,6 +57,7 @@ export const Foo_component_7N2avlLYVuo = ()=>{
     return qwik.qrl(()=>import("./foo_component_1_hm6unygc0fq")
     , "Foo_component_1_Hm6UNYgc0fQ");
 };
+export { handleWatch } from "@builder.io/qwik";
 
 /*
 {

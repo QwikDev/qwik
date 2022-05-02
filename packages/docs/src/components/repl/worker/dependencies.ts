@@ -82,16 +82,6 @@ export const loadDependencies = async (version: string, options: ReplInputOption
 
     console.timeEnd('Load dependencies');
   }
-
-  if (options.minify === 'minify' && !self.Terser) {
-    console.time(`Load terser ${TERSER_VERSION}`);
-    const terserUrl = getNpmCdnUrl('terser', TERSER_VERSION, '/dist/bundle.min.js');
-    const terserRsp = await fetch(terserUrl);
-    const terserCode = await terserRsp.text();
-    const terserApply = new Function(terserCode);
-    terserApply();
-    console.timeEnd(`Load terser ${TERSER_VERSION}`);
-  }
 };
 
 declare const self: QwikWorkerGlobal;

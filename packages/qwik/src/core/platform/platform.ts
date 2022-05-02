@@ -5,6 +5,7 @@ import type { CorePlatform } from './types';
 export const createPlatform = (doc: Document): CorePlatform => {
   const moduleCache = new Map<string, { [symbol: string]: any }>();
   return {
+    isServer: false,
     importSymbol(element, url, symbolName) {
       const urlDoc = toUrl(doc, element, url).toString();
 

@@ -1,5 +1,5 @@
 ---
-source: src/optimizer/core/src/test.rs
+source: packages/qwik/src/optimizer/core/src/test.rs
 expression: output
 ---
 ==INPUT==
@@ -55,6 +55,7 @@ export const Header_fhbeHmGNik0 = (decl1, { decl2  }, [decl3])=>{
     return <div onClick={(ident11)=>ident11 + ident12
     } required={false}/>;
 };
+export { handleWatch } from "@builder.io/qwik";
 
 /*
 {

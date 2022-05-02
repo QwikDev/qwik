@@ -5,6 +5,7 @@ import type {
   SymbolsEntryMap,
 } from '@builder.io/qwik/optimizer';
 import type { NoSerialize } from '@builder.io/qwik';
+
 export interface ReplInputOptions extends Omit<QwikRollupPluginOptions, 'srcDir'> {
   srcInputs: ReplModuleInput[];
 }

@@ -650,31 +650,6 @@ export const cache = patternCache[cacheKey] || (patternCache[cacheKey]={});
 }
 
 #[test]
-fn issue_118() {
-    test_input!(TestInput {
-        filename: "project/test.tsx".to_string(),
-        code: r#"
-import { $, component$ } from '@builder.io/qwik';
-import thing from 'lib';
-import * as all from 'lib';
-import {s as se} from 'lib';
-
-export const Header = component$(() => {
-    return $(() => <Footer>{thing}{all()}{se()}</Footer>)
-});
-
-export const Footer = component$();
-"#
-        .to_string(),
-        entry_strategy: EntryStrategy::Single,
-        minify: MinifyMode::Minify,
-        transpile: true,
-
-        ..TestInput::default()
-    });
-}
-
-#[test]
 fn example_jsx() {
     test_input!(TestInput {
         code: r#"
@@ -966,6 +941,41 @@ export const Foo = component$(() => {
 "#
         .to_string(),
         dev: false,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_use_client_effect() {
+    test_input!(TestInput {
+        code: r#"
+        import { component$, useClientEffect$, useStore, useStyles$ } from '@builder.io/qwik';
+
+        export const Child = component$(() => {
+            const state = useStore({
+              count: 0
+            });
+
+            // Double count watch
+            useClientEffect$(() => {
+              const timer = setInterval(() => {
+                state.count++;
+              }, 1000);
+              return () => {
+                clearInterval(timer);
+              }
+            });
+
+            return (
+              <div>
+              {state.count}
+            </div>
+            );
+          });
+
+"#
+        .to_string(),
+        transpile: true,
         ..TestInput::default()
     });
 }

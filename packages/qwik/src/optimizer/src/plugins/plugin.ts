@@ -76,11 +76,11 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     if (updatedOpts.minify) {
       opts.minify = updatedOpts.minify;
     }
-    if (opts.minify !== 'minify' && opts.minify !== 'none' && opts.minify !== 'simplify') {
+    if (opts.minify !== 'simplify' && opts.minify !== 'none') {
       if (opts.isDevBuild) {
         opts.minify = 'none';
       } else {
-        opts.minify = 'minify';
+        opts.minify = 'simplify';
       }
     }
 

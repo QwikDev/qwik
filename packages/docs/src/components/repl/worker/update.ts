@@ -8,7 +8,6 @@ import { loadDependencies } from './dependencies';
 import { renderHtml } from './render-html';
 import type { QwikWorkerGlobal } from './repl-service-worker';
 import { replResolver } from './repl-resolver';
-import { replTerser } from './minify';
 import { getOutput } from './utils';
 
 export const update = async (version: string, options: ReplInputOptions) => {
@@ -72,11 +71,7 @@ const bundleClient = async (options: ReplInputOptions, result: ReplResult) => {
   const rollupInputOpts: InputOptions = {
     input: '/app.tsx',
     cache: ctx.rollupCache,
-    plugins: [
-      self.qwikOptimizer.qwikRollup(qwikRollupPluginOpts),
-      replResolver(options, 'client'),
-      replTerser(qwikRollupPluginOpts),
-    ],
+    plugins: [self.qwikOptimizer.qwikRollup(qwikRollupPluginOpts), replResolver(options, 'client')],
     onwarn(warning) {
       result.diagnostics.push({
         message: warning.message,

@@ -42,9 +42,17 @@ export type { CorePlatform } from './platform/types';
 //////////////////////////////////////////////////////////////////////////////////////////
 // Watch
 //////////////////////////////////////////////////////////////////////////////////////////
-export { useWatch$, useWatchQrl } from './watch/watch.public';
-export { useWatchEffect$, useWatchEffectQrl } from './watch/watch.public';
-export type { Tracker } from './watch/watch.public';
+export type {
+  Tracker,
+  WatchFn,
+  ServerFn,
+  UseEffectOptions,
+  UseEffectRunOptions,
+} from './watch/watch.public';
+export { useEffect$, useEffectQrl } from './watch/watch.public';
+export { useClientEffect$, useClientEffectQrl } from './watch/watch.public';
+export { useServer$, useServerQrl } from './watch/watch.public';
+export { handleWatch } from './watch/watch.public';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // JSX Support

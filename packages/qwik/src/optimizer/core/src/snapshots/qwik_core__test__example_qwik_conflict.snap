@@ -56,6 +56,7 @@ import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 export const Foo_component_1_Hm6UNYgc0fQ = ()=>{
     return /*#__PURE__*/ _jsx("div", {});
 };
+export { handleWatch } from "@builder.io/qwik";
 
 /*
 {
@@ -80,6 +81,7 @@ export const Foo_component_7N2avlLYVuo = ()=>{
     return qwik.qrl(()=>import("./foo_component_1_hm6unygc0fq")
     , "Foo_component_1_Hm6UNYgc0fQ");
 };
+export { handleWatch } from "@builder.io/qwik";
 
 /*
 {
@@ -98,6 +100,7 @@ export const Foo_component_7N2avlLYVuo = ()=>{
 
 import * as qwik from "@builder.io/qwik";
 export const Root_component_1_CoQyHuAaKko = 'thing';
+export { handleWatch } from "@builder.io/qwik";
 
 /*
 {
@@ -119,6 +122,7 @@ import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 export const Root_component_2_VG0hWIhQRQ8 = ()=>{
     return /*#__PURE__*/ _jsx("div", {});
 };
+export { handleWatch } from "@builder.io/qwik";
 
 /*
 {
@@ -143,6 +147,7 @@ export const Root_component_0xHmGR6gqGo = ()=>{
     return qwik.qrl(()=>import("./root_component_2_vg0hwihqrq8")
     , "Root_component_2_VG0hWIhQRQ8");
 };
+export { handleWatch } from "@builder.io/qwik";
 
 /*
 {

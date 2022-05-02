@@ -18,6 +18,7 @@ function createPlatform(document: any, opts: SerializeDocumentOptions) {
     doc.location.href = normalizeUrl(opts.url).href;
   }
   const serverPlatform: CorePlatform = {
+    isServer: true,
     async importSymbol(_element, qrl, symbolName) {
       let [modulePath] = String(qrl).split('#');
       if (!modulePath.endsWith('.js')) {

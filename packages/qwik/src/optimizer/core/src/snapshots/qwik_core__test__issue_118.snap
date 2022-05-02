@@ -53,7 +53,7 @@ import*as a from"@builder.io/qwik";export const Header_component_ZdVwofEnicA=()=
 */
 ============================= entry_hooks.js (ENTRY POINT)==
 
-export{Header_component_1_0qE8a9tkFwQ}from"./header_component_1_0qe8a9tkfwq";export{Header_component_ZdVwofEnicA}from"./header_component_zdvwofenica";
+export{Header_component_1_0qE8a9tkFwQ}from"./header_component_1_0qe8a9tkfwq";export{Header_component_ZdVwofEnicA}from"./header_component_zdvwofenica";export{handleWatch}from"@builder.io/qwik";
 == DIAGNOSTICS ==
 
 []

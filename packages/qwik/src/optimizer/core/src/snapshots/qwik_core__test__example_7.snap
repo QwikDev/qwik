@@ -1,5 +1,5 @@
 ---
-source: src/optimizer/core/src/test.rs
+source: packages/qwik/src/optimizer/core/src/test.rs
 expression: output
 ---
 ==INPUT==
@@ -34,6 +34,7 @@ export const Header = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./header_c
 import * as qwik from "@builder.io/qwik";
 export const Header_component_div_onClick_IHjeXLKQSXg = (ctx)=>console.log(ctx)
 ;
+export { handleWatch } from "@builder.io/qwik";
 
 /*
 {
@@ -56,6 +57,7 @@ export const Header_component_D2lmH0Dh3zY = ()=>{
     return <div onClick={qwik.qrl(()=>import("./header_component_div_onclick_ihjexlkqsxg")
     , "Header_component_div_onClick_IHjeXLKQSXg")}/>;
 };
+export { handleWatch } from "@builder.io/qwik";
 
 /*
 {
@@ -77,6 +79,7 @@ import { Header } from "./test";
 export const App_component_aJ0UdC0imoo = ()=>{
     return <Header />;
 };
+export { handleWatch } from "@builder.io/qwik";
 
 /*
 {

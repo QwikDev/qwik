@@ -1,7 +1,7 @@
 import {
   component$,
   Host,
-  useWatchEffect$,
+  useEffect$,
   useHostElement,
   useStore,
   NoSerialize,
@@ -23,7 +23,7 @@ export const Editor = component$((props: EditorProps) => {
     load: false,
   });
 
-  useWatchEffect$(async (track) => {
+  useEffect$(async (track) => {
     track(store, 'load'); // TODO
 
     if (isBrowser) {
@@ -31,7 +31,7 @@ export const Editor = component$((props: EditorProps) => {
     }
   });
 
-  useWatchEffect$(async (track) => {
+  useEffect$(async (track) => {
     track(store, 'editor');
     track(props, 'inputs');
     track(props, 'selectedPath');

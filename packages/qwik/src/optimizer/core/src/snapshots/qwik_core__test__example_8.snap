@@ -35,6 +35,7 @@ export const Header_component_1_ouELP0EHCsM = (hola)=>{
     const hello = hola.nothere.stuff[global];
     return <Header />;
 };
+export { handleWatch } from "@builder.io/qwik";
 
 /*
 {
@@ -56,6 +57,7 @@ export const Header_component_D2lmH0Dh3zY = ()=>{
     return qwik.qrl(()=>import("./header_component_1_ouelp0ehcsm")
     , "Header_component_1_ouELP0EHCsM");
 };
+export { handleWatch } from "@builder.io/qwik";
 
 /*
 {

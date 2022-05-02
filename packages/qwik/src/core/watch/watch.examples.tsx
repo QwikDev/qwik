@@ -5,13 +5,14 @@
 // it to the desired comment location
 //
 
-import { component$, useStore, useWatch$ } from '@builder.io/qwik';
+import { component$, useStore, useEffect$ } from '@builder.io/qwik';
 
 // <docs anchor="useWatch">
 export const MyComp = component$(() => {
   const store = useStore({ count: 0, doubleCount: 0 });
-  useWatch$((obs) => {
-    store.doubleCount = 2 * obs(store).count;
+  useEffect$((track) => {
+    const count = track(store, 'count');
+    store.doubleCount = 2 * count;
   });
   return (
     <div>

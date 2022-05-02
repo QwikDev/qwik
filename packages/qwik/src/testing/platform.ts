@@ -22,6 +22,7 @@ function createPlatform(document: any) {
 
   const moduleCache = new Map<string, { [symbol: string]: any }>();
   const testPlatform: TestPlatform = {
+    isServer: true,
     importSymbol(element, url, symbolName) {
       const urlDoc = toUrl(element.ownerDocument, element, url);
       const importPath = toPath(urlDoc);

@@ -51,6 +51,7 @@ export const Foo_component_1_Hm6UNYgc0fQ = ()=>{
 
             </div>;
 };
+export { handleWatch } from "@builder.io/qwik";
 
 /*
 {
@@ -76,6 +77,7 @@ export const Foo_component_7N2avlLYVuo = ({ foo  })=>{
         foo
     ]);
 };
+export { handleWatch } from "@builder.io/qwik";
 
 /*
 {
@@ -101,6 +103,7 @@ export const Bar_component_1_Ok7UgECk8A0 = ()=>{
 
             </div>;
 };
+export { handleWatch } from "@builder.io/qwik";
 
 /*
 {
@@ -124,6 +127,7 @@ export const Bar_component_uZnKTldcnIk = ({ bar  })=>{
         bar
     ]);
 };
+export { handleWatch } from "@builder.io/qwik";
 
 /*
 {

@@ -7,6 +7,10 @@ export interface CorePlatform {
   /**
    * Dynamic import()
    */
+  isServer: boolean;
+  /**
+   * Dynamic import()
+   */
   importSymbol: (element: Element, url: string | URL, symbol: string) => ValueOrPromise<any>;
   /**
    * Platform specific queue, such as process.nextTick() for Node

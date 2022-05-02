@@ -1,5 +1,5 @@
 ---
-source: src/optimizer/core/src/test.rs
+source: packages/qwik/src/optimizer/core/src/test.rs
 expression: output
 ---
 ==INPUT==
@@ -29,6 +29,7 @@ export const Foo = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./foo_compone
 
 import * as qwik from "@builder.io/qwik";
 export const Foo_component_useStyles_PDrQszjGRtk = '.class {}';
+export { handleWatch } from "@builder.io/qwik";
 
 /*
 {
@@ -52,6 +53,7 @@ export const Foo_component_7N2avlLYVuo = ()=>{
     , "Foo_component_useStyles_PDrQszjGRtk"));
     return <div class="class"/>;
 };
+export { handleWatch } from "@builder.io/qwik";
 
 /*
 {

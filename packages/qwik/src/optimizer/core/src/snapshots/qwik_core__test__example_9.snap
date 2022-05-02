@@ -1,5 +1,5 @@
 ---
-source: src/optimizer/core/src/test.rs
+source: packages/qwik/src/optimizer/core/src/test.rs
 expression: output
 ---
 ==INPUT==
@@ -38,6 +38,7 @@ export const Header_aF6qeI0SRxM = (decl1, { decl2  }, [decl3])=>{
     try {} catch (decl18) {}
     try {} catch ({ decl19  }) {}
 };
+export { handleWatch } from "@builder.io/qwik";
 
 /*
 {

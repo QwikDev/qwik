@@ -4,8 +4,7 @@ import {
   noSerialize,
   useScopedStyles$,
   useStore,
-  useWatch$,
-  useWatchEffect$,
+  useEffect$,
 } from '@builder.io/qwik';
 import { isBrowser } from '@builder.io/qwik/build';
 import { ReplInputPanel } from './repl-input-panel';
@@ -75,7 +74,7 @@ export const Repl = component$(async (props: ReplProps) => {
     postReplInputUpdate(store);
   };
 
-  useWatchEffect$((track) => {
+  useEffect$((track) => {
     track(store, 'load'); // TODO!
     // is this right for is browser only?
     if (isBrowser) {
@@ -90,7 +89,7 @@ export const Repl = component$(async (props: ReplProps) => {
     }
   });
 
-  useWatch$((track) => {
+  useEffect$((track) => {
     track(store, 'load'); // TODO!
     track(store, 'entryStrategy');
     track(store, 'minify');

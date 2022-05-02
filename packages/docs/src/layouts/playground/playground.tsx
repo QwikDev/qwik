@@ -46,7 +46,6 @@ const Playground = component$((props: PlaygroundLayoutProps) => {
   useScopedStyles$(styles);
 
   const pointerDown = $(() => {
-    document.body.classList.remove('repl-resize-active');
     store.colResizeActive = true;
   }) as any;
 

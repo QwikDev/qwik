@@ -30,6 +30,7 @@ export interface ReplStore {
   iframeUrl: string;
   iframeWindow: NoSerialize<MessageEventSource> | null;
   version: string;
+  load: boolean;
 }
 
 export interface ReplModuleInput {

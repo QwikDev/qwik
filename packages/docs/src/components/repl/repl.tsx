@@ -38,12 +38,13 @@ export const Repl = component$(async (props: ReplProps) => {
     selectedClientModule: '',
     selectedSsrModule: '',
     minify: 'none',
-    entryStrategy: 'single',
+    entryStrategy: 'hook',
     ssrBuild: true,
     debug: false,
     iframeUrl: 'about:blank',
     iframeWindow: null,
-    version: props.version || '0.0.19-1',
+    version: props.version || '0.0.19-2',
+    load: false,
   });
 
   if (!store.selectedInputPath) {
@@ -58,7 +59,7 @@ export const Repl = component$(async (props: ReplProps) => {
     const input = store.inputs.find((i) => i.path === path);
     if (input) {
       input.code = code;
-      postReplInputUpdate();
+      postReplInputUpdate(store);
     }
   };
 
@@ -71,74 +72,11 @@ export const Repl = component$(async (props: ReplProps) => {
         store.selectedInputPath = '';
       }
     }
-    postReplInputUpdate();
+    postReplInputUpdate(store);
   };
 
-  const postReplInputUpdate = () => {
-    const opts: ReplInputOptions = {
-      debug: store.debug,
-      srcInputs: store.inputs,
-      minify: store.minify,
-      entryStrategy: {
-        type: store.entryStrategy as any,
-      },
-    };
-
-    const replMsg: ReplMessageEvent = {
-      type: 'update',
-      version: store.version,
-      options: opts,
-    };
-
-    if (store.iframeWindow && opts.srcInputs.length > 0) {
-      store.iframeWindow.postMessage(JSON.stringify(replMsg));
-    }
-  };
-
-  const updateReplOutput = (result: ReplResult) => {
-    store.outputHtml = result.outputHtml;
-    store.clientModules = result.clientModules;
-    store.ssrModules = result.ssrModules;
-    store.diagnostics = result.diagnostics;
-
-    if (!result.clientModules.some((m) => m.path === store.selectedClientModule)) {
-      if (result.clientModules.length > 0) {
-        store.selectedClientModule = result.clientModules[0].path;
-      } else {
-        store.selectedClientModule = '';
-      }
-    }
-
-    if (!result.ssrModules.some((m) => m.path === store.selectedSsrModule)) {
-      if (result.ssrModules.length > 0) {
-        store.selectedSsrModule = result.ssrModules[0].path;
-      } else {
-        store.selectedSsrModule = '';
-      }
-    }
-
-    if (result.diagnostics.length > 0) {
-      store.selectedOutputPanel = 'diagnostics';
-    } else if (result.diagnostics.length === 0 && store.selectedOutputPanel === 'diagnostics') {
-      store.selectedOutputPanel = 'app';
-    }
-  };
-
-  const onMessageFromIframe = (ev: MessageEvent) => {
-    switch (ev.data?.type) {
-      case 'replready': {
-        store.iframeWindow = noSerialize(ev.source as any);
-        postReplInputUpdate();
-        break;
-      }
-      case 'result': {
-        updateReplOutput(ev.data);
-        break;
-      }
-    }
-  };
-
-  useWatchEffect$(() => {
+  useWatchEffect$((track) => {
+    track(store, 'load'); // TODO!
     // is this right for is browser only?
     if (isBrowser) {
       store.iframeUrl = '/repl/index.html';
@@ -148,26 +86,96 @@ export const Repl = component$(async (props: ReplProps) => {
       }
 
       // how do I not use window event listener here?
-      window.addEventListener('message', onMessageFromIframe);
+      window.addEventListener('message', (ev) => onMessageFromIframe(ev, store));
     }
   });
 
   useWatch$((track) => {
+    track(store, 'load'); // TODO!
     track(store, 'entryStrategy');
     track(store, 'minify');
     track(store, 'version');
 
-    postReplInputUpdate();
+    postReplInputUpdate(store);
   });
 
   return (
-    <Host class="repl">
+    <Host
+      class="repl"
+      on-qVisible$={() => {
+        store.load = true;
+      }}
+    >
       <ReplInputPanel store={store} onInputChange={onInputChange} onInputDelete={onInputDelete} />
       <ReplOutputPanel store={store} />
       <ReplDetailPanel store={store} />
     </Host>
   );
 });
+
+export const updateReplOutput = (result: ReplResult, store: ReplStore) => {
+  store.outputHtml = result.outputHtml;
+  store.clientModules = result.clientModules;
+  store.ssrModules = result.ssrModules;
+  store.diagnostics = result.diagnostics;
+
+  if (!result.clientModules.some((m) => m.path === store.selectedClientModule)) {
+    if (result.clientModules.length > 0) {
+      store.selectedClientModule = result.clientModules[0].path;
+    } else {
+      store.selectedClientModule = '';
+    }
+  }
+
+  if (!result.ssrModules.some((m) => m.path === store.selectedSsrModule)) {
+    if (result.ssrModules.length > 0) {
+      store.selectedSsrModule = result.ssrModules[0].path;
+    } else {
+      store.selectedSsrModule = '';
+    }
+  }
+
+  if (result.diagnostics.length > 0) {
+    store.selectedOutputPanel = 'diagnostics';
+  } else if (result.diagnostics.length === 0 && store.selectedOutputPanel === 'diagnostics') {
+    store.selectedOutputPanel = 'app';
+  }
+};
+
+export const onMessageFromIframe = (ev: MessageEvent, store: ReplStore) => {
+  switch (ev.data?.type) {
+    case 'replready': {
+      store.iframeWindow = noSerialize(ev.source as any);
+      postReplInputUpdate(store);
+      break;
+    }
+    case 'result': {
+      updateReplOutput(ev.data, store);
+      break;
+    }
+  }
+};
+
+export const postReplInputUpdate = (store: ReplStore) => {
+  const opts: ReplInputOptions = {
+    debug: store.debug,
+    srcInputs: store.inputs,
+    minify: store.minify,
+    entryStrategy: {
+      type: store.entryStrategy as any,
+    },
+  };
+
+  const replMsg: ReplMessageEvent = {
+    type: 'update',
+    version: store.version,
+    options: opts,
+  };
+
+  if (store.iframeWindow && opts.srcInputs.length > 0) {
+    store.iframeWindow.postMessage(JSON.stringify(replMsg));
+  }
+};
 
 export interface ReplProps {
   inputs?: ReplModuleInput[];

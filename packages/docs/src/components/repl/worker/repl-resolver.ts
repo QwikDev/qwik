@@ -1,7 +1,6 @@
 import type { Plugin } from 'rollup';
 import type { ReplInputOptions } from '../types';
 import { ctx } from './constants';
-import { getRuntimeBundle } from './utils';
 
 export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 'ssr'): Plugin => {
   return {
@@ -26,7 +25,7 @@ export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 's
     load(id) {
       const input = options.srcInputs.find((i) => i.path === id);
       if (input) {
-        return input;
+        return input.code;
       }
       if (buildMode === 'ssr') {
         if (id === '\0qwikCore') {
@@ -42,4 +41,13 @@ export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 's
       return null;
     },
   };
+};
+
+const getRuntimeBundle = (runtimeBundle: string) => {
+  const exportKeys = Object.keys((self as any)[runtimeBundle]);
+  const code = `
+    const { ${exportKeys.join(', ')} } = self.${runtimeBundle};
+    export { ${exportKeys.join(', ')} };
+  `;
+  return code;
 };

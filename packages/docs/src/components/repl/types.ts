@@ -1,6 +1,5 @@
 import type {
   Diagnostic,
-  MinifyMode,
   QwikRollupPluginOptions,
   SymbolsEntryMap,
 } from '@builder.io/qwik/optimizer';
@@ -23,15 +22,18 @@ export interface ReplStore {
   enableHtmlOutput: boolean;
   enableClientOutput: boolean;
   enableSsrOutput: boolean;
-  minify: MinifyMode;
+  minify: ReplMinifyOption;
   ssrBuild: boolean;
   entryStrategy: string;
   debug: boolean;
   iframeUrl: string;
   iframeWindow: NoSerialize<MessageEventSource> | null;
   version: string;
+  versions: string[];
   load: boolean;
 }
+
+export type ReplMinifyOption = 'none' | 'minify';
 
 export interface ReplModuleInput {
   path: string;

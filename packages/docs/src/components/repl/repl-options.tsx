@@ -1,5 +1,4 @@
-import type { MinifyMode } from '@builder.io/qwik/optimizer';
-import type { ReplStore } from './types';
+import type { ReplMinifyOption, ReplStore } from './types';
 
 export const ReplOptions = ({ store }: ReplOptionsProps) => {
   return (
@@ -11,7 +10,7 @@ export const ReplOptions = ({ store }: ReplOptionsProps) => {
         store={store}
       />
       <StoreOption label="Minify" storeProp="minify" options={MINIFY_OPTIONS} store={store} />
-      <StoreOption label="Version" storeProp="version" options={[store.version]} store={store} />
+      <StoreOption label="Version" storeProp="version" options={store.versions} store={store} />
     </div>
   );
 };
@@ -46,9 +45,9 @@ const Select = (props: SelectProps) => {
   );
 };
 
-const MINIFY_OPTIONS: MinifyMode[] = ['none', 'simplify', 'minify'];
+const MINIFY_OPTIONS: ReplMinifyOption[] = ['none', 'minify'];
 
-const ENTRY_STRATEGY_OPTIONS: string[] = ['component', 'hook', 'manual', 'single', 'smart'];
+const ENTRY_STRATEGY_OPTIONS = ['component', 'hook', 'manual', 'single', 'smart'];
 
 interface SelectProps {
   options: string[];

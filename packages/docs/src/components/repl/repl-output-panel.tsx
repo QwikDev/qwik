@@ -7,7 +7,7 @@ export const ReplOutputPanel = ({ store }: ReplOutputPanelProps) => {
     <div class="repl-panel repl-output-panel">
       <div class="repl-tab-buttons">
         <ReplTabButton
-          text="Document"
+          text="App"
           isActive={store.selectedOutputPanel === 'app'}
           onClick$={() => {
             store.selectedOutputPanel = 'app';

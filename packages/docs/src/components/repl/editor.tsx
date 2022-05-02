@@ -23,6 +23,10 @@ export const Editor = component$((props: EditorProps) => {
     load: false,
   });
 
+  // useClientEffect$(async () => {
+  //   await initMonacoEditor(hostElm, props, store);
+  // });
+
   useWatchEffect$(async (track) => {
     track(store, 'load'); // TODO
 
@@ -31,6 +35,13 @@ export const Editor = component$((props: EditorProps) => {
     }
   });
 
+  // useClientEffect$(async (track) => {
+  //   track(store, 'editor');
+  //   track(props, 'inputs');
+  //   track(props, 'selectedPath');
+  //
+  //   await updateMonacoEditor(props, store);
+  // });
   useWatchEffect$(async (track) => {
     track(store, 'editor');
     track(props, 'inputs');

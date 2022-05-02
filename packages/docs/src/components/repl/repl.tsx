@@ -44,8 +44,19 @@ export const Repl = component$(async (props: ReplProps) => {
     iframeUrl: 'about:blank',
     iframeWindow: null,
     version: props.version || '0.0.19-2',
+    versions: ['0.0.19-2'],
     load: false,
   });
+
+  // useServer$(async () => {
+  //   const npmData = `https://data.jsdelivr.com/v1/package/npm/@builder.io/qwik`;
+  //   const npmRsp = await fetch(npmData);
+  //   const data: NpmData = await npmRsp.json();
+  //   store.version = data.tags.latest;
+  //   store.versions = data.versions.filter(
+  //     (v) => !v.includes('-dev') && parseInt(v.split('.')[2]) >= 19
+  //   );
+  // });
 
   if (!store.selectedInputPath) {
     if (store.inputs.some((i) => i.path === props.selectedInputPath)) {
@@ -185,3 +196,9 @@ export interface ReplProps {
   enableSsrOutput?: boolean;
   version?: string;
 }
+
+// https://data.jsdelivr.com/v1/package/npm/@builder.io/qwik
+// interface NpmData {
+//   tags: { latest: string };
+//   versions: string[];
+// }

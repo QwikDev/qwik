@@ -4,7 +4,6 @@ import type {
   EntryStrategy,
   GlobalInjections,
   HookAnalysis,
-  MinifyMode,
   Optimizer,
   OptimizerOptions,
   SymbolsEntryMap,
@@ -76,7 +75,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     if (updatedOpts.minify) {
       opts.minify = updatedOpts.minify;
     }
-    if (opts.minify !== 'minify' && opts.minify !== 'none' && opts.minify !== 'simplify') {
+    if (opts.minify !== 'minify' && opts.minify !== 'none') {
       if (opts.isDevBuild) {
         opts.minify = 'none';
       } else {
@@ -208,6 +207,9 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         log(`buildStart() opts.srcInputs (${opts.srcInputs.length})`);
       }
 
+      log(`transformedOutput.clear()`);
+      transformedOutputs.clear();
+
       const transformOpts: TransformFsOptions = {
         rootDir: rootDir,
         entryStrategy: opts.entryStrategy,
@@ -219,7 +221,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       const result = await optimizer.transformFs(transformOpts);
       for (const output of result.modules) {
         const key = optimizer.sys.path.join(rootDir, output.path)!;
-        log(`buildStart()`, 'qwik module', key);
+        log(`buildStart() add transformedOutput`, key);
         transformedOutputs.set(key, [output, key]);
       }
 
@@ -264,16 +266,15 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     for (const tryId of tryImportPathIds) {
       const transformedOutput = transformedOutputs.get(tryId);
       if (transformedOutput) {
-        log(`resolveId() Resolved ${tryId}`);
+        log(`resolveId() Resolved ${tryId} from transformedOutputs`);
         const transformedModule = transformedOutput[0];
         const sideEffects = !transformedModule.isEntry || !transformedModule.hook;
         return {
           id: tryId,
           moduleSideEffects: sideEffects,
         };
-      } else {
-        log(`resolveId() Resolved not found ${tryId}`);
       }
+      log(`resolveId() id ${tryId} not found in transformedOutputs`);
     }
 
     return null;
@@ -352,8 +353,6 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       diagnosticsCallback(newOutput.diagnostics, optimizer);
 
       results.set(pathId, newOutput);
-
-      transformedOutputs.clear();
 
       for (const [id, output] of results.entries()) {
         const justChanged = newOutput === output;
@@ -544,7 +543,7 @@ export interface BasePluginOptions {
   outServerDir?: string;
   entryStrategy?: EntryStrategy;
   forceFullBuild?: boolean;
-  minify?: MinifyMode;
+  minify?: 'none' | 'minify';
   srcRootInput?: string | string[];
   srcEntryServerInput?: string;
   srcDir?: string | null;

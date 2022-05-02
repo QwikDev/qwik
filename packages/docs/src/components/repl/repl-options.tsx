@@ -11,7 +11,7 @@ export const ReplOptions = ({ store }: ReplOptionsProps) => {
         store={store}
       />
       <StoreOption label="Minify" storeProp="minify" options={MINIFY_OPTIONS} store={store} />
-      <StoreOption label="Version" storeProp="version" options={['0.0.19-0']} store={store} />
+      <StoreOption label="Version" storeProp="version" options={[store.version]} store={store} />
     </div>
   );
 };

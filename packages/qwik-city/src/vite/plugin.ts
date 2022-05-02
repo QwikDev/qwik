@@ -84,15 +84,6 @@ export function qwikCity(options: PluginOptions) {
           qwikCityBuildCode = createDynamicImportedCode(ctx);
         }
 
-        ctx.pages.forEach((p) => {
-          this.emitFile({
-            type: 'chunk',
-            id: p.filePath,
-            fileName: getPagesBuildPath(p.pathname),
-            preserveSignature: 'allow-extension',
-          });
-        });
-
         return qwikCityBuildCode;
       }
       return null;
@@ -103,6 +94,17 @@ export function qwikCity(options: PluginOptions) {
         const mdxResult = await mdxTransform(code, id);
         return mdxResult;
       }
+    },
+
+    generateBundle() {
+      ctx.pages.forEach((p) => {
+        this.emitFile({
+          type: 'chunk',
+          id: p.filePath,
+          fileName: getPagesBuildPath(p.pathname),
+          preserveSignature: 'allow-extension',
+        });
+      });
     },
   };
 

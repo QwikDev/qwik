@@ -229,7 +229,11 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     }
   };
 
-  const resolveId = async (id: string, importer: string | undefined) => {
+  const resolveId = async (
+    id: string,
+    importer: string | undefined,
+    _resolveIdOpts: { ssr?: boolean } = {}
+  ) => {
     if (id === QWIK_BUILD_ID) {
       log(`resolveId()`, 'Resolved', QWIK_BUILD_ID);
       return {
@@ -275,13 +279,13 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     return null;
   };
 
-  const load = async (id: string) => {
+  const load = async (id: string, loadOpts: { ssr?: boolean } = {}) => {
     const optimizer = await getOptimizer();
 
     if (id === QWIK_BUILD_ID) {
       log(`load()`, QWIK_BUILD_ID, opts.buildMode);
       return {
-        code: getBuildTimeModule(opts),
+        code: getBuildTimeModule(opts, loadOpts),
       };
     }
 
@@ -474,10 +478,11 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
   };
 }
 
-function getBuildTimeModule(opts: NormalizedQwikPluginConfig) {
-  return `
-export const isServer = ${opts.buildMode === 'ssr'};
-export const isBrowser = ${opts.buildMode === 'client'};
+function getBuildTimeModule(pluginOpts: NormalizedQwikPluginConfig, loadOpts: { ssr?: boolean }) {
+  const isServer = pluginOpts.buildMode === 'ssr' || !!loadOpts.ssr;
+  return `// @builder.io/qwik/build
+export const isServer = ${JSON.stringify(isServer)};
+export const isBrowser = ${JSON.stringify(!isServer)};
 `;
 }
 

@@ -63,12 +63,8 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     if (updatedOpts.entryStrategy && typeof updatedOpts.entryStrategy === 'object') {
       opts.entryStrategy = { ...updatedOpts.entryStrategy };
     }
-    if (!opts.entryStrategy) {
-      if (opts.isDevBuild) {
-        opts.entryStrategy = { type: 'hook' };
-      } else {
-        opts.entryStrategy = { type: 'single' };
-      }
+    if (!opts.entryStrategy || opts.isDevBuild) {
+      opts.entryStrategy = { type: 'hook' };
     }
 
     if (typeof updatedOpts.forceFullBuild === 'boolean') {

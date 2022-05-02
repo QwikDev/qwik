@@ -13,7 +13,7 @@ export const usePage = async (hostElm: any) => {
 };
 
 const loadPage = async (href: string): Promise<PageHandler | null> => {
-  let mod: any = null;
+  let pageModule: any = null;
 
   const url = normalizeUrl(href);
   const modulePath = url.pathname.endsWith('/') ? url.pathname + 'index' : url.pathname;
@@ -25,43 +25,38 @@ const loadPage = async (href: string): Promise<PageHandler | null> => {
       return null;
     }
 
-    mod = await pageImporter();
+    pageModule = await pageImporter();
   } else {
     // page modules are dynamically imported
     try {
       // ./pages/guide/getting-started.js
-      let pagePath = './pages' + modulePath + '.js';
-      if (IS_CLIENT) {
-        pagePath += '?v=' + BUILD_ID;
-      }
-
-      mod = await import(/* @vite-ignore */ pagePath);
+      const pagePath = `./pages${modulePath}.js?v=${BUILD_ID}`;
+      pageModule = await import(/* @vite-ignore */ pagePath);
     } catch (e) {
       console.error(e);
       return null;
     }
   }
-  if (!mod || !mod.default) {
+  if (!pageModule || !pageModule.default) {
     return null;
   }
 
-  const layoutImporter = LAYOUTS[mod.attributes.layout] || LAYOUTS.default;
+  const layoutImporter = LAYOUTS[pageModule.attributes.layout] || LAYOUTS.default;
   if (!layoutImporter) {
     return null;
   }
 
   const layout = await layoutImporter();
+  const layoutModule = layout.default || layout;
 
   return {
-    attributes: mod.attributes,
-    breadcrumbs: mod.breadcrumbs,
-    content: mod.default,
-    headings: mod.headings,
-    index: mod.index,
-    layout: layout.default,
-    source: mod.source,
+    attributes: pageModule.attributes,
+    breadcrumbs: pageModule.breadcrumbs,
+    content: pageModule.default,
+    headings: pageModule.headings,
+    index: pageModule.index,
+    layout: layoutModule,
+    source: pageModule.source,
     url,
   };
 };
-
-const IS_CLIENT = typeof document !== 'undefined';

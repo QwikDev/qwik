@@ -52,11 +52,11 @@ export const Header = component$(
                 <span>Guide</span>
               </a>
             </li>
-            <li>
+            {/* <li>
               <a href="/playground" onClickQrl={closeMenu}>
                 <span>Playground</span>
               </a>
-            </li>
+            </li> */}
             <li>
               <a href="https://github.com/BuilderIO/qwik" target="_blank" onClickQrl={closeMenu}>
                 <span class="md:hidden">Github</span>

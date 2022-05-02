@@ -9,7 +9,7 @@ const config: PlaywrightTestConfig = {
   },
   retries: 3,
   webServer: {
-    command: 'node starters/dev-server.cjs 3301',
+    command: 'node -r esbuild-register starters/dev-server.ts 3301',
     port: 3301,
     reuseExistingServer: !process.env.CI,
   },

@@ -20,16 +20,23 @@ export const Editor = component$((props: EditorProps) => {
     onChangeDebounce: undefined,
     onChangeSubscription: undefined,
     viewStates: noSerialize({}),
+    load: false,
   });
 
   useWatchEffect$(async (track) => {
+    track(store, 'load'); // TODO
+
+    if (isBrowser) {
+      await initMonacoEditor(hostElm, props, store);
+    }
+  });
+
+  useWatchEffect$(async (track) => {
+    track(store, 'editor');
     track(props, 'inputs');
     track(props, 'selectedPath');
 
     if (isBrowser) {
-      if (!store.editor) {
-        await initMonacoEditor(hostElm, props, store);
-      }
       await updateMonacoEditor(props, store);
     }
   });
@@ -41,7 +48,14 @@ export const Editor = component$((props: EditorProps) => {
   //   }
   // });
 
-  return <Host className="editor-container" />;
+  return (
+    <Host
+      className="editor-container"
+      on-qVisible$={() => {
+        store.load = true;
+      }}
+    />
+  );
 });
 
 export interface EditorProps {
@@ -60,4 +74,5 @@ export interface EditorStore {
   onChangeDebounce: NoSerialize<any>;
   onChangeSubscription: NoSerialize<any>;
   viewStates: NoSerialize<Record<string, ICodeEditorViewState>>;
+  load: boolean;
 }

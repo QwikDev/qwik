@@ -29,6 +29,7 @@ export const Foo = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./s_7n2avllyv
 import * as qwik from "@builder.io/qwik";
 export const s_oZ0voj5y0fE = ()=>console.log('first')
 ;
+export { handleWatch } from "@builder.io/qwik";
 
 /*
 {
@@ -48,6 +49,7 @@ export const s_oZ0voj5y0fE = ()=>console.log('first')
 import * as qwik from "@builder.io/qwik";
 export const s_0s4ieZ0lXsw = ()=>console.log('second')
 ;
+export { handleWatch } from "@builder.io/qwik";
 
 /*
 {
@@ -67,6 +69,7 @@ export const s_0s4ieZ0lXsw = ()=>console.log('second')
 import * as qwik from "@builder.io/qwik";
 export const s_l55D90Ob54M = ()=>console.log('third')
 ;
+export { handleWatch } from "@builder.io/qwik";
 
 /*
 {
@@ -98,6 +101,7 @@ export const s_7N2avlLYVuo = ()=>{
 
         </div>;
 };
+export { handleWatch } from "@builder.io/qwik";
 
 /*
 {

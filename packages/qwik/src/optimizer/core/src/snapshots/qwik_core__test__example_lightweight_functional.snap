@@ -1,5 +1,5 @@
 ---
-source: src/optimizer/core/src/test.rs
+source: packages/qwik/src/optimizer/core/src/test.rs
 expression: output
 ---
 ==INPUT==
@@ -67,6 +67,7 @@ export const Foo_component_7N2avlLYVuo = ({ color  })=>{
 
         </div>;
 };
+export { handleWatch } from "@builder.io/qwik";
 
 /*
 {
@@ -88,6 +89,7 @@ export const Button_button_onClick_6WewdAKUGHo = ()=>{
     const [color, text] = qwik.useLexicalScope();
     return console.log(text, color);
 };
+export { handleWatch } from "@builder.io/qwik";
 
 /*
 {
@@ -109,6 +111,7 @@ export const ButtonArrow_button_onClick_FEfZXIB1knQ = ()=>{
     const [color, text] = qwik.useLexicalScope();
     return console.log(text, color);
 };
+export { handleWatch } from "@builder.io/qwik";
 
 /*
 {

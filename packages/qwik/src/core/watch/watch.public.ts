@@ -1,6 +1,7 @@
 import {
   noSerialize,
   NoSerialize,
+  notifyWatch,
   QOjectAllSymbol,
   removeSub,
   SetSubscriber,
@@ -12,9 +13,14 @@ import { useHostElement } from '../use/use-host-element.public';
 import { logDebug, logError } from '../util/log';
 import { then } from '../util/promises';
 import { useSequentialScope } from '../use/use-store.public';
-import type { QRLInternal } from '../import/qrl-class';
+import { QRLInternal } from '../import/qrl-class';
 import { getDocument } from '../util/dom';
 import type { ValueOrPromise } from '../util/types';
+import { useLexicalScope } from '../use/use-lexical-scope.public';
+import { getPlatform } from '../platform/platform';
+import { useDocument } from '../use/use-document.public';
+import { qPropWriteQRL } from '../props/props-on';
+import { useOn, useResumeQrl } from '../component/component.public';
 
 export const enum WatchMode {
   Watch,
@@ -22,7 +28,15 @@ export const enum WatchMode {
   Effect,
 }
 
+/**
+ * @alpha
+ */
 export type WatchFn = (track: Tracker) => ValueOrPromise<void | (() => void)>;
+
+/**
+ * @alpha
+ */
+export type ServerFn = () => ValueOrPromise<void | (() => void)>;
 
 export interface WatchDescriptor {
   isConnected: boolean;
@@ -34,123 +48,34 @@ export interface WatchDescriptor {
   dirty: boolean;
 }
 
-// <docs markdown="https://hackmd.io/_Kl9br9tT8OB-1Dv8uR4Kg#useWatch">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2F_Kl9br9tT8OB-1Dv8uR4Kg%3Fboth#useWatch instead)
-/**
- * Reruns the `watchFn` when the observed inputs change.
- *
- * Use `useWatch` to observe changes on a set of inputs, and then re-execute the `watchFn` when
- * those inputs change.
- *
- * The `watchFn` only executes if the observed inputs change. To observe the inputs use the `obs`
- * function to wrap property reads. This creates subscriptions which will trigger the `watchFn`
- * to re-run.
- *
- * See: `Observer`
- *
- * @public
- *
- * ## Example
- *
- * The `useWatch` function is used to observe the `state.count` property. Any changes to the
- * `state.count` cause the `watchFn` to execute which in turn updates the `state.doubleCount` to
- * the double of `state.count`.
- *
- * ```typescript
- * export const MyComp = component$(() => {
- *   const store = useStore({ count: 0, doubleCount: 0 });
- *   useWatch$((obs) => {
- *     store.doubleCount = 2 * obs(store).count;
- *   });
- *   return $(() => (
- *     <div>
- *       <span>
- *         {store.count} / {store.doubleCount}
- *       </span>
- *       <button onClick$={() => store.count++}>+</button>
- *     </div>
- *   ));
- * });
- * ```
- *
- *
- * @param watch - Function which should be re-executed when changes to the inputs are detected
- * @public
- */
-// </docs>
-export function useWatchQrl(watchQrl: QRL<WatchFn>): void {
-  const [watch, setWatch] = useSequentialScope();
-  if (!watch) {
-    const hostElement = useHostElement();
-    const watch: WatchDescriptor = {
-      watchQrl: watchQrl,
-      hostElement,
-      mode: WatchMode.Watch,
-      isConnected: true,
-      dirty: true,
-    };
-    setWatch(watch);
-    getContext(hostElement).refMap.add(watch);
-    useWaitOn(Promise.resolve().then(() => runWatch(watch)));
-  }
-}
-
 export const isWatchDescriptor = (obj: any): obj is WatchDescriptor => {
   return obj && typeof obj === 'object' && 'watchQrl' in obj;
 };
 
-// <docs markdown="https://hackmd.io/_Kl9br9tT8OB-1Dv8uR4Kg#useWatch">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2F_Kl9br9tT8OB-1Dv8uR4Kg%3Fboth#useWatch instead)
 /**
- * Reruns the `watchFn` when the observed inputs change.
- *
- * Use `useWatch` to observe changes on a set of inputs, and then re-execute the `watchFn` when
- * those inputs change.
- *
- * The `watchFn` only executes if the observed inputs change. To observe the inputs use the `obs`
- * function to wrap property reads. This creates subscriptions which will trigger the `watchFn`
- * to re-run.
- *
- * See: `Observer`
- *
- * @public
- *
- * ## Example
- *
- * The `useWatch` function is used to observe the `state.count` property. Any changes to the
- * `state.count` cause the `watchFn` to execute which in turn updates the `state.doubleCount` to
- * the double of `state.count`.
- *
- * ```typescript
- * export const MyComp = component$(() => {
- *   const store = useStore({ count: 0, doubleCount: 0 });
- *   useWatch$((obs) => {
- *     store.doubleCount = 2 * obs(store).count;
- *   });
- *   return $(() => (
- *     <div>
- *       <span>
- *         {store.count} / {store.doubleCount}
- *       </span>
- *       <button onClick$={() => store.count++}>+</button>
- *     </div>
- *   ));
- * });
- * ```
- *
- *
- * @param watch - Function which should be re-executed when changes to the inputs are detected
- * @public
+ * @alpha
  */
-// </docs>
-export const useWatch$ = implicit$FirstArg(useWatchQrl);
+export type UseEffectRunOptions = 'visible' | 'load';
 
 /**
  * @alpha
  */
-export function useWatchEffectQrl(watchQrl: QRL<WatchFn>): void {
+export interface UseEffectOptions {
+  run?: UseEffectRunOptions;
+}
+
+/**
+ * @alpha
+ */
+export function handleWatch() {
+  const [watch] = useLexicalScope();
+  notifyWatch(watch);
+}
+
+/**
+ * @alpha
+ */
+export function useEffectQrl(watchQrl: QRL<WatchFn>, opts?: UseEffectOptions): void {
   const [watch, setWatch] = useSequentialScope();
   if (!watch) {
     const hostElement = useHostElement();
@@ -163,13 +88,90 @@ export function useWatchEffectQrl(watchQrl: QRL<WatchFn>): void {
     };
     setWatch(watch);
     getContext(hostElement).refMap.add(watch);
+    const run = opts?.run;
+    if (run) {
+      const watchHandler = new QRLInternal(
+        (watchQrl as QRLInternal).chunk,
+        'handleWatch',
+        handleWatch,
+        null,
+        null,
+        [watch]
+      );
+      watchHandler.refSymbol = (watchQrl as QRLInternal).symbol;
+      if (opts?.run === 'load') {
+        useResumeQrl(watchHandler);
+      } else {
+        useOn('qVisible', watchHandler);
+      }
+    }
   }
 }
 
 /**
  * @alpha
  */
-export const useWatchEffect$ = implicit$FirstArg(useWatchEffectQrl);
+export const useEffect$ = implicit$FirstArg(useEffectQrl);
+
+/**
+ * @alpha
+ */
+export function useClientEffectQrl(watchQrl: QRL<WatchFn>, opts?: UseEffectOptions): void {
+  const [watch, setWatch] = useSequentialScope();
+  if (!watch) {
+    const hostElement = useHostElement();
+    const isServer = getPlatform(useDocument()).isServer;
+    const watch: WatchDescriptor = {
+      watchQrl: watchQrl,
+      hostElement,
+      mode: WatchMode.Effect,
+      isConnected: true,
+      dirty: !isServer,
+    };
+    setWatch(watch);
+    getContext(hostElement).refMap.add(watch);
+    if (isServer) {
+      const watchHandler = new QRLInternal(
+        (watchQrl as QRLInternal).chunk,
+        'handleWatch',
+        handleWatch,
+        null,
+        null,
+        [watch]
+      );
+      watchHandler.refSymbol = (watchQrl as QRLInternal).symbol;
+      if (opts?.run === 'load') {
+        useResumeQrl(watchHandler);
+      } else {
+        useOn('qVisible', watchHandler);
+      }
+    }
+  }
+}
+
+/**
+ * @alpha
+ */
+export const useClientEffect$ = implicit$FirstArg(useClientEffectQrl);
+
+/**
+ * @alpha
+ */
+export function useServerQrl(watchQrl: QRL<ServerFn>): void {
+  const [watch, setWatch] = useSequentialScope();
+  if (!watch) {
+    setWatch(true);
+    const isServer = getPlatform(useDocument()).isServer;
+    if (isServer) {
+      useWaitOn(watchQrl.invoke());
+    }
+  }
+}
+
+/**
+ * @alpha
+ */
+export const useServer$ = implicit$FirstArg(useServerQrl);
 
 export function runWatch(watch: WatchDescriptor): Promise<WatchDescriptor> {
   if (!watch.dirty) {

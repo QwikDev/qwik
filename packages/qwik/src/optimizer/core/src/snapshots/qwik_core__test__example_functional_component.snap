@@ -1,5 +1,5 @@
 ---
-source: src/optimizer/core/src/test.rs
+source: packages/qwik/src/optimizer/core/src/test.rs
 expression: output
 ---
 ==INPUT==
@@ -32,6 +32,7 @@ export const Header_component_D2lmH0Dh3zY = ()=>{
     const { foo , bar  } = foo();
     return <div >{thing}</div>;
 };
+export { handleWatch } from "@builder.io/qwik";
 
 /*
 {

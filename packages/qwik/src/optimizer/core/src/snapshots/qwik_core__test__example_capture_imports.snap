@@ -28,6 +28,7 @@ import * as qwik from "@builder.io/qwik";
 import css1 from "./global.css";
 import css2 from "./style.css";
 export const App_component_useStyles_41n1OqyI5XI = `${css1}${css2}`;
+export { handleWatch } from "@builder.io/qwik";
 
 /*
 {
@@ -47,6 +48,7 @@ export const App_component_useStyles_41n1OqyI5XI = `${css1}${css2}`;
 import * as qwik from "@builder.io/qwik";
 import css3 from "./style.css";
 export const App_component_useStyles_1_7jeCCMhL0u4 = css3;
+export { handleWatch } from "@builder.io/qwik";
 
 /*
 {
@@ -71,6 +73,7 @@ export const App_component_aJ0UdC0imoo = ()=>{
     useStylesQrl(qwik.qrl(()=>import("./app_component_usestyles_1_7jeccmhl0u4")
     , "App_component_useStyles_1_7jeCCMhL0u4"));
 };
+export { handleWatch } from "@builder.io/qwik";
 
 /*
 {

@@ -20,7 +20,7 @@ describe('qwik plugin', () => {
       expect(opts.srcRootInput).toEqual([resolve(cwd, 'src', 'root.tsx')]);
       expect(opts.srcEntryServerInput).toBe(resolve(cwd, 'src', 'entry.server.tsx'));
       expect(opts.entryStrategy).toEqual({ type: 'hook' });
-      expect(opts.minify).toBe('minify');
+      expect(opts.minify).toBe('simplify');
       expect(opts.symbolsOutput).toBe(null);
     });
 
@@ -70,10 +70,10 @@ describe('qwik plugin', () => {
       expect(opts.forceFullBuild).toBe(true);
     });
 
-    it('minify', async () => {
+    it('simplify', async () => {
       const plugin = mockPlugin();
-      const opts = await plugin.normalizeOptions({ minify: 'minify' });
-      expect(opts.minify).toBe('minify');
+      const opts = await plugin.normalizeOptions({ minify: 'simplify' });
+      expect(opts.minify).toBe('simplify');
     });
 
     it('rootDir, abs path', async () => {

@@ -10,6 +10,7 @@ import { Async } from './components/async/async';
 import { Containers } from './components/containers/container';
 import { Factory } from './components/factory/factory';
 import { Watch } from './components/watch/watch';
+import { EffectClient } from './components/effect-client/effect-client';
 
 /**
  * Entry point for server-side pre-rendering.
@@ -30,6 +31,7 @@ export function render(opts: RenderToStringOptions) {
     '/e2e/container': () => <Containers />,
     '/e2e/factory': () => <Factory />,
     '/e2e/watch': () => <Watch />,
+    '/e2e/effect-client': () => <EffectClient />,
   };
   const Test = tests[url.pathname];
 

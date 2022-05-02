@@ -42,6 +42,7 @@ export function componentQrl<PROPS extends {}>(onRenderQrl: QRL<OnRenderFn<PROPS
 export interface CorePlatform {
     chunkForSymbol: (symbolName: string) => string | undefined;
     importSymbol: (element: Element, url: string | URL, symbol: string) => ValueOrPromise<any>;
+    isServer: boolean;
     // (undocumented)
     nextTick: (fn: () => any) => Promise<any>;
     raf: (fn: () => any) => Promise<any>;
@@ -101,6 +102,9 @@ export namespace h {
         }
     }
 }
+
+// @alpha (undocumented)
+export function handleWatch(): void;
 
 // Warning: (ae-forgotten-export) The symbol "HTMLAttributes" needs to be exported by the entry point index.d.ts
 //
@@ -250,6 +254,9 @@ export type RenderableProps<P, RefType = any> = P & Readonly<{
     children?: ComponentChildren;
 }>;
 
+// @alpha (undocumented)
+export type ServerFn = () => ValueOrPromise<void | (() => void)>;
+
 // @public (undocumented)
 export const setPlatform: (doc: Document, plt: CorePlatform) => CorePlatform;
 
@@ -281,8 +288,29 @@ export const useCleanup$: (first: () => void) => void;
 // @public
 export function useCleanupQrl(unmountFn: QRL<() => void>): void;
 
+// @alpha (undocumented)
+export const useClientEffect$: (first: WatchFn, opts?: UseEffectOptions | undefined) => void;
+
+// @alpha (undocumented)
+export function useClientEffectQrl(watchQrl: QRL<WatchFn>, opts?: UseEffectOptions): void;
+
 // @public (undocumented)
 export function useDocument(): Document;
+
+// @alpha (undocumented)
+export const useEffect$: (first: WatchFn, opts?: UseEffectOptions | undefined) => void;
+
+// @alpha (undocumented)
+export interface UseEffectOptions {
+    // (undocumented)
+    run?: UseEffectRunOptions;
+}
+
+// @alpha (undocumented)
+export function useEffectQrl(watchQrl: QRL<WatchFn>, opts?: UseEffectOptions): void;
+
+// @alpha (undocumented)
+export type UseEffectRunOptions = 'visible' | 'load';
 
 // @public
 export function useHostElement(): Element;
@@ -320,6 +348,12 @@ export const useScopedStyles$: (first: string) => void;
 // @alpha (undocumented)
 export function useScopedStylesQrl(styles: QRL<string>): void;
 
+// @alpha (undocumented)
+export const useServer$: (first: ServerFn) => void;
+
+// @alpha (undocumented)
+export function useServerQrl(watchQrl: QRL<ServerFn>): void;
+
 // @public
 export function useStore<STATE extends object>(initialState: STATE | (() => STATE)): STATE;
 
@@ -332,25 +366,14 @@ export function useStylesQrl(styles: QRL<string>): void;
 // @alpha (undocumented)
 export function useSubscriber<T extends {}>(obj: T): T;
 
-// Warning: (ae-forgotten-export) The symbol "WatchFn" needs to be exported by the entry point index.d.ts
-//
-// @public
-export const useWatch$: (first: WatchFn) => void;
-
-// @alpha (undocumented)
-export const useWatchEffect$: (first: WatchFn) => void;
-
-// @alpha (undocumented)
-export function useWatchEffectQrl(watchQrl: QRL<WatchFn>): void;
-
-// @public
-export function useWatchQrl(watchQrl: QRL<WatchFn>): void;
-
 // @public
 export type ValueOrPromise<T> = T | Promise<T>;
 
 // @alpha (undocumented)
 export const version: string;
+
+// @alpha (undocumented)
+export type WatchFn = (track: Tracker) => ValueOrPromise<void | (() => void)>;
 
 // Warning: (ae-forgotten-export) The symbol "Subscriber" needs to be exported by the entry point index.d.ts
 //

@@ -51,6 +51,7 @@ export const Foo = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./foo_compone
 import * as qwik from "@builder.io/qwik";
 export const Foo_component_handler_Ze0zra7FSmE = ()=>console.log('reused')
 ;
+export { handleWatch } from "@builder.io/qwik";
 
 /*
 {
@@ -70,6 +71,7 @@ export const Foo_component_handler_Ze0zra7FSmE = ()=>console.log('reused')
 import * as qwik from "@builder.io/qwik";
 export const Foo_component_div_onClick_oZ0voj5y0fE = ()=>console.log('onClick$')
 ;
+export { handleWatch } from "@builder.io/qwik";
 
 /*
 {
@@ -89,6 +91,7 @@ export const Foo_component_div_onClick_oZ0voj5y0fE = ()=>console.log('onClick$')
 import * as qwik from "@builder.io/qwik";
 export const Foo_component_div_onDocumentScroll_sttTrPaaqz4 = ()=>console.log('onDocumentScroll')
 ;
+export { handleWatch } from "@builder.io/qwik";
 
 /*
 {
@@ -108,6 +111,7 @@ export const Foo_component_div_onDocumentScroll_sttTrPaaqz4 = ()=>console.log('o
 import * as qwik from "@builder.io/qwik";
 export const Foo_component_div_onDocumentScroll_1_8nIyMbztJ2g = ()=>console.log('onWindowScroll')
 ;
+export { handleWatch } from "@builder.io/qwik";
 
 /*
 {
@@ -127,6 +131,7 @@ export const Foo_component_div_onDocumentScroll_1_8nIyMbztJ2g = ()=>console.log(
 import * as qwik from "@builder.io/qwik";
 export const Foo_component_div_on_cLick_XkMZrCUcUnQ = ()=>console.log('on-cLick$')
 ;
+export { handleWatch } from "@builder.io/qwik";
 
 /*
 {
@@ -146,6 +151,7 @@ export const Foo_component_div_on_cLick_XkMZrCUcUnQ = ()=>console.log('on-cLick$
 import * as qwik from "@builder.io/qwik";
 export const Foo_component_div_onDocument_sCroll_YVd6edtVpfU = ()=>console.log('onDocument-sCroll')
 ;
+export { handleWatch } from "@builder.io/qwik";
 
 /*
 {
@@ -165,6 +171,7 @@ export const Foo_component_div_onDocument_sCroll_YVd6edtVpfU = ()=>console.log('
 import * as qwik from "@builder.io/qwik";
 export const Foo_component_div_onDocument_scroLL_nmE98c9O3Z8 = ()=>console.log('onDocument-scroLL')
 ;
+export { handleWatch } from "@builder.io/qwik";
 
 /*
 {
@@ -184,6 +191,7 @@ export const Foo_component_div_onDocument_scroLL_nmE98c9O3Z8 = ()=>console.log('
 import * as qwik from "@builder.io/qwik";
 export const Foo_component_div_host_onClick_g7gLCExvpxI = ()=>console.log('host:onClick$')
 ;
+export { handleWatch } from "@builder.io/qwik";
 
 /*
 {
@@ -203,6 +211,7 @@ export const Foo_component_div_host_onClick_g7gLCExvpxI = ()=>console.log('host:
 import * as qwik from "@builder.io/qwik";
 export const Foo_component_div_host_onDocumentScroll_qQF1xwVtSJU = ()=>console.log('host:onDocument:scroll')
 ;
+export { handleWatch } from "@builder.io/qwik";
 
 /*
 {
@@ -222,6 +231,7 @@ export const Foo_component_div_host_onDocumentScroll_qQF1xwVtSJU = ()=>console.l
 import * as qwik from "@builder.io/qwik";
 export const Foo_component_div_host_onDocumentScroll_1_7YOPBe79PNg = ()=>console.log('host:onWindow:scroll')
 ;
+export { handleWatch } from "@builder.io/qwik";
 
 /*
 {
@@ -241,6 +251,7 @@ export const Foo_component_div_host_onDocumentScroll_1_7YOPBe79PNg = ()=>console
 import * as qwik from "@builder.io/qwik";
 export const Foo_component_div_custom_g6j9vexIGzc = ()=>console.log('custom')
 ;
+export { handleWatch } from "@builder.io/qwik";
 
 /*
 {
@@ -288,6 +299,7 @@ export const Foo_component_1_Hm6UNYgc0fQ = ()=>{
         , "Foo_component_div_custom_g6j9vexIGzc")
     });
 };
+export { handleWatch } from "@builder.io/qwik";
 
 /*
 {
@@ -309,6 +321,7 @@ export const Foo_component_7N2avlLYVuo = ()=>{
     return qwik.qrl(()=>import("./foo_component_1_hm6unygc0fq")
     , "Foo_component_1_Hm6UNYgc0fQ");
 };
+export { handleWatch } from "@builder.io/qwik";
 
 /*
 {

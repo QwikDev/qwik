@@ -25,6 +25,7 @@ export const App = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./app_compone
 
 import * as qwik from "@builder.io/qwik";
 export const App_component_useStyles_41n1OqyI5XI = 'hola';
+export { handleWatch } from "@builder.io/qwik";
 
 /*
 {
@@ -44,6 +45,7 @@ export const App_component_useStyles_41n1OqyI5XI = 'hola';
 import * as qwik from "@builder.io/qwik";
 export const App_component_1_5Lmk4ChgYSo = ()=><div ></div>
 ;
+export { handleWatch } from "@builder.io/qwik";
 
 /*
 {
@@ -68,6 +70,7 @@ export const App_component_aJ0UdC0imoo = (props)=>{
     return qwik.qrl(()=>import("./app_component_1_5lmk4chgyso.tsx")
     , "App_component_1_5Lmk4ChgYSo");
 };
+export { handleWatch } from "@builder.io/qwik";
 
 /*
 {

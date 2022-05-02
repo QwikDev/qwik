@@ -810,6 +810,28 @@ pub fn create_synthetic_wildcard_import(local: &Id, src: &JsWord) -> ast::Module
     }))
 }
 
+pub fn create_synthetic_named_export(local: &JsWord, src: &JsWord) -> ast::ModuleItem {
+    ast::ModuleItem::ModuleDecl(ast::ModuleDecl::ExportNamed(ast::NamedExport {
+        span: DUMMY_SP,
+        asserts: None,
+        type_only: false,
+        src: Some(ast::Str {
+            span: DUMMY_SP,
+            has_escape: false,
+            value: src.clone(),
+            kind: ast::StrKind::Normal {
+                contains_quote: false,
+            },
+        }),
+        specifiers: vec![ast::ExportSpecifier::Named(ast::ExportNamedSpecifier {
+            is_type_only: false,
+            exported: None,
+            orig: ast::ModuleExportName::Ident(ast::Ident::new(local.clone(), DUMMY_SP)),
+            span: DUMMY_SP,
+        })],
+    }))
+}
+
 fn create_synthetic_named_import(local: &Id, src: &JsWord) -> ast::ModuleItem {
     ast::ModuleItem::ModuleDecl(ast::ModuleDecl::Import(ast::ImportDecl {
         span: DUMMY_SP,

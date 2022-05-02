@@ -20,10 +20,6 @@ use swc_common::errors::{DiagnosticBuilder, Emitter, Handler};
 use swc_common::{sync::Lrc, FileName, Globals, Mark, SourceMap};
 use swc_ecmascript::ast;
 use swc_ecmascript::codegen::text_writer::JsWriter;
-use swc_ecmascript::minifier::optimize;
-use swc_ecmascript::minifier::option::{
-    CompressOptions, ExtraOptions, MangleOptions, MinifyOptions,
-};
 use swc_ecmascript::parser::lexer::Lexer;
 use swc_ecmascript::parser::{EsConfig, PResult, Parser, StringInput, Syntax, TsConfig};
 use swc_ecmascript::transforms::{
@@ -49,7 +45,6 @@ pub struct HookAnalysis {
 #[derive(Debug, Serialize, Deserialize, Copy, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub enum MinifyMode {
-    Minify,
     Simplify,
     None,
 }
@@ -208,30 +203,6 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                     if config.minify != MinifyMode::None {
                         main_module =
                             main_module.fold_with(&mut simplify::simplifier(Default::default()));
-
-                        if config.minify == MinifyMode::Minify {
-                            main_module = optimize(
-                                main_module,
-                                Lrc::clone(&source_map),
-                                Some(&comments),
-                                None,
-                                &MinifyOptions {
-                                    compress: Some(CompressOptions {
-                                        ..CompressOptions::default()
-                                    }),
-                                    mangle: Some(MangleOptions {
-                                        top_level: true,
-                                        ..MangleOptions::default()
-                                    }),
-                                    rename: true,
-                                    wrap: false,
-                                    enclose: false,
-                                },
-                                &ExtraOptions {
-                                    top_level_mark: global_mark,
-                                },
-                            );
-                        }
                     }
                     main_module.visit_mut_with(&mut hygiene_with_config(Default::default()));
                     main_module.visit_mut_with(&mut fixer(None));
@@ -244,8 +215,6 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                         let is_entry = h.entry == None;
                         let hook_path = [&h.canonical_filename, ".", &h.data.extension].concat();
 
-                        let hook_mark = Mark::fresh(Mark::root());
-
                         let (mut hook_module, comments) = new_module(NewModuleCtx {
                             expr: h.expr,
                             path: &path_data,
@@ -255,57 +224,17 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                             scoped_idents: &h.data.scoped_idents,
                             global: &qwik_transform.options.global_collect,
                             qwik_ident: &qwik_transform.qwik_ident,
+                            is_entry,
                             leading_comments: comments_maps.0.clone(),
                             trailing_comments: comments_maps.1.clone(),
                         })?;
-
-                        if transpile && is_jsx {
-                            let mut react_options = react::Options::default();
-                            if is_jsx {
-                                react_options.throw_if_namespace = false;
-                                react_options.runtime = Some(react::Runtime::Automatic);
-                                react_options.import_source = "@builder.io/qwik".to_string();
-                            };
-                            hook_module = hook_module.fold_with(&mut react::react(
-                                Lrc::clone(&source_map),
-                                Some(&comments),
-                                react_options,
-                                global_mark,
-                            ));
-                        }
-
-                        if config.minify == MinifyMode::Minify {
-                            hook_module = optimize(
-                                hook_module,
-                                Lrc::clone(&source_map),
-                                None,
-                                None,
-                                &MinifyOptions {
-                                    compress: Some(CompressOptions {
-                                        ..CompressOptions::default()
-                                    }),
-                                    mangle: Some(MangleOptions {
-                                        top_level: true,
-                                        ..MangleOptions::default()
-                                    }),
-                                    rename: true,
-                                    wrap: false,
-                                    enclose: false,
-                                },
-                                &ExtraOptions {
-                                    top_level_mark: hook_mark,
-                                },
-                            );
-                        }
-                        hook_module = hook_module
-                            .fold_with(&mut hygiene_with_config(Default::default()))
-                            .fold_with(&mut fixer(None));
+                        hook_module.visit_mut_with(&mut hygiene_with_config(Default::default()));
+                        hook_module.visit_mut_with(&mut fixer(None));
 
                         let (code, map) = emit_source_code(
                             Lrc::clone(&source_map),
                             Some(comments),
                             &hook_module,
-                            config.minify == MinifyMode::Minify,
                             config.source_maps,
                         )
                         .unwrap();
@@ -333,7 +262,6 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                         Lrc::clone(&source_map),
                         Some(comments),
                         &main_module,
-                        config.minify == MinifyMode::Minify,
                         config.source_maps,
                     )?;
 
@@ -425,7 +353,6 @@ pub fn emit_source_code(
     source_map: Lrc<SourceMap>,
     comments: Option<SingleThreadedComments>,
     program: &ast::Module,
-    minify: bool,
     source_maps: bool,
 ) -> Result<(String, Option<Vec<u8>>), Error> {
     let mut src_map_buf = Vec::new();
@@ -441,7 +368,7 @@ pub fn emit_source_code(
                 None
             },
         ));
-        let config = swc_ecmascript::codegen::Config { minify };
+        let config = swc_ecmascript::codegen::Config { minify: false };
         let mut emitter = swc_ecmascript::codegen::Emitter {
             cfg: config,
             comments: Some(&comments),

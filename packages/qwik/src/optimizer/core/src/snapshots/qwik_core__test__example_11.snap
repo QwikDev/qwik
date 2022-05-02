@@ -1,5 +1,5 @@
 ---
-source: src/optimizer/core/src/test.rs
+source: packages/qwik/src/optimizer/core/src/test.rs
 expression: output
 ---
 ==INPUT==
@@ -108,6 +108,7 @@ export const App_component_qkSifjb55lg = ()=>{
 export { Header_component_Header_onClick_POMfYDRQS0o } from "./header_component_header_onclick_pomfydrqs0o";
 export { Header_component_ZdVwofEnicA } from "./header_component_zdvwofenica";
 export { App_component_qkSifjb55lg } from "./app_component_qksifjb55lg";
+export { handleWatch } from "@builder.io/qwik";
 
 == DIAGNOSTICS ==
 

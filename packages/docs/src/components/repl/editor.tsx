@@ -1,7 +1,7 @@
 import {
   component$,
   Host,
-  useWatchEffect$,
+  useEffect$,
   useHostElement,
   useStore,
   NoSerialize,
@@ -27,7 +27,7 @@ export const Editor = component$((props: EditorProps) => {
   //   await initMonacoEditor(hostElm, props, store);
   // });
 
-  useWatchEffect$(async (track) => {
+  useEffect$(async (track) => {
     track(store, 'load'); // TODO
 
     if (isBrowser) {
@@ -42,7 +42,7 @@ export const Editor = component$((props: EditorProps) => {
   //
   //   await updateMonacoEditor(props, store);
   // });
-  useWatchEffect$(async (track) => {
+  useEffect$(async (track) => {
     track(store, 'editor');
     track(props, 'inputs');
     track(props, 'selectedPath');

@@ -1,5 +1,5 @@
 ---
-source: src/optimizer/core/src/test.rs
+source: packages/qwik/src/optimizer/core/src/test.rs
 expression: output
 ---
 ==INPUT==
@@ -55,6 +55,7 @@ export const App_component_div_onClick_cnJgsj2zcCA = ()=>{
     const [count2, state] = qwik.useLexicalScope();
     return state.count += count2;
 };
+export { handleWatch } from "@builder.io/qwik";
 
 /*
 {
@@ -77,6 +78,7 @@ export const App_component_div_children_button_onClick_wVrwaSt0w8Q = ()=>{
     const [STEP_2, btn, props, state, thing] = qwik.useLexicalScope();
     return state.count += btn.offset + thing + STEP + STEP_2 + props.step;
 };
+export { handleWatch } from "@builder.io/qwik";
 
 /*
 {
@@ -130,6 +132,7 @@ export const App_component_aJ0UdC0imoo = (props)=>{
         ]
     });
 };
+export { handleWatch } from "@builder.io/qwik";
 
 /*
 {

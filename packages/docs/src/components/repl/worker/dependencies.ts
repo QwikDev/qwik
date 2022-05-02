@@ -4,16 +4,7 @@ import { ctx, PRETTIER_VERSION, ROLLUP_VERSION, TERSER_VERSION } from './constan
 import type { QwikWorkerGlobal } from './repl-service-worker';
 
 export const loadDependencies = async (version: string, options: ReplInputOptions) => {
-  if (
-    !self.qwikCore ||
-    !self.qwikOptimizer ||
-    !self.qwikServer ||
-    !self.rollup ||
-    self.qwikCore.version !== version ||
-    self.qwikOptimizer.versions.qwik !== version ||
-    self.qwikServer.versions.qwik !== version ||
-    self.rollup.VERSION !== ROLLUP_VERSION
-  ) {
+  if (!hasDependencies(version)) {
     console.time('Load dependencies');
     self.qwikCore = self.qwikOptimizer = self.qwikServer = self.rollup = null as any;
 
@@ -87,6 +78,26 @@ const getNpmCdnUrl = (pkgName: string, pkgVersion: string, pkgPath: string) => {
     return `/${pkgName}${pkgPath}`;
   }
   return `https://cdn.jsdelivr.net/npm/${pkgName}${pkgVersion ? '@' + pkgVersion : ''}${pkgPath}`;
+};
+
+const hasDependencies = (version: string) => {
+  return (
+    self.qwikCore &&
+    isSameQwikVersion(self.qwikCore.version, version) &&
+    self.qwikOptimizer &&
+    isSameQwikVersion(self.qwikOptimizer.versions.qwik, version) &&
+    self.qwikServer &&
+    isSameQwikVersion(self.qwikServer.versions.qwik, version) &&
+    self.rollup &&
+    self.rollup.VERSION === ROLLUP_VERSION
+  );
+};
+
+const isSameQwikVersion = (a: string, b: string) => {
+  if (a !== b && !a.includes('-dev') && !b.includes('-dev')) {
+    return false;
+  }
+  return true;
 };
 
 const QWIK_PKG_NAME = '@builder.io/qwik';

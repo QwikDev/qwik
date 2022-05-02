@@ -5,12 +5,11 @@ describe('qwik plugin', () => {
   const cwd = process.cwd();
 
   describe('normalizeOptions', () => {
-    it('defaults', async () => {
+    it('defaults (dev)', async () => {
       const plugin = mockPlugin();
       const opts = await plugin.normalizeOptions();
       expect(opts.debug).toBe(false);
-      expect(opts.isDevBuild).toBe(false);
-      expect(opts.buildMode).toBe('client');
+      expect(opts.buildMode).toBe('development');
       expect(opts.rootDir).toBe(cwd);
       expect(opts.forceFullBuild).toBe(false);
       expect(opts.outClientDir).toBe(resolve(cwd, 'dist'));
@@ -20,7 +19,43 @@ describe('qwik plugin', () => {
       expect(opts.srcRootInput).toEqual([resolve(cwd, 'src', 'root.tsx')]);
       expect(opts.srcEntryServerInput).toBe(resolve(cwd, 'src', 'entry.server.tsx'));
       expect(opts.entryStrategy).toEqual({ type: 'hook' });
-      expect(opts.minify).toBe('simplify');
+      expect(opts.minify).toBe('none');
+      expect(opts.symbolsOutput).toBe(null);
+    });
+
+    it('defaults (prod)', async () => {
+      const plugin = mockPlugin();
+      const opts = await plugin.normalizeOptions({ buildMode: 'production' });
+      expect(opts.debug).toBe(false);
+      expect(opts.buildMode).toBe('production');
+      expect(opts.rootDir).toBe(cwd);
+      expect(opts.forceFullBuild).toBe(false);
+      expect(opts.outClientDir).toBe(resolve(cwd, 'dist'));
+      expect(opts.outServerDir).toBe(resolve(cwd, 'server'));
+      expect(opts.srcDir).toBe(resolve(cwd, 'src'));
+      expect(opts.srcInputs).toBe(null);
+      expect(opts.srcRootInput).toEqual([resolve(cwd, 'src', 'root.tsx')]);
+      expect(opts.srcEntryServerInput).toBe(resolve(cwd, 'src', 'entry.server.tsx'));
+      expect(opts.entryStrategy).toEqual({ type: 'hook' });
+      expect(opts.minify).toBe('minify');
+      expect(opts.symbolsOutput).toBe(null);
+    });
+
+    it('defaults (ssr)', async () => {
+      const plugin = mockPlugin();
+      const opts = await plugin.normalizeOptions({ buildMode: 'ssr' });
+      expect(opts.debug).toBe(false);
+      expect(opts.buildMode).toBe('ssr');
+      expect(opts.rootDir).toBe(cwd);
+      expect(opts.forceFullBuild).toBe(false);
+      expect(opts.outClientDir).toBe(resolve(cwd, 'dist'));
+      expect(opts.outServerDir).toBe(resolve(cwd, 'server'));
+      expect(opts.srcDir).toBe(resolve(cwd, 'src'));
+      expect(opts.srcInputs).toBe(null);
+      expect(opts.srcRootInput).toEqual([resolve(cwd, 'src', 'root.tsx')]);
+      expect(opts.srcEntryServerInput).toBe(resolve(cwd, 'src', 'entry.server.tsx'));
+      expect(opts.entryStrategy).toEqual({ type: 'hook' });
+      expect(opts.minify).toBe('none');
       expect(opts.symbolsOutput).toBe(null);
     });
 
@@ -28,20 +63,6 @@ describe('qwik plugin', () => {
       const plugin = mockPlugin();
       const opts = await plugin.normalizeOptions({ debug: true });
       expect(opts.debug).toBe(true);
-    });
-
-    it('isDevBuild true', async () => {
-      const plugin = mockPlugin();
-      const opts = await plugin.normalizeOptions({ isDevBuild: true });
-      expect(opts.isDevBuild).toBe(true);
-      expect(opts.entryStrategy.type).toBe('hook');
-      expect(opts.minify).toBe('none');
-    });
-
-    it('ssr build mode', async () => {
-      const plugin = mockPlugin();
-      const opts = await plugin.normalizeOptions({ buildMode: 'ssr' });
-      expect(opts.buildMode).toBe('ssr');
     });
 
     it('entryStrategy', async () => {
@@ -70,10 +91,10 @@ describe('qwik plugin', () => {
       expect(opts.forceFullBuild).toBe(true);
     });
 
-    it('simplify', async () => {
+    it('minify', async () => {
       const plugin = mockPlugin();
-      const opts = await plugin.normalizeOptions({ minify: 'simplify' });
-      expect(opts.minify).toBe('simplify');
+      const opts = await plugin.normalizeOptions({ minify: 'minify' });
+      expect(opts.minify).toBe('minify');
     });
 
     it('rootDir, abs path', async () => {

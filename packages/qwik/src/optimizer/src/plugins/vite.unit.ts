@@ -15,13 +15,18 @@ describe('vite  plugin', () => {
   });
 
   describe('config', () => {
-    it('command: serve, missing mode - defaults', async () => {
+    it('command: serve, mode: development', async () => {
       const plugin: VitePlugin = qwikVite(initOpts);
       const c = (await plugin.config!({}, { command: 'serve', mode: 'development' }))!;
       const opts = await plugin.api?.getOptions();
       const build = c.build!;
       const rollupOptions = build!.rollupOptions!;
       const outputOptions = rollupOptions.output as OutputOptions;
+
+      expect(opts.buildMode).toBe('development');
+      expect(opts.entryStrategy).toEqual({ type: 'hook' });
+      expect(opts.minify).toBe('none');
+      expect(opts.debug).toBe(false);
 
       expect(build.outDir).toBe(resolve(cwd, 'dist'));
       expect(rollupOptions.input).toEqual(resolve(cwd, 'src', 'entry.dev.tsx'));
@@ -34,20 +39,20 @@ describe('vite  plugin', () => {
       expect(c.optimizeDeps?.include).toEqual(['@builder.io/qwik', '@builder.io/qwik/jsx-runtime']);
       expect(c.esbuild).toEqual({ include: /\.js$/ });
       expect((c as any).ssr).toBeUndefined();
-
-      expect(opts.debug).toBe(false);
-      expect(opts.isDevBuild).toBe(true);
-      expect(opts.buildMode).toBe('client');
-      expect(opts.entryStrategy).toEqual({ type: 'hook' });
     });
 
-    it('command: build, mode not set - defaults', async () => {
+    it('command: build, mode: production', async () => {
       const plugin: VitePlugin = qwikVite(initOpts);
       const c = (await plugin.config!({}, { command: 'build', mode: 'production' }))!;
       const opts = await plugin.api?.getOptions();
       const build = c.build!;
       const rollupOptions = build!.rollupOptions!;
       const outputOptions = rollupOptions.output as OutputOptions;
+
+      expect(opts.buildMode).toBe('production');
+      expect(opts.entryStrategy).toEqual({ type: 'hook' });
+      expect(opts.minify).toBe('minify');
+      expect(opts.debug).toBe(false);
 
       expect(plugin.enforce).toBe('pre');
       expect(build.outDir).toBe(resolve(cwd, 'dist'));
@@ -61,20 +66,20 @@ describe('vite  plugin', () => {
       expect(c.optimizeDeps?.include).toEqual(['@builder.io/qwik', '@builder.io/qwik/jsx-runtime']);
       expect(c.esbuild).toEqual({ include: /\.js$/ });
       expect((c as any).ssr).toBeUndefined();
-
-      expect(opts.debug).toBe(false);
-      expect(opts.isDevBuild).toBe(false);
-      expect(opts.buildMode).toBe('client');
-      expect(opts.entryStrategy).toEqual({ type: 'hook' });
     });
 
-    it('command: build, mode: ssr - defaults', async () => {
+    it('command: build, mode: ssr', async () => {
       const plugin: VitePlugin = qwikVite(initOpts);
       const c = (await plugin.config!({}, { command: 'build', mode: 'ssr' }))!;
       const opts = await plugin.api?.getOptions();
       const build = c.build!;
       const rollupOptions = build!.rollupOptions!;
       const outputOptions = rollupOptions.output as OutputOptions;
+
+      expect(opts.buildMode).toBe('ssr');
+      expect(opts.entryStrategy).toEqual({ type: 'hook' });
+      expect(opts.minify).toBe('none');
+      expect(opts.debug).toBe(false);
 
       expect(plugin.enforce).toBe('pre');
       expect(build.outDir).toBe(resolve(cwd, 'server'));
@@ -88,11 +93,6 @@ describe('vite  plugin', () => {
       expect(c.optimizeDeps?.include).toEqual(['@builder.io/qwik', '@builder.io/qwik/jsx-runtime']);
       expect(c.esbuild).toEqual({ include: /\.js$/ });
       expect((c as any).ssr).toEqual({ noExternal: true });
-
-      expect(opts.debug).toBe(false);
-      expect(opts.isDevBuild).toBe(false);
-      expect(opts.buildMode).toBe('ssr');
-      expect(opts.entryStrategy).toEqual({ type: 'hook' });
     });
   });
 

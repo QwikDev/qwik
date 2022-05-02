@@ -55,8 +55,7 @@ const bundleClient = async (options: ReplInputOptions, result: ReplResult) => {
   console.time(`Bundle client`);
 
   const qwikRollupPluginOpts: QwikRollupPluginOptions = {
-    buildMode: 'client',
-    isDevBuild: true,
+    buildMode: 'development',
     forceFullBuild: true,
     debug: options.debug,
     srcInputs: options.srcInputs,
@@ -102,12 +101,10 @@ const bundleSSR = async (options: ReplInputOptions, result: ReplResult) => {
 
   const qwikRollupPluginOpts: QwikRollupPluginOptions = {
     buildMode: 'ssr',
-    isDevBuild: true,
     forceFullBuild: true,
     debug: options.debug,
     srcInputs: options.srcInputs,
-    entryStrategy: { type: 'single' },
-    minify: options.minify,
+    entryStrategy: options.entryStrategy,
     symbolsInput: result.symbolsEntryMap,
   };
 

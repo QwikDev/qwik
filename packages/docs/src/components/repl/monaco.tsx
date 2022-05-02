@@ -61,6 +61,9 @@ export const initMonacoEditor = async (
 };
 
 export const updateMonacoEditor = async (props: EditorProps, store: EditorStore) => {
+  if (!store.editor) {
+    return;
+  }
   const monaco = await getMonaco();
 
   const fsPaths = props.inputs.map((i) => getUri(monaco, i.path).fsPath);
@@ -135,23 +138,20 @@ const getMonaco = async (): Promise<Monaco> => {
 const loadDeps = async (qwikVersion: string) => {
   const deps: NodeModuleDep[] = [
     {
-      pkgId: '@builder.io/qwik',
-      version: qwikVersion,
-      url: '/repl/core.d.ts',
+      pkgName: '@builder.io/qwik',
+      pkgVersion: qwikVersion,
       pkgPath: '/core.d.ts',
       fsPath: '/node_modules/@types/builder.io__qwik/index.d.ts',
     },
     {
-      pkgId: '@builder.io/qwik',
-      version: qwikVersion,
-      url: '/repl/jsx-runtime.d.ts',
+      pkgName: '@builder.io/qwik',
+      pkgVersion: qwikVersion,
       pkgPath: '/jsx-runtime.d.ts',
       fsPath: '/node_modules/@types/builder.io__qwik/jsx-runtime.d.ts',
     },
     {
-      pkgId: '@builder.io/qwik',
-      version: qwikVersion,
-      url: '/repl/server.d.ts',
+      pkgName: '@builder.io/qwik',
+      pkgVersion: qwikVersion,
       pkgPath: '/server.d.ts',
       fsPath: '/node_modules/@types/builder.io__qwik/server.d.ts',
     },
@@ -160,20 +160,20 @@ const loadDeps = async (qwikVersion: string) => {
   await Promise.all(
     deps.map(async (dep) => {
       let storedDep = monacoCtx.deps.find(
-        (d) => d.pkgId === dep.pkgId && d.pkgPath === dep.pkgPath && d.version === dep.version
+        (d) =>
+          d.pkgName === dep.pkgName && d.pkgPath === dep.pkgPath && d.pkgVersion === dep.pkgVersion
       );
       if (!storedDep) {
         storedDep = {
-          pkgId: dep.pkgId,
-          url: dep.url,
-          version: dep.version,
+          pkgName: dep.pkgName,
+          pkgVersion: dep.pkgVersion,
           pkgPath: dep.pkgPath,
           fsPath: dep.fsPath,
         };
         monacoCtx.deps.push(storedDep);
 
         storedDep.promise = new Promise<void>((resolve, reject) => {
-          const url = dep.url; // getCdnUrl(dep.pkgId, dep.version, dep.pkgPath);
+          const url = getCdnUrl(dep.pkgName, dep.pkgVersion, dep.pkgPath);
           fetch(url).then((rsp) => {
             rsp.text().then((code) => {
               storedDep!.code = code;
@@ -210,8 +210,8 @@ const monacoCtx: MonacoContext = {
   loader: null,
 };
 
-const getCdnUrl = (pkgId: string, pkgVersion: string, pkgPath: string) => {
-  return `https://cdn.jsdelivr.net/npm/${pkgId}@${pkgVersion}${pkgPath}`;
+const getCdnUrl = (pkgName: string, pkgVersion: string, pkgPath: string) => {
+  return `https://cdn.jsdelivr.net/npm/${pkgName}@${pkgVersion}${pkgPath}`;
 };
 
 const MONACO_VERSION = '0.33.0';
@@ -231,10 +231,9 @@ interface MonacoContext {
 }
 
 interface NodeModuleDep {
-  pkgId: string;
+  pkgName: string;
   pkgPath: string;
-  version: string;
-  url: string;
+  pkgVersion: string;
   fsPath: string;
   code?: string;
   promise?: Promise<void>;

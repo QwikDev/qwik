@@ -182,17 +182,17 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       await qwikPlugin.buildStart();
     },
 
-    resolveId(id, importer) {
+    resolveId(id, importer, resolveIdOpts) {
       if (id.startsWith('\0')) {
         return null;
       }
       if (isClientOnly && id === VITE_CLIENT_MODULE) {
         return id;
       }
-      return qwikPlugin.resolveId(id, importer);
+      return qwikPlugin.resolveId(id, importer, resolveIdOpts);
     },
 
-    async load(id) {
+    async load(id, loadOpts) {
       if (id.startsWith('\0')) {
         return null;
       }
@@ -200,7 +200,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         const opts = qwikPlugin.getOptions();
         return getViteDevModule(opts);
       }
-      return qwikPlugin.load(id);
+      return qwikPlugin.load(id, loadOpts);
     },
 
     transform(code, id) {

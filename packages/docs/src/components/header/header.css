@@ -33,3 +33,19 @@ header .close-icon {
     @apply block;
   }
 }
+
+header .header-inner {
+  @apply max-w-[1400px] mx-auto;
+}
+
+.full-width header .header-inner {
+  @apply max-w-[100%];
+}
+
+header .header-logo {
+  @apply fixed top-[13px] left-[max(0px,calc(50%-45rem))] pl-4;
+}
+
+.full-width header .header-logo {
+  @apply left-[0px];
+}

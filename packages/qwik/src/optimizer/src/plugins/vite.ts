@@ -4,6 +4,7 @@ import type { RenderToStringOptions, RenderToStringResult } from '../../../serve
 import {
   BasePluginOptions,
   createPlugin,
+  NormalizedQwikPluginConfig,
   parseId,
   QwikPluginOptions,
   QWIK_CORE_ID,
@@ -11,12 +12,13 @@ import {
   SYMBOLS_MANIFEST_FILENAME,
 } from './plugin';
 import { createRollupError } from './rollup';
-import { QWIK_LOADER_DEFAULT_MINIFIED } from '../scripts';
+import { QWIK_LOADER_DEFAULT_DEBUG, QWIK_LOADER_DEFAULT_MINIFIED } from '../scripts';
+import type { OutputOptions } from 'rollup';
 
 /**
  * @alpha
  */
-export function qwikVite(qwikViteOpts: QwikViteOptions = {}): any {
+export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
   let hasValidatedSource = false;
   let isClientOnly = false;
   let srcEntryDevInput = '';
@@ -67,6 +69,22 @@ export function qwikVite(qwikViteOpts: QwikViteOptions = {}): any {
         );
       }
 
+      const outputOptions: OutputOptions = {
+        assetFileNames: 'build/q-[hash].[ext]',
+        entryFileNames: 'build/q-[hash].js',
+        chunkFileNames: 'build/q-[hash].js',
+      };
+
+      if (opts.buildMode === 'ssr') {
+        outputOptions.assetFileNames = '[name].[ext]';
+        outputOptions.entryFileNames = '[name].js';
+        outputOptions.chunkFileNames = '[name].js';
+      } else if (opts.isDevBuild) {
+        outputOptions.assetFileNames = 'build/[name].[ext]';
+        outputOptions.entryFileNames = 'build/[name].js';
+        outputOptions.chunkFileNames = 'build/[name].js';
+      }
+
       const updatedViteConfig: UserConfig = {
         esbuild: { include: /\.js$/ },
         optimizeDeps: {
@@ -75,10 +93,7 @@ export function qwikVite(qwikViteOpts: QwikViteOptions = {}): any {
         },
         build: {
           rollupOptions: {
-            output: {
-              chunkFileNames: 'build/q-[hash].js',
-              assetFileNames: 'build/q-[hash].[ext]',
-            },
+            output: outputOptions,
             onwarn: (warning, warn) => {
               if (
                 warning.plugin === 'typescript' &&
@@ -109,9 +124,6 @@ export function qwikVite(qwikViteOpts: QwikViteOptions = {}): any {
 
         // SSR Build
         updatedViteConfig.build!.ssr = true;
-
-        // Do not empty the dist server dir since it may have the symbols map already
-        updatedViteConfig.build!.emptyOutDir = false;
 
         // Server noExternal
         // ssr.noExternal by default, unless user config already has it set to false
@@ -185,7 +197,8 @@ export function qwikVite(qwikViteOpts: QwikViteOptions = {}): any {
         return null;
       }
       if (isClientOnly && id === VITE_CLIENT_MODULE) {
-        return getViteDevModule();
+        const opts = qwikPlugin.getOptions();
+        return getViteDevModule(opts);
       }
       return qwikPlugin.load(id);
     },
@@ -224,13 +237,13 @@ export function qwikVite(qwikViteOpts: QwikViteOptions = {}): any {
         const symbolsEntryMap = await outputAnalyzer.generateSymbolsEntryMap();
         if (typeof opts.symbolsOutput === 'function') {
           await opts.symbolsOutput(symbolsEntryMap);
-        } else {
-          this.emitFile({
-            type: 'asset',
-            fileName: SYMBOLS_MANIFEST_FILENAME,
-            source: JSON.stringify(symbolsEntryMap, null, 2),
-          });
         }
+
+        this.emitFile({
+          type: 'asset',
+          fileName: SYMBOLS_MANIFEST_FILENAME,
+          source: JSON.stringify(symbolsEntryMap, null, 2),
+        });
 
         if (typeof opts.transformedModuleOutput === 'function') {
           await opts.transformedModuleOutput(qwikPlugin.getTransformedOutputs());
@@ -253,7 +266,7 @@ export function qwikVite(qwikViteOpts: QwikViteOptions = {}): any {
           }
         }
 
-        if (symbolsInput) {
+        if (symbolsInput && typeof symbolsInput === 'object') {
           const symbolsStr = JSON.stringify(symbolsInput);
           for (const fileName in rollupBundle) {
             const b = rollupBundle[fileName];
@@ -261,6 +274,12 @@ export function qwikVite(qwikViteOpts: QwikViteOptions = {}): any {
               b.code = qwikPlugin.updateSymbolsEntryMap(symbolsStr, b.code);
             }
           }
+
+          this.emitFile({
+            type: 'asset',
+            fileName: SYMBOLS_MANIFEST_FILENAME,
+            source: JSON.stringify(symbolsInput, null, 2),
+          });
         }
       }
     },
@@ -413,7 +432,11 @@ function updateEntryDev(code: string) {
   return code;
 }
 
-function getViteDevModule() {
+function getViteDevModule(opts: NormalizedQwikPluginConfig) {
+  const qwikLoader = JSON.stringify(
+    opts.debug ? QWIK_LOADER_DEFAULT_DEBUG : QWIK_LOADER_DEFAULT_MINIFIED
+  );
+
   return `// Qwik Vite Dev Module
 import { render as qwikRender } from '@builder.io/qwik';
 
@@ -430,7 +453,7 @@ export function render(document, rootNode) {
   if (!qwikLoader) {
     qwikLoader = document.createElement('script');
     qwikLoader.id = 'qwikloader';
-    qwikLoader.innerHTML = ${JSON.stringify(QWIK_LOADER_DEFAULT_MINIFIED)};
+    qwikLoader.innerHTML = ${qwikLoader};
     document.head.appendChild(qwikLoader);
   }
 
@@ -448,7 +471,7 @@ const ENTRY_DEV_FILENAME_DEFAULT = 'entry.dev.tsx';
 /**
  * @alpha
  */
-export interface QwikViteOptions extends BasePluginOptions {
+export interface QwikVitePluginOptions extends BasePluginOptions {
   optimizerOptions?: OptimizerOptions;
   srcEntryDevInput?: string;
 }

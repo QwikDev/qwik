@@ -1,11 +1,11 @@
 import { createMdxTransformer, MdxTransform } from './mdx';
-import { stat, readFile } from 'fs/promises';
-import { isAbsolute, join } from 'path';
+import { stat } from 'fs/promises';
+import { isAbsolute } from 'path';
 import type { ModuleGraph, ModuleNode, Plugin, ViteDevServer } from 'vite';
-import { createBuildCode } from './code-generation';
+import { createDynamicImportedCode, createEsmImportedCode } from './code-generation';
 import { loadPages } from './load-pages';
 import type { PluginContext, PluginOptions } from './types';
-import { getPagesBuildPath, isMarkdownFile, normalizeOptions } from './utils';
+import { getPagesBuildPath, normalizeOptions } from './utils';
 
 /**
  * @public
@@ -19,11 +19,13 @@ export function qwikCity(options: PluginOptions) {
   let inlinedModules = false;
 
   const plugin: Plugin = {
-    enforce: 'pre',
     name: 'vite-plugin-qwik-city',
 
-    config(userConfig) {
-      inlinedModules = !!userConfig.build?.ssr;
+    enforce: 'pre',
+
+    config(config) {
+      const isSSR = !!config.build?.ssr || config.mode === 'ssr';
+      inlinedModules = isSSR;
     },
 
     configureServer(server) {
@@ -77,21 +79,19 @@ export function qwikCity(options: PluginOptions) {
         await loadPages(ctx, (msg) => this.warn(msg));
 
         if (inlinedModules) {
-          // vite dev server build (esbuild)
-          qwikCityBuildCode = createBuildCode(ctx, true);
+          qwikCityBuildCode = createEsmImportedCode(ctx);
         } else {
-          // production (rollup)
-          qwikCityBuildCode = createBuildCode(ctx, false);
-
-          ctx.pages.forEach((p) => {
-            this.emitFile({
-              type: 'chunk',
-              id: p.filePath,
-              fileName: getPagesBuildPath(p),
-              preserveSignature: 'allow-extension',
-            });
-          });
+          qwikCityBuildCode = createDynamicImportedCode(ctx);
         }
+
+        ctx.pages.forEach((p) => {
+          this.emitFile({
+            type: 'chunk',
+            id: p.filePath,
+            fileName: getPagesBuildPath(p.pathname),
+            preserveSignature: 'allow-extension',
+          });
+        });
 
         return qwikCityBuildCode;
       }
@@ -137,9 +137,6 @@ function isPageModuleDependency(qwikCityMod: ModuleNode | undefined, changedFile
   checkDep(qwikCityMod);
   return isDep;
 }
-
-// const QWIK_CITY_ID = '@builder.io/qwik-city';
-// const RESOLVED_QWIK_CITY_ID = '\0' + QWIK_CITY_ID;
 
 const QWIK_CITY_BUILD_ID = '@builder.io/qwik-city/build';
 const RESOLVED_QWIK_CITY_BUILD_ID = '\0' + QWIK_CITY_BUILD_ID;

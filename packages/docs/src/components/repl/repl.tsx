@@ -6,6 +6,7 @@ import {
   useStore,
   useEffect$,
   useClientEffect$,
+  $,
 } from '@builder.io/qwik';
 import { isBrowser } from '@builder.io/qwik/build';
 import { ReplInputPanel } from './repl-input-panel';
@@ -50,15 +51,15 @@ export const Repl = component$(async (props: ReplProps) => {
     }
   }
 
-  const onInputChange = (path: string, code: string) => {
+  const onInputChange = $((path: string, code: string) => {
     const input = store.inputs.find((i) => i.path === path);
     if (input) {
       input.code = code;
       postReplInputUpdate(store);
     }
-  };
+  });
 
-  const onInputDelete = (path: string) => {
+  const onInputDelete = $((path: string) => {
     store.inputs = store.inputs.filter((i) => i.path !== path);
     if (store.selectedInputPath === path) {
       if (store.inputs.length > 0) {
@@ -68,7 +69,7 @@ export const Repl = component$(async (props: ReplProps) => {
       }
     }
     postReplInputUpdate(store);
-  };
+  });
 
   useClientEffect$(async () => {
     let data: NpmData = JSON.parse(sessionStorage.getItem('qwikNpmData')!);
@@ -87,17 +88,15 @@ export const Repl = component$(async (props: ReplProps) => {
     }
   });
 
-  useEffect$(() => {
-    if (isBrowser) {
-      store.iframeUrl = '/repl/index.html';
-      if (location.hostname === 'qwik.builder.io') {
-        // use a different domain on purpose
-        store.iframeUrl = 'https://qwik-docs.pages.dev' + store.iframeUrl;
-      }
-
-      // how do I not use window event listener here?
-      window.addEventListener('message', (ev) => onMessageFromIframe(ev, store));
+  useClientEffect$(() => {
+    store.iframeUrl = '/repl/index.html';
+    if (location.hostname === 'qwik.builder.io') {
+      // use a different domain on purpose
+      store.iframeUrl = 'https://qwik-docs.pages.dev' + store.iframeUrl;
     }
+
+    // how do I not use window event listener here?
+    window.addEventListener('message', (ev) => onMessageFromIframe(ev, store));
   });
 
   useEffect$((track) => {
@@ -110,7 +109,11 @@ export const Repl = component$(async (props: ReplProps) => {
 
   return (
     <Host class="repl">
-      <ReplInputPanel store={store} onInputChange={onInputChange} onInputDelete={onInputDelete} />
+      <ReplInputPanel
+        store={store}
+        onInputChangeQrl={onInputChange}
+        onInputDeleteQrl={onInputDelete}
+      />
       <ReplOutputPanel store={store} />
       <ReplDetailPanel store={store} />
     </Host>

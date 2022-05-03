@@ -1,5 +1,12 @@
 /* eslint-disable */
-import { component$, useClientEffect$, useStore, useStyles$ } from '@builder.io/qwik';
+import {
+  component$,
+  useClientEffect$,
+  useEffect$,
+  useServer$,
+  useStore,
+  useStyles$,
+} from '@builder.io/qwik';
 
 export const EffectClient = component$(() => {
   useStyles$(`.box {
@@ -8,7 +15,7 @@ export const EffectClient = component$(() => {
     height: 100px;
     margin: 10px;
   }`);
-  console.log('PARENT renders');
+  console.log('<EffectClient> renders');
   return (
     <div>
       <div class="box" />
@@ -22,12 +29,14 @@ export const EffectClient = component$(() => {
       <div class="box" />
       <div class="box" />
 
-      <Child />
+      <Timer />
     </div>
   );
 });
 
-export const Child = component$(() => {
+export const Timer = component$(() => {
+  console.log('<Timer> renders');
+
   const state = useStore({
     count: 0,
   });

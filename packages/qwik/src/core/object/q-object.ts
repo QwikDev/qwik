@@ -8,7 +8,7 @@ import {
   scheduleFrame,
 } from '../render/notify-render';
 import { getContainer, tryGetInvokeContext } from '../use/use-core';
-import { isElement } from '../util/element';
+import { isDocument, isElement, isNode } from '../util/element';
 import { logWarn } from '../util/log';
 import { qDev, qTest } from '../util/qdev';
 import { debugStringify } from '../util/stringify';
@@ -87,15 +87,15 @@ export function wrap<T>(value: T, proxyMap: ObjToProxyMap): T {
     if (isQrl(value)) {
       return value;
     }
-    if (isElement(value)) {
-      return value;
-    }
-    if (!shouldSerialize(value)) {
-      return value;
-    }
     const nakedValue = unwrapProxy(value);
     if (nakedValue !== value) {
       // already a proxy return;
+      return value;
+    }
+    if (isNode(nakedValue)) {
+      return value;
+    }
+    if (!shouldSerialize(nakedValue)) {
       return value;
     }
     if (qDev) {
@@ -141,7 +141,7 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
         subscriber = invokeCtx.subscriber;
       }
     } else if (qDev && !qTest && !subscriber) {
-      logWarn(`State assigned outside invocation context. Getting prop "${prop}" of:`, target);
+      // logWarn(`State assigned outside invocation context. Getting prop "${prop}" of:`, target);
     }
 
     if (prop === QOjectAllSymbol) {
@@ -181,7 +181,9 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
     }
     const subs = this.subs;
     const unwrappedNewValue = unwrapProxy(newValue);
-    verifySerializable(unwrappedNewValue);
+    if (qDev) {
+      verifySerializable(unwrappedNewValue);
+    }
     const isArray = Array.isArray(target);
     if (isArray) {
       target[prop as any] = unwrappedNewValue;
@@ -227,7 +229,7 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
         subscriber = invokeCtx.subscriber;
       }
     } else if (qDev && !qTest && !subscriber) {
-      logWarn(`State assigned outside invocation context. OwnKeys of:`, target);
+      // logWarn(`State assigned outside invocation context. OwnKeys of:`, target);
     }
 
     if (subscriber) {
@@ -282,13 +284,22 @@ export async function waitForWatches(state: RenderingState) {
 }
 
 function verifySerializable<T>(value: T) {
-  if (shouldSerialize(value) && typeof value == 'object' && value !== null) {
-    if (Array.isArray(value)) return;
-    if (Object.getPrototypeOf(value) !== Object.prototype) {
+  if (value == null) {
+    return null;
+  }
+  if (shouldSerialize(value)) {
+    const type = typeof value;
+    if (type === 'object') {
+      if (Array.isArray(value)) return;
+      if (Object.getPrototypeOf(value) === Object.prototype) return;
       if (isQrl(value)) return;
       if (isElement(value)) return;
-      throw qError(QError.TODO, 'Only primitive and object literals can be serialized.');
+      if (isDocument(value)) return;
     }
+    if (['boolean', 'string', 'number'].includes(type)) {
+      return;
+    }
+    throw qError(QError.TODO, 'Only primitive and object literals can be serialized', value);
   }
 }
 

@@ -6,7 +6,7 @@ import { qDev } from '../util/qdev';
 import { getPlatform } from '../platform/platform';
 import { getDocument } from '../util/dom';
 import { renderComponent } from '../component/component-ctx';
-import { logDebug } from '../util/log';
+import { logDebug, logError } from '../util/log';
 import { getContainer } from '../use/use-core';
 import { runWatch, WatchDescriptor } from '../watch/watch.public';
 import { waitForWatches } from '../object/q-object';
@@ -124,7 +124,11 @@ export async function renderMarked(
   for (const el of renderingQueue) {
     if (!ctx.hostElements.has(el)) {
       ctx.roots.push(el);
-      await renderComponent(ctx, getContext(el));
+      try {
+        await renderComponent(ctx, getContext(el));
+      } catch (e) {
+        logError('Render failed', e, el);
+      }
     }
   }
 
@@ -158,8 +162,9 @@ async function postRendering(containerEl: Element, state: RenderingState, ctx: R
   state.watchNext.forEach((watch) => {
     promises.push(runWatch(watch));
   });
-
   state.watchNext.clear();
+
+  // Run staging effectd
   state.watchStaging.forEach((watch) => {
     if (ctx.hostElements.has(watch.hostElement)) {
       promises.push(runWatch(watch));
@@ -167,7 +172,6 @@ async function postRendering(containerEl: Element, state: RenderingState, ctx: R
       state.watchNext.add(watch);
     }
   });
-
   state.watchStaging.clear();
 
   // Wait for all promises

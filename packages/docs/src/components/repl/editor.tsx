@@ -4,8 +4,8 @@ import {
   useHostElement,
   useStore,
   NoSerialize,
-  noSerialize,
   useClientEffect$,
+  QRL,
 } from '@builder.io/qwik';
 import type { TransformModuleInput } from '@builder.io/qwik/optimizer';
 import { ICodeEditorViewState, initMonacoEditor, updateMonacoEditor } from './monaco';
@@ -18,7 +18,7 @@ export const Editor = component$((props: EditorProps) => {
     editor: undefined,
     onChangeDebounce: undefined,
     onChangeSubscription: undefined,
-    viewStates: noSerialize({}),
+    viewStates: {},
   });
 
   useClientEffect$(async (track) => {
@@ -49,7 +49,7 @@ export interface EditorProps {
   ariaLabel: string;
   inputs: TransformModuleInput[];
   lineNumbers: 'on' | 'off';
-  onChange?: (path: string, code: string) => void;
+  onChangeQrl?: QRL<(path: string, code: string) => void>;
   readOnly: boolean;
   selectedPath: string;
   wordWrap: 'on' | 'off';
@@ -60,5 +60,5 @@ export interface EditorStore {
   editor: NoSerialize<IStandaloneCodeEditor>;
   onChangeDebounce: NoSerialize<any>;
   onChangeSubscription: NoSerialize<any>;
-  viewStates: NoSerialize<Record<string, ICodeEditorViewState>>;
+  viewStates: Record<string, NoSerialize<ICodeEditorViewState>>;
 }

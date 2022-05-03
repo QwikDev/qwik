@@ -4,6 +4,12 @@
   "compiler": {
     "tsconfigFilePath": "<projectFolder>/tsconfig.json"
   },
+  "apiReport": {
+    "enabled": true,
+    "reportFileName": "api.md",
+    "reportFolder": "<projectFolder>/src/vite/",
+    "reportTempFolder": "<projectFolder>/dist-dev/api-extractor/qwik-city-vite/"
+  },
   "dtsRollup": {
     "enabled": true,
     "untrimmedFilePath": "<projectFolder>/dist/vite/index.d.ts"
@@ -12,9 +18,6 @@
     "enabled": false
   },
   "tsdocMetadata": {
-    "enabled": false
-  },
-  "apiReport": {
     "enabled": false
   },
   "messages": {

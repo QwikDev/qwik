@@ -25,7 +25,7 @@ export interface PluginContext {
 }
 
 /**
- * @public
+ * @alpha
  */
 export interface PluginOptions {
   layouts: {
@@ -45,6 +45,6 @@ export interface PluginOptions {
 }
 
 /**
- * @public
+ * @alpha
  */
 export type MdxOptions = import('@mdx-js/mdx/lib/compile').CompileOptions;

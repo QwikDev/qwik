@@ -213,10 +213,11 @@
 
 .output-modules .file-text {
   padding-left: 10px;
+  padding-right: 10px;
   overflow-x: auto;
 }
 
-.repl-mode-production .output-modules .file-text {
+.repl-mode-production .output-modules .file-text code {
   white-space: pre-wrap;
 }
 

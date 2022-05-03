@@ -14,7 +14,7 @@ export const CodeBlock = component$(
     useStyles$(styles);
 
     let language = props.language;
-    if (!language && props.path) {
+    if (!language && props.path && props.code) {
       const ext = props.path.split('.').pop();
       language =
         ext === 'js' || ext === 'json'

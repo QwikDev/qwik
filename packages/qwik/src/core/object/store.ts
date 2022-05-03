@@ -396,10 +396,7 @@ function normalizeObj(obj: any) {
 
 function collectValue(obj: QRLInternal, seen: Set<any>) {
   collectQObjects(obj, seen);
-
-  if (!(obj != null && typeof obj === 'object' && isElement(obj))) {
-    seen.add(normalizeObj(obj));
-  }
+  seen.add(normalizeObj(obj));
 }
 
 function collectQrl(obj: QRLInternal, seen: Set<any>) {

@@ -23,10 +23,6 @@ pre[class*='language-'].theme-light {
   hyphens: none;
 }
 
-pre.theme-light > code[class*='language-'].theme-light {
-  font-size: 1em;
-}
-
 pre.theme-light[class*='language-']::-moz-selection,
 pre.theme-light[class*='language-'] ::-moz-selection,
 code.theme-light[class*='language-']::-moz-selection,

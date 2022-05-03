@@ -35,10 +35,15 @@ const StoreOption = (props: StoreOptionProps) => {
         disabled={!!props.isLoading}
       >
         {props.options.map((value) => (
-          <option value={value} selected={value === props.store[props.storeProp]} key={value}>
+          <option
+            value={value}
+            selected={value === props.store[props.storeProp] ? true : undefined}
+            key={value}
+          >
             {value}
           </option>
         ))}
+        {props.isLoading ? <option>Loading...</option> : null}
       </select>
     </label>
   );

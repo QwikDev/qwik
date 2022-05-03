@@ -222,6 +222,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         minify: opts.minify === 'minify' ? 'simplify' : 'none',
         transpile: true,
         explicityExtensions: true,
+        dev: opts.buildMode !== 'production',
       };
 
       const result = await optimizer.transformFs(transformOpts);

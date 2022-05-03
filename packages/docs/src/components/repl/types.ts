@@ -5,8 +5,10 @@ import type {
 } from '@builder.io/qwik/optimizer';
 import type { NoSerialize } from '@builder.io/qwik';
 
-export interface ReplInputOptions extends Omit<QwikRollupPluginOptions, 'srcDir'> {
+export interface ReplInputOptions extends Omit<QwikRollupPluginOptions, 'srcDir' | 'minify'> {
   srcInputs: ReplModuleInput[];
+  version: string;
+  buildMode: 'development' | 'production';
 }
 
 export interface ReplStore {
@@ -17,21 +19,21 @@ export interface ReplStore {
   diagnostics: Diagnostic[];
   selectedInputPath: string;
   selectedOutputPanel: OutputPanel;
+  lastOutputPanel: OutputPanel | null;
   selectedOutputDetail: OutputDetail;
   selectedClientModule: string;
   selectedSsrModule: string;
   enableHtmlOutput: boolean;
   enableClientOutput: boolean;
   enableSsrOutput: boolean;
-  minify: ReplMinifyOption;
+  buildMode: 'development' | 'production';
   ssrBuild: boolean;
   entryStrategy: string;
   debug: boolean;
   iframeUrl: string;
   iframeWindow: NoSerialize<MessageEventSource> | null;
-  version: string;
+  version: string | undefined;
   versions: string[];
-  load: boolean;
 }
 
 export type ReplMinifyOption = 'none' | 'minify';
@@ -51,7 +53,6 @@ export interface ReplModuleOutput {
 
 export interface ReplMessageEvent {
   type: 'update';
-  version: string;
   options: ReplInputOptions;
 }
 

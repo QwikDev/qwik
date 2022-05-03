@@ -56,7 +56,13 @@ export const ReplOutputPanel = ({ store }: ReplOutputPanelProps) => {
         ) : null}
       </div>
 
-      <div class="repl-tab">
+      <div
+        class={{
+          'repl-tab': true,
+          'repl-mode-production': store.buildMode === 'production',
+          'repl-mode-development': store.buildMode !== 'production',
+        }}
+      >
         <div
           class={{
             'output-result': true,

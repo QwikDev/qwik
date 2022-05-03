@@ -146,6 +146,10 @@
   overflow: auto;
 }
 
+.repl-mode-production .output-html {
+  white-space: pre-wrap;
+}
+
 .output-modules {
   display: grid;
   grid-template-columns: minmax(200px, 25%) auto;
@@ -210,6 +214,10 @@
 .output-modules .file-text {
   padding-left: 10px;
   overflow-x: auto;
+}
+
+.repl-mode-production .output-modules .file-text {
+  white-space: pre-wrap;
 }
 
 .output-diagnostics {

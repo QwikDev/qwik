@@ -9,7 +9,7 @@ export const ReplOptions = ({ store }: ReplOptionsProps) => {
         options={ENTRY_STRATEGY_OPTIONS}
         store={store}
       />
-      <StoreOption label="Minify" storeProp="minify" options={MINIFY_OPTIONS} store={store} />
+      <StoreOption label="Mode" storeProp="buildMode" options={MODE_OPTIONS} store={store} />
       <StoreOption label="Version" storeProp="version" options={store.versions} store={store} />
     </div>
   );
@@ -45,7 +45,7 @@ const Select = (props: SelectProps) => {
   );
 };
 
-const MINIFY_OPTIONS: ReplMinifyOption[] = ['none', 'minify'];
+const MODE_OPTIONS = ['development', 'production'];
 
 const ENTRY_STRATEGY_OPTIONS = ['component', 'hook', 'manual', 'single', 'smart'];
 

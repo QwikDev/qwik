@@ -21,15 +21,18 @@ export const Editor = component$((props: EditorProps) => {
     viewStates: noSerialize({}),
   });
 
-  useClientEffect$(async () => {
-    await initMonacoEditor(hostElm, props, store);
-  });
-
   useClientEffect$(async (track) => {
     track(store, 'editor');
     track(props, 'inputs');
     track(props, 'selectedPath');
-    await updateMonacoEditor(props, store);
+    track(props, 'version');
+
+    if (props.version) {
+      if (!store.editor) {
+        await initMonacoEditor(hostElm, props, store);
+      }
+      await updateMonacoEditor(props, store);
+    }
   });
 
   // useCleanup$(() => {
@@ -50,7 +53,7 @@ export interface EditorProps {
   readOnly: boolean;
   selectedPath: string;
   wordWrap: 'on' | 'off';
-  qwikVersion: string;
+  version: string;
 }
 
 export interface EditorStore {

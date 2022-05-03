@@ -3,13 +3,15 @@ import type { ReplInputOptions } from '../types';
 import { ctx, PRETTIER_VERSION, ROLLUP_VERSION, TERSER_VERSION } from './constants';
 import type { QwikWorkerGlobal } from './repl-service-worker';
 
-export const loadDependencies = async (version: string, options: ReplInputOptions) => {
+export const loadDependencies = async (options: ReplInputOptions) => {
+  const version = options.version;
   if (!hasDependencies(version)) {
     console.time('Load dependencies');
     self.qwikCore = self.qwikOptimizer = self.qwikServer = self.rollup = null as any;
 
     const coreCjsUrl = getNpmCdnUrl(QWIK_PKG_NAME, version, '/core.cjs');
-    const coreEsmUrl = getNpmCdnUrl(QWIK_PKG_NAME, version, '/core.mjs');
+    const coreEsmDevUrl = getNpmCdnUrl(QWIK_PKG_NAME, version, '/core.mjs');
+    const coreEsmMinUrl = getNpmCdnUrl(QWIK_PKG_NAME, version, '/core.min.mjs');
     const optimizerCjsUrl = getNpmCdnUrl(QWIK_PKG_NAME, version, '/optimizer.cjs');
     const serverCjsUrl = getNpmCdnUrl(QWIK_PKG_NAME, version, '/server.cjs');
     const rollupUrl = getNpmCdnUrl('rollup', ROLLUP_VERSION, '/dist/rollup.browser.js');
@@ -18,7 +20,8 @@ export const loadDependencies = async (version: string, options: ReplInputOption
 
     const depUrls = [
       coreCjsUrl,
-      coreEsmUrl,
+      coreEsmDevUrl,
+      coreEsmMinUrl,
       optimizerCjsUrl,
       serverCjsUrl,
       rollupUrl,
@@ -33,7 +36,16 @@ export const loadDependencies = async (version: string, options: ReplInputOption
       }
     });
 
-    const [coreCjs, coreEsm, optimizerCjs, serverCjs, rollup, prettier, prettierHtml] = rsps;
+    const [
+      coreCjs,
+      coreEsmDev,
+      coreEsmMin,
+      optimizerCjs,
+      serverCjs,
+      rollup,
+      prettier,
+      prettierHtml,
+    ] = rsps;
 
     await exec(coreCjs);
     console.debug(`Loaded @builder.io/qwik: ${self.qwikCore.version}`);
@@ -51,12 +63,13 @@ export const loadDependencies = async (version: string, options: ReplInputOption
     await exec(prettierHtml);
     console.debug(`Loaded prettier: ${self.prettier.version}`);
 
-    ctx.coreEsmCode = await coreEsm.text();
+    ctx.coreEsmDevCode = await coreEsmDev.text();
+    ctx.coreEsmMinCode = await coreEsmMin.text();
 
     console.timeEnd('Load dependencies');
   }
 
-  if (options.minify === 'minify' && !self.Terser) {
+  if (options.buildMode === 'production' && !self.Terser) {
     console.time(`Load terser ${TERSER_VERSION}`);
     const terserUrl = getNpmCdnUrl('terser', TERSER_VERSION, '/dist/bundle.min.js');
     const terserRsp = await fetch(terserUrl);

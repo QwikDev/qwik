@@ -24,7 +24,7 @@ export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 's
 
     load(id) {
       const input = options.srcInputs.find((i) => i.path === id);
-      if (input) {
+      if (input && typeof input.code === 'string') {
         return input.code;
       }
       if (buildMode === 'ssr') {
@@ -36,7 +36,10 @@ export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 's
         }
       }
       if (id === '\0qwikCore') {
-        return ctx.coreEsmCode;
+        if (options.buildMode === 'production') {
+          return ctx.coreEsmMinCode;
+        }
+        return ctx.coreEsmDevCode;
       }
       return null;
     },

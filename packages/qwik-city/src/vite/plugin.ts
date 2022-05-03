@@ -1,5 +1,5 @@
 import { createMdxTransformer, MdxTransform } from './mdx';
-import { stat } from 'fs/promises';
+import fs from 'fs';
 import { isAbsolute } from 'path';
 import type { Plugin, ViteDevServer } from 'vite';
 import { createDynamicImportedCode, createEsmImportedCode } from './code-generation';
@@ -112,7 +112,7 @@ async function validatePlugin(ctx: PluginContext) {
   }
 
   try {
-    const s = await stat(ctx.opts.pagesDir);
+    const s = await fs.promises.stat(ctx.opts.pagesDir);
     if (!s.isDirectory()) {
       return `qwikCity plugin "pagesDir" option must be a directory: ${ctx.opts.pagesDir}`;
     }
@@ -136,7 +136,7 @@ async function validatePlugin(ctx: PluginContext) {
   for (const layoutName of layoutNames) {
     const layoutPath = ctx.opts.layouts[layoutName];
     try {
-      const s = await stat(layoutPath);
+      const s = await fs.promises.stat(layoutPath);
       if (!s.isFile()) {
         return `qwikCity plugin layout "${layoutName}" must be a file: ${layoutPath}`;
       }

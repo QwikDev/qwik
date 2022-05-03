@@ -1,9 +1,10 @@
 import type { RollupCache } from 'rollup';
-import type { ReplModuleOutput } from '../types';
+import type { ReplInputOptions, ReplModuleOutput } from '../types';
 
 interface QwikWorkerContext {
   clientModules?: ReplModuleOutput[];
-  coreEsmCode?: string;
+  coreEsmDevCode?: string;
+  coreEsmMinCode?: string;
   rollupCache?: RollupCache;
 }
 export const ctx: QwikWorkerContext = {};

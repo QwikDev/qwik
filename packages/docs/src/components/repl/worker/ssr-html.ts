@@ -1,22 +1,22 @@
 /* eslint-disable no-console */
 
 import type { RenderToStringOptions, RenderToStringResult } from '@builder.io/qwik/server';
-import type { ReplResult, ReplResultAttributes } from '../types';
+import type { ReplInputOptions, ReplResult, ReplResultAttributes } from '../types';
 import type { QwikWorkerGlobal } from './repl-service-worker';
 
-export const renderHtml = async (result: ReplResult) => {
-  console.time(`SSR Html`);
-
+export const ssrHtml = async (options: ReplInputOptions, result: ReplResult) => {
   const ssrModule = result.ssrModules.find((m) => m.path.endsWith('.js'));
   if (!ssrModule) {
     return;
   }
 
-  const module: any = { exports: {} };
-  const runModule = new Function('module', 'exports', ssrModule.code);
-  runModule(module, module.exports);
+  console.time(`SSR Html`);
 
-  const server: ServerModule = module.exports;
+  const mod: any = { exports: {} };
+  const run = new Function('module', 'exports', 'require', ssrModule.code);
+  run(mod, mod.exports, noopRequire);
+
+  const server: ServerModule = mod.exports;
 
   const ssrResult = await server.render({
     base: '/repl/',
@@ -35,12 +35,20 @@ export const renderHtml = async (result: ReplResult) => {
   getAttributes(doc.body, result.bodyAttributes);
   result.bodyInnerHtml = doc.body.innerHTML;
 
-  result.outputHtml = self.prettier.format(ssrResult.html, {
-    parser: 'html',
-    plugins: self.prettierPlugins,
-  });
+  if (options.buildMode !== 'production') {
+    result.outputHtml = self.prettier.format(ssrResult.html, {
+      parser: 'html',
+      plugins: self.prettierPlugins,
+    });
+  } else {
+    result.outputHtml = ssrResult.html;
+  }
 
   console.timeEnd(`SSR Html`);
+};
+
+const noopRequire = (path: string) => {
+  console.error(`require() not available from REPL SSR, path: ${path}`);
 };
 
 const getAttributes = (elm: HTMLElement, attrs: ReplResultAttributes) => {

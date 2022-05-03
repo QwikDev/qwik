@@ -1,4 +1,4 @@
-import { readdir, readFile, stat } from 'fs/promises';
+import fs from 'fs';
 import { extname, join } from 'path';
 import { parseMarkdownFile, parseIndexFile } from './parse';
 import type { PluginContext } from './types';
@@ -12,7 +12,7 @@ export async function loadPages(ctx: PluginContext, warn: (msg: string) => void)
 
 async function loadPagesDir(ctx: PluginContext, dir: string, warn: (msg: string) => void) {
   try {
-    const items = await readdir(dir);
+    const items = await fs.promises.readdir(dir);
 
     await Promise.all(
       items.map(async (itemName) => {
@@ -20,15 +20,15 @@ async function loadPagesDir(ctx: PluginContext, dir: string, warn: (msg: string)
           try {
             const itemPath = join(dir, itemName);
             if (isReadmeFile(itemName)) {
-              const indexContent = await readFile(itemPath, 'utf-8');
+              const indexContent = await fs.promises.readFile(itemPath, 'utf-8');
               const index = parseIndexFile(ctx, itemPath, indexContent);
               ctx.indexes.push(index);
             } else if (isMarkdownFile(ctx, itemName)) {
-              const mdContent = await readFile(itemPath, 'utf-8');
+              const mdContent = await fs.promises.readFile(itemPath, 'utf-8');
               const page = parseMarkdownFile(ctx, itemPath, mdContent);
               ctx.pages.push(page);
             } else if (!IGNORE_EXT[extname(itemName)]) {
-              const s = await stat(itemPath);
+              const s = await fs.promises.stat(itemPath);
               if (s.isDirectory()) {
                 await loadPagesDir(ctx, itemPath, warn);
               }

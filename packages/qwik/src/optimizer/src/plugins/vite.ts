@@ -6,6 +6,7 @@ import {
   createPlugin,
   NormalizedQwikPluginConfig,
   parseId,
+  QwikBuildMode,
   QwikPluginOptions,
   QWIK_CORE_ID,
   QWIK_JSX_RUNTIME_ID,
@@ -39,10 +40,18 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
       isClientOnly = viteEnv.command === 'serve' && viteEnv.mode !== 'ssr';
 
+      let buildMode: QwikBuildMode = 'development';
+      if (viteEnv.command === 'build') {
+        if (viteEnv.mode === 'ssr') {
+          buildMode = 'ssr';
+        } else if (viteEnv.mode === 'production') {
+          buildMode = 'production';
+        }
+      }
+
       const pluginOpts: QwikPluginOptions = {
         debug: qwikViteOpts.debug,
-        isDevBuild: viteEnv.command === 'serve',
-        buildMode: viteEnv.command === 'build' && viteEnv.mode === 'ssr' ? 'ssr' : 'client',
+        buildMode,
         entryStrategy: qwikViteOpts.entryStrategy,
         minify: qwikViteOpts.minify,
         rootDir: viteConfig.root,
@@ -69,17 +78,16 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         );
       }
 
-      const outputOptions: OutputOptions = {
-        assetFileNames: 'build/q-[hash].[ext]',
-        entryFileNames: 'build/q-[hash].js',
-        chunkFileNames: 'build/q-[hash].js',
-      };
-
+      const outputOptions: OutputOptions = {};
       if (opts.buildMode === 'ssr') {
         outputOptions.assetFileNames = '[name].[ext]';
         outputOptions.entryFileNames = '[name].js';
         outputOptions.chunkFileNames = '[name].js';
-      } else if (opts.isDevBuild) {
+      } else if (opts.buildMode === 'production') {
+        outputOptions.assetFileNames = 'build/q-[hash].[ext]';
+        outputOptions.entryFileNames = 'build/q-[hash].js';
+        outputOptions.chunkFileNames = 'build/q-[hash].js';
+      } else {
         outputOptions.assetFileNames = 'build/[name].[ext]';
         outputOptions.entryFileNames = 'build/[name].js';
         outputOptions.chunkFileNames = 'build/[name].js';
@@ -220,7 +228,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       const opts = qwikPlugin.getOptions();
       const optimizer = await qwikPlugin.getOptimizer();
 
-      if (opts.buildMode === 'client') {
+      if (opts.buildMode === 'production' || opts.buildMode === 'development') {
         // client build
         const outputAnalyzer = qwikPlugin.createOutputAnalyzer();
 

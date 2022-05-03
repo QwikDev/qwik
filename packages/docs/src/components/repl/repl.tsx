@@ -5,18 +5,13 @@ import {
   useScopedStyles$,
   useStore,
   useEffect$,
+  useClientEffect$,
 } from '@builder.io/qwik';
 import { isBrowser } from '@builder.io/qwik/build';
 import { ReplInputPanel } from './repl-input-panel';
 import { ReplOutputPanel } from './repl-output-panel';
 import styles from './repl.css?inline';
-import type {
-  ReplInputOptions,
-  ReplStore,
-  ReplResult,
-  ReplModuleInput,
-  ReplMessageEvent,
-} from './types';
+import type { ReplStore, ReplResult, ReplModuleInput, ReplMessageEvent } from './types';
 import { ReplDetailPanel } from './repl-detail-panel';
 
 export const Repl = component$(async (props: ReplProps) => {
@@ -33,17 +28,18 @@ export const Repl = component$(async (props: ReplProps) => {
     enableSsrOutput: props.enableSsrOutput !== false,
     selectedInputPath: '',
     selectedOutputPanel: 'app',
+    lastOutputPanel: null,
     selectedOutputDetail: 'options',
     selectedClientModule: '',
     selectedSsrModule: '',
-    minify: 'none',
     entryStrategy: 'hook',
+    buildMode: 'development',
     ssrBuild: true,
     debug: false,
     iframeUrl: 'about:blank',
     iframeWindow: null,
-    version: props.version || '0.0.19-2',
-    load: false,
+    version: props.version,
+    versions: [],
   });
 
   if (!store.selectedInputPath) {
@@ -74,9 +70,24 @@ export const Repl = component$(async (props: ReplProps) => {
     postReplInputUpdate(store);
   };
 
-  useEffect$((track) => {
-    track(store, 'load'); // TODO!
-    // is this right for is browser only?
+  useClientEffect$(async () => {
+    let data: NpmData = JSON.parse(sessionStorage.getItem('qwikNpmData')!);
+    if (!data) {
+      const npmData = `https://data.jsdelivr.com/v1/package/npm/@builder.io/qwik`;
+      const npmRsp = await fetch(npmData);
+      data = await npmRsp.json();
+      sessionStorage.setItem('qwikNpmData', JSON.stringify(data));
+    }
+
+    store.versions = data.versions.filter(
+      (v) => !v.includes('-dev') && parseInt(v.split('.')[2]) >= 19
+    );
+    if (!store.version || !data.versions.includes(store.version)) {
+      store.version = data.tags.latest;
+    }
+  });
+
+  useEffect$(() => {
     if (isBrowser) {
       store.iframeUrl = '/repl/index.html';
       if (location.hostname === 'qwik.builder.io') {
@@ -90,21 +101,15 @@ export const Repl = component$(async (props: ReplProps) => {
   });
 
   useEffect$((track) => {
-    track(store, 'load'); // TODO!
     track(store, 'entryStrategy');
-    track(store, 'minify');
+    track(store, 'buildMode');
     track(store, 'version');
 
     postReplInputUpdate(store);
   });
 
   return (
-    <Host
-      class="repl"
-      on-qVisible$={() => {
-        store.load = true;
-      }}
-    >
+    <Host class="repl">
       <ReplInputPanel store={store} onInputChange={onInputChange} onInputDelete={onInputDelete} />
       <ReplOutputPanel store={store} />
       <ReplDetailPanel store={store} />
@@ -112,7 +117,7 @@ export const Repl = component$(async (props: ReplProps) => {
   );
 });
 
-export const updateReplOutput = (result: ReplResult, store: ReplStore) => {
+export const updateReplOutput = (store: ReplStore, result: ReplResult) => {
   store.outputHtml = result.outputHtml;
   store.clientModules = result.clientModules;
   store.ssrModules = result.ssrModules;
@@ -135,9 +140,10 @@ export const updateReplOutput = (result: ReplResult, store: ReplStore) => {
   }
 
   if (result.diagnostics.length > 0) {
+    store.lastOutputPanel = store.selectedOutputPanel;
     store.selectedOutputPanel = 'diagnostics';
   } else if (result.diagnostics.length === 0 && store.selectedOutputPanel === 'diagnostics') {
-    store.selectedOutputPanel = 'app';
+    store.selectedOutputPanel = store.lastOutputPanel || 'app';
   }
 };
 
@@ -149,30 +155,30 @@ export const onMessageFromIframe = (ev: MessageEvent, store: ReplStore) => {
       break;
     }
     case 'result': {
-      updateReplOutput(ev.data, store);
+      updateReplOutput(store, ev.data);
       break;
     }
   }
 };
 
 export const postReplInputUpdate = (store: ReplStore) => {
-  const opts: ReplInputOptions = {
-    debug: store.debug,
-    srcInputs: store.inputs,
-    minify: store.minify,
-    entryStrategy: {
-      type: store.entryStrategy as any,
-    },
-  };
+  if (store.version) {
+    const msg: ReplMessageEvent = {
+      type: 'update',
+      options: {
+        debug: store.debug,
+        srcInputs: store.inputs,
+        buildMode: store.buildMode,
+        entryStrategy: {
+          type: store.entryStrategy as any,
+        },
+        version: store.version,
+      },
+    };
 
-  const replMsg: ReplMessageEvent = {
-    type: 'update',
-    version: store.version,
-    options: opts,
-  };
-
-  if (store.iframeWindow && opts.srcInputs.length > 0) {
-    store.iframeWindow.postMessage(JSON.stringify(replMsg));
+    if (store.iframeWindow && msg.options.srcInputs.length > 0) {
+      store.iframeWindow.postMessage(JSON.stringify(msg));
+    }
   }
 };
 
@@ -183,4 +189,10 @@ export interface ReplProps {
   enableClientOutput?: boolean;
   enableSsrOutput?: boolean;
   version?: string;
+}
+
+// https://data.jsdelivr.com/v1/package/npm/@builder.io/qwik
+interface NpmData {
+  tags: { latest: string };
+  versions: string[];
 }

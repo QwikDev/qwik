@@ -179,8 +179,6 @@ export interface QwikRollupPluginOptions extends BasePluginOptions {
     // (undocumented)
     buildMode?: QwikBuildMode;
     // (undocumented)
-    isDevBuild?: boolean;
-    // (undocumented)
     optimizerOptions?: OptimizerOptions;
     // (undocumented)
     rootDir?: string;

@@ -1,5 +1,3 @@
-import { target } from 'scripts/util';
-
 /**
  * Set up event listening for browser.
  *
@@ -132,17 +130,6 @@ export const qwikLoader = (doc: Document, hasInitialized?: number, prefetchWorke
     return prefetchWorker as any;
   };
 
-  const dispatchCustom = (target: any, eventName: string, detail: any) => {
-    dispatch(
-      target,
-      eventName,
-      new CustomEvent(eventName, {
-        bubbles: false,
-        detail,
-      })
-    );
-  };
-
   const processReadyStateChange = (readyState?: DocumentReadyState) => {
     readyState = doc.readyState;
     if (!hasInitialized && (readyState == 'interactive' || readyState == 'complete')) {
@@ -160,7 +147,14 @@ export const qwikLoader = (doc: Document, hasInitialized?: number, prefetchWorke
           for (const entry of entries) {
             if (entry.isIntersecting) {
               observer.unobserve(entry.target);
-              dispatchCustom(target, 'qvisible', entry);
+              dispatch(
+                entry.target,
+                'qvisible',
+                new CustomEvent('qvisible', {
+                  bubbles: false,
+                  detail: entry,
+                })
+              );
             }
           }
         });

@@ -8,7 +8,6 @@ import {
   useClientEffect$,
   $,
 } from '@builder.io/qwik';
-import { isBrowser } from '@builder.io/qwik/build';
 import { ReplInputPanel } from './repl-input-panel';
 import { ReplOutputPanel } from './repl-output-panel';
 import styles from './repl.css?inline';
@@ -55,7 +54,7 @@ export const Repl = component$(async (props: ReplProps) => {
     const input = store.inputs.find((i) => i.path === path);
     if (input) {
       input.code = code;
-      postReplInputUpdate(store);
+      store.inputs = [...store.inputs];
     }
   });
 
@@ -68,7 +67,6 @@ export const Repl = component$(async (props: ReplProps) => {
         store.selectedInputPath = '';
       }
     }
-    postReplInputUpdate(store);
   });
 
   useClientEffect$(async () => {
@@ -81,15 +79,16 @@ export const Repl = component$(async (props: ReplProps) => {
     }
 
     store.versions = data.versions.filter(
-      (v) => !v.includes('-dev') && parseInt(v.split('.')[2]) >= 19
+      (v) => !v.includes('-') && parseInt(v.split('.')[2]) >= 19
     );
     if (!store.version || !data.versions.includes(store.version)) {
       store.version = data.tags.latest;
     }
-  });
 
-  useClientEffect$(() => {
-    store.iframeUrl = '/repl/index.html';
+    store.iframeUrl = '/repl/';
+    if (location.hostname === 'localhost') {
+      store.iframeUrl += 'index.html';
+    }
     if (location.hostname === 'qwik.builder.io') {
       // use a different domain on purpose
       store.iframeUrl = 'https://qwik-docs.pages.dev' + store.iframeUrl;
@@ -102,7 +101,9 @@ export const Repl = component$(async (props: ReplProps) => {
   useEffect$((track) => {
     track(store, 'entryStrategy');
     track(store, 'buildMode');
+    track(store, 'inputs');
     track(store, 'version');
+    track(store, 'iframeWindow');
 
     postReplInputUpdate(store);
   });
@@ -154,7 +155,6 @@ export const onMessageFromIframe = (ev: MessageEvent, store: ReplStore) => {
   switch (ev.data?.type) {
     case 'replready': {
       store.iframeWindow = noSerialize(ev.source as any);
-      postReplInputUpdate(store);
       break;
     }
     case 'result': {
@@ -165,7 +165,7 @@ export const onMessageFromIframe = (ev: MessageEvent, store: ReplStore) => {
 };
 
 export const postReplInputUpdate = (store: ReplStore) => {
-  if (store.version) {
+  if (store.version && store.iframeWindow) {
     const msg: ReplMessageEvent = {
       type: 'update',
       options: {
@@ -179,7 +179,7 @@ export const postReplInputUpdate = (store: ReplStore) => {
       },
     };
 
-    if (store.iframeWindow && msg.options.srcInputs.length > 0) {
+    if (msg.options.srcInputs.length > 0) {
       store.iframeWindow.postMessage(JSON.stringify(msg));
     }
   }

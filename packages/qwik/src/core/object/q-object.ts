@@ -299,7 +299,7 @@ function verifySerializable<T>(value: T) {
     if (['boolean', 'string', 'number'].includes(type)) {
       return;
     }
-    throw qError(QError.TODO, 'Only primitive and object literals can be serialized.');
+    throw qError(QError.TODO, 'Only primitive and object literals can be serialized', value);
   }
 }
 

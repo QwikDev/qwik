@@ -47,10 +47,10 @@ export const initMonacoEditor = async (
 
   ts.typescriptDefaults.setEagerModelSync(true);
 
-  if (!props.readOnly && typeof props.onChange === 'function') {
+  if (!props.readOnly && typeof props.onChangeQrl === 'object') {
     store.onChangeSubscription = noSerialize(
       editor.onDidChangeModelContent(() => {
-        props.onChange!(props.selectedPath, editor.getValue());
+        props.onChangeQrl?.invoke(props.selectedPath, editor.getValue());
       })
     );
   }
@@ -100,7 +100,7 @@ export const updateMonacoEditor = async (props: EditorProps, store: EditorStore)
   if (!props.readOnly && previousSelectedModel) {
     const viewState = store.editor!.saveViewState();
     if (viewState) {
-      store.viewStates![previousSelectedModel.uri.fsPath] = viewState;
+      store.viewStates[previousSelectedModel.uri.fsPath] = noSerialize(viewState);
     }
   }
 
@@ -110,7 +110,7 @@ export const updateMonacoEditor = async (props: EditorProps, store: EditorStore)
       store.editor!.setModel(selectedModel);
 
       if (!props.readOnly) {
-        const viewState = store.viewStates![selectedModel.uri.fsPath];
+        const viewState = store.viewStates[selectedModel.uri.fsPath];
         if (viewState) {
           store.editor!.restoreViewState(viewState);
         }

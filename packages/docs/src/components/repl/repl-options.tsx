@@ -47,7 +47,7 @@ const Select = (props: SelectProps) => {
 
 const MODE_OPTIONS = ['development', 'production'];
 
-const ENTRY_STRATEGY_OPTIONS = ['component', 'hook', 'manual', 'single', 'smart'];
+const ENTRY_STRATEGY_OPTIONS = ['component', 'hook', 'single', 'smart'];
 
 interface SelectProps {
   options: string[];

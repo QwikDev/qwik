@@ -54,7 +54,7 @@ export const Repl = component$(async (props: ReplProps) => {
     const input = store.inputs.find((i) => i.path === path);
     if (input) {
       input.code = code;
-      postReplInputUpdate(store);
+      store.inputs = [...store.inputs];
     }
   });
 
@@ -67,7 +67,6 @@ export const Repl = component$(async (props: ReplProps) => {
         store.selectedInputPath = '';
       }
     }
-    postReplInputUpdate(store);
   });
 
   useClientEffect$(async () => {
@@ -104,7 +103,9 @@ export const Repl = component$(async (props: ReplProps) => {
   useEffect$((track) => {
     track(store, 'entryStrategy');
     track(store, 'buildMode');
+    track(store, 'inputs');
     track(store, 'version');
+    track(store, 'iframeWindow');
 
     postReplInputUpdate(store);
   });
@@ -156,7 +157,6 @@ export const onMessageFromIframe = (ev: MessageEvent, store: ReplStore) => {
   switch (ev.data?.type) {
     case 'replready': {
       store.iframeWindow = noSerialize(ev.source as any);
-      postReplInputUpdate(store);
       break;
     }
     case 'result': {
@@ -167,7 +167,7 @@ export const onMessageFromIframe = (ev: MessageEvent, store: ReplStore) => {
 };
 
 export const postReplInputUpdate = (store: ReplStore) => {
-  if (store.version) {
+  if (store.version && store.iframeWindow) {
     const msg: ReplMessageEvent = {
       type: 'update',
       options: {
@@ -181,7 +181,7 @@ export const postReplInputUpdate = (store: ReplStore) => {
       },
     };
 
-    if (store.iframeWindow && msg.options.srcInputs.length > 0) {
+    if (msg.options.srcInputs.length > 0) {
       store.iframeWindow.postMessage(JSON.stringify(msg));
     }
   }

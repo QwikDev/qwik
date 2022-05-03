@@ -84,9 +84,7 @@ export const Repl = component$(async (props: ReplProps) => {
     if (!store.version || !data.versions.includes(store.version)) {
       store.version = data.tags.latest;
     }
-  });
 
-  useClientEffect$(() => {
     store.iframeUrl = '/repl/';
     if (location.hostname === 'localhost') {
       store.iframeUrl += 'index.html';

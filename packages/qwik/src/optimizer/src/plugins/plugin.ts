@@ -4,7 +4,6 @@ import type {
   EntryStrategy,
   GlobalInjections,
   HookAnalysis,
-  MinifyMode,
   Optimizer,
   OptimizerOptions,
   SymbolsEntryMap,
@@ -26,13 +25,12 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
   let diagnosticsCallback: (d: Diagnostic[], optimizer: Optimizer) => void = () => {};
 
   const opts: NormalizedQwikPluginConfig = {
+    buildMode: 'development',
     debug: false,
     rootDir: null as any,
     outClientDir: null as any,
     outServerDir: null as any,
-    isDevBuild: true,
     forceFullBuild: false,
-    buildMode: 'client',
     entryStrategy: null as any,
     minify: null as any,
     srcDir: null as any,
@@ -57,13 +55,18 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     const optimizer = await getOptimizer();
 
     opts.debug = !!updatedOpts.debug;
-    opts.isDevBuild = !!updatedOpts.isDevBuild;
-    opts.buildMode = updatedOpts.buildMode === 'ssr' ? 'ssr' : 'client';
+
+    opts.buildMode = 'development';
+    if (updatedOpts.buildMode === 'ssr') {
+      opts.buildMode = 'ssr';
+    } else if (updatedOpts.buildMode === 'production') {
+      opts.buildMode = 'production';
+    }
 
     if (updatedOpts.entryStrategy && typeof updatedOpts.entryStrategy === 'object') {
       opts.entryStrategy = { ...updatedOpts.entryStrategy };
     }
-    if (!opts.entryStrategy || opts.isDevBuild) {
+    if (!opts.entryStrategy) {
       opts.entryStrategy = { type: 'hook' };
     }
 
@@ -76,11 +79,13 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     if (updatedOpts.minify) {
       opts.minify = updatedOpts.minify;
     }
-    if (opts.minify !== 'simplify' && opts.minify !== 'none') {
-      if (opts.isDevBuild) {
-        opts.minify = 'none';
+    if (opts.buildMode === 'ssr') {
+      opts.minify = 'none';
+    } else if (opts.minify !== 'minify' && opts.minify !== 'none') {
+      if (opts.buildMode === 'production') {
+        opts.minify = 'minify';
       } else {
-        opts.minify = 'simplify';
+        opts.minify = 'none';
       }
     }
 
@@ -208,18 +213,22 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         log(`buildStart() opts.srcInputs (${opts.srcInputs.length})`);
       }
 
+      log(`transformedOutput.clear()`);
+      transformedOutputs.clear();
+
       const transformOpts: TransformFsOptions = {
         rootDir: rootDir,
         entryStrategy: opts.entryStrategy,
-        minify: opts.minify,
+        minify: opts.minify === 'minify' ? 'simplify' : 'none',
         transpile: true,
         explicityExtensions: true,
+        dev: opts.buildMode !== 'production',
       };
 
       const result = await optimizer.transformFs(transformOpts);
       for (const output of result.modules) {
         const key = optimizer.sys.path.join(rootDir, output.path)!;
-        log(`buildStart()`, 'qwik module', key);
+        log(`buildStart() add transformedOutput`, key);
         transformedOutputs.set(key, [output, key]);
       }
 
@@ -264,16 +273,15 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     for (const tryId of tryImportPathIds) {
       const transformedOutput = transformedOutputs.get(tryId);
       if (transformedOutput) {
-        log(`resolveId() Resolved ${tryId}`);
+        log(`resolveId() Resolved ${tryId} from transformedOutputs`);
         const transformedModule = transformedOutput[0];
         const sideEffects = !transformedModule.isEntry || !transformedModule.hook;
         return {
           id: tryId,
           moduleSideEffects: sideEffects,
         };
-      } else {
-        log(`resolveId() Resolved not found ${tryId}`);
       }
+      log(`resolveId() id ${tryId} not found in transformedOutputs`);
     }
 
     return null;
@@ -342,7 +350,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
           },
         ],
         entryStrategy: { type: 'hook' },
-        minify: opts.minify,
+        minify: opts.minify === 'minify' ? 'simplify' : 'none',
         sourceMaps: false,
         transpile: true,
         explicityExtensions: true,
@@ -352,8 +360,6 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       diagnosticsCallback(newOutput.diagnostics, optimizer);
 
       results.set(pathId, newOutput);
-
-      transformedOutputs.clear();
 
       for (const [id, output] of results.entries()) {
         const justChanged = newOutput === output;
@@ -532,11 +538,14 @@ export const SYMBOLS_MANIFEST_FILENAME = 'symbols-manifest.json';
 
 export interface QwikPluginOptions extends BasePluginOptions {
   rootDir?: string;
-  isDevBuild?: boolean;
   buildMode?: QwikBuildMode;
 }
 
-export type QwikBuildMode = 'client' | 'ssr';
+/**
+ * "development" and "production" are client builds,
+ * and "ssr" is a server build. Defaults to "development".
+ */
+export type QwikBuildMode = 'development' | 'production' | 'ssr';
 
 export interface BasePluginOptions {
   debug?: boolean;
@@ -544,7 +553,7 @@ export interface BasePluginOptions {
   outServerDir?: string;
   entryStrategy?: EntryStrategy;
   forceFullBuild?: boolean;
-  minify?: MinifyMode;
+  minify?: 'none' | 'minify';
   srcRootInput?: string | string[];
   srcEntryServerInput?: string;
   srcDir?: string | null;

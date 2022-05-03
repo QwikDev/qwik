@@ -1,4 +1,4 @@
-import type { ReplMinifyOption, ReplStore } from './types';
+import type { ReplStore } from './types';
 
 export const ReplOptions = ({ store }: ReplOptionsProps) => {
   return (
@@ -9,8 +9,16 @@ export const ReplOptions = ({ store }: ReplOptionsProps) => {
         options={ENTRY_STRATEGY_OPTIONS}
         store={store}
       />
+
       <StoreOption label="Mode" storeProp="buildMode" options={MODE_OPTIONS} store={store} />
-      <StoreOption label="Version" storeProp="version" options={store.versions} store={store} />
+
+      <StoreOption
+        label="Version"
+        storeProp="version"
+        options={store.versions}
+        store={store}
+        isLoading={!store.versions || store.versions.length === 0}
+      />
     </div>
   );
 };
@@ -19,14 +27,20 @@ const StoreOption = (props: StoreOptionProps) => {
   return (
     <label>
       <span>{props.label}</span>
-      <Select
-        options={props.options}
-        selectedValue={props.store[props.storeProp]}
-        onChange$={(ev?: any) => {
-          const select: HTMLSelectElement = ev.target;
-          (props as any).store[props.storeProp] = select.value as any;
-        }}
-      />
+      {props.isLoading ? (
+        <select disabled={true}>
+          <option>Loading...</option>
+        </select>
+      ) : (
+        <Select
+          options={props.options}
+          selectedValue={props.store[props.storeProp]}
+          onChange$={(ev?: any) => {
+            const select: HTMLSelectElement = ev.target;
+            (props as any).store[props.storeProp] = select.value as any;
+          }}
+        />
+      )}
     </label>
   );
 };
@@ -36,7 +50,7 @@ const Select = (props: SelectProps) => {
     <select onChangeQrl={props.onChangeQrl}>
       {props.options.map((value) => {
         return (
-          <option value={value} selected={value === props.selectedValue}>
+          <option value={value} selected={value === props.selectedValue} key={value}>
             {value}
           </option>
         );
@@ -61,6 +75,7 @@ interface StoreOptionProps {
   options: string[];
   store: ReplStore;
   storeProp: keyof ReplStore;
+  isLoading?: boolean;
 }
 
 interface ReplOptionsProps {

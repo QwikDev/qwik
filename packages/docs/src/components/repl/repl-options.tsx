@@ -27,48 +27,26 @@ const StoreOption = (props: StoreOptionProps) => {
   return (
     <label>
       <span>{props.label}</span>
-      {props.isLoading ? (
-        <select disabled={true}>
-          <option>Loading...</option>
-        </select>
-      ) : (
-        <Select
-          options={props.options}
-          selectedValue={props.store[props.storeProp]}
-          onChange$={(ev?: any) => {
-            const select: HTMLSelectElement = ev.target;
-            (props as any).store[props.storeProp] = select.value as any;
-          }}
-        />
-      )}
-    </label>
-  );
-};
-
-const Select = (props: SelectProps) => {
-  return (
-    <select onChangeQrl={props.onChangeQrl}>
-      {props.options.map((value) => {
-        return (
-          <option value={value} selected={value === props.selectedValue} key={value}>
+      <select
+        onChange$={(ev?: any) => {
+          const select: HTMLSelectElement = ev.target;
+          (props as any).store[props.storeProp] = select.value as any;
+        }}
+        disabled={!!props.isLoading}
+      >
+        {props.options.map((value) => (
+          <option value={value} selected={value === props.store[props.storeProp]} key={value}>
             {value}
           </option>
-        );
-      })}
-    </select>
+        ))}
+      </select>
+    </label>
   );
 };
 
 const MODE_OPTIONS = ['development', 'production'];
 
 const ENTRY_STRATEGY_OPTIONS = ['component', 'hook', 'single', 'smart'];
-
-interface SelectProps {
-  options: string[];
-  selectedValue: any;
-  onChange$: () => void;
-  onChangeQrl?: any;
-}
 
 interface StoreOptionProps {
   label: string;

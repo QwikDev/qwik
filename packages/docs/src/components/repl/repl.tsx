@@ -8,7 +8,6 @@ import {
   useClientEffect$,
   $,
 } from '@builder.io/qwik';
-import { isBrowser } from '@builder.io/qwik/build';
 import { ReplInputPanel } from './repl-input-panel';
 import { ReplOutputPanel } from './repl-output-panel';
 import styles from './repl.css?inline';

@@ -17,6 +17,7 @@ export const ReplOutputModles = ({ outputs, buildPath }: ReplOutputModulesProps)
                 }
               }}
               preventDefault:click
+              key={o.path}
             >
               {o.path}
             </a>
@@ -25,7 +26,7 @@ export const ReplOutputModles = ({ outputs, buildPath }: ReplOutputModulesProps)
       </div>
       <div class="file-modules">
         {outputs.map((o, i) => (
-          <div class="file-item" data-file-item={i}>
+          <div class="file-item" data-file-item={i} key={o.path}>
             <div class="file-info">
               <span>{o.path}</span>
               <span class="file-size">({o.size})</span>

@@ -12,21 +12,8 @@ export const onRequestGet: PagesFunction = async ({ request, next, waitUntil }) 
     }
 
     // Handle static assets
-    if (/\.\w+$/.test(url.pathname)) {
-      const response = await next(request);
-
-      if (url.pathname.startsWith('/q-')) {
-        // assets starting with `q-` we know can be forever cached
-        // current workaround until this is merged: https://github.com/cloudflare/wrangler2/pull/796
-        const headers = new Headers();
-        response.headers.forEach((value, key) => headers.set(key, value));
-        headers.set('Cache-Control', 'public, max-age=31536000, immutable');
-        return new Response([101, 204, 205, 304].includes(response.status) ? null : response.body, {
-          ...response,
-          headers,
-        });
-      }
-      return response;
+    if (/\.\w+$/.test(url.pathname) || url.pathname === '/repl/') {
+      return next(request);
     }
 
     // do not using caching during development

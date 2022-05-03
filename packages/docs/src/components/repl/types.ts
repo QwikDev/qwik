@@ -36,8 +36,6 @@ export interface ReplStore {
   versions: string[];
 }
 
-export type ReplMinifyOption = 'none' | 'minify';
-
 export interface ReplModuleInput {
   path: string;
   code: string;

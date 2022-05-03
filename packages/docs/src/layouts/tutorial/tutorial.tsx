@@ -23,14 +23,7 @@ interface TutorialLayoutProps {
 const Tutorial = component$((props: TutorialLayoutProps) => {
   useScopedStyles$(styles);
 
-  // const store = useStore<TutorialStore>({
-  //   inputs: [],
-  // });
-
-  useEffect$((track) => {
-    // track(store, 'inputs');
-
-    // why does this keep running?
+  useEffect$(() => {
     setHeadStyles(useHostElement(), [
       {
         style: `html,body { margin: 0; height: 100%; overflow: hidden; }`,
@@ -115,6 +108,7 @@ export function render(opts: RenderToStringOptions) {
 
 export const DEFAULT_ROOT = `
 import { App } from './app';
+
 export const Root = () => {
   return (
     <html>

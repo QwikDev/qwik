@@ -43,8 +43,6 @@ export const initMonacoEditor = async (
     model: null,
   });
 
-  await addQwikLib(props.version);
-
   ts.typescriptDefaults.setEagerModelSync(true);
 
   if (!props.readOnly && typeof props.onChangeQrl === 'object') {

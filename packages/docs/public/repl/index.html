@@ -63,7 +63,9 @@
         };
 
         const sendMessageToMain = (msg) => {
-          window.parent.postMessage(msg, '*');
+          if (window.parent !== window) {
+            window.parent.postMessage(msg, '*');
+          }
         };
 
         window.addEventListener('message', receiveMessageFromMainApp);

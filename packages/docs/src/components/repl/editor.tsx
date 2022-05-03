@@ -6,9 +6,10 @@ import {
   NoSerialize,
   useClientEffect$,
   QRL,
+  useEffect$,
 } from '@builder.io/qwik';
 import type { TransformModuleInput } from '@builder.io/qwik/optimizer';
-import { ICodeEditorViewState, initMonacoEditor, updateMonacoEditor } from './monaco';
+import { addQwikLib, ICodeEditorViewState, initMonacoEditor, updateMonacoEditor } from './monaco';
 import type { IStandaloneCodeEditor } from './monaco';
 
 export const Editor = component$((props: EditorProps) => {
@@ -21,26 +22,36 @@ export const Editor = component$((props: EditorProps) => {
     viewStates: {},
   });
 
-  useClientEffect$(async (track) => {
-    track(store, 'editor');
-    track(props, 'inputs');
-    track(props, 'selectedPath');
-    track(props, 'version');
-
-    if (props.version) {
-      if (!store.editor) {
-        await initMonacoEditor(hostElm, props, store);
+  useClientEffect$(async () => {
+    if (!store.editor) {
+      await initMonacoEditor(hostElm, props, store);
+    }
+    return () => {
+      if (store.editor) {
+        store.editor.dispose();
       }
-      await updateMonacoEditor(props, store);
+    };
+  });
+
+  useEffect$(async (track) => {
+    track(props, 'version');
+    track(store, 'editor');
+
+    if (props.version && store.editor) {
+      await addQwikLib(props.version);
     }
   });
 
-  // useCleanup$(() => {
-  //   // TODO!
-  //   if (store.editor) {
-  //     store.editor.dispose();
-  //   }
-  // });
+  useEffect$(async (track) => {
+    track(props, 'version');
+    track(store, 'editor');
+    track(props, 'inputs');
+    track(props, 'selectedPath');
+
+    if (props.version && store.editor) {
+      await updateMonacoEditor(props, store);
+    }
+  });
 
   return <Host className="editor-container" />;
 });

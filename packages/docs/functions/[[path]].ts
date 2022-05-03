@@ -6,27 +6,10 @@ import { render } from '../server/entry.server.js';
 export const onRequestGet: PagesFunction = async ({ request, next, waitUntil }) => {
   try {
     const url = new URL(request.url);
-    if (url.hostname === 'qwik.builder.io' && url.pathname === '/') {
-      // temporarily redirect homepage to the overview page
-      return Response.redirect('https://qwik.builder.io/guide/overview', 302);
-    }
 
     // Handle static assets
     if (/\.\w+$/.test(url.pathname)) {
-      const response = await next(request);
-
-      if (url.pathname.startsWith('/q-')) {
-        // assets starting with `q-` we know can be forever cached
-        // current workaround until this is merged: https://github.com/cloudflare/wrangler2/pull/796
-        const headers = new Headers();
-        response.headers.forEach((value, key) => headers.set(key, value));
-        headers.set('Cache-Control', 'public, max-age=31536000, immutable');
-        return new Response([101, 204, 205, 304].includes(response.status) ? null : response.body, {
-          ...response,
-          headers,
-        });
-      }
-      return response;
+      return next(request);
     }
 
     // do not using caching during development

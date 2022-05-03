@@ -1,3 +1,5 @@
+import { target } from 'scripts/util';
+
 /**
  * Set up event listening for browser.
  *
@@ -20,7 +22,7 @@ export const qwikLoader = (doc: Document, hasInitialized?: number, prefetchWorke
 
   const symbolUsed = (el: Element, symbolName: string) =>
     el.dispatchEvent(
-      new CustomEvent('qSymbol', {
+      new CustomEvent('qsymbol', {
         detail: { name: symbolName },
         bubbles: true,
         composed: true,
@@ -130,13 +132,24 @@ export const qwikLoader = (doc: Document, hasInitialized?: number, prefetchWorke
     return prefetchWorker as any;
   };
 
+  const dispatchCustom = (target: any, eventName: string, detail: any) => {
+    dispatch(
+      target,
+      eventName,
+      new CustomEvent(eventName, {
+        bubbles: false,
+        detail,
+      })
+    );
+  };
+
   const processReadyStateChange = (readyState?: DocumentReadyState) => {
     readyState = doc.readyState;
     if (!hasInitialized && (readyState == 'interactive' || readyState == 'complete')) {
       // document is ready
       hasInitialized = 1;
 
-      broadcast('', 'q-resume', new CustomEvent('qResume'));
+      broadcast('', 'qresume', new CustomEvent('qresume'));
 
       // query for any qrls that should be prefetched
       // and send them to a web worker to be fetched off the main-thread
@@ -147,29 +160,22 @@ export const qwikLoader = (doc: Document, hasInitialized?: number, prefetchWorke
           for (const entry of entries) {
             if (entry.isIntersecting) {
               observer.unobserve(entry.target);
-              dispatch(
-                entry.target,
-                'q-visible',
-                new CustomEvent('qVisible', {
-                  bubbles: false,
-                  detail: entry,
-                })
-              );
+              dispatchCustom(target, 'qvisible', entry);
             }
           }
         });
         const mutation = new MutationObserver((mutations) => {
           for (const mutation of mutations) {
-            if ((mutation.target as Element).hasAttribute('on:q-visible')) {
+            if ((mutation.target as Element).hasAttribute('on:qvisible')) {
               observer.observe(mutation.target as Element);
             }
           }
         });
         mutation.observe(document.body, {
-          attributeFilter: ['on:q-visible'],
+          attributeFilter: ['on:qvisible'],
           subtree: true,
         });
-        doc.querySelectorAll('[on\\:q-visible]').forEach((el) => observer.observe(el));
+        doc.querySelectorAll('[on\\:qvisible]').forEach((el) => observer.observe(el));
       }
     }
   };

@@ -102,7 +102,7 @@ export function useEffectQrl(watchQrl: QRL<WatchFn>, opts?: UseEffectOptions): v
       if (opts?.run === 'load') {
         useResumeQrl(watchHandler);
       } else {
-        useOn('qVisible', watchHandler);
+        useOn('qvisible', watchHandler);
       }
     }
   }
@@ -143,7 +143,7 @@ export function useClientEffectQrl(watchQrl: QRL<WatchFn>, opts?: UseEffectOptio
       if (opts?.run === 'load') {
         useResumeQrl(watchHandler);
       } else {
-        useOn('qVisible', watchHandler);
+        useOn('qvisible', watchHandler);
       }
     }
   }

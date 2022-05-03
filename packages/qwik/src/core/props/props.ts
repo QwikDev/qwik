@@ -62,12 +62,15 @@ export function getContext(element: Element): QContext {
   return ctx;
 }
 
-const PREFIXES = ['onWindow', 'onWindow', 'on'];
+const PREFIXES = ['document:on', 'window:on', 'on'];
+const SCOPED = ['on-document', 'on-window', 'on'];
+
 export function normalizeOnProp(prop: string) {
   let scope = 'on';
-  for (const prefix of PREFIXES) {
+  for (let i = 0; i < PREFIXES.length; i++) {
+    const prefix = PREFIXES[i];
     if (prop.startsWith(prefix)) {
-      scope = prefix;
+      scope = SCOPED[i];
       prop = prop.slice(prefix.length);
     }
   }

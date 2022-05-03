@@ -4,7 +4,7 @@ import { parseQRL, QRLSerializeOptions, stringifyQRL } from '../import/qrl';
 import { isQrl, QRLInternal } from '../import/qrl-class';
 import { getContext } from '../props/props';
 import { getDocument } from '../util/dom';
-import { isElement } from '../util/element';
+import { isNode } from '../util/element';
 import { logDebug, logError, logWarn } from '../util/log';
 import {
   ELEMENT_ID,
@@ -35,6 +35,7 @@ export type GetObjID = (obj: any) => string | null;
 
 export const UNDEFINED_PREFIX = '\u0010';
 export const QRL_PREFIX = '\u0011';
+export const DOCUMENT_PREFIX = '\u0012';
 
 export function resumeContainer(containerEl: Element) {
   if (!isContainer(containerEl)) {
@@ -118,7 +119,7 @@ export function snapshotState(containerEl: Element) {
     const props = getContext(node);
     const qMap = props.refMap;
     qMap.array.forEach((v) => {
-      collectValue(v, objSet);
+      collectValue(v, objSet, doc);
     });
   });
 
@@ -156,16 +157,21 @@ export function snapshotState(containerEl: Element) {
   function getObjId(obj: any): string | null {
     if (obj !== null && typeof obj === 'object') {
       const target = obj[QOjectTargetSymbol];
-      const id = objToId.get(normalizeObj(target ?? obj));
+      const id = objToId.get(normalizeObj(target ?? obj, doc));
       if (id !== undefined) {
         const proxySuffix = target ? '!' : '';
         return intToStr(id) + proxySuffix;
       }
-      if (!target && isElement(obj)) {
-        return getElementID(obj);
+      if (!target && isNode(obj)) {
+        if (obj.nodeType === 1) {
+          return getElementID(obj as Element);
+        } else {
+          logError('Can not serialize a HTML Node that is not an Element', obj);
+          return null;
+        }
       }
     } else {
-      const id = objToId.get(normalizeObj(obj));
+      const id = objToId.get(normalizeObj(obj, doc));
       if (id !== undefined) {
         return intToStr(id);
       }
@@ -303,6 +309,8 @@ function reviveValues(
     if (typeof value === 'string') {
       if (value === UNDEFINED_PREFIX) {
         objs[i] = undefined;
+      } else if (value === DOCUMENT_PREFIX) {
+        objs[i] = getDocument(containerEl);
       } else if (value.startsWith(QRL_PREFIX)) {
         objs[i] = parseQRL(value.slice(1), containerEl);
       }
@@ -383,7 +391,10 @@ function getObjectImpl(
   return obj;
 }
 
-function normalizeObj(obj: any) {
+function normalizeObj(obj: any, doc: Document) {
+  if (obj === doc) {
+    return DOCUMENT_PREFIX;
+  }
   if (obj === undefined || !shouldSerialize(obj)) {
     return UNDEFINED_PREFIX;
   }
@@ -394,50 +405,55 @@ function normalizeObj(obj: any) {
   return obj;
 }
 
-function collectValue(obj: QRLInternal, seen: Set<any>) {
-  collectQObjects(obj, seen);
-  seen.add(normalizeObj(obj));
-}
-
-function collectQrl(obj: QRLInternal, seen: Set<any>) {
-  seen.add(normalizeObj(obj));
-  if (obj.captureRef) {
-    obj.captureRef.forEach((obj) => collectValue(obj, seen));
+function collectValue(obj: any, seen: Set<any>, doc: Document) {
+  const handled = collectQObjects(obj, seen, doc);
+  if (!handled) {
+    seen.add(normalizeObj(obj, doc));
   }
 }
 
-function collectQObjects(obj: any, seen: Set<any>) {
+function collectQrl(obj: QRLInternal, seen: Set<any>, doc: Document) {
+  seen.add(normalizeObj(obj, doc));
+  if (obj.captureRef) {
+    obj.captureRef.forEach((obj) => collectValue(obj, seen, doc));
+  }
+}
+
+function collectQObjects(obj: any, seen: Set<any>, doc: Document) {
   if (obj != null) {
     if (typeof obj === 'object') {
-      if (!obj[QOjectTargetSymbol] && isElement(obj)) {
-        return;
+      if (!obj[QOjectTargetSymbol] && isNode(obj)) {
+        return obj.nodeType === 1;
       }
       if (isQrl(obj)) {
-        collectQrl(obj, seen);
-        return;
+        collectQrl(obj, seen, doc);
+        return true;
       }
-      obj = normalizeObj(obj);
+      obj = normalizeObj(obj, doc);
     }
     if (typeof obj === 'object') {
-      if (seen.has(obj)) return;
+      if (seen.has(obj)) return true;
       seen.add(obj);
 
       if (Array.isArray(obj)) {
         for (let i = 0; i < obj.length; i++) {
-          collectQObjects(obj[i], seen);
+          collectQObjects(obj[i], seen, doc);
         }
       } else {
         for (const key in obj) {
           if (Object.prototype.hasOwnProperty.call(obj, key)) {
-            collectQObjects(obj[key], seen);
+            collectQObjects(obj[key], seen, doc);
           }
         }
       }
+      return true;
     }
     if (typeof obj === 'string') {
       seen.add(obj);
+      return true;
     }
   }
+  return false;
 }
 
 export function isProxy(obj: any): boolean {

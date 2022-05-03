@@ -79,7 +79,7 @@ export const Repl = component$(async (props: ReplProps) => {
     }
 
     store.versions = data.versions.filter(
-      (v) => !v.includes('-dev') && parseInt(v.split('.')[2]) >= 19
+      (v) => !v.includes('-') && parseInt(v.split('.')[2]) >= 19
     );
     if (!store.version || !data.versions.includes(store.version)) {
       store.version = data.tags.latest;

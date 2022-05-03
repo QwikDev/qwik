@@ -49,14 +49,14 @@ function createTypesApi(
   }
   const srcPath = result.extractorConfig.untrimmedFilePath;
   const destPath = join(config.distPkgDir, outFileName);
-  fixDtsContent(srcPath, destPath, corePath);
+  fixDtsContent(config, srcPath, destPath, corePath);
 }
 
 /**
  * Fix up the generated dts content, and ensure it's using a relative
  * path to find the core.d.ts file, rather than node resolving it.
  */
-function fixDtsContent(srcPath: string, destPath: string, corePath: string) {
+function fixDtsContent(config: BuildConfig, srcPath: string, destPath: string, corePath: string) {
   let dts = readFileSync(srcPath, 'utf-8');
 
   // ensure we're just using a relative path
@@ -64,6 +64,9 @@ function fixDtsContent(srcPath: string, destPath: string, corePath: string) {
 
   // for some reason api-extractor is adding this in  ¯\_(ツ)_/¯
   dts = dts.replace('{};', '');
+
+  // replace QWIK_VERSION with the actual version number, useful for debugging
+  dts = dts.replace(/QWIK_VERSION/g, config.distVersion);
 
   writeFileSync(destPath, dts);
 }

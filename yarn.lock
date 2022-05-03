@@ -8019,7 +8019,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prismjs@npm:~1.28.0":
+"prismjs@npm:^1.28.0, prismjs@npm:~1.28.0":
   version: 1.28.0
   resolution: "prismjs@npm:1.28.0"
   checksum: bde93fb2beb45b7243219fc53855f59ee54b3fa179f315e8f9d66244d756ef984462e10561bbdc6713d3d7e051852472d7c284f5794a8791eeaefea2fb910b16
@@ -8171,6 +8171,7 @@ __metadata:
     node-fetch: 2.6.7
     postcss: 8.4.12
     prism-themes: 1.9.0
+    prismjs: ^1.28.0
     tailwindcss: 3.0.24
     uvu: 0.5.3
     vite: 2.9.6

@@ -1,0 +1,144 @@
+/**
+ * VS theme by Andrew Lock (https://andrewlock.net)
+ * Inspired by Visual Studio syntax coloring
+ */
+
+code[class*='language-'].theme-light,
+pre[class*='language-'].theme-light {
+  color: #393a34;
+  direction: ltr;
+  text-align: left;
+  white-space: pre;
+  word-spacing: normal;
+  word-break: normal;
+  text-shadow: none;
+
+  -moz-tab-size: 4;
+  -o-tab-size: 4;
+  tab-size: 4;
+
+  -webkit-hyphens: none;
+  -moz-hyphens: none;
+  -ms-hyphens: none;
+  hyphens: none;
+}
+
+pre.theme-light[class*='language-']::-moz-selection,
+pre.theme-light[class*='language-'] ::-moz-selection,
+code.theme-light[class*='language-']::-moz-selection,
+code.theme-light[class*='language-'] ::-moz-selection {
+  background: #c1def1 !important;
+}
+
+pre.theme-light[class*='language-']::selection,
+pre.theme-light[class*='language-'] ::selection,
+code.theme-light[class*='language-']::selection,
+code.theme-light[class*='language-'] ::selection {
+  background: #c1def1;
+}
+
+/* Code blocks */
+pre.theme-light[class*='language-'] {
+  padding: 0;
+  margin: 0;
+  overflow: auto;
+  background-color: white;
+}
+
+/* Inline code */
+:not(pre.theme-light) > code[class*='language-'].theme-light {
+  padding: 0.2em;
+  padding-top: 1px;
+  padding-bottom: 1px;
+  background: #f8f8f8;
+  border: 1px solid #dddddd;
+}
+
+.theme-light .token.comment,
+.theme-light .token.prolog,
+.theme-light .token.doctype,
+.theme-light .token.cdata {
+  color: #008000;
+  font-style: italic;
+}
+
+.theme-light .token.namespace {
+  opacity: 0.7;
+}
+
+.theme-light .token.string {
+  color: #a31515;
+}
+
+.theme-light .token.punctuation,
+.theme-light .token.operator {
+  color: #393a34; /* no highlight */
+}
+
+.theme-light .token.url,
+.theme-light .token.symbol,
+.theme-light .token.number,
+.theme-light .token.boolean,
+.theme-light .token.variable,
+.theme-light .token.constant,
+.theme-light .token.inserted {
+  color: #36acaa;
+}
+
+.theme-light .token.atrule,
+.theme-light .token.keyword,
+.theme-light .token.attr-value,
+.theme-light.language-autohotkey .token.selector,
+.theme-light.language-json .token.boolean,
+.theme-light.language-json .token.number,
+code[class*='language-css'].theme-light {
+  color: #0000ff;
+}
+
+.theme-light .token.function {
+  color: #393a34;
+}
+
+.theme-light .token.deleted,
+.theme-light .language-autohotkey .token.tag {
+  color: #9a050f;
+}
+
+.theme-light .token.selector {
+  color: #00009f;
+}
+
+.theme-light .token.important {
+  color: #e90;
+}
+
+.theme-light .token.important,
+.theme-light .token.bold {
+  font-weight: bold;
+}
+
+.theme-light .token.italic {
+  font-style: italic;
+}
+
+.theme-light .token.class-name,
+.theme-light .language-json .token.property {
+  color: #2b91af;
+}
+
+.theme-light .token.tag,
+.theme-light .token.selector {
+  color: #800000;
+}
+
+.theme-light .token.attr-name,
+.theme-light .token.property,
+.theme-light .token.regex,
+.theme-light .token.entity {
+  color: #ff0000;
+}
+
+.theme-light .token.directive.tag .tag {
+  background: #ffff00;
+  color: #393a34;
+}

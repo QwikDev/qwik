@@ -162,7 +162,8 @@ export async function loadPlatformBinding(sys: OptimizerSystem) {
 
     if (sysEnv === 'webworker' || sysEnv === 'browsermain') {
       // CJS WASM Browser
-      const cdnUrl = `https://cdn.jsdelivr.net/npm/@builder.io/qwik@${versions.qwik}/bindings/`;
+      const version = versions.qwik.split('-dev')[0];
+      const cdnUrl = `https://cdn.jsdelivr.net/npm/@builder.io/qwik@${version}/bindings/`;
       const cjsModuleUrl = new URL(`./qwik.wasm.cjs`, cdnUrl).href;
       const wasmUrl = new URL(`./qwik_wasm_bg.wasm`, cdnUrl).href;
 

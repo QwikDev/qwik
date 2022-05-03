@@ -1,5 +1,15 @@
 @import 'prism-themes/themes/prism-dracula.css';
 
+code[class*='language-'],
+pre[class*='language-'] {
+  font-family: Menlo, Monaco, 'Courier New', monospace;
+  font-weight: normal;
+  font-size: 12px;
+  font-feature-settings: 'liga' 0, 'calt' 0;
+  line-height: 18px;
+  letter-spacing: 0px;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

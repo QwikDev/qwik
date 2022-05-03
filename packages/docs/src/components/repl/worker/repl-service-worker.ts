@@ -1,11 +1,10 @@
 /* eslint-disable no-console */
-
 import { requestHandler } from './request-handler';
 import { update } from './update';
 
 self.onmessage = (ev: MessageEvent) => {
   if (ev.data?.type === 'update') {
-    update(ev.data.version, ev.data.options);
+    update(ev.data.options);
   }
 };
 

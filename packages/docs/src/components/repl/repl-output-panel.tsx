@@ -1,3 +1,4 @@
+import { CodeBlock } from '../code-block/code-block';
 import { ReplOutputModles } from './repl-output-modules';
 import { ReplTabButton } from './repl-tab-button';
 import type { ReplStore } from './types';
@@ -7,7 +8,7 @@ export const ReplOutputPanel = ({ store }: ReplOutputPanelProps) => {
     <div class="repl-panel repl-output-panel">
       <div class="repl-tab-buttons">
         <ReplTabButton
-          text="Document"
+          text="App"
           isActive={store.selectedOutputPanel === 'app'}
           onClick$={() => {
             store.selectedOutputPanel = 'app';
@@ -56,7 +57,13 @@ export const ReplOutputPanel = ({ store }: ReplOutputPanelProps) => {
         ) : null}
       </div>
 
-      <div class="repl-tab">
+      <div
+        class={{
+          'repl-tab': true,
+          'repl-mode-production': store.buildMode === 'production',
+          'repl-mode-development': store.buildMode !== 'production',
+        }}
+      >
         <div
           class={{
             'output-result': true,
@@ -68,8 +75,8 @@ export const ReplOutputPanel = ({ store }: ReplOutputPanelProps) => {
         </div>
 
         {store.selectedOutputPanel === 'outputHtml' ? (
-          <div class="output-result">
-            <pre class="output-html">{store.outputHtml}</pre>
+          <div class="output-result output-html">
+            <CodeBlock language="markup" code={store.outputHtml} theme="light" />
           </div>
         ) : null}
 

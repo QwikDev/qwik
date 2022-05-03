@@ -111,7 +111,7 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
     async generateBundle(_, rollupBundle) {
       const opts = qwikPlugin.getOptions();
 
-      if (opts.buildMode === 'client') {
+      if (opts.buildMode === 'production' || opts.buildMode === 'development') {
         // client build
         const outputAnalyzer = qwikPlugin.createOutputAnalyzer();
 
@@ -186,7 +186,6 @@ export const createRollupError = (optimizer: Optimizer, diagnostic: Diagnostic) 
 export interface QwikRollupPluginOptions extends BasePluginOptions {
   optimizerOptions?: OptimizerOptions;
   rootDir?: string;
-  isDevBuild?: boolean;
   buildMode?: QwikBuildMode;
 }
 

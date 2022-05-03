@@ -7,7 +7,7 @@ export const initMonacoEditor = async (
   props: EditorProps,
   store: EditorStore
 ) => {
-  const [monaco, deps] = await Promise.all([getMonaco(), loadDeps(props.qwikVersion)]);
+  const monaco = await getMonaco();
   const ts = monaco.languages.typescript;
 
   ts.typescriptDefaults.setCompilerOptions({
@@ -43,11 +43,9 @@ export const initMonacoEditor = async (
     model: null,
   });
 
-  ts.typescriptDefaults.setEagerModelSync(true);
+  await addQwikLib(props.version);
 
-  deps.forEach((dep) => {
-    ts.typescriptDefaults.addExtraLib(dep.code!, `file://${dep.fsPath}`);
-  });
+  ts.typescriptDefaults.setEagerModelSync(true);
 
   if (!props.readOnly && typeof props.onChange === 'function') {
     store.onChangeSubscription = noSerialize(
@@ -60,10 +58,17 @@ export const initMonacoEditor = async (
   store.editor = noSerialize(editor);
 };
 
+export const addQwikLib = async (version: string) => {
+  const monaco = await getMonaco();
+  const typescriptDefaults = monaco.languages.typescript.typescriptDefaults;
+  const deps = await loadDeps(version);
+
+  deps.forEach((dep) => {
+    typescriptDefaults.addExtraLib(dep.code!, `file://${dep.fsPath}`);
+  });
+};
+
 export const updateMonacoEditor = async (props: EditorProps, store: EditorStore) => {
-  if (!store.editor) {
-    return;
-  }
   const monaco = await getMonaco();
 
   const fsPaths = props.inputs.map((i) => getUri(monaco, i.path).fsPath);

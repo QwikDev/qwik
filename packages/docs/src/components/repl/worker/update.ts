@@ -1,16 +1,15 @@
 /* eslint-disable no-console */
-
-import type { InputOptions } from 'rollup';
+import type { InputOptions, OutputAsset, OutputChunk } from 'rollup';
 import type { QwikRollupPluginOptions } from '@builder.io/qwik/optimizer';
-import type { ReplInputOptions, ReplResult } from '../types';
+import type { ReplInputOptions, ReplModuleOutput, ReplResult } from '../types';
 import { ctx } from './constants';
 import { loadDependencies } from './dependencies';
-import { renderHtml } from './render-html';
+import { ssrHtml } from './ssr-html';
 import type { QwikWorkerGlobal } from './repl-service-worker';
 import { replResolver } from './repl-resolver';
-import { getOutput } from './utils';
+import { replMinify } from './repl-minify';
 
-export const update = async (version: string, options: ReplInputOptions) => {
+export const update = async (options: ReplInputOptions) => {
   console.time('Update');
 
   const result: ReplResult = {
@@ -28,17 +27,18 @@ export const update = async (version: string, options: ReplInputOptions) => {
   };
 
   try {
-    await loadDependencies(version, options);
+    // options.debug = true;
+    await loadDependencies(options);
 
     await bundleClient(options, result);
     await bundleSSR(options, result);
 
-    await renderHtml(result);
+    await ssrHtml(options, result);
 
     ctx.clientModules = result.clientModules;
   } catch (e: any) {
     result.diagnostics.push({
-      message: String(e),
+      message: String(e.stack || e),
       severity: 'Error',
       origin: String(e.stack || 'repl error'),
       code_highlights: [],
@@ -55,23 +55,26 @@ export const update = async (version: string, options: ReplInputOptions) => {
 const bundleClient = async (options: ReplInputOptions, result: ReplResult) => {
   console.time(`Bundle client`);
 
-  const qwikRollupPluginOpts: QwikRollupPluginOptions = {
-    buildMode: 'client',
-    isDevBuild: true,
+  const qwikRollupClientOpts: QwikRollupPluginOptions = {
+    buildMode: options.buildMode,
+    forceFullBuild: true,
     debug: options.debug,
     srcInputs: options.srcInputs,
     entryStrategy: options.entryStrategy,
-    minify: options.minify,
-    forceFullBuild: true,
     symbolsOutput: (s) => {
       result.symbolsEntryMap = s;
     },
   };
+  console.debug('client opts', qwikRollupClientOpts);
 
   const rollupInputOpts: InputOptions = {
     input: '/app.tsx',
     cache: ctx.rollupCache,
-    plugins: [self.qwikOptimizer.qwikRollup(qwikRollupPluginOpts), replResolver(options, 'client')],
+    plugins: [
+      self.qwikOptimizer.qwikRollup(qwikRollupClientOpts),
+      replResolver(options, 'client'),
+      replMinify(options),
+    ],
     onwarn(warning) {
       result.diagnostics.push({
         message: warning.message,
@@ -101,20 +104,21 @@ const bundleClient = async (options: ReplInputOptions, result: ReplResult) => {
 const bundleSSR = async (options: ReplInputOptions, result: ReplResult) => {
   console.time(`Bundle ssr`);
 
-  const qwikRollupPluginOpts: QwikRollupPluginOptions = {
+  const qwikRollupSsrOpts: QwikRollupPluginOptions = {
     buildMode: 'ssr',
-    isDevBuild: true,
+    forceFullBuild: true,
     debug: options.debug,
     srcInputs: options.srcInputs,
-    entryStrategy: { type: 'single' },
-    minify: options.minify,
+    entryStrategy: options.entryStrategy,
     symbolsInput: result.symbolsEntryMap,
   };
+
+  console.debug('ssr opts', qwikRollupSsrOpts);
 
   const rollupInputOpts: InputOptions = {
     input: '/entry.server.tsx',
     cache: ctx.rollupCache,
-    plugins: [self.qwikOptimizer.qwikRollup(qwikRollupPluginOpts), replResolver(options, 'ssr')],
+    plugins: [self.qwikOptimizer.qwikRollup(qwikRollupSsrOpts), replResolver(options, 'ssr')],
     onwarn(warning) {
       result.diagnostics.push({
         message: warning.message,
@@ -143,6 +147,24 @@ const bundleSSR = async (options: ReplInputOptions, result: ReplResult) => {
 const sendMessageToIframe = async (result: ReplResult) => {
   const clients = await (self as any).clients.matchAll();
   clients.forEach((client: WindowProxy) => client.postMessage(result));
+};
+
+const getOutput = (o: OutputChunk | OutputAsset) => {
+  const f: ReplModuleOutput = {
+    path: o.fileName,
+    code: '',
+    isEntry: false,
+    size: '',
+  };
+  if (o.type === 'chunk') {
+    f.code = o.code || '';
+    f.isEntry = o.isDynamicEntry;
+  } else if (o.type === 'asset') {
+    f.code = String(o.source || '');
+    f.isEntry = false;
+  }
+  f.size = `${f.code.length} B`;
+  return f;
 };
 
 declare const self: QwikWorkerGlobal;

@@ -1,14 +1,14 @@
 import { createMdxTransformer, MdxTransform } from './mdx';
-import { stat } from 'fs/promises';
+import fs from 'fs';
 import { isAbsolute } from 'path';
-import type { ModuleGraph, ModuleNode, Plugin, ViteDevServer } from 'vite';
+import type { Plugin, ViteDevServer } from 'vite';
 import { createDynamicImportedCode, createEsmImportedCode } from './code-generation';
 import { loadPages } from './load-pages';
 import type { PluginContext, PluginOptions } from './types';
 import { getPagesBuildPath, normalizeOptions } from './utils';
 
 /**
- * @public
+ * @alpha
  */
 export function qwikCity(options: PluginOptions) {
   const ctx = normalizeOptions(options);
@@ -31,18 +31,6 @@ export function qwikCity(options: PluginOptions) {
     configureServer(server) {
       viteDevServer = server;
       inlinedModules = true;
-    },
-
-    handleHotUpdate(hmrCtx) {
-      const changedFile = hmrCtx.file;
-      if (viteDevServer && typeof changedFile === 'string') {
-        // const moduleGraph = viteDevServer.moduleGraph;
-        // const qwikCityMod = moduleGraph.getModuleById(RESOLVED_QWIK_CITY_ID);
-        // if (isMarkdownFile(ctx, changedFile) || isPageModuleDependency(qwikCityMod, changedFile)) {
-        //   qwikCityBuildCode = null;
-        //   invalidatePageModule(moduleGraph, qwikCityMod);
-        // }
-      }
     },
 
     async buildStart() {
@@ -84,6 +72,17 @@ export function qwikCity(options: PluginOptions) {
           qwikCityBuildCode = createDynamicImportedCode(ctx);
         }
 
+        if (!viteDevServer) {
+          ctx.pages.forEach((p) => {
+            this.emitFile({
+              type: 'chunk',
+              id: p.filePath,
+              fileName: getPagesBuildPath(p.pathname),
+              preserveSignature: 'allow-extension',
+            });
+          });
+        }
+
         return qwikCityBuildCode;
       }
       return null;
@@ -95,49 +94,9 @@ export function qwikCity(options: PluginOptions) {
         return mdxResult;
       }
     },
-
-    generateBundle() {
-      ctx.pages.forEach((p) => {
-        this.emitFile({
-          type: 'chunk',
-          id: p.filePath,
-          fileName: getPagesBuildPath(p.pathname),
-          preserveSignature: 'allow-extension',
-        });
-      });
-    },
   };
 
   return plugin as any;
-}
-
-function invalidatePageModule(moduleGraph: ModuleGraph, qwikCityMod: ModuleNode | undefined) {
-  const checkedFiles = new Set<string>();
-  const invalidate = (mod: ModuleNode | undefined) => {
-    if (mod && mod.file && !checkedFiles.has(mod.file)) {
-      checkedFiles.add(mod.file);
-      moduleGraph.invalidateModule(mod);
-      mod.importedModules.forEach(invalidate);
-    }
-  };
-  invalidate(qwikCityMod);
-}
-
-function isPageModuleDependency(qwikCityMod: ModuleNode | undefined, changedFile: string) {
-  const checkedFiles = new Set<string>();
-  let isDep = false;
-  const checkDep = (mod: ModuleNode | undefined) => {
-    if (!isDep && mod && mod.file && !checkedFiles.has(mod.file)) {
-      checkedFiles.add(mod.file);
-      if (mod.file === changedFile) {
-        isDep = true;
-      } else {
-        mod.importedModules.forEach(checkDep);
-      }
-    }
-  };
-  checkDep(qwikCityMod);
-  return isDep;
 }
 
 const QWIK_CITY_BUILD_ID = '@builder.io/qwik-city/build';
@@ -153,7 +112,7 @@ async function validatePlugin(ctx: PluginContext) {
   }
 
   try {
-    const s = await stat(ctx.opts.pagesDir);
+    const s = await fs.promises.stat(ctx.opts.pagesDir);
     if (!s.isDirectory()) {
       return `qwikCity plugin "pagesDir" option must be a directory: ${ctx.opts.pagesDir}`;
     }
@@ -177,7 +136,7 @@ async function validatePlugin(ctx: PluginContext) {
   for (const layoutName of layoutNames) {
     const layoutPath = ctx.opts.layouts[layoutName];
     try {
-      const s = await stat(layoutPath);
+      const s = await fs.promises.stat(layoutPath);
       if (!s.isFile()) {
         return `qwikCity plugin layout "${layoutName}" must be a file: ${layoutPath}`;
       }

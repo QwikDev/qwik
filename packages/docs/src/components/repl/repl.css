@@ -9,7 +9,6 @@
 }
 
 .repl-tab-buttons {
-  grid-area: repl-tab-buttons;
   background-color: var(--repl-tab-bg-color);
   height: var(--repl-tab-height);
   font-size: 14px;
@@ -41,6 +40,8 @@
   height: calc(var(--repl-tab-height) - 8px);
   margin: 8px 0 0 0;
   padding: 0;
+  min-width: 70px;
+  text-align: center;
 }
 
 .repl-tab-button.active-tab {
@@ -145,6 +146,10 @@
   overflow: auto;
 }
 
+.repl-mode-production .output-html {
+  white-space: pre-wrap;
+}
+
 .output-modules {
   display: grid;
   grid-template-columns: minmax(200px, 25%) auto;
@@ -208,7 +213,12 @@
 
 .output-modules .file-text {
   padding-left: 10px;
+  padding-right: 10px;
   overflow-x: auto;
+}
+
+.repl-mode-production .output-modules .file-text code {
+  white-space: pre-wrap;
 }
 
 .output-diagnostics {

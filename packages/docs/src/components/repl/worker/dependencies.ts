@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import type { ReplInputOptions } from '../types';
-import { ctx, PRETTIER_VERSION, ROLLUP_VERSION, TERSER_VERSION } from './constants';
+import { ctx } from './constants';
 import type { QwikWorkerGlobal } from './repl-service-worker';
 
 export const loadDependencies = async (options: ReplInputOptions) => {
@@ -114,5 +114,8 @@ const isSameQwikVersion = (a: string, b: string) => {
 };
 
 const QWIK_PKG_NAME = '@builder.io/qwik';
+const ROLLUP_VERSION = '2.70.2';
+const PRETTIER_VERSION = '2.6.2';
+const TERSER_VERSION = '5.12.1';
 
 declare const self: QwikWorkerGlobal;

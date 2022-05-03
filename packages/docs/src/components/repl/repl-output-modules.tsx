@@ -1,3 +1,4 @@
+import { CodeBlock } from '../code-block/code-block';
 import type { ReplModuleOutput } from './types';
 
 export const ReplOutputModles = ({ outputs, buildPath }: ReplOutputModulesProps) => {
@@ -29,7 +30,7 @@ export const ReplOutputModles = ({ outputs, buildPath }: ReplOutputModulesProps)
               <span>{o.path}</span>
               <span class="file-size">({o.size})</span>
             </div>
-            <pre class="file-text">{o.code}</pre>
+            <CodeBlock path={o.path} code={o.code} />
           </div>
         ))}
       </div>

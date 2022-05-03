@@ -38,7 +38,7 @@ export const update = async (options: ReplInputOptions) => {
     ctx.clientModules = result.clientModules;
   } catch (e: any) {
     result.diagnostics.push({
-      message: String(e),
+      message: String(e.stack || e),
       severity: 'Error',
       origin: String(e.stack || 'repl error'),
       code_highlights: [],

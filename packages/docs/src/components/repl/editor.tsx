@@ -1,16 +1,16 @@
 import {
   component$,
   Host,
-  useEffect$,
   useHostElement,
   useStore,
   NoSerialize,
-  noSerialize,
+  useClientEffect$,
+  QRL,
+  useEffect$,
 } from '@builder.io/qwik';
 import type { TransformModuleInput } from '@builder.io/qwik/optimizer';
-import { ICodeEditorViewState, initMonacoEditor, updateMonacoEditor } from './monaco';
+import { addQwikLib, ICodeEditorViewState, initMonacoEditor, updateMonacoEditor } from './monaco';
 import type { IStandaloneCodeEditor } from './monaco';
-import { isBrowser } from '@builder.io/qwik/build';
 
 export const Editor = component$((props: EditorProps) => {
   const hostElm = useHostElement() as HTMLElement;
@@ -19,60 +19,57 @@ export const Editor = component$((props: EditorProps) => {
     editor: undefined,
     onChangeDebounce: undefined,
     onChangeSubscription: undefined,
-    viewStates: noSerialize({}),
-    load: false,
+    viewStates: {},
+  });
+
+  useClientEffect$(async () => {
+    if (!store.editor) {
+      await initMonacoEditor(hostElm, props, store);
+    }
+    return () => {
+      if (store.editor) {
+        store.editor.dispose();
+      }
+    };
   });
 
   useEffect$(async (track) => {
-    track(store, 'load'); // TODO
+    track(props, 'version');
+    track(store, 'editor');
 
-    if (isBrowser) {
-      await initMonacoEditor(hostElm, props, store);
+    if (props.version && store.editor) {
+      await addQwikLib(props.version);
     }
   });
 
   useEffect$(async (track) => {
+    track(props, 'version');
     track(store, 'editor');
     track(props, 'inputs');
     track(props, 'selectedPath');
 
-    if (isBrowser) {
+    if (props.version && store.editor) {
       await updateMonacoEditor(props, store);
     }
   });
 
-  // useCleanup$(() => {
-  //   // TODO!
-  //   if (store.editor) {
-  //     store.editor.dispose();
-  //   }
-  // });
-
-  return (
-    <Host
-      className="editor-container"
-      on-qVisible$={() => {
-        store.load = true;
-      }}
-    />
-  );
+  return <Host className="editor-container" />;
 });
 
 export interface EditorProps {
   ariaLabel: string;
   inputs: TransformModuleInput[];
   lineNumbers: 'on' | 'off';
-  onChange?: (path: string, code: string) => void;
+  onChangeQrl?: QRL<(path: string, code: string) => void>;
   readOnly: boolean;
   selectedPath: string;
   wordWrap: 'on' | 'off';
-  qwikVersion: string;
+  version: string;
 }
 
 export interface EditorStore {
   editor: NoSerialize<IStandaloneCodeEditor>;
   onChangeDebounce: NoSerialize<any>;
   onChangeSubscription: NoSerialize<any>;
-  viewStates: NoSerialize<Record<string, ICodeEditorViewState>>;
-  load: boolean;
+  viewStates: Record<string, NoSerialize<ICodeEditorViewState>>;
 }

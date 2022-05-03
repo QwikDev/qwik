@@ -1,4 +1,3 @@
-import type { MinifyMode } from '@builder.io/qwik/optimizer';
 import type { ReplStore } from './types';
 
 export const ReplOptions = ({ store }: ReplOptionsProps) => {
@@ -10,8 +9,16 @@ export const ReplOptions = ({ store }: ReplOptionsProps) => {
         options={ENTRY_STRATEGY_OPTIONS}
         store={store}
       />
-      <StoreOption label="Minify" storeProp="minify" options={MINIFY_OPTIONS} store={store} />
-      <StoreOption label="Version" storeProp="version" options={[store.version]} store={store} />
+
+      <StoreOption label="Mode" storeProp="buildMode" options={MODE_OPTIONS} store={store} />
+
+      <StoreOption
+        label="Version"
+        storeProp="version"
+        options={store.versions}
+        store={store}
+        isLoading={!store.versions || store.versions.length === 0}
+      />
     </div>
   );
 };
@@ -20,48 +27,38 @@ const StoreOption = (props: StoreOptionProps) => {
   return (
     <label>
       <span>{props.label}</span>
-      <Select
-        options={props.options}
-        selectedValue={props.store[props.storeProp]}
+      <select
         onChange$={(ev?: any) => {
           const select: HTMLSelectElement = ev.target;
           (props as any).store[props.storeProp] = select.value as any;
         }}
-      />
+        disabled={!!props.isLoading}
+      >
+        {props.options.map((value) => (
+          <option
+            value={value}
+            selected={value === props.store[props.storeProp] ? true : undefined}
+            key={value}
+          >
+            {value}
+          </option>
+        ))}
+        {props.isLoading ? <option>Loading...</option> : null}
+      </select>
     </label>
   );
 };
 
-const Select = (props: SelectProps) => {
-  return (
-    <select onChangeQrl={props.onChangeQrl}>
-      {props.options.map((value) => {
-        return (
-          <option value={value} selected={value === props.selectedValue}>
-            {value}
-          </option>
-        );
-      })}
-    </select>
-  );
-};
+const MODE_OPTIONS = ['development', 'production'];
 
-const MINIFY_OPTIONS: MinifyMode[] = ['none', 'simplify'];
-
-const ENTRY_STRATEGY_OPTIONS: string[] = ['component', 'hook', 'manual', 'single', 'smart'];
-
-interface SelectProps {
-  options: string[];
-  selectedValue: any;
-  onChange$: () => void;
-  onChangeQrl?: any;
-}
+const ENTRY_STRATEGY_OPTIONS = ['component', 'hook', 'single', 'smart'];
 
 interface StoreOptionProps {
   label: string;
   options: string[];
   store: ReplStore;
   storeProp: keyof ReplStore;
+  isLoading?: boolean;
 }
 
 interface ReplOptionsProps {

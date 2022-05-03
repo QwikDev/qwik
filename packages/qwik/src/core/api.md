@@ -369,7 +369,7 @@ export function useSubscriber<T extends {}>(obj: T): T;
 // @public
 export type ValueOrPromise<T> = T | Promise<T>;
 
-// @alpha (undocumented)
+// @public
 export const version: string;
 
 // @alpha (undocumented)

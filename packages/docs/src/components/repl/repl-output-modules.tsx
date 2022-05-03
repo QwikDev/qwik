@@ -1,10 +1,11 @@
+import { CodeBlock } from '../code-block/code-block';
 import type { ReplModuleOutput } from './types';
 
 export const ReplOutputModles = ({ outputs, buildPath }: ReplOutputModulesProps) => {
   return (
     <div class="output-result output-modules">
       <div class="file-tree">
-        <div class="file-tree-header">{buildPath}</div>
+        <div class="file-tree-header">{outputs.length > 0 ? buildPath : ''}</div>
         <div class="file-tree-items">
           {outputs.map((o, i) => (
             <a
@@ -16,6 +17,7 @@ export const ReplOutputModles = ({ outputs, buildPath }: ReplOutputModulesProps)
                 }
               }}
               preventDefault:click
+              key={o.path}
             >
               {o.path}
             </a>
@@ -24,12 +26,14 @@ export const ReplOutputModles = ({ outputs, buildPath }: ReplOutputModulesProps)
       </div>
       <div class="file-modules">
         {outputs.map((o, i) => (
-          <div class="file-item" data-file-item={i}>
+          <div class="file-item" data-file-item={i} key={o.path}>
             <div class="file-info">
               <span>{o.path}</span>
               <span class="file-size">({o.size})</span>
             </div>
-            <pre class="file-text">{o.code}</pre>
+            <div className="file-text">
+              <CodeBlock path={o.path} code={o.code} theme="light" />
+            </div>
           </div>
         ))}
       </div>

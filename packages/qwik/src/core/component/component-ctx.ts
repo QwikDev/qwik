@@ -18,12 +18,13 @@ export const firstRenderComponent = (rctx: RenderContext, ctx: QContext): ValueO
 };
 
 export const renderComponent = (rctx: RenderContext, ctx: QContext): ValueOrPromise<void> => {
+  ctx.dirty = false;
+
   const hostElement = ctx.element as HTMLElement;
   const onRenderQRL = ctx.renderQrl!;
   assertDefined(onRenderQRL);
 
   // Component is not dirty any more
-  ctx.dirty = false;
   rctx.globalState.hostsStaging.delete(hostElement);
 
   // Invoke render hook

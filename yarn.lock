@@ -681,7 +681,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@builder.io/qwik-city@0.0.3, @builder.io/qwik-city@workspace:packages/qwik-city":
+"@builder.io/qwik-city@0.0.4, @builder.io/qwik-city@workspace:packages/qwik-city":
   version: 0.0.0-use.local
   resolution: "@builder.io/qwik-city@workspace:packages/qwik-city"
   dependencies:
@@ -721,14 +721,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@builder.io/qwik@npm:0.0.19-2":
-  version: 0.0.19-2
-  resolution: "@builder.io/qwik@npm:0.0.19-2"
-  checksum: 451cb805506b326edf5bdc209f312ac8d2f62585bd1f84235416e69d7ffcf28822f00bb8caef463c47c3a2a55632200e4d13a2b05f95dbc121735acdf352a96d
-  languageName: node
-  linkType: hard
-
-"@builder.io/qwik@workspace:packages/qwik":
+"@builder.io/qwik@0.0.19, @builder.io/qwik@workspace:packages/qwik":
   version: 0.0.0-use.local
   resolution: "@builder.io/qwik@workspace:packages/qwik"
   languageName: unknown
@@ -8019,7 +8012,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prismjs@npm:~1.28.0":
+"prismjs@npm:^1.28.0, prismjs@npm:~1.28.0":
   version: 1.28.0
   resolution: "prismjs@npm:1.28.0"
   checksum: bde93fb2beb45b7243219fc53855f59ee54b3fa179f315e8f9d66244d756ef984462e10561bbdc6713d3d7e051852472d7c284f5794a8791eeaefea2fb910b16
@@ -8163,14 +8156,15 @@ __metadata:
   resolution: "qwik-docs@workspace:packages/docs"
   dependencies:
     "@builder.io/partytown": ^0.5.2
-    "@builder.io/qwik": 0.0.19-2
-    "@builder.io/qwik-city": 0.0.3
+    "@builder.io/qwik": 0.0.19
+    "@builder.io/qwik-city": 0.0.4
     "@cloudflare/kv-asset-handler": 0.2.0
     "@cloudflare/workers-types": ^3.7.1
     autoprefixer: 10.4.5
     node-fetch: 2.6.7
     postcss: 8.4.12
     prism-themes: 1.9.0
+    prismjs: ^1.28.0
     tailwindcss: 3.0.24
     uvu: 0.5.3
     vite: 2.9.6

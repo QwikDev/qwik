@@ -227,8 +227,8 @@ function replServiceWorker(): Plugin {
             });
 
             res.setHeader('Content-Type', 'application/javascript');
+            res.setHeader('Cache-Control', 'no-cache, max-age=0');
             res.writeHead(200);
-
             res.write(result.outputFiles![0].text);
             res.end();
             return;
@@ -236,6 +236,26 @@ function replServiceWorker(): Plugin {
             console.error(e);
           }
         }
+
+        if (req.url?.startsWith('/@builder.io/qwik/')) {
+          // local dev wires up the qwik submodules to the local build
+          try {
+            const buildDir = join(__dirname, '..', 'qwik', 'dist');
+            const parts = req.url.replace('/@builder.io/qwik/', '').split('/');
+            const submodulePath = join(buildDir, ...parts);
+
+            res.setHeader('Content-Type', 'application/javascript');
+            res.setHeader('Cache-Control', 'no-cache, max-age=0');
+            res.setHeader('X-Local-Submodule', submodulePath);
+            res.writeHead(200);
+            res.write(readFileSync(submodulePath, 'utf-8'));
+            res.end();
+            return;
+          } catch (e) {
+            console.error(e);
+          }
+        }
+
         next();
       });
     },

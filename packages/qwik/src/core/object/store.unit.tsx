@@ -13,6 +13,8 @@ import { logDebug } from '../util/log';
 import { runtimeQrl } from '../import/qrl';
 import { pauseContainer } from '../object/store.public';
 import { RenderEvent } from '../util/markers';
+import { useDocument } from '../use/use-document.public';
+import { useHostElement } from '../use/use-host-element.public';
 
 describe('store', () => {
   let document: Document;
@@ -79,9 +81,9 @@ export const LexicalScope = component$(() => {
   const state = useStore({
     count: 0,
   });
-  const a = 1;
-  const b = 'hola';
-  const c = {
+  const nu = 1;
+  const str = 'hola';
+  const obj = {
     a: { thing: 12 },
     b: 'hola',
     c: 123,
@@ -91,14 +93,29 @@ export const LexicalScope = component$(() => {
     g: undefined,
     h: [1, 'string', false, { hola: 1 }, ['hello']],
   };
-  const noserialize = noSerialize({ text: 'not included' });
-  const d = undefined;
-  const e = null;
-  const f = [1, 2, 'hola', {}];
-  const g = true;
-  const h = false;
+  const noserialize = noSerialize({ text: 'not included', window: () => {} });
+  const undef = undefined;
+  const nulll = null;
+  const array = [1, 2, 'hola', {}];
+  const boolTrue = true;
+  const boolFalse = false;
   const qrl = $(() => logDebug('qrl'));
-
-  const thing = runtimeQrl(LexicalScope_render, [a, b, c, d, e, f, g, h, state, noserialize, qrl]);
+  const el = useHostElement();
+  const doc = useDocument();
+  const thing = runtimeQrl(LexicalScope_render, [
+    nu,
+    str,
+    obj,
+    undef,
+    nulll,
+    array,
+    boolTrue,
+    boolFalse,
+    state,
+    noserialize,
+    qrl,
+    el,
+    doc,
+  ]);
   return <div onClickQrl={thing}></div>;
 });

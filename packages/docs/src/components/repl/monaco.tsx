@@ -7,7 +7,7 @@ export const initMonacoEditor = async (
   props: EditorProps,
   store: EditorStore
 ) => {
-  const [monaco, deps] = await Promise.all([getMonaco(), loadDeps(props.qwikVersion)]);
+  const monaco = await getMonaco();
   const ts = monaco.languages.typescript;
 
   ts.typescriptDefaults.setCompilerOptions({
@@ -45,14 +45,10 @@ export const initMonacoEditor = async (
 
   ts.typescriptDefaults.setEagerModelSync(true);
 
-  deps.forEach((dep) => {
-    ts.typescriptDefaults.addExtraLib(dep.code!, `file://${dep.fsPath}`);
-  });
-
-  if (!props.readOnly && typeof props.onChange === 'function') {
+  if (!props.readOnly && typeof props.onChangeQrl === 'object') {
     store.onChangeSubscription = noSerialize(
       editor.onDidChangeModelContent(() => {
-        props.onChange!(props.selectedPath, editor.getValue());
+        props.onChangeQrl?.invoke(props.selectedPath, editor.getValue());
       })
     );
   }
@@ -60,10 +56,17 @@ export const initMonacoEditor = async (
   store.editor = noSerialize(editor);
 };
 
+export const addQwikLib = async (version: string) => {
+  const monaco = await getMonaco();
+  const typescriptDefaults = monaco.languages.typescript.typescriptDefaults;
+  const deps = await loadDeps(version);
+
+  deps.forEach((dep) => {
+    typescriptDefaults.addExtraLib(dep.code!, `file://${dep.fsPath}`);
+  });
+};
+
 export const updateMonacoEditor = async (props: EditorProps, store: EditorStore) => {
-  if (!store.editor) {
-    return;
-  }
   const monaco = await getMonaco();
 
   const fsPaths = props.inputs.map((i) => getUri(monaco, i.path).fsPath);
@@ -95,7 +98,7 @@ export const updateMonacoEditor = async (props: EditorProps, store: EditorStore)
   if (!props.readOnly && previousSelectedModel) {
     const viewState = store.editor!.saveViewState();
     if (viewState) {
-      store.viewStates![previousSelectedModel.uri.fsPath] = viewState;
+      store.viewStates[previousSelectedModel.uri.fsPath] = noSerialize(viewState);
     }
   }
 
@@ -105,7 +108,7 @@ export const updateMonacoEditor = async (props: EditorProps, store: EditorStore)
       store.editor!.setModel(selectedModel);
 
       if (!props.readOnly) {
-        const viewState = store.viewStates![selectedModel.uri.fsPath];
+        const viewState = store.viewStates[selectedModel.uri.fsPath];
         if (viewState) {
           store.editor!.restoreViewState(viewState);
         }

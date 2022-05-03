@@ -6,9 +6,13 @@ import { render } from '../server/entry.server.js';
 export const onRequestGet: PagesFunction = async ({ request, next, waitUntil }) => {
   try {
     const url = new URL(request.url);
+    if (url.hostname === 'qwik.builder.io' && url.pathname === '/') {
+      // temporarily redirect homepage to the overview page
+      return Response.redirect('https://qwik.builder.io/guide/overview', 302);
+    }
 
     // Handle static assets
-    if (/\.\w+$/.test(url.pathname)) {
+    if (/\.\w+$/.test(url.pathname) || url.pathname === '/repl/') {
       return next(request);
     }
 

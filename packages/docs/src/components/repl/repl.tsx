@@ -88,7 +88,10 @@ export const Repl = component$(async (props: ReplProps) => {
   });
 
   useClientEffect$(() => {
-    store.iframeUrl = '/repl/index.html';
+    store.iframeUrl = '/repl/';
+    if (location.hostname === 'localhost') {
+      store.iframeUrl += 'index.html';
+    }
     if (location.hostname === 'qwik.builder.io') {
       // use a different domain on purpose
       store.iframeUrl = 'https://qwik-docs.pages.dev' + store.iframeUrl;

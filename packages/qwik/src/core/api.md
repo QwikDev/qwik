@@ -141,7 +141,7 @@ export interface JSXNode<T = any> {
 
 // @alpha (undocumented)
 export type NoSerialize<T> = (T & {
-    [NOSERIALIZE]: true;
+    __no_serialize__: true;
 }) | undefined;
 
 // @alpha (undocumented)

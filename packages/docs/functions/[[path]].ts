@@ -3,6 +3,9 @@
 // @ts-ignore
 import { render } from '../server/entry.server.js';
 
+// @ts-ignore
+import symbolsManifest from '../dist/symbols-manifest.json';
+
 export const onRequestGet: PagesFunction = async ({ request, next, waitUntil }) => {
   try {
     const url = new URL(request.url);
@@ -28,10 +31,14 @@ export const onRequestGet: PagesFunction = async ({ request, next, waitUntil }) 
       }
     }
 
+    const prefetch = 'link';
+
     // Generate Qwik SSR response
     const ssrResult = await render({
       url: request.url,
       base: '/build/',
+      prefetch,
+      symbols: symbolsManifest,
     });
 
     const response = new Response(ssrResult.html, {

@@ -303,12 +303,11 @@ function verifySerializable<T>(value: T) {
   }
 }
 
-const NOSERIALIZE = Symbol('NoSerialize');
+const noSerializeSet = /*#__PURE__*/ new WeakSet<any>();
 
 export function shouldSerialize(obj: any): boolean {
   if (obj !== null && (typeof obj == 'object' || typeof obj === 'function')) {
-    const noSerialize = (obj as any)[NOSERIALIZE] === true;
-    return !noSerialize;
+    return !noSerializeSet.has(obj);
   }
   return true;
 }
@@ -316,12 +315,12 @@ export function shouldSerialize(obj: any): boolean {
 /**
  * @alpha
  */
-export type NoSerialize<T> = (T & { [NOSERIALIZE]: true }) | undefined;
+export type NoSerialize<T> = (T & { __no_serialize__: true }) | undefined;
 
 /**
  * @alpha
  */
 export function noSerialize<T extends {}>(input: T): NoSerialize<T> {
-  (input as any)[NOSERIALIZE] = true;
+  noSerializeSet.add(input);
   return input as any;
 }

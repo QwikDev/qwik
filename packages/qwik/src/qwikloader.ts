@@ -135,7 +135,6 @@ export const qwikLoader = (doc: Document, hasInitialized?: number, prefetchWorke
     if (!hasInitialized && (readyState == 'interactive' || readyState == 'complete')) {
       // document is ready
       hasInitialized = 1;
-      console.log('hreferf');
 
       broadcast('', 'qresume', new CustomEvent('qresume'));
 

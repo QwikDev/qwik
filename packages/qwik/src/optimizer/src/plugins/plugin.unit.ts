@@ -1,4 +1,5 @@
 import { resolve } from 'path';
+import type { QwikManifest } from '../types';
 import { createPlugin } from './plugin';
 
 describe('qwik plugin', () => {
@@ -19,8 +20,8 @@ describe('qwik plugin', () => {
       expect(opts.srcRootInput).toEqual([resolve(cwd, 'src', 'root.tsx')]);
       expect(opts.srcEntryServerInput).toBe(resolve(cwd, 'src', 'entry.server.tsx'));
       expect(opts.entryStrategy).toEqual({ type: 'hook' });
-      expect(opts.minify).toBe('none');
-      expect(opts.symbolsOutput).toBe(null);
+      expect(opts.manifestInput).toBe(null);
+      expect(opts.manifestOutput).toBe(null);
     });
 
     it('defaults (prod)', async () => {
@@ -37,8 +38,8 @@ describe('qwik plugin', () => {
       expect(opts.srcRootInput).toEqual([resolve(cwd, 'src', 'root.tsx')]);
       expect(opts.srcEntryServerInput).toBe(resolve(cwd, 'src', 'entry.server.tsx'));
       expect(opts.entryStrategy).toEqual({ type: 'hook' });
-      expect(opts.minify).toBe('minify');
-      expect(opts.symbolsOutput).toBe(null);
+      expect(opts.manifestInput).toBe(null);
+      expect(opts.manifestOutput).toBe(null);
     });
 
     it('defaults (ssr)', async () => {
@@ -55,8 +56,8 @@ describe('qwik plugin', () => {
       expect(opts.srcRootInput).toEqual([resolve(cwd, 'src', 'root.tsx')]);
       expect(opts.srcEntryServerInput).toBe(resolve(cwd, 'src', 'entry.server.tsx'));
       expect(opts.entryStrategy).toEqual({ type: 'hook' });
-      expect(opts.minify).toBe('none');
-      expect(opts.symbolsOutput).toBe(null);
+      expect(opts.manifestInput).toBe(null);
+      expect(opts.manifestOutput).toBe(null);
     });
 
     it('debug true', async () => {
@@ -101,12 +102,6 @@ describe('qwik plugin', () => {
       expect(opts.forceFullBuild).toBe(true);
     });
 
-    it('minify', async () => {
-      const plugin = mockPlugin();
-      const opts = await plugin.normalizeOptions({ minify: 'minify' });
-      expect(opts.minify).toBe('minify');
-    });
-
     it('rootDir, abs path', async () => {
       const plugin = mockPlugin();
       const customRoot = resolve(cwd, 'abs-path');
@@ -119,6 +114,20 @@ describe('qwik plugin', () => {
       const customRoot = 'rel-path';
       const opts = await plugin.normalizeOptions({ rootDir: customRoot });
       expect(opts.rootDir).toBe(resolve(cwd, customRoot));
+    });
+
+    it('manifestInput', async () => {
+      const plugin = mockPlugin();
+      const manifestInput: QwikManifest = { mapping: {}, symbols: {}, bundles: {}, version: '1' };
+      const opts = await plugin.normalizeOptions({ manifestInput });
+      expect(opts.manifestInput).toBe(manifestInput);
+    });
+
+    it('manifestOutput', async () => {
+      const plugin = mockPlugin();
+      const manifestOutput = () => {};
+      const opts = await plugin.normalizeOptions({ manifestOutput });
+      expect(opts.manifestOutput).toBe(manifestOutput);
     });
   });
 

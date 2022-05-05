@@ -2,6 +2,7 @@
 
 // @ts-ignore
 import { render } from '../server/entry.server.js';
+import type { RenderToStringOptions, RenderToStringResult } from '@builder.io/qwik/server';
 
 export const onRequestGet: PagesFunction = async ({ request, next, waitUntil }) => {
   try {
@@ -24,12 +25,16 @@ export const onRequestGet: PagesFunction = async ({ request, next, waitUntil }) 
       }
     }
 
-    // Generate Qwik SSR response
-    const result = await render({
+    // Render To String Options
+    const opts: RenderToStringOptions = {
       url: request.url,
       base: '/build/',
-    });
+    };
 
+    // Generate Qwik SSR HTML
+    const result: RenderToStringResult = await render(opts);
+
+    // Create HTTP Response
     const response = new Response(result.html, {
       headers: {
         'Content-Type': 'text/html; charset=utf-8',

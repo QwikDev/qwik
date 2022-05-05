@@ -2,6 +2,10 @@
 
 // @ts-ignore
 import { render } from '../server/entry.server.js';
+import type { RenderToStringOptions, RenderToStringResult } from '@builder.io/qwik/server';
+
+// @ts-ignore
+import manifest from '../dist/q-manifest.json';
 
 export const onRequestGet: PagesFunction = async ({ request, next, waitUntil }) => {
   try {
@@ -9,6 +13,10 @@ export const onRequestGet: PagesFunction = async ({ request, next, waitUntil }) 
     if (url.hostname === 'qwik.builder.io' && url.pathname === '/') {
       // temporarily redirect homepage to the overview page
       return Response.redirect('https://qwik.builder.io/guide/overview', 302);
+    }
+
+    if (url.pathname === '/chat') {
+      return Response.redirect('https://discord.gg/bNVSQmPzqy');
     }
 
     // Handle static assets
@@ -28,13 +36,21 @@ export const onRequestGet: PagesFunction = async ({ request, next, waitUntil }) 
       }
     }
 
-    // Generate Qwik SSR response
-    const ssrResult = await render({
+    // Render To String Options
+    const opts: RenderToStringOptions = {
       url: request.url,
       base: '/build/',
-    });
+      manifest,
+      prefetchStrategy: {
+        symbolsToPrefetch: 'all',
+        implementation: 'worker-fetch',
+      },
+    };
 
-    const response = new Response(ssrResult.html, {
+    // Generate Qwik SSR response
+    const result: RenderToStringResult = await render(opts);
+
+    const response = new Response(result.html, {
       headers: {
         'Cross-Origin-Embedder-Policy': 'credentialless',
         'Cross-Origin-Opener-Policy': 'same-origin',

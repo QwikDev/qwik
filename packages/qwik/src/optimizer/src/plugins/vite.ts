@@ -1,5 +1,5 @@
 import type { Plugin as VitePlugin, UserConfig, ViteDevServer } from 'vite';
-import type { OptimizerOptions, SymbolsEntryMap } from '../types';
+import type { OptimizerOptions, QwikManifest } from '../types';
 import type { RenderToStringOptions, RenderToStringResult } from '../../../server';
 import {
   BasePluginOptions,
@@ -10,7 +10,7 @@ import {
   QwikPluginOptions,
   QWIK_CORE_ID,
   QWIK_JSX_RUNTIME_ID,
-  SYMBOLS_MANIFEST_FILENAME,
+  Q_MANIFEST_FILENAME,
 } from './plugin';
 import { createRollupError } from './rollup';
 import { QWIK_LOADER_DEFAULT_DEBUG, QWIK_LOADER_DEFAULT_MINIFIED } from '../scripts';
@@ -53,15 +53,19 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         debug: qwikViteOpts.debug,
         buildMode,
         entryStrategy: qwikViteOpts.entryStrategy,
-        minify: qwikViteOpts.minify,
         rootDir: viteConfig.root,
         outClientDir: qwikViteOpts.outClientDir,
         outServerDir: qwikViteOpts.outServerDir,
         srcInputs: qwikViteOpts.srcInputs,
         srcRootInput: qwikViteOpts.srcRootInput,
         srcEntryServerInput: qwikViteOpts.srcEntryServerInput,
-        symbolsOutput: qwikViteOpts.symbolsOutput,
+        manifestInput: qwikViteOpts.manifestInput,
+        manifestOutput: qwikViteOpts.manifestOutput,
       };
+
+      if (buildMode === 'production') {
+        pluginOpts.forceFullBuild = true;
+      }
 
       const optimizer = await qwikPlugin.getOptimizer();
       const opts = await qwikPlugin.normalizeOptions(pluginOpts);
@@ -234,23 +238,26 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
         for (const fileName in rollupBundle) {
           const b = rollupBundle[fileName];
-          if (b.type === 'chunk' && b.isDynamicEntry) {
+          if (b.type === 'chunk') {
             outputAnalyzer.addBundle({
               fileName,
               modules: b.modules,
+              imports: b.imports,
+              dynamicImports: b.dynamicImports,
+              size: b.code.length,
             });
           }
         }
 
-        const symbolsEntryMap = await outputAnalyzer.generateSymbolsEntryMap();
-        if (typeof opts.symbolsOutput === 'function') {
-          await opts.symbolsOutput(symbolsEntryMap);
+        const manifest = await outputAnalyzer.generateManifest();
+        if (typeof opts.manifestOutput === 'function') {
+          await opts.manifestOutput(manifest);
         }
 
         this.emitFile({
           type: 'asset',
-          fileName: SYMBOLS_MANIFEST_FILENAME,
-          source: JSON.stringify(symbolsEntryMap, null, 2),
+          fileName: Q_MANIFEST_FILENAME,
+          source: JSON.stringify(manifest, null, 2),
         });
 
         if (typeof opts.transformedModuleOutput === 'function') {
@@ -258,36 +265,34 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         }
       } else if (opts.buildMode === 'ssr') {
         // server build
-        let symbolsInput = opts.symbolsInput;
+        let manifestInput = opts.manifestInput;
 
-        if (!symbolsInput && optimizer.sys.env() === 'node') {
+        if (!manifestInput && optimizer.sys.env() === 'node') {
+          // manifest not provided, and in a nodejs environment
           try {
+            // check if we can find q-manifest.json from the client build
             const fs: typeof import('fs') = await optimizer.sys.dynamicImport('fs');
-            const qSymbolsPath = optimizer.sys.path.join(
-              opts.outClientDir,
-              SYMBOLS_MANIFEST_FILENAME
-            );
+            const qSymbolsPath = optimizer.sys.path.join(opts.outClientDir, Q_MANIFEST_FILENAME);
             const qSymbolsContent = fs.readFileSync(qSymbolsPath, 'utf-8');
-            symbolsInput = JSON.parse(qSymbolsContent);
+            manifestInput = JSON.parse(qSymbolsContent);
           } catch (e) {
             /** */
           }
         }
 
-        if (symbolsInput && typeof symbolsInput === 'object') {
-          const symbolsStr = JSON.stringify(symbolsInput);
+        if (
+          manifestInput &&
+          typeof manifestInput === 'object' &&
+          typeof manifestInput.mapping === 'object'
+        ) {
+          // have a valid manifest
+          const manifestStr = JSON.stringify(manifestInput);
           for (const fileName in rollupBundle) {
             const b = rollupBundle[fileName];
             if (b.type === 'chunk') {
-              b.code = qwikPlugin.updateSymbolsEntryMap(symbolsStr, b.code);
+              b.code = qwikPlugin.updateSsrManifestDefault(manifestStr, b.code);
             }
           }
-
-          this.emitFile({
-            type: 'asset',
-            fileName: SYMBOLS_MANIFEST_FILENAME,
-            source: JSON.stringify(symbolsInput, null, 2),
-          });
         }
       }
     },
@@ -348,28 +353,30 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             fixStacktrace: true,
           });
           if (render) {
-            const symbols: SymbolsEntryMap = {
-              version: '1',
+            const manifest: QwikManifest = {
+              symbols: {},
               mapping: {},
+              bundles: {},
               injections: [],
+              version: '1',
             };
 
             Array.from(server.moduleGraph.fileToModulesMap.entries()).forEach((entry) => {
               entry[1].forEach((v) => {
                 const hook = v.info?.meta?.hook;
                 if (hook && v.lastHMRTimestamp) {
-                  symbols.mapping[hook.name] = `${v.url}?t=${v.lastHMRTimestamp}`;
+                  manifest.mapping[hook.name] = `${v.url}?t=${v.lastHMRTimestamp}`;
                 }
               });
             });
 
-            qwikPlugin.log(`handleSSR()`, 'symbols', symbols);
+            qwikPlugin.log(`handleSSR()`, 'symbols', manifest);
 
             const mainMod = await server.moduleGraph.getModuleByUrl(opts.srcRootInput[0]);
             if (mainMod) {
               mainMod.importedModules.forEach((moduleNode) => {
                 if (moduleNode.url.endsWith('.css')) {
-                  symbols.injections!.push({
+                  manifest.injections!.push({
                     tag: 'link',
                     location: 'head',
                     attributes: {
@@ -384,7 +391,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             const renderToStringOpts: RenderToStringOptions = {
               url: url.href,
               debug: true,
-              symbols: isClientOnly ? null : symbols,
+              manifest: isClientOnly ? undefined : manifest,
               snapshot: !isClientOnly,
             };
 

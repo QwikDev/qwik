@@ -64,15 +64,21 @@ export interface HookAnalysis {
     // (undocumented)
     canonicalFilename: string;
     // (undocumented)
+    captures: boolean;
+    // (undocumented)
+    ctxKind: 'event' | 'function';
+    // (undocumented)
+    ctxName: string;
+    // (undocumented)
     entry: string | null;
     // (undocumented)
-    localDecl: string[];
-    // (undocumented)
-    localIdents: string[];
+    extension: string;
     // (undocumented)
     name: string;
     // (undocumented)
     origin: string;
+    // (undocumented)
+    parent: string | null;
 }
 
 // @alpha (undocumented)
@@ -168,6 +174,36 @@ export interface Path {
 }
 
 // @alpha (undocumented)
+export interface QwikBundle {
+    // (undocumented)
+    dynamicImports?: string[];
+    // (undocumented)
+    imports?: string[];
+    // (undocumented)
+    size: number;
+}
+
+// @alpha (undocumented)
+export interface QwikManifest {
+    // (undocumented)
+    bundles: {
+        [fileName: string]: QwikBundle;
+    };
+    // (undocumented)
+    injections?: GlobalInjections[];
+    // (undocumented)
+    mapping: {
+        [symbolName: string]: string;
+    };
+    // (undocumented)
+    symbols: {
+        [symbolName: string]: QwikSymbol;
+    };
+    // (undocumented)
+    version: string;
+}
+
+// @alpha (undocumented)
 export function qwikRollup(qwikRollupOpts?: QwikRollupPluginOptions): any;
 
 // Warning: (ae-forgotten-export) The symbol "BasePluginOptions" needs to be exported by the entry point index.d.ts
@@ -182,6 +218,18 @@ export interface QwikRollupPluginOptions extends BasePluginOptions {
     optimizerOptions?: OptimizerOptions;
     // (undocumented)
     rootDir?: string;
+}
+
+// @alpha (undocumented)
+export interface QwikSymbol {
+    // (undocumented)
+    captures: boolean;
+    // (undocumented)
+    ctxKind: 'function' | 'event';
+    // (undocumented)
+    ctxName: string;
+    // (undocumented)
+    parent: string | null;
 }
 
 // @alpha (undocumented)
@@ -221,18 +269,6 @@ export interface SourceLocation {
 
 // @alpha (undocumented)
 export type SourceMapsOption = 'external' | 'inline' | undefined | null;
-
-// @alpha (undocumented)
-export interface SymbolsEntryMap {
-    // (undocumented)
-    injections?: GlobalInjections[];
-    // (undocumented)
-    mapping: {
-        [canonicalName: string]: string;
-    };
-    // (undocumented)
-    version: string;
-}
 
 // @alpha (undocumented)
 export type SystemEnvironment = 'node' | 'deno' | 'webworker' | 'browsermain' | 'unknown';

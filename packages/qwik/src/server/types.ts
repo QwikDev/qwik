@@ -1,4 +1,4 @@
-import type { SymbolsEntryMap } from '../optimizer/src';
+import type { QwikManifest, QwikBundle, QwikSymbol } from '../optimizer/src';
 
 /**
  * Partial Window used by Qwik Framework.
@@ -42,19 +42,55 @@ export interface WindowOptions extends DocumentOptions {}
  * @public
  */
 export interface SerializeDocumentOptions extends DocumentOptions {
-  symbols?: ServerOutputSymbols;
+  manifest?: QwikManifest;
+  qrlMapper?: QrlMapper;
 }
+
+/**
+ * @alpha
+ */
+export interface PrefetchStrategy {
+  implementation?: PrefetchStrategyImplementation;
+  symbolsToPrefetch?: SymbolsToPrefetch;
+}
+
+/**
+ * @alpha
+ */
+export type PrefetchStrategyImplementation =
+  | 'link-prefetch'
+  | 'link-preload'
+  | 'link-modulepreload'
+  | 'qrl-import'
+  | 'worker-fetch'
+  | 'none';
+
+/**
+ * all: Prefetch all QRLs used by the app.
+ * all-document: Prefetch all QRLs used by the document.
+ * events-document: Prefetch event QRLs used by the document. Default
+ *
+ * @alpha
+ */
+export type SymbolsToPrefetch =
+  | 'all-document'
+  | 'all'
+  | 'events-document'
+  | ((opts: { document: QwikDocument; manifest: QwikManifest }) => string[]);
+
+export { QwikManifest, QwikBundle, QwikSymbol };
 
 /**
  * @public
  */
-export type ServerOutputSymbols = QrlMapper | SymbolsEntryMap | null;
+export type QrlMapper = (symbolName: string) => string | undefined;
 
 /**
  * @public
  */
 export interface RenderToStringResult {
   html: string;
+  prefetchUrls: string[];
   timing: {
     createDocument: number;
     render: number;
@@ -92,6 +128,7 @@ export interface RenderToStringOptions extends RenderToDocumentOptions {
    * Defaults to `undefined`
    */
   fragmentTagName?: string;
+  prefetchStrategy?: PrefetchStrategy;
 }
 
 /**
@@ -105,8 +142,3 @@ export interface CreateRenderToStringOptions {
  * @public
  */
 export type RenderToString = (opts: RenderToStringOptions) => Promise<RenderToStringResult>;
-
-/**
- * @public
- */
-export type QrlMapper = (symbolName: string) => string | undefined;

@@ -20,12 +20,16 @@ export function logResult(result: GenerateResult) {
 
   console.log(``);
 
-  console.log(`📟 ${color.cyan(`Next steps:`)}`);
+  console.log(`🤖 ${color.cyan(`Next steps:`)}`);
   if (!isCwdDir) {
     console.log(`   cd ${relativeProjectPath}`);
   }
   console.log(`   npm install`);
   console.log(`   npm start`);
+  console.log(``);
+  console.log(`💬 ${color.cyan('Questions? Start the conversation at:')}`);
+  console.log(`   https://qwik.builder.io/chat`);
+  console.log(`   https://twitter.com/QwikDev`);
   console.log(``);
 }
 

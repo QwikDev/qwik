@@ -89,10 +89,13 @@ export const Repl = component$(async (props: ReplProps) => {
     if (location.hostname === 'localhost') {
       store.iframeUrl += 'index.html';
     }
-    if (location.hostname === 'qwik.builder.io') {
-      // use a different domain on purpose
-      store.iframeUrl = 'https://qwik-docs.pages.dev' + store.iframeUrl;
-    }
+
+    // TODO: enable when this ships
+    // https://github.com/BuilderIO/qwik/commit/9fb3b9b72593c76fd80a5739a77adefd88a07651
+    // if (location.hostname === 'qwik.builder.io') {
+    //   // use a different domain on purpose
+    //   store.iframeUrl = 'https://qwik-docs.pages.dev' + store.iframeUrl;
+    // }
 
     // how do I not use window event listener here?
     window.addEventListener('message', (ev) => onMessageFromIframe(ev, store));

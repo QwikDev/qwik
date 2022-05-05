@@ -1,4 +1,4 @@
-import { createTimer, ensureGlobals } from './utils';
+import { createTimer, ensureGlobals, getBuildBase } from './utils';
 import { pauseContainer, render } from '@builder.io/qwik';
 import type { FunctionComponent, JSXNode } from '@builder.io/qwik';
 import qwikDom from '@builder.io/qwik-dom';
@@ -17,6 +17,7 @@ import { isDocument } from '../core/util/element';
 import { getDocument } from '../core/util/dom';
 import { getElement } from '../core/render/render.public';
 import { getQwikLoaderScript } from './scripts';
+import { applyPrefetchImplementation, getPrefetchUrls } from './prefetch';
 
 /**
  * Create emulated `Window` for server environment. Does not implement the full browser
@@ -61,13 +62,10 @@ export async function renderToDocument(
 
   await render(docOrElm, rootNode);
 
-  if (typeof opts.base === 'string') {
-    let qrlBase = opts.base;
-    if (!qrlBase.endsWith('/')) {
-      qrlBase += '/';
-    }
+  const buildBase = getBuildBase(opts);
+  if (buildBase != null) {
     const containerEl = getElement(docOrElm);
-    containerEl.setAttribute('q:base', qrlBase);
+    containerEl.setAttribute('q:base', buildBase);
   }
 
   if (opts.snapshot !== false) {
@@ -108,12 +106,20 @@ export async function renderToString(rootNode: JSXNode, opts: RenderToStringOpti
     rootEl = doc.createElement(opts.fragmentTagName);
     doc.body.appendChild(rootEl);
   }
+
   await renderToDocument(rootEl, rootNode, opts);
+
+  const prefetchUrls = getPrefetchUrls(doc, opts);
+  if (prefetchUrls.length > 0) {
+    applyPrefetchImplementation(doc, opts, prefetchUrls);
+  }
+
   const renderDocTime = renderDocTimer();
 
   const docToStringTimer = createTimer();
   const result: RenderToStringResult = {
     html: serializeDocument(rootEl, opts),
+    prefetchUrls,
     timing: {
       createDocument: createDocTime,
       render: renderDocTime,

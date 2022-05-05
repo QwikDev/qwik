@@ -1,7 +1,7 @@
 import type { CorePlatform } from '@builder.io/qwik';
-import { normalizeUrl } from './utils';
+import { getQrlMap, normalizeUrl } from './utils';
 import { setPlatform } from '@builder.io/qwik';
-import type { SerializeDocumentOptions } from './types';
+import type { QwikManifest, SerializeDocumentOptions } from './types';
 
 const _setImmediate = typeof setImmediate === 'function' ? setImmediate : setTimeout;
 
@@ -12,11 +12,15 @@ function createPlatform(document: any, opts: SerializeDocumentOptions) {
     throw new Error(`Invalid Document implementation`);
   }
   const doc: Document = document;
-  const symbols = opts.symbols || Q_SYMBOLS_ENTRY_MAP;
+
+  const qrlMapper = typeof opts.qrlMapper === 'function' ? opts.qrlMapper : null;
+
+  const qrlMap = getQrlMap(opts.manifest) || getQrlMap(Q_MANIFEST_DEFAULT);
 
   if (opts?.url) {
     doc.location.href = normalizeUrl(opts.url).href;
   }
+
   const serverPlatform: CorePlatform = {
     isServer: true,
     async importSymbol(_element, qrl, symbolName) {
@@ -50,13 +54,11 @@ function createPlatform(document: any, opts: SerializeDocumentOptions) {
       });
     },
     chunkForSymbol(symbolName: string) {
-      if (symbols) {
-        if (typeof symbols === 'object' && typeof symbols.mapping === 'object') {
-          return symbols.mapping[symbolName];
-        }
-        if (typeof symbols === 'function') {
-          return symbols(symbolName);
-        }
+      if (qrlMapper) {
+        return qrlMapper(symbolName);
+      }
+      if (qrlMap) {
+        return qrlMap[symbolName];
       }
       return undefined;
     },
@@ -73,5 +75,5 @@ export async function setServerPlatform(document: any, opts: SerializeDocumentOp
   setPlatform(document, platform);
 }
 
-/** Object replaced at build-time to act as a fallback when a symbols map is not provided */
-const Q_SYMBOLS_ENTRY_MAP = '__qSymbolsEntryMap__';
+/** Object replaced at build-time to act as a fallback when a manifest is not provided */
+const Q_MANIFEST_DEFAULT: QwikManifest = '__QwikManifest__' as any;

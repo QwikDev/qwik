@@ -25,8 +25,8 @@ describe('vite  plugin', () => {
 
       expect(opts.buildMode).toBe('development');
       expect(opts.entryStrategy).toEqual({ type: 'hook' });
-      expect(opts.minify).toBe('none');
       expect(opts.debug).toBe(false);
+      expect(opts.forceFullBuild).toBe(false);
 
       expect(build.outDir).toBe(resolve(cwd, 'dist'));
       expect(rollupOptions.input).toEqual(resolve(cwd, 'src', 'entry.dev.tsx'));
@@ -51,8 +51,8 @@ describe('vite  plugin', () => {
 
       expect(opts.buildMode).toBe('production');
       expect(opts.entryStrategy).toEqual({ type: 'hook' });
-      expect(opts.minify).toBe('minify');
       expect(opts.debug).toBe(false);
+      expect(opts.forceFullBuild).toBe(true);
 
       expect(plugin.enforce).toBe('pre');
       expect(build.outDir).toBe(resolve(cwd, 'dist'));
@@ -78,8 +78,8 @@ describe('vite  plugin', () => {
 
       expect(opts.buildMode).toBe('ssr');
       expect(opts.entryStrategy).toEqual({ type: 'hook' });
-      expect(opts.minify).toBe('none');
       expect(opts.debug).toBe(false);
+      expect(opts.forceFullBuild).toBe(false);
 
       expect(plugin.enforce).toBe('pre');
       expect(build.outDir).toBe(resolve(cwd, 'server'));

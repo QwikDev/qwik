@@ -95,7 +95,7 @@ const bundleClient = async (options: ReplInputOptions, result: ReplResult) => {
   });
 
   result.clientModules = generated.output.map(getOutput).filter((f) => {
-    return !f.path.endsWith('app.js') && !f.path.endsWith('symbols-manifest.json');
+    return !f.path.endsWith('app.js') && !f.path.endsWith('q-manifest.json');
   });
 
   console.timeEnd(`Bundle client`);

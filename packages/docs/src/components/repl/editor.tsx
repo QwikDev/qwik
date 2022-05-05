@@ -6,7 +6,7 @@ import {
   NoSerialize,
   useClientEffect$,
   QRL,
-  useEffect$,
+  useWatch$,
 } from '@builder.io/qwik';
 import type { TransformModuleInput } from '@builder.io/qwik/optimizer';
 import { addQwikLib, ICodeEditorViewState, initMonacoEditor, updateMonacoEditor } from './monaco';
@@ -33,7 +33,7 @@ export const Editor = component$((props: EditorProps) => {
     };
   });
 
-  useEffect$(async (track) => {
+  useWatch$(async (track) => {
     track(props, 'version');
     track(store, 'editor');
 
@@ -42,7 +42,7 @@ export const Editor = component$((props: EditorProps) => {
     }
   });
 
-  useEffect$(async (track) => {
+  useWatch$(async (track) => {
     track(props, 'version');
     track(store, 'editor');
     track(props, 'inputs');

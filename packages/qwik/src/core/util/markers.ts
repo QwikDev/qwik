@@ -1,7 +1,7 @@
 /**
  * State factory of the component.
  */
-export const OnMount = 'on:q-mount';
+export const OnMount = 'on:qmount';
 
 /**
  * State factory of the component.
@@ -17,12 +17,12 @@ export const OnRenderSelector = '[q\\:host]';
 /**
  * State factory of the component.
  */
-export const OnUnmount = 'on:q-unmount';
+export const OnUnmount = 'on:qunmount';
 
 /**
  * State factory of the component.
  */
-export const OnResume = 'on:q-resume';
+export const OnResume = 'on:qresume';
 
 /**
  * Component Styles.

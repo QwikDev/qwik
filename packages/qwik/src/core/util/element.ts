@@ -6,7 +6,7 @@ export function isNode(value: any): value is Node {
 export function isDocument(value: any): value is Document {
   return value && value.nodeType == NodeType.DOCUMENT_NODE;
 }
-export function isElement(value: any): value is HTMLElement {
+export function isElement(value: any): value is Element {
   return isNode(value) && value.nodeType == NodeType.ELEMENT_NODE;
 }
 export function isText(value: any): value is Text {

@@ -19,14 +19,14 @@ export const App = Component((props) => {
 
 import * as qwik from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
-export const App = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./app_component_fude1doyyty")
-, "App_Component_FUDE1DoYyTY"));
+export const App = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./app_component_nuxfthrjvxe")
+, "App_Component_NuXFTHRjvXE"));
 
-============================= app_component_1_ifurk0ircu0.js (ENTRY POINT)==
+============================= app_component_1_a08txhb9pek.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
-export const App_Component_1_ifurK0IrCu0 = ()=>{
+export const App_Component_1_A08tXHb9pEk = ()=>{
     const [state] = qwik.useLexicalScope();
     return /*#__PURE__*/ _jsx("div", {
         children: state.thing
@@ -37,26 +37,28 @@ export { handleWatch } from "@builder.io/qwik";
 /*
 {
   "origin": "test.tsx",
-  "name": "App_Component_1_ifurK0IrCu0",
+  "name": "App_Component_1_A08tXHb9pEk",
   "entry": null,
-  "canonicalFilename": "app_component_1_ifurk0ircu0",
+  "displayName": "App_Component_1",
+  "hash": "A08tXHb9pEk",
+  "canonicalFilename": "app_component_1_a08txhb9pek",
   "extension": "js",
-  "parent": "App_Component_FUDE1DoYyTY",
+  "parent": "App_Component_NuXFTHRjvXE",
   "ctxKind": "function",
   "ctxName": "$",
   "captures": true
 }
 */
-============================= app_component_fude1doyyty.js (ENTRY POINT)==
+============================= app_component_nuxfthrjvxe.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
 import { useStore } from "@builder.io/qwik";
-export const App_Component_FUDE1DoYyTY = (props)=>{
+export const App_Component_NuXFTHRjvXE = (props)=>{
     const state = useStore({
         thing: 0
     });
-    return qwik.qrl(()=>import("./app_component_1_ifurk0ircu0")
-    , "App_Component_1_ifurK0IrCu0", [
+    return qwik.qrl(()=>import("./app_component_1_a08txhb9pek")
+    , "App_Component_1_A08tXHb9pEk", [
         state
     ]);
 };
@@ -65,9 +67,11 @@ export { handleWatch } from "@builder.io/qwik";
 /*
 {
   "origin": "test.tsx",
-  "name": "App_Component_FUDE1DoYyTY",
+  "name": "App_Component_NuXFTHRjvXE",
   "entry": null,
-  "canonicalFilename": "app_component_fude1doyyty",
+  "displayName": "App_Component",
+  "hash": "NuXFTHRjvXE",
+  "canonicalFilename": "app_component_nuxfthrjvxe",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",

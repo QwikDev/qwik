@@ -30,35 +30,12 @@ export const ButtonArrow = ({text, color}) => {
     );
 }
 
-============================= test.tsx ==
-
-import * as qwik from "@builder.io/qwik";
-import { componentQrl } from "@builder.io/qwik";
-export const Foo = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./foo_component_7n2avllyvuo")
-, "Foo_component_7N2avlLYVuo"), {
-    tagName: "my-foo"
-});
-export function Button({ text , color  }) {
-    return <button color={color} onClickQrl={qwik.qrl(()=>import("./button_button_onclick_6wewdakugho")
-    , "Button_button_onClick_6WewdAKUGHo", [
-        color,
-        text
-    ])}>{text}</button>;
-}
-export const ButtonArrow = ({ text , color  })=>{
-    return <button color={color} onClickQrl={qwik.qrl(()=>import("./buttonarrow_button_onclick_fefzxib1knq")
-    , "ButtonArrow_button_onClick_FEfZXIB1knQ", [
-        color,
-        text
-    ])}>{text}</button>;
-};
-
-============================= foo_component_7n2avllyvuo.tsx (ENTRY POINT)==
+============================= foo_component_htdrsvublie.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
 import { Button } from "./test";
 import { ButtonArrow } from "./test";
-export const Foo_component_7N2avlLYVuo = ({ color  })=>{
+export const Foo_component_HTDRsvUbLiE = ({ color  })=>{
     return <div >
 
             <Button {...props}/>
@@ -72,9 +49,11 @@ export { handleWatch } from "@builder.io/qwik";
 /*
 {
   "origin": "test.tsx",
-  "name": "Foo_component_7N2avlLYVuo",
+  "name": "Foo_component_HTDRsvUbLiE",
   "entry": null,
-  "canonicalFilename": "foo_component_7n2avllyvuo",
+  "displayName": "Foo_component",
+  "hash": "HTDRsvUbLiE",
+  "canonicalFilename": "foo_component_htdrsvublie",
   "extension": "tsx",
   "parent": null,
   "ctxKind": "function",
@@ -82,10 +61,10 @@ export { handleWatch } from "@builder.io/qwik";
   "captures": false
 }
 */
-============================= button_button_onclick_6wewdakugho.tsx (ENTRY POINT)==
+============================= buttonarrow_button_onclick_9npo43figik.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const Button_button_onClick_6WewdAKUGHo = ()=>{
+export const ButtonArrow_button_onClick_9npo43fIGik = ()=>{
     const [color, text] = qwik.useLexicalScope();
     return console.log(text, color);
 };
@@ -94,9 +73,11 @@ export { handleWatch } from "@builder.io/qwik";
 /*
 {
   "origin": "test.tsx",
-  "name": "Button_button_onClick_6WewdAKUGHo",
+  "name": "ButtonArrow_button_onClick_9npo43fIGik",
   "entry": null,
-  "canonicalFilename": "button_button_onclick_6wewdakugho",
+  "displayName": "ButtonArrow_button_onClick",
+  "hash": "9npo43fIGik",
+  "canonicalFilename": "buttonarrow_button_onclick_9npo43figik",
   "extension": "tsx",
   "parent": null,
   "ctxKind": "event",
@@ -104,10 +85,10 @@ export { handleWatch } from "@builder.io/qwik";
   "captures": true
 }
 */
-============================= buttonarrow_button_onclick_fefzxib1knq.tsx (ENTRY POINT)==
+============================= button_button_onclick_nsm0jyv00jw.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const ButtonArrow_button_onClick_FEfZXIB1knQ = ()=>{
+export const Button_button_onClick_NsM0JYV00Jw = ()=>{
     const [color, text] = qwik.useLexicalScope();
     return console.log(text, color);
 };
@@ -116,9 +97,11 @@ export { handleWatch } from "@builder.io/qwik";
 /*
 {
   "origin": "test.tsx",
-  "name": "ButtonArrow_button_onClick_FEfZXIB1knQ",
+  "name": "Button_button_onClick_NsM0JYV00Jw",
   "entry": null,
-  "canonicalFilename": "buttonarrow_button_onclick_fefzxib1knq",
+  "displayName": "Button_button_onClick",
+  "hash": "NsM0JYV00Jw",
+  "canonicalFilename": "button_button_onclick_nsm0jyv00jw",
   "extension": "tsx",
   "parent": null,
   "ctxKind": "event",
@@ -126,6 +109,29 @@ export { handleWatch } from "@builder.io/qwik";
   "captures": true
 }
 */
+============================= test.tsx ==
+
+import * as qwik from "@builder.io/qwik";
+import { componentQrl } from "@builder.io/qwik";
+export const Foo = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./foo_component_htdrsvublie")
+, "Foo_component_HTDRsvUbLiE"), {
+    tagName: "my-foo"
+});
+export function Button({ text , color  }) {
+    return <button color={color} onClickQrl={qwik.qrl(()=>import("./button_button_onclick_nsm0jyv00jw")
+    , "Button_button_onClick_NsM0JYV00Jw", [
+        color,
+        text
+    ])}>{text}</button>;
+}
+export const ButtonArrow = ({ text , color  })=>{
+    return <button color={color} onClickQrl={qwik.qrl(()=>import("./buttonarrow_button_onclick_9npo43figik")
+    , "ButtonArrow_button_onClick_9npo43fIGik", [
+        color,
+        text
+    ])}>{text}</button>;
+};
+
 == DIAGNOSTICS ==
 
 []

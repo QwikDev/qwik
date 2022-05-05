@@ -5,7 +5,7 @@ use crate::transform::{
 };
 use crate::words::*;
 
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use std::path::Path;
 
 use anyhow::{format_err, Context, Error};
@@ -224,8 +224,7 @@ fn test_fix_path() {
 
 pub fn generate_entries(mut output: TransformOutput) -> Result<TransformOutput, anyhow::Error> {
     let source_map = Lrc::new(SourceMap::default());
-    let mut entries_map: HashMap<&str, Vec<&HookAnalysis>> =
-        HashMap::with_capacity(output.modules.len());
+    let mut entries_map: BTreeMap<&str, Vec<&HookAnalysis>> = BTreeMap::new();
     let mut new_modules = Vec::with_capacity(output.modules.len());
     {
         let hooks: Vec<&HookAnalysis> = output.modules.iter().flat_map(|m| &m.hook).collect();
@@ -248,6 +247,7 @@ pub fn generate_entries(mut output: TransformOutput) -> Result<TransformOutput, 
                 map,
                 is_entry: true,
                 hook: None,
+                order: 0,
             });
         }
     }

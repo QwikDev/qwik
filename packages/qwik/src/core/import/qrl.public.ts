@@ -136,7 +136,8 @@ export interface QRL<TYPE = any> {
 
   invokeFn(
     el?: Element,
-    context?: InvokeContext
+    context?: InvokeContext,
+    beforeFn?: () => void
   ): TYPE extends (...args: infer ARGS) => infer RETURN
     ? (...args: ARGS) => ValueOrPromise<RETURN>
     : never;

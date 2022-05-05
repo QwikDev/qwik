@@ -16,8 +16,8 @@ const EventExample = component$(() => {
 
   return (
     <button
-      onWindowScroll$={(e) => (store.scroll = window.scrollY)}
-      onDocumentMousemove$={(e) => {
+      window:onScroll$={(e) => (store.scroll = window.scrollY)}
+      document:onMouseMove$={(e) => {
         store.mouse.x = e.x;
         store.mouse.y = e.y;
       }}

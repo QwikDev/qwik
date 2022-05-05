@@ -24,44 +24,37 @@ export const App = component$(() => {
     );
 });
 
-============================= project/test.tsx ==
-
-import * as qwik from "@builder.io/qwik";
-import { componentQrl } from "@builder.io/qwik";
-export const Header = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("../entry_hooks")
-, "Header_component_ZdVwofEnicA"));
-export const App = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("../entry_hooks")
-, "App_component_qkSifjb55lg"));
-
-============================= header_component_header_onclick_pomfydrqs0o.tsx ==
+============================= header_component_header_onclick_kjd9tcnknxy.tsx ==
 
 import * as qwik from "@builder.io/qwik";
 import dep3 from "dep3/something";
-export const Header_component_Header_onClick_POMfYDRQS0o = (ev)=>dep3(ev)
+export const Header_component_Header_onClick_KjD9TCNkNxY = (ev)=>dep3(ev)
 ;
 
 /*
 {
   "origin": "project/test.tsx",
-  "name": "Header_component_Header_onClick_POMfYDRQS0o",
+  "name": "Header_component_Header_onClick_KjD9TCNkNxY",
   "entry": "entry_hooks",
-  "canonicalFilename": "header_component_header_onclick_pomfydrqs0o",
+  "displayName": "Header_component_Header_onClick",
+  "hash": "KjD9TCNkNxY",
+  "canonicalFilename": "header_component_header_onclick_kjd9tcnknxy",
   "extension": "tsx",
-  "parent": "Header_component_ZdVwofEnicA",
+  "parent": "Header_component_UVBJuFYfvDo",
   "ctxKind": "function",
   "ctxName": "$",
   "captures": false
 }
 */
-============================= header_component_zdvwofenica.tsx ==
+============================= header_component_uvbjufyfvdo.tsx ==
 
 import * as qwik from "@builder.io/qwik";
 import { Header } from "./project/test";
 import { bar as bbar } from "./state";
 import * as dep2 from "dep2";
-export const Header_component_ZdVwofEnicA = ()=>{
+export const Header_component_UVBJuFYfvDo = ()=>{
     return <Header onClick={qwik.qrl(()=>import("./entry_hooks")
-    , "Header_component_Header_onClick_POMfYDRQS0o")}>
+    , "Header_component_Header_onClick_KjD9TCNkNxY")}>
 
             {dep2.stuff()}{bbar()}
 
@@ -71,9 +64,11 @@ export const Header_component_ZdVwofEnicA = ()=>{
 /*
 {
   "origin": "project/test.tsx",
-  "name": "Header_component_ZdVwofEnicA",
+  "name": "Header_component_UVBJuFYfvDo",
   "entry": "entry_hooks",
-  "canonicalFilename": "header_component_zdvwofenica",
+  "displayName": "Header_component",
+  "hash": "UVBJuFYfvDo",
+  "canonicalFilename": "header_component_uvbjufyfvdo",
   "extension": "tsx",
   "parent": null,
   "ctxKind": "function",
@@ -81,21 +76,23 @@ export const Header_component_ZdVwofEnicA = ()=>{
   "captures": false
 }
 */
-============================= app_component_qksifjb55lg.tsx ==
+============================= app_component_wgkrhwxaqjs.tsx ==
 
 import * as qwik from "@builder.io/qwik";
 import { Header } from "./project/test";
 import { foo } from "./state";
-export const App_component_qkSifjb55lg = ()=>{
+export const App_component_wGkRHWXaqjs = ()=>{
     return <Header >{foo()}</Header>;
 };
 
 /*
 {
   "origin": "project/test.tsx",
-  "name": "App_component_qkSifjb55lg",
+  "name": "App_component_wGkRHWXaqjs",
   "entry": "entry_hooks",
-  "canonicalFilename": "app_component_qksifjb55lg",
+  "displayName": "App_component",
+  "hash": "wGkRHWXaqjs",
+  "canonicalFilename": "app_component_wgkrhwxaqjs",
   "extension": "tsx",
   "parent": null,
   "ctxKind": "function",
@@ -103,11 +100,20 @@ export const App_component_qkSifjb55lg = ()=>{
   "captures": false
 }
 */
+============================= project/test.tsx ==
+
+import * as qwik from "@builder.io/qwik";
+import { componentQrl } from "@builder.io/qwik";
+export const Header = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("../entry_hooks")
+, "Header_component_UVBJuFYfvDo"));
+export const App = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("../entry_hooks")
+, "App_component_wGkRHWXaqjs"));
+
 ============================= entry_hooks.js (ENTRY POINT)==
 
-export { Header_component_Header_onClick_POMfYDRQS0o } from "./header_component_header_onclick_pomfydrqs0o";
-export { Header_component_ZdVwofEnicA } from "./header_component_zdvwofenica";
-export { App_component_qkSifjb55lg } from "./app_component_qksifjb55lg";
+export { Header_component_Header_onClick_KjD9TCNkNxY } from "./header_component_header_onclick_kjd9tcnknxy";
+export { Header_component_UVBJuFYfvDo } from "./header_component_uvbjufyfvdo";
+export { App_component_wGkRHWXaqjs } from "./app_component_wgkrhwxaqjs";
 export { handleWatch } from "@builder.io/qwik";
 
 == DIAGNOSTICS ==

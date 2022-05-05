@@ -5,6 +5,7 @@ pub const SIGNAL: char = '$';
 pub const LONG_SUFFIX: &str = "Qrl";
 
 lazy_static! {
+    pub static ref CHILDREN: JsWord = JsWord::from("children");
     pub static ref HANDLE_WATCH: JsWord = JsWord::from("handleWatch");
     pub static ref QRL: JsWord = JsWord::from("qrl");
     pub static ref QHOOK: JsWord = JsWord::from("$");

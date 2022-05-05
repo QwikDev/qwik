@@ -21,16 +21,38 @@ const d = $(()=>console.log('thing'));
 
 import * as qwik from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
-export const Greeter = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./greeter_component_sm3gbborfg0")
-, "Greeter_component_SM3gBboRfG0"));
-qwik.qrl(()=>import("./d_lpkevhzmi40")
-, "d_lPkevhzMI40");
+export const Greeter = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./greeter_component_n7hug2hhu0q")
+, "Greeter_component_n7HuG2hhU0Q"));
+qwik.qrl(()=>import("./d_wknfjeiqvua")
+, "d_wKNFJEIQVUA");
 
-============================= greeter_component_1_gsxlhtv0lzu.js (ENTRY POINT)==
+============================= d_wknfjeiqvua.js (ENTRY POINT)==
+
+import * as qwik from "@builder.io/qwik";
+export const d_wKNFJEIQVUA = ()=>console.log('thing')
+;
+export { handleWatch } from "@builder.io/qwik";
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "d_wKNFJEIQVUA",
+  "entry": null,
+  "displayName": "d",
+  "hash": "wKNFJEIQVUA",
+  "canonicalFilename": "d_wknfjeiqvua",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false
+}
+*/
+============================= greeter_component_1_krcndswhx4u.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
-export const Greeter_component_1_gsxlhtv0lZU = ()=>{
+export const Greeter_component_1_krCndSwhX4U = ()=>{
     return /*#__PURE__*/ _jsx("div", {});
 };
 export { handleWatch } from "@builder.io/qwik";
@@ -38,55 +60,39 @@ export { handleWatch } from "@builder.io/qwik";
 /*
 {
   "origin": "test.tsx",
-  "name": "Greeter_component_1_gsxlhtv0lZU",
+  "name": "Greeter_component_1_krCndSwhX4U",
   "entry": null,
-  "canonicalFilename": "greeter_component_1_gsxlhtv0lzu",
+  "displayName": "Greeter_component_1",
+  "hash": "krCndSwhX4U",
+  "canonicalFilename": "greeter_component_1_krcndswhx4u",
   "extension": "js",
-  "parent": "Greeter_component_SM3gBboRfG0",
+  "parent": "Greeter_component_n7HuG2hhU0Q",
   "ctxKind": "function",
   "ctxName": "$",
   "captures": false
 }
 */
-============================= greeter_component_sm3gbborfg0.js (ENTRY POINT)==
+============================= greeter_component_n7hug2hhu0q.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const Greeter_component_SM3gBboRfG0 = ()=>{
-    return qwik.qrl(()=>import("./greeter_component_1_gsxlhtv0lzu")
-    , "Greeter_component_1_gsxlhtv0lZU");
+export const Greeter_component_n7HuG2hhU0Q = ()=>{
+    return qwik.qrl(()=>import("./greeter_component_1_krcndswhx4u")
+    , "Greeter_component_1_krCndSwhX4U");
 };
 export { handleWatch } from "@builder.io/qwik";
 
 /*
 {
   "origin": "test.tsx",
-  "name": "Greeter_component_SM3gBboRfG0",
+  "name": "Greeter_component_n7HuG2hhU0Q",
   "entry": null,
-  "canonicalFilename": "greeter_component_sm3gbborfg0",
+  "displayName": "Greeter_component",
+  "hash": "n7HuG2hhU0Q",
+  "canonicalFilename": "greeter_component_n7hug2hhu0q",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
   "ctxName": "component$",
-  "captures": false
-}
-*/
-============================= d_lpkevhzmi40.js (ENTRY POINT)==
-
-import * as qwik from "@builder.io/qwik";
-export const d_lPkevhzMI40 = ()=>console.log('thing')
-;
-export { handleWatch } from "@builder.io/qwik";
-
-/*
-{
-  "origin": "test.tsx",
-  "name": "d_lPkevhzMI40",
-  "entry": null,
-  "canonicalFilename": "d_lpkevhzmi40",
-  "extension": "js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "$",
   "captures": false
 }
 */

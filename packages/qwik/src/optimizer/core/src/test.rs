@@ -1030,6 +1030,111 @@ const d = $(()=>console.log('thing'));
     assert_eq!(last_module.path, r"C:/users/apps/components/apps/apps.tsx")
 }
 
+#[test]
+fn consistent_hashes() {
+    let code = r#"
+import { component$, $ } from '@builder.io/qwik';
+
+export const Greeter = component$(() => {
+    return (
+        <div>
+            <div onClick$={() => {}}/>
+            <div onClick$={() => {}}/>
+            <div onClick$={() => {}}/>
+        </div>
+    )
+});
+
+"#;
+    let options = vec![
+        (true, EntryStrategy::Single, true),
+        (true, EntryStrategy::Component, true),
+        (false, EntryStrategy::Hook, true),
+        (false, EntryStrategy::Single, true),
+        (false, EntryStrategy::Component, true),
+        (true, EntryStrategy::Hook, false),
+        (true, EntryStrategy::Single, false),
+        (true, EntryStrategy::Component, false),
+        (false, EntryStrategy::Hook, false),
+        (false, EntryStrategy::Single, false),
+        (false, EntryStrategy::Component, false),
+    ];
+
+    let res = transform_modules(TransformModulesOptions {
+        root_dir: "./thing".into(),
+        input: vec![
+            TransformModuleInput {
+                code: code.into(),
+                path: "main.tsx".into(),
+            },
+            TransformModuleInput {
+                code: code.into(),
+                path: "components/main.tsx".into(),
+            },
+        ],
+        source_maps: true,
+        minify: MinifyMode::Simplify,
+        explicity_extensions: true,
+        dev: true,
+        entry_strategy: EntryStrategy::Hook,
+        transpile: true,
+    });
+    let ref_hooks: Vec<_> = res
+        .unwrap()
+        .modules
+        .into_iter()
+        .flat_map(|module| module.hook)
+        .collect();
+
+    for (i, option) in options.into_iter().enumerate() {
+        let res = transform_modules(TransformModulesOptions {
+            root_dir: "./thing".into(),
+            input: vec![
+                TransformModuleInput {
+                    code: code.into(),
+                    path: "main.tsx".into(),
+                },
+                TransformModuleInput {
+                    code: code.into(),
+                    path: "components/main.tsx".into(),
+                },
+            ],
+            source_maps: false,
+            minify: MinifyMode::Simplify,
+            explicity_extensions: true,
+            dev: option.0,
+            entry_strategy: option.1,
+            transpile: option.2,
+        });
+
+        let hooks: Vec<_> = res
+            .unwrap()
+            .modules
+            .into_iter()
+            .flat_map(|module| module.hook)
+            .collect();
+
+        assert_eq!(hooks.len(), ref_hooks.len());
+
+        for (a, b) in hooks.iter().zip(ref_hooks.iter()) {
+            assert_eq!(
+                get_hash(a.name.as_ref()),
+                get_hash(b.name.as_ref()),
+                "INDEX: {}\n\n{:#?}\n\n{:#?}\n\n{:#?}\n\n{:#?}",
+                i,
+                a,
+                b,
+                hooks,
+                ref_hooks
+            );
+        }
+    }
+}
+
+fn get_hash(name: &str) -> String {
+    name.split('_').last().unwrap().into()
+}
+
 struct TestInput {
     pub code: String,
     pub filename: String,

@@ -164,9 +164,9 @@ async function postRendering(containerEl: Element, state: RenderingState, ctx: R
   });
   state.watchNext.clear();
 
-  // Run staging effectd
+  // Run staging effected
   state.watchStaging.forEach((watch) => {
-    if (ctx.hostElements.has(watch.hostElement)) {
+    if (ctx.hostElements.has(watch.el)) {
       promises.push(runWatch(watch));
     } else {
       state.watchNext.add(watch);
@@ -177,13 +177,18 @@ async function postRendering(containerEl: Element, state: RenderingState, ctx: R
   // Wait for all promises
   await Promise.all(promises);
 
-  // Move elements from staging to nextRender
+  // Clear staging
   state.hostsStaging.forEach((el) => {
     state.hostsNext.add(el);
   });
+  state.hostsStaging.clear();
 
   // Clear staging
-  state.hostsStaging.clear();
+  state.watchStaging.forEach((watch) => {
+    state.watchNext.add(watch);
+  });
+  state.watchStaging.clear();
+
   state.hostsRendering = undefined;
   state.renderPromise = undefined;
 

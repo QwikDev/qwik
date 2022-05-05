@@ -1,8 +1,9 @@
 import { QOjectOriginalProxy, QOjectTargetSymbol, SetSubscriber } from '../object/q-object';
-import type { WatchDescriptor } from '../watch/watch.public';
+import { WatchDescriptor, WatchFlags } from '../watch/watch.public';
 import { RenderEvent } from '../util/markers';
 import { assertDefined, assertEqual } from '../assert/assert';
 import { getInvokeContext } from './use-core';
+import { isElement } from '../util/element';
 
 export type Subscriber = WatchDescriptor | Element;
 
@@ -57,4 +58,12 @@ export function unwrapSubscriber<T extends {}>(obj: T) {
     }
   }
   return obj;
+}
+
+export function isConnected(sub: Subscriber) {
+  if (isElement(sub)) {
+    return sub.isConnected;
+  } else {
+    return !!(sub.f & WatchFlags.IsConnected);
+  }
 }

@@ -5,12 +5,12 @@
 // it to the desired comment location
 //
 
-import { component$, useStore, useEffect$ } from '@builder.io/qwik';
+import { component$, useStore, useWatch$ } from '@builder.io/qwik';
 
 // <docs anchor="useWatch">
 export const MyComp = component$(() => {
   const store = useStore({ count: 0, doubleCount: 0 });
-  useEffect$((track) => {
+  useWatch$((track) => {
     const count = track(store, 'count');
     store.doubleCount = 2 * count;
   });

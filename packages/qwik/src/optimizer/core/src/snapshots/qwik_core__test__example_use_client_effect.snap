@@ -34,13 +34,49 @@ expression: output
 
 import * as qwik from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
-export const Child = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./child_component_bw0rrueub9s")
-, "Child_component_Bw0rrueuB9s"));
+export const Child = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./child_component_9gyf01gdkqw")
+, "Child_component_9GyF01GDKqw"));
 
-============================= child_component_useclienteffect_0b2xem7wksm.js (ENTRY POINT)==
+============================= child_component_9gyf01gdkqw.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const Child_component_useClientEffect_0B2Xem7wkSM = ()=>{
+import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
+import { useClientEffectQrl } from "@builder.io/qwik";
+import { useStore } from "@builder.io/qwik";
+export const Child_component_9GyF01GDKqw = ()=>{
+    const state = useStore({
+        count: 0
+    });
+    // Double count watch
+    useClientEffectQrl(qwik.qrl(()=>import("./child_component_useclienteffect_kyrt1iert9g")
+    , "Child_component_useClientEffect_kYRT1iERt9g", [
+        state
+    ]));
+    return /*#__PURE__*/ _jsx("div", {
+        children: state.count
+    });
+};
+export { handleWatch } from "@builder.io/qwik";
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "Child_component_9GyF01GDKqw",
+  "entry": null,
+  "displayName": "Child_component",
+  "hash": "9GyF01GDKqw",
+  "canonicalFilename": "child_component_9gyf01gdkqw",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false
+}
+*/
+============================= child_component_useclienteffect_kyrt1iert9g.js (ENTRY POINT)==
+
+import * as qwik from "@builder.io/qwik";
+export const Child_component_useClientEffect_kYRT1iERt9g = ()=>{
     const [state] = qwik.useLexicalScope();
     const timer = setInterval(()=>{
         state.count++;
@@ -54,48 +90,16 @@ export { handleWatch } from "@builder.io/qwik";
 /*
 {
   "origin": "test.tsx",
-  "name": "Child_component_useClientEffect_0B2Xem7wkSM",
+  "name": "Child_component_useClientEffect_kYRT1iERt9g",
   "entry": null,
-  "canonicalFilename": "child_component_useclienteffect_0b2xem7wksm",
+  "displayName": "Child_component_useClientEffect",
+  "hash": "kYRT1iERt9g",
+  "canonicalFilename": "child_component_useclienteffect_kyrt1iert9g",
   "extension": "js",
-  "parent": "Child_component_Bw0rrueuB9s",
+  "parent": "Child_component_9GyF01GDKqw",
   "ctxKind": "function",
   "ctxName": "useClientEffect$",
   "captures": true
-}
-*/
-============================= child_component_bw0rrueub9s.js (ENTRY POINT)==
-
-import * as qwik from "@builder.io/qwik";
-import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
-import { useClientEffectQrl } from "@builder.io/qwik";
-import { useStore } from "@builder.io/qwik";
-export const Child_component_Bw0rrueuB9s = ()=>{
-    const state = useStore({
-        count: 0
-    });
-    // Double count watch
-    useClientEffectQrl(qwik.qrl(()=>import("./child_component_useclienteffect_0b2xem7wksm")
-    , "Child_component_useClientEffect_0B2Xem7wkSM", [
-        state
-    ]));
-    return /*#__PURE__*/ _jsx("div", {
-        children: state.count
-    });
-};
-export { handleWatch } from "@builder.io/qwik";
-
-/*
-{
-  "origin": "test.tsx",
-  "name": "Child_component_Bw0rrueuB9s",
-  "entry": null,
-  "canonicalFilename": "child_component_bw0rrueub9s",
-  "extension": "js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false
 }
 */
 == DIAGNOSTICS ==

@@ -32,6 +32,9 @@ export const Main = component$(() => {
       <p>
         <a href="/e2e/watch">Watch</a>
       </p>
+      <p>
+        <a href="/e2e/effect-client">Client effect</a>
+      </p>
     </section>
   );
 });

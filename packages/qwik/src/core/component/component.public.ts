@@ -54,7 +54,7 @@ export const useCleanup$ = implicit$FirstArg(useCleanupQrl);
  */
 // </docs>
 export function useResumeQrl(resumeFn: QRL<() => void>): void {
-  useOnWindow('qInit', resumeFn);
+  useOn('qresume', resumeFn);
 }
 
 // <docs markdown="https://hackmd.io/c_nNpiLZSYugTU0c5JATJA#onHydrate">
@@ -72,7 +72,7 @@ export function useResumeQrl(resumeFn: QRL<() => void>): void {
 export const useResume$ = implicit$FirstArg(useResumeQrl);
 
 export function useVisibleQrl(resumeFn: QRL<() => void>): void {
-  useOn('qVisible', resumeFn);
+  useOn('qvisible', resumeFn);
 }
 
 export const useVisible$ = implicit$FirstArg(useVisibleQrl);

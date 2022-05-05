@@ -7,6 +7,7 @@ const config: PlaywrightTestConfig = {
       height: 600,
     },
   },
+  workers: 1,
   retries: 3,
   webServer: {
     command: 'node -r esbuild-register starters/dev-server.ts 3301',

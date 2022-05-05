@@ -62,19 +62,45 @@ export const Lightweight = (props)=>{
         })
     });
 };
-export const Foo = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./foo_component_7n2avllyvuo")
-, "Foo_component_7N2avlLYVuo"), {
+export const Foo = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./foo_component_htdrsvublie")
+, "Foo_component_HTDRsvUbLiE"), {
     tagName: "my-foo"
 });
 
-============================= foo_component_1_hm6unygc0fq.js (ENTRY POINT)==
+============================= foo_component_htdrsvublie.js (ENTRY POINT)==
+
+import * as qwik from "@builder.io/qwik";
+export const Foo_component_HTDRsvUbLiE = (props)=>{
+    return qwik.qrl(()=>import("./foo_component_1_dvu6fitwgly")
+    , "Foo_component_1_DvU6FitWglY", [
+        props
+    ]);
+};
+export { handleWatch } from "@builder.io/qwik";
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "Foo_component_HTDRsvUbLiE",
+  "entry": null,
+  "displayName": "Foo_component",
+  "hash": "HTDRsvUbLiE",
+  "canonicalFilename": "foo_component_htdrsvublie",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false
+}
+*/
+============================= foo_component_1_dvu6fitwgly.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
 import { Lightweight } from "./test";
 import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 import { jsxs as _jsxs } from "@builder.io/qwik/jsx-runtime";
-export const Foo_component_1_Hm6UNYgc0fQ = ()=>{
+export const Foo_component_1_DvU6FitWglY = ()=>{
     const [props] = qwik.useLexicalScope();
     return /*#__PURE__*/ _jsxs("div", {
         children: [
@@ -118,38 +144,16 @@ export { handleWatch } from "@builder.io/qwik";
 /*
 {
   "origin": "test.tsx",
-  "name": "Foo_component_1_Hm6UNYgc0fQ",
+  "name": "Foo_component_1_DvU6FitWglY",
   "entry": null,
-  "canonicalFilename": "foo_component_1_hm6unygc0fq",
+  "displayName": "Foo_component_1",
+  "hash": "DvU6FitWglY",
+  "canonicalFilename": "foo_component_1_dvu6fitwgly",
   "extension": "js",
-  "parent": "Foo_component_7N2avlLYVuo",
+  "parent": "Foo_component_HTDRsvUbLiE",
   "ctxKind": "function",
   "ctxName": "$",
   "captures": true
-}
-*/
-============================= foo_component_7n2avllyvuo.js (ENTRY POINT)==
-
-import * as qwik from "@builder.io/qwik";
-export const Foo_component_7N2avlLYVuo = (props)=>{
-    return qwik.qrl(()=>import("./foo_component_1_hm6unygc0fq")
-    , "Foo_component_1_Hm6UNYgc0fQ", [
-        props
-    ]);
-};
-export { handleWatch } from "@builder.io/qwik";
-
-/*
-{
-  "origin": "test.tsx",
-  "name": "Foo_component_7N2avlLYVuo",
-  "entry": null,
-  "canonicalFilename": "foo_component_7n2avllyvuo",
-  "extension": "js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false
 }
 */
 == DIAGNOSTICS ==

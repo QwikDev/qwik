@@ -8,25 +8,21 @@ expression: output
 import { $, component$ } from '@builder.io/qwik';
 export const sym1 = $((ctx) => console.log("1"));
 
-============================= test.tsx ==
+============================= sym1_axurpxx5lak.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const sym1 = qwik.qrl(()=>import("./sym1_m7o9wqhv9rw")
-, "sym1_M7o9WQHV9rw");
-
-============================= sym1_m7o9wqhv9rw.tsx (ENTRY POINT)==
-
-import * as qwik from "@builder.io/qwik";
-export const sym1_M7o9WQHV9rw = (ctx)=>console.log("1")
+export const sym1_aXUrPXX5Lak = (ctx)=>console.log("1")
 ;
 export { handleWatch } from "@builder.io/qwik";
 
 /*
 {
   "origin": "test.tsx",
-  "name": "sym1_M7o9WQHV9rw",
+  "name": "sym1_aXUrPXX5Lak",
   "entry": null,
-  "canonicalFilename": "sym1_m7o9wqhv9rw",
+  "displayName": "sym1",
+  "hash": "aXUrPXX5Lak",
+  "canonicalFilename": "sym1_axurpxx5lak",
   "extension": "tsx",
   "parent": null,
   "ctxKind": "function",
@@ -34,6 +30,12 @@ export { handleWatch } from "@builder.io/qwik";
   "captures": false
 }
 */
+============================= test.tsx ==
+
+import * as qwik from "@builder.io/qwik";
+export const sym1 = qwik.qrl(()=>import("./sym1_axurpxx5lak")
+, "sym1_aXUrPXX5Lak");
+
 == DIAGNOSTICS ==
 
 []

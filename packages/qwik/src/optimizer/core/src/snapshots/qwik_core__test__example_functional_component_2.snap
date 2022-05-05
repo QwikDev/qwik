@@ -45,13 +45,13 @@ export const useCounter = ()=>{
     });
 };
 export const STEP = 1;
-export const App = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./app_component_aj0udc0imoo")
-, "App_component_aJ0UdC0imoo"));
+export const App = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./app_component_ckepmxzlub0")
+, "App_component_ckEPmXZlub0"));
 
-============================= app_component_div_onclick_cnjgsj2zcca.js (ENTRY POINT)==
+============================= app_component_div_onclick_1cgetmfzx0g.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const App_component_div_onClick_cnJgsj2zcCA = ()=>{
+export const App_component_div_onClick_1CGetmFZx0g = ()=>{
     const [count2, state] = qwik.useLexicalScope();
     return state.count += count2;
 };
@@ -60,21 +60,23 @@ export { handleWatch } from "@builder.io/qwik";
 /*
 {
   "origin": "test.tsx",
-  "name": "App_component_div_onClick_cnJgsj2zcCA",
+  "name": "App_component_div_onClick_1CGetmFZx0g",
   "entry": null,
-  "canonicalFilename": "app_component_div_onclick_cnjgsj2zcca",
+  "displayName": "App_component_div_onClick",
+  "hash": "1CGetmFZx0g",
+  "canonicalFilename": "app_component_div_onclick_1cgetmfzx0g",
   "extension": "js",
-  "parent": "App_component_aJ0UdC0imoo",
+  "parent": "App_component_ckEPmXZlub0",
   "ctxKind": "event",
   "ctxName": "onClick$",
   "captures": true
 }
 */
-============================= app_component_div_children_button_onclick_wvrwast0w8q.js (ENTRY POINT)==
+============================= app_component_div_button_onclick_f5nww9e63a4.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
 import { STEP } from "./test";
-export const App_component_div_children_button_onClick_wVrwaSt0w8Q = ()=>{
+export const App_component_div_button_onClick_f5NwW9e63a4 = ()=>{
     const [STEP_2, btn, props, state, thing] = qwik.useLexicalScope();
     return state.count += btn.offset + thing + STEP + STEP_2 + props.step;
 };
@@ -83,24 +85,26 @@ export { handleWatch } from "@builder.io/qwik";
 /*
 {
   "origin": "test.tsx",
-  "name": "App_component_div_children_button_onClick_wVrwaSt0w8Q",
+  "name": "App_component_div_button_onClick_f5NwW9e63a4",
   "entry": null,
-  "canonicalFilename": "app_component_div_children_button_onclick_wvrwast0w8q",
+  "displayName": "App_component_div_button_onClick",
+  "hash": "f5NwW9e63a4",
+  "canonicalFilename": "app_component_div_button_onclick_f5nww9e63a4",
   "extension": "js",
-  "parent": "App_component_aJ0UdC0imoo",
+  "parent": "App_component_ckEPmXZlub0",
   "ctxKind": "event",
   "ctxName": "onClick$",
   "captures": true
 }
 */
-============================= app_component_aj0udc0imoo.js (ENTRY POINT)==
+============================= app_component_ckepmxzlub0.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 import { jsxs as _jsxs } from "@builder.io/qwik/jsx-runtime";
 import { useCounter } from "./test";
 import { useStore } from "@builder.io/qwik";
-export const App_component_aJ0UdC0imoo = (props)=>{
+export const App_component_ckEPmXZlub0 = (props)=>{
     const state = useCounter();
     const thing = useStore({
         thing: 0
@@ -108,8 +112,8 @@ export const App_component_aJ0UdC0imoo = (props)=>{
     const STEP_2 = 2;
     const count2 = state.count * 2;
     return /*#__PURE__*/ _jsxs("div", {
-        onClickQrl: qwik.qrl(()=>import("./app_component_div_onclick_cnjgsj2zcca")
-        , "App_component_div_onClick_cnJgsj2zcCA", [
+        onClickQrl: qwik.qrl(()=>import("./app_component_div_onclick_1cgetmfzx0g")
+        , "App_component_div_onClick_1CGetmFZx0g", [
             count2,
             state
         ]),
@@ -118,8 +122,8 @@ export const App_component_aJ0UdC0imoo = (props)=>{
                 children: state.count
             }),
             buttons.map((btn)=>/*#__PURE__*/ _jsx("button", {
-                    onClickQrl: qwik.qrl(()=>import("./app_component_div_children_button_onclick_wvrwast0w8q")
-                    , "App_component_div_children_button_onClick_wVrwaSt0w8Q", [
+                    onClickQrl: qwik.qrl(()=>import("./app_component_div_button_onclick_f5nww9e63a4")
+                    , "App_component_div_button_onClick_f5NwW9e63a4", [
                         STEP_2,
                         btn,
                         props,
@@ -137,9 +141,11 @@ export { handleWatch } from "@builder.io/qwik";
 /*
 {
   "origin": "test.tsx",
-  "name": "App_component_aJ0UdC0imoo",
+  "name": "App_component_ckEPmXZlub0",
   "entry": null,
-  "canonicalFilename": "app_component_aj0udc0imoo",
+  "displayName": "App_component",
+  "hash": "ckEPmXZlub0",
+  "canonicalFilename": "app_component_ckepmxzlub0",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",

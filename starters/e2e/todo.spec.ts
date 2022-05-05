@@ -39,7 +39,7 @@ test.describe('Todo', () => {
     await page.locator('.todo-list>li:first-child input.edit').fill('');
     await page.locator('.todo-list>li:first-child input.edit').press('X');
     await page.locator('.todo-list>li:first-child input.edit').press('Enter');
-    await page.waitForTimeout(200);
+    await page.waitForTimeout(100);
     await expect(page.locator('.todo-list>li:first-child')).toContainText('X');
   });
 

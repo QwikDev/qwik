@@ -25,16 +25,10 @@ const Header = $((decl1, {decl2}, [decl3]) => {
     )
 });
 
-============================= project/test.tsx ==
+============================= header_wlr3xni6u38.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-qwik.qrl(()=>import("../header_fhbehmgnik0")
-, "Header_fhbeHmGNik0");
-
-============================= header_fhbehmgnik0.tsx (ENTRY POINT)==
-
-import * as qwik from "@builder.io/qwik";
-export const Header_fhbeHmGNik0 = (decl1, { decl2  }, [decl3])=>{
+export const Header_WlR3xnI6u38 = (decl1, { decl2  }, [decl3])=>{
     const hola = ident1.no;
     ident2;
     const a = ident1 + ident3;
@@ -60,9 +54,11 @@ export { handleWatch } from "@builder.io/qwik";
 /*
 {
   "origin": "project/test.tsx",
-  "name": "Header_fhbeHmGNik0",
+  "name": "Header_WlR3xnI6u38",
   "entry": null,
-  "canonicalFilename": "header_fhbehmgnik0",
+  "displayName": "Header",
+  "hash": "WlR3xnI6u38",
+  "canonicalFilename": "header_wlr3xni6u38",
   "extension": "tsx",
   "parent": null,
   "ctxKind": "function",
@@ -70,6 +66,12 @@ export { handleWatch } from "@builder.io/qwik";
   "captures": false
 }
 */
+============================= project/test.tsx ==
+
+import * as qwik from "@builder.io/qwik";
+qwik.qrl(()=>import("../header_wlr3xni6u38")
+, "Header_WlR3xnI6u38");
+
 == DIAGNOSTICS ==
 
 []

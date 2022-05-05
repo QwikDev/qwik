@@ -73,7 +73,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     if (typeof updatedOpts.forceFullBuild === 'boolean') {
       opts.forceFullBuild = updatedOpts.forceFullBuild;
     } else {
-      opts.forceFullBuild = opts.entryStrategy.type !== 'hook';
+      opts.forceFullBuild = opts.entryStrategy.type !== 'hook' || !!opts.srcInputs;
     }
 
     if (updatedOpts.minify) {
@@ -341,12 +341,11 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
     if (TRANSFORM_EXTS[ext]) {
       log(`transform()`, 'Transforming', pathId);
-
       const newOutput = optimizer.transformModulesSync({
         input: [
           {
             code,
-            path: base,
+            path: optimizer.sys.path.relative(opts.rootDir, pathId),
           },
         ],
         entryStrategy: { type: 'hook' },

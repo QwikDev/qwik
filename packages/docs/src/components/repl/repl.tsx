@@ -4,7 +4,7 @@ import {
   noSerialize,
   useScopedStyles$,
   useStore,
-  useEffect$,
+  useWatch$,
   useClientEffect$,
   $,
 } from '@builder.io/qwik';
@@ -14,6 +14,7 @@ import { ReplOutputPanel } from './repl-output-panel';
 import styles from './repl.css?inline';
 import type { ReplStore, ReplResult, ReplModuleInput, ReplMessageEvent } from './types';
 import { ReplDetailPanel } from './repl-detail-panel';
+import { useHostElement, useOn } from 'packages/qwik/dist/core';
 
 export const Repl = component$(async (props: ReplProps) => {
   useScopedStyles$(styles);
@@ -99,7 +100,7 @@ export const Repl = component$(async (props: ReplProps) => {
     window.addEventListener('message', (ev) => onMessageFromIframe(ev, store));
   });
 
-  useEffect$((track) => {
+  useWatch$((track) => {
     track(store, 'entryStrategy');
     track(store, 'buildMode');
     track(store, 'version');

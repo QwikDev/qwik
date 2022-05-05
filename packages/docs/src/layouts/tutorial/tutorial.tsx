@@ -4,7 +4,7 @@ import {
   Slot,
   useHostElement,
   useScopedStyles$,
-  useEffect$,
+  useWatch$,
 } from '@builder.io/qwik';
 import { useLocation } from '../../utils/useLocation';
 import type { SiteStore } from '../../components/app/app';
@@ -27,7 +27,7 @@ const Tutorial = component$((props: TutorialLayoutProps) => {
   //   inputs: [],
   // });
 
-  useEffect$((track) => {
+  useWatch$((track) => {
     // track(store, 'inputs');
 
     // why does this keep running?

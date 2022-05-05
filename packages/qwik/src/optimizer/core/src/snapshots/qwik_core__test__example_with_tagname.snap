@@ -18,19 +18,34 @@ export const Foo = component$(() => {
     tagName: "my-foo",
 });
 
-============================= test.tsx ==
+============================= foo_component_htdrsvublie.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-import { componentQrl } from "@builder.io/qwik";
-export const Foo = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./foo_component_7n2avllyvuo")
-, "Foo_component_7N2avlLYVuo"), {
-    tagName: "my-foo"
-});
+export const Foo_component_HTDRsvUbLiE = ()=>{
+    return qwik.qrl(()=>import("./foo_component_1_dvu6fitwgly")
+    , "Foo_component_1_DvU6FitWglY");
+};
+export { handleWatch } from "@builder.io/qwik";
 
-============================= foo_component_1_hm6unygc0fq.tsx (ENTRY POINT)==
+/*
+{
+  "origin": "test.tsx",
+  "name": "Foo_component_HTDRsvUbLiE",
+  "entry": null,
+  "displayName": "Foo_component",
+  "hash": "HTDRsvUbLiE",
+  "canonicalFilename": "foo_component_htdrsvublie",
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false
+}
+*/
+============================= foo_component_1_dvu6fitwgly.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-export const Foo_component_1_Hm6UNYgc0fQ = ()=>{
+export const Foo_component_1_DvU6FitWglY = ()=>{
     return <div >
 
             </div>;
@@ -40,38 +55,27 @@ export { handleWatch } from "@builder.io/qwik";
 /*
 {
   "origin": "test.tsx",
-  "name": "Foo_component_1_Hm6UNYgc0fQ",
+  "name": "Foo_component_1_DvU6FitWglY",
   "entry": null,
-  "canonicalFilename": "foo_component_1_hm6unygc0fq",
+  "displayName": "Foo_component_1",
+  "hash": "DvU6FitWglY",
+  "canonicalFilename": "foo_component_1_dvu6fitwgly",
   "extension": "tsx",
-  "parent": "Foo_component_7N2avlLYVuo",
+  "parent": "Foo_component_HTDRsvUbLiE",
   "ctxKind": "function",
   "ctxName": "$",
   "captures": false
 }
 */
-============================= foo_component_7n2avllyvuo.tsx (ENTRY POINT)==
+============================= test.tsx ==
 
 import * as qwik from "@builder.io/qwik";
-export const Foo_component_7N2avlLYVuo = ()=>{
-    return qwik.qrl(()=>import("./foo_component_1_hm6unygc0fq")
-    , "Foo_component_1_Hm6UNYgc0fQ");
-};
-export { handleWatch } from "@builder.io/qwik";
+import { componentQrl } from "@builder.io/qwik";
+export const Foo = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./foo_component_htdrsvublie")
+, "Foo_component_HTDRsvUbLiE"), {
+    tagName: "my-foo"
+});
 
-/*
-{
-  "origin": "test.tsx",
-  "name": "Foo_component_7N2avlLYVuo",
-  "entry": null,
-  "canonicalFilename": "foo_component_7n2avllyvuo",
-  "extension": "tsx",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false
-}
-*/
 == DIAGNOSTICS ==
 
 []

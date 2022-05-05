@@ -292,22 +292,16 @@ export function useCleanupQrl(unmountFn: QRL<() => void>): void;
 export const useClientEffect$: (first: WatchFn, opts?: UseEffectOptions | undefined) => void;
 
 // @alpha (undocumented)
-export function useClientEffectQrl(watchQrl: QRL<WatchFn>, opts?: UseEffectOptions): void;
+export function useClientEffectQrl(qrl: QRL<WatchFn>, opts?: UseEffectOptions): void;
 
 // @public (undocumented)
 export function useDocument(): Document;
-
-// @alpha (undocumented)
-export const useEffect$: (first: WatchFn, opts?: UseEffectOptions | undefined) => void;
 
 // @alpha (undocumented)
 export interface UseEffectOptions {
     // (undocumented)
     run?: UseEffectRunOptions;
 }
-
-// @alpha (undocumented)
-export function useEffectQrl(watchQrl: QRL<WatchFn>, opts?: UseEffectOptions): void;
 
 // @alpha (undocumented)
 export type UseEffectRunOptions = 'visible' | 'load';
@@ -365,6 +359,12 @@ export function useStylesQrl(styles: QRL<string>): void;
 
 // @alpha (undocumented)
 export function useSubscriber<T extends {}>(obj: T): T;
+
+// @alpha (undocumented)
+export const useWatch$: (first: WatchFn, opts?: UseEffectOptions | undefined) => void;
+
+// @alpha (undocumented)
+export function useWatchQrl(qrl: QRL<WatchFn>, opts?: UseEffectOptions): void;
 
 // @public
 export type ValueOrPromise<T> = T | Promise<T>;

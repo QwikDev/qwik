@@ -166,7 +166,7 @@ async function postRendering(containerEl: Element, state: RenderingState, ctx: R
 
   // Run staging effectd
   state.watchStaging.forEach((watch) => {
-    if (ctx.hostElements.has(watch.hostElement)) {
+    if (ctx.hostElements.has(watch.el)) {
       promises.push(runWatch(watch));
     } else {
       state.watchNext.add(watch);

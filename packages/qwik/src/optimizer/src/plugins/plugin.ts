@@ -70,12 +70,6 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       opts.entryStrategy = { type: 'hook' };
     }
 
-    if (typeof updatedOpts.forceFullBuild === 'boolean') {
-      opts.forceFullBuild = updatedOpts.forceFullBuild;
-    } else {
-      opts.forceFullBuild = opts.entryStrategy.type !== 'hook' || !!opts.srcInputs;
-    }
-
     if (updatedOpts.minify) {
       opts.minify = updatedOpts.minify;
     }
@@ -107,6 +101,12 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       opts.srcDir = null;
     } else {
       opts.srcDir = srcDir;
+    }
+
+    if (typeof updatedOpts.forceFullBuild === 'boolean') {
+      opts.forceFullBuild = updatedOpts.forceFullBuild;
+    } else {
+      opts.forceFullBuild = opts.entryStrategy.type !== 'hook' || !!updatedOpts.srcInputs;
     }
 
     if (Array.isArray(opts.srcInputs)) {

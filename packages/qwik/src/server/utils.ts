@@ -1,4 +1,5 @@
-import type { DocumentOptions } from './types';
+import { getValidManifest } from '../optimizer/src/manifest';
+import type { DocumentOptions, QwikManifest, RenderToDocumentOptions } from './types';
 
 /**
  * Utility timer function for performance profiling.
@@ -81,6 +82,25 @@ export function normalizeUrl(url: string | URL | undefined | null) {
 const BASE_URI = `http://document.qwik.dev/`;
 
 const noop = () => {};
+
+export function getQrlMap(manifest: QwikManifest | undefined | null) {
+  manifest = getValidManifest(manifest);
+  if (manifest) {
+    return manifest.mapping;
+  }
+  return undefined;
+}
+
+export function getBuildBase(opts: RenderToDocumentOptions) {
+  let base = opts.base;
+  if (typeof base === 'string') {
+    if (!base.endsWith('/')) {
+      base += '/';
+    }
+    return base;
+  }
+  return null;
+}
 
 /**
  * @public

@@ -107,29 +107,6 @@ export const qwikLoader = (doc: Document, hasInitialized?: number, prefetchWorke
     }
   };
 
-  const qrlPrefetch = (element: Element) => {
-    if (!prefetchWorker) {
-      // create the prefetch web worker if it doesn't already exist
-      prefetchWorker = new Worker(
-        URL.createObjectURL(
-          new Blob([window.BuildWorkerBlob], {
-            type: 'text/javascript',
-          })
-        )
-      );
-    }
-
-    // send the qrls found in the attribute to the web worker to fetch
-    prefetchWorker.postMessage(
-      element
-        .getAttribute('q:prefetch')!
-        .split('\n')
-        .map((qrl) => qrlResolver(element, qrl) + '')
-    );
-
-    return prefetchWorker as any;
-  };
-
   const processReadyStateChange = (readyState?: DocumentReadyState) => {
     readyState = doc.readyState;
     if (!hasInitialized && (readyState == 'interactive' || readyState == 'complete')) {
@@ -137,10 +114,6 @@ export const qwikLoader = (doc: Document, hasInitialized?: number, prefetchWorke
       hasInitialized = 1;
 
       broadcast('', 'qresume', new CustomEvent('qresume'));
-
-      // query for any qrls that should be prefetched
-      // and send them to a web worker to be fetched off the main-thread
-      doc.querySelectorAll('[q\\:prefetch]').forEach(qrlPrefetch);
 
       if (typeof IntersectionObserver !== 'undefined') {
         const observer = new IntersectionObserver((entries) => {
@@ -207,7 +180,6 @@ export const qwikLoader = (doc: Document, hasInitialized?: number, prefetchWorke
   return {
     getModuleExport,
     processReadyStateChange,
-    qrlPrefetch,
     qrlResolver,
   };
 };
@@ -216,7 +188,6 @@ declare const window: LoaderWindow;
 
 export interface LoaderWindow {
   BuildEvents: boolean;
-  BuildWorkerBlob: string;
   qEvents: string[];
 }
 

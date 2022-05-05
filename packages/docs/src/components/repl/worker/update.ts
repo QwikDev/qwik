@@ -16,7 +16,7 @@ export const update = async (options: ReplInputOptions) => {
     type: 'result',
     outputHtml: '',
     clientModules: [],
-    symbolsEntryMap: null,
+    manifest: undefined,
     ssrModules: [],
     diagnostics: [],
     docElementAttributes: {},
@@ -61,8 +61,8 @@ const bundleClient = async (options: ReplInputOptions, result: ReplResult) => {
     debug: options.debug,
     srcInputs: options.srcInputs,
     entryStrategy: options.entryStrategy,
-    symbolsOutput: (s) => {
-      result.symbolsEntryMap = s;
+    manifestOutput: (m) => {
+      result.manifest = m;
     },
   };
   console.debug('client opts', qwikRollupClientOpts);
@@ -95,7 +95,7 @@ const bundleClient = async (options: ReplInputOptions, result: ReplResult) => {
   });
 
   result.clientModules = generated.output.map(getOutput).filter((f) => {
-    return !f.path.endsWith('app.js') && !f.path.endsWith('symbols-manifest.json');
+    return !f.path.endsWith('app.js') && !f.path.endsWith('q-manifest.json');
   });
 
   console.timeEnd(`Bundle client`);
@@ -110,7 +110,7 @@ const bundleSSR = async (options: ReplInputOptions, result: ReplResult) => {
     debug: options.debug,
     srcInputs: options.srcInputs,
     entryStrategy: options.entryStrategy,
-    symbolsInput: result.symbolsEntryMap,
+    manifestInput: result.manifest,
   };
 
   console.debug('ssr opts', qwikRollupSsrOpts);

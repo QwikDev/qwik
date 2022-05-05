@@ -30,16 +30,60 @@ export interface DocumentOptions {
 }
 
 // @alpha
-export function getImports(filePath: string, readFileFn: (path: string) => Promise<string>): Promise<string[]>;
-
-// @alpha
 export function getQwikLoaderScript(opts?: {
     events?: string[];
     debug?: boolean;
 }): string;
 
+// @public (undocumented)
+export type QrlMapper = (symbolName: string) => string | undefined;
+
+// @alpha (undocumented)
+export interface QwikBundle {
+    // (undocumented)
+    dynamicImports?: string[];
+    // (undocumented)
+    imports?: string[];
+    // (undocumented)
+    size: number;
+}
+
 // @public
 export interface QwikDocument extends Document {
+}
+
+// @alpha (undocumented)
+export interface QwikManifest {
+    // (undocumented)
+    bundles: {
+        [fileName: string]: QwikBundle;
+    };
+    // Warning: (ae-forgotten-export) The symbol "GlobalInjections" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    injections?: GlobalInjections[];
+    // (undocumented)
+    mapping: {
+        [symbolName: string]: string;
+    };
+    // (undocumented)
+    symbols: {
+        [symbolName: string]: QwikSymbol;
+    };
+    // (undocumented)
+    version: string;
+}
+
+// @alpha (undocumented)
+export interface QwikSymbol {
+    // (undocumented)
+    captures: boolean;
+    // (undocumented)
+    ctxKind: 'function' | 'event';
+    // (undocumented)
+    ctxName: string;
+    // (undocumented)
+    parent: string | null;
 }
 
 // @public
@@ -73,12 +117,18 @@ export function renderToString(rootNode: JSXNode, opts?: RenderToStringOptions):
 // @public (undocumented)
 export interface RenderToStringOptions extends RenderToDocumentOptions {
     fragmentTagName?: string;
+    // Warning: (ae-forgotten-export) The symbol "PrefetchStrategy" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    prefetchStrategy?: PrefetchStrategy;
 }
 
 // @public (undocumented)
 export interface RenderToStringResult {
     // (undocumented)
     html: string;
+    // (undocumented)
+    prefetchUrls: string[];
     // (undocumented)
     timing: {
         createDocument: number;
@@ -89,12 +139,6 @@ export interface RenderToStringResult {
 
 // @public
 export function serializeDocument(docOrEl: Document | Element, opts?: SerializeDocumentOptions): string;
-
-// Warning: (ae-forgotten-export) The symbol "QrlMapper" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "SymbolsEntryMap" needs to be exported by the entry point index.d.ts
-//
-// @public (undocumented)
-export type ServerOutputSymbols = QrlMapper | SymbolsEntryMap | null;
 
 // @public
 export function setServerPlatform(document: any, opts: SerializeDocumentOptions): Promise<void>;

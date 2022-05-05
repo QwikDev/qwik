@@ -7,7 +7,7 @@ import express, { Request, Response } from 'express';
 import { isAbsolute, join, resolve, dirname } from 'path';
 import { readdirSync, statSync, mkdirSync, unlinkSync, rmdirSync, existsSync } from 'fs';
 import { Plugin, rollup } from 'rollup';
-import type { SymbolsEntryMap } from '@builder.io/qwik/optimizer';
+import type { QwikManifest } from '@builder.io/qwik/optimizer';
 
 const app = express();
 const port = parseInt(process.argv[process.argv.length - 1], 10) || 3300;
@@ -26,7 +26,7 @@ const qwikDistJsxRuntimePath = join(qwikDistDir, 'jsx-runtime.mjs');
 Error.stackTraceLimit = 1000;
 
 // dev server builds ssr's the starter app on-demand (don't do this in production)
-const cache = new Map<string, SymbolsEntryMap>();
+const cache = new Map<string, QwikManifest>();
 async function handleApp(req: Request, res: Response) {
   try {
     const url = new URL(req.url, address);
@@ -111,7 +111,7 @@ async function buildApp(appDir: string) {
   mkdirSync(appBuildDir);
   mkdirSync(appBuildServerDir);
 
-  let symbols: SymbolsEntryMap | undefined = undefined;
+  let manifest: QwikManifest | undefined = undefined;
 
   const clientBuild = await rollup({
     input: getSrcInput(appSrcDir),
@@ -120,8 +120,8 @@ async function buildApp(appDir: string) {
       optimizer.qwikRollup({
         srcDir: appSrcDir,
         entryStrategy: { type: 'single' },
-        symbolsOutput: (clientSymbols) => {
-          symbols = clientSymbols;
+        manifestOutput: (m) => {
+          manifest = m;
         },
       }),
     ],
@@ -138,7 +138,7 @@ async function buildApp(appDir: string) {
         buildMode: 'ssr',
         srcDir: appSrcDir,
         entryStrategy: { type: 'single' },
-        symbolsInput: symbols,
+        manifestInput: manifest,
       }),
     ],
   });
@@ -146,7 +146,7 @@ async function buildApp(appDir: string) {
     dir: appBuildServerDir,
   });
 
-  return symbols;
+  return manifest;
 }
 
 function getSrcInput(appSrcDir: string) {
@@ -187,7 +187,7 @@ function removeDir(dir: string) {
   }
 }
 
-async function ssrApp(req: Request, appName: string, appDir: string, symbols: SymbolsEntryMap) {
+async function ssrApp(req: Request, appName: string, appDir: string, manifest: QwikManifest) {
   const buildDir = join(appDir, 'build');
   const serverDir = join(buildDir, 'server');
   const serverPath = join(serverDir, 'entry.server.js');
@@ -197,8 +197,9 @@ async function ssrApp(req: Request, appName: string, appDir: string, symbols: Sy
 
   // ssr the document
   const base = `/${appName}/build/`;
+  console.log('req.url', req.url);
   const result = await render({
-    symbols,
+    manifest,
     url: new URL(`${req.protocol}://${req.hostname}${req.url}`),
     debug: true,
     base: base,

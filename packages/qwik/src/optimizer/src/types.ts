@@ -119,8 +119,11 @@ export interface HookAnalysis {
   name: string;
   entry: string | null;
   canonicalFilename: string;
-  localDecl: string[];
-  localIdents: string[];
+  extension: string;
+  parent: string | null;
+  ctxKind: 'event' | 'function';
+  ctxName: string;
+  captures: boolean;
 }
 
 // RESULT OUTPUT ***************
@@ -227,15 +230,34 @@ export interface ManualEntryStrategy {
   entries: string[][];
 }
 
-// OUTPUT ENTRY MAP ***************
+/**
+ * @alpha
+ */
+export interface QwikManifest {
+  symbols: { [symbolName: string]: QwikSymbol };
+  mapping: { [symbolName: string]: string };
+  bundles: { [fileName: string]: QwikBundle };
+  injections?: GlobalInjections[];
+  version: string;
+}
 
 /**
  * @alpha
  */
-export interface SymbolsEntryMap {
-  version: string;
-  mapping: { [canonicalName: string]: string };
-  injections?: GlobalInjections[];
+export interface QwikSymbol {
+  ctxKind: 'function' | 'event';
+  ctxName: string;
+  captures: boolean;
+  parent: string | null;
+}
+
+/**
+ * @alpha
+ */
+export interface QwikBundle {
+  size: number;
+  imports?: string[];
+  dynamicImports?: string[];
 }
 
 /**

@@ -30,9 +30,6 @@ export interface DocumentOptions {
 }
 
 // @alpha
-export function getImports(filePath: string, readFileFn: (path: string) => Promise<string>): Promise<string[]>;
-
-// @alpha
 export function getQwikLoaderScript(opts?: {
     events?: string[];
     debug?: boolean;

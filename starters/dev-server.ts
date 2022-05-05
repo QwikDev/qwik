@@ -197,9 +197,10 @@ async function ssrApp(req: Request, appName: string, appDir: string, manifest: Q
 
   // ssr the document
   const base = `/${appName}/build/`;
+  console.log('req.url', req.url);
   const result = await render({
     manifest,
-    url: req.url,
+    url: new URL(`${req.protocol}://${req.hostname}${req.url}`),
     debug: true,
     base: base,
   });

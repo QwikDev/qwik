@@ -10,7 +10,6 @@ describe('qwikloader', () => {
     doc = createDocument();
     loaderWindow = {
       BuildEvents: false,
-      BuildWorkerBlob: '',
       qEvents: [],
     };
     (global as any).window = loaderWindow;
@@ -129,38 +128,6 @@ describe('qwikloader', () => {
       parent.setAttribute('q:base', './parent/');
       const resolvedQrl = loader.qrlResolver(div, './bar');
       expect(resolvedQrl.href).toEqual('http://document.qwik.dev/parent/bar');
-    });
-  });
-
-  describe('qrlPrefetch', () => {
-    class TestWorker {
-      qrls: string[] = [];
-      postMessage(qrls: string[]) {
-        this.qrls = qrls;
-      }
-    }
-
-    beforeEach(() => {
-      (global as any).Worker = TestWorker;
-      (global as any).Blob = class Blob {};
-      (URL as any).createObjectURL = () => {};
-    });
-
-    it('post prefetch urls to web worker', () => {
-      const loader = qwikLoader(doc);
-      const div = doc.createElement('div');
-      div.setAttribute('q:prefetch', './a.js\n./b.js');
-
-      const parent = doc.createElement('parent');
-      parent.setAttribute('q:container', '');
-      parent.setAttribute('q:base', './parent/');
-      parent.appendChild(div);
-
-      const worker: TestWorker = loader.qrlPrefetch(div);
-      expect(worker.qrls).toEqual([
-        'http://document.qwik.dev/parent/a.js',
-        'http://document.qwik.dev/parent/b.js',
-      ]);
     });
   });
 

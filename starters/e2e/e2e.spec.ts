@@ -211,6 +211,27 @@ test.describe('e2e', () => {
       expect((await content3.innerText()).trim()).toEqual('Placeholder Start\nINSIDE THING 1');
     });
 
+    test('should toggle content and buttons', async ({ page }) => {
+      const content1 = await page.locator('#btn1');
+      const content2 = await page.locator('#btn2');
+      const content3 = await page.locator('#btn3');
+
+      const btnToggleButtons = await page.locator('#btn-toggle-buttons');
+      const btnToggleContent = await page.locator('#btn-toggle-content');
+      const btnCount = await page.locator('#btn-count');
+
+      // btnToggleButtons
+      await btnToggleButtons.click();
+      await page.waitForTimeout(100);
+      await btnToggleContent.click();
+      await page.waitForTimeout(100);
+      await btnToggleButtons.click();
+
+      expect((await content1.innerText()).trim()).toEqual('Placeholder Start');
+      expect((await content2.innerText()).trim()).toEqual('Placeholder Start');
+      expect((await content3.innerText()).trim()).toEqual('Placeholder Start');
+    });
+
     test('should toggle thing + count', async ({ page }) => {
       const content1 = await page.locator('#btn1');
       const content2 = await page.locator('#btn2');

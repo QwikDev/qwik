@@ -106,6 +106,7 @@ pub fn transform_fs(config: TransformFsOptions) -> Result<TransformOutput, Error
         })
         .reduce(|| Ok(TransformOutput::new()), |x, y| Ok(x?.append(&mut y?)))?;
 
+    final_output.modules.sort_unstable_by_key(|key| key.order);
     final_output = generate_entries(final_output)?;
     Ok(final_output)
 }
@@ -120,8 +121,8 @@ pub fn transform_modules(config: TransformModulesOptions) -> Result<TransformOut
     let iterator = iterator.map(|path| -> Result<TransformOutput, Error> {
         transform_code(TransformCodeOptions {
             path: &path.path,
-            minify: config.minify,
             code: &path.code,
+            minify: config.minify,
             source_maps: config.source_maps,
             transpile: config.transpile,
             explicity_extensions: config.explicity_extensions,
@@ -140,7 +141,9 @@ pub fn transform_modules(config: TransformModulesOptions) -> Result<TransformOut
         iterator.fold(Ok(TransformOutput::new()), |x, y| Ok(x?.append(&mut y?)));
 
     let mut final_output = final_output?;
+    final_output.modules.sort_unstable_by_key(|key| key.order);
     final_output = generate_entries(final_output)?;
+
     Ok(final_output)
 }
 

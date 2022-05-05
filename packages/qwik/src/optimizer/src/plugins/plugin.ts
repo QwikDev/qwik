@@ -71,12 +71,6 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       opts.entryStrategy = { type: 'hook' };
     }
 
-    if (typeof updatedOpts.forceFullBuild === 'boolean') {
-      opts.forceFullBuild = updatedOpts.forceFullBuild;
-    } else {
-      opts.forceFullBuild = opts.entryStrategy.type !== 'hook';
-    }
-
     if (typeof updatedOpts.rootDir === 'string') {
       opts.rootDir = updatedOpts.rootDir;
     }
@@ -95,6 +89,12 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       opts.srcDir = null;
     } else {
       opts.srcDir = srcDir;
+    }
+
+    if (typeof updatedOpts.forceFullBuild === 'boolean') {
+      opts.forceFullBuild = updatedOpts.forceFullBuild;
+    } else {
+      opts.forceFullBuild = opts.entryStrategy.type !== 'hook' || !!updatedOpts.srcInputs;
     }
 
     if (Array.isArray(opts.srcInputs)) {
@@ -206,8 +206,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         minify: 'simplify',
         transpile: true,
         explicityExtensions: true,
-        // TODO! dev: opts.buildMode !== 'production',
-        dev: true,
+        dev: opts.buildMode !== 'production',
       };
 
       const result = await optimizer.transformFs(transformOpts);
@@ -327,11 +326,15 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     if (TRANSFORM_EXTS[ext]) {
       log(`transform()`, 'Transforming', pathId);
 
+      let path = base;
+      if (opts.srcDir) {
+        path = optimizer.sys.path.relative(opts.srcDir, pathId);
+      }
       const newOutput = optimizer.transformModulesSync({
         input: [
           {
             code,
-            path: base,
+            path,
           },
         ],
         entryStrategy: { type: 'hook' },
@@ -340,8 +343,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         transpile: true,
         explicityExtensions: true,
         rootDir: dir,
-        // TODO! dev: opts.buildMode !== 'production',
-        dev: true,
+        dev: opts.buildMode !== 'production',
       });
 
       diagnosticsCallback(newOutput.diagnostics, optimizer);
@@ -350,7 +352,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
       for (const [id, output] of results.entries()) {
         const justChanged = newOutput === output;
-        const dir = optimizer.sys.path.dirname(id);
+        const dir = opts.srcDir || optimizer.sys.path.dirname(id);
 
         for (const mod of output.modules) {
           if (mod.isEntry) {

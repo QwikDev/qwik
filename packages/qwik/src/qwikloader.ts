@@ -20,7 +20,7 @@ export const qwikLoader = (doc: Document, hasInitialized?: number, prefetchWorke
 
   const symbolUsed = (el: Element, symbolName: string) =>
     el.dispatchEvent(
-      new CustomEvent('qSymbol', {
+      new CustomEvent('qsymbol', {
         detail: { name: symbolName },
         bubbles: true,
         composed: true,
@@ -136,7 +136,7 @@ export const qwikLoader = (doc: Document, hasInitialized?: number, prefetchWorke
       // document is ready
       hasInitialized = 1;
 
-      broadcast('', 'q-resume', new CustomEvent('qResume'));
+      broadcast('', 'qresume', new CustomEvent('qresume'));
 
       // query for any qrls that should be prefetched
       // and send them to a web worker to be fetched off the main-thread
@@ -149,8 +149,8 @@ export const qwikLoader = (doc: Document, hasInitialized?: number, prefetchWorke
               observer.unobserve(entry.target);
               dispatch(
                 entry.target,
-                'q-visible',
-                new CustomEvent('qVisible', {
+                'qvisible',
+                new CustomEvent('qvisible', {
                   bubbles: false,
                   detail: entry,
                 })
@@ -158,18 +158,17 @@ export const qwikLoader = (doc: Document, hasInitialized?: number, prefetchWorke
             }
           }
         });
+        (doc as any)['qO'] = observer;
         const mutation = new MutationObserver((mutations) => {
           for (const mutation of mutations) {
-            if ((mutation.target as Element).hasAttribute('on:q-visible')) {
-              observer.observe(mutation.target as Element);
-            }
+            observer.observe(mutation.target as Element);
           }
         });
-        mutation.observe(document.body, {
-          attributeFilter: ['on:q-visible'],
+        mutation.observe(document.documentElement, {
+          attributeFilter: ['on:qvisible'],
           subtree: true,
         });
-        doc.querySelectorAll('[on\\:q-visible]').forEach((el) => observer.observe(el));
+        doc.querySelectorAll('[on\\:qvisible]').forEach((el) => observer.observe(el));
       }
     }
   };

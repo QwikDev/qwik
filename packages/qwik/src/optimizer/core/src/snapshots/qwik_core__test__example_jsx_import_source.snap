@@ -26,14 +26,14 @@ export const App = ()=>/*#__PURE__*/ _jsx("div", {
         onClick$: ()=>console.log('App')
     })
 ;
-export const App2 = qwikifyQrl(qwik.qrl(()=>import("./app2_qwikify_bmuaj4wh2wc.js")
-, "App2_qwikify_bmuAj4WH2wc"));
+export const App2 = qwikifyQrl(qwik.qrl(()=>import("./app2_qwikify_rkjw7ocmds4.js")
+, "App2_qwikify_RKJW7oCMdS4"));
 
-============================= app2_qwikify_bmuaj4wh2wc.js (ENTRY POINT)==
+============================= app2_qwikify_rkjw7ocmds4.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
 import { jsx as _jsx } from "react/jsx-runtime";
-export const App2_qwikify_bmuAj4WH2wc = ()=>/*#__PURE__*/ _jsx("div", {
+export const App2_qwikify_RKJW7oCMdS4 = ()=>/*#__PURE__*/ _jsx("div", {
         onClick$: ()=>console.log('App2')
     })
 ;
@@ -42,9 +42,11 @@ export { handleWatch } from "@builder.io/qwik";
 /*
 {
   "origin": "test.tsx",
-  "name": "App2_qwikify_bmuAj4WH2wc",
+  "name": "App2_qwikify_RKJW7oCMdS4",
   "entry": null,
-  "canonicalFilename": "app2_qwikify_bmuaj4wh2wc",
+  "displayName": "App2_qwikify",
+  "hash": "RKJW7oCMdS4",
+  "canonicalFilename": "app2_qwikify_rkjw7ocmds4",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",

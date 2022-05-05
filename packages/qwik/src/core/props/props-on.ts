@@ -14,8 +14,8 @@ import { getDocument } from '../util/dom';
 import { RenderContext, setAttribute } from '../render/cursor';
 import { emitEvent } from '../util/event';
 
-const ON_PROP_REGEX = /^on([A-Z]|-.).*Qrl$/;
-const ON$_PROP_REGEX = /^on([A-Z]|-.).*\$$/;
+const ON_PROP_REGEX = /^(window:|document:|)on([A-Z]|-.).*Qrl$/;
+const ON$_PROP_REGEX = /^(window:|document:|)on([A-Z]|-.).*\$$/;
 
 export function isOnProp(prop: string): boolean {
   return ON_PROP_REGEX.test(prop);

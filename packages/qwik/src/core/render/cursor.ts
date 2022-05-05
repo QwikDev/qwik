@@ -296,6 +296,14 @@ export function patchVnode(
         }
       });
 
+      // Mark empty slots and remove content
+      Object.entries(slotMaps.templates).forEach(([key, templateEl]) => {
+        if (templateEl && !splittedChidren[key]) {
+          removeNode(rctx, templateEl);
+          slotMaps.templates[key] = undefined;
+        }
+      });
+
       // Render into slots
       Object.entries(splittedChidren).forEach(([key, ch]) => {
         const slotElm = getSlotElement(rctx, slotMaps, elm as Element, key);
@@ -595,6 +603,7 @@ const PROP_HANDLER_MAP: Record<string, PropHandler> = {
 
 const ALLOWS_PROPS = ['class', 'className', 'style', 'id', 'q:slot'];
 const HOST_PREFIX = 'host:';
+const SCOPE_PREFIX = /^(host|window|document):/;
 
 export function updateProperties(
   rctx: RenderContext,
@@ -633,12 +642,13 @@ export function updateProperties(
 
     if (qwikProps) {
       const skipProperty = ALLOWS_PROPS.includes(key);
-      const hPrefixed = key.startsWith(HOST_PREFIX);
-      if (!skipProperty && !hPrefixed) {
+      const hasPrefix = SCOPE_PREFIX.test(key);
+      if (!skipProperty && !hasPrefix) {
         // Qwik props
         qwikProps[key] = newValue;
         continue;
       }
+      const hPrefixed = key.startsWith(HOST_PREFIX);
       if (hPrefixed) {
         key = key.slice(HOST_PREFIX.length);
       }

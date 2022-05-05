@@ -17,87 +17,20 @@ export const Foo = component$(() => {
     );
 });
 
-============================= test.tsx ==
+============================= s_htdrsvublie.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-import { componentQrl } from "@builder.io/qwik";
-export const Foo = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./s_7n2avllyvuo")
-, "s_7N2avlLYVuo"));
-
-============================= s_oz0voj5y0fe.tsx (ENTRY POINT)==
-
-import * as qwik from "@builder.io/qwik";
-export const s_oZ0voj5y0fE = ()=>console.log('first')
-;
-export { handleWatch } from "@builder.io/qwik";
-
-/*
-{
-  "origin": "test.tsx",
-  "name": "s_oZ0voj5y0fE",
-  "entry": null,
-  "canonicalFilename": "s_oz0voj5y0fe",
-  "extension": "tsx",
-  "parent": "s_7N2avlLYVuo",
-  "ctxKind": "event",
-  "ctxName": "onClick$",
-  "captures": false
-}
-*/
-============================= s_0s4iez0lxsw.tsx (ENTRY POINT)==
-
-import * as qwik from "@builder.io/qwik";
-export const s_0s4ieZ0lXsw = ()=>console.log('second')
-;
-export { handleWatch } from "@builder.io/qwik";
-
-/*
-{
-  "origin": "test.tsx",
-  "name": "s_0s4ieZ0lXsw",
-  "entry": null,
-  "canonicalFilename": "s_0s4iez0lxsw",
-  "extension": "tsx",
-  "parent": "s_7N2avlLYVuo",
-  "ctxKind": "event",
-  "ctxName": "onClick$",
-  "captures": false
-}
-*/
-============================= s_l55d90ob54m.tsx (ENTRY POINT)==
-
-import * as qwik from "@builder.io/qwik";
-export const s_l55D90Ob54M = ()=>console.log('third')
-;
-export { handleWatch } from "@builder.io/qwik";
-
-/*
-{
-  "origin": "test.tsx",
-  "name": "s_l55D90Ob54M",
-  "entry": null,
-  "canonicalFilename": "s_l55d90ob54m",
-  "extension": "tsx",
-  "parent": "s_7N2avlLYVuo",
-  "ctxKind": "event",
-  "ctxName": "onClick$",
-  "captures": false
-}
-*/
-============================= s_7n2avllyvuo.tsx (ENTRY POINT)==
-
-import * as qwik from "@builder.io/qwik";
-export const s_7N2avlLYVuo = ()=>{
+export const s_HTDRsvUbLiE = ()=>{
     return <div >
 
-            <div onClickQrl={qwik.qrl(()=>import("./s_oz0voj5y0fe")
-    , "s_oZ0voj5y0fE")}/>
+            <div onClickQrl={qwik.qrl(()=>import("./s_9dcjc0ujddo")
+    , "s_9DcJc0uJDDo")}/>
 
-            <div onClickQrl={qwik.qrl(()=>import("./s_0s4iez0lxsw")
-    , "s_0s4ieZ0lXsw")}/>
+            <div onClickQrl={qwik.qrl(()=>import("./s_rjqdy8i0mxc")
+    , "s_RjQdy8I0MXc")}/>
 
-            <div onClickQrl={qwik.qrl(()=>import("./s_l55d90ob54m")
-    , "s_l55D90Ob54M")}/>
+            <div onClickQrl={qwik.qrl(()=>import("./s_w9ptfrbvk1e")
+    , "s_w9ptFRBVK1E")}/>
 
         </div>;
 };
@@ -106,9 +39,11 @@ export { handleWatch } from "@builder.io/qwik";
 /*
 {
   "origin": "test.tsx",
-  "name": "s_7N2avlLYVuo",
+  "name": "s_HTDRsvUbLiE",
   "entry": null,
-  "canonicalFilename": "s_7n2avllyvuo",
+  "displayName": "Foo_component",
+  "hash": "HTDRsvUbLiE",
+  "canonicalFilename": "s_htdrsvublie",
   "extension": "tsx",
   "parent": null,
   "ctxKind": "function",
@@ -116,6 +51,79 @@ export { handleWatch } from "@builder.io/qwik";
   "captures": false
 }
 */
+============================= s_9dcjc0ujddo.tsx (ENTRY POINT)==
+
+import * as qwik from "@builder.io/qwik";
+export const s_9DcJc0uJDDo = ()=>console.log('first')
+;
+export { handleWatch } from "@builder.io/qwik";
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "s_9DcJc0uJDDo",
+  "entry": null,
+  "displayName": "Foo_component_div_div_onClick",
+  "hash": "9DcJc0uJDDo",
+  "canonicalFilename": "s_9dcjc0ujddo",
+  "extension": "tsx",
+  "parent": "s_HTDRsvUbLiE",
+  "ctxKind": "event",
+  "ctxName": "onClick$",
+  "captures": false
+}
+*/
+============================= s_w9ptfrbvk1e.tsx (ENTRY POINT)==
+
+import * as qwik from "@builder.io/qwik";
+export const s_w9ptFRBVK1E = ()=>console.log('third')
+;
+export { handleWatch } from "@builder.io/qwik";
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "s_w9ptFRBVK1E",
+  "entry": null,
+  "displayName": "Foo_component_div_div_onClick_2",
+  "hash": "w9ptFRBVK1E",
+  "canonicalFilename": "s_w9ptfrbvk1e",
+  "extension": "tsx",
+  "parent": "s_HTDRsvUbLiE",
+  "ctxKind": "event",
+  "ctxName": "onClick$",
+  "captures": false
+}
+*/
+============================= s_rjqdy8i0mxc.tsx (ENTRY POINT)==
+
+import * as qwik from "@builder.io/qwik";
+export const s_RjQdy8I0MXc = ()=>console.log('second')
+;
+export { handleWatch } from "@builder.io/qwik";
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "s_RjQdy8I0MXc",
+  "entry": null,
+  "displayName": "Foo_component_div_div_onClick_1",
+  "hash": "RjQdy8I0MXc",
+  "canonicalFilename": "s_rjqdy8i0mxc",
+  "extension": "tsx",
+  "parent": "s_HTDRsvUbLiE",
+  "ctxKind": "event",
+  "ctxName": "onClick$",
+  "captures": false
+}
+*/
+============================= test.tsx ==
+
+import * as qwik from "@builder.io/qwik";
+import { componentQrl } from "@builder.io/qwik";
+export const Foo = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./s_htdrsvublie")
+, "s_HTDRsvUbLiE"));
+
 == DIAGNOSTICS ==
 
 []

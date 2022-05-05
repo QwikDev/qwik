@@ -8,13 +8,11 @@ import {
   useClientEffect$,
   $,
 } from '@builder.io/qwik';
-import { isBrowser } from '@builder.io/qwik/build';
 import { ReplInputPanel } from './repl-input-panel';
 import { ReplOutputPanel } from './repl-output-panel';
 import styles from './repl.css?inline';
 import type { ReplStore, ReplResult, ReplModuleInput, ReplMessageEvent } from './types';
 import { ReplDetailPanel } from './repl-detail-panel';
-import { useHostElement, useOn } from 'packages/qwik/dist/core';
 
 export const Repl = component$(async (props: ReplProps) => {
   useScopedStyles$(styles);

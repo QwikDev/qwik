@@ -343,10 +343,10 @@ export const useScopedStyles$: (first: string) => void;
 export function useScopedStylesQrl(styles: QRL<string>): void;
 
 // @alpha (undocumented)
-export const useServer$: (first: ServerFn) => void;
+export const useServerMount$: (first: ServerFn) => void;
 
 // @alpha (undocumented)
-export function useServerQrl(watchQrl: QRL<ServerFn>): void;
+export function useServerMountQrl(watchQrl: QRL<ServerFn>): void;
 
 // @public
 export function useStore<STATE extends object>(initialState: STATE | (() => STATE)): STATE;

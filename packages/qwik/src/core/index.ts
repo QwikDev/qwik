@@ -51,7 +51,7 @@ export type {
 } from './watch/watch.public';
 export { useWatch$, useWatchQrl } from './watch/watch.public';
 export { useClientEffect$, useClientEffectQrl } from './watch/watch.public';
-export { useServer$, useServerQrl } from './watch/watch.public';
+export { useServerMount$, useServerMountQrl } from './watch/watch.public';
 export { handleWatch } from './watch/watch.public';
 
 //////////////////////////////////////////////////////////////////////////////////////////

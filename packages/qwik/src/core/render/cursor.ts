@@ -296,6 +296,14 @@ export function patchVnode(
         }
       });
 
+      // Mark empty slots and remove content
+      Object.entries(slotMaps.templates).forEach(([key, templateEl]) => {
+        if (templateEl && !splittedChidren[key]) {
+          removeNode(rctx, templateEl);
+          slotMaps.templates[key] = undefined;
+        }
+      });
+
       // Render into slots
       Object.entries(splittedChidren).forEach(([key, ch]) => {
         const slotElm = getSlotElement(rctx, slotMaps, elm as Element, key);

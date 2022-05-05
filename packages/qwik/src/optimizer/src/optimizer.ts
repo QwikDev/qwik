@@ -67,6 +67,7 @@ const transformFsAsync = async (
       minify: fsOpts.minify,
       sourceMaps: fsOpts.sourceMaps,
       transpile: fsOpts.transpile,
+      dev: fsOpts.dev,
       input,
     };
 

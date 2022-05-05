@@ -3,10 +3,13 @@ export type {
   DocumentOptions,
   QwikDocument,
   QwikWindow,
+  QwikManifest,
+  QwikBundle,
+  QwikSymbol,
+  QrlMapper,
   RenderToDocumentOptions,
   RenderToStringOptions,
   RenderToStringResult,
-  ServerOutputSymbols,
   WindowOptions,
 } from './types';
 export { createDocument, createWindow, renderToDocument, renderToString } from './document';

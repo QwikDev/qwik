@@ -20,7 +20,7 @@ export const ssrHtml = async (options: ReplInputOptions, result: ReplResult) => 
 
   const ssrResult = await server.render({
     base: '/repl/',
-    symbols: result.symbolsEntryMap,
+    manifest: result.manifest,
   });
 
   const doc = self.qwikServer.createDocument({ html: ssrResult.html });

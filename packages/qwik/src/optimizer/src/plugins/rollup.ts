@@ -1,11 +1,7 @@
 import type { Plugin as RollupPlugin, RollupError } from 'rollup';
+import { getValidManifest } from '../manifest';
 import type { Diagnostic, Optimizer, OptimizerOptions } from '../types';
-import {
-  BasePluginOptions,
-  createPlugin,
-  QwikBuildMode,
-  SYMBOLS_MANIFEST_FILENAME,
-} from './plugin';
+import { BasePluginOptions, createPlugin, QwikBuildMode, Q_MANIFEST_FILENAME } from './plugin';
 
 /**
  * @alpha
@@ -117,23 +113,26 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
 
         for (const fileName in rollupBundle) {
           const b = rollupBundle[fileName];
-          if (b.type === 'chunk' && b.isDynamicEntry) {
+          if (b.type === 'chunk') {
             outputAnalyzer.addBundle({
               fileName,
               modules: b.modules,
+              imports: b.imports,
+              dynamicImports: b.dynamicImports,
+              size: b.code.length,
             });
           }
         }
 
-        const symbolsEntryMap = await outputAnalyzer.generateSymbolsEntryMap();
-        if (typeof opts.symbolsOutput === 'function') {
-          await opts.symbolsOutput(symbolsEntryMap);
+        const manifest = await outputAnalyzer.generateManifest();
+        if (typeof opts.manifestOutput === 'function') {
+          await opts.manifestOutput(manifest);
         }
 
         this.emitFile({
           type: 'asset',
-          fileName: SYMBOLS_MANIFEST_FILENAME,
-          source: JSON.stringify(symbolsEntryMap, null, 2),
+          fileName: Q_MANIFEST_FILENAME,
+          source: JSON.stringify(manifest, null, 2),
         });
 
         if (typeof opts.transformedModuleOutput === 'function') {
@@ -141,20 +140,15 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
         }
       } else if (opts.buildMode === 'ssr') {
         // ssr build
-        if (opts.symbolsInput && typeof opts.symbolsInput === 'object') {
-          const symbolsStr = JSON.stringify(opts.symbolsInput);
+        const manifestInput = getValidManifest(opts.manifestInput);
+        if (manifestInput) {
+          const manifestStr = JSON.stringify(opts.manifestInput);
           for (const fileName in rollupBundle) {
             const b = rollupBundle[fileName];
             if (b.type === 'chunk') {
-              b.code = qwikPlugin.updateSymbolsEntryMap(symbolsStr, b.code);
+              b.code = qwikPlugin.updateSsrManifestDefault(manifestStr, b.code);
             }
           }
-
-          this.emitFile({
-            type: 'asset',
-            fileName: SYMBOLS_MANIFEST_FILENAME,
-            source: JSON.stringify(opts.symbolsInput, null, 2),
-          });
         }
       }
     },

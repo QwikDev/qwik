@@ -341,11 +341,16 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
     if (TRANSFORM_EXTS[ext]) {
       log(`transform()`, 'Transforming', pathId);
+
+      let path = base;
+      if (opts.srcDir) {
+        path = optimizer.sys.path.relative(opts.srcDir, pathId);
+      }
       const newOutput = optimizer.transformModulesSync({
         input: [
           {
             code,
-            path: optimizer.sys.path.relative(opts.rootDir, pathId),
+            path,
           },
         ],
         entryStrategy: { type: 'hook' },
@@ -362,7 +367,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
       for (const [id, output] of results.entries()) {
         const justChanged = newOutput === output;
-        const dir = optimizer.sys.path.dirname(id);
+        const dir = opts.srcDir || optimizer.sys.path.dirname(id);
 
         for (const mod of output.modules) {
           if (mod.isEntry) {

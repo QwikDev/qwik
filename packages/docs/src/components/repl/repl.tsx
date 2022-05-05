@@ -70,6 +70,7 @@ export const Repl = component$(async (props: ReplProps) => {
   });
 
   useClientEffect$(async () => {
+    debugger;
     let data: NpmData = JSON.parse(sessionStorage.getItem('qwikNpmData')!);
     if (!data) {
       const npmData = `https://data.jsdelivr.com/v1/package/npm/@builder.io/qwik`;

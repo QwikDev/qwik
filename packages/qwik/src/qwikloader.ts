@@ -135,6 +135,7 @@ export const qwikLoader = (doc: Document, hasInitialized?: number, prefetchWorke
     if (!hasInitialized && (readyState == 'interactive' || readyState == 'complete')) {
       // document is ready
       hasInitialized = 1;
+      console.log('hreferf');
 
       broadcast('', 'qresume', new CustomEvent('qresume'));
 
@@ -158,14 +159,13 @@ export const qwikLoader = (doc: Document, hasInitialized?: number, prefetchWorke
             }
           }
         });
+        (doc as any)['qO'] = observer;
         const mutation = new MutationObserver((mutations) => {
           for (const mutation of mutations) {
-            if ((mutation.target as Element).hasAttribute('on:qvisible')) {
-              observer.observe(mutation.target as Element);
-            }
+            observer.observe(mutation.target as Element);
           }
         });
-        mutation.observe(document.body, {
+        mutation.observe(document.documentElement, {
           attributeFilter: ['on:qvisible'],
           subtree: true,
         });

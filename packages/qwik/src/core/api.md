@@ -189,7 +189,7 @@ export interface QRL<TYPE = any> {
     // Warning: (ae-forgotten-export) The symbol "InvokeContext" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
-    invokeFn(el?: Element, context?: InvokeContext): TYPE extends (...args: infer ARGS) => infer RETURN ? (...args: ARGS) => ValueOrPromise<RETURN> : never;
+    invokeFn(el?: Element, context?: InvokeContext, beforeFn?: () => void): TYPE extends (...args: infer ARGS) => infer RETURN ? (...args: ARGS) => ValueOrPromise<RETURN> : never;
     // (undocumented)
     resolve(container?: Element): Promise<TYPE>;
 }

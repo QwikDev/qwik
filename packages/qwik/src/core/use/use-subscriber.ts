@@ -64,6 +64,6 @@ export function isConnected(sub: Subscriber) {
   if (isElement(sub)) {
     return sub.isConnected;
   } else {
-    return !!(sub.f & WatchFlags.IsDirty);
+    return !!(sub.f & WatchFlags.IsConnected);
   }
 }

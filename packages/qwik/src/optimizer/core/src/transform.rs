@@ -35,7 +35,7 @@ macro_rules! id_eq {
     };
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub enum HookKind {
     Function,
@@ -45,10 +45,11 @@ pub enum HookKind {
 #[derive(Debug, Clone)]
 pub struct Hook {
     pub entry: Option<JsWord>,
-    pub canonical_filename: String,
+    pub canonical_filename: JsWord,
     pub name: JsWord,
     pub expr: Box<ast::Expr>,
     pub data: HookData,
+    pub hash: u64,
 }
 
 #[derive(Debug, Clone)]
@@ -60,6 +61,8 @@ pub struct HookData {
     pub ctx_kind: HookKind,
     pub ctx_name: JsWord,
     pub origin: JsWord,
+    pub display_name: JsWord,
+    pub hash: JsWord,
 }
 
 #[derive(Debug)]
@@ -176,13 +179,13 @@ impl<'a> QwikTransform<'a> {
         }
     }
 
-    fn register_context_name(&mut self) -> String {
-        let mut symbol_name = self.stack_ctxt.join("_");
+    fn register_context_name(&mut self) -> (JsWord, JsWord, JsWord, u64) {
+        let mut display_name = self.stack_ctxt.join("_");
         if self.stack_ctxt.is_empty() {
-            symbol_name += "s_";
+            display_name += "s_";
         }
-        symbol_name = escape_sym(&symbol_name);
-        let index = match self.hooks_names.get_mut(&symbol_name) {
+        display_name = escape_sym(&display_name);
+        let index = match self.hooks_names.get_mut(&display_name) {
             Some(count) => {
                 *count += 1;
                 *count
@@ -190,19 +193,29 @@ impl<'a> QwikTransform<'a> {
             None => 0,
         };
         if index == 0 {
-            self.hooks_names.insert(symbol_name.clone(), 0);
+            self.hooks_names.insert(display_name.clone(), 0);
         } else {
-            symbol_name += &format!("_{}", index);
+            display_name += &format!("_{}", index);
         }
         let mut hasher = DefaultHasher::new();
-        hasher.write(symbol_name.as_bytes());
-        hasher.write(self.options.path_data.path.to_str().unwrap().as_bytes());
-        if self.options.dev {
-            symbol_name += &format!("_{}", base64(hasher.finish()));
-            symbol_name
+        let local_file_name = self.options.path_data.path.to_slash_lossy();
+
+        hasher.write(local_file_name.as_bytes());
+        hasher.write(display_name.as_bytes());
+        let hash = hasher.finish();
+        let hash64 = base64(hash);
+
+        let symbol_name = if self.options.dev {
+            format!("{}_{}", display_name, hash64)
         } else {
-            format!("s_{}", base64(hasher.finish()))
-        }
+            format!("s_{}", hash64)
+        };
+        (
+            JsWord::from(symbol_name),
+            JsWord::from(display_name),
+            JsWord::from(hash64),
+            hash,
+        )
     }
 
     fn handle_qhook(&mut self, node: ast::CallExpr) -> ast::CallExpr {
@@ -228,12 +241,8 @@ impl<'a> QwikTransform<'a> {
         let can_capture = can_capture_scope(&first_arg);
         let first_arg_span = first_arg.span();
 
-        let symbol_name = self.register_context_name();
-
-        let mut canonical_filename = symbol_name.clone();
-        canonical_filename.make_ascii_lowercase();
-
-        let symbol_name = JsWord::from(symbol_name);
+        let (symbol_name, display_name, hash, hook_hash) = self.register_context_name();
+        let canonical_filename = JsWord::from(symbol_name.as_ref().to_ascii_lowercase());
 
         // Collect descendent idents
         let descendent_idents = {
@@ -324,6 +333,8 @@ impl<'a> QwikTransform<'a> {
             ctx_kind,
             ctx_name,
             origin: self.options.path_data.path.to_slash_lossy().into(),
+            display_name,
+            hash,
         };
 
         let entry = self.options.entry_policy.get_entry_for_sym(
@@ -357,6 +368,7 @@ impl<'a> QwikTransform<'a> {
             name: symbol_name,
             data: hook_data,
             expr: Box::new(folded),
+            hash: hook_hash,
         });
         o
     }
@@ -553,10 +565,10 @@ impl<'a> Fold for QwikTransform<'a> {
         o
     }
 
-    fn fold_jsx_opening_element(&mut self, node: ast::JSXOpeningElement) -> ast::JSXOpeningElement {
+    fn fold_jsx_element(&mut self, node: ast::JSXElement) -> ast::JSXElement {
         let mut stacked = false;
 
-        if let ast::JSXElementName::Ident(ref ident) = node.name {
+        if let ast::JSXElementName::Ident(ref ident) = node.opening.name {
             self.stack_ctxt.push(ident.sym.to_string());
             stacked = true;
         }
@@ -624,8 +636,10 @@ impl<'a> Fold for QwikTransform<'a> {
 
         let node = match node.key {
             ast::PropName::Ident(ref ident) => {
-                self.stack_ctxt.push(ident.sym.to_string());
-                name_token = true;
+                if ident.sym != *CHILDREN {
+                    self.stack_ctxt.push(ident.sym.to_string());
+                    name_token = true;
+                }
                 if jsx_call {
                     if let Some(new_word) = convert_signal_word(&ident.sym) {
                         ast::KeyValueProp {
@@ -644,8 +658,10 @@ impl<'a> Fold for QwikTransform<'a> {
                 }
             }
             ast::PropName::Str(ref s) => {
-                self.stack_ctxt.push(s.value.to_string());
-                name_token = true;
+                if s.value != *CHILDREN {
+                    self.stack_ctxt.push(s.value.to_string());
+                    name_token = true;
+                }
                 if jsx_call {
                     if let Some(new_word) = convert_signal_word(&s.value) {
                         ast::KeyValueProp {

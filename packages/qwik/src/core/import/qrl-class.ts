@@ -39,7 +39,7 @@ class QRL<TYPE = any> implements IQRL<TYPE> {
     return qrlImport(this.el, this as any);
   }
 
-  invokeFn(el?: Element, currentCtx?: InvokeContext): any {
+  invokeFn(el?: Element, currentCtx?: InvokeContext, beforeFn?: () => void): any {
     return ((...args: any[]): any => {
       const fn = (typeof this.symbolRef === 'function' ? this.symbolRef : this.resolve(el)) as TYPE;
       return then(fn, (fn) => {
@@ -49,6 +49,9 @@ class QRL<TYPE = any> implements IQRL<TYPE> {
             ...baseContext,
             qrl: this,
           };
+          if (beforeFn) {
+            beforeFn();
+          }
           return useInvoke(context, fn as any, ...args);
         }
         throw new Error('QRL is not a function');

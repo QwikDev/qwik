@@ -12,8 +12,8 @@ import { isDocument, isElement, isNode } from '../util/element';
 import { logWarn } from '../util/log';
 import { qDev, qTest } from '../util/qdev';
 import { debugStringify } from '../util/stringify';
-import { runWatch, WatchDescriptor, WatchMode } from '../watch/watch.public';
-import type { Subscriber } from '../use/use-subscriber';
+import { WatchDescriptor, WatchFlags } from '../watch/watch.public';
+import { isConnected, Subscriber } from '../use/use-subscriber';
 
 export type ObjToProxyMap = WeakMap<any, any>;
 export type QObject<T extends {}> = T & { __brand__: 'QObject' };
@@ -188,7 +188,7 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
     if (isArray) {
       target[prop as any] = unwrappedNewValue;
       subs.forEach((_, sub) => {
-        if (sub.isConnected) {
+        if (isConnected(sub)) {
           notifyChange(sub);
         } else {
           subs.delete(sub);
@@ -200,7 +200,7 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
     if (oldValue !== unwrappedNewValue) {
       target[prop] = unwrappedNewValue;
       subs.forEach((propSets, sub) => {
-        if (sub.isConnected) {
+        if (isConnected(sub)) {
           if (propSets === null || propSets.has(prop)) {
             notifyChange(sub);
           }
@@ -257,23 +257,16 @@ export function notifyChange(subscriber: Subscriber) {
 }
 
 export function notifyWatch(watch: WatchDescriptor) {
-  const containerEl = getContainer(watch.hostElement)!;
+  const containerEl = getContainer(watch.el)!;
   const state = getRenderingState(containerEl);
-  watch.dirty = true;
-  if (watch.mode === WatchMode.Watch) {
-    const promise = runWatch(watch);
-    state.watchRunning.add(promise);
-    promise.then(() => {
-      state.watchRunning.delete(promise);
-    });
+  watch.f |= WatchFlags.IsDirty;
+
+  const activeRendering = state.hostsRendering !== undefined;
+  if (activeRendering) {
+    state.watchStaging.add(watch);
   } else {
-    const activeRendering = state.hostsRendering !== undefined;
-    if (activeRendering) {
-      state.watchStaging.add(watch);
-    } else {
-      state.watchNext.add(watch);
-      scheduleFrame(containerEl, state);
-    }
+    state.watchNext.add(watch);
+    scheduleFrame(containerEl, state);
   }
 }
 

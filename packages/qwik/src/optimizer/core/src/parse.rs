@@ -1,4 +1,6 @@
+use std::collections::hash_map::DefaultHasher;
 use std::ffi::OsStr;
+use std::hash::Hasher;
 use std::path::{Path, PathBuf};
 use std::str;
 
@@ -14,6 +16,7 @@ use serde::{Deserialize, Serialize};
 use std::fs;
 
 use anyhow::{Context, Error};
+
 use swc_atoms::JsWord;
 use swc_common::comments::SingleThreadedComments;
 use swc_common::errors::{DiagnosticBuilder, Emitter, Handler};
@@ -28,13 +31,15 @@ use swc_ecmascript::transforms::{
 };
 use swc_ecmascript::visit::{FoldWith, VisitMutWith};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct HookAnalysis {
     pub origin: JsWord,
     pub name: JsWord,
     pub entry: Option<JsWord>,
-    pub canonical_filename: String,
+    pub display_name: JsWord,
+    pub hash: JsWord,
+    pub canonical_filename: JsWord,
     pub extension: JsWord,
     pub parent: Option<JsWord>,
     pub ctx_kind: HookKind,
@@ -107,6 +112,9 @@ pub struct TransformModule {
 
     pub hook: Option<HookAnalysis>,
     pub is_entry: bool,
+
+    #[serde(skip_serializing)]
+    pub order: u64,
 }
 
 #[derive(Debug, Clone, Default)]
@@ -244,6 +252,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                             map,
                             is_entry,
                             path: hook_path,
+                            order: h.hash,
                             hook: Some(HookAnalysis {
                                 origin: h.data.origin,
                                 name: h.name,
@@ -254,6 +263,8 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                                 ctx_kind: h.data.ctx_kind,
                                 ctx_name: h.data.ctx_name,
                                 captures: !h.data.scoped_idents.is_empty(),
+                                display_name: h.data.display_name,
+                                hash: h.data.hash,
                             }),
                         });
                     }
@@ -265,18 +276,20 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                         config.source_maps,
                     )?;
 
-                    modules.insert(
-                        0,
-                        TransformModule {
-                            is_entry: false,
-                            path: Path::new(&path_data.dir)
-                                .join([&path_data.file_stem, ".", &extension].concat())
-                                .to_slash_lossy(),
-                            code,
-                            map,
-                            hook: None,
-                        },
-                    );
+                    let path = Path::new(&path_data.dir)
+                        .join([&path_data.file_stem, ".", &extension].concat())
+                        .to_slash_lossy();
+                    let mut hasher = DefaultHasher::new();
+                    hasher.write(path.as_bytes());
+
+                    modules.push(TransformModule {
+                        is_entry: false,
+                        path,
+                        code,
+                        map,
+                        order: hasher.finish(),
+                        hook: None,
+                    });
 
                     let diagnostics = handle_error(&error_buffer, origin, &source_map);
                     Ok(TransformOutput {

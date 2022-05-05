@@ -196,11 +196,12 @@ async function ssrApp(req: Request, appName: string, appDir: string, symbols: Sy
   const { render } = requireUncached(serverPath);
 
   // ssr the document
+  const base = `/${appName}/build/`;
   const result = await render({
     symbols,
     url: new URL(`${req.protocol}://${req.hostname}${req.url}`),
     debug: true,
-    base: `/${appName}/build/`,
+    base: base,
   });
 
   return result.html;

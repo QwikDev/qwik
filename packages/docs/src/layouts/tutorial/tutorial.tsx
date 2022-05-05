@@ -4,7 +4,7 @@ import {
   Slot,
   useHostElement,
   useScopedStyles$,
-  useEffect$,
+  useWatch$,
 } from '@builder.io/qwik';
 import { useLocation } from '../../utils/useLocation';
 import type { SiteStore } from '../../components/app/app';
@@ -23,7 +23,7 @@ interface TutorialLayoutProps {
 const Tutorial = component$((props: TutorialLayoutProps) => {
   useScopedStyles$(styles);
 
-  useEffect$(() => {
+  useWatch$(() => {
     setHeadStyles(useHostElement(), [
       {
         style: `html,body { margin: 0; height: 100%; overflow: hidden; }`,

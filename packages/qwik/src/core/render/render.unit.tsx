@@ -49,6 +49,39 @@ describe('render', () => {
       );
     });
 
+    it('should serialize events correctly', async () => {
+      await render(
+        fixture.host,
+        <div
+          onMouseDown$={() => {}}
+          onKeyUp$={() => {}}
+          onDblClick$={() => {}}
+          on-DblClick$={() => {}}
+          onQVisible$={() => {}}
+          document:onLoad$={() => {}}
+          document:onScroll$={() => {}}
+          document:on-Scroll$={() => {}}
+          window:onScroll$={() => {}}
+          window:on-Scroll$={() => {}}
+        ></div>
+      );
+      const Div = 'div' as any;
+      expectRendered(
+        <Div
+          on:mousedown="/runtimeQRL#s7"
+          on:keyup="/runtimeQRL#s8"
+          on:dblclick="/runtimeQRL#s9"
+          on:-dbl-click="/runtimeQRL#s10"
+          on:qvisible="/runtimeQRL#s11"
+          on-document:load="/runtimeQRL#s12"
+          on-document:scroll="/runtimeQRL#s13"
+          on-document:-scroll="/runtimeQRL#s14"
+          on-window:scroll="/runtimeQRL#s15"
+          on-window:-scroll="/runtimeQRL#s16"
+        ></Div>
+      );
+    });
+
     it('should render into a document', async () => {
       await render(
         fixture.document,
@@ -136,6 +169,10 @@ describe('render', () => {
           data-value="hello world"
           key={'special'}
           host:title="Custom title"
+          host:onClick$={() => {}}
+          host:on-ClicK$={() => {}}
+          document:onLoad$={() => {}}
+          window:onScroll$={() => {}}
         />
       );
       expectRendered(
@@ -149,6 +186,10 @@ describe('render', () => {
           aria-hidden="true"
           data-value="hello world"
           title="Custom title"
+          on:click="/runtimeQRL#s18"
+          on:-clic-k="/runtimeQRL#s19"
+          on-document:load="/runtimeQRL#s20"
+          on-window:scroll="/runtimeQRL#s21"
         >
           <span>{'{"thing":"World"}'}</span>
         </render-props>

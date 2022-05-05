@@ -70,12 +70,6 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       opts.entryStrategy = { type: 'hook' };
     }
 
-    if (typeof updatedOpts.forceFullBuild === 'boolean') {
-      opts.forceFullBuild = updatedOpts.forceFullBuild;
-    } else {
-      opts.forceFullBuild = opts.entryStrategy.type !== 'hook';
-    }
-
     if (updatedOpts.minify) {
       opts.minify = updatedOpts.minify;
     }
@@ -107,6 +101,12 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       opts.srcDir = null;
     } else {
       opts.srcDir = srcDir;
+    }
+
+    if (typeof updatedOpts.forceFullBuild === 'boolean') {
+      opts.forceFullBuild = updatedOpts.forceFullBuild;
+    } else {
+      opts.forceFullBuild = opts.entryStrategy.type !== 'hook' || !!updatedOpts.srcInputs;
     }
 
     if (Array.isArray(opts.srcInputs)) {
@@ -342,11 +342,15 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     if (TRANSFORM_EXTS[ext]) {
       log(`transform()`, 'Transforming', pathId);
 
+      let path = base;
+      if (opts.srcDir) {
+        path = optimizer.sys.path.relative(opts.srcDir, pathId);
+      }
       const newOutput = optimizer.transformModulesSync({
         input: [
           {
             code,
-            path: base,
+            path,
           },
         ],
         entryStrategy: { type: 'hook' },
@@ -363,7 +367,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
       for (const [id, output] of results.entries()) {
         const justChanged = newOutput === output;
-        const dir = optimizer.sys.path.dirname(id);
+        const dir = opts.srcDir || optimizer.sys.path.dirname(id);
 
         for (const mod of output.modules) {
           if (mod.isEntry) {

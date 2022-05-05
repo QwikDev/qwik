@@ -189,7 +189,7 @@ export interface QRL<TYPE = any> {
     // Warning: (ae-forgotten-export) The symbol "InvokeContext" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
-    invokeFn(el?: Element, context?: InvokeContext): TYPE extends (...args: infer ARGS) => infer RETURN ? (...args: ARGS) => ValueOrPromise<RETURN> : never;
+    invokeFn(el?: Element, context?: InvokeContext, beforeFn?: () => void): TYPE extends (...args: infer ARGS) => infer RETURN ? (...args: ARGS) => ValueOrPromise<RETURN> : never;
     // (undocumented)
     resolve(container?: Element): Promise<TYPE>;
 }
@@ -292,22 +292,16 @@ export function useCleanupQrl(unmountFn: QRL<() => void>): void;
 export const useClientEffect$: (first: WatchFn, opts?: UseEffectOptions | undefined) => void;
 
 // @alpha (undocumented)
-export function useClientEffectQrl(watchQrl: QRL<WatchFn>, opts?: UseEffectOptions): void;
+export function useClientEffectQrl(qrl: QRL<WatchFn>, opts?: UseEffectOptions): void;
 
 // @public (undocumented)
 export function useDocument(): Document;
-
-// @alpha (undocumented)
-export const useEffect$: (first: WatchFn, opts?: UseEffectOptions | undefined) => void;
 
 // @alpha (undocumented)
 export interface UseEffectOptions {
     // (undocumented)
     run?: UseEffectRunOptions;
 }
-
-// @alpha (undocumented)
-export function useEffectQrl(watchQrl: QRL<WatchFn>, opts?: UseEffectOptions): void;
 
 // @alpha (undocumented)
 export type UseEffectRunOptions = 'visible' | 'load';
@@ -349,10 +343,10 @@ export const useScopedStyles$: (first: string) => void;
 export function useScopedStylesQrl(styles: QRL<string>): void;
 
 // @alpha (undocumented)
-export const useServer$: (first: ServerFn) => void;
+export const useServerMount$: (first: ServerFn) => void;
 
 // @alpha (undocumented)
-export function useServerQrl(watchQrl: QRL<ServerFn>): void;
+export function useServerMountQrl(watchQrl: QRL<ServerFn>): void;
 
 // @public
 export function useStore<STATE extends object>(initialState: STATE | (() => STATE)): STATE;
@@ -365,6 +359,12 @@ export function useStylesQrl(styles: QRL<string>): void;
 
 // @alpha (undocumented)
 export function useSubscriber<T extends {}>(obj: T): T;
+
+// @alpha (undocumented)
+export const useWatch$: (first: WatchFn, opts?: UseEffectOptions | undefined) => void;
+
+// @alpha (undocumented)
+export function useWatchQrl(qrl: QRL<WatchFn>, opts?: UseEffectOptions): void;
 
 // @public
 export type ValueOrPromise<T> = T | Promise<T>;

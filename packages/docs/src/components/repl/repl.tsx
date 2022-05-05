@@ -4,7 +4,7 @@ import {
   noSerialize,
   useScopedStyles$,
   useStore,
-  useEffect$,
+  useWatch$,
   useClientEffect$,
   $,
 } from '@builder.io/qwik';
@@ -98,7 +98,7 @@ export const Repl = component$(async (props: ReplProps) => {
     window.addEventListener('message', (ev) => onMessageFromIframe(ev, store));
   });
 
-  useEffect$((track) => {
+  useWatch$((track) => {
     track(store, 'entryStrategy');
     track(store, 'buildMode');
     track(store, 'inputs');

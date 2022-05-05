@@ -18,18 +18,35 @@ export const Header = component$(() => {
     });
 });
 
-============================= test.tsx ==
+============================= header_component_j4uyihabnr4.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-import { componentQrl } from "@builder.io/qwik";
-export const Header = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./header_component_d2lmh0dh3zy")
-, "Header_component_D2lmH0Dh3zY"));
+export const Header_component_J4uyIhaBNR4 = ()=>{
+    return qwik.qrl(()=>import("./header_component_1_2b8d0oh9zwc")
+    , "Header_component_1_2B8d0oH9ZWc");
+};
+export { handleWatch } from "@builder.io/qwik";
 
-============================= header_component_1_ouelp0ehcsm.tsx (ENTRY POINT)==
+/*
+{
+  "origin": "test.tsx",
+  "name": "Header_component_J4uyIhaBNR4",
+  "entry": null,
+  "displayName": "Header_component",
+  "hash": "J4uyIhaBNR4",
+  "canonicalFilename": "header_component_j4uyihabnr4",
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false
+}
+*/
+============================= header_component_1_2b8d0oh9zwc.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
 import { Header } from "./test";
-export const Header_component_1_ouELP0EHCsM = (hola)=>{
+export const Header_component_1_2B8d0oH9ZWc = (hola)=>{
     const hola = this;
     const { something , styff  } = hola;
     const hello = hola.nothere.stuff[global];
@@ -40,38 +57,25 @@ export { handleWatch } from "@builder.io/qwik";
 /*
 {
   "origin": "test.tsx",
-  "name": "Header_component_1_ouELP0EHCsM",
+  "name": "Header_component_1_2B8d0oH9ZWc",
   "entry": null,
-  "canonicalFilename": "header_component_1_ouelp0ehcsm",
+  "displayName": "Header_component_1",
+  "hash": "2B8d0oH9ZWc",
+  "canonicalFilename": "header_component_1_2b8d0oh9zwc",
   "extension": "tsx",
-  "parent": "Header_component_D2lmH0Dh3zY",
+  "parent": "Header_component_J4uyIhaBNR4",
   "ctxKind": "function",
   "ctxName": "$",
   "captures": false
 }
 */
-============================= header_component_d2lmh0dh3zy.tsx (ENTRY POINT)==
+============================= test.tsx ==
 
 import * as qwik from "@builder.io/qwik";
-export const Header_component_D2lmH0Dh3zY = ()=>{
-    return qwik.qrl(()=>import("./header_component_1_ouelp0ehcsm")
-    , "Header_component_1_ouELP0EHCsM");
-};
-export { handleWatch } from "@builder.io/qwik";
+import { componentQrl } from "@builder.io/qwik";
+export const Header = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./header_component_j4uyihabnr4")
+, "Header_component_J4uyIhaBNR4"));
 
-/*
-{
-  "origin": "test.tsx",
-  "name": "Header_component_D2lmH0Dh3zY",
-  "entry": null,
-  "canonicalFilename": "header_component_d2lmh0dh3zy",
-  "extension": "tsx",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false
-}
-*/
 == DIAGNOSTICS ==
 
 []

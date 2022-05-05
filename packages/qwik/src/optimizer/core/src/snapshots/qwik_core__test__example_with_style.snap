@@ -16,41 +16,34 @@ export const Foo = component$(() => {
     tagName: "my-foo",
 });
 
-============================= test.tsx ==
+============================= foo_component_usestyles_pv9tscbihw8.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-import { componentQrl } from "@builder.io/qwik";
-export const Foo = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./foo_component_7n2avllyvuo")
-, "Foo_component_7N2avlLYVuo"), {
-    tagName: "my-foo"
-});
-
-============================= foo_component_usestyles_pdrqszjgrtk.tsx (ENTRY POINT)==
-
-import * as qwik from "@builder.io/qwik";
-export const Foo_component_useStyles_PDrQszjGRtk = '.class {}';
+export const Foo_component_useStyles_pV9TSCBIhw8 = '.class {}';
 export { handleWatch } from "@builder.io/qwik";
 
 /*
 {
   "origin": "test.tsx",
-  "name": "Foo_component_useStyles_PDrQszjGRtk",
+  "name": "Foo_component_useStyles_pV9TSCBIhw8",
   "entry": null,
-  "canonicalFilename": "foo_component_usestyles_pdrqszjgrtk",
+  "displayName": "Foo_component_useStyles",
+  "hash": "pV9TSCBIhw8",
+  "canonicalFilename": "foo_component_usestyles_pv9tscbihw8",
   "extension": "tsx",
-  "parent": "Foo_component_7N2avlLYVuo",
+  "parent": "Foo_component_HTDRsvUbLiE",
   "ctxKind": "function",
   "ctxName": "useStyles$",
   "captures": false
 }
 */
-============================= foo_component_7n2avllyvuo.tsx (ENTRY POINT)==
+============================= foo_component_htdrsvublie.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
 import { useStylesQrl } from "@builder.io/qwik";
-export const Foo_component_7N2avlLYVuo = ()=>{
-    useStylesQrl(qwik.qrl(()=>import("./foo_component_usestyles_pdrqszjgrtk")
-    , "Foo_component_useStyles_PDrQszjGRtk"));
+export const Foo_component_HTDRsvUbLiE = ()=>{
+    useStylesQrl(qwik.qrl(()=>import("./foo_component_usestyles_pv9tscbihw8")
+    , "Foo_component_useStyles_pV9TSCBIhw8"));
     return <div class="class"/>;
 };
 export { handleWatch } from "@builder.io/qwik";
@@ -58,9 +51,11 @@ export { handleWatch } from "@builder.io/qwik";
 /*
 {
   "origin": "test.tsx",
-  "name": "Foo_component_7N2avlLYVuo",
+  "name": "Foo_component_HTDRsvUbLiE",
   "entry": null,
-  "canonicalFilename": "foo_component_7n2avllyvuo",
+  "displayName": "Foo_component",
+  "hash": "HTDRsvUbLiE",
+  "canonicalFilename": "foo_component_htdrsvublie",
   "extension": "tsx",
   "parent": null,
   "ctxKind": "function",
@@ -68,6 +63,15 @@ export { handleWatch } from "@builder.io/qwik";
   "captures": false
 }
 */
+============================= test.tsx ==
+
+import * as qwik from "@builder.io/qwik";
+import { componentQrl } from "@builder.io/qwik";
+export const Foo = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./foo_component_htdrsvublie")
+, "Foo_component_HTDRsvUbLiE"), {
+    tagName: "my-foo"
+});
+
 == DIAGNOSTICS ==
 
 []

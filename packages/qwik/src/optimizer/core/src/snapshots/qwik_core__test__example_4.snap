@@ -16,52 +16,24 @@ export function App() {
     return Header;
 }
 
-============================= test.tsx ==
+============================= app_header_component_b9f3yeqco1w.tsx (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
-import { componentQrl } from "@builder.io/qwik";
-export function App() {
-    const Header = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./app_header_component_eeebld30rns")
-    , "App_Header_component_eEEbLD30rns"));
-    return Header;
-}
-
-============================= app_header_component_div_onclick_odvseeloykg.tsx (ENTRY POINT)==
-
-import * as qwik from "@builder.io/qwik";
-export const App_Header_component_div_onClick_odvSeeLOykg = (ctx)=>console.log(ctx)
-;
-export { handleWatch } from "@builder.io/qwik";
-
-/*
-{
-  "origin": "test.tsx",
-  "name": "App_Header_component_div_onClick_odvSeeLOykg",
-  "entry": null,
-  "canonicalFilename": "app_header_component_div_onclick_odvseeloykg",
-  "extension": "tsx",
-  "parent": "App_Header_component_eEEbLD30rns",
-  "ctxKind": "function",
-  "ctxName": "$",
-  "captures": false
-}
-*/
-============================= app_header_component_eeebld30rns.tsx (ENTRY POINT)==
-
-import * as qwik from "@builder.io/qwik";
-export const App_Header_component_eEEbLD30rns = ()=>{
+export const App_Header_component_B9F3YeqcO1w = ()=>{
     console.log("mount");
-    return <div onClick={qwik.qrl(()=>import("./app_header_component_div_onclick_odvseeloykg")
-    , "App_Header_component_div_onClick_odvSeeLOykg")}/>;
+    return <div onClick={qwik.qrl(()=>import("./app_header_component_div_onclick_ao7ui7iw6oq")
+    , "App_Header_component_div_onClick_aO7uI7Iw6oQ")}/>;
 };
 export { handleWatch } from "@builder.io/qwik";
 
 /*
 {
   "origin": "test.tsx",
-  "name": "App_Header_component_eEEbLD30rns",
+  "name": "App_Header_component_B9F3YeqcO1w",
   "entry": null,
-  "canonicalFilename": "app_header_component_eeebld30rns",
+  "displayName": "App_Header_component",
+  "hash": "B9F3YeqcO1w",
+  "canonicalFilename": "app_header_component_b9f3yeqco1w",
   "extension": "tsx",
   "parent": null,
   "ctxKind": "function",
@@ -69,6 +41,38 @@ export { handleWatch } from "@builder.io/qwik";
   "captures": false
 }
 */
+============================= app_header_component_div_onclick_ao7ui7iw6oq.tsx (ENTRY POINT)==
+
+import * as qwik from "@builder.io/qwik";
+export const App_Header_component_div_onClick_aO7uI7Iw6oQ = (ctx)=>console.log(ctx)
+;
+export { handleWatch } from "@builder.io/qwik";
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_Header_component_div_onClick_aO7uI7Iw6oQ",
+  "entry": null,
+  "displayName": "App_Header_component_div_onClick",
+  "hash": "aO7uI7Iw6oQ",
+  "canonicalFilename": "app_header_component_div_onclick_ao7ui7iw6oq",
+  "extension": "tsx",
+  "parent": "App_Header_component_B9F3YeqcO1w",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false
+}
+*/
+============================= test.tsx ==
+
+import * as qwik from "@builder.io/qwik";
+import { componentQrl } from "@builder.io/qwik";
+export function App() {
+    const Header = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./app_header_component_b9f3yeqco1w")
+    , "App_Header_component_B9F3YeqcO1w"));
+    return Header;
+}
+
 == DIAGNOSTICS ==
 
 []

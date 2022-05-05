@@ -79,6 +79,16 @@ describe('qwik plugin', () => {
       expect(opts.forceFullBuild).toBe(false);
     });
 
+    it('entryStrategy, hook and srcInputs', async () => {
+      const plugin = mockPlugin();
+      const opts = await plugin.normalizeOptions({
+        entryStrategy: { type: 'hook' },
+        srcInputs: [],
+      });
+      expect(opts.entryStrategy.type).toBe('hook');
+      expect(opts.forceFullBuild).toBe(true);
+    });
+
     it('entryStrategy, forceFullBuild false', async () => {
       const plugin = mockPlugin();
       const opts = await plugin.normalizeOptions({ forceFullBuild: false });

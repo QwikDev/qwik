@@ -95,7 +95,7 @@ export const getPlatformInputFiles = async (sys: OptimizerSystem) => {
           filePaths.map(async (filePath) => {
             const input: TransformModuleInput = {
               code: await fs.promises.readFile(filePath, 'utf8'),
-              path: filePath.slice(rootDir.length + 1),
+              path: sys.path.relative(rootDir, filePath),
             };
             return input;
           })

@@ -35,7 +35,6 @@ body:
         - Qwik React
         - Qwik City
         - Starters / CLI
-
     validations:
       required: true
 
@@ -44,7 +43,6 @@ body:
     attributes:
       description: 'A clear and concise description of what you expected to happen.'
       label: Expected Behaviour
-
     validations:
       required: true
 
@@ -62,9 +60,3 @@ body:
     validations:
       required: false
 
-  - type:
-    id: additional_information
-    attributes:
-      label: Additional Information
-    validations:
-      required: false

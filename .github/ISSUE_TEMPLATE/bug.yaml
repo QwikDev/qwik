@@ -39,11 +39,10 @@ body:
     validations:
       required: true
 
-
   - type: textarea
     id: expected_behaviour
     attributes:
-      description: "A clear and concise description of what you expected to happen."
+      description: 'A clear and concise description of what you expected to happen.'
       label: Expected Behaviour
 
     validations:

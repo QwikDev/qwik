@@ -44,7 +44,9 @@ export const Foo_component_HTDRsvUbLiE = ({ color  })=>{
 
         </div>;
 };
-export { handleWatch } from "@builder.io/qwik";
+import { handleWatch as hW } from "@builder.io/qwik";
+hW.issue456 && hW.issue123();
+export { hW as handleWatch };
 
 /*
 {
@@ -68,7 +70,9 @@ export const ButtonArrow_button_onClick_9npo43fIGik = ()=>{
     const [color, text] = qwik.useLexicalScope();
     return console.log(text, color);
 };
-export { handleWatch } from "@builder.io/qwik";
+import { handleWatch as hW } from "@builder.io/qwik";
+hW.issue456 && hW.issue123();
+export { hW as handleWatch };
 
 /*
 {
@@ -92,7 +96,9 @@ export const Button_button_onClick_NsM0JYV00Jw = ()=>{
     const [color, text] = qwik.useLexicalScope();
     return console.log(text, color);
 };
-export { handleWatch } from "@builder.io/qwik";
+import { handleWatch as hW } from "@builder.io/qwik";
+hW.issue456 && hW.issue123();
+export { hW as handleWatch };
 
 /*
 {

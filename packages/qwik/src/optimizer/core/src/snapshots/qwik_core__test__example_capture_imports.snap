@@ -28,7 +28,9 @@ import * as qwik from "@builder.io/qwik";
 import css1 from "./global.css";
 import css2 from "./style.css";
 export const App_component_useStyles_t35nSa5UV7U = `${css1}${css2}`;
-export { handleWatch } from "@builder.io/qwik";
+import { handleWatch as hW } from "@builder.io/qwik";
+hW.issue456 && hW.issue123();
+export { hW as handleWatch };
 
 /*
 {
@@ -55,7 +57,9 @@ export const App_component_ckEPmXZlub0 = ()=>{
     useStylesQrl(qwik.qrl(()=>import("./app_component_usestyles_1_xbk4w0zkwe8")
     , "App_component_useStyles_1_xBK4W0ZKWe8"));
 };
-export { handleWatch } from "@builder.io/qwik";
+import { handleWatch as hW } from "@builder.io/qwik";
+hW.issue456 && hW.issue123();
+export { hW as handleWatch };
 
 /*
 {
@@ -77,7 +81,9 @@ export { handleWatch } from "@builder.io/qwik";
 import * as qwik from "@builder.io/qwik";
 import css3 from "./style.css";
 export const App_component_useStyles_1_xBK4W0ZKWe8 = css3;
-export { handleWatch } from "@builder.io/qwik";
+import { handleWatch as hW } from "@builder.io/qwik";
+hW.issue456 && hW.issue123();
+export { hW as handleWatch };
 
 /*
 {

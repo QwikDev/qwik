@@ -747,11 +747,14 @@ fn example_qwik_conflict() {
         code: r#"
 import { $, component$, useStyles } from '@builder.io/qwik';
 
+export const hW = 12;
+export const handleWatch = 42;
+
 const componentQrl = () => console.log('not this');
 componentQrl();
 export const Foo = component$(() => {
     useStyles$('thing');
-    const qwik = 12;
+    const qwik = hW + handleWatch;
     console.log(qwik);
     return $(() => {
         return (

@@ -844,7 +844,7 @@ pub fn add_handle_watch(body: &mut Vec<ast::ModuleItem>, private: bool) {
             asserts: None,
             type_only: false,
             specifiers: vec![ast::ExportSpecifier::Named(ast::ExportNamedSpecifier {
-                orig: ast::ModuleExportName::Ident(ident.clone()),
+                orig: ast::ModuleExportName::Ident(ident),
                 exported: Some(ast::ModuleExportName::Ident(ast::Ident::new(
                     HANDLE_WATCH.clone(),
                     DUMMY_SP,

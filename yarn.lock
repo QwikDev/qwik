@@ -672,12 +672,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@builder.io/partytown@npm:0.5.2, @builder.io/partytown@npm:^0.5.2":
+"@builder.io/partytown@npm:0.5.2":
   version: 0.5.2
   resolution: "@builder.io/partytown@npm:0.5.2"
   bin:
     partytown: bin/partytown.cjs
   checksum: 88ca3f3e6e15039bf1e7319fbc580ba19cf0fc61136761dea82ab64e18eba5885f76b551d44102ac7e495e2c951815fc1fcf71629d2564097a81946912cd38a7
+  languageName: node
+  linkType: hard
+
+"@builder.io/partytown@npm:^0.5.3":
+  version: 0.5.3
+  resolution: "@builder.io/partytown@npm:0.5.3"
+  bin:
+    partytown: bin/partytown.cjs
+  checksum: 1d5dcc670bc6d2d5ae42e503616fec331c9b9c1e3c5ab3f1bd60aac93802655593b3abe3c1d38de41020f7f6629d5a7e37774eece3911124ba6a4053610648b7
   languageName: node
   linkType: hard
 
@@ -721,7 +730,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@builder.io/qwik@workspace:*, @builder.io/qwik@workspace:packages/qwik":
+"@builder.io/qwik@0.0.20-0, @builder.io/qwik@workspace:packages/qwik":
   version: 0.0.0-use.local
   resolution: "@builder.io/qwik@workspace:packages/qwik"
   languageName: unknown
@@ -8155,8 +8164,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "qwik-docs@workspace:packages/docs"
   dependencies:
-    "@builder.io/partytown": ^0.5.2
-    "@builder.io/qwik": "workspace:*"
+    "@builder.io/partytown": ^0.5.3
+    "@builder.io/qwik": 0.0.20-0
     "@builder.io/qwik-city": 0.0.4
     "@cloudflare/kv-asset-handler": 0.2.0
     "@cloudflare/workers-types": ^3.7.1

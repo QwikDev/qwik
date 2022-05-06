@@ -1,0 +1,61 @@
+name: 🐞 Bug Report
+description: Something does not work or is flaky! let us know!
+labels: [bug, triage]
+body:
+  - type: input
+    id: version
+    attributes:
+      label: Qwik Version
+      placeholder: e.g. vX.Y.Z
+    validations:
+      required: true
+
+  - type: input
+    id: os_version
+    attributes:
+      label: Operating System (or Browser)
+    validations:
+      required: true
+
+  - type: input
+    id: node_version
+    attributes:
+      label: Node Version (if applicable)
+    validations:
+      required: false
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Which component is affected?
+      options:
+        - Qwik Runtime
+        - Qwik Rollup / Vite plugin
+        - Qwik Optimizer (rust)
+        - Qwik React
+        - Qwik City
+        - Starters / CLI
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected_behaviour
+    attributes:
+      description: 'A clear and concise description of what you expected to happen.'
+      label: Expected Behaviour
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual_behaviour
+    attributes:
+      label: Actual Behaviour
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional_information
+    attributes:
+      label: Additional Information
+    validations:
+      required: false

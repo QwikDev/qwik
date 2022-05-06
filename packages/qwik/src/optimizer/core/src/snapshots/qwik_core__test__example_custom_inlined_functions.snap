@@ -52,7 +52,9 @@ export const App_component_useMemo_6Sc9KVki3Y0 = ()=>{
     const [state] = qwik.useLexicalScope();
     console.log(state.count);
 };
-export { handleWatch } from "@builder.io/qwik";
+import { handleWatch as hW } from "@builder.io/qwik";
+hW.issue456 && hW.issue123();
+export { hW as handleWatch };
 
 /*
 {
@@ -75,7 +77,9 @@ import * as qwik from "@builder.io/qwik";
 export const Lightweight_useMemo_UIcxVTQF1a8 = ()=>{
     console.log(state.count);
 };
-export { handleWatch } from "@builder.io/qwik";
+import { handleWatch as hW } from "@builder.io/qwik";
+hW.issue456 && hW.issue123();
+export { hW as handleWatch };
 
 /*
 {
@@ -110,7 +114,9 @@ export const App_component_ckEPmXZlub0 = (props)=>{
         state
     ]);
 };
-export { handleWatch } from "@builder.io/qwik";
+import { handleWatch as hW } from "@builder.io/qwik";
+hW.issue456 && hW.issue123();
+export { hW as handleWatch };
 
 /*
 {
@@ -137,7 +143,9 @@ export const App_component_1_w0t0o3QMovU = ()=>{
         children: state.count
     });
 };
-export { handleWatch } from "@builder.io/qwik";
+import { handleWatch as hW } from "@builder.io/qwik";
+hW.issue456 && hW.issue123();
+export { hW as handleWatch };
 
 /*
 {

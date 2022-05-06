@@ -36,7 +36,9 @@ export const Header_component_UVBJuFYfvDo = ()=>{
     return qwik.qrl(()=>import("./header_component_1_uwm1kg0igo0")
     , "Header_component_1_uWM1kg0IGO0");
 };
-export { handleWatch } from "@builder.io/qwik";
+import { handleWatch as hW } from "@builder.io/qwik";
+hW.issue456 && hW.issue123();
+export { hW as handleWatch };
 
 /*
 {
@@ -92,7 +94,9 @@ export const Header_component_1_uWM1kg0IGO0 = ()=><Footer >
 
         </Footer>
 ;
-export { handleWatch } from "@builder.io/qwik";
+import { handleWatch as hW } from "@builder.io/qwik";
+hW.issue456 && hW.issue123();
+export { hW as handleWatch };
 
 /*
 {

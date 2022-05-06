@@ -1,16 +1,16 @@
-import { join } from 'path';
+import { join, dirname } from 'path';
 import { readLines, scanFiles, writeFileLines } from './util';
 
 export function main(dir: string) {
   console.log('DOC SYNC', dir);
   scanFiles(dir, async (file) => {
     if (file.endsWith('.ts')) {
-      await readLines(join(dir, file)).then((lines) => scanForDocDirective(dir, file, lines));
+      await readLines(file).then((lines) => scanForDocDirective(file, lines));
     }
   });
 }
 
-async function scanForDocDirective(dir: string, file: string, lines: string[]) {
+async function scanForDocDirective(file: string, lines: string[]) {
   const output: string[] = [];
   let row = 0;
   let write = false;
@@ -23,11 +23,14 @@ async function scanForDocDirective(dir: string, file: string, lines: string[]) {
       console.log('line', line, JSON.stringify(prefix));
       const ref = match[2];
       const section = match[3];
-      const bookRef = ref.replace(/\/\/hackmd.io\//, '//hackmd.io/@qwik-docs/BkxpSz80Y/%2F');
+      let bookRef = ref.replace(/\/\/hackmd.io\//, '//hackmd.io/@qwik-docs/BkxpSz80Y/%2F');
+      if (bookRef.indexOf('hackmd.io') !== -1) {
+        bookRef += '%3Fboth';
+      }
       output.push(prefix + `// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!`);
-      output.push(prefix + `// (edit ${bookRef}%3Fboth#${section} instead)`);
+      output.push(prefix + `// (edit ${bookRef}#${section} instead)`);
       output.push(prefix + '/**');
-      (await resolveComment(dir, ref, section)).forEach((longLine) =>
+      (await resolveComment(dirname(file), ref, section)).forEach((longLine) =>
         breakLongLine(longLine).forEach((line) =>
           output.push(prefix + ' *' + (line ? ' ' + line : ''))
         )
@@ -37,7 +40,7 @@ async function scanForDocDirective(dir: string, file: string, lines: string[]) {
         const line2 = lines[row++];
         if (!isComment(line2)) {
           throw new Error(
-            'Missing end `</doc>` tag. Got: ' + line2 + '\n' + join(dir, file) + '[' + row + ']'
+            'Missing end `</doc>` tag. Got: ' + line2 + '\n' + file + '[' + row + ']'
           );
         }
         if (line2.indexOf('// </docs>') != -1) {
@@ -49,7 +52,7 @@ async function scanForDocDirective(dir: string, file: string, lines: string[]) {
     }
   }
   if (write) {
-    await writeFileLines(join(dir, file), output);
+    await writeFileLines(file, output);
   }
 }
 

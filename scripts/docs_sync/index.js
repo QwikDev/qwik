@@ -11,4 +11,4 @@ const esmNode = parseInt(process.version.slice(1).split('.')[0], 10) >= 14;
 register({ target: esmNode ? 'node14' : 'node10' });
 
 const { main } = require('./main.ts');
-main(join(process.cwd(), 'src'));
+main(join(process.cwd(), 'packages'));

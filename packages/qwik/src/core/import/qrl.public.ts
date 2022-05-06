@@ -2,9 +2,9 @@ import type { ValueOrPromise } from '..';
 import type { InvokeContext } from '../use/use-core';
 import { runtimeQrl } from './qrl';
 
-// <docs markdown="https://hackmd.io/m5DzCi5MTa26LuUj5t3HpQ#QRL">
+// <docs markdown="./qrl.public.md#QRL">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fm5DzCi5MTa26LuUj5t3HpQ%3Fboth#QRL instead)
+// (edit ./qrl.public.md#QRL instead)
 /**
  * The `QRL` type represents a lazy-loadable AND serializable resource.
  *
@@ -23,7 +23,7 @@ import { runtimeQrl } from './qrl';
  * Optimizer that marks that the code should be extracted into a lazy-loaded symbol.
  *
  * ```typescript
- * onDocument(
+ * useOnDocument(
  *   'mousemove',
  *   $(() => console.log('mousemove'))
  * );
@@ -33,7 +33,7 @@ import { runtimeQrl } from './qrl';
  *
  * ```typescript
  * // FILE: <current file>
- * onDocument('mousemove', qrl('./chunk-abc.js', 'onMousemove'));
+ * useOnDocument('mousemove', qrl('./chunk-abc.js', 'onMousemove'));
  *
  * // FILE: chunk-abc.js
  * export const onMousemove = () => console.log('mousemove');
@@ -53,7 +53,7 @@ import { runtimeQrl } from './qrl';
  * export function useMyFunction(callback: QRL<() => void>) {
  *   doExtraStuff();
  *   // The callback passed to `onDocument` requires `QRL`.
- *   onDocument('mousemove', callback);
+ *   useOnDocument('mousemove', callback);
  * }
  * ```
  *
@@ -72,7 +72,7 @@ import { runtimeQrl } from './qrl';
  * const lazyGreet: QRL<() => void> = $(() => console.log('Hello World!'));
  *
  * // Use `qrlImport` to load / resolve the reference.
- * const greet: () => void = await qrlImport(element, lazyGreet);
+ * const greet: () => void = await lazyGreet.resolve(element);
  *
  * //  Invoke it
  * greet();
@@ -103,7 +103,7 @@ import { runtimeQrl } from './qrl';
  *
  * ```
  * <div q:base="/build/">
- *   <button onClick="./chunk-abc.js#onClick">...</button>
+ *   <button on:lick="./chunk-abc.js#onClick">...</button>
  * </div>
  * ```
  *
@@ -148,9 +148,9 @@ export interface QRL<TYPE = any> {
  */
 export type EventHandler<T> = QRL<(value: T) => any>;
 
-// <docs markdown="https://hackmd.io/m5DzCi5MTa26LuUj5t3HpQ#$">
+// <docs markdown="./qrl.public.md#$">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fm5DzCi5MTa26LuUj5t3HpQ%3Fboth#$ instead)
+// (edit ./qrl.public.md#$ instead)
 /**
  * Qwik Optimizer marker function.
  *
@@ -165,7 +165,7 @@ export type EventHandler<T> = QRL<(value: T) => any>;
  * `mousemove` event fires.
  *
  * ```typescript
- * onDocument(
+ * useOnDocument(
  *   'mousemove',
  *   $(() => console.log('mousemove'))
  * );
@@ -175,7 +175,7 @@ export type EventHandler<T> = QRL<(value: T) => any>;
  *
  * ```typescript
  * // FILE: <current file>
- * onDocument('mousemove', qrl('./chunk-abc.js', 'onMousemove'));
+ * useOnDocument('mousemove', qrl('./chunk-abc.js', 'onMousemove'));
  *
  * // FILE: chunk-abc.js
  * export const onMousemove = () => console.log('mousemove');
@@ -229,9 +229,9 @@ export function $<T>(expression: T): QRL<T> {
   return runtimeQrl(expression);
 }
 
-// <docs markdown="https://hackmd.io/m5DzCi5MTa26LuUj5t3HpQ#implicit$FirstArg">
+// <docs markdown="./qrl.public.md#implicit$FirstArg">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fm5DzCi5MTa26LuUj5t3HpQ%3Fboth#implicit$FirstArg instead)
+// (edit ./qrl.public.md#implicit$FirstArg instead)
 /**
  * Create a `____$(...)` convenience method from `___(...)`.
  *

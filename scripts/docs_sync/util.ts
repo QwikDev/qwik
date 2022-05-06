@@ -18,7 +18,7 @@ export async function scanFiles(
         if (status.isDirectory()) {
           promises.push(scanFiles(path, callback));
         } else if (status.isFile()) {
-          promises.push(callback(join(dir, file)));
+          promises.push(callback(path));
         }
       });
     });

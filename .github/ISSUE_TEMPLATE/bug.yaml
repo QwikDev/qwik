@@ -35,17 +35,17 @@ body:
         - Qwik React
         - Qwik City
         - Starters / CLI
-      validations:
-        required: true
 
     validations:
       required: true
 
+
   - type: textarea
     id: expected_behaviour
-    description: "A clear and concise description of what you expected to happen."
     attributes:
+      description: "A clear and concise description of what you expected to happen."
       label: Expected Behaviour
+
     validations:
       required: true
 

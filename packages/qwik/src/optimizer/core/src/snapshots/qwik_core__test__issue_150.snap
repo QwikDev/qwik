@@ -31,7 +31,9 @@ qwik.qrl(()=>import("./d_wknfjeiqvua")
 import * as qwik from "@builder.io/qwik";
 export const d_wKNFJEIQVUA = ()=>console.log('thing')
 ;
-export { handleWatch } from "@builder.io/qwik";
+import { handleWatch as hW } from "@builder.io/qwik";
+hW.issue456 && hW.issue123();
+export { hW as handleWatch };
 
 /*
 {
@@ -55,7 +57,9 @@ import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 export const Greeter_component_1_krCndSwhX4U = ()=>{
     return /*#__PURE__*/ _jsx("div", {});
 };
-export { handleWatch } from "@builder.io/qwik";
+import { handleWatch as hW } from "@builder.io/qwik";
+hW.issue456 && hW.issue123();
+export { hW as handleWatch };
 
 /*
 {
@@ -79,7 +83,9 @@ export const Greeter_component_n7HuG2hhU0Q = ()=>{
     return qwik.qrl(()=>import("./greeter_component_1_krcndswhx4u")
     , "Greeter_component_1_krCndSwhX4U");
 };
-export { handleWatch } from "@builder.io/qwik";
+import { handleWatch as hW } from "@builder.io/qwik";
+hW.issue456 && hW.issue123();
+export { hW as handleWatch };
 
 /*
 {

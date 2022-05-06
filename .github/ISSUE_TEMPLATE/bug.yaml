@@ -9,12 +9,14 @@ body:
       placeholder: e.g. vX.Y.Z
     validations:
       required: true
+
   - type: input
     id: os_version
     attributes:
       label: Operating System (or Browser)
     validations:
       required: true
+
   - type: input
     id: node_version
     attributes:
@@ -22,22 +24,23 @@ body:
     validations:
       required: false
 
-- type: dropdown
-  id: component
-  attributes:
-    label: Which component is affected?
-    options:
-      - Qwik Runtime
-      - Qwik Rollup / Vite plugin
-      - Qwik Optimizer (rust)
-      - Qwik React
-      - Qwik City
-      - Starters / CLI
+  - type: dropdown
+    id: component
+    attributes:
+      label: Which component is affected?
+      options:
+        - Qwik Runtime
+        - Qwik Rollup / Vite plugin
+        - Qwik Optimizer (rust)
+        - Qwik React
+        - Qwik City
+        - Starters / CLI
+      validations:
+        required: true
+
     validations:
       required: true
 
-  validations:
-    required: true
   - type: textarea
     id: expected_behaviour
     description: "A clear and concise description of what you expected to happen."

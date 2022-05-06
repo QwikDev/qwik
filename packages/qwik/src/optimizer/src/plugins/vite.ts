@@ -15,6 +15,7 @@ import {
 import { createRollupError } from './rollup';
 import { QWIK_LOADER_DEFAULT_DEBUG, QWIK_LOADER_DEFAULT_MINIFIED } from '../scripts';
 import type { OutputOptions } from 'rollup';
+import { getValidManifest } from '../manifest';
 
 /**
  * @alpha
@@ -232,28 +233,28 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       const opts = qwikPlugin.getOptions();
       const optimizer = await qwikPlugin.getOptimizer();
 
+      const outputAnalyzer = qwikPlugin.createOutputAnalyzer();
+
+      for (const fileName in rollupBundle) {
+        const b = rollupBundle[fileName];
+        if (b.type === 'chunk') {
+          outputAnalyzer.addBundle({
+            fileName,
+            modules: b.modules,
+            imports: b.imports,
+            dynamicImports: b.dynamicImports,
+            size: b.code.length,
+          });
+        }
+      }
+
+      const manifest = await outputAnalyzer.generateManifest();
+      if (typeof opts.manifestOutput === 'function') {
+        await opts.manifestOutput(manifest);
+      }
+
       if (opts.buildMode === 'production' || opts.buildMode === 'development') {
         // client build
-        const outputAnalyzer = qwikPlugin.createOutputAnalyzer();
-
-        for (const fileName in rollupBundle) {
-          const b = rollupBundle[fileName];
-          if (b.type === 'chunk') {
-            outputAnalyzer.addBundle({
-              fileName,
-              modules: b.modules,
-              imports: b.imports,
-              dynamicImports: b.dynamicImports,
-              size: b.code.length,
-            });
-          }
-        }
-
-        const manifest = await outputAnalyzer.generateManifest();
-        if (typeof opts.manifestOutput === 'function') {
-          await opts.manifestOutput(manifest);
-        }
-
         this.emitFile({
           type: 'asset',
           fileName: Q_MANIFEST_FILENAME,
@@ -265,32 +266,34 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         }
       } else if (opts.buildMode === 'ssr') {
         // server build
-        let manifestInput = opts.manifestInput;
+        let clientManifestInput = opts.manifestInput;
 
-        if (!manifestInput && optimizer.sys.env() === 'node') {
+        if (!clientManifestInput && optimizer.sys.env() === 'node') {
           // manifest not provided, and in a nodejs environment
           try {
             // check if we can find q-manifest.json from the client build
             const fs: typeof import('fs') = await optimizer.sys.dynamicImport('fs');
             const qSymbolsPath = optimizer.sys.path.join(opts.outClientDir, Q_MANIFEST_FILENAME);
             const qSymbolsContent = fs.readFileSync(qSymbolsPath, 'utf-8');
-            manifestInput = JSON.parse(qSymbolsContent);
+            clientManifestInput = JSON.parse(qSymbolsContent);
+
+            fs.writeFileSync(
+              optimizer.sys.path.join(opts.outServerDir, 'q-manifest.server.json'),
+              JSON.stringify(manifest, null, 2)
+            );
           } catch (e) {
             /** */
           }
         }
 
-        if (
-          manifestInput &&
-          typeof manifestInput === 'object' &&
-          typeof manifestInput.mapping === 'object'
-        ) {
+        const clientManifest = getValidManifest(clientManifestInput);
+        if (clientManifest) {
           // have a valid manifest
-          const manifestStr = JSON.stringify(manifestInput);
+          const clientManifestStr = JSON.stringify(clientManifest);
           for (const fileName in rollupBundle) {
             const b = rollupBundle[fileName];
             if (b.type === 'chunk') {
-              b.code = qwikPlugin.updateSsrManifestDefault(manifestStr, b.code);
+              b.code = qwikPlugin.updateSsrManifestDefault(clientManifestStr, b.code);
             }
           }
         }

@@ -74,7 +74,7 @@ const Counter = component$(() => {
 
 In the above example, `() => store.count++` is the event handler that is invoked on the user clicking on the `<button>`.
 
-When `() => store.count++` is invoked the `store` is a proxy that intercepts the `count` write. It then looks up all of the subscriptions on count (finds that `Counter` OnRender has a subscription due to `{store.count}`) and invalidates the associated components. Once the component is invalidated, the `Counter` OnRender method is lazy-loaded and executed to update the view.
+When `() => store.count++` is invoked the `store` is a proxy that intercepts the `count` write. It then looks up all of the subscriptions on count (finds that `Counter`'s OnRender has a subscription due to `{store.count}`) and invalidates the associated components. Once the component is invalidated, the `Counter`'s OnRender method is lazy-loaded and executed to update the view.
 
 NOTE: All reactive systems must at the beginning execute all of the templates in order to build up the subscription graph. Qwik is no different; however, this is performed, and the server and the subscription graph is then serialized into HTML and shipped to the browser. The browser can use the serialized graph to resume components without forcing a full-scale render to re-build the graph.
 

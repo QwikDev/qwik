@@ -118,6 +118,8 @@ export interface HookAnalysis {
   origin: string;
   name: string;
   entry: string | null;
+  displayName: string;
+  hash: string;
   canonicalFilename: string;
   extension: string;
   parent: string | null;
@@ -245,6 +247,10 @@ export interface QwikManifest {
  * @alpha
  */
 export interface QwikSymbol {
+  origin: string;
+  displayName: string;
+  hash: string;
+  canonicalFilename: string;
   ctxKind: 'function' | 'event';
   ctxName: string;
   captures: boolean;

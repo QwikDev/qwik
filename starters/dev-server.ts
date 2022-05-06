@@ -118,6 +118,7 @@ async function buildApp(appDir: string) {
     plugins: [
       devPlugin(),
       optimizer.qwikRollup({
+        buildMode: 'production',
         srcDir: appSrcDir,
         entryStrategy: { type: 'single' },
         manifestOutput: (m) => {

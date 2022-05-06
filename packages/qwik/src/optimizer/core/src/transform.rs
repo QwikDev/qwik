@@ -804,9 +804,13 @@ impl<'a> Fold for QwikTransform<'a> {
     }
 }
 
-pub fn add_handle_watch(body: &mut Vec<ast::ModuleItem>) {
-    let id = id!(private_ident!(JsWord::from("hW")));
-    let import = create_synthetic_named_import_auto(&id, &HANDLE_WATCH, &BUILDER_IO_QWIK);
+pub fn add_handle_watch(body: &mut Vec<ast::ModuleItem>, private: bool) {
+    let ident = if private {
+        private_ident!(JsWord::from("hW"))
+    } else {
+        ast::Ident::new(JsWord::from("hW"), DUMMY_SP)
+    };
+    let import = create_synthetic_named_import_auto(&id!(ident), &HANDLE_WATCH, &BUILDER_IO_QWIK);
     body.push(import);
     body.push(ast::ModuleItem::Stmt(ast::Stmt::Expr(ast::ExprStmt {
         span: DUMMY_SP,
@@ -814,13 +818,13 @@ pub fn add_handle_watch(body: &mut Vec<ast::ModuleItem>) {
             span: DUMMY_SP,
             op: ast::BinaryOp::LogicalAnd,
             left: Box::new(ast::Expr::Member(ast::MemberExpr {
-                obj: Box::new(ast::Expr::Ident(new_ident_from_id(&id))),
+                obj: Box::new(ast::Expr::Ident(ident.clone())),
                 prop: ast::MemberProp::Ident(ast::Ident::new(JsWord::from("issue456"), DUMMY_SP)),
                 span: DUMMY_SP,
             })),
             right: Box::new(ast::Expr::Call(ast::CallExpr {
                 callee: ast::Callee::Expr(Box::new(ast::Expr::Member(ast::MemberExpr {
-                    obj: Box::new(ast::Expr::Ident(new_ident_from_id(&id))),
+                    obj: Box::new(ast::Expr::Ident(ident.clone())),
                     prop: ast::MemberProp::Ident(ast::Ident::new(
                         JsWord::from("issue123"),
                         DUMMY_SP,
@@ -840,7 +844,7 @@ pub fn add_handle_watch(body: &mut Vec<ast::ModuleItem>) {
             asserts: None,
             type_only: false,
             specifiers: vec![ast::ExportSpecifier::Named(ast::ExportNamedSpecifier {
-                orig: ast::ModuleExportName::Ident(new_ident_from_id(&id)),
+                orig: ast::ModuleExportName::Ident(ident.clone()),
                 exported: Some(ast::ModuleExportName::Ident(ast::Ident::new(
                     HANDLE_WATCH.clone(),
                     DUMMY_SP,

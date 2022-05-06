@@ -127,7 +127,7 @@ pub fn new_module(ctx: NewModuleCtx) -> Result<(ast::Module, SingleThreadedComme
     module.body.push(create_named_export(expr, ctx.name));
     if ctx.is_entry {
         // Inject qwik internal import
-        add_handle_watch(&mut module.body);
+        add_handle_watch(&mut module.body, true);
     }
     Ok((module, comments))
 }
@@ -284,7 +284,7 @@ fn new_entry_module(hooks: &[&HookAnalysis]) -> ast::Module {
             )));
     }
 
-    add_handle_watch(&mut module.body);
+    add_handle_watch(&mut module.body, false);
     module
 }
 

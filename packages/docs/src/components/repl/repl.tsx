@@ -32,13 +32,13 @@ export const Repl = component$(async (props: ReplProps) => {
     selectedOutputDetail: 'options',
     selectedClientModule: '',
     selectedSsrModule: '',
-    entryStrategy: 'hook',
-    buildMode: 'development',
     ssrBuild: true,
     debug: false,
     iframeUrl: 'about:blank',
     iframeWindow: null,
     version: props.version,
+    entryStrategy: props.entryStrategy || 'hook',
+    buildMode: props.buildMode || 'development',
     versions: [],
   });
 
@@ -78,11 +78,11 @@ export const Repl = component$(async (props: ReplProps) => {
       sessionStorage.setItem('qwikNpmData', JSON.stringify(data));
     }
 
-    store.versions = data.versions.filter(
-      (v) => !v.includes('-') && parseInt(v.split('.')[2]) >= 19
-    );
+    store.versions = data.versions;
+
     if (!store.version || !data.versions.includes(store.version)) {
-      store.version = data.tags.latest;
+      store.version = '0.0.20-0';
+      // store.version = data.tags.latest;
     }
 
     store.iframeUrl = '/repl/';
@@ -193,6 +193,8 @@ export interface ReplProps {
   enableClientOutput?: boolean;
   enableSsrOutput?: boolean;
   version?: string;
+  entryStrategy?: string;
+  buildMode?: 'development' | 'production';
 }
 
 // https://data.jsdelivr.com/v1/package/npm/@builder.io/qwik

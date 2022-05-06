@@ -415,6 +415,10 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
           manifest.mapping[symbolName] = bundleFileName;
 
           manifest.symbols[symbolName] = {
+            origin: hook.origin,
+            displayName: hook.displayName,
+            canonicalFilename: hook.canonicalFilename,
+            hash: hook.hash,
             ctxKind: hook.ctxKind,
             ctxName: hook.ctxName,
             captures: hook.captures,

@@ -70,4 +70,4 @@ export interface ReplResultAttributes {
 
 export type OutputPanel = 'app' | 'outputHtml' | 'clientModules' | 'serverModules' | 'diagnostics';
 
-export type OutputDetail = 'options' | 'network' | 'usage';
+export type OutputDetail = 'options' | 'network';

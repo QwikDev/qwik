@@ -21,7 +21,7 @@ pre[class*='language-'] {
 
 html {
   --header-height: 56px;
-  --repl-tab-height: 40px;
+  --repl-tab-height: 56px;
   --repl-tab-bg-color: rgb(208, 208, 208);
 }
 

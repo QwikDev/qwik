@@ -721,7 +721,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@builder.io/qwik@0.0.20-0, @builder.io/qwik@workspace:packages/qwik":
+"@builder.io/qwik@npm:0.0.20-0":
+  version: 0.0.20-0
+  resolution: "@builder.io/qwik@npm:0.0.20-0"
+  checksum: 2dbc2b5dded460c0eee44ee65f9ef00030c61b3826f31fcabd2136db989043b672b66db17876fcd5c255b0dfaa3e09faebd68fe3b1f04ec584c5e7616c2d2764
+  languageName: node
+  linkType: hard
+
+"@builder.io/qwik@workspace:packages/qwik":
   version: 0.0.0-use.local
   resolution: "@builder.io/qwik@workspace:packages/qwik"
   languageName: unknown

@@ -12,14 +12,14 @@
 			"  const state = useStore({",
 			"    count: 0",
 			"  });",
-			"  $0", 
+			"  $0",
 			"  return (",
 			"    <Host>",
 			"      <button onClick$={() => state.count += props.step}>",
 			"        {state.count}",
 			"      </button>",
 			"    </Host>",
-			"  );", 
+			"  );",
 			"});"
 		]
 	},
@@ -28,14 +28,14 @@
 		"prefix": "component$basic",
 		"description": "Basic Qwik component",
 		"body": [
-			"export const ${1:MyCmp} = component$(() => {", 
+			"export const ${1:MyCmp} = component$(() => {",
 			"  return (",
 			"    <Host>",
 			"      <div>",
 			"        ${1:MyCmp}",
 			"      </div>",
 			"    </Host>",
-			"  );", 
+			"  );",
 			"});"
 		]
 	},
@@ -56,6 +56,40 @@
 		"description": "$() function hook",
 		"body": [
 			"$(() => {",
+			"  $0",
+			"});",
+			""
+		]
+	},
+	"useClientEffect": {
+		"scope": "javascriptreact,typescriptreact",
+		"prefix": "useClientEffect",
+		"description": "useClientEffect$() function hook",
+		"body": [
+			"useClientEffect$(() => {",
+			"  $0",
+			"});",
+			""
+		]
+	},
+	"useWatch": {
+		"scope": "javascriptreact,typescriptreact",
+		"prefix": "useWatch",
+		"description": "useWatch$() function hook",
+		"body": [
+			"useWatch$((track) => {",
+			"  track($1);",
+			"  $0",
+			"});",
+			""
+		]
+	},
+	"useServerMount": {
+		"scope": "javascriptreact,typescriptreact",
+		"prefix": "useServerMount",
+		"description": "useServerMount$() function hook",
+		"body": [
+			"useServerMount$(() => {",
 			"  $0",
 			"});",
 			""

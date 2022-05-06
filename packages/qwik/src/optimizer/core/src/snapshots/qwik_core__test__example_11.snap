@@ -114,7 +114,9 @@ export const App = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("../entry_hook
 export { Header_component_Header_onClick_KjD9TCNkNxY } from "./header_component_header_onclick_kjd9tcnknxy";
 export { Header_component_UVBJuFYfvDo } from "./header_component_uvbjufyfvdo";
 export { App_component_wGkRHWXaqjs } from "./app_component_wgkrhwxaqjs";
-export { handleWatch } from "@builder.io/qwik";
+import { handleWatch as hW } from "@builder.io/qwik";
+hW.issue456 && hW.issue123();
+export { hW as handleWatch };
 
 == DIAGNOSTICS ==
 

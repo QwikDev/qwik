@@ -24,7 +24,9 @@ export const Header_component_J4uyIhaBNR4 = ()=>{
     const { foo , bar  } = foo();
     return <div >{thing}</div>;
 };
-export { handleWatch } from "@builder.io/qwik";
+import { handleWatch as hW } from "@builder.io/qwik";
+hW.issue456 && hW.issue123();
+export { hW as handleWatch };
 
 /*
 {

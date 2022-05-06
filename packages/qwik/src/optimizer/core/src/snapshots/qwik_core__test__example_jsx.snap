@@ -76,7 +76,9 @@ export const Foo_component_HTDRsvUbLiE = (props)=>{
         props
     ]);
 };
-export { handleWatch } from "@builder.io/qwik";
+import { handleWatch as hW } from "@builder.io/qwik";
+hW.issue456 && hW.issue123();
+export { hW as handleWatch };
 
 /*
 {
@@ -139,7 +141,9 @@ export const Foo_component_1_DvU6FitWglY = ()=>{
         ]
     });
 };
-export { handleWatch } from "@builder.io/qwik";
+import { handleWatch as hW } from "@builder.io/qwik";
+hW.issue456 && hW.issue123();
+export { hW as handleWatch };
 
 /*
 {

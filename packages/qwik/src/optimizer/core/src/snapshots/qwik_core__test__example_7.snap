@@ -28,7 +28,9 @@ export const Header_component_J4uyIhaBNR4 = ()=>{
     return <div onClick={qwik.qrl(()=>import("./header_component_div_onclick_i7ekvwh3674")
     , "Header_component_div_onClick_i7ekvWH3674")}/>;
 };
-export { handleWatch } from "@builder.io/qwik";
+import { handleWatch as hW } from "@builder.io/qwik";
+hW.issue456 && hW.issue123();
+export { hW as handleWatch };
 
 /*
 {
@@ -61,7 +63,9 @@ import { Header } from "./test";
 export const App_component_ckEPmXZlub0 = ()=>{
     return <Header />;
 };
-export { handleWatch } from "@builder.io/qwik";
+import { handleWatch as hW } from "@builder.io/qwik";
+hW.issue456 && hW.issue123();
+export { hW as handleWatch };
 
 /*
 {
@@ -83,7 +87,9 @@ export { handleWatch } from "@builder.io/qwik";
 import * as qwik from "@builder.io/qwik";
 export const Header_component_div_onClick_i7ekvWH3674 = (ctx)=>console.log(ctx)
 ;
-export { handleWatch } from "@builder.io/qwik";
+import { handleWatch as hW } from "@builder.io/qwik";
+hW.issue456 && hW.issue123();
+export { hW as handleWatch };
 
 /*
 {

@@ -7,11 +7,14 @@ expression: output
 
 import { $, component$, useStyles } from '@builder.io/qwik';
 
+export const hW = 12;
+export const handleWatch = 42;
+
 const componentQrl = () => console.log('not this');
 componentQrl();
 export const Foo = component$(() => {
     useStyles$('thing');
-    const qwik = 12;
+    const qwik = hW + handleWatch;
     console.log(qwik);
     return $(() => {
         return (
@@ -37,6 +40,8 @@ export const Root = component$(() => {
 
 import * as qwik from "@builder.io/qwik";
 import { componentQrl as componentQrl1 } from "@builder.io/qwik";
+export const hW = 12;
+export const handleWatch = 42;
 const componentQrl = ()=>console.log('not this')
 ;
 componentQrl();
@@ -52,14 +57,18 @@ export const Root = /*#__PURE__*/ componentQrl1(qwik.qrl(()=>import("./root_comp
 ============================= foo_component_htdrsvublie.js (ENTRY POINT)==
 
 import * as qwik from "@builder.io/qwik";
+import { hW } from "./test";
+import { handleWatch } from "./test";
 export const Foo_component_HTDRsvUbLiE = ()=>{
     useStyles$('thing');
-    const qwik1 = 12;
+    const qwik1 = hW + handleWatch;
     console.log(qwik1);
     return qwik.qrl(()=>import("./foo_component_1_dvu6fitwgly")
     , "Foo_component_1_DvU6FitWglY");
 };
-export { handleWatch } from "@builder.io/qwik";
+import { handleWatch as hW1 } from "@builder.io/qwik";
+hW1.issue456 && hW1.issue123();
+export { hW1 as handleWatch };
 
 /*
 {
@@ -83,7 +92,9 @@ import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 export const Foo_component_1_DvU6FitWglY = ()=>{
     return /*#__PURE__*/ _jsx("div", {});
 };
-export { handleWatch } from "@builder.io/qwik";
+import { handleWatch as hW } from "@builder.io/qwik";
+hW.issue456 && hW.issue123();
+export { hW as handleWatch };
 
 /*
 {
@@ -110,7 +121,9 @@ export const Root_component_royhjYaCbYE = ()=>{
     return qwik.qrl(()=>import("./root_component_2_iqsg9sgbdfk")
     , "Root_component_2_iqSg9SGBdfk");
 };
-export { handleWatch } from "@builder.io/qwik";
+import { handleWatch as hW } from "@builder.io/qwik";
+hW.issue456 && hW.issue123();
+export { hW as handleWatch };
 
 /*
 {
@@ -131,7 +144,9 @@ export { handleWatch } from "@builder.io/qwik";
 
 import * as qwik from "@builder.io/qwik";
 export const Root_component_1_cBpQNYDUHI4 = 'thing';
-export { handleWatch } from "@builder.io/qwik";
+import { handleWatch as hW } from "@builder.io/qwik";
+hW.issue456 && hW.issue123();
+export { hW as handleWatch };
 
 /*
 {
@@ -155,7 +170,9 @@ import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 export const Root_component_2_iqSg9SGBdfk = ()=>{
     return /*#__PURE__*/ _jsx("div", {});
 };
-export { handleWatch } from "@builder.io/qwik";
+import { handleWatch as hW } from "@builder.io/qwik";
+hW.issue456 && hW.issue123();
+export { hW as handleWatch };
 
 /*
 {

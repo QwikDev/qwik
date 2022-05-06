@@ -1,8 +1,6 @@
 use crate::collector::{new_ident_from_id, GlobalCollect, Id, ImportKind};
 use crate::parse::{emit_source_code, HookAnalysis, PathData, TransformModule, TransformOutput};
-use crate::transform::{
-    create_internal_call, create_synthetic_named_export, create_synthetic_wildcard_import,
-};
+use crate::transform::{add_handle_watch, create_internal_call, create_synthetic_wildcard_import};
 use crate::words::*;
 
 use std::collections::BTreeMap;
@@ -129,10 +127,7 @@ pub fn new_module(ctx: NewModuleCtx) -> Result<(ast::Module, SingleThreadedComme
     module.body.push(create_named_export(expr, ctx.name));
     if ctx.is_entry {
         // Inject qwik internal import
-        module.body.push(create_synthetic_named_export(
-            &HANDLE_WATCH,
-            &BUILDER_IO_QWIK,
-        ));
+        add_handle_watch(&mut module.body, true);
     }
     Ok((module, comments))
 }
@@ -289,11 +284,7 @@ fn new_entry_module(hooks: &[&HookAnalysis]) -> ast::Module {
             )));
     }
 
-    module.body.push(create_synthetic_named_export(
-        &HANDLE_WATCH,
-        &BUILDER_IO_QWIK,
-    ));
-
+    add_handle_watch(&mut module.body, false);
     module
 }
 

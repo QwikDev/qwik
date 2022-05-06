@@ -34,7 +34,9 @@ export const s_HTDRsvUbLiE = ()=>{
 
         </div>;
 };
-export { handleWatch } from "@builder.io/qwik";
+import { handleWatch as hW } from "@builder.io/qwik";
+hW.issue456 && hW.issue123();
+export { hW as handleWatch };
 
 /*
 {
@@ -56,7 +58,9 @@ export { handleWatch } from "@builder.io/qwik";
 import * as qwik from "@builder.io/qwik";
 export const s_9DcJc0uJDDo = ()=>console.log('first')
 ;
-export { handleWatch } from "@builder.io/qwik";
+import { handleWatch as hW } from "@builder.io/qwik";
+hW.issue456 && hW.issue123();
+export { hW as handleWatch };
 
 /*
 {
@@ -78,7 +82,9 @@ export { handleWatch } from "@builder.io/qwik";
 import * as qwik from "@builder.io/qwik";
 export const s_w9ptFRBVK1E = ()=>console.log('third')
 ;
-export { handleWatch } from "@builder.io/qwik";
+import { handleWatch as hW } from "@builder.io/qwik";
+hW.issue456 && hW.issue123();
+export { hW as handleWatch };
 
 /*
 {
@@ -100,7 +106,9 @@ export { handleWatch } from "@builder.io/qwik";
 import * as qwik from "@builder.io/qwik";
 export const s_RjQdy8I0MXc = ()=>console.log('second')
 ;
-export { handleWatch } from "@builder.io/qwik";
+import { handleWatch as hW } from "@builder.io/qwik";
+hW.issue456 && hW.issue123();
+export { hW as handleWatch };
 
 /*
 {

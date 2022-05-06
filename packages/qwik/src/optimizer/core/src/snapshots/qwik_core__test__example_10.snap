@@ -49,7 +49,9 @@ export const Header_WlR3xnI6u38 = (decl1, { decl2  }, [decl3])=>{
     return <div onClick={(ident11)=>ident11 + ident12
     } required={false}/>;
 };
-export { handleWatch } from "@builder.io/qwik";
+import { handleWatch as hW } from "@builder.io/qwik";
+hW.issue456 && hW.issue123();
+export { hW as handleWatch };
 
 /*
 {

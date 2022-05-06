@@ -672,12 +672,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@builder.io/partytown@npm:0.5.2, @builder.io/partytown@npm:^0.5.2":
-  version: 0.5.2
-  resolution: "@builder.io/partytown@npm:0.5.2"
+"@builder.io/partytown@npm:0.5.4, @builder.io/partytown@npm:^0.5.4":
+  version: 0.5.4
+  resolution: "@builder.io/partytown@npm:0.5.4"
   bin:
     partytown: bin/partytown.cjs
-  checksum: 88ca3f3e6e15039bf1e7319fbc580ba19cf0fc61136761dea82ab64e18eba5885f76b551d44102ac7e495e2c951815fc1fcf71629d2564097a81946912cd38a7
+  checksum: 2935390013f82e731160465a3b1d229cedfafec6b8c2ac7aad65e67012da0711962d9619bdffea1dbbae42b6109a89b501a655ef13a7c432bf95876f59f71f76
   languageName: node
   linkType: hard
 
@@ -686,7 +686,7 @@ __metadata:
   resolution: "@builder.io/qwik-city@workspace:packages/qwik-city"
   dependencies:
     "@mdx-js/mdx": ^2.1.1
-    "@microsoft/api-extractor": ^7.23.0
+    "@microsoft/api-extractor": ^7.23.1
     "@types/github-slugger": ^1.3.0
     "@types/marked": ^4.0.3
     "@types/mdx": 2.0.1
@@ -697,7 +697,7 @@ __metadata:
     hast-util-heading-rank: ^2.1.0
     hast-util-to-string: ^2.0.0
     history: ^5.3.0
-    marked: ^4.0.14
+    marked: ^4.0.15
     monaco-editor: ^0.33.0
     refractor: ^4.6.0
     rehype-autolink-headings: ^6.1.1
@@ -706,7 +706,7 @@ __metadata:
     slugify: ^1.6.5
     source-map: ^0.7.3
     tsm: ^2.2.1
-    typescript: 4.6.3
+    typescript: 4.6.4
     unified: ^10.1.2
     unist-util-visit: ^4.1.0
     uvu: ^0.5.3
@@ -721,7 +721,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@builder.io/qwik@workspace:*, @builder.io/qwik@workspace:packages/qwik":
+"@builder.io/qwik@npm:0.0.20-0":
+  version: 0.0.20-0
+  resolution: "@builder.io/qwik@npm:0.0.20-0"
+  checksum: 2dbc2b5dded460c0eee44ee65f9ef00030c61b3826f31fcabd2136db989043b672b66db17876fcd5c255b0dfaa3e09faebd68fe3b1f04ec584c5e7616c2d2764
+  languageName: node
+  linkType: hard
+
+"@builder.io/qwik@workspace:packages/qwik":
   version: 0.0.0-use.local
   resolution: "@builder.io/qwik@workspace:packages/qwik"
   languageName: unknown
@@ -736,10 +743,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@cloudflare/workers-types@npm:^3.7.1":
-  version: 3.7.1
-  resolution: "@cloudflare/workers-types@npm:3.7.1"
-  checksum: 2fb6111e29daae2cb777e543806012a955345beeef56dca1084a4c67c82352e412ac9a02ac527ec20de3adb656d9aa83921d3430ceeee6b7a5febe9e2a0472a9
+"@cloudflare/workers-types@npm:^3.9.0":
+  version: 3.9.0
+  resolution: "@cloudflare/workers-types@npm:3.9.0"
+  checksum: 61f808325c8d22029a646e1e2a2375c3af803a9070ca974fbc899b9e445d6487b135d2a52d5b70fec204d69ada9a1dd4d09a09fb96dbc5fe60df639fe2845921
   languageName: node
   linkType: hard
 
@@ -1073,9 +1080,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@microsoft/api-extractor@npm:7.23.0, @microsoft/api-extractor@npm:^7.23.0":
-  version: 7.23.0
-  resolution: "@microsoft/api-extractor@npm:7.23.0"
+"@microsoft/api-extractor@npm:7.23.1, @microsoft/api-extractor@npm:^7.23.1":
+  version: 7.23.1
+  resolution: "@microsoft/api-extractor@npm:7.23.1"
   dependencies:
     "@microsoft/api-extractor-model": 7.17.2
     "@microsoft/tsdoc": 0.14.1
@@ -1091,7 +1098,7 @@ __metadata:
     typescript: ~4.6.3
   bin:
     api-extractor: bin/api-extractor
-  checksum: 61d3609d7aa76bece292551eb9c7a1c04c2fa304962c8b7e97aa3b3add0431a225c022e32993e384a51290e121542c6a6b3ad4be24f5315a4c1501cf821018a2
+  checksum: 126de94e1527e2cebc77938dec635bbc2b8d4f15366e7b501f14510c9b8b6266ef28985ba60b94550d50b8edc7af20bf2b6afb3f0a435a3cfb726bbcd6aa987a
   languageName: node
   linkType: hard
 
@@ -1812,13 +1819,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/jest@npm:27.4.1":
-  version: 27.4.1
-  resolution: "@types/jest@npm:27.4.1"
+"@types/jest@npm:27.5.0":
+  version: 27.5.0
+  resolution: "@types/jest@npm:27.5.0"
   dependencies:
     jest-matcher-utils: ^27.0.0
     pretty-format: ^27.0.0
-  checksum: 5184f3eef4832d01ee8f59bed15eec45ccc8e29c724a5e6ce37bf74396b37bdf04f557000f45ba4fc38ae6075cf9cfcce3d7a75abc981023c61ceb27230a93e4
+  checksum: ca09ac3a17972e18683c57b681a6866c7a56c67f429810ece00425d948da62f207d271becb5cc759da3630f120596ec3c8e0ceb0eecefbe26daffba168b82879
   languageName: node
   linkType: hard
 
@@ -1894,10 +1901,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:17.0.29":
-  version: 17.0.29
-  resolution: "@types/node@npm:17.0.29"
-  checksum: bb9d7bce9d6d3882efd9d63b773b548dce98df4bd57eff8ceaa316aa2f3346e36d3618764cc93da84bbff92005174a35eec3465cde91ee973ef1c351ffa40074
+"@types/node@npm:17.0.31":
+  version: 17.0.31
+  resolution: "@types/node@npm:17.0.31"
+  checksum: 704618350f8420d5c47db0f7778398e821b7724369946f5c441a7e6b9343295553936400eb8309f0b07d5e39c240988ab3456b983712ca86265dabc9aee4ad3d
   languageName: node
   linkType: hard
 
@@ -2422,12 +2429,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"autoprefixer@npm:10.4.5":
-  version: 10.4.5
-  resolution: "autoprefixer@npm:10.4.5"
+"autoprefixer@npm:10.4.7":
+  version: 10.4.7
+  resolution: "autoprefixer@npm:10.4.7"
   dependencies:
-    browserslist: ^4.20.2
-    caniuse-lite: ^1.0.30001332
+    browserslist: ^4.20.3
+    caniuse-lite: ^1.0.30001335
     fraction.js: ^4.2.0
     normalize-range: ^0.1.2
     picocolors: ^1.0.0
@@ -2436,7 +2443,7 @@ __metadata:
     postcss: ^8.1.0
   bin:
     autoprefixer: bin/autoprefixer
-  checksum: 6c638d8f515a9c37776f9d6b1263e497768d9e8d8ad3b45d901513ba0f26c74df73f4afb84efd3253ab3d1c57803b4e2d97ad9b8919ef1955e373fcf24661213
+  checksum: 0e55d0d19806c672ec0c79cc23c27cf77e90edf2600670735266ba33ec5294458f404baaa2f7cd4cfe359cf7a97b3c86f01886bdbdc129a4f2f76ca5977a91af
   languageName: node
   linkType: hard
 
@@ -2629,7 +2636,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"browserslist@npm:^4.17.5, browserslist@npm:^4.20.2":
+"browserslist@npm:^4.17.5, browserslist@npm:^4.20.3":
   version: 4.20.3
   resolution: "browserslist@npm:4.20.3"
   dependencies:
@@ -2760,6 +2767,13 @@ __metadata:
   version: 1.0.30001332
   resolution: "caniuse-lite@npm:1.0.30001332"
   checksum: e54182ea42ab3d2ff1440f9a6480292f7ab23c00c188df7ad65586312e4da567e8bedd5cb5fb8f0ff4193dc027a54e17e0b3c0b6db5d5a3fb61c7726ff9c45b3
+  languageName: node
+  linkType: hard
+
+"caniuse-lite@npm:^1.0.30001335":
+  version: 1.0.30001338
+  resolution: "caniuse-lite@npm:1.0.30001338"
+  checksum: 80ac481b20aac13d6168825762e2ad9b9895d36451088b921400c3cd818185e6d113c2d202e82cf3b88f4d2311b3064507f2e3f9fe9f0935fcaf42d9d4f15570
   languageName: node
   linkType: hard
 
@@ -4346,9 +4360,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"express@npm:4.18.0":
-  version: 4.18.0
-  resolution: "express@npm:4.18.0"
+"express@npm:4.18.1":
+  version: 4.18.1
+  resolution: "express@npm:4.18.1"
   dependencies:
     accepts: ~1.3.8
     array-flatten: 1.1.1
@@ -4381,7 +4395,7 @@ __metadata:
     type-is: ~1.6.18
     utils-merge: 1.0.1
     vary: ~1.1.2
-  checksum: 2d83ccb02aedfc68ae99ff13b97f65896f4e0866a92f34e041fa3de858ce862bcb5ecd0cf43f266514eda777b8e0d55627a2430894a6ce17e30febf78da40c60
+  checksum: c3d44c92e48226ef32ec978becfedb0ecf0ca21316bfd33674b3c5d20459840584f2325726a4f17f33d9c99f769636f728982d1c5433a5b6fe6eb95b8cf0c854
   languageName: node
   linkType: hard
 
@@ -6390,12 +6404,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"marked@npm:^4.0.14":
-  version: 4.0.14
-  resolution: "marked@npm:4.0.14"
+"marked@npm:^4.0.15":
+  version: 4.0.15
+  resolution: "marked@npm:4.0.15"
   bin:
     marked: bin/marked.js
-  checksum: 778bc2fc94c51ae4fbafe5a08bc1f3917799c4dd39e9fccd972a97df4e5bc5aa78664b7143d12d4b4969608fb90c6a2de3f19811a2f9ccf6b7f207022f2842ba
+  checksum: 8992c37669b872846a226f90dc5a8fa1e5d56bba6e32fa36270fd3d327dd9e11fedc5b47b68de611dcdce1573d30fbadf61bf23f86c1a679e5385424d7b9d9f3
   languageName: node
   linkType: hard
 
@@ -7365,6 +7379,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"nanoid@npm:^3.3.3":
+  version: 3.3.4
+  resolution: "nanoid@npm:3.3.4"
+  bin:
+    nanoid: bin/nanoid.cjs
+  checksum: 2fddd6dee994b7676f008d3ffa4ab16035a754f4bb586c61df5a22cf8c8c94017aadd360368f47d653829e0569a92b129979152ff97af23a558331e47e37cd9c
+  languageName: node
+  linkType: hard
+
 "natural-compare@npm:^1.4.0":
   version: 1.4.0
   resolution: "natural-compare@npm:1.4.0"
@@ -7960,7 +7983,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss@npm:8.4.12, postcss@npm:^8.4.12":
+"postcss@npm:8.4.13, postcss@npm:^8.4.13":
+  version: 8.4.13
+  resolution: "postcss@npm:8.4.13"
+  dependencies:
+    nanoid: ^3.3.3
+    picocolors: ^1.0.0
+    source-map-js: ^1.0.2
+  checksum: 514fb3552805a5d039a2d6b4df3e73f657001716ca93c0d57e6067b0473abdea70276d80afc96005c9aaff82ed5d98062bd97724d3f47ca400fba0b5e9e436ed
+  languageName: node
+  linkType: hard
+
+"postcss@npm:^8.4.12":
   version: 8.4.12
   resolution: "postcss@npm:8.4.12"
   dependencies:
@@ -8155,19 +8189,19 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "qwik-docs@workspace:packages/docs"
   dependencies:
-    "@builder.io/partytown": ^0.5.2
-    "@builder.io/qwik": "workspace:*"
+    "@builder.io/partytown": ^0.5.4
+    "@builder.io/qwik": 0.0.20-0
     "@builder.io/qwik-city": 0.0.4
     "@cloudflare/kv-asset-handler": 0.2.0
-    "@cloudflare/workers-types": ^3.7.1
-    autoprefixer: 10.4.5
+    "@cloudflare/workers-types": ^3.9.0
+    autoprefixer: 10.4.7
     node-fetch: 2.6.7
-    postcss: 8.4.12
+    postcss: 8.4.13
     prism-themes: 1.9.0
     prismjs: ^1.28.0
     tailwindcss: 3.0.24
     uvu: 0.5.3
-    vite: 2.9.6
+    vite: 2.9.8
     wrangler: beta
   languageName: unknown
   linkType: soft
@@ -8176,9 +8210,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "qwik-monorepo@workspace:."
   dependencies:
-    "@builder.io/partytown": 0.5.2
+    "@builder.io/partytown": 0.5.4
     "@builder.io/qwik-dom": 2.1.14
-    "@microsoft/api-extractor": 7.23.0
+    "@microsoft/api-extractor": 7.23.1
     "@napi-rs/cli": 2.6.2
     "@napi-rs/triples": 1.1.0
     "@node-rs/helper": 1.3.3
@@ -8187,9 +8221,9 @@ __metadata:
     "@types/cross-spawn": 6.0.2
     "@types/eslint": 8.4.1
     "@types/express": 4.17.13
-    "@types/jest": 27.4.1
+    "@types/jest": 27.5.0
     "@types/mri": 1.1.1
-    "@types/node": 17.0.29
+    "@types/node": 17.0.31
     "@types/path-browserify": 1.0.0
     "@types/semver": 7.3.9
     "@types/source-map-support": 0.5.4
@@ -8203,7 +8237,7 @@ __metadata:
     eslint-plugin-no-only-tests: 2.6.0
     eslint-plugin-qwik: 0.0.18
     execa: 6.1.0
-    express: 4.18.0
+    express: 4.18.1
     gzip-size: 6.0.0
     husky: 7.0.4
     jest: 27.5.1
@@ -8212,16 +8246,16 @@ __metadata:
     node-fetch: ^2.0.0
     path-browserify: 1.0.1
     prettier: 2.6.2
-    rollup: 2.70.2
+    rollup: 2.72.0
     semver: 7.3.7
     source-map-support: 0.5.21
     tailwindcss: 3.0.24
-    terser: 5.13.0
+    terser: 5.13.1
     todomvc-app-css: 2.4.2
     todomvc-common: 1.0.5
     ts-jest: 27.1.4
-    typescript: 4.6.3
-    vite: 2.9.6
+    typescript: 4.6.4
+    vite: 2.9.8
     wasm-pack: 0.10.2
   languageName: unknown
   linkType: soft
@@ -8526,7 +8560,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rollup@npm:2.70.2, rollup@npm:^2.59.0":
+"rollup@npm:2.72.0":
+  version: 2.72.0
+  resolution: "rollup@npm:2.72.0"
+  dependencies:
+    fsevents: ~2.3.2
+  dependenciesMeta:
+    fsevents:
+      optional: true
+  bin:
+    rollup: dist/bin/rollup
+  checksum: d4c213d4250a0455e0ee40664db3339a9e3ca5affa09c348019b4895e7100cdbedeba881a239a7a80c407b4055dca4e97d10a740d99c09b17651efbfedd61a4b
+  languageName: node
+  linkType: hard
+
+"rollup@npm:^2.59.0":
   version: 2.70.2
   resolution: "rollup@npm:2.70.2"
   dependencies:
@@ -9185,9 +9233,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"terser@npm:5.13.0":
-  version: 5.13.0
-  resolution: "terser@npm:5.13.0"
+"terser@npm:5.13.1":
+  version: 5.13.1
+  resolution: "terser@npm:5.13.1"
   dependencies:
     acorn: ^8.5.0
     commander: ^2.20.0
@@ -9195,7 +9243,7 @@ __metadata:
     source-map-support: ~0.5.20
   bin:
     terser: bin/terser
-  checksum: fb3cfc11c16269f7563de48644b7d5adc4791bbb916eb59cda14db9497a494f287990d0451542294d836ea545d71649ca2c39ce9be35e90b456e9533a1e41259
+  checksum: 0b1f5043cf5c3973005fe2ae4ff3be82511c336a6430599dacd4e2acf77c974d4474b0f1eec4823977c1f33823147e736ff712ca8e098bee3db25946480fa29d
   languageName: node
   linkType: hard
 
@@ -9461,7 +9509,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:4.6.3, typescript@npm:~4.6.3":
+"typescript@npm:4.6.4":
+  version: 4.6.4
+  resolution: "typescript@npm:4.6.4"
+  bin:
+    tsc: bin/tsc
+    tsserver: bin/tsserver
+  checksum: e7bfcc39cd4571a63a54e5ea21f16b8445268b9900bf55aee0e02ad981be576acc140eba24f1af5e3c1457767c96cea6d12861768fb386cf3ffb34013718631a
+  languageName: node
+  linkType: hard
+
+"typescript@npm:~4.6.3":
   version: 4.6.3
   resolution: "typescript@npm:4.6.3"
   bin:
@@ -9471,7 +9529,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@4.6.3#~builtin<compat/typescript>, typescript@patch:typescript@~4.6.3#~builtin<compat/typescript>":
+"typescript@patch:typescript@4.6.4#~builtin<compat/typescript>":
+  version: 4.6.4
+  resolution: "typescript@patch:typescript@npm%3A4.6.4#~builtin<compat/typescript>::version=4.6.4&hash=bda367"
+  bin:
+    tsc: bin/tsc
+    tsserver: bin/tsserver
+  checksum: 1cb434fbc637d347be90e3a0c6cd05e33c38f941713c8786d3031faf1842c2c148ba91d2fac01e7276b0ae3249b8633f1660e32686cc7a8c6a8fd5361dc52c66
+  languageName: node
+  linkType: hard
+
+"typescript@patch:typescript@~4.6.3#~builtin<compat/typescript>":
   version: 4.6.3
   resolution: "typescript@patch:typescript@npm%3A4.6.3#~builtin<compat/typescript>::version=4.6.3&hash=bda367"
   bin:
@@ -9745,13 +9813,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:2.9.6":
-  version: 2.9.6
-  resolution: "vite@npm:2.9.6"
+"vite@npm:2.9.8":
+  version: 2.9.8
+  resolution: "vite@npm:2.9.8"
   dependencies:
     esbuild: ^0.14.27
     fsevents: ~2.3.2
-    postcss: ^8.4.12
+    postcss: ^8.4.13
     resolve: ^1.22.0
     rollup: ^2.59.0
   peerDependencies:
@@ -9770,7 +9838,7 @@ __metadata:
       optional: true
   bin:
     vite: bin/vite.js
-  checksum: 79bbf516547f4adb1a297ac8648f8818b3e2a7bb113a7e12acc2355498d247556f58fc50d39eec4891c07250e7420e72773e358eeb8dc62af62fc1ff32c70877
+  checksum: 7de3450bec4caa06f4540d1d252563ef0b7e1bdd167d04abf03db72cfd8c9a93879e18861283bc7d075e1d094b78b71770ca36f9b965bdf28c66665eafdc29dc
   languageName: node
   linkType: hard
 

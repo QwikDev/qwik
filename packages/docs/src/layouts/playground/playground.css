@@ -45,6 +45,14 @@
   background-color: #2a354d;
 }
 
+.playground-header select {
+  background-color: white;
+  color: black;
+  border-radius: 3px;
+  margin: 8px 0 0 12px;
+  font-size: 14px;
+}
+
 .playground .repl-input-panel {
   border-right: 1px solid var(--repl-tab-bg-color);
 }

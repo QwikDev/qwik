@@ -1,6 +1,8 @@
 import type { ReplStore } from './types';
 
 export const ReplOptions = ({ store }: ReplOptionsProps) => {
+  const versions = filterVersions(store.versions, store.version);
+
   return (
     <div class="output-detail detail-options">
       <StoreOption
@@ -15,12 +17,44 @@ export const ReplOptions = ({ store }: ReplOptionsProps) => {
       <StoreOption
         label="Version"
         storeProp="version"
-        options={store.versions}
+        options={versions}
         store={store}
-        isLoading={!store.versions || store.versions.length === 0}
+        isLoading={versions.length === 0}
       />
     </div>
   );
+};
+
+const filterVersions = (versions: string[], version: string | undefined) => {
+  if (!versions) {
+    if (version) {
+      return [version];
+    } else {
+      return [];
+    }
+  }
+
+  return versions.filter((v) => {
+    if (v === version) {
+      return true;
+    }
+    if (v.includes('-')) {
+      return false;
+    }
+    const parts = v.split('.');
+    if (parts.length !== 3) {
+      return false;
+    }
+    if (isNaN(parts[2] as any)) {
+      return false;
+    }
+    if (parts[0] === '0' && parts[1] === '0') {
+      if (parseInt(parts[2], 10) < 20) {
+        return false;
+      }
+    }
+    return true;
+  });
 };
 
 const StoreOption = (props: StoreOptionProps) => {

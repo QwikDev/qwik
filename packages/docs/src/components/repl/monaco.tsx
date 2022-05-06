@@ -202,7 +202,6 @@ const defaultEditorOpts: IStandaloneEditorConstructionOptions = {
   lineDecorationsWidth: 5,
   lineNumbersMinChars: 3,
   minimap: { enabled: false },
-  padding: { top: 15 },
   roundedSelection: false,
   scrollBeyondLastLine: false,
   tabSize: 2,

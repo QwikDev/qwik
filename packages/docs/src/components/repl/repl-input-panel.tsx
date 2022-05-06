@@ -1,6 +1,7 @@
 import type { QRL } from '@builder.io/qwik';
 import { Editor } from './editor';
 import { ReplTabButton } from './repl-tab-button';
+import { ReplTabButtons } from './repl-tab-buttons';
 import type { ReplStore } from './types';
 
 export const ReplInputPanel = ({
@@ -10,7 +11,7 @@ export const ReplInputPanel = ({
 }: ReplInputPanelProps) => {
   return (
     <div class="repl-panel repl-input-panel">
-      <div class="repl-tab-buttons">
+      <ReplTabButtons>
         {store.inputs.map((input) =>
           input.hidden ? null : (
             <ReplTabButton
@@ -28,7 +29,7 @@ export const ReplInputPanel = ({
             />
           )
         )}
-      </div>
+      </ReplTabButtons>
 
       <div class="repl-tab">
         <Editor

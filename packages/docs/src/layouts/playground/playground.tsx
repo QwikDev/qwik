@@ -14,6 +14,7 @@ import styles from './playground.css?inline';
 import { Header } from '../../components/header/header';
 import { setHeadMeta, setHeadStyles } from '@builder.io/qwik-city';
 import playgroundApps from './playground-data';
+import { useLocation } from '../../utils/useLocation';
 
 interface PlaygroundLayoutProps {
   store: SiteStore;
@@ -22,20 +23,12 @@ interface PlaygroundLayoutProps {
 const Playground = component$((props: PlaygroundLayoutProps) => {
   const hostElm = useHostElement();
 
-  const store = useStore<PlaygroundStore>({
-    title: '',
-    inputs: [],
-    version: '',
-    colResizeActive: false,
-    colLeft: 50,
+  const store = useStore<PlaygroundStore>(() => {
+    return loadPlaygroundStore(useLocation().hash);
   });
 
-  const helloWorldApp = playgroundApps.find((p) => p.id === 'hello-world')!;
-  store.title = helloWorldApp.title;
-  store.inputs = helloWorldApp.inputs;
-
   useWatch$(() => {
-    setHeadMeta(hostElm, { title: `${store.title} - Qwik Playground` });
+    setHeadMeta(hostElm, { title: `Qwik Playground` });
     setHeadStyles(hostElm, [
       {
         style: `html,body { margin: 0; height: 100%; overflow: hidden; }`,
@@ -67,11 +60,21 @@ const Playground = component$((props: PlaygroundLayoutProps) => {
     >
       <Header store={props.store} />
 
-      <div class="playground-header" />
+      <div class="playground-header">
+        <select>
+          {playgroundApps.map((app) => (
+            <option key={app.id} selected={store.appId === app.id ? true : undefined}>
+              {app.title}
+            </option>
+          ))}
+        </select>
+      </div>
 
       <Repl
         inputs={store.inputs}
         version={store.version}
+        buildMode={store.buildMode}
+        entryStrategy={store.entryStrategy}
         style={{
           gridTemplateColumns: `${store.colLeft}% ${100 - store.colLeft}%`,
         }}
@@ -91,10 +94,34 @@ const Playground = component$((props: PlaygroundLayoutProps) => {
   );
 });
 
+export function loadPlaygroundStore(hash: string) {
+  const playgroundStore: PlaygroundStore = {
+    appId: 'hello-world',
+    inputs: [],
+    version: '',
+    buildMode: 'development',
+    entryStrategy: 'hook',
+    colResizeActive: false,
+    colLeft: 50,
+  };
+
+  let app = playgroundApps.find((p) => p.id === playgroundStore.appId)!;
+  if (!app) {
+    app = playgroundApps.find((p) => p.id === 'hello-world')!;
+  }
+
+  playgroundStore.appId = app.id;
+  playgroundStore.inputs = app.inputs;
+
+  return playgroundStore;
+}
+
 interface PlaygroundStore {
-  title: string;
+  appId: string;
   inputs: TransformModuleInput[];
   version: string;
+  buildMode: 'development' | 'production';
+  entryStrategy: string;
   colResizeActive: boolean;
   colLeft: number;
 }

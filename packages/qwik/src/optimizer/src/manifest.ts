@@ -76,27 +76,11 @@ function prioritorizeSymbolNames(manifest: QwikManifest) {
       return 1;
     }
 
-    // captures "true" has higher priority
-    if (a.captures && !b.captures) {
-      return -1;
-    }
-    if (!a.captures && b.captures) {
-      return 1;
-    }
-
-    // sort by ctxName i guess
-    if (a.ctxName < b.ctxName) {
-      return -1;
-    }
-    if (a.ctxName > b.ctxName) {
-      return 1;
-    }
-
     // idk, they're pretty darn similar, just sort by the symbol name
-    if (symbolNameA < symbolNameB) {
+    if (a.hash < b.hash) {
       return -1;
     }
-    if (symbolNameA > symbolNameB) {
+    if (a.hash > b.hash) {
       return 1;
     }
     return 0;

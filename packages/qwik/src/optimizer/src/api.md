@@ -70,9 +70,13 @@ export interface HookAnalysis {
     // (undocumented)
     ctxName: string;
     // (undocumented)
+    displayName: string;
+    // (undocumented)
     entry: string | null;
     // (undocumented)
     extension: string;
+    // (undocumented)
+    hash: string;
     // (undocumented)
     name: string;
     // (undocumented)
@@ -223,11 +227,19 @@ export interface QwikRollupPluginOptions extends BasePluginOptions {
 // @alpha (undocumented)
 export interface QwikSymbol {
     // (undocumented)
+    canonicalFilename: string;
+    // (undocumented)
     captures: boolean;
     // (undocumented)
     ctxKind: 'function' | 'event';
     // (undocumented)
     ctxName: string;
+    // (undocumented)
+    displayName: string;
+    // (undocumented)
+    hash: string;
+    // (undocumented)
+    origin: string;
     // (undocumented)
     parent: string | null;
 }

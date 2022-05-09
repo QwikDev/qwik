@@ -2,7 +2,7 @@ import { getPlatform } from '../platform/platform';
 import { assertDefined, assertEqual } from '../assert/assert';
 import { parseQRL, QRLSerializeOptions, stringifyQRL } from '../import/qrl';
 import { isQrl, QRLInternal } from '../import/qrl-class';
-import { tryGetContext } from '../props/props';
+import { getContext } from '../props/props';
 import { getDocument } from '../util/dom';
 import { isNode } from '../util/element';
 import { logDebug, logError, logWarn } from '../util/log';
@@ -81,8 +81,7 @@ export function resumeContainer(containerEl: Element) {
     const qobj = el.getAttribute(QObjAttr)!;
     const seq = el.getAttribute(QSeqAttr)!;
     const host = el.getAttribute(QHostAttr);
-    const ctx = tryGetContext(el)!;
-    assertDefined(ctx);
+    const ctx = getContext(el);
 
     // Restore captured objets
     qobj.split(' ').forEach((part) => {
@@ -119,8 +118,7 @@ export function snapshotState(containerEl: Element) {
   // Collect all qObjected around the DOM
   const elements = getNodesInScope(containerEl, hasQObj);
   elements.forEach((node) => {
-    const ctx = tryGetContext(node)!;
-    assertDefined(ctx);
+    const ctx = getContext(node);
     const qMap = ctx.refMap;
     qMap.array.forEach((v) => {
       collectValue(v, objSet, doc);
@@ -241,7 +239,7 @@ export function snapshotState(containerEl: Element) {
 
   // Write back to the dom
   elements.forEach((node) => {
-    const ctx = tryGetContext(node)!;
+    const ctx = getContext(node)!;
     assertDefined(ctx);
     const props = ctx.props;
     const renderQrl = ctx.renderQrl;

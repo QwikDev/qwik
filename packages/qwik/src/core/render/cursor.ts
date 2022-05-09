@@ -817,13 +817,8 @@ function removeNode(ctx: RenderContext, el: Node) {
     const parent = el.parentNode;
     if (parent) {
       if (el.nodeType === 1) {
-        const elements = (el as Element).querySelectorAll(QObjSelector);
-        elements.forEach((el) => {
-          const ctx = tryGetContext(el);
-          if (ctx) {
-            cleanupContext(ctx);
-          }
-        });
+        cleanupElement(el as Element);
+        (el as Element).querySelectorAll(QObjSelector).forEach(cleanupElement);
       }
       parent.removeChild(el);
     } else if (qDev) {
@@ -836,6 +831,13 @@ function removeNode(ctx: RenderContext, el: Node) {
     args: [],
     fn,
   });
+}
+
+function cleanupElement(el: Element) {
+  const ctx = tryGetContext(el);
+  if (ctx) {
+    cleanupContext(ctx);
+  }
 }
 
 function createTextNode(ctx: RenderContext, text: string): Text {

@@ -12,7 +12,7 @@ import { Repl } from '../../components/repl/repl';
 import styles from './tutorial.css?inline';
 import { TutorialContentFooter } from './tutorial-content-footer';
 import { TutorialContentHeader } from './tutorial-content-header';
-import tutorialSections, { TutorialApp } from './tutorial-data';
+import tutorialSections, { TutorialApp } from '@tutorial-data';
 import { Header } from '../../components/header/header';
 import { setHeadStyles } from '@builder.io/qwik-city';
 

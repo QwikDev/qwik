@@ -47,11 +47,12 @@ export default defineConfig(() => {
 
 function playgroundData(pagesDir: string): Plugin {
   const playgroundDir = join(pagesDir, 'playground');
-  const playgroundMenuSrc = readFileSync(join(playgroundDir, 'playground-menu.json'), 'utf-8');
+  const playgroundMenuPath = join(playgroundDir, 'playground-menu.json');
+  const playgroundMenuSrc = readFileSync(playgroundMenuPath, 'utf-8');
 
   const loadPlaygroundData = (ctx: PluginContext) => {
     const menuApps: PlaygroundApp[] = JSON.parse(playgroundMenuSrc);
-    ctx.addWatchFile(playgroundMenuSrc);
+    ctx.addWatchFile(playgroundMenuPath);
 
     const apps: PlaygroundApp[] = [];
 
@@ -86,9 +87,15 @@ function playgroundData(pagesDir: string): Plugin {
   return {
     name: 'playgroundData',
 
+    resolveId(id) {
+      if (id === '@playground-data') {
+        return id;
+      }
+    },
+
     async load(id) {
       const filename = basename(id);
-      if (filename === 'playground-data.ts') {
+      if (filename === '@playground-data') {
         const data = loadPlaygroundData(this);
         return `const playgroundApps = ${JSON.stringify(data)};export default playgroundApps;`;
       }
@@ -99,12 +106,13 @@ function playgroundData(pagesDir: string): Plugin {
 
 function tutorialData(pagesDir: string): Plugin {
   const tutorialDir = join(pagesDir, 'tutorial');
-  const tutorialMenuSrc = readFileSync(join(tutorialDir, 'tutorial-menu.json'), 'utf-8');
+  const tutorialSrcPath = join(tutorialDir, 'tutorial-menu.json');
+  const tutorialMenuSrc = readFileSync(tutorialSrcPath, 'utf-8');
 
   const loadTutorialData = async (ctx: PluginContext) => {
     const tutorialSections: TutorialSection[] = [];
     const dataSections: TutorialSection[] = JSON.parse(tutorialMenuSrc);
-    ctx.addWatchFile(tutorialMenuSrc);
+    ctx.addWatchFile(tutorialSrcPath);
 
     for (const dataSection of dataSections) {
       const tutorialSectionDir = join(tutorialDir, dataSection.id);
@@ -198,9 +206,15 @@ function tutorialData(pagesDir: string): Plugin {
   return {
     name: 'tutorialData',
 
+    resolveId(id) {
+      if (id === '@tutorial-data') {
+        return id;
+      }
+    },
+
     async load(id) {
       const filename = basename(id);
-      if (filename === 'tutorial-data.ts') {
+      if (filename === '@tutorial-data') {
         const data = await loadTutorialData(this);
         return `const tutorials = ${JSON.stringify(data)};export default tutorials;`;
       }

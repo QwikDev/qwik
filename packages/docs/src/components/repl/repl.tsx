@@ -90,10 +90,11 @@ export const Repl = component$(async (props: ReplProps) => {
       store.iframeUrl += 'index.html';
     }
 
-    if (location.hostname === 'qwik.builder.io') {
-      // use a different domain on purpose
-      store.iframeUrl = 'https://qwik-docs.pages.dev' + store.iframeUrl;
-    }
+    // TODO!
+    // if (location.hostname === 'qwik.builder.io') {
+    //   // use a different domain on purpose
+    //   store.iframeUrl = 'https://qwik-docs.pages.dev' + store.iframeUrl;
+    // }
 
     // how do I not use window event listener here?
     window.addEventListener('message', (ev) => onMessageFromIframe(ev, store));

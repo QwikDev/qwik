@@ -22,8 +22,8 @@ import { useDocument } from '../use/use-document.public';
 import { useResumeQrl, useVisibleQrl } from '../component/component.public';
 
 export const enum WatchFlags {
-  IsConnected = 1 << 0,
-  IsDirty = 1 << 1,
+  IsDirty = 1 << 0,
+  IsCleanup = 1 << 1,
 }
 
 /**
@@ -78,11 +78,11 @@ export function useWatchQrl(qrl: QRL<WatchFn>, opts?: UseEffectOptions): void {
     const watch: WatchDescriptor = {
       qrl,
       el,
-      f: WatchFlags.IsConnected | WatchFlags.IsDirty,
+      f: WatchFlags.IsDirty,
     };
     setWatch(watch);
     getContext(el).refMap.add(watch);
-    useWaitOn(runWatch(watch));
+    useWaitOn(Promise.resolve().then(() => runWatch(watch)));
     const isServer = getPlatform(useDocument()).isServer;
     if (isServer) {
       useRunWatch(watch, opts?.run);
@@ -105,7 +105,7 @@ export function useClientEffectQrl(qrl: QRL<WatchFn>, opts?: UseEffectOptions): 
     const watch: WatchDescriptor = {
       qrl,
       el,
-      f: WatchFlags.IsConnected,
+      f: 0,
     };
     setWatch(watch);
     getContext(el).refMap.add(watch);
@@ -149,15 +149,7 @@ export function runWatch(watch: WatchDescriptor): Promise<WatchDescriptor> {
   watch.f &= ~WatchFlags.IsDirty;
   const promise = new Promise<WatchDescriptor>((resolve) => {
     then(watch.running, () => {
-      const destroy = watch.destroy;
-      if (destroy) {
-        watch.destroy = undefined;
-        try {
-          destroy();
-        } catch (err) {
-          logError(err);
-        }
-      }
+      cleanupWatch(watch);
       const el = watch.el;
       const invokationContext = newInvokeContext(getDocument(el), el, el, 'WatchEvent');
       invokationContext.watch = watch;
@@ -191,7 +183,29 @@ export function runWatch(watch: WatchDescriptor): Promise<WatchDescriptor> {
   return promise;
 }
 
-// <docs markdown="./watch.public.md#Tracker">
+export const cleanupWatch = (watch: WatchDescriptor) => {
+  const destroy = watch.destroy;
+  if (destroy) {
+    watch.destroy = undefined;
+    try {
+      destroy();
+    } catch (err) {
+      logError(err);
+    }
+  }
+};
+
+export const destroyWatch = (watch: WatchDescriptor) => {
+  if (watch.f & WatchFlags.IsCleanup) {
+    watch.f &= ~WatchFlags.IsCleanup;
+    const cleanup = watch.qrl.invokeFn(watch.el);
+    (cleanup as any)();
+  } else {
+    cleanupWatch(watch);
+  }
+};
+
+// <docs markdown="https://hackmd.io/_Kl9br9tT8OB-1Dv8uR4Kg#Observer">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ./watch.public.md#Tracker instead)
 /**

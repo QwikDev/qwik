@@ -1,5 +1,13 @@
-import { OnRenderProp, QSlotAttr } from '../util/markers';
-import { ComponentCtx, getContext, getProps, QContext, setEvent } from '../props/props';
+import { OnRenderProp, QObjSelector, QSlotAttr } from '../util/markers';
+import {
+  cleanupContext,
+  ComponentCtx,
+  getContext,
+  getProps,
+  QContext,
+  setEvent,
+  tryGetContext,
+} from '../props/props';
 import { isOn$Prop, isOnProp } from '../props/props-on';
 import type { ValueOrPromise } from '../util/types';
 import type { JSXNode } from '../render/jsx/types/jsx-node';
@@ -808,6 +816,15 @@ function removeNode(ctx: RenderContext, el: Node) {
   const fn = () => {
     const parent = el.parentNode;
     if (parent) {
+      if (el.nodeType === 1) {
+        const elements = (el as Element).querySelectorAll(QObjSelector);
+        elements.forEach((el) => {
+          const ctx = tryGetContext(el);
+          if (ctx) {
+            cleanupContext(ctx);
+          }
+        });
+      }
       parent.removeChild(el);
     } else if (qDev) {
       logWarn('Trying to remove component already removed', el);

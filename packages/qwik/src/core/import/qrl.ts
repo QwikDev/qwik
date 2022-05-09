@@ -28,9 +28,6 @@ export function toInternalQRL<T>(qrl: QRL<T>): QRLInternal<T> {
   return qrl as QRLInternal<T>;
 }
 
-// <docs markdown="https://hackmd.io/m5DzCi5MTa26LuUj5t3HpQ#qrlImport">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fm5DzCi5MTa26LuUj5t3HpQ%3Fboth#qrlImport instead)
 /**
  * Lazy-load a `QRL` symbol and return the lazy-loaded value.
  *
@@ -41,7 +38,6 @@ export function toInternalQRL<T>(qrl: QRL<T>): QRLInternal<T> {
  * @param qrl - QRL to load.
  * @returns A resolved QRL value as a Promise.
  */
-// </docs>
 export function qrlImport<T>(element: Element | undefined, qrl: QRL<T>): ValueOrPromise<T> {
   const qrl_ = toInternalQRL(qrl);
   if (qrl_.symbolRef) return qrl_.symbolRef;
@@ -62,9 +58,9 @@ export function qrlImport<T>(element: Element | undefined, qrl: QRL<T>): ValueOr
   }
 }
 
-// <docs markdown="https://hackmd.io/m5DzCi5MTa26LuUj5t3HpQ#qrl">
+// <docs markdown="./qrl.public.md#qrl">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2Fm5DzCi5MTa26LuUj5t3HpQ%3Fboth#qrl instead)
+// (edit ./qrl.public.md#qrl instead)
 /**
  * Used by Qwik Optimizer to point to lazy-loaded resources.
  *

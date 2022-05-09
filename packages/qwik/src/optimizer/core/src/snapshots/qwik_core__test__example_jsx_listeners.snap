@@ -42,7 +42,9 @@ export const Foo = component$(() => {
 import * as qwik from "@builder.io/qwik";
 export const Foo_component_div_host_onDocumentScroll_Zip7mifsjRY = ()=>console.log('host:onDocument:scroll')
 ;
-export { handleWatch } from "@builder.io/qwik";
+import { handleWatch as hW } from "@builder.io/qwik";
+hW.issue456 && hW.issue123();
+export { hW as handleWatch };
 
 /*
 {
@@ -75,7 +77,9 @@ export const Foo_component_HTDRsvUbLiE = ()=>{
     return qwik.qrl(()=>import("./foo_component_1_dvu6fitwgly")
     , "Foo_component_1_DvU6FitWglY");
 };
-export { handleWatch } from "@builder.io/qwik";
+import { handleWatch as hW } from "@builder.io/qwik";
+hW.issue456 && hW.issue123();
+export { hW as handleWatch };
 
 /*
 {
@@ -97,7 +101,9 @@ export { handleWatch } from "@builder.io/qwik";
 import * as qwik from "@builder.io/qwik";
 export const Foo_component_div_host_onClick_cPEH970JbEY = ()=>console.log('host:onClick$')
 ;
-export { handleWatch } from "@builder.io/qwik";
+import { handleWatch as hW } from "@builder.io/qwik";
+hW.issue456 && hW.issue123();
+export { hW as handleWatch };
 
 /*
 {
@@ -147,7 +153,9 @@ export const Foo_component_1_DvU6FitWglY = ()=>{
         , "Foo_component_div_custom_pyHnxab17ms")
     });
 };
-export { handleWatch } from "@builder.io/qwik";
+import { handleWatch as hW } from "@builder.io/qwik";
+hW.issue456 && hW.issue123();
+export { hW as handleWatch };
 
 /*
 {
@@ -169,7 +177,9 @@ export { handleWatch } from "@builder.io/qwik";
 import * as qwik from "@builder.io/qwik";
 export const Foo_component_div_host_onDocumentScroll_1_Em1LspK7JVg = ()=>console.log('host:onWindow:scroll')
 ;
-export { handleWatch } from "@builder.io/qwik";
+import { handleWatch as hW } from "@builder.io/qwik";
+hW.issue456 && hW.issue123();
+export { hW as handleWatch };
 
 /*
 {
@@ -191,7 +201,9 @@ export { handleWatch } from "@builder.io/qwik";
 import * as qwik from "@builder.io/qwik";
 export const Foo_component_div_custom_pyHnxab17ms = ()=>console.log('custom')
 ;
-export { handleWatch } from "@builder.io/qwik";
+import { handleWatch as hW } from "@builder.io/qwik";
+hW.issue456 && hW.issue123();
+export { hW as handleWatch };
 
 /*
 {
@@ -213,7 +225,9 @@ export { handleWatch } from "@builder.io/qwik";
 import * as qwik from "@builder.io/qwik";
 export const Foo_component_div_onDocument_scroLL_1q0Sgr8te3g = ()=>console.log('onDocument-scroLL')
 ;
-export { handleWatch } from "@builder.io/qwik";
+import { handleWatch as hW } from "@builder.io/qwik";
+hW.issue456 && hW.issue123();
+export { hW as handleWatch };
 
 /*
 {
@@ -235,7 +249,9 @@ export { handleWatch } from "@builder.io/qwik";
 import * as qwik from "@builder.io/qwik";
 export const Foo_component_div_onDocumentScroll_1_CwneoGpmTZI = ()=>console.log('onWindowScroll')
 ;
-export { handleWatch } from "@builder.io/qwik";
+import { handleWatch as hW } from "@builder.io/qwik";
+hW.issue456 && hW.issue123();
+export { hW as handleWatch };
 
 /*
 {
@@ -257,7 +273,9 @@ export { handleWatch } from "@builder.io/qwik";
 import * as qwik from "@builder.io/qwik";
 export const Foo_component_div_on_cLick_IoAsJW8vYJc = ()=>console.log('on-cLick$')
 ;
-export { handleWatch } from "@builder.io/qwik";
+import { handleWatch as hW } from "@builder.io/qwik";
+hW.issue456 && hW.issue123();
+export { hW as handleWatch };
 
 /*
 {
@@ -279,7 +297,9 @@ export { handleWatch } from "@builder.io/qwik";
 import * as qwik from "@builder.io/qwik";
 export const Foo_component_div_onClick_M48DYiidSJw = ()=>console.log('onClick$')
 ;
-export { handleWatch } from "@builder.io/qwik";
+import { handleWatch as hW } from "@builder.io/qwik";
+hW.issue456 && hW.issue123();
+export { hW as handleWatch };
 
 /*
 {
@@ -301,7 +321,9 @@ export { handleWatch } from "@builder.io/qwik";
 import * as qwik from "@builder.io/qwik";
 export const Foo_component_div_onDocumentScroll_rwFFtFiVuKc = ()=>console.log('onDocumentScroll')
 ;
-export { handleWatch } from "@builder.io/qwik";
+import { handleWatch as hW } from "@builder.io/qwik";
+hW.issue456 && hW.issue123();
+export { hW as handleWatch };
 
 /*
 {
@@ -323,7 +345,9 @@ export { handleWatch } from "@builder.io/qwik";
 import * as qwik from "@builder.io/qwik";
 export const Foo_component_handler_H10xZtD0e7w = ()=>console.log('reused')
 ;
-export { handleWatch } from "@builder.io/qwik";
+import { handleWatch as hW } from "@builder.io/qwik";
+hW.issue456 && hW.issue123();
+export { hW as handleWatch };
 
 /*
 {
@@ -345,7 +369,9 @@ export { handleWatch } from "@builder.io/qwik";
 import * as qwik from "@builder.io/qwik";
 export const Foo_component_div_onDocument_sCroll_5VNik61PZOM = ()=>console.log('onDocument-sCroll')
 ;
-export { handleWatch } from "@builder.io/qwik";
+import { handleWatch as hW } from "@builder.io/qwik";
+hW.issue456 && hW.issue123();
+export { hW as handleWatch };
 
 /*
 {

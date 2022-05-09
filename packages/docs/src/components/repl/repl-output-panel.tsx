@@ -1,12 +1,13 @@
 import { CodeBlock } from '../code-block/code-block';
 import { ReplOutputModles } from './repl-output-modules';
 import { ReplTabButton } from './repl-tab-button';
+import { ReplTabButtons } from './repl-tab-buttons';
 import type { ReplStore } from './types';
 
 export const ReplOutputPanel = ({ store }: ReplOutputPanelProps) => {
   return (
     <div class="repl-panel repl-output-panel">
-      <div class="repl-tab-buttons">
+      <ReplTabButtons>
         <ReplTabButton
           text="App"
           isActive={store.selectedOutputPanel === 'app'}
@@ -55,7 +56,7 @@ export const ReplOutputPanel = ({ store }: ReplOutputPanelProps) => {
             }}
           />
         ) : null}
-      </div>
+      </ReplTabButtons>
 
       <div
         class={{

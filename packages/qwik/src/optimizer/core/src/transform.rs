@@ -804,6 +804,63 @@ impl<'a> Fold for QwikTransform<'a> {
     }
 }
 
+pub fn add_handle_watch(body: &mut Vec<ast::ModuleItem>, private: bool) {
+    let ident = if private {
+        private_ident!(JsWord::from("hW"))
+    } else {
+        ast::Ident::new(JsWord::from("hW"), DUMMY_SP)
+    };
+    let import = create_synthetic_named_import_auto(&id!(ident), &HANDLE_WATCH, &BUILDER_IO_QWIK);
+    body.push(import);
+    body.push(ast::ModuleItem::Stmt(ast::Stmt::Expr(ast::ExprStmt {
+        span: DUMMY_SP,
+        expr: Box::new(ast::Expr::Bin(ast::BinExpr {
+            span: DUMMY_SP,
+            op: ast::BinaryOp::LogicalAnd,
+            left: Box::new(ast::Expr::Member(ast::MemberExpr {
+                obj: Box::new(ast::Expr::Ident(ident.clone())),
+                prop: ast::MemberProp::Ident(ast::Ident::new(JsWord::from("issue456"), DUMMY_SP)),
+                span: DUMMY_SP,
+            })),
+            right: Box::new(ast::Expr::Call(ast::CallExpr {
+                callee: ast::Callee::Expr(Box::new(ast::Expr::Member(ast::MemberExpr {
+                    obj: Box::new(ast::Expr::Ident(ident.clone())),
+                    prop: ast::MemberProp::Ident(ast::Ident::new(
+                        JsWord::from("issue123"),
+                        DUMMY_SP,
+                    )),
+                    span: DUMMY_SP,
+                }))),
+                args: vec![],
+                span: DUMMY_SP,
+                type_args: None,
+            })),
+        })),
+    })));
+    body.push(ast::ModuleItem::ModuleDecl(ast::ModuleDecl::ExportNamed(
+        ast::NamedExport {
+            src: None,
+            span: DUMMY_SP,
+            asserts: None,
+            type_only: false,
+            specifiers: vec![ast::ExportSpecifier::Named(ast::ExportNamedSpecifier {
+                orig: ast::ModuleExportName::Ident(ident),
+                exported: Some(ast::ModuleExportName::Ident(ast::Ident::new(
+                    HANDLE_WATCH.clone(),
+                    DUMMY_SP,
+                ))),
+                is_type_only: false,
+                span: DUMMY_SP,
+            })],
+        },
+    )));
+    // Uncommented when issue 456 is fixed
+    // body.push(create_synthetic_named_export(
+    //     &HANDLE_WATCH,
+    //     &BUILDER_IO_QWIK,
+    // ));
+}
+
 pub fn create_synthetic_wildcard_import(local: &Id, src: &JsWord) -> ast::ModuleItem {
     ast::ModuleItem::ModuleDecl(ast::ModuleDecl::Import(ast::ImportDecl {
         span: DUMMY_SP,
@@ -826,27 +883,56 @@ pub fn create_synthetic_wildcard_import(local: &Id, src: &JsWord) -> ast::Module
     }))
 }
 
-pub fn create_synthetic_named_export(local: &JsWord, src: &JsWord) -> ast::ModuleItem {
-    ast::ModuleItem::ModuleDecl(ast::ModuleDecl::ExportNamed(ast::NamedExport {
+pub fn create_synthetic_named_import_auto(
+    local: &Id,
+    specifier: &JsWord,
+    src: &JsWord,
+) -> ast::ModuleItem {
+    ast::ModuleItem::ModuleDecl(ast::ModuleDecl::Import(ast::ImportDecl {
         span: DUMMY_SP,
-        asserts: None,
-        type_only: false,
-        src: Some(ast::Str {
+        src: ast::Str {
             span: DUMMY_SP,
             has_escape: false,
             value: src.clone(),
             kind: ast::StrKind::Normal {
                 contains_quote: false,
             },
-        }),
-        specifiers: vec![ast::ExportSpecifier::Named(ast::ExportNamedSpecifier {
+        },
+        asserts: None,
+        type_only: false,
+        specifiers: vec![ast::ImportSpecifier::Named(ast::ImportNamedSpecifier {
+            local: new_ident_from_id(local),
             is_type_only: false,
-            exported: None,
-            orig: ast::ModuleExportName::Ident(ast::Ident::new(local.clone(), DUMMY_SP)),
+            imported: Some(ast::ModuleExportName::Ident(ast::Ident::new(
+                specifier.clone(),
+                DUMMY_SP,
+            ))),
             span: DUMMY_SP,
         })],
     }))
 }
+
+// pub fn create_synthetic_named_export(local: &JsWord, src: &JsWord) -> ast::ModuleItem {
+//     ast::ModuleItem::ModuleDecl(ast::ModuleDecl::ExportNamed(ast::NamedExport {
+//         span: DUMMY_SP,
+//         asserts: None,
+//         type_only: false,
+//         src: Some(ast::Str {
+//             span: DUMMY_SP,
+//             has_escape: false,
+//             value: src.clone(),
+//             kind: ast::StrKind::Normal {
+//                 contains_quote: false,
+//             },
+//         }),
+//         specifiers: vec![ast::ExportSpecifier::Named(ast::ExportNamedSpecifier {
+//             is_type_only: false,
+//             exported: None,
+//             orig: ast::ModuleExportName::Ident(ast::Ident::new(local.clone(), DUMMY_SP)),
+//             span: DUMMY_SP,
+//         })],
+//     }))
+// }
 
 fn create_synthetic_named_import(local: &Id, src: &JsWord) -> ast::ModuleItem {
     ast::ModuleItem::ModuleDecl(ast::ModuleDecl::Import(ast::ImportDecl {

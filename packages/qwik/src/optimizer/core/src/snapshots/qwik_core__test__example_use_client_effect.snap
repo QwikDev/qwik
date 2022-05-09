@@ -56,7 +56,9 @@ export const Child_component_9GyF01GDKqw = ()=>{
         children: state.count
     });
 };
-export { handleWatch } from "@builder.io/qwik";
+import { handleWatch as hW } from "@builder.io/qwik";
+hW.issue456 && hW.issue123();
+export { hW as handleWatch };
 
 /*
 {
@@ -85,7 +87,9 @@ export const Child_component_useClientEffect_kYRT1iERt9g = ()=>{
         clearInterval(timer);
     };
 };
-export { handleWatch } from "@builder.io/qwik";
+import { handleWatch as hW } from "@builder.io/qwik";
+hW.issue456 && hW.issue123();
+export { hW as handleWatch };
 
 /*
 {

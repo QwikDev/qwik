@@ -7,9 +7,9 @@ import { wrapSubscriber } from './use-subscriber';
 import { assertEqual } from '../assert/assert';
 import { RenderEvent } from '../util/markers';
 
-// <docs markdown="https://hackmd.io/lQ8v7fyhR-WD3b-2aRUpyw#useStore">
+// <docs markdown="./use-store.public.md#useStore">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2FlQ8v7fyhR-WD3b-2aRUpyw%3Fboth#useStore instead)
+// (edit ./use-store.public.md#useStore instead)
 /**
  * Creates a object that Qwik can track across serializations.
  *
@@ -23,7 +23,7 @@ import { RenderEvent } from '../util/markers';
  * ```typescript
  * export const Counter = component$(() => {
  *   const store = useStore({ count: 0 });
- *   return $(() => <button onClick$={() => store.count++}>{store.count}</button>);
+ *   return <button onClick$={() => store.count++}>{store.count}</button>;
  * });
  * ```
  *

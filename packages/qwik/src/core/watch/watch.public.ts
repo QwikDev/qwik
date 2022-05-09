@@ -191,13 +191,13 @@ export function runWatch(watch: WatchDescriptor): Promise<WatchDescriptor> {
   return promise;
 }
 
-// <docs markdown="https://hackmd.io/_Kl9br9tT8OB-1Dv8uR4Kg#Observer">
+// <docs markdown="./watch.public.md#Tracker">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2F_Kl9br9tT8OB-1Dv8uR4Kg%3Fboth#Observer instead)
+// (edit ./watch.public.md#Tracker instead)
 /**
  * Used to signal to Qwik which state should be watched for changes.
  *
- * The `Observer` is passed into the `watchFn` of `useWatch`. It is intended to be used to wrap
+ * The `Tracker` is passed into the `watchFn` of `useWatch`. It is intended to be used to wrap
  * state objects in a read proxy which signals to Qwik which properties should be watched for
  * changes. A change to any of the properties cause the `watchFn` to re-run.
  *
@@ -209,20 +209,20 @@ export function runWatch(watch: WatchDescriptor): Promise<WatchDescriptor> {
  * ```typescript
  * export const MyComp = component$(() => {
  *   const store = useStore({ count: 0, doubleCount: 0 });
- *   useWatch$((obs) => {
- *     store.doubleCount = 2 * obs(store).count;
+ *   useWatch$((track) => {
+ *     const count = track(store, 'count');
+ *     store.doubleCount = 2 * count;
  *   });
- *   return $(() => (
+ *   return (
  *     <div>
  *       <span>
  *         {store.count} / {store.doubleCount}
  *       </span>
  *       <button onClick$={() => store.count++}>+</button>
  *     </div>
- *   ));
+ *   );
  * });
  * ```
- *
  *
  * See: `useWatch`
  *
@@ -230,13 +230,13 @@ export function runWatch(watch: WatchDescriptor): Promise<WatchDescriptor> {
  */
 // </docs>
 export interface Tracker {
-  // <docs markdown="https://hackmd.io/_Kl9br9tT8OB-1Dv8uR4Kg#Observer">
+  // <docs markdown="./watch.public.md#Tracker">
   // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-  // (edit https://hackmd.io/@qwik-docs/BkxpSz80Y/%2F_Kl9br9tT8OB-1Dv8uR4Kg%3Fboth#Observer instead)
+  // (edit ./watch.public.md#Tracker instead)
   /**
    * Used to signal to Qwik which state should be watched for changes.
    *
-   * The `Observer` is passed into the `watchFn` of `useWatch`. It is intended to be used to wrap
+   * The `Tracker` is passed into the `watchFn` of `useWatch`. It is intended to be used to wrap
    * state objects in a read proxy which signals to Qwik which properties should be watched for
    * changes. A change to any of the properties cause the `watchFn` to re-run.
    *
@@ -248,20 +248,20 @@ export interface Tracker {
    * ```typescript
    * export const MyComp = component$(() => {
    *   const store = useStore({ count: 0, doubleCount: 0 });
-   *   useWatch$((obs) => {
-   *     store.doubleCount = 2 * obs(store).count;
+   *   useWatch$((track) => {
+   *     const count = track(store, 'count');
+   *     store.doubleCount = 2 * count;
    *   });
-   *   return $(() => (
+   *   return (
    *     <div>
    *       <span>
    *         {store.count} / {store.doubleCount}
    *       </span>
    *       <button onClick$={() => store.count++}>+</button>
    *     </div>
-   *   ));
+   *   );
    * });
    * ```
-   *
    *
    * See: `useWatch`
    *

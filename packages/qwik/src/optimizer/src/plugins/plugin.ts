@@ -206,7 +206,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         minify: 'simplify',
         transpile: true,
         explicityExtensions: true,
-        dev: opts.buildMode !== 'production',
+        dev: opts.buildMode === 'development',
       };
 
       const result = await optimizer.transformFs(transformOpts);
@@ -343,7 +343,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         transpile: true,
         explicityExtensions: true,
         rootDir: dir,
-        dev: opts.buildMode !== 'production',
+        dev: opts.buildMode === 'development',
       });
 
       diagnosticsCallback(newOutput.diagnostics, optimizer);
@@ -415,6 +415,10 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
           manifest.mapping[symbolName] = bundleFileName;
 
           manifest.symbols[symbolName] = {
+            origin: hook.origin,
+            displayName: hook.displayName,
+            canonicalFilename: hook.canonicalFilename,
+            hash: hook.hash,
             ctxKind: hook.ctxKind,
             ctxName: hook.ctxName,
             captures: hook.captures,

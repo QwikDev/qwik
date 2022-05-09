@@ -9,9 +9,19 @@
 }
 
 .repl-tab-buttons {
-  background-color: var(--repl-tab-bg-color);
   height: var(--repl-tab-height);
   font-size: 14px;
+  overflow-x: auto;
+  white-space: nowrap;
+
+  background: linear-gradient(
+    var(--repl-tab-bg-color) 0% calc(var(--repl-tab-height) - 14px),
+    white 40px var(--repl-tab-height)
+  );
+}
+
+.repl-tab-buttons-inner {
+  height: calc(var(--repl-tab-height) - 14px);
 }
 
 .repl-tab {
@@ -37,7 +47,7 @@
 .repl-tab-button {
   display: inline-block;
   border-top: 4px solid transparent;
-  height: calc(var(--repl-tab-height) - 8px);
+  height: calc(var(--repl-tab-height) - 22px);
   margin: 8px 0 0 0;
   padding: 0;
   min-width: 70px;
@@ -141,9 +151,13 @@
 }
 
 .output-html {
-  padding: 15px 20px;
+  padding: 0 15px 15px 15px;
   height: 100%;
   overflow: auto;
+}
+
+.output-html pre {
+  height: 100%;
 }
 
 .repl-mode-production .output-html {
@@ -159,7 +173,7 @@
 }
 
 .output-modules .file-tree {
-  padding: 15px;
+  padding: 0 15px 15px 15px;
   grid-area: repl-file-tree;
   overflow-y: auto;
 }
@@ -203,6 +217,8 @@
   padding: 5px 10px;
   border-top-left-radius: 3px;
   border-top-right-radius: 3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .output-modules .file-size {
@@ -240,7 +256,7 @@
 }
 
 .output-detail {
-  padding: 15px;
+  padding: 0 15px 15px 15px;
 }
 
 .detail-options label {

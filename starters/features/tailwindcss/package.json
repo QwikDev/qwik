@@ -1,8 +1,8 @@
 {
   "description": "Tailwind CSS framework.",
   "devDependencies": {
-    "autoprefixer": "10.4.4",
-    "postcss": "8.4.12",
+    "autoprefixer": "10.4.7",
+    "postcss": "8.4.13",
     "tailwindcss": "3.0.24"
   }
 }

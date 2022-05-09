@@ -77,11 +77,19 @@ export interface QwikManifest {
 // @alpha (undocumented)
 export interface QwikSymbol {
     // (undocumented)
+    canonicalFilename: string;
+    // (undocumented)
     captures: boolean;
     // (undocumented)
     ctxKind: 'function' | 'event';
     // (undocumented)
     ctxName: string;
+    // (undocumented)
+    displayName: string;
+    // (undocumented)
+    hash: string;
+    // (undocumented)
+    origin: string;
     // (undocumented)
     parent: string | null;
 }

@@ -1,7 +1,13 @@
 import type { Plugin as RollupPlugin, RollupError } from 'rollup';
 import { getValidManifest } from '../manifest';
 import type { Diagnostic, Optimizer, OptimizerOptions } from '../types';
-import { BasePluginOptions, createPlugin, QwikBuildMode, Q_MANIFEST_FILENAME } from './plugin';
+import {
+  BasePluginOptions,
+  createPlugin,
+  QwikBuildMode,
+  QwikBuildTarget,
+  Q_MANIFEST_FILENAME,
+} from './plugin';
 
 /**
  * @alpha
@@ -14,6 +20,7 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
 
     api: {
       getOptimizer: () => qwikPlugin.getOptimizer(),
+      getOptions: () => qwikPlugin.getOptions(),
     },
 
     async options(inputOpts) {
@@ -26,7 +33,7 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
 
       const opts = await qwikPlugin.normalizeOptions(qwikRollupOpts);
 
-      if (opts.buildMode === 'ssr') {
+      if (opts.target === 'ssr') {
         // Server input
         if (!inputOpts.input) {
           inputOpts.input = opts.srcEntryServerInput;
@@ -44,7 +51,7 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
 
     outputOptions(outputOpts) {
       const opts = qwikPlugin.getOptions();
-      if (opts.buildMode === 'ssr') {
+      if (opts.target === 'ssr') {
         // Server output
         if (!outputOpts.dir) {
           outputOpts.dir = opts.outServerDir;
@@ -180,7 +187,9 @@ export const createRollupError = (optimizer: Optimizer, diagnostic: Diagnostic) 
 export interface QwikRollupPluginOptions extends BasePluginOptions {
   optimizerOptions?: OptimizerOptions;
   rootDir?: string;
+  target?: QwikBuildTarget;
   buildMode?: QwikBuildMode;
+  forceFullBuild?: boolean;
 }
 
 export interface QwikRollupPlugin extends RollupPlugin {}

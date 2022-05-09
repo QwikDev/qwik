@@ -185,6 +185,8 @@ export interface QwikBundle {
     imports?: string[];
     // (undocumented)
     size: number;
+    // (undocumented)
+    symbols: string[];
 }
 
 // @alpha (undocumented)
@@ -219,9 +221,15 @@ export interface QwikRollupPluginOptions extends BasePluginOptions {
     // (undocumented)
     buildMode?: QwikBuildMode;
     // (undocumented)
+    forceFullBuild?: boolean;
+    // (undocumented)
     optimizerOptions?: OptimizerOptions;
     // (undocumented)
     rootDir?: string;
+    // Warning: (ae-forgotten-export) The symbol "QwikBuildTarget" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    target?: QwikBuildTarget;
 }
 
 // @alpha (undocumented)

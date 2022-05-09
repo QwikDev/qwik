@@ -163,17 +163,13 @@ const FUNCTION_PRIORITY = [
   'useScopedStyles$',
 ].map((n) => n.toLowerCase());
 
-function prioritorizeBundles(manifest: QwikManifest) {
+function sortBundleNames(manifest: QwikManifest) {
   // this doesn't really matter at build time
   // but standardizing the order helps make this file stable
-  return Object.keys(manifest.bundles).sort((a, b) => {
-    if (a < b) return -1;
-    if (a > b) return 1;
-    return 0;
-  });
+  return Object.keys(manifest.bundles).sort(sortAlphabetical);
 }
 
-export function updateManifestPriorities(manifest: QwikManifest) {
+export function updateSortAndPriorities(manifest: QwikManifest) {
   const prioritorizedSymbolNames = prioritorizeSymbolNames(manifest);
   const prioritorizedSymbols: { [symbolName: string]: QwikSymbol } = {};
   const prioritorizedMapping: { [symbolName: string]: string } = {};
@@ -183,27 +179,42 @@ export function updateManifestPriorities(manifest: QwikManifest) {
     prioritorizedMapping[symbolName] = manifest.mapping[symbolName];
   }
 
-  const prioritorizedBundleNames = prioritorizeBundles(manifest);
-  const prioritorizedBundles: { [fileName: string]: QwikBundle } = {};
-  for (const bundleName of prioritorizedBundleNames) {
-    const entry = (prioritorizedBundles[bundleName] = manifest.bundles[bundleName]);
-    if (entry.imports) {
-      entry.imports.sort();
+  const sortedBundleNames = sortBundleNames(manifest);
+  const sortedBundles: { [fileName: string]: QwikBundle } = {};
+  for (const bundleName of sortedBundleNames) {
+    sortedBundles[bundleName] = manifest.bundles[bundleName];
+    const bundle = manifest.bundles[bundleName];
+    if (Array.isArray(bundle.imports)) {
+      bundle.imports.sort(sortAlphabetical);
     }
-    if (entry.dynamicImports) {
-      entry.dynamicImports.sort();
+    if (Array.isArray(bundle.dynamicImports)) {
+      bundle.dynamicImports.sort(sortAlphabetical);
     }
+    for (const symbolName of prioritorizedSymbolNames) {
+      if (bundleName === prioritorizedMapping[symbolName]) {
+        bundle.symbols.push(symbolName);
+      }
+    }
+    bundle.symbols.sort(sortAlphabetical);
   }
 
   manifest.symbols = prioritorizedSymbols;
   manifest.mapping = prioritorizedMapping;
-  manifest.bundles = prioritorizedBundles;
+  manifest.bundles = sortedBundles;
 
-  if (manifest.injections) {
+  if (Array.isArray(manifest.injections)) {
     manifest.injections.sort();
   }
 
   return manifest;
+}
+
+function sortAlphabetical(a: string, b: string) {
+  a = a.toLocaleLowerCase();
+  b = b.toLocaleLowerCase();
+  if (a < b) return -1;
+  if (a > b) return 1;
+  return 0;
 }
 
 export function getValidManifest(manifest: QwikManifest | undefined | null) {

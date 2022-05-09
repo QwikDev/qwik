@@ -9,6 +9,10 @@ import { qPropWriteQRL, qPropReadQRL } from './props-on';
 import { QContainerAttr } from '../util/markers';
 import type { QRL } from '../import/qrl.public';
 import type { OnRenderFn } from '../component/component.public';
+import { destroyWatch, isWatchDescriptor } from '../watch/watch.public';
+import { pauseContainer } from '../object/store.public';
+import { getRenderingState } from '../render/notify-render';
+import { qDev } from '../util/qdev';
 
 Error.stackTraceLimit = 9999;
 
@@ -18,7 +22,17 @@ export function resumeIfNeeded(containerEl: Element): void {
   const isResumed = containerEl.getAttribute(QContainerAttr);
   if (isResumed === 'paused') {
     resumeContainer(containerEl);
+    if (qDev) {
+      appendQwikDevTools(containerEl);
+    }
   }
+}
+
+export function appendQwikDevTools(containerEl: Element) {
+  (containerEl as any)['qwik'] = {
+    pause: () => pauseContainer(containerEl),
+    renderState: getRenderingState(containerEl),
+  };
 }
 
 export interface QContextEvents {
@@ -44,8 +58,11 @@ export interface QContext {
   component: ComponentCtx | undefined;
 }
 
+export function tryGetContext(element: Element): QContext | undefined {
+  return (element as any)[Q_CTX];
+}
 export function getContext(element: Element): QContext {
-  let ctx: QContext = (element as any)[Q_CTX];
+  let ctx = tryGetContext(element)!;
   if (!ctx) {
     const cache = new Map();
     (element as any)[Q_CTX] = ctx = {
@@ -60,6 +77,24 @@ export function getContext(element: Element): QContext {
     };
   }
   return ctx;
+}
+
+export function cleanupContext(ctx: QContext) {
+  const el = ctx.element;
+  ctx.refMap.array.forEach((obj) => {
+    if (isWatchDescriptor(obj)) {
+      if (obj.el === el) {
+        destroyWatch(obj);
+      }
+    }
+    ctx.component = undefined;
+    ctx.renderQrl = undefined;
+    ctx.seq = [];
+    ctx.cache.clear();
+    ctx.dirty = false;
+    ctx.refMap.array.length = 0;
+  });
+  (el as any)[Q_CTX] = undefined;
 }
 
 const PREFIXES = ['document:on', 'window:on', 'on'];

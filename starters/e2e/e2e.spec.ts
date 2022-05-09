@@ -267,4 +267,48 @@ test.describe('e2e', () => {
       expect((await body.innerText()).trim()).toEqual('A\nB\nLight: wow!');
     });
   });
+
+  test.describe('watch', () => {
+    test.beforeEach(async ({ page }) => {
+      await page.goto('/e2e/watch');
+      page.on('pageerror', (err) => expect(err).toEqual(undefined));
+    });
+
+    test('should watch correctly', async ({ page }) => {
+      const server = await page.locator('#server-content');
+
+      const parent = await page.locator('#parent');
+      const child = await page.locator('#child');
+      const debounced = await page.locator('#debounced');
+      const addButton = page.locator('#add');
+
+      expect(await server.textContent()).toEqual('comes from server');
+      expect(await parent.textContent()).toEqual('2 / 4');
+      expect(await child.textContent()).toEqual('2 / 4');
+      expect(await debounced.textContent()).toEqual('Debounced: 0');
+
+      await addButton.click();
+      await page.waitForTimeout(100);
+
+      expect(await server.textContent()).toEqual('comes from server');
+      expect(await parent.textContent()).toEqual('3 / 6');
+      expect(await child.textContent()).toEqual('3 / 6');
+      expect(await debounced.textContent()).toEqual('Debounced: 0');
+
+      await addButton.click();
+      await page.waitForTimeout(100);
+
+      expect(await server.textContent()).toEqual('comes from server');
+      expect(await parent.textContent()).toEqual('4 / 8');
+      expect(await child.textContent()).toEqual('4 / 8');
+      expect(await debounced.textContent()).toEqual('Debounced: 0');
+
+      // Wait for debouncer
+      await page.waitForTimeout(2000);
+      expect(await server.textContent()).toEqual('comes from server');
+      expect(await parent.textContent()).toEqual('4 / 8');
+      expect(await child.textContent()).toEqual('4 / 8');
+      expect(await debounced.textContent()).toEqual('Debounced: 8');
+    });
+  });
 });

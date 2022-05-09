@@ -13,7 +13,8 @@ import { logWarn } from '../util/log';
 import { qDev, qTest } from '../util/qdev';
 import { debugStringify } from '../util/stringify';
 import { WatchDescriptor, WatchFlags } from '../watch/watch.public';
-import { isConnected, Subscriber } from '../use/use-subscriber';
+import type { Subscriber } from '../use/use-subscriber';
+import { tryGetContext } from '../props/props';
 
 export type ObjToProxyMap = WeakMap<any, any>;
 export type QObject<T extends {}> = T & { __brand__: 'QObject' };
@@ -196,6 +197,7 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
       });
       return true;
     }
+
     const oldValue = target[prop];
     if (oldValue !== unwrappedNewValue) {
       target[prop] = unwrappedNewValue;
@@ -316,4 +318,12 @@ export type NoSerialize<T> = (T & { __no_serialize__: true }) | undefined;
 export function noSerialize<T extends {}>(input: T): NoSerialize<T> {
   noSerializeSet.add(input);
   return input as any;
+}
+
+export function isConnected(sub: Subscriber): boolean {
+  if (isElement(sub)) {
+    return !!tryGetContext(sub);
+  } else {
+    return isConnected(sub.el);
+  }
 }

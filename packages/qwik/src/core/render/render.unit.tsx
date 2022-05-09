@@ -1,4 +1,5 @@
 import { h, Host, useStore } from '@builder.io/qwik';
+import { useCleanup$, useClientEffect$, useWatch$ } from '../../core';
 import { ElementFixture, trigger } from '../../testing/element-fixture';
 import { expectDOM } from '../../testing/expect-dom.unit';
 import { getTestPlatform } from '../../testing/platform';
@@ -6,7 +7,9 @@ import { useScopedStyles$, component$ } from '../component/component.public';
 import { runtimeQrl } from '../import/qrl';
 import { pauseContainer } from '../object/store.public';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
+import { useRef } from '../use/use-store.public';
 import { ComponentScopedStyles, ComponentStylesPrefixContent } from '../util/markers';
+import { useServerMount$ } from '../watch/watch.public';
 import { Async, JSXPromise, PromiseValue } from './jsx/async.public';
 import { Comment } from './jsx/jsx-runtime';
 import { Slot } from './jsx/slot.public';
@@ -68,16 +71,16 @@ describe('render', () => {
       const Div = 'div' as any;
       expectRendered(
         <Div
-          on:mousedown="/runtimeQRL#s7"
-          on:keyup="/runtimeQRL#s8"
-          on:dblclick="/runtimeQRL#s9"
-          on:-dbl-click="/runtimeQRL#s10"
-          on:qvisible="/runtimeQRL#s11"
-          on-document:load="/runtimeQRL#s12"
-          on-document:scroll="/runtimeQRL#s13"
-          on-document:-scroll="/runtimeQRL#s14"
-          on-window:scroll="/runtimeQRL#s15"
-          on-window:-scroll="/runtimeQRL#s16"
+          on:mousedown="/runtimeQRL#*"
+          on:keyup="/runtimeQRL#*"
+          on:dblclick="/runtimeQRL#*"
+          on:-dbl-click="/runtimeQRL#*"
+          on:qvisible="/runtimeQRL#*"
+          on-document:load="/runtimeQRL#*"
+          on-document:scroll="/runtimeQRL#*"
+          on-document:-scroll="/runtimeQRL#*"
+          on-window:scroll="/runtimeQRL#*"
+          on-window:-scroll="/runtimeQRL#*"
         ></Div>
       );
     });
@@ -186,10 +189,10 @@ describe('render', () => {
           aria-hidden="true"
           data-value="hello world"
           title="Custom title"
-          on:click="/runtimeQRL#s18"
-          on:-clic-k="/runtimeQRL#s19"
-          on-document:load="/runtimeQRL#s20"
-          on-window:scroll="/runtimeQRL#s21"
+          on:click="/runtimeQRL#*"
+          on:-clic-k="/runtimeQRL#*"
+          on-document:load="/runtimeQRL#*"
+          on-window:scroll="/runtimeQRL#*"
         >
           <span>{'{"thing":"World"}'}</span>
         </render-props>
@@ -502,6 +505,40 @@ describe('render', () => {
     );
   });
 
+  it('should render a component with hooks', async () => {
+    await render(fixture.host, <Hooks />);
+    expectRendered(
+      <div>
+        <div id="effect"></div>
+        <div id="effect-destroy"></div>
+
+        <div id="watch">true</div>
+        <div id="watch-destroy"></div>
+
+        <div id="server-mount">true</div>
+        <div id="cleanup"></div>
+
+        <div id="reference">true</div>
+      </div>
+    );
+
+    pauseContainer(fixture.host);
+    expectRendered(
+      <div>
+        <div id="effect"></div>
+        <div id="effect-destroy"></div>
+
+        <div id="watch">true</div>
+        <div id="watch-destroy">true</div>
+
+        <div id="server-mount">true</div>
+        <div id="cleanup">true</div>
+
+        <div id="reference">true</div>
+      </div>
+    );
+  });
+
   describe('styling', () => {
     it('should insert a style', async () => {
       await render(fixture.host, <HelloWorld name="World" />);
@@ -791,5 +828,55 @@ export const InnerHTMLComponent = component$(async () => {
     <div innerHTML={html}>
       <div>not rendered</div>
     </div>
+  );
+});
+
+//////////////////////////////////////////////////////////////////////////////////////////
+export const Hooks = component$(() => {
+  const watchDestroyDiv = useRef();
+  const effectDiv = useRef();
+  const effectDestroyDiv = useRef();
+  const cleanupDiv = useRef();
+
+  const state = useStore({
+    watch: 'false',
+    server: 'false',
+  });
+
+  useCleanup$(() => {
+    cleanupDiv.current!.textContent = 'true';
+  });
+
+  useWatch$(() => {
+    state.watch = 'true';
+    return () => {
+      watchDestroyDiv.current!.textContent = 'true';
+    };
+  });
+
+  useClientEffect$(() => {
+    effectDiv.current!.textContent = 'true';
+    return () => {
+      effectDestroyDiv.current!.textContent = 'true';
+    };
+  });
+
+  useServerMount$(() => {
+    state.server = 'true';
+  });
+
+  return (
+    <Host>
+      <div id="effect" ref={effectDiv}></div>
+      <div id="effect-destroy" ref={effectDestroyDiv}></div>
+
+      <div id="watch">{state.watch}</div>
+      <div id="watch-destroy" ref={watchDestroyDiv}></div>
+
+      <div id="server-mount">{state.server}</div>
+      <div id="cleanup" ref={cleanupDiv}></div>
+
+      <div id="reference">true</div>
+    </Host>
   );
 });

@@ -10,7 +10,7 @@ import { version } from '../version';
 import { QContainerAttr } from '../util/markers';
 import { logError } from '../util/log';
 import { isWatchDescriptor, runWatch, WatchDescriptor, WatchFlags } from '../watch/watch.public';
-import { getContext } from '../props/props';
+import { appendQwikDevTools, getContext } from '../props/props';
 
 /**
  * Render JSX.
@@ -62,6 +62,7 @@ export async function render(
   }
 
   if (qDev) {
+    appendQwikDevTools(containerEl);
     if (typeof window !== 'undefined' && window.document != null) {
       printRenderStats(ctx);
     }
@@ -75,7 +76,6 @@ export async function render(
       }
     });
   });
-
   await Promise.all(promises);
   return ctx;
 }

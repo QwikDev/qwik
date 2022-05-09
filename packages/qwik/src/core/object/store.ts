@@ -17,6 +17,7 @@ import {
 import { qDev } from '../util/qdev';
 import {
   getProxyMap,
+  isConnected,
   ObjToProxyMap,
   QOjectSubsSymbol,
   QOjectTargetSymbol,
@@ -24,6 +25,7 @@ import {
   SubscriberMap,
   _restoreQObject,
 } from './q-object';
+import { cleanupWatch, destroyWatch, isWatchDescriptor, WatchFlags } from '../watch/watch.public';
 
 export interface Store {
   doc: Document;
@@ -116,8 +118,8 @@ export function snapshotState(containerEl: Element) {
   // Collect all qObjected around the DOM
   const elements = getNodesInScope(containerEl, hasQObj);
   elements.forEach((node) => {
-    const props = getContext(node);
-    const qMap = props.refMap;
+    const ctx = getContext(node);
+    const qMap = ctx.refMap;
     qMap.array.forEach((v) => {
       collectValue(v, objSet, doc);
     });
@@ -135,6 +137,17 @@ export function snapshotState(containerEl: Element) {
   const objToId = new Map<any, number>();
   let count = 0;
   for (const obj of objs) {
+    if (isWatchDescriptor(obj)) {
+      destroyWatch(obj);
+      if (qDev) {
+        if (obj.f & WatchFlags.IsDirty) {
+          logWarn('Serializing dirty watch. Looks like an internal error.');
+        }
+        if (!isConnected(obj)) {
+          logWarn('Serializing disconneted watch. Looks like an internal error.');
+        }
+      }
+    }
     objToId.set(obj, count);
     count++;
   }
@@ -226,7 +239,8 @@ export function snapshotState(containerEl: Element) {
 
   // Write back to the dom
   elements.forEach((node) => {
-    const ctx = getContext(node);
+    const ctx = getContext(node)!;
+    assertDefined(ctx);
     const props = ctx.props;
     const renderQrl = ctx.renderQrl;
     const attribute = ctx.refMap.array

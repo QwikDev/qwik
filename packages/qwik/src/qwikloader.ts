@@ -54,12 +54,14 @@ export const qwikLoader = (doc: Document, hasInitialized?: number, prefetchWorke
             const module = (window as any)[url.pathname] || (await import(url.href.split('#')[0]));
             const handler = module[symbolName] || error(url + ' does not export ' + symbolName);
             const previousCtx = (doc as any)[Q_CONTEXT];
-            try {
-              (doc as any)[Q_CONTEXT] = [element, ev, url];
-              handler(ev, element, url);
-            } finally {
-              (doc as any)[Q_CONTEXT] = previousCtx;
-              symbolUsed(element, symbolName);
+            if (element.isConnected) {
+              try {
+                (doc as any)[Q_CONTEXT] = [element, ev, url];
+                handler(ev, element, url);
+              } finally {
+                (doc as any)[Q_CONTEXT] = previousCtx;
+                symbolUsed(element, symbolName);
+              }
             }
           }
         }

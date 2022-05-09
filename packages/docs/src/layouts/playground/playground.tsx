@@ -6,6 +6,7 @@ import {
   useScopedStyles$,
   useWatch$,
   useStore,
+  useClientEffect$,
 } from '@builder.io/qwik';
 import type { TransformModuleInput } from '@builder.io/qwik/optimizer';
 import type { SiteStore } from '../../components/app/app';
@@ -36,11 +37,22 @@ const Playground = component$((props: PlaygroundLayoutProps) => {
     ]);
   });
 
+  useClientEffect$(() => {
+    try {
+      const colLeft = localStorage.getItem('qwikPlayground_colLeft');
+      if (colLeft) {
+        store.colLeft = JSON.parse(colLeft);
+      }
+    } catch (e) {
+      /**/
+    }
+  });
+
   useScopedStyles$(styles);
 
   const pointerDown = $(() => {
     store.colResizeActive = true;
-  }) as any;
+  });
 
   const pointerMove = $((ev: PointerEvent) => {
     if (store.colResizeActive) {
@@ -48,11 +60,16 @@ const Playground = component$((props: PlaygroundLayoutProps) => {
       store.colLeft = Math.max(25, store.colLeft);
       store.colLeft = Math.min(75, store.colLeft);
     }
-  }) as any;
+  });
 
   const pointerUp = $(() => {
     store.colResizeActive = false;
-  }) as any;
+    try {
+      localStorage.setItem('qwikPlayground_colLeft', JSON.stringify(store.colLeft));
+    } catch (e) {
+      /**/
+    }
+  });
 
   return (
     <Host
@@ -61,13 +78,13 @@ const Playground = component$((props: PlaygroundLayoutProps) => {
       <Header store={props.store} />
 
       <div class="playground-header">
-        <select>
+        {/* <select>
           {playgroundApps.map((app) => (
             <option key={app.id} selected={store.appId === app.id ? true : undefined}>
               {app.title}
             </option>
           ))}
-        </select>
+        </select> */}
       </div>
 
       <Repl

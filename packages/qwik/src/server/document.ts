@@ -17,7 +17,7 @@ import { isDocument } from '../core/util/element';
 import { getDocument } from '../core/util/dom';
 import { getElement } from '../core/render/render.public';
 import { getQwikLoaderScript } from './scripts';
-import { applyPrefetchImplementation, getPrefetchUrls } from './prefetch';
+import { applyPrefetchImplementation, getPrefetchResources } from './prefetch';
 
 /**
  * Create emulated `Window` for server environment. Does not implement the full browser
@@ -109,9 +109,9 @@ export async function renderToString(rootNode: JSXNode, opts: RenderToStringOpti
 
   await renderToDocument(rootEl, rootNode, opts);
 
-  const prefetchUrls = getPrefetchUrls(doc, opts);
-  if (prefetchUrls.length > 0) {
-    applyPrefetchImplementation(doc, opts, prefetchUrls);
+  const prefetchResources = getPrefetchResources(doc, opts);
+  if (prefetchResources.length > 0) {
+    applyPrefetchImplementation(doc, opts, prefetchResources);
   }
 
   const renderDocTime = renderDocTimer();
@@ -119,7 +119,7 @@ export async function renderToString(rootNode: JSXNode, opts: RenderToStringOpti
   const docToStringTimer = createTimer();
   const result: RenderToStringResult = {
     html: serializeDocument(rootEl, opts),
-    prefetchUrls,
+    prefetchResources,
     timing: {
       createDocument: createDocTime,
       render: renderDocTime,

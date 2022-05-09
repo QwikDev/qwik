@@ -111,18 +111,20 @@ async function buildApp(appDir: string) {
   mkdirSync(appBuildDir);
   mkdirSync(appBuildServerDir);
 
-  let manifest: QwikManifest | undefined = undefined;
+  let clientManifest: QwikManifest | undefined = undefined;
 
   const clientBuild = await rollup({
     input: getSrcInput(appSrcDir),
     plugins: [
       devPlugin(),
       optimizer.qwikRollup({
-        buildMode: 'production',
+        target: 'client',
+        buildMode: 'development',
+        debug: true,
         srcDir: appSrcDir,
         entryStrategy: { type: 'single' },
         manifestOutput: (m) => {
-          manifest = m;
+          clientManifest = m;
         },
       }),
     ],
@@ -136,10 +138,11 @@ async function buildApp(appDir: string) {
     plugins: [
       devPlugin(),
       optimizer.qwikRollup({
-        buildMode: 'ssr',
+        target: 'ssr',
+        buildMode: 'development',
         srcDir: appSrcDir,
         entryStrategy: { type: 'single' },
-        manifestInput: manifest,
+        manifestInput: clientManifest,
       }),
     ],
   });
@@ -147,7 +150,7 @@ async function buildApp(appDir: string) {
     dir: appBuildServerDir,
   });
 
-  return manifest;
+  return clientManifest;
 }
 
 function getSrcInput(appSrcDir: string) {

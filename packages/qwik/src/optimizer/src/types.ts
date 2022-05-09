@@ -262,6 +262,7 @@ export interface QwikSymbol {
  */
 export interface QwikBundle {
   size: number;
+  symbols: string[];
   imports?: string[];
   dynamicImports?: string[];
 }

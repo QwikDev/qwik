@@ -23,6 +23,7 @@ describe('vite  plugin', () => {
       const rollupOptions = build!.rollupOptions!;
       const outputOptions = rollupOptions.output as OutputOptions;
 
+      expect(opts.target).toBe('client');
       expect(opts.buildMode).toBe('development');
       expect(opts.entryStrategy).toEqual({ type: 'hook' });
       expect(opts.debug).toBe(false);
@@ -30,6 +31,34 @@ describe('vite  plugin', () => {
 
       expect(build.outDir).toBe(resolve(cwd, 'dist'));
       expect(rollupOptions.input).toEqual(resolve(cwd, 'src', 'entry.dev.tsx'));
+      expect(outputOptions.assetFileNames).toBe('build/[name].[ext]');
+      expect(outputOptions.chunkFileNames).toBe('build/[name].js');
+      expect(outputOptions.entryFileNames).toBe('build/[name].js');
+      expect(build.polyfillModulePreload).toBe(false);
+      expect(build.dynamicImportVarsOptions?.exclude).toEqual([/./]);
+      expect(build.ssr).toBe(undefined);
+      expect(c.optimizeDeps?.include).toEqual(['@builder.io/qwik', '@builder.io/qwik/jsx-runtime']);
+      expect(c.esbuild).toEqual({ include: /\.js$/ });
+      expect((c as any).ssr).toBeUndefined();
+    });
+
+    it('command: build, mode: development', async () => {
+      const plugin: VitePlugin = qwikVite(initOpts);
+      const c = (await plugin.config!({}, { command: 'build', mode: 'development' }))!;
+      const opts = await plugin.api?.getOptions();
+      const build = c.build!;
+      const rollupOptions = build!.rollupOptions!;
+      const outputOptions = rollupOptions.output as OutputOptions;
+
+      expect(opts.target).toBe('client');
+      expect(opts.buildMode).toBe('development');
+      expect(opts.entryStrategy).toEqual({ type: 'hook' });
+      expect(opts.debug).toBe(false);
+      expect(opts.forceFullBuild).toBe(false);
+
+      expect(plugin.enforce).toBe('pre');
+      expect(build.outDir).toBe(resolve(cwd, 'dist'));
+      expect(rollupOptions.input).toEqual([resolve(cwd, 'src', 'root.tsx')]);
       expect(outputOptions.assetFileNames).toBe('build/[name].[ext]');
       expect(outputOptions.chunkFileNames).toBe('build/[name].js');
       expect(outputOptions.entryFileNames).toBe('build/[name].js');
@@ -49,8 +78,9 @@ describe('vite  plugin', () => {
       const rollupOptions = build!.rollupOptions!;
       const outputOptions = rollupOptions.output as OutputOptions;
 
+      expect(opts.target).toBe('client');
       expect(opts.buildMode).toBe('production');
-      expect(opts.entryStrategy).toEqual({ type: 'hook' });
+      expect(opts.entryStrategy).toEqual({ type: 'smart' });
       expect(opts.debug).toBe(false);
       expect(opts.forceFullBuild).toBe(true);
 
@@ -76,10 +106,11 @@ describe('vite  plugin', () => {
       const rollupOptions = build!.rollupOptions!;
       const outputOptions = rollupOptions.output as OutputOptions;
 
-      expect(opts.buildMode).toBe('ssr');
-      expect(opts.entryStrategy).toEqual({ type: 'hook' });
+      expect(opts.target).toBe('ssr');
+      expect(opts.buildMode).toBe('production');
+      expect(opts.entryStrategy).toEqual({ type: 'smart' });
       expect(opts.debug).toBe(false);
-      expect(opts.forceFullBuild).toBe(false);
+      expect(opts.forceFullBuild).toBe(true);
 
       expect(plugin.enforce).toBe('pre');
       expect(build.outDir).toBe(resolve(cwd, 'server'));

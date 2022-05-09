@@ -35,6 +35,27 @@ export function getQwikLoaderScript(opts?: {
     debug?: boolean;
 }): string;
 
+// @alpha (undocumented)
+export type PrefetchImplementation = 'link-prefetch' | 'link-preload' | 'link-modulepreload' | 'qrl-import' | 'worker-fetch' | 'none';
+
+// @alpha (undocumented)
+export interface PrefetchResource {
+    // (undocumented)
+    imports: PrefetchResource[];
+    // (undocumented)
+    url: string;
+}
+
+// @alpha (undocumented)
+export interface PrefetchStrategy {
+    // (undocumented)
+    implementation?: PrefetchImplementation;
+    // Warning: (ae-forgotten-export) The symbol "SymbolsToPrefetch" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    symbolsToPrefetch?: SymbolsToPrefetch;
+}
+
 // @public (undocumented)
 export type QrlMapper = (symbolName: string) => string | undefined;
 
@@ -46,6 +67,8 @@ export interface QwikBundle {
     imports?: string[];
     // (undocumented)
     size: number;
+    // (undocumented)
+    symbols: string[];
 }
 
 // @public
@@ -125,7 +148,7 @@ export function renderToString(rootNode: JSXNode, opts?: RenderToStringOptions):
 // @public (undocumented)
 export interface RenderToStringOptions extends RenderToDocumentOptions {
     fragmentTagName?: string;
-    // Warning: (ae-forgotten-export) The symbol "PrefetchStrategy" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-incompatible-release-tags) The symbol "prefetchStrategy" is marked as @public, but its signature references "PrefetchStrategy" which is marked as @alpha
     //
     // (undocumented)
     prefetchStrategy?: PrefetchStrategy;
@@ -135,8 +158,10 @@ export interface RenderToStringOptions extends RenderToDocumentOptions {
 export interface RenderToStringResult {
     // (undocumented)
     html: string;
+    // Warning: (ae-incompatible-release-tags) The symbol "prefetchResources" is marked as @public, but its signature references "PrefetchResource" which is marked as @alpha
+    //
     // (undocumented)
-    prefetchUrls: string[];
+    prefetchResources: PrefetchResource[];
     // (undocumented)
     timing: {
         createDocument: number;

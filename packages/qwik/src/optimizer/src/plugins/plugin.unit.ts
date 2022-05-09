@@ -6,56 +6,79 @@ describe('qwik plugin', () => {
   const cwd = process.cwd();
 
   describe('normalizeOptions', () => {
-    it('defaults (dev)', async () => {
+    it('defaults', async () => {
       const plugin = mockPlugin();
       const opts = await plugin.normalizeOptions();
-      expect(opts.debug).toBe(false);
+      expect(opts.target).toBe('client');
       expect(opts.buildMode).toBe('development');
-      expect(opts.rootDir).toBe(cwd);
+      expect(opts.entryStrategy).toEqual({ type: 'hook' });
       expect(opts.forceFullBuild).toBe(false);
+      expect(opts.debug).toBe(false);
+      expect(opts.rootDir).toBe(cwd);
       expect(opts.outClientDir).toBe(resolve(cwd, 'dist'));
       expect(opts.outServerDir).toBe(resolve(cwd, 'server'));
       expect(opts.srcDir).toBe(resolve(cwd, 'src'));
       expect(opts.srcInputs).toBe(null);
       expect(opts.srcRootInput).toEqual([resolve(cwd, 'src', 'root.tsx')]);
       expect(opts.srcEntryServerInput).toBe(resolve(cwd, 'src', 'entry.server.tsx'));
-      expect(opts.entryStrategy).toEqual({ type: 'hook' });
       expect(opts.manifestInput).toBe(null);
       expect(opts.manifestOutput).toBe(null);
     });
 
-    it('defaults (prod)', async () => {
+    it('defaults (buildMode: production)', async () => {
       const plugin = mockPlugin();
       const opts = await plugin.normalizeOptions({ buildMode: 'production' });
-      expect(opts.debug).toBe(false);
+      expect(opts.target).toBe('client');
       expect(opts.buildMode).toBe('production');
+      expect(opts.entryStrategy).toEqual({ type: 'smart' });
+      expect(opts.forceFullBuild).toBe(true);
+      expect(opts.debug).toBe(false);
       expect(opts.rootDir).toBe(cwd);
-      expect(opts.forceFullBuild).toBe(false);
       expect(opts.outClientDir).toBe(resolve(cwd, 'dist'));
       expect(opts.outServerDir).toBe(resolve(cwd, 'server'));
       expect(opts.srcDir).toBe(resolve(cwd, 'src'));
       expect(opts.srcInputs).toBe(null);
       expect(opts.srcRootInput).toEqual([resolve(cwd, 'src', 'root.tsx')]);
       expect(opts.srcEntryServerInput).toBe(resolve(cwd, 'src', 'entry.server.tsx'));
-      expect(opts.entryStrategy).toEqual({ type: 'hook' });
+      expect(opts.entryStrategy).toEqual({ type: 'smart' });
       expect(opts.manifestInput).toBe(null);
       expect(opts.manifestOutput).toBe(null);
     });
 
-    it('defaults (ssr)', async () => {
+    it('defaults (target: ssr)', async () => {
       const plugin = mockPlugin();
-      const opts = await plugin.normalizeOptions({ buildMode: 'ssr' });
-      expect(opts.debug).toBe(false);
-      expect(opts.buildMode).toBe('ssr');
-      expect(opts.rootDir).toBe(cwd);
+      const opts = await plugin.normalizeOptions({ target: 'ssr' });
+      expect(opts.target).toBe('ssr');
+      expect(opts.buildMode).toBe('development');
+      expect(opts.entryStrategy).toEqual({ type: 'hook' });
       expect(opts.forceFullBuild).toBe(false);
+      expect(opts.debug).toBe(false);
+      expect(opts.rootDir).toBe(cwd);
       expect(opts.outClientDir).toBe(resolve(cwd, 'dist'));
       expect(opts.outServerDir).toBe(resolve(cwd, 'server'));
       expect(opts.srcDir).toBe(resolve(cwd, 'src'));
       expect(opts.srcInputs).toBe(null);
       expect(opts.srcRootInput).toEqual([resolve(cwd, 'src', 'root.tsx')]);
       expect(opts.srcEntryServerInput).toBe(resolve(cwd, 'src', 'entry.server.tsx'));
-      expect(opts.entryStrategy).toEqual({ type: 'hook' });
+      expect(opts.manifestInput).toBe(null);
+      expect(opts.manifestOutput).toBe(null);
+    });
+
+    it('defaults (buildMode: production, target: ssr)', async () => {
+      const plugin = mockPlugin();
+      const opts = await plugin.normalizeOptions({ buildMode: 'production', target: 'ssr' });
+      expect(opts.target).toBe('ssr');
+      expect(opts.buildMode).toBe('production');
+      expect(opts.entryStrategy).toEqual({ type: 'smart' });
+      expect(opts.forceFullBuild).toBe(true);
+      expect(opts.debug).toBe(false);
+      expect(opts.rootDir).toBe(cwd);
+      expect(opts.outClientDir).toBe(resolve(cwd, 'dist'));
+      expect(opts.outServerDir).toBe(resolve(cwd, 'server'));
+      expect(opts.srcDir).toBe(resolve(cwd, 'src'));
+      expect(opts.srcInputs).toBe(null);
+      expect(opts.srcRootInput).toEqual([resolve(cwd, 'src', 'root.tsx')]);
+      expect(opts.srcEntryServerInput).toBe(resolve(cwd, 'src', 'entry.server.tsx'));
       expect(opts.manifestInput).toBe(null);
       expect(opts.manifestOutput).toBe(null);
     });
@@ -66,10 +89,22 @@ describe('qwik plugin', () => {
       expect(opts.debug).toBe(true);
     });
 
-    it('entryStrategy', async () => {
+    it('override entryStrategy', async () => {
       const plugin = mockPlugin();
-      const opts = await plugin.normalizeOptions({ entryStrategy: { type: 'component' } });
+      const opts = await plugin.normalizeOptions({
+        entryStrategy: { type: 'component' },
+        buildMode: 'production',
+      });
       expect(opts.entryStrategy.type).toBe('component');
+    });
+
+    it('entryStrategy, smart', async () => {
+      const plugin = mockPlugin();
+      const opts = await plugin.normalizeOptions({
+        entryStrategy: { type: 'smart' },
+        forceFullBuild: false,
+      });
+      expect(opts.entryStrategy.type).toBe('smart');
       expect(opts.forceFullBuild).toBe(true);
     });
 

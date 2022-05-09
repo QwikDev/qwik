@@ -1,14 +1,18 @@
-import { createPath } from '../core/util/path';
+import { parseQRL } from '../core/import/qrl';
 import { getValidManifest } from '../optimizer/src/manifest';
 import type {
-  PrefetchStrategyImplementation,
+  PrefetchImplementation,
+  PrefetchResource,
   QwikDocument,
   QwikManifest,
   RenderToStringOptions,
 } from './types';
 import { getBuildBase } from './utils';
 
-export function getPrefetchUrls(doc: QwikDocument, opts: RenderToStringOptions): string[] {
+export function getPrefetchResources(
+  doc: QwikDocument,
+  opts: RenderToStringOptions
+): PrefetchResource[] {
   const manifest = getValidManifest(opts.manifest);
   if (manifest) {
     const prefetchStrategy = opts.prefetchStrategy;
@@ -26,17 +30,12 @@ export function getPrefetchUrls(doc: QwikDocument, opts: RenderToStringOptions):
         // if prefetchStrategy is undefined
         // or prefetchStrategy.symbolsToPrefetch is undefined
         // get event QRLs used in this document
-        return [];
-      }
-
-      if (prefetchStrategy.symbolsToPrefetch === 'all-document') {
-        // get all QRLs used in this document
-        return [];
+        return getEventDocumentPrefetch(doc, manifest, buildBase);
       }
 
       if (prefetchStrategy.symbolsToPrefetch === 'all') {
         // get all QRLs used in this app
-        return getAllPrefetchUrls(manifest, buildBase);
+        return getAllPrefetch(manifest, buildBase);
       }
 
       if (typeof prefetchStrategy.symbolsToPrefetch === 'function') {
@@ -54,25 +53,104 @@ export function getPrefetchUrls(doc: QwikDocument, opts: RenderToStringOptions):
   return [];
 }
 
-function getAllPrefetchUrls(manifest: QwikManifest, buildBase: string) {
-  const urls: string[] = [];
+function getEventDocumentPrefetch(doc: Document, manifest: QwikManifest, buildBase: string) {
+  const eventQrls = new Set<string>();
 
-  // manifest already prioritized the symbols at build time
-  for (const symbolName in manifest.mapping) {
-    addBundle(manifest, urls, manifest.mapping[symbolName]);
-  }
+  const findQwikEvent = (elm: HTMLElement) => {
+    // on:click="q-e6e5d1dd.js#s_lJegR2RiUlU[0]"
+    if (elm && elm.nodeType === 1) {
+      const attrs = elm.attributes;
+      if (attrs) {
+        const attrLen = attrs.length;
+        for (let i = 0; i < attrLen; i++) {
+          const nodeName = attrs[i].nodeName;
+          if (nodeName && nodeName.startsWith('on:')) {
+            const qrlValue = attrs[i].nodeValue;
+            if (qrlValue) {
+              const qrls = qrlValue.split(' ');
+              for (const qrl of qrls) {
+                const q = parseQRL(qrl);
+                if (q && q.symbol) {
+                  eventQrls.add(q.symbol);
+                }
+              }
+            }
+          }
+        }
+      }
 
-  return urls.map((url) => buildBase + url);
+      const childNodes = elm.childNodes;
+      if (childNodes) {
+        const childNodesLen = childNodes.length;
+        for (let i = 0; i < childNodesLen; i++) {
+          findQwikEvent(childNodes[i] as any);
+        }
+      }
+    }
+  };
+  findQwikEvent(doc.body);
+
+  const prefetchResources: PrefetchResource[] = [];
+  const urls = new Set<string>();
+
+  eventQrls.forEach((eventSymbolName) => {
+    // manifest already prioritized the symbols at build time
+    for (const prioritizedSymbolName in manifest.mapping) {
+      if (eventSymbolName === prioritizedSymbolName) {
+        addBundle(
+          manifest,
+          urls,
+          prefetchResources,
+          buildBase,
+          manifest.mapping[prioritizedSymbolName]
+        );
+        break;
+      }
+    }
+  });
+
+  return prefetchResources;
 }
 
-function addBundle(manifest: QwikManifest, urls: string[], url: string) {
-  if (!urls.includes(url)) {
-    urls.push(url);
+function getAllPrefetch(manifest: QwikManifest, buildBase: string) {
+  const prefetchResources: PrefetchResource[] = [];
+  const urls = new Set<string>();
 
-    const bundle = manifest.bundles[url];
+  // manifest already prioritized the symbols at build time
+  for (const prioritizedSymbolName in manifest.mapping) {
+    addBundle(
+      manifest,
+      urls,
+      prefetchResources,
+      buildBase,
+      manifest.mapping[prioritizedSymbolName]
+    );
+  }
+
+  return prefetchResources;
+}
+
+function addBundle(
+  manifest: QwikManifest,
+  urls: Set<string>,
+  prefetchResources: PrefetchResource[],
+  buildBase: string,
+  fileName: string
+) {
+  const url = buildBase + fileName;
+
+  if (!urls.has(url)) {
+    urls.add(url);
+
+    prefetchResources.push({
+      url,
+      imports: [],
+    });
+
+    const bundle = manifest.bundles[fileName];
     if (bundle && bundle.imports) {
-      for (const bundleUrl of bundle.imports) {
-        addBundle(manifest, urls, bundleUrl);
+      for (const importedFilename of bundle.imports) {
+        addBundle(manifest, urls, prefetchResources, buildBase, importedFilename);
       }
     }
   }
@@ -81,7 +159,7 @@ function addBundle(manifest: QwikManifest, urls: string[], url: string) {
 export function applyPrefetchImplementation(
   doc: QwikDocument,
   opts: RenderToStringOptions,
-  prefetchUrls: string[]
+  prefetchResources: PrefetchResource[]
 ) {
   const prefetchStrategy = opts.prefetchStrategy;
   if (prefetchStrategy !== null) {
@@ -91,46 +169,48 @@ export function applyPrefetchImplementation(
       prefetchImpl === 'link-preload' ||
       prefetchImpl === 'link-modulepreload'
     ) {
-      link(doc, prefetchUrls, prefetchImpl);
+      link(doc, prefetchResources, prefetchImpl);
     } else if (prefetchImpl === 'qrl-import') {
-      qrlImport(doc, prefetchUrls);
+      qrlImport(doc, prefetchResources);
     } else if (prefetchImpl === 'worker-fetch') {
-      workerFetch(doc, prefetchUrls);
+      workerFetch(doc, prefetchResources);
     }
   }
 }
 
 function link(
   doc: QwikDocument,
-  prefetchUrls: string[],
-  prefetchImpl: PrefetchStrategyImplementation
+  prefetchResources: PrefetchResource[],
+  prefetchImpl: PrefetchImplementation
 ) {
-  for (const prefetchUrl of prefetchUrls) {
-    const link = doc.createElement('link');
-    link.setAttribute('href', prefetchUrl);
+  for (const prefetchResource of prefetchResources) {
+    const linkElm = doc.createElement('link');
+    linkElm.setAttribute('href', prefetchResource.url);
 
     if (prefetchImpl === 'link-modulepreload') {
-      link.setAttribute('rel', 'modulepreload');
+      linkElm.setAttribute('rel', 'modulepreload');
     } else if (prefetchImpl === 'link-preload') {
-      link.setAttribute('rel', 'preload');
-      link.setAttribute('as', 'script');
+      linkElm.setAttribute('rel', 'preload');
+      linkElm.setAttribute('as', 'script');
     } else {
-      link.setAttribute('rel', 'prefetch');
-      link.setAttribute('as', 'script');
+      linkElm.setAttribute('rel', 'prefetch');
+      linkElm.setAttribute('as', 'script');
     }
 
-    doc.body.appendChild(link);
+    doc.body.appendChild(linkElm);
+
+    link(doc, prefetchResource.imports, prefetchImpl);
   }
 }
 
-function qrlImport(doc: QwikDocument, urls: string[]) {
+function qrlImport(doc: QwikDocument, prefetchResources: PrefetchResource[]) {
   const script = doc.createElement('script');
   script.setAttribute('type', 'qwik/prefetch');
-  script.innerHTML = JSON.stringify(urls);
+  script.innerHTML = JSON.stringify(prefetchResources);
   doc.body.appendChild(script);
 }
 
-function workerFetch(doc: QwikDocument, urls: string[]) {
+function workerFetch(doc: QwikDocument, prefetchResources: PrefetchResource[]) {
   const fetch = `Promise.all(e.data.map(u=>fetch(u))).finally(()=>{setTimeout(postMessage({}),999)})`;
 
   const workerBody = `onmessage=(e)=>{${fetch}}`;
@@ -140,7 +220,9 @@ function workerFetch(doc: QwikDocument, urls: string[]) {
   const url = `URL.createObjectURL(${blob})`;
 
   let s = `const w=new Worker(${url});`;
-  s += `w.postMessage(${JSON.stringify(urls)}.map(u=>new URL(u,origin)+''));`;
+  s += `w.postMessage(${JSON.stringify(
+    prefetchResources.map((p) => p.url)
+  )}.map(u=>new URL(u,origin)+''));`;
   s += `w.onmessage=()=>{w.terminate();document.getElementById('qwik-worker-fetch').remove()}`;
 
   const script = doc.createElement('script');

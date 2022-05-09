@@ -50,14 +50,14 @@ export interface SerializeDocumentOptions extends DocumentOptions {
  * @alpha
  */
 export interface PrefetchStrategy {
-  implementation?: PrefetchStrategyImplementation;
+  implementation?: PrefetchImplementation;
   symbolsToPrefetch?: SymbolsToPrefetch;
 }
 
 /**
  * @alpha
  */
-export type PrefetchStrategyImplementation =
+export type PrefetchImplementation =
   | 'link-prefetch'
   | 'link-preload'
   | 'link-modulepreload'
@@ -73,10 +73,17 @@ export type PrefetchStrategyImplementation =
  * @alpha
  */
 export type SymbolsToPrefetch =
-  | 'all-document'
   | 'all'
   | 'events-document'
-  | ((opts: { document: QwikDocument; manifest: QwikManifest }) => string[]);
+  | ((opts: { document: QwikDocument; manifest: QwikManifest }) => PrefetchResource[]);
+
+/**
+ * @alpha
+ */
+export interface PrefetchResource {
+  url: string;
+  imports: PrefetchResource[];
+}
 
 export { QwikManifest, QwikBundle, QwikSymbol };
 
@@ -90,7 +97,7 @@ export type QrlMapper = (symbolName: string) => string | undefined;
  */
 export interface RenderToStringResult {
   html: string;
-  prefetchUrls: string[];
+  prefetchResources: PrefetchResource[];
   timing: {
     createDocument: number;
     render: number;

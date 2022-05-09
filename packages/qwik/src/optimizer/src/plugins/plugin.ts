@@ -1,5 +1,5 @@
 import { createOptimizer } from '../optimizer';
-import { getValidManifest, updateManifestPriorities } from '../manifest';
+import { getValidManifest, updateSortAndPriorities } from '../manifest';
 import type {
   Diagnostic,
   EntryStrategy,
@@ -27,6 +27,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
   let diagnosticsCallback: (d: Diagnostic[], optimizer: Optimizer) => void = () => {};
 
   const opts: NormalizedQwikPluginConfig = {
+    target: 'client',
     buildMode: 'development',
     debug: false,
     rootDir: null as any,
@@ -57,18 +58,27 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
     opts.debug = !!updatedOpts.debug;
 
-    opts.buildMode = 'development';
-    if (updatedOpts.buildMode === 'ssr') {
-      opts.buildMode = 'ssr';
-    } else if (updatedOpts.buildMode === 'production') {
-      opts.buildMode = 'production';
+    if (updatedOpts.target === 'ssr' || updatedOpts.target === 'client') {
+      opts.target = updatedOpts.target;
+    } else {
+      opts.target = 'client';
+    }
+
+    if (updatedOpts.buildMode === 'production' || updatedOpts.buildMode === 'development') {
+      opts.buildMode = updatedOpts.buildMode;
+    } else {
+      opts.buildMode = 'development';
     }
 
     if (updatedOpts.entryStrategy && typeof updatedOpts.entryStrategy === 'object') {
       opts.entryStrategy = { ...updatedOpts.entryStrategy };
     }
     if (!opts.entryStrategy) {
-      opts.entryStrategy = { type: 'hook' };
+      if (opts.buildMode === 'development') {
+        opts.entryStrategy = { type: 'hook' };
+      } else {
+        opts.entryStrategy = { type: 'smart' };
+      }
     }
 
     if (typeof updatedOpts.rootDir === 'string') {
@@ -94,7 +104,21 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     if (typeof updatedOpts.forceFullBuild === 'boolean') {
       opts.forceFullBuild = updatedOpts.forceFullBuild;
     } else {
-      opts.forceFullBuild = opts.entryStrategy.type !== 'hook' || !!updatedOpts.srcInputs;
+      if (opts.buildMode === 'production') {
+        opts.forceFullBuild = true;
+      } else {
+        opts.forceFullBuild = opts.entryStrategy.type !== 'hook' || !!updatedOpts.srcInputs;
+      }
+    }
+
+    if (opts.forceFullBuild === false && opts.entryStrategy.type !== 'hook') {
+      console.error(`forceFullBuild cannot be false with entryStrategy ${opts.entryStrategy.type}`);
+      opts.forceFullBuild = true;
+    }
+
+    if (opts.forceFullBuild === false && !!updatedOpts.srcInputs) {
+      console.error(`forceFullBuild reassigned to "true" since "srcInputs" have been provided`);
+      opts.forceFullBuild = true;
     }
 
     if (Array.isArray(opts.srcInputs)) {
@@ -434,7 +458,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         addBundleToManifest(path, manifest, outputBundle, bundleFileName);
       }
 
-      return updateManifestPriorities(manifest);
+      return updateSortAndPriorities(manifest);
     };
 
     return { addBundle, generateManifest };
@@ -450,6 +474,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       const buildDirName = path.dirname(outputBundle.fileName);
       const bundle: QwikBundle = {
         size: outputBundle.size,
+        symbols: [],
       };
 
       const bundleImports = outputBundle.imports
@@ -518,7 +543,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 }
 
 function getBuildTimeModule(pluginOpts: NormalizedQwikPluginConfig, loadOpts: { ssr?: boolean }) {
-  const isServer = pluginOpts.buildMode === 'ssr' || !!loadOpts.ssr;
+  const isServer = pluginOpts.target === 'ssr' || !!loadOpts.ssr;
   return `// @builder.io/qwik/build
 export const isServer = ${JSON.stringify(isServer)};
 export const isBrowser = ${JSON.stringify(!isServer)};
@@ -571,21 +596,20 @@ export const Q_MANIFEST_FILENAME = 'q-manifest.json';
 
 export interface QwikPluginOptions extends BasePluginOptions {
   rootDir?: string;
+  target?: QwikBuildTarget;
   buildMode?: QwikBuildMode;
+  forceFullBuild?: boolean;
 }
 
-/**
- * "development" and "production" are client builds,
- * and "ssr" is a server build. Defaults to "development".
- */
-export type QwikBuildMode = 'development' | 'production' | 'ssr';
+export type QwikBuildTarget = 'client' | 'ssr';
+
+export type QwikBuildMode = 'production' | 'development';
 
 export interface BasePluginOptions {
   debug?: boolean;
   outClientDir?: string;
   outServerDir?: string;
   entryStrategy?: EntryStrategy;
-  forceFullBuild?: boolean;
   srcRootInput?: string | string[];
   srcEntryServerInput?: string;
   srcDir?: string | null;

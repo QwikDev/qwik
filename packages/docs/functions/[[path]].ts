@@ -42,7 +42,7 @@ export const onRequestGet: PagesFunction = async ({ request, next, waitUntil }) 
       base: '/build/',
       manifest,
       prefetchStrategy: {
-        symbolsToPrefetch: 'all',
+        symbolsToPrefetch: 'events-document',
         implementation: 'worker-fetch',
       },
     };

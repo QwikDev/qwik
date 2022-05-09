@@ -1,4 +1,4 @@
-import type { TutorialApp } from './tutorial-data';
+import type { TutorialApp } from '@tutorial-data';
 
 export const TutorialContentFooter = ({ current, prev, next }: TutorialContentFooterProps) => {
   return (

@@ -1,5 +1,5 @@
 import { useLocation } from '../../utils/useLocation';
-import tutorialSections, { TutorialApp } from './tutorial-data';
+import tutorialSections, { TutorialApp } from '@tutorial-data';
 
 export const TutorialContentHeader = ({ current }: TutorialContentHeaderProps) => {
   const loc = useLocation();

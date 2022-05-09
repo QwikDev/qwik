@@ -14,7 +14,7 @@ import { Repl } from '../../components/repl/repl';
 import styles from './playground.css?inline';
 import { Header } from '../../components/header/header';
 import { setHeadMeta, setHeadStyles } from '@builder.io/qwik-city';
-import playgroundApps from './playground-data';
+import playgroundApps from '@playground-data';
 import { useLocation } from '../../utils/useLocation';
 
 interface PlaygroundLayoutProps {

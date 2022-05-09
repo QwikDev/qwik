@@ -196,14 +196,13 @@
 }
 
 .output-modules .file-modules {
-  padding: 15px 15px 15px 0;
+  padding: 0 15px 15px 0;
   grid-area: repl-file-text;
   overflow-y: auto;
   overflow-x: hidden;
 }
 
 .output-modules .file-item {
-  scroll-margin-top: 15px;
   margin-bottom: 30px;
   padding-bottom: 30px;
   border: 1px solid var(--repl-tab-bg-color);

@@ -8,6 +8,7 @@ import {
   parseId,
   QwikBuildMode,
   QwikPluginOptions,
+  QwikBuildTarget,
   QWIK_CORE_ID,
   QWIK_JSX_RUNTIME_ID,
   Q_MANIFEST_FILENAME,
@@ -41,18 +42,30 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
       isClientOnly = viteEnv.command === 'serve' && viteEnv.mode !== 'ssr';
 
-      let buildMode: QwikBuildMode = 'development';
-      if (viteEnv.command === 'build') {
-        if (viteEnv.mode === 'ssr') {
-          buildMode = 'ssr';
-        } else if (viteEnv.mode === 'production') {
-          buildMode = 'production';
-        }
+      let target: QwikBuildTarget;
+      if (viteEnv.mode === 'ssr') {
+        target = 'ssr';
+      } else {
+        target = 'client';
+      }
+
+      let buildMode: QwikBuildMode;
+      if (viteEnv.command === 'build' && viteEnv.mode !== 'development') {
+        // build (production)
+        buildMode = 'production';
+      } else {
+        // serve (development)
+        buildMode = 'development';
+      }
+
+      if (buildMode === 'development') {
+        qwikViteOpts.entryStrategy = { type: 'hook' };
       }
 
       const pluginOpts: QwikPluginOptions = {
-        debug: qwikViteOpts.debug,
+        target,
         buildMode,
+        debug: qwikViteOpts.debug,
         entryStrategy: qwikViteOpts.entryStrategy,
         rootDir: viteConfig.root,
         outClientDir: qwikViteOpts.outClientDir,
@@ -63,10 +76,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         manifestInput: qwikViteOpts.manifestInput,
         manifestOutput: qwikViteOpts.manifestOutput,
       };
-
-      if (buildMode === 'production') {
-        pluginOpts.forceFullBuild = true;
-      }
 
       const optimizer = await qwikPlugin.getOptimizer();
       const opts = await qwikPlugin.normalizeOptions(pluginOpts);
@@ -84,18 +93,24 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       }
 
       const outputOptions: OutputOptions = {};
-      if (opts.buildMode === 'ssr') {
+      if (opts.target === 'ssr') {
+        // ssr
         outputOptions.assetFileNames = '[name].[ext]';
         outputOptions.entryFileNames = '[name].js';
         outputOptions.chunkFileNames = '[name].js';
-      } else if (opts.buildMode === 'production') {
-        outputOptions.assetFileNames = 'build/q-[hash].[ext]';
-        outputOptions.entryFileNames = 'build/q-[hash].js';
-        outputOptions.chunkFileNames = 'build/q-[hash].js';
       } else {
-        outputOptions.assetFileNames = 'build/[name].[ext]';
-        outputOptions.entryFileNames = 'build/[name].js';
-        outputOptions.chunkFileNames = 'build/[name].js';
+        // client
+        if (opts.buildMode === 'production') {
+          // production/client
+          outputOptions.assetFileNames = 'build/q-[hash].[ext]';
+          outputOptions.entryFileNames = 'build/q-[hash].js';
+          outputOptions.chunkFileNames = 'build/q-[hash].js';
+        } else {
+          // development/client
+          outputOptions.assetFileNames = 'build/[name].[ext]';
+          outputOptions.entryFileNames = 'build/[name].js';
+          outputOptions.chunkFileNames = 'build/[name].js';
+        }
       }
 
       const updatedViteConfig: UserConfig = {
@@ -124,11 +139,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         },
       };
 
-      if (viteEnv.command === 'serve') {
-        pluginOpts.entryStrategy = { type: 'hook' };
-      }
-
-      if (opts.buildMode === 'ssr') {
+      if (opts.target === 'ssr') {
         // Server input
         updatedViteConfig.build!.rollupOptions!.input = opts.srcEntryServerInput;
 

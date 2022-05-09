@@ -1,6 +1,9 @@
 export type {
   CreateRenderToStringOptions,
   DocumentOptions,
+  PrefetchResource,
+  PrefetchImplementation,
+  PrefetchStrategy,
   QwikDocument,
   QwikWindow,
   QwikManifest,

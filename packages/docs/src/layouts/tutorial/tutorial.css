@@ -11,7 +11,7 @@
   grid-template-areas:
     'repl-input-panel'
     'repl-output-panel';
-  height: calc(100vh - var(--header-height) - var(--repl-tab-height));
+  height: calc(100vh - var(--header-height) - calc(var(--repl-tab-height) - 14px));
 }
 
 .tutorial .repl .repl-detail-panel {
@@ -23,7 +23,7 @@
 }
 
 .tutorial-repl-footer {
-  height: var(--repl-tab-height);
+  height: calc(var(--repl-tab-height) - 14px);
   background: var(--repl-tab-bg-color);
 }
 
@@ -46,7 +46,7 @@
   color: rgb(37, 37, 37);
 
   display: grid;
-  grid-template-rows: var(--repl-tab-height) 1fr var(--repl-tab-height);
+  grid-template-rows: calc(var(--repl-tab-height) - 14px) 1fr calc(var(--repl-tab-height) - 14px);
   grid-template-areas:
     'content-header'
     'content-main'

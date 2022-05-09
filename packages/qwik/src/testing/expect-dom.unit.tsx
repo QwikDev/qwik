@@ -31,7 +31,10 @@ function expectMatchElement(
       Object.keys(expected.props).forEach((key) => {
         if (key !== 'children') {
           const expectedValue = expected.props![key] as any;
-          const actualValue = actual.getAttribute ? actual.getAttribute(key) : '';
+          let actualValue = actual.getAttribute ? actual.getAttribute(key) : '';
+          if (actualValue?.startsWith('/runtimeQRL#')) {
+            actualValue = '/runtimeQRL#*';
+          }
           if (!(actualValue == expectedValue || (expectedValue === true && actualValue !== null))) {
             diffs.push(`${path}: expected '${toHTML(expected)}', was '${toHTML(actual)}'.`);
           }

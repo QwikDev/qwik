@@ -12,6 +12,7 @@ import { getContext } from '../props/props';
 import type { FunctionComponent } from '../render/jsx/types/jsx-node';
 import { jsx } from '../render/jsx/jsx-runtime';
 import { useSequentialScope } from '../use/use-store.public';
+import { WatchDescriptor, WatchFlags } from '../watch/watch.public';
 
 // <docs markdown="./component.public.md#useCleanup">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -25,7 +26,17 @@ import { useSequentialScope } from '../use/use-store.public';
  */
 // </docs>
 export function useCleanupQrl(unmountFn: QRL<() => void>): void {
-  throw new Error('IMPLEMENT: useCleanupQrl' + unmountFn);
+  const [watch, setWatch] = useSequentialScope();
+  if (!watch) {
+    const el = useHostElement();
+    const watch: WatchDescriptor = {
+      qrl: unmountFn,
+      el,
+      f: WatchFlags.IsCleanup,
+    };
+    setWatch(watch);
+    getContext(el).refMap.add(watch);
+  }
 }
 
 // <docs markdown="./component.public.md#useCleanup">

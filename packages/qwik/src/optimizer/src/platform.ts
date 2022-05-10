@@ -127,8 +127,7 @@ export async function loadPlatformBinding(sys: OptimizerSystem) {
         for (const triple of triples) {
           // NodeJS - Native Binding
           try {
-            const platformBindingPath = sys.path.join('bindings', triple.platformArchABI);
-            const mod = await sys.dynamicImport('./' + platformBindingPath);
+            const mod = await sys.dynamicImport(`./bindings/${triple.platformArchABI}`);
             return mod;
           } catch (e) {
             logWarn(e);
@@ -143,9 +142,8 @@ export async function loadPlatformBinding(sys: OptimizerSystem) {
 
     if (sysEnv === 'node') {
       // CJS WASM NodeJS
-      const cjsWasmPath = sys.path.join('bindings', 'qwik.wasm.cjs');
       const wasmPath = sys.path.join(__dirname, 'bindings', 'qwik_wasm_bg.wasm');
-      const mod = await sys.dynamicImport('./' + cjsWasmPath);
+      const mod = await sys.dynamicImport(`./bindings/qwik.wasm.cjs`);
       const fs: typeof import('fs') = await sys.dynamicImport('fs');
 
       return new Promise<Buffer>((resolve, reject) => {
@@ -195,8 +193,7 @@ export async function loadPlatformBinding(sys: OptimizerSystem) {
 
   if (globalThis.IS_ESM) {
     // ESM WASM
-    const mjsWasmPath = sys.path.join('bindings', 'qwik.wasm.mjs');
-    const module = await sys.dynamicImport('./' + mjsWasmPath);
+    const module = await sys.dynamicImport(`./bindings/qwik.wasm.mjs`);
     await module.default();
     return module;
   }

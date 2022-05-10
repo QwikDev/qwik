@@ -1,3 +1,4 @@
+import type { SnapshotState } from '../core/object/store';
 import type { QwikManifest, QwikBundle, QwikSymbol } from '../optimizer/src';
 
 /**
@@ -58,10 +59,12 @@ export interface PrefetchStrategy {
  * @alpha
  */
 export type PrefetchImplementation =
+  | 'link-prefetch-html'
   | 'link-prefetch'
+  | 'link-preload-html'
   | 'link-preload'
+  | 'link-modulepreload-html'
   | 'link-modulepreload'
-  | 'qrl-import'
   | 'worker-fetch'
   | 'none';
 
@@ -95,9 +98,16 @@ export type QrlMapper = (symbolName: string) => string | undefined;
 /**
  * @public
  */
-export interface RenderToStringResult {
-  html: string;
+export interface RenderToDocumentResult {
   prefetchResources: PrefetchResource[];
+  snapshotState: SnapshotState | null;
+}
+
+/**
+ * @public
+ */
+export interface RenderToStringResult extends RenderToDocumentResult {
+  html: string;
   timing: {
     createDocument: number;
     render: number;
@@ -124,6 +134,8 @@ export interface RenderToDocumentOptions extends SerializeDocumentOptions, Docum
    * Specifies if the Qwik Loader script is added to the document or not. Defaults to `{ include: true }`.
    */
   qwikLoader?: { events?: string[]; include?: boolean };
+
+  prefetchStrategy?: PrefetchStrategy;
 }
 
 /**
@@ -135,7 +147,6 @@ export interface RenderToStringOptions extends RenderToDocumentOptions {
    * Defaults to `undefined`
    */
   fragmentTagName?: string;
-  prefetchStrategy?: PrefetchStrategy;
 }
 
 /**

@@ -25,7 +25,7 @@ import {
   SubscriberMap,
   _restoreQObject,
 } from './q-object';
-import { cleanupWatch, destroyWatch, isWatchDescriptor, WatchFlags } from '../watch/watch.public';
+import { destroyWatch, isWatchDescriptor, WatchFlags } from '../watch/watch.public';
 
 export interface Store {
   doc: Document;
@@ -108,7 +108,15 @@ export function resumeContainer(containerEl: Element) {
   logDebug('Container resumed');
 }
 
-export function snapshotState(containerEl: Element) {
+/**
+ * @public
+ */
+export interface SnapshotState {
+  objs: any[];
+  subs: any[];
+}
+
+export function snapshotState(containerEl: Element): SnapshotState {
   const doc = getDocument(containerEl);
   const proxyMap = getProxyMap(doc);
   const objSet = new Set<any>();

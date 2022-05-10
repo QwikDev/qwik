@@ -3,6 +3,7 @@ import { isDocument } from '../util/element';
 import { QContainerAttr } from '../util/markers';
 import { qDev } from '../util/qdev';
 import { snapshotState } from './store';
+import type { SnapshotState } from './store';
 
 /**
  * Serialize the current state of the application into DOM
@@ -19,4 +20,7 @@ export function pauseContainer(elmOrDoc: Element | Document) {
   script.textContent = JSON.stringify(data, undefined, qDev ? '  ' : undefined);
   parentJSON.appendChild(script);
   containerEl.setAttribute(QContainerAttr, 'paused');
+  return data;
 }
+
+export type { SnapshotState };

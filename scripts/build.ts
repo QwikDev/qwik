@@ -1,6 +1,6 @@
 import { BuildConfig, ensureDir, panic } from './util';
 import { apiExtractor } from './api';
-import { buildPlatformBinding } from './binding-platform';
+import { buildPlatformBinding, copyPlatformBindingWasm } from './binding-platform';
 import { buildWasmBinding } from './binding-wasm';
 import { copyFiles } from './copy-files';
 import { emptyDir } from './util';
@@ -84,6 +84,8 @@ export async function build(config: BuildConfig) {
 
     if (config.platformBinding) {
       await buildPlatformBinding(config);
+    } else if (config.platformBindingWasmCopy) {
+      await copyPlatformBindingWasm(config);
     }
 
     if (config.wasm) {

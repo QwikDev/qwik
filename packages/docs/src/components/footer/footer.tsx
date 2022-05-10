@@ -14,7 +14,7 @@ export const Footer = component$(
           <a class="px-4 py-1" href="https://twitter.com/QwikDev" target="_blank">
             @QwikDev
           </a>
-          <a class="px-4 py-1" href="https://discord.gg/bNVSQmPzqy" target="_blank">
+          <a class="px-4 py-1" href="https://qwik.builder.io/chat" target="_blank">
             Discord
           </a>
         </nav>

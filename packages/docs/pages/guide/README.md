@@ -49,4 +49,4 @@
 
 - [Github](https://github.com/BuilderIO/qwik)
 - [@QwikDev](https://twitter.com/QwikDev)
-- [Discord](https://discord.gg/bNVSQmPzqy)
+- [Discord](https://qwik.builder.io/chat)

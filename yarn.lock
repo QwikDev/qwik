@@ -686,7 +686,7 @@ __metadata:
   resolution: "@builder.io/qwik-city@workspace:packages/qwik-city"
   dependencies:
     "@mdx-js/mdx": ^2.1.1
-    "@microsoft/api-extractor": ^7.23.1
+    "@microsoft/api-extractor": 7.23.2
     "@types/github-slugger": ^1.3.0
     "@types/marked": ^4.0.3
     "@types/mdx": 2.0.1
@@ -1062,27 +1062,27 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@microsoft/api-extractor-model@npm:7.17.2":
-  version: 7.17.2
-  resolution: "@microsoft/api-extractor-model@npm:7.17.2"
+"@microsoft/api-extractor-model@npm:7.17.3":
+  version: 7.17.3
+  resolution: "@microsoft/api-extractor-model@npm:7.17.3"
   dependencies:
     "@microsoft/tsdoc": 0.14.1
     "@microsoft/tsdoc-config": ~0.16.1
-    "@rushstack/node-core-library": 3.45.4
-  checksum: 94c1c63674d85bf69cff9abbf94a1b2d2f5b6e3b651b8483d8949e39424cb29df156b589a297ca19f85ad1ff6380389e58a03198e7fe1ec34b59d5cae2166de7
+    "@rushstack/node-core-library": 3.45.5
+  checksum: 5b68f59c7ea0c4cb9678e40fd9a0aab1c46e1e3cc6f754bcee58dd3fbfc290b0865b56823cdd0a6ec58b569501cbe4a84a708f87a5cc409c7fdab10c0853b112
   languageName: node
   linkType: hard
 
-"@microsoft/api-extractor@npm:7.23.1, @microsoft/api-extractor@npm:^7.23.1":
-  version: 7.23.1
-  resolution: "@microsoft/api-extractor@npm:7.23.1"
+"@microsoft/api-extractor@npm:7.23.2":
+  version: 7.23.2
+  resolution: "@microsoft/api-extractor@npm:7.23.2"
   dependencies:
-    "@microsoft/api-extractor-model": 7.17.2
+    "@microsoft/api-extractor-model": 7.17.3
     "@microsoft/tsdoc": 0.14.1
     "@microsoft/tsdoc-config": ~0.16.1
-    "@rushstack/node-core-library": 3.45.4
+    "@rushstack/node-core-library": 3.45.5
     "@rushstack/rig-package": 0.3.11
-    "@rushstack/ts-command-line": 4.10.10
+    "@rushstack/ts-command-line": 4.11.0
     colors: ~1.2.1
     lodash: ~4.17.15
     resolve: ~1.17.0
@@ -1091,7 +1091,7 @@ __metadata:
     typescript: ~4.6.3
   bin:
     api-extractor: bin/api-extractor
-  checksum: 126de94e1527e2cebc77938dec635bbc2b8d4f15366e7b501f14510c9b8b6266ef28985ba60b94550d50b8edc7af20bf2b6afb3f0a435a3cfb726bbcd6aa987a
+  checksum: 5fb159374dababed2f15155b2fb7c0dca0d7142eb5e2cc56e3e8e8d1469028cfb1779c50a1583e53e90694d67cb14ee60832c8711a7bddf76617de5b10ef683d
   languageName: node
   linkType: hard
 
@@ -1532,9 +1532,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rushstack/node-core-library@npm:3.45.4":
-  version: 3.45.4
-  resolution: "@rushstack/node-core-library@npm:3.45.4"
+"@rushstack/node-core-library@npm:3.45.5":
+  version: 3.45.5
+  resolution: "@rushstack/node-core-library@npm:3.45.5"
   dependencies:
     "@types/node": 12.20.24
     colors: ~1.2.1
@@ -1545,7 +1545,7 @@ __metadata:
     semver: ~7.3.0
     timsort: ~0.3.0
     z-schema: ~5.0.2
-  checksum: f7049be8c145ef1d1ee2ee29b917440a3c88a5e4906c5b6bebe0d4c7854c93b759b7563475be383a4cedf8afd3914b34a6b988fe67b8dfce33545223b2a46cca
+  checksum: 4533c809401827eca3f98863ef2adb1975a5c57bca3fef706a710dd90828d0468bcc3fce15bda483784d690573be1dfcf890abb99f368e9a3bff75aa88913997
   languageName: node
   linkType: hard
 
@@ -1559,15 +1559,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rushstack/ts-command-line@npm:4.10.10":
-  version: 4.10.10
-  resolution: "@rushstack/ts-command-line@npm:4.10.10"
+"@rushstack/ts-command-line@npm:4.11.0":
+  version: 4.11.0
+  resolution: "@rushstack/ts-command-line@npm:4.11.0"
   dependencies:
     "@types/argparse": 1.0.38
     argparse: ~1.0.9
     colors: ~1.2.1
     string-argv: ~0.3.1
-  checksum: e2d47cbe6df4c47e297ef84b83f1f6f2306ae14cd765066ea966f3e6ed48e1382d20c942a324ff9e389f5e673a9e1ba477f5b9514303709fcf85f28e14cdd26c
+  checksum: 966692b5738d198130d6a8f01f819dfa95dccaf7a8e4c2f9d76d36205790584e827afb18f837703f07bfe93faa3b705c81e682888a4aef0da350758c7c6582d1
   languageName: node
   linkType: hard
 
@@ -5128,15 +5128,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"husky@npm:7.0.4":
-  version: 7.0.4
-  resolution: "husky@npm:7.0.4"
-  bin:
-    husky: lib/bin.js
-  checksum: c6ec4af63da2c9522da8674a20ad9b48362cc92704896cc8a58c6a2a39d797feb2b806f93fbd83a6d653fbdceb2c3b6e0b602c6b2e8565206ffc2882ef7db9e9
-  languageName: node
-  linkType: hard
-
 "iconv-lite@npm:0.4.24":
   version: 0.4.24
   resolution: "iconv-lite@npm:0.4.24"
@@ -8215,7 +8206,7 @@ __metadata:
   dependencies:
     "@builder.io/partytown": 0.5.4
     "@builder.io/qwik-dom": 2.1.14
-    "@microsoft/api-extractor": 7.23.1
+    "@microsoft/api-extractor": 7.23.2
     "@napi-rs/cli": 2.6.2
     "@napi-rs/triples": 1.1.0
     "@node-rs/helper": 1.3.3
@@ -8243,7 +8234,6 @@ __metadata:
     execa: 6.1.0
     express: 4.18.1
     gzip-size: 6.0.0
-    husky: 7.0.4
     jest: 27.5.1
     lint-staged: 12.4.1
     mri: 1.2.0

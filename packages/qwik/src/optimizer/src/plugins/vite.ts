@@ -4,7 +4,7 @@ import type { RenderToStringOptions, RenderToStringResult } from '../../../serve
 import {
   BasePluginOptions,
   createPlugin,
-  NormalizedQwikPluginConfig,
+  NormalizedQwikPluginOptions,
   parseId,
   QwikBuildMode,
   QwikPluginOptions,
@@ -91,6 +91,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           ENTRY_DEV_FILENAME_DEFAULT
         );
       }
+      srcEntryDevInput = qwikPlugin.normalizePath(srcEntryDevInput);
 
       const outputOptions: OutputOptions = {};
       if (opts.target === 'ssr') {
@@ -347,8 +348,8 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           if (isClientOnly) {
             qwikPlugin.log(`handleClientEntry("${url}")`);
 
-            let entryUrl = optimizer.sys.path.relative(opts.rootDir, srcEntryDevInput);
-            entryUrl = '/' + entryUrl.replace(/\\/g, '/');
+            const relPath = optimizer.sys.path.relative(opts.rootDir, srcEntryDevInput);
+            const entryUrl = '/' + qwikPlugin.normalizePath(relPath);
 
             let html = getViteDevIndexHtml(entryUrl);
             html = await server.transformIndexHtml(pathname, html);
@@ -461,7 +462,7 @@ function updateEntryDev(code: string) {
   return code;
 }
 
-function getViteDevModule(opts: NormalizedQwikPluginConfig) {
+function getViteDevModule(opts: NormalizedQwikPluginOptions) {
   const qwikLoader = JSON.stringify(
     opts.debug ? QWIK_LOADER_DEFAULT_DEBUG : QWIK_LOADER_DEFAULT_MINIFIED
   );

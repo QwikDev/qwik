@@ -90,6 +90,19 @@ export interface QwikManifest {
         [symbolName: string]: string;
     };
     // (undocumented)
+    options?: {
+        target: string;
+        buildMode: string;
+        forceFullBuild: boolean;
+        entryStrategy: {
+            type: string;
+            [key: string]: any;
+        };
+        versions: {
+            [name: string]: string;
+        };
+    };
+    // (undocumented)
     symbols: {
         [symbolName: string]: QwikSymbol;
     };

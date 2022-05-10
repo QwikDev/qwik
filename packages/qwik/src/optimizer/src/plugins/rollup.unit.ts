@@ -1,8 +1,8 @@
 import { join } from 'path';
-import { qwikRollup, QwikRollupPlugin, QwikRollupPluginOptions } from './rollup';
+import { qwikRollup, QwikRollupPluginOptions } from './rollup';
 import type { InputOptions, OutputOptions } from 'rollup';
 import type { OptimizerOptions } from '../types';
-import type { NormalizedQwikPluginConfig } from './plugin';
+import type { NormalizedQwikPluginOptions } from './plugin';
 
 describe('rollup  plugin', () => {
   const cwd = process.cwd();
@@ -56,7 +56,7 @@ describe('rollup  plugin', () => {
     const plugin = qwikRollup(initOpts);
     await plugin.options!({});
 
-    const opts: NormalizedQwikPluginConfig = plugin.api.getOptions();
+    const opts: NormalizedQwikPluginOptions = plugin.api.getOptions();
     expect(opts.target).toBe('client');
     expect(opts.buildMode).toBe('development');
     expect(opts.entryStrategy).toEqual({ type: 'hook' });
@@ -68,7 +68,7 @@ describe('rollup  plugin', () => {
     const plugin = qwikRollup(initOpts);
     await plugin.options!({});
 
-    const opts: NormalizedQwikPluginConfig = plugin.api.getOptions();
+    const opts: NormalizedQwikPluginOptions = plugin.api.getOptions();
     expect(opts.target).toBe('client');
     expect(opts.buildMode).toBe('development');
     expect(opts.entryStrategy).toEqual({ type: 'hook' });
@@ -81,7 +81,7 @@ describe('rollup  plugin', () => {
     const plugin = qwikRollup(initOpts);
     await plugin.options!({});
 
-    const opts: NormalizedQwikPluginConfig = plugin.api.getOptions();
+    const opts: NormalizedQwikPluginOptions = plugin.api.getOptions();
     expect(opts.target).toBe('client');
     expect(opts.buildMode).toBe('production');
     expect(opts.entryStrategy).toEqual({ type: 'smart' });
@@ -94,7 +94,7 @@ describe('rollup  plugin', () => {
     const plugin = qwikRollup(initOpts);
     await plugin.options!({});
 
-    const opts: NormalizedQwikPluginConfig = plugin.api.getOptions();
+    const opts: NormalizedQwikPluginOptions = plugin.api.getOptions();
     expect(opts.target).toBe('ssr');
     expect(opts.buildMode).toBe('development');
     expect(opts.entryStrategy).toEqual({ type: 'hook' });
@@ -107,7 +107,7 @@ describe('rollup  plugin', () => {
     const plugin = qwikRollup(initOpts);
     await plugin.options!({});
 
-    const opts: NormalizedQwikPluginConfig = plugin.api.getOptions();
+    const opts: NormalizedQwikPluginOptions = plugin.api.getOptions();
     expect(opts.target).toBe('ssr');
     expect(opts.buildMode).toBe('production');
     expect(opts.entryStrategy).toEqual({ type: 'smart' });
@@ -121,7 +121,7 @@ describe('rollup  plugin', () => {
     const plugin = qwikRollup(initOpts);
     await plugin.options!({});
 
-    const opts: NormalizedQwikPluginConfig = plugin.api.getOptions();
+    const opts: NormalizedQwikPluginOptions = plugin.api.getOptions();
     expect(opts.target).toBe('ssr');
     expect(opts.buildMode).toBe('development');
     expect(opts.entryStrategy).toEqual({ type: 'hook' });

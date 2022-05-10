@@ -25,7 +25,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
   let addWatchFileCallback: (path: string) => void = () => {};
   let diagnosticsCallback: (d: Diagnostic[], optimizer: Optimizer) => void = () => {};
 
-  const opts: NormalizedQwikPluginConfig = {
+  const opts: NormalizedQwikPluginOptions = {
     target: 'client',
     buildMode: 'development',
     debug: false,
@@ -51,7 +51,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
   };
 
   const normalizeOptions = async (inputOpts?: QwikPluginOptions) => {
-    const updatedOpts: NormalizedQwikPluginConfig = Object.assign({}, inputOpts) as any;
+    const updatedOpts: NormalizedQwikPluginOptions = Object.assign({}, inputOpts) as any;
 
     const optimizer = await getOptimizer();
 
@@ -421,7 +421,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         .map((mod) => mod.hook)
         .filter((h) => !!h) as HookAnalysis[];
 
-      return generateManifestFromBundles(path, hooks, injections, outputBundles);
+      return generateManifestFromBundles(path, hooks, injections, outputBundles, opts);
     };
 
     return { addBundle, generateManifest };
@@ -499,7 +499,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
   };
 }
 
-function getBuildTimeModule(pluginOpts: NormalizedQwikPluginConfig, loadOpts: { ssr?: boolean }) {
+function getBuildTimeModule(pluginOpts: NormalizedQwikPluginOptions, loadOpts: { ssr?: boolean }) {
   const isServer = pluginOpts.target === 'ssr' || !!loadOpts.ssr;
   return `// @builder.io/qwik/build
 export const isServer = ${JSON.stringify(isServer)};
@@ -578,6 +578,6 @@ export interface BasePluginOptions {
     | null;
 }
 
-export interface NormalizedQwikPluginConfig extends Required<QwikPluginOptions> {
+export interface NormalizedQwikPluginOptions extends Required<QwikPluginOptions> {
   srcRootInput: string[];
 }

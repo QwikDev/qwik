@@ -33,7 +33,7 @@ export const Header = component$(
               <QwikLogo width={110} height={35} />
             </a>
           </div>
-          <button onClickQrl={toggleMenu} class="p-3 md:hidden fixed right-0">
+          <button onClickQrl={toggleMenu} class="p-3 md:hidden fixed right-0" type="button">
             <span class="more-icon">
               <MoreIcon width={30} height={30} />
             </span>

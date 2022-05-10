@@ -10,6 +10,7 @@ export const TutorialContentFooter = ({ current, prev, next }: TutorialContentFo
             // why doesn't this work?
             // store.inputs = current.solutionInputs;
           }}
+          type="button"
         >
           Show Me
         </button>

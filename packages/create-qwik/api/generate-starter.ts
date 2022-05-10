@@ -127,7 +127,7 @@ function generateUserStarter(
     `- [Qwik Docs](https://qwik.builder.io/)`,
     `- [Qwik Github](https://github.com/BuilderIO/qwik)`,
     `- [@QwikDev](https://twitter.com/QwikDev)`,
-    `- [Discord](https://discord.gg/bNVSQmPzqy)`,
+    `- [Discord](https://qwik.builder.io/chat)`,
     `- [Vite](https://vitejs.dev/)`,
     `- [Partytown](https://partytown.builder.io/)`,
     `- [Mitosis](https://github.com/BuilderIO/mitosis)`,

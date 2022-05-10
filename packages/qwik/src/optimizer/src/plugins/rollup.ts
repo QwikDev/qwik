@@ -8,6 +8,7 @@ import {
   QwikBuildTarget,
   Q_MANIFEST_FILENAME,
 } from './plugin';
+import { versions } from '../versions';
 
 /**
  * @alpha
@@ -59,7 +60,7 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
         if (!outputOpts.format) {
           outputOpts.format = 'cjs';
         }
-      } else {
+      } else if (opts.target === 'client') {
         // Client output
         if (!outputOpts.dir) {
           outputOpts.dir = opts.outClientDir;
@@ -114,7 +115,7 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
     async generateBundle(_, rollupBundle) {
       const opts = qwikPlugin.getOptions();
 
-      if (opts.buildMode === 'production' || opts.buildMode === 'development') {
+      if (opts.target === 'client') {
         // client build
         const outputAnalyzer = qwikPlugin.createOutputAnalyzer();
 
@@ -132,6 +133,13 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
         }
 
         const manifest = await outputAnalyzer.generateManifest();
+        manifest.platform = {
+          ...versions,
+          node: process.versions.node,
+          os: process.platform,
+          rollup: '',
+        };
+
         if (typeof opts.manifestOutput === 'function') {
           await opts.manifestOutput(manifest);
         }
@@ -145,7 +153,7 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
         if (typeof opts.transformedModuleOutput === 'function') {
           await opts.transformedModuleOutput(qwikPlugin.getTransformedOutputs());
         }
-      } else if (opts.buildMode === 'ssr') {
+      } else if (opts.target === 'ssr') {
         // ssr build
         const manifestInput = getValidManifest(opts.manifestInput);
         if (manifestInput) {

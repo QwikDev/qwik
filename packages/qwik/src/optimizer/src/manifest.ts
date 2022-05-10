@@ -260,7 +260,6 @@ export function generateManifestFromBundles(
       buildMode: opts.buildMode,
       forceFullBuild: opts.forceFullBuild,
       entryStrategy: opts.entryStrategy,
-      versions: versions,
     },
   };
 

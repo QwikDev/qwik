@@ -17,6 +17,7 @@ import { createRollupError } from './rollup';
 import { QWIK_LOADER_DEFAULT_DEBUG, QWIK_LOADER_DEFAULT_MINIFIED } from '../scripts';
 import type { OutputOptions } from 'rollup';
 import { getValidManifest } from '../manifest';
+import { versions } from '../versions';
 
 /**
  * @alpha
@@ -99,7 +100,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         outputOptions.assetFileNames = '[name].[ext]';
         outputOptions.entryFileNames = '[name].js';
         outputOptions.chunkFileNames = '[name].js';
-      } else {
+      } else if (opts.target === 'client') {
         // client
         if (opts.buildMode === 'production') {
           // production/client
@@ -261,11 +262,18 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       }
 
       const manifest = await outputAnalyzer.generateManifest();
+      manifest.platform = {
+        ...versions,
+        node: process.versions.node,
+        os: process.platform,
+        vite: '',
+      };
+
       if (typeof opts.manifestOutput === 'function') {
         await opts.manifestOutput(manifest);
       }
 
-      if (opts.buildMode === 'production' || opts.buildMode === 'development') {
+      if (opts.target === 'client') {
         // client build
         this.emitFile({
           type: 'asset',
@@ -276,7 +284,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         if (typeof opts.transformedModuleOutput === 'function') {
           await opts.transformedModuleOutput(qwikPlugin.getTransformedOutputs());
         }
-      } else if (opts.buildMode === 'ssr') {
+      } else if (opts.target === 'ssr') {
         // server build
         let clientManifestInput = opts.manifestInput;
 

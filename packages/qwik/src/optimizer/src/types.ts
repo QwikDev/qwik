@@ -243,12 +243,12 @@ export interface QwikManifest {
   injections?: GlobalInjections[];
   version: string;
   options?: {
-    target: string;
-    buildMode: string;
-    forceFullBuild: boolean;
-    entryStrategy: { type: string; [key: string]: any };
-    versions: { [name: string]: string };
+    target?: string;
+    buildMode?: string;
+    forceFullBuild?: boolean;
+    entryStrategy?: { [key: string]: any };
   };
+  platform?: { [name: string]: string };
 }
 
 /**

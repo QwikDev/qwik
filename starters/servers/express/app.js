@@ -5,12 +5,17 @@ const { join } = require('path');
 
 const app = express();
 
-// serves static files from the dist directory
+// static build files, hashed filenames, immutable cache-control
 app.use(
-  express.static(join(__dirname, 'dist'), {
-    index: false,
+  '/build',
+  express.static(join(__dirname, 'dist', 'build'), {
+    immutable: true,
+    maxAge: '1y',
   })
 );
+
+// static root files
+app.use(express.static(join(__dirname, 'dist'), { index: false }));
 
 // server-side renders Qwik application
 const { qwikMiddleware } = require('./server/entry.server');

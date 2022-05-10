@@ -205,16 +205,16 @@ export interface QwikManifest {
     };
     // (undocumented)
     options?: {
-        target: string;
-        buildMode: string;
-        forceFullBuild: boolean;
-        entryStrategy: {
-            type: string;
+        target?: string;
+        buildMode?: string;
+        forceFullBuild?: boolean;
+        entryStrategy?: {
             [key: string]: any;
         };
-        versions: {
-            [name: string]: string;
-        };
+    };
+    // (undocumented)
+    platform?: {
+        [name: string]: string;
     };
     // (undocumented)
     symbols: {

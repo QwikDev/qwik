@@ -76,8 +76,7 @@ export async function copyPlatformBindingWasm(config: BuildConfig) {
       if (!existsSync(cachedPath)) {
         const cdnUrl = `https://cdn.jsdelivr.net/npm/@builder.io/qwik@${buildVersion}/bindings/${bindingFilename}`;
         const rsp = await nodeFetch(cdnUrl);
-        const code = await rsp.text();
-        await writeFile(cachedPath, code);
+        await writeFile(cachedPath, rsp.body);
       }
 
       await copyFile(cachedPath, distPath);

@@ -5,7 +5,7 @@ import type {
   TransformModuleInput,
   TransformOutput,
 } from './types';
-import { createPath } from '../../core/util/path';
+import { createPath } from './path';
 import { QWIK_BINDING_MAP } from './qwik-binding-map';
 import { versions } from './versions';
 
@@ -18,6 +18,7 @@ export async function getSystem() {
     },
     path: null as any,
     cwd: () => '/',
+    os: 'unknown',
     env,
   };
 
@@ -57,6 +58,7 @@ export async function getSystem() {
   if (sysEnv === 'node') {
     sys.path = await sys.dynamicImport('path');
     sys.cwd = () => process.cwd();
+    sys.os = process.platform;
   }
 
   return sys;

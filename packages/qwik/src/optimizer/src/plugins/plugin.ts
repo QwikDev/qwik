@@ -86,11 +86,11 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     if (typeof opts.rootDir !== 'string') {
       opts.rootDir = optimizer.sys.cwd();
     }
-    opts.rootDir = optimizer.sys.path.resolve(optimizer.sys.cwd(), opts.rootDir);
+    opts.rootDir = normalizePath(optimizer.sys.path.resolve(optimizer.sys.cwd(), opts.rootDir));
 
-    let srcDir = optimizer.sys.path.resolve(opts.rootDir, SRC_DIR_DEFAULT);
+    let srcDir = normalizePath(optimizer.sys.path.resolve(opts.rootDir, SRC_DIR_DEFAULT));
     if (typeof updatedOpts.srcDir === 'string') {
-      opts.srcDir = optimizer.sys.path.resolve(opts.rootDir, updatedOpts.srcDir);
+      opts.srcDir = normalizePath(optimizer.sys.path.resolve(opts.rootDir, updatedOpts.srcDir));
       srcDir = opts.srcDir;
       opts.srcInputs = null;
     } else if (Array.isArray(updatedOpts.srcInputs)) {
@@ -122,10 +122,10 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
     if (Array.isArray(opts.srcInputs)) {
       opts.srcInputs.forEach((i) => {
-        i.path = optimizer.sys.path.resolve(opts.rootDir, i.path);
+        i.path = normalizePath(optimizer.sys.path.resolve(opts.rootDir, i.path));
       });
     } else if (typeof opts.srcDir === 'string') {
-      opts.srcDir = optimizer.sys.path.resolve(opts.rootDir, opts.srcDir);
+      opts.srcDir = normalizePath(optimizer.sys.path.resolve(opts.rootDir, opts.srcDir));
     }
 
     if (typeof updatedOpts.srcRootInput === 'string') {
@@ -137,16 +137,17 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     }
 
     opts.srcRootInput = opts.srcRootInput.map((p) => {
-      return optimizer.sys.path.resolve(srcDir, p);
+      return normalizePath(optimizer.sys.path.resolve(srcDir, p));
     });
 
     if (typeof updatedOpts.srcEntryServerInput === 'string') {
-      opts.srcEntryServerInput = optimizer.sys.path.resolve(
-        srcDir,
-        updatedOpts.srcEntryServerInput
+      opts.srcEntryServerInput = normalizePath(
+        optimizer.sys.path.resolve(srcDir, updatedOpts.srcEntryServerInput)
       );
     } else {
-      opts.srcEntryServerInput = optimizer.sys.path.resolve(srcDir, ENTRY_SERVER_FILENAME_DEFAULT);
+      opts.srcEntryServerInput = normalizePath(
+        optimizer.sys.path.resolve(srcDir, ENTRY_SERVER_FILENAME_DEFAULT)
+      );
     }
 
     if (typeof updatedOpts.outClientDir === 'string') {
@@ -155,7 +156,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     if (typeof opts.outClientDir !== 'string') {
       opts.outClientDir = DIST_DIR_DEFAULT;
     }
-    opts.outClientDir = optimizer.sys.path.resolve(opts.rootDir, opts.outClientDir);
+    opts.outClientDir = normalizePath(optimizer.sys.path.resolve(opts.rootDir, opts.outClientDir));
 
     if (typeof updatedOpts.outServerDir === 'string') {
       opts.outServerDir = updatedOpts.outServerDir;
@@ -163,7 +164,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     if (typeof opts.outServerDir !== 'string') {
       opts.outServerDir = SERVER_DIR_DEFAULT;
     }
-    opts.outServerDir = optimizer.sys.path.resolve(opts.rootDir, opts.outServerDir);
+    opts.outServerDir = normalizePath(optimizer.sys.path.resolve(opts.rootDir, opts.outServerDir));
 
     const manifestInput = getValidManifest(updatedOpts.manifestInput);
     if (manifestInput) {
@@ -206,13 +207,13 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
       let rootDir = '/';
       if (typeof opts.srcDir === 'string') {
-        rootDir = opts.srcDir;
+        rootDir = normalizePath(opts.srcDir);
         log(`buildStart() srcDir`, opts.srcDir);
       } else if (Array.isArray(opts.srcInputs)) {
         optimizer.sys.getInputFiles = async (rootDir) =>
           opts.srcInputs!.map((i) => {
             const relInput: TransformModuleInput = {
-              path: optimizer.sys.path.relative(rootDir, i.path),
+              path: normalizePath(optimizer.sys.path.relative(rootDir, i.path)),
               code: i.code,
             };
             return relInput;
@@ -234,7 +235,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
       const result = await optimizer.transformFs(transformOpts);
       for (const output of result.modules) {
-        const key = optimizer.sys.path.join(rootDir, output.path)!;
+        const key = normalizePath(optimizer.sys.path.join(rootDir, output.path)!);
         log(`buildStart() add transformedOutput`, key);
         transformedOutputs.set(key, [output, key]);
       }
@@ -261,16 +262,17 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     const optimizer = await getOptimizer();
 
     const parsedId = parseId(id);
-    let importeePathId = parsedId.pathId;
+    let importeePathId = normalizePath(parsedId.pathId);
 
     if (importer) {
+      importer = normalizePath(importer);
       log(`resolveId("${importeePathId}", "${importer}")`);
       const parsedImporterId = parseId(importer);
       const dir = optimizer.sys.path.dirname(parsedImporterId.pathId);
       if (parsedImporterId.pathId.endsWith('.html') && !importeePathId.endsWith('.html')) {
-        importeePathId = optimizer.sys.path.join(dir, importeePathId);
+        importeePathId = normalizePath(optimizer.sys.path.join(dir, importeePathId));
       } else {
-        importeePathId = optimizer.sys.path.resolve(dir, importeePathId);
+        importeePathId = normalizePath(optimizer.sys.path.resolve(dir, importeePathId));
       }
     } else {
       log(`resolveId("${importeePathId}"), No importer`);
@@ -308,6 +310,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       // On full build, lets normalize the ID
       id = forceJSExtension(optimizer.sys.path, id);
     }
+    id = normalizePath(id);
 
     const transformedModule = transformedOutputs.get(id);
     if (transformedModule) {
@@ -329,6 +332,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       return null;
     }
 
+    id = normalizePath(id);
     const pregenerated = transformedOutputs.get(id);
     if (pregenerated) {
       log(`transform() pregenerated, addWatchFile`, id, pregenerated[1]);
@@ -353,6 +357,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       if (opts.srcDir) {
         path = optimizer.sys.path.relative(opts.srcDir, pathId);
       }
+      path = normalizePath(path);
       const newOutput = optimizer.transformModulesSync({
         input: [
           {
@@ -365,21 +370,21 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         sourceMaps: false,
         transpile: true,
         explicityExtensions: true,
-        rootDir: dir,
+        rootDir: normalizePath(dir),
         dev: opts.buildMode === 'development',
       });
 
       diagnosticsCallback(newOutput.diagnostics, optimizer);
 
-      results.set(pathId, newOutput);
+      results.set(normalizePath(pathId), newOutput);
 
       for (const [id, output] of results.entries()) {
         const justChanged = newOutput === output;
-        const dir = opts.srcDir || optimizer.sys.path.dirname(id);
+        const dir = normalizePath(opts.srcDir || optimizer.sys.path.dirname(id));
 
         for (const mod of output.modules) {
           if (mod.isEntry) {
-            const key = optimizer.sys.path.join(dir, mod.path);
+            const key = normalizePath(optimizer.sys.path.join(dir, mod.path));
             transformedOutputs.set(key, [mod, id]);
 
             log(`transform()`, 'emitting', justChanged, key);
@@ -451,6 +456,30 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     diagnosticsCallback = cb;
   };
 
+  const normalizePath = (id: string) => {
+    if (typeof id === 'string') {
+      if (optimizer) {
+        if (optimizer.sys.os === 'win32') {
+          // MIT https://github.com/sindresorhus/slash/blob/main/license
+          // Convert Windows backslash paths to slash paths: foo\\bar ➔ foo/bar
+          const isExtendedLengthPath = /^\\\\\?\\/.test(id);
+          if (!isExtendedLengthPath) {
+            const hasNonAscii = /[^\u0000-\u0080]+/.test(id); // eslint-disable-line no-control-regex
+            if (!hasNonAscii) {
+              id = id.replace(/\\/g, '/');
+            }
+          }
+          // windows normalize
+          return optimizer.sys.path.posix.normalize(id);
+        }
+        // posix normalize
+        return optimizer.sys.path.normalize(id);
+      }
+      throw new Error(`Cannot normalizePath("${id}"), Optimizer sys.path has not been initialized`);
+    }
+    return id;
+  };
+
   return {
     buildStart,
     createOutputAnalyzer,
@@ -460,6 +489,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     load,
     log,
     normalizeOptions,
+    normalizePath,
     onAddWatchFile,
     onDiagnostics,
     resolveId,

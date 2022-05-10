@@ -133,6 +133,7 @@ describe('rollup  plugin', () => {
       sys: {
         cwd: () => process.cwd(),
         env: () => 'node',
+        os: process.platform,
         dynamicImport: async (path) => require(path),
         path: require('path'),
       },

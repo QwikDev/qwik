@@ -19,7 +19,10 @@ export const SideBar = component$(
     return (
       <Host class="sidebar">
         <nav class="breadcrumbs">
-          <button onClick$={() => (props.store.sideMenuOpen = !props.store.sideMenuOpen)}>
+          <button
+            onClick$={() => (props.store.sideMenuOpen = !props.store.sideMenuOpen)}
+            type="button"
+          >
             <span class="sr-only">Navigation</span>
             <svg width="24" height="24">
               <path
@@ -41,6 +44,7 @@ export const SideBar = component$(
           <button
             class="menu-close lg:hidden"
             onClick$={() => (props.store.sideMenuOpen = !props.store.sideMenuOpen)}
+            type="button"
           >
             <CloseIcon width={24} height={24} />
           </button>

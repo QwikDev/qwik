@@ -130,6 +130,8 @@ export interface OptimizerSystem {
     // (undocumented)
     getInputFiles?: (rootDir: string) => Promise<TransformModuleInput[]>;
     // (undocumented)
+    os: string;
+    // (undocumented)
     path: Path;
 }
 

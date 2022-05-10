@@ -277,6 +277,16 @@ export interface GlobalInjections {
   children?: string;
 }
 
+export interface GeneratedOutputBundle {
+  fileName: string;
+  modules: {
+    [id: string]: any;
+  };
+  imports: string[];
+  dynamicImports: string[];
+  size: number;
+}
+
 // PATH UTIL  ***************
 
 /**

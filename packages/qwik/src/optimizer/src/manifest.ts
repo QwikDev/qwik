@@ -1,4 +1,12 @@
-import type { QwikBundle, QwikManifest, QwikSymbol } from './types';
+import type {
+  GeneratedOutputBundle,
+  GlobalInjections,
+  HookAnalysis,
+  Path,
+  QwikBundle,
+  QwikManifest,
+  QwikSymbol,
+} from './types';
 
 // This is just the initial prioritization of the symbols and entries
 // at build time so there's less work during each SSR. However, SSR should
@@ -169,7 +177,7 @@ function sortBundleNames(manifest: QwikManifest) {
   return Object.keys(manifest.bundles).sort(sortAlphabetical);
 }
 
-export function updateSortAndPriorities(manifest: QwikManifest) {
+function updateSortAndPriorities(manifest: QwikManifest) {
   const prioritorizedSymbolNames = prioritorizeSymbolNames(manifest);
   const prioritorizedSymbols: { [symbolName: string]: QwikSymbol } = {};
   const prioritorizedMapping: { [symbolName: string]: string } = {};
@@ -230,4 +238,85 @@ export function getValidManifest(manifest: QwikManifest | undefined | null) {
     return manifest;
   }
   return undefined;
+}
+
+export function generateManifestFromBundles(
+  path: Path,
+  hooks: HookAnalysis[],
+  injections: GlobalInjections[],
+  outputBundles: GeneratedOutputBundle[]
+) {
+  const manifest: QwikManifest = {
+    symbols: {},
+    mapping: {},
+    bundles: {},
+    injections,
+    version: '1',
+  };
+
+  for (const hook of hooks) {
+    const buildFilePath = `${hook.canonicalFilename}.${hook.extension}`;
+
+    const outputBundle = outputBundles.find((b) => {
+      return Object.keys(b.modules).find((f) => f.endsWith(buildFilePath));
+    });
+
+    if (outputBundle) {
+      const symbolName = hook.name;
+      const bundleFileName = path.basename(outputBundle.fileName);
+
+      manifest.mapping[symbolName] = bundleFileName;
+
+      manifest.symbols[symbolName] = {
+        origin: hook.origin,
+        displayName: hook.displayName,
+        canonicalFilename: hook.canonicalFilename,
+        hash: hook.hash,
+        ctxKind: hook.ctxKind,
+        ctxName: hook.ctxName,
+        captures: hook.captures,
+        parent: hook.parent,
+      };
+
+      addBundleToManifest(path, manifest, outputBundle, bundleFileName);
+    }
+  }
+
+  for (const outputBundle of outputBundles) {
+    const bundleFileName = path.basename(outputBundle.fileName);
+    addBundleToManifest(path, manifest, outputBundle, bundleFileName);
+  }
+
+  return updateSortAndPriorities(manifest);
+}
+
+function addBundleToManifest(
+  path: Path,
+  manifest: QwikManifest,
+  outputBundle: GeneratedOutputBundle,
+  bundleFileName: string
+) {
+  if (!manifest.bundles[bundleFileName]) {
+    const buildDirName = path.dirname(outputBundle.fileName);
+    const bundle: QwikBundle = {
+      size: outputBundle.size,
+      symbols: [],
+    };
+
+    const bundleImports = outputBundle.imports
+      .filter((i) => path.dirname(i) === buildDirName)
+      .map((i) => path.relative(buildDirName, i));
+    if (bundleImports.length > 0) {
+      bundle.imports = bundleImports;
+    }
+
+    const bundleDynamicImports = outputBundle.dynamicImports
+      .filter((i) => path.dirname(i) === buildDirName)
+      .map((i) => path.relative(buildDirName, i));
+    if (bundleDynamicImports.length > 0) {
+      bundle.dynamicImports = bundleDynamicImports;
+    }
+
+    manifest.bundles[bundleFileName] = bundle;
+  }
 }

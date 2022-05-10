@@ -1,6 +1,6 @@
 import { createTimer, ensureGlobals, getBuildBase } from './utils';
 import { pauseContainer, render } from '@builder.io/qwik';
-import type { FunctionComponent, JSXNode } from '@builder.io/qwik';
+import type { FunctionComponent, JSXNode, SnapshotState } from '@builder.io/qwik';
 import qwikDom from '@builder.io/qwik-dom';
 import { setServerPlatform } from './platform';
 import { serializeDocument } from './serialize';
@@ -9,6 +9,7 @@ import type {
   QwikDocument,
   QwikWindow,
   RenderToDocumentOptions,
+  RenderToDocumentResult,
   RenderToStringOptions,
   RenderToStringResult,
   WindowOptions,
@@ -17,7 +18,8 @@ import { isDocument } from '../core/util/element';
 import { getDocument } from '../core/util/dom';
 import { getElement } from '../core/render/render.public';
 import { getQwikLoaderScript } from './scripts';
-import { applyPrefetchImplementation, getPrefetchResources } from './prefetch';
+import { applyPrefetchImplementation } from './prefetch-implementation';
+import { getPrefetchResources } from './prefetch-strategy';
 
 /**
  * Create emulated `Window` for server environment. Does not implement the full browser
@@ -68,8 +70,18 @@ export async function renderToDocument(
     containerEl.setAttribute('q:base', buildBase);
   }
 
+  let snapshotState: SnapshotState | null = null;
   if (opts.snapshot !== false) {
-    pauseContainer(docOrElm);
+    snapshotState = pauseContainer(docOrElm);
+  }
+
+  const result: RenderToDocumentResult = {
+    prefetchResources: getPrefetchResources(doc, snapshotState, opts),
+    snapshotState,
+  };
+
+  if (result.prefetchResources.length > 0) {
+    applyPrefetchImplementation(doc, opts, result.prefetchResources);
   }
 
   if (!opts.qwikLoader || opts.qwikLoader.include !== false) {
@@ -82,6 +94,8 @@ export async function renderToDocument(
     scriptElm.innerHTML = qwikLoaderScript;
     doc.head.appendChild(scriptElm);
   }
+
+  return result;
 }
 
 /**
@@ -107,19 +121,14 @@ export async function renderToString(rootNode: JSXNode, opts: RenderToStringOpti
     doc.body.appendChild(rootEl);
   }
 
-  await renderToDocument(rootEl, rootNode, opts);
-
-  const prefetchResources = getPrefetchResources(doc, opts);
-  if (prefetchResources.length > 0) {
-    applyPrefetchImplementation(doc, opts, prefetchResources);
-  }
+  const docResult = await renderToDocument(rootEl, rootNode, opts);
 
   const renderDocTime = renderDocTimer();
 
   const docToStringTimer = createTimer();
   const result: RenderToStringResult = {
+    ...docResult,
     html: serializeDocument(rootEl, opts),
-    prefetchResources,
     timing: {
       createDocument: createDocTime,
       render: renderDocTime,

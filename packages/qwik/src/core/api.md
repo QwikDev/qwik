@@ -151,7 +151,7 @@ export function noSerialize<T extends {}>(input: T): NoSerialize<T>;
 export type OnRenderFn<PROPS> = (props: PROPS) => ValueOrPromise<JSXNode<any> | null>;
 
 // @public
-export function pauseContainer(elmOrDoc: Element | Document): void;
+export function pauseContainer(elmOrDoc: Element | Document): SnapshotState;
 
 // @public
 export type PromiseValue<T> = {
@@ -268,6 +268,14 @@ export const Slot: FunctionComponent<{
     name?: string;
     children?: any;
 }>;
+
+// @public (undocumented)
+export interface SnapshotState {
+    // (undocumented)
+    objs: any[];
+    // (undocumented)
+    subs: any[];
+}
 
 // @public
 export interface Tracker {

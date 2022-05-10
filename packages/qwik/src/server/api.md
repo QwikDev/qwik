@@ -36,7 +36,7 @@ export function getQwikLoaderScript(opts?: {
 }): string;
 
 // @alpha (undocumented)
-export type PrefetchImplementation = 'link-prefetch' | 'link-preload' | 'link-modulepreload' | 'qrl-import' | 'worker-fetch' | 'none';
+export type PrefetchImplementation = 'link-prefetch-html' | 'link-prefetch' | 'link-preload-html' | 'link-preload' | 'link-modulepreload-html' | 'link-modulepreload' | 'worker-fetch' | 'none';
 
 // @alpha (undocumented)
 export interface PrefetchResource {
@@ -126,15 +126,20 @@ export interface QwikWindow extends WindowProxy {
 
 // Warning: (ae-forgotten-export) The symbol "JSXNode" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "FunctionComponent" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "RenderToDocumentResult" needs to be exported by the entry point index.d.ts
 //
 // @public
-export function renderToDocument(docOrElm: Document | Element, rootNode: JSXNode<unknown> | FunctionComponent<any>, opts?: RenderToDocumentOptions): Promise<void>;
+export function renderToDocument(docOrElm: Document | Element, rootNode: JSXNode<unknown> | FunctionComponent<any>, opts?: RenderToDocumentOptions): Promise<RenderToDocumentResult>;
 
 // Warning: (ae-forgotten-export) The symbol "SerializeDocumentOptions" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
 export interface RenderToDocumentOptions extends SerializeDocumentOptions, DocumentOptions {
     base?: string;
+    // Warning: (ae-incompatible-release-tags) The symbol "prefetchStrategy" is marked as @public, but its signature references "PrefetchStrategy" which is marked as @alpha
+    //
+    // (undocumented)
+    prefetchStrategy?: PrefetchStrategy;
     qwikLoader?: {
         events?: string[];
         include?: boolean;
@@ -148,20 +153,12 @@ export function renderToString(rootNode: JSXNode, opts?: RenderToStringOptions):
 // @public (undocumented)
 export interface RenderToStringOptions extends RenderToDocumentOptions {
     fragmentTagName?: string;
-    // Warning: (ae-incompatible-release-tags) The symbol "prefetchStrategy" is marked as @public, but its signature references "PrefetchStrategy" which is marked as @alpha
-    //
-    // (undocumented)
-    prefetchStrategy?: PrefetchStrategy;
 }
 
 // @public (undocumented)
-export interface RenderToStringResult {
+export interface RenderToStringResult extends RenderToDocumentResult {
     // (undocumented)
     html: string;
-    // Warning: (ae-incompatible-release-tags) The symbol "prefetchResources" is marked as @public, but its signature references "PrefetchResource" which is marked as @alpha
-    //
-    // (undocumented)
-    prefetchResources: PrefetchResource[];
     // (undocumented)
     timing: {
         createDocument: number;

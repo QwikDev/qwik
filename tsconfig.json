@@ -84,5 +84,5 @@
     "packages/create-cli",
     "starters"
   ],
-  "exclude": ["starters/servers"]
+  "exclude": ["starters/servers", "starters/apps/base"]
 }

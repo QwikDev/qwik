@@ -1,9 +1,8 @@
-/* eslint-disable */
+import { render } from './entry.ssr';
 
-// @ts-ignore
-import { render } from '../server/entry.server.js';
-import type { RenderToStringOptions, RenderToStringResult } from '@builder.io/qwik/server';
-
+/**
+ * Cloudflare Pages Request Handler
+ */
 export const onRequestGet: PagesFunction = async ({ request, next, waitUntil }) => {
   try {
     const url = new URL(request.url);
@@ -25,14 +24,10 @@ export const onRequestGet: PagesFunction = async ({ request, next, waitUntil }) 
       }
     }
 
-    // Render To String Options
-    const opts: RenderToStringOptions = {
-      url: request.url,
-      base: '/build/',
-    };
-
     // Generate Qwik SSR HTML
-    const result: RenderToStringResult = await render(opts);
+    const result = await render({
+      url: request.url,
+    });
 
     // Create HTTP Response
     const response = new Response(result.html, {

@@ -1,25 +1,51 @@
-import { renderToString, RenderToStringOptions } from '@builder.io/qwik/server';
-import type { Request, Response, NextFunction } from 'express';
-import { Root } from './root';
+import express from 'express';
+import { join } from 'path';
+import { render } from './entry.ssr';
 
 /**
- * Qwik server-side render function.
+ * Create an express server
  */
-export function render(opts: RenderToStringOptions) {
-  return renderToString(<Root />, opts);
-}
+const app = express();
 
 /**
- * Qwik middleware to be used by an express server.
+ * Serve static client build files,
+ * hashed filenames, immutable cache-control
  */
-export async function qwikMiddleware(req: Request, res: Response, next: NextFunction) {
+app.use(
+  '/build',
+  express.static(join(__dirname, '..', 'dist', 'build'), {
+    immutable: true,
+    maxAge: '1y',
+  })
+);
+
+/**
+ * Serve static public files at the root
+ */
+app.use(express.static(join(__dirname, '..', 'dist'), { index: false }));
+
+/**
+ * Server-Side Render Qwik application middleware
+ */
+app.get('/*', async (req, res, next) => {
   try {
+    // Render the Root component to a string
     const result = await render({
-      url: new URL(`${req.protocol}://${req.hostname}${req.url}`),
-      base: '/build/',
+      url: req.url,
     });
+
+    // respond with SSR'd HTML
     res.send(result.html);
   } catch (e) {
+    // Error while server-side rendering
     next(e);
   }
-}
+});
+
+/**
+ * Start the express server
+ */
+app.listen(8080, () => {
+  /* eslint-disable */
+  console.log(`http://localhost:8080/`);
+});

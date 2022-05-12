@@ -1,6 +1,7 @@
 export type {
   CreateRenderToStringOptions,
   DocumentOptions,
+  GlobalInjections,
   PrefetchResource,
   PrefetchImplementation,
   PrefetchStrategy,

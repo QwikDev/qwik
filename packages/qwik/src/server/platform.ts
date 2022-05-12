@@ -1,7 +1,7 @@
 import type { CorePlatform } from '@builder.io/qwik';
 import { getQrlMap, normalizeUrl } from './utils';
 import { setPlatform } from '@builder.io/qwik';
-import type { QwikManifest, SerializeDocumentOptions } from './types';
+import type { SerializeDocumentOptions } from './types';
 
 const _setImmediate = typeof setImmediate === 'function' ? setImmediate : setTimeout;
 
@@ -15,7 +15,7 @@ function createPlatform(document: any, opts: SerializeDocumentOptions) {
 
   const qrlMapper = typeof opts.qrlMapper === 'function' ? opts.qrlMapper : null;
 
-  const qrlMap = getQrlMap(opts.manifest) || getQrlMap(Q_MANIFEST_DEFAULT);
+  const qrlMap = getQrlMap(opts.manifest);
 
   if (opts?.url) {
     doc.location.href = normalizeUrl(opts.url).href;
@@ -74,6 +74,3 @@ export async function setServerPlatform(document: any, opts: SerializeDocumentOp
   const platform = createPlatform(document, opts);
   setPlatform(document, platform);
 }
-
-/** Object replaced at build-time to act as a fallback when a manifest is not provided */
-const Q_MANIFEST_DEFAULT: QwikManifest = '__QwikManifest__' as any;

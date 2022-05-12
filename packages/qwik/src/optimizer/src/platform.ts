@@ -10,6 +10,8 @@ import { QWIK_BINDING_MAP } from './qwik-binding-map';
 import { versions } from './versions';
 
 export async function getSystem() {
+  const sysEnv = getEnv();
+
   const sys: OptimizerSystem = {
     dynamicImport: (path) => {
       throw new Error(
@@ -19,10 +21,8 @@ export async function getSystem() {
     path: null as any,
     cwd: () => '/',
     os: 'unknown',
-    env,
+    env: sysEnv,
   };
-
-  const sysEnv = env();
 
   sys.path = createPath(sys);
 
@@ -69,7 +69,7 @@ export const getPlatformInputFiles = async (sys: OptimizerSystem) => {
     return sys.getInputFiles;
   }
 
-  if (sys.env() === 'node') {
+  if (sys.env === 'node') {
     const fs: typeof import('fs') = await sys.dynamicImport('fs');
 
     return async (rootDir: string) => {
@@ -116,7 +116,7 @@ export const getPlatformInputFiles = async (sys: OptimizerSystem) => {
 };
 
 export async function loadPlatformBinding(sys: OptimizerSystem) {
-  const sysEnv = env();
+  const sysEnv = getEnv();
 
   if (sysEnv === 'node') {
     // NodeJS
@@ -206,16 +206,16 @@ export interface PlatformBinding {
   transform_modules: (opts: any) => TransformOutput;
 }
 
-const env = (): SystemEnvironment => {
+const getEnv = (): SystemEnvironment => {
   if (typeof Deno !== 'undefined') {
     return 'deno';
   }
 
   if (
     typeof process !== 'undefined' &&
+    typeof global !== 'undefined' &&
     process.versions &&
-    process.versions.node &&
-    typeof global !== 'undefined'
+    process.versions.node
   ) {
     return 'node';
   }

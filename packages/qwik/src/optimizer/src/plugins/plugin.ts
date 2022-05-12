@@ -30,16 +30,12 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     buildMode: 'development',
     debug: false,
     rootDir: null as any,
-    outClientDir: null as any,
-    outServerDir: null as any,
+    client: null as any,
+    ssr: null as any,
     forceFullBuild: false,
     entryStrategy: null as any,
     srcDir: null as any,
     srcInputs: null as any,
-    srcRootInput: null as any,
-    srcEntryServerInput: null as any,
-    manifestInput: null,
-    manifestOutput: null,
     transformedModuleOutput: null,
   };
 
@@ -54,6 +50,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     const updatedOpts: NormalizedQwikPluginOptions = Object.assign({}, inputOpts) as any;
 
     const optimizer = await getOptimizer();
+    const path = optimizer.sys.path;
 
     opts.debug = !!updatedOpts.debug;
 
@@ -86,11 +83,11 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     if (typeof opts.rootDir !== 'string') {
       opts.rootDir = optimizer.sys.cwd();
     }
-    opts.rootDir = normalizePath(optimizer.sys.path.resolve(optimizer.sys.cwd(), opts.rootDir));
+    opts.rootDir = normalizePath(path.resolve(optimizer.sys.cwd(), opts.rootDir));
 
-    let srcDir = normalizePath(optimizer.sys.path.resolve(opts.rootDir, SRC_DIR_DEFAULT));
+    let srcDir = normalizePath(path.resolve(opts.rootDir, SRC_DIR_DEFAULT));
     if (typeof updatedOpts.srcDir === 'string') {
-      opts.srcDir = normalizePath(optimizer.sys.path.resolve(opts.rootDir, updatedOpts.srcDir));
+      opts.srcDir = normalizePath(path.resolve(opts.rootDir, updatedOpts.srcDir));
       srcDir = opts.srcDir;
       opts.srcInputs = null;
     } else if (Array.isArray(updatedOpts.srcInputs)) {
@@ -122,57 +119,63 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
     if (Array.isArray(opts.srcInputs)) {
       opts.srcInputs.forEach((i) => {
-        i.path = normalizePath(optimizer.sys.path.resolve(opts.rootDir, i.path));
+        i.path = normalizePath(path.resolve(opts.rootDir, i.path));
       });
     } else if (typeof opts.srcDir === 'string') {
-      opts.srcDir = normalizePath(optimizer.sys.path.resolve(opts.rootDir, opts.srcDir));
+      opts.srcDir = normalizePath(path.resolve(opts.rootDir, opts.srcDir));
     }
 
-    if (typeof updatedOpts.srcRootInput === 'string') {
-      opts.srcRootInput = [updatedOpts.srcRootInput];
-    } else if (Array.isArray(updatedOpts.srcRootInput)) {
-      opts.srcRootInput = [...updatedOpts.srcRootInput];
+    // Client Input
+    updatedOpts.client = updatedOpts.client || {};
+    opts.client = opts.client || {};
+    if (typeof updatedOpts.client.input === 'string') {
+      opts.client.input = [updatedOpts.client.input];
+    } else if (Array.isArray(updatedOpts.client.input)) {
+      opts.client.input = [...updatedOpts.client.input];
     } else {
-      opts.srcRootInput = [ROOT_FILENAME_DEFAULT];
+      opts.client.input = [path.resolve(srcDir, 'components', 'app', 'app.tsx')];
     }
-
-    opts.srcRootInput = opts.srcRootInput.map((p) => {
-      return normalizePath(optimizer.sys.path.resolve(srcDir, p));
+    opts.client.input = opts.client.input.map((i) => {
+      return normalizePath(path.resolve(opts.rootDir, i));
     });
-
-    if (typeof updatedOpts.srcEntryServerInput === 'string') {
-      opts.srcEntryServerInput = normalizePath(
-        optimizer.sys.path.resolve(srcDir, updatedOpts.srcEntryServerInput)
-      );
+    if (typeof updatedOpts.client.manifestOutput === 'function') {
+      opts.client.manifestOutput = updatedOpts.client.manifestOutput;
     } else {
-      opts.srcEntryServerInput = normalizePath(
-        optimizer.sys.path.resolve(srcDir, ENTRY_SERVER_FILENAME_DEFAULT)
-      );
+      opts.client.manifestOutput = null;
     }
 
-    if (typeof updatedOpts.outClientDir === 'string') {
-      opts.outClientDir = updatedOpts.outClientDir;
-    }
-    if (typeof opts.outClientDir !== 'string') {
-      opts.outClientDir = DIST_DIR_DEFAULT;
-    }
-    opts.outClientDir = normalizePath(optimizer.sys.path.resolve(opts.rootDir, opts.outClientDir));
-
-    if (typeof updatedOpts.outServerDir === 'string') {
-      opts.outServerDir = updatedOpts.outServerDir;
-    }
-    if (typeof opts.outServerDir !== 'string') {
-      opts.outServerDir = SERVER_DIR_DEFAULT;
-    }
-    opts.outServerDir = normalizePath(optimizer.sys.path.resolve(opts.rootDir, opts.outServerDir));
-
-    const manifestInput = getValidManifest(updatedOpts.manifestInput);
-    if (manifestInput) {
-      opts.manifestInput = manifestInput;
+    // Client Output
+    if (typeof updatedOpts.client.outDir === 'string') {
+      opts.client.outDir = normalizePath(path.resolve(opts.rootDir, updatedOpts.client.outDir));
+    } else {
+      opts.client.outDir = normalizePath(path.resolve(opts.rootDir, CLIENT_OUT_DIR));
     }
 
-    if (typeof updatedOpts.manifestOutput === 'function') {
-      opts.manifestOutput = updatedOpts.manifestOutput;
+    // SSR Input
+    updatedOpts.ssr = updatedOpts.ssr || {};
+    opts.ssr = opts.ssr || {};
+    if (typeof updatedOpts.ssr.input === 'string') {
+      opts.ssr.input = normalizePath(path.resolve(opts.rootDir, updatedOpts.ssr.input));
+    } else {
+      opts.ssr.input = normalizePath(path.resolve(srcDir, ENTRY_SERVER_FILENAME_DEFAULT));
+    }
+    if (typeof updatedOpts.ssr.renderInput === 'string') {
+      opts.ssr.renderInput = normalizePath(path.resolve(opts.rootDir, updatedOpts.ssr.renderInput));
+    } else {
+      opts.ssr.renderInput = normalizePath(path.resolve(srcDir, ENTRY_SSR_FILENAME_DEFAULT));
+    }
+    const clientManifest = getValidManifest(updatedOpts.ssr.manifestInput);
+    if (clientManifest) {
+      opts.ssr.manifestInput = clientManifest;
+    } else {
+      opts.ssr.manifestInput = null;
+    }
+
+    // SSR Output
+    if (typeof updatedOpts.ssr.outDir === 'string') {
+      opts.ssr.outDir = normalizePath(path.resolve(opts.rootDir, updatedOpts.ssr.outDir));
+    } else {
+      opts.ssr.outDir = normalizePath(path.resolve(opts.rootDir, SSR_OUT_DIR));
     }
 
     return { ...opts };
@@ -180,7 +183,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
   const validateSource = async () => {
     const optimizer = await getOptimizer();
-    if (optimizer.sys.env() === 'node') {
+    if (optimizer.sys.env === 'node') {
       const fs: typeof import('fs') = await optimizer.sys.dynamicImport('fs');
       if (!fs.existsSync(opts.rootDir)) {
         throw new Error(`Qwik rootDir "${opts.rootDir}" not found`);
@@ -188,14 +191,17 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       if (typeof opts.srcDir === 'string' && !fs.existsSync(opts.srcDir)) {
         throw new Error(`Qwik srcDir "${opts.srcDir}" not found`);
       }
-      if (!fs.existsSync(opts.srcEntryServerInput)) {
-        throw new Error(`Qwik srcEntryServerInput "${opts.srcEntryServerInput}" not found`);
-      }
-      opts.srcRootInput.forEach((input) => {
+      opts.client.input.forEach((input) => {
         if (!fs.existsSync(input)) {
-          throw new Error(`Qwik srcRootInput "${input}" not found`);
+          throw new Error(`Qwik client.input "${input}" not found`);
         }
       });
+      if (!fs.existsSync(opts.ssr.input)) {
+        throw new Error(`Qwik ssr.input "${opts.ssr.input}" not found`);
+      }
+      if (!fs.existsSync(opts.ssr.renderInput)) {
+        throw new Error(`Qwik ssr.renderInput "${opts.ssr.renderInput}" not found`);
+      }
     }
   };
 
@@ -251,15 +257,15 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     importer: string | undefined,
     _resolveIdOpts: { ssr?: boolean } = {}
   ) => {
-    if (id === QWIK_BUILD_ID) {
+    const optimizer = await getOptimizer();
+
+    if (id === QWIK_BUILD_ID || id.endsWith(QWIK_BUILD_RESOLVED_ID)) {
       log(`resolveId()`, 'Resolved', QWIK_BUILD_ID);
       return {
-        id: QWIK_BUILD_ID,
+        id: optimizer.sys.path.resolve(opts.rootDir, QWIK_BUILD_RESOLVED_ID),
         moduleSideEffects: false,
       };
     }
-
-    const optimizer = await getOptimizer();
 
     const parsedId = parseId(id);
     let importeePathId = normalizePath(parsedId.pathId);
@@ -297,26 +303,34 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
   };
 
   const load = async (id: string, loadOpts: { ssr?: boolean } = {}) => {
-    const optimizer = await getOptimizer();
-
-    if (id === QWIK_BUILD_ID) {
+    if (id.endsWith(QWIK_BUILD_RESOLVED_ID)) {
       log(`load()`, QWIK_BUILD_ID, opts.buildMode);
       return {
-        code: getBuildTimeModule(opts, loadOpts),
+        code: await getQwikBuildModule(loadOpts),
       };
     }
 
+    const optimizer = await getOptimizer();
+    id = normalizePath(id);
     if (opts.forceFullBuild) {
       // On full build, lets normalize the ID
       id = forceJSExtension(optimizer.sys.path, id);
     }
-    id = normalizePath(id);
 
     const transformedModule = transformedOutputs.get(id);
     if (transformedModule) {
       log(`load()`, 'Found', id);
+
+      let code = transformedModule[0].code;
+      if (opts.target === 'ssr') {
+        code = code.replace(
+          /@builder.io\/qwik\/build/g,
+          optimizer.sys.path.resolve(opts.rootDir, QWIK_BUILD_RESOLVED_ID)
+        );
+      }
+
       return {
-        code: transformedModule[0].code,
+        code,
         map: transformedModule[0].map,
       };
     }
@@ -437,10 +451,6 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     return to;
   };
 
-  const updateSsrManifestDefault = (symbolsStr: string, code: string) => {
-    return code.replace(/("|')__QwikManifest__("|')/g, symbolsStr);
-  };
-
   const log = (...str: any[]) => {
     if (opts.debug) {
       // eslint-disable-next-line no-console
@@ -480,9 +490,39 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     return id;
   };
 
+  async function getQwikBuildModule(loadOpts: { ssr?: boolean }) {
+    const isServer = opts.target === 'ssr' || !!loadOpts.ssr;
+
+    const optimizer = await getOptimizer();
+    let manifest: QwikManifest | null = null;
+    if (isServer) {
+      manifest = opts.ssr.manifestInput;
+
+      if (!manifest && optimizer.sys.env === 'node') {
+        // manifest not provided, and in a nodejs environment
+        try {
+          // check if we can find q-manifest.json from the client build
+          const fs: typeof import('fs') = await optimizer.sys.dynamicImport('fs');
+          const qSymbolsPath = optimizer.sys.path.join(opts.client.outDir, Q_MANIFEST_FILENAME);
+          const qSymbolsContent = fs.readFileSync(qSymbolsPath, 'utf-8');
+          manifest = getValidManifest(JSON.parse(qSymbolsContent))!;
+        } catch (e) {
+          /** */
+        }
+      }
+    }
+
+    return `// @builder.io/qwik/build
+export const isServer = ${JSON.stringify(isServer)};
+export const isBrowser = ${JSON.stringify(!isServer)};
+export const manifest = ${JSON.stringify(manifest)};
+`;
+  }
+
   return {
     buildStart,
     createOutputAnalyzer,
+    getQwikBuildModule,
     getOptimizer,
     getOptions,
     getTransformedOutputs,
@@ -494,17 +534,8 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     onDiagnostics,
     resolveId,
     transform,
-    updateSsrManifestDefault,
     validateSource,
   };
-}
-
-function getBuildTimeModule(pluginOpts: NormalizedQwikPluginOptions, loadOpts: { ssr?: boolean }) {
-  const isServer = pluginOpts.target === 'ssr' || !!loadOpts.ssr;
-  return `// @builder.io/qwik/build
-export const isServer = ${JSON.stringify(isServer)};
-export const isBrowser = ${JSON.stringify(!isServer)};
-`;
 }
 
 export function parseId(originalId: string) {
@@ -537,47 +568,61 @@ export const QWIK_CORE_ID = '@builder.io/qwik';
 
 export const QWIK_BUILD_ID = '@builder.io/qwik/build';
 
+export const QWIK_BUILD_RESOLVED_ID = '@builder.io-qwik-build';
+
 export const QWIK_JSX_RUNTIME_ID = '@builder.io/qwik/jsx-runtime';
 
 export const SRC_DIR_DEFAULT = 'src';
 
-export const ROOT_FILENAME_DEFAULT = 'root.tsx';
-
 export const ENTRY_SERVER_FILENAME_DEFAULT = 'entry.server.tsx';
 
-const DIST_DIR_DEFAULT = 'dist';
+export const ENTRY_SSR_FILENAME_DEFAULT = 'entry.ssr.tsx';
 
-const SERVER_DIR_DEFAULT = 'server';
+const CLIENT_OUT_DIR = 'dist';
+
+const SSR_OUT_DIR = 'server';
 
 export const Q_MANIFEST_FILENAME = 'q-manifest.json';
 
-export interface QwikPluginOptions extends BasePluginOptions {
-  rootDir?: string;
-  target?: QwikBuildTarget;
+export interface QwikPluginOptions {
   buildMode?: QwikBuildMode;
-  forceFullBuild?: boolean;
-}
-
-export type QwikBuildTarget = 'client' | 'ssr';
-
-export type QwikBuildMode = 'production' | 'development';
-
-export interface BasePluginOptions {
   debug?: boolean;
-  outClientDir?: string;
-  outServerDir?: string;
   entryStrategy?: EntryStrategy;
-  srcRootInput?: string | string[];
-  srcEntryServerInput?: string;
+  forceFullBuild?: boolean;
+  rootDir?: string;
+  client?: {
+    input?: string[] | string;
+    outDir?: string;
+    manifestOutput?: ((manifest: QwikManifest) => Promise<void> | void) | null;
+  };
+  ssr?: {
+    input?: string;
+    renderInput?: string;
+    outDir?: string;
+    manifestInput?: QwikManifest | null;
+  };
   srcDir?: string | null;
   srcInputs?: TransformModuleInput[] | null;
-  manifestInput?: QwikManifest | null;
-  manifestOutput?: ((manifest: QwikManifest) => Promise<void> | void) | null;
+  target?: QwikBuildTarget;
   transformedModuleOutput?:
     | ((data: { [id: string]: TransformModule }) => Promise<void> | void)
     | null;
 }
 
 export interface NormalizedQwikPluginOptions extends Required<QwikPluginOptions> {
-  srcRootInput: string[];
+  client: {
+    input: string[];
+    outDir: string;
+    manifestOutput: ((manifest: QwikManifest) => Promise<void> | void) | null;
+  };
+  ssr: {
+    input: string;
+    renderInput: string;
+    outDir: string;
+    manifestInput: QwikManifest | null;
+  };
 }
+
+export type QwikBuildTarget = 'client' | 'ssr';
+
+export type QwikBuildMode = 'production' | 'development';

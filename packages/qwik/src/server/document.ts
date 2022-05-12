@@ -65,10 +65,8 @@ export async function renderToDocument(
   await render(docOrElm, rootNode);
 
   const buildBase = getBuildBase(opts);
-  if (buildBase != null) {
-    const containerEl = getElement(docOrElm);
-    containerEl.setAttribute('q:base', buildBase);
-  }
+  const containerEl = getElement(docOrElm);
+  containerEl.setAttribute('q:base', buildBase);
 
   let snapshotState: SnapshotState | null = null;
   if (opts.snapshot !== false) {

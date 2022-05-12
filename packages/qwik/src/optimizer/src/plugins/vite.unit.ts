@@ -34,6 +34,7 @@ describe('vite  plugin', () => {
       expect(outputOptions.assetFileNames).toBe('build/[name].[ext]');
       expect(outputOptions.chunkFileNames).toBe('build/[name].js');
       expect(outputOptions.entryFileNames).toBe('build/[name].js');
+      expect(outputOptions.format).toBe('es');
       expect(build.polyfillModulePreload).toBe(false);
       expect(build.dynamicImportVarsOptions?.exclude).toEqual([/./]);
       expect(build.ssr).toBe(undefined);
@@ -58,7 +59,7 @@ describe('vite  plugin', () => {
 
       expect(plugin.enforce).toBe('pre');
       expect(build.outDir).toBe(resolve(cwd, 'dist'));
-      expect(rollupOptions.input).toEqual([resolve(cwd, 'src', 'root.tsx')]);
+      expect(rollupOptions.input).toEqual([resolve(cwd, 'src', 'components', 'app', 'app.tsx')]);
       expect(outputOptions.assetFileNames).toBe('build/[name].[ext]');
       expect(outputOptions.chunkFileNames).toBe('build/[name].js');
       expect(outputOptions.entryFileNames).toBe('build/[name].js');
@@ -86,10 +87,11 @@ describe('vite  plugin', () => {
 
       expect(plugin.enforce).toBe('pre');
       expect(build.outDir).toBe(resolve(cwd, 'dist'));
-      expect(rollupOptions.input).toEqual([resolve(cwd, 'src', 'root.tsx')]);
+      expect(rollupOptions.input).toEqual([resolve(cwd, 'src', 'components', 'app', 'app.tsx')]);
       expect(outputOptions.assetFileNames).toBe('build/q-[hash].[ext]');
       expect(outputOptions.chunkFileNames).toBe('build/q-[hash].js');
       expect(outputOptions.entryFileNames).toBe('build/q-[hash].js');
+      expect(build.outDir).toEqual(resolve(cwd, 'dist'));
       expect(build.polyfillModulePreload).toBe(false);
       expect(build.dynamicImportVarsOptions?.exclude).toEqual([/./]);
       expect(build.ssr).toBe(undefined);
@@ -118,12 +120,68 @@ describe('vite  plugin', () => {
       expect(outputOptions.assetFileNames).toBe('[name].[ext]');
       expect(outputOptions.chunkFileNames).toBe('[name].js');
       expect(outputOptions.entryFileNames).toBe('[name].js');
+      expect(build.outDir).toEqual(resolve(cwd, 'server'));
       expect(build.polyfillModulePreload).toBe(false);
       expect(build.dynamicImportVarsOptions?.exclude).toEqual([/./]);
       expect(build.ssr).toBe(true);
       expect(c.optimizeDeps?.include).toEqual(['@builder.io/qwik', '@builder.io/qwik/jsx-runtime']);
       expect(c.esbuild).toEqual({ include: /\.js$/ });
-      expect((c as any).ssr).toEqual({ noExternal: true });
+      expect(c.publicDir).toBe(false);
+    });
+
+    it('command: build, --ssr filepath.ts', async () => {
+      const plugin: VitePlugin = qwikVite(initOpts);
+      const c = (await plugin.config!(
+        { build: { ssr: resolve(cwd, 'src', 'ssr.entry.tsx') } },
+        { command: 'build', mode: '' }
+      ))!;
+      const opts = await plugin.api?.getOptions();
+      const build = c.build!;
+      const rollupOptions = build!.rollupOptions!;
+
+      expect(opts.target).toBe('ssr');
+      expect(opts.buildMode).toBe('production');
+      expect(rollupOptions.input).toEqual(resolve(cwd, 'src', 'ssr.entry.tsx'));
+    });
+
+    it('qwikVite client options', async () => {
+      initOpts.client = {
+        devInput: resolve(cwd, 'src', 'dev.entry.tsx'),
+        outDir: resolve(cwd, 'client-dist'),
+      };
+      const plugin: VitePlugin = qwikVite(initOpts);
+      const c: any = (await plugin.config!({}, { command: 'build', mode: 'production' }))!;
+      const opts = await plugin.api?.getOptions();
+      const build = c.build!;
+      const rollupOptions = build!.rollupOptions!;
+
+      expect(opts.target).toBe('client');
+      expect(opts.buildMode).toBe('production');
+      expect(opts.client.outDir).toBe(resolve(cwd, 'client-dist'));
+      expect(rollupOptions.input).toEqual([resolve(cwd, 'src', 'components', 'app', 'app.tsx')]);
+      expect(c.build.outDir).toEqual(resolve(cwd, 'client-dist'));
+    });
+
+    it('qwikVite ssr options', async () => {
+      initOpts.ssr = {
+        input: resolve(cwd, 'src', 'serverz.tsx'),
+        renderInput: resolve(cwd, 'src', 'renderz.tsx'),
+        outDir: resolve(cwd, 'ssr-dist'),
+      };
+      const plugin: VitePlugin = qwikVite(initOpts);
+      const c: any = (await plugin.config!({}, { command: 'build', mode: 'ssr' }))!;
+      const opts = await plugin.api?.getOptions();
+      const build = c.build!;
+      const rollupOptions = build!.rollupOptions!;
+
+      expect(opts.target).toBe('ssr');
+      expect(opts.buildMode).toBe('production');
+      expect(opts.ssr.input).toBe(resolve(cwd, 'src', 'serverz.tsx'));
+      expect(opts.ssr.renderInput).toBe(resolve(cwd, 'src', 'renderz.tsx'));
+      expect(opts.ssr.outDir).toBe(resolve(cwd, 'ssr-dist'));
+      expect(rollupOptions.input).toEqual(resolve(cwd, 'src', 'serverz.tsx'));
+      expect(c.build.outDir).toEqual(resolve(cwd, 'ssr-dist'));
+      expect(c.publicDir).toBe(false);
     });
   });
 
@@ -131,7 +189,7 @@ describe('vite  plugin', () => {
     return {
       sys: {
         cwd: () => process.cwd(),
-        env: () => 'node',
+        env: 'node',
         os: process.platform,
         dynamicImport: async (path) => require(path),
         path: require('path'),

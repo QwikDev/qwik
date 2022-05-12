@@ -4,11 +4,93 @@
 
 ```ts
 
+// @alpha (undocumented)
+export interface GlobalInjections {
+    // (undocumented)
+    attributes?: {
+        [key: string]: string;
+    };
+    // (undocumented)
+    children?: string;
+    // (undocumented)
+    location: 'head' | 'body';
+    // (undocumented)
+    tag: string;
+}
+
 // @alpha
 export const isBrowser: boolean;
 
 // @alpha
 export const isServer: boolean;
+
+// @alpha
+export const manifest: QwikManifest;
+
+// @alpha (undocumented)
+export interface QwikBundle {
+    // (undocumented)
+    dynamicImports?: string[];
+    // (undocumented)
+    imports?: string[];
+    // (undocumented)
+    size: number;
+    // (undocumented)
+    symbols: string[];
+}
+
+// @alpha (undocumented)
+export interface QwikManifest {
+    // (undocumented)
+    bundles: {
+        [fileName: string]: QwikBundle;
+    };
+    // (undocumented)
+    injections?: GlobalInjections[];
+    // (undocumented)
+    mapping: {
+        [symbolName: string]: string;
+    };
+    // (undocumented)
+    options?: {
+        target?: string;
+        buildMode?: string;
+        forceFullBuild?: boolean;
+        entryStrategy?: {
+            [key: string]: any;
+        };
+    };
+    // (undocumented)
+    platform?: {
+        [name: string]: string;
+    };
+    // (undocumented)
+    symbols: {
+        [symbolName: string]: QwikSymbol;
+    };
+    // (undocumented)
+    version: string;
+}
+
+// @alpha (undocumented)
+export interface QwikSymbol {
+    // (undocumented)
+    canonicalFilename: string;
+    // (undocumented)
+    captures: boolean;
+    // (undocumented)
+    ctxKind: 'function' | 'event';
+    // (undocumented)
+    ctxName: string;
+    // (undocumented)
+    displayName: string;
+    // (undocumented)
+    hash: string;
+    // (undocumented)
+    origin: string;
+    // (undocumented)
+    parent: string | null;
+}
 
 // (No @packageDocumentation comment for this package)
 

@@ -1,5 +1,5 @@
 import type { SnapshotState } from '../core/object/store';
-import type { QwikManifest, QwikBundle, QwikSymbol } from '../optimizer/src';
+import type { QwikManifest, QwikBundle, QwikSymbol, GlobalInjections } from '../optimizer/src';
 
 /**
  * Partial Window used by Qwik Framework.
@@ -88,7 +88,7 @@ export interface PrefetchResource {
   imports: PrefetchResource[];
 }
 
-export { QwikManifest, QwikBundle, QwikSymbol };
+export { QwikManifest, QwikBundle, QwikSymbol, GlobalInjections };
 
 /**
  * @public

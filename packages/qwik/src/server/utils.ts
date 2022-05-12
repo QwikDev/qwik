@@ -99,7 +99,7 @@ export function getBuildBase(opts: RenderToDocumentOptions) {
     }
     return base;
   }
-  return null;
+  return '/build/';
 }
 
 /**

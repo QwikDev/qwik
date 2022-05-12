@@ -19,7 +19,7 @@ describe('rollup  plugin', () => {
     const rollupInputOpts: InputOptions = await plugin.options!({});
 
     expect(typeof rollupInputOpts.onwarn).toBe('function');
-    expect(rollupInputOpts.input).toEqual([join(cwd, 'src', 'root.tsx')]);
+    expect(rollupInputOpts.input).toEqual([join(cwd, 'src', 'components', 'app', 'app.tsx')]);
   });
 
   it('rollup default input options, ssr', async () => {
@@ -45,10 +45,11 @@ describe('rollup  plugin', () => {
     initOpts.target = 'ssr';
     const plugin = qwikRollup(initOpts);
     await plugin.options!({});
-    const rollupOutputOpts: OutputOptions = await plugin.outputOptions!({});
+    const rollupOutputOpts: OutputOptions = await plugin.outputOptions!({
+      format: 'cjs',
+    });
 
     expect(rollupOutputOpts.dir).toEqual(join(cwd, 'server'));
-    expect(rollupOutputOpts.format).toEqual('cjs');
     expect(rollupOutputOpts.exports).toEqual('auto');
   });
 
@@ -132,7 +133,7 @@ describe('rollup  plugin', () => {
     return {
       sys: {
         cwd: () => process.cwd(),
-        env: () => 'node',
+        env: 'node',
         os: process.platform,
         dynamicImport: async (path) => require(path),
         path: require('path'),

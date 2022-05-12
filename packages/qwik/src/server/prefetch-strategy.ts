@@ -14,7 +14,7 @@ export function getPrefetchResources(
     const prefetchStrategy = opts.prefetchStrategy;
     const buildBase = getBuildBase(opts);
 
-    if (prefetchStrategy !== null && buildBase != null) {
+    if (prefetchStrategy !== null) {
       // do nothing if opts.prefetchStrategy is explicitly set to null
 
       if (

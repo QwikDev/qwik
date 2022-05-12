@@ -36,6 +36,20 @@ export function getQwikLoaderScript(opts?: {
 }): string;
 
 // @alpha (undocumented)
+export interface GlobalInjections {
+    // (undocumented)
+    attributes?: {
+        [key: string]: string;
+    };
+    // (undocumented)
+    children?: string;
+    // (undocumented)
+    location: 'head' | 'body';
+    // (undocumented)
+    tag: string;
+}
+
+// @alpha (undocumented)
 export type PrefetchImplementation = 'link-prefetch-html' | 'link-prefetch' | 'link-preload-html' | 'link-preload' | 'link-modulepreload-html' | 'link-modulepreload' | 'worker-fetch' | 'none';
 
 // @alpha (undocumented)
@@ -81,8 +95,6 @@ export interface QwikManifest {
     bundles: {
         [fileName: string]: QwikBundle;
     };
-    // Warning: (ae-forgotten-export) The symbol "GlobalInjections" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
     injections?: GlobalInjections[];
     // (undocumented)

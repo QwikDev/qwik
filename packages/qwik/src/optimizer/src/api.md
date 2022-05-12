@@ -126,7 +126,7 @@ export interface OptimizerSystem {
     // (undocumented)
     dynamicImport: (path: string) => Promise<any>;
     // (undocumented)
-    env: () => SystemEnvironment;
+    env: SystemEnvironment;
     // (undocumented)
     getInputFiles?: (rootDir: string) => Promise<TransformModuleInput[]>;
     // (undocumented)
@@ -227,20 +227,30 @@ export interface QwikManifest {
 // @alpha (undocumented)
 export function qwikRollup(qwikRollupOpts?: QwikRollupPluginOptions): any;
 
-// Warning: (ae-forgotten-export) The symbol "BasePluginOptions" needs to be exported by the entry point index.d.ts
-//
 // @alpha (undocumented)
-export interface QwikRollupPluginOptions extends BasePluginOptions {
+export interface QwikRollupPluginOptions {
     // Warning: (ae-forgotten-export) The symbol "QwikBuildMode" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
     buildMode?: QwikBuildMode;
     // (undocumented)
+    debug?: boolean;
+    // (undocumented)
+    entryStrategy?: EntryStrategy;
+    // (undocumented)
     forceFullBuild?: boolean;
+    // (undocumented)
+    manifestInput?: QwikManifest | null;
+    // (undocumented)
+    manifestOutput?: ((manifest: QwikManifest) => Promise<void> | void) | null;
     // (undocumented)
     optimizerOptions?: OptimizerOptions;
     // (undocumented)
     rootDir?: string;
+    // (undocumented)
+    srcDir?: string;
+    // (undocumented)
+    srcInputs?: TransformModuleInput[] | null;
     // Warning: (ae-forgotten-export) The symbol "QwikBuildTarget" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
@@ -271,11 +281,26 @@ export interface QwikSymbol {
 export function qwikVite(qwikViteOpts?: QwikVitePluginOptions): any;
 
 // @alpha (undocumented)
-export interface QwikVitePluginOptions extends BasePluginOptions {
+export interface QwikVitePluginOptions {
+    // (undocumented)
+    client?: {
+        input?: string[] | string;
+        devInput?: string;
+        outDir?: string;
+        manifestOutput?: (manifest: QwikManifest) => Promise<void> | void;
+    };
+    debug?: boolean;
+    entryStrategy?: EntryStrategy;
     // (undocumented)
     optimizerOptions?: OptimizerOptions;
+    srcDir?: string;
     // (undocumented)
-    srcEntryDevInput?: string;
+    ssr?: {
+        input?: string;
+        renderInput?: string;
+        outDir?: string;
+        manifestInput?: QwikManifest;
+    };
 }
 
 // @alpha (undocumented)

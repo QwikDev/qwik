@@ -866,11 +866,8 @@ pub fn create_synthetic_wildcard_import(local: &Id, src: &JsWord) -> ast::Module
         span: DUMMY_SP,
         src: ast::Str {
             span: DUMMY_SP,
-            has_escape: false,
             value: src.clone(),
-            kind: ast::StrKind::Normal {
-                contains_quote: false,
-            },
+            raw: None,
         },
         asserts: None,
         type_only: false,
@@ -892,11 +889,8 @@ pub fn create_synthetic_named_import_auto(
         span: DUMMY_SP,
         src: ast::Str {
             span: DUMMY_SP,
-            has_escape: false,
             value: src.clone(),
-            kind: ast::StrKind::Normal {
-                contains_quote: false,
-            },
+            raw: None,
         },
         asserts: None,
         type_only: false,
@@ -939,11 +933,8 @@ fn create_synthetic_named_import(local: &Id, src: &JsWord) -> ast::ModuleItem {
         span: DUMMY_SP,
         src: ast::Str {
             span: DUMMY_SP,
-            has_escape: false,
             value: src.clone(),
-            kind: ast::StrKind::Normal {
-                contains_quote: false,
-            },
+            raw: None,
         },
         asserts: None,
         type_only: false,
@@ -977,8 +968,7 @@ fn create_inline_qrl(qwik_ident: &Id, url: JsWord, symbol: &str, idents: &[Id]) 
                     expr: Box::new(ast::Expr::Lit(ast::Lit::Str(ast::Str {
                         span: DUMMY_SP,
                         value: url,
-                        has_escape: false,
-                        kind: ast::StrKind::Synthesized,
+                        raw: None,
                     }))),
                 }],
             }))),
@@ -986,8 +976,7 @@ fn create_inline_qrl(qwik_ident: &Id, url: JsWord, symbol: &str, idents: &[Id]) 
         ast::Expr::Lit(ast::Lit::Str(ast::Str {
             span: DUMMY_SP,
             value: symbol.into(),
-            has_escape: false,
-            kind: ast::StrKind::Synthesized,
+            raw: None,
         })),
     ];
 

@@ -5,29 +5,29 @@ expression: output
 ==INPUT==
 
 
-        import { component$, useClientEffect$, useStore, useStyles$ } from '@builder.io/qwik';
+import { component$, useClientEffect$, useStore, useStyles$ } from '@builder.io/qwik';
 
-        export const Child = component$(() => {
-            const state = useStore({
-              count: 0
-            });
+export const Child = component$(() => {
+    const state = useStore({
+        count: 0
+    });
 
-            // Double count watch
-            useClientEffect$(() => {
-              const timer = setInterval(() => {
-                state.count++;
-              }, 1000);
-              return () => {
-                clearInterval(timer);
-              }
-            });
+    // Double count watch
+    useClientEffect$(() => {
+        const timer = setInterval(() => {
+        state.count++;
+        }, 1000);
+        return () => {
+        clearInterval(timer);
+        }
+    });
 
-            return (
-              <div>
-              {state.count}
-            </div>
-            );
-          });
+    return (
+        <div>
+        {state.count}
+    </div>
+    );
+});
 
 
 ============================= test.js ==

@@ -899,6 +899,7 @@ export const App = component$((props) => {
 "#
         .to_string(),
         explicity_extensions: true,
+        entry_strategy: EntryStrategy::Single,
         ..TestInput::default()
     });
 }
@@ -952,33 +953,83 @@ export const Foo = component$(() => {
 fn example_use_client_effect() {
     test_input!(TestInput {
         code: r#"
-        import { component$, useClientEffect$, useStore, useStyles$ } from '@builder.io/qwik';
+import { component$, useClientEffect$, useStore, useStyles$ } from '@builder.io/qwik';
 
-        export const Child = component$(() => {
-            const state = useStore({
-              count: 0
-            });
+export const Child = component$(() => {
+    const state = useStore({
+        count: 0
+    });
 
-            // Double count watch
-            useClientEffect$(() => {
-              const timer = setInterval(() => {
-                state.count++;
-              }, 1000);
-              return () => {
-                clearInterval(timer);
-              }
-            });
+    // Double count watch
+    useClientEffect$(() => {
+        const timer = setInterval(() => {
+        state.count++;
+        }, 1000);
+        return () => {
+        clearInterval(timer);
+        }
+    });
 
-            return (
-              <div>
-              {state.count}
-            </div>
-            );
-          });
+    return (
+        <div>
+        {state.count}
+    </div>
+    );
+});
 
 "#
         .to_string(),
         transpile: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_use_server_mount() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useServerMount$, useStore, useStyles$ } from '@builder.io/qwik';
+import mongo from 'mongodb';
+import redis from 'redis';
+
+export const Parent = component$(() => {
+    const state = useStore({
+        text: ''
+    });
+
+    // Double count watch
+    useServerMount$(async () => {
+        state.text = await mongo.users();
+        redis.set(state.text);
+    });
+
+    return (
+        <div onClick$={() => console.log('parent')}>
+            {state.text}
+        </div>
+    );
+});
+
+export const Child = component$(() => {
+    const state = useStore({
+        text: ''
+    });
+
+    // Double count watch
+    useServerMount$(async () => {
+        state.text = await mongo.users();
+    });
+
+    return (
+        <div onClick$={() => console.log('child')}>
+            {state.text}
+        </div>
+    );
+});
+"#
+        .to_string(),
+        transpile: true,
+        entry_strategy: EntryStrategy::Smart,
         ..TestInput::default()
     });
 }
@@ -1032,13 +1083,43 @@ const d = $(()=>console.log('thing'));
     let last_module = res.modules.last().unwrap();
     assert_eq!(last_module.path, r"C:/users/apps/components/apps/apps.tsx")
 }
+#[test]
+fn issue_476() {
+    test_input!(TestInput {
+        code: r#"
+import { Counter } from "./counter.tsx";
+
+export const Root = () => {
+    return (
+        <html>
+            <head>
+                <meta charSet="utf-8" />
+                <title>Qwik Blank App</title>
+            </head>
+            <body>
+                <Counter initial={3} />
+            </body>
+        </html>
+    );
+};
+"#
+        .to_string(),
+        transpile: false,
+        ..TestInput::default()
+    });
+}
 
 #[test]
 fn consistent_hashes() {
     let code = r#"
 import { component$, $ } from '@builder.io/qwik';
+import mongo from 'mongodb';
 
 export const Greeter = component$(() => {
+    // Double count watch
+    useServerMount$(async () => {
+        await mongo.users();
+    });
     return (
         <div>
             <div onClick$={() => {}}/>

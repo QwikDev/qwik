@@ -14,6 +14,7 @@ lazy_static! {
     pub static ref BUILDER_IO_QWIK_JSX: JsWord = JsWord::from("@builder.io/qwik/jsx-runtime");
     pub static ref QCOMPONENT: JsWord = JsWord::from("component$");
     pub static ref USE_CLOSURE: JsWord = JsWord::from("useLexicalScope");
+    pub static ref USE_SERVER_MOUNT: JsWord = JsWord::from("useServerMount$");
     pub static ref H: JsWord = JsWord::from("h");
     pub static ref FRAGMENT: JsWord = JsWord::from("Fragment");
 }

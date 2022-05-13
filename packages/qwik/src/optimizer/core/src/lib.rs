@@ -107,7 +107,7 @@ pub fn transform_fs(config: TransformFsOptions) -> Result<TransformOutput, Error
         .reduce(|| Ok(TransformOutput::new()), |x, y| Ok(x?.append(&mut y?)))?;
 
     final_output.modules.sort_unstable_by_key(|key| key.order);
-    final_output = generate_entries(final_output)?;
+    final_output = generate_entries(final_output, config.explicity_extensions)?;
     Ok(final_output)
 }
 
@@ -142,7 +142,7 @@ pub fn transform_modules(config: TransformModulesOptions) -> Result<TransformOut
 
     let mut final_output = final_output?;
     final_output.modules.sort_unstable_by_key(|key| key.order);
-    final_output = generate_entries(final_output)?;
+    final_output = generate_entries(final_output, config.explicity_extensions)?;
 
     Ok(final_output)
 }

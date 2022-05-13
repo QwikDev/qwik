@@ -1,0 +1,49 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { Counter } from "./counter.tsx";
+
+export const Root = () => {
+    return (
+        <html>
+            <head>
+                <meta charSet="utf-8" />
+                <title>Qwik Blank App</title>
+            </head>
+            <body>
+                <Counter initial={3} />
+            </body>
+        </html>
+    );
+};
+
+============================= test.tsx ==
+
+import { Counter } from "./counter.tsx";
+export const Root = ()=>{
+    return <html >
+
+            <head >
+
+                <meta charSet="utf-8"/>
+
+                <title >Qwik Blank App</title>
+
+            </head>
+
+            <body >
+
+                <Counter initial={3}/>
+
+            </body>
+
+        </html>;
+};
+
+== DIAGNOSTICS ==
+
+[]

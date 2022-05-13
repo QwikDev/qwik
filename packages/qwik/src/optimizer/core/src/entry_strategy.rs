@@ -1,5 +1,6 @@
 use crate::parse::PathData;
 use crate::transform::HookData;
+use crate::words::*;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use swc_atoms::JsWord;
@@ -89,11 +90,12 @@ impl EntryPolicy for SmartStrategy {
         _symbol: &str,
         _path: &PathData,
         context: &[String],
-        _hook_data: &HookData,
+        hook_data: &HookData,
     ) -> Option<JsWord> {
-        if context.iter().any(|h| h == "onMount") {
+        if hook_data.ctx_name == *USE_SERVER_MOUNT {
             return Some(ENTRY_SERVER.clone());
         }
+        if context.iter().any(|h| h == "onMount") {}
         Some(context.first().map_or_else(
             || ENTRY_HOOKS.clone(),
             |root| JsWord::from(["entry_", root].concat()),

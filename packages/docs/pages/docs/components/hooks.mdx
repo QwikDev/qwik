@@ -13,11 +13,11 @@ Creates a object that Qwik can track across serializations.
 
 Use `useStore` to create state for your application. The return object is a proxy which has a unique ID. The ID of the object is used in the `QRL`s to refer to the store.
 
-## Example
+### Example
 
 Example showing how `useStore` is used in Counter example to keep track of count.
 
-```typescript
+```tsx
 const Stores = component$(() => {
   const counter = useCounter(1);
   // Reactivity happens even for nested objects and arrays
@@ -69,8 +69,10 @@ export function useRef<T = Element>(current?: T): Ref<T> {
   return useStore({ current });
 }
 ```
-## Example
-```typescript
+
+### Example
+
+```tsx
 const Cmp = component$(() => {
   const input = useRef<HTMLInputElement>();
   useClientEffect$((track) => {
@@ -85,7 +87,7 @@ const Cmp = component$(() => {
 });
 ```
 
-# useWatch$()
+## useWatch$()
 
 Reruns the `watchFn` when the observed inputs change.
 
@@ -94,94 +96,11 @@ Use `useWatch` to observe changes on a set of inputs, and then re-execute the `w
 The `watchFn` only executes if the observed inputs change. To observe the inputs use the `obs` function to wrap property reads. This creates subscriptions which will trigger the `watchFn` to re-run.
 
 
-## useClientEffect$()
-
-```typescript
-const Timer = component$(() => {
-  const store = useStore({
-    count: 0
-  });
-  useClientEffect$(() => {
-    // Only runs in the client
-    const timer = setInterval(() => {
-      store.count++;
-    }, 500);
-    return () => {
-      clearInterval(timer);
-    };
-  });
-  return (
-    <Host>
-      {store.count}
-    </Host>
-  )
-});
-```
-
-## useServerMount$()
-
-Register's a server mount hook, that runs only in server when the component is first mounted. `useWatch` will run once in the server, and N-times in the client, only when the **tracked** state changes.
-
-## Example
-
-```typescript
-const Cmp = component$(() => {
-  const store = useStore({
-    users: []
-  });
-  // Double count watch
-  useServerMount$(async () => {
-    // This code will ONLY run once in the server, when the component is mounted
-    store.users = await db.requestUsers();
-  });
-  return (
-    <Host>
-      {store.users.map((user => (
-        <User user={user}/>
-      )))}
-    </Host>
-  )
-});
-interface User {
-  name: string;
-}
-function User(props: {user: User}) {
-  return (
-    <div>Name: {props.user.name}</div>
-  )
-}
-const Cmp = component$(() => {
-  const store = useStore({
-    users: []
-  });
-  // Double count watch
-  useServerMount$(async () => {
-    // This code will ONLY run once in the server, when the component is mounted
-    store.users = await db.requestUsers();
-  });
-  return (
-    <Host>
-      {store.users.map((user => (
-        <User user={user}/>
-      )))}
-    </Host>
-  )
-});
-interface User {
-  name: string;
-}
-function User(props: {user: User}) {
-  return (
-    <div>Name: {props.user.name}</div>
-  )
-}
-```
-
-## Example
+### Example
 
 The `useWatch` function is used to observe the `state.count` property. Any changes to the `state.count` cause the `watchFn` to execute which in turn updates the `state.doubleCount` to the double of `state.count`.
 
-```typescript
+```tsx
 const Cmp = component$(() => {
   const store = useStore({
     count: 0,
@@ -212,13 +131,81 @@ const Cmp = component$(() => {
 });
 ```
 
+## useClientEffect$()
+
+```tsx
+const Timer = component$(() => {
+  const store = useStore({
+    count: 0
+  });
+  useClientEffect$(() => {
+    // Only runs in the client
+    const timer = setInterval(() => {
+      store.count++;
+    }, 500);
+    return () => {
+      clearInterval(timer);
+    };
+  });
+  return (
+    <Host>
+      {store.count}
+    </Host>
+  )
+});
+```
+
+## useServerMount$()
+
+Register's a server mount hook, that runs only in server when the component is first mounted. `useWatch` will run once in the server, and N-times in the client, only when the **tracked** state changes.
+
+### Example
+
+```tsx
+const Cmp = component$(() => {
+  const store = useStore({
+    users: []
+  });
+  // Double count watch
+  useServerMount$(async () => {
+    // This code will ONLY run once in the server, when the component is mounted
+    store.users = await db.requestUsers();
+  });
+  return (
+    <Host>
+      {store.users.map((user => (
+        <User user={user}/>
+      )))}
+    </Host>
+  )
+});
+interface User {
+  name: string;
+}
+function User(props: {user: User}) {
+  return (
+    <div>Name: {props.user.name}</div>
+  )
+}
+
+interface User {
+  name: string;
+}
+
+function User(props: {user: User}) {
+  return (
+    <div>Name: {props.user.name}</div>
+  )
+}
+```
+
 ## useHostElement()
 
 Retrieves the Host Element of the current component.
 
 NOTE: `useHostElement` method can only be used in the synchronous portion of the callback (before any `await` statements.)
 
-```typescript
+```tsx
 const Section = component$(() => {
   const hostElement = useHostElement();
   console.log(hostElement); // hostElement is a HTMLSectionElement
@@ -232,13 +219,13 @@ const Section = component$(() => {
 });
 ```
 
-# useStyles$()
+## useStyles$()
 
 A lazy-loadable reference to a component's styles.
 
 Component styles allow Qwik to lazy load the style information for the component only when needed. (And avoid double loading it in case of SSR hydration.)
 
-```typescript
+```tsx
 import styles from './code-block.css?inline';
 export const CmpStyles = component$(() => {
   useStyles$(styles);

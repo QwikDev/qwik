@@ -25,7 +25,7 @@ import { WatchDescriptor, WatchFlags } from '../watch/watch.public';
  *
  * Can be used to release resouces, abort network requets, stop timers...
  *
- * ```typescript
+ * ```tsx
  * const Cmp = component$(() => {
  *   useCleanup$(() => {
  *     // Executed after SSR (pause) or when the component gets removed from the DOM.
@@ -64,7 +64,7 @@ export function useCleanupQrl(unmountFn: QRL<() => void>): void {
  *
  * Can be used to release resouces, abort network requets, stop timers...
  *
- * ```typescript
+ * ```tsx
  * const Cmp = component$(() => {
  *   useCleanup$(() => {
  *     // Executed after SSR (pause) or when the component gets removed from the DOM.
@@ -92,7 +92,7 @@ export const useCleanup$ = implicit$FirstArg(useCleanupQrl);
  * Only called in the client.
  * Only called once.
  *
- * ```typescript
+ * ```tsx
  * const Cmp = component$(() => {
  *   useResume$(() => {
  *     // Eagerly invoked when the application resumes on the client
@@ -123,7 +123,7 @@ export function useResumeQrl(resumeFn: QRL<() => void>): void {
  * Only called in the client.
  * Only called once.
  *
- * ```typescript
+ * ```tsx
  * const Cmp = component$(() => {
  *   useResume$(() => {
  *     // Eagerly invoked when the application resumes on the client
@@ -153,11 +153,11 @@ export const useResume$ = implicit$FirstArg(useResumeQrl);
  *
  * @see `useResume`, `useClientEffect`
  *
- * ```typescript
+ * ```tsx
  * const Cmp = component$(() => {
  *   const store = useStore({
  *     isVisible: false,
- *   })
+ *   });
  *   useVisible$(() => {
  *     // Invoked once when the component is visible in the browser's viewport
  *     console.log('called once in client when visible');
@@ -187,11 +187,11 @@ export function useVisibleQrl(resumeFn: QRL<() => void>): void {
  *
  * @see `useResume`, `useClientEffect`
  *
- * ```typescript
+ * ```tsx
  * const Cmp = component$(() => {
  *   const store = useStore({
  *     isVisible: false,
- *   })
+ *   });
  *   useVisible$(() => {
  *     // Invoked once when the component is visible in the browser's viewport
  *     console.log('called once in client when visible');
@@ -237,11 +237,14 @@ export function useOn(event: string, eventFn: QRL<() => void>) {
  *
  * @see `useOn`, `useOnWindow`, `useOnDocument`.
  *
- * ```typescript
+ * ```tsx
  * function useScroll() {
- *   useOnDocument('scroll', $(() => {
- *     console.log('body scrolled');
- *   }));
+ *   useOnDocument(
+ *     'scroll',
+ *     $(() => {
+ *       console.log('body scrolled');
+ *     })
+ *   );
  * }
  *
  * const Cmp = component$(() => {
@@ -270,12 +273,15 @@ export function useOnDocument(event: string, eventQrl: QRL<() => void>) {
  *
  * @see `useOn`, `useOnWindow`, `useOnDocument`.
  *
- * ```typescript
+ * ```tsx
  * function useAnalytics() {
- *   useOnWindow('popstate', $(() => {
- *     console.log('navigation happened');
- *     // report to analytics
- *   }));
+ *   useOnWindow(
+ *     'popstate',
+ *     $(() => {
+ *       console.log('navigation happened');
+ *       // report to analytics
+ *     })
+ *   );
  * }
  *
  * const Cmp = component$(() => {
@@ -302,7 +308,7 @@ export function useOnWindow(event: string, eventFn: QRL<() => void>) {
  * Component styles allow Qwik to lazy load the style information for the component only when
  * needed. (And avoid double loading it in case of SSR hydration.)
  *
- * ```typescript
+ * ```tsx
  * import styles from './code-block.css?inline';
  *
  * export const CmpStyles = component$(() => {
@@ -330,7 +336,7 @@ export function useStylesQrl(styles: QRL<string>): void {
  * Component styles allow Qwik to lazy load the style information for the component only when
  * needed. (And avoid double loading it in case of SSR hydration.)
  *
- * ```typescript
+ * ```tsx
  * import styles from './code-block.css?inline';
  *
  * export const CmpStyles = component$(() => {
@@ -442,7 +448,7 @@ export type EventHandler<T> = QRL<(value: T) => any>;
  *
  * An example showing how to create a counter component:
  *
- * ```typescript
+ * ```tsx
  * export interface CounterProps {
  *   initialValue?: number;
  *   step?: number;
@@ -452,9 +458,7 @@ export type EventHandler<T> = QRL<(value: T) => any>;
  *   return (
  *     <div>
  *       <span>{state.count}</span>
- *       <button onClick$={() => (state.count += props.step || 1)}>
- *         +
- *       </button>
+ *       <button onClick$={() => (state.count += props.step || 1)}>+</button>
  *     </div>
  *   );
  * });
@@ -466,7 +470,7 @@ export type EventHandler<T> = QRL<(value: T) => any>;
  *
  * The above can then be used like so:
  *
- * ```typescript
+ * ```tsx
  * export const OtherComponent = component$(() => {
  *   return <Counter initialValue={100} />;
  * });
@@ -510,7 +514,7 @@ export function componentQrl<PROPS extends {}>(
  *
  * An example showing how to create a counter component:
  *
- * ```typescript
+ * ```tsx
  * export interface CounterProps {
  *   initialValue?: number;
  *   step?: number;
@@ -520,9 +524,7 @@ export function componentQrl<PROPS extends {}>(
  *   return (
  *     <div>
  *       <span>{state.count}</span>
- *       <button onClick$={() => (state.count += props.step || 1)}>
- *         +
- *       </button>
+ *       <button onClick$={() => (state.count += props.step || 1)}>+</button>
  *     </div>
  *   );
  * });
@@ -534,7 +536,7 @@ export function componentQrl<PROPS extends {}>(
  *
  * The above can then be used like so:
  *
- * ```typescript
+ * ```tsx
  * export const OtherComponent = component$(() => {
  *   return <Counter initialValue={100} />;
  * });

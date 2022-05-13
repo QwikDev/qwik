@@ -94,12 +94,12 @@ export function handleWatch() {
  * `state.count` cause the `watchFn` to execute which in turn updates the `state.doubleCount` to
  * the double of `state.count`.
  *
- * ```typescript
+ * ```tsx
  * const Cmp = component$(() => {
  *   const store = useStore({
  *     count: 0,
  *     doubleCount: 0,
- *     debounced: 0
+ *     debounced: 0,
  *   });
  *
  *   // Double count watch
@@ -120,10 +120,12 @@ export function handleWatch() {
  *   });
  *   return (
  *     <Host>
- *       <div>{store.count} / {store.doubleCount}</div>
+ *       <div>
+ *         {store.count} / {store.doubleCount}
+ *       </div>
  *       <div>{store.debounced}</div>
  *     </Host>
- *   )
+ *   );
  * });
  * ```
  *
@@ -173,12 +175,12 @@ export function useWatchQrl(qrl: QRL<WatchFn>, opts?: UseEffectOptions): void {
  * `state.count` cause the `watchFn` to execute which in turn updates the `state.doubleCount` to
  * the double of `state.count`.
  *
- * ```typescript
+ * ```tsx
  * const Cmp = component$(() => {
  *   const store = useStore({
  *     count: 0,
  *     doubleCount: 0,
- *     debounced: 0
+ *     debounced: 0,
  *   });
  *
  *   // Double count watch
@@ -199,10 +201,12 @@ export function useWatchQrl(qrl: QRL<WatchFn>, opts?: UseEffectOptions): void {
  *   });
  *   return (
  *     <Host>
- *       <div>{store.count} / {store.doubleCount}</div>
+ *       <div>
+ *         {store.count} / {store.doubleCount}
+ *       </div>
  *       <div>{store.debounced}</div>
  *     </Host>
- *   )
+ *   );
  * });
  * ```
  *
@@ -216,10 +220,10 @@ export const useWatch$ = implicit$FirstArg(useWatchQrl);
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#useClientEffect instead)
 /**
- * ```typescript
+ * ```tsx
  * const Timer = component$(() => {
  *   const store = useStore({
- *     count: 0
+ *     count: 0,
  *   });
  *
  *   useClientEffect$(() => {
@@ -232,14 +236,9 @@ export const useWatch$ = implicit$FirstArg(useWatchQrl);
  *     };
  *   });
  *
- *   return (
- *     <Host>
- *       {store.count}
- *     </Host>
- *   )
+ *   return <Host>{store.count}</Host>;
  * });
  * ```
- *
  *
  * @public
  */
@@ -267,10 +266,10 @@ export function useClientEffectQrl(qrl: QRL<WatchFn>, opts?: UseEffectOptions): 
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#useClientEffect instead)
 /**
- * ```typescript
+ * ```tsx
  * const Timer = component$(() => {
  *   const store = useStore({
- *     count: 0
+ *     count: 0,
  *   });
  *
  *   useClientEffect$(() => {
@@ -283,14 +282,9 @@ export function useClientEffectQrl(qrl: QRL<WatchFn>, opts?: UseEffectOptions): 
  *     };
  *   });
  *
- *   return (
- *     <Host>
- *       {store.count}
- *     </Host>
- *   )
+ *   return <Host>{store.count}</Host>;
  * });
  * ```
- *
  *
  * @public
  */
@@ -307,10 +301,10 @@ export const useClientEffect$ = implicit$FirstArg(useClientEffectQrl);
  *
  * ## Example
  *
- * ```typescript
+ * ```tsx
  * const Cmp = component$(() => {
  *   const store = useStore({
- *     users: []
+ *     users: [],
  *   });
  *
  *   // Double count watch
@@ -321,24 +315,22 @@ export const useClientEffect$ = implicit$FirstArg(useClientEffectQrl);
  *
  *   return (
  *     <Host>
- *       {store.users.map((user => (
- *         <User user={user}/>
- *       )))}
+ *       {store.users.map((user) => (
+ *         <User user={user} />
+ *       ))}
  *     </Host>
- *   )
+ *   );
  * });
  *
  * interface User {
  *   name: string;
  * }
- * function User(props: {user: User}) {
- *   return (
- *     <div>Name: {props.user.name}</div>
- *   )
+ * function User(props: { user: User }) {
+ *   return <div>Name: {props.user.name}</div>;
  * }
  * const Cmp = component$(() => {
  *   const store = useStore({
- *     users: []
+ *     users: [],
  *   });
  *
  *   // Double count watch
@@ -349,20 +341,18 @@ export const useClientEffect$ = implicit$FirstArg(useClientEffectQrl);
  *
  *   return (
  *     <Host>
- *       {store.users.map((user => (
- *         <User user={user}/>
- *       )))}
+ *       {store.users.map((user) => (
+ *         <User user={user} />
+ *       ))}
  *     </Host>
- *   )
+ *   );
  * });
  *
  * interface User {
  *   name: string;
  * }
- * function User(props: {user: User}) {
- *   return (
- *     <div>Name: {props.user.name}</div>
- *   )
+ * function User(props: { user: User }) {
+ *   return <div>Name: {props.user.name}</div>;
  * }
  * ```
  *
@@ -390,10 +380,10 @@ export function useServerMountQrl(watchQrl: QRL<ServerFn>): void {
  *
  * ## Example
  *
- * ```typescript
+ * ```tsx
  * const Cmp = component$(() => {
  *   const store = useStore({
- *     users: []
+ *     users: [],
  *   });
  *
  *   // Double count watch
@@ -404,24 +394,22 @@ export function useServerMountQrl(watchQrl: QRL<ServerFn>): void {
  *
  *   return (
  *     <Host>
- *       {store.users.map((user => (
- *         <User user={user}/>
- *       )))}
+ *       {store.users.map((user) => (
+ *         <User user={user} />
+ *       ))}
  *     </Host>
- *   )
+ *   );
  * });
  *
  * interface User {
  *   name: string;
  * }
- * function User(props: {user: User}) {
- *   return (
- *     <div>Name: {props.user.name}</div>
- *   )
+ * function User(props: { user: User }) {
+ *   return <div>Name: {props.user.name}</div>;
  * }
  * const Cmp = component$(() => {
  *   const store = useStore({
- *     users: []
+ *     users: [],
  *   });
  *
  *   // Double count watch
@@ -432,20 +420,18 @@ export function useServerMountQrl(watchQrl: QRL<ServerFn>): void {
  *
  *   return (
  *     <Host>
- *       {store.users.map((user => (
- *         <User user={user}/>
- *       )))}
+ *       {store.users.map((user) => (
+ *         <User user={user} />
+ *       ))}
  *     </Host>
- *   )
+ *   );
  * });
  *
  * interface User {
  *   name: string;
  * }
- * function User(props: {user: User}) {
- *   return (
- *     <div>Name: {props.user.name}</div>
- *   )
+ * function User(props: { user: User }) {
+ *   return <div>Name: {props.user.name}</div>;
  * }
  * ```
  *
@@ -533,7 +519,7 @@ export const destroyWatch = (watch: WatchDescriptor) => {
  * The `obs` passed into the `watchFn` is used to mark `state.count` as a property of interest.
  * Any changes to the `state.count` property will cause the `watchFn` to re-run.
  *
- * ```typescript
+ * ```tsx
  * const Cmp = component$(() => {
  *   const store = useStore({ count: 0, doubleCount: 0 });
  *   useWatch$((track) => {

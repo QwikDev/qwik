@@ -20,7 +20,7 @@ import { RenderEvent } from '../util/markers';
  *
  * Example showing how `useStore` is used in Counter example to keep track of count.
  *
- * ```typescript
+ * ```tsx
  * const Stores = component$(() => {
  *   const counter = useCounter(1);
  *
@@ -29,31 +29,30 @@ import { RenderEvent } from '../util/markers';
  *     name: 'Manu',
  *     address: {
  *       address: '',
- *       city: ''
+ *       city: '',
  *     },
- *     orgs: []
+ *     orgs: [],
  *   });
  *
  *   // useStore() can also accept a function to calculate the initial value
  *   const state = useStore(() => {
  *     return {
- *       value: expensiveInitialValue()
- *     }
- *   })
+ *       value: expensiveInitialValue(),
+ *     };
+ *   });
  *
  *   return (
  *     <Host>
  *       <div>Counter: {counter.value}</div>
- *       <Child userData={userData} state={state}/>
+ *       <Child userData={userData} state={state} />
  *     </Host>
- *   )
+ *   );
  * });
- *
  *
  * function useCounter(step: number) {
  *   // Multiple stores can be created in custom hooks for convenience and composability
  *   const counterStore = useStore({
- *     value: 0
+ *     value: 0,
  *   });
  *   useClientEffect$(() => {
  *     // Only runs in the client
@@ -105,7 +104,7 @@ export interface Ref<T> {
  *
  * ## Example
  *
- * ```typescript
+ * ```tsx
  * const Cmp = component$(() => {
  *   const input = useRef<HTMLInputElement>();
  *
@@ -116,9 +115,9 @@ export interface Ref<T> {
  *
  *   return (
  *     <Host>
- *       <input type="text" ref={input}/>
+ *       <input type="text" ref={input} />
  *     </Host>
- *   )
+ *   );
  * });
  *
  * ```

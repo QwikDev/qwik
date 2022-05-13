@@ -71,7 +71,7 @@ async function resolveComment(dir: string, ref: string, section: string): Promis
     let line = lines[row++];
     const match = /<docs code="\.\/(.*)#(.*)"\/>/.exec(line);
     if (match) {
-      output.push('```typescript');
+      output.push('```tsx');
       (await resolveCodeExample(join(dirReadme, match[1]), match[2])).forEach((l) =>
         output.push(l)
       );

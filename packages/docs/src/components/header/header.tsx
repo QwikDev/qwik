@@ -52,11 +52,11 @@ export const Header = component$(
                 <span>Examples</span>
               </a>
             </li>
-            <li>
+            {/* <li>
               <a href="/tutorial/introduction/basics" onClickQrl={closeMenu}>
                 <span>Tutorial</span>
               </a>
-            </li>
+            </li> */}
             <li>
               <a href="/playground" onClickQrl={closeMenu}>
                 <span>Playground</span>

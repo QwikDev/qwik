@@ -5,7 +5,6 @@
 - [Overview](overview.mdx)
 - [Getting Started](getting-started.mdx)
 - [Think Qwik](think-qwik.mdx)
-- [Rendering](rendering.mdx)
 
 ## Component API
 
@@ -15,6 +14,7 @@
 - [Events](components/events.mdx)
 - [Lite elements](components/lite-components.mdx)
 - [Content projection](components/projection.mdx)
+- [Rendering](components/rendering.mdx)
 
 ## Concepts
 

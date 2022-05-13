@@ -10,19 +10,18 @@ import { getInvokeContext } from './use-core';
  * NOTE: `useHostElement` method can only be used in the synchronous portion of the callback
  * (before any `await` statements.)
  *
- * ```typescript
- * const Section = component$(() => {
- *   const hostElement = useHostElement();
- *   console.log(hostElement); // hostElement is a HTMLSectionElement
+ * ```tsx
+ * const Section = component$(
+ *   () => {
+ *     const hostElement = useHostElement();
+ *     console.log(hostElement); // hostElement is a HTMLSectionElement
  *
- *   return (
- *     <Host>
- *       I am a section
- *     </Host>
- *   )
- * }, {
- *   tagName: 'section'
- * });
+ *     return <Host>I am a section</Host>;
+ *   },
+ *   {
+ *     tagName: 'section',
+ *   }
+ * );
  * ```
  *
  * @public

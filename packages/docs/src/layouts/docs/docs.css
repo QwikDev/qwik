@@ -103,9 +103,9 @@ h6 a:hover .icon {
 .docs article pre {
   overflow: auto;
   color: white;
-  background-color: rgb(41, 41, 41);
-  padding: 20px;
-  border-radius: 10px;
+  background-color: rgb(1 31 51);
+  padding: 18px 15px;
+  border-radius: 8px;
 }
 
 .docs article pre code {
@@ -118,7 +118,8 @@ h6 a:hover .icon {
   background-color: rgb(224, 224, 224);
   padding: 2px 4px;
   border-radius: 3px;
-  font-size: 14px;
+  font-size: 0.9em;
+  line-height: 1.4;
 }
 
 @media (max-width: 640px) {

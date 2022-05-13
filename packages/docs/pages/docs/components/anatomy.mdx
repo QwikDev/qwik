@@ -15,19 +15,19 @@ import { component$, useStore } from '@builder.io/qwik';
 // Qwik components can be asynchronous
 export const MyCmp = component$(async (props: MyCmpProps) => {
   // Declare local state
-  const localStore = useStore({
+  const state = useStore({
     count: 0,
   });
 
   // Returns JSX
   return (
     <Host>
-      <span>Hello, {props.name} {localStore.count}</span>
-      <div>Times: {localStore.count}</div>
+      <span>Hello, {props.name} {state.count}</span>
+      <div>Times: {state.count}</div>
       <button onClick$={() => {
         // this will update the local state and cause a re-render
         // reactivity is at qwik's core
-        localStore.count++;
+        state.count++;
       }}
       >
         Increment

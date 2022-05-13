@@ -42,7 +42,7 @@
   grid-area: tutorial-content-panel;
   position: relative;
 
-  background-color: #eee;
+  border-right: 1px solid #dfdede;
   color: rgb(37, 37, 37);
 
   display: grid;
@@ -79,7 +79,7 @@
 
 .content-header h1 {
   display: block;
-  font-size: 18px;
+  font-size: 17px;
   font-weight: bold;
   padding: 8px 4px 6px 42px;
 }

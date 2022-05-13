@@ -7,7 +7,7 @@
 }
 
 .docs article {
-  @apply pt-[66px];
+  @apply pt-[80px];
   @apply px-6;
 
   /* medium */
@@ -30,8 +30,9 @@
 
 .docs article h1 {
   @apply text-slate-900;
-  @apply text-3xl font-bold;
-  @apply mb-5;
+  @apply text-5xl font-bold;
+  @apply mb-6;
+  @apply mt-6;
   @apply relative;
 }
 
@@ -49,7 +50,7 @@
 }
 
 .docs article h2 {
-  @apply text-2xl;
+  @apply text-3xl;
 }
 
 .docs h2 a,
@@ -82,14 +83,14 @@ h6 a:hover .icon {
 
 .docs article p {
   @apply my-5;
-  font-size: 18px;
+  font-size: 17px;
 }
 
 .docs article ul,
 .docs article ol {
   @apply my-4;
   @apply ml-8;
-  font-size: 18px;
+  font-size: 17px;
   line-height: 1.7;
   list-style: disc;
 }
@@ -117,7 +118,7 @@ h6 a:hover .icon {
   background-color: rgb(224, 224, 224);
   padding: 2px 4px;
   border-radius: 3px;
-  font-size: 16px;
+  font-size: 14px;
 }
 
 @media (max-width: 640px) {

@@ -42,6 +42,10 @@ export const Repl = component$(async (props: ReplProps) => {
     versions: [],
   });
 
+  if (props.inputs) {
+    store.inputs = props.inputs;
+  }
+
   if (!store.selectedInputPath) {
     if (store.inputs.some((i) => i.path === props.selectedInputPath)) {
       store.selectedInputPath = props.selectedInputPath!;

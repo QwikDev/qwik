@@ -1,5 +1,7 @@
 header {
-  @apply text-slate-200 bg-gray-900;
+  @apply text-slate-200;
+  background: #0099ff;
+  box-shadow: 0px 2px 7px #0000003d;
 }
 
 header li {

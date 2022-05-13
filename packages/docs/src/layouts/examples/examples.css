@@ -1,0 +1,65 @@
+.examples {
+  position: fixed;
+  top: var(--header-height);
+  width: 100%;
+  height: cal(100vh - var(--header-height));
+}
+
+.examples-menu-container {
+  display: grid;
+  grid-template-columns: minmax(300px, 25%) auto;
+  grid-template-areas: 'example-content-panel example-repl-panel';
+  height: calc(100vh - var(--header-height));
+}
+
+.examples-repl {
+  grid-area: example-repl-panel;
+}
+
+.examples-menu {
+  grid-area: example-content-panel;
+  position: relative;
+
+  border-right: 1px solid #dfdede;
+  padding: 20px;
+}
+
+.example-button {
+  display: block;
+  padding: 10px;
+  margin-bottom: 10px;
+  color: #494949;
+  text-align: left;
+  border: 1px solid #cccccc;
+  border-radius: 5px;
+  width: 100%;
+}
+
+.example-button.selected {
+  background: #e2ebff;
+}
+
+.example-button:hover {
+  background: #f3f3f3 !important;
+}
+
+.example-button > h2 {
+  font-weight: 700;
+}
+
+.examples .repl {
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  grid-template-areas:
+    'repl-input-panel'
+    'repl-output-panel';
+  height: calc(100vh - var(--header-height) - calc(var(--repl-tab-height) - 14px));
+}
+
+.examples .repl .repl-detail-panel {
+  display: none;
+}
+
+.examples .repl-input-panel .repl-tab-button-close {
+  display: none;
+}

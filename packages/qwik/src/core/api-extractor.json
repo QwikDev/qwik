@@ -8,10 +8,6 @@
     "reportFolder": "<projectFolder>/packages/qwik/src/core/",
     "reportTempFolder": "<projectFolder>/dist-dev/api-extractor/core/"
   },
-  "docModel": {
-    "enabled": true,
-    "apiJsonFilePath": "core.api.json"
-  },
   "dtsRollup": {
     "enabled": true
   }

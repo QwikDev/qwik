@@ -56,7 +56,11 @@ export { hW as handleWatch };
   "parent": null,
   "ctxKind": "function",
   "ctxName": "component$",
-  "captures": false
+  "captures": false,
+  "loc": [
+    83,
+    278
+  ]
 }
 */
 ============================= bar_component_l80ps8hxf1y.tsx (ENTRY POINT)==
@@ -84,7 +88,11 @@ export { hW as handleWatch };
   "parent": null,
   "ctxKind": "function",
   "ctxName": "component$",
-  "captures": false
+  "captures": false,
+  "loc": [
+    311,
+    438
+  ]
 }
 */
 ============================= foo_component_1_dvu6fitwgly.tsx (ENTRY POINT)==
@@ -116,7 +124,11 @@ export { hW as handleWatch };
   "parent": "Foo_component_HTDRsvUbLiE",
   "ctxKind": "function",
   "ctxName": "$",
-  "captures": true
+  "captures": true,
+  "loc": [
+    130,
+    274
+  ]
 }
 */
 ============================= bar_component_1_0xsynsnvu3k.tsx (ENTRY POINT)==
@@ -146,7 +158,11 @@ export { hW as handleWatch };
   "parent": "Bar_component_L80pS8Hxf1Y",
   "ctxKind": "function",
   "ctxName": "$",
-  "captures": true
+  "captures": true,
+  "loc": [
+    337,
+    434
+  ]
 }
 */
 ============================= test.tsx ==

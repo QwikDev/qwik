@@ -44,7 +44,11 @@ export { hW as handleWatch };
   "parent": null,
   "ctxKind": "function",
   "ctxName": "component$",
-  "captures": false
+  "captures": false,
+  "loc": [
+    86,
+    197
+  ]
 }
 */
 ============================= test.tsx ==
@@ -79,7 +83,11 @@ export { hW as handleWatch };
   "parent": null,
   "ctxKind": "function",
   "ctxName": "component$",
-  "captures": false
+  "captures": false,
+  "loc": [
+    224,
+    271
+  ]
 }
 */
 ============================= header_component_div_onclick_i7ekvwh3674.tsx (ENTRY POINT)==
@@ -103,7 +111,11 @@ export { hW as handleWatch };
   "parent": "Header_component_J4uyIhaBNR4",
   "ctxKind": "function",
   "ctxName": "$",
-  "captures": false
+  "captures": false,
+  "loc": [
+    157,
+    182
+  ]
 }
 */
 == DIAGNOSTICS ==

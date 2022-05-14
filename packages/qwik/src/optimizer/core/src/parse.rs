@@ -26,8 +26,7 @@ use swc_ecmascript::codegen::text_writer::JsWriter;
 use swc_ecmascript::parser::lexer::Lexer;
 use swc_ecmascript::parser::{EsConfig, PResult, Parser, StringInput, Syntax, TsConfig};
 use swc_ecmascript::transforms::{
-    fixer, hygiene::hygiene_with_config, optimization::simplify, react, resolver_with_mark,
-    typescript,
+    fixer, hygiene::hygiene_with_config, optimization::simplify, react, resolver, typescript,
 };
 use swc_ecmascript::visit::{FoldWith, VisitMutWith};
 
@@ -45,6 +44,7 @@ pub struct HookAnalysis {
     pub ctx_kind: HookKind,
     pub ctx_name: JsWord,
     pub captures: bool,
+    pub loc: (u32, u32),
 }
 
 #[derive(Debug, Serialize, Deserialize, Copy, Clone, PartialEq, Eq)]
@@ -153,7 +153,9 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 
             swc_common::GLOBALS.set(&Globals::new(), || {
                 swc_common::errors::HANDLER.set(&handler, || {
-                    let global_mark = Mark::fresh(Mark::root());
+                    let unresolved_mark = Mark::new();
+                    let top_level_mark = Mark::new();
+
                     let mut main_module = main_module;
 
                     // Transpile JSX
@@ -167,10 +169,10 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                                     ..Default::default()
                                 },
                                 Some(&comments),
-                                global_mark,
+                                top_level_mark,
                             ))
                         } else {
-                            main_module.fold_with(&mut typescript::strip(global_mark))
+                            main_module.fold_with(&mut typescript::strip(top_level_mark))
                         }
                     }
 
@@ -178,20 +180,24 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                     if transpile && is_jsx {
                         let mut react_options = react::Options::default();
                         if is_jsx {
-                            react_options.throw_if_namespace = false;
+                            react_options.throw_if_namespace = Some(false);
                             react_options.runtime = Some(react::Runtime::Automatic);
-                            react_options.import_source = "@builder.io/qwik".to_string();
+                            react_options.import_source = Some("@builder.io/qwik".to_string());
                         };
                         main_module = main_module.fold_with(&mut react::react(
                             Lrc::clone(&source_map),
                             Some(&comments),
                             react_options,
-                            global_mark,
+                            top_level_mark,
                         ));
                     }
 
                     // Resolve with mark
-                    main_module.visit_mut_with(&mut resolver_with_mark(global_mark));
+                    main_module.visit_mut_with(&mut resolver(
+                        unresolved_mark,
+                        top_level_mark,
+                        is_type_script && !transpile,
+                    ));
 
                     // Collect import/export metadata
                     let collect = global_collect(&main_module);
@@ -209,8 +215,10 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                     main_module = main_module.fold_with(&mut qwik_transform);
 
                     if config.minify != MinifyMode::None {
-                        main_module =
-                            main_module.fold_with(&mut simplify::simplifier(Default::default()));
+                        main_module = main_module.fold_with(&mut simplify::simplifier(
+                            unresolved_mark,
+                            Default::default(),
+                        ));
                     }
                     main_module.visit_mut_with(&mut hygiene_with_config(Default::default()));
                     main_module.visit_mut_with(&mut fixer(None));
@@ -265,6 +273,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                                 captures: !h.data.scoped_idents.is_empty(),
                                 display_name: h.data.display_name,
                                 hash: h.data.hash,
+                                loc: (h.span.lo.0, h.span.hi.0),
                             }),
                         });
                     }

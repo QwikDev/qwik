@@ -40,7 +40,11 @@ export { hW as handleWatch };
   "parent": null,
   "ctxKind": "function",
   "ctxName": "component$",
-  "captures": false
+  "captures": false,
+  "loc": [
+    109,
+    238
+  ]
 }
 */
 ============================= app_header_component_div_onclick_ao7ui7iw6oq.tsx (ENTRY POINT)==
@@ -64,7 +68,11 @@ export { hW as handleWatch };
   "parent": "App_Header_component_B9F3YeqcO1w",
   "ctxKind": "function",
   "ctxName": "$",
-  "captures": false
+  "captures": false,
+  "loc": [
+    192,
+    217
+  ]
 }
 */
 ============================= test.tsx ==

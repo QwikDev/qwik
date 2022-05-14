@@ -41,7 +41,11 @@ export { hW as handleWatch };
   "parent": null,
   "ctxKind": "function",
   "ctxName": "component$",
-  "captures": false
+  "captures": false,
+  "loc": [
+    83,
+    185
+  ]
 }
 */
 ============================= foo_component_1_dvu6fitwgly.tsx (ENTRY POINT)==
@@ -68,7 +72,11 @@ export { hW as handleWatch };
   "parent": "Foo_component_HTDRsvUbLiE",
   "ctxKind": "function",
   "ctxName": "$",
-  "captures": false
+  "captures": false,
+  "loc": [
+    104,
+    181
+  ]
 }
 */
 ============================= test.tsx ==

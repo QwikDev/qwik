@@ -80,8 +80,7 @@ pub fn new_module(ctx: NewModuleCtx) -> Result<(ast::Module, SingleThreadedComme
                         src: ast::Str {
                             span: DUMMY_SP,
                             value: fix_path(ctx.origin, "a", import.source.as_ref())?,
-                            kind: ast::StrKind::Synthesized,
-                            has_escape: false,
+                            raw: None,
                         },
                         specifiers: vec![specifier],
                     },
@@ -100,8 +99,7 @@ pub fn new_module(ctx: NewModuleCtx) -> Result<(ast::Module, SingleThreadedComme
                         src: ast::Str {
                             span: DUMMY_SP,
                             value: fix_path(ctx.origin, "a", &format!("./{}", ctx.path.file_stem))?,
-                            kind: ast::StrKind::Synthesized,
-                            has_escape: false,
+                            raw: None,
                         },
                         specifiers: vec![ast::ImportSpecifier::Named(ast::ImportNamedSpecifier {
                             is_type_only: false,
@@ -217,7 +215,10 @@ fn test_fix_path() {
     assert!(fix_path("/components", "a", "./state").is_err())
 }
 
-pub fn generate_entries(mut output: TransformOutput) -> Result<TransformOutput, anyhow::Error> {
+pub fn generate_entries(
+    mut output: TransformOutput,
+    explicity_extensions: bool,
+) -> Result<TransformOutput, anyhow::Error> {
     let source_map = Lrc::new(SourceMap::default());
     let mut entries_map: BTreeMap<&str, Vec<&HookAnalysis>> = BTreeMap::new();
     let mut new_modules = Vec::with_capacity(output.modules.len());
@@ -233,7 +234,7 @@ pub fn generate_entries(mut output: TransformOutput) -> Result<TransformOutput, 
         }
 
         for (entry, hooks) in &entries_map {
-            let module = new_entry_module(hooks);
+            let module = new_entry_module(hooks, explicity_extensions);
             let (code, map) = emit_source_code(Lrc::clone(&source_map), None, &module, false)
                 .context("Emitting source code")?;
             new_modules.push(TransformModule {
@@ -251,13 +252,17 @@ pub fn generate_entries(mut output: TransformOutput) -> Result<TransformOutput, 
     Ok(output)
 }
 
-fn new_entry_module(hooks: &[&HookAnalysis]) -> ast::Module {
+fn new_entry_module(hooks: &[&HookAnalysis], explicity_extensions: bool) -> ast::Module {
     let mut module = ast::Module {
         span: DUMMY_SP,
         body: Vec::with_capacity(hooks.len()),
         shebang: None,
     };
     for hook in hooks {
+        let mut src = ["./", &hook.canonical_filename].concat();
+        if explicity_extensions {
+            src = src + "." + hook.extension.as_ref();
+        }
         module
             .body
             .push(ast::ModuleItem::ModuleDecl(ast::ModuleDecl::ExportNamed(
@@ -267,9 +272,8 @@ fn new_entry_module(hooks: &[&HookAnalysis]) -> ast::Module {
                     asserts: None,
                     src: Some(ast::Str {
                         span: DUMMY_SP,
-                        value: JsWord::from(["./", &hook.canonical_filename].concat()),
-                        kind: ast::StrKind::Synthesized,
-                        has_escape: false,
+                        value: JsWord::from(src),
+                        raw: None,
                     }),
                     specifiers: vec![ast::ExportSpecifier::Named(ast::ExportNamedSpecifier {
                         is_type_only: false,

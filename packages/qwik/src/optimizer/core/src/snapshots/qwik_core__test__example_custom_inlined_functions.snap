@@ -68,7 +68,11 @@ export { hW as handleWatch };
   "parent": "App_component_ckEPmXZlub0",
   "ctxKind": "function",
   "ctxName": "useMemo$",
-  "captures": true
+  "captures": true,
+  "loc": [
+    280,
+    327
+  ]
 }
 */
 ============================= lightweight_usememo_uicxvtqf1a8.js (ENTRY POINT)==
@@ -93,7 +97,11 @@ export { hW as handleWatch };
   "parent": null,
   "ctxKind": "function",
   "ctxName": "useMemo$",
-  "captures": false
+  "captures": false,
+  "loc": [
+    450,
+    497
+  ]
 }
 */
 ============================= app_component_ckepmxzlub0.js (ENTRY POINT)==
@@ -130,7 +138,11 @@ export { hW as handleWatch };
   "parent": null,
   "ctxKind": "function",
   "ctxName": "component$",
-  "captures": false
+  "captures": false,
+  "loc": [
+    214,
+    393
+  ]
 }
 */
 ============================= app_component_1_w0t0o3qmovu.js (ENTRY POINT)==
@@ -159,7 +171,11 @@ export { hW as handleWatch };
   "parent": "App_component_ckEPmXZlub0",
   "ctxKind": "function",
   "ctxName": "$",
-  "captures": true
+  "captures": true,
+  "loc": [
+    343,
+    389
+  ]
 }
 */
 == DIAGNOSTICS ==

@@ -48,7 +48,11 @@ export { hW as handleWatch };
   "parent": null,
   "ctxKind": "function",
   "ctxName": "$",
-  "captures": false
+  "captures": false,
+  "loc": [
+    69,
+    376
+  ]
 }
 */
 ============================= test.tsx ==

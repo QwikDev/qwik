@@ -48,7 +48,11 @@ export { hW as handleWatch };
   "parent": "App_Component_NuXFTHRjvXE",
   "ctxKind": "function",
   "ctxName": "$",
-  "captures": true
+  "captures": true,
+  "loc": [
+    191,
+    237
+  ]
 }
 */
 ============================= app_component_nuxfthrjvxe.js (ENTRY POINT)==
@@ -80,7 +84,11 @@ export { hW as handleWatch };
   "parent": null,
   "ctxKind": "function",
   "ctxName": "component$",
-  "captures": false
+  "captures": false,
+  "loc": [
+    117,
+    241
+  ]
 }
 */
 == DIAGNOSTICS ==

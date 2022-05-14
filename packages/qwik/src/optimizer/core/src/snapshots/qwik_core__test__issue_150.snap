@@ -47,7 +47,11 @@ export { hW as handleWatch };
   "parent": null,
   "ctxKind": "function",
   "ctxName": "$",
-  "captures": false
+  "captures": false,
+  "loc": [
+    187,
+    211
+  ]
 }
 */
 ============================= greeter_component_1_krcndswhx4u.js (ENTRY POINT)==
@@ -73,7 +77,11 @@ export { hW as handleWatch };
   "parent": "Greeter_component_n7HuG2hhU0Q",
   "ctxKind": "function",
   "ctxName": "$",
-  "captures": false
+  "captures": false,
+  "loc": [
+    108,
+    167
+  ]
 }
 */
 ============================= greeter_component_n7hug2hhu0q.js (ENTRY POINT)==
@@ -99,7 +107,11 @@ export { hW as handleWatch };
   "parent": null,
   "ctxKind": "function",
   "ctxName": "component$",
-  "captures": false
+  "captures": false,
+  "loc": [
+    87,
+    171
+  ]
 }
 */
 == DIAGNOSTICS ==

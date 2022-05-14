@@ -44,6 +44,7 @@ pub struct HookAnalysis {
     pub ctx_kind: HookKind,
     pub ctx_name: JsWord,
     pub captures: bool,
+    pub loc: (u32, u32),
 }
 
 #[derive(Debug, Serialize, Deserialize, Copy, Clone, PartialEq, Eq)]
@@ -272,6 +273,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                                 captures: !h.data.scoped_idents.is_empty(),
                                 display_name: h.data.display_name,
                                 hash: h.data.hash,
+                                loc: (h.span.lo.0, h.span.hi.0),
                             }),
                         });
                     }

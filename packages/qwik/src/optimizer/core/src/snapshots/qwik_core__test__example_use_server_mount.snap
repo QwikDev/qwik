@@ -87,7 +87,11 @@ export const Parent_component_0TaiDayHrlo = ()=>{
   "parent": null,
   "ctxKind": "function",
   "ctxName": "component$",
-  "captures": false
+  "captures": false,
+  "loc": [
+    178,
+    497
+  ]
 }
 */
 ============================= child_component_useservermount_lne1dxu8z28.js ==
@@ -111,7 +115,11 @@ export const Child_component_useServerMount_lnE1dxU8z28 = async ()=>{
   "parent": "Child_component_9GyF01GDKqw",
   "ctxKind": "function",
   "ctxName": "useServerMount$",
-  "captures": true
+  "captures": true,
+  "loc": [
+    642,
+    703
+  ]
 }
 */
 ============================= parent_component_div_onclick_c5xe49nqd3a.js ==
@@ -132,7 +140,11 @@ export const Parent_component_div_onClick_C5XE49Nqd3A = ()=>console.log('parent'
   "parent": "Parent_component_0TaiDayHrlo",
   "ctxKind": "event",
   "ctxName": "onClick$",
-  "captures": false
+  "captures": false,
+  "loc": [
+    419,
+    446
+  ]
 }
 */
 ============================= child_component_9gyf01gdkqw.js ==
@@ -169,7 +181,11 @@ export const Child_component_9GyF01GDKqw = ()=>{
   "parent": null,
   "ctxKind": "function",
   "ctxName": "component$",
-  "captures": false
+  "captures": false,
+  "loc": [
+    533,
+    820
+  ]
 }
 */
 ============================= parent_component_useservermount_cqrqm0hrrm8.js ==
@@ -195,7 +211,11 @@ export const Parent_component_useServerMount_cQrQm0HrrM8 = async ()=>{
   "parent": "Parent_component_0TaiDayHrlo",
   "ctxKind": "function",
   "ctxName": "useServerMount$",
-  "captures": true
+  "captures": true,
+  "loc": [
+    287,
+    379
+  ]
 }
 */
 ============================= child_component_div_onclick_ellivsnaioq.js ==
@@ -216,7 +236,11 @@ export const Child_component_div_onClick_elliVSnAiOQ = ()=>console.log('child')
   "parent": "Child_component_9GyF01GDKqw",
   "ctxKind": "event",
   "ctxName": "onClick$",
-  "captures": false
+  "captures": false,
+  "loc": [
+    743,
+    769
+  ]
 }
 */
 ============================= entry_Child.js (ENTRY POINT)==

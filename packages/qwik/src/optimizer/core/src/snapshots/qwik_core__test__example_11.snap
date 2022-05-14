@@ -43,7 +43,11 @@ export const Header_component_Header_onClick_KjD9TCNkNxY = (ev)=>dep3(ev)
   "parent": "Header_component_UVBJuFYfvDo",
   "ctxKind": "function",
   "ctxName": "$",
-  "captures": false
+  "captures": false,
+  "loc": [
+    242,
+    258
+  ]
 }
 */
 ============================= header_component_uvbjufyfvdo.tsx ==
@@ -73,7 +77,11 @@ export const Header_component_UVBJuFYfvDo = ()=>{
   "parent": null,
   "ctxKind": "function",
   "ctxName": "component$",
-  "captures": false
+  "captures": false,
+  "loc": [
+    194,
+    323
+  ]
 }
 */
 ============================= app_component_wgkrhwxaqjs.tsx ==
@@ -97,7 +105,11 @@ export const App_component_wGkRHWXaqjs = ()=>{
   "parent": null,
   "ctxKind": "function",
   "ctxName": "component$",
-  "captures": false
+  "captures": false,
+  "loc": [
+    357,
+    419
+  ]
 }
 */
 ============================= project/test.tsx ==

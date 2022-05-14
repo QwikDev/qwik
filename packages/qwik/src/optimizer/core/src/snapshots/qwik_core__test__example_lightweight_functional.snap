@@ -60,7 +60,11 @@ export { hW as handleWatch };
   "parent": null,
   "ctxKind": "function",
   "ctxName": "component$",
-  "captures": false
+  "captures": false,
+  "loc": [
+    83,
+    221
+  ]
 }
 */
 ============================= buttonarrow_button_onclick_9npo43figik.tsx (ENTRY POINT)==
@@ -86,7 +90,11 @@ export { hW as handleWatch };
   "parent": null,
   "ctxKind": "event",
   "ctxName": "onClick$",
-  "captures": true
+  "captures": true,
+  "loc": [
+    503,
+    531
+  ]
 }
 */
 ============================= button_button_onclick_nsm0jyv00jw.tsx (ENTRY POINT)==
@@ -112,7 +120,11 @@ export { hW as handleWatch };
   "parent": null,
   "ctxKind": "event",
   "ctxName": "onClick$",
-  "captures": true
+  "captures": true,
+  "loc": [
+    346,
+    374
+  ]
 }
 */
 ============================= test.tsx ==

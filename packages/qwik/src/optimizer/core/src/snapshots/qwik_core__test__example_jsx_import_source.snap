@@ -53,7 +53,11 @@ export { hW as handleWatch };
   "parent": null,
   "ctxKind": "function",
   "ctxName": "qwikify$",
-  "captures": false
+  "captures": false,
+  "loc": [
+    180,
+    240
+  ]
 }
 */
 == DIAGNOSTICS ==

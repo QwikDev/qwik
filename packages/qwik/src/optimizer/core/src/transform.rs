@@ -14,7 +14,7 @@ use std::hash::Hasher;
 
 use swc_atoms::JsWord;
 use swc_common::comments::{Comments, SingleThreadedComments};
-use swc_common::{errors::HANDLER, Mark, Spanned, DUMMY_SP};
+use swc_common::{errors::HANDLER, Mark, Span, Spanned, DUMMY_SP};
 use swc_ecmascript::ast;
 use swc_ecmascript::utils::{private_ident, ExprFactory};
 use swc_ecmascript::visit::{fold_expr, noop_fold_type, Fold, FoldWith, VisitWith};
@@ -50,6 +50,7 @@ pub struct Hook {
     pub expr: Box<ast::Expr>,
     pub data: HookData,
     pub hash: u64,
+    pub span: Span,
 }
 
 #[derive(Debug, Clone)]
@@ -262,6 +263,7 @@ impl<'a> QwikTransform<'a> {
         let invalid_decl: HashSet<Id> = invalid_decl.into_iter().map(|a| a.0).collect();
 
         self.hook_stack.push(symbol_name.clone());
+        let span = first_arg.span();
         let folded = fold_expr(self, first_arg);
         self.hook_stack.pop();
 
@@ -364,6 +366,7 @@ impl<'a> QwikTransform<'a> {
         let o = create_inline_qrl(&self.qwik_ident, import_path, &symbol_name, &scoped_idents);
         self.hooks.push(Hook {
             entry,
+            span,
             canonical_filename,
             name: symbol_name,
             data: hook_data,

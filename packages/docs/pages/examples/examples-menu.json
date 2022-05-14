@@ -1,0 +1,12 @@
+[
+  {
+    "id": "hello-world",
+    "title": "Hello World",
+    "description": "The simplest qwik app"
+  },
+  {
+    "id": "counter",
+    "title": "Counter",
+    "description": "A simple standard counter example"
+  }
+]

@@ -34,6 +34,7 @@ export default defineConfig(() => {
       partytownVite({
         dest: resolve('dist', '~partytown'),
       }),
+      examplesData(pagesDir),
       playgroundData(pagesDir),
       tutorialData(pagesDir),
       replServiceWorker(),
@@ -97,6 +98,65 @@ function playgroundData(pagesDir: string): Plugin {
       const filename = basename(id);
       if (filename === '@playground-data') {
         const data = loadPlaygroundData(this);
+        return `const playgroundApps = ${JSON.stringify(data)};export default playgroundApps;`;
+      }
+      return null;
+    },
+  };
+}
+
+function examplesData(pagesDir: string): Plugin {
+  const playgroundDir = join(pagesDir, 'examples');
+  const playgroundMenuPath = join(playgroundDir, 'examples-menu.json');
+  const playgroundMenuSrc = readFileSync(playgroundMenuPath, 'utf-8');
+
+  const loadExamplesData = (ctx: PluginContext) => {
+    const menuApps: PlaygroundApp[] = JSON.parse(playgroundMenuSrc);
+    ctx.addWatchFile(playgroundMenuPath);
+
+    const apps: PlaygroundApp[] = [];
+
+    try {
+      for (const menuApp of menuApps) {
+        const appDir = join(playgroundDir, menuApp.id);
+
+        const app: PlaygroundApp = {
+          ...menuApp,
+          inputs: readdirSync(appDir).map((fileName) => {
+            const filePath = join(appDir, fileName);
+            const input: TransformModuleInput = {
+              path: '/' + fileName,
+              code: readFileSync(filePath, 'utf-8'),
+            };
+            ctx.addWatchFile(filePath);
+            return input;
+          }),
+        };
+
+        if (app.inputs.length > 0) {
+          apps.push(app);
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    }
+
+    return apps;
+  };
+
+  return {
+    name: 'examplesData',
+
+    resolveId(id) {
+      if (id === '@examples-data') {
+        return id;
+      }
+    },
+
+    async load(id) {
+      const filename = basename(id);
+      if (filename === '@examples-data') {
+        const data = loadExamplesData(this);
         return `const playgroundApps = ${JSON.stringify(data)};export default playgroundApps;`;
       }
       return null;

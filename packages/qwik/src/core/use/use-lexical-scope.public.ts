@@ -7,9 +7,9 @@ import { getContainer, getInvokeContext } from './use-core';
 import { useURL } from './use-url.public';
 import type { QRLInternal } from '../import/qrl-class';
 
-// <docs markdown="./use-store.public.md#useLexicalScope">
+// <docs markdown="../readme.md#useLexicalScope">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ./use-store.public.md#useLexicalScope instead)
+// (edit ../readme.md#useLexicalScope instead)
 /**
  * Used by the Qwik Optimizer to restore the lexical scoped variables.
  *

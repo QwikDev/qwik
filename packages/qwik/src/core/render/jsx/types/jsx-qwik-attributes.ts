@@ -25,9 +25,19 @@ export interface QwikProps {
   [key: `preventDefault:${string}`]: boolean;
 }
 
-type EventHandler<Type = Event> = (event: Type, element: Element) => any;
-type QrlEvent<Type = Event> = QRL<EventHandler<Type>>;
+/**
+ * @public
+ */
+export type EventHandler<Type = Event> = (event: Type, element: Element) => any;
 
+/**
+ * @public
+ */
+export type QrlEvent<Type = Event> = QRL<EventHandler<Type>>;
+
+/**
+ * @public
+ */
 export interface QwikEvents {
   // Clipboard Events
   onCopy$?: (event: ClipboardEvent, el: Element) => void;
@@ -172,6 +182,9 @@ interface CSSProperties {
   [key: string]: string | number;
 }
 
+/**
+ * @public
+ */
 export interface ComponentBaseProps {
   class?: string | { [className: string]: boolean };
   className?: string | undefined;
@@ -209,6 +222,9 @@ export type JSXChildren =
   | Promise<JSXChildren>
   | JSXNode<any>;
 
+/**
+ * @public
+ */
 export interface DOMAttributes<T> extends QwikProps, QwikEvents {
   children?: JSXChildren;
   key?: string | number;

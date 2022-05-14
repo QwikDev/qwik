@@ -62,15 +62,19 @@ function isComment(line: string): boolean {
 }
 
 async function resolveComment(dir: string, ref: string, section: string): Promise<string[]> {
-  const lines = await readFileSection(join(dir, ref), section);
+  const fileReadme = join(dir, ref);
+  const lines = await readFileSection(fileReadme, section);
   let row = 0;
   let output: string[] = [];
+  const dirReadme = dirname(fileReadme);
   while (row < lines.length) {
     let line = lines[row++];
     const match = /<docs code="\.\/(.*)#(.*)"\/>/.exec(line);
     if (match) {
-      output.push('```typescript');
-      (await resolveCodeExample(join(dir, match[1]), match[2])).forEach((l) => output.push(l));
+      output.push('```tsx');
+      (await resolveCodeExample(join(dirReadme, match[1]), match[2])).forEach((l) =>
+        output.push(l)
+      );
       output.push('```');
     } else {
       output.push(line);

@@ -82,7 +82,11 @@ export { hW1 as handleWatch };
   "parent": null,
   "ctxKind": "function",
   "ctxName": "component$",
-  "captures": false
+  "captures": false,
+  "loc": [
+    216,
+    383
+  ]
 }
 */
 ============================= foo_component_1_dvu6fitwgly.js (ENTRY POINT)==
@@ -108,7 +112,11 @@ export { hW as handleWatch };
   "parent": "Foo_component_HTDRsvUbLiE",
   "ctxKind": "function",
   "ctxName": "$",
-  "captures": false
+  "captures": false,
+  "loc": [
+    320,
+    379
+  ]
 }
 */
 ============================= root_component_royhjyacbye.js (ENTRY POINT)==
@@ -137,7 +145,11 @@ export { hW as handleWatch };
   "parent": null,
   "ctxKind": "function",
   "ctxName": "component$",
-  "captures": false
+  "captures": false,
+  "loc": [
+    446,
+    557
+  ]
 }
 */
 ============================= root_component_1_cbpqnyduhi4.js (ENTRY POINT)==
@@ -160,7 +172,11 @@ export { hW as handleWatch };
   "parent": "Root_component_royhjYaCbYE",
   "ctxKind": "function",
   "ctxName": "$",
-  "captures": false
+  "captures": false,
+  "loc": [
+    470,
+    477
+  ]
 }
 */
 ============================= root_component_2_iqsg9sgbdfk.js (ENTRY POINT)==
@@ -186,7 +202,11 @@ export { hW as handleWatch };
   "parent": "Root_component_royhjYaCbYE",
   "ctxKind": "function",
   "ctxName": "$",
-  "captures": false
+  "captures": false,
+  "loc": [
+    494,
+    553
+  ]
 }
 */
 == DIAGNOSTICS ==

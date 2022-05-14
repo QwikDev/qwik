@@ -58,7 +58,11 @@ export { hW as handleWatch };
   "parent": "Foo_component_1_DvU6FitWglY",
   "ctxKind": "event",
   "ctxName": "host:onDocumentScroll$",
-  "captures": false
+  "captures": false,
+  "loc": [
+    712,
+    753
+  ]
 }
 */
 ============================= test.js ==
@@ -93,7 +97,11 @@ export { hW as handleWatch };
   "parent": null,
   "ctxKind": "function",
   "ctxName": "component$",
-  "captures": false
+  "captures": false,
+  "loc": [
+    83,
+    1042
+  ]
 }
 */
 ============================= foo_component_div_host_onclick_cpeh970jbey.js (ENTRY POINT)==
@@ -117,7 +125,11 @@ export { hW as handleWatch };
   "parent": "Foo_component_1_DvU6FitWglY",
   "ctxKind": "event",
   "ctxName": "host:onClick$",
-  "captures": false
+  "captures": false,
+  "loc": [
+    638,
+    670
+  ]
 }
 */
 ============================= foo_component_1_dvu6fitwgly.js (ENTRY POINT)==
@@ -169,7 +181,11 @@ export { hW as handleWatch };
   "parent": "Foo_component_HTDRsvUbLiE",
   "ctxKind": "function",
   "ctxName": "$",
-  "captures": false
+  "captures": false,
+  "loc": [
+    105,
+    1038
+  ]
 }
 */
 ============================= foo_component_div_host_ondocumentscroll_1_em1lspk7jvg.js (ENTRY POINT)==
@@ -193,7 +209,11 @@ export { hW as handleWatch };
   "parent": "Foo_component_1_DvU6FitWglY",
   "ctxKind": "event",
   "ctxName": "host:onDocumentScroll$",
-  "captures": false
+  "captures": false,
+  "loc": [
+    795,
+    834
+  ]
 }
 */
 ============================= foo_component_div_custom_pyhnxab17ms.js (ENTRY POINT)==
@@ -217,7 +237,11 @@ export { hW as handleWatch };
   "parent": "Foo_component_1_DvU6FitWglY",
   "ctxKind": "event",
   "ctxName": "custom$",
-  "captures": false
+  "captures": false,
+  "loc": [
+    981,
+    1006
+  ]
 }
 */
 ============================= foo_component_div_ondocument_scroll_1q0sgr8te3g.js (ENTRY POINT)==
@@ -241,7 +265,11 @@ export { hW as handleWatch };
   "parent": "Foo_component_1_DvU6FitWglY",
   "ctxKind": "event",
   "ctxName": "onDocument-scroLL$",
-  "captures": false
+  "captures": false,
+  "loc": [
+    568,
+    604
+  ]
 }
 */
 ============================= foo_component_div_ondocumentscroll_1_cwneogpmtzi.js (ENTRY POINT)==
@@ -265,7 +293,11 @@ export { hW as handleWatch };
   "parent": "Foo_component_1_DvU6FitWglY",
   "ctxKind": "event",
   "ctxName": "onDocumentScroll$",
-  "captures": false
+  "captures": false,
+  "loc": [
+    365,
+    398
+  ]
 }
 */
 ============================= foo_component_div_on_click_ioasjw8vyjc.js (ENTRY POINT)==
@@ -289,7 +321,11 @@ export { hW as handleWatch };
   "parent": "Foo_component_1_DvU6FitWglY",
   "ctxKind": "event",
   "ctxName": "on-cLick$",
-  "captures": false
+  "captures": false,
+  "loc": [
+    428,
+    456
+  ]
 }
 */
 ============================= foo_component_div_onclick_m48dyiidsjw.js (ENTRY POINT)==
@@ -313,7 +349,11 @@ export { hW as handleWatch };
   "parent": "Foo_component_1_DvU6FitWglY",
   "ctxKind": "event",
   "ctxName": "onClick$",
-  "captures": false
+  "captures": false,
+  "loc": [
+    229,
+    256
+  ]
 }
 */
 ============================= foo_component_div_ondocumentscroll_rwfftfivukc.js (ENTRY POINT)==
@@ -337,7 +377,11 @@ export { hW as handleWatch };
   "parent": "Foo_component_1_DvU6FitWglY",
   "ctxKind": "event",
   "ctxName": "onDocumentScroll$",
-  "captures": false
+  "captures": false,
+  "loc": [
+    293,
+    328
+  ]
 }
 */
 ============================= foo_component_handler_h10xztd0e7w.js (ENTRY POINT)==
@@ -361,7 +405,11 @@ export { hW as handleWatch };
   "parent": "Foo_component_1_DvU6FitWglY",
   "ctxKind": "function",
   "ctxName": "$",
-  "captures": false
+  "captures": false,
+  "loc": [
+    139,
+    166
+  ]
 }
 */
 ============================= foo_component_div_ondocument_scroll_5vnik61pzom.js (ENTRY POINT)==
@@ -385,7 +433,11 @@ export { hW as handleWatch };
   "parent": "Foo_component_1_DvU6FitWglY",
   "ctxKind": "event",
   "ctxName": "onDocument-sCroll$",
-  "captures": false
+  "captures": false,
+  "loc": [
+    494,
+    530
+  ]
 }
 */
 == DIAGNOSTICS ==

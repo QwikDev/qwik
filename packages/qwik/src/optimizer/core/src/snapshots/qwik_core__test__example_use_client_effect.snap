@@ -5,29 +5,29 @@ expression: output
 ==INPUT==
 
 
-        import { component$, useClientEffect$, useStore, useStyles$ } from '@builder.io/qwik';
+import { component$, useClientEffect$, useStore, useStyles$ } from '@builder.io/qwik';
 
-        export const Child = component$(() => {
-            const state = useStore({
-              count: 0
-            });
+export const Child = component$(() => {
+    const state = useStore({
+        count: 0
+    });
 
-            // Double count watch
-            useClientEffect$(() => {
-              const timer = setInterval(() => {
-                state.count++;
-              }, 1000);
-              return () => {
-                clearInterval(timer);
-              }
-            });
+    // Double count watch
+    useClientEffect$(() => {
+        const timer = setInterval(() => {
+        state.count++;
+        }, 1000);
+        return () => {
+        clearInterval(timer);
+        }
+    });
 
-            return (
-              <div>
-              {state.count}
-            </div>
-            );
-          });
+    return (
+        <div>
+        {state.count}
+    </div>
+    );
+});
 
 
 ============================= test.js ==
@@ -72,7 +72,11 @@ export { hW as handleWatch };
   "parent": null,
   "ctxKind": "function",
   "ctxName": "component$",
-  "captures": false
+  "captures": false,
+  "loc": [
+    122,
+    463
+  ]
 }
 */
 ============================= child_component_useclienteffect_kyrt1iert9g.js (ENTRY POINT)==
@@ -103,7 +107,11 @@ export { hW as handleWatch };
   "parent": "Child_component_9GyF01GDKqw",
   "ctxKind": "function",
   "ctxName": "useClientEffect$",
-  "captures": true
+  "captures": true,
+  "loc": [
+    232,
+    391
+  ]
 }
 */
 == DIAGNOSTICS ==

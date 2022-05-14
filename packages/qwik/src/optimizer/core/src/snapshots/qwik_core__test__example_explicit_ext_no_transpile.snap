@@ -18,22 +18,19 @@ export const App = component$((props) => {
 
 import * as qwik from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
-export const App = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./app_component_ckepmxzlub0.tsx")
+export const App = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./entry_hooks.tsx")
 , "App_component_ckEPmXZlub0"));
 
-============================= app_component_usestyles_t35nsa5uv7u.tsx (ENTRY POINT)==
+============================= app_component_usestyles_t35nsa5uv7u.tsx ==
 
 import * as qwik from "@builder.io/qwik";
 export const App_component_useStyles_t35nSa5UV7U = 'hola';
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
-export { hW as handleWatch };
 
 /*
 {
   "origin": "test.tsx",
   "name": "App_component_useStyles_t35nSa5UV7U",
-  "entry": null,
+  "entry": "entry_hooks",
   "displayName": "App_component_useStyles",
   "hash": "t35nSa5UV7U",
   "canonicalFilename": "app_component_usestyles_t35nsa5uv7u",
@@ -41,28 +38,29 @@ export { hW as handleWatch };
   "parent": "App_component_ckEPmXZlub0",
   "ctxKind": "function",
   "ctxName": "useStyles$",
-  "captures": false
+  "captures": false,
+  "loc": [
+    123,
+    129
+  ]
 }
 */
-============================= app_component_ckepmxzlub0.tsx (ENTRY POINT)==
+============================= app_component_ckepmxzlub0.tsx ==
 
 import * as qwik from "@builder.io/qwik";
 import { useStylesQrl } from "@builder.io/qwik";
 export const App_component_ckEPmXZlub0 = (props)=>{
-    useStylesQrl(qwik.qrl(()=>import("./app_component_usestyles_t35nsa5uv7u.tsx")
+    useStylesQrl(qwik.qrl(()=>import("./entry_hooks.tsx")
     , "App_component_useStyles_t35nSa5UV7U"));
-    return qwik.qrl(()=>import("./app_component_1_w0t0o3qmovu.tsx")
+    return qwik.qrl(()=>import("./entry_hooks.tsx")
     , "App_component_1_w0t0o3QMovU");
 };
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
-export { hW as handleWatch };
 
 /*
 {
   "origin": "test.tsx",
   "name": "App_component_ckEPmXZlub0",
-  "entry": null,
+  "entry": "entry_hooks",
   "displayName": "App_component",
   "hash": "ckEPmXZlub0",
   "canonicalFilename": "app_component_ckepmxzlub0",
@@ -70,23 +68,24 @@ export { hW as handleWatch };
   "parent": null,
   "ctxKind": "function",
   "ctxName": "component$",
-  "captures": false
+  "captures": false,
+  "loc": [
+    95,
+    182
+  ]
 }
 */
-============================= app_component_1_w0t0o3qmovu.tsx (ENTRY POINT)==
+============================= app_component_1_w0t0o3qmovu.tsx ==
 
 import * as qwik from "@builder.io/qwik";
 export const App_component_1_w0t0o3QMovU = ()=><div ></div>
 ;
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
-export { hW as handleWatch };
 
 /*
 {
   "origin": "test.tsx",
   "name": "App_component_1_w0t0o3QMovU",
-  "entry": null,
+  "entry": "entry_hooks",
   "displayName": "App_component_1",
   "hash": "w0t0o3QMovU",
   "canonicalFilename": "app_component_1_w0t0o3qmovu",
@@ -94,9 +93,22 @@ export { hW as handleWatch };
   "parent": "App_component_ckEPmXZlub0",
   "ctxKind": "function",
   "ctxName": "$",
-  "captures": false
+  "captures": false,
+  "loc": [
+    145,
+    178
+  ]
 }
 */
+============================= entry_hooks.js (ENTRY POINT)==
+
+export { App_component_useStyles_t35nSa5UV7U } from "./app_component_usestyles_t35nsa5uv7u.tsx";
+export { App_component_ckEPmXZlub0 } from "./app_component_ckepmxzlub0.tsx";
+export { App_component_1_w0t0o3QMovU } from "./app_component_1_w0t0o3qmovu.tsx";
+import { handleWatch as hW } from "@builder.io/qwik";
+hW.issue456 && hW.issue123();
+export { hW as handleWatch };
+
 == DIAGNOSTICS ==
 
 []

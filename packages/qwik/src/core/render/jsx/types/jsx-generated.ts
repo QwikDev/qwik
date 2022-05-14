@@ -7,6 +7,10 @@ interface CSSProperties {
 interface HTMLWebViewElement extends HTMLElement {}
 interface ClassAttributes<T> {}
 export type Booleanish = boolean | 'true' | 'false';
+
+/**
+ * @public
+ */
 export interface AriaAttributes {
   /** Identifies the currently active element when DOM focus is on a composite widget, textbox, group, or application. */
   'aria-activedescendant'?: string | undefined;
@@ -293,6 +297,10 @@ export type AriaRole =
   | 'treegrid'
   | 'treeitem'
   | (string & {});
+
+/**
+ * @public
+ */
 export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
   accessKey?: string | undefined;
   className?: string | undefined;

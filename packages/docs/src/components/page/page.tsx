@@ -3,6 +3,7 @@ import { Builder } from '../../layouts/builder/builder';
 import { setHeadLinks, setHeadMeta, useLocation, usePage } from '@builder.io/qwik-city';
 import type { SiteStore } from '../app/app';
 import Playground from '../../layouts/playground/playground';
+import Examples from '../../layouts/examples/examples';
 
 interface PageProps {
   store: SiteStore;
@@ -14,6 +15,9 @@ export const Page = component$(async (props: PageProps) => {
   const loc = useLocation(hostElm);
   if (loc.pathname === '/playground') {
     return <Playground store={props.store} />;
+  }
+  if (loc.pathname === '/examples') {
+    return <Examples store={props.store} />;
   }
 
   const page = await usePage(hostElm);

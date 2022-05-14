@@ -77,16 +77,6 @@ const Playground = component$((props: PlaygroundLayoutProps) => {
     >
       <Header store={props.store} />
 
-      <div class="playground-header">
-        {/* <select>
-          {playgroundApps.map((app) => (
-            <option key={app.id} selected={store.appId === app.id ? true : undefined}>
-              {app.title}
-            </option>
-          ))}
-        </select> */}
-      </div>
-
       <Repl
         inputs={store.inputs}
         version={store.version}

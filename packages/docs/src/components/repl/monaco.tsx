@@ -1,4 +1,5 @@
 import { noSerialize } from '@builder.io/qwik';
+import e from 'express';
 import type MonacoTypes from 'monaco-editor';
 import type { EditorProps, EditorStore } from './editor';
 
@@ -87,6 +88,8 @@ export const updateMonacoEditor = async (props: EditorProps, store: EditorStore)
       const existingModel = monaco.editor.getModel(uri);
       if (!existingModel) {
         monaco.editor.createModel(input.code, undefined, uri);
+      } else {
+        existingModel.setValue(input.code);
       }
     } catch (e) {
       console.error(input.path, e);

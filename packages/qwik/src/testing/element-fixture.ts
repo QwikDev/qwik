@@ -1,4 +1,4 @@
-import { getContext, getEvent } from '../core/props/props';
+import { getContext, normalizeOnProp, QContext } from '../core/props/props';
 import type { QwikDocument } from '../core/document';
 import { fromCamelToKebabCase } from '../core/util/case';
 import { qGlobal } from '../core/util/qdev';
@@ -7,6 +7,7 @@ import { getTestPlatform } from './platform';
 import type { MockDocument, MockWindow } from './types';
 import { applyDocumentConfig } from './util';
 import { getDocument } from '../core/util/dom';
+import { getExistingQRLs } from '../core/props/props-on';
 
 /**
  * Creates a simple DOM structure for testing components.
@@ -95,4 +96,24 @@ export async function trigger(
   });
   await getTestPlatform(getDocument(element)).flush();
   return Promise.all(elements);
+}
+
+export function getEvent(ctx: QContext, prop: string): any {
+  return qPropReadQRL(ctx, normalizeOnProp(prop));
+}
+
+export function qPropReadQRL(ctx: QContext, prop: string): ((event: Event) => void) | null {
+  const existingQRLs = getExistingQRLs(ctx, prop);
+  if (existingQRLs.length === 0) {
+    return null;
+  }
+  return async (event) => {
+    const qrls = getExistingQRLs(ctx, prop);
+    await Promise.all(
+      qrls.map((qrl) => {
+        const fn = qrl.invokeFn(ctx.element);
+        return fn(event);
+      })
+    );
+  };
 }

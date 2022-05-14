@@ -40,7 +40,7 @@ export const onRequestGet: PagesFunction = async ({ request, next, waitUntil }) 
     const opts: RenderToStringOptions = {
       url: request.url,
       base: '/build/',
-      manifest,
+      manifest: manifest as any,
       prefetchStrategy: {
         symbolsToPrefetch: 'events-document',
         implementation: 'link-prefetch',

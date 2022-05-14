@@ -5,7 +5,7 @@ import { resumeContainer } from '../object/store';
 import type { RenderContext } from '../render/cursor';
 import { getDocument } from '../util/dom';
 import { newQObjectMap, QObjectMap } from './props-obj-map';
-import { qPropWriteQRL, qPropReadQRL } from './props-on';
+import { qPropWriteQRL } from './props-on';
 import { QContainerAttr } from '../util/markers';
 import type { QRL } from '../import/qrl.public';
 import type { OnRenderFn } from '../component/component.public';
@@ -39,6 +39,9 @@ export interface QContextEvents {
   [eventName: string]: QRL | undefined;
 }
 
+/**
+ * @alpha
+ */
 export interface ComponentCtx {
   hostElement: HTMLElement;
   styleId: string | undefined;
@@ -119,10 +122,6 @@ export function normalizeOnProp(prop: string) {
 
 export function setEvent(rctx: RenderContext, ctx: QContext, prop: string, value: any) {
   qPropWriteQRL(rctx, ctx, normalizeOnProp(prop), value);
-}
-
-export function getEvent(ctx: QContext, prop: string): any {
-  return qPropReadQRL(ctx, normalizeOnProp(prop));
 }
 
 export function getProps(ctx: QContext) {

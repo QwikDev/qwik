@@ -4,7 +4,7 @@
   width: 100%;
   height: cal(100vh - var(--header-height));
 
-  --playground-header-height: 36px;
+  --playground-header-height: 0px;
 }
 
 .playground .repl {
@@ -15,7 +15,7 @@
     'repl-input-panel repl-output-panel'
     'repl-input-panel repl-detail-panel';
   top: calc(var(--header-height) + var(--playground-header-height));
-  height: calc(100vh - var(--header-height) - var(--playground-header-height));
+  height: calc(100vh - var(--header-height));
 }
 
 .playground .repl-col-resize-bar {

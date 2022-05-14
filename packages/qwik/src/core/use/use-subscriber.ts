@@ -4,6 +4,9 @@ import { RenderEvent } from '../util/markers';
 import { assertDefined, assertEqual } from '../assert/assert';
 import { getInvokeContext } from './use-core';
 
+/**
+ * @alpha
+ */
 export type Subscriber = WatchDescriptor | Element;
 
 /**

@@ -5,11 +5,15 @@ import { qDev } from '../util/qdev';
 import { snapshotState } from './store';
 import type { SnapshotState } from './store';
 
+// <docs markdown="../readme.md#pauseContainer">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit ../readme.md#pauseContainer instead)
 /**
  * Serialize the current state of the application into DOM
  *
- * @public
+ * @alpha
  */
+// </docs>
 export function pauseContainer(elmOrDoc: Element | Document) {
   const doc = getDocument(elmOrDoc);
   const containerEl = isDocument(elmOrDoc) ? elmOrDoc.documentElement : elmOrDoc;

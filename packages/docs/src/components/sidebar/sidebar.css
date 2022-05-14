@@ -57,7 +57,9 @@
 }
 
 .menu h5 {
-  @apply font-semibold text-slate-200 bg-slate-700 px-3 py-1 mb-1 rounded-md whitespace-nowrap;
+  @apply font-semibold  px-3 py-1 mb-1 rounded-md whitespace-nowrap;
+  color: #4f48d5;
+  font-weight: 800;
 }
 
 .menu ul {

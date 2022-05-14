@@ -312,9 +312,13 @@ export function shouldSerialize(obj: any): boolean {
  */
 export type NoSerialize<T> = (T & { __no_serialize__: true }) | undefined;
 
+// <docs markdown="../readme.md#noSerialize">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit ../readme.md#noSerialize instead)
 /**
  * @alpha
  */
+// </docs>
 export function noSerialize<T extends {}>(input: T): NoSerialize<T> {
   noSerializeSet.add(input);
   return input as any;

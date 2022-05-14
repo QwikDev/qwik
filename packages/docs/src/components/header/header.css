@@ -1,10 +1,16 @@
 header {
-  @apply text-slate-200 bg-gray-900;
+  @apply text-slate-200;
+  background: #0099ff;
+  box-shadow: 0px 2px 7px #0000003d;
 }
 
 header li {
-  @apply font-semibold hover:text-slate-400 px-2 mx-2 text-right;
+  @apply font-semibold px-2 mx-2 text-right;
   @apply py-4 md:py-0;
+}
+
+header li:hover {
+  text-decoration: underline;
 }
 
 header ul {

@@ -22,6 +22,9 @@ export function isStyleTask(obj: any): obj is StyleAppend {
   return obj && typeof obj === 'object' && obj.type === 'style';
 }
 
+/**
+ * @public
+ */
 export interface InvokeContext {
   url: URL | null;
   seq: number;

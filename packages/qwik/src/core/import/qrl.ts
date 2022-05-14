@@ -31,7 +31,7 @@ export function toInternalQRL<T>(qrl: QRL<T>): QRLInternal<T> {
 /**
  * Lazy-load a `QRL` symbol and return the lazy-loaded value.
  *
- * See: `QRL`
+ * @see `QRL`
  *
  * @param element - Location of the URL to resolve against. This is needed to take `q:base` into
  * account.
@@ -58,21 +58,21 @@ export function qrlImport<T>(element: Element | undefined, qrl: QRL<T>): ValueOr
   }
 }
 
-// <docs markdown="./qrl.public.md#qrl">
+// <docs markdown="../readme.md#qrl">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ./qrl.public.md#qrl instead)
+// (edit ../readme.md#qrl instead)
 /**
  * Used by Qwik Optimizer to point to lazy-loaded resources.
  *
  * This function should be used by the Qwik Optimizer only. The function should not be directly
  * referred to in the source code of the application.
  *
- * See: `QRL`, `$(...)`
+ * @see `QRL`, `$(...)`
  *
  * @param chunkOrFn - Chunk name (or function which is stringified to extract chunk name)
  * @param symbol - Symbol to lazy load
  * @param lexicalScopeCapture - a set of lexically scoped variables to capture.
- * @public
+ * @alpha
  */
 // </docs>
 export function qrl<T = any>(

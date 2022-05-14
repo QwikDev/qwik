@@ -41,22 +41,27 @@ export const Header = component$(
               <CloseIcon width={30} height={30} />
             </span>
           </button>
-          <ul className="md:grow md:flex md:justify-end md:p-4 bg-gray-900">
+          <ul className="md:grow md:flex md:justify-end md:p-4 menu-toolkit">
+            <li>
+              <a href="/docs/overview" onClickQrl={closeMenu}>
+                <span>Docs</span>
+              </a>
+            </li>
+            <li>
+              <a href="/examples" onClickQrl={closeMenu}>
+                <span>Examples</span>
+              </a>
+            </li>
             {/* <li>
               <a href="/tutorial/introduction/basics" onClickQrl={closeMenu}>
                 <span>Tutorial</span>
               </a>
             </li> */}
             <li>
-              <a href="/guide/overview" onClickQrl={closeMenu}>
-                <span>Guide</span>
-              </a>
-            </li>
-            {/* <li>
               <a href="/playground" onClickQrl={closeMenu}>
                 <span>Playground</span>
               </a>
-            </li> */}
+            </li>
             <li>
               <a href="https://github.com/BuilderIO/qwik" target="_blank" onClickQrl={closeMenu}>
                 <span class="md:hidden">Github</span>

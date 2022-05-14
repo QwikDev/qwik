@@ -65,6 +65,9 @@ export function scheduleFrame(containerEl: Element, state: RenderingState): Prom
 
 const SCHEDULE = Symbol('Render state');
 
+/**
+ * @alpha
+ */
 export interface RenderingState {
   watchRunning: Set<Promise<WatchDescriptor>>;
   watchNext: Set<WatchDescriptor>;

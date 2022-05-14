@@ -41,7 +41,10 @@ type PropHandler = (
   oldValue: any
 ) => boolean;
 
-interface RenderOperation {
+/**
+ * @alpha
+ */
+export interface RenderOperation {
   el: Node;
   operation: string;
   args: any[];
@@ -54,6 +57,10 @@ export interface RenderPerf {
   timing: PerfEvent[];
   visited: number;
 }
+
+/**
+ * @alpha
+ */
 export interface RenderContext {
   doc: Document;
   roots: Element[];
@@ -65,6 +72,9 @@ export interface RenderContext {
   perf: RenderPerf;
 }
 
+/**
+ * @alpha
+ */
 export interface PerfEvent {
   name: string;
   timeStart: number;

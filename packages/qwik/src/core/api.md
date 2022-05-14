@@ -7,10 +7,60 @@
 // @public
 export function $<T>(expression: T): QRL<T>;
 
-// Warning: (ae-forgotten-export) The symbol "AsyncProps" needs to be exported by the entry point index.d.ts
-//
-// @public
-export function Async<T>(props: AsyncProps<T>): JSXNode<any>;
+// @public (undocumented)
+export interface AriaAttributes {
+    'aria-activedescendant'?: string | undefined;
+    // Warning: (ae-forgotten-export) The symbol "Booleanish" needs to be exported by the entry point index.d.ts
+    'aria-atomic'?: Booleanish | undefined;
+    'aria-autocomplete'?: 'none' | 'inline' | 'list' | 'both' | undefined;
+    'aria-busy'?: Booleanish | undefined;
+    'aria-checked'?: boolean | 'false' | 'mixed' | 'true' | undefined;
+    'aria-colcount'?: number | undefined;
+    'aria-colindex'?: number | undefined;
+    'aria-colspan'?: number | undefined;
+    'aria-controls'?: string | undefined;
+    'aria-current'?: boolean | 'false' | 'true' | 'page' | 'step' | 'location' | 'date' | 'time' | undefined;
+    'aria-describedby'?: string | undefined;
+    'aria-details'?: string | undefined;
+    'aria-disabled'?: Booleanish | undefined;
+    // @deprecated
+    'aria-dropeffect'?: 'none' | 'copy' | 'execute' | 'link' | 'move' | 'popup' | undefined;
+    'aria-errormessage'?: string | undefined;
+    'aria-expanded'?: Booleanish | undefined;
+    'aria-flowto'?: string | undefined;
+    // @deprecated
+    'aria-grabbed'?: Booleanish | undefined;
+    'aria-haspopup'?: boolean | 'false' | 'true' | 'menu' | 'listbox' | 'tree' | 'grid' | 'dialog' | undefined;
+    'aria-hidden'?: Booleanish | undefined;
+    'aria-invalid'?: boolean | 'false' | 'true' | 'grammar' | 'spelling' | undefined;
+    'aria-keyshortcuts'?: string | undefined;
+    'aria-label'?: string | undefined;
+    'aria-labelledby'?: string | undefined;
+    'aria-level'?: number | undefined;
+    'aria-live'?: 'off' | 'assertive' | 'polite' | undefined;
+    'aria-modal'?: Booleanish | undefined;
+    'aria-multiline'?: Booleanish | undefined;
+    'aria-multiselectable'?: Booleanish | undefined;
+    'aria-orientation'?: 'horizontal' | 'vertical' | undefined;
+    'aria-owns'?: string | undefined;
+    'aria-placeholder'?: string | undefined;
+    'aria-posinset'?: number | undefined;
+    'aria-pressed'?: boolean | 'false' | 'mixed' | 'true' | undefined;
+    'aria-readonly'?: Booleanish | undefined;
+    'aria-relevant'?: 'additions' | 'additions removals' | 'additions text' | 'all' | 'removals' | 'removals additions' | 'removals text' | 'text' | 'text additions' | 'text removals' | undefined;
+    'aria-required'?: Booleanish | undefined;
+    'aria-roledescription'?: string | undefined;
+    'aria-rowcount'?: number | undefined;
+    'aria-rowindex'?: number | undefined;
+    'aria-rowspan'?: number | undefined;
+    'aria-selected'?: Booleanish | undefined;
+    'aria-setsize'?: number | undefined;
+    'aria-sort'?: 'none' | 'ascending' | 'descending' | 'other' | undefined;
+    'aria-valuemax'?: number | undefined;
+    'aria-valuemin'?: number | undefined;
+    'aria-valuenow'?: number | undefined;
+    'aria-valuetext'?: string | undefined;
+}
 
 // @public (undocumented)
 const Comment_2: FunctionComponent<{
@@ -18,16 +68,31 @@ const Comment_2: FunctionComponent<{
 }>;
 export { Comment_2 as Comment }
 
-// Warning: (ae-forgotten-export) The symbol "Component" needs to be exported by the entry point index.d.ts
-//
 // @public
 export function component$<PROPS extends {}>(onMount: OnRenderFn<PROPS>, options?: ComponentOptions): Component<PROPS>;
+
+// @public (undocumented)
+export type Component<PROPS extends {}> = FunctionComponent<PublicProps<PROPS>>;
 
 // @public (undocumented)
 export type ComponentChild = JSXNode<any> | object | string | number | bigint | boolean | null | undefined;
 
 // @public (undocumented)
 export type ComponentChildren = ComponentChild[] | ComponentChild;
+
+// @alpha (undocumented)
+export interface ComponentCtx {
+    // (undocumented)
+    hostElement: HTMLElement;
+    // (undocumented)
+    slots: JSXNode[];
+    // (undocumented)
+    styleClass: string | undefined;
+    // (undocumented)
+    styleHostClass: string | undefined;
+    // (undocumented)
+    styleId: string | undefined;
+}
 
 // @public (undocumented)
 export interface ComponentOptions {
@@ -46,6 +111,19 @@ export interface CorePlatform {
     // (undocumented)
     nextTick: (fn: () => any) => Promise<any>;
     raf: (fn: () => any) => Promise<any>;
+}
+
+// Warning: (ae-forgotten-export) The symbol "QwikProps" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "QwikEvents" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export interface DOMAttributes<T> extends QwikProps, QwikEvents {
+    // Warning: (ae-forgotten-export) The symbol "JSXChildren" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    children?: JSXChildren;
+    // (undocumented)
+    key?: string | number;
 }
 
 // @public (undocumented)
@@ -106,13 +184,127 @@ export namespace h {
 // @alpha (undocumented)
 export function handleWatch(): void;
 
-// Warning: (ae-forgotten-export) The symbol "HTMLAttributes" needs to be exported by the entry point index.d.ts
-//
 // @public
 export const Host: FunctionComponent<HTMLAttributes<HTMLElement>>;
 
-// @public
+// @public (undocumented)
+export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
+    // (undocumented)
+    about?: string | undefined;
+    // (undocumented)
+    accessKey?: string | undefined;
+    // (undocumented)
+    autoCapitalize?: string | undefined;
+    // (undocumented)
+    autoCorrect?: string | undefined;
+    // (undocumented)
+    autoSave?: string | undefined;
+    // (undocumented)
+    className?: string | undefined;
+    // (undocumented)
+    color?: string | undefined;
+    // (undocumented)
+    contentEditable?: Booleanish | 'inherit' | undefined;
+    // (undocumented)
+    contextMenu?: string | undefined;
+    // (undocumented)
+    datatype?: string | undefined;
+    // (undocumented)
+    dir?: string | undefined;
+    // (undocumented)
+    draggable?: Booleanish | undefined;
+    // (undocumented)
+    hidden?: boolean | undefined;
+    // (undocumented)
+    id?: string | undefined;
+    // (undocumented)
+    inlist?: any;
+    inputMode?: 'none' | 'text' | 'tel' | 'url' | 'email' | 'numeric' | 'decimal' | 'search' | undefined;
+    is?: string | undefined;
+    // (undocumented)
+    itemID?: string | undefined;
+    // (undocumented)
+    itemProp?: string | undefined;
+    // (undocumented)
+    itemRef?: string | undefined;
+    // (undocumented)
+    itemScope?: boolean | undefined;
+    // (undocumented)
+    itemType?: string | undefined;
+    // (undocumented)
+    lang?: string | undefined;
+    // (undocumented)
+    placeholder?: string | undefined;
+    // (undocumented)
+    prefix?: string | undefined;
+    // (undocumented)
+    property?: string | undefined;
+    // (undocumented)
+    radioGroup?: string | undefined;
+    // (undocumented)
+    resource?: string | undefined;
+    // (undocumented)
+    results?: number | undefined;
+    // Warning: (ae-forgotten-export) The symbol "AriaRole" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    role?: AriaRole | undefined;
+    // (undocumented)
+    security?: string | undefined;
+    // (undocumented)
+    slot?: string | undefined;
+    // (undocumented)
+    spellCheck?: Booleanish | undefined;
+    // Warning: (ae-forgotten-export) The symbol "CSSProperties" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    style?: CSSProperties_2 | string | undefined;
+    // (undocumented)
+    tabIndex?: number | undefined;
+    // (undocumented)
+    title?: string | undefined;
+    // (undocumented)
+    translate?: 'yes' | 'no' | undefined;
+    // (undocumented)
+    typeof?: string | undefined;
+    // (undocumented)
+    unselectable?: 'on' | 'off' | undefined;
+    // (undocumented)
+    vocab?: string | undefined;
+}
+
+// @alpha
 export function implicit$FirstArg<FIRST, REST extends any[], RET>(fn: (first: QRL<FIRST>, ...rest: REST) => RET): (first: FIRST, ...rest: REST) => RET;
+
+// @public (undocumented)
+export interface InvokeContext {
+    // (undocumented)
+    doc?: Document;
+    // (undocumented)
+    element?: Element;
+    // (undocumented)
+    event: any;
+    // (undocumented)
+    hostElement?: Element;
+    // (undocumented)
+    props?: Props;
+    // (undocumented)
+    qrl?: QRL<any>;
+    // (undocumented)
+    seq: number;
+    // Warning: (ae-forgotten-export) The symbol "Subscriber" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    subscriber?: Subscriber | null;
+    // (undocumented)
+    url: URL | null;
+    // (undocumented)
+    waitOn?: ValueOrPromise<any>[];
+    // Warning: (ae-forgotten-export) The symbol "WatchDescriptor" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    watch?: WatchDescriptor;
+}
 
 // @public (undocumented)
 function jsx<T extends string | FunctionComponent<PROPS>, PROPS>(type: T, props: PROPS, key?: string | number): JSXNode<T>;
@@ -148,31 +340,25 @@ export type NoSerialize<T> = (T & {
 export function noSerialize<T extends {}>(input: T): NoSerialize<T>;
 
 // @public (undocumented)
+export type On$Props<T extends {}> = {
+    [K in keyof T as K extends `${infer A}Qrl` ? NonNullable<T[K]> extends QRL ? `${A}$` : never : never]?: NonNullable<T[K]> extends QRL<infer B> ? B : never;
+};
+
+// @public (undocumented)
 export type OnRenderFn<PROPS> = (props: PROPS) => ValueOrPromise<JSXNode<any> | null>;
 
-// @public
+// @alpha
 export function pauseContainer(elmOrDoc: Element | Document): SnapshotState;
 
-// @public
-export type PromiseValue<T> = {
-    readonly isPending: true;
-    readonly isResolved: false;
-    readonly isRejected: false;
-    readonly value: undefined;
-    readonly rejection: undefined;
-} | {
-    readonly isPending: false;
-    readonly isResolved: true;
-    readonly isRejected: false;
-    readonly value: T;
-    readonly rejection: undefined;
-} | {
-    readonly isPending: false;
-    readonly isResolved: false;
-    readonly isRejected: true;
-    readonly value: undefined;
-    readonly rejection: any;
-};
+// @alpha (undocumented)
+export interface PerfEvent {
+    // (undocumented)
+    name: string;
+    // (undocumented)
+    timeEnd: number;
+    // (undocumented)
+    timeStart: number;
+}
 
 // @public (undocumented)
 export type Props<T extends {} = {}> = Record<string, any> & T;
@@ -180,25 +366,26 @@ export type Props<T extends {} = {}> = Record<string, any> & T;
 // @public
 export type PropsOf<COMP extends (props: any) => JSXNode<any> | null> = COMP extends (props: infer PROPS) => JSXNode<any> | null ? NonNullable<PROPS> : never;
 
+// Warning: (ae-forgotten-export) The symbol "ComponentBaseProps" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export type PublicProps<PROPS extends {}> = PROPS & On$Props<PROPS> & ComponentBaseProps;
+
 // @public
 export interface QRL<TYPE = any> {
     // (undocumented)
     __brand__QRL__: TYPE;
     // (undocumented)
     invoke(...args: TYPE extends (...args: infer ARGS) => any ? ARGS : never): TYPE extends (...args: any[]) => infer RETURN ? ValueOrPromise<RETURN> : never;
-    // Warning: (ae-forgotten-export) The symbol "InvokeContext" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
     invokeFn(el?: Element, context?: InvokeContext, beforeFn?: () => void): TYPE extends (...args: infer ARGS) => infer RETURN ? (...args: ARGS) => ValueOrPromise<RETURN> : never;
     // (undocumented)
     resolve(container?: Element): Promise<TYPE>;
 }
 
-// @public
+// @alpha
 export function qrl<T = any>(chunkOrFn: string | (() => Promise<any>), symbol: string, lexicalScopeCapture?: any[] | null): QRL<T>;
 
-// Warning: (ae-forgotten-export) The symbol "DOMAttributes" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
 export interface QwikDOMAttributes extends DOMAttributes<any> {
 }
@@ -244,15 +431,65 @@ export interface Ref<T> {
     current?: T;
 }
 
-// Warning: (ae-forgotten-export) The symbol "RenderContext" needs to be exported by the entry point index.d.ts
-//
-// @public
+// @alpha
 export function render(parent: Element | Document, jsxNode: JSXNode<unknown> | FunctionComponent<any>): Promise<RenderContext | undefined>;
 
 // @public (undocumented)
 export type RenderableProps<P, RefType = any> = P & Readonly<{
     children?: ComponentChildren;
 }>;
+
+// @alpha (undocumented)
+export interface RenderContext {
+    // (undocumented)
+    component: ComponentCtx | undefined;
+    // (undocumented)
+    containerEl: Element;
+    // (undocumented)
+    doc: Document;
+    // (undocumented)
+    globalState: RenderingState;
+    // (undocumented)
+    hostElements: Set<Element>;
+    // (undocumented)
+    operations: RenderOperation[];
+    // Warning: (ae-forgotten-export) The symbol "RenderPerf" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    perf: RenderPerf;
+    // (undocumented)
+    roots: Element[];
+}
+
+// @alpha (undocumented)
+export interface RenderingState {
+    // (undocumented)
+    hostsNext: Set<Element>;
+    // (undocumented)
+    hostsRendering: Set<Element> | undefined;
+    // (undocumented)
+    hostsStaging: Set<Element>;
+    // (undocumented)
+    renderPromise: Promise<RenderContext> | undefined;
+    // (undocumented)
+    watchNext: Set<WatchDescriptor>;
+    // (undocumented)
+    watchRunning: Set<Promise<WatchDescriptor>>;
+    // (undocumented)
+    watchStaging: Set<WatchDescriptor>;
+}
+
+// @alpha (undocumented)
+export interface RenderOperation {
+    // (undocumented)
+    args: any[];
+    // (undocumented)
+    el: Node;
+    // (undocumented)
+    fn: () => void;
+    // (undocumented)
+    operation: string;
+}
 
 // @alpha (undocumented)
 export type ServerFn = () => ValueOrPromise<void | (() => void)>;
@@ -279,6 +516,7 @@ export interface SnapshotState {
 
 // @public
 export interface Tracker {
+    // (undocumented)
     <T extends {}>(obj: T): T;
     // (undocumented)
     <T extends {}, B extends keyof T>(obj: T, prop: B): T[B];
@@ -290,19 +528,25 @@ export function untrack<T>(proxy: T): T;
 // @alpha (undocumented)
 export function unwrapSubscriber<T extends {}>(obj: T): any;
 
-// @public
+// @alpha
 export const useCleanup$: (first: () => void) => void;
 
-// @public
+// @alpha
 export function useCleanupQrl(unmountFn: QRL<() => void>): void;
 
-// @alpha (undocumented)
+// Warning: (ae-incompatible-release-tags) The symbol "useClientEffect$" is marked as @public, but its signature references "WatchFn" which is marked as @alpha
+// Warning: (ae-incompatible-release-tags) The symbol "useClientEffect$" is marked as @public, but its signature references "UseEffectOptions" which is marked as @alpha
+//
+// @public
 export const useClientEffect$: (first: WatchFn, opts?: UseEffectOptions | undefined) => void;
 
-// @alpha (undocumented)
+// Warning: (ae-incompatible-release-tags) The symbol "useClientEffectQrl" is marked as @public, but its signature references "WatchFn" which is marked as @alpha
+// Warning: (ae-incompatible-release-tags) The symbol "useClientEffectQrl" is marked as @public, but its signature references "UseEffectOptions" which is marked as @alpha
+//
+// @public
 export function useClientEffectQrl(qrl: QRL<WatchFn>, opts?: UseEffectOptions): void;
 
-// @public (undocumented)
+// @alpha
 export function useDocument(): Document;
 
 // @alpha (undocumented)
@@ -320,28 +564,24 @@ export function useHostElement(): Element;
 // @public
 export function useLexicalScope<VARS extends any[]>(): VARS;
 
-// @public
+// @alpha
 export function useOn(event: string, eventFn: QRL<() => void>): void;
 
-// @public
-export function useOnDocument(event: string, eventFn: QRL<() => void>): void;
+// @alpha
+export function useOnDocument(event: string, eventQrl: QRL<() => void>): void;
 
-// @public
+// @alpha
 export function useOnWindow(event: string, eventFn: QRL<() => void>): void;
 
+// Warning: (ae-incompatible-release-tags) The symbol "useRef" is marked as @public, but its signature references "Ref" which is marked as @alpha
+//
 // @public
-export const usePause$: (first: () => void) => void;
-
-// @public
-export function usePauseQrl(dehydrateFn: QRL<() => void>): void;
-
-// @alpha (undocumented)
 export function useRef<T = Element>(current?: T): Ref<T>;
 
-// @public
+// @alpha
 export const useResume$: (first: () => void) => void;
 
-// @public
+// @alpha
 export function useResumeQrl(resumeFn: QRL<() => void>): void;
 
 // @alpha (undocumented)
@@ -350,28 +590,38 @@ export const useScopedStyles$: (first: string) => void;
 // @alpha (undocumented)
 export function useScopedStylesQrl(styles: QRL<string>): void;
 
-// @alpha (undocumented)
+// Warning: (ae-incompatible-release-tags) The symbol "useServerMount$" is marked as @public, but its signature references "ServerFn" which is marked as @alpha
+//
+// @public
 export const useServerMount$: (first: ServerFn) => void;
 
-// @alpha (undocumented)
+// Warning: (ae-incompatible-release-tags) The symbol "useServerMountQrl" is marked as @public, but its signature references "ServerFn" which is marked as @alpha
+//
+// @public
 export function useServerMountQrl(watchQrl: QRL<ServerFn>): void;
 
 // @public
 export function useStore<STATE extends object>(initialState: STATE | (() => STATE)): STATE;
 
-// @alpha
+// @public
 export const useStyles$: (first: string) => void;
 
-// @alpha
+// @public
 export function useStylesQrl(styles: QRL<string>): void;
 
 // @alpha (undocumented)
 export function useSubscriber<T extends {}>(obj: T): T;
 
-// @alpha (undocumented)
+// Warning: (ae-incompatible-release-tags) The symbol "useWatch$" is marked as @public, but its signature references "WatchFn" which is marked as @alpha
+// Warning: (ae-incompatible-release-tags) The symbol "useWatch$" is marked as @public, but its signature references "UseEffectOptions" which is marked as @alpha
+//
+// @public
 export const useWatch$: (first: WatchFn, opts?: UseEffectOptions | undefined) => void;
 
-// @alpha (undocumented)
+// Warning: (ae-incompatible-release-tags) The symbol "useWatchQrl" is marked as @public, but its signature references "WatchFn" which is marked as @alpha
+// Warning: (ae-incompatible-release-tags) The symbol "useWatchQrl" is marked as @public, but its signature references "UseEffectOptions" which is marked as @alpha
+//
+// @public
 export function useWatchQrl(qrl: QRL<WatchFn>, opts?: UseEffectOptions): void;
 
 // @public
@@ -383,8 +633,6 @@ export const version: string;
 // @alpha (undocumented)
 export type WatchFn = (track: Tracker) => ValueOrPromise<void | (() => void)>;
 
-// Warning: (ae-forgotten-export) The symbol "Subscriber" needs to be exported by the entry point index.d.ts
-//
 // @alpha (undocumented)
 export function wrapSubscriber<T extends {}>(obj: T, subscriber: Subscriber): any;
 

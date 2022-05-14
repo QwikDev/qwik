@@ -6,8 +6,6 @@ export {
   component$,
   useCleanupQrl,
   useCleanup$,
-  usePauseQrl,
-  usePause$,
   useResumeQrl,
   useResume$,
   useOn,
@@ -19,7 +17,15 @@ export {
   useScopedStyles$,
 } from './component/component.public';
 
-export type { PropsOf, ComponentOptions, OnRenderFn } from './component/component.public';
+export type {
+  PropsOf,
+  ComponentOptions,
+  OnRenderFn,
+  Component,
+  PublicProps,
+  On$Props,
+} from './component/component.public';
+export type { ComponentCtx } from './props/props';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Event API
@@ -56,18 +62,14 @@ export { useServerMount$, useServerMountQrl } from './watch/watch.public';
 export { handleWatch } from './watch/watch.public';
 
 //////////////////////////////////////////////////////////////////////////////////////////
-// JSX Support
-//////////////////////////////////////////////////////////////////////////////////////////
-export { Async } from './render/jsx/async.public';
-export type { PromiseValue } from './render/jsx/async.public';
-
-//////////////////////////////////////////////////////////////////////////////////////////
 // JSX Runtime
 //////////////////////////////////////////////////////////////////////////////////////////
 export { h } from './render/jsx/factory';
 export { Host, SkipRerender } from './render/jsx/host.public';
 export { Slot } from './render/jsx/slot.public';
 export { Fragment, jsx, jsxDEV, jsxs, Comment } from './render/jsx/jsx-runtime';
+export type { HTMLAttributes, AriaAttributes } from './render/jsx/types/jsx-generated';
+export type { DOMAttributes } from './render/jsx/types/jsx-qwik-attributes';
 export type {
   ComponentChild,
   ComponentChildren,
@@ -79,6 +81,8 @@ export type {
 export type { QwikDOMAttributes, QwikJSX } from './render/jsx/types/jsx-qwik';
 export type { QwikIntrinsicElements } from './render/jsx/types/jsx-qwik-elements';
 export { render } from './render/render.public';
+export type { RenderingState } from './render/notify-render';
+
 //////////////////////////////////////////////////////////////////////////////////////////
 // use API
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -88,6 +92,8 @@ export { useLexicalScope } from './use/use-lexical-scope.public';
 export { useStore, useRef } from './use/use-store.public';
 export { useSubscriber, wrapSubscriber, unwrapSubscriber } from './use/use-subscriber';
 export type { Ref } from './use/use-store.public';
+export type { InvokeContext } from './use/use-core';
+export type { RenderContext, RenderOperation, PerfEvent } from './render/cursor';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Low-Level API

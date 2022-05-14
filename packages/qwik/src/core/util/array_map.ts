@@ -146,7 +146,7 @@ export function arrayIndexOfSorted(array: string[], value: string): number {
  * If used as a `Map` the keys are stored in alphabetical order so that they can be binary searched
  * for retrieval.
  *
- * See: `keyValueArraySet`, `keyValueArrayGet`, `keyValueArrayIndexOf`, `keyValueArrayDelete`.
+ * @see `keyValueArraySet`, `keyValueArrayGet`, `keyValueArrayIndexOf`, `keyValueArrayDelete`.
  */
 export interface KeyValueArray<VALUE> extends Array<VALUE | string> {
   __brand__: 'array-map';

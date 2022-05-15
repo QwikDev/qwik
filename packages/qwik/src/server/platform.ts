@@ -8,7 +8,7 @@ const _setImmediate = typeof setImmediate === 'function' ? setImmediate : setTim
 
 declare const require: (module: string) => Record<string, any>;
 
-async function createPlatform(document: any, opts: SerializeDocumentOptions) {
+function createPlatform(document: any, opts: SerializeDocumentOptions) {
   if (!document || (document as Document).nodeType !== 9) {
     throw new Error(`Invalid Document implementation`);
   }
@@ -20,17 +20,12 @@ async function createPlatform(document: any, opts: SerializeDocumentOptions) {
   if (typeof opts.qrlMapper === 'function') {
     // manually provided a function that returns the qrl for a symbol
     qrlMapper = opts.qrlMapper;
-  } else if (opts.manifest) {
+  } else {
     // we've been provided a manifest
-    let loadManifest: QwikManifest | undefined = undefined;
-    if (typeof opts.manifest === 'function') {
-      // gave us a function to load the manifest, wait for it to load
-      loadManifest = await opts.manifest();
-    }
-    loadManifest = getValidManifest(loadManifest);
-    if (loadManifest) {
+    const manifest = getValidManifest(opts.manifest);
+    if (manifest) {
       // we received a valid manifest
-      qrlMap = loadManifest.mapping;
+      qrlMap = manifest.mapping;
     }
   }
 

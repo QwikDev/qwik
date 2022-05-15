@@ -84,5 +84,9 @@
     "packages/create-cli",
     "starters"
   ],
-  "exclude": ["starters/servers", "starters/apps/base"]
+  "exclude": [
+    "starters/servers",
+    "starters/apps/**/entry.ssr.tsx",
+    "starters/apps/**/entry.dev.tsx"
+  ]
 }

@@ -5,7 +5,7 @@
   "homepage": "https://qwik.builder.io/",
   "main": "src/main.tsx",
   "scripts": {
-    "build": "yarn build.client && yarn build.ssr",
+    "build": "echo nope",
     "build.client": "vite build",
     "build.ssr": "vite build --ssr src/entry.cloudflare.tsx",
     "build.qwikcity": "cd ../qwik-city && yarn build",

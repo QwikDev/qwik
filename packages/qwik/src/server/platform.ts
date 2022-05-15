@@ -1,21 +1,38 @@
 import type { CorePlatform } from '@builder.io/qwik';
-import { getQrlMap, normalizeUrl } from './utils';
 import { setPlatform } from '@builder.io/qwik';
-import type { SerializeDocumentOptions } from './types';
+import { getValidManifest } from '../optimizer/src/manifest';
+import type { QrlMapper, QwikManifest, SerializeDocumentOptions } from './types';
+import { normalizeUrl } from './utils';
 
 const _setImmediate = typeof setImmediate === 'function' ? setImmediate : setTimeout;
 
 declare const require: (module: string) => Record<string, any>;
 
-function createPlatform(document: any, opts: SerializeDocumentOptions) {
+async function createPlatform(document: any, opts: SerializeDocumentOptions) {
   if (!document || (document as Document).nodeType !== 9) {
     throw new Error(`Invalid Document implementation`);
   }
   const doc: Document = document;
 
-  const qrlMapper = typeof opts.qrlMapper === 'function' ? opts.qrlMapper : null;
+  let qrlMapper: QrlMapper | undefined = undefined;
+  let qrlMap: { [symbolName: string]: string } | undefined = undefined;
 
-  const qrlMap = getQrlMap(opts.manifest);
+  if (typeof opts.qrlMapper === 'function') {
+    // manually provided a function that returns the qrl for a symbol
+    qrlMapper = opts.qrlMapper;
+  } else if (opts.manifest) {
+    // we've been provided a manifest
+    let loadManifest: QwikManifest | undefined = undefined;
+    if (typeof opts.manifest === 'function') {
+      // gave us a function to load the manifest, wait for it to load
+      loadManifest = await opts.manifest();
+    }
+    loadManifest = getValidManifest(loadManifest);
+    if (loadManifest) {
+      // we received a valid manifest
+      qrlMap = loadManifest.mapping;
+    }
+  }
 
   if (opts?.url) {
     doc.location.href = normalizeUrl(opts.url).href;
@@ -71,6 +88,6 @@ function createPlatform(document: any, opts: SerializeDocumentOptions) {
  * @public
  */
 export async function setServerPlatform(document: any, opts: SerializeDocumentOptions) {
-  const platform = createPlatform(document, opts);
+  const platform = await createPlatform(document, opts);
   setPlatform(document, platform);
 }

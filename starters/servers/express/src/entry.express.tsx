@@ -4,6 +4,7 @@ import { render } from './entry.ssr';
 
 /**
  * Create an express server
+ * https://expressjs.com/
  */
 const app = express();
 
@@ -25,7 +26,7 @@ app.use(
 app.use(express.static(join(__dirname, '..', 'dist'), { index: false }));
 
 /**
- * Server-Side Render Qwik application middleware
+ * Server-Side Render Qwik application
  */
 app.get('/*', async (req, res, next) => {
   try {

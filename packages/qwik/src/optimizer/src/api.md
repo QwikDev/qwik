@@ -230,30 +230,19 @@ export function qwikRollup(qwikRollupOpts?: QwikRollupPluginOptions): any;
 // @alpha (undocumented)
 export interface QwikRollupPluginOptions {
     // Warning: (ae-forgotten-export) The symbol "QwikBuildMode" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
     buildMode?: QwikBuildMode;
-    // (undocumented)
     debug?: boolean;
-    // (undocumented)
     entryStrategy?: EntryStrategy;
     // (undocumented)
     forceFullBuild?: boolean;
-    // (undocumented)
-    manifestInput?: QwikManifest | null;
-    // (undocumented)
-    manifestOutput?: ((manifest: QwikManifest) => Promise<void> | void) | null;
+    manifestInput?: QwikManifest;
+    manifestOutput?: (manifest: QwikManifest) => Promise<void> | void;
     // (undocumented)
     optimizerOptions?: OptimizerOptions;
-    // (undocumented)
     rootDir?: string;
-    // (undocumented)
     srcDir?: string;
-    // (undocumented)
     srcInputs?: TransformModuleInput[] | null;
     // Warning: (ae-forgotten-export) The symbol "QwikBuildTarget" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
     target?: QwikBuildTarget;
 }
 
@@ -297,7 +286,6 @@ export interface QwikVitePluginOptions {
     // (undocumented)
     ssr?: {
         input?: string;
-        renderInput?: string;
         outDir?: string;
         manifestInput?: QwikManifest;
     };

@@ -7,95 +7,83 @@ describe('qwik plugin', () => {
 
   describe('normalizeOptions', () => {
     it('defaults', async () => {
-      const plugin = mockPlugin();
-      const opts = await plugin.normalizeOptions();
+      const plugin = await mockPlugin();
+      const opts = plugin.normalizeOptions();
       expect(opts.target).toBe('client');
       expect(opts.buildMode).toBe('development');
       expect(opts.entryStrategy).toEqual({ type: 'hook' });
       expect(opts.forceFullBuild).toBe(false);
       expect(opts.debug).toBe(false);
       expect(opts.rootDir).toBe(cwd);
-      expect(opts.client.input).toEqual([resolve(cwd, 'src', 'components', 'app', 'app.tsx')]);
-      expect(opts.client.outDir).toBe(resolve(cwd, 'dist'));
-      expect(opts.client.manifestOutput).toBe(null);
-      expect(opts.ssr.input).toBe(resolve(cwd, 'src', 'entry.server.tsx'));
-      expect(opts.ssr.renderInput).toBe(resolve(cwd, 'src', 'entry.ssr.tsx'));
-      expect(opts.ssr.outDir).toBe(resolve(cwd, 'server'));
-      expect(opts.ssr.manifestInput).toBe(null);
+      expect(opts.input).toEqual([resolve(cwd, 'src', 'components', 'app', 'app.tsx')]);
+      expect(opts.outDir).toBe(resolve(cwd, 'dist'));
+      expect(opts.manifestInput).toBe(null);
+      expect(opts.manifestOutput).toBe(null);
       expect(opts.srcDir).toBe(resolve(cwd, 'src'));
       expect(opts.srcInputs).toBe(null);
     });
 
     it('defaults (buildMode: production)', async () => {
-      const plugin = mockPlugin();
-      const opts = await plugin.normalizeOptions({ buildMode: 'production' });
+      const plugin = await mockPlugin();
+      const opts = plugin.normalizeOptions({ buildMode: 'production' });
       expect(opts.target).toBe('client');
       expect(opts.buildMode).toBe('production');
       expect(opts.entryStrategy).toEqual({ type: 'smart' });
       expect(opts.forceFullBuild).toBe(true);
       expect(opts.debug).toBe(false);
       expect(opts.rootDir).toBe(cwd);
-      expect(opts.client.input).toEqual([resolve(cwd, 'src', 'components', 'app', 'app.tsx')]);
-      expect(opts.client.outDir).toBe(resolve(cwd, 'dist'));
-      expect(opts.client.manifestOutput).toBe(null);
-      expect(opts.ssr.input).toBe(resolve(cwd, 'src', 'entry.server.tsx'));
-      expect(opts.ssr.renderInput).toBe(resolve(cwd, 'src', 'entry.ssr.tsx'));
-      expect(opts.ssr.outDir).toBe(resolve(cwd, 'server'));
-      expect(opts.ssr.manifestInput).toBe(null);
+      expect(opts.input).toEqual([resolve(cwd, 'src', 'components', 'app', 'app.tsx')]);
+      expect(opts.outDir).toBe(resolve(cwd, 'dist'));
+      expect(opts.manifestInput).toBe(null);
+      expect(opts.manifestOutput).toBe(null);
       expect(opts.srcDir).toBe(resolve(cwd, 'src'));
       expect(opts.srcInputs).toBe(null);
       expect(opts.entryStrategy).toEqual({ type: 'smart' });
     });
 
     it('defaults (target: ssr)', async () => {
-      const plugin = mockPlugin();
-      const opts = await plugin.normalizeOptions({ target: 'ssr' });
+      const plugin = await mockPlugin();
+      const opts = plugin.normalizeOptions({ target: 'ssr' });
       expect(opts.target).toBe('ssr');
       expect(opts.buildMode).toBe('development');
       expect(opts.entryStrategy).toEqual({ type: 'hook' });
       expect(opts.forceFullBuild).toBe(false);
       expect(opts.debug).toBe(false);
       expect(opts.rootDir).toBe(cwd);
-      expect(opts.client.input).toEqual([resolve(cwd, 'src', 'components', 'app', 'app.tsx')]);
-      expect(opts.client.outDir).toBe(resolve(cwd, 'dist'));
-      expect(opts.client.manifestOutput).toBe(null);
-      expect(opts.ssr.input).toBe(resolve(cwd, 'src', 'entry.server.tsx'));
-      expect(opts.ssr.renderInput).toBe(resolve(cwd, 'src', 'entry.ssr.tsx'));
-      expect(opts.ssr.outDir).toBe(resolve(cwd, 'server'));
-      expect(opts.ssr.manifestInput).toBe(null);
+      expect(opts.input).toEqual([resolve(cwd, 'src', 'entry.ssr.tsx')]);
+      expect(opts.outDir).toBe(resolve(cwd, 'server'));
+      expect(opts.manifestInput).toBe(null);
+      expect(opts.manifestOutput).toBe(null);
       expect(opts.srcDir).toBe(resolve(cwd, 'src'));
       expect(opts.srcInputs).toBe(null);
     });
 
     it('defaults (buildMode: production, target: ssr)', async () => {
-      const plugin = mockPlugin();
-      const opts = await plugin.normalizeOptions({ buildMode: 'production', target: 'ssr' });
+      const plugin = await mockPlugin();
+      const opts = plugin.normalizeOptions({ buildMode: 'production', target: 'ssr' });
       expect(opts.target).toBe('ssr');
       expect(opts.buildMode).toBe('production');
       expect(opts.entryStrategy).toEqual({ type: 'smart' });
       expect(opts.forceFullBuild).toBe(true);
       expect(opts.debug).toBe(false);
       expect(opts.rootDir).toBe(cwd);
-      expect(opts.client.input).toEqual([resolve(cwd, 'src', 'components', 'app', 'app.tsx')]);
-      expect(opts.client.outDir).toBe(resolve(cwd, 'dist'));
-      expect(opts.client.manifestOutput).toBe(null);
-      expect(opts.ssr.input).toBe(resolve(cwd, 'src', 'entry.server.tsx'));
-      expect(opts.ssr.renderInput).toBe(resolve(cwd, 'src', 'entry.ssr.tsx'));
-      expect(opts.ssr.outDir).toBe(resolve(cwd, 'server'));
-      expect(opts.ssr.manifestInput).toBe(null);
+      expect(opts.input).toEqual([resolve(cwd, 'src', 'entry.ssr.tsx')]);
+      expect(opts.outDir).toBe(resolve(cwd, 'server'));
+      expect(opts.manifestInput).toBe(null);
+      expect(opts.manifestOutput).toBe(null);
       expect(opts.srcDir).toBe(resolve(cwd, 'src'));
       expect(opts.srcInputs).toBe(null);
     });
 
     it('debug true', async () => {
-      const plugin = mockPlugin();
-      const opts = await plugin.normalizeOptions({ debug: true });
+      const plugin = await mockPlugin();
+      const opts = plugin.normalizeOptions({ debug: true });
       expect(opts.debug).toBe(true);
     });
 
     it('override entryStrategy', async () => {
-      const plugin = mockPlugin();
-      const opts = await plugin.normalizeOptions({
+      const plugin = await mockPlugin();
+      const opts = plugin.normalizeOptions({
         entryStrategy: { type: 'component' },
         buildMode: 'production',
       });
@@ -103,8 +91,8 @@ describe('qwik plugin', () => {
     });
 
     it('entryStrategy, smart', async () => {
-      const plugin = mockPlugin();
-      const opts = await plugin.normalizeOptions({
+      const plugin = await mockPlugin();
+      const opts = plugin.normalizeOptions({
         entryStrategy: { type: 'smart' },
         forceFullBuild: false,
       });
@@ -113,15 +101,15 @@ describe('qwik plugin', () => {
     });
 
     it('entryStrategy, hook no forceFullBuild', async () => {
-      const plugin = mockPlugin();
-      const opts = await plugin.normalizeOptions({ entryStrategy: { type: 'hook' } });
+      const plugin = await mockPlugin();
+      const opts = plugin.normalizeOptions({ entryStrategy: { type: 'hook' } });
       expect(opts.entryStrategy.type).toBe('hook');
       expect(opts.forceFullBuild).toBe(false);
     });
 
     it('entryStrategy, hook and srcInputs', async () => {
-      const plugin = mockPlugin();
-      const opts = await plugin.normalizeOptions({
+      const plugin = await mockPlugin();
+      const opts = plugin.normalizeOptions({
         entryStrategy: { type: 'hook' },
         srcInputs: [],
       });
@@ -130,84 +118,71 @@ describe('qwik plugin', () => {
     });
 
     it('entryStrategy, forceFullBuild false', async () => {
-      const plugin = mockPlugin();
-      const opts = await plugin.normalizeOptions({ forceFullBuild: false });
+      const plugin = await mockPlugin();
+      const opts = plugin.normalizeOptions({ forceFullBuild: false });
       expect(opts.forceFullBuild).toBe(false);
     });
 
     it('entryStrategy, forceFullBuild true', async () => {
-      const plugin = mockPlugin();
-      const opts = await plugin.normalizeOptions({ forceFullBuild: true });
+      const plugin = await mockPlugin();
+      const opts = plugin.normalizeOptions({ forceFullBuild: true });
       expect(opts.forceFullBuild).toBe(true);
     });
 
     it('rootDir, abs path', async () => {
-      const plugin = mockPlugin();
+      const plugin = await mockPlugin();
       const customRoot = resolve(cwd, 'abs-path');
-      const opts = await plugin.normalizeOptions({ rootDir: customRoot });
+      const opts = plugin.normalizeOptions({ rootDir: customRoot });
       expect(opts.rootDir).toBe(customRoot);
     });
 
     it('rootDir, rel path', async () => {
-      const plugin = mockPlugin();
+      const plugin = await mockPlugin();
       const customRoot = 'rel-path';
-      const opts = await plugin.normalizeOptions({ rootDir: customRoot });
+      const opts = plugin.normalizeOptions({ rootDir: customRoot });
       expect(opts.rootDir).toBe(resolve(cwd, customRoot));
     });
 
-    it('client input string', async () => {
-      const plugin = mockPlugin();
-      const opts = await plugin.normalizeOptions({ client: { input: 'src/cmps/main.tsx' } });
-      expect(opts.client.input).toEqual([resolve(cwd, 'src', 'cmps', 'main.tsx')]);
+    it('input string', async () => {
+      const plugin = await mockPlugin();
+      const opts = plugin.normalizeOptions({ input: 'src/cmps/main.tsx' });
+      expect(opts.input).toEqual([resolve(cwd, 'src', 'cmps', 'main.tsx')]);
     });
 
-    it('client input array', async () => {
-      const plugin = mockPlugin();
-      const opts = await plugin.normalizeOptions({
-        client: { input: ['src/cmps/a.tsx', 'src/cmps/b.tsx'] },
+    it('input array', async () => {
+      const plugin = await mockPlugin();
+      const opts = plugin.normalizeOptions({
+        input: ['src/cmps/a.tsx', 'src/cmps/b.tsx'],
       });
-      expect(opts.client.input).toEqual([
+      expect(opts.input).toEqual([
         resolve(cwd, 'src', 'cmps', 'a.tsx'),
         resolve(cwd, 'src', 'cmps', 'b.tsx'),
       ]);
     });
 
-    it('client outDir', async () => {
-      const plugin = mockPlugin();
-      const opts = await plugin.normalizeOptions({ client: { outDir: 'client-out' } });
-      expect(opts.client.outDir).toBe(resolve(cwd, 'client-out'));
+    it('outDir', async () => {
+      const plugin = await mockPlugin();
+      const opts = plugin.normalizeOptions({ outDir: 'out' });
+      expect(opts.outDir).toBe(resolve(cwd, 'out'));
     });
 
-    it('ssr outDir', async () => {
-      const plugin = mockPlugin();
-      const opts = await plugin.normalizeOptions({ ssr: { outDir: 'server-out' } });
-      expect(opts.ssr.outDir).toBe(resolve(cwd, 'server-out'));
-    });
-
-    it('ssr renderInput', async () => {
-      const plugin = mockPlugin();
-      const opts = await plugin.normalizeOptions({ ssr: { renderInput: 'render.ssr.tsx' } });
-      expect(opts.ssr.renderInput).toBe(resolve(cwd, 'render.ssr.tsx'));
-      expect(opts.ssr.input).toBe(resolve(cwd, 'src', 'entry.server.tsx'));
-    });
-
-    it('client manifestOutput', async () => {
-      const plugin = mockPlugin();
+    it('manifestOutput', async () => {
+      const plugin = await mockPlugin();
       const manifestOutput = () => {};
-      const opts = await plugin.normalizeOptions({ client: { manifestOutput } });
-      expect(opts.client.manifestOutput).toBe(manifestOutput);
+      const opts = plugin.normalizeOptions({ manifestOutput });
+      expect(opts.manifestOutput).toBe(manifestOutput);
     });
 
-    it('ssr manifestInput', async () => {
-      const plugin = mockPlugin();
+    it(' manifestInput', async () => {
+      const plugin = await mockPlugin();
       const manifestInput: QwikManifest = { mapping: {}, symbols: {}, bundles: {}, version: '1' };
-      const opts = await plugin.normalizeOptions({ ssr: { manifestInput } });
-      expect(opts.ssr.manifestInput).toBe(manifestInput);
+      const opts = plugin.normalizeOptions({ manifestInput });
+      expect(opts.manifestInput).toBe(manifestInput);
     });
   });
 
-  function mockPlugin() {
-    return createPlugin({
+  async function mockPlugin() {
+    const plugin = createPlugin({
       sys: {
         cwd: () => process.cwd(),
         env: 'node',
@@ -217,5 +192,7 @@ describe('qwik plugin', () => {
       },
       binding: { mockBinding: true },
     });
+    await plugin.init();
+    return plugin;
   }
 });

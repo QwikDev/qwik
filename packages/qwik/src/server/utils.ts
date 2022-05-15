@@ -83,14 +83,6 @@ const BASE_URI = `http://document.qwik.dev/`;
 
 const noop = () => {};
 
-export function getQrlMap(manifest: QwikManifest | undefined | null) {
-  manifest = getValidManifest(manifest);
-  if (manifest) {
-    return manifest.mapping;
-  }
-  return undefined;
-}
-
 export function getBuildBase(opts: RenderToDocumentOptions) {
   let base = opts.base;
   if (typeof base === 'string') {

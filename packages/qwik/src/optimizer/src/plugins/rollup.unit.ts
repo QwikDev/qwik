@@ -1,4 +1,4 @@
-import { join } from 'path';
+import { resolve } from 'path';
 import { qwikRollup, QwikRollupPluginOptions } from './rollup';
 import type { InputOptions, OutputOptions } from 'rollup';
 import type { OptimizerOptions } from '../types';
@@ -19,7 +19,7 @@ describe('rollup  plugin', () => {
     const rollupInputOpts: InputOptions = await plugin.options!({});
 
     expect(typeof rollupInputOpts.onwarn).toBe('function');
-    expect(rollupInputOpts.input).toEqual([join(cwd, 'src', 'components', 'app', 'app.tsx')]);
+    expect(rollupInputOpts.input).toEqual([resolve(cwd, 'src', 'components', 'app', 'app.tsx')]);
   });
 
   it('rollup default input options, ssr', async () => {
@@ -29,7 +29,7 @@ describe('rollup  plugin', () => {
 
     expect(typeof rollupInputOpts.onwarn).toBe('function');
     expect(rollupInputOpts.treeshake).toBe(false);
-    expect(rollupInputOpts.input).toEqual(join(cwd, 'src', 'entry.server.tsx'));
+    expect(rollupInputOpts.input).toEqual([resolve(cwd, 'src', 'entry.ssr.tsx')]);
   });
 
   it('rollup default output options, client', async () => {
@@ -37,7 +37,7 @@ describe('rollup  plugin', () => {
     await plugin.options!({});
     const rollupOutputOpts: OutputOptions = await plugin.outputOptions!({});
 
-    expect(rollupOutputOpts.dir).toEqual(join(cwd, 'dist'));
+    expect(rollupOutputOpts.dir).toEqual(resolve(cwd, 'dist'));
     expect(rollupOutputOpts.format).toEqual('es');
   });
 
@@ -49,7 +49,7 @@ describe('rollup  plugin', () => {
       format: 'cjs',
     });
 
-    expect(rollupOutputOpts.dir).toEqual(join(cwd, 'server'));
+    expect(rollupOutputOpts.dir).toEqual(resolve(cwd, 'server'));
     expect(rollupOutputOpts.exports).toEqual('auto');
   });
 
@@ -62,6 +62,8 @@ describe('rollup  plugin', () => {
     expect(opts.buildMode).toBe('development');
     expect(opts.entryStrategy).toEqual({ type: 'hook' });
     expect(opts.forceFullBuild).toEqual(false);
+    expect(opts.rootDir).toEqual(cwd);
+    expect(opts.srcDir).toEqual(resolve(cwd, 'src'));
   });
 
   it('rollup input, client default', async () => {

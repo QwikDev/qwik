@@ -1,4 +1,4 @@
-import type { Plugin as RollupPlugin, RollupError } from 'rollup';
+import type { OutputOptions, Plugin as RollupPlugin, RollupError } from 'rollup';
 import type {
   Diagnostic,
   EntryStrategy,
@@ -6,8 +6,16 @@ import type {
   OptimizerOptions,
   QwikManifest,
   TransformModuleInput,
+  Path,
 } from '../types';
-import { createPlugin, QwikBuildMode, QwikBuildTarget, Q_MANIFEST_FILENAME } from './plugin';
+import {
+  createPlugin,
+  NormalizedQwikPluginOptions,
+  QwikBuildMode,
+  QwikBuildTarget,
+  QwikPluginOptions,
+  Q_MANIFEST_FILENAME,
+} from './plugin';
 import { versions } from '../versions';
 
 /**
@@ -15,8 +23,6 @@ import { versions } from '../versions';
  */
 export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
   const qwikPlugin = createPlugin(qwikRollupOpts.optimizerOptions);
-
-  let optimizer: Optimizer | null = null;
 
   const rollupPlugin: QwikRollupPlugin = {
     name: 'rollup-plugin-qwik',
@@ -27,6 +33,8 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
     },
 
     async options(inputOpts) {
+      await qwikPlugin.init();
+
       inputOpts.onwarn = (warning, warn) => {
         if (warning.plugin === 'typescript' && warning.message.includes('outputToFilesystem')) {
           return;
@@ -34,58 +42,44 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
         warn(warning);
       };
 
-      optimizer = await qwikPlugin.getOptimizer();
+      const pluginOpts: QwikPluginOptions = {
+        target: qwikRollupOpts.target,
+        buildMode: qwikRollupOpts.buildMode,
+        debug: qwikRollupOpts.debug,
+        forceFullBuild: qwikRollupOpts.forceFullBuild,
+        entryStrategy: qwikRollupOpts.entryStrategy,
+        rootDir: qwikRollupOpts.rootDir,
+        srcDir: qwikRollupOpts.srcDir,
+        srcInputs: qwikRollupOpts.srcInputs,
+        input: inputOpts.input as string,
+        manifestOutput: qwikRollupOpts.manifestOutput,
+        manifestInput: qwikRollupOpts.manifestInput,
+      };
 
-      const opts = await qwikPlugin.normalizeOptions(qwikRollupOpts);
+      const opts = qwikPlugin.normalizeOptions(pluginOpts);
+
+      if (!inputOpts.input) {
+        inputOpts.input = opts.input;
+      }
 
       if (opts.target === 'ssr') {
         // Server input
-        if (!inputOpts.input) {
-          inputOpts.input = opts.ssr.input;
-        }
         inputOpts.treeshake = false;
-      } else {
-        // Client input
-        if (!inputOpts.input) {
-          inputOpts.input = opts.client.input;
-        }
       }
 
       return inputOpts;
     },
 
-    outputOptions(outputOpts) {
-      const opts = qwikPlugin.getOptions();
-
-      if (opts.target === 'ssr') {
-        // SSR output
-        if (outputOpts.dir) {
-          opts.ssr.outDir = qwikPlugin.normalizePath(
-            optimizer!.sys.path.resolve(opts.rootDir, outputOpts.dir)
-          );
-        } else if (!outputOpts.dir) {
-          outputOpts.dir = opts.ssr.outDir;
-        }
-      } else if (opts.target === 'client') {
-        // Client output
-        if (outputOpts.dir) {
-          opts.client.outDir = qwikPlugin.normalizePath(
-            optimizer!.sys.path.resolve(opts.rootDir, outputOpts.dir)
-          );
-        } else {
-          outputOpts.dir = opts.client.outDir;
-        }
-        outputOpts.format = 'es';
-      }
-      if (outputOpts.format === 'cjs' && typeof outputOpts.exports !== 'string') {
-        outputOpts.exports = 'auto';
-      }
-
-      return outputOpts;
+    outputOptions(rollupOutputOpts) {
+      return normalizeRollupOutputOptions(
+        qwikPlugin.getPath(),
+        qwikPlugin.getOptions(),
+        rollupOutputOpts
+      );
     },
 
     async buildStart() {
-      qwikPlugin.onAddWatchFile((path) => this.addWatchFile(path));
+      qwikPlugin.onAddWatchFile((p) => this.addWatchFile(p));
 
       qwikPlugin.onDiagnostics((diagnostics, optimizer) => {
         diagnostics.forEach((d) => {
@@ -123,6 +117,7 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
 
     async generateBundle(_, rollupBundle) {
       const opts = qwikPlugin.getOptions();
+      const path = qwikPlugin.getPath();
 
       if (opts.target === 'client') {
         // client build
@@ -149,8 +144,8 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
           rollup: '',
         };
 
-        if (typeof opts.client.manifestOutput === 'function') {
-          await opts.client.manifestOutput(manifest);
+        if (typeof opts.manifestOutput === 'function') {
+          await opts.manifestOutput(manifest);
         }
 
         this.emitFile({
@@ -169,7 +164,71 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
   return rollupPlugin;
 }
 
-export const createRollupError = (optimizer: Optimizer, diagnostic: Diagnostic) => {
+export function normalizeRollupOutputOptions(
+  path: Path,
+  opts: NormalizedQwikPluginOptions,
+  rollupOutputOpts: OutputOptions
+) {
+  const outputOpts = { ...rollupOutputOpts };
+
+  if (opts.target === 'ssr') {
+    // ssr output
+    if (!outputOpts.entryFileNames) {
+      outputOpts.entryFileNames = '[name].js';
+    }
+    if (!outputOpts.assetFileNames) {
+      outputOpts.assetFileNames = '[name].[ext]';
+    }
+    if (!outputOpts.chunkFileNames) {
+      outputOpts.chunkFileNames = '[name].js';
+    }
+
+    outputOpts.inlineDynamicImports = true;
+  } else if (opts.target === 'client') {
+    // client output
+
+    if (opts.buildMode === 'production') {
+      // client production output
+      if (!outputOpts.entryFileNames) {
+        outputOpts.entryFileNames = 'build/q-[hash].js';
+      }
+      if (!outputOpts.assetFileNames) {
+        outputOpts.assetFileNames = 'build/q-[hash].[ext]';
+      }
+      if (!outputOpts.chunkFileNames) {
+        outputOpts.chunkFileNames = 'build/q-[hash].js';
+      }
+    } else {
+      // client development output
+      if (!outputOpts.entryFileNames) {
+        outputOpts.entryFileNames = 'build/[name].js';
+      }
+      if (!outputOpts.assetFileNames) {
+        outputOpts.assetFileNames = 'build/[name].[ext]';
+      }
+      if (!outputOpts.chunkFileNames) {
+        outputOpts.chunkFileNames = 'build/[name].js';
+      }
+    }
+  }
+
+  if (opts.target === 'client') {
+    // client should always be es
+    outputOpts.format = 'es';
+  }
+
+  if (!outputOpts.dir) {
+    outputOpts.dir = opts.outDir;
+  }
+
+  if (outputOpts.format === 'cjs' && typeof outputOpts.exports !== 'string') {
+    outputOpts.exports = 'auto';
+  }
+
+  return outputOpts;
+}
+
+export function createRollupError(optimizer: Optimizer, diagnostic: Diagnostic) {
   const loc = diagnostic.code_highlights[0]?.loc ?? {};
   const id = optimizer
     ? optimizer.sys.path.join(optimizer.sys.cwd(), diagnostic.origin)
@@ -184,23 +243,67 @@ export const createRollupError = (optimizer: Optimizer, diagnostic: Diagnostic) 
     stack: '',
   });
   return err;
-};
+}
 
 /**
  * @alpha
  */
 export interface QwikRollupPluginOptions {
+  /**
+   * Build `production` or `development`.
+   * Default `development`
+   */
   buildMode?: QwikBuildMode;
+  /**
+   * Target `client` or `ssr`.
+   * Default `client`
+   */
+  target?: QwikBuildTarget;
+  /**
+   * Prints verbose Qwik plugin debug logs.
+   * Default `false`
+   */
   debug?: boolean;
+  /**
+   * The Qwik entry strategy to use while bunding for production.
+   * During development the type is always `hook`.
+   * Default `{ type: "smart" }`)
+   */
   entryStrategy?: EntryStrategy;
   forceFullBuild?: boolean;
-  optimizerOptions?: OptimizerOptions;
-  manifestInput?: QwikManifest | null;
-  manifestOutput?: ((manifest: QwikManifest) => Promise<void> | void) | null;
+  /**
+   * The source directory to find all the Qwik components. Since Qwik
+   * does not have a single input, the `srcDir` is use to recursively
+   * find Qwik files.
+   * Default `src`
+   */
   srcDir?: string;
+  /**
+   * Alternative to `srcDir`, where `srcInputs` is able to provide the
+   * files manually. This option is useful for an environment without
+   * a file system, such as a webworker.
+   * Default: `null`
+   */
   srcInputs?: TransformModuleInput[] | null;
+  /**
+   * The root of the application, which is commonly the same
+   * directory as `package.json` and `rollup.config.js`.
+   * Default `process.cwd()`
+   */
   rootDir?: string;
-  target?: QwikBuildTarget;
+  /**
+   * The client build will create a manifest and this hook
+   * is called with the generated build data.
+   * Default `undefined`
+   */
+  manifestOutput?: (manifest: QwikManifest) => Promise<void> | void;
+  /**
+   * The SSR build requires the manifest generated during the client build.
+   * The `manifestInput` option can be used to manually provide a manifest.
+   * Default `undefined`
+   */
+  manifestInput?: QwikManifest;
+  optimizerOptions?: OptimizerOptions;
 }
 
 export interface QwikRollupPlugin extends RollupPlugin {}

@@ -43,7 +43,10 @@ export interface WindowOptions extends DocumentOptions {}
  * @public
  */
 export interface SerializeDocumentOptions extends DocumentOptions {
-  manifest?: QwikManifest;
+  manifest?:
+    | QwikManifest
+    | (() => QwikManifest | undefined)
+    | (() => Promise<QwikManifest | undefined>);
   qrlMapper?: QrlMapper;
 }
 

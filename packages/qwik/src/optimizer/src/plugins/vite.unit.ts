@@ -100,9 +100,29 @@ describe('vite  plugin', () => {
       expect((c as any).ssr).toBeUndefined();
     });
 
-    it('command: build, mode: ssr', async () => {
+    it('command: build, --mode production (client)', async () => {
+      initOpts.client = {
+        devInput: resolve(cwd, 'src', 'dev.entry.tsx'),
+        outDir: resolve(cwd, 'client-dist'),
+      };
       const plugin: VitePlugin = qwikVite(initOpts);
-      const c = (await plugin.config!({}, { command: 'build', mode: 'ssr' }))!;
+      const c: any = (await plugin.config!({}, { command: 'build', mode: 'production' }))!;
+      const opts = await plugin.api?.getOptions();
+      const build = c.build!;
+      const rollupOptions = build!.rollupOptions!;
+
+      expect(opts.target).toBe('client');
+      expect(opts.buildMode).toBe('production');
+      expect(rollupOptions.input).toEqual([resolve(cwd, 'src', 'components', 'app', 'app.tsx')]);
+      expect(build.outDir).toEqual(resolve(cwd, 'client-dist'));
+    });
+
+    it('command: build, --ssr entry.express.tsx', async () => {
+      const plugin: VitePlugin = qwikVite(initOpts);
+      const c = (await plugin.config!(
+        { build: { ssr: resolve(cwd, 'src', 'entry.express.tsx') } },
+        { command: 'build', mode: '' }
+      ))!;
       const opts = await plugin.api?.getOptions();
       const build = c.build!;
       const rollupOptions = build!.rollupOptions!;
@@ -116,7 +136,7 @@ describe('vite  plugin', () => {
 
       expect(plugin.enforce).toBe('pre');
       expect(build.outDir).toBe(resolve(cwd, 'server'));
-      expect(rollupOptions.input).toEqual(resolve(cwd, 'src', 'entry.server.tsx'));
+      expect(rollupOptions.input).toEqual([resolve(cwd, 'src', 'entry.express.tsx')]);
       expect(outputOptions.assetFileNames).toBe('[name].[ext]');
       expect(outputOptions.chunkFileNames).toBe('[name].js');
       expect(outputOptions.entryFileNames).toBe('[name].js');
@@ -129,57 +149,20 @@ describe('vite  plugin', () => {
       expect(c.publicDir).toBe(false);
     });
 
-    it('command: build, --ssr filepath.ts', async () => {
-      const plugin: VitePlugin = qwikVite(initOpts);
-      const c = (await plugin.config!(
-        { build: { ssr: resolve(cwd, 'src', 'ssr.entry.tsx') } },
-        { command: 'build', mode: '' }
-      ))!;
-      const opts = await plugin.api?.getOptions();
-      const build = c.build!;
-      const rollupOptions = build!.rollupOptions!;
-
-      expect(opts.target).toBe('ssr');
-      expect(opts.buildMode).toBe('production');
-      expect(rollupOptions.input).toEqual(resolve(cwd, 'src', 'ssr.entry.tsx'));
-    });
-
-    it('qwikVite client options', async () => {
-      initOpts.client = {
-        devInput: resolve(cwd, 'src', 'dev.entry.tsx'),
-        outDir: resolve(cwd, 'client-dist'),
-      };
-      const plugin: VitePlugin = qwikVite(initOpts);
-      const c: any = (await plugin.config!({}, { command: 'build', mode: 'production' }))!;
-      const opts = await plugin.api?.getOptions();
-      const build = c.build!;
-      const rollupOptions = build!.rollupOptions!;
-
-      expect(opts.target).toBe('client');
-      expect(opts.buildMode).toBe('production');
-      expect(opts.client.outDir).toBe(resolve(cwd, 'client-dist'));
-      expect(rollupOptions.input).toEqual([resolve(cwd, 'src', 'components', 'app', 'app.tsx')]);
-      expect(c.build.outDir).toEqual(resolve(cwd, 'client-dist'));
-    });
-
-    it('qwikVite ssr options', async () => {
+    it('command: serve, --mode ssr', async () => {
       initOpts.ssr = {
-        input: resolve(cwd, 'src', 'serverz.tsx'),
-        renderInput: resolve(cwd, 'src', 'renderz.tsx'),
+        input: resolve(cwd, 'src', 'renderz.tsx'),
         outDir: resolve(cwd, 'ssr-dist'),
       };
       const plugin: VitePlugin = qwikVite(initOpts);
-      const c: any = (await plugin.config!({}, { command: 'build', mode: 'ssr' }))!;
+      const c: any = (await plugin.config!({}, { command: 'serve', mode: 'ssr' }))!;
       const opts = await plugin.api?.getOptions();
       const build = c.build!;
       const rollupOptions = build!.rollupOptions!;
 
       expect(opts.target).toBe('ssr');
-      expect(opts.buildMode).toBe('production');
-      expect(opts.ssr.input).toBe(resolve(cwd, 'src', 'serverz.tsx'));
-      expect(opts.ssr.renderInput).toBe(resolve(cwd, 'src', 'renderz.tsx'));
-      expect(opts.ssr.outDir).toBe(resolve(cwd, 'ssr-dist'));
-      expect(rollupOptions.input).toEqual(resolve(cwd, 'src', 'serverz.tsx'));
+      expect(opts.buildMode).toBe('development');
+      expect(rollupOptions.input).toEqual([resolve(cwd, 'src', 'renderz.tsx')]);
       expect(c.build.outDir).toEqual(resolve(cwd, 'ssr-dist'));
       expect(c.publicDir).toBe(false);
     });

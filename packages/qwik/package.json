@@ -94,6 +94,7 @@
     "server.cjs",
     "server.mjs",
     "server.d.ts",
+    "server-modules.d.ts",
     "server/package.json",
     "testing/index.cjs",
     "testing/index.mjs",

@@ -1,5 +1,5 @@
 import { renderToString, RenderToStringOptions } from '@builder.io/qwik/server';
-import { manifest } from '@builder.io/qwik/build';
+import { manifest } from '@qwik-client-manifest';
 import { Root } from './root';
 
 /**

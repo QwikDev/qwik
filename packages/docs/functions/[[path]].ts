@@ -12,7 +12,7 @@ export const onRequestGet: PagesFunction = async ({ request, next, waitUntil }) 
     const url = new URL(request.url);
     if (url.hostname === 'qwik.builder.io' && url.pathname === '/') {
       // temporarily redirect homepage to the overview page
-      return Response.redirect('https://qwik.builder.io/guide/overview', 302);
+      return Response.redirect('https://qwik.builder.io/docs/overview', 302);
     }
 
     if (url.pathname === '/chat') {

@@ -26,10 +26,26 @@ describe('rollup  plugin', () => {
     initOpts.target = 'ssr';
     const plugin = qwikRollup(initOpts);
     const rollupInputOpts: InputOptions = await plugin.options!({});
+    const opts: NormalizedQwikPluginOptions = plugin.api.getOptions();
 
     expect(typeof rollupInputOpts.onwarn).toBe('function');
     expect(rollupInputOpts.treeshake).toBe(false);
     expect(rollupInputOpts.input).toEqual([resolve(cwd, 'src', 'entry.ssr.tsx')]);
+    expect(opts.input).toEqual([resolve(cwd, 'src', 'entry.ssr.tsx')]);
+  });
+
+  it('rollup default set input options, ssr', async () => {
+    initOpts.target = 'ssr';
+    const plugin = qwikRollup(initOpts);
+    const rollupInputOpts: InputOptions = await plugin.options!({
+      input: resolve(cwd, 'src', 'my.ssr.tsx'),
+    });
+    const opts: NormalizedQwikPluginOptions = plugin.api.getOptions();
+
+    expect(typeof rollupInputOpts.onwarn).toBe('function');
+    expect(rollupInputOpts.treeshake).toBe(false);
+    expect(rollupInputOpts.input).toEqual(resolve(cwd, 'src', 'my.ssr.tsx'));
+    expect(opts.input).toEqual([resolve(cwd, 'src', 'my.ssr.tsx')]);
   });
 
   it('rollup default output options, client', async () => {

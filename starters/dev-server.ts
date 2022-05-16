@@ -8,6 +8,7 @@ import { isAbsolute, join, resolve, dirname } from 'path';
 import { readdirSync, statSync, mkdirSync, unlinkSync, rmdirSync, existsSync } from 'fs';
 import { Plugin, rollup } from 'rollup';
 import type { QwikManifest } from '@builder.io/qwik/optimizer';
+import type { RenderToStringOptions, RenderToStringResult } from '@builder.io/qwik/server';
 
 const app = express();
 const port = parseInt(process.argv[process.argv.length - 1], 10) || 3300;
@@ -41,13 +42,13 @@ async function handleApp(req: Request, res: Response) {
 
     console.log(req.method, req.url, `[${appName} build/ssr]`);
 
-    let symbols = cache.get(appDir);
-    if (!symbols) {
-      symbols = await buildApp(appDir);
-      cache.set(appDir, symbols!);
+    let clientManifest = cache.get(appDir);
+    if (!clientManifest) {
+      clientManifest = await buildApp(appDir);
+      cache.set(appDir, clientManifest);
     }
 
-    const html = await ssrApp(req, appName, appDir, symbols!);
+    const html = await ssrApp(req, appName, appDir, clientManifest);
 
     res.set('Content-Type', 'text/html');
     res.send(html);
@@ -103,13 +104,12 @@ async function buildApp(appDir: string) {
   const optimizer: typeof import('@builder.io/qwik/optimizer') =
     requireUncached(qwikDistOptimizerPath);
   const appSrcDir = join(appDir, 'src');
-  const appBuildDir = join(appDir, 'build');
-  const appBuildServerDir = join(appBuildDir, 'server');
+  const appDistDir = join(appDir, 'dist');
+  const appServerDir = join(appDir, 'server');
 
   // always clean the build directory
-  removeDir(appBuildDir);
-  mkdirSync(appBuildDir);
-  mkdirSync(appBuildServerDir);
+  removeDir(appDistDir);
+  removeDir(appServerDir);
 
   let clientManifest: QwikManifest | undefined = undefined;
 
@@ -130,11 +130,11 @@ async function buildApp(appDir: string) {
     ],
   });
   await clientBuild.write({
-    dir: appBuildDir,
+    dir: appDistDir,
   });
 
   const ssrBuild = await rollup({
-    input: getSrcInput(appSrcDir),
+    input: join(appSrcDir, 'entry.ssr.tsx'),
     plugins: [
       devPlugin(),
       optimizer.qwikRollup({
@@ -146,11 +146,14 @@ async function buildApp(appDir: string) {
       }),
     ],
   });
+
+  console.log('appServerDir', appServerDir);
+
   await ssrBuild.write({
-    dir: appBuildServerDir,
+    dir: appServerDir,
   });
 
-  return clientManifest;
+  return clientManifest!;
 }
 
 function getSrcInput(appSrcDir: string) {
@@ -192,23 +195,22 @@ function removeDir(dir: string) {
 }
 
 async function ssrApp(req: Request, appName: string, appDir: string, manifest: QwikManifest) {
-  const buildDir = join(appDir, 'build');
-  const serverDir = join(buildDir, 'server');
-  const serverPath = join(serverDir, 'entry.server.js');
+  const ssrPath = join(appDir, 'server', 'entry.ssr.js');
 
   // require the build's server index (avoiding nodejs require cache)
-  const { render } = requireUncached(serverPath);
+  const { render } = requireUncached(ssrPath);
 
   // ssr the document
   const base = `/${appName}/build/`;
   console.log('req.url', req.url);
-  const result = await render({
+  const opts: RenderToStringOptions = {
     manifest,
     url: new URL(`${req.protocol}://${req.hostname}${req.url}`),
     debug: true,
     base: base,
-  });
+  };
 
+  const result: RenderToStringResult = await render(opts);
   return result.html;
 }
 
@@ -252,7 +254,7 @@ const partytownPath = resolve(startersDir, '..', 'node_modules', '@builder.io', 
 app.use(`/~partytown`, express.static(partytownPath));
 
 appNames.forEach((appName) => {
-  const buildPath = join(startersAppsDir, appName, 'build');
+  const buildPath = join(startersAppsDir, appName, 'dist', 'build');
   app.use(`/${appName}/build`, express.static(buildPath));
 
   const publicPath = join(startersAppsDir, appName, 'public');

@@ -36,6 +36,9 @@ export type WatchFn = (track: Tracker) => ValueOrPromise<void | (() => void)>;
  */
 export type ServerFn = () => ValueOrPromise<void | (() => void)>;
 
+/**
+ * @alpha
+ */
 export interface WatchDescriptor {
   qrl: QRL<WatchFn>;
   el: Element;
@@ -68,9 +71,68 @@ export function handleWatch() {
   notifyWatch(watch);
 }
 
+// <docs markdown="../readme.md#useWatch">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit ../readme.md#useWatch instead)
 /**
- * @alpha
+ * Reruns the `watchFn` when the observed inputs change.
+ *
+ * Use `useWatch` to observe changes on a set of inputs, and then re-execute the `watchFn` when
+ * those inputs change.
+ *
+ * The `watchFn` only executes if the observed inputs change. To observe the inputs use the `obs`
+ * function to wrap property reads. This creates subscriptions which will trigger the `watchFn`
+ * to re-run.
+ *
+ * @see `Tracker`
+ *
+ * @public
+ *
+ * ## Example
+ *
+ * The `useWatch` function is used to observe the `state.count` property. Any changes to the
+ * `state.count` cause the `watchFn` to execute which in turn updates the `state.doubleCount` to
+ * the double of `state.count`.
+ *
+ * ```tsx
+ * const Cmp = component$(() => {
+ *   const store = useStore({
+ *     count: 0,
+ *     doubleCount: 0,
+ *     debounced: 0,
+ *   });
+ *
+ *   // Double count watch
+ *   useWatch$((track) => {
+ *     const count = track(store, 'count');
+ *     store.doubleCount = 2 * count;
+ *   });
+ *
+ *   // Debouncer watch
+ *   useWatch$((track) => {
+ *     const doubleCount = track(store, 'doubleCount');
+ *     const timer = setTimeout(() => {
+ *       store.debounced = doubleCount;
+ *     }, 2000);
+ *     return () => {
+ *       clearTimeout(timer);
+ *     };
+ *   });
+ *   return (
+ *     <Host>
+ *       <div>
+ *         {store.count} / {store.doubleCount}
+ *       </div>
+ *       <div>{store.debounced}</div>
+ *     </Host>
+ *   );
+ * });
+ * ```
+ *
+ * @param watch - Function which should be re-executed when changes to the inputs are detected
+ * @public
  */
+// </docs>
 export function useWatchQrl(qrl: QRL<WatchFn>, opts?: UseEffectOptions): void {
   const [watch, setWatch] = useSequentialScope();
   if (!watch) {
@@ -90,14 +152,97 @@ export function useWatchQrl(qrl: QRL<WatchFn>, opts?: UseEffectOptions): void {
   }
 }
 
+// <docs markdown="../readme.md#useWatch">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit ../readme.md#useWatch instead)
 /**
- * @alpha
+ * Reruns the `watchFn` when the observed inputs change.
+ *
+ * Use `useWatch` to observe changes on a set of inputs, and then re-execute the `watchFn` when
+ * those inputs change.
+ *
+ * The `watchFn` only executes if the observed inputs change. To observe the inputs use the `obs`
+ * function to wrap property reads. This creates subscriptions which will trigger the `watchFn`
+ * to re-run.
+ *
+ * @see `Tracker`
+ *
+ * @public
+ *
+ * ## Example
+ *
+ * The `useWatch` function is used to observe the `state.count` property. Any changes to the
+ * `state.count` cause the `watchFn` to execute which in turn updates the `state.doubleCount` to
+ * the double of `state.count`.
+ *
+ * ```tsx
+ * const Cmp = component$(() => {
+ *   const store = useStore({
+ *     count: 0,
+ *     doubleCount: 0,
+ *     debounced: 0,
+ *   });
+ *
+ *   // Double count watch
+ *   useWatch$((track) => {
+ *     const count = track(store, 'count');
+ *     store.doubleCount = 2 * count;
+ *   });
+ *
+ *   // Debouncer watch
+ *   useWatch$((track) => {
+ *     const doubleCount = track(store, 'doubleCount');
+ *     const timer = setTimeout(() => {
+ *       store.debounced = doubleCount;
+ *     }, 2000);
+ *     return () => {
+ *       clearTimeout(timer);
+ *     };
+ *   });
+ *   return (
+ *     <Host>
+ *       <div>
+ *         {store.count} / {store.doubleCount}
+ *       </div>
+ *       <div>{store.debounced}</div>
+ *     </Host>
+ *   );
+ * });
+ * ```
+ *
+ * @param watch - Function which should be re-executed when changes to the inputs are detected
+ * @public
  */
+// </docs>
 export const useWatch$ = implicit$FirstArg(useWatchQrl);
 
+// <docs markdown="../readme.md#useClientEffect">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit ../readme.md#useClientEffect instead)
 /**
- * @alpha
+ * ```tsx
+ * const Timer = component$(() => {
+ *   const store = useStore({
+ *     count: 0,
+ *   });
+ *
+ *   useClientEffect$(() => {
+ *     // Only runs in the client
+ *     const timer = setInterval(() => {
+ *       store.count++;
+ *     }, 500);
+ *     return () => {
+ *       clearInterval(timer);
+ *     };
+ *   });
+ *
+ *   return <Host>{store.count}</Host>;
+ * });
+ * ```
+ *
+ * @public
  */
+// </docs>
 export function useClientEffectQrl(qrl: QRL<WatchFn>, opts?: UseEffectOptions): void {
   const [watch, setWatch] = useSequentialScope();
   if (!watch) {
@@ -117,14 +262,103 @@ export function useClientEffectQrl(qrl: QRL<WatchFn>, opts?: UseEffectOptions): 
   }
 }
 
+// <docs markdown="../readme.md#useClientEffect">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit ../readme.md#useClientEffect instead)
 /**
- * @alpha
+ * ```tsx
+ * const Timer = component$(() => {
+ *   const store = useStore({
+ *     count: 0,
+ *   });
+ *
+ *   useClientEffect$(() => {
+ *     // Only runs in the client
+ *     const timer = setInterval(() => {
+ *       store.count++;
+ *     }, 500);
+ *     return () => {
+ *       clearInterval(timer);
+ *     };
+ *   });
+ *
+ *   return <Host>{store.count}</Host>;
+ * });
+ * ```
+ *
+ * @public
  */
+// </docs>
 export const useClientEffect$ = implicit$FirstArg(useClientEffectQrl);
 
+// <docs markdown="../readme.md#useServerMount">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit ../readme.md#useServerMount instead)
 /**
- * @alpha
+ * Register's a server mount hook, that runs only in server when the component is first mounted.
+ * `useWatch` will run once in the server, and N-times in the client, only when the **tracked**
+ * state changes.
+ *
+ * ## Example
+ *
+ * ```tsx
+ * const Cmp = component$(() => {
+ *   const store = useStore({
+ *     users: [],
+ *   });
+ *
+ *   // Double count watch
+ *   useServerMount$(async () => {
+ *     // This code will ONLY run once in the server, when the component is mounted
+ *     store.users = await db.requestUsers();
+ *   });
+ *
+ *   return (
+ *     <Host>
+ *       {store.users.map((user) => (
+ *         <User user={user} />
+ *       ))}
+ *     </Host>
+ *   );
+ * });
+ *
+ * interface User {
+ *   name: string;
+ * }
+ * function User(props: { user: User }) {
+ *   return <div>Name: {props.user.name}</div>;
+ * }
+ * const Cmp = component$(() => {
+ *   const store = useStore({
+ *     users: [],
+ *   });
+ *
+ *   // Double count watch
+ *   useServerMount$(async () => {
+ *     // This code will ONLY run once in the server, when the component is mounted
+ *     store.users = await db.requestUsers();
+ *   });
+ *
+ *   return (
+ *     <Host>
+ *       {store.users.map((user) => (
+ *         <User user={user} />
+ *       ))}
+ *     </Host>
+ *   );
+ * });
+ *
+ * interface User {
+ *   name: string;
+ * }
+ * function User(props: { user: User }) {
+ *   return <div>Name: {props.user.name}</div>;
+ * }
+ * ```
+ *
+ * @public
  */
+// </docs>
 export function useServerMountQrl(watchQrl: QRL<ServerFn>): void {
   const [watch, setWatch] = useSequentialScope();
   if (!watch) {
@@ -136,9 +370,74 @@ export function useServerMountQrl(watchQrl: QRL<ServerFn>): void {
   }
 }
 
+// <docs markdown="../readme.md#useServerMount">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit ../readme.md#useServerMount instead)
 /**
- * @alpha
+ * Register's a server mount hook, that runs only in server when the component is first mounted.
+ * `useWatch` will run once in the server, and N-times in the client, only when the **tracked**
+ * state changes.
+ *
+ * ## Example
+ *
+ * ```tsx
+ * const Cmp = component$(() => {
+ *   const store = useStore({
+ *     users: [],
+ *   });
+ *
+ *   // Double count watch
+ *   useServerMount$(async () => {
+ *     // This code will ONLY run once in the server, when the component is mounted
+ *     store.users = await db.requestUsers();
+ *   });
+ *
+ *   return (
+ *     <Host>
+ *       {store.users.map((user) => (
+ *         <User user={user} />
+ *       ))}
+ *     </Host>
+ *   );
+ * });
+ *
+ * interface User {
+ *   name: string;
+ * }
+ * function User(props: { user: User }) {
+ *   return <div>Name: {props.user.name}</div>;
+ * }
+ * const Cmp = component$(() => {
+ *   const store = useStore({
+ *     users: [],
+ *   });
+ *
+ *   // Double count watch
+ *   useServerMount$(async () => {
+ *     // This code will ONLY run once in the server, when the component is mounted
+ *     store.users = await db.requestUsers();
+ *   });
+ *
+ *   return (
+ *     <Host>
+ *       {store.users.map((user) => (
+ *         <User user={user} />
+ *       ))}
+ *     </Host>
+ *   );
+ * });
+ *
+ * interface User {
+ *   name: string;
+ * }
+ * function User(props: { user: User }) {
+ *   return <div>Name: {props.user.name}</div>;
+ * }
+ * ```
+ *
+ * @public
  */
+// </docs>
 export const useServerMount$ = implicit$FirstArg(useServerMountQrl);
 
 export function runWatch(watch: WatchDescriptor): Promise<WatchDescriptor> {
@@ -205,9 +504,9 @@ export const destroyWatch = (watch: WatchDescriptor) => {
   }
 };
 
-// <docs markdown="https://hackmd.io/_Kl9br9tT8OB-1Dv8uR4Kg#Observer">
+// <docs markdown="../readme.md#Tracker">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ./watch.public.md#Tracker instead)
+// (edit ../readme.md#Tracker instead)
 /**
  * Used to signal to Qwik which state should be watched for changes.
  *
@@ -220,8 +519,8 @@ export const destroyWatch = (watch: WatchDescriptor) => {
  * The `obs` passed into the `watchFn` is used to mark `state.count` as a property of interest.
  * Any changes to the `state.count` property will cause the `watchFn` to re-run.
  *
- * ```typescript
- * export const MyComp = component$(() => {
+ * ```tsx
+ * const Cmp = component$(() => {
  *   const store = useStore({ count: 0, doubleCount: 0 });
  *   useWatch$((track) => {
  *     const count = track(store, 'count');
@@ -238,50 +537,12 @@ export const destroyWatch = (watch: WatchDescriptor) => {
  * });
  * ```
  *
- * See: `useWatch`
+ * @see `useWatch`
  *
  * @public
  */
 // </docs>
 export interface Tracker {
-  // <docs markdown="./watch.public.md#Tracker">
-  // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-  // (edit ./watch.public.md#Tracker instead)
-  /**
-   * Used to signal to Qwik which state should be watched for changes.
-   *
-   * The `Tracker` is passed into the `watchFn` of `useWatch`. It is intended to be used to wrap
-   * state objects in a read proxy which signals to Qwik which properties should be watched for
-   * changes. A change to any of the properties cause the `watchFn` to re-run.
-   *
-   * ## Example
-   *
-   * The `obs` passed into the `watchFn` is used to mark `state.count` as a property of interest.
-   * Any changes to the `state.count` property will cause the `watchFn` to re-run.
-   *
-   * ```typescript
-   * export const MyComp = component$(() => {
-   *   const store = useStore({ count: 0, doubleCount: 0 });
-   *   useWatch$((track) => {
-   *     const count = track(store, 'count');
-   *     store.doubleCount = 2 * count;
-   *   });
-   *   return (
-   *     <div>
-   *       <span>
-   *         {store.count} / {store.doubleCount}
-   *       </span>
-   *       <button onClick$={() => store.count++}>+</button>
-   *     </div>
-   *   );
-   * });
-   * ```
-   *
-   * See: `useWatch`
-   *
-   * @public
-   */
-  // </docs>
   <T extends {}>(obj: T): T;
   <T extends {}, B extends keyof T>(obj: T, prop: B): T[B];
 }

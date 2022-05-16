@@ -10,7 +10,6 @@ export function isQrl(value: any): value is QRLInternal {
 
 class QRL<TYPE = any> implements IQRL<TYPE> {
   __brand__QRL__!: TYPE;
-  canonicalChunk: string;
   refSymbol?: string;
 
   private el: Element | undefined;
@@ -22,9 +21,7 @@ class QRL<TYPE = any> implements IQRL<TYPE> {
     public symbolFn: null | (() => Promise<Record<string, any>>),
     public capture: null | string[],
     public captureRef: null | any[]
-  ) {
-    this.canonicalChunk = chunk.replace(FIND_EXT, '');
-  }
+  ) {}
 
   setContainer(el: Element) {
     if (!this.el) {
@@ -81,6 +78,18 @@ class QRL<TYPE = any> implements IQRL<TYPE> {
     return stringifyQRL(this, options);
   }
 }
+
+export const getCanonicalSymbol = (symbolName: string) => {
+  const index = symbolName.lastIndexOf('_');
+  if (index > -1) {
+    return symbolName.slice(index + 1);
+  }
+  return symbolName;
+};
+
+export const isSameQRL = (a: QRL<any>, b: QRL<any>): boolean => {
+  return getCanonicalSymbol(a.symbol) === getCanonicalSymbol(b.symbol);
+};
 
 export type QRLInternal<T = any> = QRL<T>;
 export const QRLInternal: typeof QRL = QRL;

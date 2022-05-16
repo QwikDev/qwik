@@ -5,6 +5,7 @@
     "target": "ES2020" /* Specify ECMAScript target version: 'ES3' (default), 'ES5', 'ES2015', 'ES2016', 'ES2017', 'ES2018', 'ES2019', 'ES2020', or 'ESNEXT'. */,
     "module": "ES2020" /* Specify module code generation: 'none', 'commonjs', 'amd', 'system', 'umd', 'es2015', 'es2020', or 'ESNext'. */,
     "lib": ["es2020", "DOM"] /* Specify library files to be included in the compilation. */,
+    "resolveJsonModule": true,
     // "allowJs": true,                       /* Allow javascript files to be compiled. */
     // "checkJs": true,                       /* Report errors in .js files. */
     "jsx": "react-jsx",
@@ -51,6 +52,7 @@
       "@builder.io/qwik-city": ["packages/qwik-city/src/runtime/index"],
       "@builder.io/qwik-city/build": ["packages/qwik-city/src/runtime/build"],
       "@builder.io/qwik-city/vite": ["packages/qwik-city/src/vite"],
+      "@examples-data": ["packages/docs/src/layouts/examples/examples-data.ts"],
       "@playground-data": ["packages/docs/src/layouts/playground/playground-data.ts"],
       "@tutorial-data": ["packages/docs/src/layouts/tutorial/tutorial-data.ts"]
     },

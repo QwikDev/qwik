@@ -2,9 +2,9 @@ import type { ValueOrPromise } from '..';
 import type { InvokeContext } from '../use/use-core';
 import { runtimeQrl } from './qrl';
 
-// <docs markdown="./qrl.public.md#QRL">
+// <docs markdown="../readme.md#QRL">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ./qrl.public.md#QRL instead)
+// (edit ../readme.md#QRL instead)
 /**
  * The `QRL` type represents a lazy-loadable AND serializable resource.
  *
@@ -22,7 +22,7 @@ import { runtimeQrl } from './qrl';
  * Creating `QRL` is done using `$(...)` function. `$(...)` is a special marker for the Qwik
  * Optimizer that marks that the code should be extracted into a lazy-loaded symbol.
  *
- * ```typescript
+ * ```tsx
  * useOnDocument(
  *   'mousemove',
  *   $(() => console.log('mousemove'))
@@ -31,7 +31,7 @@ import { runtimeQrl } from './qrl';
  *
  * In the above code the Qwik Optimizer detects `$(...)` and transforms the code as shown below:
  *
- * ```typescript
+ * ```tsx
  * // FILE: <current file>
  * useOnDocument('mousemove', qrl('./chunk-abc.js', 'onMousemove'));
  *
@@ -48,7 +48,7 @@ import { runtimeQrl } from './qrl';
  * Use `QRL` type in your application when you want to get a lazy-loadable reference to a
  * resource (most likely a function).
  *
- * ```typescript
+ * ```tsx
  * // Example of declaring a custom functions which takes callback as QRL.
  * export function useMyFunction(callback: QRL<() => void>) {
  *   doExtraStuff();
@@ -67,7 +67,7 @@ import { runtimeQrl } from './qrl';
  * At times it may be necessary to resolve a `QRL` reference to the actual value. This can be
  * performed using `qrlImport(..)` function.
  *
- * ```typescript
+ * ```tsx
  * // Assume you have QRL reference to a greet function
  * const lazyGreet: QRL<() => void> = $(() => console.log('Hello World!'));
  *
@@ -122,7 +122,7 @@ import { runtimeQrl } from './qrl';
  *
  * These are the main reasons why Qwik introduces its own concept of `QRL`.
  *
- * See: `$`
+ * @see `$`
  *
  * @public
  */
@@ -148,23 +148,23 @@ export interface QRL<TYPE = any> {
  */
 export type EventHandler<T> = QRL<(value: T) => any>;
 
-// <docs markdown="./qrl.public.md#$">
+// <docs markdown="../readme.md#$">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ./qrl.public.md#$ instead)
+// (edit ../readme.md#$ instead)
 /**
  * Qwik Optimizer marker function.
  *
  * Use `$(...)` to tell Qwik Optimizer to extract the expression in `$(...)` into a lazy-loadable
  * resource referenced by `QRL`.
  *
- * See: `implicit$FirstArg` for additional `____$(...)` rules.
+ * @see `implicit$FirstArg` for additional `____$(...)` rules.
  *
  * In this example `$(...)` is used to capture the callback function of `onmousemove` into
  * lazy-loadable reference. This allows the code to refer to the function without actually
  * loading the function. In this example, the callback function does not get loaded until
  * `mousemove` event fires.
  *
- * ```typescript
+ * ```tsx
  * useOnDocument(
  *   'mousemove',
  *   $(() => console.log('mousemove'))
@@ -173,7 +173,7 @@ export type EventHandler<T> = QRL<(value: T) => any>;
  *
  * In this code the Qwik Optimizer detects `$(...)` and transforms the code into:
  *
- * ```typescript
+ * ```tsx
  * // FILE: <current file>
  * useOnDocument('mousemove', qrl('./chunk-abc.js', 'onMousemove'));
  *
@@ -194,8 +194,8 @@ export type EventHandler<T> = QRL<(value: T) => any>;
  * all captured variables are constants.)
  *    - Must be runtime serializable.
  *
- * ```typescript
- * import { importedFn } from './example';
+ * ```tsx
+ * import { importedFn } from './import/example';
  *
  * export const greet = () => console.log('greet');
  * function topLevelFn() {}
@@ -229,9 +229,9 @@ export function $<T>(expression: T): QRL<T> {
   return runtimeQrl(expression);
 }
 
-// <docs markdown="./qrl.public.md#implicit$FirstArg">
+// <docs markdown="../readme.md#implicit$FirstArg">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ./qrl.public.md#implicit$FirstArg instead)
+// (edit ../readme.md#implicit$FirstArg instead)
 /**
  * Create a `____$(...)` convenience method from `___(...)`.
  *
@@ -246,7 +246,7 @@ export function $<T>(expression: T): QRL<T> {
  *
  * - `component$(() => {...})` is same as `onRender($(() => {...}))`
  *
- * ```typescript
+ * ```tsx
  * export function myApi(callback: QRL<() => void>): void {
  *   // ...
  * }
@@ -266,7 +266,7 @@ export function $<T>(expression: T): QRL<T> {
  * ```
  *
  * @param fn - function that should have its first argument automatically `$`.
- * @public
+ * @alpha
  */
 // </docs>
 export function implicit$FirstArg<FIRST, REST extends any[], RET>(

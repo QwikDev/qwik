@@ -21,7 +21,7 @@ import type { JSXNode } from './types/jsx-node';
  * </Async>
  * ```
  *
- * See: `<Async>` for more context.
+ * @see `<Async>` for more context.
  *
  * @public
  */
@@ -33,7 +33,7 @@ export type PromiseValue<T> =
        * If `true` then `value` and `rejection` are both undefined.
        * if `false` then either `value` or `rejection` contains value.
        *
-       * See: `isResolved` and `isRejection`
+       * @see `isResolved` and `isRejection`
        */
       readonly isPending: true;
       /**
@@ -41,7 +41,7 @@ export type PromiseValue<T> =
        *
        * If `true` then `value` contains the resolution of the `Promise`.
        *
-       * See: `value`.
+       * @see `value`.
        */
       readonly isResolved: false;
       /**
@@ -49,7 +49,7 @@ export type PromiseValue<T> =
        *
        * If `true` then `rejection` contains the rejection of the `Promise`.
        *
-       * See: `rejection`.
+       * @see `rejection`.
        */
       readonly isRejected: false;
       /**
@@ -57,7 +57,7 @@ export type PromiseValue<T> =
        *
        * `value` is set only if `isResolved` is `true`.
        *
-       * See: `isResolved`.
+       * @see `isResolved`.
        */
       readonly value: undefined;
       /**
@@ -65,7 +65,7 @@ export type PromiseValue<T> =
        *
        * `rejection` is set only if `isRejected` is `true`.
        *
-       * See: `isRejected`.
+       * @see `isRejected`.
        */
       readonly rejection: undefined;
     }
@@ -76,7 +76,7 @@ export type PromiseValue<T> =
        * If `true` then `value` and `rejection` are both undefined.
        * if `false` then either `value` or `rejection` contains value.
        *
-       * See: `isResolved` and `isRejection`
+       * @see `isResolved` and `isRejection`
        */
       readonly isPending: false;
       /**
@@ -84,7 +84,7 @@ export type PromiseValue<T> =
        *
        * If `true` then `value` contains the resolution of the `Promise`.
        *
-       * See: `value`.
+       * @see `value`.
        */
       readonly isResolved: true;
       /**
@@ -92,7 +92,7 @@ export type PromiseValue<T> =
        *
        * If `true` then `rejection` contains the rejection of the `Promise`.
        *
-       * See: `rejection`.
+       * @see `rejection`.
        */
       readonly isRejected: false;
       /**
@@ -100,7 +100,7 @@ export type PromiseValue<T> =
        *
        * `value` is set only if `isResolved` is `true`.
        *
-       * See: `isResolved`.
+       * @see `isResolved`.
        */
       readonly value: T;
       /**
@@ -108,7 +108,7 @@ export type PromiseValue<T> =
        *
        * `rejection` is set only if `isRejected` is `true`.
        *
-       * See: `isRejected`.
+       * @see `isRejected`.
        */
       readonly rejection: undefined;
     }
@@ -119,7 +119,7 @@ export type PromiseValue<T> =
        * If `true` then `value` and `rejection` are both undefined.
        * if `false` then either `value` or `rejection` contains value.
        *
-       * See: `isResolved` and `isRejection`
+       * @see `isResolved` and `isRejection`
        */
       readonly isPending: false;
       /**
@@ -127,7 +127,7 @@ export type PromiseValue<T> =
        *
        * If `true` then `value` contains the resolution of the `Promise`.
        *
-       * See: `value`.
+       * @see `value`.
        */
       readonly isResolved: false;
       /**
@@ -135,7 +135,7 @@ export type PromiseValue<T> =
        *
        * If `true` then `rejection` contains the rejection of the `Promise`.
        *
-       * See: `rejection`.
+       * @see `rejection`.
        */
       readonly isRejected: true;
       /**
@@ -143,7 +143,7 @@ export type PromiseValue<T> =
        *
        * `value` is set only if `isResolved` is `true`.
        *
-       * See: `isResolved`.
+       * @see `isResolved`.
        */
       readonly value: undefined;
       /**
@@ -151,7 +151,7 @@ export type PromiseValue<T> =
        *
        * `rejection` is set only if `isRejected` is `true`.
        *
-       * See: `isRejected`.
+       * @see `isRejected`.
        */
       readonly rejection: any;
     };

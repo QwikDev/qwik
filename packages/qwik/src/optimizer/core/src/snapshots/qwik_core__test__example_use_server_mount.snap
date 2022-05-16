@@ -1,0 +1,272 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$, useServerMount$, useStore, useStyles$ } from '@builder.io/qwik';
+import mongo from 'mongodb';
+import redis from 'redis';
+
+export const Parent = component$(() => {
+    const state = useStore({
+        text: ''
+    });
+
+    // Double count watch
+    useServerMount$(async () => {
+        state.text = await mongo.users();
+        redis.set(state.text);
+    });
+
+    return (
+        <div onClick$={() => console.log('parent')}>
+            {state.text}
+        </div>
+    );
+});
+
+export const Child = component$(() => {
+    const state = useStore({
+        text: ''
+    });
+
+    // Double count watch
+    useServerMount$(async () => {
+        state.text = await mongo.users();
+    });
+
+    return (
+        <div onClick$={() => console.log('child')}>
+            {state.text}
+        </div>
+    );
+});
+
+============================= test.js ==
+
+import * as qwik from "@builder.io/qwik";
+import { componentQrl } from "@builder.io/qwik";
+export const Parent = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./entry_Parent")
+, "Parent_component_0TaiDayHrlo"));
+export const Child = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./entry_Child")
+, "Child_component_9GyF01GDKqw"));
+
+============================= parent_component_0taidayhrlo.js ==
+
+import * as qwik from "@builder.io/qwik";
+import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
+import { useServerMountQrl } from "@builder.io/qwik";
+import { useStore } from "@builder.io/qwik";
+export const Parent_component_0TaiDayHrlo = ()=>{
+    const state = useStore({
+        text: ''
+    });
+    // Double count watch
+    useServerMountQrl(qwik.qrl(()=>import("./entry_server")
+    , "Parent_component_useServerMount_cQrQm0HrrM8", [
+        state
+    ]));
+    return /*#__PURE__*/ _jsx("div", {
+        onClickQrl: qwik.qrl(()=>import("./entry_Parent")
+        , "Parent_component_div_onClick_C5XE49Nqd3A"),
+        children: state.text
+    });
+};
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "Parent_component_0TaiDayHrlo",
+  "entry": "entry_Parent",
+  "displayName": "Parent_component",
+  "hash": "0TaiDayHrlo",
+  "canonicalFilename": "parent_component_0taidayhrlo",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    178,
+    497
+  ]
+}
+*/
+============================= child_component_useservermount_lne1dxu8z28.js ==
+
+import * as qwik from "@builder.io/qwik";
+import mongo from "mongodb";
+export const Child_component_useServerMount_lnE1dxU8z28 = async ()=>{
+    const [state] = qwik.useLexicalScope();
+    state.text = await mongo.users();
+};
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "Child_component_useServerMount_lnE1dxU8z28",
+  "entry": "entry_server",
+  "displayName": "Child_component_useServerMount",
+  "hash": "lnE1dxU8z28",
+  "canonicalFilename": "child_component_useservermount_lne1dxu8z28",
+  "extension": "js",
+  "parent": "Child_component_9GyF01GDKqw",
+  "ctxKind": "function",
+  "ctxName": "useServerMount$",
+  "captures": true,
+  "loc": [
+    642,
+    703
+  ]
+}
+*/
+============================= parent_component_div_onclick_c5xe49nqd3a.js ==
+
+import * as qwik from "@builder.io/qwik";
+export const Parent_component_div_onClick_C5XE49Nqd3A = ()=>console.log('parent')
+;
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "Parent_component_div_onClick_C5XE49Nqd3A",
+  "entry": "entry_Parent",
+  "displayName": "Parent_component_div_onClick",
+  "hash": "C5XE49Nqd3A",
+  "canonicalFilename": "parent_component_div_onclick_c5xe49nqd3a",
+  "extension": "js",
+  "parent": "Parent_component_0TaiDayHrlo",
+  "ctxKind": "event",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    419,
+    446
+  ]
+}
+*/
+============================= child_component_9gyf01gdkqw.js ==
+
+import * as qwik from "@builder.io/qwik";
+import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
+import { useServerMountQrl } from "@builder.io/qwik";
+import { useStore } from "@builder.io/qwik";
+export const Child_component_9GyF01GDKqw = ()=>{
+    const state = useStore({
+        text: ''
+    });
+    // Double count watch
+    useServerMountQrl(qwik.qrl(()=>import("./entry_server")
+    , "Child_component_useServerMount_lnE1dxU8z28", [
+        state
+    ]));
+    return /*#__PURE__*/ _jsx("div", {
+        onClickQrl: qwik.qrl(()=>import("./entry_Child")
+        , "Child_component_div_onClick_elliVSnAiOQ"),
+        children: state.text
+    });
+};
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "Child_component_9GyF01GDKqw",
+  "entry": "entry_Child",
+  "displayName": "Child_component",
+  "hash": "9GyF01GDKqw",
+  "canonicalFilename": "child_component_9gyf01gdkqw",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    533,
+    820
+  ]
+}
+*/
+============================= parent_component_useservermount_cqrqm0hrrm8.js ==
+
+import * as qwik from "@builder.io/qwik";
+import mongo from "mongodb";
+import redis from "redis";
+export const Parent_component_useServerMount_cQrQm0HrrM8 = async ()=>{
+    const [state] = qwik.useLexicalScope();
+    state.text = await mongo.users();
+    redis.set(state.text);
+};
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "Parent_component_useServerMount_cQrQm0HrrM8",
+  "entry": "entry_server",
+  "displayName": "Parent_component_useServerMount",
+  "hash": "cQrQm0HrrM8",
+  "canonicalFilename": "parent_component_useservermount_cqrqm0hrrm8",
+  "extension": "js",
+  "parent": "Parent_component_0TaiDayHrlo",
+  "ctxKind": "function",
+  "ctxName": "useServerMount$",
+  "captures": true,
+  "loc": [
+    287,
+    379
+  ]
+}
+*/
+============================= child_component_div_onclick_ellivsnaioq.js ==
+
+import * as qwik from "@builder.io/qwik";
+export const Child_component_div_onClick_elliVSnAiOQ = ()=>console.log('child')
+;
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "Child_component_div_onClick_elliVSnAiOQ",
+  "entry": "entry_Child",
+  "displayName": "Child_component_div_onClick",
+  "hash": "elliVSnAiOQ",
+  "canonicalFilename": "child_component_div_onclick_ellivsnaioq",
+  "extension": "js",
+  "parent": "Child_component_9GyF01GDKqw",
+  "ctxKind": "event",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    743,
+    769
+  ]
+}
+*/
+============================= entry_Child.js (ENTRY POINT)==
+
+export { Child_component_9GyF01GDKqw } from "./child_component_9gyf01gdkqw";
+export { Child_component_div_onClick_elliVSnAiOQ } from "./child_component_div_onclick_ellivsnaioq";
+import { handleWatch as hW } from "@builder.io/qwik";
+hW.issue456 && hW.issue123();
+export { hW as handleWatch };
+
+============================= entry_Parent.js (ENTRY POINT)==
+
+export { Parent_component_0TaiDayHrlo } from "./parent_component_0taidayhrlo";
+export { Parent_component_div_onClick_C5XE49Nqd3A } from "./parent_component_div_onclick_c5xe49nqd3a";
+import { handleWatch as hW } from "@builder.io/qwik";
+hW.issue456 && hW.issue123();
+export { hW as handleWatch };
+
+============================= entry_server.js (ENTRY POINT)==
+
+export { Child_component_useServerMount_lnE1dxU8z28 } from "./child_component_useservermount_lne1dxu8z28";
+export { Parent_component_useServerMount_cQrQm0HrrM8 } from "./parent_component_useservermount_cqrqm0hrrm8";
+import { handleWatch as hW } from "@builder.io/qwik";
+hW.issue456 && hW.issue123();
+export { hW as handleWatch };
+
+== DIAGNOSTICS ==
+
+[]

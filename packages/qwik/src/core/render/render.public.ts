@@ -22,7 +22,7 @@ import { appendQwikDevTools, getContext } from '../props/props';
  * @param parent - Element which will act as a parent to `jsxNode`. When
  *     possible the rendering will try to reuse existing nodes.
  * @param jsxNode - JSX to render
- * @public
+ * @alpha
  */
 export async function render(
   parent: Element | Document,

@@ -106,7 +106,7 @@ async function validateStarter(api, distDir, appId, serverId) {
   accessSync(join(appDir, 'dist', 'favicon.ico'));
   accessSync(join(appDir, 'dist', 'q-manifest.json'));
   accessSync(join(appDir, 'dist', 'build'));
-  accessSync(join(appDir, 'server', 'entry.server.js'));
+  accessSync(join(appDir, 'server', 'entry.ssr.js'));
   accessSync(join(appDir, 'server', 'favicon.ico'));
   accessSync(join(appDir, 'README.md'));
   accessSync(join(appDir, 'tsconfig.json'));

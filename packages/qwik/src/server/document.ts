@@ -20,6 +20,7 @@ import { getElement } from '../core/render/render.public';
 import { getQwikLoaderScript } from './scripts';
 import { applyPrefetchImplementation } from './prefetch-implementation';
 import { getPrefetchResources } from './prefetch-strategy';
+import type { SnapshotResult } from '../core/object/store';
 
 /**
  * Create emulated `Window` for server environment. Does not implement the full browser
@@ -72,7 +73,7 @@ export async function renderToDocument(
 
   let snapshotState: SnapshotState | null = null;
   if (opts.snapshot !== false) {
-    snapshotState = pauseContainer(docOrElm);
+    snapshotState = pauseContainer(docOrElm).state;
   }
 
   const result: RenderToDocumentResult = {

@@ -461,7 +461,7 @@ jobs:
 
       - name: Validate Create Qwik Cli
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: yarn node scripts/validate-cli.cjs
+        run: yarn cli.validate
 
   ############ UNIT TEST ############
   test-unit:

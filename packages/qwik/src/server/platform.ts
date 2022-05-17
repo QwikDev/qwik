@@ -1,7 +1,7 @@
 import type { CorePlatform } from '@builder.io/qwik';
 import { setPlatform } from '@builder.io/qwik';
 import { getValidManifest } from '../optimizer/src/manifest';
-import type { QrlMapper, QwikManifest, SerializeDocumentOptions } from './types';
+import type { QrlMapper, SerializeDocumentOptions } from './types';
 import { normalizeUrl } from './utils';
 
 const _setImmediate = typeof setImmediate === 'function' ? setImmediate : setTimeout;

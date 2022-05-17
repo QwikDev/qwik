@@ -13,6 +13,7 @@
     "build.cli": "yarn node scripts --cli --dev",
     "build.cli.prod": "yarn node scripts --cli",
     "cli": "yarn build.cli && node packages/create-qwik/dist/create-qwik",
+    "cli.validate": "yarn node -r esbuild-register scripts/validate-cli.ts",
     "build.watch": "yarn node scripts --build --watch --dev --platform-binding",
     "api.update": "yarn node scripts --tsc --api --dev",
     "tsc.check": "tsc --noEmit",

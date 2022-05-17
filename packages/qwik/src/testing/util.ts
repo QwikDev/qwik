@@ -1,6 +1,5 @@
 import { pathToFileURL } from 'url';
 import { isPromise } from '../core/util/promises';
-import type { QwikDocument } from '../server';
 import type { QConfig } from './types';
 
 export function toFileUrl(filePath: string) {
@@ -82,7 +81,7 @@ const __self =
   self instanceof WorkerGlobalScope &&
   self;
 const __global = typeof global !== 'undefined' && global;
-export const platformGlobal: { document: QwikDocument | undefined } = (__globalThis ||
+export const platformGlobal: { document: Document | undefined } = (__globalThis ||
   __global ||
   __window ||
   __self) as any;

@@ -4,30 +4,13 @@
 
 ```ts
 
-// @public
-export function createDocument(opts?: DocumentOptions): QwikDocument;
-
-// @public (undocumented)
-export interface CreateRenderToStringOptions {
-    // (undocumented)
-    symbolsPath: string;
-}
+// Warning: (ae-forgotten-export) The symbol "DocumentOptions" needs to be exported by the entry point index.d.ts
+//
+// @internal
+export function _createDocument(opts?: DocumentOptions): any;
 
 // @alpha
 export function createTimer(): () => number;
-
-// @public
-export function createWindow(opts?: WindowOptions): QwikWindow;
-
-// @public
-export interface DocumentOptions {
-    // (undocumented)
-    debug?: boolean;
-    // (undocumented)
-    html?: string;
-    // (undocumented)
-    url?: URL | string;
-}
 
 // @alpha
 export function getQwikLoaderScript(opts?: {
@@ -85,10 +68,6 @@ export interface QwikBundle {
     symbols: string[];
 }
 
-// @public
-export interface QwikDocument extends Document {
-}
-
 // @alpha (undocumented)
 export interface QwikManifest {
     // (undocumented)
@@ -142,25 +121,17 @@ export interface QwikSymbol {
     parent: string | null;
 }
 
-// @public
-export interface QwikWindow extends WindowProxy {
-    document: QwikDocument;
-    // (undocumented)
-    location: Location;
-}
-
 // Warning: (ae-forgotten-export) The symbol "JSXNode" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "FunctionComponent" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "RenderToDocumentResult" needs to be exported by the entry point index.d.ts
 //
 // @public
-export function renderToDocument(docOrElm: Document | Element, rootNode: JSXNode<unknown> | FunctionComponent<any>, opts?: RenderToDocumentOptions): Promise<RenderToDocumentResult>;
+export function renderToString(rootNode: JSXNode, opts?: RenderToStringOptions): Promise<RenderToStringResult>;
 
 // Warning: (ae-forgotten-export) The symbol "SerializeDocumentOptions" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export interface RenderToDocumentOptions extends SerializeDocumentOptions, DocumentOptions {
+export interface RenderToStringOptions extends SerializeDocumentOptions, DocumentOptions {
     base?: string;
+    fragmentTagName?: string;
     // Warning: (ae-incompatible-release-tags) The symbol "prefetchStrategy" is marked as @public, but its signature references "PrefetchStrategy" which is marked as @alpha
     //
     // (undocumented)
@@ -172,18 +143,18 @@ export interface RenderToDocumentOptions extends SerializeDocumentOptions, Docum
     snapshot?: boolean;
 }
 
-// @public
-export function renderToString(rootNode: JSXNode, opts?: RenderToStringOptions): Promise<RenderToStringResult>;
-
 // @public (undocumented)
-export interface RenderToStringOptions extends RenderToDocumentOptions {
-    fragmentTagName?: string;
-}
-
-// @public (undocumented)
-export interface RenderToStringResult extends RenderToDocumentResult {
+export interface RenderToStringResult {
     // (undocumented)
     html: string;
+    // Warning: (ae-incompatible-release-tags) The symbol "prefetchResources" is marked as @public, but its signature references "PrefetchResource" which is marked as @alpha
+    //
+    // (undocumented)
+    prefetchResources: PrefetchResource[];
+    // Warning: (ae-forgotten-export) The symbol "SnapshotState" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    snapshotState: SnapshotState | null;
     // (undocumented)
     timing: {
         createDocument: number;
@@ -203,10 +174,6 @@ export const versions: {
     readonly qwik: string;
     readonly qwikDom: string;
 };
-
-// @public
-export interface WindowOptions extends DocumentOptions {
-}
 
 // (No @packageDocumentation comment for this package)
 

@@ -21,6 +21,7 @@ import {
   ObjToProxyMap,
   QOjectSubsSymbol,
   QOjectTargetSymbol,
+  readWriteProxy,
   shouldSerialize,
   SubscriberMap,
   _restoreQObject,
@@ -33,6 +34,7 @@ import {
   useWatchQrl,
   WatchFlags,
 } from '../watch/watch.public';
+import type { QRL } from '../import/qrl.public';
 
 export interface Store {
   doc: Document;
@@ -61,7 +63,7 @@ export function resumeContainer(containerEl: Element) {
   }
   script.remove();
 
-  const map = getProxyMap(doc);
+  const proxyMap = getProxyMap(doc);
   const meta = JSON.parse(script.textContent || '{}') as any;
 
   // Collect all elements
@@ -72,11 +74,11 @@ export function resumeContainer(containerEl: Element) {
   });
 
   const getObject: GetObject = (id) => {
-    return getObjectImpl(id, elements, meta.objs, map);
+    return getObjectImpl(id, elements, meta.objs, proxyMap);
   };
 
   // Revive proxies with subscriptions into the proxymap
-  reviveValues(meta.objs, meta.subs, getObject, map, parentJSON);
+  reviveValues(meta.objs, meta.subs, getObject, proxyMap, parentJSON);
 
   // Rebuild target objects
   for (const obj of meta.objs) {
@@ -127,7 +129,20 @@ export interface SnapshotState {
   subs: any[];
 }
 
-export function snapshotState(containerEl: Element): SnapshotState {
+export interface SnapshotListener {
+  key: string;
+  qrl: QRL<any>;
+}
+
+/**
+ * @public
+ */
+export interface SnapshotResult {
+  state: SnapshotState;
+  listeners: SnapshotListener[];
+}
+
+export function snapshotState(containerEl: Element): SnapshotResult {
   const doc = getDocument(containerEl);
   const proxyMap = getProxyMap(doc);
   const platform = getPlatform(doc);
@@ -265,6 +280,8 @@ export function snapshotState(containerEl: Element): SnapshotState {
     return obj;
   });
 
+  const listeners: SnapshotListener[] = [];
+
   // Write back to the dom
   collector.elements.forEach((node) => {
     const ctx = getContext(node)!;
@@ -290,6 +307,17 @@ export function snapshotState(containerEl: Element): SnapshotState {
       }
       node.setAttribute(QHostAttr, objs.map((obj) => ctx.refMap.indexOf(obj)).join(' '));
     }
+
+    if (ctx.listeners) {
+      ctx.listeners.forEach((qrls, key) => {
+        qrls.forEach((qrl) => {
+          listeners.push({
+            key,
+            qrl,
+          });
+        });
+      });
+    }
   });
 
   // Sanity check of serialized element
@@ -304,8 +332,11 @@ export function snapshotState(containerEl: Element): SnapshotState {
     });
   }
   return {
-    objs: convertedObjs,
-    subs,
+    state: {
+      objs: convertedObjs,
+      subs,
+    },
+    listeners,
   };
 }
 
@@ -343,7 +374,7 @@ function reviveValues(
   objs: any[],
   subs: any[],
   getObject: GetObject,
-  map: ObjToProxyMap,
+  proxyMap: ObjToProxyMap,
   containerEl: Element
 ) {
   for (let i = 0; i < objs.length; i++) {
@@ -373,7 +404,7 @@ function reviveValues(
           const set = entry[1] === null ? null : (new Set(entry[1] as any) as Set<string>);
           converted.set(el, set);
         });
-        _restoreQObject(value, map, converted);
+        _restoreQObject(value, proxyMap, converted);
       }
     }
   }
@@ -415,7 +446,7 @@ function getObjectImpl(
   id: string,
   elements: Map<string, Element>,
   objs: any[],
-  map: ObjToProxyMap
+  proxyMap: ObjToProxyMap
 ) {
   if (id.startsWith(ELEMENT_ID_PREFIX)) {
     assertEqual(elements.has(id), true);
@@ -426,9 +457,7 @@ function getObjectImpl(
   const obj = objs[index];
   const needsProxy = id.endsWith('!');
   if (needsProxy) {
-    const finalObj = map.get(obj);
-    assertDefined(finalObj);
-    return finalObj;
+    return proxyMap.get(obj) ?? readWriteProxy(obj, proxyMap);
   }
   return obj;
 }

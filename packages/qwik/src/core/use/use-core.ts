@@ -4,9 +4,9 @@ import { assertDefined } from '../assert/assert';
 import type { QwikDocument } from '../document';
 import { QContainerSelector, QHostAttr } from '../util/markers';
 import { getDocument } from '../util/dom';
-import type { QRL } from '..';
+import type { QRL } from '../import/qrl.public';
 import type { Subscriber } from './use-subscriber';
-import type { WatchDescriptor } from '../watch/watch.public';
+import type { RenderContext } from '../render/cursor';
 
 declare const document: QwikDocument;
 
@@ -36,7 +36,7 @@ export interface InvokeContext {
   waitOn?: ValueOrPromise<any>[];
   props?: Props;
   subscriber?: Subscriber | null;
-  watch?: WatchDescriptor;
+  renderCtx?: RenderContext;
 }
 
 let _context: InvokeContext | undefined;

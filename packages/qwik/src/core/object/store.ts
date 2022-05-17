@@ -26,14 +26,7 @@ import {
   SubscriberMap,
   _restoreQObject,
 } from './q-object';
-import {
-  destroyWatch,
-  isWatchCleanup,
-  isWatchDescriptor,
-  useClientEffectQrl,
-  useWatchQrl,
-  WatchFlags,
-} from '../watch/watch.public';
+import { destroyWatch, isWatchCleanup, isWatchDescriptor, WatchFlags } from '../watch/watch.public';
 import type { QRL } from '../import/qrl.public';
 
 export interface Store {
@@ -93,7 +86,7 @@ export function resumeContainer(containerEl: Element) {
     }
 
     const seq = el.getAttribute(QSeqAttr)!;
-    const host = el.getAttribute(QHostAttr);
+    const host = el.getAttribute(QHostAttr)!;
     const ctx = getContext(el);
 
     // Restore captured objets
@@ -115,6 +108,17 @@ export function resumeContainer(containerEl: Element) {
       assertDefined(renderQrl);
       ctx.props = ctx.refMap.get(props);
       ctx.renderQrl = ctx.refMap.get(renderQrl);
+    }
+
+    const attributes = el.attributes;
+    for (let i = 0; i < attributes.length; i++) {
+      const attr = attributes.item(i)!;
+      if (attr.name.startsWith('ctx:')) {
+        if (!ctx.contexts) {
+          ctx.contexts = new Map();
+        }
+        ctx.contexts.set(attr.name.slice('ctx:'.length), ctx.refMap.get(strToInt(attr.value)));
+      }
     }
   });
   containerEl.setAttribute(QContainerAttr, 'resumed');
@@ -153,9 +157,11 @@ export function snapshotState(containerEl: Element): SnapshotResult {
   // Collect all qObjected around the DOM
   getNodesInScope(containerEl, hasQObj).forEach((node) => {
     const ctx = getContext(node);
+    // TODO: improve serialization, get rid of refMap
     const hasListeners = ctx.listeners && ctx.listeners.size > 0;
     const hasWatch = ctx.refMap.array.some(isWatchCleanup);
-    if (hasListeners || hasWatch) {
+    const hasContext = ctx.refMap.array.some(isWatchCleanup);
+    if (hasListeners || hasWatch || hasContext) {
       collectElement(node, collector);
     }
   });
@@ -287,6 +293,7 @@ export function snapshotState(containerEl: Element): SnapshotResult {
     const ctx = getContext(node)!;
     assertDefined(ctx);
     const props = ctx.props;
+    const contexts = ctx.contexts;
     const renderQrl = ctx.renderQrl;
     const attribute = ctx.refMap.array
       .map((obj) => {
@@ -316,6 +323,12 @@ export function snapshotState(containerEl: Element): SnapshotResult {
             qrl,
           });
         });
+      });
+    }
+
+    if (contexts) {
+      contexts.forEach((value, key) => {
+        node.setAttribute(`ctx:${key}`, `${ctx.refMap.indexOf(value)}`);
       });
     }
   });

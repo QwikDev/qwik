@@ -35,6 +35,9 @@ export const Root = component$(() => {
       <p>
         <a href="/e2e/effect-client">Client effect</a>
       </p>
+      <p>
+        <a href="/e2e/context">Context</a>
+      </p>
     </section>
   );
 });

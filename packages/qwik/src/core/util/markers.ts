@@ -69,6 +69,8 @@ export const QObjAttr = 'q:obj';
 
 export const QSeqAttr = 'q:seq';
 
+export const QCtxAttr = 'q:ctx';
+
 export const QContainerAttr = 'q:container';
 
 export const QObjSelector = '[q\\:obj]';

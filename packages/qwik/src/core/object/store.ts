@@ -10,6 +10,7 @@ import {
   ELEMENT_ID,
   ELEMENT_ID_PREFIX,
   QContainerAttr,
+  QCtxAttr,
   QHostAttr,
   QObjAttr,
   QSeqAttr,
@@ -87,6 +88,7 @@ export function resumeContainer(containerEl: Element) {
 
     const seq = el.getAttribute(QSeqAttr)!;
     const host = el.getAttribute(QHostAttr)!;
+    const contexts = el.getAttribute(QCtxAttr)!;
     const ctx = getContext(el);
 
     // Restore captured objets
@@ -109,16 +111,14 @@ export function resumeContainer(containerEl: Element) {
       ctx.props = ctx.refMap.get(props);
       ctx.renderQrl = ctx.refMap.get(renderQrl);
     }
-
-    const attributes = el.attributes;
-    for (let i = 0; i < attributes.length; i++) {
-      const attr = attributes.item(i)!;
-      if (attr.name.startsWith('ctx:')) {
+    if (contexts) {
+      contexts.split(' ').map((part) => {
+        const [key, value] = part.split('=');
         if (!ctx.contexts) {
           ctx.contexts = new Map();
         }
-        ctx.contexts.set(attr.name.slice('ctx:'.length), ctx.refMap.get(strToInt(attr.value)));
-      }
+        ctx.contexts.set(key, ctx.refMap.get(strToInt(value)));
+      });
     }
   });
   containerEl.setAttribute(QContainerAttr, 'resumed');
@@ -160,7 +160,7 @@ export function snapshotState(containerEl: Element): SnapshotResult {
     // TODO: improve serialization, get rid of refMap
     const hasListeners = ctx.listeners && ctx.listeners.size > 0;
     const hasWatch = ctx.refMap.array.some(isWatchCleanup);
-    const hasContext = ctx.refMap.array.some(isWatchCleanup);
+    const hasContext = !!ctx.contexts;
     if (hasListeners || hasWatch || hasContext) {
       collectElement(node, collector);
     }
@@ -327,9 +327,11 @@ export function snapshotState(containerEl: Element): SnapshotResult {
     }
 
     if (contexts) {
+      const serializedContexts: string[] = [];
       contexts.forEach((value, key) => {
-        node.setAttribute(`ctx:${key}`, `${ctx.refMap.indexOf(value)}`);
+        serializedContexts.push(`${key}=${ctx.refMap.indexOf(value)}`);
       });
+      node.setAttribute(QCtxAttr, serializedContexts.join(' '));
     }
   });
 

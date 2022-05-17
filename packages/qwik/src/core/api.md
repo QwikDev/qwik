@@ -273,6 +273,9 @@ export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
     vocab?: string | undefined;
 }
 
+// @alpha (undocumented)
+export function immutable<T extends {}>(input: T): Readonly<T>;
+
 // @alpha
 export function implicit$FirstArg<FIRST, REST extends any[], RET>(fn: (first: QRL<FIRST>, ...rest: REST) => RET): (first: FIRST, ...rest: REST) => RET;
 

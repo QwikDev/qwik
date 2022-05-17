@@ -117,7 +117,7 @@ export async function renderMarked(
     operations: [],
     roots: [],
     containerEl,
-    component: undefined,
+    components: [],
     perf: {
       visited: 0,
       timing: [],

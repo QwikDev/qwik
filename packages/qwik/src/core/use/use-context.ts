@@ -1,34 +1,83 @@
-// import {FunctionComponent} from '../render/jsx/types/jsx-node';
-// import {jsx} from '../render/jsx/jsx-runtime';
-// import { useHostElement } from './use-host-element.public';
+import { getInvokeContext } from './use-core';
+import { useSequentialScope } from './use-store.public';
+import { setAttribute } from '../render/cursor';
+import { fromCamelToKebabCase } from '../util/case';
+import { getContext } from '../props/props';
+import { unwrapSubscriber, wrapSubscriber } from './use-subscriber';
+import { useHostElement } from './use-host-element.public';
 
-// export interface Context<STATE extends object> {
-//   id: string,
-//   defaultValue: STATE | undefined,
-//   Provider: FunctionComponent<{value: STATE, children: any}>,
-//   Consumer: FunctionComponent<{children: (state: STATE) => any}>,
-// }
+/**
+ * @alpha
+ */
+export interface Context<STATE extends object> {
+  readonly id: string;
+  readonly _value: STATE;
+}
 
-// export const SetContent = {} as any;
+/**
+ * @alpha
+ */
+export function createContext<STATE extends object>(name: string): Context<STATE> {
+  return Object.freeze({
+    id: fromCamelToKebabCase(name),
+  } as any);
+}
 
-// export function createContext<STATE extends object>(id: string, defaultValue?: STATE): Context<STATE> {
-//   return {
-//     id,
-//     defaultValue,
-//     Provider: (props) => {
-//       return jsx(SetContent, {id: id, ...props})
-//     },
-//     Consumer: () => {
-//       return jsx(SetContent, {id: id, ...props})
-//     },
-//   };
-// }
+/**
+ * @alpha
+ */
+export function useContextProvider<STATE extends object>(context: Context<STATE>, newValue: STATE) {
+  const [value, setValue] = useSequentialScope();
+  if (!value) {
+    const invokeContext = getInvokeContext();
+    const hostElement = invokeContext.hostElement!;
+    const renderCtx = invokeContext.renderCtx!;
+    const ctx = getContext(hostElement);
+    let contexts = ctx.contexts;
+    if (!contexts) {
+      ctx.contexts = contexts = new Map();
+    }
+    newValue = unwrapSubscriber(newValue);
+    contexts.set(context.id, newValue);
+    setAttribute(renderCtx, hostElement, `ctx:${context.id}`, '');
+    setValue(newValue);
+  }
+}
 
-// export function useContext<STATE extends object> (context: Context<STATE>): STATE {
-//   const el = useHostElement();
-//   const setContext = el.closest(`[context\\:${context.id}]`);
-// }
+/**
+ * @alpha
+ */
+export function useContext<STATE extends object>(context: Context<STATE>): STATE {
+  const value = _useContext(context);
+  return wrapSubscriber(value, useHostElement());
+}
 
-// useContextSet(Context, value);
-// useContextGet(Context)
-export {};
+export function _useContext<STATE extends object>(context: Context<STATE>): STATE {
+  const [value, setValue] = useSequentialScope();
+  if (!value) {
+    const invokeContext = getInvokeContext();
+    let hostElement = invokeContext.hostElement!;
+    const components = invokeContext.renderCtx!.components;
+    for (let i = components.length - 1; i >= 0; i--) {
+      hostElement = components[i].hostElement;
+      const ctx = getContext(components[i].hostElement);
+      if (ctx.contexts) {
+        const found = ctx.contexts.get(context.id);
+        if (found) {
+          setValue(found);
+          return found;
+        }
+      }
+    }
+    const foundEl = hostElement.closest(`[ctx\\:${context.id}]`);
+    if (foundEl) {
+      const value = getContext(foundEl).contexts!.get(context.id);
+      if (value) {
+        setValue(value);
+        return value;
+      }
+    }
+    throw new Error(`not found state for useContext: ${context.id}`);
+  }
+  return value;
+}

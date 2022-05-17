@@ -455,8 +455,6 @@ export function runWatch(watch: WatchDescriptor): Promise<WatchDescriptor> {
       cleanupWatch(watch);
       const el = watch.el;
       const invokationContext = newInvokeContext(getDocument(el), el, el, 'WatchEvent');
-      invokationContext.watch = watch;
-
       const watchFn = watch.qrl.invokeFn(el, invokationContext, () => {
         const captureRef = (watch.qrl as QRLInternal).captureRef;
         if (Array.isArray(captureRef)) {

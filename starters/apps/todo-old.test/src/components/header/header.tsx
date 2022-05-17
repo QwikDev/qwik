@@ -1,5 +1,5 @@
-import { component$, useContext, useContextProvider, useStore } from '@builder.io/qwik';
-import { TODOS, Todos } from '../../state/state';
+import { component$, useStore } from '@builder.io/qwik';
+import type { Todos } from '../../state/state';
 
 /**
  * Header component which is responsible for providing UI to ender new todo item.
@@ -7,9 +7,8 @@ import { TODOS, Todos } from '../../state/state';
  * This component only rerenders if the user interacts with it through the input.
  */
 export const Header = component$(
-  () => {
+  (props: { todos: Todos }) => {
     const state = useStore({ text: '' });
-    const todos = useContext(TODOS);
     return (
       <>
         <h1>todos</h1>
@@ -22,7 +21,7 @@ export const Header = component$(
             const inputValue = (event.target as HTMLInputElement).value;
             state.text = inputValue;
             if (event.key === 'Enter' && inputValue) {
-              todos.items.push({
+              props.todos.items.push({
                 completed: false,
                 title: state.text,
               });

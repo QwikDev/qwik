@@ -9,7 +9,7 @@ import { qPropWriteQRL } from './props-on';
 import { QContainerAttr } from '../util/markers';
 import type { QRL } from '../import/qrl.public';
 import type { OnRenderFn } from '../component/component.public';
-import { destroyWatch, isWatchDescriptor, WatchDescriptor } from '../watch/watch.public';
+import { destroyWatch, isWatchDescriptor } from '../watch/watch.public';
 import { pauseContainer } from '../object/store.public';
 import { getRenderingState } from '../render/notify-render';
 import { qDev } from '../util/qdev';
@@ -60,6 +60,7 @@ export interface QContext {
   seq: number[];
   component: ComponentCtx | undefined;
   listeners?: Map<string, QRL<any>[]>;
+  contexts?: Map<string, any>;
 }
 
 export function tryGetContext(element: Element): QContext | undefined {

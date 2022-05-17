@@ -90,7 +90,9 @@ export { useHostElement } from './use/use-host-element.public';
 export { useDocument } from './use/use-document.public';
 export { useLexicalScope } from './use/use-lexical-scope.public';
 export { useStore, useRef } from './use/use-store.public';
-export { useSubscriber, wrapSubscriber, unwrapSubscriber } from './use/use-subscriber';
+export { wrapSubscriber, unwrapSubscriber } from './use/use-subscriber';
+export { useContext, useContextProvider, createContext } from './use/use-context';
+export type { Context } from './use/use-context';
 export type { Ref } from './use/use-store.public';
 export type { InvokeContext } from './use/use-core';
 export type { RenderContext, RenderOperation, PerfEvent } from './render/cursor';
@@ -100,8 +102,6 @@ export type { RenderContext, RenderOperation, PerfEvent } from './render/cursor'
 //////////////////////////////////////////////////////////////////////////////////////////
 export type { ValueOrPromise } from './util/types';
 export type { NoSerialize } from './object/q-object';
-export { unwrapProxy as untrack } from './object/q-object';
-
 export { noSerialize, immutable } from './object/q-object';
 
 export { version } from './version';

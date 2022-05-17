@@ -1,9 +1,11 @@
-import { component$, Host, useContext } from '@builder.io/qwik';
-import { FILTERS, TODOS } from '../../state/state';
+import { component$, Host } from '@builder.io/qwik';
+import { FILTERS, Todos } from '../../state/state';
 import { Item } from '../item/item';
 
-export const Body = component$(() => {
-  const todos = useContext(TODOS);
+interface BodyProps {
+  todos: Todos;
+}
+export const Body = component$(({ todos }: BodyProps) => {
   return (
     <Host class="main">
       <ul class="todo-list">

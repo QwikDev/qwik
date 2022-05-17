@@ -4,10 +4,10 @@
 
 ```ts
 
-// Warning: (ae-forgotten-export) The symbol "DocumentOptions" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "SerializeDocumentOptions" needs to be exported by the entry point index.d.ts
 //
 // @internal
-export function _createDocument(opts?: DocumentOptions): any;
+export function _createDocument(opts?: SerializeDocumentOptions): any;
 
 // @alpha
 export function createTimer(): () => number;
@@ -126,10 +126,8 @@ export interface QwikSymbol {
 // @public
 export function renderToString(rootNode: JSXNode, opts?: RenderToStringOptions): Promise<RenderToStringResult>;
 
-// Warning: (ae-forgotten-export) The symbol "SerializeDocumentOptions" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
-export interface RenderToStringOptions extends SerializeDocumentOptions, DocumentOptions {
+export interface RenderToStringOptions extends SerializeDocumentOptions {
     base?: string;
     fragmentTagName?: string;
     // Warning: (ae-incompatible-release-tags) The symbol "prefetchStrategy" is marked as @public, but its signature references "PrefetchStrategy" which is marked as @alpha

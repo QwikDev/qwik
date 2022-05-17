@@ -9,6 +9,7 @@ export type {
   QrlMapper,
   RenderToStringOptions,
   RenderToStringResult,
+  SnapshotResult,
 } from './types';
 export { renderToString } from './render';
 export { createTimer, versions } from './utils';

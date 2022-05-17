@@ -1,6 +1,6 @@
 import { createTimer, getBuildBase } from './utils';
 import { pauseContainer, render } from '@builder.io/qwik';
-import type { JSXNode, SnapshotState } from '@builder.io/qwik';
+import type { JSXNode, SnapshotResult } from '@builder.io/qwik';
 import { setServerPlatform } from './platform';
 import { serializeDocument } from './serialize';
 import type { RenderToStringOptions, RenderToStringResult } from './types';
@@ -42,12 +42,12 @@ export async function renderToString(rootNode: JSXNode, opts: RenderToStringOpti
   const containerEl = getElement(doc);
   containerEl.setAttribute('q:base', buildBase);
 
-  let snapshotState: SnapshotState | null = null;
+  let snapshotResult: SnapshotResult | null = null;
   if (opts.snapshot !== false) {
-    snapshotState = pauseContainer(doc);
+    snapshotResult = pauseContainer(doc);
   }
 
-  const prefetchResources = getPrefetchResources(doc, snapshotState, opts);
+  const prefetchResources = getPrefetchResources(snapshotResult, opts);
   if (prefetchResources.length > 0) {
     applyPrefetchImplementation(doc, opts, prefetchResources);
   }
@@ -67,7 +67,7 @@ export async function renderToString(rootNode: JSXNode, opts: RenderToStringOpti
 
   const result: RenderToStringResult = {
     prefetchResources,
-    snapshotState,
+    snapshotResult,
     html: serializeDocument(rootEl, opts),
     timing: {
       createDocument: createDocTime,

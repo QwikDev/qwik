@@ -1,4 +1,4 @@
-import type { SnapshotState } from '../core/object/store';
+import type { SnapshotResult } from '../core/object/store';
 import type { QwikManifest, QwikBundle, QwikSymbol, GlobalInjections } from '../optimizer/src';
 
 /**
@@ -51,7 +51,7 @@ export type PrefetchImplementation =
 export type SymbolsToPrefetch =
   | 'all'
   | 'events-document'
-  | ((opts: { document: QwikDocument; manifest: QwikManifest }) => PrefetchResource[]);
+  | ((opts: { manifest: QwikManifest }) => PrefetchResource[]);
 
 /**
  * @alpha
@@ -73,7 +73,7 @@ export type QrlMapper = (symbolName: string) => string | undefined;
  */
 export interface RenderToStringResult {
   prefetchResources: PrefetchResource[];
-  snapshotState: SnapshotState | null;
+  snapshotResult: SnapshotResult | null;
   html: string;
   timing: {
     createDocument: number;
@@ -81,6 +81,8 @@ export interface RenderToStringResult {
     toString: number;
   };
 }
+
+export { SnapshotResult };
 
 /**
  * @public

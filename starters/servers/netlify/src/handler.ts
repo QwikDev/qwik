@@ -1,5 +1,6 @@
-// @ts-ignore
 import { render } from './entry.server';
+import manifest from '../dist/q-manifest.json';
+import type { QwikManifest } from '@builder.io/qwik/optimizer';
 
 const handler = async (request: Request) => {
   try {
@@ -11,6 +12,7 @@ const handler = async (request: Request) => {
     const ssrResult = await render({
       url: request.url,
       base: '/build/',
+      manifest: manifest as QwikManifest,
     });
 
     const response = new Response(ssrResult.html, {

@@ -11,6 +11,7 @@ import { Containers } from './components/containers/container';
 import { Factory } from './components/factory/factory';
 import { Watch } from './components/watch/watch';
 import { EffectClient } from './components/effect-client/effect-client';
+import { ContextRoot } from './components/context/context';
 
 /**
  * Entry point for server-side pre-rendering.
@@ -32,6 +33,7 @@ export function render(opts: RenderToStringOptions) {
     '/e2e/factory': () => <Factory />,
     '/e2e/watch': () => <Watch />,
     '/e2e/effect-client': () => <EffectClient />,
+    '/e2e/context': () => <ContextRoot />,
   };
   const Test = tests[url.pathname];
 

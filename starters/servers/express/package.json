@@ -1,7 +1,8 @@
 {
   "description": "Express.js server.",
   "scripts": {
-    "serve": "node app.js"
+    "build.ssr": "vite build --ssr src/entry.express.tsx",
+    "serve": "node server/entry.express.js"
   },
   "devDependencies": {
     "@types/express": "4.17.13",

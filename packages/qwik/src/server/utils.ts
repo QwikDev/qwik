@@ -1,5 +1,4 @@
-import { getValidManifest } from '../optimizer/src/manifest';
-import type { DocumentOptions, QwikManifest, RenderToDocumentOptions } from './types';
+import type { RenderToStringOptions } from './types';
 
 /**
  * Utility timer function for performance profiling.
@@ -18,55 +17,6 @@ export function createTimer() {
   };
 }
 
-export function ensureGlobals(doc: any, opts: DocumentOptions) {
-  if (!doc[QWIK_DOC]) {
-    if (!doc || doc.nodeType !== 9) {
-      throw new Error(`Invalid document`);
-    }
-
-    doc[QWIK_DOC] = true;
-
-    const loc = normalizeUrl(opts.url);
-
-    Object.defineProperty(doc, 'baseURI', {
-      get: () => loc.href,
-      set: (url: string) => (loc.href = normalizeUrl(url).href),
-    });
-
-    doc.defaultView = {
-      get document() {
-        return doc;
-      },
-      get location() {
-        return loc;
-      },
-      get origin() {
-        return loc.origin;
-      },
-      addEventListener: noop,
-      removeEventListener: noop,
-      history: {
-        pushState: noop,
-        replaceState: noop,
-        go: noop,
-        back: noop,
-        forward: noop,
-      },
-      CustomEvent: class CustomEvent {
-        type: string;
-        constructor(type: string, details: any) {
-          Object.assign(this, details);
-          this.type = type;
-        }
-      },
-    };
-  }
-
-  return doc.defaultView;
-}
-
-const QWIK_DOC = Symbol();
-
 export function normalizeUrl(url: string | URL | undefined | null) {
   if (url != null) {
     if (typeof url === 'string') {
@@ -81,17 +31,7 @@ export function normalizeUrl(url: string | URL | undefined | null) {
 
 const BASE_URI = `http://document.qwik.dev/`;
 
-const noop = () => {};
-
-export function getQrlMap(manifest: QwikManifest | undefined | null) {
-  manifest = getValidManifest(manifest);
-  if (manifest) {
-    return manifest.mapping;
-  }
-  return undefined;
-}
-
-export function getBuildBase(opts: RenderToDocumentOptions) {
+export function getBuildBase(opts: RenderToStringOptions) {
   let base = opts.base;
   if (typeof base === 'string') {
     if (!base.endsWith('/')) {
@@ -99,7 +39,7 @@ export function getBuildBase(opts: RenderToDocumentOptions) {
     }
     return base;
   }
-  return null;
+  return '/build/';
 }
 
 /**

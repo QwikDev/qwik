@@ -1,5 +1,6 @@
-import { createDocument, createWindow } from './document';
-import { ensureGlobals, normalizeUrl } from './utils';
+import { createDocument, createWindow } from '@builder.io/qwik/testing';
+import { normalizeUrl } from './utils';
+import { ensureGlobals } from './document';
 
 describe('normalizeUrl', () => {
   it('no url', () => {

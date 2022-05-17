@@ -1,4 +1,4 @@
-import { createWindow as createServerWindow } from '@builder.io/qwik/server';
+import { _createDocument } from '@builder.io/qwik/server';
 import { setTestPlatform } from './platform';
 import type { MockDocumentOptions, MockWindowOptions, MockDocument, MockWindow } from './types';
 
@@ -6,14 +6,16 @@ import type { MockDocumentOptions, MockWindowOptions, MockDocument, MockWindow }
  * Create emulated `window` useful for testing.
  */
 export function createWindow(opts: MockDocumentOptions = {}): MockWindow {
-  const win = createServerWindow(opts);
+  const win = _createDocument(opts).defaultView;
   setTestPlatform(win.document);
-  return win as any;
+  return win;
 }
 
 /**
  * Create emulated `document` for testing.
  */
 export function createDocument(opts: MockWindowOptions = {}): MockDocument {
-  return createWindow(opts).document;
+  const doc = _createDocument(opts);
+  setTestPlatform(doc);
+  return doc;
 }

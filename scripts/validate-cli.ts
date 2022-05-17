@@ -1,4 +1,4 @@
-const {
+import {
   accessSync,
   readFileSync,
   writeFileSync,
@@ -7,10 +7,10 @@ const {
   mkdirSync,
   readdirSync,
   copyFileSync,
-} = require('fs');
-const assert = require('assert');
-const { join } = require('path');
-const { pathToFileURL } = require('url');
+} from 'fs';
+import assert from 'assert';
+import { join } from 'path';
+import { pathToFileURL } from 'url';
 
 async function validateCreateQwikCli() {
   console.log(`👾 validating create-qwik...`);
@@ -39,7 +39,7 @@ async function validateCreateQwikCli() {
 
   const cliApi = join(cliDir, 'index.js');
   console.log(`💫 import cli api: ${cliApi}`);
-  const api = require(cliApi);
+  const api: typeof import('create-qwik') = await import(pathToFileURL(cliApi).href);
 
   const starters = await api.getStarters();
   assert.ok(starters.apps.length > 0);
@@ -55,7 +55,12 @@ async function validateCreateQwikCli() {
   console.log(`👽 create-qwik validated\n`);
 }
 
-async function validateStarter(api, distDir, appId, serverId) {
+async function validateStarter(
+  api: typeof import('create-qwik'),
+  distDir: string,
+  appId: string,
+  serverId: string
+) {
   const projectName = `${appId}-${serverId}`;
   const appDir = join(distDir, 'app-' + projectName);
 
@@ -97,7 +102,7 @@ async function validateStarter(api, distDir, appId, serverId) {
   rmSync(qwikNodeModule, { force: true, recursive: true });
 
   const distQwik = join(__dirname, '..', 'packages', 'qwik', 'dist');
-  cpSync(distQwik, qwikNodeModule, { recursive: true });
+  cpSync(distQwik, qwikNodeModule);
 
   console.log(`🌈 ${projectName}: npm run build`);
   await execa('npm', ['run', 'build'], { cwd: appDir, stdout: 'inherit' });
@@ -106,32 +111,30 @@ async function validateStarter(api, distDir, appId, serverId) {
   accessSync(join(appDir, 'dist', 'favicon.ico'));
   accessSync(join(appDir, 'dist', 'q-manifest.json'));
   accessSync(join(appDir, 'dist', 'build'));
-  accessSync(join(appDir, 'server', 'entry.ssr.js'));
-  accessSync(join(appDir, 'server', 'favicon.ico'));
   accessSync(join(appDir, 'README.md'));
   accessSync(join(appDir, 'tsconfig.json'));
   accessSync(join(appDir, 'tsconfig.tsbuildinfo'));
 
   const starters = await api.getStarters();
-  let hasServer = false;
   const serverDir = join(appDir, 'server');
   accessSync(serverDir);
+
+  let hasEntryServer = false;
   const serverOutput = readdirSync(serverDir);
-  for (const serverFileName in serverOutput) {
+  for (const serverFileName of serverOutput) {
+    if (serverFileName.startsWith('entry.')) {
+      hasEntryServer = true;
+      break;
+    }
   }
-
-  // pathToFileURL() required for windows
-  const importUrl = pathToFileURL(join(appDir, 'server', 'entry.server.js'));
-  console.log(`👑 ${projectName} import("${importUrl}")`);
-
-  const { render } = await import(importUrl);
-  const ssrResult = await render();
-  assert.ok(typeof ssrResult.html === 'string');
+  if (!serverOutput) {
+    throw new Error(`"${projectName}", ${appDir} did not generate server output`);
+  }
 
   console.log(`⭐️ ${projectName} validated\n`);
 }
 
-function cpSync(src, dest) {
+function cpSync(src: string, dest: string) {
   // cpSync() not available until Node v16.7.0
   try {
     const stats = statSync(src);

@@ -25,7 +25,7 @@ export function createDynamicImportedCode(ctx: PluginContext) {
   return c.join('\n');
 }
 
-export function createEsmImportedCode(ctx: PluginContext) {
+export function createInlinedCode(ctx: PluginContext) {
   const esmImports: string[] = [];
   const c: string[] = [];
 

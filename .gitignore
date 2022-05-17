@@ -11,11 +11,7 @@ etc
 temp
 tsdoc-metadata.json
 **/.DS_Store
-integration/out/
-integration/todo/output
-integration/*.js
-integration/*.cjs
-integration/*.map
+starters/**/server
 src/napi/package-*
 target
 *.node

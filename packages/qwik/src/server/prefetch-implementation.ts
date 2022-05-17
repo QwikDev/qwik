@@ -109,7 +109,7 @@ function linkJsImplementation(
 }
 
 function workerFetchScript() {
-  const fetch = `Promise.all(e.data.map(u=>fetch(u))).finally(()=>{setTimeout(postMessage({}),999)})`;
+  const fetch = `Promise.all(e.data.map(u=>fetch(u,{priority:"low"}))).finally(()=>{setTimeout(postMessage({}),999)})`;
 
   const workerBody = `onmessage=(e)=>{${fetch}}`;
 

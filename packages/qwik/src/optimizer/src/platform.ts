@@ -5,11 +5,13 @@ import type {
   TransformModuleInput,
   TransformOutput,
 } from './types';
-import { createPath } from '../../core/util/path';
+import { createPath } from './path';
 import { QWIK_BINDING_MAP } from './qwik-binding-map';
 import { versions } from './versions';
 
 export async function getSystem() {
+  const sysEnv = getEnv();
+
   const sys: OptimizerSystem = {
     dynamicImport: (path) => {
       throw new Error(
@@ -18,10 +20,9 @@ export async function getSystem() {
     },
     path: null as any,
     cwd: () => '/',
-    env,
+    os: 'unknown',
+    env: sysEnv,
   };
-
-  const sysEnv = env();
 
   sys.path = createPath(sys);
 
@@ -57,6 +58,7 @@ export async function getSystem() {
   if (sysEnv === 'node') {
     sys.path = await sys.dynamicImport('path');
     sys.cwd = () => process.cwd();
+    sys.os = process.platform;
   }
 
   return sys;
@@ -67,7 +69,7 @@ export const getPlatformInputFiles = async (sys: OptimizerSystem) => {
     return sys.getInputFiles;
   }
 
-  if (sys.env() === 'node') {
+  if (sys.env === 'node') {
     const fs: typeof import('fs') = await sys.dynamicImport('fs');
 
     return async (rootDir: string) => {
@@ -114,7 +116,7 @@ export const getPlatformInputFiles = async (sys: OptimizerSystem) => {
 };
 
 export async function loadPlatformBinding(sys: OptimizerSystem) {
-  const sysEnv = env();
+  const sysEnv = getEnv();
 
   if (sysEnv === 'node') {
     // NodeJS
@@ -125,8 +127,7 @@ export async function loadPlatformBinding(sys: OptimizerSystem) {
         for (const triple of triples) {
           // NodeJS - Native Binding
           try {
-            const platformBindingPath = sys.path.join('bindings', triple.platformArchABI);
-            const mod = await sys.dynamicImport('./' + platformBindingPath);
+            const mod = await sys.dynamicImport(`./bindings/${triple.platformArchABI}`);
             return mod;
           } catch (e) {
             logWarn(e);
@@ -141,9 +142,8 @@ export async function loadPlatformBinding(sys: OptimizerSystem) {
 
     if (sysEnv === 'node') {
       // CJS WASM NodeJS
-      const cjsWasmPath = sys.path.join('bindings', 'qwik.wasm.cjs');
       const wasmPath = sys.path.join(__dirname, 'bindings', 'qwik_wasm_bg.wasm');
-      const mod = await sys.dynamicImport('./' + cjsWasmPath);
+      const mod = await sys.dynamicImport(`./bindings/qwik.wasm.cjs`);
       const fs: typeof import('fs') = await sys.dynamicImport('fs');
 
       return new Promise<Buffer>((resolve, reject) => {
@@ -193,8 +193,7 @@ export async function loadPlatformBinding(sys: OptimizerSystem) {
 
   if (globalThis.IS_ESM) {
     // ESM WASM
-    const mjsWasmPath = sys.path.join('bindings', 'qwik.wasm.mjs');
-    const module = await sys.dynamicImport('./' + mjsWasmPath);
+    const module = await sys.dynamicImport(`./bindings/qwik.wasm.mjs`);
     await module.default();
     return module;
   }
@@ -207,16 +206,16 @@ export interface PlatformBinding {
   transform_modules: (opts: any) => TransformOutput;
 }
 
-const env = (): SystemEnvironment => {
+const getEnv = (): SystemEnvironment => {
   if (typeof Deno !== 'undefined') {
     return 'deno';
   }
 
   if (
     typeof process !== 'undefined' &&
+    typeof global !== 'undefined' &&
     process.versions &&
-    process.versions.node &&
-    typeof global !== 'undefined'
+    process.versions.node
   ) {
     return 'node';
   }

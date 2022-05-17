@@ -14,13 +14,12 @@ export default defineConfig(() => {
   const pagesDir = resolve('pages');
 
   return {
-    build: {
-      rollupOptions: {
-        input: [
-          resolve('src', 'components', 'app', 'app.tsx'),
-          resolve('src', 'components', 'repl', 'worker', 'repl-service-worker.ts'),
-        ],
-      },
+    ssr: {
+      // SSR builds for the edge should use the "webworker" target
+      target: 'webworker',
+
+      // No external imports in ssr module, instead bundle into one file
+      noExternal: true,
     },
     plugins: [
       qwikCity({
@@ -30,7 +29,14 @@ export default defineConfig(() => {
           default: resolve('src', 'layouts', 'docs', 'docs.tsx'),
         },
       }),
-      qwikVite(),
+      qwikVite({
+        client: {
+          input: [
+            resolve('src', 'components', 'app', 'app.tsx'),
+            resolve('src', 'components', 'repl', 'worker', 'repl-service-worker.ts'),
+          ],
+        },
+      }),
       partytownVite({
         dest: resolve('dist', '~partytown'),
       }),

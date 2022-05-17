@@ -351,7 +351,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         // so we need to turn the @qwik-client-manifest import into a relative import
         code = code.replace(
           /@qwik-client-manifest/g,
-          path.resolve(opts.input[0], QWIK_CLIENT_MANIFEST_ID)
+          normalizePath(path.resolve(opts.input[0], QWIK_CLIENT_MANIFEST_ID))
         );
       }
 

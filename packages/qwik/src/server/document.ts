@@ -1,13 +1,13 @@
 import { normalizeUrl } from './utils';
 import qwikDom from '@builder.io/qwik-dom';
-import type { DocumentOptions, QwikDocument } from './types';
+import type { SerializeDocumentOptions, QwikDocument } from './types';
 
 /**
  * Create emulated `Document` for server environment. Does not implement the full browser
  * `document` and `window` API. This api may be removed in the future.
  * @internal
  */
-export function _createDocument(opts?: DocumentOptions) {
+export function _createDocument(opts?: SerializeDocumentOptions) {
   opts = opts || {};
 
   const doc: QwikDocument = qwikDom.createDocument(opts.html) as any;
@@ -17,7 +17,7 @@ export function _createDocument(opts?: DocumentOptions) {
   return win.document;
 }
 
-export function ensureGlobals(doc: any, opts: DocumentOptions) {
+export function ensureGlobals(doc: any, opts: SerializeDocumentOptions) {
   if (!doc[QWIK_DOC]) {
     if (!doc || doc.nodeType !== 9) {
       throw new Error(`Invalid document`);

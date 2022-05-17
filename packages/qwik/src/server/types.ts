@@ -9,18 +9,15 @@ import type { QwikManifest, QwikBundle, QwikSymbol, GlobalInjections } from '../
  */
 export interface QwikDocument extends Document {}
 
-export interface DocumentOptions {
-  url?: URL | string;
-  html?: string;
-  debug?: boolean;
-}
-
 /**
  * @public
  */
-export interface SerializeDocumentOptions extends DocumentOptions {
+export interface SerializeDocumentOptions {
   manifest?: QwikManifest;
   qrlMapper?: QrlMapper;
+  url?: URL | string;
+  html?: string;
+  debug?: boolean;
 }
 
 /**
@@ -88,7 +85,7 @@ export interface RenderToStringResult {
 /**
  * @public
  */
-export interface RenderToStringOptions extends SerializeDocumentOptions, DocumentOptions {
+export interface RenderToStringOptions extends SerializeDocumentOptions {
   /**
    * Defaults to `true`
    */

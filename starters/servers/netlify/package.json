@@ -1,10 +1,11 @@
 {
   "description": "Netlify Edge Functions.",
   "scripts": {
-    "serve": "netlify dev"
+    "serve": "netlify dev",
+    "build.ssr": "vite build --ssr src/entry.netlify.ts"
   },
   "devDependencies": {
-    "@netlify/vite-plugin-netlify-edge": "^1.0.0"
+    "@netlify/vite-plugin-netlify-edge": "^1.1.0"
   },
   "qwik": {
     "priority": -1

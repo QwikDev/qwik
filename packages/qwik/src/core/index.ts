@@ -102,6 +102,6 @@ export type { ValueOrPromise } from './util/types';
 export type { NoSerialize } from './object/q-object';
 export { unwrapProxy as untrack } from './object/q-object';
 
-export { noSerialize } from './object/q-object';
+export { noSerialize, immutable } from './object/q-object';
 
 export { version } from './version';

@@ -88,6 +88,9 @@ export function wrap<T>(value: T, proxyMap: ObjToProxyMap): T {
     if (isQrl(value)) {
       return value;
     }
+    if (Object.isFrozen(value)) {
+      return value;
+    }
     const nakedValue = unwrapProxy(value);
     if (nakedValue !== value) {
       // already a proxy return;
@@ -322,6 +325,13 @@ export type NoSerialize<T> = (T & { __no_serialize__: true }) | undefined;
 export function noSerialize<T extends {}>(input: T): NoSerialize<T> {
   noSerializeSet.add(input);
   return input as any;
+}
+
+/**
+ * @alpha
+ */
+export function immutable<T extends {}>(input: T): Readonly<T> {
+  return Object.freeze(input);
 }
 
 export function isConnected(sub: Subscriber): boolean {

@@ -149,10 +149,8 @@ export interface RenderToStringResult {
     //
     // (undocumented)
     prefetchResources: PrefetchResource[];
-    // Warning: (ae-forgotten-export) The symbol "SnapshotState" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
-    snapshotState: SnapshotState | null;
+    snapshotResult: SnapshotResult | null;
     // (undocumented)
     timing: {
         createDocument: number;
@@ -166,6 +164,18 @@ export function serializeDocument(docOrEl: Document | Element, opts?: SerializeD
 
 // @public
 export function setServerPlatform(document: any, opts: SerializeDocumentOptions): Promise<void>;
+
+// @public (undocumented)
+export interface SnapshotResult {
+    // Warning: (ae-forgotten-export) The symbol "SnapshotListener" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    listeners: SnapshotListener[];
+    // Warning: (ae-forgotten-export) The symbol "SnapshotState" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    state: SnapshotState;
+}
 
 // @public (undocumented)
 export const versions: {

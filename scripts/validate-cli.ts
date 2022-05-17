@@ -11,7 +11,6 @@ import {
 import assert from 'assert';
 import { join } from 'path';
 import { pathToFileURL } from 'url';
-import nodeFetch from 'node-fetch';
 
 async function validateCreateQwikCli() {
   console.log(`👾 validating create-qwik...`);
@@ -40,7 +39,7 @@ async function validateCreateQwikCli() {
 
   const cliApi = join(cliDir, 'index.js');
   console.log(`💫 import cli api: ${cliApi}`);
-  const api: typeof import('create-qwik') = await import(cliApi);
+  const api: typeof import('create-qwik') = await import(pathToFileURL(cliApi).href);
 
   const starters = await api.getStarters();
   assert.ok(starters.apps.length > 0);

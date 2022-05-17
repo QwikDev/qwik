@@ -124,7 +124,7 @@ export interface QwikSymbol {
 // Warning: (ae-forgotten-export) The symbol "JSXNode" needs to be exported by the entry point index.d.ts
 //
 // @public
-export function renderToString(rootNode: JSXNode, opts?: RenderToStringOptions): Promise<RenderToStringResult>;
+export function renderToString(rootNode: JSXNode_2, opts?: RenderToStringOptions): Promise<RenderToStringResult>;
 
 // @public (undocumented)
 export interface RenderToStringOptions extends SerializeDocumentOptions {

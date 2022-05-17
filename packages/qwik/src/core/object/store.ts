@@ -25,7 +25,14 @@ import {
   SubscriberMap,
   _restoreQObject,
 } from './q-object';
-import { destroyWatch, isWatchCleanup, isWatchDescriptor, WatchFlags } from '../watch/watch.public';
+import {
+  destroyWatch,
+  isWatchCleanup,
+  isWatchDescriptor,
+  useClientEffectQrl,
+  useWatchQrl,
+  WatchFlags,
+} from '../watch/watch.public';
 
 export interface Store {
   doc: Document;
@@ -141,9 +148,17 @@ export function snapshotState(containerEl: Element): SnapshotState {
   // Convert objSet to array
   const objs = Array.from(collector.objSet);
 
+  function hasSubscriptions(a: any) {
+    const proxy = proxyMap.get(a);
+    if (proxy) {
+      return proxy[QOjectSubsSymbol].size > 0;
+    }
+    return false;
+  }
+
   objs.sort((a, b) => {
-    const isProxyA = proxyMap.has(a) ? 0 : 1;
-    const isProxyB = proxyMap.has(b) ? 0 : 1;
+    const isProxyA = hasSubscriptions(a) ? 0 : 1;
+    const isProxyB = hasSubscriptions(b) ? 0 : 1;
     return isProxyA - isProxyB;
   });
 
@@ -208,7 +223,7 @@ export function snapshotState(containerEl: Element): SnapshotState {
   const subs = objs
     .map((obj) => {
       const subs = proxyMap.get(obj)?.[QOjectSubsSymbol] as SubscriberMap;
-      if (subs) {
+      if (subs && subs.size > 0) {
         return Object.fromEntries(
           Array.from(subs.entries()).map(([sub, set]) => {
             const id = getObjId(sub);
@@ -259,9 +274,6 @@ export function snapshotState(containerEl: Element): SnapshotState {
     const attribute = ctx.refMap.array
       .map((obj) => {
         const id = getObjId(obj);
-        if (!id) {
-          console.log('HERROOO', obj);
-        }
         assertDefined(id);
         return id;
       })
@@ -460,6 +472,11 @@ function createCollector(doc: Document, proxyMap: ObjToProxyMap): Collector {
   };
 }
 function collectQrl(obj: QRLInternal, collector: Collector) {
+  if (collector.seen.has(obj)) {
+    return true;
+  }
+  collector.seen.add(obj);
+
   collector.objSet.add(normalizeObj(obj, collector.doc));
   if (obj.captureRef) {
     obj.captureRef.forEach((obj) => collectValue(obj, collector));
@@ -467,6 +484,10 @@ function collectQrl(obj: QRLInternal, collector: Collector) {
 }
 
 function collectElement(el: Element, collector: Collector) {
+  if (collector.seen.has(el)) {
+    return;
+  }
+  collector.seen.add(el);
   const captured = tryGetContext(el)?.refMap.array;
   if (captured) {
     collector.elements.push(el);
@@ -491,12 +512,6 @@ function collectSubscriptions(subs: SubscriberMap, collector: Collector) {
 }
 
 function collectQObjects(obj: any, collector: Collector) {
-  const alreadyParsed = collector.seen.has(obj);
-  if (alreadyParsed) {
-    return true;
-  }
-  collector.seen.add(obj);
-
   if (obj != null) {
     if (typeof obj === 'object') {
       const hasTarget = !!obj[QOjectTargetSymbol];
@@ -519,6 +534,10 @@ function collectQObjects(obj: any, collector: Collector) {
       obj = normalizeObj(obj, collector.doc);
     }
     if (typeof obj === 'object') {
+      if (collector.seen.has(obj)) {
+        return true;
+      }
+      collector.seen.add(obj);
       collector.objSet.add(obj);
 
       if (Array.isArray(obj)) {

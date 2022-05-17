@@ -46,7 +46,7 @@ export async function render(
     hostElements: new Set(),
     operations: [],
     roots: [parent as Element],
-    component: undefined,
+    components: [],
     containerEl,
     perf: {
       visited: 0,

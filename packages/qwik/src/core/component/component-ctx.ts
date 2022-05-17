@@ -27,9 +27,15 @@ export const renderComponent = (rctx: RenderContext, ctx: QContext): ValueOrProm
   // Component is not dirty any more
   rctx.globalState.hostsStaging.delete(hostElement);
 
+  const newCtx: RenderContext = {
+    ...rctx,
+    components: [...rctx.components],
+  };
+
   // Invoke render hook
   const invocatinContext = newInvokeContext(rctx.doc, hostElement, hostElement, RenderEvent);
   invocatinContext.subscriber = hostElement;
+  invocatinContext.renderCtx = newCtx;
   const waitOn = (invocatinContext.waitOn = [] as any[]);
 
   // Clean current subscription before render
@@ -74,11 +80,7 @@ export const renderComponent = (rctx: RenderContext, ctx: QContext): ValueOrProm
         }
       }
       componentCtx.slots = [];
-
-      const newCtx: RenderContext = {
-        ...rctx,
-        component: componentCtx,
-      };
+      newCtx.components.push(componentCtx);
       return visitJsxNode(newCtx, hostElement, processNode(jsxNode), false);
     });
   });

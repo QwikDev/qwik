@@ -115,7 +115,7 @@ async function copyDir(config: BuildConfig, srcDir: string, destDir: string) {
   const items = await readdir(srcDir);
   await Promise.all(
     items.map(async (itemName) => {
-      if (!IGNORE[itemName]) {
+      if (!IGNORE[itemName] || itemName.includes('.test')) {
         const srcPath = join(srcDir, itemName);
         const destPath = join(destDir, itemName);
         const itemStat = await stat(srcPath);

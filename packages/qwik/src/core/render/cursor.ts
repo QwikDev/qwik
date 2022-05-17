@@ -66,7 +66,7 @@ export interface RenderContext {
   roots: Element[];
   hostElements: Set<Element>;
   operations: RenderOperation[];
-  component: ComponentCtx | undefined;
+  components: ComponentCtx[];
   globalState: RenderingState;
   containerEl: Element;
   perf: RenderPerf;
@@ -291,7 +291,11 @@ export function patchVnode(
   if (isSvg && vnode.type === 'foreignObject') {
     isSvg = false;
   } else if (isSlot) {
-    rctx.component!.slots.push(vnode);
+    const currentComponent =
+      rctx.components.length > 0 ? rctx.components[rctx.components.length - 1] : undefined;
+    if (currentComponent) {
+      currentComponent.slots.push(vnode);
+    }
   }
   const isComponent = isComponentNode(vnode);
   if (dirty) {
@@ -500,7 +504,8 @@ function createElm(rctx: RenderContext, vnode: JSXNode, isSvg: boolean): ValueOr
   if (isSvg && tag === 'foreignObject') {
     isSvg = false;
   }
-  const currentComponent = rctx.component;
+  const currentComponent =
+    rctx.components.length > 0 ? rctx.components[rctx.components.length - 1] : undefined;
   if (currentComponent) {
     const styleTag = currentComponent.styleClass;
     if (styleTag) {
@@ -508,7 +513,7 @@ function createElm(rctx: RenderContext, vnode: JSXNode, isSvg: boolean): ValueOr
     }
     if (tag === 'q:slot') {
       setSlotRef(rctx, currentComponent.hostElement, elm);
-      rctx.component!.slots.push(vnode);
+      currentComponent.slots.push(vnode);
     }
   }
 

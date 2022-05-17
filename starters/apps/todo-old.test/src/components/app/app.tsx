@@ -1,8 +1,8 @@
-import { component$, useStyles$, useStore, useContextProvider } from '@builder.io/qwik';
+import { component$, useStyles$, useStore } from '@builder.io/qwik';
 import { Footer } from '../footer/footer';
 import { Header } from '../header/header';
 import { Body } from '../body/body';
-import { TODOS, Todos } from '../../state/state';
+import type { Todos } from '../../state/state';
 import styles from './index.css?inline';
 
 /**
@@ -23,13 +23,11 @@ export const App = component$(() => {
       { completed: false, title: 'Profit' },
     ],
   });
-  useContextProvider(TODOS, todos);
-
   return (
     <section class="todoapp">
-      <Header />
-      <Body />
-      <Footer />
+      <Header todos={todos} />
+      <Body todos={todos} />
+      <Footer todos={todos} />
     </section>
   );
 });

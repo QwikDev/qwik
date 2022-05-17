@@ -103,6 +103,14 @@ export interface ComponentOptions {
 // @public
 export function componentQrl<PROPS extends {}>(onRenderQrl: QRL<OnRenderFn<PROPS>>, options?: ComponentOptions): Component<PROPS>;
 
+// @alpha (undocumented)
+export interface Context<STATE extends object> {
+    // (undocumented)
+    readonly id: string;
+    // (undocumented)
+    readonly _value: STATE;
+}
+
 // @public (undocumented)
 export interface CorePlatform {
     chunkForSymbol: (symbolName: string) => string | undefined;
@@ -112,6 +120,9 @@ export interface CorePlatform {
     nextTick: (fn: () => any) => Promise<any>;
     raf: (fn: () => any) => Promise<any>;
 }
+
+// @alpha (undocumented)
+export function createContext<STATE extends object>(name: string): Context<STATE>;
 
 // Warning: (ae-forgotten-export) The symbol "QwikProps" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "QwikEvents" needs to be exported by the entry point index.d.ts
@@ -293,6 +304,10 @@ export interface InvokeContext {
     props?: Props;
     // (undocumented)
     qrl?: QRL<any>;
+    // Warning: (ae-incompatible-release-tags) The symbol "renderCtx" is marked as @public, but its signature references "RenderContext" which is marked as @alpha
+    //
+    // (undocumented)
+    renderCtx?: RenderContext;
     // (undocumented)
     seq: number;
     // Warning: (ae-forgotten-export) The symbol "Subscriber" needs to be exported by the entry point index.d.ts
@@ -303,10 +318,6 @@ export interface InvokeContext {
     url: URL | null;
     // (undocumented)
     waitOn?: ValueOrPromise<any>[];
-    // Warning: (ae-forgotten-export) The symbol "WatchDescriptor" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    watch?: WatchDescriptor;
 }
 
 // @public (undocumented)
@@ -445,7 +456,7 @@ export type RenderableProps<P, RefType = any> = P & Readonly<{
 // @alpha (undocumented)
 export interface RenderContext {
     // (undocumented)
-    component: ComponentCtx | undefined;
+    components: ComponentCtx[];
     // (undocumented)
     containerEl: Element;
     // (undocumented)
@@ -476,6 +487,8 @@ export interface RenderingState {
     renderPromise: Promise<RenderContext> | undefined;
     // (undocumented)
     watchNext: Set<WatchDescriptor>;
+    // Warning: (ae-forgotten-export) The symbol "WatchDescriptor" needs to be exported by the entry point index.d.ts
+    //
     // (undocumented)
     watchRunning: Set<Promise<WatchDescriptor>>;
     // (undocumented)
@@ -536,9 +549,6 @@ export interface Tracker {
 }
 
 // @alpha (undocumented)
-export function untrack<T>(proxy: T): T;
-
-// @alpha (undocumented)
 export function unwrapSubscriber<T extends {}>(obj: T): any;
 
 // @alpha
@@ -558,6 +568,12 @@ export const useClientEffect$: (first: WatchFn, opts?: UseEffectOptions | undefi
 //
 // @public
 export function useClientEffectQrl(qrl: QRL<WatchFn>, opts?: UseEffectOptions): void;
+
+// @alpha (undocumented)
+export function useContext<STATE extends object>(context: Context<STATE>): STATE;
+
+// @alpha (undocumented)
+export function useContextProvider<STATE extends object>(context: Context<STATE>, newValue: STATE): void;
 
 // @alpha
 export function useDocument(): Document;
@@ -621,9 +637,6 @@ export const useStyles$: (first: string) => void;
 
 // @public
 export function useStylesQrl(styles: QRL<string>): void;
-
-// @alpha (undocumented)
-export function useSubscriber<T extends {}>(obj: T): T;
 
 // Warning: (ae-incompatible-release-tags) The symbol "useWatch$" is marked as @public, but its signature references "WatchFn" which is marked as @alpha
 // Warning: (ae-incompatible-release-tags) The symbol "useWatch$" is marked as @public, but its signature references "UseEffectOptions" which is marked as @alpha

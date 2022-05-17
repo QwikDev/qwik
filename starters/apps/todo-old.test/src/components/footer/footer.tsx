@@ -1,5 +1,5 @@
-import { component$, Host, useContext } from '@builder.io/qwik';
-import { FILTERS, FilterStates, TODOS, Todos } from '../../state/state';
+import { component$, Host } from '@builder.io/qwik';
+import { FILTERS, FilterStates, Todos } from '../../state/state';
 
 /**
  * Footer showing items remaining and filtering options
@@ -7,20 +7,18 @@ import { FILTERS, FilterStates, TODOS, Todos } from '../../state/state';
  * It only rerenders if the todos count changes or filters are reset.
  */
 export const Footer = component$(
-  () => {
+  (props: { todos: Todos }) => {
     /**
      * Example of lite-component (it will always be included with the parent component)
      */
-    const todos = useContext(TODOS);
-
     function Filter({ filter }: { filter: FilterStates }) {
       const lMode = filter.toLowerCase();
       return (
         <li>
           <a
-            class={{ selected: todos.filter == lMode }}
+            class={{ selected: props.todos.filter == lMode }}
             onClick$={() => {
-              todos.filter = filter;
+              props.todos.filter = filter;
             }}
           >
             {filter[0].toUpperCase() + filter.slice(1)}
@@ -28,10 +26,10 @@ export const Footer = component$(
         </li>
       );
     }
-    const remaining = todos.items.filter(FILTERS.active).length;
+    const remaining = props.todos.items.filter(FILTERS.active).length;
     return (
       <Host class="footer">
-        {todos.items.length > 0 ? (
+        {props.todos.items.length > 0 ? (
           <>
             <span class="todo-count">
               <strong>{remaining}</strong>
@@ -46,7 +44,7 @@ export const Footer = component$(
               <button
                 class="clear-completed"
                 onClick$={() => {
-                  todos.items = todos.items.filter(FILTERS.active);
+                  props.todos.items = props.todos.items.filter(FILTERS.active);
                 }}
               >
                 Clear completed

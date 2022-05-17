@@ -1,7 +1,8 @@
 import type { CorePlatform } from '@builder.io/qwik';
-import { getQrlMap, normalizeUrl } from './utils';
 import { setPlatform } from '@builder.io/qwik';
-import type { QwikManifest, SerializeDocumentOptions } from './types';
+import { getValidManifest } from '../optimizer/src/manifest';
+import type { QrlMapper, SerializeDocumentOptions } from './types';
+import { normalizeUrl } from './utils';
 
 const _setImmediate = typeof setImmediate === 'function' ? setImmediate : setTimeout;
 
@@ -13,9 +14,20 @@ function createPlatform(document: any, opts: SerializeDocumentOptions) {
   }
   const doc: Document = document;
 
-  const qrlMapper = typeof opts.qrlMapper === 'function' ? opts.qrlMapper : null;
+  let qrlMapper: QrlMapper | undefined = undefined;
+  let qrlMap: { [symbolName: string]: string } | undefined = undefined;
 
-  const qrlMap = getQrlMap(opts.manifest) || getQrlMap(Q_MANIFEST_DEFAULT);
+  if (typeof opts.qrlMapper === 'function') {
+    // manually provided a function that returns the qrl for a symbol
+    qrlMapper = opts.qrlMapper;
+  } else {
+    // we've been provided a manifest
+    const manifest = getValidManifest(opts.manifest);
+    if (manifest) {
+      // we received a valid manifest
+      qrlMap = manifest.mapping;
+    }
+  }
 
   if (opts?.url) {
     doc.location.href = normalizeUrl(opts.url).href;
@@ -71,9 +83,6 @@ function createPlatform(document: any, opts: SerializeDocumentOptions) {
  * @public
  */
 export async function setServerPlatform(document: any, opts: SerializeDocumentOptions) {
-  const platform = createPlatform(document, opts);
+  const platform = await createPlatform(document, opts);
   setPlatform(document, platform);
 }
-
-/** Object replaced at build-time to act as a fallback when a manifest is not provided */
-const Q_MANIFEST_DEFAULT: QwikManifest = '__QwikManifest__' as any;

@@ -1,12 +1,11 @@
 /* eslint-disable no-console */
-
 import type { RenderToStringOptions, RenderToStringResult } from '@builder.io/qwik/server';
 import type { ReplInputOptions, ReplResult, ReplResultAttributes } from '../types';
 import type { QwikWorkerGlobal } from './repl-service-worker';
 
 export const ssrHtml = async (options: ReplInputOptions, result: ReplResult) => {
   const ssrModule = result.ssrModules.find((m) => m.path.endsWith('.js'));
-  if (!ssrModule) {
+  if (!ssrModule || typeof ssrModule.code !== 'string') {
     return;
   }
 
@@ -17,13 +16,16 @@ export const ssrHtml = async (options: ReplInputOptions, result: ReplResult) => 
   run(mod, mod.exports, noopRequire);
 
   const server: ServerModule = mod.exports;
+  if (typeof server.render !== 'function') {
+    return;
+  }
 
   const ssrResult = await server.render({
     base: '/repl/',
     manifest: result.manifest,
   });
 
-  const doc = self.qwikServer.createDocument({ html: ssrResult.html });
+  const doc = self.qwikServer._createDocument({ html: ssrResult.html });
   const qwikLoader = doc.getElementById('qwikloader');
   if (qwikLoader) {
     qwikLoader.remove();

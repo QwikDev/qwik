@@ -27,4 +27,4 @@ export function pauseContainer(elmOrDoc: Element | Document): SnapshotResult {
   return data;
 }
 
-export type { SnapshotState };
+export type { SnapshotState, SnapshotResult };

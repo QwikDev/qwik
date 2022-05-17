@@ -350,8 +350,6 @@ export type On$Props<T extends {}> = {
 // @public (undocumented)
 export type OnRenderFn<PROPS> = (props: PROPS) => ValueOrPromise<JSXNode<any> | null>;
 
-// Warning: (ae-forgotten-export) The symbol "SnapshotResult" needs to be exported by the entry point index.d.ts
-//
 // @alpha
 export function pauseContainer(elmOrDoc: Element | Document): SnapshotResult;
 
@@ -510,6 +508,16 @@ export const Slot: FunctionComponent<{
     name?: string;
     children?: any;
 }>;
+
+// @public (undocumented)
+export interface SnapshotResult {
+    // Warning: (ae-forgotten-export) The symbol "SnapshotListener" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    listeners: SnapshotListener[];
+    // (undocumented)
+    state: SnapshotState;
+}
 
 // @public (undocumented)
 export interface SnapshotState {

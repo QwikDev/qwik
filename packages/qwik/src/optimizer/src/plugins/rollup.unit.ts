@@ -1,8 +1,8 @@
-import { join } from 'path';
-import { qwikRollup, QwikRollupPlugin, QwikRollupPluginOptions } from './rollup';
+import { resolve } from 'path';
+import { qwikRollup, QwikRollupPluginOptions } from './rollup';
 import type { InputOptions, OutputOptions } from 'rollup';
 import type { OptimizerOptions } from '../types';
-import type { NormalizedQwikPluginConfig } from './plugin';
+import type { NormalizedQwikPluginOptions } from './plugin';
 
 describe('rollup  plugin', () => {
   const cwd = process.cwd();
@@ -19,17 +19,33 @@ describe('rollup  plugin', () => {
     const rollupInputOpts: InputOptions = await plugin.options!({});
 
     expect(typeof rollupInputOpts.onwarn).toBe('function');
-    expect(rollupInputOpts.input).toEqual([join(cwd, 'src', 'root.tsx')]);
+    expect(rollupInputOpts.input).toEqual([resolve(cwd, 'src', 'components', 'app', 'app.tsx')]);
   });
 
   it('rollup default input options, ssr', async () => {
     initOpts.target = 'ssr';
     const plugin = qwikRollup(initOpts);
     const rollupInputOpts: InputOptions = await plugin.options!({});
+    const opts: NormalizedQwikPluginOptions = plugin.api.getOptions();
 
     expect(typeof rollupInputOpts.onwarn).toBe('function');
     expect(rollupInputOpts.treeshake).toBe(false);
-    expect(rollupInputOpts.input).toEqual(join(cwd, 'src', 'entry.server.tsx'));
+    expect(rollupInputOpts.input).toEqual([resolve(cwd, 'src', 'entry.ssr.tsx')]);
+    expect(opts.input).toEqual([resolve(cwd, 'src', 'entry.ssr.tsx')]);
+  });
+
+  it('rollup default set input options, ssr', async () => {
+    initOpts.target = 'ssr';
+    const plugin = qwikRollup(initOpts);
+    const rollupInputOpts: InputOptions = await plugin.options!({
+      input: resolve(cwd, 'src', 'my.ssr.tsx'),
+    });
+    const opts: NormalizedQwikPluginOptions = plugin.api.getOptions();
+
+    expect(typeof rollupInputOpts.onwarn).toBe('function');
+    expect(rollupInputOpts.treeshake).toBe(false);
+    expect(rollupInputOpts.input).toEqual(resolve(cwd, 'src', 'my.ssr.tsx'));
+    expect(opts.input).toEqual([resolve(cwd, 'src', 'my.ssr.tsx')]);
   });
 
   it('rollup default output options, client', async () => {
@@ -37,7 +53,7 @@ describe('rollup  plugin', () => {
     await plugin.options!({});
     const rollupOutputOpts: OutputOptions = await plugin.outputOptions!({});
 
-    expect(rollupOutputOpts.dir).toEqual(join(cwd, 'dist'));
+    expect(rollupOutputOpts.dir).toEqual(resolve(cwd, 'dist'));
     expect(rollupOutputOpts.format).toEqual('es');
   });
 
@@ -45,10 +61,11 @@ describe('rollup  plugin', () => {
     initOpts.target = 'ssr';
     const plugin = qwikRollup(initOpts);
     await plugin.options!({});
-    const rollupOutputOpts: OutputOptions = await plugin.outputOptions!({});
+    const rollupOutputOpts: OutputOptions = await plugin.outputOptions!({
+      format: 'cjs',
+    });
 
-    expect(rollupOutputOpts.dir).toEqual(join(cwd, 'server'));
-    expect(rollupOutputOpts.format).toEqual('cjs');
+    expect(rollupOutputOpts.dir).toEqual(resolve(cwd, 'server'));
     expect(rollupOutputOpts.exports).toEqual('auto');
   });
 
@@ -56,11 +73,13 @@ describe('rollup  plugin', () => {
     const plugin = qwikRollup(initOpts);
     await plugin.options!({});
 
-    const opts: NormalizedQwikPluginConfig = plugin.api.getOptions();
+    const opts: NormalizedQwikPluginOptions = plugin.api.getOptions();
     expect(opts.target).toBe('client');
     expect(opts.buildMode).toBe('development');
     expect(opts.entryStrategy).toEqual({ type: 'hook' });
     expect(opts.forceFullBuild).toEqual(false);
+    expect(opts.rootDir).toEqual(cwd);
+    expect(opts.srcDir).toEqual(resolve(cwd, 'src'));
   });
 
   it('rollup input, client default', async () => {
@@ -68,7 +87,7 @@ describe('rollup  plugin', () => {
     const plugin = qwikRollup(initOpts);
     await plugin.options!({});
 
-    const opts: NormalizedQwikPluginConfig = plugin.api.getOptions();
+    const opts: NormalizedQwikPluginOptions = plugin.api.getOptions();
     expect(opts.target).toBe('client');
     expect(opts.buildMode).toBe('development');
     expect(opts.entryStrategy).toEqual({ type: 'hook' });
@@ -81,7 +100,7 @@ describe('rollup  plugin', () => {
     const plugin = qwikRollup(initOpts);
     await plugin.options!({});
 
-    const opts: NormalizedQwikPluginConfig = plugin.api.getOptions();
+    const opts: NormalizedQwikPluginOptions = plugin.api.getOptions();
     expect(opts.target).toBe('client');
     expect(opts.buildMode).toBe('production');
     expect(opts.entryStrategy).toEqual({ type: 'smart' });
@@ -94,7 +113,7 @@ describe('rollup  plugin', () => {
     const plugin = qwikRollup(initOpts);
     await plugin.options!({});
 
-    const opts: NormalizedQwikPluginConfig = plugin.api.getOptions();
+    const opts: NormalizedQwikPluginOptions = plugin.api.getOptions();
     expect(opts.target).toBe('ssr');
     expect(opts.buildMode).toBe('development');
     expect(opts.entryStrategy).toEqual({ type: 'hook' });
@@ -107,7 +126,7 @@ describe('rollup  plugin', () => {
     const plugin = qwikRollup(initOpts);
     await plugin.options!({});
 
-    const opts: NormalizedQwikPluginConfig = plugin.api.getOptions();
+    const opts: NormalizedQwikPluginOptions = plugin.api.getOptions();
     expect(opts.target).toBe('ssr');
     expect(opts.buildMode).toBe('production');
     expect(opts.entryStrategy).toEqual({ type: 'smart' });
@@ -121,7 +140,7 @@ describe('rollup  plugin', () => {
     const plugin = qwikRollup(initOpts);
     await plugin.options!({});
 
-    const opts: NormalizedQwikPluginConfig = plugin.api.getOptions();
+    const opts: NormalizedQwikPluginOptions = plugin.api.getOptions();
     expect(opts.target).toBe('ssr');
     expect(opts.buildMode).toBe('development');
     expect(opts.entryStrategy).toEqual({ type: 'hook' });
@@ -132,7 +151,8 @@ describe('rollup  plugin', () => {
     return {
       sys: {
         cwd: () => process.cwd(),
-        env: () => 'node',
+        env: 'node',
+        os: process.platform,
         dynamicImport: async (path) => require(path),
         path: require('path'),
       },

@@ -1,15 +1,18 @@
+# Build
+build
+dist
+server
+functions/**/*.js
+
+# Development
+node_modules
+
+# Cache
 .cache
 .mf
 .vscode
 .rollup.cache
-
-build
-dist
-node_modules
-server
 tsconfig.tsbuildinfo
-
-q-symbols.json
 
 # Logs
 logs
@@ -20,7 +23,7 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# Editor directories and files
+# Editor
 !.vscode/extensions.json
 .idea
 .DS_Store

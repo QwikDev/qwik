@@ -2,7 +2,7 @@ import { component$ } from '@builder.io/qwik';
 
 import './global.css';
 
-export const Main = component$(() => {
+export const Root = component$(() => {
   return (
     <section>
       <p>

@@ -126,9 +126,11 @@ export interface OptimizerSystem {
     // (undocumented)
     dynamicImport: (path: string) => Promise<any>;
     // (undocumented)
-    env: () => SystemEnvironment;
+    env: SystemEnvironment;
     // (undocumented)
     getInputFiles?: (rootDir: string) => Promise<TransformModuleInput[]>;
+    // (undocumented)
+    os: string;
     // (undocumented)
     path: Path;
 }
@@ -202,6 +204,19 @@ export interface QwikManifest {
         [symbolName: string]: string;
     };
     // (undocumented)
+    options?: {
+        target?: string;
+        buildMode?: string;
+        forceFullBuild?: boolean;
+        entryStrategy?: {
+            [key: string]: any;
+        };
+    };
+    // (undocumented)
+    platform?: {
+        [name: string]: string;
+    };
+    // (undocumented)
     symbols: {
         [symbolName: string]: QwikSymbol;
     };
@@ -212,23 +227,22 @@ export interface QwikManifest {
 // @alpha (undocumented)
 export function qwikRollup(qwikRollupOpts?: QwikRollupPluginOptions): any;
 
-// Warning: (ae-forgotten-export) The symbol "BasePluginOptions" needs to be exported by the entry point index.d.ts
-//
 // @alpha (undocumented)
-export interface QwikRollupPluginOptions extends BasePluginOptions {
+export interface QwikRollupPluginOptions {
     // Warning: (ae-forgotten-export) The symbol "QwikBuildMode" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
     buildMode?: QwikBuildMode;
+    debug?: boolean;
+    entryStrategy?: EntryStrategy;
     // (undocumented)
     forceFullBuild?: boolean;
+    manifestInput?: QwikManifest;
+    manifestOutput?: (manifest: QwikManifest) => Promise<void> | void;
     // (undocumented)
     optimizerOptions?: OptimizerOptions;
-    // (undocumented)
     rootDir?: string;
+    srcDir?: string;
+    srcInputs?: TransformModuleInput[] | null;
     // Warning: (ae-forgotten-export) The symbol "QwikBuildTarget" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
     target?: QwikBuildTarget;
 }
 
@@ -256,11 +270,25 @@ export interface QwikSymbol {
 export function qwikVite(qwikViteOpts?: QwikVitePluginOptions): any;
 
 // @alpha (undocumented)
-export interface QwikVitePluginOptions extends BasePluginOptions {
+export interface QwikVitePluginOptions {
+    // (undocumented)
+    client?: {
+        input?: string[] | string;
+        devInput?: string;
+        outDir?: string;
+        manifestOutput?: (manifest: QwikManifest) => Promise<void> | void;
+    };
+    debug?: boolean;
+    entryStrategy?: EntryStrategy;
     // (undocumented)
     optimizerOptions?: OptimizerOptions;
+    srcDir?: string;
     // (undocumented)
-    srcEntryDevInput?: string;
+    ssr?: {
+        input?: string;
+        outDir?: string;
+        manifestInput?: QwikManifest;
+    };
 }
 
 // @alpha (undocumented)

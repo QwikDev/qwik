@@ -51,6 +51,7 @@ export interface BuildConfig {
   dev?: boolean;
   dryRun?: boolean;
   platformBinding?: boolean;
+  platformBindingWasmCopy?: boolean;
   prepareRelease?: boolean;
   release?: boolean;
   devRelease?: boolean;
@@ -80,6 +81,7 @@ export function loadConfig(args: string[] = []) {
   config.tscDir = join(config.tmpDir, 'tsc-out');
   config.esmNode = parseInt(process.version.slice(1).split('.')[0], 10) >= 14;
   config.platformBinding = (config as any)['platform-binding'];
+  config.platformBindingWasmCopy = (config as any)['platform-binding-wasm-copy'];
   config.prepareRelease = (config as any)['prepare-release'];
   config.platformTarget = (config as any)['platform-target'];
   config.setDistTag = (config as any)['set-dist-tag'];

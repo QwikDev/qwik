@@ -1,141 +1,69 @@
-import { createTimer, ensureGlobals, getBuildBase } from './utils';
-import { pauseContainer, render } from '@builder.io/qwik';
-import type { FunctionComponent, JSXNode, SnapshotState } from '@builder.io/qwik';
+import { normalizeUrl } from './utils';
 import qwikDom from '@builder.io/qwik-dom';
-import { setServerPlatform } from './platform';
-import { serializeDocument } from './serialize';
-import type {
-  DocumentOptions,
-  QwikDocument,
-  QwikWindow,
-  RenderToDocumentOptions,
-  RenderToDocumentResult,
-  RenderToStringOptions,
-  RenderToStringResult,
-  WindowOptions,
-} from './types';
-import { isDocument } from '../core/util/element';
-import { getDocument } from '../core/util/dom';
-import { getElement } from '../core/render/render.public';
-import { getQwikLoaderScript } from './scripts';
-import { applyPrefetchImplementation } from './prefetch-implementation';
-import { getPrefetchResources } from './prefetch-strategy';
-import type { SnapshotResult } from '../core/object/store';
+import type { SerializeDocumentOptions, QwikDocument } from './types';
 
 /**
- * Create emulated `Window` for server environment. Does not implement the full browser
- * `window` API, but rather only emulates `document` and `location`.
- * @public
+ * Create emulated `Document` for server environment. Does not implement the full browser
+ * `document` and `window` API. This api may be removed in the future.
+ * @internal
  */
-export function createWindow(opts?: WindowOptions): QwikWindow {
+export function _createDocument(opts?: SerializeDocumentOptions) {
   opts = opts || {};
 
   const doc: QwikDocument = qwikDom.createDocument(opts.html) as any;
 
-  const glb = ensureGlobals(doc, opts);
+  const win = ensureGlobals(doc, opts);
 
-  return glb;
+  return win.document;
 }
 
-/**
- * Create emulated `Document` for server environment.
- * @public
- */
-export function createDocument(opts?: DocumentOptions) {
-  return createWindow(opts).document;
-}
-
-/**
- * Updates the given `document` in place by rendering the root JSX node
- * and applying to the `document`.
- *
- * @param docOrElm - The `document` to apply the the root node to.
- * @param rootNode - The root JSX node to apply onto the `document`.
- * @public
- */
-export async function renderToDocument(
-  docOrElm: Document | Element,
-  rootNode: JSXNode<unknown> | FunctionComponent<any>,
-  opts: RenderToDocumentOptions = {}
-) {
-  const doc = isDocument(docOrElm) ? docOrElm : getDocument(docOrElm);
-  ensureGlobals(doc, opts);
-
-  await setServerPlatform(doc, opts);
-
-  await render(docOrElm, rootNode);
-
-  const buildBase = getBuildBase(opts);
-  if (buildBase != null) {
-    const containerEl = getElement(docOrElm);
-    containerEl.setAttribute('q:base', buildBase);
-  }
-
-  let snapshotState: SnapshotState | null = null;
-  if (opts.snapshot !== false) {
-    snapshotState = pauseContainer(docOrElm).state;
-  }
-
-  const result: RenderToDocumentResult = {
-    prefetchResources: getPrefetchResources(doc, snapshotState, opts),
-    snapshotState,
-  };
-
-  if (result.prefetchResources.length > 0) {
-    applyPrefetchImplementation(doc, opts, result.prefetchResources);
-  }
-
-  if (!opts.qwikLoader || opts.qwikLoader.include !== false) {
-    const qwikLoaderScript = getQwikLoaderScript({
-      events: opts.qwikLoader?.events,
-      debug: opts.debug,
-    });
-    const scriptElm = doc.createElement('script');
-    scriptElm.setAttribute('id', 'qwikloader');
-    scriptElm.innerHTML = qwikLoaderScript;
-    doc.head.appendChild(scriptElm);
-  }
-
-  return result;
-}
-
-/**
- * Creates a server-side `document`, renders to root node to the document,
- * then serializes the document to a string.
- * @public
- */
-export async function renderToString(rootNode: JSXNode, opts: RenderToStringOptions = {}) {
-  const createDocTimer = createTimer();
-  const doc = createDocument(opts);
-  const createDocTime = createDocTimer();
-
-  const renderDocTimer = createTimer();
-  let rootEl: Element | Document = doc;
-  if (typeof opts.fragmentTagName === 'string') {
-    if (opts.qwikLoader) {
-      opts.qwikLoader.include = false;
-    } else {
-      opts.qwikLoader = { include: false };
+export function ensureGlobals(doc: any, opts: SerializeDocumentOptions) {
+  if (!doc[QWIK_DOC]) {
+    if (!doc || doc.nodeType !== 9) {
+      throw new Error(`Invalid document`);
     }
 
-    rootEl = doc.createElement(opts.fragmentTagName);
-    doc.body.appendChild(rootEl);
+    doc[QWIK_DOC] = true;
+
+    const loc = normalizeUrl(opts.url);
+
+    Object.defineProperty(doc, 'baseURI', {
+      get: () => loc.href,
+      set: (url: string) => (loc.href = normalizeUrl(url).href),
+    });
+
+    doc.defaultView = {
+      get document() {
+        return doc;
+      },
+      get location() {
+        return loc;
+      },
+      get origin() {
+        return loc.origin;
+      },
+      addEventListener: noop,
+      removeEventListener: noop,
+      history: {
+        pushState: noop,
+        replaceState: noop,
+        go: noop,
+        back: noop,
+        forward: noop,
+      },
+      CustomEvent: class CustomEvent {
+        type: string;
+        constructor(type: string, details: any) {
+          Object.assign(this, details);
+          this.type = type;
+        }
+      },
+    };
   }
 
-  const docResult = await renderToDocument(rootEl, rootNode, opts);
-
-  const renderDocTime = renderDocTimer();
-
-  const docToStringTimer = createTimer();
-  const result: RenderToStringResult = {
-    ...docResult,
-    html: serializeDocument(rootEl, opts),
-    timing: {
-      createDocument: createDocTime,
-      render: renderDocTime,
-      toString: docToStringTimer(),
-    },
-  };
-
-  return result;
+  return doc.defaultView;
 }
+
+const noop = () => {};
+
+const QWIK_DOC = Symbol();

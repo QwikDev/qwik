@@ -1,22 +1,19 @@
 export type {
-  CreateRenderToStringOptions,
-  DocumentOptions,
+  GlobalInjections,
   PrefetchResource,
   PrefetchImplementation,
   PrefetchStrategy,
-  QwikDocument,
-  QwikWindow,
   QwikManifest,
   QwikBundle,
   QwikSymbol,
   QrlMapper,
-  RenderToDocumentOptions,
   RenderToStringOptions,
   RenderToStringResult,
-  WindowOptions,
+  SnapshotResult,
 } from './types';
-export { createDocument, createWindow, renderToDocument, renderToString } from './document';
+export { renderToString } from './render';
 export { createTimer, versions } from './utils';
 export { getQwikLoaderScript } from './scripts';
 export { serializeDocument } from './serialize';
 export { setServerPlatform } from './platform';
+export { _createDocument } from './document';

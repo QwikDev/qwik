@@ -1,3 +1,4 @@
+import type { NormalizedQwikPluginOptions } from './plugins/plugin';
 import type {
   GeneratedOutputBundle,
   GlobalInjections,
@@ -7,6 +8,7 @@ import type {
   QwikManifest,
   QwikSymbol,
 } from './types';
+import { versions } from './versions';
 
 // This is just the initial prioritization of the symbols and entries
 // at build time so there's less work during each SSR. However, SSR should
@@ -244,7 +246,8 @@ export function generateManifestFromBundles(
   path: Path,
   hooks: HookAnalysis[],
   injections: GlobalInjections[],
-  outputBundles: GeneratedOutputBundle[]
+  outputBundles: GeneratedOutputBundle[],
+  opts: NormalizedQwikPluginOptions
 ) {
   const manifest: QwikManifest = {
     symbols: {},
@@ -252,6 +255,12 @@ export function generateManifestFromBundles(
     bundles: {},
     injections,
     version: '1',
+    options: {
+      target: opts.target,
+      buildMode: opts.buildMode,
+      forceFullBuild: opts.forceFullBuild,
+      entryStrategy: opts.entryStrategy,
+    },
   };
 
   for (const hook of hooks) {

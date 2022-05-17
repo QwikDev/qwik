@@ -1,19 +1,5 @@
-import type { SnapshotState } from '../core/object/store';
-import type { QwikManifest, QwikBundle, QwikSymbol } from '../optimizer/src';
-
-/**
- * Partial Window used by Qwik Framework.
- *
- * A set of properties which the Qwik Framework expects to find on global.
- * @public
- */
-export interface QwikWindow extends WindowProxy {
-  /**
-   * Document used by Qwik during rendering.
-   */
-  document: QwikDocument;
-  location: Location;
-}
+import type { SnapshotResult } from '../core/object/store';
+import type { QwikManifest, QwikBundle, QwikSymbol, GlobalInjections } from '../optimizer/src';
 
 /**
  * Partial Document used by Qwik Framework.
@@ -24,27 +10,14 @@ export interface QwikWindow extends WindowProxy {
 export interface QwikDocument extends Document {}
 
 /**
- * Options when creating a mock Qwik Document object.
  * @public
  */
-export interface DocumentOptions {
+export interface SerializeDocumentOptions {
+  manifest?: QwikManifest;
+  qrlMapper?: QrlMapper;
   url?: URL | string;
   html?: string;
   debug?: boolean;
-}
-
-/**
- * Options when creating a mock Qwik Window object.
- * @public
- */
-export interface WindowOptions extends DocumentOptions {}
-
-/**
- * @public
- */
-export interface SerializeDocumentOptions extends DocumentOptions {
-  manifest?: QwikManifest;
-  qrlMapper?: QrlMapper;
 }
 
 /**
@@ -78,7 +51,7 @@ export type PrefetchImplementation =
 export type SymbolsToPrefetch =
   | 'all'
   | 'events-document'
-  | ((opts: { document: QwikDocument; manifest: QwikManifest }) => PrefetchResource[]);
+  | ((opts: { manifest: QwikManifest }) => PrefetchResource[]);
 
 /**
  * @alpha
@@ -88,7 +61,7 @@ export interface PrefetchResource {
   imports: PrefetchResource[];
 }
 
-export { QwikManifest, QwikBundle, QwikSymbol };
+export { QwikManifest, QwikBundle, QwikSymbol, GlobalInjections };
 
 /**
  * @public
@@ -98,15 +71,9 @@ export type QrlMapper = (symbolName: string) => string | undefined;
 /**
  * @public
  */
-export interface RenderToDocumentResult {
+export interface RenderToStringResult {
   prefetchResources: PrefetchResource[];
-  snapshotState: SnapshotState | null;
-}
-
-/**
- * @public
- */
-export interface RenderToStringResult extends RenderToDocumentResult {
+  snapshotResult: SnapshotResult | null;
   html: string;
   timing: {
     createDocument: number;
@@ -115,10 +82,12 @@ export interface RenderToStringResult extends RenderToDocumentResult {
   };
 }
 
+export { SnapshotResult };
+
 /**
  * @public
  */
-export interface RenderToDocumentOptions extends SerializeDocumentOptions, DocumentOptions {
+export interface RenderToStringOptions extends SerializeDocumentOptions {
   /**
    * Defaults to `true`
    */
@@ -136,24 +105,11 @@ export interface RenderToDocumentOptions extends SerializeDocumentOptions, Docum
   qwikLoader?: { events?: string[]; include?: boolean };
 
   prefetchStrategy?: PrefetchStrategy;
-}
-
-/**
- * @public
- */
-export interface RenderToStringOptions extends RenderToDocumentOptions {
   /**
    * When set, the app is serialized into a fragment. And the returned html is not a complete document.
    * Defaults to `undefined`
    */
   fragmentTagName?: string;
-}
-
-/**
- * @public
- */
-export interface CreateRenderToStringOptions {
-  symbolsPath: string;
 }
 
 /**

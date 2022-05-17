@@ -1,8 +1,8 @@
 import { createMdxTransformer, MdxTransform } from './mdx';
 import fs from 'fs';
 import { isAbsolute } from 'path';
-import type { Plugin, ViteDevServer } from 'vite';
-import { createDynamicImportedCode, createEsmImportedCode } from './code-generation';
+import type { Plugin } from 'vite';
+import { createDynamicImportedCode, createInlinedCode } from './code-generation';
 import { loadPages } from './load-pages';
 import type { PluginContext, PluginOptions } from './types';
 import { getPagesBuildPath, normalizeOptions } from './utils';
@@ -12,25 +12,22 @@ import { getPagesBuildPath, normalizeOptions } from './utils';
  */
 export function qwikCity(options: PluginOptions) {
   const ctx = normalizeOptions(options);
-  let viteDevServer: ViteDevServer | undefined;
   let hasValidatedOpts = false;
   let qwikCityBuildCode: string | null = null;
   let mdxTransform: MdxTransform | null = null;
-  let inlinedModules = false;
+  let inlineModules = false;
+  let isSSR = false;
+  let command: 'build' | 'serve' | null;
 
   const plugin: Plugin = {
     name: 'vite-plugin-qwik-city',
 
     enforce: 'pre',
 
-    config(config) {
-      const isSSR = !!config.build?.ssr || config.mode === 'ssr';
-      inlinedModules = isSSR;
-    },
-
-    configureServer(server) {
-      viteDevServer = server;
-      inlinedModules = true;
+    configResolved(config) {
+      command = config.command;
+      isSSR = !!config.build?.ssr || config.mode === 'ssr';
+      inlineModules = isSSR || command === 'serve';
     },
 
     async buildStart() {
@@ -66,13 +63,14 @@ export function qwikCity(options: PluginOptions) {
 
         await loadPages(ctx, (msg) => this.warn(msg));
 
-        if (inlinedModules) {
-          qwikCityBuildCode = createEsmImportedCode(ctx);
+        if (inlineModules) {
+          qwikCityBuildCode = createInlinedCode(ctx);
         } else {
           qwikCityBuildCode = createDynamicImportedCode(ctx);
         }
 
-        if (!viteDevServer) {
+        if (command === 'build' && !inlineModules) {
+          // create ESM modules for the browser
           ctx.pages.forEach((p) => {
             this.emitFile({
               type: 'chunk',

@@ -16,6 +16,8 @@ export function apiExtractor(config: BuildConfig) {
   createTypesApi(config, 'testing', 'testing/index.d.ts', '../core');
   createTypesApi(config, 'build', 'build/index.d.ts', '../core');
 
+  generateServerReferenceModules(config);
+
   console.log('🥶', 'submodule APIs generated');
 }
 
@@ -50,6 +52,26 @@ function createTypesApi(
   const srcPath = result.extractorConfig.untrimmedFilePath;
   const destPath = join(config.distPkgDir, outFileName);
   fixDtsContent(config, srcPath, destPath, corePath);
+}
+
+function generateServerReferenceModules(config: BuildConfig) {
+  // server-modules.d.ts
+  const referenceDts = `/// <reference types="./server" /> 
+declare module '@qwik-client-manifest' {
+  const manifest: QwikManifest;
+  export { manifest };
+}
+`;
+
+  const destServerModulesPath = join(config.distPkgDir, 'server-modules.d.ts');
+  writeFileSync(destServerModulesPath, referenceDts);
+
+  // manually prepend the ts reference since api extractor removes it
+  const prependReferenceDts = `/// <reference path="./server-modules.d.ts" />\n\n`;
+  const distServerPath = join(config.distPkgDir, 'server.d.ts');
+  let serverDts = readFileSync(distServerPath, 'utf-8');
+  serverDts = prependReferenceDts + serverDts;
+  writeFileSync(distServerPath, serverDts);
 }
 
 /**

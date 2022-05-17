@@ -7,7 +7,7 @@
   "scripts": {
     "build": "yarn build.client && yarn build.ssr",
     "build.client": "vite build",
-    "build.ssr": "vite build --mode ssr",
+    "build.ssr": "vite build --ssr src/entry.cloudflare.tsx",
     "build.qwikcity": "cd ../qwik-city && yarn build",
     "dev": "vite --force",
     "dev.ssr": "vite --mode ssr",
@@ -19,7 +19,7 @@
   },
   "devDependencies": {
     "@builder.io/partytown": "^0.5.4",
-    "@builder.io/qwik": "workspace:*",
+    "@builder.io/qwik": "0.0.20-3",
     "@builder.io/qwik-city": "0.0.4",
     "@cloudflare/kv-asset-handler": "0.2.0",
     "@cloudflare/workers-types": "^3.9.0",

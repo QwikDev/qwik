@@ -1,12 +1,17 @@
-import { parseQRL } from '../core/import/qrl';
-import { QRL_PREFIX, SnapshotState } from '../core/object/store';
-import { getValidManifest } from '../optimizer/src/manifest';
-import type { PrefetchResource, QwikDocument, QwikManifest, RenderToStringOptions } from './types';
 import { getBuildBase } from './utils';
+import { getValidManifest } from '../optimizer/src/manifest';
+import type {
+  PrefetchResource,
+  QwikDocument,
+  QwikManifest,
+  RenderToStringOptions,
+  SnapshotResult,
+} from './types';
+import { QRL_PREFIX } from '../core/object/store';
+import { parseQRL } from '../core/import/qrl';
 
 export function getPrefetchResources(
-  doc: QwikDocument,
-  snapshotState: SnapshotState | null,
+  snapshotResult: SnapshotResult | null,
   opts: RenderToStringOptions
 ): PrefetchResource[] {
   const manifest = getValidManifest(opts.manifest);
@@ -14,7 +19,7 @@ export function getPrefetchResources(
     const prefetchStrategy = opts.prefetchStrategy;
     const buildBase = getBuildBase(opts);
 
-    if (prefetchStrategy !== null && buildBase != null) {
+    if (prefetchStrategy !== null) {
       // do nothing if opts.prefetchStrategy is explicitly set to null
 
       if (
@@ -26,7 +31,7 @@ export function getPrefetchResources(
         // if prefetchStrategy is undefined
         // or prefetchStrategy.symbolsToPrefetch is undefined
         // get event QRLs used in this document
-        return getEventDocumentPrefetch(doc, snapshotState, manifest, buildBase);
+        return getEventDocumentPrefetch(snapshotResult, manifest, buildBase);
       }
 
       if (prefetchStrategy.symbolsToPrefetch === 'all') {
@@ -37,7 +42,7 @@ export function getPrefetchResources(
       if (typeof prefetchStrategy.symbolsToPrefetch === 'function') {
         // call user option symbolsToPrefetch()
         try {
-          return prefetchStrategy.symbolsToPrefetch({ document: doc, manifest });
+          return prefetchStrategy.symbolsToPrefetch({ manifest });
         } catch (e) {
           console.error('getPrefetchUrls, symbolsToPrefetch()', e);
         }
@@ -50,56 +55,20 @@ export function getPrefetchResources(
 }
 
 function getEventDocumentPrefetch(
-  doc: Document,
-  snapshotState: SnapshotState | null,
+  snapshotResult: SnapshotResult | null,
   manifest: QwikManifest,
   buildBase: string
 ) {
-  const eventQrls = new Set<string>();
-
-  const findQrls = (elm: HTMLElement) => {
-    // on:click="q-e6e5d1dd.js#s_lJegR2RiUlU[0]"
-    if (elm && elm.nodeType === 1) {
-      const attrs = elm.attributes;
-      if (attrs) {
-        const attrLen = attrs.length;
-        for (let i = 0; i < attrLen; i++) {
-          const attrName = attrs[i].nodeName;
-          if (attrName) {
-            if (attrName.startsWith('on:')) {
-              const qrlValue = attrs[i].nodeValue;
-              if (qrlValue) {
-                const qrls = qrlValue.split(' ');
-                for (const qrl of qrls) {
-                  const q = parseQRL(qrl);
-                  if (q && q.symbol) {
-                    eventQrls.add(q.symbol);
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-
-      const childNodes = elm.childNodes;
-      if (childNodes) {
-        const childNodesLen = childNodes.length;
-        for (let i = 0; i < childNodesLen; i++) {
-          findQrls(childNodes[i] as any);
-        }
-      }
-    }
-  };
-  findQrls(doc.body);
-
   const prefetchResources: PrefetchResource[] = [];
+  const listeners = snapshotResult?.listeners;
+  const stateObjs = snapshotResult?.state?.objs;
   const urls = new Set<string>();
 
-  eventQrls.forEach((eventSymbolName) => {
+  if (Array.isArray(listeners)) {
     // manifest already prioritized the symbols at build time
     for (const prioritizedSymbolName in manifest.mapping) {
-      if (eventSymbolName === prioritizedSymbolName) {
+      const hasSymbol = listeners.some((l) => l.key === prioritizedSymbolName);
+      if (hasSymbol) {
         addBundle(
           manifest,
           urls,
@@ -107,16 +76,15 @@ function getEventDocumentPrefetch(
           buildBase,
           manifest.mapping[prioritizedSymbolName]
         );
-        break;
       }
     }
-  });
+  }
 
-  if (snapshotState && Array.isArray(snapshotState.objs)) {
-    for (const obj of snapshotState.objs) {
+  if (Array.isArray(stateObjs)) {
+    for (const obj of stateObjs) {
       if (typeof obj === 'string' && obj.startsWith(QRL_PREFIX)) {
         const q = parseQRL(obj);
-        if (q && q.symbol) {
+        if (q?.symbol) {
           addBundle(manifest, urls, prefetchResources, buildBase, manifest.mapping[q.symbol]);
         }
       }
@@ -149,26 +117,27 @@ function addBundle(
   urls: Set<string>,
   prefetchResources: PrefetchResource[],
   buildBase: string,
-  fileName: string
+  bundleFileName: string
 ) {
-  const url = buildBase + fileName;
+  const url = buildBase + bundleFileName;
 
   if (!urls.has(url)) {
     urls.add(url);
 
-    const prefetchResource: PrefetchResource = {
-      url,
-      imports: [],
-    };
-    prefetchResources.push(prefetchResource);
-
-    const bundle = manifest.bundles[fileName];
+    const bundle = manifest.bundles[bundleFileName];
     if (bundle) {
+      const prefetchResource: PrefetchResource = {
+        url,
+        imports: [],
+      };
+      prefetchResources.push(prefetchResource);
+
       if (Array.isArray(bundle.imports)) {
         for (const importedFilename of bundle.imports) {
           addBundle(manifest, urls, prefetchResource.imports, buildBase, importedFilename);
         }
       }
+
       if (Array.isArray(bundle.dynamicImports)) {
         for (const importedFilename of bundle.dynamicImports) {
           addBundle(manifest, urls, prefetchResource.imports, buildBase, importedFilename);

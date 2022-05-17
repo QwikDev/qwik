@@ -1,5 +1,4 @@
 // 'path' module extracted from Node.js v8.11.1 (only the posix part)
-// transplited with Babel
 
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -116,7 +115,9 @@ export function createPath(opts: { cwd?: () => string } = {}): Path {
       if (i >= 0) path = paths[i];
       else {
         if (cwd === undefined) {
-          if (typeof process !== 'undefined' && typeof process.cwd === 'function') {
+          if (opts && typeof opts.cwd === 'function') {
+            cwd = opts.cwd();
+          } else if (typeof process !== 'undefined' && typeof process.cwd === 'function') {
             cwd = process.cwd();
           } else {
             cwd = '/';
@@ -519,7 +520,6 @@ export function createPath(opts: { cwd?: () => string } = {}): Path {
 
   const sep = '/';
   const delimiter = ':';
-  const win32 = null;
 
   return {
     relative,

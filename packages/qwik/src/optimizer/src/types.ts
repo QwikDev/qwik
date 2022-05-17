@@ -41,7 +41,8 @@ export interface OptimizerOptions {
  */
 export interface OptimizerSystem {
   cwd: () => string;
-  env: () => SystemEnvironment;
+  env: SystemEnvironment;
+  os: string;
   dynamicImport: (path: string) => Promise<any>;
   getInputFiles?: (rootDir: string) => Promise<TransformModuleInput[]>;
   path: Path;
@@ -241,6 +242,13 @@ export interface QwikManifest {
   bundles: { [fileName: string]: QwikBundle };
   injections?: GlobalInjections[];
   version: string;
+  options?: {
+    target?: string;
+    buildMode?: string;
+    forceFullBuild?: boolean;
+    entryStrategy?: { [key: string]: any };
+  };
+  platform?: { [name: string]: string };
 }
 
 /**

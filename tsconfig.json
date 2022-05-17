@@ -54,7 +54,8 @@
       "@builder.io/qwik-city/vite": ["packages/qwik-city/src/vite"],
       "@examples-data": ["packages/docs/src/layouts/examples/examples-data.ts"],
       "@playground-data": ["packages/docs/src/layouts/playground/playground-data.ts"],
-      "@tutorial-data": ["packages/docs/src/layouts/tutorial/tutorial-data.ts"]
+      "@tutorial-data": ["packages/docs/src/layouts/tutorial/tutorial-data.ts"],
+      "create-qwik": ["packages/create-qwik/api/index.ts"]
     },
     "types": [
       "jest",
@@ -86,5 +87,9 @@
     "packages/create-cli",
     "starters"
   ],
-  "exclude": ["starters/servers"]
+  "exclude": [
+    "starters/servers",
+    "starters/apps/**/entry.ssr.tsx",
+    "starters/apps/**/entry.dev.tsx"
+  ]
 }

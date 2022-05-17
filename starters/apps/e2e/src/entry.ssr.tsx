@@ -1,6 +1,6 @@
 import type { FunctionComponent } from '@builder.io/qwik';
 import { renderToString, RenderToStringOptions } from '@builder.io/qwik/server';
-import { Main } from './main';
+import { Root } from './root';
 import { LexicalScope } from './components/lexical-scope/lexicalScope';
 import { SlotParent } from './components/slot/slot';
 import { TwoListeners } from './components/two-listeners/twolisteners';
@@ -21,7 +21,7 @@ export function render(opts: RenderToStringOptions) {
   const url = typeof opts.url === 'string' ? new URL(opts.url) : opts.url!;
 
   const tests: Record<string, FunctionComponent> = {
-    '/e2e/': () => <Main />,
+    '/e2e/': () => <Root />,
     '/e2e/two-listeners': () => <TwoListeners />,
     '/e2e/slot': () => <SlotParent />,
     '/e2e/lexical-scope': () => <LexicalScope />,

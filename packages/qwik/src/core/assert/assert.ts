@@ -4,7 +4,7 @@ import { qDev } from '../util/qdev';
 export function assertDefined(value: any, text?: string) {
   if (qDev) {
     if (value != null) return;
-    throw newError(text || 'Expected defined value.');
+    throw newError(text || 'Expected defined value');
   }
 }
 

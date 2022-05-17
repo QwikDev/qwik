@@ -51,6 +51,10 @@ export const isWatchDescriptor = (obj: any): obj is WatchDescriptor => {
   return obj && typeof obj === 'object' && 'qrl' in obj && 'f' in obj;
 };
 
+export const isWatchCleanup = (obj: any): obj is WatchDescriptor => {
+  return isWatchDescriptor(obj) && !!(obj.f & WatchFlags.IsCleanup);
+};
+
 /**
  * @alpha
  */

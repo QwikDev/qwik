@@ -347,8 +347,10 @@ export type On$Props<T extends {}> = {
 // @public (undocumented)
 export type OnRenderFn<PROPS> = (props: PROPS) => ValueOrPromise<JSXNode<any> | null>;
 
+// Warning: (ae-forgotten-export) The symbol "SnapshotResult" needs to be exported by the entry point index.d.ts
+//
 // @alpha
-export function pauseContainer(elmOrDoc: Element | Document): SnapshotState;
+export function pauseContainer(elmOrDoc: Element | Document): SnapshotResult;
 
 // @alpha (undocumented)
 export interface PerfEvent {

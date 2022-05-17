@@ -7,7 +7,7 @@ import { getTestPlatform } from './platform';
 import type { MockDocument, MockWindow } from './types';
 import { applyDocumentConfig } from './util';
 import { getDocument } from '../core/util/dom';
-import { getExistingQRLs } from '../core/props/props-on';
+import { getDomListeners } from '../core/props/props-on';
 
 /**
  * Creates a simple DOM structure for testing components.
@@ -103,12 +103,10 @@ export function getEvent(ctx: QContext, prop: string): any {
 }
 
 export function qPropReadQRL(ctx: QContext, prop: string): ((event: Event) => void) | null {
-  const existingQRLs = getExistingQRLs(ctx, prop);
-  if (existingQRLs.length === 0) {
-    return null;
-  }
+  const listeners = !ctx.listeners ? (ctx.listeners = getDomListeners(ctx.element)) : ctx.listeners;
+
   return async (event) => {
-    const qrls = getExistingQRLs(ctx, prop);
+    const qrls = listeners.get(prop) || [];
     await Promise.all(
       qrls.map((qrl) => {
         const fn = qrl.invokeFn(ctx.element);

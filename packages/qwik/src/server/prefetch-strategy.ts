@@ -2,13 +2,10 @@ import { getBuildBase } from './utils';
 import { getValidManifest } from '../optimizer/src/manifest';
 import type {
   PrefetchResource,
-  QwikDocument,
   QwikManifest,
   RenderToStringOptions,
   SnapshotResult,
 } from './types';
-import { QRL_PREFIX } from '../core/object/store';
-import { parseQRL } from '../core/import/qrl';
 import { isQrl } from '../core/import/qrl-class';
 
 export function getPrefetchResources(

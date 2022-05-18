@@ -37,6 +37,7 @@ export interface BuildConfig {
   scriptsDir: string;
   startersDir: string;
   tscDir: string;
+  dtsDir: string;
   distPkgDir: string;
   distBindingsDir: string;
   esmNode: boolean;
@@ -79,6 +80,7 @@ export function loadConfig(args: string[] = []) {
   config.distPkgDir = join(config.packagesDir, 'qwik', 'dist');
   config.distBindingsDir = join(config.distPkgDir, 'bindings');
   config.tscDir = join(config.tmpDir, 'tsc-out');
+  config.dtsDir = join(config.tmpDir, 'dts-out');
   config.esmNode = parseInt(process.version.slice(1).split('.')[0], 10) >= 14;
   config.platformBinding = (config as any)['platform-binding'];
   config.platformBindingWasmCopy = (config as any)['platform-binding-wasm-copy'];

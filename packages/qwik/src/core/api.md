@@ -532,6 +532,8 @@ export interface SnapshotResult {
     // (undocumented)
     listeners: SnapshotListener[];
     // (undocumented)
+    objs: any[];
+    // (undocumented)
     state: SnapshotState;
 }
 

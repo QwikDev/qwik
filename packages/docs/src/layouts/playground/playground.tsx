@@ -9,7 +9,6 @@ import {
   useClientEffect$,
 } from '@builder.io/qwik';
 import type { TransformModuleInput } from '@builder.io/qwik/optimizer';
-import type { SiteStore } from '../../components/app/app';
 import { Repl } from '../../components/repl/repl';
 import styles from './playground.css?inline';
 import { Header } from '../../components/header/header';
@@ -17,11 +16,7 @@ import { setHeadMeta, setHeadStyles } from '@builder.io/qwik-city';
 import playgroundApps from '@playground-data';
 import { useLocation } from '../../utils/useLocation';
 
-interface PlaygroundLayoutProps {
-  store: SiteStore;
-}
-
-const Playground = component$((props: PlaygroundLayoutProps) => {
+const Playground = component$(() => {
   const hostElm = useHostElement();
 
   const store = useStore<PlaygroundStore>(() => {
@@ -75,7 +70,7 @@ const Playground = component$((props: PlaygroundLayoutProps) => {
     <Host
       class={{ 'full-width': true, playground: true, 'repl-resize-active': store.colResizeActive }}
     >
-      <Header store={props.store} />
+      <Header />
 
       <Repl
         inputs={store.inputs}

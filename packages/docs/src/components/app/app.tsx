@@ -1,11 +1,8 @@
-import { component$, Host, useStore, useScopedStyles$ } from '@builder.io/qwik';
+import { component$, Host, useStore, useContextProvider, useScopedStyles$ } from '@builder.io/qwik';
 import styles from './global.css';
 import { Page } from '../page/page';
-
-export interface SiteStore {
-  headerMenuOpen: boolean;
-  sideMenuOpen: boolean;
-}
+import { GlobalStore, SiteStore } from '../../utils/context';
+import { useQwikCity } from '@builder.io/qwik-city';
 
 export const App = component$(() => {
   useScopedStyles$(styles);
@@ -15,6 +12,9 @@ export const App = component$(() => {
     sideMenuOpen: false,
   });
 
+  useContextProvider(GlobalStore, store);
+  useQwikCity();
+
   return (
     <Host
       class={{
@@ -22,7 +22,7 @@ export const App = component$(() => {
         'menu-open': store.sideMenuOpen,
       }}
     >
-      <Page store={store} />
+      <Page />
     </Host>
   );
 });

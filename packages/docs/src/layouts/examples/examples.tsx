@@ -1,5 +1,4 @@
 import {
-  $,
   component$,
   Host,
   useHostElement,
@@ -7,18 +6,14 @@ import {
   useWatch$,
   useStore,
 } from '@builder.io/qwik';
-import type { SiteStore } from '../../components/app/app';
+
 import { Repl } from '../../components/repl/repl';
 import styles from './examples.css?inline';
 import { Header } from '../../components/header/header';
 import { setHeadMeta, setHeadStyles } from '@builder.io/qwik-city';
 import exampleApps, { ExampleApp } from '@examples-data';
 
-interface ExamplesLayoutProps {
-  store: SiteStore;
-}
-
-const Examples = component$((props: ExamplesLayoutProps) => {
+const Examples = component$(() => {
   const hostElm = useHostElement();
 
   const store = useStore<ExamplesStore>(() => {
@@ -49,7 +44,7 @@ const Examples = component$((props: ExamplesLayoutProps) => {
 
   return (
     <Host class="examples">
-      <Header store={props.store} />
+      <Header />
 
       <div class="examples-menu-container">
         <div class="examples-menu">

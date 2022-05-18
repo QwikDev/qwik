@@ -111,7 +111,7 @@ export function newInvokeContext(
 }
 
 /**
- * @private
+ * @alpha
  */
 export function useWaitOn(promise: ValueOrPromise<any>): void {
   const ctx = getInvokeContext();

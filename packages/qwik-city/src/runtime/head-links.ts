@@ -3,9 +3,7 @@ import type { HeadLinks } from './types';
 /**
  * @public
  */
-export const setHeadLinks = (elm: any, links: HeadLinks) => {
-  const doc: Document = elm && elm.ownerDocument;
-
+export const setHeadLinks = (doc: Document, links: HeadLinks) => {
   if (doc && Array.isArray(links)) {
     for (const link of links) {
       try {

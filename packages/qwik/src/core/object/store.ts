@@ -144,6 +144,7 @@ export interface SnapshotListener {
 export interface SnapshotResult {
   state: SnapshotState;
   listeners: SnapshotListener[];
+  objs: any[];
 }
 
 export function snapshotState(containerEl: Element): SnapshotResult {
@@ -351,6 +352,7 @@ export function snapshotState(containerEl: Element): SnapshotResult {
       objs: convertedObjs,
       subs,
     },
+    objs,
     listeners,
   };
 }

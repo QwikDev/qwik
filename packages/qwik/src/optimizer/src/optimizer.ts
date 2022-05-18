@@ -68,6 +68,7 @@ const transformFsAsync = async (
       sourceMaps: fsOpts.sourceMaps,
       transpile: fsOpts.transpile,
       dev: fsOpts.dev,
+      scope: fsOpts.scope,
       input,
     };
 
@@ -84,6 +85,7 @@ const convertOptions = (opts: any) => {
     transpile: false,
     explicityExtensions: false,
     dev: true,
+    scope: undefined,
   };
   Object.entries(opts).forEach(([key, value]) => {
     if (value != null) {

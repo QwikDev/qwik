@@ -113,7 +113,7 @@ export interface Context<STATE extends object> {
 
 // @public (undocumented)
 export interface CorePlatform {
-    chunkForSymbol: (symbolName: string) => string | undefined;
+    chunkForSymbol: (symbolName: string) => [string, string] | undefined;
     importSymbol: (element: Element, url: string | URL, symbol: string) => ValueOrPromise<any>;
     isServer: boolean;
     // (undocumented)
@@ -289,6 +289,9 @@ export function immutable<T extends {}>(input: T): Readonly<T>;
 
 // @alpha
 export function implicit$FirstArg<FIRST, REST extends any[], RET>(fn: (first: QRL<FIRST>, ...rest: REST) => RET): (first: FIRST, ...rest: REST) => RET;
+
+// @alpha (undocumented)
+export function inlinedQrl<T>(symbol: T, symbolName: string, lexicalScopeCapture?: any[]): QRL<T>;
 
 // @public (undocumented)
 export interface InvokeContext {
@@ -528,6 +531,8 @@ export interface SnapshotResult {
     //
     // (undocumented)
     listeners: SnapshotListener[];
+    // (undocumented)
+    objs: any[];
     // (undocumented)
     state: SnapshotState;
 }

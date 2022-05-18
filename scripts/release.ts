@@ -245,7 +245,7 @@ export async function releaseVersionPrompt(pkgName: string, currentVersion: stri
     choices: SEMVER_RELEASE_TYPES.map((v) => {
       return {
         title: `${v}  ${semver.inc(currentVersion, v)}`,
-        value: semver.inc(currentVersion, v),
+        value: semver.inc(currentVersion, v)!,
       };
     }),
   });

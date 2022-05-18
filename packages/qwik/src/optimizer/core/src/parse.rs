@@ -64,6 +64,8 @@ pub struct TransformCodeOptions<'a> {
     pub code: &'a str,
     pub entry_policy: &'a dyn EntryPolicy,
     pub dev: bool,
+    pub scope: Option<&'a String>,
+    pub is_inline: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
@@ -208,7 +210,9 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                         extension: extension.clone(),
                         comments: Some(&comments),
                         global_collect: collect,
+                        scope: config.scope,
                         dev: config.dev,
+                        is_inline: config.is_inline,
                     });
 
                     // Run main transform

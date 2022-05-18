@@ -54,7 +54,7 @@ export interface PrefetchStrategy {
 }
 
 // @public (undocumented)
-export type QrlMapper = (symbolName: string) => string | undefined;
+export type QrlMapper = (symbolName: string) => [string, string] | undefined;
 
 // @alpha (undocumented)
 export interface QwikBundle {
@@ -171,6 +171,8 @@ export interface SnapshotResult {
     //
     // (undocumented)
     listeners: SnapshotListener[];
+    // (undocumented)
+    objs: any[];
     // Warning: (ae-forgotten-export) The symbol "SnapshotState" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)

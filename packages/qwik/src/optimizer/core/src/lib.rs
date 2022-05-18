@@ -47,6 +47,7 @@ pub struct TransformFsOptions {
     pub transpile: bool,
     pub explicity_extensions: bool,
     pub dev: bool,
+    pub scope: Option<String>,
 }
 
 #[derive(Serialize, Debug, Deserialize)]
@@ -67,12 +68,14 @@ pub struct TransformModulesOptions {
     pub entry_strategy: EntryStrategy,
     pub explicity_extensions: bool,
     pub dev: bool,
+    pub scope: Option<String>,
 }
 
 #[cfg(feature = "fs")]
 pub fn transform_fs(config: TransformFsOptions) -> Result<TransformOutput, Error> {
     let root_dir = Path::new(&config.root_dir);
     let mut paths = vec![];
+    let is_inline = matches!(config.entry_strategy, EntryStrategy::Inline);
     let entry_policy = &*parse_entry_strategy(config.entry_strategy);
     find_files(root_dir, &mut paths)?;
 
@@ -100,8 +103,10 @@ pub fn transform_fs(config: TransformFsOptions) -> Result<TransformOutput, Error
                 source_maps: config.source_maps,
                 transpile: config.transpile,
                 print_ast: false,
+                scope: config.scope.as_ref(),
                 entry_policy,
                 dev: config.dev,
+                is_inline,
             })
         })
         .reduce(|| Ok(TransformOutput::new()), |x, y| Ok(x?.append(&mut y?)))?;
@@ -112,6 +117,7 @@ pub fn transform_fs(config: TransformFsOptions) -> Result<TransformOutput, Error
 }
 
 pub fn transform_modules(config: TransformModulesOptions) -> Result<TransformOutput, Error> {
+    let is_inline = matches!(config.entry_strategy, EntryStrategy::Inline);
     let entry_policy = &*parse_entry_strategy(config.entry_strategy);
     #[cfg(feature = "parallel")]
     let iterator = config.input.par_iter();
@@ -129,6 +135,8 @@ pub fn transform_modules(config: TransformModulesOptions) -> Result<TransformOut
             print_ast: false,
             entry_policy,
             dev: config.dev,
+            scope: config.scope.as_ref(),
+            is_inline,
         })
     });
 

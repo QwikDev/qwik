@@ -70,7 +70,7 @@ function createPlatform(document: any, opts: SerializeDocumentOptions) {
         return qrlMapper(symbolName);
       }
       if (qrlMap) {
-        return qrlMap[symbolName];
+        return [qrlMap[symbolName], symbolName];
       }
       return undefined;
     },

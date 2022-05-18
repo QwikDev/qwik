@@ -18,6 +18,7 @@ macro_rules! test_input {
             explicity_extensions: input.explicity_extensions,
             entry_strategy: input.entry_strategy,
             dev: input.dev,
+            scope: input.scope,
         });
         if input.snapshot {
             match &res {
@@ -985,6 +986,39 @@ export const Child = component$(() => {
 }
 
 #[test]
+fn example_inlined_entry_strategy() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useClientEffect$, useStore, useStyles$ } from '@builder.io/qwik';
+import { thing } from 'dependency';
+import mongodb from 'mongodb';
+
+export const Child = component$(() => {
+
+    useStyles$('somestring');
+    const state = useStore({
+        count: 0
+    });
+
+    // Double count watch
+    useClientEffect$(() => {
+        state.count = thing.doStuff();
+    });
+
+    return (
+        <div onClick$={() => console.log(mongodb)}>
+        </div>
+    );
+});
+
+"#
+        .to_string(),
+        entry_strategy: EntryStrategy::Inline,
+        ..TestInput::default()
+    });
+}
+
+#[test]
 fn example_use_server_mount() {
     test_input!(TestInput {
         code: r#"
@@ -1162,6 +1196,7 @@ export const Greeter = component$(() => {
         dev: true,
         entry_strategy: EntryStrategy::Hook,
         transpile: true,
+        scope: None,
     });
     let ref_hooks: Vec<_> = res
         .unwrap()
@@ -1189,6 +1224,7 @@ export const Greeter = component$(() => {
             dev: option.0,
             entry_strategy: option.1,
             transpile: option.2,
+            scope: None,
         });
 
         let hooks: Vec<_> = res
@@ -1229,6 +1265,7 @@ struct TestInput {
     pub explicity_extensions: bool,
     pub snapshot: bool,
     pub dev: bool,
+    pub scope: Option<String>,
 }
 
 impl TestInput {
@@ -1243,6 +1280,7 @@ impl TestInput {
             explicity_extensions: false,
             snapshot: true,
             dev: true,
+            scope: None,
         }
     }
 }

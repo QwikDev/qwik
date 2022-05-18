@@ -36,7 +36,7 @@ export type { SnapshotState, SnapshotResult } from './object/store.public';
 // Internal Runtime
 //////////////////////////////////////////////////////////////////////////////////////////
 export { $, implicit$FirstArg } from './import/qrl.public';
-export { qrl } from './import/qrl';
+export { qrl, inlinedQrl } from './import/qrl';
 export type { QRL, EventHandler } from './import/qrl.public';
 
 export type { Props } from './props/props.public';

@@ -85,7 +85,7 @@ const StoreOption = (props: StoreOptionProps) => {
 
 const MODE_OPTIONS = ['development', 'production'];
 
-const ENTRY_STRATEGY_OPTIONS = ['component', 'hook', 'single', 'smart'];
+const ENTRY_STRATEGY_OPTIONS = ['component', 'hook', 'single', 'smart', 'inline'];
 
 interface StoreOptionProps {
   label: string;

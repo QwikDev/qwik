@@ -1,14 +1,48 @@
+import {
+  useContext,
+  createContext,
+  useWaitOn,
+  useStore,
+  noSerialize,
+  useContextProvider,
+} from '@builder.io/qwik';
 import { BUILD_ID, INLINED_MODULES, LAYOUTS, PAGES } from '@builder.io/qwik-city/build';
 import type { PageHandler } from './types';
 import { normalizeUrl } from './utils';
 import { useLocation } from './location';
 
+export const QwikCityContext = createContext<PageHandler>('qwikcity-page');
+
+/**
+ * @alpha
+ */
+export const useQwikCity = () => {
+  const href = useLocation().href;
+  const page = useStore<PageHandler>({} as any);
+  useWaitOn(
+    loadPage(href).then((loaded) => {
+      if (loaded) {
+        Object.assign(page, {
+          attributes: loaded.attributes,
+          breadcrumbs: loaded.breadcrumbs,
+          headings: loaded.headings,
+          index: loaded.index,
+          source: loaded.source,
+          url: loaded.url.href,
+          content: noSerialize(loaded.content),
+          layout: noSerialize(loaded.layout),
+        });
+      }
+    })
+  );
+  useContextProvider(QwikCityContext, page);
+};
+
 /**
  * @public
  */
-export const usePage = async (hostElm: any) => {
-  const loc = useLocation(hostElm);
-  const page = await loadPage(loc.href);
+export const usePage = (): PageHandler => {
+  const page = useContext(QwikCityContext);
   return page;
 };
 

@@ -643,6 +643,9 @@ export const useStyles$: (first: string) => void;
 // @public
 export function useStylesQrl(styles: QRL<string>): void;
 
+// @alpha (undocumented)
+export function useWaitOn(promise: ValueOrPromise<any>): void;
+
 // Warning: (ae-incompatible-release-tags) The symbol "useWatch$" is marked as @public, but its signature references "WatchFn" which is marked as @alpha
 // Warning: (ae-incompatible-release-tags) The symbol "useWatch$" is marked as @public, but its signature references "UseEffectOptions" which is marked as @alpha
 //

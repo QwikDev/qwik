@@ -8,6 +8,17 @@
 export type Content = any;
 
 // @public (undocumented)
+export const getLocation: (doc: Document) => {
+    readonly href: string;
+    readonly pathname: string;
+    readonly search: string;
+    readonly searchParams: URLSearchParams;
+    readonly hash: string;
+    readonly origin: string;
+    listen(listener: any): any;
+};
+
+// @public (undocumented)
 export interface HeadLinkAttributes {
     // (undocumented)
     as?: string;
@@ -141,7 +152,7 @@ export interface PageSource {
 }
 
 // @public (undocumented)
-export const setHeadLinks: (elm: any, links: HeadLinks) => void;
+export const setHeadLinks: (doc: Document, links: HeadLinks) => void;
 
 // @public (undocumented)
 export const setHeadMeta: (elm: any, meta: MetaOptions) => void;
@@ -150,30 +161,13 @@ export const setHeadMeta: (elm: any, meta: MetaOptions) => void;
 export const setHeadStyles: (elm: any, styles: HeadStyles) => void;
 
 // @public (undocumented)
-export const useLocation: (hostElm: any) => {
-    readonly href: string;
-    readonly pathname: string;
-    readonly search: string;
-    readonly searchParams: URLSearchParams;
-    readonly hash: string;
-    readonly origin: string;
-    listen(listener: any): any;
-};
+export const usePage: () => PageHandler;
 
 // @public (undocumented)
-export const useNavigate: (hostElm: any) => {
-    back(): void;
-    forward(): void;
-    navigate(to: string, opts: {
-        replace?: boolean;
-    }): void;
-};
+export const usePageIndex: () => PageIndex | null;
 
-// @public (undocumented)
-export const usePage: (hostElm: any) => Promise<PageHandler | null>;
-
-// @public (undocumented)
-export const usePageIndex: (hostElm: any) => PageIndex | null;
+// @alpha (undocumented)
+export const useQwikCity: () => void;
 
 // (No @packageDocumentation comment for this package)
 

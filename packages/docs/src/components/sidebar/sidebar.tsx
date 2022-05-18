@@ -1,26 +1,21 @@
-import { component$, Host, useHostElement, useScopedStyles$ } from '@builder.io/qwik';
+import { component$, Host, useContext, useScopedStyles$ } from '@builder.io/qwik';
 import { usePage, usePageIndex } from '@builder.io/qwik-city';
-import type { SiteStore } from '../app/app';
+import { GlobalStore } from '../../utils/context';
 import { CloseIcon } from '../svgs/close-icon';
 import styles from './sidebar.css?inline';
 
-interface SideBarProps {
-  store: SiteStore;
-}
-
 export const SideBar = component$(
-  async (props: SideBarProps) => {
+  () => {
     useScopedStyles$(styles);
-
-    const hostElm = useHostElement();
-    const page = (await usePage(hostElm))!;
-    const navIndex = usePageIndex(hostElm);
+    const page = usePage();
+    const navIndex = usePageIndex();
+    const globalStore = useContext(GlobalStore);
 
     return (
       <Host class="sidebar">
         <nav class="breadcrumbs">
           <button
-            onClick$={() => (props.store.sideMenuOpen = !props.store.sideMenuOpen)}
+            onClick$={() => (globalStore.sideMenuOpen = !globalStore.sideMenuOpen)}
             type="button"
           >
             <span class="sr-only">Navigation</span>
@@ -43,7 +38,7 @@ export const SideBar = component$(
         <nav class="menu">
           <button
             class="menu-close lg:hidden"
-            onClick$={() => (props.store.sideMenuOpen = !props.store.sideMenuOpen)}
+            onClick$={() => (globalStore.sideMenuOpen = !globalStore.sideMenuOpen)}
             type="button"
           >
             <CloseIcon width={24} height={24} />

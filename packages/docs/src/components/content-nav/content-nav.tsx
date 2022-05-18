@@ -6,10 +6,8 @@ export const ContentNav = component$(
   async () => {
     useScopedStyles$(styles);
 
-    const hostElm = useHostElement();
-
-    const page = await usePage(hostElm);
-    const pageIndex = usePageIndex(hostElm)!;
+    const page = usePage();
+    const pageIndex = usePageIndex()!;
 
     let prevText: string | undefined;
     let prevHref: string | undefined;

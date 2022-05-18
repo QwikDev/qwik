@@ -6,8 +6,8 @@ import { normalizeUrl } from './utils';
 /**
  * @public
  */
-export const usePageIndex = (hostElm: any) => {
-  const loc = useLocation(hostElm);
+export const usePageIndex = () => {
+  const loc = useLocation();
   const page = loadIndex(loc.href);
   return page;
 };

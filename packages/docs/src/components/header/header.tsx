@@ -1,27 +1,24 @@
-import { component$, Host, $, useScopedStyles$ } from '@builder.io/qwik';
+import { component$, Host, $, useScopedStyles$, useContext } from '@builder.io/qwik';
 import { CloseIcon } from '../svgs/close-icon';
 import { DiscordLogo } from '../svgs/discord-logo';
 import { GithubLogo } from '../svgs/github-logo';
 import { MoreIcon } from '../svgs/more-icon';
 import { QwikLogo } from '../svgs/qwik-logo';
 import { TwitterLogo } from '../svgs/twitter-logo';
-import type { SiteStore } from '../app/app';
 import styles from './header.css?inline';
-
-interface HeaderProps {
-  store: SiteStore;
-}
+import { GlobalStore } from '../../utils/context';
 
 export const Header = component$(
-  (props: HeaderProps) => {
+  () => {
     useScopedStyles$(styles);
+    const globalStore = useContext(GlobalStore);
 
     const toggleMenu = $(() => {
-      props.store.headerMenuOpen = !props.store.headerMenuOpen;
+      globalStore.headerMenuOpen = !globalStore.headerMenuOpen;
     });
 
     const closeMenu = $(() => {
-      props.store.headerMenuOpen = false;
+      globalStore.headerMenuOpen = false;
     });
 
     return (

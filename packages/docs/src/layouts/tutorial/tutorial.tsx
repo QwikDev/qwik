@@ -7,7 +7,6 @@ import {
   useWatch$,
 } from '@builder.io/qwik';
 import { useLocation } from '../../utils/useLocation';
-import type { SiteStore } from '../../components/app/app';
 import { Repl } from '../../components/repl/repl';
 import styles from './tutorial.css?inline';
 import { TutorialContentFooter } from './tutorial-content-footer';
@@ -16,11 +15,7 @@ import tutorialSections, { TutorialApp } from '@tutorial-data';
 import { Header } from '../../components/header/header';
 import { setHeadStyles } from '@builder.io/qwik-city';
 
-interface TutorialLayoutProps {
-  store: SiteStore;
-}
-
-const Tutorial = component$((props: TutorialLayoutProps) => {
+const Tutorial = component$(() => {
   useScopedStyles$(styles);
 
   useWatch$(() => {
@@ -65,7 +60,7 @@ const Tutorial = component$((props: TutorialLayoutProps) => {
 
   return (
     <Host class="full-width tutorial">
-      <Header store={props.store} />
+      <Header />
       <main>
         <div class="tutorial-content-panel">
           <TutorialContentHeader current={current} />

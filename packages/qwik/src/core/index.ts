@@ -39,7 +39,6 @@ export type { SnapshotState, SnapshotResult } from './object/store.public';
 export { $, implicit$FirstArg } from './import/qrl.public';
 export { qrl, inlinedQrl } from './import/qrl';
 export type { QRL, EventHandler } from './import/qrl.public';
-
 export type { Props } from './props/props.public';
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -94,6 +93,7 @@ export { useLexicalScope } from './use/use-lexical-scope.public';
 export { useStore, useRef } from './use/use-store.public';
 export { wrapSubscriber, unwrapSubscriber } from './use/use-subscriber';
 export { useContext, useContextProvider, createContext } from './use/use-context';
+export { useWaitOn } from './use/use-core';
 export type { Context } from './use/use-context';
 export type { Ref } from './use/use-store.public';
 export type { InvokeContext } from './use/use-core';

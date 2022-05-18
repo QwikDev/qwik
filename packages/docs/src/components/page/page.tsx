@@ -1,44 +1,39 @@
-import { component$, useHostElement } from '@builder.io/qwik';
+import { component$, useDocument } from '@builder.io/qwik';
 import { Builder } from '../../layouts/builder/builder';
-import { setHeadLinks, setHeadMeta, useLocation, usePage } from '@builder.io/qwik-city';
-import type { SiteStore } from '../app/app';
+import { setHeadLinks, setHeadMeta, getLocation, usePage } from '@builder.io/qwik-city';
 import Playground from '../../layouts/playground/playground';
 import Examples from '../../layouts/examples/examples';
 
-interface PageProps {
-  store: SiteStore;
-}
+export const Page = component$(() => {
+  const doc = useDocument();
 
-export const Page = component$(async (props: PageProps) => {
-  const hostElm = useHostElement();
-
-  const loc = useLocation(hostElm);
+  const loc = getLocation(doc);
   if (loc.pathname === '/playground') {
-    return <Playground store={props.store} />;
+    return <Playground />;
   }
   if (loc.pathname === '/examples') {
-    return <Examples store={props.store} />;
+    return <Examples />;
   }
 
-  const page = await usePage(hostElm);
+  const page = usePage();
   if (page) {
     const attrs = page.attributes;
     const Layout = page.layout;
     const Content = page.content;
 
-    setHeadMeta(hostElm, {
+    setHeadMeta(doc, {
       title: attrs.title + ' - Qwik',
       description: attrs.description,
     });
 
-    setHeadLinks(hostElm, [{ rel: 'canonical', href: page.url.href }]);
+    setHeadLinks(doc, [{ rel: 'canonical', href: page.url.href }]);
 
     return (
-      <Layout store={props.store}>
-        <Content store={props.store} />
+      <Layout>
+        <Content />
       </Layout>
     );
   }
 
-  return <Builder store={props.store} />;
+  return <Builder />;
 });

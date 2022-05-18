@@ -31,6 +31,7 @@
     "test.e2e.firefox": "playwright test starters --browser=firefox --config starters/playwright.config.ts",
     "test.e2e.webkit": "playwright test starters --browser=webkit --config starters/playwright.config.ts",
     "serve": "yarn node -r esbuild-register --inspect starters/dev-server.ts 3300",
+    "serve.debug": "yarn node --inspect-brk  -r esbuild-register --inspect starters/dev-server.ts 3300",
     "docs.fetch.hackMD": "yarn node --trace-warnings -r esbuild-register scripts/docs_sync/fetch_hackmd.ts",
     "docs.sync": "yarn node scripts/docs_sync",
     "lint": "yarn lint.eslint && yarn lint.prettier && yarn lint.rust",

@@ -110,11 +110,7 @@ export function qrl<T = any>(
   }
 
   // Unwrap subscribers
-  if (Array.isArray(lexicalScopeCapture)) {
-    for (let i = 0; i < lexicalScopeCapture.length; i++) {
-      lexicalScopeCapture[i] = unwrapSubscriber(lexicalScopeCapture[i]);
-    }
-  }
+  unwrapLexicalScope(lexicalScopeCapture);
   const qrl = new QRLInternal<T>(chunk, symbol, null, symbolFn, null, lexicalScopeCapture);
   const ctx = tryGetInvokeContext();
   if (ctx && ctx.element) {
@@ -142,10 +138,25 @@ export function inlinedQrl<T>(
   symbolName: string,
   lexicalScopeCapture: any[] = EMPTY_ARRAY
 ): QRL<T> {
-  return new QRLInternal<T>(INLINED_QRL, symbolName, symbol, null, null, lexicalScopeCapture);
+  // Unwrap subscribers
+  return new QRLInternal<T>(
+    INLINED_QRL,
+    symbolName,
+    symbol,
+    null,
+    null,
+    unwrapLexicalScope(lexicalScopeCapture)
+  );
 }
 
-inlinedQrl;
+function unwrapLexicalScope(lexicalScope: any[] | null) {
+  if (Array.isArray(lexicalScope)) {
+    for (let i = 0; i < lexicalScope.length; i++) {
+      lexicalScope[i] = unwrapSubscriber(lexicalScope[i]);
+    }
+  }
+  return lexicalScope;
+}
 
 export interface QRLSerializeOptions {
   platform?: CorePlatform;

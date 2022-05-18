@@ -30,6 +30,7 @@ function createTypesApi(
   const extractorConfig = ExtractorConfig.loadFileAndPrepare(
     join(config.srcDir, submodule, 'api-extractor.json')
   );
+  console.log(submodule);
   const result = Extractor.invoke(extractorConfig, {
     localBuild: !!config.dev,
     showVerboseMessages: false,
@@ -41,7 +42,7 @@ function createTypesApi(
       if (msg.text.includes('Analysis will use')) {
         return;
       }
-      console.log('🥶', msg.text);
+      console.log('🥶', msg);
     },
   });
   if (!result.succeeded) {
@@ -56,7 +57,7 @@ function createTypesApi(
 
 function generateServerReferenceModules(config: BuildConfig) {
   // server-modules.d.ts
-  const referenceDts = `/// <reference types="./server" /> 
+  const referenceDts = `/// <reference types="./server" />
 declare module '@qwik-client-manifest' {
   const manifest: QwikManifest;
   export { manifest };

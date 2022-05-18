@@ -27,6 +27,7 @@
       "@builder.io/qwik-city/vite": ["packages/qwik-city/src/vite"],
       "@examples-data": ["packages/docs/src/layouts/examples/examples-data.ts"],
       "@playground-data": ["packages/docs/src/layouts/playground/playground-data.ts"],
+      "@qwik-client-manifest": ["packages/qwik/src/server/server-modules.d.ts"],
       "@tutorial-data": ["packages/docs/src/layouts/tutorial/tutorial-data.ts"],
       "create-qwik": ["packages/create-qwik/api/index.ts"]
     },

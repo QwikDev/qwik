@@ -4,40 +4,39 @@
 
 ```ts
 
-// Warning: (ae-forgotten-export) The symbol "FunctionComponent" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "FunctionComponent" needs to be exported by the entry point jsx-runtime.d.ts
 //
 // @public (undocumented)
-export const Fragment: FunctionComponent<{ children?: any }> = (props) => props.children as any;
+export const Fragment: FunctionComponent<{
+    children?: any;
+}>;
 
 // @public (undocumented)
 export namespace JSX {
-    // Warning: (ae-forgotten-export) The symbol "JSXNode" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "JSXNode" needs to be exported by the entry point jsx-runtime.d.ts
     //
     // (undocumented)
-    export interface Element extends JSXNode {}
+    export interface Element extends JSXNode {
+    }
     // (undocumented)
     export interface ElementChildrenAttribute {
         // (undocumented)
         children: any;
     }
-    // Warning: (ae-forgotten-export) The symbol "QwikIntrinsicAttributes" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "QwikIntrinsicAttributes" needs to be exported by the entry point jsx-runtime.d.ts
     //
     // (undocumented)
-    export interface IntrinsicAttributes extends QwikIntrinsicAttributes {}
-    // Warning: (ae-forgotten-export) The symbol "QwikIntrinsicElements" needs to be exported by the entry point index.d.ts
+    export interface IntrinsicAttributes extends QwikIntrinsicAttributes {
+    }
+    // Warning: (ae-forgotten-export) The symbol "QwikIntrinsicElements" needs to be exported by the entry point jsx-runtime.d.ts
     //
     // (undocumented)
-    export interface IntrinsicElements extends QwikIntrinsicElements {}
+    export interface IntrinsicElements extends QwikIntrinsicElements {
+    }
 }
 
 // @public (undocumented)
-function jsx<T extends string | FunctionComponent<PROPS>, PROPS>(
-type: T,
-props: PROPS,
-key?: string | number
-): JSXNode<T> {
-    return new JSXNodeImpl(type, props, key) as any;
-}
+function jsx<T extends string | FunctionComponent<PROPS>, PROPS>(type: T, props: PROPS, key?: string | number): JSXNode<T>;
 export { jsx }
 export { jsx as jsxDEV }
 export { jsx as jsxs }

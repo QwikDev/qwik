@@ -9,7 +9,7 @@
     "build.platform.copy": "yarn node scripts --platform-binding-wasm-copy",
     "build.only_javascript": "yarn node scripts --tsc --build --api",
     "build.wasm": "yarn node scripts --wasm",
-    "build.validate": "yarn node scripts --validate",
+    "build.validate": "yarn node scripts --tsc --build --api --eslint --platform-binding --wasm --validate",
     "build.cli": "yarn node scripts --cli --dev",
     "build.cli.prod": "yarn node scripts --cli",
     "cli": "yarn build.cli && node packages/create-qwik/dist/create-qwik",

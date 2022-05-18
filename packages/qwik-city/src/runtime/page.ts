@@ -41,9 +41,9 @@ export const useQwikCity = () => {
 /**
  * @public
  */
-export const usePage = (): PageHandler => {
+export const usePage = (): PageHandler | undefined => {
   const page = useContext(QwikCityContext);
-  return page;
+  return page.content ? page : undefined;
 };
 
 const loadPage = async (href: string): Promise<PageHandler | null> => {

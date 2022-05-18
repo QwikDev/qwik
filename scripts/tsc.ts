@@ -1,7 +1,7 @@
 import { execa } from 'execa';
-import { BuildConfig, panic, run } from './util';
+import { panic } from './util';
 
-export async function tsc(config: BuildConfig) {
+export async function tsc() {
   const result = await execa('tsc', [], {
     stdout: 'inherit',
   });

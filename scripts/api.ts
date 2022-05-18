@@ -32,7 +32,8 @@ function createTypesApi(
   );
   const result = Extractor.invoke(extractorConfig, {
     localBuild: !!config.dev,
-    showVerboseMessages: false,
+    showVerboseMessages: true,
+    showDiagnostics: true,
     messageCallback(msg) {
       msg.handled = true;
       if (msg.logLevel === 'verbose') {

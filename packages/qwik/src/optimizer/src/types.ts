@@ -76,6 +76,7 @@ export interface TransformOptions {
   transpile?: boolean;
   explicityExtensions?: boolean;
   dev?: boolean;
+  scope?: string;
 }
 
 /**
@@ -186,6 +187,7 @@ export type DiagnosticType = 'Error' | 'Warning' | 'SourceError';
  * @alpha
  */
 export type EntryStrategy =
+  | InlineEntryStrategy
   | SingleEntryStrategy
   | HookEntryStrategy
   | ComponentEntryStrategy
@@ -196,6 +198,13 @@ export type EntryStrategy =
  * @alpha
  */
 export type MinifyMode = 'simplify' | 'none';
+
+/**
+ * @alpha
+ */
+export interface InlineEntryStrategy {
+  type: 'inline';
+}
 
 /**
  * @alpha

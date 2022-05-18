@@ -16,6 +16,7 @@ lazy_static! {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum EntryStrategy {
+    Inline,
     Single,
     Hook,
     Component,
@@ -31,6 +32,21 @@ pub trait EntryPolicy: Send + Sync {
         context: &[String],
         hook_data: &HookData,
     ) -> Option<JsWord>;
+}
+
+#[derive(Default, Clone)]
+pub struct InlineStrategy;
+
+impl EntryPolicy for InlineStrategy {
+    fn get_entry_for_sym(
+        &self,
+        _symbol: &str,
+        _path: &PathData,
+        _context: &[String],
+        _hook_data: &HookData,
+    ) -> Option<JsWord> {
+        Some(ENTRY_HOOKS.clone())
+    }
 }
 
 #[derive(Default, Clone)]
@@ -143,6 +159,7 @@ impl EntryPolicy for ManualStrategy {
 
 pub fn parse_entry_strategy(strategy: EntryStrategy) -> Box<dyn EntryPolicy> {
     match strategy {
+        EntryStrategy::Inline => Box::new(InlineStrategy::default()),
         EntryStrategy::Single => Box::new(SingleStrategy::default()),
         EntryStrategy::Hook => Box::new(PerHookStrategy::default()),
         EntryStrategy::Component => Box::new(PerComponentStrategy::default()),

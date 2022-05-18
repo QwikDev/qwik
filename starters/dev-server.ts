@@ -141,7 +141,7 @@ async function buildApp(appDir: string) {
         target: 'ssr',
         buildMode: 'development',
         srcDir: appSrcDir,
-        entryStrategy: { type: 'single' },
+        entryStrategy: { type: 'inline' },
         manifestInput: clientManifest,
       }),
     ],

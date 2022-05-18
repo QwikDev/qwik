@@ -9,6 +9,7 @@ import type {
 } from './types';
 import { QRL_PREFIX } from '../core/object/store';
 import { parseQRL } from '../core/import/qrl';
+import { isQrl } from '../core/import/qrl-class';
 
 export function getPrefetchResources(
   snapshotResult: SnapshotResult | null,
@@ -61,7 +62,7 @@ function getEventDocumentPrefetch(
 ) {
   const prefetchResources: PrefetchResource[] = [];
   const listeners = snapshotResult?.listeners;
-  const stateObjs = snapshotResult?.state?.objs;
+  const stateObjs = snapshotResult?.objs;
   const urls = new Set<string>();
 
   if (Array.isArray(listeners)) {
@@ -82,11 +83,8 @@ function getEventDocumentPrefetch(
 
   if (Array.isArray(stateObjs)) {
     for (const obj of stateObjs) {
-      if (typeof obj === 'string' && obj.startsWith(QRL_PREFIX)) {
-        const q = parseQRL(obj);
-        if (q?.symbol) {
-          addBundle(manifest, urls, prefetchResources, buildBase, manifest.mapping[q.symbol]);
-        }
+      if (isQrl(obj)) {
+        addBundle(manifest, urls, prefetchResources, buildBase, manifest.mapping[obj.symbol]);
       }
     }
   }

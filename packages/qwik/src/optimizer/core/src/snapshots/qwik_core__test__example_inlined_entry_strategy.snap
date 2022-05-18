@@ -1,0 +1,61 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$, useClientEffect$, useStore, useStyles$ } from '@builder.io/qwik';
+import { thing } from 'dependency';
+import mongodb from 'mongodb';
+
+export const Child = component$(() => {
+
+    useStyles$('somestring');
+    const state = useStore({
+        count: 0
+    });
+
+    // Double count watch
+    useClientEffect$(() => {
+        state.count = thing.doStuff();
+    });
+
+    return (
+        <div onClick$={() => console.log(mongodb)}>
+        </div>
+    );
+});
+
+
+============================= test.tsx ==
+
+import * as qwik from "@builder.io/qwik";
+import { componentQrl } from "@builder.io/qwik";
+import { useClientEffectQrl } from "@builder.io/qwik";
+import { useStylesQrl } from "@builder.io/qwik";
+import { useStore } from '@builder.io/qwik';
+import { thing } from 'dependency';
+import mongodb from 'mongodb';
+export const Child = /*#__PURE__*/ componentQrl(qwik.inlinedQrl(()=>{
+    useStylesQrl(qwik.inlinedQrl('somestring', "Child_component_useStyles_qBZTuFM0160"));
+    const state = useStore({
+        count: 0
+    });
+    // Double count watch
+    useClientEffectQrl(qwik.inlinedQrl(()=>{
+        const [state] = qwik.useLexicalScope();
+        state.count = thing.doStuff();
+    }, "Child_component_useClientEffect_kYRT1iERt9g", [
+        state
+    ]));
+    return <div onClickQrl={qwik.inlinedQrl(()=>{
+        return console.log(mongodb);
+    }, "Child_component_div_onClick_elliVSnAiOQ")}>
+
+        </div>;
+}, "Child_component_9GyF01GDKqw"));
+
+== DIAGNOSTICS ==
+
+[]

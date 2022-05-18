@@ -315,7 +315,7 @@ pub fn transform_arrow_fn(
         ast::BlockStmtOrExpr::BlockStmt(mut block) => {
             let mut stmts = Vec::with_capacity(1 + block.stmts.len());
             if !scoped_idents.is_empty() {
-                stmts.push(create_use_closure(qwik_ident, scoped_idents));
+                stmts.push(create_use_lexical_scope(qwik_ident, scoped_idents));
             }
             stmts.append(&mut block.stmts);
             ast::ArrowExpr {
@@ -329,7 +329,7 @@ pub fn transform_arrow_fn(
         ast::BlockStmtOrExpr::Expr(expr) => {
             let mut stmts = Vec::with_capacity(2);
             if !scoped_idents.is_empty() {
-                stmts.push(create_use_closure(qwik_ident, scoped_idents));
+                stmts.push(create_use_lexical_scope(qwik_ident, scoped_idents));
             }
             stmts.push(create_return_stmt(expr));
             ast::ArrowExpr {
@@ -352,7 +352,7 @@ pub fn transform_fn(node: ast::FnExpr, qwik_ident: &Id, scoped_idents: &[Id]) ->
             .map_or(0, |body| body.stmts.len()),
     );
     if !scoped_idents.is_empty() {
-        stmts.push(create_use_closure(qwik_ident, scoped_idents));
+        stmts.push(create_use_lexical_scope(qwik_ident, scoped_idents));
     }
     if let Some(mut body) = node.function.body {
         stmts.append(&mut body.stmts);
@@ -376,7 +376,7 @@ const fn create_return_stmt(expr: Box<ast::Expr>) -> ast::Stmt {
     })
 }
 
-fn create_use_closure(qwik_ident: &Id, scoped_idents: &[Id]) -> ast::Stmt {
+fn create_use_lexical_scope(qwik_ident: &Id, scoped_idents: &[Id]) -> ast::Stmt {
     ast::Stmt::Decl(ast::Decl::Var(ast::VarDecl {
         span: DUMMY_SP,
         declare: false,
@@ -386,7 +386,7 @@ fn create_use_closure(qwik_ident: &Id, scoped_idents: &[Id]) -> ast::Stmt {
             span: DUMMY_SP,
             init: Some(Box::new(ast::Expr::Call(create_internal_call(
                 qwik_ident,
-                &USE_CLOSURE,
+                &USE_LEXICAL_SCOPE,
                 vec![],
                 None,
             )))),

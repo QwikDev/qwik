@@ -18,7 +18,7 @@ export function apiExtractor(config: BuildConfig) {
 
   generateServerReferenceModules(config);
 
-  console.log('🥶', 'submodule APIs generated');
+  console.log('🥶', 'submodule d.ts API files generated');
 }
 
 function createTypesApi(
@@ -32,16 +32,17 @@ function createTypesApi(
   );
   const result = Extractor.invoke(extractorConfig, {
     localBuild: !!config.dev,
-    showVerboseMessages: false,
+    showVerboseMessages: true,
+    showDiagnostics: true,
     messageCallback(msg) {
       msg.handled = true;
-      if (msg.logLevel === 'verbose') {
+      if (msg.logLevel === 'verbose' || msg.logLevel === 'warning') {
         return;
       }
       if (msg.text.includes('Analysis will use')) {
         return;
       }
-      console.log('🥶', msg);
+      console.log(`❌ API Extractor, submodule: "${submodule}"\n`, msg);
     },
   });
   if (!result.succeeded) {

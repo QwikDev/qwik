@@ -1,7 +1,12 @@
 import { execa } from 'execa';
-import { BuildConfig, panic, run } from './util';
+import { BuildConfig, emptyDir, panic } from './util';
 
 export async function tsc(config: BuildConfig) {
+  if (!config.dev) {
+    emptyDir(config.tscDir);
+    emptyDir(config.dtsDir);
+  }
+
   const result = await execa('tsc', [], {
     stdout: 'inherit',
   });

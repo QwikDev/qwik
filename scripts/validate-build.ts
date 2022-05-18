@@ -28,30 +28,39 @@ export async function validateBuild(config: BuildConfig) {
       switch (ext) {
         case '.cjs':
           require(filePath);
+          console.log(`✅ ${filePath}`);
           break;
         case '.mjs':
           if (config.esmNode) {
             await import(pathToFileURL(filePath).href);
+            console.log(`✅ ${filePath}`);
             break;
           }
         case '.ts':
           validateTypeScriptFile(config, filePath);
+          console.log(`✅ ${filePath}`);
           break;
         case '.json':
           JSON.parse(readFileSync(filePath, 'utf-8'));
+          console.log(`✅ ${filePath}`);
           break;
         case '.map':
           JSON.parse(readFileSync(filePath, 'utf-8'));
+          console.log(`✅ ${filePath}`);
           break;
         default:
           if (existsSync(filePath)) {
             const content = readFileSync(filePath, 'utf-8');
             if (content.trim() === '') {
               errors.push(`Expected package.json file is empty: ${filePath}`);
+            } else {
+              console.log(`✅ ${filePath}`);
             }
           } else {
             if (process.env.CI || (!process.env.CI && ext !== '.node')) {
               errors.push(`Expected package.json file not found: ${filePath}`);
+            } else {
+              console.log(`✅ ${filePath}`);
             }
           }
       }
@@ -112,7 +121,14 @@ export function validateTypeScriptFile(config: BuildConfig, tsFilePath: string) 
   );
   const program = ts.createProgram([tsFilePath], tsconfig.options);
 
-  const tsDiagnostics = program.getSemanticDiagnostics().concat(program.getSyntacticDiagnostics());
+  const tsDiagnostics = [
+    ...program.getSemanticDiagnostics(),
+    ...program.getSyntacticDiagnostics(),
+    ...program.getDeclarationDiagnostics(),
+    ...program.getGlobalDiagnostics(),
+    ...program.getConfigFileParsingDiagnostics(),
+    ...program.getOptionsDiagnostics(),
+  ];
 
   if (tsDiagnostics.length > 0) {
     const host = {

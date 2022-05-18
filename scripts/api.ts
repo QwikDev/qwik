@@ -30,7 +30,6 @@ function createTypesApi(
   const extractorConfig = ExtractorConfig.loadFileAndPrepare(
     join(config.srcDir, submodule, 'api-extractor.json')
   );
-  console.log(submodule);
   const result = Extractor.invoke(extractorConfig, {
     localBuild: !!config.dev,
     showVerboseMessages: false,

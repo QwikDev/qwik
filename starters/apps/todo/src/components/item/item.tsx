@@ -1,6 +1,6 @@
-import { component$, useStore, Host, useRef, useWatch$ } from '@builder.io/qwik';
+import { component$, useStore, Host, useRef, useWatch$, useContext } from '@builder.io/qwik';
 
-import type { TodoItem, Todos } from '../../state/state';
+import { TodoItem, TODOS, Todos } from '../../state/state';
 
 /**
  * Individual items of the component.
@@ -10,13 +10,13 @@ import type { TodoItem, Todos } from '../../state/state';
 
 export interface ItemProps {
   item: TodoItem;
-  todos: Todos;
 }
 
 export const Item = component$(
   (props: ItemProps) => {
     const state = useStore({ editing: false });
     const editInput = useRef<HTMLInputElement>();
+    const todos = useContext(TODOS);
 
     useWatch$((track) => {
       const current = track(editInput, 'current');
@@ -48,7 +48,7 @@ export const Item = component$(
             class="destroy"
             onClick$={() => {
               const todoItem = props.item;
-              props.todos.items = props.todos.items.filter((i) => i != todoItem);
+              todos.items = todos.items.filter((i) => i != todoItem);
             }}
           />
         </div>

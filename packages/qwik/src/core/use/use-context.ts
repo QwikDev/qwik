@@ -5,6 +5,7 @@ import { fromCamelToKebabCase } from '../util/case';
 import { getContext } from '../props/props';
 import { unwrapSubscriber, wrapSubscriber } from './use-subscriber';
 import { useHostElement } from './use-host-element.public';
+import { QCtxAttr } from '../util/markers';
 
 /**
  * @alpha
@@ -39,7 +40,12 @@ export function useContextProvider<STATE extends object>(context: Context<STATE>
     }
     newValue = unwrapSubscriber(newValue);
     contexts.set(context.id, newValue);
-    setAttribute(renderCtx, hostElement, `ctx:${context.id}`, '');
+
+    const serializedContexts: string[] = [];
+    contexts.forEach((value, key) => {
+      serializedContexts.push(`${key}=${ctx.refMap.indexOf(value)}`);
+    });
+    setAttribute(renderCtx, hostElement, QCtxAttr, serializedContexts.join(' '));
     setValue(newValue);
   }
 }
@@ -69,7 +75,7 @@ export function _useContext<STATE extends object>(context: Context<STATE>): STAT
         }
       }
     }
-    const foundEl = hostElement.closest(`[ctx\\:${context.id}]`);
+    const foundEl = hostElement.closest(`[q\\:ctx*="${context.id}="]`);
     if (foundEl) {
       const value = getContext(foundEl).contexts!.get(context.id);
       if (value) {

@@ -27,7 +27,7 @@ export async function getSystem() {
   sys.path = createPath(sys);
 
   if (globalThis.IS_ESM) {
-    sys.dynamicImport = (path: string) => import(path);
+    sys.dynamicImport = (path) => import(path);
   }
 
   if (globalThis.IS_CJS) {
@@ -39,7 +39,7 @@ export async function getSystem() {
       if (typeof TextEncoder === 'undefined') {
         // TextEncoder/TextDecoder needs to be on the global scope for the WASM file
         // https://nodejs.org/api/util.html#class-utiltextdecoder
-        const nodeUtil: any = sys.dynamicImport('util');
+        const nodeUtil: typeof import('util') = await sys.dynamicImport('util');
         global.TextEncoder = nodeUtil.TextEncoder;
         global.TextDecoder = nodeUtil.TextDecoder;
       }

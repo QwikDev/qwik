@@ -525,27 +525,9 @@ export const isBrowser = ${JSON.stringify(!isServer)};
 
   async function getQwikServerManifestModule(loadOpts: { ssr?: boolean }) {
     const isServer = opts.target === 'ssr' || !!loadOpts.ssr;
-
-    let manifest = opts.manifestInput;
-    if (isServer) {
-      const sys = getSys();
-      if (!manifest && sys.env === 'node') {
-        // manifest not provided, and in a nodejs environment
-        try {
-          // check if we can find q-manifest.json from the client build
-          const fs: typeof import('fs') = await sys.dynamicImport('fs');
-          const qSymbolsPath = sys.path.join(opts.outDir, Q_MANIFEST_FILENAME);
-          const qSymbolsContent = fs.readFileSync(qSymbolsPath, 'utf-8');
-          manifest = getValidManifest(JSON.parse(qSymbolsContent))!;
-        } catch (e) {
-          /** */
-        }
-      }
-    }
-
+    const manifest = isServer ? opts.manifestInput : null;
     return `// @qwik-client-manifest
-export const manifest = ${JSON.stringify(manifest)};
-`;
+export const manifest = ${JSON.stringify(manifest)};\n`;
   }
 
   return {

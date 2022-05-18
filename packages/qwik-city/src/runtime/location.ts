@@ -1,11 +1,11 @@
+import { useDocument } from '@builder.io/qwik';
 import { createBrowserHistory } from 'history';
 import { getDocument } from './utils';
 
 /**
  * @public
  */
-export const useLocation = (hostElm: any) => {
-  const doc = getDocument(hostElm);
+export const getLocation = (doc: Document) => {
   const history = getDocumentHistory(doc);
   const loc = history.location;
   const win = doc.defaultView!;
@@ -33,6 +33,13 @@ export const useLocation = (hostElm: any) => {
       return history.listen(listener);
     },
   };
+};
+
+/**
+ * @public
+ */
+export const useLocation = () => {
+  return getLocation(useDocument());
 };
 
 /**

@@ -7,11 +7,9 @@ import { TwitterLogo } from '../svgs/twitter-logo';
 import styles from './on-this-page.css?inline';
 
 export const OnThisPage = component$(
-  async () => {
+  () => {
     useScopedStyles$(styles);
-
-    const hostElm = useHostElement();
-    const page = (await usePage(hostElm))!;
+    const page = usePage();
 
     const headings = page.headings.filter((h) => h.level === 2 || h.level === 3);
 

@@ -9,6 +9,7 @@
     "reportTempFolder": "<projectFolder>/dist-dev/api-extractor/jsx-runtime/"
   },
   "dtsRollup": {
-    "enabled": true
+    "enabled": true,
+    "untrimmedFilePath": "<projectFolder>/packages/qwik/dist/jsx-runtime.d.ts"
   }
 }

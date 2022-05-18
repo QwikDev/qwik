@@ -42,8 +42,10 @@ export interface Diagnostic {
 // @alpha (undocumented)
 export type DiagnosticType = 'Error' | 'Warning' | 'SourceError';
 
+// Warning: (ae-forgotten-export) The symbol "InlineEntryStrategy" needs to be exported by the entry point index.d.ts
+//
 // @alpha (undocumented)
-export type EntryStrategy = SingleEntryStrategy | HookEntryStrategy | ComponentEntryStrategy | SmartEntryStrategy | ManualEntryStrategy;
+export type EntryStrategy = InlineEntryStrategy | SingleEntryStrategy | HookEntryStrategy | ComponentEntryStrategy | SmartEntryStrategy | ManualEntryStrategy;
 
 // @alpha (undocumented)
 export interface GlobalInjections {

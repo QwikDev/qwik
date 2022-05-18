@@ -1,4 +1,4 @@
-use crate::code_move::fix_path;
+use crate::code_move::{fix_path, transform_function_expr};
 use crate::collector::{
     collect_from_pat, new_ident_from_id, GlobalCollect, Id, IdentCollector, ImportKind,
 };
@@ -110,7 +110,9 @@ pub struct QwikTransformOptions<'a> {
     pub explicity_extensions: bool,
     pub comments: Option<&'a SingleThreadedComments>,
     pub global_collect: GlobalCollect,
+    pub scope: Option<&'a String>,
     pub dev: bool,
+    pub is_inline: bool,
 }
 
 fn convert_signal_word(id: &JsWord) -> Option<JsWord> {
@@ -180,7 +182,18 @@ impl<'a> QwikTransform<'a> {
         }
     }
 
-    fn register_context_name(&mut self) -> (JsWord, JsWord, JsWord, u64) {
+    fn register_context_name(
+        &mut self,
+        custom_symbol: Option<JsWord>,
+    ) -> (JsWord, JsWord, JsWord, u64) {
+        if let Some(custom_symbol) = custom_symbol {
+            return (
+                custom_symbol.clone(),
+                custom_symbol.clone(),
+                custom_symbol,
+                0,
+            );
+        }
         let mut display_name = self.stack_ctxt.join("_");
         if self.stack_ctxt.is_empty() {
             display_name += "s_";
@@ -200,7 +213,9 @@ impl<'a> QwikTransform<'a> {
         }
         let mut hasher = DefaultHasher::new();
         let local_file_name = self.options.path_data.path.to_slash_lossy();
-
+        if let Some(scope) = self.options.scope {
+            hasher.write(scope.as_bytes());
+        }
         hasher.write(local_file_name.as_bytes());
         hasher.write(display_name.as_bytes());
         let hash = hasher.finish();
@@ -227,7 +242,25 @@ impl<'a> QwikTransform<'a> {
             expr: first_arg, ..
         }) = node.args.pop()
         {
-            self.create_synthetic_qhook(*first_arg, HookKind::Function, QHOOK.clone())
+            let custom_symbol = if let Some(ast::ExprOrSpread {
+                expr: second_arg, ..
+            }) = node.args.pop()
+            {
+                if let ast::Expr::Lit(ast::Lit::Str(second_arg)) = *second_arg {
+                    Some(second_arg.value)
+                } else {
+                    None
+                }
+            } else {
+                None
+            };
+
+            self.create_synthetic_qhook(
+                *first_arg,
+                HookKind::Function,
+                QHOOK.clone(),
+                custom_symbol,
+            )
         } else {
             node
         }
@@ -238,11 +271,13 @@ impl<'a> QwikTransform<'a> {
         first_arg: ast::Expr,
         ctx_kind: HookKind,
         ctx_name: JsWord,
+        custom_symbol: Option<JsWord>,
     ) -> ast::CallExpr {
         let can_capture = can_capture_scope(&first_arg);
         let first_arg_span = first_arg.span();
 
-        let (symbol_name, display_name, hash, hook_hash) = self.register_context_name();
+        let (symbol_name, display_name, hash, hook_hash) =
+            self.register_context_name(custom_symbol);
         let canonical_filename = JsWord::from(symbol_name.as_ref().to_ascii_lowercase());
 
         // Collect descendent idents
@@ -327,53 +362,60 @@ impl<'a> QwikTransform<'a> {
             scoped_idents = vec![];
         }
 
-        let hook_data = HookData {
-            extension: self.options.extension.clone(),
-            local_idents,
-            scoped_idents: scoped_idents.clone(),
-            parent_hook: self.hook_stack.last().cloned(),
-            ctx_kind,
-            ctx_name,
-            origin: self.options.path_data.path.to_slash_lossy().into(),
-            display_name,
-            hash,
-        };
-
-        let entry = self.options.entry_policy.get_entry_for_sym(
-            &symbol_name,
-            self.options.path_data,
-            &self.stack_ctxt,
-            &hook_data,
-        );
-
-        let mut filename = format!(
-            "./{}",
-            entry
-                .as_ref()
-                .map(|e| e.as_ref())
-                .unwrap_or(&canonical_filename)
-        );
-        if self.options.explicity_extensions {
-            filename.push('.');
-            filename.push_str(&self.options.extension);
-        }
-        let import_path = if !self.hook_stack.is_empty() {
-            fix_path("a", "a", &filename).unwrap()
+        if self.options.is_inline {
+            create_inline_qrl(
+                &self.qwik_ident,
+                transform_function_expr(folded, &self.qwik_ident, &scoped_idents),
+                &symbol_name,
+                &scoped_idents,
+            )
         } else {
-            fix_path("a", &self.options.path_data.path, &filename).unwrap()
-        };
+            let hook_data = HookData {
+                extension: self.options.extension.clone(),
+                local_idents,
+                scoped_idents: scoped_idents.clone(),
+                parent_hook: self.hook_stack.last().cloned(),
+                ctx_kind,
+                ctx_name,
+                origin: self.options.path_data.path.to_slash_lossy().into(),
+                display_name,
+                hash,
+            };
+            let entry = self.options.entry_policy.get_entry_for_sym(
+                &symbol_name,
+                self.options.path_data,
+                &self.stack_ctxt,
+                &hook_data,
+            );
+            let mut filename = format!(
+                "./{}",
+                entry
+                    .as_ref()
+                    .map(|e| e.as_ref())
+                    .unwrap_or(&canonical_filename)
+            );
+            if self.options.explicity_extensions {
+                filename.push('.');
+                filename.push_str(&self.options.extension);
+            }
+            let import_path = if !self.hook_stack.is_empty() {
+                fix_path("a", "a", &filename).unwrap()
+            } else {
+                fix_path("a", &self.options.path_data.path, &filename).unwrap()
+            };
 
-        let o = create_inline_qrl(&self.qwik_ident, import_path, &symbol_name, &scoped_idents);
-        self.hooks.push(Hook {
-            entry,
-            span,
-            canonical_filename,
-            name: symbol_name,
-            data: hook_data,
-            expr: Box::new(folded),
-            hash: hook_hash,
-        });
-        o
+            let o = create_qrl(&self.qwik_ident, import_path, &symbol_name, &scoped_idents);
+            self.hooks.push(Hook {
+                entry,
+                span,
+                canonical_filename,
+                name: symbol_name,
+                data: hook_data,
+                expr: Box::new(folded),
+                hash: hook_hash,
+            });
+            o
+        }
     }
 
     fn handle_jsx(&mut self, node: ast::CallExpr) -> ast::CallExpr {
@@ -412,7 +454,7 @@ impl<'a> QwikTransform<'a> {
                 Some(ast::JSXAttrValue::JSXExprContainer(ast::JSXExprContainer {
                     span: DUMMY_SP,
                     expr: ast::JSXExpr::Expr(Box::new(ast::Expr::Call(
-                        self.create_synthetic_qhook(*expr, HookKind::Event, ctx_name),
+                        self.create_synthetic_qhook(*expr, HookKind::Event, ctx_name, None),
                     ))),
                 }))
             } else {
@@ -651,6 +693,7 @@ impl<'a> Fold for QwikTransform<'a> {
                                 *node.value,
                                 HookKind::Event,
                                 ident.sym.clone(),
+                                None,
                             ))),
                         }
                     } else {
@@ -673,6 +716,7 @@ impl<'a> Fold for QwikTransform<'a> {
                                 *node.value,
                                 HookKind::Event,
                                 s.value.clone(),
+                                None,
                             ))),
                         }
                     } else {
@@ -730,7 +774,7 @@ impl<'a> Fold for QwikTransform<'a> {
                         let is_synthetic =
                             global_collect.imports.get(&new_local).unwrap().synthetic;
 
-                        if is_synthetic && self.hook_stack.is_empty() {
+                        if self.options.is_inline || (is_synthetic && self.hook_stack.is_empty()) {
                             self.extra_module_items.insert(
                                 new_local.clone(),
                                 create_synthetic_named_import(&new_local, &import.source),
@@ -783,6 +827,7 @@ impl<'a> Fold for QwikTransform<'a> {
                             *arg.expr,
                             HookKind::Function,
                             ctx_name.clone(),
+                            None,
                         )))
                         .fold_with(self),
                         ..arg
@@ -950,7 +995,7 @@ fn create_synthetic_named_import(local: &Id, src: &JsWord) -> ast::ModuleItem {
     }))
 }
 
-fn create_inline_qrl(qwik_ident: &Id, url: JsWord, symbol: &str, idents: &[Id]) -> ast::CallExpr {
+fn create_qrl(qwik_ident: &Id, url: JsWord, symbol: &str, idents: &[Id]) -> ast::CallExpr {
     let mut args = vec![
         ast::Expr::Arrow(ast::ArrowExpr {
             is_async: false,
@@ -1000,6 +1045,40 @@ fn create_inline_qrl(qwik_ident: &Id, url: JsWord, symbol: &str, idents: &[Id]) 
     }
 
     create_internal_call(qwik_ident, &QRL, args, None)
+}
+
+fn create_inline_qrl(
+    qwik_ident: &Id,
+    expr: ast::Expr,
+    symbol: &str,
+    idents: &[Id],
+) -> ast::CallExpr {
+    let mut args = vec![
+        expr,
+        ast::Expr::Lit(ast::Lit::Str(ast::Str {
+            span: DUMMY_SP,
+            value: symbol.into(),
+            raw: None,
+        })),
+    ];
+
+    // Injects state
+    if !idents.is_empty() {
+        args.push(ast::Expr::Array(ast::ArrayLit {
+            span: DUMMY_SP,
+            elems: idents
+                .iter()
+                .map(|id| {
+                    Some(ast::ExprOrSpread {
+                        spread: None,
+                        expr: Box::new(ast::Expr::Ident(new_ident_from_id(id))),
+                    })
+                })
+                .collect(),
+        }))
+    }
+
+    create_internal_call(qwik_ident, &INLINED_QRL, args, None)
 }
 
 pub fn create_internal_call(

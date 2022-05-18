@@ -54,7 +54,7 @@ export interface PrefetchStrategy {
 }
 
 // @public (undocumented)
-export type QrlMapper = (symbolName: string) => string | undefined;
+export type QrlMapper = (symbolName: string) => [string, string] | undefined;
 
 // @alpha (undocumented)
 export interface QwikBundle {

@@ -13,6 +13,7 @@ import { tryGetInvokeContext } from '../use/use-core';
 
 let runtimeSymbolId = 0;
 const RUNTIME_QRL = '/runtimeQRL';
+const INLINED_QRL = '/inlinedQRL';
 
 // https://regexr.com/68v72
 const EXTRACT_IMPORT_PATH = /\(\s*(['"])([^\1]+)\1\s*\)/;
@@ -133,6 +134,19 @@ export function runtimeQrl<T>(symbol: T, lexicalScopeCapture: any[] = EMPTY_ARRA
   );
 }
 
+/**
+ * @alpha
+ */
+export function inlinedQrl<T>(
+  symbol: T,
+  symbolName: string,
+  lexicalScopeCapture: any[] = EMPTY_ARRAY
+): QRL<T> {
+  return new QRLInternal<T>(INLINED_QRL, symbolName, symbol, null, null, lexicalScopeCapture);
+}
+
+inlinedQrl;
+
 export interface QRLSerializeOptions {
   platform?: CorePlatform;
   element?: Element;
@@ -141,12 +155,20 @@ export interface QRLSerializeOptions {
 
 export function stringifyQRL(qrl: QRL, opts: QRLSerializeOptions = {}) {
   const qrl_ = toInternalQRL(qrl);
-  const symbol = qrl_.symbol;
+  let symbol = qrl_.symbol;
+  let chunk = qrl_.chunk;
   const refSymbol = qrl_.refSymbol ?? symbol;
   const platform = opts.platform;
   const element = opts.element;
-  const chunk = platform ? platform.chunkForSymbol(refSymbol) ?? qrl_.chunk : qrl_.chunk;
-
+  if (platform) {
+    const result = platform.chunkForSymbol(refSymbol);
+    if (result) {
+      chunk = result[0];
+      if (!qrl_.refSymbol) {
+        symbol = result[1];
+      }
+    }
+  }
   const parts: string[] = [chunk];
   if (symbol && symbol !== 'default') {
     parts.push('#', symbol);

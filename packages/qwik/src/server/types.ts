@@ -66,7 +66,7 @@ export { QwikManifest, QwikBundle, QwikSymbol, GlobalInjections };
 /**
  * @public
  */
-export type QrlMapper = (symbolName: string) => string | undefined;
+export type QrlMapper = (symbolName: string) => [string, string] | undefined;
 
 /**
  * @public

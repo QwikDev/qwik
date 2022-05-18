@@ -21,5 +21,5 @@ export interface CorePlatform {
   /**
    * Takes a qrl and serializes into a string
    */
-  chunkForSymbol: (symbolName: string) => string | undefined;
+  chunkForSymbol: (symbolName: string) => [string, string] | undefined;
 }

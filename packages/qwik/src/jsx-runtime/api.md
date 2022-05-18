@@ -4,17 +4,19 @@
 
 ```ts
 
-// Warning: (ae-forgotten-export) The symbol "FunctionComponent" needs to be exported by the entry point jsx-runtime.d.ts
-//
 // @public (undocumented)
 export const Fragment: FunctionComponent<{
     children?: any;
 }>;
 
 // @public (undocumented)
+export interface FunctionComponent<P = {}> {
+    // (undocumented)
+    (props: P, key?: string): JSXNode | null;
+}
+
+// @public (undocumented)
 export namespace JSX {
-    // Warning: (ae-forgotten-export) The symbol "JSXNode" needs to be exported by the entry point jsx-runtime.d.ts
-    //
     // (undocumented)
     export interface Element extends JSXNode {
     }
@@ -40,6 +42,22 @@ function jsx<T extends string | FunctionComponent<PROPS>, PROPS>(type: T, props:
 export { jsx }
 export { jsx as jsxDEV }
 export { jsx as jsxs }
+
+// @public (undocumented)
+export interface JSXNode<T = any> {
+    // (undocumented)
+    children: JSXNode[];
+    // (undocumented)
+    elm?: Node;
+    // (undocumented)
+    key: string | null;
+    // (undocumented)
+    props: Record<string, any> | null;
+    // (undocumented)
+    text?: string;
+    // (undocumented)
+    type: T;
+}
 
 // (No @packageDocumentation comment for this package)
 

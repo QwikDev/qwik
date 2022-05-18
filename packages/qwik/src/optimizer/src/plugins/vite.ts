@@ -22,8 +22,7 @@ import { versions } from '../versions';
 export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
   let isClientDevOnly = false;
   let clientDevInput: undefined | string = undefined;
-  let serverInput: undefined | string = undefined;
-  let ssrInput: undefined | string = undefined;
+  let tmpClientManifestPath: undefined | string = undefined;
 
   const qwikPlugin = createPlugin(qwikViteOpts.optimizerOptions);
 
@@ -38,6 +37,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
     async config(viteConfig, viteEnv) {
       await qwikPlugin.init();
+
+      const sys = qwikPlugin.getSys();
+      const path = qwikPlugin.getPath();
 
       qwikPlugin.log(`vite config(), command: ${viteEnv.command}, env.mode: ${viteEnv.mode}`);
 
@@ -91,18 +93,28 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         pluginOpts.manifestOutput = qwikViteOpts.client?.manifestOutput;
       }
 
-      const opts = qwikPlugin.normalizeOptions(pluginOpts);
-      const path = qwikPlugin.getPath();
+      if (sys.env === 'node') {
+        // In a NodeJs environment, create a path to a q-manifest.json file within the
+        // OS tmp directory. This path should always be the same for both client and ssr.
+        // Client build will write to this path, and SSR will read from it. For this reason,
+        // the Client build should always start and finish before the SSR build.
+        const nodeOs: typeof import('os') = await sys.dynamicImport('os');
+        tmpClientManifestPath = path.join(nodeOs.tmpdir(), `vite-plugin-qwik-q-manifest.json`);
 
-      if (opts.target === 'ssr') {
-        if (typeof viteConfig.build?.ssr === 'string') {
-          // entry.express.tsx user config
-          serverInput = opts.input[0];
-        } else {
-          // entry.ssr.tsx render() input
-          ssrInput = opts.input[0];
+        if (target === 'ssr' && !pluginOpts.manifestInput) {
+          // This is a SSR build so we should load the client build's manifest
+          // so it can be used as the manifestInput of the SSR build
+          const fs: typeof import('fs') = await sys.dynamicImport('fs');
+          try {
+            const clientManifestStr = await fs.promises.readFile(tmpClientManifestPath, 'utf-8');
+            pluginOpts.manifestInput = JSON.parse(clientManifestStr);
+          } catch (e) {
+            /**/
+          }
         }
       }
+
+      const opts = qwikPlugin.normalizeOptions(pluginOpts);
 
       if (typeof qwikViteOpts.client?.devInput === 'string') {
         clientDevInput = path.resolve(opts.rootDir, qwikViteOpts.client.devInput);
@@ -214,7 +226,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
     async generateBundle(_, rollupBundle) {
       const opts = qwikPlugin.getOptions();
-      const path = qwikPlugin.getPath();
 
       const outputAnalyzer = qwikPlugin.createOutputAnalyzer();
 
@@ -241,14 +252,22 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
       if (opts.target === 'client') {
         // client build
+        const clientManifestStr = JSON.stringify(manifest, null, 2);
         this.emitFile({
           type: 'asset',
           fileName: Q_MANIFEST_FILENAME,
-          source: JSON.stringify(manifest, null, 2),
+          source: clientManifestStr,
         });
 
         if (typeof opts.manifestOutput === 'function') {
           await opts.manifestOutput(manifest);
+        }
+
+        const sys = qwikPlugin.getSys();
+        if (tmpClientManifestPath && sys.env === 'node') {
+          // Client build should write the manifest to a tmp dir
+          const fs: typeof import('fs') = await sys.dynamicImport('fs');
+          await fs.promises.writeFile(tmpClientManifestPath, clientManifestStr);
         }
       }
     },
@@ -329,7 +348,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
             qwikPlugin.log(`handleSSR()`, 'symbols', manifest);
 
-            const renderInputModule = await server.moduleGraph.getModuleByUrl(ssrInput!);
+            const renderInputModule = await server.moduleGraph.getModuleByUrl(opts.input[0]!);
             if (renderInputModule) {
               renderInputModule.importedModules.forEach((moduleNode) => {
                 if (moduleNode.url.endsWith('.css')) {

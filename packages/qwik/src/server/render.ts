@@ -1,6 +1,6 @@
 import { createTimer, getBuildBase } from './utils';
 import { pauseContainer, render } from '@builder.io/qwik';
-import type { JSXNode, SnapshotResult } from '@builder.io/qwik';
+import type { SnapshotResult } from '@builder.io/qwik';
 import { setServerPlatform } from './platform';
 import { serializeDocument } from './serialize';
 import type { RenderToStringOptions, RenderToStringResult } from './types';
@@ -15,7 +15,7 @@ import { _createDocument } from './document';
  * then serializes the document to a string.
  * @public
  */
-export async function renderToString(rootNode: JSXNode, opts: RenderToStringOptions = {}) {
+export async function renderToString(rootNode: any, opts: RenderToStringOptions = {}) {
   const createDocTimer = createTimer();
   const doc = _createDocument(opts);
   const createDocTime = createDocTimer();

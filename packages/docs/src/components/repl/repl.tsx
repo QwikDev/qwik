@@ -85,7 +85,7 @@ export const Repl = component$(async (props: ReplProps) => {
     store.versions = data.versions;
 
     if (!store.version || !data.versions.includes(store.version)) {
-      store.version = '0.0.20-2';
+      store.version = '0.0.20-4';
       // store.version = data.tags.latest;
     }
 

@@ -5,7 +5,7 @@
 
 import express, { Request, Response } from 'express';
 import { isAbsolute, join, resolve, dirname } from 'path';
-import { readdirSync, statSync, mkdirSync, unlinkSync, rmdirSync, existsSync } from 'fs';
+import { readdirSync, statSync, unlinkSync, rmdirSync, existsSync } from 'fs';
 import { Plugin, rollup } from 'rollup';
 import type { QwikManifest } from '@builder.io/qwik/optimizer';
 import type { RenderToStringOptions, RenderToStringResult } from '@builder.io/qwik/server';

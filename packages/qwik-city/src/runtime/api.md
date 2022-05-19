@@ -161,7 +161,7 @@ export const setHeadMeta: (elm: any, meta: MetaOptions) => void;
 export const setHeadStyles: (elm: any, styles: HeadStyles) => void;
 
 // @public (undocumented)
-export const usePage: () => PageHandler;
+export const usePage: () => PageHandler | undefined;
 
 // @public (undocumented)
 export const usePageIndex: () => PageIndex | null;

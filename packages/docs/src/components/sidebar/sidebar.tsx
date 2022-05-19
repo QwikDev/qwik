@@ -11,6 +11,10 @@ export const SideBar = component$(
     const navIndex = usePageIndex();
     const globalStore = useContext(GlobalStore);
 
+    if (!page) {
+      return null;
+    }
+
     return (
       <Host class="sidebar">
         <nav class="breadcrumbs">

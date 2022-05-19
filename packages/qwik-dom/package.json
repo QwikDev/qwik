@@ -1,6 +1,6 @@
 {
   "name": "@builder.io/qwik-dom",
-  "version": "2.1.15",
+  "version": "2.1.18",
   "license": "BSD-2-Clause",
   "author": "Felix Gnass <fgnass@gmail.com>",
   "description": "Server-side DOM implementation based on Mozilla's dom.js",

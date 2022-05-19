@@ -6,7 +6,7 @@ export const LexicalScope = component$(() => {
     result: '',
   });
   const a = 1;
-  const b = 'hola';
+  const b = '</script>';
   const c = {
     a: { thing: 12 },
     b: 'hola',

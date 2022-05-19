@@ -106,7 +106,7 @@ exports.merge = function (a, b) {
 };
 
 exports.escapeText = function (str) {
-  return str.replace(/</g, '&lt;').replace(/&/g, '&amp;');
+  return str;
 };
 
 // Compare two nodes based on their document order. This function is intended

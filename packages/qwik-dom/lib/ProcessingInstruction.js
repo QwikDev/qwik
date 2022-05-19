@@ -3,6 +3,7 @@ module.exports = ProcessingInstruction;
 
 var Node = require('./Node');
 var CharacterData = require('./CharacterData');
+var utils = require('./utils');
 
 function ProcessingInstruction(doc, target, data) {
   CharacterData.call(this);
@@ -22,7 +23,7 @@ var nodeValue = {
     } else {
       v = String(v);
     }
-    this._data = v;
+    this._data = utils.escapeText(v);
     if (this.rooted) this.ownerDocument.mutateValue(this);
   },
 };

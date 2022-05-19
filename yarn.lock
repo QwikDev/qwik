@@ -443,10 +443,10 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@builder.io/qwik-dom@npm:2.1.15":
-  version: 2.1.15
-  resolution: "@builder.io/qwik-dom@npm:2.1.15"
-  checksum: 58387b4499515da98b2ddc7ff7d20bc93db49fb1e879460888f74e21e5255a9ad50b4f78f55e864caee52a375683db620df1e25c7e7ec712a2380b61e3c9e127
+"@builder.io/qwik-dom@npm:2.1.18":
+  version: 2.1.18
+  resolution: "@builder.io/qwik-dom@npm:2.1.18"
+  checksum: d89c87afe29770cbb9f983ed9afca13cd798d4e0034ba116f04ddce46482838e1a13b04060e4f316fc5bf32cd670b706cef260ca1ebe51e21bce45490a01c152
   languageName: node
   linkType: hard
 
@@ -7641,7 +7641,7 @@ __metadata:
   resolution: "qwik-monorepo@workspace:."
   dependencies:
     "@builder.io/partytown": 0.5.4
-    "@builder.io/qwik-dom": 2.1.15
+    "@builder.io/qwik-dom": 2.1.18
     "@microsoft/api-extractor": 7.24.0
     "@napi-rs/cli": 2.6.2
     "@napi-rs/triples": 1.1.0

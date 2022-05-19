@@ -3,7 +3,7 @@
   "name": "qwik-monorepo",
   "version": "0.0.20-5",
   "scripts": {
-    "build": "yarn node scripts --tsc --build --platform-binding-wasm-copy",
+    "build": "yarn node scripts --tsc --build --api --platform-binding-wasm-copy",
     "build.full": "yarn node scripts --tsc --build --api --eslint --platform-binding --wasm",
     "build.platform": "yarn node scripts --platform-binding",
     "build.platform.copy": "yarn node scripts --platform-binding-wasm-copy",

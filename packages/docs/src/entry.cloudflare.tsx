@@ -3,10 +3,10 @@ import { render } from './entry.ssr';
 export const onRequestGet: PagesFunction = async ({ request, next, waitUntil }) => {
   try {
     const url = new URL(request.url);
-    // if (url.hostname === 'qwik.builder.io' && url.pathname === '/') {
-    //   // temporarily redirect homepage to the overview page
-    //   return Response.redirect('https://qwik.builder.io/docs/overview', 302);
-    // }
+    if (url.hostname === 'qwik.builder.io' && url.pathname === '/') {
+      // temporarily redirect homepage to the overview page
+      return Response.redirect('https://qwik.builder.io/docs/overview', 302);
+    }
 
     if (url.pathname === '/chat') {
       return Response.redirect('https://discord.gg/bNVSQmPzqy');

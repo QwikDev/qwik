@@ -10,6 +10,6 @@
   },
   "dtsRollup": {
     "enabled": true,
-    "untrimmedFilePath": "<projectFolder>/packages/dist/build/index.d.ts"
+    "untrimmedFilePath": "<projectFolder>/packages/qwik/dist/build/index.d.ts"
   }
 }

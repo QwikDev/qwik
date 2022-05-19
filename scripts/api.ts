@@ -10,7 +10,7 @@ import { readFileSync, writeFileSync } from 'fs';
 export function apiExtractor(config: BuildConfig) {
   // Run the api extractor for each of the submodules
   createTypesApi(config, 'core', 'core.d.ts', './core');
-  createTypesApi(config, 'jsx-runtime', 'jsx-runtime.d.ts', './jsx-runtime');
+  createTypesApi(config, 'jsx-runtime', 'jsx-runtime.d.ts', './core');
   createTypesApi(config, 'optimizer', 'optimizer.d.ts', './core');
   createTypesApi(config, 'server', 'server.d.ts', './core');
   createTypesApi(config, 'testing', 'testing/index.d.ts', '../core');
@@ -27,9 +27,8 @@ function createTypesApi(
   outFileName: string,
   corePath: string
 ) {
-  const extractorConfig = ExtractorConfig.loadFileAndPrepare(
-    join(config.srcDir, submodule, 'api-extractor.json')
-  );
+  const extractorConfigPath = join(config.srcDir, submodule, 'api-extractor.json');
+  const extractorConfig = ExtractorConfig.loadFileAndPrepare(extractorConfigPath);
   const result = Extractor.invoke(extractorConfig, {
     localBuild: !!config.dev,
     showVerboseMessages: true,
@@ -42,7 +41,7 @@ function createTypesApi(
       if (msg.text.includes('Analysis will use')) {
         return;
       }
-      console.log(`❌ API Extractor, submodule: "${submodule}"\n`, msg);
+      console.error(`❌ API Extractor, submodule: "${submodule}"\n${extractorConfigPath}\n`, msg);
     },
   });
   if (!result.succeeded) {

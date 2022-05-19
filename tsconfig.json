@@ -52,6 +52,7 @@
     "starters/apps/**/entry.ssr.tsx",
     "starters/apps/**/entry.dev.tsx",
     "packages/qwik/**/*.d.ts",
-    "packages/create-qwik"
+    "packages/create-qwik",
+    "packages/qwik-dom"
   ]
 }

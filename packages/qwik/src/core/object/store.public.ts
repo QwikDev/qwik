@@ -21,7 +21,7 @@ export function pauseContainer(elmOrDoc: Element | Document): SnapshotResult {
   const data = snapshotState(containerEl);
   const script = doc.createElement('script');
   script.setAttribute('type', 'qwik/json');
-  script.textContent = JSON.stringify(data.state, undefined, qDev ? '  ' : undefined);
+  script.text = JSON.stringify(data.state, undefined, qDev ? '  ' : undefined);
   parentJSON.appendChild(script);
   containerEl.setAttribute(QContainerAttr, 'paused');
   return data;

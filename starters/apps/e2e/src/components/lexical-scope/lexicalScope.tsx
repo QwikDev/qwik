@@ -3,9 +3,10 @@ import { component$, $, useStore } from '@builder.io/qwik';
 export const LexicalScope = component$(() => {
   const state = useStore({
     count: 0,
+    result: '',
   });
   const a = 1;
-  const b = 'hola';
+  const b = '</script>';
   const c = {
     a: { thing: 12 },
     b: 'hola',
@@ -22,7 +23,10 @@ export const LexicalScope = component$(() => {
   const g = true;
   const h = false;
 
-  const onclick = $(() => state.count++);
+  const onclick = $(() => {
+    state.result = JSON.stringify([a, b, c, String(d), String(e), f, g, h]);
+    state.count++;
+  });
 
   return (
     <section>
@@ -39,6 +43,7 @@ export const LexicalScope = component$(() => {
       <button onClickQrl={onclick} id="rerender">
         Rerender {state.count}
       </button>
+      <div id="result">{state.result}</div>
     </section>
   );
 });

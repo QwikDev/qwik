@@ -21,11 +21,15 @@ test.describe('e2e', () => {
     });
 
     test('should rerender without changes', async ({ page }) => {
-      const SNAPSHOT = `<p>1</p><p>"hola"</p><p>{"a":{"thing":12},"b":"hola","c":123,"d":false,"e":true,"f":null,"h":[1,"string",false,{"hola":1},["hello"]]}</p><p>undefined</p><p>null</p><p>[1,2,"hola",{}]</p><p>true</p><p>false</p>`;
+      const SNAPSHOT = `<p>1</p><p>"&lt;/script&gt;"</p><p>{"a":{"thing":12},"b":"hola","c":123,"d":false,"e":true,"f":null,"h":[1,"string",false,{"hola":1},["hello"]]}</p><p>undefined</p><p>null</p><p>[1,2,"hola",{}]</p><p>true</p><p>false</p>`;
+      const RESULT = `[1,"</script>",{"a":{"thing":12},"b":"hola","c":123,"d":false,"e":true,"f":null,"h":[1,"string",false,{"hola":1},["hello"]]},"undefined","null",[1,2,"hola",{}],true,false]`;
+
+      const result = await page.locator('#result');
       const content = await page.locator('#static');
       expect(await content.innerHTML()).toEqual(SNAPSHOT);
       const btn = await page.locator('#rerender');
       expect(await btn.textContent()).toEqual('Rerender 0');
+      expect(await result.textContent()).toEqual('');
 
       // Click button
       await btn.click();
@@ -33,6 +37,7 @@ test.describe('e2e', () => {
 
       expect(await content.innerHTML()).toEqual(SNAPSHOT);
       expect(await btn.textContent()).toEqual('Rerender 1');
+      expect(await result.textContent()).toEqual(RESULT);
 
       // Click button
       await btn.click();
@@ -40,6 +45,7 @@ test.describe('e2e', () => {
 
       expect(await content.innerHTML()).toEqual(SNAPSHOT);
       expect(await btn.textContent()).toEqual('Rerender 2');
+      expect(await result.textContent()).toEqual(RESULT);
     });
   });
 

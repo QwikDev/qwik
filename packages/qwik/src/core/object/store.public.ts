@@ -2,7 +2,7 @@ import { getDocument } from '../util/dom';
 import { isDocument } from '../util/element';
 import { QContainerAttr } from '../util/markers';
 import { qDev } from '../util/qdev';
-import { snapshotState } from './store';
+import { escapeText, snapshotState } from './store';
 import type { SnapshotState, SnapshotResult } from './store';
 
 // <docs markdown="../readme.md#pauseContainer">
@@ -21,7 +21,7 @@ export function pauseContainer(elmOrDoc: Element | Document): SnapshotResult {
   const data = snapshotState(containerEl);
   const script = doc.createElement('script');
   script.setAttribute('type', 'qwik/json');
-  script.textContent = JSON.stringify(data.state, undefined, qDev ? '  ' : undefined);
+  script.textContent = escapeText(JSON.stringify(data.state, undefined, qDev ? '  ' : undefined));
   parentJSON.appendChild(script);
   containerEl.setAttribute(QContainerAttr, 'paused');
   return data;

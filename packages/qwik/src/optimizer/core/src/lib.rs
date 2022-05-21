@@ -1,6 +1,7 @@
 #![deny(clippy::all)]
 #![deny(clippy::perf)]
 #![deny(clippy::nursery)]
+#![allow(clippy::use_self)]
 
 #[cfg(test)]
 mod test;

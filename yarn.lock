@@ -443,14 +443,21 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@builder.io/qwik-dom@npm:2.1.14":
-  version: 2.1.14
-  resolution: "@builder.io/qwik-dom@npm:2.1.14"
-  checksum: b27a071299d9eb773a6c6bf1c994345926aff40483fa533221dc44aede53a66fecbc7a79e5b842e9e90663a1154828bb0904cf38d236c558ad579f227a117425
+"@builder.io/qwik-dom@npm:2.1.18":
+  version: 2.1.18
+  resolution: "@builder.io/qwik-dom@npm:2.1.18"
+  checksum: d89c87afe29770cbb9f983ed9afca13cd798d4e0034ba116f04ddce46482838e1a13b04060e4f316fc5bf32cd670b706cef260ca1ebe51e21bce45490a01c152
   languageName: node
   linkType: hard
 
-"@builder.io/qwik@0.0.20-5, @builder.io/qwik@workspace:packages/qwik":
+"@builder.io/qwik@npm:0.0.20-5":
+  version: 0.0.20-5
+  resolution: "@builder.io/qwik@npm:0.0.20-5"
+  checksum: 72090bc226a5f380adb81a7f1fa9cde10cc08b0d619c11be6930e66fa73b38136943e9aa62e5e0e5724d5dd83b7c7bde484ab4901423465001fb783944c61439
+  languageName: node
+  linkType: hard
+
+"@builder.io/qwik@workspace:packages/qwik":
   version: 0.0.0-use.local
   resolution: "@builder.io/qwik@workspace:packages/qwik"
   languageName: unknown
@@ -7641,7 +7648,7 @@ __metadata:
   resolution: "qwik-monorepo@workspace:."
   dependencies:
     "@builder.io/partytown": 0.5.4
-    "@builder.io/qwik-dom": 2.1.14
+    "@builder.io/qwik-dom": 2.1.18
     "@microsoft/api-extractor": 7.24.0
     "@napi-rs/cli": 2.6.2
     "@napi-rs/triples": 1.1.0

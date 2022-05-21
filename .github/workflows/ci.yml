@@ -144,7 +144,7 @@ jobs:
         with:
           profile: minimal
           override: true
-          toolchain: 1.59.0
+          toolchain: 1.61.0
           target: wasm32-unknown-unknown
 
       - name: Cache cargo dependencies
@@ -230,7 +230,7 @@ jobs:
         with:
           profile: minimal
           override: true
-          toolchain: 1.59.0
+          toolchain: 1.61.0
           target: ${{ matrix.settings.target }}
 
       - name: Pull Latest Image
@@ -505,7 +505,7 @@ jobs:
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: 1.59.0
+          toolchain: 1.61.0
           profile: default
           override: true
 

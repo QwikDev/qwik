@@ -23,13 +23,14 @@ export interface QwikWorkerGlobal {
   clients: {
     claim: () => void;
   };
-  qwikCore: typeof import('@builder.io/qwik');
-  qwikOptimizer: typeof import('@builder.io/qwik/optimizer');
-  qwikServer: typeof import('@builder.io/qwik/server');
-  prettier: typeof import('prettier');
-  prettierPlugins: any;
-  rollup: typeof import('rollup');
-  Terser: typeof import('terser');
+
+  qwikCore?: typeof import('@builder.io/qwik');
+  qwikOptimizer?: typeof import('@builder.io/qwik/optimizer');
+  qwikServer?: typeof import('@builder.io/qwik/server');
+  prettier?: typeof import('prettier');
+  prettierPlugins?: any;
+  rollup?: typeof import('rollup');
+  Terser?: typeof import('terser');
 }
 
 declare const self: QwikWorkerGlobal;

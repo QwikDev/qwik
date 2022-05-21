@@ -2,12 +2,14 @@ import type { Diagnostic, QwikRollupPluginOptions, QwikManifest } from '@builder
 import type { NoSerialize } from '@builder.io/qwik';
 
 export interface ReplInputOptions extends Omit<QwikRollupPluginOptions, 'srcDir' | 'minify'> {
+  clientId: string;
   srcInputs: ReplModuleInput[];
   version: string;
   buildMode: 'development' | 'production';
 }
 
 export interface ReplStore {
+  clientId: string;
   inputs: ReplModuleInput[];
   outputHtml: string;
   clientModules: ReplModuleOutput[];
@@ -52,6 +54,7 @@ export interface ReplMessageEvent {
 
 export interface ReplResult {
   type: 'result';
+  clientId: string;
   outputHtml: string;
   clientModules: ReplModuleOutput[];
   ssrModules: ReplModuleOutput[];

@@ -11,8 +11,10 @@ export const replMinify = (qwikRollupPluginOpts: QwikRollupPluginOptions): Plugi
         for (const fileName in bundle) {
           const chunk = bundle[fileName];
           if (chunk.type === 'chunk') {
-            const result = await self.Terser.minify(chunk.code, TERSER_OPTIONS);
-            chunk.code = result.code!;
+            const result = await self.Terser?.minify(chunk.code, TERSER_OPTIONS);
+            if (result) {
+              chunk.code = result.code!;
+            }
           }
         }
       }

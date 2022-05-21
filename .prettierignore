@@ -12,10 +12,6 @@ dist-dev
 etc
 external
 node_modules
-temp
-tsc-out
-tsdoc-metadata.json
-integration/**/*.js
 target
 output
 rollup.config.js
@@ -28,3 +24,4 @@ node_modules
 tsconfig.tsbuildinfo
 packages/docs/pages/**/*.mdx
 packages/docs/server/
+starters/**/*.js

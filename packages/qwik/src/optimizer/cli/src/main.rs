@@ -10,6 +10,7 @@ use qwik_core::{transform_fs, EntryStrategy, MinifyMode, TransformFsOptions};
 
 struct OptimizerInput {
     glob: Option<String>,
+    manifest: Option<String>,
     src: PathBuf,
     dest: PathBuf,
     strategy: EntryStrategy,
@@ -60,9 +61,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .arg(
                     Arg::new("strategy")
                     .long("strategy")
-                        .possible_values(["single", "hook", "smart", "component"])
+                        .possible_values(["inline", "single", "hook", "smart", "component"])
                         .takes_value(true)
                         .about("entry strategy used to group hooks"),
+                )
+                .arg(
+                    Arg::new("manifest")
+                        .short('m')
+                        .long("manifest")
+                        .takes_value(true)
+                        .about("filename of the manifest"),
                 )
                 .arg(
                     Arg::new("no-transpile")
@@ -80,6 +88,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     if let Some(matches) = matches.subcommand_matches("optimize") {
         // "$ myapp test" was run
         let strategy = match matches.value_of("strategy") {
+            Some("inline") => EntryStrategy::Inline,
             Some("hook") => EntryStrategy::Hook,
             Some("single") => EntryStrategy::Single,
             Some("component") => EntryStrategy::Component,
@@ -95,6 +104,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         optimize(OptimizerInput {
             src: matches.value_of_t_or_exit("src"),
             dest: matches.value_of_t_or_exit("dest"),
+            manifest: matches.value_of("manifest").map(|s| s.into()),
             glob: None,
             strategy,
             minify,
@@ -124,6 +134,9 @@ fn optimize(
         scope: None,
     })?;
 
-    result.write_to_fs(&current_dir.join(optimizer_input.dest).absolutize()?)?;
+    result.write_to_fs(
+        &current_dir.join(optimizer_input.dest).absolutize()?,
+        optimizer_input.manifest,
+    )?;
     Ok(result)
 }

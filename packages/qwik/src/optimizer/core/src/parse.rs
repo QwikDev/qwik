@@ -1,4 +1,5 @@
 use std::collections::hash_map::DefaultHasher;
+use std::collections::HashMap;
 use std::ffi::OsStr;
 use std::hash::Hasher;
 use std::path::{Path, PathBuf};
@@ -77,6 +78,22 @@ pub struct TransformOutput {
     pub is_jsx: bool,
 }
 
+#[derive(Debug, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct QwikBundle {
+    pub size: usize,
+    pub symbols: Vec<JsWord>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct QwikManifest {
+    pub version: JsWord,
+    pub symbols: HashMap<JsWord, HookAnalysis>,
+    pub bundles: HashMap<JsWord, QwikBundle>,
+    pub mapping: HashMap<JsWord, JsWord>,
+}
+
 impl TransformOutput {
     pub fn new() -> Self {
         Self::default()
@@ -90,14 +107,49 @@ impl TransformOutput {
         self
     }
 
+    pub fn get_manifest(&self) -> QwikManifest {
+        let mut manifest = QwikManifest {
+            bundles: HashMap::new(),
+            symbols: HashMap::new(),
+            mapping: HashMap::new(),
+            version: "1".into(),
+        };
+        for module in &self.modules {
+            if let Some(hook) = &module.hook {
+                let filename =
+                    JsWord::from(format!("{}.{}", hook.canonical_filename, hook.extension));
+                manifest.mapping.insert(hook.name.clone(), filename.clone());
+                manifest.symbols.insert(hook.name.clone(), hook.clone());
+                manifest.bundles.insert(
+                    filename.clone(),
+                    QwikBundle {
+                        symbols: vec![hook.name.clone()],
+                        size: module.code.len(),
+                    },
+                );
+            }
+        }
+        manifest
+    }
+
     #[cfg(feature = "fs")]
-    pub fn write_to_fs(&self, destination: &Path) -> Result<usize, Error> {
+    pub fn write_to_fs(
+        &self,
+        destination: &Path,
+        manifest: Option<String>,
+    ) -> Result<usize, Error> {
         for module in &self.modules {
             let write_path = destination.join(&module.path);
             fs::create_dir_all(&write_path.parent().with_context(|| {
                 format!("Computing path parent of {}", write_path.to_string_lossy())
             })?)?;
             fs::write(write_path, &module.code)?;
+        }
+        if let Some(manifest) = manifest {
+            let write_path = destination.join(manifest);
+            let manifest = self.get_manifest();
+            let json = serde_json::to_string(&manifest)?;
+            fs::write(write_path, json)?;
         }
         Ok(self.modules.len())
     }

@@ -163,29 +163,37 @@ export async function loadPlatformBinding(sys: OptimizerSystem) {
     if (sysEnv === 'webworker' || sysEnv === 'browsermain') {
       // CJS WASM Browser
       const version = versions.qwik.split('-dev')[0];
-      const cdnUrl = `https://cdn.jsdelivr.net/npm/@builder.io/qwik@${version}/bindings/`;
-      const cjsModuleUrl = new URL(`./qwik.wasm.cjs`, cdnUrl).href;
-      const wasmUrl = new URL(`./qwik_wasm_bg.wasm`, cdnUrl).href;
+      const cachedCjsCode = `qwikWasmCjs${version}`;
+      const cachedWasmRsp = `qwikWasmRsp${version}`;
 
-      const rsps = await Promise.all([fetch(cjsModuleUrl), fetch(wasmUrl)]);
+      let cjsCode: string = (globalThis as any)[cachedCjsCode];
+      let wasmRsp: Response = (globalThis as any)[cachedWasmRsp];
 
-      for (const rsp of rsps) {
-        if (!rsp.ok) {
-          throw new Error(`Unable to fetch Qwik WASM binding from ${rsp.url}`);
+      if (!cjsCode || !wasmRsp) {
+        const cdnUrl = `https://cdn.jsdelivr.net/npm/@builder.io/qwik@${version}/bindings/`;
+        const cjsModuleUrl = new URL(`./qwik.wasm.cjs`, cdnUrl).href;
+        const wasmUrl = new URL(`./qwik_wasm_bg.wasm`, cdnUrl).href;
+
+        const rsps = await Promise.all([fetch(cjsModuleUrl), fetch(wasmUrl)]);
+
+        for (const rsp of rsps) {
+          if (!rsp.ok) {
+            throw new Error(`Unable to fetch Qwik WASM binding from ${rsp.url}`);
+          }
         }
+
+        const cjsRsp = rsps[0];
+        (globalThis as any)[cachedCjsCode] = cjsCode = await cjsRsp.text();
+        (globalThis as any)[cachedWasmRsp] = wasmRsp = rsps[1];
       }
 
-      const cjsRsp = rsps[0];
-      const wasmRsp = rsps[1];
-
-      const cjsCode = await cjsRsp.text();
       const cjsModule: any = { exports: {} };
       const cjsRun = new Function('module', 'exports', cjsCode);
       cjsRun(cjsModule, cjsModule.exports);
       const mod = cjsModule.exports;
 
       // init
-      await mod.default(wasmRsp);
+      await mod.default(wasmRsp.clone());
 
       return mod;
     }

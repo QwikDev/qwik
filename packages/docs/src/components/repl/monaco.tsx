@@ -88,8 +88,6 @@ export const updateMonacoEditor = async (props: EditorProps, store: EditorStore)
       const existingModel = monaco.editor.getModel(uri);
       if (!existingModel) {
         monaco.editor.createModel(input.code, undefined, uri);
-      } else {
-        existingModel.setValue(input.code);
       }
     } catch (e) {
       console.error(input.path, e);

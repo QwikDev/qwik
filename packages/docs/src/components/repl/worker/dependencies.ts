@@ -1,87 +1,90 @@
 /* eslint-disable no-console */
 import type { ReplInputOptions } from '../types';
-import { ctx } from './constants';
 import type { QwikWorkerGlobal } from './repl-service-worker';
 
-export const loadDependencies = async (options: ReplInputOptions) => {
-  const version = options.version;
-  if (!hasDependencies(version)) {
-    console.time('Load dependencies');
-    self.qwikCore = self.qwikOptimizer = self.qwikServer = self.rollup = null as any;
+export const deps: {
+  pkgName: string;
+  pkgPath: string;
+  pkgVersion?: string;
+  pkgUrl?: string;
+  code?: string;
+}[] = [];
 
-    const coreCjsUrl = getNpmCdnUrl(QWIK_PKG_NAME, version, '/core.cjs');
-    const coreEsmDevUrl = getNpmCdnUrl(QWIK_PKG_NAME, version, '/core.mjs');
-    const coreEsmMinUrl = getNpmCdnUrl(QWIK_PKG_NAME, version, '/core.min.mjs');
-    const optimizerCjsUrl = getNpmCdnUrl(QWIK_PKG_NAME, version, '/optimizer.cjs');
-    const serverCjsUrl = getNpmCdnUrl(QWIK_PKG_NAME, version, '/server.cjs');
-    const rollupUrl = getNpmCdnUrl('rollup', ROLLUP_VERSION, '/dist/rollup.browser.js');
-    const prettierUrl = getNpmCdnUrl('prettier', PRETTIER_VERSION, '/standalone.js');
-    const prettierHtmlUrl = getNpmCdnUrl('prettier', PRETTIER_VERSION, '/parser-html.js');
+const ensureDep = async (pkgName: string, pkgVersion: string, pkgPath: string) => {
+  let dep = deps.find((d) => d.pkgName === pkgName && d.pkgPath === pkgPath);
 
-    const depUrls = [
-      coreCjsUrl,
-      coreEsmDevUrl,
-      coreEsmMinUrl,
-      optimizerCjsUrl,
-      serverCjsUrl,
-      rollupUrl,
-      prettierUrl,
-      prettierHtmlUrl,
-    ];
-
-    const rsps = await Promise.all(depUrls.map((u) => fetch(u)));
-    rsps.forEach((rsp) => {
-      if (!rsp.ok) {
-        throw new Error(`Unable to load dependency: ${rsp.url}`);
-      }
-    });
-
-    const [
-      coreCjs,
-      coreEsmDev,
-      coreEsmMin,
-      optimizerCjs,
-      serverCjs,
-      rollup,
-      prettier,
-      prettierHtml,
-    ] = rsps;
-
-    await exec(coreCjs);
-    console.debug(`Loaded @builder.io/qwik: ${self.qwikCore.version}`);
-
-    await exec(optimizerCjs);
-    console.debug(`Loaded @builder.io/qwik/optimizer: ${self.qwikOptimizer.versions.qwik}`);
-
-    await exec(serverCjs);
-    console.debug(`Loaded @builder.io/qwik/server: ${self.qwikServer.versions.qwik}`);
-
-    await exec(rollup);
-    console.debug(`Loaded rollup: ${self.rollup.VERSION}`);
-
-    await exec(prettier);
-    await exec(prettierHtml);
-    console.debug(`Loaded prettier: ${self.prettier.version}`);
-
-    ctx.coreEsmDevCode = await coreEsmDev.text();
-    ctx.coreEsmMinCode = await coreEsmMin.text();
-
-    console.timeEnd('Load dependencies');
+  if (!dep) {
+    dep = {
+      pkgName,
+      pkgPath,
+    };
+    deps.push(dep);
   }
 
-  if (options.buildMode === 'production' && !self.Terser) {
-    console.time(`Load terser ${TERSER_VERSION}`);
-    const terserUrl = getNpmCdnUrl('terser', TERSER_VERSION, '/dist/bundle.min.js');
-    const terserRsp = await fetch(terserUrl);
-    await exec(terserRsp);
-    console.timeEnd(`Load terser ${TERSER_VERSION}`);
+  if (dep.pkgVersion !== pkgVersion) {
+    dep.pkgUrl = getNpmCdnUrl(pkgName, pkgVersion, pkgPath);
+    dep.pkgVersion = pkgVersion;
+
+    const rsp = await fetch(dep.pkgUrl);
+    dep.code = await rsp.text();
+
+    console.debug(`Loaded: ${dep.pkgUrl}`);
   }
 };
 
-const exec = async (rsp: Response) => {
-  console.debug(`Run ${rsp.url}`);
-  const run = new Function(await rsp.text());
+const exec = (pkgName: string, pkgPath: string) => {
+  const dep = deps.find((d) => d.pkgName === pkgName && d.pkgPath === pkgPath);
+  console.debug(`Run: ${dep?.pkgUrl}`);
+  const run = new Function(dep!.code!);
   run();
+};
+
+export const loadDependencies = async (options: ReplInputOptions) => {
+  const version = options.version;
+
+  const promises = [
+    ensureDep(QWIK_PKG_NAME, version, '/core.cjs'),
+    ensureDep(QWIK_PKG_NAME, version, '/core.mjs'),
+    ensureDep(QWIK_PKG_NAME, version, '/core.min.mjs'),
+    ensureDep(QWIK_PKG_NAME, version, '/optimizer.cjs'),
+    ensureDep(QWIK_PKG_NAME, version, '/server.cjs'),
+    ensureDep('rollup', ROLLUP_VERSION, '/dist/rollup.browser.js'),
+    ensureDep('prettier', PRETTIER_VERSION, '/standalone.js'),
+    ensureDep('prettier', PRETTIER_VERSION, '/parser-html.js'),
+  ];
+
+  await Promise.all(promises);
+
+  if (!isSameQwikVersion(self.qwikCore?.version, version)) {
+    exec(QWIK_PKG_NAME, '/core.cjs');
+    console.debug(`Loaded @builder.io/qwik: ${self.qwikCore!.version}`);
+  }
+
+  if (!isSameQwikVersion(self.qwikOptimizer?.versions.qwik, version)) {
+    exec(QWIK_PKG_NAME, '/optimizer.cjs');
+    console.debug(`Loaded @builder.io/qwik/optimizer: ${self.qwikOptimizer!.versions.qwik}`);
+  }
+
+  if (!isSameQwikVersion(self.qwikServer?.versions.qwik, version)) {
+    exec(QWIK_PKG_NAME, '/server.cjs');
+    console.debug(`Loaded @builder.io/qwik/server: ${self.qwikServer!.versions!.qwik}`);
+  }
+
+  if (self.rollup?.VERSION !== ROLLUP_VERSION) {
+    exec('rollup', '/dist/rollup.browser.js');
+    console.debug(`Loaded rollup: ${self.rollup!.VERSION}`);
+  }
+
+  if (self.prettier?.version !== PRETTIER_VERSION) {
+    exec('prettier', '/standalone.js');
+    exec('prettier', '/parser-html.js');
+    console.debug(`Loaded prettier: ${self.prettier!.version}`);
+  }
+
+  if (options.buildMode === 'production' && !self.Terser) {
+    await ensureDep('terser', TERSER_VERSION, '/dist/bundle.min.js');
+    exec('terser', '/dist/bundle.min.js');
+  }
 };
 
 const getNpmCdnUrl = (pkgName: string, pkgVersion: string, pkgPath: string) => {
@@ -93,21 +96,8 @@ const getNpmCdnUrl = (pkgName: string, pkgVersion: string, pkgPath: string) => {
   return `https://cdn.jsdelivr.net/npm/${pkgName}${pkgVersion ? '@' + pkgVersion : ''}${pkgPath}`;
 };
 
-const hasDependencies = (version: string) => {
-  return (
-    self.qwikCore &&
-    isSameQwikVersion(self.qwikCore.version, version) &&
-    self.qwikOptimizer &&
-    isSameQwikVersion(self.qwikOptimizer.versions.qwik, version) &&
-    self.qwikServer &&
-    isSameQwikVersion(self.qwikServer.versions.qwik, version) &&
-    self.rollup &&
-    self.rollup.VERSION === ROLLUP_VERSION
-  );
-};
-
-const isSameQwikVersion = (a: string, b: string) => {
-  if (a !== b && !a.includes('-dev') && !b.includes('-dev')) {
+const isSameQwikVersion = (a: string | undefined, b: string) => {
+  if (!a || (a !== b && !a.includes('-dev') && !b.includes('-dev'))) {
     return false;
   }
   return true;

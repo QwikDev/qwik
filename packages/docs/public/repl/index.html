@@ -68,6 +68,10 @@
           }
         };
 
+        const postReplReady = () => {
+          sendMessageToMain({ type: 'replready', clientId: location.hash.split('#')[1] });
+        };
+
         window.addEventListener('message', receiveMessageFromMainApp);
 
         navigator.serviceWorker
@@ -79,12 +83,12 @@
               swRegistration = reg;
               if (swRegistration.active) {
                 navigator.serviceWorker.addEventListener('message', receiveMessageFromSw);
-                sendMessageToMain({ type: 'replready' });
+                postReplReady();
               } else if (swRegistration.installing) {
                 swRegistration.installing.addEventListener('statechange', (ev) => {
                   if (ev.target.state == 'activated') {
                     navigator.serviceWorker.addEventListener('message', receiveMessageFromSw);
-                    sendMessageToMain({ type: 'replready' });
+                    postReplReady();
                   }
                 });
               }

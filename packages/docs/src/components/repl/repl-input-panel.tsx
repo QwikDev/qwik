@@ -48,10 +48,8 @@ export const ReplInputPanel = ({
 };
 
 const formatFilePath = (path: string) => {
-  if (path.startsWith('/')) {
-    return path.substring(1);
-  }
-  return path;
+  const parts = path.split('/');
+  return parts[parts.length - 1];
 };
 
 interface ReplInputPanelProps {

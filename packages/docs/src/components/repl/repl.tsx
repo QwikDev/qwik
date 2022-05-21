@@ -17,7 +17,8 @@ import { ReplDetailPanel } from './repl-detail-panel';
 export const Repl = component$(async (props: ReplProps) => {
   useScopedStyles$(styles);
 
-  const store = useStore<ReplStore>({
+  const store = useStore<ReplStore>(() => ({
+    clientId: Math.round(Math.random() * Number.MAX_SAFE_INTEGER).toString(36),
     inputs: props.inputs || [],
     outputHtml: '',
     clientModules: [],
@@ -40,19 +41,19 @@ export const Repl = component$(async (props: ReplProps) => {
     entryStrategy: props.entryStrategy || 'hook',
     buildMode: props.buildMode || 'development',
     versions: [],
-  });
+  }));
 
   if (props.inputs) {
     store.inputs = props.inputs;
   }
 
-  if (!store.selectedInputPath) {
-    if (store.inputs.some((i) => i.path === props.selectedInputPath)) {
-      store.selectedInputPath = props.selectedInputPath!;
-    } else if (store.inputs.length > 0) {
+  useWatch$((track) => {
+    track(store, 'inputs');
+
+    if (!store.inputs.some((i) => i.path === props.selectedInputPath)) {
       store.selectedInputPath = store.inputs[0].path;
     }
-  }
+  });
 
   const onInputChange = $((path: string, code: string) => {
     const input = store.inputs.find((i) => i.path === path);
@@ -85,7 +86,7 @@ export const Repl = component$(async (props: ReplProps) => {
     store.versions = data.versions;
 
     if (!store.version || !data.versions.includes(store.version)) {
-      store.version = '0.0.20-4';
+      store.version = '0.0.20-7';
       // store.version = data.tags.latest;
     }
 
@@ -93,6 +94,7 @@ export const Repl = component$(async (props: ReplProps) => {
     if (location.hostname === 'localhost') {
       store.iframeUrl += 'index.html';
     }
+    store.iframeUrl += '#' + store.clientId;
 
     // TODO!
     // if (location.hostname === 'qwik.builder.io') {
@@ -100,7 +102,6 @@ export const Repl = component$(async (props: ReplProps) => {
     //   store.iframeUrl = 'https://qwik-docs.pages.dev' + store.iframeUrl;
     // }
 
-    // how do I not use window event listener here?
     window.addEventListener('message', (ev) => onMessageFromIframe(ev, store));
   });
 
@@ -158,14 +159,13 @@ export const updateReplOutput = (store: ReplStore, result: ReplResult) => {
 };
 
 export const onMessageFromIframe = (ev: MessageEvent, store: ReplStore) => {
-  switch (ev.data?.type) {
-    case 'replready': {
+  const type = ev.data?.type;
+  const clientId = ev.data?.clientId;
+  if (clientId === store.clientId) {
+    if (type === 'replready') {
       store.iframeWindow = noSerialize(ev.source as any);
-      break;
-    }
-    case 'result': {
+    } else if (type === 'result') {
       updateReplOutput(store, ev.data);
-      break;
     }
   }
 };
@@ -175,6 +175,7 @@ export const postReplInputUpdate = (store: ReplStore) => {
     const msg: ReplMessageEvent = {
       type: 'update',
       options: {
+        clientId: store.clientId,
         debug: store.debug,
         srcInputs: store.inputs,
         buildMode: store.buildMode,

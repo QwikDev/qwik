@@ -1,6 +1,6 @@
 import type { Plugin } from 'rollup';
 import type { ReplInputOptions } from '../types';
-import { ctx } from './constants';
+import { deps } from './dependencies';
 
 export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 'ssr'): Plugin => {
   return {
@@ -37,9 +37,20 @@ export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 's
       }
       if (id === '\0qwikCore') {
         if (options.buildMode === 'production') {
-          return ctx.coreEsmMinCode;
+          const coreMin = deps.find(
+            (d) => d.pkgName === '@builder.io/qwik' && d.pkgPath === '/core.min.mjs'
+          );
+          if (coreMin) {
+            return coreMin.code;
+          }
         }
-        return ctx.coreEsmDevCode;
+
+        const coreDev = deps.find(
+          (d) => d.pkgName === '@builder.io/qwik' && d.pkgPath === '/core.mjs'
+        );
+        if (coreDev) {
+          return coreDev.code;
+        }
       }
       return null;
     },

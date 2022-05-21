@@ -131,7 +131,7 @@ function examplesData(pagesDir: string): Plugin {
           inputs: readdirSync(appDir).map((fileName) => {
             const filePath = join(appDir, fileName);
             const input: TransformModuleInput = {
-              path: '/' + fileName,
+              path: `/${menuApp.id}/${fileName}`,
               code: readFileSync(filePath, 'utf-8'),
             };
             ctx.addWatchFile(filePath);

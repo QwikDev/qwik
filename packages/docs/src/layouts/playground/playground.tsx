@@ -32,17 +32,6 @@ const Playground = component$(() => {
     ]);
   });
 
-  useClientEffect$(() => {
-    try {
-      const colLeft = localStorage.getItem('qwikPlayground_colLeft');
-      if (colLeft) {
-        store.colLeft = JSON.parse(colLeft);
-      }
-    } catch (e) {
-      /**/
-    }
-  });
-
   useScopedStyles$(styles);
 
   const pointerDown = $(() => {
@@ -59,11 +48,6 @@ const Playground = component$(() => {
 
   const pointerUp = $(() => {
     store.colResizeActive = false;
-    try {
-      localStorage.setItem('qwikPlayground_colLeft', JSON.stringify(store.colLeft));
-    } catch (e) {
-      /**/
-    }
   });
 
   return (

@@ -24,7 +24,7 @@
 
 ## Advanced
 
-- [Containers](advanced/container.mdx)
+- [Containers](advanced/containers.mdx)
 - [Optimizer](advanced/optimizer.mdx)
 - [QRL](advanced/qrl.mdx)
 - [Qwikloader](advanced/qwikloader.mdx)

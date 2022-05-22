@@ -41,6 +41,7 @@ export const Repl = component$(async (props: ReplProps) => {
     entryStrategy: props.entryStrategy || 'hook',
     buildMode: props.buildMode || 'development',
     versions: [],
+    build: 0,
   }));
 
   if (props.inputs) {
@@ -59,7 +60,7 @@ export const Repl = component$(async (props: ReplProps) => {
     const input = store.inputs.find((i) => i.path === path);
     if (input) {
       input.code = code;
-      store.inputs = [...store.inputs];
+      store.build++;
     }
   });
 
@@ -111,6 +112,7 @@ export const Repl = component$(async (props: ReplProps) => {
     track(store, 'inputs');
     track(store, 'version');
     track(store, 'iframeWindow');
+    track(store, 'build');
 
     postReplInputUpdate(store);
   });

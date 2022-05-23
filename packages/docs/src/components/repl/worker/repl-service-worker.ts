@@ -1,10 +1,11 @@
-/* eslint-disable no-console */
+import type { ReplUpdateMessage } from '../types';
 import { requestHandler } from './request-handler';
 import { update } from './update';
 
 self.onmessage = (ev: MessageEvent) => {
-  if (ev.data?.type === 'update') {
-    update(ev.data.options);
+  const msg: ReplUpdateMessage = JSON.parse(ev.data);
+  if (msg && msg.type === 'update' && msg.options) {
+    update(msg.options);
   }
 };
 

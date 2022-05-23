@@ -1,12 +1,14 @@
 import { noSerialize } from '@builder.io/qwik';
-import e from 'express';
+import type { Diagnostic } from '@builder.io/qwik/optimizer';
 import type MonacoTypes from 'monaco-editor';
 import type { EditorProps, EditorStore } from './editor';
+import type { ReplStore } from './types';
 
 export const initMonacoEditor = async (
   containerElm: any,
   props: EditorProps,
-  store: EditorStore
+  editorStore: EditorStore,
+  replStore: ReplStore
 ) => {
   const monaco = await getMonaco();
   const ts = monaco.languages.typescript;
@@ -39,22 +41,28 @@ export const initMonacoEditor = async (
     ...defaultEditorOpts,
     ariaLabel: props.ariaLabel,
     lineNumbers: props.lineNumbers,
-    readOnly: props.readOnly,
     wordWrap: props.wordWrap,
     model: null,
   });
 
   ts.typescriptDefaults.setEagerModelSync(true);
 
-  if (!props.readOnly && typeof props.onChangeQrl === 'object') {
-    store.onChangeSubscription = noSerialize(
-      editor.onDidChangeModelContent(() => {
+  if (typeof props.onChangeQrl === 'object') {
+    let tmrId: any = null;
+
+    editorStore.onChangeSubscription = noSerialize(
+      editor.onDidChangeModelContent(async () => {
         props.onChangeQrl?.invoke(props.selectedPath, editor.getValue());
+
+        clearTimeout(tmrId);
+        tmrId = setTimeout(() => {
+          checkDiagnostics(monaco, editor, replStore);
+        }, 80);
       })
     );
   }
 
-  store.editor = noSerialize(editor);
+  editorStore.editor = noSerialize(editor);
 };
 
 export const addQwikLib = async (version: string) => {
@@ -67,7 +75,7 @@ export const addQwikLib = async (version: string) => {
   });
 };
 
-export const updateMonacoEditor = async (props: EditorProps, store: EditorStore) => {
+export const updateMonacoEditor = async (props: EditorProps, editorStore: EditorStore) => {
   const monaco = await getMonaco();
 
   const fsPaths = props.inputs.map((i) => getUri(monaco, i.path).fsPath);
@@ -94,29 +102,87 @@ export const updateMonacoEditor = async (props: EditorProps, store: EditorStore)
     }
   }
 
-  const selectedFsPath = getUri(monaco, props.selectedPath).fsPath;
-  const previousSelectedModel = store.editor!.getModel();
-  if (!props.readOnly && previousSelectedModel) {
-    const viewState = store.editor!.saveViewState();
-    if (viewState) {
-      store.viewStates[previousSelectedModel.uri.fsPath] = noSerialize(viewState);
+  if (editorStore.editor) {
+    const selectedFsPath = getUri(monaco, props.selectedPath).fsPath;
+    const previousSelectedModel = editorStore.editor.getModel();
+    if (previousSelectedModel) {
+      const viewState = editorStore.editor.saveViewState();
+      if (viewState) {
+        editorStore.viewStates[previousSelectedModel.uri.fsPath] = noSerialize(viewState);
+      }
     }
-  }
 
-  if (!previousSelectedModel || previousSelectedModel.uri.fsPath !== selectedFsPath) {
-    const selectedModel = monaco.editor.getModels().find((m) => m.uri.fsPath === selectedFsPath);
-    if (selectedModel) {
-      store.editor!.setModel(selectedModel);
+    if (!previousSelectedModel || previousSelectedModel.uri.fsPath !== selectedFsPath) {
+      const selectedModel = monaco.editor.getModels().find((m) => m.uri.fsPath === selectedFsPath);
+      if (selectedModel) {
+        editorStore.editor.setModel(selectedModel);
 
-      if (!props.readOnly) {
-        const viewState = store.viewStates[selectedModel.uri.fsPath];
+        const viewState = editorStore.viewStates[selectedModel.uri.fsPath];
         if (viewState) {
-          store.editor!.restoreViewState(viewState);
+          editorStore.editor.restoreViewState(viewState);
         }
-        store.editor!.focus();
+        editorStore.editor.focus();
       }
     }
   }
+};
+
+const checkDiagnostics = async (
+  monaco: Monaco,
+  editor: IStandaloneCodeEditor,
+  replStore: ReplStore
+) => {
+  if (!monacoCtx.tsWorker) {
+    const getTsWorker = await monaco.languages.typescript.getTypeScriptWorker();
+    monacoCtx.tsWorker = await getTsWorker(editor.getModel()!.uri);
+  }
+  const tsWorker = monacoCtx.tsWorker;
+
+  const models = monaco.editor.getModels();
+  const tsDiagnostics: TypeScriptDiagnostic[] = [];
+
+  await Promise.all(
+    models.map(async (m) => {
+      const filePath = `file://${m.uri.fsPath}`;
+      const semPromise = tsWorker.getSemanticDiagnostics(filePath);
+      const synPromise = tsWorker.getSyntacticDiagnostics(filePath);
+      tsDiagnostics.push(...(await semPromise));
+      tsDiagnostics.push(...(await synPromise));
+    })
+  );
+
+  if (tsDiagnostics.length > 0) {
+    replStore.monacoDiagnostics = tsDiagnostics.map((tsd) => {
+      const d: Diagnostic = {
+        message: getTsDiagnosticMessage(tsd.messageText),
+        severity: 'Error',
+        code_highlights: [],
+        origin: 'monaco',
+        show_environment: false,
+      };
+      return d;
+    });
+
+    if (replStore.selectedOutputPanel !== 'diagnostics') {
+      replStore.lastOutputPanel = replStore.selectedOutputPanel;
+      replStore.selectedOutputPanel = 'diagnostics';
+    }
+  } else if (replStore.monacoDiagnostics.length > 0) {
+    replStore.monacoDiagnostics = [];
+    if (replStore.diagnostics.length === 0 && replStore.selectedOutputPanel === 'diagnostics') {
+      replStore.selectedOutputPanel = replStore.lastOutputPanel || 'app';
+    }
+  }
+};
+
+const getTsDiagnosticMessage = (m: string | DiagnosticMessageChain) => {
+  if (m) {
+    if (typeof m === 'string') {
+      return m;
+    }
+    return m.messageText;
+  }
+  return '';
 };
 
 const getMonaco = async (): Promise<Monaco> => {
@@ -127,6 +193,8 @@ const getMonaco = async (): Promise<Monaco> => {
       script.addEventListener('error', reject);
       script.addEventListener('load', () => {
         require.config({ paths: { vs: MONACO_VS_URL } });
+
+        // https://cdn.jsdelivr.net/npm/monaco-editor@0.33.0/min/vs/editor/editor.main.js
         require(['vs/editor/editor.main'], () => {
           resolve((globalThis as any).monaco);
         });
@@ -211,6 +279,7 @@ const defaultEditorOpts: IStandaloneEditorConstructionOptions = {
 const monacoCtx: MonacoContext = {
   deps: [],
   loader: null,
+  tsWorker: null,
 };
 
 const getCdnUrl = (pkgName: string, pkgVersion: string, pkgPath: string) => {
@@ -227,10 +296,14 @@ export type ICodeEditorViewState = MonacoTypes.editor.ICodeEditorViewState;
 export type IStandaloneEditorConstructionOptions =
   MonacoTypes.editor.IStandaloneEditorConstructionOptions;
 export type IModelContentChangedEvent = MonacoTypes.editor.IModelContentChangedEvent;
+export type TypeScriptWorker = MonacoTypes.languages.typescript.TypeScriptWorker;
+export type TypeScriptDiagnostic = MonacoTypes.languages.typescript.Diagnostic;
+export type DiagnosticMessageChain = MonacoTypes.languages.typescript.DiagnosticMessageChain;
 
 interface MonacoContext {
   deps: NodeModuleDep[];
   loader: Promise<Monaco> | null;
+  tsWorker: null | TypeScriptWorker;
 }
 
 interface NodeModuleDep {

@@ -5,15 +5,23 @@ export const onRequestGet: PagesFunction = async ({ request, next, waitUntil }) 
     const url = new URL(request.url);
     if (url.hostname === 'qwik.builder.io' && url.pathname === '/') {
       // temporarily redirect homepage to the overview page
-      return Response.redirect('https://qwik.builder.io/docs/overview', 302);
+      return Response.redirect('/docs/overview', 302);
     }
 
     if (url.pathname === '/chat') {
       return Response.redirect('https://discord.gg/bNVSQmPzqy');
     }
 
+    if (url.pathname === '/examples') {
+      return Response.redirect('/examples/hello-world');
+    }
+
+    if (url.pathname === '/tutorial') {
+      return Response.redirect('/tutorial/introduction/basics');
+    }
+
     // Handle static assets
-    if (/\.\w+$/.test(url.pathname) || url.pathname === '/repl/') {
+    if (/\.\w+$/.test(url.pathname)) {
       return next(request);
     }
 

@@ -5,6 +5,8 @@ import { ReplTabButtons } from './repl-tab-buttons';
 import type { ReplStore } from './types';
 
 export const ReplOutputPanel = ({ store }: ReplOutputPanelProps) => {
+  const diagnosticsLen = store.diagnostics.length + store.monacoDiagnostics.length;
+
   return (
     <div class="repl-panel repl-output-panel">
       <ReplTabButtons>
@@ -19,9 +21,9 @@ export const ReplOutputPanel = ({ store }: ReplOutputPanelProps) => {
         {store.enableHtmlOutput ? (
           <ReplTabButton
             text="HTML"
-            isActive={store.selectedOutputPanel === 'outputHtml'}
+            isActive={store.selectedOutputPanel === 'html'}
             onClick$={() => {
-              store.selectedOutputPanel = 'outputHtml';
+              store.selectedOutputPanel = 'html';
             }}
           />
         ) : null}
@@ -46,9 +48,9 @@ export const ReplOutputPanel = ({ store }: ReplOutputPanelProps) => {
           />
         ) : null}
 
-        {store.diagnostics.length > 0 ? (
+        {diagnosticsLen > 0 ? (
           <ReplTabButton
-            text={`Diagnostics (${store.diagnostics.length})`}
+            text={`Diagnostics (${diagnosticsLen})`}
             cssClass={{ 'repl-tab-diagnostics': true }}
             isActive={store.selectedOutputPanel === 'diagnostics'}
             onClick$={() => {
@@ -72,12 +74,12 @@ export const ReplOutputPanel = ({ store }: ReplOutputPanelProps) => {
             'output-app-active': store.selectedOutputPanel === 'app',
           }}
         >
-          <iframe src={store.iframeUrl} />
+          <iframe class="repl-server" src={store.serverUrl} />
         </div>
 
-        {store.selectedOutputPanel === 'outputHtml' ? (
+        {store.selectedOutputPanel === 'html' ? (
           <div class="output-result output-html">
-            <CodeBlock language="markup" code={store.outputHtml} theme="light" />
+            <CodeBlock language="markup" code={store.html} theme="light" />
           </div>
         ) : null}
 
@@ -91,7 +93,7 @@ export const ReplOutputPanel = ({ store }: ReplOutputPanelProps) => {
 
         {store.selectedOutputPanel === 'diagnostics' ? (
           <div class="output-result output-diagnostics">
-            {store.diagnostics.map((d) => (
+            {[...store.diagnostics, ...store.monacoDiagnostics].map((d) => (
               <p>{d.message}</p>
             ))}
           </div>

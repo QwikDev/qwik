@@ -1,12 +1,24 @@
 [
   {
-    "id": "hello-world",
-    "title": "Hello World",
-    "description": "The simplest qwik app"
+    "id": "introduction",
+    "title": "Introduction",
+    "apps": [
+      {
+        "id": "hello-world",
+        "title": "Hello World",
+        "description": "The simplest qwik app"
+      }
+    ]
   },
   {
-    "id": "counter",
-    "title": "Counter",
-    "description": "A simple standard counter example"
+    "id": "reactivity",
+    "title": "Reactivity",
+    "apps": [
+      {
+        "id": "counter",
+        "title": "Counter",
+        "description": "A simple standard counter example"
+      }
+    ]
   }
 ]

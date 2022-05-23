@@ -3,6 +3,7 @@ import type { NoSerialize } from '@builder.io/qwik';
 
 export interface ReplInputOptions extends Omit<QwikRollupPluginOptions, 'srcDir' | 'minify'> {
   clientId: string;
+  buildId: string;
   srcInputs: ReplModuleInput[];
   version: string;
   buildMode: 'development' | 'production';
@@ -10,11 +11,11 @@ export interface ReplInputOptions extends Omit<QwikRollupPluginOptions, 'srcDir'
 
 export interface ReplStore {
   clientId: string;
-  inputs: ReplModuleInput[];
-  outputHtml: string;
+  html: string;
   clientModules: ReplModuleOutput[];
   ssrModules: ReplModuleOutput[];
   diagnostics: Diagnostic[];
+  monacoDiagnostics: Diagnostic[];
   selectedInputPath: string;
   selectedOutputPanel: OutputPanel;
   lastOutputPanel: OutputPanel | null;
@@ -28,8 +29,8 @@ export interface ReplStore {
   ssrBuild: boolean;
   entryStrategy: string;
   debug: boolean;
-  iframeUrl: string;
-  iframeWindow: NoSerialize<MessageEventSource> | null;
+  serverUrl: string;
+  serverWindow: NoSerialize<MessageEventSource> | null;
   version: string | undefined;
   versions: string[];
   build: 0;
@@ -48,7 +49,7 @@ export interface ReplModuleOutput {
   size: string;
 }
 
-export interface ReplMessageEvent {
+export interface ReplUpdateMessage {
   type: 'update';
   options: ReplInputOptions;
 }
@@ -56,22 +57,14 @@ export interface ReplMessageEvent {
 export interface ReplResult {
   type: 'result';
   clientId: string;
-  outputHtml: string;
+  buildId: string;
+  html: string;
   clientModules: ReplModuleOutput[];
   ssrModules: ReplModuleOutput[];
   manifest: QwikManifest | undefined;
   diagnostics: Diagnostic[];
-  qwikloader: string;
-  docElementAttributes: ReplResultAttributes;
-  headAttributes: ReplResultAttributes;
-  bodyAttributes: ReplResultAttributes;
-  bodyInnerHtml: string;
 }
 
-export interface ReplResultAttributes {
-  [attrName: string]: string;
-}
-
-export type OutputPanel = 'app' | 'outputHtml' | 'clientModules' | 'serverModules' | 'diagnostics';
+export type OutputPanel = 'app' | 'html' | 'clientModules' | 'serverModules' | 'diagnostics';
 
 export type OutputDetail = 'options' | 'network';

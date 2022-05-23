@@ -24,6 +24,16 @@
   padding: 20px;
 }
 
+.examples-menu-section {
+  margin: 0 0 20px 0;
+}
+
+.examples-menu-section h2 {
+  font-weight: 700;
+  margin: 0 0 5px 0;
+  color: #494949;
+}
+
 .example-button {
   display: block;
   padding: 10px;
@@ -43,7 +53,7 @@
   background: #f3f3f3 !important;
 }
 
-.example-button > h2 {
+.example-button h3 {
   font-weight: 700;
 }
 

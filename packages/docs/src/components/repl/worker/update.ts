@@ -15,29 +15,22 @@ export const update = async (options: ReplInputOptions) => {
   const result: ReplResult = {
     type: 'result',
     clientId: options.clientId,
-    outputHtml: '',
+    buildId: options.buildId,
+    html: '',
     clientModules: [],
     manifest: undefined,
     ssrModules: [],
     diagnostics: [],
-    docElementAttributes: {},
-    headAttributes: {},
-    bodyAttributes: {},
-    bodyInnerHtml: '',
-    qwikloader: '',
   };
 
   try {
-    const ctx = getCtx(options.clientId);
+    const ctx = getCtx(options.clientId, true)!;
 
     await loadDependencies(options);
 
     await bundleClient(options, ctx, result);
     await bundleSSR(options, ctx, result);
-
-    await ssrHtml(options, result);
-
-    ctx.clientModules = result.clientModules;
+    await ssrHtml(options, ctx, result);
   } catch (e: any) {
     result.diagnostics.push({
       message: String(e.stack || e),
@@ -49,7 +42,7 @@ export const update = async (options: ReplInputOptions) => {
     console.error(e);
   }
 
-  await sendMessageToIframe(result);
+  await sendMessageToReplServer(result);
 
   console.timeEnd('Update');
 };
@@ -80,7 +73,7 @@ const bundleClient = async (
 
   const rollupInputOpts: InputOptions = {
     input: entry.path,
-    cache: ctx.clientCache,
+    cache: ctx.rollupCache,
     plugins: [
       self.qwikOptimizer?.qwikRollup(qwikRollupClientOpts),
       replResolver(options, 'client'),
@@ -99,7 +92,7 @@ const bundleClient = async (
 
   const bundle = await self.rollup?.rollup(rollupInputOpts);
   if (bundle) {
-    ctx.clientCache = bundle.cache;
+    ctx.rollupCache = bundle.cache;
 
     const generated = await bundle.generate({
       sourcemap: false,
@@ -108,6 +101,8 @@ const bundleClient = async (
     result.clientModules = generated.output.map(getOutput).filter((f) => {
       return !f.path.endsWith('app.js') && !f.path.endsWith('q-manifest.json');
     });
+
+    ctx.clientModules = result.clientModules;
   }
 
   console.timeEnd(`Bundle client`);
@@ -134,7 +129,7 @@ const bundleSSR = async (options: ReplInputOptions, ctx: QwikReplContext, result
 
   const rollupInputOpts: InputOptions = {
     input: entry.path,
-    cache: ctx.ssrCache,
+    cache: ctx.rollupCache,
     plugins: [self.qwikOptimizer?.qwikRollup(qwikRollupSsrOpts), replResolver(options, 'ssr')],
     onwarn(warning) {
       result.diagnostics.push({
@@ -149,7 +144,7 @@ const bundleSSR = async (options: ReplInputOptions, ctx: QwikReplContext, result
 
   const bundle = await self.rollup?.rollup(rollupInputOpts);
   if (bundle) {
-    ctx.ssrCache = bundle.cache;
+    ctx.rollupCache = bundle.cache;
 
     const generated = await bundle.generate({
       format: 'cjs',
@@ -163,13 +158,13 @@ const bundleSSR = async (options: ReplInputOptions, ctx: QwikReplContext, result
   console.timeEnd(`Bundle ssr`);
 };
 
-const sendMessageToIframe = async (result: ReplResult) => {
+const sendMessageToReplServer = async (result: ReplResult) => {
   const clients = await (self as any).clients.matchAll();
   clients.forEach((client: WindowClient) => {
     if (client.url) {
       const url = new URL(client.url);
       const clientId = url.hash.split('#')[1];
-      if (clientId === result.clientId) {
+      if (clientId && clientId === result.clientId) {
         client.postMessage(result);
       }
     }

@@ -239,7 +239,10 @@
 .output-diagnostics {
   color: #c90674;
   font-weight: bold;
-  padding: 15px;
+  padding: 0 15px 0 15px;
+}
+.output-diagnostics p {
+  padding-bottom: 20px;
 }
 
 .details-panel {

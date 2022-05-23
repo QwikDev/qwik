@@ -14,7 +14,7 @@ use std::hash::Hasher;
 
 use swc_atoms::JsWord;
 use swc_common::comments::{Comments, SingleThreadedComments};
-use swc_common::{errors::HANDLER, Mark, Span, Spanned, DUMMY_SP};
+use swc_common::{errors::DiagnosticId, errors::HANDLER, Mark, Span, Spanned, DUMMY_SP};
 use swc_ecmascript::ast;
 use swc_ecmascript::utils::{private_ident, ExprFactory};
 use swc_ecmascript::visit::{fold_expr, noop_fold_type, Fold, FoldWith, VisitWith};
@@ -329,12 +329,13 @@ impl<'a> QwikTransform<'a> {
                 if let Some(span) = self.options.global_collect.root.get(id) {
                     HANDLER.with(|handler| {
                         handler
-                            .struct_span_err(
+                            .struct_span_err_with_code(
                                 *span,
                                 &format!(
                                     "Reference to root level identifier needs to be exported: {}",
                                     id.0
                                 ),
+                                DiagnosticId::Error("root-level-reference".into()),
                             )
                             .emit();
                     });
@@ -342,10 +343,13 @@ impl<'a> QwikTransform<'a> {
                 if invalid_decl.contains(id) {
                     HANDLER.with(|handler| {
                         handler
-                            .struct_err(&format!(
-                                "Identifier can not capture because it's a function: {}",
-                                id.0
-                            ))
+                            .struct_err_with_code(
+                                &format!(
+                                    "Identifier can not capture because it's a function: {}",
+                                    id.0
+                                ),
+                                DiagnosticId::Error("function-reference".into()),
+                            )
                             .emit();
                     });
                 }
@@ -356,7 +360,11 @@ impl<'a> QwikTransform<'a> {
         if !can_capture && !scoped_idents.is_empty() {
             HANDLER.with(|handler| {
                 handler
-                    .struct_span_err(first_arg_span, "Identifier can not be captured")
+                    .struct_span_err_with_code(
+                        first_arg_span,
+                        "Identifier can not be captured",
+                        DiagnosticId::Error("can-not-capture".into()),
+                    )
                     .emit();
             });
             scoped_idents = vec![];
@@ -793,9 +801,12 @@ impl<'a> Fold for QwikTransform<'a> {
                             || {
                                 HANDLER.with(|handler| {
                                     handler
-                                        .struct_span_err(
+                                        .struct_span_err_with_code(
                                             ident.span,
                                             "Version without $ is not exported.",
+                                            DiagnosticId::Error(
+                                                "missing-qrl-implementation".into(),
+                                            ),
                                         )
                                         .emit();
                                 });

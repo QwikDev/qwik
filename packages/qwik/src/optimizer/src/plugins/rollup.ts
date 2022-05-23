@@ -79,11 +79,13 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
     },
 
     async buildStart() {
-      qwikPlugin.onAddWatchFile((p) => this.addWatchFile(p));
+      qwikPlugin.onAddWatchFile((ctx, path) => {
+        ctx.addWatchFile(path);
+      });
 
       qwikPlugin.onDiagnostics((diagnostics, optimizer) => {
         diagnostics.forEach((d) => {
-          if (d.severity === 'Error') {
+          if (d.category === 'error') {
             this.error(createRollupError(optimizer, d));
           } else {
             this.warn(createRollupError(optimizer, d));
@@ -91,28 +93,28 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
         });
       });
 
-      await qwikPlugin.buildStart();
+      await qwikPlugin.buildStart(this);
     },
 
     resolveId(id, importer) {
       if (id.startsWith('\0')) {
         return null;
       }
-      return qwikPlugin.resolveId(id, importer);
+      return qwikPlugin.resolveId(this, id, importer);
     },
 
     load(id) {
       if (id.startsWith('\0')) {
         return null;
       }
-      return qwikPlugin.load(id);
+      return qwikPlugin.load(this, id);
     },
 
     transform(code, id) {
       if (id.startsWith('\0')) {
         return null;
       }
-      return qwikPlugin.transform(code, id);
+      return qwikPlugin.transform(this, code, id);
     },
 
     async generateBundle(_, rollupBundle) {
@@ -231,16 +233,16 @@ export function normalizeRollupOutputOptions(
 }
 
 export function createRollupError(optimizer: Optimizer, diagnostic: Diagnostic) {
-  const loc = diagnostic.code_highlights[0]?.loc ?? {};
+  const loc = diagnostic.highlights[0] ?? {};
   const id = optimizer
-    ? optimizer.sys.path.join(optimizer.sys.cwd(), diagnostic.origin)
-    : diagnostic.origin;
+    ? optimizer.sys.path.join(optimizer.sys.cwd(), diagnostic.file)
+    : diagnostic.file;
   const err: RollupError = Object.assign(new Error(diagnostic.message), {
     id,
     plugin: 'qwik',
     loc: {
-      column: loc.start_col,
-      line: loc.start_line,
+      column: loc.startCol,
+      line: loc.startLine,
     },
     stack: '',
   });

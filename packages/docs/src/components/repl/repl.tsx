@@ -81,7 +81,11 @@ export const Repl = component$(async (props: ReplProps) => {
       store.versions = v.versions;
       store.version = v.version;
 
-      store.serverUrl = `/repl/repl-server.html#${store.clientId}`;
+      store.serverUrl = `/repl/repl-server`;
+      if (location.hostname === 'localhost') {
+        store.serverUrl += `.html`;
+      }
+      store.serverUrl += `#${store.clientId}`;
 
       window.addEventListener('message', (ev) => receiveMessageFromReplServer(ev, store));
     }

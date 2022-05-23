@@ -132,7 +132,7 @@ export interface QRL<TYPE = any> {
   resolve(container?: Element): Promise<TYPE>;
   invoke(
     ...args: TYPE extends (...args: infer ARGS) => any ? ARGS : never
-  ): TYPE extends (...args: any[]) => infer RETURN ? ValueOrPromise<RETURN> : never;
+  ): Promise<TYPE extends (...args: any[]) => infer RETURN ? RETURN : never>;
 
   invokeFn(
     el?: Element,

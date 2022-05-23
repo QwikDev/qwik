@@ -2,10 +2,9 @@ export { createOptimizer } from './optimizer';
 export { versions } from './versions';
 
 export type {
-  CodeHighlight,
   ComponentEntryStrategy,
   Diagnostic,
-  DiagnosticType,
+  DiagnosticCategory,
   EntryStrategy,
   GlobalInjections,
   HookAnalysis,

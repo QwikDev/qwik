@@ -123,4 +123,41 @@ export { hW as handleWatch };
 */
 == DIAGNOSTICS ==
 
-[Diagnostic { origin: Atom('test.tsx' type=dynamic), message: "Identifier can not be captured", code_highlights: Some([CodeHighlight { message: None, loc: SourceLocation { start_line: 8, start_col: 16, end_line: 8, end_col: 20 } }]), hints: None, show_environment: false, severity: Error, documentation_url: None }, Diagnostic { origin: Atom('test.tsx' type=dynamic), message: "Identifier can not be captured", code_highlights: Some([CodeHighlight { message: None, loc: SourceLocation { start_line: 14, start_col: 14, end_line: 14, end_col: 19 } }]), hints: None, show_environment: false, severity: Error, documentation_url: None }]
+[
+  {
+    "category": "error",
+    "code": "can-not-capture",
+    "file": "test.tsx",
+    "message": "Identifier can not be captured",
+    "highlights": [
+      {
+        "lo": 219,
+        "hi": 224,
+        "startLine": 8,
+        "startCol": 16,
+        "endLine": 8,
+        "endCol": 20
+      }
+    ],
+    "suggestions": null,
+    "scope": "optimizer"
+  },
+  {
+    "category": "error",
+    "code": "can-not-capture",
+    "file": "test.tsx",
+    "message": "Identifier can not be captured",
+    "highlights": [
+      {
+        "lo": 325,
+        "hi": 331,
+        "startLine": 14,
+        "startCol": 14,
+        "endLine": 14,
+        "endCol": 19
+      }
+    ],
+    "suggestions": null,
+    "scope": "optimizer"
+  }
+]

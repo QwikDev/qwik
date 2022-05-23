@@ -15,6 +15,7 @@ import { debugStringify } from '../util/stringify';
 import { WatchDescriptor, WatchFlags } from '../watch/watch.public';
 import type { Subscriber } from '../use/use-subscriber';
 import { tryGetContext } from '../props/props';
+import { RenderEvent } from '../util/markers';
 
 export type ObjToProxyMap = WeakMap<any, any>;
 export type QObject<T extends {}> = T & { __brand__: 'QObject' };
@@ -187,6 +188,14 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
     const unwrappedNewValue = unwrapProxy(newValue);
     if (qDev) {
       verifySerializable(unwrappedNewValue);
+      const invokeCtx = tryGetInvokeContext();
+      if (invokeCtx && invokeCtx.event === RenderEvent) {
+        logWarn(
+          'State mutation inside render function. Move mutation to useWatch(), useClientEffect() or useServerMount()',
+          invokeCtx.hostElement,
+          prop
+        );
+      }
     }
     const isArray = Array.isArray(target);
     if (isArray) {

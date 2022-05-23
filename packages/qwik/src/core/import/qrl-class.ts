@@ -69,9 +69,10 @@ class QRL<TYPE = any> implements IQRL<TYPE> {
     return copy;
   }
 
-  invoke(...args: TYPE extends (...args: infer ARGS) => any ? ARGS : never) {
+  async invoke(...args: TYPE extends (...args: infer ARGS) => any ? ARGS : never) {
     const fn = this.invokeFn();
-    return fn(...args) as any;
+    const result = await fn(...args);
+    return result;
   }
 
   serialize(options?: QRLSerializeOptions) {

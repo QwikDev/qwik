@@ -23,7 +23,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
   const transformedOutputs = new Map<string, [TransformModule, string]>();
 
   let internalOptimizer: Optimizer | null = null;
-  let addWatchFileCallback: (path: string) => void = () => {};
+  let addWatchFileCallback: (ctx: any, path: string) => void = () => {};
   let diagnosticsCallback: (d: Diagnostic[], optimizer: Optimizer) => void = () => {};
 
   const opts: NormalizedQwikPluginOptions = {
@@ -213,7 +213,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     }
   };
 
-  const buildStart = async () => {
+  const buildStart = async (_ctx: any) => {
     log(`buildStart()`, opts.buildMode, opts.forceFullBuild ? 'full build' : 'isolated build');
 
     if (opts.forceFullBuild) {
@@ -262,6 +262,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
   };
 
   const resolveId = async (
+    _ctx: any,
     id: string,
     importer: string | undefined,
     _resolveIdOpts?: { ssr?: boolean }
@@ -309,7 +310,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         const transformedModule = transformedOutput[0];
         const sideEffects = !transformedModule.isEntry || !transformedModule.hook;
         return {
-          id: tryId,
+          id: tryId + parsedId.query,
           moduleSideEffects: sideEffects,
         };
       }
@@ -319,7 +320,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     return null;
   };
 
-  const load = async (id: string, loadOpts: { ssr?: boolean } = {}) => {
+  const load = async (_ctx: any, id: string, loadOpts: { ssr?: boolean } = {}) => {
     if (id === QWIK_BUILD_ID) {
       log(`load()`, QWIK_BUILD_ID, opts.buildMode);
       return {
@@ -366,23 +367,10 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     return null;
   };
 
-  const transform = async (code: string, id: string) => {
+  const transform = function (ctx: any, code: string, id: string) {
     if (opts.forceFullBuild) {
       // Only run when moduleIsolated === true
       return null;
-    }
-
-    id = normalizePath(id);
-    const pregenerated = transformedOutputs.get(id);
-    if (pregenerated) {
-      log(`transform() pregenerated, addWatchFile`, id, pregenerated[1]);
-      addWatchFileCallback(pregenerated[1]);
-
-      return {
-        meta: {
-          hook: pregenerated[0].hook,
-        },
-      };
     }
 
     const optimizer = getOptimizer();
@@ -391,6 +379,18 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     const { pathId } = parseId(id);
     const { ext, dir, base } = path.parse(pathId);
 
+    const normalizedID = normalizePath(pathId);
+    const pregenerated = transformedOutputs.get(normalizedID);
+    if (pregenerated) {
+      log(`transform() pregenerated, addWatchFile`, normalizedID, pregenerated[1]);
+      addWatchFileCallback(ctx, pregenerated[1]);
+
+      return {
+        meta: {
+          hook: pregenerated[0].hook,
+        },
+      };
+    }
     if (TRANSFORM_EXTS[ext]) {
       log(`transform()`, 'Transforming', pathId);
 
@@ -485,7 +485,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     }
   };
 
-  const onAddWatchFile = (cb: (path: string) => void) => {
+  const onAddWatchFile = (cb: (ctx: any, path: string) => void) => {
     addWatchFileCallback = cb;
   };
 
@@ -553,11 +553,13 @@ export const manifest = ${JSON.stringify(manifest)};\n`;
 }
 
 export function parseId(originalId: string) {
-  const [pathId, querystrings] = originalId.split('?');
+  const [pathId, query] = originalId.split('?');
+  const queryStr = query || '';
   return {
     originalId,
     pathId,
-    params: new URLSearchParams(querystrings || ''),
+    query: queryStr,
+    params: new URLSearchParams(queryStr),
   };
 }
 

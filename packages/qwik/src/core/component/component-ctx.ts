@@ -8,7 +8,7 @@ import { isStyleTask, newInvokeContext } from '../use/use-core';
 import { getProps, QContext } from '../props/props';
 import { processNode } from '../render/jsx/jsx-runtime';
 import { wrapSubscriber } from '../use/use-subscriber';
-import { logDebug } from '../util/log';
+import { logDebug, logError } from '../util/log';
 import type { ValueOrPromise } from '../util/types';
 import { removeSub } from '../object/q-object';
 
@@ -42,46 +42,56 @@ export const renderComponent = (rctx: RenderContext, ctx: QContext): ValueOrProm
   ctx.refMap.array.forEach((obj) => {
     removeSub(obj, hostElement);
   });
+
   const onRenderFn = onRenderQRL.invokeFn(rctx.containerEl, invocatinContext);
 
-  // Execution of the render function
-  const renderPromise = onRenderFn(wrapSubscriber(getProps(ctx), hostElement));
+  try {
+    // Execution of the render function
+    const renderPromise = onRenderFn(wrapSubscriber(getProps(ctx), hostElement));
 
-  // Wait for results
-  return then(renderPromise, (jsxNode) => {
-    rctx.hostElements.add(hostElement);
-
-    const waitOnPromise = promiseAll(waitOn);
-    return then(waitOnPromise, (waitOnResolved) => {
-      waitOnResolved.forEach((task) => {
-        if (isStyleTask(task)) {
-          appendStyle(rctx, hostElement, task);
-        }
-      });
-      if (ctx.dirty) {
-        logDebug('Dropping render. State changed during render.');
-        return renderComponent(rctx, ctx);
+    // Wait for results
+    return then(
+      renderPromise,
+      (jsxNode) => {
+        rctx.hostElements.add(hostElement);
+        const waitOnPromise = promiseAll(waitOn);
+        return then(waitOnPromise, (waitOnResolved) => {
+          waitOnResolved.forEach((task) => {
+            if (isStyleTask(task)) {
+              appendStyle(rctx, hostElement, task);
+            }
+          });
+          if (ctx.dirty) {
+            logDebug('Dropping render. State changed during render.');
+            return renderComponent(rctx, ctx);
+          }
+          let componentCtx = ctx.component;
+          if (!componentCtx) {
+            componentCtx = ctx.component = {
+              hostElement,
+              slots: [],
+              styleHostClass: undefined,
+              styleClass: undefined,
+              styleId: undefined,
+            };
+            const scopedStyleId = hostElement.getAttribute(ComponentScopedStyles) ?? undefined;
+            if (scopedStyleId) {
+              componentCtx.styleId = scopedStyleId;
+              componentCtx.styleHostClass = styleHost(scopedStyleId);
+              componentCtx.styleClass = styleContent(scopedStyleId);
+              hostElement.classList.add(componentCtx.styleHostClass);
+            }
+          }
+          componentCtx.slots = [];
+          newCtx.components.push(componentCtx);
+          return visitJsxNode(newCtx, hostElement, processNode(jsxNode), false);
+        });
+      },
+      (err) => {
+        logError(err);
       }
-      let componentCtx = ctx.component;
-      if (!componentCtx) {
-        componentCtx = ctx.component = {
-          hostElement,
-          slots: [],
-          styleHostClass: undefined,
-          styleClass: undefined,
-          styleId: undefined,
-        };
-        const scopedStyleId = hostElement.getAttribute(ComponentScopedStyles) ?? undefined;
-        if (scopedStyleId) {
-          componentCtx.styleId = scopedStyleId;
-          componentCtx.styleHostClass = styleHost(scopedStyleId);
-          componentCtx.styleClass = styleContent(scopedStyleId);
-          hostElement.classList.add(componentCtx.styleHostClass);
-        }
-      }
-      componentCtx.slots = [];
-      newCtx.components.push(componentCtx);
-      return visitJsxNode(newCtx, hostElement, processNode(jsxNode), false);
-    });
-  });
+    );
+  } catch (err) {
+    logError(err);
+  }
 };

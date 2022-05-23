@@ -94,4 +94,185 @@ export { hW as handleWatch };
 */
 == DIAGNOSTICS ==
 
-[Diagnostic { origin: Atom('test.tsx' type=dynamic), message: "Reference to root level identifier needs to be exported: I10", code_highlights: Some([CodeHighlight { message: None, loc: SourceLocation { start_line: 7, start_col: 7, end_line: 7, end_col: 9 } }]), hints: None, show_environment: false, severity: Error, documentation_url: None }, Diagnostic { origin: Atom('test.tsx' type=dynamic), message: "Reference to root level identifier needs to be exported: I1", code_highlights: Some([CodeHighlight { message: None, loc: SourceLocation { start_line: 4, start_col: 7, end_line: 4, end_col: 8 } }]), hints: None, show_environment: false, severity: Error, documentation_url: None }, Diagnostic { origin: Atom('test.tsx' type=dynamic), message: "Reference to root level identifier needs to be exported: I2", code_highlights: Some([CodeHighlight { message: None, loc: SourceLocation { start_line: 5, start_col: 8, end_line: 5, end_col: 9 } }]), hints: None, show_environment: false, severity: Error, documentation_url: None }, Diagnostic { origin: Atom('test.tsx' type=dynamic), message: "Reference to root level identifier needs to be exported: I3", code_highlights: Some([CodeHighlight { message: None, loc: SourceLocation { start_line: 5, start_col: 13, end_line: 5, end_col: 14 } }]), hints: None, show_environment: false, severity: Error, documentation_url: None }, Diagnostic { origin: Atom('test.tsx' type=dynamic), message: "Reference to root level identifier needs to be exported: I4", code_highlights: Some([CodeHighlight { message: None, loc: SourceLocation { start_line: 5, start_col: 22, end_line: 5, end_col: 23 } }]), hints: None, show_environment: false, severity: Error, documentation_url: None }, Diagnostic { origin: Atom('test.tsx' type=dynamic), message: "Reference to root level identifier needs to be exported: I5", code_highlights: Some([CodeHighlight { message: None, loc: SourceLocation { start_line: 5, start_col: 27, end_line: 5, end_col: 28 } }]), hints: None, show_environment: false, severity: Error, documentation_url: None }, Diagnostic { origin: Atom('test.tsx' type=dynamic), message: "Reference to root level identifier needs to be exported: I6", code_highlights: Some([CodeHighlight { message: None, loc: SourceLocation { start_line: 5, start_col: 37, end_line: 5, end_col: 38 } }]), hints: None, show_environment: false, severity: Error, documentation_url: None }, Diagnostic { origin: Atom('test.tsx' type=dynamic), message: "Reference to root level identifier needs to be exported: I7", code_highlights: Some([CodeHighlight { message: None, loc: SourceLocation { start_line: 5, start_col: 42, end_line: 5, end_col: 43 } }]), hints: None, show_environment: false, severity: Error, documentation_url: None }, Diagnostic { origin: Atom('test.tsx' type=dynamic), message: "Reference to root level identifier needs to be exported: I8", code_highlights: Some([CodeHighlight { message: None, loc: SourceLocation { start_line: 5, start_col: 52, end_line: 5, end_col: 53 } }]), hints: None, show_environment: false, severity: Error, documentation_url: None }, Diagnostic { origin: Atom('test.tsx' type=dynamic), message: "Reference to root level identifier needs to be exported: I9", code_highlights: Some([CodeHighlight { message: None, loc: SourceLocation { start_line: 6, start_col: 10, end_line: 6, end_col: 11 } }]), hints: None, show_environment: false, severity: Error, documentation_url: None }]
+[
+  {
+    "category": "error",
+    "code": "root-level-reference",
+    "file": "test.tsx",
+    "message": "Reference to root level identifier needs to be exported: I10",
+    "highlights": [
+      {
+        "lo": 153,
+        "hi": 156,
+        "startLine": 7,
+        "startCol": 7,
+        "endLine": 7,
+        "endCol": 9
+      }
+    ],
+    "suggestions": null,
+    "scope": "optimizer"
+  },
+  {
+    "category": "error",
+    "code": "root-level-reference",
+    "file": "test.tsx",
+    "message": "Reference to root level identifier needs to be exported: I1",
+    "highlights": [
+      {
+        "lo": 59,
+        "hi": 61,
+        "startLine": 4,
+        "startCol": 7,
+        "endLine": 4,
+        "endCol": 8
+      }
+    ],
+    "suggestions": null,
+    "scope": "optimizer"
+  },
+  {
+    "category": "error",
+    "code": "root-level-reference",
+    "file": "test.tsx",
+    "message": "Reference to root level identifier needs to be exported: I2",
+    "highlights": [
+      {
+        "lo": 75,
+        "hi": 77,
+        "startLine": 5,
+        "startCol": 8,
+        "endLine": 5,
+        "endCol": 9
+      }
+    ],
+    "suggestions": null,
+    "scope": "optimizer"
+  },
+  {
+    "category": "error",
+    "code": "root-level-reference",
+    "file": "test.tsx",
+    "message": "Reference to root level identifier needs to be exported: I3",
+    "highlights": [
+      {
+        "lo": 80,
+        "hi": 82,
+        "startLine": 5,
+        "startCol": 13,
+        "endLine": 5,
+        "endCol": 14
+      }
+    ],
+    "suggestions": null,
+    "scope": "optimizer"
+  },
+  {
+    "category": "error",
+    "code": "root-level-reference",
+    "file": "test.tsx",
+    "message": "Reference to root level identifier needs to be exported: I4",
+    "highlights": [
+      {
+        "lo": 89,
+        "hi": 91,
+        "startLine": 5,
+        "startCol": 22,
+        "endLine": 5,
+        "endCol": 23
+      }
+    ],
+    "suggestions": null,
+    "scope": "optimizer"
+  },
+  {
+    "category": "error",
+    "code": "root-level-reference",
+    "file": "test.tsx",
+    "message": "Reference to root level identifier needs to be exported: I5",
+    "highlights": [
+      {
+        "lo": 94,
+        "hi": 96,
+        "startLine": 5,
+        "startCol": 27,
+        "endLine": 5,
+        "endCol": 28
+      }
+    ],
+    "suggestions": null,
+    "scope": "optimizer"
+  },
+  {
+    "category": "error",
+    "code": "root-level-reference",
+    "file": "test.tsx",
+    "message": "Reference to root level identifier needs to be exported: I6",
+    "highlights": [
+      {
+        "lo": 104,
+        "hi": 106,
+        "startLine": 5,
+        "startCol": 37,
+        "endLine": 5,
+        "endCol": 38
+      }
+    ],
+    "suggestions": null,
+    "scope": "optimizer"
+  },
+  {
+    "category": "error",
+    "code": "root-level-reference",
+    "file": "test.tsx",
+    "message": "Reference to root level identifier needs to be exported: I7",
+    "highlights": [
+      {
+        "lo": 109,
+        "hi": 111,
+        "startLine": 5,
+        "startCol": 42,
+        "endLine": 5,
+        "endCol": 43
+      }
+    ],
+    "suggestions": null,
+    "scope": "optimizer"
+  },
+  {
+    "category": "error",
+    "code": "root-level-reference",
+    "file": "test.tsx",
+    "message": "Reference to root level identifier needs to be exported: I8",
+    "highlights": [
+      {
+        "lo": 119,
+        "hi": 121,
+        "startLine": 5,
+        "startCol": 52,
+        "endLine": 5,
+        "endCol": 53
+      }
+    ],
+    "suggestions": null,
+    "scope": "optimizer"
+  },
+  {
+    "category": "error",
+    "code": "root-level-reference",
+    "file": "test.tsx",
+    "message": "Reference to root level identifier needs to be exported: I9",
+    "highlights": [
+      {
+        "lo": 139,
+        "hi": 141,
+        "startLine": 6,
+        "startCol": 10,
+        "endLine": 6,
+        "endCol": 11
+      }
+    ],
+    "suggestions": null,
+    "scope": "optimizer"
+  }
+]

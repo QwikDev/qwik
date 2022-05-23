@@ -5,14 +5,6 @@
 ```ts
 
 // @alpha (undocumented)
-export interface CodeHighlight {
-    // (undocumented)
-    loc: SourceLocation;
-    // (undocumented)
-    message: string | null;
-}
-
-// @alpha (undocumented)
 export interface ComponentEntryStrategy {
     // (undocumented)
     type: 'component';
@@ -24,23 +16,23 @@ export const createOptimizer: (optimizerOptions?: OptimizerOptions) => Promise<O
 // @alpha (undocumented)
 export interface Diagnostic {
     // (undocumented)
-    code_highlights: CodeHighlight[];
+    category: DiagnosticCategory;
     // (undocumented)
-    documentation_url?: string;
+    code: string | null;
     // (undocumented)
-    hints?: string[];
+    file: string;
+    // (undocumented)
+    highlights: SourceLocation[];
     // (undocumented)
     message: string;
     // (undocumented)
-    origin: string;
+    scope: string;
     // (undocumented)
-    severity: DiagnosticType;
-    // (undocumented)
-    show_environment: boolean;
+    suggestions: string[] | null;
 }
 
 // @alpha (undocumented)
-export type DiagnosticType = 'Error' | 'Warning' | 'SourceError';
+export type DiagnosticCategory = 'error' | 'warning' | 'sourceError';
 
 // Warning: (ae-forgotten-export) The symbol "InlineEntryStrategy" needs to be exported by the entry point index.d.ts
 //
@@ -308,13 +300,17 @@ export interface SmartEntryStrategy {
 // @alpha (undocumented)
 export interface SourceLocation {
     // (undocumented)
-    end_col: number;
+    endCol: number;
     // (undocumented)
-    end_line: number;
+    endLine: number;
     // (undocumented)
-    start_col: number;
+    hi: number;
     // (undocumented)
-    start_line: number;
+    lo: number;
+    // (undocumented)
+    startCol: number;
+    // (undocumented)
+    startLine: number;
 }
 
 // @alpha (undocumented)

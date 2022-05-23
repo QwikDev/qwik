@@ -3,7 +3,10 @@ use std::cmp::Ordering;
 use swc_atoms::JsWord;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
+#[serde(rename_all = "camelCase")]
 pub struct SourceLocation {
+    lo: usize,
+    hi: usize,
     start_line: usize,
     start_col: usize,
     end_line: usize,
@@ -17,7 +20,10 @@ impl SourceLocation {
         // - SWC's columns are exclusive, ours are inclusive (column - 1)
         // - SWC has 0-based columns, ours are 1-based (column + 1)
         // = +-0
+
         Self {
+            lo: span.lo.0 as usize,
+            hi: span.hi.0 as usize,
             start_line: start.line,
             start_col: start.col_display + 1,
             end_line: end.line,
@@ -36,24 +42,20 @@ impl PartialOrd for SourceLocation {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct CodeHighlight {
-    pub message: Option<String>,
-    pub loc: SourceLocation,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct Diagnostic {
-    pub origin: JsWord,
+    pub category: DiagnosticCategory,
+    pub code: Option<String>,
+    pub file: JsWord,
     pub message: String,
-    pub code_highlights: Option<Vec<CodeHighlight>>,
-    pub hints: Option<Vec<String>>,
-    pub show_environment: bool,
-    pub severity: DiagnosticSeverity,
-    pub documentation_url: Option<String>,
+    pub highlights: Option<Vec<SourceLocation>>,
+    pub suggestions: Option<Vec<String>>,
+    pub scope: DiagnosticScope,
 }
 
 #[derive(Serialize, Deserialize, Debug, Eq, PartialEq)]
-pub enum DiagnosticSeverity {
+#[serde(rename_all = "camelCase")]
+pub enum DiagnosticCategory {
     /// Fails the build with an error.
     Error,
     /// Logs a warning, but the build does not fail.
@@ -62,7 +64,14 @@ pub enum DiagnosticSeverity {
     SourceError,
 }
 
+#[derive(Serialize, Deserialize, Debug, Eq, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub enum DiagnosticScope {
+    Optimizer,
+}
+
 #[derive(Serialize, Debug, Deserialize, Eq, PartialEq, Clone, Copy)]
+#[serde(rename_all = "camelCase")]
 pub enum SourceType {
     Script,
     Module,

@@ -40,7 +40,11 @@ macro_rules! test_input {
                         // let map = if let Some(map) = s.map { map } else { "".to_string() };
                         // output += format!("\n== MAP ==\n{}", map).as_str();
                     }
-                    output += format!("\n== DIAGNOSTICS ==\n\n{:?}", v.diagnostics).as_str();
+                    output += format!(
+                        "\n== DIAGNOSTICS ==\n\n{}",
+                        to_string_pretty(&v.diagnostics).unwrap()
+                    )
+                    .as_str();
                     insta::assert_display_snapshot!(output);
                 }
                 Err(err) => {

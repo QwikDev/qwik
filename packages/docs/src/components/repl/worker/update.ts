@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import type { InputOptions, OutputAsset, OutputChunk } from 'rollup';
-import type { QwikRollupPluginOptions } from '@builder.io/qwik/optimizer';
+import type { Diagnostic, QwikRollupPluginOptions } from '@builder.io/qwik/optimizer';
 import type { ReplInputOptions, ReplModuleOutput, ReplResult } from '../types';
 import { getCtx, QwikReplContext } from './context';
 import { loadDependencies } from './dependencies';
@@ -33,11 +33,13 @@ export const update = async (options: ReplInputOptions) => {
     await ssrHtml(options, ctx, result);
   } catch (e: any) {
     result.diagnostics.push({
+      scope: 'runtime',
       message: String(e.stack || e),
-      severity: 'Error',
-      origin: String(e.stack || 'repl error'),
-      code_highlights: [],
-      show_environment: false,
+      category: 'error',
+      file: '',
+      highlights: [],
+      suggestions: null,
+      code: 'runtime error',
     });
     console.error(e);
   }
@@ -80,13 +82,28 @@ const bundleClient = async (
       replMinify(options),
     ],
     onwarn(warning) {
-      result.diagnostics.push({
+      const diagnostic: Diagnostic = {
+        scope: 'rollup-ssr',
+        code: warning.code ?? null,
         message: warning.message,
-        severity: 'Error',
-        show_environment: false,
-        code_highlights: [],
-        origin: 'client rollup',
-      });
+        category: 'warning',
+        highlights: [],
+        file: warning.id || '',
+        suggestions: null,
+      };
+      const loc = warning.loc;
+      if (loc && loc.file) {
+        diagnostic.file = loc.file;
+        diagnostic.highlights.push({
+          startCol: loc.column,
+          endCol: loc.column + 1,
+          startLine: loc.line,
+          endLine: loc.line + 1,
+          lo: 0,
+          hi: 0,
+        });
+      }
+      result.diagnostics.push(diagnostic);
     },
   };
 
@@ -132,13 +149,28 @@ const bundleSSR = async (options: ReplInputOptions, ctx: QwikReplContext, result
     cache: ctx.rollupCache,
     plugins: [self.qwikOptimizer?.qwikRollup(qwikRollupSsrOpts), replResolver(options, 'ssr')],
     onwarn(warning) {
-      result.diagnostics.push({
+      const diagnostic: Diagnostic = {
+        scope: 'rollup-ssr',
+        code: warning.code ?? null,
         message: warning.message,
-        severity: 'Error',
-        show_environment: false,
-        code_highlights: [],
-        origin: 'ssr rollup',
-      });
+        category: 'warning',
+        highlights: [],
+        file: warning.id || '',
+        suggestions: null,
+      };
+      const loc = warning.loc;
+      if (loc && loc.file) {
+        diagnostic.file = loc.file;
+        diagnostic.highlights.push({
+          startCol: loc.column,
+          endCol: loc.column + 1,
+          startLine: loc.line,
+          endLine: loc.line + 1,
+          lo: 0,
+          hi: 0,
+        });
+      }
+      result.diagnostics.push(diagnostic);
     },
   };
 

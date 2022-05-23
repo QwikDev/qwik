@@ -9,7 +9,7 @@ use crate::code_move::{new_module, NewModuleCtx};
 use crate::collector::global_collect;
 use crate::entry_strategy::EntryPolicy;
 use crate::transform::{HookKind, QwikTransform, QwikTransformOptions};
-use crate::utils::{CodeHighlight, Diagnostic, DiagnosticSeverity, SourceLocation};
+use crate::utils::{Diagnostic, DiagnosticCategory, DiagnosticScope, SourceLocation};
 use path_slash::PathExt;
 use serde::{Deserialize, Serialize};
 
@@ -20,7 +20,7 @@ use anyhow::{Context, Error};
 
 use swc_atoms::JsWord;
 use swc_common::comments::SingleThreadedComments;
-use swc_common::errors::{DiagnosticBuilder, Emitter, Handler};
+use swc_common::errors::{DiagnosticBuilder, DiagnosticId, Emitter, Handler};
 use swc_common::{sync::Lrc, FileName, Globals, Mark, SourceMap};
 use swc_ecmascript::ast;
 use swc_ecmascript::codegen::text_writer::JsWriter;
@@ -486,25 +486,30 @@ fn handle_error(
         .iter()
         .map(|diagnostic| {
             let message = diagnostic.message();
+            let code = diagnostic.get_code().and_then(|m| {
+                if let DiagnosticId::Error(s) = m {
+                    Some(s)
+                } else {
+                    None
+                }
+            });
+
             let span = diagnostic.span.clone();
             let suggestions = diagnostic.suggestions.clone();
 
             let span_labels = span.span_labels();
-            let code_highlights = if span_labels.is_empty() {
+            let highlights = if span_labels.is_empty() {
                 None
             } else {
                 Some(
                     span_labels
                         .into_iter()
-                        .map(|span_label| CodeHighlight {
-                            message: span_label.label,
-                            loc: SourceLocation::from(source_map, span_label.span),
-                        })
+                        .map(|span_label| SourceLocation::from(source_map, span_label.span))
                         .collect(),
                 )
             };
 
-            let hints = if suggestions.is_empty() {
+            let suggestions = if suggestions.is_empty() {
                 None
             } else {
                 Some(
@@ -516,13 +521,13 @@ fn handle_error(
             };
 
             Diagnostic {
-                origin: origin.clone(),
+                file: origin.clone(),
+                code,
                 message,
-                code_highlights,
-                hints,
-                show_environment: false,
-                severity: DiagnosticSeverity::Error,
-                documentation_url: None,
+                highlights,
+                suggestions,
+                category: DiagnosticCategory::Error,
+                scope: DiagnosticScope::Optimizer,
             }
         })
         .collect()

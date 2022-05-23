@@ -8,7 +8,7 @@ import { isStyleTask, newInvokeContext } from '../use/use-core';
 import { getProps, QContext } from '../props/props';
 import { processNode } from '../render/jsx/jsx-runtime';
 import { wrapSubscriber } from '../use/use-subscriber';
-import { logDebug } from '../util/log';
+import { logDebug, logError } from '../util/log';
 import type { ValueOrPromise } from '../util/types';
 import { removeSub } from '../object/q-object';
 
@@ -42,15 +42,11 @@ export const renderComponent = (rctx: RenderContext, ctx: QContext): ValueOrProm
   ctx.refMap.array.forEach((obj) => {
     removeSub(obj, hostElement);
   });
+
   const onRenderFn = onRenderQRL.invokeFn(rctx.containerEl, invocatinContext);
 
-  // Execution of the render function
-  const renderPromise = onRenderFn(wrapSubscriber(getProps(ctx), hostElement));
-
-  // Wait for results
-  return then(renderPromise, (jsxNode) => {
+  function postRender() {
     rctx.hostElements.add(hostElement);
-
     const waitOnPromise = promiseAll(waitOn);
     return then(waitOnPromise, (waitOnResolved) => {
       waitOnResolved.forEach((task) => {
@@ -81,7 +77,26 @@ export const renderComponent = (rctx: RenderContext, ctx: QContext): ValueOrProm
       }
       componentCtx.slots = [];
       newCtx.components.push(componentCtx);
-      return visitJsxNode(newCtx, hostElement, processNode(jsxNode), false);
     });
-  });
+  }
+
+  try {
+    // Execution of the render function
+    const renderPromise = onRenderFn(wrapSubscriber(getProps(ctx), hostElement));
+
+    // Wait for results
+    return then(
+      renderPromise,
+      (jsxNode) => {
+        return then(postRender(), () => {
+          return visitJsxNode(newCtx, hostElement, processNode(jsxNode), false);
+        });
+      },
+      (err) => {
+        logError(err);
+      }
+    );
+  } catch (err) {
+    logError(err);
+  }
 };

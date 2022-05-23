@@ -79,7 +79,9 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
     },
 
     async buildStart() {
-      qwikPlugin.onAddWatchFile((p) => this.addWatchFile(p));
+      qwikPlugin.onAddWatchFile((ctx, path) => {
+        ctx.addWatchFile(path);
+      });
 
       qwikPlugin.onDiagnostics((diagnostics, optimizer) => {
         diagnostics.forEach((d) => {
@@ -91,28 +93,28 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
         });
       });
 
-      await qwikPlugin.buildStart();
+      await qwikPlugin.buildStart(this);
     },
 
     resolveId(id, importer) {
       if (id.startsWith('\0')) {
         return null;
       }
-      return qwikPlugin.resolveId(id, importer);
+      return qwikPlugin.resolveId(this, id, importer);
     },
 
     load(id) {
       if (id.startsWith('\0')) {
         return null;
       }
-      return qwikPlugin.load(id);
+      return qwikPlugin.load(this, id);
     },
 
     transform(code, id) {
       if (id.startsWith('\0')) {
         return null;
       }
-      return qwikPlugin.transform(code, id);
+      return qwikPlugin.transform(this, code, id);
     },
 
     async generateBundle(_, rollupBundle) {

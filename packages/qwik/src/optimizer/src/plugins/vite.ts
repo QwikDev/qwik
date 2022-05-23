@@ -178,7 +178,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
       qwikPlugin.onDiagnostics((diagnostics, optimizer) => {
         diagnostics.forEach((d) => {
-          if (d.severity === 'Error') {
+          if (d.category === 'error') {
             this.error(createRollupError(optimizer, d));
           } else {
             this.warn(createRollupError(optimizer, d));

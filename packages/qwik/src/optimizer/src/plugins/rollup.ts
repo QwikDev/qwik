@@ -85,7 +85,7 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
 
       qwikPlugin.onDiagnostics((diagnostics, optimizer) => {
         diagnostics.forEach((d) => {
-          if (d.severity === 'Error') {
+          if (d.category === 'error') {
             this.error(createRollupError(optimizer, d));
           } else {
             this.warn(createRollupError(optimizer, d));
@@ -233,16 +233,16 @@ export function normalizeRollupOutputOptions(
 }
 
 export function createRollupError(optimizer: Optimizer, diagnostic: Diagnostic) {
-  const loc = diagnostic.code_highlights[0]?.loc ?? {};
+  const loc = diagnostic.highlights[0] ?? {};
   const id = optimizer
-    ? optimizer.sys.path.join(optimizer.sys.cwd(), diagnostic.origin)
-    : diagnostic.origin;
+    ? optimizer.sys.path.join(optimizer.sys.cwd(), diagnostic.file)
+    : diagnostic.file;
   const err: RollupError = Object.assign(new Error(diagnostic.message), {
     id,
     plugin: 'qwik',
     loc: {
-      column: loc.start_col,
-      line: loc.start_line,
+      column: loc.startCol,
+      line: loc.startLine,
     },
     stack: '',
   });

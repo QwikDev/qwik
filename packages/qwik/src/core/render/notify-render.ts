@@ -139,7 +139,7 @@ export async function renderMarked(
   if (ctx.operations.length === 0) {
     if (qDev) {
       if (typeof window !== 'undefined' && window.document != null) {
-        logDebug('Render skipped. No operations.');
+        logDebug('Render stats. No operations.');
         printRenderStats(ctx);
       }
     }

@@ -32,6 +32,7 @@ export interface ReplStore {
   iframeWindow: NoSerialize<MessageEventSource> | null;
   version: string | undefined;
   versions: string[];
+  build: 0;
 }
 
 export interface ReplModuleInput {

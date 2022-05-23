@@ -155,10 +155,12 @@ const checkDiagnostics = async (
     replStore.monacoDiagnostics = tsDiagnostics.map((tsd) => {
       const d: Diagnostic = {
         message: getTsDiagnosticMessage(tsd.messageText),
-        severity: 'Error',
-        code_highlights: [],
-        origin: 'monaco',
-        show_environment: false,
+        category: 'error',
+        highlights: [],
+        code: `TSC: ${tsd.code}`,
+        file: tsd.file?.fileName || '',
+        scope: 'monaco',
+        suggestions: null,
       };
       return d;
     });

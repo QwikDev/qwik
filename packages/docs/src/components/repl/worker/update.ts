@@ -1,43 +1,37 @@
 /* eslint-disable no-console */
 import type { InputOptions, OutputAsset, OutputChunk } from 'rollup';
 import type { Diagnostic, QwikRollupPluginOptions } from '@builder.io/qwik/optimizer';
-import type { ReplInputOptions, ReplModuleOutput, ReplResult } from '../types';
+import type { ReplInputOptions, ReplModuleInput, ReplModuleOutput, ReplResult } from '../types';
 import { getCtx, QwikReplContext } from './context';
 import { loadDependencies } from './dependencies';
 import { ssrHtml } from './ssr-html';
 import type { QwikWorkerGlobal } from './repl-service-worker';
-import { replResolver } from './repl-resolver';
-import { replMinify } from './repl-minify';
+import { replCss, replMinify, replResolver } from './repl-plugins';
+import { sendMessageToReplServer } from './repl-messenger';
 
-export const update = async (options: ReplInputOptions) => {
-  console.time('Update');
+export const update = async (clientId: string, options: ReplInputOptions) => {
+  console.time(`Update (${options.buildId})`);
 
   const result: ReplResult = {
     type: 'result',
-    clientId: options.clientId,
-    outputHtml: '',
+    clientId,
+    buildId: options.buildId,
+    html: '',
     clientModules: [],
     manifest: undefined,
     ssrModules: [],
     diagnostics: [],
-    docElementAttributes: {},
-    headAttributes: {},
-    bodyAttributes: {},
-    bodyInnerHtml: '',
-    qwikloader: '',
+    events: [],
   };
 
   try {
-    const ctx = getCtx(options.clientId);
+    const ctx = getCtx(clientId, true)!;
 
     await loadDependencies(options);
 
     await bundleClient(options, ctx, result);
     await bundleSSR(options, ctx, result);
-
-    await ssrHtml(options, result);
-
-    ctx.clientModules = result.clientModules;
+    await ssrHtml(options, ctx, result);
   } catch (e: any) {
     result.diagnostics.push({
       scope: 'runtime',
@@ -51,9 +45,9 @@ export const update = async (options: ReplInputOptions) => {
     console.error(e);
   }
 
-  await sendMessageToIframe(result);
+  await sendMessageToReplServer(result);
 
-  console.timeEnd('Update');
+  console.timeEnd(`Update (${options.buildId})`);
 };
 
 const bundleClient = async (
@@ -61,13 +55,14 @@ const bundleClient = async (
   ctx: QwikReplContext,
   result: ReplResult
 ) => {
-  console.time(`Bundle client`);
+  const start = performance.now();
+  console.time(`Bundle client (${options.buildId})`);
 
   const qwikRollupClientOpts: QwikRollupPluginOptions = {
     target: 'client',
     buildMode: options.buildMode,
     debug: options.debug,
-    srcInputs: options.srcInputs,
+    srcInputs: getInputs(options),
     entryStrategy: options.entryStrategy,
     manifestOutput: (m) => {
       result.manifest = m;
@@ -82,8 +77,9 @@ const bundleClient = async (
 
   const rollupInputOpts: InputOptions = {
     input: entry.path,
-    cache: ctx.clientCache,
+    cache: ctx.rollupCache,
     plugins: [
+      replCss(options),
       self.qwikOptimizer?.qwikRollup(qwikRollupClientOpts),
       replResolver(options, 'client'),
       replMinify(options),
@@ -116,7 +112,7 @@ const bundleClient = async (
 
   const bundle = await self.rollup?.rollup(rollupInputOpts);
   if (bundle) {
-    ctx.clientCache = bundle.cache;
+    ctx.rollupCache = bundle.cache;
 
     const generated = await bundle.generate({
       sourcemap: false,
@@ -125,19 +121,29 @@ const bundleClient = async (
     result.clientModules = generated.output.map(getOutput).filter((f) => {
       return !f.path.endsWith('app.js') && !f.path.endsWith('q-manifest.json');
     });
+
+    ctx.clientModules = result.clientModules;
   }
 
-  console.timeEnd(`Bundle client`);
+  result.events.push({
+    kind: 'console-log',
+    scope: 'build',
+    start,
+    end: performance.now(),
+    message: 'Build Client',
+  });
+  console.timeEnd(`Bundle client (${options.buildId})`);
 };
 
 const bundleSSR = async (options: ReplInputOptions, ctx: QwikReplContext, result: ReplResult) => {
-  console.time(`Bundle ssr`);
+  console.time(`Bundle SSR (${options.buildId})`);
+  const start = performance.now();
 
   const qwikRollupSsrOpts: QwikRollupPluginOptions = {
     target: 'ssr',
     buildMode: options.buildMode,
     debug: options.debug,
-    srcInputs: options.srcInputs,
+    srcInputs: getInputs(options),
     entryStrategy: options.entryStrategy,
     manifestInput: result.manifest,
   };
@@ -151,8 +157,12 @@ const bundleSSR = async (options: ReplInputOptions, ctx: QwikReplContext, result
 
   const rollupInputOpts: InputOptions = {
     input: entry.path,
-    cache: ctx.ssrCache,
-    plugins: [self.qwikOptimizer?.qwikRollup(qwikRollupSsrOpts), replResolver(options, 'ssr')],
+    cache: ctx.rollupCache,
+    plugins: [
+      replCss(options),
+      self.qwikOptimizer?.qwikRollup(qwikRollupSsrOpts),
+      replResolver(options, 'ssr'),
+    ],
     onwarn(warning) {
       const diagnostic: Diagnostic = {
         scope: 'rollup-ssr',
@@ -181,7 +191,7 @@ const bundleSSR = async (options: ReplInputOptions, ctx: QwikReplContext, result
 
   const bundle = await self.rollup?.rollup(rollupInputOpts);
   if (bundle) {
-    ctx.ssrCache = bundle.cache;
+    ctx.rollupCache = bundle.cache;
 
     const generated = await bundle.generate({
       format: 'cjs',
@@ -192,31 +202,23 @@ const bundleSSR = async (options: ReplInputOptions, ctx: QwikReplContext, result
     result.ssrModules = generated.output.map(getOutput);
   }
 
-  console.timeEnd(`Bundle ssr`);
+  result.events.push({
+    kind: 'console-log',
+    scope: 'build',
+    start,
+    end: performance.now(),
+    message: 'Build SSR',
+  });
+  console.timeEnd(`Bundle SSR (${options.buildId})`);
 };
 
-const sendMessageToIframe = async (result: ReplResult) => {
-  const clients = await (self as any).clients.matchAll();
-  clients.forEach((client: WindowClient) => {
-    if (client.url) {
-      const url = new URL(client.url);
-      const clientId = url.hash.split('#')[1];
-      if (clientId === result.clientId) {
-        client.postMessage(result);
-      }
-    }
+const getInputs = (options: ReplInputOptions) => {
+  return options.srcInputs.filter((i) => {
+    return MODULE_EXTS.some((ext) => i.path.endsWith(ext));
   });
 };
 
-interface WindowClient {
-  focused: boolean;
-  frameType: 'nested';
-  id: string;
-  type: 'window';
-  url: string;
-  visibilityState: string;
-  postMessage: (result: ReplResult) => void;
-}
+const MODULE_EXTS = ['.tsx', '.ts', '.js', '.jsx', '.mjs'];
 
 const getOutput = (o: OutputChunk | OutputAsset) => {
   const f: ReplModuleOutput = {

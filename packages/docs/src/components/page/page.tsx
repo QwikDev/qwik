@@ -11,8 +11,11 @@ export const Page = component$(() => {
   if (loc.pathname === '/playground') {
     return <Playground />;
   }
-  if (loc.pathname === '/examples') {
-    return <Examples />;
+
+  if (loc.pathname.startsWith('/examples/')) {
+    const p = loc.pathname.split('/');
+    const appId = `${p[2]}/${p[3]}`;
+    return <Examples appId={appId} />;
   }
 
   const page = usePage();

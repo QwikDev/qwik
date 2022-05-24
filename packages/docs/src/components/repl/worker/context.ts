@@ -2,18 +2,18 @@ import type { RollupCache } from 'rollup';
 import type { ReplModuleOutput } from '../types';
 
 export interface QwikReplContext {
+  html?: string;
   clientModules?: ReplModuleOutput[];
-  clientCache?: RollupCache;
-  ssrCache?: RollupCache;
+  rollupCache?: RollupCache;
 }
 
 const ctxs: { id: string; ctx: QwikReplContext }[] = [];
 
-export const getCtx = (id: string) => {
-  let c = ctxs.find((r) => r.id === id);
-  if (!c) {
+export const getCtx = (clientId: string, create: boolean) => {
+  let c = ctxs.find((r) => r.id === clientId);
+  if (!c && create) {
     c = {
-      id,
+      id: clientId,
       ctx: {},
     };
     ctxs.push(c);

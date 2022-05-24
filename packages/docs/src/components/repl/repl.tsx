@@ -11,53 +11,52 @@ import {
 import { ReplInputPanel } from './repl-input-panel';
 import { ReplOutputPanel } from './repl-output-panel';
 import styles from './repl.css?inline';
-import type { ReplStore, ReplResult, ReplModuleInput, ReplMessageEvent } from './types';
+import type { ReplStore, ReplModuleInput, ReplUpdateMessage, ReplMessage } from './types';
 import { ReplDetailPanel } from './repl-detail-panel';
+import { getReplVersion } from './repl-version';
+import { updateReplOutput } from './repl-output-update';
 
 export const Repl = component$(async (props: ReplProps) => {
   useScopedStyles$(styles);
 
   const store = useStore<ReplStore>(() => ({
     clientId: Math.round(Math.random() * Number.MAX_SAFE_INTEGER).toString(36),
-    inputs: props.inputs || [],
-    outputHtml: '',
+    html: '',
     clientModules: [],
     ssrModules: [],
     diagnostics: [],
+    monacoDiagnostics: [],
     enableClientOutput: props.enableClientOutput !== false,
     enableHtmlOutput: props.enableHtmlOutput !== false,
     enableSsrOutput: props.enableSsrOutput !== false,
+    enableConsole: true,
     selectedInputPath: '',
     selectedOutputPanel: 'app',
-    lastOutputPanel: null,
     selectedOutputDetail: 'options',
     selectedClientModule: '',
     selectedSsrModule: '',
     ssrBuild: true,
     debug: false,
-    iframeUrl: 'about:blank',
-    iframeWindow: null,
+    serverUrl: 'about:blank',
+    serverWindow: null,
     version: props.version,
     entryStrategy: props.entryStrategy || 'hook',
     buildMode: props.buildMode || 'development',
     versions: [],
     build: 0,
+    events: [],
   }));
 
-  if (props.inputs) {
-    store.inputs = props.inputs;
-  }
+  useWatch$(async (track) => {
+    track(props, 'inputs');
 
-  useWatch$((track) => {
-    track(store, 'inputs');
-
-    if (!store.inputs.some((i) => i.path === props.selectedInputPath)) {
-      store.selectedInputPath = store.inputs[0].path;
+    if (!props.inputs.some((i) => i.path === props.selectedInputPath)) {
+      store.selectedInputPath = props.inputs[0].path;
     }
   });
 
   const onInputChange = $((path: string, code: string) => {
-    const input = store.inputs.find((i) => i.path === path);
+    const input = props.inputs.find((i) => i.path === path);
     if (input) {
       input.code = code;
       store.build++;
@@ -65,10 +64,10 @@ export const Repl = component$(async (props: ReplProps) => {
   });
 
   const onInputDelete = $((path: string) => {
-    store.inputs = store.inputs.filter((i) => i.path !== path);
+    props.inputs = props.inputs.filter((i) => i.path !== path);
     if (store.selectedInputPath === path) {
-      if (store.inputs.length > 0) {
-        store.selectedInputPath = store.inputs[0].path;
+      if (props.inputs.length > 0) {
+        store.selectedInputPath = props.inputs[0].path;
       } else {
         store.selectedInputPath = '';
       }
@@ -76,50 +75,39 @@ export const Repl = component$(async (props: ReplProps) => {
   });
 
   useClientEffect$(async () => {
-    let data: NpmData = JSON.parse(sessionStorage.getItem('qwikNpmData')!);
-    if (!data) {
-      const npmData = `https://data.jsdelivr.com/v1/package/npm/@builder.io/qwik`;
-      const npmRsp = await fetch(npmData);
-      data = await npmRsp.json();
-      sessionStorage.setItem('qwikNpmData', JSON.stringify(data));
+    // only run on the client
+    const v = await getReplVersion(store.version);
+
+    if (v.version) {
+      let serverUrl = `/repl/repl-server`;
+
+      if (location.hostname === 'localhost') {
+        serverUrl += `.html`;
+      }
+      serverUrl += `#${store.clientId}`;
+
+      store.versions = v.versions;
+      store.version = v.version;
+      store.serverUrl = serverUrl;
+
+      window.addEventListener('message', (ev) => receiveMessageFromReplServer(ev, store));
     }
-
-    store.versions = data.versions;
-
-    if (!store.version || !data.versions.includes(store.version)) {
-      store.version = '0.0.20-7';
-      // store.version = data.tags.latest;
-    }
-
-    store.iframeUrl = '/repl/';
-    if (location.hostname === 'localhost') {
-      store.iframeUrl += 'index.html';
-    }
-    store.iframeUrl += '#' + store.clientId;
-
-    // TODO!
-    // if (location.hostname === 'qwik.builder.io') {
-    //   // use a different domain on purpose
-    //   store.iframeUrl = 'https://qwik-docs.pages.dev' + store.iframeUrl;
-    // }
-
-    window.addEventListener('message', (ev) => onMessageFromIframe(ev, store));
   });
 
   useWatch$((track) => {
     track(store, 'entryStrategy');
     track(store, 'buildMode');
-    track(store, 'inputs');
+    track(props, 'inputs');
     track(store, 'version');
-    track(store, 'iframeWindow');
+    track(store, 'serverWindow');
     track(store, 'build');
-
-    postReplInputUpdate(store);
+    sendUserUpdateToReplServer(store, props.inputs);
   });
 
   return (
     <Host class="repl">
       <ReplInputPanel
+        inputs={props.inputs}
         store={store}
         onInputChangeQrl={onInputChange}
         onInputDeleteQrl={onInputDelete}
@@ -130,56 +118,33 @@ export const Repl = component$(async (props: ReplProps) => {
   );
 });
 
-export const updateReplOutput = (store: ReplStore, result: ReplResult) => {
-  store.outputHtml = result.outputHtml;
-  store.clientModules = result.clientModules;
-  store.ssrModules = result.ssrModules;
-  store.diagnostics = result.diagnostics;
-
-  if (!result.clientModules.some((m) => m.path === store.selectedClientModule)) {
-    if (result.clientModules.length > 0) {
-      store.selectedClientModule = result.clientModules[0].path;
-    } else {
-      store.selectedClientModule = '';
-    }
-  }
-
-  if (!result.ssrModules.some((m) => m.path === store.selectedSsrModule)) {
-    if (result.ssrModules.length > 0) {
-      store.selectedSsrModule = result.ssrModules[0].path;
-    } else {
-      store.selectedSsrModule = '';
-    }
-  }
-
-  if (result.diagnostics.length > 0) {
-    store.lastOutputPanel = store.selectedOutputPanel;
-    store.selectedOutputPanel = 'diagnostics';
-  } else if (result.diagnostics.length === 0 && store.selectedOutputPanel === 'diagnostics') {
-    store.selectedOutputPanel = store.lastOutputPanel || 'app';
-  }
-};
-
-export const onMessageFromIframe = (ev: MessageEvent, store: ReplStore) => {
-  const type = ev.data?.type;
-  const clientId = ev.data?.clientId;
+export const receiveMessageFromReplServer = (ev: MessageEvent, store: ReplStore) => {
+  const msg: ReplMessage = ev.data;
+  const type = msg?.type;
+  const clientId = msg?.clientId;
   if (clientId === store.clientId) {
     if (type === 'replready') {
-      store.iframeWindow = noSerialize(ev.source as any);
+      // keep a reference to the repl server window
+      store.serverWindow = noSerialize(ev.source as any);
     } else if (type === 'result') {
-      updateReplOutput(store, ev.data);
+      // received a message from the server
+      updateReplOutput(store, msg);
+    } else if (type === 'event') {
+      // received an event from the user's app
+      store.events.push(msg.event);
     }
   }
 };
 
-export const postReplInputUpdate = (store: ReplStore) => {
-  if (store.version && store.iframeWindow) {
-    const msg: ReplMessageEvent = {
+export const sendUserUpdateToReplServer = (store: ReplStore, inputs: ReplModuleInput[]) => {
+  if (store.version && store.serverWindow) {
+    const msg: ReplUpdateMessage = {
       type: 'update',
+      clientId: store.clientId,
       options: {
-        clientId: store.clientId,
+        buildId: String(store.build),
         debug: store.debug,
-        srcInputs: store.inputs,
+        srcInputs: inputs,
         buildMode: store.buildMode,
         entryStrategy: {
           type: store.entryStrategy as any,
@@ -189,13 +154,14 @@ export const postReplInputUpdate = (store: ReplStore) => {
     };
 
     if (msg.options.srcInputs.length > 0) {
-      store.iframeWindow.postMessage(JSON.stringify(msg));
+      // using JSON.stringify() to remove proxies
+      store.serverWindow.postMessage(JSON.stringify(msg));
     }
   }
 };
 
 export interface ReplProps {
-  inputs?: ReplModuleInput[];
+  inputs: ReplModuleInput[];
   selectedInputPath?: string;
   enableHtmlOutput?: boolean;
   enableClientOutput?: boolean;
@@ -203,10 +169,4 @@ export interface ReplProps {
   version?: string;
   entryStrategy?: string;
   buildMode?: 'development' | 'production';
-}
-
-// https://data.jsdelivr.com/v1/package/npm/@builder.io/qwik
-interface NpmData {
-  tags: { latest: string };
-  versions: string[];
 }

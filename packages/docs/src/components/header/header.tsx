@@ -76,7 +76,7 @@ export const Header = component$(
               </a>
             </li>
             <li>
-              <a href="https://discord.gg/Fd9Cwb3Z8D" target="_blank" onClickQrl={closeMenu}>
+              <a href="https://qwik.builder.io/chat" target="_blank" onClickQrl={closeMenu}>
                 <span class="md:hidden">Discord</span>
                 <span class="hidden md:block">
                   <DiscordLogo width={22} height={22} />

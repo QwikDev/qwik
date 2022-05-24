@@ -137,6 +137,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           outDir: opts.outDir,
           rollupOptions: {
             input: opts.input,
+            preserveEntrySignatures: 'exports-only',
             output: normalizeRollupOutputOptions(path, opts, {}),
             onwarn: (warning, warn) => {
               if (

@@ -51,7 +51,8 @@ export const qwikLoader = (doc: Document, hasInitialized?: number, prefetchWorke
           const url = qrlResolver(element, qrl);
           if (url) {
             const symbolName = getSymbolName(url);
-            const module = (window as any)[url.pathname] || (await import(url.href.split('#')[0]));
+            const module =
+              (window as any)[url.pathname] || findModule(await import(url.href.split('#')[0]));
             const handler = module[symbolName] || error(url + ' does not export ' + symbolName);
             const previousCtx = (doc as any)[Q_CONTEXT];
             if (element.isConnected) {
@@ -185,6 +186,14 @@ export const qwikLoader = (doc: Document, hasInitialized?: number, prefetchWorke
     qrlResolver,
   };
 };
+
+function findModule(module: any) {
+  return Object.values(module).find(isModule) || module;
+}
+
+function isModule(module: any) {
+  return typeof module === 'object' && module && module[Symbol.toStringTag] === 'Module';
+}
 
 declare const window: LoaderWindow;
 

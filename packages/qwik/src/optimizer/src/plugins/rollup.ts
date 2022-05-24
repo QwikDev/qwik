@@ -173,7 +173,10 @@ export function normalizeRollupOutputOptions(
   opts: NormalizedQwikPluginOptions,
   rollupOutputOpts: OutputOptions
 ) {
-  const outputOpts = { ...rollupOutputOpts };
+  const outputOpts: OutputOptions = {
+    minifyInternalExports: false,
+    ...rollupOutputOpts,
+  };
 
   if (opts.target === 'ssr') {
     // ssr output

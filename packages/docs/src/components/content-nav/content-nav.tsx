@@ -1,5 +1,5 @@
 import { usePage, usePageIndex, PageIndex } from '@builder.io/qwik-city';
-import { component$, Host, useHostElement, useScopedStyles$ } from '@builder.io/qwik';
+import { component$, Host, useScopedStyles$ } from '@builder.io/qwik';
 import styles from './content-nav.css?inline';
 
 export const ContentNav = component$(
@@ -27,7 +27,9 @@ export const ContentNav = component$(
       };
       readIndex(pageIndex);
 
-      const current = pageOrder.findIndex((p) => p.href === page.url.pathname);
+      const current = pageOrder.findIndex(
+        (p) => p.href === new URL(page.url, 'https://qwik.builder.io/').pathname
+      );
       if (current > -1) {
         let prev = pageOrder[current - 1];
         if (prev && prev.href) {

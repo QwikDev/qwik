@@ -9,7 +9,7 @@ export const Page = component$(() => {
   const loc = getLocation(doc);
 
   if (loc.pathname === '/playground') {
-    return <Playground shareable={loc.searchParams.get('s')} />;
+    return <Playground />;
   }
 
   if (loc.pathname.startsWith('/examples/')) {

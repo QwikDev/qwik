@@ -6,10 +6,10 @@ import Examples from '../../layouts/examples/examples';
 
 export const Page = component$(() => {
   const doc = useDocument();
-
   const loc = getLocation(doc);
+
   if (loc.pathname === '/playground') {
-    return <Playground />;
+    return <Playground shareable={loc.searchParams.get('s')} />;
   }
 
   if (loc.pathname.startsWith('/examples/')) {
@@ -29,7 +29,9 @@ export const Page = component$(() => {
       description: attrs.description,
     });
 
-    setHeadLinks(doc, [{ rel: 'canonical', href: page.url.href }]);
+    setHeadLinks(doc, [
+      { rel: 'canonical', href: new URL(page.url, 'https://qwik.builder.io/').href },
+    ]);
 
     return (
       <Layout>

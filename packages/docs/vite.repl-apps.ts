@@ -137,9 +137,7 @@ export function examplesData(pagesDir: string): Plugin {
 
       if (filename === '@examples-data') {
         const data = loadExamplesData(this);
-        return `const exampleSections = ${JSON.stringify(
-          data
-        )};export default exampleSections;`;
+        return `const exampleSections = ${JSON.stringify(data)};export default exampleSections;`;
       }
       return null;
     },

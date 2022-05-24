@@ -1,13 +1,19 @@
 /* eslint-disable no-console */
 import type { RenderToStringOptions, RenderToStringResult } from '@builder.io/qwik/server';
-import type { ReplInputOptions, ReplResult, ReplResultAttributes } from '../types';
+import type { ReplInputOptions, ReplResult } from '../types';
+import type { QwikReplContext } from './context';
 import type { QwikWorkerGlobal } from './repl-service-worker';
 
-export const ssrHtml = async (options: ReplInputOptions, result: ReplResult) => {
+export const ssrHtml = async (
+  options: ReplInputOptions,
+  ctx: QwikReplContext,
+  result: ReplResult
+) => {
   const ssrModule = result.ssrModules.find((m) => m.path.endsWith('.js'));
   if (!ssrModule || typeof ssrModule.code !== 'string') {
     return;
   }
+  const start = performance.now();
 
   const mod: any = { exports: {} };
   const run = new Function('module', 'exports', 'require', ssrModule.code);
@@ -19,47 +25,93 @@ export const ssrHtml = async (options: ReplInputOptions, result: ReplResult) => 
   }
 
   console.time(`SSR Html`);
+
+  const log = console.log;
+  const warn = console.warn;
+  const error = console.error;
+  const debug = console.debug;
+
+  console.log = (...args) => {
+    result.events.push({
+      kind: 'console-log',
+      scope: 'ssr',
+      message: args.join(' '),
+      start: performance.now(),
+    });
+    log(...args);
+  };
+
+  console.warn = (...args) => {
+    result.events.push({
+      kind: 'console-warn',
+      scope: 'ssr',
+      message: args.join(' '),
+      start: performance.now(),
+    });
+    warn(...args);
+  };
+
+  console.error = (...args) => {
+    result.events.push({
+      kind: 'console-error',
+      scope: 'ssr',
+      message: args.join(' '),
+      start: performance.now(),
+    });
+    error(...args);
+  };
+
+  console.debug = (...args) => {
+    result.events.push({
+      kind: 'console-debug',
+      scope: 'ssr',
+      message: args.join(' '),
+      start: performance.now(),
+    });
+    debug(...args);
+  };
+
   const ssrResult = await server.render({
-    base: `/repl/${options.clientId}/build/`,
+    base: `/repl/${result.clientId}/build/`,
     manifest: result.manifest,
   });
 
-  const doc = self.qwikServer?._createDocument({ html: ssrResult.html });
-  if (doc) {
-    const qwikLoader = doc.getElementById('qwikloader');
-    if (qwikLoader) {
-      qwikLoader.remove();
-      result.qwikloader = qwikLoader.innerHTML;
-    }
+  console.log = log;
+  console.warn = warn;
+  console.error = error;
+  console.debug = debug;
 
-    getAttributes(doc.documentElement, result.docElementAttributes);
-    getAttributes(doc.head, result.headAttributes);
-    getAttributes(doc.body, result.bodyAttributes);
-    result.bodyInnerHtml = doc.body.innerHTML;
+  result.html = ssrResult.html;
 
-    if (options.buildMode !== 'production') {
-      const outputHtml = self.prettier?.format(ssrResult.html, {
+  result.events.push({
+    kind: 'pause',
+    scope: 'build',
+    start,
+    end: performance.now(),
+    message: '',
+  });
+
+  if (options.buildMode !== 'production') {
+    try {
+      const html = self.prettier?.format(result.html, {
         parser: 'html',
         plugins: self.prettierPlugins,
       });
-      if (outputHtml) {
-        result.outputHtml = outputHtml;
+      if (html) {
+        result.html = html;
       }
-    } else {
-      result.outputHtml = ssrResult.html;
+    } catch (e) {
+      console.error(e);
     }
   }
+
+  ctx.html = result.html;
+
   console.timeEnd(`SSR Html`);
 };
 
 const noopRequire = (path: string) => {
-  console.error(`require() not available from REPL SSR, path: ${path}`);
-};
-
-const getAttributes = (elm: HTMLElement, attrs: ReplResultAttributes) => {
-  for (let i = 0; i < elm.attributes.length; i++) {
-    attrs[elm.attributes[i].nodeName] = elm.attributes[i].nodeValue!;
-  }
+  console.debug(`require() not available from REPL SSR, path: ${path}`);
 };
 
 interface ServerModule {

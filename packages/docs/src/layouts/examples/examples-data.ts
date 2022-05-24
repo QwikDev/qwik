@@ -1,12 +1,19 @@
 import type { ReplModuleInput } from '../../components/repl/types';
 
-export interface ExampleApp {
-  title: string;
+export interface ExampleSection {
   id: string;
+  title: string;
+  apps: ExampleApp[];
+}
+
+export interface ExampleApp {
+  id: string;
+  title: string;
   description: string;
   inputs: ReplModuleInput[];
 }
 
 // generated at build-time
-const apps: ExampleApp[] = [];
-export default apps;
+// see /docs/pages/examples/examples-menu.json
+const exampleSections: ExampleSection[] = [];
+export default exampleSections;

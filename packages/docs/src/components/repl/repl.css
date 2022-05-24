@@ -61,7 +61,7 @@
 
 .repl-tab-button:not(.active-tab):hover {
   border-top-color: #0084ff75;
-  background-color: rgb(223, 223, 223);
+  background-color: #ffffff75;
 }
 
 .repl-input-panel .repl-tab-button.active-tab {
@@ -80,17 +80,12 @@
   border-top-color: #4ce15275;
 }
 
-.repl-tab-diagnostics {
-  border-top-color: #ff00905c;
-  background-color: rgb(223, 223, 223);
-}
-
 .repl-tab-diagnostics.active-tab {
   border-top-color: #ff0090;
 }
 
 .repl-tab-diagnostics:not(.active-tab):hover {
-  border-top-color: #ff0090;
+  border-top-color: #ff009075;
 }
 
 .repl-tab-button-select {
@@ -140,10 +135,10 @@
 
 .output-app iframe {
   position: absolute;
-  top: 10px;
+  top: 0;
   left: 10px;
-  width: calc(100% - 20px);
-  height: calc(100% - 20px);
+  width: calc(100% - 10px);
+  height: 100%;
 }
 
 .editor-container {
@@ -239,7 +234,10 @@
 .output-diagnostics {
   color: #c90674;
   font-weight: bold;
-  padding: 15px;
+  padding: 0 15px 0 15px;
+}
+.output-diagnostics p {
+  padding-bottom: 20px;
 }
 
 .details-panel {
@@ -273,4 +271,61 @@
 .detail-options select {
   border: 1px solid var(--repl-tab-bg-color);
   border-radius: 3px;
+}
+
+.log {
+  font-size: 14px;
+  border-bottom: 1px solid #d2d2d2;
+  display: flex;
+}
+
+.log > .platform {
+  width: 50px;
+  text-align: center;
+  padding: 5px;
+}
+
+.log > .platform.build {
+  background: #f3f4cb;
+}
+
+.log > .platform.ssr {
+  background: #e3e400;
+}
+
+.log > .platform.client {
+  background: #78fa83;
+}
+
+.log.console-warn {
+  background: #d9d900;
+  font-weight: 500;
+}
+.log.console-error {
+  background: #d9d900;
+  font-weight: 500;
+}
+
+.log > .content {
+  flex: 1;
+  padding: 5px;
+}
+
+.line.paused,
+.line.resumed {
+  text-align: center;
+  padding: 10px 0;
+  border-bottom: 2px solid;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.elapsed {
+  border-radius: 5px;
+  padding: 4px;
+  font-size: 12px;
+  background: #eeeeee;
+  display: inline;
+  height: max-content;
+  margin: 0 5px;
 }

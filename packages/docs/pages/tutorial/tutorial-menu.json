@@ -2,7 +2,7 @@
   {
     "id": "introduction",
     "title": "Introduction",
-    "tutorials": [
+    "apps": [
       {
         "id": "basics",
         "title": "Basics",
@@ -22,7 +22,7 @@
   {
     "id": "reactivity",
     "title": "Reactivity",
-    "tutorials": [
+    "apps": [
       {
         "id": "assignments",
         "title": "Assignments"

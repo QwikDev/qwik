@@ -1,5 +1,5 @@
 header {
-  @apply text-slate-200;
+  color: white;
   background: #0099ff;
   box-shadow: 0px 2px 7px #0000003d;
 }
@@ -9,8 +9,12 @@ header li {
   @apply py-4 md:py-0;
 }
 
-header li:hover {
+header a:hover {
   text-decoration: underline;
+}
+
+header li a:hover svg {
+  opacity: 0.8;
 }
 
 header ul {
@@ -19,24 +23,25 @@ header ul {
 }
 
 header .more-icon {
-  @apply block;
+  display: block;
 }
 
 header .close-icon {
-  @apply hidden;
+  display: none;
 }
 
 @media (max-width: 767px) {
   .header-open header ul {
-    @apply block;
+    display: block;
+    background: #0099ff;
   }
 
   .header-open header .more-icon {
-    @apply hidden;
+    display: none;
   }
 
   .header-open header .close-icon {
-    @apply block;
+    display: block;
   }
 }
 
@@ -49,7 +54,7 @@ header .header-inner {
 }
 
 header .header-logo {
-  @apply fixed top-[13px] left-[max(0px,calc(50%-45rem))] pl-4;
+  @apply fixed top-[5px] left-[max(0px,calc(50%-45rem))] pl-4;
 }
 
 .full-width header .header-logo {

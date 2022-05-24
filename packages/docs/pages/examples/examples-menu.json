@@ -1,12 +1,35 @@
 [
   {
-    "id": "hello-world",
-    "title": "Hello World",
-    "description": "The simplest qwik app"
+    "id": "introduction",
+    "title": "Introduction",
+    "apps": [
+      {
+        "id": "hello-world",
+        "title": "Hello World",
+        "description": "The simplest Qwik app."
+      }
+    ]
   },
   {
-    "id": "counter",
-    "title": "Counter",
-    "description": "A simple standard counter example"
+    "id": "reactivity",
+    "title": "Reactivity",
+    "apps": [
+      {
+        "id": "counter",
+        "title": "Counter",
+        "description": "A simple standard counter example."
+      }
+    ]
+  },
+  {
+    "id": "visibility",
+    "title": "Visibility",
+    "apps": [
+      {
+        "id": "clock",
+        "title": "Below the fold Clock",
+        "description": "Component which requires lazy initialization when it comes into view."
+      }
+    ]
   }
 ]

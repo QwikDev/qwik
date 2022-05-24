@@ -9,8 +9,9 @@ import {
   useWatch$,
 } from '@builder.io/qwik';
 import type { TransformModuleInput } from '@builder.io/qwik/optimizer';
-import { addQwikLib, ICodeEditorViewState, initMonacoEditor, updateMonacoEditor } from './monaco';
+import { addQwikLibs, ICodeEditorViewState, initMonacoEditor, updateMonacoEditor } from './monaco';
 import type { IStandaloneCodeEditor } from './monaco';
+import type { ReplStore } from './types';
 
 export const Editor = component$((props: EditorProps) => {
   const hostElm = useHostElement() as HTMLElement;
@@ -24,7 +25,7 @@ export const Editor = component$((props: EditorProps) => {
 
   useClientEffect$(async () => {
     if (!store.editor) {
-      await initMonacoEditor(hostElm, props, store);
+      await initMonacoEditor(hostElm, props, store, props.store);
     }
     return () => {
       if (store.editor) {
@@ -38,7 +39,7 @@ export const Editor = component$((props: EditorProps) => {
     track(store, 'editor');
 
     if (props.version && store.editor) {
-      await addQwikLib(props.version);
+      await addQwikLibs(props.version);
     }
   });
 
@@ -61,10 +62,10 @@ export interface EditorProps {
   inputs: TransformModuleInput[];
   lineNumbers: 'on' | 'off';
   onChangeQrl?: QRL<(path: string, code: string) => void>;
-  readOnly: boolean;
   selectedPath: string;
   wordWrap: 'on' | 'off';
   version: string;
+  store: ReplStore;
 }
 
 export interface EditorStore {

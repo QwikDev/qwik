@@ -25,9 +25,9 @@ export const Header = component$(
       <Host className="fixed top-0 z-40 w-full h-[56px]">
         <div class="header-inner">
           <div className="header-logo">
-            <a href="/" class="hover:opacity-70">
+            <a href="/">
               <span className="sr-only">Qwik Homepage</span>
-              <QwikLogo width={110} height={35} />
+              <QwikLogo width={110} height={50} />
             </a>
           </div>
           <button onClickQrl={toggleMenu} class="p-3 md:hidden fixed right-0" type="button">
@@ -44,21 +44,21 @@ export const Header = component$(
                 <span>Docs</span>
               </a>
             </li>
-            <li>
-              <a href="/examples" onClickQrl={closeMenu}>
+            {/* <li>
+              <a href="/examples/introduction/hello-world" onClickQrl={closeMenu}>
                 <span>Examples</span>
               </a>
-            </li>
+            </li> */}
             {/* <li>
               <a href="/tutorial/introduction/basics" onClickQrl={closeMenu}>
                 <span>Tutorial</span>
               </a>
             </li> */}
-            <li>
+            {/* <li>
               <a href="/playground" onClickQrl={closeMenu}>
                 <span>Playground</span>
               </a>
-            </li>
+            </li> */}
             <li>
               <a href="https://github.com/BuilderIO/qwik" target="_blank" onClickQrl={closeMenu}>
                 <span class="md:hidden">Github</span>
@@ -76,7 +76,7 @@ export const Header = component$(
               </a>
             </li>
             <li>
-              <a href="https://discord.gg/Fd9Cwb3Z8D" target="_blank" onClickQrl={closeMenu}>
+              <a href="https://qwik.builder.io/chat" target="_blank" onClickQrl={closeMenu}>
                 <span class="md:hidden">Discord</span>
                 <span class="hidden md:block">
                   <DiscordLogo width={22} height={22} />

@@ -1,7 +1,7 @@
 import { CodeBlock } from '../code-block/code-block';
 import type { ReplModuleOutput } from './types';
 
-export const ReplOutputModles = ({ outputs, buildPath }: ReplOutputModulesProps) => {
+export const ReplOutputModules = ({ outputs, buildPath }: ReplOutputModulesProps) => {
   return (
     <div class="output-result output-modules">
       <div class="file-tree">

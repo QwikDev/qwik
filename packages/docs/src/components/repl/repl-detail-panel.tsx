@@ -1,3 +1,4 @@
+import { ReplConsole } from './repl-console';
 import { ReplOptions } from './repl-options';
 import { ReplTabButton } from './repl-tab-button';
 import { ReplTabButtons } from './repl-tab-buttons';
@@ -15,21 +16,18 @@ export const ReplDetailPanel = ({ store }: ReplDetailPanelProps) => {
           }}
         />
 
-        {/* <ReplTabButton
-          text="Network"
-          isActive={store.selectedOutputDetail === 'network'}
+        <ReplTabButton
+          text="Console"
+          isActive={store.selectedOutputDetail === 'console'}
           onClick$={() => {
-            store.selectedOutputDetail = 'network';
+            store.selectedOutputDetail = 'console';
           }}
-        /> */}
+        />
       </ReplTabButtons>
 
       <div class="repl-tab">
         {store.selectedOutputDetail === 'options' ? <ReplOptions store={store} /> : null}
-
-        {/* {store.selectedOutputDetail === 'network' ? (
-          <div class="output-detail detail-network">network</div>
-        ) : null} */}
+        {store.selectedOutputDetail === 'console' ? <ReplConsole store={store} /> : null}
       </div>
     </div>
   );

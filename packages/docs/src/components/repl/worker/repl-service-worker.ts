@@ -1,12 +1,7 @@
-/* eslint-disable no-console */
+import { receiveMessageFromMain } from './repl-messenger';
 import { requestHandler } from './request-handler';
-import { update } from './update';
 
-self.onmessage = (ev: MessageEvent) => {
-  if (ev.data?.type === 'update') {
-    update(ev.data.options);
-  }
-};
+self.onmessage = receiveMessageFromMain;
 
 self.onfetch = requestHandler;
 

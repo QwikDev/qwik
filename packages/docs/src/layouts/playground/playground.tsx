@@ -6,14 +6,13 @@ import {
   useScopedStyles$,
   useWatch$,
   useStore,
-  useClientEffect$,
 } from '@builder.io/qwik';
 import type { TransformModuleInput } from '@builder.io/qwik/optimizer';
 import { Repl } from '../../components/repl/repl';
 import styles from './playground.css?inline';
 import { Header } from '../../components/header/header';
 import { setHeadMeta, setHeadStyles } from '@builder.io/qwik-city';
-import playgroundApps from '@playground-data';
+import playgroundApp from '@playground-data';
 import { useLocation } from '../../utils/useLocation';
 
 const Playground = component$(() => {
@@ -82,28 +81,17 @@ const Playground = component$(() => {
 
 export function loadPlaygroundStore(hash: string) {
   const playgroundStore: PlaygroundStore = {
-    appId: 'hello-world',
-    inputs: [],
+    inputs: playgroundApp.inputs,
     version: '',
     buildMode: 'development',
     entryStrategy: 'hook',
     colResizeActive: false,
     colLeft: 50,
   };
-
-  let app = playgroundApps.find((p) => p.id === playgroundStore.appId)!;
-  if (!app) {
-    app = playgroundApps.find((p) => p.id === 'hello-world')!;
-  }
-
-  playgroundStore.appId = app.id;
-  playgroundStore.inputs = app.inputs;
-
   return playgroundStore;
 }
 
 interface PlaygroundStore {
-  appId: string;
   inputs: TransformModuleInput[];
   version: string;
   buildMode: 'development' | 'production';

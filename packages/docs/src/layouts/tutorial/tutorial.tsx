@@ -29,7 +29,7 @@ const Tutorial = component$(() => {
   const loc = useLocation();
   const getTutorialApp = (): TutorialApp | undefined => {
     for (const s of tutorialSections) {
-      for (const t of s.tutorials) {
+      for (const t of s.apps) {
         if (`/tutorial/${t.id}` === loc.pathname) {
           return t;
         }
@@ -42,7 +42,7 @@ const Tutorial = component$(() => {
     return <p>Unable to find tutorial: {loc.pathname}</p>;
   }
   const tutorials: TutorialApp[] = [];
-  tutorialSections.forEach((s) => tutorials.push(...s.tutorials));
+  tutorialSections.forEach((s) => tutorials.push(...s.apps));
 
   const currentIndex = tutorials.findIndex((i) => i.id === current.id);
   const prev = tutorials[currentIndex - 1];

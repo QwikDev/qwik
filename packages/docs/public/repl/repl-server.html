@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Qwik REPL Server</title>
+    <style>
+      body {
+        background-color: white;
+        padding: 0;
+        margin: 0;
+      }
+      iframe {
+        display: block;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border: none;
+        background-color: white;
+      }
+      iframe.loading {
+        opacity: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <script type="module">
+      const clientId = location.hash.split('#')[1];
+
+      let swRegistration = null;
+
+      const updateApp = (result) => {
+        const iframe = document.createElement('iframe');
+        iframe.classList.add('loading');
+        iframe.src = `/repl/${result.clientId}/`;
+        iframe.dataset.buildId = result.buildId;
+
+        iframe.addEventListener('load', () => {
+          if (!iframe.nextElementSibling) {
+            // last iframe is the active one, others before it should get removed
+            iframe.classList.remove('loading');
+            const iframes = iframe.parentElement.querySelectorAll('iframe');
+            for (let i = iframes.length - 1; i >= 0; i--) {
+              const otherIframe = iframes[i];
+              if (otherIframe !== iframe) {
+                otherIframe.remove();
+              }
+            }
+          }
+        });
+
+        document.body.appendChild(iframe);
+      };
+
+      const receiveMessageFromMainApp = (ev) => {
+        if (swRegistration && swRegistration.active) {
+          try {
+            if (ev.data) {
+              swRegistration.active.postMessage(ev.data);
+            }
+          } catch (e) {
+            console.error('receiveMessageFromMainApp', e, ev.data);
+          }
+        }
+      };
+
+      const sendMessageToMain = (msg) => {
+        if (window.parent !== window && msg.clientId === clientId) {
+          window.parent.postMessage(msg, '*');
+        }
+      };
+
+      const receiveMessageFromSw = (ev) => {
+        const msg = ev.data;
+        if (msg) {
+          sendMessageToMain(msg);
+          if (msg.type === 'result') {
+            updateApp(msg);
+          }
+        }
+      };
+
+      const receiveMessageFromUserApp = (ev) => {
+        if (ev.data) {
+          const msg = JSON.parse(ev.data);
+          if (msg?.type === 'log') {
+            sendMessageToMain(msg);
+          }
+        }
+      };
+
+      const replReady = () => {
+        console.debug(`Qwik REPL server "${clientId}" ready`);
+        navigator.serviceWorker.addEventListener('message', receiveMessageFromSw);
+        window.addEventListener('message', receiveMessageFromUserApp);
+        sendMessageToMain({ type: 'replready', clientId: clientId });
+      };
+
+      if (clientId) {
+        navigator.serviceWorker
+          .register('/repl/repl-sw.js', {
+            scope: '/repl/',
+          })
+          .then(
+            (reg) => {
+              swRegistration = reg;
+              if (swRegistration.active) {
+                replReady();
+              } else if (swRegistration.installing) {
+                swRegistration.installing.addEventListener('statechange', (ev) => {
+                  if (ev.target.state == 'activated') {
+                    replReady();
+                  }
+                });
+              }
+            },
+            (err) => {
+              console.error('Repl Service worker registration failed:', err);
+            }
+          );
+
+        window.addEventListener('message', receiveMessageFromMainApp);
+      } else {
+        console.error('Qwik REPL server missing client id');
+      }
+    </script>
+  </body>
+</html>

@@ -29,6 +29,7 @@ export const Repl = component$(async (props: ReplProps) => {
     enableClientOutput: props.enableClientOutput !== false,
     enableHtmlOutput: props.enableHtmlOutput !== false,
     enableSsrOutput: props.enableSsrOutput !== false,
+    enableConsole: true,
     selectedInputPath: '',
     selectedOutputPanel: 'app',
     lastOutputPanel: null,
@@ -44,6 +45,7 @@ export const Repl = component$(async (props: ReplProps) => {
     buildMode: props.buildMode || 'development',
     versions: [],
     build: 0,
+    logs: [],
   }));
 
   useWatch$((track) => {
@@ -78,14 +80,16 @@ export const Repl = component$(async (props: ReplProps) => {
     const v = await getReplVersion(store.version);
 
     if (v.version) {
+      let serverUrl = `/repl/repl-server`;
+
+      if (location.hostname === 'localhost') {
+        serverUrl += `.html`;
+      }
+      serverUrl += `#${store.clientId}`;
+
       store.versions = v.versions;
       store.version = v.version;
-
-      store.serverUrl = `/repl/repl-server`;
-      if (location.hostname === 'localhost') {
-        store.serverUrl += `.html`;
-      }
-      store.serverUrl += `#${store.clientId}`;
+      store.serverUrl = serverUrl;
 
       window.addEventListener('message', (ev) => receiveMessageFromReplServer(ev, store));
     }

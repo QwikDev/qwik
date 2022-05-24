@@ -13,6 +13,7 @@ export const ssrHtml = async (
   if (!ssrModule || typeof ssrModule.code !== 'string') {
     return;
   }
+  const start = performance.now();
 
   const mod: any = { exports: {} };
   const run = new Function('module', 'exports', 'require', ssrModule.code);
@@ -24,13 +25,71 @@ export const ssrHtml = async (
   }
 
   console.time(`SSR Html`);
+
+  const log = console.log;
+  const warn = console.warn;
+  const error = console.error;
+  const debug = console.debug;
+
+  console.log = (...args) => {
+    result.logs.push({
+      kind: 'console-log',
+      scope: 'ssr',
+      message: args.join(' '),
+      start: performance.now(),
+    });
+    log(...args);
+  };
+
+  console.warn = (...args) => {
+    result.logs.push({
+      kind: 'console-warn',
+      scope: 'ssr',
+      message: args.join(' '),
+      start: performance.now(),
+    });
+    warn(...args);
+  };
+
+  console.error = (...args) => {
+    result.logs.push({
+      kind: 'console-error',
+      scope: 'ssr',
+      message: args.join(' '),
+      start: performance.now(),
+    });
+    debug(...args);
+  };
+
+  console.error = (...args) => {
+    result.logs.push({
+      kind: 'console-debug',
+      scope: 'ssr',
+      message: args.join(' '),
+      start: performance.now(),
+    });
+    error(...args);
+  };
+
   const ssrResult = await server.render({
     base: `/repl/${options.clientId}/build/`,
     manifest: result.manifest,
   });
 
+  console.log = log;
+  console.warn = warn;
+  console.error = error;
+  console.debug = debug;
+
   result.html = ssrResult.html;
 
+  result.logs.push({
+    kind: 'pause',
+    scope: 'build',
+    start,
+    end: performance.now(),
+    message: '',
+  });
   if (options.buildMode !== 'production') {
     try {
       const html = self.prettier?.format(result.html, {

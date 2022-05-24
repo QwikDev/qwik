@@ -2,7 +2,7 @@ import type { ReplStore } from './types';
 
 export const ReplOptions = ({ store }: ReplOptionsProps) => {
   return (
-    <div class="output-detail detail-options">
+    <div class="output-detail detail-options" key="options">
       <StoreOption
         label="Entry Strategy"
         storeProp="entryStrategy"

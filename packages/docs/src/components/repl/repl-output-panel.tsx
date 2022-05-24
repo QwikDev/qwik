@@ -1,5 +1,5 @@
 import { CodeBlock } from '../code-block/code-block';
-import { ReplOutputModles } from './repl-output-modules';
+import { ReplOutputModules } from './repl-output-modules';
 import { ReplTabButton } from './repl-tab-button';
 import { ReplTabButtons } from './repl-tab-buttons';
 import type { ReplStore } from './types';
@@ -84,11 +84,11 @@ export const ReplOutputPanel = ({ store }: ReplOutputPanelProps) => {
         ) : null}
 
         {store.selectedOutputPanel === 'clientModules' ? (
-          <ReplOutputModles buildPath="/build/" outputs={store.clientModules} />
+          <ReplOutputModules buildPath="/build/" outputs={store.clientModules} />
         ) : null}
 
         {store.selectedOutputPanel === 'serverModules' ? (
-          <ReplOutputModles buildPath="/server/" outputs={store.ssrModules} />
+          <ReplOutputModules buildPath="/server/" outputs={store.ssrModules} />
         ) : null}
 
         {store.selectedOutputPanel === 'diagnostics' ? (

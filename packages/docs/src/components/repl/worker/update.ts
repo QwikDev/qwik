@@ -21,6 +21,7 @@ export const update = async (options: ReplInputOptions) => {
     manifest: undefined,
     ssrModules: [],
     diagnostics: [],
+    logs: [],
   };
 
   try {
@@ -54,6 +55,7 @@ const bundleClient = async (
   ctx: QwikReplContext,
   result: ReplResult
 ) => {
+  const start = performance.now();
   console.time(`Bundle client`);
 
   const qwikRollupClientOpts: QwikRollupPluginOptions = {
@@ -122,11 +124,19 @@ const bundleClient = async (
     ctx.clientModules = result.clientModules;
   }
 
+  result.logs.push({
+    kind: 'console-log',
+    scope: 'build',
+    start,
+    end: performance.now(),
+    message: 'Build client',
+  });
   console.timeEnd(`Bundle client`);
 };
 
 const bundleSSR = async (options: ReplInputOptions, ctx: QwikReplContext, result: ReplResult) => {
   console.time(`Bundle ssr`);
+  const start = performance.now();
 
   const qwikRollupSsrOpts: QwikRollupPluginOptions = {
     target: 'ssr',
@@ -187,6 +197,13 @@ const bundleSSR = async (options: ReplInputOptions, ctx: QwikReplContext, result
     result.ssrModules = generated.output.map(getOutput);
   }
 
+  result.logs.push({
+    kind: 'console-log',
+    scope: 'build',
+    start,
+    end: performance.now(),
+    message: 'Build SSR',
+  });
   console.timeEnd(`Bundle ssr`);
 };
 

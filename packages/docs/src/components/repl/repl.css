@@ -277,3 +277,60 @@
   border: 1px solid var(--repl-tab-bg-color);
   border-radius: 3px;
 }
+
+.log {
+  font-size: 14px;
+  border-bottom: 1px solid #d2d2d2;
+  display: flex;
+}
+
+.log > .platform {
+  width: 50px;
+  text-align: center;
+  padding: 5px;
+}
+
+.log > .platform.build {
+  background: #f3f4cb;
+}
+
+.log > .platform.ssr {
+  background: #e3e400;
+}
+
+.log > .platform.client {
+  background: #78fa83;
+}
+
+.log.console-warn {
+  background: #d9d900;
+  font-weight: 500;
+}
+.log.console-error {
+  background: #d9d900;
+  font-weight: 500;
+}
+
+.log > .content {
+  flex: 1;
+  padding: 5px;
+}
+
+.line.paused,
+.line.resumed {
+  text-align: center;
+  padding: 10px 0;
+  border-bottom: 2px solid;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.elapsed {
+  border-radius: 5px;
+  padding: 4px;
+  font-size: 12px;
+  background: #eeeeee;
+  display: inline;
+  height: max-content;
+  margin: 0 5px;
+}

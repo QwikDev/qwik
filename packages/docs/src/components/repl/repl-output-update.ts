@@ -5,6 +5,7 @@ export const updateReplOutput = async (store: ReplStore, result: ReplResult) => 
   store.clientModules = result.clientModules;
   store.ssrModules = result.ssrModules;
   store.diagnostics = result.diagnostics;
+  store.logs = result.logs;
 
   if (!result.clientModules.some((m) => m.path === store.selectedClientModule)) {
     if (result.clientModules.length > 0) {

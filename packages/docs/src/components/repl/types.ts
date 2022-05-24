@@ -25,6 +25,7 @@ export interface ReplStore {
   enableHtmlOutput: boolean;
   enableClientOutput: boolean;
   enableSsrOutput: boolean;
+  enableConsole: boolean;
   buildMode: 'development' | 'production';
   ssrBuild: boolean;
   entryStrategy: string;
@@ -33,6 +34,7 @@ export interface ReplStore {
   serverWindow: NoSerialize<MessageEventSource> | null;
   version: string | undefined;
   versions: string[];
+  logs: Log[];
   build: 0;
 }
 
@@ -54,6 +56,23 @@ export interface ReplUpdateMessage {
   options: ReplInputOptions;
 }
 
+export interface Log {
+  start: number;
+  end?: number;
+  kind:
+    | 'console-log'
+    | 'console-debug'
+    | 'console-warn'
+    | 'console-error'
+    | 'symbol'
+    | 'pause'
+    | 'resume'
+    | 'prefetch';
+  scope: 'ssr' | 'client' | 'build' | 'network';
+  message: string;
+  element?: Element;
+}
+
 export interface ReplResult {
   type: 'result';
   clientId: string;
@@ -63,8 +82,9 @@ export interface ReplResult {
   ssrModules: ReplModuleOutput[];
   manifest: QwikManifest | undefined;
   diagnostics: Diagnostic[];
+  logs: Log[];
 }
 
 export type OutputPanel = 'app' | 'html' | 'clientModules' | 'serverModules' | 'diagnostics';
 
-export type OutputDetail = 'options' | 'network';
+export type OutputDetail = 'options' | 'console';

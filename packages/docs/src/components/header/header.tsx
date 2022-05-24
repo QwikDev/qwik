@@ -25,9 +25,9 @@ export const Header = component$(
       <Host className="fixed top-0 z-40 w-full h-[56px]">
         <div class="header-inner">
           <div className="header-logo">
-            <a href="/" class="hover:opacity-70">
+            <a href="/">
               <span className="sr-only">Qwik Homepage</span>
-              <QwikLogo width={110} height={35} />
+              <QwikLogo width={110} height={50} />
             </a>
           </div>
           <button onClickQrl={toggleMenu} class="p-3 md:hidden fixed right-0" type="button">

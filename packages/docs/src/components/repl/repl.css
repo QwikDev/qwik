@@ -61,7 +61,7 @@
 
 .repl-tab-button:not(.active-tab):hover {
   border-top-color: #0084ff75;
-  background-color: rgb(223, 223, 223);
+  background-color: #ffffff75;
 }
 
 .repl-input-panel .repl-tab-button.active-tab {
@@ -85,7 +85,7 @@
 }
 
 .repl-tab-diagnostics:not(.active-tab):hover {
-  border-top-color: #ff0090;
+  border-top-color: #ff009075;
 }
 
 .repl-tab-button-select {

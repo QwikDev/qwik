@@ -56,7 +56,10 @@ export const SideBar = component$(
                       <li>
                         <a
                           href={item.href}
-                          class={{ 'is-active': new URL(page.url).pathname === item.href }}
+                          class={{
+                            'is-active':
+                              new URL(page.url, 'https://qwik.builder.io/').pathname === item.href,
+                          }}
                         >
                           {item.text}
                         </a>

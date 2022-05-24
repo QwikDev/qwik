@@ -130,7 +130,6 @@ export const receiveMessageFromReplServer = (ev: MessageEvent, store: ReplStore)
       // received a message from the server
       updateReplOutput(store, msg);
     } else if (type === 'event') {
-      console.log(msg);
       // received an event from the user's app
       store.events.push(msg.event);
     }

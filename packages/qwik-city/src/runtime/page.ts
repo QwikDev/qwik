@@ -64,7 +64,7 @@ const loadPage = async (href: string): Promise<PageHandler | null> => {
     // page modules are dynamically imported
     try {
       // ./pages/guide/getting-started.js
-      const pagePath = `./pages${modulePath}.js?v=${BUILD_ID}`;
+      const pagePath = `../pages${modulePath}/index.js?v=${BUILD_ID}`;
       pageModule = await import(/* @vite-ignore */ pagePath);
     } catch (e) {
       console.error(e);

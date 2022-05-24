@@ -11,7 +11,7 @@ export async function buildEslint(config: BuildConfig) {
 
   await build({
     entryPoints: [join(eslintDir, 'index.ts')],
-    outfile: join(eslintOutput, PACKAGE),
+    outfile: join(eslintOutput, 'index.js'),
     bundle: true,
     sourcemap: false,
     target: 'node10',

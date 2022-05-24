@@ -1,6 +1,6 @@
 header {
   color: white;
-  background: #0099ff;
+  background: var(--qwik-blue);
   box-shadow: 0px 2px 7px #0000003d;
 }
 

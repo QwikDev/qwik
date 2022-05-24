@@ -13,14 +13,14 @@
   /* medium */
 
   /* large */
-  @apply lg:pt-5 lg:ml-[19rem] lg:mr-[2rem] lg:px-0;
+  @apply lg:pt-5 lg:ml-[19rem] lg:mr-[4rem] lg:px-0;
 
   /* xlarge */
   @apply xl:pr-16 xl:mr-[16.5rem];
 }
 
 .docs article a {
-  color: #312bb2;
+  color: var(--qwik-dark-blue);
   text-decoration: underline;
 }
 
@@ -32,7 +32,6 @@
   @apply text-slate-900;
   @apply text-5xl font-bold;
   @apply mb-6;
-  @apply mt-6;
   @apply relative;
 }
 
@@ -46,7 +45,7 @@
   @apply mt-8;
   @apply mb-4;
   @apply relative;
-  scroll-margin-top: 70px;
+  scroll-margin-top: 80px;
 }
 
 .docs article h2 {

@@ -14,7 +14,7 @@
 .on-this-page a {
   position: relative;
   display: block;
-  color: #312bb2;
+  color: var(--qwik-dark-blue);
   border: 0 solid #ddd;
   border-left-width: 2px;
   padding: 4px 2px 4px 8px;
@@ -25,8 +25,8 @@
 }
 
 .on-this-page a:hover {
-  background-color: #efeeff;
-  border-color: #312bb2;
+  background-color: #0093ee17;
+  border-color: var(--qwik-dark-blue);
 }
 
 .on-this-page svg {

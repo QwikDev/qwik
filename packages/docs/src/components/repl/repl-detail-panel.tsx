@@ -9,25 +9,24 @@ export const ReplDetailPanel = ({ store }: ReplDetailPanelProps) => {
     <div class="repl-panel repl-detail-panel">
       <ReplTabButtons>
         <ReplTabButton
-          text="Options"
-          isActive={store.selectedOutputDetail === 'options'}
-          onClick$={() => {
-            store.selectedOutputDetail = 'options';
-          }}
-        />
-
-        <ReplTabButton
           text="Console"
           isActive={store.selectedOutputDetail === 'console'}
           onClick$={() => {
             store.selectedOutputDetail = 'console';
           }}
         />
+        <ReplTabButton
+          text="Options"
+          isActive={store.selectedOutputDetail === 'options'}
+          onClick$={() => {
+            store.selectedOutputDetail = 'options';
+          }}
+        />
       </ReplTabButtons>
 
       <div class="repl-tab">
-        {store.selectedOutputDetail === 'options' ? <ReplOptions store={store} /> : null}
         {store.selectedOutputDetail === 'console' ? <ReplConsole store={store} /> : null}
+        {store.selectedOutputDetail === 'options' ? <ReplOptions store={store} /> : null}
       </div>
     </div>
   );

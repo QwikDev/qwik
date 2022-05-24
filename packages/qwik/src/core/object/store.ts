@@ -29,6 +29,7 @@ import {
 } from './q-object';
 import { destroyWatch, isWatchCleanup, isWatchDescriptor, WatchFlags } from '../watch/watch.public';
 import type { QRL } from '../import/qrl.public';
+import { emitEvent } from '../util/event';
 
 export interface Store {
   doc: Document;
@@ -123,6 +124,7 @@ export function resumeContainer(containerEl: Element) {
   });
   containerEl.setAttribute(QContainerAttr, 'resumed');
   logDebug('Container resumed');
+  emitEvent(containerEl, 'qresume', undefined, true);
 }
 
 /**

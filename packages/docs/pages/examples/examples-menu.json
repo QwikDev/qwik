@@ -16,6 +16,12 @@
     "title": "Reactivity",
     "apps": [
       {
+        "id": "watch",
+        "title": "Simple useWatch()",
+        "description": "Learn how to react to changes in variables",
+        "icon": "👀"
+      },
+      {
         "id": "counter",
         "title": "Counter",
         "description": "A simple standard counter example.",

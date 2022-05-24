@@ -48,16 +48,14 @@ export const ReplOutputPanel = ({ store }: ReplOutputPanelProps) => {
           />
         ) : null}
 
-        {diagnosticsLen > 0 ? (
-          <ReplTabButton
-            text={`Diagnostics (${diagnosticsLen})`}
-            cssClass={{ 'repl-tab-diagnostics': true }}
-            isActive={store.selectedOutputPanel === 'diagnostics'}
-            onClick$={() => {
-              store.selectedOutputPanel = 'diagnostics';
-            }}
-          />
-        ) : null}
+        <ReplTabButton
+          text={`Diagnostics${diagnosticsLen > 0 ? ` (${diagnosticsLen})` : ``}`}
+          cssClass={{ 'repl-tab-diagnostics': true }}
+          isActive={store.selectedOutputPanel === 'diagnostics'}
+          onClick$={() => {
+            store.selectedOutputPanel = 'diagnostics';
+          }}
+        />
       </ReplTabButtons>
 
       <div

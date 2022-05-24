@@ -164,15 +164,11 @@ const checkDiagnostics = async (
       };
       return d;
     });
-
-    if (replStore.selectedOutputPanel !== 'diagnostics') {
-      replStore.lastOutputPanel = replStore.selectedOutputPanel;
-      replStore.selectedOutputPanel = 'diagnostics';
-    }
   } else if (replStore.monacoDiagnostics.length > 0) {
     replStore.monacoDiagnostics = [];
-    if (replStore.diagnostics.length === 0 && replStore.selectedOutputPanel === 'diagnostics') {
-      replStore.selectedOutputPanel = replStore.lastOutputPanel || 'app';
+
+    if (replStore.selectedOutputPanel === 'diagnostics' && replStore.diagnostics.length === 0) {
+      replStore.selectedOutputPanel = 'app';
     }
   }
 };

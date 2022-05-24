@@ -17,7 +17,6 @@ export interface ReplStore {
   monacoDiagnostics: Diagnostic[];
   selectedInputPath: string;
   selectedOutputPanel: OutputPanel;
-  lastOutputPanel: OutputPanel | null;
   selectedOutputDetail: OutputDetail;
   selectedClientModule: string;
   selectedSsrModule: string;

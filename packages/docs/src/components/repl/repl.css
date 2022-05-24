@@ -80,11 +80,6 @@
   border-top-color: #4ce15275;
 }
 
-.repl-tab-diagnostics {
-  border-top-color: #ff00905c;
-  background-color: rgb(223, 223, 223);
-}
-
 .repl-tab-diagnostics.active-tab {
   border-top-color: #ff0090;
 }

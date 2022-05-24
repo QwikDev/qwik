@@ -1,9 +1,16 @@
 import type { ReplResult, ReplStore } from './types';
 
 export const updateReplOutput = async (store: ReplStore, result: ReplResult) => {
-  store.html = result.html;
-  store.clientModules = result.clientModules;
-  store.ssrModules = result.ssrModules;
+  if (result.diagnostics.length === 0) {
+    store.html = result.html;
+    store.clientModules = result.clientModules;
+    store.ssrModules = result.ssrModules;
+
+    if (store.selectedOutputPanel === 'diagnostics' && store.monacoDiagnostics.length === 0) {
+      store.selectedOutputPanel = 'app';
+    }
+  }
+
   store.diagnostics = result.diagnostics;
   store.events = result.events;
 
@@ -21,19 +28,6 @@ export const updateReplOutput = async (store: ReplStore, result: ReplResult) => 
     } else {
       store.selectedSsrModule = '';
     }
-  }
-
-  if (result.diagnostics.length > 0) {
-    if (store.selectedOutputPanel !== 'diagnostics') {
-      store.lastOutputPanel = store.selectedOutputPanel;
-      store.selectedOutputPanel = 'diagnostics';
-    }
-  } else if (
-    result.diagnostics.length === 0 &&
-    store.monacoDiagnostics.length === 0 &&
-    store.selectedOutputPanel === 'diagnostics'
-  ) {
-    store.selectedOutputPanel = store.lastOutputPanel || 'app';
   }
 };
 

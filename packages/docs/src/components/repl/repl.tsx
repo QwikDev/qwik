@@ -32,7 +32,6 @@ export const Repl = component$(async (props: ReplProps) => {
     enableConsole: true,
     selectedInputPath: '',
     selectedOutputPanel: 'app',
-    lastOutputPanel: null,
     selectedOutputDetail: 'options',
     selectedClientModule: '',
     selectedSsrModule: '',

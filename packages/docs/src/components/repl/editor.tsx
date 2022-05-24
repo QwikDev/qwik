@@ -9,7 +9,7 @@ import {
   useWatch$,
 } from '@builder.io/qwik';
 import type { TransformModuleInput } from '@builder.io/qwik/optimizer';
-import { addQwikLib, ICodeEditorViewState, initMonacoEditor, updateMonacoEditor } from './monaco';
+import { addQwikLibs, ICodeEditorViewState, initMonacoEditor, updateMonacoEditor } from './monaco';
 import type { IStandaloneCodeEditor } from './monaco';
 import type { ReplStore } from './types';
 
@@ -39,7 +39,7 @@ export const Editor = component$((props: EditorProps) => {
     track(store, 'editor');
 
     if (props.version && store.editor) {
-      await addQwikLib(props.version);
+      await addQwikLibs(props.version);
     }
   });
 

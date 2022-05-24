@@ -37,6 +37,8 @@ export const initMonacoEditor = async (
     allowNonTsExtensions: true,
   });
 
+  ts.javascriptDefaults.workerOptions;
+
   const editor = monaco.editor.create(containerElm, {
     ...defaultEditorOpts,
     ariaLabel: props.ariaLabel,
@@ -57,22 +59,12 @@ export const initMonacoEditor = async (
         clearTimeout(tmrId);
         tmrId = setTimeout(() => {
           checkDiagnostics(monaco, editor, replStore);
-        }, 80);
+        }, 50);
       })
     );
   }
 
   editorStore.editor = noSerialize(editor);
-};
-
-export const addQwikLib = async (version: string) => {
-  const monaco = await getMonaco();
-  const typescriptDefaults = monaco.languages.typescript.typescriptDefaults;
-  const deps = await loadDeps(version);
-
-  deps.forEach((dep) => {
-    typescriptDefaults.addExtraLib(dep.code!, `file://${dep.fsPath}`);
-  });
 };
 
 export const updateMonacoEditor = async (props: EditorProps, editorStore: EditorStore) => {
@@ -183,6 +175,74 @@ const getTsDiagnosticMessage = (m: string | DiagnosticMessageChain) => {
   return '';
 };
 
+export const addQwikLibs = async (version: string) => {
+  const monaco = await getMonaco();
+  const typescriptDefaults = monaco.languages.typescript.typescriptDefaults;
+
+  const deps = await loadDeps(version);
+  deps.forEach((dep) => {
+    if (dep && typeof dep.code === 'string' && typeof dep.path === 'string') {
+      typescriptDefaults.addExtraLib(dep.code, `file://${dep.path}`);
+    }
+  });
+
+  typescriptDefaults.addExtraLib(CLIENT_LIB);
+};
+
+const loadDeps = async (qwikVersion: string) => {
+  const deps: NodeModuleDep[] = [
+    {
+      pkgName: '@builder.io/qwik',
+      pkgVersion: qwikVersion,
+      pkgPath: '/core.d.ts',
+      path: '/node_modules/@types/builder.io__qwik/index.d.ts',
+    },
+    {
+      pkgName: '@builder.io/qwik',
+      pkgVersion: qwikVersion,
+      pkgPath: '/jsx-runtime.d.ts',
+      path: '/node_modules/@types/builder.io__qwik/jsx-runtime.d.ts',
+    },
+    {
+      pkgName: '@builder.io/qwik',
+      pkgVersion: qwikVersion,
+      pkgPath: '/server.d.ts',
+      path: '/node_modules/@types/builder.io__qwik/server.d.ts',
+    },
+  ];
+
+  await Promise.all(
+    deps.map(async (dep) => {
+      let storedDep = monacoCtx.deps.find(
+        (d) =>
+          d.pkgName === dep.pkgName && d.pkgPath === dep.pkgPath && d.pkgVersion === dep.pkgVersion
+      );
+      if (!storedDep) {
+        storedDep = {
+          pkgName: dep.pkgName,
+          pkgVersion: dep.pkgVersion,
+          pkgPath: dep.pkgPath,
+          path: dep.path,
+        };
+        monacoCtx.deps.push(storedDep);
+
+        storedDep.promise = new Promise<void>((resolve, reject) => {
+          const url = getCdnUrl(dep.pkgName, dep.pkgVersion, dep.pkgPath);
+          fetch(url).then((rsp) => {
+            rsp.text().then((code) => {
+              storedDep!.code = code;
+              resolve();
+            }, reject);
+          }, reject);
+        });
+      }
+      await storedDep.promise;
+    })
+  );
+
+  return monacoCtx.deps;
+};
+
 const getMonaco = async (): Promise<Monaco> => {
   if (!monacoCtx.loader) {
     // lazy-load the monaco AMD script ol' school
@@ -203,60 +263,6 @@ const getMonaco = async (): Promise<Monaco> => {
     });
   }
   return monacoCtx.loader;
-};
-
-const loadDeps = async (qwikVersion: string) => {
-  const deps: NodeModuleDep[] = [
-    {
-      pkgName: '@builder.io/qwik',
-      pkgVersion: qwikVersion,
-      pkgPath: '/core.d.ts',
-      fsPath: '/node_modules/@types/builder.io__qwik/index.d.ts',
-    },
-    {
-      pkgName: '@builder.io/qwik',
-      pkgVersion: qwikVersion,
-      pkgPath: '/jsx-runtime.d.ts',
-      fsPath: '/node_modules/@types/builder.io__qwik/jsx-runtime.d.ts',
-    },
-    {
-      pkgName: '@builder.io/qwik',
-      pkgVersion: qwikVersion,
-      pkgPath: '/server.d.ts',
-      fsPath: '/node_modules/@types/builder.io__qwik/server.d.ts',
-    },
-  ];
-
-  await Promise.all(
-    deps.map(async (dep) => {
-      let storedDep = monacoCtx.deps.find(
-        (d) =>
-          d.pkgName === dep.pkgName && d.pkgPath === dep.pkgPath && d.pkgVersion === dep.pkgVersion
-      );
-      if (!storedDep) {
-        storedDep = {
-          pkgName: dep.pkgName,
-          pkgVersion: dep.pkgVersion,
-          pkgPath: dep.pkgPath,
-          fsPath: dep.fsPath,
-        };
-        monacoCtx.deps.push(storedDep);
-
-        storedDep.promise = new Promise<void>((resolve, reject) => {
-          const url = getCdnUrl(dep.pkgName, dep.pkgVersion, dep.pkgPath);
-          fetch(url).then((rsp) => {
-            rsp.text().then((code) => {
-              storedDep!.code = code;
-              resolve();
-            }, reject);
-          }, reject);
-        });
-      }
-      await storedDep.promise;
-    })
-  );
-
-  return monacoCtx.deps;
 };
 
 const getUri = (monaco: Monaco, filePath: string) => {
@@ -288,6 +294,13 @@ const MONACO_VERSION = '0.33.0';
 const MONACO_VS_URL = getCdnUrl('monaco-editor', MONACO_VERSION, '/min/vs');
 const MONACO_LOADER_URL = `${MONACO_VS_URL}/loader.js`;
 
+const CLIENT_LIB = `
+declare module '*.css' {
+  const css: string
+  export default css
+}
+`;
+
 export type Monaco = typeof MonacoTypes;
 export type IStandaloneCodeEditor = MonacoTypes.editor.IStandaloneCodeEditor;
 export type ICodeEditorViewState = MonacoTypes.editor.ICodeEditorViewState;
@@ -308,7 +321,7 @@ interface NodeModuleDep {
   pkgName: string;
   pkgPath: string;
   pkgVersion: string;
-  fsPath: string;
+  path: string;
   code?: string;
   promise?: Promise<void>;
 }

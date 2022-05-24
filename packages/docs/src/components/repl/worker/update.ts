@@ -1,17 +1,16 @@
 /* eslint-disable no-console */
 import type { InputOptions, OutputAsset, OutputChunk } from 'rollup';
 import type { Diagnostic, QwikRollupPluginOptions } from '@builder.io/qwik/optimizer';
-import type { ReplInputOptions, ReplModuleOutput, ReplResult } from '../types';
+import type { ReplInputOptions, ReplModuleInput, ReplModuleOutput, ReplResult } from '../types';
 import { getCtx, QwikReplContext } from './context';
 import { loadDependencies } from './dependencies';
 import { ssrHtml } from './ssr-html';
 import type { QwikWorkerGlobal } from './repl-service-worker';
-import { replResolver } from './repl-resolver';
-import { replMinify } from './repl-minify';
+import { replCss, replMinify, replResolver } from './repl-plugins';
 import { sendMessageToReplServer } from './repl-messenger';
 
 export const update = async (clientId: string, options: ReplInputOptions) => {
-  console.time('Update');
+  console.time(`Update (${options.buildId})`);
 
   const result: ReplResult = {
     type: 'result',
@@ -48,7 +47,7 @@ export const update = async (clientId: string, options: ReplInputOptions) => {
 
   await sendMessageToReplServer(result);
 
-  console.timeEnd('Update');
+  console.timeEnd(`Update (${options.buildId})`);
 };
 
 const bundleClient = async (
@@ -57,13 +56,13 @@ const bundleClient = async (
   result: ReplResult
 ) => {
   const start = performance.now();
-  console.time(`Bundle client`);
+  console.time(`Bundle client (${options.buildId})`);
 
   const qwikRollupClientOpts: QwikRollupPluginOptions = {
     target: 'client',
     buildMode: options.buildMode,
     debug: options.debug,
-    srcInputs: options.srcInputs,
+    srcInputs: getInputs(options),
     entryStrategy: options.entryStrategy,
     manifestOutput: (m) => {
       result.manifest = m;
@@ -80,6 +79,7 @@ const bundleClient = async (
     input: entry.path,
     cache: ctx.rollupCache,
     plugins: [
+      replCss(options),
       self.qwikOptimizer?.qwikRollup(qwikRollupClientOpts),
       replResolver(options, 'client'),
       replMinify(options),
@@ -130,20 +130,20 @@ const bundleClient = async (
     scope: 'build',
     start,
     end: performance.now(),
-    message: 'Build client',
+    message: 'Build Client',
   });
-  console.timeEnd(`Bundle client`);
+  console.timeEnd(`Bundle client (${options.buildId})`);
 };
 
 const bundleSSR = async (options: ReplInputOptions, ctx: QwikReplContext, result: ReplResult) => {
-  console.time(`Bundle ssr`);
+  console.time(`Bundle SSR (${options.buildId})`);
   const start = performance.now();
 
   const qwikRollupSsrOpts: QwikRollupPluginOptions = {
     target: 'ssr',
     buildMode: options.buildMode,
     debug: options.debug,
-    srcInputs: options.srcInputs,
+    srcInputs: getInputs(options),
     entryStrategy: options.entryStrategy,
     manifestInput: result.manifest,
   };
@@ -158,7 +158,11 @@ const bundleSSR = async (options: ReplInputOptions, ctx: QwikReplContext, result
   const rollupInputOpts: InputOptions = {
     input: entry.path,
     cache: ctx.rollupCache,
-    plugins: [self.qwikOptimizer?.qwikRollup(qwikRollupSsrOpts), replResolver(options, 'ssr')],
+    plugins: [
+      replCss(options),
+      self.qwikOptimizer?.qwikRollup(qwikRollupSsrOpts),
+      replResolver(options, 'ssr'),
+    ],
     onwarn(warning) {
       const diagnostic: Diagnostic = {
         scope: 'rollup-ssr',
@@ -205,8 +209,16 @@ const bundleSSR = async (options: ReplInputOptions, ctx: QwikReplContext, result
     end: performance.now(),
     message: 'Build SSR',
   });
-  console.timeEnd(`Bundle ssr`);
+  console.timeEnd(`Bundle SSR (${options.buildId})`);
 };
+
+const getInputs = (options: ReplInputOptions) => {
+  return options.srcInputs.filter((i) => {
+    return MODULE_EXTS.some((ext) => i.path.endsWith(ext));
+  });
+};
+
+const MODULE_EXTS = ['.tsx', '.ts', '.js', '.jsx', '.mjs'];
 
 const getOutput = (o: OutputChunk | OutputAsset) => {
   const f: ReplModuleOutput = {

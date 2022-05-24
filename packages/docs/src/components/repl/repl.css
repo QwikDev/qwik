@@ -135,10 +135,10 @@
 
 .output-app iframe {
   position: absolute;
-  top: 10px;
+  top: 0;
   left: 10px;
-  width: calc(100% - 20px);
-  height: calc(100% - 20px);
+  width: calc(100% - 10px);
+  height: 100%;
 }
 
 .editor-container {

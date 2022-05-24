@@ -111,7 +111,7 @@ export const ssrHtml = async (
 };
 
 const noopRequire = (path: string) => {
-  console.error(`require() not available from REPL SSR, path: ${path}`);
+  console.debug(`require() not available from REPL SSR, path: ${path}`);
 };
 
 interface ServerModule {

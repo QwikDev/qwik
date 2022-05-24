@@ -47,7 +47,7 @@ export const Repl = component$(async (props: ReplProps) => {
     events: [],
   }));
 
-  useWatch$((track) => {
+  useWatch$(async (track) => {
     track(props, 'inputs');
 
     if (!props.inputs.some((i) => i.path === props.selectedInputPath)) {

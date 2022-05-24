@@ -43,6 +43,7 @@
   border: 1px solid #cccccc;
   border-radius: 5px;
   width: 100%;
+  font-size: 12px;
 }
 
 .example-button.selected {
@@ -63,7 +64,7 @@
   grid-template-areas:
     'repl-input-panel'
     'repl-output-panel';
-  height: calc(100vh - var(--header-height) - calc(var(--repl-tab-height) - 14px));
+  height: calc(100vh - var(--header-height));
 }
 
 .examples .repl .repl-detail-panel {

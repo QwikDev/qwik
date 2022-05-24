@@ -2,7 +2,6 @@ import type { Diagnostic, QwikRollupPluginOptions, QwikManifest } from '@builder
 import type { NoSerialize } from '@builder.io/qwik';
 
 export interface ReplInputOptions extends Omit<QwikRollupPluginOptions, 'srcDir' | 'minify'> {
-  clientId: string;
   buildId: string;
   srcInputs: ReplModuleInput[];
   version: string;
@@ -51,15 +50,25 @@ export interface ReplModuleOutput {
   size: string;
 }
 
-export interface ReplUpdateMessage {
+export interface ReplMessageBase {
+  type: string;
+  clientId: string;
+}
+
+export type ReplMessage = ReplUpdateMessage | ReplEventMessage | ReplReadyMessage | ReplResult;
+
+export interface ReplUpdateMessage extends ReplMessageBase {
   type: 'update';
   options: ReplInputOptions;
 }
 
-export interface ReplEventMessage {
+export interface ReplEventMessage extends ReplMessageBase {
   type: 'event';
-  clientId: string;
-  data: ReplEvent;
+  event: ReplEvent;
+}
+
+export interface ReplReadyMessage extends ReplMessageBase {
+  type: 'replready';
 }
 
 export interface ReplEvent {
@@ -73,15 +82,15 @@ export interface ReplEvent {
     | 'symbol'
     | 'pause'
     | 'resume'
+    | 'client-module'
     | 'prefetch';
   scope: 'ssr' | 'client' | 'build' | 'network';
   message: string;
   element?: Element;
 }
 
-export interface ReplResult {
+export interface ReplResult extends ReplMessageBase {
   type: 'result';
-  clientId: string;
   buildId: string;
   html: string;
   clientModules: ReplModuleOutput[];

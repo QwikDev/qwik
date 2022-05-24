@@ -1,5 +1,7 @@
 /* eslint-disable no-console */
+import type { ReplEventMessage } from '../types';
 import { getCtx } from './context';
+import { sendMessageToReplServer } from './repl-messenger';
 
 export const requestHandler = (ev: FetchEvent) => {
   const reqUrl = new URL(ev.request.url);
@@ -37,6 +39,18 @@ export const requestHandler = (ev: FetchEvent) => {
       });
 
       if (clientModule) {
+        const replEvent: ReplEventMessage = {
+          type: 'event',
+          clientId,
+          event: {
+            kind: 'client-module',
+            scope: 'network',
+            message: reqUrl.pathname + reqUrl.search,
+            start: performance.now(),
+          },
+        };
+        sendMessageToReplServer(replEvent);
+
         return ev.respondWith(
           new Response(clientModule.code, {
             headers: {

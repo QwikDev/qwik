@@ -1,13 +1,7 @@
-import type { ReplUpdateMessage } from '../types';
+import { receiveMessageFromMain } from './repl-messenger';
 import { requestHandler } from './request-handler';
-import { update } from './update';
 
-self.onmessage = (ev: MessageEvent) => {
-  const msg: ReplUpdateMessage = JSON.parse(ev.data);
-  if (msg && msg.type === 'update' && msg.options) {
-    update(msg.options);
-  }
-};
+self.onmessage = receiveMessageFromMain;
 
 self.onfetch = requestHandler;
 

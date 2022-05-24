@@ -72,7 +72,7 @@ export const ssrHtml = async (
   };
 
   const ssrResult = await server.render({
-    base: `/repl/${options.clientId}/build/`,
+    base: `/repl/${result.clientId}/build/`,
     manifest: result.manifest,
   });
 

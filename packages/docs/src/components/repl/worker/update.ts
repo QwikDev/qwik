@@ -8,13 +8,14 @@ import { ssrHtml } from './ssr-html';
 import type { QwikWorkerGlobal } from './repl-service-worker';
 import { replResolver } from './repl-resolver';
 import { replMinify } from './repl-minify';
+import { sendMessageToReplServer } from './repl-messenger';
 
-export const update = async (options: ReplInputOptions) => {
+export const update = async (clientId: string, options: ReplInputOptions) => {
   console.time('Update');
 
   const result: ReplResult = {
     type: 'result',
-    clientId: options.clientId,
+    clientId,
     buildId: options.buildId,
     html: '',
     clientModules: [],
@@ -25,7 +26,7 @@ export const update = async (options: ReplInputOptions) => {
   };
 
   try {
-    const ctx = getCtx(options.clientId, true)!;
+    const ctx = getCtx(clientId, true)!;
 
     await loadDependencies(options);
 
@@ -206,29 +207,6 @@ const bundleSSR = async (options: ReplInputOptions, ctx: QwikReplContext, result
   });
   console.timeEnd(`Bundle ssr`);
 };
-
-const sendMessageToReplServer = async (result: ReplResult) => {
-  const clients = await (self as any).clients.matchAll();
-  clients.forEach((client: WindowClient) => {
-    if (client.url) {
-      const url = new URL(client.url);
-      const clientId = url.hash.split('#')[1];
-      if (clientId && clientId === result.clientId) {
-        client.postMessage(result);
-      }
-    }
-  });
-};
-
-interface WindowClient {
-  focused: boolean;
-  frameType: 'nested';
-  id: string;
-  type: 'window';
-  url: string;
-  visibilityState: string;
-  postMessage: (result: ReplResult) => void;
-}
 
 const getOutput = (o: OutputChunk | OutputAsset) => {
   const f: ReplModuleOutput = {

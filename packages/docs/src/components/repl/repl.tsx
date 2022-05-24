@@ -11,7 +11,7 @@ import {
 import { ReplInputPanel } from './repl-input-panel';
 import { ReplOutputPanel } from './repl-output-panel';
 import styles from './repl.css?inline';
-import type { ReplStore, ReplModuleInput, ReplUpdateMessage } from './types';
+import type { ReplStore, ReplModuleInput, ReplUpdateMessage, ReplMessage } from './types';
 import { ReplDetailPanel } from './repl-detail-panel';
 import { getReplVersion } from './repl-version';
 import { updateReplOutput } from './repl-output-update';
@@ -120,19 +120,19 @@ export const Repl = component$(async (props: ReplProps) => {
 });
 
 export const receiveMessageFromReplServer = (ev: MessageEvent, store: ReplStore) => {
-  const data = ev.data;
-  const type = data?.type;
-  const clientId = data?.clientId;
+  const msg: ReplMessage = ev.data;
+  const type = msg?.type;
+  const clientId = msg?.clientId;
   if (clientId === store.clientId) {
     if (type === 'replready') {
       // keep a reference to the repl server window
       store.serverWindow = noSerialize(ev.source as any);
     } else if (type === 'result') {
       // received a message from the server
-      updateReplOutput(store, data);
+      updateReplOutput(store, msg);
     } else if (type === 'event') {
       // received an event from the user's app
-      store.events.push(data.data);
+      store.events.push(msg.event);
     }
   }
 };
@@ -141,8 +141,8 @@ export const sendUserUpdateToReplServer = (store: ReplStore, inputs: ReplModuleI
   if (store.version && store.serverWindow) {
     const msg: ReplUpdateMessage = {
       type: 'update',
+      clientId: store.clientId,
       options: {
-        clientId: store.clientId,
         buildId: String(store.build),
         debug: store.debug,
         srcInputs: inputs,

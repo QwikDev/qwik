@@ -34,7 +34,7 @@ export interface ReplStore {
   serverWindow: NoSerialize<MessageEventSource> | null;
   version: string | undefined;
   versions: string[];
-  logs: Log[];
+  events: ReplEvent[];
   build: 0;
 }
 
@@ -56,7 +56,13 @@ export interface ReplUpdateMessage {
   options: ReplInputOptions;
 }
 
-export interface Log {
+export interface ReplEventMessage {
+  type: 'event';
+  clientId: string;
+  data: ReplEvent;
+}
+
+export interface ReplEvent {
   start: number;
   end?: number;
   kind:
@@ -82,7 +88,7 @@ export interface ReplResult {
   ssrModules: ReplModuleOutput[];
   manifest: QwikManifest | undefined;
   diagnostics: Diagnostic[];
-  logs: Log[];
+  events: ReplEvent[];
 }
 
 export type OutputPanel = 'app' | 'html' | 'clientModules' | 'serverModules' | 'diagnostics';

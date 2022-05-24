@@ -81,8 +81,19 @@
         }
       };
 
+      const receiveMessageFromUserApp = (ev) => {
+        if (ev.data) {
+          const msg = JSON.parse(ev.data);
+          if (msg?.type === 'log') {
+            sendMessageToMain(msg);
+          }
+        }
+      };
+
       const replReady = () => {
         console.debug(`Qwik REPL server "${clientId}" ready`);
+        navigator.serviceWorker.addEventListener('message', receiveMessageFromSw);
+        window.addEventListener('message', receiveMessageFromUserApp);
         sendMessageToMain({ type: 'replready', clientId: clientId });
       };
 
@@ -95,12 +106,10 @@
             (reg) => {
               swRegistration = reg;
               if (swRegistration.active) {
-                navigator.serviceWorker.addEventListener('message', receiveMessageFromSw);
                 replReady();
               } else if (swRegistration.installing) {
                 swRegistration.installing.addEventListener('statechange', (ev) => {
                   if (ev.target.state == 'activated') {
-                    navigator.serviceWorker.addEventListener('message', receiveMessageFromSw);
                     replReady();
                   }
                 });

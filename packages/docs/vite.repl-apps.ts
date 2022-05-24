@@ -139,7 +139,7 @@ export function examplesData(pagesDir: string): Plugin {
         const data = loadExamplesData(this);
         return `const exampleSections = ${JSON.stringify(
           data
-        )};console.log('fu', exampleSections);export default exampleSections;`;
+        )};export default exampleSections;`;
       }
       return null;
     },

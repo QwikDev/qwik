@@ -1,5 +1,5 @@
+/* eslint-disable no-console */
 import { getCtx } from './context';
-import type { QwikWorkerGlobal } from './repl-service-worker';
 
 export const requestHandler = (ev: FetchEvent) => {
   const reqUrl = new URL(ev.request.url);
@@ -16,7 +16,7 @@ export const requestHandler = (ev: FetchEvent) => {
   if (ctx) {
     if (pathname === `/repl/${clientId}/`) {
       // ssr'd html response
-      const html = ctx.html || '';
+      const html = injectDevHtml(clientId, ctx.html);
       return ev.respondWith(
         new Response(html, {
           headers: {
@@ -62,4 +62,81 @@ export const requestHandler = (ev: FetchEvent) => {
   );
 };
 
-declare const self: QwikWorkerGlobal;
+const injectDevHtml = (clientId: string, html?: string) => {
+  const s = `
+  (() => {
+  const sendToServerWindow = (data) => {
+    parent.postMessage(JSON.stringify({
+      type: 'event',
+      clientId: '${clientId}',
+      data
+    }));
+  };
+
+  const log = console.log;
+  const warn = console.warn;
+  const error = console.error;
+  const debug = console.debug;
+
+  console.log = (...args) => {
+    sendToServerWindow({
+      kind: 'console-log',
+      scope: 'client',
+      message: args.join(' '),
+      start: performance.now(),
+    });
+    log(...args);
+  };
+  
+  console.warn = (...args) => {
+    sendToServerWindow({
+      kind: 'console-warn',
+      scope: 'client',
+      message: args.join(' '),
+      start: performance.now(),
+    });
+    warn(...args);
+  };
+
+  console.error = (...args) => {
+    sendToServerWindow({
+      kind: 'console-error',
+      scope: 'client',
+      message: args.join(' '),
+      start: performance.now(),
+    });
+    error(...args);
+  };
+
+  console.debug = (...args) => {
+    sendToServerWindow({
+      kind: 'console-debug',
+      scope: 'client',
+      message: args.join(' '),
+      start: performance.now(),
+    });
+    debug(...args);
+  };
+
+  window.addEventListener('error', (ev) => {
+    sendToServerWindow({
+      kind: 'error',
+      scope: 'client',
+      message: ev.message,
+      start: performance.now(),
+    });
+  });
+
+  document.addEventListener('qsymbol', (ev) => {
+    const symbolName = ev.detail.name;
+    sendToServerWindow({
+      kind: 'symbol',
+      scope: 'client',
+      message: symbolName,
+      start: ev.timeStamp,
+    });
+  });
+  })();`;
+
+  return `<script>${s}</script>${html || ''}`;
+};

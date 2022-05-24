@@ -21,7 +21,7 @@ export const update = async (options: ReplInputOptions) => {
     manifest: undefined,
     ssrModules: [],
     diagnostics: [],
-    logs: [],
+    events: [],
   };
 
   try {
@@ -124,7 +124,7 @@ const bundleClient = async (
     ctx.clientModules = result.clientModules;
   }
 
-  result.logs.push({
+  result.events.push({
     kind: 'console-log',
     scope: 'build',
     start,
@@ -197,7 +197,7 @@ const bundleSSR = async (options: ReplInputOptions, ctx: QwikReplContext, result
     result.ssrModules = generated.output.map(getOutput);
   }
 
-  result.logs.push({
+  result.events.push({
     kind: 'console-log',
     scope: 'build',
     start,

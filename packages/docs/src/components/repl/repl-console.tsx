@@ -1,5 +1,5 @@
 import { component$, Host } from '@builder.io/qwik';
-import type { Log, ReplStore } from './types';
+import type { ReplEvent, ReplStore } from './types';
 
 export interface ReplConsoleProps {
   store: ReplStore;
@@ -7,14 +7,14 @@ export interface ReplConsoleProps {
 export const ReplConsole = component$(({ store }: ReplConsoleProps) => {
   return (
     <Host class="detail-logs">
-      {store.logs.map((log) => (
-        <ReplLog log={log} />
+      {store.events.map((ev) => (
+        <ReplLog log={ev} />
       ))}
     </Host>
   );
 });
 
-export function ReplLog({ log }: { log: Log }) {
+export function ReplLog({ log }: { log: ReplEvent }) {
   let elapsed = '';
   if (log.end) {
     elapsed = renderElapsed(log.end - log.start);

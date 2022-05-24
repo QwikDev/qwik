@@ -45,7 +45,7 @@ export const Repl = component$(async (props: ReplProps) => {
     buildMode: props.buildMode || 'development',
     versions: [],
     build: 0,
-    logs: [],
+    events: [],
   }));
 
   useWatch$((track) => {
@@ -120,15 +120,19 @@ export const Repl = component$(async (props: ReplProps) => {
 });
 
 export const receiveMessageFromReplServer = (ev: MessageEvent, store: ReplStore) => {
-  const type = ev.data?.type;
-  const clientId = ev.data?.clientId;
+  const data = ev.data;
+  const type = data?.type;
+  const clientId = data?.clientId;
   if (clientId === store.clientId) {
     if (type === 'replready') {
       // keep a reference to the repl server window
       store.serverWindow = noSerialize(ev.source as any);
     } else if (type === 'result') {
       // received a message from the server
-      updateReplOutput(store, ev.data);
+      updateReplOutput(store, data);
+    } else if (type === 'event') {
+      // received an event from the user's app
+      store.events.push(data.data);
     }
   }
 };

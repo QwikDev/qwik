@@ -32,7 +32,7 @@ export const ssrHtml = async (
   const debug = console.debug;
 
   console.log = (...args) => {
-    result.logs.push({
+    result.events.push({
       kind: 'console-log',
       scope: 'ssr',
       message: args.join(' '),
@@ -42,7 +42,7 @@ export const ssrHtml = async (
   };
 
   console.warn = (...args) => {
-    result.logs.push({
+    result.events.push({
       kind: 'console-warn',
       scope: 'ssr',
       message: args.join(' '),
@@ -52,23 +52,23 @@ export const ssrHtml = async (
   };
 
   console.error = (...args) => {
-    result.logs.push({
+    result.events.push({
       kind: 'console-error',
       scope: 'ssr',
       message: args.join(' '),
       start: performance.now(),
     });
-    debug(...args);
+    error(...args);
   };
 
-  console.error = (...args) => {
-    result.logs.push({
+  console.debug = (...args) => {
+    result.events.push({
       kind: 'console-debug',
       scope: 'ssr',
       message: args.join(' '),
       start: performance.now(),
     });
-    error(...args);
+    debug(...args);
   };
 
   const ssrResult = await server.render({
@@ -83,13 +83,14 @@ export const ssrHtml = async (
 
   result.html = ssrResult.html;
 
-  result.logs.push({
+  result.events.push({
     kind: 'pause',
     scope: 'build',
     start,
     end: performance.now(),
     message: '',
   });
+
   if (options.buildMode !== 'production') {
     try {
       const html = self.prettier?.format(result.html, {

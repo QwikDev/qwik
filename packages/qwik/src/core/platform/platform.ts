@@ -48,7 +48,7 @@ function findModule(module: any) {
 }
 
 function isModule(module: any) {
-  return typeof module === 'object' && module && module[Symbol.toStringTag] === 'Module'
+  return typeof module === 'object' && module && module[Symbol.toStringTag] === 'Module';
 }
 
 /**

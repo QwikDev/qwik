@@ -175,7 +175,7 @@ export function normalizeRollupOutputOptions(
 ) {
   const outputOpts: OutputOptions = {
     minifyInternalExports: false,
-    ...rollupOutputOpts
+    ...rollupOutputOpts,
   };
 
   if (opts.target === 'ssr') {

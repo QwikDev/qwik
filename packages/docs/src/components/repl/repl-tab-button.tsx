@@ -2,7 +2,10 @@ import { CloseIcon } from '../svgs/close-icon';
 
 export const ReplTabButton = (props: ReplTabButtonProps) => {
   return (
-    <div class={{ 'active-tab': props.isActive, 'repl-tab-button': true, ...props.cssClass }}>
+    <div
+      key={props.text}
+      class={{ 'active-tab': props.isActive, 'repl-tab-button': true, ...props.cssClass }}
+    >
       <button class="repl-tab-button-select" onClickQrl={props.onClickQrl} type="button">
         {props.text}
       </button>

@@ -25,7 +25,7 @@ export const TutorialContentHeader = ({ current }: TutorialContentHeaderProps) =
       >
         {tutorialSections.map((s) => (
           <optgroup label={s.title}>
-            {s.tutorials.map((t) => (
+            {s.apps.map((t) => (
               <option selected={t.id === current.id} value={t.id}>
                 {t.title}
               </option>

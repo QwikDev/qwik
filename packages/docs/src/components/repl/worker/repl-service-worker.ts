@@ -1,12 +1,7 @@
-/* eslint-disable no-console */
+import { receiveMessageFromMain } from './repl-messenger';
 import { requestHandler } from './request-handler';
-import { update } from './update';
 
-self.onmessage = (ev: MessageEvent) => {
-  if (ev.data?.type === 'update') {
-    update(ev.data.options);
-  }
-};
+self.onmessage = receiveMessageFromMain;
 
 self.onfetch = requestHandler;
 
@@ -23,13 +18,14 @@ export interface QwikWorkerGlobal {
   clients: {
     claim: () => void;
   };
-  qwikCore: typeof import('@builder.io/qwik');
-  qwikOptimizer: typeof import('@builder.io/qwik/optimizer');
-  qwikServer: typeof import('@builder.io/qwik/server');
-  prettier: typeof import('prettier');
-  prettierPlugins: any;
-  rollup: typeof import('rollup');
-  Terser: typeof import('terser');
+
+  qwikCore?: typeof import('@builder.io/qwik');
+  qwikOptimizer?: typeof import('@builder.io/qwik/optimizer');
+  qwikServer?: typeof import('@builder.io/qwik/server');
+  prettier?: typeof import('prettier');
+  prettierPlugins?: any;
+  rollup?: typeof import('rollup');
+  Terser?: typeof import('terser');
 }
 
 declare const self: QwikWorkerGlobal;

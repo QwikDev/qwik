@@ -1,36 +1,33 @@
-import { component$, Host, $, useScopedStyles$ } from '@builder.io/qwik';
+import { component$, Host, $, useScopedStyles$, useContext } from '@builder.io/qwik';
 import { CloseIcon } from '../svgs/close-icon';
 import { DiscordLogo } from '../svgs/discord-logo';
 import { GithubLogo } from '../svgs/github-logo';
 import { MoreIcon } from '../svgs/more-icon';
 import { QwikLogo } from '../svgs/qwik-logo';
 import { TwitterLogo } from '../svgs/twitter-logo';
-import type { SiteStore } from '../app/app';
 import styles from './header.css?inline';
-
-interface HeaderProps {
-  store: SiteStore;
-}
+import { GlobalStore } from '../../utils/context';
 
 export const Header = component$(
-  (props: HeaderProps) => {
+  () => {
     useScopedStyles$(styles);
+    const globalStore = useContext(GlobalStore);
 
     const toggleMenu = $(() => {
-      props.store.headerMenuOpen = !props.store.headerMenuOpen;
+      globalStore.headerMenuOpen = !globalStore.headerMenuOpen;
     });
 
     const closeMenu = $(() => {
-      props.store.headerMenuOpen = false;
+      globalStore.headerMenuOpen = false;
     });
 
     return (
       <Host className="fixed top-0 z-40 w-full h-[56px]">
         <div class="header-inner">
           <div className="header-logo">
-            <a href="/" class="hover:opacity-70">
+            <a href="/">
               <span className="sr-only">Qwik Homepage</span>
-              <QwikLogo width={110} height={35} />
+              <QwikLogo width={110} height={50} />
             </a>
           </div>
           <button onClickQrl={toggleMenu} class="p-3 md:hidden fixed right-0" type="button">
@@ -47,21 +44,21 @@ export const Header = component$(
                 <span>Docs</span>
               </a>
             </li>
-            <li>
-              <a href="/examples" onClickQrl={closeMenu}>
+            {/* <li>
+              <a href="/examples/introduction/hello-world" onClickQrl={closeMenu}>
                 <span>Examples</span>
               </a>
-            </li>
+            </li> */}
             {/* <li>
               <a href="/tutorial/introduction/basics" onClickQrl={closeMenu}>
                 <span>Tutorial</span>
               </a>
             </li> */}
-            <li>
+            {/* <li>
               <a href="/playground" onClickQrl={closeMenu}>
                 <span>Playground</span>
               </a>
-            </li>
+            </li> */}
             <li>
               <a href="https://github.com/BuilderIO/qwik" target="_blank" onClickQrl={closeMenu}>
                 <span class="md:hidden">Github</span>

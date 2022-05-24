@@ -5,7 +5,15 @@ export const onRequestGet: PagesFunction = async ({ request, next, waitUntil }) 
     const url = new URL(request.url);
     if (url.hostname === 'qwik.builder.io' && url.pathname === '/') {
       // temporarily redirect homepage to the overview page
-      return Response.redirect('https://qwik.builder.io/docs/overview', 302);
+      return Response.redirect(new URL('/docs/overview', url), 302);
+    }
+
+    if (url.pathname === '/examples') {
+      return Response.redirect(new URL('/examples/introduction/hello-world', url));
+    }
+
+    if (url.pathname === '/tutorial') {
+      return Response.redirect(new URL('/tutorial/introduction/basics', url));
     }
 
     if (url.pathname === '/chat') {
@@ -13,7 +21,7 @@ export const onRequestGet: PagesFunction = async ({ request, next, waitUntil }) 
     }
 
     // Handle static assets
-    if (/\.\w+$/.test(url.pathname) || url.pathname === '/repl/') {
+    if (/\.\w+$/.test(url.pathname) || url.pathname.endsWith('/repl-server')) {
       return next(request);
     }
 

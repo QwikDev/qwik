@@ -17,6 +17,7 @@ export type {
 export { setHeadLinks } from './head-links';
 export { setHeadMeta } from './head-meta';
 export { setHeadStyles } from './head-styles';
-export { useLocation, useNavigate } from './location';
+export { getLocation } from './location';
 export { usePage } from './page';
+export { useQwikCity } from './page';
 export { usePageIndex } from './page-index';

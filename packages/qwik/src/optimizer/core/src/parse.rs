@@ -1,4 +1,5 @@
 use std::collections::hash_map::DefaultHasher;
+use std::collections::HashMap;
 use std::ffi::OsStr;
 use std::hash::Hasher;
 use std::path::{Path, PathBuf};
@@ -8,7 +9,7 @@ use crate::code_move::{new_module, NewModuleCtx};
 use crate::collector::global_collect;
 use crate::entry_strategy::EntryPolicy;
 use crate::transform::{HookKind, QwikTransform, QwikTransformOptions};
-use crate::utils::{CodeHighlight, Diagnostic, DiagnosticSeverity, SourceLocation};
+use crate::utils::{Diagnostic, DiagnosticCategory, DiagnosticScope, SourceLocation};
 use path_slash::PathExt;
 use serde::{Deserialize, Serialize};
 
@@ -19,7 +20,7 @@ use anyhow::{Context, Error};
 
 use swc_atoms::JsWord;
 use swc_common::comments::SingleThreadedComments;
-use swc_common::errors::{DiagnosticBuilder, Emitter, Handler};
+use swc_common::errors::{DiagnosticBuilder, DiagnosticId, Emitter, Handler};
 use swc_common::{sync::Lrc, FileName, Globals, Mark, SourceMap};
 use swc_ecmascript::ast;
 use swc_ecmascript::codegen::text_writer::JsWriter;
@@ -77,6 +78,22 @@ pub struct TransformOutput {
     pub is_jsx: bool,
 }
 
+#[derive(Debug, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct QwikBundle {
+    pub size: usize,
+    pub symbols: Vec<JsWord>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct QwikManifest {
+    pub version: JsWord,
+    pub symbols: HashMap<JsWord, HookAnalysis>,
+    pub bundles: HashMap<JsWord, QwikBundle>,
+    pub mapping: HashMap<JsWord, JsWord>,
+}
+
 impl TransformOutput {
     pub fn new() -> Self {
         Self::default()
@@ -90,14 +107,49 @@ impl TransformOutput {
         self
     }
 
+    pub fn get_manifest(&self) -> QwikManifest {
+        let mut manifest = QwikManifest {
+            bundles: HashMap::new(),
+            symbols: HashMap::new(),
+            mapping: HashMap::new(),
+            version: "1".into(),
+        };
+        for module in &self.modules {
+            if let Some(hook) = &module.hook {
+                let filename =
+                    JsWord::from(format!("{}.{}", hook.canonical_filename, hook.extension));
+                manifest.mapping.insert(hook.name.clone(), filename.clone());
+                manifest.symbols.insert(hook.name.clone(), hook.clone());
+                manifest.bundles.insert(
+                    filename.clone(),
+                    QwikBundle {
+                        symbols: vec![hook.name.clone()],
+                        size: module.code.len(),
+                    },
+                );
+            }
+        }
+        manifest
+    }
+
     #[cfg(feature = "fs")]
-    pub fn write_to_fs(&self, destination: &Path) -> Result<usize, Error> {
+    pub fn write_to_fs(
+        &self,
+        destination: &Path,
+        manifest: Option<String>,
+    ) -> Result<usize, Error> {
         for module in &self.modules {
             let write_path = destination.join(&module.path);
             fs::create_dir_all(&write_path.parent().with_context(|| {
                 format!("Computing path parent of {}", write_path.to_string_lossy())
             })?)?;
             fs::write(write_path, &module.code)?;
+        }
+        if let Some(manifest) = manifest {
+            let write_path = destination.join(manifest);
+            let manifest = self.get_manifest();
+            let json = serde_json::to_string(&manifest)?;
+            fs::write(write_path, json)?;
         }
         Ok(self.modules.len())
     }
@@ -434,25 +486,30 @@ fn handle_error(
         .iter()
         .map(|diagnostic| {
             let message = diagnostic.message();
+            let code = diagnostic.get_code().and_then(|m| {
+                if let DiagnosticId::Error(s) = m {
+                    Some(s)
+                } else {
+                    None
+                }
+            });
+
             let span = diagnostic.span.clone();
             let suggestions = diagnostic.suggestions.clone();
 
             let span_labels = span.span_labels();
-            let code_highlights = if span_labels.is_empty() {
+            let highlights = if span_labels.is_empty() {
                 None
             } else {
                 Some(
                     span_labels
                         .into_iter()
-                        .map(|span_label| CodeHighlight {
-                            message: span_label.label,
-                            loc: SourceLocation::from(source_map, span_label.span),
-                        })
+                        .map(|span_label| SourceLocation::from(source_map, span_label.span))
                         .collect(),
                 )
             };
 
-            let hints = if suggestions.is_empty() {
+            let suggestions = if suggestions.is_empty() {
                 None
             } else {
                 Some(
@@ -464,13 +521,13 @@ fn handle_error(
             };
 
             Diagnostic {
-                origin: origin.clone(),
+                file: origin.clone(),
+                code,
                 message,
-                code_highlights,
-                hints,
-                show_environment: false,
-                severity: DiagnosticSeverity::Error,
-                documentation_url: None,
+                highlights,
+                suggestions,
+                category: DiagnosticCategory::Error,
+                scope: DiagnosticScope::Optimizer,
             }
         })
         .collect()

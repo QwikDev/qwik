@@ -195,6 +195,7 @@ fn transform_todo_app(b: &mut Bencher) {
           transpile: true,
           entry_strategy: EntryStrategy::Single,
           dev: true,
+          scope: None,
       })
   });
 }

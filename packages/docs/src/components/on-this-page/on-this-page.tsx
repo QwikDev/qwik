@@ -7,11 +7,12 @@ import { TwitterLogo } from '../svgs/twitter-logo';
 import styles from './on-this-page.css?inline';
 
 export const OnThisPage = component$(
-  async () => {
+  () => {
     useScopedStyles$(styles);
-
-    const hostElm = useHostElement();
-    const page = (await usePage(hostElm))!;
+    const page = usePage();
+    if (!page) {
+      return null;
+    }
 
     const headings = page.headings.filter((h) => h.level === 2 || h.level === 3);
 
@@ -20,15 +21,6 @@ export const OnThisPage = component$(
       'https://github.com/BuilderIO/qwik/edit/main/packages/docs/pages/'
     );
 
-    const onScroll = $(() => {
-      // const ev = useEvent();
-      // console.log('scroll', ev);
-    });
-
-    const onClick = $(() => {
-      // const ev = useEvent();
-      // console.log('onClick', ev);
-    });
     return (
       <Host class="on-this-page fixed text-sm z-20 bottom-0 right-[max(0px,calc(50%-45rem))] overflow-y-auto hidden xl:block xl:w-[18rem] xl:top-[5rem]">
         {headings.length > 0 ? (
@@ -43,7 +35,6 @@ export const OnThisPage = component$(
                       block: true,
                       indent: h.level > 2,
                     }}
-                    onClickQrl={onClick}
                   >
                     {h.text}
                   </a>

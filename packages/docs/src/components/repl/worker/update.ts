@@ -1,65 +1,68 @@
 /* eslint-disable no-console */
 import type { InputOptions, OutputAsset, OutputChunk } from 'rollup';
-import type { QwikRollupPluginOptions } from '@builder.io/qwik/optimizer';
-import type { ReplInputOptions, ReplModuleOutput, ReplResult } from '../types';
-import { ctx } from './constants';
+import type { Diagnostic, QwikRollupPluginOptions } from '@builder.io/qwik/optimizer';
+import type { ReplInputOptions, ReplModuleInput, ReplModuleOutput, ReplResult } from '../types';
+import { getCtx, QwikReplContext } from './context';
 import { loadDependencies } from './dependencies';
 import { ssrHtml } from './ssr-html';
 import type { QwikWorkerGlobal } from './repl-service-worker';
-import { replResolver } from './repl-resolver';
-import { replMinify } from './repl-minify';
+import { replCss, replMinify, replResolver } from './repl-plugins';
+import { sendMessageToReplServer } from './repl-messenger';
 
-export const update = async (options: ReplInputOptions) => {
-  console.time('Update');
+export const update = async (clientId: string, options: ReplInputOptions) => {
+  console.time(`Update (${options.buildId})`);
 
   const result: ReplResult = {
     type: 'result',
-    outputHtml: '',
+    clientId,
+    buildId: options.buildId,
+    html: '',
     clientModules: [],
     manifest: undefined,
     ssrModules: [],
     diagnostics: [],
-    docElementAttributes: {},
-    headAttributes: {},
-    bodyAttributes: {},
-    bodyInnerHtml: '',
-    qwikloader: '',
+    events: [],
   };
 
   try {
-    // options.debug = true;
+    const ctx = getCtx(clientId, true)!;
+
     await loadDependencies(options);
 
-    await bundleClient(options, result);
-    await bundleSSR(options, result);
-
-    await ssrHtml(options, result);
-
-    ctx.clientModules = result.clientModules;
+    await bundleClient(options, ctx, result);
+    await bundleSSR(options, ctx, result);
+    await ssrHtml(options, ctx, result);
   } catch (e: any) {
     result.diagnostics.push({
+      scope: 'runtime',
       message: String(e.stack || e),
-      severity: 'Error',
-      origin: String(e.stack || 'repl error'),
-      code_highlights: [],
-      show_environment: false,
+      category: 'error',
+      file: '',
+      highlights: [],
+      suggestions: null,
+      code: 'runtime error',
     });
     console.error(e);
   }
 
-  await sendMessageToIframe(result);
+  await sendMessageToReplServer(result);
 
-  console.timeEnd('Update');
+  console.timeEnd(`Update (${options.buildId})`);
 };
 
-const bundleClient = async (options: ReplInputOptions, result: ReplResult) => {
-  console.time(`Bundle client`);
+const bundleClient = async (
+  options: ReplInputOptions,
+  ctx: QwikReplContext,
+  result: ReplResult
+) => {
+  const start = performance.now();
+  console.time(`Bundle client (${options.buildId})`);
 
   const qwikRollupClientOpts: QwikRollupPluginOptions = {
     target: 'client',
     buildMode: options.buildMode,
     debug: options.debug,
-    srcInputs: options.srcInputs,
+    srcInputs: getInputs(options),
     entryStrategy: options.entryStrategy,
     manifestOutput: (m) => {
       result.manifest = m;
@@ -67,87 +70,155 @@ const bundleClient = async (options: ReplInputOptions, result: ReplResult) => {
   };
   console.debug('client opts', qwikRollupClientOpts);
 
+  const entry = options.srcInputs.find((i) => i.path.endsWith('app.tsx'));
+  if (!entry) {
+    throw new Error(`Missing client entry "app.tsx"`);
+  }
+
   const rollupInputOpts: InputOptions = {
-    input: '/app.tsx',
+    input: entry.path,
     cache: ctx.rollupCache,
     plugins: [
-      self.qwikOptimizer.qwikRollup(qwikRollupClientOpts),
+      replCss(options),
+      self.qwikOptimizer?.qwikRollup(qwikRollupClientOpts),
       replResolver(options, 'client'),
       replMinify(options),
     ],
     onwarn(warning) {
-      result.diagnostics.push({
+      const diagnostic: Diagnostic = {
+        scope: 'rollup-ssr',
+        code: warning.code ?? null,
         message: warning.message,
-        severity: 'Error',
-        show_environment: false,
-        code_highlights: [],
-        origin: 'client rollup',
-      });
+        category: 'warning',
+        highlights: [],
+        file: warning.id || '',
+        suggestions: null,
+      };
+      const loc = warning.loc;
+      if (loc && loc.file) {
+        diagnostic.file = loc.file;
+        diagnostic.highlights.push({
+          startCol: loc.column,
+          endCol: loc.column + 1,
+          startLine: loc.line,
+          endLine: loc.line + 1,
+          lo: 0,
+          hi: 0,
+        });
+      }
+      result.diagnostics.push(diagnostic);
     },
   };
 
-  const bundle = await self.rollup.rollup(rollupInputOpts);
+  const bundle = await self.rollup?.rollup(rollupInputOpts);
+  if (bundle) {
+    ctx.rollupCache = bundle.cache;
 
-  ctx.rollupCache = bundle.cache;
+    const generated = await bundle.generate({
+      sourcemap: false,
+    });
 
-  const generated = await bundle.generate({
-    sourcemap: false,
+    result.clientModules = generated.output.map(getOutput).filter((f) => {
+      return !f.path.endsWith('app.js') && !f.path.endsWith('q-manifest.json');
+    });
+
+    ctx.clientModules = result.clientModules;
+  }
+
+  result.events.push({
+    kind: 'console-log',
+    scope: 'build',
+    start,
+    end: performance.now(),
+    message: 'Build Client',
   });
-
-  result.clientModules = generated.output.map(getOutput).filter((f) => {
-    return !f.path.endsWith('app.js') && !f.path.endsWith('q-manifest.json');
-  });
-
-  console.timeEnd(`Bundle client`);
+  console.timeEnd(`Bundle client (${options.buildId})`);
 };
 
-const bundleSSR = async (options: ReplInputOptions, result: ReplResult) => {
-  console.time(`Bundle ssr`);
+const bundleSSR = async (options: ReplInputOptions, ctx: QwikReplContext, result: ReplResult) => {
+  console.time(`Bundle SSR (${options.buildId})`);
+  const start = performance.now();
 
   const qwikRollupSsrOpts: QwikRollupPluginOptions = {
     target: 'ssr',
     buildMode: options.buildMode,
     debug: options.debug,
-    srcInputs: options.srcInputs,
+    srcInputs: getInputs(options),
     entryStrategy: options.entryStrategy,
     manifestInput: result.manifest,
   };
 
   console.debug('ssr opts', qwikRollupSsrOpts);
 
+  const entry = options.srcInputs.find((i) => i.path.endsWith('entry.server.tsx'));
+  if (!entry) {
+    throw new Error(`Missing SSR entry "entry.server.tsx"`);
+  }
+
   const rollupInputOpts: InputOptions = {
-    input: '/entry.server.tsx',
+    input: entry.path,
     cache: ctx.rollupCache,
-    plugins: [self.qwikOptimizer.qwikRollup(qwikRollupSsrOpts), replResolver(options, 'ssr')],
+    plugins: [
+      replCss(options),
+      self.qwikOptimizer?.qwikRollup(qwikRollupSsrOpts),
+      replResolver(options, 'ssr'),
+    ],
     onwarn(warning) {
-      result.diagnostics.push({
+      const diagnostic: Diagnostic = {
+        scope: 'rollup-ssr',
+        code: warning.code ?? null,
         message: warning.message,
-        severity: 'Error',
-        show_environment: false,
-        code_highlights: [],
-        origin: 'ssr rollup',
-      });
+        category: 'warning',
+        highlights: [],
+        file: warning.id || '',
+        suggestions: null,
+      };
+      const loc = warning.loc;
+      if (loc && loc.file) {
+        diagnostic.file = loc.file;
+        diagnostic.highlights.push({
+          startCol: loc.column,
+          endCol: loc.column + 1,
+          startLine: loc.line,
+          endLine: loc.line + 1,
+          lo: 0,
+          hi: 0,
+        });
+      }
+      result.diagnostics.push(diagnostic);
     },
   };
 
-  const bundle = await self.rollup.rollup(rollupInputOpts);
+  const bundle = await self.rollup?.rollup(rollupInputOpts);
+  if (bundle) {
+    ctx.rollupCache = bundle.cache;
 
-  ctx.rollupCache = bundle.cache;
+    const generated = await bundle.generate({
+      format: 'cjs',
+      inlineDynamicImports: true,
+      sourcemap: false,
+    });
 
-  const generated = await bundle.generate({
-    inlineDynamicImports: true,
-    sourcemap: false,
+    result.ssrModules = generated.output.map(getOutput);
+  }
+
+  result.events.push({
+    kind: 'console-log',
+    scope: 'build',
+    start,
+    end: performance.now(),
+    message: 'Build SSR',
   });
-
-  result.ssrModules = generated.output.map(getOutput);
-
-  console.timeEnd(`Bundle ssr`);
+  console.timeEnd(`Bundle SSR (${options.buildId})`);
 };
 
-const sendMessageToIframe = async (result: ReplResult) => {
-  const clients = await (self as any).clients.matchAll();
-  clients.forEach((client: WindowProxy) => client.postMessage(result));
+const getInputs = (options: ReplInputOptions) => {
+  return options.srcInputs.filter((i) => {
+    return MODULE_EXTS.some((ext) => i.path.endsWith(ext));
+  });
 };
+
+const MODULE_EXTS = ['.tsx', '.ts', '.js', '.jsx', '.mjs'];
 
 const getOutput = (o: OutputChunk | OutputAsset) => {
   const f: ReplModuleOutput = {

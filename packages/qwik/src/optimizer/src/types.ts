@@ -149,37 +149,31 @@ export interface TransformModule {
  * @alpha
  */
 export interface Diagnostic {
-  origin: string;
+  scope: string;
+  category: DiagnosticCategory;
+  code: string | null;
+  file: string;
   message: string;
-  severity: DiagnosticType;
-  code_highlights: CodeHighlight[];
-  documentation_url?: string;
-  show_environment: boolean;
-  hints?: string[];
-}
-
-/**
- * @alpha
- */
-export interface CodeHighlight {
-  message: string | null;
-  loc: SourceLocation;
+  highlights: SourceLocation[];
+  suggestions: string[] | null;
 }
 
 /**
  * @alpha
  */
 export interface SourceLocation {
-  start_line: number;
-  start_col: number;
-  end_line: number;
-  end_col: number;
+  hi: number;
+  lo: number;
+  startLine: number;
+  startCol: number;
+  endLine: number;
+  endCol: number;
 }
 
 /**
  * @alpha
  */
-export type DiagnosticType = 'Error' | 'Warning' | 'SourceError';
+export type DiagnosticCategory = 'error' | 'warning' | 'sourceError';
 
 // ENTRY STRATEGY ***************
 

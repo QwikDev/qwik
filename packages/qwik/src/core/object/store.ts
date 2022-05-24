@@ -58,7 +58,7 @@ export function resumeContainer(containerEl: Element) {
   script.remove();
 
   const proxyMap = getProxyMap(doc);
-  const meta = JSON.parse(script.textContent || '{}') as any;
+  const meta = JSON.parse(unescapeText(script.textContent || '{}')) as any;
 
   // Collect all elements
   const elements = new Map<string, Element>();
@@ -541,6 +541,14 @@ function collectElement(el: Element, collector: Collector) {
       collectValue(sub, collector);
     });
   }
+}
+
+export function escapeText(str: string) {
+  return str.replace(/<(\/?script)/g, '\\x3C$1');
+}
+
+export function unescapeText(str: string) {
+  return str.replace(/\\x3C(\/?script)/g, '<$1');
 }
 
 function collectSubscriptions(subs: SubscriberMap, collector: Collector) {

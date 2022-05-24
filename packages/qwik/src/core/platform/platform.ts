@@ -18,6 +18,7 @@ export const createPlatform = (doc: Document): CorePlatform => {
         return mod[symbolName];
       }
       return import(/* @vite-ignore */ importURL).then((mod) => {
+        mod = findModule(mod);
         moduleCache.set(importURL, mod);
         return mod[symbolName];
       });
@@ -41,6 +42,14 @@ export const createPlatform = (doc: Document): CorePlatform => {
     },
   };
 };
+
+function findModule(module: any) {
+  return Object.values(module).find(isModule) || module;
+}
+
+function isModule(module: any) {
+  return typeof module === 'object' && module && module[Symbol.toStringTag] === 'Module';
+}
 
 /**
  * Convert relative base URI and relative URL into a fully qualified URL.

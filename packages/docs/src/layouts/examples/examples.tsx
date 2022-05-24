@@ -63,12 +63,21 @@ const Examples = component$((props: ExamplesProp) => {
                     selected: store.appId === app.id,
                   }}
                 >
-                  <h3>{app.title}</h3>
-                  <p>{app.description}</p>
+                  <div class="example-button-icon">{app.icon}</div>
+                  <div class="example-button-content">
+                    <h3>{app.title}</h3>
+                    <p>{app.description}</p>
+                  </div>
                 </button>
               ))}
             </div>
           ))}
+          <a
+            href="https://github.com/BuilderIO/qwik/tree/main/packages/docs/pages/examples"
+            class="example-button-new"
+          >
+            👏 Add new examples
+          </a>
         </div>
 
         <main class="examples-repl">

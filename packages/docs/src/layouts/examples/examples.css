@@ -7,7 +7,7 @@
 
 .examples-menu-container {
   display: grid;
-  grid-template-columns: minmax(300px, 25%) auto;
+  grid-template-columns: minmax(280px, 20%) auto;
   grid-template-areas: 'example-content-panel example-repl-panel';
   height: calc(100vh - var(--header-height));
 }
@@ -35,7 +35,7 @@
 }
 
 .example-button {
-  display: block;
+  display: flex;
   padding: 10px;
   margin-bottom: 10px;
   color: #494949;
@@ -44,6 +44,15 @@
   border-radius: 5px;
   width: 100%;
   font-size: 12px;
+}
+
+.example-button-icon {
+  font-size: 30px;
+  width: 38px;
+}
+
+.example-button-content {
+  flex: 1;
 }
 
 .example-button.selected {
@@ -56,6 +65,19 @@
 
 .example-button h3 {
   font-weight: 700;
+}
+
+.example-button-new {
+  display: block;
+  padding: 10px;
+  margin-bottom: 10px;
+  color: #494949;
+  text-align: center;
+  border: 1px solid #cccccc;
+  border-radius: 5px;
+  width: 100%;
+  font-size: 14px;
+  margin-top: 40px;
 }
 
 .examples .repl {

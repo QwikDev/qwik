@@ -6,7 +6,8 @@
       {
         "id": "hello-world",
         "title": "Hello World",
-        "description": "The simplest Qwik app."
+        "description": "The simplest Qwik app.",
+        "icon": "🌎"
       }
     ]
   },
@@ -17,7 +18,8 @@
       {
         "id": "counter",
         "title": "Counter",
-        "description": "A simple standard counter example."
+        "description": "A simple standard counter example.",
+        "icon": "⏲"
       }
     ]
   },
@@ -28,7 +30,8 @@
       {
         "id": "clock",
         "title": "Below the fold Clock",
-        "description": "Component which requires lazy initialization when it comes into view."
+        "description": "Component which requires lazy initialization when it comes into view.",
+        "icon": "⏰"
       }
     ]
   }

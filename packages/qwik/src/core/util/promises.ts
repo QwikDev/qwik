@@ -27,9 +27,10 @@ export function isPromise(value: any): value is Promise<any> {
 
 export const then = <T, B>(
   promise: ValueOrPromise<T>,
-  thenFn: (arg: Awaited<T>) => ValueOrPromise<B>
+  thenFn: (arg: Awaited<T>) => ValueOrPromise<B>,
+  rejectFn?: (err: any) => any
 ): ValueOrPromise<B> => {
-  return isPromise(promise) ? promise.then(thenFn as any) : thenFn(promise as any);
+  return isPromise(promise) ? promise.then(thenFn as any, rejectFn) : thenFn(promise as any);
 };
 
 export const promiseAll = <T extends any[]>(promises: T): ValueOrPromise<T> => {

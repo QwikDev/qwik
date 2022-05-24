@@ -172,11 +172,13 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     async buildStart() {
       await qwikPlugin.validateSource();
 
-      qwikPlugin.onAddWatchFile((path) => this.addWatchFile(path));
+      qwikPlugin.onAddWatchFile((ctx, path) => {
+        ctx.addWatchFile(path);
+      });
 
       qwikPlugin.onDiagnostics((diagnostics, optimizer) => {
         diagnostics.forEach((d) => {
-          if (d.severity === 'Error') {
+          if (d.category === 'error') {
             this.error(createRollupError(optimizer, d));
           } else {
             this.warn(createRollupError(optimizer, d));
@@ -184,7 +186,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         });
       });
 
-      await qwikPlugin.buildStart();
+      await qwikPlugin.buildStart(this);
     },
 
     resolveId(id, importer, resolveIdOpts) {
@@ -194,7 +196,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       if (isClientDevOnly && id === VITE_CLIENT_MODULE) {
         return id;
       }
-      return qwikPlugin.resolveId(id, importer, resolveIdOpts);
+      return qwikPlugin.resolveId(this, id, importer, resolveIdOpts);
     },
 
     load(id, loadOpts) {
@@ -208,7 +210,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       if (isClientDevOnly && id === VITE_CLIENT_MODULE) {
         return getViteDevModule(opts);
       }
-      return qwikPlugin.load(id, loadOpts);
+      return qwikPlugin.load(this, id, loadOpts);
     },
 
     transform(code, id) {
@@ -221,7 +223,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           code = updateEntryDev(code);
         }
       }
-      return qwikPlugin.transform(code, id);
+      return qwikPlugin.transform(this, code, id);
     },
 
     async generateBundle(_, rollupBundle) {
@@ -439,7 +441,7 @@ export function render(document, rootNode) {
   qwikRender(document, rootNode);
 
   headNodes.forEach(n => document.head.appendChild(n));
-  
+
   let qwikLoader = document.getElementById('qwikloader');
   if (!qwikLoader) {
     qwikLoader = document.createElement('script');

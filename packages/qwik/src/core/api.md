@@ -393,7 +393,7 @@ export interface QRL<TYPE = any> {
     // (undocumented)
     __brand__QRL__: TYPE;
     // (undocumented)
-    invoke(...args: TYPE extends (...args: infer ARGS) => any ? ARGS : never): TYPE extends (...args: any[]) => infer RETURN ? ValueOrPromise<RETURN> : never;
+    invoke(...args: TYPE extends (...args: infer ARGS) => any ? ARGS : never): Promise<TYPE extends (...args: any[]) => infer RETURN ? RETURN : never>;
     // (undocumented)
     invokeFn(el?: Element, context?: InvokeContext, beforeFn?: () => void): TYPE extends (...args: infer ARGS) => infer RETURN ? (...args: ARGS) => ValueOrPromise<RETURN> : never;
     // (undocumented)

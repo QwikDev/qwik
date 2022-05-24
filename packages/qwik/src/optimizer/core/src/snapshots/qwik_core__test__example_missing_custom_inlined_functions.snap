@@ -1,5 +1,5 @@
 ---
-source: src/optimizer/core/src/test.rs
+source: packages/qwik/src/optimizer/core/src/test.rs
 expression: output
 ---
 ==INPUT==
@@ -44,4 +44,23 @@ export const App = component$((props)=>{
 
 == DIAGNOSTICS ==
 
-[Diagnostic { origin: Atom('test.tsx' type=dynamic), message: "Version without $ is not exported.", code_highlights: Some([CodeHighlight { message: None, loc: SourceLocation { start_line: 11, start_col: 5, end_line: 11, end_col: 12 } }]), hints: None, show_environment: false, severity: Error, documentation_url: None }]
+[
+  {
+    "category": "error",
+    "code": "missing-qrl-implementation",
+    "file": "test.tsx",
+    "message": "Version without $ is not exported.",
+    "highlights": [
+      {
+        "lo": 252,
+        "hi": 260,
+        "startLine": 11,
+        "startCol": 5,
+        "endLine": 11,
+        "endCol": 12
+      }
+    ],
+    "suggestions": null,
+    "scope": "optimizer"
+  }
+]

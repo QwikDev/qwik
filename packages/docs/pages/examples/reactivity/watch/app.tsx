@@ -2,35 +2,29 @@ import { component$, useWatch$, useStore } from '@builder.io/qwik';
 
 interface State {
   count: number;
-  doubleCount: number;
   debounced: number;
 }
 
 export const App = component$(() => {
   const store = useStore<State>({
-    count: 2,
-    doubleCount: 0,
+    count: 0,
     debounced: 0,
   });
 
-  // Double count watch
   useWatch$((track) => {
-    const count = track(store, 'count');
-    store.doubleCount = 2 * count;
-  });
+    // track changes in store.count
+    track(store, 'count');
+    console.log('count changed');
 
-  // Debouncer watch
-  useWatch$((track) => {
-    const doubleCount = track(store, 'doubleCount');
     const timer = setTimeout(() => {
-      store.debounced = doubleCount;
+      store.debounced = store.count;
     }, 2000);
     return () => {
       clearTimeout(timer);
     };
   });
 
-  console.log('PARENT renders');
+  console.log('<App> renders');
   return (
     <div>
       <Child state={store} />
@@ -42,13 +36,16 @@ export const App = component$(() => {
 });
 
 export const Child = component$((props: { state: State }) => {
-  console.log('CHILD renders');
+  console.log('<Child> render');
   return (
     <div>
-      <div id="child">
-        {props.state.count} / {props.state.doubleCount}
-      </div>
-      <div id="debounced">Debounced: {props.state.debounced}</div>
+      <div id="child">{props.state.count}</div>
+      <GrandChild state={props.state} />
     </div>
   );
+});
+
+export const GrandChild = component$((props: { state: State }) => {
+  console.log('<GrandChild> render');
+  return <div id="debounced">Debounced: {props.state.debounced}</div>;
 });

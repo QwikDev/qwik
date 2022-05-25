@@ -23,14 +23,13 @@ export function ReplLog({ log }: { log: ReplEvent }) {
     case 'pause':
       return (
         <div class="line paused">
-          <div class="content">⏸ Paused in SSR</div>
-          {elapsed ? <div class="elapsed">{elapsed}</div> : null}
+          <div class="content">🔴 Paused in server</div>
         </div>
       );
     case 'resume':
       return (
         <div class="line resumed">
-          <div class="content">▶️ Resumed in client</div>
+          <div class="content">🟢 Resumed in client</div>
           {elapsed ? <div class="elapsed">{elapsed}</div> : null}
         </div>
       );

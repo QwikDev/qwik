@@ -21,7 +21,7 @@ export const getReplVersion = async (version: string | undefined) => {
       if (v === version) {
         return true;
       }
-      if ((npmData?.tags.latest === v || npmData?.tags.next) === v) {
+      if (npmData?.tags.latest === v || npmData?.tags.next === v) {
         return true;
       }
       if (v.includes('-')) {

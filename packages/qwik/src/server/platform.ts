@@ -1,7 +1,7 @@
 import type { CorePlatform } from '@builder.io/qwik';
 import { setPlatform } from '@builder.io/qwik';
 import { getValidManifest } from '../optimizer/src/manifest';
-import type { QrlMapper, SerializeDocumentOptions } from './types';
+import type { SerializeDocumentOptions } from './types';
 import { normalizeUrl } from './utils';
 
 const _setImmediate = typeof setImmediate === 'function' ? setImmediate : setTimeout;
@@ -14,19 +14,12 @@ function createPlatform(document: any, opts: SerializeDocumentOptions) {
   }
   const doc: Document = document;
 
-  let qrlMapper: QrlMapper | undefined = undefined;
   let qrlMap: { [symbolName: string]: string } | undefined = undefined;
 
-  if (typeof opts.qrlMapper === 'function') {
-    // manually provided a function that returns the qrl for a symbol
-    qrlMapper = opts.qrlMapper;
-  } else {
-    // we've been provided a manifest
-    const manifest = getValidManifest(opts.manifest);
-    if (manifest) {
-      // we received a valid manifest
-      qrlMap = manifest.mapping;
-    }
+  const manifest = getValidManifest(opts.manifest);
+  if (manifest) {
+    // we received a valid manifest
+    qrlMap = manifest.mapping;
   }
 
   if (opts?.url) {
@@ -66,10 +59,8 @@ function createPlatform(document: any, opts: SerializeDocumentOptions) {
       });
     },
     chunkForSymbol(symbolName: string) {
-      if (qrlMapper) {
-        return qrlMapper(symbolName);
-      }
       if (qrlMap) {
+        // TODO: Improve qrl map lookup
         return [qrlMap[symbolName], symbolName];
       }
       return undefined;
@@ -83,6 +74,6 @@ function createPlatform(document: any, opts: SerializeDocumentOptions) {
  * @public
  */
 export async function setServerPlatform(document: any, opts: SerializeDocumentOptions) {
-  const platform = await createPlatform(document, opts);
+  const platform = createPlatform(document, opts);
   setPlatform(document, platform);
 }

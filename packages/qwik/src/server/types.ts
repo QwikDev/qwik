@@ -14,7 +14,6 @@ export interface QwikDocument extends Document {}
  */
 export interface SerializeDocumentOptions {
   manifest?: QwikManifest;
-  qrlMapper?: QrlMapper;
   url?: URL | string;
   html?: string;
   debug?: boolean;
@@ -42,16 +41,11 @@ export type PrefetchImplementation =
   | 'none';
 
 /**
- * all: Prefetch all QRLs used by the app.
- * all-document: Prefetch all QRLs used by the document.
- * events-document: Prefetch event QRLs used by the document. Default
+ * auto: Prefetch all possible QRLs used by the document. Default
  *
  * @alpha
  */
-export type SymbolsToPrefetch =
-  | 'all'
-  | 'events-document'
-  | ((opts: { manifest: QwikManifest }) => PrefetchResource[]);
+export type SymbolsToPrefetch = 'auto' | ((opts: { manifest: QwikManifest }) => PrefetchResource[]);
 
 /**
  * @alpha
@@ -62,11 +56,6 @@ export interface PrefetchResource {
 }
 
 export { QwikManifest, QwikBundle, QwikSymbol, GlobalInjections };
-
-/**
- * @public
- */
-export type QrlMapper = (symbolName: string) => [string, string] | undefined;
 
 /**
  * @public

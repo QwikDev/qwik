@@ -45,7 +45,6 @@ export const onRequestGet: PagesFunction = async ({ request, next, waitUntil }) 
     const result = await render({
       url: request.url,
       prefetchStrategy: {
-        symbolsToPrefetch: 'events-document',
         implementation: 'link-prefetch',
       },
     });

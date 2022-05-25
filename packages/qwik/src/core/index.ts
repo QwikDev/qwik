@@ -60,6 +60,9 @@ export type {
 export { useWatch$, useWatchQrl } from './watch/watch.public';
 export { useClientEffect$, useClientEffectQrl } from './watch/watch.public';
 export { useServerMount$, useServerMountQrl } from './watch/watch.public';
+export { useClientMount$, useClientMountQrl } from './watch/watch.public';
+export { useMount$, useMountQrl } from './watch/watch.public';
+
 export { handleWatch } from './watch/watch.public';
 
 //////////////////////////////////////////////////////////////////////////////////////////

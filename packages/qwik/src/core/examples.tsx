@@ -18,7 +18,13 @@ import {
 } from './component/component.public';
 import { Host } from './render/jsx/host.public';
 import { $, implicit$FirstArg, QRL } from './import/qrl.public';
-import { useClientEffect$, useServerMount$, useWatch$ } from './watch/watch.public';
+import {
+  useClientEffect$,
+  useServerMount$,
+  useClientMount$,
+  useMount$,
+  useWatch$,
+} from './watch/watch.public';
 import { useHostElement } from './use/use-host-element.public';
 import { useRef } from './use/use-store.public';
 
@@ -249,7 +255,6 @@ export const CmpInline = component$(() => {
       users: [],
     });
 
-    // Double count watch
     useServerMount$(async () => {
       // This code will ONLY run once in the server, when the component is mounted
       store.users = await db.requestUsers();
@@ -275,34 +280,47 @@ export const CmpInline = component$(() => {
 };
 
 () => {
-  let db: any;
-  // <docs anchor="use-server-mount">
+  // <docs anchor="use-client-mount">
   const Cmp = component$(() => {
     const store = useStore({
-      users: [],
+      hash: '',
     });
 
-    // Double count watch
-    useServerMount$(async () => {
-      // This code will ONLY run once in the server, when the component is mounted
-      store.users = await db.requestUsers();
+    useClientMount$(async () => {
+      // This code will ONLY run once in the client, when the component is mounted
+      store.hash = document.location.hash;
     });
 
     return (
       <Host>
-        {store.users.map((user) => (
-          <User user={user} />
-        ))}
+        <p>The url hash is: ${store.hash}</p>
       </Host>
     );
   });
+  // </docs>
+  return Cmp;
+};
 
-  interface User {
-    name: string;
-  }
-  function User(props: { user: User }) {
-    return <div>Name: {props.user.name}</div>;
-  }
+() => {
+  // <docs anchor="use-mount">
+  const Cmp = component$(() => {
+    const store = useStore({
+      temp: 0,
+    });
+
+    useMount$(async () => {
+      // This code will run once whenever a component is mounted in the server, or in the client
+      const res = await fetch('weather-api.example');
+      const json = (await res.json()) as any;
+      store.temp = json.temp;
+    });
+
+    return (
+      <Host>
+        <p>The temperature is: ${store.temp}</p>
+      </Host>
+    );
+  });
   // </docs>
   return Cmp;
 };

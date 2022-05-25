@@ -24,8 +24,6 @@ export const requestHandler = (ev: FetchEvent) => {
           headers: {
             'Content-Type': 'text/html; charset=utf-8',
             'Cache-Control': 'no-store',
-            'X-Qwik-REPL-App': 'ssr-result',
-            'X-Qwik-Client-Id': clientId,
           },
         })
       );
@@ -56,8 +54,6 @@ export const requestHandler = (ev: FetchEvent) => {
             headers: {
               'Content-Type': 'application/javascript; charset=utf-8',
               'Cache-Control': 'no-store',
-              'X-Qwik-REPL-App': 'client-module',
-              'X-Qwik-Client-Id': clientId,
             },
           })
         );

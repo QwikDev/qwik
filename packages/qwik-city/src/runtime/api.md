@@ -106,23 +106,23 @@ export interface PageBreadcrumb {
 // @public (undocumented)
 export interface PageHandler {
     // (undocumented)
-    attributes: PageAttributes;
+    readonly attributes: PageAttributes;
     // (undocumented)
-    breadcrumbs: PageBreadcrumb[];
+    readonly breadcrumbs: PageBreadcrumb[];
     // (undocumented)
-    content: Content;
+    readonly content: Content;
     // (undocumented)
-    headings: PageHeading[];
+    readonly headings: PageHeading[];
     // (undocumented)
-    index: {
+    readonly index: {
         path: string;
     };
     // (undocumented)
-    layout: Layout;
+    readonly layout: Layout;
     // (undocumented)
-    source: PageSource;
+    readonly source: PageSource;
     // (undocumented)
-    url: string;
+    readonly url: string;
 }
 
 // @public (undocumented)

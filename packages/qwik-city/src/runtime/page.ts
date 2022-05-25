@@ -5,6 +5,7 @@ import {
   useStore,
   noSerialize,
   useContextProvider,
+  immutable,
 } from '@builder.io/qwik';
 import { BUILD_ID, INLINED_MODULES, LAYOUTS, PAGES } from '@builder.io/qwik-city/build';
 import type { PageHandler } from './types';
@@ -18,7 +19,7 @@ export const QwikCityContext = createContext<PageHandler>('qwikcity-page');
  */
 export const useQwikCity = () => {
   const href = useLocation().href;
-  const page = useStore<PageHandler>({} as any);
+  const page: PageHandler = {} as any;
   useWaitOn(
     loadPage(href).then((loaded) => {
       if (loaded) {
@@ -32,6 +33,7 @@ export const useQwikCity = () => {
           content: noSerialize(loaded.content),
           layout: noSerialize(loaded.layout),
         });
+        immutable(page);
       }
     })
   );

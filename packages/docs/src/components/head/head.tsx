@@ -7,6 +7,9 @@ export const Head = () => (
     <title>Qwik</title>
     <meta name="viewport" content="width=device-width" />
 
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net/" />
+    <link rel="dns-prefetch" href="https://cdn.builder.io/" />
+
     <link rel="apple-touch-icon" sizes="180x180" href="/favicons/apple-touch-icon.png" />
     <link rel="icon" href="/favicons/favicon.svg" type="image/svg+xml" />
 
@@ -50,11 +53,10 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     />
 
     <script
-      src="//cdn.jsdelivr.net/npm/@builder.io/persist-attribution@latest/dist/persist-attribution.min.js"
+      type="text/partytown"
+      src="https://cdn.jsdelivr.net/npm/@builder.io/persist-attribution@0.0.1-beta-2/dist/persist-attribution.min.js"
       id="persist-attribution-init"
       data-send-page-view-events="true"
-      async
-      defer
     />
   </>
 );

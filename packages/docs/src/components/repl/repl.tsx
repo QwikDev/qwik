@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import {
   component$,
   Host,
@@ -85,6 +86,8 @@ export const Repl = component$(async (props: ReplProps) => {
       store.serverUrl = `/repl/repl-server.html#${store.clientId}`;
 
       window.addEventListener('message', (ev) => receiveMessageFromReplServer(ev, store));
+    } else {
+      console.debug(`Qwik REPL version not set`);
     }
   });
 

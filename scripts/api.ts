@@ -41,6 +41,9 @@ function createTypesApi(
       if (msg.text.includes('Analysis will use')) {
         return;
       }
+      if (msg.messageId === 'console-compiler-version-notice') {
+        return;
+      }
       console.error(`❌ API Extractor, submodule: "${submodule}"\n${extractorConfigPath}\n`, msg);
     },
   });

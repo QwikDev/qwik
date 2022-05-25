@@ -933,9 +933,13 @@ function setKey(el: Element, key: string | null) {
 
 function sameVnode(vnode1: Node, vnode2: JSXNode): boolean {
   const isSameSel = vnode1.nodeName.toLowerCase() === vnode2.type;
-  const isSameKey =
-    vnode1.nodeType === NodeType.ELEMENT_NODE ? getKey(vnode1 as Element) === vnode2.key : true;
-  return isSameSel && isSameKey;
+  if (!isSameSel) {
+    return false;
+  }
+  if (vnode1.nodeType !== NodeType.ELEMENT_NODE) {
+    return true;
+  }
+  return getKey(vnode1 as Element) === vnode2.key;
 }
 
 function checkInnerHTML(props: Record<string, any> | undefined | null) {

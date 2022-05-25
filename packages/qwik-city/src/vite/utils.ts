@@ -160,9 +160,9 @@ export function isMarkdownFile(ctx: PluginContext, filePath: string) {
   return ctx.extensions.includes(ext);
 }
 
-export function isReadmeFile(filePath: string) {
+export function isIndexFile(filePath: string) {
   filePath = filePath.toLowerCase();
-  return filePath === 'readme.md' || filePath === 'readme';
+  return filePath === 'index.md' || filePath === 'index';
 }
 
 export function getPagesBuildPath(pathname: string) {

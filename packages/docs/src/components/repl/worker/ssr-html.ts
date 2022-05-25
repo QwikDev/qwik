@@ -84,7 +84,7 @@ export const ssrHtml = async (
 
   result.events.push({
     kind: 'pause',
-    scope: 'build',
+    scope: 'ssr',
     start,
     end: performance.now(),
     message: [],

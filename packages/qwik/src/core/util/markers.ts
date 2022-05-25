@@ -22,7 +22,7 @@ export const OnUnmount = 'on:qunmount';
 /**
  * State factory of the component.
  */
-export const OnResume = 'on:qresume';
+export const OnResume = 'on:qinit';
 
 /**
  * Component Styles.

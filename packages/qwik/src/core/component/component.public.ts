@@ -108,7 +108,7 @@ export const useCleanup$ = implicit$FirstArg(useCleanupQrl);
  */
 // </docs>
 export function useResumeQrl(resumeFn: QRL<() => void>): void {
-  useOn('qresume', resumeFn);
+  useOn('qinit', resumeFn);
 }
 
 // <docs markdown="../readme.md#useResume">

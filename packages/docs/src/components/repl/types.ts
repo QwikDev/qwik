@@ -84,7 +84,7 @@ export interface ReplEvent {
     | 'client-module'
     | 'prefetch';
   scope: 'ssr' | 'client' | 'build' | 'network';
-  message: string;
+  message: string[];
   element?: Element;
 }
 

@@ -84,7 +84,8 @@
       const receiveMessageFromUserApp = (ev) => {
         if (ev.data) {
           const msg = JSON.parse(ev.data);
-          if (msg?.type === 'log') {
+          console.log(msg);
+          if (msg?.type === 'event') {
             sendMessageToMain(msg);
           }
         }

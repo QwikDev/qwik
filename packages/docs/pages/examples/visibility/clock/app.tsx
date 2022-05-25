@@ -33,12 +33,14 @@ export const Clock = component$(() => {
   });
 
   useClientEffect$(() => {
-    const tmrId = setInterval(() => {
+    const update = () => {
       const now = new Date();
-      store.second = (now.getSeconds() * 60) / 360;
-      store.minute = (now.getMinutes() * 60) / 360;
-      store.hour = (now.getHours() * 60) / 360;
-    }, 1000);
+      store.second = now.getSeconds() * (360 / 60);
+      store.minute = now.getMinutes() * (360 / 60);
+      store.hour = now.getHours() * (360 / 12);
+    };
+    update();
+    const tmrId = setInterval(update, 1000);
     return () => clearInterval(tmrId);
   });
 

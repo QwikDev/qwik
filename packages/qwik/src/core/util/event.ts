@@ -1,10 +1,10 @@
 export const emitEvent = (
-  el: Element,
+  el: Element | undefined,
   eventName: string,
-  detail: Record<string, any>,
+  detail: any,
   bubbles: boolean
 ) => {
-  if (typeof CustomEvent === 'function') {
+  if (el && typeof CustomEvent === 'function') {
     el.dispatchEvent(
       new CustomEvent(eventName, {
         detail,

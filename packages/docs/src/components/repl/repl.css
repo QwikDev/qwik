@@ -282,7 +282,8 @@
 .log > .platform {
   width: 50px;
   text-align: center;
-  padding: 5px;
+  padding: 5px 0;
+  font-size: 12px;
 }
 
 .log > .platform.build {
@@ -297,27 +298,45 @@
   background: #78fa83;
 }
 
-.log.console-warn {
+.log > .platform.network {
+  background: #f4f4f4;
+}
+
+.log.console-warn > .content {
   background: #d9d900;
   font-weight: 500;
 }
-.log.console-error {
-  background: #d9d900;
-  font-weight: 500;
+
+.log.console-error .content {
+  background: #d90047;
+  color: white;
+}
+
+.log.client-module > .content {
+  font-family: monospace;
+  font-size: 12px;
 }
 
 .log > .content {
   flex: 1;
   padding: 5px;
+  line-break: anywhere;
 }
 
 .line.paused,
 .line.resumed {
   text-align: center;
   padding: 10px 0;
-  border-bottom: 2px solid;
   font-size: 12px;
   font-weight: 700;
+}
+
+.line.paused {
+  border-bottom: 2px solid;
+}
+
+.line.resumed {
+  border-top: 2px solid;
 }
 
 .elapsed {

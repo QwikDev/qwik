@@ -35,7 +35,7 @@ export const ssrHtml = async (
     result.events.push({
       kind: 'console-log',
       scope: 'ssr',
-      message: args.join(' '),
+      message: args.map((a) => String(a)),
       start: performance.now(),
     });
     log(...args);
@@ -45,7 +45,7 @@ export const ssrHtml = async (
     result.events.push({
       kind: 'console-warn',
       scope: 'ssr',
-      message: args.join(' '),
+      message: args.map((a) => String(a)),
       start: performance.now(),
     });
     warn(...args);
@@ -55,17 +55,16 @@ export const ssrHtml = async (
     result.events.push({
       kind: 'console-error',
       scope: 'ssr',
-      message: args.join(' '),
+      message: args.map((a) => String(a)),
       start: performance.now(),
     });
-    error(...args);
   };
 
   console.debug = (...args) => {
     result.events.push({
       kind: 'console-debug',
       scope: 'ssr',
-      message: args.join(' '),
+      message: args.map((a) => String(a)),
       start: performance.now(),
     });
     debug(...args);
@@ -88,7 +87,7 @@ export const ssrHtml = async (
     scope: 'build',
     start,
     end: performance.now(),
-    message: '',
+    message: [],
   });
 
   if (options.buildMode !== 'production') {

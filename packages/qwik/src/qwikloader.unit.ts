@@ -141,21 +141,21 @@ describe('qwikloader', () => {
       delete (global as any).CustomEvent;
     });
 
-    it('should query on:qresume document complete', () => {
+    it('should query on:qinit document complete', () => {
       doc.readyState = 'complete';
       const spy = jest.spyOn(doc, 'querySelectorAll');
       qwikLoader(doc);
-      expect(spy).toHaveBeenCalledWith('[on\\:qresume]');
+      expect(spy).toHaveBeenCalledWith('[on\\:qinit]');
     });
 
-    it('should query on:qresume if document interactive', () => {
+    it('should query on:qinit if document interactive', () => {
       doc.readyState = 'interactive';
       const spy = jest.spyOn(doc, 'querySelectorAll');
       qwikLoader(doc);
-      expect(spy).toHaveBeenCalledWith('[on\\:qresume]');
+      expect(spy).toHaveBeenCalledWith('[on\\:qinit]');
     });
 
-    it('should not query on:qresume if document loading', () => {
+    it('should not query on:qinit if document loading', () => {
       doc.readyState = 'loading';
       const spy = jest.spyOn(doc, 'querySelectorAll');
       qwikLoader(doc);

@@ -18,10 +18,10 @@ export const qwikLoader = (doc: Document, hasInitialized?: number, prefetchWorke
       .forEach((target) => dispatch(target, type, ev));
   };
 
-  const symbolUsed = (el: Element, symbolName: string) =>
+  const emitEvent = (el: Element, eventName: string, detail: any) =>
     el.dispatchEvent(
-      new CustomEvent('qsymbol', {
-        detail: { name: symbolName },
+      new CustomEvent(eventName, {
+        detail,
         bubbles: true,
         composed: true,
       })
@@ -61,7 +61,7 @@ export const qwikLoader = (doc: Document, hasInitialized?: number, prefetchWorke
                 handler(ev, element, url);
               } finally {
                 (doc as any)[Q_CONTEXT] = previousCtx;
-                symbolUsed(element, symbolName);
+                emitEvent(element, 'qsymbol', symbolName);
               }
             }
           }
@@ -116,7 +116,7 @@ export const qwikLoader = (doc: Document, hasInitialized?: number, prefetchWorke
       // document is ready
       hasInitialized = 1;
 
-      broadcast('', 'qresume', new CustomEvent('qresume'));
+      broadcast('', 'qinit', new CustomEvent('qinit'));
 
       if (typeof IntersectionObserver !== 'undefined') {
         const observer = new IntersectionObserver((entries) => {

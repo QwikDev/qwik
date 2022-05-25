@@ -58,7 +58,7 @@
 
 .menu h5 {
   @apply font-semibold  px-3 py-1 mb-1 rounded-md whitespace-nowrap;
-  color: #4f48d5;
+  color: var(--qwik-dark-blue);
   font-weight: 800;
 }
 
@@ -71,7 +71,8 @@
 }
 
 .menu li a {
-  @apply py-1 pl-3 block rounded-md text-slate-900 hover:bg-slate-200;
+  @apply py-1 pl-3 block text-slate-900 hover:bg-slate-200;
+  border-radius: 3px;
 }
 
 .menu li a.is-active {

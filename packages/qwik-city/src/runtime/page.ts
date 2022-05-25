@@ -28,7 +28,7 @@ export const useQwikCity = () => {
           headings: loaded.headings,
           index: loaded.index,
           source: loaded.source,
-          url: loaded.url.href,
+          url: loaded.url,
           content: noSerialize(loaded.content),
           layout: noSerialize(loaded.layout),
         });
@@ -64,7 +64,7 @@ const loadPage = async (href: string): Promise<PageHandler | null> => {
     // page modules are dynamically imported
     try {
       // ./pages/guide/getting-started.js
-      const pagePath = `./pages${modulePath}.js?v=${BUILD_ID}`;
+      const pagePath = `../pages${modulePath}/index.js?v=${BUILD_ID}`;
       pageModule = await import(/* @vite-ignore */ pagePath);
     } catch (e) {
       console.error(e);
@@ -91,6 +91,6 @@ const loadPage = async (href: string): Promise<PageHandler | null> => {
     index: pageModule.index,
     layout: layoutModule,
     source: pageModule.source,
-    url,
+    url: url.pathname,
   };
 };

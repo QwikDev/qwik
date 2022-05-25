@@ -9,7 +9,7 @@ export interface PageHandler {
   index: { path: string };
   layout: Layout;
   source: PageSource;
-  url: URL;
+  url: string;
 }
 
 /**

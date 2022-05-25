@@ -20,6 +20,10 @@ pre[class*='language-'] {
 }
 
 html {
+  --qwik-blue: #0093ee;
+  --qwik-dark-blue: #006eb3;
+  --qwik-purple: #5249d9;
+
   --header-height: 56px;
   --repl-tab-height: 56px;
   --repl-tab-bg-color: #daf0ff;

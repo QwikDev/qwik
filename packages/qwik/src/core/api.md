@@ -398,6 +398,8 @@ export interface QRL<TYPE = any> {
     invokeFn(el?: Element, context?: InvokeContext, beforeFn?: () => void): TYPE extends (...args: infer ARGS) => infer RETURN ? (...args: ARGS) => ValueOrPromise<RETURN> : never;
     // (undocumented)
     resolve(container?: Element): Promise<TYPE>;
+    // (undocumented)
+    symbol: string;
 }
 
 // @alpha

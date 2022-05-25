@@ -2,29 +2,29 @@ import type { QRL } from '@builder.io/qwik';
 import { Editor } from './editor';
 import { ReplTabButton } from './repl-tab-button';
 import { ReplTabButtons } from './repl-tab-buttons';
-import type { ReplStore, ReplModuleInput } from './types';
+import type { ReplStore, ReplAppInput } from './types';
 
 export const ReplInputPanel = ({
+  input,
   store,
-  inputs,
   onInputChangeQrl,
   onInputDeleteQrl,
 }: ReplInputPanelProps) => {
   return (
     <div class="repl-panel repl-input-panel">
       <ReplTabButtons>
-        {inputs.map((input) =>
-          input.hidden ? null : (
+        {input.files.map((f) =>
+          f.hidden ? null : (
             <ReplTabButton
-              text={formatFilePath(input.path)}
-              isActive={store.selectedInputPath === input.path}
+              text={formatFilePath(f.path)}
+              isActive={store.selectedInputPath === f.path}
               onClick$={() => {
-                store.selectedInputPath = input.path;
+                store.selectedInputPath = f.path;
               }}
               onClose$={() => {
-                const shouldDelete = confirm(`Are you sure you want to delete "${input.path}"?`);
+                const shouldDelete = confirm(`Are you sure you want to delete "${f.path}"?`);
                 if (shouldDelete) {
-                  onInputDeleteQrl.invoke(input.path);
+                  onInputDeleteQrl.invoke(f.path);
                 }
               }}
             />
@@ -34,10 +34,10 @@ export const ReplInputPanel = ({
 
       <div class="repl-tab">
         <Editor
-          inputs={inputs}
+          inputs={input.files}
+          version={input.version}
           selectedPath={store.selectedInputPath}
           onChangeQrl={onInputChangeQrl}
-          version={store.version!}
           store={store}
           ariaLabel="File Input"
           lineNumbers="on"
@@ -54,8 +54,8 @@ const formatFilePath = (path: string) => {
 };
 
 interface ReplInputPanelProps {
+  input: ReplAppInput;
   store: ReplStore;
-  inputs: ReplModuleInput[];
   onInputChangeQrl: QRL<(path: string, code: string) => void>;
   onInputDeleteQrl: QRL<(path: string) => void>;
 }

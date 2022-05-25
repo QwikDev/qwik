@@ -5,6 +5,7 @@ import { ReplTabButtons } from './repl-tab-buttons';
 import type { ReplStore, ReplModuleInput } from './types';
 
 export const ReplInputPanel = ({
+  version,
   store,
   inputs,
   onInputChangeQrl,
@@ -37,7 +38,7 @@ export const ReplInputPanel = ({
           inputs={inputs}
           selectedPath={store.selectedInputPath}
           onChangeQrl={onInputChangeQrl}
-          version={store.version!}
+          version={version}
           store={store}
           ariaLabel="File Input"
           lineNumbers="on"
@@ -54,6 +55,7 @@ const formatFilePath = (path: string) => {
 };
 
 interface ReplInputPanelProps {
+  version: string;
   store: ReplStore;
   inputs: ReplModuleInput[];
   onInputChangeQrl: QRL<(path: string, code: string) => void>;

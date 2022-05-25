@@ -2,9 +2,9 @@ import { ReplConsole } from './repl-console';
 import { ReplOptions } from './repl-options';
 import { ReplTabButton } from './repl-tab-button';
 import { ReplTabButtons } from './repl-tab-buttons';
-import type { ReplStore } from './types';
+import type { ReplAppInput, ReplStore } from './types';
 
-export const ReplDetailPanel = ({ store }: ReplDetailPanelProps) => {
+export const ReplDetailPanel = ({ store, input }: ReplDetailPanelProps) => {
   return (
     <div class="repl-panel repl-detail-panel">
       <ReplTabButtons>
@@ -26,7 +26,9 @@ export const ReplDetailPanel = ({ store }: ReplDetailPanelProps) => {
 
       <div class="repl-tab">
         {store.selectedOutputDetail === 'console' ? <ReplConsole store={store} /> : null}
-        {store.selectedOutputDetail === 'options' ? <ReplOptions store={store} /> : null}
+        {store.selectedOutputDetail === 'options' ? (
+          <ReplOptions input={input} versions={store.versions} />
+        ) : null}
       </div>
     </div>
   );
@@ -34,4 +36,5 @@ export const ReplDetailPanel = ({ store }: ReplDetailPanelProps) => {
 
 interface ReplDetailPanelProps {
   store: ReplStore;
+  input: ReplAppInput;
 }

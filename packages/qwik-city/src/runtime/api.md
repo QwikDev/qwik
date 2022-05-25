@@ -122,7 +122,7 @@ export interface PageHandler {
     // (undocumented)
     source: PageSource;
     // (undocumented)
-    url: URL;
+    url: string;
 }
 
 // @public (undocumented)

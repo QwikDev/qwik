@@ -72,3 +72,27 @@ export function replServiceWorker(): Plugin {
     },
   };
 }
+
+export function replServerHtml(): Plugin {
+  return {
+    name: 'replServiceWorker',
+
+    resolveId(id) {
+      if (id === '@repl-server-html') {
+        return '\0@repl-server-html';
+      }
+      return null;
+    },
+
+    load(id) {
+      if (id === '\0@repl-server-html') {
+        const srcReplServerHtml = resolve('public', 'repl', 'repl-server.html');
+        const replServerHtml = readFileSync(srcReplServerHtml, 'utf-8');
+        return `const replServerHtml = ${JSON.stringify(
+          replServerHtml
+        )}; export default replServerHtml;`;
+      }
+      return null;
+    },
+  };
+}

@@ -80,16 +80,9 @@ export const Repl = component$(async (props: ReplProps) => {
     const v = await getReplVersion(input.version);
 
     if (v.version) {
-      let serverUrl = `/repl/repl-server`;
-
-      if (location.hostname === 'localhost') {
-        serverUrl += `.html`;
-      }
-      serverUrl += `#${store.clientId}`;
-
       store.versions = v.versions;
       input.version = v.version;
-      store.serverUrl = serverUrl;
+      store.serverUrl = `/repl/repl-server.html#${store.clientId}`;
 
       window.addEventListener('message', (ev) => receiveMessageFromReplServer(ev, store));
     }

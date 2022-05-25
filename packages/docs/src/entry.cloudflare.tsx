@@ -1,4 +1,5 @@
 import { render } from './entry.ssr';
+import replServerHtml from '@repl-server-html';
 
 export const onRequestGet: PagesFunction = async ({ request, next, waitUntil }) => {
   try {
@@ -24,8 +25,16 @@ export const onRequestGet: PagesFunction = async ({ request, next, waitUntil }) 
       return Response.redirect('https://discord.gg/bNVSQmPzqy');
     }
 
+    if (url.pathname.endsWith('/repl-server.html')) {
+      return new Response(replServerHtml, {
+        headers: {
+          'Content-Type': 'text/html; charset=utf-8',
+        },
+      });
+    }
+
     // Handle static assets
-    if (/\.\w+$/.test(url.pathname) || url.pathname.endsWith('/repl-server')) {
+    if (/\.\w+$/.test(url.pathname)) {
       return next(request);
     }
 

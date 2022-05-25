@@ -14,7 +14,9 @@ export interface ExampleApp {
   inputs: ReplModuleInput[];
 }
 
-// generated at build-time
-// see /docs/pages/examples/examples-menu.json
+/**
+ * Generated at build-time.
+ * See /docs/pages/examples/examples-menu.json
+ */
 const exampleSections: ExampleSection[] = [];
 export default exampleSections;

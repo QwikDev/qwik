@@ -1,5 +1,4 @@
 import { InvokeContext, newInvokeContext, useInvoke } from '../use/use-core';
-import { emitEvent } from '../util/event';
 import { then } from '../util/promises';
 import type { ValueOrPromise } from '../util/types';
 import { qrlImport, QRLSerializeOptions, stringifyQRL } from './qrl';
@@ -90,7 +89,15 @@ export const getCanonicalSymbol = (symbolName: string) => {
 };
 
 export const isSameQRL = (a: QRL<any>, b: QRL<any>): boolean => {
-  return getCanonicalSymbol(a.symbol) === getCanonicalSymbol(b.symbol);
+  return isSameSymbol(getQRLSymbol(a), getQRLSymbol(b));
+};
+
+export const getQRLSymbol = (a: QRL<any>): string => {
+  return a.refSymbol ?? a.symbol;
+};
+
+export const isSameSymbol = (symA: string, symB: string): boolean => {
+  return getCanonicalSymbol(symA) === getCanonicalSymbol(symB);
 };
 
 export type QRLInternal<T = any> = QRL<T>;

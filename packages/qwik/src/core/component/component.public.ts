@@ -559,7 +559,9 @@ export function component$<PROPS extends {}>(
 /**
  * @public
  */
-export type OnRenderFn<PROPS> = (props: PROPS) => ValueOrPromise<JSXNode<any> | null>;
+export type OnRenderFn<PROPS> = (
+  props: PROPS
+) => ValueOrPromise<JSXNode<any> | null | (() => JSXNode<any>)>;
 
 export interface RenderFactoryOutput<PROPS> {
   renderQRL: QRL<OnRenderFn<PROPS>>;

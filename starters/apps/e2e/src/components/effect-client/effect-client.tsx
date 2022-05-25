@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { component$, useClientEffect$, useStore, useStyles$ } from '@builder.io/qwik';
+import { component$, Host, useClientEffect$, useStore, useStyles$ } from '@builder.io/qwik';
 
 export const EffectClient = component$(() => {
   useStyles$(`.box {
@@ -32,6 +32,12 @@ export const Timer = component$(() => {
 
   const state = useStore({
     count: 0,
+    msg: 'empty',
+  });
+
+  // Double count watch
+  useClientEffect$(() => {
+    state.msg = 'run';
   });
 
   // Double count watch
@@ -45,5 +51,10 @@ export const Timer = component$(() => {
     };
   });
 
-  return <div id="counter">{state.count}</div>;
+  return (
+    <Host>
+      <div id="counter">{state.count}</div>
+      <div id="msg">{state.msg}</div>
+    </Host>
+  );
 });

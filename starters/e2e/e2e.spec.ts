@@ -401,4 +401,29 @@ test.describe('e2e', () => {
       ]);
     });
   });
+
+  test.describe('effect-client', () => {
+    test.beforeEach(async ({ page }) => {
+      await page.goto('/e2e/effect-client');
+      page.on('pageerror', (err) => expect(err).toEqual(undefined));
+    });
+
+    test('should load', async ({ page }) => {
+      const counter = await page.locator('#counter');
+      const msg = await page.locator('#msg');
+
+      await expect(counter).toHaveText('0');
+      await expect(msg).toHaveText('empty');
+
+      await counter.scrollIntoViewIfNeeded();
+      await page.waitForTimeout(100);
+
+      await expect(counter).toHaveText('10');
+      await expect(msg).toHaveText('run');
+
+      await page.waitForTimeout(500);
+      await expect(counter).toHaveText('11');
+      await expect(msg).toHaveText('run');
+    });
+  });
 });

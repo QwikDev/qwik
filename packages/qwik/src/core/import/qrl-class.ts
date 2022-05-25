@@ -102,6 +102,3 @@ export const isSameSymbol = (symA: string, symB: string): boolean => {
 
 export type QRLInternal<T = any> = QRL<T>;
 export const QRLInternal: typeof QRL = QRL;
-
-// https://regexr.com/6enjv
-const FIND_EXT = /\?[\w=&]+$/;

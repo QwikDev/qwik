@@ -61,10 +61,14 @@ export const renderComponent = (rctx: RenderContext, ctx: QContext): ValueOrProm
               appendStyle(rctx, hostElement, task);
             }
           });
-          if (ctx.dirty) {
+          if (typeof jsxNode === 'function') {
+            ctx.dirty = false;
+            jsxNode = jsxNode();
+          } else if (ctx.dirty) {
             logDebug('Dropping render. State changed during render.');
             return renderComponent(rctx, ctx);
           }
+
           let componentCtx = ctx.component;
           if (!componentCtx) {
             componentCtx = ctx.component = {

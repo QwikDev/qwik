@@ -362,7 +362,7 @@ export type On$Props<T extends {}> = {
 };
 
 // @public (undocumented)
-export type OnRenderFn<PROPS> = (props: PROPS) => ValueOrPromise<JSXNode<any> | null>;
+export type OnRenderFn<PROPS> = (props: PROPS) => ValueOrPromise<JSXNode<any> | null | (() => JSXNode<any>)>;
 
 // @alpha
 export function pauseContainer(elmOrDoc: Element | Document): SnapshotResult;
@@ -576,6 +576,16 @@ export const useClientEffect$: (first: WatchFn, opts?: UseEffectOptions | undefi
 // @public
 export function useClientEffectQrl(qrl: QRL<WatchFn>, opts?: UseEffectOptions): void;
 
+// Warning: (ae-incompatible-release-tags) The symbol "useClientMount$" is marked as @public, but its signature references "ServerFn" which is marked as @alpha
+//
+// @public
+export const useClientMount$: (first: ServerFn) => void;
+
+// Warning: (ae-incompatible-release-tags) The symbol "useClientMountQrl" is marked as @public, but its signature references "ServerFn" which is marked as @alpha
+//
+// @public
+export function useClientMountQrl(mountQrl: QRL<ServerFn>): void;
+
 // @alpha (undocumented)
 export function useContext<STATE extends object>(context: Context<STATE>): STATE;
 
@@ -599,6 +609,16 @@ export function useHostElement(): Element;
 
 // @public
 export function useLexicalScope<VARS extends any[]>(): VARS;
+
+// Warning: (ae-incompatible-release-tags) The symbol "useMount$" is marked as @public, but its signature references "ServerFn" which is marked as @alpha
+//
+// @public
+export const useMount$: (first: ServerFn) => void;
+
+// Warning: (ae-incompatible-release-tags) The symbol "useMountQrl" is marked as @public, but its signature references "ServerFn" which is marked as @alpha
+//
+// @public
+export function useMountQrl(mountQrl: QRL<ServerFn>): void;
 
 // @alpha
 export function useOn(event: string, eventFn: QRL<() => void>): void;
@@ -634,7 +654,7 @@ export const useServerMount$: (first: ServerFn) => void;
 // Warning: (ae-incompatible-release-tags) The symbol "useServerMountQrl" is marked as @public, but its signature references "ServerFn" which is marked as @alpha
 //
 // @public
-export function useServerMountQrl(watchQrl: QRL<ServerFn>): void;
+export function useServerMountQrl(mountQrl: QRL<ServerFn>): void;
 
 // @public
 export function useStore<STATE extends object>(initialState: STATE | (() => STATE)): STATE;

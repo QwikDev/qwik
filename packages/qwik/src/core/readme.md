@@ -97,20 +97,44 @@ The `obs` passed into the `watchFn` is used to mark `state.count` as a property 
 
 @public
 
+# `useClientEffect`
+
+<docs code="./examples.tsx#use-client-effect"/>
+
+@public
+
+# `useMount`
+
+Register's a mount hook, that runs both in the server and the client when the component is first mounted.
+
+## Example
+
+<docs code="./examples.tsx#use-mount"/>
+
+@see `useServerMount` `useClientMount`
+@public
+
+# `useClientMount`
+
+Register's a client mount hook, that runs only in client when the component is first mounted.
+
+## Example
+
+<docs code="./examples.tsx#use-client-mount"/>
+
+@see `useServerMount` `useMount`
+
+@public
+
 # `useServerMount`
 
-Register's a server mount hook, that runs only in server when the component is first mounted. `useWatch` will run once in the server, and N-times in the client, only when the **tracked** state changes.
+Register's a server mount hook, that runs only in server when the component is first mounted.
 
 ## Example
 
 <docs code="./examples.tsx#use-server-mount"/>
 
-@public
-
-# `useClientEffect`
-
-<docs code="./examples.tsx#use-client-effect"/>
-
+@see `useClientMount` `useMount`
 @public
 
 # `useStyles`

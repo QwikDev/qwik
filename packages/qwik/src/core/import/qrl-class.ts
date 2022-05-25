@@ -1,4 +1,5 @@
 import { InvokeContext, newInvokeContext, useInvoke } from '../use/use-core';
+import { emitEvent } from '../util/event';
 import { then } from '../util/promises';
 import type { ValueOrPromise } from '../util/types';
 import { qrlImport, QRLSerializeOptions, stringifyQRL } from './qrl';

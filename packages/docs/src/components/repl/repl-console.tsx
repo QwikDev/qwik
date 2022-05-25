@@ -23,14 +23,13 @@ export function ReplLog({ log }: { log: ReplEvent }) {
     case 'pause':
       return (
         <div class="line paused">
-          <div class="content">⏸ Paused in SSR</div>
-          {elapsed ? <div class="elapsed">{elapsed}</div> : null}
+          <div class="content">🔴 Paused in server</div>
         </div>
       );
     case 'resume':
       return (
         <div class="line resumed">
-          <div class="content">▶️ Resumed in client</div>
+          <div class="content">🟢 Resumed in client</div>
           {elapsed ? <div class="elapsed">{elapsed}</div> : null}
         </div>
       );
@@ -45,29 +44,30 @@ export function ReplLog({ log }: { log: ReplEvent }) {
           {elapsed ? <div class="elapsed">{elapsed}</div> : null}
         </div>
       );
-    case 'symbol':
-      return (
-        <div class={`log ${log.kind}`}>
-          <div class={`platform ${log.scope}"`}>{log.scope}</div>
-          <div class="content">{log.message}</div>
-        </div>
-      );
     case 'prefetch':
       return (
         <div class={`log ${log.kind}`}>
-          <div class={`platform ${log.scope}"`}>{log.scope}</div>
+          <div class={`platform ${log.scope}`}>{log.scope}</div>
           <div class="content">{log.message}</div>
         </div>
       );
     case 'client-module':
       return (
         <div class={`log ${log.kind}`}>
-          <div class={`platform ${log.scope}"`}>{log.scope}</div>
-          <div class="content">{log.message}</div>
+          <div class={`platform ${log.scope}`}>{log.scope}</div>
+          <div class="content">{basename(log.message.join(' '))}</div>
         </div>
       );
   }
-  return <div class=""></div>;
+  return null;
+}
+
+function basename(str: string) {
+  const index = str.lastIndexOf('/');
+  if (index > 0) {
+    return str.slice(index + 1);
+  }
+  return str;
 }
 
 function renderElapsed(millis: number) {

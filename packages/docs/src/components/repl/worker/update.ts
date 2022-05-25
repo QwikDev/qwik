@@ -130,7 +130,7 @@ const bundleClient = async (
     scope: 'build',
     start,
     end: performance.now(),
-    message: 'Build Client',
+    message: ['Build Client'],
   });
   console.timeEnd(`Bundle client (${options.buildId})`);
 };
@@ -207,7 +207,7 @@ const bundleSSR = async (options: ReplInputOptions, ctx: QwikReplContext, result
     scope: 'build',
     start,
     end: performance.now(),
-    message: 'Build SSR',
+    message: ['Build SSR'],
   });
   console.timeEnd(`Bundle SSR (${options.buildId})`);
 };

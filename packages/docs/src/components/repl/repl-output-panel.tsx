@@ -2,9 +2,9 @@ import { CodeBlock } from '../code-block/code-block';
 import { ReplOutputModules } from './repl-output-modules';
 import { ReplTabButton } from './repl-tab-button';
 import { ReplTabButtons } from './repl-tab-buttons';
-import type { ReplStore } from './types';
+import type { ReplAppInput, ReplStore } from './types';
 
-export const ReplOutputPanel = ({ store }: ReplOutputPanelProps) => {
+export const ReplOutputPanel = ({ input, store }: ReplOutputPanelProps) => {
   const diagnosticsLen = store.diagnostics.length + store.monacoDiagnostics.length;
 
   return (
@@ -61,8 +61,8 @@ export const ReplOutputPanel = ({ store }: ReplOutputPanelProps) => {
       <div
         class={{
           'repl-tab': true,
-          'repl-mode-production': store.buildMode === 'production',
-          'repl-mode-development': store.buildMode !== 'production',
+          'repl-mode-production': input.buildMode === 'production',
+          'repl-mode-development': input.buildMode !== 'production',
         }}
       >
         <div
@@ -102,5 +102,6 @@ export const ReplOutputPanel = ({ store }: ReplOutputPanelProps) => {
 };
 
 interface ReplOutputPanelProps {
+  input: ReplAppInput;
   store: ReplStore;
 }

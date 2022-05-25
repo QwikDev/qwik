@@ -55,7 +55,7 @@
 }
 
 .repl-tab-button.active-tab {
-  border-top-color: #0084ff;
+  border-top-color: var(--qwik-blue);
   background-color: white;
 }
 
@@ -65,7 +65,7 @@
 }
 
 .repl-input-panel .repl-tab-button.active-tab {
-  border-top-color: #564ce1;
+  border-top-color: var(--qwik-purple);
 }
 
 .repl-input-panel .repl-tab-button:not(.active-tab):hover {
@@ -187,7 +187,7 @@
 }
 
 .output-modules .file-tree-items a:hover {
-  color: #0084ff;
+  color: var(--qwik-blue);
 }
 
 .output-modules .file-modules {
@@ -217,7 +217,7 @@
 
 .output-modules .file-size {
   font-weight: normal;
-  color: #0084ff;
+  color: var(--qwik-blue);
   padding-left: 8px;
 }
 

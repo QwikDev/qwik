@@ -1,23 +1,23 @@
-import type { ReplStore } from './types';
+import type { ReplAppInput } from './types';
 
-export const ReplOptions = ({ store }: ReplOptionsProps) => {
+export const ReplOptions = ({ input, versions }: ReplOptionsProps) => {
   return (
     <div class="output-detail detail-options" key="options">
       <StoreOption
         label="Entry Strategy"
-        storeProp="entryStrategy"
+        inputProp="entryStrategy"
         options={ENTRY_STRATEGY_OPTIONS}
-        store={store}
+        input={input}
       />
 
-      <StoreOption label="Mode" storeProp="buildMode" options={MODE_OPTIONS} store={store} />
+      <StoreOption label="Mode" inputProp="buildMode" options={BUILD_MODE_OPTIONS} input={input} />
 
       <StoreOption
         label="Version"
-        storeProp="version"
-        options={store.versions}
-        store={store}
-        isLoading={store.versions.length === 0}
+        inputProp="version"
+        options={versions}
+        input={input}
+        isLoading={versions.length === 0}
       />
     </div>
   );
@@ -30,14 +30,14 @@ const StoreOption = (props: StoreOptionProps) => {
       <select
         onChange$={(ev?: any) => {
           const select: HTMLSelectElement = ev.target;
-          (props as any).store[props.storeProp] = select.value as any;
+          (props.input as any)[props.inputProp] = select.value as any;
         }}
         disabled={!!props.isLoading}
       >
         {props.options.map((value) => (
           <option
             value={value}
-            selected={value === props.store[props.storeProp] ? true : undefined}
+            selected={value === props.input[props.inputProp] ? true : undefined}
             key={value}
           >
             {value}
@@ -49,18 +49,19 @@ const StoreOption = (props: StoreOptionProps) => {
   );
 };
 
-const MODE_OPTIONS = ['development', 'production'];
+export const BUILD_MODE_OPTIONS = ['development', 'production'];
 
-const ENTRY_STRATEGY_OPTIONS = ['component', 'hook', 'single', 'smart', 'inline'];
+export const ENTRY_STRATEGY_OPTIONS = ['component', 'hook', 'single', 'smart', 'inline'];
 
 interface StoreOptionProps {
   label: string;
   options: string[];
-  store: ReplStore;
-  storeProp: keyof ReplStore;
+  input: ReplAppInput;
+  inputProp: keyof ReplAppInput;
   isLoading?: boolean;
 }
 
 interface ReplOptionsProps {
-  store: ReplStore;
+  input: ReplAppInput;
+  versions: string[];
 }

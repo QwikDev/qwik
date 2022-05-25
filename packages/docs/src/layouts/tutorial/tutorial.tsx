@@ -4,6 +4,7 @@ import {
   Slot,
   useHostElement,
   useScopedStyles$,
+  useStore,
   useWatch$,
 } from '@builder.io/qwik';
 import { useLocation } from '../../utils/useLocation';
@@ -14,6 +15,7 @@ import { TutorialContentHeader } from './tutorial-content-header';
 import tutorialSections, { TutorialApp } from '@tutorial-data';
 import { Header } from '../../components/header/header';
 import { setHeadStyles } from '@builder.io/qwik-city';
+import type { ReplAppInput } from '../../components/repl/types';
 
 const Tutorial = component$(() => {
   useScopedStyles$(styles);
@@ -39,24 +41,36 @@ const Tutorial = component$(() => {
 
   const current = getTutorialApp();
   if (!current) {
-    return <p>Unable to find tutorial: {loc.pathname}</p>;
+    return <p>Unable to find tutorial "{loc.pathname}"</p>;
   }
+
+  const store = useStore<TutorialStore>(() => {
+    const files = current.problemInputs;
+
+    if (!files.some((i) => i.code === '/root.tsx')) {
+      files.push({ path: '/root.tsx', code: DEFAULT_ROOT, hidden: true });
+    }
+
+    if (!files.some((i) => i.code === '/entry.server.tsx')) {
+      files.push({ path: '/entry.server.tsx', code: DEFAULT_ENTRY_SERVER, hidden: true });
+    }
+
+    const initStore: TutorialStore = {
+      buildId: 0,
+      files,
+      version: '',
+      buildMode: 'development',
+      entryStrategy: 'hook',
+    };
+    return initStore;
+  });
+
   const tutorials: TutorialApp[] = [];
   tutorialSections.forEach((s) => tutorials.push(...s.apps));
 
   const currentIndex = tutorials.findIndex((i) => i.id === current.id);
   const prev = tutorials[currentIndex - 1];
   const next = tutorials[currentIndex + 1];
-
-  const inputs = current.problemInputs;
-
-  if (!inputs.some((i) => i.code === '/root.tsx')) {
-    inputs.push({ path: '/root.tsx', code: DEFAULT_ROOT, hidden: true });
-  }
-
-  if (!inputs.some((i) => i.code === '/entry.server.tsx')) {
-    inputs.push({ path: '/entry.server.tsx', code: DEFAULT_ENTRY_SERVER, hidden: true });
-  }
 
   return (
     <Host class="full-width tutorial">
@@ -80,7 +94,7 @@ const Tutorial = component$(() => {
         </div>
         <div class="tutorial-repl-panel">
           <Repl
-            inputs={inputs}
+            input={store}
             enableHtmlOutput={current.enableHtmlOutput}
             enableClientOutput={current.enableClientOutput}
             enableSsrOutput={current.enableSsrOutput}
@@ -91,6 +105,8 @@ const Tutorial = component$(() => {
     </Host>
   );
 });
+
+interface TutorialStore extends ReplAppInput {}
 
 export const DEFAULT_ENTRY_SERVER = `
 import { renderToString, RenderToStringOptions } from '@builder.io/qwik/server';

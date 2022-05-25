@@ -91,7 +91,7 @@
 }
 
 .content-main a {
-  color: #0084ff;
+  color: var(--qwik-blue);
   text-decoration: underline;
 }
 

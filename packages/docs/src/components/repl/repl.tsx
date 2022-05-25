@@ -11,7 +11,7 @@ import {
 import { ReplInputPanel } from './repl-input-panel';
 import { ReplOutputPanel } from './repl-output-panel';
 import styles from './repl.css?inline';
-import type { ReplStore, ReplModuleInput, ReplUpdateMessage, ReplMessage } from './types';
+import type { ReplStore, ReplUpdateMessage, ReplMessage, ReplAppInput } from './types';
 import { ReplDetailPanel } from './repl-detail-panel';
 import { getReplVersion } from './repl-version';
 import { updateReplOutput } from './repl-output-update';
@@ -19,55 +19,56 @@ import { updateReplOutput } from './repl-output-update';
 export const Repl = component$(async (props: ReplProps) => {
   useScopedStyles$(styles);
 
-  const store = useStore<ReplStore>(() => ({
-    clientId: Math.round(Math.random() * Number.MAX_SAFE_INTEGER).toString(36),
-    html: '',
-    clientModules: [],
-    ssrModules: [],
-    diagnostics: [],
-    monacoDiagnostics: [],
-    enableClientOutput: props.enableClientOutput !== false,
-    enableHtmlOutput: props.enableHtmlOutput !== false,
-    enableSsrOutput: props.enableSsrOutput !== false,
-    enableConsole: true,
-    selectedInputPath: '',
-    selectedOutputPanel: 'app',
-    selectedOutputDetail: 'console',
-    selectedClientModule: '',
-    selectedSsrModule: '',
-    ssrBuild: true,
-    debug: false,
-    serverUrl: 'about:blank',
-    serverWindow: null,
-    version: props.version,
-    entryStrategy: props.entryStrategy || 'hook',
-    buildMode: props.buildMode || 'development',
-    versions: [],
-    build: 0,
-    events: [],
-  }));
+  const input = props.input;
 
-  useWatch$(async (track) => {
-    track(props, 'inputs');
+  const store = useStore(() => {
+    const initStore: ReplStore = {
+      clientId: Math.round(Math.random() * Number.MAX_SAFE_INTEGER).toString(36),
+      html: '',
+      clientModules: [],
+      ssrModules: [],
+      diagnostics: [],
+      monacoDiagnostics: [],
+      enableClientOutput: props.enableClientOutput !== false,
+      enableHtmlOutput: props.enableHtmlOutput !== false,
+      enableSsrOutput: props.enableSsrOutput !== false,
+      enableConsole: true,
+      selectedInputPath: '',
+      selectedOutputPanel: 'app',
+      selectedOutputDetail: 'console',
+      selectedClientModule: '',
+      selectedSsrModule: '',
+      ssrBuild: true,
+      debug: false,
+      serverUrl: 'about:blank',
+      serverWindow: null,
+      versions: [],
+      events: [],
+    };
+    return initStore;
+  });
 
-    if (!props.inputs.some((i) => i.path === props.selectedInputPath)) {
-      store.selectedInputPath = props.inputs[0].path;
+  useWatch$((track) => {
+    track(input, 'files');
+
+    if (!input.files.some((i) => i.path === props.selectedInputPath) && input.files.length > 0) {
+      store.selectedInputPath = input.files[0].path;
     }
   });
 
   const onInputChange = $((path: string, code: string) => {
-    const input = props.inputs.find((i) => i.path === path);
-    if (input) {
-      input.code = code;
-      store.build++;
+    const file = input.files.find((i) => i.path === path);
+    if (file) {
+      file.code = code;
+      input.buildId++;
     }
   });
 
   const onInputDelete = $((path: string) => {
-    props.inputs = props.inputs.filter((i) => i.path !== path);
+    input.files = input.files.filter((i) => i.path !== path);
     if (store.selectedInputPath === path) {
-      if (props.inputs.length > 0) {
-        store.selectedInputPath = props.inputs[0].path;
+      if (input.files.length > 0) {
+        store.selectedInputPath = input.files[0].path;
       } else {
         store.selectedInputPath = '';
       }
@@ -76,7 +77,7 @@ export const Repl = component$(async (props: ReplProps) => {
 
   useClientEffect$(async () => {
     // only run on the client
-    const v = await getReplVersion(store.version);
+    const v = await getReplVersion(input.version);
 
     if (v.version) {
       let serverUrl = `/repl/repl-server`;
@@ -87,7 +88,7 @@ export const Repl = component$(async (props: ReplProps) => {
       serverUrl += `#${store.clientId}`;
 
       store.versions = v.versions;
-      store.version = v.version;
+      input.version = v.version;
       store.serverUrl = serverUrl;
 
       window.addEventListener('message', (ev) => receiveMessageFromReplServer(ev, store));
@@ -95,25 +96,26 @@ export const Repl = component$(async (props: ReplProps) => {
   });
 
   useWatch$((track) => {
-    track(store, 'entryStrategy');
-    track(store, 'buildMode');
-    track(props, 'inputs');
-    track(store, 'version');
+    track(input, 'buildId');
+    track(input, 'buildMode');
+    track(input, 'entryStrategy');
+    track(input, 'files');
+    track(input, 'version');
     track(store, 'serverWindow');
-    track(store, 'build');
-    sendUserUpdateToReplServer(store, props.inputs);
+
+    sendUserUpdateToReplServer(input, store);
   });
 
   return (
     <Host class="repl">
       <ReplInputPanel
-        inputs={props.inputs}
+        input={input}
         store={store}
         onInputChangeQrl={onInputChange}
         onInputDeleteQrl={onInputDelete}
       />
-      <ReplOutputPanel store={store} />
-      <ReplDetailPanel store={store} />
+      <ReplOutputPanel input={input} store={store} />
+      <ReplDetailPanel input={input} store={store} />
     </Host>
   );
 });
@@ -136,24 +138,24 @@ export const receiveMessageFromReplServer = (ev: MessageEvent, store: ReplStore)
   }
 };
 
-export const sendUserUpdateToReplServer = (store: ReplStore, inputs: ReplModuleInput[]) => {
-  if (store.version && store.serverWindow) {
+export const sendUserUpdateToReplServer = (input: ReplAppInput, store: ReplStore) => {
+  if (input.version && store.serverWindow) {
     const msg: ReplUpdateMessage = {
       type: 'update',
       clientId: store.clientId,
       options: {
-        buildId: String(store.build),
+        buildId: input.buildId,
         debug: store.debug,
-        srcInputs: inputs,
-        buildMode: store.buildMode,
+        srcInputs: input.files,
+        buildMode: input.buildMode as any,
         entryStrategy: {
-          type: store.entryStrategy as any,
+          type: input.entryStrategy as any,
         },
-        version: store.version,
+        version: input.version,
       },
     };
 
-    if (msg.options.srcInputs.length > 0) {
+    if (msg.options.srcInputs && msg.options.srcInputs.length > 0) {
       // using JSON.stringify() to remove proxies
       store.serverWindow.postMessage(JSON.stringify(msg));
     }
@@ -161,12 +163,9 @@ export const sendUserUpdateToReplServer = (store: ReplStore, inputs: ReplModuleI
 };
 
 export interface ReplProps {
-  inputs: ReplModuleInput[];
+  input: ReplAppInput;
   selectedInputPath?: string;
   enableHtmlOutput?: boolean;
   enableClientOutput?: boolean;
   enableSsrOutput?: boolean;
-  version?: string;
-  entryStrategy?: string;
-  buildMode?: 'development' | 'production';
 }

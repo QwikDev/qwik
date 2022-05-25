@@ -52,8 +52,6 @@ export const onRequestGet: PagesFunction = async ({ request, next, waitUntil }) 
 
     const response = new Response(result.html, {
       headers: {
-        'Cross-Origin-Embedder-Policy': 'credentialless',
-        'Cross-Origin-Opener-Policy': 'same-origin',
         'Content-Type': 'text/html; charset=utf-8',
         'Cache-Control': useCache
           ? `max-age=60, s-maxage=10, stale-while-revalidate=604800, stale-if-error=604800`

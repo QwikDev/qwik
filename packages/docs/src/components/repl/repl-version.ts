@@ -3,30 +3,17 @@ export const getReplVersion = async (version: string | undefined) => {
   let npmData: NpmData | null = null;
 
   try {
-    npmData = JSON.parse(sessionStorage.getItem(NPM_STORAGE_KEY)!);
-    if (!npmData) {
+    npmData = JSON.parse(localStorage.getItem(NPM_STORAGE_KEY)!);
+    if (isExpiredNpmData(npmData)) {
       // fetch most recent NPM version data
       const npmRsp = await fetch(QWIK_NPM_DATA);
-      const dataStr = await npmRsp.text();
-      npmData = JSON.parse(dataStr);
+      npmData = await npmRsp.json();
+      npmData!.timestamp = Date.now();
 
-      // only fetch this data once per browser session
-      sessionStorage.setItem(NPM_STORAGE_KEY, dataStr);
-
-      // store only for offline fallback
-      localStorage.setItem(NPM_STORAGE_KEY, dataStr);
+      localStorage.setItem(NPM_STORAGE_KEY, JSON.stringify(npmData));
     }
   } catch (e) {
     console.warn(e);
-  }
-
-  if (!npmData) {
-    try {
-      // fallback to last valid data if offline
-      npmData = JSON.parse(localStorage.getItem(NPM_STORAGE_KEY)!);
-    } catch (e) {
-      console.warn(e);
-    }
   }
 
   if (npmData && Array.isArray(npmData.versions)) {
@@ -34,8 +21,7 @@ export const getReplVersion = async (version: string | undefined) => {
       if (v === version) {
         return true;
       }
-      if (npmData?.tags.next === v) {
-        // always ok to includ the "next" version
+      if ((npmData?.tags.latest === v || npmData?.tags.next) === v) {
         return true;
       }
       if (v.includes('-')) {
@@ -74,6 +60,15 @@ export const getReplVersion = async (version: string | undefined) => {
   return { version, versions };
 };
 
+const isExpiredNpmData = (npmData: NpmData | null) => {
+  if (npmData && typeof npmData.timestamp === 'number') {
+    if (npmData.timestamp + 1000 * 60 * 60 * 2 > Date.now()) {
+      return false;
+    }
+  }
+  return true;
+};
+
 const QWIK_NPM_DATA = `https://data.jsdelivr.com/v1/package/npm/@builder.io/qwik`;
 
 const NPM_STORAGE_KEY = `qwikNpmData`;
@@ -82,4 +77,5 @@ const NPM_STORAGE_KEY = `qwikNpmData`;
 interface NpmData {
   tags: { latest: string; next: string };
   versions: string[];
+  timestamp: number;
 }

@@ -4,7 +4,7 @@ import { ReplTabButton } from './repl-tab-button';
 import { ReplTabButtons } from './repl-tab-buttons';
 import type { ReplAppInput, ReplStore } from './types';
 
-export const ReplDetailPanel = ({ store, input }: ReplDetailPanelProps) => {
+export const ReplDetailPanel = ({ input, store }: ReplDetailPanelProps) => {
   return (
     <div class="repl-panel repl-detail-panel">
       <ReplTabButtons>
@@ -35,6 +35,6 @@ export const ReplDetailPanel = ({ store, input }: ReplDetailPanelProps) => {
 };
 
 interface ReplDetailPanelProps {
-  store: ReplStore;
   input: ReplAppInput;
+  store: ReplStore;
 }

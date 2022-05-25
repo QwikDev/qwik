@@ -109,14 +109,13 @@ export const Repl = component$(async (props: ReplProps) => {
   return (
     <Host class="repl">
       <ReplInputPanel
-        version={input.version!}
-        inputs={input.files}
+        input={input}
         store={store}
         onInputChangeQrl={onInputChange}
         onInputDeleteQrl={onInputDelete}
       />
-      <ReplOutputPanel store={store} />
-      <ReplDetailPanel store={store} input={input} />
+      <ReplOutputPanel input={input} store={store} />
+      <ReplDetailPanel input={input} store={store} />
     </Host>
   );
 });

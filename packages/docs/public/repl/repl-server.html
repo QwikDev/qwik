@@ -28,8 +28,6 @@
     <script type="module">
       const clientId = location.hash.split('#')[1];
 
-      let swRegistration = null;
-
       const updateApp = (result) => {
         const iframe = document.createElement('iframe');
         iframe.classList.add('loading');
@@ -52,6 +50,8 @@
 
         document.body.appendChild(iframe);
       };
+
+      let swRegistration = null;
 
       const receiveMessageFromMainApp = (ev) => {
         if (swRegistration && swRegistration.active) {
@@ -84,7 +84,6 @@
       const receiveMessageFromUserApp = (ev) => {
         if (ev.data) {
           const msg = JSON.parse(ev.data);
-          console.log(msg);
           if (msg?.type === 'event') {
             sendMessageToMain(msg);
           }

@@ -11,6 +11,7 @@ import styles from './examples.css?inline';
 import { Header } from '../../components/header/header';
 import { setHeadMeta, setHeadStyles } from '@builder.io/qwik-city';
 import exampleSections, { ExampleApp } from '@examples-data';
+import type { ReplAppInput } from '../../components/repl/types';
 
 const Examples = component$((props: ExamplesProp) => {
   const hostElm = useHostElement();
@@ -18,15 +19,22 @@ const Examples = component$((props: ExamplesProp) => {
   const store = useStore<ExamplesStore>(() => {
     //  /examples/section/app-id
     const app = getExampleApp(props.appId);
-    return {
+
+    const initStore: ExamplesStore = {
       appId: props.appId,
-      app,
+      buildId: 0,
+      buildMode: 'development',
+      entryStrategy: 'hook',
+      files: app?.inputs || [],
+      version: '',
     };
+    return initStore;
   });
 
   useWatch$((track) => {
     const appId = track(store, 'appId');
-    store.app = getExampleApp(appId);
+    const app = getExampleApp(appId);
+    store.files = app?.inputs || [];
   });
 
   useWatch$(() => {
@@ -81,10 +89,9 @@ const Examples = component$((props: ExamplesProp) => {
         </div>
 
         <main class="examples-repl">
-          {store.app ? (
+          {store.files.length > 0 ? (
             <Repl
-              inputs={store.app.inputs}
-              entryStrategy={'hook'}
+              input={store}
               enableSsrOutput={false}
               enableClientOutput={false}
               enableHtmlOutput={false}
@@ -112,9 +119,8 @@ interface ExamplesProp {
   appId: string;
 }
 
-interface ExamplesStore {
+interface ExamplesStore extends ReplAppInput {
   appId: string;
-  app: ExampleApp | undefined;
 }
 
 export default Examples;

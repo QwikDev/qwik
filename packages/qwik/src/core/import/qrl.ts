@@ -174,9 +174,9 @@ export function stringifyQRL(qrl: QRL, opts: QRLSerializeOptions = {}) {
   if (platform) {
     const result = platform.chunkForSymbol(refSymbol);
     if (result) {
-      chunk = result[0];
+      chunk = result[1];
       if (!qrl_.refSymbol) {
-        symbol = result[1];
+        symbol = result[0];
       }
     }
   }

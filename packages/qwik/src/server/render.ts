@@ -3,12 +3,14 @@ import { pauseContainer, render } from '@builder.io/qwik';
 import type { SnapshotResult } from '@builder.io/qwik';
 import { setServerPlatform } from './platform';
 import { serializeDocument } from './serialize';
-import type { RenderToStringOptions, RenderToStringResult } from './types';
+import type { QwikManifest, RenderToStringOptions, RenderToStringResult } from './types';
 import { getElement } from '../core/render/render.public';
 import { getQwikLoaderScript } from './scripts';
 import { applyPrefetchImplementation } from './prefetch-implementation';
 import { getPrefetchResources } from './prefetch-strategy';
 import { _createDocument } from './document';
+import type { SymbolMapper } from '../optimizer/src/types';
+import { getCanonicalSymbol } from '../core/import/qrl-class';
 
 /**
  * Creates a server-side `document`, renders to root node to the document,
@@ -32,8 +34,9 @@ export async function renderToString(rootNode: any, opts: RenderToStringOptions 
     rootEl = doc.createElement(opts.fragmentTagName);
     doc.body.appendChild(rootEl);
   }
+  const mapper = computeSymbolMapper(opts.manifest);
 
-  await setServerPlatform(doc, opts);
+  await setServerPlatform(doc, opts, mapper);
 
   await render(doc, rootNode);
   const renderDocTime = renderDocTimer();
@@ -46,8 +49,7 @@ export async function renderToString(rootNode: any, opts: RenderToStringOptions 
   if (opts.snapshot !== false) {
     snapshotResult = pauseContainer(doc);
   }
-
-  const prefetchResources = getPrefetchResources(snapshotResult, opts);
+  const prefetchResources = getPrefetchResources(snapshotResult, opts, mapper);
   if (prefetchResources.length > 0) {
     applyPrefetchImplementation(doc, opts, prefetchResources);
   }
@@ -77,4 +79,14 @@ export async function renderToString(rootNode: any, opts: RenderToStringOptions 
   };
 
   return result;
+}
+
+function computeSymbolMapper(manifest: QwikManifest | undefined): SymbolMapper {
+  const mapper: SymbolMapper = {};
+  if (manifest) {
+    Object.entries(manifest.mapping).forEach(([key, value]) => {
+      mapper[getCanonicalSymbol(key)] = [key, value];
+    });
+  }
+  return mapper;
 }

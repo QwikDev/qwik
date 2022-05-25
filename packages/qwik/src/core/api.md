@@ -113,7 +113,7 @@ export interface Context<STATE extends object> {
 
 // @public (undocumented)
 export interface CorePlatform {
-    chunkForSymbol: (symbolName: string) => [string, string] | undefined;
+    chunkForSymbol: (symbolName: string) => [symbol: string, chunk: string] | undefined;
     importSymbol: (element: Element, url: string | URL, symbol: string) => ValueOrPromise<any>;
     isServer: boolean;
     // (undocumented)
@@ -393,13 +393,15 @@ export interface QRL<TYPE = any> {
     // (undocumented)
     __brand__QRL__: TYPE;
     // (undocumented)
+    getCanonicalSymbol(): string;
+    // (undocumented)
+    getSymbol(): string;
+    // (undocumented)
     invoke(...args: TYPE extends (...args: infer ARGS) => any ? ARGS : never): Promise<TYPE extends (...args: any[]) => infer RETURN ? RETURN : never>;
     // (undocumented)
     invokeFn(el?: Element, context?: InvokeContext, beforeFn?: () => void): TYPE extends (...args: infer ARGS) => infer RETURN ? (...args: ARGS) => ValueOrPromise<RETURN> : never;
     // (undocumented)
     resolve(container?: Element): Promise<TYPE>;
-    // (undocumented)
-    symbol: string;
 }
 
 // @alpha

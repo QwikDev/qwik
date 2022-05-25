@@ -6,11 +6,13 @@ import type {
   RenderToStringOptions,
   SnapshotResult,
 } from './types';
-import { getQRLSymbol, isQrl, isSameSymbol } from '../core/import/qrl-class';
+import { isQrl } from '../core/import/qrl-class';
+import type { SymbolMapper } from '../optimizer/src/types';
 
 export function getPrefetchResources(
   snapshotResult: SnapshotResult | null,
-  opts: RenderToStringOptions
+  opts: RenderToStringOptions,
+  mapper: SymbolMapper
 ): PrefetchResource[] {
   const manifest = getValidManifest(opts.manifest);
   if (manifest) {
@@ -29,7 +31,7 @@ export function getPrefetchResources(
         // if prefetchStrategy is undefined
         // or prefetchStrategy.symbolsToPrefetch is undefined
         // get event QRLs used in this document
-        return getAutoPrefetch(snapshotResult, manifest, buildBase);
+        return getAutoPrefetch(snapshotResult, manifest, mapper, buildBase);
       }
 
       if (typeof prefetchStrategy.symbolsToPrefetch === 'function') {
@@ -50,6 +52,7 @@ export function getPrefetchResources(
 function getAutoPrefetch(
   snapshotResult: SnapshotResult | null,
   manifest: QwikManifest,
+  mapper: SymbolMapper,
   buildBase: string
 ) {
   const prefetchResources: PrefetchResource[] = [];
@@ -59,20 +62,13 @@ function getAutoPrefetch(
 
   if (Array.isArray(listeners)) {
     // manifest already prioritized the symbols at build time
-    for (const prioritizedSymbolName in manifest.mapping) {
+    for (const prioritizedSymbolName in mapper) {
       const hasSymbol = listeners.some((l) => {
-        const qrlSymbol = getQRLSymbol(l.qrl as any);
-        return isSameSymbol(prioritizedSymbolName, qrlSymbol);
+        return l.qrl.getCanonicalSymbol() === prioritizedSymbolName;
       });
 
       if (hasSymbol) {
-        addBundle(
-          manifest,
-          urls,
-          prefetchResources,
-          buildBase,
-          manifest.mapping[prioritizedSymbolName]
-        );
+        addBundle(manifest, urls, prefetchResources, buildBase, mapper[prioritizedSymbolName][1]);
       }
     }
   }
@@ -80,9 +76,9 @@ function getAutoPrefetch(
   if (Array.isArray(stateObjs)) {
     for (const obj of stateObjs) {
       if (isQrl(obj)) {
-        const qrlSymbolName = getQRLSymbol(obj);
+        const qrlSymbolName = obj.getCanonicalSymbol();
         // TODO, imporove symbol to bundle lookup
-        addBundle(manifest, urls, prefetchResources, buildBase, manifest.mapping[qrlSymbolName]);
+        addBundle(manifest, urls, prefetchResources, buildBase, mapper[qrlSymbolName][0]);
       }
     }
   }

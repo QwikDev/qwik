@@ -111,12 +111,6 @@ function addBundle(
           addBundle(manifest, urls, prefetchResource.imports, buildBase, importedFilename);
         }
       }
-
-      if (Array.isArray(bundle.dynamicImports)) {
-        for (const importedFilename of bundle.dynamicImports) {
-          addBundle(manifest, urls, prefetchResource.imports, buildBase, importedFilename);
-        }
-      }
     }
   }
 }

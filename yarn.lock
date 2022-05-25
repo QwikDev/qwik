@@ -409,7 +409,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@builder.io/qwik-city@0.0.6, @builder.io/qwik-city@workspace:packages/qwik-city":
+"@builder.io/qwik-city@0.0.7, @builder.io/qwik-city@workspace:packages/qwik-city":
   version: 0.0.0-use.local
   resolution: "@builder.io/qwik-city@workspace:packages/qwik-city"
   dependencies:
@@ -7621,7 +7621,7 @@ __metadata:
   dependencies:
     "@builder.io/partytown": ^0.5.4
     "@builder.io/qwik": 0.0.20
-    "@builder.io/qwik-city": 0.0.6
+    "@builder.io/qwik-city": 0.0.7
     "@cloudflare/kv-asset-handler": 0.2.0
     "@cloudflare/workers-types": ^3.10.0
     autoprefixer: 10.4.7

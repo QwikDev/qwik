@@ -2,7 +2,7 @@ import fs from 'fs';
 import { extname, join } from 'path';
 import { parseMarkdownFile, parseIndexFile } from './parse';
 import type { PluginContext } from './types';
-import { IGNORE_EXT, IGNORE_NAMES, isMarkdownFile, isReadmeFile } from './utils';
+import { IGNORE_EXT, IGNORE_NAMES, isMarkdownFile, isIndexFile } from './utils';
 
 export async function loadPages(ctx: PluginContext, warn: (msg: string) => void) {
   ctx.pages = [];
@@ -19,7 +19,7 @@ async function loadPagesDir(ctx: PluginContext, dir: string, warn: (msg: string)
         if (!IGNORE_NAMES[itemName]) {
           try {
             const itemPath = join(dir, itemName);
-            if (isReadmeFile(itemName)) {
+            if (isIndexFile(itemName)) {
               const indexContent = await fs.promises.readFile(itemPath, 'utf-8');
               const index = parseIndexFile(ctx, itemPath, indexContent);
               ctx.indexes.push(index);

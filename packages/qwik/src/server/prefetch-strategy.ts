@@ -6,7 +6,7 @@ import type {
   RenderToStringOptions,
   SnapshotResult,
 } from './types';
-import { isQrl } from '../core/import/qrl-class';
+import { getQRLSymbol, isQrl, isSameSymbol } from '../core/import/qrl-class';
 
 export function getPrefetchResources(
   snapshotResult: SnapshotResult | null,
@@ -23,18 +23,13 @@ export function getPrefetchResources(
       if (
         !prefetchStrategy ||
         !prefetchStrategy.symbolsToPrefetch ||
-        prefetchStrategy.symbolsToPrefetch === 'events-document'
+        prefetchStrategy.symbolsToPrefetch === 'auto'
       ) {
         // DEFAULT 'events-document'
         // if prefetchStrategy is undefined
         // or prefetchStrategy.symbolsToPrefetch is undefined
         // get event QRLs used in this document
-        return getEventDocumentPrefetch(snapshotResult, manifest, buildBase);
-      }
-
-      if (prefetchStrategy.symbolsToPrefetch === 'all') {
-        // get all QRLs used in this app
-        return getAllPrefetch(manifest, buildBase);
+        return getAutoPrefetch(snapshotResult, manifest, buildBase);
       }
 
       if (typeof prefetchStrategy.symbolsToPrefetch === 'function') {
@@ -52,7 +47,7 @@ export function getPrefetchResources(
   return [];
 }
 
-function getEventDocumentPrefetch(
+function getAutoPrefetch(
   snapshotResult: SnapshotResult | null,
   manifest: QwikManifest,
   buildBase: string
@@ -65,7 +60,11 @@ function getEventDocumentPrefetch(
   if (Array.isArray(listeners)) {
     // manifest already prioritized the symbols at build time
     for (const prioritizedSymbolName in manifest.mapping) {
-      const hasSymbol = listeners.some((l) => l.key === prioritizedSymbolName);
+      const hasSymbol = listeners.some((l) => {
+        const qrlSymbol = getQRLSymbol(l.qrl as any);
+        return isSameSymbol(prioritizedSymbolName, qrlSymbol);
+      });
+
       if (hasSymbol) {
         addBundle(
           manifest,
@@ -81,27 +80,11 @@ function getEventDocumentPrefetch(
   if (Array.isArray(stateObjs)) {
     for (const obj of stateObjs) {
       if (isQrl(obj)) {
-        addBundle(manifest, urls, prefetchResources, buildBase, manifest.mapping[obj.symbol]);
+        const qrlSymbolName = getQRLSymbol(obj);
+        // TODO, imporove symbol to bundle lookup
+        addBundle(manifest, urls, prefetchResources, buildBase, manifest.mapping[qrlSymbolName]);
       }
     }
-  }
-
-  return prefetchResources;
-}
-
-function getAllPrefetch(manifest: QwikManifest, buildBase: string) {
-  const prefetchResources: PrefetchResource[] = [];
-  const urls = new Set<string>();
-
-  // manifest already prioritized the symbols at build time
-  for (const prioritizedSymbolName in manifest.mapping) {
-    addBundle(
-      manifest,
-      urls,
-      prefetchResources,
-      buildBase,
-      manifest.mapping[prioritizedSymbolName]
-    );
   }
 
   return prefetchResources;

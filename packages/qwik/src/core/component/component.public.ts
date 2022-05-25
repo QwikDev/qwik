@@ -108,7 +108,7 @@ export const useCleanup$ = implicit$FirstArg(useCleanupQrl);
  */
 // </docs>
 export function useResumeQrl(resumeFn: QRL<() => void>): void {
-  useOn('qresume', resumeFn);
+  useOn('qinit', resumeFn);
 }
 
 // <docs markdown="../readme.md#useResume">
@@ -490,7 +490,8 @@ export function componentQrl<PROPS extends {}>(
 
   // Return a QComponent Factory function.
   return function QSimpleComponent(props, key): JSXNode<PROPS> {
-    return jsx(tagName, { [OnRenderProp]: onRenderQrl, ...props }, key) as any;
+    const finalKey = onRenderQrl.symbol + ':' + (key ? key : '');
+    return jsx(tagName, { [OnRenderProp]: onRenderQrl, ...props }, finalKey) as any;
   };
 }
 
@@ -558,7 +559,9 @@ export function component$<PROPS extends {}>(
 /**
  * @public
  */
-export type OnRenderFn<PROPS> = (props: PROPS) => ValueOrPromise<JSXNode<any> | null>;
+export type OnRenderFn<PROPS> = (
+  props: PROPS
+) => ValueOrPromise<JSXNode<any> | null | (() => JSXNode<any>)>;
 
 export interface RenderFactoryOutput<PROPS> {
   renderQRL: QRL<OnRenderFn<PROPS>>;

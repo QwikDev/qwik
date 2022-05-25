@@ -129,6 +129,7 @@ import { runtimeQrl } from './qrl';
 // </docs>
 export interface QRL<TYPE = any> {
   __brand__QRL__: TYPE;
+  symbol: string;
   resolve(container?: Element): Promise<TYPE>;
   invoke(
     ...args: TYPE extends (...args: infer ARGS) => any ? ARGS : never

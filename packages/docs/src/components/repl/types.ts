@@ -1,8 +1,16 @@
-import type { Diagnostic, QwikRollupPluginOptions, QwikManifest } from '@builder.io/qwik/optimizer';
+import type { Diagnostic, QwikManifest, QwikRollupPluginOptions } from '@builder.io/qwik/optimizer';
 import type { NoSerialize } from '@builder.io/qwik';
 
+export interface ReplAppInput {
+  buildId: number;
+  files: ReplModuleInput[];
+  version: string;
+  buildMode: 'development' | 'production';
+  entryStrategy: string;
+}
+
 export interface ReplInputOptions extends Omit<QwikRollupPluginOptions, 'srcDir' | 'minify'> {
-  buildId: string;
+  buildId: number;
   srcInputs: ReplModuleInput[];
   version: string;
   buildMode: 'development' | 'production';
@@ -24,16 +32,12 @@ export interface ReplStore {
   enableClientOutput: boolean;
   enableSsrOutput: boolean;
   enableConsole: boolean;
-  buildMode: 'development' | 'production';
   ssrBuild: boolean;
-  entryStrategy: string;
   debug: boolean;
   serverUrl: string;
   serverWindow: NoSerialize<MessageEventSource> | null;
-  version: string | undefined;
   versions: string[];
   events: ReplEvent[];
-  build: 0;
 }
 
 export interface ReplModuleInput {
@@ -84,13 +88,13 @@ export interface ReplEvent {
     | 'client-module'
     | 'prefetch';
   scope: 'ssr' | 'client' | 'build' | 'network';
-  message: string;
+  message: string[];
   element?: Element;
 }
 
 export interface ReplResult extends ReplMessageBase {
   type: 'result';
-  buildId: string;
+  buildId: number;
   html: string;
   clientModules: ReplModuleOutput[];
   ssrModules: ReplModuleOutput[];

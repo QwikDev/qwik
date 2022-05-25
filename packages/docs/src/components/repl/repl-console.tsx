@@ -1,4 +1,4 @@
-import { component$, Host } from '@builder.io/qwik';
+import { component$, Host, jsx } from '@builder.io/qwik';
 import type { ReplEvent, ReplStore } from './types';
 
 export interface ReplConsoleProps {
@@ -19,18 +19,20 @@ export function ReplLog({ log }: { log: ReplEvent }) {
   if (log.end) {
     elapsed = renderElapsed(log.end - log.start);
   }
+  if (log.scope === 'build') {
+    return null;
+  }
   switch (log.kind) {
     case 'pause':
       return (
         <div class="line paused">
-          <div class="content">⏸ Paused in SSR</div>
-          {elapsed ? <div class="elapsed">{elapsed}</div> : null}
+          <div class="content">🔴 Paused in server</div>
         </div>
       );
     case 'resume':
       return (
         <div class="line resumed">
-          <div class="content">▶️ Resumed in client</div>
+          <div class="content">🟢 Resumed in client</div>
           {elapsed ? <div class="elapsed">{elapsed}</div> : null}
         </div>
       );
@@ -41,33 +43,49 @@ export function ReplLog({ log }: { log: ReplEvent }) {
       return (
         <div class={`log ${log.kind}`}>
           <div class={`platform ${log.scope}`}>{log.scope}</div>
-          <div class="content">{log.message}</div>
+          <div class="content">{renderConsoleMessage(log.message)}</div>
           {elapsed ? <div class="elapsed">{elapsed}</div> : null}
-        </div>
-      );
-    case 'symbol':
-      return (
-        <div class={`log ${log.kind}`}>
-          <div class={`platform ${log.scope}"`}>{log.scope}</div>
-          <div class="content">{log.message}</div>
         </div>
       );
     case 'prefetch':
       return (
         <div class={`log ${log.kind}`}>
-          <div class={`platform ${log.scope}"`}>{log.scope}</div>
+          <div class={`platform ${log.scope}`}>{log.scope}</div>
           <div class="content">{log.message}</div>
         </div>
       );
     case 'client-module':
       return (
         <div class={`log ${log.kind}`}>
-          <div class={`platform ${log.scope}"`}>{log.scope}</div>
-          <div class="content">{log.message}</div>
+          <div class={`platform ${log.scope}`}>{log.scope}</div>
+          <div class="content">{basename(log.message.join(' '))}</div>
         </div>
       );
   }
-  return <div class=""></div>;
+  return null;
+}
+
+const styleprefix = '%c';
+function renderConsoleMessage(texts: string[]) {
+  const nodes = [];
+  for (let i = 0; i < texts.length; i++) {
+    const msg = texts[i];
+    if (msg.startsWith(styleprefix)) {
+      nodes.push(jsx('span', { style: texts[i + 1], children: msg.slice(styleprefix.length) }));
+      i++;
+    } else {
+      nodes.push(' ' + msg);
+    }
+  }
+  return nodes;
+}
+
+function basename(str: string) {
+  const index = str.lastIndexOf('/');
+  if (index > 0) {
+    return str.slice(index + 1);
+  }
+  return str;
 }
 
 function renderElapsed(millis: number) {

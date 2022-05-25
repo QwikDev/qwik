@@ -6,7 +6,6 @@ export type {
   QwikManifest,
   QwikBundle,
   QwikSymbol,
-  QrlMapper,
   RenderToStringOptions,
   RenderToStringResult,
   SnapshotResult,

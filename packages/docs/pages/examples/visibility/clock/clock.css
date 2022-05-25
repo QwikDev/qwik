@@ -52,12 +52,12 @@
 }
 
 .hour {
-  height: 120px;
+  height: 60px;
   width: 4px;
   background: #333;
   position: absolute;
   left: 50%;
-  top: 20px;
+  top: 80px;
   animation: tick 43200s infinite linear;
   -webkit-animation: tick 43200s infinite linear;
 }
@@ -74,12 +74,12 @@
 }
 
 .second {
-  height: 60px;
-  width: 4px;
+  height: 120px;
+  width: 3px;
   background: #fc0505;
   position: absolute;
   left: 50%;
-  top: 80px;
+  top: 20px;
   animation: tick 60s infinite linear;
   -webkit-animation: tick 60s infinite linear;
 }

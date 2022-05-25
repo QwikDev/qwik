@@ -183,7 +183,7 @@ describe('render', () => {
           q:obj=""
           q:host=""
           q:slot="start"
-          q:key="special"
+          q:key="s1:special"
           class="foo"
           id="123"
           aria-hidden="true"
@@ -215,6 +215,25 @@ describe('render', () => {
           <div>
             <span>WORKS</span>
           </div>
+        </div>
+      );
+    });
+
+    it('should render a div then a component', async () => {
+      await render(fixture.host, <ToggleRootComponent />);
+      expectRendered(
+        <div q:host="" aria-hidden="false">
+          <div class="normal">Normal div</div>
+          <button>toggle</button>
+        </div>
+      );
+      await trigger(fixture.host, 'button', 'click');
+      expectRendered(
+        <div q:host="" aria-hidden="true">
+          <div q:host="">
+            <div>this is ToggleChild</div>
+          </div>
+          <button>toggle</button>
         </div>
       );
     });
@@ -828,6 +847,28 @@ export const InnerHTMLComponent = component$(async () => {
     <div innerHTML={html}>
       <div>not rendered</div>
     </div>
+  );
+});
+
+//////////////////////////////////////////////////////////////////////////////////////////
+
+export const ToggleRootComponent = component$(() => {
+  const state = useStore({
+    cond: false,
+  });
+  return (
+    <Host aria-hidden={state.cond ? 'true' : 'false'}>
+      {state.cond ? <ToggleChild /> : <div class="normal">Normal div</div>}
+      <button onClick$={() => (state.cond = !state.cond)}>toggle</button>
+    </Host>
+  );
+});
+
+export const ToggleChild = component$(() => {
+  return (
+    <Host>
+      <div>this is ToggleChild</div>
+    </Host>
   );
 });
 

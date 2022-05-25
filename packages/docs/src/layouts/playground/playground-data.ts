@@ -4,6 +4,9 @@ export interface PlaygroundApp {
   inputs: ReplModuleInput[];
 }
 
-// generated at build-time
+/**
+ * Generated at build-time.
+ * See packages/docs/pages/playground/app
+ */
 const playgroundApp: PlaygroundApp = {} as any;
 export default playgroundApp;

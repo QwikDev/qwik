@@ -55,7 +55,7 @@
 }
 
 .repl-tab-button.active-tab {
-  border-top-color: #0084ff;
+  border-top-color: var(--qwik-blue);
   background-color: white;
 }
 
@@ -65,7 +65,7 @@
 }
 
 .repl-input-panel .repl-tab-button.active-tab {
-  border-top-color: #564ce1;
+  border-top-color: var(--qwik-purple);
 }
 
 .repl-input-panel .repl-tab-button:not(.active-tab):hover {
@@ -187,7 +187,7 @@
 }
 
 .output-modules .file-tree-items a:hover {
-  color: #0084ff;
+  color: var(--qwik-blue);
 }
 
 .output-modules .file-modules {
@@ -217,7 +217,7 @@
 
 .output-modules .file-size {
   font-weight: normal;
-  color: #0084ff;
+  color: var(--qwik-blue);
   padding-left: 8px;
 }
 
@@ -282,7 +282,8 @@
 .log > .platform {
   width: 50px;
   text-align: center;
-  padding: 5px;
+  padding: 5px 0;
+  font-size: 12px;
 }
 
 .log > .platform.build {
@@ -297,27 +298,45 @@
   background: #78fa83;
 }
 
-.log.console-warn {
+.log > .platform.network {
+  background: #f4f4f4;
+}
+
+.log.console-warn > .content {
   background: #d9d900;
   font-weight: 500;
 }
-.log.console-error {
-  background: #d9d900;
-  font-weight: 500;
+
+.log.console-error .content {
+  background: #d90047;
+  color: white;
+}
+
+.log.client-module > .content {
+  font-family: monospace;
+  font-size: 12px;
 }
 
 .log > .content {
   flex: 1;
   padding: 5px;
+  line-break: anywhere;
 }
 
 .line.paused,
 .line.resumed {
   text-align: center;
   padding: 10px 0;
-  border-bottom: 2px solid;
   font-size: 12px;
   font-weight: 700;
+}
+
+.line.paused {
+  border-bottom: 2px solid;
+}
+
+.line.resumed {
+  border-top: 2px solid;
 }
 
 .elapsed {

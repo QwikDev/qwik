@@ -34,7 +34,7 @@ Resumability is about pausing execution in the server, and resuming execution in
 
 A good mental model is that Qwik applications at any point in their lifecycle can be serialized and moved to a different VM instance. (Server to browser). There, the application simply resumes where the serialization stopped. No hydration is required. This is why we say that Qwik applications don't hydrate; they resume.
 
-In other to achieve this, qwik needs to solve the 3 problems (listeners, componenttree, application state) in a way that is compatible with a no-code startup.
+In order to achieve this, qwik needs to solve the 3 problems (listeners, component tree, application state) in a way that is compatible with a no-code startup.
 
 ## Listeners
 

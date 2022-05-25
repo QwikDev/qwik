@@ -2,14 +2,14 @@
  * @public
  */
 export interface PageHandler {
-  attributes: PageAttributes;
-  breadcrumbs: PageBreadcrumb[];
-  content: Content;
-  headings: PageHeading[];
-  index: { path: string };
-  layout: Layout;
-  source: PageSource;
-  url: string;
+  readonly attributes: PageAttributes;
+  readonly breadcrumbs: PageBreadcrumb[];
+  readonly content: Content;
+  readonly headings: PageHeading[];
+  readonly index: { path: string };
+  readonly layout: Layout;
+  readonly source: PageSource;
+  readonly url: string;
 }
 
 /**

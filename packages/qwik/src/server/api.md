@@ -157,8 +157,10 @@ export interface RenderToStringResult {
 // @public
 export function serializeDocument(docOrEl: Document | Element, opts?: SerializeDocumentOptions): string;
 
+// Warning: (ae-forgotten-export) The symbol "SymbolMapper" needs to be exported by the entry point index.d.ts
+//
 // @public
-export function setServerPlatform(document: any, opts: SerializeDocumentOptions): Promise<void>;
+export function setServerPlatform(document: any, opts: SerializeDocumentOptions, mapper: SymbolMapper): Promise<void>;
 
 // @public (undocumented)
 export interface SnapshotResult {

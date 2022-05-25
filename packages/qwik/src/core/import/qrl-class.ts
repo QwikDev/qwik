@@ -29,6 +29,14 @@ class QRL<TYPE = any> implements IQRL<TYPE> {
     }
   }
 
+  getSymbol(): string {
+    return this.refSymbol ?? this.symbol;
+  }
+
+  getCanonicalSymbol(): string {
+    return getCanonicalSymbol(this.refSymbol ?? this.symbol);
+  }
+
   async resolve(el?: Element): Promise<TYPE> {
     if (el) {
       this.setContainer(el);
@@ -89,15 +97,7 @@ export const getCanonicalSymbol = (symbolName: string) => {
 };
 
 export const isSameQRL = (a: QRL<any>, b: QRL<any>): boolean => {
-  return isSameSymbol(getQRLSymbol(a), getQRLSymbol(b));
-};
-
-export const getQRLSymbol = (a: QRL<any>): string => {
-  return a.refSymbol ?? a.symbol;
-};
-
-export const isSameSymbol = (symA: string, symB: string): boolean => {
-  return getCanonicalSymbol(symA) === getCanonicalSymbol(symB);
+  return a.getCanonicalSymbol() === b.getCanonicalSymbol();
 };
 
 export type QRLInternal<T = any> = QRL<T>;

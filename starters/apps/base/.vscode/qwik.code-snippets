@@ -66,7 +66,7 @@
 		"prefix": "useClientEffect",
 		"description": "useClientEffect$() function hook",
 		"body": [
-			"useClientEffect$(() => {",
+			"useClientEffect$((track) => {",
 			"  $0",
 			"});",
 			""

@@ -54,15 +54,21 @@ export async function renderToString(rootNode: any, opts: RenderToStringOptions 
     applyPrefetchImplementation(doc, opts, prefetchResources);
   }
 
-  if (!opts.qwikLoader || opts.qwikLoader.include !== false) {
+  const includeLoader =
+    !opts.qwikLoader || opts.qwikLoader.include === undefined ? 'head' : opts.qwikLoader.include;
+  if (includeLoader) {
     const qwikLoaderScript = getQwikLoaderScript({
       events: opts.qwikLoader?.events,
       debug: opts.debug,
     });
-    const scriptElm = doc.createElement('script');
+    const scriptElm = doc.createElement('script') as HTMLScriptElement;
     scriptElm.setAttribute('id', 'qwikloader');
-    scriptElm.innerHTML = qwikLoaderScript;
-    doc.head.appendChild(scriptElm);
+    scriptElm.textContent = qwikLoaderScript;
+    if (includeLoader === 'body') {
+      doc.body.appendChild(scriptElm);
+    } else {
+      doc.head.appendChild(scriptElm);
+    }
   }
 
   const docToStringTimer = createTimer();

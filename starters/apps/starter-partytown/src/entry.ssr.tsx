@@ -7,10 +7,10 @@ import { Root } from './root';
  */
 export function render(opts: RenderToStringOptions) {
   return renderToString(<Root />, {
-    ...opts,
     manifest,
     qwikLoader: {
       events: ['click', 'keyup', 'expensiveComputationDone'],
     },
+    ...opts,
   });
 }

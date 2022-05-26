@@ -9,7 +9,7 @@ export function render(opts?: RenderToStringOptions) {
   // Render the Root component to a string
   // Pass in the manifest that was generated from the client build
   return renderToString(<Root />, {
-    ...opts,
     manifest,
+    ...opts,
   });
 }

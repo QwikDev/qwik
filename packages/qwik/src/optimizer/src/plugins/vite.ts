@@ -11,6 +11,7 @@ import {
   QWIK_CORE_ID,
   QWIK_JSX_RUNTIME_ID,
   Q_MANIFEST_FILENAME,
+  QWIK_CLIENT_MANIFEST_ID,
 } from './plugin';
 import { createRollupError, normalizeRollupOutputOptions } from './rollup';
 import { QWIK_LOADER_DEFAULT_DEBUG, QWIK_LOADER_DEFAULT_MINIFIED } from '../scripts';
@@ -23,7 +24,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
   let isClientDevOnly = false;
   let clientDevInput: undefined | string = undefined;
   let tmpClientManifestPath: undefined | string = undefined;
-
+  let viteCommand: string = 'serve';
   const qwikPlugin = createPlugin(qwikViteOpts.optimizerOptions);
 
   const vitePlugin: VitePlugin = {
@@ -44,6 +45,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       qwikPlugin.log(`vite config(), command: ${viteEnv.command}, env.mode: ${viteEnv.mode}`);
 
       isClientDevOnly = viteEnv.command === 'serve' && viteEnv.mode !== 'ssr';
+      viteCommand = viteEnv.command;
 
       let target: QwikBuildTarget;
       if (viteConfig.build?.ssr || viteEnv.mode === 'ssr') {
@@ -211,6 +213,11 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       if (isClientDevOnly && id === VITE_CLIENT_MODULE) {
         return getViteDevModule(opts);
       }
+      if (viteCommand === 'server' && id.endsWith(QWIK_CLIENT_MANIFEST_ID)) {
+        return {
+          code: 'export const manifest = undefined;',
+        };
+      }
       return qwikPlugin.load(this, id, loadOpts);
     },
 
@@ -343,8 +350,12 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             Array.from(server.moduleGraph.fileToModulesMap.entries()).forEach((entry) => {
               entry[1].forEach((v) => {
                 const hook = v.info?.meta?.hook;
-                if (hook && v.lastHMRTimestamp) {
-                  manifest.mapping[hook.name] = `${v.url}?t=${v.lastHMRTimestamp}`;
+                if (hook) {
+                  let url = v.url;
+                  if (v.lastHMRTimestamp) {
+                    url += `?t=${v.lastHMRTimestamp}`;
+                  }
+                  manifest.mapping[hook.name] = url;
                 }
               });
             });
@@ -372,6 +383,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
               debug: true,
               manifest: isClientDevOnly ? undefined : manifest,
               snapshot: !isClientDevOnly,
+              prefetchStrategy: null,
             };
 
             const result: RenderToStringResult = await render(renderToStringOpts);

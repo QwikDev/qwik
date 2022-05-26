@@ -2,6 +2,8 @@ name: Qwik CI
 
 on:
   push:
+    branches:
+      - main
   pull_request:
     branches:
       - main
@@ -48,7 +50,6 @@ jobs:
               - 'packages/qwik/src/**/*.toml'
               - 'packages/qwik/src/**/*.rs'
               - 'packages/qwik/src/**/*.lock'
-              - 'yarn.lock'
               - 'tsconfig.json'
       - name: Print fullbuild output
         run: echo ${{ steps.filter.outputs.fullbuild == 'true' || github.event.inputs.disttag != '' }}

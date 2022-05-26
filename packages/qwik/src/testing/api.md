@@ -128,10 +128,10 @@ export interface RenderToStringOptions extends SerializeDocumentOptions {
     // Warning: (ae-incompatible-release-tags) The symbol "prefetchStrategy" is marked as @public, but its signature references "PrefetchStrategy" which is marked as @alpha
     //
     // (undocumented)
-    prefetchStrategy?: PrefetchStrategy;
+    prefetchStrategy?: PrefetchStrategy | null;
     qwikLoader?: {
         events?: string[];
-        include?: boolean;
+        include?: boolean | 'body' | 'head';
     };
     snapshot?: boolean;
 }

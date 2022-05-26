@@ -38,9 +38,9 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     entryStrategy: null as any,
     srcDir: null as any,
     srcInputs: null as any,
-    transformedModuleOutput: null,
     manifestInput: null,
     manifestOutput: null,
+    transformedModuleOutput: null,
   };
 
   const init = async () => {
@@ -174,15 +174,15 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
     if (typeof updatedOpts.manifestOutput === 'function') {
       opts.manifestOutput = updatedOpts.manifestOutput;
-    } else {
-      opts.manifestOutput = null;
     }
 
     const clientManifest = getValidManifest(updatedOpts.manifestInput);
     if (clientManifest) {
       opts.manifestInput = clientManifest;
-    } else {
-      opts.manifestInput = null;
+    }
+
+    if (typeof updatedOpts.transformedModuleOutput === 'function') {
+      opts.transformedModuleOutput = updatedOpts.transformedModuleOutput;
     }
 
     return { ...opts };
@@ -471,11 +471,9 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
   const getOptions = () => opts;
 
   const getTransformedOutputs = () => {
-    const to: { [id: string]: TransformModule } = {};
-    for (const [v, id] of transformedOutputs.values()) {
-      to[id] = v;
-    }
-    return to;
+    return Array.from(transformedOutputs.values()).map((t) => {
+      return t[0];
+    });
   };
 
   const log = (...str: any[]) => {
@@ -610,7 +608,7 @@ export interface QwikPluginOptions {
   srcInputs?: TransformModuleInput[] | null;
   target?: QwikBuildTarget;
   transformedModuleOutput?:
-    | ((data: { [id: string]: TransformModule }) => Promise<void> | void)
+    | ((transformedModules: TransformModule[]) => Promise<void> | void)
     | null;
 }
 

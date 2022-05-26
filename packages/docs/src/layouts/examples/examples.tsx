@@ -109,7 +109,7 @@ export const getExampleApp = (id: string): ExampleApp | undefined => {
   for (const exampleSection of exampleSections) {
     for (const app of exampleSection.apps) {
       if (app.id === id) {
-        return app;
+        return JSON.parse(JSON.stringify(app));
       }
     }
   }

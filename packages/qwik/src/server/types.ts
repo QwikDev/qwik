@@ -91,9 +91,9 @@ export interface RenderToStringOptions extends SerializeDocumentOptions {
   /**
    * Specifies if the Qwik Loader script is added to the document or not. Defaults to `{ include: true }`.
    */
-  qwikLoader?: { events?: string[]; include?: boolean };
+  qwikLoader?: { events?: string[]; include?: boolean | 'body' | 'head' };
 
-  prefetchStrategy?: PrefetchStrategy;
+  prefetchStrategy?: PrefetchStrategy | null;
   /**
    * When set, the app is serialized into a fragment. And the returned html is not a complete document.
    * Defaults to `undefined`

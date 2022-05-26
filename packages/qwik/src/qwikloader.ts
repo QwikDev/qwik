@@ -135,15 +135,6 @@ export const qwikLoader = (doc: Document, hasInitialized?: number, prefetchWorke
           }
         });
         (doc as any)['qO'] = observer;
-        const mutation = new MutationObserver((mutations) => {
-          for (const mutation of mutations) {
-            observer.observe(mutation.target as Element);
-          }
-        });
-        mutation.observe(document.documentElement, {
-          attributeFilter: ['on:qvisible'],
-          subtree: true,
-        });
         doc.querySelectorAll('[on\\:qvisible]').forEach((el) => observer.observe(el));
       }
     }

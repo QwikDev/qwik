@@ -7,6 +7,7 @@ import type {
   QwikManifest,
   TransformModuleInput,
   Path,
+  TransformModule,
 } from '../types';
 import {
   createPlugin,
@@ -54,6 +55,7 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
         input: inputOpts.input as string,
         manifestOutput: qwikRollupOpts.manifestOutput,
         manifestInput: qwikRollupOpts.manifestInput,
+        transformedModuleOutput: qwikRollupOpts.transformedModuleOutput,
       };
 
       const opts = qwikPlugin.normalizeOptions(pluginOpts);
@@ -119,7 +121,6 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
 
     async generateBundle(_, rollupBundle) {
       const opts = qwikPlugin.getOptions();
-      const path = qwikPlugin.getPath();
 
       if (opts.target === 'client') {
         // client build
@@ -138,18 +139,21 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
           }
         }
 
+        const optimizer = qwikPlugin.getOptimizer();
         const manifest = await outputAnalyzer.generateManifest();
         manifest.platform = {
           ...versions,
           rollup: '',
+          env: optimizer.sys.env,
+          os: optimizer.sys.os,
         };
-        if (typeof process !== 'undefined' && process.versions) {
-          manifest.platform.node = process.versions.node;
-          manifest.platform.os = process.platform;
-        }
 
         if (typeof opts.manifestOutput === 'function') {
           await opts.manifestOutput(manifest);
+        }
+
+        if (typeof opts.transformedModuleOutput === 'function') {
+          await opts.transformedModuleOutput(qwikPlugin.getTransformedOutputs());
         }
 
         this.emitFile({
@@ -157,10 +161,6 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
           fileName: Q_MANIFEST_FILENAME,
           source: JSON.stringify(manifest, null, 2),
         });
-
-        if (typeof opts.transformedModuleOutput === 'function') {
-          await opts.transformedModuleOutput(qwikPlugin.getTransformedOutputs());
-        }
       }
     },
   };
@@ -311,6 +311,13 @@ export interface QwikRollupPluginOptions {
    */
   manifestInput?: QwikManifest;
   optimizerOptions?: OptimizerOptions;
+  /**
+   * Hook that's called after the build and provides all of the transformed
+   * modules that were used before bundling.
+   */
+  transformedModuleOutput?:
+    | ((transformedModules: TransformModule[]) => Promise<void> | void)
+    | null;
 }
 
 export interface QwikRollupPlugin extends RollupPlugin {}

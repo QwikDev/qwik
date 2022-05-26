@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import type { InputOptions, OutputAsset, OutputChunk } from 'rollup';
 import type { Diagnostic, QwikRollupPluginOptions } from '@builder.io/qwik/optimizer';
-import type { ReplInputOptions, ReplModuleInput, ReplModuleOutput, ReplResult } from '../types';
+import type { ReplInputOptions, ReplModuleOutput, ReplResult } from '../types';
 import { getCtx, QwikReplContext } from './context';
 import { loadDependencies } from './dependencies';
 import { ssrHtml } from './ssr-html';
@@ -17,7 +17,8 @@ export const update = async (clientId: string, options: ReplInputOptions) => {
     clientId,
     buildId: options.buildId,
     html: '',
-    clientModules: [],
+    transformedModules: [],
+    clientBundles: [],
     manifest: undefined,
     ssrModules: [],
     diagnostics: [],
@@ -66,6 +67,9 @@ const bundleClient = async (
     entryStrategy: options.entryStrategy,
     manifestOutput: (m) => {
       result.manifest = m;
+    },
+    transformedModuleOutput: (t) => {
+      result.transformedModules = t;
     },
   };
   console.debug('client opts', qwikRollupClientOpts);
@@ -118,11 +122,11 @@ const bundleClient = async (
       sourcemap: false,
     });
 
-    result.clientModules = generated.output.map(getOutput).filter((f) => {
+    result.clientBundles = generated.output.map(getOutput).filter((f) => {
       return !f.path.endsWith('app.js') && !f.path.endsWith('q-manifest.json');
     });
 
-    ctx.clientModules = result.clientModules;
+    ctx.clientModules = result.clientBundles;
   }
 
   result.events.push({
@@ -224,15 +228,12 @@ const getOutput = (o: OutputChunk | OutputAsset) => {
   const f: ReplModuleOutput = {
     path: o.fileName,
     code: '',
-    isEntry: false,
     size: '',
   };
   if (o.type === 'chunk') {
     f.code = o.code || '';
-    f.isEntry = o.isDynamicEntry;
   } else if (o.type === 'asset') {
     f.code = String(o.source || '');
-    f.isEntry = false;
   }
   f.size = `${f.code.length} B`;
   return f;

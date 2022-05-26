@@ -138,6 +138,14 @@
               }
             );
 
+          let refreshing = false;
+          navigator.serviceWorker.addEventListener('controllerchange', () => {
+            if (!refreshing) {
+              window.location.reload();
+              refreshing = true;
+            }
+          });
+
           window.addEventListener('message', receiveMessageFromMainApp);
         } else {
           console.error('Qwik REPL server missing client id');

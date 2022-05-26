@@ -73,6 +73,7 @@ export const ssrHtml = async (
   const ssrResult = await server.render({
     base: `/repl/${result.clientId}/build/`,
     manifest: result.manifest,
+    prefetchStrategy: null as any,
   });
 
   console.log = log;

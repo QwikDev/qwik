@@ -26,7 +26,8 @@ export const Repl = component$(async (props: ReplProps) => {
     const initStore: ReplStore = {
       clientId: Math.round(Math.random() * Number.MAX_SAFE_INTEGER).toString(36),
       html: '',
-      clientModules: [],
+      transformedModules: [],
+      clientBundles: [],
       ssrModules: [],
       diagnostics: [],
       monacoDiagnostics: [],
@@ -37,8 +38,6 @@ export const Repl = component$(async (props: ReplProps) => {
       selectedInputPath: '',
       selectedOutputPanel: 'app',
       selectedOutputDetail: 'console',
-      selectedClientModule: '',
-      selectedSsrModule: '',
       ssrBuild: true,
       debug: false,
       serverUrl: 'about:blank',

@@ -236,8 +236,15 @@
   font-weight: bold;
   padding: 0 15px 0 15px;
 }
+
 .output-diagnostics p {
   padding-bottom: 20px;
+}
+
+.output-diagnostics p.no-diagnostics {
+  text-align: center;
+  color: rgb(180, 180, 180);
+  font-weight: normal;
 }
 
 .details-panel {

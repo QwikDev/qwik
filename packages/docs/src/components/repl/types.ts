@@ -1,4 +1,9 @@
-import type { Diagnostic, QwikManifest, QwikRollupPluginOptions } from '@builder.io/qwik/optimizer';
+import type {
+  Diagnostic,
+  QwikManifest,
+  QwikRollupPluginOptions,
+  TransformModule,
+} from '@builder.io/qwik/optimizer';
 import type { NoSerialize } from '@builder.io/qwik';
 
 export interface ReplAppInput {
@@ -19,15 +24,14 @@ export interface ReplInputOptions extends Omit<QwikRollupPluginOptions, 'srcDir'
 export interface ReplStore {
   clientId: string;
   html: string;
-  clientModules: ReplModuleOutput[];
+  transformedModules: TransformModule[];
+  clientBundles: ReplModuleOutput[];
   ssrModules: ReplModuleOutput[];
   diagnostics: Diagnostic[];
   monacoDiagnostics: Diagnostic[];
   selectedInputPath: string;
   selectedOutputPanel: OutputPanel;
   selectedOutputDetail: OutputDetail;
-  selectedClientModule: string;
-  selectedSsrModule: string;
   enableHtmlOutput: boolean;
   enableClientOutput: boolean;
   enableSsrOutput: boolean;
@@ -48,9 +52,8 @@ export interface ReplModuleInput {
 
 export interface ReplModuleOutput {
   path: string;
-  isEntry: boolean;
   code: string;
-  size: string;
+  size?: string;
 }
 
 export interface ReplMessageBase {
@@ -96,13 +99,20 @@ export interface ReplResult extends ReplMessageBase {
   type: 'result';
   buildId: number;
   html: string;
-  clientModules: ReplModuleOutput[];
+  transformedModules: TransformModule[];
+  clientBundles: ReplModuleOutput[];
   ssrModules: ReplModuleOutput[];
   manifest: QwikManifest | undefined;
   diagnostics: Diagnostic[];
   events: ReplEvent[];
 }
 
-export type OutputPanel = 'app' | 'html' | 'clientModules' | 'serverModules' | 'diagnostics';
+export type OutputPanel =
+  | 'app'
+  | 'html'
+  | 'transformedModules'
+  | 'clientBundles'
+  | 'serverModules'
+  | 'diagnostics';
 
 export type OutputDetail = 'options' | 'console';

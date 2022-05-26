@@ -44,13 +44,13 @@ export function render(opts: RenderToStringOptions) {
         <Test />
       </>,
       {
-        ...opts,
         debug: true,
         fragmentTagName: 'div',
         qwikLoader: {
           include: url.searchParams.get('loader') !== 'false',
           events: ['click'],
         },
+        ...opts,
       }
     );
   }
@@ -65,6 +65,6 @@ export function render(opts: RenderToStringOptions) {
         <Test />
       </body>
     </html>,
-    { ...opts, debug: true, qwikLoader: { include: true, events: ['click'] } }
+    { debug: true, qwikLoader: { include: true, events: ['click'] }, ...opts }
   );
 }

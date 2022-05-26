@@ -1,6 +1,8 @@
 import type { CorePlatform } from '@builder.io/qwik';
 import { setPlatform } from '@builder.io/qwik';
+import { getCanonicalSymbol } from '../core/import/qrl-class';
 import { getValidManifest } from '../optimizer/src/manifest';
+import type { SymbolMapper } from '../optimizer/src/types';
 import type { SerializeDocumentOptions } from './types';
 import { normalizeUrl } from './utils';
 
@@ -8,20 +10,11 @@ const _setImmediate = typeof setImmediate === 'function' ? setImmediate : setTim
 
 declare const require: (module: string) => Record<string, any>;
 
-function createPlatform(document: any, opts: SerializeDocumentOptions) {
+function createPlatform(document: any, opts: SerializeDocumentOptions, mapper: SymbolMapper) {
   if (!document || (document as Document).nodeType !== 9) {
     throw new Error(`Invalid Document implementation`);
   }
   const doc: Document = document;
-
-  let qrlMap: { [symbolName: string]: string } | undefined = undefined;
-
-  const manifest = getValidManifest(opts.manifest);
-  if (manifest) {
-    // we received a valid manifest
-    qrlMap = manifest.mapping;
-  }
-
   if (opts?.url) {
     doc.location.href = normalizeUrl(opts.url).href;
   }
@@ -59,11 +52,7 @@ function createPlatform(document: any, opts: SerializeDocumentOptions) {
       });
     },
     chunkForSymbol(symbolName: string) {
-      if (qrlMap) {
-        // TODO: Improve qrl map lookup
-        return [qrlMap[symbolName], symbolName];
-      }
-      return undefined;
+      return mapper[getCanonicalSymbol(symbolName)];
     },
   };
   return serverPlatform;
@@ -73,7 +62,11 @@ function createPlatform(document: any, opts: SerializeDocumentOptions) {
  * Applies NodeJS specific platform APIs to the passed in document instance.
  * @public
  */
-export async function setServerPlatform(document: any, opts: SerializeDocumentOptions) {
-  const platform = createPlatform(document, opts);
+export async function setServerPlatform(
+  document: any,
+  opts: SerializeDocumentOptions,
+  mapper: SymbolMapper
+) {
+  const platform = createPlatform(document, opts, mapper);
   setPlatform(document, platform);
 }

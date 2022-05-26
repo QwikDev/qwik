@@ -238,6 +238,7 @@ export interface QwikRollupPluginOptions {
     srcInputs?: TransformModuleInput[] | null;
     // Warning: (ae-forgotten-export) The symbol "QwikBuildTarget" needs to be exported by the entry point index.d.ts
     target?: QwikBuildTarget;
+    transformedModuleOutput?: ((transformedModules: TransformModule[]) => Promise<void> | void) | null;
 }
 
 // @alpha (undocumented)
@@ -283,6 +284,7 @@ export interface QwikVitePluginOptions {
         outDir?: string;
         manifestInput?: QwikManifest;
     };
+    transformedModuleOutput?: ((transformedModules: TransformModule[]) => Promise<void> | void) | null;
 }
 
 // @alpha (undocumented)

@@ -40,5 +40,17 @@
         "icon": "⏰"
       }
     ]
+  },
+  {
+    "id": "partial",
+    "title": "Partial",
+    "apps": [
+      {
+        "id": "hackernews-index",
+        "title": "HackerNews",
+        "description": "HackerNews landing page",
+        "icon": "📰"
+      }
+    ]
   }
 ]

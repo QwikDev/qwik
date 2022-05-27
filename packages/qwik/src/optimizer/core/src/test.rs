@@ -14,7 +14,8 @@ macro_rules! test_input {
             }],
             source_maps: true,
             minify: input.minify,
-            transpile: input.transpile,
+            transpile_ts: input.transpile_ts,
+            transpile_jsx: input.transpile_jsx,
             explicity_extensions: input.explicity_extensions,
             entry_strategy: input.entry_strategy,
             dev: input.dev,
@@ -347,7 +348,8 @@ export const App = component$((props) => {
 })
 "#
         .to_string(),
-        transpile: true,
+        transpile_ts: true,
+        transpile_jsx: JSXMode::VDom,
         ..TestInput::default()
     });
 }
@@ -373,7 +375,8 @@ export const App = component$(({count, rest: [I2, {I3, v1: [I4], I5=v2, ...I6}, 
 })
 "#
         .to_string(),
-        transpile: true,
+        transpile_ts: true,
+        transpile_jsx: JSXMode::VDom,
         ..TestInput::default()
     });
 }
@@ -509,7 +512,8 @@ export const App = component$(({count}) => {
 })
 "#
         .to_string(),
-        transpile: true,
+        transpile_ts: true,
+        transpile_jsx: JSXMode::VDom,
         ..TestInput::default()
     });
 }
@@ -534,7 +538,8 @@ export const App = component$(() => {
 })
 "#
         .to_string(),
-        transpile: true,
+        transpile_ts: true,
+        transpile_jsx: JSXMode::VDom,
         ..TestInput::default()
     });
 }
@@ -554,7 +559,8 @@ export const App = component$(() => {
 })
 "#
         .to_string(),
-        transpile: true,
+        transpile_ts: true,
+        transpile_jsx: JSXMode::VDom,
         ..TestInput::default()
     });
 }
@@ -582,7 +588,8 @@ export const App = component$(() => {
 })
 "#
         .to_string(),
-        transpile: true,
+        transpile_ts: true,
+        transpile_jsx: JSXMode::VDom,
         ..TestInput::default()
     });
 }
@@ -602,7 +609,8 @@ export const App = Component((props) => {
 });
 "#
         .to_string(),
-        transpile: true,
+        transpile_ts: true,
+        transpile_jsx: JSXMode::VDom,
         ..TestInput::default()
     });
 }
@@ -699,7 +707,8 @@ export const Foo = component$((props) => {
 });
 "#
         .to_string(),
-        transpile: true,
+        transpile_ts: true,
+        transpile_jsx: JSXMode::VDom,
         ..TestInput::default()
     });
 }
@@ -741,7 +750,8 @@ export const Foo = component$(() => {
 });
 "#
         .to_string(),
-        transpile: true,
+        transpile_ts: true,
+        transpile_jsx: JSXMode::VDom,
         ..TestInput::default()
     });
 }
@@ -782,7 +792,8 @@ export const Root = component$(() => {
 });
 "#
         .to_string(),
-        transpile: true,
+        transpile_ts: true,
+        transpile_jsx: JSXMode::VDom,
         ..TestInput::default()
     });
 }
@@ -816,7 +827,8 @@ export const Lightweight = (props) => {
 });
 "#
         .to_string(),
-        transpile: true,
+        transpile_ts: true,
+        transpile_jsx: JSXMode::VDom,
         ..TestInput::default()
     });
 }
@@ -843,7 +855,8 @@ export const App = component$((props) => {
 });
 "#
         .to_string(),
-        transpile: true,
+        transpile_ts: true,
+        transpile_jsx: JSXMode::VDom,
         ..TestInput::default()
     });
 }
@@ -864,7 +877,8 @@ export const App = component$((props) => {
 });
 "#
         .to_string(),
-        transpile: true,
+        transpile_ts: true,
+        transpile_jsx: JSXMode::VDom,
         ..TestInput::default()
     });
 }
@@ -883,7 +897,8 @@ export const App = component$((props) => {
 });
 "#
         .to_string(),
-        transpile: true,
+        transpile_ts: true,
+        transpile_jsx: JSXMode::VDom,
         explicity_extensions: true,
         ..TestInput::default()
     });
@@ -926,7 +941,8 @@ export const App2 = qwikify$(() => (
 ));
 "#
         .to_string(),
-        transpile: true,
+        transpile_ts: true,
+        transpile_jsx: JSXMode::VDom,
         explicity_extensions: true,
         ..TestInput::default()
     });
@@ -984,7 +1000,8 @@ export const Child = component$(() => {
 
 "#
         .to_string(),
-        transpile: true,
+        transpile_ts: true,
+        transpile_jsx: JSXMode::VDom,
         ..TestInput::default()
     });
 }
@@ -1066,8 +1083,70 @@ export const Child = component$(() => {
 });
 "#
         .to_string(),
-        transpile: true,
+        transpile_ts: true,
+        transpile_jsx: JSXMode::VDom,
         entry_strategy: EntryStrategy::Smart,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_transpile_jsx_string() {
+    test_input!(TestInput {
+        code: r#"
+const identifier = 'somevalue';
+const cond = true;
+const prevText = "Previous article";
+
+async function Cmp({prop}) {
+    return <cmp>{prop}</cmp>
+}
+
+const stuff = (
+    <div prop="23" nu={12} value={identifier}>
+        hola
+        <span>thing</span>
+        <Cmp prop="text"/>
+        <div class="flex-1">
+            {cond ? (
+                <a class="px-3 py-1 prev">
+                    {prevText}
+                </a>
+            ) : null}
+        </div>
+    </div>
+);
+
+const static = (<div class='static prop'>
+    hola
+    <span>s</span>
+    <article>1</article>
+    <article>2</article>
+    <article>3</article>
+    <article>4</article>
+    <article>5</article>
+    <article>
+    6
+    <div class='static prop'>
+    hola
+    <span>s</span>
+    <article>1</article>
+    <article>2</article>
+    <article>3</article>
+    <article>4</article>
+    <article>5</article>
+    <article>
+    6
+    </article>
+</div>
+    </article>
+</div>
+    );
+console.log(stuff, static);
+"#
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: JSXMode::String,
         ..TestInput::default()
     });
 }
@@ -1089,7 +1168,8 @@ export const Greeter = component$(() => {
 const d = $(()=>console.log('thing'));
 "#
         .to_string(),
-        transpile: true,
+        transpile_ts: true,
+        transpile_jsx: JSXMode::VDom,
         ..TestInput::default()
     });
 }
@@ -1114,7 +1194,8 @@ export const Greeter = component$(() => {
 const d = $(()=>console.log('thing'));
 "#
         .to_string(),
-        transpile: true,
+        transpile_ts: true,
+        transpile_jsx: JSXMode::VDom,
         snapshot: false,
     })
     .unwrap();
@@ -1142,7 +1223,6 @@ export const Root = () => {
 };
 "#
         .to_string(),
-        transpile: false,
         ..TestInput::default()
     });
 }
@@ -1199,7 +1279,8 @@ export const Greeter = component$(() => {
         explicity_extensions: true,
         dev: true,
         entry_strategy: EntryStrategy::Hook,
-        transpile: true,
+        transpile_ts: true,
+        transpile_jsx: JSXMode::VDom,
         scope: None,
     });
     let ref_hooks: Vec<_> = res
@@ -1227,7 +1308,12 @@ export const Greeter = component$(() => {
             explicity_extensions: true,
             dev: option.0,
             entry_strategy: option.1,
-            transpile: option.2,
+            transpile_ts: option.2,
+            transpile_jsx: if option.2 {
+                JSXMode::VDom
+            } else {
+                JSXMode::Preserve
+            },
             scope: None,
         });
 
@@ -1265,7 +1351,8 @@ struct TestInput {
     pub root_dir: String,
     pub entry_strategy: EntryStrategy,
     pub minify: MinifyMode,
-    pub transpile: bool,
+    pub transpile_ts: bool,
+    pub transpile_jsx: JSXMode,
     pub explicity_extensions: bool,
     pub snapshot: bool,
     pub dev: bool,
@@ -1280,7 +1367,8 @@ impl TestInput {
             code: "/user/qwik/src/".to_string(),
             entry_strategy: EntryStrategy::Hook,
             minify: MinifyMode::Simplify,
-            transpile: false,
+            transpile_ts: false,
+            transpile_jsx: JSXMode::Preserve,
             explicity_extensions: false,
             snapshot: true,
             dev: true,

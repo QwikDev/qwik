@@ -9,6 +9,7 @@ mod test;
 mod code_move;
 mod collector;
 mod entry_strategy;
+mod jsx_transform;
 mod parse;
 mod transform;
 mod utils;
@@ -34,7 +35,9 @@ use crate::code_move::generate_entries;
 use crate::entry_strategy::parse_entry_strategy;
 pub use crate::entry_strategy::EntryStrategy;
 use crate::parse::{transform_code, TransformCodeOptions};
-pub use crate::parse::{ErrorBuffer, HookAnalysis, MinifyMode, TransformModule, TransformOutput};
+pub use crate::parse::{
+    ErrorBuffer, HookAnalysis, JSXMode, MinifyMode, TransformModule, TransformOutput,
+};
 
 // #[cfg(feature = "fs")]
 #[derive(Serialize, Debug, Deserialize)]
@@ -45,7 +48,8 @@ pub struct TransformFsOptions {
     pub minify: MinifyMode,
     pub entry_strategy: EntryStrategy,
     pub source_maps: bool,
-    pub transpile: bool,
+    pub transpile_ts: bool,
+    pub transpile_jsx: JSXMode,
     pub explicity_extensions: bool,
     pub dev: bool,
     pub scope: Option<String>,
@@ -65,7 +69,8 @@ pub struct TransformModulesOptions {
     pub input: Vec<TransformModuleInput>,
     pub source_maps: bool,
     pub minify: MinifyMode,
-    pub transpile: bool,
+    pub transpile_ts: bool,
+    pub transpile_jsx: JSXMode,
     pub entry_strategy: EntryStrategy,
     pub explicity_extensions: bool,
     pub dev: bool,
@@ -102,7 +107,8 @@ pub fn transform_fs(config: TransformFsOptions) -> Result<TransformOutput, Error
                 code: &code,
                 explicity_extensions: config.explicity_extensions,
                 source_maps: config.source_maps,
-                transpile: config.transpile,
+                transpile_ts: config.transpile_ts,
+                transpile_jsx: config.transpile_jsx,
                 print_ast: false,
                 scope: config.scope.as_ref(),
                 entry_policy,
@@ -131,7 +137,8 @@ pub fn transform_modules(config: TransformModulesOptions) -> Result<TransformOut
             code: &path.code,
             minify: config.minify,
             source_maps: config.source_maps,
-            transpile: config.transpile,
+            transpile_ts: config.transpile_ts,
+            transpile_jsx: config.transpile_jsx,
             explicity_extensions: config.explicity_extensions,
             print_ast: false,
             entry_policy,

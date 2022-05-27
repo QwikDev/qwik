@@ -6,7 +6,7 @@ use std::path::PathBuf;
 
 use clap::{Arg, Command};
 use path_absolutize::Absolutize;
-use qwik_core::{transform_fs, EntryStrategy, MinifyMode, TransformFsOptions};
+use qwik_core::{transform_fs, EntryStrategy, JSXMode, MinifyMode, TransformFsOptions};
 
 struct OptimizerInput {
     glob: Option<String>,
@@ -118,7 +118,12 @@ fn optimize(
         glob: optimizer_input.glob,
         source_maps: optimizer_input.sourcemaps,
         minify: optimizer_input.minify,
-        transpile: optimizer_input.transpile,
+        transpile_ts: optimizer_input.transpile,
+        transpile_jsx: if optimizer_input.transpile {
+            JSXMode::VDom
+        } else {
+            JSXMode::Preserve
+        },
         entry_strategy: optimizer_input.strategy,
         explicity_extensions: optimizer_input.explicity_extensions,
         dev: true,

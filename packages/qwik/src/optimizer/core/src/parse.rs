@@ -8,7 +8,9 @@ use std::str;
 use crate::code_move::{new_module, NewModuleCtx};
 use crate::collector::global_collect;
 use crate::entry_strategy::EntryPolicy;
+use crate::jsx_transform::JSXTransform;
 use crate::transform::{HookKind, QwikTransform, QwikTransformOptions};
+
 use crate::utils::{Diagnostic, DiagnosticCategory, DiagnosticScope, SourceLocation};
 use path_slash::PathExt;
 use serde::{Deserialize, Serialize};
@@ -55,11 +57,20 @@ pub enum MinifyMode {
     None,
 }
 
+#[derive(Debug, Serialize, Deserialize, Copy, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub enum JSXMode {
+    VDom,
+    String,
+    Preserve,
+}
+
 pub struct TransformCodeOptions<'a> {
     pub path: &'a str,
     pub source_maps: bool,
     pub minify: MinifyMode,
-    pub transpile: bool,
+    pub transpile_ts: bool,
+    pub transpile_jsx: JSXMode,
     pub print_ast: bool,
     pub explicity_extensions: bool,
     pub code: &'a str,
@@ -188,12 +199,14 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
     if config.print_ast {
         dbg!(&module);
     }
-    let extension = if config.transpile {
+    let transpile = config.transpile_ts;
+    let transpile_jsx = config.transpile_jsx;
+
+    let extension = if transpile {
         JsWord::from("js")
     } else {
         JsWord::from(path_data.extension.clone())
     };
-    let transpile = config.transpile;
     let origin: JsWord = path_data.path.to_slash_lossy().into();
 
     match module {
@@ -231,19 +244,30 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                     }
 
                     // Transpile JSX
-                    if transpile && is_jsx {
-                        let mut react_options = react::Options::default();
-                        if is_jsx {
-                            react_options.throw_if_namespace = Some(false);
-                            react_options.runtime = Some(react::Runtime::Automatic);
-                            react_options.import_source = Some("@builder.io/qwik".to_string());
-                        };
-                        main_module = main_module.fold_with(&mut react::react(
-                            Lrc::clone(&source_map),
-                            Some(&comments),
-                            react_options,
-                            top_level_mark,
-                        ));
+                    if is_jsx {
+                        match transpile_jsx {
+                            JSXMode::VDom => {
+                                let mut react_options = react::Options::default();
+                                if is_jsx {
+                                    react_options.throw_if_namespace = Some(false);
+                                    react_options.runtime = Some(react::Runtime::Automatic);
+                                    react_options.import_source =
+                                        Some("@builder.io/qwik".to_string());
+                                };
+                                main_module = main_module.fold_with(&mut react::react(
+                                    Lrc::clone(&source_map),
+                                    Some(&comments),
+                                    react_options,
+                                    top_level_mark,
+                                ));
+                            }
+                            JSXMode::String => {
+                                main_module = main_module.fold_with(&mut JSXTransform::new());
+                            }
+                            JSXMode::Preserve => {
+                                // Do nothing
+                            }
+                        }
                     }
 
                     // Resolve with mark

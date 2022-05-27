@@ -2,17 +2,44 @@ import type { Plugin } from 'vite';
 import { resolve, join } from 'path';
 import { readFileSync } from 'fs';
 import esbuild from 'esbuild';
+import { createHash } from 'crypto';
 
 export function replServiceWorker(): Plugin {
+  const srcReplServerHtml = resolve('public', 'repl', 'repl-server.html');
+  const swPath = resolve('src', 'components', 'repl', 'worker', 'repl-service-worker.ts');
+
   return {
     name: 'replServiceWorker',
+
+    resolveId(id) {
+      if (id === '@repl-server-html') {
+        return '\0@repl-server-html';
+      }
+      if (id === '@repl-server-url') {
+        return '\0@repl-server-url';
+      }
+      return null;
+    },
+
+    load(id) {
+      if (id === '\0@repl-server-html') {
+        const html = readFileSync(srcReplServerHtml, 'utf-8');
+        return `const replServerHtml = ${JSON.stringify(html)}; export default replServerHtml;`;
+      }
+
+      if (id === '\0@repl-server-url') {
+        const hash = createHash('sha256');
+        hash.update(readFileSync(srcReplServerHtml));
+        const url = `/repl/~repl-server-${hash.digest('hex').slice(0, 10)}.html`;
+        return `const replServerUrl = ${JSON.stringify(url)}; export default replServerUrl;`;
+      }
+      return null;
+    },
 
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
         if (req.url === '/repl/repl-sw.js') {
           try {
-            const swPath = resolve('src', 'components', 'repl', 'worker', 'repl-service-worker.ts');
-
             const result = await esbuild.build({
               entryPoints: [swPath],
               bundle: true,
@@ -50,6 +77,20 @@ export function replServiceWorker(): Plugin {
           }
         }
 
+        if (req.url && req.url.includes('/repl/~repl-server-')) {
+          try {
+            const html = readFileSync(srcReplServerHtml, 'utf-8');
+            res.setHeader('Content-Type', 'text/html; charset=utf-8');
+            res.setHeader('Cache-Control', 'no-cache, max-age=0');
+            res.writeHead(200);
+            res.write(html);
+            res.end();
+            return;
+          } catch (e) {
+            console.error(e);
+          }
+        }
+
         next();
       });
     },
@@ -69,30 +110,6 @@ export function replServiceWorker(): Plugin {
           }
         }
       }
-    },
-  };
-}
-
-export function replServerHtml(): Plugin {
-  return {
-    name: 'replServiceWorker',
-
-    resolveId(id) {
-      if (id === '@repl-server-html') {
-        return '\0@repl-server-html';
-      }
-      return null;
-    },
-
-    load(id) {
-      if (id === '\0@repl-server-html') {
-        const srcReplServerHtml = resolve('public', 'repl', 'repl-server.html');
-        const replServerHtml = readFileSync(srcReplServerHtml, 'utf-8');
-        return `const replServerHtml = ${JSON.stringify(
-          replServerHtml
-        )}; export default replServerHtml;`;
-      }
-      return null;
     },
   };
 }

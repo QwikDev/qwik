@@ -16,6 +16,7 @@ import type { ReplStore, ReplUpdateMessage, ReplMessage, ReplAppInput } from './
 import { ReplDetailPanel } from './repl-detail-panel';
 import { getReplVersion } from './repl-version';
 import { updateReplOutput } from './repl-output-update';
+import replServerUrl from '@repl-server-url';
 
 export const Repl = component$(async (props: ReplProps) => {
   useScopedStyles$(styles);
@@ -78,11 +79,10 @@ export const Repl = component$(async (props: ReplProps) => {
   useClientEffect$(async () => {
     // only run on the client
     const v = await getReplVersion(input.version);
-
     if (v.version) {
       store.versions = v.versions;
       input.version = v.version;
-      store.serverUrl = `/repl/repl-server.html#${store.clientId}`;
+      store.serverUrl = new URL(replServerUrl + '#' + store.clientId, origin).href;
 
       window.addEventListener('message', (ev) => receiveMessageFromReplServer(ev, store));
     } else {
@@ -147,6 +147,7 @@ export const sendUserUpdateToReplServer = (input: ReplAppInput, store: ReplStore
           type: input.entryStrategy as any,
         },
         version: input.version,
+        serverUrl: store.serverUrl,
       },
     };
 

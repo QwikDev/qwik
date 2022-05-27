@@ -89,16 +89,12 @@ const Examples = component$((props: ExamplesProp) => {
         </div>
 
         <main class="examples-repl">
-          {store.files.length > 0 ? (
-            <Repl
-              input={store}
-              enableSsrOutput={false}
-              enableClientOutput={false}
-              enableHtmlOutput={false}
-            />
-          ) : (
-            <p>Unable to find example app "{store.appId}"</p>
-          )}
+          <Repl
+            input={store}
+            enableSsrOutput={false}
+            enableClientOutput={false}
+            enableHtmlOutput={false}
+          />
         </main>
       </div>
     </Host>

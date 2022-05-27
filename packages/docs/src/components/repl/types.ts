@@ -14,11 +14,12 @@ export interface ReplAppInput {
   entryStrategy: string;
 }
 
-export interface ReplInputOptions extends Omit<QwikRollupPluginOptions, 'srcDir' | 'minify'> {
+export interface ReplInputOptions extends Omit<QwikRollupPluginOptions, 'srcDir'> {
   buildId: number;
   srcInputs: ReplModuleInput[];
   version: string;
   buildMode: 'development' | 'production';
+  serverUrl: string;
 }
 
 export interface ReplStore {

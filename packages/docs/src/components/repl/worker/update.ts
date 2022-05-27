@@ -2,16 +2,14 @@
 import type { InputOptions, OutputAsset, OutputChunk } from 'rollup';
 import type { Diagnostic, QwikRollupPluginOptions } from '@builder.io/qwik/optimizer';
 import type { ReplInputOptions, ReplModuleOutput, ReplResult } from '../types';
-import { getCtx, QwikReplContext } from './context';
 import { loadDependencies } from './dependencies';
 import { ssrHtml } from './ssr-html';
 import type { QwikWorkerGlobal } from './repl-service-worker';
 import { replCss, replMinify, replResolver } from './repl-plugins';
 import { sendMessageToReplServer } from './repl-messenger';
+import { QWIK_REPL_RESULT_CACHE } from './constants';
 
 export const update = async (clientId: string, options: ReplInputOptions) => {
-  console.time(`Update (${options.buildId})`);
-
   const result: ReplResult = {
     type: 'result',
     clientId,
@@ -26,13 +24,12 @@ export const update = async (clientId: string, options: ReplInputOptions) => {
   };
 
   try {
-    const ctx = getCtx(clientId, true)!;
-
     await loadDependencies(options);
 
-    await bundleClient(options, ctx, result);
-    await bundleSSR(options, ctx, result);
-    await ssrHtml(options, ctx, result);
+    const cache = await caches.open(QWIK_REPL_RESULT_CACHE);
+    await bundleClient(options, cache, result);
+    await bundleSSR(options, result);
+    await ssrHtml(options, cache, result);
   } catch (e: any) {
     result.diagnostics.push({
       scope: 'runtime',
@@ -47,17 +44,10 @@ export const update = async (clientId: string, options: ReplInputOptions) => {
   }
 
   await sendMessageToReplServer(result);
-
-  console.timeEnd(`Update (${options.buildId})`);
 };
 
-const bundleClient = async (
-  options: ReplInputOptions,
-  ctx: QwikReplContext,
-  result: ReplResult
-) => {
+const bundleClient = async (options: ReplInputOptions, cache: Cache, result: ReplResult) => {
   const start = performance.now();
-  console.time(`Bundle client (${options.buildId})`);
 
   const qwikRollupClientOpts: QwikRollupPluginOptions = {
     target: 'client',
@@ -81,7 +71,7 @@ const bundleClient = async (
 
   const rollupInputOpts: InputOptions = {
     input: entry.path,
-    cache: ctx.rollupCache,
+    cache: self.rollupCache,
     plugins: [
       replCss(options),
       self.qwikOptimizer?.qwikRollup(qwikRollupClientOpts),
@@ -116,7 +106,7 @@ const bundleClient = async (
 
   const bundle = await self.rollup?.rollup(rollupInputOpts);
   if (bundle) {
-    ctx.rollupCache = bundle.cache;
+    self.rollupCache = bundle.cache;
 
     const generated = await bundle.generate({
       sourcemap: false,
@@ -126,7 +116,30 @@ const bundleClient = async (
       return !f.path.endsWith('app.js') && !f.path.endsWith('q-manifest.json');
     });
 
-    ctx.clientModules = result.clientBundles;
+    await Promise.all(
+      result.clientBundles.map(async (b) => {
+        const url = new URL(`/repl/` + result.clientId + `/` + b.path, options.serverUrl);
+        const req = new Request(url.href);
+        const rsp = new Response(b.code, {
+          headers: {
+            'Content-Type': 'application/javascript; charset=utf-8',
+            'Cache-Control': 'no-store',
+            'X-Qwik-REPL-App': 'ssr-result',
+          },
+        });
+        await cache.put(req, rsp);
+      })
+    );
+
+    // clear out old cache
+    // no need to wait
+    cache.keys().then((keys) => {
+      if (keys.length > 500) {
+        for (let i = 0; i < 25; i++) {
+          cache.delete(keys[i]);
+        }
+      }
+    });
   }
 
   result.events.push({
@@ -136,11 +149,9 @@ const bundleClient = async (
     end: performance.now(),
     message: ['Build Client'],
   });
-  console.timeEnd(`Bundle client (${options.buildId})`);
 };
 
-const bundleSSR = async (options: ReplInputOptions, ctx: QwikReplContext, result: ReplResult) => {
-  console.time(`Bundle SSR (${options.buildId})`);
+const bundleSSR = async (options: ReplInputOptions, result: ReplResult) => {
   const start = performance.now();
 
   const qwikRollupSsrOpts: QwikRollupPluginOptions = {
@@ -161,7 +172,7 @@ const bundleSSR = async (options: ReplInputOptions, ctx: QwikReplContext, result
 
   const rollupInputOpts: InputOptions = {
     input: entry.path,
-    cache: ctx.rollupCache,
+    cache: self.rollupCache,
     plugins: [
       replCss(options),
       self.qwikOptimizer?.qwikRollup(qwikRollupSsrOpts),
@@ -195,7 +206,7 @@ const bundleSSR = async (options: ReplInputOptions, ctx: QwikReplContext, result
 
   const bundle = await self.rollup?.rollup(rollupInputOpts);
   if (bundle) {
-    ctx.rollupCache = bundle.cache;
+    self.rollupCache = bundle.cache;
 
     const generated = await bundle.generate({
       format: 'cjs',
@@ -213,7 +224,6 @@ const bundleSSR = async (options: ReplInputOptions, ctx: QwikReplContext, result
     end: performance.now(),
     message: ['Build SSR'],
   });
-  console.timeEnd(`Bundle SSR (${options.buildId})`);
 };
 
 const getInputs = (options: ReplInputOptions) => {

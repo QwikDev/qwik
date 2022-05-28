@@ -19,8 +19,8 @@
   },
   "devDependencies": {
     "@builder.io/partytown": "^0.5.4",
-    "@builder.io/qwik": "0.0.21-0",
-    "@builder.io/qwik-city": "0.0.10",
+    "@builder.io/qwik": "0.0.21",
+    "@builder.io/qwik-city": "0.0.11",
     "@cloudflare/kv-asset-handler": "0.2.0",
     "@cloudflare/workers-types": "^3.10.0",
     "autoprefixer": "10.4.7",

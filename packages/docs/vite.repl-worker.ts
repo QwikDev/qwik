@@ -5,8 +5,8 @@ import esbuild from 'esbuild';
 import { createHash } from 'crypto';
 
 export function replServiceWorker(): Plugin {
-  const srcReplServerHtml = resolve('public', 'repl', 'repl-server.html');
   const swPath = resolve('src', 'components', 'repl', 'worker', 'repl-service-worker.ts');
+  let isProd = true;
 
   return {
     name: 'replServiceWorker',
@@ -21,15 +21,16 @@ export function replServiceWorker(): Plugin {
       return null;
     },
 
-    load(id) {
+    async load(id) {
       if (id === '\0@repl-server-html') {
-        const html = readFileSync(srcReplServerHtml, 'utf-8');
+        const html = await getReplServerHtml(isProd);
         return `const replServerHtml = ${JSON.stringify(html)}; export default replServerHtml;`;
       }
 
       if (id === '\0@repl-server-url') {
+        const html = await getReplServerHtml(isProd);
         const hash = createHash('sha256');
-        hash.update(readFileSync(srcReplServerHtml));
+        hash.update(html);
         const url = `/repl/~repl-server-${hash.digest('hex').slice(0, 10)}.html`;
         return `const replServerUrl = ${JSON.stringify(url)}; export default replServerUrl;`;
       }
@@ -37,6 +38,7 @@ export function replServiceWorker(): Plugin {
     },
 
     configureServer(server) {
+      isProd = false;
       server.middlewares.use(async (req, res, next) => {
         if (req.url === '/repl/repl-sw.js') {
           try {
@@ -79,9 +81,13 @@ export function replServiceWorker(): Plugin {
 
         if (req.url && req.url.includes('/repl/~repl-server-')) {
           try {
-            const html = readFileSync(srcReplServerHtml, 'utf-8');
+            const html = await getReplServerHtml(false);
             res.setHeader('Content-Type', 'text/html; charset=utf-8');
             res.setHeader('Cache-Control', 'no-cache, max-age=0');
+            res.setHeader(
+              'Cache-Control',
+              'public, max-age=31536000, s-maxage=31536000, immutable'
+            );
             res.writeHead(200);
             res.write(html);
             res.end();
@@ -112,4 +118,30 @@ export function replServiceWorker(): Plugin {
       }
     },
   };
+}
+
+async function getReplServerHtml(minify: boolean) {
+  const srcReplServerPath = resolve('src', 'components', 'repl', 'worker', 'repl-server.ts');
+  const serverTs = readFileSync(srcReplServerPath, 'utf-8');
+
+  const result = await esbuild.transform(serverTs, {
+    loader: 'ts',
+    format: 'iife',
+    minify: minify,
+  });
+
+  return `<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Qwik REPL Server</title>
+    <style>
+      body { background-color: white; padding: 0; margin: 0; }
+      iframe { display: block; position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; background-color: white; }
+      iframe.loading { opacity: 0; }
+    </style>
+  </head>
+  <body><script>${result.code}</script></body>
+</html>
+`;
 }

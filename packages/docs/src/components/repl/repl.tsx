@@ -25,7 +25,9 @@ export const Repl = component$(async (props: ReplProps) => {
 
   const store = useStore(() => {
     const initStore: ReplStore = {
-      clientId: Math.round(Math.random() * Number.MAX_SAFE_INTEGER).toString(36),
+      clientId: Math.round(Math.random() * Number.MAX_SAFE_INTEGER)
+        .toString(36)
+        .toLowerCase(),
       html: '',
       transformedModules: [],
       clientBundles: [],

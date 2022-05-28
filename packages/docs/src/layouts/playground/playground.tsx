@@ -2,22 +2,23 @@ import {
   $,
   component$,
   Host,
-  useHostElement,
   useScopedStyles$,
-  useWatch$,
   useStore,
   useClientEffect$,
+  useStyles$,
 } from '@builder.io/qwik';
 import { Repl } from '../../components/repl/repl';
 import { Header } from '../../components/header/header';
-import { getLocation, setHeadMeta, setHeadStyles } from '@builder.io/qwik-city';
+import { getLocation, useHeadMeta } from '@builder.io/qwik-city';
 import styles from './playground.css?inline';
 import playgroundApp from '@playground-data';
 import type { ReplAppInput, ReplModuleInput } from '../../components/repl/types';
 import { BUILD_MODE_OPTIONS, ENTRY_STRATEGY_OPTIONS } from '../../components/repl/repl-options';
 
 const Playground = component$(() => {
-  const hostElm = useHostElement();
+  useStyles$(`html,body { margin: 0; height: 100%; overflow: hidden; }`);
+  useScopedStyles$(styles);
+  useHeadMeta({ title: `Qwik Playground` });
 
   const store = useStore<PlaygroundStore>(() => {
     const initStore: PlaygroundStore = {
@@ -89,17 +90,6 @@ const Playground = component$(() => {
       }, 750);
     }
   });
-
-  useWatch$(() => {
-    setHeadMeta(hostElm, { title: `Qwik Playground` });
-    setHeadStyles(hostElm, [
-      {
-        style: `html,body { margin: 0; height: 100%; overflow: hidden; }`,
-      },
-    ]);
-  });
-
-  useScopedStyles$(styles);
 
   const pointerDown = $(() => {
     store.colResizeActive = true;

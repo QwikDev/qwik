@@ -224,7 +224,6 @@ test.describe('e2e', () => {
 
       const btnToggleButtons = await page.locator('#btn-toggle-buttons');
       const btnToggleContent = await page.locator('#btn-toggle-content');
-      const btnCount = await page.locator('#btn-count');
 
       // btnToggleButtons
       await btnToggleButtons.click();

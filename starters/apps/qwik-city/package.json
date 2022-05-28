@@ -1,0 +1,14 @@
+{
+  "description": "Starter with built-in routing, powered by Qwik City",
+  "qwik": {
+    "priority": 0,
+    "featureOptions": [
+      "prettier",
+      "eslint",
+      "tailwindcss"
+    ]
+  },
+  "devDependencies": {
+    "@builder.io/qwik-city": "0.0.10"
+  }
+}

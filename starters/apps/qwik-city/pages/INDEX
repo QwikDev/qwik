@@ -1,0 +1,16 @@
+# Site struct
+
+## Welcome
+
+- [Welcome](index.mdx)
+
+## Blog
+
+- [Resumable](blog/resumable.mdx)
+- [Progressive](blog/progressive.mdx)
+- [Reactive](blog/reactivity.mdx)
+
+## Docs
+
+- [Qwik](https://qwik.builder.io)
+- [Partytown](https://partytown.builder.io/)

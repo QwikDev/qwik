@@ -1,0 +1,12 @@
+aside {
+  padding: 10px;
+}
+
+.menu h5 {
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.menu li a {
+  text-decoration: underline;
+}

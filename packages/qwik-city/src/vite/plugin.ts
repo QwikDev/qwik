@@ -1,7 +1,7 @@
 import { createMdxTransformer, MdxTransform } from './mdx';
 import fs from 'fs';
 import { isAbsolute } from 'path';
-import type { Plugin } from 'vite';
+import type { Plugin, UserConfig } from 'vite';
 import { createDynamicImportedCode, createInlinedCode } from './code-generation';
 import { loadPages } from './load-pages';
 import type { PluginContext, PluginOptions } from './types';
@@ -24,6 +24,14 @@ export function qwikCity(options: PluginOptions) {
 
     enforce: 'pre',
 
+    config() {
+      const updatedViteConfig: UserConfig = {
+        optimizeDeps: {
+          exclude: ['@builder.io/qwik-city'],
+        },
+      };
+      return updatedViteConfig;
+    },
     configResolved(config) {
       command = config.command;
       isSSR = !!config.build?.ssr || config.mode === 'ssr';

@@ -46,6 +46,7 @@ export interface BuildConfig {
 
   api?: boolean;
   build?: boolean;
+  qwikcity?: boolean;
   cli?: boolean;
   eslint?: boolean;
   commit?: boolean;
@@ -318,5 +319,11 @@ export interface PackageJSON {
   qwik?: {
     priority: number;
     featureOptions: string[];
+    vite?: {
+      VITE_IMPORTS?: string;
+      VITE_CONFIG?: string;
+      VITE_QWIK?: string;
+      VITE_PLUGINS?: string;
+    };
   };
 }

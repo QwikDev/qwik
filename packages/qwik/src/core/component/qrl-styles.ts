@@ -8,7 +8,7 @@ import { hashCode } from '../util/hash_code';
 export function styleKey(qStyles: QRLInternal<string>): string;
 export function styleKey(qStyles: QRLInternal<string> | null): string | null;
 export function styleKey(qStyles: QRLInternal<string> | null): string | null {
-  return qStyles && String(hashCode(qStyles.symbol));
+  return qStyles && String(hashCode(qStyles.getCanonicalSymbol()));
 }
 
 /**

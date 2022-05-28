@@ -115,7 +115,6 @@ async function validateStarter(
   accessSync(join(appDir, 'tsconfig.json'));
   accessSync(join(appDir, 'tsconfig.tsbuildinfo'));
 
-  const starters = await api.getStarters();
   const serverDir = join(appDir, 'server');
   accessSync(serverDir);
 
@@ -126,6 +125,10 @@ async function validateStarter(
       hasEntryServer = true;
       break;
     }
+  }
+
+  if (!hasEntryServer) {
+    throw new Error(`"${projectName}", ${appDir} did not generate server output`);
   }
   if (!serverOutput) {
     throw new Error(`"${projectName}", ${appDir} did not generate server output`);

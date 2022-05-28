@@ -8,7 +8,6 @@ import type {
   HookAnalysis,
   Optimizer,
   OptimizerOptions,
-  Path,
   QwikManifest,
   TransformFsOptions,
   TransformModule,

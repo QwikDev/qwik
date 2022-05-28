@@ -1,12 +1,4 @@
-import {
-  component$,
-  Host,
-  Slot,
-  useHostElement,
-  useScopedStyles$,
-  useStore,
-  useWatch$,
-} from '@builder.io/qwik';
+import { component$, Host, Slot, useScopedStyles$, useStore, useStyles$ } from '@builder.io/qwik';
 import { useLocation } from '../../utils/useLocation';
 import { Repl } from '../../components/repl/repl';
 import styles from './tutorial.css?inline';
@@ -14,19 +6,11 @@ import { TutorialContentFooter } from './tutorial-content-footer';
 import { TutorialContentHeader } from './tutorial-content-header';
 import tutorialSections, { TutorialApp } from '@tutorial-data';
 import { Header } from '../../components/header/header';
-import { setHeadStyles } from '@builder.io/qwik-city';
 import type { ReplAppInput } from '../../components/repl/types';
 
 const Tutorial = component$(() => {
   useScopedStyles$(styles);
-
-  useWatch$(() => {
-    setHeadStyles(useHostElement(), [
-      {
-        style: `html,body { margin: 0; height: 100%; overflow: hidden; }`,
-      },
-    ]);
-  });
+  useStyles$(`html,body { margin: 0; height: 100%; overflow: hidden; }`);
 
   const loc = useLocation();
   const getTutorialApp = (): TutorialApp | undefined => {

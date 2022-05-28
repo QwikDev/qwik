@@ -1,11 +1,17 @@
+import { useDocument } from '@builder.io/qwik';
 import type { HeadStyles } from './types';
 
 /**
  * @public
  */
-export const setHeadStyles = (elm: any, styles: HeadStyles) => {
-  const doc: Document = elm && elm.ownerDocument;
+export const useHeadStyles = (meta: HeadStyles) => {
+  setHeadStyles(useDocument(), meta);
+};
 
+/**
+ * @public
+ */
+export const setHeadStyles = (doc: Document, styles: HeadStyles) => {
   if (doc && Array.isArray(styles)) {
     for (const s of styles) {
       try {

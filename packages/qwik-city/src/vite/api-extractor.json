@@ -1,40 +1,15 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/api-extractor/v7/api-extractor.schema.json",
-  "mainEntryPointFilePath": "<projectFolder>/tsc-out/vite/index.d.ts",
-  "compiler": {
-    "tsconfigFilePath": "<projectFolder>/tsconfig.json"
-  },
+  "extends": "../api-extractor.json",
+  "mainEntryPointFilePath": "<projectFolder>/dist-dev/dts-out/packages/qwik-city/src/vite/index.d.ts",
   "apiReport": {
     "enabled": true,
     "reportFileName": "api.md",
-    "reportFolder": "<projectFolder>/src/vite/",
-    "reportTempFolder": "<projectFolder>/dist-dev/api-extractor/qwik-city-vite/"
+    "reportFolder": "<projectFolder>/packages/qwik-city/src/vite/",
+    "reportTempFolder": "<projectFolder>/dist-dev/api-extractor/qwik-city/vite"
   },
   "dtsRollup": {
     "enabled": true,
-    "untrimmedFilePath": "<projectFolder>/dist/vite/index.d.ts"
-  },
-  "docModel": {
-    "enabled": false
-  },
-  "tsdocMetadata": {
-    "enabled": false
-  },
-  "messages": {
-    "compilerMessageReporting": {
-      "default": {
-        "logLevel": "error"
-      }
-    },
-    "extractorMessageReporting": {
-      "default": {
-        "logLevel": "error"
-      }
-    },
-    "tsdocMessageReporting": {
-      "default": {
-        "logLevel": "error"
-      }
-    }
+    "untrimmedFilePath": "<projectFolder>/packages/qwik-city/dist/vite/index.d.ts"
   }
 }

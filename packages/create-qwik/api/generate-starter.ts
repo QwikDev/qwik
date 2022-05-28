@@ -61,11 +61,20 @@ function generateUserStarter(
     throw new Error(`Unable to find base app.`);
   }
 
+  if (starterServer) {
+    const serverPkgJson = readPackageJson(starterServer.dir);
+    const vite = serverPkgJson.qwik?.vite;
+    replacements.push([/\/\* VITE_IMPORTS \*\//g, vite?.VITE_IMPORTS ?? '']);
+    replacements.push([/\/\* VITE_CONFIG \*\//g, vite?.VITE_CONFIG ?? '']);
+    replacements.push([/\/\* VITE_QWIK \*\//g, vite?.VITE_QWIK ?? '']);
+    replacements.push([/\/\* VITE_PLUGINS \*\//g, vite?.VITE_PLUGINS ?? '']);
+  }
+
   cp(baseApp.dir, result.outDir, replacements);
   cp(starterApp.dir, result.outDir, replacements);
 
   const pkgJson = readPackageJson(baseApp.dir);
-  const starterPkgJson = readPackageJson(baseApp.dir);
+  const starterPkgJson = readPackageJson(starterApp.dir);
   mergePackageJSONs(pkgJson, starterPkgJson);
 
   let readmeContent = baseApp.readme!.trim() + '\n\n';

@@ -1,40 +1,15 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/api-extractor/v7/api-extractor.schema.json",
-  "mainEntryPointFilePath": "<projectFolder>/tsc-out/runtime/index.d.ts",
-  "compiler": {
-    "tsconfigFilePath": "<projectFolder>/tsconfig.json"
-  },
-  "dtsRollup": {
-    "enabled": true,
-    "untrimmedFilePath": "<projectFolder>/dist/index.d.ts"
-  },
+  "extends": "../api-extractor.json",
+  "mainEntryPointFilePath": "<projectFolder>/dist-dev/dts-out/packages/qwik-city/src/runtime/index.d.ts",
   "apiReport": {
     "enabled": true,
     "reportFileName": "api.md",
-    "reportFolder": "<projectFolder>/src/runtime/",
-    "reportTempFolder": "<projectFolder>/../../dist-dev/api-extractor/qwik-city/"
+    "reportFolder": "<projectFolder>/packages/qwik-city/src/runtime/",
+    "reportTempFolder": "<projectFolder>/dist-dev/api-extractor/qwik-city/runtime"
   },
-  "docModel": {
-    "enabled": false
-  },
-  "tsdocMetadata": {
-    "enabled": false
-  },
-  "messages": {
-    "compilerMessageReporting": {
-      "default": {
-        "logLevel": "error"
-      }
-    },
-    "extractorMessageReporting": {
-      "default": {
-        "logLevel": "error"
-      }
-    },
-    "tsdocMessageReporting": {
-      "default": {
-        "logLevel": "error"
-      }
-    }
+  "dtsRollup": {
+    "enabled": true,
+    "untrimmedFilePath": "<projectFolder>/packages/qwik-city/dist/index.d.ts"
   }
 }

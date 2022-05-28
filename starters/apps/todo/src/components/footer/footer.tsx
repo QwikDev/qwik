@@ -1,5 +1,5 @@
 import { component$, Host, useContext } from '@builder.io/qwik';
-import { FILTERS, FilterStates, TODOS, Todos } from '../../state/state';
+import { FILTERS, FilterStates, TODOS } from '../../state/state';
 
 /**
  * Footer showing items remaining and filtering options

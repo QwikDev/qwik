@@ -93,7 +93,7 @@ export type { RenderingState } from './render/notify-render';
 export { useHostElement } from './use/use-host-element.public';
 export { useDocument } from './use/use-document.public';
 export { useLexicalScope } from './use/use-lexical-scope.public';
-export { useStore, useRef } from './use/use-store.public';
+export { useStore, useRef, useSequentialScope } from './use/use-store.public';
 export { wrapSubscriber, unwrapSubscriber } from './use/use-subscriber';
 export { useContext, useContextProvider, createContext } from './use/use-context';
 export { useWaitOn } from './use/use-core';

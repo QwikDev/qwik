@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import type { InputOptions, OutputAsset, OutputChunk } from 'rollup';
 import type { Diagnostic, QwikRollupPluginOptions } from '@builder.io/qwik/optimizer';
-import type { ReplInputOptions, ReplModuleInput, ReplModuleOutput, ReplResult } from '../types';
+import type { ReplInputOptions, ReplModuleOutput, ReplResult } from '../types';
 import { getCtx, QwikReplContext } from './context';
 import { loadDependencies } from './dependencies';
 import { ssrHtml } from './ssr-html';

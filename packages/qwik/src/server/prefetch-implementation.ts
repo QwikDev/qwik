@@ -66,8 +66,6 @@ function linkJsImplementation(
   prefetchResources: PrefetchResource[],
   prefetchImpl: PrefetchImplementation
 ) {
-  const urls = flattenPrefetchResources(prefetchResources);
-
   const rel =
     prefetchImpl === 'link-modulepreload'
       ? 'modulepreload'

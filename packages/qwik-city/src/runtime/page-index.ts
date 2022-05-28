@@ -19,13 +19,14 @@ const loadIndex = (href: string): PageIndex | null => {
     if (INDEXES[pathname]) {
       return INDEXES[pathname];
     }
-
-    const parts = pathname.split('/');
-    parts.pop();
-
-    pathname = parts.join('/');
     if (pathname === '/') {
       break;
+    }
+    const parts = pathname.split('/');
+    parts.pop();
+    pathname = parts.join('/');
+    if (!pathname.startsWith('/')) {
+      pathname = '/' + pathname;
     }
   }
 

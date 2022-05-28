@@ -15,6 +15,7 @@
     "importsNotUsedAsValues": "error",
     "moduleResolution": "node",
     "baseUrl": ".",
+    "noUnusedLocals": true,
     "paths": {
       "@builder.io/qwik": ["packages/qwik/src/core/index"],
       "@builder.io/qwik/build": ["packages/qwik/src/build/index"],

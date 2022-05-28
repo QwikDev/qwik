@@ -1,4 +1,12 @@
+import { useDocument } from '@builder.io/qwik';
 import type { HeadLinks } from './types';
+
+/**
+ * @public
+ */
+export const useHeadLinks = (meta: HeadLinks) => {
+  setHeadLinks(useDocument(), meta);
+};
 
 /**
  * @public

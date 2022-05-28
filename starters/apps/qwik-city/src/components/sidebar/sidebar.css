@@ -1,39 +1,12 @@
-.sidebar {
-}
-
-.breadcrumbs {
-}
-
-.breadcrumbs button {
-}
-
-.breadcrumbs ol {
-}
-
-.breadcrumbs li {
-}
-
-.breadcrumbs li:after {
-}
-
-.breadcrumbs li:last-child::after {
-  content: '';
-}
-
-.menu {
+aside {
+  padding: 10px;
 }
 
 .menu h5 {
-}
-
-.menu ul {
-}
-
-.menu li {
+  font-size: 18px;
+  font-weight: 800;
 }
 
 .menu li a {
-}
-
-.menu li a.is-active {
+  text-decoration: underline;
 }

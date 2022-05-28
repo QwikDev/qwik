@@ -5,6 +5,7 @@ import {
   noSerialize,
   useContextProvider,
   immutable,
+  useSequentialScope,
 } from '@builder.io/qwik';
 import { BUILD_ID, INLINED_MODULES, LAYOUTS, PAGES } from '@builder.io/qwik-city/build';
 import type { PageHandler } from './types';
@@ -17,11 +18,11 @@ export const QwikCityContext = createContext<PageHandler>('qwikcity-page');
  * @alpha
  */
 export const useQwikCity = () => {
-  // const [value, setValue] = useSequentialScope();
-  // if (value) {
-  //   return;
-  // }
-  // setValue(true);
+  const [value, setValue] = useSequentialScope();
+  if (value) {
+    return;
+  }
+  setValue(true);
 
   const href = useLocation().href;
 

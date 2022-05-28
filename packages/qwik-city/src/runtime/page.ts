@@ -25,7 +25,6 @@ export const useQwikCity = () => {
 
   const href = useLocation().href;
 
-
   const page: PageHandler = {} as any;
   useWaitOn(
     loadPage(href).then((loaded) => {

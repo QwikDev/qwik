@@ -13,9 +13,6 @@ export async function buildQwikCity(config: BuildConfig) {
   await buildRuntime(input, output, config);
   await buildVite(input, output, config);
 
-  await copyFile(join(input, 'package.json'), join(output, 'package.json'));
-  await copyFile(join(input, 'README.md'), join(output, 'README.md'));
-
   console.log(`🏙 ${PACKAGE}`);
 }
 
@@ -43,7 +40,6 @@ async function buildRuntime(input: string, output: string, config: BuildConfig) 
   });
 }
 
-
 async function buildVite(input: string, output: string, config: BuildConfig) {
   const entryPoints = [join(input, 'src', 'vite', 'index.ts')];
 
@@ -69,7 +65,6 @@ async function buildVite(input: string, output: string, config: BuildConfig) {
     watch: watcher(config),
   });
 }
-
 
 export async function publishStarterCli(
   config: BuildConfig,

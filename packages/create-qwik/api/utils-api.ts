@@ -15,7 +15,11 @@ export function cp(srcDir: string, destDir: string, replacements: Replacements) 
       mkdirSync(destChildPath, { recursive: true });
       cp(srcChildPath, destChildPath, replacements);
     } else if (s.isFile()) {
-      const shouldReplace = replacements.length > 0 && ['.json', '.toml', '.md', '.html', 'vite.config.ts'].some(ext => srcChildPath.endsWith(ext));
+      const shouldReplace =
+        replacements.length > 0 &&
+        ['.json', '.toml', '.md', '.html', 'vite.config.ts'].some((ext) =>
+          srcChildPath.endsWith(ext)
+        );
       if (shouldReplace) {
         let srcContent = readFileSync(srcChildPath, 'utf8');
         for (const regex of replacements) {

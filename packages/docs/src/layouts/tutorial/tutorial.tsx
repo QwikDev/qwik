@@ -1,11 +1,4 @@
-import {
-  component$,
-  Host,
-  Slot,
-  useScopedStyles$,
-  useStore,
-  useStyles$,
-} from '@builder.io/qwik';
+import { component$, Host, Slot, useScopedStyles$, useStore, useStyles$ } from '@builder.io/qwik';
 import { useLocation } from '../../utils/useLocation';
 import { Repl } from '../../components/repl/repl';
 import styles from './tutorial.css?inline';

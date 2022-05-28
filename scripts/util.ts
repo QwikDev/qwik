@@ -320,10 +320,10 @@ export interface PackageJSON {
     priority: number;
     featureOptions: string[];
     vite?: {
-      "VITE_IMPORTS"?: string;
-      "VITE_CONFIG"?: string;
-      "VITE_QWIK"?: string;
-      "VITE_PLUGINS"?: string;
-    }
+      VITE_IMPORTS?: string;
+      VITE_CONFIG?: string;
+      VITE_QWIK?: string;
+      VITE_PLUGINS?: string;
+    };
   };
 }

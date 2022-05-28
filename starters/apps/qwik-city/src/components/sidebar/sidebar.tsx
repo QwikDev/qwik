@@ -7,7 +7,6 @@ export const SideBar = component$(
     useScopedStyles$(styles);
     const page = usePage();
     const navIndex = usePageIndex();
-    console.log(navIndex);
     if (!page) {
       return null;
     }

@@ -15,7 +15,6 @@ export const usePageIndex = () => {
 const loadIndex = (href: string): PageIndex | null => {
   let pathname = normalizeUrl(href).pathname;
 
-
   for (let i = 0; i < 9; i++) {
     if (INDEXES[pathname]) {
       return INDEXES[pathname];
@@ -26,7 +25,7 @@ const loadIndex = (href: string): PageIndex | null => {
     const parts = pathname.split('/');
     parts.pop();
     pathname = parts.join('/');
-    if (!pathname.startsWith("/")) {
+    if (!pathname.startsWith('/')) {
       pathname = '/' + pathname;
     }
   }

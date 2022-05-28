@@ -64,10 +64,10 @@ function generateUserStarter(
   if (starterServer) {
     const serverPkgJson = readPackageJson(starterServer.dir);
     const vite = serverPkgJson.qwik?.vite;
-    replacements.push([/\/\* VITE_IMPORTS \*\//g, vite?.VITE_IMPORTS ?? ""]);
-    replacements.push([/\/\* VITE_CONFIG \*\//g, vite?.VITE_CONFIG ?? ""]);
-    replacements.push([/\/\* VITE_QWIK \*\//g, vite?.VITE_QWIK ?? ""]);
-    replacements.push([/\/\* VITE_PLUGINS \*\//g, vite?.VITE_PLUGINS ?? ""]);
+    replacements.push([/\/\* VITE_IMPORTS \*\//g, vite?.VITE_IMPORTS ?? '']);
+    replacements.push([/\/\* VITE_CONFIG \*\//g, vite?.VITE_CONFIG ?? '']);
+    replacements.push([/\/\* VITE_QWIK \*\//g, vite?.VITE_QWIK ?? '']);
+    replacements.push([/\/\* VITE_PLUGINS \*\//g, vite?.VITE_PLUGINS ?? '']);
   }
 
   cp(baseApp.dir, result.outDir, replacements);

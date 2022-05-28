@@ -28,7 +28,6 @@ export function qwikCity(options: PluginOptions) {
       command = config.command;
       isSSR = !!config.build?.ssr || config.mode === 'ssr';
       inlineModules = isSSR || command === 'serve';
-
     },
 
     async buildStart() {
@@ -49,7 +48,6 @@ export function qwikCity(options: PluginOptions) {
     },
 
     resolveId(id) {
-      console.log(id);
       if (id === QWIK_CITY_BUILD_ID) {
         return RESOLVED_QWIK_CITY_BUILD_ID;
       }

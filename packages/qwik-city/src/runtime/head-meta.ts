@@ -6,13 +6,12 @@ import type { MetaOptions } from './types';
  */
 export const useHeadMeta = (meta: MetaOptions) => {
   setHeadMeta(useDocument(), meta);
-}
+};
 
 /**
  * @public
  */
 export const setHeadMeta = (doc: Document, meta: MetaOptions) => {
-
   if (doc && meta && typeof meta === 'object') {
     const existingMeta = Array.from(doc.head.querySelectorAll('meta'))
       .map((el) => ({

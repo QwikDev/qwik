@@ -4,9 +4,9 @@ import type { HeadStyles } from './types';
 /**
  * @public
  */
- export const useHeadStyles = (meta: HeadStyles) => {
+export const useHeadStyles = (meta: HeadStyles) => {
   setHeadStyles(useDocument(), meta);
-}
+};
 
 /**
  * @public

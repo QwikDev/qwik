@@ -131,7 +131,7 @@ export function useRef<T = Element>(current?: T): Ref<T> {
 
 /**
  * @alpha
-*/
+ */
 export function useSequentialScope(): [any, (prop: any) => void] {
   const ctx = getInvokeContext();
   assertEqual(ctx.event, RenderEvent);

@@ -15,7 +15,6 @@ export const Root = () => {
   );
 };
 
-
 const Head = () => (
   <>
     <meta charSet="utf-8" />

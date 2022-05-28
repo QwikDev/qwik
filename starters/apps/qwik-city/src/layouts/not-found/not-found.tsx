@@ -10,9 +10,7 @@ const NotFound = component$(() => {
     <Host class="docs">
       <Header />
       <SideBar />
-      <main>
-        Not Found
-      </main>
+      <main>Not Found</main>
     </Host>
   );
 });

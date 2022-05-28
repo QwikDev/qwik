@@ -16,7 +16,6 @@ import type { ReplAppInput, ReplModuleInput } from '../../components/repl/types'
 import { BUILD_MODE_OPTIONS, ENTRY_STRATEGY_OPTIONS } from '../../components/repl/repl-options';
 
 const Playground = component$(() => {
-
   useStyles$(`html,body { margin: 0; height: 100%; overflow: hidden; }`);
   useScopedStyles$(styles);
   useHeadMeta({ title: `Qwik Playground` });

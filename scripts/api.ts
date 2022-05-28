@@ -10,29 +10,61 @@ import { readFileSync, writeFileSync } from 'fs';
 export function apiExtractor(config: BuildConfig) {
   // core
   // Run the api extractor for each of the submodules
-  createTypesApi(config, join(config.srcDir, 'core'), join(config.distPkgDir, 'core.d.ts'), './core');
-  createTypesApi(config, join(config.srcDir, 'jsx-runtime'), join(config.distPkgDir, 'jsx-runtime.d.ts'), './core');
-  createTypesApi(config, join(config.srcDir, 'optimizer'), join(config.distPkgDir, 'optimizer.d.ts'), './core');
-  createTypesApi(config, join(config.srcDir, 'server'), join(config.distPkgDir, 'server.d.ts'), './core');
-  createTypesApi(config, join(config.srcDir, 'testing'), join(config.distPkgDir, 'testing', 'index.d.ts'), '../core');
-  createTypesApi(config, join(config.srcDir, 'build'), join(config.distPkgDir, 'build', 'index.d.ts'), '../core');
+  createTypesApi(
+    config,
+    join(config.srcDir, 'core'),
+    join(config.distPkgDir, 'core.d.ts'),
+    './core'
+  );
+  createTypesApi(
+    config,
+    join(config.srcDir, 'jsx-runtime'),
+    join(config.distPkgDir, 'jsx-runtime.d.ts'),
+    './core'
+  );
+  createTypesApi(
+    config,
+    join(config.srcDir, 'optimizer'),
+    join(config.distPkgDir, 'optimizer.d.ts'),
+    './core'
+  );
+  createTypesApi(
+    config,
+    join(config.srcDir, 'server'),
+    join(config.distPkgDir, 'server.d.ts'),
+    './core'
+  );
+  createTypesApi(
+    config,
+    join(config.srcDir, 'testing'),
+    join(config.distPkgDir, 'testing', 'index.d.ts'),
+    '../core'
+  );
+  createTypesApi(
+    config,
+    join(config.srcDir, 'build'),
+    join(config.distPkgDir, 'build', 'index.d.ts'),
+    '../core'
+  );
 
   // qwik-city
-  createTypesApi(config, join(config.packagesDir, 'qwik-city', 'src', 'runtime'), join(config.packagesDir, 'qwik-city', 'dist', 'index.d.ts'));
-  createTypesApi(config, join(config.packagesDir, 'qwik-city', 'src', 'vite'), join(config.packagesDir, 'qwik-city', 'dist', 'vite', 'index.d.ts'));
-
+  createTypesApi(
+    config,
+    join(config.packagesDir, 'qwik-city', 'src', 'runtime'),
+    join(config.packagesDir, 'qwik-city', 'dist', 'index.d.ts')
+  );
+  createTypesApi(
+    config,
+    join(config.packagesDir, 'qwik-city', 'src', 'vite'),
+    join(config.packagesDir, 'qwik-city', 'dist', 'vite', 'index.d.ts')
+  );
 
   generateServerReferenceModules(config);
 
   console.log('🥶', 'submodule d.ts API files generated');
 }
 
-function createTypesApi(
-  config: BuildConfig,
-  inPath: string,
-  outPath: string,
-  corePath?: string
-) {
+function createTypesApi(config: BuildConfig, inPath: string, outPath: string, corePath?: string) {
   const extractorConfigPath = join(inPath, 'api-extractor.json');
   const extractorConfig = ExtractorConfig.loadFileAndPrepare(extractorConfigPath);
   const result = Extractor.invoke(extractorConfig, {

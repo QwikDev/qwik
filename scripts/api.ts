@@ -8,13 +8,19 @@ import { readFileSync, writeFileSync } from 'fs';
  * the public API has not changed for a production build.
  */
 export function apiExtractor(config: BuildConfig) {
+  // core
   // Run the api extractor for each of the submodules
-  createTypesApi(config, 'core', 'core.d.ts', './core');
-  createTypesApi(config, 'jsx-runtime', 'jsx-runtime.d.ts', './core');
-  createTypesApi(config, 'optimizer', 'optimizer.d.ts', './core');
-  createTypesApi(config, 'server', 'server.d.ts', './core');
-  createTypesApi(config, 'testing', 'testing/index.d.ts', '../core');
-  createTypesApi(config, 'build', 'build/index.d.ts', '../core');
+  createTypesApi(config, join(config.srcDir, 'core'), join(config.distPkgDir, 'core.d.ts'), './core');
+  createTypesApi(config, join(config.srcDir, 'jsx-runtime'), join(config.distPkgDir, 'jsx-runtime.d.ts'), './core');
+  createTypesApi(config, join(config.srcDir, 'optimizer'), join(config.distPkgDir, 'optimizer.d.ts'), './core');
+  createTypesApi(config, join(config.srcDir, 'server'), join(config.distPkgDir, 'server.d.ts'), './core');
+  createTypesApi(config, join(config.srcDir, 'testing'), join(config.distPkgDir, 'testing', 'index.d.ts'), '../core');
+  createTypesApi(config, join(config.srcDir, 'build'), join(config.distPkgDir, 'build', 'index.d.ts'), '../core');
+
+  // qwik-city
+  createTypesApi(config, join(config.packagesDir, 'qwik-city', 'src', 'runtime'), join(config.packagesDir, 'qwik-city', 'dist', 'index.d.ts'));
+  createTypesApi(config, join(config.packagesDir, 'qwik-city', 'src', 'vite'), join(config.packagesDir, 'qwik-city', 'dist', 'vite', 'index.d.ts'));
+
 
   generateServerReferenceModules(config);
 
@@ -23,11 +29,11 @@ export function apiExtractor(config: BuildConfig) {
 
 function createTypesApi(
   config: BuildConfig,
-  submodule: string,
-  outFileName: string,
-  corePath: string
+  inPath: string,
+  outPath: string,
+  corePath?: string
 ) {
-  const extractorConfigPath = join(config.srcDir, submodule, 'api-extractor.json');
+  const extractorConfigPath = join(inPath, 'api-extractor.json');
   const extractorConfig = ExtractorConfig.loadFileAndPrepare(extractorConfigPath);
   const result = Extractor.invoke(extractorConfig, {
     localBuild: !!config.dev,
@@ -41,7 +47,7 @@ function createTypesApi(
       if (msg.text.includes('Analysis will use')) {
         return;
       }
-      console.error(`❌ API Extractor, submodule: "${submodule}"\n${extractorConfigPath}\n`, msg);
+      console.error(`❌ API Extractor, submodule: "${inPath}"\n${extractorConfigPath}\n`, msg);
     },
   });
   if (!result.succeeded) {
@@ -50,8 +56,8 @@ function createTypesApi(
     );
   }
   const srcPath = result.extractorConfig.untrimmedFilePath;
-  const destPath = join(config.distPkgDir, outFileName);
-  fixDtsContent(config, srcPath, destPath, corePath);
+  const content = fixDtsContent(config, srcPath, corePath);
+  writeFileSync(outPath, content);
 }
 
 function generateServerReferenceModules(config: BuildConfig) {
@@ -78,17 +84,17 @@ declare module '@qwik-client-manifest' {
  * Fix up the generated dts content, and ensure it's using a relative
  * path to find the core.d.ts file, rather than node resolving it.
  */
-function fixDtsContent(config: BuildConfig, srcPath: string, destPath: string, corePath: string) {
+function fixDtsContent(config: BuildConfig, srcPath: string, corePath: string | undefined) {
   let dts = readFileSync(srcPath, 'utf-8');
 
   // ensure we're just using a relative path
-  dts = dts.replace(/@builder\.io\/qwik/g, corePath);
+  if (corePath) {
+    dts = dts.replace(/@builder\.io\/qwik/g, corePath);
+  }
 
   // for some reason api-extractor is adding this in  ¯\_(ツ)_/¯
   dts = dts.replace('{};', '');
 
   // replace QWIK_VERSION with the actual version number, useful for debugging
-  dts = dts.replace(/QWIK_VERSION/g, config.distVersion);
-
-  writeFileSync(destPath, dts);
+  return dts.replace(/QWIK_VERSION/g, config.distVersion);
 }

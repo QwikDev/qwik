@@ -155,10 +155,19 @@ export interface PageSource {
 export const setHeadLinks: (doc: Document, links: HeadLinks) => void;
 
 // @public (undocumented)
-export const setHeadMeta: (elm: any, meta: MetaOptions) => void;
+export const setHeadMeta: (doc: Document, meta: MetaOptions) => void;
 
 // @public (undocumented)
-export const setHeadStyles: (elm: any, styles: HeadStyles) => void;
+export const setHeadStyles: (doc: Document, styles: HeadStyles) => void;
+
+// @public (undocumented)
+export const useHeadLinks: (meta: HeadLinks) => void;
+
+// @public (undocumented)
+export const useHeadMeta: (meta: MetaOptions) => void;
+
+// @public (undocumented)
+export const useHeadStyles: (meta: HeadStyles) => void;
 
 // @public (undocumented)
 export const usePage: () => PageHandler | undefined;

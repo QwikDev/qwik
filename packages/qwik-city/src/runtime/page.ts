@@ -2,7 +2,6 @@ import {
   useContext,
   createContext,
   useWaitOn,
-  useStore,
   noSerialize,
   useContextProvider,
   immutable,
@@ -18,7 +17,15 @@ export const QwikCityContext = createContext<PageHandler>('qwikcity-page');
  * @alpha
  */
 export const useQwikCity = () => {
+  // const [value, setValue] = useSequentialScope();
+  // if (value) {
+  //   return;
+  // }
+  // setValue(true);
+
   const href = useLocation().href;
+
+
   const page: PageHandler = {} as any;
   useWaitOn(
     loadPage(href).then((loaded) => {

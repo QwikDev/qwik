@@ -3,24 +3,27 @@ title: Getting Started
 fetch: https://hackmd.io/@mhevery/S1_pV3Cl9
 ---
 
-# Getting Started
+<img class="mb-5" src='/banner.svg'/>
 
-Qwik is a new kind of frameworks
+# Getting Started Qwikly
+
+Qwik is a new kind of framework that is [resumable](./concepts/resumable.mdx) (No JS and no hydration), built for the edge and familiar for React developers.
+
 - [Stackblitz Qwik + Vite](https://stackblitz.com/edit/qwik-vite-todoapp?file=index.html)
-- [Examples playground](/examples)
-- [Step by step tutorial](/tutorial)
+- [Examples playground](/examples/reactivity/counter)
 
 
 ## Prerequisites
 
 - `node.js` v14 or higher (with `npm`)
-- your favorite IDE (vscode recommended)
+- Your favorite IDE (vscode recommended)
+- Start to [think qwik](./think-qwik.mdx)
 
-## Creating an app
+## Creating an app using the CLI
 
 The first step is to create an application. Qwik comes with a CLI that allows you to create a basic working skeleton of an application. We will use the CLI to create a Todo sample app, and we will use that application to do a walk-through of Qwik so that you can familiarize yourself with it.
 
-1. Ask Qwik CLI to create a project:
+### Run the Qwik CLI in your shell
 
 ```shell
 $ npm init qwik@latest
@@ -51,7 +54,7 @@ At this point, you will have `qwik-todo` directory, which contains the starter a
 
 ## Running in development
 
-The easiest way to get running application is to follow the steps from the `npm create qwik@latest`:
+Once the application is download.
 
 1. Change into the directory created by the `npm create qwik@latest`.
 
@@ -65,7 +68,7 @@ cd qwik-todo
 npm install
 ```
 
-3. Invoke the server
+3. Invoke the dev server
 
 ```shell
 npm start

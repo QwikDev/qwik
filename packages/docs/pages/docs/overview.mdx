@@ -9,9 +9,12 @@ Qwik is a new kind of web framework that can deliver instant loading web applica
 
 ## Qwik is:
 
-- **General-purpose**: Qwik can be used to build any type of web site or application
-- **Instant-on**: Unlike other frameworks, Qwik is [resumable](./concepts/resumable.mdx) which means Qwik applications require **0 hydration**. This allows Qwik apps to have instant-on interactivity, regardless of size or complexity
-- **Optimized for speed**: Qwik has unprecedented performance, offering sub-second full page loads even on mobile devices. Qwik achieves this by delivering pure HTML, and incrementally loading JS only as-needed.
+- **General-purpose**: Qwik is familiar for React developers and can be used to build any type of web site or application.
+- **Resumable**: Qwik is [resumable](./concepts/resumable.mdx) which means Qwik applications require **0 hydration**. This allows Qwik apps to have instant-on interactivity.
+- **Progressive**: Qwik takes [full responsability of how to load and download JS](https://www.builder.io/blog/dont-blame-the-developer-for-what-the-frameworks-did). No more manual code splitting.
+- **Reactive**: Qwik semantics allow for [fully reactive and efficient rendering](./concepts/reactivity.mdx).
+- **Fast**: Qwik has unprecedented performance, offering sub-second full page loads even on mobile devices. Qwik achieves this by delivering pure HTML, and incrementally loading JS only as-needed.
+- **Scalable**: Qwik application have [O(1) constant scalability](https://www.builder.io/blog/our-current-frameworks-are-on-we-need-o1). It does not matter your full application has 1 million components, your app will boot up the same.
 
 <img
   alt="Qwik Diagram"

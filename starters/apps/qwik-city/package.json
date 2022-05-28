@@ -9,6 +9,6 @@
     ]
   },
   "devDependencies": {
-    "@builder.io/qwik-city": "0.0.9"
+    "@builder.io/qwik-city": "0.0.10"
   }
 }

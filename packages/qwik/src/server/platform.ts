@@ -1,7 +1,6 @@
 import type { CorePlatform } from '@builder.io/qwik';
 import { setPlatform } from '@builder.io/qwik';
 import { getCanonicalSymbol } from '../core/import/qrl-class';
-import { getValidManifest } from '../optimizer/src/manifest';
 import type { SymbolMapper } from '../optimizer/src/types';
 import type { SerializeDocumentOptions } from './types';
 import { normalizeUrl } from './utils';

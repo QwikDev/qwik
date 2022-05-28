@@ -2,9 +2,9 @@ import { component$, Host, Slot, useScopedStyles$ } from '@builder.io/qwik';
 import { Footer } from '../../components/footer/footer';
 import { Header } from '../../components/header/header';
 import { SideBar } from '../../components/sidebar/sidebar';
-import styles from './docs.css?inline';
+import styles from './default.css?inline';
 
-const DocsLayout = component$(() => {
+const DefaultLayout = component$(() => {
   useScopedStyles$(styles);
 
   return (
@@ -21,4 +21,4 @@ const DocsLayout = component$(() => {
   );
 });
 
-export default DocsLayout;
+export default DefaultLayout;

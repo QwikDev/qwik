@@ -1,5 +1,5 @@
-import { component$, useContext, useContextProvider, useStore } from '@builder.io/qwik';
-import { TODOS, Todos } from '../../state/state';
+import { component$, useContext, useStore } from '@builder.io/qwik';
+import { TODOS } from '../../state/state';
 
 /**
  * Header component which is responsible for providing UI to ender new todo item.

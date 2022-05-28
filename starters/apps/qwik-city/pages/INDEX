@@ -2,7 +2,7 @@
 
 ## Welcome
 
-- [Welcome](welcome.mdx)
+- [Welcome](index.mdx)
 
 ## Blog
 
@@ -12,6 +12,5 @@
 
 ## Docs
 
-- [QwikCity](components/anatomy.mdx)
 - [Qwik](https://qwik.builder.io)
 - [Partytown](https://partytown.builder.io/)

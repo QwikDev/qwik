@@ -1,4 +1,4 @@
-import { InputOptions, OutputOptions, OutputPlugin, rollup } from 'rollup';
+import { InputOptions, OutputOptions, rollup } from 'rollup';
 import {
   BuildConfig,
   ensureDir,

@@ -13,7 +13,7 @@ export default defineConfig(() => {
       qwikCity({
         pagesDir,
         layouts: {
-          default: resolve('src', 'layouts', 'docs', 'docs.tsx'),
+          default: resolve('src', 'layouts', 'default', 'default.tsx'),
         },
       }),
       qwikVite(/* VITE_QWIK */),

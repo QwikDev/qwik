@@ -162,7 +162,7 @@ export function isMarkdownFile(ctx: PluginContext, filePath: string) {
 
 export function isIndexFile(filePath: string) {
   filePath = filePath.toLowerCase();
-  return filePath === 'index.md' || filePath === 'index';
+  return filePath === 'index';
 }
 
 export function getPagesBuildPath(pathname: string) {

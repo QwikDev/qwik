@@ -50,14 +50,18 @@ export const initMonacoEditor = async (
   ts.typescriptDefaults.setEagerModelSync(true);
 
   if (typeof props.onChangeQrl === 'object') {
-    let tmrId: any = null;
+    let debounceTmrId: any = null;
+    let diagnosticsTmrId: any = null;
 
     editorStore.onChangeSubscription = noSerialize(
       editor.onDidChangeModelContent(async () => {
-        props.onChangeQrl?.invoke(props.selectedPath, editor.getValue());
+        clearTimeout(debounceTmrId);
+        debounceTmrId = setTimeout(() => {
+          props.onChangeQrl?.invoke(props.selectedPath, editor.getValue());
+        }, 200);
 
-        clearTimeout(tmrId);
-        tmrId = setTimeout(() => {
+        clearTimeout(diagnosticsTmrId);
+        diagnosticsTmrId = setTimeout(() => {
           checkDiagnostics(monaco, editor, replStore);
         }, 50);
       })

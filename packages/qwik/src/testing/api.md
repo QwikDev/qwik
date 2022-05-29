@@ -53,9 +53,6 @@ export interface PrefetchStrategy {
     symbolsToPrefetch?: SymbolsToPrefetch;
 }
 
-// @public (undocumented)
-export type QrlMapper = (symbolName: string) => [string, string] | undefined;
-
 // @alpha (undocumented)
 export interface QwikBundle {
     // (undocumented)
@@ -131,10 +128,10 @@ export interface RenderToStringOptions extends SerializeDocumentOptions {
     // Warning: (ae-incompatible-release-tags) The symbol "prefetchStrategy" is marked as @public, but its signature references "PrefetchStrategy" which is marked as @alpha
     //
     // (undocumented)
-    prefetchStrategy?: PrefetchStrategy;
+    prefetchStrategy?: PrefetchStrategy | null;
     qwikLoader?: {
         events?: string[];
-        include?: boolean;
+        include?: boolean | 'body' | 'head';
     };
     snapshot?: boolean;
 }
@@ -160,8 +157,10 @@ export interface RenderToStringResult {
 // @public
 export function serializeDocument(docOrEl: Document | Element, opts?: SerializeDocumentOptions): string;
 
+// Warning: (ae-forgotten-export) The symbol "SymbolMapper" needs to be exported by the entry point index.d.ts
+//
 // @public
-export function setServerPlatform(document: any, opts: SerializeDocumentOptions): Promise<void>;
+export function setServerPlatform(document: any, opts: SerializeDocumentOptions, mapper: SymbolMapper): Promise<void>;
 
 // @public (undocumented)
 export interface SnapshotResult {

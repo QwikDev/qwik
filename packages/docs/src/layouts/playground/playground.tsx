@@ -2,22 +2,23 @@ import {
   $,
   component$,
   Host,
-  useHostElement,
   useScopedStyles$,
-  useWatch$,
   useStore,
   useClientEffect$,
+  useStyles$,
 } from '@builder.io/qwik';
 import { Repl } from '../../components/repl/repl';
 import { Header } from '../../components/header/header';
-import { getLocation, setHeadMeta, setHeadStyles } from '@builder.io/qwik-city';
+import { getLocation, useHeadMeta } from '@builder.io/qwik-city';
 import styles from './playground.css?inline';
 import playgroundApp from '@playground-data';
 import type { ReplAppInput, ReplModuleInput } from '../../components/repl/types';
 import { BUILD_MODE_OPTIONS, ENTRY_STRATEGY_OPTIONS } from '../../components/repl/repl-options';
 
 const Playground = component$(() => {
-  const hostElm = useHostElement();
+  useStyles$(`html,body { margin: 0; height: 100%; overflow: hidden; }`);
+  useScopedStyles$(styles);
+  useHeadMeta({ title: `Qwik Playground` });
 
   const store = useStore<PlaygroundStore>(() => {
     const initStore: PlaygroundStore = {
@@ -28,13 +29,46 @@ const Playground = component$(() => {
       entryStrategy: 'hook',
       colResizeActive: false,
       colLeft: 50,
-      hasReadParams: false,
       shareLinkTmr: null,
     };
     return initStore;
   });
 
-  // TODO: Why can there only be one useClientEffect$()?
+  useClientEffect$(() => {
+    // run once on the client
+    const loc = getLocation(document);
+    const shareable = loc.hash.slice(1);
+    if (shareable.length > 0) {
+      try {
+        const params = new URLSearchParams(shareable);
+
+        store.version = params.get('version') || '';
+
+        const buildMode = params.get('buildMode')!;
+        if (BUILD_MODE_OPTIONS.includes(buildMode)) {
+          store.buildMode = buildMode as any;
+        }
+
+        const entryStrategy = params.get('entryStrategy')!;
+        if (ENTRY_STRATEGY_OPTIONS.includes(entryStrategy)) {
+          store.entryStrategy = entryStrategy as any;
+        }
+
+        const encodedFiles = params.get('files')!;
+        if (encodedFiles) {
+          const files: ReplModuleInput[] = JSON.parse(decodeURIComponent(atob(encodedFiles)));
+          if (Array.isArray(files)) {
+            store.files = files.filter(
+              (f) => typeof f.code === 'string' && typeof f.path === 'string'
+            );
+          }
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  });
+
   useClientEffect$((track) => {
     track(store, 'buildId');
     track(store, 'buildMode');
@@ -42,41 +76,7 @@ const Playground = component$(() => {
     track(store, 'files');
     track(store, 'version');
 
-    if (!store.hasReadParams) {
-      store.hasReadParams = true;
-
-      const loc = getLocation(document);
-      const shareable = loc.hash.slice(1);
-      if (shareable.length > 0) {
-        try {
-          const params = new URLSearchParams(shareable);
-
-          store.version = params.get('version') || '';
-
-          const buildMode = params.get('buildMode')!;
-          if (BUILD_MODE_OPTIONS.includes(buildMode)) {
-            store.buildMode = buildMode as any;
-          }
-
-          const entryStrategy = params.get('entryStrategy')!;
-          if (ENTRY_STRATEGY_OPTIONS.includes(entryStrategy)) {
-            store.entryStrategy = entryStrategy as any;
-          }
-
-          const encodedFiles = params.get('files')!;
-          if (encodedFiles) {
-            const files: ReplModuleInput[] = JSON.parse(decodeURIComponent(atob(encodedFiles)));
-            if (Array.isArray(files)) {
-              store.files = files.filter(
-                (f) => typeof f.code === 'string' && typeof f.path === 'string'
-              );
-            }
-          }
-        } catch (e) {
-          console.error(e);
-        }
-      }
-    } else if (store.version) {
+    if (store.version) {
       clearTimeout(store.shareLinkTmr);
 
       store.shareLinkTmr = setTimeout(() => {
@@ -90,17 +90,6 @@ const Playground = component$(() => {
       }, 750);
     }
   });
-
-  useWatch$(() => {
-    setHeadMeta(hostElm, { title: `Qwik Playground` });
-    setHeadStyles(hostElm, [
-      {
-        style: `html,body { margin: 0; height: 100%; overflow: hidden; }`,
-      },
-    ]);
-  });
-
-  useScopedStyles$(styles);
 
   const pointerDown = $(() => {
     store.colResizeActive = true;
@@ -149,7 +138,6 @@ export interface PlaygroundStore extends ReplAppInput {
   colResizeActive: boolean;
   colLeft: number;
   shareLinkTmr: any;
-  hasReadParams: boolean;
 }
 
 export default Playground;

@@ -7,10 +7,12 @@ import type {
   SnapshotResult,
 } from './types';
 import { isQrl } from '../core/import/qrl-class';
+import type { SymbolMapper } from '../optimizer/src/types';
 
 export function getPrefetchResources(
   snapshotResult: SnapshotResult | null,
-  opts: RenderToStringOptions
+  opts: RenderToStringOptions,
+  mapper: SymbolMapper
 ): PrefetchResource[] {
   const manifest = getValidManifest(opts.manifest);
   if (manifest) {
@@ -23,18 +25,13 @@ export function getPrefetchResources(
       if (
         !prefetchStrategy ||
         !prefetchStrategy.symbolsToPrefetch ||
-        prefetchStrategy.symbolsToPrefetch === 'events-document'
+        prefetchStrategy.symbolsToPrefetch === 'auto'
       ) {
         // DEFAULT 'events-document'
         // if prefetchStrategy is undefined
         // or prefetchStrategy.symbolsToPrefetch is undefined
         // get event QRLs used in this document
-        return getEventDocumentPrefetch(snapshotResult, manifest, buildBase);
-      }
-
-      if (prefetchStrategy.symbolsToPrefetch === 'all') {
-        // get all QRLs used in this app
-        return getAllPrefetch(manifest, buildBase);
+        return getAutoPrefetch(snapshotResult, manifest, mapper, buildBase);
       }
 
       if (typeof prefetchStrategy.symbolsToPrefetch === 'function') {
@@ -52,9 +49,10 @@ export function getPrefetchResources(
   return [];
 }
 
-function getEventDocumentPrefetch(
+function getAutoPrefetch(
   snapshotResult: SnapshotResult | null,
   manifest: QwikManifest,
+  mapper: SymbolMapper,
   buildBase: string
 ) {
   const prefetchResources: PrefetchResource[] = [];
@@ -64,16 +62,13 @@ function getEventDocumentPrefetch(
 
   if (Array.isArray(listeners)) {
     // manifest already prioritized the symbols at build time
-    for (const prioritizedSymbolName in manifest.mapping) {
-      const hasSymbol = listeners.some((l) => l.key === prioritizedSymbolName);
+    for (const prioritizedSymbolName in mapper) {
+      const hasSymbol = listeners.some((l) => {
+        return l.qrl.getCanonicalSymbol() === prioritizedSymbolName;
+      });
+
       if (hasSymbol) {
-        addBundle(
-          manifest,
-          urls,
-          prefetchResources,
-          buildBase,
-          manifest.mapping[prioritizedSymbolName]
-        );
+        addBundle(manifest, urls, prefetchResources, buildBase, mapper[prioritizedSymbolName][1]);
       }
     }
   }
@@ -81,27 +76,11 @@ function getEventDocumentPrefetch(
   if (Array.isArray(stateObjs)) {
     for (const obj of stateObjs) {
       if (isQrl(obj)) {
-        addBundle(manifest, urls, prefetchResources, buildBase, manifest.mapping[obj.symbol]);
+        const qrlSymbolName = obj.getCanonicalSymbol();
+        // TODO, imporove symbol to bundle lookup
+        addBundle(manifest, urls, prefetchResources, buildBase, mapper[qrlSymbolName][0]);
       }
     }
-  }
-
-  return prefetchResources;
-}
-
-function getAllPrefetch(manifest: QwikManifest, buildBase: string) {
-  const prefetchResources: PrefetchResource[] = [];
-  const urls = new Set<string>();
-
-  // manifest already prioritized the symbols at build time
-  for (const prioritizedSymbolName in manifest.mapping) {
-    addBundle(
-      manifest,
-      urls,
-      prefetchResources,
-      buildBase,
-      manifest.mapping[prioritizedSymbolName]
-    );
   }
 
   return prefetchResources;
@@ -129,12 +108,6 @@ function addBundle(
 
       if (Array.isArray(bundle.imports)) {
         for (const importedFilename of bundle.imports) {
-          addBundle(manifest, urls, prefetchResource.imports, buildBase, importedFilename);
-        }
-      }
-
-      if (Array.isArray(bundle.dynamicImports)) {
-        for (const importedFilename of bundle.dynamicImports) {
           addBundle(manifest, urls, prefetchResource.imports, buildBase, importedFilename);
         }
       }

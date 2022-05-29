@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 export const getReplVersion = async (version: string | undefined) => {
   let versions: string[] = [];
   let npmData: NpmData | null = null;
@@ -6,14 +8,17 @@ export const getReplVersion = async (version: string | undefined) => {
     npmData = JSON.parse(localStorage.getItem(NPM_STORAGE_KEY)!);
     if (isExpiredNpmData(npmData)) {
       // fetch most recent NPM version data
+      console.debug(`Qwik REPL, fetch npm data: ${QWIK_NPM_DATA}`);
       const npmRsp = await fetch(QWIK_NPM_DATA);
       npmData = await npmRsp.json();
       npmData!.timestamp = Date.now();
 
       localStorage.setItem(NPM_STORAGE_KEY, JSON.stringify(npmData));
+    } else {
+      console.debug(`Qwik REPL, using cached npm data`);
     }
   } catch (e) {
-    console.warn(e);
+    console.warn('getReplVersion', e);
   }
 
   if (npmData && Array.isArray(npmData.versions)) {
@@ -21,7 +26,8 @@ export const getReplVersion = async (version: string | undefined) => {
       if (v === version) {
         return true;
       }
-      if ((npmData?.tags.latest === v || npmData?.tags.next) === v) {
+      if (npmData?.tags.latest === v) {
+        // always include "latest"
         return true;
       }
       if (v.includes('-')) {
@@ -34,12 +40,12 @@ export const getReplVersion = async (version: string | undefined) => {
         return false;
       }
       if (isNaN(parts[2] as any)) {
-        // last part must have letters in it
+        // last part cannot have letters in it
         return false;
       }
       // mini-semver check, must be >= than 0.0.20
       if (parts[0] === '0' && parts[1] === '0') {
-        if (parseInt(parts[2], 10) < 20) {
+        if (parseInt(parts[2], 10) < 21) {
           return false;
         }
       }
@@ -53,8 +59,22 @@ export const getReplVersion = async (version: string | undefined) => {
       } else if (versions.includes(npmData.tags.next)) {
         // fallback to "next" if "latset" isn't valid
         version = npmData.tags.next;
+      } else {
+        version = versions[0];
       }
     }
+  }
+
+  if (!npmData) {
+    console.debug(`Qwik REPL, npm data not found`);
+  }
+
+  if (!Array.isArray(versions) || versions.length === 0) {
+    console.debug(`Qwik REPL, versions not found`);
+  }
+
+  if (!version) {
+    console.debug(`Qwik REPL, version not found`);
   }
 
   return { version, versions };

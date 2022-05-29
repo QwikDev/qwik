@@ -1,4 +1,5 @@
 import { render } from './entry.ssr';
+import replServerHtml from '@repl-server-html';
 
 export const onRequestGet: PagesFunction = async ({ request, next, waitUntil }) => {
   try {
@@ -24,8 +25,17 @@ export const onRequestGet: PagesFunction = async ({ request, next, waitUntil }) 
       return Response.redirect('https://discord.gg/bNVSQmPzqy');
     }
 
+    if (url.pathname.includes('/repl/~repl-server-')) {
+      return new Response(replServerHtml, {
+        headers: {
+          'Content-Type': 'text/html; charset=utf-8',
+          'Cache-Control': 'public, max-age=31536000, s-maxage=31536000, immutable',
+        },
+      });
+    }
+
     // Handle static assets
-    if (/\.\w+$/.test(url.pathname) || url.pathname.endsWith('/repl-server')) {
+    if (/\.\w+$/.test(url.pathname)) {
       return next(request);
     }
 
@@ -45,7 +55,6 @@ export const onRequestGet: PagesFunction = async ({ request, next, waitUntil }) 
     const result = await render({
       url: request.url,
       prefetchStrategy: {
-        symbolsToPrefetch: 'events-document',
         implementation: 'link-prefetch',
       },
     });

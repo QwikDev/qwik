@@ -1,20 +1,21 @@
 import {
   component$,
   Host,
-  useHostElement,
   useScopedStyles$,
   useWatch$,
   useStore,
+  useStyles$,
 } from '@builder.io/qwik';
 import { Repl } from '../../components/repl/repl';
 import styles from './examples.css?inline';
 import { Header } from '../../components/header/header';
-import { setHeadMeta, setHeadStyles } from '@builder.io/qwik-city';
+import { useHeadMeta } from '@builder.io/qwik-city';
 import exampleSections, { ExampleApp } from '@examples-data';
 import type { ReplAppInput } from '../../components/repl/types';
 
 const Examples = component$((props: ExamplesProp) => {
-  const hostElm = useHostElement();
+  useHeadMeta({ title: `Qwik Examples` });
+  useStyles$(`html,body { margin: 0; height: 100%; overflow: hidden; }`);
 
   const store = useStore<ExamplesStore>(() => {
     //  /examples/section/app-id
@@ -35,15 +36,6 @@ const Examples = component$((props: ExamplesProp) => {
     const appId = track(store, 'appId');
     const app = getExampleApp(appId);
     store.files = app?.inputs || [];
-  });
-
-  useWatch$(() => {
-    setHeadMeta(hostElm, { title: `Qwik Examples` });
-    setHeadStyles(hostElm, [
-      {
-        style: `html,body { margin: 0; height: 100%; overflow: hidden; }`,
-      },
-    ]);
   });
 
   useScopedStyles$(styles);
@@ -89,16 +81,12 @@ const Examples = component$((props: ExamplesProp) => {
         </div>
 
         <main class="examples-repl">
-          {store.files.length > 0 ? (
-            <Repl
-              input={store}
-              enableSsrOutput={false}
-              enableClientOutput={false}
-              enableHtmlOutput={false}
-            />
-          ) : (
-            <p>Unable to find example app "{store.appId}"</p>
-          )}
+          <Repl
+            input={store}
+            enableSsrOutput={false}
+            enableClientOutput={false}
+            enableHtmlOutput={false}
+          />
         </main>
       </div>
     </Host>
@@ -109,7 +97,7 @@ export const getExampleApp = (id: string): ExampleApp | undefined => {
   for (const exampleSection of exampleSections) {
     for (const app of exampleSection.apps) {
       if (app.id === id) {
-        return app;
+        return JSON.parse(JSON.stringify(app));
       }
     }
   }

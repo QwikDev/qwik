@@ -1,5 +1,4 @@
 import { InvokeContext, newInvokeContext, useInvoke } from '../use/use-core';
-import { emitEvent } from '../util/event';
 import { then } from '../util/promises';
 import type { ValueOrPromise } from '../util/types';
 import { qrlImport, QRLSerializeOptions, stringifyQRL } from './qrl';
@@ -28,6 +27,14 @@ class QRL<TYPE = any> implements IQRL<TYPE> {
     if (!this.el) {
       this.el = el;
     }
+  }
+
+  getSymbol(): string {
+    return this.refSymbol ?? this.symbol;
+  }
+
+  getCanonicalSymbol(): string {
+    return getCanonicalSymbol(this.refSymbol ?? this.symbol);
   }
 
   async resolve(el?: Element): Promise<TYPE> {
@@ -90,11 +97,8 @@ export const getCanonicalSymbol = (symbolName: string) => {
 };
 
 export const isSameQRL = (a: QRL<any>, b: QRL<any>): boolean => {
-  return getCanonicalSymbol(a.symbol) === getCanonicalSymbol(b.symbol);
+  return a.getCanonicalSymbol() === b.getCanonicalSymbol();
 };
 
 export type QRLInternal<T = any> = QRL<T>;
 export const QRLInternal: typeof QRL = QRL;
-
-// https://regexr.com/6enjv
-const FIND_EXT = /\?[\w=&]+$/;

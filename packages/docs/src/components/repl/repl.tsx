@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import {
   component$,
   Host,
@@ -15,6 +16,7 @@ import type { ReplStore, ReplUpdateMessage, ReplMessage, ReplAppInput } from './
 import { ReplDetailPanel } from './repl-detail-panel';
 import { getReplVersion } from './repl-version';
 import { updateReplOutput } from './repl-output-update';
+import replServerUrl from '@repl-server-url';
 
 export const Repl = component$(async (props: ReplProps) => {
   useScopedStyles$(styles);
@@ -23,9 +25,12 @@ export const Repl = component$(async (props: ReplProps) => {
 
   const store = useStore(() => {
     const initStore: ReplStore = {
-      clientId: Math.round(Math.random() * Number.MAX_SAFE_INTEGER).toString(36),
+      clientId: Math.round(Math.random() * Number.MAX_SAFE_INTEGER)
+        .toString(36)
+        .toLowerCase(),
       html: '',
-      clientModules: [],
+      transformedModules: [],
+      clientBundles: [],
       ssrModules: [],
       diagnostics: [],
       monacoDiagnostics: [],
@@ -36,8 +41,6 @@ export const Repl = component$(async (props: ReplProps) => {
       selectedInputPath: '',
       selectedOutputPanel: 'app',
       selectedOutputDetail: 'console',
-      selectedClientModule: '',
-      selectedSsrModule: '',
       ssrBuild: true,
       debug: false,
       serverUrl: 'about:blank',
@@ -78,20 +81,14 @@ export const Repl = component$(async (props: ReplProps) => {
   useClientEffect$(async () => {
     // only run on the client
     const v = await getReplVersion(input.version);
-
     if (v.version) {
-      let serverUrl = `/repl/repl-server`;
-
-      if (location.hostname === 'localhost') {
-        serverUrl += `.html`;
-      }
-      serverUrl += `#${store.clientId}`;
-
       store.versions = v.versions;
       input.version = v.version;
-      store.serverUrl = serverUrl;
+      store.serverUrl = new URL(replServerUrl + '#' + store.clientId, origin).href;
 
       window.addEventListener('message', (ev) => receiveMessageFromReplServer(ev, store));
+    } else {
+      console.debug(`Qwik REPL version not set`);
     }
   });
 
@@ -152,6 +149,7 @@ export const sendUserUpdateToReplServer = (input: ReplAppInput, store: ReplStore
           type: input.entryStrategy as any,
         },
         version: input.version,
+        serverUrl: store.serverUrl,
       },
     };
 

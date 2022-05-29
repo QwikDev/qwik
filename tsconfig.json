@@ -15,6 +15,7 @@
     "importsNotUsedAsValues": "error",
     "moduleResolution": "node",
     "baseUrl": ".",
+    "noUnusedLocals": true,
     "paths": {
       "@builder.io/qwik": ["packages/qwik/src/core/index"],
       "@builder.io/qwik/build": ["packages/qwik/src/build/index"],
@@ -29,6 +30,8 @@
       "@playground-data": ["packages/docs/src/layouts/playground/playground-data.ts"],
       "@qwik-client-manifest": ["packages/qwik/src/server/server-modules.d.ts"],
       "@tutorial-data": ["packages/docs/src/layouts/tutorial/tutorial-data.ts"],
+      "@repl-server-html": ["packages/docs/src/components/repl/worker/repl-server.ts"],
+      "@repl-server-url": ["packages/docs/src/components/repl/worker/repl-server.ts"],
       "create-qwik": ["packages/create-qwik/api/index.ts"]
     },
     "types": ["jest", "node", "vite/client", "@cloudflare/workers-types"],

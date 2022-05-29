@@ -1,5 +1,5 @@
 import type { Plugin as VitePlugin, UserConfig, ViteDevServer } from 'vite';
-import type { EntryStrategy, OptimizerOptions, QwikManifest } from '../types';
+import type { EntryStrategy, OptimizerOptions, QwikManifest, TransformModule } from '../types';
 import type { RenderToStringOptions, RenderToStringResult } from '../../../server';
 import {
   createPlugin,
@@ -11,6 +11,7 @@ import {
   QWIK_CORE_ID,
   QWIK_JSX_RUNTIME_ID,
   Q_MANIFEST_FILENAME,
+  QWIK_CLIENT_MANIFEST_ID,
 } from './plugin';
 import { createRollupError, normalizeRollupOutputOptions } from './rollup';
 import { QWIK_LOADER_DEFAULT_DEBUG, QWIK_LOADER_DEFAULT_MINIFIED } from '../scripts';
@@ -23,7 +24,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
   let isClientDevOnly = false;
   let clientDevInput: undefined | string = undefined;
   let tmpClientManifestPath: undefined | string = undefined;
-
+  let viteCommand: string = 'serve';
   const qwikPlugin = createPlugin(qwikViteOpts.optimizerOptions);
 
   const vitePlugin: VitePlugin = {
@@ -32,7 +33,8 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     enforce: 'pre',
 
     api: {
-      getOptions: qwikPlugin.getOptions,
+      getOptimizer: () => qwikPlugin.getOptimizer(),
+      getOptions: () => qwikPlugin.getOptions(),
     },
 
     async config(viteConfig, viteEnv) {
@@ -44,6 +46,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       qwikPlugin.log(`vite config(), command: ${viteEnv.command}, env.mode: ${viteEnv.mode}`);
 
       isClientDevOnly = viteEnv.command === 'serve' && viteEnv.mode !== 'ssr';
+      viteCommand = viteEnv.command;
 
       let target: QwikBuildTarget;
       if (viteConfig.build?.ssr || viteEnv.mode === 'ssr') {
@@ -71,6 +74,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         debug: qwikViteOpts.debug,
         entryStrategy: qwikViteOpts.entryStrategy,
         rootDir: viteConfig.root,
+        transformedModuleOutput: qwikViteOpts.transformedModuleOutput,
       };
 
       if (target === 'ssr') {
@@ -211,6 +215,11 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       if (isClientDevOnly && id === VITE_CLIENT_MODULE) {
         return getViteDevModule(opts);
       }
+      if (viteCommand === 'server' && id.endsWith(QWIK_CLIENT_MANIFEST_ID)) {
+        return {
+          code: 'export const manifest = undefined;',
+        };
+      }
       return qwikPlugin.load(this, id, loadOpts);
     },
 
@@ -230,31 +239,32 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     async generateBundle(_, rollupBundle) {
       const opts = qwikPlugin.getOptions();
 
-      const outputAnalyzer = qwikPlugin.createOutputAnalyzer();
-
-      for (const fileName in rollupBundle) {
-        const b = rollupBundle[fileName];
-        if (b.type === 'chunk') {
-          outputAnalyzer.addBundle({
-            fileName,
-            modules: b.modules,
-            imports: b.imports,
-            dynamicImports: b.dynamicImports,
-            size: b.code.length,
-          });
-        }
-      }
-
-      const manifest = await outputAnalyzer.generateManifest();
-      manifest.platform = {
-        ...versions,
-        node: process.versions.node,
-        os: process.platform,
-        vite: '',
-      };
-
       if (opts.target === 'client') {
         // client build
+        const outputAnalyzer = qwikPlugin.createOutputAnalyzer();
+
+        for (const fileName in rollupBundle) {
+          const b = rollupBundle[fileName];
+          if (b.type === 'chunk') {
+            outputAnalyzer.addBundle({
+              fileName,
+              modules: b.modules,
+              imports: b.imports,
+              dynamicImports: b.dynamicImports,
+              size: b.code.length,
+            });
+          }
+        }
+
+        const optimizer = qwikPlugin.getOptimizer();
+        const manifest = await outputAnalyzer.generateManifest();
+        manifest.platform = {
+          ...versions,
+          vite: '',
+          env: optimizer.sys.env,
+          os: optimizer.sys.os,
+        };
+
         const clientManifestStr = JSON.stringify(manifest, null, 2);
         this.emitFile({
           type: 'asset',
@@ -264,6 +274,10 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
         if (typeof opts.manifestOutput === 'function') {
           await opts.manifestOutput(manifest);
+        }
+
+        if (typeof opts.transformedModuleOutput === 'function') {
+          await opts.transformedModuleOutput(qwikPlugin.getTransformedOutputs());
         }
 
         const sys = qwikPlugin.getSys();
@@ -343,8 +357,12 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             Array.from(server.moduleGraph.fileToModulesMap.entries()).forEach((entry) => {
               entry[1].forEach((v) => {
                 const hook = v.info?.meta?.hook;
-                if (hook && v.lastHMRTimestamp) {
-                  manifest.mapping[hook.name] = `${v.url}?t=${v.lastHMRTimestamp}`;
+                if (hook) {
+                  let url = v.url;
+                  if (v.lastHMRTimestamp) {
+                    url += `?t=${v.lastHMRTimestamp}`;
+                  }
+                  manifest.mapping[hook.name] = url;
                 }
               });
             });
@@ -372,6 +390,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
               debug: true,
               manifest: isClientDevOnly ? undefined : manifest,
               snapshot: !isClientDevOnly,
+              prefetchStrategy: null,
             };
 
             const result: RenderToStringResult = await render(renderToStringOpts);
@@ -461,7 +480,6 @@ export function render(document, rootNode) {
 const VITE_CLIENT_MODULE = `@builder.io/qwik/vite-client`;
 const VITE_DEV_CLIENT_QS = `qwik-vite-dev-client`;
 const CLIENT_DEV_INPUT = 'entry.dev.tsx';
-const SSR_RENDER_INPUT = 'entry.ssr.tsx';
 
 /**
  * @alpha
@@ -533,4 +551,11 @@ export interface QwikVitePluginOptions {
     manifestInput?: QwikManifest;
   };
   optimizerOptions?: OptimizerOptions;
+  /**
+   * Hook that's called after the build and provides all of the transformed
+   * modules that were used before bundling.
+   */
+  transformedModuleOutput?:
+    | ((transformedModules: TransformModule[]) => Promise<void> | void)
+    | null;
 }

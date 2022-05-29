@@ -9,6 +9,11 @@
     "wrangler": "beta"
   },
   "qwik": {
-    "priority": -1
+    "priority": -1,
+    "vite": {
+      "VITE_IMPORTS": "",
+      "VITE_CONFIG": "ssr: {target: 'webworker', noExternal: true},",
+      "VITE_PLUGINS": ""
+    }
   }
 }

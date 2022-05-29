@@ -224,7 +224,6 @@ test.describe('e2e', () => {
 
       const btnToggleButtons = await page.locator('#btn-toggle-buttons');
       const btnToggleContent = await page.locator('#btn-toggle-content');
-      const btnCount = await page.locator('#btn-count');
 
       // btnToggleButtons
       await btnToggleButtons.click();
@@ -399,6 +398,31 @@ test.describe('e2e', () => {
         'Level2 / state3 = 2',
         'Level2 / state3 = 1',
       ]);
+    });
+  });
+
+  test.describe('effect-client', () => {
+    test.beforeEach(async ({ page }) => {
+      await page.goto('/e2e/effect-client');
+      page.on('pageerror', (err) => expect(err).toEqual(undefined));
+    });
+
+    test('should load', async ({ page }) => {
+      const counter = await page.locator('#counter');
+      const msg = await page.locator('#msg');
+
+      await expect(counter).toHaveText('0');
+      await expect(msg).toHaveText('empty');
+
+      await counter.scrollIntoViewIfNeeded();
+      await page.waitForTimeout(100);
+
+      await expect(counter).toHaveText('10');
+      await expect(msg).toHaveText('run');
+
+      await page.waitForTimeout(500);
+      await expect(counter).toHaveText('11');
+      await expect(msg).toHaveText('run');
     });
   });
 });

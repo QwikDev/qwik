@@ -106,23 +106,23 @@ export interface PageBreadcrumb {
 // @public (undocumented)
 export interface PageHandler {
     // (undocumented)
-    attributes: PageAttributes;
+    readonly attributes: PageAttributes;
     // (undocumented)
-    breadcrumbs: PageBreadcrumb[];
+    readonly breadcrumbs: PageBreadcrumb[];
     // (undocumented)
-    content: Content;
+    readonly content: Content;
     // (undocumented)
-    headings: PageHeading[];
+    readonly headings: PageHeading[];
     // (undocumented)
-    index: {
+    readonly index: {
         path: string;
     };
     // (undocumented)
-    layout: Layout;
+    readonly layout: Layout;
     // (undocumented)
-    source: PageSource;
+    readonly source: PageSource;
     // (undocumented)
-    url: string;
+    readonly url: string;
 }
 
 // @public (undocumented)
@@ -155,10 +155,19 @@ export interface PageSource {
 export const setHeadLinks: (doc: Document, links: HeadLinks) => void;
 
 // @public (undocumented)
-export const setHeadMeta: (elm: any, meta: MetaOptions) => void;
+export const setHeadMeta: (doc: Document, meta: MetaOptions) => void;
 
 // @public (undocumented)
-export const setHeadStyles: (elm: any, styles: HeadStyles) => void;
+export const setHeadStyles: (doc: Document, styles: HeadStyles) => void;
+
+// @public (undocumented)
+export const useHeadLinks: (meta: HeadLinks) => void;
+
+// @public (undocumented)
+export const useHeadMeta: (meta: MetaOptions) => void;
+
+// @public (undocumented)
+export const useHeadStyles: (meta: HeadStyles) => void;
 
 // @public (undocumented)
 export const usePage: () => PageHandler | undefined;

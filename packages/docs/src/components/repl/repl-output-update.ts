@@ -1,32 +1,17 @@
 import type { ReplResult, ReplStore } from './types';
 
 export const updateReplOutput = async (store: ReplStore, result: ReplResult) => {
-  if (result.diagnostics.length === 0) {
+  store.diagnostics = result.diagnostics;
+
+  if (store.diagnostics.length === 0) {
     store.html = result.html;
-    store.clientModules = result.clientModules;
+    store.transformedModules = result.transformedModules;
+    store.clientBundles = result.clientBundles;
     store.ssrModules = result.ssrModules;
+    store.events = result.events;
 
     if (store.selectedOutputPanel === 'diagnostics' && store.monacoDiagnostics.length === 0) {
       store.selectedOutputPanel = 'app';
-    }
-  }
-
-  store.diagnostics = result.diagnostics;
-  store.events = result.events;
-
-  if (!result.clientModules.some((m) => m.path === store.selectedClientModule)) {
-    if (result.clientModules.length > 0) {
-      store.selectedClientModule = result.clientModules[0].path;
-    } else {
-      store.selectedClientModule = '';
-    }
-  }
-
-  if (!result.ssrModules.some((m) => m.path === store.selectedSsrModule)) {
-    if (result.ssrModules.length > 0) {
-      store.selectedSsrModule = result.ssrModules[0].path;
-    } else {
-      store.selectedSsrModule = '';
     }
   }
 };

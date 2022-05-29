@@ -81,16 +81,12 @@ const Examples = component$((props: ExamplesProp) => {
         </div>
 
         <main class="examples-repl">
-          {store.files.length > 0 ? (
-            <Repl
-              input={store}
-              enableSsrOutput={false}
-              enableClientOutput={false}
-              enableHtmlOutput={false}
-            />
-          ) : (
-            <p>Unable to find example app "{store.appId}"</p>
-          )}
+          <Repl
+            input={store}
+            enableSsrOutput={false}
+            enableClientOutput={false}
+            enableHtmlOutput={false}
+          />
         </main>
       </div>
     </Host>
@@ -101,7 +97,7 @@ export const getExampleApp = (id: string): ExampleApp | undefined => {
   for (const exampleSection of exampleSections) {
     for (const app of exampleSection.apps) {
       if (app.id === id) {
-        return app;
+        return JSON.parse(JSON.stringify(app));
       }
     }
   }

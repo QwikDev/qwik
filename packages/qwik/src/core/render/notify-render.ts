@@ -33,6 +33,7 @@ export function notifyRender(hostElement: Element): Promise<RenderContext> {
   resumeIfNeeded(containerEl);
 
   const ctx = getContext(hostElement);
+  assertDefined(ctx.renderQrl);
   const state = getRenderingState(containerEl);
   if (ctx.dirty) {
     // TODO

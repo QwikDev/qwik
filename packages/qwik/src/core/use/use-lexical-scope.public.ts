@@ -1,8 +1,7 @@
 import { wrapSubscriber } from './use-subscriber';
-import { assertDefined } from '../assert/assert';
+import { assertDefined, assertEqual } from '../assert/assert';
 import { parseQRL } from '../import/qrl';
-import { qInflate } from '../json/q-json';
-import { getContext, resumeIfNeeded } from '../props/props';
+import { getContext, QContext, resumeIfNeeded } from '../props/props';
 import { getContainer, getInvokeContext } from './use-core';
 import { useURL } from './use-url.public';
 import type { QRLInternal } from '../import/qrl-class';
@@ -31,6 +30,7 @@ export function useLexicalScope<VARS extends any[]>(): VARS {
     assertDefined(el);
     resumeIfNeeded(getContainer(el)!);
     const ctx = getContext(el);
+
     qrl.captureRef = qrl.capture!.map((idx) => qInflate(idx, ctx));
   }
   const subscriber = context.subscriber;
@@ -38,4 +38,11 @@ export function useLexicalScope<VARS extends any[]>(): VARS {
     return qrl.captureRef.map((obj) => wrapSubscriber(obj, subscriber)) as VARS;
   }
   return qrl.captureRef as VARS;
+}
+
+function qInflate(ref: string, hostCtx: QContext): any {
+  const int = parseInt(ref, 10);
+  const obj = hostCtx.refMap.get(int);
+  assertEqual(hostCtx.refMap.array.length > int, true);
+  return obj;
 }

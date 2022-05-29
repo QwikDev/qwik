@@ -146,8 +146,8 @@ export function useWatchQrl(qrl: QRL<WatchFn>, opts?: UseEffectOptions): void {
       el,
       f: WatchFlags.IsDirty,
     };
-    setWatch(watch);
-    getContext(el).refMap.add(watch);
+    setWatch(true);
+    getContext(el).watches.push(watch);
     useWaitOn(Promise.resolve().then(() => runWatch(watch)));
     const isServer = getPlatform(useDocument()).isServer;
     if (isServer) {
@@ -256,8 +256,8 @@ export function useClientEffectQrl(qrl: QRL<WatchFn>, opts?: UseEffectOptions): 
       el,
       f: 0,
     };
-    setWatch(watch);
-    getContext(el).refMap.add(watch);
+    setWatch(true);
+    getContext(el).watches.push(watch);
     useRunWatch(watch, opts?.run ?? 'visible');
     const doc = useDocument() as any;
     if (doc['qO']) {

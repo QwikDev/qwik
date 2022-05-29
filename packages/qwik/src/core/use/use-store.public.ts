@@ -140,11 +140,7 @@ export function useSequentialScope(): [any, (prop: any) => void] {
   const elementCtx = getContext(hostElement);
   ctx.seq++;
   const updateFn = (value: any) => {
-    elementCtx.seq[index] = elementCtx.refMap.add(value);
+    elementCtx.seq[index] = value;
   };
-  const seqIndex = elementCtx.seq[index];
-  if (typeof seqIndex === 'number') {
-    return [elementCtx.refMap.get(seqIndex), updateFn];
-  }
-  return [undefined, updateFn];
+  return [elementCtx.seq[index], updateFn];
 }

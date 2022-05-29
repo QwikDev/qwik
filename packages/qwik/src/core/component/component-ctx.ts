@@ -38,8 +38,12 @@ export const renderComponent = (rctx: RenderContext, ctx: QContext): ValueOrProm
   invocatinContext.renderCtx = newCtx;
   const waitOn = (invocatinContext.waitOn = [] as any[]);
 
+  // TODO: not correct, subscriptions can be anywhere
   // Clean current subscription before render
-  ctx.refMap.array.forEach((obj) => {
+  ctx.seq.forEach((obj) => {
+    removeSub(obj, hostElement);
+  });
+  ctx.watches.forEach((obj) => {
     removeSub(obj, hostElement);
   });
 

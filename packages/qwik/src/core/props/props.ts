@@ -9,7 +9,7 @@ import { qPropWriteQRL } from './props-on';
 import { QContainerAttr } from '../util/markers';
 import type { QRL } from '../import/qrl.public';
 import type { OnRenderFn } from '../component/component.public';
-import { destroyWatch, isWatchDescriptor } from '../watch/watch.public';
+import { destroyWatch, WatchDescriptor } from '../watch/watch.public';
 import { pauseContainer } from '../object/store.public';
 import { getRenderingState } from '../render/notify-render';
 import { qDev } from '../util/qdev';
@@ -57,9 +57,10 @@ export interface QContext {
   dirty: boolean;
   props: Record<string, any> | undefined;
   renderQrl: QRL<OnRenderFn<any>> | undefined;
-  seq: number[];
   component: ComponentCtx | undefined;
   listeners?: Map<string, QRL<any>[]>;
+  seq: any[];
+  watches: WatchDescriptor[];
   contexts?: Map<string, any>;
 }
 
@@ -73,9 +74,10 @@ export function getContext(element: Element): QContext {
     (element as any)[Q_CTX] = ctx = {
       element,
       cache,
-      refMap: newQObjectMap(element),
+      refMap: newQObjectMap(),
       dirty: false,
       seq: [],
+      watches: [],
       props: undefined,
       renderQrl: undefined,
       component: undefined,
@@ -86,19 +88,18 @@ export function getContext(element: Element): QContext {
 
 export function cleanupContext(ctx: QContext) {
   const el = ctx.element;
-  ctx.refMap.array.forEach((obj) => {
-    if (isWatchDescriptor(obj)) {
-      if (obj.el === el) {
-        destroyWatch(obj);
-      }
+  ctx.watches.forEach((obj) => {
+    if (obj.el === el) {
+      destroyWatch(obj);
     }
-    ctx.component = undefined;
-    ctx.renderQrl = undefined;
-    ctx.seq = [];
-    ctx.cache.clear();
-    ctx.dirty = false;
-    ctx.refMap.array.length = 0;
   });
+  ctx.component = undefined;
+  ctx.renderQrl = undefined;
+  ctx.seq.length = 0;
+  ctx.watches.length = 0;
+  ctx.cache.clear();
+  ctx.dirty = false;
+  ctx.refMap.array.length = 0;
   (el as any)[Q_CTX] = undefined;
 }
 
@@ -129,7 +130,6 @@ export function setEvent(rctx: RenderContext, ctx: QContext, prop: string, value
 export function getProps(ctx: QContext) {
   if (!ctx.props) {
     ctx.props = readWriteProxy({}, getProxyMap(getDocument(ctx.element)));
-    ctx.refMap.add(ctx.props);
   }
   return ctx.props!;
 }

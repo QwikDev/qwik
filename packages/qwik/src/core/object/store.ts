@@ -6,15 +6,7 @@ import { getContext, tryGetContext } from '../props/props';
 import { getDocument } from '../util/dom';
 import { isElement, isNode } from '../util/element';
 import { logDebug, logError, logWarn } from '../util/log';
-import {
-  ELEMENT_ID,
-  ELEMENT_ID_PREFIX,
-  QContainerAttr,
-  QCtxAttr,
-  QHostAttr,
-  QObjAttr,
-  QSeqAttr,
-} from '../util/markers';
+import { ELEMENT_ID, ELEMENT_ID_PREFIX, QContainerAttr } from '../util/markers';
 import { qDev } from '../util/qdev';
 import {
   getProxyMap,
@@ -27,7 +19,7 @@ import {
   SubscriberMap,
   _restoreQObject,
 } from './q-object';
-import { destroyWatch, isWatchCleanup, isWatchDescriptor, WatchFlags } from '../watch/watch.public';
+import { destroyWatch, WatchDescriptor, WatchFlags } from '../watch/watch.public';
 import type { QRL } from '../import/qrl.public';
 import { emitEvent } from '../util/event';
 
@@ -59,7 +51,7 @@ export function resumeContainer(containerEl: Element) {
   script.remove();
 
   const proxyMap = getProxyMap(doc);
-  const meta = JSON.parse(unescapeText(script.textContent || '{}')) as any;
+  const meta = JSON.parse(unescapeText(script.textContent || '{}')) as SnapshotState;
 
   // Collect all elements
   const elements = new Map<string, Element>();
@@ -80,37 +72,25 @@ export function resumeContainer(containerEl: Element) {
     reviveNestedObjects(obj, getObject);
   }
 
-  // Walk all elements with q:obj and resume their state
-  getNodesInScope(containerEl, hasQObj).forEach((el) => {
-    const qobj = el.getAttribute(QObjAttr)!;
-    if (qobj === '') {
-      return;
-    }
-
-    const seq = el.getAttribute(QSeqAttr)!;
-    const host = el.getAttribute(QHostAttr)!;
-    const contexts = el.getAttribute(QCtxAttr)!;
+  Object.entries(meta.ctx).forEach(([elementID, meta]) => {
+    const el = getObject(elementID) as Element;
+    assertDefined(el);
     const ctx = getContext(el);
 
-    // Restore captured objets
-    qobj.split(' ').forEach((part) => {
-      if (part !== '') {
-        const obj = getObject(part);
-        ctx.refMap.add(obj);
-      } else if (qDev) {
-        logError('QObj contains empty ref');
-      }
-    });
+    const qobj = meta.r;
+    const seq = meta.s;
+    const host = meta.h;
+    const contexts = meta.c;
+    const watches = meta.w;
 
-    // Restore sequence scoping
-    ctx.seq = seq.split(' ').map((part) => strToInt(part));
-
-    if (host) {
-      const [props, renderQrl] = host.split(' ').map(strToInt);
-      assertDefined(props);
-      assertDefined(renderQrl);
-      ctx.props = ctx.refMap.get(props);
-      ctx.renderQrl = ctx.refMap.get(renderQrl);
+    if (qobj) {
+      ctx.refMap.array.push(...qobj.split(' ').map((part) => getObject(part)));
+    }
+    if (seq) {
+      ctx.seq = seq.split(' ').map((part) => getObject(part));
+    }
+    if (watches) {
+      ctx.watches = watches.split(' ').map((part) => getObject(part));
     }
     if (contexts) {
       contexts.split(' ').map((part) => {
@@ -118,19 +98,40 @@ export function resumeContainer(containerEl: Element) {
         if (!ctx.contexts) {
           ctx.contexts = new Map();
         }
-        ctx.contexts.set(key, ctx.refMap.get(strToInt(value)));
+        ctx.contexts.set(key, getObject(value));
       });
     }
+
+    // Restore sequence scoping
+    if (host) {
+      const [props, renderQrl] = host.split(' ');
+      assertDefined(props);
+      assertDefined(renderQrl);
+      ctx.props = getObject(props);
+      ctx.renderQrl = getObject(renderQrl);
+    }
   });
+
   containerEl.setAttribute(QContainerAttr, 'resumed');
   logDebug('Container resumed');
   emitEvent(containerEl, 'qresume', undefined, true);
 }
 
+export interface SnapshotMetaValue {
+  r?: string; // q:obj
+  w?: string; // q:watches
+  s?: string; // q:seq
+  h?: string; // q:host
+  c?: string; // q:context
+}
+
+export type SnapshotMeta = Record<string, SnapshotMetaValue>;
+
 /**
  * @public
  */
 export interface SnapshotState {
+  ctx: SnapshotMeta;
   objs: any[];
   subs: any[];
 }
@@ -149,24 +150,35 @@ export interface SnapshotResult {
   objs: any[];
 }
 
+function hasContext(el: Element) {
+  return !!tryGetContext(el);
+}
+
 export function snapshotState(containerEl: Element): SnapshotResult {
   const doc = getDocument(containerEl);
   const proxyMap = getProxyMap(doc);
   const platform = getPlatform(doc);
   const elementToIndex = new Map<Element, string | null>();
-
   const collector = createCollector(doc, proxyMap);
 
   // Collect all qObjected around the DOM
-  getNodesInScope(containerEl, hasQObj).forEach((node) => {
-    const ctx = getContext(node);
-    // TODO: improve serialization, get rid of refMap
-    const hasListeners = ctx.listeners && ctx.listeners.size > 0;
-    const hasWatch = ctx.refMap.array.some(isWatchCleanup);
-    const hasContext = !!ctx.contexts;
-    if (hasListeners || hasWatch || hasContext) {
-      collectElement(node, collector);
-    }
+  const elements = getNodesInScope(containerEl, hasContext);
+  elements.forEach((node) => {
+    const ctx = tryGetContext(node)!;
+    ctx.contexts?.forEach((ctx) => {
+      collectValue(ctx, collector);
+    });
+    ctx.listeners?.forEach((listeners) => {
+      for (const l of listeners) {
+        const captured = (l as QRLInternal).captureRef;
+        if (captured) {
+          captured.forEach((obj) => collectValue(obj, collector));
+        }
+      }
+    });
+    ctx.watches.forEach((watch) => {
+      collector.watches.push(watch);
+    });
   });
 
   // Convert objSet to array
@@ -189,17 +201,6 @@ export function snapshotState(containerEl: Element): SnapshotResult {
   const objToId = new Map<any, number>();
   let count = 0;
   for (const obj of objs) {
-    if (isWatchDescriptor(obj)) {
-      destroyWatch(obj);
-      if (qDev) {
-        if (obj.f & WatchFlags.IsDirty) {
-          logWarn('Serializing dirty watch. Looks like an internal error.');
-        }
-        if (!isConnected(obj)) {
-          logWarn('Serializing disconneted watch. Looks like an internal error.');
-        }
-      }
-    }
     objToId.set(obj, count);
     count++;
   }
@@ -242,6 +243,12 @@ export function snapshotState(containerEl: Element): SnapshotResult {
       }
     }
     return null;
+  }
+
+  function mustGetObjId(obj: any): string {
+    const id = getObjId(obj)!;
+    assertDefined(id);
+    return id;
   }
 
   const subs = objs
@@ -291,31 +298,74 @@ export function snapshotState(containerEl: Element): SnapshotResult {
 
   const listeners: SnapshotListener[] = [];
 
+  const meta: SnapshotMeta = {};
   // Write back to the dom
-  collector.elements.forEach((node) => {
+  elements.forEach((node) => {
     const ctx = getContext(node)!;
     assertDefined(ctx);
+
+    const ref = ctx.refMap;
     const props = ctx.props;
     const contexts = ctx.contexts;
+    const watches = ctx.watches;
     const renderQrl = ctx.renderQrl;
-    const attribute = ctx.refMap.array
-      .map((obj) => {
-        const id = getObjId(obj);
-        assertDefined(id);
-        return id;
-      })
-      .join(' ');
-    node.setAttribute(QObjAttr, attribute);
+    const seq = ctx.seq;
+    const metaValue: SnapshotMetaValue = {};
+    const elementCaptured = collector.elements.includes(node);
 
-    const seq = ctx.seq.map((index) => intToStr(index)).join(' ');
-    node.setAttribute(QSeqAttr, seq);
+    let add = false;
+    if (ref.array.length > 0) {
+      const value = ref.array.map((obj) => mustGetObjId(obj)).join(' ');
+      if (value) {
+        metaValue.r = value;
+        add = true;
+      }
+    }
 
-    if (props) {
+    if (elementCaptured && props) {
       const objs = [props];
       if (renderQrl) {
         objs.push(renderQrl);
       }
-      node.setAttribute(QHostAttr, objs.map((obj) => ctx.refMap.indexOf(obj)).join(' '));
+      const value = objs.map((obj) => mustGetObjId(obj)).join(' ');
+      if (value) {
+        metaValue.h = value;
+        add = true;
+      }
+    }
+
+    if (elementCaptured && watches.length > 0) {
+      const value = watches.map((obj) => mustGetObjId(obj)).join(' ');
+      if (value) {
+        metaValue.s = value;
+        add = true;
+      }
+    }
+
+    if (elementCaptured && seq.length > 0) {
+      const value = seq.map((obj) => mustGetObjId(obj)).join(' ');
+      if (value) {
+        metaValue.s = value;
+        add = true;
+      }
+    }
+
+    if (contexts) {
+      const serializedContexts: string[] = [];
+      contexts.forEach((value, key) => {
+        serializedContexts.push(`${key}=${mustGetObjId(value)}`);
+      });
+      const value = serializedContexts.join(' ');
+      if (value) {
+        metaValue.c = value;
+        add = true;
+      }
+    }
+
+    if (add) {
+      const elementID = getElementID(node)!;
+      assertDefined(elementID);
+      meta[elementID] = metaValue;
     }
 
     if (ctx.listeners) {
@@ -328,15 +378,19 @@ export function snapshotState(containerEl: Element): SnapshotResult {
         });
       });
     }
-
-    if (contexts) {
-      const serializedContexts: string[] = [];
-      contexts.forEach((value, key) => {
-        serializedContexts.push(`${key}=${ctx.refMap.indexOf(value)}`);
-      });
-      node.setAttribute(QCtxAttr, serializedContexts.join(' '));
-    }
   });
+
+  for (const watch of collector.watches) {
+    destroyWatch(watch);
+    if (qDev) {
+      if (watch.f & WatchFlags.IsDirty) {
+        logWarn('Serializing dirty watch. Looks like an internal error.');
+      }
+      if (!isConnected(watch)) {
+        logWarn('Serializing disconneted watch. Looks like an internal error.');
+      }
+    }
+  }
 
   // Sanity check of serialized element
   if (qDev) {
@@ -351,6 +405,7 @@ export function snapshotState(containerEl: Element): SnapshotResult {
   }
   return {
     state: {
+      ctx: meta,
       objs: convertedObjs,
       subs,
     },
@@ -506,6 +561,7 @@ export interface Collector {
   seen: Set<any>;
   objSet: Set<any>;
   elements: Element[];
+  watches: WatchDescriptor[];
   proxyMap: ObjToProxyMap;
   doc: Document;
 }
@@ -515,6 +571,7 @@ function createCollector(doc: Document, proxyMap: ObjToProxyMap): Collector {
     seen: new Set(),
     objSet: new Set(),
     elements: [],
+    watches: [],
     proxyMap,
     doc,
   };
@@ -536,12 +593,29 @@ function collectElement(el: Element, collector: Collector) {
     return;
   }
   collector.seen.add(el);
-  const captured = tryGetContext(el)?.refMap.array;
-  if (captured) {
+  const ctx = tryGetContext(el);
+  if (ctx) {
     collector.elements.push(el);
-    captured.forEach((sub) => {
-      collectValue(sub, collector);
+    if (ctx.props) {
+      collectValue(ctx.props, collector);
+    }
+    if (ctx.renderQrl) {
+      collectValue(ctx.renderQrl, collector);
+    }
+    ctx.seq.forEach((obj) => {
+      collectValue(obj, collector);
     });
+    ctx.refMap.array.forEach((obj) => {
+      collectValue(obj, collector);
+    });
+    ctx.watches.forEach((watch) => {
+      collectValue(watch, collector);
+    });
+    if (ctx.contexts) {
+      ctx.contexts.forEach((obj) => {
+        collectValue(obj, collector);
+      });
+    }
   }
 }
 
@@ -573,7 +647,6 @@ function collectQObjects(obj: any, collector: Collector) {
       const hasTarget = !!obj[QOjectTargetSymbol];
       if (!hasTarget && isNode(obj)) {
         if (obj.nodeType === 1) {
-          collectElement(obj as any, collector);
           return true;
         }
         return false;
@@ -623,10 +696,6 @@ export function isProxy(obj: any): boolean {
 
 export function isContainer(el: Element) {
   return el.hasAttribute(QContainerAttr);
-}
-
-function hasQObj(el: Element) {
-  return el.hasAttribute(QObjAttr);
 }
 
 function hasQId(el: Element) {

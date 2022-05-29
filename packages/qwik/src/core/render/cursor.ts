@@ -522,7 +522,6 @@ function createElm(rctx: RenderContext, vnode: JSXNode, isSvg: boolean): ValueOr
     // Run mount hook
     const renderQRL = props![OnRenderProp]! as QRL<OnRenderFn<any>>;
     ctx.renderQrl = renderQRL;
-    ctx.refMap.add(renderQRL);
     wait = firstRenderComponent(rctx, ctx);
   } else {
     const setsInnerHTML = checkInnerHTML(props);

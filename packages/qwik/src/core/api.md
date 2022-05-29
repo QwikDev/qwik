@@ -543,6 +543,10 @@ export interface SnapshotResult {
 
 // @public (undocumented)
 export interface SnapshotState {
+    // Warning: (ae-forgotten-export) The symbol "SnapshotMeta" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    ctx: SnapshotMeta;
     // (undocumented)
     objs: any[];
     // (undocumented)

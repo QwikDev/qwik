@@ -425,4 +425,48 @@ test.describe('e2e', () => {
       await expect(msg).toHaveText('run');
     });
   });
+
+  test.describe('toggle', () => {
+    test.beforeEach(async ({ page }) => {
+      await page.goto('/e2e/toggle');
+      page.on('pageerror', (err) => expect(err).toEqual(undefined));
+    });
+
+    test('should load', async ({ page }) => {
+      const title = await page.locator('h1');
+      const mount = await page.locator('#mount');
+      const root = await page.locator('#root');
+      const logs = await page.locator('#logs');
+      const button = await page.locator('button');
+
+      await expect(title).toHaveText('ToggleA');
+      await expect(mount).toHaveText('mounted in server');
+      await expect(root).toHaveText('hello from root');
+      await expect(logs).toHaveText('Logs:');
+
+      // ToggleA
+      await button.click();
+
+      await expect(title).toHaveText('ToggleB');
+      await expect(mount).toHaveText('mounted in client');
+      await expect(root).toHaveText('hello from root');
+      await expect(logs).toHaveText('Logs:');
+
+      // ToggleB
+      await button.click();
+
+      await expect(title).toHaveText('ToggleA');
+      await expect(mount).toHaveText('mounted in client');
+      await expect(root).toHaveText('hello from root');
+      await expect(logs).toHaveText('Logs: ToggleB');
+
+      // ToggleA
+      await button.click();
+
+      await expect(title).toHaveText('ToggleB');
+      await expect(mount).toHaveText('mounted in client');
+      await expect(root).toHaveText('hello from root');
+      await expect(logs).toHaveText('Logs: ToggleBToggleA');
+    });
+  });
 });

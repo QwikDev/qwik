@@ -9,7 +9,7 @@ import { qDev, qTest } from '../util/qdev';
 import { version } from '../version';
 import { QContainerAttr } from '../util/markers';
 import { logError } from '../util/log';
-import { isWatchDescriptor, runWatch, WatchDescriptor, WatchFlags } from '../watch/watch.public';
+import { runWatch, WatchDescriptor, WatchFlags } from '../watch/watch.public';
 import { appendQwikDevTools, getContext } from '../props/props';
 
 /**
@@ -70,7 +70,7 @@ export async function render(
   const promises: Promise<WatchDescriptor>[] = [];
   ctx.hostElements.forEach((host) => {
     const elCtx = getContext(host);
-    elCtx.refMap.array.filter(isWatchDescriptor).forEach((watch) => {
+    elCtx.watches.forEach((watch) => {
       if (watch.f & WatchFlags.IsDirty) {
         promises.push(runWatch(watch));
       }

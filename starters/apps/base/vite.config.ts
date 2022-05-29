@@ -1,8 +1,13 @@
 import { defineConfig } from 'vite';
 import { qwikVite } from '@builder.io/qwik/optimizer';
+/* VITE_IMPORTS */
 
 export default defineConfig(() => {
   return {
-    plugins: [qwikVite()],
+    /* VITE_CONFIG */
+    plugins: [
+      qwikVite(/* VITE_QWIK */),
+      /* VITE_PLUGINS */
+    ],
   };
 });

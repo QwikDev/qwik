@@ -40,10 +40,7 @@ export function createInlinedCode(ctx: PluginContext) {
   c.push(`};`);
 
   c.push(`export const PAGES = {`);
-  let importPageIndex = 0;
   for (const p of ctx.pages) {
-    const importName = `page_${importPageIndex++}`;
-    esmImports.push(`import ${importName} from ${JSON.stringify(p.filePath)};`);
     c.push(`  ${JSON.stringify(p.pathname)}: () => import(${JSON.stringify(p.filePath)}),`);
   }
   c.push(`};`);

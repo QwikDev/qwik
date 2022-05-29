@@ -1,5 +1,5 @@
 import { copyFileSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'fs';
-import { extname, join } from 'path';
+import { join } from 'path';
 import type { PackageJSON } from '../../../scripts/util';
 
 export type Replacements = [RegExp, string][];
@@ -17,7 +17,9 @@ export function cp(srcDir: string, destDir: string, replacements: Replacements) 
     } else if (s.isFile()) {
       const shouldReplace =
         replacements.length > 0 &&
-        ['.json', '.toml', '.md', '.html'].includes(extname(srcChildPath));
+        ['.json', '.toml', '.md', '.html', 'vite.config.ts'].some((ext) =>
+          srcChildPath.endsWith(ext)
+        );
       if (shouldReplace) {
         let srcContent = readFileSync(srcChildPath, 'utf8');
         for (const regex of replacements) {

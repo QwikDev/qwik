@@ -1,6 +1,6 @@
 import { component$, useStore, Host, useRef, useWatch$, useContext } from '@builder.io/qwik';
 
-import { TodoItem, TODOS, Todos } from '../../state/state';
+import { TodoItem, TODOS } from '../../state/state';
 
 /**
  * Individual items of the component.

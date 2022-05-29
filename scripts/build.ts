@@ -23,6 +23,7 @@ import { validateBuild } from './validate-build';
 import { buildCli } from './cli';
 import { submoduleBuild } from './submodule-build';
 import { buildEslint } from './eslint';
+import { buildQwikCity } from './qwik-city';
 
 /**
  * Complete a full build for all of the package's submodules. Passed in
@@ -80,6 +81,10 @@ export async function build(config: BuildConfig) {
 
     if (config.eslint) {
       await buildEslint(config);
+    }
+
+    if (config.qwikcity) {
+      await buildQwikCity(config);
     }
 
     if (config.platformBinding) {

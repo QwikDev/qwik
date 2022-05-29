@@ -2,10 +2,10 @@ import {
   useContext,
   createContext,
   useWaitOn,
-  useStore,
   noSerialize,
   useContextProvider,
   immutable,
+  useSequentialScope,
 } from '@builder.io/qwik';
 import { BUILD_ID, INLINED_MODULES, LAYOUTS, PAGES } from '@builder.io/qwik-city/build';
 import type { PageHandler } from './types';
@@ -18,7 +18,14 @@ export const QwikCityContext = createContext<PageHandler>('qwikcity-page');
  * @alpha
  */
 export const useQwikCity = () => {
+  const [value, setValue] = useSequentialScope();
+  if (value) {
+    return;
+  }
+  setValue(true);
+
   const href = useLocation().href;
+
   const page: PageHandler = {} as any;
   useWaitOn(
     loadPage(href).then((loaded) => {
@@ -52,7 +59,8 @@ const loadPage = async (href: string): Promise<PageHandler | null> => {
   let pageModule: any = null;
 
   const url = normalizeUrl(href);
-  const modulePath = url.pathname.endsWith('/') ? url.pathname + 'index' : url.pathname;
+  const modulePath =
+    url.pathname.endsWith('/') && url.pathname !== '/' ? url.pathname.slice(0, -1) : url.pathname;
 
   if (INLINED_MODULES) {
     // all page modules are inlined into the same bundle
@@ -65,8 +73,8 @@ const loadPage = async (href: string): Promise<PageHandler | null> => {
   } else {
     // page modules are dynamically imported
     try {
-      // ./pages/guide/getting-started.js
-      const pagePath = `../pages${modulePath}/index.js?v=${BUILD_ID}`;
+      const modulePathFiltered = modulePath === '/' ? '' : modulePath;
+      const pagePath = `../pages${modulePathFiltered}/index.js?v=${BUILD_ID}`;
       pageModule = await import(/* @vite-ignore */ pagePath);
     } catch (e) {
       console.error(e);

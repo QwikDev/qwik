@@ -1,5 +1,5 @@
 import { usePage } from '@builder.io/qwik-city';
-import { component$, Host, $, useHostElement, useScopedStyles$ } from '@builder.io/qwik';
+import { component$, Host, useScopedStyles$ } from '@builder.io/qwik';
 import { ChatIcon } from '../svgs/chat-icon';
 import { EditIcon } from '../svgs/edit-icon';
 import { GithubLogo } from '../svgs/github-logo';

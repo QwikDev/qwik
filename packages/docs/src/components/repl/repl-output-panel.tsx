@@ -30,10 +30,20 @@ export const ReplOutputPanel = ({ input, store }: ReplOutputPanelProps) => {
 
         {store.enableClientOutput ? (
           <ReplTabButton
-            text="Client Modules"
-            isActive={store.selectedOutputPanel === 'clientModules'}
+            text="Modules"
+            isActive={store.selectedOutputPanel === 'transformedModules'}
             onClick$={() => {
-              store.selectedOutputPanel = 'clientModules';
+              store.selectedOutputPanel = 'transformedModules';
+            }}
+          />
+        ) : null}
+
+        {store.enableClientOutput ? (
+          <ReplTabButton
+            text="Client Bundles"
+            isActive={store.selectedOutputPanel === 'clientBundles'}
+            onClick$={() => {
+              store.selectedOutputPanel = 'clientBundles';
             }}
           />
         ) : null}
@@ -81,19 +91,25 @@ export const ReplOutputPanel = ({ input, store }: ReplOutputPanelProps) => {
           </div>
         ) : null}
 
-        {store.selectedOutputPanel === 'clientModules' ? (
-          <ReplOutputModules buildPath="/build/" outputs={store.clientModules} />
+        {store.selectedOutputPanel === 'transformedModules' ? (
+          <ReplOutputModules headerText="Transformed Modules" outputs={store.transformedModules} />
+        ) : null}
+
+        {store.selectedOutputPanel === 'clientBundles' ? (
+          <ReplOutputModules headerText="/build/" outputs={store.clientBundles} />
         ) : null}
 
         {store.selectedOutputPanel === 'serverModules' ? (
-          <ReplOutputModules buildPath="/server/" outputs={store.ssrModules} />
+          <ReplOutputModules headerText="/server/" outputs={store.ssrModules} />
         ) : null}
 
         {store.selectedOutputPanel === 'diagnostics' ? (
           <div class="output-result output-diagnostics">
-            {[...store.diagnostics, ...store.monacoDiagnostics].map((d) => (
-              <p>{d.message}</p>
-            ))}
+            {diagnosticsLen === 0 ? (
+              <p class="no-diagnostics">- No Reported Diagnostics -</p>
+            ) : (
+              [...store.diagnostics, ...store.monacoDiagnostics].map((d) => <p>{d.message}</p>)
+            )}
           </div>
         ) : null}
       </div>

@@ -6,7 +6,7 @@ import { TutorialContentFooter } from './tutorial-content-footer';
 import { TutorialContentHeader } from './tutorial-content-header';
 import tutorialSections, { TutorialApp } from '@tutorial-data';
 import { Header } from '../../components/header/header';
-import type { ReplAppInput } from '../../components/repl/types';
+import type { ReplAppInput, ReplModuleInput } from '../../components/repl/types';
 
 const Tutorial = component$(() => {
   useScopedStyles$(styles);
@@ -29,7 +29,7 @@ const Tutorial = component$(() => {
   }
 
   const store = useStore<TutorialStore>(() => {
-    const files = current.problemInputs;
+    const files: ReplModuleInput[] = JSON.parse(JSON.stringify(current.problemInputs));
 
     if (!files.some((i) => i.code === '/root.tsx')) {
       files.push({ path: '/root.tsx', code: DEFAULT_ROOT, hidden: true });

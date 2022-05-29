@@ -1,14 +1,9 @@
 /* eslint-disable no-console */
 import type { RenderToStringOptions, RenderToStringResult } from '@builder.io/qwik/server';
 import type { ReplInputOptions, ReplResult } from '../types';
-import type { QwikReplContext } from './context';
 import type { QwikWorkerGlobal } from './repl-service-worker';
 
-export const ssrHtml = async (
-  options: ReplInputOptions,
-  ctx: QwikReplContext,
-  result: ReplResult
-) => {
+export const ssrHtml = async (options: ReplInputOptions, cache: Cache, result: ReplResult) => {
   const ssrModule = result.ssrModules.find((m) => m.path.endsWith('.js'));
   if (!ssrModule || typeof ssrModule.code !== 'string') {
     return;
@@ -23,8 +18,6 @@ export const ssrHtml = async (
   if (typeof server.render !== 'function') {
     throw new Error(`Server module "${ssrModule.path}" does not export render()`);
   }
-
-  console.time(`SSR Html`);
 
   const log = console.log;
   const warn = console.warn;
@@ -70,9 +63,12 @@ export const ssrHtml = async (
     debug(...args);
   };
 
+  const appUrl = `/repl/` + result.clientId + `/`;
+  const baseUrl = appUrl + `build/`;
   const ssrResult = await server.render({
-    base: `/repl/${result.clientId}/build/`,
+    base: baseUrl,
     manifest: result.manifest,
+    prefetchStrategy: null as any,
   });
 
   console.log = log;
@@ -104,9 +100,13 @@ export const ssrHtml = async (
     }
   }
 
-  ctx.html = result.html;
+  const url = new URL(appUrl, options.serverUrl);
+  const req = new Request(url.href);
 
-  console.timeEnd(`SSR Html`);
+  const rsp = new Response(result.html, {
+    headers: { 'Content-Type': 'text/html; charset=utf-8' },
+  });
+  await cache.put(req, rsp);
 };
 
 const noopRequire = (path: string) => {

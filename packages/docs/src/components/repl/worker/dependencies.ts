@@ -1,90 +1,128 @@
 /* eslint-disable no-console */
 import type { ReplInputOptions } from '../types';
+import {
+  PRETTIER_VERSION,
+  QWIK_PKG_NAME,
+  QWIK_REPL_DEPS_CACHE,
+  ROLLUP_VERSION,
+  TERSER_VERSION,
+} from './constants';
 import type { QwikWorkerGlobal } from './repl-service-worker';
 
-export const deps: {
-  pkgName: string;
-  pkgPath: string;
-  pkgVersion?: string;
-  pkgUrl?: string;
-  code?: string;
-}[] = [];
-
-const ensureDep = async (pkgName: string, pkgVersion: string, pkgPath: string) => {
-  let dep = deps.find((d) => d.pkgName === pkgName && d.pkgPath === pkgPath);
-
-  if (!dep) {
-    dep = {
-      pkgName,
-      pkgPath,
-    };
-    deps.push(dep);
+export const depResponse = async (
+  cache: Cache,
+  pkgName: string,
+  pkgVersion: string,
+  pkgPath: string
+) => {
+  const req = getNpmCdnRequest(pkgName, pkgVersion, pkgPath);
+  const cachedRes = await cache.match(req);
+  if (cachedRes) {
+    return cachedRes;
   }
-
-  if (dep.pkgVersion !== pkgVersion) {
-    dep.pkgUrl = getNpmCdnUrl(pkgName, pkgVersion, pkgPath);
-    dep.pkgVersion = pkgVersion;
-
-    const rsp = await fetch(dep.pkgUrl);
-    dep.code = await rsp.text();
-
-    console.debug(`Loaded: ${dep.pkgUrl}`);
+  const fetchRes = await fetch(req);
+  if (fetchRes.ok) {
+    await cache.put(req, fetchRes.clone());
+    return fetchRes;
   }
 };
 
-const exec = (pkgName: string, pkgPath: string) => {
-  const dep = deps.find((d) => d.pkgName === pkgName && d.pkgPath === pkgPath);
-  console.debug(`Run: ${dep?.pkgUrl}`);
-  const run = new Function(dep!.code!);
-  run();
+const exec = async (cache: Cache, pkgName: string, pkgVersion: string, pkgPath: string) => {
+  const res = await depResponse(cache, pkgName, pkgVersion, pkgPath);
+  if (res) {
+    console.debug(`Run: ${res.url}`);
+    const run = new Function(await res.clone().text());
+    run();
+  } else {
+    console.error(`Unable to run: ${getNpmCdnUrl(pkgName, pkgVersion, pkgPath)}`);
+  }
 };
 
 export const loadDependencies = async (options: ReplInputOptions) => {
   const version = options.version;
 
-  const promises = [
-    ensureDep(QWIK_PKG_NAME, version, '/core.cjs'),
-    ensureDep(QWIK_PKG_NAME, version, '/core.mjs'),
-    ensureDep(QWIK_PKG_NAME, version, '/core.min.mjs'),
-    ensureDep(QWIK_PKG_NAME, version, '/optimizer.cjs'),
-    ensureDep(QWIK_PKG_NAME, version, '/server.cjs'),
-    ensureDep('rollup', ROLLUP_VERSION, '/dist/rollup.browser.js'),
-    ensureDep('prettier', PRETTIER_VERSION, '/standalone.js'),
-    ensureDep('prettier', PRETTIER_VERSION, '/parser-html.js'),
-  ];
+  const cache = await caches.open(QWIK_REPL_DEPS_CACHE);
 
-  await Promise.all(promises);
+  await Promise.all([
+    depResponse(cache, QWIK_PKG_NAME, version, '/core.cjs'),
+    depResponse(cache, QWIK_PKG_NAME, version, '/core.mjs'),
+    depResponse(cache, QWIK_PKG_NAME, version, '/core.min.mjs'),
+    depResponse(cache, QWIK_PKG_NAME, version, '/optimizer.cjs'),
+    depResponse(cache, QWIK_PKG_NAME, version, '/server.cjs'),
+    depResponse(cache, 'rollup', ROLLUP_VERSION, '/dist/rollup.browser.js'),
+    depResponse(cache, 'prettier', PRETTIER_VERSION, '/standalone.js'),
+    depResponse(cache, 'prettier', PRETTIER_VERSION, '/parser-html.js'),
+  ]);
 
   if (!isSameQwikVersion(self.qwikCore?.version, version)) {
-    exec(QWIK_PKG_NAME, '/core.cjs');
-    console.debug(`Loaded @builder.io/qwik: ${self.qwikCore!.version}`);
+    await exec(cache, QWIK_PKG_NAME, version, '/core.cjs');
+    if (self.qwikCore) {
+      console.debug(`Loaded @builder.io/qwik: ${self.qwikCore.version}`);
+    } else {
+      throw new Error(`Unable to load @builder.io/qwik ${version}`);
+    }
   }
 
   if (!isSameQwikVersion(self.qwikOptimizer?.versions.qwik, version)) {
-    exec(QWIK_PKG_NAME, '/optimizer.cjs');
-    console.debug(`Loaded @builder.io/qwik/optimizer: ${self.qwikOptimizer!.versions.qwik}`);
+    await exec(cache, QWIK_PKG_NAME, version, '/optimizer.cjs');
+    if (self.qwikOptimizer) {
+      console.debug(`Loaded @builder.io/qwik/optimizer: ${self.qwikOptimizer.versions.qwik}`);
+    } else {
+      throw new Error(`Unable to load @builder.io/qwik/optimizer ${version}`);
+    }
   }
 
   if (!isSameQwikVersion(self.qwikServer?.versions.qwik, version)) {
-    exec(QWIK_PKG_NAME, '/server.cjs');
-    console.debug(`Loaded @builder.io/qwik/server: ${self.qwikServer!.versions!.qwik}`);
+    await exec(cache, QWIK_PKG_NAME, version, '/server.cjs');
+    if (self.qwikServer) {
+      console.debug(`Loaded @builder.io/qwik/server: ${self.qwikServer.versions.qwik}`);
+    } else {
+      throw new Error(`Unable to load @builder.io/qwik/server ${version}`);
+    }
   }
 
   if (self.rollup?.VERSION !== ROLLUP_VERSION) {
-    exec('rollup', '/dist/rollup.browser.js');
-    console.debug(`Loaded rollup: ${self.rollup!.VERSION}`);
+    await exec(cache, 'rollup', ROLLUP_VERSION, '/dist/rollup.browser.js');
+    if (self.rollup) {
+      console.debug(`Loaded rollup: ${self.rollup!.VERSION}`);
+    } else {
+      throw new Error(`Unable to load rollup ${ROLLUP_VERSION}`);
+    }
   }
 
   if (self.prettier?.version !== PRETTIER_VERSION) {
-    exec('prettier', '/standalone.js');
-    exec('prettier', '/parser-html.js');
-    console.debug(`Loaded prettier: ${self.prettier!.version}`);
+    await exec(cache, 'prettier', PRETTIER_VERSION, '/standalone.js');
+    await exec(cache, 'prettier', PRETTIER_VERSION, '/parser-html.js');
+    if (self.prettier) {
+      console.debug(`Loaded prettier: ${self.prettier!.version}`);
+    } else {
+      throw new Error(`Unable to load prettier ${PRETTIER_VERSION}`);
+    }
   }
 
   if (options.buildMode === 'production' && !self.Terser) {
-    await ensureDep('terser', TERSER_VERSION, '/dist/bundle.min.js');
-    exec('terser', '/dist/bundle.min.js');
+    await depResponse(cache, 'terser', TERSER_VERSION, '/dist/bundle.min.js');
+    await exec(cache, 'terser', TERSER_VERSION, '/dist/bundle.min.js');
+    if (self.Terser) {
+      console.debug(`Loaded terser: ${TERSER_VERSION}`);
+    } else {
+      throw new Error(`Unable to load terser ${TERSER_VERSION}`);
+    }
   }
+
+  // clear out old cache
+  // no need to wait
+  cache.keys().then((keys) => {
+    if (keys.length > 30) {
+      for (let i = 0; i < 5; i++) {
+        cache.delete(keys[i]);
+      }
+    }
+  });
+};
+
+const getNpmCdnRequest = (pkgName: string, pkgVersion: string, pkgPath: string) => {
+  return new Request(getNpmCdnUrl(pkgName, pkgVersion, pkgPath));
 };
 
 const getNpmCdnUrl = (pkgName: string, pkgVersion: string, pkgPath: string) => {
@@ -102,10 +140,5 @@ const isSameQwikVersion = (a: string | undefined, b: string) => {
   }
   return true;
 };
-
-const QWIK_PKG_NAME = '@builder.io/qwik';
-const ROLLUP_VERSION = '2.70.2';
-const PRETTIER_VERSION = '2.6.2';
-const TERSER_VERSION = '5.12.1';
 
 declare const self: QwikWorkerGlobal;

@@ -18,7 +18,7 @@
     "fmt.check": "prettier --check ."
   },
   "devDependencies": {
-    "@builder.io/partytown": "^0.5.4",
+    "@builder.io/partytown": "^0.6.0",
     "@builder.io/qwik": "0.0.21",
     "@builder.io/qwik-city": "0.0.11",
     "@cloudflare/kv-asset-handler": "0.2.0",

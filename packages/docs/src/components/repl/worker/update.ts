@@ -142,6 +142,14 @@ const bundleClient = async (options: ReplInputOptions, cache: Cache, result: Rep
     });
   }
 
+  result.transformedModules = result.transformedModules.filter((f) => {
+    return (
+      !f.path.endsWith('app.js') &&
+      !f.path.endsWith('entry.server.js') &&
+      !f.path.endsWith('root.js')
+    );
+  });
+
   result.events.push({
     kind: 'console-log',
     scope: 'build',
@@ -215,6 +223,11 @@ const bundleSSR = async (options: ReplInputOptions, result: ReplResult) => {
     });
 
     result.ssrModules = generated.output.map(getOutput);
+
+    result.ssrModules.push({
+      path: 'q-manifest.json',
+      code: JSON.stringify(result.manifest, null, 2),
+    });
   }
 
   result.events.push({

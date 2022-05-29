@@ -1,44 +1,37 @@
 /* eslint-disable no-console */
 import type { ReplEventMessage } from '../types';
-import { getCtx } from './context';
+import { QWIK_REPL_RESULT_CACHE } from './constants';
 import { sendMessageToReplServer } from './repl-messenger';
 
-export const requestHandler = (ev: FetchEvent) => {
+export const requestHandler = async (ev: FetchEvent) => {
   const reqUrl = new URL(ev.request.url);
   const pathname = reqUrl.pathname;
   const parts = pathname.split('/');
   const subDir = parts[1];
   const clientId = parts[2];
 
-  if (subDir !== 'repl' || clientId === 'repl-server.html') {
+  if (subDir !== 'repl' || pathname.includes('/~repl-server-')) {
     return;
   }
 
-  const ctx = getCtx(clientId, false);
-  if (ctx) {
-    if (pathname === `/repl/${clientId}/`) {
-      // ssr'd html response
-      const html = injectDevHtml(clientId, ctx.html);
-      return ev.respondWith(
-        new Response(html, {
-          headers: {
-            'Content-Type': 'text/html; charset=utf-8',
-            'Cache-Control': 'no-store',
-            'X-Qwik-REPL-App': 'ssr-result',
-            'X-Qwik-Client-Id': clientId,
-          },
-        })
-      );
-    }
+  return ev.respondWith(
+    caches.open(QWIK_REPL_RESULT_CACHE).then(async (cache) => {
+      const rsp = await cache.match(ev.request);
+      if (rsp) {
+        if (rsp.headers.get('Content-Type')?.includes('text/html')) {
+          // app document
+          const html = injectDevHtml(clientId, await rsp.clone().text());
+          const htmlRsp = new Response(html, {
+            headers: {
+              'Content-Type': 'text/html; charset=utf-8',
+              'Cache-Control': 'no-store',
+              'X-Qwik-REPL-App': 'ssr-result',
+            },
+          });
+          return htmlRsp;
+        }
 
-    if (Array.isArray(ctx.clientModules)) {
-      // js module response
-      const clientModule = ctx.clientModules.find((m) => {
-        const moduleUrl = new URL('../' + m.path, reqUrl);
-        return pathname === moduleUrl.pathname;
-      });
-
-      if (clientModule) {
+        // app client modules
         const replEvent: ReplEventMessage = {
           type: 'event',
           clientId,
@@ -49,29 +42,19 @@ export const requestHandler = (ev: FetchEvent) => {
             start: performance.now(),
           },
         };
+
         sendMessageToReplServer(replEvent);
 
-        return ev.respondWith(
-          new Response(clientModule.code, {
-            headers: {
-              'Content-Type': 'application/javascript; charset=utf-8',
-              'Cache-Control': 'no-store',
-              'X-Qwik-REPL-App': 'ssr-result',
-              'X-Qwik-Client-Id': clientId,
-            },
-          })
-        );
+        return rsp;
       }
-    }
-  }
 
-  return ev.respondWith(
-    new Response('', {
-      headers: {
-        'Cache-Control': 'no-store',
-        'X-Qwik-REPL-App': 'Not-Found',
-      },
-      status: 404,
+      return new Response('404 - ' + ev.request.url, {
+        headers: {
+          'Cache-Control': 'no-store',
+          'X-Qwik-REPL-App': 'Not-Found',
+        },
+        status: 404,
+      });
     })
   );
 };

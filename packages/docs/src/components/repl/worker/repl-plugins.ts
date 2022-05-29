@@ -3,7 +3,8 @@ import type { QwikRollupPluginOptions } from '@builder.io/qwik/optimizer';
 import type { QwikWorkerGlobal } from './repl-service-worker';
 import type { MinifyOptions } from 'terser';
 import type { ReplInputOptions } from '../types';
-import { deps } from './dependencies';
+import { depResponse } from './dependencies';
+import { QWIK_REPL_DEPS_CACHE } from './constants';
 
 export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 'ssr'): Plugin => {
   return {
@@ -25,7 +26,7 @@ export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 's
       };
     },
 
-    load(id) {
+    async load(id) {
       const input = options.srcInputs.find((i) => i.path === id);
       if (input && typeof input.code === 'string') {
         return input.code;
@@ -39,20 +40,22 @@ export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 's
         }
       }
       if (id === '\0qwikCore') {
+        const cache = await caches.open(QWIK_REPL_DEPS_CACHE);
         if (options.buildMode === 'production') {
-          const coreMin = deps.find(
-            (d) => d.pkgName === '@builder.io/qwik' && d.pkgPath === '/core.min.mjs'
+          const rsp = await depResponse(
+            cache,
+            '@builder.io/qwik',
+            options.version,
+            '/core.min.mjs'
           );
-          if (coreMin) {
-            return coreMin.code;
+          if (rsp) {
+            return rsp.clone().text();
           }
         }
 
-        const coreDev = deps.find(
-          (d) => d.pkgName === '@builder.io/qwik' && d.pkgPath === '/core.mjs'
-        );
-        if (coreDev) {
-          return coreDev.code;
+        const rsp = await depResponse(cache, '@builder.io/qwik', options.version, '/core.mjs');
+        if (rsp) {
+          return rsp.clone().text();
         }
       }
       return null;
@@ -73,7 +76,7 @@ export const replCss = (options: ReplInputOptions): Plugin => {
   return {
     name: 'repl-css',
 
-    resolveId(id, importer) {
+    resolveId(id) {
       if (id.endsWith('.css')) {
         return id.startsWith('.') ? id.slice(1) : id;
       }

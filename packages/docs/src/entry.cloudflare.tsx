@@ -25,10 +25,11 @@ export const onRequestGet: PagesFunction = async ({ request, next, waitUntil }) 
       return Response.redirect('https://discord.gg/bNVSQmPzqy');
     }
 
-    if (url.pathname.endsWith('/repl-server.html')) {
+    if (url.pathname.includes('/repl/~repl-server-')) {
       return new Response(replServerHtml, {
         headers: {
           'Content-Type': 'text/html; charset=utf-8',
+          'Cache-Control': 'public, max-age=31536000, s-maxage=31536000, immutable',
         },
       });
     }

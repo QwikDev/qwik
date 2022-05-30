@@ -4,11 +4,10 @@ import { promiseAll, then } from "../core/util/promises";
 import type { ValueOrPromise } from "../core/util/types";
 
 interface StaticRenderContex {
-  push(chunk: string): void;
+  enqueue(chunk: string): void;
 }
 
 type StaticFactory = (ctx: StaticRenderContex) => Promise<void>
-
 
 
 export const createElement = (segments: any[] | Function): StaticFactory => {
@@ -19,9 +18,9 @@ export const createElement = (segments: any[] | Function): StaticFactory => {
       for (const value of segments) {
         const t = typeof value;
         if (t === 'number') {
-          ctx.push(String(value));
+          ctx.enqueue(String(value));
         } else if (t === 'string') {
-          ctx.push(value);
+          ctx.enqueue(value);
         } else if (t === 'function') {
           await value(ctx);
         }
@@ -43,8 +42,9 @@ export const createVirtual = (factory: Factory, attributes: Record<string, any>)
 
 export const renderToString = async (root: StaticFactory): Promise<string> => {
   const chunks: string[] = [];
+
   const ctx: StaticRenderContex = {
-    push(chunk) {
+    enqueue(chunk) {
       chunks.push(chunk);
     }
   };
@@ -52,23 +52,21 @@ export const renderToString = async (root: StaticFactory): Promise<string> => {
   return chunks.join('');
 }
 
-
-
 export const createProp = (key: string, value: any) => {
   return (ctx: StaticRenderContex) => {
     const t = typeof value;
     if (key === 'class' || key === 'classname') {
-      ctx.push(stringifyClassOrStyle(value, true));
+      ctx.enqueue(stringifyClassOrStyle(value, true));
     } else if (key === 'style') {
-      ctx.push(stringifyClassOrStyle(value, false));
+      ctx.enqueue(stringifyClassOrStyle(value, false));
     } else if (value === true) {
-      ctx.push(` ${key}`);
+      ctx.enqueue(` ${key}`);
     } else if (t === 'string') {
-      ctx.push(` ${key}=${JSON.stringify(value)}`)
+      ctx.enqueue(` ${key}=${JSON.stringify(value)}`)
     } else if (t === 'number') {
-      ctx.push(` ${key}=${String(value)}`)
+      ctx.enqueue(` ${key}=${String(value)}`)
     } else if (t === 'object' && isQrl(t)) {
-      ctx.push(` ${key}=${JSON.stringify(t.serialize({}))}`)
+      ctx.enqueue(` ${key}=${JSON.stringify(t.serialize({}))}`)
     }
   }
 }

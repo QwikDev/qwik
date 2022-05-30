@@ -165,6 +165,7 @@ export function snapshotState(containerEl: Element): SnapshotResult {
   const elements = getNodesInScope(containerEl, hasContext);
   elements.forEach((node) => {
     const ctx = tryGetContext(node)!;
+    collectProps(node, ctx.props, collector);
     ctx.contexts?.forEach((ctx) => {
       collectValue(ctx, collector);
     });
@@ -554,6 +555,14 @@ function collectValue(obj: any, collector: Collector) {
   const handled = collectQObjects(obj, collector);
   if (!handled) {
     collector.objSet.add(normalizeObj(obj, collector.doc));
+  }
+}
+
+function collectProps(el: Element, props: any, collector: Collector) {
+  const subs = props && typeof props === 'object' && props[QOjectSubsSymbol] as SubscriberMap;
+  if (subs && subs.has(el)) {
+    // The host element read the props
+    collectElement(el, collector);
   }
 }
 

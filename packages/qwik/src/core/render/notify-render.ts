@@ -141,7 +141,6 @@ export async function renderMarked(
     if (qDev) {
       if (typeof window !== 'undefined' && window.document != null) {
         logDebug('Render stats. No operations.');
-        printRenderStats(ctx);
       }
     }
     postRendering(containerEl, state, ctx);
@@ -179,19 +178,20 @@ async function postRendering(containerEl: Element, state: RenderingState, ctx: R
   state.watchStaging.clear();
 
   // Wait for all promises
-  await Promise.all(promises);
+  if (promises.length > 0) {
+    await Promise.all(promises);
+    // Clear staging
+    state.watchStaging.forEach((watch) => {
+      state.watchNext.add(watch);
+    });
+    state.watchStaging.clear();
+  }
 
   // Clear staging
   state.hostsStaging.forEach((el) => {
     state.hostsNext.add(el);
   });
   state.hostsStaging.clear();
-
-  // Clear staging
-  state.watchStaging.forEach((watch) => {
-    state.watchNext.add(watch);
-  });
-  state.watchStaging.clear();
 
   state.hostsRendering = undefined;
   state.renderPromise = undefined;

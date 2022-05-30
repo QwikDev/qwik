@@ -34,13 +34,31 @@ export const ToggleShell = component$(() => {
   return (
     <Host>
       {!store.cond ? <ToggleA root={store} /> : <ToggleB root={store} />}
-      <div id="logs">Logs: {store.logs}</div>
+      <Logs0 store={cond ? store : store2} />
       <button type="button" onClick$={() => (store.cond = !store.cond)}>
         Toggle
       </button>
     </Host>
   );
 });
+
+export const Logs0 = component$((props: Record<string, any>) => {
+
+  return (
+    <Host>
+      <Logs1 store={props.store}/>
+    </Host>
+  )
+});
+
+export const Logs1 = component$((props: Record<string, any>) => {
+  return (
+    <Host id="logs">
+      Logs: {props.store.logs}
+    </Host>
+  )
+});
+
 
 export const ToggleA = component$((props: { root: { logs: string } }) => {
   console.log('ToggleA renders');

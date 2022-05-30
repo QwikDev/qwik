@@ -123,7 +123,7 @@ async function buildApp(appDir: string) {
         debug: true,
         srcDir: appSrcDir,
         forceFullBuild: true,
-        entryStrategy: { type: 'single' },
+        entryStrategy: { type: 'hook' },
         manifestOutput: (m) => {
           clientManifest = m;
         },

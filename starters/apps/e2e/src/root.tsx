@@ -38,6 +38,9 @@ export const Root = component$(() => {
       <p>
         <a href="/e2e/context">Context</a>
       </p>
+      <p>
+        <a href="/e2e/toggle">Toggle</a>
+      </p>
     </section>
   );
 });

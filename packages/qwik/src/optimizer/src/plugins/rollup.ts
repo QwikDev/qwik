@@ -143,10 +143,13 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
         const manifest = await outputAnalyzer.generateManifest();
         manifest.platform = {
           ...versions,
-          rollup: '',
+          rollup: this.meta?.rollupVersion || '',
           env: optimizer.sys.env,
           os: optimizer.sys.os,
         };
+        if (optimizer.sys.env === 'node') {
+          manifest.platform.node = process.versions.node;
+        }
 
         if (typeof opts.manifestOutput === 'function') {
           await opts.manifestOutput(manifest);

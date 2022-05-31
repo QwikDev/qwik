@@ -15,30 +15,3 @@ export const updateReplOutput = async (store: ReplStore, result: ReplResult) => 
     }
   }
 };
-
-const reapplyScripts = (elm: HTMLElement) => {
-  // adding a <script> with just innerHTML will not execute it
-  // this manually finds scripts and re-applys them so they run
-  if (elm && elm.tagName) {
-    if (elm.tagName === 'SCRIPT') {
-      try {
-        const script = document.createElement('script');
-        const attrs = elm.attributes;
-        const parentNode = elm.parentNode!;
-        for (let a = 0; a < attrs.length; a++) {
-          const attr = attrs[a];
-          script.setAttribute(attr.nodeName, attr.nodeValue!);
-        }
-        script.innerHTML = elm.innerHTML;
-        parentNode.insertBefore(script, elm);
-        parentNode.removeChild(elm);
-      } catch (e) {
-        console.error(e);
-      }
-    } else {
-      for (let i = 0; i < elm.children.length; i++) {
-        reapplyScripts(elm.children[i] as HTMLElement);
-      }
-    }
-  }
-};

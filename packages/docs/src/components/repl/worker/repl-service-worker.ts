@@ -1,6 +1,6 @@
-import { QWIK_REPL_DEPS_CACHE, QWIK_REPL_RESULT_CACHE } from './constants';
+import { QWIK_REPL_DEPS_CACHE, QWIK_REPL_RESULT_CACHE } from './repl-constants';
 import { receiveMessageFromMain } from './repl-messenger';
-import { requestHandler } from './request-handler';
+import { requestHandler } from './repl-request-handler';
 
 self.onmessage = receiveMessageFromMain;
 

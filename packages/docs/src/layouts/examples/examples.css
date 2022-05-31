@@ -40,8 +40,8 @@
   margin-bottom: 10px;
   color: #494949;
   text-align: left;
-  border: 1px solid #cccccc;
-  border-radius: 5px;
+  border: 1px solid #e3e3e3;
+  border-radius: 4px;
   width: 100%;
   font-size: 12px;
 }
@@ -60,7 +60,7 @@
 }
 
 .example-button:hover {
-  background: #f3f3f3 !important;
+  background: #f7f7f7 !important;
 }
 
 .example-button h3 {

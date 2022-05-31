@@ -35,7 +35,7 @@ export async function submoduleBuild(config: BuildConfig) {
 
   await Promise.all([esm, cjs]);
 
-  console.log('🐮', submodule);
+  console.log('🐨', submodule);
 
   await copyFile(join(buildSrcDtsDir, 'index.d.ts'), join(buildDestDir, 'index.d.ts'));
 

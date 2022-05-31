@@ -12,8 +12,11 @@ import { Header } from '../../components/header/header';
 import { getLocation, useHeadMeta } from '@builder.io/qwik-city';
 import styles from './playground.css?inline';
 import playgroundApp from '@playground-data';
-import type { ReplAppInput, ReplModuleInput } from '../../components/repl/types';
-import { BUILD_MODE_OPTIONS, ENTRY_STRATEGY_OPTIONS } from '../../components/repl/repl-options';
+import type { ReplAppInput } from '../../components/repl/types';
+import {
+  createPlaygroundShareUrl,
+  parsePlaygroundShareUrl,
+} from '../../components/repl/repl-share-url';
 
 const Playground = component$(() => {
   useStyles$(`html,body { margin: 0; height: 100%; overflow: hidden; }`);
@@ -29,7 +32,7 @@ const Playground = component$(() => {
       entryStrategy: 'hook',
       colResizeActive: false,
       colLeft: 50,
-      shareLinkTmr: null,
+      shareUrlTmr: null,
     };
     return initStore;
   });
@@ -37,35 +40,12 @@ const Playground = component$(() => {
   useClientEffect$(() => {
     // run once on the client
     const loc = getLocation(document);
-    const shareable = loc.hash.slice(1);
-    if (shareable.length > 0) {
-      try {
-        const params = new URLSearchParams(shareable);
-
-        store.version = params.get('version') || '';
-
-        const buildMode = params.get('buildMode')!;
-        if (BUILD_MODE_OPTIONS.includes(buildMode)) {
-          store.buildMode = buildMode as any;
-        }
-
-        const entryStrategy = params.get('entryStrategy')!;
-        if (ENTRY_STRATEGY_OPTIONS.includes(entryStrategy)) {
-          store.entryStrategy = entryStrategy as any;
-        }
-
-        const encodedFiles = params.get('files')!;
-        if (encodedFiles) {
-          const files: ReplModuleInput[] = JSON.parse(decodeURIComponent(atob(encodedFiles)));
-          if (Array.isArray(files)) {
-            store.files = files.filter(
-              (f) => typeof f.code === 'string' && typeof f.path === 'string'
-            );
-          }
-        }
-      } catch (e) {
-        console.error(e);
-      }
+    const shareData = parsePlaygroundShareUrl(loc.hash.slice(1));
+    if (shareData) {
+      store.version = shareData.version;
+      store.buildMode = shareData.buildMode;
+      store.entryStrategy = shareData.entryStrategy;
+      store.files = shareData.files;
     }
   });
 
@@ -77,17 +57,12 @@ const Playground = component$(() => {
     track(store, 'version');
 
     if (store.version) {
-      clearTimeout(store.shareLinkTmr);
+      clearTimeout(store.shareUrlTmr);
 
-      store.shareLinkTmr = setTimeout(() => {
-        const params = new URLSearchParams();
-        params.set('version', store.version);
-        params.set('buildMode', store.buildMode);
-        params.set('entryStrategy', store.entryStrategy);
-        params.set('files', btoa(encodeURIComponent(JSON.stringify(store.files))));
-
-        history.replaceState({}, '', `/playground#${params.toString()}`);
-      }, 750);
+      store.shareUrlTmr = setTimeout(() => {
+        const shareUrl = createPlaygroundShareUrl(store);
+        history.replaceState({}, '', shareUrl);
+      }, 1000);
     }
   });
 
@@ -118,6 +93,9 @@ const Playground = component$(() => {
         style={{
           gridTemplateColumns: `${store.colLeft}% ${100 - store.colLeft}%`,
         }}
+        enableCopyToPlayground={false}
+        enableDownload={true}
+        enableInputDelete={true}
       />
 
       <div
@@ -137,7 +115,7 @@ const Playground = component$(() => {
 export interface PlaygroundStore extends ReplAppInput {
   colResizeActive: boolean;
   colLeft: number;
-  shareLinkTmr: any;
+  shareUrlTmr: any;
 }
 
 export default Playground;

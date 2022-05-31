@@ -64,6 +64,18 @@
   background-color: #ffffff75;
 }
 
+.repl-commands {
+  float: right;
+  padding: 12px 15px 0 15px;
+  color: var(--qwik-blue);
+}
+
+.repl-commands svg {
+  width: 22px;
+  height: 22px;
+  margin-left: 15px;
+}
+
 .repl-input-panel .repl-tab-button.active-tab {
   border-top-color: var(--qwik-purple);
 }
@@ -141,6 +153,24 @@
   height: 100%;
 }
 
+.repl-spinner {
+  position: absolute;
+  top: 0;
+  left: 15px;
+  width: 50px;
+  height: 50px;
+  animation: rotating 1s linear infinite;
+  z-index: 10;
+}
+
+@keyframes rotating {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
 .editor-container {
   height: 100%;
 }
@@ -200,8 +230,8 @@
 .output-modules .file-item {
   margin-bottom: 30px;
   padding-bottom: 30px;
-  border: 1px solid var(--repl-tab-bg-color);
-  border-radius: 3px;
+  border: 1px solid rgb(33 104 170 / 15%);
+  border-radius: 2px;
 }
 
 .output-modules .file-info {
@@ -209,8 +239,6 @@
   margin-bottom: 15px;
   background-color: rgb(33 104 170 / 15%);
   padding: 5px 10px;
-  border-top-left-radius: 3px;
-  border-top-right-radius: 3px;
   overflow: hidden;
   text-overflow: ellipsis;
 }

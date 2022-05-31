@@ -41,7 +41,7 @@ const Examples = component$((props: ExamplesProp) => {
   useScopedStyles$(styles);
 
   return (
-    <Host class="examples">
+    <Host class="examples full-width">
       <Header />
 
       <div class="examples-menu-container">
@@ -75,6 +75,7 @@ const Examples = component$((props: ExamplesProp) => {
           <a
             href="https://github.com/BuilderIO/qwik/tree/main/packages/docs/pages/examples"
             class="example-button-new"
+            target="_blank"
           >
             👏 Add new examples
           </a>
@@ -86,6 +87,9 @@ const Examples = component$((props: ExamplesProp) => {
             enableSsrOutput={false}
             enableClientOutput={false}
             enableHtmlOutput={false}
+            enableCopyToPlayground={true}
+            enableDownload={true}
+            enableInputDelete={false}
           />
         </main>
       </div>

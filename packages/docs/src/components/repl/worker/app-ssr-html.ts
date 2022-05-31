@@ -3,7 +3,7 @@ import type { RenderToStringOptions, RenderToStringResult } from '@builder.io/qw
 import type { ReplInputOptions, ReplResult } from '../types';
 import type { QwikWorkerGlobal } from './repl-service-worker';
 
-export const ssrHtml = async (options: ReplInputOptions, cache: Cache, result: ReplResult) => {
+export const appSsrHtml = async (options: ReplInputOptions, cache: Cache, result: ReplResult) => {
   const ssrModule = result.ssrModules.find((m) => m.path.endsWith('.js'));
   if (!ssrModule || typeof ssrModule.code !== 'string') {
     return;

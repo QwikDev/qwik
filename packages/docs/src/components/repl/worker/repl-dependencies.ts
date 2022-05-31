@@ -6,7 +6,7 @@ import {
   QWIK_REPL_DEPS_CACHE,
   ROLLUP_VERSION,
   TERSER_VERSION,
-} from './constants';
+} from './repl-constants';
 import type { QwikWorkerGlobal } from './repl-service-worker';
 
 export const depResponse = async (
@@ -34,7 +34,7 @@ const exec = async (cache: Cache, pkgName: string, pkgVersion: string, pkgPath: 
     const run = new Function(await res.clone().text());
     run();
   } else {
-    console.error(`Unable to run: ${getNpmCdnUrl(pkgName, pkgVersion, pkgPath)}`);
+    throw new Error(`Unable to run: ${getNpmCdnUrl(pkgName, pkgVersion, pkgPath)}`);
   }
 };
 

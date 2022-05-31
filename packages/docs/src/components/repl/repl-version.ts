@@ -52,16 +52,12 @@ export const getReplVersion = async (version: string | undefined) => {
       return true;
     });
 
-    if (!version || !versions.includes(version)) {
-      if (versions.includes(npmData.tags.latest)) {
-        // if we haven't filtered it out, default to "latest"
-        version = npmData.tags.latest;
-      } else if (versions.includes(npmData.tags.next)) {
-        // fallback to "next" if "latset" isn't valid
-        version = npmData.tags.next;
-      } else {
-        version = versions[0];
-      }
+    if (versions.length > 25) {
+      versions = versions.slice(0, 25);
+    }
+
+    if (!version || !npmData.versions.includes(version)) {
+      version = npmData.tags.latest;
     }
   }
 

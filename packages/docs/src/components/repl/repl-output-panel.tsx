@@ -1,5 +1,6 @@
 import { CodeBlock } from '../code-block/code-block';
 import { ReplOutputModules } from './repl-output-modules';
+import { ReplOutputSymbols } from './repl-output-symbols';
 import { ReplTabButton } from './repl-tab-button';
 import { ReplTabButtons } from './repl-tab-buttons';
 import type { ReplAppInput, ReplStore } from './types';
@@ -30,10 +31,10 @@ export const ReplOutputPanel = ({ input, store }: ReplOutputPanelProps) => {
 
         {store.enableClientOutput ? (
           <ReplTabButton
-            text="Modules"
-            isActive={store.selectedOutputPanel === 'transformedModules'}
+            text="Symbols"
+            isActive={store.selectedOutputPanel === 'symbols'}
             onClick$={() => {
-              store.selectedOutputPanel = 'transformedModules';
+              store.selectedOutputPanel = 'symbols';
             }}
           />
         ) : null}
@@ -82,6 +83,20 @@ export const ReplOutputPanel = ({ input, store }: ReplOutputPanelProps) => {
             'output-app-active': store.selectedOutputPanel === 'app',
           }}
         >
+          {store.isLoading ? (
+            <svg class="repl-spinner" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+              <circle
+                cx="50"
+                cy="50"
+                r="24"
+                stroke-width="4"
+                stroke="#daefff"
+                stroke-dasharray="37.69911184307752 37.69911184307752"
+                fill="none"
+                stroke-linecap="round"
+              />
+            </svg>
+          ) : null}
           <iframe class="repl-server" src={store.serverUrl} />
         </div>
 
@@ -91,8 +106,8 @@ export const ReplOutputPanel = ({ input, store }: ReplOutputPanelProps) => {
           </div>
         ) : null}
 
-        {store.selectedOutputPanel === 'transformedModules' ? (
-          <ReplOutputModules headerText="Transformed Modules" outputs={store.transformedModules} />
+        {store.selectedOutputPanel === 'symbols' ? (
+          <ReplOutputSymbols outputs={store.transformedModules} />
         ) : null}
 
         {store.selectedOutputPanel === 'clientBundles' ? (

@@ -1,11 +1,11 @@
 import type { ReplMessageBase, ReplMessage } from '../types';
-import { update } from './update';
+import { appUpdate } from './app-update';
 
 export const receiveMessageFromMain = (ev: MessageEvent) => {
   if (ev.data) {
     const msg: ReplMessage = JSON.parse(ev.data);
     if (msg.type === 'update') {
-      update(msg.clientId, msg.options);
+      appUpdate(msg.clientId, msg.options);
     }
   }
 };

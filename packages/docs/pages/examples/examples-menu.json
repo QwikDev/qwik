@@ -18,7 +18,7 @@
       {
         "id": "watch",
         "title": "Simple useWatch()",
-        "description": "Learn how to react to changes in variables",
+        "description": "Learn how to react to changes in variables.",
         "icon": "👀"
       },
       {
@@ -48,7 +48,7 @@
       {
         "id": "hackernews-index",
         "title": "HackerNews",
-        "description": "HackerNews landing page",
+        "description": "HackerNews landing page.",
         "icon": "📰"
       }
     ]

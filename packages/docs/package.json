@@ -24,6 +24,7 @@
     "@cloudflare/kv-asset-handler": "0.2.0",
     "@cloudflare/workers-types": "^3.10.0",
     "autoprefixer": "10.4.7",
+    "fflate": "^0.7.3",
     "node-fetch": "2.6.7",
     "postcss": "8.4.13",
     "prism-themes": "1.9.0",

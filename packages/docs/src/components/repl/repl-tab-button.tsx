@@ -9,7 +9,7 @@ export const ReplTabButton = (props: ReplTabButtonProps) => {
       <button class="repl-tab-button-select" onClickQrl={props.onClickQrl} type="button">
         {props.text}
       </button>
-      {props.onCloseQrl ? (
+      {props.onCloseQrl && props.enableInputDelete ? (
         <button class="repl-tab-button-close" onClickQrl={props.onCloseQrl} type="button">
           <CloseIcon width={9} height={9} />
         </button>
@@ -26,4 +26,5 @@ interface ReplTabButtonProps {
   onClose$?: () => void;
   onCloseQrl?: any;
   cssClass?: Record<string, boolean>;
+  enableInputDelete?: boolean;
 }

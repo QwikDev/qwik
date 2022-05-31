@@ -47,6 +47,7 @@ export const Repl = component$(async (props: ReplProps) => {
       serverWindow: null,
       versions: [],
       events: [],
+      isLoading: true,
     };
     return initStore;
   });
@@ -110,6 +111,8 @@ export const Repl = component$(async (props: ReplProps) => {
         store={store}
         onInputChangeQrl={onInputChange}
         onInputDeleteQrl={onInputDelete}
+        enableCopyToPlayground={props.enableCopyToPlayground}
+        enableDownload={props.enableDownload}
       />
       <ReplOutputPanel input={input} store={store} />
       <ReplDetailPanel input={input} store={store} />
@@ -131,6 +134,8 @@ export const receiveMessageFromReplServer = (ev: MessageEvent, store: ReplStore)
     } else if (type === 'event') {
       // received an event from the user's app
       store.events.push(msg.event);
+    } else if (type === 'apploaded') {
+      store.isLoading = false;
     }
   }
 };
@@ -166,4 +171,7 @@ export interface ReplProps {
   enableHtmlOutput?: boolean;
   enableClientOutput?: boolean;
   enableSsrOutput?: boolean;
+  enableInputDelete?: boolean;
+  enableDownload?: boolean;
+  enableCopyToPlayground?: boolean;
 }

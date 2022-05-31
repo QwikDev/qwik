@@ -3,8 +3,8 @@ import type { QwikRollupPluginOptions } from '@builder.io/qwik/optimizer';
 import type { QwikWorkerGlobal } from './repl-service-worker';
 import type { MinifyOptions } from 'terser';
 import type { ReplInputOptions } from '../types';
-import { depResponse } from './dependencies';
-import { QWIK_REPL_DEPS_CACHE } from './constants';
+import { depResponse } from './repl-dependencies';
+import { QWIK_REPL_DEPS_CACHE } from './repl-constants';
 
 export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 'ssr'): Plugin => {
   return {
@@ -57,6 +57,7 @@ export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 's
         if (rsp) {
           return rsp.clone().text();
         }
+        throw new Error(`Unable to load Qwik core`);
       }
       return null;
     },
@@ -64,7 +65,12 @@ export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 's
 };
 
 const getRuntimeBundle = (runtimeBundle: string) => {
-  const exportKeys = Object.keys((self as any)[runtimeBundle]);
+  const runtimeApi = (self as any)[runtimeBundle];
+  if (!runtimeApi) {
+    throw new Error(`Unable to load Qwik runtime bundle "${runtimeBundle}"`);
+  }
+
+  const exportKeys = Object.keys(runtimeApi);
   const code = `
     const { ${exportKeys.join(', ')} } = self.${runtimeBundle};
     export { ${exportKeys.join(', ')} };

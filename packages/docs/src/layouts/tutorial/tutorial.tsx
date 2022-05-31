@@ -82,6 +82,9 @@ const Tutorial = component$(() => {
             enableHtmlOutput={current.enableHtmlOutput}
             enableClientOutput={current.enableClientOutput}
             enableSsrOutput={current.enableSsrOutput}
+            enableCopyToPlayground={true}
+            enableDownload={true}
+            enableInputDelete={false}
           />
           <div class="tutorial-repl-footer" />
         </div>

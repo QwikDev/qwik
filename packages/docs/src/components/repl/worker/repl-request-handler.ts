@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import type { ReplEventMessage } from '../types';
-import { QWIK_REPL_RESULT_CACHE } from './constants';
+import { QWIK_REPL_RESULT_CACHE } from './repl-constants';
 import { sendMessageToReplServer } from './repl-messenger';
 
 export const requestHandler = async (ev: FetchEvent) => {

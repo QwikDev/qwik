@@ -261,9 +261,13 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         manifest.platform = {
           ...versions,
           vite: '',
+          rollup: this.meta?.rollupVersion || '',
           env: optimizer.sys.env,
           os: optimizer.sys.os,
         };
+        if (optimizer.sys.env === 'node') {
+          manifest.platform.node = process.versions.node;
+        }
 
         const clientManifestStr = JSON.stringify(manifest, null, 2);
         this.emitFile({

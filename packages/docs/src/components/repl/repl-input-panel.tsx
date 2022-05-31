@@ -1,5 +1,6 @@
 import type { QRL } from '@builder.io/qwik';
 import { Editor } from './editor';
+import { ReplCommands } from './repl-commands';
 import { ReplTabButton } from './repl-tab-button';
 import { ReplTabButtons } from './repl-tab-buttons';
 import type { ReplStore, ReplAppInput } from './types';
@@ -9,6 +10,9 @@ export const ReplInputPanel = ({
   store,
   onInputChangeQrl,
   onInputDeleteQrl,
+  enableCopyToPlayground,
+  enableDownload,
+  enableInputDelete,
 }: ReplInputPanelProps) => {
   return (
     <div class="repl-panel repl-input-panel">
@@ -27,9 +31,15 @@ export const ReplInputPanel = ({
                   onInputDeleteQrl.invoke(f.path);
                 }
               }}
+              enableInputDelete={enableInputDelete}
             />
           )
         )}
+        <ReplCommands
+          input={input}
+          enableCopyToPlayground={enableCopyToPlayground}
+          enableDownload={enableDownload}
+        />
       </ReplTabButtons>
 
       <div class="repl-tab">
@@ -58,4 +68,7 @@ interface ReplInputPanelProps {
   store: ReplStore;
   onInputChangeQrl: QRL<(path: string, code: string) => void>;
   onInputDeleteQrl: QRL<(path: string) => void>;
+  enableDownload?: boolean;
+  enableCopyToPlayground?: boolean;
+  enableInputDelete?: boolean;
 }

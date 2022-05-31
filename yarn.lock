@@ -4047,6 +4047,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"fflate@npm:^0.7.3":
+  version: 0.7.3
+  resolution: "fflate@npm:0.7.3"
+  checksum: 6d0908c54643d5f979c2ba84a0dab74d71755360731a3a3d43d6aeb81728836f086c4f4d62908e3c03d460f2ef95908daa3bfbb8527be56cac0025b96553ee64
+  languageName: node
+  linkType: hard
+
 "file-entry-cache@npm:^6.0.1":
   version: 6.0.1
   resolution: "file-entry-cache@npm:6.0.1"
@@ -7449,6 +7456,7 @@ __metadata:
     "@cloudflare/kv-asset-handler": 0.2.0
     "@cloudflare/workers-types": ^3.11.0
     autoprefixer: 10.4.7
+    fflate: ^0.7.3
     node-fetch: 2.6.7
     postcss: 8.4.14
     prism-themes: 1.9.0

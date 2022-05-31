@@ -1,7 +1,16 @@
 header {
+  height: calc(var(--header-height));
+  margin-bottom: 6px;
   color: white;
   background: var(--qwik-blue);
-  box-shadow: 0px 2px 7px #0000003d;
+  box-shadow: 0px 2px 5px #0000003d;
+}
+
+.fixed-header header {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 40;
 }
 
 header li {
@@ -17,9 +26,15 @@ header li a:hover svg {
   opacity: 0.8;
 }
 
+header .mobile-menu {
+  position: absolute;
+  right: 0;
+  @apply p-3 md:hidden;
+}
+
 header ul {
   @apply hidden md:block;
-  @apply pt-14 pb-6 md:pt-0;
+  @apply pt-0 pb-6 md:pt-0;
 }
 
 header .more-icon {
@@ -32,8 +47,12 @@ header .close-icon {
 
 @media (max-width: 767px) {
   .header-open header ul {
+    position: absolute;
+    z-index: 10;
     display: block;
-    background: #0099ff;
+    top: var(--header-height);
+    width: 100%;
+    background: var(--qwik-blue);
   }
 
   .header-open header .more-icon {
@@ -46,17 +65,22 @@ header .close-icon {
 }
 
 header .header-inner {
-  @apply max-w-[1400px] mx-auto;
+  max-width: 1400px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .full-width header .header-inner {
-  @apply max-w-[100%];
+  max-width: 100%;
 }
 
 header .header-logo {
-  @apply fixed top-[5px] left-[max(0px,calc(50%-45rem))] pl-4;
+  position: absolute;
+  top: 5px;
+  left: max(0px, calc(50% - 45rem));
+  padding-left: 1rem;
 }
 
 .full-width header .header-logo {
-  @apply left-[0px];
+  left: 0;
 }

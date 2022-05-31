@@ -10,7 +10,7 @@ const DocsLayout = component$(() => {
   useScopedStyles$(styles);
 
   return (
-    <Host class="docs">
+    <Host class="docs fixed-header">
       <Header />
       <SideBar />
       <main>

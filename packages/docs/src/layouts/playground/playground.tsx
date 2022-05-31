@@ -84,7 +84,12 @@ const Playground = component$(() => {
 
   return (
     <Host
-      class={{ 'full-width': true, playground: true, 'repl-resize-active': store.colResizeActive }}
+      class={{
+        playground: true,
+        'full-width': true,
+        'fixed-header': true,
+        'repl-resize-active': store.colResizeActive,
+      }}
     >
       <Header />
 

@@ -41,7 +41,7 @@ const Examples = component$((props: ExamplesProp) => {
   useScopedStyles$(styles);
 
   return (
-    <Host class="examples full-width">
+    <Host class="examples full-width fixed-header">
       <Header />
 
       <div class="examples-menu-container">

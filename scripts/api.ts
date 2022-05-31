@@ -79,6 +79,9 @@ function createTypesApi(config: BuildConfig, inPath: string, outPath: string, co
       if (msg.text.includes('Analysis will use')) {
         return;
       }
+      if (msg.messageId === 'console-compiler-version-notice') {
+        return;
+      }
       console.error(`❌ API Extractor, submodule: "${inPath}"\n${extractorConfigPath}\n`, msg);
     },
   });

@@ -216,9 +216,7 @@ export function rollupOnWarn(warning: any, warn: any) {
  */
 export async function fileSize(filePath: string) {
   const text = await readFile(filePath);
-
-  const size = formatFileSize(text.length);
-  return `${size}`;
+  return formatFileSize(text.length);
 }
 
 function formatFileSize(bytes: number) {

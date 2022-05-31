@@ -1,8 +1,9 @@
 header {
-  height: var(--header-height);
+  height: calc(var(--header-height));
+  margin-bottom: 6px;
   color: white;
   background: var(--qwik-blue);
-  box-shadow: 0px 2px 7px #0000003d;
+  box-shadow: 0px 2px 5px #0000003d;
 }
 
 .fixed-header header {
@@ -64,11 +65,13 @@ header .close-icon {
 }
 
 header .header-inner {
-  @apply max-w-[1400px] mx-auto;
+  max-width: 1400px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .full-width header .header-inner {
-  @apply max-w-[100%];
+  max-width: 100%;
 }
 
 header .header-logo {
@@ -79,5 +82,5 @@ header .header-logo {
 }
 
 .full-width header .header-logo {
-  @apply left-[0px];
+  left: 0;
 }

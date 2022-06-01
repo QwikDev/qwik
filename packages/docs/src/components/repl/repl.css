@@ -161,6 +161,7 @@
   height: 50px;
   animation: rotating 1s linear infinite;
   z-index: 10;
+  stroke: var(--qwik-blue);
 }
 
 @keyframes rotating {
@@ -171,6 +172,7 @@
     transform: rotate(360deg);
   }
 }
+
 .editor-container {
   height: 100%;
 }

@@ -90,7 +90,6 @@ export const ReplOutputPanel = ({ input, store }: ReplOutputPanelProps) => {
                 cy="50"
                 r="24"
                 stroke-width="4"
-                stroke="#daefff"
                 stroke-dasharray="37.69911184307752 37.69911184307752"
                 fill="none"
                 stroke-linecap="round"

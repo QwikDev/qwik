@@ -28,6 +28,7 @@ const Examples = component$((props: ExamplesProp) => {
       entryStrategy: 'hook',
       files: app?.inputs || [],
       version: '',
+      activePanel: 'Examples',
     };
     return initStore;
   });
@@ -44,7 +45,14 @@ const Examples = component$((props: ExamplesProp) => {
     <Host class="examples full-width fixed-header">
       <Header />
 
-      <div class="examples-menu-container">
+      <div
+        class={{
+          'examples-menu-container': true,
+          'examples-panel-input': store.activePanel === 'Input',
+          'examples-panel-output': store.activePanel === 'Output',
+          'examples-panel-console': store.activePanel === 'Console',
+        }}
+      >
         <div class="examples-menu">
           {exampleSections.map((s) => (
             <div key={s.id} class="examples-menu-section">
@@ -56,6 +64,7 @@ const Examples = component$((props: ExamplesProp) => {
                   type="button"
                   onClick$={() => {
                     store.appId = app.id;
+                    store.activePanel = 'Input';
                     history.replaceState(null, '', `/examples/${app.id}`);
                   }}
                   class={{
@@ -93,6 +102,19 @@ const Examples = component$((props: ExamplesProp) => {
           />
         </main>
       </div>
+      <div class="panel-toggle">
+        {PANELS.map((p) => (
+          <button
+            key={p}
+            onClick$={() => {
+              store.activePanel = p;
+            }}
+            class={{ active: store.activePanel === p }}
+          >
+            {p}
+          </button>
+        ))}
+      </div>
     </Host>
   );
 });
@@ -107,12 +129,17 @@ export const getExampleApp = (id: string): ExampleApp | undefined => {
   }
 };
 
+export const PANELS: ActivePanel[] = ['Examples', 'Input', 'Output', 'Console'];
+
 interface ExamplesProp {
   appId: string;
 }
 
 interface ExamplesStore extends ReplAppInput {
   appId: string;
+  activePanel: ActivePanel;
 }
+
+type ActivePanel = 'Examples' | 'Input' | 'Output' | 'Console';
 
 export default Examples;

@@ -62,10 +62,11 @@ const Examples = component$((props: ExamplesProp) => {
                 <button
                   key={app.id}
                   type="button"
+                  preventDefault:click
                   onClick$={() => {
                     store.appId = app.id;
                     store.activePanel = 'Input';
-                    history.replaceState(null, '', `/examples/${app.id}`);
+                    history.replaceState({}, '', `/examples/${app.id}`);
                   }}
                   class={{
                     'example-button': true,
@@ -109,6 +110,8 @@ const Examples = component$((props: ExamplesProp) => {
             onClick$={() => {
               store.activePanel = p;
             }}
+            type="button"
+            preventDefault:click
             class={{ active: store.activePanel === p }}
           >
             {p}

@@ -10,7 +10,7 @@
 .playground .repl {
   display: grid;
   grid-template-columns: 50% 50%;
-  grid-template-rows: 1fr 250px;
+  grid-template-rows: 1fr 40%;
   grid-template-areas:
     'repl-input-panel repl-output-panel'
     'repl-input-panel repl-detail-panel';

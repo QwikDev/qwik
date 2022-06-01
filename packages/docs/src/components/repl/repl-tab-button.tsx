@@ -6,11 +6,21 @@ export const ReplTabButton = (props: ReplTabButtonProps) => {
       key={props.text}
       class={{ 'active-tab': props.isActive, 'repl-tab-button': true, ...props.cssClass }}
     >
-      <button class="repl-tab-button-select" onClickQrl={props.onClickQrl} type="button">
+      <button
+        class="repl-tab-button-select"
+        onClickQrl={props.onClickQrl}
+        type="button"
+        preventDefault:click
+      >
         {props.text}
       </button>
       {props.onCloseQrl && props.enableInputDelete ? (
-        <button class="repl-tab-button-close" onClickQrl={props.onCloseQrl} type="button">
+        <button
+          class="repl-tab-button-close"
+          onClickQrl={props.onCloseQrl}
+          type="button"
+          preventDefault:click
+        >
           <CloseIcon width={9} height={9} />
         </button>
       ) : null}

@@ -12,6 +12,7 @@
   grid-template-areas: 'example-content-panel example-repl-panel';
   height: calc(100vh - var(--header-height) - var(--header-height));
   transform: translate3d(0, 0, 0);
+  transition: transform 500ms;
 }
 
 .examples-panel-input {
@@ -83,6 +84,7 @@
     grid-template-columns: minmax(240px, 20%) auto;
     grid-template-areas: 'example-content-panel example-repl-panel';
     transform: translate3d(0, 0, 0);
+    transition: none;
   }
 
   .examples .repl {

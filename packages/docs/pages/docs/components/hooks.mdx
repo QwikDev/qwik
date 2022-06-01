@@ -6,9 +6,9 @@ title: Hooks
 
 ## useStore()
 
-Creates a object that Qwik can track across serializations.
+Creates an object that Qwik can track across serializations.
 
-Use `useStore` to create state for your application. The return object is a proxy which has a unique ID. The ID of the object is used in the `QRL`s to refer to the store.
+Use `useStore` to create state for your application. The returned object is a proxy which has a unique ID that is used in `QRL`s to refer to the store.
 
 ### Example
 
@@ -59,7 +59,7 @@ function useCounter(step: number) {
 
 ## useRef()
 
-It's a very thin wrapper around `useStore()` including the proper type signature to be passed to the `ref` property in JSX.
+A very thin wrapper around `useStore()` including the proper type signature to be passed to the `ref` property in JSX.
 
 ```tsx
 export function useRef<T = Element>(current?: T): Ref<T> {

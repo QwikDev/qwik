@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json.schemastore.org/web-manifest-combined.json",
+  "name": "Qwik",
+  "short_name": "Qwik",
+  "background_color": "#ffffff",
+  "theme_color": "#0093ee",
+  "description": "Qwik is Framework reimagined for the edge",
+  "dir": "ltr",
+  "display": "standalone",
+  "orientation": "any",
+  "scope": "/",
+  "start_url": "/",
+  "categories": [],
+  "screenshots": [],
+  "icons": [
+    {
+      "src": "/logos/qwik-logo.svg",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/favicons/apple-touch-icon.png",
+      "type": "image/png",
+      "sizes": "180x180"
+    },
+    {
+      "src": "https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F56f46c6818704d47957a587157e2444f?width=1200",
+      "type": "image/jpeg",
+      "sizes": "1200x675"
+    },
+    {
+      "src": "/favicon.ico",
+      "type": "image/x-icon"
+    }
+  ],
+  "shortcuts": []
+}

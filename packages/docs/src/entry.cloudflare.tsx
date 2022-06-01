@@ -4,10 +4,6 @@ import replServerHtml from '@repl-server-html';
 export const onRequestGet: PagesFunction = async ({ request, next, waitUntil }) => {
   try {
     const url = new URL(request.url);
-    if (url.hostname === 'qwik.builder.io' && url.pathname === '/') {
-      // temporarily redirect homepage to the overview page
-      return Response.redirect(new URL('/docs/overview', url), 302);
-    }
 
     if (url.pathname === '/docs') {
       return Response.redirect(new URL('/docs/overview', url));

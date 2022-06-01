@@ -2,15 +2,15 @@
   position: fixed;
   top: var(--header-height);
   width: 100%;
-  height: cal(100vh - var(--header-height));
+  height: calc(100% - var(--header-height));
 }
 
 .examples-menu-container {
   display: grid;
-  grid-template-rows: calc(100vh - var(--header-height) - var(--header-height));
+  grid-template-rows: 100%;
   grid-template-columns: 100vw 100vw;
   grid-template-areas: 'example-content-panel example-repl-panel';
-  height: calc(100vh - var(--header-height) - var(--header-height));
+  height: calc(100% - var(--header-height));
   transform: translate3d(0, 0, 0);
   transition: transform 500ms;
 }
@@ -41,7 +41,8 @@
 
 .examples .panel-toggle {
   grid-area: example-panel-toggle;
-  position: fixed;
+  position: -webkit-sticky;
+  position: sticky;
   display: flex;
   justify-content: center;
   align-items: center;

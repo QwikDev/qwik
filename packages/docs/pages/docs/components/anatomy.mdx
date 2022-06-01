@@ -25,8 +25,8 @@ export const MyCmp = component$(async (props: MyCmpProps) => {
       <span>Hello, {props.name} {state.count}</span>
       <div>Times: {state.count}</div>
       <button onClick$={() => {
-        // this will update the local state and cause a re-render
-        // reactivity is at qwik's core
+        // This will update the local state and cause a re-render.
+        // Reactivity is at qwik's core!
         state.count++;
       }}
       >
@@ -39,7 +39,7 @@ export const MyCmp = component$(async (props: MyCmpProps) => {
 
 ## Props
 
-Props are used to pass data into the a component. Props are declared as named arguments of the component.
+Props are used to pass data into the component. Props are declared as named arguments of the component.
 
 In this example a component `Item` declares optional `name`, `quantity`, `description`, and `price`.
 
@@ -122,7 +122,7 @@ Will result in:
 
 ### `useHostElement()`
 
-Since the host element is implicitally created by `component$`, it is not possible to access it directly. Instead, you can use `useHostElement()` to get the host element.
+Since the host element is implicitly created by `component$`, it is not possible to access it directly. Instead, you can use `useHostElement()` to get the host element.
 
  Qwik uses host elements in various ways. For example when using `useHostElement()` function which retrieves it. It is also used to attach props to the components for serialization.
 
@@ -157,7 +157,7 @@ In both above cases the rendered HTML would be:
 <div q:host></div>
 ```
 
-Because the host element is an actual element, there may be a desire to place HTML classes, styles, or attributes.
+Because the host element is an actual element, there may be a desire to place HTML classes, styles, or attributes on the host element.
 
 What if you wanted to add a `name` attribute to the host element? The issue is that the `name` is already used by the component props. For this reason, we use `host:` prefix to refer to the host element's attributes.
 
@@ -177,7 +177,7 @@ would render as:
 <div q:host name="abc" id="greeter" onClickQrl="..."></div>
 ```
 
-Using an `host:` prefix allows the developer to control the component's host element attributes independently from the component's props.
+Using a `host:` prefix allows the developer to control the component's host element attributes independently from the component's props.
 
 One can use the same approach for `class` and `styles`.
 

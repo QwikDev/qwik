@@ -15,7 +15,9 @@ export const Head = () => (
 
     <meta name="apple-mobile-web-app-title" content="Qwik" />
     <meta name="application-name" content="Qwik" />
-    <meta name="theme-color" content="#ffffff" />
+    <meta name="apple-mobile-web-app-title" content="MyApp" />
+    <meta name="theme-color" content="#0093ee" />
+    <link rel="manifest" href="/app.webmanifest" />
 
     <meta name="twitter:site" content="@QwikDev" />
     <meta name="twitter:creator" content="@QwikDev" />

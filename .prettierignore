@@ -22,6 +22,6 @@ build
 build
 node_modules
 tsconfig.tsbuildinfo
-packages/docs/pages/**/*.mdx
+packages/docs/src/pages/**/*.mdx
 packages/docs/server/
 starters/**/*.js

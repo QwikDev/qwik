@@ -14,5 +14,5 @@
     "isolatedModules": true,
     "types": ["vite/client"]
   },
-  "include": ["src"]
+  "include": ["src", "build/repositories.tsx"]
 }

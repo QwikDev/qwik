@@ -1,5 +1,5 @@
 import { useDocument } from '../use/use-document.public';
-import { getProxyMap, qObject } from '../object/q-object';
+import { getQObjectState, qObject } from '../object/q-object';
 import { getInvokeContext } from './use-core';
 import { useHostElement } from './use-host-element.public';
 import { getContext } from '../props/props';
@@ -77,9 +77,22 @@ export function useStore<STATE extends object>(initialState: STATE | (() => STAT
     return wrapSubscriber(store, hostElement);
   }
   const value = typeof initialState === 'function' ? (initialState as Function)() : initialState;
-  const newStore = qObject(value, getProxyMap(useDocument()));
+  const newStore = qObject(value, getQObjectState(useDocument()));
   setStore(newStore);
   return wrapSubscriber(newStore, hostElement);
+}
+
+/**
+ * @alpha
+ */
+export function useMemo<STATE extends object>(factory: () => STATE): STATE {
+  const [memo, setMemo] = useSequentialScope();
+  if (memo) {
+    return memo;
+  }
+  const value = factory();
+  setMemo(value);
+  return value;
 }
 
 /**

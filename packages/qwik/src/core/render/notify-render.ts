@@ -6,7 +6,7 @@ import { qDev } from '../util/qdev';
 import { getPlatform } from '../platform/platform';
 import { getDocument } from '../util/dom';
 import { renderComponent } from '../component/component-ctx';
-import { logDebug, logError } from '../util/log';
+import { logError } from '../util/log';
 import { getContainer } from '../use/use-core';
 import { runWatch, WatchDescriptor } from '../watch/watch.public';
 import { waitForWatches } from '../object/q-object';
@@ -140,7 +140,7 @@ export async function renderMarked(
   if (ctx.operations.length === 0) {
     if (qDev) {
       if (typeof window !== 'undefined' && window.document != null) {
-        logDebug('Render stats. No operations.');
+        printRenderStats(ctx);
       }
     }
     postRendering(containerEl, state, ctx);

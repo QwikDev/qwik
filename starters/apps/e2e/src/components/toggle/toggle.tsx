@@ -9,6 +9,7 @@ import {
   useCleanup$,
   useContextProvider,
   useContext,
+  mutable,
 } from '@builder.io/qwik';
 
 export const CTX = createContext<{ message: string }>('toggle');
@@ -34,7 +35,7 @@ export const ToggleShell = component$(() => {
   return (
     <Host>
       {!store.cond ? <ToggleA root={store} /> : <ToggleB root={store} />}
-      <Logs0 store={cond ? store : store2} />
+      <Logs0 message={mutable(store.logs)} />
       <button type="button" onClick$={() => (store.cond = !store.cond)}>
         Toggle
       </button>
@@ -43,22 +44,16 @@ export const ToggleShell = component$(() => {
 });
 
 export const Logs0 = component$((props: Record<string, any>) => {
-
   return (
     <Host>
-      <Logs1 store={props.store}/>
+      <Logs1 message={mutable(props.message)} />
     </Host>
-  )
+  );
 });
 
 export const Logs1 = component$((props: Record<string, any>) => {
-  return (
-    <Host id="logs">
-      Logs: {props.store.logs}
-    </Host>
-  )
+  return <Host id="logs">Logs: {props.message}</Host>;
 });
-
 
 export const ToggleA = component$((props: { root: { logs: string } }) => {
   console.log('ToggleA renders');

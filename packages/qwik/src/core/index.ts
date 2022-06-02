@@ -107,6 +107,6 @@ export type { RenderContext, RenderOperation, PerfEvent } from './render/cursor'
 //////////////////////////////////////////////////////////////////////////////////////////
 export type { ValueOrPromise } from './util/types';
 export type { NoSerialize } from './object/q-object';
-export { noSerialize, immutable } from './object/q-object';
+export { noSerialize, immutable, mutable } from './object/q-object';
 
 export { version } from './version';

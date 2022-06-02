@@ -7,7 +7,6 @@ import { styleContent, styleHost } from './qrl-styles';
 import { isStyleTask, newInvokeContext } from '../use/use-core';
 import { getProps, QContext } from '../props/props';
 import { processNode } from '../render/jsx/jsx-runtime';
-import { wrapSubscriber } from '../use/use-subscriber';
 import { logDebug, logError } from '../util/log';
 import type { ValueOrPromise } from '../util/types';
 import { removeSub } from '../object/q-object';
@@ -51,7 +50,7 @@ export const renderComponent = (rctx: RenderContext, ctx: QContext): ValueOrProm
 
   try {
     // Execution of the render function
-    const renderPromise = onRenderFn(wrapSubscriber(getProps(ctx), hostElement));
+    const renderPromise = onRenderFn(getProps(ctx));
 
     // Wait for results
     return then(

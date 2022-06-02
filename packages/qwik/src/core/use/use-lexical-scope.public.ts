@@ -3,7 +3,6 @@ import { assertDefined, assertEqual } from '../assert/assert';
 import { parseQRL } from '../import/qrl';
 import { getContext, QContext, resumeIfNeeded } from '../props/props';
 import { getContainer, getInvokeContext } from './use-core';
-import { useURL } from './use-url.public';
 import type { QRLInternal } from '../import/qrl-class';
 
 // <docs markdown="../readme.md#useLexicalScope">
@@ -24,7 +23,7 @@ export function useLexicalScope<VARS extends any[]>(): VARS {
   const context = getInvokeContext();
   const hostElement = context.hostElement;
   const qrl = (context.qrl ??
-    parseQRL(decodeURIComponent(String(useURL())), hostElement)) as QRLInternal;
+    parseQRL(decodeURIComponent(String(context.url)), hostElement)) as QRLInternal;
   if (qrl.captureRef == null) {
     const el = context.element!;
     assertDefined(el);

@@ -3,7 +3,7 @@ import {
   cleanupContext,
   ComponentCtx,
   getContext,
-  getProps,
+  getPropsMutator,
   QContext,
   setEvent,
   tryGetContext,
@@ -637,7 +637,8 @@ export function updateProperties(
     return false;
   }
   const elm = ctx.element;
-  const qwikProps = OnRenderProp in expectProps ? getProps(ctx) : undefined;
+  const isCmp = OnRenderProp in expectProps;
+  const qwikProps = isCmp ? getPropsMutator(ctx) : undefined;
 
   for (let key of Object.keys(expectProps)) {
     if (key === 'children' || key === OnRenderProp) {
@@ -667,7 +668,7 @@ export function updateProperties(
       const hasPrefix = SCOPE_PREFIX.test(key);
       if (!skipProperty && !hasPrefix) {
         // Qwik props
-        qwikProps[key] = newValue;
+        qwikProps.set(key, newValue);
         continue;
       }
       const hPrefixed = key.startsWith(HOST_PREFIX);
@@ -895,7 +896,8 @@ export function printRenderStats(ctx: RenderContext) {
     visitedNodes: ctx.perf.visited,
     operations: ctx.operations.map((v) => [v.operation, v.el, ...v.args]),
   };
-  logDebug('Render stats', stats);
+  const noOps = ctx.operations.length === 0;
+  logDebug('Render stats.', noOps ? 'No operations' : '', stats);
   return stats;
 }
 

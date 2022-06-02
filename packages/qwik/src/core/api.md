@@ -348,6 +348,11 @@ export interface JSXNode<T = any> {
     type: T;
 }
 
+// Warning: (ae-forgotten-export) The symbol "MutableWrapper" needs to be exported by the entry point index.d.ts
+//
+// @alpha (undocumented)
+export function mutable<T>(v: T): MutableWrapper<T>;
+
 // @alpha (undocumented)
 export type NoSerialize<T> = (T & {
     __no_serialize__: true;
@@ -381,12 +386,13 @@ export interface PerfEvent {
 export type Props<T extends {} = {}> = Record<string, any> & T;
 
 // @public
-export type PropsOf<COMP extends (props: any) => JSXNode<any> | null> = COMP extends (props: infer PROPS) => JSXNode<any> | null ? NonNullable<PROPS> : never;
+export type PropsOf<COMP extends Component<any>> = COMP extends Component<infer PROPS> ? NonNullable<PROPS> : never;
 
+// Warning: (ae-forgotten-export) The symbol "ComponentProps" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "ComponentBaseProps" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export type PublicProps<PROPS extends {}> = PROPS & On$Props<PROPS> & ComponentBaseProps;
+export type PublicProps<PROPS extends {}> = ComponentProps<PROPS> & On$Props<PROPS> & ComponentBaseProps;
 
 // @public
 export interface QRL<TYPE = any> {

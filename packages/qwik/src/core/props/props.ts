@@ -1,7 +1,16 @@
 import type { JSXNode } from '../render/jsx/types/jsx-node';
-import { QError, qError } from '../error/error';
-import { getProxyMap, readWriteProxy } from '../object/q-object';
-import { resumeContainer } from '../object/store';
+import {
+  getQObjectState,
+  isMutable,
+  LocalSubscriptionManager,
+  QObjectState,
+  QOjectAllSymbol,
+  QOjectOriginalProxy,
+  QOjectSubsSymbol,
+  QOjectTargetSymbol,
+  TargetType,
+} from '../object/q-object';
+import { getProxyTarget, resumeContainer } from '../object/store';
 import type { RenderContext } from '../render/cursor';
 import { getDocument } from '../util/dom';
 import { newQObjectMap, QObjectMap } from './props-obj-map';
@@ -13,6 +22,8 @@ import { destroyWatch, WatchDescriptor } from '../watch/watch.public';
 import { pauseContainer } from '../object/store.public';
 import { getRenderingState } from '../render/notify-render';
 import { qDev } from '../util/qdev';
+import { logError } from '../util/log';
+import { unwrapSubscriber } from '../use/use-subscriber';
 
 Error.stackTraceLimit = 9999;
 
@@ -129,41 +140,102 @@ export function setEvent(rctx: RenderContext, ctx: QContext, prop: string, value
 
 export function getProps(ctx: QContext) {
   if (!ctx.props) {
-    ctx.props = readWriteProxy({}, getProxyMap(getDocument(ctx.element)));
+    ctx.props = createProps({}, ctx.element);
   }
   return ctx.props!;
 }
 
-/**
- * Turn an `Array` or object literal into a `class` or `style`
- *
- * @param obj `string`, `Array` or object literal
- * @param isClass `true` if expecting `class` output
- * @returns `string`
- */
-export function stringifyClassOrStyle(obj: any, isClass: boolean): string {
-  if (obj == null) return '';
-  if (typeof obj == 'object') {
-    let text = '';
-    let sep = '';
-    if (Array.isArray(obj)) {
-      if (!isClass) {
-        throw qError(QError.Render_unsupportedFormat_obj_attr, obj, 'style');
+export function createProps(target: any, el: Element) {
+  const objectState = getQObjectState(getDocument(el));
+  const manager = objectState.subsManager.getLocal(target);
+  return new Proxy(target, new PropsProxyHandler(el, objectState, manager));
+}
+
+export function getPropsMutator(ctx: QContext) {
+  const props = getProps(ctx);
+  const target = getProxyTarget(props);
+  const manager = getQObjectState(getDocument(ctx.element)).subsManager.getLocal(target);
+
+  return {
+    set(prop: string, value: any) {
+      const didSet = prop in target;
+      let oldValue = target[prop];
+      let mutable = false;
+      if (isMutable(oldValue)) {
+        oldValue = oldValue.v;
       }
-      for (let i = 0; i < obj.length; i++) {
-        text += sep + obj[i];
-        sep = ' ';
+      value = unwrapSubscriber(value);
+      target[prop] = value;
+      if (isMutable(value)) {
+        value = value.v;
+        mutable = true;
       }
-    } else {
-      for (const key in obj) {
-        if (Object.prototype.hasOwnProperty.call(obj, key)) {
-          const value = obj[key];
-          text += isClass ? (value ? sep + key : '') : sep + key + ':' + value;
-          sep = isClass ? ' ' : ';';
+      if (oldValue !== value) {
+        if (qDev && didSet && !mutable) {
+          const displayName = ctx.renderQrl?.getSymbol() ?? ctx.element.localName;
+          logError(
+            `Props are immutable by default, use mutable() <${displayName} ${prop}={mutable(...)}>`,
+            '\n - Component:',
+            displayName,
+            '\n - Prop:',
+            prop,
+            '\n - Old value:',
+            oldValue,
+            '\n - New value:',
+            value,
+            '\n - Element:',
+            ctx.element
+          );
         }
+        manager.notifySubs(prop);
       }
+    },
+  };
+}
+
+class PropsProxyHandler implements ProxyHandler<TargetType> {
+  constructor(
+    private hostElement: Element,
+    private proxyMap: QObjectState,
+    private manager: LocalSubscriptionManager
+  ) {}
+
+  get(target: TargetType, prop: string | symbol): any {
+    if (typeof prop === 'symbol') {
+      return target[prop];
     }
-    return text;
+    if (prop === QOjectTargetSymbol) return target;
+    if (prop === QOjectSubsSymbol) return this.manager.subs;
+    if (prop === QOjectOriginalProxy) return this.proxyMap.proxyMap.get(target);
+    if (prop === QOjectAllSymbol) {
+      this.manager.addSub(this.hostElement);
+      return target;
+    }
+    const value = target[prop];
+    if (typeof prop === 'symbol') {
+      return value;
+    }
+    if (isMutable(value)) {
+      this.manager.addSub(this.hostElement, prop);
+      return value.v;
+    }
+    return value;
   }
-  return String(obj);
+
+  set(): boolean {
+    throw new Error('props are inmutable');
+  }
+
+  has(target: TargetType, property: string | symbol) {
+    if (property === QOjectTargetSymbol) return true;
+    if (property === QOjectSubsSymbol) return true;
+
+    return Object.prototype.hasOwnProperty.call(target, property);
+  }
+
+  ownKeys(target: TargetType): ArrayLike<string | symbol> {
+    const subscriber = this.hostElement;
+    this.manager.addSub(subscriber);
+    return Object.getOwnPropertyNames(target);
+  }
 }

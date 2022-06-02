@@ -1,10 +1,9 @@
 import {
+  getQObjectState,
   noSerialize,
   NoSerialize,
   notifyWatch,
-  QOjectAllSymbol,
   removeSub,
-  SetSubscriber,
 } from '../object/q-object';
 import { implicit$FirstArg, QRL } from '../import/qrl.public';
 import { getContext } from '../props/props';
@@ -553,7 +552,8 @@ export function runWatch(watch: WatchDescriptor): Promise<WatchDescriptor> {
     then(watch.running, () => {
       cleanupWatch(watch);
       const el = watch.el;
-      const invokationContext = newInvokeContext(getDocument(el), el, el, 'WatchEvent');
+      const doc = getDocument(el);
+      const invokationContext = newInvokeContext(doc, el, el, 'WatchEvent');
       const watchFn = watch.qrl.invokeFn(el, invokationContext, () => {
         const captureRef = (watch.qrl as QRLInternal).captureRef;
         if (Array.isArray(captureRef)) {
@@ -562,16 +562,18 @@ export function runWatch(watch: WatchDescriptor): Promise<WatchDescriptor> {
           });
         }
       });
-      const tracker: Tracker = (obj: any, prop?: string) => {
-        obj[SetSubscriber] = watch;
+      const objectState = getQObjectState(doc);
+      const track: Tracker = (obj: any, prop?: string) => {
+        const manager = objectState.subsManager.getLocal(obj);
+        manager.addSub(watch, prop);
         if (prop) {
           return obj[prop];
         } else {
-          return obj[QOjectAllSymbol];
+          return obj;
         }
       };
 
-      return then(watchFn(tracker), (returnValue) => {
+      return then(watchFn(track), (returnValue) => {
         if (typeof returnValue === 'function') {
           watch.destroy = noSerialize(returnValue);
         }

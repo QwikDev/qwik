@@ -7,7 +7,7 @@ import { examplesData, playgroundData, tutorialData } from './vite.repl-apps';
 import { replServiceWorker } from './vite.repl-worker';
 
 export default defineConfig(() => {
-  const pagesDir = resolve('pages');
+  const pagesDir = resolve('src', 'pages');
 
   return {
     ssr: {

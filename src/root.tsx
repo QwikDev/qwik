@@ -1,4 +1,4 @@
-import { App } from "./components/app/app";
+import { GitHubRepositories } from "./components/github-repositories";
 
 export const Root = () => {
   return (
@@ -8,7 +8,7 @@ export const Root = () => {
         <title>Qwik Blank App</title>
       </head>
       <body>
-        <App />
+        <GitHubRepositories />
       </body>
     </html>
   );

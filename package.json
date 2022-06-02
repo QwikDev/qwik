@@ -1,0 +1,42 @@
+{
+  "name": "qwik-bar",
+  "description": "Blank Qwik starter app. Vite.js tooling. Express.js server. Eslint code linting. Prettier code formatter. Tailwind CSS framework.",
+  "scripts": {
+    "build": "npm run typecheck && npm run build.client && npm run build.ssr",
+    "build.client": "vite build",
+    "build.ssr": "vite build --ssr src/entry.express.tsx",
+    "dev": "vite",
+    "dev.debug": "node --inspect-brk node_modules/vite/bin/vite.js",
+    "dev.ssr": "vite --mode ssr",
+    "fmt": "prettier --write .",
+    "fmt.check": "prettier --check .",
+    "lint": "eslint \"**/*.ts*\"",
+    "serve": "node server/entry.express.js",
+    "start": "npm run dev",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@builder.io/qwik": "0.0.21",
+    "@types/eslint": "8.4.2",
+    "@types/express": "4.17.13",
+    "@types/node": "17.0.34",
+    "@typescript-eslint/eslint-plugin": "5.25.0",
+    "@typescript-eslint/parser": "5.25.0",
+    "autoprefixer": "10.4.7",
+    "eslint": "8.15.0",
+    "eslint-plugin-qwik": "latest",
+    "express": "4.17.3",
+    "node-fetch": "2.6.7",
+    "postcss": "8.4.13",
+    "prettier": "2.6.2",
+    "tailwindcss": "3.0.24",
+    "typescript": "4.6.4",
+    "vite": "2.9.9"
+  },
+  "engines": {
+    "node": ">=14"
+  },
+  "homepage": "https://qwik.builder.io/",
+  "license": "",
+  "private": true
+}

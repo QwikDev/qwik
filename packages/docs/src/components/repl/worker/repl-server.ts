@@ -29,6 +29,7 @@ const init = (clientId: string) => {
             }
           }
         }
+        sendMessageToMain({ type: 'apploaded', clientId: clientId! });
       }
     });
 

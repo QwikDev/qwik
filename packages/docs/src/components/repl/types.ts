@@ -43,6 +43,7 @@ export interface ReplStore {
   serverWindow: NoSerialize<MessageEventSource> | null;
   versions: string[];
   events: ReplEvent[];
+  isLoading: boolean;
 }
 
 export interface ReplModuleInput {
@@ -62,7 +63,12 @@ export interface ReplMessageBase {
   clientId: string;
 }
 
-export type ReplMessage = ReplUpdateMessage | ReplEventMessage | ReplReadyMessage | ReplResult;
+export type ReplMessage =
+  | ReplUpdateMessage
+  | ReplEventMessage
+  | ReplReadyMessage
+  | ReplAppLoadedMessage
+  | ReplResult;
 
 export interface ReplUpdateMessage extends ReplMessageBase {
   type: 'update';
@@ -76,6 +82,10 @@ export interface ReplEventMessage extends ReplMessageBase {
 
 export interface ReplReadyMessage extends ReplMessageBase {
   type: 'replready';
+}
+
+export interface ReplAppLoadedMessage extends ReplMessageBase {
+  type: 'apploaded';
 }
 
 export interface ReplEvent {
@@ -111,7 +121,7 @@ export interface ReplResult extends ReplMessageBase {
 export type OutputPanel =
   | 'app'
   | 'html'
-  | 'transformedModules'
+  | 'symbols'
   | 'clientBundles'
   | 'serverModules'
   | 'diagnostics';

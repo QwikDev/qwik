@@ -21,4 +21,4 @@ server
 .rollup.cache
 dist
 tsconfig.tsbuildinfo
-pages/**/*.mdx
+src/pages/**/*.mdx

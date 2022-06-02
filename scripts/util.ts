@@ -18,7 +18,6 @@ import {
   mkdir as fsMkdir,
 } from 'fs';
 import { promisify } from 'util';
-import gzipSize from 'gzip-size';
 import { minify, MinifyOptions } from 'terser';
 import type { Plugin as RollupPlugin } from 'rollup';
 import { execa, Options } from 'execa';
@@ -217,11 +216,7 @@ export function rollupOnWarn(warning: any, warn: any) {
  */
 export async function fileSize(filePath: string) {
   const text = await readFile(filePath);
-  const gzipBytes = await gzipSize(text);
-
-  const size = formatFileSize(text.length);
-  const gzip = formatFileSize(gzipBytes);
-  return `${size} (${gzip} gz)`;
+  return formatFileSize(text.length);
 }
 
 function formatFileSize(bytes: number) {

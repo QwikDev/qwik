@@ -1,4 +1,4 @@
-# Qwik examples
+# Qwik Examples
 
 ## Contribute new examples
 

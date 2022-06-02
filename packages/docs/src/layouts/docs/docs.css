@@ -94,6 +94,10 @@ h6 a:hover .icon {
   list-style: disc;
 }
 
+.docs article ol {
+  list-style: decimal;
+}
+
 .docs article li {
   @apply my-1;
   @apply pl-2;

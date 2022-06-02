@@ -5,13 +5,11 @@ import { resolve } from 'path';
 /* VITE_IMPORTS */
 
 export default defineConfig(() => {
-  const pagesDir = resolve('pages');
-
   return {
     /* VITE_CONFIG */
     plugins: [
       qwikCity({
-        pagesDir,
+        pagesDir: resolve('src', 'pages'),
         layouts: {
           default: resolve('src', 'layouts', 'default', 'default.tsx'),
         },

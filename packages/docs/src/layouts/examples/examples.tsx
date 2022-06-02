@@ -28,6 +28,7 @@ const Examples = component$((props: ExamplesProp) => {
       entryStrategy: 'hook',
       files: app?.inputs || [],
       version: '',
+      activePanel: 'Examples',
     };
     return initStore;
   });
@@ -41,10 +42,17 @@ const Examples = component$((props: ExamplesProp) => {
   useScopedStyles$(styles);
 
   return (
-    <Host class="examples">
+    <Host class="examples full-width fixed-header">
       <Header />
 
-      <div class="examples-menu-container">
+      <div
+        class={{
+          'examples-menu-container': true,
+          'examples-panel-input': store.activePanel === 'Input',
+          'examples-panel-output': store.activePanel === 'Output',
+          'examples-panel-console': store.activePanel === 'Console',
+        }}
+      >
         <div class="examples-menu">
           {exampleSections.map((s) => (
             <div key={s.id} class="examples-menu-section">
@@ -54,9 +62,11 @@ const Examples = component$((props: ExamplesProp) => {
                 <button
                   key={app.id}
                   type="button"
+                  preventDefault:click
                   onClick$={() => {
                     store.appId = app.id;
-                    history.replaceState(null, '', `/examples/${app.id}`);
+                    store.activePanel = 'Input';
+                    history.replaceState({}, '', `/examples/${app.id}`);
                   }}
                   class={{
                     'example-button': true,
@@ -75,6 +85,7 @@ const Examples = component$((props: ExamplesProp) => {
           <a
             href="https://github.com/BuilderIO/qwik/tree/main/packages/docs/pages/examples"
             class="example-button-new"
+            target="_blank"
           >
             👏 Add new examples
           </a>
@@ -86,8 +97,26 @@ const Examples = component$((props: ExamplesProp) => {
             enableSsrOutput={false}
             enableClientOutput={false}
             enableHtmlOutput={false}
+            enableCopyToPlayground={true}
+            enableDownload={true}
+            enableInputDelete={false}
           />
         </main>
+      </div>
+      <div class="panel-toggle">
+        {PANELS.map((p) => (
+          <button
+            key={p}
+            onClick$={() => {
+              store.activePanel = p;
+            }}
+            type="button"
+            preventDefault:click
+            class={{ active: store.activePanel === p }}
+          >
+            {p}
+          </button>
+        ))}
       </div>
     </Host>
   );
@@ -103,12 +132,17 @@ export const getExampleApp = (id: string): ExampleApp | undefined => {
   }
 };
 
+export const PANELS: ActivePanel[] = ['Examples', 'Input', 'Output', 'Console'];
+
 interface ExamplesProp {
   appId: string;
 }
 
 interface ExamplesStore extends ReplAppInput {
   appId: string;
+  activePanel: ActivePanel;
 }
+
+type ActivePanel = 'Examples' | 'Input' | 'Output' | 'Console';
 
 export default Examples;

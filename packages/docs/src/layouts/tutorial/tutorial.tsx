@@ -57,7 +57,7 @@ const Tutorial = component$(() => {
   const next = tutorials[currentIndex + 1];
 
   return (
-    <Host class="full-width tutorial">
+    <Host class="tutorial full-width fixed-header">
       <Header />
       <main>
         <div class="tutorial-content-panel">
@@ -82,6 +82,9 @@ const Tutorial = component$(() => {
             enableHtmlOutput={current.enableHtmlOutput}
             enableClientOutput={current.enableClientOutput}
             enableSsrOutput={current.enableSsrOutput}
+            enableCopyToPlayground={true}
+            enableDownload={true}
+            enableInputDelete={false}
           />
           <div class="tutorial-repl-footer" />
         </div>

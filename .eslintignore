@@ -15,4 +15,4 @@ tsdoc-metadata.json
 *.mp4
 scripts/**/*
 *.tsbuildinfo
-packages/docs/pages/examples/**/*
+packages/docs/src/pages/examples/**/*

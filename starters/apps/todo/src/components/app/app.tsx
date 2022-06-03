@@ -18,10 +18,11 @@ export const App = component$(() => {
   const todos = useStore<Todos>({
     filter: 'all',
     items: [
-      { completed: false, title: 'Read Qwik docs' },
-      { completed: false, title: 'Build HelloWorld' },
-      { completed: false, title: 'Profit' },
+      { completed: false, title: 'Read Qwik docs', id: '0' },
+      { completed: false, title: 'Build HelloWorld', id: '1' },
+      { completed: false, title: 'Profit', id: '2' },
     ],
+    nextItemId: 3,
   });
   useContextProvider(TODOS, todos);
 

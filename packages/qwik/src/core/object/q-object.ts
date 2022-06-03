@@ -144,10 +144,21 @@ export const createSubscriptionManager = (): SubscriptionManager => {
     return objToSubs.get(obj);
   }
 
+  function trackSubToObj(subscriber: Subscriber, map: SubscriberMap) {
+    let set = subsToObjs.get(subscriber);
+    if (!set) {
+      subsToObjs.set(subscriber, (set = new Set()));
+    }
+    set.add(map);
+  }
+
   function getLocal(obj: any, initialMap?: SubscriberMap) {
     let local = tryGetLocal(obj);
     if (!local) {
-      const map = !initialMap ? new Map() : initialMap;
+      const map = !initialMap ? (new Map() as SubscriberMap) : initialMap;
+      map.forEach((_, key) => {
+        trackSubToObj(key, map);
+      });
       objToSubs.set(
         obj,
         (local = {
@@ -164,11 +175,7 @@ export const createSubscriptionManager = (): SubscriptionManager => {
                 sub.add(key);
               }
             }
-            let set = subsToObjs.get(subscriber);
-            if (!set) {
-              subsToObjs.set(subscriber, (set = new Set()));
-            }
-            set.add(map);
+            trackSubToObj(subscriber, map);
           },
           notifySubs(key?: string) {
             map.forEach((value, subscriber) => {

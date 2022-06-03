@@ -152,11 +152,12 @@ export const createSubscriptionManager = (): SubscriptionManager => {
   }
 
   function tryGetLocal(obj: any) {
+    assertEqual(getProxyTarget(obj), undefined);
     return objToSubs.get(obj);
   }
 
   function getLocal(obj: any, map?: SubscriberMap) {
-    let local = objToSubs.get(obj);
+    let local = tryGetLocal(obj);
     if (!local) {
       if (!map) {
         map = new Map();
@@ -413,7 +414,7 @@ export function mutable<T>(v: T): MutableWrapper<T> {
 
 export function isConnected(sub: Subscriber): boolean {
   if (isElement(sub)) {
-    return !!tryGetContext(sub);
+    return !!tryGetContext(sub) || sub.isConnected;
   } else {
     return isConnected(sub.el);
   }

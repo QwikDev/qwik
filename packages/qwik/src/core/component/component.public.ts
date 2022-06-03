@@ -409,14 +409,14 @@ export type Component<PROPS extends {}> = FunctionComponent<PublicProps<PROPS>>;
 /**
  * @public
  */
-export type PublicProps<PROPS extends {}> = ComponentProps<PROPS> &
+export type PublicProps<PROPS extends {}> = MutableProps<PROPS> &
   On$Props<PROPS> &
   ComponentBaseProps;
 
 /**
  * @public
  */
-export type ComponentProps<PROPS extends {}> = {
+export type MutableProps<PROPS extends {}> = {
   [K in keyof PROPS]: PROPS[K] | MutableWrapper<PROPS[K]>;
 };
 

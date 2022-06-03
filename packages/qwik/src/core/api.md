@@ -388,11 +388,11 @@ export type Props<T extends {} = {}> = Record<string, any> & T;
 // @public
 export type PropsOf<COMP extends Component<any>> = COMP extends Component<infer PROPS> ? NonNullable<PROPS> : never;
 
-// Warning: (ae-forgotten-export) The symbol "ComponentProps" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "MutableProps" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "ComponentBaseProps" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export type PublicProps<PROPS extends {}> = ComponentProps<PROPS> & On$Props<PROPS> & ComponentBaseProps;
+export type PublicProps<PROPS extends {}> = MutableProps<PROPS> & On$Props<PROPS> & ComponentBaseProps;
 
 // @public
 export interface QRL<TYPE = any> {

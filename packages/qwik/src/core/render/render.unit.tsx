@@ -180,7 +180,6 @@ describe('render', () => {
       );
       expectRendered(
         <render-props
-          q:obj=""
           q:host=""
           q:slot="start"
           q:key="s1:special"

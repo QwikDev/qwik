@@ -3,11 +3,13 @@ import {
   getQObjectState,
   isMutable,
   LocalSubscriptionManager,
+  mutable,
   QObjectState,
   QOjectAllSymbol,
   QOjectOriginalProxy,
   QOjectSubsSymbol,
   QOjectTargetSymbol,
+  readWriteProxy,
   TargetType,
 } from '../object/q-object';
 import { getProxyTarget, resumeContainer } from '../object/store';
@@ -24,6 +26,7 @@ import { getRenderingState } from '../render/notify-render';
 import { qDev } from '../util/qdev';
 import { logError } from '../util/log';
 import { unwrapSubscriber } from '../use/use-subscriber';
+import { isQrl } from '../import/qrl-class';
 
 Error.stackTraceLimit = 9999;
 
@@ -151,6 +154,8 @@ export function createProps(target: any, el: Element) {
   return new Proxy(target, new PropsProxyHandler(el, objectState, manager));
 }
 
+const PREFIX = 'mutable:';
+
 export function getPropsMutator(ctx: QContext) {
   const props = getProps(ctx);
   const target = getProxyTarget(props);
@@ -160,7 +165,11 @@ export function getPropsMutator(ctx: QContext) {
     set(prop: string, value: any) {
       const didSet = prop in target;
       let oldValue = target[prop];
-      let mutable = false;
+      let mut = false;
+      if (prop.startsWith(PREFIX)) {
+        value = mutable(value);
+        prop = prop.slice(PREFIX.length);
+      }
       if (isMutable(oldValue)) {
         oldValue = oldValue.v;
       }
@@ -168,24 +177,26 @@ export function getPropsMutator(ctx: QContext) {
       target[prop] = value;
       if (isMutable(value)) {
         value = value.v;
-        mutable = true;
+        mut = true;
       }
       if (oldValue !== value) {
-        if (qDev && didSet && !mutable) {
-          const displayName = ctx.renderQrl?.getSymbol() ?? ctx.element.localName;
-          logError(
-            `Props are immutable by default, use mutable() <${displayName} ${prop}={mutable(...)}>`,
-            '\n - Component:',
-            displayName,
-            '\n - Prop:',
-            prop,
-            '\n - Old value:',
-            oldValue,
-            '\n - New value:',
-            value,
-            '\n - Element:',
-            ctx.element
-          );
+        if (qDev) {
+          if (didSet && !mut && !isQrl(value)) {
+            const displayName = ctx.renderQrl?.getSymbol() ?? ctx.element.localName;
+            logError(
+              `Props are immutable by default. If you need to change a value of a passed in prop, please wrap the prop with "mutable()" <${displayName} ${prop}={mutable(...)}>`,
+              '\n - Component:',
+              displayName,
+              '\n - Prop:',
+              prop,
+              '\n - Old value:',
+              oldValue,
+              '\n - New value:',
+              value,
+              '\n - Element:',
+              ctx.element
+            );
+          }
         }
         manager.notifySubs(prop);
       }
@@ -206,7 +217,7 @@ class PropsProxyHandler implements ProxyHandler<TargetType> {
     }
     if (prop === QOjectTargetSymbol) return target;
     if (prop === QOjectSubsSymbol) return this.manager.subs;
-    if (prop === QOjectOriginalProxy) return this.proxyMap.proxyMap.get(target);
+    if (prop === QOjectOriginalProxy) return readWriteProxy(target, this.proxyMap);
     if (prop === QOjectAllSymbol) {
       this.manager.addSub(this.hostElement);
       return target;

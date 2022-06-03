@@ -19,6 +19,7 @@ import { useLexicalScope } from '../use/use-lexical-scope.public';
 import { getPlatform } from '../platform/platform';
 import { useDocument } from '../use/use-document.public';
 import { useResumeQrl, useVisibleQrl } from '../component/component.public';
+import { getProxyTarget } from '../object/store';
 
 export const enum WatchFlags {
   IsDirty = 1 << 0,
@@ -564,7 +565,7 @@ export function runWatch(watch: WatchDescriptor): Promise<WatchDescriptor> {
       });
       const objectState = getQObjectState(doc);
       const track: Tracker = (obj: any, prop?: string) => {
-        const manager = objectState.subsManager.getLocal(obj);
+        const manager = objectState.subsManager.getLocal(getProxyTarget(obj) ?? obj);
         manager.addSub(watch, prop);
         if (prop) {
           return obj[prop];

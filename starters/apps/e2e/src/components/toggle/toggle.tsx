@@ -35,7 +35,7 @@ export const ToggleShell = component$(() => {
   return (
     <Host>
       {!store.cond ? <ToggleA root={store} /> : <ToggleB root={store} />}
-      <Logs0 message={mutable(store.logs)} />
+      <Logs0 message={store.logs} />
       <button type="button" onClick$={() => (store.cond = !store.cond)}>
         Toggle
       </button>

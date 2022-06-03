@@ -9,7 +9,12 @@ import { renderComponent } from '../component/component-ctx';
 import { logError } from '../util/log';
 import { getContainer } from '../use/use-core';
 import { runWatch, WatchDescriptor } from '../watch/watch.public';
-import { waitForWatches } from '../object/q-object';
+import {
+  createSubscriptionManager,
+  ObjToProxyMap,
+  SubscriptionManager,
+  waitForWatches,
+} from '../object/q-object';
 
 /**
  * Mark component for rendering.
@@ -34,7 +39,7 @@ export function notifyRender(hostElement: Element): Promise<RenderContext> {
 
   const ctx = getContext(hostElement);
   assertDefined(ctx.renderQrl);
-  const state = getRenderingState(containerEl);
+  const state = getContainerState(containerEl);
   if (ctx.dirty) {
     // TODO
     return state.renderPromise!;
@@ -57,7 +62,7 @@ export function notifyRender(hostElement: Element): Promise<RenderContext> {
   }
 }
 
-export function scheduleFrame(containerEl: Element, state: RenderingState): Promise<RenderContext> {
+export function scheduleFrame(containerEl: Element, state: ContainerState): Promise<RenderContext> {
   if (state.renderPromise === undefined) {
     state.renderPromise = getPlatform(containerEl).nextTick(() => renderMarked(containerEl, state));
   }
@@ -69,7 +74,10 @@ const SCHEDULE = Symbol('Render state');
 /**
  * @alpha
  */
-export interface RenderingState {
+export interface ContainerState {
+  proxyMap: ObjToProxyMap;
+  subsManager: SubscriptionManager;
+
   watchRunning: Set<Promise<WatchDescriptor>>;
   watchNext: Set<WatchDescriptor>;
   watchStaging: Set<WatchDescriptor>;
@@ -80,10 +88,13 @@ export interface RenderingState {
   renderPromise: Promise<RenderContext> | undefined;
 }
 
-export function getRenderingState(containerEl: Element): RenderingState {
-  let set = (containerEl as any)[SCHEDULE] as RenderingState;
+export function getContainerState(containerEl: Element): ContainerState {
+  let set = (containerEl as any)[SCHEDULE] as ContainerState;
   if (!set) {
     (containerEl as any)[SCHEDULE] = set = {
+      proxyMap: new WeakMap(),
+      subsManager: createSubscriptionManager(),
+
       watchNext: new Set(),
       watchStaging: new Set(),
       watchRunning: new Set(),
@@ -99,7 +110,7 @@ export function getRenderingState(containerEl: Element): RenderingState {
 
 export async function renderMarked(
   containerEl: Element,
-  state: RenderingState
+  state: ContainerState
 ): Promise<RenderContext> {
   await waitForWatches(state);
 
@@ -113,7 +124,7 @@ export async function renderMarked(
 
   const ctx: RenderContext = {
     doc,
-    globalState: state,
+    containerState: state,
     hostElements: new Set(),
     operations: [],
     roots: [],
@@ -159,45 +170,49 @@ export async function renderMarked(
   });
 }
 
-async function postRendering(containerEl: Element, state: RenderingState, ctx: RenderContext) {
+async function postRendering(
+  containerEl: Element,
+  containerState: ContainerState,
+  ctx: RenderContext
+) {
   // Run useEffect() watch
   const promises: Promise<WatchDescriptor>[] = [];
-  state.watchNext.forEach((watch) => {
-    promises.push(runWatch(watch));
+  containerState.watchNext.forEach((watch) => {
+    promises.push(runWatch(watch, containerState));
   });
-  state.watchNext.clear();
+  containerState.watchNext.clear();
 
   // Run staging effected
-  state.watchStaging.forEach((watch) => {
+  containerState.watchStaging.forEach((watch) => {
     if (ctx.hostElements.has(watch.el)) {
-      promises.push(runWatch(watch));
+      promises.push(runWatch(watch, containerState));
     } else {
-      state.watchNext.add(watch);
+      containerState.watchNext.add(watch);
     }
   });
-  state.watchStaging.clear();
+  containerState.watchStaging.clear();
 
   // Wait for all promises
   if (promises.length > 0) {
     await Promise.all(promises);
     // Clear staging
-    state.watchStaging.forEach((watch) => {
-      state.watchNext.add(watch);
+    containerState.watchStaging.forEach((watch) => {
+      containerState.watchNext.add(watch);
     });
-    state.watchStaging.clear();
+    containerState.watchStaging.clear();
   }
 
   // Clear staging
-  state.hostsStaging.forEach((el) => {
-    state.hostsNext.add(el);
+  containerState.hostsStaging.forEach((el) => {
+    containerState.hostsNext.add(el);
   });
-  state.hostsStaging.clear();
+  containerState.hostsStaging.clear();
 
-  state.hostsRendering = undefined;
-  state.renderPromise = undefined;
+  containerState.hostsRendering = undefined;
+  containerState.renderPromise = undefined;
 
-  if (state.hostsNext.size + state.watchNext.size > 0) {
-    scheduleFrame(containerEl, state);
+  if (containerState.hostsNext.size + containerState.watchNext.size > 0) {
+    scheduleFrame(containerEl, containerState);
   }
 }
 

@@ -1,15 +1,5 @@
-import { assertDefined, assertEqual } from '../assert/assert';
-import {
-  getQObjectState,
-  QOjectAllSymbol,
-  QOjectOriginalProxy,
-  QOjectTargetSymbol,
-  SetSubscriber,
-  wrap,
-} from '../object/q-object';
-import { RenderEvent } from '../util/markers';
+import { QOjectOriginalProxy, QOjectTargetSymbol, SetSubscriber } from '../object/q-object';
 import type { WatchDescriptor } from '../watch/watch.public';
-import { getInvokeContext } from './use-core';
 
 /**
  * @alpha
@@ -53,24 +43,4 @@ export function unwrapSubscriber<T extends {}>(obj: T) {
     }
   }
   return obj;
-}
-
-/**
- * @alpha
- */
-export function useTrack<T extends {}, B extends keyof T>(obj: T, prop?: B): T[B] {
-  const ctx = getInvokeContext();
-  assertEqual(ctx.event, RenderEvent);
-  const hostElement = ctx.hostElement!;
-  assertDefined(hostElement);
-  const doc = ctx.doc!;
-  assertDefined(doc);
-
-  obj = wrap(obj, getQObjectState(doc));
-  (obj as any)[SetSubscriber] = hostElement;
-  if (prop) {
-    return obj[prop];
-  } else {
-    return (obj as any)[QOjectAllSymbol];
-  }
 }

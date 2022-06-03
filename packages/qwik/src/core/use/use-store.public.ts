@@ -1,6 +1,5 @@
-import { useDocument } from '../use/use-document.public';
-import { getQObjectState, qObject } from '../object/q-object';
-import { getInvokeContext } from './use-core';
+import { qObject } from '../object/q-object';
+import { getInvokeContext, useContainerState } from './use-core';
 import { useHostElement } from './use-host-element.public';
 import { getContext } from '../props/props';
 import { wrapSubscriber } from './use-subscriber';
@@ -76,23 +75,12 @@ export function useStore<STATE extends object>(initialState: STATE | (() => STAT
   if (store != null) {
     return wrapSubscriber(store, hostElement);
   }
+
+  const containerState = useContainerState();
   const value = typeof initialState === 'function' ? (initialState as Function)() : initialState;
-  const newStore = qObject(value, getQObjectState(useDocument()));
+  const newStore = qObject(value, containerState);
   setStore(newStore);
   return wrapSubscriber(newStore, hostElement);
-}
-
-/**
- * @alpha
- */
-export function useMemo<STATE extends object>(factory: () => STATE): STATE {
-  const [memo, setMemo] = useSequentialScope();
-  if (memo) {
-    return memo;
-  }
-  const value = factory();
-  setMemo(value);
-  return value;
 }
 
 /**

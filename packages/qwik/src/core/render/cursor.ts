@@ -15,9 +15,8 @@ import { Host } from '../render/jsx/host.public';
 import { $, QRL } from '../import/qrl.public';
 import { firstRenderComponent, renderComponent } from '../component/component-ctx';
 import { promiseAll, then } from '../util/promises';
-import type { RenderingState } from './notify-render';
+import type { ContainerState } from './notify-render';
 import { assertDefined, assertEqual } from '../assert/assert';
-import { NodeType } from '../util/types';
 import { intToStr } from '../object/store';
 import { EMPTY_ARRAY } from '../util/flyweight';
 import { SkipRerender } from './jsx/host.public';
@@ -28,6 +27,7 @@ import { fromCamelToKebabCase } from '../util/case';
 import type { OnRenderFn } from '../component/component.public';
 import { CONTAINER, StyleAppend } from '../use/use-core';
 import type { Ref } from '../use/use-store.public';
+import type { SubscriptionManager } from '../object/q-object';
 
 export const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -67,7 +67,7 @@ export interface RenderContext {
   hostElements: Set<Element>;
   operations: RenderOperation[];
   components: ComponentCtx[];
-  globalState: RenderingState;
+  containerState: ContainerState;
   containerEl: Element;
   perf: RenderPerf;
 }
@@ -101,7 +101,7 @@ export function smartUpdateChildren(
   } else if (ch.length > 0) {
     return addVnodes(ctx, elm, undefined, ch, 0, ch.length - 1, isSvg);
   } else if (oldCh.length > 0) {
-    return removeVnodes(ctx, elm, oldCh, 0, oldCh.length - 1);
+    return removeVnodes(ctx, oldCh, 0, oldCh.length - 1);
   }
 }
 
@@ -171,7 +171,7 @@ export function updateChildren(
         );
       } else {
         elmToMove = oldCh[idxInOld];
-        if (elmToMove.nodeName !== newStartVnode.type) {
+        if (!isTagName(elmToMove, newStartVnode.type)) {
           const newElm = createElm(ctx, newStartVnode, isSvg);
           results.push(
             then(newElm, (newElm) => {
@@ -196,7 +196,7 @@ export function updateChildren(
   let wait = promiseAll(results) as any;
   if (oldStartIdx <= oldEndIdx) {
     wait = then(wait, () => {
-      removeVnodes(ctx, parentElm, oldCh, oldStartIdx, oldEndIdx);
+      removeVnodes(ctx, oldCh, oldStartIdx, oldEndIdx);
     });
   }
   return wait;
@@ -224,7 +224,7 @@ export function getChildren(elm: Node, mode: ChildrenMode): Node[] {
 }
 export function isNode(elm: Node): boolean {
   const type = elm.nodeType;
-  return type === 1 || type === 3 || type === 8;
+  return type === 1 || type === 3;
 }
 
 function isFallback(node: Node): boolean {
@@ -313,7 +313,7 @@ export function patchVnode(
         if (slotEl && !splittedChidren[key]) {
           const oldCh = getChildren(slotEl, 'slot');
           if (oldCh.length > 0) {
-            removeVnodes(rctx, slotEl, oldCh, 0, oldCh.length - 1);
+            removeVnodes(rctx, oldCh, 0, oldCh.length - 1);
           }
         }
       });
@@ -371,17 +371,12 @@ function addVnodes(
   });
 }
 
-function removeVnodes(
-  ctx: RenderContext,
-  parentElm: Node,
-  nodes: Node[],
-  startIdx: number,
-  endIdx: number
-): void {
+function removeVnodes(ctx: RenderContext, nodes: Node[], startIdx: number, endIdx: number): void {
   for (; startIdx <= endIdx; ++startIdx) {
     const ch = nodes[startIdx];
-    assertDefined(ch);
-    removeNode(ctx, ch);
+    if (ch) {
+      removeNode(ctx, ch);
+    }
   }
 }
 
@@ -487,9 +482,7 @@ function createElm(rctx: RenderContext, vnode: JSXNode, isSvg: boolean): ValueOr
   if (tag === '#text') {
     return (vnode.elm = createTextNode(rctx, vnode.text!));
   }
-  if (tag === '#comment') {
-    return (vnode.elm = createCommentNode(rctx, vnode.text!));
-  }
+
   if (!isSvg) {
     isSvg = tag === 'svg';
   }
@@ -638,7 +631,7 @@ export function updateProperties(
   }
   const elm = ctx.element;
   const isCmp = OnRenderProp in expectProps;
-  const qwikProps = isCmp ? getPropsMutator(ctx) : undefined;
+  const qwikProps = isCmp ? getPropsMutator(ctx, rctx.containerState) : undefined;
 
   for (let key of Object.keys(expectProps)) {
     if (key === 'children' || key === OnRenderProp) {
@@ -832,8 +825,11 @@ function removeNode(ctx: RenderContext, el: Node) {
     const parent = el.parentNode;
     if (parent) {
       if (el.nodeType === 1) {
-        cleanupElement(el as Element);
-        (el as Element).querySelectorAll(QObjSelector).forEach(cleanupElement);
+        const subsManager = ctx.containerState.subsManager;
+        cleanupElement(el as Element, subsManager);
+        (el as Element)
+          .querySelectorAll(QObjSelector)
+          .forEach((el) => cleanupElement(el, subsManager));
       }
       parent.removeChild(el);
     } else if (qDev) {
@@ -848,19 +844,15 @@ function removeNode(ctx: RenderContext, el: Node) {
   });
 }
 
-function cleanupElement(el: Element) {
+function cleanupElement(el: Element, subsManager: SubscriptionManager) {
   const ctx = tryGetContext(el);
   if (ctx) {
-    cleanupContext(ctx);
+    cleanupContext(ctx, subsManager);
   }
 }
 
 function createTextNode(ctx: RenderContext, text: string): Text {
   return ctx.doc.createTextNode(text);
-}
-
-function createCommentNode(ctx: RenderContext, text: string): Comment {
-  return ctx.doc.createComment(text);
 }
 
 export function executeContextWithSlots(ctx: RenderContext) {
@@ -905,7 +897,7 @@ function createKeyToOldIdx(children: Node[], beginIdx: number, endIdx: number): 
   const map: KeyToIndexMap = {};
   for (let i = beginIdx; i <= endIdx; ++i) {
     const child = children[i];
-    if (child.nodeType == NodeType.ELEMENT_NODE) {
+    if (child.nodeType === 1) {
       const key = getKey(child as Element);
       if (key !== undefined) {
         map[key as string] = i;
@@ -932,15 +924,23 @@ function setKey(el: Element, key: string | null) {
   (el as any)[KEY_SYMBOL] = key;
 }
 
-function sameVnode(vnode1: Node, vnode2: JSXNode): boolean {
-  const isSameSel = vnode1.nodeName.toLowerCase() === vnode2.type;
-  if (!isSameSel) {
-    return false;
+function sameVnode(elm: Node, vnode2: JSXNode): boolean {
+  const isElement = elm.nodeType === 1;
+  if (isElement) {
+    const isSameSel = (elm as Element).localName === vnode2.type;
+    if (!isSameSel) {
+      return false;
+    }
+    return getKey(elm as Element) === vnode2.key;
   }
-  if (vnode1.nodeType !== NodeType.ELEMENT_NODE) {
-    return true;
+  return elm.nodeName === vnode2.type;
+}
+
+function isTagName(elm: Node, tagName: string): boolean {
+  if (elm.nodeType === 1) {
+    return (elm as Element).localName === tagName;
   }
-  return getKey(vnode1 as Element) === vnode2.key;
+  return elm.nodeName === tagName;
 }
 
 function checkInnerHTML(props: Record<string, any> | undefined | null) {

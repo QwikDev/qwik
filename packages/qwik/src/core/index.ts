@@ -71,7 +71,7 @@ export { handleWatch } from './watch/watch.public';
 export { h } from './render/jsx/factory';
 export { Host, SkipRerender } from './render/jsx/host.public';
 export { Slot } from './render/jsx/slot.public';
-export { Fragment, jsx, jsxDEV, jsxs, Comment } from './render/jsx/jsx-runtime';
+export { Fragment, jsx, jsxDEV, jsxs } from './render/jsx/jsx-runtime';
 export type { HTMLAttributes, AriaAttributes } from './render/jsx/types/jsx-generated';
 export type { DOMAttributes } from './render/jsx/types/jsx-qwik-attributes';
 export type {
@@ -85,7 +85,7 @@ export type {
 export type { QwikDOMAttributes, QwikJSX } from './render/jsx/types/jsx-qwik';
 export type { QwikIntrinsicElements } from './render/jsx/types/jsx-qwik-elements';
 export { render } from './render/render.public';
-export type { RenderingState } from './render/notify-render';
+export type { ContainerState as RenderingState } from './render/notify-render';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // use API

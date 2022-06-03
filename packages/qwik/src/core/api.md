@@ -62,12 +62,6 @@ export interface AriaAttributes {
     'aria-valuetext'?: string | undefined;
 }
 
-// @public (undocumented)
-const Comment_2: FunctionComponent<{
-    text?: string;
-}>;
-export { Comment_2 as Comment }
-
 // @public
 export function component$<PROPS extends {}>(onMount: OnRenderFn<PROPS>, options?: ComponentOptions): Component<PROPS>;
 
@@ -83,7 +77,7 @@ export type ComponentChildren = ComponentChild[] | ComponentChild;
 // @alpha (undocumented)
 export interface ComponentCtx {
     // (undocumented)
-    hostElement: HTMLElement;
+    hostElement: Element;
     // (undocumented)
     slots: JSXNode[];
     // (undocumented)
@@ -473,9 +467,9 @@ export interface RenderContext {
     // (undocumented)
     containerEl: Element;
     // (undocumented)
-    doc: Document;
+    containerState: RenderingState;
     // (undocumented)
-    globalState: RenderingState;
+    doc: Document;
     // (undocumented)
     hostElements: Set<Element>;
     // (undocumented)
@@ -496,8 +490,16 @@ export interface RenderingState {
     hostsRendering: Set<Element> | undefined;
     // (undocumented)
     hostsStaging: Set<Element>;
+    // Warning: (ae-forgotten-export) The symbol "ObjToProxyMap" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    proxyMap: ObjToProxyMap;
     // (undocumented)
     renderPromise: Promise<RenderContext> | undefined;
+    // Warning: (ae-forgotten-export) The symbol "SubscriptionManager" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    subsManager: SubscriptionManager;
     // (undocumented)
     watchNext: Set<WatchDescriptor>;
     // Warning: (ae-forgotten-export) The symbol "WatchDescriptor" needs to be exported by the entry point index.d.ts

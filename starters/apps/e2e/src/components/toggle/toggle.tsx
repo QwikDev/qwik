@@ -10,16 +10,21 @@ import {
   useContextProvider,
   useContext,
   mutable,
+  useWatch$,
 } from '@builder.io/qwik';
 
-export const CTX = createContext<{ message: string }>('toggle');
+export const CTX = createContext<{ message: string; count: number }>('toggle');
 export const Toggle = component$(() => {
   const store = useStore({
     message: 'hello from root',
+    count: 0,
   });
   useContextProvider(CTX, store);
   return (
     <Host>
+      <button id="increment" type="button" onClick$={() => store.count++}>
+        Root increment
+      </button>
       <ToggleShell />
     </Host>
   );
@@ -35,8 +40,8 @@ export const ToggleShell = component$(() => {
   return (
     <Host>
       {!store.cond ? <ToggleA root={store} /> : <ToggleB root={store} />}
-      <Logs0 message={store.logs} />
-      <button type="button" onClick$={() => (store.cond = !store.cond)}>
+      <Logs0 message={mutable(store.logs)} />
+      <button type="button" id="toggle" onClick$={() => (store.cond = !store.cond)}>
         Toggle
       </button>
     </Host>
@@ -61,6 +66,7 @@ export const ToggleA = component$((props: { root: { logs: string } }) => {
 
   const state = useStore({
     mount: '',
+    copyCount: 0,
   });
 
   useCleanup$(() => {
@@ -74,6 +80,11 @@ export const ToggleA = component$((props: { root: { logs: string } }) => {
     state.mount = 'mounted in server';
   });
 
+  useWatch$((track) => {
+    track(rootState, 'count');
+    state.copyCount = rootState.count;
+  });
+
   useClientMount$(() => {
     if (state.mount !== '') {
       throw new Error('already mounted');
@@ -85,7 +96,9 @@ export const ToggleA = component$((props: { root: { logs: string } }) => {
     <Host>
       <h1>ToggleA</h1>
       <div id="mount">{state.mount}</div>
-      <div id="root">{rootState.message}</div>
+      <div id="root">
+        {rootState.message} ({rootState.count}/{state.copyCount})
+      </div>
     </Host>
   );
 });
@@ -96,10 +109,16 @@ export const ToggleB = component$((props: { root: { logs: string } }) => {
 
   const state = useStore({
     mount: '',
+    copyCount: 0,
   });
 
   useCleanup$(() => {
     props.root.logs += 'ToggleB';
+  });
+
+  useWatch$((track) => {
+    track(rootState, 'count');
+    state.copyCount = rootState.count;
   });
 
   useServerMount$(() => {
@@ -120,7 +139,9 @@ export const ToggleB = component$((props: { root: { logs: string } }) => {
     <Host>
       <h1>ToggleB</h1>
       <div id="mount">{state.mount}</div>
-      <div id="root">{rootState.message}</div>
+      <div id="root">
+        {rootState.message} ({rootState.count}/{state.copyCount})
+      </div>
     </Host>
   );
 });

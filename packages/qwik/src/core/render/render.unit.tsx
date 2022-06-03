@@ -11,7 +11,6 @@ import { useRef } from '../use/use-store.public';
 import { ComponentScopedStyles, ComponentStylesPrefixContent } from '../util/markers';
 import { useServerMount$ } from '../watch/watch.public';
 import { Async, JSXPromise, PromiseValue } from './jsx/async.public';
-import { Comment } from './jsx/jsx-runtime';
 import { Slot } from './jsx/slot.public';
 import { notifyRender } from './notify-render';
 import { render } from './render.public';
@@ -507,20 +506,6 @@ describe('render', () => {
         </div>
       );
     });
-  });
-
-  it('should render comment', async () => {
-    await render(
-      fixture.host,
-      <div>
-        <Comment text="Some comment"></Comment>
-      </div>
-    );
-    expectRendered(
-      <div>
-        <Comment text="Some comment"></Comment>
-      </div>
-    );
   });
 
   it('should render a component with hooks', async () => {

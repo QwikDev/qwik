@@ -1,13 +1,7 @@
-import {
-  getQObjectState,
-  noSerialize,
-  NoSerialize,
-  notifyWatch,
-  removeSub,
-} from '../object/q-object';
+import { noSerialize, NoSerialize, notifyWatch } from '../object/q-object';
 import { implicit$FirstArg, QRL } from '../import/qrl.public';
 import { getContext } from '../props/props';
-import { newInvokeContext, useWaitOn } from '../use/use-core';
+import { newInvokeContext, useContainerState, useWaitOn } from '../use/use-core';
 import { useHostElement } from '../use/use-host-element.public';
 import { logDebug, logError } from '../util/log';
 import { then } from '../util/promises';
@@ -20,6 +14,7 @@ import { getPlatform } from '../platform/platform';
 import { useDocument } from '../use/use-document.public';
 import { useResumeQrl, useVisibleQrl } from '../component/component.public';
 import { getProxyTarget } from '../object/store';
+import type { ContainerState } from '../render/notify-render';
 
 export const enum WatchFlags {
   IsDirty = 1 << 0,
@@ -141,6 +136,7 @@ export function useWatchQrl(qrl: QRL<WatchFn>, opts?: UseEffectOptions): void {
   const [watch, setWatch] = useSequentialScope();
   if (!watch) {
     const el = useHostElement();
+    const containerState = useContainerState();
     const watch: WatchDescriptor = {
       qrl,
       el,
@@ -148,7 +144,7 @@ export function useWatchQrl(qrl: QRL<WatchFn>, opts?: UseEffectOptions): void {
     };
     setWatch(true);
     getContext(el).watches.push(watch);
-    useWaitOn(Promise.resolve().then(() => runWatch(watch)));
+    useWaitOn(Promise.resolve().then(() => runWatch(watch, containerState)));
     const isServer = getPlatform(useDocument()).isServer;
     if (isServer) {
       useRunWatch(watch, opts?.run);
@@ -543,7 +539,10 @@ export function useMountQrl(mountQrl: QRL<ServerFn>): void {
 // </docs>
 export const useMount$ = implicit$FirstArg(useMountQrl);
 
-export function runWatch(watch: WatchDescriptor): Promise<WatchDescriptor> {
+export function runWatch(
+  watch: WatchDescriptor,
+  containerState: ContainerState
+): Promise<WatchDescriptor> {
   if (!(watch.f & WatchFlags.IsDirty)) {
     logDebug('Watch is not dirty, skipping run', watch);
     return Promise.resolve(watch);
@@ -555,17 +554,12 @@ export function runWatch(watch: WatchDescriptor): Promise<WatchDescriptor> {
       const el = watch.el;
       const doc = getDocument(el);
       const invokationContext = newInvokeContext(doc, el, el, 'WatchEvent');
+      const { subsManager } = containerState;
       const watchFn = watch.qrl.invokeFn(el, invokationContext, () => {
-        const captureRef = (watch.qrl as QRLInternal).captureRef;
-        if (Array.isArray(captureRef)) {
-          captureRef.forEach((obj) => {
-            removeSub(obj, watch);
-          });
-        }
+        subsManager.clearSub(watch);
       });
-      const objectState = getQObjectState(doc);
       const track: Tracker = (obj: any, prop?: string) => {
-        const manager = objectState.subsManager.getLocal(getProxyTarget(obj) ?? obj);
+        const manager = subsManager.getLocal(getProxyTarget(obj) ?? obj);
         manager.addSub(watch, prop);
         if (prop) {
           return obj[prop];

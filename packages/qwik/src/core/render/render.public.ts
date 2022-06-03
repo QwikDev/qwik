@@ -3,7 +3,7 @@ import { executeContext, printRenderStats, RenderContext } from './cursor';
 import { isJSXNode, jsx, processNode } from './jsx/jsx-runtime';
 import type { JSXNode, FunctionComponent } from './jsx/types/jsx-node';
 import { visitJsxNode } from './render';
-import { getRenderingState } from './notify-render';
+import { getContainerState } from './notify-render';
 import { getDocument } from '../util/dom';
 import { qDev, qTest } from '../util/qdev';
 import { version } from '../version';
@@ -40,9 +40,10 @@ export async function render(
   }
   injectQContainer(containerEl);
 
+  const containerState = getContainerState(containerEl);
   const ctx: RenderContext = {
     doc,
-    globalState: getRenderingState(containerEl),
+    containerState,
     hostElements: new Set(),
     operations: [],
     roots: [parent as Element],
@@ -72,7 +73,7 @@ export async function render(
     const elCtx = getContext(host);
     elCtx.watches.forEach((watch) => {
       if (watch.f & WatchFlags.IsDirty) {
-        promises.push(runWatch(watch));
+        promises.push(runWatch(watch, containerState));
       }
     });
   });

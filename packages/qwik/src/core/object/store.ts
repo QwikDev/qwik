@@ -9,10 +9,8 @@ import { logDebug, logError, logWarn } from '../util/log';
 import { ELEMENT_ID, ELEMENT_ID_PREFIX, QContainerAttr } from '../util/markers';
 import { qDev } from '../util/qdev';
 import {
-  getQObjectState,
   isConnected,
   ObjToProxyMap,
-  QObjectState,
   QOjectSubsSymbol,
   QOjectTargetSymbol,
   readWriteProxy,
@@ -23,6 +21,7 @@ import {
 import { destroyWatch, WatchDescriptor, WatchFlags } from '../watch/watch.public';
 import type { QRL } from '../import/qrl.public';
 import { emitEvent } from '../util/event';
+import { ContainerState, getContainerState } from '../render/notify-render';
 
 export interface Store {
   doc: Document;
@@ -51,7 +50,7 @@ export function resumeContainer(containerEl: Element) {
   }
   script.remove();
 
-  const proxyMap = getQObjectState(doc);
+  const containerState = getContainerState(containerEl);
   const meta = JSON.parse(unescapeText(script.textContent || '{}')) as SnapshotState;
 
   // Collect all elements
@@ -62,11 +61,11 @@ export function resumeContainer(containerEl: Element) {
   });
 
   const getObject: GetObject = (id) => {
-    return getObjectImpl(id, elements, meta.objs, proxyMap);
+    return getObjectImpl(id, elements, meta.objs, containerState);
   };
 
   // Revive proxies with subscriptions into the proxymap
-  reviveValues(meta.objs, meta.subs, getObject, proxyMap, parentJSON);
+  reviveValues(meta.objs, meta.subs, getObject, containerState, parentJSON);
 
   // Rebuild target objects
   for (const obj of meta.objs) {
@@ -108,7 +107,7 @@ export function resumeContainer(containerEl: Element) {
       const [props, renderQrl] = host.split(' ');
       assertDefined(props);
       assertDefined(renderQrl);
-      ctx.props = createProps(getObject(props), ctx.element);
+      ctx.props = createProps(getObject(props), ctx.element, containerState);
       ctx.renderQrl = getObject(renderQrl);
     }
   });
@@ -157,7 +156,7 @@ function hasContext(el: Element) {
 
 export function snapshotState(containerEl: Element): SnapshotResult {
   const doc = getDocument(containerEl);
-  const { subsManager, proxyMap } = getQObjectState(doc);
+  const { subsManager, proxyMap } = getContainerState(containerEl);
   const platform = getPlatform(doc);
   const elementToIndex = new Map<Element, string | null>();
   const collector = createCollector(doc, proxyMap);
@@ -450,7 +449,7 @@ function reviveValues(
   objs: any[],
   subs: any[],
   getObject: GetObject,
-  proxyMap: QObjectState,
+  containerState: ContainerState,
   containerEl: Element
 ) {
   for (let i = 0; i < objs.length; i++) {
@@ -480,7 +479,7 @@ function reviveValues(
           const set = entry[1] === null ? null : (new Set(entry[1] as any) as Set<string>);
           converted.set(el, set);
         });
-        _restoreQObject(value, proxyMap, converted);
+        _restoreQObject(value, containerState, converted);
       }
     }
   }
@@ -522,7 +521,7 @@ function getObjectImpl(
   id: string,
   elements: Map<string, Element>,
   objs: any[],
-  objectState?: QObjectState
+  containerState?: ContainerState
 ) {
   if (id.startsWith(ELEMENT_ID_PREFIX)) {
     assertEqual(elements.has(id), true);
@@ -532,8 +531,8 @@ function getObjectImpl(
   assertEqual(objs.length > index, true);
   const obj = objs[index];
   const needsProxy = id.endsWith('!');
-  if (needsProxy && objectState) {
-    return objectState.proxyMap.get(obj) ?? readWriteProxy(obj, objectState);
+  if (needsProxy && containerState) {
+    return containerState.proxyMap.get(obj) ?? readWriteProxy(obj, containerState);
   }
   return obj;
 }

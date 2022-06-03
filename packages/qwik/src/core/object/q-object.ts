@@ -2,9 +2,9 @@ import { assertEqual } from '../assert/assert';
 import { QError, qError } from '../error/error';
 import { isQrl } from '../import/qrl-class';
 import {
-  getRenderingState,
+  getContainerState,
   notifyRender,
-  RenderingState,
+  ContainerState,
   scheduleFrame,
 } from '../render/notify-render';
 import { getContainer, tryGetInvokeContext } from '../use/use-core';
@@ -21,25 +21,7 @@ import { getProxyTarget } from './store';
 export type ObjToProxyMap = WeakMap<any, any>;
 export type QObject<T extends {}> = T & { __brand__: 'QObject' };
 
-const ProxyMapSymbol = Symbol('ProxyMapSymbol');
-
-export interface QObjectState {
-  proxyMap: ObjToProxyMap;
-  subsManager: SubscriptionManager;
-}
-
-export function getQObjectState(doc: Document): QObjectState {
-  let map = (doc as any)[ProxyMapSymbol];
-  if (!map) {
-    map = (doc as any)[ProxyMapSymbol] = {
-      proxyMap: new WeakMap(),
-      subsManager: createSubscriptionManager(),
-    };
-  }
-  return map;
-}
-
-export function qObject<T extends Object>(obj: T, proxyMap: QObjectState): T {
+export function qObject<T extends Object>(obj: T, proxyMap: ContainerState): T {
   assertEqual(unwrapProxy(obj), obj, 'Unexpected proxy at this location');
   if (obj == null || typeof obj !== 'object') {
     // TODO(misko): centralize
@@ -55,8 +37,12 @@ export function qObject<T extends Object>(obj: T, proxyMap: QObjectState): T {
   return readWriteProxy(obj as any as QObject<T>, proxyMap);
 }
 
-export function _restoreQObject<T>(obj: T, map: QObjectState, subs: Map<Element, Set<string>>): T {
-  return readWriteProxy(obj as any as QObject<T>, map, subs);
+export function _restoreQObject<T>(
+  obj: T,
+  containerState: ContainerState,
+  subs: Map<Element, Set<string>>
+): T {
+  return readWriteProxy(obj as any as QObject<T>, containerState, subs);
 }
 
 /**
@@ -64,16 +50,16 @@ export function _restoreQObject<T>(obj: T, map: QObjectState, subs: Map<Element,
  */
 export function readWriteProxy<T extends object>(
   target: T,
-  objectState: QObjectState,
+  containerState: ContainerState,
   subs?: Map<Element, Set<string>>
 ): T {
   if (!target || typeof target !== 'object') return target;
-  const proxyMap = objectState.proxyMap;
+  const proxyMap = containerState.proxyMap;
   let proxy = proxyMap.get(target);
   if (proxy) return proxy;
 
-  const manager = objectState.subsManager.getLocal(target, subs);
-  proxy = new Proxy(target, new ReadWriteProxyHandler(objectState, manager)) as any as T;
+  const manager = containerState.subsManager.getLocal(target, subs);
+  proxy = new Proxy(target, new ReadWriteProxyHandler(containerState, manager)) as any as T;
   proxyMap.set(target, proxy);
   return proxy;
 }
@@ -91,7 +77,7 @@ export function unwrapProxy<T>(proxy: T): T {
   return getProxyTarget(proxy) ?? proxy;
 }
 
-export function wrap<T>(value: T, proxyMap: QObjectState): T {
+export function wrap<T>(value: T, containerState: ContainerState): T {
   if (value && typeof value === 'object') {
     if (isQrl(value)) {
       return value;
@@ -113,8 +99,8 @@ export function wrap<T>(value: T, proxyMap: QObjectState): T {
     if (qDev) {
       verifySerializable<T>(value);
     }
-    const proxy = proxyMap.proxyMap.get(value);
-    return proxy ? proxy : readWriteProxy(value as any, proxyMap);
+    const proxy = containerState.proxyMap.get(value);
+    return proxy ? proxy : readWriteProxy(value as any, containerState);
   } else {
     return value;
   }
@@ -144,11 +130,13 @@ export const createSubscriptionManager = (): SubscriptionManager => {
 
   function clearSub(sub: Subscriber) {
     const subs = subsToObjs.get(sub);
-    subs?.forEach((s) => {
-      s.delete(sub);
-    });
-    subsToObjs.delete(sub);
-    subs?.clear();
+    if (subs) {
+      subs.forEach((s) => {
+        s.delete(sub);
+      });
+      subsToObjs.delete(sub);
+      subs.clear();
+    }
   }
 
   function tryGetLocal(obj: any) {
@@ -156,23 +144,21 @@ export const createSubscriptionManager = (): SubscriptionManager => {
     return objToSubs.get(obj);
   }
 
-  function getLocal(obj: any, map?: SubscriberMap) {
+  function getLocal(obj: any, initialMap?: SubscriberMap) {
     let local = tryGetLocal(obj);
     if (!local) {
-      if (!map) {
-        map = new Map();
-      }
+      const map = !initialMap ? new Map() : initialMap;
       objToSubs.set(
         obj,
         (local = {
           subs: map,
           addSub(subscriber: Subscriber, key?: string) {
             if (key == null) {
-              map!.set(subscriber, null);
+              map.set(subscriber, null);
             } else {
-              let sub = map!.get(subscriber);
+              let sub = map.get(subscriber);
               if (sub === undefined) {
-                map!.set(subscriber, (sub = new Set()));
+                map.set(subscriber, (sub = new Set()));
               }
               if (sub) {
                 sub.add(key);
@@ -182,10 +168,10 @@ export const createSubscriptionManager = (): SubscriptionManager => {
             if (!set) {
               subsToObjs.set(subscriber, (set = new Set()));
             }
-            set.add(obj);
+            set.add(map);
           },
           notifySubs(key?: string) {
-            map!.forEach((value, subscriber) => {
+            map.forEach((value, subscriber) => {
               if (value === null || !key) {
                 notifyChange(subscriber);
               } else if (value.has(key)) {
@@ -208,7 +194,7 @@ export const createSubscriptionManager = (): SubscriptionManager => {
 
 class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
   private subscriber?: Subscriber;
-  constructor(private proxyMap: QObjectState, private manager: LocalSubscriptionManager) {}
+  constructor(private containerState: ContainerState, private manager: LocalSubscriptionManager) {}
 
   get(target: TargetType, prop: string | symbol): any {
     let subscriber = this.subscriber;
@@ -218,7 +204,7 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
     }
     if (prop === QOjectTargetSymbol) return target;
     if (prop === QOjectSubsSymbol) return this.manager.subs;
-    if (prop === QOjectOriginalProxy) return this.proxyMap.proxyMap.get(target);
+    if (prop === QOjectOriginalProxy) return this.containerState.proxyMap.get(target);
     const invokeCtx = tryGetInvokeContext();
     if (invokeCtx) {
       if (invokeCtx.subscriber === null) {
@@ -246,7 +232,7 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
       const isArray = Array.isArray(target);
       this.manager.addSub(subscriber, isArray ? undefined : prop);
     }
-    return wrap(value, this.proxyMap);
+    return wrap(value, this.containerState);
   }
 
   set(target: TargetType, prop: string | symbol, newValue: any): boolean {
@@ -331,7 +317,7 @@ export function notifyChange(subscriber: Subscriber) {
 
 export function notifyWatch(watch: WatchDescriptor) {
   const containerEl = getContainer(watch.el)!;
-  const state = getRenderingState(containerEl);
+  const state = getContainerState(containerEl);
   watch.f |= WatchFlags.IsDirty;
 
   const activeRendering = state.hostsRendering !== undefined;
@@ -343,7 +329,7 @@ export function notifyWatch(watch: WatchDescriptor) {
   }
 }
 
-export async function waitForWatches(state: RenderingState) {
+export async function waitForWatches(state: ContainerState) {
   while (state.watchRunning.size > 0) {
     await Promise.all(state.watchRunning);
   }

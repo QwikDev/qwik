@@ -41,13 +41,14 @@ import type { MutableWrapper } from '../object/q-object';
  */
 // </docs>
 export function useCleanupQrl(unmountFn: QRL<() => void>): void {
-  const [watch, setWatch] = useSequentialScope();
+  const [watch, setWatch, i] = useSequentialScope();
   if (!watch) {
     const el = useHostElement();
     const watch: WatchDescriptor = {
       qrl: unmountFn,
       el,
       f: WatchFlags.IsCleanup,
+      i
     };
     setWatch(true);
     getContext(el).watches.push(watch);

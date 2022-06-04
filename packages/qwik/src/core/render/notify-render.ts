@@ -8,13 +8,16 @@ import { getDocument } from '../util/dom';
 import { renderComponent } from '../component/component-ctx';
 import { logError } from '../util/log';
 import { getContainer } from '../use/use-core';
-import { runWatch, WatchDescriptor } from '../watch/watch.public';
+import { isWatchDescriptor, runWatch, WatchDescriptor, WatchFlags } from '../watch/watch.public';
 import {
   createSubscriptionManager,
   ObjToProxyMap,
   SubscriptionManager,
   waitForWatches,
 } from '../object/q-object';
+import type { Subscriber } from '../use/use-subscriber';
+import { then } from '../util/promises';
+import type { ValueOrPromise } from '../util/types';
 
 /**
  * Mark component for rendering.
@@ -170,37 +173,13 @@ export async function renderMarked(
   });
 }
 
+
 async function postRendering(
   containerEl: Element,
   containerState: ContainerState,
   ctx: RenderContext
 ) {
-  // Run useEffect() watch
-  const promises: Promise<WatchDescriptor>[] = [];
-  containerState.watchNext.forEach((watch) => {
-    promises.push(runWatch(watch, containerState));
-  });
-  containerState.watchNext.clear();
-
-  // Run staging effected
-  containerState.watchStaging.forEach((watch) => {
-    if (ctx.hostElements.has(watch.el)) {
-      promises.push(runWatch(watch, containerState));
-    } else {
-      containerState.watchNext.add(watch);
-    }
-  });
-  containerState.watchStaging.clear();
-
-  // Wait for all promises
-  if (promises.length > 0) {
-    await Promise.all(promises);
-    // Clear staging
-    containerState.watchStaging.forEach((watch) => {
-      containerState.watchNext.add(watch);
-    });
-    containerState.watchStaging.clear();
-  }
+  await executeWatches(containerState, ctx, WatchFlags.IsEffect);
 
   // Clear staging
   containerState.hostsStaging.forEach((el) => {
@@ -216,6 +195,77 @@ async function postRendering(
   }
 }
 
+
+function prefetchSubscriber(sub: Subscriber) {
+  if (isWatchDescriptor(sub)) {
+    sub.
+  }
+}
+
+async function executeWatches(
+  containerState: ContainerState,
+  ctx: RenderContext,
+  effect: boolean
+) {
+  // Run useEffect() watch
+  const flag = effect ? WatchFlags.IsEffect : WatchFlags.IsWatch;
+  const watchPromises: ValueOrPromise<WatchDescriptor>[] = [];
+  const nextFrame: WatchDescriptor[];
+  containerState.watchNext.forEach((watch) => {
+    if (watch.f & flag) {
+      watchPromises.push(then(watch.qrl.resolveIfNeeded(watch.el), () => watch));
+    } else {
+      nextFrame.push(watch);
+    }
+  });
+  containerState.watchNext.clear();
+
+  // Run staging effected
+  containerState.watchStaging.forEach((watch) => {
+    if (watch.f & flag) {
+      if (effect) {
+        if (ctx.hostElements.has(watch.el)) {
+          watchPromises.push(then(watch.qrl.resolveIfNeeded(watch.el), () => watch));
+        }
+      } else {
+        watchPromises.push(then(watch.qrl.resolveIfNeeded(watch.el), () => watch));
+      }
+    }
+    if (!effect && .f & filter && ctx.hostElements.has(watch.el)) {
+      watchPromises.push(watch.qrl.resolve(watch.el).then(() => watch));
+    } else {
+      containerState.watchNext.add(watch);
+    }
+  });
+  containerState.watchStaging.clear();
+
+  // Wait for all promises
+  if (watchPromises.length > 0) {
+    const watches = await Promise.all(watchPromises);
+    sortWatches(watches);
+    await Promise.all(watches.map(watch => {
+      return runWatch(watch, containerState);
+    }));
+
+    // Clear staging
+    containerState.watchStaging.forEach((watch) => {
+      containerState.watchNext.add(watch);
+    });
+    containerState.watchStaging.clear();
+  }
+}
+
+
 function sortNodes(elements: Element[]) {
   elements.sort((a, b) => (a.compareDocumentPosition(b) & 2 ? 1 : -1));
 }
+
+function sortWatches(watches: WatchDescriptor[]) {
+  watches.sort((a, b) => {
+    if (a.el === b.el) {
+      return a.i < b.i ? -1 : 1;
+    }
+    return (a.el.compareDocumentPosition(b.el) & 2) !== 0 ? 1 : -1;
+  });
+}
+

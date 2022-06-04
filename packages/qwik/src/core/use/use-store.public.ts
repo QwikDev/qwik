@@ -133,7 +133,7 @@ export function useRef<T = Element>(current?: T): Ref<T> {
 /**
  * @alpha
  */
-export function useSequentialScope(): [any, (prop: any) => void] {
+export function useSequentialScope(): [any, (prop: any) => void, number] {
   const ctx = getInvokeContext();
   assertEqual(ctx.event, RenderEvent);
   const index = ctx.seq;
@@ -143,5 +143,5 @@ export function useSequentialScope(): [any, (prop: any) => void] {
   const updateFn = (value: any) => {
     elementCtx.seq[index] = value;
   };
-  return [elementCtx.seq[index], updateFn];
+  return [elementCtx.seq[index], updateFn, index];
 }

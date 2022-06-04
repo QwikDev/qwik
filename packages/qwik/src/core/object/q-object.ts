@@ -13,7 +13,7 @@ import { logWarn } from '../util/log';
 import { qDev, qTest } from '../util/qdev';
 import { debugStringify } from '../util/stringify';
 import { WatchDescriptor, WatchFlags } from '../watch/watch.public';
-import type { Subscriber } from '../use/use-subscriber';
+import { Subscriber, unwrapSubscriber } from '../use/use-subscriber';
 import { tryGetContext } from '../props/props';
 import { RenderEvent } from '../util/markers';
 import { getProxyTarget } from './store';
@@ -401,7 +401,7 @@ export function immutable<T extends {}>(input: T): Readonly<T> {
 export function mutable<T>(v: T): MutableWrapper<T> {
   return {
     [MUTABLE]: true,
-    v,
+    v: unwrapSubscriber(v),
   };
 }
 

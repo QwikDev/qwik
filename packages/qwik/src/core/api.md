@@ -661,7 +661,7 @@ export const useScopedStyles$: (first: string) => void;
 export function useScopedStylesQrl(styles: QRL<string>): void;
 
 // @alpha (undocumented)
-export function useSequentialScope(): [any, (prop: any) => void];
+export function useSequentialScope(): [any, (prop: any) => void, number];
 
 // Warning: (ae-incompatible-release-tags) The symbol "useServerMount$" is marked as @public, but its signature references "ServerFn" which is marked as @alpha
 //

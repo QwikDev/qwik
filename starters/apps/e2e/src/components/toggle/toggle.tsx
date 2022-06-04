@@ -14,6 +14,9 @@ import {
 } from '@builder.io/qwik';
 
 export const CTX = createContext<{ message: string; count: number }>('toggle');
+
+export const CTX_LOCAL = createContext<{ logs: string }>('logs');
+
 export const Toggle = component$(() => {
   const store = useStore({
     message: 'hello from root',
@@ -36,11 +39,13 @@ export const ToggleShell = component$(() => {
     logs: '',
   });
 
+  useContextProvider(CTX_LOCAL, store);
+
   console.log('PARENT renders');
   return (
     <Host>
+      <Logs0 store={store} />
       {!store.cond ? <ToggleA root={store} /> : <ToggleB root={store} />}
-      <Logs0 message={mutable(store.logs)} />
       <button type="button" id="toggle" onClick$={() => (store.cond = !store.cond)}>
         Toggle
       </button>
@@ -49,14 +54,31 @@ export const ToggleShell = component$(() => {
 });
 
 export const Logs0 = component$((props: Record<string, any>) => {
+  const rootState = useContext(CTX);
+  const logs = useContext(CTX_LOCAL);
+
+  useWatch$((track) => {
+    const count = track(rootState, 'count');
+    logs.logs += `Log(${count})`;
+  });
+
   return (
     <Host>
-      <Logs1 message={mutable(props.message)} />
+      <Logs1 store={props.store} />
     </Host>
   );
 });
 
 export const Logs1 = component$((props: Record<string, any>) => {
+  return (
+    <Host>
+      <Logs2 message={mutable(props.store.logs)} />
+    </Host>
+  );
+});
+
+
+export const Logs2 = component$((props: Record<string, any>) => {
   return <Host id="logs">Logs: {props.message}</Host>;
 });
 
@@ -99,6 +121,7 @@ export const ToggleA = component$((props: { root: { logs: string } }) => {
       <div id="root">
         {rootState.message} ({rootState.count}/{state.copyCount})
       </div>
+      <Child/>
     </Host>
   );
 });
@@ -142,6 +165,22 @@ export const ToggleB = component$((props: { root: { logs: string } }) => {
       <div id="root">
         {rootState.message} ({rootState.count}/{state.copyCount})
       </div>
+      <Child/>
     </Host>
   );
+});
+
+export const Child = component$(() => {
+  const rootState = useContext(CTX);
+  const logs = useContext(CTX_LOCAL);
+
+  useWatch$((track) => {
+    const count = track(rootState, 'count');
+    console.log('Child', count);
+    logs.logs += `Child(${count})`;
+  });
+
+  return (
+    <div>CHILD</div>
+  )
 });

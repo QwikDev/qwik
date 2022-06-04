@@ -132,6 +132,7 @@ export interface QRL<TYPE = any> {
   getSymbol(): string;
   getCanonicalSymbol(): string;
   resolve(container?: Element): Promise<TYPE>;
+  resolveIfNeeded(container?: Element): ValueOrPromise<TYPE>;
   invoke(
     ...args: TYPE extends (...args: infer ARGS) => any ? ARGS : never
   ): Promise<TYPE extends (...args: any[]) => infer RETURN ? RETURN : never>;

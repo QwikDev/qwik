@@ -17,8 +17,10 @@ import { getProxyTarget } from '../object/store';
 import type { ContainerState } from '../render/notify-render';
 
 export const enum WatchFlags {
-  IsDirty = 1 << 0,
-  IsCleanup = 1 << 1,
+  IsEffect = 1 << 0,
+  IsWatch = 1 << 1,
+  IsDirty = 1 << 2,
+  IsCleanup = 1 << 3,
 }
 
 /**
@@ -38,6 +40,7 @@ export interface WatchDescriptor {
   qrl: QRL<WatchFn>;
   el: Element;
   f: number;
+  i: number;
   destroy?: NoSerialize<() => void>;
   running?: NoSerialize<Promise<WatchDescriptor>>;
 }
@@ -133,7 +136,7 @@ export function handleWatch() {
  */
 // </docs>
 export function useWatchQrl(qrl: QRL<WatchFn>, opts?: UseEffectOptions): void {
-  const [watch, setWatch] = useSequentialScope();
+  const [watch, setWatch, i] = useSequentialScope();
   if (!watch) {
     const el = useHostElement();
     const containerState = useContainerState();
@@ -141,6 +144,7 @@ export function useWatchQrl(qrl: QRL<WatchFn>, opts?: UseEffectOptions): void {
       qrl,
       el,
       f: WatchFlags.IsDirty,
+      i
     };
     setWatch(true);
     getContext(el).watches.push(watch);
@@ -244,13 +248,14 @@ export const useWatch$ = implicit$FirstArg(useWatchQrl);
  */
 // </docs>
 export function useClientEffectQrl(qrl: QRL<WatchFn>, opts?: UseEffectOptions): void {
-  const [watch, setWatch] = useSequentialScope();
+  const [watch, setWatch, i] = useSequentialScope();
   if (!watch) {
     const el = useHostElement();
     const watch: WatchDescriptor = {
       qrl,
       el,
       f: 0,
+      i
     };
     setWatch(true);
     getContext(el).watches.push(watch);

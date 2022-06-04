@@ -2,7 +2,6 @@ import type { JSXNode } from '../render/jsx/types/jsx-node';
 import {
   isMutable,
   LocalSubscriptionManager,
-  mutable,
   QOjectAllSymbol,
   QOjectOriginalProxy,
   QOjectSubsSymbol,
@@ -146,7 +145,6 @@ export function createProps(target: any, el: Element, containerState: ContainerS
   return new Proxy(target, new PropsProxyHandler(el, containerState, manager));
 }
 
-const PREFIX = 'mutable:';
 
 export function getPropsMutator(ctx: QContext, containerState: ContainerState) {
   let props = ctx.props;
@@ -161,10 +159,6 @@ export function getPropsMutator(ctx: QContext, containerState: ContainerState) {
       const didSet = prop in target;
       let oldValue = target[prop];
       let mut = false;
-      if (prop.startsWith(PREFIX)) {
-        value = mutable(value);
-        prop = prop.slice(PREFIX.length);
-      }
       if (isMutable(oldValue)) {
         oldValue = oldValue.v;
       }

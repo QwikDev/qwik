@@ -44,9 +44,7 @@ export const ReplInputPanel = ({
 
       <div class="repl-tab">
         <Editor
-          inputs={input.files}
-          version={input.version}
-          selectedPath={store.selectedInputPath}
+          input={input}
           onChangeQrl={onInputChangeQrl}
           store={store}
           ariaLabel="File Input"

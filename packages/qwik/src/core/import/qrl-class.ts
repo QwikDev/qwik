@@ -44,9 +44,13 @@ class QRL<TYPE = any> implements IQRL<TYPE> {
     return qrlImport(this.el, this as any);
   }
 
+  resolveIfNeeded(el?: Element): ValueOrPromise<TYPE> {
+    return typeof this.symbolRef === 'function' ? this.symbolRef : this.resolve(el);
+  }
+
   invokeFn(el?: Element, currentCtx?: InvokeContext, beforeFn?: () => void): any {
     return ((...args: any[]): any => {
-      const fn = (typeof this.symbolRef === 'function' ? this.symbolRef : this.resolve(el)) as TYPE;
+      const fn = this.resolveIfNeeded(el) as TYPE;
       return then(fn, (fn) => {
         if (typeof fn === 'function') {
           const baseContext = currentCtx ?? newInvokeContext();

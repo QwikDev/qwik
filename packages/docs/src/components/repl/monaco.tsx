@@ -57,7 +57,7 @@ export const initMonacoEditor = async (
       editor.onDidChangeModelContent(async () => {
         clearTimeout(debounceTmrId);
         debounceTmrId = setTimeout(() => {
-          props.onChangeQrl?.invoke(props.selectedPath, editor.getValue());
+          props.onChangeQrl?.invoke(props.store.selectedInputPath, editor.getValue());
         }, 200);
 
         clearTimeout(diagnosticsTmrId);
@@ -74,7 +74,9 @@ export const initMonacoEditor = async (
 export const updateMonacoEditor = async (props: EditorProps, editorStore: EditorStore) => {
   const monaco = await getMonaco();
 
-  const fsPaths = props.inputs.map((i) => getUri(monaco, i.path).fsPath);
+  const selectedPath = props.store.selectedInputPath;
+  const inputs = props.input.files;
+  const fsPaths = inputs.map((i) => getUri(monaco, i.path).fsPath);
   const existingModels = monaco.editor.getModels();
   for (const existingModel of existingModels) {
     try {
@@ -86,7 +88,7 @@ export const updateMonacoEditor = async (props: EditorProps, editorStore: Editor
     }
   }
 
-  for (const input of props.inputs) {
+  for (const input of inputs) {
     try {
       const uri = getUri(monaco, input.path);
       const existingModel = monaco.editor.getModel(uri);
@@ -99,7 +101,7 @@ export const updateMonacoEditor = async (props: EditorProps, editorStore: Editor
   }
 
   if (editorStore.editor) {
-    const selectedFsPath = getUri(monaco, props.selectedPath).fsPath;
+    const selectedFsPath = getUri(monaco, selectedPath).fsPath;
     const previousSelectedModel = editorStore.editor.getModel();
     if (previousSelectedModel) {
       const viewState = editorStore.editor.saveViewState();

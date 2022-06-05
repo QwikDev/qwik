@@ -1,6 +1,5 @@
-import { useDocument } from '../use/use-document.public';
-import { getProxyMap, qObject } from '../object/q-object';
-import { getInvokeContext } from './use-core';
+import { qObject } from '../object/q-object';
+import { getInvokeContext, useContainerState } from './use-core';
 import { useHostElement } from './use-host-element.public';
 import { getContext } from '../props/props';
 import { wrapSubscriber } from './use-subscriber';
@@ -76,8 +75,10 @@ export function useStore<STATE extends object>(initialState: STATE | (() => STAT
   if (store != null) {
     return wrapSubscriber(store, hostElement);
   }
+
+  const containerState = useContainerState();
   const value = typeof initialState === 'function' ? (initialState as Function)() : initialState;
-  const newStore = qObject(value, getProxyMap(useDocument()));
+  const newStore = qObject(value, containerState);
   setStore(newStore);
   return wrapSubscriber(newStore, hostElement);
 }
@@ -132,7 +133,7 @@ export function useRef<T = Element>(current?: T): Ref<T> {
 /**
  * @alpha
  */
-export function useSequentialScope(): [any, (prop: any) => void] {
+export function useSequentialScope(): [any, (prop: any) => void, number] {
   const ctx = getInvokeContext();
   assertEqual(ctx.event, RenderEvent);
   const index = ctx.seq;
@@ -140,11 +141,7 @@ export function useSequentialScope(): [any, (prop: any) => void] {
   const elementCtx = getContext(hostElement);
   ctx.seq++;
   const updateFn = (value: any) => {
-    elementCtx.seq[index] = elementCtx.refMap.add(value);
+    elementCtx.seq[index] = value;
   };
-  const seqIndex = elementCtx.seq[index];
-  if (typeof seqIndex === 'number') {
-    return [elementCtx.refMap.get(seqIndex), updateFn];
-  }
-  return [undefined, updateFn];
+  return [elementCtx.seq[index], updateFn, index];
 }

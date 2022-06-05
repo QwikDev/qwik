@@ -5,12 +5,10 @@ import { ComponentScopedStyles, QHostAttr, RenderEvent } from '../util/markers';
 import { promiseAll, then } from '../util/promises';
 import { styleContent, styleHost } from './qrl-styles';
 import { isStyleTask, newInvokeContext } from '../use/use-core';
-import { getProps, QContext } from '../props/props';
 import { processNode } from '../render/jsx/jsx-runtime';
-import { wrapSubscriber } from '../use/use-subscriber';
 import { logDebug, logError } from '../util/log';
 import type { ValueOrPromise } from '../util/types';
-import { removeSub } from '../object/q-object';
+import type { QContext } from '../props/props';
 
 export const firstRenderComponent = (rctx: RenderContext, ctx: QContext): ValueOrPromise<void> => {
   ctx.element.setAttribute(QHostAttr, '');
@@ -20,12 +18,15 @@ export const firstRenderComponent = (rctx: RenderContext, ctx: QContext): ValueO
 export const renderComponent = (rctx: RenderContext, ctx: QContext): ValueOrPromise<void> => {
   ctx.dirty = false;
 
-  const hostElement = ctx.element as HTMLElement;
+  const hostElement = ctx.element;
   const onRenderQRL = ctx.renderQrl!;
   assertDefined(onRenderQRL);
 
+  const props = ctx.props;
+  assertDefined(props);
+
   // Component is not dirty any more
-  rctx.globalState.hostsStaging.delete(hostElement);
+  rctx.containerState.hostsStaging.delete(hostElement);
 
   const newCtx: RenderContext = {
     ...rctx,
@@ -39,15 +40,14 @@ export const renderComponent = (rctx: RenderContext, ctx: QContext): ValueOrProm
   const waitOn = (invocatinContext.waitOn = [] as any[]);
 
   // Clean current subscription before render
-  ctx.refMap.array.forEach((obj) => {
-    removeSub(obj, hostElement);
-  });
+  rctx.containerState.subsManager.clearSub(hostElement);
 
+  // Resolve render function
   const onRenderFn = onRenderQRL.invokeFn(rctx.containerEl, invocatinContext);
 
   try {
     // Execution of the render function
-    const renderPromise = onRenderFn(wrapSubscriber(getProps(ctx), hostElement));
+    const renderPromise = onRenderFn(props);
 
     // Wait for results
     return then(

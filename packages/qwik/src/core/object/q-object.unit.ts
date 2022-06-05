@@ -1,9 +1,12 @@
-import { readWriteProxy, unwrapProxy } from './q-object';
+import { createSubscriptionManager, readWriteProxy, unwrapProxy } from './q-object';
 import { qObject } from './q-object';
 
 describe('q-object', () => {
   beforeEach(() => {});
-  const map = new WeakMap();
+  const map: any = {
+    subsManager: createSubscriptionManager(),
+    proxyMap: new WeakMap(),
+  };
 
   it('should create QObject', () => {
     const obj = qObject({ salutation: 'Hello', name: 'World' }, map);

@@ -5,8 +5,6 @@ import type { SymbolMapper } from '../optimizer/src/types';
 import type { SerializeDocumentOptions } from './types';
 import { normalizeUrl } from './utils';
 
-const _setImmediate = typeof setImmediate === 'function' ? setImmediate : setTimeout;
-
 declare const require: (module: string) => Record<string, any>;
 
 function createPlatform(document: any, opts: SerializeDocumentOptions, mapper: SymbolMapper) {
@@ -32,14 +30,8 @@ function createPlatform(document: any, opts: SerializeDocumentOptions, mapper: S
       }
       return symbol;
     },
-    raf: (fn) => {
-      return new Promise((resolve) => {
-        // Do not use process.nextTick, as this will execute at same priority as promises.
-        // We need to execute after promises.
-        _setImmediate(() => {
-          resolve(fn());
-        });
-      });
+    raf: () => {
+      return Promise.reject('server can not rerender');
     },
     nextTick: (fn) => {
       return new Promise((resolve) => {

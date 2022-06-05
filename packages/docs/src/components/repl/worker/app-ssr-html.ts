@@ -103,7 +103,7 @@ export const appSsrHtml = async (options: ReplInputOptions, cache: Cache, result
   const url = new URL(appUrl, options.serverUrl);
   const req = new Request(url.href);
 
-  const rsp = new Response(result.html, {
+  const rsp = new Response(ssrResult.html, {
     headers: { 'Content-Type': 'text/html; charset=utf-8' },
   });
   await cache.put(req, rsp);

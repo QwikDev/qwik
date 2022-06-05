@@ -492,6 +492,8 @@ export interface RenderingState {
     hostsRendering: Set<Element> | undefined;
     // (undocumented)
     hostsStaging: Set<Element>;
+    // (undocumented)
+    platform: CorePlatform;
     // Warning: (ae-forgotten-export) The symbol "ObjToProxyMap" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)

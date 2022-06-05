@@ -6,7 +6,6 @@ import { EMPTY_ARRAY } from '../util/flyweight';
 import { isPromise } from '../util/promises';
 import { debugStringify } from '../util/stringify';
 import type { QContext } from './props';
-import { getDocument } from '../util/dom';
 import { RenderContext, setAttribute } from '../render/cursor';
 import type { QRL } from '../import/qrl.public';
 
@@ -100,7 +99,7 @@ export function getDomListeners(el: Element): Map<string, QRL[]> {
 }
 
 function serializeQRLs(existingQRLs: QRL<any>[], ctx: QContext): string {
-  const platform = getPlatform(getDocument(ctx.element));
+  const platform = getPlatform(ctx.element);
   const element = ctx.element;
   const opts = {
     platform,

@@ -149,7 +149,7 @@ export function useWatchQrl(qrl: QRL<WatchFn>, opts?: UseEffectOptions): void {
     setWatch(true);
     getContext(el).watches.push(watch);
     useWaitOn(Promise.resolve().then(() => runWatch(watch, containerState)));
-    const isServer = getPlatform(useDocument()).isServer;
+    const isServer = containerState.platform.isServer;
     if (isServer) {
       useRunWatch(watch, opts?.run);
     }

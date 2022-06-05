@@ -1,4 +1,3 @@
-import { getPlatform } from '../platform/platform';
 import { assertDefined, assertEqual } from '../assert/assert';
 import { parseQRL, QRLSerializeOptions, stringifyQRL } from '../import/qrl';
 import { isQrl, QRLInternal } from '../import/qrl-class';
@@ -156,8 +155,7 @@ function hasContext(el: Element) {
 
 export function snapshotState(containerEl: Element): SnapshotResult {
   const doc = getDocument(containerEl);
-  const { subsManager, proxyMap } = getContainerState(containerEl);
-  const platform = getPlatform(doc);
+  const { subsManager, proxyMap, platform } = getContainerState(containerEl);
   const elementToIndex = new Map<Element, string | null>();
   const collector = createCollector(doc, proxyMap);
 

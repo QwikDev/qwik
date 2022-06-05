@@ -52,7 +52,7 @@ export function qrlImport<T>(element: Element | undefined, qrl: QRL<T>): ValueOr
         `QRL '${qrl_.chunk}#${qrl_.symbol || 'default'}' does not have an attached container`
       );
     }
-    const symbol = getPlatform(getDocument(element)).importSymbol(element, qrl_.chunk, qrl_.symbol);
+    const symbol = getPlatform(element).importSymbol(element, qrl_.chunk, qrl_.symbol);
     return (qrl_.symbolRef = then(symbol, (ref) => {
       return (qrl_.symbolRef = ref);
     }));

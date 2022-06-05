@@ -6,12 +6,13 @@ import { qDev } from '../util/qdev';
 import { getPlatform } from '../platform/platform';
 import { getDocument } from '../util/dom';
 import { renderComponent } from '../component/component-ctx';
-import { logError } from '../util/log';
+import { logError, logWarn } from '../util/log';
 import { getContainer } from '../use/use-core';
 import { runWatch, WatchDescriptor, WatchFlags } from '../watch/watch.public';
 import { createSubscriptionManager, ObjToProxyMap, SubscriptionManager } from '../object/q-object';
 import { then } from '../util/promises';
 import type { ValueOrPromise } from '../util/types';
+import type { CorePlatform } from '../platform/types';
 
 /**
  * Mark component for rendering.
@@ -27,19 +28,24 @@ import type { ValueOrPromise } from '../util/types';
  * @returns A promise which is resolved when the component has been rendered.
  * @public
  */
-export function notifyRender(hostElement: Element): Promise<RenderContext> {
+export async function notifyRender(hostElement: Element): Promise<RenderContext | undefined> {
   assertDefined(hostElement.getAttribute(QHostAttr));
 
   const containerEl = getContainer(hostElement)!;
   assertDefined(containerEl);
+
+  const state = getContainerState(containerEl);
+  if (state.platform.isServer) {
+    logWarn('Can not rerender in server platform');
+    return undefined;
+  }
   resumeIfNeeded(containerEl);
 
   const ctx = getContext(hostElement);
   assertDefined(ctx.renderQrl);
-  const state = getContainerState(containerEl);
+
   if (ctx.dirty) {
-    // TODO
-    return state.renderPromise!;
+    return state.renderPromise;
   }
   ctx.dirty = true;
   const activeRendering = state.hostsRendering !== undefined;
@@ -59,11 +65,16 @@ export function notifyRender(hostElement: Element): Promise<RenderContext> {
   }
 }
 
-export function scheduleFrame(containerEl: Element, state: ContainerState): Promise<RenderContext> {
-  if (state.renderPromise === undefined) {
-    state.renderPromise = getPlatform(containerEl).nextTick(() => renderMarked(containerEl, state));
+export function scheduleFrame(
+  containerEl: Element,
+  containerState: ContainerState
+): Promise<RenderContext> {
+  if (containerState.renderPromise === undefined) {
+    containerState.renderPromise = containerState.platform.nextTick(() =>
+      renderMarked(containerEl, containerState)
+    );
   }
-  return state.renderPromise;
+  return containerState.renderPromise;
 }
 
 const CONTAINER_STATE = Symbol('ContainerState');
@@ -74,6 +85,7 @@ const CONTAINER_STATE = Symbol('ContainerState');
 export interface ContainerState {
   proxyMap: ObjToProxyMap;
   subsManager: SubscriptionManager;
+  platform: CorePlatform;
 
   watchNext: Set<WatchDescriptor>;
   watchStaging: Set<WatchDescriptor>;
@@ -90,6 +102,7 @@ export function getContainerState(containerEl: Element): ContainerState {
     (containerEl as any)[CONTAINER_STATE] = set = {
       proxyMap: new WeakMap(),
       subsManager: createSubscriptionManager(),
+      platform: getPlatform(containerEl),
 
       watchNext: new Set(),
       watchStaging: new Set(),
@@ -118,7 +131,7 @@ export async function renderMarked(
   containerState.hostsStaging.clear();
 
   const doc = getDocument(containerEl);
-  const platform = getPlatform(containerEl);
+  const platform = containerState.platform;
   const renderingQueue = Array.from(hostsRendering);
   sortNodes(renderingQueue);
 

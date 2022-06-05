@@ -163,7 +163,6 @@ const Cmp = component$(() => {
   const store = useStore({
     users: []
   });
-  // Double count watch
   useServerMount$(async () => {
     // This code will ONLY run once in the server, when the component is mounted
     store.users = await db.requestUsers();

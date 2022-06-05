@@ -448,45 +448,44 @@ test.describe('e2e', () => {
 
       // ToggleA
       await btnToggle.click();
-      logsStr += 'Child(0)Child(0)';
+      logsStr += 'Child(0)Child(0)ToggleA()';
 
       await expect(title).toHaveText('ToggleB');
       await expect(mount).toHaveText('mounted in client');
-      await expect(root).toHaveText('hello from root (1/1)');
+      await expect(root).toHaveText('hello from root (0/0)');
       await expect(logs).toHaveText(logsStr);
 
       // Increment
       await btnIncrement.click();
       logsStr += 'Log(1)Child(1)';
 
-      await expect(title).toHaveText('ToggleA');
-      await expect(mount).toHaveText('mounted in server');
+      await expect(title).toHaveText('ToggleB');
+      await expect(mount).toHaveText('mounted in client');
       await expect(root).toHaveText('hello from root (1/1)');
       await expect(logs).toHaveText(logsStr);
 
       // ToggleB
       await btnToggle.click();
-      logsStr += 'ToggleB()Child(1)';
+      logsStr += 'Child(1)ToggleB()';
 
       await expect(title).toHaveText('ToggleA');
       await expect(mount).toHaveText('mounted in client');
-      await expect(root).toHaveText('hello from root (2/2)');
+      await expect(root).toHaveText('hello from root (1/1)');
       await expect(logs).toHaveText(logsStr);
 
       // Increment
       await btnIncrement.click();
       logsStr += 'Log(2)Child(2)';
 
-      await expect(title).toHaveText('ToggleB');
+      await expect(title).toHaveText('ToggleA');
       await expect(mount).toHaveText('mounted in client');
       await expect(root).toHaveText('hello from root (2/2)');
       await expect(logs).toHaveText(logsStr);
 
-
       // ToggleA + increment
       await btnToggle.click();
       await btnIncrement.click();
-      logsStr += 'ToggleA()Child(2)Log(3)Child(3)';
+      logsStr += 'Child(2)ToggleA()Log(3)Child(3)';
 
       await expect(title).toHaveText('ToggleB');
       await expect(mount).toHaveText('mounted in client');

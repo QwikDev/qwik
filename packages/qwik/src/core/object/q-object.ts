@@ -336,12 +336,6 @@ export function notifyWatch(watch: WatchDescriptor) {
   }
 }
 
-export async function waitForWatches(state: ContainerState) {
-  while (state.watchRunning.size > 0) {
-    await Promise.all(state.watchRunning);
-  }
-}
-
 function verifySerializable<T>(value: T) {
   if (value == null) {
     return null;

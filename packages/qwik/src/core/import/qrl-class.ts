@@ -45,7 +45,7 @@ class QRL<TYPE = any> implements IQRL<TYPE> {
   }
 
   resolveIfNeeded(el?: Element): ValueOrPromise<TYPE> {
-    return (typeof this.symbolRef === 'function' ? this.symbolRef : this.resolve(el))
+    return typeof this.symbolRef === 'function' ? this.symbolRef : this.resolve(el);
   }
 
   invokeFn(el?: Element, currentCtx?: InvokeContext, beforeFn?: () => void): any {

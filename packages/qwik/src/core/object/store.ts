@@ -335,10 +335,13 @@ export function snapshotState(containerEl: Element): SnapshotResult {
       }
     }
 
-    if (elementCaptured && watches.length > 0) {
-      const value = watches.map((obj) => mustGetObjId(obj)).join(' ');
+    if (watches.length > 0) {
+      const value = watches
+        .map((watch) => getObjId(watch))
+        .filter((obj) => obj != null)
+        .join(' ');
       if (value) {
-        metaValue.s = value;
+        metaValue.w = value;
         add = true;
       }
     }

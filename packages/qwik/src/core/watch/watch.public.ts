@@ -143,8 +143,8 @@ export function useWatchQrl(qrl: QRL<WatchFn>, opts?: UseEffectOptions): void {
     const watch: WatchDescriptor = {
       qrl,
       el,
-      f: WatchFlags.IsDirty,
-      i
+      f: WatchFlags.IsDirty | WatchFlags.IsWatch,
+      i,
     };
     setWatch(true);
     getContext(el).watches.push(watch);
@@ -254,8 +254,8 @@ export function useClientEffectQrl(qrl: QRL<WatchFn>, opts?: UseEffectOptions): 
     const watch: WatchDescriptor = {
       qrl,
       el,
-      f: 0,
-      i
+      f: WatchFlags.IsEffect,
+      i,
     };
     setWatch(true);
     getContext(el).watches.push(watch);

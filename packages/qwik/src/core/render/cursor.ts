@@ -1,4 +1,4 @@
-import { OnRenderProp, QObjSelector, QSlotAttr } from '../util/markers';
+import { OnRenderProp, QHostSelector, QSlotAttr } from '../util/markers';
 import {
   cleanupContext,
   ComponentCtx,
@@ -828,7 +828,7 @@ function removeNode(ctx: RenderContext, el: Node) {
         const subsManager = ctx.containerState.subsManager;
         cleanupElement(el as Element, subsManager);
         (el as Element)
-          .querySelectorAll(QObjSelector)
+          .querySelectorAll(QHostSelector)
           .forEach((el) => cleanupElement(el, subsManager));
       }
       parent.removeChild(el);
@@ -899,7 +899,7 @@ function createKeyToOldIdx(children: Node[], beginIdx: number, endIdx: number): 
     const child = children[i];
     if (child.nodeType === 1) {
       const key = getKey(child as Element);
-      if (key !== undefined) {
+      if (key != null) {
         map[key as string] = i;
       }
     }

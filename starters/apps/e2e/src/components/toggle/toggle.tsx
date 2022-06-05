@@ -77,7 +77,6 @@ export const Logs1 = component$((props: Record<string, any>) => {
   );
 });
 
-
 export const Logs2 = component$((props: Record<string, any>) => {
   return <Host id="logs">Logs: {props.message}</Host>;
 });
@@ -92,7 +91,7 @@ export const ToggleA = component$((props: { root: { logs: string } }) => {
   });
 
   useCleanup$(() => {
-    props.root.logs += 'ToggleA';
+    props.root.logs += 'ToggleA()';
   });
 
   useServerMount$(() => {
@@ -121,7 +120,7 @@ export const ToggleA = component$((props: { root: { logs: string } }) => {
       <div id="root">
         {rootState.message} ({rootState.count}/{state.copyCount})
       </div>
-      <Child/>
+      <Child />
     </Host>
   );
 });
@@ -136,7 +135,7 @@ export const ToggleB = component$((props: { root: { logs: string } }) => {
   });
 
   useCleanup$(() => {
-    props.root.logs += 'ToggleB';
+    props.root.logs += 'ToggleB()';
   });
 
   useWatch$((track) => {
@@ -165,7 +164,7 @@ export const ToggleB = component$((props: { root: { logs: string } }) => {
       <div id="root">
         {rootState.message} ({rootState.count}/{state.copyCount})
       </div>
-      <Child/>
+      <Child />
     </Host>
   );
 });
@@ -180,7 +179,5 @@ export const Child = component$(() => {
     logs.logs += `Child(${count})`;
   });
 
-  return (
-    <div>CHILD</div>
-  )
+  return <div>CHILD</div>;
 });

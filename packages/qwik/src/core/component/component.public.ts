@@ -48,7 +48,7 @@ export function useCleanupQrl(unmountFn: QRL<() => void>): void {
       qrl: unmountFn,
       el,
       f: WatchFlags.IsCleanup,
-      i
+      i,
     };
     setWatch(true);
     getContext(el).watches.push(watch);

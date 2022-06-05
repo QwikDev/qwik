@@ -402,6 +402,8 @@ export interface QRL<TYPE = any> {
     invokeFn(el?: Element, context?: InvokeContext, beforeFn?: () => void): TYPE extends (...args: infer ARGS) => infer RETURN ? (...args: ARGS) => ValueOrPromise<RETURN> : never;
     // (undocumented)
     resolve(container?: Element): Promise<TYPE>;
+    // (undocumented)
+    resolveIfNeeded(container?: Element): ValueOrPromise<TYPE>;
 }
 
 // @alpha
@@ -500,12 +502,10 @@ export interface RenderingState {
     //
     // (undocumented)
     subsManager: SubscriptionManager;
-    // (undocumented)
-    watchNext: Set<WatchDescriptor>;
     // Warning: (ae-forgotten-export) The symbol "WatchDescriptor" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
-    watchRunning: Set<Promise<WatchDescriptor>>;
+    watchNext: Set<WatchDescriptor>;
     // (undocumented)
     watchStaging: Set<WatchDescriptor>;
 }

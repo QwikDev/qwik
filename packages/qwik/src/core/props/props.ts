@@ -145,7 +145,6 @@ export function createProps(target: any, el: Element, containerState: ContainerS
   return new Proxy(target, new PropsProxyHandler(el, containerState, manager));
 }
 
-
 export function getPropsMutator(ctx: QContext, containerState: ContainerState) {
   let props = ctx.props;
   if (!ctx.props) {
@@ -181,9 +180,7 @@ export function getPropsMutator(ctx: QContext, containerState: ContainerState) {
               '\n - Old value:',
               oldValue,
               '\n - New value:',
-              value,
-              '\n - Element:',
-              ctx.element
+              value
             );
           }
         }

@@ -8,14 +8,8 @@ import { getDocument } from '../util/dom';
 import { renderComponent } from '../component/component-ctx';
 import { logError } from '../util/log';
 import { getContainer } from '../use/use-core';
-import { isWatchDescriptor, runWatch, WatchDescriptor, WatchFlags } from '../watch/watch.public';
-import {
-  createSubscriptionManager,
-  ObjToProxyMap,
-  SubscriptionManager,
-  waitForWatches,
-} from '../object/q-object';
-import type { Subscriber } from '../use/use-subscriber';
+import { runWatch, WatchDescriptor, WatchFlags } from '../watch/watch.public';
+import { createSubscriptionManager, ObjToProxyMap, SubscriptionManager } from '../object/q-object';
 import { then } from '../util/promises';
 import type { ValueOrPromise } from '../util/types';
 
@@ -72,7 +66,7 @@ export function scheduleFrame(containerEl: Element, state: ContainerState): Prom
   return state.renderPromise;
 }
 
-const SCHEDULE = Symbol('Render state');
+const CONTAINER_STATE = Symbol('ContainerState');
 
 /**
  * @alpha
@@ -81,7 +75,6 @@ export interface ContainerState {
   proxyMap: ObjToProxyMap;
   subsManager: SubscriptionManager;
 
-  watchRunning: Set<Promise<WatchDescriptor>>;
   watchNext: Set<WatchDescriptor>;
   watchStaging: Set<WatchDescriptor>;
 
@@ -92,15 +85,14 @@ export interface ContainerState {
 }
 
 export function getContainerState(containerEl: Element): ContainerState {
-  let set = (containerEl as any)[SCHEDULE] as ContainerState;
+  let set = (containerEl as any)[CONTAINER_STATE] as ContainerState;
   if (!set) {
-    (containerEl as any)[SCHEDULE] = set = {
+    (containerEl as any)[CONTAINER_STATE] = set = {
       proxyMap: new WeakMap(),
       subsManager: createSubscriptionManager(),
 
       watchNext: new Set(),
       watchStaging: new Set(),
-      watchRunning: new Set(),
 
       hostsNext: new Set(),
       hostsStaging: new Set(),
@@ -113,21 +105,26 @@ export function getContainerState(containerEl: Element): ContainerState {
 
 export async function renderMarked(
   containerEl: Element,
-  state: ContainerState
+  containerState: ContainerState
 ): Promise<RenderContext> {
-  await waitForWatches(state);
-
-  state.hostsRendering = new Set(state.hostsNext);
-  state.hostsNext.clear();
+  const hostsRendering = (containerState.hostsRendering = new Set(containerState.hostsNext));
+  containerState.hostsNext.clear();
+  await executeWatches(containerState, (watch) => {
+    return (watch.f & WatchFlags.IsWatch) !== 0;
+  });
+  containerState.hostsStaging.forEach((host) => {
+    hostsRendering.add(host);
+  });
+  containerState.hostsStaging.clear();
 
   const doc = getDocument(containerEl);
   const platform = getPlatform(containerEl);
-  const renderingQueue = Array.from(state.hostsRendering);
+  const renderingQueue = Array.from(hostsRendering);
   sortNodes(renderingQueue);
 
   const ctx: RenderContext = {
     doc,
-    containerState: state,
+    containerState,
     hostElements: new Set(),
     operations: [],
     roots: [],
@@ -145,7 +142,7 @@ export async function renderMarked(
       try {
         await renderComponent(ctx, getContext(el));
       } catch (e) {
-        logError('Render failed', e, el);
+        logError('Render error', e);
       }
     }
   }
@@ -157,7 +154,7 @@ export async function renderMarked(
         printRenderStats(ctx);
       }
     }
-    postRendering(containerEl, state, ctx);
+    postRendering(containerEl, containerState, ctx);
     return ctx;
   }
 
@@ -168,18 +165,25 @@ export async function renderMarked(
         printRenderStats(ctx);
       }
     }
-    postRendering(containerEl, state, ctx);
+    postRendering(containerEl, containerState, ctx);
     return ctx;
   });
 }
-
 
 async function postRendering(
   containerEl: Element,
   containerState: ContainerState,
   ctx: RenderContext
 ) {
-  await executeWatches(containerState, ctx, WatchFlags.IsEffect);
+  await executeWatches(containerState, (watch, stage) => {
+    if ((watch.f & WatchFlags.IsEffect) === 0) {
+      return false;
+    }
+    if (stage) {
+      return ctx.hostElements.has(watch.el);
+    }
+    return true;
+  });
 
   // Clear staging
   containerState.hostsStaging.forEach((el) => {
@@ -195,66 +199,42 @@ async function postRendering(
   }
 }
 
-
-function prefetchSubscriber(sub: Subscriber) {
-  if (isWatchDescriptor(sub)) {
-    sub.
-  }
-}
-
 async function executeWatches(
   containerState: ContainerState,
-  ctx: RenderContext,
-  effect: boolean
+  watchPred: (watch: WatchDescriptor, staging: boolean) => boolean
 ) {
-  // Run useEffect() watch
-  const flag = effect ? WatchFlags.IsEffect : WatchFlags.IsWatch;
   const watchPromises: ValueOrPromise<WatchDescriptor>[] = [];
-  const nextFrame: WatchDescriptor[];
+
   containerState.watchNext.forEach((watch) => {
-    if (watch.f & flag) {
+    if (watchPred(watch, false)) {
       watchPromises.push(then(watch.qrl.resolveIfNeeded(watch.el), () => watch));
-    } else {
-      nextFrame.push(watch);
+      containerState.watchNext.delete(watch);
     }
   });
-  containerState.watchNext.clear();
-
-  // Run staging effected
-  containerState.watchStaging.forEach((watch) => {
-    if (watch.f & flag) {
-      if (effect) {
-        if (ctx.hostElements.has(watch.el)) {
-          watchPromises.push(then(watch.qrl.resolveIfNeeded(watch.el), () => watch));
-        }
-      } else {
-        watchPromises.push(then(watch.qrl.resolveIfNeeded(watch.el), () => watch));
-      }
-    }
-    if (!effect && .f & filter && ctx.hostElements.has(watch.el)) {
-      watchPromises.push(watch.qrl.resolve(watch.el).then(() => watch));
-    } else {
-      containerState.watchNext.add(watch);
-    }
-  });
-  containerState.watchStaging.clear();
-
-  // Wait for all promises
-  if (watchPromises.length > 0) {
-    const watches = await Promise.all(watchPromises);
-    sortWatches(watches);
-    await Promise.all(watches.map(watch => {
-      return runWatch(watch, containerState);
-    }));
-
-    // Clear staging
+  do {
+    // Run staging effected
     containerState.watchStaging.forEach((watch) => {
-      containerState.watchNext.add(watch);
+      if (watchPred(watch, true)) {
+        watchPromises.push(then(watch.qrl.resolveIfNeeded(watch.el), () => watch));
+      } else {
+        containerState.watchNext.add(watch);
+      }
     });
     containerState.watchStaging.clear();
-  }
-}
 
+    // Wait for all promises
+    if (watchPromises.length > 0) {
+      const watches = await Promise.all(watchPromises);
+      sortWatches(watches);
+      await Promise.all(
+        watches.map((watch) => {
+          return runWatch(watch, containerState);
+        })
+      );
+      watchPromises.length = 0;
+    }
+  } while (containerState.watchStaging.size > 0);
+}
 
 function sortNodes(elements: Element[]) {
   elements.sort((a, b) => (a.compareDocumentPosition(b) & 2 ? 1 : -1));
@@ -268,4 +248,3 @@ function sortWatches(watches: WatchDescriptor[]) {
     return (a.el.compareDocumentPosition(b.el) & 2) !== 0 ? 1 : -1;
   });
 }
-

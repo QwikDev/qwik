@@ -2,6 +2,11 @@
 
 exports[`store should serialize content 1`] = `
 Object {
+  "ctx": Object {
+    "#1": Object {
+      "r": "0 1 2 9 a b d e f! 9 g #0 h",
+    },
+  },
   "objs": Array [
     1,
     "hola",
@@ -48,8 +53,6 @@ Object {
       "count": 0,
     },
     "/runtimeQRL#s1",
-    Object {},
-    "/runtimeQRL#s0",
     "",
   ],
   "subs": Array [],

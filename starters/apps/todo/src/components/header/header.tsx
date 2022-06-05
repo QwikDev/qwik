@@ -25,6 +25,7 @@ export const Header = component$(
               todos.items.push({
                 completed: false,
                 title: state.text,
+                id: `${todos.nextItemId++}`,
               });
               state.text = '';
             }

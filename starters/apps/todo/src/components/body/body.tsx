@@ -8,7 +8,7 @@ export const Body = component$(() => {
     <Host class="main">
       <ul class="todo-list">
         {todos.items.filter(FILTERS[todos.filter]).map((key) => (
-          <Item item={key} />
+          <Item item={key} key={key.id} />
         ))}
       </ul>
     </Host>

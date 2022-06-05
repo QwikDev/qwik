@@ -123,7 +123,7 @@ async function buildApp(appDir: string) {
         debug: true,
         srcDir: appSrcDir,
         forceFullBuild: true,
-        entryStrategy: { type: 'single' },
+        entryStrategy: { type: 'hook' },
         manifestOutput: (m) => {
           clientManifest = m;
         },
@@ -222,7 +222,7 @@ function requireUncached(module: string) {
 
 function startersHomepage(_: Request, res: Response) {
   res.set('Content-Type', 'text/html; charset=utf-8');
-  res.send(`<!DOCTYPE html>
+  res.send(`<!-- Some comment --><!DOCTYPE html>
   <html>
     <head>
       <title>Starters Dev Server</title>

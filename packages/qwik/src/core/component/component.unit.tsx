@@ -13,7 +13,7 @@ describe('q-component', () => {
     expectDOM(
       fixture.host,
       <host>
-        <Div q:host="" q:obj="">
+        <Div q:host="">
           <span>Hello World</span>
         </Div>
       </host>

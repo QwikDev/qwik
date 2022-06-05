@@ -7,6 +7,7 @@ import { getDocument } from '../util/dom';
 import type { QRL } from '../import/qrl.public';
 import type { Subscriber } from './use-subscriber';
 import type { RenderContext } from '../render/cursor';
+import type { ContainerState } from '../render/notify-render';
 
 declare const document: QwikDocument;
 
@@ -146,4 +147,13 @@ export function getContainer(el: Element): Element | null {
     (el as any)[CONTAINER] = container;
   }
   return container;
+}
+
+export function useContainerState(): ContainerState {
+  const ctx = getInvokeContext();
+  const containerState = ctx.renderCtx?.containerState;
+  if (!containerState) {
+    throw new Error('Cant access containerState for existing context');
+  }
+  return containerState;
 }

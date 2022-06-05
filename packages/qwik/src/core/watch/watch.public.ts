@@ -1,14 +1,7 @@
-import {
-  noSerialize,
-  NoSerialize,
-  notifyWatch,
-  QOjectAllSymbol,
-  removeSub,
-  SetSubscriber,
-} from '../object/q-object';
+import { noSerialize, NoSerialize, notifyWatch } from '../object/q-object';
 import { implicit$FirstArg, QRL } from '../import/qrl.public';
 import { getContext } from '../props/props';
-import { newInvokeContext, useWaitOn } from '../use/use-core';
+import { newInvokeContext, useContainerState, useWaitOn } from '../use/use-core';
 import { useHostElement } from '../use/use-host-element.public';
 import { logDebug, logError } from '../util/log';
 import { then } from '../util/promises';
@@ -20,10 +13,14 @@ import { useLexicalScope } from '../use/use-lexical-scope.public';
 import { getPlatform } from '../platform/platform';
 import { useDocument } from '../use/use-document.public';
 import { useResumeQrl, useVisibleQrl } from '../component/component.public';
+import { getProxyTarget } from '../object/store';
+import type { ContainerState } from '../render/notify-render';
 
 export const enum WatchFlags {
-  IsDirty = 1 << 0,
-  IsCleanup = 1 << 1,
+  IsEffect = 1 << 0,
+  IsWatch = 1 << 1,
+  IsDirty = 1 << 2,
+  IsCleanup = 1 << 3,
 }
 
 /**
@@ -43,6 +40,7 @@ export interface WatchDescriptor {
   qrl: QRL<WatchFn>;
   el: Element;
   f: number;
+  i: number;
   destroy?: NoSerialize<() => void>;
   running?: NoSerialize<Promise<WatchDescriptor>>;
 }
@@ -138,18 +136,20 @@ export function handleWatch() {
  */
 // </docs>
 export function useWatchQrl(qrl: QRL<WatchFn>, opts?: UseEffectOptions): void {
-  const [watch, setWatch] = useSequentialScope();
+  const [watch, setWatch, i] = useSequentialScope();
   if (!watch) {
     const el = useHostElement();
+    const containerState = useContainerState();
     const watch: WatchDescriptor = {
       qrl,
       el,
-      f: WatchFlags.IsDirty,
+      f: WatchFlags.IsDirty | WatchFlags.IsWatch,
+      i,
     };
-    setWatch(watch);
-    getContext(el).refMap.add(watch);
-    useWaitOn(Promise.resolve().then(() => runWatch(watch)));
-    const isServer = getPlatform(useDocument()).isServer;
+    setWatch(true);
+    getContext(el).watches.push(watch);
+    useWaitOn(Promise.resolve().then(() => runWatch(watch, containerState)));
+    const isServer = containerState.platform.isServer;
     if (isServer) {
       useRunWatch(watch, opts?.run);
     }
@@ -248,16 +248,17 @@ export const useWatch$ = implicit$FirstArg(useWatchQrl);
  */
 // </docs>
 export function useClientEffectQrl(qrl: QRL<WatchFn>, opts?: UseEffectOptions): void {
-  const [watch, setWatch] = useSequentialScope();
+  const [watch, setWatch, i] = useSequentialScope();
   if (!watch) {
     const el = useHostElement();
     const watch: WatchDescriptor = {
       qrl,
       el,
-      f: 0,
+      f: WatchFlags.IsEffect,
+      i,
     };
-    setWatch(watch);
-    getContext(el).refMap.add(watch);
+    setWatch(true);
+    getContext(el).watches.push(watch);
     useRunWatch(watch, opts?.run ?? 'visible');
     const doc = useDocument() as any;
     if (doc['qO']) {
@@ -543,7 +544,10 @@ export function useMountQrl(mountQrl: QRL<ServerFn>): void {
 // </docs>
 export const useMount$ = implicit$FirstArg(useMountQrl);
 
-export function runWatch(watch: WatchDescriptor): Promise<WatchDescriptor> {
+export function runWatch(
+  watch: WatchDescriptor,
+  containerState: ContainerState
+): Promise<WatchDescriptor> {
   if (!(watch.f & WatchFlags.IsDirty)) {
     logDebug('Watch is not dirty, skipping run', watch);
     return Promise.resolve(watch);
@@ -553,25 +557,23 @@ export function runWatch(watch: WatchDescriptor): Promise<WatchDescriptor> {
     then(watch.running, () => {
       cleanupWatch(watch);
       const el = watch.el;
-      const invokationContext = newInvokeContext(getDocument(el), el, el, 'WatchEvent');
+      const doc = getDocument(el);
+      const invokationContext = newInvokeContext(doc, el, el, 'WatchEvent');
+      const { subsManager } = containerState;
       const watchFn = watch.qrl.invokeFn(el, invokationContext, () => {
-        const captureRef = (watch.qrl as QRLInternal).captureRef;
-        if (Array.isArray(captureRef)) {
-          captureRef.forEach((obj) => {
-            removeSub(obj, watch);
-          });
-        }
+        subsManager.clearSub(watch);
       });
-      const tracker: Tracker = (obj: any, prop?: string) => {
-        obj[SetSubscriber] = watch;
+      const track: Tracker = (obj: any, prop?: string) => {
+        const manager = subsManager.getLocal(getProxyTarget(obj) ?? obj);
+        manager.addSub(watch, prop);
         if (prop) {
           return obj[prop];
         } else {
-          return obj[QOjectAllSymbol];
+          return obj;
         }
       };
 
-      return then(watchFn(tracker), (returnValue) => {
+      return then(watchFn(track), (returnValue) => {
         if (typeof returnValue === 'function') {
           watch.destroy = noSerialize(returnValue);
         }

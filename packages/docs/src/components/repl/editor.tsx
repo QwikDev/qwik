@@ -8,10 +8,9 @@ import {
   QRL,
   useWatch$,
 } from '@builder.io/qwik';
-import type { TransformModuleInput } from '@builder.io/qwik/optimizer';
 import { addQwikLibs, ICodeEditorViewState, initMonacoEditor, updateMonacoEditor } from './monaco';
 import type { IStandaloneCodeEditor } from './monaco';
-import type { ReplStore } from './types';
+import type { ReplAppInput, ReplStore } from './types';
 
 export const Editor = component$((props: EditorProps) => {
   const hostElm = useHostElement() as HTMLElement;
@@ -35,21 +34,21 @@ export const Editor = component$((props: EditorProps) => {
   });
 
   useWatch$(async (track) => {
-    track(props, 'version');
+    track(props.input, 'version');
     track(store, 'editor');
 
-    if (props.version && store.editor) {
-      await addQwikLibs(props.version);
+    if (props.input.version && store.editor) {
+      await addQwikLibs(props.input.version);
     }
   });
 
   useWatch$(async (track) => {
-    track(props, 'version');
     track(store, 'editor');
-    track(props, 'inputs');
-    track(props, 'selectedPath');
+    track(props.input, 'version');
+    track(props.input, 'files');
+    track(props.store, 'selectedInputPath');
 
-    if (props.version && store.editor) {
+    if (props.input.version && store.editor) {
       await updateMonacoEditor(props, store);
     }
   });
@@ -58,13 +57,11 @@ export const Editor = component$((props: EditorProps) => {
 });
 
 export interface EditorProps {
+  input: ReplAppInput;
   ariaLabel: string;
-  inputs: TransformModuleInput[];
   lineNumbers: 'on' | 'off';
   onChangeQrl?: QRL<(path: string, code: string) => void>;
-  selectedPath: string;
   wordWrap: 'on' | 'off';
-  version: string;
   store: ReplStore;
 }
 

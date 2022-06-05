@@ -23,7 +23,7 @@ export function prettyHtml(element: HTMLElement, prefix: string = ''): any {
 }
 
 export function isElement(value: any): value is HTMLElement {
-  return isNode(value) && value.nodeType == 1 /* NodeType.ELEMENT_NODE */;
+  return isNode(value) && value.nodeType == 1;
 }
 
 export function isNode(value: any): value is Node {

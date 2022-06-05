@@ -62,12 +62,6 @@ export interface AriaAttributes {
     'aria-valuetext'?: string | undefined;
 }
 
-// @public (undocumented)
-const Comment_2: FunctionComponent<{
-    text?: string;
-}>;
-export { Comment_2 as Comment }
-
 // @public
 export function component$<PROPS extends {}>(onMount: OnRenderFn<PROPS>, options?: ComponentOptions): Component<PROPS>;
 
@@ -83,7 +77,7 @@ export type ComponentChildren = ComponentChild[] | ComponentChild;
 // @alpha (undocumented)
 export interface ComponentCtx {
     // (undocumented)
-    hostElement: HTMLElement;
+    hostElement: Element;
     // (undocumented)
     slots: JSXNode[];
     // (undocumented)
@@ -348,6 +342,11 @@ export interface JSXNode<T = any> {
     type: T;
 }
 
+// Warning: (ae-forgotten-export) The symbol "MutableWrapper" needs to be exported by the entry point index.d.ts
+//
+// @alpha (undocumented)
+export function mutable<T>(v: T): MutableWrapper<T>;
+
 // @alpha (undocumented)
 export type NoSerialize<T> = (T & {
     __no_serialize__: true;
@@ -381,12 +380,13 @@ export interface PerfEvent {
 export type Props<T extends {} = {}> = Record<string, any> & T;
 
 // @public
-export type PropsOf<COMP extends (props: any) => JSXNode<any> | null> = COMP extends (props: infer PROPS) => JSXNode<any> | null ? NonNullable<PROPS> : never;
+export type PropsOf<COMP extends Component<any>> = COMP extends Component<infer PROPS> ? NonNullable<PROPS> : never;
 
+// Warning: (ae-forgotten-export) The symbol "MutableProps" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "ComponentBaseProps" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export type PublicProps<PROPS extends {}> = PROPS & On$Props<PROPS> & ComponentBaseProps;
+export type PublicProps<PROPS extends {}> = MutableProps<PROPS> & On$Props<PROPS> & ComponentBaseProps;
 
 // @public
 export interface QRL<TYPE = any> {
@@ -402,6 +402,8 @@ export interface QRL<TYPE = any> {
     invokeFn(el?: Element, context?: InvokeContext, beforeFn?: () => void): TYPE extends (...args: infer ARGS) => infer RETURN ? (...args: ARGS) => ValueOrPromise<RETURN> : never;
     // (undocumented)
     resolve(container?: Element): Promise<TYPE>;
+    // (undocumented)
+    resolveIfNeeded(container?: Element): ValueOrPromise<TYPE>;
 }
 
 // @alpha
@@ -467,9 +469,9 @@ export interface RenderContext {
     // (undocumented)
     containerEl: Element;
     // (undocumented)
-    doc: Document;
+    containerState: RenderingState;
     // (undocumented)
-    globalState: RenderingState;
+    doc: Document;
     // (undocumented)
     hostElements: Set<Element>;
     // (undocumented)
@@ -491,13 +493,21 @@ export interface RenderingState {
     // (undocumented)
     hostsStaging: Set<Element>;
     // (undocumented)
-    renderPromise: Promise<RenderContext> | undefined;
+    platform: CorePlatform;
+    // Warning: (ae-forgotten-export) The symbol "ObjToProxyMap" needs to be exported by the entry point index.d.ts
+    //
     // (undocumented)
-    watchNext: Set<WatchDescriptor>;
+    proxyMap: ObjToProxyMap;
+    // (undocumented)
+    renderPromise: Promise<RenderContext> | undefined;
+    // Warning: (ae-forgotten-export) The symbol "SubscriptionManager" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    subsManager: SubscriptionManager;
     // Warning: (ae-forgotten-export) The symbol "WatchDescriptor" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
-    watchRunning: Set<Promise<WatchDescriptor>>;
+    watchNext: Set<WatchDescriptor>;
     // (undocumented)
     watchStaging: Set<WatchDescriptor>;
 }
@@ -543,6 +553,10 @@ export interface SnapshotResult {
 
 // @public (undocumented)
 export interface SnapshotState {
+    // Warning: (ae-forgotten-export) The symbol "SnapshotMeta" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    ctx: SnapshotMeta;
     // (undocumented)
     objs: any[];
     // (undocumented)
@@ -649,7 +663,7 @@ export const useScopedStyles$: (first: string) => void;
 export function useScopedStylesQrl(styles: QRL<string>): void;
 
 // @alpha (undocumented)
-export function useSequentialScope(): [any, (prop: any) => void];
+export function useSequentialScope(): [any, (prop: any) => void, number];
 
 // Warning: (ae-incompatible-release-tags) The symbol "useServerMount$" is marked as @public, but its signature references "ServerFn" which is marked as @alpha
 //

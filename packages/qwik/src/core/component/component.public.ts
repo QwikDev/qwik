@@ -13,6 +13,7 @@ import type { FunctionComponent } from '../render/jsx/types/jsx-node';
 import { jsx } from '../render/jsx/jsx-runtime';
 import { useSequentialScope } from '../use/use-store.public';
 import { WatchDescriptor, WatchFlags } from '../watch/watch.public';
+import type { MutableWrapper } from '../object/q-object';
 
 // <docs markdown="../readme.md#useCleanup">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -40,16 +41,17 @@ import { WatchDescriptor, WatchFlags } from '../watch/watch.public';
  */
 // </docs>
 export function useCleanupQrl(unmountFn: QRL<() => void>): void {
-  const [watch, setWatch] = useSequentialScope();
+  const [watch, setWatch, i] = useSequentialScope();
   if (!watch) {
     const el = useHostElement();
     const watch: WatchDescriptor = {
       qrl: unmountFn,
       el,
       f: WatchFlags.IsCleanup,
+      i,
     };
-    setWatch(watch);
-    getContext(el).refMap.add(watch);
+    setWatch(true);
+    getContext(el).watches.push(watch);
   }
 }
 
@@ -389,9 +391,7 @@ export const useScopedStyles$ = implicit$FirstArg(useScopedStylesQrl);
  * @public
  */
 // </docs>
-export type PropsOf<COMP extends (props: any) => JSXNode<any> | null> = COMP extends (
-  props: infer PROPS
-) => JSXNode<any> | null
+export type PropsOf<COMP extends Component<any>> = COMP extends Component<infer PROPS>
   ? NonNullable<PROPS>
   : never;
 
@@ -410,7 +410,16 @@ export type Component<PROPS extends {}> = FunctionComponent<PublicProps<PROPS>>;
 /**
  * @public
  */
-export type PublicProps<PROPS extends {}> = PROPS & On$Props<PROPS> & ComponentBaseProps;
+export type PublicProps<PROPS extends {}> = MutableProps<PROPS> &
+  On$Props<PROPS> &
+  ComponentBaseProps;
+
+/**
+ * @public
+ */
+export type MutableProps<PROPS extends {}> = {
+  [K in keyof PROPS]: PROPS[K] | MutableWrapper<PROPS[K]>;
+};
 
 /**
  * @public

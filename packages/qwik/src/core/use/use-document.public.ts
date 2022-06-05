@@ -1,3 +1,5 @@
+import { assertEqual } from '../assert/assert';
+import { RenderEvent } from '../util/markers';
 import { getInvokeContext } from './use-core';
 
 // <docs markdown="../readme.md#useDocument">
@@ -14,7 +16,9 @@ import { getInvokeContext } from './use-core';
  */
 // </docs>
 export function useDocument(): Document {
-  const doc = getInvokeContext().doc;
+  const ctx = getInvokeContext();
+  assertEqual(ctx.event, RenderEvent);
+  const doc = ctx.doc;
   if (!doc) {
     throw new Error('Cant access document for existing context');
   }

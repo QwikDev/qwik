@@ -3,13 +3,13 @@ import { executeContext, printRenderStats, RenderContext } from './cursor';
 import { isJSXNode, jsx, processNode } from './jsx/jsx-runtime';
 import type { JSXNode, FunctionComponent } from './jsx/types/jsx-node';
 import { visitJsxNode } from './render';
-import { getRenderingState } from './notify-render';
+import { getContainerState } from './notify-render';
 import { getDocument } from '../util/dom';
 import { qDev, qTest } from '../util/qdev';
 import { version } from '../version';
 import { QContainerAttr } from '../util/markers';
 import { logError } from '../util/log';
-import { isWatchDescriptor, runWatch, WatchDescriptor, WatchFlags } from '../watch/watch.public';
+import { runWatch, WatchDescriptor, WatchFlags } from '../watch/watch.public';
 import { appendQwikDevTools, getContext } from '../props/props';
 
 /**
@@ -40,9 +40,10 @@ export async function render(
   }
   injectQContainer(containerEl);
 
+  const containerState = getContainerState(containerEl);
   const ctx: RenderContext = {
     doc,
-    globalState: getRenderingState(containerEl),
+    containerState,
     hostElements: new Set(),
     operations: [],
     roots: [parent as Element],
@@ -70,9 +71,9 @@ export async function render(
   const promises: Promise<WatchDescriptor>[] = [];
   ctx.hostElements.forEach((host) => {
     const elCtx = getContext(host);
-    elCtx.refMap.array.filter(isWatchDescriptor).forEach((watch) => {
+    elCtx.watches.forEach((watch) => {
       if (watch.f & WatchFlags.IsDirty) {
-        promises.push(runWatch(watch));
+        promises.push(runWatch(watch, containerState));
       }
     });
   });

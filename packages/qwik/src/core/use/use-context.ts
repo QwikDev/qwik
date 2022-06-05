@@ -29,25 +29,26 @@ export function createContext<STATE extends object>(name: string): Context<STATE
  */
 export function useContextProvider<STATE extends object>(context: Context<STATE>, newValue: STATE) {
   const [value, setValue] = useSequentialScope();
-  if (!value) {
-    const invokeContext = getInvokeContext();
-    const hostElement = invokeContext.hostElement!;
-    const renderCtx = invokeContext.renderCtx!;
-    const ctx = getContext(hostElement);
-    let contexts = ctx.contexts;
-    if (!contexts) {
-      ctx.contexts = contexts = new Map();
-    }
-    newValue = unwrapSubscriber(newValue);
-    contexts.set(context.id, newValue);
-
-    const serializedContexts: string[] = [];
-    contexts.forEach((value, key) => {
-      serializedContexts.push(`${key}=${ctx.refMap.indexOf(value)}`);
-    });
-    setAttribute(renderCtx, hostElement, QCtxAttr, serializedContexts.join(' '));
-    setValue(newValue);
+  if (value) {
+    return;
   }
+  const invokeContext = getInvokeContext();
+  const hostElement = invokeContext.hostElement!;
+  const renderCtx = invokeContext.renderCtx!;
+  const ctx = getContext(hostElement);
+  let contexts = ctx.contexts;
+  if (!contexts) {
+    ctx.contexts = contexts = new Map();
+  }
+  newValue = unwrapSubscriber(newValue);
+  contexts.set(context.id, newValue);
+
+  const serializedContexts: string[] = [];
+  contexts.forEach((_, key) => {
+    serializedContexts.push(`${key}`);
+  });
+  setAttribute(renderCtx, hostElement, QCtxAttr, serializedContexts.join(' '));
+  setValue(true);
 }
 
 /**
@@ -75,7 +76,7 @@ export function _useContext<STATE extends object>(context: Context<STATE>): STAT
         }
       }
     }
-    const foundEl = hostElement.closest(`[q\\:ctx*="${context.id}="]`);
+    const foundEl = hostElement.closest(`[q\\:ctx*="${context.id}"]`);
     if (foundEl) {
       const value = getContext(foundEl).contexts!.get(context.id);
       if (value) {

@@ -12,7 +12,7 @@ export const OnRenderProp = 'q:renderFn';
 /**
  * State factory of the component.
  */
-export const OnRenderSelector = '[q\\:host]';
+export const QHostSelector = '[q\\:host]';
 
 /**
  * State factory of the component.
@@ -65,15 +65,9 @@ export const QSlotSelector = 'Q\\:SLOT';
  */
 export const QSlotAttr = 'q:slot';
 
-export const QObjAttr = 'q:obj';
-
-export const QSeqAttr = 'q:seq';
-
 export const QCtxAttr = 'q:ctx';
 
 export const QContainerAttr = 'q:container';
-
-export const QObjSelector = '[q\\:obj]';
 
 export const QContainerSelector = '[q\\:container]';
 

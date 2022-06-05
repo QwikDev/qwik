@@ -2,7 +2,7 @@ import { assertDefined } from '../assert/assert';
 import { QHostAttr } from '../util/markers';
 import { executeContextWithSlots, printRenderStats, RenderContext } from './cursor';
 import { getContext, resumeIfNeeded } from '../props/props';
-import { qDev } from '../util/qdev';
+import { qDev, qTest } from '../util/qdev';
 import { getPlatform } from '../platform/platform';
 import { getDocument } from '../util/dom';
 import { renderComponent } from '../component/component-ctx';
@@ -35,7 +35,7 @@ export async function notifyRender(hostElement: Element): Promise<RenderContext 
   assertDefined(containerEl);
 
   const state = getContainerState(containerEl);
-  if (state.platform.isServer) {
+  if (state.platform.isServer && !qTest) {
     logWarn('Can not rerender in server platform');
     return undefined;
   }

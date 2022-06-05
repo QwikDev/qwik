@@ -413,7 +413,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@builder.io/qwik-city@workspace:packages/qwik-city"
   dependencies:
-    "@builder.io/qwik": 0.0.21
+    "@builder.io/qwik": 0.0.22
     "@mdx-js/mdx": ^2.1.1
     "@microsoft/api-extractor": 7.24.2
     "@types/github-slugger": ^1.3.0
@@ -451,14 +451,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@builder.io/qwik@npm:0.0.21":
-  version: 0.0.21
-  resolution: "@builder.io/qwik@npm:0.0.21"
-  checksum: 7a24c05f7d2a61847f695cca45d8c5edbf8b96ea929c35f1173a3f4cbd98f5b5001a6567dbd5cddcb00cbbd712c7578506b2e0c88906401247b623e0f1eadc2c
-  languageName: node
-  linkType: hard
-
-"@builder.io/qwik@workspace:packages/qwik":
+"@builder.io/qwik@0.0.22, @builder.io/qwik@workspace:packages/qwik":
   version: 0.0.0-use.local
   resolution: "@builder.io/qwik@workspace:packages/qwik"
   languageName: unknown
@@ -7663,7 +7656,7 @@ __metadata:
   resolution: "qwik-docs@workspace:packages/docs"
   dependencies:
     "@builder.io/partytown": ^0.6.0
-    "@builder.io/qwik": 0.0.21
+    "@builder.io/qwik": 0.0.22
     "@builder.io/qwik-city": 0.0.11
     "@cloudflare/kv-asset-handler": 0.2.0
     "@cloudflare/workers-types": ^3.11.0

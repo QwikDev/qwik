@@ -1,33 +1,13 @@
-import type { PluginContext, ParsedIndex, ParsedIndexData, ParsedPage } from './types';
-import frontmatter from 'front-matter';
+import type { BuildContext, ParsedIndex, ParsedIndexData } from '../types';
 import { marked } from 'marked';
-import {
-  getIndexPathname,
-  getIndexLinkHref,
-  getPagePathname,
-  validateLayout,
-  getPageTitle,
-} from './utils';
+import { getIndexPathname, getIndexLinkHref } from '../utils/pathname';
+import { normalizePath } from '../utils/fs';
 
-export function parseMarkdownFile(ctx: PluginContext, filePath: string, content: string) {
-  const parsed = frontmatter<any>(content);
-  const attrs: { [prop: string]: string } = parsed.attributes || {};
+export function parseIndexFile(ctx: BuildContext, indexFilePath: string, content: string) {
+  indexFilePath = normalizePath(indexFilePath);
 
-  validateLayout(ctx, filePath, attrs);
-
-  attrs.title = getPageTitle(filePath, attrs);
-
-  const page: ParsedPage = {
-    pathname: getPagePathname(ctx, filePath),
-    attrs,
-    filePath,
-  };
-  return page;
-}
-
-export function parseIndexFile(ctx: PluginContext, indexFilePath: string, content: string) {
   const index: ParsedIndexData = {
-    pathname: getIndexPathname(ctx, indexFilePath),
+    pathname: getIndexPathname(ctx.opts, indexFilePath),
     filePath: indexFilePath,
     text: '',
     items: [],
@@ -60,7 +40,7 @@ export function parseIndexFile(ctx: PluginContext, indexFilePath: string, conten
           } else if (h2Token.type === 'link') {
             h2 = {
               text: h2Token.text,
-              href: getIndexLinkHref(ctx, indexFilePath, h2Token.href),
+              href: getIndexLinkHref(ctx.opts, indexFilePath, h2Token.href),
             };
             index.items!.push(h2);
           } else {
@@ -85,7 +65,7 @@ export function parseIndexFile(ctx: PluginContext, indexFilePath: string, conten
                 } else if (liItem.type === 'link') {
                   h2.items.push({
                     text: liItem.text,
-                    href: getIndexLinkHref(ctx, indexFilePath, liItem.href),
+                    href: getIndexLinkHref(ctx.opts, indexFilePath, liItem.href),
                   });
                 } else {
                   throw new Error(
@@ -96,7 +76,7 @@ export function parseIndexFile(ctx: PluginContext, indexFilePath: string, conten
             } else if (liToken.type === 'link') {
               h2.items.push({
                 text: liToken.text,
-                href: getIndexLinkHref(ctx, indexFilePath, liToken.href),
+                href: getIndexLinkHref(ctx.opts, indexFilePath, liToken.href),
               });
             } else {
               throw new Error(

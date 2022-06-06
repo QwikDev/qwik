@@ -1,7 +1,7 @@
 import * as assert from 'uvu/assert';
-import * as utils from '../utils';
+import * as utils from './format';
 import { join } from 'path';
-import { suite } from './uvu-suite';
+import { suite } from './tests/test-suite';
 
 const test = suite();
 

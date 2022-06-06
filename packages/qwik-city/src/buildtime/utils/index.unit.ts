@@ -1,7 +1,7 @@
 import { join } from 'path';
 import * as assert from 'uvu/assert';
-import { parseIndexFile } from '../parse';
-import { suite } from './uvu-suite';
+import { parseIndexFile } from '../markdown/parse-index';
+import { suite } from './tests/test-suite';
 
 const test = suite();
 

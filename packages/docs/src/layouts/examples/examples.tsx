@@ -12,8 +12,10 @@ import { Header } from '../../components/header/header';
 import { useHeadMeta } from '@builder.io/qwik-city';
 import exampleSections, { ExampleApp } from '@examples-data';
 import type { ReplAppInput } from '../../components/repl/types';
+import { usePage } from 'packages/qwik-city/tsc-out/runtime';
 
 const Examples = component$((props: ExamplesProp) => {
+  const page = usePage();
   useHeadMeta({ title: `Qwik Examples` });
   useStyles$(`html,body { margin: 0; height: 100%; overflow: hidden; }`);
 

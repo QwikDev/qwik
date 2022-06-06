@@ -25,7 +25,7 @@
       "@builder.io/qwik/testing": ["packages/qwik/src/testing/index"],
       "@builder.io/qwik-city": ["packages/qwik-city/src/runtime/index"],
       "@builder.io/qwik-city/build": ["packages/qwik-city/src/runtime/build"],
-      "@builder.io/qwik-city/vite": ["packages/qwik-city/src/vite"],
+      "@builder.io/qwik-city/vite": ["packages/qwik-city/src/vite/index"],
       "@examples-data": ["packages/docs/src/layouts/examples/examples-data.ts"],
       "@playground-data": ["packages/docs/src/layouts/playground/playground-data.ts"],
       "@qwik-client-manifest": ["packages/qwik/src/server/server-modules.d.ts"],

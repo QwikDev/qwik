@@ -3,9 +3,9 @@ import { extname } from 'path';
 import { SourceMapGenerator } from 'source-map';
 import { rehypePage } from './rehype';
 import { rehypeSyntaxHighlight } from './syntax-highlight';
-import type { PluginContext } from './types';
+import type { BuildContext } from '../types';
 
-export async function createMdxTransformer(ctx: PluginContext): Promise<MdxTransform> {
+export async function createMdxTransformer(ctx: BuildContext): Promise<MdxTransform> {
   const { createFormatAwareProcessors } = await import(
     '@mdx-js/mdx/lib/util/create-format-aware-processors.js'
   );

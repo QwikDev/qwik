@@ -1,2 +1,2 @@
 export { qwikCity } from './plugin';
-export type { MdxOptions, PluginOptions } from './types';
+export type { MdxOptions, QwikCityVitePluginOptions } from './plugin';

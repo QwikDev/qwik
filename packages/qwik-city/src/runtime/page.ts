@@ -33,6 +33,7 @@ export const useQwikCity = () => {
         Object.assign(page, {
           attributes: loaded.attributes,
           breadcrumbs: loaded.breadcrumbs,
+          head: loaded.head,
           headings: loaded.headings,
           index: loaded.index,
           source: loaded.source,
@@ -97,10 +98,11 @@ const loadPage = async (href: string): Promise<PageHandler | null> => {
     attributes: pageModule.attributes,
     breadcrumbs: pageModule.breadcrumbs,
     content: pageModule.default,
+    head: {},
     headings: pageModule.headings,
     index: pageModule.index,
     layout: layoutModule,
     source: pageModule.source,
-    url: url.pathname,
+    url: url,
   };
 };

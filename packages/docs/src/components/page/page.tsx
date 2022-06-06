@@ -1,4 +1,4 @@
-import { component$, useDocument } from '@builder.io/qwik';
+import { component$, useDocument, SkipRerender } from '@builder.io/qwik';
 import { Builder } from '../../layouts/builder/builder';
 import { setHeadLinks, setHeadMeta, getLocation, usePage } from '@builder.io/qwik-city';
 import Playground from '../../layouts/playground/playground';
@@ -35,7 +35,9 @@ export const Page = component$(() => {
 
     return (
       <Layout>
-        <Content />
+        <SkipRerender>
+          <Content />
+        </SkipRerender>
       </Layout>
     );
   }

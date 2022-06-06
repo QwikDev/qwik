@@ -6,7 +6,7 @@
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "test": "uvu -r tsm src/vite/tests"
+    "test": "uvu -r tsm src \"(unit)\""
   },
   "dependencies": {
     "@mdx-js/mdx": "^2.1.1",

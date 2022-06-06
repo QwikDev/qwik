@@ -1,18 +1,20 @@
-import type { PluginContext } from './types';
+import type { BuildContext } from '../types';
 
-export function createDynamicImportedCode(ctx: PluginContext) {
+export function createDynamicImportedRuntime(ctx: BuildContext) {
   const c: string[] = [];
 
   c.push(`export const LAYOUTS = {`);
-  Object.entries(ctx.opts.layouts).forEach(([layoutName, layoutPath]) => {
-    const importPath = getImportPath(layoutPath);
-    c.push(`  ${JSON.stringify(layoutName)}: () => import(${JSON.stringify(importPath)}),`);
+  ctx.layouts.forEach((layout) => {
+    const importPath = getImportPath(layout.path);
+    c.push(`  ${JSON.stringify(layout.id)}: () => import(${JSON.stringify(importPath)}),`);
   });
   c.push(`};`);
 
   c.push(`export const PAGES = {`);
   for (const p of ctx.pages) {
-    c.push(`  ${JSON.stringify(p.pathname)}: () => import(${JSON.stringify(p.filePath)}),`);
+    c.push(
+      `  ${JSON.stringify(p.route.pathname)}: () => import(${JSON.stringify(p.route.pathname)}),`
+    );
   }
   c.push(`};`);
 
@@ -25,23 +27,24 @@ export function createDynamicImportedCode(ctx: PluginContext) {
   return c.join('\n');
 }
 
-export function createInlinedCode(ctx: PluginContext) {
+export function createInlinedRuntime(ctx: BuildContext) {
   const esmImports: string[] = [];
   const c: string[] = [];
 
   c.push(`export const LAYOUTS = {`);
-  Object.entries(ctx.opts.layouts).forEach(([layoutName, layoutPath], index) => {
-    const importPath = getImportPath(layoutPath);
-
-    const importName = `layout_${index}`;
+  ctx.layouts.forEach((layout) => {
+    const importPath = getImportPath(layout.path);
+    const importName = `layout_${layout.id}`;
     esmImports.push(`import ${importName} from ${JSON.stringify(importPath)};`);
-    c.push(`  ${JSON.stringify(layoutName)}: () => ${importName},`);
+    c.push(`  ${JSON.stringify(layout.id)}: () => ${importName},`);
   });
   c.push(`};`);
 
   c.push(`export const PAGES = {`);
   for (const p of ctx.pages) {
-    c.push(`  ${JSON.stringify(p.pathname)}: () => import(${JSON.stringify(p.filePath)}),`);
+    c.push(
+      `  ${JSON.stringify(p.route.pathname)}: () => import(${JSON.stringify(p.route.pathname)}),`
+    );
   }
   c.push(`};`);
 
@@ -54,7 +57,7 @@ export function createInlinedCode(ctx: PluginContext) {
   return esmImports.join('\n') + c.join('\n');
 }
 
-function createPageIndex(ctx: PluginContext) {
+function createPageIndex(ctx: BuildContext) {
   const c: string[] = [];
   c.push(`export const INDEXES = {`);
   for (const i of ctx.indexes) {

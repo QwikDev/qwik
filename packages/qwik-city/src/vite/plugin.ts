@@ -1,23 +1,28 @@
-import { createMdxTransformer, MdxTransform } from './mdx';
+import { createMdxTransformer, MdxTransform } from '../buildtime/markdown/mdx';
 import fs from 'fs';
-import { isAbsolute } from 'path';
+import { isAbsolute, resolve } from 'path';
 import type { Plugin, UserConfig } from 'vite';
-import { createDynamicImportedCode, createInlinedCode } from './code-generation';
-import { loadPages } from './load-pages';
-import type { PluginContext, PluginOptions } from './types';
-import { getPagesBuildPath, normalizeOptions } from './utils';
+import {
+  createDynamicImportedRuntime,
+  createInlinedRuntime,
+} from '../buildtime/pages/runtime-generation';
+import { loadPages } from '../buildtime/pages/load-pages';
+import type { BuildContext, NormalizedPluginOptions, PluginOptions } from '../buildtime/types';
+import { createBuildContext, normalizeOptions } from '../buildtime/utils/context';
+import { getPagesBuildPath, isMarkdownFile } from '../buildtime/utils/fs';
 
 /**
  * @alpha
  */
-export function qwikCity(options: PluginOptions) {
-  const ctx = normalizeOptions(options);
-  let hasValidatedOpts = false;
-  let qwikCityBuildCode: string | null = null;
+export function qwikCity(userOpts: QwikCityVitePluginOptions) {
+  let ctx: BuildContext | null = null;
+  let opts: NormalizedPluginOptions | null = null;
+  let qwikCityRuntimeCode: string | null = null;
   let mdxTransform: MdxTransform | null = null;
   let inlineModules = false;
   let isSSR = false;
   let command: 'build' | 'serve' | null;
+  let rootDir: string | null = null;
 
   const plugin: Plugin = {
     name: 'vite-plugin-qwik-city',
@@ -33,22 +38,21 @@ export function qwikCity(options: PluginOptions) {
       return updatedViteConfig;
     },
     configResolved(config) {
+      rootDir = resolve(config.root);
       command = config.command;
       isSSR = !!config.build?.ssr || config.mode === 'ssr';
       inlineModules = isSSR || command === 'serve';
     },
 
     async buildStart() {
-      qwikCityBuildCode = null;
+      qwikCityRuntimeCode = null;
 
-      if (!hasValidatedOpts) {
-        const err = await validatePlugin(ctx);
-        if (err) {
-          this.error(err);
-        } else {
-          hasValidatedOpts = true;
-        }
+      if (!opts) {
+        opts = normalizeOptions(rootDir!, userOpts);
+        await validatePlugin(opts);
       }
+
+      ctx = createBuildContext(rootDir!, opts, (msg) => this.warn(msg));
 
       if (!mdxTransform) {
         mdxTransform = await createMdxTransformer(ctx);
@@ -63,18 +67,18 @@ export function qwikCity(options: PluginOptions) {
     },
 
     async load(id) {
-      if (id === RESOLVED_QWIK_CITY_BUILD_ID) {
+      if (id === RESOLVED_QWIK_CITY_BUILD_ID && ctx) {
         // @builder.io/qwik-city
-        if (typeof qwikCityBuildCode === 'string') {
-          return qwikCityBuildCode;
+        if (typeof qwikCityRuntimeCode === 'string') {
+          return qwikCityRuntimeCode;
         }
 
-        await loadPages(ctx, (msg) => this.warn(msg));
+        await loadPages(ctx);
 
         if (inlineModules) {
-          qwikCityBuildCode = createInlinedCode(ctx);
+          qwikCityRuntimeCode = createInlinedRuntime(ctx);
         } else {
-          qwikCityBuildCode = createDynamicImportedCode(ctx);
+          qwikCityRuntimeCode = createDynamicImportedRuntime(ctx);
         }
 
         if (command === 'build' && !inlineModules) {
@@ -82,23 +86,24 @@ export function qwikCity(options: PluginOptions) {
           ctx.pages.forEach((p) => {
             this.emitFile({
               type: 'chunk',
-              id: p.filePath,
-              fileName: getPagesBuildPath(p.pathname),
+              id: p.path,
+              fileName: getPagesBuildPath(p.route.pathname),
               preserveSignature: 'allow-extension',
             });
           });
         }
 
-        return qwikCityBuildCode;
+        return qwikCityRuntimeCode;
       }
       return null;
     },
 
     async transform(code, id) {
-      if (mdxTransform) {
+      if (isMarkdownFile(id) && mdxTransform) {
         const mdxResult = await mdxTransform(code, id);
         return mdxResult;
       }
+      return null;
     },
   };
 
@@ -108,48 +113,33 @@ export function qwikCity(options: PluginOptions) {
 const QWIK_CITY_BUILD_ID = '@builder.io/qwik-city/build';
 const RESOLVED_QWIK_CITY_BUILD_ID = '\0' + QWIK_CITY_BUILD_ID;
 
-async function validatePlugin(ctx: PluginContext) {
-  if (typeof ctx.opts.pagesDir !== 'string') {
-    return `qwikCity plugin "pagesDir" option missing`;
+async function validatePlugin(opts: NormalizedPluginOptions) {
+  if (typeof opts.pagesDir !== 'string') {
+    throw new Error(`qwikCity plugin "pagesDir" option missing`);
   }
 
-  if (!isAbsolute(ctx.opts.pagesDir)) {
-    return `qwikCity plugin "pagesDir" option must be an absolute path: ${ctx.opts.pagesDir}`;
+  if (!isAbsolute(opts.pagesDir)) {
+    throw new Error(`qwikCity plugin "pagesDir" option must be an absolute path: ${opts.pagesDir}`);
   }
 
   try {
-    const s = await fs.promises.stat(ctx.opts.pagesDir);
+    const s = await fs.promises.stat(opts.pagesDir);
     if (!s.isDirectory()) {
-      return `qwikCity plugin "pagesDir" option must be a directory: ${ctx.opts.pagesDir}`;
+      throw new Error(`qwikCity plugin "pagesDir" option must be a directory: ${opts.pagesDir}`);
     }
   } catch (e) {
-    return `qwikCity plugin "pagesDir" not found: ${e}`;
+    throw new Error(`qwikCity plugin "pagesDir" not found: ${e}`);
   }
-
-  if (!ctx.opts.layouts) {
-    return `qwikCity plugin "layouts" option missing`;
-  }
-
-  if (typeof ctx.opts.layouts.default !== 'string') {
-    return `qwikCity plugin "layouts.default" option missing`;
-  }
-
-  if (!isAbsolute(ctx.opts.layouts.default)) {
-    return `qwikCity plugin "layouts.default" option must be set to an absolute path: ${ctx.opts.layouts.default}`;
-  }
-
-  const layoutNames = Object.keys(ctx.opts.layouts);
-  for (const layoutName of layoutNames) {
-    const layoutPath = ctx.opts.layouts[layoutName];
-    try {
-      const s = await fs.promises.stat(layoutPath);
-      if (!s.isFile()) {
-        return `qwikCity plugin layout "${layoutName}" must be a file: ${layoutPath}`;
-      }
-    } catch (e) {
-      return `qwikCity plugin layout "${layoutName}" not found: ${e}`;
-    }
-  }
-
-  return null;
 }
+
+/**
+ * @alpha
+ */
+export interface QwikCityVitePluginOptions extends PluginOptions {
+  mdx?: MdxOptions;
+}
+
+/**
+ * @alpha
+ */
+export type MdxOptions = import('@mdx-js/mdx/lib/compile').CompileOptions;

@@ -1,0 +1,157 @@
+.docs {
+  @apply bg-white text-gray-900;
+}
+
+.docs main {
+  @apply mx-auto mt-14 min-h-[100vh] xl:max-w-[1400px];
+}
+
+.docs article {
+  @apply pt-[80px];
+  @apply px-6;
+
+  /* medium */
+
+  /* large */
+  @apply lg:pt-5 lg:ml-[19rem] lg:mr-[4rem] lg:px-0;
+
+  /* xlarge */
+  @apply xl:pr-16 xl:mr-[16.5rem];
+}
+
+.docs article a {
+  color: var(--qwik-dark-blue);
+  text-decoration: underline;
+}
+
+.docs article a:hover {
+  text-decoration: none;
+}
+
+.docs article h1 {
+  @apply text-slate-900;
+  @apply text-5xl font-bold;
+  @apply mb-6;
+  @apply relative;
+}
+
+.docs article h2,
+.docs article h3,
+.docs article h4,
+.docs article h5,
+.docs article h6 {
+  @apply text-xl font-semibold;
+  @apply text-slate-900;
+  @apply mt-8;
+  @apply mb-4;
+  @apply relative;
+  scroll-margin-top: 80px;
+}
+
+.docs article h2 {
+  @apply text-3xl;
+}
+
+.docs h2 a,
+.docs h3 a,
+.docs h4 a,
+.docs h5 a,
+.docs h6 a {
+  position: absolute;
+  width: 100%;
+  height: 32px;
+}
+
+.icon-link {
+  display: none;
+}
+
+.icon-link::after {
+  position: absolute;
+  content: '#';
+  left: -23px;
+}
+
+h2 a:hover .icon,
+h3 a:hover .icon,
+h4 a:hover .icon,
+h5 a:hover .icon,
+h6 a:hover .icon {
+  display: inline;
+}
+
+.docs article p {
+  @apply my-5;
+  font-size: 17px;
+}
+
+.docs article ul,
+.docs article ol {
+  @apply my-4;
+  @apply ml-8;
+  font-size: 17px;
+  line-height: 1.7;
+  list-style: disc;
+}
+
+.docs article ol {
+  list-style: decimal;
+}
+
+.docs article li {
+  @apply my-1;
+  @apply pl-2;
+}
+
+.docs article pre {
+  overflow: auto;
+  color: white;
+  background-color: rgb(1 31 51);
+  padding: 18px 15px;
+  border-radius: 8px;
+}
+
+.docs article pre code {
+  display: block;
+  max-width: 50px;
+  background-color: transparent;
+}
+
+.docs article code {
+  background-color: rgb(224, 224, 224);
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-size: 0.9em;
+  line-height: 1.4;
+}
+
+@media (max-width: 640px) {
+  .docs article code {
+    word-break: break-all;
+  }
+}
+
+.docs article table {
+  @apply my-5;
+}
+
+.docs article th,
+.docs article td {
+  padding: 6px;
+  vertical-align: top;
+}
+
+.docs article th:first-child,
+.docs article td:first-child {
+  padding-left: 0;
+}
+
+.docs article th:last-child,
+.docs article td:last-child {
+  padding-right: 0;
+}
+
+.docs article img {
+  border-radius: 5px;
+  overflow: hidden;
+}

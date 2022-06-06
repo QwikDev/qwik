@@ -1,11 +1,8 @@
 export type {
   Content,
-  HeadLinkAttributes,
-  HeadLinks,
+  HeadLink,
   HeadStyle,
-  HeadStyles,
   Layout,
-  MetaOptions,
   PageAttributes,
   PageBreadcrumb,
   PageHandler,

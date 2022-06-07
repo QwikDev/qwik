@@ -131,7 +131,7 @@ export interface RenderToStringOptions extends SerializeDocumentOptions {
     prefetchStrategy?: PrefetchStrategy | null;
     qwikLoader?: {
         events?: string[];
-        include?: boolean | 'body' | 'head';
+        include?: boolean | 'top' | 'bottom';
     };
     snapshot?: boolean;
 }

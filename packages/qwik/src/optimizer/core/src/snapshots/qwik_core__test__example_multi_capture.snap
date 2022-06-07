@@ -40,9 +40,6 @@ export const Foo_component_HTDRsvUbLiE = ({ foo  })=>{
         foo
     ]);
 };
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
-export { hW as handleWatch };
 
 /*
 {
@@ -72,9 +69,6 @@ export const Bar_component_L80pS8Hxf1Y = ({ bar  })=>{
         bar
     ]);
 };
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
-export { hW as handleWatch };
 
 /*
 {
@@ -109,7 +103,7 @@ export const Foo_component_1_DvU6FitWglY = ()=>{
             </div>;
 };
 import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
+hW.issue123 && hW.issue123();
 export { hW as handleWatch };
 
 /*
@@ -143,7 +137,7 @@ export const Bar_component_1_0xSyNSnVu3k = ()=>{
             </div>;
 };
 import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
+hW.issue123 && hW.issue123();
 export { hW as handleWatch };
 
 /*

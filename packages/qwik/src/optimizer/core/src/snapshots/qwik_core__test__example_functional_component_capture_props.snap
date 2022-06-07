@@ -35,9 +35,6 @@ export const App_component_div_onClick_1CGetmFZx0g = ()=>{
     const [count, state] = qwik.useLexicalScope();
     return state.count += count + total;
 };
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
-export { hW as handleWatch };
 
 /*
 {
@@ -87,9 +84,6 @@ export const App_component_ckEPmXZlub0 = ({ count , rest: [I2, { I3 , v1: [I4] ,
         state
     ]);
 };
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
-export { hW as handleWatch };
 
 /*
 {
@@ -144,7 +138,7 @@ export const App_component_1_w0t0o3QMovU = ()=>{
     });
 };
 import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
+hW.issue123 && hW.issue123();
 export { hW as handleWatch };
 
 /*

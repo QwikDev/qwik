@@ -1,5 +1,8 @@
 use crate::collector::{new_ident_from_id, GlobalCollect, Id, ImportKind};
-use crate::parse::{emit_source_code, HookAnalysis, PathData, TransformModule, TransformOutput};
+use crate::parse::{
+    emit_source_code, might_need_handle_watch, HookAnalysis, PathData, TransformModule,
+    TransformOutput,
+};
 use crate::transform::{add_handle_watch, create_internal_call, create_synthetic_wildcard_import};
 use crate::words::*;
 
@@ -23,6 +26,7 @@ pub struct NewModuleCtx<'a> {
     pub global: &'a GlobalCollect,
     pub qwik_ident: &'a Id,
     pub is_entry: bool,
+    pub need_handle_watch: bool,
     pub leading_comments: SingleThreadedCommentsMap,
     pub trailing_comments: SingleThreadedCommentsMap,
 }
@@ -123,7 +127,7 @@ pub fn new_module(ctx: NewModuleCtx) -> Result<(ast::Module, SingleThreadedComme
     };
 
     module.body.push(create_named_export(expr, ctx.name));
-    if ctx.is_entry {
+    if ctx.need_handle_watch {
         // Inject qwik internal import
         add_handle_watch(&mut module.body, true);
     }
@@ -258,10 +262,14 @@ fn new_entry_module(hooks: &[&HookAnalysis], explicity_extensions: bool) -> ast:
         body: Vec::with_capacity(hooks.len()),
         shebang: None,
     };
+    let mut need_handle_watch = false;
     for hook in hooks {
         let mut src = ["./", &hook.canonical_filename].concat();
         if explicity_extensions {
             src = src + "." + hook.extension.as_ref();
+        }
+        if might_need_handle_watch(&hook.ctx_kind, &hook.ctx_name) {
+            need_handle_watch = true;
         }
         module
             .body
@@ -287,8 +295,9 @@ fn new_entry_module(hooks: &[&HookAnalysis], explicity_extensions: bool) -> ast:
                 },
             )));
     }
-
-    add_handle_watch(&mut module.body, false);
+    if need_handle_watch {
+        add_handle_watch(&mut module.body, false);
+    }
     module
 }
 

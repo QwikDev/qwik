@@ -29,9 +29,6 @@ export const Header_component_J4uyIhaBNR4 = ()=>{
 
         </>;
 };
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
-export { hW as handleWatch };
 
 /*
 {
@@ -65,7 +62,7 @@ import * as qwik from "@builder.io/qwik";
 export const Header_component_div_onClick_i7ekvWH3674 = (ctx)=>console.log("2")
 ;
 import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
+hW.issue123 && hW.issue123();
 export { hW as handleWatch };
 
 /*

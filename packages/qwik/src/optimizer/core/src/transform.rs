@@ -878,7 +878,7 @@ pub fn add_handle_watch(body: &mut Vec<ast::ModuleItem>, private: bool) {
             op: ast::BinaryOp::LogicalAnd,
             left: Box::new(ast::Expr::Member(ast::MemberExpr {
                 obj: Box::new(ast::Expr::Ident(ident.clone())),
-                prop: ast::MemberProp::Ident(ast::Ident::new(JsWord::from("issue456"), DUMMY_SP)),
+                prop: ast::MemberProp::Ident(ast::Ident::new(JsWord::from("issue123"), DUMMY_SP)),
                 span: DUMMY_SP,
             })),
             right: Box::new(ast::Expr::Call(ast::CallExpr {

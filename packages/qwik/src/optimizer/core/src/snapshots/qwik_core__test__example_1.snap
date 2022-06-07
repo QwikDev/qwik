@@ -25,7 +25,7 @@ export const renderHeader_zBbHWn4e8Cg = ()=>{
     , "renderHeader_div_onClick_fV2uzAL99u4")}/>;
 };
 import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
+hW.issue123 && hW.issue123();
 export { hW as handleWatch };
 
 /*
@@ -55,7 +55,7 @@ export const renderHeader_1_cPyr0uAhiIk = ()=>{
     return render;
 };
 import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
+hW.issue123 && hW.issue123();
 export { hW as handleWatch };
 
 /*
@@ -92,7 +92,7 @@ import * as qwik from "@builder.io/qwik";
 export const renderHeader_div_onClick_fV2uzAL99u4 = (ctx)=>console.log(ctx)
 ;
 import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
+hW.issue123 && hW.issue123();
 export { hW as handleWatch };
 
 /*

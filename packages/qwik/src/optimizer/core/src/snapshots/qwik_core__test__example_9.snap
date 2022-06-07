@@ -33,7 +33,7 @@ export const Header_WjUaUQN7Oxg = (decl1, { decl2  }, [decl3])=>{
     try {} catch ({ decl19  }) {}
 };
 import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
+hW.issue123 && hW.issue123();
 export { hW as handleWatch };
 
 /*

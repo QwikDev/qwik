@@ -66,9 +66,6 @@ export const Foo_component_HTDRsvUbLiE = ()=>{
     return qwik.qrl(()=>import("./foo_component_1_dvu6fitwgly")
     , "Foo_component_1_DvU6FitWglY");
 };
-import { handleWatch as hW1 } from "@builder.io/qwik";
-hW1.issue456 && hW1.issue123();
-export { hW1 as handleWatch };
 
 /*
 {
@@ -97,7 +94,7 @@ export const Foo_component_1_DvU6FitWglY = ()=>{
     return /*#__PURE__*/ _jsx("div", {});
 };
 import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
+hW.issue123 && hW.issue123();
 export { hW as handleWatch };
 
 /*
@@ -129,9 +126,6 @@ export const Root_component_royhjYaCbYE = ()=>{
     return qwik.qrl(()=>import("./root_component_2_iqsg9sgbdfk")
     , "Root_component_2_iqSg9SGBdfk");
 };
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
-export { hW as handleWatch };
 
 /*
 {
@@ -157,7 +151,7 @@ export { hW as handleWatch };
 import * as qwik from "@builder.io/qwik";
 export const Root_component_1_cBpQNYDUHI4 = 'thing';
 import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
+hW.issue123 && hW.issue123();
 export { hW as handleWatch };
 
 /*
@@ -187,7 +181,7 @@ export const Root_component_2_iqSg9SGBdfk = ()=>{
     return /*#__PURE__*/ _jsx("div", {});
 };
 import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
+hW.issue123 && hW.issue123();
 export { hW as handleWatch };
 
 /*

@@ -55,9 +55,6 @@ export const App_component_div_onClick_1CGetmFZx0g = ()=>{
     const [count2, state] = qwik.useLexicalScope();
     return state.count += count2;
 };
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
-export { hW as handleWatch };
 
 /*
 {
@@ -86,9 +83,6 @@ export const App_component_div_button_onClick_f5NwW9e63a4 = ()=>{
     const [STEP_2, btn, props, state, thing] = qwik.useLexicalScope();
     return state.count += btn.offset + thing + STEP + STEP_2 + props.step;
 };
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
-export { hW as handleWatch };
 
 /*
 {
@@ -148,9 +142,6 @@ export const App_component_ckEPmXZlub0 = (props)=>{
         ]
     });
 };
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
-export { hW as handleWatch };
 
 /*
 {

@@ -20,9 +20,6 @@ export const Foo = component$(() => {
 
 import * as qwik from "@builder.io/qwik";
 export const Foo_component_useStyles_pV9TSCBIhw8 = '.class {}';
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
-export { hW as handleWatch };
 
 /*
 {
@@ -52,9 +49,6 @@ export const Foo_component_HTDRsvUbLiE = ()=>{
     , "Foo_component_useStyles_pV9TSCBIhw8"));
     return <div class="class"/>;
 };
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
-export { hW as handleWatch };
 
 /*
 {

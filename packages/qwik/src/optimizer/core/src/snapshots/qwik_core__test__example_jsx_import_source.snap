@@ -37,9 +37,6 @@ export const App2_qwikify_RKJW7oCMdS4 = ()=>/*#__PURE__*/ _jsx("div", {
         onClick$: ()=>console.log('App2')
     })
 ;
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
-export { hW as handleWatch };
 
 /*
 {

@@ -25,9 +25,6 @@ export const App = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./app_compone
 
 import * as qwik from "@builder.io/qwik";
 export const App_component_useStyles_t35nSa5UV7U = 'hola';
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
-export { hW as handleWatch };
 
 /*
 {
@@ -58,9 +55,6 @@ export const App_component_ckEPmXZlub0 = (props)=>{
     return qwik.qrl(()=>import("./app_component_1_w0t0o3qmovu.js")
     , "App_component_1_w0t0o3QMovU");
 };
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
-export { hW as handleWatch };
 
 /*
 {
@@ -88,7 +82,7 @@ import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 export const App_component_1_w0t0o3QMovU = ()=>/*#__PURE__*/ _jsx("div", {})
 ;
 import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
+hW.issue123 && hW.issue123();
 export { hW as handleWatch };
 
 /*

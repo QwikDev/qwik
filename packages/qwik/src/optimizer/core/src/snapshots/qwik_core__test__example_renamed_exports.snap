@@ -33,7 +33,7 @@ export const App_Component_1_A08tXHb9pEk = ()=>{
     });
 };
 import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
+hW.issue123 && hW.issue123();
 export { hW as handleWatch };
 
 /*
@@ -68,9 +68,6 @@ export const App_Component_NuXFTHRjvXE = (props)=>{
         state
     ]);
 };
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
-export { hW as handleWatch };
 
 /*
 {

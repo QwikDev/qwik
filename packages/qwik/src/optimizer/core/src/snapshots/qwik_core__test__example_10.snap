@@ -50,7 +50,7 @@ export const Header_WlR3xnI6u38 = (decl1, { decl2  }, [decl3])=>{
     } required={false}/>;
 };
 import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
+hW.issue123 && hW.issue123();
 export { hW as handleWatch };
 
 /*

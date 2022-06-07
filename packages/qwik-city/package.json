@@ -1,6 +1,6 @@
 {
   "name": "@builder.io/qwik-city",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "description": "Static Site Generator for Qwik",
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
@@ -10,7 +10,12 @@
   },
   "dependencies": {
     "@mdx-js/mdx": "^2.1.1",
-    "@types/mdx": "2.0.2"
+    "@types/mdx": "2.0.2",
+    "front-matter": "^4.0.2",
+    "source-map": "^0.7.3"
+  },
+  "peerDependencies": {
+    "@builder.io/qwik": ">=0.0.22"
   },
   "devDependencies": {
     "@builder.io/qwik": "0.0.22",
@@ -20,7 +25,6 @@
     "@types/node": "latest",
     "@types/refractor": "^3.0.2",
     "estree-util-value-to-estree": "^1.3.0",
-    "front-matter": "^4.0.2",
     "github-slugger": "^1.4.0",
     "hast-util-heading-rank": "^2.1.0",
     "hast-util-to-string": "^2.0.0",
@@ -32,7 +36,6 @@
     "remark-frontmatter": "^4.0.1",
     "remark-gfm": "^3.0.1",
     "slugify": "^1.6.5",
-    "source-map": "^0.7.3",
     "tsm": "^2.2.1",
     "typescript": "4.7.2",
     "unified": "^10.1.2",

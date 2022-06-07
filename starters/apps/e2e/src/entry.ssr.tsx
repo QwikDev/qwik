@@ -47,7 +47,7 @@ export function render(opts: RenderToStringOptions) {
       </>,
       {
         debug: true,
-        fragmentTagName: 'div',
+        fragmentTagName: 'container',
         qwikLoader: {
           include: url.searchParams.get('loader') !== 'false',
           events: ['click'],

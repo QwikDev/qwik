@@ -11,6 +11,7 @@ import { getPrefetchResources } from './prefetch-strategy';
 import { _createDocument } from './document';
 import type { SymbolMapper } from '../optimizer/src/types';
 import { getCanonicalSymbol } from '../core/import/qrl-class';
+import { isDocument } from '../core/util/element';
 
 /**
  * Creates a server-side `document`, renders to root node to the document,
@@ -19,43 +20,45 @@ import { getCanonicalSymbol } from '../core/import/qrl-class';
  */
 export async function renderToString(rootNode: any, opts: RenderToStringOptions = {}) {
   const createDocTimer = createTimer();
-  const doc = _createDocument(opts);
+  const doc = _createDocument(opts) as Document;
   const createDocTime = createDocTimer();
-
   const renderDocTimer = createTimer();
-  let rootEl: Element | Document = doc;
+  let root: Element | Document = doc;
   if (typeof opts.fragmentTagName === 'string') {
     if (opts.qwikLoader) {
-      opts.qwikLoader.include = false;
+      if (opts.qwikLoader.include === undefined) {
+        opts.qwikLoader.include = false;
+      }
     } else {
       opts.qwikLoader = { include: false };
     }
 
-    rootEl = doc.createElement(opts.fragmentTagName);
-    doc.body.appendChild(rootEl);
+    root = doc.createElement(opts.fragmentTagName);
+    doc.body.appendChild(root);
   }
+  const isFullDocument = isDocument(root);
   const mapper = computeSymbolMapper(opts.manifest);
-
   await setServerPlatform(doc, opts, mapper);
 
-  await render(doc, rootNode);
+  await render(root, rootNode);
   const renderDocTime = renderDocTimer();
 
   const buildBase = getBuildBase(opts);
-  const containerEl = getElement(doc);
+  const containerEl = getElement(root);
   containerEl.setAttribute('q:base', buildBase);
 
   let snapshotResult: SnapshotResult | null = null;
   if (opts.snapshot !== false) {
-    snapshotResult = pauseContainer(doc);
+    snapshotResult = pauseContainer(root);
   }
   const prefetchResources = getPrefetchResources(snapshotResult, opts, mapper);
+  const parentElm = isFullDocument ? doc.body : containerEl;
   if (prefetchResources.length > 0) {
-    applyPrefetchImplementation(doc, opts, prefetchResources);
+    applyPrefetchImplementation(doc, parentElm, opts, prefetchResources);
   }
 
   const includeLoader =
-    !opts.qwikLoader || opts.qwikLoader.include === undefined ? 'head' : opts.qwikLoader.include;
+    !opts.qwikLoader || opts.qwikLoader.include === undefined ? 'bottom' : opts.qwikLoader.include;
   if (includeLoader) {
     const qwikLoaderScript = getQwikLoaderScript({
       events: opts.qwikLoader?.events,
@@ -64,10 +67,12 @@ export async function renderToString(rootNode: any, opts: RenderToStringOptions 
     const scriptElm = doc.createElement('script') as HTMLScriptElement;
     scriptElm.setAttribute('id', 'qwikloader');
     scriptElm.textContent = qwikLoaderScript;
-    if (includeLoader === 'body') {
-      doc.body.appendChild(scriptElm);
-    } else {
+    if (includeLoader === 'bottom') {
+      parentElm.appendChild(scriptElm);
+    } else if (isFullDocument) {
       doc.head.appendChild(scriptElm);
+    } else {
+      parentElm.insertBefore(scriptElm, parentElm.firstChild);
     }
   }
 
@@ -76,7 +81,7 @@ export async function renderToString(rootNode: any, opts: RenderToStringOptions 
   const result: RenderToStringResult = {
     prefetchResources,
     snapshotResult,
-    html: serializeDocument(rootEl, opts),
+    html: serializeDocument(root, opts),
     timing: {
       createDocument: createDocTime,
       render: renderDocTime,

@@ -15,7 +15,7 @@ export const Containers = component$(() => {
   );
 });
 
-export const Container = component$((props: ContainerProps) => {
+export const Container = component$(async (props: ContainerProps) => {
   useScopedStyles$(`
     .container {
       margin: 20px;
@@ -36,10 +36,9 @@ export const Container = component$((props: ContainerProps) => {
     }
   `);
   const url = `http://localhost:3300${props.url}?fragment&loader=false`;
-  // const { default: fetch } = await import('node-fetch');
-  // const res = await fetch(url);
-  // const html = await res.text();
-  const html = '';
+  const { default: fetch } = await import('node-fetch');
+  const res = await fetch(url);
+  const html = await res.text();
   return (
     <Host class="container">
       <div class="url">{url}</div>

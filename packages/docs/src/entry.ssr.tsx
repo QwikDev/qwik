@@ -5,9 +5,6 @@ import { Root } from './root';
 export function render(opts: RenderToStringOptions) {
   return renderToString(<Root />, {
     manifest,
-    qwikLoader: {
-      include: 'body',
-    },
     ...opts,
   });
 }

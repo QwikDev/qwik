@@ -7,6 +7,7 @@ import type {
 
 export function applyPrefetchImplementation(
   doc: QwikDocument,
+  parentElm: Element,
   opts: RenderToStringOptions,
   prefetchResources: PrefetchResource[]
 ) {
@@ -19,21 +20,22 @@ export function applyPrefetchImplementation(
       prefetchImpl === 'link-preload-html' ||
       prefetchImpl === 'link-modulepreload-html'
     ) {
-      linkHtmlImplementation(doc, prefetchResources, prefetchImpl);
+      linkHtmlImplementation(doc, parentElm, prefetchResources, prefetchImpl);
     } else if (
       prefetchImpl === 'link-prefetch' ||
       prefetchImpl === 'link-preload' ||
       prefetchImpl === 'link-modulepreload'
     ) {
-      linkJsImplementation(doc, prefetchResources, prefetchImpl);
+      linkJsImplementation(doc, parentElm, prefetchResources, prefetchImpl);
     } else if (prefetchImpl === 'worker-fetch') {
-      workerFetchImplementation(doc, prefetchResources);
+      workerFetchImplementation(doc, parentElm, prefetchResources);
     }
   }
 }
 
 function linkHtmlImplementation(
   doc: QwikDocument,
+  parentElm: Element,
   prefetchResources: PrefetchResource[],
   prefetchImpl: PrefetchImplementation
 ) {
@@ -57,12 +59,13 @@ function linkHtmlImplementation(
       }
     }
 
-    doc.body.appendChild(linkElm);
+    parentElm.appendChild(linkElm);
   }
 }
 
 function linkJsImplementation(
   doc: QwikDocument,
+  parentElm: Element,
   prefetchResources: PrefetchResource[],
   prefetchImpl: PrefetchImplementation
 ) {
@@ -103,7 +106,7 @@ function linkJsImplementation(
   const script = doc.createElement('script');
   script.setAttribute('type', 'module');
   script.innerHTML = s;
-  doc.body.appendChild(script);
+  parentElm.appendChild(script);
 }
 
 function workerFetchScript() {
@@ -122,14 +125,18 @@ function workerFetchScript() {
   return s;
 }
 
-function workerFetchImplementation(doc: QwikDocument, prefetchResources: PrefetchResource[]) {
+function workerFetchImplementation(
+  doc: QwikDocument,
+  parentElm: Element,
+  prefetchResources: PrefetchResource[]
+) {
   let s = `const u=${JSON.stringify(flattenPrefetchResources(prefetchResources))};`;
   s += workerFetchScript();
 
   const script = doc.createElement('script');
   script.setAttribute('type', 'module');
   script.innerHTML = s;
-  doc.body.appendChild(script);
+  parentElm.appendChild(script);
 }
 
 export function flattenPrefetchResources(prefetchResources: PrefetchResource[]) {

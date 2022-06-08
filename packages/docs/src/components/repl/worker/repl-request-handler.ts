@@ -3,7 +3,7 @@ import type { ReplEventMessage } from '../types';
 import { QWIK_REPL_RESULT_CACHE } from './repl-constants';
 import { sendMessageToReplServer } from './repl-messenger';
 
-export const requestHandler = async (ev: FetchEvent) => {
+export const requestHandler = async (ev: any) => {
   const reqUrl = new URL(ev.request.url);
   const pathname = reqUrl.pathname;
   const parts = pathname.split('/');

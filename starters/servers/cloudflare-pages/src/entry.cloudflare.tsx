@@ -3,7 +3,7 @@ import { render } from './entry.ssr';
 /**
  * Cloudflare Pages Request Handler
  */
-export const onRequestGet: PagesFunction = async ({ request, next, waitUntil }) => {
+export const onRequestGet = async ({ request, next, waitUntil }: any) => {
   try {
     const url = new URL(request.url);
 

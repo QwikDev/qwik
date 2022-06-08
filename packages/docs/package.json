@@ -22,7 +22,6 @@
     "@builder.io/qwik": "0.0.22",
     "@builder.io/qwik-city": "0.0.12",
     "@cloudflare/kv-asset-handler": "0.2.0",
-    "@cloudflare/workers-types": "^3.11.0",
     "autoprefixer": "10.4.7",
     "fflate": "^0.7.3",
     "node-fetch": "2.6.7",

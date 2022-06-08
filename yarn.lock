@@ -475,13 +475,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@cloudflare/workers-types@npm:^3.11.0":
-  version: 3.11.0
-  resolution: "@cloudflare/workers-types@npm:3.11.0"
-  checksum: 702cc2b03d39422bb26b3fdd9548939b375d21c00481e7435649da6635533d3917815625a81fa8cc3adc6058fbd7245729437902af7463b64d3e79c3d25f653c
-  languageName: node
-  linkType: hard
-
 "@esbuild-plugins/node-globals-polyfill@npm:^0.1.1":
   version: 0.1.1
   resolution: "@esbuild-plugins/node-globals-polyfill@npm:0.1.1"
@@ -7668,7 +7661,6 @@ __metadata:
     "@builder.io/qwik": 0.0.22
     "@builder.io/qwik-city": 0.0.12
     "@cloudflare/kv-asset-handler": 0.2.0
-    "@cloudflare/workers-types": ^3.11.0
     autoprefixer: 10.4.7
     fflate: ^0.7.3
     node-fetch: 2.6.7

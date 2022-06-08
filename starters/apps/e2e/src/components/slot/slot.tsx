@@ -1,4 +1,4 @@
-import { component$, useStore, Slot } from '@builder.io/qwik';
+import { component$, useStore, Slot, Host } from '@builder.io/qwik';
 
 export const SlotParent = component$(() => {
   const state = useStore({
@@ -19,7 +19,9 @@ export const SlotParent = component$(() => {
       </Button>
 
       <Thing state={state} id="btn3">
-        <Button state={state}>{!state.removeContent && <>INSIDE THING {state.count}</>}</Button>
+        <Button host:id="projected" state={state}>
+          {!state.removeContent && <>INSIDE THING {state.count}</>}
+        </Button>
       </Thing>
 
       <div>
@@ -60,16 +62,22 @@ export const SlotParent = component$(() => {
 
 export const Button = component$((props: { state: any }) => {
   return (
-    <button class="todoapp">
-      <Slot name="start">Placeholder Start</Slot>
+    <Host
+      onClick$={() => {
+        props.state.count--;
+      }}
+    >
+      <button class="todoapp">
+        <Slot name="start">Placeholder Start</Slot>
 
-      {!props.state.disableButtons && (
-        <div>
-          <Slot />
-        </div>
-      )}
-      <Slot name="end" />
-    </button>
+        {!props.state.disableButtons && (
+          <div>
+            <Slot />
+          </div>
+        )}
+        <Slot name="end" />
+      </button>
+    </Host>
   );
 });
 

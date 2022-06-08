@@ -28,7 +28,7 @@ export interface ReplGlobalApi {
 
 export interface QwikWorkerGlobal extends ReplGlobalApi {
   onmessage: (ev: MessageEvent) => void;
-  onfetch: (ev: FetchEvent) => void;
+  onfetch: (ev: Event) => void;
   oninstall: (ev: any) => void;
   onactivate: () => void;
   skipWaiting: () => void;

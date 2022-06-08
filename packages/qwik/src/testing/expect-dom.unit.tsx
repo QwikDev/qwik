@@ -2,7 +2,42 @@ import type { QwikJSX } from '@builder.io/qwik';
 import qwikDom from '@builder.io/qwik-dom';
 import { isJSXNode } from '../core/render/jsx/jsx-runtime';
 import { isComment, isElement, isText } from '../core/util/element';
-import { isTemplateElement } from '../core/util/types';
+import { QHostAttr, QSlotAttr } from '../core/util/markers';
+import { isHtmlElement } from '../core/util/types';
+
+/**
+ * Returns true if the `node` is `Element` and of the right `tagName`.
+ *
+ * @param node
+ * @private
+ */
+export function isDomElementWithTagName(
+  node: Node | null | undefined,
+  tagName: string
+): node is Element {
+  return isHtmlElement(node) && node.tagName.toUpperCase() == tagName.toUpperCase();
+}
+
+/**
+ * @private
+ */
+export function isTemplateElement(node: Node | null | undefined): node is HTMLTemplateElement {
+  return isDomElementWithTagName(node, 'template');
+}
+
+/**
+ * @private
+ */
+export function isQSLotTemplateElement(node: Node | null | undefined): node is HTMLTemplateElement {
+  return isTemplateElement(node) && node.hasAttribute(QSlotAttr);
+}
+
+/**
+ * @private
+ */
+export function isComponentElement(node: Node | null | undefined): node is HTMLElement {
+  return isHtmlElement(node) && node.hasAttribute(QHostAttr);
+}
 
 export function expectDOM(
   actual: Element,

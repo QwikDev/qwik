@@ -169,13 +169,13 @@ Results in:
 ```html
 <my-app>
   <project>
-    <template q:slot="">unwrapped text</template>
+    <q:template q:slot="">unwrapped text</template>
     <div></div>
   </project>
 </my-app>
 ```
 
-Notice that the un-projected content is moved into inert `<template>`. This is done just in case the `Project` component rerenders and inserts a`<Slot>`. In that case, we don't want to rerender the parent component. The rendering of the two components needs to stay independent.
+Notice that the un-projected content is moved into inert `<q:template>`. This is done just in case the `Project` component rerenders and inserts a`<Slot>`. In that case, we don't want to rerender the parent component. The rendering of the two components needs to stay independent.
 
 ### Default slot content
 

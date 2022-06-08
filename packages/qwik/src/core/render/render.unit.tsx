@@ -348,9 +348,9 @@ describe('render', () => {
       );
       expectRendered(
         <project>
-          <template q:slot="ignore">
+          <q:template q:slot="ignore" aria-hidden="true" hidden>
             <span q:slot="ignore">IGNORE</span>
-          </template>
+          </q:template>
           <section>
             <q:slot>
               <q:fallback>..default..</q:fallback>

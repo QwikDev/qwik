@@ -259,6 +259,29 @@ test.describe('e2e', () => {
       expect((await content2.innerText()).trim()).toEqual('START 1');
       expect((await content3.innerText()).trim()).toEqual('Placeholder Start\nINSIDE THING 1');
     });
+
+    test('should not lose q context', async ({ page }) => {
+      const content3 = await page.locator('#btn3');
+      const projected = await page.locator('#projected');
+      const btnToggleThing = await page.locator('#btn-toggle-thing');
+      const btnCount = await page.locator('#btn-count');
+
+      await btnCount.click();
+      await page.waitForTimeout(100);
+      expect((await content3.innerText()).trim()).toEqual('Placeholder Start\nINSIDE THING 1');
+
+      // btnToggleButtons
+      await btnToggleThing.click();
+      await page.waitForTimeout(100);
+      await btnToggleThing.click();
+      await page.waitForTimeout(100);
+
+      // Click projected
+      await projected.click();
+      await page.waitForTimeout(100);
+
+      expect((await content3.innerText()).trim()).toEqual('Placeholder Start\nINSIDE THING 0');
+    });
   });
 
   test.describe('factory', () => {

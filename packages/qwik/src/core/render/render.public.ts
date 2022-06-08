@@ -86,7 +86,7 @@ export function injectQwikSlotCSS(docOrElm: Document | Element) {
   const element = isDocument(docOrElm) ? docOrElm.head : docOrElm;
   const style = doc.createElement('style');
   style.setAttribute('id', 'qwik/base-styles');
-  style.textContent = `q\\:slot{display:contents}q\\:fallback{display:none}q\\:fallback:last-child{display:contents}`;
+  style.textContent = `q\\:slot{display:contents}q\\:fallback,q\\:template{display:none}q\\:fallback:last-child{display:contents}`;
   element.insertBefore(style, element.firstChild);
 }
 

@@ -5,7 +5,6 @@
     "serve": "wrangler pages dev ./dist"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "3.11.0",
     "wrangler": "beta"
   },
   "qwik": {

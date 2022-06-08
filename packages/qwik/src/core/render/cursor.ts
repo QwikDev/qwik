@@ -1,4 +1,4 @@
-import { OnRenderProp, QHostSelector, QSlotAttr } from '../util/markers';
+import { OnRenderProp, QHostAttr, QSlotAttr } from '../util/markers';
 import {
   cleanupContext,
   ComponentCtx,
@@ -206,20 +206,20 @@ function isComponentNode(node: JSXNode) {
   return node.props && OnRenderProp in node.props;
 }
 
-function getCh(elm: Node) {
-  return Array.from(elm.childNodes).filter(isNode);
+function getCh(elm: Node, filter: (el: Node) => boolean) {
+  return Array.from(elm.childNodes).filter(filter);
 }
 
 export function getChildren(elm: Node, mode: ChildrenMode): Node[] {
   switch (mode) {
     case 'default':
-      return getCh(elm);
+      return getCh(elm, isNode);
     case 'slot':
-      return getCh(elm).filter(isChildSlot);
+      return getCh(elm, isChildSlot);
     case 'root':
-      return getCh(elm).filter(isChildComponent);
+      return getCh(elm, isChildComponent);
     case 'fallback':
-      return getCh(elm).filter(isFallback);
+      return getCh(elm, isFallback);
   }
 }
 export function isNode(elm: Node): boolean {
@@ -232,15 +232,15 @@ function isFallback(node: Node): boolean {
 }
 
 function isChildSlot(node: Node) {
-  return node.nodeName !== 'Q:FALLBACK' && isChildComponent(node);
+  return isNode(node) && node.nodeName !== 'Q:FALLBACK' && node.nodeName !== 'Q:TEMPLATE';
 }
 
 function isSlotTemplate(node: Node): node is HTMLTemplateElement {
-  return node.nodeName === 'TEMPLATE' && (node as Element).hasAttribute(QSlotAttr);
+  return node.nodeName === 'Q:TEMPLATE';
 }
 
 function isChildComponent(node: Node): boolean {
-  return node.nodeName !== 'TEMPLATE' || !(node as Element).hasAttribute(QSlotAttr);
+  return isNode(node) && node.nodeName !== 'Q:TEMPLATE';
 }
 
 function splitBy<T>(input: T[], condition: (item: T) => string): Record<string, T[]> {
@@ -405,17 +405,19 @@ function getSlotElement(
   }
   const templateEl = slotMaps.templates[slotName];
   if (templateEl) {
-    return templateEl.content as any;
+    return templateEl;
   }
   const template = createTemplate(ctx, slotName);
   prepend(ctx, parentEl, template);
   slotMaps.templates[slotName] = template;
-  return template.content as any;
+  return template;
 }
 
 function createTemplate(ctx: RenderContext, slotName: string) {
-  const template = createElement(ctx, 'template', false) as HTMLTemplateElement;
+  const template = createElement(ctx, 'q:template', false);
   template.setAttribute(QSlotAttr, slotName);
+  template.setAttribute('hidden', '');
+  template.setAttribute('aria-hidden', 'true');
   return template;
 }
 
@@ -441,7 +443,7 @@ export function resolveSlotProjection(
       // Move slot to template
       const template = createTemplate(ctx, key);
       const slotChildren = getChildren(slotEl, 'slot');
-      template.content.append(...slotChildren);
+      template.append(...slotChildren);
       hostElm.insertBefore(template, hostElm.firstChild);
 
       ctx.operations.push({
@@ -459,7 +461,7 @@ export function resolveSlotProjection(
       // Move template to slot
       const template = before.templates[key];
       if (template) {
-        slotEl.appendChild(template.content);
+        slotEl.append(...getChildren(template, 'default'));
         template.remove();
         ctx.operations.push({
           el: slotEl,
@@ -549,7 +551,7 @@ function createElm(rctx: RenderContext, vnode: JSXNode, isSvg: boolean): ValueOr
 }
 interface SlotMaps {
   slots: Record<string, Element | undefined>;
-  templates: Record<string, HTMLTemplateElement | undefined>;
+  templates: Record<string, Element | undefined>;
 }
 
 const getSlots = (componentCtx: ComponentCtx | undefined, hostElm: Element): SlotMaps => {
@@ -825,11 +827,7 @@ function removeNode(ctx: RenderContext, el: Node) {
     const parent = el.parentNode;
     if (parent) {
       if (el.nodeType === 1) {
-        const subsManager = ctx.containerState.subsManager;
-        cleanupElement(el as Element, subsManager);
-        (el as Element)
-          .querySelectorAll(QHostSelector)
-          .forEach((el) => cleanupElement(el, subsManager));
+        cleanupTree(el as Element, ctx.containerState.subsManager);
       }
       parent.removeChild(el);
     } else if (qDev) {
@@ -842,6 +840,20 @@ function removeNode(ctx: RenderContext, el: Node) {
     args: [],
     fn,
   });
+}
+
+export function cleanupTree(parent: Element, subsManager: SubscriptionManager) {
+  if (parent.nodeName === 'Q:SLOT') {
+    return;
+  }
+  if (parent.hasAttribute(QHostAttr)) {
+    cleanupElement(parent, subsManager);
+  }
+  let child = parent.firstElementChild;
+  while (child) {
+    cleanupTree(child, subsManager);
+    child = child.nextElementSibling;
+  }
 }
 
 function cleanupElement(el: Element, subsManager: SubscriptionManager) {

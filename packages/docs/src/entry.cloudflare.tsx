@@ -1,7 +1,7 @@
 import { render } from './entry.ssr';
 import replServerHtml from '@repl-server-html';
 
-export const onRequestGet: any = async ({ request, next, waitUntil }: any) => {
+export const onRequestGet = async ({ request, next, waitUntil }: any) => {
   try {
     const url = new URL(request.url);
 

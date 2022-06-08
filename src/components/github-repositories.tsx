@@ -2,6 +2,7 @@ import {
   component$,
   getPlatform,
   useHostElement,
+  useServerMount$,
   useStore,
   useWatch$,
 } from "@builder.io/qwik";
@@ -15,6 +16,9 @@ export const GitHubRepositories = component$(
     const store = useStore({
       organization: props.organization || "BuilderIO",
       repos: null as string[] | null,
+    });
+    useServerMount$(async () => {
+      store.repos = await getRepositories(store.organization);
     });
     useWatch$((track) => {
       track(store, "organization");

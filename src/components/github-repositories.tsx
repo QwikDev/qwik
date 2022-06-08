@@ -1,4 +1,4 @@
-import { component$ } from "@builder.io/qwik";
+import { component$, useStore } from "@builder.io/qwik";
 
 export interface GithubRepositoriesProps {
   organization: string;
@@ -6,16 +6,19 @@ export interface GithubRepositoriesProps {
 
 export const GitHubRepositories = component$(
   (props: GithubRepositoriesProps) => {
+    const store = useStore({
+      organization: props.organization || "BuilderIO",
+    });
     return (
       <>
         <span>
           GitHub username:
-          <input value={props.organization} />
+          <input value={store.organization} />
         </span>
         <div>
           <ul>
             <li>
-              <a href={`https://github.com/BuilderIO/qwik`}>Qwik</a>
+              <a href={`https://github.com/${store.organization}/qwik`}>Qwik</a>
             </li>
           </ul>
         </div>

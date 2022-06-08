@@ -8,7 +8,7 @@ export const Root = () => {
         <title>Qwik Blank App</title>
       </head>
       <body>
-        <GitHubRepositories />
+        <GitHubRepositories organization="BuilderIO" />
       </body>
     </html>
   );

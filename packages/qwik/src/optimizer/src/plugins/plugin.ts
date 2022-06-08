@@ -306,11 +306,9 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       const transformedOutput = transformedOutputs.get(tryId);
       if (transformedOutput) {
         log(`resolveId() Resolved ${tryId} from transformedOutputs`);
-        const transformedModule = transformedOutput[0];
-        const sideEffects = !transformedModule.isEntry || !transformedModule.hook;
         return {
           id: tryId + parsedId.query,
-          moduleSideEffects: sideEffects,
+          moduleSideEffects: false,
         };
       }
       log(`resolveId() id ${tryId} not found in transformedOutputs`);
@@ -323,6 +321,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     if (id === QWIK_BUILD_ID) {
       log(`load()`, QWIK_BUILD_ID, opts.buildMode);
       return {
+        moduleSideEffects: false,
         code: getQwikBuildModule(loadOpts),
       };
     }
@@ -330,6 +329,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     if (id.endsWith(QWIK_CLIENT_MANIFEST_ID)) {
       log(`load()`, QWIK_CLIENT_MANIFEST_ID, opts.buildMode);
       return {
+        moduleSideEffects: false,
         code: await getQwikServerManifestModule(loadOpts),
       };
     }
@@ -358,6 +358,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       return {
         code,
         map: transformedModule[0].map,
+        moduleSideEffects: false,
       };
     }
 
@@ -385,6 +386,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       addWatchFileCallback(ctx, pregenerated[1]);
 
       return {
+        moduleSideEffects: false,
         meta: {
           hook: pregenerated[0].hook,
         },
@@ -436,6 +438,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       return {
         code: module.code,
         map: module.map,
+        moduleSideEffects: false,
         meta: {
           hook: module.hook,
         },

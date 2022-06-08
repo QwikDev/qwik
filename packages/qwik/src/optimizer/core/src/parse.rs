@@ -297,7 +297,6 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                             local_idents: &h.data.local_idents,
                             scoped_idents: &h.data.scoped_idents,
                             global: &qwik_transform.options.global_collect,
-                            qwik_ident: &qwik_transform.qwik_ident,
                             need_handle_watch,
                             is_entry,
                             leading_comments: comments_maps.0.clone(),

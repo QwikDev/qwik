@@ -20,9 +20,9 @@ export const Foo = component$(() => {
 
 ============================= foo_component_htdrsvublie.tsx (ENTRY POINT)==
 
-import * as qwik from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
 export const Foo_component_HTDRsvUbLiE = ()=>{
-    return qwik.qrl(()=>import("./foo_component_1_dvu6fitwgly")
+    return qrl(()=>import("./foo_component_1_dvu6fitwgly")
     , "Foo_component_1_DvU6FitWglY");
 };
 
@@ -47,7 +47,6 @@ export const Foo_component_HTDRsvUbLiE = ()=>{
 */
 ============================= foo_component_1_dvu6fitwgly.tsx (ENTRY POINT)==
 
-import * as qwik from "@builder.io/qwik";
 export const Foo_component_1_DvU6FitWglY = ()=>{
     return <div >
 
@@ -78,9 +77,9 @@ export { hW as handleWatch };
 */
 ============================= test.tsx ==
 
-import * as qwik from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
-export const Foo = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./foo_component_htdrsvublie")
+import { qrl } from "@builder.io/qwik";
+export const Foo = /*#__PURE__*/ componentQrl(qrl(()=>import("./foo_component_htdrsvublie")
 , "Foo_component_HTDRsvUbLiE"), {
     tagName: "my-foo"
 });

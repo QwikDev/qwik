@@ -3,7 +3,7 @@ use crate::parse::{
     emit_source_code, might_need_handle_watch, HookAnalysis, PathData, TransformModule,
     TransformOutput,
 };
-use crate::transform::{add_handle_watch, create_internal_call, create_synthetic_wildcard_import};
+use crate::transform::{add_handle_watch, create_synthetic_named_import};
 use crate::words::*;
 
 use std::collections::BTreeMap;
@@ -15,6 +15,13 @@ use swc_atoms::JsWord;
 use swc_common::comments::{SingleThreadedComments, SingleThreadedCommentsMap};
 use swc_common::{sync::Lrc, SourceMap, DUMMY_SP};
 use swc_ecmascript::ast;
+use swc_ecmascript::utils::private_ident;
+
+macro_rules! id {
+    ($ident: expr) => {
+        ($ident.sym.clone(), $ident.span.ctxt())
+    };
+}
 
 pub struct NewModuleCtx<'a> {
     pub expr: Box<ast::Expr>,
@@ -24,7 +31,6 @@ pub struct NewModuleCtx<'a> {
     pub local_idents: &'a [Id],
     pub scoped_idents: &'a [Id],
     pub global: &'a GlobalCollect,
-    pub qwik_ident: &'a Id,
     pub is_entry: bool,
     pub need_handle_watch: bool,
     pub leading_comments: SingleThreadedCommentsMap,
@@ -43,11 +49,15 @@ pub fn new_module(ctx: NewModuleCtx) -> Result<(ast::Module, SingleThreadedComme
         shebang: None,
     };
 
-    // Inject qwik internal import
-    module.body.push(create_synthetic_wildcard_import(
-        ctx.qwik_ident,
-        &BUILDER_IO_QWIK,
-    ));
+    let use_lexical_scope = if !ctx.scoped_idents.is_empty() {
+        let new_local = id!(private_ident!(&USE_LEXICAL_SCOPE.clone()));
+        module
+            .body
+            .push(create_synthetic_named_import(&new_local, &BUILDER_IO_QWIK));
+        Some(new_local)
+    } else {
+        None
+    };
 
     for id in ctx.local_idents {
         if let Some(import) = ctx.global.imports.get(id) {
@@ -116,10 +126,10 @@ pub fn new_module(ctx: NewModuleCtx) -> Result<(ast::Module, SingleThreadedComme
         }
     }
 
-    let expr = if !ctx.scoped_idents.is_empty() {
+    let expr = if let Some(use_lexical_scope) = use_lexical_scope {
         Box::new(transform_function_expr(
             *ctx.expr,
-            ctx.qwik_ident,
+            &use_lexical_scope,
             ctx.scoped_idents,
         ))
     } else {
@@ -303,29 +313,27 @@ fn new_entry_module(hooks: &[&HookAnalysis], explicity_extensions: bool) -> ast:
 
 pub fn transform_function_expr(
     expr: ast::Expr,
-    qwik_ident: &Id,
+    use_lexical_scope: &Id,
     scoped_idents: &[Id],
 ) -> ast::Expr {
     match expr {
         ast::Expr::Arrow(node) => {
-            ast::Expr::Arrow(transform_arrow_fn(node, qwik_ident, scoped_idents))
+            ast::Expr::Arrow(transform_arrow_fn(node, use_lexical_scope, scoped_idents))
         }
-        ast::Expr::Fn(node) => ast::Expr::Fn(transform_fn(node, qwik_ident, scoped_idents)),
+        ast::Expr::Fn(node) => ast::Expr::Fn(transform_fn(node, use_lexical_scope, scoped_idents)),
         _ => expr,
     }
 }
 
-pub fn transform_arrow_fn(
+fn transform_arrow_fn(
     arrow: ast::ArrowExpr,
-    qwik_ident: &Id,
+    use_lexical_scope: &Id,
     scoped_idents: &[Id],
 ) -> ast::ArrowExpr {
     match arrow.body {
         ast::BlockStmtOrExpr::BlockStmt(mut block) => {
             let mut stmts = Vec::with_capacity(1 + block.stmts.len());
-            if !scoped_idents.is_empty() {
-                stmts.push(create_use_lexical_scope(qwik_ident, scoped_idents));
-            }
+            stmts.push(create_use_lexical_scope(use_lexical_scope, scoped_idents));
             stmts.append(&mut block.stmts);
             ast::ArrowExpr {
                 body: ast::BlockStmtOrExpr::BlockStmt(ast::BlockStmt {
@@ -338,7 +346,7 @@ pub fn transform_arrow_fn(
         ast::BlockStmtOrExpr::Expr(expr) => {
             let mut stmts = Vec::with_capacity(2);
             if !scoped_idents.is_empty() {
-                stmts.push(create_use_lexical_scope(qwik_ident, scoped_idents));
+                stmts.push(create_use_lexical_scope(use_lexical_scope, scoped_idents));
             }
             stmts.push(create_return_stmt(expr));
             ast::ArrowExpr {
@@ -352,7 +360,7 @@ pub fn transform_arrow_fn(
     }
 }
 
-pub fn transform_fn(node: ast::FnExpr, qwik_ident: &Id, scoped_idents: &[Id]) -> ast::FnExpr {
+fn transform_fn(node: ast::FnExpr, use_lexical_scope: &Id, scoped_idents: &[Id]) -> ast::FnExpr {
     let mut stmts = Vec::with_capacity(
         1 + node
             .function
@@ -361,7 +369,7 @@ pub fn transform_fn(node: ast::FnExpr, qwik_ident: &Id, scoped_idents: &[Id]) ->
             .map_or(0, |body| body.stmts.len()),
     );
     if !scoped_idents.is_empty() {
-        stmts.push(create_use_lexical_scope(qwik_ident, scoped_idents));
+        stmts.push(create_use_lexical_scope(use_lexical_scope, scoped_idents));
     }
     if let Some(mut body) = node.function.body {
         stmts.append(&mut body.stmts);
@@ -385,7 +393,7 @@ const fn create_return_stmt(expr: Box<ast::Expr>) -> ast::Stmt {
     })
 }
 
-fn create_use_lexical_scope(qwik_ident: &Id, scoped_idents: &[Id]) -> ast::Stmt {
+fn create_use_lexical_scope(use_lexical_scope: &Id, scoped_idents: &[Id]) -> ast::Stmt {
     ast::Stmt::Decl(ast::Decl::Var(ast::VarDecl {
         span: DUMMY_SP,
         declare: false,
@@ -393,12 +401,14 @@ fn create_use_lexical_scope(qwik_ident: &Id, scoped_idents: &[Id]) -> ast::Stmt 
         decls: vec![ast::VarDeclarator {
             definite: false,
             span: DUMMY_SP,
-            init: Some(Box::new(ast::Expr::Call(create_internal_call(
-                qwik_ident,
-                &USE_LEXICAL_SCOPE,
-                vec![],
-                None,
-            )))),
+            init: Some(Box::new(ast::Expr::Call(ast::CallExpr {
+                callee: ast::Callee::Expr(Box::new(ast::Expr::Ident(new_ident_from_id(
+                    use_lexical_scope,
+                )))),
+                span: DUMMY_SP,
+                type_args: None,
+                args: vec![],
+            }))),
             name: ast::Pat::Array(ast::ArrayPat {
                 span: DUMMY_SP,
                 optional: false,

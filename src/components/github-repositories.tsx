@@ -4,8 +4,10 @@ import {
   useHostElement,
   useServerMount$,
   useStore,
+  useStyles$,
   useWatch$,
 } from "@builder.io/qwik";
+import CSS from "./github-repositories.css";
 
 export interface GithubRepositoriesProps {
   organization: string;
@@ -13,6 +15,7 @@ export interface GithubRepositoriesProps {
 
 export const GitHubRepositories = component$(
   (props: GithubRepositoriesProps) => {
+    useStyles$(CSS);
     const store = useStore({
       organization: props.organization || "BuilderIO",
       repos: null as string[] | null,

@@ -1,0 +1,9 @@
+ul > li {
+  display: inline-block;
+  width: 100px;
+  padding: 2em;
+  background-color: lightcyan;
+  border: 1px blue solid;
+  border-radius: 0.5em;
+  margin: 0.5em;
+}

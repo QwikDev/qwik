@@ -19,7 +19,7 @@ const Head = () => (
   <>
     <meta charSet="utf-8" />
 
-    <title>QwikCity Example</title>
+    <title>Qwikcity Example</title>
     <meta name="viewport" content="width=device-width" />
 
     <link rel="apple-touch-icon" sizes="180x180" href="/favicons/apple-touch-icon.png" />

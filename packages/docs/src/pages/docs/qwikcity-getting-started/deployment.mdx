@@ -1,0 +1,64 @@
+---
+title: Qwikcity Getting Started - Deployment
+---
+
+## Deploying your application to production
+
+So far, we have been using the application in the development mode. In development, Vite is used for HMR, and the code is not minified for easier debugging. In production, the code needs to be minified and the symbols shortened for efficiency. This is achieved with production build.
+
+1. Create a production build using `yarn build`
+   ```shell
+   ~/qwik-site % yarn build
+   yarn run v1.22.17
+   warning ../package.json: No license field
+   $ npm run typecheck && npm run build.client && npm run build.ssr
+   
+   > qwik-site@ typecheck /Users/misko/qwik-site
+   > tsc --noEmit
+   
+   
+   > qwik-site@ build.client /Users/misko/qwik-site
+   > vite build
+   
+   vite v2.9.9 building for production...
+   ✓ 45 modules transformed.
+   dist/q-manifest.json                   7.84 KiB
+   dist/pages/index.js                    3.14 KiB / gzip: 1.25 KiB
+   dist/build/q-aab710f2.js               0.24 KiB / gzip: 0.20 KiB
+   dist/build/q-98aa31af.js               0.89 KiB / gzip: 0.52 KiB
+   dist/pages/blog/resumable/index.js     13.76 KiB / gzip: 4.36 KiB
+   dist/build/q-5890d0cf.js               0.23 KiB / gzip: 0.18 KiB
+   dist/build/q-05533feb.js               0.57 KiB / gzip: 0.36 KiB
+   dist/build/q-b6071058.js               0.38 KiB / gzip: 0.24 KiB
+   dist/pages/blog/reactivity/index.js    36.21 KiB / gzip: 4.55 KiB
+   dist/build/q-43d32368.js               0.63 KiB / gzip: 0.41 KiB
+   dist/pages/blog/progressive/index.js   9.17 KiB / gzip: 2.65 KiB
+   dist/build/q-198d48ff.js               1.16 KiB / gzip: 0.66 KiB
+   dist/build/q-6cea9fa6.js               0.90 KiB / gzip: 0.52 KiB
+   dist/build/q-26a132e3.js               0.71 KiB / gzip: 0.45 KiB
+   dist/build/q-b5547183.js               3.01 KiB / gzip: 1.22 KiB
+   dist/build/q-4ef1e60e.js               6.21 KiB / gzip: 2.89 KiB
+   dist/build/q-da786436.js               44.97 KiB / gzip: 15.96 KiB
+   npm WARN lifecycle The node binary used for scripts is /var/folders/dg/1n8bjbwd59n0s1ql9d7kgrjc0000gn/T/yarn--1654711951386-0.4745884543042014/node but npm is using /Users/misko/.nvm/versions/node/v14.19.0/bin/node itself. Use the `--scripts-prepend-node-path` option to include the path for the node binary npm was executed with.
+   
+   > qwik-site@ build.ssr /Users/misko/qwik-site
+   > vite build --ssr src/entry.express.tsx
+   
+   vite v2.9.9 building SSR bundle for production...
+   ✓ 26 modules transformed.
+   server/entry.express.js   15.29 KiB
+   ✨  Done in 3.02s.
+   ```
+
+   After the execution of the above command, all of the application is in the `dist` folder.
+2. Running production build is possible through `yarn serve` 
+   ```shell
+   ~/qwik-site % yarn serve
+   yarn run v1.22.17
+   $ node server/entry.express.js
+   http://localhost:8080/
+   ```
+
+   Opening up http://localhost:8080/, you will notice that the application source, as well as symbols, are minified.
+
+3. Consult the documentation of hosting provided on how to deploy the `dist` folder to your hosting provider.

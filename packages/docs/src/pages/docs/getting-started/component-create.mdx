@@ -1,0 +1,44 @@
+---
+title: Getting Started - Creating Components
+---
+
+## Creating a component in Qwik
+
+This section will modify the starter app and create our component. At first, the component will not do much, but we will add more functionality in the following sections. We will be building a simple component that will display a list of repositories from GitHub for a given organization (or username).
+
+1. Create a new file `src/components/github-repositories.tsx` with the following content:
+   ```typescript
+   import { component$ } from "@builder.io/qwik";
+   
+   export const GitHubRepositories = component$(() => {
+     return (
+       <>
+         <span>
+           GitHub username:
+           <input value="BuilderIO" />
+         </span>
+         <div>
+           <ul>
+             <li>
+               <a href={`https://github.com/BuilderIO/qwik`}>Qwik</a>
+             </li>
+           </ul>
+         </div>
+       </>
+     );
+   });
+   ```
+
+The above is a simple Qwik component. For now, it displays only a single link to the Qwik repository (later, we will turn it onto a dynamic list.) The component consists of a function that returns JSX. The component is declared using the `component$()` function that acts as a decorator. The component function returns JSX that is rendered.
+
+Notice the `$` suffix. The `$` suffix tells Qwik Optimizer that the first argument should be extracted into its own symbol and lazy-loaded. This is what allows Qwik to break up your application into fine-grained lazy-loadable chunks. Every time you see `$`, you should be thinking, "This gets lazy-loaded."
+
+
+2. Next  we need to replace the root component with our new component we have just created. Open `src/root.tsx` and 
+   - Add `import { GitHubRepositories } from "./components/github-repositories";`.
+   - Replace `<App />` with `<GitHubRepositories />`. 
+
+3. The resulting application should look like this:
+   ![Qwik starter - Create component](/qwik-starter_create-component.png)
+
+[See changes on github](https://github.com/BuilderIO/qwik/compare/getting-started_script...getting-started_component).

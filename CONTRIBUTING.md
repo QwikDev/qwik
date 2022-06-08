@@ -88,7 +88,7 @@ to [@builder.io/qwik](https://www.npmjs.com/package/@builder.io/qwik).
 1. Run `yarn release.prepare.qwik-city`, which will test and build.
 2. Use the interactive UI to select the next version, which will update the `package.json` `version` property, add the git change, and start a commit message.
 3. Create a PR with the `package.json` change to merge to `main`.
-4. After the `package.json` with the updated version is in `main`, click the [Run Workflow](https://github.com/BuilderIO/qwik/actions/workflows/release-qwik-city.yml) button from the "Release Qwik City" Github Action workflow.
+4. After the `package.json` with the updated version is in `main`, click the [Run Workflow](https://github.com/BuilderIO/qwik/actions/workflows/release-qwik-city.yml) button from the "Release Qwikcity" Github Action workflow.
 5. The Github Action will dispatch the workflow to build and publish `@builder.io/qwik-city`.
 6. If the build is successful and all tests and validation passes, the workflow will automatically publish to NPM.
 7. ⚡️

@@ -1,0 +1,50 @@
+---
+title: Getting Started - Deployment
+---
+
+## Deploying your application to production
+
+So far, we have been using the application in the development mode. In development, Vite is used for HMR, and the code is not minified for easier debugging. In production, the code needs to be minified and the symbols shortened for efficiency. This is achieved with production build.
+
+1. Create a production build using `yarn build`
+   ```shell
+   ~/qwik % yarn build
+   yarn run v1.22.17
+   $ npm run typecheck && npm run build.client && npm run build.ssr
+   
+   > typecheck
+   > tsc --noEmit
+   
+   
+   > build.client
+   > vite build
+   
+   vite v2.9.9 building for production...
+   ✓ 11 modules transformed.
+   dist/q-manifest.json        1.95 KiB
+   dist/build/q-cfe04620.js    0.05 KiB / gzip: 0.07 KiB
+   dist/build/q-58baf16d.js    0.43 KiB / gzip: 0.32 KiB
+   dist/build/q-7ebd3e2d.js    2.07 KiB / gzip: 1.09 KiB
+   dist/build/q-1d2f2a43.js    43.27 KiB / gzip: 15.39 KiB
+   
+   > build.ssr
+   > vite build --ssr src/entry.express.tsx
+   
+   vite v2.9.9 building SSR bundle for production...
+   ✓ 13 modules transformed.
+   server/entry.express.js   7.60 KiB
+   ✨  Done in 2.28s.
+   ```
+
+   After the execution of the above command, all of the application is in the `dist` folder.
+2. Running production build is possible through `yarn serve` 
+   ```shell
+   ~/qwik % yarn serve
+   yarn run v1.22.17
+   $ node server/entry.express.js
+   http://localhost:8080/
+   ```
+
+   Opening up http://localhost:8080/, you will notice that the application source, as well as symbols, are minified.
+
+3. Consult the documentation of hosting provided how to deploy the `dist` folder to your hosting provider.

@@ -1,0 +1,12 @@
+---
+title: Getting Started - Debugging
+---
+
+## Debugging your application
+
+Qwik applications begin their life on the server and then migrate to the client. For this reason, debugging the Qwik application requires looking at both the browser as well as server VM. For server VM debugging, we recommend Chrome Dev-Tools.
+
+1. Open your application http://localhost:3000 in Chrome. Once opened, ensure that the Chrome DevTools is open as well. At this point, you can interact with the application and place breakpoints as needed in the browser. Use this instance of DevTools to debug the client portion of the application.
+2. In the upper right corner of the DevTools, there should be a green Node.js symbol. Clicking on it will open a second DevTools window, but this one will be attached to the Node.js (server) instance. Use this instance of DevTools to debug the server portion of the application.
+   ![Qwik starter - Node.js Debugger](/qwik-starter_nodejs-devtools.png)
+3. DevTools can't open source code that has not been loaded yet. For this reason, it may be tricky to find the right file before it is lazy-loaded. In this situation, we recommend inserting `debugger;` statement into the function where you would like the debugger to break.  

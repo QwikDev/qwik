@@ -1,0 +1,49 @@
+---
+title: Getting Started - Styling
+---
+
+## Styling your component
+
+As the last step, let us add simple styling to the application to show the repositories as tiles.
+
+1. Add new file `src/components/github-repositories.css` with following content:
+   ```css
+   ul > li {
+     display: inline-block;
+     width: 100px;
+     padding: 2em;
+     background-color: lightcyan;
+     border: 1px blue solid;
+     border-radius: 0.5em;
+     margin: 0.5em;
+   }
+   ```
+
+2. update the imports to include `useStyles$`:
+   ```typescript
+   import {
+     component$,
+     getPlatform,
+     useHostElement,
+     useServerMount$,
+     useStore,
+     useStyles$,
+     useWatch$,
+   } from "@builder.io/qwik";
+   ```
+
+3. Add new import for the `src/components/github-repositories.css`:
+   ```typescript
+   import CSS from "./github-repositories.css";
+   ```
+
+4. Add `useStyles$()` as the first call to the `GithubRepositories` component (before `useStore()`.)
+   ```typescript
+   useStyles$(CSS);
+   ```
+
+The resulting application should look like this:
+
+![Qwik starter - Styled](/qwik-starter_style.png)
+
+ [See changes on github](https://github.com/BuilderIO/qwik/compare/getting-started_ssr...getting-started_styling).

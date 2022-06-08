@@ -1,0 +1,58 @@
+---
+title: Getting Started - Installation
+---
+
+<img class="mb-5" src='/banner.svg'/>
+
+# Getting Started Qwikly
+
+Qwik is a new kind of framework that is [resumable](./concepts/resumable.mdx) (No initial JS and no hydration), built for the edge, and familiar to React developers.
+
+- [Stackblitz Qwik + Vite](https://stackblitz.com/edit/qwik-vite-todoapp?file=index.html)
+- [Examples playground](/examples/reactivity/counter)
+
+
+## Prerequisites
+
+- `node.js` v16 or higher (with `npm`) (Qwik only requires `node.js` v14, but for this example we use v16.)
+- Your favorite IDE (vscode recommended)
+- Start to [think qwik](./think-qwik.mdx)
+
+## Creating an app using the CLI
+
+The first step is to create an application. Qwik comes with a CLI that allows you to create a basic working skeleton of an application. We will use the CLI to create a Todo sample app, and we will use that application to do a walk-through of Qwik so that you can familiarize yourself with it.
+
+### Run the Qwik CLI in your shell
+
+```shell
+$ npm init qwik@latest
+```
+
+The CLI will guide you through an interactive menu to set the project name and select one of the starters:
+
+<script id="asciicast-qUXqQ0NBndDvBQ59pNDaOM9Eu" src="https://asciinema.org/a/qUXqQ0NBndDvBQ59pNDaOM9Eu.js" async></script>
+
+After your new app is created, you will see an output like the following in your terminal:
+
+```shell
+💫 Let's create a Qwik project 💫
+
+✔ Project name … qwik-app
+✔ Select a starter › Starter
+✔ Select a server › Express
+
+⭐️ Success! Project saved in qwik-todo directory
+
+🤖 Next steps:                                                                   
+   cd qwik-app                                                                  
+   npm install                                                                  
+   npm start                                                                    
+                                                                                
+💬 Questions? Start the conversation at:                                         
+   https://qwik.builder.io/chat                                                 
+   https://twitter.com/QwikDev   
+```
+
+At this point, you will have `qwik-app` directory, which contains the starter app.
+
+

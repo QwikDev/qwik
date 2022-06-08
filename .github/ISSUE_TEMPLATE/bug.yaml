@@ -33,7 +33,7 @@ body:
         - Qwik Rollup / Vite plugin
         - Qwik Optimizer (rust)
         - Qwik React
-        - Qwik City
+        - Qwikcity
         - Starters / CLI
     validations:
       required: true

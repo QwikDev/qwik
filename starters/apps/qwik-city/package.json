@@ -1,5 +1,5 @@
 {
-  "description": "Starter with built-in routing, powered by Qwik City",
+  "description": "Starter with built-in routing, powered by Qwikcity",
   "qwik": {
     "priority": 0,
     "featureOptions": [

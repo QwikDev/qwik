@@ -1,0 +1,39 @@
+---
+title: Getting Started - Understanding HTML
+---
+
+## Understanding what is in HTML
+
+So far, we have gone through the steps of building a simple application with Qwik. This section will discuss how the application gets serialized into HTML, allowing the application to lazy download code and resume where the server left off. The resumability is a key property of Qwik applications. resumability requires that the framework serializes event handler locations, application state, and framework state into HTML. This section will also discuss how that information is used to resume the application.
+
+1. Browsers do not know how to resume applications. For this reason, each Qwik application needs to have a small (about 1kb) boostrap code known as 'qwikloader'. Because the code is small, Qwik inlines the `qwikloader` into the HTML for the fastest performance. 
+   ```html
+   <script id="qwikloader">...</script>
+   ```
+   The purpose of the `qwikloader` is to set up global listeners on the `document` and intercept all events. The `qwikloader` then retraces the event path and looks for `on:event` attributes. The `on:event` attributes instruct `qwikloader` which code to load and invoke next.
+
+   NOTE: The content is non-minified when serving in development mode and minified in production.
+
+2. Our application has a single input which listens on `keyup` event. The event listener is serialized to HTML like so:
+   ```html
+   <input value="BuilderIO" 
+          on:keyup="7pz49d2a0tw.js#7PZ49D2A0tw[0]" />
+   ```
+   The `on:keyup` attributes instruct `qwikloader` which chunk to lazy-load and which symbol from that chunk should be executed.
+3. When the `keyup` handler is invoked it needs to restore the current state of the application. The application state is kept serialized in a HTML in following location:
+   ```html
+   <script type="qwik/json">{ "objs": [ ... ], "subs": [ ... ] }</script>
+   ```
+   On the first interaction, Qwik resumes the application by deserializing the JSON and restoring the component state. This allows the component's `keyup` handler to execute with the existing state of the application. 
+   
+   NOTE: upon deserializing, the `<script>` tag is removed from DOM.
+
+4. Each Qwik application is made from at least one container that provides useful information to both Qwik as well as to anyone inspecting the HTML.
+   ```html
+   <html q:version="0.0.21" q:container="paused" q:base="/build/">
+   ```
+   - `q:container`: identifies that container boundary and whether or not the container is in `paused` or `resumed` state. 
+   - `q:base`: URL which will be used as the base path for retrieval of lazy-loaded chunks. 
+   - `q:version`: Version of Qwik that generated the HTML.  
+
+NOTE: The exact syntax of JSON or event handlers is subject to change at any time and should not be relied upon by the developer!

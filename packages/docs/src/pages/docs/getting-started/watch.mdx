@@ -1,0 +1,86 @@
+---
+title: Getting Started - Watch
+---
+
+## Watching for changes
+
+At this point, our application can accept user input and update the `store.organization`. The next step is to observe changes to the `store.organization` and download a list of repositories from Github and display them here.
+
+1. Update the `import` to include `useWatch$` symbol.
+   ```typescript
+   import {
+     component$,
+     getPlatform,
+     useHostElement,
+     useStore,
+     useWatch$,
+   } from "@builder.io/qwik";
+   ```
+2. Update the `useStore` to include `repos` property.
+   ```typescript
+   const store = useStore({
+     organization: props.organization || "BuilderIO",
+     repos: null as string[] | null,
+   });
+   ```
+   We will use `null` to indicate that data is loading and display the `loading...` indicator.
+3. Update the JSX to display a list of repositories or `loading...` indicator:
+   ```html
+   <div>
+     {store.repos ? (
+       <ul>
+         {store.repos.map((repo) => (
+           <li>
+             <a href={`https://github.com/${store.organization}/${repo}`}>
+               {repo}
+             </a>
+           </li>
+         ))}
+       </ul>
+     ) : (
+       "loading..."
+     )}
+   </div>
+   ```
+4. Add a utility method to retrieve a list of repositories from Github:
+   ```typescript
+   export async function getRepositories(
+     username: string,
+     controller?: AbortController
+   ) {
+     const resp = await fetch(`https://api.github.com/users/${username}/repos`, {
+       signal: controller?.signal,
+     });
+     const json = await resp.json();
+     return Array.isArray(json)
+       ? json.map((repo: { name: string }) => repo.name)
+       : null;
+   }
+   ```
+5. Add `useWatch$()` after the `useStore()` in `GithubRepositories` component:
+   ```typescript
+   useWatch$((track) => {
+     track(store, "organization");
+     if (getPlatform(useHostElement()).isServer) return;
+     store.repos = null;
+     const controller = new AbortController();
+     getRepositories(store.organization, controller).then(
+       (repos) => (store.repos = repos)
+     );
+     return () => controller.abort();
+   });
+   ```
+   Let's break up what is going on in the above function:
+   - `useWatch$(() => {...})`: executes before rendering and allows for computation or data retrieval.
+   - `track(store, "organization")`: tells Qwik that the watch function should re-run every time `store.organization` changes. This ensures that the function triggers every time the user types a new value for the `store.organization`.
+   - `if (getPlatform(useHostElement()).isServer) return;` Prevent execution of the watch on server. This is done as the server typically has different APIs for retrieving data. (Server data retrieval will be covered in the next section.)
+   - `store.repo = null` Clears the store value. This forces a component to render the `loading...` indicator.
+   - `getRepositories(store.organization, controller).then((repos) => (store.repos = repos))` Initiate the data retrieval, await the result, and store the result in `store.repos`. Notice that the `AbortController` is passed into the `getRepositories` function so that request can be canceled in the event that the user types more characters and the previous request has not yet been returned.
+   - `return () => controller.abort()` Returns a cleanup function. A cleanup function executes before the next `useWatch$()` invocation. In this case the cleanup function is used to abort any outstanding request before initiating a new request to retrieve data.
+
+The resulting application should look like this:
+![Qwik starter - useWatch$()](/qwik-starter_watch.png)
+
+Typing into the `<input>` triggers the `useWatch$` to run and retrieve a list of Github repositories for an organization. The next step is to have the server fetch the data for the initial organization so that the application does not render with the `loading...` indicator.
+
+[See changes on github](https://github.com/BuilderIO/qwik/compare/getting-started_listener...getting-started_watch).

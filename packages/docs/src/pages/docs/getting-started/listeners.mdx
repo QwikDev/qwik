@@ -1,0 +1,22 @@
+---
+title: Getting Started - Listeners
+---
+
+## Responding to user events
+
+An important part of an application is responding to the user input. To demonstrate that, we will add a `keyup` event listener to the `<input>` that will allow the user to change the `store.organization`.
+
+1. Add `keyup` event listener to the `<input>` which updates the `store.organization`:
+   ```html
+   <input
+     value={store.organization}
+     onKeyup$={(e) => (store.organization = (e.target as HTMLInputElement).value)}
+   />
+   ```
+
+Notice that tying into the `<input>` updates the `<a href>` link on the page. This is because Qwik understands that `store.organization` is used in the `<GitHubRepositories>` JSX component, and therefore any changes to the `store.organization` require that the `<GitHubRepositories>` is re-rendered.
+
+
+In our next step, we will use the `store.organization` to retrieve a set of repositories from Github for a given organization. 
+
+[See changes on github](https://github.com/BuilderIO/qwik/compare/getting-started_store...getting-started_listener).

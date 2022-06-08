@@ -32,7 +32,7 @@ app.get('/*', async (req, res, next) => {
   try {
     // Render the Root component to a string
     const result = await render({
-      url: req.url,
+      url: `http://${req.headers.host}${req.url}`,
     });
 
     // respond with SSR'd HTML

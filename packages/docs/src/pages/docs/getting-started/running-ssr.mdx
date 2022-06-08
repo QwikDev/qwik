@@ -1,0 +1,57 @@
+---
+title: Getting Started - SSR
+---
+
+## Running in development with SSR
+
+The previous section showed how to run the application in development where there is no SSR. In this section, we will run the application in development with SSR. SSR is a technique that allows the application to be run on the server and send the pre-rendered HTML to the client. This technique greatly reduces the amount of JavaScript that needs to be executed on the client.
+
+```shell
+npm dev.ssr
+```
+
+which should display
+```shell
+> qwik-todo@ dev /Users/misko/qwik-todo
+> vite "dev.ssr"
+
+
+  vite v2.9.9 dev server running at:
+
+  > Local: http://localhost:3000/
+  > Network: use `--host` to expose
+
+  ready in 85ms.
+```
+
+Your application is now running with SSR pre-rendering. The application is now running in development mode using [Vite](https://vitejs.dev/). This mode still supports Hot-Module-Reloading (HMR) but incorporates SSR pre-rendering. This mode is much closer to how the application would run in production. 
+
+The next step is to update the application so that the server retrieves the initial set of repositories from Github.
+
+1. update the `import` to include `useServerMount$`:
+   ```typescript
+   import {
+     component$,
+     getPlatform,
+     useHostElement,
+     useServerMount$,
+     useStore,
+     useWatch$,
+   } from "@builder.io/qwik";
+   ```
+2. Add `useServerMount$()` after `useStore()`:
+   ```typescript
+   useServerMount$(async () => {
+     store.repos = await getRepositories(store.organization);
+   });
+   ```
+  - `useServerMount$()` delays the rendering of the component until after `useServerMount$()` completes. This is important so that SSR knows how long to wait before serializing the component into HTML
+  - `useServerMount$()` is also removed during the execution of Optimizer and never sent to the client. This includes the removal of any imports that the closure may have included or any functions which are no longer reachable.
+   
+Refreshing the application now should yield:
+
+Notice that the SSR prepopulated the Github repositories as part of the SSR. Updating the `<input>` on the client causes a new set of Github repositories to be downloaded.
+
+![Qwik starter - SSR](/qwik-starter_ssr.png)
+
+ [See changes on github](https://github.com/BuilderIO/qwik/compare/getting-started_watch...getting-started_ssr).

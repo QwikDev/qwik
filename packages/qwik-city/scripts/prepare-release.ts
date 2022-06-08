@@ -34,7 +34,7 @@ async function prepareReleaseQwikCity() {
   console.log(``);
   console.log(`Next:`);
   console.log(` - Submit a PR to main with the package.json update`);
-  console.log(` - Once merged, run the "Release Qwik City" workflow`);
+  console.log(` - Once merged, run the "Release Qwikcity" workflow`);
   console.log(` - https://github.com/BuilderIO/qwik/actions/workflows/release-qwik-city.yml`);
   console.log(``);
 }

@@ -16,6 +16,7 @@ export const Builder = component$(async () => {
 });
 
 export const fetchQwikBuilderContent = async (url: string) => {
+  return undefined;
   const qwikUrl = new URL('https://cdn.builder.io/api/v1/qwik/content-page');
   qwikUrl.searchParams.set('apiKey', 'fe30f73e01ef40558cd69a9493eba2a2');
   qwikUrl.searchParams.set('userAttributes.urlPath', url);

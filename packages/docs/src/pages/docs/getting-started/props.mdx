@@ -1,0 +1,47 @@
+---
+title: Getting Started - Props
+---
+
+## Adding component props
+
+Our component can be made a lot more reusable if we could pass inputs to it. Component inputs are known as `props`. Let's add the organization name as an input prop to the component. 
+
+1. In `src/components/github-repositories.tsx` add `GitHubRepositoriesProps` interface declaration:
+   ```typescript
+   export interface GithubRepositoriesProps {
+     organization: string;
+   }
+   ```
+
+2. Now add the `GithubRepositoriesProps` to the `GitHubRepositories` component signature:
+   ```typescript
+   export const GitHubRepositories = component$(
+     (props: GithubRepositoriesProps) => {
+       // ...
+     }
+   );
+   ```
+
+3. Update the `GitHubRepositories` component's JSX to bind to the `props.organization`
+   ```html
+   <span>
+     GitHub username:
+     <input value={props.organization} />
+   </span>
+   <div>
+     <ul>
+       <li>
+         <a href={`https://github.com/${props.organization}/qwik`}>Qwik</a>
+       </li>
+     </ul>
+   </div>
+   ```
+
+4. Finally let's update the `src/root.tsx` to pass the `organization` property to the `<GithubRepositories/>`
+   ```html
+   <GitHubRepositories organization="BuilderIO" />
+   ```
+
+The resulting application will behave the same, but the value of the `organization` can now be controlled by the parent component. Having the parent control the inputs of the child component is a common practice when composing applications.
+
+[See changes on github](https://github.com/BuilderIO/qwik/compare/getting-started_component...getting-started_props).

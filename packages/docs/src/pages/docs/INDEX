@@ -3,8 +3,31 @@
 ## Guides
 
 - [Overview](overview.mdx)
-- [Getting Started](getting-started.mdx)
 - [Think Qwik](think-qwik.mdx)
+
+## Getting Started
+
+- [Installation](getting-started/installation.mdx)
+- [Running Qwik App](getting-started/running.mdx)
+- [Creating Component](getting-started/component-create.mdx)
+- [Props](getting-started/props.mdx)
+- [Creating Store](getting-started/store-create.mdx)
+- [Adding Listeners](getting-started/listeners.mdx)
+- [Watching for changes](getting-started/watch.mdx)
+- [Running SSR](getting-started/running-ssr.mdx)
+- [Styling](getting-started/styling.mdx)
+- [Understanding HTML](getting-started/html.mdx)
+- [Debugging](getting-started/debugging.mdx)
+- [Deployment](getting-started/deployment.mdx)
+
+## Qwikcity Getting Started
+
+- [Overview](qwikcity-getting-started/overview.mdx)
+- [Installation](qwikcity-getting-started/installation.mdx)
+- [Running](qwikcity-getting-started/running.mdx)
+- [Adding a page](qwikcity-getting-started/page.mdx)
+- [Updating layouts](qwikcity-getting-started/layout.mdx)
+- [Deployment](qwikcity-getting-started/deployment.mdx)
 
 ## Component API
 

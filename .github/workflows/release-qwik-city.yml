@@ -1,4 +1,4 @@
-name: Release Qwik City
+name: Release Qwikcity
 
 on:
   workflow_dispatch:
@@ -33,13 +33,13 @@ jobs:
       - name: Install NPM Dependencies
         run: yarn install --immutable --network-timeout 300000
 
-      - name: Test Qwik City
+      - name: Test Qwikcity
         run: cd packages/qwik-city && yarn test
 
-      - name: Build Qwik City
+      - name: Build Qwikcity
         run: cd packages/qwik-city && yarn build
 
-      - name: Publish Qwik City
+      - name: Publish Qwikcity
         run: cd packages/qwik-city && yarn node -r esbuild-register scripts/release.ts --set-dist-tag="${{ github.event.inputs.disttag }}"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

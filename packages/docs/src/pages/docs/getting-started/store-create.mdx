@@ -1,0 +1,45 @@
+---
+title: Getting Started - Store
+---
+
+## Storing component state with useStore
+
+The store is used for storing component state. (A store is different from props in that it is usually a component's internal state rather than data from the parent component, as is the case for props.) Stores are declared using the `useStore()` function. 
+
+In our example, we will use the `props.organization` as the initial value of the `organization` and store it in `store.organization`. In the next step, we will add code that will allow us to edit the `store.organization`. 
+
+1. Update the `import` to include `useStore` symbol.
+   ```typescript
+   import { component$, useStore } from "@builder.io/qwik";
+   ```
+
+2. Add `useStore()` in the `GitHubRepositories` function and default it to `"BuilderIO"`:
+   ```typescript
+   export const GitHubRepositories = component$(
+     (props: GithubRepositoriesProps) => {
+       const store = useStore({
+         organization: props.organization || "BuilderIO",
+       });
+       // ...
+     }
+   );
+   ```
+
+3. Finally, use the `store.organization` instead of `props.organization` in the JSX bindings.
+   ```html
+   <span>
+     GitHub username:
+     <input value={store.organization} />
+   </span>
+   <div>
+     <ul>
+       <li>
+         <a href={`https://github.com/${store.organization}/qwik`}>Qwik</a>
+       </li>
+     </ul>
+   </div>
+   ```
+
+At this point, the `GitHubRepositories` component uses the `props.organization` as an initial value of `organization`. The value is copied and stored in `store.organization`, and it is bound in the JSX. In the next step, we will add event listeners to the `<input>` to allow the user to update the organization.
+
+[See changes on github](https://github.com/BuilderIO/qwik/compare/getting-started_props...getting-started_store).

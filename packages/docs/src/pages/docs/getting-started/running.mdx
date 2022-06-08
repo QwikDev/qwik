@@ -1,0 +1,53 @@
+---
+title: Getting Started - Running
+---
+
+
+## Running in development
+
+Once the application is download:
+
+1. Change into the directory created by the `npm create qwik@latest`.
+
+```shell
+cd qwik-app
+```
+
+2. Install NPM modules:
+
+```shell
+npm install
+```
+
+3. Invoke the dev server
+
+```shell
+npm start
+```
+
+4. You should see a server running with your To-do application
+
+```shell
+  vite v2.8.6 dev server running at:
+
+  > Local: http://localhost:3000/
+  > Network: use `--host` to expose
+
+  ready in 157ms.
+```
+
+5. Visit http://localhost:3000/ to explore the starter app.
+
+![Qwik Starter](/qwik-starter.png)
+
+The application is running in development mode using [Vite](https://vitejs.dev/). This is a special mode that supports Hot-Module-Reloading (HMR.)
+
+While HMR is great for development, Qwik runs like a traditional framework, where all of the work is done in the browser. If you look into the network tab of the dev-tools, you will see that all of the code is eagerly downloaded into the browser and executed. To understand how Qwik is different, we need to run in production mode to see the magic happen.
+
+## Commands
+
+- `npm start`: alias to `npm run dev`
+- `npm run dev`: starts the dev server in client bootstrap mode
+- `npm run dev.ssr`: starts the dev server with SSR
+- `npm run build`: builds the application for production
+

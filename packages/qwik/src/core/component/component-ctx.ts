@@ -1,10 +1,10 @@
 import { assertDefined } from '../assert/assert';
-import { appendStyle, RenderContext } from '../render/cursor';
+import type { RenderContext } from '../render/cursor';
 import { visitJsxNode } from '../render/render';
 import { ComponentScopedStyles, QHostAttr, RenderEvent } from '../util/markers';
 import { promiseAll, then } from '../util/promises';
 import { styleContent, styleHost } from './qrl-styles';
-import { isStyleTask, newInvokeContext } from '../use/use-core';
+import { newInvokeContext } from '../use/use-core';
 import { processNode } from '../render/jsx/jsx-runtime';
 import { logDebug, logError } from '../util/log';
 import type { ValueOrPromise } from '../util/types';
@@ -55,12 +55,7 @@ export const renderComponent = (rctx: RenderContext, ctx: QContext): ValueOrProm
       (jsxNode) => {
         rctx.hostElements.add(hostElement);
         const waitOnPromise = promiseAll(waitOn);
-        return then(waitOnPromise, (waitOnResolved) => {
-          waitOnResolved.forEach((task) => {
-            if (isStyleTask(task)) {
-              appendStyle(rctx, hostElement, task);
-            }
-          });
+        return then(waitOnPromise, () => {
           if (typeof jsxNode === 'function') {
             ctx.dirty = false;
             jsxNode = jsxNode();

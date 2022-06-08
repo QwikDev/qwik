@@ -25,9 +25,10 @@ import { qDev } from '../util/qdev';
 import { qError, QError } from '../error/error';
 import { fromCamelToKebabCase } from '../util/case';
 import type { OnRenderFn } from '../component/component.public';
-import { CONTAINER, StyleAppend } from '../use/use-core';
+import { CONTAINER, isStyleTask, StyleAppend } from '../use/use-core';
 import type { Ref } from '../use/use-store.public';
 import type { SubscriptionManager } from '../object/q-object';
+import { getDocument } from '../util/dom';
 
 export const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -796,12 +797,10 @@ export function appendStyle(ctx: RenderContext, hostElement: Element, styleTask:
     const containerEl = ctx.containerEl;
     const stylesParent =
       ctx.doc.documentElement === containerEl ? ctx.doc.head ?? containerEl : containerEl;
-    if (!stylesParent.querySelector(`style[q\\:style="${styleTask.styleId}"]`)) {
-      const style = ctx.doc.createElement('style');
-      style.setAttribute('q:style', styleTask.styleId);
-      style.textContent = styleTask.content;
-      stylesParent.insertBefore(style, stylesParent.firstChild);
-    }
+    const style = ctx.doc.createElement('style');
+    style.setAttribute('q:style', styleTask.styleId);
+    style.textContent = styleTask.content;
+    stylesParent.insertBefore(style, stylesParent.firstChild);
   };
   ctx.operations.push({
     el: hostElement,
@@ -810,6 +809,26 @@ export function appendStyle(ctx: RenderContext, hostElement: Element, styleTask:
     fn,
   });
 }
+
+export function hasStyle(ctx: RenderContext, styleId: string) {
+  const containerEl = ctx.containerEl;
+  const doc = getDocument(containerEl);
+  const hasOperation = ctx.operations.some((op) => {
+    if (op.operation === 'append-style') {
+      const s = op.args[0];
+      if (isStyleTask(s)) {
+        return s.styleId === styleId;
+      }
+    }
+    return false;
+  });
+  if (hasOperation) {
+    return true;
+  }
+  const stylesParent = doc.documentElement === containerEl ? doc.head ?? containerEl : containerEl;
+  return !!stylesParent.querySelector(`style[q\\:style="${styleId}"]`);
+}
+
 function prepend(ctx: RenderContext, parent: Element, newChild: Node) {
   const fn = () => {
     parent.insertBefore(newChild, parent.firstChild);

@@ -1,5 +1,5 @@
 import { qObject } from '../object/q-object';
-import { getInvokeContext, useContainerState } from './use-core';
+import { getInvokeContext, useRenderContext } from './use-core';
 import { useHostElement } from './use-host-element.public';
 import { getContext } from '../props/props';
 import { wrapSubscriber } from './use-subscriber';
@@ -76,7 +76,7 @@ export function useStore<STATE extends object>(initialState: STATE | (() => STAT
     return wrapSubscriber(store, hostElement);
   }
 
-  const containerState = useContainerState();
+  const containerState = useRenderContext().containerState;
   const value = typeof initialState === 'function' ? (initialState as Function)() : initialState;
   const newStore = qObject(value, containerState);
   setStore(newStore);

@@ -1,7 +1,7 @@
 import { noSerialize, NoSerialize, notifyWatch } from '../object/q-object';
 import { implicit$FirstArg, QRL } from '../import/qrl.public';
 import { getContext } from '../props/props';
-import { newInvokeContext, useContainerState, useWaitOn } from '../use/use-core';
+import { newInvokeContext, useRenderContext, useWaitOn } from '../use/use-core';
 import { useHostElement } from '../use/use-host-element.public';
 import { logDebug, logError } from '../util/log';
 import { then } from '../util/promises';
@@ -139,7 +139,7 @@ export function useWatchQrl(qrl: QRL<WatchFn>, opts?: UseEffectOptions): void {
   const [watch, setWatch, i] = useSequentialScope();
   if (!watch) {
     const el = useHostElement();
-    const containerState = useContainerState();
+    const containerState = useRenderContext().containerState;
     const watch: WatchDescriptor = {
       qrl,
       el,

@@ -13,6 +13,7 @@ import { Watch } from './components/watch/watch';
 import { EffectClient } from './components/effect-client/effect-client';
 import { ContextRoot } from './components/context/context';
 import { Toggle } from './components/toggle/toggle';
+import { Styles } from './components/styles/styles';
 
 /**
  * Entry point for server-side pre-rendering.
@@ -36,6 +37,7 @@ export function render(opts: RenderToStringOptions) {
     '/e2e/effect-client': () => <EffectClient />,
     '/e2e/context': () => <ContextRoot />,
     '/e2e/toggle': () => <Toggle />,
+    '/e2e/styles': () => <Styles />,
   };
   const Test = tests[url.pathname];
 

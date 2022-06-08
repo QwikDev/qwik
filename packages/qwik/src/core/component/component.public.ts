@@ -2,7 +2,7 @@ import { toQrlOrError } from '../import/qrl';
 import { $, implicit$FirstArg, QRL } from '../import/qrl.public';
 import { qPropWriteQRL } from '../props/props-on';
 import type { JSXNode } from '../render/jsx/types/jsx-node';
-import { StyleAppend, useWaitOn } from '../use/use-core';
+import { useRenderContext, useWaitOn } from '../use/use-core';
 import { useHostElement } from '../use/use-host-element.public';
 import { ComponentScopedStyles, OnRenderProp } from '../util/markers';
 import { styleKey } from './qrl-styles';
@@ -14,6 +14,7 @@ import { jsx } from '../render/jsx/jsx-runtime';
 import { useSequentialScope } from '../use/use-store.public';
 import { WatchDescriptor, WatchFlags } from '../watch/watch.public';
 import type { MutableWrapper } from '../object/q-object';
+import { appendStyle, hasStyle } from '../render/cursor';
 
 // <docs markdown="../readme.md#useCleanup">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -578,26 +579,30 @@ export interface RenderFactoryOutput<PROPS> {
 }
 
 function _useStyles(styles: QRL<string>, scoped: boolean) {
-  const [style, setStyle] = useSequentialScope();
+  const [style, setStyle, index] = useSequentialScope();
   if (style === true) {
     return;
   }
   setStyle(true);
+  const renderCtx = useRenderContext();
   const styleQrl = toQrlOrError(styles);
-  const styleId = styleKey(styleQrl);
+  const styleId = styleKey(styleQrl, index);
   const hostElement = useHostElement();
   if (scoped) {
     hostElement.setAttribute(ComponentScopedStyles, styleId);
   }
 
-  useWaitOn(
-    styleQrl.resolve(hostElement).then((styleText) => {
-      const task: StyleAppend = {
-        type: 'style',
-        styleId,
-        content: scoped ? styleText.replace(/�/g, styleId) : styleText,
-      };
-      return task;
-    })
-  );
+  if (!hasStyle(renderCtx, styleId)) {
+    useWaitOn(
+      styleQrl.resolve(hostElement).then((styleText) => {
+        if (!hasStyle(renderCtx, styleId)) {
+          appendStyle(renderCtx, hostElement, {
+            type: 'style',
+            styleId,
+            content: scoped ? styleText.replace(/�/g, styleId) : styleText,
+          });
+        }
+      })
+    );
+  }
 }

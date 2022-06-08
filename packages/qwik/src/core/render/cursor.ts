@@ -418,7 +418,6 @@ function createTemplate(ctx: RenderContext, slotName: string) {
   template.setAttribute(QSlotAttr, slotName);
   template.setAttribute('hidden', '');
   template.setAttribute('aria-hidden', 'true');
-  template.setAttribute('aria-hidden', 'true');
   return template;
 }
 

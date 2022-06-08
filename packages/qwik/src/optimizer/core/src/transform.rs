@@ -84,7 +84,6 @@ pub type IdPlusType = (Id, IdentType);
 #[allow(clippy::module_name_repetitions)]
 pub struct QwikTransform<'a> {
     pub hooks: Vec<Hook>,
-    pub qwik_ident: Id,
     pub options: QwikTransformOptions<'a>,
 
     hooks_names: HashMap<String, u32>,
@@ -177,7 +176,6 @@ impl<'a> QwikTransform<'a> {
                 .get_imported_local(&FRAGMENT, &BUILDER_IO_QWIK),
             marker_functions,
             jsx_functions,
-            qwik_ident: id!(private_ident!(QWIK_INTERNAL.clone())),
             options,
         }
     }
@@ -371,12 +369,14 @@ impl<'a> QwikTransform<'a> {
         }
 
         if self.options.is_inline {
-            create_inline_qrl(
-                &self.qwik_ident,
-                transform_function_expr(folded, &self.qwik_ident, &scoped_idents),
-                &symbol_name,
-                &scoped_idents,
-            )
+            let expr = if !scoped_idents.is_empty() {
+                let new_local =
+                    self.ensure_import(USE_LEXICAL_SCOPE.clone(), BUILDER_IO_QWIK.clone());
+                transform_function_expr(folded, &new_local, &scoped_idents)
+            } else {
+                folded
+            };
+            self.create_inline_qrl(expr, &symbol_name, &scoped_idents)
         } else {
             let hook_data = HookData {
                 extension: self.options.extension.clone(),
@@ -412,7 +412,7 @@ impl<'a> QwikTransform<'a> {
                 fix_path("a", &self.options.path_data.path, &filename).unwrap()
             };
 
-            let o = create_qrl(&self.qwik_ident, import_path, &symbol_name, &scoped_idents);
+            let o = self.create_qrl(import_path, &symbol_name, &scoped_idents);
             self.hooks.push(Hook {
                 entry,
                 span,
@@ -472,6 +472,132 @@ impl<'a> QwikTransform<'a> {
             value
         }
     }
+
+    fn ensure_import(&mut self, new_specifier: JsWord, source: JsWord) -> Id {
+        let new_local = self
+            .options
+            .global_collect
+            .import(new_specifier, source.clone());
+
+        let is_synthetic = self
+            .options
+            .global_collect
+            .imports
+            .get(&new_local)
+            .unwrap()
+            .synthetic;
+
+        if is_synthetic && (self.hook_stack.is_empty() || self.options.is_inline) {
+            self.extra_module_items.insert(
+                new_local.clone(),
+                create_synthetic_named_import(&new_local, &source),
+            );
+        }
+        new_local
+    }
+
+    fn create_qrl(&mut self, url: JsWord, symbol: &str, idents: &[Id]) -> ast::CallExpr {
+        let mut args = vec![
+            ast::Expr::Arrow(ast::ArrowExpr {
+                is_async: false,
+                is_generator: false,
+                span: DUMMY_SP,
+                params: vec![],
+                return_type: None,
+                type_params: None,
+                body: ast::BlockStmtOrExpr::Expr(Box::new(ast::Expr::Call(ast::CallExpr {
+                    callee: ast::Callee::Expr(Box::new(ast::Expr::Ident(ast::Ident::new(
+                        "import".into(),
+                        DUMMY_SP,
+                    )))),
+                    span: DUMMY_SP,
+                    type_args: None,
+                    args: vec![ast::ExprOrSpread {
+                        spread: None,
+                        expr: Box::new(ast::Expr::Lit(ast::Lit::Str(ast::Str {
+                            span: DUMMY_SP,
+                            value: url,
+                            raw: None,
+                        }))),
+                    }],
+                }))),
+            }),
+            ast::Expr::Lit(ast::Lit::Str(ast::Str {
+                span: DUMMY_SP,
+                value: symbol.into(),
+                raw: None,
+            })),
+        ];
+
+        // Injects state
+        if !idents.is_empty() {
+            args.push(ast::Expr::Array(ast::ArrayLit {
+                span: DUMMY_SP,
+                elems: idents
+                    .iter()
+                    .map(|id| {
+                        Some(ast::ExprOrSpread {
+                            spread: None,
+                            expr: Box::new(ast::Expr::Ident(new_ident_from_id(id))),
+                        })
+                    })
+                    .collect(),
+            }))
+        }
+
+        self.create_internal_call(&QRL, args, None)
+    }
+
+    fn create_inline_qrl(&mut self, expr: ast::Expr, symbol: &str, idents: &[Id]) -> ast::CallExpr {
+        let mut args = vec![
+            expr,
+            ast::Expr::Lit(ast::Lit::Str(ast::Str {
+                span: DUMMY_SP,
+                value: symbol.into(),
+                raw: None,
+            })),
+        ];
+
+        // Injects state
+        if !idents.is_empty() {
+            args.push(ast::Expr::Array(ast::ArrayLit {
+                span: DUMMY_SP,
+                elems: idents
+                    .iter()
+                    .map(|id| {
+                        Some(ast::ExprOrSpread {
+                            spread: None,
+                            expr: Box::new(ast::Expr::Ident(new_ident_from_id(id))),
+                        })
+                    })
+                    .collect(),
+            }))
+        }
+
+        self.create_internal_call(&INLINED_QRL, args, None)
+    }
+
+    pub fn create_internal_call(
+        &mut self,
+        fn_name: &JsWord,
+        exprs: Vec<ast::Expr>,
+        mark: Option<Mark>,
+    ) -> ast::CallExpr {
+        let span = mark.map_or(DUMMY_SP, |mark| DUMMY_SP.apply_mark(mark));
+        let local = self.ensure_import(fn_name.clone(), BUILDER_IO_QWIK.clone());
+        ast::CallExpr {
+            callee: ast::Callee::Expr(Box::new(ast::Expr::Ident(new_ident_from_id(&local)))),
+            span,
+            type_args: None,
+            args: exprs
+                .into_iter()
+                .map(|expr| ast::ExprOrSpread {
+                    spread: None,
+                    expr: Box::new(expr),
+                })
+                .collect(),
+        }
+    }
 }
 
 impl<'a> Fold for QwikTransform<'a> {
@@ -479,11 +605,6 @@ impl<'a> Fold for QwikTransform<'a> {
 
     fn fold_module(&mut self, node: ast::Module) -> ast::Module {
         let mut body = Vec::with_capacity(node.body.len() + 10);
-        body.push(create_synthetic_wildcard_import(
-            &self.qwik_ident,
-            &BUILDER_IO_QWIK,
-        ));
-
         let mut module_body = node.body.into_iter().map(|i| i.fold_with(self)).collect();
         body.extend(self.extra_module_items.values().cloned());
         body.append(&mut module_body);
@@ -777,17 +898,7 @@ impl<'a> Fold for QwikTransform<'a> {
                     if let Some(import) = global_collect.imports.get(&id!(ident)).cloned() {
                         let new_specifier =
                             convert_signal_word(&import.specifier).expect("Specifier ends with $");
-                        let new_local = global_collect.import(new_specifier, import.source.clone());
-
-                        let is_synthetic =
-                            global_collect.imports.get(&new_local).unwrap().synthetic;
-
-                        if self.options.is_inline || (is_synthetic && self.hook_stack.is_empty()) {
-                            self.extra_module_items.insert(
-                                new_local.clone(),
-                                create_synthetic_named_import(&new_local, &import.source),
-                            );
-                        }
+                        let new_local = self.ensure_import(new_specifier, import.source);
                         replace_callee = Some(new_ident_from_id(&new_local).as_callee());
                     } else {
                         let new_specifier =
@@ -878,7 +989,7 @@ pub fn add_handle_watch(body: &mut Vec<ast::ModuleItem>, private: bool) {
             op: ast::BinaryOp::LogicalAnd,
             left: Box::new(ast::Expr::Member(ast::MemberExpr {
                 obj: Box::new(ast::Expr::Ident(ident.clone())),
-                prop: ast::MemberProp::Ident(ast::Ident::new(JsWord::from("issue456"), DUMMY_SP)),
+                prop: ast::MemberProp::Ident(ast::Ident::new(JsWord::from("issue123"), DUMMY_SP)),
                 span: DUMMY_SP,
             })),
             right: Box::new(ast::Expr::Call(ast::CallExpr {
@@ -918,25 +1029,6 @@ pub fn add_handle_watch(body: &mut Vec<ast::ModuleItem>, private: bool) {
     //     &HANDLE_WATCH,
     //     &BUILDER_IO_QWIK,
     // ));
-}
-
-pub fn create_synthetic_wildcard_import(local: &Id, src: &JsWord) -> ast::ModuleItem {
-    ast::ModuleItem::ModuleDecl(ast::ModuleDecl::Import(ast::ImportDecl {
-        span: DUMMY_SP,
-        src: ast::Str {
-            span: DUMMY_SP,
-            value: src.clone(),
-            raw: None,
-        },
-        asserts: None,
-        type_only: false,
-        specifiers: vec![ast::ImportSpecifier::Namespace(
-            ast::ImportStarAsSpecifier {
-                local: new_ident_from_id(local),
-                span: DUMMY_SP,
-            },
-        )],
-    }))
 }
 
 pub fn create_synthetic_named_import_auto(
@@ -987,7 +1079,7 @@ pub fn create_synthetic_named_import_auto(
 //     }))
 // }
 
-fn create_synthetic_named_import(local: &Id, src: &JsWord) -> ast::ModuleItem {
+pub fn create_synthetic_named_import(local: &Id, src: &JsWord) -> ast::ModuleItem {
     ast::ModuleItem::ModuleDecl(ast::ModuleDecl::Import(ast::ImportDecl {
         span: DUMMY_SP,
         src: ast::Str {
@@ -1004,117 +1096,6 @@ fn create_synthetic_named_import(local: &Id, src: &JsWord) -> ast::ModuleItem {
             imported: None,
         })],
     }))
-}
-
-fn create_qrl(qwik_ident: &Id, url: JsWord, symbol: &str, idents: &[Id]) -> ast::CallExpr {
-    let mut args = vec![
-        ast::Expr::Arrow(ast::ArrowExpr {
-            is_async: false,
-            is_generator: false,
-            span: DUMMY_SP,
-            params: vec![],
-            return_type: None,
-            type_params: None,
-            body: ast::BlockStmtOrExpr::Expr(Box::new(ast::Expr::Call(ast::CallExpr {
-                callee: ast::Callee::Expr(Box::new(ast::Expr::Ident(ast::Ident::new(
-                    "import".into(),
-                    DUMMY_SP,
-                )))),
-                span: DUMMY_SP,
-                type_args: None,
-                args: vec![ast::ExprOrSpread {
-                    spread: None,
-                    expr: Box::new(ast::Expr::Lit(ast::Lit::Str(ast::Str {
-                        span: DUMMY_SP,
-                        value: url,
-                        raw: None,
-                    }))),
-                }],
-            }))),
-        }),
-        ast::Expr::Lit(ast::Lit::Str(ast::Str {
-            span: DUMMY_SP,
-            value: symbol.into(),
-            raw: None,
-        })),
-    ];
-
-    // Injects state
-    if !idents.is_empty() {
-        args.push(ast::Expr::Array(ast::ArrayLit {
-            span: DUMMY_SP,
-            elems: idents
-                .iter()
-                .map(|id| {
-                    Some(ast::ExprOrSpread {
-                        spread: None,
-                        expr: Box::new(ast::Expr::Ident(new_ident_from_id(id))),
-                    })
-                })
-                .collect(),
-        }))
-    }
-
-    create_internal_call(qwik_ident, &QRL, args, None)
-}
-
-fn create_inline_qrl(
-    qwik_ident: &Id,
-    expr: ast::Expr,
-    symbol: &str,
-    idents: &[Id],
-) -> ast::CallExpr {
-    let mut args = vec![
-        expr,
-        ast::Expr::Lit(ast::Lit::Str(ast::Str {
-            span: DUMMY_SP,
-            value: symbol.into(),
-            raw: None,
-        })),
-    ];
-
-    // Injects state
-    if !idents.is_empty() {
-        args.push(ast::Expr::Array(ast::ArrayLit {
-            span: DUMMY_SP,
-            elems: idents
-                .iter()
-                .map(|id| {
-                    Some(ast::ExprOrSpread {
-                        spread: None,
-                        expr: Box::new(ast::Expr::Ident(new_ident_from_id(id))),
-                    })
-                })
-                .collect(),
-        }))
-    }
-
-    create_internal_call(qwik_ident, &INLINED_QRL, args, None)
-}
-
-pub fn create_internal_call(
-    qwik_ident: &Id,
-    fn_name: &JsWord,
-    exprs: Vec<ast::Expr>,
-    mark: Option<Mark>,
-) -> ast::CallExpr {
-    let span = mark.map_or(DUMMY_SP, |mark| DUMMY_SP.apply_mark(mark));
-    ast::CallExpr {
-        callee: ast::Callee::Expr(Box::new(ast::Expr::Member(ast::MemberExpr {
-            obj: Box::new(ast::Expr::Ident(new_ident_from_id(qwik_ident))),
-            prop: ast::MemberProp::Ident(ast::Ident::new(fn_name.clone(), DUMMY_SP)),
-            span: DUMMY_SP,
-        }))),
-        span,
-        type_args: None,
-        args: exprs
-            .into_iter()
-            .map(|expr| ast::ExprOrSpread {
-                spread: None,
-                expr: Box::new(expr),
-            })
-            .collect(),
-    }
 }
 
 fn escape_sym(str: &str) -> String {

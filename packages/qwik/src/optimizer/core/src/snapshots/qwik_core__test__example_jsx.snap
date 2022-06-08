@@ -47,8 +47,8 @@ export const Foo = component$((props) => {
 
 ============================= test.js ==
 
-import * as qwik from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
 import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
 export const Lightweight = (props)=>{
     return /*#__PURE__*/ _jsx("div", {
@@ -62,23 +62,20 @@ export const Lightweight = (props)=>{
         })
     });
 };
-export const Foo = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./foo_component_htdrsvublie")
+export const Foo = /*#__PURE__*/ componentQrl(qrl(()=>import("./foo_component_htdrsvublie")
 , "Foo_component_HTDRsvUbLiE"), {
     tagName: "my-foo"
 });
 
 ============================= foo_component_htdrsvublie.js (ENTRY POINT)==
 
-import * as qwik from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
 export const Foo_component_HTDRsvUbLiE = (props)=>{
-    return qwik.qrl(()=>import("./foo_component_1_dvu6fitwgly")
+    return qrl(()=>import("./foo_component_1_dvu6fitwgly")
     , "Foo_component_1_DvU6FitWglY", [
         props
     ]);
 };
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
-export { hW as handleWatch };
 
 /*
 {
@@ -101,13 +98,13 @@ export { hW as handleWatch };
 */
 ============================= foo_component_1_dvu6fitwgly.js (ENTRY POINT)==
 
-import * as qwik from "@builder.io/qwik";
+import { useLexicalScope } from "@builder.io/qwik";
 import { Lightweight } from "./test";
 import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 import { jsxs as _jsxs } from "@builder.io/qwik/jsx-runtime";
 export const Foo_component_1_DvU6FitWglY = ()=>{
-    const [props] = qwik.useLexicalScope();
+    const [props] = useLexicalScope();
     return /*#__PURE__*/ _jsxs("div", {
         children: [
             /*#__PURE__*/ _jsxs(_Fragment, {
@@ -146,7 +143,7 @@ export const Foo_component_1_DvU6FitWglY = ()=>{
     });
 };
 import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
+hW.issue123 && hW.issue123();
 export { hW as handleWatch };
 
 /*

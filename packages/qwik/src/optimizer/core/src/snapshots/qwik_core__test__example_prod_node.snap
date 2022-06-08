@@ -19,24 +19,21 @@ export const Foo = component$(() => {
 
 ============================= s_htdrsvublie.tsx (ENTRY POINT)==
 
-import * as qwik from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
 export const s_HTDRsvUbLiE = ()=>{
     return <div >
 
-            <div onClickQrl={qwik.qrl(()=>import("./s_9dcjc0ujddo")
+            <div onClickQrl={qrl(()=>import("./s_9dcjc0ujddo")
     , "s_9DcJc0uJDDo")}/>
 
-            <div onClickQrl={qwik.qrl(()=>import("./s_rjqdy8i0mxc")
+            <div onClickQrl={qrl(()=>import("./s_rjqdy8i0mxc")
     , "s_RjQdy8I0MXc")}/>
 
-            <div onClickQrl={qwik.qrl(()=>import("./s_w9ptfrbvk1e")
+            <div onClickQrl={qrl(()=>import("./s_w9ptfrbvk1e")
     , "s_w9ptFRBVK1E")}/>
 
         </div>;
 };
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
-export { hW as handleWatch };
 
 /*
 {
@@ -59,12 +56,8 @@ export { hW as handleWatch };
 */
 ============================= s_9dcjc0ujddo.tsx (ENTRY POINT)==
 
-import * as qwik from "@builder.io/qwik";
 export const s_9DcJc0uJDDo = ()=>console.log('first')
 ;
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
-export { hW as handleWatch };
 
 /*
 {
@@ -87,12 +80,8 @@ export { hW as handleWatch };
 */
 ============================= s_w9ptfrbvk1e.tsx (ENTRY POINT)==
 
-import * as qwik from "@builder.io/qwik";
 export const s_w9ptFRBVK1E = ()=>console.log('third')
 ;
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
-export { hW as handleWatch };
 
 /*
 {
@@ -115,12 +104,8 @@ export { hW as handleWatch };
 */
 ============================= s_rjqdy8i0mxc.tsx (ENTRY POINT)==
 
-import * as qwik from "@builder.io/qwik";
 export const s_RjQdy8I0MXc = ()=>console.log('second')
 ;
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
-export { hW as handleWatch };
 
 /*
 {
@@ -143,9 +128,9 @@ export { hW as handleWatch };
 */
 ============================= test.tsx ==
 
-import * as qwik from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
-export const Foo = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./s_htdrsvublie")
+import { qrl } from "@builder.io/qwik";
+export const Foo = /*#__PURE__*/ componentQrl(qrl(()=>import("./s_htdrsvublie")
 , "s_HTDRsvUbLiE"));
 
 == DIAGNOSTICS ==

@@ -17,20 +17,16 @@ export const App = component$(() => {
 
 ============================= test.js ==
 
-import * as qwik from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
-export const App = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./app_component_ckepmxzlub0")
+import { qrl } from "@builder.io/qwik";
+export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("./app_component_ckepmxzlub0")
 , "App_component_ckEPmXZlub0"));
 
 ============================= app_component_usestyles_t35nsa5uv7u.js (ENTRY POINT)==
 
-import * as qwik from "@builder.io/qwik";
 import css1 from "./global.css";
 import css2 from "./style.css";
 export const App_component_useStyles_t35nSa5UV7U = `${css1}${css2}`;
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
-export { hW as handleWatch };
 
 /*
 {
@@ -53,17 +49,14 @@ export { hW as handleWatch };
 */
 ============================= app_component_ckepmxzlub0.js (ENTRY POINT)==
 
-import * as qwik from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
 import { useStylesQrl } from "@builder.io/qwik";
 export const App_component_ckEPmXZlub0 = ()=>{
-    useStylesQrl(qwik.qrl(()=>import("./app_component_usestyles_t35nsa5uv7u")
+    useStylesQrl(qrl(()=>import("./app_component_usestyles_t35nsa5uv7u")
     , "App_component_useStyles_t35nSa5UV7U"));
-    useStylesQrl(qwik.qrl(()=>import("./app_component_usestyles_1_xbk4w0zkwe8")
+    useStylesQrl(qrl(()=>import("./app_component_usestyles_1_xbk4w0zkwe8")
     , "App_component_useStyles_1_xBK4W0ZKWe8"));
 };
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
-export { hW as handleWatch };
 
 /*
 {
@@ -86,12 +79,8 @@ export { hW as handleWatch };
 */
 ============================= app_component_usestyles_1_xbk4w0zkwe8.js (ENTRY POINT)==
 
-import * as qwik from "@builder.io/qwik";
 import css3 from "./style.css";
 export const App_component_useStyles_1_xBK4W0ZKWe8 = css3;
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
-export { hW as handleWatch };
 
 /*
 {

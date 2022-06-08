@@ -26,7 +26,6 @@ export const App = component$(() => {
 
 ============================= header_component_header_onclick_kjd9tcnknxy.tsx ==
 
-import * as qwik from "@builder.io/qwik";
 import dep3 from "dep3/something";
 export const Header_component_Header_onClick_KjD9TCNkNxY = (ev)=>dep3(ev)
 ;
@@ -52,12 +51,12 @@ export const Header_component_Header_onClick_KjD9TCNkNxY = (ev)=>dep3(ev)
 */
 ============================= header_component_uvbjufyfvdo.tsx ==
 
-import * as qwik from "@builder.io/qwik";
 import { Header } from "./project/test";
 import { bar as bbar } from "./state";
 import * as dep2 from "dep2";
+import { qrl } from "@builder.io/qwik";
 export const Header_component_UVBJuFYfvDo = ()=>{
-    return <Header onClick={qwik.qrl(()=>import("./entry_hooks")
+    return <Header onClick={qrl(()=>import("./entry_hooks")
     , "Header_component_Header_onClick_KjD9TCNkNxY")}>
 
             {dep2.stuff()}{bbar()}
@@ -86,7 +85,6 @@ export const Header_component_UVBJuFYfvDo = ()=>{
 */
 ============================= app_component_wgkrhwxaqjs.tsx ==
 
-import * as qwik from "@builder.io/qwik";
 import { Header } from "./project/test";
 import { foo } from "./state";
 export const App_component_wGkRHWXaqjs = ()=>{
@@ -114,11 +112,11 @@ export const App_component_wGkRHWXaqjs = ()=>{
 */
 ============================= project/test.tsx ==
 
-import * as qwik from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
-export const Header = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("../entry_hooks")
+import { qrl } from "@builder.io/qwik";
+export const Header = /*#__PURE__*/ componentQrl(qrl(()=>import("../entry_hooks")
 , "Header_component_UVBJuFYfvDo"));
-export const App = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("../entry_hooks")
+export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("../entry_hooks")
 , "App_component_wGkRHWXaqjs"));
 
 ============================= entry_hooks.js (ENTRY POINT)==
@@ -127,7 +125,7 @@ export { Header_component_Header_onClick_KjD9TCNkNxY } from "./header_component_
 export { Header_component_UVBJuFYfvDo } from "./header_component_uvbjufyfvdo";
 export { App_component_wGkRHWXaqjs } from "./app_component_wgkrhwxaqjs";
 import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
+hW.issue123 && hW.issue123();
 export { hW as handleWatch };
 
 == DIAGNOSTICS ==

@@ -6,21 +6,22 @@ expression: output
 
 
 import { $, component$, useStyles } from '@builder.io/qwik';
+import { qrl } from '@builder.io/qwik/what';
 
 export const hW = 12;
 export const handleWatch = 42;
 
-const componentQrl = () => console.log('not this');
+const componentQrl = () => console.log('not this', qrl());
+
 componentQrl();
 export const Foo = component$(() => {
     useStyles$('thing');
     const qwik = hW + handleWatch;
     console.log(qwik);
-    return $(() => {
-        return (
-            <div/>
-        )
-    });
+    const qrl = 23;
+    return (
+        <div onClick$={()=> console.log(qrl)}/>
+    )
 }, {
     tagName: "my-foo",
 });
@@ -38,37 +39,41 @@ export const Root = component$(() => {
 
 ============================= test.js ==
 
-import * as qwik from "@builder.io/qwik";
 import { componentQrl as componentQrl1 } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+import { qrl as qrl1 } from '@builder.io/qwik/what';
 export const hW = 12;
 export const handleWatch = 42;
-const componentQrl = ()=>console.log('not this')
+const componentQrl = ()=>console.log('not this', qrl1())
 ;
 componentQrl();
-export const Foo = /*#__PURE__*/ componentQrl1(qwik.qrl(()=>import("./foo_component_htdrsvublie")
+export const Foo = /*#__PURE__*/ componentQrl1(qrl(()=>import("./foo_component_htdrsvublie")
 , "Foo_component_HTDRsvUbLiE"), {
     tagName: "my-foo"
 });
-export const Root = /*#__PURE__*/ componentQrl1(qwik.qrl(()=>import("./root_component_royhjyacbye")
+export const Root = /*#__PURE__*/ componentQrl1(qrl(()=>import("./root_component_royhjyacbye")
 , "Root_component_royhjYaCbYE"), {
     tagName: "my-foo"
 });
 
 ============================= foo_component_htdrsvublie.js (ENTRY POINT)==
 
-import * as qwik from "@builder.io/qwik";
+import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 import { hW } from "./test";
 import { handleWatch } from "./test";
+import { qrl } from "@builder.io/qwik";
 export const Foo_component_HTDRsvUbLiE = ()=>{
     useStyles$('thing');
-    const qwik1 = hW + handleWatch;
-    console.log(qwik1);
-    return qwik.qrl(()=>import("./foo_component_1_dvu6fitwgly")
-    , "Foo_component_1_DvU6FitWglY");
+    const qwik = hW + handleWatch;
+    console.log(qwik);
+    const qrl1 = 23;
+    return /*#__PURE__*/ _jsx("div", {
+        onClickQrl: qrl(()=>import("./foo_component_div_onclick_m48dyiidsjw")
+        , "Foo_component_div_onClick_M48DYiidSJw", [
+            qrl1
+        ])
+    });
 };
-import { handleWatch as hW1 } from "@builder.io/qwik";
-hW1.issue456 && hW1.issue123();
-export { hW1 as handleWatch };
 
 /*
 {
@@ -84,54 +89,21 @@ export { hW1 as handleWatch };
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    216,
-    383
-  ]
-}
-*/
-============================= foo_component_1_dvu6fitwgly.js (ENTRY POINT)==
-
-import * as qwik from "@builder.io/qwik";
-import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
-export const Foo_component_1_DvU6FitWglY = ()=>{
-    return /*#__PURE__*/ _jsx("div", {});
-};
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
-export { hW as handleWatch };
-
-/*
-{
-  "origin": "test.tsx",
-  "name": "Foo_component_1_DvU6FitWglY",
-  "entry": null,
-  "displayName": "Foo_component_1",
-  "hash": "DvU6FitWglY",
-  "canonicalFilename": "foo_component_1_dvu6fitwgly",
-  "extension": "js",
-  "parent": "Foo_component_HTDRsvUbLiE",
-  "ctxKind": "function",
-  "ctxName": "$",
-  "captures": false,
-  "loc": [
-    320,
-    379
+    269,
+    448
   ]
 }
 */
 ============================= root_component_royhjyacbye.js (ENTRY POINT)==
 
-import * as qwik from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
 import { useStyles } from "@builder.io/qwik";
 export const Root_component_royhjYaCbYE = ()=>{
-    useStyles(qwik.qrl(()=>import("./root_component_1_cbpqnyduhi4")
+    useStyles(qrl(()=>import("./root_component_1_cbpqnyduhi4")
     , "Root_component_1_cBpQNYDUHI4"));
-    return qwik.qrl(()=>import("./root_component_2_iqsg9sgbdfk")
+    return qrl(()=>import("./root_component_2_iqsg9sgbdfk")
     , "Root_component_2_iqSg9SGBdfk");
 };
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
-export { hW as handleWatch };
 
 /*
 {
@@ -147,17 +119,16 @@ export { hW as handleWatch };
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    446,
-    557
+    511,
+    622
   ]
 }
 */
 ============================= root_component_1_cbpqnyduhi4.js (ENTRY POINT)==
 
-import * as qwik from "@builder.io/qwik";
 export const Root_component_1_cBpQNYDUHI4 = 'thing';
 import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
+hW.issue123 && hW.issue123();
 export { hW as handleWatch };
 
 /*
@@ -174,20 +145,46 @@ export { hW as handleWatch };
   "ctxName": "$",
   "captures": false,
   "loc": [
-    470,
-    477
+    535,
+    542
+  ]
+}
+*/
+============================= foo_component_div_onclick_m48dyiidsjw.js (ENTRY POINT)==
+
+import { useLexicalScope } from "@builder.io/qwik";
+export const Foo_component_div_onClick_M48DYiidSJw = ()=>{
+    const [qrl] = useLexicalScope();
+    return console.log(qrl);
+};
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "Foo_component_div_onClick_M48DYiidSJw",
+  "entry": null,
+  "displayName": "Foo_component_div_onClick",
+  "hash": "M48DYiidSJw",
+  "canonicalFilename": "foo_component_div_onclick_m48dyiidsjw",
+  "extension": "js",
+  "parent": "Foo_component_HTDRsvUbLiE",
+  "ctxKind": "event",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    416,
+    437
   ]
 }
 */
 ============================= root_component_2_iqsg9sgbdfk.js (ENTRY POINT)==
 
-import * as qwik from "@builder.io/qwik";
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 export const Root_component_2_iqSg9SGBdfk = ()=>{
     return /*#__PURE__*/ _jsx("div", {});
 };
 import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
+hW.issue123 && hW.issue123();
 export { hW as handleWatch };
 
 /*
@@ -204,8 +201,8 @@ export { hW as handleWatch };
   "ctxName": "$",
   "captures": false,
   "loc": [
-    494,
-    553
+    559,
+    618
   ]
 }
 */

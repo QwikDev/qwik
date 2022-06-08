@@ -751,21 +751,22 @@ fn example_qwik_conflict() {
     test_input!(TestInput {
         code: r#"
 import { $, component$, useStyles } from '@builder.io/qwik';
+import { qrl } from '@builder.io/qwik/what';
 
 export const hW = 12;
 export const handleWatch = 42;
 
-const componentQrl = () => console.log('not this');
+const componentQrl = () => console.log('not this', qrl());
+
 componentQrl();
 export const Foo = component$(() => {
     useStyles$('thing');
     const qwik = hW + handleWatch;
     console.log(qwik);
-    return $(() => {
-        return (
-            <div/>
-        )
-    });
+    const qrl = 23;
+    return (
+        <div onClick$={()=> console.log(qrl)}/>
+    )
 }, {
     tagName: "my-foo",
 });

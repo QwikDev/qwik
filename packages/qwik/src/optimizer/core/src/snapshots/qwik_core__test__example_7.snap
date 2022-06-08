@@ -22,15 +22,12 @@ const App = component$(() => {
 
 ============================= header_component_j4uyihabnr4.tsx (ENTRY POINT)==
 
-import * as qwik from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
 export const Header_component_J4uyIhaBNR4 = ()=>{
     console.log("mount");
-    return <div onClick={qwik.qrl(()=>import("./header_component_div_onclick_i7ekvwh3674")
+    return <div onClick={qrl(()=>import("./header_component_div_onclick_i7ekvwh3674")
     , "Header_component_div_onClick_i7ekvWH3674")}/>;
 };
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
-export { hW as handleWatch };
 
 /*
 {
@@ -53,23 +50,19 @@ export { hW as handleWatch };
 */
 ============================= test.tsx ==
 
-import * as qwik from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
-export const Header = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./header_component_j4uyihabnr4")
+import { qrl } from "@builder.io/qwik";
+export const Header = /*#__PURE__*/ componentQrl(qrl(()=>import("./header_component_j4uyihabnr4")
 , "Header_component_J4uyIhaBNR4"));
-/*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./app_component_ckepmxzlub0")
+/*#__PURE__*/ componentQrl(qrl(()=>import("./app_component_ckepmxzlub0")
 , "App_component_ckEPmXZlub0"));
 
 ============================= app_component_ckepmxzlub0.tsx (ENTRY POINT)==
 
-import * as qwik from "@builder.io/qwik";
 import { Header } from "./test";
 export const App_component_ckEPmXZlub0 = ()=>{
     return <Header />;
 };
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
-export { hW as handleWatch };
 
 /*
 {
@@ -92,11 +85,10 @@ export { hW as handleWatch };
 */
 ============================= header_component_div_onclick_i7ekvwh3674.tsx (ENTRY POINT)==
 
-import * as qwik from "@builder.io/qwik";
 export const Header_component_div_onClick_i7ekvWH3674 = (ctx)=>console.log(ctx)
 ;
 import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
+hW.issue123 && hW.issue123();
 export { hW as handleWatch };
 
 /*

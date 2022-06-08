@@ -13,7 +13,12 @@ export const GitHubRepositories = component$(
       <>
         <span>
           GitHub username:
-          <input value={store.organization} />
+          <input
+            value={store.organization}
+            onKeyup$={(e) =>
+              (store.organization = (e.target as HTMLInputElement).value)
+            }
+          />
         </span>
         <div>
           <ul>

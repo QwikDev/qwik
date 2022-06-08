@@ -6,7 +6,7 @@
 
 # The HTML-first framework
 
-Qwik is designed for the fastest possible page load time, by delivering pure HTML with near 0 javascript for your pages to become interactive, regardless of how complex your site or app is. It achieves this via [resumability](https://github.com/BuilderIO/qwik/blob/main/packages/docs/pages/docs/concepts/resumable.mdx) of HTML and [ultra fine-grained lazy-loading](https://github.com/BuilderIO/qwik/blob/main/packages/docs/pages/docs/concepts/progressive.mdx) of code.
+Qwik is designed for the fastest possible page load time, by delivering pure HTML with near 0 javascript for your pages to become interactive, regardless of how complex your site or app is. It achieves this via [resumability](https://github.com/BuilderIO/qwik/blob/main/packages/docs/src/pages/docs/concepts/resumable.mdx) of HTML and [ultra fine-grained lazy-loading](https://github.com/BuilderIO/qwik/blob/main/packages/docs/src/pages/docs/concepts/progressive.mdx) of code.
 
 ## Getting Started
 
@@ -16,8 +16,8 @@ Try out our starter:
 npm init qwik@latest
 ```
 
-- Understand the difference between [resumable and replayable](https://github.com/BuilderIO/qwik/blob/main/packages/docs/pages/docs/concepts/resumable.mdx) applications.
-- Learn about Qwik's high level [mental model](https://github.com/BuilderIO/qwik/blob/main/packages/docs/pages/docs/think-qwik.mdx).
+- Understand the difference between [resumable and replayable](https://github.com/BuilderIO/qwik/blob/main/packages/docs/src/pages/docs/concepts/resumable.mdx) applications.
+- Learn about Qwik's high level [mental model](https://github.com/BuilderIO/qwik/blob/main/packages/docs/src/pages/docs/think-qwik.mdx).
 
 ## Blog Posts
 

@@ -22,18 +22,14 @@ export const App = component$(() => {
 
 ============================= test.js ==
 
-import * as qwik from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
-export const App = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./app_component_ckepmxzlub0")
+import { qrl } from "@builder.io/qwik";
+export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("./app_component_ckepmxzlub0")
 , "App_component_ckEPmXZlub0"));
 
 ============================= app_component_usestyles_t35nsa5uv7u.js (ENTRY POINT)==
 
-import * as qwik from "@builder.io/qwik";
 export const App_component_useStyles_t35nSa5UV7U = style;
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
-export { hW as handleWatch };
 
 /*
 {
@@ -56,24 +52,21 @@ export { hW as handleWatch };
 */
 ============================= app_component_ckepmxzlub0.js (ENTRY POINT)==
 
-import * as qwik from "@builder.io/qwik";
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 import css1 from "./global.css";
 import css2 from "./style.css";
+import { qrl } from "@builder.io/qwik";
 import { useStylesQrl } from "@builder.io/qwik";
 export const App_component_ckEPmXZlub0 = ()=>{
     const style = `${css1}${css2}`;
-    useStylesQrl(qwik.qrl(()=>import("./app_component_usestyles_t35nsa5uv7u")
+    useStylesQrl(qrl(()=>import("./app_component_usestyles_t35nsa5uv7u")
     , "App_component_useStyles_t35nSa5UV7U"));
     const render = ()=>{
         return /*#__PURE__*/ _jsx("div", {});
     };
-    return qwik.qrl(()=>import("./app_component_1_w0t0o3qmovu")
+    return qrl(()=>import("./app_component_1_w0t0o3qmovu")
     , "App_component_1_w0t0o3QMovU");
 };
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
-export { hW as handleWatch };
 
 /*
 {
@@ -96,10 +89,9 @@ export { hW as handleWatch };
 */
 ============================= app_component_1_w0t0o3qmovu.js (ENTRY POINT)==
 
-import * as qwik from "@builder.io/qwik";
 export const App_component_1_w0t0o3QMovU = render;
 import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
+hW.issue123 && hW.issue123();
 export { hW as handleWatch };
 
 /*

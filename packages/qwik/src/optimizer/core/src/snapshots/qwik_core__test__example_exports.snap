@@ -31,14 +31,11 @@ export const Footer = component$();
 
 ============================= header_component_uvbjufyfvdo.tsx (ENTRY POINT)==
 
-import * as qwik from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
 export const Header_component_UVBJuFYfvDo = ()=>{
-    return qwik.qrl(()=>import("./header_component_1_uwm1kg0igo0")
+    return qrl(()=>import("./header_component_1_uwm1kg0igo0")
     , "Header_component_1_uWM1kg0IGO0");
 };
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
-export { hW as handleWatch };
 
 /*
 {
@@ -61,8 +58,8 @@ export { hW as handleWatch };
 */
 ============================= project/test.tsx ==
 
-import * as qwik from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
 export const [a, { b , v1: [c] , d =v2 , ...e }, f = v3, ...g] = obj;
 const exp1 = 1;
 const internal = 2;
@@ -71,13 +68,12 @@ export function foo() {}
 export class bar {
 }
 export default function DefaultFn() {};
-export const Header = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("../header_component_uvbjufyfvdo")
+export const Header = /*#__PURE__*/ componentQrl(qrl(()=>import("../header_component_uvbjufyfvdo")
 , "Header_component_UVBJuFYfvDo"));
 export const Footer = /*#__PURE__*/ componentQrl();
 
 ============================= header_component_1_uwm1kg0igo0.tsx (ENTRY POINT)==
 
-import * as qwik from "@builder.io/qwik";
 import { default as DefaultFn } from "./project/test";
 import { Footer } from "./project/test";
 import { a } from "./project/test";
@@ -99,7 +95,7 @@ export const Header_component_1_uWM1kg0IGO0 = ()=><Footer >
         </Footer>
 ;
 import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
+hW.issue123 && hW.issue123();
 export { hW as handleWatch };
 
 /*

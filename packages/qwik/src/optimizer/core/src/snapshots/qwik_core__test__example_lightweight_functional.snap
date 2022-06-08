@@ -32,7 +32,6 @@ export const ButtonArrow = ({text, color}) => {
 
 ============================= foo_component_htdrsvublie.tsx (ENTRY POINT)==
 
-import * as qwik from "@builder.io/qwik";
 import { Button } from "./test";
 import { ButtonArrow } from "./test";
 export const Foo_component_HTDRsvUbLiE = ({ color  })=>{
@@ -44,9 +43,6 @@ export const Foo_component_HTDRsvUbLiE = ({ color  })=>{
 
         </div>;
 };
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
-export { hW as handleWatch };
 
 /*
 {
@@ -69,14 +65,11 @@ export { hW as handleWatch };
 */
 ============================= buttonarrow_button_onclick_9npo43figik.tsx (ENTRY POINT)==
 
-import * as qwik from "@builder.io/qwik";
+import { useLexicalScope } from "@builder.io/qwik";
 export const ButtonArrow_button_onClick_9npo43fIGik = ()=>{
-    const [color, text] = qwik.useLexicalScope();
+    const [color, text] = useLexicalScope();
     return console.log(text, color);
 };
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
-export { hW as handleWatch };
 
 /*
 {
@@ -99,14 +92,11 @@ export { hW as handleWatch };
 */
 ============================= button_button_onclick_nsm0jyv00jw.tsx (ENTRY POINT)==
 
-import * as qwik from "@builder.io/qwik";
+import { useLexicalScope } from "@builder.io/qwik";
 export const Button_button_onClick_NsM0JYV00Jw = ()=>{
-    const [color, text] = qwik.useLexicalScope();
+    const [color, text] = useLexicalScope();
     return console.log(text, color);
 };
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
-export { hW as handleWatch };
 
 /*
 {
@@ -129,21 +119,21 @@ export { hW as handleWatch };
 */
 ============================= test.tsx ==
 
-import * as qwik from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
-export const Foo = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./foo_component_htdrsvublie")
+import { qrl } from "@builder.io/qwik";
+export const Foo = /*#__PURE__*/ componentQrl(qrl(()=>import("./foo_component_htdrsvublie")
 , "Foo_component_HTDRsvUbLiE"), {
     tagName: "my-foo"
 });
 export function Button({ text , color  }) {
-    return <button color={color} onClickQrl={qwik.qrl(()=>import("./button_button_onclick_nsm0jyv00jw")
+    return <button color={color} onClickQrl={qrl(()=>import("./button_button_onclick_nsm0jyv00jw")
     , "Button_button_onClick_NsM0JYV00Jw", [
         color,
         text
     ])}>{text}</button>;
 }
 export const ButtonArrow = ({ text , color  })=>{
-    return <button color={color} onClickQrl={qwik.qrl(()=>import("./buttonarrow_button_onclick_9npo43figik")
+    return <button color={color} onClickQrl={qrl(()=>import("./buttonarrow_button_onclick_9npo43figik")
     , "ButtonArrow_button_onClick_9npo43fIGik", [
         color,
         text

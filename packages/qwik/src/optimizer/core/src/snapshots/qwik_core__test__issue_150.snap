@@ -19,20 +19,19 @@ const d = $(()=>console.log('thing'));
 
 ============================= test.js ==
 
-import * as qwik from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
-export const Greeter = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./greeter_component_n7hug2hhu0q")
+import { qrl } from "@builder.io/qwik";
+export const Greeter = /*#__PURE__*/ componentQrl(qrl(()=>import("./greeter_component_n7hug2hhu0q")
 , "Greeter_component_n7HuG2hhU0Q"));
-qwik.qrl(()=>import("./d_wknfjeiqvua")
+qrl(()=>import("./d_wknfjeiqvua")
 , "d_wKNFJEIQVUA");
 
 ============================= d_wknfjeiqvua.js (ENTRY POINT)==
 
-import * as qwik from "@builder.io/qwik";
 export const d_wKNFJEIQVUA = ()=>console.log('thing')
 ;
 import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
+hW.issue123 && hW.issue123();
 export { hW as handleWatch };
 
 /*
@@ -56,13 +55,12 @@ export { hW as handleWatch };
 */
 ============================= greeter_component_1_krcndswhx4u.js (ENTRY POINT)==
 
-import * as qwik from "@builder.io/qwik";
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 export const Greeter_component_1_krCndSwhX4U = ()=>{
     return /*#__PURE__*/ _jsx("div", {});
 };
 import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
+hW.issue123 && hW.issue123();
 export { hW as handleWatch };
 
 /*
@@ -86,14 +84,11 @@ export { hW as handleWatch };
 */
 ============================= greeter_component_n7hug2hhu0q.js (ENTRY POINT)==
 
-import * as qwik from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
 export const Greeter_component_n7HuG2hhU0Q = ()=>{
-    return qwik.qrl(()=>import("./greeter_component_1_krcndswhx4u")
+    return qrl(()=>import("./greeter_component_1_krcndswhx4u")
     , "Greeter_component_1_krCndSwhX4U");
 };
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
-export { hW as handleWatch };
 
 /*
 {

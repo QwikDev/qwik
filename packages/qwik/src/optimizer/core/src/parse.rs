@@ -286,6 +286,8 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                     for h in hooks.into_iter() {
                         let is_entry = h.entry == None;
                         let hook_path = [&h.canonical_filename, ".", &h.data.extension].concat();
+                        let need_handle_watch =
+                            might_need_handle_watch(&h.data.ctx_kind, &h.data.ctx_name) && is_entry;
 
                         let (mut hook_module, comments) = new_module(NewModuleCtx {
                             expr: h.expr,
@@ -295,7 +297,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                             local_idents: &h.data.local_idents,
                             scoped_idents: &h.data.scoped_idents,
                             global: &qwik_transform.options.global_collect,
-                            qwik_ident: &qwik_transform.qwik_ident,
+                            need_handle_watch,
                             is_entry,
                             leading_comments: comments_maps.0.clone(),
                             trailing_comments: comments_maps.1.clone(),
@@ -569,4 +571,11 @@ pub fn parse_path(src: &str) -> Result<PathData, Error> {
         file_name: file_name.into(),
         file_prefix: file_prefix.into(),
     })
+}
+
+pub fn might_need_handle_watch(ctx_kind: &HookKind, ctx_name: &str) -> bool {
+    if matches!(ctx_kind, HookKind::Event) {
+        return false;
+    }
+    matches!(ctx_name, "useClientEffect$" | "$")
 }

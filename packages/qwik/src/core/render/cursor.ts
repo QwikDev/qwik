@@ -9,11 +9,11 @@ import {
   tryGetContext,
 } from '../props/props';
 import { isOn$Prop, isOnProp } from '../props/props-on';
-import type { ValueOrPromise } from '../util/types';
+import { isArray, isString, ValueOrPromise } from '../util/types';
 import type { JSXNode } from '../render/jsx/types/jsx-node';
 import { Host } from '../render/jsx/host.public';
 import { $, QRL } from '../import/qrl.public';
-import { firstRenderComponent, renderComponent } from '../component/component-ctx';
+import { firstRenderComponent, renderComponent } from './render-component';
 import { promiseAll, then } from '../util/promises';
 import type { ContainerState } from './notify-render';
 import { assertDefined, assertEqual } from '../assert/assert';
@@ -22,13 +22,19 @@ import { EMPTY_ARRAY } from '../util/flyweight';
 import { SkipRerender } from './jsx/host.public';
 import { logDebug, logError, logWarn } from '../util/log';
 import { qDev } from '../util/qdev';
-import { qError, QError } from '../error/error';
+import {
+  codeToText,
+  qError,
+  QError_setProperty,
+  QError_stringifyClassOrStyle,
+} from '../error/error';
 import { fromCamelToKebabCase } from '../util/case';
 import type { OnRenderFn } from '../component/component.public';
 import { CONTAINER, isStyleTask, StyleAppend } from '../use/use-core';
 import type { Ref } from '../use/use-store.public';
 import type { SubscriptionManager } from '../object/q-object';
 import { getDocument } from '../util/dom';
+import { directGetAttribute, directSetAttribute } from './fast-calls';
 
 export const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -46,49 +52,42 @@ type PropHandler = (
  * @alpha
  */
 export interface RenderOperation {
-  el: Node;
-  operation: string;
-  args: any[];
-  fn: () => void;
+  $el$: Node;
+  $operation$: string;
+  $args$: any[];
+  $fn$: () => void;
 }
 
 export type ChildrenMode = 'root' | 'slot' | 'fallback' | 'default';
 
+/**
+ * @alpha
+ */
 export interface RenderPerf {
-  timing: PerfEvent[];
-  visited: number;
+  $visited$: number;
 }
 
 /**
  * @alpha
  */
 export interface RenderContext {
-  doc: Document;
-  roots: Element[];
-  hostElements: Set<Element>;
-  operations: RenderOperation[];
-  components: ComponentCtx[];
-  containerState: ContainerState;
-  containerEl: Element;
-  perf: RenderPerf;
+  $doc$: Document;
+  $roots$: Element[];
+  $hostElements$: Set<Element>;
+  $operations$: RenderOperation[];
+  $components$: ComponentCtx[];
+  $containerState$: ContainerState;
+  $containerEl$: Element;
+  $perf$: RenderPerf;
 }
 
-/**
- * @alpha
- */
-export interface PerfEvent {
-  name: string;
-  timeStart: number;
-  timeEnd: number;
-}
-
-export function smartUpdateChildren(
+export const smartUpdateChildren = (
   ctx: RenderContext,
   elm: Node,
   ch: JSXNode[],
   mode: ChildrenMode,
   isSvg: boolean
-) {
+) => {
   if (ch.length === 1 && ch[0].type === SkipRerender) {
     if (elm.firstChild !== null) {
       return;
@@ -104,15 +103,15 @@ export function smartUpdateChildren(
   } else if (oldCh.length > 0) {
     return removeVnodes(ctx, oldCh, 0, oldCh.length - 1);
   }
-}
+};
 
-export function updateChildren(
+export const updateChildren = (
   ctx: RenderContext,
   parentElm: Node,
   oldCh: Node[],
   newCh: JSXNode[],
   isSvg: boolean
-): ValueOrPromise<void> {
+): ValueOrPromise<void> => {
   let oldStartIdx = 0;
   let newStartIdx = 0;
   let oldEndIdx = oldCh.length - 1;
@@ -201,17 +200,17 @@ export function updateChildren(
     });
   }
   return wait;
-}
+};
 
-function isComponentNode(node: JSXNode) {
+const isComponentNode = (node: JSXNode) => {
   return node.props && OnRenderProp in node.props;
-}
+};
 
-function getCh(elm: Node, filter: (el: Node) => boolean) {
+const getCh = (elm: Node, filter: (el: Node) => boolean) => {
   return Array.from(elm.childNodes).filter(filter);
-}
+};
 
-export function getChildren(elm: Node, mode: ChildrenMode): Node[] {
+export const getChildren = (elm: Node, mode: ChildrenMode): Node[] => {
   switch (mode) {
     case 'default':
       return getCh(elm, isNode);
@@ -222,29 +221,29 @@ export function getChildren(elm: Node, mode: ChildrenMode): Node[] {
     case 'fallback':
       return getCh(elm, isFallback);
   }
-}
-export function isNode(elm: Node): boolean {
+};
+export const isNode = (elm: Node): boolean => {
   const type = elm.nodeType;
   return type === 1 || type === 3;
-}
+};
 
-function isFallback(node: Node): boolean {
+const isFallback = (node: Node): boolean => {
   return node.nodeName === 'Q:FALLBACK';
-}
+};
 
-function isChildSlot(node: Node) {
+const isChildSlot = (node: Node): boolean => {
   return isNode(node) && node.nodeName !== 'Q:FALLBACK' && node.nodeName !== 'Q:TEMPLATE';
-}
+};
 
-function isSlotTemplate(node: Node): node is HTMLTemplateElement {
+const isSlotTemplate = (node: Node): node is HTMLTemplateElement => {
   return node.nodeName === 'Q:TEMPLATE';
-}
+};
 
-function isChildComponent(node: Node): boolean {
+const isChildComponent = (node: Node): boolean => {
   return isNode(node) && node.nodeName !== 'Q:TEMPLATE';
-}
+};
 
-function splitBy<T>(input: T[], condition: (item: T) => string): Record<string, T[]> {
+const splitBy = <T>(input: T[], condition: (item: T) => string): Record<string, T[]> => {
   const output: Record<string, T[]> = {};
   for (const item of input) {
     const key = condition(item);
@@ -252,15 +251,14 @@ function splitBy<T>(input: T[], condition: (item: T) => string): Record<string, 
     array.push(item);
   }
   return output;
-}
+};
 
-export function patchVnode(
+export const patchVnode = (
   rctx: RenderContext,
   elm: Node,
   vnode: JSXNode<any>,
   isSvg: boolean
-): ValueOrPromise<void> {
-  rctx.perf.visited++;
+): ValueOrPromise<void> => {
   vnode.elm = elm;
   const tag = vnode.type;
   if (tag === '#text') {
@@ -293,9 +291,9 @@ export function patchVnode(
     isSvg = false;
   } else if (isSlot) {
     const currentComponent =
-      rctx.components.length > 0 ? rctx.components[rctx.components.length - 1] : undefined;
+      rctx.$components$.length > 0 ? rctx.$components$[rctx.$components$.length - 1] : undefined;
     if (currentComponent) {
-      currentComponent.slots.push(vnode);
+      currentComponent.$slots$.push(vnode);
     }
   }
   const isComponent = isComponentNode(vnode);
@@ -305,7 +303,7 @@ export function patchVnode(
   const ch = vnode.children;
   if (isComponent) {
     return then(promise, () => {
-      const slotMaps = getSlots(ctx.component, elm as Element);
+      const slotMaps = getSlots(ctx.$component$, elm as Element);
       const splittedChidren = splitBy(ch, getSlotName);
       const promises: ValueOrPromise<void>[] = [];
 
@@ -348,9 +346,9 @@ export function patchVnode(
     const mode = isSlot ? 'fallback' : 'default';
     return smartUpdateChildren(rctx, elm, ch, mode, isSvg);
   });
-}
+};
 
-function addVnodes(
+const addVnodes = (
   ctx: RenderContext,
   parentElm: Node,
   before: Node | undefined,
@@ -358,7 +356,7 @@ function addVnodes(
   startIdx: number,
   endIdx: number,
   isSvg: boolean
-): ValueOrPromise<void> {
+): ValueOrPromise<void> => {
   const promises = [];
   for (; startIdx <= endIdx; ++startIdx) {
     const ch = vnodes[startIdx];
@@ -370,36 +368,41 @@ function addVnodes(
       insertBefore(ctx, parentElm, child, before);
     }
   });
-}
+};
 
-function removeVnodes(ctx: RenderContext, nodes: Node[], startIdx: number, endIdx: number): void {
+const removeVnodes = (
+  ctx: RenderContext,
+  nodes: Node[],
+  startIdx: number,
+  endIdx: number
+): void => {
   for (; startIdx <= endIdx; ++startIdx) {
     const ch = nodes[startIdx];
     if (ch) {
       removeNode(ctx, ch);
     }
   }
-}
+};
 
 let refCount = 0;
 const RefSymbol = Symbol();
 
-function setSlotRef(ctx: RenderContext, hostElm: Element, slotEl: Element) {
-  let ref = (hostElm as any)[RefSymbol] ?? hostElm.getAttribute('q:sref');
+const setSlotRef = (ctx: RenderContext, hostElm: Element, slotEl: Element) => {
+  let ref = (hostElm as any)[RefSymbol] ?? directGetAttribute(hostElm, 'q:sref');
   if (ref === null) {
     ref = intToStr(refCount++);
     (hostElm as any)[RefSymbol] = ref;
     setAttribute(ctx, hostElm, 'q:sref', ref);
   }
-  slotEl.setAttribute('q:sref', ref);
-}
+  directSetAttribute(slotEl, 'q:sref', ref);
+};
 
-function getSlotElement(
+const getSlotElement = (
   ctx: RenderContext,
   slotMaps: SlotMaps,
   parentEl: Element,
   slotName: string
-): Element {
+): Element => {
   const slotEl = slotMaps.slots[slotName];
   if (slotEl) {
     return slotEl;
@@ -412,17 +415,18 @@ function getSlotElement(
   prepend(ctx, parentEl, template);
   slotMaps.templates[slotName] = template;
   return template;
-}
+};
 
-function createTemplate(ctx: RenderContext, slotName: string) {
+const createTemplate = (ctx: RenderContext, slotName: string) => {
   const template = createElement(ctx, 'q:template', false);
-  template.setAttribute(QSlotAttr, slotName);
-  template.setAttribute('hidden', '');
-  template.setAttribute('aria-hidden', 'true');
-  return template;
-}
+  directSetAttribute(template, QSlotAttr, slotName);
+  directSetAttribute(template, 'hidden', '');
+  directSetAttribute(template, 'aria-hidden', 'true');
 
-function removeTemplates(ctx: RenderContext, slotMaps: SlotMaps) {
+  return template;
+};
+
+const removeTemplates = (ctx: RenderContext, slotMaps: SlotMaps) => {
   Object.keys(slotMaps.templates).forEach((key) => {
     const template = slotMaps.templates[key]!;
     if (template && slotMaps.slots[key] !== undefined) {
@@ -430,14 +434,14 @@ function removeTemplates(ctx: RenderContext, slotMaps: SlotMaps) {
       slotMaps.templates[key] = undefined;
     }
   });
-}
+};
 
-export function resolveSlotProjection(
+export const resolveSlotProjection = (
   ctx: RenderContext,
   hostElm: Element,
   before: SlotMaps,
   after: SlotMaps
-) {
+) => {
   Object.entries(before.slots).forEach(([key, slotEl]) => {
     if (slotEl && !after.slots[key]) {
       // Slot removed
@@ -447,11 +451,11 @@ export function resolveSlotProjection(
       template.append(...slotChildren);
       hostElm.insertBefore(template, hostElm.firstChild);
 
-      ctx.operations.push({
-        el: template,
-        operation: 'slot-to-template',
-        args: slotChildren,
-        fn: () => {},
+      ctx.$operations$.push({
+        $el$: template,
+        $operation$: 'slot-to-template',
+        $args$: slotChildren,
+        $fn$: () => {},
       });
     }
   });
@@ -464,23 +468,23 @@ export function resolveSlotProjection(
       if (template) {
         slotEl.append(...getChildren(template, 'default'));
         template.remove();
-        ctx.operations.push({
-          el: slotEl,
-          operation: 'template-to-slot',
-          args: [template],
-          fn: () => {},
+        ctx.$operations$.push({
+          $el$: slotEl,
+          $operation$: 'template-to-slot',
+          $args$: [template],
+          $fn$: () => {},
         });
       }
     }
   });
-}
+};
 
-function getSlotName(node: JSXNode): string {
+const getSlotName = (node: JSXNode): string => {
   return node.props?.['q:slot'] ?? '';
-}
+};
 
-function createElm(rctx: RenderContext, vnode: JSXNode, isSvg: boolean): ValueOrPromise<Node> {
-  rctx.perf.visited++;
+const createElm = (rctx: RenderContext, vnode: JSXNode, isSvg: boolean): ValueOrPromise<Node> => {
+  rctx.$perf$.$visited$++;
   const tag = vnode.type;
   if (tag === '#text') {
     return (vnode.elm = createTextNode(rctx, vnode.text!));
@@ -501,15 +505,15 @@ function createElm(rctx: RenderContext, vnode: JSXNode, isSvg: boolean): ValueOr
     isSvg = false;
   }
   const currentComponent =
-    rctx.components.length > 0 ? rctx.components[rctx.components.length - 1] : undefined;
+    rctx.$components$.length > 0 ? rctx.$components$[rctx.$components$.length - 1] : undefined;
   if (currentComponent) {
-    const styleTag = currentComponent.styleClass;
+    const styleTag = currentComponent.$styleClass$;
     if (styleTag) {
       classlistAdd(rctx, elm, styleTag);
     }
     if (tag === 'q:slot') {
-      setSlotRef(rctx, currentComponent.hostElement, elm);
-      currentComponent.slots.push(vnode);
+      setSlotRef(rctx, currentComponent.$hostElement$, elm);
+      currentComponent.$slots$.push(vnode);
     }
   }
 
@@ -517,7 +521,7 @@ function createElm(rctx: RenderContext, vnode: JSXNode, isSvg: boolean): ValueOr
   if (isComponent) {
     // Run mount hook
     const renderQRL = props![OnRenderProp]! as QRL<OnRenderFn<any>>;
-    ctx.renderQrl = renderQRL;
+    ctx.$renderQrl$ = renderQRL;
     wait = firstRenderComponent(rctx, ctx);
   } else {
     const setsInnerHTML = checkInnerHTML(props);
@@ -534,7 +538,7 @@ function createElm(rctx: RenderContext, vnode: JSXNode, isSvg: boolean): ValueOr
       if (children.length === 1 && children[0].type === SkipRerender) {
         children = children[0].children;
       }
-      const slotMap = isComponent ? getSlots(ctx.component, elm) : undefined;
+      const slotMap = isComponent ? getSlots(ctx.$component$, elm) : undefined;
       const promises = children.map((ch) => createElm(rctx, ch, isSvg));
       return then(promiseAll(promises) as any, () => {
         let parent = elm;
@@ -549,7 +553,7 @@ function createElm(rctx: RenderContext, vnode: JSXNode, isSvg: boolean): ValueOr
     }
     return elm;
   });
-}
+};
 interface SlotMaps {
   slots: Record<string, Element | undefined>;
   templates: Record<string, Element | undefined>;
@@ -558,14 +562,14 @@ interface SlotMaps {
 const getSlots = (componentCtx: ComponentCtx | undefined, hostElm: Element): SlotMaps => {
   const slots: Record<string, Element> = {};
   const templates: Record<string, HTMLTemplateElement> = {};
-  const slotRef = hostElm.getAttribute('q:sref');
+  const slotRef = directGetAttribute(hostElm, 'q:sref');
   const existingSlots = Array.from(hostElm.querySelectorAll(`q\\:slot[q\\:sref="${slotRef}"]`));
-  const newSlots = componentCtx?.slots ?? EMPTY_ARRAY;
+  const newSlots = componentCtx?.$slots$ ?? EMPTY_ARRAY;
   const t = Array.from(hostElm.children).filter(isSlotTemplate);
 
   // Map slots
   for (const elm of existingSlots) {
-    slots[elm.getAttribute('name') ?? ''] = elm;
+    slots[directGetAttribute(elm, 'name') ?? ''] = elm;
   }
 
   // Map virtual slots
@@ -575,7 +579,7 @@ const getSlots = (componentCtx: ComponentCtx | undefined, hostElm: Element): Slo
 
   // Map templates
   for (const elm of t) {
-    templates[elm.getAttribute('q:slot') ?? ''] = elm;
+    templates[directGetAttribute(elm, 'q:slot') ?? ''] = elm;
   }
 
   return { slots, templates };
@@ -623,18 +627,18 @@ const ALLOWS_PROPS = ['class', 'className', 'style', 'id', 'q:slot'];
 const HOST_PREFIX = 'host:';
 const SCOPE_PREFIX = /^(host|window|document):/;
 
-export function updateProperties(
+export const updateProperties = (
   rctx: RenderContext,
   ctx: QContext,
   expectProps: Record<string, any> | null,
   isSvg: boolean
-) {
+) => {
   if (!expectProps) {
     return false;
   }
-  const elm = ctx.element;
+  const elm = ctx.$element$;
   const isCmp = OnRenderProp in expectProps;
-  const qwikProps = isCmp ? getPropsMutator(ctx, rctx.containerState) : undefined;
+  const qwikProps = isCmp ? getPropsMutator(ctx, rctx.$containerState$) : undefined;
 
   for (let key of Object.keys(expectProps)) {
     if (key === 'children' || key === OnRenderProp) {
@@ -647,11 +651,11 @@ export function updateProperties(
     }
 
     // Early exit if value didnt change
-    const oldValue = ctx.cache.get(key);
+    const oldValue = ctx.$cache$.get(key);
     if (newValue === oldValue) {
       continue;
     }
-    ctx.cache.set(key, newValue);
+    ctx.$cache$.set(key, newValue);
 
     // Check of data- or aria-
     if (key.startsWith('data-') || key.startsWith('aria-')) {
@@ -703,119 +707,114 @@ export function updateProperties(
     // Fallback to render attribute
     setAttribute(rctx, elm, key, newValue);
   }
-  return ctx.dirty;
-}
-
-export const startEvent = (ctx: RenderContext, name: string) => {
-  const event: PerfEvent = {
-    name,
-    timeStart: performance.now(),
-    timeEnd: 0,
-  };
-  ctx.perf.timing.push(event);
-  return () => {
-    event.timeEnd = performance.now();
-  };
+  return ctx.$dirty$;
 };
 
-export function setAttribute(ctx: RenderContext, el: Element, prop: string, value: string | null) {
+export const setAttribute = (
+  ctx: RenderContext,
+  el: Element,
+  prop: string,
+  value: string | null
+) => {
   const fn = () => {
     if (value == null) {
       el.removeAttribute(prop);
     } else {
-      el.setAttribute(prop, String(value));
+      directSetAttribute(el, prop, String(value));
     }
   };
-  ctx.operations.push({
-    el,
-    operation: 'set-attribute',
-    args: [prop, value],
-    fn,
+  ctx.$operations$.push({
+    $el$: el,
+    $operation$: 'set-attribute',
+    $args$: [prop, value],
+    $fn$: fn,
   });
-}
+};
 
-export function classlistAdd(ctx: RenderContext, el: Element, hostStyleTag: string) {
+export const classlistAdd = (ctx: RenderContext, el: Element, hostStyleTag: string) => {
   const fn = () => {
     el.classList.add(hostStyleTag);
   };
-  ctx.operations.push({
-    el,
-    operation: 'classlist-add',
-    args: [hostStyleTag],
-    fn,
+  ctx.$operations$.push({
+    $el$: el,
+    $operation$: 'classlist-add',
+    $args$: [hostStyleTag],
+    $fn$: fn,
   });
-}
+};
 
-function setProperty(ctx: RenderContext, node: any, key: string, value: any) {
+const setProperty = (ctx: RenderContext, node: any, key: string, value: any) => {
   const fn = () => {
     try {
       node[key] = value;
     } catch (err) {
-      logError('Set property', { node, key, value }, err);
+      logError(codeToText(QError_setProperty), { node, key, value }, err);
     }
   };
-  ctx.operations.push({
-    el: node,
-    operation: 'set-property',
-    args: [key, value],
-    fn,
+  ctx.$operations$.push({
+    $el$: node,
+    $operation$: 'set-property',
+    $args$: [key, value],
+    $fn$: fn,
   });
-}
+};
 
-function createElement(ctx: RenderContext, expectTag: string, isSvg: boolean): Element {
-  const el = isSvg ? ctx.doc.createElementNS(SVG_NS, expectTag) : ctx.doc.createElement(expectTag);
-  (el as any)[CONTAINER] = ctx.containerEl;
-  ctx.operations.push({
-    el,
-    operation: 'create-element',
-    args: [expectTag],
-    fn: () => {},
+const createElement = (ctx: RenderContext, expectTag: string, isSvg: boolean): Element => {
+  const el = isSvg
+    ? ctx.$doc$.createElementNS(SVG_NS, expectTag)
+    : ctx.$doc$.createElement(expectTag);
+  (el as any)[CONTAINER] = ctx.$containerEl$;
+  ctx.$operations$.push({
+    $el$: el,
+    $operation$: 'create-element',
+    $args$: [expectTag],
+    $fn$: () => {},
   });
   return el;
-}
+};
 
-function insertBefore<T extends Node>(
+const insertBefore = <T extends Node>(
   ctx: RenderContext,
   parent: Node,
   newChild: T,
   refChild: Node | null | undefined
-): T {
+): T => {
   const fn = () => {
     parent.insertBefore(newChild, refChild ? refChild : null);
   };
-  ctx.operations.push({
-    el: parent,
-    operation: 'insert-before',
-    args: [newChild, refChild],
-    fn,
+  ctx.$operations$.push({
+    $el$: parent,
+    $operation$: 'insert-before',
+    $args$: [newChild, refChild],
+    $fn$: fn,
   });
   return newChild;
-}
+};
 
-export function appendStyle(ctx: RenderContext, hostElement: Element, styleTask: StyleAppend) {
+export const appendStyle = (ctx: RenderContext, hostElement: Element, styleTask: StyleAppend) => {
   const fn = () => {
-    const containerEl = ctx.containerEl;
+    const containerEl = ctx.$containerEl$;
     const stylesParent =
-      ctx.doc.documentElement === containerEl ? ctx.doc.head ?? containerEl : containerEl;
-    const style = ctx.doc.createElement('style');
-    style.setAttribute('q:style', styleTask.styleId);
+      ctx.$doc$.documentElement === containerEl ? ctx.$doc$.head ?? containerEl : containerEl;
+    const style = ctx.$doc$.createElement('style');
+    directSetAttribute(style, 'q:style', styleTask.styleId);
     style.textContent = styleTask.content;
     stylesParent.insertBefore(style, stylesParent.firstChild);
   };
-  ctx.operations.push({
-    el: hostElement,
-    operation: 'append-style',
-    args: [styleTask],
-    fn,
+  ctx.$operations$.push({
+    $el$: hostElement,
+    $operation$: 'append-style',
+    $args$: [styleTask],
+    $fn$: fn,
   });
-}
+};
 
-export function hasStyle(ctx: RenderContext, styleId: string) {
-  const containerEl = ctx.containerEl;
+export const hasStyle = (ctx: RenderContext, styleId: string) => {
+  const containerEl = ctx.$containerEl$;
   const doc = getDocument(containerEl);
-  const hasOperation = ctx.operations.some((op) => {
-    if (op.operation === 'append-style') {
-      const s = op.args[0];
+  const hasOperation = ctx.$operations$.some((op) => {
+    if (op.$operation$ === 'append-style') {
+      const s = op.$args$[0];
       if (isStyleTask(s)) {
         return s.styleId === styleId;
       }
@@ -827,41 +826,41 @@ export function hasStyle(ctx: RenderContext, styleId: string) {
   }
   const stylesParent = doc.documentElement === containerEl ? doc.head ?? containerEl : containerEl;
   return !!stylesParent.querySelector(`style[q\\:style="${styleId}"]`);
-}
+};
 
-function prepend(ctx: RenderContext, parent: Element, newChild: Node) {
+const prepend = (ctx: RenderContext, parent: Element, newChild: Node) => {
   const fn = () => {
     parent.insertBefore(newChild, parent.firstChild);
   };
-  ctx.operations.push({
-    el: parent,
-    operation: 'prepend',
-    args: [newChild],
-    fn,
+  ctx.$operations$.push({
+    $el$: parent,
+    $operation$: 'prepend',
+    $args$: [newChild],
+    $fn$: fn,
   });
-}
+};
 
-function removeNode(ctx: RenderContext, el: Node) {
+const removeNode = (ctx: RenderContext, el: Node) => {
   const fn = () => {
     const parent = el.parentNode;
     if (parent) {
       if (el.nodeType === 1) {
-        cleanupTree(el as Element, ctx.containerState.subsManager);
+        cleanupTree(el as Element, ctx.$containerState$.$subsManager$);
       }
       parent.removeChild(el);
     } else if (qDev) {
       logWarn('Trying to remove component already removed', el);
     }
   };
-  ctx.operations.push({
-    el: el,
-    operation: 'remove',
-    args: [],
-    fn,
+  ctx.$operations$.push({
+    $el$: el,
+    $operation$: 'remove',
+    $args$: [],
+    $fn$: fn,
   });
-}
+};
 
-export function cleanupTree(parent: Element, subsManager: SubscriptionManager) {
+export const cleanupTree = (parent: Element, subsManager: SubscriptionManager) => {
   if (parent.nodeName === 'Q:SLOT') {
     return;
   }
@@ -873,58 +872,61 @@ export function cleanupTree(parent: Element, subsManager: SubscriptionManager) {
     cleanupTree(child, subsManager);
     child = child.nextElementSibling;
   }
-}
+};
 
-function cleanupElement(el: Element, subsManager: SubscriptionManager) {
+const cleanupElement = (el: Element, subsManager: SubscriptionManager) => {
   const ctx = tryGetContext(el);
   if (ctx) {
     cleanupContext(ctx, subsManager);
   }
-}
+};
 
-function createTextNode(ctx: RenderContext, text: string): Text {
-  return ctx.doc.createTextNode(text);
-}
+const createTextNode = (ctx: RenderContext, text: string): Text => {
+  return ctx.$doc$.createTextNode(text);
+};
 
-export function executeContextWithSlots(ctx: RenderContext) {
-  const before = ctx.roots.map((elm) => getSlots(undefined, elm));
+export const executeContextWithSlots = (ctx: RenderContext) => {
+  const before = ctx.$roots$.map((elm) => getSlots(undefined, elm));
 
   executeContext(ctx);
 
-  const after = ctx.roots.map((elm) => getSlots(undefined, elm));
+  const after = ctx.$roots$.map((elm) => getSlots(undefined, elm));
   assertEqual(before.length, after.length);
 
   for (let i = 0; i < before.length; i++) {
-    resolveSlotProjection(ctx, ctx.roots[i], before[i], after[i]);
+    resolveSlotProjection(ctx, ctx.$roots$[i], before[i], after[i]);
   }
-}
+};
 
-export function executeContext(ctx: RenderContext) {
-  for (const op of ctx.operations) {
-    op.fn();
+export const executeContext = (ctx: RenderContext) => {
+  for (const op of ctx.$operations$) {
+    op.$fn$();
   }
-}
+};
 
-export function printRenderStats(ctx: RenderContext) {
-  const byOp: Record<string, number> = {};
-  for (const op of ctx.operations) {
-    byOp[op.operation] = (byOp[op.operation] ?? 0) + 1;
+export const printRenderStats = (ctx: RenderContext) => {
+  if (qDev) {
+    if (typeof window !== 'undefined' && window.document != null) {
+      const byOp: Record<string, number> = {};
+      for (const op of ctx.$operations$) {
+        byOp[op.$operation$] = (byOp[op.$operation$] ?? 0) + 1;
+      }
+      const affectedElements = Array.from(new Set(ctx.$operations$.map((a) => a.$el$)));
+      const stats = {
+        byOp,
+        roots: ctx.$roots$,
+        hostElements: Array.from(ctx.$hostElements$),
+        affectedElements,
+        visitedNodes: ctx.$perf$.$visited$,
+        operations: ctx.$operations$.map((v) => [v.$operation$, v.$el$, ...v.$args$]),
+      };
+      const noOps = ctx.$operations$.length === 0;
+      logDebug('Render stats.', noOps ? 'No operations' : '', stats);
+    }
   }
-  const affectedElements = Array.from(new Set(ctx.operations.map((a) => a.el)));
-  const stats = {
-    byOp,
-    roots: ctx.roots,
-    hostElements: Array.from(ctx.hostElements),
-    affectedElements,
-    visitedNodes: ctx.perf.visited,
-    operations: ctx.operations.map((v) => [v.operation, v.el, ...v.args]),
-  };
-  const noOps = ctx.operations.length === 0;
-  logDebug('Render stats.', noOps ? 'No operations' : '', stats);
-  return stats;
-}
+};
 
-function createKeyToOldIdx(children: Node[], beginIdx: number, endIdx: number): KeyToIndexMap {
+const createKeyToOldIdx = (children: Node[], beginIdx: number, endIdx: number): KeyToIndexMap => {
   const map: KeyToIndexMap = {};
   for (let i = beginIdx; i <= endIdx; ++i) {
     const child = children[i];
@@ -936,26 +938,26 @@ function createKeyToOldIdx(children: Node[], beginIdx: number, endIdx: number): 
     }
   }
   return map;
-}
+};
 
 const KEY_SYMBOL = Symbol('vnode key');
 
-function getKey(el: Element): string | null {
+const getKey = (el: Element): string | null => {
   let key = (el as any)[KEY_SYMBOL];
   if (key === undefined) {
-    key = (el as any)[KEY_SYMBOL] = el.getAttribute('q:key');
+    key = (el as any)[KEY_SYMBOL] = directGetAttribute(el, 'q:key');
   }
   return key;
-}
+};
 
-function setKey(el: Element, key: string | null) {
-  if (typeof key === 'string') {
-    el.setAttribute('q:key', key);
+const setKey = (el: Element, key: string | null) => {
+  if (isString(key)) {
+    directSetAttribute(el, 'q:key', key);
   }
   (el as any)[KEY_SYMBOL] = key;
-}
+};
 
-function sameVnode(elm: Node, vnode2: JSXNode): boolean {
+const sameVnode = (elm: Node, vnode2: JSXNode): boolean => {
   const isElement = elm.nodeType === 1;
   if (isElement) {
     const isSameSel = (elm as Element).localName === vnode2.type;
@@ -965,27 +967,27 @@ function sameVnode(elm: Node, vnode2: JSXNode): boolean {
     return getKey(elm as Element) === vnode2.key;
   }
   return elm.nodeName === vnode2.type;
-}
+};
 
-function isTagName(elm: Node, tagName: string): boolean {
+const isTagName = (elm: Node, tagName: string): boolean => {
   if (elm.nodeType === 1) {
     return (elm as Element).localName === tagName;
   }
   return elm.nodeName === tagName;
-}
+};
 
-function checkInnerHTML(props: Record<string, any> | undefined | null) {
+const checkInnerHTML = (props: Record<string, any> | undefined | null) => {
   return props && ('innerHTML' in props || dangerouslySetInnerHTML in props);
-}
+};
 
-export function stringifyClassOrStyle(obj: any, isClass: boolean): string {
+export const stringifyClassOrStyle = (obj: any, isClass: boolean): string => {
   if (obj == null) return '';
   if (typeof obj == 'object') {
     let text = '';
     let sep = '';
-    if (Array.isArray(obj)) {
+    if (isArray(obj)) {
       if (!isClass) {
-        throw qError(QError.Render_unsupportedFormat_obj_attr, obj, 'style');
+        throw qError(QError_stringifyClassOrStyle, obj, 'style');
       }
       for (let i = 0; i < obj.length; i++) {
         text += sep + obj[i];
@@ -1010,4 +1012,4 @@ export function stringifyClassOrStyle(obj: any, isClass: boolean): string {
     return text;
   }
   return String(obj);
-}
+};

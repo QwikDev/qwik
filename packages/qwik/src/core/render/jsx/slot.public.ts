@@ -1,3 +1,4 @@
+import { isArray } from '../../util/types';
 import { jsx } from './jsx-runtime';
 import type { FunctionComponent } from './types/jsx-node';
 
@@ -8,8 +9,7 @@ export const Slot: FunctionComponent<{
   name?: string;
   children?: any;
 }> = (props) => {
-  const hasChildren =
-    props.children || (Array.isArray(props.children) && props.children.length > 0);
+  const hasChildren = props.children || (isArray(props.children) && props.children.length > 0);
   const newChildrem = !hasChildren
     ? []
     : jsx('q:fallback', {

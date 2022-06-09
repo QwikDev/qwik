@@ -5,20 +5,20 @@ import { hashCode } from '../util/hash_code';
 /**
  * @public
  */
-export function styleKey(qStyles: QRLInternal<string>, index: number): string {
-  return `${hashCode(qStyles.getCanonicalSymbol())}-${index}`;
-}
+export const styleKey = (qStyles: QRLInternal<string>, index: number): string => {
+  return `${hashCode(qStyles.getHash())}-${index}`;
+};
 
 /**
  * @public
  */
-export function styleHost(styleId: string): string {
+export const styleHost = (styleId: string): string => {
   return ComponentStylesPrefixHost + styleId;
-}
+};
 
 /**
  * @public
  */
-export function styleContent(styleId: string): string {
+export const styleContent = (styleId: string): string => {
   return ComponentStylesPrefixContent + styleId;
-}
+};

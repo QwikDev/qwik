@@ -85,13 +85,20 @@ async function submoduleCoreProd(config: BuildConfig) {
         'globalThis.qDev': false,
         'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
       },
-      ecma: 2018,
-      passes: 2,
+      ecma: 2019,
+      passes: 3,
+    },
+    mangle: {
+      toplevel: true,
+      properties: {
+        regex: '^\\$.+\\$$',
+      },
     },
     format: {
-      comments: false,
+      comments: /__PURE__/,
+      preserve_annotations: true,
       preamble: getBanner('@builder.io/qwik'),
-      ecma: 2018,
+      ecma: 2019,
     },
   });
 

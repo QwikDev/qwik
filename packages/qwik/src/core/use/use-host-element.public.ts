@@ -28,10 +28,10 @@ import { getInvokeContext } from './use-core';
  * @public
  */
 // </docs>
-export function useHostElement(): Element {
+export const useHostElement = (): Element => {
   const ctx = getInvokeContext();
-  assertEqual(ctx.event, RenderEvent);
-  const element = ctx.hostElement!;
+  assertEqual(ctx.$event$, RenderEvent);
+  const element = ctx.$hostElement$!;
   assertDefined(element);
   return element;
-}
+};

@@ -1,4 +1,5 @@
 import { assertEqual } from '../assert/assert';
+import { qError, QError_missingDoc } from '../error/error';
 import { RenderEvent } from '../util/markers';
 import { getInvokeContext } from './use-core';
 
@@ -15,12 +16,12 @@ import { getInvokeContext } from './use-core';
  * @alpha
  */
 // </docs>
-export function useDocument(): Document {
+export const useDocument = (): Document => {
   const ctx = getInvokeContext();
-  assertEqual(ctx.event, RenderEvent);
-  const doc = ctx.doc;
+  assertEqual(ctx.$event$, RenderEvent);
+  const doc = ctx.$doc$;
   if (!doc) {
-    throw new Error('Cant access document for existing context');
+    throw qError(QError_missingDoc);
   }
   return doc;
-}
+};

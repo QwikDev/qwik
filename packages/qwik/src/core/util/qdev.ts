@@ -1,4 +1,4 @@
-/*@__PURE__*/ ((gbl: any) => {
+/*#__PURE__*/ ((gbl: any) => {
   // ensures unit tests have globalThis on Node10
   // this will be removed from production builds
   if (typeof globalThis === 'undefined') {

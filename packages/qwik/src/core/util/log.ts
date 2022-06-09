@@ -11,7 +11,9 @@ export const logError = (message?: any, ...optionalParams: any[]) => {
 
 export const logWarn = (message?: any, ...optionalParams: any[]) => {
   // eslint-disable-next-line no-console
-  console.warn('%cQWIK WARN', STYLE, message, ...optionalParams);
+  if (qDev) {
+    console.warn('%cQWIK WARN', STYLE, message, ...optionalParams);
+  }
 };
 
 export const logDebug = (message?: any, ...optionalParams: any[]) => {

@@ -8,7 +8,7 @@ import { noSerialize } from './q-object';
 import { $ } from '../import/qrl.public';
 import { logDebug } from '../util/log';
 import { runtimeQrl } from '../import/qrl';
-import { pauseContainer } from '../object/store.public';
+import { pauseContainer } from '../object/store';
 import { useDocument } from '../use/use-document.public';
 import { useHostElement } from '../use/use-host-element.public';
 

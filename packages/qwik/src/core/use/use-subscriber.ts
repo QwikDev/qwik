@@ -1,5 +1,6 @@
 import { QOjectOriginalProxy, QOjectTargetSymbol, SetSubscriber } from '../object/q-object';
-import type { WatchDescriptor } from '../watch/watch.public';
+import { isObject } from '../util/types';
+import type { WatchDescriptor } from './use-watch';
 
 /**
  * @alpha
@@ -9,8 +10,8 @@ export type Subscriber = WatchDescriptor | Element;
 /**
  * @alpha
  */
-export function wrapSubscriber<T extends {}>(obj: T, subscriber: Subscriber) {
-  if (obj && typeof obj === 'object') {
+export const wrapSubscriber = <T extends {}>(obj: T, subscriber: Subscriber) => {
+  if (isObject(obj)) {
     const target = (obj as any)[QOjectTargetSymbol];
     if (!target) {
       return obj;
@@ -30,17 +31,17 @@ export function wrapSubscriber<T extends {}>(obj: T, subscriber: Subscriber) {
     });
   }
   return obj;
-}
+};
 
 /**
  * @alpha
  */
-export function unwrapSubscriber<T extends {}>(obj: T) {
-  if (obj && typeof obj === 'object') {
+export const unwrapSubscriber = <T extends {}>(obj: T) => {
+  if (isObject(obj)) {
     const proxy = (obj as any)[QOjectOriginalProxy];
     if (proxy) {
       return proxy;
     }
   }
   return obj;
-}
+};

@@ -2,17 +2,19 @@ import { assertDefined } from '../assert/assert';
 import { QHostAttr } from '../util/markers';
 import { executeContextWithSlots, printRenderStats, RenderContext } from './cursor';
 import { getContext, resumeIfNeeded } from '../props/props';
-import { qDev, qTest } from '../util/qdev';
+import { qTest } from '../util/qdev';
 import { getPlatform } from '../platform/platform';
 import { getDocument } from '../util/dom';
-import { renderComponent } from '../component/component-ctx';
+import { renderComponent } from './render-component';
 import { logError, logWarn } from '../util/log';
 import { getContainer } from '../use/use-core';
-import { runWatch, WatchDescriptor, WatchFlags } from '../watch/watch.public';
+import { runWatch, WatchDescriptor, WatchFlagsIsEffect, WatchFlagsIsWatch } from '../use/use-watch';
 import { createSubscriptionManager, ObjToProxyMap, SubscriptionManager } from '../object/q-object';
 import { then } from '../util/promises';
 import type { ValueOrPromise } from '../util/types';
 import type { CorePlatform } from '../platform/types';
+import { codeToText, QError_errorWhileRendering } from '../error/error';
+import { directGetAttribute } from './fast-calls';
 
 /**
  * Mark component for rendering.
@@ -28,54 +30,54 @@ import type { CorePlatform } from '../platform/types';
  * @returns A promise which is resolved when the component has been rendered.
  * @public
  */
-export async function notifyRender(hostElement: Element): Promise<RenderContext | undefined> {
-  assertDefined(hostElement.getAttribute(QHostAttr));
+export const notifyRender = async (hostElement: Element): Promise<RenderContext | undefined> => {
+  assertDefined(directGetAttribute(hostElement, QHostAttr));
 
   const containerEl = getContainer(hostElement)!;
   assertDefined(containerEl);
 
   const state = getContainerState(containerEl);
-  if (state.platform.isServer && !qTest) {
+  if (state.$platform$.isServer && !qTest) {
     logWarn('Can not rerender in server platform');
     return undefined;
   }
   resumeIfNeeded(containerEl);
 
   const ctx = getContext(hostElement);
-  assertDefined(ctx.renderQrl);
+  assertDefined(ctx.$renderQrl$);
 
-  if (ctx.dirty) {
-    return state.renderPromise;
+  if (ctx.$dirty$) {
+    return state.$renderPromise$;
   }
-  ctx.dirty = true;
-  const activeRendering = state.hostsRendering !== undefined;
+  ctx.$dirty$ = true;
+  const activeRendering = state.$hostsRendering$ !== undefined;
   if (activeRendering) {
-    state.hostsStaging.add(hostElement);
-    return state.renderPromise!.then((ctx) => {
-      if (state.hostsNext.has(hostElement)) {
+    state.$hostsStaging$.add(hostElement);
+    return state.$renderPromise$!.then((ctx) => {
+      if (state.$hostsNext$.has(hostElement)) {
         // TODO
-        return state.renderPromise!;
+        return state.$renderPromise$!;
       } else {
         return ctx;
       }
     });
   } else {
-    state.hostsNext.add(hostElement);
+    state.$hostsNext$.add(hostElement);
     return scheduleFrame(containerEl, state);
   }
-}
+};
 
-export function scheduleFrame(
+export const scheduleFrame = (
   containerEl: Element,
   containerState: ContainerState
-): Promise<RenderContext> {
-  if (containerState.renderPromise === undefined) {
-    containerState.renderPromise = containerState.platform.nextTick(() =>
+): Promise<RenderContext> => {
+  if (containerState.$renderPromise$ === undefined) {
+    containerState.$renderPromise$ = containerState.$platform$.nextTick(() =>
       renderMarked(containerEl, containerState)
     );
   }
-  return containerState.renderPromise;
-}
+  return containerState.$renderPromise$;
+};
 
 const CONTAINER_STATE = Symbol('ContainerState');
 
@@ -83,157 +85,148 @@ const CONTAINER_STATE = Symbol('ContainerState');
  * @alpha
  */
 export interface ContainerState {
-  proxyMap: ObjToProxyMap;
-  subsManager: SubscriptionManager;
-  platform: CorePlatform;
+  $proxyMap$: ObjToProxyMap;
+  $subsManager$: SubscriptionManager;
+  $platform$: CorePlatform;
 
-  watchNext: Set<WatchDescriptor>;
-  watchStaging: Set<WatchDescriptor>;
+  $watchNext$: Set<WatchDescriptor>;
+  $watchStaging$: Set<WatchDescriptor>;
 
-  hostsNext: Set<Element>;
-  hostsStaging: Set<Element>;
-  hostsRendering: Set<Element> | undefined;
-  renderPromise: Promise<RenderContext> | undefined;
+  $hostsNext$: Set<Element>;
+  $hostsStaging$: Set<Element>;
+  $hostsRendering$: Set<Element> | undefined;
+  $renderPromise$: Promise<RenderContext> | undefined;
 }
 
-export function getContainerState(containerEl: Element): ContainerState {
+export const getContainerState = (containerEl: Element): ContainerState => {
   let set = (containerEl as any)[CONTAINER_STATE] as ContainerState;
   if (!set) {
     (containerEl as any)[CONTAINER_STATE] = set = {
-      proxyMap: new WeakMap(),
-      subsManager: createSubscriptionManager(),
-      platform: getPlatform(containerEl),
+      $proxyMap$: new WeakMap(),
+      $subsManager$: createSubscriptionManager(),
+      $platform$: getPlatform(containerEl),
 
-      watchNext: new Set(),
-      watchStaging: new Set(),
+      $watchNext$: new Set(),
+      $watchStaging$: new Set(),
 
-      hostsNext: new Set(),
-      hostsStaging: new Set(),
-      renderPromise: undefined,
-      hostsRendering: undefined,
+      $hostsNext$: new Set(),
+      $hostsStaging$: new Set(),
+      $renderPromise$: undefined,
+      $hostsRendering$: undefined,
     };
   }
   return set;
-}
+};
 
-export async function renderMarked(
+export const renderMarked = async (
   containerEl: Element,
   containerState: ContainerState
-): Promise<RenderContext> {
-  const hostsRendering = (containerState.hostsRendering = new Set(containerState.hostsNext));
-  containerState.hostsNext.clear();
+): Promise<RenderContext> => {
+  const hostsRendering = (containerState.$hostsRendering$ = new Set(containerState.$hostsNext$));
+  containerState.$hostsNext$.clear();
   await executeWatches(containerState, (watch) => {
-    return (watch.f & WatchFlags.IsWatch) !== 0;
+    return (watch.f & WatchFlagsIsWatch) !== 0;
   });
-  containerState.hostsStaging.forEach((host) => {
+  containerState.$hostsStaging$.forEach((host) => {
     hostsRendering.add(host);
   });
-  containerState.hostsStaging.clear();
+  containerState.$hostsStaging$.clear();
 
   const doc = getDocument(containerEl);
-  const platform = containerState.platform;
+  const platform = containerState.$platform$;
   const renderingQueue = Array.from(hostsRendering);
   sortNodes(renderingQueue);
 
   const ctx: RenderContext = {
-    doc,
-    containerState,
-    hostElements: new Set(),
-    operations: [],
-    roots: [],
-    containerEl,
-    components: [],
-    perf: {
-      visited: 0,
-      timing: [],
+    $doc$: doc,
+    $containerState$: containerState,
+    $hostElements$: new Set(),
+    $operations$: [],
+    $roots$: [],
+    $containerEl$: containerEl,
+    $components$: [],
+    $perf$: {
+      $visited$: 0,
     },
   };
 
   for (const el of renderingQueue) {
-    if (!ctx.hostElements.has(el)) {
-      ctx.roots.push(el);
+    if (!ctx.$hostElements$.has(el)) {
+      ctx.$roots$.push(el);
       try {
         await renderComponent(ctx, getContext(el));
       } catch (e) {
-        logError('Render error', e);
+        logError(codeToText(QError_errorWhileRendering), e);
       }
     }
   }
 
   // Early exist, no dom operations
-  if (ctx.operations.length === 0) {
-    if (qDev) {
-      if (typeof window !== 'undefined' && window.document != null) {
-        printRenderStats(ctx);
-      }
-    }
+  if (ctx.$operations$.length === 0) {
+    printRenderStats(ctx);
     postRendering(containerEl, containerState, ctx);
     return ctx;
   }
 
   return platform.raf(() => {
     executeContextWithSlots(ctx);
-    if (qDev) {
-      if (typeof window !== 'undefined' && window.document != null) {
-        printRenderStats(ctx);
-      }
-    }
+    printRenderStats(ctx);
     postRendering(containerEl, containerState, ctx);
     return ctx;
   });
-}
+};
 
-async function postRendering(
+const postRendering = async (
   containerEl: Element,
   containerState: ContainerState,
   ctx: RenderContext
-) {
+) => {
   await executeWatches(containerState, (watch, stage) => {
-    if ((watch.f & WatchFlags.IsEffect) === 0) {
+    if ((watch.f & WatchFlagsIsEffect) === 0) {
       return false;
     }
     if (stage) {
-      return ctx.hostElements.has(watch.el);
+      return ctx.$hostElements$.has(watch.el);
     }
     return true;
   });
 
   // Clear staging
-  containerState.hostsStaging.forEach((el) => {
-    containerState.hostsNext.add(el);
+  containerState.$hostsStaging$.forEach((el) => {
+    containerState.$hostsNext$.add(el);
   });
-  containerState.hostsStaging.clear();
+  containerState.$hostsStaging$.clear();
 
-  containerState.hostsRendering = undefined;
-  containerState.renderPromise = undefined;
+  containerState.$hostsRendering$ = undefined;
+  containerState.$renderPromise$ = undefined;
 
-  if (containerState.hostsNext.size + containerState.watchNext.size > 0) {
+  if (containerState.$hostsNext$.size + containerState.$watchNext$.size > 0) {
     scheduleFrame(containerEl, containerState);
   }
-}
+};
 
-async function executeWatches(
+const executeWatches = async (
   containerState: ContainerState,
   watchPred: (watch: WatchDescriptor, staging: boolean) => boolean
-) {
+) => {
   const watchPromises: ValueOrPromise<WatchDescriptor>[] = [];
 
-  containerState.watchNext.forEach((watch) => {
+  containerState.$watchNext$.forEach((watch) => {
     if (watchPred(watch, false)) {
-      watchPromises.push(then(watch.qrl.resolveIfNeeded(watch.el), () => watch));
-      containerState.watchNext.delete(watch);
+      watchPromises.push(then(watch.qrl.resolveLazy(watch.el), () => watch));
+      containerState.$watchNext$.delete(watch);
     }
   });
   do {
     // Run staging effected
-    containerState.watchStaging.forEach((watch) => {
+    containerState.$watchStaging$.forEach((watch) => {
       if (watchPred(watch, true)) {
-        watchPromises.push(then(watch.qrl.resolveIfNeeded(watch.el), () => watch));
+        watchPromises.push(then(watch.qrl.resolveLazy(watch.el), () => watch));
       } else {
-        containerState.watchNext.add(watch);
+        containerState.$watchNext$.add(watch);
       }
     });
-    containerState.watchStaging.clear();
+    containerState.$watchStaging$.clear();
 
     // Wait for all promises
     if (watchPromises.length > 0) {
@@ -246,18 +239,18 @@ async function executeWatches(
       );
       watchPromises.length = 0;
     }
-  } while (containerState.watchStaging.size > 0);
-}
+  } while (containerState.$watchStaging$.size > 0);
+};
 
-function sortNodes(elements: Element[]) {
+const sortNodes = (elements: Element[]) => {
   elements.sort((a, b) => (a.compareDocumentPosition(b) & 2 ? 1 : -1));
-}
+};
 
-function sortWatches(watches: WatchDescriptor[]) {
+const sortWatches = (watches: WatchDescriptor[]) => {
   watches.sort((a, b) => {
     if (a.el === b.el) {
       return a.i < b.i ? -1 : 1;
     }
     return (a.el.compareDocumentPosition(b.el) & 2) !== 0 ? 1 : -1;
   });
-}
+};

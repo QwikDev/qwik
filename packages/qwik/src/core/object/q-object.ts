@@ -1,5 +1,10 @@
 import { assertEqual } from '../assert/assert';
-import { QError, qError } from '../error/error';
+import {
+  qError,
+  QError_onlyLiteralWrapped,
+  QError_onlyObjectWrapped,
+  QError_verifySerializable,
+} from '../error/error';
 import { isQrl } from '../import/qrl-class';
 import {
   getContainerState,
@@ -11,58 +16,54 @@ import { getContainer, tryGetInvokeContext } from '../use/use-core';
 import { isDocument, isElement, isNode } from '../util/element';
 import { logWarn } from '../util/log';
 import { qDev, qTest } from '../util/qdev';
-import { debugStringify } from '../util/stringify';
-import { WatchDescriptor, WatchFlags } from '../watch/watch.public';
+import { WatchDescriptor, WatchFlagsIsDirty } from '../use/use-watch';
 import { Subscriber, unwrapSubscriber } from '../use/use-subscriber';
 import { tryGetContext } from '../props/props';
 import { RenderEvent } from '../util/markers';
 import { getProxyTarget } from './store';
+import { isArray, isObject } from '../util/types';
 
 export type ObjToProxyMap = WeakMap<any, any>;
 export type QObject<T extends {}> = T & { __brand__: 'QObject' };
 
-export function qObject<T extends Object>(obj: T, proxyMap: ContainerState): T {
+export const qObject = <T extends Object>(obj: T, proxyMap: ContainerState): T => {
   assertEqual(unwrapProxy(obj), obj, 'Unexpected proxy at this location');
   if (obj == null || typeof obj !== 'object') {
     // TODO(misko): centralize
-    throw new Error(
-      `Q-ERROR: Only objects can be wrapped in 'QObject', got ` + debugStringify(obj)
-    );
+    throw qError(QError_onlyObjectWrapped, obj);
   }
   if (obj.constructor !== Object) {
-    throw new Error(
-      `Q-ERROR: Only objects literals can be wrapped in 'QObject', got ` + debugStringify(obj)
-    );
+    throw qError(QError_onlyLiteralWrapped, obj);
   }
   return readWriteProxy(obj as any as QObject<T>, proxyMap);
-}
+};
 
-export function _restoreQObject<T>(
+export const _restoreQObject = <T>(
   obj: T,
   containerState: ContainerState,
   subs: Map<Element, Set<string>>
-): T {
+): T => {
   return readWriteProxy(obj as any as QObject<T>, containerState, subs);
-}
+};
 
 /**
  * Creates a proxy which notifies of any writes.
  */
-export function readWriteProxy<T extends object>(
+export const readWriteProxy = <T extends object>(
   target: T,
   containerState: ContainerState,
   subs?: Map<Element, Set<string>>
-): T {
+): T => {
   if (!target || typeof target !== 'object') return target;
-  const proxyMap = containerState.proxyMap;
+  const proxyMap = containerState.$proxyMap$;
   let proxy = proxyMap.get(target);
   if (proxy) return proxy;
 
-  const manager = containerState.subsManager.getLocal(target, subs);
+  const manager = containerState.$subsManager$.$getLocal$(target, subs);
   proxy = new Proxy(target, new ReadWriteProxyHandler(containerState, manager)) as any as T;
   proxyMap.set(target, proxy);
   return proxy;
-}
+};
 
 export const QOjectTargetSymbol = ':target:';
 export const QOjectAllSymbol = ':all:';
@@ -73,12 +74,12 @@ export const SetSubscriber = Symbol('SetSubscriber');
 /**
  * @alpha
  */
-export function unwrapProxy<T>(proxy: T): T {
+export const unwrapProxy = <T>(proxy: T): T => {
   return getProxyTarget(proxy) ?? proxy;
-}
+};
 
-export function wrap<T>(value: T, containerState: ContainerState): T {
-  if (value && typeof value === 'object') {
+export const wrap = <T>(value: T, containerState: ContainerState): T => {
+  if (isObject(value)) {
     if (isQrl(value)) {
       return value;
     }
@@ -99,12 +100,12 @@ export function wrap<T>(value: T, containerState: ContainerState): T {
     if (qDev) {
       verifySerializable<T>(value);
     }
-    const proxy = containerState.proxyMap.get(value);
+    const proxy = containerState.$proxyMap$.get(value);
     return proxy ? proxy : readWriteProxy(value as any, containerState);
   } else {
     return value;
   }
-}
+};
 
 export type TargetType = Record<string | symbol, any>;
 
@@ -113,22 +114,22 @@ export type ObjToSubscriberMap = WeakMap<any, LocalSubscriptionManager>;
 export type SubscriberToSubscriberMap = Map<Subscriber, Set<SubscriberMap>>;
 
 export interface SubscriptionManager {
-  tryGetLocal(obj: any): LocalSubscriptionManager | undefined;
-  getLocal(obj: any, map?: SubscriberMap): LocalSubscriptionManager;
-  clearSub: (sub: Subscriber) => void;
+  $tryGetLocal$(obj: any): LocalSubscriptionManager | undefined;
+  $getLocal$(obj: any, map?: SubscriberMap): LocalSubscriptionManager;
+  $clearSub$: (sub: Subscriber) => void;
 }
 
 export interface LocalSubscriptionManager {
-  subs: SubscriberMap;
-  notifySubs: (key?: string | undefined) => void;
-  addSub: (subscriber: Subscriber, key?: string) => void;
+  $subs$: SubscriberMap;
+  $notifySubs$: (key?: string | undefined) => void;
+  $addSub$: (subscriber: Subscriber, key?: string) => void;
 }
 
 export const createSubscriptionManager = (): SubscriptionManager => {
   const objToSubs: ObjToSubscriberMap = new Map();
   const subsToObjs: SubscriberToSubscriberMap = new Map();
 
-  function clearSub(sub: Subscriber) {
+  const clearSub = (sub: Subscriber) => {
     const subs = subsToObjs.get(sub);
     if (subs) {
       subs.forEach((s) => {
@@ -137,22 +138,22 @@ export const createSubscriptionManager = (): SubscriptionManager => {
       subsToObjs.delete(sub);
       subs.clear();
     }
-  }
+  };
 
-  function tryGetLocal(obj: any) {
+  const tryGetLocal = (obj: any) => {
     assertEqual(getProxyTarget(obj), undefined);
     return objToSubs.get(obj);
-  }
+  };
 
-  function trackSubToObj(subscriber: Subscriber, map: SubscriberMap) {
+  const trackSubToObj = (subscriber: Subscriber, map: SubscriberMap) => {
     let set = subsToObjs.get(subscriber);
     if (!set) {
       subsToObjs.set(subscriber, (set = new Set()));
     }
     set.add(map);
-  }
+  };
 
-  function getLocal(obj: any, initialMap?: SubscriberMap) {
+  const getLocal = (obj: any, initialMap?: SubscriberMap) => {
     let local = tryGetLocal(obj);
     if (!local) {
       const map = !initialMap ? (new Map() as SubscriberMap) : initialMap;
@@ -162,8 +163,8 @@ export const createSubscriptionManager = (): SubscriptionManager => {
       objToSubs.set(
         obj,
         (local = {
-          subs: map,
-          addSub(subscriber: Subscriber, key?: string) {
+          $subs$: map,
+          $addSub$(subscriber: Subscriber, key?: string) {
             if (key == null) {
               map.set(subscriber, null);
             } else {
@@ -177,7 +178,7 @@ export const createSubscriptionManager = (): SubscriptionManager => {
             }
             trackSubToObj(subscriber, map);
           },
-          notifySubs(key?: string) {
+          $notifySubs$(key?: string) {
             map.forEach((value, subscriber) => {
               if (value === null || !key) {
                 notifyChange(subscriber);
@@ -190,34 +191,37 @@ export const createSubscriptionManager = (): SubscriptionManager => {
       );
     }
     return local;
-  }
+  };
 
   return {
-    tryGetLocal,
-    getLocal,
-    clearSub,
+    $tryGetLocal$: tryGetLocal,
+    $getLocal$: getLocal,
+    $clearSub$: clearSub,
   };
 };
 
 class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
-  private subscriber?: Subscriber;
-  constructor(private containerState: ContainerState, private manager: LocalSubscriptionManager) {}
+  private $subscriber$?: Subscriber;
+  constructor(
+    private $containerState$: ContainerState,
+    private $manager$: LocalSubscriptionManager
+  ) {}
 
   get(target: TargetType, prop: string | symbol): any {
-    let subscriber = this.subscriber;
-    this.subscriber = undefined;
+    let subscriber = this.$subscriber$;
+    this.$subscriber$ = undefined;
     if (typeof prop === 'symbol') {
       return target[prop];
     }
     if (prop === QOjectTargetSymbol) return target;
-    if (prop === QOjectSubsSymbol) return this.manager.subs;
-    if (prop === QOjectOriginalProxy) return this.containerState.proxyMap.get(target);
+    if (prop === QOjectSubsSymbol) return this.$manager$.$subs$;
+    if (prop === QOjectOriginalProxy) return this.$containerState$.$proxyMap$.get(target);
     const invokeCtx = tryGetInvokeContext();
     if (invokeCtx) {
-      if (invokeCtx.subscriber === null) {
+      if (invokeCtx.$subscriber$ === null) {
         subscriber = undefined;
       } else if (!subscriber) {
-        subscriber = invokeCtx.subscriber;
+        subscriber = invokeCtx.$subscriber$;
       }
     } else if (qDev && !qTest && !subscriber) {
       // logWarn(`State assigned outside invocation context. Getting prop "${prop}" of:`, target);
@@ -225,27 +229,23 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
 
     if (prop === QOjectAllSymbol) {
       if (subscriber) {
-        this.manager.addSub(subscriber);
+        this.$manager$.$addSub$(subscriber);
       }
       return target;
     }
 
     const value = target[prop];
-    if (typeof prop === 'symbol') {
-      return value;
-    }
-
     if (subscriber) {
-      const isArray = Array.isArray(target);
-      this.manager.addSub(subscriber, isArray ? undefined : prop);
+      const isA = isArray(target);
+      this.$manager$.$addSub$(subscriber, isA ? undefined : prop);
     }
-    return wrap(value, this.containerState);
+    return wrap(value, this.$containerState$);
   }
 
   set(target: TargetType, prop: string | symbol, newValue: any): boolean {
     if (typeof prop === 'symbol') {
       if (prop === SetSubscriber) {
-        this.subscriber = newValue;
+        this.$subscriber$ = newValue;
       } else {
         target[prop] = newValue;
       }
@@ -255,25 +255,25 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
     if (qDev) {
       verifySerializable(unwrappedNewValue);
       const invokeCtx = tryGetInvokeContext();
-      if (invokeCtx && invokeCtx.event === RenderEvent) {
+      if (invokeCtx && invokeCtx.$event$ === RenderEvent) {
         logWarn(
           'State mutation inside render function. Move mutation to useWatch(), useClientEffect() or useServerMount()',
-          invokeCtx.hostElement,
+          invokeCtx.$hostElement$,
           prop
         );
       }
     }
-    const isArray = Array.isArray(target);
-    if (isArray) {
+    const isA = isArray(target);
+    if (isA) {
       target[prop as any] = unwrappedNewValue;
-      this.manager.notifySubs();
+      this.$manager$.$notifySubs$();
       return true;
     }
 
     const oldValue = target[prop];
     if (oldValue !== unwrappedNewValue) {
       target[prop] = unwrappedNewValue;
-      this.manager.notifySubs(prop);
+      this.$manager$.$notifySubs$(prop);
     }
     return true;
   }
@@ -286,84 +286,80 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
   }
 
   ownKeys(target: TargetType): ArrayLike<string | symbol> {
-    let subscriber = this.subscriber;
+    let subscriber = this.$subscriber$;
     const invokeCtx = tryGetInvokeContext();
     if (invokeCtx) {
-      if (invokeCtx.subscriber === null) {
+      if (invokeCtx.$subscriber$ === null) {
         subscriber = undefined;
       } else if (!subscriber) {
-        subscriber = invokeCtx.subscriber;
+        subscriber = invokeCtx.$subscriber$;
       }
     } else if (qDev && !qTest && !subscriber) {
       // logWarn(`State assigned outside invocation context. OwnKeys of:`, target);
     }
 
     if (subscriber) {
-      this.manager.addSub(subscriber);
+      this.$manager$.$addSub$(subscriber);
     }
     return Object.getOwnPropertyNames(target);
   }
 }
 
-export function removeSub(obj: any, subscriber: any) {
-  if (obj && typeof obj === 'object') {
+export const removeSub = (obj: any, subscriber: any) => {
+  if (isObject(obj)) {
     const subs = obj[QOjectSubsSymbol] as Map<Subscriber, Set<string>> | undefined;
     if (subs) {
       subs.delete(subscriber);
     }
   }
-}
+};
 
-export function notifyChange(subscriber: Subscriber) {
+export const notifyChange = (subscriber: Subscriber) => {
   if (isElement(subscriber)) {
     notifyRender(subscriber);
   } else {
     notifyWatch(subscriber as WatchDescriptor);
   }
-}
+};
 
-export function notifyWatch(watch: WatchDescriptor) {
+export const notifyWatch = (watch: WatchDescriptor) => {
   const containerEl = getContainer(watch.el)!;
   const state = getContainerState(containerEl);
-  watch.f |= WatchFlags.IsDirty;
+  watch.f |= WatchFlagsIsDirty;
 
-  const activeRendering = state.hostsRendering !== undefined;
+  const activeRendering = state.$hostsRendering$ !== undefined;
   if (activeRendering) {
-    state.watchStaging.add(watch);
+    state.$watchStaging$.add(watch);
   } else {
-    state.watchNext.add(watch);
+    state.$watchNext$.add(watch);
     scheduleFrame(containerEl, state);
   }
-}
+};
 
-function verifySerializable<T>(value: T) {
+const verifySerializable = <T>(value: T) => {
   if (value == null) {
-    return null;
+    return;
   }
-  if (shouldSerialize(value)) {
-    const type = typeof value;
-    if (type === 'object') {
-      if (Array.isArray(value)) return;
-      if (Object.getPrototypeOf(value) === Object.prototype) return;
-      if (isQrl(value)) return;
-      if (isElement(value)) return;
-      if (isDocument(value)) return;
-    }
-    if (['boolean', 'string', 'number'].includes(type)) {
-      return;
-    }
-    throw qError(QError.TODO, 'Only primitive and object literals can be serialized', value);
+  const type = typeof value;
+  if (type === 'object') {
+    if (isArray(value)) return;
+    if (Object.getPrototypeOf(value) === Object.prototype) return;
+    if (shouldSerialize(value)) return;
+    if (isQrl(value)) return;
+    if (isElement(value)) return;
+    if (isDocument(value)) return;
   }
-}
+  if (['boolean', 'string', 'number'].includes(type)) {
+    return;
+  }
+  throw qError(QError_verifySerializable);
+};
 
 const noSerializeSet = /*#__PURE__*/ new WeakSet<any>();
 
-export function shouldSerialize(obj: any): boolean {
-  if (obj !== null && (typeof obj == 'object' || typeof obj === 'function')) {
-    return !noSerializeSet.has(obj);
-  }
-  return true;
-}
+export const shouldSerialize = (obj: any): boolean => {
+  return !noSerializeSet.has(obj);
+};
 
 /**
  * @alpha
@@ -377,43 +373,46 @@ export type NoSerialize<T> = (T & { __no_serialize__: true }) | undefined;
  * @alpha
  */
 // </docs>
-export function noSerialize<T extends {}>(input: T): NoSerialize<T> {
+export const noSerialize = <T extends {}>(input: T): NoSerialize<T> => {
   noSerializeSet.add(input);
   return input as any;
-}
+};
 
 /**
  * @alpha
  */
-export function immutable<T extends {}>(input: T): Readonly<T> {
+export const immutable = <T extends {}>(input: T): Readonly<T> => {
   return Object.freeze(input);
-}
+};
 
 /**
  * @alpha
  */
-export function mutable<T>(v: T): MutableWrapper<T> {
+export const mutable = <T>(v: T): MutableWrapper<T> => {
   return {
     [MUTABLE]: true,
     v: unwrapSubscriber(v),
   };
-}
+};
 
-export function isConnected(sub: Subscriber): boolean {
+export const isConnected = (sub: Subscriber): boolean => {
   if (isElement(sub)) {
     return !!tryGetContext(sub) || sub.isConnected;
   } else {
     return isConnected(sub.el);
   }
-}
+};
 
 const MUTABLE = Symbol('mutable');
 
+/**
+ * @public
+ */
 export interface MutableWrapper<T> {
   [MUTABLE]: true;
   v: T;
 }
 
 export const isMutable = (v: any): v is MutableWrapper<any> => {
-  return v && typeof v === 'object' && v[MUTABLE] === true;
+  return isObject(v) && v[MUTABLE] === true;
 };

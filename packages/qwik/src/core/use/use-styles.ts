@@ -1,0 +1,117 @@
+import { styleKey } from '../component/qrl-styles';
+import { toQrlOrError } from '../import/qrl';
+import type { QRL } from '../import/qrl.public';
+import { appendStyle, hasStyle } from '../render/cursor';
+import { directSetAttribute } from '../render/fast-calls';
+import { ComponentScopedStyles } from '../util/markers';
+import { useRenderContext, useWaitOn } from './use-core';
+import { useHostElement } from './use-host-element.public';
+import { useSequentialScope } from './use-store.public';
+import { implicit$FirstArg } from '../util/implicit_dollar';
+
+// <docs markdown="../readme.md#useStyles">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit ../readme.md#useStyles instead)
+/**
+ * A lazy-loadable reference to a component's styles.
+ *
+ * Component styles allow Qwik to lazy load the style information for the component only when
+ * needed. (And avoid double loading it in case of SSR hydration.)
+ *
+ * ```tsx
+ * import styles from './code-block.css?inline';
+ *
+ * export const CmpStyles = component$(() => {
+ *   useStyles$(styles);
+ *
+ *   return <Host>Some text</Host>;
+ * });
+ * ```
+ *
+ * @see `useScopedStyles`.
+ *
+ * @public
+ */
+// </docs>
+export const useStylesQrl = (styles: QRL<string>): void => {
+  _useStyles(styles, false);
+};
+
+// <docs markdown="../readme.md#useStyles">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit ../readme.md#useStyles instead)
+/**
+ * A lazy-loadable reference to a component's styles.
+ *
+ * Component styles allow Qwik to lazy load the style information for the component only when
+ * needed. (And avoid double loading it in case of SSR hydration.)
+ *
+ * ```tsx
+ * import styles from './code-block.css?inline';
+ *
+ * export const CmpStyles = component$(() => {
+ *   useStyles$(styles);
+ *
+ *   return <Host>Some text</Host>;
+ * });
+ * ```
+ *
+ * @see `useScopedStyles`.
+ *
+ * @public
+ */
+// </docs>
+export const useStyles$ = /*#__PURE__*/ implicit$FirstArg(useStylesQrl);
+
+// <docs markdown="../readme.md#useScopedStyles">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit ../readme.md#useScopedStyles instead)
+/**
+ * @see `useStyles`.
+ *
+ * @alpha
+ */
+// </docs>
+export const useScopedStylesQrl = (styles: QRL<string>): void => {
+  _useStyles(styles, true);
+};
+
+// <docs markdown="../readme.md#useScopedStyles">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit ../readme.md#useScopedStyles instead)
+/**
+ * @see `useStyles`.
+ *
+ * @alpha
+ */
+// </docs>
+export const useScopedStyles$ = /*#__PURE__*/ implicit$FirstArg(useScopedStylesQrl);
+
+const _useStyles = (styles: QRL<string>, scoped: boolean) => {
+  const [style, setStyle, index] = useSequentialScope();
+  if (style === true) {
+    return;
+  }
+  setStyle(true);
+  const renderCtx = useRenderContext();
+  const styleQrl = toQrlOrError(styles);
+  const styleId = styleKey(styleQrl, index);
+  const hostElement = useHostElement();
+  if (scoped) {
+    directSetAttribute(hostElement, ComponentScopedStyles, styleId);
+  }
+
+  if (!hasStyle(renderCtx, styleId)) {
+    useWaitOn(
+      styleQrl.resolve(hostElement).then((styleText) => {
+        if (!hasStyle(renderCtx, styleId)) {
+          appendStyle(renderCtx, hostElement, {
+            type: 'style',
+            styleId,
+            content: scoped ? styleText.replace(/�/g, styleId) : styleText,
+          });
+        }
+      })
+    );
+  }
+};

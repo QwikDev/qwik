@@ -1,21 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Core API
 //////////////////////////////////////////////////////////////////////////////////////////
-export {
-  componentQrl,
-  component$,
-  useCleanupQrl,
-  useCleanup$,
-  useResumeQrl,
-  useResume$,
-  useOn,
-  useOnDocument,
-  useOnWindow,
-  useStylesQrl,
-  useStyles$,
-  useScopedStylesQrl,
-  useScopedStyles$,
-} from './component/component.public';
+export { componentQrl, component$ } from './component/component.public';
 
 export type {
   PropsOf,
@@ -30,16 +16,17 @@ export type { ComponentCtx } from './props/props';
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Event API
 //////////////////////////////////////////////////////////////////////////////////////////
-export { pauseContainer } from './object/store.public';
-export type { SnapshotState, SnapshotResult } from './object/store.public';
+export { pauseContainer } from './object/store';
+export type { SnapshotState, SnapshotResult } from './object/store';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Internal Runtime
 //////////////////////////////////////////////////////////////////////////////////////////
-export { $, implicit$FirstArg } from './import/qrl.public';
+export { $ } from './import/qrl.public';
 export { qrl, inlinedQrl } from './import/qrl';
 export type { QRL, EventHandler } from './import/qrl.public';
 export type { Props } from './props/props.public';
+export { implicit$FirstArg } from './util/implicit_dollar';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // PLATFORM
@@ -56,14 +43,14 @@ export type {
   ServerFn,
   UseEffectOptions,
   UseEffectRunOptions,
-} from './watch/watch.public';
-export { useWatch$, useWatchQrl } from './watch/watch.public';
-export { useClientEffect$, useClientEffectQrl } from './watch/watch.public';
-export { useServerMount$, useServerMountQrl } from './watch/watch.public';
-export { useClientMount$, useClientMountQrl } from './watch/watch.public';
-export { useMount$, useMountQrl } from './watch/watch.public';
+} from './use/use-watch';
+export { useWatch$, useWatchQrl } from './use/use-watch';
+export { useClientEffect$, useClientEffectQrl } from './use/use-watch';
+export { useServerMount$, useServerMountQrl } from './use/use-watch';
+export { useClientMount$, useClientMountQrl } from './use/use-watch';
+export { useMount$, useMountQrl } from './use/use-watch';
 
-export { handleWatch } from './watch/watch.public';
+export { handleWatch } from './use/use-watch';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // JSX Runtime
@@ -85,7 +72,6 @@ export type {
 export type { QwikDOMAttributes, QwikJSX } from './render/jsx/types/jsx-qwik';
 export type { QwikIntrinsicElements } from './render/jsx/types/jsx-qwik-elements';
 export { render } from './render/render.public';
-export type { ContainerState as RenderingState } from './render/notify-render';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // use API
@@ -97,10 +83,20 @@ export { useStore, useRef, useSequentialScope } from './use/use-store.public';
 export { wrapSubscriber, unwrapSubscriber } from './use/use-subscriber';
 export { useContext, useContextProvider, createContext } from './use/use-context';
 export { useWaitOn } from './use/use-core';
+export { useStylesQrl, useStyles$, useScopedStylesQrl, useScopedStyles$ } from './use/use-styles';
+export {
+  useCleanupQrl,
+  useCleanup$,
+  useResumeQrl,
+  useResume$,
+  useOn,
+  useOnDocument,
+  useOnWindow,
+} from './use/use-on';
 export type { Context } from './use/use-context';
 export type { Ref } from './use/use-store.public';
 export type { InvokeContext } from './use/use-core';
-export type { RenderContext, RenderOperation, PerfEvent } from './render/cursor';
+export type { RenderContext, RenderOperation } from './render/cursor';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Low-Level API

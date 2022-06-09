@@ -19,29 +19,29 @@ import type { QRLInternal } from '../import/qrl-class';
  * @public
  */
 // </docs>
-export function useLexicalScope<VARS extends any[]>(): VARS {
+export const useLexicalScope = <VARS extends any[]>(): VARS => {
   const context = getInvokeContext();
-  const hostElement = context.hostElement;
-  const qrl = (context.qrl ??
-    parseQRL(decodeURIComponent(String(context.url)), hostElement)) as QRLInternal;
-  if (qrl.captureRef == null) {
-    const el = context.element!;
+  const hostElement = context.$hostElement$;
+  const qrl = (context.$qrl$ ??
+    parseQRL(decodeURIComponent(String(context.$url$)), hostElement)) as QRLInternal;
+  if (qrl.$captureRef$ == null) {
+    const el = context.$element$!;
     assertDefined(el);
     resumeIfNeeded(getContainer(el)!);
     const ctx = getContext(el);
 
-    qrl.captureRef = qrl.capture!.map((idx) => qInflate(idx, ctx));
+    qrl.$captureRef$ = qrl.$capture$!.map((idx) => qInflate(idx, ctx));
   }
-  const subscriber = context.subscriber;
+  const subscriber = context.$subscriber$;
   if (subscriber) {
-    return qrl.captureRef.map((obj) => wrapSubscriber(obj, subscriber)) as VARS;
+    return qrl.$captureRef$.map((obj) => wrapSubscriber(obj, subscriber)) as VARS;
   }
-  return qrl.captureRef as VARS;
-}
+  return qrl.$captureRef$ as VARS;
+};
 
-function qInflate(ref: string, hostCtx: QContext): any {
+const qInflate = (ref: string, hostCtx: QContext) => {
   const int = parseInt(ref, 10);
-  const obj = hostCtx.refMap.get(int);
-  assertEqual(hostCtx.refMap.array.length > int, true);
+  const obj = hostCtx.$refMap$.$get$(int);
+  assertEqual(hostCtx.$refMap$.$array$.length > int, true);
   return obj;
-}
+};

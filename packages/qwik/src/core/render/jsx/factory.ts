@@ -1,9 +1,22 @@
 /* eslint-disable */
-import { flattenArray } from '../../util/array';
 import { EMPTY_ARRAY } from '../../util/flyweight';
 import { JSXNodeImpl } from './jsx-runtime';
 import type { QwikJSX } from './types/jsx-qwik';
 import type { FunctionComponent, JSXNode } from './types/jsx-node';
+import { isArray } from '../../util/types';
+
+export const flattenArray = <T>(array: (T | T[])[], dst?: T[]): T[] => {
+  // Yes this function is just Array.flat, but we need to run on old versions of Node.
+  if (!dst) dst = [];
+  for (const item of array) {
+    if (isArray(item)) {
+      flattenArray(item, dst);
+    } else {
+      dst.push(item);
+    }
+  }
+  return dst;
+};
 
 /**
  * @public

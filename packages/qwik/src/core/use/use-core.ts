@@ -1,4 +1,4 @@
-import type { ValueOrPromise } from '../util/types';
+import { isArray, isObject, ValueOrPromise } from '../util/types';
 import type { Props } from '../props/props.public';
 import { assertDefined } from '../assert/assert';
 import type { QwikDocument } from '../document';
@@ -7,6 +7,7 @@ import { getDocument } from '../util/dom';
 import type { QRL } from '../import/qrl.public';
 import type { Subscriber } from './use-subscriber';
 import type { RenderContext } from '../render/cursor';
+import { qError, QError_missingRenderCtx, QError_useMethodOutsideContext } from '../error/error';
 
 declare const document: QwikDocument;
 
@@ -18,36 +19,36 @@ export interface StyleAppend {
   content: string;
 }
 
-export function isStyleTask(obj: any): obj is StyleAppend {
-  return obj && typeof obj === 'object' && obj.type === 'style';
-}
+export const isStyleTask = (obj: any): obj is StyleAppend => {
+  return isObject(obj) && obj.type === 'style';
+};
 
 /**
  * @public
  */
 export interface InvokeContext {
-  url: URL | null;
-  seq: number;
-  doc?: Document;
-  hostElement?: Element;
-  element?: Element;
-  event: any;
-  qrl?: QRL<any>;
-  waitOn?: ValueOrPromise<any>[];
-  props?: Props;
-  subscriber?: Subscriber | null;
-  renderCtx?: RenderContext;
+  $url$: URL | null;
+  $seq$: number;
+  $doc$?: Document;
+  $hostElement$?: Element;
+  $element$?: Element;
+  $event$: any;
+  $qrl$?: QRL<any>;
+  $waitOn$?: ValueOrPromise<any>[];
+  $props$?: Props;
+  $subscriber$?: Subscriber | null;
+  $renderCtx$?: RenderContext;
 }
 
 let _context: InvokeContext | undefined;
 
-export function tryGetInvokeContext(): InvokeContext | undefined {
+export const tryGetInvokeContext = (): InvokeContext | undefined => {
   if (!_context) {
     const context = typeof document !== 'undefined' && document && document.__q_context__;
     if (!context) {
       return undefined;
     }
-    if (Array.isArray(context)) {
+    if (isArray(context)) {
       const element = context[0];
       const hostElement = getHostElement(element)!;
       assertDefined(element);
@@ -62,21 +63,21 @@ export function tryGetInvokeContext(): InvokeContext | undefined {
     return context as InvokeContext;
   }
   return _context;
-}
+};
 
-export function getInvokeContext(): InvokeContext {
+export const getInvokeContext = (): InvokeContext => {
   const ctx = tryGetInvokeContext();
   if (!ctx) {
-    throw new Error("Q-ERROR: invoking 'use*()' method outside of invocation context.");
+    throw qError(QError_useMethodOutsideContext);
   }
   return ctx;
-}
+};
 
-export function useInvoke<ARGS extends any[] = any[], RET = any>(
+export const useInvoke = <ARGS extends any[] = any[], RET = any>(
   context: InvokeContext,
   fn: (...args: ARGS) => RET,
   ...args: ARGS
-): ValueOrPromise<RET> {
+): ValueOrPromise<RET> => {
   const previousContext = _context;
   let returnValue: RET;
   try {
@@ -85,40 +86,40 @@ export function useInvoke<ARGS extends any[] = any[], RET = any>(
   } finally {
     const currentCtx = _context!;
     _context = previousContext;
-    if (currentCtx.waitOn && currentCtx.waitOn.length > 0) {
+    if (currentCtx.$waitOn$ && currentCtx.$waitOn$.length > 0) {
       // eslint-disable-next-line no-unsafe-finally
-      return Promise.all(currentCtx.waitOn).then(() => returnValue);
+      return Promise.all(currentCtx.$waitOn$).then(() => returnValue);
     }
   }
   return returnValue;
-}
-export function newInvokeContext(
+};
+export const newInvokeContext = (
   doc?: Document,
   hostElement?: Element,
   element?: Element,
   event?: any,
   url?: URL
-): InvokeContext {
+): InvokeContext => {
   return {
-    seq: 0,
-    doc,
-    hostElement,
-    element,
-    event: event,
-    url: url || null,
-    qrl: undefined,
+    $seq$: 0,
+    $doc$: doc,
+    $hostElement$: hostElement,
+    $element$: element,
+    $event$: event,
+    $url$: url || null,
+    $qrl$: undefined,
   };
-}
+};
 
 /**
  * @alpha
  */
-export function useWaitOn(promise: ValueOrPromise<any>): void {
+export const useWaitOn = (promise: ValueOrPromise<any>): void => {
   const ctx = getInvokeContext();
-  (ctx.waitOn || (ctx.waitOn = [])).push(promise);
-}
+  (ctx.$waitOn$ || (ctx.$waitOn$ = [])).push(promise);
+};
 
-export function getHostElement(el: Element): Element | null {
+export const getHostElement = (el: Element): Element | null => {
   let foundSlot = false;
   let node: Element | null = el;
   while (node) {
@@ -137,22 +138,22 @@ export function getHostElement(el: Element): Element | null {
     node = node.parentElement;
   }
   return node;
-}
+};
 
-export function getContainer(el: Element): Element | null {
+export const getContainer = (el: Element): Element | null => {
   let container = (el as any)[CONTAINER];
   if (!container) {
     container = el.closest(QContainerSelector);
     (el as any)[CONTAINER] = container;
   }
   return container;
-}
+};
 
-export function useRenderContext(): RenderContext {
+export const useRenderContext = (): RenderContext => {
   const ctx = getInvokeContext();
-  const renderCtx = ctx.renderCtx;
+  const renderCtx = ctx.$renderCtx$;
   if (!renderCtx) {
-    throw new Error('Cant access renderCtx for existing context');
+    throw qError(QError_missingRenderCtx);
   }
   return renderCtx;
-}
+};

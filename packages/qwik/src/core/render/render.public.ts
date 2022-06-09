@@ -9,8 +9,10 @@ import { qDev, qTest } from '../util/qdev';
 import { version } from '../version';
 import { QContainerAttr } from '../util/markers';
 import { logError } from '../util/log';
-import { runWatch, WatchDescriptor, WatchFlags } from '../watch/watch.public';
+import { runWatch, WatchDescriptor, WatchFlagsIsDirty } from '../use/use-watch';
 import { appendQwikDevTools, getContext } from '../props/props';
+import { codeToText, QError_cannotRenderOverExistingContainer } from '../error/error';
+import { directSetAttribute } from './fast-calls';
 
 /**
  * Render JSX.
@@ -24,34 +26,33 @@ import { appendQwikDevTools, getContext } from '../props/props';
  * @param jsxNode - JSX to render
  * @alpha
  */
-export async function render(
+export const render = async (
   parent: Element | Document,
   jsxNode: JSXNode<unknown> | FunctionComponent<any>
-): Promise<RenderContext | undefined> {
+): Promise<void> => {
   // If input is not JSX, convert it
   if (!isJSXNode(jsxNode)) {
     jsxNode = jsx(jsxNode, null);
   }
   const doc = getDocument(parent);
   const containerEl = getElement(parent);
-  if (qDev && containerEl.hasAttribute('q:container')) {
-    logError('You can render over a existing q:container. Skipping render().');
+  if (qDev && containerEl.hasAttribute(QContainerAttr)) {
+    logError(codeToText(QError_cannotRenderOverExistingContainer));
     return;
   }
   injectQContainer(containerEl);
 
   const containerState = getContainerState(containerEl);
   const ctx: RenderContext = {
-    doc,
-    containerState,
-    hostElements: new Set(),
-    operations: [],
-    roots: [parent as Element],
-    components: [],
-    containerEl,
-    perf: {
-      visited: 0,
-      timing: [],
+    $doc$: doc,
+    $containerState$: containerState,
+    $hostElements$: new Set(),
+    $operations$: [],
+    $roots$: [parent as Element],
+    $components$: [],
+    $containerEl$: containerEl,
+    $perf$: {
+      $visited$: 0,
     },
   };
 
@@ -64,37 +65,34 @@ export async function render(
 
   if (qDev) {
     appendQwikDevTools(containerEl);
-    if (typeof window !== 'undefined' && window.document != null) {
-      printRenderStats(ctx);
-    }
+    printRenderStats(ctx);
   }
   const promises: Promise<WatchDescriptor>[] = [];
-  ctx.hostElements.forEach((host) => {
+  ctx.$hostElements$.forEach((host) => {
     const elCtx = getContext(host);
-    elCtx.watches.forEach((watch) => {
-      if (watch.f & WatchFlags.IsDirty) {
+    elCtx.$watches$.forEach((watch) => {
+      if (watch.f & WatchFlagsIsDirty) {
         promises.push(runWatch(watch, containerState));
       }
     });
   });
   await Promise.all(promises);
-  return ctx;
-}
+};
 
-export function injectQwikSlotCSS(docOrElm: Document | Element) {
+export const injectQwikSlotCSS = (docOrElm: Document | Element) => {
   const doc = getDocument(docOrElm);
   const element = isDocument(docOrElm) ? docOrElm.head : docOrElm;
   const style = doc.createElement('style');
-  style.setAttribute('id', 'qwik/base-styles');
+  directSetAttribute(style, 'id', 'qwik/base-styles');
   style.textContent = `q\\:slot{display:contents}q\\:fallback,q\\:template{display:none}q\\:fallback:last-child{display:contents}`;
   element.insertBefore(style, element.firstChild);
-}
+};
 
-export function getElement(docOrElm: Document | Element): Element {
+export const getElement = (docOrElm: Document | Element): Element => {
   return isDocument(docOrElm) ? docOrElm.documentElement : docOrElm;
-}
+};
 
-export function injectQContainer(containerEl: Element) {
-  containerEl.setAttribute('q:version', version || '');
-  containerEl.setAttribute(QContainerAttr, 'resumed');
-}
+export const injectQContainer = (containerEl: Element) => {
+  directSetAttribute(containerEl, 'q:version', version || '');
+  directSetAttribute(containerEl, QContainerAttr, 'resumed');
+};

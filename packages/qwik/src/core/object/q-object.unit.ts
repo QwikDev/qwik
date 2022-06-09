@@ -4,8 +4,8 @@ import { qObject } from './q-object';
 describe('q-object', () => {
   beforeEach(() => {});
   const map: any = {
-    subsManager: createSubscriptionManager(),
-    proxyMap: new WeakMap(),
+    $subsManager$: createSubscriptionManager(),
+    $proxyMap$: new WeakMap(),
   };
 
   it('should create QObject', () => {

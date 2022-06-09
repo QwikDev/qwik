@@ -5,6 +5,7 @@ import { getContext } from '../props/props';
 import { wrapSubscriber } from './use-subscriber';
 import { assertEqual } from '../assert/assert';
 import { RenderEvent } from '../util/markers';
+import { isFunction } from '../util/types';
 
 // <docs markdown="../readme.md#useStore">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -69,19 +70,19 @@ import { RenderEvent } from '../util/markers';
  * @public
  */
 // </docs>
-export function useStore<STATE extends object>(initialState: STATE | (() => STATE)): STATE {
+export const useStore = <STATE extends object>(initialState: STATE | (() => STATE)): STATE => {
   const [store, setStore] = useSequentialScope();
   const hostElement = useHostElement();
   if (store != null) {
     return wrapSubscriber(store, hostElement);
   }
 
-  const containerState = useRenderContext().containerState;
-  const value = typeof initialState === 'function' ? (initialState as Function)() : initialState;
+  const containerState = useRenderContext().$containerState$;
+  const value = isFunction(initialState) ? (initialState as Function)() : initialState;
   const newStore = qObject(value, containerState);
   setStore(newStore);
   return wrapSubscriber(newStore, hostElement);
-}
+};
 
 /**
  * @alpha
@@ -126,22 +127,22 @@ export interface Ref<T> {
  * @public
  */
 // </docs>
-export function useRef<T = Element>(current?: T): Ref<T> {
+export const useRef = <T = Element>(current?: T): Ref<T> => {
   return useStore({ current });
-}
+};
 
 /**
  * @alpha
  */
-export function useSequentialScope(): [any, (prop: any) => void, number] {
+export const useSequentialScope = (): [any, (prop: any) => void, number] => {
   const ctx = getInvokeContext();
-  assertEqual(ctx.event, RenderEvent);
-  const index = ctx.seq;
+  assertEqual(ctx.$event$, RenderEvent);
+  const index = ctx.$seq$;
   const hostElement = useHostElement();
   const elementCtx = getContext(hostElement);
-  ctx.seq++;
+  ctx.$seq$++;
   const updateFn = (value: any) => {
-    elementCtx.seq[index] = value;
+    elementCtx.$seq$[index] = value;
   };
-  return [elementCtx.seq[index], updateFn, index];
-}
+  return [elementCtx.$seq$[index], updateFn, index];
+};

@@ -3,17 +3,18 @@ import { useCleanup$, useClientEffect$, useWatch$ } from '../../core';
 import { ElementFixture, trigger } from '../../testing/element-fixture';
 import { expectDOM } from '../../testing/expect-dom.unit';
 import { getTestPlatform } from '../../testing/platform';
-import { useScopedStyles$, component$ } from '../component/component.public';
+import { component$ } from '../component/component.public';
 import { runtimeQrl } from '../import/qrl';
-import { pauseContainer } from '../object/store.public';
+import { pauseContainer } from '../object/store';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
 import { useRef } from '../use/use-store.public';
 import { ComponentScopedStyles, ComponentStylesPrefixContent } from '../util/markers';
-import { useServerMount$ } from '../watch/watch.public';
+import { useServerMount$ } from '../use/use-watch';
 import { Async, JSXPromise, PromiseValue } from './jsx/async.public';
 import { Slot } from './jsx/slot.public';
 import { notifyRender } from './notify-render';
 import { render } from './render.public';
+import { useScopedStyles$ } from '../use/use-styles';
 
 describe('render', () => {
   let fixture: ElementFixture;

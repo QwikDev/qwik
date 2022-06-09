@@ -1,5 +1,6 @@
 import { getContainer } from '../use/use-core';
 import { getDocument } from '../util/dom';
+import { isObject } from '../util/types';
 import type { CorePlatform } from './types';
 
 export const createPlatform = (doc: Document): CorePlatform => {
@@ -43,13 +44,13 @@ export const createPlatform = (doc: Document): CorePlatform => {
   };
 };
 
-function findModule(module: any) {
+const findModule = (module: any) => {
   return Object.values(module).find(isModule) || module;
-}
+};
 
-function isModule(module: any) {
-  return typeof module === 'object' && module && module[Symbol.toStringTag] === 'Module';
-}
+const isModule = (module: any) => {
+  return isObject(module) && module[Symbol.toStringTag] === 'Module';
+};
 
 /**
  * Convert relative base URI and relative URL into a fully qualified URL.
@@ -62,11 +63,11 @@ function isModule(module: any) {
  * @param url - relative URL
  * @returns fully qualified URL.
  */
-export function toUrl(doc: Document, element: Element, url: string | URL): URL {
+export const toUrl = (doc: Document, element: Element, url: string | URL): URL => {
   const containerEl = getContainer(element);
   const base = new URL(containerEl?.getAttribute('q:base') ?? doc.baseURI, doc.baseURI);
   return new URL(url, base);
-}
+};
 
 /**
  * @public
@@ -82,7 +83,7 @@ export const getPlatform = (docOrNode: Document | Node) => {
   return doc[DocumentPlatform] || (doc[DocumentPlatform] = createPlatform(doc));
 };
 
-const DocumentPlatform = /*@__PURE__*/ Symbol();
+const DocumentPlatform = /*#__PURE__*/ Symbol();
 
 interface PlatformDocument extends Document {
   [DocumentPlatform]?: CorePlatform;

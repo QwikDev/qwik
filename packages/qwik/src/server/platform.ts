@@ -1,6 +1,6 @@
 import type { CorePlatform } from '@builder.io/qwik';
 import { setPlatform } from '@builder.io/qwik';
-import { getCanonicalSymbol } from '../core/import/qrl-class';
+import { getSymbolHash } from '../core/import/qrl-class';
 import type { SymbolMapper } from '../optimizer/src/types';
 import type { SerializeDocumentOptions } from './types';
 import { normalizeUrl } from './utils';
@@ -43,7 +43,7 @@ function createPlatform(document: any, opts: SerializeDocumentOptions, mapper: S
       });
     },
     chunkForSymbol(symbolName: string) {
-      return mapper[getCanonicalSymbol(symbolName)];
+      return mapper[getSymbolHash(symbolName)];
     },
   };
   return serverPlatform;

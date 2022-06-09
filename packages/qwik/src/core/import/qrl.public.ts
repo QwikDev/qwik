@@ -1,4 +1,4 @@
-import type { ValueOrPromise } from '..';
+import type { ValueOrPromise } from '../util/types';
 import type { InvokeContext } from '../use/use-core';
 import { runtimeQrl } from './qrl';
 
@@ -130,9 +130,9 @@ import { runtimeQrl } from './qrl';
 export interface QRL<TYPE = any> {
   __brand__QRL__: TYPE;
   getSymbol(): string;
-  getCanonicalSymbol(): string;
+  getHash(): string;
   resolve(container?: Element): Promise<TYPE>;
-  resolveIfNeeded(container?: Element): ValueOrPromise<TYPE>;
+  resolveLazy(container?: Element): ValueOrPromise<TYPE>;
   invoke(
     ...args: TYPE extends (...args: infer ARGS) => any ? ARGS : never
   ): Promise<TYPE extends (...args: any[]) => infer RETURN ? RETURN : never>;
@@ -228,54 +228,6 @@ export type EventHandler<T> = QRL<(value: T) => any>;
  * @public
  */
 // </docs>
-export function $<T>(expression: T): QRL<T> {
+export const $ = <T>(expression: T): QRL<T> => {
   return runtimeQrl(expression);
-}
-
-// <docs markdown="../readme.md#implicit$FirstArg">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#implicit$FirstArg instead)
-/**
- * Create a `____$(...)` convenience method from `___(...)`.
- *
- * It is very common for functions to take a lazy-loadable resource as a first argument. For this
- * reason, the Qwik Optimizer automatically extracts the first argument from any function which
- * ends in `$`.
- *
- * This means that `foo$(arg0)` and `foo($(arg0))` are equivalent with respect to Qwik Optimizer.
- * The former is just a shorthand for the latter.
- *
- * For example these function call are equivalent:
- *
- * - `component$(() => {...})` is same as `onRender($(() => {...}))`
- *
- * ```tsx
- * export function myApi(callback: QRL<() => void>): void {
- *   // ...
- * }
- *
- * export const myApi$ = implicit$FirstArg(myApi);
- * // type of myApi$: (callback: () => void): void
- *
- * // can be used as:
- * myApi$(() => console.log('callback'));
- *
- * // will be transpiled to:
- * // FILE: <current file>
- * myApi(qrl('./chunk-abc.js', 'callback'));
- *
- * // FILE: chunk-abc.js
- * export const callback = () => console.log('callback');
- * ```
- *
- * @param fn - function that should have its first argument automatically `$`.
- * @alpha
- */
-// </docs>
-export function implicit$FirstArg<FIRST, REST extends any[], RET>(
-  fn: (first: QRL<FIRST>, ...rest: REST) => RET
-): (first: FIRST, ...rest: REST) => RET {
-  return function (first: FIRST, ...rest: REST): RET {
-    return fn.call(null, $(first), ...rest);
-  };
-}
+};

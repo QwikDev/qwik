@@ -1,27 +1,26 @@
 import { noSerialize, NoSerialize, notifyWatch } from '../object/q-object';
-import { implicit$FirstArg, QRL } from '../import/qrl.public';
+import type { QRL } from '../import/qrl.public';
 import { getContext } from '../props/props';
-import { newInvokeContext, useRenderContext, useWaitOn } from '../use/use-core';
-import { useHostElement } from '../use/use-host-element.public';
+import { newInvokeContext, useRenderContext, useWaitOn } from './use-core';
+import { useHostElement } from './use-host-element.public';
 import { logDebug, logError } from '../util/log';
 import { then } from '../util/promises';
-import { useSequentialScope } from '../use/use-store.public';
+import { useSequentialScope } from './use-store.public';
 import { QRLInternal } from '../import/qrl-class';
 import { getDocument } from '../util/dom';
-import type { ValueOrPromise } from '../util/types';
-import { useLexicalScope } from '../use/use-lexical-scope.public';
+import { isFunction, isObject, ValueOrPromise } from '../util/types';
+import { useLexicalScope } from './use-lexical-scope.public';
 import { getPlatform } from '../platform/platform';
-import { useDocument } from '../use/use-document.public';
-import { useResumeQrl, useVisibleQrl } from '../component/component.public';
+import { useDocument } from './use-document.public';
 import { getProxyTarget } from '../object/store';
 import type { ContainerState } from '../render/notify-render';
+import { useResumeQrl, useVisibleQrl } from './use-on';
+import { implicit$FirstArg } from '../util/implicit_dollar';
 
-export const enum WatchFlags {
-  IsEffect = 1 << 0,
-  IsWatch = 1 << 1,
-  IsDirty = 1 << 2,
-  IsCleanup = 1 << 3,
-}
+export const WatchFlagsIsEffect = 1 << 0;
+export const WatchFlagsIsWatch = 1 << 1;
+export const WatchFlagsIsDirty = 1 << 2;
+export const WatchFlagsIsCleanup = 1 << 3;
 
 /**
  * @alpha
@@ -46,11 +45,11 @@ export interface WatchDescriptor {
 }
 
 export const isWatchDescriptor = (obj: any): obj is WatchDescriptor => {
-  return obj && typeof obj === 'object' && 'qrl' in obj && 'f' in obj;
+  return isObject(obj) && 'qrl' in obj && 'f' in obj;
 };
 
 export const isWatchCleanup = (obj: any): obj is WatchDescriptor => {
-  return isWatchDescriptor(obj) && !!(obj.f & WatchFlags.IsCleanup);
+  return isWatchDescriptor(obj) && !!(obj.f & WatchFlagsIsCleanup);
 };
 
 /**
@@ -68,10 +67,10 @@ export interface UseEffectOptions {
 /**
  * @alpha
  */
-export function handleWatch() {
+export const handleWatch = () => {
   const [watch] = useLexicalScope();
   notifyWatch(watch);
-}
+};
 
 // <docs markdown="../readme.md#useWatch">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -135,26 +134,26 @@ export function handleWatch() {
  * @public
  */
 // </docs>
-export function useWatchQrl(qrl: QRL<WatchFn>, opts?: UseEffectOptions): void {
+export const useWatchQrl = (qrl: QRL<WatchFn>, opts?: UseEffectOptions): void => {
   const [watch, setWatch, i] = useSequentialScope();
   if (!watch) {
     const el = useHostElement();
-    const containerState = useRenderContext().containerState;
+    const containerState = useRenderContext().$containerState$;
     const watch: WatchDescriptor = {
       qrl,
       el,
-      f: WatchFlags.IsDirty | WatchFlags.IsWatch,
+      f: WatchFlagsIsDirty | WatchFlagsIsWatch,
       i,
     };
     setWatch(true);
-    getContext(el).watches.push(watch);
+    getContext(el).$watches$.push(watch);
     useWaitOn(Promise.resolve().then(() => runWatch(watch, containerState)));
-    const isServer = containerState.platform.isServer;
+    const isServer = containerState.$platform$.isServer;
     if (isServer) {
       useRunWatch(watch, opts?.run);
     }
   }
-}
+};
 
 // <docs markdown="../readme.md#useWatch">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -218,7 +217,7 @@ export function useWatchQrl(qrl: QRL<WatchFn>, opts?: UseEffectOptions): void {
  * @public
  */
 // </docs>
-export const useWatch$ = implicit$FirstArg(useWatchQrl);
+export const useWatch$ = /*#__PURE__*/ implicit$FirstArg(useWatchQrl);
 
 // <docs markdown="../readme.md#useClientEffect">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -247,25 +246,25 @@ export const useWatch$ = implicit$FirstArg(useWatchQrl);
  * @public
  */
 // </docs>
-export function useClientEffectQrl(qrl: QRL<WatchFn>, opts?: UseEffectOptions): void {
+export const useClientEffectQrl = (qrl: QRL<WatchFn>, opts?: UseEffectOptions): void => {
   const [watch, setWatch, i] = useSequentialScope();
   if (!watch) {
     const el = useHostElement();
     const watch: WatchDescriptor = {
       qrl,
       el,
-      f: WatchFlags.IsEffect,
+      f: WatchFlagsIsEffect,
       i,
     };
     setWatch(true);
-    getContext(el).watches.push(watch);
+    getContext(el).$watches$.push(watch);
     useRunWatch(watch, opts?.run ?? 'visible');
     const doc = useDocument() as any;
     if (doc['qO']) {
       doc['qO'].observe(el);
     }
   }
-}
+};
 
 // <docs markdown="../readme.md#useClientEffect">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -294,7 +293,7 @@ export function useClientEffectQrl(qrl: QRL<WatchFn>, opts?: UseEffectOptions): 
  * @public
  */
 // </docs>
-export const useClientEffect$ = implicit$FirstArg(useClientEffectQrl);
+export const useClientEffect$ = /*#__PURE__*/ implicit$FirstArg(useClientEffectQrl);
 
 // <docs markdown="../readme.md#useServerMount">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -336,7 +335,7 @@ export const useClientEffect$ = implicit$FirstArg(useClientEffectQrl);
  * @public
  */
 // </docs>
-export function useServerMountQrl(mountQrl: QRL<ServerFn>): void {
+export const useServerMountQrl = (mountQrl: QRL<ServerFn>): void => {
   const [watch, setWatch] = useSequentialScope();
   if (!watch) {
     setWatch(true);
@@ -345,7 +344,7 @@ export function useServerMountQrl(mountQrl: QRL<ServerFn>): void {
       useWaitOn(mountQrl.invoke());
     }
   }
-}
+};
 
 // <docs markdown="../readme.md#useServerMount">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -387,7 +386,7 @@ export function useServerMountQrl(mountQrl: QRL<ServerFn>): void {
  * @public
  */
 // </docs>
-export const useServerMount$ = implicit$FirstArg(useServerMountQrl);
+export const useServerMount$ = /*#__PURE__*/ implicit$FirstArg(useServerMountQrl);
 
 // <docs markdown="../readme.md#useClientMount">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -421,7 +420,7 @@ export const useServerMount$ = implicit$FirstArg(useServerMountQrl);
  * @public
  */
 // </docs>
-export function useClientMountQrl(mountQrl: QRL<ServerFn>): void {
+export const useClientMountQrl = (mountQrl: QRL<ServerFn>): void => {
   const [watch, setWatch] = useSequentialScope();
   if (!watch) {
     setWatch(true);
@@ -430,7 +429,7 @@ export function useClientMountQrl(mountQrl: QRL<ServerFn>): void {
       useWaitOn(mountQrl.invoke());
     }
   }
-}
+};
 
 // <docs markdown="../readme.md#useClientMount">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -464,7 +463,7 @@ export function useClientMountQrl(mountQrl: QRL<ServerFn>): void {
  * @public
  */
 // </docs>
-export const useClientMount$ = implicit$FirstArg(useClientMountQrl);
+export const useClientMount$ = /*#__PURE__*/ implicit$FirstArg(useClientMountQrl);
 
 // <docs markdown="../readme.md#useMount">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -500,13 +499,13 @@ export const useClientMount$ = implicit$FirstArg(useClientMountQrl);
  * @public
  */
 // </docs>
-export function useMountQrl(mountQrl: QRL<ServerFn>): void {
+export const useMountQrl = (mountQrl: QRL<ServerFn>): void => {
   const [watch, setWatch] = useSequentialScope();
   if (!watch) {
     setWatch(true);
     useWaitOn(mountQrl.invoke());
   }
-}
+};
 
 // <docs markdown="../readme.md#useMount">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -542,30 +541,30 @@ export function useMountQrl(mountQrl: QRL<ServerFn>): void {
  * @public
  */
 // </docs>
-export const useMount$ = implicit$FirstArg(useMountQrl);
+export const useMount$ = /*#__PURE__*/ implicit$FirstArg(useMountQrl);
 
-export function runWatch(
+export const runWatch = (
   watch: WatchDescriptor,
   containerState: ContainerState
-): Promise<WatchDescriptor> {
-  if (!(watch.f & WatchFlags.IsDirty)) {
+): Promise<WatchDescriptor> => {
+  if (!(watch.f & WatchFlagsIsDirty)) {
     logDebug('Watch is not dirty, skipping run', watch);
     return Promise.resolve(watch);
   }
-  watch.f &= ~WatchFlags.IsDirty;
+  watch.f &= ~WatchFlagsIsDirty;
   const promise = new Promise<WatchDescriptor>((resolve) => {
     then(watch.running, () => {
       cleanupWatch(watch);
       const el = watch.el;
       const doc = getDocument(el);
       const invokationContext = newInvokeContext(doc, el, el, 'WatchEvent');
-      const { subsManager } = containerState;
+      const { $subsManager$: subsManager } = containerState;
       const watchFn = watch.qrl.invokeFn(el, invokationContext, () => {
-        subsManager.clearSub(watch);
+        subsManager.$clearSub$(watch);
       });
       const track: Tracker = (obj: any, prop?: string) => {
-        const manager = subsManager.getLocal(getProxyTarget(obj) ?? obj);
-        manager.addSub(watch, prop);
+        const manager = subsManager.$getLocal$(getProxyTarget(obj) ?? obj);
+        manager.$addSub$(watch, prop);
         if (prop) {
           return obj[prop];
         } else {
@@ -574,7 +573,7 @@ export function runWatch(
       };
 
       return then(watchFn(track), (returnValue) => {
-        if (typeof returnValue === 'function') {
+        if (isFunction(returnValue)) {
           watch.destroy = noSerialize(returnValue);
         }
         resolve(watch);
@@ -583,7 +582,7 @@ export function runWatch(
   });
   watch.running = noSerialize(promise);
   return promise;
-}
+};
 
 export const cleanupWatch = (watch: WatchDescriptor) => {
   const destroy = watch.destroy;
@@ -598,8 +597,8 @@ export const cleanupWatch = (watch: WatchDescriptor) => {
 };
 
 export const destroyWatch = (watch: WatchDescriptor) => {
-  if (watch.f & WatchFlags.IsCleanup) {
-    watch.f &= ~WatchFlags.IsCleanup;
+  if (watch.f & WatchFlagsIsCleanup) {
+    watch.f &= ~WatchFlagsIsCleanup;
     const cleanup = watch.qrl.invokeFn(watch.el);
     (cleanup as any)();
   } else {
@@ -661,13 +660,13 @@ const useRunWatch = (watch: WatchDescriptor, run: UseEffectRunOptions | undefine
 const getWatchHandlerQrl = (watch: WatchDescriptor) => {
   const watchQrl = watch.qrl as QRLInternal;
   const watchHandler = new QRLInternal(
-    (watchQrl as QRLInternal).chunk,
+    (watchQrl as QRLInternal).$chunk$,
     'handleWatch',
     handleWatch,
     null,
     null,
     [watch]
   );
-  watchHandler.refSymbol = (watchQrl as QRLInternal).symbol;
+  watchHandler.$refSymbol$ = (watchQrl as QRLInternal).$symbol$;
   return watchHandler;
 };

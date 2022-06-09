@@ -3,7 +3,8 @@ import { ElementFixture, trigger } from '../../testing/element-fixture';
 import { expectDOM } from '../../testing/expect-dom.unit';
 import { runtimeQrl } from '../import/qrl';
 import { render } from '../render/render.public';
-import { PropsOf, useStylesQrl, component$ } from './component.public';
+import { useStylesQrl } from '../use/use-styles';
+import { PropsOf, component$ } from './component.public';
 
 describe('q-component', () => {
   it('should declare and render basic component', async () => {

@@ -103,13 +103,15 @@ export function getEvent(ctx: QContext, prop: string): any {
 }
 
 export function qPropReadQRL(ctx: QContext, prop: string): ((event: Event) => void) | null {
-  const listeners = !ctx.listeners ? (ctx.listeners = getDomListeners(ctx.element)) : ctx.listeners;
+  const listeners = !ctx.$listeners$
+    ? (ctx.$listeners$ = getDomListeners(ctx.$element$))
+    : ctx.$listeners$;
 
   return async (event) => {
     const qrls = listeners.get(prop) || [];
     await Promise.all(
       qrls.map((qrl) => {
-        const fn = qrl.invokeFn(ctx.element);
+        const fn = qrl.invokeFn(ctx.$element$);
         return fn(event);
       })
     );

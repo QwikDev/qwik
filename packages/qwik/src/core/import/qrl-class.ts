@@ -1,83 +1,84 @@
+import { qError, QError_qrlIsNotFunction } from '../error/error';
 import { InvokeContext, newInvokeContext, useInvoke } from '../use/use-core';
 import { then } from '../util/promises';
-import type { ValueOrPromise } from '../util/types';
+import { isFunction, ValueOrPromise } from '../util/types';
 import { qrlImport, QRLSerializeOptions, stringifyQRL } from './qrl';
 import type { QRL as IQRL } from './qrl.public';
 
-export function isQrl(value: any): value is QRLInternal {
-  return value instanceof QRLInternal;
-}
+export const isQrl = (value: any): value is QRL => {
+  return value instanceof QRL;
+};
 
 class QRL<TYPE = any> implements IQRL<TYPE> {
   __brand__QRL__!: TYPE;
-  refSymbol?: string;
+  $refSymbol$?: string;
 
-  private el: Element | undefined;
+  private $el$: Element | undefined;
 
   constructor(
-    public chunk: string,
-    public symbol: string,
-    public symbolRef: null | ValueOrPromise<TYPE>,
-    public symbolFn: null | (() => Promise<Record<string, any>>),
-    public capture: null | string[],
-    public captureRef: null | any[]
+    public $chunk$: string,
+    public $symbol$: string,
+    public $symbolRef$: null | ValueOrPromise<TYPE>,
+    public $symbolFn$: null | (() => Promise<Record<string, any>>),
+    public $capture$: null | string[],
+    public $captureRef$: null | any[]
   ) {}
 
   setContainer(el: Element) {
-    if (!this.el) {
-      this.el = el;
+    if (!this.$el$) {
+      this.$el$ = el;
     }
   }
 
   getSymbol(): string {
-    return this.refSymbol ?? this.symbol;
+    return this.$refSymbol$ ?? this.$symbol$;
   }
 
-  getCanonicalSymbol(): string {
-    return getCanonicalSymbol(this.refSymbol ?? this.symbol);
+  getHash(): string {
+    return getSymbolHash(this.$refSymbol$ ?? this.$symbol$);
   }
 
   async resolve(el?: Element): Promise<TYPE> {
     if (el) {
       this.setContainer(el);
     }
-    return qrlImport(this.el, this as any);
+    return qrlImport(this.$el$, this as any);
   }
 
-  resolveIfNeeded(el?: Element): ValueOrPromise<TYPE> {
-    return typeof this.symbolRef === 'function' ? this.symbolRef : this.resolve(el);
+  resolveLazy(el?: Element): ValueOrPromise<TYPE> {
+    return isFunction(this.$symbolRef$) ? this.$symbolRef$ : this.resolve(el);
   }
 
   invokeFn(el?: Element, currentCtx?: InvokeContext, beforeFn?: () => void): any {
     return ((...args: any[]): any => {
-      const fn = this.resolveIfNeeded(el) as TYPE;
+      const fn = this.resolveLazy(el) as TYPE;
       return then(fn, (fn) => {
-        if (typeof fn === 'function') {
+        if (isFunction(fn)) {
           const baseContext = currentCtx ?? newInvokeContext();
           const context: InvokeContext = {
             ...baseContext,
-            qrl: this,
+            $qrl$: this,
           };
           if (beforeFn) {
             beforeFn();
           }
           return useInvoke(context, fn as any, ...args);
         }
-        throw new Error('QRL is not a function');
+        throw qError(QError_qrlIsNotFunction);
       });
     }) as any;
   }
 
-  copy(): QRLInternal<TYPE> {
-    const copy = new QRLInternal(
-      this.chunk,
-      this.symbol,
-      this.symbolRef,
-      this.symbolFn,
+  copy(): QRL<TYPE> {
+    const copy = new QRL(
+      this.$chunk$,
+      this.$symbol$,
+      this.$symbolRef$,
+      this.$symbolFn$,
       null,
-      this.captureRef
+      this.$captureRef$
     );
-    copy.refSymbol = this.refSymbol;
+    copy.$refSymbol$ = this.$refSymbol$;
     return copy;
   }
 
@@ -92,7 +93,7 @@ class QRL<TYPE = any> implements IQRL<TYPE> {
   }
 }
 
-export const getCanonicalSymbol = (symbolName: string) => {
+export const getSymbolHash = (symbolName: string) => {
   const index = symbolName.lastIndexOf('_');
   if (index > -1) {
     return symbolName.slice(index + 1);
@@ -101,8 +102,7 @@ export const getCanonicalSymbol = (symbolName: string) => {
 };
 
 export const isSameQRL = (a: QRL<any>, b: QRL<any>): boolean => {
-  return a.getCanonicalSymbol() === b.getCanonicalSymbol();
+  return a.getHash() === b.getHash();
 };
 
-export type QRLInternal<T = any> = QRL<T>;
-export const QRLInternal: typeof QRL = QRL;
+export { QRL as QRLInternal };

@@ -17,34 +17,34 @@ import { qPropWriteQRL } from './props-on';
 import { QContainerAttr } from '../util/markers';
 import type { QRL } from '../import/qrl.public';
 import type { OnRenderFn } from '../component/component.public';
-import { destroyWatch, WatchDescriptor } from '../watch/watch.public';
-import { pauseContainer } from '../object/store.public';
+import { destroyWatch, WatchDescriptor } from '../use/use-watch';
+import { pauseContainer } from '../object/store';
 import { ContainerState, getContainerState } from '../render/notify-render';
 import { qDev } from '../util/qdev';
 import { logError } from '../util/log';
 import { unwrapSubscriber } from '../use/use-subscriber';
 import { isQrl } from '../import/qrl-class';
-
-Error.stackTraceLimit = 9999;
+import { qError, QError_immutableProps } from '../error/error';
+import { directGetAttribute } from '../render/fast-calls';
 
 const Q_CTX = '__ctx__';
 
-export function resumeIfNeeded(containerEl: Element): void {
-  const isResumed = containerEl.getAttribute(QContainerAttr);
+export const resumeIfNeeded = (containerEl: Element): void => {
+  const isResumed = directGetAttribute(containerEl, QContainerAttr);
   if (isResumed === 'paused') {
     resumeContainer(containerEl);
     if (qDev) {
       appendQwikDevTools(containerEl);
     }
   }
-}
+};
 
-export function appendQwikDevTools(containerEl: Element) {
+export const appendQwikDevTools = (containerEl: Element) => {
   (containerEl as any)['qwik'] = {
     pause: () => pauseContainer(containerEl),
     state: getContainerState(containerEl),
   };
-}
+};
 
 export interface QContextEvents {
   [eventName: string]: QRL | undefined;
@@ -54,72 +54,72 @@ export interface QContextEvents {
  * @alpha
  */
 export interface ComponentCtx {
-  hostElement: Element;
-  styleId: string | undefined;
-  styleClass: string | undefined;
-  styleHostClass: string | undefined;
-  slots: JSXNode[];
+  $hostElement$: Element;
+  $styleId$: string | undefined;
+  $styleClass$: string | undefined;
+  $styleHostClass$: string | undefined;
+  $slots$: JSXNode[];
 }
 
 export interface QContext {
-  cache: Map<string, any>;
-  refMap: QObjectMap;
-  element: Element;
-  dirty: boolean;
-  props: Record<string, any> | undefined;
-  renderQrl: QRL<OnRenderFn<any>> | undefined;
-  component: ComponentCtx | undefined;
-  listeners?: Map<string, QRL<any>[]>;
-  seq: any[];
-  watches: WatchDescriptor[];
-  contexts?: Map<string, any>;
+  $cache$: Map<string, any>;
+  $refMap$: QObjectMap;
+  $element$: Element;
+  $dirty$: boolean;
+  $props$: Record<string, any> | undefined;
+  $renderQrl$: QRL<OnRenderFn<any>> | undefined;
+  $component$: ComponentCtx | undefined;
+  $listeners$?: Map<string, QRL<any>[]>;
+  $seq$: any[];
+  $watches$: WatchDescriptor[];
+  $contexts$?: Map<string, any>;
 }
 
-export function tryGetContext(element: Element): QContext | undefined {
+export const tryGetContext = (element: Element): QContext | undefined => {
   return (element as any)[Q_CTX];
-}
-export function getContext(element: Element): QContext {
+};
+export const getContext = (element: Element): QContext => {
   let ctx = tryGetContext(element)!;
   if (!ctx) {
     const cache = new Map();
     (element as any)[Q_CTX] = ctx = {
-      element,
-      cache,
-      refMap: newQObjectMap(),
-      dirty: false,
-      seq: [],
-      watches: [],
-      props: undefined,
-      renderQrl: undefined,
-      component: undefined,
+      $element$: element,
+      $cache$: cache,
+      $refMap$: newQObjectMap(),
+      $dirty$: false,
+      $seq$: [],
+      $watches$: [],
+      $props$: undefined,
+      $renderQrl$: undefined,
+      $component$: undefined,
     };
   }
   return ctx;
-}
+};
 
-export function cleanupContext(ctx: QContext, subsManager: SubscriptionManager) {
-  const el = ctx.element;
-  ctx.watches.forEach((watch) => {
-    subsManager.clearSub(watch);
+export const cleanupContext = (ctx: QContext, subsManager: SubscriptionManager) => {
+  const el = ctx.$element$;
+  ctx.$watches$.forEach((watch) => {
+    subsManager.$clearSub$(watch);
     destroyWatch(watch);
   });
-  if (ctx.renderQrl) {
-    subsManager.clearSub(el);
+  if (ctx.$renderQrl$) {
+    subsManager.$clearSub$(el);
   }
-  ctx.component = undefined;
-  ctx.renderQrl = undefined;
-  ctx.seq.length = 0;
-  ctx.watches.length = 0;
-  ctx.cache.clear();
-  ctx.dirty = false;
-  ctx.refMap.array.length = 0;
+  ctx.$component$ = undefined;
+  ctx.$renderQrl$ = undefined;
+  ctx.$seq$.length = 0;
+  ctx.$watches$.length = 0;
+  ctx.$cache$.clear();
+  ctx.$dirty$ = false;
+  ctx.$refMap$.$array$.length = 0;
   (el as any)[Q_CTX] = undefined;
-}
+};
 
 const PREFIXES = ['document:on', 'window:on', 'on'];
 const SCOPED = ['on-document', 'on-window', 'on'];
 
-export function normalizeOnProp(prop: string) {
+export const normalizeOnProp = (prop: string) => {
   let scope = 'on';
   for (let i = 0; i < PREFIXES.length; i++) {
     const prefix = PREFIXES[i];
@@ -134,24 +134,24 @@ export function normalizeOnProp(prop: string) {
     prop = prop.toLowerCase();
   }
   return `${scope}:${prop}`;
-}
+};
 
-export function setEvent(rctx: RenderContext, ctx: QContext, prop: string, value: any) {
+export const setEvent = (rctx: RenderContext, ctx: QContext, prop: string, value: any) => {
   qPropWriteQRL(rctx, ctx, normalizeOnProp(prop), value);
-}
+};
 
-export function createProps(target: any, el: Element, containerState: ContainerState) {
-  const manager = containerState.subsManager.getLocal(target);
+export const createProps = (target: any, el: Element, containerState: ContainerState) => {
+  const manager = containerState.$subsManager$.$getLocal$(target);
   return new Proxy(target, new PropsProxyHandler(el, containerState, manager));
-}
+};
 
-export function getPropsMutator(ctx: QContext, containerState: ContainerState) {
-  let props = ctx.props;
-  if (!ctx.props) {
-    ctx.props = props = createProps({}, ctx.element, containerState);
+export const getPropsMutator = (ctx: QContext, containerState: ContainerState) => {
+  let props = ctx.$props$;
+  if (!ctx.$props$) {
+    ctx.$props$ = props = createProps({}, ctx.$element$, containerState);
   }
   const target = getProxyTarget(props);
-  const manager = containerState.subsManager.getLocal(target);
+  const manager = containerState.$subsManager$.$getLocal$(target);
 
   return {
     set(prop: string, value: any) {
@@ -170,7 +170,7 @@ export function getPropsMutator(ctx: QContext, containerState: ContainerState) {
       if (oldValue !== value) {
         if (qDev) {
           if (didSet && !mut && !isQrl(value)) {
-            const displayName = ctx.renderQrl?.getSymbol() ?? ctx.element.localName;
+            const displayName = ctx.$renderQrl$?.getSymbol() ?? ctx.$element$.localName;
             logError(
               `Props are immutable by default. If you need to change a value of a passed in prop, please wrap the prop with "mutable()" <${displayName} ${prop}={mutable(...)}>`,
               '\n - Component:',
@@ -184,17 +184,17 @@ export function getPropsMutator(ctx: QContext, containerState: ContainerState) {
             );
           }
         }
-        manager.notifySubs(prop);
+        manager.$notifySubs$(prop);
       }
     },
   };
-}
+};
 
 class PropsProxyHandler implements ProxyHandler<TargetType> {
   constructor(
-    private hostElement: Element,
-    private containerState: ContainerState,
-    private manager: LocalSubscriptionManager
+    private $hostElement$: Element,
+    private $containerState$: ContainerState,
+    private $manager$: LocalSubscriptionManager
   ) {}
 
   get(target: TargetType, prop: string | symbol): any {
@@ -202,10 +202,10 @@ class PropsProxyHandler implements ProxyHandler<TargetType> {
       return target[prop];
     }
     if (prop === QOjectTargetSymbol) return target;
-    if (prop === QOjectSubsSymbol) return this.manager.subs;
-    if (prop === QOjectOriginalProxy) return readWriteProxy(target, this.containerState);
+    if (prop === QOjectSubsSymbol) return this.$manager$.$subs$;
+    if (prop === QOjectOriginalProxy) return readWriteProxy(target, this.$containerState$);
     if (prop === QOjectAllSymbol) {
-      this.manager.addSub(this.hostElement);
+      this.$manager$.$addSub$(this.$hostElement$);
       return target;
     }
     const value = target[prop];
@@ -213,14 +213,14 @@ class PropsProxyHandler implements ProxyHandler<TargetType> {
       return value;
     }
     if (isMutable(value)) {
-      this.manager.addSub(this.hostElement, prop);
+      this.$manager$.$addSub$(this.$hostElement$, prop);
       return value.v;
     }
     return value;
   }
 
   set(): boolean {
-    throw new Error('props are inmutable');
+    throw qError(QError_immutableProps);
   }
 
   has(target: TargetType, property: string | symbol) {
@@ -231,8 +231,8 @@ class PropsProxyHandler implements ProxyHandler<TargetType> {
   }
 
   ownKeys(target: TargetType): ArrayLike<string | symbol> {
-    const subscriber = this.hostElement;
-    this.manager.addSub(subscriber);
+    const subscriber = this.$hostElement$;
+    this.$manager$.$addSub$(subscriber);
     return Object.getOwnPropertyNames(target);
   }
 }

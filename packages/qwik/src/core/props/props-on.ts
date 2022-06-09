@@ -1,52 +1,54 @@
 import { getPlatform } from '../platform/platform';
-import { parseQRL, stringifyQRL } from '../import/qrl';
+import { parseQRL, QRLSerializeOptions, stringifyQRL } from '../import/qrl';
 import { isSameQRL, QRLInternal } from '../import/qrl-class';
 import { fromCamelToKebabCase } from '../util/case';
 import { EMPTY_ARRAY } from '../util/flyweight';
 import { isPromise } from '../util/promises';
-import { debugStringify } from '../util/stringify';
 import type { QContext } from './props';
 import { RenderContext, setAttribute } from '../render/cursor';
 import type { QRL } from '../import/qrl.public';
+import { directGetAttribute, directSetAttribute } from '../render/fast-calls';
+import { isArray } from '../util/types';
 
 const ON_PROP_REGEX = /^(window:|document:|)on([A-Z]|-.).*Qrl$/;
 const ON$_PROP_REGEX = /^(window:|document:|)on([A-Z]|-.).*\$$/;
 
-export function isOnProp(prop: string): boolean {
+export const isOnProp = (prop: string): boolean => {
   return ON_PROP_REGEX.test(prop);
-}
+};
 
-export function isOn$Prop(prop: string): boolean {
+export const isOn$Prop = (prop: string): boolean => {
   return ON$_PROP_REGEX.test(prop);
-}
+};
 
-export function qPropWriteQRL(
+export const qPropWriteQRL = (
   rctx: RenderContext | undefined,
   ctx: QContext,
   prop: string,
   value: QRL<any>[] | QRL<any>
-) {
+) => {
   if (!value) {
     return;
   }
-  if (!ctx.listeners) {
-    ctx.listeners = getDomListeners(ctx.element);
+  if (!ctx.$listeners$) {
+    ctx.$listeners$ = getDomListeners(ctx.$element$);
   }
 
   const kebabProp = fromCamelToKebabCase(prop);
-  const existingListeners = ctx.listeners.get(kebabProp) || [];
+  const existingListeners = ctx.$listeners$.get(kebabProp) || [];
 
-  const newQRLs = Array.isArray(value) ? value : [value];
+  const newQRLs = isArray(value) ? value : [value];
   for (const value of newQRLs) {
     const cp = (value as QRLInternal).copy();
-    cp.setContainer(ctx.element);
-    const capture = cp.capture;
+    cp.setContainer(ctx.$element$);
+
+    const capture = cp.$capture$;
     if (capture == null) {
       // we need to serialize the lexical scope references
-      const captureRef = cp.captureRef;
-      cp.capture =
+      const captureRef = cp.$captureRef$;
+      cp.$capture$ =
         captureRef && captureRef.length
-          ? captureRef.map((ref) => String(ctx.refMap.add(ref)))
+          ? captureRef.map((ref) => String(ctx.$refMap$.$add$(ref)))
           : EMPTY_ARRAY;
     }
 
@@ -60,25 +62,18 @@ export function qPropWriteQRL(
     }
     existingListeners.push(cp);
   }
-  ctx.listeners.set(kebabProp, existingListeners);
+  ctx.$listeners$.set(kebabProp, existingListeners);
   const newValue = serializeQRLs(existingListeners, ctx);
-  if (ctx.element.getAttribute(kebabProp) !== newValue) {
+  if (directGetAttribute(ctx.$element$, kebabProp) !== newValue) {
     if (rctx) {
-      setAttribute(rctx, ctx.element, kebabProp, newValue);
+      setAttribute(rctx, ctx.$element$, kebabProp, newValue);
     } else {
-      ctx.element.setAttribute(kebabProp, newValue);
+      directSetAttribute(ctx.$element$, kebabProp, newValue);
     }
   }
-}
+};
 
-export function closureRefError(ref: any) {
-  return new Error(
-    `QWIK-ERROR: A closure can only lexically capture 'QObject' and 'QProp' const references. Got: ` +
-      debugStringify(ref)
-  );
-}
-
-export function getDomListeners(el: Element): Map<string, QRL[]> {
+export const getDomListeners = (el: Element): Map<string, QRL[]> => {
   const attributes = el.attributes;
   const listeners: Map<string, QRL[]> = new Map();
   for (let i = 0; i < attributes.length; i++) {
@@ -96,17 +91,15 @@ export function getDomListeners(el: Element): Map<string, QRL[]> {
     }
   }
   return listeners;
-}
+};
 
-function serializeQRLs(existingQRLs: QRL<any>[], ctx: QContext): string {
-  const platform = getPlatform(ctx.element);
-  const element = ctx.element;
-  const opts = {
-    platform,
-    element,
+const serializeQRLs = (existingQRLs: QRL<any>[], ctx: QContext): string => {
+  const opts: QRLSerializeOptions = {
+    $platform$: getPlatform(ctx.$element$),
+    $element$: ctx.$element$,
   };
   return existingQRLs
     .map((qrl) => (isPromise(qrl) ? '' : stringifyQRL(qrl, opts)))
     .filter((v) => !!v)
     .join('\n');
-}
+};

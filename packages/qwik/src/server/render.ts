@@ -10,7 +10,7 @@ import { applyPrefetchImplementation } from './prefetch-implementation';
 import { getPrefetchResources } from './prefetch-strategy';
 import { _createDocument } from './document';
 import type { SymbolMapper } from '../optimizer/src/types';
-import { getCanonicalSymbol } from '../core/import/qrl-class';
+import { getSymbolHash } from '../core/import/qrl-class';
 import { isDocument } from '../core/util/element';
 
 /**
@@ -96,7 +96,7 @@ function computeSymbolMapper(manifest: QwikManifest | undefined): SymbolMapper {
   const mapper: SymbolMapper = {};
   if (manifest) {
     Object.entries(manifest.mapping).forEach(([key, value]) => {
-      mapper[getCanonicalSymbol(key)] = [key, value];
+      mapper[getSymbolHash(key)] = [key, value];
     });
   }
   return mapper;

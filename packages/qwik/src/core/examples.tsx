@@ -6,27 +6,25 @@
 // it to the desired comment location
 //
 
-import { component$, qrl, useStore } from '@builder.io/qwik';
 import {
   useCleanup$,
   useOn,
   useOnDocument,
   useOnWindow,
   useResume$,
-  useStyles$,
   useVisible$,
-} from './component/component.public';
+} from './use/use-on';
 import { Host } from './render/jsx/host.public';
-import { $, implicit$FirstArg, QRL } from './import/qrl.public';
+import { $, QRL } from './import/qrl.public';
 import {
   useClientEffect$,
   useServerMount$,
   useClientMount$,
   useMount$,
   useWatch$,
-} from './watch/watch.public';
+} from './use/use-watch';
 import { useHostElement } from './use/use-host-element.public';
-import { useRef } from './use/use-store.public';
+import { useRef, useStore } from './use/use-store.public';
 
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
@@ -489,6 +487,10 @@ function doExtraStuff() {
 
 // <docs anchor="qrl-capturing-rules">
 import { importedFn } from './import/example';
+import { component$ } from './component/component.public';
+import { useStyles$ } from './use/use-styles';
+import { qrl } from './import/qrl';
+import { implicit$FirstArg } from './util/implicit_dollar';
 
 export const greet = () => console.log('greet');
 function topLevelFn() {}

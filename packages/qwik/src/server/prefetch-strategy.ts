@@ -64,7 +64,7 @@ function getAutoPrefetch(
     // manifest already prioritized the symbols at build time
     for (const prioritizedSymbolName in mapper) {
       const hasSymbol = listeners.some((l) => {
-        return l.qrl.getCanonicalSymbol() === prioritizedSymbolName;
+        return l.qrl.getHash() === prioritizedSymbolName;
       });
 
       if (hasSymbol) {
@@ -76,7 +76,7 @@ function getAutoPrefetch(
   if (Array.isArray(stateObjs)) {
     for (const obj of stateObjs) {
       if (isQrl(obj)) {
-        const qrlSymbolName = obj.getCanonicalSymbol();
+        const qrlSymbolName = obj.getHash();
         // TODO, imporove symbol to bundle lookup
         addBundle(manifest, urls, prefetchResources, buildBase, mapper[qrlSymbolName][0]);
       }

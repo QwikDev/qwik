@@ -1,6 +1,8 @@
 import { App } from './components/app/app';
 import { partytownSnippet } from '@builder.io/partytown/integration';
 
+import './global.css';
+
 export const Root = () => {
   return (
     <html>

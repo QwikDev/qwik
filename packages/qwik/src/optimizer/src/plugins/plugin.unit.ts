@@ -15,7 +15,7 @@ describe('qwik plugin', () => {
       expect(opts.forceFullBuild).toBe(false);
       expect(opts.debug).toBe(false);
       expect(opts.rootDir).toBe(cwd);
-      expect(opts.input).toEqual([resolve(cwd, 'src', 'components', 'app', 'app.tsx')]);
+      expect(opts.input).toEqual([resolve(cwd, 'src', 'root.tsx')]);
       expect(opts.outDir).toBe(resolve(cwd, 'dist'));
       expect(opts.manifestInput).toBe(null);
       expect(opts.manifestOutput).toBe(null);
@@ -32,7 +32,7 @@ describe('qwik plugin', () => {
       expect(opts.forceFullBuild).toBe(true);
       expect(opts.debug).toBe(false);
       expect(opts.rootDir).toBe(cwd);
-      expect(opts.input).toEqual([resolve(cwd, 'src', 'components', 'app', 'app.tsx')]);
+      expect(opts.input).toEqual([resolve(cwd, 'src', 'root.tsx')]);
       expect(opts.outDir).toBe(resolve(cwd, 'dist'));
       expect(opts.manifestInput).toBe(null);
       expect(opts.manifestOutput).toBe(null);

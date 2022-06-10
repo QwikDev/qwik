@@ -19,7 +19,7 @@ describe('rollup  plugin', () => {
     const rollupInputOpts: InputOptions = await plugin.options!({});
 
     expect(typeof rollupInputOpts.onwarn).toBe('function');
-    expect(rollupInputOpts.input).toEqual([resolve(cwd, 'src', 'components', 'app', 'app.tsx')]);
+    expect(rollupInputOpts.input).toEqual([resolve(cwd, 'src', 'root.tsx')]);
   });
 
   it('rollup default input options, ssr', async () => {

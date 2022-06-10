@@ -12,10 +12,10 @@ import type { SymbolMapper } from '../optimizer/src/types';
 export function getPrefetchResources(
   snapshotResult: SnapshotResult | null,
   opts: RenderToStringOptions,
-  mapper: SymbolMapper
+  mapper: SymbolMapper | undefined
 ): PrefetchResource[] {
   const manifest = getValidManifest(opts.manifest);
-  if (manifest) {
+  if (manifest && mapper) {
     const prefetchStrategy = opts.prefetchStrategy;
     const buildBase = getBuildBase(opts);
 

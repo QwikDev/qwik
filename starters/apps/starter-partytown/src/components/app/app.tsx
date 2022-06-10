@@ -1,5 +1,4 @@
 import { component$, useStore } from '@builder.io/qwik';
-import './global.css';
 
 export const App = component$(() => {
   const state = useStore({ name: 'World', running: true });

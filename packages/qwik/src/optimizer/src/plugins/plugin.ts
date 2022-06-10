@@ -158,7 +158,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         opts.input = [path.resolve(srcDir, 'entry.ssr.tsx')];
       } else {
         // client input default
-        opts.input = [path.resolve(srcDir, 'components', 'app', 'app.tsx')];
+        opts.input = [path.resolve(srcDir, 'root.tsx')];
       }
     }
     opts.input = opts.input.map((input) => {

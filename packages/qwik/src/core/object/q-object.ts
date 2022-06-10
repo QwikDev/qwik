@@ -336,23 +336,25 @@ export const notifyWatch = (watch: WatchDescriptor) => {
   }
 };
 
-const verifySerializable = <T>(value: T) => {
+export const verifySerializable = <T>(value: T) => {
   if (value == null) {
     return;
   }
   if (shouldSerialize(value)) {
-    const type = typeof value;
-    if (type === 'object') {
-      if (isArray(value)) return;
-      if (Object.getPrototypeOf(value) === Object.prototype) return;
-      if (isQrl(value)) return;
-      if (isElement(value)) return;
-      if (isDocument(value)) return;
+    switch (typeof value) {
+      case 'object':
+        if (isArray(value)) return;
+        if (Object.getPrototypeOf(value) === Object.prototype) return;
+        if (isQrl(value)) return;
+        if (isElement(value)) return;
+        if (isDocument(value)) return;
+        break;
+      case 'boolean':
+      case 'string':
+      case 'number':
+        return;
     }
-    if (['boolean', 'string', 'number'].includes(type)) {
-      return;
-    }
-    throw qError(QError_verifySerializable);
+    throw qError(QError_verifySerializable, value);
   }
 };
 

@@ -19,7 +19,7 @@
   },
   "devDependencies": {
     "@builder.io/partytown": "^0.6.0",
-    "@builder.io/qwik": "0.0.24",
+    "@builder.io/qwik": "0.0.25",
     "@builder.io/qwik-city": "0.0.12",
     "@cloudflare/kv-asset-handler": "0.2.0",
     "autoprefixer": "10.4.7",

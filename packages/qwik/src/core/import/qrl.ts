@@ -17,6 +17,9 @@ import {
   QError_runtimeQrlNoElement,
   QError_unknownTypeArgument,
 } from '../error/error';
+import { qDev } from '../util/qdev';
+import { getProxyTarget } from '../object/store';
+import { verifySerializable } from '../object/q-object';
 
 let runtimeSymbolId = 0;
 const RUNTIME_QRL = '/runtimeQRL';
@@ -155,6 +158,9 @@ const unwrapLexicalScope = (lexicalScope: any[] | null) => {
   if (isArray(lexicalScope)) {
     for (let i = 0; i < lexicalScope.length; i++) {
       lexicalScope[i] = unwrapSubscriber(lexicalScope[i]);
+      if (qDev) {
+        verifySerializable(getProxyTarget(lexicalScope[i]) ?? lexicalScope[i]);
+      }
     }
   }
   return lexicalScope;

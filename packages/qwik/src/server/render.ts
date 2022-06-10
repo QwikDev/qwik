@@ -12,6 +12,7 @@ import { _createDocument } from './document';
 import type { SymbolMapper } from '../optimizer/src/types';
 import { getSymbolHash } from '../core/import/qrl-class';
 import { isDocument } from '../core/util/element';
+import { logWarn } from '../core/util/log';
 
 /**
  * Creates a server-side `document`, renders to root node to the document,
@@ -35,6 +36,9 @@ export async function renderToString(rootNode: any, opts: RenderToStringOptions 
 
     root = doc.createElement(opts.fragmentTagName);
     doc.body.appendChild(root);
+  }
+  if (!opts.manifest) {
+    logWarn('Missing client manifest, loading symbols in the client might 404');
   }
   const isFullDocument = isDocument(root);
   const mapper = computeSymbolMapper(opts.manifest);
@@ -92,12 +96,13 @@ export async function renderToString(rootNode: any, opts: RenderToStringOptions 
   return result;
 }
 
-function computeSymbolMapper(manifest: QwikManifest | undefined): SymbolMapper {
-  const mapper: SymbolMapper = {};
+function computeSymbolMapper(manifest: QwikManifest | undefined): SymbolMapper | undefined {
   if (manifest) {
+    const mapper: SymbolMapper = {};
     Object.entries(manifest.mapping).forEach(([key, value]) => {
       mapper[getSymbolHash(key)] = [key, value];
     });
+    return mapper;
   }
-  return mapper;
+  return undefined;
 }

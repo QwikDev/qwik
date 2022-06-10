@@ -59,7 +59,7 @@ describe('vite  plugin', () => {
 
       expect(plugin.enforce).toBe('pre');
       expect(build.outDir).toBe(resolve(cwd, 'dist'));
-      expect(rollupOptions.input).toEqual([resolve(cwd, 'src', 'components', 'app', 'app.tsx')]);
+      expect(rollupOptions.input).toEqual([resolve(cwd, 'src', 'root.tsx')]);
       expect(outputOptions.assetFileNames).toBe('build/[name].[ext]');
       expect(outputOptions.chunkFileNames).toBe('build/[name].js');
       expect(outputOptions.entryFileNames).toBe('build/[name].js');
@@ -87,7 +87,7 @@ describe('vite  plugin', () => {
 
       expect(plugin.enforce).toBe('pre');
       expect(build.outDir).toBe(resolve(cwd, 'dist'));
-      expect(rollupOptions.input).toEqual([resolve(cwd, 'src', 'components', 'app', 'app.tsx')]);
+      expect(rollupOptions.input).toEqual([resolve(cwd, 'src', 'root.tsx')]);
       expect(outputOptions.assetFileNames).toBe('build/q-[hash].[ext]');
       expect(outputOptions.chunkFileNames).toBe('build/q-[hash].js');
       expect(outputOptions.entryFileNames).toBe('build/q-[hash].js');
@@ -113,7 +113,7 @@ describe('vite  plugin', () => {
 
       expect(opts.target).toBe('client');
       expect(opts.buildMode).toBe('production');
-      expect(rollupOptions.input).toEqual([resolve(cwd, 'src', 'components', 'app', 'app.tsx')]);
+      expect(rollupOptions.input).toEqual([resolve(cwd, 'src', 'root.tsx')]);
       expect(build.outDir).toEqual(resolve(cwd, 'client-dist'));
     });
 

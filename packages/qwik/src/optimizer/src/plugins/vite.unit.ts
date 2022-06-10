@@ -130,7 +130,7 @@ describe('vite  plugin', () => {
 
       expect(opts.target).toBe('ssr');
       expect(opts.buildMode).toBe('production');
-      expect(opts.entryStrategy).toEqual({ type: 'smart' });
+      expect(opts.entryStrategy).toEqual({ type: 'inline' });
       expect(opts.debug).toBe(false);
       expect(opts.forceFullBuild).toBe(true);
 

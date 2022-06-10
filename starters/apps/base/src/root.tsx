@@ -1,5 +1,3 @@
-import { App } from './components/app/app';
-
 import './global.css';
 
 export const Root = () => {
@@ -9,9 +7,7 @@ export const Root = () => {
         <meta charSet="utf-8" />
         <title>Qwik Blank App</title>
       </head>
-      <body>
-        <App />
-      </body>
+      <body></body>
     </html>
   );
 };

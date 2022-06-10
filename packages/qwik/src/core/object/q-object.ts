@@ -21,7 +21,7 @@ import { Subscriber, unwrapSubscriber } from '../use/use-subscriber';
 import { tryGetContext } from '../props/props';
 import { RenderEvent } from '../util/markers';
 import { getProxyTarget } from './store';
-import { isArray, isObject } from '../util/types';
+import { isArray, isFunction, isObject } from '../util/types';
 
 export type ObjToProxyMap = WeakMap<any, any>;
 export type QObject<T extends {}> = T & { __brand__: 'QObject' };
@@ -336,29 +336,35 @@ export const notifyWatch = (watch: WatchDescriptor) => {
   }
 };
 
-const verifySerializable = <T>(value: T) => {
+export const verifySerializable = <T>(value: T) => {
   if (value == null) {
     return;
   }
-  const type = typeof value;
-  if (type === 'object') {
-    if (isArray(value)) return;
-    if (Object.getPrototypeOf(value) === Object.prototype) return;
-    if (shouldSerialize(value)) return;
-    if (isQrl(value)) return;
-    if (isElement(value)) return;
-    if (isDocument(value)) return;
+  if (shouldSerialize(value)) {
+    switch (typeof value) {
+      case 'object':
+        if (isArray(value)) return;
+        if (Object.getPrototypeOf(value) === Object.prototype) return;
+        if (isQrl(value)) return;
+        if (isElement(value)) return;
+        if (isDocument(value)) return;
+        break;
+      case 'boolean':
+      case 'string':
+      case 'number':
+        return;
+    }
+    throw qError(QError_verifySerializable, value);
   }
-  if (['boolean', 'string', 'number'].includes(type)) {
-    return;
-  }
-  throw qError(QError_verifySerializable);
 };
 
 const noSerializeSet = /*#__PURE__*/ new WeakSet<any>();
 
 export const shouldSerialize = (obj: any): boolean => {
-  return !noSerializeSet.has(obj);
+  if (isObject(obj) || isFunction(obj)) {
+    return !noSerializeSet.has(obj);
+  }
+  return true;
 };
 
 /**

@@ -129,7 +129,7 @@ describe('rollup  plugin', () => {
     const opts: NormalizedQwikPluginOptions = plugin.api.getOptions();
     expect(opts.target).toBe('ssr');
     expect(opts.buildMode).toBe('production');
-    expect(opts.entryStrategy).toEqual({ type: 'smart' });
+    expect(opts.entryStrategy).toEqual({ type: 'inline' });
     expect(opts.forceFullBuild).toEqual(true);
   });
 

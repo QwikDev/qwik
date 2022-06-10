@@ -1,8 +1,8 @@
 import { assertDefined } from '../assert/assert';
-import { QHostAttr } from '../util/markers';
+import { QContainerAttr, QHostAttr } from '../util/markers';
 import { executeContextWithSlots, printRenderStats, RenderContext } from './cursor';
 import { getContext, resumeIfNeeded } from '../props/props';
-import { qTest } from '../util/qdev';
+import { qDev, qTest } from '../util/qdev';
 import { getPlatform } from '../platform/platform';
 import { getDocument } from '../util/dom';
 import { renderComponent } from './render-component';
@@ -37,7 +37,12 @@ export const notifyRender = async (hostElement: Element): Promise<RenderContext 
   assertDefined(containerEl);
 
   const state = getContainerState(containerEl);
-  if (state.$platform$.isServer && !qTest) {
+  if (
+    qDev &&
+    !qTest &&
+    state.$platform$.isServer &&
+    directGetAttribute(containerEl, QContainerAttr) === 'paused'
+  ) {
     logWarn('Can not rerender in server platform');
     return undefined;
   }

@@ -92,7 +92,11 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       if (opts.buildMode === 'development') {
         opts.entryStrategy = { type: 'hook' };
       } else {
-        opts.entryStrategy = { type: 'smart' };
+        if (opts.target === 'ssr') {
+          opts.entryStrategy = { type: 'inline' };
+        } else {
+          opts.entryStrategy = { type: 'smart' };
+        }
       }
     }
 

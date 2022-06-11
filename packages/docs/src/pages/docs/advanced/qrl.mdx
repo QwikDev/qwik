@@ -143,7 +143,7 @@ There are several reasons:
 
 1. For Qwik to work, the QRLs need to be serialized into HTML. This is problematic for dynamic `import()` because there is no easy way to retrieve the relative URL from the `import('./some-path.js')` so that it can be placed in the HTML.
 2. Dynamic imports deal with chunks, but they have no mechanism to refer to a specific symbol in the chunk.
-3. Dynamic imports have relative paths to the file which imported it. This is a problem because when the relative path is placed in HTML, it loses the context which defines relative to what. When the framework reads the path from HTML and tries to import it as `import(element.getAttribute('onClickQrl'))`, The framework will become the context for relative path resolution. This is wrong as the original context before serialization to the HTML was different.
+3. Dynamic imports have relative paths to the file which imported it. This is a problem because when the relative path is placed in HTML, it loses the context which defines relative to what. When the framework reads the path from HTML and tries to import it as `import(element.getAttribute('onClickQrl'))`, the framework will become the context for relative path resolution. This is wrong as the original context before serialization to the HTML was different.
 4. Finally, QRLs encode information about the lexically scoped variables captured in the closure and need to be restored.
 
 Because of the above differences, Qwik introduces QRLs as a mechanism to lazy load closures into a Qwik application.

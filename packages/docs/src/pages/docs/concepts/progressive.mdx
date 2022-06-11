@@ -18,7 +18,9 @@ This connect with qwik's [core tenant](../think-qwik.mdx) which focus on delayin
 
 The issue is that the frameworks need to reconcile their internal state with the DOM. And that means that at least once on application hydration, they need to be able to do a full render to rebuild the framework's internal state. After the first render, the frameworks can be more surgical about their updates, but the damage has been done, the code has been downloaded. So we have two issues:
 
-Frameworks need to download and execute components to rebuild the render tree on startup. (See hydration is pure overhead) This forces eager download and execution of all components in the render tree.
+Frameworks need to download and execute components to rebuild the render tree on startup. (See [hydration is pure overhead](https://www.builder.io/blog/hydration-is-pure-overhead)) 
+
+This forces eager download and execution of all components in the render tree.
 The event handlers come with the components even though they are not needed at the time of rendering. The inclusion of event handlers forces the download of unnecessary code.
 
 

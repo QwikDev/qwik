@@ -40,5 +40,5 @@ Below you can find a simple HTML with Qwikloader and a button with associated be
 1. The browser downloads the HTML and executes the inlined Qwikloader script. The Qwikloader sets up global listeners for all browser events.
 2. The user clicks on the `<button>`. The browser generates a `click` event that bubbles up the DOM until the Qwikloader's global listener intercepts it.
 3. The Qwikloader retraces the event path and searches for `onClickQrl` attribute on the elements.
-4. The Qwikloader uses the `onClickQrl` and `q:base` attributes along with the `document.baseURI` to build a full URL for fetching the laze-loaded handler. Assuming the original page was served up from `http://localhost/` the fetch URL becomes `http://localhost/build/myHandler.js`.
+4. The Qwikloader uses the `onClickQrl` and `q:base` attributes along with the `document.baseURI` to build a full URL for fetching the lazy-loaded handler. Assuming the original page was served up from `http://localhost/` the fetch URL becomes `http://localhost/build/myHandler.js`.
 5. Qwikloader retrieves the `clickHandler` symbol, exported from `http://localhost/build/myHandler.js` and invokes it.

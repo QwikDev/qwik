@@ -96,16 +96,16 @@ Limitations of JSON that Qwik does not solve:
 
 The resumability property of the framework must extend to resumability of the application as well. This means that the framework must provide mechanisms for the developer to express Components and Entities of the applications in a way which can be serialized and then resumed (without re-bootstrapping). This necessitates that applications are written with resumability constraints in mind. It is simply not possible for developers to continue to write applications in a heap-centric way and expect that a better framework can somehow make up for this sub-optimal approach.
 
-Developers must write their applications in a DOM-centric way. This will require a change of behavior and retooling of web-developers skills. Frameworks need to provide guidance and APIs to make it easy for developers to write the applications in this way.
+Developers must write their applications in a DOM-centric way. This will require a change of behavior and retooling of web-developers' skills. Frameworks need to provide guidance and APIs to make it easy for developers to write the applications in this way.
 
 
 ## Other benefits of resumability
 
 The most obvious benefit of using resumability is for server-side-rendering. However, there are secondary benefits:
 
-- Serializing existing PWA apps so that users don't loose context when they return to the application
+- Serializing existing PWA apps so that users don't lose context when they return to the application
 - Improved rendering performance because only changed components need to be re-rendered
-- Fine-grained-lazy loading
+- Fine-grained lazy-loading
 - Decreased memory pressure, especially on mobile devices
 - Progressive interactivity of existing static websites
 

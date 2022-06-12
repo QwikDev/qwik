@@ -7,7 +7,7 @@ fetch: https://hackmd.io/@mhevery/SJ9zqxxb9
 
 Content projection allows a component to treat the JSX children of the component as a form of input and project these children into the component's JSX.
 
-An example of collapsible component which conditionally projects its content.
+An example of a collapsible component which conditionally projects its content.
 
 ```tsx
 const Collapsible = component$(() => {
@@ -24,7 +24,7 @@ const Collapsible = component$(() => {
 });
 ```
 
-The above component can be used from parent component like so:
+The above component can be used from a parent component like so:
 
 ```tsx
 const MyApp = component$(() => {
@@ -259,7 +259,7 @@ All frameworks need a way for a component to wrap its complex content in a condi
 
 The two approaches can best be described as declarative vs imperative. They both come with their set of advantages and disadvantages.
 
-Qwik uses the declarative projection approach. The reason for this is that Qwik needs to be able to render parent/children components independently from each other. With an imperative (`children`) approach, the child component can modify the `children` in countless ways. if a child component relied on `children` it would be forced to rerender whenever a parent component would rerender to reapply the imperative transformation to the `children`. The extra rendering goes explicitly against the goals of Qwik components rendering in isolation.
+Qwik uses the declarative projection approach. The reason for this is that Qwik needs to be able to render parent/children components independently from each other. With an imperative (`children`) approach, the child component can modify the `children` in countless ways. If a child component relied on `children` it would be forced to rerender whenever a parent component would rerender to reapply the imperative transformation to the `children`. The extra rendering goes explicitly against the goals of Qwik components rendering in isolation.
 
 For example, Let's go back to our `Collapsible` example from above:
 

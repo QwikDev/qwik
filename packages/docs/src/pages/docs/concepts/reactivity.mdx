@@ -67,7 +67,7 @@ This example is a more complicated counter.
 - It contains the `increment` button, which always increments `store.count`.
 - It contains a `show`/`hide` button which determines if the count is shown.
 
-1. On the initial render, the count is visible. Therefore the server creates a subscription that records that `ComplexCounter` needs to get rerender if either `store.count` or `store.visible` changes.
+1. On the initial render, the count is visible. Therefore the server creates a subscription that records that `ComplexCounter` needs to get rerendered if either `store.count` or `store.visible` changes.
 2. If the user clicks on `hide`, the `ComplexCounter` rerenders. The rerendering clears all of the subscriptions and records new ones. This time the JSX does not read `store.count`. Therefore, only `store.visible` gets added to the list of subscriptions.
 3. User clicking on `increment` will update `store.count`, but doing so will not cause the component to rerender. This is correct because the counter is not visible, so rerendering would be a no-op.
 4. If the user clicks `show` the component will rerender and this time the JSX will read both `store.visible` as well as `store.count`. The subscription list is once again updated.
@@ -119,7 +119,7 @@ const MyComp = component$(() => {
 
 Qwik components can render out of order. A component can render without forcing a parent component to render first or to force child components to render as a consequence of the component render. This is an important property of Qwik because it allows Qwik applications to only re-render components which have been invalidated due to state change rather than re-rendering the whole component tree on change.
 
-When components render, they need to have access to their props. Parent components create props. The props must be serializable for the component to render independently from the parent. (See serialization for an in-depth discussion on what is serializable.)
+When components render, they need to have access to their props. Parent components create props. The props must be serializable for the component to render independently from the parent. (See [serialization](https://qwik.builder.io/docs/concepts/resumable#serialization) for an in-depth discussion on what is serializable.)
 
 ## Invalidating child components
 
@@ -150,8 +150,8 @@ const MyApp = component$(() => {
 In the above example, there are two `<Child/>` components.
 
 - Every time a button is clicked, one of the three counters is incremented. A change of counter state will cause the `MyApp` component to re-render on each click.
-- If `store.c` has been incremented, none of the child components get re-render. (And therefore, their code does not get lazy-loaded.)
-- If `store.a` has been incremented than only `<Child count={store.a}/>` will re-render.
-- If `store.b` has been incremented than only `<Child count={store.b}/>` will re-render.
+- If `store.c` has been incremented, none of the child components get re-rendered. (And therefore, their code does not get lazy-loaded.)
+- If `store.a` has been incremented, then only `<Child count={store.a}/>` will re-render.
+- If `store.b` has been incremented, then only `<Child count={store.b}/>` will re-render.
 
 Notice that the child components only re-render when their props change. This is an important property of Qwik applications as it significantly limits the amount of re-rendering the application must do on state change. While less re-rendering has performance benefits, the real benefit is that large portions of the applications do not get downloaded if they don't need to be re-rendered.

@@ -5,7 +5,7 @@ fetch: https://hackmd.io/@mhevery/HkDvV6yb5
 
 # Lite Components
 
-In addition to standard Qwik components that have all of the lazy-loaded properties of Qwik, Qwik also supports lite components that act more like traditional frameworks.
+In addition to standard Qwik components that have all of its lazy-loaded properties, Qwik also supports lite components that act more like traditional frameworks.
 
 ```tsx
 function MyButton(props: { text: string }) {
@@ -22,10 +22,10 @@ const MyApp = component$(() => {
 });
 ```
 
-In the above example, the `MyButton` is a lite component. Lite components lazy loading is merged with the regular component they are part of. In this case:
+In the above example, the `MyButton` is a lite component. Lite components' lazy loading is merged with the regular component they are part of. In this case:
 
 - `MyButton` will get bundled with the `MyApp` render function.
 - `MyButton` Whenever the render function of `MyApp` executes, it will also force the execution of `MyButton`.
 - `MyButton` does not have a host element.
 
-You can think of lightweight components as being inlined into the component where they are instantiated.
+You can think of lightweight components as being inlined into the component, where they are instantiated.

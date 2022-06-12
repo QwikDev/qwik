@@ -11,8 +11,13 @@ module.exports = {
   ],
   parser: '@typescript-eslint/parser',
   parserOptions: {
-    ecmaVersion: 12,
+    tsconfigRootDir: __dirname,
+    project: ['./tsconfig.json'],
+    ecmaVersion: 2021,
     sourceType: 'module',
+    ecmaFeatures: {
+      jsx: true,
+    },
   },
   plugins: ['@typescript-eslint'],
   rules: {

@@ -172,5 +172,8 @@
       "<rootDir>/target/"
     ],
     "testRegex": "/(scripts|packages)/.*\\.unit\\.(ts|tsx)$"
+  },
+  "dependencies": {
+    "@typescript-eslint/utils": "^5.27.1"
   }
 }

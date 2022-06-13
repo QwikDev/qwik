@@ -234,7 +234,10 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
       return target;
     }
 
-    const value = target[prop];
+    let value = target[prop];
+    if (isMutable(value)) {
+      value = value.v;
+    }
     if (subscriber) {
       const isA = isArray(target);
       this.$manager$.$addSub$(subscriber, isA ? undefined : prop);

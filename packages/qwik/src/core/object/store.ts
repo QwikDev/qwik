@@ -9,6 +9,8 @@ import { ELEMENT_ID, ELEMENT_ID_PREFIX, QContainerAttr } from '../util/markers';
 import { qDev } from '../util/qdev';
 import {
   isConnected,
+  isMutable,
+  mutable,
   ObjToProxyMap,
   QOjectSubsSymbol,
   QOjectTargetSymbol,
@@ -239,16 +241,23 @@ export const snapshotState = (containerEl: Element): SnapshotResult => {
   };
 
   const getObjId = (obj: any): string | null => {
+    let suffix = '';
+    if (isMutable(obj)) {
+      obj = obj.v;
+      suffix = '%';
+    }
     if (isObject(obj)) {
       const target = obj[QOjectTargetSymbol];
+      if (target) {
+        suffix += '!';
+      }
       const id = objToId.get(normalizeObj(target ?? obj, doc));
       if (id !== undefined) {
-        const proxySuffix = target ? '!' : '';
-        return intToStr(id) + proxySuffix;
+        return intToStr(id) + suffix;
       }
       if (!target && isNode(obj)) {
         if (obj.nodeType === 1) {
-          return getElementID(obj as Element);
+          return getElementID(obj as Element) + suffix;
         } else {
           logError(codeToText(QError_cannotSerializeNode), obj);
           return null;
@@ -257,7 +266,7 @@ export const snapshotState = (containerEl: Element): SnapshotResult => {
     } else {
       const id = objToId.get(normalizeObj(obj, doc));
       if (id !== undefined) {
-        return intToStr(id);
+        return intToStr(id) + suffix;
       }
     }
     return null;
@@ -567,10 +576,14 @@ const getObjectImpl = (
   }
   const index = strToInt(id);
   assertEqual(objs.length > index, true);
-  const obj = objs[index];
+  let obj = objs[index];
   const needsProxy = id.endsWith('!');
   if (needsProxy && containerState) {
-    return containerState.$proxyMap$.get(obj) ?? readWriteProxy(obj, containerState);
+    id = id.slice(0, -1);
+    obj = containerState.$proxyMap$.get(obj) ?? readWriteProxy(obj, containerState);
+  }
+  if (id.endsWith('%')) {
+    obj = mutable(obj);
   }
   return obj;
 };

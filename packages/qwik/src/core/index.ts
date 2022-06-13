@@ -96,7 +96,6 @@ export {
 export type { Context } from './use/use-context';
 export type { Ref } from './use/use-store.public';
 export type { InvokeContext } from './use/use-core';
-export type { RenderContext, RenderOperation } from './render/cursor';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Low-Level API

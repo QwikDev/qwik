@@ -5,6 +5,7 @@ import {
   createContext,
   useContextProvider,
   useContext,
+  Slot,
 } from '@builder.io/qwik';
 
 export interface ContextI {
@@ -15,6 +16,7 @@ export interface ContextI {
 export const Context1 = createContext<ContextI>('ctx');
 export const Context2 = createContext<ContextI>('ctx1');
 export const Context3 = createContext<ContextI>('ctx2');
+export const ContextSlot = createContext<ContextI>('slot');
 
 export const ContextRoot = component$(async () => {
   const state1 = useStore({ displayName: 'ROOT / state1', count: 0 });
@@ -32,10 +34,21 @@ export const ContextRoot = component$(async () => {
         Increment State 2
       </button>
 
-      <Level2 />
-      <Level2 />
+      <ContextFromSlot>
+        <Level2 />
+        <Level2 />
+      </ContextFromSlot>
     </Host>
   );
+});
+
+export const ContextFromSlot = component$(() => {
+  const store = useStore({
+    displayName: 'bar',
+    count: 0,
+  });
+  useContextProvider(ContextSlot, store);
+  return <Slot />;
 });
 
 // This code will not work because its async before reading subs
@@ -48,6 +61,7 @@ export const Level2 = component$(() => {
 
   const state1 = useContext(Context1);
   const state2 = useContext(Context2);
+  const stateSlot = useContext(ContextSlot);
 
   return (
     <Host>
@@ -57,6 +71,9 @@ export const Level2 = component$(() => {
       </div>
       <div class="level2-state2">
         {state2.displayName} = {state2.count}
+      </div>
+      <div class="level2-slot">
+        {stateSlot.displayName} = {stateSlot.count}
       </div>
 
       <button class="level2-increment3" onClick$={() => state3.count++}>
@@ -74,6 +91,7 @@ export const Level3 = component$(() => {
   const state1 = useContext(Context1);
   const state2 = useContext(Context2);
   const state3 = useContext(Context3);
+  const stateSlot = useContext(ContextSlot);
 
   return (
     <Host>
@@ -86,6 +104,9 @@ export const Level3 = component$(() => {
       </div>
       <div class="level3-state3">
         {state3.displayName} = {state3.count}
+      </div>
+      <div class="level3-slot">
+        {stateSlot.displayName} = {stateSlot.count}
       </div>
     </Host>
   );

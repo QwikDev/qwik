@@ -1,5 +1,5 @@
 import { assertDefined } from '../assert/assert';
-import type { RenderContext } from './cursor';
+import { copyRenderContext, RenderContext } from './cursor';
 import { visitJsxNode } from './render';
 import { ComponentScopedStyles, QHostAttr, RenderEvent } from '../util/markers';
 import { promiseAll, then } from '../util/promises';
@@ -30,10 +30,7 @@ export const renderComponent = (rctx: RenderContext, ctx: QContext): ValueOrProm
   // Component is not dirty any more
   rctx.$containerState$.$hostsStaging$.delete(hostElement);
 
-  const newCtx: RenderContext = {
-    ...rctx,
-    $components$: [...rctx.$components$],
-  };
+  const newCtx = copyRenderContext(rctx);
 
   // Invoke render hook
   const invocatinContext = newInvokeContext(rctx.$doc$, hostElement, hostElement, RenderEvent);
@@ -85,7 +82,8 @@ export const renderComponent = (rctx: RenderContext, ctx: QContext): ValueOrProm
             }
           }
           componentCtx.$slots$ = [];
-          newCtx.$components$.push(componentCtx);
+          newCtx.$contexts$.push(ctx);
+          newCtx.$currentComponent$ = componentCtx;
           return visitJsxNode(newCtx, hostElement, processNode(jsxNode), false);
         });
       },

@@ -1,5 +1,5 @@
 import { isDocument } from '../util/element';
-import { executeContext, printRenderStats, RenderContext } from './cursor';
+import { createRenderContext, executeContext, printRenderStats } from './cursor';
 import { isJSXNode, jsx, processNode } from './jsx/jsx-runtime';
 import type { JSXNode, FunctionComponent } from './jsx/types/jsx-node';
 import { visitJsxNode } from './render';
@@ -19,7 +19,7 @@ import { directSetAttribute } from './fast-calls';
  *
  * Use this method to render JSX. This function does reconciling which means
  * it always tries to reuse what is already in the DOM (rather then destroy and
- * recrate content.)
+ * recreate content.)
  *
  * @param parent - Element which will act as a parent to `jsxNode`. When
  *     possible the rendering will try to reuse existing nodes.
@@ -43,18 +43,8 @@ export const render = async (
   injectQContainer(containerEl);
 
   const containerState = getContainerState(containerEl);
-  const ctx: RenderContext = {
-    $doc$: doc,
-    $containerState$: containerState,
-    $hostElements$: new Set(),
-    $operations$: [],
-    $roots$: [parent as Element],
-    $components$: [],
-    $containerEl$: containerEl,
-    $perf$: {
-      $visited$: 0,
-    },
-  };
+  const ctx = createRenderContext(doc, containerState, containerEl);
+  ctx.$roots$.push(parent as Element);
 
   await visitJsxNode(ctx, parent as Element, processNode(jsxNode), false);
 

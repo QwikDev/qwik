@@ -68,10 +68,10 @@ const _useContext = <STATE extends object>(context: Context<STATE>): STATE => {
   if (!value) {
     const invokeContext = getInvokeContext();
     let hostElement = invokeContext.$hostElement$!;
-    const components = invokeContext.$renderCtx$!.$components$;
-    for (let i = components.length - 1; i >= 0; i--) {
-      hostElement = components[i].$hostElement$;
-      const ctx = getContext(components[i].$hostElement$);
+    const contexts = invokeContext.$renderCtx$!.$contexts$;
+    for (let i = contexts.length - 1; i >= 0; i--) {
+      const ctx = contexts[i];
+      hostElement = ctx.$element$;
       if (ctx.$contexts$) {
         const found = ctx.$contexts$.get(context.id);
         if (found) {

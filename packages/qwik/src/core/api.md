@@ -455,13 +455,17 @@ export type RenderableProps<P, RefType = any> = P & Readonly<{
 // @alpha (undocumented)
 export interface RenderContext {
     // (undocumented)
-    $components$: ComponentCtx[];
-    // (undocumented)
     $containerEl$: Element;
     // Warning: (ae-forgotten-export) The symbol "ContainerState" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
     $containerState$: ContainerState;
+    // Warning: (ae-forgotten-export) The symbol "QContext" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    $contexts$: QContext[];
+    // (undocumented)
+    $currentComponent$: ComponentCtx | undefined;
     // (undocumented)
     $doc$: Document;
     // (undocumented)

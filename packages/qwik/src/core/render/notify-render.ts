@@ -1,6 +1,11 @@
 import { assertDefined } from '../assert/assert';
 import { QContainerAttr, QHostAttr } from '../util/markers';
-import { executeContextWithSlots, printRenderStats, RenderContext } from './cursor';
+import {
+  createRenderContext,
+  executeContextWithSlots,
+  printRenderStats,
+  RenderContext,
+} from './cursor';
 import { getContext, resumeIfNeeded } from '../props/props';
 import { qDev, qTest } from '../util/qdev';
 import { getPlatform } from '../platform/platform';
@@ -142,18 +147,7 @@ export const renderMarked = async (
   const renderingQueue = Array.from(hostsRendering);
   sortNodes(renderingQueue);
 
-  const ctx: RenderContext = {
-    $doc$: doc,
-    $containerState$: containerState,
-    $hostElements$: new Set(),
-    $operations$: [],
-    $roots$: [],
-    $containerEl$: containerEl,
-    $components$: [],
-    $perf$: {
-      $visited$: 0,
-    },
-  };
+  const ctx = createRenderContext(doc, containerState, containerEl);
 
   for (const el of renderingQueue) {
     if (!ctx.$hostElements$.has(el)) {

@@ -301,7 +301,7 @@ export interface InvokeContext {
     $props$?: Props;
     // (undocumented)
     $qrl$?: QRL<any>;
-    // Warning: (ae-incompatible-release-tags) The symbol "$renderCtx$" is marked as @public, but its signature references "RenderContext" which is marked as @alpha
+    // Warning: (ae-forgotten-export) The symbol "RenderContext" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
     $renderCtx$?: RenderContext;
@@ -451,42 +451,6 @@ export const render: (parent: Element | Document, jsxNode: JSXNode<unknown> | Fu
 export type RenderableProps<P, RefType = any> = P & Readonly<{
     children?: ComponentChildren;
 }>;
-
-// @alpha (undocumented)
-export interface RenderContext {
-    // (undocumented)
-    $components$: ComponentCtx[];
-    // (undocumented)
-    $containerEl$: Element;
-    // Warning: (ae-forgotten-export) The symbol "ContainerState" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    $containerState$: ContainerState;
-    // (undocumented)
-    $doc$: Document;
-    // (undocumented)
-    $hostElements$: Set<Element>;
-    // (undocumented)
-    $operations$: RenderOperation[];
-    // Warning: (ae-forgotten-export) The symbol "RenderPerf" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    $perf$: RenderPerf;
-    // (undocumented)
-    $roots$: Element[];
-}
-
-// @alpha (undocumented)
-export interface RenderOperation {
-    // (undocumented)
-    $args$: any[];
-    // (undocumented)
-    $el$: Node;
-    // (undocumented)
-    $fn$: () => void;
-    // (undocumented)
-    $operation$: string;
-}
 
 // @alpha (undocumented)
 export type ServerFn = () => ValueOrPromise<void | (() => void)>;

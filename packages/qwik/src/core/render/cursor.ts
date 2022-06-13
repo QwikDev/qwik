@@ -297,7 +297,8 @@ export const patchVnode = (
     }
   }
   const isComponent = isComponentNode(vnode);
-  if (dirty && isComponent) {
+  if (dirty) {
+    assertEqual(isComponent, true);
     promise = renderComponent(rctx, ctx);
   }
   const ch = vnode.children;

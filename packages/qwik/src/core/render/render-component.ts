@@ -84,7 +84,10 @@ export const renderComponent = (rctx: RenderContext, ctx: QContext): ValueOrProm
           componentCtx.$slots$ = [];
           newCtx.$contexts$.push(ctx);
           newCtx.$currentComponent$ = componentCtx;
-          const processedJSXNode = processData(jsxNode);
+          const invocatinContext = newInvokeContext(rctx.$doc$, hostElement, hostElement);
+          invocatinContext.$subscriber$ = hostElement;
+          invocatinContext.$renderCtx$ = newCtx;
+          const processedJSXNode = processData(jsxNode, invocatinContext);
           return then(processedJSXNode, (processedJSXNode) => {
             return visitJsxNode(newCtx, hostElement, processedJSXNode, false);
           });

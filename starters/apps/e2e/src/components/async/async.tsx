@@ -1,4 +1,4 @@
-import { useStore, component$, Host } from '@builder.io/qwik';
+import { useStore, component$, Host, mutable } from '@builder.io/qwik';
 
 export function delay(time: number) {
   return new Promise<void>((resolve) => {
@@ -11,7 +11,7 @@ export const Async = component$(() => {
   async function stuff() {
     await delay(10);
     return (
-      <Host class="my-app p-20">
+      <>
         <button
           class="border-2 border-solid border-blue-500"
           onClick$={() => {
@@ -20,12 +20,16 @@ export const Async = component$(() => {
         >
           More
         </button>
-        <Inner value={state.count} />
-      </Host>
+      </>
     );
   }
 
-  return <Host class="my-app p-20">{stuff()}</Host>;
+  return (
+    <Host class="my-app p-20">
+      {stuff()}
+      <Inner value={mutable(state.count)} />
+    </Host>
+  );
 });
 
 // This code will not work because its async before reading subs
@@ -34,14 +38,19 @@ export const Inner = component$((props: { value: number }) => {
     await delay(1000);
     return (
       <>
-        {props.value}
-        <Inner2 {...props} />
+        <Inner2 value={mutable(props.value)} />
       </>
     );
   }
-  return <Host class="my-app p-20">{resolve()}</Host>;
+  return (
+    <Host class="my-app p-20">
+      Inner: {props.value}
+      {resolve()}
+    </Host>
+  );
 });
 
 export const Inner2 = component$((props: { value: number }) => {
-  return <Host class="my-app p-20">{delay(1000).then(() => props.value)}</Host>;
+  const value = props.value;
+  return <Host class="my-app p-20">Inner2: {delay(1000).then(() => value)}</Host>;
 });

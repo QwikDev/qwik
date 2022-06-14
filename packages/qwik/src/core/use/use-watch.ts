@@ -14,6 +14,7 @@ import { useDocument } from './use-document.public';
 import { ContainerState, handleWatch } from '../render/notify-render';
 import { useResumeQrl, useVisibleQrl } from './use-on';
 import { implicit$FirstArg } from '../util/implicit_dollar';
+import { assertDefined } from '../assert/assert';
 
 export const WatchFlagsIsEffect = 1 << 0;
 export const WatchFlagsIsWatch = 1 << 1;
@@ -553,7 +554,9 @@ export const runWatch = (
         subsManager.$clearSub$(watch);
       });
       const track: Tracker = (obj: any, prop?: string) => {
-        const manager = subsManager.$getLocal$(getProxyTarget(obj) ?? obj);
+        const target = getProxyTarget(obj);
+        assertDefined(target, 'Expected a Proxy object to track');
+        const manager = subsManager.$getLocal$(target);
         manager.$addSub$(watch, prop);
         if (prop) {
           return obj[prop];

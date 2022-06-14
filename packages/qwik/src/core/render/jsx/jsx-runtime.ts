@@ -5,7 +5,8 @@ import { Host, SkipRerender } from './host.public';
 import { EMPTY_ARRAY } from '../../util/flyweight';
 import { logWarn } from '../../util/log';
 import { isArray, isFunction, isObject, isString, ValueOrPromise } from '../../util/types';
-import { isPromise, then } from '../../util/promises';
+import { isPromise, promiseAll, removeNullables, then } from '../../util/promises';
+import { InvokeContext, useInvoke } from '../../use/use-core';
 
 /**
  * @public
@@ -42,7 +43,8 @@ export class ProcessedJSXNodeImpl implements ProcessedJSXNode {
 }
 
 export const processNode = (
-  node: JSXNode
+  node: JSXNode,
+  invocationContext?: InvokeContext
 ): ValueOrPromise<ProcessedJSXNode | ProcessedJSXNode[] | undefined> => {
   const key = node.key != null ? String(node.key) : null;
   let textType = '';
@@ -51,13 +53,16 @@ export const processNode = (
   } else if (node.type === SkipRerender) {
     textType = SKIP_RENDER_TYPE;
   } else if (isFunction(node.type)) {
-    return processData(node.type(node.props, node.key));
+    const res = invocationContext
+      ? useInvoke(invocationContext, () => node.type(node.props, node.key))
+      : node.type(node.props, node.key);
+    return processData(res, invocationContext);
   } else if (isString(node.type)) {
     textType = node.type;
   }
   let children: ProcessedJSXNode[] = EMPTY_ARRAY;
   if (node.props) {
-    const mightPromise = processData(node.props.children);
+    const mightPromise = processData(node.props.children, invocationContext);
     return then(mightPromise, (result) => {
       if (result !== undefined) {
         if (isArray(result)) {
@@ -73,17 +78,19 @@ export const processNode = (
 };
 
 export const processData = (
-  node: any
+  node: any,
+  invocationContext?: InvokeContext
 ): ValueOrPromise<ProcessedJSXNode[] | ProcessedJSXNode | undefined> => {
   if (node == null || typeof node === 'boolean') {
     return undefined;
   }
   if (isJSXNode(node)) {
-    return processNode(node);
+    return processNode(node, invocationContext);
   } else if (isPromise(node)) {
-    return node.then((node) => processData(node));
+    return node.then((node) => processData(node, invocationContext));
   } else if (isArray(node)) {
-    return node.flatMap(processData).filter((e) => e != null) as ProcessedJSXNode[];
+    const output = promiseAll(node.flatMap((n) => processData(n, invocationContext)));
+    return then(output, (array) => removeNullables(array.flat(100)));
   } else if (isString(node) || typeof node === 'number') {
     const newNode = new ProcessedJSXNodeImpl('#text', null, EMPTY_ARRAY, null);
     newNode.$text$ = String(node);

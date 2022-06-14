@@ -5,7 +5,6 @@ import type {
   EntryStrategy,
   GeneratedOutputBundle,
   GlobalInjections,
-  HookAnalysis,
   Optimizer,
   OptimizerOptions,
   QwikManifest,
@@ -14,6 +13,7 @@ import type {
   TransformModuleInput,
   TransformOutput,
 } from '../types';
+import { removeNullables } from 'packages/qwik/src/core/util/promises';
 
 export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
   const id = `${Math.round(Math.random() * 899) + 100}`;
@@ -463,10 +463,11 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       const optimizer = getOptimizer();
       const path = optimizer.sys.path;
 
-      const hooks = Array.from(results.values())
-        .flatMap((r) => r.modules)
-        .map((mod) => mod.hook)
-        .filter((h) => !!h) as HookAnalysis[];
+      const hooks = removeNullables(
+        Array.from(results.values())
+          .flatMap((r) => r.modules)
+          .map((mod) => mod.hook)
+      );
 
       return generateManifestFromBundles(path, hooks, injections, outputBundles, opts);
     };

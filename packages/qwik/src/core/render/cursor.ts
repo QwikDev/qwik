@@ -23,6 +23,7 @@ import { qDev } from '../util/qdev';
 import {
   codeToText,
   qError,
+  QError_hostCanOnlyBeAtRoot,
   QError_setProperty,
   QError_stringifyClassOrStyle,
 } from '../error/error';
@@ -274,7 +275,11 @@ export const patchVnode = (
     return;
   }
 
-  if (tag === HOST_TYPE || tag === SKIP_RENDER_TYPE) {
+  if (tag === HOST_TYPE) {
+    throw qError(QError_hostCanOnlyBeAtRoot);
+  }
+
+  if (tag === SKIP_RENDER_TYPE) {
     return;
   }
 
@@ -364,7 +369,7 @@ const addVnodes = (
     assertDefined(ch);
     promises.push(createElm(ctx, ch, isSvg));
   }
-  return then(promiseAll(promises) as any, (children: Node[]) => {
+  return then(promiseAll(promises), (children) => {
     for (const child of children) {
       insertBefore(ctx, parentElm, child, before);
     }
@@ -495,6 +500,10 @@ const createElm = (
     return (vnode.$elm$ = createTextNode(rctx, vnode.$text$!));
   }
 
+  if (tag === HOST_TYPE) {
+    throw qError(QError_hostCanOnlyBeAtRoot);
+  }
+
   if (!isSvg) {
     isSvg = tag === 'svg';
   }
@@ -546,7 +555,7 @@ const createElm = (
       slotRctx.$contexts$.push(ctx);
       const slotMap = isComponent ? getSlots(ctx.$component$, elm) : undefined;
       const promises = children.map((ch) => createElm(slotRctx, ch, isSvg));
-      return then(promiseAll(promises) as any, () => {
+      return then(promiseAll(promises), () => {
         let parent = elm;
         for (const node of children) {
           if (slotMap) {

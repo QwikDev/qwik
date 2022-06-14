@@ -24,6 +24,6 @@ export const promiseAll = <T extends readonly unknown[] | []>(
   return promises as any;
 };
 
-export const removeNullables = <T>(array: T[]): NonNullable<T>[] => {
-  return array.filter((a) => a != null) as any;
+export const isNotNullable = <T>(v: T): v is NonNullable<T> => {
+  return v != null;
 };

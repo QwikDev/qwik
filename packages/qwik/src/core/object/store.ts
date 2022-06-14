@@ -23,7 +23,7 @@ import { ContainerState, getContainerState } from '../render/notify-render';
 import { codeToText, QError_cannotSerializeNode } from '../error/error';
 import { isArray, isObject, isString } from '../util/types';
 import { directGetAttribute, directSetAttribute } from '../render/fast-calls';
-import { removeNullables } from '../util/promises';
+import { isNotNullable } from '../util/promises';
 
 export type GetObject = (id: string) => any;
 export type GetObjID = (obj: any) => string | null;
@@ -285,8 +285,8 @@ export const snapshotState = (containerEl: Element): SnapshotResult => {
     count++;
   }
 
-  const subs = removeNullables(
-    objs.map((obj) => {
+  const subs = objs
+    .map((obj) => {
       const flags = getProxyFlags(containerState.$proxyMap$.get(obj));
       if (flags === undefined) {
         return null;
@@ -309,7 +309,7 @@ export const snapshotState = (containerEl: Element): SnapshotResult => {
         return null;
       }
     })
-  );
+    .filter(isNotNullable);
 
   const qrlSerializeOptions: QRLSerializeOptions = {
     $platform$: containerState.$platform$,
@@ -373,7 +373,10 @@ export const snapshotState = (containerEl: Element): SnapshotResult => {
     }
 
     if (watches.length > 0) {
-      const value = removeNullables(watches.map((watch) => getObjId(watch))).join(' ');
+      const value = watches
+        .map((watch) => getObjId(watch))
+        .filter(isNotNullable)
+        .join(' ');
       if (value) {
         metaValue.w = value;
         add = true;

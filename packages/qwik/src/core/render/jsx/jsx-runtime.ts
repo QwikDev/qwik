@@ -5,7 +5,7 @@ import { Host, SkipRerender } from './host.public';
 import { EMPTY_ARRAY } from '../../util/flyweight';
 import { logWarn } from '../../util/log';
 import { isArray, isFunction, isObject, isString, ValueOrPromise } from '../../util/types';
-import { isPromise, promiseAll, removeNullables, then } from '../../util/promises';
+import { isNotNullable, isPromise, promiseAll, then } from '../../util/promises';
 import { InvokeContext, useInvoke } from '../../use/use-core';
 
 /**
@@ -90,7 +90,7 @@ export const processData = (
     return node.then((node) => processData(node, invocationContext));
   } else if (isArray(node)) {
     const output = promiseAll(node.flatMap((n) => processData(n, invocationContext)));
-    return then(output, (array) => removeNullables(array.flat(100)));
+    return then(output, (array) => array.flat(100).filter(isNotNullable));
   } else if (isString(node) || typeof node === 'number') {
     const newNode = new ProcessedJSXNodeImpl('#text', null, EMPTY_ARRAY, null);
     newNode.$text$ = String(node);

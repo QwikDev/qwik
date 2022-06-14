@@ -56,7 +56,8 @@ export const render = async (
     },
   };
 
-  await visitJsxNode(ctx, parent as Element, processNode(jsxNode), false);
+  const processedNodes = await processNode(jsxNode);
+  await visitJsxNode(ctx, parent as Element, processedNodes, false);
 
   executeContext(ctx);
   if (!qTest) {

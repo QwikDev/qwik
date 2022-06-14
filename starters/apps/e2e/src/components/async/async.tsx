@@ -6,36 +6,42 @@ export function delay(time: number) {
   });
 }
 
-export const Async = component$(async () => {
+export const Async = component$(() => {
   const state = useStore({ name: 'World', count: 0 });
-  await delay(10);
-  return (
-    <Host class="my-app p-20">
-      <button
-        class="border-2 border-solid border-blue-500"
-        onClick$={() => {
-          state.count++;
-        }}
-      >
-        More
-      </button>
-      <Inner value={state.count} />
-    </Host>
-  );
+  async function stuff() {
+    await delay(10);
+    return (
+      <Host class="my-app p-20">
+        <button
+          class="border-2 border-solid border-blue-500"
+          onClick$={() => {
+            state.count++;
+          }}
+        >
+          More
+        </button>
+        <Inner value={state.count} />
+      </Host>
+    );
+  }
+
+  return <Host class="my-app p-20">{stuff()}</Host>;
 });
 
 // This code will not work because its async before reading subs
-export const Inner = component$(async (props: { value: number }) => {
-  await delay(1000);
-  return (
-    <Host class="my-app p-20">
-      {props.value}
-      <Inner2 {...props} />
-    </Host>
-  );
+export const Inner = component$((props: { value: number }) => {
+  async function resolve() {
+    await delay(1000);
+    return (
+      <>
+        {props.value}
+        <Inner2 {...props} />
+      </>
+    );
+  }
+  return <Host class="my-app p-20">{resolve()}</Host>;
 });
 
-export const Inner2 = component$(async (props: { value: number }) => {
-  await delay(1000);
-  return <Host class="my-app p-20">{props.value}</Host>;
+export const Inner2 = component$((props: { value: number }) => {
+  return <Host class="my-app p-20">{delay(1000).then(() => props.value)}</Host>;
 });

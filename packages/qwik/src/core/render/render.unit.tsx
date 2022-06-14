@@ -10,9 +10,8 @@ import { useLexicalScope } from '../use/use-lexical-scope.public';
 import { useRef } from '../use/use-store.public';
 import { ComponentScopedStyles, ComponentStylesPrefixContent } from '../util/markers';
 import { useServerMount$ } from '../use/use-watch';
-import { Async, JSXPromise, PromiseValue } from './jsx/async.public';
 import { Slot } from './jsx/slot.public';
-import { notifyRender } from './notify-render';
+import { notifyChange } from './notify-render';
 import { render } from './render.public';
 import { useScopedStyles$ } from '../use/use-styles';
 
@@ -22,7 +21,7 @@ describe('render', () => {
   describe('basic JSX', () => {
     it('should render basic content', async () => {
       await render(fixture.host, <div></div>);
-      expectRendered(<div></div>);
+      await expectRendered(<div></div>);
       expect(fixture.host.getAttribute('q:version')).toEqual('');
       expect(fixture.host.getAttribute('q:container')).toEqual('resumed');
 
@@ -44,7 +43,7 @@ describe('render', () => {
           {function () {}}
         </div>
       );
-      expectRendered(
+      await expectRendered(
         <div>
           {'string'}
           {'123'}
@@ -69,7 +68,7 @@ describe('render', () => {
         ></div>
       );
       const Div = 'div' as any;
-      expectRendered(
+      await expectRendered(
         <Div
           on:mousedown="/runtimeQRL#*"
           on:keyup="/runtimeQRL#*"
@@ -97,7 +96,7 @@ describe('render', () => {
 
     it('should render attributes', async () => {
       await render(fixture.host, <div id="abc" title="bar" preventDefault:click></div>);
-      expectRendered(<div title="bar" id="abc"></div>);
+      await expectRendered(<div title="bar" id="abc"></div>);
     });
 
     it('should render style only for defined attributes', async () => {
@@ -111,7 +110,7 @@ describe('render', () => {
           <div id="no-style" style={{ display: undefined as unknown as string }}></div>
         </div>
       );
-      expectRendered(
+      await expectRendered(
         <div id="both" style="color:red;display:block">
           <div id="only-color" style="color:red"></div>
           <div id="no-style"></div>
@@ -126,7 +125,7 @@ describe('render', () => {
           <span>text</span>
         </div>
       );
-      expectRendered(
+      await expectRendered(
         <div>
           <span>text</span>
         </div>
@@ -140,7 +139,7 @@ describe('render', () => {
           <span>text</span>
         </svg>
       );
-      expectRendered(
+      await expectRendered(
         <svg viewBox="0 0 100 100">
           <span>text</span>
         </svg>
@@ -151,7 +150,7 @@ describe('render', () => {
   describe('component', () => {
     it('should render a component', async () => {
       await render(fixture.host, <HelloWorld name="World" />);
-      expectRendered(
+      await expectRendered(
         <hello-world>
           <span>
             {'Hello'} {'World'}
@@ -178,7 +177,7 @@ describe('render', () => {
           window:onScroll$={() => {}}
         />
       );
-      expectRendered(
+      await expectRendered(
         <render-props
           q:host=""
           q:slot="start"
@@ -200,16 +199,16 @@ describe('render', () => {
 
     it('should render a blank component', async () => {
       await render(fixture.host, <InnerHTMLComponent />);
-      expectRendered(
+      await expectRendered(
         <div>
           <div>
             <span>WORKS</span>
           </div>
         </div>
       );
-      notifyRender(getFirstNode(fixture.host));
+      notifyChange(getFirstNode(fixture.host));
       await getTestPlatform(fixture.document).flush();
-      expectRendered(
+      await expectRendered(
         <div>
           <div>
             <span>WORKS</span>
@@ -220,14 +219,14 @@ describe('render', () => {
 
     it('should render a div then a component', async () => {
       await render(fixture.host, <ToggleRootComponent />);
-      expectRendered(
+      await expectRendered(
         <div q:host="" aria-hidden="false">
           <div class="normal">Normal div</div>
           <button>toggle</button>
         </div>
       );
       await trigger(fixture.host, 'button', 'click');
-      expectRendered(
+      await expectRendered(
         <div q:host="" aria-hidden="true">
           <div q:host="">
             <div>this is ToggleChild</div>
@@ -240,7 +239,7 @@ describe('render', () => {
     describe('handlers', () => {
       it('should process clicks', async () => {
         await render(fixture.host, <Counter step={5} />);
-        expectRendered(
+        await expectRendered(
           <div>
             <button>-</button>
             <span>0</span>
@@ -248,7 +247,7 @@ describe('render', () => {
           </div>
         );
         await trigger(fixture.host, 'button.increment', 'click');
-        expectRendered(
+        await expectRendered(
           <div>
             <button>-</button>
             <span>5</span>
@@ -262,7 +261,7 @@ describe('render', () => {
   describe('<Slot>', () => {
     it('should project no content', async () => {
       await render(fixture.host, <Project></Project>);
-      expectRendered(
+      await expectRendered(
         <project>
           <section>
             <q:slot>
@@ -281,7 +280,7 @@ describe('render', () => {
 
     it('should project un-named slot text', async () => {
       await render(fixture.host, <Project>projection</Project>);
-      expectRendered(
+      await expectRendered(
         <project>
           <section>
             <q:slot>
@@ -317,7 +316,7 @@ describe('render', () => {
           <span q:slot="description">DESCRIPTION</span>
         </Project>
       );
-      expectRendered(
+      await expectRendered(
         <project>
           <section>
             <q:slot>
@@ -347,7 +346,7 @@ describe('render', () => {
           <span q:slot="ignore">IGNORE</span>
         </Project>
       );
-      expectRendered(
+      await expectRendered(
         <project>
           <q:template q:slot="ignore" aria-hidden="true" hidden>
             <span q:slot="ignore">IGNORE</span>
@@ -375,7 +374,7 @@ describe('render', () => {
           <span>PROJECTION</span>
         </SimpleProject>
       );
-      expectRendered(
+      await expectRendered(
         <project>
           <section>
             <q:slot>
@@ -385,9 +384,9 @@ describe('render', () => {
           </section>
         </project>
       );
-      notifyRender(getFirstNode(fixture.host));
+      notifyChange(getFirstNode(fixture.host));
       await getTestPlatform(fixture.document).flush();
-      expectRendered(
+      await expectRendered(
         <project>
           <section>
             <q:slot>
@@ -412,7 +411,7 @@ describe('render', () => {
           content="CONTENT"
         />
       );
-      expectRendered(
+      await expectRendered(
         <host-fixture id="TEST" name="NAME" class="thing">
           CONTENT
         </host-fixture>
@@ -420,98 +419,16 @@ describe('render', () => {
     });
   });
 
-  describe.skip('<Async>', () => {
+  describe('<Async>', () => {
     it('should render a promise', async () => {
       await render(fixture.host, <div>{Promise.resolve('WORKS')}</div>);
-      expectRendered(
-        <div>
-          {/<node:.*>/}
-          WORKS
-          {/<\/node:.*>/}
-        </div>
-      );
-    });
-
-    it('should render pending then resolution', async () => {
-      let resolve: (_: string | PromiseLike<string>) => void;
-      const promise = new Promise<string>((res) => (resolve = res)) as JSXPromise<string>;
-      promise.whilePending = 'pending...';
-      await render(fixture.host, <div>{promise}</div>);
-      expectRendered(
-        <div>
-          {/<node:.*>/}
-          pending...
-          {/<\/node:.*>/}
-        </div>
-      );
-      await resolve!('WORKS');
-      expectRendered(
-        <div>
-          {/<node:.*>/}
-          WORKS
-          {/<\/node:.*>/}
-        </div>
-      );
-    });
-
-    it('should render pending then rejection', async () => {
-      let resolve: (_: string | PromiseLike<string>) => void;
-      const promise = new Promise<string>((res) => (resolve = res)) as JSXPromise<string>;
-      promise.whilePending = 'pending...';
-      await render(fixture.host, <div>{promise}</div>);
-      expectRendered(
-        <div>
-          {/<node:.*>/}
-          pending...
-          {/<\/node:.*>/}
-        </div>
-      );
-      await resolve!(Promise.reject('REJECTION'));
-      await delay(0);
-      expectRendered(
-        <div>
-          {/<node:.*>/}
-          REJECTION
-          {/<\/node:.*>/}
-        </div>
-      );
-    });
-
-    it('should render', async () => {
-      let resolve: (value: string | PromiseLike<string>) => void;
-      const promise = new Promise<string>((res) => (resolve = res));
-      await render(
-        fixture.host,
-        <div>
-          <Async resolve={promise}>
-            {(promise: PromiseValue<string>) => (
-              <>{promise.isPending ? 'pending' : promise.value}</>
-            )}
-          </Async>
-        </div>
-      );
-      expectRendered(
-        <div>
-          {/<node:.*>/}
-          pending
-          {/<\/node:.*>/}
-        </div>
-      );
-      await resolve!('WORKS');
-      await delay(0);
-      expectRendered(
-        <div>
-          {/<node:.*>/}
-          WORKS
-          {/<\/node:.*>/}
-        </div>
-      );
+      await expectRendered(<div>WORKS</div>);
     });
   });
 
   it('should render a component with hooks', async () => {
     await render(fixture.host, <Hooks />);
-    expectRendered(
+    await expectRendered(
       <div>
         <div id="effect"></div>
         <div id="effect-destroy"></div>
@@ -527,7 +444,7 @@ describe('render', () => {
     );
 
     pauseContainer(fixture.host);
-    expectRendered(
+    await expectRendered(
       <div>
         <div id="effect"></div>
         <div id="effect-destroy"></div>
@@ -553,7 +470,7 @@ describe('render', () => {
         `style[q\\:style="${scopedStyleId}"]`
       );
       expect(style?.textContent).toContain('color: red');
-      expectRendered(
+      await expectRendered(
         <hello-world>
           <span class={ComponentStylesPrefixContent + scopedStyleId}>
             {'Hello'} {'World'}
@@ -578,7 +495,7 @@ describe('render', () => {
           })}
         </svg>
       );
-      expectRendered(
+      await expectRendered(
         <svg viewBox="0 0 100 4" class="svg-container">
           <text class={'svg-text'} style="color:hola">
             Hola {'hola'}
@@ -603,7 +520,7 @@ describe('render', () => {
           <a href="/path"></a>
         </svg>
       );
-      expectRendered(
+      await expectRendered(
         <svg id="my-svg" preserveAspectRatio="none" viewBox="0 0 100 4">
           <a href="/path"></a>
         </svg>
@@ -626,7 +543,7 @@ describe('render', () => {
           </svg>
         </div>
       );
-      expectRendered(
+      await expectRendered(
         <div>
           <a href="#">Dude!!</a>
           <svg id="my-svg" viewBox="0 0 100 4" preserveAspectRatio="none">
@@ -678,7 +595,7 @@ describe('render', () => {
         expect(el).toMatchObject({ namespaceURI: 'http://www.w3.org/2000/svg' });
       }
 
-      expectRendered(
+      await expectRendered(
         <div class="is-html">
           <Text class="is-html" shouldkebab="true">
             Start
@@ -707,9 +624,9 @@ describe('render', () => {
     });
   });
 
-  function expectRendered(expected: h.JSX.Element, expectedErrors: string[] = []) {
+  async function expectRendered(expected: h.JSX.Element, expectedErrors: string[] = []) {
     const firstNode = getFirstNode(fixture.host);
-    return expectDOM(firstNode, expected, expectedErrors);
+    return await expectDOM(firstNode, expected, expectedErrors);
   }
 });
 
@@ -821,12 +738,8 @@ export const HostFixture = component$(
   }
 );
 
-function delay(time: number) {
-  return new Promise((res) => setTimeout(res, time));
-}
-
 //////////////////////////////////////////////////////////////////////////////////////////
-export const InnerHTMLComponent = component$(async () => {
+export const InnerHTMLComponent = component$(() => {
   const html = '<span>WORKS</span>';
   return (
     <div innerHTML={html}>

@@ -29,23 +29,24 @@ export const qError = (code: number, ...parts: any[]): Error => {
 export const codeToText = (code: number): string => {
   if (qDev) {
     const MAP = [
-      'Can not serialize a HTML Node that is not an Element',
-      'Rruntime but no instance found on element.',
-      'Only primitive and object literals can be serialized',
-      'Crash while rendering',
-      'You can render over a existing q:container. Skipping render().',
-      'Set property',
-      "Only function's and 'string's are supported.",
-      "Only objects can be wrapped in 'QObject'",
-      `Only objects literals can be wrapped in 'QObject'`,
-      'QRL is not a function',
-      'Dynamic import not found',
-      'Unknown type argument',
-      'not found state for useContext',
-      "Q-ERROR: invoking 'use*()' method outside of invocation context.",
-      'Cant access renderCtx for existing context',
-      'Cant access document for existing context',
-      'props are inmutable',
+      'Error while serializing class attribute',
+      'Can not serialize a HTML Node that is not an Element', // 0
+      'Rruntime but no instance found on element.', // 1
+      'Only primitive and object literals can be serialized', // 2
+      'Crash while rendering', // 3
+      'You can render over a existing q:container. Skipping render().', // 4
+      'Set property', // 5
+      "Only function's and 'string's are supported.", // 6
+      "Only objects can be wrapped in 'QObject'", // 7
+      `Only objects literals can be wrapped in 'QObject'`, // 8
+      'QRL is not a function', // 9
+      'Dynamic import not found', // 10
+      'Unknown type argument', // 11
+      'not found state for useContext', // 12
+      "Invoking 'use*()' method outside of invocation context.", // 13
+      'Cant access renderCtx for existing context', // 14
+      'Cant access document for existing context', // 15
+      'props are inmutable', // 16
     ];
     return `Code(${code}): ${MAP[code] ?? ''}`;
   } else {

@@ -1,4 +1,4 @@
-import { noSerialize, NoSerialize, notifyWatch } from '../object/q-object';
+import { getProxyTarget, noSerialize, NoSerialize } from '../object/q-object';
 import type { QRL } from '../import/qrl.public';
 import { getContext } from '../props/props';
 import { newInvokeContext, useRenderContext, useWaitOn } from './use-core';
@@ -9,13 +9,12 @@ import { useSequentialScope } from './use-store.public';
 import { QRLInternal } from '../import/qrl-class';
 import { getDocument } from '../util/dom';
 import { isFunction, isObject, ValueOrPromise } from '../util/types';
-import { useLexicalScope } from './use-lexical-scope.public';
 import { getPlatform } from '../platform/platform';
 import { useDocument } from './use-document.public';
-import { getProxyTarget } from '../object/store';
-import type { ContainerState } from '../render/notify-render';
+import { ContainerState, handleWatch } from '../render/notify-render';
 import { useResumeQrl, useVisibleQrl } from './use-on';
 import { implicit$FirstArg } from '../util/implicit_dollar';
+import { assertDefined } from '../assert/assert';
 
 export const WatchFlagsIsEffect = 1 << 0;
 export const WatchFlagsIsWatch = 1 << 1;
@@ -63,14 +62,6 @@ export type UseEffectRunOptions = 'visible' | 'load';
 export interface UseEffectOptions {
   run?: UseEffectRunOptions;
 }
-
-/**
- * @alpha
- */
-export const handleWatch = () => {
-  const [watch] = useLexicalScope();
-  notifyWatch(watch);
-};
 
 // <docs markdown="../readme.md#useWatch">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -563,7 +554,9 @@ export const runWatch = (
         subsManager.$clearSub$(watch);
       });
       const track: Tracker = (obj: any, prop?: string) => {
-        const manager = subsManager.$getLocal$(getProxyTarget(obj) ?? obj);
+        const target = getProxyTarget(obj);
+        assertDefined(target, 'Expected a Proxy object to track');
+        const manager = subsManager.$getLocal$(target);
         manager.$addSub$(watch, prop);
         if (prop) {
           return obj[prop];

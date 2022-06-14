@@ -18,6 +18,7 @@ export const QError_useMethodOutsideContext = 14;
 export const QError_missingRenderCtx = 15;
 export const QError_missingDoc = 16;
 export const QError_immutableProps = 17;
+export const QError_hostCanOnlyBeAtRoot = 18;
 
 export const qError = (code: number, ...parts: any[]): Error => {
   const text = codeToText(code);
@@ -29,23 +30,25 @@ export const qError = (code: number, ...parts: any[]): Error => {
 export const codeToText = (code: number): string => {
   if (qDev) {
     const MAP = [
-      'Can not serialize a HTML Node that is not an Element',
-      'Rruntime but no instance found on element.',
-      'Only primitive and object literals can be serialized',
-      'Crash while rendering',
-      'You can render over a existing q:container. Skipping render().',
-      'Set property',
-      "Only function's and 'string's are supported.",
-      "Only objects can be wrapped in 'QObject'",
-      `Only objects literals can be wrapped in 'QObject'`,
-      'QRL is not a function',
-      'Dynamic import not found',
-      'Unknown type argument',
-      'not found state for useContext',
-      "Q-ERROR: invoking 'use*()' method outside of invocation context.",
-      'Cant access renderCtx for existing context',
-      'Cant access document for existing context',
-      'props are inmutable',
+      'Error while serializing class attribute', // 0
+      'Can not serialize a HTML Node that is not an Element', // 1
+      'Rruntime but no instance found on element.', // 2
+      'Only primitive and object literals can be serialized', // 3
+      'Crash while rendering', // 4
+      'You can render over a existing q:container. Skipping render().', // 5
+      'Set property', // 6
+      "Only function's and 'string's are supported.", // 7
+      "Only objects can be wrapped in 'QObject'", // 8
+      `Only objects literals can be wrapped in 'QObject'`, // 9
+      'QRL is not a function', // 10
+      'Dynamic import not found', // 11
+      'Unknown type argument', // 12
+      'not found state for useContext', // 13
+      "Invoking 'use*()' method outside of invocation context.", // 14
+      'Cant access renderCtx for existing context', // 15
+      'Cant access document for existing context', // 16
+      'props are inmutable', // 17
+      '<Host> component can only be used at the root of a Qwik component$()', // 18
     ];
     return `Code(${code}): ${MAP[code] ?? ''}`;
   } else {

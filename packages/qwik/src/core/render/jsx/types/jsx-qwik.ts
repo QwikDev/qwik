@@ -7,6 +7,7 @@ import type { QwikIntrinsicAttributes, QwikIntrinsicElements } from './jsx-qwik-
  */
 export namespace QwikJSX {
   export interface Element extends JSXNode {}
+
   export interface IntrinsicAttributes extends QwikIntrinsicAttributes {}
   export interface ElementChildrenAttribute {
     children: any;

@@ -3,8 +3,6 @@ import { useSequentialScope } from './use-store.public';
 import { setAttribute } from '../render/cursor';
 import { fromCamelToKebabCase } from '../util/case';
 import { getContext } from '../props/props';
-import { unwrapSubscriber, wrapSubscriber } from './use-subscriber';
-import { useHostElement } from './use-host-element.public';
 import { QCtxAttr } from '../util/markers';
 import { qError, QError_notFoundContext } from '../error/error';
 
@@ -44,7 +42,6 @@ export const useContextProvider = <STATE extends object>(
   if (!contexts) {
     ctx.$contexts$ = contexts = new Map();
   }
-  newValue = unwrapSubscriber(newValue);
   contexts.set(context.id, newValue);
 
   const serializedContexts: string[] = [];
@@ -59,11 +56,6 @@ export const useContextProvider = <STATE extends object>(
  * @alpha
  */
 export const useContext = <STATE extends object>(context: Context<STATE>): STATE => {
-  const value = _useContext(context);
-  return wrapSubscriber(value, useHostElement());
-};
-
-const _useContext = <STATE extends object>(context: Context<STATE>): STATE => {
   const [value, setValue] = useSequentialScope();
   if (!value) {
     const invokeContext = getInvokeContext();

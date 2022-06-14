@@ -1,5 +1,9 @@
-import { createSubscriptionManager, readWriteProxy, unwrapProxy } from './q-object';
-import { qObject } from './q-object';
+import {
+  createSubscriptionManager,
+  getOrCreateProxy,
+  QObjectRecursive,
+  unwrapProxy,
+} from './q-object';
 
 describe('q-object', () => {
   beforeEach(() => {});
@@ -9,14 +13,14 @@ describe('q-object', () => {
   };
 
   it('should create QObject', () => {
-    const obj = qObject({ salutation: 'Hello', name: 'World' }, map);
+    const obj = getOrCreateProxy({ salutation: 'Hello', name: 'World' }, map);
     expect(obj).toEqual({ salutation: 'Hello', name: 'World' });
   });
 
   describe('read write proxy', () => {
     it('should support basic operations', () => {
       const value = { a: 1, b: 2 };
-      const proxy = readWriteProxy(value, map);
+      const proxy = getOrCreateProxy(value, map);
       expect(proxy.a).toBe(1);
       expect(proxy.b).toBe(2);
       expect(unwrapProxy(proxy as any)).toBe(value);
@@ -28,7 +32,7 @@ describe('q-object', () => {
     it('should support child objects', () => {
       const child = { a: 1, b: 2 };
       const parent = { child: child };
-      const proxy = readWriteProxy(parent, map);
+      const proxy = getOrCreateProxy(parent, map, QObjectRecursive);
       expect(proxy.child.a).toBe(1);
       const pChild = proxy.child;
       expect(proxy.child).not.toBe(child);
@@ -42,7 +46,7 @@ describe('q-object', () => {
       it('should support arrays', () => {
         const child = { a: 'a' };
         const list = [1, child];
-        const pList = readWriteProxy(list, map);
+        const pList = getOrCreateProxy(list, map);
         expect(Object.keys(pList)).toEqual(Object.keys(list));
         expect(pList).toEqual(list);
         const copy = [] as any;

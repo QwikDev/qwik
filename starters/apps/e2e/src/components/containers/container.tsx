@@ -1,4 +1,4 @@
-import { component$, Host, useScopedStyles$ } from '@builder.io/qwik';
+import { component$, Host, useScopedStyles$, useStore, useWatch$ } from '@builder.io/qwik';
 
 interface ContainerProps {
   url: string;
@@ -15,7 +15,7 @@ export const Containers = component$(() => {
   );
 });
 
-export const Container = component$(async (props: ContainerProps) => {
+export const Container = component$((props: ContainerProps) => {
   useScopedStyles$(`
     .container {
       margin: 20px;
@@ -34,15 +34,25 @@ export const Container = component$(async (props: ContainerProps) => {
       padding: 5px 10px;
       margin-bottom: 10px;
     }
-  `);
-  const url = `http://localhost:3300${props.url}?fragment&loader=false`;
-  const { default: fetch } = await import('node-fetch');
-  const res = await fetch(url);
-  const html = await res.text();
+    `);
+  const state = useStore({
+    url: '',
+    html: '',
+  });
+
+  useWatch$(async (track) => {
+    track(props, 'url');
+    const url = `http://localhost:3300${props.url}?fragment&loader=false`;
+    const { default: fetch } = await import('node-fetch');
+    const res = await fetch(url);
+    state.url = await res.text();
+    state.html = await res.text();
+  });
+
   return (
     <Host class="container">
-      <div class="url">{url}</div>
-      <div class="frame" dangerouslySetInnerHTML={html} />
+      <div class="url">{state.url}</div>
+      <div class="frame" dangerouslySetInnerHTML={state.html} />
     </Host>
   );
 });

@@ -14,10 +14,16 @@ export const then = <T, B>(
   return isPromise(promise) ? promise.then(thenFn as any, rejectFn) : thenFn(promise as any);
 };
 
-export const promiseAll = <T extends any[]>(promises: T): ValueOrPromise<T> => {
+export const promiseAll = <T extends readonly unknown[] | []>(
+  promises: T
+): ValueOrPromise<{ -readonly [P in keyof T]: Awaited<T[P]> }> => {
   const hasPromise = promises.some(isPromise);
   if (hasPromise) {
     return Promise.all(promises);
   }
-  return promises;
+  return promises as any;
+};
+
+export const isNotNullable = <T>(v: T): v is NonNullable<T> => {
+  return v != null;
 };

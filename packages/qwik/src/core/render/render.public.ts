@@ -1,6 +1,6 @@
 import { isDocument } from '../util/element';
 import { createRenderContext, executeContext, printRenderStats } from './cursor';
-import { isJSXNode, jsx, processNode } from './jsx/jsx-runtime';
+import { isJSXNode, jsx, processData } from './jsx/jsx-runtime';
 import type { JSXNode, FunctionComponent } from './jsx/types/jsx-node';
 import { visitJsxNode } from './render';
 import { getContainerState } from './notify-render';
@@ -46,7 +46,8 @@ export const render = async (
   const ctx = createRenderContext(doc, containerState, containerEl);
   ctx.$roots$.push(parent as Element);
 
-  await visitJsxNode(ctx, parent as Element, processNode(jsxNode), false);
+  const processedNodes = await processData(jsxNode);
+  await visitJsxNode(ctx, parent as Element, processedNodes, false);
 
   executeContext(ctx);
   if (!qTest) {

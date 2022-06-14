@@ -3,7 +3,6 @@ import { parseQRL, QRLSerializeOptions, stringifyQRL } from '../import/qrl';
 import { isSameQRL, QRLInternal } from '../import/qrl-class';
 import { fromCamelToKebabCase } from '../util/case';
 import { EMPTY_ARRAY } from '../util/flyweight';
-import { isPromise } from '../util/promises';
 import type { QContext } from './props';
 import { RenderContext, setAttribute } from '../render/cursor';
 import type { QRL } from '../import/qrl.public';
@@ -98,8 +97,5 @@ const serializeQRLs = (existingQRLs: QRL<any>[], ctx: QContext): string => {
     $platform$: getPlatform(ctx.$element$),
     $element$: ctx.$element$,
   };
-  return existingQRLs
-    .map((qrl) => (isPromise(qrl) ? '' : stringifyQRL(qrl, opts)))
-    .filter((v) => !!v)
-    .join('\n');
+  return existingQRLs.map((qrl) => stringifyQRL(qrl, opts)).join('\n');
 };

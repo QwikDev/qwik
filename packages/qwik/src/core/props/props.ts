@@ -1,16 +1,12 @@
-import type { JSXNode } from '../render/jsx/types/jsx-node';
+import type { ProcessedJSXNode } from '../render/jsx/types/jsx-node';
 import {
+  createProxy,
+  getProxyTarget,
   isMutable,
-  LocalSubscriptionManager,
-  QOjectAllSymbol,
-  QOjectOriginalProxy,
-  QOjectSubsSymbol,
-  QOjectTargetSymbol,
-  readWriteProxy,
+  QObjectImmutable,
   SubscriptionManager,
-  TargetType,
 } from '../object/q-object';
-import { getProxyTarget, resumeContainer } from '../object/store';
+import { resumeContainer } from '../object/store';
 import type { RenderContext } from '../render/cursor';
 import { newQObjectMap, QObjectMap } from './props-obj-map';
 import { qPropWriteQRL } from './props-on';
@@ -22,10 +18,9 @@ import { pauseContainer } from '../object/store';
 import { ContainerState, getContainerState } from '../render/notify-render';
 import { qDev } from '../util/qdev';
 import { logError } from '../util/log';
-import { unwrapSubscriber } from '../use/use-subscriber';
 import { isQrl } from '../import/qrl-class';
-import { qError, QError_immutableProps } from '../error/error';
 import { directGetAttribute } from '../render/fast-calls';
+import { assertDefined } from '../assert/assert';
 
 const Q_CTX = '__ctx__';
 
@@ -58,7 +53,7 @@ export interface ComponentCtx {
   $styleId$: string | undefined;
   $styleClass$: string | undefined;
   $styleHostClass$: string | undefined;
-  $slots$: JSXNode[];
+  $slots$: ProcessedJSXNode[];
 }
 
 export interface QContext {
@@ -140,17 +135,17 @@ export const setEvent = (rctx: RenderContext, ctx: QContext, prop: string, value
   qPropWriteQRL(rctx, ctx, normalizeOnProp(prop), value);
 };
 
-export const createProps = (target: any, el: Element, containerState: ContainerState) => {
-  const manager = containerState.$subsManager$.$getLocal$(target);
-  return new Proxy(target, new PropsProxyHandler(el, containerState, manager));
+export const createProps = (target: any, containerState: ContainerState) => {
+  return createProxy(target, containerState, QObjectImmutable);
 };
 
 export const getPropsMutator = (ctx: QContext, containerState: ContainerState) => {
   let props = ctx.$props$;
   if (!ctx.$props$) {
-    ctx.$props$ = props = createProps({}, ctx.$element$, containerState);
+    ctx.$props$ = props = createProps({}, containerState);
   }
-  const target = getProxyTarget(props);
+  const target = getProxyTarget(props)!;
+  assertDefined(target);
   const manager = containerState.$subsManager$.$getLocal$(target);
 
   return {
@@ -161,7 +156,6 @@ export const getPropsMutator = (ctx: QContext, containerState: ContainerState) =
       if (isMutable(oldValue)) {
         oldValue = oldValue.v;
       }
-      value = unwrapSubscriber(value);
       target[prop] = value;
       if (isMutable(value)) {
         value = value.v;
@@ -189,50 +183,3 @@ export const getPropsMutator = (ctx: QContext, containerState: ContainerState) =
     },
   };
 };
-
-class PropsProxyHandler implements ProxyHandler<TargetType> {
-  constructor(
-    private $hostElement$: Element,
-    private $containerState$: ContainerState,
-    private $manager$: LocalSubscriptionManager
-  ) {}
-
-  get(target: TargetType, prop: string | symbol): any {
-    if (typeof prop === 'symbol') {
-      return target[prop];
-    }
-    if (prop === QOjectTargetSymbol) return target;
-    if (prop === QOjectSubsSymbol) return this.$manager$.$subs$;
-    if (prop === QOjectOriginalProxy) return readWriteProxy(target, this.$containerState$);
-    if (prop === QOjectAllSymbol) {
-      this.$manager$.$addSub$(this.$hostElement$);
-      return target;
-    }
-    const value = target[prop];
-    if (typeof prop === 'symbol') {
-      return value;
-    }
-    if (isMutable(value)) {
-      this.$manager$.$addSub$(this.$hostElement$, prop);
-      return value.v;
-    }
-    return value;
-  }
-
-  set(): boolean {
-    throw qError(QError_immutableProps);
-  }
-
-  has(target: TargetType, property: string | symbol) {
-    if (property === QOjectTargetSymbol) return true;
-    if (property === QOjectSubsSymbol) return true;
-
-    return Object.prototype.hasOwnProperty.call(target, property);
-  }
-
-  ownKeys(target: TargetType): ArrayLike<string | symbol> {
-    const subscriber = this.$hostElement$;
-    this.$manager$.$addSub$(subscriber);
-    return Object.getOwnPropertyNames(target);
-  }
-}

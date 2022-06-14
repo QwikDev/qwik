@@ -46,15 +46,9 @@ export { jsx as jsxs }
 // @public (undocumented)
 export interface JSXNode<T = any> {
     // (undocumented)
-    children: JSXNode[];
-    // (undocumented)
-    elm?: Node;
-    // (undocumented)
-    key: string | null;
+    key: string | number | null;
     // (undocumented)
     props: Record<string, any> | null;
-    // (undocumented)
-    text?: string;
     // (undocumented)
     type: T;
 }

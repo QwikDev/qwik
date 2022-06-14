@@ -1,6 +1,6 @@
 import { Host } from './host.public';
-import { jsx, isJSXNode, Fragment } from './jsx-runtime';
-import type { FunctionComponent } from './types/jsx-node';
+import { jsx, isJSXNode, Fragment, processNode } from './jsx-runtime';
+import type { FunctionComponent, ProcessedJSXNode } from './types/jsx-node';
 
 describe('jsx-runtime', () => {
   describe('children', () => {
@@ -8,51 +8,53 @@ describe('jsx-runtime', () => {
       // <parent>
       //   {[1,2].map(n => (<child>{n}</child>))}
       // </parent>
-      const v = jsx('parent', {
-        children: [1, 2].map((n) => jsx('child', { children: n })),
-      });
-      expect(v.children).toHaveLength(2);
-      expect((v.children![0] as any).type).toEqual('child');
-      expect((v.children![1] as any).type).toEqual('child');
+      const v = processNode(
+        jsx('parent', {
+          children: [1, 2].map((n) => jsx('child', { children: n })),
+        })
+      ) as ProcessedJSXNode;
+      expect(v.$children$).toHaveLength(2);
+      expect(v.$children$[0].$type$).toEqual('child');
+      expect(v.$children$[1].$type$).toEqual('child');
     });
 
     it('one child node', () => {
       // <parent><child></child></parent>
-      const v = jsx('parent', { children: jsx('child', {}) });
-      expect(v.children).toHaveLength(1);
-      expect((v.children![0] as any).type).toEqual('child');
-      expect((v.children![0] as any).props).toEqual({});
-      expect((v.children![0] as any).children).toEqual([]);
+      const v = processNode(jsx('parent', { children: jsx('child', {}) })) as ProcessedJSXNode;
+      expect(v.$children$).toHaveLength(1);
+      expect(v.$children$[0].$type$).toEqual('child');
+      expect(v.$children$[0].$props$).toEqual({});
+      expect(v.$children$[0].$children$).toEqual([]);
     });
 
     it('text w/ expression', () => {
       // <div>1 {2} 3</div>
-      const v = jsx('div', { children: ['1 ', 2, ' 3'] });
-      expect((v.children[0] as any).type).toEqual('#text');
-      expect((v.children[0] as any).text).toEqual('1 ');
-      expect((v.children[0] as any).key).toEqual(null);
+      const v = processNode(jsx('div', { children: ['1 ', 2, ' 3'] })) as ProcessedJSXNode;
+      expect(v.$children$[0].$type$).toEqual('#text');
+      expect(v.$children$[0].$text$).toEqual('1 ');
+      expect(v.$children$[0].$key$).toEqual(null);
 
-      expect((v.children[1] as any).type).toEqual('#text');
-      expect((v.children[1] as any).text).toEqual('2');
-      expect((v.children[1] as any).key).toEqual(null);
+      expect(v.$children$[1].$type$).toEqual('#text');
+      expect(v.$children$[1].$text$).toEqual('2');
+      expect(v.$children$[1].$key$).toEqual(null);
 
-      expect((v.children[2] as any).type).toEqual('#text');
-      expect((v.children[2] as any).text).toEqual(' 3');
-      expect((v.children[2] as any).key).toEqual(null);
+      expect(v.$children$[2].$type$).toEqual('#text');
+      expect(v.$children$[2].$text$).toEqual(' 3');
+      expect(v.$children$[2].$key$).toEqual(null);
     });
 
     it('text child', () => {
       // <div>text</div>
-      const v = jsx('div', { children: 'text' });
-      expect((v.children[0] as any).type).toEqual('#text');
-      expect((v.children[0] as any).text).toEqual('text');
-      expect((v.children[0] as any).key).toEqual(null);
+      const v = processNode(jsx('div', { children: 'text' })) as ProcessedJSXNode;
+      expect(v.$children$[0].$type$).toEqual('#text');
+      expect(v.$children$[0].$text$).toEqual('text');
+      expect(v.$children$[0].$key$).toEqual(null);
     });
 
     it('no children', () => {
       // <div/>
-      const v = jsx('div', {});
-      expect(v.children).toEqual([]);
+      const v = processNode(jsx('div', {})) as ProcessedJSXNode;
+      expect(v.$children$).toEqual([]);
     });
   });
 

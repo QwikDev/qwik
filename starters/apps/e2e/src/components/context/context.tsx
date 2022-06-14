@@ -18,7 +18,7 @@ export const Context2 = createContext<ContextI>('ctx1');
 export const Context3 = createContext<ContextI>('ctx2');
 export const ContextSlot = createContext<ContextI>('slot');
 
-export const ContextRoot = component$(async () => {
+export const ContextRoot = component$(() => {
   const state1 = useStore({ displayName: 'ROOT / state1', count: 0 });
   const state2 = useStore({ displayName: 'ROOT / state2', count: 0 });
 

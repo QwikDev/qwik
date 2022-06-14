@@ -18,7 +18,7 @@ import { getReplVersion } from './repl-version';
 import { updateReplOutput } from './repl-output-update';
 import replServerUrl from '@repl-server-url';
 
-export const Repl = component$(async (props: ReplProps) => {
+export const Repl = component$((props: ReplProps) => {
   useScopedStyles$(styles);
 
   const input = props.input;

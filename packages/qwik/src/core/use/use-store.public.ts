@@ -1,11 +1,14 @@
-import { qObject } from '../object/q-object';
+import { createProxy, QObjectRecursive } from '../object/q-object';
 import { getInvokeContext, useRenderContext } from './use-core';
 import { useHostElement } from './use-host-element.public';
 import { getContext } from '../props/props';
-import { wrapSubscriber } from './use-subscriber';
 import { assertEqual } from '../assert/assert';
 import { RenderEvent } from '../util/markers';
 import { isFunction } from '../util/types';
+
+export interface UseStoreOptions {
+  recursive?: boolean;
+}
 
 // <docs markdown="../readme.md#useStore">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -70,18 +73,21 @@ import { isFunction } from '../util/types';
  * @public
  */
 // </docs>
-export const useStore = <STATE extends object>(initialState: STATE | (() => STATE)): STATE => {
+export const useStore = <STATE extends object>(
+  initialState: STATE | (() => STATE),
+  opts?: UseStoreOptions
+): STATE => {
   const [store, setStore] = useSequentialScope();
-  const hostElement = useHostElement();
   if (store != null) {
-    return wrapSubscriber(store, hostElement);
+    return store;
   }
-
   const containerState = useRenderContext().$containerState$;
   const value = isFunction(initialState) ? (initialState as Function)() : initialState;
-  const newStore = qObject(value, containerState);
+  const recursive = opts?.recursive ?? false;
+  const flags = recursive ? QObjectRecursive : 0;
+  const newStore = createProxy(value, containerState, flags, undefined);
   setStore(newStore);
-  return wrapSubscriber(newStore, hostElement);
+  return newStore;
 };
 
 /**

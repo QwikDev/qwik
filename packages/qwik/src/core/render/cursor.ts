@@ -74,7 +74,8 @@ export interface RenderContext {
   $roots$: Element[];
   $hostElements$: Set<Element>;
   $operations$: RenderOperation[];
-  $components$: ComponentCtx[];
+  $contexts$: QContext[];
+  $currentComponent$: ComponentCtx | undefined;
   $containerState$: ContainerState;
   $containerEl$: Element;
   $perf$: RenderPerf;
@@ -289,14 +290,14 @@ export const patchVnode = (
   if (isSvg && vnode.$type$ === 'foreignObject') {
     isSvg = false;
   } else if (isSlot) {
-    const currentComponent =
-      rctx.$components$.length > 0 ? rctx.$components$[rctx.$components$.length - 1] : undefined;
+    const currentComponent = rctx.$currentComponent$;
     if (currentComponent) {
       currentComponent.$slots$.push(vnode);
     }
   }
   const isComponent = isComponentNode(vnode);
   if (dirty) {
+    assertEqual(isComponent, true);
     promise = renderComponent(rctx, ctx);
   }
   const ch = vnode.$children$;
@@ -305,13 +306,15 @@ export const patchVnode = (
       const slotMaps = getSlots(ctx.$component$, elm as Element);
       const splittedChidren = splitBy(ch, getSlotName);
       const promises: ValueOrPromise<void>[] = [];
+      const slotRctx = copyRenderContext(rctx);
+      slotRctx.$contexts$.push(ctx);
 
       // Mark empty slots and remove content
       Object.entries(slotMaps.slots).forEach(([key, slotEl]) => {
         if (slotEl && !splittedChidren[key]) {
           const oldCh = getChildren(slotEl, 'slot');
           if (oldCh.length > 0) {
-            removeVnodes(rctx, oldCh, 0, oldCh.length - 1);
+            removeVnodes(slotRctx, oldCh, 0, oldCh.length - 1);
           }
         }
       });
@@ -319,18 +322,17 @@ export const patchVnode = (
       // Mark empty slots and remove content
       Object.entries(slotMaps.templates).forEach(([key, templateEl]) => {
         if (templateEl && !splittedChidren[key]) {
-          removeNode(rctx, templateEl);
+          removeNode(slotRctx, templateEl);
           slotMaps.templates[key] = undefined;
         }
       });
-
       // Render into slots
       Object.entries(splittedChidren).forEach(([key, ch]) => {
-        const slotElm = getSlotElement(rctx, slotMaps, elm as Element, key);
-        promises.push(smartUpdateChildren(rctx, slotElm, ch, 'slot', isSvg));
+        const slotElm = getSlotElement(slotRctx, slotMaps, elm as Element, key);
+        promises.push(smartUpdateChildren(slotRctx, slotElm, ch, 'slot', isSvg));
       });
       return then(promiseAll(promises), () => {
-        removeTemplates(rctx, slotMaps);
+        removeTemplates(slotRctx, slotMaps);
       });
     });
   }
@@ -507,8 +509,7 @@ const createElm = (
   if (isSvg && tag === 'foreignObject') {
     isSvg = false;
   }
-  const currentComponent =
-    rctx.$components$.length > 0 ? rctx.$components$[rctx.$components$.length - 1] : undefined;
+  const currentComponent = rctx.$currentComponent$;
   if (currentComponent) {
     const styleTag = currentComponent.$styleClass$;
     if (styleTag) {
@@ -541,13 +542,15 @@ const createElm = (
       if (children.length === 1 && children[0].$type$ === SKIP_RENDER_TYPE) {
         children = children[0].$children$;
       }
+      const slotRctx = copyRenderContext(rctx);
+      slotRctx.$contexts$.push(ctx);
       const slotMap = isComponent ? getSlots(ctx.$component$, elm) : undefined;
-      const promises = children.map((ch) => createElm(rctx, ch, isSvg));
+      const promises = children.map((ch) => createElm(slotRctx, ch, isSvg));
       return then(promiseAll(promises) as any, () => {
         let parent = elm;
         for (const node of children) {
           if (slotMap) {
-            parent = getSlotElement(rctx, slotMap, elm, getSlotName(node));
+            parent = getSlotElement(slotRctx, slotMap, elm, getSlotName(node));
           }
           parent.appendChild(node.$elm$!);
         }
@@ -711,6 +714,35 @@ export const updateProperties = (
     setAttribute(rctx, elm, key, newValue);
   }
   return ctx.$dirty$;
+};
+
+export const createRenderContext = (
+  doc: Document,
+  containerState: ContainerState,
+  containerEl: Element
+): RenderContext => {
+  const ctx: RenderContext = {
+    $doc$: doc,
+    $containerState$: containerState,
+    $containerEl$: containerEl,
+    $hostElements$: new Set(),
+    $operations$: [],
+    $roots$: [],
+    $contexts$: [],
+    $currentComponent$: undefined,
+    $perf$: {
+      $visited$: 0,
+    },
+  };
+  return ctx;
+};
+
+export const copyRenderContext = (ctx: RenderContext): RenderContext => {
+  const newCtx: RenderContext = {
+    ...ctx,
+    $contexts$: [...ctx.$contexts$],
+  };
+  return newCtx;
 };
 
 export const setAttribute = (

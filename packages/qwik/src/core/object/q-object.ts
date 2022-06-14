@@ -1,111 +1,70 @@
 import { assertEqual } from '../assert/assert';
 import {
   qError,
+  QError_immutableProps,
   QError_onlyLiteralWrapped,
   QError_onlyObjectWrapped,
   QError_verifySerializable,
 } from '../error/error';
 import { isQrl } from '../import/qrl-class';
-import {
-  getContainerState,
-  notifyRender,
-  ContainerState,
-  scheduleFrame,
-} from '../render/notify-render';
-import { getContainer, tryGetInvokeContext } from '../use/use-core';
+import { ContainerState, notifyChange } from '../render/notify-render';
+import { tryGetInvokeContext } from '../use/use-core';
 import { isDocument, isElement, isNode } from '../util/element';
 import { logWarn } from '../util/log';
-import { qDev, qTest } from '../util/qdev';
-import { WatchDescriptor, WatchFlagsIsDirty } from '../use/use-watch';
-import { Subscriber, unwrapSubscriber } from '../use/use-subscriber';
+import { qDev } from '../util/qdev';
+import type { Subscriber } from '../use/use-subscriber';
 import { tryGetContext } from '../props/props';
 import { RenderEvent } from '../util/markers';
-import { getProxyTarget } from './store';
 import { isArray, isFunction, isObject } from '../util/types';
 
 export type ObjToProxyMap = WeakMap<any, any>;
 export type QObject<T extends {}> = T & { __brand__: 'QObject' };
 
-export const qObject = <T extends Object>(obj: T, proxyMap: ContainerState): T => {
-  assertEqual(unwrapProxy(obj), obj, 'Unexpected proxy at this location');
-  if (obj == null || typeof obj !== 'object') {
-    // TODO(misko): centralize
-    throw qError(QError_onlyObjectWrapped, obj);
-  }
-  if (obj.constructor !== Object) {
-    throw qError(QError_onlyLiteralWrapped, obj);
-  }
-  return readWriteProxy(obj as any as QObject<T>, proxyMap);
-};
-
-export const _restoreQObject = <T>(
-  obj: T,
-  containerState: ContainerState,
-  subs: Map<Element, Set<string>>
-): T => {
-  return readWriteProxy(obj as any as QObject<T>, containerState, subs);
-};
+export const QObjectRecursive = 1 << 0;
+export const QObjectImmutable = 1 << 1;
 
 /**
  * Creates a proxy which notifies of any writes.
  */
-export const readWriteProxy = <T extends object>(
+export const getOrCreateProxy = <T extends object>(
   target: T,
   containerState: ContainerState,
+  flags = 0
+): T => {
+  const proxy = containerState.$proxyMap$.get(target);
+  if (proxy) {
+    return proxy;
+  }
+  return createProxy(target, containerState, flags, undefined);
+};
+
+export const createProxy = <T extends object>(
+  target: T,
+  containerState: ContainerState,
+  flags: number,
   subs?: Map<Element, Set<string>>
 ): T => {
-  if (!target || typeof target !== 'object') return target;
-  const proxyMap = containerState.$proxyMap$;
-  let proxy = proxyMap.get(target);
-  if (proxy) return proxy;
+  assertEqual(unwrapProxy(target), target, 'Unexpected proxy at this location');
+  assertEqual(containerState.$proxyMap$.has(target), false, 'Proxy was already created');
+
+  if (!isObject(target)) {
+    throw qError(QError_onlyObjectWrapped, target);
+  }
+  if (target.constructor !== Object && !isArray(target)) {
+    throw qError(QError_onlyLiteralWrapped, target);
+  }
 
   const manager = containerState.$subsManager$.$getLocal$(target, subs);
-  proxy = new Proxy(target, new ReadWriteProxyHandler(containerState, manager)) as any as T;
-  proxyMap.set(target, proxy);
+  const proxy = new Proxy(
+    target,
+    new ReadWriteProxyHandler(containerState, manager, flags)
+  ) as any as T;
+  containerState.$proxyMap$.set(target, proxy);
   return proxy;
 };
 
-export const QOjectTargetSymbol = ':target:';
-export const QOjectAllSymbol = ':all:';
-export const QOjectSubsSymbol = ':subs:';
-export const QOjectOriginalProxy = ':proxy:';
-export const SetSubscriber = Symbol('SetSubscriber');
-
-/**
- * @alpha
- */
-export const unwrapProxy = <T>(proxy: T): T => {
-  return getProxyTarget(proxy) ?? proxy;
-};
-
-export const wrap = <T>(value: T, containerState: ContainerState): T => {
-  if (isObject(value)) {
-    if (isQrl(value)) {
-      return value;
-    }
-    if (Object.isFrozen(value)) {
-      return value;
-    }
-    const nakedValue = unwrapProxy(value);
-    if (nakedValue !== value) {
-      // already a proxy return;
-      return value;
-    }
-    if (isNode(nakedValue)) {
-      return value;
-    }
-    if (!shouldSerialize(nakedValue)) {
-      return value;
-    }
-    if (qDev) {
-      verifySerializable<T>(value);
-    }
-    const proxy = containerState.$proxyMap$.get(value);
-    return proxy ? proxy : readWriteProxy(value as any, containerState);
-  } else {
-    return value;
-  }
-};
+const QOjectTargetSymbol = Symbol();
+const QOjectFlagsSymbol = Symbol();
 
 export type TargetType = Record<string | symbol, any>;
 
@@ -155,7 +114,9 @@ export const createSubscriptionManager = (): SubscriptionManager => {
 
   const getLocal = (obj: any, initialMap?: SubscriberMap) => {
     let local = tryGetLocal(obj);
-    if (!local) {
+    if (local) {
+      assertEqual(initialMap, undefined);
+    } else {
       const map = !initialMap ? (new Map() as SubscriberMap) : initialMap;
       map.forEach((_, key) => {
         trackSubToObj(key, map);
@@ -201,57 +162,49 @@ export const createSubscriptionManager = (): SubscriptionManager => {
 };
 
 class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
-  private $subscriber$?: Subscriber;
   constructor(
     private $containerState$: ContainerState,
-    private $manager$: LocalSubscriptionManager
+    private $manager$: LocalSubscriptionManager,
+    private $flags$: number
   ) {}
 
   get(target: TargetType, prop: string | symbol): any {
-    let subscriber = this.$subscriber$;
-    this.$subscriber$ = undefined;
     if (typeof prop === 'symbol') {
+      if (prop === QOjectTargetSymbol) return target;
+      if (prop === QOjectFlagsSymbol) return this.$flags$;
       return target[prop];
     }
-    if (prop === QOjectTargetSymbol) return target;
-    if (prop === QOjectSubsSymbol) return this.$manager$.$subs$;
-    if (prop === QOjectOriginalProxy) return this.$containerState$.$proxyMap$.get(target);
+    let subscriber: Subscriber | undefined | null;
     const invokeCtx = tryGetInvokeContext();
+    const recursive = (this.$flags$ & QObjectRecursive) !== 0;
+    const immutable = (this.$flags$ & QObjectImmutable) !== 0;
     if (invokeCtx) {
-      if (invokeCtx.$subscriber$ === null) {
-        subscriber = undefined;
-      } else if (!subscriber) {
-        subscriber = invokeCtx.$subscriber$;
-      }
-    } else if (qDev && !qTest && !subscriber) {
-      // logWarn(`State assigned outside invocation context. Getting prop "${prop}" of:`, target);
+      subscriber = invokeCtx.$subscriber$;
     }
-
-    if (prop === QOjectAllSymbol) {
-      if (subscriber) {
-        this.$manager$.$addSub$(subscriber);
-      }
-      return target;
+    let value = target[prop];
+    if (isMutable(value)) {
+      value = value.v;
+    } else if (immutable) {
+      subscriber = null;
     }
-
-    const value = target[prop];
     if (subscriber) {
       const isA = isArray(target);
       this.$manager$.$addSub$(subscriber, isA ? undefined : prop);
     }
-    return wrap(value, this.$containerState$);
+    return recursive ? wrap(value, this.$containerState$) : value;
   }
 
   set(target: TargetType, prop: string | symbol, newValue: any): boolean {
     if (typeof prop === 'symbol') {
-      if (prop === SetSubscriber) {
-        this.$subscriber$ = newValue;
-      } else {
-        target[prop] = newValue;
-      }
+      target[prop] = newValue;
       return true;
     }
-    const unwrappedNewValue = unwrapProxy(newValue);
+    const immutable = (this.$flags$ & QObjectImmutable) !== 0;
+    if (immutable) {
+      throw qError(QError_immutableProps);
+    }
+    const recursive = (this.$flags$ & QObjectRecursive) !== 0;
+    const unwrappedNewValue = recursive ? unwrapProxy(newValue) : newValue;
     if (qDev) {
       verifySerializable(unwrappedNewValue);
       const invokeCtx = tryGetInvokeContext();
@@ -280,24 +233,17 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
 
   has(target: TargetType, property: string | symbol) {
     if (property === QOjectTargetSymbol) return true;
-    if (property === QOjectSubsSymbol) return true;
+    if (property === QOjectFlagsSymbol) return true;
 
     return Object.prototype.hasOwnProperty.call(target, property);
   }
 
   ownKeys(target: TargetType): ArrayLike<string | symbol> {
-    let subscriber = this.$subscriber$;
+    let subscriber: Subscriber | null | undefined = null;
     const invokeCtx = tryGetInvokeContext();
     if (invokeCtx) {
-      if (invokeCtx.$subscriber$ === null) {
-        subscriber = undefined;
-      } else if (!subscriber) {
-        subscriber = invokeCtx.$subscriber$;
-      }
-    } else if (qDev && !qTest && !subscriber) {
-      // logWarn(`State assigned outside invocation context. OwnKeys of:`, target);
+      subscriber = invokeCtx.$subscriber$;
     }
-
     if (subscriber) {
       this.$manager$.$addSub$(subscriber);
     }
@@ -305,34 +251,32 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
   }
 }
 
-export const removeSub = (obj: any, subscriber: any) => {
-  if (isObject(obj)) {
-    const subs = obj[QOjectSubsSymbol] as Map<Subscriber, Set<string>> | undefined;
-    if (subs) {
-      subs.delete(subscriber);
+const wrap = <T>(value: T, containerState: ContainerState): T => {
+  if (isObject(value)) {
+    if (isQrl(value)) {
+      return value;
     }
-  }
-};
-
-export const notifyChange = (subscriber: Subscriber) => {
-  if (isElement(subscriber)) {
-    notifyRender(subscriber);
+    if (Object.isFrozen(value)) {
+      return value;
+    }
+    const nakedValue = unwrapProxy(value);
+    if (nakedValue !== value) {
+      // already a proxy return;
+      return value;
+    }
+    if (isNode(nakedValue)) {
+      return value;
+    }
+    if (!shouldSerialize(nakedValue)) {
+      return value;
+    }
+    if (qDev) {
+      verifySerializable<T>(value);
+    }
+    const proxy = containerState.$proxyMap$.get(value);
+    return proxy ? proxy : getOrCreateProxy(value as any, containerState, QObjectRecursive);
   } else {
-    notifyWatch(subscriber as WatchDescriptor);
-  }
-};
-
-export const notifyWatch = (watch: WatchDescriptor) => {
-  const containerEl = getContainer(watch.el)!;
-  const state = getContainerState(containerEl);
-  watch.f |= WatchFlagsIsDirty;
-
-  const activeRendering = state.$hostsRendering$ !== undefined;
-  if (activeRendering) {
-    state.$watchStaging$.add(watch);
-  } else {
-    state.$watchNext$.add(watch);
-    scheduleFrame(containerEl, state);
+    return value;
   }
 };
 
@@ -397,7 +341,7 @@ export const immutable = <T extends {}>(input: T): Readonly<T> => {
 export const mutable = <T>(v: T): MutableWrapper<T> => {
   return {
     [MUTABLE]: true,
-    v: unwrapSubscriber(v),
+    v,
   };
 };
 
@@ -421,4 +365,25 @@ export interface MutableWrapper<T> {
 
 export const isMutable = (v: any): v is MutableWrapper<any> => {
   return isObject(v) && v[MUTABLE] === true;
+};
+
+/**
+ * @alpha
+ */
+export const unwrapProxy = <T>(proxy: T): T => {
+  return getProxyTarget<T>(proxy) ?? proxy;
+};
+
+export const getProxyTarget = <T = Record<string, any>>(obj: T): T | undefined => {
+  if (isObject(obj)) {
+    return (obj as any)[QOjectTargetSymbol];
+  }
+  return undefined;
+};
+
+export const getProxyFlags = <T = Record<string, any>>(obj: T): number | undefined => {
+  if (isObject(obj)) {
+    return (obj as any)[QOjectFlagsSymbol];
+  }
+  return undefined;
 };

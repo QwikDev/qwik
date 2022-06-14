@@ -50,8 +50,6 @@ export { useServerMount$, useServerMountQrl } from './use/use-watch';
 export { useClientMount$, useClientMountQrl } from './use/use-watch';
 export { useMount$, useMountQrl } from './use/use-watch';
 
-export { handleWatch } from './use/use-watch';
-
 //////////////////////////////////////////////////////////////////////////////////////////
 // JSX Runtime
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -61,17 +59,11 @@ export { Slot } from './render/jsx/slot.public';
 export { Fragment, jsx, jsxDEV, jsxs } from './render/jsx/jsx-runtime';
 export type { HTMLAttributes, AriaAttributes } from './render/jsx/types/jsx-generated';
 export type { DOMAttributes } from './render/jsx/types/jsx-qwik-attributes';
-export type {
-  ComponentChild,
-  ComponentChildren,
-  FunctionComponent,
-  JSXFactory,
-  JSXNode,
-  RenderableProps,
-} from './render/jsx/types/jsx-node';
+export type { FunctionComponent, JSXNode } from './render/jsx/types/jsx-node';
 export type { QwikDOMAttributes, QwikJSX } from './render/jsx/types/jsx-qwik';
 export type { QwikIntrinsicElements } from './render/jsx/types/jsx-qwik-elements';
 export { render } from './render/render.public';
+export { handleWatch } from './render/notify-render';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // use API
@@ -80,7 +72,6 @@ export { useHostElement } from './use/use-host-element.public';
 export { useDocument } from './use/use-document.public';
 export { useLexicalScope } from './use/use-lexical-scope.public';
 export { useStore, useRef, useSequentialScope } from './use/use-store.public';
-export { wrapSubscriber, unwrapSubscriber } from './use/use-subscriber';
 export { useContext, useContextProvider, createContext } from './use/use-context';
 export { useWaitOn } from './use/use-core';
 export { useStylesQrl, useStyles$, useScopedStylesQrl, useScopedStyles$ } from './use/use-styles';

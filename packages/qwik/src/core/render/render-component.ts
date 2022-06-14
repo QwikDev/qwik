@@ -5,7 +5,7 @@ import { ComponentScopedStyles, QHostAttr, RenderEvent } from '../util/markers';
 import { promiseAll, then } from '../util/promises';
 import { styleContent, styleHost } from '../component/qrl-styles';
 import { newInvokeContext } from '../use/use-core';
-import { processNode } from './jsx/jsx-runtime';
+import { processData } from './jsx/jsx-runtime';
 import { logDebug, logError } from '../util/log';
 import { isFunction, ValueOrPromise } from '../util/types';
 import type { QContext } from '../props/props';
@@ -84,7 +84,13 @@ export const renderComponent = (rctx: RenderContext, ctx: QContext): ValueOrProm
           componentCtx.$slots$ = [];
           newCtx.$contexts$.push(ctx);
           newCtx.$currentComponent$ = componentCtx;
-          return visitJsxNode(newCtx, hostElement, processNode(jsxNode), false);
+          const invocatinContext = newInvokeContext(rctx.$doc$, hostElement, hostElement);
+          invocatinContext.$subscriber$ = hostElement;
+          invocatinContext.$renderCtx$ = newCtx;
+          const processedJSXNode = processData(jsxNode, invocatinContext);
+          return then(processedJSXNode, (processedJSXNode) => {
+            return visitJsxNode(newCtx, hostElement, processedJSXNode, false);
+          });
         });
       },
       (err) => {

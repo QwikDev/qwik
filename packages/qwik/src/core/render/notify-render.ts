@@ -13,13 +13,69 @@ import { getDocument } from '../util/dom';
 import { renderComponent } from './render-component';
 import { logError, logWarn } from '../util/log';
 import { getContainer } from '../use/use-core';
-import { runWatch, WatchDescriptor, WatchFlagsIsEffect, WatchFlagsIsWatch } from '../use/use-watch';
+import {
+  runWatch,
+  WatchDescriptor,
+  WatchFlagsIsDirty,
+  WatchFlagsIsEffect,
+  WatchFlagsIsWatch,
+} from '../use/use-watch';
 import { createSubscriptionManager, ObjToProxyMap, SubscriptionManager } from '../object/q-object';
 import { then } from '../util/promises';
 import type { ValueOrPromise } from '../util/types';
 import type { CorePlatform } from '../platform/types';
 import { codeToText, QError_errorWhileRendering } from '../error/error';
 import { directGetAttribute } from './fast-calls';
+import { useLexicalScope } from '../use/use-lexical-scope.public';
+import type { Subscriber } from '../use/use-subscriber';
+import { isElement } from '../util/element';
+
+/**
+ * @alpha
+ */
+export interface ContainerState {
+  $proxyMap$: ObjToProxyMap;
+  $subsManager$: SubscriptionManager;
+  $platform$: CorePlatform;
+
+  $watchNext$: Set<WatchDescriptor>;
+  $watchStaging$: Set<WatchDescriptor>;
+
+  $hostsNext$: Set<Element>;
+  $hostsStaging$: Set<Element>;
+  $hostsRendering$: Set<Element> | undefined;
+  $renderPromise$: Promise<RenderContext> | undefined;
+}
+
+const CONTAINER_STATE = Symbol('ContainerState');
+
+export const getContainerState = (containerEl: Element): ContainerState => {
+  let set = (containerEl as any)[CONTAINER_STATE] as ContainerState;
+  if (!set) {
+    (containerEl as any)[CONTAINER_STATE] = set = {
+      $proxyMap$: new WeakMap(),
+      $subsManager$: createSubscriptionManager(),
+      $platform$: getPlatform(containerEl),
+
+      $watchNext$: new Set(),
+      $watchStaging$: new Set(),
+
+      $hostsNext$: new Set(),
+      $hostsStaging$: new Set(),
+      $renderPromise$: undefined,
+      $hostsRendering$: undefined,
+    };
+  }
+  return set;
+};
+
+export const notifyChange = (subscriber: Subscriber) => {
+  if (isElement(subscriber)) {
+    notifyRender(subscriber);
+  } else {
+    notifyWatch(subscriber as WatchDescriptor);
+  }
+};
 
 /**
  * Mark component for rendering.
@@ -35,7 +91,7 @@ import { directGetAttribute } from './fast-calls';
  * @returns A promise which is resolved when the component has been rendered.
  * @public
  */
-export const notifyRender = async (hostElement: Element): Promise<RenderContext | undefined> => {
+const notifyRender = async (hostElement: Element): Promise<RenderContext | undefined> => {
   assertDefined(directGetAttribute(hostElement, QHostAttr));
 
   const containerEl = getContainer(hostElement)!;
@@ -77,7 +133,21 @@ export const notifyRender = async (hostElement: Element): Promise<RenderContext 
   }
 };
 
-export const scheduleFrame = (
+const notifyWatch = (watch: WatchDescriptor) => {
+  const containerEl = getContainer(watch.el)!;
+  const state = getContainerState(containerEl);
+  watch.f |= WatchFlagsIsDirty;
+
+  const activeRendering = state.$hostsRendering$ !== undefined;
+  if (activeRendering) {
+    state.$watchStaging$.add(watch);
+  } else {
+    state.$watchNext$.add(watch);
+    scheduleFrame(containerEl, state);
+  }
+};
+
+const scheduleFrame = (
   containerEl: Element,
   containerState: ContainerState
 ): Promise<RenderContext> => {
@@ -89,46 +159,15 @@ export const scheduleFrame = (
   return containerState.$renderPromise$;
 };
 
-const CONTAINER_STATE = Symbol('ContainerState');
-
 /**
  * @alpha
  */
-export interface ContainerState {
-  $proxyMap$: ObjToProxyMap;
-  $subsManager$: SubscriptionManager;
-  $platform$: CorePlatform;
-
-  $watchNext$: Set<WatchDescriptor>;
-  $watchStaging$: Set<WatchDescriptor>;
-
-  $hostsNext$: Set<Element>;
-  $hostsStaging$: Set<Element>;
-  $hostsRendering$: Set<Element> | undefined;
-  $renderPromise$: Promise<RenderContext> | undefined;
-}
-
-export const getContainerState = (containerEl: Element): ContainerState => {
-  let set = (containerEl as any)[CONTAINER_STATE] as ContainerState;
-  if (!set) {
-    (containerEl as any)[CONTAINER_STATE] = set = {
-      $proxyMap$: new WeakMap(),
-      $subsManager$: createSubscriptionManager(),
-      $platform$: getPlatform(containerEl),
-
-      $watchNext$: new Set(),
-      $watchStaging$: new Set(),
-
-      $hostsNext$: new Set(),
-      $hostsStaging$: new Set(),
-      $renderPromise$: undefined,
-      $hostsRendering$: undefined,
-    };
-  }
-  return set;
+export const handleWatch = () => {
+  const [watch] = useLexicalScope();
+  notifyWatch(watch);
 };
 
-export const renderMarked = async (
+const renderMarked = async (
   containerEl: Element,
   containerState: ContainerState
 ): Promise<RenderContext> => {

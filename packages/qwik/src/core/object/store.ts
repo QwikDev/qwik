@@ -1,21 +1,20 @@
 import { assertDefined, assertEqual } from '../assert/assert';
 import { parseQRL, QRLSerializeOptions, stringifyQRL } from '../import/qrl';
 import { isQrl, QRLInternal } from '../import/qrl-class';
-import { getContext, createProps, tryGetContext } from '../props/props';
+import { getContext, tryGetContext } from '../props/props';
 import { getDocument } from '../util/dom';
 import { isDocument, isElement, isNode } from '../util/element';
 import { logDebug, logError, logWarn } from '../util/log';
 import { ELEMENT_ID, ELEMENT_ID_PREFIX, QContainerAttr } from '../util/markers';
 import { qDev } from '../util/qdev';
 import {
+  createProxy,
+  getOrCreateProxy,
+  getProxyFlags,
+  getProxyTarget,
   isConnected,
-  ObjToProxyMap,
-  QOjectSubsSymbol,
-  QOjectTargetSymbol,
-  readWriteProxy,
   shouldSerialize,
   SubscriberMap,
-  _restoreQObject,
 } from './q-object';
 import { destroyWatch, WatchDescriptor, WatchFlagsIsDirty } from '../use/use-watch';
 import type { QRL } from '../import/qrl.public';
@@ -24,6 +23,7 @@ import { ContainerState, getContainerState } from '../render/notify-render';
 import { codeToText, QError_cannotSerializeNode } from '../error/error';
 import { isArray, isObject, isString } from '../util/types';
 import { directGetAttribute, directSetAttribute } from '../render/fast-calls';
+import { isNotNullable } from '../util/promises';
 
 export type GetObject = (id: string) => any;
 export type GetObjID = (obj: any) => string | null;
@@ -127,7 +127,7 @@ export const resumeContainer = (containerEl: Element) => {
       const [props, renderQrl] = host.split(' ');
       assertDefined(props);
       assertDefined(renderQrl);
-      ctx.$props$ = createProps(getObject(props), ctx.$element$, containerState);
+      ctx.$props$ = getObject(props);
       ctx.$renderQrl$ = getObject(renderQrl);
     }
   });
@@ -181,14 +181,10 @@ const hasContext = (el: Element) => {
 };
 
 export const snapshotState = (containerEl: Element): SnapshotResult => {
-  const {
-    $subsManager$: subsManager,
-    $proxyMap$: proxyMap,
-    $platform$: platform,
-  } = getContainerState(containerEl);
+  const containerState = getContainerState(containerEl);
   const doc = getDocument(containerEl);
   const elementToIndex = new Map<Element, string | null>();
-  const collector = createCollector(doc, proxyMap);
+  const collector = createCollector(doc, containerState);
 
   // Collect all qObjected around the DOM
   const elements = getNodesInScope(containerEl, hasContext);
@@ -216,7 +212,11 @@ export const snapshotState = (containerEl: Element): SnapshotResult => {
   const objToId = new Map<any, number>();
 
   const hasSubscriptions = (a: any) => {
-    const manager = subsManager.$tryGetLocal$(a);
+    const flags = getProxyFlags(containerState.$proxyMap$.get(a));
+    if (typeof flags === 'number' && flags > 0) {
+      return true;
+    }
+    const manager = containerState.$subsManager$.$tryGetLocal$(a);
     if (manager) {
       return manager.$subs$.size > 0;
     }
@@ -240,7 +240,7 @@ export const snapshotState = (containerEl: Element): SnapshotResult => {
 
   const getObjId = (obj: any): string | null => {
     if (isObject(obj)) {
-      const target = obj[QOjectTargetSymbol];
+      const target = getProxyTarget(obj);
       const id = objToId.get(normalizeObj(target ?? obj, doc));
       if (id !== undefined) {
         const proxySuffix = target ? '!' : '';
@@ -287,26 +287,32 @@ export const snapshotState = (containerEl: Element): SnapshotResult => {
 
   const subs = objs
     .map((obj) => {
-      const subs = subsManager.$tryGetLocal$(obj)?.$subs$;
-      if (subs && subs.size > 0) {
-        return Object.fromEntries(
-          Array.from(subs.entries()).map(([sub, set]) => {
-            const id = getObjId(sub);
+      const flags = getProxyFlags(containerState.$proxyMap$.get(obj));
+      if (flags === undefined) {
+        return null;
+      }
+      const subs = containerState.$subsManager$.$tryGetLocal$(obj)?.$subs$;
+      if ((subs && subs.size > 0) || flags !== 0) {
+        const subsObj: Record<string, string[] | number | null> = {};
+        if (flags > 0) {
+          subsObj['$'] = flags;
+        }
+        subs &&
+          subs.forEach((set, key) => {
+            const id = getObjId(key);
             if (id !== null) {
-              return [id, set ? Array.from(set) : null];
-            } else {
-              return [undefined, undefined];
+              subsObj[id] = set ? Array.from(set) : null;
             }
-          })
-        );
+          });
+        return subsObj;
       } else {
         return null;
       }
     })
-    .filter((a) => !!a);
+    .filter(isNotNullable);
 
   const qrlSerializeOptions: QRLSerializeOptions = {
-    $platform$: platform,
+    $platform$: containerState.$platform$,
     $getObjId$: getObjId,
   };
 
@@ -355,7 +361,7 @@ export const snapshotState = (containerEl: Element): SnapshotResult => {
     }
 
     if (elementCaptured && props) {
-      const objs = [getProxyTarget(props)];
+      const objs = [props];
       if (renderQrl) {
         objs.push(renderQrl);
       }
@@ -369,7 +375,7 @@ export const snapshotState = (containerEl: Element): SnapshotResult => {
     if (watches.length > 0) {
       const value = watches
         .map((watch) => getObjId(watch))
-        .filter((obj) => obj != null)
+        .filter(isNotNullable)
         .join(' ');
       if (value) {
         metaValue.w = value;
@@ -504,7 +510,12 @@ const reviveValues = (
       const sub = subs[i];
       if (sub) {
         const converted = new Map();
+        let flags = 0;
         Object.entries(sub).forEach((entry) => {
+          if (entry[0] === '$') {
+            flags = entry[1] as number;
+            return;
+          }
           const el = getObject(entry[0]);
           if (!el) {
             logWarn(
@@ -517,7 +528,7 @@ const reviveValues = (
           const set = entry[1] === null ? null : (new Set(entry[1] as any) as Set<string>);
           converted.set(el, set);
         });
-        _restoreQObject(value, containerState, converted);
+        createProxy(value, containerState, flags, converted);
       }
     }
   }
@@ -570,7 +581,7 @@ const getObjectImpl = (
   const obj = objs[index];
   const needsProxy = id.endsWith('!');
   if (needsProxy && containerState) {
-    return containerState.$proxyMap$.get(obj) ?? readWriteProxy(obj, containerState);
+    return containerState.$proxyMap$.get(obj) ?? getOrCreateProxy(obj, containerState);
   }
   return obj;
 };
@@ -593,7 +604,9 @@ const collectValue = (obj: any, collector: Collector) => {
 };
 
 const collectProps = (el: Element, props: any, collector: Collector) => {
-  const subs = isObject(props) && (props[QOjectSubsSymbol] as SubscriberMap);
+  const subs = collector.$containerState$.$subsManager$.$tryGetLocal$(
+    getProxyTarget(props)
+  )?.$subs$;
   if (subs && subs.has(el)) {
     // The host element read the props
     collectElement(el, collector);
@@ -605,17 +618,17 @@ export interface Collector {
   $objSet$: Set<any>;
   $elements$: Element[];
   $watches$: WatchDescriptor[];
-  $proxyMap$: ObjToProxyMap;
+  $containerState$: ContainerState;
   $doc$: Document;
 }
 
-const createCollector = (doc: Document, proxyMap: ObjToProxyMap): Collector => {
+const createCollector = (doc: Document, containerState: ContainerState): Collector => {
   return {
     $seen$: new Set(),
     $objSet$: new Set(),
     $elements$: [],
     $watches$: [],
-    $proxyMap$: proxyMap,
+    $containerState$: containerState,
     $doc$: doc,
   };
 };
@@ -688,8 +701,8 @@ const collectSubscriptions = (subs: SubscriberMap, collector: Collector) => {
 const collectQObjects = (obj: any, collector: Collector) => {
   if (obj != null) {
     if (typeof obj === 'object') {
-      const hasTarget = !!obj[QOjectTargetSymbol];
-      if (!hasTarget && isNode(obj)) {
+      const target = getProxyTarget(obj);
+      if (!target && isNode(obj)) {
         if (obj.nodeType === 1) {
           return true;
         }
@@ -699,8 +712,7 @@ const collectQObjects = (obj: any, collector: Collector) => {
         collectQrl(obj, collector);
         return true;
       }
-      const proxied = hasTarget ? obj : collector.$proxyMap$.get(obj);
-      const subs = proxied?.[QOjectSubsSymbol] as SubscriberMap;
+      const subs = collector.$containerState$.$subsManager$.$tryGetLocal$(target)?.$subs$;
       if (subs) {
         collectSubscriptions(subs, collector);
       }
@@ -732,13 +744,6 @@ const collectQObjects = (obj: any, collector: Collector) => {
     }
   }
   return false;
-};
-
-export const getProxyTarget = (obj: any): any => {
-  if (isObject(obj)) {
-    return obj[QOjectTargetSymbol];
-  }
-  return undefined;
 };
 
 export const isContainer = (el: Element) => {

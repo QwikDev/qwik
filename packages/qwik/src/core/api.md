@@ -68,18 +68,14 @@ export const component$: <PROPS extends {}>(onMount: OnRenderFn<PROPS>, options?
 // @public (undocumented)
 export type Component<PROPS extends {}> = FunctionComponent<PublicProps<PROPS>>;
 
-// @public (undocumented)
-export type ComponentChild = JSXNode<any> | object | string | number | bigint | boolean | null | undefined;
-
-// @public (undocumented)
-export type ComponentChildren = ComponentChild[] | ComponentChild;
-
 // @alpha (undocumented)
 export interface ComponentCtx {
     // (undocumented)
     $hostElement$: Element;
+    // Warning: (ae-forgotten-export) The symbol "ProcessedJSXNode" needs to be exported by the entry point index.d.ts
+    //
     // (undocumented)
-    $slots$: JSXNode[];
+    $slots$: ProcessedJSXNode[];
     // (undocumented)
     $styleClass$: string | undefined;
     // (undocumented)
@@ -324,20 +320,11 @@ export { jsx as jsxDEV }
 export { jsx as jsxs }
 
 // @public (undocumented)
-export type JSXFactory<T, PROPS extends {} = any> = (props: PROPS, state?: any) => JSXNode<T>;
-
-// @public (undocumented)
 export interface JSXNode<T = any> {
     // (undocumented)
-    children: JSXNode[];
-    // (undocumented)
-    elm?: Node;
-    // (undocumented)
-    key: string | null;
+    key: string | number | null;
     // (undocumented)
     props: Record<string, any> | null;
-    // (undocumented)
-    text?: string;
     // (undocumented)
     type: T;
 }
@@ -361,7 +348,7 @@ export type On$Props<T extends {}> = {
 };
 
 // @public (undocumented)
-export type OnRenderFn<PROPS> = (props: PROPS) => ValueOrPromise<JSXNode<any> | null | (() => JSXNode<any>)>;
+export type OnRenderFn<PROPS> = (props: PROPS) => JSXNode<any> | null | (() => JSXNode<any>);
 
 // @alpha
 export const pauseContainer: (elmOrDoc: Element | Document) => SnapshotResult;
@@ -447,11 +434,6 @@ export interface Ref<T> {
 // @alpha
 export const render: (parent: Element | Document, jsxNode: JSXNode<unknown> | FunctionComponent<any>) => Promise<void>;
 
-// @public (undocumented)
-export type RenderableProps<P, RefType = any> = P & Readonly<{
-    children?: ComponentChildren;
-}>;
-
 // @alpha (undocumented)
 export type ServerFn = () => ValueOrPromise<void | (() => void)>;
 
@@ -498,9 +480,6 @@ export interface Tracker {
     // (undocumented)
     <T extends {}, B extends keyof T>(obj: T, prop: B): T[B];
 }
-
-// @alpha (undocumented)
-export const unwrapSubscriber: <T extends {}>(obj: T) => any;
 
 // @alpha
 export const useCleanup$: (first: () => void) => void;
@@ -603,8 +582,10 @@ export const useServerMount$: (first: ServerFn) => void;
 // @public
 export const useServerMountQrl: (mountQrl: QRL<ServerFn>) => void;
 
+// Warning: (ae-forgotten-export) The symbol "UseStoreOptions" needs to be exported by the entry point index.d.ts
+//
 // @public
-export const useStore: <STATE extends object>(initialState: STATE | (() => STATE)) => STATE;
+export const useStore: <STATE extends object>(initialState: STATE | (() => STATE), opts?: UseStoreOptions) => STATE;
 
 // @public
 export const useStyles$: (first: string) => void;
@@ -635,9 +616,6 @@ export const version: string;
 
 // @alpha (undocumented)
 export type WatchFn = (track: Tracker) => ValueOrPromise<void | (() => void)>;
-
-// @alpha (undocumented)
-export const wrapSubscriber: <T extends {}>(obj: T, subscriber: Subscriber) => any;
 
 // (No @packageDocumentation comment for this package)
 

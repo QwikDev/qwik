@@ -14,9 +14,6 @@ export interface JSXNode<T = any> {
   key: string | number | null;
 }
 
-/**
- * @public
- */
 export interface ProcessedJSXNode {
   $type$: string;
   $props$: Record<string, any> | null;

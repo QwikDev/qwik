@@ -15,14 +15,17 @@ import styles from './index.css?inline';
 export const App = component$(() => {
   useStyles$(styles);
 
-  const todos = useStore<Todos>({
-    filter: 'all',
-    items: [
-      { completed: false, title: 'Read Qwik docs' },
-      { completed: false, title: 'Build HelloWorld' },
-      { completed: false, title: 'Profit' },
-    ],
-  });
+  const todos = useStore<Todos>(
+    {
+      filter: 'all',
+      items: [
+        { completed: false, title: 'Read Qwik docs' },
+        { completed: false, title: 'Build HelloWorld' },
+        { completed: false, title: 'Profit' },
+      ],
+    },
+    { recursive: true }
+  );
   return (
     <section class="todoapp">
       <Header todos={todos} />

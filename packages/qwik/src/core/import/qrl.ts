@@ -7,7 +7,6 @@ import { getDocument } from '../util/dom';
 import { logError } from '../util/log';
 import { then } from '../util/promises';
 import { getPlatform } from '../platform/platform';
-import { unwrapSubscriber } from '../use/use-subscriber';
 import { tryGetInvokeContext } from '../use/use-core';
 import {
   codeToText,
@@ -18,8 +17,7 @@ import {
   QError_unknownTypeArgument,
 } from '../error/error';
 import { qDev } from '../util/qdev';
-import { getProxyTarget } from '../object/store';
-import { verifySerializable } from '../object/q-object';
+import { getProxyTarget, verifySerializable } from '../object/q-object';
 
 let runtimeSymbolId = 0;
 const RUNTIME_QRL = '/runtimeQRL';
@@ -157,7 +155,6 @@ export const inlinedQrl = <T>(
 const unwrapLexicalScope = (lexicalScope: any[] | null) => {
   if (isArray(lexicalScope)) {
     for (let i = 0; i < lexicalScope.length; i++) {
-      lexicalScope[i] = unwrapSubscriber(lexicalScope[i]);
       if (qDev) {
         verifySerializable(getProxyTarget(lexicalScope[i]) ?? lexicalScope[i]);
       }

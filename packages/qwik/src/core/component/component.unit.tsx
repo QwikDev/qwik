@@ -11,7 +11,7 @@ describe('q-component', () => {
     const fixture = new ElementFixture();
     await render(fixture.host, <HelloWorld></HelloWorld>);
     const Div = 'div' as any;
-    expectDOM(
+    await expectDOM(
       fixture.host,
       <host>
         <Div q:host="">
@@ -24,7 +24,7 @@ describe('q-component', () => {
   it('should render Counter and accept events', async () => {
     const fixture = new ElementFixture();
     await render(fixture.host, <MyCounter step={5} value={15} />);
-    expectDOM(
+    await expectDOM(
       fixture.host,
       <host>
         <my-counter>
@@ -37,7 +37,7 @@ describe('q-component', () => {
       </host>
     );
     await trigger(fixture.host, 'button.decrement', 'click');
-    expectDOM(
+    await expectDOM(
       fixture.host,
       <host>
         <my-counter>
@@ -67,7 +67,7 @@ describe('q-component', () => {
     };
     await render(host, <Items items={items} />);
     await delay(0);
-    expectDOM(
+    await expectDOM(
       host,
       <host>
         <items>

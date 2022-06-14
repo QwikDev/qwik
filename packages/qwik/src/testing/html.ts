@@ -1,4 +1,7 @@
-import { isTemplate } from './jsx';
+export function isTemplate(node: Node | null | undefined): node is HTMLTemplateElement {
+  const tagName = (node && (node as Element).tagName) || '';
+  return tagName.toUpperCase() == 'TEMPLATE';
+}
 
 export function prettyHtml(element: HTMLElement, prefix: string = ''): any {
   const lines = [];

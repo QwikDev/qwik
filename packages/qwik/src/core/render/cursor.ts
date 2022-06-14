@@ -10,8 +10,7 @@ import {
 } from '../props/props';
 import { isOn$Prop, isOnProp } from '../props/props-on';
 import { isArray, isString, ValueOrPromise } from '../util/types';
-import type { JSXNode } from '../render/jsx/types/jsx-node';
-import { Host } from '../render/jsx/host.public';
+import type { ProcessedJSXNode } from '../render/jsx/types/jsx-node';
 import { $, QRL } from '../import/qrl.public';
 import { firstRenderComponent, renderComponent } from './render-component';
 import { promiseAll, then } from '../util/promises';
@@ -19,12 +18,12 @@ import type { ContainerState } from './notify-render';
 import { assertDefined, assertEqual } from '../assert/assert';
 import { intToStr } from '../object/store';
 import { EMPTY_ARRAY } from '../util/flyweight';
-import { SkipRerender } from './jsx/host.public';
 import { logDebug, logError, logWarn } from '../util/log';
 import { qDev } from '../util/qdev';
 import {
   codeToText,
   qError,
+  QError_hostCanOnlyBeAtRoot,
   QError_setProperty,
   QError_stringifyClassOrStyle,
 } from '../error/error';
@@ -35,6 +34,7 @@ import type { Ref } from '../use/use-store.public';
 import type { SubscriptionManager } from '../object/q-object';
 import { getDocument } from '../util/dom';
 import { directGetAttribute, directSetAttribute } from './fast-calls';
+import { HOST_TYPE, SKIP_RENDER_TYPE } from './jsx/jsx-runtime';
 
 export const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -75,7 +75,8 @@ export interface RenderContext {
   $roots$: Element[];
   $hostElements$: Set<Element>;
   $operations$: RenderOperation[];
-  $components$: ComponentCtx[];
+  $contexts$: QContext[];
+  $currentComponent$: ComponentCtx | undefined;
   $containerState$: ContainerState;
   $containerEl$: Element;
   $perf$: RenderPerf;
@@ -84,22 +85,22 @@ export interface RenderContext {
 export const smartUpdateChildren = (
   ctx: RenderContext,
   elm: Node,
-  ch: JSXNode[],
+  ch: ProcessedJSXNode[],
   mode: ChildrenMode,
   isSvg: boolean
 ) => {
-  if (ch.length === 1 && ch[0].type === SkipRerender) {
+  if (ch.length === 1 && ch[0].$type$ === SKIP_RENDER_TYPE) {
     if (elm.firstChild !== null) {
       return;
     }
-    ch = ch[0].children;
+    ch = ch[0].$children$;
   }
   const oldCh = getChildren(elm, mode);
 
   if (oldCh.length > 0 && ch.length > 0) {
     return updateChildren(ctx, elm, oldCh, ch, isSvg);
   } else if (ch.length > 0) {
-    return addVnodes(ctx, elm, undefined, ch, 0, ch.length - 1, isSvg);
+    return addVnodes(ctx, elm, null, ch, 0, ch.length - 1, isSvg);
   } else if (oldCh.length > 0) {
     return removeVnodes(ctx, oldCh, 0, oldCh.length - 1);
   }
@@ -109,7 +110,7 @@ export const updateChildren = (
   ctx: RenderContext,
   parentElm: Node,
   oldCh: Node[],
-  newCh: JSXNode[],
+  newCh: ProcessedJSXNode[],
   isSvg: boolean
 ): ValueOrPromise<void> => {
   let oldStartIdx = 0;
@@ -160,7 +161,7 @@ export const updateChildren = (
       if (oldKeyToIdx === undefined) {
         oldKeyToIdx = createKeyToOldIdx(oldCh, oldStartIdx, oldEndIdx);
       }
-      idxInOld = oldKeyToIdx[newStartVnode.key as string];
+      idxInOld = oldKeyToIdx[newStartVnode.$key$ as string];
       if (idxInOld === undefined) {
         // New element
         const newElm = createElm(ctx, newStartVnode, isSvg);
@@ -171,7 +172,7 @@ export const updateChildren = (
         );
       } else {
         elmToMove = oldCh[idxInOld];
-        if (!isTagName(elmToMove, newStartVnode.type)) {
+        if (!isTagName(elmToMove, newStartVnode.$type$)) {
           const newElm = createElm(ctx, newStartVnode, isSvg);
           results.push(
             then(newElm, (newElm) => {
@@ -189,7 +190,7 @@ export const updateChildren = (
   }
 
   if (newStartIdx <= newEndIdx) {
-    const before = newCh[newEndIdx + 1] == null ? undefined : newCh[newEndIdx + 1].elm;
+    const before = newCh[newEndIdx + 1] == null ? null : newCh[newEndIdx + 1].$elm$;
     results.push(addVnodes(ctx, parentElm, before, newCh, newStartIdx, newEndIdx, isSvg));
   }
 
@@ -202,8 +203,8 @@ export const updateChildren = (
   return wait;
 };
 
-const isComponentNode = (node: JSXNode) => {
-  return node.props && OnRenderProp in node.props;
+const isComponentNode = (node: ProcessedJSXNode) => {
+  return node.$props$ && OnRenderProp in node.$props$;
 };
 
 const getCh = (elm: Node, filter: (el: Node) => boolean) => {
@@ -256,25 +257,29 @@ const splitBy = <T>(input: T[], condition: (item: T) => string): Record<string, 
 export const patchVnode = (
   rctx: RenderContext,
   elm: Node,
-  vnode: JSXNode<any>,
+  vnode: ProcessedJSXNode,
   isSvg: boolean
 ): ValueOrPromise<void> => {
-  vnode.elm = elm;
-  const tag = vnode.type;
+  vnode.$elm$ = elm;
+  const tag = vnode.$type$;
   if (tag === '#text') {
-    if ((elm as Text).data !== vnode.text) {
-      setProperty(rctx, elm, 'data', vnode.text);
+    if ((elm as Text).data !== vnode.$text$) {
+      setProperty(rctx, elm, 'data', vnode.$text$);
     }
     return;
   }
   if (tag === '#comment') {
-    if ((elm as Comment).data !== vnode.text) {
-      setProperty(rctx, elm, 'data', vnode.text);
+    if ((elm as Comment).data !== vnode.$text$) {
+      setProperty(rctx, elm, 'data', vnode.$text$);
     }
     return;
   }
 
-  if (tag === Host || tag === SkipRerender) {
+  if (tag === HOST_TYPE) {
+    throw qError(QError_hostCanOnlyBeAtRoot);
+  }
+
+  if (tag === SKIP_RENDER_TYPE) {
     return;
   }
 
@@ -283,36 +288,38 @@ export const patchVnode = (
   }
 
   let promise: ValueOrPromise<void>;
-  const props = vnode.props;
+  const props = vnode.$props$;
   const ctx = getContext(elm as Element);
   const dirty = updateProperties(rctx, ctx, props, isSvg);
   const isSlot = tag === 'q:slot';
-  if (isSvg && vnode.type === 'foreignObject') {
+  if (isSvg && vnode.$type$ === 'foreignObject') {
     isSvg = false;
   } else if (isSlot) {
-    const currentComponent =
-      rctx.$components$.length > 0 ? rctx.$components$[rctx.$components$.length - 1] : undefined;
+    const currentComponent = rctx.$currentComponent$;
     if (currentComponent) {
       currentComponent.$slots$.push(vnode);
     }
   }
   const isComponent = isComponentNode(vnode);
   if (dirty) {
+    assertEqual(isComponent, true);
     promise = renderComponent(rctx, ctx);
   }
-  const ch = vnode.children;
+  const ch = vnode.$children$;
   if (isComponent) {
     return then(promise, () => {
       const slotMaps = getSlots(ctx.$component$, elm as Element);
       const splittedChidren = splitBy(ch, getSlotName);
       const promises: ValueOrPromise<void>[] = [];
+      const slotRctx = copyRenderContext(rctx);
+      slotRctx.$contexts$.push(ctx);
 
       // Mark empty slots and remove content
       Object.entries(slotMaps.slots).forEach(([key, slotEl]) => {
         if (slotEl && !splittedChidren[key]) {
           const oldCh = getChildren(slotEl, 'slot');
           if (oldCh.length > 0) {
-            removeVnodes(rctx, oldCh, 0, oldCh.length - 1);
+            removeVnodes(slotRctx, oldCh, 0, oldCh.length - 1);
           }
         }
       });
@@ -320,18 +327,17 @@ export const patchVnode = (
       // Mark empty slots and remove content
       Object.entries(slotMaps.templates).forEach(([key, templateEl]) => {
         if (templateEl && !splittedChidren[key]) {
-          removeNode(rctx, templateEl);
+          removeNode(slotRctx, templateEl);
           slotMaps.templates[key] = undefined;
         }
       });
-
       // Render into slots
       Object.entries(splittedChidren).forEach(([key, ch]) => {
-        const slotElm = getSlotElement(rctx, slotMaps, elm as Element, key);
-        promises.push(smartUpdateChildren(rctx, slotElm, ch, 'slot', isSvg));
+        const slotElm = getSlotElement(slotRctx, slotMaps, elm as Element, key);
+        promises.push(smartUpdateChildren(slotRctx, slotElm, ch, 'slot', isSvg));
       });
       return then(promiseAll(promises), () => {
-        removeTemplates(rctx, slotMaps);
+        removeTemplates(slotRctx, slotMaps);
       });
     });
   }
@@ -351,8 +357,8 @@ export const patchVnode = (
 const addVnodes = (
   ctx: RenderContext,
   parentElm: Node,
-  before: Node | undefined,
-  vnodes: JSXNode[],
+  before: Node | null,
+  vnodes: ProcessedJSXNode[],
   startIdx: number,
   endIdx: number,
   isSvg: boolean
@@ -363,7 +369,7 @@ const addVnodes = (
     assertDefined(ch);
     promises.push(createElm(ctx, ch, isSvg));
   }
-  return then(promiseAll(promises) as any, (children: Node[]) => {
+  return then(promiseAll(promises), (children) => {
     for (const child of children) {
       insertBefore(ctx, parentElm, child, before);
     }
@@ -479,33 +485,40 @@ export const resolveSlotProjection = (
   });
 };
 
-const getSlotName = (node: JSXNode): string => {
-  return node.props?.['q:slot'] ?? '';
+const getSlotName = (node: ProcessedJSXNode): string => {
+  return node.$props$?.['q:slot'] ?? '';
 };
 
-const createElm = (rctx: RenderContext, vnode: JSXNode, isSvg: boolean): ValueOrPromise<Node> => {
+const createElm = (
+  rctx: RenderContext,
+  vnode: ProcessedJSXNode,
+  isSvg: boolean
+): ValueOrPromise<Node> => {
   rctx.$perf$.$visited$++;
-  const tag = vnode.type;
+  const tag = vnode.$type$;
   if (tag === '#text') {
-    return (vnode.elm = createTextNode(rctx, vnode.text!));
+    return (vnode.$elm$ = createTextNode(rctx, vnode.$text$!));
+  }
+
+  if (tag === HOST_TYPE) {
+    throw qError(QError_hostCanOnlyBeAtRoot);
   }
 
   if (!isSvg) {
     isSvg = tag === 'svg';
   }
 
-  const props = vnode.props;
-  const elm = (vnode.elm = createElement(rctx, tag, isSvg));
+  const props = vnode.$props$;
+  const elm = (vnode.$elm$ = createElement(rctx, tag, isSvg));
   const isComponent = isComponentNode(vnode);
   const ctx = getContext(elm);
-  setKey(elm, vnode.key);
+  setKey(elm, vnode.$key$);
   updateProperties(rctx, ctx, props, isSvg);
 
   if (isSvg && tag === 'foreignObject') {
     isSvg = false;
   }
-  const currentComponent =
-    rctx.$components$.length > 0 ? rctx.$components$[rctx.$components$.length - 1] : undefined;
+  const currentComponent = rctx.$currentComponent$;
   if (currentComponent) {
     const styleTag = currentComponent.$styleClass$;
     if (styleTag) {
@@ -526,27 +539,29 @@ const createElm = (rctx: RenderContext, vnode: JSXNode, isSvg: boolean): ValueOr
   } else {
     const setsInnerHTML = checkInnerHTML(props);
     if (setsInnerHTML) {
-      if (qDev && vnode.children.length > 0) {
+      if (qDev && vnode.$children$.length > 0) {
         logWarn('Node can not have children when innerHTML is set');
       }
       return elm;
     }
   }
   return then(wait, () => {
-    let children = vnode.children;
+    let children = vnode.$children$;
     if (children.length > 0) {
-      if (children.length === 1 && children[0].type === SkipRerender) {
-        children = children[0].children;
+      if (children.length === 1 && children[0].$type$ === SKIP_RENDER_TYPE) {
+        children = children[0].$children$;
       }
+      const slotRctx = copyRenderContext(rctx);
+      slotRctx.$contexts$.push(ctx);
       const slotMap = isComponent ? getSlots(ctx.$component$, elm) : undefined;
-      const promises = children.map((ch) => createElm(rctx, ch, isSvg));
-      return then(promiseAll(promises) as any, () => {
+      const promises = children.map((ch) => createElm(slotRctx, ch, isSvg));
+      return then(promiseAll(promises), () => {
         let parent = elm;
         for (const node of children) {
           if (slotMap) {
-            parent = getSlotElement(rctx, slotMap, elm, getSlotName(node));
+            parent = getSlotElement(slotRctx, slotMap, elm, getSlotName(node));
           }
-          parent.appendChild(node.elm!);
+          parent.appendChild(node.$elm$!);
         }
         return elm;
       });
@@ -574,7 +589,7 @@ const getSlots = (componentCtx: ComponentCtx | undefined, hostElm: Element): Slo
 
   // Map virtual slots
   for (const vnode of newSlots) {
-    slots[vnode.props?.name ?? ''] = vnode.elm as Element;
+    slots[vnode.$props$?.name ?? ''] = vnode.$elm$ as Element;
   }
 
   // Map templates
@@ -708,6 +723,35 @@ export const updateProperties = (
     setAttribute(rctx, elm, key, newValue);
   }
   return ctx.$dirty$;
+};
+
+export const createRenderContext = (
+  doc: Document,
+  containerState: ContainerState,
+  containerEl: Element
+): RenderContext => {
+  const ctx: RenderContext = {
+    $doc$: doc,
+    $containerState$: containerState,
+    $containerEl$: containerEl,
+    $hostElements$: new Set(),
+    $operations$: [],
+    $roots$: [],
+    $contexts$: [],
+    $currentComponent$: undefined,
+    $perf$: {
+      $visited$: 0,
+    },
+  };
+  return ctx;
+};
+
+export const copyRenderContext = (ctx: RenderContext): RenderContext => {
+  const newCtx: RenderContext = {
+    ...ctx,
+    $contexts$: [...ctx.$contexts$],
+  };
+  return newCtx;
 };
 
 export const setAttribute = (
@@ -957,16 +1001,16 @@ const setKey = (el: Element, key: string | null) => {
   (el as any)[KEY_SYMBOL] = key;
 };
 
-const sameVnode = (elm: Node, vnode2: JSXNode): boolean => {
+const sameVnode = (elm: Node, vnode2: ProcessedJSXNode): boolean => {
   const isElement = elm.nodeType === 1;
   if (isElement) {
-    const isSameSel = (elm as Element).localName === vnode2.type;
+    const isSameSel = (elm as Element).localName === vnode2.$type$;
     if (!isSameSel) {
       return false;
     }
-    return getKey(elm as Element) === vnode2.key;
+    return getKey(elm as Element) === vnode2.$key$;
   }
-  return elm.nodeName === vnode2.type;
+  return elm.nodeName === vnode2.$type$;
 };
 
 const isTagName = (elm: Node, tagName: string): boolean => {

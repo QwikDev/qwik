@@ -51,12 +51,18 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       let target: QwikBuildTarget;
       if (viteConfig.build?.ssr || viteEnv.mode === 'ssr') {
         target = 'ssr';
+      } else if (viteEnv.mode === 'lib') {
+        target = 'lib';
       } else {
         target = 'client';
       }
 
       let buildMode: QwikBuildMode;
-      if (viteEnv.command === 'build' && viteEnv.mode !== 'development') {
+      if (viteEnv.mode === 'production') {
+        buildMode = 'production';
+      } else if (viteEnv.mode === 'development') {
+        buildMode = 'development';
+      } else if (viteEnv.command === 'build' && target === 'client') {
         // build (production)
         buildMode = 'production';
       } else {
@@ -64,10 +70,13 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         buildMode = 'development';
       }
 
-      if (buildMode === 'development') {
+      let forceFullBuild = true;
+      if (viteEnv.command === 'serve') {
         qwikViteOpts.entryStrategy = { type: 'hook' };
+        forceFullBuild = false;
+      } else {
+        forceFullBuild = true;
       }
-
       const pluginOpts: QwikPluginOptions = {
         target,
         buildMode,
@@ -75,8 +84,12 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         entryStrategy: qwikViteOpts.entryStrategy,
         rootDir: viteConfig.root,
         transformedModuleOutput: qwikViteOpts.transformedModuleOutput,
+        forceFullBuild,
       };
 
+      if (viteEnv.command === 'serve') {
+        qwikViteOpts.entryStrategy = { type: 'hook' };
+      }
       if (target === 'ssr') {
         // ssr
         if (typeof viteConfig.build?.ssr === 'string') {
@@ -90,14 +103,41 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
         pluginOpts.outDir = qwikViteOpts.ssr?.outDir;
         pluginOpts.manifestInput = qwikViteOpts.ssr?.manifestInput;
-      } else {
+      } else if (target === 'client') {
         // client
         pluginOpts.input = qwikViteOpts.client?.input;
         pluginOpts.outDir = qwikViteOpts.client?.outDir;
         pluginOpts.manifestOutput = qwikViteOpts.client?.manifestOutput;
+      } else {
+        // TODO: lib
+        pluginOpts.input = qwikViteOpts.client?.input;
+        pluginOpts.outDir = qwikViteOpts.client?.outDir;
       }
 
       if (sys.env === 'node') {
+        const rootDir = pluginOpts.rootDir ?? sys.cwd();
+        const packageJsonPath = sys.path.join(rootDir, 'package.json');
+        const fs: typeof import('fs') = await sys.dynamicImport('fs');
+        const pkgString = fs.readFileSync(packageJsonPath, { encoding: 'utf-8' });
+        if (pkgString) {
+          try {
+            const data = JSON.parse(pkgString);
+
+            if (typeof data.name === 'string') {
+              pluginOpts.scope = data.name;
+            }
+            if (target === 'ssr') {
+              if (typeof data.qwik !== 'string') {
+                console.warn(
+                  'Missing package.qwik. When building a qwik library, make sure your package.json includes the "qwik" property pointing to the main ESM entry point.'
+                );
+              }
+            }
+          } catch (e) {
+            console.error(e);
+          }
+        }
+
         // In a NodeJs environment, create a path to a q-manifest.json file within the
         // OS tmp directory. This path should always be the same for both client and ssr.
         // Client build will write to this path, and SSR will read from it. For this reason,
@@ -108,7 +148,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         if (target === 'ssr' && !pluginOpts.manifestInput) {
           // This is a SSR build so we should load the client build's manifest
           // so it can be used as the manifestInput of the SSR build
-          const fs: typeof import('fs') = await sys.dynamicImport('fs');
           try {
             const clientManifestStr = await fs.promises.readFile(tmpClientManifestPath, 'utf-8');
             pluginOpts.manifestInput = JSON.parse(clientManifestStr);

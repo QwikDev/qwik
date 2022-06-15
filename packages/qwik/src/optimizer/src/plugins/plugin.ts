@@ -40,6 +40,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     manifestInput: null,
     manifestOutput: null,
     transformedModuleOutput: null,
+    scope: null,
   };
 
   const init = async () => {
@@ -73,13 +74,19 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
     opts.debug = !!updatedOpts.debug;
 
-    if (updatedOpts.target === 'ssr' || updatedOpts.target === 'client') {
+    if (
+      updatedOpts.target === 'ssr' ||
+      updatedOpts.target === 'client' ||
+      updatedOpts.target === 'lib'
+    ) {
       opts.target = updatedOpts.target;
     } else {
       opts.target = 'client';
     }
 
-    if (updatedOpts.buildMode === 'production' || updatedOpts.buildMode === 'development') {
+    if (opts.target === 'lib') {
+      opts.buildMode = 'development';
+    } else if (updatedOpts.buildMode === 'production' || updatedOpts.buildMode === 'development') {
       opts.buildMode = updatedOpts.buildMode;
     } else {
       opts.buildMode = 'development';
@@ -89,13 +96,13 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       opts.entryStrategy = { ...updatedOpts.entryStrategy };
     }
     if (!opts.entryStrategy) {
-      if (opts.buildMode === 'development') {
-        opts.entryStrategy = { type: 'hook' };
+      if (opts.target === 'ssr' || opts.target === 'lib') {
+        opts.entryStrategy = { type: 'inline' };
       } else {
-        if (opts.target === 'ssr') {
-          opts.entryStrategy = { type: 'inline' };
-        } else {
+        if (opts.buildMode === 'production') {
           opts.entryStrategy = { type: 'smart' };
+        } else {
+          opts.entryStrategy = { type: 'hook' };
         }
       }
     }
@@ -123,14 +130,16 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     if (typeof updatedOpts.forceFullBuild === 'boolean') {
       opts.forceFullBuild = updatedOpts.forceFullBuild;
     } else {
-      if (opts.buildMode === 'production') {
-        opts.forceFullBuild = true;
-      } else {
-        opts.forceFullBuild = opts.entryStrategy.type !== 'hook' || !!updatedOpts.srcInputs;
-      }
+      opts.forceFullBuild =
+        (opts.entryStrategy.type !== 'hook' && opts.entryStrategy.type !== 'inline') ||
+        !!updatedOpts.srcInputs;
     }
 
-    if (opts.forceFullBuild === false && opts.entryStrategy.type !== 'hook') {
+    if (
+      opts.forceFullBuild === false &&
+      opts.entryStrategy.type !== 'hook' &&
+      opts.entryStrategy.type !== 'inline'
+    ) {
       console.error(`forceFullBuild cannot be false with entryStrategy ${opts.entryStrategy.type}`);
       opts.forceFullBuild = true;
     }
@@ -156,9 +165,12 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       if (opts.target === 'ssr') {
         // ssr input default
         opts.input = [path.resolve(srcDir, 'entry.ssr.tsx')];
-      } else {
+      } else if (opts.target === 'client') {
         // client input default
         opts.input = [path.resolve(srcDir, 'root.tsx')];
+      } else if (opts.target === 'lib') {
+        // client input default
+        opts.input = [path.resolve(srcDir, 'index.tsx')];
       }
     }
     opts.input = opts.input.map((input) => {
@@ -187,6 +199,8 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     if (typeof updatedOpts.transformedModuleOutput === 'function') {
       opts.transformedModuleOutput = updatedOpts.transformedModuleOutput;
     }
+
+    opts.scope = updatedOpts.scope ?? null;
 
     return { ...opts };
   };
@@ -217,7 +231,12 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
   };
 
   const buildStart = async (_ctx: any) => {
-    log(`buildStart()`, opts.buildMode, opts.forceFullBuild ? 'full build' : 'isolated build');
+    log(
+      `buildStart()`,
+      opts.buildMode,
+      opts.forceFullBuild ? 'full build' : 'isolated build',
+      opts.scope
+    );
 
     if (opts.forceFullBuild) {
       const optimizer = getOptimizer();
@@ -249,6 +268,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         transpile: true,
         explicityExtensions: true,
         dev: opts.buildMode === 'development',
+        scope: opts.scope ? opts.scope : undefined,
       };
 
       const result = await optimizer.transformFs(transformOpts);
@@ -271,6 +291,12 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     _resolveIdOpts?: { ssr?: boolean }
   ) => {
     const path = getPath();
+    if (opts.target === 'lib' && id.startsWith(QWIK_CORE_ID)) {
+      return {
+        external: true,
+        id,
+      };
+    }
 
     if (id === QWIK_BUILD_ID) {
       log(`resolveId()`, 'Resolved', QWIK_BUILD_ID);
@@ -282,6 +308,13 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
     if (id.endsWith(QWIK_CLIENT_MANIFEST_ID)) {
       log(`resolveId()`, 'Resolved', QWIK_CLIENT_MANIFEST_ID);
+      if (opts.target === 'lib') {
+        return {
+          id: id,
+          external: true,
+          moduleSideEffects: false,
+        };
+      }
       return {
         id: path.resolve(opts.input[0], QWIK_CLIENT_MANIFEST_ID),
         moduleSideEffects: false,
@@ -418,6 +451,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         explicityExtensions: true,
         rootDir: normalizePath(dir),
         dev: opts.buildMode === 'development',
+        scope: opts.scope ? opts.scope : undefined,
       });
 
       diagnosticsCallback(newOutput.diagnostics, optimizer);
@@ -611,6 +645,7 @@ export interface QwikPluginOptions {
   format?: 'es' | 'cjs';
   outDir?: string;
   srcDir?: string | null;
+  scope?: string | null;
   srcInputs?: TransformModuleInput[] | null;
   target?: QwikBuildTarget;
   transformedModuleOutput?:
@@ -622,6 +657,6 @@ export interface NormalizedQwikPluginOptions extends Required<QwikPluginOptions>
   input: string[];
 }
 
-export type QwikBuildTarget = 'client' | 'ssr';
+export type QwikBuildTarget = 'client' | 'ssr' | 'lib';
 
 export type QwikBuildMode = 'production' | 'development';

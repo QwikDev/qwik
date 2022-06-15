@@ -77,7 +77,7 @@ describe('rollup  plugin', () => {
     expect(opts.target).toBe('client');
     expect(opts.buildMode).toBe('development');
     expect(opts.entryStrategy).toEqual({ type: 'hook' });
-    expect(opts.forceFullBuild).toEqual(false);
+    expect(opts.forceFullBuild).toEqual(true);
     expect(opts.rootDir).toEqual(cwd);
     expect(opts.srcDir).toEqual(resolve(cwd, 'src'));
   });
@@ -91,7 +91,7 @@ describe('rollup  plugin', () => {
     expect(opts.target).toBe('client');
     expect(opts.buildMode).toBe('development');
     expect(opts.entryStrategy).toEqual({ type: 'hook' });
-    expect(opts.forceFullBuild).toEqual(false);
+    expect(opts.forceFullBuild).toEqual(true);
   });
 
   it('rollup input, client/production default', async () => {
@@ -116,8 +116,8 @@ describe('rollup  plugin', () => {
     const opts: NormalizedQwikPluginOptions = plugin.api.getOptions();
     expect(opts.target).toBe('ssr');
     expect(opts.buildMode).toBe('development');
-    expect(opts.entryStrategy).toEqual({ type: 'hook' });
-    expect(opts.forceFullBuild).toEqual(false);
+    expect(opts.entryStrategy).toEqual({ type: 'inline' });
+    expect(opts.forceFullBuild).toEqual(true);
   });
 
   it('rollup input, ssr/production default', async () => {
@@ -133,6 +133,19 @@ describe('rollup  plugin', () => {
     expect(opts.forceFullBuild).toEqual(true);
   });
 
+  it('rollup input, lib/production default', async () => {
+    initOpts.target = 'lib';
+    initOpts.buildMode = 'production';
+    const plugin = qwikRollup(initOpts);
+    await plugin.options!({});
+
+    const opts: NormalizedQwikPluginOptions = plugin.api.getOptions();
+    expect(opts.target).toBe('lib');
+    expect(opts.buildMode).toBe('development');
+    expect(opts.entryStrategy).toEqual({ type: 'inline' });
+    expect(opts.forceFullBuild).toEqual(true);
+  });
+
   it('rollup input, forceFullBuild true', async () => {
     initOpts.forceFullBuild = true;
     initOpts.target = 'ssr';
@@ -143,7 +156,7 @@ describe('rollup  plugin', () => {
     const opts: NormalizedQwikPluginOptions = plugin.api.getOptions();
     expect(opts.target).toBe('ssr');
     expect(opts.buildMode).toBe('development');
-    expect(opts.entryStrategy).toEqual({ type: 'hook' });
+    expect(opts.entryStrategy).toEqual({ type: 'inline' });
     expect(opts.forceFullBuild).toEqual(true);
   });
 

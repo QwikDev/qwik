@@ -1,6 +1,14 @@
-import { component$, $, useStore } from '@builder.io/qwik';
+import { component$, $, useStore, mutable } from '@builder.io/qwik';
 
 export const LexicalScope = component$(() => {
+  return <LexicalScopeChild message={mutable('mutable message')}></LexicalScopeChild>;
+});
+
+interface LexicalScopeProps {
+  message: string;
+}
+
+export const LexicalScopeChild = component$((props: LexicalScopeProps) => {
   const state = useStore({
     count: 0,
     result: '',
@@ -24,7 +32,7 @@ export const LexicalScope = component$(() => {
   const h = false;
 
   const onclick = $(() => {
-    state.result = JSON.stringify([a, b, c, String(d), String(e), f, g, h]);
+    state.result = JSON.stringify([a, b, c, String(d), String(e), f, g, h, props.message]);
     state.count++;
   });
 
@@ -39,6 +47,7 @@ export const LexicalScope = component$(() => {
         <p>{JSON.stringify(f)}</p>
         <p>{JSON.stringify(g)}</p>
         <p>{JSON.stringify(h)}</p>
+        <p>{props.message}</p>
       </div>
       <button onClickQrl={onclick} id="rerender">
         Rerender {state.count}

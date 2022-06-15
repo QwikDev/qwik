@@ -133,7 +133,7 @@ export const receiveMessageFromReplServer = (ev: MessageEvent, store: ReplStore)
       updateReplOutput(store, msg);
     } else if (type === 'event') {
       // received an event from the user's app
-      store.events.push(msg.event);
+      store.events = [...store.events, msg.event];
     } else if (type === 'apploaded') {
       store.isLoading = false;
     }

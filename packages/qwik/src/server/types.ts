@@ -1,5 +1,6 @@
 import type { SnapshotResult } from '../core/object/store';
 import type { QwikManifest, QwikBundle, QwikSymbol, GlobalInjections } from '../optimizer/src';
+import type { SymbolMapperFn } from '../optimizer/src/types';
 
 /**
  * Partial Document used by Qwik Framework.
@@ -14,6 +15,7 @@ export interface QwikDocument extends Document {}
  */
 export interface SerializeDocumentOptions {
   manifest?: QwikManifest;
+  symbolMapper?: SymbolMapperFn;
   url?: URL | string;
   html?: string;
   debug?: boolean;

@@ -395,8 +395,16 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             const renderToStringOpts: RenderToStringOptions = {
               url: url.href,
               debug: true,
-              manifest: isClientDevOnly ? undefined : manifest,
               snapshot: !isClientDevOnly,
+              manifest: isClientDevOnly ? undefined : manifest,
+              symbolMapper: isClientDevOnly
+                ? undefined
+                : (symbolName, mapper) => {
+                    if (mapper) {
+                      const hash = getSymbolHash(symbolName);
+                      return mapper[hash];
+                    }
+                  },
               prefetchStrategy: null,
             };
 
@@ -483,6 +491,14 @@ export function render(document, rootNode) {
   }
 }`;
 }
+
+const getSymbolHash = (symbolName: string) => {
+  const index = symbolName.lastIndexOf('_');
+  if (index > -1) {
+    return symbolName.slice(index + 1);
+  }
+  return symbolName;
+};
 
 const VITE_CLIENT_MODULE = `@builder.io/qwik/vite-client`;
 const VITE_DEV_CLIENT_QS = `qwik-vite-dev-client`;

@@ -15,15 +15,18 @@ import styles from './index.css?inline';
 export const App = component$(() => {
   useStyles$(styles);
 
-  const todos = useStore<Todos>({
-    filter: 'all',
-    items: [
-      { completed: false, title: 'Read Qwik docs', id: '0' },
-      { completed: false, title: 'Build HelloWorld', id: '1' },
-      { completed: false, title: 'Profit', id: '2' },
-    ],
-    nextItemId: 3,
-  });
+  const todos = useStore<Todos>(
+    {
+      filter: 'all',
+      items: [
+        { completed: false, title: 'Read Qwik docs', id: '0' },
+        { completed: false, title: 'Build HelloWorld', id: '1' },
+        { completed: false, title: 'Profit', id: '2' },
+      ],
+      nextItemId: 3,
+    },
+    { recursive: true }
+  );
   useContextProvider(TODOS, todos);
 
   return (

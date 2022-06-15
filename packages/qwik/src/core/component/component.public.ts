@@ -2,7 +2,6 @@ import { $, QRL } from '../import/qrl.public';
 import type { JSXNode } from '../render/jsx/types/jsx-node';
 import { OnRenderProp } from '../util/markers';
 import type { ComponentBaseProps } from '../render/jsx/types/jsx-qwik-attributes';
-import type { ValueOrPromise } from '../util/types';
 import type { FunctionComponent } from '../render/jsx/types/jsx-node';
 import { jsx } from '../render/jsx/jsx-runtime';
 import type { MutableWrapper } from '../object/q-object';
@@ -196,9 +195,7 @@ export const component$ = <PROPS extends {}>(
 /**
  * @public
  */
-export type OnRenderFn<PROPS> = (
-  props: PROPS
-) => ValueOrPromise<JSXNode<any> | null | (() => JSXNode<any>)>;
+export type OnRenderFn<PROPS> = (props: PROPS) => JSXNode<any> | null | (() => JSXNode<any>);
 
 export interface RenderFactoryOutput<PROPS> {
   renderQRL: QRL<OnRenderFn<PROPS>>;

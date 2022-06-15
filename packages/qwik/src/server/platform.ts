@@ -21,6 +21,19 @@ function createPlatform(
     doc.location.href = normalizeUrl(opts.url).href;
   }
 
+  const mapperFn = opts.symbolMapper
+    ? opts.symbolMapper
+    : (symbolName: string) => {
+        if (mapper) {
+          const hash = getSymbolHash(symbolName);
+          const result = mapper[hash];
+          if (!result) {
+            logError('Cannot resolved symbol', symbolName, 'in', mapper);
+          }
+          return result;
+        }
+      };
+
   const serverPlatform: CorePlatform = {
     isServer: true,
     async importSymbol(_element, qrl, symbolName) {
@@ -48,14 +61,7 @@ function createPlatform(
       });
     },
     chunkForSymbol(symbolName: string) {
-      if (mapper) {
-        const hash = getSymbolHash(symbolName);
-        const result = mapper[hash];
-        if (!result) {
-          logError('Cannot resolved symbol', symbolName, 'in', mapper);
-        }
-        return result;
-      }
+      return mapperFn(symbolName, mapper);
     },
   };
   return serverPlatform;

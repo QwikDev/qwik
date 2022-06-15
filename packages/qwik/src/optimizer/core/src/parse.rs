@@ -296,6 +296,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                             origin: &h.data.origin,
                             local_idents: &h.data.local_idents,
                             scoped_idents: &h.data.scoped_idents,
+                            need_transform: h.data.need_transform,
                             global: &qwik_transform.options.global_collect,
                             need_handle_watch,
                             is_entry,

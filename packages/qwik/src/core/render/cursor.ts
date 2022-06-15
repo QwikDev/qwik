@@ -640,7 +640,7 @@ const PROP_HANDLER_MAP: Record<string, PropHandler> = {
 
 const ALLOWS_PROPS = ['class', 'className', 'style', 'id', 'q:slot'];
 const HOST_PREFIX = 'host:';
-const SCOPE_PREFIX = /^(host|window|document):/;
+const SCOPE_PREFIX = /^(host|window|document|prevent(d|D)efault):/;
 
 export const updateProperties = (
   rctx: RenderContext,

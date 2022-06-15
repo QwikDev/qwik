@@ -64,6 +64,7 @@ pub struct HookData {
     pub origin: JsWord,
     pub display_name: JsWord,
     pub hash: JsWord,
+    pub need_transform: bool,
 }
 
 #[derive(Debug)]
@@ -96,6 +97,7 @@ pub struct QwikTransform<'a> {
     jsx_functions: HashSet<Id>,
     qcomponent_fn: Option<Id>,
     qhook_fn: Option<Id>,
+    inlined_qrl_fn: Option<Id>,
     h_fn: Option<Id>,
     fragment_fn: Option<Id>,
 
@@ -168,6 +170,9 @@ impl<'a> QwikTransform<'a> {
             qhook_fn: options
                 .global_collect
                 .get_imported_local(&QHOOK, &BUILDER_IO_QWIK),
+            inlined_qrl_fn: options
+                .global_collect
+                .get_imported_local(&INLINED_QRL, &BUILDER_IO_QWIK),
             h_fn: options
                 .global_collect
                 .get_imported_local(&H, &BUILDER_IO_QWIK),
@@ -232,6 +237,79 @@ impl<'a> QwikTransform<'a> {
         )
     }
 
+    fn handle_inlined_qhook(&mut self, mut node: ast::CallExpr) -> ast::CallExpr {
+        node.args.reverse();
+
+        let last_stack = self
+            .stack_ctxt
+            .last()
+            .map_or_else(|| QHOOK.clone(), |last| JsWord::from(last.as_str()));
+
+        let ctx_name = if last_stack.ends_with("Qrl") {
+            JsWord::from(format!("{}$", last_stack.trim_end_matches("Qrl")))
+        } else {
+            last_stack
+        };
+        let ctx_kind = if ctx_name.starts_with("on") {
+            HookKind::Event
+        } else {
+            HookKind::Function
+        };
+        let first_arg = node
+            .args
+            .pop()
+            .expect("inlinedQrl() should always have the first argument");
+
+        let second_arg = node
+            .args
+            .pop()
+            .expect("inlinedQrl() should always have the second argument");
+
+        let third_arg = node.args.pop();
+        let span = first_arg.span();
+        let folded = fold_expr(self, *first_arg.expr);
+
+        let (symbol_name, display_name, hash) = {
+            let symbol_name = match *second_arg.expr {
+                ast::Expr::Lit(ast::Lit::Str(string)) => string.value,
+                _ => panic!("dfd"),
+            };
+            parse_symbol_name(symbol_name, self.options.dev)
+        };
+
+        let scoped_idents = {
+            third_arg.map_or_else(Vec::new, |scoped| {
+                let list: Vec<Id> = match &*scoped.expr {
+                    ast::Expr::Array(array) => array
+                        .elems
+                        .iter()
+                        .flat_map(|item| match &*item.as_ref().unwrap().expr {
+                            ast::Expr::Ident(ident) => Some(id!(ident)),
+                            _ => None,
+                        })
+                        .collect(),
+                    _ => vec![],
+                };
+                list
+            })
+        };
+        let local_idents = self.get_local_idents(&folded);
+
+        let hook_data = HookData {
+            extension: self.options.extension.clone(),
+            local_idents,
+            scoped_idents: scoped_idents.clone(),
+            parent_hook: self.hook_stack.last().cloned(),
+            ctx_kind,
+            ctx_name,
+            origin: self.options.path_data.path.to_slash_lossy().into(),
+            display_name,
+            need_transform: false,
+            hash,
+        };
+        self.create_hook(hook_data, folded, symbol_name, span, 0)
+    }
+
     fn handle_qhook(&mut self, node: ast::CallExpr) -> ast::CallExpr {
         let mut node = node;
         node.args.reverse();
@@ -276,7 +354,6 @@ impl<'a> QwikTransform<'a> {
 
         let (symbol_name, display_name, hash, hook_hash) =
             self.register_context_name(custom_symbol);
-        let canonical_filename = JsWord::from(symbol_name.as_ref().to_ascii_lowercase());
 
         // Collect descendent idents
         let descendent_idents = {
@@ -301,26 +378,7 @@ impl<'a> QwikTransform<'a> {
         self.hook_stack.pop();
 
         // Collect local idents
-        let local_idents = {
-            let mut collector = IdentCollector::new();
-            folded.visit_with(&mut collector);
-
-            let use_h = collector.use_h;
-            let use_fragment = collector.use_fragment;
-
-            let mut idents = collector.get_words();
-            if use_h {
-                if let Some(id) = &self.h_fn {
-                    idents.push(id.clone());
-                }
-            }
-            if use_fragment {
-                if let Some(id) = &self.fragment_fn {
-                    idents.push(id.clone());
-                }
-            }
-            idents
-        };
+        let local_idents = self.get_local_idents(&folded);
 
         for id in &local_idents {
             if !self.options.global_collect.exports.contains_key(id) {
@@ -387,43 +445,78 @@ impl<'a> QwikTransform<'a> {
                 ctx_name,
                 origin: self.options.path_data.path.to_slash_lossy().into(),
                 display_name,
+                need_transform: true,
                 hash,
             };
-            let entry = self.options.entry_policy.get_entry_for_sym(
-                &symbol_name,
-                self.options.path_data,
-                &self.stack_ctxt,
-                &hook_data,
-            );
-            let mut filename = format!(
-                "./{}",
-                entry
-                    .as_ref()
-                    .map(|e| e.as_ref())
-                    .unwrap_or(&canonical_filename)
-            );
-            if self.options.explicity_extensions {
-                filename.push('.');
-                filename.push_str(&self.options.extension);
-            }
-            let import_path = if !self.hook_stack.is_empty() {
-                fix_path("a", "a", &filename).unwrap()
-            } else {
-                fix_path("a", &self.options.path_data.path, &filename).unwrap()
-            };
-
-            let o = self.create_qrl(import_path, &symbol_name, &scoped_idents);
-            self.hooks.push(Hook {
-                entry,
-                span,
-                canonical_filename,
-                name: symbol_name,
-                data: hook_data,
-                expr: Box::new(folded),
-                hash: hook_hash,
-            });
-            o
+            self.create_hook(hook_data, folded, symbol_name, span, hook_hash)
         }
+    }
+
+    fn get_local_idents(&self, expr: &ast::Expr) -> Vec<Id> {
+        let mut collector = IdentCollector::new();
+        expr.visit_with(&mut collector);
+
+        let use_h = collector.use_h;
+        let use_fragment = collector.use_fragment;
+
+        let mut idents = collector.get_words();
+        if use_h {
+            if let Some(id) = &self.h_fn {
+                idents.push(id.clone());
+            }
+        }
+        if use_fragment {
+            if let Some(id) = &self.fragment_fn {
+                idents.push(id.clone());
+            }
+        }
+        idents
+    }
+
+    fn create_hook(
+        &mut self,
+        hook_data: HookData,
+        expr: ast::Expr,
+        symbol_name: JsWord,
+        span: Span,
+        hook_hash: u64,
+    ) -> ast::CallExpr {
+        let canonical_filename = get_canonical_filename(&symbol_name);
+
+        let entry = self.options.entry_policy.get_entry_for_sym(
+            &symbol_name,
+            self.options.path_data,
+            &self.stack_ctxt,
+            &hook_data,
+        );
+        let mut filename = format!(
+            "./{}",
+            entry
+                .as_ref()
+                .map(|e| e.as_ref())
+                .unwrap_or(&canonical_filename)
+        );
+        if self.options.explicity_extensions {
+            filename.push('.');
+            filename.push_str(&self.options.extension);
+        }
+        let import_path = if !self.hook_stack.is_empty() {
+            fix_path("a", "a", &filename).unwrap()
+        } else {
+            fix_path("a", &self.options.path_data.path, &filename).unwrap()
+        };
+
+        let o = self.create_qrl(import_path, &symbol_name, &hook_data.scoped_idents);
+        self.hooks.push(Hook {
+            entry,
+            span,
+            canonical_filename,
+            name: symbol_name,
+            data: hook_data,
+            expr: Box::new(expr),
+            hash: hook_hash,
+        });
+        o
     }
 
     fn handle_jsx(&mut self, node: ast::CallExpr) -> ast::CallExpr {
@@ -882,6 +975,8 @@ impl<'a> Fold for QwikTransform<'a> {
                     return self.handle_qhook(node);
                 } else if self.jsx_functions.contains(&id!(ident)) {
                     return self.handle_jsx(node);
+                } else if id_eq!(ident, &self.inlined_qrl_fn) {
+                    return self.handle_inlined_qhook(node);
                 } else if let Some(specifier) = self.marker_functions.get(&id!(ident)) {
                     self.stack_ctxt.push(ident.sym.to_string());
                     ctx_name = specifier.clone();
@@ -927,6 +1022,9 @@ impl<'a> Fold for QwikTransform<'a> {
                             },
                         );
                     }
+                } else {
+                    self.stack_ctxt.push(ident.sym.to_string());
+                    name_token = true;
                 }
             }
         }
@@ -1128,4 +1226,23 @@ fn compute_scoped_idents(all_idents: &[Id], all_decl: &HashSet<Id>) -> Vec<Id> {
     let mut output: Vec<Id> = set.into_iter().collect();
     output.sort();
     output
+}
+
+fn get_canonical_filename(symbol_name: &JsWord) -> JsWord {
+    JsWord::from(symbol_name.as_ref().to_ascii_lowercase())
+}
+
+fn parse_symbol_name(symbol_name: JsWord, dev: bool) -> (JsWord, JsWord, JsWord) {
+    let mut splitter = symbol_name.rsplitn(2, '_');
+    let hash = splitter
+        .next()
+        .expect("symbol_name always need to have a segment");
+    let display_name = splitter.next().unwrap_or(hash);
+
+    let s_n = if dev {
+        symbol_name.clone()
+    } else {
+        hash.into()
+    };
+    (s_n, display_name.into(), hash.into())
 }

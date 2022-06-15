@@ -33,6 +33,7 @@ pub struct NewModuleCtx<'a> {
     pub global: &'a GlobalCollect,
     pub is_entry: bool,
     pub need_handle_watch: bool,
+    pub need_transform: bool,
     pub leading_comments: SingleThreadedCommentsMap,
     pub trailing_comments: SingleThreadedCommentsMap,
 }
@@ -49,7 +50,8 @@ pub fn new_module(ctx: NewModuleCtx) -> Result<(ast::Module, SingleThreadedComme
         shebang: None,
     };
 
-    let use_lexical_scope = if !ctx.scoped_idents.is_empty() {
+    let has_scoped_idents = ctx.need_transform && !ctx.scoped_idents.is_empty();
+    let use_lexical_scope = if has_scoped_idents {
         let new_local = id!(private_ident!(&USE_LEXICAL_SCOPE.clone()));
         module
             .body

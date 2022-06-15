@@ -1024,6 +1024,46 @@ export const Child = component$(() => {
 }
 
 #[test]
+fn example_parsed_inlined_qrls() {
+    test_input!(TestInput {
+        code: r#"
+import { componentQrl, inlinedQrl, useStore, jsxs, jsx, useLexicalScope } from '@builder.io/qwik';
+
+export const App = /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
+    const store = useStore({
+        count: 0
+    });
+    return /*#__PURE__*/ jsxs("div", {
+        children: [
+            /*#__PURE__*/ jsxs("p", {
+                children: [
+                    "Count: ",
+                    store.count
+                ]
+            }),
+            /*#__PURE__*/ jsx("p", {
+                children: /*#__PURE__*/ jsx("button", {
+                    onClickQrl: inlinedQrl(()=>{
+                        const [store] = useLexicalScope();
+                        return store.count++;
+                    }, "App_component_div_p_button_onClick_odz7eidI4GM", [
+                        store
+                    ]),
+                    children: "Click"
+                })
+            })
+        ]
+    });
+}, "App_component_Fh88JClhbC0"));
+
+"#
+        .to_string(),
+        entry_strategy: EntryStrategy::Inline,
+        ..TestInput::default()
+    });
+}
+
+#[test]
 fn example_use_server_mount() {
     test_input!(TestInput {
         code: r#"

@@ -14,7 +14,7 @@ export async function createMdxTransformer(ctx: BuildContext): Promise<MdxTransf
   const { default: rehypeAutolinkHeadings } = await import('rehype-autolink-headings');
   const { VFile } = await import('vfile');
 
-  const userMdxOpts = ctx.opts.mdx || {};
+  const userMdxOpts = ctx.opts.mdx;
 
   const userRemarkPlugins = userMdxOpts.remarkPlugins || [];
   const userRehypePlugins = userMdxOpts.rehypePlugins || [];

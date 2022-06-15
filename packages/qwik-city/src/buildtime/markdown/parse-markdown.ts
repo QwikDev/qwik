@@ -1,28 +1,41 @@
-import type { ParsedPage, NormalizedPluginOptions } from '../types';
+import type { BuildContext, PageRoute } from '../types';
 import frontmatter from 'front-matter';
 import { getPageTitle } from '../utils/format';
-import { parsePageRoute } from '../utils/routing';
-import { normalizePath } from '../utils/fs';
+import { createFileId } from '../utils/fs';
+import { getPagePathname } from '../utils/pathname';
+import { parseRouteId } from '../routing/parse-route';
 
 export function parseMarkdownFile(
-  opts: NormalizedPluginOptions,
+  ctx: BuildContext,
+  baseDir: string,
   filePath: string,
   content: string
 ) {
+  const id = createFileId(ctx, baseDir, filePath);
   const parsed = frontmatter<any>(content);
   const attributes: { [prop: string]: string } = parsed.attributes || {};
+  const title = getPageTitle(filePath, attributes);
 
-  const page: ParsedPage = {
-    head: {
-      title: getPageTitle(filePath, attributes),
-    },
+  delete attributes.title;
+
+  const pathname = getPagePathname(ctx.opts, filePath);
+
+  const route = parseRouteId(pathname);
+
+  const pageRoute: PageRoute = {
+    type: 'page',
+    id,
+    pathname,
+    filePath,
     layouts: [],
-    route: parsePageRoute(filePath),
+    Page: undefined,
+    default: undefined,
     attributes,
-    path: normalizePath(filePath),
+    head: {
+      title,
+    },
+    ...route,
   };
 
-  delete page.attributes.title;
-
-  return page;
+  return pageRoute;
 }

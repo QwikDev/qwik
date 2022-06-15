@@ -1,23 +1,30 @@
-import { basename, extname, normalize } from 'path';
+import { basename, dirname, extname, normalize } from 'path';
+import type { BuildContext } from '../types';
+import { toTitleCase } from './format';
 
-export function isMarkdownFile(filePath: string) {
-  const ext = extname(filePath).toLowerCase();
+export function isMarkdownFileName(fileName: string) {
+  const ext = extname(fileName).toLowerCase();
   return ext === '.mdx' || ext === '.md';
 }
 
-export function isTypeScriptFile(filePath: string) {
-  const ext = extname(filePath).toLowerCase();
-  return ext === '.tsx' || (ext === '.ts' && !filePath.endsWith('.d.ts'));
+export function isPageFileName(fileName: string) {
+  fileName = fileName.toLowerCase();
+  return fileName === 'index.tsx' || fileName === 'index.ts';
 }
 
-export function isLayoutFileName(filePath: string) {
-  filePath = filePath.toLowerCase();
-  return filePath === '_layout.tsx' || filePath === '_layout.ts';
+export function isLayoutFileName(fileName: string) {
+  fileName = fileName.toLowerCase();
+  return fileName === 'layout.tsx' || fileName === 'layout.ts';
 }
 
-export function isIndexFileName(filePath: string) {
-  filePath = filePath.toLowerCase();
-  return filePath === '_index';
+export function isEndpointFileName(fileName: string) {
+  fileName = fileName.toLowerCase();
+  return fileName === 'endpoint.ts' || fileName === 'endpoint.tsx';
+}
+
+export function isMenuFileName(fileName: string) {
+  fileName = fileName.toLowerCase();
+  return fileName === 'menu.md';
 }
 
 export function getPagesBuildPath(pathname: string) {
@@ -32,11 +39,17 @@ export function getPagesBuildPath(pathname: string) {
 }
 
 export function getBasename(filePath: string) {
-  if (filePath.endsWith('.md')) {
-    return basename(filePath, '.md');
+  if (filePath.endsWith('.tsx')) {
+    return basename(filePath, '.tsx');
+  }
+  if (filePath.endsWith('.ts')) {
+    return basename(filePath, '.ts');
   }
   if (filePath.endsWith('.mdx')) {
     return basename(filePath, '.mdx');
+  }
+  if (filePath.endsWith('.md')) {
+    return basename(filePath, '.md');
   }
   return basename(filePath);
 }
@@ -54,4 +67,36 @@ export function normalizePath(path: string) {
   }
 
   return path.replace(/\\/g, '/');
+}
+
+export function createFileId(ctx: BuildContext, routesDir: string, path: string) {
+  const segments: string[] = [];
+
+  for (let i = 0; i < 25; i++) {
+    let baseName = getBasename(path);
+    baseName = baseName.replace(/[\W_]+/g, '');
+    if (baseName === '') {
+      baseName = 'Q' + i;
+    }
+    baseName = toTitleCase(baseName);
+    segments.push(baseName);
+
+    path = normalizePath(dirname(path));
+    if (path === routesDir) {
+      break;
+    }
+  }
+  const type = segments.shift();
+
+  const id = type + segments.reverse().join('');
+
+  let inc = 1;
+  let fileId = id;
+  while (ctx.ids.has(fileId)) {
+    fileId = `${id}_${inc++}`;
+  }
+
+  ctx.ids.add(fileId);
+
+  return fileId;
 }

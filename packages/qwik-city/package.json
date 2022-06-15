@@ -6,7 +6,12 @@
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "test": "uvu -r tsm src \"(unit)\""
+    "test.unit": "uvu -r tsm src \"(unit)\"",
+    "test.build": "yarn build.client && yarn build.ssr",
+    "test.build.client": "cd src/test && vite build",
+    "test.build.ssr": "cd src/test && vite build --ssr src/entry.express.tsx",
+    "test.serve": "node --inspect src/test/server/entry.express.js",
+    "test.serve.debug": "node --inspect-brk src/test/server/entry.express.js"
   },
   "dependencies": {
     "@mdx-js/mdx": "^2.1.1",
@@ -25,10 +30,10 @@
     "@types/node": "latest",
     "@types/refractor": "^3.0.2",
     "estree-util-value-to-estree": "^1.3.0",
+    "front-matter": "^4.0.2",
     "github-slugger": "^1.4.0",
     "hast-util-heading-rank": "^2.1.0",
     "hast-util-to-string": "^2.0.0",
-    "history": "^5.3.0",
     "marked": "^4.0.16",
     "monaco-editor": "^0.33.0",
     "refractor": "^4.7.0",
@@ -41,12 +46,21 @@
     "unified": "^10.1.2",
     "unist-util-visit": "^4.1.0",
     "uvu": "^0.5.3",
-    "vfile": "^5.3.2"
+    "vfile": "^5.3.2",
+    "vite": "^2.9.12"
   },
   "exports": {
     ".": {
       "import": "./dist/index.mjs",
       "require": "./dist/index.cjs"
+    },
+    "./adaptor": {
+      "import": "./dist/adaptor/index.mjs",
+      "require": "./dist/adaptor/index.cjs"
+    },
+    "./express": {
+      "import": "./dist/express/index.mjs",
+      "require": "./dist/express/index.cjs"
     },
     "./vite": {
       "import": "./dist/vite/index.mjs",

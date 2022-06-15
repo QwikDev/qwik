@@ -6,9 +6,9 @@ import { valueToEstree } from 'estree-util-value-to-estree';
 import { headingRank } from 'hast-util-heading-rank';
 import { toString } from 'hast-util-to-string';
 import { visit } from 'unist-util-visit';
-import type { PageBreadcrumb, PageHeading, PageSource } from '../../runtime';
-import { dirname, relative, resolve } from 'path';
-import type { BuildContext } from '../types';
+import type { PageBreadcrumb, PageHeading } from '../../runtime';
+import { dirname, resolve } from 'path';
+import type { BuildContext, PageRoute } from '../types';
 import { getPagePathname } from '../utils/pathname';
 import { existsSync } from 'fs';
 
@@ -19,18 +19,17 @@ export function rehypePage(ctx: BuildContext): Transformer {
     const mdast = ast as Root;
     const sourcePath = vfile.path;
     const pathname = getPagePathname(ctx.opts, vfile.path);
-    const indexPathname = getPageIndexPathname(ctx, pathname);
+    const menuPathname = getMenuPathname(ctx, pathname);
 
-    updateContentLinks(ctx, mdast, sourcePath);
+    updateContentLinks(mdast, sourcePath);
     exportContentHeadings(mdast);
     exportPageAttributes(ctx, mdast, pathname);
-    exportBreadcrumbs(ctx, mdast, pathname, indexPathname);
-    exportPageIndex(ctx, mdast, indexPathname);
-    exportPageSource(ctx, mdast, sourcePath);
+    exportBreadcrumbs(ctx, mdast, pathname, menuPathname);
+    exportPageIndex(ctx, mdast, menuPathname);
   };
 }
 
-function updateContentLinks(ctx: BuildContext, mdast: Root, sourcePath: string) {
+function updateContentLinks(mdast: Root, sourcePath: string) {
   visit(mdast, 'element', (node: any) => {
     const tagName = node && node.type === 'element' && node.tagName.toLowerCase();
     if (tagName !== 'a') {
@@ -85,8 +84,8 @@ function exportContentHeadings(mdast: Root) {
 }
 
 function exportPageAttributes(ctx: BuildContext, mdast: Root, pathname: string) {
-  const page = ctx.pages.find((p) => p.pathname === pathname);
-  const attributes = page?.attrs || {};
+  const page = ctx.routes.find((p) => p.pathname === pathname) as PageRoute;
+  const attributes = page?.attributes || {};
   createExport(mdast, 'attributes', attributes);
 }
 
@@ -94,11 +93,11 @@ function exportBreadcrumbs(
   ctx: BuildContext,
   mdast: Root,
   pathname: string,
-  indexPathname: string | undefined
+  menuPathname: string | undefined
 ) {
-  const index = ctx.indexes.find((i) => i.pathname === indexPathname);
-  if (index && index.items) {
-    for (const indexA of index.items) {
+  const menu = ctx.menus.find((m) => m.pathname === menuPathname);
+  if (menu && menu.items) {
+    for (const indexA of menu.items) {
       const breadcrumbA: PageBreadcrumb = {
         text: indexA.text,
         href: indexA.href,
@@ -143,16 +142,9 @@ function exportPageIndex(ctx: BuildContext, mdast: Root, indexPathname: string |
   });
 }
 
-function exportPageSource(ctx: BuildContext, mdast: Root, sourcePath: string) {
-  const source: PageSource = {
-    path: relative(ctx.opts.pagesDir, sourcePath),
-  };
-  createExport(mdast, 'source', source);
-}
-
-function getPageIndexPathname(ctx: BuildContext, pathname: string) {
+function getMenuPathname(ctx: BuildContext, pathname: string) {
   for (let i = 0; i < 9; i++) {
-    const index = ctx.indexes.find((i) => i.pathname === pathname);
+    const index = ctx.menus.find((i) => i.pathname === pathname);
     if (index) {
       return pathname;
     }

@@ -1,12 +1,14 @@
 import { component$, Host, useScopedStyles$ } from '@builder.io/qwik';
-import { usePage, usePageIndex } from '@builder.io/qwik-city';
+import { useRoute, useMenu, usePage } from '@builder.io/qwik-city';
 import styles from './sidebar.css?inline';
 
 export const SideBar = component$(
   () => {
     useScopedStyles$(styles);
+
     const page = usePage();
-    const navIndex = usePageIndex();
+    const route = useRoute();
+    const menu = useMenu();
     if (!page) {
       return null;
     }
@@ -21,8 +23,8 @@ export const SideBar = component$(
           </ol>
         </nav>
         <nav class="menu">
-          {navIndex
-            ? navIndex.items?.map((item) => (
+          {menu
+            ? menu.items?.map((item) => (
                 <>
                   <h5>{item.text}</h5>
                   <ul>
@@ -31,8 +33,7 @@ export const SideBar = component$(
                         <a
                           href={item.href}
                           class={{
-                            'is-active':
-                              new URL(page.url, 'https://qwik.builder.io/').pathname === item.href,
+                            'is-active': route.pathname === item.href,
                           }}
                         >
                           {item.text}

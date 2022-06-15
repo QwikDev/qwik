@@ -10,22 +10,15 @@ import { CompileOptions } from '@mdx-js/mdx/lib/compile';
 export type MdxOptions = CompileOptions;
 
 // @alpha (undocumented)
-export interface PluginOptions {
-    extensions?: string[];
-    // (undocumented)
-    layouts: {
-        [layoutName: string]: string;
-        default: string;
-    };
+export function qwikCity(userOpts?: QwikCityVitePluginOptions): any;
+
+// Warning: (ae-forgotten-export) The symbol "PluginOptions" needs to be exported by the entry point index.d.ts
+//
+// @alpha (undocumented)
+export interface QwikCityVitePluginOptions extends PluginOptions {
     // (undocumented)
     mdx?: MdxOptions;
-    // (undocumented)
-    pagesDir: string;
-    trailingSlash?: boolean;
 }
-
-// @alpha (undocumented)
-export function qwikCity(options: PluginOptions): any;
 
 // (No @packageDocumentation comment for this package)
 

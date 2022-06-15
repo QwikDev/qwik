@@ -1,10 +1,9 @@
 import { relative, dirname, join } from 'path';
 import type { NormalizedPluginOptions } from '../types';
-import { getBasename, isMarkdownFile, normalizePath } from './fs';
-import slugify from 'slugify';
+import { getBasename, isMarkdownFileName, normalizePath } from './fs';
 
 export function getPagePathname(opts: NormalizedPluginOptions, filePath: string) {
-  let pathname = normalizePath(relative(opts.pagesDir, filePath));
+  let pathname = normalizePath(relative(opts.routesDir, filePath));
 
   const fileName = getBasename(pathname);
   const dirName = normalizePath(dirname(pathname));
@@ -13,38 +12,22 @@ export function getPagePathname(opts: NormalizedPluginOptions, filePath: string)
       return '/';
     }
     pathname = `/${dirName}`;
+  } else if (fileName === 'endpoint') {
+    pathname = `/${dirName}`;
   } else {
     pathname = `/${dirName}/${fileName}`;
   }
 
-  pathname = pathname
-    .trim()
-    .toLocaleLowerCase()
-    .replace(/ /g, '-')
-    .replace(/_/g, '-')
-    .split('/')
-    .map((p) => slugify(p))
-    .join('/');
-
   return normalizePathname(opts, pathname);
 }
 
-export function getIndexPathname(opts: NormalizedPluginOptions, filePath: string) {
-  let pathname = normalizePath(relative(opts.pagesDir, filePath));
+export function getMenuPathname(opts: NormalizedPluginOptions, filePath: string) {
+  let pathname = normalizePath(relative(opts.routesDir, filePath));
   pathname = `/` + normalizePath(dirname(pathname));
   return normalizePathname(opts, pathname);
 }
 
 export function normalizePathname(opts: NormalizedPluginOptions, pathname: string) {
-  pathname = pathname
-    .trim()
-    .toLocaleLowerCase()
-    .replace(/ /g, '-')
-    .replace(/_/g, '-')
-    .split('/')
-    .map((p) => slugify(p))
-    .join('/');
-
   const url = new URL(pathname, 'https://qwikcity.builder.io/');
   pathname = url.pathname;
 
@@ -54,11 +37,7 @@ export function normalizePathname(opts: NormalizedPluginOptions, pathname: strin
   return pathname;
 }
 
-export function getIndexLinkHref(
-  opts: NormalizedPluginOptions,
-  indexFilePath: string,
-  href: string
-) {
+export function getMenuLinkHref(opts: NormalizedPluginOptions, menuFilePath: string, href: string) {
   const prefix = href.toLocaleLowerCase();
   if (
     prefix.startsWith('/') ||
@@ -73,11 +52,11 @@ export function getIndexLinkHref(
   const hashSplit = href.split('#');
   href = href.split('?')[0].split('#')[0];
 
-  if (!isMarkdownFile(href)) {
+  if (!isMarkdownFileName(href)) {
     return href;
   }
 
-  const indexDir = dirname(indexFilePath);
+  const indexDir = dirname(menuFilePath);
   const parts = normalizePath(href)
     .split('/')
     .filter((p) => p.length > 0);

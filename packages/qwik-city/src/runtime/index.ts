@@ -1,20 +1,17 @@
 export type {
-  Content,
   HeadLink,
   HeadStyle,
-  Layout,
   PageAttributes,
   PageBreadcrumb,
-  PageHandler,
   PageHeading,
-  PageIndex,
-  PageSource,
+  PageHead,
+  PageHeadFunction,
+  Menu,
+  EndpointHandler,
 } from './types';
 
-export { setHeadLinks, useHeadLinks } from './head-links';
-export { setHeadMeta, useHeadMeta } from './head-meta';
-export { setHeadStyles, useHeadStyles } from './head-styles';
-export { getLocation } from './location';
-export { usePage } from './page';
-export { useQwikCity } from './page';
-export { usePageIndex } from './page-index';
+export { useLocation } from './use-location';
+export { useMenu } from './menu';
+export { usePage } from './use-page';
+export { useQwikCity } from './use-qwik-city';
+export { useRoute } from './use-route';

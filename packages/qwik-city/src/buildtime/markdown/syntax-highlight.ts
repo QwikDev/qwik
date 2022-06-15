@@ -40,14 +40,11 @@ function syntaxHighlight(node: any, lang: string) {
 }
 
 function getLanguage(className: string) {
-  className = className.toLowerCase();
-  if (className.startsWith('language-')) {
-    let lang = className.slice(9);
-    lang = lang.split('=')[0];
-    if (lang === 'htmlembedded') {
-      lang = 'html';
+  if (typeof className === 'string') {
+    className = className.toLowerCase();
+    if (className.startsWith('language-')) {
+      return className.slice(9);
     }
-    return lang;
   }
   return null;
 }

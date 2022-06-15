@@ -1,62 +1,40 @@
 import { basename, dirname } from 'path';
-import type { PageLayout, ParsedPage } from '../types';
-import { toTitleCase } from '../utils/format';
-import { normalizePath } from '../utils/fs';
+import type { BuildContext, BuildLayout, BuildRoute } from '../types';
+import { createFileId, normalizePath } from '../utils/fs';
 
-export function parseLayoutFile(rootDir: string, filePath: string) {
-  const path = normalizePath(filePath);
+export function parseLayoutFile(ctx: BuildContext, routesDir: string, filePath: string) {
   const layoutDir = normalizePath(dirname(filePath));
+  const layoutId = createFileId(ctx, routesDir, filePath);
 
-  const layout: PageLayout = {
-    id: createLayoutId(rootDir, layoutDir),
-    path,
+  const layout: BuildLayout = {
+    id: layoutId,
+    filePath: normalizePath(filePath),
     name: basename(layoutDir),
     dir: layoutDir,
   };
+
   return layout;
 }
 
-export function createLayoutId(rootDir: string, layoutDir: string) {
-  const segments: string[] = [];
+export function updatePageLayouts(routesDir: string, routes: BuildRoute[], layouts: BuildLayout[]) {
+  for (const route of routes) {
+    if (route.type === 'page') {
+      let routeDir = normalizePath(dirname(route.filePath));
 
-  while (layoutDir.length > rootDir.length) {
-    const dirName = basename(layoutDir);
-    segments.push(dirName);
-    layoutDir = normalizePath(dirname(layoutDir));
-  }
-
-  segments.reverse();
-
-  if (segments.length > 1 && segments[0] === 'src') {
-    segments.shift();
-  }
-
-  return (
-    'Layout' +
-    segments
-      .map((id, index) => {
-        id = id.replace(/[\W_]+/g, '');
-        if (id === '') {
-          id = 'L' + index;
+      for (let i = 0; i < 20; i++) {
+        const layout = layouts.find((l) => l.dir === routeDir);
+        if (layout) {
+          route.layouts.push({ ...layout });
         }
-        return toTitleCase(id);
-      })
-      .join('')
-  );
-}
 
-export function updatePageLayouts(rootDir: string, pages: ParsedPage[], layouts: PageLayout[]) {
-  for (const page of pages) {
-    let pageDir = normalizePath(dirname(page.path));
+        if (routeDir === routesDir) {
+          break;
+        }
 
-    while (pageDir.length > rootDir.length) {
-      const layout = layouts.find((l) => l.dir === pageDir);
-      if (layout) {
-        page.layouts.push({ ...layout });
+        routeDir = normalizePath(dirname(routeDir));
       }
-      pageDir = normalizePath(dirname(pageDir));
-    }
 
-    page.layouts.reverse();
+      route.layouts.reverse();
+    }
   }
 }

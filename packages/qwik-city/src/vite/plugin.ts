@@ -3,26 +3,27 @@ import fs from 'fs';
 import { isAbsolute, resolve } from 'path';
 import type { Plugin, UserConfig } from 'vite';
 import {
-  createDynamicImportedRuntime,
-  createInlinedRuntime,
-} from '../buildtime/pages/runtime-generation';
-import { loadPages } from '../buildtime/pages/load-pages';
+  generateDynamicImportedRuntime,
+  generateInlinedRuntime,
+} from '../buildtime/runtime-generation/generate-runtime';
 import type { BuildContext, NormalizedPluginOptions, PluginOptions } from '../buildtime/types';
-import { createBuildContext, normalizeOptions } from '../buildtime/utils/context';
-import { getPagesBuildPath, isMarkdownFile } from '../buildtime/utils/fs';
+import { createBuildContext } from '../buildtime/utils/context';
+import { getPagesBuildPath, isMarkdownFileName } from '../buildtime/utils/fs';
+import { build } from '../buildtime/build';
 
 /**
  * @alpha
  */
-export function qwikCity(userOpts: QwikCityVitePluginOptions) {
+export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
   let ctx: BuildContext | null = null;
-  let opts: NormalizedPluginOptions | null = null;
   let qwikCityRuntimeCode: string | null = null;
   let mdxTransform: MdxTransform | null = null;
   let inlineModules = false;
   let isSSR = false;
   let command: 'build' | 'serve' | null;
   let rootDir: string | null = null;
+
+  userOpts = userOpts || {};
 
   const plugin: Plugin = {
     name: 'vite-plugin-qwik-city',
@@ -32,65 +33,63 @@ export function qwikCity(userOpts: QwikCityVitePluginOptions) {
     config() {
       const updatedViteConfig: UserConfig = {
         optimizeDeps: {
-          exclude: ['@builder.io/qwik-city'],
+          exclude: [QWIK_CITY_APP_ID],
         },
       };
       return updatedViteConfig;
     },
-    configResolved(config) {
+
+    async configResolved(config) {
       rootDir = resolve(config.root);
       command = config.command;
       isSSR = !!config.build?.ssr || config.mode === 'ssr';
       inlineModules = isSSR || command === 'serve';
+
+      ctx = createBuildContext(rootDir!, userOpts);
+
+      await validatePlugin(ctx.opts);
+
+      mdxTransform = await createMdxTransformer(ctx);
     },
 
     async buildStart() {
       qwikCityRuntimeCode = null;
-
-      if (!opts) {
-        opts = normalizeOptions(rootDir!, userOpts);
-        await validatePlugin(opts);
-      }
-
-      ctx = createBuildContext(rootDir!, opts, (msg) => this.warn(msg));
-
-      if (!mdxTransform) {
-        mdxTransform = await createMdxTransformer(ctx);
-      }
     },
 
     resolveId(id) {
-      if (id === QWIK_CITY_BUILD_ID) {
-        return RESOLVED_QWIK_CITY_BUILD_ID;
+      if (id === QWIK_CITY_APP_ID) {
+        return RESOLVED_QWIK_CITY_APP_ID;
       }
       return null;
     },
 
     async load(id) {
-      if (id === RESOLVED_QWIK_CITY_BUILD_ID && ctx) {
+      if (id === RESOLVED_QWIK_CITY_APP_ID && ctx) {
         // @builder.io/qwik-city
         if (typeof qwikCityRuntimeCode === 'string') {
           return qwikCityRuntimeCode;
         }
 
-        await loadPages(ctx);
+        await build(ctx);
 
         if (inlineModules) {
-          qwikCityRuntimeCode = createInlinedRuntime(ctx);
+          qwikCityRuntimeCode = generateInlinedRuntime(ctx);
         } else {
-          qwikCityRuntimeCode = createDynamicImportedRuntime(ctx);
+          qwikCityRuntimeCode = generateDynamicImportedRuntime(ctx);
         }
 
         if (command === 'build' && !inlineModules) {
           // create ESM modules for the browser
-          ctx.pages.forEach((p) => {
-            this.emitFile({
-              type: 'chunk',
-              id: p.path,
-              fileName: getPagesBuildPath(p.route.pathname),
-              preserveSignature: 'allow-extension',
-            });
-          });
+          for (const route of ctx.routes) {
+            if (route.type === 'page') {
+              this.emitFile({
+                type: 'chunk',
+                id: route.filePath,
+                fileName: getPagesBuildPath(route.pathname),
+                preserveSignature: 'allow-extension',
+              });
+            }
+          }
         }
 
         return qwikCityRuntimeCode;
@@ -99,7 +98,7 @@ export function qwikCity(userOpts: QwikCityVitePluginOptions) {
     },
 
     async transform(code, id) {
-      if (isMarkdownFile(id) && mdxTransform) {
+      if (isMarkdownFileName(id) && mdxTransform) {
         const mdxResult = await mdxTransform(code, id);
         return mdxResult;
       }
@@ -110,25 +109,27 @@ export function qwikCity(userOpts: QwikCityVitePluginOptions) {
   return plugin as any;
 }
 
-const QWIK_CITY_BUILD_ID = '@builder.io/qwik-city/build';
-const RESOLVED_QWIK_CITY_BUILD_ID = '\0' + QWIK_CITY_BUILD_ID;
+const QWIK_CITY_APP_ID = '@qwik-city-app';
+const RESOLVED_QWIK_CITY_APP_ID = '\0' + QWIK_CITY_APP_ID;
 
 async function validatePlugin(opts: NormalizedPluginOptions) {
-  if (typeof opts.pagesDir !== 'string') {
-    throw new Error(`qwikCity plugin "pagesDir" option missing`);
+  if (typeof opts.routesDir !== 'string') {
+    throw new Error(`qwikCity plugin "routesDir" option missing`);
   }
 
-  if (!isAbsolute(opts.pagesDir)) {
-    throw new Error(`qwikCity plugin "pagesDir" option must be an absolute path: ${opts.pagesDir}`);
+  if (!isAbsolute(opts.routesDir)) {
+    throw new Error(
+      `qwikCity plugin "routesDir" option must be an absolute path: ${opts.routesDir}`
+    );
   }
 
   try {
-    const s = await fs.promises.stat(opts.pagesDir);
+    const s = await fs.promises.stat(opts.routesDir);
     if (!s.isDirectory()) {
-      throw new Error(`qwikCity plugin "pagesDir" option must be a directory: ${opts.pagesDir}`);
+      throw new Error(`qwikCity plugin "routesDir" option must be a directory: ${opts.routesDir}`);
     }
   } catch (e) {
-    throw new Error(`qwikCity plugin "pagesDir" not found: ${e}`);
+    throw new Error(`qwikCity plugin "routesDir" not found: ${e}`);
   }
 }
 

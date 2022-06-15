@@ -1,0 +1,17 @@
+header {
+  display: grid;
+  border-bottom: 1px solid gray;
+  padding: 10px;
+}
+
+header section {
+  grid-template-columns: 1fr auto;
+}
+
+header section a {
+  padding: 4px 8px;
+}
+
+header .active {
+  font-weight: bold;
+}

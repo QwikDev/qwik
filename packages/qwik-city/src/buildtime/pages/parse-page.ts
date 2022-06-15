@@ -1,15 +1,25 @@
-import type { BuildContext, ParsedPage } from '../types';
-import { normalizePath } from '../utils/fs';
-import { parsePageRoute } from '../utils/routing';
+import type { BuildContext, PageRoute } from '../types';
+import { createFileId } from '../utils/fs';
+import { getPagePathname } from '../utils/pathname';
+import { parseRouteId } from '../routing/parse-route';
 
-export function parseTypeScriptFile(ctx: BuildContext, filePath: string) {
-  const page: ParsedPage = {
-    head: {},
+export function parsePageFile(ctx: BuildContext, routesDir: string, filePath: string) {
+  const id = createFileId(ctx, routesDir, filePath);
+  const pathname = getPagePathname(ctx.opts, filePath);
+  const route = parseRouteId(pathname);
+
+  const pageRoute: PageRoute = {
+    type: 'page',
+    id,
+    pathname,
+    filePath,
     layouts: [],
-    route: parsePageRoute(filePath),
-    attributes: {},
-    path: normalizePath(filePath),
+    Page: undefined,
+    default: undefined,
+    attributes: undefined,
+    head: undefined,
+    ...route,
   };
 
-  return page;
+  return pageRoute;
 }

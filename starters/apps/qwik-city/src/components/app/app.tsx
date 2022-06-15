@@ -3,7 +3,7 @@ import { Page } from '../page/page';
 import { useQwikCity } from '@builder.io/qwik-city';
 
 export const App = component$(() => {
-  useQwikCity();
+  useQwikCity({ routes: [] });
 
   return (
     <Host>

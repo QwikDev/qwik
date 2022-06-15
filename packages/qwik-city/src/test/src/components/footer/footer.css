@@ -1,0 +1,13 @@
+footer {
+  text-align: center;
+  border-top: 1px solid gray;
+  padding: 10px;
+}
+
+footer a {
+  padding: 4px 8px;
+}
+
+footer .active {
+  font-weight: bold;
+}

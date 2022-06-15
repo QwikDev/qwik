@@ -298,7 +298,7 @@ impl<'a> QwikTransform<'a> {
         let hook_data = HookData {
             extension: self.options.extension.clone(),
             local_idents,
-            scoped_idents: scoped_idents.clone(),
+            scoped_idents,
             parent_hook: self.hook_stack.last().cloned(),
             ctx_kind,
             ctx_name,

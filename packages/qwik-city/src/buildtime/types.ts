@@ -47,7 +47,6 @@ export interface PageRoute extends BaseRoute {
 
 export interface EndpointRoute extends BaseRoute {
   type: 'endpoint';
-  handlers: string[];
 }
 
 export interface BuildLayout {

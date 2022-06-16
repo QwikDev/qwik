@@ -45,7 +45,7 @@ function createRoute(r: BuildRoute, moduleLoaders: string) {
 
   if (r.paramNames.length > 0) {
     const paramNames = JSON.stringify(r.paramNames);
-    return `[ ${pattern}, ${moduleLoaders},  ${paramNames} ]`;
+    return `[ ${pattern}, ${moduleLoaders}, ${paramNames} ]`;
   }
 
   return `[ ${pattern}, ${moduleLoaders} ]`;

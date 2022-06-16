@@ -62,7 +62,7 @@ export const useQwikCity = ({ routes }: QwikCityOptions) => {
   const update = (
     updatedModules: (PageModule | LayoutModule)[],
     updatedPageModule: PageModule,
-    updatedPageHead: PageHead,
+    updatedPageHead: PageHead | undefined,
     updatedParams: RouteParams
   ) => {
     Object.assign(route, {
@@ -99,7 +99,7 @@ export const useQwikCity = ({ routes }: QwikCityOptions) => {
             ? updatedPageModule.head()
             : updatedPageModule.head;
 
-        if (typeof updatedHead.then === 'function') {
+        if (updatedHead && typeof updatedHead.then === 'function') {
           updatedHead.then((head: PageHead) =>
             update(updateModules, updatedPageModule, head, updatedRouteParams)
           );

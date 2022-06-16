@@ -33,5 +33,6 @@
     "Mobify",
     "Pinterest",
     "Serializability"
-  ]
+  ],
+  "enableFiletypes": ["!mdx"]
 }

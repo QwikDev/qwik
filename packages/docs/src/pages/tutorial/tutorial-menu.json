@@ -4,18 +4,53 @@
     "title": "Introduction",
     "apps": [
       {
-        "id": "basics",
-        "title": "Basics",
+        "id": "component",
+        "title": "Basic Component",
         "enableHtmlOutput": false,
         "enableClientOutput": false,
         "enableSsrOutput": false
       },
       {
-        "id": "lazy-loading",
-        "title": "Lazy Loading",
+        "id": "store",
+        "title": "State management",
         "enableHtmlOutput": false,
         "enableClientOutput": false,
         "enableSsrOutput": false
+      },
+      {
+        "id": "listeners",
+        "title": "Event listeners",
+        "enableHtmlOutput": false,
+        "enableClientOutput": false,
+        "enableSsrOutput": false
+      },
+      {
+        "id": "watch",
+        "title": "Running side-effects on state changes",
+        "enableHtmlOutput": false,
+        "enableClientOutput": false,
+        "enableSsrOutput": false
+      },
+      {
+        "id": "ssr",
+        "title": "Prefetching data on SSR",
+        "enableHtmlOutput": false,
+        "enableClientOutput": false,
+        "enableSsrOutput": false
+      }
+    ]
+  },
+  {
+    "id": "understanding",
+    "title": "Understanding Qwik difference",
+    "apps": [
+      {
+        "id": "treeshaking",
+        "title": "Tree-shaking static components"
+      },
+      {
+        "id": "capturing",
+        "title": "Capturing lexical scope"
       }
     ]
   },

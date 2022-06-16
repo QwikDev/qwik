@@ -1,8 +1,9 @@
-import { useLocation } from '../../utils/useLocation';
 import tutorialSections, { TutorialApp } from '@tutorial-data';
+import { component$, useHostElement } from '@builder.io/qwik';
 
-export const TutorialContentHeader = ({ current }: TutorialContentHeaderProps) => {
-  const loc = useLocation();
+export const TutorialContentHeader = component$(({ current }: TutorialContentHeaderProps) => {
+  //const loc = useLocation();
+  const host = useHostElement();
 
   return (
     <div class="content-header">
@@ -18,6 +19,7 @@ export const TutorialContentHeader = ({ current }: TutorialContentHeaderProps) =
 
       <select
         onChange$={(_, elm: any) => {
+          const loc = host.ownerDocument.location;
           if (loc.pathname !== elm.value) {
             loc.href = `/tutorial/${elm.value}`;
           }
@@ -37,7 +39,7 @@ export const TutorialContentHeader = ({ current }: TutorialContentHeaderProps) =
       <h1>{current.title}</h1>
     </div>
   );
-};
+});
 
 interface TutorialContentHeaderProps {
   current: TutorialApp;

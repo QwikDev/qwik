@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "qwik-monorepo",
-  "version": "0.0.26",
+  "version": "0.0.27",
   "scripts": {
     "build": "yarn node scripts --tsc --build --api --platform-binding-wasm-copy",
     "build.full": "yarn node scripts --tsc --build --api --eslint --qwikcity --platform-binding --wasm",
@@ -45,7 +45,7 @@
     "preinstall": "yarn node scripts/tools/preinstall-script.js"
   },
   "devDependencies": {
-    "@builder.io/partytown": "0.6.0",
+    "@builder.io/partytown": "^0.6.1",
     "@builder.io/qwik-dom": "2.1.18",
     "@microsoft/api-extractor": "7.24.2",
     "@napi-rs/cli": "2.6.2",

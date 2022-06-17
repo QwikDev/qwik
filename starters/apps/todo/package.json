@@ -1,7 +1,7 @@
 {
   "description": "Qwik implementation of TodoMVC: https://todomvc.com/.",
-  "qwik": {
-    "priority": 0,
+  "__qwik__": {
+    "priority": -2,
     "featureOptions": []
   }
 }

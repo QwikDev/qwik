@@ -4,6 +4,7 @@
   "description": "Static Site Generator for Qwik",
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
+  "qwik": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "scripts": {
     "test.unit": "uvu -r tsm src \"(unit)\"",
@@ -20,7 +21,7 @@
     "source-map": "^0.7.3"
   },
   "peerDependencies": {
-    "@builder.io/qwik": "workspace:*"
+    "@builder.io/qwik": "0.0.27"
   },
   "devDependencies": {
     "@builder.io/qwik": "workspace:*",

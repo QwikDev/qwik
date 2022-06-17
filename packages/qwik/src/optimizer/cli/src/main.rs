@@ -111,10 +111,11 @@ fn optimize(
     optimizer_input: OptimizerInput,
 ) -> Result<qwik_core::TransformOutput, Box<dyn std::error::Error>> {
     let current_dir = std::env::current_dir()?;
-    let root_dir = current_dir.join(optimizer_input.src).canonicalize()?;
+    let src_dir = current_dir.join(optimizer_input.src).canonicalize()?;
 
     let result = transform_fs(TransformFsOptions {
-        root_dir: root_dir.to_string_lossy().to_string(),
+        src_dir: src_dir.to_string_lossy().to_string(),
+        vendor_roots: vec![],
         glob: optimizer_input.glob,
         source_maps: optimizer_input.sourcemaps,
         minify: optimizer_input.minify,

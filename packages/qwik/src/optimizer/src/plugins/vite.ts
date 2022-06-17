@@ -128,11 +128,13 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       }
 
       if (sys.env === 'node') {
-        const rootDir = pluginOpts.rootDir ?? sys.cwd();
-        const packageJsonPath = sys.path.join(rootDir, 'package.json');
         const fs: typeof import('fs') = await sys.dynamicImport('fs');
-        const pkgString = fs.readFileSync(packageJsonPath, { encoding: 'utf-8' });
-        if (pkgString) {
+
+        try {
+          const rootDir = pluginOpts.rootDir ?? sys.cwd();
+          const packageJsonPath = sys.path.join(rootDir, 'package.json');
+          const pkgString = await fs.promises.readFile(packageJsonPath, 'utf-8');
+
           try {
             const data = JSON.parse(pkgString);
 
@@ -149,6 +151,8 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           } catch (e) {
             console.error(e);
           }
+        } catch (e) {
+          // error reading package.json from nodejs fs, ok to ignore
         }
 
         // In a NodeJs environment, create a path to a q-manifest.json file within the

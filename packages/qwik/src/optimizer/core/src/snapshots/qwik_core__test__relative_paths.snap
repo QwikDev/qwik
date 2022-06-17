@@ -1,0 +1,91 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+expression: output
+---
+
+============================= logo_component_gdpncknf5sy.js (ENTRY POINT)==
+
+import { Host } from "@builder.io/qwik";
+import { jsx } from "@builder.io/qwik/jsx-runtime";
+import { state } from "../../node_modules/dep/dist/sibling";
+export const Logo_component_gdPNCKnF5sY = ()=>{
+    return /* @__PURE__ */ jsx(Host, {
+        style: {
+            "text-align": state
+        },
+        children: /* @__PURE__ */ jsx("a", {
+            href: "https://qwik.builder.io/",
+            children: /* @__PURE__ */ jsx("img", {
+                alt: "Qwik Logo",
+                width: 400,
+                height: 147
+            })
+        })
+    });
+};
+
+/*
+{
+  "origin": "../../node_modules/dep/dist/lib.js",
+  "name": "Logo_component_gdPNCKnF5sY",
+  "entry": null,
+  "displayName": "Logo_component",
+  "hash": "gdPNCKnF5sY",
+  "canonicalFilename": "logo_component_gdpncknf5sy",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    243,
+    562
+  ]
+}
+*/
+============================= ../../node_modules/dep/dist/lib.js ==
+
+import { qrl } from "@builder.io/qwik";
+import { componentQrl } from "@builder.io/qwik";
+/* @__PURE__ */ componentQrl(qrl(()=>import("../../../src/thing/logo_component_gdpncknf5sy.js")
+, "Logo_component_gdPNCKnF5sY"));
+
+============================= local_component_jj0v28bs0p8.js (ENTRY POINT)==
+
+import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
+import { state } from "./components/sibling";
+export const Local_component_jJ0v28bs0p8 = ()=>{
+    return /*#__PURE__*/ _jsx("div", {
+        children: state
+    });
+};
+
+/*
+{
+  "origin": "components/main.tsx",
+  "name": "Local_component_jJ0v28bs0p8",
+  "entry": null,
+  "displayName": "Local_component",
+  "hash": "jJ0v28bs0p8",
+  "canonicalFilename": "local_component_jj0v28bs0p8",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    120,
+    175
+  ]
+}
+*/
+============================= components/main.js ==
+
+import { componentQrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+export const Local = /*#__PURE__*/ componentQrl(qrl(()=>import("../local_component_jj0v28bs0p8.js")
+, "Local_component_jJ0v28bs0p8"));
+
+== DIAGNOSTICS ==
+
+[]

@@ -325,6 +325,8 @@ export type SystemEnvironment = 'node' | 'deno' | 'webworker' | 'browsermain' | 
 //
 // @alpha (undocumented)
 export interface TransformFsOptions extends TransformOptions {
+    // (undocumented)
+    vendorRoots: string[];
 }
 
 // @alpha (undocumented)

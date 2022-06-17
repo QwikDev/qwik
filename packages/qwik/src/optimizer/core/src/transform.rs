@@ -215,7 +215,7 @@ impl<'a> QwikTransform<'a> {
             display_name += &format!("_{}", index);
         }
         let mut hasher = DefaultHasher::new();
-        let local_file_name = self.options.path_data.path.to_slash_lossy();
+        let local_file_name = self.options.path_data.rel_path.to_slash_lossy();
         if let Some(scope) = self.options.scope {
             hasher.write(scope.as_bytes());
         }
@@ -302,7 +302,7 @@ impl<'a> QwikTransform<'a> {
             parent_hook: self.hook_stack.last().cloned(),
             ctx_kind,
             ctx_name,
-            origin: self.options.path_data.path.to_slash_lossy().into(),
+            origin: self.options.path_data.rel_path.to_slash_lossy().into(),
             display_name,
             need_transform: false,
             hash,
@@ -443,7 +443,7 @@ impl<'a> QwikTransform<'a> {
                 parent_hook: self.hook_stack.last().cloned(),
                 ctx_kind,
                 ctx_name,
-                origin: self.options.path_data.path.to_slash_lossy().into(),
+                origin: self.options.path_data.rel_path.to_slash_lossy().into(),
                 display_name,
                 need_transform: true,
                 hash,
@@ -500,11 +500,21 @@ impl<'a> QwikTransform<'a> {
             filename.push('.');
             filename.push_str(&self.options.extension);
         }
-        let import_path = if !self.hook_stack.is_empty() {
-            fix_path("a", "a", &filename).unwrap()
+        let outside_hook = !self.hook_stack.is_empty();
+        let import_path = if outside_hook {
+            fix_path(
+                &self.options.path_data.abs_dir,
+                &self.options.path_data.abs_dir,
+                &filename,
+            )
         } else {
-            fix_path("a", &self.options.path_data.path, &filename).unwrap()
-        };
+            fix_path(
+                &self.options.path_data.base_dir,
+                &self.options.path_data.abs_dir,
+                &filename,
+            )
+        }
+        .unwrap();
 
         let o = self.create_qrl(import_path, &symbol_name, &hook_data.scoped_idents);
         self.hooks.push(Hook {

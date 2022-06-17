@@ -40,6 +40,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     manifestInput: null,
     manifestOutput: null,
     transformedModuleOutput: null,
+    vendorRoots: [],
     scope: null,
   };
 
@@ -67,7 +68,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
   };
 
   const normalizeOptions = (inputOpts?: QwikPluginOptions) => {
-    const updatedOpts: NormalizedQwikPluginOptions = Object.assign({}, inputOpts) as any;
+    const updatedOpts: QwikPluginOptions = Object.assign({}, inputOpts);
 
     const optimizer = getOptimizer();
     const path = optimizer.sys.path;
@@ -169,8 +170,8 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         // client input default
         opts.input = [path.resolve(srcDir, 'root.tsx')];
       } else if (opts.target === 'lib') {
-        // client input default
-        opts.input = [path.resolve(srcDir, 'index.tsx')];
+        // lib input default
+        opts.input = [path.resolve(srcDir, 'index.ts')];
       }
     }
     opts.input = opts.input.map((input) => {
@@ -182,6 +183,8 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     } else {
       if (opts.target === 'ssr') {
         opts.outDir = normalizePath(path.resolve(opts.rootDir, SSR_OUT_DIR));
+      } else if (opts.target === 'lib') {
+        opts.outDir = normalizePath(path.resolve(opts.rootDir, LIB_OUT_DIR));
       } else {
         opts.outDir = normalizePath(path.resolve(opts.rootDir, CLIENT_OUT_DIR));
       }
@@ -200,6 +203,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       opts.transformedModuleOutput = updatedOpts.transformedModuleOutput;
     }
 
+    opts.vendorRoots = updatedOpts.vendorRoots ? updatedOpts.vendorRoots : [];
     opts.scope = updatedOpts.scope ?? null;
 
     return { ...opts };
@@ -242,9 +246,9 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       const optimizer = getOptimizer();
       const path = getPath();
 
-      let rootDir = '/';
+      let srcDir = '/';
       if (typeof opts.srcDir === 'string') {
-        rootDir = normalizePath(opts.srcDir);
+        srcDir = normalizePath(opts.srcDir);
         log(`buildStart() srcDir`, opts.srcDir);
       } else if (Array.isArray(opts.srcInputs)) {
         optimizer.sys.getInputFiles = async (rootDir) =>
@@ -257,12 +261,17 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
           });
         log(`buildStart() opts.srcInputs (${opts.srcInputs.length})`);
       }
+      const vendorRoots = opts.vendorRoots;
+      if (vendorRoots.length > 0) {
+        log(`vendorRoots`, vendorRoots);
+      }
 
       log(`transformedOutput.clear()`);
       transformedOutputs.clear();
 
       const transformOpts: TransformFsOptions = {
-        rootDir: rootDir,
+        srcDir,
+        vendorRoots,
         entryStrategy: opts.entryStrategy,
         minify: 'simplify',
         transpile: true,
@@ -273,7 +282,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
       const result = await optimizer.transformFs(transformOpts);
       for (const output of result.modules) {
-        const key = normalizePath(path.join(rootDir, output.path)!);
+        const key = normalizePath(path.join(srcDir, output.path)!);
         log(`buildStart() add transformedOutput`, key);
         transformedOutputs.set(key, [output, key]);
       }
@@ -429,7 +438,8 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         },
       };
     }
-    if (TRANSFORM_EXTS[ext]) {
+
+    if (TRANSFORM_EXTS[ext] || pathId.endsWith('.qwik.js')) {
       log(`transform()`, 'Transforming', pathId);
 
       let filePath = base;
@@ -444,12 +454,12 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
             path: filePath,
           },
         ],
-        entryStrategy: { type: 'hook' },
+        entryStrategy: opts.entryStrategy,
         minify: 'simplify',
         sourceMaps: false,
         transpile: true,
         explicityExtensions: true,
-        rootDir: normalizePath(dir),
+        srcDir: normalizePath(dir),
         dev: opts.buildMode === 'development',
         scope: opts.scope ? opts.scope : undefined,
       });
@@ -631,6 +641,8 @@ const CLIENT_OUT_DIR = 'dist';
 
 const SSR_OUT_DIR = 'server';
 
+const LIB_OUT_DIR = 'lib';
+
 export const Q_MANIFEST_FILENAME = 'q-manifest.json';
 
 export interface QwikPluginOptions {
@@ -639,6 +651,7 @@ export interface QwikPluginOptions {
   entryStrategy?: EntryStrategy;
   forceFullBuild?: boolean;
   rootDir?: string;
+  vendorRoots?: string[];
   manifestOutput?: ((manifest: QwikManifest) => Promise<void> | void) | null;
   manifestInput?: QwikManifest | null;
   input?: string[] | string;

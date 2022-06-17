@@ -45,7 +45,7 @@
     "preinstall": "yarn node scripts/tools/preinstall-script.js"
   },
   "devDependencies": {
-    "@builder.io/partytown": "0.6.0",
+    "@builder.io/partytown": "^0.6.1",
     "@builder.io/qwik-dom": "2.1.18",
     "@microsoft/api-extractor": "7.24.2",
     "@napi-rs/cli": "2.6.2",

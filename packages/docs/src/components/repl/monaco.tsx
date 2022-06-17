@@ -3,7 +3,6 @@ import type { Diagnostic } from '@builder.io/qwik/optimizer';
 import type MonacoTypes from 'monaco-editor';
 import type { EditorProps, EditorStore } from './editor';
 import type { ReplStore } from './types';
-import { QWIK_REPL_DEPS_CACHE } from './worker/repl-constants';
 
 export const initMonacoEditor = async (
   containerElm: any,
@@ -229,7 +228,7 @@ const loadDeps = async (qwikVersion: string) => {
     },
   ];
 
-  const cache = await caches.open(QWIK_REPL_DEPS_CACHE);
+  const cache = await caches.open('QwikReplResults');
 
   await Promise.all(
     deps.map(async (dep) => {

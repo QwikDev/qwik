@@ -1,12 +1,6 @@
 /* eslint-disable no-console */
-import {
-  component$,
-  useStore,
-  useWatch$,
-  getPlatform,
-  useHostElement,
-  useServerMount$,
-} from '@builder.io/qwik';
+import { component$, useStore, useWatch$, useServerMount$ } from '@builder.io/qwik';
+import { isServer } from '@builder.io/qwik/build';
 
 export const App = component$(() => {
   const github = useStore({
@@ -19,7 +13,7 @@ export const App = component$(() => {
   useWatch$((track) => {
     track(github, 'org');
 
-    if (getPlatform(useHostElement()).isServer) return;
+    if (isServer) return;
 
     github.repos = null;
     const controller = new AbortController();

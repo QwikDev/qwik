@@ -3,6 +3,7 @@ import type { Diagnostic } from '@builder.io/qwik/optimizer';
 import type MonacoTypes from 'monaco-editor';
 import type { EditorProps, EditorStore } from './editor';
 import type { ReplStore } from './types';
+import { QWIK_REPL_DEPS_CACHE } from './worker/repl-constants';
 
 export const initMonacoEditor = async (
   containerElm: any,
@@ -220,7 +221,15 @@ const loadDeps = async (qwikVersion: string) => {
       pkgPath: '/server.d.ts',
       path: '/node_modules/@types/builder.io__qwik/server.d.ts',
     },
+    {
+      pkgName: '@builder.io/qwik',
+      pkgVersion: qwikVersion,
+      pkgPath: '/build/index.d.ts',
+      path: '/node_modules/@types/builder.io__qwik/build/index.d.ts',
+    },
   ];
+
+  const cache = await caches.open(QWIK_REPL_DEPS_CACHE);
 
   await Promise.all(
     deps.map(async (dep) => {
@@ -238,12 +247,9 @@ const loadDeps = async (qwikVersion: string) => {
         monacoCtx.deps.push(storedDep);
 
         storedDep.promise = new Promise<void>((resolve, reject) => {
-          const url = getCdnUrl(dep.pkgName, dep.pkgVersion, dep.pkgPath);
-          fetch(url).then((rsp) => {
-            rsp.text().then((code) => {
-              storedDep!.code = code;
-              resolve();
-            }, reject);
+          fetchDep(cache, dep).then((code) => {
+            storedDep!.code = code;
+            resolve();
           }, reject);
         });
       }
@@ -252,6 +258,23 @@ const loadDeps = async (qwikVersion: string) => {
   );
 
   return monacoCtx.deps;
+};
+
+const fetchDep = async (cache: Cache, dep: NodeModuleDep) => {
+  const url = getCdnUrl(dep.pkgName, dep.pkgVersion, dep.pkgPath);
+  const req = new Request(url);
+  const cachedRes = await cache.match(req);
+  if (cachedRes) {
+    return cachedRes.clone().text();
+  }
+  const fetchRes = await fetch(req);
+  if (fetchRes.ok) {
+    if (!req.url.includes('localhost')) {
+      await cache.put(req, fetchRes.clone());
+    }
+    return fetchRes.clone().text();
+  }
+  throw new Error(`Unable to fetch: ${url}`);
 };
 
 const getMonaco = async (): Promise<Monaco> => {

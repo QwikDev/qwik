@@ -1,6 +1,6 @@
 {
   "description": "Blank Qwik starter app with Builder.io.",
-  "qwik": {
+  "__qwik__": {
     "priority": 0,
     "featureOptions": [
       "prettier",

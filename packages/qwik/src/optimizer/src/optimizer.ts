@@ -59,10 +59,13 @@ const transformFsAsync = async (
   const getInputFiles = await getPlatformInputFiles(sys);
 
   if (getInputFiles) {
-    const input = await getInputFiles(fsOpts.rootDir);
-
+    const input = await getInputFiles(fsOpts.srcDir);
+    for (const root of fsOpts.vendorRoots) {
+      const rootFiles = await getInputFiles(root);
+      input.push(...rootFiles);
+    }
     const modulesOpts: TransformModulesOptions = {
-      rootDir: fsOpts.rootDir,
+      srcDir: fsOpts.srcDir,
       entryStrategy: fsOpts.entryStrategy,
       minify: fsOpts.minify,
       sourceMaps: fsOpts.sourceMaps,

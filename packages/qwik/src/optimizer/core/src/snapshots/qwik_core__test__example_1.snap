@@ -47,9 +47,9 @@ export { hW as handleWatch };
   ]
 }
 */
-============================= renderheader_1_cpyr0uahiik.tsx (ENTRY POINT)==
+============================= renderheader_component_u6kkv07sbpq.tsx (ENTRY POINT)==
 
-export const renderHeader_1_cPyr0uAhiIk = ()=>{
+export const renderHeader_component_U6Kkv07sbpQ = ()=>{
     console.log("mount");
     return render;
 };
@@ -60,11 +60,11 @@ export { hW as handleWatch };
 /*
 {
   "origin": "test.tsx",
-  "name": "renderHeader_1_cPyr0uAhiIk",
+  "name": "renderHeader_component_U6Kkv07sbpQ",
   "entry": null,
-  "displayName": "renderHeader_1",
-  "hash": "cPyr0uAhiIk",
-  "canonicalFilename": "renderheader_1_cpyr0uahiik",
+  "displayName": "renderHeader_component",
+  "hash": "U6Kkv07sbpQ",
+  "canonicalFilename": "renderheader_component_u6kkv07sbpq",
   "extension": "tsx",
   "parent": null,
   "ctxKind": "function",
@@ -82,8 +82,8 @@ import { qrl } from "@builder.io/qwik";
 import { component } from '@builder.io/qwik';
 export const renderHeader = qrl(()=>import("./renderheader_zbbhwn4e8cg")
 , "renderHeader_zBbHWn4e8Cg");
-component(qrl(()=>import("./renderheader_1_cpyr0uahiik")
-, "renderHeader_1_cPyr0uAhiIk"));
+component(qrl(()=>import("./renderheader_component_u6kkv07sbpq")
+, "renderHeader_component_U6Kkv07sbpQ"));
 
 ============================= renderheader_div_onclick_fv2uzal99u4.tsx (ENTRY POINT)==
 

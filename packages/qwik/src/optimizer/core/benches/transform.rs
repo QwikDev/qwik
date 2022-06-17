@@ -184,7 +184,7 @@ fn transform_todo_app(b: &mut Bencher) {
         });
       "#;
       transform_modules(TransformModulesOptions {
-          root_dir: "/user/qwik/src/".into(),
+        src_dir: "/user/qwik/src/".into(),
           input: vec![TransformModuleInput {
               code: code.into(),
               path: "file.tsx".into(),

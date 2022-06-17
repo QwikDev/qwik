@@ -7,7 +7,7 @@ macro_rules! test_input {
     ($input: expr) => {
         let input = $input;
         let res = transform_modules(TransformModulesOptions {
-            root_dir: input.root_dir,
+            src_dir: input.src_dir,
             input: vec![TransformModuleInput {
                 code: input.code.clone(),
                 path: input.filename,
@@ -21,38 +21,45 @@ macro_rules! test_input {
             scope: input.scope,
         });
         if input.snapshot {
-            match &res {
-                Ok(v) => {
-                    let input = input.code.to_string();
-                    let mut output = format!("==INPUT==\n\n{}", input);
-
-                    for module in &v.modules {
-                        let is_entry = if module.is_entry { "(ENTRY POINT)" } else { "" };
-                        output += format!(
-                            "\n============================= {} {}==\n\n{}",
-                            module.path, is_entry, module.code
-                        )
-                        .as_str();
-                        if let Some(hook) = &module.hook {
-                            let hook = to_string_pretty(&hook).unwrap();
-                            output += &format!("\n/*\n{}\n*/", hook);
-                        }
-                        // let map = if let Some(map) = s.map { map } else { "".to_string() };
-                        // output += format!("\n== MAP ==\n{}", map).as_str();
-                    }
-                    output += format!(
-                        "\n== DIAGNOSTICS ==\n\n{}",
-                        to_string_pretty(&v.diagnostics).unwrap()
-                    )
-                    .as_str();
-                    insta::assert_display_snapshot!(output);
-                }
-                Err(err) => {
-                    insta::assert_display_snapshot!(err);
-                }
-            }
+            let input = input.code.to_string();
+            let output = format!("==INPUT==\n\n{}", input);
+            snapshot_res!(&res, output);
         }
         drop(res)
+    };
+}
+
+macro_rules! snapshot_res {
+    ($res: expr, $prefix: expr) => {
+        match $res {
+            Ok(v) => {
+                let mut output: String = $prefix;
+
+                for module in &v.modules {
+                    let is_entry = if module.is_entry { "(ENTRY POINT)" } else { "" };
+                    output += format!(
+                        "\n============================= {} {}==\n\n{}",
+                        module.path, is_entry, module.code
+                    )
+                    .as_str();
+                    if let Some(hook) = &module.hook {
+                        let hook = to_string_pretty(&hook).unwrap();
+                        output += &format!("\n/*\n{}\n*/", hook);
+                    }
+                    // let map = if let Some(map) = s.map { map } else { "".to_string() };
+                    // output += format!("\n== MAP ==\n{}", map).as_str();
+                }
+                output += format!(
+                    "\n== DIAGNOSTICS ==\n\n{}",
+                    to_string_pretty(&v.diagnostics).unwrap()
+                )
+                .as_str();
+                insta::assert_display_snapshot!(output);
+            }
+            Err(err) => {
+                insta::assert_display_snapshot!(err);
+            }
+        }
     };
 }
 
@@ -1024,6 +1031,46 @@ export const Child = component$(() => {
 }
 
 #[test]
+fn example_parsed_inlined_qrls() {
+    test_input!(TestInput {
+        code: r#"
+import { componentQrl, inlinedQrl, useStore, jsxs, jsx, useLexicalScope } from '@builder.io/qwik';
+
+export const App = /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
+    const store = useStore({
+        count: 0
+    });
+    return /*#__PURE__*/ jsxs("div", {
+        children: [
+            /*#__PURE__*/ jsxs("p", {
+                children: [
+                    "Count: ",
+                    store.count
+                ]
+            }),
+            /*#__PURE__*/ jsx("p", {
+                children: /*#__PURE__*/ jsx("button", {
+                    onClickQrl: inlinedQrl(()=>{
+                        const [store] = useLexicalScope();
+                        return store.count++;
+                    }, "App_component_div_p_button_onClick_odz7eidI4GM", [
+                        store
+                    ]),
+                    children: "Click"
+                })
+            })
+        ]
+    });
+}, "App_component_Fh88JClhbC0"));
+
+"#
+        .to_string(),
+        entry_strategy: EntryStrategy::Inline,
+        ..TestInput::default()
+    });
+}
+
+#[test]
 fn example_use_server_mount() {
     test_input!(TestInput {
         code: r#"
@@ -1100,7 +1147,7 @@ const d = $(()=>console.log('thing'));
 fn issue_188() {
     let res = test_input!({
         filename: r"components\apps\apps.tsx".to_string(),
-        root_dir: r"C:\users\apps".to_string(),
+        src_dir: r"C:\users\apps".to_string(),
         code: r#"
 import { component$, $ } from '@builder.io/qwik';
 
@@ -1149,6 +1196,73 @@ export const Root = () => {
 }
 
 #[test]
+fn relative_paths() {
+    let dep = r#"
+import { componentQrl, inlinedQrl, Host, useStore, useLexicalScope } from "@builder.io/qwik";
+import { jsx, jsxs } from "@builder.io/qwik/jsx-runtime";
+import { state } from './sibling';
+
+export const App = /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
+    const store = useStore({
+        count: 0
+    });
+    return /*#__PURE__*/ jsxs("div", {
+        children: [
+            /*#__PURE__*/ jsxs("p", {
+                children: [
+                    "Count: ",
+                    store.count
+                ]
+            }),
+            /*#__PURE__*/ jsx("p", {
+                children: /*#__PURE__*/ jsx("button", {
+                    onClickQrl: inlinedQrl(()=>{
+                        const [store] = useLexicalScope();
+                        return store.count++;
+                    }, "App_component_div_p_button_onClick_8dWUa0cJAr4", [
+                        store
+                    ]),
+                    children: "Click"
+                })
+            })
+        ]
+    });
+}, "App_component_AkbU84a8zes"));
+
+"#;
+    let code = r#"
+import { component$, $ } from '@builder.io/qwik';
+import { state } from './sibling';
+
+export const Local = component$(() => {
+    return (
+        <div>{state}</div>
+    )
+});
+"#;
+    let res = transform_modules(TransformModulesOptions {
+        src_dir: "/path/to/app/src/thing".into(),
+        input: vec![
+            TransformModuleInput {
+                code: dep.into(),
+                path: "../../node_modules/dep/dist/lib.js".into(),
+            },
+            TransformModuleInput {
+                code: code.into(),
+                path: "components/main.tsx".into(),
+            },
+        ],
+        source_maps: true,
+        minify: MinifyMode::Simplify,
+        explicity_extensions: true,
+        dev: true,
+        entry_strategy: EntryStrategy::Hook,
+        transpile: true,
+        scope: None,
+    });
+    snapshot_res!(&res, "".into());
+}
+#[test]
 fn consistent_hashes() {
     let code = r#"
 import { component$, $ } from '@builder.io/qwik';
@@ -1184,7 +1298,7 @@ export const Greeter = component$(() => {
     ];
 
     let res = transform_modules(TransformModulesOptions {
-        root_dir: "./thing".into(),
+        src_dir: "./thing".into(),
         input: vec![
             TransformModuleInput {
                 code: code.into(),
@@ -1212,7 +1326,7 @@ export const Greeter = component$(() => {
 
     for (i, option) in options.into_iter().enumerate() {
         let res = transform_modules(TransformModulesOptions {
-            root_dir: "./thing".into(),
+            src_dir: "./thing".into(),
             input: vec![
                 TransformModuleInput {
                     code: code.into(),
@@ -1263,7 +1377,7 @@ fn get_hash(name: &str) -> String {
 struct TestInput {
     pub code: String,
     pub filename: String,
-    pub root_dir: String,
+    pub src_dir: String,
     pub entry_strategy: EntryStrategy,
     pub minify: MinifyMode,
     pub transpile: bool,
@@ -1277,7 +1391,7 @@ impl TestInput {
     pub fn default() -> Self {
         Self {
             filename: "test.tsx".to_string(),
-            root_dir: "/user/qwik/src/".to_string(),
+            src_dir: "/user/qwik/src/".to_string(),
             code: "/user/qwik/src/".to_string(),
             entry_strategy: EntryStrategy::Hook,
             minify: MinifyMode::Simplify,

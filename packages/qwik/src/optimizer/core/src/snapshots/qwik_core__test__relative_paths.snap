@@ -1,0 +1,128 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+expression: output
+---
+
+============================= app_component_div_p_button_onclick_8dwua0cjar4.js (ENTRY POINT)==
+
+import { useLexicalScope } from "@builder.io/qwik";
+export const App_component_div_p_button_onClick_8dWUa0cJAr4 = ()=>{
+    const [store] = useLexicalScope();
+    return store.count++;
+};
+
+/*
+{
+  "origin": "../../node_modules/dep/dist/lib.js",
+  "name": "App_component_div_p_button_onClick_8dWUa0cJAr4",
+  "entry": null,
+  "displayName": "App_component_div_p_button_onClick",
+  "hash": "8dWUa0cJAr4",
+  "canonicalFilename": "app_component_div_p_button_onclick_8dwua0cjar4",
+  "extension": "js",
+  "parent": "App_component_AkbU84a8zes",
+  "ctxKind": "event",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    665,
+    797
+  ]
+}
+*/
+============================= app_component_akbu84a8zes.js (ENTRY POINT)==
+
+import { jsx } from "@builder.io/qwik/jsx-runtime";
+import { jsxs } from "@builder.io/qwik/jsx-runtime";
+import { qrl } from "@builder.io/qwik";
+import { useStore } from "@builder.io/qwik";
+export const App_component_AkbU84a8zes = ()=>{
+    const store = useStore({
+        count: 0
+    });
+    return /*#__PURE__*/ jsxs("div", {
+        children: [
+            /*#__PURE__*/ jsxs("p", {
+                children: [
+                    "Count: ",
+                    store.count
+                ]
+            }),
+            /*#__PURE__*/ jsx("p", {
+                children: /*#__PURE__*/ jsx("button", {
+                    onClickQrl: qrl(()=>import("./app_component_div_p_button_onclick_8dwua0cjar4.js")
+                    , "App_component_div_p_button_onClick_8dWUa0cJAr4", [
+                        store
+                    ]),
+                    children: "Click"
+                })
+            })
+        ]
+    });
+};
+
+/*
+{
+  "origin": "../../node_modules/dep/dist/lib.js",
+  "name": "App_component_AkbU84a8zes",
+  "entry": null,
+  "displayName": "App_component",
+  "hash": "AkbU84a8zes",
+  "canonicalFilename": "app_component_akbu84a8zes",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    247,
+    996
+  ]
+}
+*/
+============================= ../../node_modules/dep/dist/lib.js ==
+
+import { qrl } from "@builder.io/qwik";
+import { componentQrl } from "@builder.io/qwik";
+export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("../../../src/thing/app_component_akbu84a8zes.js")
+, "App_component_AkbU84a8zes"));
+
+============================= local_component_jj0v28bs0p8.js (ENTRY POINT)==
+
+import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
+import { state } from "./components/sibling";
+export const Local_component_jJ0v28bs0p8 = ()=>{
+    return /*#__PURE__*/ _jsx("div", {
+        children: state
+    });
+};
+
+/*
+{
+  "origin": "components/main.tsx",
+  "name": "Local_component_jJ0v28bs0p8",
+  "entry": null,
+  "displayName": "Local_component",
+  "hash": "jJ0v28bs0p8",
+  "canonicalFilename": "local_component_jj0v28bs0p8",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    120,
+    175
+  ]
+}
+*/
+============================= components/main.js ==
+
+import { componentQrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+export const Local = /*#__PURE__*/ componentQrl(qrl(()=>import("../local_component_jj0v28bs0p8.js")
+, "Local_component_jJ0v28bs0p8"));
+
+== DIAGNOSTICS ==
+
+[]

@@ -46,7 +46,7 @@ describe('qwik plugin', () => {
       const opts = plugin.normalizeOptions({ target: 'ssr' });
       expect(opts.target).toBe('ssr');
       expect(opts.buildMode).toBe('development');
-      expect(opts.entryStrategy).toEqual({ type: 'hook' });
+      expect(opts.entryStrategy).toEqual({ type: 'inline' });
       expect(opts.forceFullBuild).toBe(false);
       expect(opts.debug).toBe(false);
       expect(opts.rootDir).toBe(cwd);
@@ -64,7 +64,7 @@ describe('qwik plugin', () => {
       expect(opts.target).toBe('ssr');
       expect(opts.buildMode).toBe('production');
       expect(opts.entryStrategy).toEqual({ type: 'inline' });
-      expect(opts.forceFullBuild).toBe(true);
+      expect(opts.forceFullBuild).toBe(false);
       expect(opts.debug).toBe(false);
       expect(opts.rootDir).toBe(cwd);
       expect(opts.input).toEqual([resolve(cwd, 'src', 'entry.ssr.tsx')]);

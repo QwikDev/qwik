@@ -1,0 +1,35 @@
+{
+  "description": "Create a component library",
+  "version": "0.0.1",
+  "private": false,
+  "main": "./lib/index.cjs.qwik.js",
+  "qwik": "./lib/index.es.qwik.js",
+  "module": "./lib/index.es.qwik.js",
+  "types": "./lib/types/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./lib/index.es.qwik.js",
+      "require": "./lib/index.cjs.qwik.js"
+    }
+  },
+  "files": [
+    "lib"
+  ],
+  "scripts": {
+    "build": "npm run build.lib && npm run build.types",
+    "build.lib": "vite build --mode lib",
+    "build.types": "tsc --emitDeclarationOnly",
+    "release": "np"
+  },
+  "devDependencies": {
+    "np": "7.6.1"
+  },
+  "__qwik__": {
+    "priority": -1,
+    "selectServer": false,
+    "featureOptions": [
+      "prettier",
+      "eslint"
+    ]
+  }
+}

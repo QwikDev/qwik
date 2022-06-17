@@ -1,7 +1,7 @@
 {
   "description": "Starter with built-in routing, powered by Qwik City",
-  "qwik": {
-    "priority": 0,
+  "__qwik__": {
+    "priority": 1,
     "featureOptions": [
       "prettier",
       "eslint",

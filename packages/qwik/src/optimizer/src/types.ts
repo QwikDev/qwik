@@ -69,7 +69,7 @@ export type TranspileOption = boolean | undefined | null;
  * @alpha
  */
 export interface TransformOptions {
-  rootDir: string;
+  srcDir: string;
   entryStrategy?: EntryStrategy;
   minify?: MinifyMode;
   sourceMaps?: boolean;
@@ -89,7 +89,9 @@ export interface TransformModulesOptions extends TransformOptions {
 /**
  * @alpha
  */
-export interface TransformFsOptions extends TransformOptions {}
+export interface TransformFsOptions extends TransformOptions {
+  vendorRoots: string[];
+}
 
 // OPTION INPUTS ***************
 

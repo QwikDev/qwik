@@ -63,7 +63,7 @@ function generateUserStarter(
 
   if (starterServer) {
     const serverPkgJson = readPackageJson(starterServer.dir);
-    const vite = serverPkgJson.qwik?.vite;
+    const vite = serverPkgJson.__qwik__?.vite;
     replacements.push([/\/\* VITE_IMPORTS \*\//g, vite?.VITE_IMPORTS ?? '']);
     replacements.push([/\/\* VITE_CONFIG \*\//g, vite?.VITE_CONFIG ?? '']);
     replacements.push([/\/\* VITE_QWIK \*\//g, vite?.VITE_QWIK ?? '']);
@@ -76,6 +76,21 @@ function generateUserStarter(
   const pkgJson = readPackageJson(baseApp.dir);
   const starterPkgJson = readPackageJson(starterApp.dir);
   mergePackageJSONs(pkgJson, starterPkgJson);
+  const replaceProps = [
+    'version',
+    'private',
+    'main',
+    'module',
+    'qwik',
+    'types',
+    'exports',
+    'files',
+  ];
+  for (const prop of replaceProps) {
+    if (starterPkgJson[prop] !== undefined) {
+      pkgJson[prop] = starterPkgJson[prop];
+    }
+  }
 
   let readmeContent = baseApp.readme!.trim() + '\n\n';
 
@@ -164,7 +179,7 @@ function cleanPackageJson(srcPkg: PackageJSON) {
   Object.keys(cleanedPkg).forEach((prop) => {
     delete (srcPkg as any)[prop];
   });
-  delete srcPkg.qwik;
+  delete srcPkg.__qwik__;
 
   const sortedKeys = Object.keys(srcPkg).sort();
   for (const key of sortedKeys) {

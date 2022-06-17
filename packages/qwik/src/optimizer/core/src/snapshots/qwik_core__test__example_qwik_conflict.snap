@@ -94,15 +94,41 @@ export const Foo_component_HTDRsvUbLiE = ()=>{
   ]
 }
 */
+============================= root_component_usestyles_u5dkuxgrgnu.js (ENTRY POINT)==
+
+export const Root_component_useStyles_u5DkUxGrGnU = 'thing';
+import { handleWatch as hW } from "@builder.io/qwik";
+hW.issue123 && hW.issue123();
+export { hW as handleWatch };
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "Root_component_useStyles_u5DkUxGrGnU",
+  "entry": null,
+  "displayName": "Root_component_useStyles",
+  "hash": "u5DkUxGrGnU",
+  "canonicalFilename": "root_component_usestyles_u5dkuxgrgnu",
+  "extension": "js",
+  "parent": "Root_component_royhjYaCbYE",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    535,
+    542
+  ]
+}
+*/
 ============================= root_component_royhjyacbye.js (ENTRY POINT)==
 
 import { qrl } from "@builder.io/qwik";
 import { useStyles } from "@builder.io/qwik";
 export const Root_component_royhjYaCbYE = ()=>{
-    useStyles(qrl(()=>import("./root_component_1_cbpqnyduhi4")
-    , "Root_component_1_cBpQNYDUHI4"));
-    return qrl(()=>import("./root_component_2_iqsg9sgbdfk")
-    , "Root_component_2_iqSg9SGBdfk");
+    useStyles(qrl(()=>import("./root_component_usestyles_u5dkuxgrgnu")
+    , "Root_component_useStyles_u5DkUxGrGnU"));
+    return qrl(()=>import("./root_component_1_cbpqnyduhi4")
+    , "Root_component_1_cBpQNYDUHI4");
 };
 
 /*
@@ -126,7 +152,10 @@ export const Root_component_royhjYaCbYE = ()=>{
 */
 ============================= root_component_1_cbpqnyduhi4.js (ENTRY POINT)==
 
-export const Root_component_1_cBpQNYDUHI4 = 'thing';
+import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
+export const Root_component_1_cBpQNYDUHI4 = ()=>{
+    return /*#__PURE__*/ _jsx("div", {});
+};
 import { handleWatch as hW } from "@builder.io/qwik";
 hW.issue123 && hW.issue123();
 export { hW as handleWatch };
@@ -145,8 +174,8 @@ export { hW as handleWatch };
   "ctxName": "$",
   "captures": false,
   "loc": [
-    535,
-    542
+    559,
+    618
   ]
 }
 */
@@ -174,35 +203,6 @@ export const Foo_component_div_onClick_M48DYiidSJw = ()=>{
   "loc": [
     416,
     437
-  ]
-}
-*/
-============================= root_component_2_iqsg9sgbdfk.js (ENTRY POINT)==
-
-import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
-export const Root_component_2_iqSg9SGBdfk = ()=>{
-    return /*#__PURE__*/ _jsx("div", {});
-};
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue123 && hW.issue123();
-export { hW as handleWatch };
-
-/*
-{
-  "origin": "test.tsx",
-  "name": "Root_component_2_iqSg9SGBdfk",
-  "entry": null,
-  "displayName": "Root_component_2",
-  "hash": "iqSg9SGBdfk",
-  "canonicalFilename": "root_component_2_iqsg9sgbdfk",
-  "extension": "js",
-  "parent": "Root_component_royhjYaCbYE",
-  "ctxKind": "function",
-  "ctxName": "$",
-  "captures": false,
-  "loc": [
-    559,
-    618
   ]
 }
 */

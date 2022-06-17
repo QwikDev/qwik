@@ -51,7 +51,10 @@ export async function runInteractive() {
       },
     },
     {
-      type: 'select',
+      type: () => {
+        const selected = starters.apps.find((a) => a.id === opts.appId);
+        return selected?.selectServer ? 'select' : null;
+      },
       name: 'serverId',
       message: 'Select a server',
       choices: () => {
@@ -83,7 +86,8 @@ export async function runInteractive() {
         const featureOptions = [...starter!.featureOptions];
         return featureOptions.map((featureId) => {
           const f = starters.features.find((f) => f.id === featureId)!;
-          return { title: f.name, value: f.id, description: f.description, selected: true };
+          const selected = f.id !== 'tailwindcss';
+          return { title: f.name, value: f.id, description: f.description, selected };
         });
       },
       format: (featureIds: string[]) => {

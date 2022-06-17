@@ -1,5 +1,11 @@
 import type { Plugin as VitePlugin, UserConfig, ViteDevServer } from 'vite';
-import type { EntryStrategy, OptimizerOptions, QwikManifest, TransformModule } from '../types';
+import type {
+  EntryStrategy,
+  OptimizerOptions,
+  OptimizerSystem,
+  QwikManifest,
+  TransformModule,
+} from '../types';
 import type { RenderToStringOptions, RenderToStringResult } from '../../../server';
 import {
   createPlugin,
@@ -25,7 +31,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
   let isClientDevOnly = false;
   let clientDevInput: undefined | string = undefined;
   let tmpClientManifestPath: undefined | string = undefined;
-  let viteCommand: string = 'serve';
+  let viteCommand: 'build' | 'serve' = 'serve';
   const qwikPlugin = createPlugin(qwikViteOpts.optimizerOptions);
 
   const vitePlugin: VitePlugin = {
@@ -52,12 +58,18 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       let target: QwikBuildTarget;
       if (viteConfig.build?.ssr || viteEnv.mode === 'ssr') {
         target = 'ssr';
+      } else if (viteEnv.mode === 'lib') {
+        target = 'lib';
       } else {
         target = 'client';
       }
 
       let buildMode: QwikBuildMode;
-      if (viteEnv.command === 'build' && viteEnv.mode !== 'development') {
+      if (viteEnv.mode === 'production') {
+        buildMode = 'production';
+      } else if (viteEnv.mode === 'development') {
+        buildMode = 'development';
+      } else if (viteEnv.command === 'build' && target === 'client') {
         // build (production)
         buildMode = 'production';
       } else {
@@ -65,9 +77,16 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         buildMode = 'development';
       }
 
-      if (buildMode === 'development') {
+      let forceFullBuild = true;
+      if (viteEnv.command === 'serve') {
         qwikViteOpts.entryStrategy = { type: 'hook' };
+        forceFullBuild = false;
+      } else {
+        forceFullBuild = true;
       }
+
+      const vendorRoots =
+        target === 'client' ? await findQwikRoots(sys, path.join(sys.cwd(), 'package.json')) : [];
 
       const pluginOpts: QwikPluginOptions = {
         target,
@@ -76,8 +95,13 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         entryStrategy: qwikViteOpts.entryStrategy,
         rootDir: viteConfig.root,
         transformedModuleOutput: qwikViteOpts.transformedModuleOutput,
+        forceFullBuild,
+        vendorRoots: vendorRoots.map((v) => v.path),
       };
 
+      if (viteEnv.command === 'serve') {
+        qwikViteOpts.entryStrategy = { type: 'hook' };
+      }
       if (target === 'ssr') {
         // ssr
         if (typeof viteConfig.build?.ssr === 'string') {
@@ -91,14 +115,42 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
         pluginOpts.outDir = qwikViteOpts.ssr?.outDir;
         pluginOpts.manifestInput = qwikViteOpts.ssr?.manifestInput;
-      } else {
+      } else if (target === 'client') {
         // client
         pluginOpts.input = qwikViteOpts.client?.input;
         pluginOpts.outDir = qwikViteOpts.client?.outDir;
         pluginOpts.manifestOutput = qwikViteOpts.client?.manifestOutput;
+      } else {
+        if (typeof viteConfig.build?.lib === 'object') {
+          pluginOpts.input = viteConfig.build?.lib.entry;
+        }
+        pluginOpts.outDir = viteConfig.build?.outDir;
       }
 
       if (sys.env === 'node') {
+        const rootDir = pluginOpts.rootDir ?? sys.cwd();
+        const packageJsonPath = sys.path.join(rootDir, 'package.json');
+        const fs: typeof import('fs') = await sys.dynamicImport('fs');
+        const pkgString = fs.readFileSync(packageJsonPath, { encoding: 'utf-8' });
+        if (pkgString) {
+          try {
+            const data = JSON.parse(pkgString);
+
+            if (typeof data.name === 'string') {
+              pluginOpts.scope = data.name;
+            }
+            if (target === 'ssr') {
+              if (typeof data.qwik !== 'string') {
+                console.warn(
+                  'Missing package.qwik. When building a qwik library, make sure your package.json includes the "qwik" property pointing to the main ESM entry point.'
+                );
+              }
+            }
+          } catch (e) {
+            console.error(e);
+          }
+        }
+
         // In a NodeJs environment, create a path to a q-manifest.json file within the
         // OS tmp directory. This path should always be the same for both client and ssr.
         // Client build will write to this path, and SSR will read from it. For this reason,
@@ -109,7 +161,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         if (target === 'ssr' && !pluginOpts.manifestInput) {
           // This is a SSR build so we should load the client build's manifest
           // so it can be used as the manifestInput of the SSR build
-          const fs: typeof import('fs') = await sys.dynamicImport('fs');
           try {
             const clientManifestStr = await fs.promises.readFile(tmpClientManifestPath, 'utf-8');
             pluginOpts.manifestInput = JSON.parse(clientManifestStr);
@@ -136,7 +187,13 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         esbuild: { include: /\.js$/ },
         optimizeDeps: {
           include: [QWIK_CORE_ID, QWIK_JSX_RUNTIME_ID],
-          exclude: ['@vite/client', '@vite/env', QWIK_BUILD_ID, QWIK_CLIENT_MANIFEST_ID],
+          exclude: [
+            '@vite/client',
+            '@vite/env',
+            QWIK_BUILD_ID,
+            QWIK_CLIENT_MANIFEST_ID,
+            ...vendorRoots.map((v) => v.id),
+          ],
         },
         build: {
           outDir: opts.outDir,
@@ -219,7 +276,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       if (isClientDevOnly && id === VITE_CLIENT_MODULE) {
         return getViteDevModule(opts);
       }
-      if (viteCommand === 'server' && id.endsWith(QWIK_CLIENT_MANIFEST_ID)) {
+      if (viteCommand === 'serve' && id.endsWith(QWIK_CLIENT_MANIFEST_ID)) {
         return {
           code: 'export const manifest = undefined;',
         };
@@ -499,6 +556,56 @@ const getSymbolHash = (symbolName: string) => {
     return symbolName.slice(index + 1);
   }
   return symbolName;
+};
+
+export interface QwikPackages {
+  id: string;
+  path: string;
+}
+
+const findQwikRoots = async (
+  sys: OptimizerSystem,
+  packageJsonPath: string
+): Promise<QwikPackages[]> => {
+  if (sys.env === 'node') {
+    const fs: typeof import('fs') = await sys.dynamicImport('fs');
+    const { resolvePackageData }: typeof import('vite') = await sys.dynamicImport('vite');
+
+    const data = fs.readFileSync(packageJsonPath, { encoding: 'utf-8' });
+    const packageJson = JSON.parse(data);
+    const dependencies = packageJson['dependencies'];
+    const devDependencies = packageJson['devDependencies'];
+
+    const packages: string[] = [];
+    if (typeof dependencies === 'object') {
+      packages.push(...Object.keys(dependencies));
+    }
+    if (typeof devDependencies === 'object') {
+      packages.push(...Object.keys(devDependencies));
+    }
+
+    const basedir = sys.cwd();
+    const qwikDirs = packages
+      .map((id) => {
+        const pkgData = resolvePackageData(id, basedir);
+        if (pkgData) {
+          const qwikPath = pkgData.data['qwik'];
+          if (qwikPath) {
+            return {
+              id,
+              path: sys.path.resolve(pkgData.dir, qwikPath),
+            };
+          }
+        }
+      })
+      .filter(isNotNullable);
+    return qwikDirs;
+  }
+  return [];
+};
+
+export const isNotNullable = <T>(v: T): v is NonNullable<T> => {
+  return v != null;
 };
 
 const VITE_CLIENT_MODULE = `@builder.io/qwik/vite-client`;

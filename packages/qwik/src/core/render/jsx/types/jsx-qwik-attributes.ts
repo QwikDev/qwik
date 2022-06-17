@@ -23,6 +23,7 @@ export interface QwikProps {
   'q:version'?: string;
   'q:container'?: '';
   [key: `preventDefault:${string}`]: boolean;
+  [key: `preventdefault:${string}`]: boolean;
 }
 
 /**
@@ -205,6 +206,9 @@ export interface ComponentBaseProps {
 
   [key: `window:on${string}$`]: EventHandler | undefined;
   [key: `window:on${string}Qrl`]: QrlEvent | QrlEvent[] | undefined;
+
+  [key: `preventDefault:${string}`]: boolean;
+  [key: `preventdefault:${string}`]: boolean;
 
   children?: JSXChildren;
 }

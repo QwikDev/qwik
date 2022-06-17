@@ -95,8 +95,8 @@ describe('render', () => {
     });
 
     it('should render attributes', async () => {
-      await render(fixture.host, <div id="abc" title="bar" preventDefault:click></div>);
-      await expectRendered(<div title="bar" id="abc"></div>);
+      await render(fixture.host, <div id="abc" title="bar" preventdefault:click></div>);
+      await expectRendered(<div title="bar" id="abc" preventdefault:click></div>);
     });
 
     it('should render style only for defined attributes', async () => {
@@ -149,9 +149,9 @@ describe('render', () => {
 
   describe('component', () => {
     it('should render a component', async () => {
-      await render(fixture.host, <HelloWorld name="World" />);
+      await render(fixture.host, <HelloWorld name="World" preventdefault:click />);
       await expectRendered(
-        <hello-world>
+        <hello-world preventdefault:click>
           <span>
             {'Hello'} {'World'}
           </span>
@@ -175,6 +175,7 @@ describe('render', () => {
           host:on-ClicK$={() => {}}
           document:onLoad$={() => {}}
           window:onScroll$={() => {}}
+          preventDefault:click
         />
       );
       await expectRendered(
@@ -191,6 +192,7 @@ describe('render', () => {
           on:-clic-k="/runtimeQRL#*"
           on-document:load="/runtimeQRL#*"
           on-window:scroll="/runtimeQRL#*"
+          preventdefault:click
         >
           <span>{'{"thing":"World"}'}</span>
         </render-props>

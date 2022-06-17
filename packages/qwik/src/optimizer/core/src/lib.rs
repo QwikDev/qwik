@@ -9,6 +9,7 @@ mod test;
 mod code_move;
 mod collector;
 mod entry_strategy;
+mod package_json;
 mod parse;
 mod transform;
 mod utils;
@@ -36,11 +37,12 @@ pub use crate::entry_strategy::EntryStrategy;
 use crate::parse::{transform_code, TransformCodeOptions};
 pub use crate::parse::{ErrorBuffer, HookAnalysis, MinifyMode, TransformModule, TransformOutput};
 
-// #[cfg(feature = "fs")]
+#[cfg(feature = "fs")]
 #[derive(Serialize, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TransformFsOptions {
-    pub root_dir: String,
+    pub src_dir: String,
+    pub vendor_roots: Vec<String>,
     pub glob: Option<String>,
     pub minify: MinifyMode,
     pub entry_strategy: EntryStrategy,
@@ -61,7 +63,7 @@ pub struct TransformModuleInput {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TransformModulesOptions {
-    pub root_dir: String,
+    pub src_dir: String,
     pub input: Vec<TransformModuleInput>,
     pub source_maps: bool,
     pub minify: MinifyMode,
@@ -74,11 +76,11 @@ pub struct TransformModulesOptions {
 
 #[cfg(feature = "fs")]
 pub fn transform_fs(config: TransformFsOptions) -> Result<TransformOutput, Error> {
-    let root_dir = Path::new(&config.root_dir);
+    let src_dir = Path::new(&config.src_dir);
     let mut paths = vec![];
     let is_inline = matches!(config.entry_strategy, EntryStrategy::Inline);
     let entry_policy = &*parse_entry_strategy(config.entry_strategy);
-    find_files(root_dir, &mut paths)?;
+    crate::package_json::find_modules(src_dir, config.vendor_roots, &mut paths)?;
 
     #[cfg(feature = "parallel")]
     let iterator = paths.par_iter();
@@ -90,14 +92,10 @@ pub fn transform_fs(config: TransformFsOptions) -> Result<TransformOutput, Error
             let code = fs::read_to_string(&path)
                 .with_context(|| format!("Opening {}", &path.to_string_lossy()))?;
 
+            let relative_path = pathdiff::diff_paths(path, &config.src_dir).unwrap();
             transform_code(TransformCodeOptions {
-                path: path
-                    .strip_prefix(&config.root_dir)
-                    .with_context(|| {
-                        format!("Stripping root prefix from {}", path.to_string_lossy())
-                    })?
-                    .to_str()
-                    .unwrap(),
+                src_dir,
+                relative_path: relative_path.to_str().unwrap(),
                 minify: config.minify,
                 code: &code,
                 explicity_extensions: config.explicity_extensions,
@@ -118,6 +116,7 @@ pub fn transform_fs(config: TransformFsOptions) -> Result<TransformOutput, Error
 }
 
 pub fn transform_modules(config: TransformModulesOptions) -> Result<TransformOutput, Error> {
+    let src_dir = std::path::Path::new(&config.src_dir);
     let is_inline = matches!(config.entry_strategy, EntryStrategy::Inline);
     let entry_policy = &*parse_entry_strategy(config.entry_strategy);
     #[cfg(feature = "parallel")]
@@ -127,7 +126,8 @@ pub fn transform_modules(config: TransformModulesOptions) -> Result<TransformOut
     let iterator = config.input.iter();
     let iterator = iterator.map(|path| -> Result<TransformOutput, Error> {
         transform_code(TransformCodeOptions {
-            path: &path.path,
+            src_dir,
+            relative_path: &path.path,
             code: &path.code,
             minify: config.minify,
             source_maps: config.source_maps,
@@ -154,28 +154,4 @@ pub fn transform_modules(config: TransformModulesOptions) -> Result<TransformOut
     final_output = generate_entries(final_output, config.explicity_extensions)?;
 
     Ok(final_output)
-}
-
-#[cfg(feature = "fs")]
-fn find_files(dir: &std::path::Path, files: &mut Vec<std::path::PathBuf>) -> std::io::Result<()> {
-    if dir.is_dir() {
-        for entry in fs::read_dir(dir)? {
-            let entry = entry?;
-            let path = entry.path();
-            if path.is_dir() {
-                match path.file_name().and_then(|p| p.to_str()) {
-                    Some("node_modules" | "dist" | "build") => {}
-                    _ => {
-                        find_files(&path, files)?;
-                    }
-                }
-            } else {
-                let ext = path.extension().and_then(|p| p.to_str());
-                if let Some("ts" | "tsx" | "js" | "jsx") = ext {
-                    files.push(path);
-                }
-            }
-        }
-    }
-    Ok(())
 }

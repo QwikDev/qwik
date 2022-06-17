@@ -81,7 +81,7 @@ const Examples = component$((props: ExamplesProps) => {
             </div>
           ))}
           <a
-            href="https://github.com/BuilderIO/qwik/tree/main/packages/docs/pages/examples"
+            href="https://github.com/BuilderIO/qwik/tree/main/packages/docs/src/pages/examples"
             class="example-button-new"
             target="_blank"
           >

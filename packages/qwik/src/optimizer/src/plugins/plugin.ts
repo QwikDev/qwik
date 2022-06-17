@@ -275,7 +275,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     if (id === QWIK_BUILD_ID) {
       log(`resolveId()`, 'Resolved', QWIK_BUILD_ID);
       return {
-        id: path.resolve(opts.rootDir, QWIK_BUILD_ID),
+        id: normalizePath(path.resolve(opts.rootDir, QWIK_BUILD_ID)),
         moduleSideEffects: false,
       };
     }
@@ -283,7 +283,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     if (id.endsWith(QWIK_CLIENT_MANIFEST_ID)) {
       log(`resolveId()`, 'Resolved', QWIK_CLIENT_MANIFEST_ID);
       return {
-        id: path.resolve(opts.input[0], QWIK_CLIENT_MANIFEST_ID),
+        id: normalizePath(path.resolve(opts.input[0], QWIK_CLIENT_MANIFEST_ID)),
         moduleSideEffects: false,
       };
     }
@@ -322,7 +322,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
   };
 
   const load = async (_ctx: any, id: string, loadOpts: { ssr?: boolean } = {}) => {
-    if (id === QWIK_BUILD_ID) {
+    if (id.endsWith(QWIK_BUILD_ID)) {
       log(`load()`, QWIK_BUILD_ID, opts.buildMode);
       return {
         moduleSideEffects: false,

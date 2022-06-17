@@ -1,5 +1,4 @@
-import { assertDefined, assertEqual } from '../assert/assert';
-import { RenderEvent } from '../util/markers';
+import { assertDefined } from '../assert/assert';
 import { getInvokeContext } from './use-core';
 
 // <docs markdown="../readme.md#useHostElement">
@@ -30,7 +29,6 @@ import { getInvokeContext } from './use-core';
 // </docs>
 export const useHostElement = (): Element => {
   const ctx = getInvokeContext();
-  assertEqual(ctx.$event$, RenderEvent);
   const element = ctx.$hostElement$!;
   assertDefined(element);
   return element;

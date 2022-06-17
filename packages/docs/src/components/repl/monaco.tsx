@@ -76,11 +76,16 @@ export const updateMonacoEditor = async (props: EditorProps, editorStore: Editor
 
   const selectedPath = props.store.selectedInputPath;
   const inputs = props.input.files;
-  const fsPaths = inputs.map((i) => getUri(monaco, i.path).fsPath);
   const existingModels = monaco.editor.getModels();
+
   for (const existingModel of existingModels) {
     try {
-      if (!fsPaths.some((fsPath) => existingModel.uri.fsPath === fsPath)) {
+      const input = inputs.find((i) => getUri(monaco, i.path).fsPath === existingModel.uri.fsPath);
+      if (input) {
+        if (input.code !== existingModel.getValue()) {
+          existingModel.setValue(input.code);
+        }
+      } else {
         existingModel.dispose();
       }
     } catch (e) {

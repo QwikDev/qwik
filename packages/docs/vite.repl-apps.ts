@@ -27,7 +27,7 @@ export function playgroundData(pagesDir: string): Plugin {
           inputs: readdirSync(playgroundAppDir).map((fileName) => {
             const filePath = join(playgroundAppDir, fileName);
             const input: TransformModuleInput = {
-              path: `/playground/${fileName}`,
+              path: `/${fileName}`,
               code: readFileSync(filePath, 'utf-8'),
             };
             return input;
@@ -86,7 +86,7 @@ export function examplesData(pagesDir: string): Plugin {
             const s = statSync(filePath);
             if (s.isFile()) {
               const input: ReplModuleInput = {
-                path: `/examples/${app.id}/${fileName}`,
+                path: `/${fileName}`,
                 code: readFileSync(filePath, 'utf-8'),
               };
               ctx.addWatchFile(filePath);
@@ -200,7 +200,7 @@ export function tutorialData(pagesDir: string): Plugin {
               const s = statSync(filePath);
               if (s.isFile()) {
                 const input: ReplModuleInput = {
-                  path: `/${app.id}/${fileName}`,
+                  path: `/${fileName}`,
                   code: readFileSync(filePath, 'utf-8'),
                 };
                 ctx.addWatchFile(filePath);

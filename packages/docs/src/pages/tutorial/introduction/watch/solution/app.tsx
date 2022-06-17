@@ -2,27 +2,29 @@ import { component$, useStore, useWatch$, getPlatform, useHostElement } from '@b
 
 export const App = component$(() => {
   const github = useStore({
-    organization: 'builderio',
+    org: 'BuilderIO',
     repos: ['qwik', 'partytown'] as string[] | null,
   });
+
   useWatch$((track) => {
-    track(github, 'organization');
+    track(github, 'org');
 
     if (getPlatform(useHostElement()).isServer) return;
 
     github.repos = null;
     const controller = new AbortController();
-    getRepositories(github.organization, controller).then((repos) => (github.repos = repos));
+    getRepositories(github.org, controller).then((repos) => (github.repos = repos));
 
     return () => controller.abort();
   });
+
   return (
     <div>
       <span>
         GitHub username:
         <input
-          value={github.organization}
-          onKeyUp$={(event) => (github.organization = (event.target as HTMLInputElement).value)}
+          value={github.org}
+          onKeyUp$={(ev) => (github.org = (ev.target as HTMLInputElement).value)}
         />
       </span>
       <div>
@@ -30,7 +32,7 @@ export const App = component$(() => {
           <ul>
             {github.repos.map((repo) => (
               <li>
-                <a href={`https://github.com/${github.organization}/${repo}`}>{repo}</a>
+                <a href={`https://github.com/${github.org}/${repo}`}>{repo}</a>
               </li>
             ))}
           </ul>

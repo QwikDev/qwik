@@ -5,15 +5,15 @@ export const App = component$(() => {
     <div>
       <span>
         GitHub organization:
-        <input value="Builder.io" />
+        <input value="BuilderIO" />
       </span>
       <div>
         <ul>
           <li>
-            <a href="https://github.com/builderio/qwik">Qwik</a>
+            <a href="https://github.com/BuilderIO/qwik">Qwik</a>
           </li>
           <li>
-            <a href="https://github.com/builderio/partytown">Partytown</a>
+            <a href="https://github.com/BuilderIO/partytown">Partytown</a>
           </li>
         </ul>
       </div>

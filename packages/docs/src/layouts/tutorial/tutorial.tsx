@@ -1,5 +1,12 @@
-import { component$, Host, Slot, useScopedStyles$, useStore, useStyles$ } from '@builder.io/qwik';
-import { useLocation } from '../../utils/useLocation';
+import {
+  component$,
+  Host,
+  Slot,
+  useScopedStyles$,
+  useStore,
+  useStyles$,
+  useWatch$,
+} from '@builder.io/qwik';
 import { Repl } from '../../components/repl/repl';
 import styles from './tutorial.css?inline';
 import { TutorialContentFooter } from './tutorial-content-footer';
@@ -7,81 +14,79 @@ import { TutorialContentHeader } from './tutorial-content-header';
 import tutorialSections, { TutorialApp } from '@tutorial-data';
 import { Header } from '../../components/header/header';
 import type { ReplAppInput, ReplModuleInput } from '../../components/repl/types';
+import { EditIcon } from '../../components/svgs/edit-icon';
+import { useLocation } from '../../utils/useLocation';
 
 const Tutorial = component$(() => {
   useScopedStyles$(styles);
   useStyles$(`html,body { margin: 0; height: 100%; overflow: hidden; }`);
 
   const loc = useLocation();
-  const getTutorialApp = (): TutorialApp | undefined => {
-    for (const s of tutorialSections) {
-      for (const t of s.apps) {
-        if (`/tutorial/${t.id}` === loc.pathname) {
-          return t;
-        }
-      }
-    }
-  };
-
-  const current = getTutorialApp();
-  if (!current) {
-    return <p>Unable to find tutorial "{loc.pathname}"</p>;
-  }
-
   const store = useStore<TutorialStore>(() => {
-    const files: ReplModuleInput[] = JSON.parse(JSON.stringify(current.problemInputs));
-
-    if (!files.some((i) => i.code === '/root.tsx')) {
-      files.push({ path: '/root.tsx', code: DEFAULT_ROOT, hidden: true });
-    }
-
-    if (!files.some((i) => i.code === '/entry.server.tsx')) {
-      files.push({ path: '/entry.server.tsx', code: DEFAULT_ENTRY_SERVER, hidden: true });
-    }
+    const p = loc.pathname.split('/');
+    const appId = `${p[2]}/${p[3]}`;
+    const t = getTutorial(appId)!;
 
     const initStore: TutorialStore = {
+      appId: t.app.id,
+      app: t.app,
+      prev: t.prev,
+      next: t.next,
       buildId: 0,
-      files,
-      version: '',
       buildMode: 'development',
       entryStrategy: 'hook',
+      files: ensureDefaultFiles(t.app.problemInputs),
+      version: '',
     };
     return initStore;
   });
 
-  const tutorials: TutorialApp[] = [];
-  tutorialSections.forEach((s) => tutorials.push(...s.apps));
+  useWatch$((track) => {
+    const appId = track(store, 'appId');
+    const t = getTutorial(appId)!;
 
-  const currentIndex = tutorials.findIndex((i) => i.id === current.id);
-  const prev = tutorials[currentIndex - 1];
-  const next = tutorials[currentIndex + 1];
+    store.files = ensureDefaultFiles(t.app.problemInputs);
+    store.prev = t.prev;
+    store.next = t.next;
+  });
 
   return (
     <Host class="tutorial full-width fixed-header">
       <Header />
       <main>
         <div class="tutorial-content-panel">
-          <TutorialContentHeader current={current} />
+          <TutorialContentHeader store={store} />
+
           <div class="content-main">
             <div>
               <Slot />
-              {next ? (
-                <div class="next-link">
-                  <a href={`/tutorial/${next.id}`} class="next">
-                    Next: {next.title}
+              {store.next ? (
+                <p class="next-link">
+                  <a href={`/tutorial/${store.next.id}`} class="next">
+                    Next: {store.next.title}
                   </a>
-                </div>
+                </p>
               ) : null}
+              <p class="edit-tutorial">
+                <a
+                  href={`https://github.com/BuilderIO/qwik/edit/main/packages/docs/src/pages/tutorial/${store.appId}`}
+                  target="_blank"
+                >
+                  <EditIcon width={18} height={18} />
+                  <span>Edit this tutorial</span>
+                </a>
+              </p>
             </div>
           </div>
-          <TutorialContentFooter current={current} next={next} prev={prev} />
+
+          <TutorialContentFooter store={store} />
         </div>
         <div class="tutorial-repl-panel">
           <Repl
             input={store}
-            enableHtmlOutput={current.enableHtmlOutput}
-            enableClientOutput={current.enableClientOutput}
-            enableSsrOutput={current.enableSsrOutput}
+            enableHtmlOutput={store.app.enableHtmlOutput}
+            enableClientOutput={store.app.enableClientOutput}
+            enableSsrOutput={store.app.enableSsrOutput}
             enableCopyToPlayground={true}
             enableDownload={true}
             enableInputDelete={false}
@@ -93,7 +98,36 @@ const Tutorial = component$(() => {
   );
 });
 
-interface TutorialStore extends ReplAppInput {}
+export const getTutorial = (id: string) => {
+  const tutorials: TutorialApp[] = [];
+  tutorialSections.forEach((s) => tutorials.push(...s.apps));
+
+  for (let i = 0; i < tutorials.length; i++) {
+    if (tutorials[i].id === id) {
+      return {
+        app: JSON.parse(JSON.stringify(tutorials[i])) as TutorialApp,
+        prev: tutorials[i - 1],
+        next: tutorials[i + 1],
+      };
+    }
+  }
+
+  return null;
+};
+
+export const ensureDefaultFiles = (appFiles: ReplModuleInput[]) => {
+  const files: ReplModuleInput[] = JSON.parse(JSON.stringify(appFiles));
+
+  if (!files.some((i) => i.code === '/root.tsx')) {
+    files.push({ path: '/root.tsx', code: DEFAULT_ROOT, hidden: true });
+  }
+
+  if (!files.some((i) => i.code === '/entry.server.tsx')) {
+    files.push({ path: '/entry.server.tsx', code: DEFAULT_ENTRY_SERVER, hidden: true });
+  }
+
+  return files;
+};
 
 export const DEFAULT_ENTRY_SERVER = `
 import { renderToString, RenderToStringOptions } from '@builder.io/qwik/server';
@@ -120,5 +154,12 @@ export const Root = () => {
   );
 };
 `;
+
+export interface TutorialStore extends ReplAppInput {
+  appId: string;
+  app: TutorialApp;
+  prev: TutorialApp | undefined;
+  next: TutorialApp | undefined;
+}
 
 export default Tutorial;

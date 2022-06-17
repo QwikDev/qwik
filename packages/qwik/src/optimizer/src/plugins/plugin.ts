@@ -379,9 +379,9 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         code: await getQwikServerManifestModule(loadOpts),
       };
     }
-
+    const parsedId = parseId(id);
     const path = getPath();
-    id = normalizePath(id);
+    id = normalizePath(parsedId.pathId);
     if (opts.forceFullBuild) {
       // On full build, lets normalize the ID
       id = forceJSExtension(id, path.extname(id));
@@ -459,7 +459,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         sourceMaps: false,
         transpile: true,
         explicityExtensions: true,
-        srcDir: normalizePath(dir),
+        srcDir: opts.srcDir ? opts.srcDir : normalizePath(dir),
         dev: opts.buildMode === 'development',
         scope: opts.scope ? opts.scope : undefined,
       });
@@ -606,7 +606,7 @@ export function parseId(originalId: string) {
   return {
     originalId,
     pathId,
-    query: queryStr,
+    query: queryStr ? `?${query}` : '',
     params: new URLSearchParams(queryStr),
   };
 }

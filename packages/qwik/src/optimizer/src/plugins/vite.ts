@@ -96,7 +96,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         rootDir: viteConfig.root,
         transformedModuleOutput: qwikViteOpts.transformedModuleOutput,
         forceFullBuild,
-        vendorRoots,
+        vendorRoots: vendorRoots.map((v) => v.path),
       };
 
       if (viteEnv.command === 'serve') {
@@ -187,7 +187,13 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         esbuild: { include: /\.js$/ },
         optimizeDeps: {
           include: [QWIK_CORE_ID, QWIK_JSX_RUNTIME_ID],
-          exclude: ['@vite/client', '@vite/env', QWIK_BUILD_ID, QWIK_CLIENT_MANIFEST_ID],
+          exclude: [
+            '@vite/client',
+            '@vite/env',
+            QWIK_BUILD_ID,
+            QWIK_CLIENT_MANIFEST_ID,
+            ...vendorRoots.map((v) => v.id),
+          ],
         },
         build: {
           outDir: opts.outDir,
@@ -552,7 +558,15 @@ const getSymbolHash = (symbolName: string) => {
   return symbolName;
 };
 
-const findQwikRoots = async (sys: OptimizerSystem, packageJsonPath: string) => {
+export interface QwikPackages {
+  id: string;
+  path: string;
+}
+
+const findQwikRoots = async (
+  sys: OptimizerSystem,
+  packageJsonPath: string
+): Promise<QwikPackages[]> => {
   if (sys.env === 'node') {
     const fs: typeof import('fs') = await sys.dynamicImport('fs');
     const { resolvePackageData }: typeof import('vite') = await sys.dynamicImport('vite');
@@ -577,7 +591,10 @@ const findQwikRoots = async (sys: OptimizerSystem, packageJsonPath: string) => {
         if (pkgData) {
           const qwikPath = pkgData.data['qwik'];
           if (qwikPath) {
-            return sys.path.resolve(pkgData.dir, qwikPath);
+            return {
+              id,
+              path: sys.path.resolve(pkgData.dir, qwikPath),
+            };
           }
         }
       })

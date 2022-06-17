@@ -1202,21 +1202,33 @@ import { componentQrl, inlinedQrl, Host, useStore, useLexicalScope } from "@buil
 import { jsx, jsxs } from "@builder.io/qwik/jsx-runtime";
 import { state } from './sibling';
 
-const Logo = /* @__PURE__ */ componentQrl(inlinedQrl(() => {
-    return /* @__PURE__ */ jsx(Host, {
-    style: {
-        "text-align": state
-    },
-    children: /* @__PURE__ */ jsx("a", {
-        href: "https://qwik.builder.io/",
-        children: /* @__PURE__ */ jsx("img", {
-        alt: "Qwik Logo",
-        width: 400,
-        height: 147,
-        })
-    })
+export const App = /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
+    const store = useStore({
+        count: 0
     });
-}, "Logo_component_gdPNCKnF5sY"));
+    return /*#__PURE__*/ jsxs("div", {
+        children: [
+            /*#__PURE__*/ jsxs("p", {
+                children: [
+                    "Count: ",
+                    store.count
+                ]
+            }),
+            /*#__PURE__*/ jsx("p", {
+                children: /*#__PURE__*/ jsx("button", {
+                    onClickQrl: inlinedQrl(()=>{
+                        const [store] = useLexicalScope();
+                        return store.count++;
+                    }, "App_component_div_p_button_onClick_8dWUa0cJAr4", [
+                        store
+                    ]),
+                    children: "Click"
+                })
+            })
+        ]
+    });
+}, "App_component_AkbU84a8zes"));
+
 "#;
     let code = r#"
 import { component$, $ } from '@builder.io/qwik';

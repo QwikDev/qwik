@@ -52,7 +52,7 @@ export const App_component_div_p_button_onClick_odz7eidI4GM = ()=>{
   "hash": "odz7eidI4GM",
   "canonicalFilename": "app_component_div_p_button_onclick_odz7eidi4gm",
   "extension": "tsx",
-  "parent": null,
+  "parent": "App_component_Fh88JClhbC0",
   "ctxKind": "event",
   "ctxName": "onClick$",
   "captures": true,

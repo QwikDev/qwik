@@ -3,43 +3,80 @@ source: packages/qwik/src/optimizer/core/src/test.rs
 expression: output
 ---
 
-============================= logo_component_gdpncknf5sy.js (ENTRY POINT)==
+============================= app_component_div_p_button_onclick_8dwua0cjar4.js (ENTRY POINT)==
 
-import { Host } from "@builder.io/qwik";
+import { useLexicalScope } from "@builder.io/qwik";
+export const App_component_div_p_button_onClick_8dWUa0cJAr4 = ()=>{
+    const [store] = useLexicalScope();
+    return store.count++;
+};
+
+/*
+{
+  "origin": "../../node_modules/dep/dist/lib.js",
+  "name": "App_component_div_p_button_onClick_8dWUa0cJAr4",
+  "entry": null,
+  "displayName": "App_component_div_p_button_onClick",
+  "hash": "8dWUa0cJAr4",
+  "canonicalFilename": "app_component_div_p_button_onclick_8dwua0cjar4",
+  "extension": "js",
+  "parent": "App_component_AkbU84a8zes",
+  "ctxKind": "event",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    665,
+    797
+  ]
+}
+*/
+============================= app_component_akbu84a8zes.js (ENTRY POINT)==
+
 import { jsx } from "@builder.io/qwik/jsx-runtime";
-import { state } from "../../node_modules/dep/dist/sibling";
-export const Logo_component_gdPNCKnF5sY = ()=>{
-    return /* @__PURE__ */ jsx(Host, {
-        style: {
-            "text-align": state
-        },
-        children: /* @__PURE__ */ jsx("a", {
-            href: "https://qwik.builder.io/",
-            children: /* @__PURE__ */ jsx("img", {
-                alt: "Qwik Logo",
-                width: 400,
-                height: 147
+import { jsxs } from "@builder.io/qwik/jsx-runtime";
+import { qrl } from "@builder.io/qwik";
+import { useStore } from "@builder.io/qwik";
+export const App_component_AkbU84a8zes = ()=>{
+    const store = useStore({
+        count: 0
+    });
+    return /*#__PURE__*/ jsxs("div", {
+        children: [
+            /*#__PURE__*/ jsxs("p", {
+                children: [
+                    "Count: ",
+                    store.count
+                ]
+            }),
+            /*#__PURE__*/ jsx("p", {
+                children: /*#__PURE__*/ jsx("button", {
+                    onClickQrl: qrl(()=>import("./app_component_div_p_button_onclick_8dwua0cjar4.js")
+                    , "App_component_div_p_button_onClick_8dWUa0cJAr4", [
+                        store
+                    ]),
+                    children: "Click"
+                })
             })
-        })
+        ]
     });
 };
 
 /*
 {
   "origin": "../../node_modules/dep/dist/lib.js",
-  "name": "Logo_component_gdPNCKnF5sY",
+  "name": "App_component_AkbU84a8zes",
   "entry": null,
-  "displayName": "Logo_component",
-  "hash": "gdPNCKnF5sY",
-  "canonicalFilename": "logo_component_gdpncknf5sy",
+  "displayName": "App_component",
+  "hash": "AkbU84a8zes",
+  "canonicalFilename": "app_component_akbu84a8zes",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    243,
-    562
+    247,
+    996
   ]
 }
 */
@@ -47,8 +84,8 @@ export const Logo_component_gdPNCKnF5sY = ()=>{
 
 import { qrl } from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
-/* @__PURE__ */ componentQrl(qrl(()=>import("../../../src/thing/logo_component_gdpncknf5sy.js")
-, "Logo_component_gdPNCKnF5sY"));
+export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("../../../src/thing/app_component_akbu84a8zes.js")
+, "App_component_AkbU84a8zes"));
 
 ============================= local_component_jj0v28bs0p8.js (ENTRY POINT)==
 

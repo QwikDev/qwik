@@ -267,7 +267,6 @@ impl<'a> QwikTransform<'a> {
 
         let third_arg = node.args.pop();
         let span = first_arg.span();
-        let folded = fold_expr(self, *first_arg.expr);
 
         let (symbol_name, display_name, hash) = {
             let symbol_name = match *second_arg.expr {
@@ -276,6 +275,10 @@ impl<'a> QwikTransform<'a> {
             };
             parse_symbol_name(symbol_name, self.options.dev)
         };
+
+        self.hook_stack.push(symbol_name.clone());
+        let folded = fold_expr(self, *first_arg.expr);
+        self.hook_stack.pop();
 
         let scoped_idents = {
             third_arg.map_or_else(Vec::new, |scoped| {
@@ -500,13 +503,9 @@ impl<'a> QwikTransform<'a> {
             filename.push('.');
             filename.push_str(&self.options.extension);
         }
-        let outside_hook = !self.hook_stack.is_empty();
-        let import_path = if outside_hook {
-            fix_path(
-                &self.options.path_data.abs_dir,
-                &self.options.path_data.abs_dir,
-                &filename,
-            )
+        let inside_hook = !self.hook_stack.is_empty();
+        let import_path = if inside_hook {
+            fix_path("a", "a", &filename)
         } else {
             fix_path(
                 &self.options.path_data.base_dir,

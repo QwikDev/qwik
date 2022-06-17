@@ -202,24 +202,23 @@ fn create_named_export(expr: Box<ast::Expr>, name: &str) -> ast::ModuleItem {
 #[test]
 fn test_fix_path() {
     assert_eq!(
-        fix_path("src/components.tsx", "a", "./state").unwrap(),
+        fix_path("src", "", "./state").unwrap(),
         JsWord::from("./src/state")
     );
 
     assert_eq!(
-        fix_path("src/path/components.tsx", "a", "./state").unwrap(),
+        fix_path("src/path", "", "./state").unwrap(),
         JsWord::from("./src/path/state")
     );
 
     assert_eq!(
-        fix_path("src/components.tsx", "a", "../state").unwrap(),
+        fix_path("src", "", "../state").unwrap(),
         JsWord::from("./state")
     );
     assert_eq!(
-        fix_path("components.tsx", "a", "./state").unwrap(),
+        fix_path("a", "a", "./state").unwrap(),
         JsWord::from("./state")
     );
-    assert!(fix_path("/components", "a", "./state").is_err())
 }
 
 pub fn generate_entries(

@@ -103,6 +103,21 @@ const init = (clientId: string) => {
           if (swRegistration.active) {
             console.debug(`Qwik REPL server "` + clientId + `" service worker registration active`);
             replReady();
+
+            reg.addEventListener('updatefound', () => {
+              const newWorker = reg.installing;
+              if (newWorker) {
+                let isRefreshing = false;
+                newWorker.addEventListener('statechange', () => {
+                  if (newWorker.state == 'activated') {
+                    if (!isRefreshing) {
+                      isRefreshing = true;
+                      window.parent.location.reload();
+                    }
+                  }
+                });
+              }
+            });
           } else if (swRegistration.installing) {
             swRegistration.installing.addEventListener('statechange', (ev: any) => {
               if (ev?.target?.state == 'activated') {

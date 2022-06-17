@@ -53,15 +53,5 @@
         "title": "Capturing lexical scope"
       }
     ]
-  },
-  {
-    "id": "reactivity",
-    "title": "Reactivity",
-    "apps": [
-      {
-        "id": "assignments",
-        "title": "Assignments"
-      }
-    ]
   }
 ]

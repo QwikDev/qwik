@@ -22,7 +22,9 @@ export const depResponse = async (
   }
   const fetchRes = await fetch(req);
   if (fetchRes.ok) {
-    await cache.put(req, fetchRes.clone());
+    if (!req.url.includes('localhost')) {
+      await cache.put(req, fetchRes.clone());
+    }
     return fetchRes;
   }
 };

@@ -21,8 +21,8 @@ test.describe('e2e', () => {
     });
 
     test('should rerender without changes', async ({ page }) => {
-      const SNAPSHOT = `<p>1</p><p>"&lt;/script&gt;"</p><p>{"a":{"thing":12},"b":"hola","c":123,"d":false,"e":true,"f":null,"h":[1,"string",false,{"hola":1},["hello"]]}</p><p>undefined</p><p>null</p><p>[1,2,"hola",{}]</p><p>true</p><p>false</p>`;
-      const RESULT = `[1,"</script>",{"a":{"thing":12},"b":"hola","c":123,"d":false,"e":true,"f":null,"h":[1,"string",false,{"hola":1},["hello"]]},"undefined","null",[1,2,"hola",{}],true,false]`;
+      const SNAPSHOT = `<p>1</p><p>"&lt;/script&gt;"</p><p>{"a":{"thing":12},"b":"hola","c":123,"d":false,"e":true,"f":null,"h":[1,"string",false,{"hola":1},["hello"]]}</p><p>undefined</p><p>null</p><p>[1,2,"hola",{}]</p><p>true</p><p>false</p><p>mutable message</p>`;
+      const RESULT = `[1,"</script>",{"a":{"thing":12},"b":"hola","c":123,"d":false,"e":true,"f":null,"h":[1,"string",false,{"hola":1},["hello"]]},"undefined","null",[1,2,"hola",{}],true,false,"mutable message"]`;
 
       const result = await page.locator('#result');
       const content = await page.locator('#static');
@@ -349,6 +349,7 @@ test.describe('e2e', () => {
     test('should load', async ({ page }) => {
       const level2State1 = await page.locator('.level2-state1');
       const level2State2 = await page.locator('.level2-state2');
+      const level2SSlot = await page.locator('.level2-slot');
 
       const btnRootIncrement1 = await page.locator('.root-increment1');
       const btnRootIncrement2 = await page.locator('.root-increment2');
@@ -363,6 +364,7 @@ test.describe('e2e', () => {
         'ROOT / state2 = 0',
         'ROOT / state2 = 0',
       ]);
+      expect(await level2SSlot.allTextContents()).toEqual(['bar = 0', 'bar = 0']);
 
       await btnRootIncrement1.click();
       await page.waitForTimeout(100);
@@ -375,7 +377,7 @@ test.describe('e2e', () => {
         'ROOT / state2 = 0',
         'ROOT / state2 = 0',
       ]);
-
+      expect(await level2SSlot.allTextContents()).toEqual(['bar = 0', 'bar = 0']);
       await btnRootIncrement2.click();
       await page.waitForTimeout(100);
 
@@ -387,7 +389,7 @@ test.describe('e2e', () => {
         'ROOT / state2 = 1',
         'ROOT / state2 = 1',
       ]);
-
+      expect(await level2SSlot.allTextContents()).toEqual(['bar = 0', 'bar = 0']);
       await btnLevel2Increment.click();
       await btnLevel2Increment.click();
       await btnLevel2Increment2.click();
@@ -396,6 +398,7 @@ test.describe('e2e', () => {
       const level3State1 = await page.locator('.level3-state1');
       const level3State2 = await page.locator('.level3-state2');
       const level3State3 = await page.locator('.level3-state3');
+      const level3Slot = await page.locator('.level3-slot');
 
       expect(await level2State1.allTextContents()).toEqual([
         'ROOT / state1 = 1',
@@ -405,6 +408,7 @@ test.describe('e2e', () => {
         'ROOT / state2 = 1',
         'ROOT / state2 = 1',
       ]);
+      expect(await level2SSlot.allTextContents()).toEqual(['bar = 0', 'bar = 0']);
 
       expect(await level3State1.allTextContents()).toEqual([
         'Level2 / state1 = 0',
@@ -421,6 +425,7 @@ test.describe('e2e', () => {
         'Level2 / state3 = 2',
         'Level2 / state3 = 1',
       ]);
+      expect(await level3Slot.allTextContents()).toEqual(['bar = 0', 'bar = 0', 'bar = 0']);
     });
   });
 

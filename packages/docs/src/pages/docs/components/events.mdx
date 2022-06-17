@@ -18,12 +18,12 @@ In the above example, the `onClick$` attribute of the `<button>` element is used
 
 Notice that `onClick$` ends with `$`. This is a hint to both the Qwik Optimizer and the developer that a special transformation occurs at this location. The presence of the `$` suffix implies a lazy-loaded boundary here. The code associated with the `click` handler will not download until the user triggers the `click` event. See [Optimizer Rules](../advanced/optimizer.mdx) for more details.
 
-In the above example, the `click` listener is trivial in implementation. But in real applications, the listener may refer to complex code. By creating a lazy-loaded boundary, Qwik can tree-shake all of the code behind the click listener and delay its loading until the user clicks on the event.
+In the above example, the `click` listener is trivial in implementation. But in real applications, the listener may refer to complex code. By creating a lazy-loaded boundary, Qwik can tree-shake all of the code behind the click listener and delay its loading until the user clicks the button.
 
 
 # Events and Components
 
-So far, we have discussed how one can listen to DOM events in JSX. A similar mechanism exists with components. Let's assume we have two kinds of buttons to aid the discussion. A HTML button (`<button>`) and a component button `<CmpButton>`.
+So far, we have discussed how one can listen to DOM events in JSX. A similar mechanism exists with components. Let's assume we have two kinds of buttons to aid the discussion. An HTML button (`<button>`) and a component button `<CmpButton>`.
 
 Let's create an example component using both `<button>` and `<CmpButton>`.
 
@@ -36,8 +36,8 @@ const Counter = component$(() => {
 
   return (
     <>
-      <button onClick$={() => store.htmlCount++}>{store.count}</button>
-      <CmpButton onClick$={() => store.cmpCount++}>{store.count}</CmpButton>
+      <button onClick$={() => store.htmlCount++}>{store.htmlCount}</button>
+      <CmpButton onClick$={() => store.cmpCount++}>{store.cmpCount}</CmpButton>
     </>
   );
 });
@@ -84,14 +84,14 @@ As far as Qwik is concerned, passing events to a component is equivalent to pass
 On the usage side, when referring to the `<CmpButton>`, it would be a lot more convenient to pass in a closure rather than `QRL` of the closure. The translation from closure to`QRL` closure is what Qwik Optimizer performs for us. For this reason, the usage is in the format where the closure is inlined like so:
 
 ```tsx
-<CmpButton onClick$={() => store.cmpCount++}>{store.count}</CmpButton>
+<CmpButton onClick$={() => store.cmpCount++}>{store.cmpCount}</CmpButton>
 ```
 
 Here the prop is `onClick$` rather than `onClickQrl`. We rely on the Qwik Optimizer to perform the translation. The above is roughly translated to:
 
 ```tsx
 <CmpButton onClickQrl={qrl('./chunk-a.js', 'Counter_onRender_CmpButton_onClick', [state]}>
-  {store.count}
+  {store.cmpCount}
 </CmpButton>
 ```
 
@@ -170,7 +170,7 @@ const EventExample = component$(() => {
         store.mouse.x = e.x;
         store.mouse.y = e.y;
       }}
-      onClick$={() => store.count++}
+      onClick$={() => store.clickCount++}
     >
       scroll: {store.scroll}
       mouseMove: {store.mouse.x}, {store.mouse.y}
@@ -204,7 +204,7 @@ Qwik serializes the event listeners into DOM in the form of [QRLs](../advanced/q
 </div>
 ```
 
-The critical thing to notice is that Qwik generated an `on:click` attribute, containing the value `./chunk-a.js#Counter_button_onClick[0]`. In the above example the `on:click` attribute solves the listener location problem, and the attribute value solves the listener code location problem. By serializing the listeners into the HTML Qwik, applications do not need to perform hydration on application startup.
+The critical thing to notice is that Qwik generated an `on:click` attribute, containing the value `./chunk-a.js#Counter_button_onClick[0]`. In the above example the `on:click` attribute solves the listener location problem, and the attribute value solves the listener code location problem. By serializing the listeners into the HTML Qwik-applications do not need to perform hydration on startup.
 
 ## Qwikloader
 
@@ -222,7 +222,7 @@ const Counter = component$(() => {
 });
 ```
 
-At first sight, it may appear that the Qwik simply lazy loads the `onClick$` function. But upon closer inspection, it is important to realize that the Qwik lazy loads a closure rather than a function. (A closure is a function that lexically captures the state inside its variables. In other words, closures carry state, whereas functions do not.) The capturing of the state is what allows the Qwik application to simply resume where the server left off because the recovered closure carries the state of the application with it.
+At first sight, it may appear that Qwik simply lazy loads the `onClick$` function. But upon closer inspection, it is important to realize that Qwik lazy loads a closure rather than a function. (A closure is a function that lexically captures the state inside its variables. In other words, closures carry state, whereas functions do not.) The capturing of the state is what allows the Qwik application to simply resume where the server left off because the recovered closure carries the state of the application with it.
 
 In our case, the `onClick$` closure captures `store`. Capturing of `store` allows the application to increment the `count` property on `click` without having to re-run the whole application. Let's look at how closure capturing works in Qwik.
 
@@ -238,7 +238,7 @@ Notice that `on:click` attribute contains three pieces of information:
 
 1. `./chunk-a.js`: The file which needs to be lazy-loaded.
 2. `Counter_button_onClick`: The symbol which needs to be retrieved from the lazy-loaded chunk.
-3. `[0]`: An array of lexically capture variable references (State of the closure).
+3. `[0]`: An array of lexically captured variable references (State of the closure).
 
 In our case `() => store.count++` only captures `store`, and hence it contains only a single reference `0`. `0` is an index into the `q:obj` attribute which contains a reference to the actual serialized object referring to `store`. (The exact mechanisms and syntax is an implementation detail that can change at any time.)
 

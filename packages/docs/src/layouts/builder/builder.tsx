@@ -3,14 +3,14 @@ import { useLocation } from '../../utils/useLocation';
 import { Header } from '../../components/header/header';
 import styles from './builder.css?inline';
 
-export const Builder = component$(async () => {
+export const Builder = component$(() => {
   useStyles$(styles);
   const loc = useLocation();
-  const html = await fetchQwikBuilderContent(loc.pathname);
+  const promise = fetchQwikBuilderContent(loc.pathname);
   return (
     <Host>
       <Header />
-      {html && <main class="builder" dangerouslySetInnerHTML={html} />}
+      {promise.then((html) => html && <main class="builder" dangerouslySetInnerHTML={html} />)}
     </Host>
   );
 });

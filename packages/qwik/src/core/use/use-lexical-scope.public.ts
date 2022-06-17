@@ -1,4 +1,3 @@
-import { wrapSubscriber } from './use-subscriber';
 import { assertDefined, assertEqual } from '../assert/assert';
 import { parseQRL } from '../import/qrl';
 import { getContext, QContext, resumeIfNeeded } from '../props/props';
@@ -34,7 +33,7 @@ export const useLexicalScope = <VARS extends any[]>(): VARS => {
   }
   const subscriber = context.$subscriber$;
   if (subscriber) {
-    return qrl.$captureRef$.map((obj) => wrapSubscriber(obj, subscriber)) as VARS;
+    return qrl.$captureRef$ as VARS;
   }
   return qrl.$captureRef$ as VARS;
 };

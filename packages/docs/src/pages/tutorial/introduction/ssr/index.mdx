@@ -1,0 +1,16 @@
+---
+title: Qwik Tutorial - SSR
+layout: tutorial
+---
+
+In the previous tutorial, we added `useWatch$` to update the list of GitHub repositories on organization change. In that example, we made sure that the `useWatch$` does not execute on the server by adding an early return to it when executing on the server. Let's dive into the reasoning behind this.
+
+When doing SSR, the server needs to know when it should take the snapshot (the rendering is completed) of the application and send it to the client. This is tricky because the server may need to fetch data that is then used in the response. The basic problem is that the server needs to know how long to delay the rendering of the component until the data is ready.
+
+The semantic of `useWatch$` is to run before rendering. This is good from the point of SSR as it allows the component to execute fetch before the component renders. The problem is that `useWatch$` can't block the rendering of the component. So if `useWatch$` is asynchronous, there is no way to delay the execution of component rendering. If we removed the early return for the server, the server would execute `useWatch$()`, that in turn will cause data to fetch. Because `useWatch$()` can't delay the rendering of the component, the Qwik would perform the rendering before the data returns and serialize the application into HTML. The result would be that the application would say `loading...`. It also means that the server did unnecessary fetch because it did not wait for the response. So `useWatch$` has the wrong semantics for what we want to achieve.
+
+For this reason, Qwik has `useServerMount$()`. The purpose of `useServerMount$()` is to execute before rendering and block the rendering until `useServerMount$()` completes. This allows `useServerMount$()` to fetch data and delay the rendering until the data is returned.
+
+Your goal is to use `useServerMount$()` to fetch the data on the server.
+
+To help you understand the order of operations, we have added `console.log` statements to the code. Notice that `crate JSX` is called twice, but only the second JSX response is used for rendering the component. There is a `console.info` from server `QWIK Dropping render. State changed during render.` This message indicates that the Qwik recognized that the initial JSX response has now become invalidated after the `useServerMount$()` has resolved, and so the second invocation of component is needed to rebuild the JSX and finally render the component.

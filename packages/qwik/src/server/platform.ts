@@ -1,13 +1,18 @@
 import type { CorePlatform } from '@builder.io/qwik';
 import { setPlatform } from '@builder.io/qwik';
 import { getSymbolHash } from '../core/import/qrl-class';
+import { logError } from '../core/util/log';
 import type { SymbolMapper } from '../optimizer/src/types';
 import type { SerializeDocumentOptions } from './types';
 import { normalizeUrl } from './utils';
 
 declare const require: (module: string) => Record<string, any>;
 
-function createPlatform(document: any, opts: SerializeDocumentOptions, mapper: SymbolMapper) {
+function createPlatform(
+  document: any,
+  opts: SerializeDocumentOptions,
+  mapper: SymbolMapper | undefined
+) {
   if (!document || (document as Document).nodeType !== 9) {
     throw new Error(`Invalid Document implementation`);
   }
@@ -15,6 +20,19 @@ function createPlatform(document: any, opts: SerializeDocumentOptions, mapper: S
   if (opts?.url) {
     doc.location.href = normalizeUrl(opts.url).href;
   }
+
+  const mapperFn = opts.symbolMapper
+    ? opts.symbolMapper
+    : (symbolName: string) => {
+        if (mapper) {
+          const hash = getSymbolHash(symbolName);
+          const result = mapper[hash];
+          if (!result) {
+            logError('Cannot resolved symbol', symbolName, 'in', mapper);
+          }
+          return result;
+        }
+      };
 
   const serverPlatform: CorePlatform = {
     isServer: true,
@@ -43,7 +61,7 @@ function createPlatform(document: any, opts: SerializeDocumentOptions, mapper: S
       });
     },
     chunkForSymbol(symbolName: string) {
-      return mapper[getSymbolHash(symbolName)];
+      return mapperFn(symbolName, mapper);
     },
   };
   return serverPlatform;
@@ -56,7 +74,7 @@ function createPlatform(document: any, opts: SerializeDocumentOptions, mapper: S
 export async function setServerPlatform(
   document: any,
   opts: SerializeDocumentOptions,
-  mapper: SymbolMapper
+  mapper: SymbolMapper | undefined
 ) {
   const platform = createPlatform(document, opts, mapper);
   setPlatform(document, platform);

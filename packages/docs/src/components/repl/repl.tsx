@@ -18,7 +18,7 @@ import { getReplVersion } from './repl-version';
 import { updateReplOutput } from './repl-output-update';
 import replServerUrl from '@repl-server-url';
 
-export const Repl = component$(async (props: ReplProps) => {
+export const Repl = component$((props: ReplProps) => {
   useScopedStyles$(styles);
 
   const input = props.input;
@@ -133,7 +133,7 @@ export const receiveMessageFromReplServer = (ev: MessageEvent, store: ReplStore)
       updateReplOutput(store, msg);
     } else if (type === 'event') {
       // received an event from the user's app
-      store.events.push(msg.event);
+      store.events = [...store.events, msg.event];
     } else if (type === 'apploaded') {
       store.isLoading = false;
     }

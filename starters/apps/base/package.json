@@ -7,8 +7,9 @@
     "build.client": "vite build",
     "build.ssr": "vite build --ssr src/entry.server.tsx",
     "dev": "vite",
+    "dev": "vite",
     "dev.ssr": "node --inspect node_modules/vite/bin/vite.js --mode ssr",
-    "dev.debug": "node --inspect-brk node_modules/vite/bin/vite.js",
+    "dev.debug": "node --inspect-brk node_modules/vite/bin/vite.js --mode ssr",
     "start": "npm run dev",
     "typecheck": "tsc --noEmit"
   },

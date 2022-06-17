@@ -12,10 +12,10 @@ import type { SymbolMapper } from '../optimizer/src/types';
 export function getPrefetchResources(
   snapshotResult: SnapshotResult | null,
   opts: RenderToStringOptions,
-  mapper: SymbolMapper
+  mapper: SymbolMapper | undefined
 ): PrefetchResource[] {
   const manifest = getValidManifest(opts.manifest);
-  if (manifest) {
+  if (manifest && mapper) {
     const prefetchStrategy = opts.prefetchStrategy;
     const buildBase = getBuildBase(opts);
 
@@ -77,8 +77,10 @@ function getAutoPrefetch(
     for (const obj of stateObjs) {
       if (isQrl(obj)) {
         const qrlSymbolName = obj.getHash();
-        // TODO, imporove symbol to bundle lookup
-        addBundle(manifest, urls, prefetchResources, buildBase, mapper[qrlSymbolName][0]);
+        const resolvedSymbol = mapper[qrlSymbolName];
+        if (resolvedSymbol) {
+          addBundle(manifest, urls, prefetchResources, buildBase, resolvedSymbol[0]);
+        }
       }
     }
   }

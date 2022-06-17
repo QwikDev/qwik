@@ -259,6 +259,14 @@ export type SymbolMapper = Record<string, [symbol: string, chunk: string]>;
 /**
  * @alpha
  */
+export type SymbolMapperFn = (
+  symbolName: string,
+  mapper: SymbolMapper | undefined
+) => [symbol: string, chunk: string] | undefined;
+
+/**
+ * @alpha
+ */
 export interface QwikSymbol {
   origin: string;
   displayName: string;

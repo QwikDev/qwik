@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "allowJs": true,
     "target": "ES2017",
     "module": "ES2020",
     "lib": ["es2020", "DOM"],

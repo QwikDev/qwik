@@ -1,12 +1,13 @@
-import { useLocation } from '../../utils/useLocation';
-import tutorialSections, { TutorialApp } from '@tutorial-data';
+import tutorialSections from '@tutorial-data';
+import { component$, useHostElement } from '@builder.io/qwik';
+import type { TutorialStore } from './tutorial';
 
-export const TutorialContentHeader = ({ current }: TutorialContentHeaderProps) => {
-  const loc = useLocation();
+export const TutorialContentHeader = component$(({ store }: TutorialContentHeaderProps) => {
+  const host = useHostElement();
 
   return (
     <div class="content-header">
-      <svg width="24" height="24">
+      <svg width="20" height="20" viewBox="0 0 24 24">
         <path
           d="M5 6h14M5 12h14M5 18h14"
           fill="none"
@@ -18,6 +19,7 @@ export const TutorialContentHeader = ({ current }: TutorialContentHeaderProps) =
 
       <select
         onChange$={(_, elm: any) => {
+          const loc = host.ownerDocument.location;
           if (loc.pathname !== elm.value) {
             loc.href = `/tutorial/${elm.value}`;
           }
@@ -26,7 +28,7 @@ export const TutorialContentHeader = ({ current }: TutorialContentHeaderProps) =
         {tutorialSections.map((s) => (
           <optgroup label={s.title}>
             {s.apps.map((t) => (
-              <option selected={t.id === current.id} value={t.id}>
+              <option selected={t.id === store.appId} value={t.id} key={t.id}>
                 {t.title}
               </option>
             ))}
@@ -34,11 +36,11 @@ export const TutorialContentHeader = ({ current }: TutorialContentHeaderProps) =
         ))}
       </select>
 
-      <h1>{current.title}</h1>
+      <h1>{store.app.title}</h1>
     </div>
   );
-};
+});
 
 interface TutorialContentHeaderProps {
-  current: TutorialApp;
+  store: TutorialStore;
 }

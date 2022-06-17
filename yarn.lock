@@ -400,12 +400,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@builder.io/partytown@npm:0.6.0, @builder.io/partytown@npm:^0.6.0":
-  version: 0.6.0
-  resolution: "@builder.io/partytown@npm:0.6.0"
+"@builder.io/partytown@npm:^0.6.1":
+  version: 0.6.1
+  resolution: "@builder.io/partytown@npm:0.6.1"
   bin:
     partytown: bin/partytown.cjs
-  checksum: e63557f931fa5658f6006e712bc2fadaf9b3b17c61e025dd2b7d9a6aebbd0baca3505fe6e8023eb016533c12d5ba183421d6ffa799923aa88ee66a9aca744835
+  checksum: 2cc90a7584bd718beb07ac1c906d5c46e894bcb398a4edf5491290fa7ccec31f5d96253624652085bf3a152d16dc1769652ae69e6e831366c91b2b9f5411642a
   languageName: node
   linkType: hard
 
@@ -413,7 +413,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@builder.io/qwik-city@workspace:packages/qwik-city"
   dependencies:
-    "@builder.io/qwik": 0.0.26
+    "@builder.io/qwik": 0.0.27
     "@mdx-js/mdx": ^2.1.1
     "@microsoft/api-extractor": 7.24.2
     "@types/github-slugger": ^1.3.0
@@ -453,14 +453,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@builder.io/qwik@npm:0.0.26":
-  version: 0.0.26
-  resolution: "@builder.io/qwik@npm:0.0.26"
-  checksum: 83cd04b15f20c95ff2d86e34c12e577bbec0663f1d8ef283b02ebf2cd03714b19c0d7411f591f650653852b2beb31b2a33621c65b92245fa06a03f5094b0855f
-  languageName: node
-  linkType: hard
-
-"@builder.io/qwik@workspace:packages/qwik":
+"@builder.io/qwik@0.0.27, @builder.io/qwik@workspace:packages/qwik":
   version: 0.0.0-use.local
   resolution: "@builder.io/qwik@workspace:packages/qwik"
   languageName: unknown
@@ -7718,8 +7711,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "qwik-docs@workspace:packages/docs"
   dependencies:
-    "@builder.io/partytown": ^0.6.0
-    "@builder.io/qwik": 0.0.26
+    "@builder.io/partytown": ^0.6.1
+    "@builder.io/qwik": 0.0.27
     "@builder.io/qwik-city": 0.0.12
     "@cloudflare/kv-asset-handler": 0.2.0
     autoprefixer: 10.4.7
@@ -7739,7 +7732,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "qwik-monorepo@workspace:."
   dependencies:
-    "@builder.io/partytown": 0.6.0
+    "@builder.io/partytown": ^0.6.1
     "@builder.io/qwik-dom": 2.1.18
     "@microsoft/api-extractor": 7.24.2
     "@napi-rs/cli": 2.6.2

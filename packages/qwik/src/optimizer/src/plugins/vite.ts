@@ -135,7 +135,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         esbuild: { include: /\.js$/ },
         optimizeDeps: {
           include: [QWIK_CORE_ID, QWIK_JSX_RUNTIME_ID],
-          exclude: ['@vite/client', '@vite/env'],
+          exclude: ['@vite/client', '@vite/env', '@builder.io/qwik/build'],
         },
         build: {
           outDir: opts.outDir,

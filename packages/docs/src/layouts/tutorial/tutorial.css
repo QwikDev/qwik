@@ -29,7 +29,7 @@
 
 .tutorial main {
   display: grid;
-  grid-template-columns: minmax(450px, 33%) auto;
+  grid-template-columns: minmax(450px, 45%) auto;
   grid-template-areas: 'tutorial-content-panel tutorial-repl-panel';
   height: 100%;
 }
@@ -62,7 +62,7 @@
 
 .content-header svg {
   position: absolute;
-  top: 10px;
+  top: 11px;
   left: 10px;
 }
 
@@ -81,22 +81,7 @@
   display: block;
   font-size: 17px;
   font-weight: bold;
-  padding: 8px 4px 6px 42px;
-}
-
-.content-main {
-  grid-area: content-main;
-  padding: 15px;
-  overflow-y: auto;
-}
-
-.content-main a {
-  color: var(--qwik-blue);
-  text-decoration: underline;
-}
-
-.content-main a:hover {
-  text-decoration: none;
+  padding: 8px 4px 6px 38px;
 }
 
 .content-footer {
@@ -115,19 +100,156 @@
   margin-top: 20px;
 }
 
-.nav-link {
+.nav-link,
+.show-me[type='button'] {
   display: inline-block;
-  padding: 3px 12px;
-  border-radius: 5px;
-  background: rgb(140 140 140);
-  color: white;
   margin: 0 0 0 15px;
-  border: 1px solid transparent;
   font-size: 14px;
+  padding: 3px 12px;
+  border-radius: 3px;
+  background-color: white;
+  color: var(--qwik-dark-blue);
+  border: 1px solid var(--qwik-dark-blue);
 }
 
-.nav-link:hover {
-  background: white;
-  color: rgb(140 140 140);
-  border: 1px solid rgb(140 140 140);
+.nav-link:hover,
+.show-me[type='button']:hover {
+  background-color: var(--qwik-blue);
+  color: white;
+  border-color: var(--qwik-blue);
+}
+
+.show-me[type='button'] {
+  margin: 0;
+}
+
+.show-me:hover {
+  margin: 0;
+  background-color: white;
+  color: var(--qwik-dark-blue);
+  border: 1px solid var(--qwik-dark-blue);
+}
+
+.content-main {
+  grid-area: content-main;
+  padding: 0 30px 25px 25px;
+  overflow-y: auto;
+}
+
+.content-main a {
+  color: var(--qwik-dark-blue);
+  text-decoration: underline;
+}
+
+.content-main a:hover {
+  text-decoration: none;
+}
+
+.content-main h1 {
+  @apply text-slate-900;
+  @apply text-5xl font-bold;
+  @apply mb-6;
+  @apply relative;
+}
+
+.content-main h2,
+.content-main h3,
+.content-main h4,
+.content-main h5,
+.content-main h6 {
+  @apply text-xl font-semibold;
+  @apply text-slate-900;
+  @apply mt-8;
+  @apply mb-4;
+  @apply relative;
+  scroll-margin-top: 80px;
+}
+
+.content-main h2 {
+  @apply text-3xl;
+}
+
+.content-main p {
+  @apply my-5;
+  font-size: 17px;
+}
+
+.content-main ul,
+.content-main ol {
+  @apply my-4;
+  @apply ml-8;
+  font-size: 17px;
+  line-height: 1.7;
+  list-style: disc;
+}
+
+.content-main ol {
+  list-style: decimal;
+}
+
+.content-main li {
+  @apply my-1;
+  @apply pl-2;
+}
+
+.content-main pre {
+  overflow: auto;
+  color: white;
+  background-color: rgb(1 31 51);
+  padding: 18px 15px;
+  border-radius: 8px;
+}
+
+.content-main pre code {
+  display: block;
+  max-width: 50px;
+  background-color: transparent;
+}
+
+.content-main code {
+  background-color: rgb(224, 224, 224);
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-size: 0.9em;
+  line-height: 1.4;
+}
+
+.content-main table {
+  @apply my-5;
+}
+
+.content-main th,
+.content-main td {
+  padding: 6px;
+  vertical-align: top;
+}
+
+.content-main th:first-child,
+.content-main td:first-child {
+  padding-left: 0;
+}
+
+.content-main th:last-child,
+.content-main td:last-child {
+  padding-right: 0;
+}
+
+.content-main img {
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.edit-tutorial svg {
+  display: inline-block;
+  margin: 0 4px 5px 0;
+}
+
+.edit-tutorial a {
+  color: rgb(130, 130, 130);
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.edit-tutorial a:hover {
+  text-decoration: underline;
 }

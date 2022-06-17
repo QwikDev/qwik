@@ -2,17 +2,19 @@ import { component$, useStore, useWatch$ } from '@builder.io/qwik';
 
 export const App = component$(() => {
   const github = useStore({
-    organization: 'builderio',
+    org: 'BuilderIO',
     repos: ['qwik', 'partytown'] as string[] | null,
   });
+
   useWatch$(() => {});
+
   return (
     <div>
       <span>
         GitHub username:
         <input
-          value={github.organization}
-          onKeyUp$={(event) => (github.organization = (event.target as HTMLInputElement).value)}
+          value={github.org}
+          onKeyUp$={(ev) => (github.org = (ev.target as HTMLInputElement).value)}
         />
       </span>
       <div>
@@ -20,7 +22,7 @@ export const App = component$(() => {
           <ul>
             {github.repos.map((repo) => (
               <li>
-                <a href={`https://github.com/${github.organization}/${repo}`}>{repo}</a>
+                <a href={`https://github.com/${github.org}/${repo}`}>{repo}</a>
               </li>
             ))}
           </ul>

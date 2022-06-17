@@ -13,12 +13,12 @@ import { useHeadMeta } from '@builder.io/qwik-city';
 import exampleSections, { ExampleApp } from '@examples-data';
 import type { ReplAppInput } from '../../components/repl/types';
 
-const Examples = component$((props: ExamplesProp) => {
+const Examples = component$((props: ExamplesProps) => {
   useHeadMeta({ title: `Qwik Examples` });
+  useScopedStyles$(styles);
   useStyles$(`html,body { margin: 0; height: 100%; overflow: hidden; }`);
 
   const store = useStore<ExamplesStore>(() => {
-    //  /examples/section/app-id
     const app = getExampleApp(props.appId);
 
     const initStore: ExamplesStore = {
@@ -39,8 +39,6 @@ const Examples = component$((props: ExamplesProp) => {
     store.files = app?.inputs || [];
   });
 
-  useScopedStyles$(styles);
-
   return (
     <Host class="examples full-width fixed-header">
       <Header />
@@ -59,9 +57,9 @@ const Examples = component$((props: ExamplesProp) => {
               <h2>{s.title}</h2>
 
               {s.apps.map((app) => (
-                <button
+                <a
                   key={app.id}
-                  type="button"
+                  href={`/examples/${app.id}`}
                   preventDefault:click
                   onClick$={() => {
                     store.appId = app.id;
@@ -78,7 +76,7 @@ const Examples = component$((props: ExamplesProp) => {
                     <h3>{app.title}</h3>
                     <p>{app.description}</p>
                   </div>
-                </button>
+                </a>
               ))}
             </div>
           ))}
@@ -134,7 +132,7 @@ export const getExampleApp = (id: string): ExampleApp | undefined => {
 
 export const PANELS: ActivePanel[] = ['Examples', 'Input', 'Output', 'Console'];
 
-interface ExamplesProp {
+interface ExamplesProps {
   appId: string;
 }
 

@@ -61,7 +61,7 @@ export const requestHandler = async (ev: any) => {
 
 const injectDevHtml = (clientId: string, html?: string) => {
   const s = `
-  (() => {
+(() => {
   const sendToServerWindow = (data) => {
     try {
       parent.postMessage(JSON.stringify({
@@ -124,6 +124,7 @@ const injectDevHtml = (clientId: string, html?: string) => {
       start: performance.now(),
     });
   });
+
   document.addEventListener('qresume', () => {
     sendToServerWindow({
       kind: 'resume',
@@ -132,6 +133,23 @@ const injectDevHtml = (clientId: string, html?: string) => {
       start: performance.now(),
     });
   });
+
+  document.addEventListener('click', (ev) => {
+    try {
+      if (ev.target && ev.target.tagName === 'A') {
+        const anchor = ev.target;
+        const href = anchor.href;
+        if (href && href !== '#') {
+          const url = new URL(anchor.href, origin);
+          if (url.origin !== origin) {
+            anchor.setAttribute('target', '_blank');
+          }
+        }
+      } 
+    } catch (e) {
+      console.error('repl-request-handler', e);
+    }
+  }, true);
 })();`;
 
   return `<script>${s}</script>${html || ''}`;

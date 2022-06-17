@@ -29,7 +29,7 @@ pub fn transform_modules(config_val: JsValue) -> Result<JsValue, JsValue> {
 //   let input: String = from_value(config_val).map_err(JsValue::from)?;
 
 //   let result = qwik_core::transform_modules(&TransformModulesOptions {
-//     root_dir: "/project".to_string(),
+//     src_dir: "/project".to_string(),
 //     transpile: true,
 //     minify: MinifyMode::Minify,
 //     entry_strategy: EntryStrategy::PerComponent,

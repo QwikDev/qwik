@@ -7,7 +7,7 @@
   "devDependencies": {
     "wrangler": "beta"
   },
-  "qwik": {
+  "__qwik__": {
     "priority": -1,
     "vite": {
       "VITE_IMPORTS": "",

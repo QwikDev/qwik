@@ -311,9 +311,10 @@ export interface PackageJSON {
   keywords?: string[];
   engines?: { [key: string]: string };
   private?: boolean;
-  qwik?: {
+  __qwik__?: {
     priority: number;
     featureOptions: string[];
+    selectServer?: boolean;
     vite?: {
       VITE_IMPORTS?: string;
       VITE_CONFIG?: string;
@@ -321,4 +322,5 @@ export interface PackageJSON {
       VITE_PLUGINS?: string;
     };
   };
+  [key: string]: any;
 }

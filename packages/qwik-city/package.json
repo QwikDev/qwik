@@ -4,6 +4,7 @@
   "description": "Static Site Generator for Qwik",
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
+  "qwik": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "scripts": {
     "test": "uvu -r tsm src/vite/tests"

@@ -9,7 +9,7 @@ use crate::words::*;
 use std::collections::BTreeMap;
 use std::path::Path;
 
-use anyhow::{format_err, Context, Error};
+use anyhow::{Context, Error};
 use path_slash::PathExt;
 use swc_atoms::JsWord;
 use swc_common::comments::{SingleThreadedComments, SingleThreadedCommentsMap};
@@ -27,12 +27,12 @@ pub struct NewModuleCtx<'a> {
     pub expr: Box<ast::Expr>,
     pub path: &'a PathData,
     pub name: &'a str,
-    pub origin: &'a str,
     pub local_idents: &'a [Id],
     pub scoped_idents: &'a [Id],
     pub global: &'a GlobalCollect,
     pub is_entry: bool,
     pub need_handle_watch: bool,
+    pub need_transform: bool,
     pub leading_comments: SingleThreadedCommentsMap,
     pub trailing_comments: SingleThreadedCommentsMap,
 }
@@ -49,7 +49,8 @@ pub fn new_module(ctx: NewModuleCtx) -> Result<(ast::Module, SingleThreadedComme
         shebang: None,
     };
 
-    let use_lexical_scope = if !ctx.scoped_idents.is_empty() {
+    let has_scoped_idents = ctx.need_transform && !ctx.scoped_idents.is_empty();
+    let use_lexical_scope = if has_scoped_idents {
         let new_local = id!(private_ident!(&USE_LEXICAL_SCOPE.clone()));
         module
             .body
@@ -93,7 +94,11 @@ pub fn new_module(ctx: NewModuleCtx) -> Result<(ast::Module, SingleThreadedComme
                         asserts: None,
                         src: ast::Str {
                             span: DUMMY_SP,
-                            value: fix_path(ctx.origin, "a", import.source.as_ref())?,
+                            value: fix_path(
+                                &ctx.path.abs_dir,
+                                &ctx.path.base_dir,
+                                import.source.as_ref(),
+                            )?,
                             raw: None,
                         },
                         specifiers: vec![specifier],
@@ -112,7 +117,11 @@ pub fn new_module(ctx: NewModuleCtx) -> Result<(ast::Module, SingleThreadedComme
                         asserts: None,
                         src: ast::Str {
                             span: DUMMY_SP,
-                            value: fix_path(ctx.origin, "a", &format!("./{}", ctx.path.file_stem))?,
+                            value: fix_path(
+                                &ctx.path.abs_dir,
+                                &ctx.path.base_dir,
+                                &format!("./{}", ctx.path.file_stem),
+                            )?,
                             raw: None,
                         },
                         specifiers: vec![ast::ImportSpecifier::Named(ast::ImportNamedSpecifier {
@@ -151,24 +160,8 @@ pub fn fix_path<S: AsRef<Path>, D: AsRef<Path>>(
 ) -> Result<JsWord, Error> {
     let src = src.as_ref();
     let dest = dest.as_ref();
-    let src_str = src.to_slash_lossy();
-    let dest_str = dest.to_slash_lossy();
-
-    if src_str.starts_with('/') {
-        return Err(format_err!(
-            "`fix_path`: `src` doesn't start with a slash: {}",
-            src_str
-        ));
-    }
-
     if ident.starts_with('.') {
-        let diff = pathdiff::diff_paths(
-            src.parent()
-                .with_context(|| format!("`fix_path`: `src` doesn't have a parent: {}", src_str))?,
-            dest.parent().with_context(|| {
-                format!("`fix_path`: `dest` doesn't have a parent: {}", dest_str)
-            })?,
-        );
+        let diff = pathdiff::diff_paths(src, dest);
 
         if let Some(diff) = diff {
             let normalize = diff.to_slash_lossy();
@@ -209,24 +202,23 @@ fn create_named_export(expr: Box<ast::Expr>, name: &str) -> ast::ModuleItem {
 #[test]
 fn test_fix_path() {
     assert_eq!(
-        fix_path("src/components.tsx", "a", "./state").unwrap(),
+        fix_path("src", "", "./state").unwrap(),
         JsWord::from("./src/state")
     );
 
     assert_eq!(
-        fix_path("src/path/components.tsx", "a", "./state").unwrap(),
+        fix_path("src/path", "", "./state").unwrap(),
         JsWord::from("./src/path/state")
     );
 
     assert_eq!(
-        fix_path("src/components.tsx", "a", "../state").unwrap(),
+        fix_path("src", "", "../state").unwrap(),
         JsWord::from("./state")
     );
     assert_eq!(
-        fix_path("components.tsx", "a", "./state").unwrap(),
+        fix_path("a", "a", "./state").unwrap(),
         JsWord::from("./state")
     );
-    assert!(fix_path("/components", "a", "./state").is_err())
 }
 
 pub fn generate_entries(

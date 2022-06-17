@@ -1,6 +1,7 @@
 # Build
 build
 dist
+lib
 server
 functions/**/*.js
 

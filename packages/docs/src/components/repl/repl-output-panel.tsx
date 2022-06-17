@@ -1,3 +1,4 @@
+import { mutable } from '@builder.io/qwik';
 import { CodeBlock } from '../code-block/code-block';
 import { ReplOutputModules } from './repl-output-modules';
 import { ReplOutputSymbols } from './repl-output-symbols';
@@ -101,7 +102,7 @@ export const ReplOutputPanel = ({ input, store }: ReplOutputPanelProps) => {
 
         {store.selectedOutputPanel === 'html' ? (
           <div class="output-result output-html">
-            <CodeBlock language="markup" code={store.html} theme="light" />
+            <CodeBlock language="markup" code={mutable(store.html)} theme="light" />
           </div>
         ) : null}
 

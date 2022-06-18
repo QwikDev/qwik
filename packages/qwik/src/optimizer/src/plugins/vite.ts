@@ -263,7 +263,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       await qwikPlugin.buildStart(this);
     },
 
-    async resolveId(id, importer, resolveIdOpts) {
+    resolveId(id, importer, resolveIdOpts) {
       if (id.startsWith('\0')) {
         return null;
       }

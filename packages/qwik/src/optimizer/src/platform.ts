@@ -74,18 +74,23 @@ export const getPlatformInputFiles = async (sys: OptimizerSystem) => {
 
     return async (rootDir: string) => {
       const getChildFilePaths = async (dir: string): Promise<string[]> => {
-        const dirItems = await fs.promises.readdir(dir);
-
-        const files = await Promise.all(
-          dirItems.map(async (subdir: any) => {
-            const resolvedPath = sys.path.resolve(dir, subdir);
-            const stats = await fs.promises.stat(resolvedPath);
-            return stats.isDirectory() ? getChildFilePaths(resolvedPath) : [resolvedPath];
-          })
-        );
+        const stats = await fs.promises.stat(dir);
         const flatted = [];
-        for (const file of files) {
-          flatted.push(...file);
+        if (stats.isDirectory()) {
+          const dirItems = await fs.promises.readdir(dir);
+
+          const files = await Promise.all(
+            dirItems.map(async (subdir: any) => {
+              const resolvedPath = sys.path.resolve(dir, subdir);
+              const stats = await fs.promises.stat(resolvedPath);
+              return stats.isDirectory() ? getChildFilePaths(resolvedPath) : [resolvedPath];
+            })
+          );
+          for (const file of files) {
+            flatted.push(...file);
+          }
+        } else {
+          flatted.push(dir);
         }
         return flatted.filter((a) => extensions[sys.path.extname(a)]);
       };

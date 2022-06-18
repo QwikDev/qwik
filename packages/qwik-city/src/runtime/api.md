@@ -4,8 +4,10 @@
 
 ```ts
 
-import type { FunctionComponent } from '@builder.io/qwik';
-import type { HTMLAttributes } from '@builder.io/qwik';
+import { Component } from '@builder.io/qwik';
+
+// @public (undocumented)
+export const Content: Component<    {}>;
 
 // Warning: (ae-forgotten-export) The symbol "RequestEvent" needs to be exported by the entry point index.d.ts
 //
@@ -132,10 +134,9 @@ export const useMenu: () => Menu | null;
 export const usePage: () => Page | undefined;
 
 // Warning: (ae-forgotten-export) The symbol "QwikCityOptions" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "QwikCity" needs to be exported by the entry point index.d.ts
 //
 // @alpha (undocumented)
-export const useQwikCity: ({ routes }: QwikCityOptions) => QwikCity;
+export const useQwikCity: ({ routes }: QwikCityOptions) => void;
 
 // Warning: (ae-forgotten-export) The symbol "Route" needs to be exported by the entry point index.d.ts
 //

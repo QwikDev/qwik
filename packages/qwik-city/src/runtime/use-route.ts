@@ -5,6 +5,4 @@ import type { Route } from './types';
 /**
  * @public
  */
-export const useRoute = (): Route => {
-  return useContext(RouteContext);
-};
+export const useRoute = (): Route => useContext(RouteContext);

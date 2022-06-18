@@ -1,4 +1,3 @@
-import type { FunctionComponent, HTMLAttributes } from '@builder.io/qwik';
 import type { ROUTE_TYPE_ENDPOINT } from './constants';
 
 /**
@@ -11,21 +10,11 @@ export interface QwikCityOptions {
 /**
  * @public
  */
-export interface QwikCity {
-  readonly Head: FunctionComponent<HTMLAttributes<HTMLHeadElement>>;
-  readonly Content: FunctionComponent<{}>;
-  readonly page: Page;
-  readonly route: Route;
-}
-
-/**
- * @public
- */
 export interface Page {
   readonly breadcrumbs: PageBreadcrumb[];
-  readonly head: PageHead;
   readonly headings: PageHeading[];
   readonly menu: { path: string };
+  readonly head: PageHead;
 }
 
 export interface PageModule {
@@ -38,6 +27,7 @@ export interface PageModule {
 
 export interface LayoutModule {
   readonly default: any;
+  readonly head: PageHead | PageHeadFunction;
 }
 
 /**
@@ -46,10 +36,10 @@ export interface LayoutModule {
 export interface Route {
   pathname: string;
   readonly params: RouteParams;
-  readonly href: string;
-  readonly search: string;
-  readonly hash: string;
-  readonly origin: string;
+}
+
+export interface ContentModules {
+  modules: (PageModule | LayoutModule)[];
 }
 
 /**
@@ -180,6 +170,21 @@ export type RouteData =
  * @public
  */
 export type RouteParams = Record<string, string>;
+
+export interface MatchedRoute {
+  route: RouteData;
+  params: RouteParams;
+  pathname: string;
+}
+
+export interface LoadedRoute extends MatchedRoute {
+  modules: (PageModule | LayoutModule)[];
+}
+
+export interface LoadedContent extends LoadedRoute {
+  pageModule: PageModule;
+  page: Page;
+}
 
 /**
  * @public

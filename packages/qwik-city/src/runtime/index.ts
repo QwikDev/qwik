@@ -10,6 +10,8 @@ export type {
   EndpointHandler,
 } from './types';
 
+export { Content } from './content';
+
 export { useLocation } from './use-location';
 export { useMenu } from './menu';
 export { usePage } from './use-page';

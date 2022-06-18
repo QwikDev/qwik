@@ -9,6 +9,9 @@ export default component$(() => {
       <h1>
         Docs: {route.params.category} {route.params.id}
       </h1>
+      <p>pathname: {route.pathname}</p>
+      <p>category: {route.params.category}</p>
+      <p>id: {route.params.id}</p>
     </Host>
   );
 });

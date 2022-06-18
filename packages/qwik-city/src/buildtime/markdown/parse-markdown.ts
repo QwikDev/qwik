@@ -28,7 +28,6 @@ export function parseMarkdownFile(
     pathname,
     filePath,
     layouts: [],
-    Page: undefined,
     default: undefined,
     attributes,
     head: {

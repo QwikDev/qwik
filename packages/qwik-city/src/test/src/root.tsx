@@ -1,39 +1,20 @@
 import { component$, Host } from '@builder.io/qwik';
 // import { Analytics } from './components/head/analytics';
-// import { Seo } from './components/head/seo';
+// import { Common } from './components/head/common';
 import { routes } from '@qwik-city-app';
-import { useQwikCity } from '@builder.io/qwik-city';
-import type { QwikCityOptions } from '../../runtime/types';
-
-export const createQwikCity = (opts: QwikCityOptions) => {
-  useQwikCity(opts);
-
-  const Content = component$(() => {
-    return <Host>fu</Host>;
-  });
-
-  return { Content };
-};
-
-export const Head = component$(
-  () => {
-    return (
-      <Host>
-        <meta name="name" property="fu" />
-        <meta name="name2" property="fu2" />
-      </Host>
-    );
-  },
-  { tagName: 'head' }
-);
+import { Content, useQwikCity } from '@builder.io/qwik-city';
 
 export default component$(
   () => {
-    const { Content } = createQwikCity({ routes });
+    useQwikCity({ routes });
 
     return (
       <Host>
-        <Head />
+        {/* <Head>
+          <Common />
+          <Analytics />
+        </Head> */}
+        <head></head>
         <body>
           <Content />
         </body>

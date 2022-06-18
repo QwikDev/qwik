@@ -14,7 +14,6 @@ export function parsePageFile(ctx: BuildContext, routesDir: string, filePath: st
     pathname,
     filePath,
     layouts: [],
-    Page: undefined,
     default: undefined,
     attributes: undefined,
     head: undefined,

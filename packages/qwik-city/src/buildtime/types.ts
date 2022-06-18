@@ -39,9 +39,8 @@ interface BaseRoute {
 export interface PageRoute extends BaseRoute {
   type: 'page';
   head: PageHead | undefined;
-  layouts: BuildLayout[];
   attributes: { [prop: string]: string } | undefined;
-  Page: any;
+  layouts: BuildLayout[];
   default: any;
 }
 

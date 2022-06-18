@@ -3,115 +3,59 @@ import {
   useContextProvider,
   immutable,
   useSequentialScope,
-  jsx,
-  SkipRerender,
   useStore,
 } from '@builder.io/qwik';
-import type {
-  LayoutModule,
-  Page,
-  PageHead,
-  PageModule,
-  QwikCity,
-  QwikCityOptions,
-  Route,
-  RouteParams,
-} from './types';
-import { createHead } from './head';
-import { createContent } from './content';
-import { matchRoute } from './routing';
-import { PageContext, RouteContext } from './constants';
+import type { ContentModules, Page, QwikCityOptions, Route } from './types';
+import { updateContent } from './content';
+import { loadRoute, matchRoute } from './routing';
+import { ContentContext, PageContext, RouteContext } from './constants';
 import { useLocation } from './use-location';
 
 /**
  * @alpha
  */
 export const useQwikCity = ({ routes }: QwikCityOptions) => {
-  const page: Page = {} as any; // useStore<Page>()
-
-  const cmps = {
-    Head: jsx(SkipRerender, {}) as any,
-    Content: jsx(SkipRerender, {}) as any,
-  };
-
   const loc = useLocation();
 
-  const route = useStore<Route>({
-    params: {},
-    href: loc.href,
-    pathname: loc.pathname,
-    search: loc.search,
-    hash: loc.href,
-    origin: loc.origin,
+  const route = useStore(() => {
+    const matchedRoute = matchRoute(routes, loc.pathname);
+    const initRoute: Route = {
+      params: matchedRoute ? matchedRoute.params : {},
+      pathname: loc.pathname,
+    };
+    return initRoute;
   });
-
-  const qwikCity: QwikCity = {
-    Head: cmps.Head,
-    Content: cmps.Content,
-    page: page,
-    route,
-  };
 
   const [value, setValue] = useSequentialScope();
   if (value) {
-    return qwikCity;
+    return;
   }
 
   setValue(true);
 
-  const update = (
-    updatedModules: (PageModule | LayoutModule)[],
-    updatedPageModule: PageModule,
-    updatedPageHead: PageHead | undefined,
-    updatedParams: RouteParams
-  ) => {
-    Object.assign(route, {
-      params: updatedParams,
-      href: loc.href,
-      pathname: loc.pathname,
-      search: loc.search,
-      hash: loc.href,
-      origin: loc.origin,
-    } as Route);
-
-    Object.assign(page, {
-      breadcrumbs: updatedPageModule.breadcrumbs,
-      head: updatedPageHead,
-      headings: updatedPageModule.headings,
-      menu: updatedPageModule.menu,
-    } as Page);
-
-    immutable(page);
-
-    cmps.Head = createHead(updatedModules);
-    cmps.Content = createContent(updatedModules);
-  };
-
-  useWaitOn(
-    matchRoute(routes, route.href).then((updatedRoute) => {
-      if (updatedRoute) {
-        const updateModules = updatedRoute.modules;
-        const updatedPageModule = updateModules[updateModules.length - 1];
-        const updatedRouteParams = updatedRoute.params;
-
-        const updatedHead =
-          typeof updatedPageModule.head === 'function'
-            ? updatedPageModule.head()
-            : updatedPageModule.head;
-
-        if (updatedHead && typeof updatedHead.then === 'function') {
-          updatedHead.then((head: PageHead) =>
-            update(updateModules, updatedPageModule, head, updatedRouteParams)
-          );
-        } else {
-          update(updateModules, updatedPageModule, updatedHead, updatedRouteParams);
-        }
-      }
-    })
-  );
+  const page = useStore<Page>({} as any);
+  const contentCtx = useStore<ContentModules>({ modules: [] });
 
   useContextProvider(PageContext, page);
   useContextProvider(RouteContext, route);
+  useContextProvider(ContentContext, contentCtx);
 
-  return qwikCity;
+  useWaitOn(
+    loadRoute(routes, loc.pathname)
+      .then(updateContent)
+      .then((updatedContent) => {
+        if (updatedContent) {
+          const updatedRoute: Route = {
+            params: updatedContent.params,
+            pathname: updatedContent.pathname,
+          };
+
+          Object.assign(route, updatedRoute);
+          Object.assign(page, updatedContent.page);
+          contentCtx.modules = updatedContent.modules;
+
+          immutable(page);
+        }
+      })
+  );
 };

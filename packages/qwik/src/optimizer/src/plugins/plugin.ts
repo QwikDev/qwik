@@ -15,6 +15,11 @@ import type {
   TransformOutput,
 } from '../types';
 
+export interface QwikPackages {
+  id: string;
+  path: string;
+}
+
 export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
   const id = `${Math.round(Math.random() * 899) + 100}`;
   const results = new Map<string, TransformOutput>();

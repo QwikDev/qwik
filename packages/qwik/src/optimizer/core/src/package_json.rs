@@ -33,6 +33,11 @@ fn find_files(dir: &std::path::Path, files: &mut Vec<std::path::PathBuf>) -> std
                 }
             }
         }
+    } else {
+        let ext = dir.extension().and_then(|p| p.to_str());
+        if let Some("ts" | "tsx" | "js" | "jsx") = ext {
+            files.push(dir.to_path_buf());
+        }
     }
     Ok(())
 }

@@ -39,7 +39,7 @@ describe('vite  plugin', () => {
       expect(build.dynamicImportVarsOptions?.exclude).toEqual([/./]);
       expect(build.ssr).toBe(undefined);
       expect(c.optimizeDeps?.include).toEqual(['@builder.io/qwik', '@builder.io/qwik/jsx-runtime']);
-      expect(c.esbuild).toEqual({ include: /\.js$/ });
+      expect(c.esbuild).toEqual(false);
       expect((c as any).ssr).toBeUndefined();
     });
 
@@ -67,7 +67,7 @@ describe('vite  plugin', () => {
       expect(build.dynamicImportVarsOptions?.exclude).toEqual([/./]);
       expect(build.ssr).toBe(undefined);
       expect(c.optimizeDeps?.include).toEqual(['@builder.io/qwik', '@builder.io/qwik/jsx-runtime']);
-      expect(c.esbuild).toEqual({ include: /\.js$/ });
+      expect(c.esbuild).toEqual(false);
       expect((c as any).ssr).toBeUndefined();
     });
     it('command: build, mode: development', async () => {
@@ -94,7 +94,7 @@ describe('vite  plugin', () => {
       expect(build.dynamicImportVarsOptions?.exclude).toEqual([/./]);
       expect(build.ssr).toBe(undefined);
       expect(c.optimizeDeps?.include).toEqual(['@builder.io/qwik', '@builder.io/qwik/jsx-runtime']);
-      expect(c.esbuild).toEqual({ include: /\.js$/ });
+      expect(c.esbuild).toEqual(false);
       expect((c as any).ssr).toBeUndefined();
     });
 
@@ -123,7 +123,7 @@ describe('vite  plugin', () => {
       expect(build.dynamicImportVarsOptions?.exclude).toEqual([/./]);
       expect(build.ssr).toBe(undefined);
       expect(c.optimizeDeps?.include).toEqual(['@builder.io/qwik', '@builder.io/qwik/jsx-runtime']);
-      expect(c.esbuild).toEqual({ include: /\.js$/ });
+      expect(c.esbuild).toEqual(false);
       expect((c as any).ssr).toBeUndefined();
     });
 
@@ -172,7 +172,7 @@ describe('vite  plugin', () => {
       expect(build.dynamicImportVarsOptions?.exclude).toEqual([/./]);
       expect(build.ssr).toBe(true);
       expect(c.optimizeDeps?.include).toEqual(['@builder.io/qwik', '@builder.io/qwik/jsx-runtime']);
-      expect(c.esbuild).toEqual({ include: /\.js$/ });
+      expect(c.esbuild).toEqual(false);
       expect(c.publicDir).toBe(false);
     });
 

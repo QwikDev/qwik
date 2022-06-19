@@ -28,7 +28,12 @@ ruleTester.run('my-rule', rules['no-use-after-await'], {
         return $(() => {
           return <Host></Host>
         });
-      });`,
+      });
+      const A = () => { console.log('A') };
+      export const B = () => {
+        A();
+      }
+      `,
     `export const HelloWorld = component$(async () => {
         useMethod();
         await something();
@@ -123,15 +128,13 @@ ruleTester.run('valid-lexical-scope', rules['valid-lexical-scope'], {
   invalid: [
     {
       code: `
-        const useMethod = () => {
-          console.log('');
-        }
+        const useMethod = 12;
         export const HelloWorld = component$(() => {
           const foo = 'bar';
           useMethod(foo);
           return <Host></Host>
         });`,
-      errors: ['Referenced invalid identifier'],
+      errors: ["Identifier (\"useMethod\") can not be captured inside the scope (component$) because it's declared at the root of the module and it is not exported. Add export. Check out https://qwik.builder.io/docs/advanced/optimizer for more details."],
     },
     {
       code: `
@@ -145,7 +148,7 @@ ruleTester.run('valid-lexical-scope', rules['valid-lexical-scope'], {
           });
           return <Host></Host>;
         });`,
-      errors: ['Referenced invalid identifier'],
+      errors: ["Identifier (\"useMethod\") can not be captured inside the scope (useWatch$) because it is a function, which is not serializable. Check out https://qwik.builder.io/docs/advanced/optimizer for more details."],
     },
     {
       code: `
@@ -170,7 +173,7 @@ ruleTester.run('valid-lexical-scope', rules['valid-lexical-scope'], {
           return <Host></Host>;
         });`,
 
-      errors: ['Referenced invalid identifier'],
+      errors: ["Identifier (\"useMethod\") can not be captured inside the scope (useWatch$) because \"useMethod.then\" is a function, which is not serializable. Check out https://qwik.builder.io/docs/advanced/optimizer for more details."],
     },
     {
       code: `
@@ -184,7 +187,7 @@ ruleTester.run('valid-lexical-scope', rules['valid-lexical-scope'], {
           return <Host></Host>;
         });`,
 
-      errors: ['Referenced invalid identifier'],
+      errors: ["Identifier (\"useMethod\") can not be captured inside the scope (useWatch$) because it is a function, which is not serializable. Check out https://qwik.builder.io/docs/advanced/optimizer for more details."],
     },
     {
       code: `
@@ -196,7 +199,7 @@ ruleTester.run('valid-lexical-scope', rules['valid-lexical-scope'], {
           return <Host></Host>;
         });`,
 
-      errors: ['Referenced invalid identifier'],
+      errors: ["Identifier (\"Stuff\") can not be captured inside the scope (useWatch$) because \"Stuff.prototype\" is a Class{}, use a simple object literal instead, which is not serializable. Check out https://qwik.builder.io/docs/advanced/optimizer for more details."],
     },
     {
       code: `
@@ -209,7 +212,7 @@ ruleTester.run('valid-lexical-scope', rules['valid-lexical-scope'], {
           return <Host></Host>;
         });`,
 
-      errors: ['Referenced invalid identifier'],
+      errors: ["Identifier (\"stuff\") can not be captured inside the scope (useWatch$) because it is a Class{}, use a simple object literal instead, which is not serializable. Check out https://qwik.builder.io/docs/advanced/optimizer for more details."],
     },
     {
       code: `
@@ -230,7 +233,7 @@ ruleTester.run('valid-lexical-scope', rules['valid-lexical-scope'], {
           return <Host></Host>;
         });`,
 
-      errors: ['Referenced invalid identifier'],
+      errors: ["Identifier (\"obj\") can not be captured inside the scope (useWatch$) because \"obj.stuff.toString\" is a function, which is not serializable. Check out https://qwik.builder.io/docs/advanced/optimizer for more details."],
     },
   ],
 });

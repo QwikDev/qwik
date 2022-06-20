@@ -1,9 +1,9 @@
 # CONTRIBUTING
 
-To build Qwik for local development, first [npm](https://docs.npmjs.com/) (or [yarn](https://yarnpkg.com/)) install the dev dependencies:
+To build Qwik for local development, first install the dev dependencies using [yarn](https://yarnpkg.com/)):
 
 ```
-yarn install
+yarn
 ```
 
 Next the `start` command will:

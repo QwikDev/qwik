@@ -22,13 +22,19 @@ const testConfig = {
 const ruleTester = new RuleTester(testConfig);
 ruleTester.run('my-rule', rules['no-use-after-await'], {
   valid: [
-    `export const HelloWorld = component$(async () => {
+    `
+    export const HelloWorld = component$(async () => {
         useMethod();
         await something();
         return $(() => {
           return <Host></Host>
         });
-      });`,
+      });
+      const A = () => { console.log('A') };
+      export const B = () => {
+        A();
+      }
+      `,
     `export const HelloWorld = component$(async () => {
         useMethod();
         await something();
@@ -77,9 +83,16 @@ ruleTester.run('valid-lexical-scope', rules['valid-lexical-scope'], {
   valid: [
     `
       import { useMethod, component$ } from 'stuff';
+      interface Value {
+        value: 12;
+      }
+      type NullValue = Value | null;
+
       export const HelloWorld = component$(() => {
         const bar = () => 'bar';
         const foo = 'bar';
+        const a: Value = {value: 12};
+        const b: NullValue = null;
         useMethod(foo, bar);
         return <Host></Host>
       });`,
@@ -99,6 +112,7 @@ ruleTester.run('valid-lexical-scope', rules['valid-lexical-scope'], {
           return {
             value: 'string',
             other: 12,
+            values: ['23', 22, {prop: number}],
             foo: {
               bar: 'string'
             }
@@ -119,19 +133,31 @@ ruleTester.run('valid-lexical-scope', rules['valid-lexical-scope'], {
         useMethod(foo);
         return <Host></Host>
       });`,
+    `
+        import { useWatch$ } from '@builder.io/qwik';
+        export const HelloWorld = component$(() => {
+          function getValue(): number | string | null | undefined | { prop: string } {
+            return window.aaa;
+          }
+          const a = getValue();
+          useWatch$(() => {
+            console.log(a);
+          });
+          return <Host></Host>;
+        });`,
   ],
   invalid: [
     {
       code: `
-        const useMethod = () => {
-          console.log('');
-        }
+        const useMethod = 12;
         export const HelloWorld = component$(() => {
           const foo = 'bar';
           useMethod(foo);
           return <Host></Host>
         });`,
-      errors: ['Referenced invalid identifier'],
+      errors: [
+        'Identifier ("useMethod") can not be captured inside the scope (component$) because it\'s declared at the root of the module and it is not exported. Add export. Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
+      ],
     },
     {
       code: `
@@ -145,7 +171,9 @@ ruleTester.run('valid-lexical-scope', rules['valid-lexical-scope'], {
           });
           return <Host></Host>;
         });`,
-      errors: ['Referenced invalid identifier'],
+      errors: [
+        'Identifier ("useMethod") can not be captured inside the scope (useWatch$) because it is a function, which is not serializable. Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
+      ],
     },
     {
       code: `
@@ -170,7 +198,9 @@ ruleTester.run('valid-lexical-scope', rules['valid-lexical-scope'], {
           return <Host></Host>;
         });`,
 
-      errors: ['Referenced invalid identifier'],
+      errors: [
+        'Identifier ("useMethod") can not be captured inside the scope (useWatch$) because it is a Promise, which is not serializable. Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
+      ],
     },
     {
       code: `
@@ -184,7 +214,9 @@ ruleTester.run('valid-lexical-scope', rules['valid-lexical-scope'], {
           return <Host></Host>;
         });`,
 
-      errors: ['Referenced invalid identifier'],
+      errors: [
+        'Identifier ("useMethod") can not be captured inside the scope (useWatch$) because it is a function, which is not serializable. Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
+      ],
     },
     {
       code: `
@@ -196,7 +228,9 @@ ruleTester.run('valid-lexical-scope', rules['valid-lexical-scope'], {
           return <Host></Host>;
         });`,
 
-      errors: ['Referenced invalid identifier'],
+      errors: [
+        'Identifier ("Stuff") can not be captured inside the scope (useWatch$) because it is a class constructor, which is not serializable. Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
+      ],
     },
     {
       code: `
@@ -209,7 +243,9 @@ ruleTester.run('valid-lexical-scope', rules['valid-lexical-scope'], {
           return <Host></Host>;
         });`,
 
-      errors: ['Referenced invalid identifier'],
+      errors: [
+        'Identifier ("stuff") can not be captured inside the scope (useWatch$) because it is an instance of the "Stuff" class, which is not serializable. Use a simple object literal instead. Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
+      ],
     },
     {
       code: `
@@ -230,7 +266,63 @@ ruleTester.run('valid-lexical-scope', rules['valid-lexical-scope'], {
           return <Host></Host>;
         });`,
 
-      errors: ['Referenced invalid identifier'],
+      errors: [
+        'Identifier ("obj") can not be captured inside the scope (useWatch$) because "obj.stuff" is an instance of the "Date" class, which is not serializable. Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
+      ],
+    },
+    {
+      code: `
+        import { useWatch$ } from '@builder.io/qwik';
+        export const HelloWorld = component$(() => {
+          const a = Symbol();
+          useWatch$(() => {
+            console.log(a);
+          });
+          return <Host></Host>;
+        });`,
+
+      errors: [
+        'Identifier ("a") can not be captured inside the scope (useWatch$) because it is Symbol, which is not serializable. Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
+      ],
+    },
+    {
+      code: `
+        import { useWatch$ } from '@builder.io/qwik';
+        export const HelloWorld = component$(() => {
+          function getValue() {
+            if (Math.random() < 0.5) {
+              return 'string';
+            } else {
+              return () => { console.log() };
+            }
+          }
+          const a = getValue();
+          useWatch$(() => {
+            console.log(a);
+          });
+          return <Host></Host>;
+        });`,
+
+      errors: [
+        'Identifier ("a") can not be captured inside the scope (useWatch$) because it is a function, which is not serializable. Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
+      ],
+    },
+    {
+      code: `
+        import { useWatch$ } from '@builder.io/qwik';
+        export const HelloWorld = component$(() => {
+          async function getValue() {
+            return 'ffg';
+          }
+          const a = getValue();
+          return <Host onClick$={() => {
+            console.log(a);
+          }}></Host>;
+        });`,
+
+      errors: [
+        'Identifier ("a") can not be captured inside the scope (onClick$) because it is a Promise, which is not serializable. Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
+      ],
     },
   ],
 });

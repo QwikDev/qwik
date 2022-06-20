@@ -28,8 +28,7 @@
     "priority": -1,
     "selectServer": false,
     "featureOptions": [
-      "prettier",
-      "eslint"
+      "prettier"
     ]
   }
 }

@@ -7,7 +7,6 @@
     "priority": 0,
     "featureOptions": [
       "prettier",
-      "eslint",
       "tailwindcss"
     ]
   }

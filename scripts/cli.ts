@@ -84,6 +84,7 @@ export async function publishStarterCli(
 
   console.log(`   update devDependencies["@builder.io/qwik"] = "${version}"`);
   baseAppPkg.devDependencies['@builder.io/qwik'] = version;
+  baseAppPkg.devDependencies['eslint-plugin-qwik'] = version;
 
   const rootPkg = await readPackageJson(config.rootDir);
   const typescriptDepVersion = rootPkg.devDependencies!.typescript;

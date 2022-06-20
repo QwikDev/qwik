@@ -3,7 +3,7 @@
 To build Qwik for local development, first install the dev dependencies using [yarn](https://yarnpkg.com/)):
 
 ```
-yarn install
+yarn
 ```
 
 Next the `start` command will:

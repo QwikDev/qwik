@@ -10,11 +10,17 @@
     "dev.ssr": "node --inspect node_modules/vite/bin/vite.js --mode ssr",
     "dev.debug": "node --inspect-brk node_modules/vite/bin/vite.js --mode ssr",
     "start": "npm run dev",
+    "lint": "eslint \"src/**/*.ts*\"",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@builder.io/qwik": "latest",
+    "@types/eslint": "^8.4.1",
     "@types/node": "latest",
+    "@typescript-eslint/eslint-plugin": "5.14.0",
+    "@typescript-eslint/parser": "5.14.0",
+    "eslint-plugin-qwik": "latest",
+    "eslint": "^8.12.0",
     "node-fetch": "2.6.7",
     "typescript": "latest",
     "vite": "latest"

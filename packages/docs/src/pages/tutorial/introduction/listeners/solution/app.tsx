@@ -12,7 +12,7 @@ export const App = component$(() => {
         GitHub username:
         <input
           value={github.org}
-          onKeyup$={(ev) => (github.org = (ev.target as HTMLInputElement).value)}
+          onKeyUp$={(ev) => (github.org = (ev.target as HTMLInputElement).value)}
         />
       </span>
       <div>

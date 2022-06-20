@@ -18,7 +18,7 @@ export const Header = component$(
           placeholder="What needs to be done?"
           autoFocus
           value={state.text}
-          onKeyup$={(event: any) => {
+          onKeyUp$={(event: any) => {
             const inputValue = (event.target as HTMLInputElement).value;
             state.text = inputValue;
             if (event.key === 'Enter' && inputValue) {

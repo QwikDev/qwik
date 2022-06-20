@@ -11,6 +11,7 @@ export const configs = {
     plugins: ['qwik'],
     rules: {
       'qwik/no-use-after-await': 'error',
+      'qwik/valid-lexical-scope': 'error',
     },
   },
   strict: {

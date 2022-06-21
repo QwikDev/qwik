@@ -49,7 +49,8 @@ function createPlatform(
       return symbol;
     },
     raf: () => {
-      return Promise.reject('server can not rerender');
+      logError('server can not rerender');
+      return Promise.resolve();
     },
     nextTick: (fn) => {
       return new Promise((resolve) => {

@@ -6,7 +6,7 @@ import type {
   QwikManifest,
   TransformModule,
 } from '../types';
-import type { RenderToStringOptions, RenderToStringResult } from '../../../server';
+import type { RenderOptions, RenderToStringResult } from '../../../server';
 import {
   createPlugin,
   NormalizedQwikPluginOptions,
@@ -458,7 +458,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
               });
             }
 
-            const renderToStringOpts: RenderToStringOptions = {
+            const renderToStringOpts: RenderOptions = {
               url: url.href,
               debug: true,
               snapshot: !isClientDevOnly,

@@ -1,7 +1,4 @@
-import { assertEqual } from '../assert/assert';
-import { qError, QError_missingDoc } from '../error/error';
-import { RenderEvent } from '../util/markers';
-import { getInvokeContext } from './use-core';
+import { useInvokeContext } from './use-core';
 
 // <docs markdown="../readme.md#useDocument">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -17,11 +14,6 @@ import { getInvokeContext } from './use-core';
  */
 // </docs>
 export const useDocument = (): Document => {
-  const ctx = getInvokeContext();
-  assertEqual(ctx.$event$, RenderEvent);
-  const doc = ctx.$doc$;
-  if (!doc) {
-    throw qError(QError_missingDoc);
-  }
-  return doc;
+  const ctx = useInvokeContext();
+  return ctx.$doc$;
 };

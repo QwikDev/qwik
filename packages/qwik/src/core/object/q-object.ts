@@ -280,26 +280,38 @@ const wrap = <T>(value: T, containerState: ContainerState): T => {
   }
 };
 
-export const verifySerializable = <T>(value: T) => {
-  if (value == null) {
-    return;
+export const verifySerializable = <T>(value: T): T => {
+  const unwrapped = unwrapProxy(value);
+  if (unwrapped == null) {
+    return value;
   }
-  if (shouldSerialize(value)) {
-    switch (typeof value) {
+  if (shouldSerialize(unwrapped)) {
+    switch (typeof unwrapped) {
       case 'object':
-        if (isArray(value)) return;
-        if (Object.getPrototypeOf(value) === Object.prototype) return;
-        if (isQrl(value)) return;
-        if (isElement(value)) return;
-        if (isDocument(value)) return;
+        if (isArray(unwrapped)) {
+          for (const item of unwrapped) {
+            verifySerializable(item);
+          }
+          return value;
+        }
+        if (Object.getPrototypeOf(unwrapped) === Object.prototype) {
+          for (const item of Object.values(unwrapped)) {
+            verifySerializable(item);
+          }
+          return value;
+        }
+        if (isQrl(unwrapped)) return value;
+        if (isElement(unwrapped)) return value;
+        if (isDocument(unwrapped)) return value;
         break;
       case 'boolean':
       case 'string':
       case 'number':
-        return;
+        return value;
     }
-    throw qError(QError_verifySerializable, value);
+    throw qError(QError_verifySerializable, unwrapped);
   }
+  return value;
 };
 
 const noSerializeSet = /*#__PURE__*/ new WeakSet<any>();

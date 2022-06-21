@@ -8,10 +8,10 @@ import {
   setEvent,
   tryGetContext,
 } from '../props/props';
-import { isOn$Prop, isOnProp } from '../props/props-on';
+import { isOnProp } from '../props/props-on';
 import { isArray, isString, ValueOrPromise } from '../util/types';
 import type { ProcessedJSXNode } from '../render/jsx/types/jsx-node';
-import { $, QRL } from '../import/qrl.public';
+import type { QRL } from '../import/qrl.public';
 import { firstRenderComponent, renderComponent } from './render-component';
 import { promiseAll, then } from '../util/promises';
 import type { ContainerState } from './notify-render';
@@ -699,12 +699,7 @@ export const updateProperties = (
     }
 
     if (isOnProp(key)) {
-      setEvent(rctx, ctx, key.slice(0, -3), newValue);
-      continue;
-    }
-
-    if (isOn$Prop(key)) {
-      setEvent(rctx, ctx, key.slice(0, -1), $(newValue));
+      setEvent(rctx, ctx, key, newValue);
       continue;
     }
 

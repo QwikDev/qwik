@@ -6,7 +6,7 @@ interface CSSProperties {
 }
 interface HTMLWebViewElement extends HTMLElement {}
 interface ClassAttributes<T> {}
-export type Booleanish = boolean | 'true' | 'false';
+export type Booleanish = 'true' | 'false';
 
 /**
  * @public

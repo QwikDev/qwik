@@ -1,9 +1,6 @@
 import { createProxy, QObjectRecursive } from '../object/q-object';
-import { getInvokeContext, useRenderContext } from './use-core';
-import { useHostElement } from './use-host-element.public';
+import { RenderInvokeContext, useInvokeContext } from './use-core';
 import { getContext } from '../props/props';
-import { assertEqual } from '../assert/assert';
-import { RenderEvent } from '../util/markers';
 import { isFunction } from '../util/types';
 
 export interface UseStoreOptions {
@@ -77,16 +74,16 @@ export const useStore = <STATE extends object>(
   initialState: STATE | (() => STATE),
   opts?: UseStoreOptions
 ): STATE => {
-  const [store, setStore] = useSequentialScope();
-  if (store != null) {
-    return store;
+  const { get, set, ctx } = useSequentialScope<STATE>();
+  if (get != null) {
+    return get;
   }
-  const containerState = useRenderContext().$containerState$;
+  const containerState = ctx.$renderCtx$.$containerState$;
   const value = isFunction(initialState) ? (initialState as Function)() : initialState;
   const recursive = opts?.recursive ?? false;
   const flags = recursive ? QObjectRecursive : 0;
   const newStore = createProxy(value, containerState, flags, undefined);
-  setStore(newStore);
+  set(newStore);
   return newStore;
 };
 
@@ -137,18 +134,29 @@ export const useRef = <T = Element>(current?: T): Ref<T> => {
   return useStore({ current });
 };
 
+export interface SequentialScope<T> {
+  readonly get: T | undefined;
+  readonly set: (v: T) => void;
+  readonly i: number;
+  readonly ctx: RenderInvokeContext;
+}
+
 /**
  * @alpha
  */
-export const useSequentialScope = (): [any, (prop: any) => void, number] => {
-  const ctx = getInvokeContext();
-  assertEqual(ctx.$event$, RenderEvent);
-  const index = ctx.$seq$;
-  const hostElement = useHostElement();
+export const useSequentialScope = <T>(): SequentialScope<T> => {
+  const ctx = useInvokeContext();
+  const i = ctx.$seq$;
+  const hostElement = ctx.$hostElement$;
   const elementCtx = getContext(hostElement);
   ctx.$seq$++;
-  const updateFn = (value: any) => {
-    elementCtx.$seq$[index] = value;
+  const set = (value: T) => {
+    elementCtx.$seq$[i] = value;
   };
-  return [elementCtx.$seq$[index], updateFn, index];
+  return {
+    get: elementCtx.$seq$[i],
+    set,
+    i,
+    ctx,
+  };
 };

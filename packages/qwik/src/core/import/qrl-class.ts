@@ -1,6 +1,8 @@
 import { qError, QError_qrlIsNotFunction } from '../error/error';
+import { verifySerializable } from '../object/q-object';
 import { InvokeContext, newInvokeContext, useInvoke } from '../use/use-core';
 import { then } from '../util/promises';
+import { qDev } from '../util/qdev';
 import { isFunction, ValueOrPromise } from '../util/types';
 import { qrlImport, QRLSerializeOptions, stringifyQRL } from './qrl';
 import type { QRL as IQRL } from './qrl.public';
@@ -21,8 +23,12 @@ class QRL<TYPE = any> implements IQRL<TYPE> {
     public $symbolRef$: null | ValueOrPromise<TYPE>,
     public $symbolFn$: null | (() => Promise<Record<string, any>>),
     public $capture$: null | string[],
-    public $captureRef$: null | any[]
-  ) {}
+    public $captureRef$: any[] | null
+  ) {
+    if (qDev) {
+      verifySerializable($captureRef$);
+    }
+  }
 
   setContainer(el: Element) {
     if (!this.$el$) {

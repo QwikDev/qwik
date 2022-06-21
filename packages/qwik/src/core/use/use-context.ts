@@ -1,4 +1,3 @@
-import { getInvokeContext } from './use-core';
 import { useSequentialScope } from './use-store.public';
 import { setAttribute } from '../render/cursor';
 import { fromCamelToKebabCase } from '../util/case';
@@ -30,17 +29,16 @@ export const useContextProvider = <STATE extends object>(
   context: Context<STATE>,
   newValue: STATE
 ) => {
-  const [value, setValue] = useSequentialScope();
-  if (value) {
+  const { get, set, ctx } = useSequentialScope<boolean>();
+  if (get) {
     return;
   }
-  const invokeContext = getInvokeContext();
-  const hostElement = invokeContext.$hostElement$!;
-  const renderCtx = invokeContext.$renderCtx$!;
-  const ctx = getContext(hostElement);
-  let contexts = ctx.$contexts$;
+  const hostElement = ctx.$hostElement$!;
+  const renderCtx = ctx.$renderCtx$!;
+  const hostCtx = getContext(hostElement);
+  let contexts = hostCtx.$contexts$;
   if (!contexts) {
-    ctx.$contexts$ = contexts = new Map();
+    hostCtx.$contexts$ = contexts = new Map();
   }
   contexts.set(context.id, newValue);
 
@@ -49,38 +47,37 @@ export const useContextProvider = <STATE extends object>(
     serializedContexts.push(`${key}`);
   });
   setAttribute(renderCtx, hostElement, QCtxAttr, serializedContexts.join(' '));
-  setValue(true);
+  set(true);
 };
 
 /**
  * @alpha
  */
 export const useContext = <STATE extends object>(context: Context<STATE>): STATE => {
-  const [value, setValue] = useSequentialScope();
-  if (!value) {
-    const invokeContext = getInvokeContext();
-    let hostElement = invokeContext.$hostElement$!;
-    const contexts = invokeContext.$renderCtx$!.$contexts$;
-    for (let i = contexts.length - 1; i >= 0; i--) {
-      const ctx = contexts[i];
-      hostElement = ctx.$element$;
-      if (ctx.$contexts$) {
-        const found = ctx.$contexts$.get(context.id);
-        if (found) {
-          setValue(found);
-          return found;
-        }
-      }
-    }
-    const foundEl = hostElement.closest(`[q\\:ctx*="${context.id}"]`);
-    if (foundEl) {
-      const value = getContext(foundEl).$contexts$!.get(context.id);
-      if (value) {
-        setValue(value);
-        return value;
-      }
-    }
-    throw qError(QError_notFoundContext, context.id);
+  const { get, set, ctx } = useSequentialScope<STATE>();
+  if (get) {
+    return get;
   }
-  return value;
+  let hostElement = ctx.$hostElement$;
+  const contexts = ctx.$renderCtx$.$contexts$;
+  for (let i = contexts.length - 1; i >= 0; i--) {
+    const ctx = contexts[i];
+    hostElement = ctx.$element$;
+    if (ctx.$contexts$) {
+      const found = ctx.$contexts$.get(context.id);
+      if (found) {
+        set(found);
+        return found;
+      }
+    }
+  }
+  const foundEl = hostElement.closest(`[q\\:ctx*="${context.id}"]`);
+  if (foundEl) {
+    const value = getContext(foundEl).$contexts$!.get(context.id);
+    if (value) {
+      set(value);
+      return value;
+    }
+  }
+  throw qError(QError_notFoundContext, context.id);
 };

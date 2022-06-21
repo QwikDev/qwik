@@ -11,7 +11,7 @@ import type { RenderContext } from '../render/cursor';
 import { newQObjectMap, QObjectMap } from './props-obj-map';
 import { qPropWriteQRL } from './props-on';
 import { QContainerAttr } from '../util/markers';
-import type { QRL } from '../import/qrl.public';
+import { $, QRL } from '../import/qrl.public';
 import type { OnRenderFn } from '../component/component.public';
 import { destroyWatch, WatchDescriptor } from '../use/use-watch';
 import { pauseContainer } from '../object/store';
@@ -21,6 +21,7 @@ import { logError } from '../util/log';
 import { isQrl } from '../import/qrl-class';
 import { directGetAttribute } from '../render/fast-calls';
 import { assertDefined } from '../assert/assert';
+import { codeToText, QError_immutableJsxProps } from '../error/error';
 
 const Q_CTX = '__ctx__';
 
@@ -132,7 +133,13 @@ export const normalizeOnProp = (prop: string) => {
 };
 
 export const setEvent = (rctx: RenderContext, ctx: QContext, prop: string, value: any) => {
-  qPropWriteQRL(rctx, ctx, normalizeOnProp(prop), value);
+  const dollar = qDev && prop.endsWith('$');
+  qPropWriteQRL(
+    rctx,
+    ctx,
+    normalizeOnProp(prop.slice(0, dollar ? -1 : -3)),
+    dollar ? $(value) : value
+  );
 };
 
 export const createProps = (target: any, containerState: ContainerState) => {
@@ -166,7 +173,8 @@ export const getPropsMutator = (ctx: QContext, containerState: ContainerState) =
           if (didSet && !mut && !isQrl(value)) {
             const displayName = ctx.$renderQrl$?.getSymbol() ?? ctx.$element$.localName;
             logError(
-              `Props are immutable by default. If you need to change a value of a passed in prop, please wrap the prop with "mutable()" <${displayName} ${prop}={mutable(...)}>`,
+              codeToText(QError_immutableJsxProps),
+              `If you need to change a value of a passed in prop, please wrap the prop with "mutable()" <${displayName} ${prop}={mutable(...)}>`,
               '\n - Component:',
               displayName,
               '\n - Prop:',

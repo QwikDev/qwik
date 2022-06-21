@@ -18,11 +18,11 @@ export const QwikCityContext = createContext<PageHandler>('qwikcity-page');
  * @alpha
  */
 export const useQwikCity = () => {
-  const [value, setValue] = useSequentialScope();
-  if (value) {
+  const { get, set } = useSequentialScope<boolean>();
+  if (get) {
     return;
   }
-  setValue(true);
+  set(true);
 
   const href = useLocation().href;
 

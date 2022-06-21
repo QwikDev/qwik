@@ -84,6 +84,10 @@ describe('render', () => {
       );
     });
 
+    it('should serialize boolean attributes correctly', async () => {
+      await render(fixture.host, <input required={true} disabled={false}></input>);
+      await expectRendered(<input required></input>);
+    });
     it('should render into a document', async () => {
       await render(
         fixture.document,

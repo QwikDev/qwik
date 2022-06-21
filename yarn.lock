@@ -488,10 +488,27 @@ __metadata:
     react-dom: ^18.0.0
     typescript: 4.7.2
     vite: 2.9.9
+  peerDependencies:
+    "@builder.io/qwik": ^0.0.29
+    "@emotion/react": ^11.9.0
+    "@emotion/server": ^11.4.0
+    "@emotion/styled": ^11.9.3
+    "@mui/material": 5.1.1
+    "@types/react": ^18.0.1
+    "@types/react-dom": ^18.0.0
+    react: ^18.0.0
+    react-dom: ^18.0.0
   languageName: unknown
   linkType: soft
 
-"@builder.io/qwik@0.0.29, @builder.io/qwik@workspace:*, @builder.io/qwik@workspace:packages/qwik":
+"@builder.io/qwik@npm:0.0.29":
+  version: 0.0.29
+  resolution: "@builder.io/qwik@npm:0.0.29"
+  checksum: 98b2c09f09d6a4fd6b0830d358b0a18b29d230e149e845b1e8b01863bed0d280c9c76e14da8ee3d098b8f0ac4396bc3d756978aea6410ad52923de4eec953ebd
+  languageName: node
+  linkType: hard
+
+"@builder.io/qwik@workspace:*, @builder.io/qwik@workspace:packages/qwik":
   version: 0.0.0-use.local
   resolution: "@builder.io/qwik@workspace:packages/qwik"
   languageName: unknown

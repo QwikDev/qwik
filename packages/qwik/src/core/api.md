@@ -384,7 +384,7 @@ export interface QRL<TYPE = any> {
 }
 
 // @alpha
-export const qrl: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: string, lexicalScopeCapture?: any[] | null) => QRL<T>;
+export const qrl: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: string, lexicalScopeCapture?: any[]) => QRL<T>;
 
 // @public (undocumented)
 export interface QwikDOMAttributes extends DOMAttributes<any> {
@@ -544,13 +544,13 @@ export const useMount$: (first: ServerFn) => void;
 export const useMountQrl: (mountQrl: QRL<ServerFn>) => void;
 
 // @alpha
-export const useOn: (event: string, eventFn: QRL<() => void>) => void;
+export const useOn: (event: string, eventQrl: QRL<() => void>) => void;
 
 // @alpha
 export const useOnDocument: (event: string, eventQrl: QRL<() => void>) => void;
 
 // @alpha
-export const useOnWindow: (event: string, eventFn: QRL<() => void>) => void;
+export const useOnWindow: (event: string, eventQrl: QRL<() => void>) => void;
 
 // Warning: (ae-incompatible-release-tags) The symbol "useRef" is marked as @public, but its signature references "Ref" which is marked as @alpha
 //
@@ -569,8 +569,10 @@ export const useScopedStyles$: (first: string) => void;
 // @alpha (undocumented)
 export const useScopedStylesQrl: (styles: QRL<string>) => void;
 
+// Warning: (ae-forgotten-export) The symbol "SequentialScope" needs to be exported by the entry point index.d.ts
+//
 // @alpha (undocumented)
-export const useSequentialScope: () => [any, (prop: any) => void, number];
+export const useSequentialScope: <T>() => SequentialScope<T>;
 
 // Warning: (ae-incompatible-release-tags) The symbol "useServerMount$" is marked as @public, but its signature references "ServerFn" which is marked as @alpha
 //

@@ -8,7 +8,7 @@ test.describe('e2e', () => {
     });
 
     test('should support two QRLs on event', async ({ page }) => {
-      const button = page.locator('button.two-listeners');
+      const button = page.locator('.two-listeners');
       await button.click();
       await expect(button).toContainText('2 / 2');
     });

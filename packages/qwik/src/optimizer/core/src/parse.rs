@@ -606,5 +606,5 @@ pub fn might_need_handle_watch(ctx_kind: &HookKind, ctx_name: &str) -> bool {
     if matches!(ctx_kind, HookKind::Event) {
         return false;
     }
-    matches!(ctx_name, "useClientEffect$" | "$")
+    matches!(ctx_name, "useWatch$" | "useClientEffect$" | "$")
 }

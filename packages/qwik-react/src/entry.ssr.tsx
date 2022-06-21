@@ -1,6 +1,6 @@
 import type { RenderOptions } from '@builder.io/qwik/server';
 import { manifest } from '@qwik-client-manifest';
-import { renderToString } from './react/render';
+import { renderToString } from './server';
 import { Root } from './root';
 
 /**

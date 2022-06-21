@@ -5,6 +5,7 @@ import { renderToString } from 'react-dom/server';
 import createEmotionServer from '@emotion/server/create-instance';
 import createCache from '@emotion/cache';
 export { createElement } from 'react';
+export { renderToString } from '@builder.io/qwik/server';
 
 const key = 'css';
 const cache = createCache({ key });

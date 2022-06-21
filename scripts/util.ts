@@ -46,6 +46,7 @@ export interface BuildConfig {
   api?: boolean;
   build?: boolean;
   qwikcity?: boolean;
+  qwikreact?: boolean;
   cli?: boolean;
   eslint?: boolean;
   commit?: boolean;

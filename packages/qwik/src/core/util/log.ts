@@ -5,8 +5,16 @@ const STYLE = qDev
   : '';
 
 export const logError = (message?: any, ...optionalParams: any[]) => {
+  const err = message instanceof Error ? message : new Error(message);
   // eslint-disable-next-line no-console
-  console.error('%cQWIK ERROR', STYLE, message, ...optionalParams);
+  console.error('%cQWIK ERROR', STYLE, err, ...optionalParams);
+  return err;
+};
+
+export const logErrorAndStop = (message?: any, ...optionalParams: any[]) => {
+  logError(message, ...optionalParams);
+  // eslint-disable-next-line no-debugger
+  debugger;
 };
 
 export const logWarn = (message?: any, ...optionalParams: any[]) => {
@@ -16,7 +24,7 @@ export const logWarn = (message?: any, ...optionalParams: any[]) => {
   }
 };
 
-export const logDebug = (message?: any, ...optionalParams: any[]) => {
+export const logDebug = (message?: string, ...optionalParams: any[]) => {
   if (qDev) {
     // eslint-disable-next-line no-console
     console.debug('%cQWIK', STYLE, message, ...optionalParams);

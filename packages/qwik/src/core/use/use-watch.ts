@@ -1,8 +1,7 @@
 import { getProxyTarget, noSerialize, NoSerialize } from '../object/q-object';
 import type { QRL } from '../import/qrl.public';
 import { getContext } from '../props/props';
-import { newInvokeContext, useRenderContext, useWaitOn } from './use-core';
-import { useHostElement } from './use-host-element.public';
+import { newInvokeContext } from './use-core';
 import { logDebug, logError } from '../util/log';
 import { then } from '../util/promises';
 import { useSequentialScope } from './use-store.public';
@@ -126,19 +125,19 @@ export interface UseEffectOptions {
  */
 // </docs>
 export const useWatchQrl = (qrl: QRL<WatchFn>, opts?: UseEffectOptions): void => {
-  const [watch, setWatch, i] = useSequentialScope();
-  if (!watch) {
-    const el = useHostElement();
-    const containerState = useRenderContext().$containerState$;
+  const { get, set, ctx, i } = useSequentialScope<boolean>();
+  if (!get) {
+    const el = ctx.$hostElement$;
+    const containerState = ctx.$renderCtx$.$containerState$;
     const watch: WatchDescriptor = {
       qrl,
       el,
       f: WatchFlagsIsDirty | WatchFlagsIsWatch,
       i,
     };
-    setWatch(true);
+    set(true);
     getContext(el).$watches$.push(watch);
-    useWaitOn(Promise.resolve().then(() => runWatch(watch, containerState)));
+    ctx.$waitOn$.push(Promise.resolve().then(() => runWatch(watch, containerState)));
     const isServer = containerState.$platform$.isServer;
     if (isServer) {
       useRunWatch(watch, opts?.run);
@@ -238,19 +237,19 @@ export const useWatch$ = /*#__PURE__*/ implicit$FirstArg(useWatchQrl);
  */
 // </docs>
 export const useClientEffectQrl = (qrl: QRL<WatchFn>, opts?: UseEffectOptions): void => {
-  const [watch, setWatch, i] = useSequentialScope();
-  if (!watch) {
-    const el = useHostElement();
+  const { get, set, i, ctx } = useSequentialScope<boolean>();
+  if (!get) {
+    const el = ctx.$hostElement$;
     const watch: WatchDescriptor = {
       qrl,
       el,
       f: WatchFlagsIsEffect,
       i,
     };
-    setWatch(true);
+    set(true);
     getContext(el).$watches$.push(watch);
     useRunWatch(watch, opts?.run ?? 'visible');
-    const doc = useDocument() as any;
+    const doc = ctx.$doc$ as any;
     if (doc['qO']) {
       doc['qO'].observe(el);
     }
@@ -327,12 +326,12 @@ export const useClientEffect$ = /*#__PURE__*/ implicit$FirstArg(useClientEffectQ
  */
 // </docs>
 export const useServerMountQrl = (mountQrl: QRL<ServerFn>): void => {
-  const [watch, setWatch] = useSequentialScope();
-  if (!watch) {
-    setWatch(true);
-    const isServer = getPlatform(useDocument()).isServer;
+  const { get, set, ctx } = useSequentialScope<boolean>();
+  if (!get) {
+    set(true);
+    const isServer = getPlatform(ctx.$doc$).isServer;
     if (isServer) {
-      useWaitOn(mountQrl.invoke());
+      ctx.$waitOn$.push(mountQrl.invoke());
     }
   }
 };
@@ -412,12 +411,12 @@ export const useServerMount$ = /*#__PURE__*/ implicit$FirstArg(useServerMountQrl
  */
 // </docs>
 export const useClientMountQrl = (mountQrl: QRL<ServerFn>): void => {
-  const [watch, setWatch] = useSequentialScope();
-  if (!watch) {
-    setWatch(true);
+  const { get, set, ctx } = useSequentialScope<boolean>();
+  if (!get) {
+    set(true);
     const isServer = getPlatform(useDocument()).isServer;
     if (!isServer) {
-      useWaitOn(mountQrl.invoke());
+      ctx.$waitOn$.push(mountQrl.invoke());
     }
   }
 };
@@ -491,10 +490,10 @@ export const useClientMount$ = /*#__PURE__*/ implicit$FirstArg(useClientMountQrl
  */
 // </docs>
 export const useMountQrl = (mountQrl: QRL<ServerFn>): void => {
-  const [watch, setWatch] = useSequentialScope();
-  if (!watch) {
-    setWatch(true);
-    useWaitOn(mountQrl.invoke());
+  const { get, set, ctx } = useSequentialScope<boolean>();
+  if (!get) {
+    set(true);
+    ctx.$waitOn$.push(mountQrl.invoke());
   }
 };
 

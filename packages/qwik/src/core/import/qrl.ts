@@ -1,7 +1,7 @@
 import { EMPTY_ARRAY } from '../util/flyweight';
 import type { QRL } from './qrl.public';
 import { isQrl, QRLInternal } from './qrl-class';
-import { isArray, isFunction, isString, ValueOrPromise } from '../util/types';
+import { isFunction, isString, ValueOrPromise } from '../util/types';
 import type { CorePlatform } from '../platform/types';
 import { getDocument } from '../util/dom';
 import { logError } from '../util/log';
@@ -16,8 +16,6 @@ import {
   QError_runtimeQrlNoElement,
   QError_unknownTypeArgument,
 } from '../error/error';
-import { qDev } from '../util/qdev';
-import { getProxyTarget, verifySerializable } from '../object/q-object';
 
 let runtimeSymbolId = 0;
 const RUNTIME_QRL = '/runtimeQRL';
@@ -82,7 +80,7 @@ export const qrlImport = <T>(element: Element | undefined, qrl: QRL<T>): ValueOr
 export const qrl = <T = any>(
   chunkOrFn: string | (() => Promise<any>),
   symbol: string,
-  lexicalScopeCapture: any[] | null = EMPTY_ARRAY
+  lexicalScopeCapture: any[] = EMPTY_ARRAY
 ): QRL<T> => {
   let chunk: string;
   let symbolFn: null | (() => Promise<Record<string, any>>) = null;
@@ -113,7 +111,6 @@ export const qrl = <T = any>(
   }
 
   // Unwrap subscribers
-  unwrapLexicalScope(lexicalScopeCapture);
   const qrl = new QRLInternal<T>(chunk, symbol, null, symbolFn, null, lexicalScopeCapture);
   const ctx = tryGetInvokeContext();
   if (ctx && ctx.$element$) {
@@ -142,25 +139,7 @@ export const inlinedQrl = <T>(
   lexicalScopeCapture: any[] = EMPTY_ARRAY
 ): QRL<T> => {
   // Unwrap subscribers
-  return new QRLInternal<T>(
-    INLINED_QRL,
-    symbolName,
-    symbol,
-    null,
-    null,
-    unwrapLexicalScope(lexicalScopeCapture)
-  );
-};
-
-const unwrapLexicalScope = (lexicalScope: any[] | null) => {
-  if (isArray(lexicalScope)) {
-    for (let i = 0; i < lexicalScope.length; i++) {
-      if (qDev) {
-        verifySerializable(getProxyTarget(lexicalScope[i]) ?? lexicalScope[i]);
-      }
-    }
-  }
-  return lexicalScope;
+  return new QRLInternal<T>(INLINED_QRL, symbolName, symbol, null, null, lexicalScopeCapture);
 };
 
 export interface QRLSerializeOptions {

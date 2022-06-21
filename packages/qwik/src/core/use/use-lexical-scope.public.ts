@@ -26,6 +26,7 @@ export const useLexicalScope = <VARS extends any[]>(): VARS => {
   if (qrl.$captureRef$ == null) {
     const el = context.$element$!;
     assertDefined(el);
+    assertDefined(qrl.$capture$);
     resumeIfNeeded(getContainer(el)!);
     const ctx = getContext(el);
 

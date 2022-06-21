@@ -6,22 +6,17 @@ import { EMPTY_ARRAY } from '../util/flyweight';
 import type { QContext } from './props';
 import { RenderContext, setAttribute } from '../render/cursor';
 import type { QRL } from '../import/qrl.public';
-import { directGetAttribute, directSetAttribute } from '../render/fast-calls';
+import { directGetAttribute } from '../render/fast-calls';
 import { isArray } from '../util/types';
 
-const ON_PROP_REGEX = /^(window:|document:|)on([A-Z]|-.).*Qrl$/;
-const ON$_PROP_REGEX = /^(window:|document:|)on([A-Z]|-.).*\$$/;
+const ON_PROP_REGEX = /^(window:|document:|)on([A-Z]|-.).*(Qrl|\$)$/;
 
 export const isOnProp = (prop: string): boolean => {
   return ON_PROP_REGEX.test(prop);
 };
 
-export const isOn$Prop = (prop: string): boolean => {
-  return ON$_PROP_REGEX.test(prop);
-};
-
 export const qPropWriteQRL = (
-  rctx: RenderContext | undefined,
+  rctx: RenderContext,
   ctx: QContext,
   prop: string,
   value: QRL<any>[] | QRL<any>
@@ -64,11 +59,7 @@ export const qPropWriteQRL = (
   ctx.$listeners$.set(kebabProp, existingListeners);
   const newValue = serializeQRLs(existingListeners, ctx);
   if (directGetAttribute(ctx.$element$, kebabProp) !== newValue) {
-    if (rctx) {
-      setAttribute(rctx, ctx.$element$, kebabProp, newValue);
-    } else {
-      directSetAttribute(ctx.$element$, kebabProp, newValue);
-    }
+    setAttribute(rctx, ctx.$element$, kebabProp, newValue);
   }
 };
 

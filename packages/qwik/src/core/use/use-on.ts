@@ -2,7 +2,7 @@ import type { QRL } from '../import/qrl.public';
 import { getContext } from '../props/props';
 import { qPropWriteQRL } from '../props/props-on';
 import { implicit$FirstArg } from '../util/implicit_dollar';
-import { useHostElement } from './use-host-element.public';
+import { useInvokeContext } from './use-core';
 import { useSequentialScope } from './use-store.public';
 import { WatchDescriptor, WatchFlagsIsCleanup } from './use-watch';
 
@@ -32,16 +32,16 @@ import { WatchDescriptor, WatchFlagsIsCleanup } from './use-watch';
  */
 // </docs>
 export const useCleanupQrl = (unmountFn: QRL<() => void>): void => {
-  const [watch, setWatch, i] = useSequentialScope();
-  if (!watch) {
-    const el = useHostElement();
+  const { get, set, i, ctx } = useSequentialScope<boolean>();
+  if (!get) {
+    const el = ctx.$hostElement$;
     const watch: WatchDescriptor = {
       qrl: unmountFn,
       el,
       f: WatchFlagsIsCleanup,
       i,
     };
-    setWatch(true);
+    set(true);
     getContext(el).$watches$.push(watch);
   }
 };
@@ -213,10 +213,8 @@ export const useVisible$ = /*#__PURE__*/ implicit$FirstArg(useVisibleQrl);
  * @alpha
  */
 // </docs>
-export const useOn = (event: string, eventFn: QRL<() => void>) => {
-  const el = useHostElement();
-  const ctx = getContext(el);
-  qPropWriteQRL(undefined, ctx, `on:${event}`, eventFn);
+export const useOn = (event: string, eventQrl: QRL<() => void>) => {
+  _useOn(`on:${event}`, eventQrl);
 };
 
 // <docs markdown="../readme.md#useOnDocument">
@@ -250,9 +248,7 @@ export const useOn = (event: string, eventFn: QRL<() => void>) => {
  */
 // </docs>
 export const useOnDocument = (event: string, eventQrl: QRL<() => void>) => {
-  const el = useHostElement();
-  const ctx = getContext(el);
-  qPropWriteQRL(undefined, ctx, `on-document:${event}`, eventQrl);
+  _useOn(`on-document:${event}`, eventQrl);
 };
 
 // <docs markdown="../readme.md#useOnWindow">
@@ -286,8 +282,12 @@ export const useOnDocument = (event: string, eventQrl: QRL<() => void>) => {
  * @alpha
  */
 // </docs>
-export const useOnWindow = (event: string, eventFn: QRL<() => void>) => {
-  const el = useHostElement();
-  const ctx = getContext(el);
-  qPropWriteQRL(undefined, ctx, `on-window:${event}`, eventFn);
+export const useOnWindow = (event: string, eventQrl: QRL<() => void>) => {
+  _useOn(`on-window:${event}`, eventQrl);
+};
+
+export const _useOn = (eventName: string, eventQrl: QRL<() => void>) => {
+  const invokeCtx = useInvokeContext();
+  const ctx = getContext(invokeCtx.$hostElement$);
+  qPropWriteQRL(invokeCtx.$renderCtx$, ctx, eventName, eventQrl);
 };

@@ -1,0 +1,72 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { $, component$ } from '@builder.io/qwik';
+import thing from "../state";
+
+export function foo() {
+    return import("../state")
+}
+
+export const Header = component$(() => {
+    return (
+        <Host>
+            {import("../state")}
+            {thing}
+        </Host>
+    );
+});
+
+============================= header_component_rggm7ks9qwi.tsx ==
+
+import thing from "./project/state";
+export const Header_component_RGgm7Ks9QWI = ()=>{
+    return <Host >
+
+            {import("./project/state")}
+
+            {thing}
+
+        </Host>;
+};
+
+/*
+{
+  "origin": "project/folder/test.tsx",
+  "name": "Header_component_RGgm7Ks9QWI",
+  "entry": "entry_hooks",
+  "displayName": "Header_component",
+  "hash": "RGgm7Ks9QWI",
+  "canonicalFilename": "header_component_rggm7ks9qwi",
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    173,
+    286
+  ]
+}
+*/
+============================= project/folder/test.tsx ==
+
+import { componentQrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+export function foo() {
+    return import("../state");
+}
+export const Header = /*#__PURE__*/ componentQrl(qrl(()=>import("../../entry_hooks")
+, "Header_component_RGgm7Ks9QWI"));
+
+============================= entry_hooks.js (ENTRY POINT)==
+
+export { Header_component_RGgm7Ks9QWI } from "./header_component_rggm7ks9qwi";
+
+== DIAGNOSTICS ==
+
+[]

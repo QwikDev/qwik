@@ -16,32 +16,33 @@ export interface FunctionComponent<P = {}> {
 }
 
 // @public (undocumented)
-export namespace JSX {
+const jsx: <T extends string | FunctionComponent<PROPS>, PROPS>(type: T, props: PROPS, key?: string | number) => JSXNode<T>;
+export { jsx }
+export { jsx as jsxDEV }
+export { jsx as jsxs }
+
+// @public (undocumented)
+namespace JSX_2 {
     // (undocumented)
-    export interface Element extends JSXNode {
+    interface Element extends JSXNode {
     }
     // (undocumented)
-    export interface ElementChildrenAttribute {
+    interface ElementChildrenAttribute {
         // (undocumented)
         children: any;
     }
     // Warning: (ae-forgotten-export) The symbol "QwikIntrinsicAttributes" needs to be exported by the entry point jsx-runtime.d.ts
     //
     // (undocumented)
-    export interface IntrinsicAttributes extends QwikIntrinsicAttributes {
+    interface IntrinsicAttributes extends QwikIntrinsicAttributes {
     }
     // Warning: (ae-forgotten-export) The symbol "QwikIntrinsicElements" needs to be exported by the entry point jsx-runtime.d.ts
     //
     // (undocumented)
-    export interface IntrinsicElements extends QwikIntrinsicElements {
+    interface IntrinsicElements extends QwikIntrinsicElements {
     }
 }
-
-// @public (undocumented)
-const jsx: <T extends string | FunctionComponent<PROPS>, PROPS>(type: T, props: PROPS, key?: string | number) => JSXNode<T>;
-export { jsx }
-export { jsx as jsxDEV }
-export { jsx as jsxs }
+export { JSX_2 as JSX }
 
 // @public (undocumented)
 export interface JSXNode<T = any> {

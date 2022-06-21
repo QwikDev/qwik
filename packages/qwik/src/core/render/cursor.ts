@@ -196,7 +196,7 @@ export const updateChildren = (
 
   let wait = promiseAll(results) as any;
   if (oldStartIdx <= oldEndIdx) {
-    const canRemove = !(parentElm.nodeName === 'HEAD' && ctx.$currentComponent$ === undefined);
+    const canRemove = parentElm.nodeName !== 'HEAD';
     if (canRemove) {
       wait = then(wait, () => {
         removeVnodes(ctx, oldCh, oldStartIdx, oldEndIdx);

@@ -17,7 +17,7 @@
     "baseUrl": ".",
     "noUnusedLocals": true,
     "paths": {
-      "@builder.io/qwik": ["packages/qwik/src/core/index"],
+      "@builder.io/qwik": ["packages/qwik/src/core/index.ts"],
       "@builder.io/qwik/build": ["packages/qwik/src/build/index"],
       "@builder.io/qwik/jsx-runtime": ["packages/qwik/src/jsx-runtime/index"],
       "@builder.io/qwik/optimizer": ["packages/qwik/src/optimizer/src/index"],
@@ -45,6 +45,7 @@
   "include": [
     "packages/qwik",
     "packages/qwik-city",
+    "packages/qwik-react",
     "packages/docs",
     "packages/create-cli",
     "scripts",

@@ -8,7 +8,7 @@ import { isAbsolute, join, resolve, dirname } from 'path';
 import { readdirSync, statSync, unlinkSync, rmdirSync, existsSync } from 'fs';
 import { Plugin, rollup } from 'rollup';
 import type { QwikManifest } from '@builder.io/qwik/optimizer';
-import type { RenderToStringOptions, RenderToStringResult } from '@builder.io/qwik/server';
+import type { RenderOptions, RenderToStringResult } from '@builder.io/qwik/server';
 
 const app = express();
 const port = parseInt(process.argv[process.argv.length - 1], 10) || 3300;
@@ -204,7 +204,7 @@ async function ssrApp(req: Request, appName: string, appDir: string, manifest: Q
   // ssr the document
   const base = `/${appName}/build/`;
   console.log('req.url', req.url);
-  const opts: RenderToStringOptions = {
+  const opts: RenderOptions = {
     manifest,
     url: new URL(`${req.protocol}://${req.hostname}${req.url}`),
     debug: true,

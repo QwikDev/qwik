@@ -106,4 +106,9 @@ export interface RenderToStringOptions extends SerializeDocumentOptions {
 /**
  * @public
  */
-export type RenderToString = (opts: RenderToStringOptions) => Promise<RenderToStringResult>;
+export interface RenderOptions extends RenderToStringOptions {}
+
+/**
+ * @public
+ */
+export type Render = (opts: RenderOptions) => Promise<RenderToStringResult>;

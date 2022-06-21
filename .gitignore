@@ -1,6 +1,7 @@
 .history
 .vscode/settings.json
 dist
+lib
 dist-dev
 node_modules
 tsc-out

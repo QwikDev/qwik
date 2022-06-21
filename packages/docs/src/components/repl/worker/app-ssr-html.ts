@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import type { RenderToStringOptions, RenderToStringResult } from '@builder.io/qwik/server';
+import type { RenderOptions, RenderToStringResult } from '@builder.io/qwik/server';
 import type { ReplInputOptions, ReplResult } from '../types';
 import type { QwikWorkerGlobal } from './repl-service-worker';
 
@@ -114,7 +114,7 @@ const noopRequire = (path: string) => {
 };
 
 interface ServerModule {
-  render: (opts: RenderToStringOptions) => Promise<RenderToStringResult>;
+  render: (opts: RenderOptions) => Promise<RenderToStringResult>;
 }
 
 declare const self: QwikWorkerGlobal;

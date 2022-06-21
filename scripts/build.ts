@@ -24,6 +24,7 @@ import { buildCli } from './cli';
 import { submoduleBuild } from './submodule-build';
 import { buildEslint } from './eslint';
 import { buildQwikCity } from './qwik-city';
+import { buildQwikReact } from './qwik-react';
 
 /**
  * Complete a full build for all of the package's submodules. Passed in
@@ -83,10 +84,6 @@ export async function build(config: BuildConfig) {
       await buildEslint(config);
     }
 
-    if (config.qwikcity) {
-      await buildQwikCity(config);
-    }
-
     if (config.platformBinding) {
       await buildPlatformBinding(config);
     } else if (config.platformBindingWasmCopy) {
@@ -95,6 +92,14 @@ export async function build(config: BuildConfig) {
 
     if (config.wasm) {
       await buildWasmBinding(config);
+    }
+
+    if (config.qwikcity) {
+      await buildQwikCity(config);
+    }
+
+    if (config.qwikreact) {
+      await buildQwikReact(config);
     }
 
     if (config.api) {

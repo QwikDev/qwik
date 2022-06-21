@@ -9,6 +9,8 @@ export type {
   RenderToStringOptions,
   RenderToStringResult,
   SnapshotResult,
+  Render,
+  RenderOptions,
 } from './types';
 export { renderToString } from './render';
 export { createTimer, versions } from './utils';

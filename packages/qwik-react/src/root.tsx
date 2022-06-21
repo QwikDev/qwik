@@ -20,17 +20,17 @@ export const Root = () => {
       </head>
 
       <body>
-        <box/>
-        <box/>
-        <box/>
-        <box/>
-        <box/>
-        <box/>
-        <box/>
-        <box/>
-        <box/>
-        <box/>
-        <box/>
+        <box />
+        <box />
+        <box />
+        <box />
+        <box />
+        <box />
+        <box />
+        <box />
+        <box />
+        <box />
+        <box />
         <App client:visible />
       </body>
     </html>

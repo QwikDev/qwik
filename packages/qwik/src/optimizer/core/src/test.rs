@@ -796,6 +796,33 @@ export const Root = component$(() => {
 }
 
 #[test]
+fn example_fix_dynamic_import() {
+    test_input!(TestInput {
+        filename: "project/folder/test.tsx".to_string(),
+        code: r#"
+import { $, component$ } from '@builder.io/qwik';
+import thing from "../state";
+
+export function foo() {
+    return import("../state")
+}
+
+export const Header = component$(() => {
+    return (
+        <Host>
+            {import("../state")}
+            {thing}
+        </Host>
+    );
+});
+"#
+        .to_string(),
+        entry_strategy: EntryStrategy::Single,
+        ..TestInput::default()
+    });
+}
+
+#[test]
 fn example_custom_inlined_functions() {
     test_input!(TestInput {
         code: r#"
@@ -1002,7 +1029,7 @@ fn example_inlined_entry_strategy() {
     test_input!(TestInput {
         code: r#"
 import { component$, useClientEffect$, useStore, useStyles$ } from '@builder.io/qwik';
-import { thing } from 'dependency';
+import { thing } from './sibling';
 import mongodb from 'mongodb';
 
 export const Child = component$(() => {
@@ -1014,7 +1041,7 @@ export const Child = component$(() => {
 
     // Double count watch
     useClientEffect$(() => {
-        state.count = thing.doStuff();
+        state.count = thing.doStuff() + import("./sibling");
     });
 
     return (

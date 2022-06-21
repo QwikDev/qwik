@@ -12,9 +12,9 @@ use std::collections::{BTreeMap, HashMap, HashSet};
 use std::hash::Hash;
 use std::hash::Hasher;
 
-use swc_atoms::JsWord;
+use swc_atoms::{js_word, JsWord};
 use swc_common::comments::{Comments, SingleThreadedComments};
-use swc_common::{errors::DiagnosticId, errors::HANDLER, Mark, Span, Spanned, DUMMY_SP};
+use swc_common::{errors::DiagnosticId, errors::HANDLER, Span, Spanned, DUMMY_SP};
 use swc_ecmascript::ast;
 use swc_ecmascript::utils::{private_ident, ExprFactory};
 use swc_ecmascript::visit::{fold_expr, noop_fold_type, Fold, FoldWith, VisitWith};
@@ -183,6 +183,10 @@ impl<'a> QwikTransform<'a> {
             jsx_functions,
             options,
         }
+    }
+
+    fn is_inside_module(&self) -> bool {
+        self.hook_stack.is_empty() || self.options.is_inline
     }
 
     fn register_context_name(
@@ -589,7 +593,7 @@ impl<'a> QwikTransform<'a> {
             .unwrap()
             .synthetic;
 
-        if is_synthetic && (self.hook_stack.is_empty() || self.options.is_inline) {
+        if is_synthetic && self.is_inside_module() {
             self.extra_module_items.insert(
                 new_local.clone(),
                 create_synthetic_named_import(&new_local, &source),
@@ -609,7 +613,7 @@ impl<'a> QwikTransform<'a> {
                 type_params: None,
                 body: ast::BlockStmtOrExpr::Expr(Box::new(ast::Expr::Call(ast::CallExpr {
                     callee: ast::Callee::Expr(Box::new(ast::Expr::Ident(ast::Ident::new(
-                        "import".into(),
+                        js_word!("import"),
                         DUMMY_SP,
                     )))),
                     span: DUMMY_SP,
@@ -647,7 +651,7 @@ impl<'a> QwikTransform<'a> {
             }))
         }
 
-        self.create_internal_call(&QRL, args, None)
+        self.create_internal_call(&QRL, args)
     }
 
     fn create_inline_qrl(&mut self, expr: ast::Expr, symbol: &str, idents: &[Id]) -> ast::CallExpr {
@@ -676,20 +680,18 @@ impl<'a> QwikTransform<'a> {
             }))
         }
 
-        self.create_internal_call(&INLINED_QRL, args, None)
+        self.create_internal_call(&INLINED_QRL, args)
     }
 
     pub fn create_internal_call(
         &mut self,
         fn_name: &JsWord,
         exprs: Vec<ast::Expr>,
-        mark: Option<Mark>,
     ) -> ast::CallExpr {
-        let span = mark.map_or(DUMMY_SP, |mark| DUMMY_SP.apply_mark(mark));
         let local = self.ensure_import(fn_name.clone(), BUILDER_IO_QWIK.clone());
         ast::CallExpr {
             callee: ast::Callee::Expr(Box::new(ast::Expr::Ident(new_ident_from_id(&local)))),
-            span,
+            span: DUMMY_SP,
             type_args: None,
             args: exprs
                 .into_iter()
@@ -699,6 +701,41 @@ impl<'a> QwikTransform<'a> {
                 })
                 .collect(),
         }
+    }
+
+    fn fix_dynamic_import(&self, node: ast::CallExpr) -> ast::CallExpr {
+        if let Some(expr_spread) = node.args.get(0) {
+            if let ast::Expr::Lit(ast::Lit::Str(string)) = &*expr_spread.expr {
+                let new_value = fix_path(
+                    &self.options.path_data.abs_dir,
+                    &self.options.path_data.base_dir,
+                    string.value.as_ref(),
+                )
+                .unwrap();
+
+                return ast::CallExpr {
+                    args: vec![ast::ExprOrSpread {
+                        spread: None,
+                        expr: Box::new(ast::Expr::Lit(ast::Lit::Str(ast::Str {
+                            value: new_value,
+                            raw: None,
+                            span: string.span,
+                        }))),
+                    }],
+                    ..node
+                };
+            }
+        }
+        HANDLER.with(|handler| {
+            handler
+                .struct_span_err_with_code(
+                    node.span,
+                    "Dynamic import using $ scope, can not fixed because it's dynamic",
+                    DiagnosticId::Error("dynamic-import-inside-qhook".into()),
+                )
+                .emit();
+        });
+        node
     }
 }
 
@@ -975,67 +1012,75 @@ impl<'a> Fold for QwikTransform<'a> {
         let mut replace_callee = None;
         let mut ctx_name: JsWord = QHOOK.clone();
 
-        if let ast::Callee::Expr(expr) = &node.callee {
-            if let ast::Expr::Ident(ident) = &**expr {
-                if id_eq!(ident, &self.qhook_fn) {
-                    if let Some(comments) = self.options.comments {
-                        comments.add_pure_comment(ident.span.lo);
-                    }
-                    return self.handle_qhook(node);
-                } else if self.jsx_functions.contains(&id!(ident)) {
-                    return self.handle_jsx(node);
-                } else if id_eq!(ident, &self.inlined_qrl_fn) {
-                    return self.handle_inlined_qhook(node);
-                } else if let Some(specifier) = self.marker_functions.get(&id!(ident)) {
-                    self.stack_ctxt.push(ident.sym.to_string());
-                    ctx_name = specifier.clone();
-                    name_token = true;
-
-                    if id_eq!(ident, &self.qcomponent_fn) {
-                        self.in_component = true;
-                        component_token = true;
-                        if let Some(comments) = self.options.comments {
-                            comments.add_pure_comment(node.span.lo);
-                        }
-                    }
-                    let global_collect = &mut self.options.global_collect;
-                    if let Some(import) = global_collect.imports.get(&id!(ident)).cloned() {
-                        let new_specifier =
-                            convert_signal_word(&import.specifier).expect("Specifier ends with $");
-                        let new_local = self.ensure_import(new_specifier, import.source);
-                        replace_callee = Some(new_ident_from_id(&new_local).as_callee());
-                    } else {
-                        let new_specifier =
-                            convert_signal_word(&ident.sym).expect("Specifier ends with $");
-                        let new_local = global_collect
-                            .exports
-                            .keys()
-                            .find(|id| id.0 == new_specifier);
-
-                        new_local.map_or_else(
-                            || {
-                                HANDLER.with(|handler| {
-                                    handler
-                                        .struct_span_err_with_code(
-                                            ident.span,
-                                            "Version without $ is not exported.",
-                                            DiagnosticId::Error(
-                                                "missing-qrl-implementation".into(),
-                                            ),
-                                        )
-                                        .emit();
-                                });
-                            },
-                            |new_local| {
-                                replace_callee = Some(new_ident_from_id(new_local).as_callee());
-                            },
-                        );
-                    }
-                } else {
-                    self.stack_ctxt.push(ident.sym.to_string());
-                    name_token = true;
+        match &node.callee {
+            ast::Callee::Import(_) => {
+                if !self.is_inside_module() {
+                    return self.fix_dynamic_import(node);
                 }
             }
+            ast::Callee::Expr(expr) => {
+                if let ast::Expr::Ident(ident) = &**expr {
+                    if id_eq!(ident, &self.qhook_fn) {
+                        if let Some(comments) = self.options.comments {
+                            comments.add_pure_comment(ident.span.lo);
+                        }
+                        return self.handle_qhook(node);
+                    } else if self.jsx_functions.contains(&id!(ident)) {
+                        return self.handle_jsx(node);
+                    } else if id_eq!(ident, &self.inlined_qrl_fn) {
+                        return self.handle_inlined_qhook(node);
+                    } else if let Some(specifier) = self.marker_functions.get(&id!(ident)) {
+                        self.stack_ctxt.push(ident.sym.to_string());
+                        ctx_name = specifier.clone();
+                        name_token = true;
+
+                        if id_eq!(ident, &self.qcomponent_fn) {
+                            self.in_component = true;
+                            component_token = true;
+                            if let Some(comments) = self.options.comments {
+                                comments.add_pure_comment(node.span.lo);
+                            }
+                        }
+                        let global_collect = &mut self.options.global_collect;
+                        if let Some(import) = global_collect.imports.get(&id!(ident)).cloned() {
+                            let new_specifier = convert_signal_word(&import.specifier)
+                                .expect("Specifier ends with $");
+                            let new_local = self.ensure_import(new_specifier, import.source);
+                            replace_callee = Some(new_ident_from_id(&new_local).as_callee());
+                        } else {
+                            let new_specifier =
+                                convert_signal_word(&ident.sym).expect("Specifier ends with $");
+                            let new_local = global_collect
+                                .exports
+                                .keys()
+                                .find(|id| id.0 == new_specifier);
+
+                            new_local.map_or_else(
+                                || {
+                                    HANDLER.with(|handler| {
+                                        handler
+                                            .struct_span_err_with_code(
+                                                ident.span,
+                                                "Version without $ is not exported.",
+                                                DiagnosticId::Error(
+                                                    "missing-qrl-implementation".into(),
+                                                ),
+                                            )
+                                            .emit();
+                                    });
+                                },
+                                |new_local| {
+                                    replace_callee = Some(new_ident_from_id(new_local).as_callee());
+                                },
+                            );
+                        }
+                    } else {
+                        self.stack_ctxt.push(ident.sym.to_string());
+                        name_token = true;
+                    }
+                }
+            }
+            _ => {}
         }
 
         let convert_qrl = replace_callee.is_some();

@@ -1,5 +1,5 @@
 import type { FunctionComponent } from '@builder.io/qwik';
-import { renderToString, RenderToStringOptions } from '@builder.io/qwik/server';
+import { renderToString, RenderOptions } from '@builder.io/qwik/server';
 import { Root } from './root';
 import { LexicalScope } from './components/lexical-scope/lexicalScope';
 import { SlotParent } from './components/slot/slot';
@@ -20,7 +20,7 @@ import { Styles } from './components/styles/styles';
  *
  * @returns a promise when all of the rendering is completed.
  */
-export function render(opts: RenderToStringOptions) {
+export function render(opts: RenderOptions) {
   const url = typeof opts.url === 'string' ? new URL(opts.url) : opts.url!;
 
   const tests: Record<string, FunctionComponent> = {

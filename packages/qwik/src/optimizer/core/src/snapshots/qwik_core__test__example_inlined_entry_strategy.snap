@@ -6,7 +6,7 @@ expression: output
 
 
 import { component$, useClientEffect$, useStore, useStyles$ } from '@builder.io/qwik';
-import { thing } from 'dependency';
+import { thing } from './sibling';
 import mongodb from 'mongodb';
 
 export const Child = component$(() => {
@@ -18,7 +18,7 @@ export const Child = component$(() => {
 
     // Double count watch
     useClientEffect$(() => {
-        state.count = thing.doStuff();
+        state.count = thing.doStuff() + import("./sibling");
     });
 
     return (
@@ -36,7 +36,7 @@ import { useClientEffectQrl } from "@builder.io/qwik";
 import { useLexicalScope } from "@builder.io/qwik";
 import { useStylesQrl } from "@builder.io/qwik";
 import { useStore } from '@builder.io/qwik';
-import { thing } from 'dependency';
+import { thing } from './sibling';
 import mongodb from 'mongodb';
 export const Child = /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
     useStylesQrl(inlinedQrl('somestring', "Child_component_useStyles_qBZTuFM0160"));
@@ -46,7 +46,7 @@ export const Child = /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
     // Double count watch
     useClientEffectQrl(inlinedQrl(()=>{
         const [state] = useLexicalScope();
-        state.count = thing.doStuff();
+        state.count = thing.doStuff() + import("./sibling");
     }, "Child_component_useClientEffect_kYRT1iERt9g", [
         state
     ]));

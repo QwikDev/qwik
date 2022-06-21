@@ -118,6 +118,13 @@ export interface QwikSymbol {
     parent: string | null;
 }
 
+// @public (undocumented)
+export type Render = (opts: RenderOptions) => Promise<RenderToStringResult>;
+
+// @public (undocumented)
+export interface RenderOptions extends RenderToStringOptions {
+}
+
 // @public
 export function renderToString(rootNode: any, opts?: RenderToStringOptions): Promise<RenderToStringResult>;
 

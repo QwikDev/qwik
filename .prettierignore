@@ -9,6 +9,7 @@
 .mf
 dist
 dist-dev
+lib
 etc
 external
 node_modules

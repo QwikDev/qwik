@@ -1,0 +1,51 @@
+{
+  "name": "@builder.io/qwik-react",
+  "version": "0.0.1",
+  "description": "QwikReact allows to apply inject React component into existing Qwik application",
+  "scripts": {
+    "build": "npm run build.lib && npm run build.types",
+    "build.client": "vite build",
+    "build.lib": "vite build --mode lib",
+    "build.ssr": "vite build --ssr src/entry.ssr.tsx",
+    "build.types": "tsc --emitDeclarationOnly",
+    "dev": "vite",
+    "dev.debug": "node --inspect-brk node_modules/vite/bin/vite.js --mode ssr",
+    "dev.ssr": "node --inspect node_modules/vite/bin/vite.js --mode ssr",
+    "fmt": "prettier --write .",
+    "fmt.check": "prettier --check .",
+    "lint": "eslint \"src/**/*.ts*\"",
+    "release": "np",
+    "start": "npm run dev",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@builder.io/qwik": "workspace:*",
+    "@emotion/react": "^11.9.0",
+    "@emotion/server": "^11.4.0",
+    "@mui/material": "5.1.1",
+    "@types/react": "^18.0.1",
+    "@types/react-dom": "^18.0.0",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "typescript": "4.7.2",
+    "vite": "2.9.9"
+  },
+  "engines": {
+    "node": ">=14"
+  },
+  "exports": {
+    ".": {
+      "import": "./lib/index.es.qwik.js",
+      "require": "./lib/index.cjs.qwik.js"
+    }
+  },
+  "files": [
+    "lib"
+  ],
+  "homepage": "https://qwik.builder.io/",
+  "license": "",
+  "main": "./lib/index.cjs.qwik.js",
+  "module": "./lib/index.es.qwik.js",
+  "qwik": "./lib/index.es.qwik.js",
+  "types": "./lib/types/index.d.ts"
+}

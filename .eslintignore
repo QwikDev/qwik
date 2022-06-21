@@ -2,6 +2,7 @@
 .vscode
 dist
 dist-dev
+lib
 node_modules
 tsc-out
 external

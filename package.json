@@ -94,6 +94,7 @@
     "packages/create-qwik",
     "packages/qwik",
     "packages/qwik-city",
+    "packages/qwik-react",
     "packages/eslint-plugin-qwik"
   ],
   "contributors": [

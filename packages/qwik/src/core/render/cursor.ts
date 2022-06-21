@@ -752,17 +752,13 @@ export const copyRenderContext = (ctx: RenderContext): RenderContext => {
   return newCtx;
 };
 
-export const setAttribute = (
-  ctx: RenderContext,
-  el: Element,
-  prop: string,
-  value: string | null
-) => {
+export const setAttribute = (ctx: RenderContext, el: Element, prop: string, value: any) => {
   const fn = () => {
-    if (value == null) {
+    if (value == null || value === false) {
       el.removeAttribute(prop);
     } else {
-      directSetAttribute(el, prop, String(value));
+      const str = value === true ? '' : String(value);
+      directSetAttribute(el, prop, str);
     }
   };
   ctx.$operations$.push({

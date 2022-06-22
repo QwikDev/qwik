@@ -1,6 +1,6 @@
 {
   "name": "@builder.io/qwik-city",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "description": "Static Site Generator for Qwik",
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
@@ -16,10 +16,10 @@
     "source-map": "^0.7.3"
   },
   "peerDependencies": {
-    "@builder.io/qwik": ">=0.0.22"
+    "@builder.io/qwik": ">=0.0.30"
   },
   "devDependencies": {
-    "@builder.io/qwik": "0.0.29",
+    "@builder.io/qwik": "0.0.30",
     "@microsoft/api-extractor": "7.24.2",
     "@types/github-slugger": "^1.3.0",
     "@types/marked": "^4.0.3",

@@ -1,6 +1,6 @@
 {
   "name": "@builder.io/qwik-react",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "QwikReact allows to apply inject React component into existing Qwik application",
   "scripts": {
     "build": "npm run build.lib",
@@ -18,7 +18,7 @@
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "@builder.io/qwik": "workspace:*",
+    "@builder.io/qwik": "0.0.30",
     "@emotion/react": "^11.9.0",
     "@emotion/server": "^11.4.0",
     "@emotion/styled": "^11.9.3",
@@ -31,7 +31,7 @@
     "vite": "2.9.9"
   },
   "peerDependencies": {
-    "@builder.io/qwik": "^0.0.29",
+    "@builder.io/qwik": ">=0.0.30",
     "@emotion/react": "^11.9.0",
     "@emotion/server": "^11.4.0",
     "@emotion/styled": "^11.9.3",

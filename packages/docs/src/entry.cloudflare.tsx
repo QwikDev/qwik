@@ -9,6 +9,10 @@ export const onRequestGet = async ({ request, next, waitUntil }: any) => {
       return Response.redirect(new URL('/docs/overview', url));
     }
 
+    if (url.pathname.startsWith('/guide')) {
+      return Response.redirect(new URL('/docs/overview', url));
+    }
+
     if (url.pathname === '/examples') {
       return Response.redirect(new URL('/examples/introduction/hello-world', url));
     }

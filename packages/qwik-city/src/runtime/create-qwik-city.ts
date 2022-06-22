@@ -61,12 +61,12 @@ export const createQwikCity = (opts: QwikCityOptions, app: (root: QwikCityRoot) 
 
       const contentModules = useStore<{ modules: ContentModule[] }>({ modules: [] });
 
-      const [value, setValue] = useSequentialScope();
-      if (value) {
+      const { get, set } = useSequentialScope();
+      if (get) {
         return JsxSkipRerender;
       }
 
-      setValue(true);
+      set(true);
 
       useContextProvider(PageContext, page);
       useContextProvider(RouteContext, route);

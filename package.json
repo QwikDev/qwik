@@ -1,10 +1,10 @@
 {
   "private": true,
   "name": "qwik-monorepo",
-  "version": "0.0.27",
+  "version": "0.0.30",
   "scripts": {
     "build": "yarn node scripts --tsc --build --api --platform-binding-wasm-copy",
-    "build.full": "yarn node scripts --tsc --build --api --eslint --qwikcity --platform-binding --wasm",
+    "build.full": "yarn node scripts --tsc --build --api --eslint --qwikcity --qwikreact --platform-binding --wasm",
     "build.platform": "yarn node scripts --platform-binding",
     "build.platform.copy": "yarn node scripts --platform-binding-wasm-copy",
     "build.only_javascript": "yarn node scripts --tsc --build --api",
@@ -64,6 +64,7 @@
     "@types/semver": "7.3.9",
     "@typescript-eslint/eslint-plugin": "5.27.0",
     "@typescript-eslint/parser": "5.27.0",
+    "brotli": "^1.3.3",
     "concurrently": "7.2.1",
     "cross-spawn": "7.0.3",
     "esbuild": "0.14.42",
@@ -94,6 +95,7 @@
     "packages/create-qwik",
     "packages/qwik",
     "packages/qwik-city",
+    "packages/qwik-react",
     "packages/eslint-plugin-qwik"
   ],
   "contributors": [

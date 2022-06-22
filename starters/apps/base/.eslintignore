@@ -11,6 +11,7 @@ bazel-qwik
 bazel-testlogs
 dist
 dist-dev
+lib
 etc
 external
 node_modules
@@ -26,3 +27,4 @@ build
 .rollup.cache
 dist
 tsconfig.tsbuildinfo
+vite.config.ts

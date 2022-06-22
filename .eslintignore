@@ -2,6 +2,7 @@
 .vscode
 dist
 dist-dev
+lib
 node_modules
 tsc-out
 external
@@ -16,3 +17,4 @@ tsdoc-metadata.json
 scripts/**/*
 *.tsbuildinfo
 packages/docs/src/pages/examples/**/*
+vite.config.ts

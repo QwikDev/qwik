@@ -15,6 +15,11 @@ import type {
   TransformOutput,
 } from '../types';
 
+export interface QwikPackages {
+  id: string;
+  path: string;
+}
+
 export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
   const id = `${Math.round(Math.random() * 899) + 100}`;
   const results = new Map<string, TransformOutput>();
@@ -307,7 +312,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       };
     }
 
-    if (id === QWIK_BUILD_ID) {
+    if (opts.buildMode === 'production' && id === QWIK_BUILD_ID) {
       log(`resolveId()`, 'Resolved', QWIK_BUILD_ID);
       return {
         id: normalizePath(path.resolve(opts.rootDir, QWIK_BUILD_ID)),
@@ -364,7 +369,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
   };
 
   const load = async (_ctx: any, id: string, loadOpts: { ssr?: boolean } = {}) => {
-    if (id.endsWith(QWIK_BUILD_ID)) {
+    if (opts.buildMode === 'production' && id.endsWith(QWIK_BUILD_ID)) {
       log(`load()`, QWIK_BUILD_ID, opts.buildMode);
       return {
         moduleSideEffects: false,

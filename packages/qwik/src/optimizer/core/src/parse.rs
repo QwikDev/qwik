@@ -61,7 +61,6 @@ pub struct TransformCodeOptions<'a> {
     pub source_maps: bool,
     pub minify: MinifyMode,
     pub transpile: bool,
-    pub print_ast: bool,
     pub explicity_extensions: bool,
     pub code: &'a str,
     pub entry_policy: &'a dyn EntryPolicy,
@@ -185,9 +184,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
     let source_map = Lrc::new(SourceMap::default());
     let path_data = parse_path(config.relative_path, config.src_dir)?;
     let module = parse(config.code, &path_data, Lrc::clone(&source_map));
-    if config.print_ast {
-        dbg!(&module);
-    }
+    // dbg!(&module);
     let extension = if config.transpile {
         JsWord::from("js")
     } else {
@@ -606,5 +603,5 @@ pub fn might_need_handle_watch(ctx_kind: &HookKind, ctx_name: &str) -> bool {
     if matches!(ctx_kind, HookKind::Event) {
         return false;
     }
-    matches!(ctx_name, "useClientEffect$" | "$")
+    matches!(ctx_name, "useWatch$" | "useClientEffect$" | "$")
 }

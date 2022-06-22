@@ -165,7 +165,7 @@ export async function submoduleQwikLoader(config: BuildConfig) {
   await generateLoaderSubmodule(config);
 
   const optimizeFileSize = await fileSize(join(config.distPkgDir, 'qwikloader.optimize.js'));
-  console.log('🐸 qwikloader:', optimizeFileSize);
+  console.log(`🐸 qwikloader:`, optimizeFileSize);
 }
 
 /**

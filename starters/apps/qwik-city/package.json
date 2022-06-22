@@ -4,11 +4,10 @@
     "priority": 1,
     "featureOptions": [
       "prettier",
-      "eslint",
       "tailwindcss"
     ]
   },
   "devDependencies": {
-    "@builder.io/qwik-city": "0.0.12"
+    "@builder.io/qwik-city": "0.0.13"
   }
 }

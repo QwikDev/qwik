@@ -9,6 +9,10 @@ export const onRequest: PagesFunction = async ({ request, next, waitUntil }) => 
       return Response.redirect(new URL('/docs/overview', url));
     }
 
+    if (url.pathname.startsWith('/guide')) {
+      return Response.redirect(new URL('/docs/overview', url));
+    }
+
     if (url.pathname === '/examples') {
       return Response.redirect(new URL('/examples/introduction/hello-world', url));
     }

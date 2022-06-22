@@ -2,26 +2,20 @@ import { isArray, isObject, ValueOrPromise } from '../util/types';
 import type { Props } from '../props/props.public';
 import { assertDefined } from '../assert/assert';
 import type { QwikDocument } from '../document';
-import { QContainerSelector, QHostAttr } from '../util/markers';
+import { QContainerSelector, QHostAttr, RenderEvent } from '../util/markers';
 import { getDocument } from '../util/dom';
 import type { QRL } from '../import/qrl.public';
 import type { Subscriber } from './use-subscriber';
 import type { RenderContext } from '../render/cursor';
-import { qError, QError_missingRenderCtx, QError_useMethodOutsideContext } from '../error/error';
+import { qError, QError_useInvokeContext, QError_useMethodOutsideContext } from '../error/error';
 
 declare const document: QwikDocument;
-
-export const CONTAINER = Symbol('container');
 
 export interface StyleAppend {
   type: 'style';
   styleId: string;
   content: string;
 }
-
-export const isStyleTask = (obj: any): obj is StyleAppend => {
-  return isObject(obj) && obj.type === 'style';
-};
 
 /**
  * @public
@@ -40,7 +34,15 @@ export interface InvokeContext {
   $renderCtx$?: RenderContext;
 }
 
+export type RenderInvokeContext = Required<InvokeContext>;
+
 let _context: InvokeContext | undefined;
+
+export const CONTAINER = Symbol('container');
+
+export const isStyleTask = (obj: any): obj is StyleAppend => {
+  return isObject(obj) && obj.type === 'style';
+};
 
 export const tryGetInvokeContext = (): InvokeContext | undefined => {
   if (!_context) {
@@ -73,6 +75,20 @@ export const getInvokeContext = (): InvokeContext => {
   return ctx;
 };
 
+export const useInvokeContext = (): RenderInvokeContext => {
+  const ctx = getInvokeContext();
+  if (ctx.$event$ !== RenderEvent) {
+    throw qError(QError_useInvokeContext);
+  }
+  assertDefined(ctx.$hostElement$);
+  assertDefined(ctx.$waitOn$);
+  assertDefined(ctx.$renderCtx$);
+  assertDefined(ctx.$doc$);
+  assertDefined(ctx.$subscriber$);
+
+  return ctx as any;
+};
+
 export const useInvoke = <ARGS extends any[] = any[], RET = any>(
   context: InvokeContext,
   fn: (...args: ARGS) => RET,
@@ -93,6 +109,7 @@ export const useInvoke = <ARGS extends any[] = any[], RET = any>(
   }
   return returnValue;
 };
+
 export const newInvokeContext = (
   doc?: Document,
   hostElement?: Element,
@@ -115,8 +132,8 @@ export const newInvokeContext = (
  * @alpha
  */
 export const useWaitOn = (promise: ValueOrPromise<any>): void => {
-  const ctx = getInvokeContext();
-  (ctx.$waitOn$ || (ctx.$waitOn$ = [])).push(promise);
+  const ctx = useInvokeContext();
+  ctx.$waitOn$.push(promise);
 };
 
 export const getHostElement = (el: Element): Element | null => {
@@ -147,13 +164,4 @@ export const getContainer = (el: Element): Element | null => {
     (el as any)[CONTAINER] = container;
   }
   return container;
-};
-
-export const useRenderContext = (): RenderContext => {
-  const ctx = getInvokeContext();
-  const renderCtx = ctx.$renderCtx$;
-  if (!renderCtx) {
-    throw qError(QError_missingRenderCtx);
-  }
-  return renderCtx;
 };

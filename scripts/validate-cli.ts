@@ -48,7 +48,6 @@ async function validateCreateQwikCli() {
 
   const tmpDir = join(__dirname, '..', 'dist-dev');
   await validateStarter(api, tmpDir, 'starter', 'express');
-  await validateStarter(api, tmpDir, 'starter-builder', 'cloudflare-pages');
   await validateStarter(api, tmpDir, 'starter-partytown', 'express');
   await validateStarter(api, tmpDir, 'todo', 'cloudflare-pages');
 

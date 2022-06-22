@@ -46,6 +46,7 @@ export interface BuildConfig {
   api?: boolean;
   build?: boolean;
   qwikcity?: boolean;
+  qwikreact?: boolean;
   cli?: boolean;
   eslint?: boolean;
   commit?: boolean;
@@ -216,7 +217,16 @@ export function rollupOnWarn(warning: any, warn: any) {
  */
 export async function fileSize(filePath: string) {
   const text = await readFile(filePath);
-  return formatFileSize(text.length);
+  const compress = require('brotli/compress');
+
+  const data: Buffer = compress(text, {
+    mode: 1,
+    quality: 11,
+  });
+  return {
+    original: formatFileSize(text.length),
+    brotli: formatFileSize(data.byteLength),
+  };
 }
 
 function formatFileSize(bytes: number) {

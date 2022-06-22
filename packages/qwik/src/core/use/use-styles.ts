@@ -4,8 +4,6 @@ import type { QRL } from '../import/qrl.public';
 import { appendStyle, hasStyle } from '../render/cursor';
 import { directSetAttribute } from '../render/fast-calls';
 import { ComponentScopedStyles } from '../util/markers';
-import { useRenderContext, useWaitOn } from './use-core';
-import { useHostElement } from './use-host-element.public';
 import { useSequentialScope } from './use-store.public';
 import { implicit$FirstArg } from '../util/implicit_dollar';
 
@@ -88,21 +86,21 @@ export const useScopedStylesQrl = (styles: QRL<string>): void => {
 export const useScopedStyles$ = /*#__PURE__*/ implicit$FirstArg(useScopedStylesQrl);
 
 const _useStyles = (styles: QRL<string>, scoped: boolean) => {
-  const [style, setStyle, index] = useSequentialScope();
-  if (style === true) {
+  const { get, set, ctx, i } = useSequentialScope<boolean>();
+  if (get === true) {
     return;
   }
-  setStyle(true);
-  const renderCtx = useRenderContext();
+  set(true);
+  const renderCtx = ctx.$renderCtx$;
   const styleQrl = toQrlOrError(styles);
-  const styleId = styleKey(styleQrl, index);
-  const hostElement = useHostElement();
+  const styleId = styleKey(styleQrl, i);
+  const hostElement = ctx.$hostElement$;
   if (scoped) {
     directSetAttribute(hostElement, ComponentScopedStyles, styleId);
   }
 
   if (!hasStyle(renderCtx, styleId)) {
-    useWaitOn(
+    ctx.$waitOn$.push(
       styleQrl.resolve(hostElement).then((styleText) => {
         if (!hasStyle(renderCtx, styleId)) {
           appendStyle(renderCtx, hostElement, {

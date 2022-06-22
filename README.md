@@ -8,6 +8,9 @@
 
 Qwik is designed for the fastest possible page load time, by delivering pure HTML with near 0 JavaScript for your pages to become interactive, regardless of how complex your site or app is. It achieves this via [resumability](https://github.com/BuilderIO/qwik/blob/main/packages/docs/src/pages/docs/concepts/resumable.mdx) of HTML and [ultra fine-grained lazy-loading](https://github.com/BuilderIO/qwik/blob/main/packages/docs/src/pages/docs/concepts/progressive.mdx) of code.
 
+## Documentation
+You can find [the official documentation here](https://qwik.builder.io/)
+
 ## Getting Started
 
 Try out our starter:

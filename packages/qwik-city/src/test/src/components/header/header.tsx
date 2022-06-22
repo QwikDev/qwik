@@ -1,10 +1,10 @@
-import { component$, Host, useStyles$ } from '@builder.io/qwik';
+import { component$, Host, useScopedStyles$ } from '@builder.io/qwik';
 import { useRoute } from '@builder.io/qwik-city';
 import styles from './header.css';
 
 export default component$(
   () => {
-    useStyles$(styles);
+    useScopedStyles$(styles);
 
     const pathname = useRoute().pathname;
 
@@ -19,6 +19,9 @@ export default component$(
           </a>
           <a href="/docs" class={{ active: pathname === '/docs' }}>
             Docs
+          </a>
+          <a href="/api" class={{ active: pathname === '/api' }}>
+            API
           </a>
           <a href="/about-us" class={{ active: pathname === '/about-us' }}>
             About Us

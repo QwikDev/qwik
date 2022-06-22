@@ -1,5 +1,5 @@
 import { component$, Host, Slot } from '@builder.io/qwik';
-import type { PageHeadFunction } from 'packages/qwik-city/src/runtime/types';
+import type { HeadComponent } from 'packages/qwik-city/src/runtime/types';
 
 export default component$(() => {
   return (
@@ -27,8 +27,10 @@ export default component$(() => {
   );
 });
 
-export const head: PageHeadFunction = ({ route }) => {
-  return {
-    title: `Docs: ${route.pathname}`,
-  };
+export const head: HeadComponent = ({ route }) => {
+  return (
+    <>
+      <title>Docs: {route.pathname}</title>
+    </>
+  );
 };

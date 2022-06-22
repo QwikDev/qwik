@@ -1,6 +1,5 @@
 import { component$ } from '@builder.io/qwik';
-import { usePage } from '@builder.io/qwik-city';
-import type { PageHeadFunction } from 'packages/qwik-city/src/runtime/types';
+import { usePage, HeadComponent } from '@builder.io/qwik-city';
 import NotFound from '../../layouts/not-found/not-found';
 
 export const Page = component$(() => {
@@ -20,6 +19,10 @@ export const Page = component$(() => {
   return <NotFound />;
 });
 
-export const head: PageHeadFunction = () => {
-  return { title: 'fu' };
+export const head: HeadComponent = () => {
+  return (
+    <>
+      <title></title>
+    </>
+  );
 };

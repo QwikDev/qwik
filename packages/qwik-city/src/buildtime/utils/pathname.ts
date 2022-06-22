@@ -28,7 +28,7 @@ export function getMenuPathname(opts: NormalizedPluginOptions, filePath: string)
 }
 
 export function normalizePathname(opts: NormalizedPluginOptions, pathname: string) {
-  const url = new URL(pathname, 'https://qwikcity.builder.io/');
+  const url = new URL(pathname, 'https://qwik.builder.io/');
   pathname = url.pathname;
 
   if (opts.trailingSlash && !pathname.endsWith('/')) {

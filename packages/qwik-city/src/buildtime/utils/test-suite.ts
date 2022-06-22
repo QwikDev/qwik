@@ -1,7 +1,6 @@
 import { join } from 'path';
 import { suite as uvuSuite } from 'uvu';
-import type { BuildContext, NormalizedPluginOptions } from '../types';
-import type { PageAttributes } from '../../runtime';
+import type { BuildContext, MarkdownAttributes, NormalizedPluginOptions } from '../types';
 import { createBuildContext } from './context';
 import { tmpdir } from 'os';
 
@@ -30,5 +29,5 @@ export interface TestContext {
   ctx: BuildContext;
   opts: NormalizedPluginOptions;
   filePath: string;
-  attrs: PageAttributes;
+  attrs: MarkdownAttributes;
 }

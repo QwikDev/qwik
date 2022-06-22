@@ -1,4 +1,4 @@
-import type { QwikCityAdaptorOptions, QwikCityRequestOptions } from '../types';
+import type { QwikCityAdaptorOptions, QwikCityRequestOptions, RenderFunction } from '../types';
 import { requestHandler } from '@builder.io/qwik-city/adaptor';
 import { patchGlobalFetch } from '../fetch';
 import express from 'express';
@@ -6,15 +6,15 @@ import { join } from 'path';
 
 // @builder.io/qwik-city/express
 
-export function qwikCity(root: any, adaptorOpts: QwikCityExpressOptions) {
+export function qwikCity(renderFn: RenderFunction, opts: QwikCityExpressOptions) {
   patchGlobalFetch();
 
   const router = express.Router();
 
-  const buildDir = adaptorOpts.buildDir || join(adaptorOpts.staticDir, 'build');
+  const buildDir = opts.buildDir || join(opts.staticDir, 'build');
   router.use(`/build`, express.static(buildDir, { immutable: true, maxAge: '1y', index: false }));
 
-  router.use(express.static(adaptorOpts.staticDir, { index: false }));
+  router.use(express.static(opts.staticDir, { index: false }));
 
   router.use(async (req, res, next) => {
     try {
@@ -25,14 +25,14 @@ export function qwikCity(root: any, adaptorOpts: QwikCityExpressOptions) {
       });
 
       const requestOpts: QwikCityRequestOptions = {
-        ...adaptorOpts,
+        ...opts,
         request,
         url,
       };
 
-      const response = await requestHandler(root, requestOpts);
+      const response = await requestHandler(renderFn, requestOpts);
       if (response) {
-        res.statusCode = response.status;
+        res.status(response.status);
         response.headers.forEach((value, key) => res.setHeader(key, value));
         res.send(response.body);
       } else {

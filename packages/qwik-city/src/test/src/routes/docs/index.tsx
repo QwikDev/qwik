@@ -1,4 +1,5 @@
 import { component$, Host } from '@builder.io/qwik';
+import type { HeadComponent } from '@builder.io/qwik-city';
 
 export default component$(() => {
   return (
@@ -7,3 +8,11 @@ export default component$(() => {
     </Host>
   );
 });
+
+export const head: HeadComponent = () => {
+  return (
+    <>
+      <title>Welcome!</title>
+    </>
+  );
+};

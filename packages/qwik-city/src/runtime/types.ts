@@ -1,3 +1,4 @@
+import type { FunctionComponent } from '@builder.io/qwik';
 import type { ROUTE_TYPE_ENDPOINT } from './constants';
 
 /**
@@ -10,24 +11,33 @@ export interface QwikCityOptions {
 /**
  * @public
  */
+export interface QwikCityRoot {
+  Head: FunctionComponent<{}>;
+  Content: FunctionComponent<{}>;
+  resolveHead: () => PageHead;
+}
+
+/**
+ * @public
+ */
 export interface Page {
   readonly breadcrumbs: PageBreadcrumb[];
   readonly headings: PageHeading[];
   readonly menu: { path: string };
-  readonly head: PageHead;
+  readonly head: ContentModuleHead;
 }
 
 export interface PageModule {
   readonly breadcrumbs: PageBreadcrumb[];
   readonly default: any;
-  readonly head: PageHead | PageHeadFunction;
+  readonly head: ContentModuleHead;
   readonly headings: PageHeading[];
   readonly menu: { path: string };
 }
 
 export interface LayoutModule {
   readonly default: any;
-  readonly head: PageHead | PageHeadFunction;
+  readonly head: ContentModuleHead;
 }
 
 /**
@@ -38,14 +48,11 @@ export interface Route {
   readonly params: RouteParams;
 }
 
-export interface ContentModules {
-  modules: (PageModule | LayoutModule)[];
-}
-
 /**
  * @public
  */
 export interface EndpointModule {
+  readonly all?: EndpointHandler;
   readonly del?: EndpointHandler;
   readonly get?: EndpointHandler;
   readonly head?: EndpointHandler;
@@ -60,25 +67,26 @@ export interface EndpointModule {
  * @public
  */
 export interface PageHead {
-  title?: string;
-  meta?: HeadMeta;
-  links?: HeadLink[];
-  styles?: HeadStyle[];
+  title: string;
+  meta: { [property: string]: string };
+  links: HeadLink[];
+  styles: HeadStyle[];
+  scripts: HeadScript[];
 }
 
-export interface PageHeadFunctionOptions {
+/**
+ * @public
+ */
+export interface HeadComponentProps {
+  resolved: PageHead;
+  page: Page;
   route: Route;
 }
 
 /**
  * @public
  */
-export type PageHeadFunction = (opts: PageHeadFunctionOptions) => Promise<PageHead> | PageHead;
-
-/**
- * @public
- */
-export type HeadMeta = Record<string, string | boolean | number>;
+export type HeadComponent = FunctionComponent<HeadComponentProps>;
 
 /**
  * @public
@@ -89,10 +97,10 @@ export interface HeadLink {
   disabled?: boolean;
   href?: string;
   hreflang?: string;
+  id?: string;
   imagesizes?: string;
   imagesrcset?: string;
   integrity?: string;
-  key?: string;
   media?: string;
   prefetch?: string;
   referrerpolicy?: string;
@@ -100,6 +108,7 @@ export interface HeadLink {
   sizes?: string;
   title?: string;
   type?: string;
+  key?: string;
 }
 
 /**
@@ -107,15 +116,25 @@ export interface HeadLink {
  */
 export interface HeadStyle {
   style: string;
-  key?: string;
   attributes?: { [attrName: string]: string };
+  key?: string;
 }
 
 /**
  * @public
  */
-export interface PageAttributes {
-  [pageAttribute: string]: string | undefined;
+export interface HeadScript {
+  script?: string;
+  src?: string;
+  type?: string;
+  id?: string;
+  async?: boolean;
+  crossorigin?: string;
+  defer?: boolean;
+  fetchpriority?: string;
+  integrity?: string;
+  referrerpolicy?: string;
+  key?: string;
 }
 
 /**
@@ -125,11 +144,6 @@ export interface PageBreadcrumb {
   text: string;
   href?: string;
 }
-
-/**
- * @public
- */
-export interface Layout {}
 
 /**
  * @public
@@ -153,12 +167,8 @@ export interface PageHeading {
  * @public
  */
 export type RouteData =
-  | [pattern: RegExp, pageLoader: (() => Promise<PageModule | LayoutModule>)[]]
-  | [
-      pattern: RegExp,
-      pageLoader: (() => Promise<PageModule | LayoutModule>)[],
-      paramNames: string[]
-    ]
+  | [pattern: RegExp, pageLoader: (() => Promise<ContentModule>)[]]
+  | [pattern: RegExp, pageLoader: (() => Promise<ContentModule>)[], paramNames: string[]]
   | [
       pattern: RegExp,
       endpointLoader: (() => Promise<EndpointModule>)[],
@@ -178,13 +188,17 @@ export interface MatchedRoute {
 }
 
 export interface LoadedRoute extends MatchedRoute {
-  modules: (PageModule | LayoutModule)[];
+  modules: ContentModule[];
 }
 
 export interface LoadedContent extends LoadedRoute {
   pageModule: PageModule;
   page: Page;
 }
+
+export type ContentModule = PageModule | LayoutModule;
+
+export type ContentModuleHead = HeadComponent | PageHead;
 
 /**
  * @public

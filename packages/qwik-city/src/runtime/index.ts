@@ -1,19 +1,20 @@
 export type {
+  HeadComponent,
+  HeadComponentProps,
   HeadLink,
+  HeadScript,
   HeadStyle,
-  PageAttributes,
+  Page,
   PageBreadcrumb,
-  PageHeading,
   PageHead,
-  PageHeadFunction,
+  PageHeading,
   Menu,
   EndpointHandler,
+  QwikCityOptions,
 } from './types';
 
-export { Content } from './content';
-
+export { createQwikCity } from './create-qwik-city';
 export { useLocation } from './use-location';
 export { useMenu } from './menu';
 export { usePage } from './use-page';
-export { useQwikCity } from './use-qwik-city';
 export { useRoute } from './use-route';

@@ -1,16 +1,15 @@
-import { basename, dirname } from 'path';
+import { dirname } from 'path';
 import type { BuildContext, BuildLayout, BuildRoute } from '../types';
 import { createFileId, normalizePath } from '../utils/fs';
 
 export function parseLayoutFile(ctx: BuildContext, routesDir: string, filePath: string) {
-  const layoutDir = normalizePath(dirname(filePath));
-  const layoutId = createFileId(ctx, routesDir, filePath);
+  const layoutDir = dirname(filePath);
+  const layoutId = createFileId(ctx, routesDir, filePath, 'Layout');
 
   const layout: BuildLayout = {
     id: layoutId,
     filePath: normalizePath(filePath),
-    name: basename(layoutDir),
-    dir: layoutDir,
+    dir: normalizePath(layoutDir),
   };
 
   return layout;

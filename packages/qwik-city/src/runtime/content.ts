@@ -1,6 +1,6 @@
-import type { LoadedContent, LoadedRoute, Page, PageModule } from './types';
-import { component$, jsx, useContext } from '@builder.io/qwik';
-import { ContentContext, JsxSkipRerender } from './constants';
+import { jsx } from '@builder.io/qwik';
+import { JsxSkipRerender } from './constants';
+import type { LoadedContent, LoadedRoute, Page, PageModule, ContentModule } from './types';
 
 export const updateContent = async (
   loadedRoute: LoadedRoute | null
@@ -11,7 +11,13 @@ export const updateContent = async (
 
     const page: Page = {
       breadcrumbs: pageModule.breadcrumbs,
-      head: {},
+      head: {
+        title: '',
+        meta: {},
+        links: [],
+        scripts: [],
+        styles: [],
+      },
       headings: pageModule.headings,
       menu: pageModule.menu,
     };
@@ -21,24 +27,22 @@ export const updateContent = async (
   return null;
 };
 
-/**
- * @public
- */
-export const Content = component$(() => {
-  const modules = useContext(ContentContext).modules;
-  const modulesLen = modules.length;
+export const createContentCmp = (modules: ContentModule[]) => {
+  return () => {
+    const modulesLen = modules.length;
 
-  if (modulesLen > 0) {
-    let cmp: any = jsx(modules[modulesLen - 1].default, null);
+    if (modulesLen > 0) {
+      let cmp: any = jsx(modules[modulesLen - 1].default, null);
 
-    for (let i = modulesLen - 2; i >= 0; i--) {
-      cmp = jsx(modules[i].default, {
-        children: [cmp],
-      });
+      for (let i = modulesLen - 2; i >= 0; i--) {
+        cmp = jsx(modules[i].default, {
+          children: cmp,
+        });
+      }
+
+      return cmp;
     }
 
-    return cmp;
-  }
-
-  return JsxSkipRerender;
-});
+    return JsxSkipRerender;
+  };
+};

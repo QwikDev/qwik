@@ -2,29 +2,42 @@ import { basename, dirname, extname, normalize } from 'path';
 import type { BuildContext } from '../types';
 import { toTitleCase } from './format';
 
-export function isMarkdownFileName(fileName: string) {
-  const ext = extname(fileName).toLowerCase();
-  return ext === '.mdx' || ext === '.md';
-}
+const MARKDOWN_EXT: { [ext: string]: boolean } = {
+  '.mdx': true,
+  '.md': true,
+};
+
+const PAGE_EXT: { [ext: string]: boolean } = {
+  '.tsx': true,
+  '.jsx': true,
+};
+
+const ENDPOINT_EXT: { [ext: string]: boolean } = {
+  '.ts': true,
+  '.js': true,
+};
 
 export function isPageFileName(fileName: string) {
-  fileName = fileName.toLowerCase();
-  return fileName === 'index.tsx' || fileName === 'index.ts';
+  const ext = extname(fileName).toLowerCase();
+  return PAGE_EXT[ext];
 }
 
-export function isLayoutFileName(fileName: string) {
-  fileName = fileName.toLowerCase();
-  return fileName === 'layout.tsx' || fileName === 'layout.ts';
+export function isMarkdownFileName(fileName: string) {
+  const ext = extname(fileName).toLowerCase();
+  return MARKDOWN_EXT[ext];
 }
 
 export function isEndpointFileName(fileName: string) {
-  fileName = fileName.toLowerCase();
-  return fileName === 'endpoint.ts' || fileName === 'endpoint.tsx';
+  const ext = extname(fileName.toLowerCase());
+  return ENDPOINT_EXT[ext] && !fileName.endsWith('.d.ts');
+}
+
+export function isLayoutFileName(fileName: string) {
+  return fileName === '_layout.tsx';
 }
 
 export function isMenuFileName(fileName: string) {
-  fileName = fileName.toLowerCase();
-  return fileName === 'menu.md';
+  return fileName === '_menu.md';
 }
 
 export function getPagesBuildPath(pathname: string) {
@@ -69,7 +82,12 @@ export function normalizePath(path: string) {
   return path.replace(/\\/g, '/');
 }
 
-export function createFileId(ctx: BuildContext, routesDir: string, path: string) {
+export function createFileId(
+  ctx: BuildContext,
+  routesDir: string,
+  path: string,
+  type: 'Endpoint' | 'Layout' | 'Menu' | 'Page'
+) {
   const segments: string[] = [];
 
   for (let i = 0; i < 25; i++) {
@@ -86,9 +104,12 @@ export function createFileId(ctx: BuildContext, routesDir: string, path: string)
       break;
     }
   }
-  const type = segments.shift();
 
-  const id = type + segments.reverse().join('');
+  if (type === segments[0]) {
+    segments[0] = '';
+  }
+
+  const id = 'QC' + type + segments.reverse().join('');
 
   let inc = 1;
   let fileId = id;

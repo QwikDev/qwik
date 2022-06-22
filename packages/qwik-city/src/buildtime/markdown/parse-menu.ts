@@ -1,16 +1,23 @@
 import type { BuildContext, ParsedMenu, ParsedMenuItem } from '../types';
 import { marked } from 'marked';
 import { getMenuPathname, getMenuLinkHref } from '../utils/pathname';
-import { normalizePath } from '../utils/fs';
+import { createFileId, normalizePath } from '../utils/fs';
 
-export function parseMenuFile(ctx: BuildContext, filePath: string, content: string) {
+export function parseMenuFile(
+  ctx: BuildContext,
+  routesDir: string,
+  filePath: string,
+  content: string
+) {
   filePath = normalizePath(filePath);
+  const id = createFileId(ctx, routesDir, filePath, 'Menu');
 
   const menu: ParsedMenu = {
     pathname: getMenuPathname(ctx.opts, filePath),
     filePath,
     text: '',
     items: [],
+    id,
   };
 
   const tokens = marked.lexer(content, {});

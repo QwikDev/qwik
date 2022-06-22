@@ -8,7 +8,7 @@ import {
 } from '../buildtime/runtime-generation/generate-runtime';
 import type { BuildContext, NormalizedPluginOptions, PluginOptions } from '../buildtime/types';
 import { createBuildContext } from '../buildtime/utils/context';
-import { getPagesBuildPath, isMarkdownFileName } from '../buildtime/utils/fs';
+import { isMarkdownFileName } from '../buildtime/utils/fs';
 import { build } from '../buildtime/build';
 
 /**
@@ -78,19 +78,19 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
           qwikCityRuntimeCode = generateDynamicImportedRuntime(ctx);
         }
 
-        if (command === 'build' && !inlineModules) {
-          // create ESM modules for the browser
-          for (const route of ctx.routes) {
-            if (route.type === 'page') {
-              this.emitFile({
-                type: 'chunk',
-                id: route.filePath,
-                fileName: getPagesBuildPath(route.pathname),
-                preserveSignature: 'allow-extension',
-              });
-            }
-          }
-        }
+        // if (command === 'build' && !inlineModules) {
+        //   // create ESM modules for the browser
+        //   for (const route of ctx.routes) {
+        //     if (route.type === 'page') {
+        //       this.emitFile({
+        //         type: 'chunk',
+        //         id: route.filePath,
+        //         fileName: getPagesBuildPath(route.pathname),
+        //         preserveSignature: 'allow-extension',
+        //       });
+        //     }
+        //   }
+        // }
 
         return qwikCityRuntimeCode;
       }

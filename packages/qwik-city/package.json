@@ -21,7 +21,7 @@
     "source-map": "^0.7.3"
   },
   "peerDependencies": {
-    "@builder.io/qwik": "0.0.27"
+    "@builder.io/qwik": "workspace:*"
   },
   "devDependencies": {
     "@builder.io/qwik": "workspace:*",

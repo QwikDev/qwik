@@ -7,11 +7,11 @@ import { parseRouteId } from '../routing/parse-route';
 
 export function parseMarkdownFile(
   ctx: BuildContext,
-  baseDir: string,
+  routesDir: string,
   filePath: string,
   content: string
 ) {
-  const id = createFileId(ctx, baseDir, filePath);
+  const id = createFileId(ctx, routesDir, filePath, 'Page');
   const parsed = frontmatter<any>(content);
   const attributes: { [prop: string]: string } = parsed.attributes || {};
   const title = getPageTitle(filePath, attributes);
@@ -32,6 +32,10 @@ export function parseMarkdownFile(
     attributes,
     head: {
       title,
+      meta: {},
+      links: [],
+      scripts: [],
+      styles: [],
     },
     ...route,
   };

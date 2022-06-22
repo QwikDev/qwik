@@ -33,19 +33,6 @@ function normalizeOptions(rootDir: string, userOpts: PluginOptions | undefined) 
   }
   opts.routesDir = normalizePath(opts.routesDir);
 
-  if (!Array.isArray(opts.dirs)) {
-    opts.dirs = [];
-  }
-  opts.dirs = opts.dirs.reduce((dirs: string[], d) => {
-    if (typeof d === 'string') {
-      const dir = normalizePath(resolve(rootDir, d));
-      if (dir !== opts.routesDir && !dirs.includes(dir)) {
-        dirs.push(dir);
-      }
-    }
-    return dirs;
-  }, []);
-
   if (typeof opts.trailingSlash !== 'boolean') {
     opts.trailingSlash = false;
   }

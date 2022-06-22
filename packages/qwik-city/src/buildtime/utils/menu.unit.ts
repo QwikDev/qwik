@@ -23,7 +23,7 @@ test('parse menu.md menu', ({ ctx }) => {
   ## [Section C](http://section-c.com) 
 
   `;
-  const i = parseMenuFile(ctx, filePath, readme);
+  const i = parseMenuFile(ctx, ctx.opts.routesDir, filePath, readme);
   assert.is(i.pathname, '/guide');
   assert.is(i.text, 'Heading');
 

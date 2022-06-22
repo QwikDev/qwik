@@ -10,20 +10,22 @@ export function endpointHandler(
 
   let reqHandler: EndpointHandler | undefined = undefined;
 
-  if (method === 'GET') {
+  if (method === 'GET' && endpointModule.get) {
     reqHandler = endpointModule.get;
-  } else if (method === 'POST') {
+  } else if (method === 'POST' && endpointModule.post) {
     reqHandler = endpointModule.post;
-  } else if (method === 'PUT') {
+  } else if (method === 'PUT' && endpointModule.put) {
     reqHandler = endpointModule.put;
-  } else if (method === 'PATCH') {
+  } else if (method === 'PATCH' && endpointModule.patch) {
     reqHandler = endpointModule.patch;
-  } else if (method === 'OPTIONS') {
+  } else if (method === 'OPTIONS' && endpointModule.options) {
     reqHandler = endpointModule.options;
-  } else if (method === 'HEAD') {
+  } else if (method === 'HEAD' && endpointModule.head) {
     reqHandler = endpointModule.head;
-  } else if (method === 'DELETE') {
+  } else if (method === 'DELETE' && endpointModule.del) {
     reqHandler = endpointModule.del;
+  } else if (endpointModule.all) {
+    reqHandler = endpointModule.all;
   }
 
   if (typeof reqHandler === 'function') {

@@ -7,14 +7,14 @@ export function createInlinedImportRoutes(ctx: BuildContext, c: string[], esmImp
     const importPath = getImportPath(layout.filePath);
     esmImports.push(`import * as ${layout.id}_ from ${JSON.stringify(importPath)};`);
 
-    c.push(`const App${layout.id} = () => ${layout.id}_;`);
+    c.push(`const ${layout.id} = () => ${layout.id}_;`);
   }
 
   for (const route of ctx.routes) {
     const importPath = getImportPath(route.filePath);
     esmImports.push(`import * as ${route.id}_ from ${JSON.stringify(importPath)};`);
 
-    c.push(`const App${route.id} = () => ${route.id}_;`);
+    c.push(`const ${route.id} = () => ${route.id}_;`);
   }
 
   c.push(`export const routes = [`);
@@ -23,10 +23,10 @@ export function createInlinedImportRoutes(ctx: BuildContext, c: string[], esmImp
     const loaders = [];
     if (route.type === 'page') {
       for (const layout of route.layouts) {
-        loaders.push(`App${layout.id}`);
+        loaders.push(layout.id);
       }
     }
-    loaders.push(`App${route.id}`);
+    loaders.push(route.id);
     const moduleLoaders = `[ ${loaders.join(', ')} ]`;
 
     c.push(`  ${createRoute(route, moduleLoaders)},`);

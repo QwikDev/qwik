@@ -50,7 +50,6 @@ export interface EndpointRoute extends BaseRoute {
 
 export interface BuildLayout {
   filePath: string;
-  name: string;
   dir: string;
   id: string;
 }
@@ -62,6 +61,7 @@ export interface ParamMatcher {
 export interface ParsedMenu extends ParsedMenuItem {
   pathname: string;
   filePath: string;
+  id: string;
 }
 
 export interface ParsedMenuItem {
@@ -83,15 +83,13 @@ export interface PluginOptions {
    */
   trailingSlash?: boolean;
   /**
-   * Source directories to evaluate for pages, in addition to the `routesDir` config.
-   * This can be used to evaluate addition directories that could possibly contain markdown files,
-   * such as `src/blog` or `src/docs`. Defaults to `undefined`.
-   */
-  dirs?: string[];
-  /**
    * MDX Options https://mdxjs.com/
    */
   mdx?: any;
 }
 
 export interface NormalizedPluginOptions extends Required<PluginOptions> {}
+
+export interface MarkdownAttributes {
+  [name: string]: string;
+}

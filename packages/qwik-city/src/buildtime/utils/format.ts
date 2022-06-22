@@ -1,8 +1,7 @@
-import type { PageAttributes } from '../../runtime/types';
-import type { BuildContext } from '../types';
+import type { BuildContext, MarkdownAttributes } from '../types';
 import { getBasename } from './fs';
 
-export function getPageTitle(filePath: string, attrs: PageAttributes) {
+export function getPageTitle(filePath: string, attrs: MarkdownAttributes) {
   let title = '';
   if (typeof attrs.title === 'string') {
     title = attrs.title!.trim();

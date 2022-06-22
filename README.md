@@ -4,6 +4,10 @@
   <img alt="Qwik Logo" width="400" src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F667ab6c2283d4c4d878fb9083aacc10f" />
 </p>
 
+<a href="https://youtu.be/0dC11DMR3fU?t=154">
+  <img width="1229" alt="WWC22 - Qwik + Partytown: How to remove 99% of JavaScript from main thread" src="https://user-images.githubusercontent.com/111951/175145272-0df06434-7488-4e0e-933b-61358d4bd42b.png">
+</a>
+
 # The HTML-first framework
 
 Qwik is designed for the fastest possible page load time, by delivering pure HTML with near 0 JavaScript for your pages to become interactive, regardless of how complex your site or app is. It achieves this via [resumability](https://github.com/BuilderIO/qwik/blob/main/packages/docs/src/pages/docs/concepts/resumable.mdx) of HTML and [ultra fine-grained lazy-loading](https://github.com/BuilderIO/qwik/blob/main/packages/docs/src/pages/docs/concepts/progressive.mdx) of code.

@@ -83,7 +83,7 @@ export const createQwikCity = (opts: QwikCityOptions, app: (root: QwikCityRoot) 
 
               Object.assign(route, updatedRoute);
               Object.assign(page, updatedContent.page);
-              contentModules.modules = updatedContent.modules;
+              contentModules.modules = noSerialize(updatedContent.modules) as any;
 
               const headCmpProps = resolveHeadProps(route, page, updatedContent.modules);
 

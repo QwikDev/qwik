@@ -527,7 +527,7 @@ const createElm = (
     if (styleTag) {
       classlistAdd(rctx, elm, styleTag);
     }
-    if (tag === 'q:slot') {
+    if (tag === 'q:slot' || tag === 'html') {
       setSlotRef(rctx, currentComponent.$hostElement$, elm);
       currentComponent.$slots$.push(vnode);
     }
@@ -578,6 +578,10 @@ interface SlotMaps {
 }
 
 const getSlots = (componentCtx: ComponentCtx | undefined, hostElm: Element): SlotMaps => {
+  if (hostElm.localName === 'html') {
+    return { slots: { '': hostElm }, templates: {} };
+  }
+
   const slots: Record<string, Element> = {};
   const templates: Record<string, HTMLTemplateElement> = {};
   const slotRef = directGetAttribute(hostElm, 'q:sref');

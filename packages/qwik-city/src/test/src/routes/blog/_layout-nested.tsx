@@ -2,7 +2,7 @@ import { component$, Host, Slot } from '@builder.io/qwik';
 
 export default component$(() => {
   return (
-    <Host class="blog">
+    <Host>
       <section class="blog-content">
         <Slot />
       </section>

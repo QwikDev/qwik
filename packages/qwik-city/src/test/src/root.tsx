@@ -1,25 +1,14 @@
-// import { Analytics } from './components/head/analytics';
-// import { Common } from './components/head/common';
 import { routes } from '@qwik-city-app';
-import { createQwikCity, HeadComponent } from '@builder.io/qwik-city';
+import { Content, Html } from '@builder.io/qwik-city';
+import { Head } from './components/head/head';
 
-export const head: HeadComponent = (props) => {
+export default function Root() {
   return (
-    <>
-      <title>fu</title>
-      {/* <Common {...props} />
-      <Analytics {...props} /> */}
-    </>
-  );
-};
-
-export default createQwikCity({ routes }, ({ Head, Content }) => {
-  return (
-    <html lang="en">
+    <Html lang="en" routes={routes}>
       <Head />
-      <body class="light">
+      <body>
         <Content />
       </body>
-    </html>
+    </Html>
   );
-});
+}

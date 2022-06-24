@@ -17,9 +17,9 @@ export const SideBar = component$(
       <Host class="sidebar">
         <nav class="breadcrumbs">
           <ol>
-            {page.breadcrumbs.map((b) => (
+            {/* {page.breadcrumbs?.map((b) => (
               <li>{b.text}</li>
-            ))}
+            ))} */}
           </ol>
         </nav>
         <nav class="menu">

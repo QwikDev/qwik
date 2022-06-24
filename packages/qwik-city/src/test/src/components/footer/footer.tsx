@@ -1,34 +1,24 @@
-import { component$, Host } from '@builder.io/qwik';
-import { useRoute } from '@builder.io/qwik-city';
+import { component$, Host, useStyles$ } from '@builder.io/qwik';
+import styles from './footer.css';
 
 export default component$(
   () => {
-    const pathname = useRoute().pathname;
+    useStyles$(styles);
 
     return (
       <Host>
-        <hr />
-
         <ul>
           <li>
-            <a href="/blog" class={{ active: pathname === '/blog' }}>
-              Blog
-            </a>
+            <a href="/blog">Blog</a>
           </li>
           <li>
-            <a href="/docs" class={{ active: pathname === '/docs' }}>
-              Docs
-            </a>
+            <a href="/docs">Docs</a>
           </li>
           <li>
-            <a href="/about-us" class={{ active: pathname === '/about-us' }}>
-              About Us
-            </a>
+            <a href="/about-us">About Us</a>
           </li>
           <li>
-            <a href="/" class={{ active: pathname === '/' }}>
-              Home
-            </a>
+            <a href="/">Home</a>
           </li>
         </ul>
       </Host>

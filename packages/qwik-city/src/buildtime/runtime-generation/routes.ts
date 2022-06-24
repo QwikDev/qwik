@@ -3,6 +3,7 @@ import type { BuildContext, BuildRoute } from '../types';
 import { getImportPath } from './utils';
 
 export function createInlinedImportRoutes(ctx: BuildContext, c: string[], esmImports: string[]) {
+  c.push(`\n/** Qwik City Layouts (${ctx.layouts.length}) */`);
   for (const layout of ctx.layouts) {
     const importPath = getImportPath(layout.filePath);
     esmImports.push(`import * as ${layout.id}_ from ${JSON.stringify(importPath)};`);
@@ -10,6 +11,7 @@ export function createInlinedImportRoutes(ctx: BuildContext, c: string[], esmImp
     c.push(`const ${layout.id} = () => ${layout.id}_;`);
   }
 
+  c.push(`\n/** Qwik City Pages/Endpoints (${ctx.routes.length}) */`);
   for (const route of ctx.routes) {
     const importPath = getImportPath(route.filePath);
     esmImports.push(`import * as ${route.id}_ from ${JSON.stringify(importPath)};`);
@@ -17,6 +19,7 @@ export function createInlinedImportRoutes(ctx: BuildContext, c: string[], esmImp
     c.push(`const ${route.id} = () => ${route.id}_;`);
   }
 
+  c.push(`\n/** Qwik City Routes (${ctx.routes.length}) */`);
   c.push(`export const routes = [`);
 
   for (const route of ctx.routes) {

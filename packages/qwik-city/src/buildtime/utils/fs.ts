@@ -33,7 +33,15 @@ export function isEndpointFileName(fileName: string) {
 }
 
 export function isLayoutFileName(fileName: string) {
-  return fileName === '_layout.tsx';
+  return isLayoutTopFileName(fileName) || isLayoutNestedFileName(fileName);
+}
+
+export function isLayoutTopFileName(fileName: string) {
+  return fileName === '_layout-top.tsx';
+}
+
+export function isLayoutNestedFileName(fileName: string) {
+  return fileName === '_layout-nested.tsx';
 }
 
 export function isMenuFileName(fileName: string) {

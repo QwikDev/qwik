@@ -14,6 +14,17 @@ export default component$(() => {
 
   return (
     <Host>
+      <h1>Qwik City Test API!</h1>
+
+      <ul>
+        <li>
+          <a href="/api/builder.io/oss.json">/api/[org]/[user].json</a>
+        </li>
+        <li>
+          <a href="/api/data.json">/api/data.json</a>
+        </li>
+      </ul>
+
       <p>Timestamp: {store.timestamp}</p>
     </Host>
   );

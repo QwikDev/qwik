@@ -1,4 +1,4 @@
-import type { PageHead } from '../runtime/types';
+import type { DocumentHead } from '../runtime/types';
 
 export interface BuildContext {
   rootDir: string;
@@ -38,7 +38,7 @@ interface BaseRoute {
 
 export interface PageRoute extends BaseRoute {
   type: 'page';
-  head: PageHead | undefined;
+  head: DocumentHead | undefined;
   attributes: { [prop: string]: string } | undefined;
   layouts: BuildLayout[];
   default: any;
@@ -52,6 +52,7 @@ export interface BuildLayout {
   filePath: string;
   dir: string;
   id: string;
+  type: 'top' | 'nested';
 }
 
 export interface ParamMatcher {

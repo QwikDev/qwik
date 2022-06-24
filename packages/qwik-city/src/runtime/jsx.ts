@@ -1,5 +1,5 @@
 import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
-import type { PageHead } from './types';
+import type { DocumentHead } from './types';
 
 export const findJsxNode = (tagName: string, jsxNode: JSXNode): Record<string, any> | null => {
   if (jsxNode != null) {
@@ -25,7 +25,7 @@ export const findJsxNode = (tagName: string, jsxNode: JSXNode): Record<string, a
   return null;
 };
 
-export const parseHeadJsx = (pageHead: PageHead, jsxNode: JSXNode | null) => {
+export const parseHeadJsx = (pageHead: DocumentHead, jsxNode: JSXNode | null) => {
   if (jsxNode != null) {
     if (Array.isArray(jsxNode)) {
       for (const childJsxNode of jsxNode) {

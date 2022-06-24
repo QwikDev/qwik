@@ -6,34 +6,25 @@
 
 import { Component } from '@builder.io/qwik';
 import type { FunctionComponent } from '@builder.io/qwik';
-
-// Warning: (ae-forgotten-export) The symbol "QwikCityRoot" needs to be exported by the entry point index.d.ts
-//
-// @public (undocumented)
-export const createQwikCity: (opts: QwikCityOptions, app: (root: QwikCityRoot) => any) => Component<    {}>;
-
-// Warning: (ae-forgotten-export) The symbol "RequestEvent" needs to be exported by the entry point index.d.ts
-//
-// @public (undocumented)
-export type EndpointHandler = (ev: RequestEvent) => Response | Promise<Response>;
+import { HTMLAttributes } from '@builder.io/qwik';
 
 // @public (undocumented)
-export type HeadComponent = FunctionComponent<HeadComponentProps>;
+export const Content: Component<    {}>;
 
 // @public (undocumented)
-export interface HeadComponentProps {
+export interface DocumentHead {
     // (undocumented)
-    page: Page;
+    links: DocumentLink[];
     // (undocumented)
-    resolved: PageHead;
-    // Warning: (ae-forgotten-export) The symbol "Route" needs to be exported by the entry point index.d.ts
-    //
+    meta: DocumentMeta[];
     // (undocumented)
-    route: Route;
+    styles: DocumentStyle[];
+    // (undocumented)
+    title: string;
 }
 
 // @public (undocumented)
-export interface HeadLink {
+export interface DocumentLink {
     // (undocumented)
     as?: string;
     // (undocumented)
@@ -71,33 +62,21 @@ export interface HeadLink {
 }
 
 // @public (undocumented)
-export interface HeadScript {
+export interface DocumentMeta {
     // (undocumented)
-    async?: boolean;
+    content?: string;
     // (undocumented)
-    crossorigin?: string;
-    // (undocumented)
-    defer?: boolean;
-    // (undocumented)
-    fetchpriority?: string;
-    // (undocumented)
-    id?: string;
-    // (undocumented)
-    integrity?: string;
+    httpEquiv?: string;
     // (undocumented)
     key?: string;
     // (undocumented)
-    referrerpolicy?: string;
+    name?: string;
     // (undocumented)
-    script?: string;
-    // (undocumented)
-    src?: string;
-    // (undocumented)
-    type?: string;
+    property?: string;
 }
 
 // @public (undocumented)
-export interface HeadStyle {
+export interface DocumentStyle {
     // (undocumented)
     attributes?: {
         [attrName: string]: string;
@@ -107,6 +86,29 @@ export interface HeadStyle {
     // (undocumented)
     style: string;
 }
+
+// Warning: (ae-forgotten-export) The symbol "RequestEvent" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export type EndpointHandler = (ev: RequestEvent) => Response | Promise<Response>;
+
+// @public (undocumented)
+export type HeadComponent = FunctionComponent<HeadComponentProps>;
+
+// @public (undocumented)
+export interface HeadComponentProps {
+    // (undocumented)
+    page: Page;
+    // (undocumented)
+    resolved: DocumentHead;
+    // (undocumented)
+    route: Route;
+}
+
+// Warning: (ae-forgotten-export) The symbol "HtmlProps" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export const Html: Component<HtmlProps>;
 
 // @public (undocumented)
 export interface Menu {
@@ -120,18 +122,6 @@ export interface Menu {
 
 // @public (undocumented)
 export interface Page {
-    // (undocumented)
-    readonly breadcrumbs: PageBreadcrumb[];
-    // Warning: (ae-forgotten-export) The symbol "ContentModuleHead" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    readonly head: ContentModuleHead;
-    // (undocumented)
-    readonly headings: PageHeading[];
-    // (undocumented)
-    readonly menu: {
-        path: string;
-    };
 }
 
 // @public (undocumented)
@@ -140,22 +130,6 @@ export interface PageBreadcrumb {
     href?: string;
     // (undocumented)
     text: string;
-}
-
-// @public (undocumented)
-export interface PageHead {
-    // (undocumented)
-    links: HeadLink[];
-    // (undocumented)
-    meta: {
-        [property: string]: string;
-    };
-    // (undocumented)
-    scripts: HeadScript[];
-    // (undocumented)
-    styles: HeadStyle[];
-    // (undocumented)
-    title: string;
 }
 
 // @public (undocumented)
@@ -169,12 +143,29 @@ export interface PageHeading {
 }
 
 // @public (undocumented)
-export interface QwikCityOptions {
-    // Warning: (ae-forgotten-export) The symbol "RouteData" needs to be exported by the entry point index.d.ts
+export interface Route {
+    // Warning: (ae-forgotten-export) The symbol "RouteParams" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
-    routes: RouteData[];
+    readonly params: RouteParams;
+    // (undocumented)
+    pathname: string;
 }
+
+// Warning: (ae-forgotten-export) The symbol "ContentModule" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "EndpointModule" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "ROUTE_TYPE_ENDPOINT" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export type RouteData = [pattern: RegExp, pageLoader: (() => Promise<ContentModule>)[]] | [pattern: RegExp, pageLoader: (() => Promise<ContentModule>)[], paramNames: string[]] | [
+pattern: RegExp,
+endpointLoader: (() => Promise<EndpointModule>)[],
+paramNames: string[],
+routeType: typeof ROUTE_TYPE_ENDPOINT
+];
+
+// @public (undocumented)
+export const useDocumentHead: () => DocumentHead;
 
 // @public (undocumented)
 export const useLocation: () => {
@@ -190,7 +181,7 @@ export const useLocation: () => {
 export const useMenu: () => Menu | null;
 
 // @public (undocumented)
-export const usePage: () => Page | undefined;
+export const usePage: () => Page;
 
 // @public (undocumented)
 export const useRoute: () => Route;

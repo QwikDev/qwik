@@ -1,17 +1,18 @@
-import { component$, Host, useScopedStyles$ } from '@builder.io/qwik';
+import { component$, Host, useStyles$ } from '@builder.io/qwik';
 import { useRoute } from '@builder.io/qwik-city';
 import styles from './header.css';
 
 export default component$(
-  () => {
-    useScopedStyles$(styles);
+  (props: { fullWidth?: boolean }) => {
+    useStyles$(styles);
+    // const themeCtx = useContext(ThemeContext);
 
     const pathname = useRoute().pathname;
 
     return (
-      <Host>
+      <Host class={{ 'full-width': !!props.fullWidth }}>
         <section>
-          <a href="/">QwikCity 🏙</a>
+          <a href="/">Qwik City 🏙</a>
         </section>
         <nav>
           <a href="/blog" class={{ active: pathname === '/blog' }}>
@@ -27,6 +28,16 @@ export default component$(
             About Us
           </a>
         </nav>
+        {/* <button
+          class="theme-toggle"
+          onClick$={() => {
+            if (themeCtx.theme === 'light') {
+              themeCtx.theme = 'dark';
+            } else {
+              themeCtx.theme = 'light';
+            }
+          }}
+        /> */}
       </Host>
     );
   },

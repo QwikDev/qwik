@@ -68,6 +68,15 @@ export const render = async (
     });
   });
   await Promise.all(promises);
+
+  if (typeof document === 'undefined' /* SSR ONLY */) {
+    // TODO: Remove after SSR no longer relies on a DOM implementation
+    return {
+      _styles: ctx.$operations$
+        .filter((o) => o.$operation$ === 'append-style')
+        .map((o) => o.$args$[0]),
+    } as any;
+  }
 };
 
 export const injectQwikSlotCSS = (docOrElm: Document | Element) => {

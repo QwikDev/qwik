@@ -1,8 +1,13 @@
 import { dirname } from 'path';
 import type { BuildContext, BuildLayout, BuildRoute } from '../types';
-import { createFileId, normalizePath } from '../utils/fs';
+import { createFileId, isLayoutTopFileName, normalizePath } from '../utils/fs';
 
-export function parseLayoutFile(ctx: BuildContext, routesDir: string, filePath: string) {
+export function parseLayoutFile(
+  ctx: BuildContext,
+  routesDir: string,
+  filePath: string,
+  fileName: string
+) {
   const layoutDir = dirname(filePath);
   const layoutId = createFileId(ctx, routesDir, filePath, 'Layout');
 
@@ -10,6 +15,7 @@ export function parseLayoutFile(ctx: BuildContext, routesDir: string, filePath: 
     id: layoutId,
     filePath: normalizePath(filePath),
     dir: normalizePath(layoutDir),
+    type: isLayoutTopFileName(fileName) ? 'top' : 'nested',
   };
 
   return layout;
@@ -24,6 +30,9 @@ export function updatePageLayouts(routesDir: string, routes: BuildRoute[], layou
         const layout = layouts.find((l) => l.dir === routeDir);
         if (layout) {
           route.layouts.push({ ...layout });
+          if (layout.type === 'top') {
+            break;
+          }
         }
 
         if (routeDir === routesDir) {

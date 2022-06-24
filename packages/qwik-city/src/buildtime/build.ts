@@ -40,7 +40,7 @@ async function loadRoutes(ctx: BuildContext, routesDir: string, dir: string, dir
           const itemPath = join(dir, itemName);
 
           if (isLayoutFileName(itemName)) {
-            const layout = parseLayoutFile(ctx, routesDir, itemPath);
+            const layout = parseLayoutFile(ctx, routesDir, itemPath, itemName);
             ctx.layouts.push(layout);
           } else if (isMenuFileName(itemName)) {
             const menuContent = await fs.promises.readFile(itemPath, 'utf-8');

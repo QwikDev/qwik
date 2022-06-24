@@ -32,9 +32,8 @@ export function parseMarkdownFile(
     attributes,
     head: {
       title,
-      meta: {},
       links: [],
-      scripts: [],
+      meta: [],
       styles: [],
     },
     ...route,

@@ -44,7 +44,27 @@ export async function renderToString(rootNode: any, opts: RenderToStringOptions 
   const mapper = computeSymbolMapper(opts.manifest);
   await setServerPlatform(doc, opts, mapper);
 
-  await render(root, rootNode);
+  const renderResult: any = await render(root, rootNode);
+  if (renderResult) {
+    // TODO: Remove after SSR no longer relies on a DOM implementation
+    const cmpStyles: {
+      type: 'style';
+      styleId: string;
+      content: string;
+    }[] = renderResult._styles;
+    if (Array.isArray(cmpStyles)) {
+      for (const cmpStyle of cmpStyles) {
+        let style = doc.head.querySelector(`style[q\\:style="${cmpStyle.styleId}"]`);
+        if (!style) {
+          style = doc.createElement('style');
+          style.setAttribute('q:style', cmpStyle.styleId);
+          style.textContent = cmpStyle.content;
+          doc.head.appendChild(style);
+        }
+      }
+    }
+  }
+
   const renderDocTime = renderDocTimer();
 
   const buildBase = getBuildBase(opts);

@@ -4,40 +4,33 @@ import type { ROUTE_TYPE_ENDPOINT } from './constants';
 /**
  * @public
  */
-export interface QwikCityOptions {
-  routes: RouteData[];
-}
-
-/**
- * @public
- */
 export interface QwikCityRoot {
   Head: FunctionComponent<{}>;
   Content: FunctionComponent<{}>;
-  resolveHead: () => PageHead;
+  resolveHead: () => DocumentHead;
 }
 
 /**
  * @public
  */
 export interface Page {
-  readonly breadcrumbs: PageBreadcrumb[];
-  readonly headings: PageHeading[];
-  readonly menu: { path: string };
-  readonly head: ContentModuleHead;
+  // readonly breadcrumbs?: PageBreadcrumb[];
+  // readonly headings?: PageHeading[];
+  // readonly menu?: { path: string };
+  // readonly head: ContentModuleHead;
 }
 
 export interface PageModule {
-  readonly breadcrumbs: PageBreadcrumb[];
   readonly default: any;
-  readonly head: ContentModuleHead;
-  readonly headings: PageHeading[];
-  readonly menu: { path: string };
+  readonly breadcrumbs?: PageBreadcrumb[];
+  readonly head?: ContentModuleHead;
+  readonly headings?: PageHeading[];
+  readonly menu?: { path: string };
 }
 
 export interface LayoutModule {
   readonly default: any;
-  readonly head: ContentModuleHead;
+  readonly head?: ContentModuleHead;
 }
 
 /**
@@ -66,32 +59,28 @@ export interface EndpointModule {
 /**
  * @public
  */
-export interface PageHead {
+export interface DocumentHead {
   title: string;
-  meta: { [property: string]: string };
-  links: HeadLink[];
-  styles: HeadStyle[];
-  scripts: HeadScript[];
+  meta: DocumentMeta[];
+  links: DocumentLink[];
+  styles: DocumentStyle[];
 }
 
 /**
  * @public
  */
-export interface HeadComponentProps {
-  resolved: PageHead;
-  page: Page;
-  route: Route;
+export interface DocumentMeta {
+  content?: string;
+  httpEquiv?: string;
+  name?: string;
+  property?: string;
+  key?: string;
 }
 
 /**
  * @public
  */
-export type HeadComponent = FunctionComponent<HeadComponentProps>;
-
-/**
- * @public
- */
-export interface HeadLink {
+export interface DocumentLink {
   as?: string;
   crossorigin?: string;
   disabled?: boolean;
@@ -114,28 +103,24 @@ export interface HeadLink {
 /**
  * @public
  */
-export interface HeadStyle {
+export interface DocumentStyle {
   style: string;
   attributes?: { [attrName: string]: string };
   key?: string;
+}
+/**
+ * @public
+ */
+export interface HeadComponentProps {
+  resolved: DocumentHead;
+  page: Page;
+  route: Route;
 }
 
 /**
  * @public
  */
-export interface HeadScript {
-  script?: string;
-  src?: string;
-  type?: string;
-  id?: string;
-  async?: boolean;
-  crossorigin?: string;
-  defer?: boolean;
-  fetchpriority?: string;
-  integrity?: string;
-  referrerpolicy?: string;
-  key?: string;
-}
+export type HeadComponent = FunctionComponent<HeadComponentProps>;
 
 /**
  * @public
@@ -198,7 +183,7 @@ export interface LoadedContent extends LoadedRoute {
 
 export type ContentModule = PageModule | LayoutModule;
 
-export type ContentModuleHead = HeadComponent | PageHead;
+export type ContentModuleHead = HeadComponent | DocumentHead;
 
 /**
  * @public
@@ -218,3 +203,10 @@ export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 
  * @public
  */
 export type EndpointHandler = (ev: RequestEvent) => Response | Promise<Response>;
+
+export interface QwikCityState {
+  modules: ContentModule[];
+  page: Page;
+  head: DocumentHead;
+  route: Route;
+}

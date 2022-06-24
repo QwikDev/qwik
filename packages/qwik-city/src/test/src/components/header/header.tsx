@@ -27,6 +27,9 @@ export default component$(
           <a href="/about-us" class={{ active: pathname === '/about-us' }}>
             About Us
           </a>
+          <a href="/sign-in" class={{ active: pathname === '/sign-in' }}>
+            Sign In
+          </a>
         </nav>
         {/* <button
           class="theme-toggle"

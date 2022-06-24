@@ -9,7 +9,7 @@ import { visit } from 'unist-util-visit';
 import type { PageBreadcrumb, PageHeading } from '../../runtime';
 import { dirname, resolve } from 'path';
 import type { BuildContext, PageRoute } from '../types';
-import { getPagePathname } from '../utils/pathname';
+import { getRoutePathname } from '../utils/pathname';
 import { existsSync } from 'fs';
 
 const slugs = new Slugger();
@@ -18,7 +18,7 @@ export function rehypePage(ctx: BuildContext): Transformer {
   return (ast, vfile) => {
     const mdast = ast as Root;
     const sourcePath = vfile.path;
-    const pathname = getPagePathname(ctx.opts, vfile.path);
+    const pathname = getRoutePathname(ctx.opts, vfile.path);
     const menuPathname = getMenuPathname(ctx, pathname);
 
     updateContentLinks(mdast, sourcePath);

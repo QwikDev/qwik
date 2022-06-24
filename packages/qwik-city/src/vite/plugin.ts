@@ -47,7 +47,7 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
       qwikCityRuntimeCode = null;
     },
 
-    resolveId(id, importer) {
+    resolveId(id) {
       if (id === QWIK_CITY_APP_ID) {
         return join(rootDir!, QWIK_CITY_APP_ID);
       }
@@ -56,7 +56,7 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
 
     async load(id) {
       if (id.endsWith(QWIK_CITY_APP_ID) && ctx) {
-        // @builder.io/qwik-city
+        // @qwik-city-app
         if (typeof qwikCityRuntimeCode !== 'string') {
           await build(ctx);
           qwikCityRuntimeCode = generateInlinedRuntime(ctx);

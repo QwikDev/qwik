@@ -90,12 +90,7 @@ export function normalizePath(path: string) {
   return path.replace(/\\/g, '/');
 }
 
-export function createFileId(
-  ctx: BuildContext,
-  routesDir: string,
-  path: string,
-  type: 'Endpoint' | 'Layout' | 'Menu' | 'Page'
-) {
+export function createFileId(ctx: BuildContext, routesDir: string, path: string) {
   const segments: string[] = [];
 
   for (let i = 0; i < 25; i++) {
@@ -113,11 +108,7 @@ export function createFileId(
     }
   }
 
-  if (type === segments[0]) {
-    segments[0] = '';
-  }
-
-  const id = 'QC' + type + segments.reverse().join('');
+  const id = segments.reverse().join('');
 
   let inc = 1;
   let fileId = id;

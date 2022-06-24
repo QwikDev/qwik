@@ -10,7 +10,7 @@ export function parseMenuFile(
   content: string
 ) {
   filePath = normalizePath(filePath);
-  const id = createFileId(ctx, routesDir, filePath, 'Menu');
+  const id = createFileId(ctx, routesDir, filePath);
 
   const menu: ParsedMenu = {
     pathname: getMenuPathname(ctx.opts, filePath),

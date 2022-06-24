@@ -1,9 +1,9 @@
 import {
   component$,
-  Host,
   HTMLAttributes,
   jsx,
   noSerialize,
+  SkipRerender,
   useContextProvider,
   useSequentialScope,
   useStore,
@@ -75,7 +75,7 @@ export const Html = component$<HtmlProps>(
         .catch((e) => console.error(e))
     );
 
-    return () => jsx(Host as any, null);
+    return () => jsx(SkipRerender, {});
   },
   { tagName: 'html' }
 );

@@ -9,7 +9,7 @@ export function parseLayoutFile(
   fileName: string
 ) {
   const layoutDir = dirname(filePath);
-  const layoutId = createFileId(ctx, routesDir, filePath, 'Layout');
+  const layoutId = createFileId(ctx, routesDir, filePath);
 
   const layout: BuildLayout = {
     id: layoutId,

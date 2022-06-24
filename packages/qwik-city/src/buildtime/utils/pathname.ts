@@ -2,17 +2,26 @@ import { relative, dirname, join } from 'path';
 import type { NormalizedPluginOptions } from '../types';
 import { getBasename, isMarkdownFileName, normalizePath } from './fs';
 
-export function getPagePathname(opts: NormalizedPluginOptions, filePath: string) {
-  let pathname = normalizePath(relative(opts.routesDir, filePath));
+export function getRoutePathname(opts: NormalizedPluginOptions, filePath: string) {
+  // get relative file system path
+  const relFilePath = relative(opts.routesDir, filePath);
+
+  // ensure file system path uses / (POSIX) instead of \\ (windows)
+  let pathname = normalizePath(relFilePath);
+
+  // remove pathless segments (directories starting with "__")
+  pathname = pathname
+    .split('/')
+    .filter((segment) => !segment.startsWith('__'))
+    .join('/');
 
   const fileName = getBasename(pathname);
   const dirName = normalizePath(dirname(pathname));
+
   if (fileName === 'index') {
     if (dirName === '.') {
       return '/';
     }
-    pathname = `/${dirName}`;
-  } else if (fileName === 'endpoint') {
     pathname = `/${dirName}`;
   } else {
     pathname = `/${dirName}/${fileName}`;
@@ -62,7 +71,7 @@ export function getMenuLinkHref(opts: NormalizedPluginOptions, menuFilePath: str
     .filter((p) => p.length > 0);
   const filePath = join(indexDir, ...parts);
 
-  let pathname = getPagePathname(opts, filePath);
+  let pathname = getRoutePathname(opts, filePath);
   if (querySplit.length > 1) {
     pathname += '?' + querySplit[1];
   } else if (hashSplit.length > 1) {

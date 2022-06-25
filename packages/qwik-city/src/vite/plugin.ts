@@ -36,7 +36,9 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
     async configResolved(config) {
       rootDir = resolve(config.root);
 
-      ctx = createBuildContext(rootDir!, userOpts);
+      const target = config.build?.ssr || config.mode === 'ssr' ? 'ssr' : 'client';
+
+      ctx = createBuildContext(rootDir!, userOpts, target);
 
       await validatePlugin(ctx.opts);
 

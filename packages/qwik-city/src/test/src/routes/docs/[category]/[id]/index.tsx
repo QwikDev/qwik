@@ -1,17 +1,15 @@
 import { component$, Host } from '@builder.io/qwik';
-import { useRoute } from '@builder.io/qwik-city';
+import { useLocation } from '@builder.io/qwik-city';
 
 export default component$(() => {
-  const route = useRoute();
+  const loc = useLocation();
 
   return (
     <Host>
-      <h1>
-        Docs: {route.params.category} {route.params.id}
-      </h1>
-      <p>pathname: {route.pathname}</p>
-      <p>category: {route.params.category}</p>
-      <p>id: {route.params.id}</p>
+      <h1>Docs</h1>
+      <p>pathname: {loc.pathname}</p>
+      <p>category: {loc.routeParams.category}</p>
+      <p>id: {loc.routeParams.id}</p>
     </Host>
   );
 });

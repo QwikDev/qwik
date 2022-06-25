@@ -1,9 +1,13 @@
-import type { Route } from '@builder.io/qwik-city';
+import type { RouteLocation } from '@builder.io/qwik-city';
 
-export const Analytics = ({ route }: { route: Route }) => {
+interface AnalyticsProps {
+  loc: RouteLocation;
+}
+
+export const Analytics = ({ loc }: AnalyticsProps) => {
   return (
     <>
-      <script dangerouslySetInnerHTML={`console.log("🧨 Analytics! ${route.pathname}");`} />
+      <script dangerouslySetInnerHTML={`console.log("🧨 Analytics! ${loc.pathname}");`} />
     </>
   );
 };

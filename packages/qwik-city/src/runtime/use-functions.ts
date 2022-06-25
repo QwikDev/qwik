@@ -1,6 +1,6 @@
 import { useContext, useDocument } from '@builder.io/qwik';
 import { QwikCityContext } from './constants';
-import type { DocumentHead, Menu, Page, Route } from './types';
+import type { DocumentHead, ContentMenu } from './types';
 
 /**
  * @public
@@ -10,35 +10,27 @@ export const useDocumentHead = (): DocumentHead => useContext(QwikCityContext).h
 /**
  * @public
  */
-export const usePage = (): Page => useContext(QwikCityContext).page;
+export const useContentBreadcrumbs = () => useContext(QwikCityContext).breadcrumbs;
 
 /**
  * @public
  */
-export const useRoute = (): Route => useContext(QwikCityContext).route;
+export const useContentHeadings = () => useContext(QwikCityContext).headings;
 
 /**
  * @public
  */
-export const useLocation = () => {
+export const useLocation = () => useContext(QwikCityContext).location;
+
+export const useDocumentLocation = () => {
   const doc = useDocument();
-  const loc = doc.defaultView!.location;
-  const url = new URL(loc.pathname + loc.search + loc.hash, loc.origin);
-
-  return {
-    href: url.href,
-    pathname: url.pathname,
-    search: url.search,
-    searchParams: url.searchParams,
-    hash: url.hash,
-    origin: url.origin,
-  };
+  return new URL(doc.defaultView!.location.href);
 };
 
 /**
  * @public
  */
-export const useMenu = (): Menu | null => {
+export const useContentMenu = (): ContentMenu | undefined => {
   const loc = useLocation();
 
   let pathname = loc.pathname;
@@ -57,6 +49,5 @@ export const useMenu = (): Menu | null => {
       pathname = '/' + pathname;
     }
   }
-
-  return null;
+  return undefined;
 };

@@ -1,30 +1,11 @@
 import type { FunctionComponent } from '@builder.io/qwik';
 import type { ROUTE_TYPE_ENDPOINT } from './constants';
 
-/**
- * @public
- */
-export interface QwikCityRoot {
-  Head: FunctionComponent<{}>;
-  Content: FunctionComponent<{}>;
-  resolveHead: () => DocumentHead;
-}
-
-/**
- * @public
- */
-export interface Page {
-  // readonly breadcrumbs?: PageBreadcrumb[];
-  // readonly headings?: PageHeading[];
-  // readonly menu?: { path: string };
-  // readonly head: ContentModuleHead;
-}
-
 export interface PageModule {
   readonly default: any;
-  readonly breadcrumbs?: PageBreadcrumb[];
+  readonly breadcrumbs?: ContentBreadcrumb[];
   readonly head?: ContentModuleHead;
-  readonly headings?: PageHeading[];
+  readonly headings?: ContentHeading[];
   readonly menu?: { path: string };
 }
 
@@ -36,24 +17,32 @@ export interface LayoutModule {
 /**
  * @public
  */
-export interface Route {
+export interface RouteLocation {
+  hash: string;
+  host: string;
+  hostname: string;
+  href: string;
+  origin: string;
+  routeParams: RouteParams;
   pathname: string;
-  readonly params: RouteParams;
+  port: string;
+  protocol: string;
+  search: string;
+  searchParams: Record<string, string>;
 }
 
 /**
  * @public
  */
 export interface EndpointModule {
-  readonly all?: EndpointHandler;
-  readonly del?: EndpointHandler;
-  readonly get?: EndpointHandler;
-  readonly head?: EndpointHandler;
-  readonly options?: EndpointHandler;
-  readonly patch?: EndpointHandler;
-  readonly post?: EndpointHandler;
-  readonly put?: EndpointHandler;
-  readonly default?: any;
+  all?: EndpointHandler;
+  del?: EndpointHandler;
+  get?: EndpointHandler;
+  head?: EndpointHandler;
+  options?: EndpointHandler;
+  patch?: EndpointHandler;
+  post?: EndpointHandler;
+  put?: EndpointHandler;
 }
 
 /**
@@ -105,16 +94,16 @@ export interface DocumentLink {
  */
 export interface DocumentStyle {
   style: string;
-  attributes?: { [attrName: string]: string };
+  props?: { [propName: string]: string };
   key?: string;
 }
+
 /**
  * @public
  */
 export interface HeadComponentProps {
   resolved: DocumentHead;
-  page: Page;
-  route: Route;
+  location: RouteLocation;
 }
 
 /**
@@ -125,7 +114,7 @@ export type HeadComponent = FunctionComponent<HeadComponentProps>;
 /**
  * @public
  */
-export interface PageBreadcrumb {
+export interface ContentBreadcrumb {
   text: string;
   href?: string;
 }
@@ -133,16 +122,16 @@ export interface PageBreadcrumb {
 /**
  * @public
  */
-export interface Menu {
+export interface ContentMenu {
   text: string;
   href?: string;
-  items?: Menu[];
+  items?: ContentMenu[];
 }
 
 /**
  * @public
  */
-export interface PageHeading {
+export interface ContentHeading {
   text: string;
   id: string;
   level: number;
@@ -178,7 +167,6 @@ export interface LoadedRoute extends MatchedRoute {
 
 export interface LoadedContent extends LoadedRoute {
   pageModule: PageModule;
-  page: Page;
 }
 
 export type ContentModule = PageModule | LayoutModule;
@@ -205,8 +193,10 @@ export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 
 export type EndpointHandler = (ev: RequestEvent) => Response | Promise<Response>;
 
 export interface QwikCityState {
-  modules: ContentModule[];
-  page: Page;
+  breadcrumbs: ContentBreadcrumb[] | undefined;
   head: DocumentHead;
-  route: Route;
+  headings: ContentHeading[] | undefined;
+  menu: { path: string } | undefined;
+  modules: ContentModule[];
+  location: RouteLocation;
 }

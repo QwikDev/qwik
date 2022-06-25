@@ -8,7 +8,7 @@
   "types": "./dist/index.d.ts",
   "scripts": {
     "test.unit": "uvu -r tsm src \"(unit)\"",
-    "test.build": "yarn build.client && yarn build.ssr",
+    "test.build": "yarn test.build.client && yarn test.build.ssr",
     "test.build.client": "cd src/test && vite build",
     "test.build.ssr": "cd src/test && vite build --ssr src/entry.express.tsx",
     "test.serve": "node --inspect src/test/server/entry.express.js",

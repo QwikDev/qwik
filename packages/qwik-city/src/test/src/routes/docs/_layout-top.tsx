@@ -29,7 +29,10 @@ export default component$(() => {
               <a href="/docs/introduction">Introduction</a>
             </li>
             <li>
-              <a href="/docs/introduction/getting-started">Getting Started</a>
+              <a href="/docs/getting-started">Getting Started</a>
+            </li>
+            <li>
+              <a href="/docs/components/basics">Components</a>
             </li>
             <li>
               <a href="/">Home</a>
@@ -45,10 +48,10 @@ export default component$(() => {
   );
 });
 
-export const head: HeadComponent = ({ route }) => {
+export const head: HeadComponent = ({ location }) => {
   return (
     <>
-      <title>Docs: {route.pathname}</title>
+      <title>Docs: {location.pathname}</title>
     </>
   );
 };

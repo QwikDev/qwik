@@ -1,25 +1,22 @@
 import { component$, Host, useScopedStyles$ } from '@builder.io/qwik';
-import { useRoute, useMenu, usePage } from '@builder.io/qwik-city';
+import { useLocation, useContentMenu, useContentBreadcrumbs } from '@builder.io/qwik-city';
 import styles from './sidebar.css?inline';
 
 export const SideBar = component$(
   () => {
     useScopedStyles$(styles);
 
-    const page = usePage();
-    const route = useRoute();
-    const menu = useMenu();
-    if (!page) {
-      return null;
-    }
+    const loc = useLocation();
+    const menu = useContentMenu();
+    const breadcrumbs = useContentBreadcrumbs();
 
     return (
       <Host class="sidebar">
         <nav class="breadcrumbs">
           <ol>
-            {/* {page.breadcrumbs?.map((b) => (
+            {breadcrumbs?.map((b) => (
               <li>{b.text}</li>
-            ))} */}
+            ))}
           </ol>
         </nav>
         <nav class="menu">
@@ -33,7 +30,7 @@ export const SideBar = component$(
                         <a
                           href={item.href}
                           class={{
-                            'is-active': route.pathname === item.href,
+                            'is-active': loc.pathname === item.href,
                           }}
                         >
                           {item.text}

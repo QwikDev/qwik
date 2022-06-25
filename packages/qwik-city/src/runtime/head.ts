@@ -1,19 +1,25 @@
 import type { JSXNode } from '@builder.io/qwik';
 import { parseHeadJsx } from './jsx';
-import type { ContentModule, HeadComponentProps, Page, DocumentHead, Route } from './types';
+import type {
+  ContentModule,
+  HeadComponentProps,
+  DocumentHead,
+  LoadedContent,
+  RouteLocation,
+} from './types';
 
-export const resolveHeadProps = (route: Route, page: Page, modules: ContentModule[]) => {
+export const resolveHead = (location: RouteLocation, updatedContent: LoadedContent) => {
+  const modules = updatedContent.modules;
   const headProps: HeadComponentProps = {
     resolved: { title: '', links: [], meta: [], styles: [] },
-    page: { ...page },
-    route: { ...route },
+    location: { ...location },
   };
 
   for (let i = modules.length - 1; i >= 0; i--) {
     resolveContentHead(headProps, modules[i]);
   }
 
-  return headProps;
+  return headProps.resolved;
 };
 
 const resolveContentHead = (headProps: HeadComponentProps, mod: ContentModule) => {

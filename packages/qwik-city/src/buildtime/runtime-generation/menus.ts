@@ -1,4 +1,4 @@
-import type { Menu } from '../../runtime/types';
+import type { ContentMenu } from '../../runtime/types';
 import type { BuildContext, ParsedMenuItem } from '../types';
 
 export function createMenus(ctx: BuildContext, c: string[]) {
@@ -12,7 +12,7 @@ export function createMenus(ctx: BuildContext, c: string[]) {
 }
 
 function createRuntimeMenu(parsedMenu: ParsedMenuItem) {
-  const runtimeMenu: Menu = {
+  const runtimeMenu: ContentMenu = {
     text: parsedMenu.text,
   };
 

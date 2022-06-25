@@ -12,6 +12,34 @@ import { HTMLAttributes } from '@builder.io/qwik';
 export const Content: Component<    {}>;
 
 // @public (undocumented)
+export interface ContentBreadcrumb {
+    // (undocumented)
+    href?: string;
+    // (undocumented)
+    text: string;
+}
+
+// @public (undocumented)
+export interface ContentHeading {
+    // (undocumented)
+    id: string;
+    // (undocumented)
+    level: number;
+    // (undocumented)
+    text: string;
+}
+
+// @public (undocumented)
+export interface ContentMenu {
+    // (undocumented)
+    href?: string;
+    // (undocumented)
+    items?: ContentMenu[];
+    // (undocumented)
+    text: string;
+}
+
+// @public (undocumented)
 export interface DocumentHead {
     // (undocumented)
     links: DocumentLink[];
@@ -78,11 +106,11 @@ export interface DocumentMeta {
 // @public (undocumented)
 export interface DocumentStyle {
     // (undocumented)
-    attributes?: {
-        [attrName: string]: string;
-    };
-    // (undocumented)
     key?: string;
+    // (undocumented)
+    props?: {
+        [propName: string]: string;
+    };
     // (undocumented)
     style: string;
 }
@@ -98,59 +126,15 @@ export type HeadComponent = FunctionComponent<HeadComponentProps>;
 // @public (undocumented)
 export interface HeadComponentProps {
     // (undocumented)
-    page: Page;
+    location: RouteLocation;
     // (undocumented)
     resolved: DocumentHead;
-    // (undocumented)
-    route: Route;
 }
 
 // Warning: (ae-forgotten-export) The symbol "HtmlProps" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
 export const Html: Component<HtmlProps>;
-
-// @public (undocumented)
-export interface Menu {
-    // (undocumented)
-    href?: string;
-    // (undocumented)
-    items?: Menu[];
-    // (undocumented)
-    text: string;
-}
-
-// @public (undocumented)
-export interface Page {
-}
-
-// @public (undocumented)
-export interface PageBreadcrumb {
-    // (undocumented)
-    href?: string;
-    // (undocumented)
-    text: string;
-}
-
-// @public (undocumented)
-export interface PageHeading {
-    // (undocumented)
-    id: string;
-    // (undocumented)
-    level: number;
-    // (undocumented)
-    text: string;
-}
-
-// @public (undocumented)
-export interface Route {
-    // Warning: (ae-forgotten-export) The symbol "RouteParams" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    readonly params: RouteParams;
-    // (undocumented)
-    pathname: string;
-}
 
 // Warning: (ae-forgotten-export) The symbol "ContentModule" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "EndpointModule" needs to be exported by the entry point index.d.ts
@@ -165,26 +149,47 @@ routeType: typeof ROUTE_TYPE_ENDPOINT
 ];
 
 // @public (undocumented)
+export interface RouteLocation {
+    // (undocumented)
+    hash: string;
+    // (undocumented)
+    host: string;
+    // (undocumented)
+    hostname: string;
+    // (undocumented)
+    href: string;
+    // (undocumented)
+    origin: string;
+    // (undocumented)
+    pathname: string;
+    // (undocumented)
+    port: string;
+    // (undocumented)
+    protocol: string;
+    // Warning: (ae-forgotten-export) The symbol "RouteParams" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    routeParams: RouteParams;
+    // (undocumented)
+    search: string;
+    // (undocumented)
+    searchParams: Record<string, string>;
+}
+
+// @public (undocumented)
+export const useContentBreadcrumbs: () => ContentBreadcrumb[] | undefined;
+
+// @public (undocumented)
+export const useContentHeadings: () => ContentHeading[] | undefined;
+
+// @public (undocumented)
+export const useContentMenu: () => ContentMenu | undefined;
+
+// @public (undocumented)
 export const useDocumentHead: () => DocumentHead;
 
 // @public (undocumented)
-export const useLocation: () => {
-    href: string;
-    pathname: string;
-    search: string;
-    searchParams: URLSearchParams;
-    hash: string;
-    origin: string;
-};
-
-// @public (undocumented)
-export const useMenu: () => Menu | null;
-
-// @public (undocumented)
-export const usePage: () => Page;
-
-// @public (undocumented)
-export const useRoute: () => Route;
+export const useLocation: () => RouteLocation;
 
 // (No @packageDocumentation comment for this package)
 

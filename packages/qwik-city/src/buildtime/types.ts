@@ -8,6 +8,7 @@ export interface BuildContext {
   menus: ParsedMenu[];
   diagnostics: Diagnostic[];
   ids: Set<string>;
+  target: 'ssr' | 'client';
 }
 
 export interface Diagnostic {

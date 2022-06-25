@@ -1,13 +1,13 @@
 import { component$, Host } from '@builder.io/qwik';
-import { useRoute } from '@builder.io/qwik-city';
+import { useLocation } from '@builder.io/qwik-city';
 
 export default component$(() => {
-  const route = useRoute();
+  const loc = useLocation();
 
   return (
     <Host>
-      <h1>Blog {route.pathname}</h1>
-      <p>Slug: {route.params.slug}</p>
+      <h1>Blog {loc.pathname}</h1>
+      <p>Slug: {loc.routeParams.slug}</p>
     </Host>
   );
 });

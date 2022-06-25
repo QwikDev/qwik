@@ -11,18 +11,34 @@ export function createInlinedImportRoutes(ctx: BuildContext, c: string[], esmImp
     c.push(`const ${layout.id} = () => ${layout.id}_;`);
   }
 
-  c.push(`\n/** Qwik City Pages/Endpoints (${ctx.routes.length}) */`);
-  for (const route of ctx.routes) {
+  if (ctx.target === 'ssr') {
+    // SSR build gets all routes, including endpoints
+    const endpointRoutes = ctx.routes.filter((r) => r.type === 'endpoint');
+    c.push(`\n/** Qwik City Endpoints (${endpointRoutes.length}) */`);
+
+    for (const route of endpointRoutes) {
+      const importPath = getImportPath(route.filePath);
+      esmImports.push(`import * as ${route.id}_ from ${JSON.stringify(importPath)};`);
+
+      c.push(`const ${route.id} = () => ${route.id}_;`);
+    }
+  }
+
+  const pageRoutes = ctx.routes.filter((r) => r.type === 'page');
+  c.push(`\n/** Qwik City Pages (${pageRoutes.length}) */`);
+
+  for (const route of pageRoutes) {
     const importPath = getImportPath(route.filePath);
     esmImports.push(`import * as ${route.id}_ from ${JSON.stringify(importPath)};`);
 
     c.push(`const ${route.id} = () => ${route.id}_;`);
   }
 
-  c.push(`\n/** Qwik City Routes (${ctx.routes.length}) */`);
+  const routes = ctx.routes.filter((r) => ctx.target === 'ssr' || r.type === 'page');
+  c.push(`\n/** Qwik City Routes (${routes.length}) */`);
   c.push(`export const routes = [`);
 
-  for (const route of ctx.routes) {
+  for (const route of routes) {
     const loaders = [];
     if (route.type === 'page') {
       for (const layout of route.layouts) {

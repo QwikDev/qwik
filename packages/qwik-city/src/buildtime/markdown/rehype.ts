@@ -6,7 +6,7 @@ import { valueToEstree } from 'estree-util-value-to-estree';
 import { headingRank } from 'hast-util-heading-rank';
 import { toString } from 'hast-util-to-string';
 import { visit } from 'unist-util-visit';
-import type { PageBreadcrumb, PageHeading } from '../../runtime';
+import type { ContentBreadcrumb, ContentHeading } from '../../runtime';
 import { dirname, resolve } from 'path';
 import type { BuildContext, PageRoute } from '../types';
 import { getRoutePathname } from '../utils/pathname';
@@ -18,14 +18,13 @@ export function rehypePage(ctx: BuildContext): Transformer {
   return (ast, vfile) => {
     const mdast = ast as Root;
     const sourcePath = vfile.path;
-    const pathname = getRoutePathname(ctx.opts, vfile.path);
+    const pathname = getRoutePathname(ctx.opts, sourcePath);
     const menuPathname = getMenuPathname(ctx, pathname);
 
     updateContentLinks(mdast, sourcePath);
     exportContentHeadings(mdast);
     exportPageAttributes(ctx, mdast, pathname);
     exportBreadcrumbs(ctx, mdast, pathname, menuPathname);
-    exportPageIndex(ctx, mdast, menuPathname);
   };
 }
 
@@ -63,7 +62,7 @@ function updateContentLinks(mdast: Root, sourcePath: string) {
 
 function exportContentHeadings(mdast: Root) {
   slugs.reset();
-  const headings: PageHeading[] = [];
+  const headings: ContentHeading[] = [];
 
   visit(mdast, 'element', (node: any) => {
     const level = headingRank(node);
@@ -80,7 +79,9 @@ function exportContentHeadings(mdast: Root) {
     }
   });
 
-  createExport(mdast, 'headings', headings);
+  if (headings.length > 0) {
+    createExport(mdast, 'headings', headings);
+  }
 }
 
 function exportPageAttributes(ctx: BuildContext, mdast: Root, pathname: string) {
@@ -98,7 +99,7 @@ function exportBreadcrumbs(
   const menu = ctx.menus.find((m) => m.pathname === menuPathname);
   if (menu && menu.items) {
     for (const indexA of menu.items) {
-      const breadcrumbA: PageBreadcrumb = {
+      const breadcrumbA: ContentBreadcrumb = {
         text: indexA.text,
         href: indexA.href,
       };
@@ -108,7 +109,7 @@ function exportBreadcrumbs(
       }
       if (indexA.items) {
         for (const indexB of indexA.items) {
-          const breadcrumbB: PageBreadcrumb = {
+          const breadcrumbB: ContentBreadcrumb = {
             text: indexB.text,
             href: indexB.href,
           };
@@ -118,7 +119,7 @@ function exportBreadcrumbs(
           }
           if (indexB.items) {
             for (const indexC of indexB.items) {
-              const breadcrumbC: PageBreadcrumb = {
+              const breadcrumbC: ContentBreadcrumb = {
                 text: indexC.text,
                 href: indexC.href,
               };
@@ -134,12 +135,6 @@ function exportBreadcrumbs(
   }
 
   createExport(mdast, 'breadcrumbs', []);
-}
-
-function exportPageIndex(ctx: BuildContext, mdast: Root, indexPathname: string | undefined) {
-  createExport(mdast, 'index', {
-    path: indexPathname,
-  });
 }
 
 function getMenuPathname(ctx: BuildContext, pathname: string) {

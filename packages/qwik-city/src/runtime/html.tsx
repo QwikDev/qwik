@@ -10,11 +10,12 @@ import {
   useWaitOn,
 } from '@builder.io/qwik';
 import { updateContent } from './content';
-import { JsxSkipRerender, QwikCityContext } from './constants';
+import { QwikCityContext } from './constants';
 import { loadRoute, matchRoute } from './routing';
-import type { QwikCityState, Route, RouteData } from './types';
-import { useLocation } from './use-functions';
-import { resolveHeadProps } from './head';
+import type { QwikCityState, RouteData } from './types';
+import { useDocumentLocation } from './use-functions';
+import { resolveHead } from './head';
+import { searchParamsToObj } from './utils';
 
 /**
  * @public
@@ -23,27 +24,39 @@ export const Html = component$<HtmlProps>(
   (props) => {
     const { get, set } = useSequentialScope();
     if (get) {
-      return JsxSkipRerender;
+      return jsx(SkipRerender, {});
     }
     set(true);
 
-    const loc = useLocation();
+    const docLocation = useDocumentLocation();
 
     const ctx = useStore(() => {
-      const matchedRoute = matchRoute(props.routes, loc.pathname);
+      // init qwik city context
+      const matchedRoute = matchRoute(props.routes, docLocation.pathname);
       const initCtx: QwikCityState = {
-        modules: noSerialize([]) as any,
-        page: {},
+        breadcrumbs: undefined,
         head: {
           title: '',
           links: [],
           meta: [],
           styles: [],
         },
-        route: {
-          params: matchedRoute ? matchedRoute.params : {},
-          pathname: loc.pathname,
+        headings: undefined,
+        location: {
+          hash: docLocation.hash,
+          host: docLocation.host,
+          hostname: docLocation.hostname,
+          href: docLocation.href,
+          origin: docLocation.origin,
+          pathname: docLocation.pathname,
+          port: docLocation.port,
+          protocol: docLocation.protocol,
+          routeParams: matchedRoute ? { ...matchedRoute.params } : {},
+          search: docLocation.search,
+          searchParams: searchParamsToObj(docLocation.searchParams),
         },
+        menu: undefined,
+        modules: noSerialize<any>([]),
       };
       return initCtx;
     });
@@ -51,25 +64,27 @@ export const Html = component$<HtmlProps>(
     useContextProvider(QwikCityContext, ctx);
 
     useWaitOn(
-      loadRoute(props.routes, loc.pathname)
+      loadRoute(props.routes, docLocation.pathname)
         .then(updateContent)
         .then((updatedContent) => {
           if (updatedContent) {
-            const route: Route = {
-              params: updatedContent.params,
-              pathname: updatedContent.pathname,
-            };
+            if (updatedContent.pathname !== ctx.location.pathname) {
+              ctx.location = {
+                ...ctx.location,
+                pathname: updatedContent.pathname,
+                routeParams: updatedContent.params,
+              };
+            }
 
-            const headCmpProps = resolveHeadProps(
-              route,
-              updatedContent.page,
-              updatedContent.modules
-            );
+            const resolvedHead = resolveHead(ctx.location, updatedContent);
 
-            ctx.head = noSerialize(headCmpProps.resolved) as any;
-            ctx.modules = noSerialize(updatedContent.modules) as any;
-            ctx.page = noSerialize(updatedContent.page) as any;
-            ctx.route = noSerialize(route) as any;
+            ctx.breadcrumbs =
+              updatedContent.pageModule.breadcrumbs &&
+              noSerialize<any>(updatedContent.pageModule.breadcrumbs);
+            ctx.head = noSerialize<any>(resolvedHead);
+            ctx.modules = noSerialize<any>(updatedContent.modules);
+            ctx.menu =
+              updatedContent.pageModule.menu && noSerialize<any>(updatedContent.pageModule.menu);
           }
         })
         .catch((e) => console.error(e))

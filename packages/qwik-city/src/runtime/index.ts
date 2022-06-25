@@ -1,19 +1,25 @@
 export type {
-  HeadComponent,
-  HeadComponentProps,
+  ContentBreadcrumb,
+  ContentHeading,
+  ContentMenu,
   DocumentHead,
   DocumentLink,
   DocumentMeta,
   DocumentStyle,
-  Page,
-  PageBreadcrumb,
-  PageHeading,
-  Menu,
   EndpointHandler,
+  HeadComponent,
+  HeadComponentProps,
   RouteData,
-  Route,
+  RouteLocation,
 } from './types';
 
 export { Content } from './content';
 export { Html } from './html';
-export { useDocumentHead, useLocation, useMenu, usePage, useRoute } from './use-functions';
+
+export {
+  useDocumentHead,
+  useLocation,
+  useContentBreadcrumbs,
+  useContentHeadings,
+  useContentMenu,
+} from './use-functions';

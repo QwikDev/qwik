@@ -2,7 +2,11 @@ import type { NormalizedPluginOptions, BuildContext, PluginOptions } from '../ty
 import { isAbsolute, resolve } from 'path';
 import { normalizePath } from './fs';
 
-export function createBuildContext(rootDir: string, userOpts?: PluginOptions) {
+export function createBuildContext(
+  rootDir: string,
+  userOpts?: PluginOptions,
+  target?: 'ssr' | 'client'
+) {
   const ctx: BuildContext = {
     rootDir: normalizePath(rootDir),
     opts: normalizeOptions(rootDir, userOpts),
@@ -11,6 +15,7 @@ export function createBuildContext(rootDir: string, userOpts?: PluginOptions) {
     menus: [],
     diagnostics: [],
     ids: new Set(),
+    target: target || 'ssr',
   };
   return ctx;
 }

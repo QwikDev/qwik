@@ -573,35 +573,44 @@ const findQwikRoots = async (
     const fs: typeof import('fs') = await sys.dynamicImport('fs');
     const { resolvePackageData }: typeof import('vite') = await sys.dynamicImport('vite');
 
-    const data = fs.readFileSync(packageJsonPath, { encoding: 'utf-8' });
-    const packageJson = JSON.parse(data);
-    const dependencies = packageJson['dependencies'];
-    const devDependencies = packageJson['devDependencies'];
+    try {
+      const data = await fs.promises.readFile(packageJsonPath, { encoding: 'utf-8' });
 
-    const packages: string[] = [];
-    if (typeof dependencies === 'object') {
-      packages.push(...Object.keys(dependencies));
-    }
-    if (typeof devDependencies === 'object') {
-      packages.push(...Object.keys(devDependencies));
-    }
+      try {
+        const packageJson = JSON.parse(data);
+        const dependencies = packageJson['dependencies'];
+        const devDependencies = packageJson['devDependencies'];
 
-    const basedir = sys.cwd();
-    const qwikDirs = packages
-      .map((id) => {
-        const pkgData = resolvePackageData(id, basedir);
-        if (pkgData) {
-          const qwikPath = pkgData.data['qwik'];
-          if (qwikPath) {
-            return {
-              id,
-              path: sys.path.resolve(pkgData.dir, qwikPath),
-            };
-          }
+        const packages: string[] = [];
+        if (typeof dependencies === 'object') {
+          packages.push(...Object.keys(dependencies));
         }
-      })
-      .filter(isNotNullable);
-    return qwikDirs;
+        if (typeof devDependencies === 'object') {
+          packages.push(...Object.keys(devDependencies));
+        }
+
+        const basedir = sys.cwd();
+        const qwikDirs = packages
+          .map((id) => {
+            const pkgData = resolvePackageData(id, basedir);
+            if (pkgData) {
+              const qwikPath = pkgData.data['qwik'];
+              if (qwikPath) {
+                return {
+                  id,
+                  path: sys.path.resolve(pkgData.dir, qwikPath),
+                };
+              }
+            }
+          })
+          .filter(isNotNullable);
+        return qwikDirs;
+      } catch (e) {
+        console.error(e);
+      }
+    } catch (e) {
+      // ignore errors if root package.json not found
+    }
   }
   return [];
 };

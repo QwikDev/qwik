@@ -67,6 +67,12 @@ test('build', async () => {
   assert.equal(docsIntro.pattern, /^\/docs\/introduction\/?$/);
   assert.equal(docsIntro.paramNames.length, 0);
 
+  const docsGettingStarted = routes.find((r) => r.pathname === '/docs/getting-started')!;
+  assert.equal(docsGettingStarted.id, 'DocsGettingstarted');
+  assert.equal(docsGettingStarted.type, 'page');
+  assert.equal(docsGettingStarted.pattern, /^\/docs\/getting-started\/?$/);
+  assert.equal(docsGettingStarted.paramNames.length, 0);
+
   const aboutUs = routes.find((r) => r.pathname === '/about-us')!;
   assert.equal(aboutUs.id, 'Aboutus');
   assert.equal(aboutUs.type, 'page');

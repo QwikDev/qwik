@@ -11,10 +11,13 @@ export function qwikCity(renderFn: RenderFunction, opts: QwikCityExpressOptions)
 
   const router = express.Router();
 
-  const buildDir = opts.buildDir || join(opts.staticDir, 'build');
+  const staticDir = opts.staticDir || join(__dirname, '..', 'dist');
+
+  const buildDir = opts.buildDir || join(staticDir, 'build');
+
   router.use(`/build`, express.static(buildDir, { immutable: true, maxAge: '1y', index: false }));
 
-  router.use(express.static(opts.staticDir, { index: false }));
+  router.use(express.static(staticDir, { index: false }));
 
   router.use(async (req, res, next) => {
     try {
@@ -47,6 +50,6 @@ export function qwikCity(renderFn: RenderFunction, opts: QwikCityExpressOptions)
 }
 
 export interface QwikCityExpressOptions extends QwikCityAdaptorOptions {
-  staticDir: string;
+  staticDir?: string;
   buildDir?: string;
 }

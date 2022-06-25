@@ -20,6 +20,7 @@ npm init qwik@latest
 - Learn about Qwik's high level [mental model](https://github.com/BuilderIO/qwik/blob/main/packages/docs/src/pages/docs/think-qwik.mdx).
 
 ## Docs
+
 - [Official Docs](https://qwik.builder.io)
 
 ## Blog Posts

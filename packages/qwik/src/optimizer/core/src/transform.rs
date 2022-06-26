@@ -88,7 +88,8 @@ pub struct QwikTransform<'a> {
     pub options: QwikTransformOptions<'a>,
 
     hooks_names: HashMap<String, u32>,
-    extra_module_items: BTreeMap<Id, ast::ModuleItem>,
+    extra_top_items: BTreeMap<Id, ast::ModuleItem>,
+    extra_bottom_items: BTreeMap<Id, ast::ModuleItem>,
     stack_ctxt: Vec<String>,
     position_ctxt: Vec<PositionToken>,
     decl_stack: Vec<Vec<IdPlusType>>,
@@ -109,7 +110,6 @@ pub struct QwikTransformOptions<'a> {
     pub entry_policy: &'a dyn EntryPolicy,
     pub extension: JsWord,
     pub explicit_extensions: bool,
-    pub auto_export_root: bool,
     pub comments: Option<&'a SingleThreadedComments>,
     pub global_collect: GlobalCollect,
     pub scope: Option<&'a String>,
@@ -163,7 +163,8 @@ impl<'a> QwikTransform<'a> {
             in_component: false,
             hooks: Vec::with_capacity(16),
             hook_stack: Vec::with_capacity(16),
-            extra_module_items: BTreeMap::new(),
+            extra_top_items: BTreeMap::new(),
+            extra_bottom_items: BTreeMap::new(),
             hooks_names: HashMap::new(),
             qcomponent_fn: options
                 .global_collect
@@ -303,6 +304,14 @@ impl<'a> QwikTransform<'a> {
         };
         let local_idents = self.get_local_idents(&folded);
 
+        for id in &local_idents {
+            if !self.options.global_collect.exports.contains_key(id)
+                && self.options.global_collect.root.contains_key(id)
+            {
+                self.ensure_export(id);
+            }
+        }
+
         let hook_data = HookData {
             extension: self.options.extension.clone(),
             local_idents,
@@ -391,10 +400,6 @@ impl<'a> QwikTransform<'a> {
         for id in &local_idents {
             if !self.options.global_collect.exports.contains_key(id) {
                 if let Some(span) = self.options.global_collect.root.get(id) {
-                    // if self.options.auto_export_root {
-                    //     println!("dgdgg {:?}", id);
-                    //     self.ensure_export(id);
-                    // } else {
                     HANDLER.with(|handler| {
                         handler
                             .struct_span_err_with_code(
@@ -600,7 +605,7 @@ impl<'a> QwikTransform<'a> {
             .synthetic;
 
         if is_synthetic && self.is_inside_module() {
-            self.extra_module_items.insert(
+            self.extra_top_items.insert(
                 new_local.clone(),
                 create_synthetic_named_import(&new_local, &source),
             );
@@ -611,7 +616,7 @@ impl<'a> QwikTransform<'a> {
     fn ensure_export(&mut self, id: &Id) {
         self.options.global_collect.add_export(id.clone(), None);
         if self.is_inside_module() {
-            self.extra_module_items
+            self.extra_bottom_items
                 .insert(id.clone(), create_synthetic_named_export(id));
         }
     }
@@ -759,8 +764,9 @@ impl<'a> Fold for QwikTransform<'a> {
     fn fold_module(&mut self, node: ast::Module) -> ast::Module {
         let mut body = Vec::with_capacity(node.body.len() + 10);
         let mut module_body = node.body.into_iter().map(|i| i.fold_with(self)).collect();
-        body.extend(self.extra_module_items.values().cloned());
+        body.extend(self.extra_top_items.values().cloned());
         body.append(&mut module_body);
+        body.extend(self.extra_bottom_items.values().cloned());
 
         ast::Module { body, ..node }
     }

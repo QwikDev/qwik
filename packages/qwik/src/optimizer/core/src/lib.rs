@@ -98,7 +98,6 @@ pub fn transform_fs(config: TransformFsOptions) -> Result<TransformOutput, Error
                 relative_path: relative_path.to_str().unwrap(),
                 minify: config.minify,
                 code: &code,
-                auto_export_root: relative_path.starts_with(".."),
                 explicit_extensions: config.explicit_extensions,
                 source_maps: config.source_maps,
                 transpile: config.transpile,
@@ -125,14 +124,11 @@ pub fn transform_modules(config: TransformModulesOptions) -> Result<TransformOut
     #[cfg(not(feature = "parallel"))]
     let iterator = config.input.iter();
     let iterator = iterator.map(|path| -> Result<TransformOutput, Error> {
-        let f = path.path.starts_with("..");
-        println!("{} {}", f, path.path);
         transform_code(TransformCodeOptions {
             src_dir,
             relative_path: &path.path,
             code: &path.code,
             minify: config.minify,
-            auto_export_root: f,
             source_maps: config.source_maps,
             transpile: config.transpile,
             explicit_extensions: config.explicit_extensions,

@@ -1,0 +1,28 @@
+---
+title: Mutable Props
+layout: tutorial
+---
+
+Look at the example on the right. It is a simple counter. The unique part about this counter is that the displaying of the count was broken out into a separate component called `<Display>`.
+
+When the user clicks on the `+1` button the `store.count` increments. This causes the `<App>` component to re-render which in turn causes the `<Display>` component to re-render.
+
+But it does not work, because by default Qwik assumes that all property bindings are static. There is no way for Qwik runtime to tell if a property is static or it can change during the application lifetime. Qwik runtime assumes that all properties are static unless they are marked `mutable()`.
+
+## Why assume that properties are static
+
+Imagine for a second that the `<Display>` is bound to a static value like so:
+
+```jsx
+<Display count={123} />
+```
+
+Looking at this code we can tell that `<Display>` will never need to be re-render from the outside. But when Qwik is serializing `<Display>` it does not know if the properties are static or dynamic (such information is not available at runtime). If it assumes that they are dynamic then it has to serialize the props all the time. If it assumes they are static then it only needs to serialize the props if the child component itself has its own behavior. 
+
+Because Qwik wants to minimize the amount of HTML sent to the client, it is better to assume that the properties are static. But this presents a problem. How do we tell Qwik, that in this case, they are actually dynamic? We do this by wrapping the mutable binding in `mutable()` function call which provides the necessary runtime information to Qwik.
+
+You can fix the code example by changing `store.count` to `mutable(store.count)`.
+
+## Its better to not use `mutable()`
+
+See the next step in the tutorial on how we can avoid using `mutable()`.

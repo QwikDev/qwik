@@ -48,7 +48,7 @@ pub struct TransformFsOptions {
     pub entry_strategy: EntryStrategy,
     pub source_maps: bool,
     pub transpile: bool,
-    pub explicity_extensions: bool,
+    pub explicit_extensions: bool,
     pub dev: bool,
     pub scope: Option<String>,
 }
@@ -69,7 +69,7 @@ pub struct TransformModulesOptions {
     pub minify: MinifyMode,
     pub transpile: bool,
     pub entry_strategy: EntryStrategy,
-    pub explicity_extensions: bool,
+    pub explicit_extensions: bool,
     pub dev: bool,
     pub scope: Option<String>,
 }
@@ -98,7 +98,8 @@ pub fn transform_fs(config: TransformFsOptions) -> Result<TransformOutput, Error
                 relative_path: relative_path.to_str().unwrap(),
                 minify: config.minify,
                 code: &code,
-                explicity_extensions: config.explicity_extensions,
+                auto_export_root: relative_path.starts_with(".."),
+                explicit_extensions: config.explicit_extensions,
                 source_maps: config.source_maps,
                 transpile: config.transpile,
                 scope: config.scope.as_ref(),
@@ -110,7 +111,7 @@ pub fn transform_fs(config: TransformFsOptions) -> Result<TransformOutput, Error
         .reduce(|| Ok(TransformOutput::new()), |x, y| Ok(x?.append(&mut y?)))?;
 
     final_output.modules.sort_unstable_by_key(|key| key.order);
-    final_output = generate_entries(final_output, config.explicity_extensions)?;
+    final_output = generate_entries(final_output, config.explicit_extensions)?;
     Ok(final_output)
 }
 
@@ -124,14 +125,17 @@ pub fn transform_modules(config: TransformModulesOptions) -> Result<TransformOut
     #[cfg(not(feature = "parallel"))]
     let iterator = config.input.iter();
     let iterator = iterator.map(|path| -> Result<TransformOutput, Error> {
+        let f = path.path.starts_with("..");
+        println!("{} {}", f, path.path);
         transform_code(TransformCodeOptions {
             src_dir,
             relative_path: &path.path,
             code: &path.code,
             minify: config.minify,
+            auto_export_root: f,
             source_maps: config.source_maps,
             transpile: config.transpile,
-            explicity_extensions: config.explicity_extensions,
+            explicit_extensions: config.explicit_extensions,
             entry_policy,
             dev: config.dev,
             scope: config.scope.as_ref(),
@@ -149,7 +153,7 @@ pub fn transform_modules(config: TransformModulesOptions) -> Result<TransformOut
 
     let mut final_output = final_output?;
     final_output.modules.sort_unstable_by_key(|key| key.order);
-    final_output = generate_entries(final_output, config.explicity_extensions)?;
+    final_output = generate_entries(final_output, config.explicit_extensions)?;
 
     Ok(final_output)
 }

@@ -280,7 +280,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         entryStrategy: opts.entryStrategy,
         minify: 'simplify',
         transpile: true,
-        explicityExtensions: true,
+        explicitExtensions: true,
         dev: opts.buildMode === 'development',
         scope: opts.scope ? opts.scope : undefined,
       };
@@ -463,7 +463,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         minify: 'simplify',
         sourceMaps: false,
         transpile: true,
-        explicityExtensions: true,
+        explicitExtensions: true,
         srcDir: opts.srcDir ? opts.srcDir : normalizePath(dir),
         dev: opts.buildMode === 'development',
         scope: opts.scope ? opts.scope : undefined,

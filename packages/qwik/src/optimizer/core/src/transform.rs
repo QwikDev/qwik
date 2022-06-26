@@ -108,7 +108,8 @@ pub struct QwikTransformOptions<'a> {
     pub path_data: &'a PathData,
     pub entry_policy: &'a dyn EntryPolicy,
     pub extension: JsWord,
-    pub explicity_extensions: bool,
+    pub explicit_extensions: bool,
+    pub auto_export_root: bool,
     pub comments: Option<&'a SingleThreadedComments>,
     pub global_collect: GlobalCollect,
     pub scope: Option<&'a String>,
@@ -390,6 +391,10 @@ impl<'a> QwikTransform<'a> {
         for id in &local_idents {
             if !self.options.global_collect.exports.contains_key(id) {
                 if let Some(span) = self.options.global_collect.root.get(id) {
+                    // if self.options.auto_export_root {
+                    //     println!("dgdgg {:?}", id);
+                    //     self.ensure_export(id);
+                    // } else {
                     HANDLER.with(|handler| {
                         handler
                             .struct_span_err_with_code(
@@ -402,6 +407,7 @@ impl<'a> QwikTransform<'a> {
                             )
                             .emit();
                     });
+                    // }
                 }
                 if invalid_decl.contains(id) {
                     HANDLER.with(|handler| {
@@ -503,7 +509,7 @@ impl<'a> QwikTransform<'a> {
                 .map(|e| e.as_ref())
                 .unwrap_or(&canonical_filename)
         );
-        if self.options.explicity_extensions {
+        if self.options.explicit_extensions {
             filename.push('.');
             filename.push_str(&self.options.extension);
         }
@@ -600,6 +606,14 @@ impl<'a> QwikTransform<'a> {
             );
         }
         new_local
+    }
+
+    fn ensure_export(&mut self, id: &Id) {
+        self.options.global_collect.add_export(id.clone(), None);
+        if self.is_inside_module() {
+            self.extra_module_items
+                .insert(id.clone(), create_synthetic_named_export(id));
+        }
     }
 
     fn create_qrl(&mut self, url: JsWord, symbol: &str, idents: &[Id]) -> ast::CallExpr {
@@ -1209,27 +1223,20 @@ pub fn create_synthetic_named_import_auto(
     }))
 }
 
-// pub fn create_synthetic_named_export(local: &JsWord, src: &JsWord) -> ast::ModuleItem {
-//     ast::ModuleItem::ModuleDecl(ast::ModuleDecl::ExportNamed(ast::NamedExport {
-//         span: DUMMY_SP,
-//         asserts: None,
-//         type_only: false,
-//         src: Some(ast::Str {
-//             span: DUMMY_SP,
-//             has_escape: false,
-//             value: src.clone(),
-//             kind: ast::StrKind::Normal {
-//                 contains_quote: false,
-//             },
-//         }),
-//         specifiers: vec![ast::ExportSpecifier::Named(ast::ExportNamedSpecifier {
-//             is_type_only: false,
-//             exported: None,
-//             orig: ast::ModuleExportName::Ident(ast::Ident::new(local.clone(), DUMMY_SP)),
-//             span: DUMMY_SP,
-//         })],
-//     }))
-// }
+pub fn create_synthetic_named_export(local: &Id) -> ast::ModuleItem {
+    ast::ModuleItem::ModuleDecl(ast::ModuleDecl::ExportNamed(ast::NamedExport {
+        span: DUMMY_SP,
+        type_only: false,
+        asserts: None,
+        specifiers: vec![ast::ExportSpecifier::Named(ast::ExportNamedSpecifier {
+            span: DUMMY_SP,
+            is_type_only: false,
+            orig: ast::ModuleExportName::Ident(new_ident_from_id(local)),
+            exported: None,
+        })],
+        src: None,
+    }))
+}
 
 pub fn create_synthetic_named_import(local: &Id, src: &JsWord) -> ast::ModuleItem {
     ast::ModuleItem::ModuleDecl(ast::ModuleDecl::Import(ast::ImportDecl {

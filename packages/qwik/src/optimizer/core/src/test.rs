@@ -15,7 +15,7 @@ macro_rules! test_input {
             source_maps: true,
             minify: input.minify,
             transpile: input.transpile,
-            explicity_extensions: input.explicity_extensions,
+            explicit_extensions: input.explicit_extensions,
             entry_strategy: input.entry_strategy,
             dev: input.dev,
             scope: input.scope,
@@ -919,7 +919,7 @@ export const App = component$((props) => {
 "#
         .to_string(),
         transpile: true,
-        explicity_extensions: true,
+        explicit_extensions: true,
         ..TestInput::default()
     });
 }
@@ -938,7 +938,7 @@ export const App = component$((props) => {
 });
 "#
         .to_string(),
-        explicity_extensions: true,
+        explicit_extensions: true,
         entry_strategy: EntryStrategy::Single,
         ..TestInput::default()
     });
@@ -962,7 +962,7 @@ export const App2 = qwikify$(() => (
 "#
         .to_string(),
         transpile: true,
-        explicity_extensions: true,
+        explicit_extensions: true,
         ..TestInput::default()
     });
 }
@@ -1229,10 +1229,14 @@ import { componentQrl, inlinedQrl, Host, useStore, useLexicalScope } from "@buil
 import { jsx, jsxs } from "@builder.io/qwik/jsx-runtime";
 import { state } from './sibling';
 
-export const App = /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
-    const store = useStore({
+const useData = () => {
+    return useStore({
         count: 0
     });
+}
+
+export const App = /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
+    const store = useData();
     return /*#__PURE__*/ jsxs("div", {
         children: [
             /*#__PURE__*/ jsxs("p", {
@@ -1281,7 +1285,7 @@ export const Local = component$(() => {
         ],
         source_maps: true,
         minify: MinifyMode::Simplify,
-        explicity_extensions: true,
+        explicit_extensions: true,
         dev: true,
         entry_strategy: EntryStrategy::Hook,
         transpile: true,
@@ -1338,7 +1342,7 @@ export const Greeter = component$(() => {
         ],
         source_maps: true,
         minify: MinifyMode::Simplify,
-        explicity_extensions: true,
+        explicit_extensions: true,
         dev: true,
         entry_strategy: EntryStrategy::Hook,
         transpile: true,
@@ -1366,7 +1370,7 @@ export const Greeter = component$(() => {
             ],
             source_maps: false,
             minify: MinifyMode::Simplify,
-            explicity_extensions: true,
+            explicit_extensions: true,
             dev: option.0,
             entry_strategy: option.1,
             transpile: option.2,
@@ -1408,7 +1412,7 @@ struct TestInput {
     pub entry_strategy: EntryStrategy,
     pub minify: MinifyMode,
     pub transpile: bool,
-    pub explicity_extensions: bool,
+    pub explicit_extensions: bool,
     pub snapshot: bool,
     pub dev: bool,
     pub scope: Option<String>,
@@ -1423,7 +1427,7 @@ impl TestInput {
             entry_strategy: EntryStrategy::Hook,
             minify: MinifyMode::Simplify,
             transpile: false,
-            explicity_extensions: false,
+            explicit_extensions: false,
             snapshot: true,
             dev: true,
             scope: None,

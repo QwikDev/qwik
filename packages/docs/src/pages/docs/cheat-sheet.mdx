@@ -21,7 +21,7 @@ export function Component() {
       Hello world
     </div>
   )
-})
+}
 ```
 
 ## Button with a click handler
@@ -47,9 +47,9 @@ export function Component() {
   return (
     <button onClick={() => console.log('click')}>
       Click me
-    </div>
+    </button>
   )
-})
+}
 ```
 
 ## Declare local state
@@ -75,13 +75,11 @@ export const Component = component$(() => {
 export function Component() {
   const [value, setValue] = useState(0);
   return (
-    <Host>
-      <div>
-        Value is: ${value}
-      </div>
-    </Host>
+    <div>
+      Value is: ${value}
+    </div>
   )
-})
+}
 ```
 
 ## Create a counter component
@@ -117,7 +115,7 @@ export function Counter() {
       </button>
     </>
   )
-})
+}
 ```
 
 ## Create a clock that increments every second
@@ -157,10 +155,10 @@ export function Clock() {
   });
   return (
     <div>
-      Seconds: ${state.seconds}
+      Seconds: ${seconds}
     </div>
   )
-})
+}
 ```
 
 ## Perform a fetch request every time the state changes
@@ -202,10 +200,10 @@ export function Fetch() {
       .then((json) => setResponseJson(json));
   }, [url]);
   return (
-    <Host>
+    <>
       <div>${responseJson.name}</div>
       <input name="url" onInput={(ev) => setUrl(ev.target.value)} />
-    </Host>
+    </>
   );
 }
 ```
@@ -301,7 +299,7 @@ export function DynamicBackground() {
   const [green, setGreen] = useState(0);
   const [blue, setBlue] = useState(0);
   return (
-    <Host style={
+    <div style={
       'background': `rgb(${red}, ${green}, ${blue})`
     }>
       <button onClick={() => {
@@ -311,9 +309,9 @@ export function DynamicBackground() {
       }}>
         Change background
       </button>
-    </Host>
+    </div>
   )
-})
+}
 ```
 
 ## Create a component that renders a list of the presidents

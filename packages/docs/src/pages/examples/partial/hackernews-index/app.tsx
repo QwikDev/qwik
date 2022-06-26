@@ -13,7 +13,7 @@ export const HackerNews = component$(() => {
   return (
     <>
       <Nav />
-      <Stories data={store.data} />;
+      <Stories data={store.data} />
     </>
   );
 });

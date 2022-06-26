@@ -26,6 +26,12 @@
         "title": "Counter",
         "description": "A simple standard counter example.",
         "icon": "⏲"
+      },
+      {
+        "id": "auto-complete",
+        "title": "Auto-complete",
+        "description": "Auto-complete searching for Star Wars characters using the SWAPI API",
+        "icon": "🎬"
       }
     ]
   },

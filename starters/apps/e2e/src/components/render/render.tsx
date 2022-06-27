@@ -1,21 +1,27 @@
 import { component$, useStore, Host } from '@builder.io/qwik';
 
 export const Render = component$(() => {
-  const state = useStore({
-    count: 0,
-  });
-  if (state.count === 3) {
-    return null;
-  }
+  const state = useStore(
+    {
+      counter: {
+        count: 0,
+      },
+    },
+    { recursive: true }
+  );
   return (
     <Host>
       <button
         onClick$={() => {
-          state.count++;
+          state.counter.count++;
         }}
       >
-        Rerender {state.count}
+        <Child counter={state.counter}></Child>
       </button>
     </Host>
   );
+});
+
+export const Child = component$((props: { counter: { count: number } }) => {
+  return <Host>Rerender {props.counter.count}</Host>;
 });

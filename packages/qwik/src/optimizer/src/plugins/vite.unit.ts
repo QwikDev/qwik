@@ -17,10 +17,10 @@ describe('vite  plugin', () => {
   const deps = [
     '@builder.io/qwik',
     '@builder.io/qwik/jsx-runtime',
-    "react",
-    "react-dom/client",
-    "hoist-non-react-statics",
-    "@emotion/react",
+    'react',
+    'react-dom/client',
+    'hoist-non-react-statics',
+    '@emotion/react',
   ];
 
   describe('config', () => {

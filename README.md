@@ -23,6 +23,10 @@ npm init qwik@latest
 - Understand the difference between [resumable and replayable](https://github.com/BuilderIO/qwik/blob/main/packages/docs/src/pages/docs/concepts/resumable.mdx) applications.
 - Learn about Qwik's high level [mental model](https://github.com/BuilderIO/qwik/blob/main/packages/docs/src/pages/docs/think-qwik.mdx).
 
+## Docs
+
+- [Official Docs](https://qwik.builder.io)
+
 ## Blog Posts
 
 - [HTML-first, JavaScript last: the secret to web speed!](https://dev.to/mhevery/html-first-javascript-last-the-secret-to-web-speed-4ic9)

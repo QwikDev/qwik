@@ -38,12 +38,6 @@ const tests = {
     paramNames: ['catchall'],
     paramTypes: [undefined],
   },
-  // TODO!!!!!
-  // '/[[...optionalcatchall]]': {
-  //   pattern: /^(?:\/(.*))?\/?$/,
-  //   paramNames: ['catchall'],
-  //   paramTypes: [undefined],
-  // },
   '/foo/[...catchall]/bar': {
     pattern: /^\/foo(?:\/(.*))?\/bar\/?$/,
     paramNames: ['catchall'],

@@ -12,22 +12,19 @@ export function parseRouteId(pathname: string) {
 
   let addTrailingSlash = true;
 
-  if (pathname.charAt(0) === '/') {
-    pathname = pathname.slice(1);
-  }
+  pathname = pathname.slice(1);
 
   pathname = decodeURIComponent(pathname);
 
-  const segments = pathname.split('/');
-
   const pattern = new RegExp(
-    `^${segments
+    `^${pathname
+      .split('/')
       .map((segment, i, segments) => {
         // special case — /[...rest]/ could contain zero segments
-        const match = /^\[\.\.\.(\w+)(?:=(\w+))?\]$/.exec(segment);
-        if (match) {
-          paramNames.push(match[1]);
-          paramTypes.push(match[2]);
+        const catchAll = /^\[\.\.\.(\w+)(?:=(\w+))?\]$/.exec(segment);
+        if (catchAll) {
+          paramNames.push(catchAll[1]);
+          paramTypes.push(catchAll[2]);
           return '(?:/(.*))?';
         }
 

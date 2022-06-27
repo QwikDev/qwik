@@ -1061,7 +1061,7 @@ impl<'a> Fold for QwikTransform<'a> {
                                         handler
                                             .struct_span_err_with_code(
                                                 ident.span,
-                                                "Version without $ is not exported.",
+                                                &format!("Found '{}' but did not find the corresponding '{}' exported in the same file. Please check that it is exported and spelled correctly", &ident.sym, &new_specifier),
                                                 DiagnosticId::Error(
                                                     "missing-qrl-implementation".into(),
                                                 ),

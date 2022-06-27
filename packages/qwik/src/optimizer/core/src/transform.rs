@@ -88,7 +88,8 @@ pub struct QwikTransform<'a> {
     pub options: QwikTransformOptions<'a>,
 
     hooks_names: HashMap<String, u32>,
-    extra_module_items: BTreeMap<Id, ast::ModuleItem>,
+    extra_top_items: BTreeMap<Id, ast::ModuleItem>,
+    extra_bottom_items: BTreeMap<Id, ast::ModuleItem>,
     stack_ctxt: Vec<String>,
     position_ctxt: Vec<PositionToken>,
     decl_stack: Vec<Vec<IdPlusType>>,
@@ -108,7 +109,7 @@ pub struct QwikTransformOptions<'a> {
     pub path_data: &'a PathData,
     pub entry_policy: &'a dyn EntryPolicy,
     pub extension: JsWord,
-    pub explicity_extensions: bool,
+    pub explicit_extensions: bool,
     pub comments: Option<&'a SingleThreadedComments>,
     pub global_collect: GlobalCollect,
     pub scope: Option<&'a String>,
@@ -162,7 +163,8 @@ impl<'a> QwikTransform<'a> {
             in_component: false,
             hooks: Vec::with_capacity(16),
             hook_stack: Vec::with_capacity(16),
-            extra_module_items: BTreeMap::new(),
+            extra_top_items: BTreeMap::new(),
+            extra_bottom_items: BTreeMap::new(),
             hooks_names: HashMap::new(),
             qcomponent_fn: options
                 .global_collect
@@ -302,6 +304,14 @@ impl<'a> QwikTransform<'a> {
         };
         let local_idents = self.get_local_idents(&folded);
 
+        for id in &local_idents {
+            if !self.options.global_collect.exports.contains_key(id)
+                && self.options.global_collect.root.contains_key(id)
+            {
+                self.ensure_export(id);
+            }
+        }
+
         let hook_data = HookData {
             extension: self.options.extension.clone(),
             local_idents,
@@ -402,6 +412,7 @@ impl<'a> QwikTransform<'a> {
                             )
                             .emit();
                     });
+                    // }
                 }
                 if invalid_decl.contains(id) {
                     HANDLER.with(|handler| {
@@ -503,7 +514,7 @@ impl<'a> QwikTransform<'a> {
                 .map(|e| e.as_ref())
                 .unwrap_or(&canonical_filename)
         );
-        if self.options.explicity_extensions {
+        if self.options.explicit_extensions {
             filename.push('.');
             filename.push_str(&self.options.extension);
         }
@@ -594,12 +605,19 @@ impl<'a> QwikTransform<'a> {
             .synthetic;
 
         if is_synthetic && self.is_inside_module() {
-            self.extra_module_items.insert(
+            self.extra_top_items.insert(
                 new_local.clone(),
                 create_synthetic_named_import(&new_local, &source),
             );
         }
         new_local
+    }
+
+    fn ensure_export(&mut self, id: &Id) {
+        if self.options.global_collect.add_export(id.clone(), None) {
+            self.extra_bottom_items
+                .insert(id.clone(), create_synthetic_named_export(id));
+        }
     }
 
     fn create_qrl(&mut self, url: JsWord, symbol: &str, idents: &[Id]) -> ast::CallExpr {
@@ -745,8 +763,9 @@ impl<'a> Fold for QwikTransform<'a> {
     fn fold_module(&mut self, node: ast::Module) -> ast::Module {
         let mut body = Vec::with_capacity(node.body.len() + 10);
         let mut module_body = node.body.into_iter().map(|i| i.fold_with(self)).collect();
-        body.extend(self.extra_module_items.values().cloned());
+        body.extend(self.extra_top_items.values().cloned());
         body.append(&mut module_body);
+        body.extend(self.extra_bottom_items.values().cloned());
 
         ast::Module { body, ..node }
     }
@@ -1209,27 +1228,20 @@ pub fn create_synthetic_named_import_auto(
     }))
 }
 
-// pub fn create_synthetic_named_export(local: &JsWord, src: &JsWord) -> ast::ModuleItem {
-//     ast::ModuleItem::ModuleDecl(ast::ModuleDecl::ExportNamed(ast::NamedExport {
-//         span: DUMMY_SP,
-//         asserts: None,
-//         type_only: false,
-//         src: Some(ast::Str {
-//             span: DUMMY_SP,
-//             has_escape: false,
-//             value: src.clone(),
-//             kind: ast::StrKind::Normal {
-//                 contains_quote: false,
-//             },
-//         }),
-//         specifiers: vec![ast::ExportSpecifier::Named(ast::ExportNamedSpecifier {
-//             is_type_only: false,
-//             exported: None,
-//             orig: ast::ModuleExportName::Ident(ast::Ident::new(local.clone(), DUMMY_SP)),
-//             span: DUMMY_SP,
-//         })],
-//     }))
-// }
+pub fn create_synthetic_named_export(local: &Id) -> ast::ModuleItem {
+    ast::ModuleItem::ModuleDecl(ast::ModuleDecl::ExportNamed(ast::NamedExport {
+        span: DUMMY_SP,
+        type_only: false,
+        asserts: None,
+        specifiers: vec![ast::ExportSpecifier::Named(ast::ExportNamedSpecifier {
+            span: DUMMY_SP,
+            is_type_only: false,
+            orig: ast::ModuleExportName::Ident(new_ident_from_id(local)),
+            exported: None,
+        })],
+        src: None,
+    }))
+}
 
 pub fn create_synthetic_named_import(local: &Id, src: &JsWord) -> ast::ModuleItem {
     ast::ModuleItem::ModuleDecl(ast::ModuleDecl::Import(ast::ImportDecl {

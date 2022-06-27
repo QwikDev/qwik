@@ -25,8 +25,8 @@ export const App_component_div_p_button_onClick_8dWUa0cJAr4 = ()=>{
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    665,
-    797
+    714,
+    846
   ]
 }
 */
@@ -35,11 +35,9 @@ export const App_component_div_p_button_onClick_8dWUa0cJAr4 = ()=>{
 import { jsx } from "@builder.io/qwik/jsx-runtime";
 import { jsxs } from "@builder.io/qwik/jsx-runtime";
 import { qrl } from "@builder.io/qwik";
-import { useStore } from "@builder.io/qwik";
+import { useData } from "../../node_modules/dep/dist/lib";
 export const App_component_AkbU84a8zes = ()=>{
-    const store = useStore({
-        count: 0
-    });
+    const store = useData();
     return /*#__PURE__*/ jsxs("div", {
         children: [
             /*#__PURE__*/ jsxs("p", {
@@ -75,17 +73,23 @@ export const App_component_AkbU84a8zes = ()=>{
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    247,
-    996
+    321,
+    1045
   ]
 }
 */
 ============================= ../../node_modules/dep/dist/lib.js ==
 
 import { qrl } from "@builder.io/qwik";
-import { componentQrl } from "@builder.io/qwik";
+import { componentQrl, useStore } from "@builder.io/qwik";
+const useData = ()=>{
+    return useStore({
+        count: 0
+    });
+};
 export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("../../../src/thing/app_component_akbu84a8zes.js")
 , "App_component_AkbU84a8zes"));
+export { useData };
 
 ============================= local_component_jj0v28bs0p8.js (ENTRY POINT)==
 

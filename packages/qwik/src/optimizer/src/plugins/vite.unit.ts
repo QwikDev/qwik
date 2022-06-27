@@ -14,6 +14,15 @@ describe('vite  plugin', () => {
     };
   });
 
+  const deps = [
+    '@builder.io/qwik',
+    '@builder.io/qwik/jsx-runtime',
+    'react',
+    'react-dom/client',
+    'hoist-non-react-statics',
+    '@emotion/react',
+  ];
+
   describe('config', () => {
     it('command: serve, mode: development', async () => {
       const plugin: VitePlugin = qwikVite(initOpts);
@@ -38,7 +47,7 @@ describe('vite  plugin', () => {
       expect(build.polyfillModulePreload).toBe(false);
       expect(build.dynamicImportVarsOptions?.exclude).toEqual([/./]);
       expect(build.ssr).toBe(undefined);
-      expect(c.optimizeDeps?.include).toEqual(['@builder.io/qwik', '@builder.io/qwik/jsx-runtime']);
+      expect(c.optimizeDeps?.include).toEqual(deps);
       expect(c.esbuild).toEqual(false);
       expect((c as any).ssr).toBeUndefined();
     });
@@ -66,7 +75,7 @@ describe('vite  plugin', () => {
       expect(build.polyfillModulePreload).toBe(false);
       expect(build.dynamicImportVarsOptions?.exclude).toEqual([/./]);
       expect(build.ssr).toBe(undefined);
-      expect(c.optimizeDeps?.include).toEqual(['@builder.io/qwik', '@builder.io/qwik/jsx-runtime']);
+      expect(c.optimizeDeps?.include).toEqual(deps);
       expect(c.esbuild).toEqual(false);
       expect((c as any).ssr).toBeUndefined();
     });
@@ -93,7 +102,7 @@ describe('vite  plugin', () => {
       expect(build.polyfillModulePreload).toBe(false);
       expect(build.dynamicImportVarsOptions?.exclude).toEqual([/./]);
       expect(build.ssr).toBe(undefined);
-      expect(c.optimizeDeps?.include).toEqual(['@builder.io/qwik', '@builder.io/qwik/jsx-runtime']);
+      expect(c.optimizeDeps?.include).toEqual(deps);
       expect(c.esbuild).toEqual(false);
       expect((c as any).ssr).toBeUndefined();
     });
@@ -122,7 +131,7 @@ describe('vite  plugin', () => {
       expect(build.polyfillModulePreload).toBe(false);
       expect(build.dynamicImportVarsOptions?.exclude).toEqual([/./]);
       expect(build.ssr).toBe(undefined);
-      expect(c.optimizeDeps?.include).toEqual(['@builder.io/qwik', '@builder.io/qwik/jsx-runtime']);
+      expect(c.optimizeDeps?.include).toEqual(deps);
       expect(c.esbuild).toEqual(false);
       expect((c as any).ssr).toBeUndefined();
     });
@@ -171,7 +180,7 @@ describe('vite  plugin', () => {
       expect(build.polyfillModulePreload).toBe(false);
       expect(build.dynamicImportVarsOptions?.exclude).toEqual([/./]);
       expect(build.ssr).toBe(true);
-      expect(c.optimizeDeps?.include).toEqual(['@builder.io/qwik', '@builder.io/qwik/jsx-runtime']);
+      expect(c.optimizeDeps?.include).toEqual(deps);
       expect(c.esbuild).toEqual(false);
       expect(c.publicDir).toBe(false);
     });

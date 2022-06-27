@@ -265,8 +265,8 @@ const Parent = component$(() => {
 In the above example the Optimizer transforms the above to:
 
 ```tsx
-const Child = component$(qrl('./chunk-a', 'Child_onMount'));
-const Parent = component$(qrl('./chunk-b', 'Parent_onMount'));
+const Child = componentQrl(qrl('./chunk-a', 'Child_onMount'));
+const Parent = componentQrl(qrl('./chunk-b', 'Parent_onMount'));
 const Parent_onMount = () => qrl('./chunk-c', 'Parent_onRender');
 const Parent_onRender = () => (
   <section>

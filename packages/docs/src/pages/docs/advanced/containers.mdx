@@ -40,7 +40,7 @@ A typical site is composed of two logical parts:
 1. The navigation that tends to stay constant across many pages, and
 2. The outlet, which is the part of the page that changes based on which route the user navigated to.
 
-We can model the two parts as two navigation and outlet containers. When the user first navigates to a route, the server responds with HTML, which contains containers for both the navigation and the outlet. Once the user navigates to the second route, there are three ways to solve the navigation:
+We can model the two parts as two navigation and outlet containers. When the user first navigates to a route, the server responds with HTML, that contains containers for both the navigation and the outlet. Once the user navigates to the second route, there are three ways to solve the navigation:
 
 1. The simplistic approach is to make a full round trip and download an entirely new page. The main downside is that the application loses all of its states on the client.
 1. The classical approach is to treat any further navigation in JavaScript. We replace the current outlet component with the new outlet component and let the new component render. The disadvantage is that we need to download and execute the JavaScript.

@@ -1,0 +1,31 @@
+---
+title: Binding to Host Element
+layout: tutorial
+---
+
+The host element is used to mark the component boundaries. Without the host element, Qwik would not know where components start and end. This information is needed so that components can render independently and out of order, a key feature of Qwik.
+
+
+## Binding to the Host Element
+
+In the previous example, we talked about how a component can be bound to its host element using `<Host>` element. It is also possible for the parent container to bind to the child components' host element. This can be done with the `host:` prefix.
+
+Let's imagine that we have a component `<SomeComponent>`. We can only set a property on a component if the component expects a property of that name. So how can we tell Qwik that we wish to bind to the HTML host element rather than a component?
+
+This can be achieved with the `host:` prefix. The `host:` tells Qwik to place the binding directly on the DOM host element, rather than as a prop of child component.
+
+```jsx
+<SomeComponent title="Component Title" host:title="Host Element Title"/>
+```
+
+In the above example the:
+-  `title="Component Title"` binds to the component props. (Assuming  that the component has declared `title` as its input.) 
+- `host:title="Host Element Title"` binds to the DOM host element's attribute `title`.
+
+The `host:` prefix can also be used for binding to the host element's events. 
+
+## Example
+
+In the example on the right add:
+- style binding to change the background color of the `<button>`
+- add a click implementation to the `host:onClick$` handler to increment `store.count` property.

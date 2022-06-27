@@ -196,6 +196,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
       const vendorIds = vendorRoots.map((v) => v.id);
       const updatedViteConfig: UserConfig = {
+        esbuild: false,
         resolve: {
           dedupe: [...DEDUPE, ...vendorIds],
         },

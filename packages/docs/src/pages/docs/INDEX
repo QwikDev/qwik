@@ -5,6 +5,8 @@
 - [Overview](overview.mdx)
 - [Getting Started](getting-started.mdx)
 - [Think Qwik](think-qwik.mdx)
+- [Cheat Sheet](cheat-sheet.mdx)
+
 
 ## Component API
 
@@ -12,7 +14,8 @@
 - [Anatomy](components/anatomy.mdx)
 - [Hooks](components/hooks.mdx)
 - [Events](components/events.mdx)
-- [Lite elements](components/lite-components.mdx)
+- [Context](components/context.mdx)
+- [Lite components](components/lite-components.mdx)
 - [Content projection](components/projection.mdx)
 - [Rendering](components/rendering.mdx)
 

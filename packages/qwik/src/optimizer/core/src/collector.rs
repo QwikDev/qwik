@@ -101,8 +101,13 @@ impl GlobalCollect {
         self.imports.insert(local, import);
     }
 
-    pub fn add_export(&mut self, local: Id, exported: Option<JsWord>) {
-        self.exports.entry(local).or_insert(exported);
+    pub fn add_export(&mut self, local: Id, exported: Option<JsWord>) -> bool {
+        if let std::collections::hash_map::Entry::Vacant(e) = self.exports.entry(local) {
+            e.insert(exported);
+            true
+        } else {
+            false
+        }
     }
 }
 

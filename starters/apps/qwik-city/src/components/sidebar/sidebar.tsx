@@ -14,9 +14,12 @@ export const SideBar = component$(
     return (
       <Host class="sidebar">
         <nav class="breadcrumbs">
-          <ol>
+          <ol itemScope itemType="https://schema.org/BreadcrumbList">
             {page.breadcrumbs.map((b) => (
-              <li>{b.text}</li>
+              <li>
+                {b.text}
+                <meta itemProp="position" content="0"></meta>
+              </li>
             ))}
           </ol>
         </nav>

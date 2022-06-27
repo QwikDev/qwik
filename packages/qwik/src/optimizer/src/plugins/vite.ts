@@ -25,6 +25,17 @@ import { createRollupError, normalizeRollupOutputOptions } from './rollup';
 import { QWIK_LOADER_DEFAULT_DEBUG, QWIK_LOADER_DEFAULT_MINIFIED } from '../scripts';
 import { versions } from '../versions';
 
+const OPTIMIZE_DEPS = [
+  QWIK_CORE_ID,
+  QWIK_JSX_RUNTIME_ID,
+  'react',
+  'react-dom/client',
+  'hoist-non-react-statics',
+  '@emotion/react',
+];
+
+const DEDUPE = [QWIK_CORE_ID, QWIK_JSX_RUNTIME_ID, 'react', 'react-dom', '@emotion/react'];
+
 /**
  * @alpha
  */
@@ -96,6 +107,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         debug: qwikViteOpts.debug,
         entryStrategy: qwikViteOpts.entryStrategy,
         rootDir: viteConfig.root,
+        resolveQwikBuild: viteEnv.command === 'build',
         transformedModuleOutput: qwikViteOpts.transformedModuleOutput,
         forceFullBuild,
         vendorRoots: vendorRoots.map((v) => v.path),
@@ -184,12 +196,14 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
       const vendorIds = vendorRoots.map((v) => v.id);
       const updatedViteConfig: UserConfig = {
-        esbuild: false,
+        esbuild: {
+          include: /\.(m|c)?js$/
+        },
         resolve: {
-          dedupe: [QWIK_CORE_ID, QWIK_JSX_RUNTIME_ID, ...vendorIds],
+          dedupe: [...DEDUPE, ...vendorIds],
         },
         optimizeDeps: {
-          include: [QWIK_CORE_ID, QWIK_JSX_RUNTIME_ID],
+          include: OPTIMIZE_DEPS,
           exclude: [
             '@vite/client',
             '@vite/env',

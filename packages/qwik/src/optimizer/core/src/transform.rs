@@ -614,8 +614,7 @@ impl<'a> QwikTransform<'a> {
     }
 
     fn ensure_export(&mut self, id: &Id) {
-        self.options.global_collect.add_export(id.clone(), None);
-        if self.is_inside_module() {
+        if self.options.global_collect.add_export(id.clone(), None) {
             self.extra_bottom_items
                 .insert(id.clone(), create_synthetic_named_export(id));
         }

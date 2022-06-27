@@ -53,6 +53,7 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
         srcDir: qwikRollupOpts.srcDir,
         srcInputs: qwikRollupOpts.srcInputs,
         input: inputOpts.input as string,
+        resolveQwikBuild: true,
         manifestOutput: qwikRollupOpts.manifestOutput,
         manifestInput: qwikRollupOpts.manifestInput,
         transformedModuleOutput: qwikRollupOpts.transformedModuleOutput,

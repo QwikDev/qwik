@@ -1223,6 +1223,105 @@ export const Root = () => {
 }
 
 #[test]
+fn example_qwik_react() {
+    test_input!(TestInput {
+        code: r#"
+import { componentQrl, inlinedQrl, useLexicalScope, useHostElement, useStore, useWatchQrl, noSerialize, Host, SkipRerender, implicit$FirstArg } from '@builder.io/qwik';
+import { jsx, Fragment } from '@builder.io/qwik/jsx-runtime';
+import { isBrowser, isServer } from '@builder.io/qwik/build';
+
+function qwikifyQrl(reactCmpQrl) {
+    return /*#__PURE__*/ componentQrl(inlinedQrl((props)=>{
+        const [reactCmpQrl] = useLexicalScope();
+        const hostElement = useHostElement();
+        const store = useStore({});
+        let run;
+        if (props['client:visible']) run = 'visible';
+        else if (props['client:load'] || props['client:only']) run = 'load';
+        useWatchQrl(inlinedQrl(async (track)=>{
+            const [hostElement, props, reactCmpQrl, store] = useLexicalScope();
+            track(props);
+            if (isBrowser) {
+                if (store.data) store.data.root.render(store.data.client.Main(store.data.cmp, filterProps(props)));
+                else {
+                    const [Cmp, client] = await Promise.all([
+                        reactCmpQrl.resolve(),
+                        import('./client-f762f78c.js')
+                    ]);
+                    let root;
+                    if (hostElement.childElementCount > 0) root = client.hydrateRoot(hostElement, client.Main(Cmp, filterProps(props), store.event));
+                    else {
+                        root = client.createRoot(hostElement);
+                        root.render(client.Main(Cmp, filterProps(props)));
+                    }
+                    store.data = noSerialize({
+                        client,
+                        cmp: Cmp,
+                        root
+                    });
+                }
+            }
+        }, "qwikifyQrl_component_useWatch_x04JC5xeP1U", [
+            hostElement,
+            props,
+            reactCmpQrl,
+            store
+        ]), {
+            run
+        });
+        if (isServer && !props['client:only']) {
+            const jsx$1 = Promise.all([
+                reactCmpQrl.resolve(),
+                import('./server-9ac6caad.js')
+            ]).then(([Cmp, server])=>{
+                const html = server.render(Cmp, filterProps(props));
+                return /*#__PURE__*/ jsx(Host, {
+                    dangerouslySetInnerHTML: html
+                });
+            });
+            return /*#__PURE__*/ jsx(Fragment, {
+                children: jsx$1
+            });
+        }
+        return /*#__PURE__*/ jsx(Host, {
+            children: /*#__PURE__*/ jsx(SkipRerender, {})
+        });
+    }, "qwikifyQrl_component_zH94hIe0Ick", [
+        reactCmpQrl
+    ]), {
+        tagName: 'qwik-wrap'
+    });
+}
+const filterProps = (props)=>{
+    const obj = {};
+    Object.keys(props).forEach((key)=>{
+        if (!key.startsWith('client:')) obj[key] = props[key];
+    });
+    return obj;
+};
+const qwikify$ = implicit$FirstArg(qwikifyQrl);
+
+async function renderToString(rootNode, opts) {
+    const mod = await import('./server-9ac6caad.js');
+    const result = await mod.renderToString(rootNode, opts);
+    const styles = mod.getGlobalStyleTag(result.html);
+    const finalHtml = styles + result.html;
+    return {
+        ...result,
+        html: finalHtml
+    };
+}
+
+export { qwikify$, qwikifyQrl, renderToString };
+        "#
+        .to_string(),
+        filename: "../node_modules/@builder.io/qwik-react/index.qwik.js".to_string(),
+        entry_strategy: EntryStrategy::Hook,
+        ..TestInput::default()
+    });
+}
+
+#[test]
 fn relative_paths() {
     let dep = r#"
 import { componentQrl, inlinedQrl, Host, useStore, useLexicalScope } from "@builder.io/qwik";

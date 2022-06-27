@@ -1,4 +1,4 @@
-/** @jsxImportSource react */
+/** @jsxImportSource @emotion/react */
 
 import { CacheProvider } from '@emotion/react';
 import { renderToString } from 'react-dom/server';

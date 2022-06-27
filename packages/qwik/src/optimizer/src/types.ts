@@ -74,7 +74,7 @@ export interface TransformOptions {
   minify?: MinifyMode;
   sourceMaps?: boolean;
   transpile?: boolean;
-  explicityExtensions?: boolean;
+  explicitExtensions?: boolean;
   dev?: boolean;
   scope?: string;
 }

@@ -61,7 +61,7 @@ pub struct TransformCodeOptions<'a> {
     pub source_maps: bool,
     pub minify: MinifyMode,
     pub transpile: bool,
-    pub explicity_extensions: bool,
+    pub explicit_extensions: bool,
     pub code: &'a str,
     pub entry_policy: &'a dyn EntryPolicy,
     pub dev: bool,
@@ -255,7 +255,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                     let mut qwik_transform = QwikTransform::new(QwikTransformOptions {
                         path_data: &path_data,
                         entry_policy: config.entry_policy,
-                        explicity_extensions: config.explicity_extensions,
+                        explicit_extensions: config.explicit_extensions,
                         extension: extension.clone(),
                         comments: Some(&comments),
                         global_collect: collect,

@@ -100,6 +100,15 @@ impl GlobalCollect {
         );
         self.imports.insert(local, import);
     }
+
+    pub fn add_export(&mut self, local: Id, exported: Option<JsWord>) -> bool {
+        if let std::collections::hash_map::Entry::Vacant(e) = self.exports.entry(local) {
+            e.insert(exported);
+            true
+        } else {
+            false
+        }
+    }
 }
 
 impl Visit for GlobalCollect {
@@ -189,7 +198,7 @@ impl Visit for GlobalCollect {
                         _ => None,
                     };
                     if let Some(local) = local {
-                        self.exports.entry(local).or_insert(exported);
+                        self.add_export(local, exported);
                     }
                 }
                 ast::ExportSpecifier::Default(default) => {
@@ -211,10 +220,10 @@ impl Visit for GlobalCollect {
     fn visit_export_decl(&mut self, node: &ast::ExportDecl) {
         match &node.decl {
             ast::Decl::Class(class) => {
-                self.exports.insert(id!(class.ident), None);
+                self.add_export(id!(class.ident), None);
             }
             ast::Decl::Fn(func) => {
-                self.exports.insert(id!(func.ident), None);
+                self.add_export(id!(func.ident), None);
             }
             ast::Decl::Var(var) => {
                 for decl in &var.decls {
@@ -233,12 +242,12 @@ impl Visit for GlobalCollect {
         match &node.decl {
             ast::DefaultDecl::Class(class) => {
                 if let Some(ident) = &class.ident {
-                    self.exports.insert(id!(ident), Some(js_word!("default")));
+                    self.add_export(id!(ident), Some(js_word!("default")));
                 }
             }
             ast::DefaultDecl::Fn(func) => {
                 if let Some(ident) = &func.ident {
-                    self.exports.insert(id!(ident), Some(js_word!("default")));
+                    self.add_export(id!(ident), Some(js_word!("default")));
                 }
             }
             _ => {
@@ -249,13 +258,13 @@ impl Visit for GlobalCollect {
 
     fn visit_binding_ident(&mut self, node: &ast::BindingIdent) {
         if self.in_export_decl {
-            self.exports.insert(id!(node.id), None);
+            self.add_export(id!(node.id), None);
         }
     }
 
     fn visit_assign_pat_prop(&mut self, node: &ast::AssignPatProp) {
         if self.in_export_decl {
-            self.exports.insert(id!(node.key), None);
+            self.add_export(id!(node.key), None);
         }
     }
 }

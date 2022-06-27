@@ -17,7 +17,7 @@ struct OptimizerInput {
     transpile: bool,
     minify: MinifyMode,
     sourcemaps: bool,
-    explicity_extensions: bool,
+    explicit_extensions: bool,
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -99,7 +99,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             glob: None,
             strategy,
             minify,
-            explicity_extensions: matches.is_present("extensions"),
+            explicit_extensions: matches.is_present("extensions"),
             transpile: !matches.is_present("no-transpile"),
             sourcemaps: matches.is_present("sourcemaps"),
         })?;
@@ -121,7 +121,7 @@ fn optimize(
         minify: optimizer_input.minify,
         transpile: optimizer_input.transpile,
         entry_strategy: optimizer_input.strategy,
-        explicity_extensions: optimizer_input.explicity_extensions,
+        explicit_extensions: optimizer_input.explicit_extensions,
         dev: true,
         scope: None,
     })?;

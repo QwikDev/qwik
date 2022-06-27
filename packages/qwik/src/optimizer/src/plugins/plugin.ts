@@ -38,6 +38,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     rootDir: null as any,
     input: null as any,
     outDir: null as any,
+    resolveQwikBuild: false,
     forceFullBuild: false,
     entryStrategy: null as any,
     srcDir: null as any,
@@ -280,7 +281,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         entryStrategy: opts.entryStrategy,
         minify: 'simplify',
         transpile: true,
-        explicityExtensions: true,
+        explicitExtensions: true,
         dev: opts.buildMode === 'development',
         scope: opts.scope ? opts.scope : undefined,
       };
@@ -312,7 +313,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       };
     }
 
-    if (opts.buildMode === 'production' && id === QWIK_BUILD_ID) {
+    if (opts.resolveQwikBuild && id === QWIK_BUILD_ID) {
       log(`resolveId()`, 'Resolved', QWIK_BUILD_ID);
       return {
         id: normalizePath(path.resolve(opts.rootDir, QWIK_BUILD_ID)),
@@ -369,7 +370,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
   };
 
   const load = async (_ctx: any, id: string, loadOpts: { ssr?: boolean } = {}) => {
-    if (opts.buildMode === 'production' && id.endsWith(QWIK_BUILD_ID)) {
+    if (opts.resolveQwikBuild && id.endsWith(QWIK_BUILD_ID)) {
       log(`load()`, QWIK_BUILD_ID, opts.buildMode);
       return {
         moduleSideEffects: false,
@@ -463,7 +464,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         minify: 'simplify',
         sourceMaps: false,
         transpile: true,
-        explicityExtensions: true,
+        explicitExtensions: true,
         srcDir: opts.srcDir ? opts.srcDir : normalizePath(dir),
         dev: opts.buildMode === 'development',
         scope: opts.scope ? opts.scope : undefined,
@@ -665,6 +666,7 @@ export interface QwikPluginOptions {
   srcDir?: string | null;
   scope?: string | null;
   srcInputs?: TransformModuleInput[] | null;
+  resolveQwikBuild?: boolean;
   target?: QwikBuildTarget;
   transformedModuleOutput?:
     | ((transformedModules: TransformModule[]) => Promise<void> | void)

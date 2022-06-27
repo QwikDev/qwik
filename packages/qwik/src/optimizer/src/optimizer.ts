@@ -86,7 +86,7 @@ const convertOptions = (opts: any) => {
     minify: 'simplify',
     sourceMaps: false,
     transpile: false,
-    explicityExtensions: false,
+    explicitExtensions: false,
     dev: true,
     scope: undefined,
   };

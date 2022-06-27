@@ -196,9 +196,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
       const vendorIds = vendorRoots.map((v) => v.id);
       const updatedViteConfig: UserConfig = {
-        esbuild: {
-          include: /\.(m|c)?js$/
-        },
         resolve: {
           dedupe: [...DEDUPE, ...vendorIds],
         },

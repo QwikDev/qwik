@@ -40,13 +40,12 @@ export const qwikLoader = (doc: Document, hasInitialized?: number, prefetchWorke
   };
 
   const dispatch = async (element: Element, eventName: string, ev: Event) => {
+    if (element.hasAttribute('preventdefault:' + eventName)) {
+      ev.preventDefault();
+    }
     for (const onPrefix of ON_PREFIXES) {
       const attrValue = element.getAttribute(onPrefix + eventName);
       if (attrValue) {
-        if (element.hasAttribute('preventdefault:' + eventName)) {
-          ev.preventDefault();
-        }
-
         for (const qrl of attrValue.split('\n')) {
           const url = qrlResolver(element, qrl);
           if (url) {

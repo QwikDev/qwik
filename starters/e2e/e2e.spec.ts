@@ -521,4 +521,19 @@ test.describe('e2e', () => {
       await expect(logs).toHaveText(logsStr);
     });
   });
+
+  test.describe('render', () => {
+    test.beforeEach(async ({ page }) => {
+      await page.goto('/e2e/render');
+      page.on('pageerror', (err) => expect(err).toEqual(undefined));
+    });
+
+    test('should load', async ({ page }) => {
+      const button = await page.locator('button');
+
+      await expect(button).toHaveText('Rerender 0');
+      await button.click();
+      await expect(button).toHaveText('Rerender 1');
+    });
+  });
 });

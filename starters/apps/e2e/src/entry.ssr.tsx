@@ -39,7 +39,7 @@ export function render(opts: RenderOptions) {
     '/e2e/context': () => <ContextRoot />,
     '/e2e/toggle': () => <Toggle />,
     '/e2e/styles': () => <Styles />,
-    '/e2e/broadcast-events': () => <BroadcastEvents />
+    '/e2e/broadcast-events': () => <BroadcastEvents />,
   };
   const Test = tests[url.pathname];
 
@@ -71,6 +71,6 @@ export function render(opts: RenderOptions) {
         <Test />
       </body>
     </html>,
-    { debug: true, qwikLoader: { include: true, events: ['click'] }, ...opts }
+    { debug: true, qwikLoader: { include: true }, ...opts }
   );
 }

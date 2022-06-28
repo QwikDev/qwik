@@ -9,13 +9,12 @@
  */
 export const qwikLoader = (doc: Document, hasInitialized?: number, prefetchWorker?: Worker) => {
   const Q_CONTEXT = '__q_context__';
-  const ON_PREFIXES = ['on:', 'on-window:', 'on-document:'];
 
   const broadcast = (infix: string, type: string, ev: Event) => {
     type = type.replace(/([A-Z])/g, (a) => '-' + a.toLowerCase());
     doc
       .querySelectorAll('[on' + infix + '\\:' + type + ']')
-      .forEach((target) => dispatch(target, type, ev));
+      .forEach((target) => dispatch(target, infix, type, ev));
   };
 
   const emitEvent = (el: Element, eventName: string, detail: any) =>
@@ -39,29 +38,27 @@ export const qwikLoader = (doc: Document, hasInitialized?: number, prefetchWorke
     );
   };
 
-  const dispatch = async (element: Element, eventName: string, ev: Event) => {
+  const dispatch = async (element: Element, onPrefix: string, eventName: string, ev: Event) => {
     if (element.hasAttribute('preventdefault:' + eventName)) {
       ev.preventDefault();
     }
-    for (const onPrefix of ON_PREFIXES) {
-      const attrValue = element.getAttribute(onPrefix + eventName);
-      if (attrValue) {
-        for (const qrl of attrValue.split('\n')) {
-          const url = qrlResolver(element, qrl);
-          if (url) {
-            const symbolName = getSymbolName(url);
-            const module =
-              (window as any)[url.pathname] || findModule(await import(url.href.split('#')[0]));
-            const handler = module[symbolName] || error(url + ' does not export ' + symbolName);
-            const previousCtx = (doc as any)[Q_CONTEXT];
-            if (element.isConnected) {
-              try {
-                (doc as any)[Q_CONTEXT] = [element, ev, url];
-                handler(ev, element, url);
-              } finally {
-                (doc as any)[Q_CONTEXT] = previousCtx;
-                emitEvent(element, 'qsymbol', symbolName);
-              }
+    const attrValue = element.getAttribute('on' + onPrefix + ':' + eventName);
+    if (attrValue) {
+      for (const qrl of attrValue.split('\n')) {
+        const url = qrlResolver(element, qrl);
+        if (url) {
+          const symbolName = getSymbolName(url);
+          const module =
+            (window as any)[url.pathname] || findModule(await import(url.href.split('#')[0]));
+          const handler = module[symbolName] || error(url + ' does not export ' + symbolName);
+          const previousCtx = (doc as any)[Q_CONTEXT];
+          if (element.isConnected) {
+            try {
+              (doc as any)[Q_CONTEXT] = [element, ev, url];
+              handler(ev, element, url);
+            } finally {
+              (doc as any)[Q_CONTEXT] = previousCtx;
+              emitEvent(element, 'qsymbol', symbolName);
             }
           }
         }
@@ -94,18 +91,13 @@ export const qwikLoader = (doc: Document, hasInitialized?: number, prefetchWorke
    *
    * @param ev - Browser event.
    */
-  const processEvent = (ev: Event, element?: Element | null) => {
+  const processWindowEvent = (ev: Event, element?: Element | null) => {
     element = ev.target as Element | null;
-    if ((element as any) == doc) {
-      // This is a event which fires on document only, we have to broadcast it instead
-      // setTimeout. This is needed so we can dispatchEvent.
-      // Without this we would be dispatching event from within existing event.
-      setTimeout(() => broadcast('-document', ev.type, ev));
-    } else {
-      while (element && element.getAttribute) {
-        dispatch(element, ev.type, ev);
-        element = ev.bubbles ? element.parentElement : null;
-      }
+    broadcast('-window', ev.type, ev);
+
+    while (element && element.getAttribute) {
+      dispatch(element, '', ev.type, ev);
+      element = ev.bubbles ? element.parentElement : null;
     }
   };
 
@@ -124,6 +116,7 @@ export const qwikLoader = (doc: Document, hasInitialized?: number, prefetchWorke
               observer.unobserve(entry.target);
               dispatch(
                 entry.target,
+                '',
                 'qvisible',
                 new CustomEvent('qvisible', {
                   bubbles: false,
@@ -139,8 +132,9 @@ export const qwikLoader = (doc: Document, hasInitialized?: number, prefetchWorke
     }
   };
 
-  const addDocEventListener = (eventName: string) =>
-    doc.addEventListener(eventName, processEvent, { capture: true });
+  const addDocEventListener = (eventName: string) => {
+    window.addEventListener(eventName, processWindowEvent, { capture: true });
+  };
 
   if (!(doc as any).qR) {
     // ensure the document only initializes one qwik loader
@@ -185,7 +179,7 @@ function isModule(module: any) {
   return typeof module === 'object' && module && module[Symbol.toStringTag] === 'Module';
 }
 
-declare const window: LoaderWindow;
+declare const window: LoaderWindow & Window;
 
 export interface LoaderWindow {
   BuildEvents: boolean;

@@ -94,14 +94,11 @@ export const qwikLoader = (doc: Document, hasInitialized?: number, prefetchWorke
   const processWindowEvent = (ev: Event, element?: Element | null) => {
     element = ev.target as Element | null;
     broadcast('-window', ev.type, ev);
+
     while (element && element.getAttribute) {
       dispatch(element, '', ev.type, ev);
       element = ev.bubbles ? element.parentElement : null;
     }
-  };
-
-  const processDocEvent = (ev: Event) => {
-    broadcast('-document', ev.type, ev);
   };
 
   const processReadyStateChange = (readyState?: DocumentReadyState) => {
@@ -136,7 +133,6 @@ export const qwikLoader = (doc: Document, hasInitialized?: number, prefetchWorke
   };
 
   const addDocEventListener = (eventName: string) => {
-    doc.addEventListener(eventName, processDocEvent, { capture: true });
     window.addEventListener(eventName, processWindowEvent, { capture: true });
   };
 

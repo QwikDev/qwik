@@ -82,6 +82,18 @@ ruleTester.run('my-rule', rules['no-use-after-await'], {
 ruleTester.run('valid-lexical-scope', rules['valid-lexical-scope'], {
   valid: [
     `
+    import { useMethod, component$ } from 'stuff';
+    export interface Value {
+      value: number;
+    }
+    export const HelloWorld = component$(() => {
+      const state: Value = { value: 12 };
+      useWatch$(() => {
+        console.log(state.value);
+      });
+      return <Host></Host>
+    });`,
+    `
       import { useMethod, component$ } from 'stuff';
       interface Value {
         value: 12;
@@ -322,6 +334,23 @@ ruleTester.run('valid-lexical-scope', rules['valid-lexical-scope'], {
 
       errors: [
         'Identifier ("a") can not be captured inside the scope (onClick$) because it is a Promise, which is not serializable. Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
+      ],
+    },
+    {
+      code: `
+      import { useMethod, component$ } from 'stuff';
+      export interface Value {
+        value: () => void;
+      }
+      export const HelloWorld = component$(() => {
+        const state: Value = { value: () => console.log('thing') };
+        useWatch$(() => {
+          console.log(state.value);
+        });
+        return <Host></Host>
+      });`,
+      errors: [
+        'Identifier ("state") can not be captured inside the scope (useWatch$) because "state.value" is a function, which is not serializable. Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
       ],
     },
   ],

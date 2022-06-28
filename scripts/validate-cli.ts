@@ -106,6 +106,9 @@ async function validateStarter(
   console.log(`🌈 ${projectName}: npm run build`);
   await execa('npm', ['run', 'build'], { cwd: appDir, stdout: 'inherit' });
 
+  console.log(`🌈 ${projectName}: npm run lint`);
+  await execa('npm', ['run', 'lint'], { cwd: appDir, stdout: 'inherit' });
+
   accessSync(join(appDir, '.vscode'));
   accessSync(join(appDir, 'dist', 'favicon.ico'));
   accessSync(join(appDir, 'dist', 'q-manifest.json'));

@@ -1,5 +1,5 @@
 import type { RenderToStringOptions, RenderToStringResult } from '@builder.io/qwik/server';
-import type { QwikCityPlan } from '../../runtime/types';
+import type { QwikCityPlan } from '../runtime/src/library/types';
 
 export interface QwikCityRequestOptions extends QwikCityPlan {
   request: Request;

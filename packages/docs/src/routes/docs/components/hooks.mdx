@@ -22,27 +22,27 @@ const Stores = component$(() => {
     name: 'Manu',
     address: {
       address: '',
-      city: ''
+      city: '',
     },
-    orgs: []
+    orgs: [],
   });
   // useStore() can also accept a function to calculate the initial value
   const state = useStore(() => {
     return {
-      value: expensiveInitialValue()
-    }
-  })
+      value: expensiveInitialValue(),
+    };
+  });
   return (
     <Host>
       <div>Counter: {counter.value}</div>
-      <Child userData={userData} state={state}/>
+      <Child userData={userData} state={state} />
     </Host>
-  )
+  );
 });
 function useCounter(step: number) {
   // Multiple stores can be created in custom hooks for convenience and composability
   const counterStore = useStore({
-    value: 0
+    value: 0,
   });
   useClientEffect$(() => {
     // Only runs in the client
@@ -78,9 +78,9 @@ const Cmp = component$(() => {
   });
   return (
     <Host>
-      <input type="text" ref={input}/>
+      <input type="text" ref={input} />
     </Host>
-  )
+  );
 });
 ```
 
@@ -92,7 +92,6 @@ Use `useWatch` to observe changes on a set of inputs, and then re-execute the `w
 
 The `watchFn` only executes if the observed inputs change. To observe the inputs use the `obs` function to wrap property reads. This creates subscriptions which will trigger the `watchFn` to re-run.
 
-
 ### Example
 
 The `useWatch` function is used to observe the `state.count` property. Any changes to the `state.count` cause the `watchFn` to execute which in turn updates the `state.doubleCount` to the double of `state.count`.
@@ -102,7 +101,7 @@ const Cmp = component$(() => {
   const store = useStore({
     count: 0,
     doubleCount: 0,
-    debounced: 0
+    debounced: 0,
   });
   // Double count watch
   useWatch$((track) => {
@@ -121,10 +120,12 @@ const Cmp = component$(() => {
   });
   return (
     <Host>
-      <div>{store.count} / {store.doubleCount}</div>
+      <div>
+        {store.count} / {store.doubleCount}
+      </div>
       <div>{store.debounced}</div>
     </Host>
-  )
+  );
 });
 ```
 
@@ -133,7 +134,7 @@ const Cmp = component$(() => {
 ```tsx
 const Timer = component$(() => {
   const store = useStore({
-    count: 0
+    count: 0,
   });
   useClientEffect$(() => {
     // Only runs in the client
@@ -144,11 +145,7 @@ const Timer = component$(() => {
       clearInterval(timer);
     };
   });
-  return (
-    <Host>
-      {store.count}
-    </Host>
-  )
+  return <Host>{store.count}</Host>;
 });
 ```
 
@@ -161,7 +158,7 @@ Registers a server mount hook that runs only in server when the component is fir
 ```tsx
 const Cmp = component$(() => {
   const store = useStore({
-    users: []
+    users: [],
   });
   useServerMount$(async () => {
     // This code will ONLY run once in the server, when the component is mounted
@@ -169,21 +166,19 @@ const Cmp = component$(() => {
   });
   return (
     <Host>
-      {store.users.map((user => (
-        <User user={user}/>
-      )))}
+      {store.users.map((user) => (
+        <User user={user} />
+      ))}
     </Host>
-  )
+  );
 });
 
 interface User {
   name: string;
 }
 
-function User(props: {user: User}) {
-  return (
-    <div>Name: {props.user.name}</div>
-  )
+function User(props: { user: User }) {
+  return <div>Name: {props.user.name}</div>;
 }
 ```
 
@@ -194,17 +189,16 @@ Retrieves the Host Element of the current component.
 NOTE: `useHostElement` method can only be used in the synchronous portion of the callback (before any `await` statements.)
 
 ```tsx
-const Section = component$(() => {
-  const hostElement = useHostElement();
-  console.log(hostElement); // hostElement is a HTMLSectionElement
-  return (
-    <Host>
-      I am a section
-    </Host>
-  )
-}, {
-  tagName: 'section'
-});
+const Section = component$(
+  () => {
+    const hostElement = useHostElement();
+    console.log(hostElement); // hostElement is a HTMLSectionElement
+    return <Host>I am a section</Host>;
+  },
+  {
+    tagName: 'section',
+  }
+);
 ```
 
 ## useStyles$()

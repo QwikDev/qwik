@@ -10,13 +10,7 @@ For a web application to be interactive, there needs to be a way to respond to u
 const Counter = component$(() => {
   const store = useStore({ count: 0 });
 
-  return (
-    <button
-      onClick$={() => store.count++}
-    >
-      {store.count}
-    </button>
-  );
+  return <button onClick$={() => store.count++}>{store.count}</button>;
 });
 ```
 
@@ -25,7 +19,6 @@ In the above example, the `onClick$` attribute of the `<button>` element is used
 Notice that `onClick$` ends with `$`. This is a hint to both the Qwik Optimizer and the developer that a special transformation occurs at this location. The presence of the `$` suffix implies a lazy-loaded boundary here. The code associated with the `click` handler will not download until the user triggers the `click` event. See [Optimizer Rules](../advanced/optimizer.mdx) for more details.
 
 In the above example, the `click` listener is trivial in implementation. But in real applications, the listener may refer to complex code. By creating a lazy-loaded boundary, Qwik can tree-shake all of the code behind the click listener and delay its loading until the user clicks the button.
-
 
 ## Events and Components
 
@@ -121,7 +114,6 @@ The purpose of the `onWindow`/`onDocument` is to register the event at a current
 1. The events can be registered declaratively in your JSX
 2. The events get automatically cleaned up when the component is destroyed. (No explicit bookkeeping and cleanup is needed.)
 
-
 ## Declaring Custom Component Events
 
 So far, we have ignored the implementation detail of `<CmpButton>` because we wanted to talk about its usage only. Now let's look at how one declares a child component that can be used with events.
@@ -213,10 +205,7 @@ Notice that we can pass the `props.onClickQrl` directly to the `onDblclickQrl` a
 
 However, it is not possible to pass `props.onClickQrl` to `onClick$` because the types don't match. (This would result in type error: `onClick$={props.onClickQrl}`.) Instead, the `$` is reserved for inlined closures. In our example, we would like to print the `console.log("clicked")` after we process the `props.onClickQrl` callback. We can do so with the `props.onClickQrl.invoke()` method. This 1) lazy-loads the code, 2) restores the closure state, and 3) invokes the closure. The operation is asynchronous and therefore returns a promise, which we can resolve using the `await` statement.
 
-
-
 ## Advanced: Events and qwikloader
-
 
 In the above example, the `onClick$` is placed on `<button>`. This means that the listener needs to be registered with the DOM. The registration of the listener creates two problems in the context of the SSR/SSG that Qwik needs to solve. (For context, remember that Qwik is resumable, that is, it can continue executing the application from where the server paused without being forced to download and execute code eagerly.)
 
@@ -239,7 +228,6 @@ The critical thing to notice is that Qwik generated an `on:click` attribute, con
 
 For the browser to understand the `on:click` attribute syntax, a small JavaScript known as Qwikloader is needed. The Qwikloader is small (about 1kb) and fast (about 5ms) to execute. The Qwikloader is inlined into the HTML so that it can be executed quickly.
 When a user interacts with the application, the browser fires relevant events that bubble up the DOM. At the root of the DOM, Qwikloader listens for the events and then tries to locate the corresponding `on:<event>` attribute. If such an attribute is found, then the value of the attribute is used to resolve the location where code can be downloaded from and then executed.
-
 
 ## State recovery
 
@@ -280,5 +268,3 @@ Dynamic `import()`:
 - Is relative to the file which contains it. This works great for `file-a.js` trying to load `file-b.js` as `import('./file-b.js')`. However, when the `./file-a.js` gets serialized into HTML then we lose its relative nature. It is the framework that reads the `./file-b.js` from HTML and performs the `import()`. This means that all imports now become relative to the framework, which is incorrect.
 - Requires that the developer writes `import('./file-a.js')`, which means the developer is in charge of deciding where the lazy-loaded boundaries are. This limits our ability of the tooling to move code around in an automated way.
 - Supports import of top-level functions only which don't capture the state. This is the biggest difference. Qwik allows the imported symbol to be a closure that carries all of its state with it.
-
-

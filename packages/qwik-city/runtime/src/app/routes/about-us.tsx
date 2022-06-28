@@ -1,5 +1,5 @@
 import { component$, Host } from '@builder.io/qwik';
-import type { HeadComponent } from 'packages/qwik-city/runtime';
+import type { HeadComponent } from '~qwik-city-runtime';
 
 export default component$(() => {
   return (

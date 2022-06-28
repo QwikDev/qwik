@@ -1,4 +1,4 @@
-import type { RouteLocation } from 'packages/qwik-city/runtime';
+import type { RouteLocation } from '~qwik-city-runtime';
 
 interface AnalyticsProps {
   loc: RouteLocation;

@@ -1,4 +1,4 @@
-import type { ContentMenu } from '../../../runtime/types';
+import type { ContentMenu } from '../../runtime/src/library/types';
 import type { BuildContext, ParsedMenuItem } from '../types';
 
 export function createMenus(ctx: BuildContext, c: string[]) {

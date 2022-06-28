@@ -1,4 +1,9 @@
-import type { EndpointHandler, EndpointModule, RequestEvent, RouteParams } from '../../runtime/types';
+import type {
+  EndpointHandler,
+  EndpointModule,
+  RequestEvent,
+  RouteParams,
+} from '../runtime/src/library/types';
 
 export function endpointHandler(
   request: Request,

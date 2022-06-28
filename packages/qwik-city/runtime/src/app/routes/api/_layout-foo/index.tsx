@@ -1,5 +1,5 @@
 import { component$, Host, Slot } from '@builder.io/qwik';
-import type { HeadComponent } from 'packages/qwik-city/runtime';
+import type { HeadComponent } from '~qwik-city-runtime';
 import Footer from '../../../components/footer/footer';
 import Header from '../../../components/header/header';
 

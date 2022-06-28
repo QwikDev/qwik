@@ -1,12 +1,15 @@
-import { ROUTE_TYPE_ENDPOINT } from '../../runtime/constants';
-import { getRouteParams } from '../../runtime/routing';
+import { ROUTE_TYPE_ENDPOINT } from '../runtime/src/library/constants';
+import { getRouteParams } from '../runtime/src/library/routing';
 import { endpointHandler } from './endpoint-handler';
 import type { QwikCityRequestOptions, RenderFunction } from './types';
 
 /**
  * @public
  */
-export async function requestHandler(renderFn: RenderFunction, opts: QwikCityRequestOptions) {
+export async function requestHandler(
+  renderFn: RenderFunction,
+  opts: QwikCityRequestOptions
+): Promise<Response | null> {
   if (Array.isArray(opts.routes)) {
     const pathname = opts.url.pathname;
 

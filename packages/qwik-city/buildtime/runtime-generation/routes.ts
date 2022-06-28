@@ -1,4 +1,4 @@
-import { ROUTE_TYPE_ENDPOINT } from '../../../runtime/constants';
+import { ROUTE_TYPE_ENDPOINT } from '../../runtime/src/library//constants';
 import type { BuildContext, BuildRoute } from '../types';
 import { getImportPath } from './utils';
 

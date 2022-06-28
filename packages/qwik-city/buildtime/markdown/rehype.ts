@@ -6,7 +6,12 @@ import { valueToEstree } from 'estree-util-value-to-estree';
 import { headingRank } from 'hast-util-heading-rank';
 import { toString } from 'hast-util-to-string';
 import { visit } from 'unist-util-visit';
-import type { ContentBreadcrumb, ContentHeading, DocumentHead, DocumentMeta } from '../../../runtime';
+import type {
+  ContentBreadcrumb,
+  ContentHeading,
+  DocumentHead,
+  DocumentMeta,
+} from '../../runtime/src';
 import { dirname, resolve } from 'path';
 import type { BuildContext } from '../types';
 import { getPathnameFromFilePath } from '../utils/pathname';

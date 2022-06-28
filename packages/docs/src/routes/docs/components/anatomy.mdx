@@ -22,13 +22,16 @@ export const MyCmp = component$(async (props: MyCmpProps) => {
   // Returns JSX
   return (
     <Host>
-      <span>Hello, {props.name} {state.count}</span>
+      <span>
+        Hello, {props.name} {state.count}
+      </span>
       <div>Times: {state.count}</div>
-      <button onClick$={() => {
-        // This will update the local state and cause a re-render.
-        // Reactivity is at qwik's core!
-        state.count++;
-      }}
+      <button
+        onClick$={() => {
+          // This will update the local state and cause a re-render.
+          // Reactivity is at qwik's core!
+          state.count++;
+        }}
       >
         Increment
       </button>
@@ -64,7 +67,8 @@ const MyApp = component$(() => {
     <>
       - With no props: <Item />
       - With some props: <Item description="Item description" />
-      - With all props: <Item name="Hammer" quantity={3} description="Best organic hammer" price={10.0} />
+      - With all props:{' '}
+      <Item name="Hammer" quantity={3} description="Best organic hammer" price={10.0} />
     </>
   );
 });
@@ -103,10 +107,8 @@ Qwik host elements are marked with `q:host` attribute.
 As you can see, `component$` will always create an extra element, by default is `div`, but that can be changed with `component$` options argument:
 
 ```tsx
-const MyArticle = component$(() => (
-  <span>My article</span>
-), {
-  tagName: 'article'
+const MyArticle = component$(() => <span>My article</span>, {
+  tagName: 'article',
 });
 ```
 
@@ -114,9 +116,7 @@ Will result in:
 
 ```html
 <article q:host>
-  <span>
-    My article
-  </span>
+  <span> My article </span>
 </article>
 ```
 
@@ -124,10 +124,7 @@ Will result in:
 
 Since the host element is implicitly created by `component$`, it is not possible to access it directly. Instead, you can use `useHostElement()` to get the host element.
 
- Qwik uses host elements in various ways. For example when using `useHostElement()` function which retrieves it. It is also used to attach props to the components for serialization.
-
-
-
+Qwik uses host elements in various ways. For example when using `useHostElement()` function which retrieves it. It is also used to attach props to the components for serialization.
 
 ## Host Element Attributes & Styling
 
@@ -162,13 +159,7 @@ Because the host element is an actual element, there may be a desire to place HT
 What if you wanted to add a `name` attribute to the host element? The issue is that the `name` is already used by the component props. For this reason, we use `host:` prefix to refer to the host element's attributes.
 
 ```tsx
-<Greeter
-  host:name="abc"
-  host:id="greeter"
-  host:onClick$={() => {}}
-
-  name="world"
-/>
+<Greeter host:name="abc" host:id="greeter" host:onClick$={() => {}} name="world" />
 ```
 
 would render as:
@@ -195,11 +186,7 @@ However, for convenience `class` and `styles` are special, and they will automat
 when placed on the host element.
 
 ```jsx
-<Greeter
-  class="greeter"
-  style={{ backgroundColor: 'red' }}
-  name="world"
-/>
+<Greeter class="greeter" style={{ backgroundColor: 'red' }} name="world" />
 ```
 
 would also render to the same output.
@@ -230,7 +217,6 @@ will result in:
 </div>
 ```
 
-
 ## Lazy Loading
 
 The host component also serves an important role when breaking parent-child relationships for bundling purposes.
@@ -246,7 +232,6 @@ const Parent = () => (
 ```
 
 In the above example, referring to the `Parent` component implies a transitive reference to the `Child` component. When the bundler is creating a chunk, a reference to `Parent` necessitates bundling `Child` as well. (`Parent` internally refers to `Child`.) These transitive dependencies are a problem because it means that having a reference to the root component will transitively refer to the remainder of the application—something which Qwik tries to avoid explicitly.
-
 
 ```tsx
 const Child = component$(() => {

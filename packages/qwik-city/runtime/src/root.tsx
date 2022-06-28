@@ -1,6 +1,6 @@
-import cityPlan from 'packages/qwik-city/runtime/qwik-city-plan';
-import { Content, Html } from '../../dist';
-import { Head } from './components/head/head';
+import cityPlan from '@qwik-city-plan';
+import { Content, Html } from '~qwik-city-runtime';
+import { Head } from './app/components/head/head';
 import './global.css';
 
 export default function Root() {

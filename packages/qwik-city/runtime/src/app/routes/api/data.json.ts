@@ -1,4 +1,4 @@
-import type { EndpointHandler } from 'packages/qwik-city/runtime';
+import type { EndpointHandler } from '~qwik-city-runtime';
 import os from 'os';
 
 export const get: EndpointHandler = ({ request }) => {

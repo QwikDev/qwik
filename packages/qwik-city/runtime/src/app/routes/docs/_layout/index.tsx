@@ -1,5 +1,5 @@
 import { component$, Host, Slot, useStyles$ } from '@builder.io/qwik';
-import type { HeadComponent } from 'packages/qwik-city/runtime';
+import type { HeadComponent } from '~qwik-city-runtime';
 import styles from './docs.css';
 
 export default component$(() => {

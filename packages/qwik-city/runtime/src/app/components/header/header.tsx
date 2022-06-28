@@ -1,5 +1,5 @@
 import { component$, Host, useStyles$ } from '@builder.io/qwik';
-import { useLocation } from 'packages/qwik-city/runtime';
+import { useLocation } from '~qwik-city-runtime';
 import styles from './header.css';
 
 export default component$(

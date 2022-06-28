@@ -99,7 +99,7 @@ export const smartUpdateChildren = (
   if (qDev) {
     if (elm.nodeType === 9) {
       assertEqual(ch.length, 1);
-      assertEqual(ch[0].$type$, 'html')
+      assertEqual(ch[0].$type$, 'html');
     } else if (elm.nodeName === 'HTML') {
       assertEqual(ch.length, 2);
       assertEqual(ch[0].$type$, 'head');

@@ -1,5 +1,5 @@
 import type { QwikCityRequestOptions, RenderFunction } from '../types';
-import { requestHandler } from 'packages/qwik-city/adaptor';
+import { requestHandler } from '@builder.io/qwik-city/adaptor';
 import { patchGlobalFetch } from '../fetch';
 import express from 'express';
 import { join } from 'path';

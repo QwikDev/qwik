@@ -311,6 +311,7 @@ export const patchVnode = (
   if (isComponent) {
     if (ctx.$renders$ === 0) {
       assertEqual(ctx.$renderQrl$, undefined);
+      setAttribute(rctx, ctx.$element$, QHostAttr, '');
       ctx.$renderQrl$ = props![OnRenderProp]! as QRL<OnRenderFn<any>>;
       dirty = true;
     }
@@ -545,6 +546,7 @@ const createElm = (
     // Run mount hook
     const renderQRL = props![OnRenderProp]! as QRL<OnRenderFn<any>>;
     ctx.$renderQrl$ = renderQRL;
+    directSetAttribute(ctx.$element$, QHostAttr, '');
     wait = renderComponent(rctx, ctx);
   } else {
     const setsInnerHTML = checkInnerHTML(props);

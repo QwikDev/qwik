@@ -13,9 +13,6 @@ import { directGetAttribute } from './fast-calls';
 
 export const renderComponent = (rctx: RenderContext, ctx: QContext): ValueOrPromise<void> => {
   ctx.$dirty$ = false;
-  if (ctx.$renders$ === 0) {
-    setAttribute(rctx, ctx.$element$, QHostAttr, '');
-  }
   ctx.$renders$++;
 
   const hostElement = ctx.$element$;

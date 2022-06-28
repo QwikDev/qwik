@@ -96,8 +96,19 @@ export const smartUpdateChildren = (
     ch = ch[0].$children$;
   }
   const oldCh = getChildren(elm, mode);
-
-  if (oldCh.length > 0 && ch.length > 0) {
+  if (qDev) {
+    if (elm.nodeType === 9) {
+      assertEqual(ch.length, 1);
+      assertEqual(ch[0].$type$, 'html');
+    } else if (elm.nodeName === 'HTML') {
+      assertEqual(ch.length, 2);
+      assertEqual(ch[0].$type$, 'head');
+      assertEqual(ch[1].$type$, 'body');
+    }
+  }
+  if (elm.nodeName === 'HEAD') {
+    return addVnodes(ctx, elm, null, ch, 0, ch.length - 1, isSvg);
+  } else if (oldCh.length > 0 && ch.length > 0) {
     return updateChildren(ctx, elm, oldCh, ch, isSvg);
   } else if (ch.length > 0) {
     return addVnodes(ctx, elm, null, ch, 0, ch.length - 1, isSvg);
@@ -267,12 +278,6 @@ export const patchVnode = (
   const tag = vnode.$type$;
   if (tag === '#text') {
     if ((elm as Text).data !== vnode.$text$) {
-      setProperty(rctx, elm, 'data', vnode.$text$);
-    }
-    return;
-  }
-  if (tag === '#comment') {
-    if ((elm as Comment).data !== vnode.$text$) {
       setProperty(rctx, elm, 'data', vnode.$text$);
     }
     return;
@@ -997,14 +1002,15 @@ const setKey = (el: Element, key: string | null) => {
 
 const sameVnode = (elm: Node, vnode2: ProcessedJSXNode): boolean => {
   const isElement = elm.nodeType === 1;
+  const type = vnode2.$type$;
   if (isElement) {
-    const isSameSel = (elm as Element).localName === vnode2.$type$;
+    const isSameSel = (elm as Element).localName === type;
     if (!isSameSel) {
       return false;
     }
     return getKey(elm as Element) === vnode2.$key$;
   }
-  return elm.nodeName === vnode2.$type$;
+  return elm.nodeName === type;
 };
 
 const isTagName = (elm: Node, tagName: string): boolean => {

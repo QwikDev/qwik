@@ -1,5 +1,5 @@
 import { assertDefined } from '../assert/assert';
-import { copyRenderContext, RenderContext } from './cursor';
+import { copyRenderContext, RenderContext, setAttribute } from './cursor';
 import { visitJsxNode } from './render';
 import { ComponentScopedStyles, QHostAttr, RenderEvent } from '../util/markers';
 import { promiseAll, then } from '../util/promises';
@@ -9,16 +9,14 @@ import { processData } from './jsx/jsx-runtime';
 import { logDebug, logError } from '../util/log';
 import { isFunction, ValueOrPromise } from '../util/types';
 import type { QContext } from '../props/props';
-import { directGetAttribute, directSetAttribute } from './fast-calls';
-
-export const firstRenderComponent = (rctx: RenderContext, ctx: QContext): ValueOrPromise<void> => {
-  directSetAttribute(ctx.$element$, QHostAttr, '');
-
-  return renderComponent(rctx, ctx);
-};
+import { directGetAttribute } from './fast-calls';
 
 export const renderComponent = (rctx: RenderContext, ctx: QContext): ValueOrPromise<void> => {
   ctx.$dirty$ = false;
+  if (ctx.$renders$ === 0) {
+    setAttribute(rctx, ctx.$element$, QHostAttr, '');
+  }
+  ctx.$renders$++;
 
   const hostElement = ctx.$element$;
   const onRenderQRL = ctx.$renderQrl$!;

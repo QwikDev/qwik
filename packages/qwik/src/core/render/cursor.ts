@@ -12,7 +12,7 @@ import { isOnProp } from '../props/props-on';
 import { isArray, isString, ValueOrPromise } from '../util/types';
 import type { ProcessedJSXNode } from '../render/jsx/types/jsx-node';
 import type { QRL } from '../import/qrl.public';
-import { firstRenderComponent, renderComponent } from './render-component';
+import { renderComponent } from './render-component';
 import { promiseAll, then } from '../util/promises';
 import type { ContainerState } from './notify-render';
 import { assertDefined, assertEqual } from '../assert/assert';
@@ -295,11 +295,11 @@ export const patchVnode = (
     isSvg = tag === 'svg';
   }
 
-  let promise: ValueOrPromise<void>;
   const props = vnode.$props$;
   const ctx = getContext(elm as Element);
-  const dirty = updateProperties(rctx, ctx, props, isSvg);
   const isSlot = tag === 'q:slot';
+  let promise: ValueOrPromise<void> | undefined = undefined;
+  let dirty = updateProperties(rctx, ctx, props, isSvg);
   if (isSvg && vnode.$type$ === 'foreignObject') {
     isSvg = false;
   } else if (isSlot) {
@@ -309,12 +309,16 @@ export const patchVnode = (
     }
   }
   const isComponent = isComponentNode(vnode);
-  if (dirty) {
-    assertEqual(isComponent, true);
-    promise = renderComponent(rctx, ctx);
-  }
   const ch = vnode.$children$;
   if (isComponent) {
+    if (ctx.$renders$ === 0) {
+      assertEqual(ctx.$renderQrl$, undefined);
+      ctx.$renderQrl$ = props![OnRenderProp]! as QRL<OnRenderFn<any>>;
+      dirty = true;
+    }
+    if (dirty) {
+      promise = renderComponent(rctx, ctx);
+    }
     return then(promise, () => {
       const slotMaps = getSlots(ctx.$component$, elm as Element);
       const splittedChidren = splitBy(ch, getSlotName);
@@ -543,7 +547,7 @@ const createElm = (
     // Run mount hook
     const renderQRL = props![OnRenderProp]! as QRL<OnRenderFn<any>>;
     ctx.$renderQrl$ = renderQRL;
-    wait = firstRenderComponent(rctx, ctx);
+    wait = renderComponent(rctx, ctx);
   } else {
     const setsInnerHTML = checkInnerHTML(props);
     if (setsInnerHTML) {

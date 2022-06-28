@@ -62,6 +62,7 @@ export interface QContext {
   $refMap$: QObjectMap;
   $element$: Element;
   $dirty$: boolean;
+  $renders$: number;
   $props$: Record<string, any> | undefined;
   $renderQrl$: QRL<OnRenderFn<any>> | undefined;
   $component$: ComponentCtx | undefined;
@@ -81,6 +82,7 @@ export const getContext = (element: Element): QContext => {
     (element as any)[Q_CTX] = ctx = {
       $element$: element,
       $cache$: cache,
+      $renders$: 0,
       $refMap$: newQObjectMap(),
       $dirty$: false,
       $seq$: [],

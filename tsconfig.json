@@ -24,7 +24,6 @@
       "@builder.io/qwik/server": ["packages/qwik/src/server/index"],
       "@builder.io/qwik/testing": ["packages/qwik/src/testing/index"],
       "@builder.io/qwik-city": ["packages/qwik-city/src/runtime/index"],
-      "@builder.io/qwik-city/build": ["packages/qwik-city/src/runtime/build"],
       "@builder.io/qwik-city/vite": ["packages/qwik-city/src/vite/index"],
       "@builder.io/qwik-city/adaptor": ["packages/qwik-city/src/adaptor/index"],
       "@builder.io/qwik-city/cloudflare-pages": [

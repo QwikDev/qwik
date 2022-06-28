@@ -57,7 +57,7 @@ async function buildRuntime(config: BuildConfig, output: string) {
 async function buildVite(config: BuildConfig, input: string, output: string) {
   const entryPoints = [join(input, 'src', 'vite', 'index.ts')];
 
-  const external = ['front-matter', 'source-map', 'vfile', '@mdx-js/mdx'];
+  const external = ['source-map', 'vfile', '@mdx-js/mdx'];
 
   await build({
     entryPoints,

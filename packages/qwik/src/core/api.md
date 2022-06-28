@@ -544,13 +544,13 @@ export const useMount$: (first: ServerFn) => void;
 export const useMountQrl: (mountQrl: QRL<ServerFn>) => void;
 
 // @alpha
-export const useOn: (event: string, eventQrl: QRL<() => void>) => void;
+export const useOn: (event: string, eventQrl: QRL<(ev: Event) => void>) => void;
 
 // @alpha
-export const useOnDocument: (event: string, eventQrl: QRL<() => void>) => void;
+export const useOnDocument: (event: string, eventQrl: QRL<(ev: Event) => void>) => void;
 
 // @alpha
-export const useOnWindow: (event: string, eventQrl: QRL<() => void>) => void;
+export const useOnWindow: (event: string, eventQrl: QRL<(ev: Event) => void>) => void;
 
 // Warning: (ae-incompatible-release-tags) The symbol "useRef" is marked as @public, but its signature references "Ref" which is marked as @alpha
 //

@@ -61,8 +61,8 @@ describe('render', () => {
           on-DblClick$={() => {}}
           onQVisible$={() => {}}
           document:onLoad$={() => {}}
-          document:onScroll$={() => {}}
-          document:on-Scroll$={() => {}}
+          document:onThing$={() => {}}
+          document:on-Thing$={() => {}}
           window:onScroll$={() => {}}
           window:on-Scroll$={() => {}}
         ></div>
@@ -75,9 +75,9 @@ describe('render', () => {
           on:dblclick="/runtimeQRL#*"
           on:-dbl-click="/runtimeQRL#*"
           on:qvisible="/runtimeQRL#*"
-          on-document:load="/runtimeQRL#*"
-          on-document:scroll="/runtimeQRL#*"
-          on-document:-scroll="/runtimeQRL#*"
+          on-window:load="/runtimeQRL#*"
+          on-window:thing="/runtimeQRL#*"
+          on-window:-thing="/runtimeQRL#*"
           on-window:scroll="/runtimeQRL#*"
           on-window:-scroll="/runtimeQRL#*"
         ></Div>
@@ -194,7 +194,7 @@ describe('render', () => {
           title="Custom title"
           on:click="/runtimeQRL#*"
           on:-clic-k="/runtimeQRL#*"
-          on-document:load="/runtimeQRL#*"
+          on-window:load="/runtimeQRL#*"
           on-window:scroll="/runtimeQRL#*"
           preventdefault:click
         >

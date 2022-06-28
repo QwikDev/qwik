@@ -213,7 +213,7 @@ export const useVisible$ = /*#__PURE__*/ implicit$FirstArg(useVisibleQrl);
  * @alpha
  */
 // </docs>
-export const useOn = (event: string, eventQrl: QRL<() => void>) => {
+export const useOn = (event: string, eventQrl: QRL<(ev: Event) => void>) => {
   _useOn(`on:${event}`, eventQrl);
 };
 
@@ -247,8 +247,8 @@ export const useOn = (event: string, eventQrl: QRL<() => void>) => {
  * @alpha
  */
 // </docs>
-export const useOnDocument = (event: string, eventQrl: QRL<() => void>) => {
-  _useOn(`on-document:${event}`, eventQrl);
+export const useOnDocument = (event: string, eventQrl: QRL<(ev: Event) => void>) => {
+  _useOn(`on-window:${event}`, eventQrl);
 };
 
 // <docs markdown="../readme.md#useOnWindow">
@@ -282,11 +282,11 @@ export const useOnDocument = (event: string, eventQrl: QRL<() => void>) => {
  * @alpha
  */
 // </docs>
-export const useOnWindow = (event: string, eventQrl: QRL<() => void>) => {
+export const useOnWindow = (event: string, eventQrl: QRL<(ev: Event) => void>) => {
   _useOn(`on-window:${event}`, eventQrl);
 };
 
-export const _useOn = (eventName: string, eventQrl: QRL<() => void>) => {
+export const _useOn = (eventName: string, eventQrl: QRL<(ev: Event) => void>) => {
   const invokeCtx = useInvokeContext();
   const ctx = getContext(invokeCtx.$hostElement$);
   qPropWriteQRL(invokeCtx.$renderCtx$, ctx, eventName, eventQrl);

@@ -18,10 +18,19 @@ export const Events = component$(() => {
         }}
       ></Buttons>
       <p>
-        <a href='/' preventdefault:click id='prevent-default-1'>Should prevent default</a>
+        <a href="/" preventdefault:click id="prevent-default-1">
+          Should prevent default
+        </a>
       </p>
       <p>
-        <a href='/' preventdefault:click id='prevent-default-2' onClick$={() => store.countAnchor++}>Should count</a>
+        <a
+          href="/"
+          preventdefault:click
+          id="prevent-default-2"
+          onClick$={() => store.countAnchor++}
+        >
+          Should count
+        </a>
       </p>
 
       <p id="count-transparent">countTransparent: {store.countTransparent}</p>

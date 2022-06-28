@@ -4,6 +4,7 @@ export const Events = component$(() => {
   const store = useStore({
     countTransparent: 0,
     countWrapped: 0,
+    countAnchor: 0,
   });
 
   return (
@@ -16,9 +17,25 @@ export const Events = component$(() => {
           store.countWrapped++;
         }}
       ></Buttons>
+      <p>
+        <a href="/" preventdefault:click id="prevent-default-1">
+          Should prevent default
+        </a>
+      </p>
+      <p>
+        <a
+          href="/"
+          preventdefault:click
+          id="prevent-default-2"
+          onClick$={() => store.countAnchor++}
+        >
+          Should count
+        </a>
+      </p>
 
       <p id="count-transparent">countTransparent: {store.countTransparent}</p>
       <p id="count-wrapped">countWrapped: {store.countWrapped}</p>
+      <p id="count-anchor">countAnchor: {store.countAnchor}</p>
     </Host>
   );
 });

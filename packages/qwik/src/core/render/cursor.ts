@@ -106,9 +106,7 @@ export const smartUpdateChildren = (
       assertEqual(ch[1].$type$, 'body');
     }
   }
-  if (elm.nodeName === 'HEAD') {
-    return addVnodes(ctx, elm, null, ch, 0, ch.length - 1, isSvg);
-  } else if (oldCh.length > 0 && ch.length > 0) {
+  if (oldCh.length > 0 && ch.length > 0) {
     return updateChildren(ctx, elm, oldCh, ch, isSvg);
   } else if (ch.length > 0) {
     return addVnodes(ctx, elm, null, ch, 0, ch.length - 1, isSvg);

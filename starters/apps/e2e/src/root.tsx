@@ -42,7 +42,10 @@ export const Root = component$(() => {
         <a href="/e2e/toggle">Toggle</a>
       </p>
       <p>
-        <a href="/e2e/styles">Styles</a>
+      <a href="/e2e/styles">Styles</a>
+      </p>
+      <p>
+        <a href="/e2e/broadcast-events">Broadcast events</a>
       </p>
     </section>
   );

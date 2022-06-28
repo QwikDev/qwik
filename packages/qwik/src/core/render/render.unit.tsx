@@ -92,7 +92,8 @@ describe('render', () => {
       await render(
         fixture.document,
         <html>
-          <body>WORKS</body>
+          <heasd></heasd>
+          <body></body>
         </html>
       );
       expect(fixture.document.body.innerHTML).toEqual('WORKS');

@@ -16,7 +16,7 @@ export const jsx = <T extends string | FunctionComponent<PROPS>, PROPS>(
   props: PROPS,
   key?: string | number
 ): JSXNode<T> => {
-  return new JSXNodeImpl(type, props, key) as any;
+  return new JSXNodeImpl<T>(type, props, key);
 };
 
 export const HOST_TYPE = ':host';

@@ -11,7 +11,7 @@
     "test.build": "yarn test.build.client && yarn test.build.ssr",
     "test.build.client": "cd src/test && vite build",
     "test.build.ssr": "cd src/test && vite build --ssr src/entry.express.tsx",
-    "test.serve": "node --inspect src/test/server/entry.express.js",
+    "test.serve": "node --inspect-brk src/test/server/entry.express.js",
     "test.serve.debug": "node --inspect-brk src/test/server/entry.express.js"
   },
   "dependencies": {

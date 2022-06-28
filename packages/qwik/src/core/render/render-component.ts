@@ -1,7 +1,7 @@
 import { assertDefined } from '../assert/assert';
-import { copyRenderContext, RenderContext, setAttribute } from './cursor';
+import { copyRenderContext, RenderContext } from './cursor';
 import { visitJsxNode } from './render';
-import { ComponentScopedStyles, QHostAttr, RenderEvent } from '../util/markers';
+import { ComponentScopedStyles, RenderEvent } from '../util/markers';
 import { promiseAll, then } from '../util/promises';
 import { styleContent, styleHost } from '../component/qrl-styles';
 import { newInvokeContext } from '../use/use-core';

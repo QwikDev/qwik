@@ -1,14 +1,15 @@
 import { component$, useStore, Host } from '@builder.io/qwik';
 
 export const Render = component$(() => {
-  const state = useStore(
-    {
-      counter: {
-        count: 0,
-      },
+  const parent = {
+    counter: {
+      count: 0,
     },
-    { recursive: true }
-  );
+    children: [] as any[],
+  };
+  parent.children.push(parent);
+
+  const state = useStore(parent, { recursive: true });
   return (
     <Host>
       <button

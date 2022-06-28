@@ -493,7 +493,6 @@ __metadata:
     "@emotion/react": ^11.9.0
     "@emotion/server": ^11.4.0
     "@emotion/styled": ^11.9.3
-    "@mui/material": 5.1.1
     "@types/react": ^18.0.1
     "@types/react-dom": ^18.0.0
     react: ^18.0.0
@@ -501,7 +500,14 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@builder.io/qwik@0.0.30, @builder.io/qwik@workspace:packages/qwik":
+"@builder.io/qwik@npm:0.0.30":
+  version: 0.0.30
+  resolution: "@builder.io/qwik@npm:0.0.30"
+  checksum: 509871dd18a35ab5fce11a5a7ed11bec2a501cdc0fc025bb54751a78ee6a80a74d365d6ba33f96bc58a79657cfab107cac12e91b41dbbb008cc5dc5e664326f3
+  languageName: node
+  linkType: hard
+
+"@builder.io/qwik@workspace:packages/qwik":
   version: 0.0.0-use.local
   resolution: "@builder.io/qwik@workspace:packages/qwik"
   languageName: unknown

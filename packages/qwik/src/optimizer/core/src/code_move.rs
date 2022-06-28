@@ -223,7 +223,7 @@ fn test_fix_path() {
 
 pub fn generate_entries(
     mut output: TransformOutput,
-    explicity_extensions: bool,
+    explicit_extensions: bool,
 ) -> Result<TransformOutput, anyhow::Error> {
     let source_map = Lrc::new(SourceMap::default());
     let mut entries_map: BTreeMap<&str, Vec<&HookAnalysis>> = BTreeMap::new();
@@ -240,7 +240,7 @@ pub fn generate_entries(
         }
 
         for (entry, hooks) in &entries_map {
-            let module = new_entry_module(hooks, explicity_extensions);
+            let module = new_entry_module(hooks, explicit_extensions);
             let (code, map) = emit_source_code(Lrc::clone(&source_map), None, &module, false)
                 .context("Emitting source code")?;
             new_modules.push(TransformModule {
@@ -258,7 +258,7 @@ pub fn generate_entries(
     Ok(output)
 }
 
-fn new_entry_module(hooks: &[&HookAnalysis], explicity_extensions: bool) -> ast::Module {
+fn new_entry_module(hooks: &[&HookAnalysis], explicit_extensions: bool) -> ast::Module {
     let mut module = ast::Module {
         span: DUMMY_SP,
         body: Vec::with_capacity(hooks.len()),
@@ -267,7 +267,7 @@ fn new_entry_module(hooks: &[&HookAnalysis], explicity_extensions: bool) -> ast:
     let mut need_handle_watch = false;
     for hook in hooks {
         let mut src = ["./", &hook.canonical_filename].concat();
-        if explicity_extensions {
+        if explicit_extensions {
             src = src + "." + hook.extension.as_ref();
         }
         if might_need_handle_watch(&hook.ctx_kind, &hook.ctx_name) {

@@ -3,6 +3,7 @@ use crate::collector::{
     collect_from_pat, new_ident_from_id, GlobalCollect, Id, IdentCollector, ImportKind,
 };
 use crate::entry_strategy::EntryPolicy;
+use crate::errors;
 use crate::parse::PathData;
 use crate::words::*;
 use path_slash::PathExt;
@@ -14,7 +15,7 @@ use std::hash::Hasher;
 
 use swc_atoms::{js_word, JsWord};
 use swc_common::comments::{Comments, SingleThreadedComments};
-use swc_common::{errors::DiagnosticId, errors::HANDLER, Span, Spanned, DUMMY_SP};
+use swc_common::{errors::HANDLER, Span, Spanned, DUMMY_SP};
 use swc_ecmascript::ast;
 use swc_ecmascript::utils::{private_ident, ExprFactory};
 use swc_ecmascript::visit::{fold_expr, noop_fold_type, Fold, FoldWith, VisitWith};
@@ -88,7 +89,8 @@ pub struct QwikTransform<'a> {
     pub options: QwikTransformOptions<'a>,
 
     hooks_names: HashMap<String, u32>,
-    extra_module_items: BTreeMap<Id, ast::ModuleItem>,
+    extra_top_items: BTreeMap<Id, ast::ModuleItem>,
+    extra_bottom_items: BTreeMap<Id, ast::ModuleItem>,
     stack_ctxt: Vec<String>,
     position_ctxt: Vec<PositionToken>,
     decl_stack: Vec<Vec<IdPlusType>>,
@@ -108,7 +110,7 @@ pub struct QwikTransformOptions<'a> {
     pub path_data: &'a PathData,
     pub entry_policy: &'a dyn EntryPolicy,
     pub extension: JsWord,
-    pub explicity_extensions: bool,
+    pub explicit_extensions: bool,
     pub comments: Option<&'a SingleThreadedComments>,
     pub global_collect: GlobalCollect,
     pub scope: Option<&'a String>,
@@ -162,7 +164,8 @@ impl<'a> QwikTransform<'a> {
             in_component: false,
             hooks: Vec::with_capacity(16),
             hook_stack: Vec::with_capacity(16),
-            extra_module_items: BTreeMap::new(),
+            extra_top_items: BTreeMap::new(),
+            extra_bottom_items: BTreeMap::new(),
             hooks_names: HashMap::new(),
             qcomponent_fn: options
                 .global_collect
@@ -302,6 +305,14 @@ impl<'a> QwikTransform<'a> {
         };
         let local_idents = self.get_local_idents(&folded);
 
+        for id in &local_idents {
+            if !self.options.global_collect.exports.contains_key(id)
+                && self.options.global_collect.root.contains_key(id)
+            {
+                self.ensure_export(id);
+            }
+        }
+
         let hook_data = HookData {
             extension: self.options.extension.clone(),
             local_idents,
@@ -395,23 +406,24 @@ impl<'a> QwikTransform<'a> {
                             .struct_span_err_with_code(
                                 *span,
                                 &format!(
-                                    "Reference to root level identifier needs to be exported: {}",
+                                    "Reference to identifier declared at the root '{}'. It needs to be exported in order to be used inside a Qrl($) scope.",
                                     id.0
                                 ),
-                                DiagnosticId::Error("root-level-reference".into()),
+                                errors::get_diagnostic_id(errors::Error::RootLevelReference)
                             )
                             .emit();
                     });
+                    // }
                 }
                 if invalid_decl.contains(id) {
                     HANDLER.with(|handler| {
                         handler
                             .struct_err_with_code(
                                 &format!(
-                                    "Identifier can not capture because it's a function: {}",
+                                    "Reference to identifier '{}' can not be used inside a Qrl($) scope because it's a function",
                                     id.0
                                 ),
-                                DiagnosticId::Error("function-reference".into()),
+                                errors::get_diagnostic_id(errors::Error::FunctionReference),
                             )
                             .emit();
                     });
@@ -422,11 +434,12 @@ impl<'a> QwikTransform<'a> {
         let mut scoped_idents = compute_scoped_idents(&descendent_idents, &decl_collect);
         if !can_capture && !scoped_idents.is_empty() {
             HANDLER.with(|handler| {
+                let ids: Vec<_> = scoped_idents.iter().map(|id| id.0.as_ref()).collect();
                 handler
                     .struct_span_err_with_code(
                         first_arg_span,
-                        "Identifier can not be captured",
-                        DiagnosticId::Error("can-not-capture".into()),
+                        &format!("Qrl($) scope is not a function, but it's capturing local identifiers: {}", ids.join(", ")),
+                        errors::get_diagnostic_id(errors::Error::CanNotCapture),
                     )
                     .emit();
             });
@@ -503,7 +516,7 @@ impl<'a> QwikTransform<'a> {
                 .map(|e| e.as_ref())
                 .unwrap_or(&canonical_filename)
         );
-        if self.options.explicity_extensions {
+        if self.options.explicit_extensions {
             filename.push('.');
             filename.push_str(&self.options.extension);
         }
@@ -594,12 +607,19 @@ impl<'a> QwikTransform<'a> {
             .synthetic;
 
         if is_synthetic && self.is_inside_module() {
-            self.extra_module_items.insert(
+            self.extra_top_items.insert(
                 new_local.clone(),
                 create_synthetic_named_import(&new_local, &source),
             );
         }
         new_local
+    }
+
+    fn ensure_export(&mut self, id: &Id) {
+        if self.options.global_collect.add_export(id.clone(), None) {
+            self.extra_bottom_items
+                .insert(id.clone(), create_synthetic_named_export(id));
+        }
     }
 
     fn create_qrl(&mut self, url: JsWord, symbol: &str, idents: &[Id]) -> ast::CallExpr {
@@ -730,8 +750,8 @@ impl<'a> QwikTransform<'a> {
             handler
                 .struct_span_err_with_code(
                     node.span,
-                    "Dynamic import using $ scope, can not fixed because it's dynamic",
-                    DiagnosticId::Error("dynamic-import-inside-qhook".into()),
+                    "Dynamic import() inside Qrl($) scope is not a string, relative paths might break",
+                    errors::get_diagnostic_id(errors::Error::DynamicImportInsideQhook),
                 )
                 .emit();
         });
@@ -745,8 +765,9 @@ impl<'a> Fold for QwikTransform<'a> {
     fn fold_module(&mut self, node: ast::Module) -> ast::Module {
         let mut body = Vec::with_capacity(node.body.len() + 10);
         let mut module_body = node.body.into_iter().map(|i| i.fold_with(self)).collect();
-        body.extend(self.extra_module_items.values().cloned());
+        body.extend(self.extra_top_items.values().cloned());
         body.append(&mut module_body);
+        body.extend(self.extra_bottom_items.values().cloned());
 
         ast::Module { body, ..node }
     }
@@ -1061,10 +1082,8 @@ impl<'a> Fold for QwikTransform<'a> {
                                         handler
                                             .struct_span_err_with_code(
                                                 ident.span,
-                                                "Version without $ is not exported.",
-                                                DiagnosticId::Error(
-                                                    "missing-qrl-implementation".into(),
-                                                ),
+                                                &format!("Found '{}' but did not find the corresponding '{}' exported in the same file. Please check that it is exported and spelled correctly", &ident.sym, &new_specifier),
+                                                errors::get_diagnostic_id(errors::Error::MissingQrlImplementation),
                                             )
                                             .emit();
                                     });
@@ -1209,27 +1228,20 @@ pub fn create_synthetic_named_import_auto(
     }))
 }
 
-// pub fn create_synthetic_named_export(local: &JsWord, src: &JsWord) -> ast::ModuleItem {
-//     ast::ModuleItem::ModuleDecl(ast::ModuleDecl::ExportNamed(ast::NamedExport {
-//         span: DUMMY_SP,
-//         asserts: None,
-//         type_only: false,
-//         src: Some(ast::Str {
-//             span: DUMMY_SP,
-//             has_escape: false,
-//             value: src.clone(),
-//             kind: ast::StrKind::Normal {
-//                 contains_quote: false,
-//             },
-//         }),
-//         specifiers: vec![ast::ExportSpecifier::Named(ast::ExportNamedSpecifier {
-//             is_type_only: false,
-//             exported: None,
-//             orig: ast::ModuleExportName::Ident(ast::Ident::new(local.clone(), DUMMY_SP)),
-//             span: DUMMY_SP,
-//         })],
-//     }))
-// }
+pub fn create_synthetic_named_export(local: &Id) -> ast::ModuleItem {
+    ast::ModuleItem::ModuleDecl(ast::ModuleDecl::ExportNamed(ast::NamedExport {
+        span: DUMMY_SP,
+        type_only: false,
+        asserts: None,
+        specifiers: vec![ast::ExportSpecifier::Named(ast::ExportNamedSpecifier {
+            span: DUMMY_SP,
+            is_type_only: false,
+            orig: ast::ModuleExportName::Ident(new_ident_from_id(local)),
+            exported: None,
+        })],
+        src: None,
+    }))
+}
 
 pub fn create_synthetic_named_import(local: &Id, src: &JsWord) -> ast::ModuleItem {
     ast::ModuleItem::ModuleDecl(ast::ModuleDecl::Import(ast::ImportDecl {

@@ -25,6 +25,17 @@ import { createRollupError, normalizeRollupOutputOptions } from './rollup';
 import { QWIK_LOADER_DEFAULT_DEBUG, QWIK_LOADER_DEFAULT_MINIFIED } from '../scripts';
 import { versions } from '../versions';
 
+const OPTIMIZE_DEPS = [
+  QWIK_CORE_ID,
+  QWIK_JSX_RUNTIME_ID,
+  'react',
+  'react-dom/client',
+  'hoist-non-react-statics',
+  '@emotion/react',
+];
+
+const DEDUPE = [QWIK_CORE_ID, QWIK_JSX_RUNTIME_ID, 'react', 'react-dom', '@emotion/react'];
+
 /**
  * @alpha
  */
@@ -96,6 +107,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         debug: qwikViteOpts.debug,
         entryStrategy: qwikViteOpts.entryStrategy,
         rootDir: viteConfig.root,
+        resolveQwikBuild: viteEnv.command === 'build',
         transformedModuleOutput: qwikViteOpts.transformedModuleOutput,
         forceFullBuild,
         vendorRoots: vendorRoots.map((v) => v.path),
@@ -186,10 +198,10 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       const updatedViteConfig: UserConfig = {
         esbuild: false,
         resolve: {
-          dedupe: [QWIK_CORE_ID, QWIK_JSX_RUNTIME_ID, ...vendorIds],
+          dedupe: [...DEDUPE, ...vendorIds],
         },
         optimizeDeps: {
-          include: [QWIK_CORE_ID, QWIK_JSX_RUNTIME_ID],
+          include: OPTIMIZE_DEPS,
           exclude: [
             '@vite/client',
             '@vite/env',
@@ -430,34 +442,28 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             Array.from(server.moduleGraph.fileToModulesMap.entries()).forEach((entry) => {
               entry[1].forEach((v) => {
                 const hook = v.info?.meta?.hook;
+                let url = v.url;
+                if (v.lastHMRTimestamp) {
+                  url += `?t=${v.lastHMRTimestamp}`;
+                }
                 if (hook) {
-                  let url = v.url;
-                  if (v.lastHMRTimestamp) {
-                    url += `?t=${v.lastHMRTimestamp}`;
-                  }
                   manifest.mapping[hook.name] = url;
                 }
-              });
-            });
-
-            qwikPlugin.log(`handleSSR()`, 'symbols', manifest);
-
-            const renderInputModule = await server.moduleGraph.getModuleByUrl(opts.input[0]!);
-            if (renderInputModule) {
-              renderInputModule.importedModules.forEach((moduleNode) => {
-                if (moduleNode.url.endsWith('.css')) {
+                const { pathId, query } = parseId(v.url);
+                if (query === '' && pathId.endsWith('.css')) {
                   manifest.injections!.push({
                     tag: 'link',
                     location: 'head',
                     attributes: {
                       rel: 'stylesheet',
-                      href: moduleNode.url,
+                      href: url,
                     },
                   });
                 }
               });
-            }
+            });
 
+            qwikPlugin.log(`handleSSR()`, 'symbols', manifest);
             const renderToStringOpts: RenderOptions = {
               url: url.href,
               debug: true,

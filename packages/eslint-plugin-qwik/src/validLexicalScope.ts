@@ -324,7 +324,7 @@ function _isTypeCapturable(
       }
     }
 
-    if (!symbolName.startsWith('__')) {
+    if (!symbolName.startsWith('__') && type.symbol.valueDeclaration) {
       return {
         type,
         typeStr: checker.typeToString(type),

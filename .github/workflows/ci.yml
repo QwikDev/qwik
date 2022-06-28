@@ -50,6 +50,7 @@ jobs:
               - 'packages/qwik/src/**/*.toml'
               - 'packages/qwik/src/**/*.rs'
               - 'packages/qwik/src/**/*.lock'
+              - 'packages/eslint-plugin-qwik/**/*.ts'
               - 'tsconfig.json'
       - name: Print fullbuild output
         run: echo ${{ steps.filter.outputs.fullbuild == 'true' || github.event.inputs.disttag != '' }}

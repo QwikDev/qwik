@@ -1,6 +1,6 @@
 import express from 'express';
 import cityPlan from '@qwik-city-plan';
-import { qwikCity } from '@builder.io/qwik-city/adaptor/adaptors/express';
+import { qwikCity } from '@builder.io/qwik-city/adaptors/express';
 import { render } from './entry.ssr';
 
 const app = express();

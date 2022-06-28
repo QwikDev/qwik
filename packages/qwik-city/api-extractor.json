@@ -8,7 +8,7 @@
         "esModuleInterop": true,
         "skipLibCheck": true
       },
-      "include": ["dist-dev/dts-out/packages/qwik-city/src"]
+      "include": ["dist-dev/dts-out/packages/qwik-city/"]
     }
   },
   "docModel": {

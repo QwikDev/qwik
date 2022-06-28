@@ -1,6 +1,5 @@
 import {
   component$,
-  HTMLAttributes,
   jsx,
   noSerialize,
   SkipRerender,
@@ -9,6 +8,7 @@ import {
   useStore,
   useWaitOn,
 } from '@builder.io/qwik';
+import type { HTMLAttributes } from '@builder.io/qwik';
 import { updateContent } from './content';
 import { QwikCityContext } from './constants';
 import { loadRoute, matchRoute } from './routing';

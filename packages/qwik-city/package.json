@@ -51,9 +51,8 @@
       "import": "./dist/index.mjs",
       "require": "./dist/index.cjs"
     },
-    "./adaptor": {
-      "import": "./dist/adaptor/index.mjs",
-      "require": "./dist/adaptor/index.cjs"
+    "./cloudflare-pages": {
+      "import": "./dist/cloudflare-pages/index.mjs"
     },
     "./express": {
       "import": "./dist/express/index.mjs",
@@ -62,15 +61,10 @@
     "./vite": {
       "import": "./dist/vite/index.mjs",
       "require": "./dist/vite/index.cjs"
-    },
-    "./build": {
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.cjs"
     }
   },
   "files": [
-    "dist",
-    "vite"
+    "dist"
   ],
   "license": "MIT",
   "homepage": "https://qwik.builder.io/",

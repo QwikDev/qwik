@@ -6,7 +6,7 @@
 
 import { Component } from '@builder.io/qwik';
 import type { FunctionComponent } from '@builder.io/qwik';
-import { HTMLAttributes } from '@builder.io/qwik';
+import type { HTMLAttributes } from '@builder.io/qwik';
 
 // @public (undocumented)
 export const Content: Component<    {}>;

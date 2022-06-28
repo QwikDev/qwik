@@ -1,13 +1,17 @@
-import type { QwikCityRequestOptions, RenderFunction } from '../types';
-import { requestHandler } from '@builder.io/qwik-city/adaptor';
-import { patchGlobalFetch } from '../fetch';
+import type { QwikCityRequestOptions } from '../request-handler/types';
+import { requestHandler } from '../request-handler';
+import { patchGlobalFetch } from '../request-handler/node-fetch';
 import express from 'express';
 import { join } from 'path';
 import type { QwikCityPlan } from '@builder.io/qwik-city';
+import type { Render } from '@builder.io/qwik/server';
 
-// @builder.io/qwik-city/express
+// @builder.io/qwik-city/adaptors/express
 
-export function qwikCity(renderFn: RenderFunction, opts: QwikCityPlanExpress) {
+/**
+ * @public
+ */
+export function qwikCity(render: Render, opts: QwikCityPlanExpress) {
   patchGlobalFetch();
 
   const router = express.Router();
@@ -34,7 +38,7 @@ export function qwikCity(renderFn: RenderFunction, opts: QwikCityPlanExpress) {
         url,
       };
 
-      const response = await requestHandler(renderFn, requestOpts);
+      const response = await requestHandler(render, requestOpts);
       if (response) {
         res.status(response.status);
         response.headers.forEach((value, key) => res.setHeader(key, value));
@@ -50,6 +54,9 @@ export function qwikCity(renderFn: RenderFunction, opts: QwikCityPlanExpress) {
   return router;
 }
 
+/**
+ * @public
+ */
 export interface QwikCityPlanExpress extends QwikCityPlan {
   staticDir?: string;
   buildDir?: string;

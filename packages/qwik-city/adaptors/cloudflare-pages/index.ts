@@ -1,10 +1,14 @@
-import type { QwikCityRequestOptions, RenderFunction } from '../types';
-import { requestHandler } from 'packages/qwik-city/adaptor';
+import type { QwikCityRequestOptions } from '../request-handler/types';
+import { requestHandler } from '../request-handler';
 import type { QwikCityPlan } from '@builder.io/qwik-city';
+import type { Render } from '@builder.io/qwik/server';
 
-// @builder.io/qwik-city/cloudflare-pages
+// @builder.io/qwik-city/adaptors/cloudflare-pages
 
-export function createServer(renderFn: RenderFunction, opts: QwikCityPlanCloudflarePages) {
+/**
+ * @public
+ */
+export function createServer(render: Render, opts: QwikCityPlanCloudflarePages) {
   async function onRequest({ request, next }: EventPluginContext) {
     try {
       const url = new URL(request.url);
@@ -15,7 +19,7 @@ export function createServer(renderFn: RenderFunction, opts: QwikCityPlanCloudfl
         url,
       };
 
-      const response = await requestHandler(renderFn, requestOpts);
+      const response = await requestHandler(render, requestOpts);
       if (response) {
         return response;
       } else {
@@ -31,9 +35,15 @@ export function createServer(renderFn: RenderFunction, opts: QwikCityPlanCloudfl
   };
 }
 
+/**
+ * @public
+ */
 export interface QwikCityPlanCloudflarePages extends QwikCityPlan {}
 
-interface EventPluginContext {
+/**
+ * @public
+ */
+export interface EventPluginContext {
   request: Request;
   waitUntil: (promise: Promise<any>) => void;
   next: (input?: Request | string, init?: RequestInit) => Promise<Response>;

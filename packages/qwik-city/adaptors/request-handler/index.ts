@@ -1,13 +1,15 @@
-import { ROUTE_TYPE_ENDPOINT } from '../runtime/src/library/constants';
-import { getRouteParams } from '../runtime/src/library/routing';
+import { ROUTE_TYPE_ENDPOINT } from '../../runtime/src/library/constants';
+import { getRouteParams } from '../../runtime/src/library/routing';
 import { endpointHandler } from './endpoint-handler';
-import type { QwikCityRequestOptions, RenderFunction } from './types';
+import { checkRedirect } from './redirect-handler';
+import type { QwikCityRequestOptions } from './types';
+import type { Render } from '@builder.io/qwik/server';
 
 /**
  * @public
  */
 export async function requestHandler(
-  renderFn: RenderFunction,
+  render: Render,
   opts: QwikCityRequestOptions
 ): Promise<Response | null> {
   if (Array.isArray(opts.routes)) {
@@ -40,7 +42,7 @@ export async function requestHandler(
           return endpointHandler(opts.request, opts.url, params, endpointModule);
         }
 
-        const result = await renderFn(opts);
+        const result = await render(opts);
 
         return new Response(result.html, {
           headers: {
@@ -51,39 +53,6 @@ export async function requestHandler(
     }
   }
 
-  return null;
-}
-
-function checkRedirect(opts: QwikCityRequestOptions, pathname: string) {
-  if (pathname !== '/') {
-    if (opts.trailingSlash) {
-      // must have a trailing slash
-      if (!pathname.endsWith('/')) {
-        // add slash to existing pathname
-        return createRedirect(opts.url, pathname + '/');
-      }
-    } else {
-      // should not have a trailing slash
-      if (pathname.endsWith('/')) {
-        // remove slash from existing pathname
-        return createRedirect(opts.url, pathname.slice(0, pathname.length - 1));
-      }
-    }
-  }
-  return null;
-}
-
-function createRedirect(current: URL, updatedPathname: string) {
-  // node-fetch has issues with Response.redirect()
-  // so just create it manually
-  if (updatedPathname !== current.pathname) {
-    return new Response(null, {
-      status: 308,
-      headers: {
-        location: updatedPathname + current.search,
-      },
-    });
-  }
   return null;
 }
 

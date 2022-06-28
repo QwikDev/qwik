@@ -3,7 +3,7 @@ import type {
   EndpointModule,
   RequestEvent,
   RouteParams,
-} from '../runtime/src/library/types';
+} from '../../runtime/src/library/types';
 
 export function endpointHandler(
   request: Request,

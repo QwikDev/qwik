@@ -1,11 +1,11 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/api-extractor/v7/api-extractor.schema.json",
-  "extends": "../api-extractor.json",
-  "mainEntryPointFilePath": "<projectFolder>/dist-dev/dts-out/packages/qwik-city/src/vite/index.d.ts",
+  "extends": "../../api-extractor.json",
+  "mainEntryPointFilePath": "<projectFolder>/dist-dev/dts-out/packages/qwik-city/buildtime/vite/index.d.ts",
   "apiReport": {
     "enabled": true,
     "reportFileName": "api.md",
-    "reportFolder": "<projectFolder>/packages/qwik-city/src/vite/",
+    "reportFolder": "<projectFolder>/packages/qwik-city/buildtime/vite/",
     "reportTempFolder": "<projectFolder>/dist-dev/api-extractor/qwik-city/vite"
   },
   "dtsRollup": {

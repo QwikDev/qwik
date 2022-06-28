@@ -99,9 +99,14 @@ async function validateStarter(
   console.log(`🌟 ${projectName}: copy @builder.io/qwik distribution`);
   const qwikNodeModule = join(appDir, 'node_modules', '@builder.io', 'qwik');
   rmSync(qwikNodeModule, { force: true, recursive: true });
-
   const distQwik = join(__dirname, '..', 'packages', 'qwik', 'dist');
   cpSync(distQwik, qwikNodeModule);
+
+  console.log(`🌟 ${projectName}: copy eslint-plugin-qwik distribution`);
+  const eslintNodeModule = join(appDir, 'node_modules', 'eslint-plugin-qwik');
+  rmSync(qwikNodeModule, { force: true, recursive: true });
+  const distEslintQwik = join(__dirname, '..', 'packages', 'eslint-plugin-qwik', 'dist');
+  cpSync(distEslintQwik, eslintNodeModule);
 
   console.log(`🌈 ${projectName}: npm run build`);
   await execa('npm', ['run', 'build'], { cwd: appDir, stdout: 'inherit' });

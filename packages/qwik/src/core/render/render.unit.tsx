@@ -92,7 +92,7 @@ describe('render', () => {
       await render(
         fixture.document,
         <html>
-          <heasd></heasd>
+          <head></head>
           <body></body>
         </html>
       );

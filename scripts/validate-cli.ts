@@ -104,7 +104,7 @@ async function validateStarter(
 
   console.log(`🌟 ${projectName}: copy eslint-plugin-qwik distribution`);
   const eslintNodeModule = join(appDir, 'node_modules', 'eslint-plugin-qwik');
-  rmSync(qwikNodeModule, { force: true, recursive: true });
+  rmSync(eslintNodeModule, { force: true, recursive: true });
   const distEslintQwik = join(__dirname, '..', 'packages', 'eslint-plugin-qwik', 'dist');
   cpSync(distEslintQwik, eslintNodeModule);
 

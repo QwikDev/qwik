@@ -118,9 +118,9 @@ export { hW as handleWatch };
 [
   {
     "category": "error",
-    "code": "can-not-capture",
+    "code": "C03",
     "file": "test.tsx",
-    "message": "Identifier can not be captured",
+    "message": "Qrl($) scope is not a function, but it's capturing local identifiers: style",
     "highlights": [
       {
         "lo": 219,
@@ -136,9 +136,9 @@ export { hW as handleWatch };
   },
   {
     "category": "error",
-    "code": "can-not-capture",
+    "code": "C03",
     "file": "test.tsx",
-    "message": "Identifier can not be captured",
+    "message": "Qrl($) scope is not a function, but it's capturing local identifiers: render",
     "highlights": [
       {
         "lo": 325,

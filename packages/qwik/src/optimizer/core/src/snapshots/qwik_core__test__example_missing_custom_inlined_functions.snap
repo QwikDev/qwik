@@ -47,9 +47,9 @@ export const App = component$((props)=>{
 [
   {
     "category": "error",
-    "code": "missing-qrl-implementation",
+    "code": "C05",
     "file": "test.tsx",
-    "message": "Version without $ is not exported.",
+    "message": "Found 'useMemo$' but did not find the corresponding 'useMemoQrl' exported in the same file. Please check that it is exported and spelled correctly",
     "highlights": [
       {
         "lo": 252,

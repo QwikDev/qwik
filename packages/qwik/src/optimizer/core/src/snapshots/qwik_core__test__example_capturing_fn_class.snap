@@ -100,18 +100,18 @@ export { hW as handleWatch };
 [
   {
     "category": "error",
-    "code": "function-reference",
+    "code": "C02",
     "file": "test.tsx",
-    "message": "Identifier can not capture because it's a function: Thing",
+    "message": "Reference to identifier 'Thing' can not be used inside a Qrl($) scope because it's a function",
     "highlights": null,
     "suggestions": null,
     "scope": "optimizer"
   },
   {
     "category": "error",
-    "code": "function-reference",
+    "code": "C02",
     "file": "test.tsx",
-    "message": "Identifier can not capture because it's a function: hola",
+    "message": "Reference to identifier 'hola' can not be used inside a Qrl($) scope because it's a function",
     "highlights": null,
     "suggestions": null,
     "scope": "optimizer"

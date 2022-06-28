@@ -3,6 +3,7 @@ use crate::collector::{
     collect_from_pat, new_ident_from_id, GlobalCollect, Id, IdentCollector, ImportKind,
 };
 use crate::entry_strategy::EntryPolicy;
+use crate::errors;
 use crate::parse::PathData;
 use crate::words::*;
 use path_slash::PathExt;
@@ -14,7 +15,7 @@ use std::hash::Hasher;
 
 use swc_atoms::{js_word, JsWord};
 use swc_common::comments::{Comments, SingleThreadedComments};
-use swc_common::{errors::DiagnosticId, errors::HANDLER, Span, Spanned, DUMMY_SP};
+use swc_common::{errors::HANDLER, Span, Spanned, DUMMY_SP};
 use swc_ecmascript::ast;
 use swc_ecmascript::utils::{private_ident, ExprFactory};
 use swc_ecmascript::visit::{fold_expr, noop_fold_type, Fold, FoldWith, VisitWith};
@@ -405,10 +406,10 @@ impl<'a> QwikTransform<'a> {
                             .struct_span_err_with_code(
                                 *span,
                                 &format!(
-                                    "Reference to root level identifier needs to be exported: {}",
+                                    "Reference to identifier declared at the root '{}'. It needs to be exported in order to be used inside a Qrl($) scope.",
                                     id.0
                                 ),
-                                DiagnosticId::Error("root-level-reference".into()),
+                                errors::get_diagnostic_id(errors::Error::RootLevelReference)
                             )
                             .emit();
                     });
@@ -419,10 +420,10 @@ impl<'a> QwikTransform<'a> {
                         handler
                             .struct_err_with_code(
                                 &format!(
-                                    "Identifier can not capture because it's a function: {}",
+                                    "Reference to identifier '{}' can not be used inside a Qrl($) scope because it's a function",
                                     id.0
                                 ),
-                                DiagnosticId::Error("function-reference".into()),
+                                errors::get_diagnostic_id(errors::Error::FunctionReference),
                             )
                             .emit();
                     });
@@ -433,11 +434,12 @@ impl<'a> QwikTransform<'a> {
         let mut scoped_idents = compute_scoped_idents(&descendent_idents, &decl_collect);
         if !can_capture && !scoped_idents.is_empty() {
             HANDLER.with(|handler| {
+                let ids: Vec<_> = scoped_idents.iter().map(|id| id.0.as_ref()).collect();
                 handler
                     .struct_span_err_with_code(
                         first_arg_span,
-                        "Identifier can not be captured",
-                        DiagnosticId::Error("can-not-capture".into()),
+                        &format!("Qrl($) scope is not a function, but it's capturing local identifiers: {}", ids.join(", ")),
+                        errors::get_diagnostic_id(errors::Error::CanNotCapture),
                     )
                     .emit();
             });
@@ -748,8 +750,8 @@ impl<'a> QwikTransform<'a> {
             handler
                 .struct_span_err_with_code(
                     node.span,
-                    "Dynamic import using $ scope, can not fixed because it's dynamic",
-                    DiagnosticId::Error("dynamic-import-inside-qhook".into()),
+                    "Dynamic import() inside Qrl($) scope is not a string, relative paths might break",
+                    errors::get_diagnostic_id(errors::Error::DynamicImportInsideQhook),
                 )
                 .emit();
         });
@@ -1080,10 +1082,8 @@ impl<'a> Fold for QwikTransform<'a> {
                                         handler
                                             .struct_span_err_with_code(
                                                 ident.span,
-                                                "Version without $ is not exported.",
-                                                DiagnosticId::Error(
-                                                    "missing-qrl-implementation".into(),
-                                                ),
+                                                &format!("Found '{}' but did not find the corresponding '{}' exported in the same file. Please check that it is exported and spelled correctly", &ident.sym, &new_specifier),
+                                                errors::get_diagnostic_id(errors::Error::MissingQrlImplementation),
                                             )
                                             .emit();
                                     });

@@ -9,6 +9,7 @@ mod test;
 mod code_move;
 mod collector;
 mod entry_strategy;
+mod errors;
 mod package_json;
 mod parse;
 mod transform;

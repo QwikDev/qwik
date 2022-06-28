@@ -1,5 +1,5 @@
-import { validLexicalScope } from './lib/validLexicalScope';
-import { noUseAfterAwait } from './lib/noUseAfterAwait';
+import { validLexicalScope } from './src/validLexicalScope';
+import { noUseAfterAwait } from './src/noUseAfterAwait';
 
 export const rules = {
   'no-use-after-await': noUseAfterAwait,

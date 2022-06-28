@@ -36,7 +36,7 @@ export function createInlinedImportRoutes(ctx: BuildContext, c: string[], esmImp
 
   const routes = ctx.routes.filter((r) => ctx.target === 'ssr' || r.type === 'page');
   c.push(`\n/** Qwik City Routes (${routes.length}) */`);
-  c.push(`export const routes = [`);
+  c.push(`const routes = [`);
 
   for (const route of routes) {
     const loaders = [];

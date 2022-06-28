@@ -153,6 +153,15 @@ export type RouteData =
 /**
  * @public
  */
+export interface QwikCityPlan {
+  routes: RouteData[];
+  menus?: { [pathName: string]: ContentMenu };
+  trailingSlash?: boolean;
+}
+
+/**
+ * @public
+ */
 export type RouteParams = Record<string, string>;
 
 export interface MatchedRoute {

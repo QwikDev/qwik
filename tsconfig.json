@@ -34,7 +34,7 @@
       "@examples-data": ["packages/docs/src/layouts/examples/examples-data.ts"],
       "@playground-data": ["packages/docs/src/layouts/playground/playground-data.ts"],
       "@qwik-client-manifest": ["packages/qwik/src/server/server-modules.d.ts"],
-      "@qwik-city-app": ["packages/qwik-city/src/runtime/qwik-city-module.ts"],
+      "@qwik-city-plan": ["packages/qwik-city/src/runtime/qwik-city-plan.ts"],
       "@tutorial-data": ["packages/docs/src/layouts/tutorial/tutorial-data.ts"],
       "@repl-server-html": ["packages/docs/src/components/repl/worker/repl-server.ts"],
       "@repl-server-url": ["packages/docs/src/components/repl/worker/repl-server.ts"],

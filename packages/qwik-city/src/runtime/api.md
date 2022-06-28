@@ -136,6 +136,18 @@ export interface HeadComponentProps {
 // @public (undocumented)
 export const Html: Component<HtmlProps>;
 
+// @public (undocumented)
+export interface QwikCityPlan {
+    // (undocumented)
+    menus?: {
+        [pathName: string]: ContentMenu;
+    };
+    // (undocumented)
+    routes: RouteData[];
+    // (undocumented)
+    trailingSlash?: boolean;
+}
+
 // Warning: (ae-forgotten-export) The symbol "ContentModule" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "EndpointModule" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "ROUTE_TYPE_ENDPOINT" needs to be exported by the entry point index.d.ts

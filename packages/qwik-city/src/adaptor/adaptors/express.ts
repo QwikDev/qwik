@@ -1,12 +1,13 @@
-import type { QwikCityAdaptorOptions, QwikCityRequestOptions, RenderFunction } from '../types';
+import type { QwikCityRequestOptions, RenderFunction } from '../types';
 import { requestHandler } from '@builder.io/qwik-city/adaptor';
 import { patchGlobalFetch } from '../fetch';
 import express from 'express';
 import { join } from 'path';
+import type { QwikCityPlan } from '@builder.io/qwik-city';
 
 // @builder.io/qwik-city/express
 
-export function qwikCity(renderFn: RenderFunction, opts: QwikCityExpressOptions) {
+export function qwikCity(renderFn: RenderFunction, opts: QwikCityPlanExpress) {
   patchGlobalFetch();
 
   const router = express.Router();
@@ -49,7 +50,7 @@ export function qwikCity(renderFn: RenderFunction, opts: QwikCityExpressOptions)
   return router;
 }
 
-export interface QwikCityExpressOptions extends QwikCityAdaptorOptions {
+export interface QwikCityPlanExpress extends QwikCityPlan {
   staticDir?: string;
   buildDir?: string;
 }

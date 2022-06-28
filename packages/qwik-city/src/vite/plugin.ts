@@ -2,7 +2,7 @@ import { createMdxTransformer, MdxTransform } from '../buildtime/markdown/mdx';
 import fs from 'fs';
 import { isAbsolute, join, resolve } from 'path';
 import type { Plugin, UserConfig } from 'vite';
-import { generateInlinedRuntime } from '../buildtime/runtime-generation/generate-runtime';
+import { generateQwikCityPlan } from '../buildtime/runtime-generation/generate-runtime';
 import type { BuildContext, NormalizedPluginOptions, PluginOptions } from '../buildtime/types';
 import { createBuildContext } from '../buildtime/utils/context';
 import { isMarkdownFileName } from '../buildtime/utils/fs';
@@ -13,7 +13,7 @@ import { build } from '../buildtime/build';
  */
 export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
   let ctx: BuildContext | null = null;
-  let qwikCityRuntimeCode: string | null = null;
+  let qwikCityPlanCode: string | null = null;
   let mdxTransform: MdxTransform | null = null;
   let rootDir: string | null = null;
 
@@ -27,7 +27,7 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
     config() {
       const updatedViteConfig: UserConfig = {
         optimizeDeps: {
-          exclude: [QWIK_CITY_APP_ID],
+          exclude: [QWIK_CITY_PLAN_ID],
         },
       };
       return updatedViteConfig;
@@ -46,29 +46,29 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
     },
 
     async buildStart() {
-      qwikCityRuntimeCode = null;
+      qwikCityPlanCode = null;
     },
 
     resolveId(id) {
-      if (id === QWIK_CITY_APP_ID) {
-        return join(rootDir!, QWIK_CITY_APP_ID);
+      if (id === QWIK_CITY_PLAN_ID) {
+        return join(rootDir!, QWIK_CITY_PLAN_ID);
       }
       return null;
     },
 
     async load(id) {
-      if (id.endsWith(QWIK_CITY_APP_ID) && ctx) {
-        // @qwik-city-app
-        if (typeof qwikCityRuntimeCode !== 'string') {
+      if (id.endsWith(QWIK_CITY_PLAN_ID) && ctx) {
+        // @qwik-city-plan
+        if (typeof qwikCityPlanCode !== 'string') {
           await build(ctx);
 
           ctx.diagnostics.forEach((d) => {
             this.warn(d.message);
           });
 
-          qwikCityRuntimeCode = generateInlinedRuntime(ctx);
+          qwikCityPlanCode = generateQwikCityPlan(ctx);
         }
-        return qwikCityRuntimeCode;
+        return qwikCityPlanCode;
       }
       return null;
     },
@@ -85,7 +85,7 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
   return plugin as any;
 }
 
-const QWIK_CITY_APP_ID = '@qwik-city-app';
+const QWIK_CITY_PLAN_ID = '@qwik-city-plan';
 
 async function validatePlugin(opts: NormalizedPluginOptions) {
   if (typeof opts.routesDir !== 'string') {

@@ -12,7 +12,7 @@ import {
 import { updateContent } from './content';
 import { QwikCityContext } from './constants';
 import { loadRoute, matchRoute } from './routing';
-import type { QwikCityState, RouteData } from './types';
+import type { QwikCityPlan, QwikCityState } from './types';
 import { useDocumentLocation } from './use-functions';
 import { resolveHead } from './head';
 import { searchParamsToObj } from './utils';
@@ -21,7 +21,7 @@ import { searchParamsToObj } from './utils';
  * @public
  */
 export const Html = component$<HtmlProps>(
-  (props) => {
+  ({ cityPlan }) => {
     const { get, set } = useSequentialScope();
     if (get) {
       return jsx(SkipRerender, {});
@@ -32,7 +32,7 @@ export const Html = component$<HtmlProps>(
 
     const ctx = useStore(() => {
       // init qwik city context
-      const matchedRoute = matchRoute(props.routes, docLocation.pathname);
+      const matchedRoute = matchRoute(cityPlan.routes, docLocation.pathname);
       const initCtx: QwikCityState = {
         breadcrumbs: undefined,
         head: {
@@ -64,7 +64,7 @@ export const Html = component$<HtmlProps>(
     useContextProvider(QwikCityContext, ctx);
 
     useWaitOn(
-      loadRoute(props.routes, docLocation.pathname)
+      loadRoute(cityPlan.routes, docLocation.pathname)
         .then(updateContent)
         .then((updatedContent) => {
           if (updatedContent) {
@@ -96,5 +96,5 @@ export const Html = component$<HtmlProps>(
 );
 
 export interface HtmlProps extends HTMLAttributes<HTMLHtmlElement> {
-  routes: RouteData[];
+  cityPlan: QwikCityPlan;
 }

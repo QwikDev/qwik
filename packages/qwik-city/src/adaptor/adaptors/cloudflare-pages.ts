@@ -1,9 +1,10 @@
-import type { QwikCityAdaptorOptions, QwikCityRequestOptions, RenderFunction } from '../types';
+import type { QwikCityRequestOptions, RenderFunction } from '../types';
 import { requestHandler } from '@builder.io/qwik-city/adaptor';
+import type { QwikCityPlan } from '@builder.io/qwik-city';
 
 // @builder.io/qwik-city/cloudflare-pages
 
-export function createServer(renderFn: RenderFunction, opts: QwikCityCloudflarePagesOptions) {
+export function createServer(renderFn: RenderFunction, opts: QwikCityPlanCloudflarePages) {
   async function onRequest({ request, next }: EventPluginContext) {
     try {
       const url = new URL(request.url);
@@ -30,7 +31,7 @@ export function createServer(renderFn: RenderFunction, opts: QwikCityCloudflareP
   };
 }
 
-export interface QwikCityCloudflarePagesOptions extends QwikCityAdaptorOptions {}
+export interface QwikCityPlanCloudflarePages extends QwikCityPlan {}
 
 interface EventPluginContext {
   request: Request;

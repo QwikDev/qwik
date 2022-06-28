@@ -1,11 +1,11 @@
-import { routes } from '@qwik-city-app';
+import cityPlan from '@qwik-city-plan';
 import { Content, Html } from '@builder.io/qwik-city';
 import { Head } from './components/head/head';
 import './global.css';
 
 export default function Root() {
   return (
-    <Html lang="en" routes={routes}>
+    <Html lang="en" cityPlan={cityPlan}>
       <Head />
       <body>
         <Content />

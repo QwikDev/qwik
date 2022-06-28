@@ -9,6 +9,7 @@ export type {
   EndpointHandler,
   HeadComponent,
   HeadComponentProps,
+  QwikCityPlan,
   RouteData,
   RouteLocation,
 } from './types';

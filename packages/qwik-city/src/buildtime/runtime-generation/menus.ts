@@ -3,7 +3,7 @@ import type { BuildContext, ParsedMenuItem } from '../types';
 
 export function createMenus(ctx: BuildContext, c: string[]) {
   c.push(`\n/** Qwik City Menus (${ctx.menus.length}) */`);
-  c.push(`export const menus = {`);
+  c.push(`const menus = {`);
   for (const parsedMenu of ctx.menus) {
     const menu = createRuntimeMenu(parsedMenu);
     c.push(`  ${JSON.stringify(parsedMenu.pathname)}: ${JSON.stringify(menu)},`);

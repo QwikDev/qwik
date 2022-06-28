@@ -62,7 +62,7 @@ export const MouseEvents = component$(() => {
   const mouseSelf = useSelfMouse();
 
   return (
-    <div  >
+    <div>
       <p>
         (Document: x: {mouseDoc.x}, y: {mouseDoc.y})
       </p>

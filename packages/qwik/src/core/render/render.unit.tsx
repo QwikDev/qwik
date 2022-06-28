@@ -93,7 +93,7 @@ describe('render', () => {
         fixture.document,
         <html>
           <head></head>
-          <body></body>
+          <body>WORKS</body>
         </html>
       );
       expect(fixture.document.body.innerHTML).toEqual('WORKS');

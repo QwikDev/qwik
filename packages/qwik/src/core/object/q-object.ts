@@ -281,22 +281,31 @@ const wrap = <T>(value: T, containerState: ContainerState): T => {
 };
 
 export const verifySerializable = <T>(value: T): T => {
+  const seen = new Set();
+  return _verifySerializable(value, seen);
+};
+
+const _verifySerializable = <T>(value: T, seen: Set<any>): T => {
   const unwrapped = unwrapProxy(value);
   if (unwrapped == null) {
     return value;
   }
   if (shouldSerialize(unwrapped)) {
+    if (seen.has(unwrapped)) {
+      return value;
+    }
+    seen.add(unwrapped);
     switch (typeof unwrapped) {
       case 'object':
         if (isArray(unwrapped)) {
           for (const item of unwrapped) {
-            verifySerializable(item);
+            _verifySerializable(item, seen);
           }
           return value;
         }
         if (Object.getPrototypeOf(unwrapped) === Object.prototype) {
           for (const item of Object.values(unwrapped)) {
-            verifySerializable(item);
+            _verifySerializable(item, seen);
           }
           return value;
         }
@@ -313,7 +322,6 @@ export const verifySerializable = <T>(value: T): T => {
   }
   return value;
 };
-
 const noSerializeSet = /*#__PURE__*/ new WeakSet<any>();
 
 export const shouldSerialize = (obj: any): boolean => {

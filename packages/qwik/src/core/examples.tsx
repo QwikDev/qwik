@@ -132,8 +132,8 @@ export const CmpInline = component$(() => {
   function useClick() {
     useOn(
       'click',
-      $(() => {
-        console.log('clicked host element');
+      $((ev) => {
+        console.log('clicked host element', ev);
       })
     );
   }
@@ -151,8 +151,8 @@ export const CmpInline = component$(() => {
   function useScroll() {
     useOnDocument(
       'scroll',
-      $(() => {
-        console.log('body scrolled');
+      $((ev) => {
+        console.log('body scrolled', ev);
       })
     );
   }
@@ -170,8 +170,8 @@ export const CmpInline = component$(() => {
   function useAnalytics() {
     useOnWindow(
       'popstate',
-      $(() => {
-        console.log('navigation happened');
+      $((ev) => {
+        console.log('navigation happened', ev);
         // report to analytics
       })
     );
@@ -446,7 +446,7 @@ export const CmpInline = component$(() => {
 // <docs anchor="qrl-usage-$">
 useOnDocument(
   'mousemove',
-  $(() => console.log('mousemove'))
+  $((ev) => console.log('mousemove', ev))
 );
 // </docs>
 

@@ -8,8 +8,8 @@ import type { TutorialSection } from './src/layouts/tutorial/tutorial-data';
 import type { PluginContext } from 'rollup';
 import type { ReplModuleInput } from './src/components/repl/types';
 
-export function playgroundData(pagesDir: string): Plugin {
-  const playgroundAppDir = join(pagesDir, 'playground', 'app');
+export function playgroundData(replDir: string): Plugin {
+  const playgroundAppDir = join(replDir, 'playground', 'app');
 
   return {
     name: 'playgroundData',
@@ -42,8 +42,8 @@ export function playgroundData(pagesDir: string): Plugin {
   };
 }
 
-export function examplesData(pagesDir: string): Plugin {
-  const dir = join(pagesDir, 'examples');
+export function examplesData(replDir: string): Plugin {
+  const dir = join(replDir, 'examples');
   const menuPath = join(dir, 'examples-menu.json');
   const menuSrc = readFileSync(menuPath, 'utf-8');
 
@@ -144,8 +144,8 @@ export function examplesData(pagesDir: string): Plugin {
   };
 }
 
-export function tutorialData(pagesDir: string): Plugin {
-  const dir = join(pagesDir, 'tutorial');
+export function tutorialData(replDir: string): Plugin {
+  const dir = join(replDir, 'tutorial');
   const menuPath = join(dir, 'tutorial-menu.json');
   const menuSrc = readFileSync(menuPath, 'utf-8');
 

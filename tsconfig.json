@@ -52,8 +52,8 @@
     "packages/qwik",
     "packages/qwik-city",
     "packages/qwik-react",
-    // "packages/docs",
     "packages/create-cli",
+    // "packages/docs",
     "scripts",
     "starters"
   ],

@@ -7,85 +7,85 @@ const test = suite();
 
 test('pathname from index.tsx', ({ opts }) => {
   const filePath = join(opts.routesDir, 'index.tsx');
-  const p = utils.getRoutePathname(opts, filePath);
+  const p = utils.getPathnameFromFilePath(opts, filePath);
   assert.is(p, '/');
 });
 
 test('pathname from index.mdx', ({ opts }) => {
   const filePath = join(opts.routesDir, 'index.mdx');
-  const p = utils.getRoutePathname(opts, filePath);
+  const p = utils.getPathnameFromFilePath(opts, filePath);
   assert.is(p, '/');
 });
 
 test('pathname from index.mdx, trailingSlash', ({ opts }) => {
   opts.trailingSlash = true;
   const filePath = join(opts.routesDir, 'index.mdx');
-  const p = utils.getRoutePathname(opts, filePath);
+  const p = utils.getPathnameFromFilePath(opts, filePath);
   assert.is(p, '/');
 });
 
 test('pathname from index.tsx, trailingSlash', ({ opts }) => {
   opts.trailingSlash = true;
   const filePath = join(opts.routesDir, 'index.tsx');
-  const p = utils.getRoutePathname(opts, filePath);
+  const p = utils.getPathnameFromFilePath(opts, filePath);
   assert.is(p, '/');
 });
 
 test('pathname from index.md', ({ opts }) => {
   const filePath = join(opts.routesDir, 'index.md');
-  const p = utils.getRoutePathname(opts, filePath);
+  const p = utils.getPathnameFromFilePath(opts, filePath);
   assert.is(p, '/');
 });
 
 test('index in subdirectory, trailingSlash', ({ opts }) => {
   opts.trailingSlash = true;
   const filePath = join(opts.routesDir, 'dir', 'index.md');
-  const p = utils.getRoutePathname(opts, filePath);
+  const p = utils.getPathnameFromFilePath(opts, filePath);
   assert.is(p, '/dir/');
 });
 
 test('index in subdirectory', ({ opts }) => {
   const filePath = join(opts.routesDir, 'dir', 'index.md');
-  const p = utils.getRoutePathname(opts, filePath);
+  const p = utils.getPathnameFromFilePath(opts, filePath);
   assert.is(p, '/dir');
 });
 
 test('pathname from page.mdx', ({ opts }) => {
   const filePath = join(opts.routesDir, 'page.mdx');
-  const p = utils.getRoutePathname(opts, filePath);
+  const p = utils.getPathnameFromFilePath(opts, filePath);
   assert.is(p, '/page');
 });
 
 test('pathname from page.mdx, trailingSlash', ({ opts }) => {
   opts.trailingSlash = true;
   const filePath = join(opts.routesDir, 'page.mdx');
-  const p = utils.getRoutePathname(opts, filePath);
+  const p = utils.getPathnameFromFilePath(opts, filePath);
   assert.is(p, '/page/');
 });
 
 test('pathname from dir/page.mdx', ({ opts }) => {
   const filePath = join(opts.routesDir, 'dir', 'page.mdx');
-  const p = utils.getRoutePathname(opts, filePath);
+  const p = utils.getPathnameFromFilePath(opts, filePath);
   assert.is(p, '/dir/page');
 });
 
 test('pathname from dir/page.mdx, trailingSlash', ({ opts }) => {
   opts.trailingSlash = true;
   const filePath = join(opts.routesDir, 'dir', 'page.mdx');
-  const p = utils.getRoutePathname(opts, filePath);
+  const p = utils.getPathnameFromFilePath(opts, filePath);
   assert.is(p, '/dir/page/');
 });
 
 test('pathname with pathless directories', ({ opts }) => {
   const filePath = join(opts.routesDir, '__pathless', 'account', '__route', 'sign-up.mdx');
-  const p = utils.getRoutePathname(opts, filePath);
+  const p = utils.getPathnameFromFilePath(opts, filePath);
   assert.is(p, '/account/sign-up');
 });
 
 test('pathname with pathless directories,trailingSlash', ({ opts }) => {
   opts.trailingSlash = true;
   const filePath = join(opts.routesDir, '__pathless', 'account', '__route', 'sign-up.mdx');
-  const p = utils.getRoutePathname(opts, filePath);
+  const p = utils.getPathnameFromFilePath(opts, filePath);
   assert.is(p, '/account/sign-up/');
 });
 

@@ -1,5 +1,3 @@
-import type { DocumentHead } from '../runtime/types';
-
 export interface BuildContext {
   rootDir: string;
   opts: NormalizedPluginOptions;
@@ -39,10 +37,8 @@ interface BaseRoute {
 
 export interface PageRoute extends BaseRoute {
   type: 'page';
-  head: DocumentHead | undefined;
-  attributes: { [prop: string]: string } | undefined;
+  source: 'markdown' | 'module';
   layouts: BuildLayout[];
-  default: any;
 }
 
 export interface EndpointRoute extends BaseRoute {
@@ -54,6 +50,7 @@ export interface BuildLayout {
   dir: string;
   id: string;
   type: 'top' | 'nested';
+  name: string;
 }
 
 export interface ParamMatcher {

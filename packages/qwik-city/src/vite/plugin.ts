@@ -61,6 +61,11 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
         // @qwik-city-app
         if (typeof qwikCityRuntimeCode !== 'string') {
           await build(ctx);
+
+          ctx.diagnostics.forEach((d) => {
+            this.warn(d.message);
+          });
+
           qwikCityRuntimeCode = generateInlinedRuntime(ctx);
         }
         return qwikCityRuntimeCode;

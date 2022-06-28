@@ -2,8 +2,14 @@ import type { BuildContext, ParsedMenu, ParsedMenuItem } from '../types';
 import { marked } from 'marked';
 import { getMenuPathname, getMenuLinkHref } from '../utils/pathname';
 import { createFileId, normalizePath } from '../utils/fs';
+import fs from 'fs';
 
-export function parseMenuFile(
+export async function createMenu(ctx: BuildContext, routesDir: string, filePath: string) {
+  const content = await fs.promises.readFile(filePath, 'utf-8');
+  return createMenuFromMarkdown(ctx, routesDir, filePath, content);
+}
+
+export function createMenuFromMarkdown(
   ctx: BuildContext,
   routesDir: string,
   filePath: string,
@@ -107,4 +113,8 @@ export function parseMenuFile(
   }
 
   return menu;
+}
+
+export function isMenuFileName(fileName: string) {
+  return fileName === '_menu.md';
 }

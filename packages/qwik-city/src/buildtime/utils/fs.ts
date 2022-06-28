@@ -2,77 +2,25 @@ import { basename, dirname, extname, normalize } from 'path';
 import type { BuildContext } from '../types';
 import { toTitleCase } from './format';
 
-const MARKDOWN_EXT: { [ext: string]: boolean } = {
-  '.mdx': true,
-  '.md': true,
-};
-
-const PAGE_EXT: { [ext: string]: boolean } = {
-  '.tsx': true,
-  '.jsx': true,
-};
-
-const ENDPOINT_EXT: { [ext: string]: boolean } = {
-  '.ts': true,
-  '.js': true,
-};
-
-export function isPageFileName(fileName: string) {
-  const ext = extname(fileName).toLowerCase();
-  return PAGE_EXT[ext];
+export function getExtension(fileName: string) {
+  return extname(fileName).toLowerCase();
 }
 
-export function isMarkdownFileName(fileName: string) {
-  const ext = extname(fileName).toLowerCase();
-  return MARKDOWN_EXT[ext];
-}
-
-export function isEndpointFileName(fileName: string) {
-  const ext = extname(fileName.toLowerCase());
-  return ENDPOINT_EXT[ext] && !fileName.endsWith('.d.ts');
-}
-
-export function isLayoutFileName(fileName: string) {
-  return isLayoutTopFileName(fileName) || isLayoutNestedFileName(fileName);
-}
-
-export function isLayoutTopFileName(fileName: string) {
-  return fileName === '_layout-top.tsx';
-}
-
-export function isLayoutNestedFileName(fileName: string) {
-  return fileName === '_layout-nested.tsx';
-}
-
-export function isMenuFileName(fileName: string) {
-  return fileName === '_menu.md';
-}
-
-export function getPagesBuildPath(pathname: string) {
-  if (pathname === '/') {
-    pathname += 'index';
+export function removeExtension(path: string) {
+  const parts = path.split('.');
+  if (parts.length > 1) {
+    parts.pop();
+    return parts.join('.');
   }
-  const filename = pathname.split('/').pop();
-  if (filename !== 'index') {
-    pathname += '/index';
-  }
-  return `pages${pathname}.js`;
+  return path;
 }
 
-export function getBasename(filePath: string) {
-  if (filePath.endsWith('.tsx')) {
-    return basename(filePath, '.tsx');
+export function getExtensionLessBasename(path: string) {
+  const ext = getExtension(path);
+  if (PAGE_EXT[ext] || MARKDOWN_EXT[ext] || ENDPOINT_EXT[ext]) {
+    return basename(path, ext);
   }
-  if (filePath.endsWith('.ts')) {
-    return basename(filePath, '.ts');
-  }
-  if (filePath.endsWith('.mdx')) {
-    return basename(filePath, '.mdx');
-  }
-  if (filePath.endsWith('.md')) {
-    return basename(filePath, '.md');
-  }
-  return basename(filePath);
+  return basename(path);
 }
 
 export function normalizePath(path: string) {
@@ -94,7 +42,8 @@ export function createFileId(ctx: BuildContext, routesDir: string, path: string)
   const segments: string[] = [];
 
   for (let i = 0; i < 25; i++) {
-    let baseName = getBasename(path);
+    let baseName = removeExtension(basename(path));
+
     baseName = baseName.replace(/[\W_]+/g, '');
     if (baseName === '') {
       baseName = 'Q' + i;
@@ -119,4 +68,41 @@ export function createFileId(ctx: BuildContext, routesDir: string, path: string)
   ctx.ids.add(fileId);
 
   return fileId;
+}
+
+export const MARKDOWN_EXT: { [ext: string]: boolean } = {
+  '.mdx': true,
+  '.md': true,
+};
+
+export function isMarkdownFileName(fileName: string) {
+  const ext = getExtension(fileName);
+  return MARKDOWN_EXT[ext];
+}
+
+const PAGE_EXT: { [ext: string]: boolean } = {
+  '.tsx': true,
+  '.jsx': true,
+};
+
+export function isPageFileName(fileName: string) {
+  const ext = getExtension(fileName);
+  return PAGE_EXT[ext];
+}
+
+export function isPageIndexFileName(fileName: string) {
+  if (fileName.startsWith('index')) {
+    return isPageFileName(fileName);
+  }
+  return false;
+}
+
+const ENDPOINT_EXT: { [ext: string]: boolean } = {
+  '.ts': true,
+  '.js': true,
+};
+
+export function isEndpointFileName(fileName: string) {
+  const ext = getExtension(fileName);
+  return ENDPOINT_EXT[ext] && !fileName.endsWith('.d.ts');
 }

@@ -1,21 +1,14 @@
-import type { BuildContext } from './types';
+import type { BuildContext, BuildLayout, BuildRoute } from './types';
 import fs from 'fs';
-import { join } from 'path';
-import { parseMenuFile } from './markdown/parse-menu';
-import { parseMarkdownFile } from './markdown/parse-markdown';
-import {
-  isMarkdownFileName,
-  isMenuFileName,
-  isPageFileName,
-  isLayoutFileName,
-  isEndpointFileName,
-} from './utils/fs';
-import { parseLayoutFile, updatePageLayouts } from './pages/parse-layout';
-import { parsePageFile } from './pages/parse-page';
+import { basename, join } from 'path';
+import { isMenuFileName, createMenu } from './markdown/menu';
+import { createPageRoute, updatePageRoute } from './routing/page';
 import { addError } from './utils/format';
-import { parseEndpointFile } from './endpoint/parse-endpoint';
+import { createEndpointRoute } from './routing/endpoint';
 import { sortRoutes } from './routing/sort-routes';
 import { resetBuildContext } from './utils/context';
+import { createLayout, isLayoutFileName } from './routing/layout';
+import { isEndpointFileName, isMarkdownFileName, isPageFileName } from './utils/fs';
 
 export async function build(ctx: BuildContext) {
   resetBuildContext(ctx);
@@ -24,9 +17,9 @@ export async function build(ctx: BuildContext) {
     const routesDirItems = await fs.promises.readdir(ctx.opts.routesDir);
     await loadRoutes(ctx, ctx.opts.routesDir, ctx.opts.routesDir, routesDirItems);
 
+    updateRoutes(ctx.opts.routesDir, ctx.routes, ctx.layouts);
     sort(ctx);
     validateBuild(ctx);
-    updatePageLayouts(ctx.opts.routesDir, ctx.routes, ctx.layouts);
   } catch (e) {
     addError(ctx, e);
   }
@@ -37,24 +30,23 @@ async function loadRoutes(ctx: BuildContext, routesDir: string, dir: string, dir
     dirItems.map(async (itemName) => {
       if (!IGNORE_NAMES[itemName]) {
         try {
+          const dirName = basename(dir);
           const itemPath = join(dir, itemName);
 
-          if (isLayoutFileName(itemName)) {
-            const layout = parseLayoutFile(ctx, routesDir, itemPath, itemName);
+          if (isLayoutFileName(dirName, itemName)) {
+            const layout = createLayout(ctx, routesDir, itemPath);
             ctx.layouts.push(layout);
           } else if (isMenuFileName(itemName)) {
-            const menuContent = await fs.promises.readFile(itemPath, 'utf-8');
-            const menu = parseMenuFile(ctx, routesDir, itemPath, menuContent);
+            const menu = await createMenu(ctx, routesDir, itemPath);
             ctx.menus.push(menu);
-          } else if (isMarkdownFileName(itemName)) {
-            const mdContent = await fs.promises.readFile(itemPath, 'utf-8');
-            const mdRoute = parseMarkdownFile(ctx, routesDir, itemPath, mdContent);
-            ctx.routes.push(mdRoute);
           } else if (isEndpointFileName(itemName)) {
-            const endpointRoute = parseEndpointFile(ctx, routesDir, itemPath);
+            const endpointRoute = createEndpointRoute(ctx, routesDir, itemPath);
             ctx.routes.push(endpointRoute);
+          } else if (isMarkdownFileName(itemName)) {
+            const markdownRoute = createPageRoute(ctx, routesDir, itemPath, 'markdown');
+            ctx.routes.push(markdownRoute);
           } else if (isPageFileName(itemName)) {
-            const pageRoute = parsePageFile(ctx, routesDir, itemPath);
+            const pageRoute = createPageRoute(ctx, routesDir, itemPath, 'module');
             ctx.routes.push(pageRoute);
           } else {
             try {
@@ -86,6 +78,14 @@ function sort(ctx: BuildContext) {
     if (a.pathname > b.pathname) return 1;
     return 0;
   });
+}
+
+function updateRoutes(routesDir: string, routes: BuildRoute[], layouts: BuildLayout[]) {
+  for (const route of routes) {
+    if (route.type === 'page') {
+      updatePageRoute(routesDir, route, layouts);
+    }
+  }
 }
 
 function validateBuild(ctx: BuildContext) {

@@ -1,9 +1,9 @@
 import type { CompileOptions } from '@mdx-js/mdx/lib/compile';
-import { extname } from 'path';
 import { SourceMapGenerator } from 'source-map';
 import { rehypePage } from './rehype';
 import { rehypeSyntaxHighlight } from './syntax-highlight';
 import type { BuildContext } from '../types';
+import { getExtension } from '../utils/fs';
 
 export async function createMdxTransformer(ctx: BuildContext): Promise<MdxTransform> {
   const { createFormatAwareProcessors } = await import(
@@ -35,7 +35,7 @@ export async function createMdxTransformer(ctx: BuildContext): Promise<MdxTransf
   const { extnames, process } = createFormatAwareProcessors(mdxOpts);
 
   return async function (code: string, id: string) {
-    const ext = extname(id);
+    const ext = getExtension(id);
     if (extnames.includes(ext)) {
       const file = new VFile({ value: code, path: id });
       const compiled = await process(file);

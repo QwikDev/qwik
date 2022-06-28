@@ -1,6 +1,6 @@
 import { join } from 'path';
 import * as assert from 'uvu/assert';
-import { parseMenuFile } from '../markdown/parse-menu';
+import { createMenuFromMarkdown } from '../markdown/menu';
 import { suite } from './test-suite';
 
 const test = suite();
@@ -14,16 +14,16 @@ test('parse menu.md menu', ({ ctx }) => {
 
   - Text A1
   - [Link A1](/link-a1)
-  
+
   ## Section B
 
   - [Link B1](link-b1.mdx)
   - Text B1
 
-  ## [Section C](http://section-c.com) 
+  ## [Section C](http://section-c.com)
 
   `;
-  const i = parseMenuFile(ctx, ctx.opts.routesDir, filePath, readme);
+  const i = createMenuFromMarkdown(ctx, ctx.opts.routesDir, filePath, readme);
   assert.is(i.pathname, '/guide');
   assert.is(i.text, 'Heading');
 

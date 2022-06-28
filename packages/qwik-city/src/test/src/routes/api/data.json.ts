@@ -1,12 +1,11 @@
 import type { EndpointHandler } from '@builder.io/qwik-city';
 import os from 'os';
 
-export const get: EndpointHandler = ({ request, params }) => {
+export const get: EndpointHandler = ({ request }) => {
   const data = {
     timestamp: Date.now(),
     method: request.method,
     url: request.url,
-    params,
     os: os.platform(),
     arch: os.arch(),
     node: process.versions.node,

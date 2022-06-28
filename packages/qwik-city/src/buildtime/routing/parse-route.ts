@@ -2,7 +2,7 @@
  * Adopted from SvelteKit
  * https://github.com/sveltejs/kit/blob/master/LICENSE
  */
-export function parseRouteId(pathname: string) {
+export function parsePathname(pathname: string) {
   const paramNames: string[] = [];
   const paramTypes: string[] = [];
 

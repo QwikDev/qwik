@@ -177,6 +177,7 @@ export type ContentModuleHead = HeadComponent | DocumentHead;
  * @public
  */
 export interface RequestEvent {
+  method: string;
   request: Request;
   params: RouteParams;
   url: URL;

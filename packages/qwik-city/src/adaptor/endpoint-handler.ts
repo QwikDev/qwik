@@ -10,30 +10,41 @@ export function endpointHandler(
 
   let reqHandler: EndpointHandler | undefined = undefined;
 
-  if (method === 'GET' && endpointModule.get) {
-    reqHandler = endpointModule.get;
-  } else if (method === 'POST' && endpointModule.post) {
-    reqHandler = endpointModule.post;
-  } else if (method === 'PUT' && endpointModule.put) {
-    reqHandler = endpointModule.put;
-  } else if (method === 'PATCH' && endpointModule.patch) {
-    reqHandler = endpointModule.patch;
-  } else if (method === 'OPTIONS' && endpointModule.options) {
-    reqHandler = endpointModule.options;
-  } else if (method === 'HEAD' && endpointModule.head) {
-    reqHandler = endpointModule.head;
-  } else if (method === 'DELETE' && endpointModule.del) {
-    reqHandler = endpointModule.del;
-  } else if (endpointModule.all) {
-    reqHandler = endpointModule.all;
+  switch (method) {
+    case 'GET': {
+      reqHandler = endpointModule.get;
+      break;
+    }
+    case 'POST': {
+      reqHandler = endpointModule.post;
+      break;
+    }
+    case 'PUT': {
+      reqHandler = endpointModule.put;
+      break;
+    }
+    case 'PATCH': {
+      reqHandler = endpointModule.patch;
+      break;
+    }
+    case 'OPTIONS': {
+      reqHandler = endpointModule.options;
+      break;
+    }
+    case 'HEAD': {
+      reqHandler = endpointModule.head;
+      break;
+    }
+    case 'DELETE': {
+      reqHandler = endpointModule.del;
+      break;
+    }
   }
 
+  reqHandler = reqHandler || endpointModule.all;
+
   if (typeof reqHandler === 'function') {
-    const requestEv: RequestEvent = {
-      request,
-      url,
-      params,
-    };
+    const requestEv: RequestEvent = { method, request, url, params };
     return reqHandler(requestEv);
   }
 

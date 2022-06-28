@@ -8,8 +8,8 @@ import { toString } from 'hast-util-to-string';
 import { visit } from 'unist-util-visit';
 import type { ContentBreadcrumb, ContentHeading } from '../../runtime';
 import { dirname, resolve } from 'path';
-import type { BuildContext, PageRoute } from '../types';
-import { getRoutePathname } from '../utils/pathname';
+import type { BuildContext } from '../types';
+import { getPathnameFromFilePath } from '../utils/pathname';
 import { existsSync } from 'fs';
 
 const slugs = new Slugger();
@@ -18,12 +18,11 @@ export function rehypePage(ctx: BuildContext): Transformer {
   return (ast, vfile) => {
     const mdast = ast as Root;
     const sourcePath = vfile.path;
-    const pathname = getRoutePathname(ctx.opts, sourcePath);
+    const pathname = getPathnameFromFilePath(ctx.opts, sourcePath);
     const menuPathname = getMenuPathname(ctx, pathname);
 
     updateContentLinks(mdast, sourcePath);
     exportContentHeadings(mdast);
-    exportPageAttributes(ctx, mdast, pathname);
     exportBreadcrumbs(ctx, mdast, pathname, menuPathname);
   };
 }
@@ -82,12 +81,6 @@ function exportContentHeadings(mdast: Root) {
   if (headings.length > 0) {
     createExport(mdast, 'headings', headings);
   }
-}
-
-function exportPageAttributes(ctx: BuildContext, mdast: Root, pathname: string) {
-  const page = ctx.routes.find((p) => p.pathname === pathname) as PageRoute;
-  const attributes = page?.attributes || {};
-  createExport(mdast, 'attributes', attributes);
 }
 
 function exportBreadcrumbs(

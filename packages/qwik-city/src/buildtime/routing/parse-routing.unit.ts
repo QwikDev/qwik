@@ -1,6 +1,6 @@
 import { test } from 'uvu';
 import * as assert from 'uvu/assert';
-import { parseRouteId } from './parse-route';
+import { parsePathname } from './parse-route';
 
 /**
  * Adopted from SvelteKit
@@ -52,7 +52,7 @@ const tests = {
 
 for (const [key, expected] of Object.entries(tests)) {
   test(`parseRouteId: "${key}"`, () => {
-    const actual = parseRouteId(key);
+    const actual = parsePathname(key);
 
     assert.equal(actual.pattern.toString(), expected.pattern.toString());
     assert.equal(actual.paramNames, expected.paramNames);

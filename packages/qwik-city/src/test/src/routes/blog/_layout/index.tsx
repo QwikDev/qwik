@@ -9,7 +9,10 @@ export default component$(() => {
       <aside class="blog-menu">
         <ul>
           <li>
-            <a href="/blog">Blogs</a>
+            <a href="/blog/how-to-use-a-toaster">How to use a toaster</a>
+          </li>
+          <li>
+            <a href="/blog/how-to-crack-an-egg">How to crack an egg</a>
           </li>
         </ul>
       </aside>

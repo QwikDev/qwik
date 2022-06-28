@@ -1,8 +1,8 @@
 import { relative, dirname, join } from 'path';
 import type { NormalizedPluginOptions } from '../types';
-import { getBasename, isMarkdownFileName, normalizePath } from './fs';
+import { getExtensionLessBasename, isMarkdownFileName, normalizePath } from './fs';
 
-export function getRoutePathname(opts: NormalizedPluginOptions, filePath: string) {
+export function getPathnameFromFilePath(opts: NormalizedPluginOptions, filePath: string) {
   // get relative file system path
   const relFilePath = relative(opts.routesDir, filePath);
 
@@ -10,12 +10,9 @@ export function getRoutePathname(opts: NormalizedPluginOptions, filePath: string
   let pathname = normalizePath(relFilePath);
 
   // remove pathless segments (directories starting with "__")
-  pathname = pathname
-    .split('/')
-    .filter((segment) => !segment.startsWith('__'))
-    .join('/');
+  pathname = removePathlessSegments(pathname);
 
-  const fileName = getBasename(pathname);
+  const fileName = getExtensionLessBasename(pathname);
   const dirName = normalizePath(dirname(pathname));
 
   if (fileName === 'index') {
@@ -28,6 +25,16 @@ export function getRoutePathname(opts: NormalizedPluginOptions, filePath: string
   }
 
   return normalizePathname(opts, pathname);
+}
+
+/**
+ * Remove pathless segments (directories starting with "__")
+ */
+export function removePathlessSegments(pathname: string) {
+  return pathname
+    .split('/')
+    .filter((segment) => !segment.startsWith('__'))
+    .join('/');
 }
 
 export function getMenuPathname(opts: NormalizedPluginOptions, filePath: string) {
@@ -70,7 +77,7 @@ export function getMenuLinkHref(opts: NormalizedPluginOptions, menuFilePath: str
     .filter((p) => p.length > 0);
   const filePath = join(indexDir, ...parts);
 
-  let pathname = getRoutePathname(opts, filePath);
+  let pathname = getPathnameFromFilePath(opts, filePath);
   if (querySplit.length > 1) {
     pathname += '?' + querySplit[1];
   } else if (hashSplit.length > 1) {

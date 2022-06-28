@@ -3,6 +3,7 @@ export interface BuildContext {
   opts: NormalizedPluginOptions;
   routes: BuildRoute[];
   layouts: BuildLayout[];
+  frontmatter: Map<string, string[]>;
   menus: ParsedMenu[];
   diagnostics: Diagnostic[];
   ids: Set<string>;

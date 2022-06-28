@@ -17,7 +17,6 @@
   "dependencies": {
     "@mdx-js/mdx": "^2.1.1",
     "@types/mdx": "2.0.2",
-    "front-matter": "^4.0.2",
     "source-map": "^0.7.3"
   },
   "peerDependencies": {

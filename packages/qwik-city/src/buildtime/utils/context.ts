@@ -14,6 +14,7 @@ export function createBuildContext(
     layouts: [],
     menus: [],
     diagnostics: [],
+    frontmatter: new Map(),
     ids: new Set(),
     target: target || 'ssr',
   };
@@ -25,6 +26,7 @@ export function resetBuildContext(ctx: BuildContext) {
   ctx.layouts.length = 0;
   ctx.menus.length = 0;
   ctx.diagnostics.length = 0;
+  ctx.frontmatter.clear();
   ctx.ids.clear();
 }
 

@@ -4,6 +4,7 @@ import { rehypePage } from './rehype';
 import { rehypeSyntaxHighlight } from './syntax-highlight';
 import type { BuildContext } from '../types';
 import { getExtension } from '../utils/fs';
+import { parseFrontmatter } from './frontmatter';
 
 export async function createMdxTransformer(ctx: BuildContext): Promise<MdxTransform> {
   const { createFormatAwareProcessors } = await import(
@@ -23,7 +24,7 @@ export async function createMdxTransformer(ctx: BuildContext): Promise<MdxTransf
     SourceMapGenerator,
     jsxImportSource: '@builder.io/qwik',
     ...userMdxOpts,
-    remarkPlugins: [...userRemarkPlugins, remarkGfm, remarkFrontmatter],
+    remarkPlugins: [...userRemarkPlugins, remarkGfm, remarkFrontmatter, [parseFrontmatter, ctx]],
     rehypePlugins: [
       ...userRehypePlugins,
       rehypeSyntaxHighlight,

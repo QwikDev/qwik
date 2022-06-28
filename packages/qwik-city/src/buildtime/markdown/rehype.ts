@@ -6,22 +6,24 @@ import { valueToEstree } from 'estree-util-value-to-estree';
 import { headingRank } from 'hast-util-heading-rank';
 import { toString } from 'hast-util-to-string';
 import { visit } from 'unist-util-visit';
-import type { ContentBreadcrumb, ContentHeading } from '../../runtime';
+import type { ContentBreadcrumb, ContentHeading, DocumentHead, DocumentMeta } from '../../runtime';
 import { dirname, resolve } from 'path';
 import type { BuildContext } from '../types';
 import { getPathnameFromFilePath } from '../utils/pathname';
 import { existsSync } from 'fs';
+import { normalizePath } from '../utils/fs';
 
 const slugs = new Slugger();
 
 export function rehypePage(ctx: BuildContext): Transformer {
   return (ast, vfile) => {
     const mdast = ast as Root;
-    const sourcePath = vfile.path;
+    const sourcePath = normalizePath(vfile.path);
     const pathname = getPathnameFromFilePath(ctx.opts, sourcePath);
     const menuPathname = getMenuPathname(ctx, pathname);
 
     updateContentLinks(mdast, sourcePath);
+    exportContentHead(ctx, mdast, sourcePath);
     exportContentHeadings(mdast);
     exportBreadcrumbs(ctx, mdast, pathname, menuPathname);
   };
@@ -57,6 +59,33 @@ function updateContentLinks(mdast: Root, sourcePath: string) {
       }
     }
   });
+}
+
+function exportContentHead(ctx: BuildContext, mdast: Root, sourcePath: string) {
+  const attrs = ctx.frontmatter.get(sourcePath);
+  if (Array.isArray(attrs) && attrs.length > 0) {
+    const head: DocumentHead = { title: '', meta: [], styles: [], links: [] };
+
+    for (const attr of attrs) {
+      const parts = attr.split(':');
+      if (parts.length > 1) {
+        const attrName = parts.shift()!;
+        const attrValue = parts.join(':');
+
+        if (attrName === 'title') {
+          head.title = attrValue;
+        } else {
+          const meta: DocumentMeta = {
+            [attrName.startsWith('og:') ? 'property' : 'name']: attrName,
+            content: attrValue,
+          };
+          head.meta.push(meta);
+        }
+      }
+    }
+
+    createExport(mdast, 'head', head);
+  }
 }
 
 function exportContentHeadings(mdast: Root) {

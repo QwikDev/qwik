@@ -1,26 +1,12 @@
-import { component$, Host, Slot } from '@builder.io/qwik';
+import { component$, Host, Slot, useStyles$ } from '@builder.io/qwik';
 import type { HeadComponent } from '@builder.io/qwik-city';
-import Footer from '../../../components/footer/footer';
-import Header from '../../../components/header/header';
+import styles from './docs.css';
 
 export default component$(() => {
+  useStyles$(styles);
+
   return (
     <Host class="docs">
-      <style
-        dangerouslySetInnerHTML={`
-        .docs {
-          display: grid;
-          grid-template-columns: 200px 1fr;
-          padding: 0;
-        }
-        .docs-menu {
-          background: #eee;
-        }        
-        .docs-content {
-          padding-left: 20px;
-        }
-      `}
-      />
       <aside class="docs-menu">
         <ul>
           <li>
@@ -44,10 +30,10 @@ export default component$(() => {
   );
 });
 
-export const head: HeadComponent = ({ location }) => {
+export const head: HeadComponent = ({ resolved }) => {
   return (
     <>
-      <title>Docs: {location.pathname}</title>
+      <title>Docs: {resolved.title}</title>
     </>
   );
 };

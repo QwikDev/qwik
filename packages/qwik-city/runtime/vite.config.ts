@@ -8,6 +8,7 @@ export default defineConfig(() => {
       target: 'webworker',
     },
     build: {
+      outDir: '../lib',
       lib: {
         entry: './src/index.ts',
         formats: ['es', 'cjs'],

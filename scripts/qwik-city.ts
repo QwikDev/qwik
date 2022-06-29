@@ -5,12 +5,13 @@ import { readPackageJson, writePackageJson } from './package-json';
 import { checkExistingNpmVersion, releaseVersionPrompt } from './release';
 import semver from 'semver';
 import mri from 'mri';
+import { execa } from 'execa';
 
 const PACKAGE = 'qwik-city';
 
 export async function buildQwikCity(config: BuildConfig) {
   const input = join(config.packagesDir, PACKAGE);
-  const output = join(input, 'dist');
+  const output = join(input, 'lib');
 
   await Promise.all([
     buildVite(config, input, output),
@@ -18,7 +19,20 @@ export async function buildQwikCity(config: BuildConfig) {
     buildExpress(config, input, output),
   ]);
 
+  await buildRuntime(config, input);
+
   console.log(`🏙  ${PACKAGE}`);
+}
+
+async function buildRuntime(config: BuildConfig, input: string) {
+  const result = await execa('yarn', ['build.runtime'], {
+    stdout: 'inherit',
+    cwd: input,
+  });
+
+  if (result.failed) {
+    panic(`tsc failed`);
+  }
 }
 
 async function buildVite(config: BuildConfig, input: string, output: string) {

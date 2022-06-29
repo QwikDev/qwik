@@ -51,22 +51,22 @@ export function apiExtractor(config: BuildConfig) {
   createTypesApi(
     config,
     join(config.packagesDir, 'qwik-city', 'runtime', 'src'),
-    join(config.packagesDir, 'qwik-city', 'dist', 'index.d.ts')
+    join(config.packagesDir, 'qwik-city', 'lib', 'index.d.ts')
   );
   createTypesApi(
     config,
     join(config.packagesDir, 'qwik-city', 'buildtime', 'vite'),
-    join(config.packagesDir, 'qwik-city', 'dist', 'vite', 'index.d.ts')
+    join(config.packagesDir, 'qwik-city', 'lib', 'vite', 'index.d.ts')
   );
   createTypesApi(
     config,
     join(config.packagesDir, 'qwik-city', 'adaptors', 'cloudflare-pages'),
-    join(config.packagesDir, 'qwik-city', 'dist', 'adaptors', 'cloudflare-pages', 'index.d.ts')
+    join(config.packagesDir, 'qwik-city', 'lib', 'adaptors', 'cloudflare-pages', 'index.d.ts')
   );
   createTypesApi(
     config,
     join(config.packagesDir, 'qwik-city', 'adaptors', 'express'),
-    join(config.packagesDir, 'qwik-city', 'dist', 'adaptors', 'express', 'index.d.ts')
+    join(config.packagesDir, 'qwik-city', 'lib', 'adaptors', 'express', 'index.d.ts')
   );
 
   generateServerReferenceModules(config);

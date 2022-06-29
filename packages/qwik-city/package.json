@@ -2,10 +2,10 @@
   "name": "@builder.io/qwik-city",
   "version": "0.0.13",
   "description": "Static Site Generator for Qwik",
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.mjs",
-  "qwik": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
+  "main": "./lib/index.cjs.qwik.js",
+  "module": "./lib/index.es.qwik.js",
+  "qwik": "./lib/index.es.qwik.js",
+  "types": "./lib/index.d.ts",
   "scripts": {
     "build.runtime": "cd runtime && vite build --mode lib",
     "test.unit": "uvu -r tsm src \"(unit)\"",
@@ -49,19 +49,19 @@
   },
   "exports": {
     ".": {
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.cjs"
+      "import": "./lib/index.es.qwik.js",
+      "require": "./lib/index.cjs.qwik.js"
     },
     "./cloudflare-pages": {
-      "import": "./dist/cloudflare-pages/index.mjs"
+      "import": "./lib/cloudflare-pages/index.mjs"
     },
     "./express": {
-      "import": "./dist/express/index.mjs",
-      "require": "./dist/express/index.cjs"
+      "import": "./lib/express/index.mjs",
+      "require": "./lib/express/index.cjs"
     },
     "./vite": {
-      "import": "./dist/vite/index.mjs",
-      "require": "./dist/vite/index.cjs"
+      "import": "./lib/vite/index.mjs",
+      "require": "./lib/vite/index.cjs"
     }
   },
   "files": [

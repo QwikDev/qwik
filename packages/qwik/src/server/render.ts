@@ -45,7 +45,6 @@ export async function renderToString(rootNode: any, opts: RenderToStringOptions 
   await setServerPlatform(doc, opts, mapper);
 
   await render(root, rootNode);
-  console.log('new');
 
   const renderDocTime = renderDocTimer();
 

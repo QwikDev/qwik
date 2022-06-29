@@ -34,5 +34,5 @@
     "Pinterest",
     "Serializability"
   ],
-  "enableFiletypes": ["!mdx"]
+  "enableFiletypes": ["mdx"]
 }

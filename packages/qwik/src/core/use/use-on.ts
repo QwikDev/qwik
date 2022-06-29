@@ -100,9 +100,7 @@ export const useCleanup$ = /*#__PURE__*/ implicit$FirstArg(useCleanupQrl);
  * @alpha
  */
 // </docs>
-export const useResumeQrl = (resumeFn: QRL<() => void>): void => {
-  useOn('qinit', resumeFn);
-};
+export const useResumeQrl = (resumeFn: QRL<() => void>): void => useOn('qinit', resumeFn);
 
 // <docs markdown="../readme.md#useResume">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -163,9 +161,7 @@ export const useResume$ = /*#__PURE__*/ implicit$FirstArg(useResumeQrl);
  * @alpha
  */
 // </docs>
-export const useVisibleQrl = (resumeFn: QRL<() => void>): void => {
-  useOn('qvisible', resumeFn);
-};
+export const useVisibleQrl = (resumeFn: QRL<() => void>): void => useOn('qvisible', resumeFn);
 
 // <docs markdown="../readme.md#useVisible">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -213,9 +209,8 @@ export const useVisible$ = /*#__PURE__*/ implicit$FirstArg(useVisibleQrl);
  * @alpha
  */
 // </docs>
-export const useOn = (event: string, eventQrl: QRL<(ev: Event) => void>) => {
+export const useOn = (event: string, eventQrl: QRL<(ev: Event) => void>) =>
   _useOn(`on:${event}`, eventQrl);
-};
 
 // <docs markdown="../readme.md#useOnDocument">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -247,9 +242,8 @@ export const useOn = (event: string, eventQrl: QRL<(ev: Event) => void>) => {
  * @alpha
  */
 // </docs>
-export const useOnDocument = (event: string, eventQrl: QRL<(ev: Event) => void>) => {
+export const useOnDocument = (event: string, eventQrl: QRL<(ev: Event) => void>) =>
   _useOn(`on-window:${event}`, eventQrl);
-};
 
 // <docs markdown="../readme.md#useOnWindow">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -282,11 +276,10 @@ export const useOnDocument = (event: string, eventQrl: QRL<(ev: Event) => void>)
  * @alpha
  */
 // </docs>
-export const useOnWindow = (event: string, eventQrl: QRL<(ev: Event) => void>) => {
+export const useOnWindow = (event: string, eventQrl: QRL<(ev: Event) => void>) =>
   _useOn(`on-window:${event}`, eventQrl);
-};
 
-export const _useOn = (eventName: string, eventQrl: QRL<(ev: Event) => void>) => {
+const _useOn = (eventName: string, eventQrl: QRL<(ev: Event) => void>) => {
   const invokeCtx = useInvokeContext();
   const ctx = getContext(invokeCtx.$hostElement$);
   qPropWriteQRL(invokeCtx.$renderCtx$, ctx, eventName, eventQrl);

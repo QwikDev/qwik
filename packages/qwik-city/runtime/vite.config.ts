@@ -14,9 +14,12 @@ export default defineConfig(() => {
         fileName: (format) => `index.${format}.qwik.js`,
       },
     },
-    plugins: [qwikCity({
-      routesDir: './src/app/routes'
-    }), qwikVite()],
+    plugins: [
+      qwikCity({
+        routesDir: './src/app/routes',
+      }),
+      qwikVite(),
+    ],
     optimizeDeps: {
       exclude: [
         '@builder.io/qwik',

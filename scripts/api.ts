@@ -46,6 +46,7 @@ export function apiExtractor(config: BuildConfig) {
     join(config.distPkgDir, 'build', 'index.d.ts'),
     '../core'
   );
+  generateServerReferenceModules(config);
 
   // qwik-city
   createTypesApi(
@@ -68,8 +69,7 @@ export function apiExtractor(config: BuildConfig) {
     join(config.packagesDir, 'qwik-city', 'adaptors', 'express'),
     join(config.packagesDir, 'qwik-city', 'lib', 'adaptors', 'express', 'index.d.ts')
   );
-
-  generateServerReferenceModules(config);
+  generateQwikCityReferenceModules(config);
 
   console.log('🥶', 'submodule d.ts API files generated');
 }
@@ -103,6 +103,27 @@ function createTypesApi(config: BuildConfig, inPath: string, outPath: string, co
   const srcPath = result.extractorConfig.untrimmedFilePath;
   const content = fixDtsContent(config, srcPath, corePath);
   writeFileSync(outPath, content);
+}
+
+function generateQwikCityReferenceModules(config: BuildConfig) {
+  // server-modules.d.ts
+  const referenceDts = `
+declare module '@qwik-city-plan' {
+  const qwikCityPlan: any;
+  export default qwikCityPlan;
+}
+`;
+  const srcModulesPath = join(config.packagesDir, 'qwik-city', 'lib');
+
+  const destModulesPath = join(srcModulesPath, 'modules.d.ts');
+  writeFileSync(destModulesPath, referenceDts);
+
+  // manually prepend the ts reference since api extractor removes it
+  const prependReferenceDts = `/// <reference path="./modules.d.ts" />\n\n`;
+  const distIndexPath = join(srcModulesPath, 'index.d.ts');
+  let serverDts = readFileSync(distIndexPath, 'utf-8');
+  serverDts = prependReferenceDts + serverDts;
+  writeFileSync(distIndexPath, serverDts);
 }
 
 function generateServerReferenceModules(config: BuildConfig) {

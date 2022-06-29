@@ -13,7 +13,7 @@ export default defineConfig(() => {
         entry: './src/index.ts',
         formats: ['es', 'cjs'],
         fileName: (format) => {
-          return format === 'es' ? `index.qwik.js` : `index.qwik.cjs`;
+          return format === 'es' ? `index.qwik.mjs` : `index.qwik.cjs`;
         },
       },
     },

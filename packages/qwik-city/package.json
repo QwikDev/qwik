@@ -6,6 +6,23 @@
   "module": "./lib/index.qwik.mjs",
   "qwik": "./lib/index.qwik.mjs",
   "types": "./lib/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./lib/index.qwik.mjs",
+      "require": "./lib/index.qwik.cjs"
+    },
+    "./adaptors/cloudflare-pages": {
+      "import": "./lib/adaptors/cloudflare-pages/index.mjs"
+    },
+    "./adaptors/express": {
+      "import": "./lib/adaptors/express/index.mjs",
+      "require": "./lib/adaptors/express/index.cjs"
+    },
+    "./vite": {
+      "import": "./lib/vite/index.mjs",
+      "require": "./lib/vite/index.cjs"
+    }
+  },
   "scripts": {
     "start": "cd runtime && vite",
     "dev.ssr": "cd runtime && vite --mode ssr",
@@ -49,26 +66,6 @@
     "uvu": "^0.5.3",
     "vite": "^2.9.12"
   },
-  "exports": {
-    ".": {
-      "import": "./lib/index.qwik.mjs",
-      "require": "./lib/index.qwik.cjs"
-    },
-    "./adaptors/cloudflare-pages": {
-      "import": "./lib/adaptors/cloudflare-pages/index.mjs"
-    },
-    "./adaptors/express": {
-      "import": "./lib/adaptors/express/index.mjs",
-      "require": "./lib/adaptors/express/index.cjs"
-    },
-    "./vite": {
-      "import": "./lib/vite/index.mjs",
-      "require": "./lib/vite/index.cjs"
-    }
-  },
-  "files": [
-    "lib"
-  ],
   "license": "MIT",
   "homepage": "https://qwik.builder.io/",
   "repository": {

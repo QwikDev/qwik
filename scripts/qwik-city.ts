@@ -21,6 +21,39 @@ export async function buildQwikCity(config: BuildConfig) {
 
   await buildRuntime(config, input);
 
+  const loaderPkg = {
+    ...(await readPackageJson(input)),
+    main: './index.qwik.cjs',
+    module: './index.qwik.mjs',
+    qwik: './index.qwik.mjs',
+    types: './index.d.ts',
+    exports: {
+      '.': {
+        import: './index.qwik.mjs',
+        require: './index.qwik.cjs',
+      },
+      './adaptors/cloudflare-pages': {
+        import: './adaptors/cloudflare-pages/index.mjs',
+      },
+      './adaptors/express': {
+        import: './adaptors/express/index.mjs',
+        require: './adaptors/express/index.cjs',
+      },
+      './vite': {
+        import: './vite/index.mjs',
+        require: './vite/index.cjs',
+      },
+    },
+    private: false,
+    publishConfig: {
+      access: 'public',
+    },
+    files: ['index.d.ts', 'index.qwik.mjs', 'index.qwik.cjs', 'modules.d.ts', 'vite', 'adaptors'],
+    devDependencies: undefined,
+    scripts: undefined,
+  };
+  await writePackageJson(output, loaderPkg);
+
   console.log(`🏙  ${PACKAGE}`);
 }
 

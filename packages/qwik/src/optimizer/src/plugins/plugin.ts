@@ -445,7 +445,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       };
     }
 
-    if (TRANSFORM_EXTS[ext] || pathId.endsWith('.qwik.js')) {
+    if (TRANSFORM_EXTS[ext] || TRANSFORM_REGEX.test(pathId)) {
       log(`transform()`, 'Transforming', pathId);
 
       let filePath = base;
@@ -632,6 +632,8 @@ function removeExtension(id: string) {
 }
 
 const TRANSFORM_EXTS: { [ext: string]: boolean } = { '.jsx': true, '.ts': true, '.tsx': true };
+
+const TRANSFORM_REGEX = /\.qwik\.(m|c)?js$/;
 
 export const QWIK_CORE_ID = '@builder.io/qwik';
 

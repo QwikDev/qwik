@@ -1,7 +1,7 @@
 import { assertDefined } from '../assert/assert';
 import { copyRenderContext, RenderContext } from './cursor';
 import { visitJsxNode } from './render';
-import { ComponentScopedStyles, QHostAttr, RenderEvent } from '../util/markers';
+import { ComponentScopedStyles, RenderEvent } from '../util/markers';
 import { promiseAll, then } from '../util/promises';
 import { styleContent, styleHost } from '../component/qrl-styles';
 import { newInvokeContext } from '../use/use-core';
@@ -9,13 +9,7 @@ import { processData } from './jsx/jsx-runtime';
 import { logDebug, logError } from '../util/log';
 import { isFunction, ValueOrPromise } from '../util/types';
 import type { QContext } from '../props/props';
-import { directGetAttribute, directSetAttribute } from './fast-calls';
-
-export const firstRenderComponent = (rctx: RenderContext, ctx: QContext): ValueOrPromise<void> => {
-  directSetAttribute(ctx.$element$, QHostAttr, '');
-
-  return renderComponent(rctx, ctx);
-};
+import { directGetAttribute } from './fast-calls';
 
 export const renderComponent = (rctx: RenderContext, ctx: QContext): ValueOrPromise<void> => {
   ctx.$dirty$ = false;

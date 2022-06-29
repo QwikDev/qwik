@@ -12,7 +12,7 @@ import { isOnProp } from '../props/props-on';
 import { isArray, isString, ValueOrPromise } from '../util/types';
 import type { ProcessedJSXNode } from '../render/jsx/types/jsx-node';
 import type { QRL } from '../import/qrl.public';
-import { firstRenderComponent, renderComponent } from './render-component';
+import { renderComponent } from './render-component';
 import { promiseAll, then } from '../util/promises';
 import type { ContainerState } from './notify-render';
 import { assertDefined, assertEqual } from '../assert/assert';
@@ -106,9 +106,7 @@ export const smartUpdateChildren = (
       assertEqual(ch[1].$type$, 'body');
     }
   }
-  if (elm.nodeName === 'HEAD') {
-    return addVnodes(ctx, elm, null, ch, 0, ch.length - 1, isSvg);
-  } else if (oldCh.length > 0 && ch.length > 0) {
+  if (oldCh.length > 0 && ch.length > 0) {
     return updateChildren(ctx, elm, oldCh, ch, isSvg);
   } else if (ch.length > 0) {
     return addVnodes(ctx, elm, null, ch, 0, ch.length - 1, isSvg);
@@ -295,11 +293,10 @@ export const patchVnode = (
     isSvg = tag === 'svg';
   }
 
-  let promise: ValueOrPromise<void>;
   const props = vnode.$props$;
   const ctx = getContext(elm as Element);
-  const dirty = updateProperties(rctx, ctx, props, isSvg);
   const isSlot = tag === 'q:slot';
+  let dirty = updateProperties(rctx, ctx, props, isSvg);
   if (isSvg && vnode.$type$ === 'foreignObject') {
     isSvg = false;
   } else if (isSlot) {
@@ -309,12 +306,14 @@ export const patchVnode = (
     }
   }
   const isComponent = isComponentNode(vnode);
-  if (dirty) {
-    assertEqual(isComponent, true);
-    promise = renderComponent(rctx, ctx);
-  }
   const ch = vnode.$children$;
   if (isComponent) {
+    if (!dirty && !ctx.$renderQrl$ && !ctx.$element$.hasAttribute(QHostAttr)) {
+      setAttribute(rctx, ctx.$element$, QHostAttr, '');
+      ctx.$renderQrl$ = props![OnRenderProp]! as QRL<OnRenderFn<any>>;
+      dirty = true;
+    }
+    const promise = dirty ? renderComponent(rctx, ctx) : undefined;
     return then(promise, () => {
       const slotMaps = getSlots(ctx.$component$, elm as Element);
       const splittedChidren = splitBy(ch, getSlotName);
@@ -356,10 +355,8 @@ export const patchVnode = (
     }
     return;
   }
-  return then(promise, () => {
-    const mode = isSlot ? 'fallback' : 'default';
-    return smartUpdateChildren(rctx, elm, ch, mode, isSvg);
-  });
+  const mode = isSlot ? 'fallback' : 'default';
+  return smartUpdateChildren(rctx, elm, ch, mode, isSvg);
 };
 
 const addVnodes = (
@@ -543,7 +540,8 @@ const createElm = (
     // Run mount hook
     const renderQRL = props![OnRenderProp]! as QRL<OnRenderFn<any>>;
     ctx.$renderQrl$ = renderQRL;
-    wait = firstRenderComponent(rctx, ctx);
+    directSetAttribute(ctx.$element$, QHostAttr, '');
+    wait = renderComponent(rctx, ctx);
   } else {
     const setsInnerHTML = checkInnerHTML(props);
     if (setsInnerHTML) {

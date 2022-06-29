@@ -6,20 +6,20 @@ import { createPageRoute, updatePageRoute } from './routing/page';
 import { addError } from './utils/format';
 import { createEndpointRoute } from './routing/endpoint';
 import { sortRoutes } from './routing/sort-routes';
-import { resetBuildContext } from './utils/context';
 import { createLayout, isLayoutFileName } from './routing/layout';
 import { isEndpointFileName, isMarkdownFileName, isPageFileName } from './utils/fs';
 
 export async function build(ctx: BuildContext) {
-  resetBuildContext(ctx);
-
   try {
-    const routesDirItems = await fs.promises.readdir(ctx.opts.routesDir);
-    await loadRoutes(ctx, ctx.opts.routesDir, ctx.opts.routesDir, routesDirItems);
+    if (ctx.dirty) {
+      const routesDirItems = await fs.promises.readdir(ctx.opts.routesDir);
+      await loadRoutes(ctx, ctx.opts.routesDir, ctx.opts.routesDir, routesDirItems);
 
-    updateRoutes(ctx.opts.routesDir, ctx.routes, ctx.layouts);
-    sort(ctx);
-    validateBuild(ctx);
+      updateRoutes(ctx.opts.routesDir, ctx.routes, ctx.layouts);
+      sort(ctx);
+      validateBuild(ctx);
+      ctx.dirty = false;
+    }
   } catch (e) {
     addError(ctx, e);
   }

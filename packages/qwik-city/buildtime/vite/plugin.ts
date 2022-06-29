@@ -1,11 +1,14 @@
 import { createMdxTransformer, MdxTransform } from '../markdown/mdx';
-import fs from 'fs';
-import { isAbsolute, join, resolve } from 'path';
+import { join, resolve } from 'path';
 import type { Plugin, UserConfig } from 'vite';
 import { generateQwikCityPlan } from '../runtime-generation/generate-runtime';
-import type { BuildContext, NormalizedPluginOptions, PluginOptions } from '../types';
-import { createBuildContext } from '../utils/context';
+import type { BuildContext } from '../types';
+import { createBuildContext, resetBuildContext } from '../utils/context';
 import { isMarkdownFileName } from '../utils/fs';
+import { validatePlugin } from './validate-plugin';
+import type { QwikCityVitePluginOptions } from './types';
+import { endpointHandler } from '../../adaptors/request-handler/endpoint-handler';
+import { getRouteParams } from '../../runtime/src/library/routing';
 import { build } from '../build';
 
 /**
@@ -13,7 +16,6 @@ import { build } from '../build';
  */
 export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
   let ctx: BuildContext | null = null;
-  let qwikCityPlanCode: string | null = null;
   let mdxTransform: MdxTransform | null = null;
   let rootDir: string | null = null;
 
@@ -45,8 +47,56 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
       mdxTransform = await createMdxTransformer(ctx);
     },
 
-    async buildStart() {
-      qwikCityPlanCode = null;
+    configureServer(server) {
+      server.middlewares.use(async (req, res, next) => {
+        try {
+          if (ctx) {
+            if (ctx.dirty) {
+              await build(ctx);
+            }
+
+            const origin = `http://${req.headers.host}`;
+            const url = new URL(req.originalUrl!, origin);
+            const pathname = url.pathname;
+
+            for (const route of ctx.routes) {
+              if (route.type === 'endpoint') {
+                const match = route.pattern.exec(pathname);
+                if (match) {
+                  const params = getRouteParams(route.paramNames, match);
+                  const request = new Request(url.href, { method: req.method });
+
+                  const endpointModule = await server.ssrLoadModule(route.filePath);
+                  const response = await endpointHandler(request, url, params, endpointModule);
+
+                  res.statusCode = response.status;
+                  res.statusMessage = response.statusText;
+                  response.headers.forEach((value, key) => res.setHeader(key, value));
+                  res.write(response.body);
+                  res.end();
+
+                  return;
+                }
+              }
+            }
+          }
+
+          // not an endpoint
+          next();
+        } catch (e: any) {
+          next(e);
+        }
+      });
+    },
+
+    buildStart() {
+      resetBuildContext(ctx);
+    },
+
+    buildEnd() {
+      ctx?.diagnostics.forEach((d) => {
+        this.warn(d.message);
+      });
     },
 
     resolveId(id) {
@@ -59,16 +109,8 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
     async load(id) {
       if (id.endsWith(QWIK_CITY_PLAN_ID) && ctx) {
         // @qwik-city-plan
-        if (typeof qwikCityPlanCode !== 'string') {
-          await build(ctx);
-
-          ctx.diagnostics.forEach((d) => {
-            this.warn(d.message);
-          });
-
-          qwikCityPlanCode = generateQwikCityPlan(ctx);
-        }
-        return qwikCityPlanCode;
+        await build(ctx);
+        return generateQwikCityPlan(ctx);
       }
       return null;
     },
@@ -86,36 +128,3 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
 }
 
 const QWIK_CITY_PLAN_ID = '@qwik-city-plan';
-
-async function validatePlugin(opts: NormalizedPluginOptions) {
-  if (typeof opts.routesDir !== 'string') {
-    throw new Error(`qwikCity plugin "routesDir" option missing`);
-  }
-
-  if (!isAbsolute(opts.routesDir)) {
-    throw new Error(
-      `qwikCity plugin "routesDir" option must be an absolute path: ${opts.routesDir}`
-    );
-  }
-
-  try {
-    const s = await fs.promises.stat(opts.routesDir);
-    if (!s.isDirectory()) {
-      throw new Error(`qwikCity plugin "routesDir" option must be a directory: ${opts.routesDir}`);
-    }
-  } catch (e) {
-    throw new Error(`qwikCity plugin "routesDir" not found: ${e}`);
-  }
-}
-
-/**
- * @alpha
- */
-export interface QwikCityVitePluginOptions extends PluginOptions {
-  mdx?: MdxOptions;
-}
-
-/**
- * @alpha
- */
-export type MdxOptions = import('@mdx-js/mdx/lib/compile').CompileOptions;

@@ -17,17 +17,21 @@ export function createBuildContext(
     frontmatter: new Map(),
     ids: new Set(),
     target: target || 'ssr',
+    dirty: true,
   };
   return ctx;
 }
 
-export function resetBuildContext(ctx: BuildContext) {
-  ctx.routes.length = 0;
-  ctx.layouts.length = 0;
-  ctx.menus.length = 0;
-  ctx.diagnostics.length = 0;
-  ctx.frontmatter.clear();
-  ctx.ids.clear();
+export function resetBuildContext(ctx: BuildContext | null) {
+  if (ctx) {
+    ctx.routes.length = 0;
+    ctx.layouts.length = 0;
+    ctx.menus.length = 0;
+    ctx.diagnostics.length = 0;
+    ctx.frontmatter.clear();
+    ctx.ids.clear();
+    ctx.dirty = true;
+  }
 }
 
 function normalizeOptions(rootDir: string, userOpts: PluginOptions | undefined) {

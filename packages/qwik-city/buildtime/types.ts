@@ -8,6 +8,7 @@ export interface BuildContext {
   diagnostics: Diagnostic[];
   ids: Set<string>;
   target: 'ssr' | 'client';
+  dirty: boolean;
 }
 
 export interface Diagnostic {

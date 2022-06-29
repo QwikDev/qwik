@@ -113,53 +113,6 @@ Element.prototype = Object.create(ContainerNode.prototype, {
       // performance unnecessarily. If you need specialized behavior for a
       // certain subclass, you'll need to implement that in `NodeUtils`.
       // See https://github.com/fgnass/domino/pull/142 for more information.
-      if (this.nodeName === 'HTML') {
-        const head = this.querySelector('head');
-        if (head) {
-          const childHeadNodes = head.childNodes;
-
-          const VALID_HEAD_TAGS = {
-            meta: true,
-            link: true,
-            script: true,
-            style: true,
-            title: true,
-            noscript: true,
-            template: true,
-          };
-
-          for (let i = childHeadNodes.length - 1; i >= 0; i--) {
-            const childHeadNode = childHeadNodes[i];
-            if (childHeadNode.localName === 'q:slot') {
-              let insertBefore = childHeadNode;
-              const recursiveHeadNodes = (n) => {
-                if (VALID_HEAD_TAGS[n.localName]) {
-                  head.insertBefore(n, insertBefore);
-                  insertBefore = n;
-                } else {
-                  const childNodes = n.childNodes;
-                  for (let c = childNodes.length - 1; c >= 0; c--) {
-                    recursiveHeadNodes(childNodes[c]);
-                  }
-                }
-              };
-              recursiveHeadNodes(childHeadNode);
-
-              head.removeChild(childHeadNode);
-
-              const headAttributes = head.attributes;
-              for (let a = headAttributes.length - 1; a >= 0; a--) {
-                const nodeName = headAttributes[a].nodeName;
-                if (nodeName.startsWith('q:')) {
-                  head.removeAttribute(nodeName);
-                }
-              }
-
-              break;
-            }
-          }
-        }
-      }
       return NodeUtils.serializeOne(this, { nodeType: 0 });
     },
     set: function (v) {

@@ -98,150 +98,150 @@ Node.prototype = Object.create(EventTarget.prototype, {
     },
   },
 
-  // _ensureInsertValid: {
-  //   value: function _ensureInsertValid(node, child, isPreinsert) {
-  //     var parent = this,
-  //       i,
-  //       kid;
-  //     if (!node.nodeType) throw new TypeError('not a node');
-  //     // 1. If parent is not a Document, DocumentFragment, or Element
-  //     // node, throw a HierarchyRequestError.
-  //     switch (parent.nodeType) {
-  //       case DOCUMENT_NODE:
-  //       case DOCUMENT_FRAGMENT_NODE:
-  //       case ELEMENT_NODE:
-  //         break;
-  //       default:
-  //         utils.HierarchyRequestError();
-  //     }
-  //     // 2. If node is a host-including inclusive ancestor of parent,
-  //     // throw a HierarchyRequestError.
-  //     if (node.isAncestor(parent)) utils.HierarchyRequestError();
-  //     // 3. If child is not null and its parent is not parent, then
-  //     // throw a NotFoundError. (replaceChild omits the 'child is not null'
-  //     // and throws a TypeError here if child is null.)
-  //     if (child !== null || !isPreinsert) {
-  //       if (child.parentNode !== parent) utils.NotFoundError();
-  //     }
-  //     // 4. If node is not a DocumentFragment, DocumentType, Element,
-  //     // Text, ProcessingInstruction, or Comment node, throw a
-  //     // HierarchyRequestError.
-  //     switch (node.nodeType) {
-  //       case DOCUMENT_FRAGMENT_NODE:
-  //       case DOCUMENT_TYPE_NODE:
-  //       case ELEMENT_NODE:
-  //       case TEXT_NODE:
-  //       case PROCESSING_INSTRUCTION_NODE:
-  //       case COMMENT_NODE:
-  //         break;
-  //       default:
-  //         utils.HierarchyRequestError();
-  //     }
-  //     // 5. If either node is a Text node and parent is a document, or
-  //     // node is a doctype and parent is not a document, throw a
-  //     // HierarchyRequestError.
-  //     // 6. If parent is a document, and any of the statements below, switched
-  //     // on node, are true, throw a HierarchyRequestError.
-  //     if (parent.nodeType === DOCUMENT_NODE) {
-  //       switch (node.nodeType) {
-  //         case TEXT_NODE:
-  //           utils.HierarchyRequestError();
-  //           break;
-  //         case DOCUMENT_FRAGMENT_NODE:
-  //           // 6a1. If node has more than one element child or has a Text
-  //           // node child.
-  //           if (node._countChildrenOfType(TEXT_NODE) > 0) utils.HierarchyRequestError();
-  //           switch (node._countChildrenOfType(ELEMENT_NODE)) {
-  //             case 0:
-  //               break;
-  //             case 1:
-  //               // 6a2. Otherwise, if node has one element child and either
-  //               // parent has an element child, child is a doctype, or child
-  //               // is not null and a doctype is following child. [preinsert]
-  //               // 6a2. Otherwise, if node has one element child and either
-  //               // parent has an element child that is not child or a
-  //               // doctype is following child. [replaceWith]
-  //               if (child !== null /* always true here for replaceWith */) {
-  //                 if (isPreinsert && child.nodeType === DOCUMENT_TYPE_NODE)
-  //                   utils.HierarchyRequestError();
-  //                 for (kid = child.nextSibling; kid !== null; kid = kid.nextSibling) {
-  //                   if (kid.nodeType === DOCUMENT_TYPE_NODE) utils.HierarchyRequestError();
-  //                 }
-  //               }
-  //               i = parent._countChildrenOfType(ELEMENT_NODE);
-  //               if (isPreinsert) {
-  //                 // "parent has an element child"
-  //                 if (i > 0) utils.HierarchyRequestError();
-  //               } else {
-  //                 // "parent has an element child that is not child"
-  //                 if (i > 1 || (i === 1 && child.nodeType !== ELEMENT_NODE))
-  //                   utils.HierarchyRequestError();
-  //               }
-  //               break;
-  //             default: // 6a1, continued. (more than one Element child)
-  //               utils.HierarchyRequestError();
-  //           }
-  //           break;
-  //         case ELEMENT_NODE:
-  //           // 6b. parent has an element child, child is a doctype, or
-  //           // child is not null and a doctype is following child. [preinsert]
-  //           // 6b. parent has an element child that is not child or a
-  //           // doctype is following child. [replaceWith]
-  //           if (child !== null /* always true here for replaceWith */) {
-  //             if (isPreinsert && child.nodeType === DOCUMENT_TYPE_NODE)
-  //               utils.HierarchyRequestError();
-  //             for (kid = child.nextSibling; kid !== null; kid = kid.nextSibling) {
-  //               if (kid.nodeType === DOCUMENT_TYPE_NODE) utils.HierarchyRequestError();
-  //             }
-  //           }
-  //           i = parent._countChildrenOfType(ELEMENT_NODE);
-  //           if (isPreinsert) {
-  //             // "parent has an element child"
-  //             if (i > 0) utils.HierarchyRequestError();
-  //           } else {
-  //             // "parent has an element child that is not child"
-  //             if (i > 1 || (i === 1 && child.nodeType !== ELEMENT_NODE))
-  //               utils.HierarchyRequestError();
-  //           }
-  //           break;
-  //         case DOCUMENT_TYPE_NODE:
-  //           // 6c. parent has a doctype child, child is non-null and an
-  //           // element is preceding child, or child is null and parent has
-  //           // an element child. [preinsert]
-  //           // 6c. parent has a doctype child that is not child, or an
-  //           // element is preceding child. [replaceWith]
-  //           if (child === null) {
-  //             if (parent._countChildrenOfType(ELEMENT_NODE)) utils.HierarchyRequestError();
-  //           } else {
-  //             // child is always non-null for [replaceWith] case
-  //             for (kid = parent.firstChild; kid !== null; kid = kid.nextSibling) {
-  //               if (kid === child) break;
-  //               if (kid.nodeType === ELEMENT_NODE) utils.HierarchyRequestError();
-  //             }
-  //           }
-  //           i = parent._countChildrenOfType(DOCUMENT_TYPE_NODE);
-  //           if (isPreinsert) {
-  //             // "parent has an doctype child"
-  //             if (i > 0) utils.HierarchyRequestError();
-  //           } else {
-  //             // "parent has an doctype child that is not child"
-  //             if (i > 1 || (i === 1 && child.nodeType !== DOCUMENT_TYPE_NODE))
-  //               utils.HierarchyRequestError();
-  //           }
-  //           break;
-  //       }
-  //     } else {
-  //       // 5, continued: (parent is not a document)
-  //       if (node.nodeType === DOCUMENT_TYPE_NODE) utils.HierarchyRequestError();
-  //     }
-  //   },
-  // },
+  _ensureInsertValid: {
+    value: function _ensureInsertValid(node, child, isPreinsert) {
+      var parent = this,
+        i,
+        kid;
+      if (!node.nodeType) throw new TypeError('not a node');
+      // 1. If parent is not a Document, DocumentFragment, or Element
+      // node, throw a HierarchyRequestError.
+      switch (parent.nodeType) {
+        case DOCUMENT_NODE:
+        case DOCUMENT_FRAGMENT_NODE:
+        case ELEMENT_NODE:
+          break;
+        default:
+          utils.HierarchyRequestError();
+      }
+      // 2. If node is a host-including inclusive ancestor of parent,
+      // throw a HierarchyRequestError.
+      if (node.isAncestor(parent)) utils.HierarchyRequestError();
+      // 3. If child is not null and its parent is not parent, then
+      // throw a NotFoundError. (replaceChild omits the 'child is not null'
+      // and throws a TypeError here if child is null.)
+      if (child !== null || !isPreinsert) {
+        if (child.parentNode !== parent) utils.NotFoundError();
+      }
+      // 4. If node is not a DocumentFragment, DocumentType, Element,
+      // Text, ProcessingInstruction, or Comment node, throw a
+      // HierarchyRequestError.
+      switch (node.nodeType) {
+        case DOCUMENT_FRAGMENT_NODE:
+        case DOCUMENT_TYPE_NODE:
+        case ELEMENT_NODE:
+        case TEXT_NODE:
+        case PROCESSING_INSTRUCTION_NODE:
+        case COMMENT_NODE:
+          break;
+        default:
+          utils.HierarchyRequestError();
+      }
+      // 5. If either node is a Text node and parent is a document, or
+      // node is a doctype and parent is not a document, throw a
+      // HierarchyRequestError.
+      // 6. If parent is a document, and any of the statements below, switched
+      // on node, are true, throw a HierarchyRequestError.
+      if (parent.nodeType === DOCUMENT_NODE) {
+        switch (node.nodeType) {
+          case TEXT_NODE:
+            utils.HierarchyRequestError();
+            break;
+          case DOCUMENT_FRAGMENT_NODE:
+            // 6a1. If node has more than one element child or has a Text
+            // node child.
+            if (node._countChildrenOfType(TEXT_NODE) > 0) utils.HierarchyRequestError();
+            switch (node._countChildrenOfType(ELEMENT_NODE)) {
+              case 0:
+                break;
+              case 1:
+                // 6a2. Otherwise, if node has one element child and either
+                // parent has an element child, child is a doctype, or child
+                // is not null and a doctype is following child. [preinsert]
+                // 6a2. Otherwise, if node has one element child and either
+                // parent has an element child that is not child or a
+                // doctype is following child. [replaceWith]
+                if (child !== null /* always true here for replaceWith */) {
+                  if (isPreinsert && child.nodeType === DOCUMENT_TYPE_NODE)
+                    utils.HierarchyRequestError();
+                  for (kid = child.nextSibling; kid !== null; kid = kid.nextSibling) {
+                    if (kid.nodeType === DOCUMENT_TYPE_NODE) utils.HierarchyRequestError();
+                  }
+                }
+                i = parent._countChildrenOfType(ELEMENT_NODE);
+                if (isPreinsert) {
+                  // "parent has an element child"
+                  if (i > 0) utils.HierarchyRequestError();
+                } else {
+                  // "parent has an element child that is not child"
+                  if (i > 1 || (i === 1 && child.nodeType !== ELEMENT_NODE))
+                    utils.HierarchyRequestError();
+                }
+                break;
+              default: // 6a1, continued. (more than one Element child)
+                utils.HierarchyRequestError();
+            }
+            break;
+          case ELEMENT_NODE:
+            // 6b. parent has an element child, child is a doctype, or
+            // child is not null and a doctype is following child. [preinsert]
+            // 6b. parent has an element child that is not child or a
+            // doctype is following child. [replaceWith]
+            if (child !== null /* always true here for replaceWith */) {
+              if (isPreinsert && child.nodeType === DOCUMENT_TYPE_NODE)
+                utils.HierarchyRequestError();
+              for (kid = child.nextSibling; kid !== null; kid = kid.nextSibling) {
+                if (kid.nodeType === DOCUMENT_TYPE_NODE) utils.HierarchyRequestError();
+              }
+            }
+            i = parent._countChildrenOfType(ELEMENT_NODE);
+            if (isPreinsert) {
+              // "parent has an element child"
+              if (i > 0) utils.HierarchyRequestError();
+            } else {
+              // "parent has an element child that is not child"
+              if (i > 1 || (i === 1 && child.nodeType !== ELEMENT_NODE))
+                utils.HierarchyRequestError();
+            }
+            break;
+          case DOCUMENT_TYPE_NODE:
+            // 6c. parent has a doctype child, child is non-null and an
+            // element is preceding child, or child is null and parent has
+            // an element child. [preinsert]
+            // 6c. parent has a doctype child that is not child, or an
+            // element is preceding child. [replaceWith]
+            if (child === null) {
+              if (parent._countChildrenOfType(ELEMENT_NODE)) utils.HierarchyRequestError();
+            } else {
+              // child is always non-null for [replaceWith] case
+              for (kid = parent.firstChild; kid !== null; kid = kid.nextSibling) {
+                if (kid === child) break;
+                if (kid.nodeType === ELEMENT_NODE) utils.HierarchyRequestError();
+              }
+            }
+            i = parent._countChildrenOfType(DOCUMENT_TYPE_NODE);
+            if (isPreinsert) {
+              // "parent has an doctype child"
+              if (i > 0) utils.HierarchyRequestError();
+            } else {
+              // "parent has an doctype child that is not child"
+              if (i > 1 || (i === 1 && child.nodeType !== DOCUMENT_TYPE_NODE))
+                utils.HierarchyRequestError();
+            }
+            break;
+        }
+      } else {
+        // 5, continued: (parent is not a document)
+        if (node.nodeType === DOCUMENT_TYPE_NODE) utils.HierarchyRequestError();
+      }
+    },
+  },
 
   insertBefore: {
     value: function insertBefore(node, child) {
       var parent = this;
       // 1. Ensure pre-insertion validity
-      // parent._ensureInsertValid(node, child, true);
+      parent._ensureInsertValid(node, child, true);
       // 2. Let reference child be child.
       var refChild = child;
       // 3. If reference child is node, set it to node's next sibling
@@ -285,7 +285,7 @@ Node.prototype = Object.create(EventTarget.prototype, {
     value: function replaceChild(node, child) {
       var parent = this;
       // Ensure validity (slight differences from pre-insertion check)
-      // parent._ensureInsertValid(node, child, false);
+      parent._ensureInsertValid(node, child, false);
       // Adopt node into parent's node document.
       if (node.doc !== parent.doc) {
         // XXX adoptNode has side-effect of removing node from its parent

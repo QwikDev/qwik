@@ -450,7 +450,7 @@ __metadata:
     vfile: ^5.3.2
     vite: ^2.9.12
   peerDependencies:
-    "@builder.io/qwik": ">=0.0.31"
+    "@builder.io/qwik": ">=0.0.33"
   languageName: unknown
   linkType: soft
 
@@ -465,7 +465,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@builder.io/qwik-react@workspace:packages/qwik-react"
   dependencies:
-    "@builder.io/qwik": 0.0.31
+    "@builder.io/qwik": 0.0.33
     "@emotion/react": ^11.9.0
     "@emotion/server": ^11.4.0
     "@emotion/styled": ^11.9.3
@@ -477,7 +477,7 @@ __metadata:
     typescript: 4.7.2
     vite: 2.9.9
   peerDependencies:
-    "@builder.io/qwik": ">=0.0.31"
+    "@builder.io/qwik": ">=0.0.33"
     "@emotion/react": ^11.9.0
     "@emotion/server": ^11.4.0
     "@emotion/styled": ^11.9.3
@@ -488,14 +488,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@builder.io/qwik@npm:0.0.31":
-  version: 0.0.31
-  resolution: "@builder.io/qwik@npm:0.0.31"
-  checksum: 59466fa2c3b0db59ead9f47189d89c05078abeeadda5dc9a3c6db35eaf5ba3384ba8b971ddb69902443b7445554a07a032fe099f33b5d19ba0665ee23dbc7624
-  languageName: node
-  linkType: hard
-
-"@builder.io/qwik@workspace:*, @builder.io/qwik@workspace:packages/qwik":
+"@builder.io/qwik@0.0.33, @builder.io/qwik@workspace:*, @builder.io/qwik@workspace:packages/qwik":
   version: 0.0.0-use.local
   resolution: "@builder.io/qwik@workspace:packages/qwik"
   languageName: unknown
@@ -8274,7 +8267,7 @@ __metadata:
   resolution: "qwik-docs@workspace:packages/docs"
   dependencies:
     "@builder.io/partytown": ^0.6.1
-    "@builder.io/qwik": 0.0.31
+    "@builder.io/qwik": 0.0.33
     "@builder.io/qwik-city": "workspace:*"
     "@cloudflare/kv-asset-handler": 0.2.0
     autoprefixer: 10.4.7

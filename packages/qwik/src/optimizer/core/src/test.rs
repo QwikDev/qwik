@@ -1058,6 +1058,48 @@ export const Child = component$(() => {
 }
 
 #[test]
+fn example_default_export() {
+    test_input!(TestInput {
+        code: r#"
+import { component$ } from '@builder.io/qwik';
+
+export default component$(() => {
+    return (
+        <div onClick$={() => console.log(mongodb)}>
+        </div>
+    );
+});
+
+"#
+        .to_string(),
+        filename: "src/components/components/app.tsx".into(),
+        entry_strategy: EntryStrategy::Inline,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_default_export_index() {
+    test_input!(TestInput {
+        code: r#"
+import { component$ } from '@builder.io/qwik';
+
+export default component$(() => {
+    return (
+        <div onClick$={() => console.log(mongodb)}>
+        </div>
+    );
+});
+
+"#
+        .to_string(),
+        filename: "src/components/mongo/index.tsx".into(),
+        entry_strategy: EntryStrategy::Inline,
+        ..TestInput::default()
+    });
+}
+
+#[test]
 fn example_parsed_inlined_qrls() {
     test_input!(TestInput {
         code: r#"

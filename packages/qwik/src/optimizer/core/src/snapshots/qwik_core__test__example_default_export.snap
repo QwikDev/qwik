@@ -1,0 +1,31 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$ } from '@builder.io/qwik';
+
+export default component$(() => {
+    return (
+        <div onClick$={() => console.log(mongodb)}>
+        </div>
+    );
+});
+
+
+============================= src/components/components/app.tsx ==
+
+import { componentQrl } from "@builder.io/qwik";
+import { inlinedQrl } from "@builder.io/qwik";
+export default /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
+    return <div onClickQrl={inlinedQrl(()=>console.log(mongodb)
+    , "app_component_div_onClick_8PCkN2jmumg")}>
+
+        </div>;
+}, "app_component_UGeyjZbrqiY"));
+
+== DIAGNOSTICS ==
+
+[]

@@ -1,3 +1,4 @@
+import { QSlot } from '../../util/markers';
 import { isArray } from '../../util/types';
 import { jsx } from './jsx-runtime';
 import type { FunctionComponent } from './types/jsx-node';
@@ -17,7 +18,7 @@ export const Slot: FunctionComponent<{
       });
 
   return jsx(
-    'q:slot',
+    QSlot,
     {
       name: props.name,
       children: newChildrem,

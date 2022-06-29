@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "qwik-monorepo",
-  "version": "0.0.31",
+  "version": "0.0.32",
   "scripts": {
     "build": "yarn node scripts --tsc --build --api --platform-binding-wasm-copy",
     "build.full": "yarn node scripts --tsc --build --api --eslint --qwikcity --qwikreact --platform-binding --wasm",

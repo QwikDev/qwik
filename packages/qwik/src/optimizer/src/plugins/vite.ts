@@ -25,16 +25,9 @@ import { createRollupError, normalizeRollupOutputOptions } from './rollup';
 import { QWIK_LOADER_DEFAULT_DEBUG, QWIK_LOADER_DEFAULT_MINIFIED } from '../scripts';
 import { versions } from '../versions';
 
-const OPTIMIZE_DEPS = [
-  QWIK_CORE_ID,
-  QWIK_JSX_RUNTIME_ID,
-  'react',
-  'react-dom/client',
-  'hoist-non-react-statics',
-  '@emotion/react',
-];
+const OPTIMIZE_DEPS = [QWIK_CORE_ID, QWIK_JSX_RUNTIME_ID];
 
-const DEDUPE = [QWIK_CORE_ID, QWIK_JSX_RUNTIME_ID, 'react', 'react-dom', '@emotion/react'];
+const DEDUPE = [QWIK_CORE_ID, QWIK_JSX_RUNTIME_ID];
 
 /**
  * @alpha

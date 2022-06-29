@@ -19,8 +19,6 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
   let mdxTransform: MdxTransform | null = null;
   let rootDir: string | null = null;
 
-  userOpts = userOpts || {};
-
   const plugin: Plugin = {
     name: 'vite-plugin-qwik-city',
 
@@ -48,6 +46,15 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
     },
 
     configureServer(server) {
+      if (ctx) {
+        const routesDirWatcher = server.watcher.add(ctx.opts.routesDir);
+        routesDirWatcher.on('all', (ev) => {
+          if (ev === 'add' || ev === 'addDir' || ev === 'unlink' || ev === 'unlinkDir') {
+            server.restart();
+          }
+        });
+      }
+
       server.middlewares.use(async (req, res, next) => {
         try {
           if (ctx) {
@@ -93,12 +100,6 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
       resetBuildContext(ctx);
     },
 
-    buildEnd() {
-      ctx?.diagnostics.forEach((d) => {
-        this.warn(d.message);
-      });
-    },
-
     resolveId(id) {
       if (id === QWIK_CITY_PLAN_ID) {
         return join(rootDir!, QWIK_CITY_PLAN_ID);
@@ -110,6 +111,9 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
       if (id.endsWith(QWIK_CITY_PLAN_ID) && ctx) {
         // @qwik-city-plan
         await build(ctx);
+        ctx.diagnostics.forEach((d) => {
+          this.warn(d.message);
+        });
         return generateQwikCityPlan(ctx);
       }
       return null;

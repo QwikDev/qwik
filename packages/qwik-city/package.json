@@ -7,6 +7,7 @@
   "qwik": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "scripts": {
+    "build.runtime": "cd runtime && vite build --mode lib",
     "test.unit": "uvu -r tsm src \"(unit)\"",
     "test.build": "yarn test.build.client && yarn test.build.ssr",
     "test.build.client": "cd src/test && vite build",

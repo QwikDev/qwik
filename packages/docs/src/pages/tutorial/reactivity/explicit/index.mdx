@@ -1,0 +1,14 @@
+---
+title: Explicit Reactivity
+layout: tutorial
+---
+
+In addition to implicit reactivity created by the templates, Qwik supports explicit execution of code when a property changes. This is achieved through the `useWatch$()` hook. `useWatch$()` hooks execute before the component renders and can be asynchronous. The hook can also have a clean-up function that is invoked on the next hook execution or when the component is removed.
+
+In this example clicking on `+1` updates `count` immediately. What we would like is to update the `delay count` after a 2-second delay. If `count` is updated before the 2 seconds are up then the timer is restarted.
+
+Notice that `useWatch$()` callback receives `track` function. Use the `track` function to tell Qwik which properties should trigger this watch. The `track` function creates subscriptions in store. On each invocation of `useWatch$()` the subscriptions are cleared, so it is important to always set up a new set of subscriptions. This is useful if the set of subscriptions changes during the function lifetime. 
+
+The `useWatch$()` callback function can return a cleanup function. The clean-up function is invoked on the next `useWatch$()` callback execution or when the component is removed. In our case, the cleanup function is used for returning code which clears the `setTimeout`. 
+
+The `useWatch$()` callbacks execute before the component is rendered. This allows them to be used to compute values used in rendering. The function runs on both server and client. The server execution sets up subscriptions that are then serialized and available to the client. This saves the client from having to download all of the components and execute them at least once to recover the subscription information for the system. 

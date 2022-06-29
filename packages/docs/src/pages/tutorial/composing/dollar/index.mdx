@@ -1,0 +1,68 @@
+---
+title: Creating APIs with $
+layout: tutorial
+---
+
+The powerful, part of Optimizer is that you can create your own APIs with `$` suffix.
+
+Imagine that we would like to have a delay method that lazy loads its callback. Normally we would have to write something like this:
+
+```typescript
+setTimeout(() => {
+  // I am eagerly loaded, but it would be better if I was lazy-loaded.
+  ...
+}, timeout);
+```
+
+The issue with the example above is that the callback has to be downloaded and created eagerly. This may be an issue if the closure is large or if the callback is never executed (or only executed later.)
+
+A better solution would be to have `delay$` method that can lazy-load the closure associated with the callback. Something like this.
+
+```typescript
+delay$(() => {
+  // I am lazy-loaded only when I need to be executed.
+  ...
+}, 1000)
+```
+
+In the above solution, the callback is only downloaded when `delay$` is ready to execute it.
+
+## Creating your APIs with `$` suffix
+
+Qwik runtime works with `QRL`s. For this reason we define a method like so:
+```typescript
+export function delayQrl<T>(fn: QRL<() => T>, delayInMs: number): Promise<T> {
+  return new Promise((res) => {
+    setTimeout(() => {
+      res(fn.invoke());
+    }, delayInMs);
+  });
+}
+```
+
+This method knows how to take a `QRL` and execute it after a certain delay. The key part here is that the `QRL.invoke()` method is called when the delay is ready and is therefore lazy.
+
+The next step is to convert the `delayQrl` method to a `delay$` alias. This is done with `implicit$FirstArg` like so:
+
+```typescript
+export const delay$ = implicit$FirstArg(delayQrl);
+```
+
+Here are the types to make it clearer as to what is going on.
+
+```typescript
+declare delayQrl: (fn: QRL<() => T>, delayInMs: number) => Promise<T>;
+declare delay$: (fn: () => T, delayInMs: number) => Promise<T>;
+```
+
+The above allows us to use `delay$` in an inlined fashion, but the Optimizer converts the `delay$` to `delayQrl` form.
+
+NOTE the two methods must have the same prefix. So a general form is:
+```typescript
+export const SOME_NAME_Qrl = ...;
+export const SOME_NAME_$ = implicit$FirstArg(SOME_NAME_Qrl);
+```
+
+## Example
+
+In our example we are executing `store.count++` and `store.delay++` together. Wrap the `store.delay` in `delay$()` call so that it updates with a one second delay.

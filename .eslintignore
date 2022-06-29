@@ -17,4 +17,5 @@ tsdoc-metadata.json
 scripts/**/*
 *.tsbuildinfo
 packages/docs/src/pages/examples/**/*
+packages/docs/src/pages/tutorial/**/*
 vite.config.ts

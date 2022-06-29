@@ -1,5 +1,5 @@
 import { component$, useStore, useWatch$ } from '@builder.io/qwik';
-import { isServer } from '@builder.io/qwik/build';
+// import { isServer } from '@builder.io/qwik/build';
 
 export const App = component$(() => {
   const github = useStore({
@@ -52,3 +52,13 @@ export async function getRepositories(username: string, controller?: AbortContro
   const json = await resp.json();
   return Array.isArray(json) ? json.map((repo: { name: string }) => repo.name) : null;
 }
+
+export const isServer = (() => {
+  // This is a workaround for a bug in REPL which fails to package up of @builder.io/qwik/build.
+  // TODO remove this when the bug is fixed.
+  try {
+    return typeof window == 'undefined';
+  } catch (e) {
+    return false;
+  }
+})();

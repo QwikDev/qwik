@@ -1,0 +1,14 @@
+---
+title: Lazy Lading Closures
+layout: tutorial
+---
+
+A closure can be converted into a lazy-loaded reference using the `$()` function. This generates a `QRL<Function>` type. A QRL is a lazy-loadable reference of the closure. In our case, we have extracted the closure associated with the `onKeyUp` event into the component body. Because it is no longer inlined we need to change how the JSX refers to it from `onKeyUp$` to `onKeyUpQrl`.
+
+Notice that our closure closes over the `store` that is captured by the Optimizer and then restored as needed.
+
+## Example
+
+In this example, we would like to demonstrate how easy it is to lazy-load behavior in Qwik. Let's lazy load the code that is executed when the  `Enter` key is pressed. Wrap the code associated with `Enter` with `$()` to mark it for lazy loading. The resulting `QRL<()=>void>` can then be lazy-invoked with `.invoke()` and the result can be awaited with `await` keyword.
+
+Look at the `Symbols` tab to see how the code was broken up into pieces. 

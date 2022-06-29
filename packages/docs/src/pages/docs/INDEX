@@ -19,6 +19,11 @@
 - [Content projection](components/projection.mdx)
 - [Rendering](components/rendering.mdx)
 
+## Cheat Sheet
+
+- [Components](cheat/components.mdx)
+- [Serialization](cheat/serialization.mdx)
+
 ## Concepts
 
 - [Resumable](concepts/resumable.mdx)

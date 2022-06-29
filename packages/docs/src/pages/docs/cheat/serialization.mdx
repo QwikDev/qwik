@@ -1,0 +1,53 @@
+---
+title: Serialization & Serialization Boundaries
+---
+
+# `$` Boundaries
+
+## Rules
+
+- Only serializable data can cross a `$` boundery.
+
+## Serialization Boundery
+
+A serialization boundery occures whenever you cross a lexical scope of a function that is converted into lazy loadable form. It is always denoted by `$(...)` (or `____$(...)`) See example:
+
+```tsx
+import {component$} from "@builder.io/qwik";
+
+export const topLevel = Promise.resolve('nonserializable data');
+
+export const Greeter = component$(() => {
+  // BEGIN component serialization boundery
+
+  // Referring to top level symbols that are exported is always allowed.
+  console.log(topLevel); // OK
+
+  const captureSerializable = 'serializable data';
+  const captureNonSerializable = Promise.resolve('nonserializable data');
+  return (
+    <button onClick$={() => {
+      // BEGIN onClick serialization boundery
+
+      // Referring to top level symbols that are exported is always allowed.
+      // Even if the value is non-serializable.
+      console.log(topLevel); // OK
+
+      // Capturing a non-toplevel variable is allowed only if:
+      // - declaed as `const`
+      // - is serializable (runtime error)
+      console.log(captureSerializable); // OK
+
+      // Reffering to captureNonSerializable will pass static analysis but
+      // will fail at runtime because Qwik does not know how to serilize it.
+      console.log(captureNonSerializable); // RUNTIME ERROR
+
+      // END onClick serialization boundery
+    }}>
+      click
+    </button>
+  );
+  // BEGIN component serialization boundery
+});
+
+```

@@ -1,0 +1,10 @@
+---
+title: Light Component
+layout: tutorial
+---
+
+Qwik comports are lazy-loadable. This is achieved through `component$()` method. The presence of `$` crates a lazy-loaded boundary. The `$` will be discussed later. Qwik also supports inline components. Inline components are not by themselves lazy loadable and instead load as part of the parent component where they are used. (Inline components are equivalent to regular components in most other frameworks.)
+
+In this example we have pre-declared an `<App>` and a `<Greeter>` component. The `<Greeter/>` component is currently a Qwik Component because it is declared with `component$()`. Remove the `component$()` to convert `<Greeter>` to inline component. Inline components do not have host elements, (described later.)
+
+Open the `Symbols` tab and notice that the `<Greeter/>` component is no longer an independent export, and instead it is bundled as part of the `<App>` component.

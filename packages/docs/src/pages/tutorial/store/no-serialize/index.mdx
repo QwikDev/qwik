@@ -1,0 +1,8 @@
+---
+title: Non-serializable Properties
+layout: tutorial
+---
+
+Stores must always be serializable. However, there are times when it is useful to store a value on a store that is not serializable. Such a value will persist only while the application is resumed. If the application is paused the value will be thrown away. (This is not an idiomatic way to do this, only a contrived example.)
+
+In this example when the clock is started we need to save a cleanup function in `store.cleanup` so that the `stop` button can clear the interval.

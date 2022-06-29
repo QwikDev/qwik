@@ -67,7 +67,7 @@ The main point here is that while the syntax of the events is consistent between
 
 ## Prevent default
 
-Because of the async nature of Qwik, event's handler execution might be delayed because the implementation is not downloaded yet. This introduces a problem when the event's handler needs to prevent the default behavior of the event. Tradicional `event.preventDefault()` will not work, instead use the qwik's `preventdefault:{eventName}` attribute:
+Because of the async nature of Qwik, event's handler execution might be delayed because the implementation is not downloaded yet. This introduces a problem when the event's handler needs to prevent the default behavior of the event. Traditional `event.preventDefault()` will not work, instead use the qwik's `preventdefault:{eventName}` attribute:
 
 ```tsx
 const Counter = component$(() => {
@@ -269,7 +269,7 @@ Notice that `on:click` attribute contains three pieces of information:
 2. `Counter_button_onClick`: The symbol which needs to be retrieved from the lazy-loaded chunk.
 3. `[0]`: An array of lexically captured variable references (State of the closure).
 
-In our case `() => store.count++` only captures `store`, and hence it contains only a single reference `0`. `0` is an index into the `q:obj` attribute which contains a reference to the actual serialized object referring to `store`. (The exact mechanisms and syntax is an implementation detail that can change at any time.)
+In our case `() => store.count++` only captures `store`, and hence it contains only a single reference `0`. `0` is an index into the `q:obj` attribute that contains a reference to the actual serialized object referring to `store`. (The exact mechanisms and syntax is an implementation detail that can change at any time.)
 
 ## Comparison to `import()`
 
@@ -277,7 +277,7 @@ JavaScript supports dynamic `import()`. At first glance, it may seem that the sa
 
 Dynamic `import()`:
 
-- Is relative to the file which contains it. This works great for `file-a.js` trying to load `file-b.js` as `import('./file-b.js')`. However, when the `./file-a.js` gets serialized into HTML then we lose its relative nature. It is the framework that reads the `./file-b.js` from HTML and performs the `import()`. This means that all imports now become relative to the framework, which is incorrect.
+- Is relative to the file that contains it. This works great for `file-a.js` trying to load `file-b.js` as `import('./file-b.js')`. However, when the `./file-a.js` gets serialized into HTML then we lose its relative nature. It is the framework that reads the `./file-b.js` from HTML and performs the `import()`. This means that all imports now become relative to the framework, which is incorrect.
 - Requires that the developer writes `import('./file-a.js')`, which means the developer is in charge of deciding where the lazy-loaded boundaries are. This limits our ability of the tooling to move code around in an automated way.
 - Supports import of top-level functions only which don't capture the state. This is the biggest difference. Qwik allows the imported symbol to be a closure that carries all of its state with it.
 

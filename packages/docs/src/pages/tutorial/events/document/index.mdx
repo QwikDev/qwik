@@ -1,0 +1,14 @@
+---
+title: Listening to document/window
+layout: tutorial
+---
+
+So far we have shown you how to listen to events emitted from a DOM element such as a `<button>`. But what if you need to listen for an event on `window` or `document` (for example a `mousemove` or `scroll` event.)
+
+Qwik has `document:` and `window:` namespace prefixes which allow you to listen to global events.
+
+Open the `Diagnostics` tab and notice that moving the mouse over text produces console output. However, this only works while moving over the text. That is because when the mouse is moved over an area other than text the event does not bubble through the listener.
+
+To fix this change the listener to be a global listener by adding `document:` prefix.
+
+Now notice that moving the mouse anywhere on the application (even outside of the text) will show output in the console.

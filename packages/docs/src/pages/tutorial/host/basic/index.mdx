@@ -1,0 +1,25 @@
+---
+title: Host Element
+layout: tutorial
+---
+
+The host element is used to mark the component boundaries. Without the host element, Qwik would not know where components start and end. This information is needed so that components can render independently and out of order, a key feature of Qwik.
+
+An alternative to the host element is to recover the component boundaries by re-executing the application as part of hydration. Qwik's explicit goal is to not perform hydration on application startup as it would force eager application download and execution and negatively impact startup performance.
+
+## Controlling the Host Element Type with `tagName`
+
+Every component declared with `component$()` has a host element. By default the host element is `<div q:host>` marked with the `q:host` attribute. At times it may be necessary to change the `<div>` to another element, in which case the `tagName` option can be used with `component$()` as shown in this example.
+
+## `<Host>` Element
+
+A component may need to add additional attributes or listeners to the host element. This can be done through the `<Host>` element. Any attribute that can be placed on the DOM element can be placed on the `<Host>`.
+
+
+## Example
+
+In this example, we have created `<MyButton>` component. This component needs to be a `<button>` for accessibility. The example uses `tagName` to ensure that the host element is `button`.
+
+We need to place a click listener on the button, for this, we use `<Host>` element to refer to the host element.
+
+Please add styling to the `<button>` to change the `background-color` to `lightpink` and make the button large by adding padding to it.

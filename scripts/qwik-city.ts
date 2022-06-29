@@ -29,7 +29,6 @@ async function buildRuntime(config: BuildConfig, input: string) {
     stdout: 'inherit',
     cwd: input,
   });
-
   if (result.failed) {
     panic(`tsc failed`);
   }

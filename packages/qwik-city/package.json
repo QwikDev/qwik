@@ -26,13 +26,14 @@
   "scripts": {
     "start": "cd runtime && vite",
     "dev.ssr": "cd runtime && vite --mode ssr",
+    "build": "yarn build.client && yarn build.ssr",
+    "build.client": "cd runtime && vite build",
+    "build.ssr": "cd runtime && vite build --ssr src/entry.express.tsx",
     "build.runtime": "cd runtime && vite build --mode lib",
-    "test.unit": "uvu -r tsm src \"(unit)\"",
-    "test.build": "yarn test.build.client && yarn test.build.ssr",
-    "test.build.client": "cd src/test && vite build",
-    "test.build.ssr": "cd src/test && vite build --ssr src/entry.express.tsx",
-    "test.serve": "node --inspect-brk src/test/server/entry.express.js",
-    "test.serve.debug": "node --inspect-brk src/test/server/entry.express.js"
+    "serve": "node runtime/server/entry.express.js",
+    "serve.debug": "node --inspect-brk runtime/server/entry.express.js",
+    "test": "yarn test.unit",
+    "test.unit": "uvu -r tsm . \"(unit)\""
   },
   "dependencies": {
     "@mdx-js/mdx": "^2.1.1",

@@ -2,7 +2,7 @@
 
 ## Getting Started
 
-- [Introduction](introduction)
+- [Introduction](introduction/index.md)
 
 ## Components
 

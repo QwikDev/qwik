@@ -41,11 +41,13 @@ export function testAppSuite() {
 
   s.before.each(async (testCtx) => {
     if (!buildCtx) {
-      const testAppRootDir = join(__dirname, '..', '..', 'test');
-      const ctx = createBuildContext(testAppRootDir);
+      const testAppRootDir = join(__dirname, '..', '..', 'runtime', 'src');
+      const ctx = createBuildContext(testAppRootDir, {
+        routesDir: join(testAppRootDir, 'app', 'routes'),
+      });
 
       assert.is(normalizePath(testAppRootDir), ctx.rootDir);
-      assert.is(normalizePath(join(testAppRootDir, 'src', 'routes')), ctx.opts.routesDir);
+      assert.is(normalizePath(join(testAppRootDir, 'app', 'routes')), ctx.opts.routesDir);
 
       await build(ctx);
 

@@ -17,6 +17,11 @@ export default defineConfig(() => {
         },
       },
     },
+    resolve: {
+      alias: {
+        '~qwik-city-runtime': '/src/index.ts'
+      }
+    },
     plugins: [
       qwikCity({
         routesDir: './src/app/routes',

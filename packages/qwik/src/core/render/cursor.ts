@@ -296,7 +296,6 @@ export const patchVnode = (
   const props = vnode.$props$;
   const ctx = getContext(elm as Element);
   const isSlot = tag === 'q:slot';
-  let promise: ValueOrPromise<void> | undefined = undefined;
   let dirty = updateProperties(rctx, ctx, props, isSvg);
   if (isSvg && vnode.$type$ === 'foreignObject') {
     isSvg = false;
@@ -309,15 +308,12 @@ export const patchVnode = (
   const isComponent = isComponentNode(vnode);
   const ch = vnode.$children$;
   if (isComponent) {
-    if (ctx.$renders$ === 0) {
-      assertEqual(ctx.$renderQrl$, undefined);
+    if (!dirty && !ctx.$renderQrl$ && !ctx.$element$.hasAttribute(QHostAttr)) {
       setAttribute(rctx, ctx.$element$, QHostAttr, '');
       ctx.$renderQrl$ = props![OnRenderProp]! as QRL<OnRenderFn<any>>;
       dirty = true;
     }
-    if (dirty) {
-      promise = renderComponent(rctx, ctx);
-    }
+    const promise = dirty ? renderComponent(rctx, ctx) : undefined;
     return then(promise, () => {
       const slotMaps = getSlots(ctx.$component$, elm as Element);
       const splittedChidren = splitBy(ch, getSlotName);
@@ -359,10 +355,8 @@ export const patchVnode = (
     }
     return;
   }
-  return then(promise, () => {
-    const mode = isSlot ? 'fallback' : 'default';
-    return smartUpdateChildren(rctx, elm, ch, mode, isSvg);
-  });
+  const mode = isSlot ? 'fallback' : 'default';
+  return smartUpdateChildren(rctx, elm, ch, mode, isSvg);
 };
 
 const addVnodes = (

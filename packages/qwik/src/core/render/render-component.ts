@@ -13,7 +13,6 @@ import { directGetAttribute } from './fast-calls';
 
 export const renderComponent = (rctx: RenderContext, ctx: QContext): ValueOrPromise<void> => {
   ctx.$dirty$ = false;
-  ctx.$renders$++;
 
   const hostElement = ctx.$element$;
   const onRenderQRL = ctx.$renderQrl$!;

@@ -59,8 +59,10 @@ export const Logs0 = component$((props: Record<string, any>) => {
 
   useWatch$((track) => {
     const count = track(rootState, 'count');
+    console.log('changed');
     logs.logs += `Log(${count})`;
   });
+  console.log('created');
 
   return (
     <Host>

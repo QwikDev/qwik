@@ -1,4 +1,4 @@
-import { OnRenderProp, QHostAttr, QSlotAttr } from '../util/markers';
+import { OnRenderProp, QHostAttr, QSlot } from '../util/markers';
 import {
   cleanupContext,
   ComponentCtx,
@@ -295,7 +295,7 @@ export const patchVnode = (
 
   const props = vnode.$props$;
   const ctx = getContext(elm as Element);
-  const isSlot = tag === 'q:slot';
+  const isSlot = tag === QSlot;
   let dirty = updateProperties(rctx, ctx, props, isSvg);
   if (isSvg && vnode.$type$ === 'foreignObject') {
     isSvg = false;
@@ -430,7 +430,7 @@ const getSlotElement = (
 
 const createTemplate = (ctx: RenderContext, slotName: string) => {
   const template = createElement(ctx, 'q:template', false);
-  directSetAttribute(template, QSlotAttr, slotName);
+  directSetAttribute(template, QSlot, slotName);
   directSetAttribute(template, 'hidden', '');
   directSetAttribute(template, 'aria-hidden', 'true');
 
@@ -491,7 +491,7 @@ export const resolveSlotProjection = (
 };
 
 const getSlotName = (node: ProcessedJSXNode): string => {
-  return node.$props$?.['q:slot'] ?? '';
+  return node.$props$?.[QSlot] ?? '';
 };
 
 const createElm = (
@@ -529,7 +529,7 @@ const createElm = (
     if (styleTag) {
       classlistAdd(rctx, elm, styleTag);
     }
-    if (tag === 'q:slot') {
+    if (tag === QSlot || tag === 'html') {
       setSlotRef(rctx, currentComponent.$hostElement$, elm);
       currentComponent.$slots$.push(vnode);
     }
@@ -581,6 +581,9 @@ interface SlotMaps {
 }
 
 const getSlots = (componentCtx: ComponentCtx | undefined, hostElm: Element): SlotMaps => {
+  if (hostElm.localName === 'html') {
+    return { slots: { '': hostElm }, templates: {} };
+  }
   const slots: Record<string, Element> = {};
   const templates: Record<string, HTMLTemplateElement> = {};
   const slotRef = directGetAttribute(hostElm, 'q:sref');
@@ -600,7 +603,7 @@ const getSlots = (componentCtx: ComponentCtx | undefined, hostElm: Element): Slo
 
   // Map templates
   for (const elm of t) {
-    templates[directGetAttribute(elm, 'q:slot') ?? ''] = elm;
+    templates[directGetAttribute(elm, QSlot) ?? ''] = elm;
   }
 
   return { slots, templates };
@@ -644,7 +647,7 @@ const PROP_HANDLER_MAP: Record<string, PropHandler> = {
   [dangerouslySetInnerHTML]: setInnerHTML,
 };
 
-const ALLOWS_PROPS = ['class', 'className', 'style', 'id', 'q:slot'];
+const ALLOWS_PROPS = ['class', 'className', 'style', 'id', QSlot];
 const HOST_PREFIX = 'host:';
 const SCOPE_PREFIX = /^(host|window|document|prevent(d|D)efault):/;
 

@@ -3,7 +3,7 @@ import qwikDom from '@builder.io/qwik-dom';
 import { isJSXNode, isProcessedJSXNode, processNode } from '../core/render/jsx/jsx-runtime';
 import type { ProcessedJSXNode } from '../core/render/jsx/types/jsx-node';
 import { isComment, isElement, isText } from '../core/util/element';
-import { QHostAttr, QSlotAttr } from '../core/util/markers';
+import { QHostAttr, QSlot } from '../core/util/markers';
 import { isHtmlElement } from '../core/util/types';
 
 /**
@@ -30,7 +30,7 @@ export function isTemplateElement(node: Node | null | undefined): node is HTMLTe
  * @private
  */
 export function isQSLotTemplateElement(node: Node | null | undefined): node is HTMLTemplateElement {
-  return isTemplateElement(node) && node.hasAttribute(QSlotAttr);
+  return isTemplateElement(node) && node.hasAttribute(QSlot);
 }
 
 /**

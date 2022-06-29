@@ -1,0 +1,22 @@
+---
+title: Storing State
+layout: tutorial
+---
+
+Applications need to store state to be useful. (Otherwise, they are just static pages.) 
+
+Qwik needs to track the application state for two reasons:
+1. Application state needs to be serialized on application pause (and deserialize on application resume.)
+2. Qwik needs to create subscriptions on stores so that it can know which components need to be re-rendered (if Qwik would not track subscription information then it would have to re-render the whole application which would defeat the lazy-loading.)
+
+The component on the right looks like it should work, but it does not because the `counter` is just a regular objects, which does not create subscriptions. As a result, Qwik does not know when `counter.count` changes and it does not know that it has to re-render the `<App>`. 
+
+Wrap the `counter` in `useStore()` to enable dependency tracking and automatic re-rendering.
+
+## Serialization
+
+Open the HTML tab to see what information was serialized by the server. find `<script type="qwik/json">` for serialization information. While the exact serialization format is not important and subject to change notice two things:
+1. `{count: 0}` is in the serialized state.
+2. At the end of the serialized state are `subs` which contain `"count"`. These subscriptions tell Qwik which component needs to be re-rendered when the state changes.
+
+Qwik state is in no way tied to the component that created it. The state can be passed to any component in the application and Qwik will correctly create subscriptions and correctly re-render only the affected components.

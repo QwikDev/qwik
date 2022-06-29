@@ -1,0 +1,17 @@
+---
+title: Loading Data
+layout: tutorial
+---
+
+The Optimizer can be used to lazy-load data, not just functions. The benefit of doing that is that lazy loading any part of your application becomes easy.
+
+Use the stand-alone `$()` function to mark the data that you wish to lazy load. The `$()` function returns a `QRL` that is a reference that can be serialized by Qwik and that can later be resolved into the original value.
+
+## Example
+
+Load the data representing the massage lazily as part of the click listener.
+
+For this exercise imagine that we wish to lazy load the  `'Hello World!`' string. Use the `$()` function to mark the string as lazy-loadable. Then use `await to resolve the lazy-loadable value.
+
+
+Go to the `Symbols` tab and examine how the code was broken down into parts.

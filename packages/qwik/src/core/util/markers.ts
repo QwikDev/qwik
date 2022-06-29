@@ -53,17 +53,10 @@ export const EventPrefix = 'on:';
  * Attribute used to mark that an event listener is attached.
  */
 export const EventAny = 'on:.';
-
-/**
- * Tag name used for projection.
- */
-export const QSlot = 'Q:SLOT';
-export const QSlotSelector = 'Q\\:SLOT';
-
 /**
  * `<some-element q:slot="...">`
  */
-export const QSlotAttr = 'q:slot';
+export const QSlot = 'q:slot';
 
 export const QCtxAttr = 'q:ctx';
 

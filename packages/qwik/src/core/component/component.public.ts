@@ -64,6 +64,8 @@ export type On$Props<T extends {}> = {
  */
 export type EventHandler<T> = QRL<(value: T) => any>;
 
+const ELEMENTS_SKIP_KEY = ['html', 'body', 'head'];
+
 // <docs markdown="../readme.md#component">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#component instead)
@@ -123,10 +125,11 @@ export const componentQrl = <PROPS extends {}>(
   options: ComponentOptions = {}
 ): Component<PROPS> => {
   const tagName = options.tagName ?? 'div';
+  const skipKey = ELEMENTS_SKIP_KEY.includes(tagName);
 
   // Return a QComponent Factory function.
   return function QSimpleComponent(props, key): JSXNode<PROPS> {
-    const finalKey = onRenderQrl.getHash() + ':' + (key ? key : '');
+    const finalKey = skipKey ? undefined : onRenderQrl.getHash() + ':' + (key ? key : '');
     return jsx(tagName, { [OnRenderProp]: onRenderQrl, ...props }, finalKey) as any;
   };
 };

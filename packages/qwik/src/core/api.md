@@ -145,7 +145,7 @@ export interface FunctionComponent<P = {}> {
 export const getPlatform: (docOrNode: Document | Node) => CorePlatform;
 
 // @public (undocumented)
-export function h<PROPS extends {} = {}>(type: string | FunctionComponent<PROPS>, props: PROPS | null, ...children: any[]): JSXNode;
+export function h<TYPE extends string | FunctionComponent<PROPS>, PROPS extends {} = {}>(type: TYPE, props: PROPS | null, ...children: any[]): JSXNode<TYPE>;
 
 // @public (undocumented)
 export namespace h {

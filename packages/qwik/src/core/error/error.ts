@@ -24,7 +24,7 @@ export const QError_useInvokeContext = 20;
 
 export const qError = (code: number, ...parts: any[]): Error => {
   const text = codeToText(code);
-  const error = text + parts.join(' ');
+  const error = `${text} ${parts.join(' ')}`;
   debugger; // eslint-disable-line no-debugger
   return new Error(error);
 };

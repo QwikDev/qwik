@@ -92,6 +92,7 @@ describe('render', () => {
       await render(
         fixture.document,
         <html>
+          <head></head>
           <body>WORKS</body>
         </html>
       );

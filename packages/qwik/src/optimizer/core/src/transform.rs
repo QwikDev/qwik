@@ -913,6 +913,26 @@ impl<'a> Fold for QwikTransform<'a> {
         o
     }
 
+    fn fold_export_default_expr(&mut self, node: ast::ExportDefaultExpr) -> ast::ExportDefaultExpr {
+        let mut filename = self.options.path_data.file_stem.clone();
+        if filename == "index" {
+            if let Some(foldername) = self
+                .options
+                .path_data
+                .rel_dir
+                .file_name()
+                .and_then(|s| s.to_str())
+            {
+                filename = foldername.to_string();
+            }
+        }
+        self.stack_ctxt.push(filename);
+        let o = node.fold_children_with(self);
+        self.stack_ctxt.pop();
+
+        o
+    }
+
     fn fold_jsx_attr(&mut self, node: ast::JSXAttr) -> ast::JSXAttr {
         let mut is_listener = false;
         let node = match node.name {

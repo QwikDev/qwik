@@ -14,14 +14,7 @@ describe('vite  plugin', () => {
     };
   });
 
-  const deps = [
-    '@builder.io/qwik',
-    '@builder.io/qwik/jsx-runtime',
-    'react',
-    'react-dom/client',
-    'hoist-non-react-statics',
-    '@emotion/react',
-  ];
+  const deps = ['@builder.io/qwik', '@builder.io/qwik/jsx-runtime'];
 
   describe('config', () => {
     it('command: serve, mode: development', async () => {

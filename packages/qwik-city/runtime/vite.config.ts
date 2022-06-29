@@ -19,8 +19,8 @@ export default defineConfig(() => {
     },
     resolve: {
       alias: {
-        '~qwik-city-runtime': '/src/index.ts'
-      }
+        '~qwik-city-runtime': '/src/index.ts',
+      },
     },
     plugins: [
       qwikCity({

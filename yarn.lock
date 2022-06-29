@@ -450,7 +450,7 @@ __metadata:
     vfile: ^5.3.2
     vite: ^2.9.12
   peerDependencies:
-    "@builder.io/qwik": "workspace:*"
+    "@builder.io/qwik": ">=0.0.31"
   languageName: unknown
   linkType: soft
 
@@ -465,7 +465,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@builder.io/qwik-react@workspace:packages/qwik-react"
   dependencies:
-    "@builder.io/qwik": 0.0.30
+    "@builder.io/qwik": 0.0.31
     "@emotion/react": ^11.9.0
     "@emotion/server": ^11.4.0
     "@emotion/styled": ^11.9.3
@@ -477,7 +477,7 @@ __metadata:
     typescript: 4.7.2
     vite: 2.9.9
   peerDependencies:
-    "@builder.io/qwik": ">=0.0.30"
+    "@builder.io/qwik": ">=0.0.31"
     "@emotion/react": ^11.9.0
     "@emotion/server": ^11.4.0
     "@emotion/styled": ^11.9.3
@@ -493,13 +493,6 @@ __metadata:
   resolution: "@builder.io/qwik@workspace:packages/qwik"
   languageName: unknown
   linkType: soft
-
-"@builder.io/qwik@npm:0.0.30":
-  version: 0.0.30
-  resolution: "@builder.io/qwik@npm:0.0.30"
-  checksum: 509871dd18a35ab5fce11a5a7ed11bec2a501cdc0fc025bb54751a78ee6a80a74d365d6ba33f96bc58a79657cfab107cac12e91b41dbbb008cc5dc5e664326f3
-  languageName: node
-  linkType: hard
 
 "@cloudflare/kv-asset-handler@npm:0.2.0":
   version: 0.2.0

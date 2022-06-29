@@ -17,6 +17,7 @@ export default defineConfig(() => {
           '@emotion/cache',
           '@emotion/core',
           '@emotion/react',
+          '@emotion/react/jsx-runtime',
           '@emotion/server/create-instance',
           'react/jsx-runtime',
           'react',

@@ -64,6 +64,7 @@
     "@types/semver": "7.3.9",
     "@typescript-eslint/eslint-plugin": "5.27.0",
     "@typescript-eslint/parser": "5.27.0",
+    "@typescript-eslint/utils": "^5.27.1",
     "brotli": "^1.3.3",
     "concurrently": "7.2.1",
     "cross-spawn": "7.0.3",
@@ -88,6 +89,7 @@
     "ts-jest": "27.1.4",
     "typescript": "4.7.2",
     "vite": "2.9.9",
+    "vite-tsconfig-paths": "3.5.0",
     "wasm-pack": "0.10.2"
   },
   "workspaces": [
@@ -174,9 +176,5 @@
       "<rootDir>/target/"
     ],
     "testRegex": "/(scripts|packages)/.*\\.unit\\.(ts|tsx)$"
-  },
-  "dependencies": {
-    "@typescript-eslint/utils": "^5.27.1",
-    "vite-tsconfig-paths": "^3.5.0"
   }
 }

@@ -3,6 +3,7 @@ import { requestHandler } from '../request-handler';
 import { patchGlobalFetch } from '../request-handler/node-fetch';
 import express from 'express';
 import { join } from 'path';
+import { cwd } from 'process';
 import type { QwikCityPlan } from '@builder.io/qwik-city';
 import type { Render } from '@builder.io/qwik/server';
 
@@ -16,7 +17,7 @@ export function qwikCity(render: Render, opts: QwikCityPlanExpress) {
 
   const router = express.Router();
 
-  const staticDir = opts.staticDir || join(__dirname, '..', 'dist');
+  const staticDir = opts.staticDir;
 
   const buildDir = opts.buildDir || join(staticDir, 'build');
 
@@ -58,6 +59,6 @@ export function qwikCity(render: Render, opts: QwikCityPlanExpress) {
  * @public
  */
 export interface QwikCityPlanExpress extends QwikCityPlan {
-  staticDir?: string;
+  staticDir: string;
   buildDir?: string;
 }

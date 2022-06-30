@@ -1,6 +1,6 @@
 import './global.css';
 
-export const Root = () => {
+export default () => {
   return (
     <html>
       <head>

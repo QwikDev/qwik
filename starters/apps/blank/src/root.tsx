@@ -2,7 +2,7 @@ import { App } from './components/app/app';
 
 import './global.css';
 
-export const Root = () => {
+export default () => {
   return (
     <html>
       <head>

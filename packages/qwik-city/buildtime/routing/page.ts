@@ -20,6 +20,7 @@ export function createPageRoute(
     paramTypes: undefined as any,
     source,
     layouts: [],
+    breadcrumbs: [],
   };
   return pageRoute;
 }

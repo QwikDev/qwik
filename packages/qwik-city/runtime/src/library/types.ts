@@ -22,12 +22,12 @@ export interface RouteLocation {
   hostname: string;
   href: string;
   origin: string;
-  routeParams: RouteParams;
+  params: RouteParams;
   pathname: string;
   port: string;
   protocol: string;
   search: string;
-  searchParams: Record<string, string>;
+  query: Record<string, string>;
 }
 
 /**

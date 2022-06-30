@@ -15,7 +15,7 @@ import { loadRoute, matchRoute } from './routing';
 import type { QwikCityPlan, QwikCityState } from './types';
 import { useDocumentLocation } from './use-functions';
 import { resolveHead } from './head';
-import { searchParamsToObj } from './utils';
+import { searchParamsToQuery } from './utils';
 
 /**
  * @public
@@ -51,9 +51,9 @@ export const Html = component$<HtmlProps>(
           pathname: docLocation.pathname,
           port: docLocation.port,
           protocol: docLocation.protocol,
-          routeParams: matchedRoute ? { ...matchedRoute.params } : {},
+          params: matchedRoute ? { ...matchedRoute.params } : {},
           search: docLocation.search,
-          searchParams: searchParamsToObj(docLocation.searchParams),
+          query: searchParamsToQuery(docLocation.searchParams),
         },
         menus: cityPlan.menus,
         modules: noSerialize<any>([]),
@@ -72,7 +72,7 @@ export const Html = component$<HtmlProps>(
               ctx.location = {
                 ...ctx.location,
                 pathname: updatedContent.pathname,
-                routeParams: updatedContent.params,
+                params: { ...updatedContent.params },
               };
             }
 

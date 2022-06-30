@@ -172,20 +172,20 @@ export interface RouteLocation {
     href: string;
     // (undocumented)
     origin: string;
+    // Warning: (ae-forgotten-export) The symbol "RouteParams" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    params: RouteParams;
     // (undocumented)
     pathname: string;
     // (undocumented)
     port: string;
     // (undocumented)
     protocol: string;
-    // Warning: (ae-forgotten-export) The symbol "RouteParams" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
-    routeParams: RouteParams;
+    query: Record<string, string>;
     // (undocumented)
     search: string;
-    // (undocumented)
-    searchParams: Record<string, string>;
 }
 
 // @public (undocumented)

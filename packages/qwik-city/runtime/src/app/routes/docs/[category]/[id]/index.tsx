@@ -8,8 +8,8 @@ export default component$(() => {
     <Host>
       <h1>Docs</h1>
       <p>pathname: {loc.pathname}</p>
-      <p>category: {loc.routeParams.category}</p>
-      <p>id: {loc.routeParams.id}</p>
+      <p>category: {loc.params.category}</p>
+      <p>id: {loc.params.id}</p>
     </Host>
   );
 });

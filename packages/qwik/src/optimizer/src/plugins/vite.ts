@@ -25,7 +25,7 @@ import { createRollupError, normalizeRollupOutputOptions } from './rollup';
 import { QWIK_LOADER_DEFAULT_DEBUG, QWIK_LOADER_DEFAULT_MINIFIED } from '../scripts';
 import { versions } from '../versions';
 
-const DEDUPE = [QWIK_CORE_ID];
+const DEDUPE = [QWIK_CORE_ID, QWIK_JSX_RUNTIME_ID];
 
 /**
  * @alpha

@@ -22,7 +22,12 @@ import { destroyWatch, WatchDescriptor, WatchFlagsIsDirty } from '../use/use-wat
 import type { QRL } from '../import/qrl.public';
 import { emitEvent } from '../util/event';
 import { ContainerState, getContainerState } from '../render/notify-render';
-import { codeToText, QError_cannotSerializeNode } from '../error/error';
+import {
+  codeToText,
+  qError,
+  QError_cannotSerializeNode,
+  QError_containerAlreadyPaused,
+} from '../error/error';
 import { isArray, isObject, isString } from '../util/types';
 import { directGetAttribute, directSetAttribute } from '../render/fast-calls';
 import { isNotNullable } from '../util/promises';
@@ -45,9 +50,13 @@ export const DOCUMENT_PREFIX = '\u0012';
 // </docs>
 export const pauseContainer = (elmOrDoc: Element | Document): SnapshotResult => {
   const doc = getDocument(elmOrDoc);
-  const containerEl = isDocument(elmOrDoc) ? elmOrDoc.documentElement : elmOrDoc;
-  const parentJSON = isDocument(elmOrDoc) ? elmOrDoc.body : containerEl;
-  const data = snapshotState(containerEl);
+  const documentElement = doc.documentElement;
+  const containerEl = isDocument(elmOrDoc) ? documentElement : elmOrDoc;
+  if (directGetAttribute(containerEl, QContainerAttr) === 'paused') {
+    throw qError(QError_containerAlreadyPaused);
+  }
+  const parentJSON = containerEl === doc.documentElement ? doc.body : containerEl;
+  const data = pauseState(containerEl);
   const script = doc.createElement('script');
   directSetAttribute(script, 'type', 'qwik/json');
   script.textContent = escapeText(JSON.stringify(data.state, undefined, qDev ? '  ' : undefined));
@@ -182,7 +191,7 @@ const hasContext = (el: Element) => {
   return !!tryGetContext(el);
 };
 
-export const snapshotState = (containerEl: Element): SnapshotResult => {
+export const pauseState = (containerEl: Element): SnapshotResult => {
   const containerState = getContainerState(containerEl);
   const doc = getDocument(containerEl);
   const elementToIndex = new Map<Element, string | null>();
@@ -193,9 +202,11 @@ export const snapshotState = (containerEl: Element): SnapshotResult => {
   elements.forEach((node) => {
     const ctx = tryGetContext(node)!;
     collectProps(node, ctx.$props$, collector);
+
     ctx.$contexts$?.forEach((ctx) => {
       collectValue(ctx, collector);
     });
+
     ctx.$listeners$?.forEach((listeners) => {
       for (const l of listeners) {
         const captured = (l as QRLInternal).$captureRef$;
@@ -204,8 +215,13 @@ export const snapshotState = (containerEl: Element): SnapshotResult => {
         }
       }
     });
+
     ctx.$watches$.forEach((watch) => {
       collector.$watches$.push(watch);
+    });
+
+    ctx.$refMap$.$array$.forEach((obj) => {
+      collectValue(obj, collector);
     });
   });
 

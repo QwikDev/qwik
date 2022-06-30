@@ -21,6 +21,7 @@ export const QError_immutableProps = 17;
 export const QError_hostCanOnlyBeAtRoot = 18;
 export const QError_immutableJsxProps = 19;
 export const QError_useInvokeContext = 20;
+export const QError_containerAlreadyPaused = 21;
 
 export const qError = (code: number, ...parts: any[]): Error => {
   const text = codeToText(code);
@@ -53,6 +54,7 @@ export const codeToText = (code: number): string => {
       '<Host> component can only be used at the root of a Qwik component$()', // 18
       'Props are immutable by default.', // 19
       'use- method must be called only at the root level of a component$()',
+      'Container is already paused. Skipping',
     ];
     return `Code(${code}): ${MAP[code] ?? ''}`;
   } else {

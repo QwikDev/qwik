@@ -2,7 +2,7 @@ import { test, expect, Page } from '@playwright/test';
 
 test.describe('Todo', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/todo/');
+    await page.goto('/todo.test/');
     page.on('pageerror', (err) => expect(err).toEqual(undefined));
   });
 

@@ -192,6 +192,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         esbuild: false,
         resolve: {
           dedupe: [...DEDUPE, ...vendorIds],
+          conditions: [],
         },
         optimizeDeps: {
           include: OPTIMIZE_DEPS,

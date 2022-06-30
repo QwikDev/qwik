@@ -17,30 +17,35 @@ export async function generatePackageJson(config: BuildConfig) {
     license: rootPkg.license,
     main: './core.cjs',
     module: './core.mjs',
+    'module:min': './core.min.mjs',
     types: './core.d.ts',
     type: 'module',
     exports: {
       '.': {
+        production: './core.min.mjs',
         import: './core.mjs',
         require: './core.cjs',
       },
       './core': {
+        production: './core.min.mjs',
         import: './core.mjs',
         require: './core.cjs',
       },
       './core.cjs': './core.cjs',
       './core.mjs': './core.mjs',
       './jsx-runtime': {
-        import: './jsx-runtime.mjs',
-        require: './jsx-runtime.cjs',
+        production: './core.min.mjs',
+        import: './core.mjs',
+        require: './core.cjs',
+      },
+      './jsx-dev-runtime': {
+        production: './core.min.mjs',
+        import: './core.mjs',
+        require: './core.cjs',
       },
       './build': {
         import: './build/index.mjs',
         require: './build/index.cjs',
-      },
-      './jsx-dev-runtime': {
-        import: './jsx-runtime.mjs',
-        require: './jsx-runtime.cjs',
       },
       './loader': {
         import: './loader/index.mjs',

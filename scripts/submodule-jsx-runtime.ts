@@ -29,7 +29,7 @@ export async function submoduleJsxRuntime(config: BuildConfig) {
     ...opts,
     format: 'esm',
     outExtension: { '.js': '.mjs' },
-    plugins: [importPath(/^@builder\.io\/qwik$/, './core.mjs')],
+    plugins: [importPath(/^@builder\.io\/qwik$/, '@builder.io/qwik')],
     watch: watcher(config, submodule),
   });
 
@@ -37,7 +37,7 @@ export async function submoduleJsxRuntime(config: BuildConfig) {
     ...opts,
     format: 'cjs',
     outExtension: { '.js': '.cjs' },
-    plugins: [importPath(/^@builder\.io\/qwik$/, './core.cjs')],
+    plugins: [importPath(/^@builder\.io\/qwik$/, '@builder.io/qwik')],
     watch: watcher(config),
   });
 

@@ -176,6 +176,7 @@
     "testRegex": "/(scripts|packages)/.*\\.unit\\.(ts|tsx)$"
   },
   "dependencies": {
-    "@typescript-eslint/utils": "^5.27.1"
+    "@typescript-eslint/utils": "^5.27.1",
+    "vite-tsconfig-paths": "^3.5.0"
   }
 }

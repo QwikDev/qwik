@@ -51,17 +51,18 @@
     "packages/qwik",
     "packages/qwik-city",
     "packages/qwik-react",
-    "packages/create-cli",
+    "packages/create-qwik",
     // "packages/docs",
     "scripts",
     "starters"
   ],
   "exclude": [
+    "packages/create-qwik/dist",
+    "**/lib",
     "starters/servers",
-    "starters/apps/**/entry.ssr.tsx",
-    "starters/apps/**/entry.dev.tsx",
+    "starters/apps",
+    "starters/features",
     "packages/qwik/**/*.d.ts",
-    "packages/create-qwik",
     "packages/qwik-dom"
   ]
 }

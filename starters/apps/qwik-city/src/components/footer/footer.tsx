@@ -1,19 +1,33 @@
-import { component$, Host, useScopedStyles$ } from '@builder.io/qwik';
-import styles from './footer.css?inline';
+import { component$, Host, useStyles$ } from '@builder.io/qwik';
+import styles from './footer.css';
 
-export const Footer = component$(
+export default component$(
   () => {
-    useScopedStyles$(styles);
+    useStyles$(styles);
 
     return (
       <Host>
-        <div>
-          <span>Made with ♡ by the </span>
-          <a href="https://www.builder.io/">Builder.io</a>
-          <span> team</span>
-        </div>
+        <ul>
+          <li>
+            <a href="/blog">Blog</a>
+          </li>
+          <li>
+            <a href="/docs">Docs</a>
+          </li>
+          <li>
+            <a href="/about-us">About Us</a>
+          </li>
+          <li>
+            <a href="/sign-in">Sign In</a>
+          </li>
+          <li>
+            <a href="/">Home</a>
+          </li>
+        </ul>
       </Host>
     );
   },
-  { tagName: 'footer' }
+  {
+    tagName: 'footer',
+  }
 );

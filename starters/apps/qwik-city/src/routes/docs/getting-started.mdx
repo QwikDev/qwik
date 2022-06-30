@@ -1,0 +1,26 @@
+---
+title: Welcome
+---
+
+import { Counter } from '~/components/counter/counter';
+
+# Welcome
+
+Welcome to the fabolous Qwik City. QwikCity is our official kit to build amazing sites:
+
+- 🐎 Powered by Qwik. Zero hydration and instant interactivity.
+- 🗃 File based routing (like Nextjs)
+- 🌏 Deploy easily to edge: Netlify, Cloudflare, Vercel, Deno...
+- 📖 Author content directly in Markdown or MDX. MDX brings the best of markdown and JSX, allowing you to render Qwik components directly in markdown, like this one:
+
+<Counter />
+
+## Next steps
+
+Open your editor and check the following:
+
+- **The `pages` folder**: This is where the main content lives. Adding you files (`.md`, `.mdx`, or `.tsx`) will automatically create new URLs.
+- **The `src/layout` folder**: This is what bring form to your content. Different kinds of pages, might need to be rendered by a different layout.
+  This way you can reuse easily the layout across different content. By default, the `src/layout/default` is used.
+- **The `src/components` folder**: QwikCity is still a normal Qwik app. Any custom component, design systems, or funcionality should live here. Notice the `header`, `footer` and `content-nav` components. They are used by the `default` layout!
+- **The `src/utils` folder**: Place here business logic, or functions that are not components.

@@ -19,6 +19,7 @@ import {
   QWIK_CLIENT_MANIFEST_ID,
   QWIK_BUILD_ID,
   QwikPackages,
+  QWIK_JSX_RUNTIME_ID,
 } from './plugin';
 import { createRollupError, normalizeRollupOutputOptions } from './rollup';
 import { QWIK_LOADER_DEFAULT_DEBUG, QWIK_LOADER_DEFAULT_MINIFIED } from '../scripts';
@@ -195,6 +196,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             '@vite/client',
             '@vite/env',
             QWIK_CORE_ID,
+            QWIK_JSX_RUNTIME_ID,
             QWIK_BUILD_ID,
             QWIK_CLIENT_MANIFEST_ID,
             ...vendorIds,

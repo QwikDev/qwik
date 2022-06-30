@@ -1,34 +1,28 @@
 {
   "name": "@builder.io/qwik",
-  "version": "0.0.33",
+  "version": "0.0.34",
   "description": "An Open-Source sub-framework designed with a focus on server-side-rendering, lazy-loading, and styling/animation.",
   "main": "./dist/core.cjs",
-  "module": "./dist/core.mjs",
   "types": "./dist/core.d.ts",
   "type": "module",
   "sideEffects": false,
   "exports": {
     ".": {
+      "production": "./dist/core.min.mjs",
       "import": "./dist/core.mjs",
       "require": "./dist/core.cjs"
     },
-    "./core": {
-      "import": "./dist/core.mjs",
-      "require": "./dist/core.cjs"
-    },
-    "./core.cjs": "./dist/core.cjs",
-    "./core.mjs": "./dist/core.mjs",
     "./jsx-runtime": {
+      "import": "./dist/jsx-runtime.mjs",
+      "require": "./dist/jsx-runtime.cjs"
+    },
+    "./jsx-dev-runtime": {
       "import": "./dist/jsx-runtime.mjs",
       "require": "./dist/jsx-runtime.cjs"
     },
     "./build": {
       "import": "./dist/build/index.mjs",
       "require": "./dist/build/index.cjs"
-    },
-    "./jsx-dev-runtime": {
-      "import": "./dist/jsx-runtime.mjs",
-      "require": "./dist/jsx-runtime.cjs"
     },
     "./loader": {
       "import": "./dist/loader/index.mjs",

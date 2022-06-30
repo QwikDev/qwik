@@ -83,9 +83,10 @@ async function submoduleCoreProd(config: BuildConfig) {
         // developer production builds could use core.min.js directly, or setup
         // their own build tools to define the globa `qwikDev` to false
         'globalThis.qDev': false,
+        'globalThis.describe': false,
         'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
       },
-      ecma: 2019,
+      ecma: 2020,
       passes: 3,
     },
     mangle: {
@@ -98,7 +99,7 @@ async function submoduleCoreProd(config: BuildConfig) {
       comments: /__PURE__/,
       preserve_annotations: true,
       preamble: getBanner('@builder.io/qwik'),
-      ecma: 2019,
+      ecma: 2020,
     },
   });
 

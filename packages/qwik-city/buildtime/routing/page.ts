@@ -20,7 +20,6 @@ export function createPageRoute(
     paramTypes: undefined as any,
     source,
     layouts: [],
-    breadcrumbs: [],
   };
   return pageRoute;
 }
@@ -28,6 +27,7 @@ export function createPageRoute(
 export function updatePageRoute(routesDir: string, pageRoute: PageRoute, layouts: BuildLayout[]) {
   const segments = pageRoute.pathname.split('/');
   const fileName = segments[segments.length - 1];
+  const pageLayouts: BuildLayout[] = [];
 
   let layoutName = '';
 
@@ -46,7 +46,7 @@ export function updatePageRoute(routesDir: string, pageRoute: PageRoute, layouts
   for (let i = 0; i < 20; i++) {
     const layout = layouts.find((l) => l.dir === routeDir && l.name === layoutName);
     if (layout) {
-      pageRoute.layouts.push(layout);
+      pageLayouts.push(layout);
       if (layout.type === 'top') {
         break;
       }
@@ -59,7 +59,7 @@ export function updatePageRoute(routesDir: string, pageRoute: PageRoute, layouts
     routeDir = normalizePath(dirname(routeDir));
   }
 
-  pageRoute.layouts.reverse();
+  pageRoute.layouts = pageLayouts.reverse();
 
   const route = parsePathname(pageRoute.pathname);
   pageRoute.pattern = route.pattern;

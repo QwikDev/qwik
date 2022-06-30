@@ -1,5 +1,3 @@
-import type { ContentBreadcrumb } from '../runtime/src/library/types';
-
 export interface BuildContext {
   rootDir: string;
   opts: NormalizedPluginOptions;
@@ -43,7 +41,6 @@ export interface PageRoute extends BaseRoute {
   type: 'page';
   source: 'markdown' | 'module';
   layouts: BuildLayout[];
-  breadcrumbs: ContentBreadcrumb[];
 }
 
 export interface EndpointRoute extends BaseRoute {
@@ -56,10 +53,6 @@ export interface BuildLayout {
   id: string;
   type: 'top' | 'nested';
   name: string;
-}
-
-export interface ParamMatcher {
-  (param: string): boolean;
 }
 
 export interface ParsedMenu extends ParsedMenuItem {

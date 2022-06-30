@@ -6,31 +6,23 @@ import { valueToEstree } from 'estree-util-value-to-estree';
 import { headingRank } from 'hast-util-heading-rank';
 import { toString } from 'hast-util-to-string';
 import { visit } from 'unist-util-visit';
-import type {
-  ContentBreadcrumb,
-  ContentHeading,
-  DocumentHead,
-  DocumentMeta,
-} from '../../runtime/src';
+import type { ContentHeading, DocumentHead, DocumentMeta } from '../../runtime/src';
 import { dirname, resolve } from 'path';
 import type { BuildContext } from '../types';
 import { getPathnameFromFilePath } from '../utils/pathname';
 import { existsSync } from 'fs';
 import { normalizePath } from '../utils/fs';
-
-const slugs = new Slugger();
+import { createBreadcrumbs } from './breadcrumbs';
 
 export function rehypePage(ctx: BuildContext): Transformer {
   return (ast, vfile) => {
     const mdast = ast as Root;
     const sourcePath = normalizePath(vfile.path);
-    const pathname = getPathnameFromFilePath(ctx.opts, sourcePath);
-    const menuPathname = getMenuPathname(ctx, pathname);
 
     updateContentLinks(mdast, sourcePath);
     exportContentHead(ctx, mdast, sourcePath);
     exportContentHeadings(mdast);
-    exportBreadcrumbs(ctx, mdast, pathname, menuPathname);
+    exportBreadcrumbs(ctx, mdast, sourcePath);
   };
 }
 
@@ -94,7 +86,7 @@ function exportContentHead(ctx: BuildContext, mdast: Root, sourcePath: string) {
 }
 
 function exportContentHeadings(mdast: Root) {
-  slugs.reset();
+  const slugs = new Slugger();
   const headings: ContentHeading[] = [];
 
   visit(mdast, 'element', (node: any) => {
@@ -117,51 +109,15 @@ function exportContentHeadings(mdast: Root) {
   }
 }
 
-function exportBreadcrumbs(
-  ctx: BuildContext,
-  mdast: Root,
-  pathname: string,
-  menuPathname: string | undefined
-) {
-  const menu = ctx.menus.find((m) => m.pathname === menuPathname);
-  if (menu && menu.items) {
-    for (const indexA of menu.items) {
-      const breadcrumbA: ContentBreadcrumb = {
-        text: indexA.text,
-        href: indexA.href,
-      };
-      if (indexA.href === pathname) {
-        createExport(mdast, 'breadcrumbs', [breadcrumbA]);
-        return;
-      }
-      if (indexA.items) {
-        for (const indexB of indexA.items) {
-          const breadcrumbB: ContentBreadcrumb = {
-            text: indexB.text,
-            href: indexB.href,
-          };
-          if (indexB.href === pathname) {
-            createExport(mdast, 'breadcrumbs', [breadcrumbA, breadcrumbB]);
-            return;
-          }
-          if (indexB.items) {
-            for (const indexC of indexB.items) {
-              const breadcrumbC: ContentBreadcrumb = {
-                text: indexC.text,
-                href: indexC.href,
-              };
-              if (indexC.href === pathname) {
-                createExport(mdast, 'breadcrumbs', [breadcrumbA, breadcrumbB, breadcrumbC]);
-                return;
-              }
-            }
-          }
-        }
-      }
+function exportBreadcrumbs(ctx: BuildContext, mdast: Root, sourcePath: string) {
+  const pathname = getPathnameFromFilePath(ctx.opts, sourcePath);
+  const menuPathname = getMenuPathname(ctx, pathname);
+  if (menuPathname) {
+    const breadcrumbs = createBreadcrumbs(ctx, pathname, menuPathname);
+    if (breadcrumbs.length > 0) {
+      createExport(mdast, 'breadcrumbs', breadcrumbs);
     }
   }
-
-  createExport(mdast, 'breadcrumbs', []);
 }
 
 function getMenuPathname(ctx: BuildContext, pathname: string) {

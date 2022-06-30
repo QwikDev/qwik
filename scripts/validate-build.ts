@@ -151,7 +151,7 @@ async function validatePackageJson(config: BuildConfig, pkg: PackageJSON, errors
     }
   }
 
-  await Promise.all([validatePath(pkg.main), validatePath(pkg.module), validatePath(pkg.types)]);
+  await Promise.all([validatePath(pkg.main), validatePath(pkg.types)]);
 
   const exportKeys = Object.keys(pkg.exports!);
 

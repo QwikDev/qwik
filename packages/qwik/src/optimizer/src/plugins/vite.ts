@@ -187,7 +187,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
       const vendorIds = vendorRoots.map((v) => v.id);
       const updatedViteConfig: UserConfig = {
-        esbuild: false,
         resolve: {
           dedupe: [...DEDUPE, ...vendorIds],
         },
@@ -238,6 +237,16 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           } as any;
         }
       } else if (opts.target === 'client') {
+        if (buildMode === 'production') {
+          console.log('HEREEE');
+          updatedViteConfig.resolve!.conditions = [
+            'production',
+            'import',
+            'module',
+            'browser',
+            'default',
+          ];
+        }
         // Client Build
         if (isClientDevOnly) {
           updatedViteConfig.build!.rollupOptions!.input = clientDevInput;

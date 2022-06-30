@@ -309,11 +309,11 @@ export interface PackageJSON {
   scripts?: { [scriptName: string]: string };
   license?: string;
   main: string;
-  module: string;
+  module?: string;
   types: string;
   type?: string;
   files?: string[];
-  exports?: { [key: string]: string | { [key: string]: string } };
+  exports?: { [key: string]: any };
   contributors?: { [key: string]: string }[];
   homepage?: string;
   repository?: { [key: string]: string };

@@ -15,7 +15,6 @@ import {
   QwikPluginOptions,
   QwikBuildTarget,
   QWIK_CORE_ID,
-  QWIK_JSX_RUNTIME_ID,
   Q_MANIFEST_FILENAME,
   QWIK_CLIENT_MANIFEST_ID,
   QWIK_BUILD_ID,
@@ -25,9 +24,7 @@ import { createRollupError, normalizeRollupOutputOptions } from './rollup';
 import { QWIK_LOADER_DEFAULT_DEBUG, QWIK_LOADER_DEFAULT_MINIFIED } from '../scripts';
 import { versions } from '../versions';
 
-const OPTIMIZE_DEPS = [QWIK_CORE_ID, QWIK_JSX_RUNTIME_ID];
-
-const DEDUPE = [QWIK_CORE_ID, QWIK_JSX_RUNTIME_ID];
+const DEDUPE = [QWIK_CORE_ID];
 
 /**
  * @alpha
@@ -194,10 +191,10 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           dedupe: [...DEDUPE, ...vendorIds],
         },
         optimizeDeps: {
-          include: OPTIMIZE_DEPS,
           exclude: [
             '@vite/client',
             '@vite/env',
+            QWIK_CORE_ID,
             QWIK_BUILD_ID,
             QWIK_CLIENT_MANIFEST_ID,
             ...vendorIds,
@@ -442,6 +439,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
                 if (hook) {
                   manifest.mapping[hook.name] = url;
                 }
+
                 const { pathId, query } = parseId(v.url);
                 if (query === '' && pathId.endsWith('.css')) {
                   manifest.injections!.push({

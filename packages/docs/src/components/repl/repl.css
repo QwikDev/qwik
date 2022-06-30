@@ -359,6 +359,7 @@
   flex: 1;
   padding: 5px;
   line-break: anywhere;
+  white-space: pre-wrap;
 }
 
 .line.paused,
@@ -385,4 +386,10 @@
   display: inline;
   height: max-content;
   margin: 0 5px;
+}
+
+.detail-logs {
+  height: 100%;
+  overflow: auto;
+  padding-bottom: 100px;
 }

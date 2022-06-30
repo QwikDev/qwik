@@ -175,9 +175,3 @@
   font-size: 14px;
   margin-top: 40px;
 }
-
-.examples .detail-logs {
-  height: 100%;
-  overflow: auto;
-  padding-bottom: 100px;
-}

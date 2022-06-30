@@ -178,7 +178,6 @@ export function normalizeRollupOutputOptions(
   rollupOutputOpts: OutputOptions
 ) {
   const outputOpts: OutputOptions = {
-    minifyInternalExports: false,
     ...rollupOutputOpts,
   };
 

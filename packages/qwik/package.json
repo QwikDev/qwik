@@ -18,11 +18,6 @@
       "require": "./dist/core.cjs"
     },
     "./jsx-dev-runtime": {
-      "production": "./dist/core.min.mjs",
-      "import": "./dist/core.mjs",
-      "require": "./dist/core.cjs"
-    },
-    "./jsx-dev-runtime": {
       "import": "./dist/jsx-runtime.mjs",
       "require": "./dist/jsx-runtime.cjs"
     },

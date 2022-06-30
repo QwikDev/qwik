@@ -2,7 +2,7 @@ import * as assert from 'uvu/assert';
 import { testAppSuite } from './utils/test-suite';
 import { basename, dirname } from 'path';
 
-const test = testAppSuite();
+const test = testAppSuite('Build Layout');
 
 test('total layouts', ({ layouts }) => {
   assert.is(layouts.length, 6, JSON.stringify(layouts, null, 2));

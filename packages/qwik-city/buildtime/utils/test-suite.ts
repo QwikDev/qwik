@@ -35,8 +35,8 @@ export function suite(title?: string) {
   return s;
 }
 
-export function testAppSuite() {
-  const s = uvuSuite<TestAppBuildContext>('Build');
+export function testAppSuite(title: string) {
+  const s = uvuSuite<TestAppBuildContext>(title);
   let buildCtx: any = null;
 
   s.before.each(async (testCtx) => {

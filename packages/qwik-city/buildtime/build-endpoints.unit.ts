@@ -1,7 +1,7 @@
 import * as assert from 'uvu/assert';
 import { testAppSuite } from './utils/test-suite';
 
-const test = testAppSuite();
+const test = testAppSuite('Build Endpoints');
 
 test('endpoint', (ctx) => {
   const r = ctx.getEndpoint('/api/data.json');

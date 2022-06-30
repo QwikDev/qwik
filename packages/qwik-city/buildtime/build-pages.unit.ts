@@ -2,7 +2,7 @@ import { basename, dirname } from 'path';
 import * as assert from 'uvu/assert';
 import { testAppSuite } from './utils/test-suite';
 
-const test = testAppSuite();
+const test = testAppSuite('Build Pages');
 
 test('pathless directory', ({ getPage }) => {
   const r = getPage('/sign-in');
@@ -75,11 +75,11 @@ test('params route, index file w/out named layout, in directory w/ layout direct
 });
 
 test('markdown index file w/out named layout, in directory w/ layout directory', ({ getPage }) => {
-  const r = getPage('/docs/introduction');
-  assert.equal(r.id, 'DocsIntroductionIndex');
+  const r = getPage('/docs/overview');
+  assert.equal(r.id, 'DocsOverviewIndex');
   assert.equal(r.type, 'page');
   assert.equal(r.source, 'markdown');
-  assert.equal(r.pattern, /^\/docs\/introduction\/?$/);
+  assert.equal(r.pattern, /^\/docs\/overview\/?$/);
   assert.equal(r.paramNames.length, 0);
   assert.equal(r.layouts.length, 2);
   assert.equal(r.layouts[0].id, 'Layout');

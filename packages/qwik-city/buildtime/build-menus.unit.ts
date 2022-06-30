@@ -1,7 +1,7 @@
 import * as assert from 'uvu/assert';
 import { testAppSuite } from './utils/test-suite';
 
-const test = testAppSuite();
+const test = testAppSuite('Build Menu');
 
 test('menus found', ({ menus }) => {
   assert.is(menus.length, 1);

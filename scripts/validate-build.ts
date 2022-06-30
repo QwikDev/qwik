@@ -151,21 +151,22 @@ async function validatePackageJson(config: BuildConfig, pkg: PackageJSON, errors
     }
   }
 
-  await Promise.all([validatePath(pkg.main), validatePath(pkg.module), validatePath(pkg.types)]);
+  await Promise.all([validatePath(pkg.main), validatePath(pkg.types)]);
 
-  const exportKeys = Object.keys(pkg.exports!);
+  async function validateExports(exports: Record<string, any>) {
+    const exportKeys = Object.keys(exports);
 
-  await Promise.all(
-    exportKeys.map(async (exportKey) => {
-      const val = pkg.exports![exportKey];
-      if (typeof val === 'string') {
-        await validatePath(val);
-      } else {
-        const exportKeys = Object.keys(val);
-        for (const key of exportKeys) {
-          await validatePath(val[key]);
+    await Promise.all(
+      exportKeys.map(async (exportKey) => {
+        const val = exports[exportKey];
+        if (typeof val === 'string') {
+          await validatePath(val);
+        } else {
+          await validateExports(val);
         }
-      }
-    })
-  );
+      })
+    );
+  }
+
+  validateExports(pkg.exports!);
 }

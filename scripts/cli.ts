@@ -1,4 +1,4 @@
-import { BuildConfig, copyFile, emptyDir, importPath, mkdir, stat } from './util';
+import { BuildConfig, copyFile, emptyDir, importPath, mkdir, nodeTarget, stat } from './util';
 import { build } from 'esbuild';
 import { basename, join } from 'path';
 import { getBanner, readdir, watcher, run } from './util';
@@ -38,7 +38,7 @@ async function bundleCli(config: BuildConfig, srcCliDir: string, distCliDir: str
     outfile: join(distCliDir, PACKAGE),
     bundle: true,
     sourcemap: false,
-    target: 'node10',
+    target: nodeTarget,
     platform: 'node',
     minify: !config.dev,
     plugins: [importPath(/api$/, './index.js')],
@@ -53,7 +53,7 @@ async function bundleCli(config: BuildConfig, srcCliDir: string, distCliDir: str
     outfile: join(distCliDir, 'index.js'),
     bundle: true,
     sourcemap: false,
-    target: 'node10',
+    target: 'node14',
     platform: 'node',
     minify: !config.dev,
     banner: {

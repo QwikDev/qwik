@@ -23,7 +23,6 @@ export interface QwikPackages {
 export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
   const id = `${Math.round(Math.random() * 899) + 100}`;
   const results = new Map<string, TransformOutput>();
-  const injections: GlobalInjections[] = [];
   const transformedOutputs = new Map<string, [TransformModule, string]>();
 
   let internalOptimizer: Optimizer | null = null;
@@ -506,9 +505,10 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
   const createOutputAnalyzer = () => {
     const outputBundles: GeneratedOutputBundle[] = [];
+    const injections: GlobalInjections[] = [];
 
     const addBundle = (b: GeneratedOutputBundle) => outputBundles.push(b);
-
+    const addInjection = (b: GlobalInjections) => injections.push(b);
     const generateManifest = async () => {
       const optimizer = getOptimizer();
       const path = optimizer.sys.path;
@@ -521,7 +521,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       return generateManifestFromBundles(path, hooks, injections, outputBundles, opts);
     };
 
-    return { addBundle, generateManifest };
+    return { addBundle, addInjection, generateManifest };
   };
 
   const getOptions = () => opts;

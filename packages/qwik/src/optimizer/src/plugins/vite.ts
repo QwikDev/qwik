@@ -1,6 +1,7 @@
 import type { Plugin as VitePlugin, UserConfig, ViteDevServer } from 'vite';
 import type {
   EntryStrategy,
+  GlobalInjections,
   OptimizerOptions,
   OptimizerSystem,
   QwikManifest,
@@ -15,17 +16,15 @@ import {
   QwikPluginOptions,
   QwikBuildTarget,
   QWIK_CORE_ID,
-  QWIK_JSX_RUNTIME_ID,
   Q_MANIFEST_FILENAME,
   QWIK_CLIENT_MANIFEST_ID,
   QWIK_BUILD_ID,
   QwikPackages,
+  QWIK_JSX_RUNTIME_ID,
 } from './plugin';
 import { createRollupError, normalizeRollupOutputOptions } from './rollup';
 import { QWIK_LOADER_DEFAULT_DEBUG, QWIK_LOADER_DEFAULT_MINIFIED } from '../scripts';
 import { versions } from '../versions';
-
-const OPTIMIZE_DEPS = [QWIK_CORE_ID, QWIK_JSX_RUNTIME_ID];
 
 const DEDUPE = [QWIK_CORE_ID, QWIK_JSX_RUNTIME_ID];
 
@@ -37,6 +36,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
   let clientDevInput: undefined | string = undefined;
   let tmpClientManifestPath: undefined | string = undefined;
   let viteCommand: 'build' | 'serve' = 'serve';
+  const injections: GlobalInjections[] = [];
   const qwikPlugin = createPlugin(qwikViteOpts.optimizerOptions);
 
   const vitePlugin: VitePlugin = {
@@ -189,15 +189,15 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
       const vendorIds = vendorRoots.map((v) => v.id);
       const updatedViteConfig: UserConfig = {
-        esbuild: false,
         resolve: {
           dedupe: [...DEDUPE, ...vendorIds],
         },
         optimizeDeps: {
-          include: OPTIMIZE_DEPS,
           exclude: [
             '@vite/client',
             '@vite/env',
+            QWIK_CORE_ID,
+            QWIK_JSX_RUNTIME_ID,
             QWIK_BUILD_ID,
             QWIK_CLIENT_MANIFEST_ID,
             ...vendorIds,
@@ -239,6 +239,15 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           } as any;
         }
       } else if (opts.target === 'client') {
+        if (buildMode === 'production') {
+          updatedViteConfig.resolve!.conditions = [
+            'production',
+            'import',
+            'module',
+            'browser',
+            'default',
+          ];
+        }
         // Client Build
         if (isClientDevOnly) {
           updatedViteConfig.build!.rollupOptions!.input = clientDevInput;
@@ -327,7 +336,22 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
               dynamicImports: b.dynamicImports,
               size: b.code.length,
             });
+          } else {
+            if (fileName.endsWith('.css')) {
+              injections.push({
+                tag: 'link',
+                location: 'head',
+                attributes: {
+                  rel: 'stylesheet',
+                  href: `/${fileName}`,
+                },
+              });
+            }
           }
+        }
+
+        for (const i of injections) {
+          outputAnalyzer.addInjection(i);
         }
 
         const optimizer = qwikPlugin.getOptimizer();
@@ -442,6 +466,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
                 if (hook) {
                   manifest.mapping[hook.name] = url;
                 }
+
                 const { pathId, query } = parseId(v.url);
                 if (query === '' && pathId.endsWith('.css')) {
                   manifest.injections!.push({

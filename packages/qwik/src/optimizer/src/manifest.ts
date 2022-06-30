@@ -211,10 +211,6 @@ function updateSortAndPriorities(manifest: QwikManifest) {
   manifest.mapping = prioritorizedMapping;
   manifest.bundles = sortedBundles;
 
-  if (Array.isArray(manifest.injections)) {
-    manifest.injections.sort();
-  }
-
   return manifest;
 }
 

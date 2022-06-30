@@ -1,4 +1,4 @@
-import { BuildConfig, copyFile, watcher, run } from './util';
+import { BuildConfig, copyFile, watcher, run, nodeTarget } from './util';
 import { join } from 'path';
 import { build } from 'esbuild';
 import { readPackageJson, writePackageJson } from './package-json';
@@ -14,7 +14,7 @@ export async function buildEslint(config: BuildConfig) {
     outfile: join(eslintOutput, 'index.js'),
     bundle: true,
     sourcemap: false,
-    target: 'node10',
+    target: nodeTarget,
     platform: 'node',
     minify: !config.dev,
     watch: watcher(config),

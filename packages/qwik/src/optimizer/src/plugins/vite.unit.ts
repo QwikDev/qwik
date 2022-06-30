@@ -51,7 +51,7 @@ describe('vite  plugin', () => {
       expect(c.optimizeDeps?.include).toEqual(includeDeps);
       expect(c.optimizeDeps?.exclude).toEqual(excludeDeps);
 
-      expect(c.esbuild).toEqual(false);
+      expect(c.esbuild).toEqual(undefined);
       expect((c as any).ssr).toBeUndefined();
     });
 
@@ -80,7 +80,7 @@ describe('vite  plugin', () => {
       expect(build.ssr).toBe(undefined);
       expect(c.optimizeDeps?.include).toEqual(includeDeps);
       expect(c.optimizeDeps?.exclude).toEqual(excludeDeps);
-      expect(c.esbuild).toEqual(false);
+      expect(c.esbuild).toEqual(undefined);
       expect((c as any).ssr).toBeUndefined();
     });
     it('command: build, mode: development', async () => {
@@ -108,7 +108,7 @@ describe('vite  plugin', () => {
       expect(build.ssr).toBe(undefined);
       expect(c.optimizeDeps?.include).toEqual(includeDeps);
       expect(c.optimizeDeps?.exclude).toEqual(excludeDeps);
-      expect(c.esbuild).toEqual(false);
+      expect(c.esbuild).toEqual(undefined);
       expect((c as any).ssr).toBeUndefined();
     });
 
@@ -138,7 +138,7 @@ describe('vite  plugin', () => {
       expect(build.ssr).toBe(undefined);
       expect(c.optimizeDeps?.include).toEqual(includeDeps);
       expect(c.optimizeDeps?.exclude).toEqual(excludeDeps);
-      expect(c.esbuild).toEqual(false);
+      expect(c.esbuild).toEqual(undefined);
       expect((c as any).ssr).toBeUndefined();
     });
 
@@ -188,7 +188,7 @@ describe('vite  plugin', () => {
       expect(build.ssr).toBe(true);
       expect(c.optimizeDeps?.include).toEqual(includeDeps);
       expect(c.optimizeDeps?.exclude).toEqual(excludeDeps);
-      expect(c.esbuild).toEqual(false);
+      expect(c.esbuild).toEqual(undefined);
       expect(c.publicDir).toBe(false);
     });
 

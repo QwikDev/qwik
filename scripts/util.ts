@@ -161,9 +161,9 @@ export const getBanner = (moduleName: string) => {
  * The JavaScript target we're going for. Reusing a constant just to make sure
  * all the builds are using the same target.
  */
-export const target = 'es2018';
+export const target = 'es2020';
 
-export const nodeTarget = 'node10';
+export const nodeTarget = 'node14';
 
 /**
  * Helper just to know which NodeJS modules that should stay external.

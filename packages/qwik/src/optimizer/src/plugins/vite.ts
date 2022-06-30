@@ -1,6 +1,7 @@
 import type { Plugin as VitePlugin, UserConfig, ViteDevServer } from 'vite';
 import type {
   EntryStrategy,
+  GlobalInjections,
   OptimizerOptions,
   OptimizerSystem,
   QwikManifest,
@@ -35,6 +36,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
   let clientDevInput: undefined | string = undefined;
   let tmpClientManifestPath: undefined | string = undefined;
   let viteCommand: 'build' | 'serve' = 'serve';
+  const injections: GlobalInjections[] = [];
   const qwikPlugin = createPlugin(qwikViteOpts.optimizerOptions);
 
   const vitePlugin: VitePlugin = {
@@ -238,7 +240,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         }
       } else if (opts.target === 'client') {
         if (buildMode === 'production') {
-          console.log('HEREEE');
           updatedViteConfig.resolve!.conditions = [
             'production',
             'import',
@@ -335,7 +336,22 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
               dynamicImports: b.dynamicImports,
               size: b.code.length,
             });
+          } else {
+            if (fileName.endsWith('.css')) {
+              injections.push({
+                tag: 'link',
+                location: 'head',
+                attributes: {
+                  rel: 'stylesheet',
+                  href: `/${fileName}`,
+                },
+              });
+            }
           }
+        }
+
+        for (const i of injections) {
+          outputAnalyzer.addInjection(i);
         }
 
         const optimizer = qwikPlugin.getOptimizer();

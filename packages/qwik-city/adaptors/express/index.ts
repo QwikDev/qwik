@@ -3,7 +3,6 @@ import { requestHandler } from '../request-handler';
 import { patchGlobalFetch } from '../request-handler/node-fetch';
 import express from 'express';
 import { join } from 'path';
-import { cwd } from 'process';
 import type { QwikCityPlan } from '@builder.io/qwik-city';
 import type { Render } from '@builder.io/qwik/server';
 

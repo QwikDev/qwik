@@ -55,7 +55,7 @@ export const Html = component$<HtmlProps>(
           search: docLocation.search,
           searchParams: searchParamsToObj(docLocation.searchParams),
         },
-        menu: undefined,
+        menus: cityPlan.menus,
         modules: noSerialize<any>([]),
       };
       return initCtx;
@@ -83,8 +83,6 @@ export const Html = component$<HtmlProps>(
               noSerialize<any>(updatedContent.pageModule.breadcrumbs);
             ctx.head = noSerialize<any>(resolvedHead);
             ctx.modules = noSerialize<any>(updatedContent.modules);
-            ctx.menu =
-              updatedContent.pageModule.menu && noSerialize<any>(updatedContent.pageModule.menu);
           }
         })
         .catch((e) => console.error(e))

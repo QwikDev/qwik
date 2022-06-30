@@ -1,5 +1,5 @@
 import { createMdxTransformer, MdxTransform } from '../markdown/mdx';
-import { join, resolve } from 'path';
+import { basename, join, resolve } from 'path';
 import type { Plugin, UserConfig } from 'vite';
 import { generateQwikCityPlan } from '../runtime-generation/generate-runtime';
 import type { BuildContext } from '../types';
@@ -10,6 +10,7 @@ import type { QwikCityVitePluginOptions } from './types';
 import { endpointHandler } from '../../adaptors/request-handler/endpoint-handler';
 import { getRouteParams } from '../../runtime/src/library/routing';
 import { build } from '../build';
+import { isMenuFileName } from '../markdown/menu';
 
 /**
  * @alpha
@@ -48,9 +49,14 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
     configureServer(server) {
       if (ctx) {
         const routesDirWatcher = server.watcher.add(ctx.opts.routesDir);
-        routesDirWatcher.on('all', (ev) => {
+        routesDirWatcher.on('all', (ev, path) => {
           if (ev === 'add' || ev === 'addDir' || ev === 'unlink' || ev === 'unlinkDir') {
             server.restart();
+          } else if (ev === 'change') {
+            const fileName = basename(path);
+            if (isMenuFileName(fileName)) {
+              server.restart();
+            }
           }
         });
       }

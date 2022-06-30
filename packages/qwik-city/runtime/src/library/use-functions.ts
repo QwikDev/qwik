@@ -31,23 +31,24 @@ export const useDocumentLocation = () => {
  * @public
  */
 export const useContentMenu = (): ContentMenu | undefined => {
-  const loc = useLocation();
+  const ctx = useContext(QwikCityContext);
+  const loc = ctx.location;
+  const menus = ctx.menus;
+  const parts = loc.pathname.split('/');
+  let cursorPathname = loc.pathname;
 
-  let pathname = loc.pathname;
-
-  for (let i = 0; i < 9; i++) {
-    // if (menus[pathname]) {
-    //   return menus[pathname];
-    // }
-    if (pathname === '/') {
-      break;
-    }
-    const parts = pathname.split('/');
-    parts.pop();
-    pathname = parts.join('/');
-    if (!pathname.startsWith('/')) {
-      pathname = '/' + pathname;
+  if (menus) {
+    for (let i = 0; i < 9; i++) {
+      if (menus[cursorPathname]) {
+        return menus[cursorPathname];
+      }
+      if (cursorPathname === '/') {
+        break;
+      }
+      parts.pop();
+      cursorPathname = parts.join('/');
     }
   }
+
   return undefined;
 };

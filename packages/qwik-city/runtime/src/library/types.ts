@@ -6,7 +6,6 @@ export interface PageModule {
   readonly breadcrumbs?: ContentBreadcrumb[];
   readonly head?: ContentModuleHead;
   readonly headings?: ContentHeading[];
-  readonly menu?: { path: string };
 }
 
 export interface LayoutModule {
@@ -206,7 +205,7 @@ export interface QwikCityState {
   breadcrumbs: ContentBreadcrumb[] | undefined;
   head: DocumentHead;
   headings: ContentHeading[] | undefined;
-  menu: { path: string } | undefined;
+  menus: { [pathName: string]: ContentMenu } | undefined;
   modules: ContentModule[];
   location: RouteLocation;
 }

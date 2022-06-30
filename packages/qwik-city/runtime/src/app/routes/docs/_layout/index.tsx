@@ -1,5 +1,6 @@
 import { component$, Host, Slot, useStyles$ } from '@builder.io/qwik';
 import type { HeadComponent } from '~qwik-city-runtime';
+import { Menu } from '../../../components/menu/menu';
 import styles from './docs.css';
 
 export default component$(() => {
@@ -7,22 +8,7 @@ export default component$(() => {
 
   return (
     <Host class="docs">
-      <aside class="docs-menu">
-        <ul>
-          <li>
-            <a href="/docs/introduction">Introduction</a>
-          </li>
-          <li>
-            <a href="/docs/getting-started">Getting Started</a>
-          </li>
-          <li>
-            <a href="/docs/components/basics">Components</a>
-          </li>
-          <li>
-            <a href="/">Home</a>
-          </li>
-        </ul>
-      </aside>
+      <Menu />
       <section class="docs-content">
         <Slot />
       </section>

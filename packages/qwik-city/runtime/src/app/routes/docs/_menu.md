@@ -6,4 +6,4 @@
 
 ## Components
 
-- [Basics](components/basics)
+- [Basics](/docs/components/basics)

@@ -232,11 +232,13 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       if (opts.target === 'ssr') {
         // SSR Build
         updatedViteConfig.build!.ssr = true;
-        updatedViteConfig.publicDir = false;
+
         if (viteCommand === 'serve') {
           (updatedViteConfig as any).ssr = {
             noExternal: vendorIds,
           } as any;
+        } else {
+          updatedViteConfig.publicDir = false;
         }
       } else if (opts.target === 'client') {
         // Client Build

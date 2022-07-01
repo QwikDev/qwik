@@ -1,6 +1,6 @@
 import { component$, Host, useStyles$ } from '@builder.io/qwik';
 import { useLocation } from '@builder.io/qwik-city';
-import styles from './header.css';
+import styles from './header.css?inline';
 
 export default component$(
   (props: { fullWidth?: boolean }) => {

@@ -2,7 +2,7 @@ import { component$, Host, Slot, useStyles$ } from '@builder.io/qwik';
 import type { HeadComponent } from '~qwik-city-runtime';
 import { Breadcrumbs } from '../../../components/breadcrumbs/breadcrumbs';
 import { Menu } from '../../../components/menu/menu';
-import styles from './docs.css';
+import styles from './docs.css?inline';
 
 export default component$(() => {
   useStyles$(styles);

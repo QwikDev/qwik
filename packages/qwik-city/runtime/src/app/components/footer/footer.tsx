@@ -1,5 +1,5 @@
 import { component$, Host, useStyles$ } from '@builder.io/qwik';
-import styles from './footer.css';
+import styles from './footer.css?inline';
 
 export default component$(
   () => {

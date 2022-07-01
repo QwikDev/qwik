@@ -1,6 +1,6 @@
 import { component$, Host, useScopedStyles$ } from '@builder.io/qwik';
 import { useContentBreadcrumbs } from '~qwik-city-runtime';
-import styles from './breadcrumbs.css';
+import styles from './breadcrumbs.css?inline';
 
 export const Breadcrumbs = component$(
   () => {

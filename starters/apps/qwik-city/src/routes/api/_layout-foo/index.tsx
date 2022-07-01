@@ -2,7 +2,7 @@ import { component$, Host, Slot, useScopedStyles$ } from '@builder.io/qwik';
 import type { HeadComponent } from '@builder.io/qwik-city';
 import Footer from '../../../components/footer/footer';
 import Header from '../../../components/header/header';
-import styles from './api.css';
+import styles from './api.css?inline';
 
 export default component$(() => {
   useScopedStyles$(styles);

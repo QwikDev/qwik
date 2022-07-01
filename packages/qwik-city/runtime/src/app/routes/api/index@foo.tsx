@@ -6,7 +6,7 @@ export default component$(() => {
   useClientEffect$(async () => {
     const url = `/api/builder.io/oss.json`;
     const rsp = await fetch(url);
-    const data = await rsp.json();
+    const data: any = await rsp.json();
 
     store.timestamp = data.timestamp;
     store.os = data.os;

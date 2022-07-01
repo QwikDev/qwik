@@ -6,7 +6,7 @@ import { join } from 'path';
 import type { QwikCityPlan } from '@builder.io/qwik-city';
 import type { Render } from '@builder.io/qwik/server';
 
-// @builder.io/qwik-city/adaptors/express
+// @builder.io/qwik-city/middleware/express
 
 /**
  * @public

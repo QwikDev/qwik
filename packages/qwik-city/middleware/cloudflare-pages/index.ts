@@ -3,14 +3,21 @@ import { requestHandler } from '../request-handler';
 import type { QwikCityPlan } from '@builder.io/qwik-city';
 import type { Render } from '@builder.io/qwik/server';
 
-// @builder.io/qwik-city/adaptors/cloudflare-pages
+// @builder.io/qwik-city/middleware/cloudflare-pages
 
 /**
  * @public
  */
-export function createServer(render: Render, opts: QwikCityPlanCloudflarePages) {
-  async function onRequest({ request, next }: EventPluginContext) {
+export function qwikCity(render: Render, opts: QwikCityPlanCloudflarePages) {
+  async function onRequest({ request, next, waitUntil }: EventPluginContext) {
     try {
+      // early return from cache
+      const cache = await caches.open('custom:qwikcity');
+      const cachedResponse = await cache.match(request);
+      if (cachedResponse) {
+        return cachedResponse;
+      }
+
       const requestOpts: QwikCityRequestOptions = {
         ...opts,
         request,
@@ -18,6 +25,12 @@ export function createServer(render: Render, opts: QwikCityPlanCloudflarePages) 
 
       const response = await requestHandler(render, requestOpts);
       if (response) {
+        if (response.ok) {
+          const cacheControl = response.headers.get('Cache-Control') || '';
+          if (!cacheControl.includes('no-store')) {
+            waitUntil(cache.put(request, response.clone()));
+          }
+        }
         return response;
       } else {
         return next();
@@ -27,9 +40,7 @@ export function createServer(render: Render, opts: QwikCityPlanCloudflarePages) 
     }
   }
 
-  return {
-    onRequest,
-  };
+  return onRequest;
 }
 
 /**

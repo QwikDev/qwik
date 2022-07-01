@@ -21,15 +21,16 @@
       "@builder.io/qwik": ["packages/qwik/src/core/index.ts"],
       "@builder.io/qwik/build": ["packages/qwik/src/build/index.ts"],
       "@builder.io/qwik/jsx-runtime": ["packages/qwik/src/jsx-runtime/index.ts"],
+      "@builder.io/qwik/jsx-dev-runtime": ["packages/qwik/src/jsx-runtime/index.ts"],
       "@builder.io/qwik/optimizer": ["packages/qwik/src/optimizer/src/index.ts"],
       "@builder.io/qwik/server": ["packages/qwik/src/server/index.ts"],
       "@builder.io/qwik/testing": ["packages/qwik/src/testing/index.ts"],
       "@builder.io/qwik-react": ["packages/qwik-react/src/index.ts"],
       "@builder.io/qwik-city": ["packages/qwik-city/runtime/src/index.ts"],
-      "@builder.io/qwik-city/adaptors/cloudflare-pages": [
-        "packages/qwik-city/adaptors/cloudflare-pages"
+      "@builder.io/qwik-city/middleware/cloudflare-pages": [
+        "packages/qwik-city/middleware/cloudflare-pages"
       ],
-      "@builder.io/qwik-city/adaptors/express": ["packages/qwik-city/adaptors/express"],
+      "@builder.io/qwik-city/middleware/express": ["packages/qwik-city/middleware/express"],
       "@builder.io/qwik-city/vite": ["packages/qwik-city/buildtime/vite/index"],
       "@examples-data": ["packages/docs/src/layouts/examples/examples-data.ts"],
       "@playground-data": ["packages/docs/src/layouts/playground/playground-data.ts"],

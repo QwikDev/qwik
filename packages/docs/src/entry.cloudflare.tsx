@@ -1,7 +1,18 @@
+import cityPlan from '@qwik-city-plan';
 import { render } from './entry.ssr';
-import replServerHtml from '@repl-server-html';
+import { qwikCity } from '@builder.io/qwik-city/middleware/cloudflare-pages';
 
-export const onRequest: PagesFunction = async ({ request, next, waitUntil }) => {
+export const onRequest = [
+  async ({ next }) => {
+    // Cloudflare Request Handler
+    return next();
+  },
+
+  // Qwik City Cloudflare Request Middleware
+  qwikCity(render, cityPlan),
+];
+
+export const onRequest2: PagesFunction = async ({ request, next, waitUntil }) => {
   try {
     const url = new URL(request.url);
 

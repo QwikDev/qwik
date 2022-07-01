@@ -47,11 +47,17 @@ export async function requestHandler(
           return redirectResponse;
         }
 
+        // do not using caching during development
+        const useCache = url.hostname !== 'localhost' && request.method === 'GET';
+
         const result = await render({ url: url.href });
 
         return new Response(result.html, {
           headers: {
             'Content-Type': 'text/html; charset=utf-8',
+            'Cache-Control': useCache
+              ? `max-age=120, s-maxage=60, stale-while-revalidate=604800, stale-if-error=604800`
+              : `no-cache, max-age=0, no-store`,
           },
         });
       }

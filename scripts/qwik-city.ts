@@ -32,12 +32,12 @@ export async function buildQwikCity(config: BuildConfig) {
         import: './index.qwik.mjs',
         require: './index.qwik.cjs',
       },
-      './adaptors/cloudflare-pages': {
-        import: './adaptors/cloudflare-pages/index.mjs',
+      './middleware/cloudflare-pages': {
+        import: './middleware/cloudflare-pages/index.mjs',
       },
-      './adaptors/express': {
-        import: './adaptors/express/index.mjs',
-        require: './adaptors/express/index.cjs',
+      './middleware/express': {
+        import: './middleware/express/index.mjs',
+        require: './middleware/express/index.cjs',
       },
       './vite': {
         import: './vite/index.mjs',
@@ -48,7 +48,7 @@ export async function buildQwikCity(config: BuildConfig) {
     publishConfig: {
       access: 'public',
     },
-    files: ['index.d.ts', 'index.qwik.mjs', 'index.qwik.cjs', 'modules.d.ts', 'vite', 'adaptors'],
+    files: ['index.d.ts', 'index.qwik.mjs', 'index.qwik.cjs', 'modules.d.ts', 'middleware', 'vite'],
     devDependencies: undefined,
     scripts: undefined,
   };
@@ -94,11 +94,11 @@ async function buildVite(config: BuildConfig, input: string, output: string) {
 }
 
 async function buildCloudflarePages(config: BuildConfig, input: string, output: string) {
-  const entryPoints = [join(input, 'adaptors', 'cloudflare-pages', 'index.ts')];
+  const entryPoints = [join(input, 'middleware', 'cloudflare-pages', 'index.ts')];
 
   await build({
     entryPoints,
-    outfile: join(output, 'adaptors', 'cloudflare-pages', 'index.mjs'),
+    outfile: join(output, 'middleware', 'cloudflare-pages', 'index.mjs'),
     bundle: true,
     platform: 'node',
     format: 'esm',
@@ -107,13 +107,13 @@ async function buildCloudflarePages(config: BuildConfig, input: string, output: 
 }
 
 async function buildExpress(config: BuildConfig, input: string, output: string) {
-  const entryPoints = [join(input, 'adaptors', 'express', 'index.ts')];
+  const entryPoints = [join(input, 'middleware', 'express', 'index.ts')];
 
   const external = ['express', 'path'];
 
   await build({
     entryPoints,
-    outfile: join(output, 'adaptors', 'express', 'index.mjs'),
+    outfile: join(output, 'middleware', 'express', 'index.mjs'),
     bundle: true,
     platform: 'node',
     format: 'esm',
@@ -123,7 +123,7 @@ async function buildExpress(config: BuildConfig, input: string, output: string) 
 
   await build({
     entryPoints,
-    outfile: join(output, 'adaptors', 'express', 'index.cjs'),
+    outfile: join(output, 'middleware', 'express', 'index.cjs'),
     bundle: true,
     platform: 'node',
     format: 'cjs',

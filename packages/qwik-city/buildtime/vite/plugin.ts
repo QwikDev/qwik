@@ -7,12 +7,12 @@ import { createBuildContext, resetBuildContext } from '../utils/context';
 import { isMarkdownFileName } from '../utils/fs';
 import { validatePlugin } from './validate-plugin';
 import type { QwikCityVitePluginOptions } from './types';
-import { endpointHandler } from '../../adaptors/request-handler/endpoint-handler';
+import { endpointHandler } from '../../middleware/request-handler/endpoint-handler';
 import { getRouteParams } from '../../runtime/src/library/routing';
 import { build } from '../build';
 import { isMenuFileName } from '../markdown/menu';
 import type { RequestEvent } from '../../runtime/src/library/types';
-import { checkRedirect } from '../../adaptors/request-handler/redirect-handler';
+import { checkRedirect } from '../../middleware/request-handler/redirect-handler';
 
 /**
  * @alpha

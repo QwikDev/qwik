@@ -11,12 +11,12 @@
       "import": "./lib/index.qwik.mjs",
       "require": "./lib/index.qwik.cjs"
     },
-    "./adaptors/cloudflare-pages": {
-      "import": "./lib/adaptors/cloudflare-pages/index.mjs"
+    "./middleware/cloudflare-pages": {
+      "import": "./lib/middleware/cloudflare-pages/index.mjs"
     },
-    "./adaptors/express": {
-      "import": "./lib/adaptors/express/index.mjs",
-      "require": "./lib/adaptors/express/index.cjs"
+    "./middleware/express": {
+      "import": "./lib/middleware/express/index.mjs",
+      "require": "./lib/middleware/express/index.cjs"
     },
     "./vite": {
       "import": "./lib/vite/index.mjs",

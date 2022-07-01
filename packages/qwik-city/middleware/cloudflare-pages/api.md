@@ -8,11 +8,6 @@ import type { QwikCityPlan } from '@builder.io/qwik-city';
 import type { Render } from '@builder.io/qwik/server';
 
 // @public (undocumented)
-export function createServer(render: Render, opts: QwikCityPlanCloudflarePages): {
-    onRequest: ({ request, next }: EventPluginContext) => Promise<Response>;
-};
-
-// @public (undocumented)
 export interface EventPluginContext {
     // (undocumented)
     next: (input?: Request | string, init?: RequestInit) => Promise<Response>;
@@ -21,6 +16,9 @@ export interface EventPluginContext {
     // (undocumented)
     waitUntil: (promise: Promise<any>) => void;
 }
+
+// @public (undocumented)
+export function qwikCity(render: Render, opts: QwikCityPlanCloudflarePages): ({ request, next, waitUntil }: EventPluginContext) => Promise<Response>;
 
 // @public (undocumented)
 export interface QwikCityPlanCloudflarePages extends QwikCityPlan {

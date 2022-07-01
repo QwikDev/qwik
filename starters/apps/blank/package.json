@@ -1,0 +1,18 @@
+{
+  "description": "Blank Qwik starter app.",
+  "scripts": {
+    "build.ssr": "vite build --ssr src/entry.express.tsx",
+    "serve": "node server/entry.express.js"
+  },
+  "devDependencies": {
+    "@types/express": "4.17.13",
+    "express": "4.17.3"
+  },
+  "__qwik__": {
+    "priority": 0,
+    "featureOptions": [
+      "prettier",
+      "tailwindcss"
+    ]
+  }
+}

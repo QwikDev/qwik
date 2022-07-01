@@ -18,6 +18,7 @@ target
 *.node
 todo-express/
 qwik-app/
+packages/qwik-city/runtime/server
 
 # Yarn
 .yarn/*

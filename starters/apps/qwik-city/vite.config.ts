@@ -1,20 +1,16 @@
 import { defineConfig } from 'vite';
 import { qwikVite } from '@builder.io/qwik/optimizer';
 import { qwikCity } from '@builder.io/qwik-city/vite';
-import { resolve } from 'path';
+import tsconfigPaths from 'vite-tsconfig-paths';
 /* VITE_IMPORTS */
 
 export default defineConfig(() => {
   return {
     /* VITE_CONFIG */
     plugins: [
-      qwikCity({
-        pagesDir: resolve('src', 'pages'),
-        layouts: {
-          default: resolve('src', 'layouts', 'default', 'default.tsx'),
-        },
-      }),
+      qwikCity(),
       qwikVite(/* VITE_QWIK */),
+      tsconfigPaths(),
       /* VITE_PLUGINS */
     ],
   };

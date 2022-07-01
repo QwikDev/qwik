@@ -9,7 +9,9 @@ export default defineConfig(() => {
       lib: {
         entry: './src/index.ts',
         formats: ['es', 'cjs'],
-        fileName: (format) => `index.${format}.qwik.js`,
+        fileName: (format) => {
+          return format === 'es' ? `index.qwik.mjs` : `index.qwik.cjs`;
+        },
       },
       rollupOptions: {
         external: [
@@ -17,6 +19,7 @@ export default defineConfig(() => {
           '@emotion/cache',
           '@emotion/core',
           '@emotion/react',
+          '@emotion/react/jsx-runtime',
           '@emotion/server/create-instance',
           'react/jsx-runtime',
           'react',

@@ -503,12 +503,17 @@ impl<'a> QwikTransform<'a> {
     ) -> ast::CallExpr {
         let canonical_filename = get_canonical_filename(&symbol_name);
 
-        let entry = self.options.entry_policy.get_entry_for_sym(
-            &symbol_name,
-            self.options.path_data,
-            &self.stack_ctxt,
-            &hook_data,
-        );
+        let entry = self
+            .options
+            .entry_policy
+            .get_entry_for_sym(
+                &symbol_name,
+                self.options.path_data,
+                &self.stack_ctxt,
+                &hook_data,
+            )
+            .map(|entry| JsWord::from(escape_sym(entry.as_ref())));
+
         let mut filename = format!(
             "./{}",
             entry

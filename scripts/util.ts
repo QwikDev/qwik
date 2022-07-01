@@ -334,3 +334,34 @@ export interface PackageJSON {
   };
   [key: string]: any;
 }
+
+export async function copyDir(config: BuildConfig, srcDir: string, destDir: string) {
+  await mkdir(destDir);
+  const items = await readdir(srcDir);
+  await Promise.all(
+    items.map(async (itemName) => {
+      if (!IGNORE[itemName] && !itemName.includes('.test')) {
+        const srcPath = join(srcDir, itemName);
+        const destPath = join(destDir, itemName);
+        const itemStat = await stat(srcPath);
+        if (itemStat.isDirectory()) {
+          await copyDir(config, srcPath, destPath);
+        } else if (itemStat.isFile()) {
+          await copyFile(srcPath, destPath);
+        }
+      }
+    })
+  );
+}
+
+const IGNORE: { [path: string]: boolean } = {
+  '.rollup.cache': true,
+  build: true,
+  server: true,
+  e2e: true,
+  node_modules: true,
+  'package-lock.json': true,
+  'starter.tsconfig.json': true,
+  'tsconfig.tsbuildinfo': true,
+  'yarn.lock': true,
+};

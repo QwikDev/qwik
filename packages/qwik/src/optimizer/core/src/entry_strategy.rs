@@ -111,7 +111,6 @@ impl EntryPolicy for SmartStrategy {
         if hook_data.ctx_name == *USE_SERVER_MOUNT {
             return Some(ENTRY_SERVER.clone());
         }
-        if context.iter().any(|h| h == "onMount") {}
         Some(context.first().map_or_else(
             || ENTRY_HOOKS.clone(),
             |root| JsWord::from(["entry_", root].concat()),

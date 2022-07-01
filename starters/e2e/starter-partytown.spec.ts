@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 test('rendered', async ({ page }) => {
-  await page.goto('/starter-partytown/');
+  await page.goto('/starter-partytown.test/');
   page.on('pageerror', (err) => expect(err).toEqual(undefined));
 
   const congrats = page.locator('.congrats');
@@ -9,7 +9,7 @@ test('rendered', async ({ page }) => {
 });
 
 test('update text', async ({ page }) => {
-  await page.goto('/starter-partytown/');
+  await page.goto('/starter-partytown.test/');
   page.on('pageerror', (err) => expect(err).toEqual(undefined));
 
   await page.fill('input', 'QWIK');

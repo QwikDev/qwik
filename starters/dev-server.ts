@@ -67,6 +67,9 @@ function devPlugin(): Plugin {
         delete require.cache[qwikDistCorePath];
         return qwikDistCorePath;
       }
+      if (id === '@qwik-client-manifest') {
+        return id;
+      }
       if (id === '@builder.io/qwik/server') {
         delete require.cache[qwikDistServerPath];
         return qwikDistServerPath;
@@ -83,6 +86,12 @@ function devPlugin(): Plugin {
         if (fileId.endsWith('.css')) {
           return resolve(dirname(importee), fileId);
         }
+      }
+      return null;
+    },
+    load(id) {
+      if (id === '@qwik-client-manifest') {
+        return 'export const manifest = undefined;';
       }
       return null;
     },
@@ -168,7 +177,7 @@ function getSrcInput(appSrcDir: string) {
       const s = statSync(itemPath);
       if (s.isDirectory()) {
         readDir(itemPath);
-      } else if (item.endsWith('.tsx')) {
+      } else if (item.endsWith('.tsx') && !item.endsWith('entry.express.tsx')) {
         srcInputs.push(itemPath);
       }
     }

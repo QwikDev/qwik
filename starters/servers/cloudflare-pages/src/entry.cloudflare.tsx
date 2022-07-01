@@ -3,7 +3,7 @@ import { render } from './entry.ssr';
 /**
  * Cloudflare Pages Request Handler
  */
-export const onRequestGet = async ({ request, next, waitUntil }: any) => {
+export const onRequest: PagesFunction = async ({ request, next, waitUntil }) => {
   try {
     const url = new URL(request.url);
 
@@ -13,7 +13,7 @@ export const onRequestGet = async ({ request, next, waitUntil }: any) => {
     }
 
     // Do not using caching during development
-    const useCache = url.hostname !== 'localhost';
+    const useCache = url.hostname !== 'localhost' && request.method === 'GET';
 
     // Early return from cache
     const cache = await caches.open('custom:qwik');

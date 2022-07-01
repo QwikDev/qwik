@@ -5,7 +5,7 @@
     "build.ssr": "vite build --ssr src/entry.netlify.ts"
   },
   "devDependencies": {
-    "@netlify/vite-plugin-netlify-edge": "^1.1.0"
+    "@netlify/vite-plugin-netlify-edge": "1.1.0"
   },
   "__qwik__": {
     "priority": -1,

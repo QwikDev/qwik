@@ -18,4 +18,7 @@ scripts/**/*
 *.tsbuildinfo
 packages/docs/src/pages/examples/**/*
 packages/docs/src/pages/tutorial/**/*
+packages/docs/src/routes/examples/**/*
+packages/docs/src/routes/tutorial/**/*
+starters/apps/base
 vite.config.ts

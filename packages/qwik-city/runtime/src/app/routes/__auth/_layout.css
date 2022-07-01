@@ -1,0 +1,25 @@
+.auth {
+  display: grid;
+  grid-template-columns: 1fr 200px;
+  padding: 0;
+}
+
+.auth-content {
+  padding-right: 20px;
+}
+
+.auth form {
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+.auth label {
+  display: block;
+  margin: 10px;
+}
+
+.auth label span {
+  display: inline-block;
+  min-width: 100px;
+}

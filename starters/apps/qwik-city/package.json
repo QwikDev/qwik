@@ -1,13 +1,15 @@
 {
-  "description": "Starter with built-in routing, powered by Qwik City",
+  "description": "File based routing and MDX support",
   "__qwik__": {
     "priority": 1,
+    "selectServer": true,
     "featureOptions": [
       "prettier",
       "tailwindcss"
     ]
   },
   "devDependencies": {
-    "@builder.io/qwik-city": "0.0.13"
+    "@builder.io/qwik-city": "0.0.16",
+    "vite-tsconfig-paths": "3.5.0"
   }
 }

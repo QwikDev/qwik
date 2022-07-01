@@ -21,7 +21,7 @@ export async function generatePackageJson(config: BuildConfig) {
     exports: {
       '.': {
         import: {
-          production: './core.min.mjs',
+          min: './core.min.mjs',
           default: './core.mjs',
         },
         require: './core.cjs',

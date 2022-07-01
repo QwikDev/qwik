@@ -1,0 +1,14 @@
+.api {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  padding: 0;
+}
+
+.api-menu {
+  background: #eee;
+  padding-left: 20px;
+}
+
+.api-content {
+  padding-left: 20px;
+}

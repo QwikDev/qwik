@@ -43,7 +43,7 @@ async function bundleCli(config: BuildConfig, srcCliDir: string, distCliDir: str
     minify: !config.dev,
     plugins: [importPath(/api$/, './index.js')],
     banner: {
-      js: `#! /usr/bin/env node\n${getBanner(PACKAGE)}`,
+      js: `${getBanner(PACKAGE)}`,
     },
     watch: watcher(config),
   });

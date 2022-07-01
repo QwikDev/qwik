@@ -46,20 +46,30 @@ export function apiExtractor(config: BuildConfig) {
     join(config.distPkgDir, 'build', 'index.d.ts'),
     '../core'
   );
+  generateServerReferenceModules(config);
 
   // qwik-city
   createTypesApi(
     config,
-    join(config.packagesDir, 'qwik-city', 'src', 'runtime'),
-    join(config.packagesDir, 'qwik-city', 'dist', 'index.d.ts')
+    join(config.packagesDir, 'qwik-city', 'runtime', 'src'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'index.d.ts')
   );
   createTypesApi(
     config,
-    join(config.packagesDir, 'qwik-city', 'src', 'vite'),
-    join(config.packagesDir, 'qwik-city', 'dist', 'vite', 'index.d.ts')
+    join(config.packagesDir, 'qwik-city', 'buildtime', 'vite'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'vite', 'index.d.ts')
   );
-
-  generateServerReferenceModules(config);
+  createTypesApi(
+    config,
+    join(config.packagesDir, 'qwik-city', 'middleware', 'cloudflare-pages'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'middleware', 'cloudflare-pages', 'index.d.ts')
+  );
+  createTypesApi(
+    config,
+    join(config.packagesDir, 'qwik-city', 'middleware', 'express'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'middleware', 'express', 'index.d.ts')
+  );
+  generateQwikCityReferenceModules(config);
 
   console.log('🥶', 'submodule d.ts API files generated');
 }
@@ -93,6 +103,27 @@ function createTypesApi(config: BuildConfig, inPath: string, outPath: string, co
   const srcPath = result.extractorConfig.untrimmedFilePath;
   const content = fixDtsContent(config, srcPath, corePath);
   writeFileSync(outPath, content);
+}
+
+function generateQwikCityReferenceModules(config: BuildConfig) {
+  // server-modules.d.ts
+  const referenceDts = `
+declare module '@qwik-city-plan' {
+  const qwikCityPlan: any;
+  export default qwikCityPlan;
+}
+`;
+  const srcModulesPath = join(config.packagesDir, 'qwik-city', 'lib');
+
+  const destModulesPath = join(srcModulesPath, 'modules.d.ts');
+  writeFileSync(destModulesPath, referenceDts);
+
+  // manually prepend the ts reference since api extractor removes it
+  const prependReferenceDts = `/// <reference path="./modules.d.ts" />\n\n`;
+  const distIndexPath = join(srcModulesPath, 'index.d.ts');
+  let serverDts = readFileSync(distIndexPath, 'utf-8');
+  serverDts = prependReferenceDts + serverDts;
+  writeFileSync(distIndexPath, serverDts);
 }
 
 function generateServerReferenceModules(config: BuildConfig) {

@@ -9,7 +9,7 @@ import { logResult } from './log';
 export async function runInteractive() {
   console.clear();
 
-  console.log(`💫 ${color.cyan(`Let's create a Qwik project`)} 💫`);
+  console.log(`💫 ${color.cyan(`Let's create a Qwik app`)} 💫`);
   console.log(``);
 
   const starters = await getStarters();

@@ -46,7 +46,7 @@ function loadStarterData(startersDir: string, dirName: string) {
         description: pkgJson.description ?? '',
         readme,
         dir: dataDir,
-        selectServer: pkgJson?.__qwik__?.selectServer ?? true,
+        selectServer: pkgJson?.__qwik__?.selectServer ?? false,
         priority: pkgJson?.__qwik__?.priority ?? 0,
         featureOptions: pkgJson?.__qwik__?.featureOptions ?? [],
       };

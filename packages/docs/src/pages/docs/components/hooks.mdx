@@ -152,6 +152,43 @@ const Timer = component$(() => {
 });
 ```
 
+
+## useMount$()
+
+Registers a mount hook, that will run on the server, then on the client.
+
+### Example
+
+```tsx
+const Cmp = component$(() => {
+  const store = useStore({
+    users: []
+  });
+  useMount$(async () => {
+    // This code will run on the server, then on the client
+    store.users = await db.requestUsers();
+  });
+  return (
+    <Host>
+      {store.users.map((user => (
+        <User user={user}/>
+      )))}
+    </Host>
+  )
+});
+
+interface User {
+  name: string;
+}
+
+function User(props: {user: User}) {
+  return (
+    <div>Name: {props.user.name}</div>
+  )
+}
+```
+
+
 ## useServerMount$()
 
 Registers a server mount hook that runs only in server when the component is first mounted.

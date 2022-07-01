@@ -1,0 +1,45 @@
+---
+title: Event Listeners
+layout: tutorial
+---
+
+So far we have created static applications that have no interactivity. An important reason why we use frameworks to build applications is for easy declaration of behavior. A key part of application behavior is to listen to user events. 
+
+There are many different events browser support that Qwik can listen on. The general syntax is to place an attribute `on<Eventname>$` on an element to signal to the framework that we wish to listen to events here.
+
+Add a `click` event on the `<button>` by adding the `onClick$` property and bind it to a function that will `alert('Hello World!')`.
+
+## Understanding the Runtime
+
+So far this may look like a normal framework behavior. However, Qwik does things very differently from current frameworks and it is worth understanding what is happening under the hood.
+
+Every time you see `$` you should be thinking lazy-loading happens here.
+
+If you open dev-tools you will see that no JavaScript is loaded until you click the button. This is achieved through several steps described below.
+
+To better understand what is going on we have included simplified HTML of the application here. Click on the HTML tab to see actual HTML produced by the server.
+```HTML
+<html>
+  <body>
+    <button on:click="chunk-abc.js#App_onClick">
+      Click Me
+    </button>
+    <script id="Qwikloader">....</script>
+  </body>
+</html>
+```
+
+
+1. The APIs contain `$` to ensure that your code contains them.
+2. The Optimizer looks for `$` and extracts the function wrapped by `$` into a separate lazy-loadable chunk. (See the documentation to better understand how this is done.)
+3. As part of the SSR the server executes the JSX and notices that there is a click listener. The click listener gets serialized into the `<button>` element as `on:click` attribute. (The unique behavior is that the Qwik knows how to subscribe to events as part of the SSR.)
+4. Qwikloader scripts get inlined into HTML. The Qwikloader script sets up a global listener for all events in the browser. (Qwikloader is about 1kb and executes in about 1ms.)
+5. When a user clicks on the button the Qwikloader intercepts the event and looks for an element with `on:click` attribute.
+6. The `on:click` attribute contains:
+   - URL that contains the code to be downloaded (Qwik also set up prefetching of code so there is no delay between click and execution.)
+   - A symbol that is exported by the downloaded chunk that contains the function to execute.
+7. Once the code is downloaded the function is executed. 
+
+The above behavior is what gives Qwik applications their instant-on property (resumability) without eagerly downloading and executing code and performing hydration which is expensive.
+
+NOTE: To ensure that there is no delay between user action and response, Qwik supports prefetching of code.

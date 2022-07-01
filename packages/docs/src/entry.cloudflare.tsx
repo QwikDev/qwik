@@ -1,18 +1,7 @@
-import cityPlan from '@qwik-city-plan';
 import { render } from './entry.ssr';
-import { qwikCity } from '@builder.io/qwik-city/middleware/cloudflare-pages';
+import replServerHtml from '@repl-server-html';
 
-export const onRequest = [
-  async ({ next }) => {
-    // Cloudflare Request Handler
-    return next();
-  },
-
-  // Qwik City Cloudflare Request Middleware
-  qwikCity(render, cityPlan),
-];
-
-export const onRequest2: PagesFunction = async ({ request, next, waitUntil }) => {
+export const onRequestGet = async ({ request, next, waitUntil }: any) => {
   try {
     const url = new URL(request.url);
 
@@ -51,7 +40,7 @@ export const onRequest2: PagesFunction = async ({ request, next, waitUntil }) =>
     }
 
     // do not using caching during development
-    const useCache = url.hostname !== 'localhost' && request.method === 'GET';
+    const useCache = url.hostname !== 'localhost';
 
     // Early return from cache
     const cache = await caches.open('custom:qwik');

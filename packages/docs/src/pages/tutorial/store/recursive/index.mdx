@@ -1,0 +1,13 @@
+---
+title: Recursive Store
+layout: tutorial
+---
+
+In this example, we have created a store that contains other objects rather than just primitives. (`store.counter` is object literal.)
+
+The example does not work, because by default the `useStore` only sets up watches on top-level properties. To make the example work, we need to either:
+1. wrap the `{count:0}` in another `useStore()` call, which is cumbersome OR
+2. ask the `useStore` to apply reactivity to all properties recursively by passing the additional argument `{recursive:true}`.
+
+
+Notice that it is perfectly OK (and encouraged) to pass the stores to other components. (Stores are not tied to any one component.)

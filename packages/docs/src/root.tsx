@@ -1,15 +1,15 @@
-import cityPlan from '@qwik-city-plan';
-import { Content, Html } from '@builder.io/qwik-city';
+import { App } from './components/app/app';
 import { Head } from './components/head/head';
-import './global.css';
 
-export default function Root() {
+export const Root = () => {
   return (
-    <Html lang="en" cityPlan={cityPlan}>
-      <Head />
+    <html lang="en" className="h-screen">
+      <head>
+        <Head />
+      </head>
       <body>
-        <Content />
+        <App />
       </body>
-    </Html>
+    </html>
   );
-}
+};

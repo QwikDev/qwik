@@ -1,0 +1,14 @@
+---
+title: useCleanup$() Hook
+layout: tutorial
+---
+
+Use `useCleanup$()` hook to execute code after the component is unmounted. A typical use case is to clean up resources such as timers or subscriptions. (Keep in mind that many methods such as `useWatch$()` allow returning a cleanup function, which may be a more idiomatic way to solve the problem.)
+
+## Component Life Cycle and SSR
+
+Qwik is resumable. Resumability means that the application starts up on the server and then the application is transferred to the client. On the client, the application continues execution from where it left off. The implication of this is that a component may be created on the server and destroyed on the client. This means that the component's `useMount$()` method may execute on the server and but its `useCleanu$()` method may execute on the client.
+
+## Example
+
+Modify the `<Greeter>` component to use `useCleanup$()` to alert the user when the component is unmounted.

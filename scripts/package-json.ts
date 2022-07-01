@@ -21,20 +21,18 @@ export async function generatePackageJson(config: BuildConfig) {
     exports: {
       '.': {
         import: {
-          production: './core.min.mjs',
+          min: './core.min.mjs',
           default: './core.mjs',
         },
         require: './core.cjs',
       },
       './jsx-runtime': {
-        production: './core.min.mjs',
-        import: './core.mjs',
-        require: './core.cjs',
+        import: './jsx-runtime.mjs',
+        require: './jsx-runtime.cjs',
       },
       './jsx-dev-runtime': {
-        production: './core.min.mjs',
-        import: './core.mjs',
-        require: './core.cjs',
+        import: './jsx-runtime.mjs',
+        require: './jsx-runtime.cjs',
       },
       './build': {
         import: './build/index.mjs',

@@ -5,7 +5,7 @@ import { qwikCity } from '@builder.io/qwik-city/vite';
 export default defineConfig(() => {
   return {
     ssr: {
-      target: 'webworker',
+      noExternal: false,
     },
     build: {
       outDir: '../lib',

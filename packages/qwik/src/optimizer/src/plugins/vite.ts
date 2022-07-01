@@ -243,13 +243,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         }
       } else if (opts.target === 'client') {
         if (buildMode === 'production') {
-          updatedViteConfig.resolve!.conditions = [
-            'production',
-            'import',
-            'module',
-            'browser',
-            'default',
-          ];
+          updatedViteConfig.resolve!.conditions = ['min'];
         }
         // Client Build
         if (isClientDevOnly) {

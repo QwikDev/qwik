@@ -9,7 +9,7 @@
   "exports": {
     ".": {
       "import": {
-        "production": "./dist/core.min.mjs",
+        "min": "./dist/core.min.mjs",
         "default": "./dist/core.mjs"
       },
       "require": "./dist/core.cjs"

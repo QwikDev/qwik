@@ -1073,8 +1073,10 @@ export default component$(() => {
 
 "#
         .to_string(),
+        transpile: true,
         filename: "src/routes/_repl/[id]/[[...slug]].tsx".into(),
-        entry_strategy: EntryStrategy::Hook,
+        entry_strategy: EntryStrategy::Smart,
+        explicit_extensions: true,
         ..TestInput::default()
     });
 }

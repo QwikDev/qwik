@@ -16,7 +16,14 @@ export default component$(() => {
 });
 
 
-============================= _____slug___component_div_onclick_oesymv0so3o.tsx (ENTRY POINT)==
+============================= src/routes/_repl/[id]/[[...slug]].js ==
+
+import { componentQrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+export default /*#__PURE__*/ componentQrl(qrl(()=>import("../../../../entry______slug__.js")
+, "_____slug___component_vgk6N3QaQd4"));
+
+============================= _____slug___component_div_onclick_oesymv0so3o.js ==
 
 import { sibling } from "./src/routes/_repl/[id]/sibling";
 export const _____slug___component_div_onClick_OesyMV0SO3o = ()=>console.log(mongodb, sibling)
@@ -26,11 +33,11 @@ export const _____slug___component_div_onClick_OesyMV0SO3o = ()=>console.log(mon
 {
   "origin": "src/routes/_repl/[id]/[[...slug]].tsx",
   "name": "_____slug___component_div_onClick_OesyMV0SO3o",
-  "entry": null,
+  "entry": "entry______slug__",
   "displayName": "_____slug___component_div_onClick",
   "hash": "OesyMV0SO3o",
   "canonicalFilename": "_____slug___component_div_onclick_oesymv0so3o",
-  "extension": "tsx",
+  "extension": "js",
   "parent": "_____slug___component_vgk6N3QaQd4",
   "ctxKind": "event",
   "ctxName": "onClick$",
@@ -41,32 +48,26 @@ export const _____slug___component_div_onClick_OesyMV0SO3o = ()=>console.log(mon
   ]
 }
 */
-============================= src/routes/_repl/[id]/[[...slug]].tsx ==
+============================= _____slug___component_vgk6n3qaqd4.js ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
-export default /*#__PURE__*/ componentQrl(qrl(()=>import("../../../../_____slug___component_vgk6n3qaqd4")
-, "_____slug___component_vgk6N3QaQd4"));
-
-============================= _____slug___component_vgk6n3qaqd4.tsx (ENTRY POINT)==
-
+import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 import { qrl } from "@builder.io/qwik";
 export const _____slug___component_vgk6N3QaQd4 = ()=>{
-    return <div onClickQrl={qrl(()=>import("./_____slug___component_div_onclick_oesymv0so3o")
-    , "_____slug___component_div_onClick_OesyMV0SO3o")}>
-
-        </div>;
+    return /*#__PURE__*/ _jsx("div", {
+        onClickQrl: qrl(()=>import("./entry______slug__.js")
+        , "_____slug___component_div_onClick_OesyMV0SO3o")
+    });
 };
 
 /*
 {
   "origin": "src/routes/_repl/[id]/[[...slug]].tsx",
   "name": "_____slug___component_vgk6N3QaQd4",
-  "entry": null,
+  "entry": "entry______slug__",
   "displayName": "_____slug___component",
   "hash": "vgk6N3QaQd4",
   "canonicalFilename": "_____slug___component_vgk6n3qaqd4",
-  "extension": "tsx",
+  "extension": "js",
   "parent": null,
   "ctxKind": "function",
   "ctxName": "component$",
@@ -77,6 +78,11 @@ export const _____slug___component_vgk6N3QaQd4 = ()=>{
   ]
 }
 */
+============================= entry______slug__.js (ENTRY POINT)==
+
+export { _____slug___component_div_onClick_OesyMV0SO3o } from "./_____slug___component_div_onclick_oesymv0so3o.js";
+export { _____slug___component_vgk6N3QaQd4 } from "./_____slug___component_vgk6n3qaqd4.js";
+
 == DIAGNOSTICS ==
 
 []

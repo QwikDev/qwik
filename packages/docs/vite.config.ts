@@ -7,7 +7,7 @@ import { examplesData, playgroundData, tutorialData } from './vite.repl-apps';
 import { replServiceWorker } from './vite.repl-worker';
 
 export default defineConfig(() => {
-  const pagesDir = resolve('src', 'pages');
+  const replDir = resolve('src', 'routes', '__repl');
 
   return {
     ssr: {
@@ -18,13 +18,7 @@ export default defineConfig(() => {
       noExternal: true,
     },
     plugins: [
-      qwikCity({
-        pagesDir,
-        layouts: {
-          tutorial: resolve('src', 'layouts', 'tutorial', 'tutorial.tsx'),
-          default: resolve('src', 'layouts', 'docs', 'docs.tsx'),
-        },
-      }),
+      qwikCity(),
       qwikVite({
         client: {
           input: [
@@ -36,9 +30,9 @@ export default defineConfig(() => {
       partytownVite({
         dest: resolve('dist', '~partytown'),
       }),
-      examplesData(pagesDir),
-      playgroundData(pagesDir),
-      tutorialData(pagesDir),
+      examplesData(replDir),
+      playgroundData(replDir),
+      tutorialData(replDir),
       replServiceWorker(),
     ],
     optimizeDeps: {

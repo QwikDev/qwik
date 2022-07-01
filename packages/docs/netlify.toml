@@ -1,0 +1,27 @@
+[[redirects]]
+  from = "/docs"
+  to = "/docs/overview"
+
+[[redirects]]
+  from = "/guide"
+  to = "/docs/overview"
+
+[[redirects]]
+  from = "/examples"
+  to = "/examples/introduction/hello-world"
+
+[[redirects]]
+  from = "/tutorial"
+  to = "/tutorial/introduction/component"
+
+[[redirects]]
+  from = "/tutorials"
+  to = "/tutorial/introduction/component"
+
+[[redirects]]
+  from = "/repl"
+  to = "/playground"
+
+[[redirects]]
+  from = "/chat"
+  to = "https://discord.gg/bNVSQmPzqy"

@@ -19,26 +19,26 @@
   },
   "devDependencies": {
     "@builder.io/qwik": "0.0.34",
-    "@emotion/react": "^11.9.0",
-    "@emotion/server": "^11.4.0",
-    "@emotion/styled": "^11.9.3",
-    "@mui/material": "5.1.1",
-    "@types/react": "^18.0.1",
-    "@types/react-dom": "^18.0.0",
-    "react": "^18.0.0",
-    "react-dom": "^18.0.0",
-    "typescript": "4.7.2",
-    "vite": "2.9.9"
+    "@emotion/react": "11.9.3",
+    "@emotion/server": "11.4.0",
+    "@emotion/styled": "11.9.3",
+    "@mui/material": "5.8.6",
+    "@types/react": "18.0.14",
+    "@types/react-dom": "18.0.5",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "typescript": "4.7.4",
+    "vite": "2.9.13"
   },
   "peerDependencies": {
     "@builder.io/qwik": ">=0.0.34",
-    "@emotion/react": "^11.9.0",
-    "@emotion/server": "^11.4.0",
-    "@emotion/styled": "^11.9.3",
-    "@types/react": "^18.0.1",
-    "@types/react-dom": "^18.0.0",
-    "react": "^18.0.0",
-    "react-dom": "^18.0.0"
+    "@emotion/react": ">=11.9.0",
+    "@emotion/server": ">=11.4.0",
+    "@emotion/styled": ">=11.9.3",
+    "@types/react": ">=18.0.1",
+    "@types/react-dom": ">=18.0.0",
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
   },
   "engines": {
     "node": ">=14"

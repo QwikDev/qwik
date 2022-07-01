@@ -411,7 +411,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@builder.io/partytown@npm:0.6.2":
+"@builder.io/partytown@npm:0.6.2, @builder.io/partytown@npm:^0.6.1":
   version: 0.6.2
   resolution: "@builder.io/partytown@npm:0.6.2"
   bin:
@@ -420,7 +420,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@builder.io/qwik-city@workspace:*, @builder.io/qwik-city@workspace:packages/qwik-city":
+"@builder.io/qwik-city@npm:0.0.13":
+  version: 0.0.13
+  resolution: "@builder.io/qwik-city@npm:0.0.13"
+  dependencies:
+    "@mdx-js/mdx": ^2.1.1
+    "@types/mdx": 2.0.2
+    front-matter: ^4.0.2
+    source-map: ^0.7.3
+  peerDependencies:
+    "@builder.io/qwik": ">=0.0.30"
+  checksum: cf42c198b79cf2985814d2b187152633463d1b4d7462815c3a5ee74737583d6d0eb82d8fe4d8c55f41e9a2b4bf891037d9b84c4e06692df2bfe8dd43db816d5e
+  languageName: node
+  linkType: hard
+
+"@builder.io/qwik-city@workspace:packages/qwik-city":
   version: 0.0.0-use.local
   resolution: "@builder.io/qwik-city@workspace:packages/qwik-city"
   dependencies:
@@ -493,6 +507,13 @@ __metadata:
   resolution: "@builder.io/qwik@workspace:packages/qwik"
   languageName: unknown
   linkType: soft
+
+"@builder.io/qwik@npm:0.0.30":
+  version: 0.0.30
+  resolution: "@builder.io/qwik@npm:0.0.30"
+  checksum: 509871dd18a35ab5fce11a5a7ed11bec2a501cdc0fc025bb54751a78ee6a80a74d365d6ba33f96bc58a79657cfab107cac12e91b41dbbb008cc5dc5e664326f3
+  languageName: node
+  linkType: hard
 
 "@cloudflare/kv-asset-handler@npm:0.2.0":
   version: 0.2.0
@@ -1024,7 +1045,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mdx-js/mdx@npm:2.1.2":
+"@mdx-js/mdx@npm:2.1.2, @mdx-js/mdx@npm:^2.1.1":
   version: 2.1.2
   resolution: "@mdx-js/mdx@npm:2.1.2"
   dependencies:
@@ -2490,7 +2511,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"arg@npm:^5.0.2":
+"arg@npm:^5.0.1, arg@npm:^5.0.2":
   version: 5.0.2
   resolution: "arg@npm:5.0.2"
   checksum: 6c69ada1a9943d332d9e5382393e897c500908d91d5cb735a01120d5f71daf1b339b7b8980cbeaba8fd1afc68e658a739746179e4315a26e8a28951ff9930078
@@ -3457,7 +3478,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"detective@npm:^5.2.1":
+"detective@npm:^5.2.0, detective@npm:^5.2.1":
   version: 5.2.1
   resolution: "detective@npm:5.2.1"
   dependencies:
@@ -4741,7 +4762,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fflate@npm:0.7.3":
+"fflate@npm:^0.7.3":
   version: 0.7.3
   resolution: "fflate@npm:0.7.3"
   checksum: 6d0908c54643d5f979c2ba84a0dab74d71755360731a3a3d43d6aeb81728836f086c4f4d62908e3c03d460f2ef95908daa3bfbb8527be56cac0025b96553ee64
@@ -4868,6 +4889,15 @@ __metadata:
   version: 0.5.2
   resolution: "fresh@npm:0.5.2"
   checksum: 13ea8b08f91e669a64e3ba3a20eb79d7ca5379a81f1ff7f4310d54e2320645503cc0c78daedc93dfb6191287295f6479544a649c64d8e41a1c0fb0c221552346
+  languageName: node
+  linkType: hard
+
+"front-matter@npm:^4.0.2":
+  version: 4.0.2
+  resolution: "front-matter@npm:4.0.2"
+  dependencies:
+    js-yaml: ^3.13.1
+  checksum: a5b4c36d75a820301ebf31db0f677332d189c4561903ab6853eaa0504b43634f98557dbf87752e09043dbd2c9dcc14b4bcf9151cb319c8ad7e26edb203c0cd23
   languageName: node
   linkType: hard
 
@@ -8059,7 +8089,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss@npm:8.4.14, postcss@npm:^8.4.13, postcss@npm:^8.4.14":
+"postcss@npm:8.4.14, postcss@npm:^8.4.12, postcss@npm:^8.4.13, postcss@npm:^8.4.14":
   version: 8.4.14
   resolution: "postcss@npm:8.4.14"
   dependencies:
@@ -8111,7 +8141,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prismjs@npm:1.28.0":
+"prismjs@npm:^1.28.0":
   version: 1.28.0
   resolution: "prismjs@npm:1.28.0"
   checksum: bde93fb2beb45b7243219fc53855f59ee54b3fa179f315e8f9d66244d756ef984462e10561bbdc6713d3d7e051852472d7c284f5794a8791eeaefea2fb910b16
@@ -8244,19 +8274,19 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "qwik-docs@workspace:packages/docs"
   dependencies:
-    "@builder.io/partytown": 0.6.2
-    "@builder.io/qwik": "workspace:*"
-    "@builder.io/qwik-city": "workspace:*"
+    "@builder.io/partytown": ^0.6.1
+    "@builder.io/qwik": 0.0.30
+    "@builder.io/qwik-city": 0.0.13
     "@cloudflare/kv-asset-handler": 0.2.0
     autoprefixer: 10.4.7
-    fflate: 0.7.3
+    fflate: ^0.7.3
     node-fetch: 2.6.7
     postcss: 8.4.14
     prism-themes: 1.9.0
-    prismjs: 1.28.0
-    tailwindcss: 3.1.4
-    uvu: 0.5.4
-    vite: 2.9.13
+    prismjs: ^1.28.0
+    tailwindcss: 3.0.24
+    uvu: 0.5.3
+    vite: 2.9.9
     wrangler: beta
   languageName: unknown
   linkType: soft
@@ -9305,6 +9335,40 @@ __metadata:
   languageName: node
   linkType: hard
 
+"tailwindcss@npm:3.0.24":
+  version: 3.0.24
+  resolution: "tailwindcss@npm:3.0.24"
+  dependencies:
+    arg: ^5.0.1
+    chokidar: ^3.5.3
+    color-name: ^1.1.4
+    detective: ^5.2.0
+    didyoumean: ^1.2.2
+    dlv: ^1.1.3
+    fast-glob: ^3.2.11
+    glob-parent: ^6.0.2
+    is-glob: ^4.0.3
+    lilconfig: ^2.0.5
+    normalize-path: ^3.0.0
+    object-hash: ^3.0.0
+    picocolors: ^1.0.0
+    postcss: ^8.4.12
+    postcss-js: ^4.0.0
+    postcss-load-config: ^3.1.4
+    postcss-nested: 5.0.6
+    postcss-selector-parser: ^6.0.10
+    postcss-value-parser: ^4.2.0
+    quick-lru: ^5.1.1
+    resolve: ^1.22.0
+  peerDependencies:
+    postcss: ^8.0.9
+  bin:
+    tailwind: lib/cli.js
+    tailwindcss: lib/cli.js
+  checksum: 52a21192b70ab90678d6cec24ca6f93b3a396599e2d842f6077b670be14e577b1e3fbae8776e64505d383118746287353ed99d2a047258254f4ce3879b996b58
+  languageName: node
+  linkType: hard
+
 "tailwindcss@npm:3.1.4":
   version: 3.1.4
   resolution: "tailwindcss@npm:3.1.4"
@@ -9878,6 +9942,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"uvu@npm:0.5.3, uvu@npm:^0.5.0":
+  version: 0.5.3
+  resolution: "uvu@npm:0.5.3"
+  dependencies:
+    dequal: ^2.0.0
+    diff: ^5.0.0
+    kleur: ^4.0.3
+    sade: ^1.7.3
+  bin:
+    uvu: bin.js
+  checksum: 0cf8e9e6ec79199dacc64fe0e9f82b5bf1d2308f3c54ec1aba5d1ca0a4beff4f173cae0f87bc52d35121565fd232b969fbf52cca3707e20517e62645e19b898e
+  languageName: node
+  linkType: hard
+
 "uvu@npm:0.5.4":
   version: 0.5.4
   resolution: "uvu@npm:0.5.4"
@@ -9889,20 +9967,6 @@ __metadata:
   bin:
     uvu: bin.js
   checksum: a212bf0bc18eb5cd065bcbf6454e7551cb802e586f1177589668b0d6980276d7a811080dcb742187c0b49d693653984e7a99ea44f76fa0b2a1820c21855f755d
-  languageName: node
-  linkType: hard
-
-"uvu@npm:^0.5.0":
-  version: 0.5.3
-  resolution: "uvu@npm:0.5.3"
-  dependencies:
-    dequal: ^2.0.0
-    diff: ^5.0.0
-    kleur: ^4.0.3
-    sade: ^1.7.3
-  bin:
-    uvu: bin.js
-  checksum: 0cf8e9e6ec79199dacc64fe0e9f82b5bf1d2308f3c54ec1aba5d1ca0a4beff4f173cae0f87bc52d35121565fd232b969fbf52cca3707e20517e62645e19b898e
   languageName: node
   linkType: hard
 
@@ -10022,6 +10086,35 @@ __metadata:
   bin:
     vite: bin/vite.js
   checksum: a5e501b920a448c352e9b3836019dea56c523535f8e8540160708c2e164d84da6655ae39abbba1e2888092f5c6cd03dd06279852422359b51be601914645f49f
+  languageName: node
+  linkType: hard
+
+"vite@npm:2.9.9":
+  version: 2.9.9
+  resolution: "vite@npm:2.9.9"
+  dependencies:
+    esbuild: ^0.14.27
+    fsevents: ~2.3.2
+    postcss: ^8.4.13
+    resolve: ^1.22.0
+    rollup: ^2.59.0
+  peerDependencies:
+    less: "*"
+    sass: "*"
+    stylus: "*"
+  dependenciesMeta:
+    fsevents:
+      optional: true
+  peerDependenciesMeta:
+    less:
+      optional: true
+    sass:
+      optional: true
+    stylus:
+      optional: true
+  bin:
+    vite: bin/vite.js
+  checksum: 9292b8ba510a393d0c61c407ebfb4eaa818b2d8d106b3476cdc94cb57a0c59348a535936d698db04b35910a1cfdb16aeaf872f0f995b54cf6d7ed31bc7886deb
   languageName: node
   linkType: hard
 

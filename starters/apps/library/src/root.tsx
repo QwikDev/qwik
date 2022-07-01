@@ -1,7 +1,7 @@
 import { Counter } from './components/counter/counter';
 import { Logo } from './components/logo/logo';
 
-export const Root = () => {
+export default () => {
   return (
     <html>
       <head>

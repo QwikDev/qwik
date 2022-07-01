@@ -8,8 +8,10 @@
   "sideEffects": false,
   "exports": {
     ".": {
-      "production": "./dist/core.min.mjs",
-      "import": "./dist/core.mjs",
+      "import": {
+        "min": "./dist/core.min.mjs",
+        "default": "./dist/core.mjs"
+      },
       "require": "./dist/core.cjs"
     },
     "./jsx-runtime": {

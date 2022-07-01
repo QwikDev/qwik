@@ -47,9 +47,9 @@ async function validateCreateQwikCli() {
   assert.ok(starters.features.length > 0);
 
   const tmpDir = join(__dirname, '..', 'dist-dev');
-  await validateStarter(api, tmpDir, 'starter', 'express');
-  await validateStarter(api, tmpDir, 'starter-partytown', 'express');
-  await validateStarter(api, tmpDir, 'todo', 'cloudflare-pages');
+  await validateStarter(api, tmpDir, 'blank', '', true);
+  await validateStarter(api, tmpDir, 'library', '', false);
+  await validateStarter(api, tmpDir, 'qwik-city', 'express', true);
 
   console.log(`👽 create-qwik validated\n`);
 }
@@ -58,7 +58,8 @@ async function validateStarter(
   api: typeof import('create-qwik'),
   distDir: string,
   appId: string,
-  serverId: string
+  serverId: string,
+  app: boolean
 ) {
   const projectName = `${appId}-${serverId}`;
   const appDir = join(distDir, 'app-' + projectName);
@@ -115,31 +116,36 @@ async function validateStarter(
   await execa('npm', ['run', 'lint'], { cwd: appDir, stdout: 'inherit' });
 
   accessSync(join(appDir, '.vscode'));
-  accessSync(join(appDir, 'dist', 'favicon.ico'));
-  accessSync(join(appDir, 'dist', 'q-manifest.json'));
-  accessSync(join(appDir, 'dist', 'build'));
+  if (app) {
+    accessSync(join(appDir, 'dist', 'favicon.ico'));
+    accessSync(join(appDir, 'dist', 'q-manifest.json'));
+    accessSync(join(appDir, 'dist', 'build'));
+    const serverDir = join(appDir, 'server');
+    accessSync(serverDir);
+
+    let hasEntryServer = false;
+    const serverOutput = readdirSync(serverDir);
+    for (const serverFileName of serverOutput) {
+      if (serverFileName.startsWith('entry.')) {
+        hasEntryServer = true;
+        break;
+      }
+    }
+
+    if (!hasEntryServer) {
+      throw new Error(`"${projectName}", ${appDir} did not generate server output`);
+    }
+    if (!serverOutput) {
+      throw new Error(`"${projectName}", ${appDir} did not generate server output`);
+    }
+  } else {
+    accessSync(join(appDir, 'lib', 'types'));
+    accessSync(join(appDir, 'lib', 'index.es.qwik.js'));
+    accessSync(join(appDir, 'lib', 'index.cjs.qwik.js'));
+  }
   accessSync(join(appDir, 'README.md'));
   accessSync(join(appDir, 'tsconfig.json'));
   accessSync(join(appDir, 'tsconfig.tsbuildinfo'));
-
-  const serverDir = join(appDir, 'server');
-  accessSync(serverDir);
-
-  let hasEntryServer = false;
-  const serverOutput = readdirSync(serverDir);
-  for (const serverFileName of serverOutput) {
-    if (serverFileName.startsWith('entry.')) {
-      hasEntryServer = true;
-      break;
-    }
-  }
-
-  if (!hasEntryServer) {
-    throw new Error(`"${projectName}", ${appDir} did not generate server output`);
-  }
-  if (!serverOutput) {
-    throw new Error(`"${projectName}", ${appDir} did not generate server output`);
-  }
 
   console.log(`⭐️ ${projectName} validated\n`);
 }

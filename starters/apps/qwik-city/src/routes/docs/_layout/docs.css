@@ -1,0 +1,9 @@
+.docs {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  padding: 0;
+}
+
+.docs-content {
+  padding-left: 20px;
+}

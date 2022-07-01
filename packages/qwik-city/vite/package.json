@@ -1,8 +1,8 @@
 {
   "name": "@builder.io/qwik-city/vite",
-  "version": "0.0.21-0-dev20220527231941",
-  "main": "../dist/vite/index.cjs",
-  "module": "../dist/vite/index.mjs",
-  "types": "../dist/vite/index.d.ts",
+  "version": "0.0.31",
+  "main": "../lib/vite/index.cjs",
+  "module": "../lib/vite/index.mjs",
+  "types": "../lib/vite/index.d.ts",
   "private": true
 }

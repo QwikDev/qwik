@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import { runGenerate } from './generate';
 import { runInteractive } from './interactive';
 import { panic } from './log';

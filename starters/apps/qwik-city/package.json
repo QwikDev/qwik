@@ -5,12 +5,11 @@
     "selectServer": true,
     "featureOptions": [
       "prettier",
-      "react",
       "tailwindcss"
     ]
   },
   "devDependencies": {
-    "@builder.io/qwik-city": "0.0.15",
+    "@builder.io/qwik-city": "0.0.16",
     "vite-tsconfig-paths": "3.5.0"
   }
 }

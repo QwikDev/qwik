@@ -6,26 +6,77 @@ expression: output
 
 
 import { component$ } from '@builder.io/qwik';
+import { sibling } from './sibling';
 
 export default component$(() => {
     return (
-        <div onClick$={() => console.log(mongodb)}>
+        <div onClick$={() => console.log(mongodb, sibling)}>
         </div>
     );
 });
 
 
-============================= src/components/components/app.tsx ==
+============================= _____slug___component_div_onclick_oesymv0so3o.tsx (ENTRY POINT)==
+
+import { sibling } from "./src/routes/_repl/[id]/sibling";
+export const _____slug___component_div_onClick_OesyMV0SO3o = ()=>console.log(mongodb, sibling)
+;
+
+/*
+{
+  "origin": "src/routes/_repl/[id]/[[...slug]].tsx",
+  "name": "_____slug___component_div_onClick_OesyMV0SO3o",
+  "entry": null,
+  "displayName": "_____slug___component_div_onClick",
+  "hash": "OesyMV0SO3o",
+  "canonicalFilename": "_____slug___component_div_onclick_oesymv0so3o",
+  "extension": "tsx",
+  "parent": "_____slug___component_vgk6N3QaQd4",
+  "ctxKind": "event",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    157,
+    192
+  ]
+}
+*/
+============================= src/routes/_repl/[id]/[[...slug]].tsx ==
 
 import { componentQrl } from "@builder.io/qwik";
-import { inlinedQrl } from "@builder.io/qwik";
-export default /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
-    return <div onClickQrl={inlinedQrl(()=>console.log(mongodb)
-    , "app_component_div_onClick_8PCkN2jmumg")}>
+import { qrl } from "@builder.io/qwik";
+export default /*#__PURE__*/ componentQrl(qrl(()=>import("../../../../_____slug___component_vgk6n3qaqd4")
+, "_____slug___component_vgk6N3QaQd4"));
+
+============================= _____slug___component_vgk6n3qaqd4.tsx (ENTRY POINT)==
+
+import { qrl } from "@builder.io/qwik";
+export const _____slug___component_vgk6N3QaQd4 = ()=>{
+    return <div onClickQrl={qrl(()=>import("./_____slug___component_div_onclick_oesymv0so3o")
+    , "_____slug___component_div_onClick_OesyMV0SO3o")}>
 
         </div>;
-}, "app_component_UGeyjZbrqiY"));
+};
 
+/*
+{
+  "origin": "src/routes/_repl/[id]/[[...slug]].tsx",
+  "name": "_____slug___component_vgk6N3QaQd4",
+  "entry": null,
+  "displayName": "_____slug___component",
+  "hash": "vgk6N3QaQd4",
+  "canonicalFilename": "_____slug___component_vgk6n3qaqd4",
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    113,
+    218
+  ]
+}
+*/
 == DIAGNOSTICS ==
 
 []

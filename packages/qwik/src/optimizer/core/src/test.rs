@@ -1062,18 +1062,19 @@ fn example_default_export() {
     test_input!(TestInput {
         code: r#"
 import { component$ } from '@builder.io/qwik';
+import { sibling } from './sibling';
 
 export default component$(() => {
     return (
-        <div onClick$={() => console.log(mongodb)}>
+        <div onClick$={() => console.log(mongodb, sibling)}>
         </div>
     );
 });
 
 "#
         .to_string(),
-        filename: "src/components/components/app.tsx".into(),
-        entry_strategy: EntryStrategy::Inline,
+        filename: "src/routes/_repl/[id]/[[...slug]].tsx".into(),
+        entry_strategy: EntryStrategy::Hook,
         ..TestInput::default()
     });
 }

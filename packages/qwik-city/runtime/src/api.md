@@ -148,14 +148,14 @@ export interface QwikCityPlan {
     trailingSlash?: boolean;
 }
 
-// Warning: (ae-forgotten-export) The symbol "ContentModule" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "EndpointModule" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "ContentModuleLoader" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "EndpointModuleLoader" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "ROUTE_TYPE_ENDPOINT" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export type RouteData = [pattern: RegExp, pageLoader: (() => Promise<ContentModule>)[]] | [pattern: RegExp, pageLoader: (() => Promise<ContentModule>)[], paramNames: string[]] | [
+export type RouteData = [pattern: RegExp, pageLoaders: ContentModuleLoader[]] | [pattern: RegExp, pageLoaders: ContentModuleLoader[], paramNames: string[]] | [
 pattern: RegExp,
-endpointLoader: (() => Promise<EndpointModule>)[],
+endpointLoaders: EndpointModuleLoader[],
 paramNames: string[],
 routeType: typeof ROUTE_TYPE_ENDPOINT
 ];

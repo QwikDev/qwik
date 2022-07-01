@@ -118,6 +118,12 @@ export interface ContentBreadcrumb {
   href?: string;
 }
 
+export interface ContentState {
+  breadcrumbs: ContentBreadcrumb[] | undefined;
+  headings: ContentHeading[] | undefined;
+  modules: ContentModule[];
+}
+
 /**
  * @public
  */
@@ -136,15 +142,19 @@ export interface ContentHeading {
   level: number;
 }
 
+export type ContentModuleLoader = () => Promise<ContentModule>;
+export type EndpointModuleLoader = () => Promise<EndpointModule>;
+export type ModuleLoader = ContentModuleLoader | EndpointModuleLoader;
+
 /**
  * @public
  */
 export type RouteData =
-  | [pattern: RegExp, pageLoader: (() => Promise<ContentModule>)[]]
-  | [pattern: RegExp, pageLoader: (() => Promise<ContentModule>)[], paramNames: string[]]
+  | [pattern: RegExp, pageLoaders: ContentModuleLoader[]]
+  | [pattern: RegExp, pageLoaders: ContentModuleLoader[], paramNames: string[]]
   | [
       pattern: RegExp,
-      endpointLoader: (() => Promise<EndpointModule>)[],
+      endpointLoaders: EndpointModuleLoader[],
       paramNames: string[],
       routeType: typeof ROUTE_TYPE_ENDPOINT
     ];
@@ -164,9 +174,8 @@ export interface QwikCityPlan {
 export type RouteParams = Record<string, string>;
 
 export interface MatchedRoute {
-  route: RouteData;
+  loaders: ModuleLoader[];
   params: RouteParams;
-  pathname: string;
 }
 
 export interface LoadedRoute extends MatchedRoute {
@@ -200,12 +209,3 @@ export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 
  * @public
  */
 export type EndpointHandler = (ev: RequestEvent) => Response | Promise<Response>;
-
-export interface QwikCityState {
-  breadcrumbs: ContentBreadcrumb[] | undefined;
-  head: DocumentHead;
-  headings: ContentHeading[] | undefined;
-  menus: { [pathName: string]: ContentMenu } | undefined;
-  modules: ContentModule[];
-  location: RouteLocation;
-}

@@ -1,18 +1,17 @@
-import type { QwikCityRequestOptions } from './types';
-
-export function checkRedirect(opts: QwikCityRequestOptions, pathname: string) {
+export function checkRedirect(current: URL, trailingSlash: boolean | undefined) {
+  const pathname = current.pathname;
   if (pathname !== '/') {
-    if (opts.trailingSlash) {
+    if (trailingSlash) {
       // must have a trailing slash
       if (!pathname.endsWith('/')) {
         // add slash to existing pathname
-        return createRedirect(opts.url, pathname + '/');
+        return createRedirect(current, pathname + '/');
       }
     } else {
       // should not have a trailing slash
       if (pathname.endsWith('/')) {
         // remove slash from existing pathname
-        return createRedirect(opts.url, pathname.slice(0, pathname.length - 1));
+        return createRedirect(current, pathname.slice(0, pathname.length - 1));
       }
     }
   }

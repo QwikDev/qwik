@@ -4,6 +4,7 @@ import { endpointHandler } from './endpoint-handler';
 import { checkRedirect } from './redirect-handler';
 import type { QwikCityRequestOptions } from './types';
 import type { Render } from '@builder.io/qwik/server';
+import type { RequestEvent } from '../../runtime/src/library/types';
 
 /**
  * @public
@@ -13,7 +14,9 @@ export async function requestHandler(
   opts: QwikCityRequestOptions
 ): Promise<Response | null> {
   if (Array.isArray(opts.routes)) {
-    const pathname = opts.url.pathname;
+    const { request } = opts;
+    const url = new URL(request.url);
+    const pathname = url.pathname;
 
     for (const route of opts.routes) {
       const pattern = route[0];
@@ -21,11 +24,10 @@ export async function requestHandler(
       const match = pattern.exec(pathname);
       if (match) {
         const routeType = route[3];
+        const paramNames = route[2];
+        const params = getRouteParams(paramNames, match);
 
-        const redirectResponse = checkRedirect(opts, pathname);
-        if (redirectResponse) {
-          return redirectResponse;
-        }
+        const requestEv: RequestEvent = { method: request.method, request, url, params };
 
         if (routeType === ROUTE_TYPE_ENDPOINT) {
           const moduleLoaders = route[1];
@@ -37,12 +39,15 @@ export async function requestHandler(
             ENDPOINT_MODULES.set(endpointLoader, endpointModule);
           }
 
-          const paramNames = route[2];
-          const params = getRouteParams(paramNames, match);
-          return endpointHandler(opts.request, opts.url, params, endpointModule);
+          return endpointHandler(requestEv, endpointModule);
         }
 
-        const result = await render(opts);
+        const redirectResponse = checkRedirect(url, opts.trailingSlash);
+        if (redirectResponse) {
+          return redirectResponse;
+        }
+
+        const result = await render({ url: url.href });
 
         return new Response(result.html, {
           headers: {

@@ -31,6 +31,8 @@ export default defineConfig(() => {
     optimizeDeps: {
       exclude: [
         '@builder.io/qwik',
+        '@builder.io/qwik/jsx-runtime',
+        '@builder.io/qwik/jsx-dev-runtime',
         '@builder.io/qwik/optimizer',
         '@builder.io/qwik/server',
         '@builder.io/qwik-city',
@@ -40,5 +42,8 @@ export default defineConfig(() => {
       ],
     },
     clearScreen: false,
+    server: {
+      force: true,
+    },
   };
 });

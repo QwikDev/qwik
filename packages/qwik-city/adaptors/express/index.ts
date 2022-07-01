@@ -35,7 +35,6 @@ export function qwikCity(render: Render, opts: QwikCityPlanExpress) {
       const requestOpts: QwikCityRequestOptions = {
         ...opts,
         request,
-        url,
       };
 
       const response = await requestHandler(render, requestOpts);

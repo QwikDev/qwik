@@ -2,13 +2,19 @@ import type { ContentMenu } from '../../runtime/src/library/types';
 import type { BuildContext, ParsedMenuItem } from '../types';
 
 export function createMenus(ctx: BuildContext, c: string[]) {
-  c.push(`\n/** Qwik City Menus (${ctx.menus.length}) */`);
-  c.push(`const menus = {`);
-  for (const parsedMenu of ctx.menus) {
-    const menu = createRuntimeMenu(parsedMenu);
-    c.push(`  ${JSON.stringify(parsedMenu.pathname)}: ${JSON.stringify(menu)},`);
+  const totalMenus = ctx.menus.length;
+
+  if (totalMenus > 0) {
+    c.push(`\n/** Qwik City Menus (${totalMenus}) */`);
+    c.push(`const menus = {`);
+    for (const parsedMenu of ctx.menus) {
+      const menu = createRuntimeMenu(parsedMenu);
+      c.push(`  ${JSON.stringify(parsedMenu.pathname)}: ${JSON.stringify(menu)},`);
+    }
+    c.push(`};`);
   }
-  c.push(`};`);
+
+  return totalMenus;
 }
 
 function createRuntimeMenu(parsedMenu: ParsedMenuItem) {

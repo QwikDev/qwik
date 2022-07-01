@@ -1,26 +1,24 @@
 import type { BuildContext } from '../types';
 import { createMenus } from './menus';
-import { createInlinedImportRoutes } from './routes';
+import { createRoutes } from './routes';
 
 /**
  * Generates the Qwik City Plan runtime code
- * See: packages/qwik-city/src/runtime/qwik-city-plan.ts
  */
 export function generateQwikCityPlan(ctx: BuildContext) {
   const esmImports: string[] = [];
   const c: string[] = [];
 
-  createInlinedImportRoutes(ctx, c, esmImports);
+  createRoutes(ctx, c, esmImports);
 
-  if (ctx.menus.length > 0) {
-    createMenus(ctx, c);
-  }
+  const totalMenus = createMenus(ctx, c);
 
   c.push(`\n/** Qwik City Plan */`);
   c.push(`const qwikCityPlan = {`);
+
   c.push(`  routes,`);
 
-  if (ctx.menus.length > 0) {
+  if (totalMenus > 0) {
     c.push(`  menus,`);
   }
 
@@ -30,7 +28,7 @@ export function generateQwikCityPlan(ctx: BuildContext) {
 
   c.push(`};`);
 
-  c.push(`export default qwikCityPlan;`);
+  c.push(`export default qwikCityPlan;\n`);
 
   return esmImports.join('\n') + c.join('\n');
 }

@@ -11,12 +11,9 @@ import type { Render } from '@builder.io/qwik/server';
 export function createServer(render: Render, opts: QwikCityPlanCloudflarePages) {
   async function onRequest({ request, next }: EventPluginContext) {
     try {
-      const url = new URL(request.url);
-
       const requestOpts: QwikCityRequestOptions = {
         ...opts,
         request,
-        url,
       };
 
       const response = await requestHandler(render, requestOpts);

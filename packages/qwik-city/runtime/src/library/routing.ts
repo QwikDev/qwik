@@ -1,30 +1,32 @@
 import { MODULE_CACHE } from './constants';
 import type { LoadedRoute, MatchedRoute, RouteData, RouteParams } from './types';
-import { normalizePathname } from './utils';
 
-export const matchRoute = (routes: RouteData[], pathname: string): MatchedRoute | null => {
-  pathname = normalizePathname(pathname);
-  for (const route of routes) {
-    const match = route[0].exec(pathname);
-    if (match) {
-      return {
-        params: getRouteParams(/* paramName */ route[2], match),
-        route,
-        pathname,
-      };
+export const matchRoute = (
+  routes: RouteData[] | undefined,
+  pathname: string
+): MatchedRoute | null => {
+  if (Array.isArray(routes)) {
+    for (const route of routes) {
+      const match = route[0].exec(pathname);
+      if (match) {
+        return {
+          loaders: route[1],
+          params: getRouteParams(route[2], match),
+        };
+      }
     }
   }
   return null;
 };
 
 export const loadRoute = async (
-  routes: RouteData[],
+  routes: RouteData[] | undefined,
   pathname: string
 ): Promise<LoadedRoute | null> => {
   const matchedRoute = matchRoute(routes, pathname);
 
   if (matchedRoute) {
-    const moduleLoaders = matchedRoute.route[1];
+    const moduleLoaders = matchedRoute.loaders;
     const modules = new Array(moduleLoaders.length);
     const pendingLoads: Promise<any>[] = [];
 

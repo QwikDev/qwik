@@ -11,6 +11,8 @@ import { endpointHandler } from '../../adaptors/request-handler/endpoint-handler
 import { getRouteParams } from '../../runtime/src/library/routing';
 import { build } from '../build';
 import { isMenuFileName } from '../markdown/menu';
+import type { RequestEvent } from '../../runtime/src/library/types';
+import { checkRedirect } from '../../adaptors/request-handler/redirect-handler';
 
 /**
  * @alpha
@@ -68,35 +70,46 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
               await build(ctx);
             }
 
-            const origin = `http://${req.headers.host}`;
-            const url = new URL(req.originalUrl!, origin);
+            const url = new URL(req.originalUrl!, `http://${req.headers.host}`);
             const pathname = url.pathname;
 
             for (const route of ctx.routes) {
-              if (route.type === 'endpoint') {
-                const match = route.pattern.exec(pathname);
-                if (match) {
+              const match = route.pattern.exec(pathname);
+              if (match) {
+                if (route.type === 'endpoint') {
                   const params = getRouteParams(route.paramNames, match);
                   const request = new Request(url.href, { method: req.method });
+                  const requestEv: RequestEvent = {
+                    method: request.method,
+                    request,
+                    params,
+                    url,
+                  };
 
                   const endpointModule = await server.ssrLoadModule(route.filePath);
-                  const response = await endpointHandler(request, url, params, endpointModule);
+                  const response = await endpointHandler(requestEv, endpointModule);
 
                   res.statusCode = response.status;
                   res.statusMessage = response.statusText;
                   response.headers.forEach((value, key) => res.setHeader(key, value));
                   res.write(response.body);
                   res.end();
+                  return;
+                }
 
+                const redirectResponse = checkRedirect(url, ctx.opts.trailingSlash);
+                if (redirectResponse) {
+                  res.statusCode = redirectResponse.status;
+                  redirectResponse.headers.forEach((value, key) => res.setHeader(key, value));
+                  res.end();
                   return;
                 }
               }
             }
           }
 
-          // not an endpoint
           next();
-        } catch (e: any) {
+        } catch (e) {
           next(e);
         }
       });

@@ -9,15 +9,14 @@
   "exports": {
     ".": {
       "import": {
-        "production": "./core.min.mjs",
-        "default": "./core.mjs"
+        "production": "./dist/core.min.mjs",
+        "default": "./dist/core.mjs"
       },
-      "require": "./core.cjs"
+      "require": "./dist/core.cjs"
     },
     "./jsx-runtime": {
-      "production": "./dist/core.min.mjs",
-      "import": "./dist/core.mjs",
-      "require": "./dist/core.cjs"
+      "import": "./dist/jsx-runtime.mjs",
+      "require": "./dist/jsx-runtime.cjs"
     },
     "./jsx-dev-runtime": {
       "import": "./dist/jsx-runtime.mjs",

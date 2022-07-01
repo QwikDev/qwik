@@ -1,43 +1,50 @@
-import { useContext, useDocument } from '@builder.io/qwik';
-import { QwikCityContext } from './constants';
-import type { DocumentHead, ContentMenu } from './types';
+import { useContext } from '@builder.io/qwik';
+import {
+  ContentContext,
+  ContentMenusContext,
+  DocumentHeadContext,
+  RouteLocationContext,
+} from './constants';
+import type {
+  DocumentHead,
+  ContentMenu,
+  ContentHeading,
+  ContentBreadcrumb,
+  RouteLocation,
+} from './types';
 
 /**
  * @public
  */
-export const useDocumentHead = (): DocumentHead => useContext(QwikCityContext).head;
+export const useContentBreadcrumbs = (): ContentBreadcrumb[] | undefined =>
+  useContext(ContentContext).breadcrumbs;
 
 /**
  * @public
  */
-export const useContentBreadcrumbs = () => useContext(QwikCityContext).breadcrumbs;
+export const useContentHeadings = (): ContentHeading[] | undefined =>
+  useContext(ContentContext).headings;
 
 /**
  * @public
  */
-export const useContentHeadings = () => useContext(QwikCityContext).headings;
+export const useDocumentHead = (): DocumentHead => useContext(DocumentHeadContext);
 
 /**
  * @public
  */
-export const useLocation = () => useContext(QwikCityContext).location;
-
-export const useDocumentLocation = () => {
-  const doc = useDocument();
-  return new URL(doc.defaultView!.location.href);
-};
+export const useLocation = (): RouteLocation => useContext(RouteLocationContext);
 
 /**
  * @public
  */
 export const useContentMenu = (): ContentMenu | undefined => {
-  const ctx = useContext(QwikCityContext);
-  const loc = ctx.location;
-  const menus = ctx.menus;
+  const menus = useContext(ContentMenusContext);
+  const loc = useLocation();
   const parts = loc.pathname.split('/');
-  let cursorPathname = loc.pathname;
 
   if (menus) {
+    let cursorPathname = loc.pathname;
     for (let i = 0; i < 9; i++) {
       if (menus[cursorPathname]) {
         return menus[cursorPathname];

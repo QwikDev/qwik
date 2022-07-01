@@ -1,44 +1,29 @@
-import type { JSXNode } from '@builder.io/qwik';
 import { parseHeadJsx } from './jsx';
-import type {
-  ContentModule,
-  HeadComponentProps,
-  DocumentHead,
-  LoadedContent,
-  RouteLocation,
-} from './types';
+import type { ContentModule, HeadComponentProps, DocumentHead, RouteLocation } from './types';
 
-export const resolveHead = (location: RouteLocation, updatedContent: LoadedContent) => {
-  const modules = updatedContent.modules;
+export const resolveHead = (routeLocation: RouteLocation, contentModules: ContentModule[]) => {
   const headProps: HeadComponentProps = {
-    resolved: { title: '', links: [], meta: [], styles: [] },
-    location: { ...location },
+    resolved: createDocumentHead(),
+    location: JSON.parse(JSON.stringify(routeLocation)),
   };
 
-  for (let i = modules.length - 1; i >= 0; i--) {
-    resolveContentHead(headProps, modules[i]);
+  for (let i = contentModules.length - 1; i >= 0; i--) {
+    resolveContentHead(headProps, contentModules[i]);
   }
 
   return headProps.resolved;
 };
 
-const resolveContentHead = (headProps: HeadComponentProps, mod: ContentModule) => {
-  if (mod && typeof mod.head != null) {
-    if (typeof mod.head === 'function') {
-      resolveDocumentHead(
-        headProps.resolved,
-        convertHeadComponentToDocumentHead(mod.head(headProps))
-      );
-    } else if (typeof mod.head === 'object') {
-      resolveDocumentHead(headProps.resolved, mod.head);
+const resolveContentHead = (headProps: HeadComponentProps, contentModule: ContentModule) => {
+  if (contentModule && typeof contentModule.head != null) {
+    if (typeof contentModule.head === 'function') {
+      const parsedHeadJsxData = createDocumentHead();
+      parseHeadJsx(parsedHeadJsxData, contentModule.head(headProps));
+      resolveDocumentHead(headProps.resolved, parsedHeadJsxData);
+    } else if (typeof contentModule.head === 'object') {
+      resolveDocumentHead(headProps.resolved, contentModule.head);
     }
   }
-};
-
-const convertHeadComponentToDocumentHead = (jsxNode: JSXNode | null) => {
-  const pageHead: DocumentHead = { title: '', meta: [], links: [], styles: [] };
-  parseHeadJsx(pageHead, jsxNode);
-  return pageHead;
 };
 
 const resolveDocumentHead = (resolvedHead: DocumentHead, updatedHead: DocumentHead) => {
@@ -64,3 +49,10 @@ const mergeArray = (existingArr: { key?: string }[], newArr: { key?: string }[])
     }
   }
 };
+
+export const createDocumentHead = (): DocumentHead => ({
+  title: '',
+  meta: [],
+  links: [],
+  styles: [],
+});

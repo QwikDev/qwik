@@ -1,13 +1,11 @@
 import { component$, jsx, SkipRerender, useContext } from '@builder.io/qwik';
-import { QwikCityContext } from './constants';
-import type { LoadedContent, LoadedRoute, PageModule } from './types';
+import { ContentContext } from './constants';
 
 /**
  * @public
  */
 export const Content = component$(() => {
-  const ctx = useContext(QwikCityContext);
-  const modules = ctx.modules;
+  const modules = useContext(ContentContext).modules;
   const modulesLen = modules.length;
 
   if (modulesLen > 0) {
@@ -24,14 +22,3 @@ export const Content = component$(() => {
 
   return jsx(SkipRerender, {});
 });
-
-export const updateContent = async (
-  loadedRoute: LoadedRoute | null
-): Promise<LoadedContent | null> => {
-  if (loadedRoute) {
-    const modules = loadedRoute.modules;
-    const pageModule = modules[modules.length - 1] as PageModule;
-    return { ...loadedRoute, pageModule };
-  }
-  return null;
-};

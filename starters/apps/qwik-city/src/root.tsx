@@ -1,6 +1,6 @@
 import { Content, Html } from '@builder.io/qwik-city';
 import cityPlan from '@qwik-city-plan';
-import { Head } from '~/components/head/head';
+import { Head } from './components/head/head';
 
 import './global.css';
 

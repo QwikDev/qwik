@@ -19,12 +19,12 @@
     "paths": {
       "~qwik-city-runtime": ["packages/qwik-city/runtime/src/index.ts"],
       "@builder.io/qwik": ["packages/qwik/src/core/index.ts"],
-      "@builder.io/qwik/build": ["packages/qwik/src/build/index"],
-      "@builder.io/qwik/jsx-runtime": ["packages/qwik/src/jsx-runtime/index"],
-      "@builder.io/qwik/optimizer": ["packages/qwik/src/optimizer/src/index"],
-      "@builder.io/qwik/server": ["packages/qwik/src/server/index"],
-      "@builder.io/qwik/testing": ["packages/qwik/src/testing/index"],
-      "@builder.io/qwik-city": ["packages/qwik-city/runtime/src/index"],
+      "@builder.io/qwik/build": ["packages/qwik/src/build/index.ts"],
+      "@builder.io/qwik/jsx-runtime": ["packages/qwik/src/jsx-runtime/index.ts"],
+      "@builder.io/qwik/optimizer": ["packages/qwik/src/optimizer/src/index.ts"],
+      "@builder.io/qwik/server": ["packages/qwik/src/server/index.ts"],
+      "@builder.io/qwik/testing": ["packages/qwik/src/testing/index.ts"],
+      "@builder.io/qwik-city": ["packages/qwik-city/runtime/src/index.ts"],
       "@builder.io/qwik-city/adaptors/cloudflare-pages": [
         "packages/qwik-city/adaptors/cloudflare-pages"
       ],
@@ -59,9 +59,12 @@
   "exclude": [
     "packages/create-qwik/dist",
     "**/lib",
-    "starters/servers",
-    "starters/apps",
-    "starters/features",
+    // "starters/servers",
+    // "starters/apps",
+    "starters/**/entry.netlify.ts",
+    "starters/**/entry.cloudflare.tsx",
+    "starters/**/entry.express.tsx",
+    "starters/**/entry.ssr.tsx",
     "packages/qwik/**/*.d.ts",
     "packages/qwik-dom"
   ]

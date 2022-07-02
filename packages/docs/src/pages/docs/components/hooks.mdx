@@ -169,7 +169,7 @@ const Cmp = component$(() => {
     users: []
   });
   useMount$(async () => {
-    // This code will run on the server, then on the client
+    // This code will run on component creation to fetch the data.
     store.users = await db.requestUsers();
   });
   return (

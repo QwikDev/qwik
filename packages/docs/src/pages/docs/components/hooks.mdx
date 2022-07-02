@@ -155,7 +155,11 @@ const Timer = component$(() => {
 
 ## useMount$()
 
-Registers a mount hook, that will run on the server, then on the client.
+Register a hook that executes on component creation.  `useMount$()` will block the rendering of the component until after `useMount$()` callback resolves. (This is useful for fetching asynchronous data and delaying rendering until data is received, ensuring that the rendered component contains the data.).
+
+While `useMount$()` executes both on the server and on the client, it runs exactly once. (Either on the server or on the client depending on where the component got first rendered.)
+
+See also: `useClientMount$()` and `useServerMount$()` that have same semantics but only run on client or server respectively.  
 
 ### Example
 

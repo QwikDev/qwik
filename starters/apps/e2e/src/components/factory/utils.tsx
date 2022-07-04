@@ -1,9 +1,8 @@
-import { component$, implicit$FirstArg, QRL, useHostElement } from '@builder.io/qwik';
+import { component$, implicit$FirstArg, QRL } from '@builder.io/qwik';
 
 export function factoryQrl<P>(componentQRL: QRL<(props: P) => any>) {
   return component$((props: P) => {
-    const hostElement = useHostElement();
-    const component = componentQRL.resolve(hostElement);
+    const component = componentQRL.resolve();
     return (
       <div>
         {component.then((Cmp) => (

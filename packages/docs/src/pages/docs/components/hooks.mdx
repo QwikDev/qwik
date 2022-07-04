@@ -8,11 +8,11 @@ title: Hooks
 
 Creates an object that Qwik can track across serializations.
 
-Use `useStore` to create state for your application. The returned object is a proxy which has a unique ID that is used in `QRL`s to refer to the store.
+Use `useStore` to create a state for your application. The returned object is a proxy that has a unique ID that is used in `QRL`s to refer to the store.
 
 ### Example
 
-Example showing how `useStore` is used in Counter example to keep track of count.
+Example showing how `useStore` is used in Counter example to keep track of the count.
 
 ```tsx
 const Stores = component$(() => {
@@ -90,7 +90,7 @@ Reruns the `watchFn` when the observed inputs change.
 
 Use `useWatch` to observe changes on a set of inputs, and then re-execute the `watchFn` when those inputs change.
 
-The `watchFn` only executes if the observed inputs change. To observe the inputs use the `obs` function to wrap property reads. This creates subscriptions which will trigger the `watchFn` to re-run.
+The `watchFn` only executes if the observed inputs change. To observe the inputs use the `obs` function to wrap property reads. This creates subscriptions that will trigger the `watchFn` to re-run.
 
 
 ### Example
@@ -195,7 +195,7 @@ function User(props: {user: User}) {
 
 ## useServerMount$()
 
-Registers a server mount hook that runs only in server when the component is first mounted.
+Registers a server mount hook that runs only in the server when the component is first mounted.
 
 ### Example
 

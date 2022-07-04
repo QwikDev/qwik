@@ -11,7 +11,6 @@ import {
 import { isOnProp } from '../props/props-on';
 import { isArray, isString, ValueOrPromise } from '../util/types';
 import type { ProcessedJSXNode } from '../render/jsx/types/jsx-node';
-import type { QRL } from '../import/qrl.public';
 import { renderComponent } from './render-component';
 import { promiseAll, then } from '../util/promises';
 import type { ContainerState } from './notify-render';
@@ -35,6 +34,7 @@ import type { SubscriptionManager } from '../object/q-object';
 import { getDocument } from '../util/dom';
 import { directGetAttribute, directSetAttribute } from './fast-calls';
 import { HOST_TYPE, SKIP_RENDER_TYPE } from './jsx/jsx-runtime';
+import type { QRLInternal } from '../import/qrl-class';
 
 export const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -310,7 +310,7 @@ export const patchVnode = (
   if (isComponent) {
     if (!dirty && !ctx.$renderQrl$ && !ctx.$element$.hasAttribute(QHostAttr)) {
       setAttribute(rctx, ctx.$element$, QHostAttr, '');
-      ctx.$renderQrl$ = props![OnRenderProp]! as QRL<OnRenderFn<any>>;
+      ctx.$renderQrl$ = props![OnRenderProp]! as QRLInternal<OnRenderFn<any>>;
       dirty = true;
     }
     const promise = dirty ? renderComponent(rctx, ctx) : undefined;
@@ -538,7 +538,7 @@ const createElm = (
   let wait: ValueOrPromise<void>;
   if (isComponent) {
     // Run mount hook
-    const renderQRL = props![OnRenderProp]! as QRL<OnRenderFn<any>>;
+    const renderQRL = props![OnRenderProp]! as QRLInternal<OnRenderFn<any>>;
     ctx.$renderQrl$ = renderQRL;
     directSetAttribute(ctx.$element$, QHostAttr, '');
     wait = renderComponent(rctx, ctx);

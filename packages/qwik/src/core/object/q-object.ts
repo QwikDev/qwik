@@ -24,7 +24,7 @@ export const QObjectRecursive = 1 << 0;
 export const QObjectImmutable = 1 << 1;
 
 /**
- * Creates a proxy which notifies of any writes.
+ * Creates a proxy that notifies of any writes.
  */
 export const getOrCreateProxy = <T extends object>(
   target: T,
@@ -340,6 +340,19 @@ export type NoSerialize<T> = (T & { __no_serialize__: true }) | undefined;
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#noSerialize instead)
 /**
+ * Marks a property on a store as non-serializable.
+ *
+ * At times it is necessary to store values on a store that are non-serializable. Normally this
+ * is a runtime error as Store wants to eagerly report when a non-serializable property is
+ * assigned to it.
+ *
+ * You can use `noSerialize()` to mark a value as non-serializable. The value is persisted in the
+ * Store but does not survive serialization. The implication is that when your application is
+ * resumed, the value of this object will be `undefined`. You will be responsible for recovering
+ * from this.
+ *
+ * See: [noSerialize Tutorial](http://qwik.builder.io/tutorial/store/no-serialize)
+ *
  * @alpha
  */
 // </docs>
@@ -348,16 +361,48 @@ export const noSerialize = <T extends {}>(input: T): NoSerialize<T> => {
   return input as any;
 };
 
+// <docs markdown="../readme.md#immutable">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit ../readme.md#immutable instead)
 /**
+ * Mark an object as immutable, preventing Qwik from creating subscriptions on that object.
+ *
+ * Qwik automatically creates subscriptions on store objects created by `useStore()`. By marking
+ * an object as `immutable`, it hints to Qwik that the properties of this object will not change,
+ * and therefore there is no need to create subscriptions for those objects.
+ *
  * @alpha
  */
+// </docs>
 export const immutable = <T extends {}>(input: T): Readonly<T> => {
   return Object.freeze(input);
 };
 
+// <docs markdown="../readme.md#mutable">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit ../readme.md#mutable instead)
 /**
+ * Mark property as mutable.
+ *
+ * Qwik assumes that all bindings in components are immutable by default. This is done for two
+ * reasons:
+ *
+ * 1. JSX does not allow Qwik runtime to know if a binding is static or mutable.
+ *    `<Example valueA={123} valueB={exp}>` At runtime there is no way to know if `valueA` is
+ * immutable.
+ * 2. If Qwik assumes that properties are immutable, then it can do a better job data-shaking the
+ * amount of code that needs to be serialized to the client.
+ *
+ * Because Qwik assumes that bindings are immutable by default, it needs a way for a developer to
+ * let it know that binding is mutable. `mutable()` function serves that purpose.
+ * `<Example valueA={123} valueB={mutable(exp)}>`. In this case, the Qwik runtime can correctly
+ * recognize that the `Example` props are mutable and need to be serialized.
+ *
+ * See: [Mutable Props Tutorial](http://qwik.builder.io/tutorial/props/mutable) for an example
+ *
  * @alpha
  */
+// </docs>
 export const mutable = <T>(v: T): MutableWrapper<T> => {
   return {
     [MUTABLE]: true,
@@ -375,11 +420,23 @@ export const isConnected = (sub: Subscriber): boolean => {
 
 const MUTABLE = Symbol('mutable');
 
+// <docs markdown="../readme.md#MutableWrapper">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit ../readme.md#MutableWrapper instead)
 /**
- * @public
+ * A marker object returned by `mutable()` to identify that the binding is mutable.
+ *
+ * @alpha
  */
+// </docs>
 export interface MutableWrapper<T> {
+  /**
+   * A marker symbol.
+   */
   [MUTABLE]: true;
+  /**
+   * Mutable value.
+   */
   v: T;
 }
 

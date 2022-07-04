@@ -1,7 +1,20 @@
 [
   {
+    "id": "welcome",
+    "title": "Start here",
+    "apps": [
+      {
+        "id": "overview",
+        "title": "Qwik Tutorial Overview",
+        "enableHtmlOutput": true,
+        "enableClientOutput": true,
+        "enableSsrOutput": false
+      }
+    ]
+  },
+  {
     "id": "introduction",
-    "title": "Qwik Introduction",
+    "title": "Simple Application",
     "apps": [
       {
         "id": "component",
@@ -108,7 +121,7 @@
       },
       {
         "id": "programmatic",
-        "title": "Programmatic Listeners",
+        "title": "useOn() / useOnDocument() / useOnWindow() - Programmatic Listeners",
         "enableHtmlOutput": false,
         "enableClientOutput": false,
         "enableSsrOutput": false
@@ -196,7 +209,7 @@
       },
       {
         "id": "explicit",
-        "title": "Explicit Reactivity",
+        "title": "useWatch() - Explicit Reactivity",
         "enableHtmlOutput": false,
         "enableClientOutput": false,
         "enableSsrOutput": false
@@ -221,22 +234,78 @@
     "title": "Lifecycle Hooks",
     "apps": [
       {
-        "id": "mount",
-        "title": "useMount",
+        "id": "use-mount",
+        "title": "useMount$()",
         "enableHtmlOutput": false,
         "enableClientOutput": false,
         "enableSsrOutput": false
       },
       {
-        "id": "cleanup",
-        "title": "useCleanup",
+        "id": "use-un-mount",
+        "title": "useUnMount$()",
         "enableHtmlOutput": false,
         "enableClientOutput": false,
         "enableSsrOutput": false
       },
       {
-        "id": "client-effect",
-        "title": "useClientEffect",
+        "id": "use-cleanup",
+        "title": "useCleanup$()",
+        "enableHtmlOutput": false,
+        "enableClientOutput": false,
+        "enableSsrOutput": false
+      },
+      {
+        "id": "use-client-effect",
+        "title": "useClientEffect$()",
+        "enableHtmlOutput": false,
+        "enableClientOutput": false,
+        "enableSsrOutput": false
+      },
+      {
+        "id": "use-watch",
+        "title": "useWatch$()",
+        "enableHtmlOutput": false,
+        "enableClientOutput": false,
+        "enableSsrOutput": false
+      },
+      {
+        "id": "use-wait-on",
+        "title": "useWaitOn()",
+        "enableHtmlOutput": false,
+        "enableClientOutput": false,
+        "enableSsrOutput": false
+      },
+      {
+        "id": "use-ref",
+        "title": "useRef()",
+        "enableHtmlOutput": false,
+        "enableClientOutput": false,
+        "enableSsrOutput": false
+      },
+      {
+        "id": "use-document",
+        "title": "useDocument()",
+        "enableHtmlOutput": false,
+        "enableClientOutput": false,
+        "enableSsrOutput": false
+      },
+      {
+        "id": "use-host-element",
+        "title": "useHostElement()",
+        "enableHtmlOutput": false,
+        "enableClientOutput": false,
+        "enableSsrOutput": false
+      },
+      {
+        "id": "use-resume",
+        "title": "useResume$()",
+        "enableHtmlOutput": true,
+        "enableClientOutput": true,
+        "enableSsrOutput": true
+      },
+      {
+        "id": "use-on",
+        "title": "useOn() / useOnDocument() / useOnWindow()",
         "enableHtmlOutput": false,
         "enableClientOutput": false,
         "enableSsrOutput": false
@@ -296,14 +365,14 @@
     "apps": [
       {
         "id": "styles",
-        "title": "Styles",
+        "title": "useStyles() - Styles",
         "enableHtmlOutput": false,
         "enableClientOutput": false,
         "enableSsrOutput": false
       },
       {
         "id": "scoped",
-        "title": "Scoped styles",
+        "title": "useScopedStyles() - Scoped styles",
         "enableHtmlOutput": false,
         "enableClientOutput": false,
         "enableSsrOutput": false

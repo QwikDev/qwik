@@ -1,5 +1,4 @@
 import { getProxyTarget, noSerialize, NoSerialize } from '../object/q-object';
-import type { QRL } from '../import/qrl.public';
 import { getContext } from '../props/props';
 import { newInvokeContext } from './use-core';
 import { logDebug, logError } from '../util/log';
@@ -14,6 +13,7 @@ import { ContainerState, handleWatch } from '../render/notify-render';
 import { useResumeQrl, useVisibleQrl } from './use-on';
 import { implicit$FirstArg } from '../util/implicit_dollar';
 import { assertDefined } from '../assert/assert';
+import type { QRL } from '../import/qrl.public';
 
 export const WatchFlagsIsEffect = 1 << 0;
 export const WatchFlagsIsWatch = 1 << 1;
@@ -34,7 +34,7 @@ export type ServerFn = () => ValueOrPromise<void | (() => void)>;
  * @alpha
  */
 export interface WatchDescriptor {
-  qrl: QRL<WatchFn>;
+  qrl: QRLInternal<WatchFn>;
   el: Element;
   f: number;
   i: number;
@@ -59,6 +59,10 @@ export type UseEffectRunOptions = 'visible' | 'load';
  * @alpha
  */
 export interface UseEffectOptions {
+  /**
+   * - `visible`: run the effect when the element is visible.
+   * - `load`: eagerly run the effect when the application resumes.
+   */
   run?: UseEffectRunOptions;
 }
 
@@ -71,9 +75,9 @@ export interface UseEffectOptions {
  * Use `useWatch` to observe changes on a set of inputs, and then re-execute the `watchFn` when
  * those inputs change.
  *
- * The `watchFn` only executes if the observed inputs change. To observe the inputs use the `obs`
- * function to wrap property reads. This creates subscriptions which will trigger the `watchFn`
- * to re-run.
+ * The `watchFn` only executes if the observed inputs change. To observe the inputs, use the
+ * `obs` function to wrap property reads. This creates subscriptions that will trigger the
+ * `watchFn` to rerun.
  *
  * @see `Tracker`
  *
@@ -130,7 +134,7 @@ export const useWatchQrl = (qrl: QRL<WatchFn>, opts?: UseEffectOptions): void =>
     const el = ctx.$hostElement$;
     const containerState = ctx.$renderCtx$.$containerState$;
     const watch: WatchDescriptor = {
-      qrl,
+      qrl: qrl as QRLInternal,
       el,
       f: WatchFlagsIsDirty | WatchFlagsIsWatch,
       i,
@@ -154,9 +158,9 @@ export const useWatchQrl = (qrl: QRL<WatchFn>, opts?: UseEffectOptions): void =>
  * Use `useWatch` to observe changes on a set of inputs, and then re-execute the `watchFn` when
  * those inputs change.
  *
- * The `watchFn` only executes if the observed inputs change. To observe the inputs use the `obs`
- * function to wrap property reads. This creates subscriptions which will trigger the `watchFn`
- * to re-run.
+ * The `watchFn` only executes if the observed inputs change. To observe the inputs, use the
+ * `obs` function to wrap property reads. This creates subscriptions that will trigger the
+ * `watchFn` to rerun.
  *
  * @see `Tracker`
  *
@@ -241,7 +245,7 @@ export const useClientEffectQrl = (qrl: QRL<WatchFn>, opts?: UseEffectOptions): 
   if (!get) {
     const el = ctx.$hostElement$;
     const watch: WatchDescriptor = {
-      qrl,
+      qrl: qrl as QRLInternal,
       el,
       f: WatchFlagsIsEffect,
       i,
@@ -289,7 +293,8 @@ export const useClientEffect$ = /*#__PURE__*/ implicit$FirstArg(useClientEffectQ
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#useServerMount instead)
 /**
- * Register's a server mount hook, that runs only in server when the component is first mounted.
+ * Register's a server mount hook that runs only in the server when the component is first
+ * mounted.
  *
  * ## Example
  *
@@ -340,7 +345,8 @@ export const useServerMountQrl = (mountQrl: QRL<ServerFn>): void => {
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#useServerMount instead)
 /**
- * Register's a server mount hook, that runs only in server when the component is first mounted.
+ * Register's a server mount hook that runs only in the server when the component is first
+ * mounted.
  *
  * ## Example
  *
@@ -382,19 +388,20 @@ export const useServerMount$ = /*#__PURE__*/ implicit$FirstArg(useServerMountQrl
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#useClientMount instead)
 /**
- * Register's a client mount hook, that runs only in client when the component is first mounted.
+ * Register's a client mount hook that runs only in the client when the component is first
+ * mounted.
  *
  * ## Example
  *
  * ```tsx
  * const Cmp = component$(() => {
  *   const store = useStore({
- *     hash: ''
+ *     hash: '',
  *   });
  *
  *   useClientMount$(async () => {
  *     // This code will ONLY run once in the client, when the component is mounted
- *     store.hash = document.location.hash
+ *     store.hash = document.location.hash;
  *   });
  *
  *   return (
@@ -425,19 +432,20 @@ export const useClientMountQrl = (mountQrl: QRL<ServerFn>): void => {
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#useClientMount instead)
 /**
- * Register's a client mount hook, that runs only in client when the component is first mounted.
+ * Register's a client mount hook that runs only in the client when the component is first
+ * mounted.
  *
  * ## Example
  *
  * ```tsx
  * const Cmp = component$(() => {
  *   const store = useStore({
- *     hash: ''
+ *     hash: '',
  *   });
  *
  *   useClientMount$(async () => {
  *     // This code will ONLY run once in the client, when the component is mounted
- *     store.hash = document.location.hash
+ *     store.hash = document.location.hash;
  *   });
  *
  *   return (
@@ -459,8 +467,7 @@ export const useClientMount$ = /*#__PURE__*/ implicit$FirstArg(useClientMountQrl
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#useMount instead)
 /**
- * Register's a mount hook, that runs both in the server and the client when the component is
- * first mounted.
+ * Register a server mount hook that runs only in the server when the component is first mounted.
  *
  * ## Example
  *
@@ -473,7 +480,7 @@ export const useClientMount$ = /*#__PURE__*/ implicit$FirstArg(useClientMountQrl
  *   useMount$(async () => {
  *     // This code will run once whenever a component is mounted in the server, or in the client
  *     const res = await fetch('weather-api.example');
- *     const json = await res.json() as any;
+ *     const json = (await res.json()) as any;
  *     store.temp = json.temp;
  *   });
  *
@@ -501,8 +508,7 @@ export const useMountQrl = (mountQrl: QRL<ServerFn>): void => {
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#useMount instead)
 /**
- * Register's a mount hook, that runs both in the server and the client when the component is
- * first mounted.
+ * Register a server mount hook that runs only in the server when the component is first mounted.
  *
  * ## Example
  *
@@ -515,7 +521,7 @@ export const useMountQrl = (mountQrl: QRL<ServerFn>): void => {
  *   useMount$(async () => {
  *     // This code will run once whenever a component is mounted in the server, or in the client
  *     const res = await fetch('weather-api.example');
- *     const json = await res.json() as any;
+ *     const json = (await res.json()) as any;
  *     store.temp = json.temp;
  *   });
  *
@@ -606,12 +612,12 @@ export const destroyWatch = (watch: WatchDescriptor) => {
  *
  * The `Tracker` is passed into the `watchFn` of `useWatch`. It is intended to be used to wrap
  * state objects in a read proxy which signals to Qwik which properties should be watched for
- * changes. A change to any of the properties cause the `watchFn` to re-run.
+ * changes. A change to any of the properties causes the `watchFn` to rerun.
  *
  * ## Example
  *
  * The `obs` passed into the `watchFn` is used to mark `state.count` as a property of interest.
- * Any changes to the `state.count` property will cause the `watchFn` to re-run.
+ * Any changes to the `state.count` property will cause the `watchFn` to rerun.
  *
  * ```tsx
  * const Cmp = component$(() => {

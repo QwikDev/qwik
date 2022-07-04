@@ -1,0 +1,9 @@
+---
+title: useDocument()
+layout: tutorial
+---
+
+`useDocument()` returns the current `document`. In the browser `useDocument()` is identical to `document` (as browser only has one document). On the server, there is no global document; therefore, referring to `document` is `undefined`. Additionally, the server may be processing many different requests and therefore may have more than one `document` at a time. `useDocument()` on the server returns the document associated with the current application.
+
+IMPORTANT: Qwik currently uses [domino](https://www.npmjs.com/package/domino) on the server and `useDocument()` returns the domino instance. This is a temporary solution until Qwik switches to string concatenation on the server, in which case the `useDocument()` may be deprecated.
+

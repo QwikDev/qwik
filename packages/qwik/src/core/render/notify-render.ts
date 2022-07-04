@@ -160,6 +160,8 @@ const scheduleFrame = (
 };
 
 /**
+ * Low-level API used by the Optimizer to process `useWatch$()` API. This method
+ * is not intended to be used by developers.
  * @alpha
  */
 export const handleWatch = () => {

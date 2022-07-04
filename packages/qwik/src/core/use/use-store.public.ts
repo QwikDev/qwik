@@ -11,14 +11,14 @@ export interface UseStoreOptions {
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#useStore instead)
 /**
- * Creates a object that Qwik can track across serializations.
+ * Creates an object that Qwik can track across serializations.
  *
- * Use `useStore` to create state for your application. The return object is a proxy which has a
- * unique ID. The ID of the object is used in the `QRL`s to refer to the store.
+ * Use `useStore` to create a state for your application. The returned object is a proxy that has
+ * a unique ID. The ID of the object is used in the `QRL`s to refer to the store.
  *
  * ## Example
  *
- * Example showing how `useStore` is used in Counter example to keep track of count.
+ * Example showing how `useStore` is used in Counter example to keep track of the count.
  *
  * ```tsx
  * const Stores = component$(() => {
@@ -98,7 +98,7 @@ export interface Ref<T> {
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#useRef instead)
 /**
- * It's a very thin wrapper around `useStore()` including the proper type signature to be passed
+ * It's a very thin wrapper around `useStore()`, including the proper type signature to be passed
  * to the `ref` property in JSX.
  *
  * ```tsx

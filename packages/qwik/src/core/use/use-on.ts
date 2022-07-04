@@ -1,3 +1,4 @@
+import type { QRLInternal } from '../import/qrl-class';
 import type { QRL } from '../import/qrl.public';
 import { getContext } from '../props/props';
 import { qPropWriteQRL } from '../props/props-on';
@@ -15,7 +16,7 @@ import { WatchDescriptor, WatchFlagsIsCleanup } from './use-watch';
  * Invoked when the component is destroyed (removed from render tree), or paused as part of the
  * SSR serialization.
  *
- * Can be used to release resouces, abort network requets, stop timers...
+ * It can be used to release resources, abort network requests, stop timers...
  *
  * ```tsx
  * const Cmp = component$(() => {
@@ -36,7 +37,7 @@ export const useCleanupQrl = (unmountFn: QRL<() => void>): void => {
   if (!get) {
     const el = ctx.$hostElement$;
     const watch: WatchDescriptor = {
-      qrl: unmountFn,
+      qrl: unmountFn as QRLInternal,
       el,
       f: WatchFlagsIsCleanup,
       i,
@@ -55,7 +56,7 @@ export const useCleanupQrl = (unmountFn: QRL<() => void>): void => {
  * Invoked when the component is destroyed (removed from render tree), or paused as part of the
  * SSR serialization.
  *
- * Can be used to release resouces, abort network requets, stop timers...
+ * It can be used to release resources, abort network requests, stop timers...
  *
  * ```tsx
  * const Cmp = component$(() => {
@@ -72,6 +73,22 @@ export const useCleanupQrl = (unmountFn: QRL<() => void>): void => {
  */
 // </docs>
 export const useCleanup$ = /*#__PURE__*/ implicit$FirstArg(useCleanupQrl);
+
+/**
+ * @alpha
+ */
+export type UseResumeRunOptions = 'visible' | 'load';
+
+/**
+ * @alpha
+ */
+export interface UseResumeOptions {
+  /**
+   * - `visible`: run the effect when the element is visible.
+   * - `load`: eagerly run the effect when the application resumes.
+   */
+  run?: UseResumeRunOptions;
+}
 
 // <docs markdown="../readme.md#useResume">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -100,7 +117,8 @@ export const useCleanup$ = /*#__PURE__*/ implicit$FirstArg(useCleanupQrl);
  * @alpha
  */
 // </docs>
-export const useResumeQrl = (resumeFn: QRL<() => void>): void => useOn('qinit', resumeFn);
+export const useResumeQrl = (resumeFn: QRL<() => void>, options: UseResumeOptions = {}): void =>
+  useOn(options.run == 'load' ? 'qinit' : 'qvisible', resumeFn);
 
 // <docs markdown="../readme.md#useResume">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -135,7 +153,7 @@ export const useResume$ = /*#__PURE__*/ implicit$FirstArg(useResumeQrl);
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#useVisible instead)
 /**
- * A lazy-loadable reference to a component's on visible hook.
+ * A lazy-loadable reference to a component's on the visible hook.
  *
  * The hook is lazily invoked when the component becomes visible in the browser viewport.
  *
@@ -167,7 +185,7 @@ export const useVisibleQrl = (resumeFn: QRL<() => void>): void => useOn('qvisibl
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#useVisible instead)
 /**
- * A lazy-loadable reference to a component's on visible hook.
+ * A lazy-loadable reference to a component's on the visible hook.
  *
  * The hook is lazily invoked when the component becomes visible in the browser viewport.
  *
@@ -202,7 +220,8 @@ export const useVisible$ = /*#__PURE__*/ implicit$FirstArg(useVisibleQrl);
  * Register a listener on the current component's host element.
  *
  * Used to programmatically add event listeners. Useful from custom `use*` methods, which do not
- * have access to the JSX. Otherwise it's adding a JSX listener in the `<Host>` is a better idea.
+ * have access to the JSX. Otherwise, it's adding a JSX listener in the `<Host>` is a better
+ * idea.
  *
  * @see `useOn`, `useOnWindow`, `useOnDocument`.
  *
@@ -227,8 +246,8 @@ export const useOn = (event: string, eventQrl: QRL<(ev: Event) => void>) =>
  * function useScroll() {
  *   useOnDocument(
  *     'scroll',
- *     $(() => {
- *       console.log('body scrolled');
+ *     $((event) => {
+ *       console.log('body scrolled', event);
  *     })
  *   );
  * }
@@ -260,8 +279,8 @@ export const useOnDocument = (event: string, eventQrl: QRL<(ev: Event) => void>)
  * function useAnalytics() {
  *   useOnWindow(
  *     'popstate',
- *     $(() => {
- *       console.log('navigation happened');
+ *     $((event) => {
+ *       console.log('navigation happened', event);
  *       // report to analytics
  *     })
  *   );

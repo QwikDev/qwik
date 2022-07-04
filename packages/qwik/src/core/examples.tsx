@@ -6,6 +6,11 @@
 // it to the desired comment location
 //
 
+import { component$, On$Props } from './component/component.public';
+import { qrl } from './import/qrl';
+import { $, QRL } from './import/qrl.public';
+import { Host } from './render/jsx/host.public';
+import { useHostElement } from './use/use-host-element.public';
 import {
   useCleanup$,
   useOn,
@@ -14,17 +19,16 @@ import {
   useResume$,
   useVisible$,
 } from './use/use-on';
-import { Host } from './render/jsx/host.public';
-import { $, QRL } from './import/qrl.public';
+import { useRef, useStore } from './use/use-store.public';
+import { useStyles$ } from './use/use-styles';
 import {
   useClientEffect$,
-  useServerMount$,
   useClientMount$,
   useMount$,
+  useServerMount$,
   useWatch$,
 } from './use/use-watch';
-import { useHostElement } from './use/use-host-element.public';
-import { useRef, useStore } from './use/use-store.public';
+import { implicit$FirstArg } from './util/implicit_dollar';
 
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
@@ -132,8 +136,8 @@ export const CmpInline = component$(() => {
   function useClick() {
     useOn(
       'click',
-      $((ev) => {
-        console.log('clicked host element', ev);
+      $((event) => {
+        console.log('clicked host element', event);
       })
     );
   }
@@ -151,8 +155,8 @@ export const CmpInline = component$(() => {
   function useScroll() {
     useOnDocument(
       'scroll',
-      $((ev) => {
-        console.log('body scrolled', ev);
+      $((event) => {
+        console.log('body scrolled', event);
       })
     );
   }
@@ -170,8 +174,8 @@ export const CmpInline = component$(() => {
   function useAnalytics() {
     useOnWindow(
       'popstate',
-      $((ev) => {
-        console.log('navigation happened', ev);
+      $((event) => {
+        console.log('navigation happened', event);
         // report to analytics
       })
     );
@@ -276,6 +280,38 @@ export const CmpInline = component$(() => {
   // </docs>
   return Cmp;
 };
+
+//
+// <docs anchor="On$Props">
+export const App = component$(() => {
+  const goodbyeQrl = $(() => alert('Good Bye!'));
+
+  // This is not-canonical usage of On$Props. It is here only as an example.
+  const myComponentProps: On$Props<MyComponentProps> & MyComponentProps = {
+    goodbyeQrl: goodbyeQrl,
+    hello$: (name) => alert('Hello ' + name),
+  };
+  return (
+    <div>
+      <MyComponent {...myComponentProps} />
+    </div>
+  );
+});
+
+interface MyComponentProps {
+  goodbyeQrl?: QRL<() => void>;
+  helloQrl?: QRL<(name: string) => void>;
+}
+export const MyComponent = component$((props: MyComponentProps) => {
+  return (
+    <div>
+      <button onClickQrl={props.goodbyeQrl}>hello</button>
+      <button onClick$={async () => await props.helloQrl?.invoke('World')}>good bye</button>
+    </div>
+  );
+});
+// </docs>
+//
 
 () => {
   // <docs anchor="use-client-mount">
@@ -446,7 +482,7 @@ export const CmpInline = component$(() => {
 // <docs anchor="qrl-usage-$">
 useOnDocument(
   'mousemove',
-  $((ev) => console.log('mousemove', ev))
+  $((event) => console.log('mousemove', event))
 );
 // </docs>
 
@@ -472,13 +508,12 @@ function doExtraStuff() {
 }
 
 (async function () {
-  const element: Element = null!;
   // <docs anchor="qrl-usage-import">
   // Assume you have QRL reference to a greet function
   const lazyGreet: QRL<() => void> = $(() => console.log('Hello World!'));
 
   // Use `qrlImport` to load / resolve the reference.
-  const greet: () => void = await lazyGreet.resolve(element);
+  const greet: () => void = await lazyGreet.resolve();
 
   //  Invoke it
   greet();
@@ -487,10 +522,6 @@ function doExtraStuff() {
 
 // <docs anchor="qrl-capturing-rules">
 import { importedFn } from './import/example';
-import { component$ } from './component/component.public';
-import { useStyles$ } from './use/use-styles';
-import { qrl } from './import/qrl';
-import { implicit$FirstArg } from './util/implicit_dollar';
 
 export const greet = () => console.log('greet');
 function topLevelFn() {}

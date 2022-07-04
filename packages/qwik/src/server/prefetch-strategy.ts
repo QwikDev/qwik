@@ -6,7 +6,7 @@ import type {
   RenderToStringOptions,
   SnapshotResult,
 } from './types';
-import { isQrl } from '../core/import/qrl-class';
+import { isQrl, QRLInternal } from '../core/import/qrl-class';
 import type { SymbolMapper } from '../optimizer/src/types';
 
 export function getPrefetchResources(
@@ -64,7 +64,7 @@ function getAutoPrefetch(
     // manifest already prioritized the symbols at build time
     for (const prioritizedSymbolName in mapper) {
       const hasSymbol = listeners.some((l) => {
-        return l.qrl.getHash() === prioritizedSymbolName;
+        return (l.qrl as QRLInternal).getHash() === prioritizedSymbolName;
       });
 
       if (hasSymbol) {

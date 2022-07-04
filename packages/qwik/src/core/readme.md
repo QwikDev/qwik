@@ -30,15 +30,25 @@ See also: `component`, `useCleanup`, `onResume`, `onPause`, `useOn`, `useOnDocum
 
 @public
 
+# `On$Props`
+
+The type used to autogenerate the `$` suffixed properties on the component props.
+
+When declaring component props, it is not possible to pass in closures. Instead, the closures need to be passed in as QRLs. This is usually done automatically by the Optimizer by suffixing the property with `$`. This type automatically generates the `$`-suffixed properties from `Qrl`-suffixed properties.
+
+<docs code="./examples.tsx#On$Props"/>
+
+@public
+
 # `useStore`
 
-Creates a object that Qwik can track across serializations.
+Creates an object that Qwik can track across serializations.
 
-Use `useStore` to create state for your application. The return object is a proxy which has a unique ID. The ID of the object is used in the `QRL`s to refer to the store.
+Use `useStore` to create a state for your application. The returned object is a proxy that has a unique ID. The ID of the object is used in the `QRL`s to refer to the store.
 
 ## Example
 
-Example showing how `useStore` is used in Counter example to keep track of count.
+Example showing how `useStore` is used in Counter example to keep track of the count.
 
 <docs code="./examples.tsx#use-store"/>
 
@@ -46,7 +56,7 @@ Example showing how `useStore` is used in Counter example to keep track of count
 
 # `useRef`
 
-It's a very thin wrapper around `useStore()` including the proper type signature to be passed to the `ref` property in JSX.
+It's a very thin wrapper around `useStore()`, including the proper type signature to be passed to the `ref` property in JSX.
 
 ```tsx
 export function useRef<T = Element>(current?: T): Ref<T> {
@@ -66,7 +76,7 @@ Reruns the `watchFn` when the observed inputs change.
 
 Use `useWatch` to observe changes on a set of inputs, and then re-execute the `watchFn` when those inputs change.
 
-The `watchFn` only executes if the observed inputs change. To observe the inputs use the `obs` function to wrap property reads. This creates subscriptions which will trigger the `watchFn` to re-run.
+The `watchFn` only executes if the observed inputs change. To observe the inputs, use the `obs` function to wrap property reads. This creates subscriptions that will trigger the `watchFn` to rerun.
 
 @see `Tracker`
 
@@ -85,11 +95,11 @@ The `useWatch` function is used to observe the `state.count` property. Any chang
 
 Used to signal to Qwik which state should be watched for changes.
 
-The `Tracker` is passed into the `watchFn` of `useWatch`. It is intended to be used to wrap state objects in a read proxy which signals to Qwik which properties should be watched for changes. A change to any of the properties cause the `watchFn` to re-run.
+The `Tracker` is passed into the `watchFn` of `useWatch`. It is intended to be used to wrap state objects in a read proxy which signals to Qwik which properties should be watched for changes. A change to any of the properties causes the `watchFn` to rerun.
 
 ## Example
 
-The `obs` passed into the `watchFn` is used to mark `state.count` as a property of interest. Any changes to the `state.count` property will cause the `watchFn` to re-run.
+The `obs` passed into the `watchFn` is used to mark `state.count` as a property of interest. Any changes to the `state.count` property will cause the `watchFn` to rerun.
 
 <docs code="./examples.tsx#use-watch-simple"/>
 
@@ -105,7 +115,7 @@ The `obs` passed into the `watchFn` is used to mark `state.count` as a property 
 
 # `useMount`
 
-Register's a mount hook, that runs both in the server and the client when the component is first mounted.
+Register a server mount hook that runs only in the server when the component is first mounted.
 
 ## Example
 
@@ -116,7 +126,7 @@ Register's a mount hook, that runs both in the server and the client when the co
 
 # `useClientMount`
 
-Register's a client mount hook, that runs only in client when the component is first mounted.
+Register's a client mount hook that runs only in the client when the component is first mounted.
 
 ## Example
 
@@ -128,7 +138,7 @@ Register's a client mount hook, that runs only in client when the component is f
 
 # `useServerMount`
 
-Register's a server mount hook, that runs only in server when the component is first mounted.
+Register's a server mount hook that runs only in the server when the component is first mounted.
 
 ## Example
 
@@ -161,7 +171,7 @@ A lazy-loadable reference to a component's cleanup hook.
 
 Invoked when the component is destroyed (removed from render tree), or paused as part of the SSR serialization.
 
-Can be used to release resouces, abort network requets, stop timers...
+It can be used to release resources, abort network requests, stop timers...
 
 <docs code="./examples.tsx#use-cleanup"/>
 
@@ -184,7 +194,7 @@ Only called once.
 
 # `useVisible`
 
-A lazy-loadable reference to a component's on visible hook.
+A lazy-loadable reference to a component's on the visible hook.
 
 The hook is lazily invoked when the component becomes visible in the browser viewport.
 
@@ -201,7 +211,7 @@ Only called once.
 
 Register a listener on the current component's host element.
 
-Used to programmatically add event listeners. Useful from custom `use*` methods, which do not have access to the JSX. Otherwise it's adding a JSX listener in the `<Host>` is a better idea.
+Used to programmatically add event listeners. Useful from custom `use*` methods, which do not have access to the JSX. Otherwise, it's adding a JSX listener in the `<Host>` is a better idea.
 
 @see `useOn`, `useOnWindow`, `useOnDocument`.
 
@@ -241,17 +251,21 @@ NOTE: `useHostElement` method can only be used in the synchronous portion of the
 
 @public
 
-# `untrack`
-
-@alpha
-
 # `noSerialize`
+
+Marks a property on a store as non-serializable.
+
+At times it is necessary to store values on a store that are non-serializable. Normally this is a runtime error as Store wants to eagerly report when a non-serializable property is assigned to it.
+
+You can use `noSerialize()` to mark a value as non-serializable. The value is persisted in the Store but does not survive serialization. The implication is that when your application is resumed, the value of this object will be `undefined`. You will be responsible for recovering from this.
+
+See: [noSerialize Tutorial](http://qwik.builder.io/tutorial/store/no-serialize)
 
 @alpha
 
 # `useLexicalScope`
 
-Used by the Qwik Optimizer to restore the lexical scoped variables.
+Used by the Qwik Optimizer to restore the lexically scoped variables.
 
 This method should not be present in the application source code.
 
@@ -275,11 +289,11 @@ Creating `QRL` is done using `$(...)` function. `$(...)` is a special marker for
 
 <docs code="./examples.tsx#qrl-usage-$"/>
 
-In the above code the Qwik Optimizer detects `$(...)` and transforms the code as shown below:
+In the above code, the Qwik Optimizer detects `$(...)` and transforms the code as shown below:
 
 <docs code="./examples.tsx#qrl-usage-$-optimized"/>
 
-NOTE: `qrl(...)` is a result of Qwik Optimizer transformation. You should never have to invoke this function directly in your application. The `qrl(...)` function should be invoked only after Qwik Optimizer transformation.
+NOTE: `qrl(...)` is a result of Qwik Optimizer transformation. You should never have to invoke this function directly in your application. The `qrl(...)` function should be invoked only after the Qwik Optimizer transformation.
 
 ## Using `QRL`s
 
@@ -287,11 +301,11 @@ Use `QRL` type in your application when you want to get a lazy-loadable referenc
 
 <docs code="./examples.tsx#qrl-usage-type"/>
 
-In the above example the way to think about the code is that you are not asking for a callback function, but rather a reference to a lazy-loadable callback function. Specifically the function loading should be delayed until it is actually needed. In the above example the function would not load until after a `mousemove` event on `document` fires.
+In the above example, the way to think about the code is that you are not asking for a callback function but rather a reference to a lazy-loadable callback function. Specifically, the function loading should be delayed until it is actually needed. In the above example, the function would not load until after a `mousemove` event on `document` fires.
 
 ## Resolving `QRL` references
 
-At times it may be necessary to resolve a `QRL` reference to the actual value. This can be performed using `qrlImport(..)` function.
+At times it may be necessary to resolve a `QRL` reference to the actual value. This can be performed using `QRL.resolve(..)` function.
 
 <docs code="./examples.tsx#qrl-usage-import"/>
 
@@ -299,7 +313,7 @@ NOTE: `element` is needed because `QRL`s are relative and need a base location t
 
 ## Question: Why not just use `import()`?
 
-At first glance `QRL` serves the same purpose as `import()`. However, there are three subtle differences that need to be taken into account.
+At first glance, `QRL` serves the same purpose as `import()`. However, there are three subtle differences that need to be taken into account.
 
 1. `QRL`s must be serializable into HTML.
 2. `QRL`s must be resolved by framework relative to `q:base`.
@@ -323,9 +337,9 @@ The above code needs to be serialized into DOM such as:
 
 1. Notice there is no easy way to extract chunk (`./chunk-abc.js`) and symbol (`onClick`) into HTML.
 2. Notice that even if you could extract it, the `import('./chunk-abc.js')` would become relative to where the `import()` file is declared. Because it is our framework doing the load, the `./chunk-abc.js` would become relative to the framework file. This is not correct, as it should be relative to the original file generated by the bundler.
-3. Next the framework needs to resolve the `./chunk-abc.js` and needs a base location that is encoded in the HTML.
+3. Next, the framework needs to resolve the `./chunk-abc.js` and needs a base location that is encoded in the HTML.
 4. The QRL needs to be able to capture lexically scoped variables. (`import()` only allows loading top-level symbols which don't capture variables.)
-5. As a developer you don't want to think about `import` and naming of the chunks and symbols. You just want to say, this should be lazy.
+5. As a developer, you don't want to think about `import` and naming the chunks and symbols. You just want to say: "this should be lazy."
 
 These are the main reasons why Qwik introduces its own concept of `QRL`.
 
@@ -341,11 +355,11 @@ Use `$(...)` to tell Qwik Optimizer to extract the expression in `$(...)` into a
 
 @see `implicit$FirstArg` for additional `____$(...)` rules.
 
-In this example `$(...)` is used to capture the callback function of `onmousemove` into lazy-loadable reference. This allows the code to refer to the function without actually loading the function. In this example, the callback function does not get loaded until `mousemove` event fires.
+In this example, `$(...)` is used to capture the callback function of `onmousemove` into a lazy-loadable reference. This allows the code to refer to the function without actually loading the function. In this example, the callback function does not get loaded until `mousemove` event fires.
 
 <docs code="./examples.tsx#qrl-usage-$"/>
 
-In this code the Qwik Optimizer detects `$(...)` and transforms the code into:
+In this code, the Qwik Optimizer detects `$(...)` and transforms the code into:
 
 <docs code="./examples.tsx#qrl-usage-$-optimized"/>
 
@@ -354,8 +368,8 @@ In this code the Qwik Optimizer detects `$(...)` and transforms the code into:
 The Qwik Optimizer places special rules on functions that can be lazy-loaded.
 
 1. The expression of the `$(expression)` function must be importable by the system. (expression shows up in `import` or has `export`)
-2. If inlined function then all lexically captured values must be:
-   - importable (vars shows up in `import` or has `export`)
+2. If inlined function, then all lexically captured values must be:
+   - importable (vars show up in `import`s or `export`s)
    - const (The capturing process differs from JS capturing in that writing to captured variables does not update them, and therefore writes are forbidden. The best practice is that all captured variables are constants.)
    - Must be runtime serializable.
 
@@ -372,13 +386,13 @@ It is very common for functions to take a lazy-loadable resource as a first argu
 
 This means that `foo$(arg0)` and `foo($(arg0))` are equivalent with respect to Qwik Optimizer. The former is just a shorthand for the latter.
 
-For example these function call are equivalent:
+For example, these function calls are equivalent:
 
 - `component$(() => {...})` is same as `onRender($(() => {...}))`
 
 <docs code="./examples.tsx#implicit$FirstArg"/>
 
-@param fn - function that should have its first argument automatically `$`.
+@param fn - a function that should have its first argument automatically `$`.
 @alpha
 
 # `qrl`
@@ -396,7 +410,7 @@ This function should be used by the Qwik Optimizer only. The function should not
 
 # `useDocument`
 
-Retrieves the document of the current element. It's important to use this method instead of accessing `document` directly, because during SSR, the global document might not exist.
+Retrieves the document of the current element. It's important to use this method instead of accessing `document` directly because during SSR, the global document might not exist.
 
 NOTE: `useDocument` method can only be used in the synchronous portion of the callback (before any `await` statements.)
 
@@ -405,5 +419,36 @@ NOTE: `useDocument` method can only be used in the synchronous portion of the ca
 # `pauseContainer`
 
 Serialize the current state of the application into DOM
+
+@alpha
+
+# `immutable`
+
+Mark an object as immutable, preventing Qwik from creating subscriptions on that object.
+
+Qwik automatically creates subscriptions on store objects created by `useStore()`. By marking an object as `immutable`, it hints to Qwik that the properties of this object will not change, and therefore there is no need to create subscriptions for those objects.
+
+@alpha
+
+# `mutable`
+
+Mark property as mutable.
+
+Qwik assumes that all bindings in components are immutable by default. This is done for two reasons:
+
+1. JSX does not allow Qwik runtime to know if a binding is static or mutable.
+   `<Example valueA={123} valueB={exp}>` At runtime there is no way to know if `valueA` is immutable.
+2. If Qwik assumes that properties are immutable, then it can do a better job data-shaking the amount of code that needs to be serialized to the client.
+
+Because Qwik assumes that bindings are immutable by default, it needs a way for a developer to let it know that binding is mutable. `mutable()` function serves that purpose.
+`<Example valueA={123} valueB={mutable(exp)}>`. In this case, the Qwik runtime can correctly recognize that the `Example` props are mutable and need to be serialized.
+
+See: [Mutable Props Tutorial](http://qwik.builder.io/tutorial/props/mutable) for an example
+
+@alpha
+
+# `MutableWrapper`
+
+A marker object returned by `mutable()` to identify that the binding is mutable.
 
 @alpha

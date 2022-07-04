@@ -18,7 +18,7 @@ export const onRequestGet = async ({ request, next, waitUntil }: any) => {
     }
 
     if (url.pathname === '/tutorial') {
-      return Response.redirect(new URL('/tutorial/introduction/component', url));
+      return Response.redirect(new URL('/tutorial/welcome/overview', url));
     }
 
     if (url.pathname === '/chat') {

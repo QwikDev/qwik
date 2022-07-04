@@ -65,53 +65,33 @@ export interface AriaAttributes {
 // @public
 export const component$: <PROPS extends {}>(onMount: OnRenderFn<PROPS>, options?: ComponentOptions) => Component<PROPS>;
 
-// @public (undocumented)
+// @public
 export type Component<PROPS extends {}> = FunctionComponent<PublicProps<PROPS>>;
 
-// @alpha (undocumented)
-export interface ComponentCtx {
-    // (undocumented)
-    $hostElement$: Element;
-    // Warning: (ae-forgotten-export) The symbol "ProcessedJSXNode" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    $slots$: ProcessedJSXNode[];
-    // (undocumented)
-    $styleClass$: string | undefined;
-    // (undocumented)
-    $styleHostClass$: string | undefined;
-    // (undocumented)
-    $styleId$: string | undefined;
-}
-
-// @public (undocumented)
+// @public
 export interface ComponentOptions {
-    // (undocumented)
     tagName?: string;
 }
 
 // @public
 export const componentQrl: <PROPS extends {}>(onRenderQrl: QRL<OnRenderFn<PROPS>>, options?: ComponentOptions) => Component<PROPS>;
 
-// @alpha (undocumented)
+// @alpha
 export interface Context<STATE extends object> {
-    // (undocumented)
+    readonly __brand_context_type__: STATE;
     readonly id: string;
-    // (undocumented)
-    readonly _v: STATE;
 }
 
-// @public (undocumented)
+// @alpha
 export interface CorePlatform {
     chunkForSymbol: (symbolName: string) => [symbol: string, chunk: string] | undefined;
     importSymbol: (element: Element, url: string | URL, symbol: string) => ValueOrPromise<any>;
     isServer: boolean;
-    // (undocumented)
     nextTick: (fn: () => any) => Promise<any>;
     raf: (fn: () => any) => Promise<any>;
 }
 
-// @alpha (undocumented)
+// @alpha
 export const createContext: <STATE extends object>(name: string) => Context<STATE>;
 
 // Warning: (ae-forgotten-export) The symbol "QwikProps" needs to be exported by the entry point index.d.ts
@@ -141,7 +121,7 @@ export interface FunctionComponent<P = {}> {
     (props: P, key?: string): JSXNode | null;
 }
 
-// @public (undocumented)
+// @alpha
 export const getPlatform: (docOrNode: Document | Node) => CorePlatform;
 
 // @public (undocumented)
@@ -182,7 +162,7 @@ export namespace h {
     }
 }
 
-// @alpha (undocumented)
+// @alpha
 export const handleWatch: () => void;
 
 // @public
@@ -274,7 +254,7 @@ export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
     vocab?: string | undefined;
 }
 
-// @alpha (undocumented)
+// @alpha
 export const immutable: <T extends {}>(input: T) => Readonly<T>;
 
 // @alpha
@@ -282,36 +262,6 @@ export const implicit$FirstArg: <FIRST, REST extends any[], RET>(fn: (first: QRL
 
 // @alpha (undocumented)
 export const inlinedQrl: <T>(symbol: T, symbolName: string, lexicalScopeCapture?: any[]) => QRL<T>;
-
-// @public (undocumented)
-export interface InvokeContext {
-    // (undocumented)
-    $doc$?: Document;
-    // (undocumented)
-    $element$?: Element;
-    // (undocumented)
-    $event$: any;
-    // (undocumented)
-    $hostElement$?: Element;
-    // (undocumented)
-    $props$?: Props;
-    // (undocumented)
-    $qrl$?: QRL<any>;
-    // Warning: (ae-forgotten-export) The symbol "RenderContext" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    $renderCtx$?: RenderContext;
-    // (undocumented)
-    $seq$: number;
-    // Warning: (ae-forgotten-export) The symbol "Subscriber" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    $subscriber$?: Subscriber | null;
-    // (undocumented)
-    $url$: URL | null;
-    // (undocumented)
-    $waitOn$?: ValueOrPromise<any>[];
-}
 
 // @public (undocumented)
 const jsx: <T extends string | FunctionComponent<PROPS>, PROPS>(type: T, props: PROPS, key?: string | number) => JSXNode<T>;
@@ -329,20 +279,24 @@ export interface JSXNode<T = any> {
     type: T;
 }
 
-// Warning: (ae-forgotten-export) The symbol "MutableWrapper" needs to be exported by the entry point index.d.ts
-//
-// @alpha (undocumented)
+// @alpha
 export const mutable: <T>(v: T) => MutableWrapper<T>;
+
+// @alpha
+export interface MutableWrapper<T> {
+    [MUTABLE]: true;
+    v: T;
+}
 
 // @alpha (undocumented)
 export type NoSerialize<T> = (T & {
     __no_serialize__: true;
 }) | undefined;
 
-// @alpha (undocumented)
+// @alpha
 export const noSerialize: <T extends {}>(input: T) => NoSerialize<T>;
 
-// @public (undocumented)
+// @public
 export type On$Props<T extends {}> = {
     [K in keyof T as K extends `${infer A}Qrl` ? NonNullable<T[K]> extends QRL ? `${A}$` : never : never]?: NonNullable<T[K]> extends QRL<infer B> ? B : never;
 };
@@ -367,20 +321,8 @@ export type PublicProps<PROPS extends {}> = MutableProps<PROPS> & On$Props<PROPS
 
 // @public
 export interface QRL<TYPE = any> {
-    // (undocumented)
-    __brand__QRL__: TYPE;
-    // (undocumented)
-    getHash(): string;
-    // (undocumented)
-    getSymbol(): string;
-    // (undocumented)
     invoke(...args: TYPE extends (...args: infer ARGS) => any ? ARGS : never): Promise<TYPE extends (...args: any[]) => infer RETURN ? RETURN : never>;
-    // (undocumented)
-    invokeFn(el?: Element, context?: InvokeContext, beforeFn?: () => void): TYPE extends (...args: infer ARGS) => infer RETURN ? (...args: ARGS) => ValueOrPromise<RETURN> : never;
-    // (undocumented)
-    resolve(container?: Element): Promise<TYPE>;
-    // (undocumented)
-    resolveLazy(container?: Element): ValueOrPromise<TYPE>;
+    resolve(): Promise<TYPE>;
 }
 
 // @alpha
@@ -437,7 +379,7 @@ export const render: (parent: Element | Document, jsxNode: JSXNode<unknown> | Fu
 // @alpha (undocumented)
 export type ServerFn = () => ValueOrPromise<void | (() => void)>;
 
-// @public (undocumented)
+// @alpha
 export const setPlatform: (doc: Document, plt: CorePlatform) => CorePlatform;
 
 // @public (undocumented)
@@ -509,10 +451,10 @@ export const useClientMount$: (first: ServerFn) => void;
 // @public
 export const useClientMountQrl: (mountQrl: QRL<ServerFn>) => void;
 
-// @alpha (undocumented)
+// @alpha
 export const useContext: <STATE extends object>(context: Context<STATE>) => STATE;
 
-// @alpha (undocumented)
+// @alpha
 export const useContextProvider: <STATE extends object>(context: Context<STATE>, newValue: STATE) => void;
 
 // @alpha
@@ -520,7 +462,6 @@ export const useDocument: () => Document;
 
 // @alpha (undocumented)
 export interface UseEffectOptions {
-    // (undocumented)
     run?: UseEffectRunOptions;
 }
 
@@ -557,11 +498,13 @@ export const useOnWindow: (event: string, eventQrl: QRL<(ev: Event) => void>) =>
 // @public
 export const useRef: <T = Element>(current?: T | undefined) => Ref<T>;
 
+// Warning: (ae-forgotten-export) The symbol "UseResumeOptions" needs to be exported by the entry point index.d.ts
+//
 // @alpha
-export const useResume$: (first: () => void) => void;
+export const useResume$: (first: () => void, options?: UseResumeOptions | undefined) => void;
 
 // @alpha
-export const useResumeQrl: (resumeFn: QRL<() => void>) => void;
+export const useResumeQrl: (resumeFn: QRL<() => void>, options?: UseResumeOptions) => void;
 
 // @alpha (undocumented)
 export const useScopedStyles$: (first: string) => void;

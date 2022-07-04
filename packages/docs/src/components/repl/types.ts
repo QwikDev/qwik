@@ -36,7 +36,6 @@ export interface ReplStore {
   enableHtmlOutput: boolean;
   enableClientOutput: boolean;
   enableSsrOutput: boolean;
-  enableConsole: boolean;
   ssrBuild: boolean;
   debug: boolean;
   serverUrl: string;

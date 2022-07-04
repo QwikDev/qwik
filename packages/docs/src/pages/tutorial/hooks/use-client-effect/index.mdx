@@ -3,11 +3,19 @@ title: useClientEffect$()
 layout: tutorial
 ---
 
-Use `useClientEffect$()` to execute code after the component is resumed. This is useful for things such as setting up timers or streams on the client when the application is resumed. 
+Use `useClientEffect$()` to execute code after the component is resumed. This is useful for setting up timers or streams on the client when the application is resumed. 
+
+NOTE: `useClientEffect$()` is similar to `useResume$()` but `useClientEffect$()` can be invoked multiple times. `useClientEffect$()` can be re-triggered as port of the `track` of store.
+
+## `track()` and `useClientEffect$()`
+
+`useClientEffect$()` receives a `track()` function just like `useWatch$()`. Use the `track()` function to trigger the effect when the store is updated. See [reactivity](/tutorial/reactivity/explicit) for more information.
+
+```jsx
 
 ## Component Life Cycle and SSR
 
-Qwik is resumable. Resumability means that the application starts up on the server and then the application is transferred to the client. On the client, the application continues execution from where it left off. A common use case of this is that a component is created on the server, paused, and then resumed on the client. To make the component fully functional it may be necessary to execute code eagerly on the client to set up timers or streams.
+Qwik is resumable. Resumability means that the application starts on the server and then is transferred to the client. On the client, the application continues execution from where it left off. A common use case is creating a component on the server, pausing, and then resuming on the client. To make the component fully functional, it may be necessary to execute code eagerly on the client to set up timers or streams.
 
 `useClientEffect$()` is a client only method. (There is no equivalent on the server.) NOTE: See `useWatch$()` for behavior that needs to be executed on both client and server.
 

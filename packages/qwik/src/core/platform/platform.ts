@@ -69,15 +69,39 @@ export const toUrl = (doc: Document, element: Element, url: string | URL): URL =
   return new URL(url, base);
 };
 
+// <docs markdown="./readme.md#setPlatform">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit ./readme.md#setPlatform instead)
 /**
- * @public
+ * Sets the `CorePlatform`.
+ *
+ * This is useful to override the platform in tests to change the behavior of,
+ * `requestAnimationFrame`, and import resolution.
+ *
+ * @param doc - The document of the application for which the platform is needed.
+ * @param platform - The platform to use.
+ * @alpha
  */
+// </docs>
 export const setPlatform = (doc: Document, plt: CorePlatform) =>
   ((doc as PlatformDocument)[DocumentPlatform] = plt);
 
+// <docs markdown="./readme.md#getPlatform">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit ./readme.md#getPlatform instead)
 /**
- * @public
+ * Retrieve the `CorePlatform`.
+ *
+ * The `CorePlatform` is also responsible for retrieving the Manifest, that contains mappings
+ * from symbols to javascript import chunks. For this reason, `CorePlatform` can't be global, but
+ * is specific to the application currently running. On server it is possible that many different
+ * applications are running in a single server instance, and for this reason the `CorePlatform`
+ * is associated with the application document.
+ *
+ * @param docOrNode - The document (or node) of the application for which the platform is needed.
+ * @alpha
  */
+// </docs>
 export const getPlatform = (docOrNode: Document | Node) => {
   const doc = getDocument(docOrNode) as PlatformDocument;
   return doc[DocumentPlatform] || (doc[DocumentPlatform] = createPlatform(doc));

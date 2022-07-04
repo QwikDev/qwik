@@ -50,7 +50,7 @@ export const Header = component$(
               </a>
             </li>
             <li>
-              <a href="/tutorial/introduction/component" onClickQrl={closeMenu}>
+              <a href="/tutorial/welcome/overview" onClickQrl={closeMenu}>
                 <span>Tutorial</span>
               </a>
             </li>

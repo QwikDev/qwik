@@ -63,9 +63,9 @@ export const qPropWriteQRL = (
   }
 };
 
-export const getDomListeners = (el: Element): Map<string, QRL[]> => {
+export const getDomListeners = (el: Element): Map<string, QRLInternal[]> => {
   const attributes = el.attributes;
-  const listeners: Map<string, QRL[]> = new Map();
+  const listeners: Map<string, QRLInternal[]> = new Map();
   for (let i = 0; i < attributes.length; i++) {
     const attr = attributes.item(i)!;
     if (

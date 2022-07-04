@@ -37,7 +37,6 @@ export const Repl = component$((props: ReplProps) => {
       enableClientOutput: props.enableClientOutput !== false,
       enableHtmlOutput: props.enableHtmlOutput !== false,
       enableSsrOutput: props.enableSsrOutput !== false,
-      enableConsole: true,
       selectedInputPath: '',
       selectedOutputPanel: 'app',
       selectedOutputDetail: 'console',

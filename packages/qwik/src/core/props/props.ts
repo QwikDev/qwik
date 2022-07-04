@@ -18,7 +18,7 @@ import { pauseContainer } from '../object/store';
 import { ContainerState, getContainerState } from '../render/notify-render';
 import { qDev } from '../util/qdev';
 import { logError } from '../util/log';
-import { isQrl } from '../import/qrl-class';
+import { isQrl, QRLInternal } from '../import/qrl-class';
 import { directGetAttribute } from '../render/fast-calls';
 import { assertDefined } from '../assert/assert';
 import { codeToText, QError_immutableJsxProps } from '../error/error';
@@ -46,9 +46,6 @@ export interface QContextEvents {
   [eventName: string]: QRL | undefined;
 }
 
-/**
- * @alpha
- */
 export interface ComponentCtx {
   $hostElement$: Element;
   $styleId$: string | undefined;
@@ -63,9 +60,9 @@ export interface QContext {
   $element$: Element;
   $dirty$: boolean;
   $props$: Record<string, any> | undefined;
-  $renderQrl$: QRL<OnRenderFn<any>> | undefined;
+  $renderQrl$: QRLInternal<OnRenderFn<any>> | undefined;
   $component$: ComponentCtx | undefined;
-  $listeners$?: Map<string, QRL<any>[]>;
+  $listeners$?: Map<string, QRLInternal<any>[]>;
   $seq$: any[];
   $watches$: WatchDescriptor[];
   $contexts$?: Map<string, any>;

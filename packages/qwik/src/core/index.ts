@@ -11,7 +11,6 @@ export type {
   PublicProps,
   On$Props,
 } from './component/component.public';
-export type { ComponentCtx } from './props/props';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Event API
@@ -86,7 +85,6 @@ export {
 } from './use/use-on';
 export type { Context } from './use/use-context';
 export type { Ref } from './use/use-store.public';
-export type { InvokeContext } from './use/use-core';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Low-Level API
@@ -94,5 +92,6 @@ export type { InvokeContext } from './use/use-core';
 export type { ValueOrPromise } from './util/types';
 export type { NoSerialize } from './object/q-object';
 export { noSerialize, immutable, mutable } from './object/q-object';
+export type { MutableWrapper } from './object/q-object';
 
 export { version } from './version';

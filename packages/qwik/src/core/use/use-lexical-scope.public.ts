@@ -8,7 +8,7 @@ import type { QRLInternal } from '../import/qrl-class';
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#useLexicalScope instead)
 /**
- * Used by the Qwik Optimizer to restore the lexical scoped variables.
+ * Used by the Qwik Optimizer to restore the lexically scoped variables.
  *
  * This method should not be present in the application source code.
  *

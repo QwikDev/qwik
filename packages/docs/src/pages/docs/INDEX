@@ -7,7 +7,6 @@
 - [Think Qwik](think-qwik.mdx)
 - [Cheat Sheet](cheat-sheet.mdx)
 
-
 ## Component API
 
 - [Overview](components/overview.mdx)
@@ -32,6 +31,7 @@
 
 ## Advanced
 
+- [Prefetching](advanced/prefetching.mdx)
 - [Containers](advanced/containers.mdx)
 - [Optimizer](advanced/optimizer.mdx)
 - [QRL](advanced/qrl.mdx)

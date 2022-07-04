@@ -1,0 +1,17 @@
+---
+title: useResume$()
+layout: tutorial
+---
+
+Use `useResume$()` to execute code when the application resumes on the client. By default, the component resume function is invoked when the component becomes visible. You can also resume eagerly by using the `load` option.
+
+NOTE: `useResume$()` is similar to `useClientEffect$()` but unlike `useClientEffect$()` that can re-execute multiple times due to tracking store values, `useResume$()` can only execute once. 
+
+The example on the right shows how the component executes code eagerly on being loaded on the client. Look into the HTML tab to see that when the server first renders the component, the output has `Resumed: false`, but as soon as the application loads on the client, it resumes and the output becomes `Resumed: true`.
+
+
+## When is `useResume$()` executed?
+
+The `useResume$()` method takes an additional argument that controls when it is executed. There are two options:
+- `visible` (default): Execute the closure when the component becomes visible. This is a preferred option because it delays the execution until the component is visible rather than eagerly on application startup (We are trying to minimize the amount of code the application runs on startup).
+- `load`: Execute the code as soon as possible. This is usually right after `DOMContentLoaded` event.

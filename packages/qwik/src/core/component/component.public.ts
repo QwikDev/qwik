@@ -5,6 +5,7 @@ import type { ComponentBaseProps } from '../render/jsx/types/jsx-qwik-attributes
 import type { FunctionComponent } from '../render/jsx/types/jsx-node';
 import { jsx } from '../render/jsx/jsx-runtime';
 import type { MutableWrapper } from '../object/q-object';
+import type { QRLInternal } from '../import/qrl-class';
 
 /**
  * Infers `Props` from the component.
@@ -23,13 +24,42 @@ export type PropsOf<COMP extends Component<any>> = COMP extends Component<infer 
   : never;
 
 /**
+ * Declarative component options.
+ *
  * @public
  */
 export interface ComponentOptions {
+  /**
+   * Tag the name of the component's host element.
+   *
+   * Default value fo `tagName` is `div`. Override this value in situations where you want to use
+   * a different tag name. Examples are:
+   * - It is desirable to have component names directly in the HTML (WebComponent style)
+   * - It is desirable to have a specific tag name for accessibility. For example, using `<button>`
+   *   for `<MyCustomButton>` component.
+   *
+   * When a component is inserted into the render tree, the host element needs to be inserted
+   * synchronously, while the component body is inserted asynchronously. The synchronous nature
+   * of host element requires that the parent component needs to know the tag name of the child
+   * component synchronously.
+   */
   tagName?: string;
 }
 
 /**
+ * Type representing the Qwik component.
+ *
+ * `Component` is the type returned by invoking `component$`.
+ *
+ * ```
+ * interface MyComponentProps {
+ *   someProp: string;
+ * }
+ * const MyComponent: Component<MyComponentProps> = component$((props: MyComponentProps) => {
+ *   return <span>{props.someProp}</span>;
+ * });
+ * ```
+ *
  * @public
  */
 export type Component<PROPS extends {}> = FunctionComponent<PublicProps<PROPS>>;
@@ -48,9 +78,50 @@ export type MutableProps<PROPS extends {}> = {
   [K in keyof PROPS]: PROPS[K] | MutableWrapper<PROPS[K]>;
 };
 
+// <docs markdown="../readme.md#On$Props">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit ../readme.md#On$Props instead)
 /**
+ * The type used to autogenerate the `$` suffixed properties on the component props.
+ *
+ * When declaring component props, it is not possible to pass in closures. Instead, the closures
+ * need to be passed in as QRLs. This is usually done automatically by the Optimizer by suffixing
+ * the property with `$`. This type automatically generates the `$`-suffixed properties from
+ * `Qrl`-suffixed properties.
+ *
+ * ```tsx
+ * export const App = component$(() => {
+ *   const goodbyeQrl = $(() => alert('Good Bye!'));
+ *
+ *   // This is not-canonical usage of On$Props. It is here only as an example.
+ *   const myComponentProps: On$Props<MyComponentProps> & MyComponentProps = {
+ *     goodbyeQrl: goodbyeQrl,
+ *     hello$: (name) => alert('Hello ' + name),
+ *   };
+ *   return (
+ *     <div>
+ *       <MyComponent {...myComponentProps} />
+ *     </div>
+ *   );
+ * });
+ *
+ * interface MyComponentProps {
+ *   goodbyeQrl?: QRL<() => void>;
+ *   helloQrl?: QRL<(name: string) => void>;
+ * }
+ * export const MyComponent = component$((props: MyComponentProps) => {
+ *   return (
+ *     <div>
+ *       <button onClickQrl={props.goodbyeQrl}>hello</button>
+ *       <button onClick$={async () => await props.helloQrl?.invoke('World')}>good bye</button>
+ *     </div>
+ *   );
+ * });
+ * ```
+ *
  * @public
  */
+// </docs>
 export type On$Props<T extends {}> = {
   [K in keyof T as K extends `${infer A}Qrl`
     ? NonNullable<T[K]> extends QRL
@@ -129,7 +200,9 @@ export const componentQrl = <PROPS extends {}>(
 
   // Return a QComponent Factory function.
   return function QSimpleComponent(props, key): JSXNode<PROPS> {
-    const finalKey = skipKey ? undefined : onRenderQrl.getHash() + ':' + (key ? key : '');
+    const finalKey = skipKey
+      ? undefined
+      : (onRenderQrl as QRLInternal).getHash() + ':' + (key ? key : '');
     return jsx(tagName, { [OnRenderProp]: onRenderQrl, ...props }, finalKey) as any;
   };
 };

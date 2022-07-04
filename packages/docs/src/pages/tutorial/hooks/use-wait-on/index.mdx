@@ -1,0 +1,14 @@
+---
+title: useWaitOn()
+layout: tutorial
+---
+
+Use `useWaitOn()` to delay when component renders. On the server, this can be used to delay the serialization of the component to HTML. On the client, it can be used to delay rendering to prevent showing intermediate values to the user. 
+
+`useWaitOn()` takes a promise and delays rendering until the promise is resolved. Keep in mind that the current component may not be the only one that is being rendered. Using `useWaitOn()` will delay rendering all of the invalidated components in the current render tree.
+
+To prevent infinite delay, it is your responsibility to ensure that you are not creating new promises in each invocation. A typical way to solve that is to place the promise instance on the store as `noSerialize()` property.
+
+## Example
+
+In this example, we use `useWaitOn()` to delay the rendering of the component for 1 second whenever the user clicks the `+1` button.

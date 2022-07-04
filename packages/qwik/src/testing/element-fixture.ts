@@ -5,7 +5,6 @@ import { qGlobal } from '../core/util/qdev';
 import { createWindow } from './document';
 import { getTestPlatform } from './platform';
 import type { MockDocument, MockWindow } from './types';
-import { applyDocumentConfig } from './util';
 import { getDocument } from '../core/util/dom';
 import { getDomListeners } from '../core/props/props-on';
 
@@ -19,8 +18,6 @@ import { getDomListeners } from '../core/props/props-on';
  *   <child></child>
  * </host>
  * ```
- *
- * It also sets up `injector` which points to `child`.
  *
  */
 export class ElementFixture {
@@ -42,15 +39,11 @@ export class ElementFixture {
     this.parent.appendChild(this.host);
     this.host.appendChild(this.child);
     this.document.body.appendChild(this.superParent);
-
-    applyDocumentConfig(this.document, options);
   }
 }
 
 export interface ElementFixtureOptions {
   tagName?: string;
-  baseURI?: string;
-  protocol?: { [protocol: string]: string };
 }
 
 /**

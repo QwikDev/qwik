@@ -17,21 +17,11 @@ export interface MockDocumentOptions {
 
 /**
  * Options when creating a mock Qwik Window object.
- * @public
  */
 export interface MockWindowOptions extends MockDocumentOptions {}
 
 /**
- * @public
  */
 export interface TestPlatform extends CorePlatform {
   flush: () => Promise<void>;
-}
-
-/**
- * @public
- */
-export interface QConfig {
-  baseURI?: string;
-  protocol?: { [protocol: string]: string };
 }

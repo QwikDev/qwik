@@ -13,7 +13,7 @@ import { $, QRL } from '../import/qrl.public';
  * This means that `foo$(arg0)` and `foo($(arg0))` are equivalent with respect to Qwik Optimizer.
  * The former is just a shorthand for the latter.
  *
- * For example these function call are equivalent:
+ * For example, these function calls are equivalent:
  *
  * - `component$(() => {...})` is same as `onRender($(() => {...}))`
  *
@@ -36,7 +36,7 @@ import { $, QRL } from '../import/qrl.public';
  * export const callback = () => console.log('callback');
  * ```
  *
- * @param fn - function that should have its first argument automatically `$`.
+ * @param fn - a function that should have its first argument automatically `$`.
  * @alpha
  */
 // </docs>

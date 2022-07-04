@@ -17,9 +17,6 @@ export interface StyleAppend {
   content: string;
 }
 
-/**
- * @public
- */
 export interface InvokeContext {
   $url$: URL | null;
   $seq$: number;

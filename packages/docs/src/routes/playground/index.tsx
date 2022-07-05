@@ -7,21 +7,20 @@ import {
   useClientEffect$,
   useStyles$,
 } from '@builder.io/qwik';
-import { Repl } from '../../components/repl/repl';
-import { Header } from '../../components/header/header';
-import { getLocation, useHeadMeta } from '@builder.io/qwik-city';
+import { Repl } from '../../repl/repl';
+import Header from '../../components/header/header';
 import styles from './playground.css?inline';
 import playgroundApp from '@playground-data';
-import type { ReplAppInput } from '../../components/repl/types';
-import {
-  createPlaygroundShareUrl,
-  parsePlaygroundShareUrl,
-} from '../../components/repl/repl-share-url';
+import type { ReplAppInput } from '../../repl/types';
+import { createPlaygroundShareUrl, parsePlaygroundShareUrl } from '../../repl/repl-share-url';
+import { useLocation } from '@builder.io/qwik-city';
 
 const Playground = component$(() => {
   useStyles$(`html,body { margin: 0; height: 100%; overflow: hidden; }`);
   useScopedStyles$(styles);
-  useHeadMeta({ title: `Qwik Playground` });
+  // useHeadMeta({ title: `Qwik Playground` });
+
+  const loc = useLocation();
 
   const store = useStore<PlaygroundStore>(() => {
     const initStore: PlaygroundStore = {
@@ -39,7 +38,6 @@ const Playground = component$(() => {
 
   useClientEffect$(() => {
     // run once on the client
-    const loc = getLocation(document);
     const shareData = parsePlaygroundShareUrl(loc.hash.slice(1));
     if (shareData) {
       store.version = shareData.version;

@@ -2,14 +2,15 @@ import type { Plugin } from 'vite';
 import type { TransformModuleInput } from '@builder.io/qwik/optimizer';
 import { join, basename } from 'path';
 import { existsSync, readdirSync, readFileSync, statSync } from 'fs';
-import type { ExampleSection } from './src/layouts/examples/examples-data';
-import type { PlaygroundApp } from './src/layouts/playground/playground-data';
-import type { TutorialSection } from './src/layouts/tutorial/tutorial-data';
+import type { ExampleSection } from './src/routes/examples/examples-data';
+import type { PlaygroundApp } from './src/routes/playground/playground-data';
+import type { TutorialSection } from './src/routes/tutorial/_layout/tutorial-data';
 import type { PluginContext } from 'rollup';
-import type { ReplModuleInput } from './src/components/repl/types';
+import type { ReplModuleInput } from './src/repl/types';
+import { mkdir, rm } from 'fs/promises';
 
-export function playgroundData(replDir: string): Plugin {
-  const playgroundAppDir = join(replDir, 'playground', 'app');
+export function playgroundData(replAppsDir: string): Plugin {
+  const playgroundAppDir = join(replAppsDir, 'playground');
 
   return {
     name: 'playgroundData',
@@ -42,8 +43,8 @@ export function playgroundData(replDir: string): Plugin {
   };
 }
 
-export function examplesData(replDir: string): Plugin {
-  const dir = join(replDir, 'examples');
+export function examplesData(replAppsDir: string): Plugin {
+  const dir = join(replAppsDir, 'examples');
   const menuPath = join(dir, 'examples-menu.json');
   const menuSrc = readFileSync(menuPath, 'utf-8');
 
@@ -144,9 +145,10 @@ export function examplesData(replDir: string): Plugin {
   };
 }
 
-export function tutorialData(replDir: string): Plugin {
-  const dir = join(replDir, 'tutorial');
-  const menuPath = join(dir, 'tutorial-menu.json');
+export function tutorialData(srcDir: string, replAppsDir: string): Plugin {
+  const tutorialRoutesDir = join(srcDir, 'tutorial');
+  const tutorialAppsDir = join(replAppsDir, 'tutorial');
+  const menuPath = join(tutorialAppsDir, 'tutorial-menu.json');
   const menuSrc = readFileSync(menuPath, 'utf-8');
 
   const loadTutorialData = (ctx: PluginContext) => {
@@ -155,7 +157,7 @@ export function tutorialData(replDir: string): Plugin {
     ctx.addWatchFile(menuPath);
 
     for (const dataSection of dataSections) {
-      const sectionDir = join(dir, dataSection.id);
+      const sectionDir = join(tutorialAppsDir, dataSection.id);
 
       if (!existsSync(sectionDir)) {
         throw new Error(`Tutorial section "${sectionDir}" doesn't exist`);
@@ -181,6 +183,14 @@ export function tutorialData(replDir: string): Plugin {
         if (!s.isDirectory()) {
           throw new Error(`Tutorial app "${appDir}" is not a directory`);
         }
+
+        const contentPath = join(appDir, 'index.mdx');
+        if (!existsSync(contentPath)) {
+          throw new Error(`Tutorial app "${appDir}" does not have an index.mdx file`);
+        }
+        console.log(contentPath);
+
+        const contentRoutesPath = join(tutorialRoutesDir, dataSection.id, app.id);
 
         const readAppInputs = (appType: 'problem' | 'solution') => {
           const appTypeDir = join(appDir, appType);
@@ -255,6 +265,9 @@ export function tutorialData(replDir: string): Plugin {
     async load(id) {
       const filename = basename(id);
       if (filename === '@tutorial-data') {
+        await rm(tutorialRoutesDir, { recursive: true, force: true });
+        await mkdir(tutorialAppsDir, { recursive: true });
+
         const data = loadTutorialData(this);
         return `const tutorialSections = ${JSON.stringify(data)};export default tutorialSections;`;
       }

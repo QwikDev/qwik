@@ -1,6 +1,6 @@
 import { component$, Host, useStyles$ } from '@builder.io/qwik';
 import { useLocation } from '../../utils/useLocation';
-import { Header } from '../../components/header/header';
+import Header from '../../components/header/header';
 import styles from './builder.css?inline';
 
 export const Builder = component$(() => {

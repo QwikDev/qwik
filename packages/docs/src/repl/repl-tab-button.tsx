@@ -1,4 +1,4 @@
-import { CloseIcon } from '../svgs/close-icon';
+import { CloseIcon } from '../components/svgs/close-icon';
 
 export const ReplTabButton = (props: ReplTabButtonProps) => {
   return (

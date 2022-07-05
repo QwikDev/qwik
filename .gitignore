@@ -19,6 +19,7 @@ target
 todo-express/
 qwik-app/
 packages/qwik-city/runtime/server
+packages/docs/src/routes/tutorials
 
 # Yarn
 .yarn/*

@@ -1,7 +1,7 @@
-import { usePage } from '@builder.io/qwik-city';
+// import { usePage } from '@builder.io/qwik-city';
 import { component$, Host, useScopedStyles$ } from '@builder.io/qwik';
 import { ChatIcon } from '../svgs/chat-icon';
-import { EditIcon } from '../svgs/edit-icon';
+// import { EditIcon } from '../svgs/edit-icon';
 import { GithubLogo } from '../svgs/github-logo';
 import { TwitterLogo } from '../svgs/twitter-logo';
 import styles from './on-this-page.css?inline';
@@ -9,21 +9,21 @@ import styles from './on-this-page.css?inline';
 export const OnThisPage = component$(
   () => {
     useScopedStyles$(styles);
-    const page = usePage();
-    if (!page) {
-      return null;
-    }
+    // const page = usePage();
+    // if (!page) {
+    //   return null;
+    // }
 
-    const headings = page.headings.filter((h) => h.level === 2 || h.level === 3);
+    // const headings = page.headings.filter((h) => h.level === 2 || h.level === 3);
 
-    const editUrl = new URL(
-      page.source.path,
-      'https://github.com/BuilderIO/qwik/edit/main/packages/docs/src/pages/'
-    );
+    // const editUrl = new URL(
+    //   page.source.path,
+    //   'https://github.com/BuilderIO/qwik/edit/main/packages/docs/src/pages/'
+    // );
 
     return (
       <Host class="on-this-page fixed text-sm z-20 bottom-0 right-[max(0px,calc(50%-45rem))] overflow-y-auto hidden xl:block xl:w-[18rem] xl:top-[5rem]">
-        {headings.length > 0 ? (
+        {/* {headings.length > 0 ? (
           <>
             <h6>On This Page</h6>
             <ul>
@@ -42,15 +42,15 @@ export const OnThisPage = component$(
               ))}
             </ul>
           </>
-        ) : null}
+        ) : null} */}
 
         <h6>More</h6>
         <ul>
           <li>
-            <a href={editUrl.href} target="_blank" rel="nofollow noopener">
+            {/* <a href={editUrl.href} target="_blank" rel="nofollow noopener">
               <EditIcon width={22} height={22} />
               <span>Edit this page</span>
-            </a>
+            </a> */}
           </li>
           <li>
             <a

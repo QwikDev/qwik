@@ -1,5 +1,5 @@
 import { component$, Host, useContext, useScopedStyles$ } from '@builder.io/qwik';
-import { usePage, usePageIndex } from '@builder.io/qwik-city';
+// import { usePage, usePageIndex } from '@builder.io/qwik-city';
 import { GlobalStore } from '../../utils/context';
 import { CloseIcon } from '../svgs/close-icon';
 import styles from './sidebar.css?inline';
@@ -7,13 +7,13 @@ import styles from './sidebar.css?inline';
 export const SideBar = component$(
   () => {
     useScopedStyles$(styles);
-    const page = usePage();
-    const navIndex = usePageIndex();
+    // const page = usePage();
+    // const navIndex = usePageIndex();
     const globalStore = useContext(GlobalStore);
 
-    if (!page) {
-      return null;
-    }
+    // if (!page) {
+    //   return null;
+    // }
 
     return (
       <Host class="sidebar">
@@ -34,9 +34,9 @@ export const SideBar = component$(
             </svg>
           </button>
           <ol>
-            {page.breadcrumbs.map((b) => (
+            {/* {page.breadcrumbs.map((b) => (
               <li>{b.text}</li>
-            ))}
+            ))} */}
           </ol>
         </nav>
         <nav class="menu">
@@ -47,7 +47,7 @@ export const SideBar = component$(
           >
             <CloseIcon width={24} height={24} />
           </button>
-          {navIndex
+          {/* {navIndex
             ? navIndex.items?.map((item) => (
                 <>
                   <h5>{item.text}</h5>
@@ -68,7 +68,7 @@ export const SideBar = component$(
                   </ul>
                 </>
               ))
-            : null}
+            : null} */}
         </nav>
       </Host>
     );

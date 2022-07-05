@@ -8,7 +8,7 @@ import { TwitterLogo } from '../svgs/twitter-logo';
 import styles from './header.css?inline';
 import { GlobalStore } from '../../utils/context';
 
-export const Header = component$(
+export default component$(
   () => {
     useScopedStyles$(styles);
     const globalStore = useContext(GlobalStore);

@@ -1,5 +1,5 @@
 import { mutable } from '@builder.io/qwik';
-import { CodeBlock } from '../code-block/code-block';
+import { CodeBlock } from '../components/code-block/code-block';
 import { ReplOutputModules } from './repl-output-modules';
 import { ReplOutputSymbols } from './repl-output-symbols';
 import { ReplTabButton } from './repl-tab-button';

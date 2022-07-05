@@ -1,5 +1,6 @@
 import { component$ } from '@builder.io/qwik';
-import { ensureDefaultFiles, TutorialStore } from './tutorial';
+import { ensureDefaultFiles } from '../../../repl/default-files';
+import type { TutorialStore } from './';
 
 export const TutorialContentFooter = component$(({ store }: TutorialContentFooterProps) => {
   return (

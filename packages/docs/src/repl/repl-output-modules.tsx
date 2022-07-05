@@ -1,11 +1,11 @@
-import type { TransformModule } from '@builder.io/qwik/optimizer';
-import { CodeBlock } from '../code-block/code-block';
+import { CodeBlock } from '../components/code-block/code-block';
+import type { ReplModuleOutput } from './types';
 
-export const ReplOutputSymbols = ({ outputs }: ReplOutputSymbolsProps) => {
+export const ReplOutputModules = ({ outputs, headerText }: ReplOutputModulesProps) => {
   return (
     <div class="output-result output-modules">
       <div class="file-tree">
-        <div class="file-tree-header">Symbols</div>
+        <div class="file-tree-header">{outputs.length > 0 ? headerText : ''}</div>
         <div class="file-tree-items">
           {outputs.map((o, i) => (
             <a
@@ -19,7 +19,7 @@ export const ReplOutputSymbols = ({ outputs }: ReplOutputSymbolsProps) => {
               preventDefault:click
               key={o.path}
             >
-              {o.hook?.canonicalFilename}
+              {o.path}
             </a>
           ))}
         </div>
@@ -28,7 +28,8 @@ export const ReplOutputSymbols = ({ outputs }: ReplOutputSymbolsProps) => {
         {outputs.map((o, i) => (
           <div class="file-item" data-file-item={i} key={o.path}>
             <div class="file-info">
-              <span>{o.hook?.canonicalFilename}</span>
+              <span>{o.path}</span>
+              {o.size ? <span class="file-size">({o.size})</span> : null}
             </div>
             <div className="file-text">
               <CodeBlock path={o.path} code={o.code} theme="light" />
@@ -40,6 +41,7 @@ export const ReplOutputSymbols = ({ outputs }: ReplOutputSymbolsProps) => {
   );
 };
 
-interface ReplOutputSymbolsProps {
-  outputs: TransformModule[];
+interface ReplOutputModulesProps {
+  headerText: string;
+  outputs: ReplModuleOutput[];
 }

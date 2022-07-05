@@ -39,6 +39,9 @@ export async function buildQwikCity(config: BuildConfig) {
         import: './middleware/express/index.mjs',
         require: './middleware/express/index.cjs',
       },
+        './middleware/netlify-edge': {
+          import: './middleware/netlify-edge/index.mjs',
+      },
       './vite': {
         import: './vite/index.mjs',
         require: './vite/index.cjs',

@@ -1,0 +1,28 @@
+---
+title: Qwikcity - file layout
+---
+
+# Qwikcity - File Layout
+
+The core responsibility of Qwikcity is to provide a simple, intuitive, and efficient way to create content for your site. Qwikcity achieves this through file-based routing. In a nutshell layout of your files determines the structure of your site.
+
+## The `routes` directory
+
+All file-based route information is placed in `src/routes` directory. This is the only directory where naming conventions have implications for your site. (In all other folders, the names have no meaning to Qwikcity.)
+
+(the `src` folder also typically contains `components`, but the name and location have no meaning to Qwikcity.)
+
+
+## Sample `routes` directory example
+
+```
+- src/
+  - components/          # Put your reusable components here.
+    - counter.tsx
+  - route/               # Put your route specific components here.
+    - docs/
+      - overview.mdx     # http://server/docs/overview
+      - index.mdx        # http://server/docs/
+    - index.tsx          # http://server/
+```
+

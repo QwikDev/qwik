@@ -1,0 +1,27 @@
+---
+title: Qwikcity - Nested Layout
+---
+
+# Qwikcity - Nested Layout
+
+At times it is desirable to nest layouts into each other.
+
+The developer could extract all of these into `<Header>`, `<Footer>`, and `<Menu>` components, but that is error-prone and repetitive. Instead, we can use layouts to automatically reuse common parts.
+
+## Example
+
+Let's say we would like our site to look like this:
+
+```
++---------------------------------------------------+
+| Header                                            |
++---------------------------------------------------+
+| Menu    | <ROUTE_SPECIFIC_CONTENT>                |
+| - main  |                                         |
+| - about |                                         |
+|         |                                         |
++---------------------------------------------------+
+| Footer                                            |
++---------------------------------------------------+
+
+```

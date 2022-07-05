@@ -9,7 +9,7 @@ Besides the fact that typing `mutable()` is extra work, the previous example is 
 
 It would be more efficient to only re-render `<Display>` component. We can do that by passing in the `CountStore` rather than the `count` value. Because the store reference never changes the `<App>` component will not need to re-render.
 
-Change the code to pass int `store` rather than `store.count`.
+Change the code to pass in `store` rather than `store.count`.
 
 By making the above change we gain two benefits:
 - we remove `mutable()` from our component.

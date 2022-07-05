@@ -30,7 +30,7 @@ import {
 } from '../error/error';
 import { isArray, isObject, isString } from '../util/types';
 import { directGetAttribute, directSetAttribute } from '../render/fast-calls';
-import { isNotNullable } from '../util/promises';
+import { isNotNullable, isPromise } from '../util/promises';
 
 export type GetObject = (id: string) => any;
 export type GetObjID = (obj: any) => string | null;
@@ -38,6 +38,7 @@ export type GetObjID = (obj: any) => string | null;
 export const UNDEFINED_PREFIX = '\u0010';
 export const QRL_PREFIX = '\u0011';
 export const DOCUMENT_PREFIX = '\u0012';
+export const PROMISE_PREFIX = '\u0013';
 
 // <docs markdown="../readme.md#pauseContainer">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -48,7 +49,7 @@ export const DOCUMENT_PREFIX = '\u0012';
  * @alpha
  */
 // </docs>
-export const pauseContainer = (elmOrDoc: Element | Document): SnapshotResult => {
+export const pauseContainer = async (elmOrDoc: Element | Document): Promise<SnapshotResult> => {
   const doc = getDocument(elmOrDoc);
   const documentElement = doc.documentElement;
   const containerEl = isDocument(elmOrDoc) ? documentElement : elmOrDoc;
@@ -56,7 +57,7 @@ export const pauseContainer = (elmOrDoc: Element | Document): SnapshotResult => 
     throw qError(QError_containerAlreadyPaused);
   }
   const parentJSON = containerEl === doc.documentElement ? doc.body : containerEl;
-  const data = pauseState(containerEl);
+  const data = await pauseState(containerEl);
   const script = doc.createElement('script');
   directSetAttribute(script, 'type', 'qwik/json');
   script.textContent = escapeText(JSON.stringify(data.state, undefined, qDev ? '  ' : undefined));
@@ -191,7 +192,7 @@ const hasContext = (el: Element) => {
   return !!tryGetContext(el);
 };
 
-export const pauseState = (containerEl: Element): SnapshotResult => {
+export const pauseState = async (containerEl: Element): Promise<SnapshotResult> => {
   const containerState = getContainerState(containerEl);
   const doc = getDocument(containerEl);
   const elementToIndex = new Map<Element, string | null>();
@@ -199,34 +200,40 @@ export const pauseState = (containerEl: Element): SnapshotResult => {
 
   // Collect all qObjected around the DOM
   const elements = getNodesInScope(containerEl, hasContext);
-  elements.forEach((node) => {
+  for (const node of elements) {
     const ctx = tryGetContext(node)!;
-    collectProps(node, ctx.$props$, collector);
+    await collectProps(node, ctx.$props$, collector);
 
-    ctx.$contexts$?.forEach((ctx) => {
-      collectValue(ctx, collector);
-    });
+    if (ctx.$contexts$) {
+      for (const item of ctx.$contexts$.values()) {
+        await collectValue(item, collector);
+      }
+    }
 
-    ctx.$listeners$?.forEach((listeners) => {
-      for (const l of listeners) {
-        const captured = (l as QRLInternal).$captureRef$;
-        if (captured) {
-          captured.forEach((obj) => collectValue(obj, collector));
+    if (ctx.$listeners$) {
+      for (const listeners of ctx.$listeners$.values()) {
+        for (const l of listeners) {
+          const captured = (l as QRLInternal).$captureRef$;
+          if (captured) {
+            for (const obj of captured) {
+              await collectValue(obj, collector);
+            }
+          }
         }
       }
-    });
-
-    ctx.$watches$.forEach((watch) => {
+    }
+    for (const watch of ctx.$watches$) {
       collector.$watches$.push(watch);
-    });
+    }
 
-    ctx.$refMap$.$array$.forEach((obj) => {
-      collectValue(obj, collector);
-    });
-  });
+    for (const obj of ctx.$refMap$.$array$) {
+      await collectValue(obj, collector);
+    }
+  }
 
   // Convert objSet to array
   const objs = Array.from(collector.$objSet$);
+
   const objToId = new Map<any, number>();
 
   const hasSubscriptions = (a: any) => {
@@ -345,6 +352,9 @@ export const pauseState = (containerEl: Element): SnapshotResult => {
     if (isObject(obj)) {
       if (isArray(obj)) {
         return obj.map(serialize);
+      }
+      if (obj instanceof ResolvedPromise) {
+        return PROMISE_PREFIX + mustGetObjId(obj.value);
       }
       if (isQrl(obj)) {
         return QRL_PREFIX + stringifyQRL(obj, qrlSerializeOptions);
@@ -625,20 +635,20 @@ const normalizeObj = (obj: any, doc: Document) => {
   return getProxyTarget(obj) ?? obj;
 };
 
-const collectValue = (obj: any, collector: Collector) => {
-  const handled = collectQObjects(obj, collector);
+const collectValue = async (obj: any, collector: Collector) => {
+  const handled = await collectQObjects(obj, collector);
   if (!handled) {
     collector.$objSet$.add(normalizeObj(obj, collector.$doc$));
   }
 };
 
-const collectProps = (el: Element, props: any, collector: Collector) => {
+const collectProps = async (el: Element, props: any, collector: Collector) => {
   const subs = collector.$containerState$.$subsManager$.$tryGetLocal$(
     getProxyTarget(props)
   )?.$subs$;
   if (subs && subs.has(el)) {
     // The host element read the props
-    collectElement(el, collector);
+    await collectElement(el, collector);
   }
 };
 
@@ -662,19 +672,20 @@ const createCollector = (doc: Document, containerState: ContainerState): Collect
   };
 };
 
-const collectQrl = (obj: QRLInternal, collector: Collector) => {
+const collectQrl = async (obj: QRLInternal, collector: Collector) => {
   if (collector.$seen$.has(obj)) {
     return true;
   }
   collector.$seen$.add(obj);
-
   collector.$objSet$.add(normalizeObj(obj, collector.$doc$));
   if (obj.$captureRef$) {
-    obj.$captureRef$.forEach((obj) => collectValue(obj, collector));
+    for (const item of obj.$captureRef$) {
+      await collectValue(item, collector);
+    }
   }
 };
 
-const collectElement = (el: Element, collector: Collector) => {
+const collectElement = async (el: Element, collector: Collector) => {
   if (collector.$seen$.has(el)) {
     return;
   }
@@ -683,24 +694,27 @@ const collectElement = (el: Element, collector: Collector) => {
   if (ctx) {
     collector.$elements$.push(el);
     if (ctx.$props$) {
-      collectValue(ctx.$props$, collector);
+      await collectValue(ctx.$props$, collector);
     }
     if (ctx.$renderQrl$) {
-      collectValue(ctx.$renderQrl$, collector);
+      await collectValue(ctx.$renderQrl$, collector);
     }
-    ctx.$seq$.forEach((obj) => {
-      collectValue(obj, collector);
-    });
-    ctx.$refMap$.$array$.forEach((obj) => {
-      collectValue(obj, collector);
-    });
-    ctx.$watches$.forEach((watch) => {
-      collectValue(watch, collector);
-    });
+    for (const obj of ctx.$seq$) {
+      await collectValue(obj, collector);
+    }
+
+    for (const obj of ctx.$refMap$.$array$) {
+      await collectValue(obj, collector);
+    }
+
+    for (const obj of ctx.$watches$) {
+      await collectValue(obj, collector);
+    }
+
     if (ctx.$contexts$) {
-      ctx.$contexts$.forEach((obj) => {
-        collectValue(obj, collector);
-      });
+      for (const obj of ctx.$contexts$.values()) {
+        await collectValue(obj, collector);
+      }
     }
   }
 };
@@ -713,24 +727,33 @@ export const unescapeText = (str: string) => {
   return str.replace(/\\x3C(\/?script)/g, '<$1');
 };
 
-const collectSubscriptions = (subs: SubscriberMap, collector: Collector) => {
+const collectSubscriptions = async (subs: SubscriberMap, collector: Collector) => {
   if (collector.$seen$.has(subs)) {
     return;
   }
   collector.$seen$.add(subs);
-  Array.from(subs.keys()).forEach((key) => {
+  for (const key of Array.from(subs.keys())) {
     if (isElement(key)) {
-      collectElement(key, collector);
+      await collectElement(key, collector);
     } else {
-      collectValue(key, collector);
+      await collectValue(key, collector);
     }
-  });
+  }
 };
 
-const collectQObjects = (input: any, collector: Collector) => {
+class ResolvedPromise {
+  constructor(public value: any) {}
+}
+
+const collectQObjects = async (input: any, collector: Collector) => {
   let obj = input;
   if (obj != null) {
     if (typeof obj === 'object') {
+      if (isPromise(obj)) {
+        obj = await obj;
+        collectValue(obj, collector);
+        obj = new ResolvedPromise(obj);
+      }
       const target = getProxyTarget(obj);
       if (!target && isNode(obj)) {
         if (obj.nodeType === 1) {
@@ -739,12 +762,12 @@ const collectQObjects = (input: any, collector: Collector) => {
         return false;
       }
       if (isQrl(obj)) {
-        collectQrl(obj, collector);
+        await collectQrl(obj, collector);
         return true;
       }
       const subs = collector.$containerState$.$subsManager$.$tryGetLocal$(target)?.$subs$;
       if (subs) {
-        collectSubscriptions(subs, collector);
+        await collectSubscriptions(subs, collector);
       }
       obj = normalizeObj(obj, collector.$doc$);
     }
@@ -757,12 +780,12 @@ const collectQObjects = (input: any, collector: Collector) => {
 
       if (isArray(obj)) {
         for (let i = 0; i < obj.length; i++) {
-          collectQObjects(input[i], collector);
+          await collectQObjects(input[i], collector);
         }
       } else {
         for (const key in obj) {
           if (Object.prototype.hasOwnProperty.call(obj, key)) {
-            collectQObjects(input[key], collector);
+            await collectQObjects(input[key], collector);
           }
         }
       }

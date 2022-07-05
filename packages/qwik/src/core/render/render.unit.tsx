@@ -25,7 +25,7 @@ describe('render', () => {
       expect(fixture.host.getAttribute('q:version')).toEqual('');
       expect(fixture.host.getAttribute('q:container')).toEqual('resumed');
 
-      pauseContainer(fixture.host);
+      await pauseContainer(fixture.host);
       expect(fixture.host.getAttribute('q:container')).toEqual('paused');
     });
 
@@ -450,7 +450,7 @@ describe('render', () => {
       </div>
     );
 
-    pauseContainer(fixture.host);
+    await pauseContainer(fixture.host);
     await expectRendered(
       <div>
         <div id="effect"></div>

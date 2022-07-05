@@ -80,9 +80,8 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
                   const params = getRouteParams(route.paramNames, match);
                   const headers = Object.entries(req.headers)
                     .reduce((rec: Record<string, string>, [k,v]) => { 
-                      if (v) {
-                        rec[k] = (v).toString(); return rec 
-                      }
+                      if (!v) { v = ''; }
+                      rec[k] = Array.isArray(v) ? v.join(' ') : v;
                       return rec
                     }
                     , {})

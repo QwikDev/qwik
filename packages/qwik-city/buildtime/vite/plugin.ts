@@ -78,7 +78,15 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
               if (match) {
                 if (route.type === 'endpoint') {
                   const params = getRouteParams(route.paramNames, match);
-                  const request = new Request(url.href, { method: req.method });
+                  const headers = Object.entries(req.headers)
+                    .reduce((rec: Record<string, string>, [k,v]) => { 
+                      if (v) {
+                        rec[k] = (v).toString(); return rec 
+                      }
+                      return rec
+                    }
+                    , {})
+                  const request = new Request(url.href, { headers, method: req.method });
                   const requestEv: RequestEvent = {
                     method: request.method,
                     request,

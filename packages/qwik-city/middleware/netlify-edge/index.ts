@@ -39,6 +39,5 @@ export interface QwikCityPlanNetlifyEdge extends QwikCityPlan {}
  * @public
  */
 export interface EventPluginContext {
-  request: Request;
   next: (input?: Request | string, init?: RequestInit) => Promise<Response>;
 }

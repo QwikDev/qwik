@@ -9,7 +9,7 @@ import type { Render } from '@builder.io/qwik/server';
  * @public
  */
 export function qwikCity(render: Render, opts: QwikCityPlanNetlifyEdge) {
-  async function onRequest({ request, next, waitUntil }: EventPluginContext) {
+  async function onRequest(request: Request, { next }: EventPluginContext) {
     try {
       // early return from cache
       const cache = await caches.open('custom:qwikcity');
@@ -28,7 +28,7 @@ export function qwikCity(render: Render, opts: QwikCityPlanNetlifyEdge) {
         if (response.ok) {
           const cacheControl = response.headers.get('Cache-Control') || '';
           if (!cacheControl.includes('no-store')) {
-            waitUntil(cache.put(request, response.clone()));
+            await cache.put(request, response.clone())
           }
         }
         return response;
@@ -53,6 +53,5 @@ export interface QwikCityPlanNetlifyEdge extends QwikCityPlan {}
  */
 export interface EventPluginContext {
   request: Request;
-  waitUntil: (promise: Promise<any>) => void;
   next: (input?: Request | string, init?: RequestInit) => Promise<Response>;
 }

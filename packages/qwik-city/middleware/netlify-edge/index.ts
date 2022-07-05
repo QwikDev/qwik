@@ -11,13 +11,6 @@ import type { Render } from '@builder.io/qwik/server';
 export function qwikCity(render: Render, opts: QwikCityPlanNetlifyEdge) {
   async function onRequest(request: Request, { next }: EventPluginContext) {
     try {
-      // early return from cache
-      const cache = await caches.open('custom:qwikcity');
-      const cachedResponse = await cache.match(request);
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-
       const requestOpts: QwikCityRequestOptions = {
         ...opts,
         request,
@@ -25,12 +18,6 @@ export function qwikCity(render: Render, opts: QwikCityPlanNetlifyEdge) {
 
       const response = await requestHandler(render, requestOpts);
       if (response) {
-        if (response.ok) {
-          const cacheControl = response.headers.get('Cache-Control') || '';
-          if (!cacheControl.includes('no-store')) {
-            await cache.put(request, response.clone())
-          }
-        }
         return response;
       } else {
         return next();

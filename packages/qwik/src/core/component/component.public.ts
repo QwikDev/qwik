@@ -5,7 +5,6 @@ import type { ComponentBaseProps } from '../render/jsx/types/jsx-qwik-attributes
 import type { FunctionComponent } from '../render/jsx/types/jsx-node';
 import { jsx } from '../render/jsx/jsx-runtime';
 import type { MutableWrapper } from '../object/q-object';
-import type { QRLInternal } from '../import/qrl-class';
 
 /**
  * Infers `Props` from the component.
@@ -67,67 +66,13 @@ export type Component<PROPS extends {}> = FunctionComponent<PublicProps<PROPS>>;
 /**
  * @public
  */
-export type PublicProps<PROPS extends {}> = MutableProps<PROPS> &
-  On$Props<PROPS> &
-  ComponentBaseProps;
+export type PublicProps<PROPS extends {}> = MutableProps<PROPS> & ComponentBaseProps;
 
 /**
  * @public
  */
 export type MutableProps<PROPS extends {}> = {
   [K in keyof PROPS]: PROPS[K] | MutableWrapper<PROPS[K]>;
-};
-
-// <docs markdown="../readme.md#On$Props">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#On$Props instead)
-/**
- * The type used to autogenerate the `$` suffixed properties on the component props.
- *
- * When declaring component props, it is not possible to pass in closures. Instead, the closures
- * need to be passed in as QRLs. This is usually done automatically by the Optimizer by suffixing
- * the property with `$`. This type automatically generates the `$`-suffixed properties from
- * `Qrl`-suffixed properties.
- *
- * ```tsx
- * export const App = component$(() => {
- *   const goodbyeQrl = $(() => alert('Good Bye!'));
- *
- *   // This is not-canonical usage of On$Props. It is here only as an example.
- *   const myComponentProps: On$Props<MyComponentProps> & MyComponentProps = {
- *     goodbyeQrl: goodbyeQrl,
- *     hello$: (name) => alert('Hello ' + name),
- *   };
- *   return (
- *     <div>
- *       <MyComponent {...myComponentProps} />
- *     </div>
- *   );
- * });
- *
- * interface MyComponentProps {
- *   goodbyeQrl?: QRL<() => void>;
- *   helloQrl?: QRL<(name: string) => void>;
- * }
- * export const MyComponent = component$((props: MyComponentProps) => {
- *   return (
- *     <div>
- *       <button onClickQrl={props.goodbyeQrl}>hello</button>
- *       <button onClick$={async () => await props.helloQrl?.invoke('World')}>good bye</button>
- *     </div>
- *   );
- * });
- * ```
- *
- * @public
- */
-// </docs>
-export type On$Props<T extends {}> = {
-  [K in keyof T as K extends `${infer A}Qrl`
-    ? NonNullable<T[K]> extends QRL
-      ? `${A}$`
-      : never
-    : never]?: NonNullable<T[K]> extends QRL<infer B> ? B : never;
 };
 
 /**
@@ -200,9 +145,7 @@ export const componentQrl = <PROPS extends {}>(
 
   // Return a QComponent Factory function.
   return function QSimpleComponent(props, key): JSXNode<PROPS> {
-    const finalKey = skipKey
-      ? undefined
-      : (onRenderQrl as QRLInternal).getHash() + ':' + (key ? key : '');
+    const finalKey = skipKey ? undefined : onRenderQrl.getHash() + ':' + (key ? key : '');
     return jsx(tagName, { [OnRenderProp]: onRenderQrl, ...props }, finalKey) as any;
   };
 };

@@ -25,9 +25,9 @@ export const Foo = component$(() => {
                 host:onDocumentScroll$={()=>console.log('host:onDocument:scroll')}
                 host:onDocumentScroll$={()=>console.log('host:onWindow:scroll')}
 
-                onKeyup={handler}
-                onDocument:keyup={handler}
-                onWindow:keyup={handler}
+                onKeyup$={handler}
+                onDocument:keyup$={handler}
+                onWindow:keyup$={handler}
 
                 custom$={()=>console.log('custom')}
             />
@@ -93,7 +93,7 @@ export const Foo_component_HTDRsvUbLiE = ()=>{
   "captures": false,
   "loc": [
     83,
-    1042
+    1045
   ]
 }
 */
@@ -129,28 +129,28 @@ export const Foo_component_1_DvU6FitWglY = ()=>{
     const handler = qrl(()=>import("./foo_component_handler_h10xztd0e7w")
     , "Foo_component_handler_H10xZtD0e7w");
     return /*#__PURE__*/ _jsx("div", {
-        onClickQrl: qrl(()=>import("./foo_component_div_onclick_m48dyiidsjw")
+        onClick$: qrl(()=>import("./foo_component_div_onclick_m48dyiidsjw")
         , "Foo_component_div_onClick_M48DYiidSJw"),
-        onDocumentScrollQrl: qrl(()=>import("./foo_component_div_ondocumentscroll_rwfftfivukc")
+        onDocumentScroll$: qrl(()=>import("./foo_component_div_ondocumentscroll_rwfftfivukc")
         , "Foo_component_div_onDocumentScroll_rwFFtFiVuKc"),
-        onDocumentScrollQrl: qrl(()=>import("./foo_component_div_ondocumentscroll_1_cwneogpmtzi")
+        onDocumentScroll$: qrl(()=>import("./foo_component_div_ondocumentscroll_1_cwneogpmtzi")
         , "Foo_component_div_onDocumentScroll_1_CwneoGpmTZI"),
-        "on-cLickQrl": qrl(()=>import("./foo_component_div_on_click_ioasjw8vyjc")
+        "on-cLick$": qrl(()=>import("./foo_component_div_on_click_ioasjw8vyjc")
         , "Foo_component_div_on_cLick_IoAsJW8vYJc"),
-        "onDocument-sCrollQrl": qrl(()=>import("./foo_component_div_ondocument_scroll_5vnik61pzom")
+        "onDocument-sCroll$": qrl(()=>import("./foo_component_div_ondocument_scroll_5vnik61pzom")
         , "Foo_component_div_onDocument_sCroll_5VNik61PZOM"),
-        "onDocument-scroLLQrl": qrl(()=>import("./foo_component_div_ondocument_scroll_1q0sgr8te3g")
+        "onDocument-scroLL$": qrl(()=>import("./foo_component_div_ondocument_scroll_1q0sgr8te3g")
         , "Foo_component_div_onDocument_scroLL_1q0Sgr8te3g"),
-        "host:onClickQrl": qrl(()=>import("./foo_component_div_host_onclick_cpeh970jbey")
+        "host:onClick$": qrl(()=>import("./foo_component_div_host_onclick_cpeh970jbey")
         , "Foo_component_div_host_onClick_cPEH970JbEY"),
-        "host:onDocumentScrollQrl": qrl(()=>import("./foo_component_div_host_ondocumentscroll_zip7mifsjry")
+        "host:onDocumentScroll$": qrl(()=>import("./foo_component_div_host_ondocumentscroll_zip7mifsjry")
         , "Foo_component_div_host_onDocumentScroll_Zip7mifsjRY"),
-        "host:onDocumentScrollQrl": qrl(()=>import("./foo_component_div_host_ondocumentscroll_1_em1lspk7jvg")
+        "host:onDocumentScroll$": qrl(()=>import("./foo_component_div_host_ondocumentscroll_1_em1lspk7jvg")
         , "Foo_component_div_host_onDocumentScroll_1_Em1LspK7JVg"),
-        onKeyup: handler,
-        "onDocument:keyup": handler,
-        "onWindow:keyup": handler,
-        customQrl: qrl(()=>import("./foo_component_div_custom_pyhnxab17ms")
+        onKeyup$: handler,
+        "onDocument:keyup$": handler,
+        "onWindow:keyup$": handler,
+        custom$: qrl(()=>import("./foo_component_div_custom_pyhnxab17ms")
         , "Foo_component_div_custom_pyHnxab17ms")
     });
 };
@@ -173,7 +173,7 @@ export { hW as handleWatch };
   "captures": false,
   "loc": [
     105,
-    1038
+    1041
   ]
 }
 */
@@ -220,8 +220,8 @@ export const Foo_component_div_custom_pyHnxab17ms = ()=>console.log('custom')
   "ctxName": "custom$",
   "captures": false,
   "loc": [
-    981,
-    1006
+    984,
+    1009
   ]
 }
 */

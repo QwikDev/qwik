@@ -1,4 +1,4 @@
-import { component$, useStore, Host, EventHandler } from '@builder.io/qwik';
+import { component$, useStore, Host, PropFunction } from '@builder.io/qwik';
 
 export const Events = component$(() => {
   const store = useStore({
@@ -10,10 +10,10 @@ export const Events = component$(() => {
   return (
     <Host>
       <Buttons
-        onTransparentClick$={() => {
+        onTransparentClick$={async () => {
           store.countTransparent++;
         }}
-        onWrappedClick$={() => {
+        onWrappedClick$={async () => {
           store.countWrapped++;
         }}
       ></Buttons>
@@ -41,8 +41,8 @@ export const Events = component$(() => {
 });
 
 interface ButtonProps {
-  onTransparentClickQrl?: EventHandler<Event>; // QRL<(Event)=>any>
-  onWrappedClickQrl?: EventHandler<number>;
+  onTransparentClick$?: PropFunction<(ev: Event) => any>;
+  onWrappedClick$?: PropFunction<(nu: number) => void>;
 }
 
 export const Buttons = component$((props: ButtonProps) => {
@@ -50,14 +50,14 @@ export const Buttons = component$((props: ButtonProps) => {
   return (
     <Host>
       <span>some</span>
-      <button id="btn-transparent" onClickQrl={props.onTransparentClickQrl}>
+      <button id="btn-transparent" onClick$={props.onTransparentClick$}>
         Transparent
       </button>
       <button
         id="btn-wrapped"
-        onClick$={() => {
+        onClick$={async () => {
           store.count++;
-          props.onWrappedClickQrl!.invoke(store.count);
+          await props.onWrappedClick$?.(store.count);
         }}
       >
         Wrapped {store.count}

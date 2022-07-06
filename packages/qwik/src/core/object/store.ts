@@ -212,7 +212,7 @@ export const pauseState = async (containerEl: Element): Promise<SnapshotResult> 
     if (ctx.$listeners$) {
       for (const listeners of ctx.$listeners$.values()) {
         for (const l of listeners) {
-          const captured = (l as QRLInternal).$captureRef$;
+          const captured = l.$captureRef$;
           if (captured) {
             for (const obj of captured) {
               await collectValue(obj, collector);
@@ -352,12 +352,12 @@ export const pauseState = async (containerEl: Element): Promise<SnapshotResult> 
   };
 
   const convertedObjs = objs.map((obj) => {
+    if (isQrl(obj)) {
+      return QRL_PREFIX + stringifyQRL(obj, qrlSerializeOptions);
+    }
     if (isObject(obj)) {
       if (isArray(obj)) {
         return obj.map(serialize);
-      }
-      if (isQrl(obj)) {
-        return QRL_PREFIX + stringifyQRL(obj, qrlSerializeOptions);
       }
       const output: Record<string, any> = {};
       Object.entries(obj).forEach(([key, value]) => {
@@ -570,14 +570,15 @@ const reviveValues = (
 };
 
 const reviveNestedObjects = (obj: any, getObject: GetObject) => {
+  if (isQrl(obj)) {
+    if (obj.$capture$ && obj.$capture$.length > 0) {
+      obj.$captureRef$ = obj.$capture$.map(getObject);
+      obj.$capture$ = null;
+    }
+    return;
+  }
   if (obj && typeof obj == 'object') {
-    if (isQrl(obj)) {
-      if (obj.$capture$ && obj.$capture$.length > 0) {
-        obj.$captureRef$ = obj.$capture$.map(getObject);
-        obj.$capture$ = null;
-      }
-      return;
-    } else if (isArray(obj)) {
+    if (isArray(obj)) {
       for (let i = 0; i < obj.length; i++) {
         const value = obj[i];
         if (typeof value == 'string') {
@@ -769,6 +770,10 @@ const getPromiseValue = (promise: Promise<any>) => {
 const collectQObjects = async (input: any, collector: Collector) => {
   let obj = input;
   if (obj != null) {
+    if (isQrl(obj)) {
+      await collectQrl(obj, collector);
+      return true;
+    }
     if (typeof obj === 'object') {
       if (isPromise(obj)) {
         if (collector.$seen$.has(obj)) {
@@ -785,10 +790,6 @@ const collectQObjects = async (input: any, collector: Collector) => {
           return true;
         }
         return false;
-      }
-      if (isQrl(obj)) {
-        await collectQrl(obj, collector);
-        return true;
       }
       const subs = collector.$containerState$.$subsManager$.$tryGetLocal$(target)?.$subs$;
       if (subs) {

@@ -81,7 +81,7 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
 
                   let body: ArrayBuffer | undefined = undefined;
                   if (!(req.method === 'GET' || req.method === 'HEAD')) {
-                    let bytes: string[] = [];
+                    const bytes: string[] = [];
                     await new Promise((resolve) => {
                       req.setEncoding('utf-8');
                       req.on('data', (bts) => bytes.push(bts));

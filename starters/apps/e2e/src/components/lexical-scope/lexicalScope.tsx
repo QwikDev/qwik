@@ -65,7 +65,7 @@ export const LexicalScopeChild = component$((props: LexicalScopeProps) => {
         <p>{props.message}</p>
         <p>{promise}</p>
       </div>
-      <button onClickQrl={onclick} id="rerender">
+      <button onClick$={onclick} id="rerender">
         Rerender {state.count}
       </button>
       <div id="result">{state.result}</div>

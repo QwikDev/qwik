@@ -93,5 +93,5 @@ export const LexicalScope = component$(() => {
     el,
     doc,
   ]);
-  return <div onClickQrl={thing}></div>;
+  return <div onClick$={thing}></div>;
 });

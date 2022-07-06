@@ -2,7 +2,7 @@ import { assertDefined, assertEqual } from '../assert/assert';
 import { parseQRL } from '../import/qrl';
 import { getContext, QContext, resumeIfNeeded } from '../props/props';
 import { getContainer, getInvokeContext } from './use-core';
-import type { QRLInternal } from '../import/qrl-class';
+import { assertQrl } from '../import/qrl-class';
 
 // <docs markdown="../readme.md#useLexicalScope">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -21,8 +21,9 @@ import type { QRLInternal } from '../import/qrl-class';
 export const useLexicalScope = <VARS extends any[]>(): VARS => {
   const context = getInvokeContext();
   const hostElement = context.$hostElement$;
-  const qrl = (context.$qrl$ ??
-    parseQRL(decodeURIComponent(String(context.$url$)), hostElement)) as QRLInternal;
+  const qrl = context.$qrl$ ?? parseQRL(decodeURIComponent(String(context.$url$)), hostElement);
+  assertQrl(qrl);
+
   if (qrl.$captureRef$ == null) {
     const el = context.$element$!;
     assertDefined(el);

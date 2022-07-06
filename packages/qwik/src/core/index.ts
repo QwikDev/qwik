@@ -9,7 +9,6 @@ export type {
   OnRenderFn,
   Component,
   PublicProps,
-  On$Props,
 } from './component/component.public';
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -23,7 +22,7 @@ export type { SnapshotState, SnapshotResult } from './object/store';
 //////////////////////////////////////////////////////////////////////////////////////////
 export { $ } from './import/qrl.public';
 export { qrl, inlinedQrl } from './import/qrl';
-export type { QRL, EventHandler } from './import/qrl.public';
+export type { QRL, PropFunction } from './import/qrl.public';
 export type { Props } from './props/props.public';
 export { implicit$FirstArg } from './util/implicit_dollar';
 

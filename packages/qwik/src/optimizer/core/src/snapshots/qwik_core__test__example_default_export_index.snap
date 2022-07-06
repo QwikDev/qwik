@@ -20,7 +20,7 @@ export default component$(() => {
 import { componentQrl } from "@builder.io/qwik";
 import { inlinedQrl } from "@builder.io/qwik";
 export default /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
-    return <div onClickQrl={inlinedQrl(()=>console.log(mongodb)
+    return <div onClick$={inlinedQrl(()=>console.log(mongodb)
     , "mongo_component_div_onClick_2EK0wZbP8qw")}>
 
         </div>;

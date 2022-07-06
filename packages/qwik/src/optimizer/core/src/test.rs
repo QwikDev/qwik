@@ -735,9 +735,9 @@ export const Foo = component$(() => {
                 host:onDocumentScroll$={()=>console.log('host:onDocument:scroll')}
                 host:onDocumentScroll$={()=>console.log('host:onWindow:scroll')}
 
-                onKeyup={handler}
-                onDocument:keyup={handler}
-                onWindow:keyup={handler}
+                onKeyup$={handler}
+                onDocument:keyup$={handler}
+                onWindow:keyup$={handler}
 
                 custom$={()=>console.log('custom')}
             />
@@ -1122,7 +1122,7 @@ export const App = /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
             }),
             /*#__PURE__*/ jsx("p", {
                 children: /*#__PURE__*/ jsx("button", {
-                    onClickQrl: inlinedQrl(()=>{
+                    onClick$: inlinedQrl(()=>{
                         const [store] = useLexicalScope();
                         return store.count++;
                     }, "App_component_div_p_button_onClick_odz7eidI4GM", [
@@ -1391,7 +1391,7 @@ export const App = /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
             }),
             /*#__PURE__*/ jsx("p", {
                 children: /*#__PURE__*/ jsx("button", {
-                    onClickQrl: inlinedQrl(()=>{
+                    onClick$: inlinedQrl(()=>{
                         const [store] = useLexicalScope();
                         return store.count++;
                     }, "App_component_div_p_button_onClick_8dWUa0cJAr4", [

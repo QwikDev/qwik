@@ -127,23 +127,29 @@ import { runtimeQrl } from './qrl';
 // </docs>
 export interface QRL<TYPE = any> {
   /**
-   * Resolve the QRL and return the actual value.
-   */
-  resolve(): Promise<TYPE>;
-  /**
    * Resolve the QRL of closure and invoke it.
    * @param args - Clousure arguments.
    * @returns A promise of the return value of the closure.
    */
-  invoke(
-    ...args: TYPE extends (...args: infer ARGS) => any ? ARGS : never
-  ): Promise<TYPE extends (...args: any[]) => infer RETURN ? RETURN : never>;
+  (...args: TYPE extends (...args: infer ARGS) => any ? ARGS : never): Promise<
+    TYPE extends (...args: any[]) => infer RETURN ? RETURN : never
+  >;
+
+  /**
+   * Resolve the QRL and return the actual value.
+   */
+  resolve(el?: Element): Promise<TYPE>;
+
+  getSymbol(): string;
+  getHash(): string;
 }
 
 /**
  * @public
  */
-export type EventHandler<T> = QRL<(value: T) => any>;
+export type PropFunction<T extends Function> = T extends (...args: infer ARGS) => infer RET
+  ? (...args: ARGS) => Promise<RET>
+  : never;
 
 // <docs markdown="../readme.md#$">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!

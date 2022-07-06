@@ -36,7 +36,7 @@ export const renderComponent = (rctx: RenderContext, ctx: QContext): ValueOrProm
   rctx.$containerState$.$subsManager$.$clearSub$(hostElement);
 
   // Resolve render function
-  const onRenderFn = onRenderQRL.invokeFn(rctx.$containerEl$, invocatinContext);
+  const onRenderFn = onRenderQRL.$invokeFn$(rctx.$containerEl$, invocatinContext);
 
   try {
     // Execution of the render function

@@ -104,7 +104,7 @@ export function qPropReadQRL(ctx: QContext, prop: string): ((event: Event) => vo
     const qrls = listeners.get(prop) || [];
     await Promise.all(
       qrls.map((qrl) => {
-        const fn = qrl.invokeFn(ctx.$element$);
+        const fn = qrl.$invokeFn$(ctx.$element$);
         return fn(event);
       })
     );

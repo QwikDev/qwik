@@ -6,7 +6,7 @@
 // it to the desired comment location
 //
 
-import { component$, On$Props } from './component/component.public';
+import { component$ } from './component/component.public';
 import { qrl } from './import/qrl';
 import { $, QRL } from './import/qrl.public';
 import { Host } from './render/jsx/host.public';
@@ -280,38 +280,6 @@ export const CmpInline = component$(() => {
   // </docs>
   return Cmp;
 };
-
-//
-// <docs anchor="On$Props">
-export const App = component$(() => {
-  const goodbyeQrl = $(() => alert('Good Bye!'));
-
-  // This is not-canonical usage of On$Props. It is here only as an example.
-  const myComponentProps: On$Props<MyComponentProps> & MyComponentProps = {
-    goodbyeQrl: goodbyeQrl,
-    hello$: (name) => alert('Hello ' + name),
-  };
-  return (
-    <div>
-      <MyComponent {...myComponentProps} />
-    </div>
-  );
-});
-
-interface MyComponentProps {
-  goodbyeQrl?: QRL<() => void>;
-  helloQrl?: QRL<(name: string) => void>;
-}
-export const MyComponent = component$((props: MyComponentProps) => {
-  return (
-    <div>
-      <button onClickQrl={props.goodbyeQrl}>hello</button>
-      <button onClick$={async () => await props.helloQrl?.invoke('World')}>good bye</button>
-    </div>
-  );
-});
-// </docs>
-//
 
 () => {
   // <docs anchor="use-client-mount">

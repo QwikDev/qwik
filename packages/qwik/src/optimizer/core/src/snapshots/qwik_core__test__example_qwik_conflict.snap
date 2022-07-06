@@ -68,7 +68,7 @@ export const Foo_component_HTDRsvUbLiE = ()=>{
     console.log(qwik);
     const qrl1 = 23;
     return /*#__PURE__*/ _jsx("div", {
-        onClickQrl: qrl(()=>import("./foo_component_div_onclick_m48dyiidsjw")
+        onClick$: qrl(()=>import("./foo_component_div_onclick_m48dyiidsjw")
         , "Foo_component_div_onClick_M48DYiidSJw", [
             qrl1
         ])

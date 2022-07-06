@@ -4,7 +4,6 @@ import { newInvokeContext } from './use-core';
 import { logDebug, logError } from '../util/log';
 import { then } from '../util/promises';
 import { useSequentialScope } from './use-store.public';
-import { QRLInternal } from '../import/qrl-class';
 import { getDocument } from '../util/dom';
 import { isFunction, isObject, ValueOrPromise } from '../util/types';
 import { getPlatform } from '../platform/platform';
@@ -14,6 +13,7 @@ import { useResumeQrl, useVisibleQrl } from './use-on';
 import { implicit$FirstArg } from '../util/implicit_dollar';
 import { assertDefined } from '../assert/assert';
 import type { QRL } from '../import/qrl.public';
+import { assertQrl, createQrl, QRLInternal } from '../import/qrl-class';
 
 export const WatchFlagsIsEffect = 1 << 0;
 export const WatchFlagsIsWatch = 1 << 1;
@@ -131,10 +131,11 @@ export interface UseEffectOptions {
 export const useWatchQrl = (qrl: QRL<WatchFn>, opts?: UseEffectOptions): void => {
   const { get, set, ctx, i } = useSequentialScope<boolean>();
   if (!get) {
+    assertQrl(qrl);
     const el = ctx.$hostElement$;
     const containerState = ctx.$renderCtx$.$containerState$;
     const watch: WatchDescriptor = {
-      qrl: qrl as QRLInternal,
+      qrl,
       el,
       f: WatchFlagsIsDirty | WatchFlagsIsWatch,
       i,
@@ -243,9 +244,10 @@ export const useWatch$ = /*#__PURE__*/ implicit$FirstArg(useWatchQrl);
 export const useClientEffectQrl = (qrl: QRL<WatchFn>, opts?: UseEffectOptions): void => {
   const { get, set, i, ctx } = useSequentialScope<boolean>();
   if (!get) {
+    assertQrl(qrl);
     const el = ctx.$hostElement$;
     const watch: WatchDescriptor = {
-      qrl: qrl as QRLInternal,
+      qrl,
       el,
       f: WatchFlagsIsEffect,
       i,
@@ -336,7 +338,7 @@ export const useServerMountQrl = (mountQrl: QRL<ServerFn>): void => {
     set(true);
     const isServer = getPlatform(ctx.$doc$).isServer;
     if (isServer) {
-      ctx.$waitOn$.push(mountQrl.invoke());
+      ctx.$waitOn$.push(mountQrl());
     }
   }
 };
@@ -423,7 +425,7 @@ export const useClientMountQrl = (mountQrl: QRL<ServerFn>): void => {
     set(true);
     const isServer = getPlatform(useDocument()).isServer;
     if (!isServer) {
-      ctx.$waitOn$.push(mountQrl.invoke());
+      ctx.$waitOn$.push(mountQrl());
     }
   }
 };
@@ -500,7 +502,7 @@ export const useMountQrl = (mountQrl: QRL<ServerFn>): void => {
   const { get, set, ctx } = useSequentialScope<boolean>();
   if (!get) {
     set(true);
-    ctx.$waitOn$.push(mountQrl.invoke());
+    ctx.$waitOn$.push(mountQrl());
   }
 };
 
@@ -555,7 +557,7 @@ export const runWatch = (
       const doc = getDocument(el);
       const invokationContext = newInvokeContext(doc, el, el, 'WatchEvent');
       const { $subsManager$: subsManager } = containerState;
-      const watchFn = watch.qrl.invokeFn(el, invokationContext, () => {
+      const watchFn = watch.qrl.$invokeFn$(el, invokationContext, () => {
         subsManager.$clearSub$(watch);
       });
       const track: Tracker = (obj: any, prop?: string) => {
@@ -597,7 +599,7 @@ export const cleanupWatch = (watch: WatchDescriptor) => {
 export const destroyWatch = (watch: WatchDescriptor) => {
   if (watch.f & WatchFlagsIsCleanup) {
     watch.f &= ~WatchFlagsIsCleanup;
-    const cleanup = watch.qrl.invokeFn(watch.el);
+    const cleanup = watch.qrl.$invokeFn$(watch.el);
     (cleanup as any)();
   } else {
     cleanupWatch(watch);
@@ -656,15 +658,17 @@ const useRunWatch = (watch: WatchDescriptor, run: UseEffectRunOptions | undefine
 };
 
 const getWatchHandlerQrl = (watch: WatchDescriptor) => {
-  const watchQrl = watch.qrl as QRLInternal;
-  const watchHandler = new QRLInternal(
-    (watchQrl as QRLInternal).$chunk$,
+  const watchQrl = watch.qrl;
+  assertQrl(watchQrl);
+
+  const watchHandler = createQrl(
+    watchQrl.$chunk$,
     'handleWatch',
     handleWatch,
     null,
     null,
-    [watch]
+    [watch],
+    watchQrl.$symbol$
   );
-  watchHandler.$refSymbol$ = (watchQrl as QRLInternal).$symbol$;
   return watchHandler;
 };

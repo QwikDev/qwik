@@ -1,4 +1,4 @@
-import type { QRLInternal } from '../import/qrl-class';
+import { assertQrl } from '../import/qrl-class';
 import type { QRL } from '../import/qrl.public';
 import { getContext } from '../props/props';
 import { qPropWriteQRL } from '../props/props-on';
@@ -35,9 +35,10 @@ import { WatchDescriptor, WatchFlagsIsCleanup } from './use-watch';
 export const useCleanupQrl = (unmountFn: QRL<() => void>): void => {
   const { get, set, i, ctx } = useSequentialScope<boolean>();
   if (!get) {
+    assertQrl(unmountFn);
     const el = ctx.$hostElement$;
     const watch: WatchDescriptor = {
-      qrl: unmountFn as QRLInternal,
+      qrl: unmountFn,
       el,
       f: WatchFlagsIsCleanup,
       i,
@@ -301,5 +302,6 @@ export const useOnWindow = (event: string, eventQrl: QRL<(ev: Event) => void>) =
 const _useOn = (eventName: string, eventQrl: QRL<(ev: Event) => void>) => {
   const invokeCtx = useInvokeContext();
   const ctx = getContext(invokeCtx.$hostElement$);
+  assertQrl(eventQrl);
   qPropWriteQRL(invokeCtx.$renderCtx$, ctx, eventName, eventQrl);
 };

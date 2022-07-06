@@ -21,7 +21,7 @@ export const App = /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
             }),
             /*#__PURE__*/ jsx("p", {
                 children: /*#__PURE__*/ jsx("button", {
-                    onClickQrl: inlinedQrl(()=>{
+                    onClick$: inlinedQrl(()=>{
                         const [store] = useLexicalScope();
                         return store.count++;
                     }, "App_component_div_p_button_onClick_odz7eidI4GM", [
@@ -57,8 +57,8 @@ export const App_component_div_p_button_onClick_odz7eidI4GM = ()=>{
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    577,
-    709
+    575,
+    707
   ]
 }
 */
@@ -82,7 +82,7 @@ export const App_component_Fh88JClhbC0 = ()=>{
             }),
             /*#__PURE__*/ jsx("p", {
                 children: /*#__PURE__*/ jsx("button", {
-                    onClickQrl: qrl(()=>import("./entry_hooks")
+                    onClick$: qrl(()=>import("./entry_hooks")
                     , "App_component_div_p_button_onClick_odz7eidI4GM", [
                         store
                     ]),
@@ -108,7 +108,7 @@ export const App_component_Fh88JClhbC0 = ()=>{
   "captures": false,
   "loc": [
     159,
-    908
+    906
   ]
 }
 */

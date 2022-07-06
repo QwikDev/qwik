@@ -69,7 +69,7 @@ export const Parent_component_0TaiDayHrlo = ()=>{
         state
     ]));
     return /*#__PURE__*/ _jsx("div", {
-        onClickQrl: qrl(()=>import("./entry_Parent")
+        onClick$: qrl(()=>import("./entry_Parent")
         , "Parent_component_div_onClick_C5XE49Nqd3A"),
         children: state.text
     });
@@ -162,7 +162,7 @@ export const Child_component_9GyF01GDKqw = ()=>{
         state
     ]));
     return /*#__PURE__*/ _jsx("div", {
-        onClickQrl: qrl(()=>import("./entry_Child")
+        onClick$: qrl(()=>import("./entry_Child")
         , "Child_component_div_onClick_elliVSnAiOQ"),
         children: state.text
     });

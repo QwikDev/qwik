@@ -687,11 +687,11 @@ export const Counter = component$((props: { step?: number }) => {
   const step = Number(props.step || 1);
   return (
     <>
-      <button class="decrement" onClickQrl={runtimeQrl(Counter_add, [state, { value: -step }])}>
+      <button class="decrement" onClick$={runtimeQrl(Counter_add, [state, { value: -step }])}>
         -
       </button>
       <span>{state.count}</span>
-      <button class="increment" onClickQrl={runtimeQrl(Counter_add, [state, { value: step }])}>
+      <button class="increment" onClick$={runtimeQrl(Counter_add, [state, { value: step }])}>
         +
       </button>
     </>

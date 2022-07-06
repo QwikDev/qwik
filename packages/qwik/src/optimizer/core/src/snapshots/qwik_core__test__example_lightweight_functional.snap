@@ -126,14 +126,14 @@ export const Foo = /*#__PURE__*/ componentQrl(qrl(()=>import("./foo_component_ht
     tagName: "my-foo"
 });
 export function Button({ text , color  }) {
-    return <button color={color} onClickQrl={qrl(()=>import("./button_button_onclick_nsm0jyv00jw")
+    return <button color={color} onClick$={qrl(()=>import("./button_button_onclick_nsm0jyv00jw")
     , "Button_button_onClick_NsM0JYV00Jw", [
         color,
         text
     ])}>{text}</button>;
 }
 export const ButtonArrow = ({ text , color  })=>{
-    return <button color={color} onClickQrl={qrl(()=>import("./buttonarrow_button_onclick_9npo43figik")
+    return <button color={color} onClick$={qrl(()=>import("./buttonarrow_button_onclick_9npo43figik")
     , "ButtonArrow_button_onClick_9npo43fIGik", [
         color,
         text

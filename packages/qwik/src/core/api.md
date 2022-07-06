@@ -108,9 +108,6 @@ export interface DOMAttributes<T> extends QwikProps, QwikEvents {
 }
 
 // @public (undocumented)
-export type EventHandler<T> = QRL<(value: T) => any>;
-
-// @public (undocumented)
 export const Fragment: FunctionComponent<{
     children?: any;
 }>;
@@ -296,16 +293,14 @@ export type NoSerialize<T> = (T & {
 // @alpha
 export const noSerialize: <T extends {}>(input: T) => NoSerialize<T>;
 
-// @public
-export type On$Props<T extends {}> = {
-    [K in keyof T as K extends `${infer A}Qrl` ? NonNullable<T[K]> extends QRL ? `${A}$` : never : never]?: NonNullable<T[K]> extends QRL<infer B> ? B : never;
-};
-
 // @public (undocumented)
 export type OnRenderFn<PROPS> = (props: PROPS) => JSXNode<any> | null | (() => JSXNode<any>);
 
 // @alpha
 export const pauseContainer: (elmOrDoc: Element | Document) => Promise<SnapshotResult>;
+
+// @public (undocumented)
+export type PropFunction<T extends Function> = T extends (...args: infer ARGS) => infer RET ? (...args: ARGS) => Promise<RET> : never;
 
 // @public (undocumented)
 export type Props<T extends {} = {}> = Record<string, any> & T;
@@ -317,12 +312,16 @@ export type PropsOf<COMP extends Component<any>> = COMP extends Component<infer 
 // Warning: (ae-forgotten-export) The symbol "ComponentBaseProps" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export type PublicProps<PROPS extends {}> = MutableProps<PROPS> & On$Props<PROPS> & ComponentBaseProps;
+export type PublicProps<PROPS extends {}> = MutableProps<PROPS> & ComponentBaseProps;
 
 // @public
 export interface QRL<TYPE = any> {
-    invoke(...args: TYPE extends (...args: infer ARGS) => any ? ARGS : never): Promise<TYPE extends (...args: any[]) => infer RETURN ? RETURN : never>;
-    resolve(): Promise<TYPE>;
+    (...args: TYPE extends (...args: infer ARGS) => any ? ARGS : never): Promise<TYPE extends (...args: any[]) => infer RETURN ? RETURN : never>;
+    // (undocumented)
+    getHash(): string;
+    // (undocumented)
+    getSymbol(): string;
+    resolve(el?: Element): Promise<TYPE>;
 }
 
 // @alpha

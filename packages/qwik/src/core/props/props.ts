@@ -20,7 +20,7 @@ import { qDev } from '../util/qdev';
 import { logError } from '../util/log';
 import { isQrl, QRLInternal } from '../import/qrl-class';
 import { directGetAttribute } from '../render/fast-calls';
-import { assertDefined } from '../assert/assert';
+import { assertDefined, assertEqual } from '../assert/assert';
 import { codeToText, QError_immutableJsxProps } from '../error/error';
 
 const Q_CTX = '__ctx__';
@@ -130,12 +130,12 @@ export const normalizeOnProp = (prop: string) => {
 };
 
 export const setEvent = (rctx: RenderContext, ctx: QContext, prop: string, value: any) => {
-  const dollar = qDev && prop.endsWith('$');
+  assertEqual(prop.endsWith('$'), true);
   qPropWriteQRL(
     rctx,
     ctx,
-    normalizeOnProp(prop.slice(0, dollar ? -1 : -3)),
-    dollar ? $(value) : value
+    normalizeOnProp(prop.slice(0, -1)),
+    isQrl(value) ? value : ($(value) as QRLInternal)
   );
 };
 

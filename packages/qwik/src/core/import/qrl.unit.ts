@@ -1,5 +1,5 @@
 import { parseQRL, stringifyQRL } from './qrl';
-import { QRLInternal } from './qrl-class';
+import { createQrl } from './qrl-class';
 import { qrl } from './qrl';
 
 describe('QRL', () => {
@@ -46,15 +46,15 @@ describe('QRL', () => {
     });
 
     it('should stringify', () => {
-      expect(stringifyQRL(new QRLInternal('./chunk', '', null, null, null, null))).toEqual(
+      expect(stringifyQRL(createQrl('./chunk', '', null, null, null, null, null))).toEqual(
         './chunk'
       );
-      expect(stringifyQRL(new QRLInternal('./c', 's1', null, null, null, null))).toEqual('./c#s1');
-      expect(stringifyQRL(new QRLInternal('./c', 's1', null, null, [], null))).toEqual('./c#s1');
-      expect(stringifyQRL(new QRLInternal('./c', 's1', null, null, [1, '2'] as any, null))).toEqual(
+      expect(stringifyQRL(createQrl('./c', 's1', null, null, null, null, null))).toEqual('./c#s1');
+      expect(stringifyQRL(createQrl('./c', 's1', null, null, [], null, null))).toEqual('./c#s1');
+      expect(stringifyQRL(createQrl('./c', 's1', null, null, [1, '2'] as any, null, null))).toEqual(
         './c#s1[1 2]'
       );
-      expect(stringifyQRL(new QRLInternal('./c', 's1', null, null, [1 as any, '2'], null))).toEqual(
+      expect(stringifyQRL(createQrl('./c', 's1', null, null, [1 as any, '2'], null, null))).toEqual(
         './c#s1[1 2]'
       );
     });

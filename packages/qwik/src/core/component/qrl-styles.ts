@@ -1,11 +1,11 @@
-import type { QRLInternal } from '../import/qrl-class';
 import { ComponentStylesPrefixContent, ComponentStylesPrefixHost } from '../util/markers';
 import { hashCode } from '../util/hash_code';
+import type { QRL } from '../import/qrl.public';
 
 /**
  * @public
  */
-export const styleKey = (qStyles: QRLInternal<string>, index: number): string => {
+export const styleKey = (qStyles: QRL<string>, index: number): string => {
   return `${hashCode(qStyles.getHash())}-${index}`;
 };
 

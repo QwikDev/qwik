@@ -212,7 +212,7 @@ export const pauseState = async (containerEl: Element): Promise<SnapshotResult> 
     if (ctx.$listeners$) {
       for (const listeners of ctx.$listeners$.values()) {
         for (const l of listeners) {
-          const captured = (l as QRLInternal).$captureRef$;
+          const captured = l.$captureRef$;
           if (captured) {
             for (const obj of captured) {
               await collectValue(obj, collector);

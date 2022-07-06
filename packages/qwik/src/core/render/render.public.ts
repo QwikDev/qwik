@@ -43,7 +43,7 @@ export const render = async (
   injectQContainer(containerEl);
 
   const containerState = getContainerState(containerEl);
-  containerState.$hostsRendering$ = new Set();
+  // containerState.$hostsRendering$ = new Set();
   const ctx = createRenderContext(doc, containerState, containerEl);
   ctx.$roots$.push(parent as Element);
 

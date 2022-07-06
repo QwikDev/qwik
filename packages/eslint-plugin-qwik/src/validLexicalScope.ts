@@ -214,6 +214,10 @@ function _isTypeCapturable(
   opts: DetectorOptions,
   level: number
 ): TypeReason | undefined {
+  // NoSerialize is ok
+  if (type.getProperty('__no_serialize__')) {
+    return;
+  }
   const isUnknown = type.flags & TypeFlags.Unknown;
   if (isUnknown) {
     return {
@@ -274,11 +278,6 @@ function _isTypeCapturable(
   const isObject = (type.flags & TypeFlags.Object) !== 0;
   if (isObject) {
     const symbolName = type.symbol.name;
-
-    // NoSerialize is ok
-    if (type.getProperty('__no_serialize__')) {
-      return;
-    }
 
     const arrayType = getElementTypeOfArrayType(type, checker);
     if (arrayType) {

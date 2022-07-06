@@ -82,12 +82,17 @@ ruleTester.run('my-rule', rules['no-use-after-await'], {
 ruleTester.run('valid-lexical-scope', rules['valid-lexical-scope'], {
   valid: [
     `
+    export type NoSerialize<T> = (T & { __no_serialize__: true }) | undefined;
     import { useMethod, component$ } from 'stuff';
     export interface Value {
       value: number;
+      fn: NoSerialize<() => void>;
+    }
+    export function getFn(): NoSerialize<() => void> {
+      return () => {};
     }
     export const HelloWorld = component$(() => {
-      const state: Value = { value: 12 };
+      const state: Value = { value: 12, fn: getFn() };
       useWatch$(() => {
         console.log(state.value);
       });
@@ -157,7 +162,7 @@ ruleTester.run('valid-lexical-scope', rules['valid-lexical-scope'], {
           });
           return <Host></Host>;
         });`,
-        `
+    `
         export const HelloWorld = component$(() => {
           const getMethod = () => {
             return Promise.resolve();
@@ -178,7 +183,7 @@ ruleTester.run('valid-lexical-scope', rules['valid-lexical-scope'], {
           });
           return <Host></Host>;
         });`,
-        `
+    `
         import { useWatch$ } from '@builder.io/qwik';
         export const HelloWorld = component$(() => {
           async function getValue() {

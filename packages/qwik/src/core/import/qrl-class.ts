@@ -9,7 +9,7 @@ import { QRLSerializeOptions, stringifyQRL } from './qrl';
 import type { QRL } from './qrl.public';
 
 export const isQrl = (value: any): value is QRLInternal => {
-  return typeof value === 'function';
+  return typeof value === 'function' && typeof value.getSymbol === 'function';
 };
 
 export interface QRLInternalMethods<TYPE> {

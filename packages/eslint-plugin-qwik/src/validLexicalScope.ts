@@ -297,18 +297,14 @@ function _isTypeCapturable(
     if (type.getProperty('__brand__QRL__')) {
       return;
     }
+    if (symbolName === 'Promise') {
+      return;
+    }
     if (type.isClass()) {
       return {
         type,
         typeStr: checker.typeToString(type),
         reason: `is an instance of the "${type.symbol.name}" class, which is not serializable. Use a simple object literal instead`,
-      };
-    }
-    if (symbolName === 'Promise') {
-      return {
-        type,
-        typeStr: checker.typeToString(type),
-        reason: 'is a Promise, which is not serializable',
       };
     }
 

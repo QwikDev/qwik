@@ -38,7 +38,6 @@ export type GetObjID = (obj: any) => string | null;
 export const UNDEFINED_PREFIX = '\u0010';
 export const QRL_PREFIX = '\u0011';
 export const DOCUMENT_PREFIX = '\u0012';
-export const PROMISE_PREFIX = '\u0013';
 
 // <docs markdown="../readme.md#pauseContainer">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -270,6 +269,10 @@ export const pauseState = async (containerEl: Element): Promise<SnapshotResult> 
       suffix = '%';
     }
     if (isObject(obj)) {
+      if (isPromise(obj)) {
+        obj = getPromiseValue(obj);
+        suffix += '~';
+      }
       const target = getProxyTarget(obj);
       if (target) {
         suffix += '!';
@@ -352,9 +355,6 @@ export const pauseState = async (containerEl: Element): Promise<SnapshotResult> 
     if (isObject(obj)) {
       if (isArray(obj)) {
         return obj.map(serialize);
-      }
-      if (obj instanceof ResolvedPromise) {
-        return PROMISE_PREFIX + mustGetObjId(obj.value);
       }
       if (isQrl(obj)) {
         return QRL_PREFIX + stringifyQRL(obj, qrlSerializeOptions);
@@ -601,11 +601,23 @@ const reviveNestedObjects = (obj: any, getObject: GetObject) => {
   }
 };
 
+const OBJECT_TRANSFORMS: Record<string, (obj: any, containerState: ContainerState) => any> = {
+  '!': (obj: any, containerState: ContainerState) => {
+    return containerState.$proxyMap$.get(obj) ?? getOrCreateProxy(obj, containerState);
+  },
+  '%': (obj: any) => {
+    return mutable(obj);
+  },
+  '~': (obj: any) => {
+    return Promise.resolve(obj);
+  },
+};
+
 const getObjectImpl = (
   id: string,
   elements: Map<string, Element>,
   objs: any[],
-  containerState?: ContainerState
+  containerState: ContainerState
 ) => {
   if (id.startsWith(ELEMENT_ID_PREFIX)) {
     assertEqual(elements.has(id), true);
@@ -614,13 +626,13 @@ const getObjectImpl = (
   const index = strToInt(id);
   assertEqual(objs.length > index, true);
   let obj = objs[index];
-  const needsProxy = id.endsWith('!');
-  if (needsProxy && containerState) {
-    id = id.slice(0, -1);
-    obj = containerState.$proxyMap$.get(obj) ?? getOrCreateProxy(obj, containerState);
-  }
-  if (id.endsWith('%')) {
-    obj = mutable(obj);
+  for (let i = id.length - 1; i >= 0; i--) {
+    const code = id[i];
+    const transform = OBJECT_TRANSFORMS[code];
+    if (!transform) {
+      break;
+    }
+    obj = transform(obj, containerState);
   }
   return obj;
 };
@@ -741,18 +753,31 @@ const collectSubscriptions = async (subs: SubscriberMap, collector: Collector) =
   }
 };
 
-class ResolvedPromise {
-  constructor(public value: any) {}
-}
+const PROMISE_VALUE = Symbol();
+const resolvePromise = (promise: Promise<any>) => {
+  return promise.then((value) => {
+    (promise as any)[PROMISE_VALUE] = value;
+    return value;
+  });
+};
+
+const getPromiseValue = (promise: Promise<any>) => {
+  assertEqual(PROMISE_VALUE in promise, true);
+  return (promise as any)[PROMISE_VALUE];
+};
 
 const collectQObjects = async (input: any, collector: Collector) => {
   let obj = input;
   if (obj != null) {
     if (typeof obj === 'object') {
       if (isPromise(obj)) {
-        obj = await obj;
-        collectValue(obj, collector);
-        obj = new ResolvedPromise(obj);
+        if (collector.$seen$.has(obj)) {
+          return true;
+        }
+        collector.$seen$.add(obj);
+        obj = await resolvePromise(obj);
+        await collectValue(obj, collector);
+        return true;
       }
       const target = getProxyTarget(obj);
       if (!target && isNode(obj)) {

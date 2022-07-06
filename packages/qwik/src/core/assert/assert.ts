@@ -2,12 +2,12 @@ import { logErrorAndStop } from '../util/log';
 import { qDev } from '../util/qdev';
 import { isString } from '../util/types';
 
-export const assertDefined = (value: any, text?: string) => {
+export function assertDefined<T>(value: T, text?: string): asserts value is NonNullable<T> {
   if (qDev) {
     if (value != null) return;
     throw logErrorAndStop(text || 'Expected defined value');
   }
-};
+}
 
 export const assertNotPromise = (value: any, text?: string) => {
   if (qDev) {

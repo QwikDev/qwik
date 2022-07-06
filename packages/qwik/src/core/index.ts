@@ -43,6 +43,7 @@ export type {
   UseEffectRunOptions,
 } from './use/use-watch';
 export { useWatch$, useWatchQrl } from './use/use-watch';
+export { useResource$, useResourceQrl } from './use/use-watch';
 export { useClientEffect$, useClientEffectQrl } from './use/use-watch';
 export { useServerMount$, useServerMountQrl } from './use/use-watch';
 export { useClientMount$, useClientMountQrl } from './use/use-watch';

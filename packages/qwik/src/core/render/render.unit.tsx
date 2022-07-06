@@ -25,7 +25,7 @@ describe('render', () => {
       expect(fixture.host.getAttribute('q:version')).toEqual('');
       expect(fixture.host.getAttribute('q:container')).toEqual('resumed');
 
-      pauseContainer(fixture.host);
+      await pauseContainer(fixture.host);
       expect(fixture.host.getAttribute('q:container')).toEqual('paused');
     });
 
@@ -450,7 +450,7 @@ describe('render', () => {
       </div>
     );
 
-    pauseContainer(fixture.host);
+    await pauseContainer(fixture.host);
     await expectRendered(
       <div>
         <div id="effect"></div>
@@ -687,11 +687,11 @@ export const Counter = component$((props: { step?: number }) => {
   const step = Number(props.step || 1);
   return (
     <>
-      <button class="decrement" onClickQrl={runtimeQrl(Counter_add, [state, { value: -step }])}>
+      <button class="decrement" onClick$={runtimeQrl(Counter_add, [state, { value: -step }])}>
         -
       </button>
       <span>{state.count}</span>
-      <button class="increment" onClickQrl={runtimeQrl(Counter_add, [state, { value: step }])}>
+      <button class="increment" onClick$={runtimeQrl(Counter_add, [state, { value: step }])}>
         +
       </button>
     </>

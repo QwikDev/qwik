@@ -8,7 +8,7 @@ export const TwoListeners = component$(() => {
       href="/"
       preventDefault:click
       class="two-listeners"
-      onClickQrl={[$(() => store1.count++), $(() => store2.count++)]}
+      onClick$={[$(() => store1.count++), $(() => store2.count++)]}
     >
       {store1.count} / {store2.count}
     </a>

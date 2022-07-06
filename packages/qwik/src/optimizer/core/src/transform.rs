@@ -583,12 +583,20 @@ impl<'a> QwikTransform<'a> {
     ) -> Option<ast::JSXAttrValue> {
         if let Some(ast::JSXAttrValue::JSXExprContainer(container)) = value {
             if let ast::JSXExpr::Expr(expr) = container.expr {
-                Some(ast::JSXAttrValue::JSXExprContainer(ast::JSXExprContainer {
-                    span: DUMMY_SP,
-                    expr: ast::JSXExpr::Expr(Box::new(ast::Expr::Call(
-                        self.create_synthetic_qhook(*expr, HookKind::Event, ctx_name, None),
-                    ))),
-                }))
+                let is_fn = matches!(*expr, ast::Expr::Arrow(_) | ast::Expr::Fn(_));
+                if is_fn {
+                    Some(ast::JSXAttrValue::JSXExprContainer(ast::JSXExprContainer {
+                        span: DUMMY_SP,
+                        expr: ast::JSXExpr::Expr(Box::new(ast::Expr::Call(
+                            self.create_synthetic_qhook(*expr, HookKind::Event, ctx_name, None),
+                        ))),
+                    }))
+                } else {
+                    Some(ast::JSXAttrValue::JSXExprContainer(ast::JSXExprContainer {
+                        span: DUMMY_SP,
+                        expr: ast::JSXExpr::Expr(expr),
+                    }))
+                }
             } else {
                 Some(ast::JSXAttrValue::JSXExprContainer(container))
             }
@@ -944,12 +952,12 @@ impl<'a> Fold for QwikTransform<'a> {
             ast::JSXAttrName::Ident(ref ident) => {
                 let new_word = convert_signal_word(&ident.sym);
                 self.stack_ctxt.push(ident.sym.to_string());
-                if let Some(new_word) = new_word {
+
+                if new_word.is_some() {
                     is_listener = true;
                     ast::JSXAttr {
-                        name: ast::JSXAttrName::Ident(ast::Ident::new(new_word, DUMMY_SP)),
                         value: self.handle_jsx_value(ident.sym.clone(), node.value),
-                        span: DUMMY_SP,
+                        ..node
                     }
                 } else {
                     node
@@ -964,15 +972,11 @@ impl<'a> Fold for QwikTransform<'a> {
                 ]
                 .concat();
                 self.stack_ctxt.push(ident_name.clone());
-                if let Some(new_word) = new_word {
+                if new_word.is_some() {
                     is_listener = true;
                     ast::JSXAttr {
-                        name: ast::JSXAttrName::JSXNamespacedName(ast::JSXNamespacedName {
-                            ns: namespaced.ns.clone(),
-                            name: ast::Ident::new(new_word, DUMMY_SP),
-                        }),
                         value: self.handle_jsx_value(JsWord::from(ident_name), node.value),
-                        span: DUMMY_SP,
+                        ..node
                     }
                 } else {
                     node
@@ -1000,15 +1004,17 @@ impl<'a> Fold for QwikTransform<'a> {
                     name_token = true;
                 }
                 if jsx_call {
-                    if let Some(new_word) = convert_signal_word(&ident.sym) {
+                    if convert_signal_word(&ident.sym).is_some()
+                        && matches!(*node.value, ast::Expr::Arrow(_) | ast::Expr::Fn(_))
+                    {
                         ast::KeyValueProp {
-                            key: ast::PropName::Ident(ast::Ident::new(new_word, DUMMY_SP)),
                             value: Box::new(ast::Expr::Call(self.create_synthetic_qhook(
                                 *node.value,
                                 HookKind::Event,
                                 ident.sym.clone(),
                                 None,
                             ))),
+                            ..node
                         }
                     } else {
                         node
@@ -1023,15 +1029,17 @@ impl<'a> Fold for QwikTransform<'a> {
                     name_token = true;
                 }
                 if jsx_call {
-                    if let Some(new_word) = convert_signal_word(&s.value) {
+                    if convert_signal_word(&s.value).is_some()
+                        && matches!(*node.value, ast::Expr::Arrow(_) | ast::Expr::Fn(_))
+                    {
                         ast::KeyValueProp {
-                            key: ast::PropName::Str(ast::Str::from(new_word)),
                             value: Box::new(ast::Expr::Call(self.create_synthetic_qhook(
                                 *node.value,
                                 HookKind::Event,
                                 s.value.clone(),
                                 None,
                             ))),
+                            ..node
                         }
                     } else {
                         node

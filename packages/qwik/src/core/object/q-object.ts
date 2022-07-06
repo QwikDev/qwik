@@ -16,6 +16,7 @@ import type { Subscriber } from '../use/use-subscriber';
 import { tryGetContext } from '../props/props';
 import { RenderEvent } from '../util/markers';
 import { isArray, isFunction, isObject } from '../util/types';
+import { isPromise } from '../util/promises';
 
 export type ObjToProxyMap = WeakMap<any, any>;
 export type QObject<T extends {}> = T & { __brand__: 'QObject' };
@@ -252,10 +253,10 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
 }
 
 const wrap = <T>(value: T, containerState: ContainerState): T => {
+  if (isQrl(value)) {
+    return value;
+  }
   if (isObject(value)) {
-    if (isQrl(value)) {
-      return value;
-    }
     if (Object.isFrozen(value)) {
       return value;
     }
@@ -295,6 +296,9 @@ const _verifySerializable = <T>(value: T, seen: Set<any>): T => {
       return value;
     }
     seen.add(unwrapped);
+    if (isQrl(unwrapped)) {
+      return value;
+    }
     switch (typeof unwrapped) {
       case 'object':
         if (isArray(unwrapped)) {
@@ -309,7 +313,7 @@ const _verifySerializable = <T>(value: T, seen: Set<any>): T => {
           }
           return value;
         }
-        if (isQrl(unwrapped)) return value;
+        if (isPromise(unwrapped)) return value;
         if (isElement(unwrapped)) return value;
         if (isDocument(unwrapped)) return value;
         break;

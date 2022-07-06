@@ -25,8 +25,8 @@ export const App_component_div_p_button_onClick_8dWUa0cJAr4 = ()=>{
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    714,
-    846
+    712,
+    844
   ]
 }
 */
@@ -48,7 +48,7 @@ export const App_component_AkbU84a8zes = ()=>{
             }),
             /*#__PURE__*/ jsx("p", {
                 children: /*#__PURE__*/ jsx("button", {
-                    onClickQrl: qrl(()=>import("./app_component_div_p_button_onclick_8dwua0cjar4.js")
+                    onClick$: qrl(()=>import("./app_component_div_p_button_onclick_8dwua0cjar4.js")
                     , "App_component_div_p_button_onClick_8dWUa0cJAr4", [
                         store
                     ]),
@@ -74,7 +74,7 @@ export const App_component_AkbU84a8zes = ()=>{
   "captures": false,
   "loc": [
     321,
-    1045
+    1043
   ]
 }
 */

@@ -23,13 +23,13 @@ import { qrl } from "@builder.io/qwik";
 export const s_HTDRsvUbLiE = ()=>{
     return <div >
 
-            <div onClickQrl={qrl(()=>import("./s_9dcjc0ujddo")
+            <div onClick$={qrl(()=>import("./s_9dcjc0ujddo")
     , "s_9DcJc0uJDDo")}/>
 
-            <div onClickQrl={qrl(()=>import("./s_rjqdy8i0mxc")
+            <div onClick$={qrl(()=>import("./s_rjqdy8i0mxc")
     , "s_RjQdy8I0MXc")}/>
 
-            <div onClickQrl={qrl(()=>import("./s_w9ptfrbvk1e")
+            <div onClick$={qrl(()=>import("./s_w9ptfrbvk1e")
     , "s_w9ptFRBVK1E")}/>
 
         </div>;

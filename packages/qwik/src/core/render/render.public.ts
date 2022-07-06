@@ -8,8 +8,8 @@ import { getDocument } from '../util/dom';
 import { qDev, qTest } from '../util/qdev';
 import { version } from '../version';
 import { QContainerAttr } from '../util/markers';
-import { logError } from '../util/log';
-import { runWatch, WatchDescriptor, WatchFlagsIsDirty } from '../use/use-watch';
+import { logError, logErrorAndStop } from '../util/log';
+import { runWatch, WatchFlagsIsDirty } from '../use/use-watch';
 import { appendQwikDevTools, getContext } from '../props/props';
 import { codeToText, QError_cannotRenderOverExistingContainer } from '../error/error';
 import { directSetAttribute } from './fast-calls';
@@ -43,6 +43,7 @@ export const render = async (
   injectQContainer(containerEl);
 
   const containerState = getContainerState(containerEl);
+  // containerState.$hostsRendering$ = new Set();
   const ctx = createRenderContext(doc, containerState, containerEl);
   ctx.$roots$.push(parent as Element);
 
@@ -58,12 +59,16 @@ export const render = async (
     appendQwikDevTools(containerEl);
     printRenderStats(ctx);
   }
-  const promises: Promise<WatchDescriptor>[] = [];
+  const promises: Promise<any>[] = [];
   ctx.$hostElements$.forEach((host) => {
     const elCtx = getContext(host);
     elCtx.$watches$.forEach((watch) => {
       if (watch.f & WatchFlagsIsDirty) {
-        promises.push(runWatch(watch, containerState));
+        try {
+          promises.push(runWatch(watch, containerState));
+        } catch (e) {
+          logErrorAndStop(e);
+        }
       }
     });
   });

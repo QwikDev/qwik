@@ -30,16 +30,6 @@ See also: `component`, `useCleanup`, `onResume`, `onPause`, `useOn`, `useOnDocum
 
 @public
 
-# `On$Props`
-
-The type used to autogenerate the `$` suffixed properties on the component props.
-
-When declaring component props, it is not possible to pass in closures. Instead, the closures need to be passed in as QRLs. This is usually done automatically by the Optimizer by suffixing the property with `$`. This type automatically generates the `$`-suffixed properties from `Qrl`-suffixed properties.
-
-<docs code="./examples.tsx#On$Props"/>
-
-@public
-
 # `useStore`
 
 Creates an object that Qwik can track across serializations.

@@ -5,14 +5,14 @@ export default component$(() => {
   return (
     <Host>
       <h1>Sign In</h1>
-      <form>
+      <form action="/api/on-sign-in" method="post">
         <label>
           <span>Username</span>
-          <input type="text" />
+          <input name="username" type="text" />
         </label>
         <label>
           <span>Password</span>
-          <input type="password" />
+          <input name="password" type="password" />
         </label>
         <button>Log In</button>
       </form>

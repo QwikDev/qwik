@@ -305,7 +305,7 @@ export type On$Props<T extends {}> = {
 export type OnRenderFn<PROPS> = (props: PROPS) => JSXNode<any> | null | (() => JSXNode<any>);
 
 // @alpha
-export const pauseContainer: (elmOrDoc: Element | Document) => SnapshotResult;
+export const pauseContainer: (elmOrDoc: Element | Document) => Promise<SnapshotResult>;
 
 // @public (undocumented)
 export type Props<T extends {} = {}> = Record<string, any> & T;

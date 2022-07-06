@@ -1,3 +1,6 @@
+import { isElement } from '../../testing/html';
+import { tryGetContext } from '../props/props';
+import { QHostAttr } from './markers';
 import { qDev } from './qdev';
 
 const STYLE = qDev
@@ -7,7 +10,7 @@ const STYLE = qDev
 export const logError = (message?: any, ...optionalParams: any[]) => {
   const err = message instanceof Error ? message : new Error(message);
   // eslint-disable-next-line no-console
-  console.error('%cQWIK ERROR', STYLE, err, ...optionalParams);
+  console.error('%cQWIK ERROR', STYLE, err, ...printParams(optionalParams));
   return err;
 };
 
@@ -20,13 +23,37 @@ export const logErrorAndStop = (message?: any, ...optionalParams: any[]) => {
 export const logWarn = (message?: any, ...optionalParams: any[]) => {
   // eslint-disable-next-line no-console
   if (qDev) {
-    console.warn('%cQWIK WARN', STYLE, message, ...optionalParams);
+    console.warn('%cQWIK WARN', STYLE, message, ...printParams(optionalParams));
   }
 };
 
 export const logDebug = (message?: string, ...optionalParams: any[]) => {
   if (qDev) {
     // eslint-disable-next-line no-console
-    console.debug('%cQWIK', STYLE, message, ...optionalParams);
+    console.debug('%cQWIK', STYLE, message, ...printParams(optionalParams));
   }
+};
+
+const printParams = (optionalParams: any[]) => {
+  if (qDev) {
+    return optionalParams.map((p) => {
+      if (isElement(p)) {
+        return printElement(p);
+      }
+      return p;
+    });
+  }
+  return optionalParams;
+};
+
+const printElement = (el: Element) => {
+  const ctx = tryGetContext(el);
+  const isComponent = el.hasAttribute(QHostAttr);
+  return {
+    isComponent,
+    tagName: el.tagName,
+    renderQRL: ctx?.$renderQrl$?.getSymbol(),
+    element: el,
+    ctx,
+  };
 };

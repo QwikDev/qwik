@@ -54,7 +54,7 @@ export async function renderToString(rootNode: any, opts: RenderToStringOptions 
 
   let snapshotResult: SnapshotResult | null = null;
   if (opts.snapshot !== false) {
-    snapshotResult = pauseContainer(root);
+    snapshotResult = await pauseContainer(root);
   }
   const prefetchResources = getPrefetchResources(snapshotResult, opts, mapper);
   const parentElm = isFullDocument ? doc.body : containerEl;

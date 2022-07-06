@@ -15,6 +15,7 @@ export const LexicalScopeChild = component$((props: LexicalScopeProps) => {
   });
   const a = 1;
   const b = '</script>';
+  const promise = Promise.resolve('from a promise');
   const c = {
     a: { thing: 12 },
     b: 'hola',
@@ -24,6 +25,7 @@ export const LexicalScopeChild = component$((props: LexicalScopeProps) => {
     f: null,
     g: undefined,
     h: [1, 'string', false, { hola: 1 }, ['hello']],
+    promise,
   };
   const d = undefined;
   const e = null;
@@ -31,9 +33,22 @@ export const LexicalScopeChild = component$((props: LexicalScopeProps) => {
   const g = true;
   const h = false;
 
-  const onclick = $(() => {
-    state.result = JSON.stringify([a, b, c, String(d), String(e), f, g, h, props.message]);
-    state.count++;
+  const onclick = $(async () => {
+    promise.then((promiseValue) => {
+      state.result = JSON.stringify([
+        a,
+        b,
+        c,
+        String(d),
+        String(e),
+        f,
+        g,
+        h,
+        props.message,
+        promiseValue,
+      ]);
+      state.count++;
+    });
   });
 
   return (
@@ -48,6 +63,7 @@ export const LexicalScopeChild = component$((props: LexicalScopeProps) => {
         <p>{JSON.stringify(g)}</p>
         <p>{JSON.stringify(h)}</p>
         <p>{props.message}</p>
+        <p>{promise}</p>
       </div>
       <button onClickQrl={onclick} id="rerender">
         Rerender {state.count}

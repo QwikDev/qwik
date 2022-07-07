@@ -39,7 +39,7 @@ export interface ResourceCtx<T> {
 /**
  * @alpha
  */
-export type ServerFn<T = void> = () => ValueOrPromise<T>;
+export type ServerFn = () => ValueOrPromise<void>;
 
 /**
  * @alpha

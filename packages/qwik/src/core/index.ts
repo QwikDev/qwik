@@ -43,7 +43,7 @@ export type {
   UseEffectRunOptions,
   Resource,
   ResourceCtx,
-  ResourcePending as ResourceLoading,
+  ResourcePending,
   ResourceRejected,
   ResourceResolved,
 } from './use/use-watch';

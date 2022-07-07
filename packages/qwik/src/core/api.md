@@ -381,7 +381,7 @@ export interface Ref<T> {
 export const render: (parent: Element | Document, jsxNode: JSXNode<unknown> | FunctionComponent<any>) => Promise<void>;
 
 // @alpha (undocumented)
-export type Resource<T> = ResourceLoading<T> | ResourceResolved<T> | ResourceRejected<T>;
+export type Resource<T> = ResourcePending<T> | ResourceResolved<T> | ResourceRejected<T>;
 
 // @alpha (undocumented)
 export interface ResourceCtx<T> {
@@ -394,7 +394,7 @@ export interface ResourceCtx<T> {
 }
 
 // @alpha (undocumented)
-export interface ResourceLoading<T> {
+export interface ResourcePending<T> {
     // (undocumented)
     error: undefined;
     // (undocumented)
@@ -430,7 +430,7 @@ export interface ResourceResolved<T> {
 }
 
 // @alpha (undocumented)
-export type ServerFn<T = void> = () => ValueOrPromise<T>;
+export type ServerFn = () => ValueOrPromise<void>;
 
 // @alpha
 export const setPlatform: (doc: Document, plt: CorePlatform) => CorePlatform;
@@ -497,7 +497,7 @@ export const useClientEffectQrl: (qrl: QRL<WatchFn>, opts?: UseEffectOptions) =>
 // Warning: (ae-incompatible-release-tags) The symbol "useClientMount$" is marked as @public, but its signature references "ServerFn" which is marked as @alpha
 //
 // @public
-export const useClientMount$: (first: ServerFn<void>) => void;
+export const useClientMount$: (first: ServerFn) => void;
 
 // Warning: (ae-incompatible-release-tags) The symbol "useClientMountQrl" is marked as @public, but its signature references "ServerFn" which is marked as @alpha
 //
@@ -530,7 +530,7 @@ export const useLexicalScope: <VARS extends any[]>() => VARS;
 // Warning: (ae-incompatible-release-tags) The symbol "useMount$" is marked as @public, but its signature references "ServerFn" which is marked as @alpha
 //
 // @public
-export const useMount$: (first: ServerFn<void>) => void;
+export const useMount$: (first: ServerFn) => void;
 
 // Warning: (ae-incompatible-release-tags) The symbol "useMountQrl" is marked as @public, but its signature references "ServerFn" which is marked as @alpha
 //
@@ -581,7 +581,7 @@ export const useSequentialScope: <T>() => SequentialScope<T>;
 // Warning: (ae-incompatible-release-tags) The symbol "useServerMount$" is marked as @public, but its signature references "ServerFn" which is marked as @alpha
 //
 // @public
-export const useServerMount$: (first: ServerFn<void>) => void;
+export const useServerMount$: (first: ServerFn) => void;
 
 // Warning: (ae-incompatible-release-tags) The symbol "useServerMountQrl" is marked as @public, but its signature references "ServerFn" which is marked as @alpha
 //

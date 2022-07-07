@@ -74,7 +74,7 @@ export const notifyChange = (subscriber: Subscriber) => {
   if (isElement(subscriber)) {
     notifyRender(subscriber);
   } else {
-    notifyWatch(subscriber as SubscriberDescriptor);
+    notifyWatch(subscriber);
   }
 };
 

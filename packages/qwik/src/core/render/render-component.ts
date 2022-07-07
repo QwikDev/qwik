@@ -10,7 +10,7 @@ import { logDebug, logError } from '../util/log';
 import { isFunction, ValueOrPromise } from '../util/types';
 import type { QContext } from '../props/props';
 import { directGetAttribute } from './fast-calls';
-import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
+import type { JSXNode } from '../render/jsx/types/jsx-node';
 
 export const renderComponent = (rctx: RenderContext, ctx: QContext): ValueOrPromise<void> => {
   ctx.$dirty$ = false;

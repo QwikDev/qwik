@@ -123,14 +123,14 @@ export const MyCounter = component$(
       <div>
         <button
           class="decrement"
-          onClickQrl={runtimeQrl(MyCounter_update, [props, state, { dir: -1 }])}
+          onClick$={runtimeQrl(MyCounter_update, [props, state, { dir: -1 }])}
         >
           -
         </button>
         <span>{state.count}</span>
         <button
           class="increment"
-          onClickQrl={runtimeQrl(MyCounter_update, [props, state, { dir: -1 }])}
+          onClick$={runtimeQrl(MyCounter_update, [props, state, { dir: -1 }])}
         >
           +
         </button>

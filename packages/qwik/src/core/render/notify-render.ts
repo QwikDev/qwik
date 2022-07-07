@@ -253,7 +253,7 @@ const executeWatches = async (
 
   containerState.$watchNext$.forEach((watch) => {
     if (watchPred(watch, false)) {
-      watchPromises.push(then(watch.qrl.resolveLazy(watch.el), () => watch));
+      watchPromises.push(then(watch.qrl.$resolveLazy$(watch.el), () => watch));
       containerState.$watchNext$.delete(watch);
     }
   });
@@ -261,7 +261,7 @@ const executeWatches = async (
     // Run staging effected
     containerState.$watchStaging$.forEach((watch) => {
       if (watchPred(watch, true)) {
-        watchPromises.push(then(watch.qrl.resolveLazy(watch.el), () => watch));
+        watchPromises.push(then(watch.qrl.$resolveLazy$(watch.el), () => watch));
       } else {
         containerState.$watchNext$.add(watch);
       }

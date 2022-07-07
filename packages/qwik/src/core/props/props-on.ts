@@ -5,11 +5,10 @@ import { fromCamelToKebabCase } from '../util/case';
 import { EMPTY_ARRAY } from '../util/flyweight';
 import type { QContext } from './props';
 import { RenderContext, setAttribute } from '../render/cursor';
-import type { QRL } from '../import/qrl.public';
 import { directGetAttribute } from '../render/fast-calls';
 import { isArray } from '../util/types';
 
-const ON_PROP_REGEX = /^(window:|document:|)on([A-Z]|-.).*(Qrl|\$)$/;
+const ON_PROP_REGEX = /^(window:|document:|)on([A-Z]|-.).*\$$/;
 
 export const isOnProp = (prop: string): boolean => {
   return ON_PROP_REGEX.test(prop);
@@ -19,7 +18,7 @@ export const qPropWriteQRL = (
   rctx: RenderContext,
   ctx: QContext,
   prop: string,
-  value: QRL<any>[] | QRL<any>
+  value: QRLInternal<any>[] | QRLInternal<any>
 ) => {
   if (!value) {
     return;
@@ -33,8 +32,8 @@ export const qPropWriteQRL = (
 
   const newQRLs = isArray(value) ? value : [value];
   for (const value of newQRLs) {
-    const cp = (value as QRLInternal).copy();
-    cp.setContainer(ctx.$element$);
+    const cp = value.$copy$();
+    cp.$setContainer$(ctx.$element$);
 
     const capture = cp.$capture$;
     if (capture == null) {
@@ -83,7 +82,7 @@ export const getDomListeners = (el: Element): Map<string, QRLInternal[]> => {
   return listeners;
 };
 
-const serializeQRLs = (existingQRLs: QRL<any>[], ctx: QContext): string => {
+const serializeQRLs = (existingQRLs: QRLInternal<any>[], ctx: QContext): string => {
   const opts: QRLSerializeOptions = {
     $platform$: getPlatform(ctx.$element$),
     $element$: ctx.$element$,

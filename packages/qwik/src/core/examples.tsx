@@ -21,13 +21,7 @@ import {
 } from './use/use-on';
 import { useRef, useStore } from './use/use-store.public';
 import { useStyles$ } from './use/use-styles';
-import {
-  useClientEffect$,
-  useClientMount$,
-  useMount$,
-  useServerMount$,
-  useWatch$,
-} from './use/use-watch';
+import { useClientEffect$, useMount$, useServerMount$, useWatch$ } from './use/use-watch';
 import { implicit$FirstArg } from './util/implicit_dollar';
 
 //////////////////////////////////////////////////////////
@@ -277,28 +271,6 @@ export const CmpInline = component$(() => {
   function User(props: { user: User }) {
     return <div>Name: {props.user.name}</div>;
   }
-  // </docs>
-  return Cmp;
-};
-
-() => {
-  // <docs anchor="use-client-mount">
-  const Cmp = component$(() => {
-    const store = useStore({
-      hash: '',
-    });
-
-    useClientMount$(async () => {
-      // This code will ONLY run once in the client, when the component is mounted
-      store.hash = document.location.hash;
-    });
-
-    return (
-      <Host>
-        <p>The url hash is: ${store.hash}</p>
-      </Host>
-    );
-  });
   // </docs>
   return Cmp;
 };

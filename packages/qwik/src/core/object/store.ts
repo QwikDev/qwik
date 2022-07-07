@@ -18,7 +18,7 @@ import {
   shouldSerialize,
   SubscriberMap,
 } from './q-object';
-import { destroyWatch, WatchDescriptor, WatchFlagsIsDirty } from '../use/use-watch';
+import { destroyWatch, SubscriberDescriptor, WatchFlagsIsDirty } from '../use/use-watch';
 import type { QRL } from '../import/qrl.public';
 import { emitEvent } from '../util/event';
 import { ContainerState, getContainerState } from '../render/notify-render';
@@ -669,7 +669,7 @@ export interface Collector {
   $seen$: Set<any>;
   $objSet$: Set<any>;
   $elements$: Element[];
-  $watches$: WatchDescriptor[];
+  $watches$: SubscriberDescriptor[];
   $containerState$: ContainerState;
   $doc$: Document;
 }

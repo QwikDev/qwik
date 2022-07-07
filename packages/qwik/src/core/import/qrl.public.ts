@@ -132,7 +132,7 @@ export interface QRL<TYPE = any> {
    * @returns A promise of the return value of the closure.
    */
   (...args: TYPE extends (...args: infer ARGS) => any ? ARGS : never): Promise<
-    TYPE extends (...args: any[]) => infer RETURN ? RETURN : never
+    TYPE extends (...args: any[]) => infer RETURN ? Awaited<RETURN> : never
   >;
 
   /**

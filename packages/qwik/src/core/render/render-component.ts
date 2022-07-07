@@ -2,7 +2,7 @@ import { assertDefined } from '../assert/assert';
 import { copyRenderContext, RenderContext } from './cursor';
 import { visitJsxNode } from './render';
 import { ComponentScopedStyles, RenderEvent } from '../util/markers';
-import { promiseAll, then } from '../util/promises';
+import { promiseAll, safeCall, then } from '../util/promises';
 import { styleContent, styleHost } from '../component/qrl-styles';
 import { newInvokeContext } from '../use/use-core';
 import { processData } from './jsx/jsx-runtime';
@@ -10,6 +10,7 @@ import { logDebug, logError } from '../util/log';
 import { isFunction, ValueOrPromise } from '../util/types';
 import type { QContext } from '../props/props';
 import { directGetAttribute } from './fast-calls';
+import type { JSXNode } from '../render/jsx/types/jsx-node';
 
 export const renderComponent = (rctx: RenderContext, ctx: QContext): ValueOrPromise<void> => {
   ctx.$dirty$ = false;
@@ -38,60 +39,51 @@ export const renderComponent = (rctx: RenderContext, ctx: QContext): ValueOrProm
   // Resolve render function
   const onRenderFn = onRenderQRL.$invokeFn$(rctx.$containerEl$, invocatinContext);
 
-  try {
-    // Execution of the render function
-    const renderPromise = onRenderFn(props);
+  return safeCall(
+    () => onRenderFn(props) as JSXNode | Function,
+    (jsxNode) => {
+      rctx.$hostElements$.add(hostElement);
+      const waitOnPromise = promiseAll(waitOn);
+      return then(waitOnPromise, () => {
+        if (isFunction(jsxNode)) {
+          ctx.$dirty$ = false;
+          jsxNode = jsxNode();
+        } else if (ctx.$dirty$) {
+          logDebug('Dropping render. State changed during render.');
+          return renderComponent(rctx, ctx);
+        }
 
-    // Wait for results
-    return then(
-      renderPromise,
-      (jsxNode) => {
-        rctx.$hostElements$.add(hostElement);
-        const waitOnPromise = promiseAll(waitOn);
-        return then(waitOnPromise, () => {
-          if (isFunction(jsxNode)) {
-            ctx.$dirty$ = false;
-            jsxNode = jsxNode();
-          } else if (ctx.$dirty$) {
-            logDebug('Dropping render. State changed during render.');
-            return renderComponent(rctx, ctx);
+        let componentCtx = ctx.$component$;
+        if (!componentCtx) {
+          componentCtx = ctx.$component$ = {
+            $hostElement$: hostElement,
+            $slots$: [],
+            $styleHostClass$: undefined,
+            $styleClass$: undefined,
+            $styleId$: undefined,
+          };
+          const scopedStyleId = directGetAttribute(hostElement, ComponentScopedStyles) ?? undefined;
+          if (scopedStyleId) {
+            componentCtx.$styleId$ = scopedStyleId;
+            componentCtx.$styleHostClass$ = styleHost(scopedStyleId);
+            componentCtx.$styleClass$ = styleContent(scopedStyleId);
+            hostElement.classList.add(componentCtx.$styleHostClass$);
           }
-
-          let componentCtx = ctx.$component$;
-          if (!componentCtx) {
-            componentCtx = ctx.$component$ = {
-              $hostElement$: hostElement,
-              $slots$: [],
-              $styleHostClass$: undefined,
-              $styleClass$: undefined,
-              $styleId$: undefined,
-            };
-            const scopedStyleId =
-              directGetAttribute(hostElement, ComponentScopedStyles) ?? undefined;
-            if (scopedStyleId) {
-              componentCtx.$styleId$ = scopedStyleId;
-              componentCtx.$styleHostClass$ = styleHost(scopedStyleId);
-              componentCtx.$styleClass$ = styleContent(scopedStyleId);
-              hostElement.classList.add(componentCtx.$styleHostClass$);
-            }
-          }
-          componentCtx.$slots$ = [];
-          newCtx.$contexts$.push(ctx);
-          newCtx.$currentComponent$ = componentCtx;
-          const invocatinContext = newInvokeContext(rctx.$doc$, hostElement, hostElement);
-          invocatinContext.$subscriber$ = hostElement;
-          invocatinContext.$renderCtx$ = newCtx;
-          const processedJSXNode = processData(jsxNode, invocatinContext);
-          return then(processedJSXNode, (processedJSXNode) => {
-            return visitJsxNode(newCtx, hostElement, processedJSXNode, false);
-          });
+        }
+        componentCtx.$slots$ = [];
+        newCtx.$contexts$.push(ctx);
+        newCtx.$currentComponent$ = componentCtx;
+        const invocatinContext = newInvokeContext(rctx.$doc$, hostElement, hostElement);
+        invocatinContext.$subscriber$ = hostElement;
+        invocatinContext.$renderCtx$ = newCtx;
+        const processedJSXNode = processData(jsxNode, invocatinContext);
+        return then(processedJSXNode, (processedJSXNode) => {
+          return visitJsxNode(newCtx, hostElement, processedJSXNode, false);
         });
-      },
-      (err) => {
-        logError(err);
-      }
-    );
-  } catch (err) {
-    logError(err);
-  }
+      });
+    },
+    (err) => {
+      logError(err);
+    }
+  );
 };

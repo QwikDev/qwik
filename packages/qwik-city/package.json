@@ -42,7 +42,7 @@
     "vfile": "5.3.4"
   },
   "peerDependencies": {
-    "@builder.io/qwik": ">=0.0.35"
+    "@builder.io/qwik": ">=0.0.34"
   },
   "devDependencies": {
     "@builder.io/qwik": "workspace:*",

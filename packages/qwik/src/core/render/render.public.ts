@@ -9,7 +9,7 @@ import { qDev, qTest } from '../util/qdev';
 import { version } from '../version';
 import { QContainerAttr } from '../util/markers';
 import { logError, logErrorAndStop } from '../util/log';
-import { runWatch, WatchFlagsIsDirty } from '../use/use-watch';
+import { runSubscriber, WatchFlagsIsDirty } from '../use/use-watch';
 import { appendQwikDevTools, getContext } from '../props/props';
 import { codeToText, QError_cannotRenderOverExistingContainer } from '../error/error';
 import { directSetAttribute } from './fast-calls';
@@ -65,7 +65,7 @@ export const render = async (
     elCtx.$watches$.forEach((watch) => {
       if (watch.f & WatchFlagsIsDirty) {
         try {
-          promises.push(runWatch(watch, containerState));
+          promises.push(runSubscriber(watch, containerState));
         } catch (e) {
           logErrorAndStop(e);
         }

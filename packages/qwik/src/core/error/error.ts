@@ -22,6 +22,7 @@ export const QError_hostCanOnlyBeAtRoot = 18;
 export const QError_immutableJsxProps = 19;
 export const QError_useInvokeContext = 20;
 export const QError_containerAlreadyPaused = 21;
+export const QError_canNotMountUseServerMount = 22;
 
 export const qError = (code: number, ...parts: any[]): Error => {
   const text = codeToText(code);
@@ -55,6 +56,7 @@ export const codeToText = (code: number): string => {
       'Props are immutable by default.', // 19
       'use- method must be called only at the root level of a component$()',
       'Container is already paused. Skipping',
+      'Components using useServerMount() can only be mounted in the server, if you need your component to be mounted in the client, use "useMount$()" instead',
     ];
     return `Code(${code}): ${MAP[code] ?? ''}`;
   } else {

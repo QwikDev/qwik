@@ -2,16 +2,16 @@
 import {
   component$,
   createContext,
-  useServerMount$,
   useStore,
   Host,
-  useClientMount$,
   useCleanup$,
   useContextProvider,
   useContext,
+  useMount$,
   mutable,
   useWatch$,
 } from '@builder.io/qwik';
+import { isBrowser, isServer } from '@builder.io/qwik/build';
 
 export const CTX = createContext<{ message: string; count: number }>('toggle');
 
@@ -96,23 +96,21 @@ export const ToggleA = component$((props: { root: { logs: string } }) => {
     props.root.logs += 'ToggleA()';
   });
 
-  useServerMount$(() => {
+  useMount$(() => {
     if (state.mount !== '') {
       throw new Error('already mounted');
     }
-    state.mount = 'mounted in server';
+    if (isServer) {
+      state.mount = 'mounted in server';
+    }
+    if (isBrowser) {
+      state.mount = 'mounted in client';
+    }
   });
 
   useWatch$((track) => {
     track(rootState, 'count');
     state.copyCount = rootState.count;
-  });
-
-  useClientMount$(() => {
-    if (state.mount !== '') {
-      throw new Error('already mounted');
-    }
-    state.mount = 'mounted in client';
   });
 
   return (
@@ -145,18 +143,17 @@ export const ToggleB = component$((props: { root: { logs: string } }) => {
     state.copyCount = rootState.count;
   });
 
-  useServerMount$(() => {
+  useMount$(() => {
     if (state.mount !== '') {
       throw new Error('already mounted');
     }
-    state.mount = 'mounted in server';
-  });
-
-  useClientMount$(() => {
-    if (state.mount !== '') {
-      throw new Error('already mounted');
+    if (isServer) {
+      state.mount = 'mounted in server';
     }
-    state.mount = 'mounted in client';
+    if (isBrowser) {
+      state.mount = 'mounted in client';
+    }
+    return 32;
   });
 
   return (

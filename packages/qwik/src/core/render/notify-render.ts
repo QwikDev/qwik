@@ -14,10 +14,11 @@ import { renderComponent } from './render-component';
 import { logError, logWarn } from '../util/log';
 import { getContainer } from '../use/use-core';
 import {
-  runWatch,
-  WatchDescriptor,
+  runSubscriber,
+  SubscriberDescriptor,
   WatchFlagsIsDirty,
   WatchFlagsIsEffect,
+  WatchFlagsIsResource,
   WatchFlagsIsWatch,
 } from '../use/use-watch';
 import { createSubscriptionManager, ObjToProxyMap, SubscriptionManager } from '../object/q-object';
@@ -38,8 +39,8 @@ export interface ContainerState {
   $subsManager$: SubscriptionManager;
   $platform$: CorePlatform;
 
-  $watchNext$: Set<WatchDescriptor>;
-  $watchStaging$: Set<WatchDescriptor>;
+  $watchNext$: Set<SubscriberDescriptor>;
+  $watchStaging$: Set<SubscriberDescriptor>;
 
   $hostsNext$: Set<Element>;
   $hostsStaging$: Set<Element>;
@@ -73,7 +74,7 @@ export const notifyChange = (subscriber: Subscriber) => {
   if (isElement(subscriber)) {
     notifyRender(subscriber);
   } else {
-    notifyWatch(subscriber as WatchDescriptor);
+    notifyWatch(subscriber);
   }
 };
 
@@ -133,7 +134,7 @@ const notifyRender = async (hostElement: Element): Promise<RenderContext | undef
   }
 };
 
-const notifyWatch = (watch: WatchDescriptor) => {
+const notifyWatch = (watch: SubscriberDescriptor) => {
   const containerEl = getContainer(watch.el)!;
   const state = getContainerState(containerEl);
   watch.f |= WatchFlagsIsDirty;
@@ -175,9 +176,8 @@ const renderMarked = async (
 ): Promise<RenderContext> => {
   const hostsRendering = (containerState.$hostsRendering$ = new Set(containerState.$hostsNext$));
   containerState.$hostsNext$.clear();
-  await executeWatches(containerState, (watch) => {
-    return (watch.f & WatchFlagsIsWatch) !== 0;
-  });
+  await executeWatchesBefore(containerState);
+
   containerState.$hostsStaging$.forEach((host) => {
     hostsRendering.add(host);
   });
@@ -221,7 +221,7 @@ const postRendering = async (
   containerState: ContainerState,
   ctx: RenderContext
 ) => {
-  await executeWatches(containerState, (watch, stage) => {
+  await executeWatchesAfter(containerState, (watch, stage) => {
     if ((watch.f & WatchFlagsIsEffect) === 0) {
       return false;
     }
@@ -245,11 +245,58 @@ const postRendering = async (
   }
 };
 
-const executeWatches = async (
+const executeWatchesBefore = async (containerState: ContainerState) => {
+  const resourcesPromises: ValueOrPromise<SubscriberDescriptor>[] = [];
+  const watchPromises: ValueOrPromise<SubscriberDescriptor>[] = [];
+  const isWatch = (watch: SubscriberDescriptor) => (watch.f & WatchFlagsIsWatch) !== 0;
+  const isResource = (watch: SubscriberDescriptor) => (watch.f & WatchFlagsIsResource) !== 0;
+
+  containerState.$watchNext$.forEach((watch) => {
+    if (isWatch(watch)) {
+      watchPromises.push(then(watch.qrl.$resolveLazy$(watch.el), () => watch));
+      containerState.$watchNext$.delete(watch);
+    }
+    if (isResource(watch)) {
+      resourcesPromises.push(then(watch.qrl.$resolveLazy$(watch.el), () => watch));
+      containerState.$watchNext$.delete(watch);
+    }
+  });
+  do {
+    // Run staging effected
+    containerState.$watchStaging$.forEach((watch) => {
+      if (isWatch(watch)) {
+        watchPromises.push(then(watch.qrl.$resolveLazy$(watch.el), () => watch));
+      } else if (isResource(watch)) {
+        resourcesPromises.push(then(watch.qrl.$resolveLazy$(watch.el), () => watch));
+      } else {
+        containerState.$watchNext$.add(watch);
+      }
+    });
+
+    containerState.$watchStaging$.clear();
+
+    // Wait for all promises
+    if (watchPromises.length > 0) {
+      const watches = await Promise.all(watchPromises);
+      sortWatches(watches);
+      await Promise.all(
+        watches.map((watch) => {
+          return runSubscriber(watch, containerState);
+        })
+      );
+      watchPromises.length = 0;
+    }
+  } while (containerState.$watchStaging$.size > 0);
+
+  const resources = await Promise.all(resourcesPromises);
+  resources.map((watch) => runSubscriber(watch, containerState));
+};
+
+const executeWatchesAfter = async (
   containerState: ContainerState,
-  watchPred: (watch: WatchDescriptor, staging: boolean) => boolean
+  watchPred: (watch: SubscriberDescriptor, staging: boolean) => boolean
 ) => {
-  const watchPromises: ValueOrPromise<WatchDescriptor>[] = [];
+  const watchPromises: ValueOrPromise<SubscriberDescriptor>[] = [];
 
   containerState.$watchNext$.forEach((watch) => {
     if (watchPred(watch, false)) {
@@ -274,7 +321,7 @@ const executeWatches = async (
       sortWatches(watches);
       await Promise.all(
         watches.map((watch) => {
-          return runWatch(watch, containerState);
+          return runSubscriber(watch, containerState);
         })
       );
       watchPromises.length = 0;
@@ -286,7 +333,7 @@ const sortNodes = (elements: Element[]) => {
   elements.sort((a, b) => (a.compareDocumentPosition(b) & 2 ? 1 : -1));
 };
 
-const sortWatches = (watches: WatchDescriptor[]) => {
+const sortWatches = (watches: SubscriberDescriptor[]) => {
   watches.sort((a, b) => {
     if (a.el === b.el) {
       return a.i < b.i ? -1 : 1;

@@ -13,7 +13,7 @@ import { qPropWriteQRL } from './props-on';
 import { QContainerAttr } from '../util/markers';
 import { $, QRL } from '../import/qrl.public';
 import type { OnRenderFn } from '../component/component.public';
-import { destroyWatch, WatchDescriptor } from '../use/use-watch';
+import { destroyWatch, SubscriberDescriptor } from '../use/use-watch';
 import { pauseContainer } from '../object/store';
 import { ContainerState, getContainerState } from '../render/notify-render';
 import { qDev } from '../util/qdev';
@@ -65,7 +65,7 @@ export interface QContext {
   $component$: ComponentCtx | undefined;
   $listeners$?: Map<string, QRLInternal<any>[]>;
   $seq$: any[];
-  $watches$: WatchDescriptor[];
+  $watches$: SubscriberDescriptor[];
   $contexts$?: Map<string, any>;
 }
 
@@ -149,7 +149,7 @@ export const getPropsMutator = (ctx: QContext, containerState: ContainerState) =
   if (!ctx.$props$) {
     ctx.$props$ = props = createProps({}, containerState);
   }
-  const target = getProxyTarget(props)!;
+  const target = getProxyTarget(props);
   assertDefined(target);
   const manager = containerState.$subsManager$.$getLocal$(target);
 

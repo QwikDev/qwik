@@ -90,19 +90,14 @@ export const useInvoke = <ARGS extends any[] = any[], RET = any>(
   context: InvokeContext,
   fn: (...args: ARGS) => RET,
   ...args: ARGS
-): ValueOrPromise<RET> => {
+): RET => {
   const previousContext = _context;
   let returnValue: RET;
   try {
     _context = context;
     returnValue = fn.apply(null, args);
   } finally {
-    const currentCtx = _context!;
     _context = previousContext;
-    if (currentCtx.$waitOn$ && currentCtx.$waitOn$.length > 0) {
-      // eslint-disable-next-line no-unsafe-finally
-      return Promise.all(currentCtx.$waitOn$).then(() => returnValue);
-    }
   }
   return returnValue;
 };

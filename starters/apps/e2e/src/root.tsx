@@ -47,6 +47,9 @@ export const Root = component$(() => {
       <p>
         <a href="/e2e/broadcast-events">Broadcast events</a>
       </p>
+      <p>
+        <a href="/e2e/weather">Weather app</a>
+      </p>
     </section>
   );
 });

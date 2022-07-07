@@ -49,11 +49,14 @@ const printParams = (optionalParams: any[]) => {
 const printElement = (el: Element) => {
   const ctx = tryGetContext(el);
   const isComponent = el.hasAttribute(QHostAttr);
+  const isServer: boolean = /*#__PURE__*/ (() =>
+    typeof process !== 'undefined' && !!process.versions && !!process.versions.node)();
+
   return {
     isComponent,
     tagName: el.tagName,
     renderQRL: ctx?.$renderQrl$?.getSymbol(),
-    element: el,
-    ctx,
+    element: isServer ? undefined : el,
+    ctx: isServer ? undefined : ctx,
   };
 };

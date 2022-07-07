@@ -18,7 +18,7 @@
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "@builder.io/qwik": "0.0.35",
+    "@builder.io/qwik": "0.0.34",
     "@emotion/react": "11.9.3",
     "@emotion/server": "11.4.0",
     "@emotion/styled": "11.9.3",
@@ -31,7 +31,7 @@
     "vite": "2.9.13"
   },
   "peerDependencies": {
-    "@builder.io/qwik": ">=0.0.35",
+    "@builder.io/qwik": ">=0.0.34",
     "@emotion/react": ">=11.9.0",
     "@emotion/server": ">=11.4.0",
     "@emotion/styled": ">=11.9.3",

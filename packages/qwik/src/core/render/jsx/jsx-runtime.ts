@@ -96,7 +96,7 @@ export const processData = (
     newNode.$text$ = String(node);
     return newNode;
   } else {
-    logWarn('Unvalid node, skipping');
+    logWarn('A unsupported value was passed to the JSX, skipping render. Value:', node);
     return undefined;
   }
 };

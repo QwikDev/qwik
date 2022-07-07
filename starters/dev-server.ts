@@ -59,7 +59,7 @@ async function handleApp(req: Request, res: Response) {
   }
 }
 
-function devPlugin(): Plugin {
+function devPlugin(opts: { isServer: boolean }): Plugin {
   return {
     name: 'devPlugin',
     resolveId(id, importee) {
@@ -73,6 +73,9 @@ function devPlugin(): Plugin {
       if (id === '@builder.io/qwik/server') {
         delete require.cache[qwikDistServerPath];
         return qwikDistServerPath;
+      }
+      if (id === '@builder.io/qwik/build') {
+        return id;
       }
       if (id === '@builder.io/qwik/jsx-runtime') {
         delete require.cache[qwikDistJsxRuntimePath];
@@ -90,6 +93,12 @@ function devPlugin(): Plugin {
       return null;
     },
     load(id) {
+      if (id === '@builder.io/qwik/build') {
+        return `
+export const isServer = ${String(opts.isServer)};
+export const isBrowser = ${String(!opts.isServer)};
+        `;
+      }
       if (id === '@qwik-client-manifest') {
         return 'export const manifest = undefined;';
       }
@@ -125,7 +134,7 @@ async function buildApp(appDir: string) {
   const clientBuild = await rollup({
     input: getSrcInput(appSrcDir),
     plugins: [
-      devPlugin(),
+      devPlugin({ isServer: false }),
       optimizer.qwikRollup({
         target: 'client',
         buildMode: 'development',
@@ -146,7 +155,7 @@ async function buildApp(appDir: string) {
   const ssrBuild = await rollup({
     input: join(appSrcDir, 'entry.ssr.tsx'),
     plugins: [
-      devPlugin(),
+      devPlugin({ isServer: true }),
       optimizer.qwikRollup({
         target: 'ssr',
         buildMode: 'production',

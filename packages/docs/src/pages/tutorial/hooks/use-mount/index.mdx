@@ -13,11 +13,11 @@ Qwik is resumable. Resumability means that the application starts up on the serv
 
 `useMount$()` is a hook that executes a callback when the component is mounted into the rendering tree. The `useMount$()` function can be async. `useMount$()` delays the rendering of the component until the `useMount$()` callback is finished executing. Typical usage for `useMount$()` is to fetch data needed for initial rendering.
 
-## `useMethod$()` variations
+## `useMount$()` variations
 
 The `useMount$()` hook is subdivided into server and client versions:
-- `useServerMount$()`: Hook that executes on the component mount when in a server environment. This is useful because server often has different APIs for retrieving data. 
-- `useClientMount$()`: Hook that executes on the component mount when in a client environment. This is useful because server often has different APIs for retrieving data. 
+
+- `useServerMount$()`: Hook that executes on the component mount when in a server environment. This is useful because server often has different APIs for retrieving data.
 
 Use `useMount$()` if the code that needs to be executed is identical.
 

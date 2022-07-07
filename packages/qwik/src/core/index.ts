@@ -38,7 +38,7 @@ export type { CorePlatform } from './platform/types';
 export type {
   Tracker,
   WatchFn,
-  ServerFn,
+  MountFn as ServerFn,
   UseEffectOptions,
   UseEffectRunOptions,
   Resource,
@@ -51,7 +51,6 @@ export { useWatch$, useWatchQrl } from './use/use-watch';
 export { useResource$, useResourceQrl, Async } from './use/use-resource';
 export { useClientEffect$, useClientEffectQrl } from './use/use-watch';
 export { useServerMount$, useServerMountQrl } from './use/use-watch';
-export { useClientMount$, useClientMountQrl } from './use/use-watch';
 export { useMount$, useMountQrl } from './use/use-watch';
 
 //////////////////////////////////////////////////////////////////////////////////////////

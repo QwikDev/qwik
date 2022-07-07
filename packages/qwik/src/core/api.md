@@ -321,7 +321,7 @@ export type PublicProps<PROPS extends {}> = MutableProps<PROPS> & ComponentBaseP
 
 // @public
 export interface QRL<TYPE = any> {
-    (...args: TYPE extends (...args: infer ARGS) => any ? ARGS : never): Promise<TYPE extends (...args: any[]) => infer RETURN ? RETURN : never>;
+    (...args: TYPE extends (...args: infer ARGS) => any ? ARGS : never): Promise<TYPE extends (...args: any[]) => infer RETURN ? Awaited<RETURN> : never>;
     // (undocumented)
     getHash(): string;
     // (undocumented)
@@ -430,7 +430,7 @@ export interface ResourceResolved<T> {
 }
 
 // @alpha (undocumented)
-export type ServerFn = () => ValueOrPromise<void>;
+export type ServerFn<T> = () => ValueOrPromise<T>;
 
 // @alpha
 export const setPlatform: (doc: Document, plt: CorePlatform) => CorePlatform;
@@ -494,16 +494,6 @@ export const useClientEffect$: (first: WatchFn, opts?: UseEffectOptions | undefi
 // @public
 export const useClientEffectQrl: (qrl: QRL<WatchFn>, opts?: UseEffectOptions) => void;
 
-// Warning: (ae-incompatible-release-tags) The symbol "useClientMount$" is marked as @public, but its signature references "ServerFn" which is marked as @alpha
-//
-// @public
-export const useClientMount$: (first: ServerFn) => void;
-
-// Warning: (ae-incompatible-release-tags) The symbol "useClientMountQrl" is marked as @public, but its signature references "ServerFn" which is marked as @alpha
-//
-// @public
-export const useClientMountQrl: (mountQrl: QRL<ServerFn>) => void;
-
 // @alpha
 export const useContext: <STATE extends object>(context: Context<STATE>) => STATE;
 
@@ -527,15 +517,17 @@ export const useHostElement: () => Element;
 // @public
 export const useLexicalScope: <VARS extends any[]>() => VARS;
 
-// Warning: (ae-incompatible-release-tags) The symbol "useMount$" is marked as @public, but its signature references "ServerFn" which is marked as @alpha
+// Warning: (ae-incompatible-release-tags) The symbol "useMount$" is marked as @public, but its signature references "MountFn" which is marked as @alpha
+// Warning: (ae-incompatible-release-tags) The symbol "useMount$" is marked as @public, but its signature references "Resource" which is marked as @alpha
 //
 // @public
-export const useMount$: (first: ServerFn) => void;
+export const useMount$: <T>(first: ServerFn<T>) => Resource<T>;
 
-// Warning: (ae-incompatible-release-tags) The symbol "useMountQrl" is marked as @public, but its signature references "ServerFn" which is marked as @alpha
+// Warning: (ae-incompatible-release-tags) The symbol "useMountQrl" is marked as @public, but its signature references "MountFn" which is marked as @alpha
+// Warning: (ae-incompatible-release-tags) The symbol "useMountQrl" is marked as @public, but its signature references "Resource" which is marked as @alpha
 //
 // @public
-export const useMountQrl: (mountQrl: QRL<ServerFn>) => void;
+export const useMountQrl: <T>(mountQrl: QRL<ServerFn<T>>) => Resource<T>;
 
 // @alpha
 export const useOn: (event: string, eventQrl: QRL<(ev: Event) => void>) => void;
@@ -578,15 +570,17 @@ export const useScopedStylesQrl: (styles: QRL<string>) => void;
 // @alpha (undocumented)
 export const useSequentialScope: <T>() => SequentialScope<T>;
 
-// Warning: (ae-incompatible-release-tags) The symbol "useServerMount$" is marked as @public, but its signature references "ServerFn" which is marked as @alpha
+// Warning: (ae-incompatible-release-tags) The symbol "useServerMount$" is marked as @public, but its signature references "MountFn" which is marked as @alpha
+// Warning: (ae-incompatible-release-tags) The symbol "useServerMount$" is marked as @public, but its signature references "Resource" which is marked as @alpha
 //
 // @public
-export const useServerMount$: (first: ServerFn) => void;
+export const useServerMount$: <T>(first: ServerFn<T>) => Resource<T>;
 
-// Warning: (ae-incompatible-release-tags) The symbol "useServerMountQrl" is marked as @public, but its signature references "ServerFn" which is marked as @alpha
+// Warning: (ae-incompatible-release-tags) The symbol "useServerMountQrl" is marked as @public, but its signature references "MountFn" which is marked as @alpha
+// Warning: (ae-incompatible-release-tags) The symbol "useServerMountQrl" is marked as @public, but its signature references "Resource" which is marked as @alpha
 //
 // @public
-export const useServerMountQrl: (mountQrl: QRL<ServerFn>) => void;
+export const useServerMountQrl: <T>(mountQrl: QRL<ServerFn<T>>) => Resource<T>;
 
 // Warning: (ae-forgotten-export) The symbol "UseStoreOptions" needs to be exported by the entry point index.d.ts
 //

@@ -7,13 +7,13 @@ import { useSequentialScope } from './use-store.public';
 import { getDocument } from '../util/dom';
 import { isFunction, isObject, ValueOrPromise } from '../util/types';
 import { getPlatform } from '../platform/platform';
-import { useDocument } from './use-document.public';
 import { ContainerState, handleWatch } from '../render/notify-render';
 import { useResumeQrl, useVisibleQrl } from './use-on';
 import { implicit$FirstArg } from '../util/implicit_dollar';
 import { assertDefined } from '../assert/assert';
 import type { QRL } from '../import/qrl.public';
 import { assertQrl, createQrl, QRLInternal } from '../import/qrl-class';
+import { qError, QError_canNotMountUseServerMount } from '../error/error';
 
 export const WatchFlagsIsEffect = 1 << 0;
 export const WatchFlagsIsWatch = 1 << 1;
@@ -39,7 +39,7 @@ export interface ResourceCtx<T> {
 /**
  * @alpha
  */
-export type ServerFn = () => ValueOrPromise<void>;
+export type MountFn<T> = () => ValueOrPromise<T>;
 
 /**
  * @alpha
@@ -398,18 +398,23 @@ export const useClientEffect$ = /*#__PURE__*/ implicit$FirstArg(useClientEffectQ
  * }
  * ```
  *
- * @see `useClientMount` `useMount`
+ * @see `useMount`
  * @public
  */
 // </docs>
-export const useServerMountQrl = (mountQrl: QRL<ServerFn>) => {
-  const { get, set, ctx } = useSequentialScope<boolean>();
-  if (!get) {
-    set(true);
-    const isServer = getPlatform(ctx.$doc$).isServer;
-    if (isServer) {
-      ctx.$waitOn$.push(mountQrl());
-    }
+export const useServerMountQrl = <T>(mountQrl: QRL<MountFn<T>>): Resource<T> => {
+  const { get, set, ctx } = useSequentialScope<Resource<T>>();
+  if (get) {
+    return get;
+  }
+  const isServer = getPlatform(ctx.$doc$).isServer;
+  if (isServer) {
+    const resource = createResourceFromPromise(mountQrl());
+    ctx.$waitOn$.push(resource.promise);
+    set(resource);
+    return resource;
+  } else {
+    throw qError(QError_canNotMountUseServerMount, ctx.$hostElement$);
   }
 };
 
@@ -450,91 +455,12 @@ export const useServerMountQrl = (mountQrl: QRL<ServerFn>) => {
  * }
  * ```
  *
- * @see `useClientMount` `useMount`
+ * @see `useMount`
  * @public
  */
 // </docs>
 export const useServerMount$ = /*#__PURE__*/ implicit$FirstArg(useServerMountQrl);
 
-// <docs markdown="../readme.md#useClientMount">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#useClientMount instead)
-/**
- * Register's a client mount hook that runs only in the client when the component is first
- * mounted.
- *
- * ## Example
- *
- * ```tsx
- * const Cmp = component$(() => {
- *   const store = useStore({
- *     hash: '',
- *   });
- *
- *   useClientMount$(async () => {
- *     // This code will ONLY run once in the client, when the component is mounted
- *     store.hash = document.location.hash;
- *   });
- *
- *   return (
- *     <Host>
- *       <p>The url hash is: ${store.hash}</p>
- *     </Host>
- *   );
- * });
- * ```
- *
- * @see `useServerMount` `useMount`
- *
- * @public
- */
-// </docs>
-export const useClientMountQrl = (mountQrl: QRL<ServerFn>): void => {
-  const { get, set, ctx } = useSequentialScope<boolean>();
-  if (!get) {
-    set(true);
-    const isServer = getPlatform(useDocument()).isServer;
-    if (!isServer) {
-      ctx.$waitOn$.push(mountQrl());
-    }
-  }
-};
-
-// <docs markdown="../readme.md#useClientMount">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#useClientMount instead)
-/**
- * Register's a client mount hook that runs only in the client when the component is first
- * mounted.
- *
- * ## Example
- *
- * ```tsx
- * const Cmp = component$(() => {
- *   const store = useStore({
- *     hash: '',
- *   });
- *
- *   useClientMount$(async () => {
- *     // This code will ONLY run once in the client, when the component is mounted
- *     store.hash = document.location.hash;
- *   });
- *
- *   return (
- *     <Host>
- *       <p>The url hash is: ${store.hash}</p>
- *     </Host>
- *   );
- * });
- * ```
- *
- * @see `useServerMount` `useMount`
- *
- * @public
- */
-// </docs>
-export const useClientMount$ = /*#__PURE__*/ implicit$FirstArg(useClientMountQrl);
-
 // <docs markdown="../readme.md#useMount">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#useMount instead)
@@ -564,16 +490,40 @@ export const useClientMount$ = /*#__PURE__*/ implicit$FirstArg(useClientMountQrl
  * });
  * ```
  *
- * @see `useServerMount` `useClientMount`
+ * @see `useServerMount`
  * @public
  */
 // </docs>
-export const useMountQrl = (mountQrl: QRL<ServerFn>): void => {
-  const { get, set, ctx } = useSequentialScope<boolean>();
-  if (!get) {
-    set(true);
-    ctx.$waitOn$.push(mountQrl());
+export const useMountQrl = <T>(mountQrl: QRL<MountFn<T>>): Resource<T> => {
+  const { get, set, ctx } = useSequentialScope<Resource<T>>();
+  if (get) {
+    return get;
   }
+  const resource = createResourceFromPromise(mountQrl());
+  ctx.$waitOn$.push(resource.promise);
+  set(resource);
+  return resource;
+};
+
+const createResourceFromPromise = <T>(promise: Promise<T>): Resource<T> => {
+  const resource: Resource<T> = {
+    state: 'pending',
+    error: undefined,
+    resolved: undefined,
+    promise: promise.then(
+      (value) => {
+        resource.state = 'resolved';
+        resource.resolved = value as any;
+        return value;
+      },
+      (reason) => {
+        resource.state = 'rejected';
+        resource.error = reason;
+        throw reason;
+      }
+    ),
+  };
+  return resource;
 };
 
 // <docs markdown="../readme.md#useMount">
@@ -605,7 +555,7 @@ export const useMountQrl = (mountQrl: QRL<ServerFn>): void => {
  * });
  * ```
  *
- * @see `useServerMount` `useClientMount`
+ * @see `useServerMount`
  * @public
  */
 // </docs>

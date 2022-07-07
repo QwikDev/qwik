@@ -23,8 +23,8 @@ export interface WeatherData {
 
 export const Weather = component$(() => {
   const state = useStore({
-    city: 'London',
-    debouncedCity: 'London',
+    city: '',
+    debouncedCity: '',
     weather: undefined,
   });
 
@@ -39,13 +39,14 @@ export const Weather = component$(() => {
     };
   });
 
-  const weather = useResource$<WeatherData>(async ({ track, cleanup }) => {
+  const weather = useResource$<WeatherData | undefined>(async ({ track, cleanup }) => {
     const city = track(state, 'debouncedCity');
     cleanup(() => console.log('abort request for ', city));
-
+    if (city.length < 2) {
+      return undefined;
+    }
     const controller = new AbortController();
     cleanup(() => controller.abort());
-
     const value = await fetchWeather(city, controller.signal);
     return value;
   });
@@ -86,29 +87,36 @@ export const WeatherResults = component$((props: { weather: Resource<WeatherData
   );
 });
 
-export const WeatherResults2 = component$((props: { weather: Resource<WeatherData> }) => {
-  console.log('rerender');
-  return (
-    <Host>
-      <Async
-        resource={props.weather}
-        onPending={() => <div>loading data...</div>}
-        onRejected={(reason) => <div>error {reason}</div>}
-        onResolved={(weather) => (
-          <ul>
-            <li>name: {weather.name}</li>
-            <li>temp: {weather.temp}</li>
-            <li>feels_like: {weather.feels_like}</li>
-            <li>humidity: {weather.humidity}</li>
-            <li>temp_max: {weather.temp_max}</li>
-            <li>temp_min: {weather.temp_min}</li>
-            <li>visibility: {weather.visibility}</li>
-          </ul>
-        )}
-      />
-    </Host>
-  );
-});
+export const WeatherResults2 = component$(
+  (props: { weather: Resource<WeatherData | undefined> }) => {
+    console.log('rerender');
+    return (
+      <Host>
+        <Async
+          resource={props.weather}
+          onPending={() => <div>loading data...</div>}
+          onRejected={(reason) => <div>error {reason}</div>}
+          onResolved={(weather) => {
+            if (!weather) {
+              return <div>Please write some city</div>;
+            }
+            return (
+              <ul>
+                <li>name: {weather.name}</li>
+                <li>temp: {weather.temp}</li>
+                <li>feels_like: {weather.feels_like}</li>
+                <li>humidity: {weather.humidity}</li>
+                <li>temp_max: {weather.temp_max}</li>
+                <li>temp_min: {weather.temp_min}</li>
+                <li>visibility: {weather.visibility}</li>
+              </ul>
+            );
+          }}
+        />
+      </Host>
+    );
+  }
+);
 
 export async function fetchWeather(city: string, signal: AbortSignal): Promise<WeatherData> {
   const url = new URL('https://api.openweathermap.org/data/2.5/weather');

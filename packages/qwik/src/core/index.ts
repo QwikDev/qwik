@@ -41,9 +41,14 @@ export type {
   ServerFn,
   UseEffectOptions,
   UseEffectRunOptions,
+  Resource,
+  ResourceCtx,
+  ResourcePending as ResourceLoading,
+  ResourceRejected,
+  ResourceResolved,
 } from './use/use-watch';
 export { useWatch$, useWatchQrl } from './use/use-watch';
-export { useResource$, useResourceQrl } from './use/use-watch';
+export { useResource$, useResourceQrl, Async } from './use/use-resource';
 export { useClientEffect$, useClientEffectQrl } from './use/use-watch';
 export { useServerMount$, useServerMountQrl } from './use/use-watch';
 export { useClientMount$, useClientMountQrl } from './use/use-watch';

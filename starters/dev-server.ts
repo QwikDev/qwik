@@ -255,6 +255,13 @@ function startersHomepage(_: Request, res: Response) {
   `);
 }
 
+import nodeFetch, { Headers, Request as R, Response as RE } from 'node-fetch';
+
+(global as any).fetch = nodeFetch;
+(global as any).Headers = Headers;
+(global as any).Request = R;
+(global as any).Response = RE;
+
 function favicon(_: Request, res: Response) {
   const path = join(startersAppsDir, 'base', 'public', 'favicon.ico');
   res.sendFile(path);

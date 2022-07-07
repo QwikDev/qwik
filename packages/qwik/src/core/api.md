@@ -62,6 +62,11 @@ export interface AriaAttributes {
     'aria-valuetext'?: string | undefined;
 }
 
+// Warning: (ae-forgotten-export) The symbol "AsyncProps" needs to be exported by the entry point index.d.ts
+//
+// @alpha (undocumented)
+export const Async: <T>(props: AsyncProps<T>) => JSXNode;
+
 // @public
 export const component$: <PROPS extends {}>(onMount: OnRenderFn<PROPS>, options?: ComponentOptions) => Component<PROPS>;
 
@@ -376,6 +381,55 @@ export interface Ref<T> {
 export const render: (parent: Element | Document, jsxNode: JSXNode<unknown> | FunctionComponent<any>) => Promise<void>;
 
 // @alpha (undocumented)
+export type Resource<T> = ResourceLoading<T> | ResourceResolved<T> | ResourceRejected<T>;
+
+// @alpha (undocumented)
+export interface ResourceCtx<T> {
+    // (undocumented)
+    cleanup(callback: () => void): void;
+    // (undocumented)
+    previous: T | undefined;
+    // (undocumented)
+    track: Tracker;
+}
+
+// @alpha (undocumented)
+export interface ResourceLoading<T> {
+    // (undocumented)
+    error: undefined;
+    // (undocumented)
+    promise: Promise<T>;
+    // (undocumented)
+    resolved: undefined;
+    // (undocumented)
+    state: 'pending';
+}
+
+// @alpha (undocumented)
+export interface ResourceRejected<T> {
+    // (undocumented)
+    error: NoSerialize<any>;
+    // (undocumented)
+    promise: Promise<T>;
+    // (undocumented)
+    resolved: undefined;
+    // (undocumented)
+    state: 'rejected';
+}
+
+// @alpha (undocumented)
+export interface ResourceResolved<T> {
+    // (undocumented)
+    error: undefined;
+    // (undocumented)
+    promise: Promise<T>;
+    // (undocumented)
+    resolved: T;
+    // (undocumented)
+    state: 'resolved';
+}
+
+// @alpha (undocumented)
 export type ServerFn<T = void> = () => ValueOrPromise<T>;
 
 // @alpha
@@ -498,13 +552,12 @@ export const useOnWindow: (event: string, eventQrl: QRL<(ev: Event) => void>) =>
 export const useRef: <T = Element>(current?: T | undefined) => Ref<T>;
 
 // Warning: (ae-forgotten-export) The symbol "ResourceFn" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "Resource" needs to be exported by the entry point index.d.ts
 //
 // @alpha (undocumented)
-export const useResource$: <T>(first: ResourceFn, opts?: UseEffectOptions | undefined) => Resource<T>;
+export const useResource$: <T>(first: ResourceFn<T>) => Resource<T>;
 
 // @alpha (undocumented)
-export const useResourceQrl: <T>(qrl: QRL<ResourceFn>, opts?: UseEffectOptions) => Resource<T>;
+export const useResourceQrl: <T>(qrl: QRL<ResourceFn<T>>) => Resource<T>;
 
 // Warning: (ae-forgotten-export) The symbol "UseResumeOptions" needs to be exported by the entry point index.d.ts
 //
@@ -528,12 +581,12 @@ export const useSequentialScope: <T>() => SequentialScope<T>;
 // Warning: (ae-incompatible-release-tags) The symbol "useServerMount$" is marked as @public, but its signature references "ServerFn" which is marked as @alpha
 //
 // @public
-export const useServerMount$: <T>(first: ServerFn<void>) => void;
+export const useServerMount$: (first: ServerFn<void>) => void;
 
 // Warning: (ae-incompatible-release-tags) The symbol "useServerMountQrl" is marked as @public, but its signature references "ServerFn" which is marked as @alpha
 //
 // @public
-export const useServerMountQrl: <T>(mountQrl: QRL<ServerFn>) => void;
+export const useServerMountQrl: (mountQrl: QRL<ServerFn>) => void;
 
 // Warning: (ae-forgotten-export) The symbol "UseStoreOptions" needs to be exported by the entry point index.d.ts
 //

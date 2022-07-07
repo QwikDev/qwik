@@ -151,7 +151,9 @@ export const isSameQRL = (a: QRLInternal<any>, b: QRLInternal<any>): boolean => 
 };
 
 export function assertQrl<T>(qrl: QRL<T>): asserts qrl is QRLInternal<T> {
-  if (!isQrl(qrl)) {
-    throw new Error('Not a QRL');
+  if (qDev) {
+    if (!isQrl(qrl)) {
+      throw new Error('Not a QRL');
+    }
   }
 }

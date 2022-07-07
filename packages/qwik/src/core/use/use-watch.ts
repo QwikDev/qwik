@@ -1,24 +1,26 @@
 import { getProxyTarget, noSerialize, NoSerialize } from '../object/q-object';
 import { getContext } from '../props/props';
-import { newInvokeContext } from './use-core';
+import { newInvokeContext, useInvoke } from './use-core';
 import { logDebug, logError } from '../util/log';
-import { then } from '../util/promises';
+import { safeCall } from '../util/promises';
 import { useSequentialScope } from './use-store.public';
 import { getDocument } from '../util/dom';
 import { isFunction, isObject, ValueOrPromise } from '../util/types';
 import { getPlatform } from '../platform/platform';
-import { useDocument } from './use-document.public';
 import { ContainerState, handleWatch } from '../render/notify-render';
 import { useResumeQrl, useVisibleQrl } from './use-on';
 import { implicit$FirstArg } from '../util/implicit_dollar';
 import { assertDefined } from '../assert/assert';
 import type { QRL } from '../import/qrl.public';
 import { assertQrl, createQrl, QRLInternal } from '../import/qrl-class';
+import { qError, QError_canNotMountUseServerMount } from '../error/error';
 
 export const WatchFlagsIsEffect = 1 << 0;
 export const WatchFlagsIsWatch = 1 << 1;
 export const WatchFlagsIsDirty = 1 << 2;
 export const WatchFlagsIsCleanup = 1 << 3;
+export const WatchFlagsIsResource = 1 << 4;
+export const WatchFlagsIsBeforeRender = WatchFlagsIsResource | WatchFlagsIsWatch;
 
 /**
  * @alpha
@@ -28,26 +30,94 @@ export type WatchFn = (track: Tracker) => ValueOrPromise<void | (() => void)>;
 /**
  * @alpha
  */
-export type ServerFn = () => ValueOrPromise<void | (() => void)>;
+export interface ResourceCtx<T> {
+  track: Tracker;
+  cleanup(callback: () => void): void;
+  previous: T | undefined;
+}
 
 /**
  * @alpha
  */
-export interface WatchDescriptor {
-  qrl: QRLInternal<WatchFn>;
+export type MountFn<T> = () => ValueOrPromise<T>;
+
+/**
+ * @alpha
+ */
+export type Resource<T> = ResourcePending<T> | ResourceResolved<T> | ResourceRejected<T>;
+
+/**
+ * @alpha
+ */
+export interface ResourcePending<T> {
+  state: 'pending';
+
+  promise: Promise<T>;
+  resolved: undefined;
+  error: undefined;
+}
+
+/**
+ * @alpha
+ */
+export interface ResourceResolved<T> {
+  state: 'resolved';
+
+  promise: Promise<T>;
+  resolved: T;
+  error: undefined;
+}
+
+/**
+ * @alpha
+ */
+export interface ResourceRejected<T> {
+  state: 'rejected';
+
+  promise: Promise<T>;
+  resolved: undefined;
+  error: NoSerialize<any>;
+}
+
+/**
+ * @alpha
+ */
+export type ResourceFn<T> = (ctx: ResourceCtx<T>) => ValueOrPromise<T>;
+
+/**
+ * @alpha
+ */
+export interface DescriptorBase<T = any> {
+  qrl: QRLInternal<T>;
   el: Element;
   f: number;
   i: number;
   destroy?: NoSerialize<() => void>;
-  running?: NoSerialize<Promise<WatchDescriptor>>;
 }
 
-export const isWatchDescriptor = (obj: any): obj is WatchDescriptor => {
+/**
+ * @alpha
+ */
+export type WatchDescriptor = DescriptorBase<WatchFn>;
+
+/**
+ * @alpha
+ */
+export interface ResourceDescriptor<T> extends DescriptorBase<ResourceFn<T>> {
+  r: Resource<T>;
+}
+
+/**
+ * @alpha
+ */
+export type SubscriberDescriptor = WatchDescriptor | ResourceDescriptor<any>;
+
+export const isSubscriberDescriptor = (obj: any): obj is SubscriberDescriptor => {
   return isObject(obj) && 'qrl' in obj && 'f' in obj;
 };
 
 export const isWatchCleanup = (obj: any): obj is WatchDescriptor => {
-  return isWatchDescriptor(obj) && !!(obj.f & WatchFlagsIsCleanup);
+  return isSubscriberDescriptor(obj) && !!(obj.f & WatchFlagsIsCleanup);
 };
 
 /**
@@ -142,7 +212,7 @@ export const useWatchQrl = (qrl: QRL<WatchFn>, opts?: UseEffectOptions): void =>
     };
     set(true);
     getContext(el).$watches$.push(watch);
-    ctx.$waitOn$.push(Promise.resolve().then(() => runWatch(watch, containerState)));
+    ctx.$waitOn$.push(Promise.resolve().then(() => runSubscriber(watch, containerState)));
     const isServer = containerState.$platform$.isServer;
     if (isServer) {
       useRunWatch(watch, opts?.run);
@@ -328,18 +398,23 @@ export const useClientEffect$ = /*#__PURE__*/ implicit$FirstArg(useClientEffectQ
  * }
  * ```
  *
- * @see `useClientMount` `useMount`
+ * @see `useMount`
  * @public
  */
 // </docs>
-export const useServerMountQrl = (mountQrl: QRL<ServerFn>): void => {
-  const { get, set, ctx } = useSequentialScope<boolean>();
-  if (!get) {
-    set(true);
-    const isServer = getPlatform(ctx.$doc$).isServer;
-    if (isServer) {
-      ctx.$waitOn$.push(mountQrl());
-    }
+export const useServerMountQrl = <T>(mountQrl: QRL<MountFn<T>>): Resource<T> => {
+  const { get, set, ctx } = useSequentialScope<Resource<T>>();
+  if (get) {
+    return get;
+  }
+  const isServer = getPlatform(ctx.$doc$).isServer;
+  if (isServer) {
+    const resource = createResourceFromPromise(mountQrl());
+    ctx.$waitOn$.push(resource.promise);
+    set(resource);
+    return resource;
+  } else {
+    throw qError(QError_canNotMountUseServerMount, ctx.$hostElement$);
   }
 };
 
@@ -380,91 +455,12 @@ export const useServerMountQrl = (mountQrl: QRL<ServerFn>): void => {
  * }
  * ```
  *
- * @see `useClientMount` `useMount`
+ * @see `useMount`
  * @public
  */
 // </docs>
 export const useServerMount$ = /*#__PURE__*/ implicit$FirstArg(useServerMountQrl);
 
-// <docs markdown="../readme.md#useClientMount">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#useClientMount instead)
-/**
- * Register's a client mount hook that runs only in the client when the component is first
- * mounted.
- *
- * ## Example
- *
- * ```tsx
- * const Cmp = component$(() => {
- *   const store = useStore({
- *     hash: '',
- *   });
- *
- *   useClientMount$(async () => {
- *     // This code will ONLY run once in the client, when the component is mounted
- *     store.hash = document.location.hash;
- *   });
- *
- *   return (
- *     <Host>
- *       <p>The url hash is: ${store.hash}</p>
- *     </Host>
- *   );
- * });
- * ```
- *
- * @see `useServerMount` `useMount`
- *
- * @public
- */
-// </docs>
-export const useClientMountQrl = (mountQrl: QRL<ServerFn>): void => {
-  const { get, set, ctx } = useSequentialScope<boolean>();
-  if (!get) {
-    set(true);
-    const isServer = getPlatform(useDocument()).isServer;
-    if (!isServer) {
-      ctx.$waitOn$.push(mountQrl());
-    }
-  }
-};
-
-// <docs markdown="../readme.md#useClientMount">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#useClientMount instead)
-/**
- * Register's a client mount hook that runs only in the client when the component is first
- * mounted.
- *
- * ## Example
- *
- * ```tsx
- * const Cmp = component$(() => {
- *   const store = useStore({
- *     hash: '',
- *   });
- *
- *   useClientMount$(async () => {
- *     // This code will ONLY run once in the client, when the component is mounted
- *     store.hash = document.location.hash;
- *   });
- *
- *   return (
- *     <Host>
- *       <p>The url hash is: ${store.hash}</p>
- *     </Host>
- *   );
- * });
- * ```
- *
- * @see `useServerMount` `useMount`
- *
- * @public
- */
-// </docs>
-export const useClientMount$ = /*#__PURE__*/ implicit$FirstArg(useClientMountQrl);
-
 // <docs markdown="../readme.md#useMount">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#useMount instead)
@@ -494,16 +490,40 @@ export const useClientMount$ = /*#__PURE__*/ implicit$FirstArg(useClientMountQrl
  * });
  * ```
  *
- * @see `useServerMount` `useClientMount`
+ * @see `useServerMount`
  * @public
  */
 // </docs>
-export const useMountQrl = (mountQrl: QRL<ServerFn>): void => {
-  const { get, set, ctx } = useSequentialScope<boolean>();
-  if (!get) {
-    set(true);
-    ctx.$waitOn$.push(mountQrl());
+export const useMountQrl = <T>(mountQrl: QRL<MountFn<T>>): Resource<T> => {
+  const { get, set, ctx } = useSequentialScope<Resource<T>>();
+  if (get) {
+    return get;
   }
+  const resource = createResourceFromPromise(mountQrl());
+  ctx.$waitOn$.push(resource.promise);
+  set(resource);
+  return resource;
+};
+
+const createResourceFromPromise = <T>(promise: Promise<T>): Resource<T> => {
+  const resource: Resource<T> = {
+    state: 'pending',
+    error: undefined,
+    resolved: undefined,
+    promise: promise.then(
+      (value) => {
+        resource.state = 'resolved';
+        resource.resolved = value as any;
+        return value;
+      },
+      (reason) => {
+        resource.state = 'rejected';
+        resource.error = reason;
+        throw reason;
+      }
+    ),
+  };
+  return resource;
 };
 
 // <docs markdown="../readme.md#useMount">
@@ -535,56 +555,146 @@ export const useMountQrl = (mountQrl: QRL<ServerFn>): void => {
  * });
  * ```
  *
- * @see `useServerMount` `useClientMount`
+ * @see `useServerMount`
  * @public
  */
 // </docs>
 export const useMount$ = /*#__PURE__*/ implicit$FirstArg(useMountQrl);
 
+export const runSubscriber = async (
+  watch: SubscriberDescriptor,
+  containerState: ContainerState
+) => {
+  if ('r' in watch) {
+    await runResource(watch, containerState);
+  } else {
+    await runWatch(watch, containerState);
+  }
+};
+
+export const runResource = <T>(
+  watch: ResourceDescriptor<T>,
+  containerState: ContainerState
+): ValueOrPromise<void> => {
+  if (!(watch.f & WatchFlagsIsDirty)) {
+    logDebug('Watch is not dirty, skipping run', watch);
+    return;
+  }
+  watch.f &= ~WatchFlagsIsDirty;
+  cleanupWatch(watch);
+
+  const el = watch.el;
+  const doc = getDocument(el);
+  const invokationContext = newInvokeContext(doc, el, el, 'WatchEvent');
+  const { $subsManager$: subsManager } = containerState;
+  const watchFn = watch.qrl.$invokeFn$(el, invokationContext, () => {
+    subsManager.$clearSub$(watch);
+  });
+
+  const cleanups: (() => void)[] = [];
+  const resource = watch.r;
+  assertDefined(resource);
+
+  const track: Tracker = (obj: any, prop?: string) => {
+    const target = getProxyTarget(obj);
+    assertDefined(target, 'Expected a Proxy object to track');
+    const manager = subsManager.$getLocal$(target);
+    manager.$addSub$(watch, prop);
+    if (prop) {
+      return obj[prop];
+    } else {
+      return obj;
+    }
+  };
+  const opts: ResourceCtx<T> = {
+    track,
+    cleanup(callback) {
+      cleanups.push(callback);
+    },
+    previous: resource.resolved,
+  };
+
+  let resolve: (v: T) => void;
+  let reject: (v: any) => void;
+
+  // Execute mutation inside empty invokation
+  useInvoke(invokationContext, () => {
+    resource.state = 'pending';
+    resource.resolved = undefined as any;
+    resource.promise = new Promise((r, re) => {
+      resolve = r;
+      reject = re;
+    });
+  });
+
+  watch.destroy = noSerialize(() => {
+    cleanups.forEach((fn) => fn());
+    reject('cancelled');
+  });
+
+  return safeCall(
+    () => watchFn(opts),
+    (value) => {
+      resource.state = 'resolved';
+      resource.resolved = value;
+      resource.error = undefined;
+      resolve(value);
+      return;
+    },
+    (reason) => {
+      resource.state = 'rejected';
+      resource.resolved = undefined as any;
+      resource.error = noSerialize(reason);
+      reject(reason);
+      return;
+    }
+  );
+};
+
 export const runWatch = (
   watch: WatchDescriptor,
   containerState: ContainerState
-): Promise<WatchDescriptor> => {
+): ValueOrPromise<void> => {
   if (!(watch.f & WatchFlagsIsDirty)) {
     logDebug('Watch is not dirty, skipping run', watch);
-    return Promise.resolve(watch);
+    return;
   }
   watch.f &= ~WatchFlagsIsDirty;
-  const promise = new Promise<WatchDescriptor>((resolve) => {
-    then(watch.running, () => {
-      cleanupWatch(watch);
-      const el = watch.el;
-      const doc = getDocument(el);
-      const invokationContext = newInvokeContext(doc, el, el, 'WatchEvent');
-      const { $subsManager$: subsManager } = containerState;
-      const watchFn = watch.qrl.$invokeFn$(el, invokationContext, () => {
-        subsManager.$clearSub$(watch);
-      });
-      const track: Tracker = (obj: any, prop?: string) => {
-        const target = getProxyTarget(obj);
-        assertDefined(target, 'Expected a Proxy object to track');
-        const manager = subsManager.$getLocal$(target);
-        manager.$addSub$(watch, prop);
-        if (prop) {
-          return obj[prop];
-        } else {
-          return obj;
-        }
-      };
 
-      return then(watchFn(track), (returnValue) => {
-        if (isFunction(returnValue)) {
-          watch.destroy = noSerialize(returnValue);
-        }
-        resolve(watch);
-      });
-    });
+  cleanupWatch(watch);
+  const el = watch.el;
+  const doc = getDocument(el);
+  const invokationContext = newInvokeContext(doc, el, el, 'WatchEvent');
+  const { $subsManager$: subsManager } = containerState;
+  const watchFn = watch.qrl.$invokeFn$(el, invokationContext, () => {
+    subsManager.$clearSub$(watch);
   });
-  watch.running = noSerialize(promise);
-  return promise;
+  const track: Tracker = (obj: any, prop?: string) => {
+    const target = getProxyTarget(obj);
+    assertDefined(target, 'Expected a Proxy object to track');
+    const manager = subsManager.$getLocal$(target);
+    manager.$addSub$(watch, prop);
+    if (prop) {
+      return obj[prop];
+    } else {
+      return obj;
+    }
+  };
+
+  return safeCall(
+    () => watchFn(track),
+    (returnValue) => {
+      if (isFunction(returnValue)) {
+        watch.destroy = noSerialize(returnValue);
+      }
+    },
+    (reason) => {
+      logError(reason);
+    }
+  );
 };
 
-export const cleanupWatch = (watch: WatchDescriptor) => {
+export const cleanupWatch = (watch: SubscriberDescriptor) => {
   const destroy = watch.destroy;
   if (destroy) {
     watch.destroy = undefined;
@@ -596,7 +706,7 @@ export const cleanupWatch = (watch: WatchDescriptor) => {
   }
 };
 
-export const destroyWatch = (watch: WatchDescriptor) => {
+export const destroyWatch = (watch: SubscriberDescriptor) => {
   if (watch.f & WatchFlagsIsCleanup) {
     watch.f &= ~WatchFlagsIsCleanup;
     const cleanup = watch.qrl.$invokeFn$(watch.el);
@@ -649,7 +759,7 @@ export interface Tracker {
   <T extends {}, B extends keyof T>(obj: T, prop: B): T[B];
 }
 
-const useRunWatch = (watch: WatchDescriptor, run: UseEffectRunOptions | undefined) => {
+const useRunWatch = (watch: SubscriberDescriptor, run: UseEffectRunOptions | undefined) => {
   if (run === 'load') {
     useResumeQrl(getWatchHandlerQrl(watch));
   } else if (run === 'visible') {
@@ -657,10 +767,8 @@ const useRunWatch = (watch: WatchDescriptor, run: UseEffectRunOptions | undefine
   }
 };
 
-const getWatchHandlerQrl = (watch: WatchDescriptor) => {
+const getWatchHandlerQrl = (watch: SubscriberDescriptor) => {
   const watchQrl = watch.qrl;
-  assertQrl(watchQrl);
-
   const watchHandler = createQrl(
     watchQrl.$chunk$,
     'handleWatch',

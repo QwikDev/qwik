@@ -109,6 +109,7 @@ h6 a:hover .icon {
   background-color: rgb(1 31 51);
   padding: 18px 15px;
   border-radius: 8px;
+  margin-bottom: 4px;
 }
 
 .docs article pre code {

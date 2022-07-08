@@ -46,7 +46,7 @@ export const Header = component$(
             </li>
             <li>
               <a href="/qwikcity/overview" onClickQrl={closeMenu}>
-                <span>Qwikcity</span>
+                <span>Qwik City</span>
               </a>
             </li>
             <li>

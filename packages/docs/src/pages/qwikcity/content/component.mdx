@@ -1,8 +1,8 @@
 ---
-title: Qwikcity - Components
+title: Qwik City - Components
 ---
 
-# Qwikcity - Components
+# Qwik City - Components
 
 Components is a way of creating content using Qwik components. The Qwik component representing the content should be exported as `default` export.
 
@@ -15,8 +15,8 @@ Let's assume you have the router set up such as this:
         - index.tsx              # http://server/some/path
 ```
 
-File: `src/routes/some/path/index.tsx`:
 ```typescript
+// File: src/routes/some/path/index.tsx
 import { component$ } from '@builder.io/qwik';
 
 // Notice the default export
@@ -42,8 +42,8 @@ You can build complex views by composing multiple components within each other. 
 Inside `index.tsx` you can create a component that is exported as `default` export. Content is created by writing a template with [JSX](https://reactjs.org/docs/introducing-jsx.html)-Syntax. Every component-Function returns the template that should be rendered on the screen. If you want to learn more about the component anatomy, please see [components documentation](/docs/components/overview).
 The following component will be rendered at `http://server/some/path` according to the directory-structure, we have set up above. 
 
-File: `src/routes/some/path/index.tsx`:
 ```typescript
+// File: src/routes/some/path/index.tsx
 import { component$ } from '@builder.io/qwik';
 import Heading from '../../../components/heading';
 import SubComponent from './_sub_component';
@@ -58,8 +58,8 @@ export default component$(() => {
 });
 ```
 
-File: `src/components/heading.tsx`:
 ```typescript
+// File: src/components/heading.tsx
 import { component$ } from '@builder.io/qwik';
 
 export default component$(() => {
@@ -67,8 +67,8 @@ export default component$(() => {
 });
 ```
 
-File: `src/routes/some/path/_other_component.tsx`:
 ```typescript
+// File: src/routes/some/path/_other_component.tsx
 import { component$ } from '@builder.io/qwik';
 
 export default component$(() => {

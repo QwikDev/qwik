@@ -1,8 +1,8 @@
 ---
-title: Qwikcity - Nested Layout
+title: Qwik City - Nested Layout
 ---
 
-# Qwikcity - Nested Layout
+# Qwik City - Nested Layout
 
 At times it is desirable to nest layouts into each other.
 
@@ -40,32 +40,34 @@ In the above case, the layouts will nest each other.
 +--------------------------------------------------+
 ```
 
-- `src/routes/_layout.tsx`:
-  ```typescript
-  export default component$(() => {
-    return (
-      <>
-        src/routes/_layout.tsx
-        <Slot />{/* <== Child layout/route inserted here */}
-      </>
-    );
-  });
-  ```
-- `src/routes/home/_layout.tsx`:
-  ```typescript
-  export default component$(() => {
-    return (
-      <>
-        src/routes/home/_layout.tsx
-        <Slot />{/* <== Child layout/route inserted here */}
-      </>
-    );
-  });
-  ```
-- `src/routes/home/overview.tsx`:
-  ```typescript
-  export default component$(() => {
-    return <>src/routes/home/overview.tsx</>;
-  });
-  ```
+```typescript
+// File: src/routes/_layout.tsx
+export default component$(() => {
+  return (
+    <>
+      src/routes/_layout.tsx
+      <Slot />{/* <== Child layout/route inserted here */}
+    </>
+  );
+});
+```
+
+```typescript
+// File: src/routes/home/_layout.tsx
+export default component$(() => {
+  return (
+    <>
+      src/routes/home/_layout.tsx
+      <Slot />{/* <== Child layout/route inserted here */}
+    </>
+  );
+});
+```
+
+```typescript
+// File: src/routes/home/overview.tsx
+export default component$(() => {
+  return <>src/routes/home/overview.tsx</>;
+});
+```
 

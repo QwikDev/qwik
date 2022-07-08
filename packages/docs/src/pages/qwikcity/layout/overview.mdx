@@ -1,8 +1,8 @@
 ---
-title: Qwikcity - Layout
+title: Qwik City - Layout
 ---
 
-# Qwikcity - Layout
+# Qwik City - Layout
 
 When implementing routes, different routes usually share a common header, footer, and menu system. We call the common parts layout.
 
@@ -44,46 +44,51 @@ Note: Alternatively `src/_layout.tsx` can be `src/_layout/index.tsx` for the sam
 
 ### Component implementations
 
-- `src/components/Header.tsx`:
-  ```typescript
-  export default component$(() => {
-    return <>Header</>;
-  });
-  ```
-- `src/components/Footer.tsx`:
-  ```typescript
-  export default component$(() => {
-    return <>Footer</>;
-  });
-  ```
-- `src/components/Menu.tsx`:
-  ```typescript
-  export default component$(() => {
-    return <ul><li>main</li><li>about</li></ul>;
-  });
-  ```
-- `src/routes/_layout.tsx`:
-  ```typescript
-  export default component$(() => {
-    return (
-      <>
-        <Header />
-        <Menu />
-        <Slot />{/* <== This is where the route will be inserted */}
-        <Footer />
-      </>
-    );
-  });
-  ```
-- `src/routes/home.tsx`:
-  ```typescript
-  export default component$(() => {
-    return <>Home</>;
-  });
-  ```
-- `src/routes/about.tsx`:
-  ```typescript
-  export default component$(() => {
-    return <>About</>;
-  });
-  ```
+```typescript
+// File: src/components/Header.tsx
+export default component$(() => {
+  return <>Header</>;
+});
+```
+
+```typescript
+// File: src/components/Footer.tsx
+export default component$(() => {
+  return <>Footer</>;
+});
+```
+
+```typescript
+// File: src/components/Menu.tsx
+export default component$(() => {
+  return <ul><li>main</li><li>about</li></ul>;
+});
+```
+
+```typescript
+// File: src/routes/_layout.tsx
+export default component$(() => {
+  return (
+    <>
+      <Header />
+      <Menu />
+      <Slot />{/* <== This is where the route will be inserted */}
+      <Footer />
+    </>
+  );
+});
+```
+
+```typescript
+// File: src/routes/home.tsx
+export default component$(() => {
+  return <>Home</>;
+});
+```
+
+```typescript
+// File: src/routes/about.tsx
+export default component$(() => {
+  return <>About</>;
+});
+```

@@ -1,8 +1,8 @@
 ---
-title: Qwikcity - Retrieving Data
+title: Qwik City - Retrieving Data
 ---
 
-# Qwikcity - Retrieving Data
+# Qwik City - Retrieving Data
 
 Let's implement `http://server/product/abc123/details` so that we can retrieve the details of a product.
 
@@ -27,8 +27,8 @@ The `doGet` function returns an object that contains:
 - `headers`: HTTP headers to control caches etc...
 - `body`: The body of the response to be returned as JSON or to be used as input to the HTML.
 
-`src/routes/product/[skuId]/details.js`
 ```typescript
+// File: src/routes/product/[skuId]/details.js
 import { EndpointHandler } from '@builder.io/qwik-city';
 
 type EndpointData = ProductData | null;

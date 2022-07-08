@@ -13,7 +13,7 @@ export function applyPrefetchImplementation(
 ) {
   const prefetchStrategy = opts.prefetchStrategy;
   if (prefetchStrategy !== null) {
-    const prefetchImpl = prefetchStrategy?.implementation || 'link-prefetch';
+    const prefetchImpl = prefetchStrategy?.implementation || 'worker-fetch';
 
     if (
       prefetchImpl === 'link-prefetch-html' ||

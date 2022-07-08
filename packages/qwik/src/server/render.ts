@@ -44,7 +44,7 @@ export async function renderToString(rootNode: any, opts: RenderToStringOptions 
   const mapper = computeSymbolMapper(opts.manifest);
   await setServerPlatform(doc, opts, mapper);
 
-  await render(root, rootNode);
+  await render(root, rootNode, false);
 
   const renderDocTime = renderDocTimer();
 

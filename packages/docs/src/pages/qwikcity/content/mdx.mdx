@@ -1,3 +1,66 @@
 ---
-title: TODO
+title: Qwikcity - MDX
 ---
+
+An alternative way to author content is using `.mdx` files. (Markdown JSX.) These files are authored as Markdown, but they are compiled down to Qwik components. In addition to per Markdown, they can also refer to other components.
+
+Let's assume you have the router set up such as this:
+```
+- src/
+  - routes/
+    - some/           
+      - path/
+        - index.mdx              # http://server/some/path
+```
+
+File: `src/routes/some/path/index.mdx`:
+```Markdown
+---
+title: Hello World Title
+---
+
+This is a simple hello world component.
+
+```
+
+The above component will be rendered at `http://server/some/path`. 
+
+## Importing other components.
+
+```
+- src/
+  - components/
+    - counter.tsx
+  - routes/
+    - some/           
+      - path/
+        - index.mdx              # http://server/some/path
+```
+
+File: `src/routes/some/path/index.mdx`:
+```Markdown
+---
+title: Hello World Title
+---
+import { Counter } from "~/components/counter/counter";
+
+This is a simple hello world component.
+
+<Counter />
+
+```
+
+File: `/components/counter/counter.tsx`:
+```typescript
+import { component$, useScopedStyles$, useStore } from '@builder.io/qwik';
+
+export const Counter = component$(() => {
+  const store = useStore({ count: 0 });
+
+  return (
+    <button class="counter" type="button" onClick$={() => store.count++}>
+      Increment {store.count}
+    </button>
+  );
+});
+```

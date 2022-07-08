@@ -19,16 +19,12 @@
 - [Nested](layout/nested.mdx)
 - [Named](layout/named.mdx)
 
-## Menus
-
-- [Overview](menu/overview.mdx)
-- [File Layout](menu/file-definition.mdx)
-
 ## Authoring Content
 
-- [Overview](content/overview.mdx)
 - [Components](content/component.mdx)
 - [MDX](content/mdx.mdx)
+- [Menu](content/menu.mdx)
+- [Breadcrumbs](content/breadcrumbs.mdx)
 
 ## API Endpoints
 

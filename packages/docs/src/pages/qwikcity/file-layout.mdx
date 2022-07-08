@@ -19,10 +19,20 @@ All file-based route information is placed in `src/routes` directory. This is th
 - src/
   - components/          # Put your reusable components here.
     - counter.tsx
-  - route/               # Put your route specific components here.
+  - routes/              # Put your route specific components here.
     - docs/
       - overview.mdx     # http://server/docs/overview
       - index.mdx        # http://server/docs/
     - index.tsx          # http://server/
 ```
+## Sample Component
 
+Qwikcity expects that files that are in the `src/routes` folder have a default export.
+
+```typescript
+import { component$ } from '@builder.io/qwik';
+
+export default component$(() => {
+  return <>Hello World!</>;
+});
+```

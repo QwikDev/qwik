@@ -1,3 +1,76 @@
 ---
-title: TODO
+title: Qwikcity - Components
 ---
+
+Components is a way of creating content using Qwik components. This is simply a file that contains a component that is exported as `default` export.
+
+Let's assume you have the router set up such as this:
+```
+- src/
+  - routes/
+    - some/           
+      - path/
+        - index.tsx              # http://server/some/path
+```
+
+File: `src/routes/some/path/index.tsx`:
+```typescript
+import { component$ } from '@builder.io/qwik';
+
+// Notice the default export
+export default component$(() => {
+  return <h1>Hello World!</h1>;
+});
+```
+
+The above component will be rendered at `http://server/some/path`. 
+
+## Importing other components
+
+```
+- src/
+  - components/
+    - heading.tsx
+  - routes/
+    - some/           
+      - path/
+        - index.tsx              # http://server/some/path
+        - _sub_component.tsx
+```
+
+File: `src/routes/some/path/index.tsx`:
+```typescript
+import { component$ } from '@builder.io/qwik';
+import Heading from '../../../components/heading';
+import SubComponent from './_sub_component';
+
+export default component$(() => {
+  return (
+    <>
+      <Heading />
+      <h2>Hello World!</h2>
+      <SubComponent />
+    </>;
+});
+```
+
+File: `src/components/heading.tsx`:
+```typescript
+import { component$ } from '@builder.io/qwik';
+
+export default component$(() => {
+  return <h1>Site Heading</h1>;
+});
+```
+
+File: `src/routes/some/path/_other_component.tsx`:
+```typescript
+import { component$ } from '@builder.io/qwik';
+
+export default component$(() => {
+  return <div>Other component content.</div>;
+});
+```
+## Behavior
+
+For simplicity, these components are shown as static, but they can have the full functionality of Qwik components.

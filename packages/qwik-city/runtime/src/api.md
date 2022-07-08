@@ -7,6 +7,7 @@
 import { Component } from '@builder.io/qwik';
 import type { FunctionComponent } from '@builder.io/qwik';
 import type { HTMLAttributes } from '@builder.io/qwik';
+import { Resource } from '@builder.io/qwik';
 
 // @public (undocumented)
 export const Content: Component<    {}>;
@@ -116,9 +117,10 @@ export interface DocumentStyle {
 }
 
 // Warning: (ae-forgotten-export) The symbol "RequestEvent" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "EndpointResponse" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export type EndpointHandler = (ev: RequestEvent) => Response | Promise<Response>;
+export type EndpointHandler<BODY = unknown> = (ev: RequestEvent) => EndpointResponse<BODY> | Promise<EndpointResponse<BODY>>;
 
 // @public (undocumented)
 export type HeadComponent = FunctionComponent<HeadComponentProps>;
@@ -170,8 +172,6 @@ export interface RouteLocation {
     hostname: string;
     // (undocumented)
     href: string;
-    // (undocumented)
-    origin: string;
     // Warning: (ae-forgotten-export) The symbol "RouteParams" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
@@ -180,8 +180,6 @@ export interface RouteLocation {
     pathname: string;
     // (undocumented)
     port: string;
-    // (undocumented)
-    protocol: string;
     // (undocumented)
     query: Record<string, string>;
     // (undocumented)
@@ -201,7 +199,15 @@ export const useContentMenu: () => ContentMenu | undefined;
 export const useDocumentHead: () => DocumentHead;
 
 // @public (undocumented)
+export const useEndpoint: <T = unknown>() => Resource<T>;
+
+// @public (undocumented)
 export const useLocation: () => RouteLocation;
+
+// Warning: (ae-forgotten-export) The symbol "ContentResponse" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export const useResponse: () => ContentResponse;
 
 // (No @packageDocumentation comment for this package)
 

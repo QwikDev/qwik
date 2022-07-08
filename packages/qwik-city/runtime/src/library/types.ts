@@ -1,14 +1,25 @@
 import type { FunctionComponent } from '@builder.io/qwik';
 import type { ROUTE_TYPE_ENDPOINT } from './constants';
 
-export interface PageModule {
+export interface EndpointModule<BODY = unknown> {
+  onDelete?: EndpointHandler<BODY>;
+  onGet?: EndpointHandler<BODY>;
+  onHead?: EndpointHandler<BODY>;
+  onOptions?: EndpointHandler<BODY>;
+  onPatch?: EndpointHandler<BODY>;
+  onPost?: EndpointHandler<BODY>;
+  onPut?: EndpointHandler<BODY>;
+  onRequest?: EndpointHandler<BODY>;
+}
+
+export interface PageModule extends EndpointModule {
   readonly default: any;
   readonly breadcrumbs?: ContentBreadcrumb[];
   readonly head?: ContentModuleHead;
   readonly headings?: ContentHeading[];
 }
 
-export interface LayoutModule {
+export interface LayoutModule extends EndpointModule {
   readonly default: any;
   readonly head?: ContentModuleHead;
 }
@@ -21,27 +32,11 @@ export interface RouteLocation {
   host: string;
   hostname: string;
   href: string;
-  origin: string;
   params: RouteParams;
   pathname: string;
   port: string;
-  protocol: string;
   search: string;
   query: Record<string, string>;
-}
-
-/**
- * @public
- */
-export interface EndpointModule {
-  all?: EndpointHandler;
-  del?: EndpointHandler;
-  get?: EndpointHandler;
-  head?: EndpointHandler;
-  options?: EndpointHandler;
-  patch?: EndpointHandler;
-  post?: EndpointHandler;
-  put?: EndpointHandler;
 }
 
 /**
@@ -194,7 +189,7 @@ export type ContentModuleHead = HeadComponent | DocumentHead;
  * @public
  */
 export interface RequestEvent {
-  method: string;
+  method: HttpMethod;
   request: Request;
   params: RouteParams;
   url: URL;
@@ -203,9 +198,44 @@ export interface RequestEvent {
 /**
  * @public
  */
-export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 'OPTIONS';
+export type HttpMethod =
+  | 'GET'
+  | 'POST'
+  | 'PUT'
+  | 'PATCH'
+  | 'DELETE'
+  | 'HEAD'
+  | 'OPTIONS'
+  | 'CONNECT'
+  | 'TRACE';
 
 /**
  * @public
  */
-export type EndpointHandler = (ev: RequestEvent) => Response | Promise<Response>;
+export type EndpointHandler<BODY = unknown> = (
+  ev: RequestEvent
+) => EndpointResponse<BODY> | Promise<EndpointResponse<BODY>>;
+
+export interface EndpointResponse<BODY = unknown> {
+  body?: BODY | null | undefined;
+  /**
+   * HTTP Headers. The "Content-Type" header is used to determine how to serialize the `body` for the
+   * HTTP Response.  For example, a "Content-Type" including `application/json` will serialize the `body`
+   * with `JSON.stringify(body)`. If the "Content-Type" header is not provided, the response
+   * will default to include the header `"Content-Type": "application/json; charset=utf-8"`.
+   */
+  headers?: Record<string, string>;
+  /**
+   * HTTP Status code. Defaults to `200`.
+   */
+  status?: number;
+}
+
+/**
+ * @public
+ */
+export interface ContentResponse {
+  status?: number | null;
+  redirect?: string | null;
+  cacheControl?: string | null;
+}

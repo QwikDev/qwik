@@ -4,9 +4,6 @@ import { qwikCity } from '@builder.io/qwik-city/vite';
 
 export default defineConfig(() => {
   return {
-    ssr: {
-      noExternal: false,
-    },
     build: {
       outDir: '../lib',
       lib: {

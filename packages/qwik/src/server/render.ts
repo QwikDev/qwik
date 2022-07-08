@@ -81,12 +81,24 @@ export async function renderToString(rootNode: any, opts: RenderToStringOptions 
     }
   }
 
+  const httpEquiv: Record<string, string> = {};
+  const metaHttpEquivElms = Array.from(doc.head.querySelectorAll('meta[http-equiv][content]'));
+  for (const metaElm of metaHttpEquivElms) {
+    const key = metaElm.getAttribute('http-equiv')!;
+    const value = metaElm.getAttribute('content')!;
+    httpEquiv[key] = value;
+    if (!VALID_HTTP_EQUIV.includes(key)) {
+      metaElm.remove();
+    }
+  }
+
   const docToStringTimer = createTimer();
 
   const result: RenderToStringResult = {
     prefetchResources,
     snapshotResult,
     html: serializeDocument(root, opts),
+    httpEquiv,
     timing: {
       createDocument: createDocTime,
       render: renderDocTime,
@@ -96,6 +108,8 @@ export async function renderToString(rootNode: any, opts: RenderToStringOptions 
 
   return result;
 }
+
+const VALID_HTTP_EQUIV = ['content-security-policy', 'default-style', 'x-ua-compatible', 'refresh'];
 
 function computeSymbolMapper(manifest: QwikManifest | undefined): SymbolMapper | undefined {
   if (manifest) {

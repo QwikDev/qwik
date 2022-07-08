@@ -24,3 +24,6 @@ export {
   useContentHeadings,
   useContentMenu,
 } from './library/use-functions';
+
+export { useEndpoint } from './library/use-endpoint';
+export { useResponse } from './library/use-response';

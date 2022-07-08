@@ -11,12 +11,21 @@ import {
 } from '@builder.io/qwik';
 import type { HTMLAttributes } from '@builder.io/qwik';
 import { loadRoute, matchRoute } from './routing';
-import type { ContentState, DocumentHead, PageModule, QwikCityPlan, RouteLocation } from './types';
+import type {
+  ContentResponse,
+  ContentState,
+  DocumentHead,
+  PageModule,
+  QwikCityPlan,
+  RouteLocation,
+} from './types';
 import {
   ContentContext,
   ContentMenusContext,
   DocumentHeadContext,
+  ResponseContext,
   RouteLocationContext,
+  RoutesContext,
 } from './constants';
 import { createDocumentHead, resolveHead } from './head';
 
@@ -39,6 +48,11 @@ export const Html = component$<HtmlProps>(
 
     const doc = useDocument();
     const documentHead = useStore<DocumentHead>(() => createDocumentHead());
+    const contentResponse = useStore<Required<ContentResponse>>({
+      status: null,
+      cacheControl: null,
+      redirect: null,
+    });
 
     const routeLocation = useStore<RouteLocation>(() => {
       const docLocation = new URL(doc.defaultView!.location as any);
@@ -48,10 +62,8 @@ export const Html = component$<HtmlProps>(
         host: docLocation.host,
         hostname: docLocation.hostname,
         href: docLocation.href,
-        origin: docLocation.origin,
         pathname: docLocation.pathname,
         port: docLocation.port,
-        protocol: docLocation.protocol,
         params: { ...matchedRoute?.params },
         search: docLocation.search,
         query: {},
@@ -64,6 +76,8 @@ export const Html = component$<HtmlProps>(
     useContextProvider(ContentMenusContext, cityPlan.menus || {});
     useContextProvider(DocumentHeadContext, documentHead);
     useContextProvider(RouteLocationContext, routeLocation);
+    useContextProvider(RoutesContext, noSerialize<any>(cityPlan.routes));
+    useContextProvider(ResponseContext, contentResponse);
 
     useWaitOn(
       loadRoute(cityPlan.routes, routeLocation.pathname)

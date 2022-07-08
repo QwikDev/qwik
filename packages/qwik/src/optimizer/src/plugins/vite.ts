@@ -7,7 +7,7 @@ import type {
   QwikManifest,
   TransformModule,
 } from '../types';
-import type { RenderOptions, RenderToStringResult } from '../../../server';
+import type { Render, RenderOptions } from '../../../server';
 import {
   createPlugin,
   NormalizedQwikPluginOptions,
@@ -422,88 +422,116 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         }
 
         try {
-          if (isClientDevOnly) {
-            qwikPlugin.log(`handleClientEntry("${url}")`);
+          if (req.headers.accept && req.headers.accept.includes('text/html')) {
+            if (isClientDevOnly) {
+              qwikPlugin.log(`handleClientEntry("${url}")`);
 
-            const relPath = path.relative(opts.rootDir, clientDevInput!);
-            const entryUrl = '/' + qwikPlugin.normalizePath(relPath);
+              const relPath = path.relative(opts.rootDir, clientDevInput!);
+              const entryUrl = '/' + qwikPlugin.normalizePath(relPath);
 
-            let html = getViteDevIndexHtml(entryUrl);
-            html = await server.transformIndexHtml(pathname, html);
+              let html = getViteDevIndexHtml(entryUrl);
+              html = await server.transformIndexHtml(pathname, html);
 
-            res.setHeader('Content-Type', 'text/html; charset=utf-8');
-            res.setHeader('Cache-Control', 'no-cache');
-            res.setHeader('Access-Control-Allow-Origin', '*');
-            res.setHeader('X-Powered-By', 'Qwik Vite Dev Server');
-            res.writeHead(200);
-            res.end(html);
-            return;
-          }
+              res.setHeader('Content-Type', 'text/html; charset=utf-8');
+              res.setHeader('Cache-Control', 'no-cache, no-store, max-age=0');
+              res.setHeader('Access-Control-Allow-Origin', '*');
+              res.setHeader('X-Powered-By', 'Qwik Vite Dev Server');
+              res.writeHead(200);
+              res.end(html);
+              return;
+            }
 
-          qwikPlugin.log(`handleSSR("${url}"), ssr input: ${opts.input[0]}`);
-          const { render } = await server.ssrLoadModule(opts.input[0], {
-            fixStacktrace: true,
-          });
-          if (render) {
-            const manifest: QwikManifest = {
-              symbols: {},
-              mapping: {},
-              bundles: {},
-              injections: [],
-              version: '1',
-            };
+            qwikPlugin.log(`handleSSR("${url}"), ssr input: ${opts.input[0]}`);
 
-            Array.from(server.moduleGraph.fileToModulesMap.entries()).forEach((entry) => {
-              entry[1].forEach((v) => {
-                const hook = v.info?.meta?.hook;
-                let url = v.url;
-                if (v.lastHMRTimestamp) {
-                  url += `?t=${v.lastHMRTimestamp}`;
-                }
-                if (hook) {
-                  manifest.mapping[hook.name] = url;
-                }
-
-                const { pathId, query } = parseId(v.url);
-                if (query === '' && pathId.endsWith('.css')) {
-                  manifest.injections!.push({
-                    tag: 'link',
-                    location: 'head',
-                    attributes: {
-                      rel: 'stylesheet',
-                      href: url,
-                    },
-                  });
-                }
-              });
+            const ssrModule = await server.ssrLoadModule(opts.input[0], {
+              fixStacktrace: true,
             });
 
-            qwikPlugin.log(`handleSSR()`, 'symbols', manifest);
-            const renderToStringOpts: RenderOptions = {
-              url: url.href,
-              debug: true,
-              snapshot: !isClientDevOnly,
-              manifest: isClientDevOnly ? undefined : manifest,
-              symbolMapper: isClientDevOnly
-                ? undefined
-                : (symbolName, mapper) => {
-                    if (mapper) {
-                      const hash = getSymbolHash(symbolName);
-                      return mapper[hash];
-                    }
-                  },
-              prefetchStrategy: null,
-            };
+            const render: Render = ssrModule.render;
 
-            const result: RenderToStringResult = await render(renderToStringOpts);
-            const html = await server.transformIndexHtml(pathname, result.html, req.originalUrl);
+            if (typeof render === 'function') {
+              const manifest: QwikManifest = {
+                symbols: {},
+                mapping: {},
+                bundles: {},
+                injections: [],
+                version: '1',
+              };
 
-            res.setHeader('Content-Type', 'text/html; charset=utf-8');
-            res.setHeader('Cache-Control', 'no-cache');
-            res.setHeader('Access-Control-Allow-Origin', '*');
-            res.setHeader('X-Powered-By', 'Qwik Vite Dev Server');
-            res.writeHead(200);
-            res.end(html);
+              Array.from(server.moduleGraph.fileToModulesMap.entries()).forEach((entry) => {
+                entry[1].forEach((v) => {
+                  const hook = v.info?.meta?.hook;
+                  let url = v.url;
+                  if (v.lastHMRTimestamp) {
+                    url += `?t=${v.lastHMRTimestamp}`;
+                  }
+                  if (hook) {
+                    manifest.mapping[hook.name] = url;
+                  }
+
+                  const { pathId, query } = parseId(v.url);
+                  if (query === '' && pathId.endsWith('.css')) {
+                    manifest.injections!.push({
+                      tag: 'link',
+                      location: 'head',
+                      attributes: {
+                        rel: 'stylesheet',
+                        href: url,
+                      },
+                    });
+                  }
+                });
+              });
+
+              qwikPlugin.log(`handleSSR()`, 'symbols', manifest);
+              const renderToStringOpts: RenderOptions = {
+                url: url.href,
+                debug: true,
+                snapshot: !isClientDevOnly,
+                manifest: isClientDevOnly ? undefined : manifest,
+                symbolMapper: isClientDevOnly
+                  ? undefined
+                  : (symbolName, mapper) => {
+                      if (mapper) {
+                        const hash = getSymbolHash(symbolName);
+                        return mapper[hash];
+                      }
+                    },
+                prefetchStrategy: null,
+              };
+
+              const result = await render(renderToStringOpts);
+
+              if (result.httpEquiv.location) {
+                res.setHeader('Location', result.httpEquiv.location);
+                res.writeHead(302);
+                res.end();
+                return;
+              }
+
+              let status = 200;
+              if (result.httpEquiv.status) {
+                try {
+                  const parsedStatus = parseInt(result.httpEquiv.status, 10);
+                  if (parsedStatus >= 200 && parsedStatus < 600) {
+                    status = parsedStatus;
+                  }
+                } catch (e) {
+                  /**/
+                }
+              }
+
+              const html = await server.transformIndexHtml(pathname, result.html, req.originalUrl);
+
+              res.setHeader('Content-Type', 'text/html; charset=utf-8');
+              res.setHeader('Cache-Control', 'no-cache, no-store, max-age=0');
+              res.setHeader('Access-Control-Allow-Origin', '*');
+              res.setHeader('X-Powered-By', 'Qwik Vite Dev Server');
+              res.writeHead(status);
+              res.end(html);
+            } else {
+              next();
+            }
           } else {
             next();
           }
@@ -569,6 +597,25 @@ export function render(document, rootNode) {
     qwikLoader.id = 'qwikloader';
     qwikLoader.innerHTML = ${qwikLoader};
     document.head.appendChild(qwikLoader);
+  }
+
+  if (!window.__qwikViteHeadObserver) {
+    window.__qwikViteHeadObserver = new MutationObserver(() => {
+      const redirect = document.head.querySelector('meta[http-equiv="location"][content]');
+      if (redirect) {
+        const redirectPathname = redirect.getAttribute('content');
+        redirect.remove();
+        console.debug("Redirecting to:", redirectPathname);
+        location = redirectPathname;
+      }
+
+      const status = document.head.querySelector('meta[http-equiv="status"][content]');
+      if (status) {
+        console.debug("Dev HTTP Status:", status.getAttribute('content'));
+        status.remove();
+      }
+    });
+    window.__qwikViteHeadObserver.observe(document.head, { childList: true });
   }
 
   if (!window.__qwikViteLog) {

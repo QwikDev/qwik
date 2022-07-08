@@ -1,18 +1,30 @@
 import { createMdxTransformer, MdxTransform } from '../markdown/mdx';
-import { basename, join, resolve } from 'path';
+import { basename, extname, join, resolve } from 'path';
 import type { Plugin, UserConfig } from 'vite';
 import { generateQwikCityPlan } from '../runtime-generation/generate-runtime';
 import type { BuildContext } from '../types';
 import { createBuildContext, resetBuildContext } from '../utils/context';
-import { isMarkdownFileName } from '../utils/fs';
+import { isMarkdownFileName, normalizePath } from '../utils/fs';
 import { validatePlugin } from './validate-plugin';
 import type { QwikCityVitePluginOptions } from './types';
 import { endpointHandler } from '../../middleware/request-handler/endpoint-handler';
 import { getRouteParams } from '../../runtime/src/library/routing';
 import { build } from '../build';
 import { isMenuFileName } from '../markdown/menu';
-import type { RequestEvent } from '../../runtime/src/library/types';
+import type { HttpMethod } from '../../runtime/src/library/types';
 import { checkRedirect } from '../../middleware/request-handler/redirect-handler';
+import { isAcceptJsonOnly } from '../../middleware/request-handler/utils';
+import {
+  createPrinter,
+  createSourceFile,
+  factory,
+  isIdentifier,
+  isVariableDeclaration,
+  isVariableStatement,
+  NewLineKind,
+  ScriptTarget,
+  SyntaxKind,
+} from 'typescript';
 
 /**
  * @alpha
@@ -76,18 +88,20 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
             for (const route of ctx.routes) {
               const match = route.pattern.exec(pathname);
               if (match) {
-                if (route.type === 'endpoint') {
+                const method: HttpMethod = req.method as any;
+                const request = new Request(url.href, { method, headers: req.headers as any });
+
+                if (route.type === 'endpoint' || isAcceptJsonOnly(request)) {
                   const params = getRouteParams(route.paramNames, match);
-                  const request = new Request(url.href, { method: req.method });
-                  const requestEv: RequestEvent = {
-                    method: request.method,
-                    request,
-                    params,
-                    url,
-                  };
 
                   const endpointModule = await server.ssrLoadModule(route.filePath);
-                  const response = await endpointHandler(requestEv, endpointModule);
+                  const response = await endpointHandler(
+                    request,
+                    method,
+                    url,
+                    params,
+                    endpointModule
+                  );
 
                   res.statusCode = response.status;
                   res.statusMessage = response.statusText;
@@ -143,6 +157,22 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
         const mdxResult = await mdxTransform(code, id);
         return mdxResult;
       }
+
+      if (ctx && ctx.target === 'client') {
+        const ext = extname(id);
+        if (ext === '.js' && !id.includes('_layout')) {
+          id = normalizePath(id);
+          if (id.startsWith(ctx.opts.routesDir)) {
+            if (SERVER_FNS.some((fnName) => code.includes(fnName))) {
+              const modifiedCode = removeServerFns(code, id);
+              if (modifiedCode) {
+                return modifiedCode;
+              }
+            }
+          }
+        }
+      }
+
       return null;
     },
   };
@@ -150,4 +180,45 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
   return plugin as any;
 }
 
+function removeServerFns(code: string, id: string) {
+  let didModify = false;
+  const sourceFile = createSourceFile(id, code, ScriptTarget.Latest);
+
+  for (const s of sourceFile.statements) {
+    if (!isVariableStatement(s)) {
+      continue;
+    }
+
+    if (!s.modifiers?.some((m) => m.kind === SyntaxKind.ExportKeyword)) {
+      continue;
+    }
+
+    const decs = s.declarationList.declarations;
+
+    for (const d of decs) {
+      if (!isVariableDeclaration(d)) {
+        continue;
+      }
+      const identifier = d.name;
+      if (!isIdentifier(identifier)) {
+        continue;
+      }
+      if (!SERVER_FNS.some((fn) => identifier.escapedText === fn)) {
+        continue;
+      }
+
+      (d as any).initializer = factory.createNull();
+      didModify = true;
+    }
+  }
+
+  if (didModify) {
+    const printer = createPrinter({ newLine: NewLineKind.LineFeed });
+    return printer.printFile(sourceFile);
+  }
+  return null;
+}
+
 const QWIK_CITY_PLAN_ID = '@qwik-city-plan';
+
+const SERVER_FNS = ['onGet', 'onPost', 'onRequest'];

@@ -66,6 +66,7 @@ export interface RenderToStringResult {
   prefetchResources: PrefetchResource[];
   snapshotResult: SnapshotResult | null;
   html: string;
+  httpEquiv: Record<string, string>;
   timing: {
     createDocument: number;
     render: number;

@@ -9,7 +9,7 @@ export default component$(() => {
 
   return (
     <Host>
-      <Header fullWidth={true} />
+      <Header />
       <main class="api">
         <aside class="api-menu">
           <h2>API</h2>

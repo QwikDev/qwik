@@ -84,7 +84,7 @@ While `useContentMenu()` can be invoked from any component that is part of the c
 export default component$(
   () => {
     const menu = useContentMenu();
-    const loc = useLocation();
+    const location = useLocation();
 
     return (
       <Host class="menu">
@@ -98,7 +98,7 @@ export default component$(
                       <a
                         href={item.href}
                         class={{
-                          "is-active": loc.pathname === item.href,
+                          "is-active": location.pathname === item.href,
                         }}
                       >
                         {item.text}

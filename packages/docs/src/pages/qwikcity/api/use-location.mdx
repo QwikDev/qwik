@@ -20,13 +20,13 @@ Assume you have:
 
 ```typescript
 export default component$(() => {
-  const loc = useLocation();
+  const location = useLocation();
 
   return (
     <Host>
       <h1>SKU</h1>
-      <p>pathname: {loc.pathname}</p>
-      <p>skuId: {loc.params.skuId}</p>
+      <p>pathname: {location.pathname}</p>
+      <p>skuId: {location.params.skuId}</p>
     </Host>
   );
 });

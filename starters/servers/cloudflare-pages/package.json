@@ -2,6 +2,7 @@
   "description": "Cloudflare Pages.",
   "scripts": {
     "build.ssr": "vite build --ssr src/entry.cloudflare.tsx",
+    "dev.ssr": "node --inspect node_modules/vite/bin/vite.js --mode ssr src/entry.cloudflare.tsx",
     "serve": "wrangler pages dev ./dist"
   },
   "devDependencies": {

@@ -378,7 +378,7 @@ export interface Ref<T> {
 }
 
 // @alpha
-export const render: (parent: Element | Document, jsxNode: JSXNode<unknown> | FunctionComponent<any>) => Promise<void>;
+export const render: (parent: Element | Document, jsxNode: JSXNode<unknown> | FunctionComponent<any>, allowRerender?: boolean) => Promise<void>;
 
 // @alpha (undocumented)
 export type Resource<T> = ResourcePending<T> | ResourceResolved<T> | ResourceRejected<T>;

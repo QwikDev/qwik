@@ -119,11 +119,12 @@ const notifyRender = async (hostElement: Element): Promise<RenderContext | undef
   ctx.$dirty$ = true;
   const activeRendering = state.$hostsRendering$ !== undefined;
   if (activeRendering) {
+    assertDefined(state.$renderPromise$);
     state.$hostsStaging$.add(hostElement);
-    return state.$renderPromise$!.then((ctx) => {
+    return state.$renderPromise$.then((ctx) => {
       if (state.$hostsNext$.has(hostElement)) {
         // TODO
-        return state.$renderPromise$!;
+        return state.$renderPromise$;
       } else {
         return ctx;
       }
@@ -216,7 +217,7 @@ const renderMarked = async (
   });
 };
 
-const postRendering = async (
+export const postRendering = async (
   containerEl: Element,
   containerState: ContainerState,
   ctx: RenderContext

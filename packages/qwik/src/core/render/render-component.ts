@@ -6,7 +6,7 @@ import { promiseAll, safeCall, then } from '../util/promises';
 import { styleContent, styleHost } from '../component/qrl-styles';
 import { newInvokeContext } from '../use/use-core';
 import { processData } from './jsx/jsx-runtime';
-import { logDebug, logError } from '../util/log';
+import { logError } from '../util/log';
 import { isFunction, ValueOrPromise } from '../util/types';
 import type { QContext } from '../props/props';
 import { directGetAttribute } from './fast-calls';
@@ -49,7 +49,6 @@ export const renderComponent = (rctx: RenderContext, ctx: QContext): ValueOrProm
           ctx.$dirty$ = false;
           jsxNode = jsxNode();
         } else if (ctx.$dirty$) {
-          logDebug('Dropping render. State changed during render.');
           return renderComponent(rctx, ctx);
         }
 

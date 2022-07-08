@@ -2,7 +2,9 @@
 title: Qwikcity - MDX
 ---
 
-An alternative way to author content is using `.mdx` files. (Markdown JSX.) These files are authored as Markdown, but they are compiled down to Qwik components. In addition to per Markdown, they can also refer to other components.
+# Qwikcity - MDX
+
+An alternative way to author content is using `.mdx` files. (Markdown JSX.) These files are authored as Markdown, but they are compiled down to Qwik components. In addition to Markdown syntax, `.mdx` files can also refer to other components.
 
 Let's assume you have the router set up such as this:
 ```
@@ -42,7 +44,7 @@ File: `src/routes/some/path/index.mdx`:
 ---
 title: Hello World Title
 ---
-import { Counter } from "~/components/counter/counter";
+import { Counter } from "../../../components/counter/counter";
 
 This is a simple hello world component.
 

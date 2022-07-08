@@ -6,20 +6,16 @@ title: Qwikcity - Nested Layout
 
 At times it is desirable to nest layouts into each other.
 
-The developer could extract all of these into `<Header>`, `<Footer>`, and `<Menu>` components, but that is error-prone and repetitive. Instead, we can use layouts to automatically reuse common parts.
+The developer could extract all of these into common components, but that is error-prone and repetitive. Instead, we can use layouts to automatically reuse common parts.
 
 
 We can define the above with these files.
 ```
 - src/
-  - components/
-    - Header.tsx             # Header component implementation
-    - Footer.tsx             # Footer component implementation
-    - Menu.tsx               # Menu component implementation
   - routes/
-    - _layout.tsx            # Layout implementation using: <Header>, <Footer>, and <Menu>
+    - _layout.tsx            # Parent layout
     - home/
-      - _layout.tsx
+      - _layout.tsx          # Child layout
       - overview.tsx         # http://server/home/overview
 ```
 

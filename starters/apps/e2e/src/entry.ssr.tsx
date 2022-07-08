@@ -16,7 +16,6 @@ import { Toggle } from './components/toggle/toggle';
 import { Styles } from './components/styles/styles';
 import { BroadcastEvents } from './components/broadcast-events/broadcast-event';
 import { Weather } from './components/resource/weather';
-
 /**
  * Entry point for server-side pre-rendering.
  *

@@ -3,15 +3,14 @@ import { createRenderContext, executeContext, printRenderStats } from './cursor'
 import { isJSXNode, jsx, processData } from './jsx/jsx-runtime';
 import type { JSXNode, FunctionComponent } from './jsx/types/jsx-node';
 import { visitJsxNode } from './render';
-import { getContainerState } from './notify-render';
+import { ContainerState, getContainerState, postRendering } from './notify-render';
 import { getDocument } from '../util/dom';
 import { qDev, qTest } from '../util/qdev';
 import { version } from '../version';
 import { QContainerAttr } from '../util/markers';
-import { logError, logErrorAndStop } from '../util/log';
-import { runSubscriber, WatchFlagsIsDirty } from '../use/use-watch';
-import { appendQwikDevTools, getContext } from '../props/props';
-import { codeToText, QError_cannotRenderOverExistingContainer } from '../error/error';
+import { logWarn } from '../util/log';
+import { appendQwikDevTools } from '../props/props';
+import { qError, QError_cannotRenderOverExistingContainer } from '../error/error';
 import { directSetAttribute } from './fast-calls';
 
 /**
@@ -28,7 +27,8 @@ import { directSetAttribute } from './fast-calls';
  */
 export const render = async (
   parent: Element | Document,
-  jsxNode: JSXNode<unknown> | FunctionComponent<any>
+  jsxNode: JSXNode<unknown> | FunctionComponent<any>,
+  allowRerender = true
 ): Promise<void> => {
   // If input is not JSX, convert it
   if (!isJSXNode(jsxNode)) {
@@ -37,13 +37,40 @@ export const render = async (
   const doc = getDocument(parent);
   const containerEl = getElement(parent);
   if (qDev && containerEl.hasAttribute(QContainerAttr)) {
-    logError(codeToText(QError_cannotRenderOverExistingContainer));
-    return;
+    throw qError(QError_cannotRenderOverExistingContainer, containerEl);
   }
   injectQContainer(containerEl);
 
   const containerState = getContainerState(containerEl);
-  // containerState.$hostsRendering$ = new Set();
+  containerState.$hostsRendering$ = new Set();
+  containerState.$renderPromise$ = renderRoot(parent, jsxNode, doc, containerState, containerEl);
+
+  const renderCtx = await containerState.$renderPromise$;
+
+  if (allowRerender) {
+    await postRendering(containerEl, containerState, renderCtx);
+  } else {
+    containerState.$hostsRendering$ = undefined;
+    containerState.$renderPromise$ = undefined;
+
+    const next =
+      containerState.$hostsNext$.size +
+      containerState.$hostsStaging$.size +
+      containerState.$watchNext$.size +
+      containerState.$watchStaging$.size;
+    if (next > 0) {
+      logWarn('State changed and a rerender is required, skipping');
+    }
+  }
+};
+
+const renderRoot = async (
+  parent: Element | Document,
+  jsxNode: JSXNode<unknown> | FunctionComponent<any>,
+  doc: Document,
+  containerState: ContainerState,
+  containerEl: Element
+) => {
   const ctx = createRenderContext(doc, containerState, containerEl);
   ctx.$roots$.push(parent as Element);
 
@@ -59,22 +86,8 @@ export const render = async (
     appendQwikDevTools(containerEl);
     printRenderStats(ctx);
   }
-  const promises: Promise<any>[] = [];
-  ctx.$hostElements$.forEach((host) => {
-    const elCtx = getContext(host);
-    elCtx.$watches$.forEach((watch) => {
-      if (watch.f & WatchFlagsIsDirty) {
-        try {
-          promises.push(runSubscriber(watch, containerState));
-        } catch (e) {
-          logErrorAndStop(e);
-        }
-      }
-    });
-  });
-  await Promise.all(promises);
+  return ctx;
 };
-
 export const injectQwikSlotCSS = (docOrElm: Document | Element) => {
   const doc = getDocument(docOrElm);
   const element = isDocument(docOrElm) ? docOrElm.head : docOrElm;

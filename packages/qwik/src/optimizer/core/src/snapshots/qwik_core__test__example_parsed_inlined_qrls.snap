@@ -35,10 +35,10 @@ export const App = /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
 }, "App_component_Fh88JClhbC0"));
 
 
-============================= app_component_div_p_button_onclick_odz7eidi4gm.tsx ==
+============================= s_odz7eidi4gm.tsx ==
 
 import { useLexicalScope } from "@builder.io/qwik";
-export const App_component_div_p_button_onClick_odz7eidI4GM = ()=>{
+export const s_odz7eidI4GM = ()=>{
     const [store] = useLexicalScope();
     return store.count++;
 };
@@ -46,13 +46,13 @@ export const App_component_div_p_button_onClick_odz7eidI4GM = ()=>{
 /*
 {
   "origin": "test.tsx",
-  "name": "App_component_div_p_button_onClick_odz7eidI4GM",
+  "name": "s_odz7eidI4GM",
   "entry": "entry_hooks",
   "displayName": "App_component_div_p_button_onClick",
   "hash": "odz7eidI4GM",
-  "canonicalFilename": "app_component_div_p_button_onclick_odz7eidi4gm",
+  "canonicalFilename": "s_odz7eidi4gm",
   "extension": "tsx",
-  "parent": "App_component_Fh88JClhbC0",
+  "parent": "s_Fh88JClhbC0",
   "ctxKind": "event",
   "ctxName": "onClick$",
   "captures": true,
@@ -62,13 +62,13 @@ export const App_component_div_p_button_onClick_odz7eidI4GM = ()=>{
   ]
 }
 */
-============================= app_component_fh88jclhbc0.tsx ==
+============================= s_fh88jclhbc0.tsx ==
 
 import { jsx } from "@builder.io/qwik";
 import { jsxs } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
 import { useStore } from "@builder.io/qwik";
-export const App_component_Fh88JClhbC0 = ()=>{
+export const s_Fh88JClhbC0 = ()=>{
     const store = useStore({
         count: 0
     });
@@ -83,7 +83,7 @@ export const App_component_Fh88JClhbC0 = ()=>{
             /*#__PURE__*/ jsx("p", {
                 children: /*#__PURE__*/ jsx("button", {
                     onClick$: qrl(()=>import("./entry_hooks")
-                    , "App_component_div_p_button_onClick_odz7eidI4GM", [
+                    , "s_odz7eidI4GM", [
                         store
                     ]),
                     children: "Click"
@@ -96,11 +96,11 @@ export const App_component_Fh88JClhbC0 = ()=>{
 /*
 {
   "origin": "test.tsx",
-  "name": "App_component_Fh88JClhbC0",
+  "name": "s_Fh88JClhbC0",
   "entry": "entry_hooks",
   "displayName": "App_component",
   "hash": "Fh88JClhbC0",
-  "canonicalFilename": "app_component_fh88jclhbc0",
+  "canonicalFilename": "s_fh88jclhbc0",
   "extension": "tsx",
   "parent": null,
   "ctxKind": "function",
@@ -117,12 +117,12 @@ export const App_component_Fh88JClhbC0 = ()=>{
 import { qrl } from "@builder.io/qwik";
 import { componentQrl } from '@builder.io/qwik';
 export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("./entry_hooks")
-, "App_component_Fh88JClhbC0"));
+, "s_Fh88JClhbC0"));
 
 ============================= entry_hooks.js (ENTRY POINT)==
 
-export { App_component_div_p_button_onClick_odz7eidI4GM } from "./app_component_div_p_button_onclick_odz7eidi4gm";
-export { App_component_Fh88JClhbC0 } from "./app_component_fh88jclhbc0";
+export { s_odz7eidI4GM } from "./s_odz7eidi4gm";
+export { s_Fh88JClhbC0 } from "./s_fh88jclhbc0";
 
 == DIAGNOSTICS ==
 

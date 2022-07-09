@@ -1,4 +1,5 @@
 import { component$, Host } from '@builder.io/qwik';
+import type { DocumentHead } from '../../library/types';
 
 export default component$(() => {
   return (
@@ -9,3 +10,7 @@ export default component$(() => {
     </Host>
   );
 });
+
+export const head: DocumentHead = {
+  title: 'Welcome to Qwik City',
+};

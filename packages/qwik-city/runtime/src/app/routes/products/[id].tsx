@@ -1,5 +1,5 @@
 import { component$, Host, useStore } from '@builder.io/qwik';
-import { useEndpoint, useLocation, EndpointHandler, HeadComponent } from '~qwik-city-runtime';
+import { useEndpoint, useLocation, EndpointHandler, DocumentHead } from '~qwik-city-runtime';
 import os from 'os';
 
 export default component$(() => {
@@ -38,7 +38,7 @@ export default component$(() => {
 
       <ul>
         <li>
-          <a href="/products/shirt">T-Shirt (Redirect to /products/t-shirt)</a>
+          <a href="/products/shirt">T-Shirt (Redirect to /products/tshirt)</a>
         </li>
         <li>
           <a href="/products/hoodie">Hoodie (404 Not Found)</a>
@@ -46,17 +46,24 @@ export default component$(() => {
         <li>
           <a href="/products/hat">Hat</a>
         </li>
+        <li>
+          <a href="/products/jacket">Jacket</a>
+        </li>
       </ul>
     </Host>
   );
 });
 
-export const head: HeadComponent = ({ pathname }) => {
-  return (
-    <>
-      <title>Product {pathname}</title>
-    </>
-  );
+export const head: DocumentHead<ProductData | null> = ({ data }) => {
+  if (!data) {
+    return {
+      title: 'Product Not Found',
+    };
+  }
+
+  return {
+    title: `Product ${data.productId}, ${data.price}`,
+  };
 };
 
 export const onGet: EndpointHandler<ProductData | null> = async ({ params }) => {
@@ -73,7 +80,7 @@ export const onGet: EndpointHandler<ProductData | null> = async ({ params }) => 
     return {
       status: 307,
       headers: {
-        location: '/products/t-shirt',
+        location: '/products/tshirt',
       },
     };
   }
@@ -109,8 +116,9 @@ export const onGet: EndpointHandler<ProductData | null> = async ({ params }) => 
 
 // Our pretty awesome database of prices
 const PRODUCT_DB: Record<string, string> = {
-  hat: '$12.96',
-  't-shirt': '$18.96',
+  hat: '$21.96',
+  jacket: '$48.96',
+  tshirt: '$18.96',
 };
 
 interface ProductData {

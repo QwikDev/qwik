@@ -5,7 +5,6 @@
 ```ts
 
 import { Component } from '@builder.io/qwik';
-import type { FunctionComponent } from '@builder.io/qwik';
 import type { HTMLAttributes } from '@builder.io/qwik';
 import { Resource } from '@builder.io/qwik';
 
@@ -40,17 +39,10 @@ export interface ContentMenu {
     text: string;
 }
 
+// Warning: (ae-forgotten-export) The symbol "DocumentHeadProps" needs to be exported by the entry point index.d.ts
+//
 // @public (undocumented)
-export interface DocumentHead {
-    // (undocumented)
-    links: DocumentLink[];
-    // (undocumented)
-    meta: DocumentMeta[];
-    // (undocumented)
-    styles: DocumentStyle[];
-    // (undocumented)
-    title: string;
-}
+export type DocumentHead<T = unknown> = ResolvedDocumentHead | ((props: DocumentHeadProps<T>) => ResolvedDocumentHead);
 
 // @public (undocumented)
 export interface DocumentLink {
@@ -122,15 +114,6 @@ export interface DocumentStyle {
 // @public (undocumented)
 export type EndpointHandler<BODY = unknown> = (ev: RequestEvent) => EndpointResponse<BODY> | Promise<EndpointResponse<BODY>>;
 
-// @public (undocumented)
-export type HeadComponent = FunctionComponent<HeadComponentProps>;
-
-// @public (undocumented)
-export interface HeadComponentProps extends RouteLocation {
-    // (undocumented)
-    resolved: DocumentHead;
-}
-
 // Warning: (ae-forgotten-export) The symbol "HtmlProps" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
@@ -146,6 +129,18 @@ export interface QwikCityPlan {
     routes: RouteData[];
     // (undocumented)
     trailingSlash?: boolean;
+}
+
+// @public (undocumented)
+export interface ResolvedDocumentHead {
+    // (undocumented)
+    links?: DocumentLink[];
+    // (undocumented)
+    meta?: DocumentMeta[];
+    // (undocumented)
+    styles?: DocumentStyle[];
+    // (undocumented)
+    title?: string;
 }
 
 // Warning: (ae-forgotten-export) The symbol "ContentModuleLoader" needs to be exported by the entry point index.d.ts
@@ -190,7 +185,7 @@ export const useContentHeadings: () => ContentHeading[] | undefined;
 export const useContentMenu: () => ContentMenu | undefined;
 
 // @public (undocumented)
-export const useDocumentHead: () => DocumentHead;
+export const useDocumentHead: () => Required<ResolvedDocumentHead>;
 
 // @public (undocumented)
 export const useEndpoint: <T = unknown>() => Resource<T>;

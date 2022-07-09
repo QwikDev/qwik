@@ -11,7 +11,13 @@ import {
 } from '@builder.io/qwik';
 import type { HTMLAttributes } from '@builder.io/qwik';
 import { loadRoute, matchRoute } from './routing';
-import type { ContentState, DocumentHead, PageModule, QwikCityPlan, RouteLocation } from './types';
+import type {
+  ContentState,
+  PageModule,
+  QwikCityPlan,
+  QwikCityRenderDocument,
+  RouteLocation,
+} from './types';
 import {
   ContentContext,
   ContentMenusContext,
@@ -19,6 +25,7 @@ import {
   RouteLocationContext,
 } from './constants';
 import { createDocumentHead, resolveHead } from './head';
+import { loadEndpointResponse } from './use-endpoint';
 
 /**
  * @public
@@ -37,8 +44,8 @@ export const Html = component$<HtmlProps>(
       modules: [],
     });
 
-    const doc = useDocument();
-    const documentHead = useStore<DocumentHead>(() => createDocumentHead());
+    const doc = useDocument() as QwikCityRenderDocument;
+    const documentHead = useStore(() => createDocumentHead());
 
     const routeLocation = useStore<RouteLocation>(() => {
       const docLocation = new URL(doc.defaultView!.location as any);
@@ -47,10 +54,10 @@ export const Html = component$<HtmlProps>(
         hash: docLocation.hash,
         hostname: docLocation.hostname,
         href: docLocation.href,
-        pathname: docLocation.pathname,
         params: { ...matchedRoute?.params },
-        search: docLocation.search,
+        pathname: docLocation.pathname,
         query: {},
+        search: docLocation.search,
       };
       docLocation.searchParams.forEach((value, key) => (loc.query[key] = value));
       return loc;
@@ -65,20 +72,22 @@ export const Html = component$<HtmlProps>(
       loadRoute(cityPlan.routes, routeLocation.pathname)
         .then((loadedRoute) => {
           if (loadedRoute) {
-            const contentModules = loadedRoute.modules;
-            const pageModule = contentModules[contentModules.length - 1] as PageModule;
-            const resolvedHead = resolveHead(routeLocation, contentModules);
+            loadEndpointResponse(doc, routeLocation.pathname).then((endpointResponse) => {
+              const contentModules = loadedRoute.modules;
+              const pageModule = contentModules[contentModules.length - 1] as PageModule;
+              const resolvedHead = resolveHead(endpointResponse, routeLocation, contentModules);
 
-            documentHead.links = resolvedHead.links;
-            documentHead.meta = resolvedHead.meta;
-            documentHead.styles = resolvedHead.styles;
-            documentHead.title = resolvedHead.title;
+              documentHead.links = resolvedHead.links;
+              documentHead.meta = resolvedHead.meta;
+              documentHead.styles = resolvedHead.styles;
+              documentHead.title = resolvedHead.title;
 
-            content.breadcrumbs = pageModule.breadcrumbs;
-            content.headings = pageModule.headings;
-            content.modules = noSerialize<any>(contentModules);
+              content.breadcrumbs = pageModule.breadcrumbs;
+              content.headings = pageModule.headings;
+              content.modules = noSerialize<any>(contentModules);
 
-            routeLocation.params = { ...loadedRoute.params };
+              routeLocation.params = { ...loadedRoute.params };
+            });
           }
         })
         .catch((e) => console.error(e))

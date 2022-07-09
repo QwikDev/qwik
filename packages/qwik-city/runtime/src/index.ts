@@ -7,9 +7,8 @@ export type {
   DocumentMeta,
   DocumentStyle,
   EndpointHandler,
-  HeadComponent,
-  HeadComponentProps,
   QwikCityPlan,
+  ResolvedDocumentHead,
   RouteData,
   RouteLocation,
 } from './library/types';

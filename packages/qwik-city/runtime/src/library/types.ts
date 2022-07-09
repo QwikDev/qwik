@@ -1,4 +1,3 @@
-import type { FunctionComponent } from '@builder.io/qwik';
 import type { RenderDocument } from '../../../../qwik/src/server/types';
 import type { ROUTE_TYPE_ENDPOINT } from './constants';
 
@@ -41,11 +40,11 @@ export interface RouteLocation {
 /**
  * @public
  */
-export interface DocumentHead {
-  title: string;
-  meta: DocumentMeta[];
-  links: DocumentLink[];
-  styles: DocumentStyle[];
+export interface ResolvedDocumentHead {
+  title?: string;
+  meta?: DocumentMeta[];
+  links?: DocumentLink[];
+  styles?: DocumentStyle[];
 }
 
 /**
@@ -94,14 +93,17 @@ export interface DocumentStyle {
 /**
  * @public
  */
-export interface HeadComponentProps extends RouteLocation {
-  resolved: DocumentHead;
+export interface DocumentHeadProps<T = unknown> extends RouteLocation {
+  data: T | null;
+  head: Required<ResolvedDocumentHead>;
 }
 
 /**
  * @public
  */
-export type HeadComponent = FunctionComponent<HeadComponentProps>;
+export type DocumentHead<T = unknown> =
+  | ResolvedDocumentHead
+  | ((props: DocumentHeadProps<T>) => ResolvedDocumentHead);
 
 /**
  * @public
@@ -181,7 +183,7 @@ export interface LoadedContent extends LoadedRoute {
 
 export type ContentModule = PageModule | LayoutModule;
 
-export type ContentModuleHead = HeadComponent | DocumentHead;
+export type ContentModuleHead = DocumentHead | ResolvedDocumentHead;
 
 /**
  * @public

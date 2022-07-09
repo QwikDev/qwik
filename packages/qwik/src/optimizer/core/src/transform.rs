@@ -1341,7 +1341,7 @@ fn parse_symbol_name(symbol_name: JsWord, dev: bool) -> (JsWord, JsWord, JsWord)
     let s_n = if dev {
         symbol_name.clone()
     } else {
-        hash.into()
+        JsWord::from(format!("s_{}", hash))
     };
     (s_n, display_name.into(), hash.into())
 }

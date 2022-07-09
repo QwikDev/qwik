@@ -1,8 +1,7 @@
-import { useContext, useResource$ } from '@builder.io/qwik';
+import { useDocument, useResource$ } from '@builder.io/qwik';
 import { isServer } from '@builder.io/qwik/build';
-import { RoutesContext } from './constants';
-import { loadRoute } from './routing';
-import type { HttpMethod, RequestEvent } from './types';
+import type { QwikCityRenderDocument } from './types';
+import type { HttpMethod } from './types';
 import { useLocation } from './use-functions';
 
 /**
@@ -10,40 +9,19 @@ import { useLocation } from './use-functions';
  */
 export const useEndpoint = <T = unknown>() => {
   const loc = useLocation();
-  const routes = useContext(RoutesContext);
   const method: HttpMethod = 'GET';
+  const doc = useDocument() as QwikCityRenderDocument;
 
   return useResource$<T>(async ({ track, cleanup }) => {
     const pathname = track(loc, 'pathname');
 
     if (isServer) {
       // SSR
-      const route = await loadRoute(routes, pathname);
-      if (!route || !Array.isArray(route.modules) || route.modules.length === 0) {
-        throw new Error(`Endpoint not found for "${pathname}"`);
-      }
-
-      const endpointModule = route.modules[route.modules.length - 1];
-
-      const reqHandler = endpointModule.onGet || endpointModule.onRequest;
-      if (typeof reqHandler !== 'function') {
-        throw new Error(`Endpoint does not have a ${method} request handler for "${pathname}"`);
-      }
-
-      const url = new URL(loc.href);
-      const request = new Request(url.href, {
-        method,
-      });
-      const requestEv: RequestEvent = {
-        method,
-        request,
-        url,
-        params: { ...route.params },
-      };
-      const ssrResponse = await reqHandler(requestEv);
-      return ssrResponse.body;
+      // server has already loaded the data if an endpoint existed for it
+      return doc?.__qwikUserCtx?.qwikCity?.endpointResponse?.body;
     } else {
       // Client
+      // fetch() for new data when the pathname has changed
       const controller = typeof AbortController === 'function' ? new AbortController() : undefined;
       cleanup(() => controller && controller.abort());
 

@@ -423,6 +423,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
         try {
           if (req.headers.accept && req.headers.accept.includes('text/html')) {
+            const status = typeof res.statusCode === 'number' ? res.statusCode : 200;
             if (isClientDevOnly) {
               qwikPlugin.log(`handleClientEntry("${url}")`);
 
@@ -436,7 +437,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
               res.setHeader('Cache-Control', 'no-cache, no-store, max-age=0');
               res.setHeader('Access-Control-Allow-Origin', '*');
               res.setHeader('X-Powered-By', 'Qwik Vite Dev Server');
-              res.writeHead(200);
+              res.writeHead(status);
               res.end(html);
               return;
             }
@@ -484,6 +485,18 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
               });
 
               qwikPlugin.log(`handleSSR()`, 'symbols', manifest);
+
+              const userContext: any = {};
+              try {
+                const userContextStr = res.getHeader('X-Qwik-Dev-User-Context');
+                if (typeof userContextStr === 'string') {
+                  Object.assign(userContext, JSON.parse(userContextStr));
+                  res.removeHeader('X-Qwik-Dev-User-Context');
+                }
+              } catch (e) {
+                console.error(e);
+              }
+
               const renderToStringOpts: RenderOptions = {
                 url: url.href,
                 debug: true,
@@ -498,28 +511,10 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
                       }
                     },
                 prefetchStrategy: null,
+                userContext,
               };
 
               const result = await render(renderToStringOpts);
-
-              if (result.httpEquiv.location) {
-                res.setHeader('Location', result.httpEquiv.location);
-                res.writeHead(302);
-                res.end();
-                return;
-              }
-
-              let status = 200;
-              if (result.httpEquiv.status) {
-                try {
-                  const parsedStatus = parseInt(result.httpEquiv.status, 10);
-                  if (parsedStatus >= 200 && parsedStatus < 600) {
-                    status = parsedStatus;
-                  }
-                } catch (e) {
-                  /**/
-                }
-              }
 
               const html = await server.transformIndexHtml(pathname, result.html, req.originalUrl);
 
@@ -597,25 +592,6 @@ export function render(document, rootNode) {
     qwikLoader.id = 'qwikloader';
     qwikLoader.innerHTML = ${qwikLoader};
     document.head.appendChild(qwikLoader);
-  }
-
-  if (!window.__qwikViteHeadObserver) {
-    window.__qwikViteHeadObserver = new MutationObserver(() => {
-      const redirect = document.head.querySelector('meta[http-equiv="location"][content]');
-      if (redirect) {
-        const redirectPathname = redirect.getAttribute('content');
-        redirect.remove();
-        console.debug("Redirecting to:", redirectPathname);
-        location = redirectPathname;
-      }
-
-      const status = document.head.querySelector('meta[http-equiv="status"][content]');
-      if (status) {
-        console.debug("Dev HTTP Status:", status.getAttribute('content'));
-        status.remove();
-      }
-    });
-    window.__qwikViteHeadObserver.observe(document.head, { childList: true });
   }
 
   if (!window.__qwikViteLog) {

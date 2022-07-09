@@ -4,7 +4,7 @@ import type { ContentModule, HeadComponentProps, DocumentHead, RouteLocation } f
 export const resolveHead = (routeLocation: RouteLocation, contentModules: ContentModule[]) => {
   const headProps: HeadComponentProps = {
     resolved: createDocumentHead(),
-    location: JSON.parse(JSON.stringify(routeLocation)),
+    ...JSON.parse(JSON.stringify(routeLocation)),
   };
 
   for (let i = contentModules.length - 1; i >= 0; i--) {

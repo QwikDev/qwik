@@ -1,4 +1,5 @@
 import type { FunctionComponent } from '@builder.io/qwik';
+import type { RenderDocument } from '../../../../qwik/src/server/types';
 import type { ROUTE_TYPE_ENDPOINT } from './constants';
 
 export interface EndpointModule<BODY = unknown> {
@@ -29,12 +30,10 @@ export interface LayoutModule extends EndpointModule {
  */
 export interface RouteLocation {
   hash: string;
-  host: string;
   hostname: string;
   href: string;
   params: RouteParams;
   pathname: string;
-  port: string;
   search: string;
   query: Record<string, string>;
 }
@@ -95,9 +94,8 @@ export interface DocumentStyle {
 /**
  * @public
  */
-export interface HeadComponentProps {
+export interface HeadComponentProps extends RouteLocation {
   resolved: DocumentHead;
-  location: RouteLocation;
 }
 
 /**
@@ -224,18 +222,24 @@ export interface EndpointResponse<BODY = unknown> {
    * with `JSON.stringify(body)`. If the "Content-Type" header is not provided, the response
    * will default to include the header `"Content-Type": "application/json; charset=utf-8"`.
    */
-  headers?: Record<string, string>;
+  headers?: Record<string, string | undefined>;
   /**
-   * HTTP Status code. Defaults to `200`.
+   * HTTP Status code. The status code is import to determine if the data can be public
+   * facing or not. Setting a value of `200` will allow the endpoint to be fetched using
+   * an `"accept": "application/json"` request header. If the data from the API
+   * should not allowed to be requested, the status should be set to one of the Client Error
+   * response status codes. An example would be `401` for "Unauthorized", or `403` for
+   * "Forbidden".
+   *
+   * https://developer.mozilla.org/en-US/docs/Web/HTTP/Status#client_error_responses
    */
-  status?: number;
+  status: number;
 }
 
-/**
- * @public
- */
-export interface ContentResponse {
-  status?: number | null;
-  redirect?: string | null;
-  cacheControl?: string | null;
+export interface QwikCityRenderDocument extends RenderDocument {
+  __qwikUserCtx?: {
+    qwikCity?: {
+      endpointResponse?: EndpointResponse;
+    };
+  };
 }

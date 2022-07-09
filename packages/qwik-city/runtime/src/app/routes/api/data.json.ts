@@ -3,6 +3,7 @@ import os from 'os';
 
 export const onGet: EndpointHandler = ({ request }) => {
   return {
+    status: 200,
     body: {
       timestamp: Date.now(),
       method: request.method,

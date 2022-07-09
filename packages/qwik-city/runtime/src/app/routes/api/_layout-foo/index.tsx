@@ -31,10 +31,10 @@ export default component$(() => {
   );
 });
 
-export const head: HeadComponent = ({ location }) => {
+export const head: HeadComponent = ({ pathname }) => {
   return (
     <>
-      <title>API: {location.pathname}</title>
+      <title>API: {pathname}</title>
     </>
   );
 };

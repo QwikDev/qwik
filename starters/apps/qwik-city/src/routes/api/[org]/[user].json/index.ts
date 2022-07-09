@@ -3,6 +3,7 @@ import os from 'os';
 
 export const onGet: EndpointHandler = ({ request, params }) => {
   return {
+    status: 200,
     body: {
       timestamp: Date.now(),
       method: request.method,
@@ -17,6 +18,7 @@ export const onGet: EndpointHandler = ({ request, params }) => {
 
 export const onPost: EndpointHandler = async ({ request, params }) => {
   return {
+    status: 200,
     body: {
       timestamp: Date.now(),
       method: request.method,

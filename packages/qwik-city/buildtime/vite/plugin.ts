@@ -7,13 +7,20 @@ import { createBuildContext, resetBuildContext } from '../utils/context';
 import { isMarkdownFileName, normalizePath } from '../utils/fs';
 import { validatePlugin } from './validate-plugin';
 import type { QwikCityVitePluginOptions } from './types';
-import { endpointHandler } from '../../middleware/request-handler/endpoint-handler';
+import {
+  endpointHandler,
+  getEndpointResponse,
+} from '../../middleware/request-handler/endpoint-handler';
 import { getRouteParams } from '../../runtime/src/library/routing';
 import { build } from '../build';
 import { isMenuFileName } from '../markdown/menu';
 import type { HttpMethod } from '../../runtime/src/library/types';
 import { checkRedirect } from '../../middleware/request-handler/redirect-handler';
-import { isAcceptJsonOnly } from '../../middleware/request-handler/utils';
+import {
+  checkEndpointRedirect,
+  getQwikCityUserContext,
+  isAcceptJsonOnly,
+} from '../../middleware/request-handler/utils';
 import {
   createPrinter,
   createSourceFile,
@@ -90,33 +97,65 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
               if (match) {
                 const method: HttpMethod = req.method as any;
                 const request = new Request(url.href, { method, headers: req.headers as any });
+                const params = getRouteParams(route.paramNames, match);
+
+                if (route.type !== 'endpoint') {
+                  const redirectResponse = checkRedirect(url, ctx.opts.trailingSlash);
+                  if (redirectResponse) {
+                    res.statusCode = redirectResponse.status;
+                    redirectResponse.headers.forEach((value, key) => res.setHeader(key, value));
+                    return;
+                  }
+                }
+
+                const endpointModule = await server.ssrLoadModule(route.filePath);
+
+                const endpointResponse = await getEndpointResponse(
+                  request,
+                  method,
+                  url,
+                  params,
+                  endpointModule
+                );
+
+                const endpointRedirectResponse = checkEndpointRedirect(endpointResponse);
+                if (endpointRedirectResponse) {
+                  res.statusCode = endpointRedirectResponse.status;
+                  endpointRedirectResponse.headers.forEach((value, key) =>
+                    res.setHeader(key, value)
+                  );
+                  res.end();
+                  return;
+                }
 
                 if (route.type === 'endpoint' || isAcceptJsonOnly(request)) {
-                  const params = getRouteParams(route.paramNames, match);
-
-                  const endpointModule = await server.ssrLoadModule(route.filePath);
-                  const response = await endpointHandler(
-                    request,
-                    method,
-                    url,
-                    params,
-                    endpointModule
-                  );
-
+                  const response = endpointHandler(method, endpointResponse);
                   res.statusCode = response.status;
-                  res.statusMessage = response.statusText;
                   response.headers.forEach((value, key) => res.setHeader(key, value));
                   res.write(response.body);
                   res.end();
                   return;
                 }
 
-                const redirectResponse = checkRedirect(url, ctx.opts.trailingSlash);
-                if (redirectResponse) {
-                  res.statusCode = redirectResponse.status;
-                  redirectResponse.headers.forEach((value, key) => res.setHeader(key, value));
-                  res.end();
-                  return;
+                if (endpointResponse) {
+                  // modify the response, but do not end()
+                  if (typeof endpointResponse.status === 'number') {
+                    res.statusCode = endpointResponse.status;
+                  }
+                  if (endpointResponse.headers) {
+                    for (const [key, value] of Object.entries(endpointResponse.headers)) {
+                      if (value) {
+                        res.setHeader(key, value);
+                      }
+                    }
+                  }
+                }
+
+                try {
+                  const userContext = getQwikCityUserContext(endpointResponse);
+                  res.setHeader('X-Qwik-Dev-User-Context', JSON.stringify(userContext));
+                } catch (e) {
+                  console.error(e);
                 }
               }
             }

@@ -126,9 +126,7 @@ export type EndpointHandler<BODY = unknown> = (ev: RequestEvent) => EndpointResp
 export type HeadComponent = FunctionComponent<HeadComponentProps>;
 
 // @public (undocumented)
-export interface HeadComponentProps {
-    // (undocumented)
-    location: RouteLocation;
+export interface HeadComponentProps extends RouteLocation {
     // (undocumented)
     resolved: DocumentHead;
 }
@@ -167,8 +165,6 @@ export interface RouteLocation {
     // (undocumented)
     hash: string;
     // (undocumented)
-    host: string;
-    // (undocumented)
     hostname: string;
     // (undocumented)
     href: string;
@@ -178,8 +174,6 @@ export interface RouteLocation {
     params: RouteParams;
     // (undocumented)
     pathname: string;
-    // (undocumented)
-    port: string;
     // (undocumented)
     query: Record<string, string>;
     // (undocumented)
@@ -203,11 +197,6 @@ export const useEndpoint: <T = unknown>() => Resource<T>;
 
 // @public (undocumented)
 export const useLocation: () => RouteLocation;
-
-// Warning: (ae-forgotten-export) The symbol "ContentResponse" needs to be exported by the entry point index.d.ts
-//
-// @public (undocumented)
-export const useResponse: () => ContentResponse;
 
 // (No @packageDocumentation comment for this package)
 

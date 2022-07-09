@@ -3,7 +3,12 @@ import { pauseContainer, render } from '@builder.io/qwik';
 import type { SnapshotResult } from '@builder.io/qwik';
 import { setServerPlatform } from './platform';
 import { serializeDocument } from './serialize';
-import type { QwikManifest, RenderToStringOptions, RenderToStringResult } from './types';
+import type {
+  QwikManifest,
+  RenderDocument,
+  RenderToStringOptions,
+  RenderToStringResult,
+} from './types';
 import { getElement } from '../core/render/render.public';
 import { getQwikLoaderScript } from './scripts';
 import { applyPrefetchImplementation } from './prefetch-implementation';
@@ -21,10 +26,11 @@ import { logWarn } from '../core/util/log';
  */
 export async function renderToString(rootNode: any, opts: RenderToStringOptions = {}) {
   const createDocTimer = createTimer();
-  const doc = _createDocument(opts) as Document;
+  const doc = _createDocument(opts) as RenderDocument;
   const createDocTime = createDocTimer();
   const renderDocTimer = createTimer();
   let root: Element | Document = doc;
+
   if (typeof opts.fragmentTagName === 'string') {
     if (opts.qwikLoader) {
       if (opts.qwikLoader.include === undefined) {
@@ -40,9 +46,12 @@ export async function renderToString(rootNode: any, opts: RenderToStringOptions 
   if (!opts.manifest) {
     logWarn('Missing client manifest, loading symbols in the client might 404');
   }
+
   const isFullDocument = isDocument(root);
   const mapper = computeSymbolMapper(opts.manifest);
   await setServerPlatform(doc, opts, mapper);
+
+  doc.__qwikUserCtx = opts.userContext;
 
   await render(root, rootNode);
 
@@ -81,16 +90,7 @@ export async function renderToString(rootNode: any, opts: RenderToStringOptions 
     }
   }
 
-  const httpEquiv: Record<string, string> = {};
-  const metaHttpEquivElms = Array.from(doc.head.querySelectorAll('meta[http-equiv][content]'));
-  for (const metaElm of metaHttpEquivElms) {
-    const key = metaElm.getAttribute('http-equiv')!;
-    const value = metaElm.getAttribute('content')!;
-    httpEquiv[key] = value;
-    if (!VALID_HTTP_EQUIV.includes(key)) {
-      metaElm.remove();
-    }
-  }
+  (doc as any).__qwikUserCtx = undefined;
 
   const docToStringTimer = createTimer();
 
@@ -98,7 +98,6 @@ export async function renderToString(rootNode: any, opts: RenderToStringOptions 
     prefetchResources,
     snapshotResult,
     html: serializeDocument(root, opts),
-    httpEquiv,
     timing: {
       createDocument: createDocTime,
       render: renderDocTime,
@@ -108,8 +107,6 @@ export async function renderToString(rootNode: any, opts: RenderToStringOptions 
 
   return result;
 }
-
-const VALID_HTTP_EQUIV = ['content-security-policy', 'default-style', 'x-ua-compatible', 'refresh'];
 
 function computeSymbolMapper(manifest: QwikManifest | undefined): SymbolMapper | undefined {
   if (manifest) {

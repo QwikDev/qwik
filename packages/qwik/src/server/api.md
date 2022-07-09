@@ -141,14 +141,14 @@ export interface RenderToStringOptions extends SerializeDocumentOptions {
         include?: boolean | 'top' | 'bottom';
     };
     snapshot?: boolean;
+    // (undocumented)
+    userContext?: Record<string, any>;
 }
 
 // @public (undocumented)
 export interface RenderToStringResult {
     // (undocumented)
     html: string;
-    // (undocumented)
-    httpEquiv: Record<string, string>;
     // Warning: (ae-incompatible-release-tags) The symbol "prefetchResources" is marked as @public, but its signature references "PrefetchResource" which is marked as @alpha
     //
     // (undocumented)

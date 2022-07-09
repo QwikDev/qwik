@@ -1,31 +1,19 @@
 import type { Render } from '@builder.io/qwik/server';
-import type { HttpMethod } from '../../runtime/src/library/types';
-import { getHttpEquivResponse } from './utils';
+import type { EndpointResponse } from '../../runtime/src/library/types';
+import { createPageHeaders, getQwikCityUserContext, getStatus } from './utils';
 
-export async function pageHandler(render: Render, method: HttpMethod, url: URL) {
+export async function pageHandler(
+  render: Render,
+  url: URL,
+  endpointResponse: EndpointResponse | null
+) {
+  const status = getStatus(endpointResponse?.status, 200, 599, 200);
+  const headers = createPageHeaders(endpointResponse?.headers);
+
   const result = await render({
     url: url.href,
+    userContext: getQwikCityUserContext(endpointResponse),
   });
-
-  const { status, headers } = getHttpEquivResponse(result);
-  const redirectLocation = headers.get('location');
-  if (redirectLocation) {
-    return new Response('', {
-      status,
-      headers,
-    });
-  }
-
-  if (!headers.has('Content-Type')) {
-    headers.set('Content-Type', 'text/html; charset=utf-8');
-  }
-
-  if (!headers.has('Cache-Control')) {
-    headers.set(
-      'Cache-Control',
-      'max-age=120, s-maxage=60, stale-while-revalidate=604800, stale-if-error=604800'
-    );
-  }
 
   return new Response(result.html, {
     status,

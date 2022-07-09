@@ -1,32 +1,23 @@
 import { component$, Host, useStore } from '@builder.io/qwik';
-import { useEndpoint, useLocation, useResponse, EndpointHandler } from '~qwik-city-runtime';
+import { useEndpoint, useLocation, EndpointHandler, HeadComponent } from '~qwik-city-runtime';
 import os from 'os';
 
 export default component$(() => {
   const { params, pathname } = useLocation();
-  const response = useResponse();
   const store = useStore({ productFetchData: '' });
-
-  if (params.id === 'shirt') {
-    response.redirect = '/products/t-shirt';
-    return null;
-  }
 
   const product = useEndpoint<ProductData | null>();
 
   if (product.state === 'resolved' && product.resolved == null) {
-    response.status = 404;
     return <h1>Product "{params.id}" not found</h1>;
   }
-
-  response.cacheControl = 'no-cache, no-store, no-fun';
 
   return (
     <Host>
       <h1>Product: {product.resolved?.productId}</h1>
       <p>Price: {product.resolved?.price}</p>
       <p>{product.resolved?.description}</p>
-
+      <p>(Artificial response delay of 250ms)</p>
       <p>
         <button
           onClick$={async () => {
@@ -47,7 +38,7 @@ export default component$(() => {
 
       <ul>
         <li>
-          <a href="/products/shirt">T-Shirt (308 redirect to /products/t-shirt)</a>
+          <a href="/products/shirt">T-Shirt (Redirect to /products/t-shirt)</a>
         </li>
         <li>
           <a href="/products/hoodie">Hoodie (404 Not Found)</a>
@@ -60,17 +51,38 @@ export default component$(() => {
   );
 });
 
+export const head: HeadComponent = ({ pathname }) => {
+  return (
+    <>
+      <title>Product {pathname}</title>
+    </>
+  );
+};
+
 export const onGet: EndpointHandler<ProductData | null> = async ({ params }) => {
-  await new Promise<void>((resolve) => setTimeout(resolve, 10));
+  // Serverside Endpoint
+  // During SSR, this method is called directly on the server and returns the data object
+  // On the client, this same data can be requested with fetch() at the same URL, but also
+  // requires the "accept: application/json" request header.
 
-  const db: Record<string, string> = {
-    hat: '$12.96',
-    't-shirt': '$18.96',
-  };
+  // artificial slow response
+  await new Promise<void>((resolve) => setTimeout(resolve, 250));
 
-  const price = db[params.id];
+  if (params.id === 'shirt') {
+    // Redirect, which will skip any rendering and the server will immediately redirect
+    return {
+      status: 307,
+      headers: {
+        location: '/products/t-shirt',
+      },
+    };
+  }
 
-  if (!price) {
+  const productPrice = PRODUCT_DB[params.id];
+
+  if (!productPrice) {
+    // Product data not found
+    // but the data is still given to the renderer to decide what to do
     return {
       status: 404,
       body: null,
@@ -78,14 +90,27 @@ export const onGet: EndpointHandler<ProductData | null> = async ({ params }) => 
   }
 
   return {
+    // Found the product data
+    // This same data is passed to the head() function
+    // and in the component$() it can be access with useEndpoint()
+    status: 200,
     body: {
       productId: params.id,
-      price: price,
+      price: productPrice,
       description: `Node ${process.versions.node} ${os.platform()} ${os.arch()} ${
         os.cpus()[0].model
       }`,
     },
+    headers: {
+      'Cache-Control': 'no-cache, no-store, no-fun',
+    },
   };
+};
+
+// Our pretty awesome database of prices
+const PRODUCT_DB: Record<string, string> = {
+  hat: '$12.96',
+  't-shirt': '$18.96',
 };
 
 interface ProductData {

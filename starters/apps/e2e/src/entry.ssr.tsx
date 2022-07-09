@@ -16,6 +16,8 @@ import { Toggle } from './components/toggle/toggle';
 import { Styles } from './components/styles/styles';
 import { BroadcastEvents } from './components/broadcast-events/broadcast-event';
 import { Weather } from './components/resource/weather';
+import { ResourceApp } from './components/resource/resource';
+
 /**
  * Entry point for server-side pre-rendering.
  *
@@ -41,6 +43,7 @@ export function render(opts: RenderOptions) {
     '/e2e/styles': () => <Styles />,
     '/e2e/broadcast-events': () => <BroadcastEvents />,
     '/e2e/weather': () => <Weather />,
+    '/e2e/resource': () => <ResourceApp />,
   };
   const Test = tests[url.pathname];
 

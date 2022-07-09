@@ -124,6 +124,8 @@ fn optimize(
         explicit_extensions: optimizer_input.explicit_extensions,
         dev: true,
         scope: None,
+
+        strip_exports: None,
     })?;
 
     result.write_to_fs(

@@ -8,6 +8,7 @@ use std::str;
 use crate::code_move::{new_module, NewModuleCtx};
 use crate::collector::global_collect;
 use crate::entry_strategy::EntryPolicy;
+use crate::filter_exports::StripExportsVisitor;
 use crate::transform::{HookKind, QwikTransform, QwikTransformOptions};
 use crate::utils::{Diagnostic, DiagnosticCategory, DiagnosticScope, SourceLocation};
 use path_slash::PathExt;
@@ -67,6 +68,8 @@ pub struct TransformCodeOptions<'a> {
     pub dev: bool,
     pub scope: Option<&'a String>,
     pub is_inline: bool,
+
+    pub strip_exports: Option<&'a [JsWord]>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
@@ -209,6 +212,10 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 
                     let mut main_module = main_module;
 
+                    if let Some(strip_exports) = config.strip_exports {
+                        let mut visitor = StripExportsVisitor::new(strip_exports);
+                        main_module.visit_mut_with(&mut visitor);
+                    }
                     // Transpile JSX
                     if transpile && is_type_script {
                         main_module = if is_jsx {

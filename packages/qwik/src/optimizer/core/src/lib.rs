@@ -10,6 +10,7 @@ mod code_move;
 mod collector;
 mod entry_strategy;
 mod errors;
+mod filter_exports;
 mod package_json;
 mod parse;
 mod transform;
@@ -31,6 +32,7 @@ use std::path::Path;
 use anyhow::Error;
 use serde::{Deserialize, Serialize};
 use std::str;
+use swc_atoms::JsWord;
 
 use crate::code_move::generate_entries;
 use crate::entry_strategy::parse_entry_strategy;
@@ -52,6 +54,8 @@ pub struct TransformFsOptions {
     pub explicit_extensions: bool,
     pub dev: bool,
     pub scope: Option<String>,
+
+    pub strip_exports: Option<Vec<JsWord>>,
 }
 
 #[derive(Serialize, Debug, Deserialize)]
@@ -73,6 +77,8 @@ pub struct TransformModulesOptions {
     pub explicit_extensions: bool,
     pub dev: bool,
     pub scope: Option<String>,
+
+    pub strip_exports: Option<Vec<JsWord>>,
 }
 
 #[cfg(feature = "fs")]
@@ -106,6 +112,7 @@ pub fn transform_fs(config: TransformFsOptions) -> Result<TransformOutput, Error
                 entry_policy,
                 dev: config.dev,
                 is_inline,
+                strip_exports: config.strip_exports.as_deref(),
             })
         })
         .reduce(|| Ok(TransformOutput::new()), |x, y| Ok(x?.append(&mut y?)))?;
@@ -137,6 +144,8 @@ pub fn transform_modules(config: TransformModulesOptions) -> Result<TransformOut
             dev: config.dev,
             scope: config.scope.as_ref(),
             is_inline,
+
+            strip_exports: config.strip_exports.as_deref(),
         })
     });
 

@@ -1,4 +1,4 @@
-import { component$, Host, useStore } from '@builder.io/qwik';
+import { Async, component$, Host, useStore } from '@builder.io/qwik';
 import { useEndpoint, useLocation, EndpointHandler, DocumentHead } from '~qwik-city-runtime';
 import os from 'os';
 
@@ -6,18 +6,30 @@ export default component$(() => {
   const { params, pathname } = useLocation();
   const store = useStore({ productFetchData: '' });
 
-  const product = useEndpoint<EndpointData>();
-
-  if (product.state === 'resolved' && product.resolved == null) {
-    return <h1>Product "{params.id}" not found</h1>;
-  }
+  const resource = useEndpoint<EndpointData>();
 
   return (
     <Host>
-      <h1>Product: {product.resolved?.productId}</h1>
-      <p>Price: {product.resolved?.price}</p>
-      <p>{product.resolved?.description}</p>
+      <Async
+        resource={resource}
+        onPending={() => <p>Loading</p>}
+        onResolved={(product) => {
+          if (product == null) {
+            return <h1>Product "{params.id}" not found</h1>;
+          }
+
+          return (
+            <>
+              <h1>Product: {product.productId}</h1>
+              <p>Price: {product.price}</p>
+              <p>{product.description}</p>
+            </>
+          );
+        }}
+      />
+
       <p>(Artificial response delay of 250ms)</p>
+
       <p>
         <button
           onClick$={async () => {
@@ -30,6 +42,7 @@ export default component$(() => {
           fetch("{pathname}") data
         </button>
       </p>
+
       <pre>
         <code>{store.productFetchData}</code>
       </pre>

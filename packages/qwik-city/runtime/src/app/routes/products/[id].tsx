@@ -6,7 +6,7 @@ export default component$(() => {
   const { params, pathname } = useLocation();
   const store = useStore({ productFetchData: '' });
 
-  const product = useEndpoint<ProductData | null>();
+  const product = useEndpoint<EndpointData>();
 
   if (product.state === 'resolved' && product.resolved == null) {
     return <h1>Product "{params.id}" not found</h1>;
@@ -66,7 +66,7 @@ export const head: DocumentHead<ProductData | null> = ({ data }) => {
   };
 };
 
-export const onGet: EndpointHandler<ProductData | null> = async ({ params }) => {
+export const onGet: EndpointHandler<EndpointData> = async ({ params }) => {
   // Serverside Endpoint
   // During SSR, this method is called directly on the server and returns the data object
   // On the client, this same data can be requested with fetch() at the same URL, but also
@@ -120,6 +120,8 @@ const PRODUCT_DB: Record<string, string> = {
   jacket: '$48.96',
   tshirt: '$18.96',
 };
+
+type EndpointData = ProductData | null;
 
 interface ProductData {
   productId: string;

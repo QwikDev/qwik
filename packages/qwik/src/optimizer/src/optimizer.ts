@@ -89,6 +89,7 @@ const convertOptions = (opts: any) => {
     explicitExtensions: false,
     dev: true,
     scope: undefined,
+    stripExports: undefined,
   };
   Object.entries(opts).forEach(([key, value]) => {
     if (value != null) {

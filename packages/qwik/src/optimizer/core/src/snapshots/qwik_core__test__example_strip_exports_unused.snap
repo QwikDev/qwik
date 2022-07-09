@@ -1,0 +1,61 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$ } from '@builder.io/qwik';
+import mongodb from 'mongodb';
+
+export const onGet = () => {
+    const data = mongodb.collection.whatever;
+    return {
+        body: {
+        data
+        }
+    }
+};
+
+export default component$(()=> {
+    return <div>cmp</div>
+});
+
+============================= test.tsx ==
+
+import { componentQrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+export const onGet = ()=>{
+    throw "removed by optimizer";
+};
+export default /*#__PURE__*/ componentQrl(qrl(()=>import("./test_component_luxexe0dqrg")
+, "test_component_LUXeXe0DQrg"));
+
+============================= test_component_luxexe0dqrg.tsx (ENTRY POINT)==
+
+export const test_component_LUXeXe0DQrg = ()=>{
+    return <div >cmp</div>;
+};
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_LUXeXe0DQrg",
+  "entry": null,
+  "displayName": "test_component",
+  "hash": "LUXeXe0DQrg",
+  "canonicalFilename": "test_component_luxexe0dqrg",
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    244,
+    278
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

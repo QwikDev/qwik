@@ -6,6 +6,10 @@ use serde_json::to_string_pretty;
 macro_rules! test_input {
     ($input: expr) => {
         let input = $input;
+        let strip_exports: Option<Vec<JsWord>> = input
+            .strip_exports
+            .map(|v| v.into_iter().map(|s| JsWord::from(s)).collect());
+
         let res = transform_modules(TransformModulesOptions {
             src_dir: input.src_dir,
             input: vec![TransformModuleInput {
@@ -19,6 +23,7 @@ macro_rules! test_input {
             entry_strategy: input.entry_strategy,
             dev: input.dev,
             scope: input.scope,
+            strip_exports,
         });
         if input.snapshot {
             let input = input.code.to_string();
@@ -1193,6 +1198,61 @@ export const Child = component$(() => {
 }
 
 #[test]
+fn example_strip_exports_unused() {
+    test_input!(TestInput {
+        code: r#"
+import { component$ } from '@builder.io/qwik';
+import mongodb from 'mongodb';
+
+export const onGet = () => {
+    const data = mongodb.collection.whatever;
+    return {
+        body: {
+        data
+        }
+    }
+};
+
+export default component$(()=> {
+    return <div>cmp</div>
+});
+"#
+        .to_string(),
+        strip_exports: Some(vec!["onGet".into()]),
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_strip_exports_used() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useResource$ } from '@builder.io/qwik';
+import mongodb from 'mongodb';
+
+export const onGet = () => {
+    const data = mongodb.collection.whatever;
+    return {
+        body: {
+        data
+        }
+    }
+};
+
+export default component$(()=> {
+    useResource$(() => {
+        return onGet();
+    })
+    return <div>cmp</div>
+});
+"#
+        .to_string(),
+        strip_exports: Some(vec!["onGet".into()]),
+        ..TestInput::default()
+    });
+}
+
+#[test]
 fn issue_150() {
     test_input!(TestInput {
         code: r#"
@@ -1434,6 +1494,7 @@ export const Local = component$(() => {
         entry_strategy: EntryStrategy::Hook,
         transpile: true,
         scope: None,
+        strip_exports: None,
     });
     snapshot_res!(&res, "".into());
 }
@@ -1491,6 +1552,7 @@ export const Greeter = component$(() => {
         entry_strategy: EntryStrategy::Hook,
         transpile: true,
         scope: None,
+        strip_exports: None,
     });
     let ref_hooks: Vec<_> = res
         .unwrap()
@@ -1519,6 +1581,7 @@ export const Greeter = component$(() => {
             entry_strategy: option.1,
             transpile: option.2,
             scope: None,
+            strip_exports: None,
         });
 
         let hooks: Vec<_> = res
@@ -1560,6 +1623,7 @@ struct TestInput {
     pub snapshot: bool,
     pub dev: bool,
     pub scope: Option<String>,
+    pub strip_exports: Option<Vec<String>>,
 }
 
 impl TestInput {
@@ -1575,6 +1639,7 @@ impl TestInput {
             snapshot: true,
             dev: true,
             scope: None,
+            strip_exports: None,
         }
     }
 }

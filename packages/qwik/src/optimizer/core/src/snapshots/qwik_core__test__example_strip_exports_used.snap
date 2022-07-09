@@ -1,0 +1,94 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$, useResource$ } from '@builder.io/qwik';
+import mongodb from 'mongodb';
+
+export const onGet = () => {
+    const data = mongodb.collection.whatever;
+    return {
+        body: {
+        data
+        }
+    }
+};
+
+export default component$(()=> {
+    useResource$(() => {
+        return onGet();
+    })
+    return <div>cmp</div>
+});
+
+============================= test_component_useresource_4a8wvy7wh38.tsx (ENTRY POINT)==
+
+import { onGet } from "./test";
+export const test_component_useResource_4a8wVY7wh38 = ()=>{
+    return onGet();
+};
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_useResource_4a8wVY7wh38",
+  "entry": null,
+  "displayName": "test_component_useResource",
+  "hash": "4a8wVY7wh38",
+  "canonicalFilename": "test_component_useresource_4a8wvy7wh38",
+  "extension": "tsx",
+  "parent": "test_component_LUXeXe0DQrg",
+  "ctxKind": "function",
+  "ctxName": "useResource$",
+  "captures": false,
+  "loc": [
+    282,
+    319
+  ]
+}
+*/
+============================= test.tsx ==
+
+import { componentQrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+export const onGet = ()=>{
+    throw "removed by optimizer";
+};
+export default /*#__PURE__*/ componentQrl(qrl(()=>import("./test_component_luxexe0dqrg")
+, "test_component_LUXeXe0DQrg"));
+
+============================= test_component_luxexe0dqrg.tsx (ENTRY POINT)==
+
+import { qrl } from "@builder.io/qwik";
+import { useResourceQrl } from "@builder.io/qwik";
+export const test_component_LUXeXe0DQrg = ()=>{
+    useResourceQrl(qrl(()=>import("./test_component_useresource_4a8wvy7wh38")
+    , "test_component_useResource_4a8wVY7wh38"));
+    return <div >cmp</div>;
+};
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_LUXeXe0DQrg",
+  "entry": null,
+  "displayName": "test_component",
+  "hash": "LUXeXe0DQrg",
+  "canonicalFilename": "test_component_luxexe0dqrg",
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    258,
+    348
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

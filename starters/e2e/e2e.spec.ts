@@ -538,4 +538,41 @@ test.describe('e2e', () => {
       await expect(button).toHaveText('Rerender 1');
     });
   });
+
+  test.describe('resource', () => {
+    test.beforeEach(async ({ page }) => {
+      await page.goto('/e2e/resource');
+      page.on('pageerror', (err) => expect(err).toEqual(undefined));
+    });
+
+    test('should load', async ({ page }) => {
+      const resource1 = await page.locator('.resource1');
+      const resource2 = await page.locator('.resource2');
+      const logs = await page.locator('.logs');
+      const increment = await page.locator('button');
+      let logsContent =
+        '[RENDER] <ResourceApp>\n[WATCH] 1 before\n[WATCH] 1 after\n[WATCH] 2 before\n[WATCH] 2 after\n[RESOURCE] 1 before\n[RESOURCE] 2 before\n[RENDER] <Results>\n\n\n';
+      await expect(resource1).toHaveText('resource 1 is 80');
+      await expect(resource2).toHaveText('resource 2 is 160');
+      await expect(logs).toHaveText(logsContent);
+
+      // Increment
+      await increment.click();
+      await page.waitForTimeout(400);
+
+      logsContent +=
+        '[RESOURCE] 1 after\n[RESOURCE] 2 after\n[WATCH] 1 before\n[WATCH] 1 after\n[WATCH] 2 before\n[WATCH] 2 after\n[RESOURCE] 1 before\n[RESOURCE] 2 before\n[RENDER] <Results>\n\n\n';
+      await expect(resource1).toHaveText('loading resource 1...');
+      await expect(resource2).toHaveText('loading resource 2...');
+      await expect(logs).toHaveText(logsContent);
+
+      // Wait until finish loading
+      await page.waitForTimeout(1000);
+
+      logsContent += '[RESOURCE] 1 after\n[RESOURCE] 2 after\n[RENDER] <Results>\n\n\n';
+      await expect(resource1).toHaveText('resource 1 is 88');
+      await expect(resource2).toHaveText('resource 2 is 176');
+      await expect(logs).toHaveText(logsContent);
+    });
+  });
 });

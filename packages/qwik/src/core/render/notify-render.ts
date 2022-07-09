@@ -92,7 +92,7 @@ export const notifyChange = (subscriber: Subscriber) => {
  * @returns A promise which is resolved when the component has been rendered.
  * @public
  */
-const notifyRender = async (hostElement: Element): Promise<RenderContext | undefined> => {
+const notifyRender = (hostElement: Element): void => {
   assertDefined(directGetAttribute(hostElement, QHostAttr));
 
   const containerEl = getContainer(hostElement)!;
@@ -114,34 +114,30 @@ const notifyRender = async (hostElement: Element): Promise<RenderContext | undef
   assertDefined(ctx.$renderQrl$);
 
   if (ctx.$dirty$) {
-    return state.$renderPromise$;
+    return;
   }
   ctx.$dirty$ = true;
   const activeRendering = state.$hostsRendering$ !== undefined;
   if (activeRendering) {
     assertDefined(state.$renderPromise$);
     state.$hostsStaging$.add(hostElement);
-    return state.$renderPromise$.then((ctx) => {
-      if (state.$hostsNext$.has(hostElement)) {
-        // TODO
-        return state.$renderPromise$;
-      } else {
-        return ctx;
-      }
-    });
   } else {
     state.$hostsNext$.add(hostElement);
-    return scheduleFrame(containerEl, state);
+    scheduleFrame(containerEl, state);
   }
 };
 
 const notifyWatch = (watch: SubscriberDescriptor) => {
-  const containerEl = getContainer(watch.el)!;
-  const state = getContainerState(containerEl);
+  if (watch.f & WatchFlagsIsDirty) {
+    return;
+  }
   watch.f |= WatchFlagsIsDirty;
 
+  const containerEl = getContainer(watch.el)!;
+  const state = getContainerState(containerEl);
   const activeRendering = state.$hostsRendering$ !== undefined;
   if (activeRendering) {
+    assertDefined(state.$renderPromise$);
     state.$watchStaging$.add(watch);
   } else {
     state.$watchNext$.add(watch);
@@ -289,8 +285,11 @@ const executeWatchesBefore = async (containerState: ContainerState) => {
     }
   } while (containerState.$watchStaging$.size > 0);
 
-  const resources = await Promise.all(resourcesPromises);
-  resources.map((watch) => runSubscriber(watch, containerState));
+  if (resourcesPromises.length > 0) {
+    const resources = await Promise.all(resourcesPromises);
+    sortWatches(resources);
+    resources.forEach((watch) => runSubscriber(watch, containerState));
+  }
 };
 
 const executeWatchesAfter = async (

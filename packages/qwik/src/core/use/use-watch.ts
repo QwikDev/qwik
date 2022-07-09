@@ -1,8 +1,8 @@
 import { getProxyTarget, noSerialize, NoSerialize } from '../object/q-object';
 import { getContext } from '../props/props';
 import { newInvokeContext, useInvoke } from './use-core';
-import { logDebug, logError } from '../util/log';
-import { safeCall } from '../util/promises';
+import { logError } from '../util/log';
+import { safeCall, then } from '../util/promises';
 import { useSequentialScope } from './use-store.public';
 import { getDocument } from '../util/dom';
 import { isFunction, isObject, ValueOrPromise } from '../util/types';
@@ -10,7 +10,7 @@ import { getPlatform } from '../platform/platform';
 import { ContainerState, handleWatch } from '../render/notify-render';
 import { useResumeQrl, useVisibleQrl } from './use-on';
 import { implicit$FirstArg } from '../util/implicit_dollar';
-import { assertDefined } from '../assert/assert';
+import { assertDefined, assertEqual } from '../assert/assert';
 import type { QRL } from '../import/qrl.public';
 import { assertQrl, createQrl, QRLInternal } from '../import/qrl-class';
 import { qError, QError_canNotMountUseServerMount } from '../error/error';
@@ -212,7 +212,8 @@ export const useWatchQrl = (qrl: QRL<WatchFn>, opts?: UseEffectOptions): void =>
     };
     set(true);
     getContext(el).$watches$.push(watch);
-    ctx.$waitOn$.push(Promise.resolve().then(() => runSubscriber(watch, containerState)));
+    const previousWait = ctx.$waitOn$.slice();
+    ctx.$waitOn$.push(Promise.all(previousWait).then(() => runSubscriber(watch, containerState)));
     const isServer = containerState.$platform$.isServer;
     if (isServer) {
       useRunWatch(watch, opts?.run);
@@ -565,6 +566,7 @@ export const runSubscriber = async (
   watch: SubscriberDescriptor,
   containerState: ContainerState
 ) => {
+  assertEqual(!!(watch.f & WatchFlagsIsDirty), true, 'Resource is not dirty');
   if ('r' in watch) {
     await runResource(watch, containerState);
   } else {
@@ -574,12 +576,9 @@ export const runSubscriber = async (
 
 export const runResource = <T>(
   watch: ResourceDescriptor<T>,
-  containerState: ContainerState
+  containerState: ContainerState,
+  waitOn?: Promise<any>
 ): ValueOrPromise<void> => {
-  if (!(watch.f & WatchFlagsIsDirty)) {
-    logDebug('Watch is not dirty, skipping run', watch);
-    return;
-  }
   watch.f &= ~WatchFlagsIsDirty;
   cleanupWatch(watch);
 
@@ -633,7 +632,7 @@ export const runResource = <T>(
   });
 
   return safeCall(
-    () => watchFn(opts),
+    () => then(waitOn, () => watchFn(opts)),
     (value) => {
       resource.state = 'resolved';
       resource.resolved = value;
@@ -655,10 +654,6 @@ export const runWatch = (
   watch: WatchDescriptor,
   containerState: ContainerState
 ): ValueOrPromise<void> => {
-  if (!(watch.f & WatchFlagsIsDirty)) {
-    logDebug('Watch is not dirty, skipping run', watch);
-    return;
-  }
   watch.f &= ~WatchFlagsIsDirty;
 
   cleanupWatch(watch);

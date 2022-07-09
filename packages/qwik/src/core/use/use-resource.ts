@@ -1,7 +1,7 @@
 import { createProxy } from '../object/q-object';
 import { getContext } from '../props/props';
 import { useSequentialScope } from './use-store.public';
-import type { QRL } from '../import/qrl.public';
+import { $, QRL } from '../import/qrl.public';
 import { assertQrl } from '../import/qrl-class';
 import {
   Resource,
@@ -11,7 +11,6 @@ import {
   WatchFlagsIsDirty,
   WatchFlagsIsResource,
 } from './use-watch';
-import { implicit$FirstArg } from '../util/implicit_dollar';
 import { assertDefined } from '../assert/assert';
 import { Fragment, jsx } from '../render/jsx/jsx-runtime';
 import type { JSXNode } from '../render/jsx/types/jsx-node';
@@ -45,7 +44,8 @@ export const useResourceQrl = <T>(qrl: QRL<ResourceFn<T>>): Resource<T> => {
     i,
     r: resource,
   };
-  ctx.$waitOn$.push(runResource(watch, containerState));
+  const previousWait = Promise.all(ctx.$waitOn$.slice());
+  runResource(watch, containerState, previousWait);
   getContext(el).$watches$.push(watch);
   assertDefined(result.promise);
   set(resource);
@@ -56,7 +56,9 @@ export const useResourceQrl = <T>(qrl: QRL<ResourceFn<T>>): Resource<T> => {
 /**
  * @alpha
  */
-export const useResource$ = /*#__PURE__*/ implicit$FirstArg(useResourceQrl);
+export const useResource$ = <T>(generatorFn: ResourceFn<T>): Resource<T> => {
+  return useResourceQrl<T>($(generatorFn));
+};
 
 export const useIsServer = () => {
   const ctx = getInvokeContext();

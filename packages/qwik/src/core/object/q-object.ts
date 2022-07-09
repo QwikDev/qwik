@@ -142,9 +142,7 @@ export const createSubscriptionManager = (): SubscriptionManager => {
           },
           $notifySubs$(key?: string) {
             map.forEach((value, subscriber) => {
-              if (value === null || !key) {
-                notifyChange(subscriber);
-              } else if (value.has(key)) {
+              if (value === null || !key || value.has(key)) {
                 notifyChange(subscriber);
               }
             });

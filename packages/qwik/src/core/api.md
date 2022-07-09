@@ -546,7 +546,7 @@ export const useRef: <T = Element>(current?: T | undefined) => Ref<T>;
 // Warning: (ae-forgotten-export) The symbol "ResourceFn" needs to be exported by the entry point index.d.ts
 //
 // @alpha (undocumented)
-export const useResource$: <T>(first: ResourceFn<T>) => Resource<T>;
+export const useResource$: <T>(generatorFn: ResourceFn<T>) => Resource<T>;
 
 // @alpha (undocumented)
 export const useResourceQrl: <T>(qrl: QRL<ResourceFn<T>>) => Resource<T>;

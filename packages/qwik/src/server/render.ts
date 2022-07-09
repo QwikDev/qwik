@@ -53,7 +53,7 @@ export async function renderToString(rootNode: any, opts: RenderToStringOptions 
 
   doc.__qwikUserCtx = opts.userContext;
 
-  await render(root, rootNode);
+  await render(root, rootNode, false);
 
   const renderDocTime = renderDocTimer();
 

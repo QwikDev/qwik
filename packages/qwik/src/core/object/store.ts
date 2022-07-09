@@ -4,7 +4,7 @@ import { isQrl, QRLInternal } from '../import/qrl-class';
 import { getContext, tryGetContext } from '../props/props';
 import { getDocument } from '../util/dom';
 import { isDocument, isElement, isNode } from '../util/element';
-import { logDebug, logError, logWarn } from '../util/log';
+import { logDebug, logErrorAndStop, logWarn } from '../util/log';
 import { ELEMENT_ID, ELEMENT_ID_PREFIX, QContainerAttr } from '../util/markers';
 import { qDev } from '../util/qdev';
 import {
@@ -283,11 +283,13 @@ export const pauseState = async (containerEl: Element): Promise<SnapshotResult> 
       }
       if (!target && isNode(obj)) {
         if (obj.nodeType === 1) {
-          return getElementID(obj as Element) + suffix;
-        } else {
-          logError(codeToText(QError_cannotSerializeNode), obj);
-          return null;
+          const elID = getElementID(obj as Element);
+          if (elID) {
+            return elID + suffix;
+          }
         }
+        logErrorAndStop(codeToText(QError_cannotSerializeNode), obj);
+        return null;
       }
     } else {
       const id = objToId.get(normalizeObj(obj, doc));

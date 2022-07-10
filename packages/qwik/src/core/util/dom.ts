@@ -8,6 +8,6 @@ export const getDocument = (node: Node): Document => {
     return node as Document;
   }
   const doc = node.ownerDocument;
-  assertDefined(doc);
+  assertDefined(doc, 'doc must be defined');
   return doc!;
 };

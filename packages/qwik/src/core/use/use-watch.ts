@@ -592,7 +592,7 @@ export const runResource = <T>(
 
   const cleanups: (() => void)[] = [];
   const resource = watch.r;
-  assertDefined(resource);
+  assertDefined(resource, 'useResource: when running a resource, "watch.r" must be a defined.');
 
   const track: Tracker = (obj: any, prop?: string) => {
     const target = getProxyTarget(obj);

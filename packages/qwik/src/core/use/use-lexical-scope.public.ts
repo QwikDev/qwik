@@ -1,4 +1,4 @@
-import { assertDefined, assertEqual } from '../assert/assert';
+import { assertDefined, assertTrue } from '../assert/assert';
 import { parseQRL } from '../import/qrl';
 import { getContext, QContext, resumeIfNeeded } from '../props/props';
 import { getContainer, getInvokeContext } from './use-core';
@@ -25,10 +25,14 @@ export const useLexicalScope = <VARS extends any[]>(): VARS => {
   assertQrl(qrl);
 
   if (qrl.$captureRef$ == null) {
-    const el = context.$element$!;
-    assertDefined(el);
-    assertDefined(qrl.$capture$);
-    resumeIfNeeded(getContainer(el)!);
+    const el = context.$element$;
+    assertDefined(el, 'invoke: element must be defined inside useLexicalScope()');
+    assertDefined(qrl.$capture$, 'invoke: qrl capture must be defined inside useLexicalScope()');
+
+    const container = getContainer(el);
+    assertDefined(container, `invoke: cant find parent q:container of: ${el}`);
+
+    resumeIfNeeded(container);
     const ctx = getContext(el);
 
     qrl.$captureRef$ = qrl.$capture$!.map((idx) => qInflate(idx, ctx));
@@ -43,6 +47,6 @@ export const useLexicalScope = <VARS extends any[]>(): VARS => {
 const qInflate = (ref: string, hostCtx: QContext) => {
   const int = parseInt(ref, 10);
   const obj = hostCtx.$refMap$.$get$(int);
-  assertEqual(hostCtx.$refMap$.$array$.length > int, true);
+  assertTrue(hostCtx.$refMap$.$array$.length > int, 'out of bounds infrate access');
   return obj;
 };
